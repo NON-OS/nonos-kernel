@@ -1,0 +1,33 @@
+[package]
+name = "nonos-kernel"
+version = "0.1.0"
+edition = "2021"
+license = "AGPL-3.0-or-later"
+description = "N0N-OS microkernel for zero-trust computing"
+authors = ["senseix21"]
+
+[lib]
+path = "src/lib.rs"
+crate-type = ["staticlib"]
+
+[dependencies]
+# Low-level x86_64 architecture support without std
+x86_64 = { version = "0.14.6", default-features = false }
+# Lock-free single-producer/single-consumer queues used in memory audit
+heapless = { version = "0.8.0", default-features = false }
+# Simple spinlock primitives for shared data structures
+spin = "0.9.8"
+# Bitflags macro for ergonomic flag definitions in memory audit
+bitflags = "2.4.1"
+
+[features]
+# Enable cryptographic SHA3 hashing in proof module
+nonos-hash-sha3 = []
+
+[profile.dev]
+# Abort immediately on panic because there is no OS to unwind
+panic = "abort"
+
+[profile.release]
+# Kernel should always abort on panic
+panic = "abort"
