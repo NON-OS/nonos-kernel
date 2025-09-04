@@ -286,3 +286,4 @@ pub fn revoke_capability(
 
 pub fn get_capability_stats() -> NonosCapabilityStatistics {
     NONOS_CAPABILITY_MATRIX.get_capability_statistics()
+}
