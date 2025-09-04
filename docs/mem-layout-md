@@ -1,0 +1,37 @@
+// This file is part of the NONOS Operating Systems Kernel.
+// 
+//  Copyright (C) [2025] [NONOS]
+//  
+//  This program is free software: you can redistribute it and/or modify
+//  it under the terms of the GNU Affero General Public License as published by
+//  the Free Software Foundation, either version 3 of the License, or
+//  (at your option) any later version.
+//  
+//  This program is distributed in the hope that it will be useful,
+//  but WITHOUT ANY WARRANTY; without even the implied warranty of
+//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+//  GNU Affero General Public License for more details.
+//
+# NØNOS Memory Layout (x86_64)
+
+- Canonical, 4-level paging, 4 KiB pages (2 MiB later).
+- Higher-half kernel base: `0xffffffff80000000`.
+
+## Regions
+- .text         : RX, global
+- .rodata       : RO, NX
+- .data/.bss    : RW, NX
+- .percpu       : RW, NX (per-CPU TLS)
+- kernel heap   : RW, NX (slab + vm alloc)
+- stacks/IST    : RW, NX, with 1 guard page below each
+- device mmio   : RW, NX, uncached (MTRR/PAT later)
+
+## Page Flags
+- PRESENT|RW|USER|PWT|PCD|ACCESSED|DIRTY|GLOBAL|NX
+
+## KASLR
+- Slide = 2 MiB granularity.
+- Entropy: CPU RNG transcript → logged hash (no persistence).
+
+## Zero-State
+- On boot we emit a layout map + transcript hash via logger; no mutable state survives reboot.
