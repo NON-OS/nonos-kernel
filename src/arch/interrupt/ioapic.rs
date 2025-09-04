@@ -196,9 +196,9 @@ pub unsafe fn init(ioapics: &[MadtIoApic], iso: &[MadtIso], nmis: &[MadtNmi]) {
     // Reserve vectors we know are in use
     {
         let mut va = VEC_ALLOC.lock();
-        va.reserve(crate::arch::x86_64::interrupt::apic::VEC_TIMER);
-        va.reserve(crate::arch::x86_64::interrupt::apic::VEC_THERMAL);
-        va.reserve(crate::arch::x86_64::interrupt::apic::VEC_ERROR);
+        va.reserve(crate::arch::interrupt::apic::VEC_TIMER);
+        va.reserve(crate::arch::interrupt::apic::VEC_THERMAL);
+        va.reserve(crate::arch::interrupt::apic::VEC_ERROR);
         // add more reserved IDs here as you assign them
     }
 }
