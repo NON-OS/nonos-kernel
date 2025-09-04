@@ -1,4 +1,55 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# NØNOS Kernel — .gitignore
+# Purpose: keep the repo clean of build outputs, images, and local tooling junk
+# Notes:
+#   • This project is a freestanding Rust kernel (#![no_std]) built with nightly.
+#   • Bootable disk images are produced via bootloader 0.11 (not cargo-bootimage).
+#   • Keep Cargo.lock committed for reproducible builds of binaries.
+# ─────────────────────────────────────────────────────────────────────────────
+
+# ── Rust / Cargo build artifacts (workspace-safe) ────────────────────────────
 /target/
 **/target/
+# Rationale: all compiled outputs live under target/ (debug/release by triple).
+# Do NOT ignore Cargo.lock; it should remain tracked for deterministic builds.
+
+# ── Boot images (bootloader 0.11 generates BIOS/UEFI .img files) ────────────
+# Example paths:
+#   target/<triple>/debug/boot-bios-<image_crate>.img
+#   target/<triple>/debug/boot-uefi-<image_crate>.img
 *.img
 *.iso
+# Tip: publish images via releases or artifacts, not in the repo.
+
+# ── Legacy / staging directories (old ESP flows, scratch space) ─────────────
+build/
+build/**
+
+# ── Logs & traces ────────────────────────────────────────────────────────────
+*.log
+qemu.log
+trace.json
+
+# ── Editor / OS cruft ───────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+.vs/
+*.iml
+
+# Vim / Emacs backups & swap
+*~
+*.swp
+*.swo
+.#*
+
+# ── Debug / profiling artifacts ─────────────────────────────────────────────
+*.dSYM/
+*.profraw
+*.profdata
+*.sarif
+
+# ── Crash dumps ─────────────────────────────────────────────────────────────
+core
+core.*
