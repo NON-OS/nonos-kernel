@@ -75,8 +75,8 @@ lazy_static! {
         }
         idt.x87_floating_point.set_handler_fn(x87_handler);
         idt.alignment_check.set_handler_fn(ac_handler);
-        // We skip machine check for now - causes type issues
-        // 
+        // Skip machine check for now - causes type issues
+        // TODO: Fix machine check handler
         idt.simd_floating_point.set_handler_fn(simd_handler);
         idt.virtualization.set_handler_fn(virt_handler);
 
@@ -85,10 +85,28 @@ lazy_static! {
             idt[vec].set_handler_fn(reserved_handler);
         }
 
+        // Hardware interrupts (32-47 for PIC)
+        idt[32].set_handler_fn(timer_handler);     // Timer interrupt (IRQ 0)
+        idt[33].set_handler_fn(keyboard_handler);  // Keyboard interrupt (IRQ 1)
+        idt[34].set_handler_fn(cascade_handler);   // Cascade interrupt (IRQ 2)
+        idt[35].set_handler_fn(com2_handler);      // COM2 interrupt (IRQ 3) 
+        idt[36].set_handler_fn(com1_handler);      // COM1 interrupt (IRQ 4)
+        idt[37].set_handler_fn(lpt2_handler);      // LPT2 interrupt (IRQ 5)
+        idt[38].set_handler_fn(floppy_handler);    // Floppy interrupt (IRQ 6)
+        idt[39].set_handler_fn(lpt1_handler);      // LPT1 interrupt (IRQ 7)
+        idt[40].set_handler_fn(rtc_handler);       // RTC interrupt (IRQ 8)
+        idt[41].set_handler_fn(free1_handler);     // Free interrupt (IRQ 9)
+        idt[42].set_handler_fn(free2_handler);     // Free interrupt (IRQ 10)
+        idt[43].set_handler_fn(free3_handler);     // Free interrupt (IRQ 11)
+        idt[44].set_handler_fn(mouse_handler);     // PS/2 Mouse interrupt (IRQ 12)
+        idt[45].set_handler_fn(fpu_handler);       // FPU interrupt (IRQ 13)
+        idt[46].set_handler_fn(ata1_handler);      // Primary ATA interrupt (IRQ 14)
+        idt[47].set_handler_fn(ata2_handler);      // Secondary ATA interrupt (IRQ 15)
+
         // Syscall trap stub (Ring 3)
-        // idt[0x80]
-        //     .set_handler_fn(syscall_handler)
-        //     .set_privilege_level(x86_64::PrivilegeLevel::Ring3);
+        idt[0x80]
+            .set_handler_fn(syscall_handler)
+            .set_privilege_level(x86_64::structures::idt::PrivilegeLevel::Ring3);
 
         idt
     };
@@ -172,33 +190,39 @@ extern "x86-interrupt" fn df_handler(stack: InterruptStackFrame, _code: u64) {
     }
 }
 
-extern "x86-interrupt" fn invtss_handler(stack: InterruptStackFrame, _code: u64) {
-    trap!(log_err, 10, "Invalid TSS", stack, format!("Error Code={:#x}", code));
+extern "x86-interrupt" fn invtss_handler(stack: InterruptStackFrame, code: u64) {
+    trap!(log_err, 10, "Invalid TSS", stack);
+    log_err!("Error Code={:#x}", code);
 }
 
-extern "x86-interrupt" fn seg_np_handler(stack: InterruptStackFrame, _code: u64) {
-    trap!(log_err, 11, "Segment Not Present", stack, format!("Error Code={:#x}", code));
+extern "x86-interrupt" fn seg_np_handler(stack: InterruptStackFrame, code: u64) {
+    trap!(log_err, 11, "Segment Not Present", stack);
+    log_err!("Error Code={:#x}", code);
 }
 
-extern "x86-interrupt" fn stackseg_handler(stack: InterruptStackFrame, _code: u64) {
-    trap!(log_err, 12, "Stack Segment Fault", stack, format!("Error Code={:#x}", code));
+extern "x86-interrupt" fn stackseg_handler(stack: InterruptStackFrame, code: u64) {
+    trap!(log_err, 12, "Stack Segment Fault", stack);
+    log_err!("Error Code={:#x}", code);
 }
 
-extern "x86-interrupt" fn gpf_handler(stack: InterruptStackFrame, _code: u64) {
-    trap!(log_err, 13, "General Protection Fault", stack, format!("Error Code={:#x}", code));
+extern "x86-interrupt" fn gpf_handler(stack: InterruptStackFrame, code: u64) {
+    trap!(log_err, 13, "General Protection Fault", stack);
+    log_err!("Error Code={:#x}", code);
 }
 
-extern "x86-interrupt" fn pf_handler(stack: InterruptStackFrame, _err: PageFaultErrorCode) {
-    let _addr = Cr2::read();
-    trap!(log_err, 14, "Page Fault", stack, format!("Fault Addr={:?} Error={:?}", addr, err));
+extern "x86-interrupt" fn pf_handler(stack: InterruptStackFrame, err: PageFaultErrorCode) {
+    let addr = Cr2::read();
+    trap!(log_err, 14, "Page Fault", stack);
+    log_err!("Fault Addr={:?} Error={:?}", addr, err);
 }
 
 extern "x86-interrupt" fn x87_handler(stack: InterruptStackFrame) {
     trap!(log_warn, 16, "x87 FP Exception", stack);
 }
 
-extern "x86-interrupt" fn ac_handler(stack: InterruptStackFrame, _code: u64) {
-    trap!(log_err, 17, "Alignment Check", stack, format!("Error Code={:#x}", code));
+extern "x86-interrupt" fn ac_handler(stack: InterruptStackFrame, code: u64) {
+    trap!(log_err, 17, "Alignment Check", stack);
+    log_err!("Error Code={:#x}", code);
 }
 
 extern "x86-interrupt" fn mc_handler(stack: InterruptStackFrame) {
@@ -222,3 +246,177 @@ extern "x86-interrupt" fn virt_handler(stack: InterruptStackFrame) {
 extern "x86-interrupt" fn reserved_handler(stack: InterruptStackFrame) {
     trap!(log_warn, 21, "Reserved Exception", stack);
 }
+
+// === Hardware Interrupt Handlers ===
+
+extern "x86-interrupt" fn timer_handler(_stack: InterruptStackFrame) {
+    // Handle timer interrupt
+    crate::interrupts::timer::tick();
+    
+    // Signal end of interrupt to PIC
+    unsafe {
+        use x86_64::instructions::port::Port;
+        Port::new(0x20).write(0x20u8); // Send EOI to master PIC
+    }
+    
+    // Call scheduler tick if available
+    if let Some(sched) = crate::sched::current_scheduler() {
+        sched.tick();
+    }
+}
+
+extern "x86-interrupt" fn keyboard_handler(_stack: InterruptStackFrame) {
+    // Handle keyboard interrupt
+    unsafe {
+        use x86_64::instructions::port::Port;
+        
+        // Read scancode from keyboard controller
+        let scancode: u8 = Port::new(0x60).read();
+        
+        // Process scancode (simplified for now)
+        crate::io::keyboard::handle_scancode(scancode);
+        
+        // Send EOI to PIC
+        Port::new(0x20).write(0x20u8);
+    }
+}
+
+extern "x86-interrupt" fn cascade_handler(_stack: InterruptStackFrame) {
+    // IRQ 2 - cascade, should not happen
+    unsafe {
+        use x86_64::instructions::port::Port;
+        Port::new(0x20).write(0x20u8); // EOI
+    }
+}
+
+extern "x86-interrupt" fn com2_handler(_stack: InterruptStackFrame) {
+    // Handle COM2 serial port interrupt
+    crate::io::serial::handle_com2_interrupt();
+    
+    unsafe {
+        use x86_64::instructions::port::Port;
+        Port::new(0x20).write(0x20u8); // EOI
+    }
+}
+
+extern "x86-interrupt" fn com1_handler(_stack: InterruptStackFrame) {
+    // Handle COM1 serial port interrupt
+    crate::io::serial::handle_com1_interrupt();
+    
+    unsafe {
+        use x86_64::instructions::port::Port;
+        Port::new(0x20).write(0x20u8); // EOI
+    }
+}
+
+extern "x86-interrupt" fn lpt2_handler(_stack: InterruptStackFrame) {
+    // Handle LPT2 parallel port interrupt
+    unsafe {
+        use x86_64::instructions::port::Port;
+        Port::new(0x20).write(0x20u8); // EOI
+    }
+}
+
+extern "x86-interrupt" fn floppy_handler(_stack: InterruptStackFrame) {
+    // Handle floppy disk interrupt
+    crate::storage::floppy::handle_interrupt();
+    
+    unsafe {
+        use x86_64::instructions::port::Port;
+        Port::new(0x20).write(0x20u8); // EOI
+    }
+}
+
+extern "x86-interrupt" fn lpt1_handler(_stack: InterruptStackFrame) {
+    // Handle LPT1 parallel port interrupt
+    unsafe {
+        use x86_64::instructions::port::Port;
+        Port::new(0x20).write(0x20u8); // EOI
+    }
+}
+
+extern "x86-interrupt" fn rtc_handler(_stack: InterruptStackFrame) {
+    // Handle RTC interrupt
+    crate::time::rtc::handle_interrupt();
+    
+    unsafe {
+        use x86_64::instructions::port::Port;
+        Port::new(0xA0).write(0x20u8); // EOI to slave PIC
+        Port::new(0x20).write(0x20u8); // EOI to master PIC
+    }
+}
+
+extern "x86-interrupt" fn free1_handler(_stack: InterruptStackFrame) {
+    // Free for use interrupt
+    unsafe {
+        use x86_64::instructions::port::Port;
+        Port::new(0xA0).write(0x20u8); // EOI to slave PIC
+        Port::new(0x20).write(0x20u8); // EOI to master PIC
+    }
+}
+
+extern "x86-interrupt" fn free2_handler(_stack: InterruptStackFrame) {
+    // Free for use interrupt
+    unsafe {
+        use x86_64::instructions::port::Port;
+        Port::new(0xA0).write(0x20u8); // EOI to slave PIC
+        Port::new(0x20).write(0x20u8); // EOI to master PIC
+    }
+}
+
+extern "x86-interrupt" fn free3_handler(_stack: InterruptStackFrame) {
+    // Free for use interrupt
+    unsafe {
+        use x86_64::instructions::port::Port;
+        Port::new(0xA0).write(0x20u8); // EOI to slave PIC
+        Port::new(0x20).write(0x20u8); // EOI to master PIC
+    }
+}
+
+extern "x86-interrupt" fn mouse_handler(_stack: InterruptStackFrame) {
+    // Handle PS/2 mouse interrupt
+    crate::io::mouse::handle_interrupt();
+    
+    unsafe {
+        use x86_64::instructions::port::Port;
+        Port::new(0xA0).write(0x20u8); // EOI to slave PIC
+        Port::new(0x20).write(0x20u8); // EOI to master PIC
+    }
+}
+
+extern "x86-interrupt" fn fpu_handler(_stack: InterruptStackFrame) {
+    // Handle FPU interrupt
+    unsafe {
+        use x86_64::instructions::port::Port;
+        Port::new(0xA0).write(0x20u8); // EOI to slave PIC
+        Port::new(0x20).write(0x20u8); // EOI to master PIC
+    }
+}
+
+extern "x86-interrupt" fn ata1_handler(_stack: InterruptStackFrame) {
+    // Handle primary ATA interrupt
+    crate::storage::ata::handle_primary_interrupt();
+    
+    unsafe {
+        use x86_64::instructions::port::Port;
+        Port::new(0xA0).write(0x20u8); // EOI to slave PIC
+        Port::new(0x20).write(0x20u8); // EOI to master PIC
+    }
+}
+
+extern "x86-interrupt" fn ata2_handler(_stack: InterruptStackFrame) {
+    // Handle secondary ATA interrupt
+    crate::storage::ata::handle_secondary_interrupt();
+    
+    unsafe {
+        use x86_64::instructions::port::Port;
+        Port::new(0xA0).write(0x20u8); // EOI to slave PIC
+        Port::new(0x20).write(0x20u8); // EOI to master PIC
+    }
+}
+
+extern "x86-interrupt" fn syscall_handler(_stack: InterruptStackFrame) {
+    // Handle system call interrupt
+    crate::syscall::handle_interrupt();
+}
+
