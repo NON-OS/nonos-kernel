@@ -275,7 +275,7 @@ pub fn unmap4k(va: VirtAddr) -> Result<(), VmErr> {
 
 pub fn protect4k(va: VirtAddr, flags: VmFlags) -> Result<(), VmErr> {
     if !is_aligned_4k(va.as_u64()) { 
-        return Err(VmFlags::Misaligned); 
+        return Err(VmErr::Misaligned); 
     }
     
     let hw_flags = to_ptf(flags)?;
