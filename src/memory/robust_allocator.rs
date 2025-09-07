@@ -16,7 +16,7 @@
 //!
 //! Page frame allocation with buddy system and defragmentation
 
-use alloc::{vec::Vec, collections::BTreeMap};
+use alloc::{vec, vec::Vec, collections::BTreeMap};
 use core::sync::atomic::{AtomicU64, AtomicUsize, Ordering};
 use spin::Mutex;
 use x86_64::{PhysAddr, structures::paging::PageSize, structures::paging::Size4KiB};

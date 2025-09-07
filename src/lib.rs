@@ -27,6 +27,17 @@
 
 extern crate alloc;
 use alloc::format;
+
+// Global allocator
+use linked_list_allocator::LockedHeap;
+
+#[global_allocator]
+static ALLOCATOR: LockedHeap = LockedHeap::empty();
+
+#[alloc_error_handler]
+fn alloc_error_handler(layout: alloc::alloc::Layout) -> ! {
+    panic!("allocation error: {:?}", layout)
+}
 use crate::modules::mod_loader::{load_core_module, ModuleLoadResult};
 
 // Subsystem modules
@@ -37,6 +48,7 @@ pub mod elf;
 pub mod fs;
 pub mod interrupts;
 pub mod ipc;
+pub mod io;
 pub mod log;
 pub mod memory;
 pub mod modules;
@@ -49,6 +61,7 @@ pub mod syscall;
 pub mod system_monitor;
 pub mod time;
 pub mod ui;
+pub mod storage;
 
 // New production-ready modules
 pub mod monitor;

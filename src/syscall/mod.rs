@@ -19,10 +19,13 @@
 pub mod capabilities;
 pub mod dispatch;
 pub mod handler;
-pub mod validation;
 pub mod vdso;
 pub mod nonos_syscall;
+pub mod validation;
 
+pub fn handle_interrupt() {
+    // Stub implementation
+}
 use crate::syscall::capabilities::CapabilityToken;
 
 /// System call numbers for NONOS

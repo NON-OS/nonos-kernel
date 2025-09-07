@@ -15,3 +15,7 @@
 
 pub mod port;
 pub mod vga;
+pub mod gdt;
+pub mod idt;
+pub mod serial;
+pub mod boot;

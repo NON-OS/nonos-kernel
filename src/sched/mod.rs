@@ -55,3 +55,9 @@ pub fn schedule_now() {
         x86_64::instructions::hlt();
     }
 }
+
+/// Get current scheduler instance
+pub fn current_scheduler() -> Option<()> {
+    // Stub implementation
+    None
+}

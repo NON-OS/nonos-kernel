@@ -45,3 +45,17 @@ pub fn print(s: &str) {
         }
     }
 }
+
+/// Clear the VGA text buffer.
+pub fn clear() {
+    let buffer = VGA_BUFFER as *mut u8;
+    
+    for i in 0..(VGA_WIDTH * VGA_HEIGHT) {
+        unsafe {
+            // Clear character
+            *buffer.add(i * 2) = b' ';
+            // Reset attribute
+            *buffer.add(i * 2 + 1) = DEFAULT_ATTR;
+        }
+    }
+}
