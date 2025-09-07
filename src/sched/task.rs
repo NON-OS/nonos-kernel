@@ -47,7 +47,7 @@ pub fn kspawn(
     entry: extern "C" fn(usize) -> !,
     arg: usize,
     priority: Priority,
-    affinity: Affinity,
+    _affinity: Affinity,
 ) {
     // Convert C function to async future
     let future = KernelTaskFuture::new(name, entry, arg);

@@ -445,7 +445,7 @@ impl VfsInode {
         self.last_access.store(crate::time::timestamp_millis(), Ordering::Relaxed);
         
         if let Some(ref file_buffer) = self.file_buffer {
-            let mut buf = file_buffer.lock();
+            let buf = file_buffer.lock();
             let bytes_read = buf.read(offset as usize, buffer)?;
             
             // Trigger readahead if needed

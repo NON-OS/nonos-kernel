@@ -85,11 +85,9 @@ pub fn run_scheduler() -> ! {
         if queue.is_empty() {
             drop(queue);
             // No tasks - idle with interrupts enabled
-            unsafe {
-                x86_64::instructions::interrupts::enable();
-                x86_64::instructions::hlt();
-                x86_64::instructions::interrupts::disable();
-            }
+            x86_64::instructions::interrupts::enable();
+            x86_64::instructions::hlt();
+            x86_64::instructions::interrupts::disable();
             continue;
         }
 
@@ -134,7 +132,7 @@ pub fn run_scheduler() -> ! {
     
     // If we exit the loop, might be something went wrong
     loop {
-        unsafe { x86_64::instructions::hlt(); }
+        x86_64::instructions::hlt();
     }
 }
 
@@ -188,9 +186,7 @@ pub fn yield_current_task() {
     NEED_RESCHEDULE.store(true, Ordering::Release);
     
     // In a real implementation, we need to save current task state and switch to the next ready task. For now, we just mark for reschedule.
-    unsafe {
-        x86_64::instructions::hlt(); // Give CPU time to other tasks
-    }
+    x86_64::instructions::hlt(); // Give CPU time to other tasks
 }
 
 /// Initialize the scheduler subsystem

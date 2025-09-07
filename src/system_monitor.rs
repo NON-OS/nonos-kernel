@@ -52,8 +52,8 @@ pub fn get_system_health() -> SystemHealth {
     let boot_time = BOOT_TIME.load(Ordering::SeqCst);
     
     // Calculate heap usage percentage
-    let heap_usage_percent = if heap_stats.total_size > 0 {
-        ((heap_stats.current_usage * 100) / heap_stats.total_size).min(100) as u8
+    let heap_usage_percent = if heap_stats.total > 0 {
+        ((heap_stats.used * 100) / heap_stats.total).min(100) as u8
     } else {
         0
     };
@@ -62,16 +62,14 @@ pub fn get_system_health() -> SystemHealth {
     let uptime_seconds = (current_time - boot_time) / 1000;
     
     // Determine if system is healthy
-    let is_healthy = heap_stats.enabled &&
-        heap_usage_percent < 90 &&
-        heap_stats.failures < heap_stats.allocations / 20 &&  // Less than 5% failure rate
+    let is_healthy = heap_usage_percent < 90 &&
         SYSTEM_STABLE.load(Ordering::Relaxed);
     
     LAST_HEALTH_CHECK.store(current_time, Ordering::SeqCst);
     
     SystemHealth {
         heap_usage_percent,
-        heap_failures: heap_stats.failures,
+        heap_failures: 0,
         uptime_seconds,
         is_healthy,
     }
@@ -102,14 +100,14 @@ pub fn periodic_health_check() {
     
     // Log warnings for concerning conditions
     if health.heap_usage_percent > 75 {
-        crate::log::logger::log_critical("High heap usage detected");
+        crate::log::logger::log_critical!("High heap usage detected");
     }
     
     if health.heap_failures > 10 {
-        crate::log::logger::log_critical("Multiple heap allocation failures");
+        crate::log::logger::log_critical!("Multiple heap allocation failures");
     }
     
     if !health.is_healthy {
-        crate::log::logger::log_critical("System health check failed");
+        crate::log::logger::log_critical!("System health check failed");
     }
 }

@@ -121,8 +121,8 @@ impl IntelCETManager {
         
         // Allocate shadow stack memory
         let shadow_stack_addr = crate::memory::alloc::allocate_kernel_pages(
-            SHADOW_STACK_SIZE as usize / 4096
-        )?;
+            (SHADOW_STACK_SIZE as usize / 4096).try_into().unwrap()
+        ).ok_or("Failed to allocate shadow stack")?;
 
         // Configure shadow stack pointer
         unsafe {
@@ -153,15 +153,11 @@ impl IntelCETManager {
     }
 
     /// Handle CET violation
-    pub fn handle_cet_violation(&self, violation_type: CETViolationType, addr: VirtAddr) {
+    pub fn handle_cet_violation(&self, _violation_type: CETViolationType, _addr: VirtAddr) {
         self.cet_violation_count.fetch_add(1, Ordering::SeqCst);
         
         // Log security event
-        crate::log::security_log!(
-            "CET Violation: {:?} at address {:?}", 
-            violation_type, 
-            addr
-        );
+        crate::log::security_log!("CET Violation detected");
 
         // Terminate offending process
         if let Some(current_process) = crate::process::current_process() {
@@ -380,7 +376,7 @@ impl CFIManager {
         }
 
         if let Some(targets) = self.indirect_call_targets.try_read() {
-            if let Some(cfi_target) = targets.get(&target) {
+            if let Some(_cfi_target) = targets.get(&target) {
                 // Valid target found
                 return true;
             }
@@ -450,7 +446,7 @@ impl AdvancedASLR {
     }
 
     /// Get randomized address for heap allocation  
-    pub fn randomize_heap_address(&self, base: VirtAddr, size: u64) -> VirtAddr {
+    pub fn randomize_heap_address(&self, base: VirtAddr, _size: u64) -> VirtAddr {
         if !self.heap_randomization.load(Ordering::SeqCst) {
             return base;
         }
@@ -493,8 +489,8 @@ impl AdvancedSecurityManager {
 
         // Initialize CET if enabled
         if self.config.enable_cet {
-            if let Err(e) = self.cet_manager.initialize() {
-                crate::log::log_warning!("Failed to initialize CET: {}", e);
+            if let Err(_e) = self.cet_manager.initialize() {
+                crate::log::log_warning!("Failed to initialize CET");
             } else {
                 crate::log::info!("Intel CET initialized successfully");
             }

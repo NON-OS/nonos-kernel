@@ -179,7 +179,7 @@ impl EntropyPool {
         
         // Hardware random number generator
         for _ in 0..bytes_needed {
-            if let Some(hw_random) = RdRand::new().and_then(|mut rng| rng.get_u64()) {
+            if let Some(hw_random) = RdRand::new().and_then(|rng| rng.get_u64()) {
                 entropy.extend_from_slice(&hw_random.to_le_bytes());
             }
         }

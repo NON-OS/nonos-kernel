@@ -51,9 +51,7 @@ pub fn init() {
 /// Schedule immediately (yield current task)
 pub fn schedule_now() {
     // Simple yield implementation
-    unsafe {
-        x86_64::instructions::hlt();
-    }
+    x86_64::instructions::hlt();
 }
 
 /// Get current scheduler instance

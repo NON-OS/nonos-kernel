@@ -23,7 +23,7 @@ use alloc::format;
 /// Advanced syscall dispatcher with performance tracking
 pub fn handle_syscall_dispatch(syscall: SyscallNumber, arg0: u64, arg1: u64) -> SyscallResult {
     // Record syscall entry for performance analysis
-    let start_time = crate::arch::x86_64::time::timer::now_ns();
+    let start_time = crate::arch::time::timer::now_ns();
     
     let result = match syscall {
         SyscallNumber::Exit => handle_exit(arg0),
@@ -47,7 +47,7 @@ pub fn handle_syscall_dispatch(syscall: SyscallNumber, arg0: u64, arg1: u64) -> 
     };
     
     // Record completion time for telemetry
-    let end_time = crate::arch::x86_64::time::timer::now_ns();
+    let end_time = crate::arch::time::timer::now_ns();
     log_syscall_performance(syscall, start_time, end_time);
     
     result
@@ -122,7 +122,7 @@ fn handle_write(fd: u64, buf_and_count: u64) -> SyscallResult {
             let buffer = core::slice::from_raw_parts(buf_ptr as *const u8, count as usize);
             
             // Validate the buffer is readable memory (basic check)
-            let _first_byte = unsafe { core::ptr::read_volatile(buffer.as_ptr()) };
+            let _first_byte = core::ptr::read_volatile(buffer.as_ptr());
             // TODO: Add proper page fault handling for invalid memory access
             
             // Write to serial console

@@ -41,8 +41,8 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! {
         crate::arch::x86_64::idt::init();
         
         // 4. APIC/Timer
-        crate::arch::x86_64::interrupt::apic::init();
-        crate::arch::x86_64::time::timer::init_with_freq(1000); // 1kHz tick
+        crate::arch::interrupt::apic::init();
+        crate::arch::time::timer::init_with_freq(1000); // 1kHz tick
         
         // 5. Scheduler
         crate::sched::init();

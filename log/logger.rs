@@ -76,7 +76,7 @@ pub struct LogEntry {
 
 // === Backend Trait ===
 pub trait LogBackend: Send {
-    fn write(&mut self, entry: &LogEntry);
+    fn write(&mut self, entry: &LogEntry);ı
 }
 
 // === VGA Backend ===

@@ -296,7 +296,7 @@ impl BuddyAllocator {
         }
         
         // Find buddy address
-        let block_size = (1 << order) * PAGE_SIZE;
+        let _block_size = (1 << order) * PAGE_SIZE;
         let buddy_addr = self.find_buddy_address(addr, order);
         
         // Check if buddy is free
@@ -401,7 +401,7 @@ impl BuddyAllocator {
     
     /// We check if defragmentation is needed
     fn check_defragmentation_need(&self) {
-        let free_pages = self.free_pages.load(Ordering::Relaxed);
+        let _free_pages = self.free_pages.load(Ordering::Relaxed);
         let fragmented_pages = self.count_fragmented_pages();
         
         if fragmented_pages > self.defrag_threshold {

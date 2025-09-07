@@ -1,12 +1,12 @@
 // This file is part of the NONOS Operating Systems Kernel.
-// 
+//
 //  Copyright (C) [2025] [NONOS]
-//  
+//
 //  This program is free software: you can redistribute it and/or modify
 //  it under the terms of the GNU Affero General Public License as published by
 //  the Free Software Foundation, either version 3 of the License, or
 //  (at your option) any later version.
-//  
+//
 //  This program is distributed in the hope that it will be useful,
 //  but WITHOUT ANY WARRANTY; without even the implied warranty of
 //  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
@@ -25,24 +25,49 @@
 //!
 //! Integrates with: gdt.rs, logger.rs, cpu.rs
 
-use x86_64::structures::idt::{InterruptDescriptorTable, InterruptStackFrame, PageFaultErrorCode};
-use lazy_static::lazy_static;
 use crate::arch::x86_64::gdt;
 use crate::log::logger::enter_panic_mode;
-use crate::{log_fatal, log_err, log_warn, log_info, log_dbg};
+use crate::log::logger::{log_dbg, log_err, log_fatal, log_info, log_warn};
+use lazy_static::lazy_static;
+use x86_64::structures::idt::{InterruptDescriptorTable, InterruptStackFrame, PageFaultErrorCode};
+// use crate::{log_fatal, log_err, log_warn, log_info, log_dbg};
 use core::sync::atomic::{AtomicU64, Ordering};
 use x86_64::registers::control::{Cr0, Cr2, Cr3, Cr4};
 
 /// Per-CPU trap counters
 static TRAP_COUNTS: [AtomicU64; 32] = [
-    AtomicU64::new(0), AtomicU64::new(0), AtomicU64::new(0), AtomicU64::new(0),
-    AtomicU64::new(0), AtomicU64::new(0), AtomicU64::new(0), AtomicU64::new(0),
-    AtomicU64::new(0), AtomicU64::new(0), AtomicU64::new(0), AtomicU64::new(0),
-    AtomicU64::new(0), AtomicU64::new(0), AtomicU64::new(0), AtomicU64::new(0),
-    AtomicU64::new(0), AtomicU64::new(0), AtomicU64::new(0), AtomicU64::new(0),
-    AtomicU64::new(0), AtomicU64::new(0), AtomicU64::new(0), AtomicU64::new(0),
-    AtomicU64::new(0), AtomicU64::new(0), AtomicU64::new(0), AtomicU64::new(0),
-    AtomicU64::new(0), AtomicU64::new(0), AtomicU64::new(0), AtomicU64::new(0),
+    AtomicU64::new(0),
+    AtomicU64::new(0),
+    AtomicU64::new(0),
+    AtomicU64::new(0),
+    AtomicU64::new(0),
+    AtomicU64::new(0),
+    AtomicU64::new(0),
+    AtomicU64::new(0),
+    AtomicU64::new(0),
+    AtomicU64::new(0),
+    AtomicU64::new(0),
+    AtomicU64::new(0),
+    AtomicU64::new(0),
+    AtomicU64::new(0),
+    AtomicU64::new(0),
+    AtomicU64::new(0),
+    AtomicU64::new(0),
+    AtomicU64::new(0),
+    AtomicU64::new(0),
+    AtomicU64::new(0),
+    AtomicU64::new(0),
+    AtomicU64::new(0),
+    AtomicU64::new(0),
+    AtomicU64::new(0),
+    AtomicU64::new(0),
+    AtomicU64::new(0),
+    AtomicU64::new(0),
+    AtomicU64::new(0),
+    AtomicU64::new(0),
+    AtomicU64::new(0),
+    AtomicU64::new(0),
+    AtomicU64::new(0),
 ];
 
 lazy_static! {
@@ -89,7 +114,7 @@ lazy_static! {
         idt[32].set_handler_fn(timer_handler);     // Timer interrupt (IRQ 0)
         idt[33].set_handler_fn(keyboard_handler);  // Keyboard interrupt (IRQ 1)
         idt[34].set_handler_fn(cascade_handler);   // Cascade interrupt (IRQ 2)
-        idt[35].set_handler_fn(com2_handler);      // COM2 interrupt (IRQ 3) 
+        idt[35].set_handler_fn(com2_handler);      // COM2 interrupt (IRQ 3)
         idt[36].set_handler_fn(com1_handler);      // COM1 interrupt (IRQ 4)
         idt[37].set_handler_fn(lpt2_handler);      // LPT2 interrupt (IRQ 5)
         idt[38].set_handler_fn(floppy_handler);    // Floppy interrupt (IRQ 6)
@@ -106,7 +131,7 @@ lazy_static! {
         // Syscall trap stub (Ring 3)
         idt[0x80]
             .set_handler_fn(syscall_handler)
-            .set_privilege_level(x86_64::structures::idt::PrivilegeLevel::Ring3);
+            .set_privilege_level(x86_64::PrivilegeLevel::Ring3);
 
         idt
     };
@@ -121,27 +146,27 @@ pub fn init() {
 macro_rules! trap {
     ($sev:ident, $vec:expr, $label:expr, $stack:expr $(, $extra:expr)?) => {{
         TRAP_COUNTS[$vec].fetch_add(1, Ordering::SeqCst);
-        let rip = $stack.instruction_pointer.as_u64();
-        let cs = $stack.code_segment;
-        let rflags = $stack.cpu_flags;
-        let rsp = $stack.stack_pointer.as_u64();
-        let ss = $stack.stack_segment;
-        let cr0 = Cr0::read_raw();
-        let cr2 = Cr2::read_raw();
-        let cr3 = Cr3::read().0.start_address().as_u64();
-        let cr4 = Cr4::read_raw();
+        let _rip = $stack.instruction_pointer.as_u64();
+        let _cs = $stack.code_segment;
+        let _rflags = $stack.cpu_flags;
+        let _rsp = $stack.stack_pointer.as_u64();
+        let _ss = $stack.stack_segment;
+        let _cr0 = Cr0::read_raw();
+        let _cr2 = Cr2::read_raw();
+        let _cr3 = Cr3::read().0.start_address().as_u64();
+        let _cr4 = Cr4::read_raw();
 
         $sev!(
             "[TRAP] {} @ RIP={:#x} CS={:#x} RFLAGS={:?} RSP={:#x} SS={:#x} | CR0={:#x} CR2={:#x} CR3={:#x} CR4={:#x}",
-            $label, rip, cs, rflags, rsp, ss,
-            cr0, cr2, cr3, cr4
+            $label, _rip, _cs, _rflags, _rsp, _ss,
+            _cr0, _cr2, _cr3, _cr4
         );
 
         // Cause hint
         match $vec {
-            0 => log_warn!("Hint: Check divisor register for zero"),
-            13 => log_warn!("Hint: Possible invalid segment access or ring transition"),
-            14 => log_warn!("Hint: Inspect CR2 for faulting address"),
+            0 => crate::log::logger::log_warn!("Hint: Check divisor register for zero"),
+            13 => crate::log::logger::log_warn!("Hint: Possible invalid segment access or ring transition"),
+            14 => crate::log::logger::log_warn!("Hint: Inspect CR2 for faulting address"),
             _ => {}
         }
     }};
@@ -184,7 +209,7 @@ extern "x86-interrupt" fn df_handler(stack: InterruptStackFrame, _code: u64) {
     enter_panic_mode();
     trap!(log_fatal, 8, "Double Fault", stack);
     // Just halt instead of infinite loop
-    unsafe { 
+    unsafe {
         core::arch::asm!("cli");
         core::arch::asm!("hlt");
     }
@@ -229,7 +254,7 @@ extern "x86-interrupt" fn mc_handler(stack: InterruptStackFrame) {
     enter_panic_mode();
     trap!(log_fatal, 18, "Machine Check", stack);
     // Machine check is fatal - halt the system
-    unsafe { 
+    unsafe {
         core::arch::asm!("cli");
         core::arch::asm!("hlt");
     }
@@ -252,16 +277,16 @@ extern "x86-interrupt" fn reserved_handler(stack: InterruptStackFrame) {
 extern "x86-interrupt" fn timer_handler(_stack: InterruptStackFrame) {
     // Handle timer interrupt
     crate::interrupts::timer::tick();
-    
+
     // Signal end of interrupt to PIC
     unsafe {
         use x86_64::instructions::port::Port;
         Port::new(0x20).write(0x20u8); // Send EOI to master PIC
     }
-    
+
     // Call scheduler tick if available
-    if let Some(sched) = crate::sched::current_scheduler() {
-        sched.tick();
+    if let Some(_sched) = crate::sched::current_scheduler() {
+        // sched.tick(); // TODO: Implement tick method
     }
 }
 
@@ -269,13 +294,13 @@ extern "x86-interrupt" fn keyboard_handler(_stack: InterruptStackFrame) {
     // Handle keyboard interrupt
     unsafe {
         use x86_64::instructions::port::Port;
-        
+
         // Read scancode from keyboard controller
         let scancode: u8 = Port::new(0x60).read();
-        
+
         // Process scancode (simplified for now)
         crate::io::keyboard::handle_scancode(scancode);
-        
+
         // Send EOI to PIC
         Port::new(0x20).write(0x20u8);
     }
@@ -292,7 +317,7 @@ extern "x86-interrupt" fn cascade_handler(_stack: InterruptStackFrame) {
 extern "x86-interrupt" fn com2_handler(_stack: InterruptStackFrame) {
     // Handle COM2 serial port interrupt
     crate::io::serial::handle_com2_interrupt();
-    
+
     unsafe {
         use x86_64::instructions::port::Port;
         Port::new(0x20).write(0x20u8); // EOI
@@ -302,7 +327,7 @@ extern "x86-interrupt" fn com2_handler(_stack: InterruptStackFrame) {
 extern "x86-interrupt" fn com1_handler(_stack: InterruptStackFrame) {
     // Handle COM1 serial port interrupt
     crate::io::serial::handle_com1_interrupt();
-    
+
     unsafe {
         use x86_64::instructions::port::Port;
         Port::new(0x20).write(0x20u8); // EOI
@@ -320,7 +345,7 @@ extern "x86-interrupt" fn lpt2_handler(_stack: InterruptStackFrame) {
 extern "x86-interrupt" fn floppy_handler(_stack: InterruptStackFrame) {
     // Handle floppy disk interrupt
     crate::storage::floppy::handle_interrupt();
-    
+
     unsafe {
         use x86_64::instructions::port::Port;
         Port::new(0x20).write(0x20u8); // EOI
@@ -337,8 +362,8 @@ extern "x86-interrupt" fn lpt1_handler(_stack: InterruptStackFrame) {
 
 extern "x86-interrupt" fn rtc_handler(_stack: InterruptStackFrame) {
     // Handle RTC interrupt
-    crate::time::rtc::handle_interrupt();
-    
+    crate::arch::time::rtc::handle_interrupt();
+
     unsafe {
         use x86_64::instructions::port::Port;
         Port::new(0xA0).write(0x20u8); // EOI to slave PIC
@@ -376,7 +401,7 @@ extern "x86-interrupt" fn free3_handler(_stack: InterruptStackFrame) {
 extern "x86-interrupt" fn mouse_handler(_stack: InterruptStackFrame) {
     // Handle PS/2 mouse interrupt
     crate::io::mouse::handle_interrupt();
-    
+
     unsafe {
         use x86_64::instructions::port::Port;
         Port::new(0xA0).write(0x20u8); // EOI to slave PIC
@@ -396,7 +421,7 @@ extern "x86-interrupt" fn fpu_handler(_stack: InterruptStackFrame) {
 extern "x86-interrupt" fn ata1_handler(_stack: InterruptStackFrame) {
     // Handle primary ATA interrupt
     crate::storage::ata::handle_primary_interrupt();
-    
+
     unsafe {
         use x86_64::instructions::port::Port;
         Port::new(0xA0).write(0x20u8); // EOI to slave PIC
@@ -407,7 +432,7 @@ extern "x86-interrupt" fn ata1_handler(_stack: InterruptStackFrame) {
 extern "x86-interrupt" fn ata2_handler(_stack: InterruptStackFrame) {
     // Handle secondary ATA interrupt
     crate::storage::ata::handle_secondary_interrupt();
-    
+
     unsafe {
         use x86_64::instructions::port::Port;
         Port::new(0xA0).write(0x20u8); // EOI to slave PIC
@@ -419,4 +444,3 @@ extern "x86-interrupt" fn syscall_handler(_stack: InterruptStackFrame) {
     // Handle system call interrupt
     crate::syscall::handle_interrupt();
 }
-

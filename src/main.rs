@@ -1,18 +1,18 @@
 // This file is part of the NONOS Operating Systems Kernel.
-// 
+//
 //  Copyright (C) [2025] [NONOS]
-//  
+//
 //  This program is free software: you can redistribute it and/or modify
 //  it under the terms of the GNU Affero General Public License as published by
 //  the Free Software Foundation, either version 3 of the License, or
 //  (at your option) any later version.
-//  
+//
 //  This program is distributed in the hope that it will be useful,
 //  but WITHOUT ANY WARRANTY; without even the implied warranty of
 //  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 //  GNU Affero General Public License for more details.
 
-//! NØNOS Freestanding Hardware Entrypoint 
+//! NØNOS Freestanding Hardware Entrypoint
 //!
 //! This is the lowest level physical entry point for bare-metal execution.
 //! Used only if booting without `bootloader` or UEFI handoff. It initializes
@@ -22,7 +22,7 @@
 
 #![no_main]
 #![no_std]
-#![feature(panic_info_message, asm_const)]
+// Removed stable features that no longer need attributes
 
 use core::panic::PanicInfo;
 
@@ -64,7 +64,7 @@ fn vga_print(msg: &str) {
                 let offset = VGA_POSITION * BYTES_PER_CHAR;
                 *VGA_BUFFER.add(offset) = byte;
                 *VGA_BUFFER.add(offset + 1) = 0x0F; // white on black
-                
+
                 VGA_POSITION += 1;
                 if VGA_POSITION >= SCREEN_WIDTH * SCREEN_HEIGHT {
                     vga_scroll();
@@ -84,7 +84,7 @@ fn vga_scroll() {
             let dst = VGA_BUFFER.add((row - 1) * SCREEN_WIDTH * BYTES_PER_CHAR);
             core::ptr::copy(src, dst, SCREEN_WIDTH * BYTES_PER_CHAR);
         }
-        
+
         // Clear last line
         let last_line = VGA_BUFFER.add((SCREEN_HEIGHT - 1) * SCREEN_WIDTH * BYTES_PER_CHAR);
         for i in 0..SCREEN_WIDTH {
@@ -108,7 +108,7 @@ fn vga_clear() {
 
 /// Trap for panics occurring before the full kernel initializes
 #[panic_handler]
-fn panic(info: &PanicInfo) -> ! {
+fn panic(_info: &PanicInfo) -> ! {
     vga_print("\n\n[KERNEL PANIC]\n");
     vga_print("panic: hardware fault\n");
     loop {}

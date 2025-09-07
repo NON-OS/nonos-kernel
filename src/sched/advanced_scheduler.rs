@@ -176,7 +176,7 @@ impl CFSScheduler {
     }
 
     /// Add task to CFS runqueue
-    pub fn add_task(&self, mut task: Box<AdvancedTask>) {
+    pub fn add_task(&self, task: Box<AdvancedTask>) {
         // Set initial vruntime to current min_vruntime for fairness
         let min_vrt = self.min_vruntime.load(Ordering::SeqCst);
         task.vruntime.store(min_vrt, Ordering::SeqCst);
@@ -192,7 +192,7 @@ impl CFSScheduler {
     /// Pick next task to run (leftmost in red-black tree)
     pub fn pick_next(&self) -> Option<Box<AdvancedTask>> {
         if let Some(mut ready_tasks) = self.ready_tasks.try_write() {
-            if let Some((vruntime, task)) = ready_tasks.pop_first() {
+            if let Some((_vruntime, task)) = ready_tasks.pop_first() {
                 self.total_weight.fetch_sub(task.load_weight as u64, Ordering::SeqCst);
                 return Some(task);
             }
@@ -453,8 +453,8 @@ impl NUMALoadBalancer {
         }
     }
 
-    fn migrate_tasks(&self, from_node: u32, to_node: u32, _cpu_runqueues: &[Mutex<VecDeque<Box<AdvancedTask>>>]) {
-        crate::log::debug!("Migrating tasks from NUMA node {} to node {}", from_node, to_node);
+    fn migrate_tasks(&self, _from_node: u32, _to_node: u32, _cpu_runqueues: &[Mutex<VecDeque<Box<AdvancedTask>>>]) {
+        crate::log::debug!("Migrating tasks between NUMA nodes");
         // Implementation would move tasks between CPU runqueues
         // This is a simplified version - real implementation would be more complex
     }
@@ -676,7 +676,7 @@ impl AdvancedScheduler {
     }
 
     /// Handle timer interrupt for preemption and load balancing
-    pub fn timer_tick(&self, cpu_id: usize) {
+    pub fn timer_tick(&self, _cpu_id: usize) {
         // Perform NUMA load balancing
         if self.config.enable_numa_awareness {
             self.numa_balancer.balance_load(&self.cpu_runqueues);

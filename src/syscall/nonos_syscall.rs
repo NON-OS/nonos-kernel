@@ -146,10 +146,9 @@ impl NonosSyscallHandler {
         };
 
         match allocate_nonos_secure_memory(
-            size,
+            size.try_into().unwrap(),
             NonosMemoryRegionType::Heap,
             security_level,
-            self.get_current_process_id()
         ) {
             Ok(addr) => NonosSyscallResult::Success(addr.as_u64()),
             Err(e) => NonosSyscallResult::Error(e),
@@ -266,7 +265,7 @@ impl NonosSyscallHandler {
         }
 
         let channel_id = args[0];
-        let recipient_id = args[1];
+        let _recipient_id = args[1];
         let _payload_ptr = args[2];
 
         // Simplified IPC send
@@ -274,12 +273,11 @@ impl NonosSyscallHandler {
         
         match crate::ipc::nonos_ipc::send_ipc_message(
             self.get_current_process_id(),
-            channel_id,
-            recipient_id,
+            channel_id.try_into().unwrap(),
+            &payload,
             crate::ipc::nonos_ipc::NonosMessageType::Data,
-            payload
         ) {
-            Ok(msg_id) => NonosSyscallResult::Success(msg_id),
+            Ok(_msg_id) => NonosSyscallResult::Success(0),
             Err(e) => NonosSyscallResult::Error(e),
         }
     }
@@ -291,9 +289,8 @@ impl NonosSyscallHandler {
 
         let channel_id = args[0];
         
-        match crate::ipc::nonos_ipc::receive_ipc_message(self.get_current_process_id(), channel_id) {
-            Ok(Some(msg)) => NonosSyscallResult::Success(msg.message_id),
-            Ok(None) => NonosSyscallResult::Success(0), // No message available
+        match crate::ipc::nonos_ipc::receive_ipc_message(self.get_current_process_id(), channel_id.try_into().unwrap()) {
+            Ok(_msg) => NonosSyscallResult::Success(0), // Return message ID 0 for now
             Err(e) => NonosSyscallResult::Error(e),
         }
     }

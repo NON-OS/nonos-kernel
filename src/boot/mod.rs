@@ -224,21 +224,7 @@ unsafe fn init_memory(boot_info: &'static BootInfo) -> Result<(), &'static str> 
     // Initialize physical memory allocator
     crate::memory::phys::init_from_regions(
         &usable_regions[..],
-        0, // node_id
         crate::memory::phys::ScrubPolicy::OnFree,
-        |words| {
-            // Allocate bitmap backing
-            let bytes = words * 8;
-            let pages = (bytes + 4095) / 4096;
-            let addr = EARLY_ALLOC.alloc_pages(pages);
-            unsafe {
-                core::slice::from_raw_parts_mut(
-                    addr.as_u64() as *mut core::sync::atomic::AtomicU64,
-                    words
-                )
-            }
-        },
-        None, // No audit sink yet
     );
     
     // Initialize virtual memory
@@ -258,7 +244,7 @@ unsafe fn init_memory(boot_info: &'static BootInfo) -> Result<(), &'static str> 
         
         crate::memory::virt::map4k_at(
             page,
-            PhysAddr::new(frame.0),
+            frame.addr,
             VmFlags::RW | VmFlags::NX | VmFlags::GLOBAL,
         ).map_err(|_| "Failed to map heap page")?;
     }
@@ -285,7 +271,7 @@ unsafe fn init_cpu_structures() {
 
 unsafe fn init_interrupts() {
     // Initialize Local APIC
-    crate::arch::x86_64::interrupt::apic::init();
+    crate::arch::interrupt::apic::init();
     
     // Parse ACPI tables to find I/O APICs 
     // if let Some(rsdp) = find_rsdp() {
@@ -300,7 +286,7 @@ unsafe fn init_interrupts() {
     // }
     
     // Initialize timer
-    crate::arch::x86_64::time::timer::init(); // Initialize timer
+    crate::arch::time::timer::init(); // Initialize timer
     
     // Enable interrupts
     x86_64::instructions::interrupts::enable();
@@ -346,26 +332,12 @@ unsafe fn load_initial_modules() {
     let test_manifest = crate::modules::manifest::ModuleManifest {
         name: "init",
         version: "1.0.0",
-        hash: [0; 32],
-        signature: [0; 64],
-        public_key: [0; 32],
-        signer: crate::crypto::vault::VaultPublicKey::default(),
-        auth_chain_id: None,
-        auth_method: crate::modules::manifest::AuthMethod::VaultSignature,
-        zk_attestation: None,
-        required_caps: alloc::vec![
-            crate::syscall::capabilities::Capability::CoreExec,
-            crate::syscall::capabilities::Capability::IO,
-        ],
-        fault_policy: Some(crate::modules::runtime::FaultPolicy::Restart),
-        memory_bytes: 64 * 1024, // 64 KiB
-        timestamp: 0,
-        expiry_seconds: None,
-        entry_point_addr: Some(0x400000),
+        author: "NONOS",
+        description: "Test module for boot",
         module_type: crate::modules::manifest::ModuleType::System,
+        auth_method: crate::modules::manifest::AuthMethod::VaultSignature,
         memory_requirements: crate::modules::manifest::MemoryRequirements {
-            min_heap: 64 * 1024,
-            max_heap: 128 * 1024,
+            heap_size: 64 * 1024,
             stack_size: 8 * 1024,
         },
     };

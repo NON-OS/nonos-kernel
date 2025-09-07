@@ -59,9 +59,7 @@ pub fn init() {
 
 fn idle_task() {
     loop {
-        unsafe {
-            x86_64::instructions::hlt();
-        }
+        x86_64::instructions::hlt();
     }
 }
 
@@ -107,9 +105,9 @@ fn create_system_tasks() {
     spawn_task("memory.maintenance", async {
         loop {
             // Check heap health
-            let heap_stats = crate::memory::heap::get_heap_stats();
+            let _heap_stats = crate::memory::heap::get_heap_stats();
             if !crate::memory::heap::check_heap_health() {
-                crate::log::logger::log_critical("Heap health degraded");
+                crate::log::logger::log_critical!("Heap health degraded");
             }
             
             // Sleep for 30 seconds between maintenance

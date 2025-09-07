@@ -120,10 +120,9 @@ impl VdsoManager {
             
             // Map the page
             virtual_memory::map_memory_range(
-                vdso_virt,
-                frame.start_address(),
-                VDSO_PAGE_SIZE,
-                PageTableFlags::PRESENT | PageTableFlags::WRITABLE
+                vdso_virt.as_u64(),
+                frame.start_address().as_u64(),
+                VDSO_PAGE_SIZE.try_into().unwrap()
             )?;
             
             // Generate x86-64 assembly for fast system calls
@@ -227,10 +226,9 @@ impl VdsoManager {
         for &vdso_page in &self.vdso_pages {
             // Map as read-only + executable for user space
             virtual_memory::map_memory_range(
-                self.user_mapping_addr,
-                PhysAddr::new(vdso_page.as_u64()), // This needs proper translation
-                VDSO_PAGE_SIZE,
-                PageTableFlags::PRESENT | PageTableFlags::USER_ACCESSIBLE
+                self.user_mapping_addr.as_u64(),
+                vdso_page.as_u64(), // This needs proper translation
+                VDSO_PAGE_SIZE.try_into().unwrap()
             )?;
         }
         Ok(())

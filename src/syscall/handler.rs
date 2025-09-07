@@ -535,14 +535,11 @@ fn sys_brk(addr: u64) -> SyscallResult {
         let page_addr = VirtAddr::new(current_brk + (i * 4096));
         
         if let Some(frame) = crate::memory::page_allocator::allocate_frame() {
-            if let Err(_) = virtual_memory::map_memory_range(
-                page_addr,
-                frame.start_address(),
-                4096,
-                x86_64::structures::paging::PageTableFlags::PRESENT |
-                x86_64::structures::paging::PageTableFlags::WRITABLE |
-                x86_64::structures::paging::PageTableFlags::USER_ACCESSIBLE
-            ) {
+              if let Err(_) = virtual_memory::map_memory_range(
+                  page_addr.as_u64(),
+                  frame.start_address().as_u64(),
+                  4096
+              ) {
                 return SyscallResult::error(12); // ENOMEM
             }
         } else {

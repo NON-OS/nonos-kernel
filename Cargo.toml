@@ -12,6 +12,8 @@ repository = "https://github.com/NON-OS/nonos-kernel"
 [[bin]]
 name = "nonos_kernel"
 path = "src/main.rs"
+test = false
+bench = false 
 
 [lib]
 name = "nonos_kernel_lib"
@@ -74,6 +76,7 @@ nonos-fallback-entry = []         # allow src/main.rs lab boot (non-UEFI)
 # architecture / memory mgmt
 x86_64 = { version = "0.14", default-features = false, features = ["abi_x86_interrupt", "instructions"] }
 bootloader_api = { version = "0.11", default-features = false }
+bootloader = "0.9.9"
 
 # synchronization primitives
 spin = { version = "0.9", default-features = false, features = ["mutex", "spin_mutex", "lazy", "rwlock"] }
@@ -81,10 +84,10 @@ lazy_static = { version = "1.4", features = ["spin_no_std"] }
 
 # memory alloc + containers
 linked_list_allocator = { version = "0.10", default-features = false, features = ["use_spin"] }
-hashbrown = { version = "0.14", default-features = false }
+
 arrayvec = { version = "0.7", default-features = false }
 smallvec = { version = "1.15", default-features = false }
-bitvec = { version = "1.0", default-features = false, features = ["alloc"] }
+# bitvec = { version = "1.0", default-features = false, features = ["alloc"] }
 
 # crypto stack (gated; no_std)
 ed25519-dalek = { version = "1", default-features = false, features = ["u64_backend"], optional = true }
