@@ -1,0 +1,319 @@
+version = 2
+abi = "nonos-sys-v1"
+
+[wire]
+gateway = "int80"          # alt: "syscall"
+reg_abi = "rax,rdi,rsi,rdx,r10,r8,r9"
+ret_reg = "rax"
+endian  = "little"
+align   = 8
+errno_negative = true
+
+[errno_range]
+min = -4095
+max = -1
+
+[errors]
+EPERM       = -1
+ENOSYS      = -2
+EINVAL      = -3
+ENOMEM      = -4
+EFAULT      = -5
+EAGAIN      = -6
+EBUSY       = -7
+ETIMEDOUT   = -8
+EEXIST      = -9
+ENOENT      = -10
+ENODEV      = -11
+ESRCH       = -12
+EOVERFLOW   = -13
+ENOTSUP     = -14
+EALREADY    = -15
+EIO         = -16
+ERANGE      = -17
+EACCESS     = -18
+ECAP        = -19
+EBADSTATE   = -20
+
+[limits]
+max_log_write = 4096
+max_kstat     = 4096
+max_ipc_msg   = 65536
+max_shm_map   = 268435456   # 256 MiB
+max_threads   = 256
+max_caps      = 1024
+
+[numbers]
+LOG_WRITE        = 1
+YIELD            = 2
+TIME_NOW         = 3
+KSTAT_READ       = 5
+
+RAND_GET         = 10
+SLEEP_NS         = 11
+
+CAP_INSPECT      = 20
+CAP_GRANT        = 21
+CAP_REVOKE       = 22
+CAP_SEAL         = 23
+
+MOD_VERIFY       = 30
+MOD_LOAD         = 31
+MOD_START        = 32
+MOD_STOP         = 33
+MOD_ATTEST       = 34
+MOD_INFO         = 35
+
+CH_OPEN          = 40
+CH_CLOSE         = 41
+CH_SEND          = 42
+CH_RECV          = 43
+CH_POLL          = 44
+SHM_MAP          = 45
+SHM_UNMAP        = 46
+
+VM_MMAP          = 50
+VM_MUNMAP        = 51
+VM_PROTECT       = 52
+VM_QUERY         = 53
+VM_FLUSH_TLB     = 54
+
+TH_SPAWN         = 60
+TH_JOIN          = 61
+TH_SET_NAME      = 62
+TH_YIELD         = 63
+TH_AFFINITY      = 64
+
+SYS_REBOOT       = 70
+SYS_POWEROFF     = 71
+
+[desc.LOG_WRITE]
+nr   = 1
+caps = ["LOG"]
+args = [{name="ptr",type="u8*",dir="in"}, {name="len",type="usize",dir="in",max="@limits.max_log_write"}]
+ret  = {type="usize"}
+
+[desc.YIELD]
+nr   = 2
+caps = ["YIELD"]
+args = []
+ret  = {type="u64"}
+
+[desc.TIME_NOW]
+nr   = 3
+caps = ["TIME"]
+args = []
+ret  = {type="u64"}  # ns
+
+[desc.KSTAT_READ]
+nr   = 5
+caps = ["KSTAT"]
+args = [{name="buf",type="u8*",dir="out"}, {name="len",type="usize",dir="in",max="@limits.max_kstat"}]
+ret  = {type="usize"}
+
+[desc.RAND_GET]
+nr = 10
+caps = ["TIME"]
+args = [{name="buf",type="u8*",dir="out"}, {name="len",type="usize",dir="in"}]
+ret = {type="usize"}
+
+[desc.SLEEP_NS]
+nr = 11
+caps = ["TIME","YIELD"]
+args = [{name="ns",type="u64",dir="in"}]
+ret = {type="i64"}
+
+[desc.CAP_INSPECT]
+nr = 20
+caps = ["KSTAT"]
+args = [{name="buf",type="u8*",dir="out"}, {name="len",type="usize",dir="in"}]
+ret = {type="usize"}
+
+[desc.CAP_GRANT]
+nr = 21
+caps = ["KSTAT"]
+args = [
+  {name="dst",type="[u8;32]",dir="in"},
+  {name="rights",type="u64",dir="in"},
+  {name="not_before_ns",type="u64",dir="in"},
+  {name="not_after_ns",type="u64",dir="in"}
+]
+ret = {type="i64"}
+
+[desc.CAP_REVOKE]
+nr = 22
+caps = ["KSTAT"]
+args = [{name="token_id",type="[u8;32]",dir="in"}]
+ret = {type="i64"}
+
+[desc.CAP_SEAL]
+nr = 23
+caps = ["KSTAT"]
+args = [{name="token_id",type="[u8;32]",dir="in"}]
+ret = {type="i64"}
+
+[desc.MOD_VERIFY]
+nr = 30
+caps = ["KSTAT"]
+args = [{name="ptr",type="u8*",dir="in"}, {name="len",type="usize",dir="in"}]
+ret = {type="i64"}
+
+[desc.MOD_LOAD]
+nr = 31
+caps = ["KSTAT"]
+args = [{name="ptr",type="u8*",dir="in"}, {name="len",type="usize",dir="in"}]
+ret = {type="[u8;32]"} # module_id
+
+[desc.MOD_START]
+nr = 32
+caps = ["KSTAT"]
+args = [{name="module_id",type="[u8;32]",dir="in"}]
+ret = {type="i64"}
+
+[desc.MOD_STOP]
+nr = 33
+caps = ["KSTAT"]
+args = [{name="module_id",type="[u8;32]",dir="in"}, {name="reason",type="u32",dir="in"}]
+ret = {type="i64"}
+
+[desc.MOD_ATTEST]
+nr = 34
+caps = ["KSTAT"]
+args = [{name="module_id",type="[u8;32]",dir="in"}, {name="out",type="u8*",dir="out"}, {name="len",type="usize",dir="in"}]
+ret = {type="usize"}
+
+[desc.MOD_INFO]
+nr = 35
+caps = ["KSTAT"]
+args = [{name="module_id",type="[u8;32]",dir="in"}, {name="out",type="u8*",dir="out"}, {name="len",type="usize",dir="in"}]
+ret = {type="usize"}
+
+[desc.CH_OPEN]
+nr = 40
+caps = ["IPC"]
+args = [{name="to",type="[u8;32]",dir="in"}]
+ret = {type="i64"}  # handle
+
+[desc.CH_CLOSE]
+nr = 41
+caps = ["IPC"]
+args = [{name="ch",type="u64",dir="in"}]
+ret = {type="i64"}
+
+[desc.CH_SEND]
+nr = 42
+caps = ["IPC"]
+args = [
+  {name="ch",type="u64",dir="in"},
+  {name="hdr",type="u8*",dir="in",bytes=64},
+  {name="payload",type="u8*",dir="in"},
+  {name="len",type="usize",dir="in",max="@limits.max_ipc_msg"}
+]
+ret = {type="i64"}
+
+[desc.CH_RECV]
+nr = 43
+caps = ["IPC"]
+args = [
+  {name="ch",type="u64",dir="in"},
+  {name="hdr_out",type="u8*",dir="out",bytes=64},
+  {name="buf",type="u8*",dir="out"},
+  {name="len",type="usize",dir="in"},
+  {name="timeout_ns",type="u64",dir="in"}
+]
+ret = {type="i64"}
+
+[desc.CH_POLL]
+nr = 44
+caps = ["IPC"]
+args = [{name="ch",type="u64",dir="in"}, {name="timeout_ns",type="u64",dir="in"}]
+ret = {type="i64"}
+
+[desc.SHM_MAP]
+nr = 45
+caps = ["IPC"]
+args = [
+  {name="token",type="[u8;32]",dir="in"},
+  {name="addr",type="u64",dir="in"},
+  {name="len",type="u64",dir="in",max="@limits.max_shm_map"},
+  {name="flags",type="u64",dir="in"}
+]
+ret = {type="i64"}
+
+[desc.SHM_UNMAP]
+nr = 46
+caps = ["IPC"]
+args = [{name="addr",type="u64",dir="in"}, {name="len",type="u64",dir="in"}]
+ret = {type="i64"}
+
+[desc.VM_MMAP]
+nr = 50
+caps = ["KSTAT"]
+args = [{name="addr",type="u64",dir="in"}, {name="len",type="u64",dir="in"}, {name="prot",type="u64",dir="in"}]
+ret = {type="i64"}
+
+[desc.VM_MUNMAP]
+nr = 51
+caps = ["KSTAT"]
+args = [{name="addr",type="u64",dir="in"}, {name="len",type="u64",dir="in"}]
+ret = {type="i64"}
+
+[desc.VM_PROTECT]
+nr = 52
+caps = ["KSTAT"]
+args = [{name="addr",type="u64",dir="in"}, {name="len",type="u64",dir="in"}, {name="prot",type="u64",dir="in"}]
+ret = {type="i64"}
+
+[desc.VM_QUERY]
+nr = 53
+caps = ["KSTAT"]
+args = [{name="addr",type="u64",dir="in"}, {name="out",type="u8*",dir="out"}, {name="len",type="usize",dir="in"}]
+ret = {type="usize"}
+
+[desc.VM_FLUSH_TLB]
+nr = 54
+caps = ["KSTAT"]
+args = [{name="addr",type="u64",dir="in"}, {name="len",type="u64",dir="in"}]
+ret = {type="i64"}
+
+[desc.TH_SPAWN]
+nr = 60
+caps = ["YIELD"]
+args = [{name="entry",type="u64",dir="in"}, {name="arg",type="u64",dir="in"}, {name="stack_bytes",type="u64",dir="in"}]
+ret = {type="i64"}
+
+[desc.TH_JOIN]
+nr = 61
+caps = ["YIELD"]
+args = [{name="tid",type="u64",dir="in"}, {name="timeout_ns",type="u64",dir="in"}]
+ret = {type="i64"}
+
+[desc.TH_SET_NAME]
+nr = 62
+caps = ["YIELD"]
+args = [{name="tid",type="u64",dir="in"}, {name="name",type="u8*",dir="in"}, {name="len",type="usize",dir="in"}]
+ret = {type="i64"}
+
+[desc.TH_YIELD]
+nr = 63
+caps = ["YIELD"]
+args = []
+ret = {type="u64"}
+
+[desc.TH_AFFINITY]
+nr = 64
+caps = ["YIELD"]
+args = [{name="tid",type="u64",dir="in"}, {name="mask",type="u64",dir="in"}]
+ret = {type="i64"}
+
+[desc.SYS_REBOOT]
+nr = 70
+caps = ["KSTAT"]
+args = [{name="magic",type="u64",dir="in"}]
+ret = {type="i64"}
+
+[desc.SYS_POWEROFF]
+nr = 71
+caps = ["KSTAT"]
+args = [{name="magic",type="u64",dir="in"}]
+ret = {type="i64"}

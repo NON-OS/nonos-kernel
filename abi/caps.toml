@@ -1,0 +1,37 @@
+version = 1
+
+[bits]
+LOG      = 0x0000_0000_0000_0001
+YIELD    = 0x0000_0000_0000_0002
+TIME     = 0x0000_0000_0000_0004
+IPC      = 0x0000_0000_0000_0008
+KSTAT    = 0x0000_0000_0000_0010
+
+# reserved kernel-internal: 0x0000_0000_0000_FFE0 ..= 0x0000_0000_0000_FFFF
+# user-defined extension space starts at 0x0000_0000_0001_0000
+
+[groups]
+BASIC   = ["LOG","YIELD","TIME"]
+SERVICE = ["LOG","YIELD","TIME","IPC"]
+OPER    = ["LOG","YIELD","TIME","IPC","KSTAT"]
+
+[token]
+id_bytes        = 32
+subject_bytes   = 32
+rights_bits     = 64
+not_before_ns   = true
+not_after_ns    = true
+mac_bytes       = 32
+issuer_bytes    = 32   # kernel-boot attestation id
+
+[mac]
+algo = "sha3-256"
+const_time = true
+context = "NONOS_CAP_V1"
+
+[delegation]
+# FROM -> TO allowed rights (subset)
+BASIC_to_BASIC     = ["LOG","YIELD","TIME"]
+OPER_to_SERVICE    = ["LOG","YIELD","TIME","IPC"]
+OPER_to_BASIC      = ["LOG","YIELD","TIME"]
+SERVICE_to_BASIC   = ["LOG","YIELD","TIME"]

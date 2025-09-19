@@ -1,0 +1,17 @@
+version = 1
+endian = "little"
+ptr_width = 64
+align = 8
+
+[user_copy]
+smap = true
+stac = true
+clac = true
+max_copy_bytes = 1048576
+
+[abi]
+gateway_default = "int80"
+gateway_alt     = "syscall"
+reg_order = ["rax","rdi","rsi","rdx","r10","r8","r9"]
+ret_reg  = "rax"
+error_convention = "neg_errno"

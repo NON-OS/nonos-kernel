@@ -1,0 +1,20 @@
+version = 1
+format  = "nonos.capsule.v1"
+
+[sections]
+manifest = ".nonos.manifest"
+signature = ".nonos.sig"
+
+[fields]
+module_id      = { type="[u8;32]" }
+entry_symbol   = { type="str" }
+required_caps  = { type="[]str" }
+min_heap_bytes = { type="u64" }
+version        = { type="u32" }
+build_epoch_ns = { type="u64" }
+
+[sign]
+algo = "ed25519"
+hash = "sha3-256"
+measure = ["text",".rodata",".nonos.manifest"]
+context = "NONOS_CAPSULE_V1"

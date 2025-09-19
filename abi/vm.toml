@@ -1,0 +1,46 @@
+version = 2
+
+higher_half = "0xffff_8000_0000_0000"
+
+[page_sizes]
+size4k = true
+size2m = true
+size1g = false
+
+[guards]
+guard_page_bytes  = 4096
+stack_guard_bytes = 4096
+module_guard_head = 4096
+module_guard_tail = 4096
+
+[heap]
+kernel_min_bytes = 4194304   # 4 MiB
+red_zone = true
+
+[protections]
+w_xor_x     = true
+nx_stack    = true
+ro_text     = true
+rodata_nx   = true
+zero_on_alloc = true
+scrub_on_free_debug = true
+
+[module_window]
+size_bytes  = 134217728
+align_bytes = 2097152
+map_text_exec = true
+map_rodata_ro = true
+map_data_rw = true
+stack_nx = true
+
+[aslr]
+enabled = false
+seed_source = "vault"
+granularity_bytes = 2097152
+
+[pcid]
+enabled = false
+max_asids = 4096
+
+[tshoot]
+tlb_shootdown = "single-core"  # "ipi-broadcast" when SMP is enabled

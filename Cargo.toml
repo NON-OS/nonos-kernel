@@ -1,0 +1,179 @@
+[package]
+name = "nonos_kernel"
+version = "0.1.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0"
+authors = ["eK@nonos-tech.xyz"]
+description = "NØNOS ZeroState microkernel — RAM-resident, capability-enforced, signed capsules"
+repository = "https://github.com/NON-OS/N0N-OS"
+# build = "build.rs"              # ← enable when is made available 
+
+[[bin]]
+name = "nonos_kernel"
+path = "src/main.rs"
+
+# Temporarily disable lib to avoid bootloader_api conflicts
+# [lib]
+# name = "nonos_kernel_lib"
+# path = "src/lib.rs"
+# crate-type = ["staticlib", "rlib"]
+
+# Disable lib completely to avoid conflicts
+# [lib]
+# name = "nonos_kernel_lib"
+# path = "src/lib_dummy.rs"
+# crate-type = []
+
+
+######################################################################
+# NONOS FEATURES — surgical switches for hardening & subsystems
+######################################################################
+[features]
+# PRODUCTION: maximum security, all hardening features enabled
+default = [
+  "nonos-syscall-int80",
+  "nonos-log-serial",
+  "nonos-crypto-ed25519",
+  "nonos-hash-sha3",
+  "nonos-heap-guard",
+  "nonos-wx-audit",
+  "nonos-page-zero",
+  "nonos-kaslr",
+  "nonos-nx-stack",
+  "nonos-smap-smep",
+  "nonos-consttime",
+  "nonos-cet",
+]
+
+# syscall gateways (choose one)
+nonos-syscall-int80 = []          # INT 0x80 dispatcher
+nonos-syscall-msr   = []          # SYSCALL/SYSRET via MSRs (enable once wired)
+
+# logging backends
+nonos-log-serial = []             # 16550A COM1
+nonos-log-vga    = []             # text-mode VGA for early bring-up
+
+# memory & hardening toggles
+nonos-heap-guard = []             # red-zone guard pages around kernel heap
+nonos-wx-audit   = []             # deny RWX mappings, assert W^X at runtime
+nonos-page-zero  = []             # zero every freshly-mapped physical page
+nonos-kaslr      = []             # randomize heap base from vault seeds
+nonos-pcid       = []             # PCID/ASID (enable once per-VM tables stable)
+nonos-nx-stack   = []             # enforce NX on all stacks
+nonos-smap-smep  = []             # force-enable SMAP/SMEP/UMIP at boot
+
+# arch/runtime
+nonos-apic = []                   # (x)APIC/LAPIC timers (else PIT)
+nonos-smp  = []                   # future multi-core bring-up
+
+# capsule loader + crypto
+nonos-capsule-elf      = ["xmas-elf"]        # ELF64 capsule format
+nonos-crypto-ed25519   = ["ed25519-dalek"]   # manifest/module signature scheme
+nonos-hash-sha3        = ["sha3"]            # SHA3/Keccak measurement
+nonos-consttime        = ["subtle"]          # constant-time MAC/equals
+
+# advanced hooks (kept off by default; backed by modules at runtime)
+nonos-zk     = []                 # ZK verification hooks/traits (verifier lives in module)
+nonos-onion  = []                 # onion-routing cap namespace reserved
+nonos-cet    = []                 # Control-flow Enforcement Technology
+nonos-fallback-entry = []         # allow src/main.rs lab boot (non-UEFI)
+
+######################################################################
+# DEPENDENCIES — all no_std compatible
+######################################################################
+[dependencies]
+# architecture / memory mgmt
+x86_64 = { version = "0.14", default-features = false, features = ["abi_x86_interrupt", "instructions"] }
+
+# synchronization primitives
+spin = { version = "0.9", default-features = false, features = ["mutex", "spin_mutex", "lazy", "rwlock"] }
+lazy_static = { version = "1.4", features = ["spin_no_std"] }
+
+# memory alloc + containers
+linked_list_allocator = { version = "0.10", default-features = false, features = ["use_spin"] }
+hashbrown = { version = "0.14", default-features = false }
+arrayvec = { version = "0.7", default-features = false }
+smallvec = { version = "1.15", default-features = false }
+bitvec = { version = "1.0", default-features = false, features = ["alloc"] }
+
+# crypto stack (gated; no_std)
+ed25519-dalek = { version = "1", default-features = false, features = ["u64_backend"], optional = true }
+sha3           = { version = "0.10", default-features = false, optional = true }
+subtle         = { version = "2.5",  default-features = false, optional = true }
+
+# ELF capsule loader (gated)
+xmas-elf = { version = "0.9", default-features = false, optional = true }
+
+# misc utils
+bitflags = { version = "2.4", default-features = false }
+cfg-if   = { version = "1.0", default-features = false }
+volatile = { version = "0.4", default-features = false }
+heapless = { version = "0.8", default-features = false }
+blake3 = { version = "1.0", default-features = false }
+bootloader_api = { version = "0.11", default-features = false }
+
+######################################################################
+# TARGET-SPECIFIC OVERRIDES (we are bare-metal x86_64)
+######################################################################
+[target.'cfg(target_arch = "x86_64")'.dependencies]
+# room for arch-specific crates later (apic, acpi, etc.)
+
+######################################################################
+# BUILD PROFILES — tuned for small, auditable kernels
+######################################################################
+[profile.dev]
+panic = "abort"
+opt-level = 0
+lto = false
+debug = true
+codegen-units = 1
+overflow-checks = true
+incremental = true
+
+# crypto fast even in dev (when enabled)
+[profile.dev.package."ed25519-dalek"]
+opt-level = 3
+[profile.dev.package."sha3"]
+opt-level = 3
+
+[profile.release]
+panic = "abort"
+opt-level = 3          # maximum optimization for production
+lto = "fat"            # aggressive link-time optimization
+strip = "symbols"
+debug = false
+codegen-units = 1      # better optimization
+overflow-checks = false
+incremental = false
+# Production security hardening flags
+rpath = false
+
+[profile.release.package."ed25519-dalek"]
+opt-level = 3
+[profile.release.package."sha3"]
+opt-level = 3
+
+[build-dependencies]
+blake3 = { version = "1.5", default-features = false }
+
+# ensure build scripts (if ever added) don't ruin determinism
+[profile.dev.build-override]
+opt-level = 0
+[profile.release.build-override]
+opt-level = "z"
+
+######################################################################
+# NONOS METADATA — machine-readable kernel contract
+######################################################################
+[package.metadata.nonos]
+zerostate = true
+vm = { higher_half = "0xffff_8000_0000_0000", heap_min = "2MiB" }
+security = { wx = true, nx = true, smep = true, smap = true, kaslr = true, cet = true, stack_canaries = true }
+caps = ["LOG","YIELD","TIME","IPC","KSTAT"]
+abi.syscall.v0 = { numbers = [1, 2, 3, 5], names = ["LOG_WRITE","YIELD","TIME_NOW","KSTAT_READ"] }
+capsule = { format = "ELF64", sections = [".text",".rodata",".data",".bss",".nonos.manifest",".nonos.sig"], sig = "ed25519", hash = "sha3-256" }
+
+# Notes:
+# - Advanced hardening flags are feature-gated to let bring-up progress quickly.
+# - `.cargo/config.toml` will set: custom target JSON, rust-lld, and build-std.

@@ -1,0 +1,13 @@
+[unstable]
+build-std-features = ["compiler-builtins-mem"]
+build-std = ["core", "compiler_builtins", "alloc"]
+
+[build]
+target = "x86_64-nonos.json"
+
+[target."x86_64-nonos"]
+runner = "bootimage runner"
+rustflags = [
+    "-C", "force-frame-pointers=yes",
+    "-C", "link-dead-code=off"
+]

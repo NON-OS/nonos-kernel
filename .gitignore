@@ -1,0 +1,29 @@
+# Build artifacts
+/target/
+*.lock
+
+# Debug files
+*.pdb
+*.map
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs
+*.log
+
+# Temporary files
+*.tmp
+*.temp
+
+# Binary outputs
+*.bin
+*.img
+*.iso
