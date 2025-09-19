@@ -13,17 +13,10 @@ repository = "https://github.com/NON-OS/N0N-OS"
 name = "nonos_kernel"
 path = "src/main.rs"
 
-# Temporarily disable lib to avoid bootloader_api conflicts
-# [lib]
-# name = "nonos_kernel_lib"
-# path = "src/lib.rs"
-# crate-type = ["staticlib", "rlib"]
-
-# Disable lib completely to avoid conflicts
-# [lib]
-# name = "nonos_kernel_lib"
-# path = "src/lib_dummy.rs"
-# crate-type = []
+[lib]
+name = "nonos_kernel_lib"
+path = "src/lib.rs"
+crate-type = ["staticlib", "rlib"]
 
 
 ######################################################################
