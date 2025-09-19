@@ -69,10 +69,82 @@ impl Shell {
     }
     
 
-    /// Read command from input (simplified)
+    /// Read command from input
     fn read_command(&self) -> String {
-        // FIXME: Need keyboard driver integration for actual input
-        "help".to_string() // HACK: Hardcoded for testing
+        use alloc::string::String;
+        let mut input = String::new();
+        
+        // Try to get keyboard driver
+        if let Some(keyboard) = crate::drivers::keyboard::get_keyboard() {
+            crate::print!(""); // Ensure cursor is visible
+            
+            loop {
+                // Check for key events
+                while let Some(key_event) = keyboard.read_key() {
+                    if key_event.pressed {
+                        if let Some(ch) = key_event.ascii {
+                            match ch {
+                                '\n' => {
+                                    crate::println!("");
+                                    return input;
+                                }
+                                '\x08' => { // Backspace
+                                    if !input.is_empty() {
+                                        input.pop();
+                                        crate::print!("\x08 \x08"); // Erase character
+                                    }
+                                }
+                                '\t' => {
+                                    // TODO: Implement command completion
+                                    input.push(' '); // For now, treat as space
+                                    crate::print!(" ");
+                                }
+                                ch if ch.is_ascii_control() => {
+                                    // Ignore other control characters
+                                }
+                                ch => {
+                                    input.push(ch);
+                                    crate::print!("{}", ch);
+                                }
+                            }
+                        }
+                    }
+                }
+                
+                // Small delay to prevent busy waiting
+                unsafe {
+                    for _ in 0..1000 {
+                        core::arch::asm!("pause");
+                    }
+                }
+            }
+        } else {
+            // Fallback: cycle through demo commands
+            static mut DEMO_COMMANDS: &[&str] = &[
+                "help",
+                "uname", 
+                "meminfo",
+                "ps",
+                "ls",
+                "env",
+                "cpuinfo",
+                "uptime",
+                "clear"
+            ];
+            static mut DEMO_INDEX: usize = 0;
+            
+            unsafe {
+                let cmd = DEMO_COMMANDS[DEMO_INDEX].to_string();
+                DEMO_INDEX = (DEMO_INDEX + 1) % DEMO_COMMANDS.len();
+                
+                // Simulate typing delay for demo
+                for _ in 0..1000000 {
+                    core::arch::asm!("pause");
+                }
+                
+                cmd
+            }
+        }
     }
     
     /// Execute a command

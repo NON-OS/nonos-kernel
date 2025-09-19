@@ -8,6 +8,20 @@
 #![no_std]
 #![feature(alloc_error_handler, abi_x86_interrupt)]
 
+// Multiboot2 header for bootloader compatibility
+#[link_section = ".multiboot_header"]
+#[no_mangle]
+pub static MULTIBOOT_HEADER: [u32; 8] = [
+    0x36d76289,              // magic
+    0,                       // architecture (i386)
+    8 * 4,                   // header length
+    (0x100000000u64 - (0x36d76289u64 + 0 + 8 * 4)) as u32, // checksum
+    0,                       // tag_type (end tag)
+    0,                       // flags
+    8,                       // size
+    0,                       // padding
+];
+
 // We need panic infrastructure  
 #[macro_use]
 extern crate alloc;
@@ -83,10 +97,22 @@ pub mod monitor {
     }
 }
 
-/// The entry point called by our custom UEFI bootloader
+/// Multiboot2 entry point
 #[no_mangle]
-pub extern "C" fn _start(boot_info: *const u8) -> ! {
-    // SIMPLE TEST - Just print to VGA and halt
+pub extern "C" fn _start() -> ! {
+    kernel_main()
+}
+
+/// Legacy entry point for other bootloaders
+#[no_mangle]
+pub extern "C" fn _start_multiboot(magic: u32, boot_info: *const u8) -> ! {
+    kernel_main()
+}
+
+/// The entry point called by our custom UEFI bootloader  
+#[no_mangle]
+pub extern "C" fn _start_uefi(boot_info: *const u8) -> ! {
+    // Initialize VGA output
     unsafe {
         let vga = 0xb8000 as *mut u8;
         
@@ -97,24 +123,29 @@ pub extern "C" fn _start(boot_info: *const u8) -> ! {
             *vga.add(offset + 1) = 0x07; // Light gray on black
         }
         
-        // Print "HELLO WORLD" message
-        let msg = b"HELLO WORLD! N0N-OS KERNEL IS ALIVE!";
+        // Print boot messages
+        let msg = b"N0N-OS Kernel v0.1 - Booting...";
         for (i, &byte) in msg.iter().enumerate() {
             let offset = i * 2;
             *vga.add(offset) = byte;
             *vga.add(offset + 1) = 0x0F; // White on black
         }
         
-        // Print second message
-        let msg2 = b"Kernel loaded successfully!";
+        let msg2 = b"Initializing keyboard driver...";
         for (i, &byte) in msg2.iter().enumerate() {
             let offset = (i + 80) * 2; // Second line
             *vga.add(offset) = byte;
             *vga.add(offset + 1) = 0x0A; // Green on black
         }
-        
-        // Print third message
-        let msg3 = b"System ready for operation!";
+    }
+    
+    // Initialize kernel services
+    start_kernel_services();
+    
+    // Print ready message
+    unsafe {
+        let vga = 0xb8000 as *mut u8;
+        let msg3 = b"System ready! Starting shell...";
         for (i, &byte) in msg3.iter().enumerate() {
             let offset = (i + 160) * 2; // Third line
             *vga.add(offset) = byte;
@@ -122,12 +153,13 @@ pub extern "C" fn _start(boot_info: *const u8) -> ! {
         }
     }
     
-    // Simple infinite loop
-    loop {
-        unsafe {
-            x86_64::instructions::hlt();
-        }
+    // Start shell after brief delay
+    for _ in 0..10000000 {
+        unsafe { core::arch::asm!("pause"); }
     }
+    
+    // Start the shell
+    shell::start_shell()
 }
 
 fn show_boot_menu() {
@@ -156,6 +188,13 @@ fn show_boot_menu() {
 }
 
 fn start_kernel_services() {
+    // Initialize keyboard driver first
+    if let Err(e) = drivers::keyboard::init_keyboard() {
+        crate::println!("Failed to initialize keyboard: {}", e);
+    } else {
+        crate::println!("✓ Keyboard driver initialized");
+    }
+    
     // Start the kernel daemon processes
     spawn_kernel_daemon("memory_manager", memory_management_daemon);
     spawn_kernel_daemon("process_scheduler", process_scheduler_daemon);
@@ -164,7 +203,7 @@ fn start_kernel_services() {
     spawn_kernel_daemon("filesystem_sync", filesystem_sync_daemon);
     spawn_kernel_daemon("crypto_service", crypto_service_daemon);
     
-    log::info!("All kernel services started");
+    crate::println!("✓ All kernel services started");
 }
 
 fn spawn_kernel_daemon(_name: &str, _daemon: fn()) {
