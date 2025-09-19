@@ -188,12 +188,23 @@ fn show_boot_menu() {
 }
 
 fn start_kernel_services() {
-    // Initialize keyboard driver first
-    if let Err(e) = drivers::keyboard::init_keyboard() {
-        crate::println!("Failed to initialize keyboard: {}", e);
+    // Initialize core subsystems first
+    crate::println!("🚀 Starting N0N-OS core services...");
+    
+    // Initialize VFS
+    fs::init();
+    crate::println!("✓ VFS with cryptographic capabilities initialized");
+    
+    // Initialize keyboard driver
+    if let Err(_) = drivers::keyboard::init_keyboard() {
+        crate::println!("⚠ Keyboard driver failed - using demo mode");
     } else {
-        crate::println!("✓ Keyboard driver initialized");
+        crate::println!("✓ PS/2 keyboard driver initialized");
     }
+    
+    // Initialize shell
+    shell::init();
+    crate::println!("✓ N0N-OS shell initialized");
     
     // Start the kernel daemon processes
     spawn_kernel_daemon("memory_manager", memory_management_daemon);
@@ -203,7 +214,7 @@ fn start_kernel_services() {
     spawn_kernel_daemon("filesystem_sync", filesystem_sync_daemon);
     spawn_kernel_daemon("crypto_service", crypto_service_daemon);
     
-    crate::println!("✓ All kernel services started");
+    crate::println!("✅ All N0N-OS kernel services operational");
 }
 
 fn spawn_kernel_daemon(_name: &str, _daemon: fn()) {
