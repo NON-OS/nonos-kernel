@@ -1,4 +1,4 @@
-ENTRY(_arch_start)
+ENTRY(_start)
 OUTPUT_ARCH(i386:x86-64)
 
 /* Memory layout constants */

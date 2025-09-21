@@ -97,6 +97,11 @@ use arch::x86_64::{gdt, idt};
 // Fallback boot for standalone mode
 pub mod boot_fallback;
 use crypto::init_crypto;
+
+// Ensure _arch_start is included in the binary
+extern "C" {
+    fn _arch_start() -> !;
+}
 // use log::logger;
 // use memory::{frame_alloc, heap};
 // use modules::mod_loader::{init_module_loader};

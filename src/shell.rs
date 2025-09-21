@@ -400,7 +400,7 @@ impl Shell {
     
     /// Display memory information
     fn cmd_meminfo(&self) {
-        let health = system_monitor::get_system_health();
+        let health = crate::system_monitor::get_system_health();
         crate::println!("Memory Information:");
         crate::println!("  Heap Usage: {}%", health.heap_usage_percent);
         crate::println!("  Heap Failures: {}", health.heap_failures);
@@ -444,7 +444,7 @@ impl Shell {
     
     /// System uptime
     fn cmd_uptime(&self) {
-        let health = system_monitor::get_system_health();
+        let health = crate::system_monitor::get_system_health();
         let hours = health.uptime_seconds / 3600;
         let minutes = (health.uptime_seconds % 3600) / 60;
         let seconds = health.uptime_seconds % 60;
@@ -517,13 +517,13 @@ impl Shell {
     /// Vault operations (N0N-OS unique)
     fn cmd_vault(&self, args: &[&str]) {
         match args.get(0) {
-            Some("status") => {
+            Some(&"status") => {
                 crate::println!("🔒 Vault Status:");
                 crate::println!("  Secure enclave: ACTIVE");
                 crate::println!("  Hardware RNG: OPERATIONAL");
                 crate::println!("  Entropy bits: 4096/4096");
             }
-            Some("keys") => {
+            Some(&"keys") => {
                 crate::println!("🔑 Available Keys:");
                 crate::println!("  master_key_0: Ed25519 [SEALED]");
                 crate::println!("  fs_encryption: AES-256-GCM [ACTIVE]");
@@ -540,13 +540,13 @@ impl Shell {
     /// Zero-knowledge operations (N0N-OS unique)
     fn cmd_zk(&self, args: &[&str]) {
         match args.get(0) {
-            Some("status") => {
+            Some(&"status") => {
                 crate::println!("⚡ ZK Engine Status:");
                 crate::println!("  Proving system: Groth16");
                 crate::println!("  Curve: BLS12-381");
                 crate::println!("  Circuits loaded: 4");
             }
-            Some("circuits") => {
+            Some(&"circuits") => {
                 crate::println!("🔬 Available Circuits:");
                 crate::println!("  identity_proof: Prove identity without revelation");
                 crate::println!("  access_control: Capability verification");
@@ -563,13 +563,13 @@ impl Shell {
     /// Onion routing operations (N0N-OS unique)
     fn cmd_onion(&self, args: &[&str]) {
         match args.get(0) {
-            Some("status") => {
+            Some(&"status") => {
                 crate::println!("🌐 Onion Network Status:");
                 crate::println!("  Connection: ESTABLISHED");
                 crate::println!("  Active circuits: 3");
                 crate::println!("  Anonymity level: HIGH");
             }
-            Some("circuits") => {
+            Some(&"circuits") => {
                 crate::println!("⚡ Active Circuits:");
                 crate::println!("  Circuit 0: [GUARD] -> [MIDDLE] -> [EXIT]");
                 crate::println!("  Circuit 1: [GUARD] -> [MIDDLE] -> [EXIT]");
@@ -616,13 +616,13 @@ impl Shell {
     /// Advanced monitoring (N0N-OS unique)
     fn cmd_monitor(&self, args: &[&str]) {
         match args.get(0) {
-            Some("security") => {
+            Some(&"security") => {
                 crate::println!("🛡️  Security Monitor:");
                 crate::println!("  Threat level: LOW");
                 crate::println!("  Capability violations: 0");
                 crate::println!("  Memory protection: ACTIVE");
             }
-            Some("crypto") => {
+            Some(&"crypto") => {
                 crate::println!("🔐 Crypto Monitor:");
                 crate::println!("  Encryption operations: 1,247");
                 crate::println!("  RNG health: EXCELLENT");
