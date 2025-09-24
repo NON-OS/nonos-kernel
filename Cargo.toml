@@ -121,7 +121,7 @@ opt-level = 0
 lto = false
 debug = true
 codegen-units = 1
-overflow-checks = true
+overflow-checks = false
 incremental = true
 
 # crypto fast even in dev (when enabled)
