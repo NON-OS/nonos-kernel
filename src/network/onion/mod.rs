@@ -48,6 +48,8 @@ pub struct OnionRouter {
     pub relay_manager: RelayManager,
     pub stream_manager: StreamManager,
     pub cell_processor: CellProcessor,
+    pub key_manager: KeyManager,
+    pub route_optimizer: RouteOptimizer,
     pub is_relay: AtomicBool,
     pub relay_stats: RelayStats,
 }
@@ -104,6 +106,8 @@ impl OnionRouter {
             relay_manager: RelayManager::new(),
             stream_manager: StreamManager::new(),
             cell_processor: CellProcessor::new(),
+            key_manager: KeyManager::new(),
+            route_optimizer: RouteOptimizer::new(),
             is_relay: AtomicBool::new(false),
             relay_stats: RelayStats {
                 cells_processed: AtomicU32::new(0),
@@ -239,6 +243,32 @@ pub fn process_circuit_maintenance() {
                 // Log security violations
                 crate::log::logger::log_warn!("Circuit maintenance: security violation detected");
             }
+        }
+    }
+}
+
+/// Key management for onion routing
+pub struct KeyManager {
+    pub rsa_keys: Vec<u8>,
+}
+
+impl KeyManager {
+    pub fn new() -> Self {
+        Self {
+            rsa_keys: Vec::new(),
+        }
+    }
+}
+
+/// Route optimization engine
+pub struct RouteOptimizer {
+    pub cached_paths: Vec<u8>,
+}
+
+impl RouteOptimizer {
+    pub fn new() -> Self {
+        Self {
+            cached_paths: Vec::new(),
         }
     }
 }
