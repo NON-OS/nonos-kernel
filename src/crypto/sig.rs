@@ -226,6 +226,11 @@ pub mod ed25519 {
         Ok(points_equal(&left, &right))
     }
     
+    /// Derive Ed25519 public key from private key
+    pub fn derive_public_key(private_key: &[u8; 32]) -> Result<[u8; 32], &'static str> {
+        scalar_mult_base(private_key)
+    }
+    
     // Scalar arithmetic modulo curve order
     fn scalar_mult(a: &[u8; 32], b: &[u8; 32]) -> Result<[u8; 32], &'static str> {
         let mut result = [0u64; 8];
@@ -1318,4 +1323,21 @@ pub fn ed25519_verify(public_key: &[u8; 32], message: &[u8], signature: &[u8]) -
     
     let sig = Signature::new(SignatureAlgorithm::Ed25519, signature.to_vec());
     ed25519::verify(public_key, &sig, message)
+}
+
+/// Ed25519 signing wrapper
+pub fn ed25519_sign(private_key: &[u8; 32], message: &[u8]) -> Result<[u8; 64], &'static str> {
+    let signature = ed25519::sign(private_key, message)?;
+    let sig_bytes = signature.as_bytes();
+    if sig_bytes.len() != 64 {
+        return Err("Invalid signature length");
+    }
+    let mut result = [0u8; 64];
+    result.copy_from_slice(sig_bytes);
+    Ok(result)
+}
+
+/// Derive Ed25519 public key from private key
+pub fn ed25519_derive_public_key(private_key: &[u8; 32]) -> Result<[u8; 32], &'static str> {
+    ed25519::derive_public_key(private_key)
 }
