@@ -98,6 +98,98 @@ impl CapabilityToken {
 /// Global static token used by syscall routing context
 static mut CURRENT_TOKEN: Option<CapabilityToken> = None;
 
+/// Cryptographic capability token issuer
+pub struct CapabilityIssuer {
+    private_key: [u8; 32],
+    pub_key_hash: [u8; 32],
+}
+
+impl CapabilityIssuer {
+    /// Create new capability issuer with cryptographic keys
+    pub fn new() -> Self {
+        // Generate key pair using kernel entropy
+        let private_key = crate::crypto::entropy::get_random_bytes_32();
+        let pub_key_hash = crate::crypto::hash::blake3_hash(&private_key);
+        
+        Self {
+            private_key,
+            pub_key_hash,
+        }
+    }
+
+    /// Issue a cryptographically signed capability token
+    pub fn issue_token(&self, module_name: &'static str, capabilities: Vec<Capability>, lifetime_secs: u64) -> Result<SignedCapabilityToken, &'static str> {
+        let current_time = crate::time::timestamp_millis();
+        let lifetime_ticks = lifetime_secs * 1000; // Convert to milliseconds
+        
+        let token = CapabilityToken {
+            owner_module: module_name,
+            permissions: capabilities.into_iter().collect(),
+            issued_at: current_time,
+            scope_lifetime_ticks: lifetime_ticks,
+        };
+
+        // Create signature
+        let token_data = format!("{}:{}:{}:{}", 
+            module_name,
+            current_time,
+            lifetime_ticks,
+            token.permissions.iter().map(|c| c.to_u8()).collect::<Vec<_>>().len()
+        );
+        
+        let signature = self.sign_data(token_data.as_bytes())?;
+        
+        Ok(SignedCapabilityToken {
+            token,
+            signature,
+            issuer_key_hash: self.pub_key_hash,
+        })
+    }
+
+    /// Sign data with private key
+    fn sign_data(&self, data: &[u8]) -> Result<[u8; 64], &'static str> {
+        // Use Ed25519 signature
+        crate::crypto::sig::ed25519_sign(&self.private_key, data)
+    }
+
+    /// Verify a signed token
+    pub fn verify_token(&self, signed_token: &SignedCapabilityToken) -> Result<bool, &'static str> {
+        // Check issuer
+        if signed_token.issuer_key_hash != self.pub_key_hash {
+            return Ok(false);
+        }
+
+        // Check expiration
+        if !signed_token.token.is_valid()? {
+            return Ok(false);
+        }
+
+        // Verify signature
+        let token_data = format!("{}:{}:{}:{}", 
+            signed_token.token.owner_module,
+            signed_token.token.issued_at,
+            signed_token.token.scope_lifetime_ticks,
+            signed_token.token.permissions.len()
+        );
+
+        let public_key = self.derive_public_key(&self.private_key)?;
+        crate::crypto::sig::ed25519_verify(&public_key, token_data.as_bytes(), &signed_token.signature)
+    }
+
+    /// Derive public key from private key
+    fn derive_public_key(&self, private_key: &[u8; 32]) -> Result<[u8; 32], &'static str> {
+        crate::crypto::sig::ed25519_derive_public_key(private_key)
+    }
+}
+
+/// Cryptographically signed capability token
+#[derive(Debug, Clone)]
+pub struct SignedCapabilityToken {
+    pub token: CapabilityToken,
+    pub signature: [u8; 64],
+    pub issuer_key_hash: [u8; 32],
+}
+
 /// Called during task or module execution bootstrap
 pub fn set_current_token(token: CapabilityToken) {
     unsafe {
