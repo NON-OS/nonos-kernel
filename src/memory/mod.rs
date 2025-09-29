@@ -40,6 +40,20 @@ pub struct MemoryRegion {
     pub region_type: RegionType,
 }
 
+impl MemoryRegion {
+    pub fn new(start: VirtAddr, size: usize) -> Self {
+        Self {
+            start: start.as_u64(),
+            size: size as u64,
+            region_type: RegionType::User,
+        }
+    }
+    
+    pub fn start_address(&self) -> VirtAddr {
+        VirtAddr::new(self.start)
+    }
+}
+
 #[derive(Debug, Clone, Copy)]
 pub enum RegionType {
     Kernel,
