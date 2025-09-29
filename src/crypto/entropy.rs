@@ -61,6 +61,13 @@ pub fn get_rdrand() -> u64 {
     }
 }
 
+/// Get 32 random bytes as array - REAL IMPLEMENTATION  
+pub fn get_random_bytes_32() -> [u8; 32] {
+    let mut buffer = [0u8; 32];
+    get_random_bytes(&mut buffer);
+    buffer
+}
+
 /// Fill buffer with random bytes - REAL IMPLEMENTATION
 pub fn get_random_bytes(buffer: &mut [u8]) {
     let mut offset = 0;
