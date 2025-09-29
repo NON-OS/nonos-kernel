@@ -9,8 +9,8 @@ use core::sync::atomic::{AtomicU64, AtomicBool, Ordering};
 use spin::RwLock;
 
 use crate::crypto::hash::blake3_hash;
-use crate::memory::region::MemRegion;
-use crate::modules::sandbox::SandboxContext;
+use crate::modules::sandbox::{SandboxContext, MemRegion};
+use crate::memory::region::MemRegion as MemoryRegion;
 use crate::log::logger::{log_info, log_warn};
 use alloc::vec::Vec;
 
@@ -246,7 +246,7 @@ fn zero_memory_region(region: &MemRegion) {
         core::ptr::write_bytes(
             region.start as *mut u8,
             0,
-            region.size_bytes() as usize
+            region.size
         );
     }
 }
