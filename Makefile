@@ -14,21 +14,38 @@ GDB := gdb
 OBJDUMP := objdump
 OBJCOPY := objcopy
 
-# QEMU configuration
+# QEMU configuration - base args
 QEMU_ARGS := -machine q35 \
              -m 512M \
              -smp 2 \
-             -serial stdio \
-             -display gtk
+             -serial stdio
 
-# Check for KVM support
-ifneq ($(wildcard /dev/kvm),)
-    QEMU_ARGS += -enable-kvm -cpu host
+# Check for KVM support (Linux only) and set display
+ifeq ($(UNAME_S),Linux)
+    ifneq ($(wildcard /dev/kvm),)
+        QEMU_ARGS += -enable-kvm -cpu host
+    endif
+    QEMU_ARGS += -display gtk
+else ifeq ($(UNAME_S),Darwin)
+    # macOS: Use hvf (Hypervisor.framework) if available
+    QEMU_ARGS += -accel hvf -cpu max
+    # Use cocoa display on macOS (default), or sdl if preferred
+    QEMU_ARGS += -display cocoa
 endif
 
 # OVMF UEFI firmware
-OVMF_CODE := /usr/share/OVMF/OVMF_CODE.fd
-OVMF_VARS := /usr/share/OVMF/OVMF_VARS.fd
+# Detect OS and set appropriate paths
+UNAME_S := $(shell uname -s)
+ifeq ($(UNAME_S),Darwin)
+    # macOS paths (Homebrew QEMU)
+    QEMU_SHARE := $(shell brew --prefix qemu)/share/qemu
+    OVMF_CODE := $(QEMU_SHARE)/edk2-x86_64-code.fd
+    OVMF_VARS := $(QEMU_SHARE)/edk2-i386-vars.fd
+else
+    # Linux paths
+    OVMF_CODE := /usr/share/OVMF/OVMF_CODE.fd
+    OVMF_VARS := /usr/share/OVMF/OVMF_VARS.fd
+endif
 
 # Default target
 .PHONY: all
@@ -103,7 +120,9 @@ create-disk:
 	@mkdir -p build
 	@cp $(OVMF_VARS) build/OVMF_VARS.fd
 	@dd if=/dev/zero of=build/nonos.img bs=1M count=64 2>/dev/null
-	@mkfs.vfat build/nonos.img
+ifeq ($(UNAME_S),Linux)
+	@mkfs.vfat build/nonos.img > /dev/null 2>&1
+endif
 	@echo "Disk image created!"
 
 # Disassemble kernel
