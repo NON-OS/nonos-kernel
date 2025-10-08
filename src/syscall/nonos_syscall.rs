@@ -176,7 +176,7 @@ impl NonosSyscallHandler {
             _ => return NonosSyscallResult::InvalidArguments,
         };
 
-        match crate::sched::nonos_scheduler::create_process(
+        match crate::process::create_process(
             Some(self.get_current_process_id()),
             priority_enum,
             memory_size,
@@ -198,7 +198,7 @@ impl NonosSyscallHandler {
         }
 
         let target_pid = args[0];
-        match crate::sched::nonos_scheduler::terminate_process(target_pid) {
+        match crate::process::terminate_process(target_pid) {
             Ok(()) => NonosSyscallResult::Success(0),
             Err(e) => NonosSyscallResult::Error(e),
         }
