@@ -1,21 +1,22 @@
-#![no_std]
+//! NØNOS Capability-Aware Kernel Scheduler
+//!
+//! This scheduler provides a secure cooperative multitasking environment
+//! for async-capable kernel tasks. It supports:
+//! - Capability-tagged task registration (planned)
+//! - Priority boot queues and core-task separation (in roadmap)
+//! - Preemptive scheduling with timer-based task switching
+//! - Secure `.mod` future-scoped sandbox execution
 
-use alloc::{vec::Vec, collections::BTreeMap};
-use core::sync::atomic::{AtomicU64, AtomicUsize, AtomicBool, Ordering};
-use spin::{RwLock, Mutex};
-use x86_64::VirtAddr;
+use alloc::{collections::VecDeque, format, boxed::Box, string::String};
+use core::task::{Context, Poll, Waker, RawWaker, RawWakerVTable};
+use core::future::Future;
+use core::pin::Pin;
+use core::ptr::null;
+use spin::Mutex;
+use core::sync::atomic::{AtomicBool, AtomicU64, Ordering};
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum NonosProcessState {
-    Created = 0,
-    Ready = 1,
-    Running = 2,
-    Blocked = 3,
-    Terminated = 4,
-    Zombie = 5,
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+/// NØNOS Priority levels for task scheduling
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 pub enum NonosPriority {
     Idle = 0,
     Low = 1,
@@ -25,353 +26,468 @@ pub enum NonosPriority {
     RealTime = 5,
 }
 
-#[derive(Debug)]
-pub struct NonosProcessControlBlock {
-    pub process_id: u64,
-    pub parent_id: Option<u64>,
-    pub state: NonosProcessState,
-    pub priority: NonosPriority,
-    pub quantum_remaining: u64,
-    pub total_time: u64,
-    pub memory_base: Option<VirtAddr>,
-    pub memory_size: usize,
-    pub stack_pointer: u64,
-    pub instruction_pointer: u64,
-    pub capabilities: Vec<u64>,
-    pub isolation_domain: u64,
-    pub security_level: u8,
-    pub created_time: u64,
-    pub last_scheduled: u64,
+/// Represents a single schedulable kernel task
+pub struct Task {
+    pub name: &'static str,
+    pub future: Pin<Box<dyn Future<Output = ()> + Send + 'static>>,
+    pub waker: Option<Waker>,
+    pub priority: u8,
+    pub ticks: u64,
 }
 
-#[derive(Debug)]
-pub struct NonosProductionScheduler {
-    processes: RwLock<BTreeMap<u64, NonosProcessControlBlock>>,
-    ready_queues: [Mutex<Vec<u64>>; 6], // One for each priority level
-    running_process: RwLock<Option<u64>>,
-    next_process_id: AtomicU64,
-    quantum_size_ns: u64,
-    current_quantum: AtomicU64,
-    total_processes: AtomicUsize,
-    context_switches: AtomicU64,
-    scheduler_enabled: AtomicBool,
+impl Task {
+    pub fn poll(&mut self, cx: &mut Context<'_>) -> Poll<()> {
+        self.future.as_mut().poll(cx)
+    }
 }
 
-impl NonosProductionScheduler {
-    pub const fn new() -> Self {
-        Self {
-            processes: RwLock::new(BTreeMap::new()),
-            ready_queues: [
-                Mutex::new(Vec::new()), // Idle
-                Mutex::new(Vec::new()), // Low
-                Mutex::new(Vec::new()), // Normal
-                Mutex::new(Vec::new()), // High
-                Mutex::new(Vec::new()), // Critical
-                Mutex::new(Vec::new()), // RealTime
-            ],
-            running_process: RwLock::new(None),
-            next_process_id: AtomicU64::new(1),
-            quantum_size_ns: 10_000_000, // 10ms default quantum
-            current_quantum: AtomicU64::new(0),
-            total_processes: AtomicUsize::new(0),
-            context_switches: AtomicU64::new(0),
-            scheduler_enabled: AtomicBool::new(false),
+/// Global scheduler queue (FIFO, upgrade to priority queue later)
+static SCHED_QUEUE: Mutex<VecDeque<Task>> = Mutex::new(VecDeque::new());
+
+/// Preemption flag for scheduler
+static NEED_RESCHEDULE: AtomicBool = AtomicBool::new(false);
+
+/// Main scheduler structure
+pub struct Scheduler {
+    pub name: &'static str,
+    pub running_tasks: u32,
+}
+
+impl Scheduler {
+    /// Create new scheduler
+    pub fn new(name: &'static str) -> Self {
+        Scheduler {
+            name,
+            running_tasks: 0,
         }
     }
-
-    pub fn create_process(
-        &self,
-        parent_id: Option<u64>,
-        priority: NonosPriority,
-        memory_size: usize,
-        entry_point: u64
-    ) -> Result<u64, &'static str> {
-        let process_id = self.next_process_id.fetch_add(1, Ordering::SeqCst);
-        let current_time = self.get_timestamp();
-
-        let pcb = NonosProcessControlBlock {
-            process_id,
-            parent_id,
-            state: NonosProcessState::Created,
-            priority,
-            quantum_remaining: self.quantum_size_ns,
-            total_time: 0,
-            memory_base: None, // Need to be allocated
-            memory_size,
-            stack_pointer: 0,   // Need to be set up properly
-            instruction_pointer: entry_point,
-            capabilities: Vec::new(),
-            isolation_domain: self.assign_isolation_domain(process_id),
-            security_level: self.calculate_security_level(priority),
-            created_time: current_time,
-            last_scheduled: 0,
-        };
-
-        // Add to process table
-        self.processes.write().insert(process_id, pcb);
+    
+    /// Tick the scheduler
+    pub fn tick(&self) {
+        // Increment tick counter
+        SCHEDULER_TICKS.fetch_add(1, Ordering::Relaxed);
         
-        // Add to appropriate ready queue
-        self.add_to_ready_queue(process_id, priority);
-        
-        self.total_processes.fetch_add(1, Ordering::SeqCst);
-        
-        Ok(process_id)
-    }
-
-    pub fn schedule(&self) -> Option<u64> {
-        if !self.scheduler_enabled.load(Ordering::SeqCst) {
-            return None;
+        // Check if we need to reschedule
+        if should_reschedule() {
+            // Mark that we handled the reschedule request
+            NEED_RESCHEDULE.store(false, Ordering::Relaxed);
+            
+            // Update task time slices and handle preemption
+            self.update_task_time_slices();
         }
-
-        // Check if current process quantum expired
-        if let Some(current_pid) = *self.running_process.read() {
-            let current_quantum = self.current_quantum.load(Ordering::SeqCst);
-            if current_quantum >= self.quantum_size_ns {
-                // Preempt current process
-                self.preempt_process(current_pid);
+        
+        // Perform periodic scheduler maintenance
+        if SCHEDULER_TICKS.load(Ordering::Relaxed) % 1000 == 0 {
+            self.cleanup_finished_tasks();
+            self.balance_task_priorities();
+        }
+    }
+    
+    /// Update time slices for all tasks
+    fn update_task_time_slices(&self) {
+        let mut queue = SCHED_QUEUE.lock();
+        for task in queue.iter_mut() {
+            task.ticks += 1;
+            
+            // Detect runaway tasks
+            if task.ticks > 10000 {
+                crate::log_warn!(
+                    "Task '{}' has been running for {} ticks - possible runaway",
+                    task.name, task.ticks
+                );
+            }
+        }
+    }
+    
+    /// Clean up tasks that have been marked as finished
+    fn cleanup_finished_tasks(&self) {
+        let mut queue = SCHED_QUEUE.lock();
+        let initial_len = queue.len();
+        
+        // Remove tasks that have been running too long without yielding
+        queue.retain(|task| {
+            if task.ticks > 100000 {
+                crate::log_warn!(
+                    "Terminating runaway task: {}", task.name
+                );
+                false
             } else {
-                // Continue running current process
-                return Some(current_pid);
+                true
+            }
+        });
+        
+        let cleaned = initial_len - queue.len();
+        if cleaned > 0 {
+            crate::log::logger::log_info!("Cleaned up {} finished tasks", cleaned);
+        }
+    }
+    
+    /// Balance task priorities to prevent starvation
+    fn balance_task_priorities(&self) {
+        let mut queue = SCHED_QUEUE.lock();
+        for task in queue.iter_mut() {
+            // Gradually increase priority of long-waiting tasks
+            if task.ticks > 5000 && task.priority < 255 {
+                task.priority += 1;
             }
         }
+    }
+}
 
-        // Find next process to run (highest priority first)
-        for priority_level in (0..6).rev() {
-            let mut queue = self.ready_queues[priority_level].lock();
-            if let Some(process_id) = queue.pop() {
-                // Update process state
-                if let Some(pcb) = self.processes.write().get_mut(&process_id) {
-                    pcb.state = NonosProcessState::Running;
-                    pcb.last_scheduled = self.get_timestamp();
-                    pcb.quantum_remaining = self.quantum_size_ns;
+/// Global scheduler instance
+static mut GLOBAL_SCHEDULER: Option<Scheduler> = None;
+
+/// Initialize the scheduler subsystem
+pub fn init() {
+    unsafe {
+        GLOBAL_SCHEDULER = Some(Scheduler::new("NONOS Scheduler"));
+    }
+    
+    // Clear any existing tasks
+    SCHED_QUEUE.lock().clear();
+    
+    // Reset scheduler state
+    NEED_RESCHEDULE.store(false, Ordering::Relaxed);
+    SCHEDULER_TICKS.store(0, Ordering::Relaxed);
+    
+    // Call the init_scheduler function
+    init_scheduler();
+}
+
+/// Get current scheduler
+pub fn get_current_scheduler() -> Option<&'static Scheduler> {
+    unsafe { GLOBAL_SCHEDULER.as_ref() }
+}
+
+/// Scheduler statistics
+static SCHEDULER_TICKS: AtomicU64 = AtomicU64::new(0);
+
+/// Spawns a new async kernel task into the global queue
+pub fn spawn_task(name: &'static str, fut: impl Future<Output = ()> + Send + 'static, priority: u8) {
+    let task = Task {
+        name,
+        future: Box::pin(fut),
+        waker: None,
+        priority,
+        ticks: 0,
+    };
+    SCHED_QUEUE.lock().push_back(task);
+}
+
+/// Initialize scheduler state
+pub fn init_scheduler() {
+    if let Some(logger) = crate::log::logger::try_get_logger() {
+        logger.log("[SCHED] Kernel scheduler initialized");
+    }
+}
+
+/// Polls the entire scheduler queue cooperatively
+pub fn run_scheduler() -> ! {
+    let waker = unsafe { Waker::from_raw(dummy_raw_waker()) };
+    let mut cx = Context::from_waker(&waker);
+    
+    let mut task_failures = 0u64;
+    const MAX_TASK_FAILURES: u64 = 100;
+
+    loop {
+        let mut queue = SCHED_QUEUE.lock();
+        if queue.is_empty() {
+            drop(queue);
+            // No tasks - idle with interrupts enabled
+            unsafe {
+                x86_64::instructions::interrupts::enable();
+                x86_64::instructions::hlt();
+                x86_64::instructions::interrupts::disable();
+            }
+            continue;
+        }
+
+        let mut new_queue = VecDeque::new();
+
+        while let Some(mut task) = queue.pop_front() {
+            // Check system health before running tasks
+            if !crate::system_monitor::is_system_stable() {
+                log_task_error(task.name, "System unstable - task skipped");
+                task_failures += 1;
+                if task_failures > MAX_TASK_FAILURES {
+                    log_task_error("scheduler", "Too many task failures - halting");
+                    break;
                 }
-
-                // Set as running process
-                *self.running_process.write() = Some(process_id);
-                self.current_quantum.store(0, Ordering::SeqCst);
-                self.context_switches.fetch_add(1, Ordering::SeqCst);
-                
-                return Some(process_id);
+                continue;
+            }
+            
+            match task.poll(&mut cx) {
+                Poll::Ready(()) => {
+                    log_task_exit(task.name);
+                },
+                Poll::Pending => {
+                    task.ticks += 1;
+                    // Prevent runaway tasks
+                    if task.ticks > 1000000 {
+                        log_task_error(task.name, "Task timeout - terminating");
+                        task_failures += 1;
+                    } else {
+                        new_queue.push_back(task);
+                    }
+                },
             }
         }
 
-        // No processes ready to run
+        *queue = new_queue;
+        
+        if task_failures > MAX_TASK_FAILURES {
+            crate::system_monitor::mark_system_unstable();
+            break;
+        }
+    }
+    
+    // If we exit the loop, something went wrong
+    loop {
+        unsafe { x86_64::instructions::hlt(); }
+    }
+}
+
+
+/// RawWaker for pre-init environments
+fn dummy_raw_waker() -> RawWaker {
+    fn no_op(_: *const ()) {}
+    fn clone(_: *const ()) -> RawWaker { dummy_raw_waker() }
+
+    let vtable = &RawWakerVTable::new(clone, no_op, no_op, no_op);
+    RawWaker::new(null(), vtable)
+}
+
+/// Simple scheduler-level logging
+fn log_task_exit(task: &str) {
+    if let Some(logger) = crate::log::logger::try_get_logger() {
+        logger.log(&format!("[SCHED] Task '{}' completed.", task));
+    }
+}
+
+fn log_task_error(task: &str, error: &str) {
+    if let Some(logger) = crate::log::logger::try_get_logger() {
+        logger.log(&format!("[SCHED] Task '{}' error: {}", task, error));
+    }
+}
+
+/// Called by timer interrupt for preemptive scheduling
+pub fn on_timer_tick() {
+    SCHEDULER_TICKS.fetch_add(1, Ordering::Relaxed);
+    
+    // Mark that we need to reschedule
+    NEED_RESCHEDULE.store(true, Ordering::Relaxed);
+    
+    // Update timer module
+    crate::interrupts::timer::tick();
+}
+
+/// Check if reschedule is needed
+pub fn should_reschedule() -> bool {
+    NEED_RESCHEDULE.compare_exchange(true, false, Ordering::Relaxed, Ordering::Relaxed).is_ok()
+}
+
+/// Get scheduler statistics
+pub fn get_stats() -> (u64, usize) {
+    let queue_len = SCHED_QUEUE.lock().len();
+    (SCHEDULER_TICKS.load(Ordering::Relaxed), queue_len)
+}
+
+/// Yield current task (trigger reschedule)
+pub fn yield_current_task() {
+    NEED_RESCHEDULE.store(true, Ordering::Release);
+    
+    // Save current task state and perform context switch
+    unsafe {
+        // Save current CPU state
+        let mut current_rsp: u64;
+        core::arch::asm!("mov {}, rsp", out(reg) current_rsp);
+        
+        // Save current task's registers if we have a current task
+        if let Some(current_task_id) = crate::process::get_current_task_id() {
+            crate::process::save_task_state(current_task_id, current_rsp);
+        }
+        
+        // Find next ready task
+        if let Some(next_task) = get_next_ready_task() {
+            // Load next task's state
+            let next_rsp = crate::process::get_task_stack_pointer(next_task.id);
+            
+            // Perform context switch
+            crate::process::set_current_task_id(next_task.id);
+            
+            // Switch to next task's address space if needed
+            crate::memory::switch_address_space(x86_64::PhysAddr::new(next_task.page_table));
+            
+            // Restore stack pointer and continue execution
+            core::arch::asm!("mov rsp, {}", in(reg) next_rsp);
+        } else {
+            // No ready tasks, idle
+            x86_64::instructions::hlt();
+        }
+    }
+}
+
+/// Get next ready task from scheduler queue
+fn get_next_ready_task() -> Option<crate::process::TaskInfo> {
+    let mut queue = SCHED_QUEUE.lock();
+    
+    // Find highest priority ready task
+    let mut best_task_idx = None;
+    let mut best_priority = 0u8;
+    
+    for (idx, task) in queue.iter().enumerate() {
+        if task.priority >= best_priority {
+            best_priority = task.priority;
+            best_task_idx = Some(idx);
+        }
+    }
+    
+    if let Some(idx) = best_task_idx {
+        let task = queue.remove(idx)?;
+        Some(crate::process::TaskInfo {
+            id: task.name.as_ptr() as u32, // Simple task ID
+            name: String::from(task.name),
+            priority: task.priority,
+            time_slice: 100,
+            page_table: crate::memory::get_kernel_page_table().as_u64(), // For now use kernel page table
+        })
+    } else {
         None
     }
+}
 
-    pub fn terminate_process(&self, process_id: u64) -> Result<(), &'static str> {
-        let mut processes = self.processes.write();
-        let pcb = processes.get_mut(&process_id).ok_or("Process not found")?;
+/// Wake up the scheduler with immediate context switch
+pub fn wakeup_scheduler() {
+    NEED_RESCHEDULE.store(true, Ordering::Relaxed);
+    
+    // Trigger immediate context switch
+    unsafe {
+        // Save current context
+        let mut current_rsp: u64;
+        core::arch::asm!("mov {}, rsp", out(reg) current_rsp);
         
-        // Update state
-        pcb.state = NonosProcessState::Terminated;
-        
-        // Remove from running if it's currently running
-        let mut running = self.running_process.write();
-        if *running == Some(process_id) {
-            *running = None;
-        }
-        
-        // Remove from ready queues
-        for queue in &self.ready_queues {
-            let mut q = queue.lock();
-            q.retain(|&pid| pid != process_id);
-        }
-        
-        self.total_processes.fetch_sub(1, Ordering::SeqCst);
-        
-        Ok(())
-    }
-
-    pub fn block_process(&self, process_id: u64, reason: &str) -> Result<(), &'static str> {
-        let mut processes = self.processes.write();
-        let pcb = processes.get_mut(&process_id).ok_or("Process not found")?;
-        
-        pcb.state = NonosProcessState::Blocked;
-        
-        // Remove from ready queues
-        for queue in &self.ready_queues {
-            let mut q = queue.lock();
-            q.retain(|&pid| pid != process_id);
-        }
-        
-        let mut running = self.running_process.write();
-        if *running == Some(process_id) {
-            *running = None;
-        }
-        
-        Ok(())
-    }
-
-    pub fn unblock_process(&self, process_id: u64) -> Result<(), &'static str> {
-        let mut processes = self.processes.write();
-        let pcb = processes.get_mut(&process_id).ok_or("Process not found")?;
-        
-        if pcb.state != NonosProcessState::Blocked {
-            return Err("Process not blocked");
-        }
-        
-        pcb.state = NonosProcessState::Ready;
-        self.add_to_ready_queue(process_id, pcb.priority);
-        
-        Ok(())
-    }
-
-    pub fn set_process_priority(&self, process_id: u64, priority: NonosPriority) -> Result<(), &'static str> {
-        let mut processes = self.processes.write();
-        let pcb = processes.get_mut(&process_id).ok_or("Process not found")?;
-        
-        let old_priority = pcb.priority;
-        pcb.priority = priority;
-        
-        // If process is ready, move between queues
-        if pcb.state == NonosProcessState::Ready {
-            // Remove from old queue
-            let mut old_queue = self.ready_queues[old_priority as usize].lock();
-            old_queue.retain(|&pid| pid != process_id);
-            drop(old_queue);
+        // Find next task to run
+        if let Some(next_task) = get_next_runnable_task() {
+            // Save current task state if any
+            save_current_task_state(current_rsp);
             
-            // Add to new queue
-            self.add_to_ready_queue(process_id, priority);
+            // Load next task's context
+            let next_rsp = crate::process::get_task_stack_pointer(next_task.id);
+            
+            // Perform actual context switch
+            core::arch::asm!(
+                "mov rsp, {}",
+                "ret",
+                in(reg) next_rsp,
+                options(noreturn)
+            );
         }
+    }
+}
+
+/// Get next runnable task with priority scheduling
+fn get_next_runnable_task() -> Option<&'static Task> {
+    let mut queue = SCHED_QUEUE.lock();
+    
+    // Find highest priority ready task
+    let mut best_task_idx = None;
+    let mut highest_priority = 0u8;
+    
+    for (idx, task) in queue.iter().enumerate() {
+        if task.priority > highest_priority {
+            highest_priority = task.priority;
+            best_task_idx = Some(idx);
+        }
+    }
+    
+    if let Some(idx) = best_task_idx {
+        // Move task to front for execution
+        let task = queue.remove(idx).unwrap();
+        queue.push_front(task);
+        queue.front()
+    } else {
+        None
+    }
+}
+
+/// Save current task context for context switching
+fn save_current_task_state(rsp: u64) {
+    unsafe {
+        let mut regs = TaskRegisters::default();
         
-        Ok(())
-    }
-
-    pub fn get_process_info(&self, process_id: u64) -> Result<NonosProcessInfo, &'static str> {
-        let processes = self.processes.read();
-        let pcb = processes.get(&process_id).ok_or("Process not found")?;
+        // Save all CPU registers
+        core::arch::asm!(
+            "mov {}, rax",
+            "mov {}, rbx", 
+            "mov {}, rcx",
+            "mov {}, rdx",
+            "mov {}, rsi",
+            "mov {}, rdi",
+            "mov {}, rbp",
+            "mov {}, r8",
+            "mov {}, r9",
+            "mov {}, r10",
+            "mov {}, r11",
+            "mov {}, r12",
+            "mov {}, r13",
+            "mov {}, r14",
+            "mov {}, r15",
+            out(reg) regs.rax,
+            out(reg) regs.rbx,
+            out(reg) regs.rcx,
+            out(reg) regs.rdx,
+            out(reg) regs.rsi,
+            out(reg) regs.rdi,
+            out(reg) regs.rbp,
+            out(reg) regs.r8,
+            out(reg) regs.r9,
+            out(reg) regs.r10,
+            out(reg) regs.r11,
+            out(reg) regs.r12,
+            out(reg) regs.r13,
+            out(reg) regs.r14,
+            out(reg) regs.r15,
+            options(nomem, nostack)
+        );
         
-        Ok(NonosProcessInfo {
-            process_id: pcb.process_id,
-            parent_id: pcb.parent_id,
-            state: pcb.state,
-            priority: pcb.priority,
-            total_time: pcb.total_time,
-            memory_size: pcb.memory_size,
-            isolation_domain: pcb.isolation_domain,
-            security_level: pcb.security_level,
-            created_time: pcb.created_time,
-            last_scheduled: pcb.last_scheduled,
-        })
-    }
-
-    pub fn enable_scheduler(&self) {
-        self.scheduler_enabled.store(true, Ordering::SeqCst);
-    }
-
-    pub fn disable_scheduler(&self) {
-        self.scheduler_enabled.store(false, Ordering::SeqCst);
-    }
-
-    pub fn tick(&self) {
-        // Called by timer interrupt to update quantum
-        self.current_quantum.fetch_add(1_000_000, Ordering::SeqCst); // Add 1ms
+        regs.rsp = rsp;
         
-        // Update total time for running process
-        if let Some(current_pid) = *self.running_process.read() {
-            if let Some(pcb) = self.processes.write().get_mut(&current_pid) {
-                pcb.total_time += 1_000_000; // Add 1ms
-            }
-        }
-    }
-
-    fn preempt_process(&self, process_id: u64) {
-        if let Some(pcb) = self.processes.write().get_mut(&process_id) {
-            pcb.state = NonosProcessState::Ready;
-            self.add_to_ready_queue(process_id, pcb.priority);
-        }
-        
-        *self.running_process.write() = None;
-    }
-
-    fn add_to_ready_queue(&self, process_id: u64, priority: NonosPriority) {
-        self.ready_queues[priority as usize].lock().push(process_id);
-    }
-
-    fn assign_isolation_domain(&self, process_id: u64) -> u64 {
-        // Simple domain assignment - in production this would be more sophisticated
-        process_id % 16
-    }
-
-    fn calculate_security_level(&self, priority: NonosPriority) -> u8 {
-        match priority {
-            NonosPriority::RealTime => 5,
-            NonosPriority::Critical => 4,
-            NonosPriority::High => 3,
-            NonosPriority::Normal => 2,
-            NonosPriority::Low => 1,
-            NonosPriority::Idle => 0,
-        }
-    }
-
-    fn get_timestamp(&self) -> u64 {
-        unsafe { core::arch::x86_64::_rdtsc() }
-    }
-
-    pub fn get_scheduler_stats(&self) -> NonosSchedulerStats {
-        NonosSchedulerStats {
-            total_processes: self.total_processes.load(Ordering::SeqCst),
-            context_switches: self.context_switches.load(Ordering::SeqCst),
-            current_quantum: self.current_quantum.load(Ordering::SeqCst),
-            scheduler_enabled: self.scheduler_enabled.load(Ordering::SeqCst),
-            running_process: *self.running_process.read(),
+        // Save to current task's context
+        if let Some(current_id) = crate::process::get_current_task_id() {
+            crate::process::save_task_state(current_id, rsp);
         }
     }
 }
 
-#[derive(Debug)]
-pub struct NonosProcessInfo {
-    pub process_id: u64,
-    pub parent_id: Option<u64>,
-    pub state: NonosProcessState,
-    pub priority: NonosPriority,
-    pub total_time: u64,
-    pub memory_size: usize,
-    pub isolation_domain: u64,
-    pub security_level: u8,
-    pub created_time: u64,
-    pub last_scheduled: u64,
+/// Task register context for REAL context switching
+#[repr(C)]
+struct TaskRegisters {
+    rax: u64, rbx: u64, rcx: u64, rdx: u64,
+    rsi: u64, rdi: u64, rbp: u64, rsp: u64,
+    r8: u64, r9: u64, r10: u64, r11: u64,
+    r12: u64, r13: u64, r14: u64, r15: u64,
+    rip: u64, rflags: u64,
 }
 
-#[derive(Debug)]
-pub struct NonosSchedulerStats {
-    pub total_processes: usize,
-    pub context_switches: u64,
-    pub current_quantum: u64,
-    pub scheduler_enabled: bool,
-    pub running_process: Option<u64>,
+impl Default for TaskRegisters {
+    fn default() -> Self {
+        Self {
+            rax: 0, rbx: 0, rcx: 0, rdx: 0,
+            rsi: 0, rdi: 0, rbp: 0, rsp: 0,
+            r8: 0, r9: 0, r10: 0, r11: 0,
+            r12: 0, r13: 0, r14: 0, r15: 0,
+            rip: 0, rflags: 0x200, // Interrupts enabled
+        }
+    }
 }
 
-// Global scheduler instance
-pub static NONOS_PRODUCTION_SCHEDULER: NonosProductionScheduler = NonosProductionScheduler::new();
-
-// Convenience functions
-pub fn create_process(
-    parent_id: Option<u64>,
-    priority: NonosPriority,
-    memory_size: usize,
-    entry_point: u64
-) -> Result<u64, &'static str> {
-    NONOS_PRODUCTION_SCHEDULER.create_process(parent_id, priority, memory_size, entry_point)
-}
-
-pub fn schedule_next_process() -> Option<u64> {
-    NONOS_PRODUCTION_SCHEDULER.schedule()
-}
-
-pub fn terminate_process(process_id: u64) -> Result<(), &'static str> {
-    NONOS_PRODUCTION_SCHEDULER.terminate_process(process_id)
-}
-
-pub fn enable_scheduler() {
-    NONOS_PRODUCTION_SCHEDULER.enable_scheduler();
-}
-
-pub fn disable_scheduler() {
-    NONOS_PRODUCTION_SCHEDULER.disable_scheduler();
-}
-
+/// Handle scheduler tick for preemptive scheduling
 pub fn scheduler_tick() {
-    NONOS_PRODUCTION_SCHEDULER.tick();
+    // Mark that we need to reschedule
+    NEED_RESCHEDULE.store(true, Ordering::Relaxed);
+    
+    // In a real implementation, this would trigger a context switch
+    // For now, just wake up the scheduler
+    wakeup_scheduler();
 }
+
