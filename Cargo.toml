@@ -11,7 +11,7 @@ repository = "https://github.com/NON-OS/N0N-OS"
 
 [[bin]]
 name = "nonos_kernel"
-path = "src/main.rs"
+path = "src/nonos_main.rs"
 
 [lib]
 name = "nonos_kernel_lib"
@@ -72,6 +72,12 @@ nonos-onion  = []                 # onion-routing cap namespace reserved
 nonos-cet    = []                 # Control-flow Enforcement Technology
 nonos-fallback-entry = []         # allow src/main.rs lab boot (non-UEFI)
 
+# networking and additional features
+net-log = []                      # network logging capability
+relay_sendme_cell = []            # onion relay SENDME cell support
+relay_resolve_cell = []           # onion relay RESOLVE cell support
+arch_time_timer = []              # architecture-specific timer support
+
 ######################################################################
 # DEPENDENCIES — all no_std compatible
 ######################################################################
@@ -105,6 +111,9 @@ volatile = { version = "0.4", default-features = false }
 heapless = { version = "0.8", default-features = false }
 blake3 = { version = "1.0", default-features = false }
 bootloader_api = { version = "0.11", default-features = false }
+
+# Note: External crypto crates would go here in a real implementation
+# We use internal implementations for now
 
 ######################################################################
 # TARGET-SPECIFIC OVERRIDES (we are bare-metal x86_64)
