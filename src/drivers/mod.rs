@@ -4,50 +4,64 @@
 
 use alloc::collections::BTreeMap;
 
-pub mod keyboard;
-pub mod vga;
-pub mod pci;
-pub mod nvme;
-pub mod ahci;     // Advanced SATA controller
-pub mod xhci;     // USB 3.0 controller
-pub mod audio;    // HD Audio controller
-pub mod gpu;      // Graphics processing unit
-pub mod virtio_net; // VirtIO network driver
-pub mod network;    // Network driver interface
-pub mod usb;        // Real USB host controller driver
-pub mod console;    // Real console driver with VGA/serial
+pub mod nonos_keyboard;
+pub mod nonos_vga;
+pub mod nonos_pci;
+pub mod nonos_nvme;
+pub mod nonos_ahci;     // Advanced SATA controller
+pub mod nonos_xhci;     // USB 3.0 controller
+pub mod nonos_audio;    // HD Audio controller
+pub mod nonos_gpu;      // Graphics processing unit
+pub mod nonos_virtio_net; // VirtIO network driver
+pub mod nonos_network;    // Network driver interface
+pub mod nonos_usb;        // Real USB host controller driver
+pub mod nonos_console;    // Real console driver with VGA/serial
 
-pub use pci::{
+// Re-exports for backward compatibility
+pub use nonos_keyboard as keyboard;
+pub use nonos_vga as vga;
+pub use nonos_pci as pci;
+pub use nonos_nvme as nvme;
+pub use nonos_ahci as ahci;
+pub use nonos_xhci as xhci;
+pub use nonos_audio as audio;
+pub use nonos_gpu as gpu;
+pub use nonos_virtio_net as virtio_net;
+pub use nonos_network as network;
+pub use nonos_usb as usb;
+pub use nonos_console as console;
+
+pub use nonos_pci::{
     PciManager, PciDevice, PciBar, PciCapability, DmaEngine, DmaDescriptor,
     MsixCapability, MsixTableEntry, PciStats, init_pci, get_pci_manager
 };
 
-pub use nvme::{
+pub use nonos_nvme::{
     NvmeDriver, NvmeQueue, NvmeCommand, NvmeCompletion, NvmeController,
     NvmeNamespace, NvmeRequest, NvmeStats
 };
 
-pub use ahci::{
+pub use nonos_ahci::{
     AhciController, AhciDevice, AhciDeviceType, AhciStats,
     init_ahci, get_controller as get_ahci_controller
 };
 
-pub use xhci::{
+pub use nonos_xhci::{
     XhciController, UsbDevice, UsbSpeed, TransferDirection, XhciStats,
     init_xhci, get_controller as get_xhci_controller
 };
 
-pub use audio::{
+pub use nonos_audio::{
     HdAudioController, AudioFormat, AudioBuffer, StreamType, AudioStats,
     init_hd_audio, get_controller as get_audio_controller
 };
 
-pub use gpu::{
+pub use nonos_gpu::{
     GpuDriver, DisplayMode, PixelFormat, GpuSurface, GpuCommand, GpuStats,
     init_gpu, get_driver as get_gpu_driver
 };
 
-pub use virtio_net::{
+pub use nonos_virtio_net::{
     VirtioNetDevice, VirtioNetInterface, init_virtio_net, get_virtio_net_device
 };
 
@@ -56,45 +70,45 @@ pub fn init_all_drivers() -> Result<(), &'static str> {
     crate::log::logger::log_critical("Initializing comprehensive hardware driver ecosystem...");
     
     // Initialize PCI first (required for other drivers)
-    init_pci()?;
+    nonos_pci::init_pci()?;
     crate::log::logger::log_critical("✓ PCI subsystem initialized");
     
     // Initialize storage controllers
-    if let Err(_) = nvme::init_nvme() {
+    if let Err(_) = nonos_nvme::init_nvme() {
         crate::log::logger::log_critical("⚠ NVMe controller not found or failed to initialize");
     } else {
         crate::log::logger::log_critical("✓ NVMe subsystem initialized");
     }
     
-    if let Err(_) = ahci::init_ahci() {
+    if let Err(_) = nonos_ahci::init_ahci() {
         crate::log::logger::log_critical("⚠ AHCI controller not found or failed to initialize");
     } else {
         crate::log::logger::log_critical("✓ AHCI/SATA subsystem initialized");
     }
     
     // Initialize USB controllers
-    if let Err(_) = xhci::init_xhci() {
+    if let Err(_) = nonos_xhci::init_xhci() {
         crate::log::logger::log_critical("⚠ xHCI controller not found or failed to initialize");
     } else {
         crate::log::logger::log_critical("✓ USB 3.0/xHCI subsystem initialized");
     }
     
     // Initialize audio
-    if let Err(_) = audio::init_hd_audio() {
+    if let Err(_) = nonos_audio::init_hd_audio() {
         crate::log::logger::log_critical("⚠ HD Audio controller not found or failed to initialize");
     } else {
         crate::log::logger::log_critical("✓ HD Audio subsystem initialized");
     }
     
     // Initialize graphics
-    if let Err(_) = gpu::init_gpu() {
+    if let Err(_) = nonos_gpu::init_gpu() {
         crate::log::logger::log_critical("⚠ GPU not found or failed to initialize");
     } else {
         crate::log::logger::log_critical("✓ GPU subsystem initialized");
     }
     
     // Initialize VirtIO network
-    if let Err(_) = virtio_net::init_virtio_net() {
+    if let Err(_) = nonos_virtio_net::init_virtio_net() {
         crate::log::logger::log_critical("⚠ VirtIO network device not found or failed to initialize");
     } else {
         crate::log::logger::log_critical("✓ VirtIO network subsystem initialized");
@@ -113,7 +127,7 @@ pub fn init_all_drivers() -> Result<(), &'static str> {
 pub fn get_hardware_stats() -> HardwareStats {
     HardwareStats {
         pci_stats: get_pci_manager().map(|mgr| mgr.get_stats()).unwrap_or_default(),
-        nvme_stats: nvme::get_controller().map(|ctrl| ctrl.get_stats()).unwrap_or_default(),
+        nvme_stats: nonos_nvme::get_controller().map(|ctrl| ctrl.get_stats()).unwrap_or_default(),
         ahci_stats: get_ahci_controller().map(|ctrl| ctrl.get_stats()).unwrap_or_default(),
         xhci_stats: get_xhci_controller().map(|ctrl| ctrl.get_stats()).unwrap_or_default(),
         audio_stats: get_audio_controller().map(|ctrl| ctrl.get_stats()).unwrap_or_default(),
@@ -195,7 +209,7 @@ pub fn get_critical_drivers() -> alloc::vec::Vec<CriticalDriver> {
             driver_type: DriverType::Storage,
             base_address: ahci_ctrl as *const _ as usize,
             size: core::mem::size_of_val(ahci_ctrl),
-            hash: crate::crypto::hash::blake3_hash(unsafe { 
+            hash: crate::crypto::nonos_hash::blake3_hash(unsafe { 
                 core::slice::from_raw_parts(
                     ahci_ctrl as *const _ as *const u8, 
                     core::mem::size_of_val(ahci_ctrl)
@@ -207,13 +221,13 @@ pub fn get_critical_drivers() -> alloc::vec::Vec<CriticalDriver> {
     }
     
     // Add NVMe controller as critical storage driver
-    if let Some(nvme_ctrl) = nvme::get_controller() {
+    if let Some(nvme_ctrl) = nonos_nvme::get_controller() {
         drivers.push(CriticalDriver {
             name: "NVMe Storage Controller",
             driver_type: DriverType::Storage,
             base_address: nvme_ctrl as *const _ as usize,
             size: core::mem::size_of_val(nvme_ctrl),
-            hash: crate::crypto::hash::blake3_hash(unsafe { 
+            hash: crate::crypto::nonos_hash::blake3_hash(unsafe { 
                 core::slice::from_raw_parts(
                     nvme_ctrl as *const _ as *const u8, 
                     core::mem::size_of_val(nvme_ctrl)
@@ -231,7 +245,7 @@ pub fn get_critical_drivers() -> alloc::vec::Vec<CriticalDriver> {
             driver_type: DriverType::System,
             base_address: pci_mgr as *const _ as usize,
             size: core::mem::size_of_val(pci_mgr),
-            hash: crate::crypto::hash::blake3_hash(unsafe { 
+            hash: crate::crypto::nonos_hash::blake3_hash(unsafe { 
                 core::slice::from_raw_parts(
                     pci_mgr as *const _ as *const u8, 
                     core::mem::size_of_val(pci_mgr)
@@ -350,5 +364,36 @@ fn classify_device_type(class_code: u32) -> DriverType {
         },
         0x10 => DriverType::Crypto,     // Encryption Controller
         _ => DriverType::System,
+    }
+}
+
+/// Add compatibility functions for keyboard buffer  
+pub mod keyboard_buffer {
+    use alloc::collections::VecDeque;
+    use spin::Mutex;
+    
+    static KEYBOARD_BUFFER: Mutex<VecDeque<char>> = Mutex::new(VecDeque::new());
+    
+    /// Add character to keyboard buffer
+    pub fn add_to_buffer(ch: char) {
+        let mut buffer = KEYBOARD_BUFFER.lock();
+        buffer.push_back(ch);
+        
+        // Limit buffer size
+        if buffer.len() > 256 {
+            buffer.pop_front();
+        }
+    }
+    
+    /// Read character from keyboard buffer
+    pub fn read_char() -> Option<char> {
+        let mut buffer = KEYBOARD_BUFFER.lock();
+        buffer.pop_front()
+    }
+    
+    /// Check if buffer has data
+    pub fn has_data() -> bool {
+        let buffer = KEYBOARD_BUFFER.lock();
+        !buffer.is_empty()
     }
 }

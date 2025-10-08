@@ -37,8 +37,9 @@ all: build
 # Build targets
 .PHONY: build
 build:
-	@echo "Building NØNOS kernel..."
-	cd $(KERNEL_DIR) && $(CARGO) build --target $(TARGET).json
+	@echo "Building NØNOS kernel (optimized)..."
+	cd $(KERNEL_DIR) && $(CARGO) build --release --target $(TARGET).json
+	@strip --strip-all target/$(TARGET)/release/nonos_kernel 2>/dev/null || true
 	@echo "Build complete!"
 
 .PHONY: release

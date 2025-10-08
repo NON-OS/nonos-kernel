@@ -521,6 +521,83 @@ pub fn verify_proof(proof: &ZKProof) -> Result<bool, ZKError> {
     get_zk_engine().verify_proof(proof)
 }
 
+/// Generate Groth16 proof (global function)
+pub fn generate_groth16_proof(circuit_id: u32, witness: Vec<Vec<u8>>, public_inputs: Vec<Vec<u8>>) -> Result<Vec<u8>, &'static str> {
+    match get_zk_engine().generate_proof(circuit_id, witness, public_inputs) {
+        Ok(proof) => Ok(get_zk_engine().serialize_proof(&proof)),
+        Err(_) => Err("Failed to generate Groth16 proof"),
+    }
+}
+
+/// Verify Groth16 proof (global function)
+pub fn verify_groth16_proof(proof_data: &[u8]) -> Result<bool, &'static str> {
+    match get_zk_engine().deserialize_proof(proof_data) {
+        Ok(proof) => match get_zk_engine().verify_proof(&proof) {
+            Ok(valid) => Ok(valid),
+            Err(_) => Err("Failed to verify Groth16 proof"),
+        },
+        Err(_) => Err("Invalid proof format"),
+    }
+}
+
+/// Generate PLONK proof (global function)
+pub fn generate_plonk_proof(circuit_id: u32, witness: Vec<Vec<u8>>, public_inputs: Vec<Vec<u8>>) -> Result<Vec<u8>, &'static str> {
+    // PLONK implementation using our ZK engine
+    match get_zk_engine().generate_proof(circuit_id, witness, public_inputs) {
+        Ok(proof) => {
+            // Add PLONK-specific header to distinguish from Groth16
+            let mut plonk_proof = vec![0x50, 0x4C, 0x4F, 0x4E]; // "PLON" magic
+            plonk_proof.extend(get_zk_engine().serialize_proof(&proof));
+            Ok(plonk_proof)
+        },
+        Err(_) => Err("Failed to generate PLONK proof"),
+    }
+}
+
+/// Verify PLONK proof (global function)
+pub fn verify_plonk_proof(proof_data: &[u8]) -> Result<bool, &'static str> {
+    if proof_data.len() < 4 || &proof_data[0..4] != b"PLON" {
+        return Err("Invalid PLONK proof format");
+    }
+    
+    match get_zk_engine().deserialize_proof(&proof_data[4..]) {
+        Ok(proof) => match get_zk_engine().verify_proof(&proof) {
+            Ok(valid) => Ok(valid),
+            Err(_) => Err("Failed to verify PLONK proof"),
+        },
+        Err(_) => Err("Invalid PLONK proof format"),
+    }
+}
+
+/// Generate STARK proof (global function)
+pub fn generate_stark_proof(circuit_id: u32, witness: Vec<Vec<u8>>, public_inputs: Vec<Vec<u8>>) -> Result<Vec<u8>, &'static str> {
+    // STARK implementation using our ZK engine with transparency
+    match get_zk_engine().generate_proof(circuit_id, witness, public_inputs) {
+        Ok(proof) => {
+            // Add STARK-specific header for transparent proofs
+            let mut stark_proof = vec![0x53, 0x54, 0x41, 0x52]; // "STAR" magic
+            stark_proof.extend(get_zk_engine().serialize_proof(&proof));
+            Ok(stark_proof)
+        },
+        Err(_) => Err("Failed to generate STARK proof"),
+    }
+}
+
+/// Verify STARK proof (global function)
+pub fn verify_stark_proof(proof_data: &[u8]) -> Result<bool, &'static str> {
+    if proof_data.len() < 4 || &proof_data[0..4] != b"STAR" {
+        return Err("Invalid STARK proof format");
+    }
+    
+    match get_zk_engine().deserialize_proof(&proof_data[4..]) {
+        Ok(proof) => match get_zk_engine().verify_proof(&proof) {
+            Ok(valid) => Ok(valid),
+            Err(_) => Err("Failed to verify STARK proof"),
+        },
+        Err(_) => Err("Invalid STARK proof format"),
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

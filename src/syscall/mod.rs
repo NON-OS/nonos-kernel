@@ -4,14 +4,22 @@
 
 extern crate alloc;
 
-pub mod capabilities;
-pub mod dispatch;
-pub mod handler;
-pub mod validation;
-pub mod vdso;
+pub mod nonos_capabilities;
+pub mod nonos_dispatch;
+pub mod nonos_handler;
+pub mod nonos_validation;
+pub mod nonos_vdso;
 pub mod nonos_syscall;
+pub mod nonos_real_dispatch;
 
-use crate::syscall::capabilities::CapabilityToken;
+// Re-export for compatibility
+pub use nonos_capabilities as capabilities;
+pub use nonos_dispatch as dispatch;
+pub use nonos_handler as handler;
+pub use nonos_validation as validation;
+pub use nonos_vdso as vdso;
+
+use crate::syscall::nonos_capabilities::CapabilityToken;
 
 /// System call numbers for NON-OS
 #[derive(Clone, Copy, Debug)]
@@ -75,7 +83,7 @@ pub fn handle_syscall(syscall_id: u64, arg0: u64, arg1: u64) -> u64 {
     }
     
     // Dispatch to appropriate handler
-    dispatch::handle_syscall_dispatch(syscall_num, arg0, arg1).value
+    nonos_dispatch::handle_syscall_dispatch(syscall_num, arg0, arg1).value
 }
 
 /// Check if current context has capability for syscall

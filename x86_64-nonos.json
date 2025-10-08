@@ -6,32 +6,25 @@
   "target-pointer-width": "64",
   "target-c-int-width": 32,
   "os": "none",
+  "vendor": "unknown",
   "executables": true,
   "linker-flavor": "ld.lld",
   "linker": "rust-lld",
   "panic-strategy": "abort",
   "disable-redzone": true,
-  "features": "-mmx,-avx,-avx2",
+  "features": "-mmx,-sse3,-ssse3,-sse4.1,-sse4.2,-avx,-avx2",
   "pre-link-args": {
     "ld.lld": [
-      "--script=linker.ld",
-      "--no-dynamic-linker",
-      "-z", "text",
-      "-z", "norelro",
-      "--no-eh-frame-hdr"
+      "--script=simple_linker.ld"
     ]
   },
   "relocation-model": "static",
-  "code-model": "large",
+  "code-model": "small",
   "position-independent-executables": false,
   "static-position-independent-executables": false,
   "exe-suffix": "",
   "has-rpath": false,
   "no-default-libraries": true,
-  "default-visibility": "hidden",
-  "emit-debug-gdb-scripts": false,
-  "requires-uwtable": false,
-  "frame-pointer": "always",
   "stack-probes": {
     "kind": "inline"
   }

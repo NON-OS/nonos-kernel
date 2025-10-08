@@ -1,11 +1,20 @@
-pub mod auth;
-pub mod manifest;
-pub mod mod_loader;
-pub mod mod_runner;
-pub mod registry;
-pub mod runtime;
-pub mod sandbox;
+pub mod nonos_auth;
+pub mod nonos_manifest;
+pub mod nonos_mod_loader;
+pub mod nonos_mod_runner;
+pub mod nonos_registry;
+pub mod nonos_runtime;
+pub mod nonos_sandbox;
 pub mod nonos_module_loader;
+
+// Re-exports for backward compatibility
+pub use nonos_auth as auth;
+pub use nonos_manifest as manifest;
+pub use nonos_mod_loader as mod_loader;
+pub use nonos_mod_runner as mod_runner;
+pub use nonos_registry as registry;
+pub use nonos_runtime as runtime;
+pub use nonos_sandbox as sandbox;
 
 use alloc::{vec::Vec, collections::BTreeMap, string::{String, ToString}};
 
@@ -108,7 +117,7 @@ fn calculate_module_hash_from_elf(base_addr: usize, size: usize) -> [u8; 32] {
     // Hash the actual loaded ELF module
     unsafe {
         let module_data = core::slice::from_raw_parts(base_addr as *const u8, size);
-        crate::crypto::hash::blake3_hash(module_data)
+        crate::crypto::nonos_hash::blake3_hash(module_data)
     }
 }
 
@@ -242,7 +251,7 @@ fn load_elf_module(elf_data: &[u8]) -> Result<(usize, usize, usize), &'static st
     }
     
     let total_size = max_addr - min_addr;
-    let base_addr = crate::memory::alloc::allocate_kernel_pages(
+    let base_addr = crate::memory::nonos_alloc::allocate_kernel_pages(
         (total_size + 0xfff) / 0x1000
     )?;
     
@@ -289,7 +298,7 @@ struct ElfProgramHeader {
 
 fn allocate_message_queue(base_addr: usize) -> Result<usize, &'static str> {
     // Allocate 4KB for message queue at end of module memory
-    let queue_page = crate::memory::alloc::allocate_kernel_pages(1)?;
+    let queue_page = crate::memory::nonos_alloc::allocate_kernel_pages(1)?;
     
     // Initialize message queue structure
     unsafe {

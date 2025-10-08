@@ -190,3 +190,21 @@ pub fn delete_file(name: &str) -> Result<(), &'static str> {
 pub fn list_files() -> Vec<String> {
     NONOS_FILESYSTEM.list_files()
 }
+
+pub fn init_nonos_fs() -> Result<(), &'static str> {
+    // Initialize the N0N-OS filesystem
+    crate::log_info!("Initializing N0N-OS filesystem");
+    
+    // The filesystem is initialized via lazy_static when first accessed
+    // Test filesystem by creating a test file
+    match create_file("test_init.txt", b"N0N-OS filesystem initialized") {
+        Ok(_) => {
+            crate::log_info!("N0N-OS filesystem initialization successful");
+            Ok(())
+        },
+        Err(e) => {
+            crate::log_err!("N0N-OS filesystem initialization failed: {}", e);
+            Err("Failed to initialize N0N-OS filesystem")
+        }
+    }
+}

@@ -241,7 +241,7 @@ pub fn process_circuit_maintenance() {
             // Process pending security checks
             if let Err(_) = security::check_client_security([127, 0, 0, 1], 0) {
                 // Log security violations
-                crate::log::logger::log_warn!("Circuit maintenance: security violation detected");
+                crate::log_warn!("Circuit maintenance: security violation detected");
             }
         }
     }

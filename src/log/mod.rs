@@ -1,8 +1,11 @@
 //! NØNOS Logging Subsystem
 
-pub mod logger;
+pub mod nonos_logger;
 
-pub use logger::{
+// Re-export for backward compatibility
+pub use nonos_logger as logger;
+
+pub use nonos_logger::{
     Logger, LogLevel, Severity,
     init as init_logger,
     try_get_logger,

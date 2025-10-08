@@ -10,6 +10,11 @@ SECTIONS {
     . = KERNEL_LMA;
     __kernel_start = .;
     
+    /* Multiboot header MUST be early in the file */
+    .multiboot : {
+        KEEP(*(.multiboot))
+    }
+    
     /* Boot section - identity mapped */
     .text.boot : {
         __boot_start = .;
@@ -25,7 +30,6 @@ SECTIONS {
     
     .text : AT(ADDR(.text) - KERNEL_VMA + KERNEL_LMA) {
         __text_start = .;
-        *(.multiboot_header)
         KEEP(*(.text._start))
         *(.text .text.*)
         . = ALIGN(4K);

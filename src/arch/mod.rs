@@ -2,7 +2,10 @@
 //! 
 //! Advanced hardware abstraction for x86_64
 
-pub mod boot;
+pub mod nonos_boot;
+
+// Re-export for backward compatibility
+pub use nonos_boot as boot;
 pub mod x86_64;
 
 // Re-export the target architecture

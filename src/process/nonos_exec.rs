@@ -5,7 +5,7 @@
 use alloc::{vec::Vec, string::{String, ToString}, collections::BTreeMap, format, boxed::Box};
 use core::sync::atomic::{AtomicU64, AtomicU32, AtomicBool, Ordering};
 use spin::{Mutex, RwLock};
-use x86_64::{VirtAddr, PhysAddr, structures::paging::PageTableFlags};
+use x86_64::{VirtAddr, PhysAddr, structures::paging::PageTableFlags, registers::control::Cr3Flags};
 use crate::{
     crypto::{CryptoContext, derive_process_key, encrypt_memory_region, decrypt_memory_region},
     process::capabilities::{CapabilityToken, CapabilitySet, Capability},
@@ -598,7 +598,7 @@ impl NonosProcessExecutor {
         unsafe {
             x86_64::registers::control::Cr3::write(
                 x86_64::PhysAddr::new(process.cpu_context.cr3),
-                x86_64::structures::paging::page_table::Cr3Flags::empty()
+                Cr3Flags::empty()
             );
         }
         

@@ -1,24 +1,29 @@
 //! x86_64 Architecture Support
 
-pub mod acpi;
-pub mod boot;
-pub mod cpu;
-pub mod gdt;
-pub mod gdt_simple;
-pub mod idt;
-pub mod idt_simple;
-pub mod multiboot;
-pub mod pci;
-pub mod serial;
-pub mod smm;
-pub mod syscall;
-pub mod uefi;
-pub mod vga;
+pub mod nonos_acpi;
+pub mod nonos_cpu;
+pub mod nonos_boot;
+pub mod nonos_gdt;
+pub mod nonos_gdt_simple;
+pub mod nonos_idt;
+pub mod nonos_idt_simple;
+pub mod nonos_multiboot;
+pub mod nonos_pci;
+pub mod nonos_serial;
+pub mod nonos_smm;
+pub mod nonos_syscall;
+pub mod nonos_uefi;
+pub mod nonos_vga;
 
 pub mod interrupt {
-    pub mod apic;
-    pub mod ioapic;
-    pub mod pic_legacy;
+    pub mod nonos_apic;
+    pub mod nonos_ioapic;
+    pub mod nonos_pic_legacy;
+    
+    // Re-exports for backward compatibility
+    pub use nonos_apic as apic;
+    pub use nonos_ioapic as ioapic;
+    pub use nonos_pic_legacy as pic_legacy;
 }
 
 /// Re-export interrupt stack frame
@@ -26,8 +31,66 @@ pub use x86_64::structures::idt::InterruptStackFrame;
 
 pub mod keyboard;
 
+// Re-exports for backward compatibility
+pub use nonos_acpi as acpi;
+pub use nonos_boot as boot;
+pub use nonos_cpu as cpu;
+pub use nonos_gdt as gdt;
+pub use nonos_gdt_simple as gdt_simple;
+pub use nonos_idt as idt;
+pub use nonos_idt_simple as idt_simple;
+pub use nonos_multiboot as multiboot;
+pub use nonos_pci as pci;
+pub use nonos_serial as serial;
+pub use nonos_smm as smm;
+pub use nonos_syscall as syscall;
+pub use nonos_uefi as uefi;
+pub use nonos_vga as vga;
+
+/// Port I/O operations for x86_64
+pub mod port_io {
+    /// Output byte to port
+    pub unsafe fn outb(port: u16, data: u8) {
+        core::arch::asm!("out dx, al", in("dx") port, in("al") data, options(nostack, preserves_flags));
+    }
+    
+    /// Input byte from port
+    pub unsafe fn inb(port: u16) -> u8 {
+        let mut data: u8;
+        core::arch::asm!("in al, dx", out("al") data, in("dx") port, options(nostack, preserves_flags));
+        data
+    }
+    
+    /// Output word to port
+    pub unsafe fn outw(port: u16, data: u16) {
+        core::arch::asm!("out dx, ax", in("dx") port, in("ax") data, options(nostack, preserves_flags));
+    }
+    
+    /// Input word from port
+    pub unsafe fn inw(port: u16) -> u16 {
+        let mut data: u16;
+        core::arch::asm!("in ax, dx", out("ax") data, in("dx") port, options(nostack, preserves_flags));
+        data
+    }
+    
+    /// Output double word to port
+    pub unsafe fn outl(port: u16, data: u32) {
+        core::arch::asm!("out dx, eax", in("dx") port, in("eax") data, options(nostack, preserves_flags));
+    }
+    
+    /// Input double word from port
+    pub unsafe fn inl(port: u16) -> u32 {
+        let mut data: u32;
+        core::arch::asm!("in eax, dx", out("eax") data, in("dx") port, options(nostack, preserves_flags));
+        data
+    }
+}
+
 pub mod time {
-    pub mod timer;
+    pub mod nonos_timer;
+    
+    // Re-export for backward compatibility
+    pub use nonos_timer as timer;
     
     /// Get current TSC value
     #[inline(always)]

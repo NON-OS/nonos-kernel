@@ -9,7 +9,7 @@
 
 #![no_std]
 #![no_main]
-#![feature(alloc_error_handler, abi_x86_interrupt)]
+#![feature(alloc_error_handler, abi_x86_interrupt, asm_cfg)]
 
 // Make format macro available in alloc namespace for compatibility
 #[macro_use]
@@ -27,16 +27,24 @@ pub mod arch;
 pub mod boot;
 pub mod capabilities;
 pub mod crypto;
+pub mod distributed;
 pub mod drivers;
 pub mod elf;
-pub mod filesystem;
+pub mod nonos_filesystem;
+
+// Re-export for backward compatibility
+pub use nonos_filesystem as filesystem;
 pub mod fs;
 pub mod interrupts;
 pub mod ipc;
 pub mod log;
-pub mod manifest;
+pub mod nonos_manifest;
+
+// Re-export for backward compatibility
+pub use nonos_manifest as manifest;
 pub mod memory;
 pub mod modules;
+// pub mod multiverse; // Removed as not needed
 pub mod network;
 pub mod process;
 pub mod runtime;
@@ -44,11 +52,22 @@ pub mod sched;
 pub mod security;
 pub mod storage;
 pub mod syscall;
-pub mod system_monitor;
-pub mod time;
+pub mod nonos_system_monitor;
+
+// Re-export for compatibility
+pub use nonos_system_monitor as system_monitor;
+// pub mod time; // Removed time travel junk
 pub mod ui;
+pub mod proc;
 pub mod vault;
 pub mod zk_engine;
+pub mod quantum;
+pub mod nonos_shell;
+pub mod nonos_time;
+
+// Re-export for compatibility
+pub use nonos_shell as shell;
+pub use nonos_time as time;
 
 // Alias for monitor functions
 pub mod monitor {
@@ -82,6 +101,12 @@ pub extern "C" fn kernel_main() -> ! {
     panic!("kernel_main returned unexpectedly");
 }
 
+/// Re-export super kernel entry point for bootloader integration
+#[no_mangle]
+pub extern "C" fn super_kernel_entry(handoff_info: u64) -> ! {
+    boot::super_kernel::super_kernel_entry(handoff_info)
+}
+
 fn kernel_main_loop() -> ! {
     loop {
         unsafe {
@@ -95,7 +120,8 @@ use core::panic::PanicInfo;
 use arch::x86_64::{gdt, idt};
 
 // Fallback boot for standalone mode
-pub mod boot_fallback;
+pub mod nonos_boot_fallback;
+pub use nonos_boot_fallback as boot_fallback;
 use crypto::init_crypto;
 
 // Ensure _arch_start is included in the binary
@@ -280,7 +306,7 @@ pub unsafe fn kernel_init() -> ! {
     log("[SECURITY] Capability enforcement and isolation chambers ready");
 
     // 7. File System initialization
-    time::init();
+    nonos_time::init();
     fs::init_vfs();
     log("[FS] Virtual File System initialized");
     

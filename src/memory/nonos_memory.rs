@@ -280,3 +280,30 @@ pub fn check_nonos_memory_access(
 pub fn get_nonos_memory_stats() -> NonosMemoryStatistics {
     NONOS_MEMORY_MANAGER.get_memory_statistics()
 }
+
+impl NonosMemoryManager {
+    // Additional methods for distributed system integration
+    pub fn get_total_memory(&self) -> usize {
+        // Return system total memory (would read from hardware)
+        64 * 1024 * 1024 * 1024 // 64GB placeholder
+    }
+    
+    pub fn get_available_memory(&self) -> usize {
+        let total_allocated = *self.total_allocated.lock();
+        self.get_total_memory().saturating_sub(total_allocated)
+    }
+    
+    pub fn get_used_memory(&self) -> usize {
+        *self.total_allocated.lock()
+    }
+    
+    pub fn allocate(&self, size: usize) -> Result<u64, &'static str> {
+        // Allocate for distributed system
+        self.allocate_secure_memory(
+            size,
+            NonosMemoryRegionType::Heap,
+            NonosSecurityLevel::Internal,
+            0 // Kernel process
+        ).map(|addr| addr.as_u64())
+    }
+}

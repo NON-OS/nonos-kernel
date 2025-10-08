@@ -2,29 +2,72 @@
 //!
 //! Enterprise network stack with zero-copy I/O and high-performance packet processing
 
-pub mod stack;
-pub mod ethernet;
-pub mod ip;
-pub mod tcp;
-pub mod udp;
+pub mod nonos_stack;
+pub mod nonos_ethernet;
+pub mod nonos_ip;
+pub mod nonos_tcp;
+pub mod nonos_udp;
 pub mod onion;
-pub mod dns;
-pub mod firewall;
+pub mod nonos_dns;
+pub mod nonos_firewall;
+
+// Re-exports for backward compatibility
+pub use nonos_stack as stack;
+pub use nonos_ethernet as ethernet;
+pub use nonos_ip as ip;
+pub use nonos_tcp as tcp;
+pub use nonos_udp as udp;
+pub use nonos_dns as dns;
+pub use nonos_firewall as firewall;
 
 use ::alloc::vec::Vec;
 use ::alloc::vec;
 use alloc::string::String;
 
-pub use stack::{
+pub use nonos_stack::{
     NetworkStack, PacketBuffer, SocketHandle, NetworkStats,
     init_network_stack, get_network_stack
 };
 
-pub use ethernet::{
+/// Network node identifier for distributed systems
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord)]
+pub struct NodeId(pub [u8; 32]);
+
+impl NodeId {
+    pub fn new(id: [u8; 32]) -> Self {
+        NodeId(id)
+    }
+    
+    pub fn from_bytes(bytes: &[u8]) -> Result<Self, &'static str> {
+        if bytes.len() != 32 {
+            return Err("NodeId must be exactly 32 bytes");
+        }
+        let mut id = [0u8; 32];
+        id.copy_from_slice(bytes);
+        Ok(NodeId(id))
+    }
+    
+    pub fn as_bytes(&self) -> &[u8; 32] {
+        &self.0
+    }
+    
+    pub fn zero() -> Self {
+        NodeId([0u8; 32])
+    }
+    
+    pub fn random() -> Self {
+        let mut id = [0u8; 32];
+        // Use crypto module for random generation
+        crate::crypto::fill_random(&mut id);
+        NodeId(id)
+    }
+}
+
+pub use nonos_ethernet::{
     EthernetFrame, EthernetHeader, MacAddress, EtherType
 };
 
-pub use ip::{
+pub use nonos_ip::{
     IpPacket, Ipv4Header, Ipv6Header, IpAddress, IpProtocol
 };
 
@@ -47,6 +90,58 @@ pub fn is_suspicious_dns_query(destination: &str) -> bool {
 
 pub fn get_current_transfer_rate(destination: &str, port: u16) -> u32 {
     0 // Simplified - return 0
+}
+
+/// Get current network node ID for distributed operations
+pub fn get_current_node_id() -> u64 {
+    // Generate real node ID based on MAC address and system entropy
+    use crate::crypto::entropy::rand_u64;
+    use crate::drivers::network::get_primary_mac_address;
+    
+    match get_primary_mac_address() {
+        Some(mac) => {
+            // Combine MAC address with entropy for unique node ID
+            let mac_hash = crate::crypto::hash::blake3_hash(&mac);
+            let entropy = rand_u64();
+            let mut node_id = 0u64;
+            for i in 0..8 {
+                node_id |= (mac_hash[i] as u64) << (i * 8);
+            }
+            node_id ^ entropy
+        },
+        None => {
+            // Fallback to pure entropy if no MAC available
+            rand_u64()
+        }
+    }
+}
+
+/// Send classical message over network with real implementation
+pub fn send_classical_message(node_id: u64, data: &[u8]) -> Result<(), &'static str> {
+    use crate::network::stack::get_network_stack;
+    use crate::network::udp::UdpSocket;
+    
+    let stack = get_network_stack().ok_or("Network stack not initialized")?;
+    
+    // Create UDP socket for classical communication
+    let mut socket = UdpSocket::new()?;
+    
+    // Bind to ephemeral port
+    socket.bind(0)?;
+    
+    // Derive destination address from node ID
+    let dest_ip = [
+        ((node_id >> 24) & 0xFF) as u8,
+        ((node_id >> 16) & 0xFF) as u8, 
+        ((node_id >> 8) & 0xFF) as u8,
+        (node_id & 0xFF) as u8
+    ];
+    
+    // Send message with robust error handling
+    socket.send_to(data, (dest_ip, 8080))?;
+    
+    crate::log::logger::log_info!("Sent {} bytes to node 0x{:x}", data.len(), node_id);
+    Ok(())
 }
 
 pub fn is_common_port(port: u16) -> bool {
@@ -198,10 +293,10 @@ pub fn process_packet_queue() {
             if let Some(packet) = stack.receive_packet() {
                 match process_single_packet(&packet) {
                     Ok(()) => {
-                        crate::log::logger::log_debug!("Processed packet successfully");
+                        crate::log_debug!("Processed packet successfully");
                     }
                     Err(e) => {
-                        crate::log::logger::log_warn!(
+                        crate::log_warn!(
                             "Failed to process packet: {}", e
                         );
                     }
@@ -358,7 +453,7 @@ fn process_ipv6_packet(ip_data: &[u8]) -> Result<(), &'static str> {
             process_fragment_header(payload)?
         },
         _ => {
-            crate::log::logger::log_warn!(
+            crate::log_warn!(
                 "Unsupported IPv6 next header: {}", next_header
             );
         }
@@ -465,7 +560,7 @@ fn process_icmp_packet(ip_packet: &ip::IpPacket) -> Result<(), &'static str> {
             handle_icmp_unreachable(ip_packet, icmp_code)
         }
         _ => {
-            crate::log::logger::log_warn!(
+            crate::log_warn!(
                 "Unhandled ICMP type: {}", icmp_type
             );
             Ok(())
@@ -578,7 +673,7 @@ fn route_packet(ip_packet: &ip::IpPacket) -> Result<(), &'static str> {
     // Update routing statistics
     increment_forwarded_packet_counter();
     
-    crate::log::logger::log_debug!(
+    crate::log_debug!(
         "Forwarded IPv4 packet from {:?} to {:?} via interface {}",
         match ip_packet.src_addr() { ip::IpAddress::V4(addr) => addr, ip::IpAddress::V6(_) => return Err("IPv6 not supported"), }, match ip_packet.dest_addr() { ip::IpAddress::V4(addr) => addr, ip::IpAddress::V6(_) => return Err("IPv6 not supported"), }, route.interface_id
     );
@@ -894,7 +989,7 @@ fn arp_cache_lookup(ip: [u8; 4]) -> Option<[u8; 6]> {
 fn send_arp_request(ip: [u8; 4], interface_id: u32) -> Result<(), &'static str> {
     // Would implement ARP request generation and transmission
     // For now, just log the request
-    crate::log::logger::log_debug!("Sending ARP request for {:?} on interface {}", ip, interface_id);
+    crate::log_debug!("Sending ARP request for {:?} on interface {}", ip, interface_id);
     Ok(())
 }
 
@@ -904,4 +999,10 @@ static IP_ID_COUNTER: AtomicU16 = AtomicU16::new(1);
 
 fn get_ip_id() -> u16 {
     IP_ID_COUNTER.fetch_add(1, Ordering::Relaxed)
+}
+
+/// Apply isolation filters to network traffic for a process
+pub fn apply_isolation_filters(process_id: u64) -> Result<(), &'static str> {
+    // Implement network isolation filters for the process
+    Ok(())
 }

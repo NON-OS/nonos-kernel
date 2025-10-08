@@ -2,12 +2,20 @@
 //!
 //! Production storage with NVMe, AHCI, encryption, and high-performance I/O
 
-pub mod nvme;
-pub mod ahci;
-pub mod block_device;
-pub mod raid;
-pub mod crypto_storage;
-pub mod swap;
+pub mod nonos_nvme;
+pub mod nonos_ahci;
+pub mod nonos_block_device;
+pub mod nonos_raid;
+pub mod nonos_crypto_storage;
+pub mod nonos_swap;
+
+// Re-export for compatibility
+pub use nonos_nvme as nvme;
+pub use nonos_ahci as ahci;
+pub use nonos_block_device as block_device;
+pub use nonos_raid as raid;
+pub use nonos_crypto_storage as crypto_storage;
+pub use nonos_swap as swap;
 
 use alloc::{vec::Vec, boxed::Box, sync::Arc, format, string::String};
 use core::sync::atomic::{AtomicU64, AtomicU32, Ordering};
@@ -394,13 +402,13 @@ pub fn init() -> Result<(), &'static str> {
     crate::log::logger::log_info!("Initializing advanced storage subsystem");
     
     // Initialize NVMe subsystem
-    nvme::init()?;
+    nonos_nvme::init()?;
     
     // Initialize AHCI subsystem  
-    ahci::init()?;
+    nonos_ahci::init()?;
     
     // Initialize crypto storage
-    crypto_storage::init()?;
+    nonos_crypto_storage::init()?;
     
     // Discover and register storage devices
     discover_storage_devices()?;
@@ -412,10 +420,10 @@ pub fn init() -> Result<(), &'static str> {
 /// Discover and register all storage devices
 fn discover_storage_devices() -> Result<(), &'static str> {
     // Scan PCI bus for NVMe controllers
-    nvme::scan_and_register_nvme_devices(&STORAGE_MANAGER)?;
+    nonos_nvme::scan_and_register_nvme_devices(&STORAGE_MANAGER)?;
     
     // Scan PCI bus for AHCI controllers
-    ahci::scan_and_register_ahci_devices(&STORAGE_MANAGER)?;
+    nonos_ahci::scan_and_register_ahci_devices(&STORAGE_MANAGER)?;
     
     Ok(())
 }
@@ -445,7 +453,7 @@ pub fn get_stats() -> StorageStats {
 }
 
 use x86_64::VirtAddr;
-use crate::storage::swap::{SwapSlot, read_page, free_swap_slot};
+use crate::storage::nonos_swap::{SwapSlot, read_page, free_swap_slot};
 
 /// Read a page from swap storage
 pub fn read_swap_page(swap_offset: u64) -> Result<Vec<u8>, &'static str> {
