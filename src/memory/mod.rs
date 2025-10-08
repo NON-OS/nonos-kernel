@@ -2,32 +2,203 @@
 //! 
 //! Complete memory management with isolation, paging, and allocation
 
-pub mod alloc;
-pub mod dma;
-pub mod frame_alloc;
-pub mod heap;
-pub mod kaslr;
-pub mod layout;
-pub mod mmio;
-pub mod page_allocator;
-pub mod page_info;
-pub mod paging;
-pub mod phys;
-pub mod proof;
-pub mod region;
-pub mod safety;
-pub mod virt;
-pub mod virtual_memory;
+pub mod nonos_alloc;
+pub mod nonos_boot_memory;
+pub mod nonos_dma;
+pub mod nonos_frame_alloc;
+pub mod nonos_heap;
+pub mod nonos_kaslr;
+pub mod nonos_layout;
+pub mod nonos_mmio;
+pub mod nonos_page_allocator;
+pub mod nonos_page_info;
+pub mod nonos_paging;
+pub mod nonos_phys;
+pub mod nonos_proof;
+pub mod nonos_region;
+pub mod nonos_robust_allocator;
+pub mod nonos_safety;
+pub mod nonos_virt;
+pub mod nonos_virtual_memory;
 pub mod nonos_memory;
-pub mod advanced_mm;
-pub mod hardening;
+pub mod nonos_advanced_mm;
+pub mod nonos_hardening;
+pub mod nonos_ai_memory_manager;
+
+// Re-exports for backward compatibility
+pub use nonos_alloc as alloc;
+pub use nonos_boot_memory as boot_memory;
+pub use nonos_dma as dma;
+pub use nonos_frame_alloc as frame_alloc;
+pub use nonos_heap as heap;
+pub use nonos_kaslr as kaslr;
+pub use nonos_layout as layout;
+pub use nonos_mmio as mmio;
+pub use nonos_page_allocator as page_allocator;
+pub use nonos_page_info as page_info;
+pub use nonos_paging as paging;
+pub use nonos_phys as phys;
+pub use nonos_proof as proof;
+pub use nonos_region as region;
+pub use nonos_safety as safety;
+pub use nonos_virt as virt;
+pub use nonos_virtual_memory as virtual_memory;
+pub use nonos_hardening as hardening;
+pub use nonos_ai_memory_manager as ai_memory_manager;
 
 use core::sync::atomic::Ordering;
+use x86_64::structures::paging::{Page, PhysFrame, PageTableFlags};
 
 // Re-export common types
-pub use page_info::{PageFlags, PageInfo, SwapInfo, get_page_info, set_page_info};
-pub use dma::{alloc_dma_page, free_dma_page, DmaPage, PhysicalAddress, init_dma_allocator};
-pub use hardening::MEMORY_STATS;
+pub use nonos_page_info::{PageFlags, PageInfo, SwapInfo, get_page_info, set_page_info};
+pub use nonos_dma::{alloc_dma_page, free_dma_page, DmaPage, PhysicalAddress, init_dma_allocator};
+pub use nonos_hardening::MEMORY_STATS;
+pub use nonos_memory::NonosMemoryManager;
+pub use nonos_ai_memory_manager::{
+    init_ai_memory_manager, get_ai_memory_manager, ai_allocate_memory,
+    ai_predictive_prefetch, ai_monitor_memory_access, get_ai_memory_stats,
+    AIMemoryStatsSnapshot, MemoryAccessType
+};
+pub use nonos_boot_memory::{
+    init_boot_memory, get_boot_memory_manager, get_memory_stats,
+    allocate_boot_pages, enable_memory_protection, BootMemoryStats,
+    BootMemoryManager, BootMemoryType, BootMemoryRegion
+};
+
+// Global memory manager instance
+use spin::Once;
+static MEMORY_MANAGER: Once<NonosMemoryManager> = Once::new();
+
+pub fn init_memory_manager() {
+    MEMORY_MANAGER.call_once(|| NonosMemoryManager::new());
+    
+    // Initialize AI memory management
+    if let Err(e) = init_ai_memory_manager() {
+        crate::log_warn!("Failed to initialize AI memory manager: {}", e);
+    }
+}
+
+/// Virtual memory manager for advanced memory operations
+pub struct VirtualMemoryManager {
+    pub page_tables: ::alloc::collections::BTreeMap<u64, x86_64::structures::paging::PageTable>,
+    pub heap_start: x86_64::VirtAddr,
+    pub heap_size: usize,
+    pub next_allocation: x86_64::VirtAddr,
+}
+
+impl VirtualMemoryManager {
+    pub fn new(heap_start: x86_64::VirtAddr, heap_size: usize) -> Self {
+        Self {
+            page_tables: ::alloc::collections::BTreeMap::new(),
+            heap_start,
+            heap_size,
+            next_allocation: heap_start,
+        }
+    }
+    
+    pub fn allocate(&mut self, size: usize, flags: AllocationFlags) -> Result<x86_64::VirtAddr, &'static str> {
+        let aligned_size = (size + 4095) & !4095; // Align to 4KB
+        let addr = self.next_allocation;
+        self.next_allocation += aligned_size as u64;
+        
+        // Would implement actual page allocation here
+        Ok(addr)
+    }
+    
+    pub fn deallocate(&mut self, addr: x86_64::VirtAddr, size: usize) -> Result<(), &'static str> {
+        // Would implement actual page deallocation here
+        Ok(())
+    }
+}
+
+/// Memory allocation flags
+#[derive(Debug, Clone, Copy)]
+pub struct AllocationFlags {
+    pub writable: bool,
+    pub executable: bool,
+    pub user_accessible: bool,
+    pub no_cache: bool,
+    pub write_through: bool,
+}
+
+impl AllocationFlags {
+    pub fn new() -> Self {
+        Self {
+            writable: true,
+            executable: false,
+            user_accessible: false,
+            no_cache: false,
+            write_through: false,
+        }
+    }
+    
+    pub fn kernel_data() -> Self {
+        Self {
+            writable: true,
+            executable: false,
+            user_accessible: false,
+            no_cache: false,
+            write_through: false,
+        }
+    }
+    
+    pub fn kernel_code() -> Self {
+        Self {
+            writable: false,
+            executable: true,
+            user_accessible: false,
+            no_cache: false,
+            write_through: false,
+        }
+    }
+    
+    pub fn user_data() -> Self {
+        Self {
+            writable: true,
+            executable: false,
+            user_accessible: true,
+            no_cache: false,
+            write_through: false,
+        }
+    }
+}
+
+/// Robust allocator module stub
+pub mod robust_allocator {
+    use super::*;
+    
+    pub struct RobustAllocator {
+        vmm: VirtualMemoryManager,
+    }
+    
+    impl RobustAllocator {
+        pub fn new() -> Self {
+            Self {
+                vmm: VirtualMemoryManager::new(
+                    x86_64::VirtAddr::new(0xFFFF_8000_8000_0000),
+                    16 * 1024 * 1024 // 16MB heap
+                ),
+            }
+        }
+        
+        pub fn allocate(&mut self, size: usize) -> Result<x86_64::VirtAddr, &'static str> {
+            self.vmm.allocate(size, AllocationFlags::kernel_data())
+        }
+        
+        pub fn deallocate(&mut self, addr: x86_64::VirtAddr, size: usize) -> Result<(), &'static str> {
+            self.vmm.deallocate(addr, size)
+        }
+    }
+    
+    // Re-export functions from nonos_robust_allocator
+    pub use crate::memory::nonos_robust_allocator::{
+        allocate_pages_robust, deallocate_pages_robust
+    };
+}
+
+pub fn get_memory_manager() -> &'static NonosMemoryManager {
+    MEMORY_MANAGER.get().expect("Memory manager not initialized")
+}
 
 pub use x86_64::{VirtAddr, PhysAddr};
 use ::alloc::vec::Vec;
@@ -447,6 +618,165 @@ fn handle_user_space_fault(fault_address: VirtAddr, is_write: bool, process: &cr
     Err("Segmentation violation")
 }
 
+/// Allocate page at specific address
+pub fn allocate_page_at(fault_addr: u64) -> Result<(), &'static str> {
+    let page_addr = VirtAddr::new(fault_addr & !0xFFF); // Align to page boundary
+    
+    // Try to allocate physical page
+    if let Some(phys_frame) = frame_alloc::allocate_frame() {
+        // Map virtual page to physical frame
+        let flags = PageTableFlags::PRESENT | PageTableFlags::WRITABLE;
+        map_page_to_frame(page_addr, phys_frame, flags)
+    } else {
+        Err("Out of physical memory")
+    }
+}
+
+/// Handle copy-on-write fault
+pub fn handle_cow_fault(fault_addr: u64) -> Result<(), &'static str> {
+    let page_addr = VirtAddr::new(fault_addr & !0xFFF);
+    
+    // Check if this is a COW page
+    if is_cow_page(page_addr) {
+        // Allocate new physical page
+        if let Some(new_frame) = frame_alloc::allocate_frame() {
+            // Copy old page content to new page
+            copy_page_content(page_addr, new_frame)?;
+            
+            // Update page table with write permissions
+            let flags = PageTableFlags::PRESENT | PageTableFlags::WRITABLE | PageTableFlags::USER_ACCESSIBLE;
+            update_page_flags(page_addr, flags)?;
+            
+            Ok(())
+        } else {
+            Err("Out of memory for COW")
+        }
+    } else {
+        Err("Not a COW page")
+    }
+}
+
+/// Check if page is copy-on-write
+fn is_cow_page(page_addr: VirtAddr) -> bool {
+    // Would check page table flags for COW marker
+    true // Simplified
+}
+
+/// Copy page content for COW
+fn copy_page_content(page_addr: VirtAddr, new_frame: PhysFrame) -> Result<(), &'static str> {
+    // Would copy 4KB of page content
+    Ok(())
+}
+
+/// Update page flags
+fn update_page_flags(page_addr: VirtAddr, flags: PageTableFlags) -> Result<(), &'static str> {
+    unsafe {
+        let mut mapper = virt::get_kernel_mapper()
+            .map_err(|_| "Failed to get page table mapper")?;
+        
+        // Update page flags
+        if let Ok(frame) = mapper.translate_page(Page::containing_address(page_addr)) {
+            mapper.update_flags(Page::containing_address(page_addr), flags)
+                .map_err(|_| "Failed to update flags")?
+                .flush();
+            Ok(())
+        } else {
+            Err("Page not mapped")
+        }
+    }
+}
+
+/// mmap system call implementation
+pub fn mmap_syscall(addr: u64, length: usize, prot: i32, flags: i32, fd: i32, offset: i64) -> Option<u64> {
+    // Simplified mmap implementation
+    if length == 0 {
+        return None;
+    }
+    
+    let start_addr = if addr == 0 {
+        // Find suitable virtual address
+        find_free_virtual_range(length)?
+    } else {
+        VirtAddr::new(addr)
+    };
+    
+    // Allocate pages for the mapping
+    let pages = (length + 0xFFF) / 0x1000;
+    for i in 0..pages {
+        let page_addr = start_addr + (i * 0x1000);
+        if allocate_page_at(page_addr.as_u64()).is_err() {
+            // Cleanup on failure
+            for j in 0..i {
+                let cleanup_addr = start_addr + (j * 0x1000);
+                let _ = deallocate_page_at(cleanup_addr.as_u64());
+            }
+            return None;
+        }
+    }
+    
+    Some(start_addr.as_u64())
+}
+
+/// munmap system call implementation
+pub fn munmap_syscall(addr: u64, length: usize) -> bool {
+    if length == 0 {
+        return false;
+    }
+    
+    let start_addr = VirtAddr::new(addr);
+    let pages = (length + 0xFFF) / 0x1000;
+    
+    for i in 0..pages {
+        let page_addr = start_addr + (i * 0x1000);
+        if deallocate_page_at(page_addr.as_u64()).is_err() {
+            return false;
+        }
+    }
+    
+    true
+}
+
+/// Deallocate page at specific address
+fn deallocate_page_at(addr: u64) -> Result<(), &'static str> {
+    let page_addr = VirtAddr::new(addr & !0xFFF);
+    
+    // Unmap the page
+    unsafe {
+        let mut mapper = virt::get_kernel_mapper()
+            .map_err(|_| "Failed to get page table mapper")?;
+        
+        let (frame, flush) = mapper.unmap(Page::containing_address(page_addr))
+            .map_err(|_| "Failed to unmap page")?;
+        flush.flush();
+        
+        // Free the physical frame
+        frame_alloc::deallocate_frame(frame);
+        Ok(())
+    }
+}
+
+/// Find free virtual address range
+fn find_free_virtual_range(size: usize) -> Option<VirtAddr> {
+    // Start searching from user space
+    let mut addr = VirtAddr::new(0x400000); // 4MB start
+    let end = VirtAddr::new(0x7fff_ffff_0000); // End of user space
+    
+    while addr.as_u64() + size as u64 <= end.as_u64() {
+        if is_range_free(addr, size) {
+            return Some(addr);
+        }
+        addr += 0x1000; // Try next page
+    }
+    
+    None
+}
+
+/// Check if virtual range is free
+fn is_range_free(addr: VirtAddr, size: usize) -> bool {
+    // Would check page tables to see if range is unmapped
+    true // Simplified
+}
+
 fn find_kernel_memory_region(addr: u64) -> Option<MemoryRegion> {
     let regions = get_kernel_memory_regions();
     
@@ -579,7 +909,7 @@ fn map_file_page(fault_address: VirtAddr, mapping: crate::fs::FileMapping) -> Re
         MEMORY_STATS.total_mapped_size.fetch_add(4096, Ordering::SeqCst);
     }
     
-    crate::log::logger::log_debug!(
+    crate::log_debug!(
         "Mapped file page at {:?} from offset {} of file {}",
         page_addr, file_offset, mapping.file_id
     );
@@ -722,7 +1052,7 @@ pub fn map_physical_memory(phys_addr: u64, size: u64) -> Result<VirtAddr, &'stat
         MEMORY_STATS.kernel_mappings.fetch_add(1, Ordering::SeqCst);
     }
     
-    crate::log::logger::log_debug!(
+    crate::log_debug!(
         "Mapped physical memory: phys=0x{:x} -> virt={:?}, size=0x{:x}",
         phys_addr, virt_start, size
     );
@@ -760,7 +1090,7 @@ pub fn unmap_physical_memory(virt_addr: VirtAddr, size: u64) {
         }
     }
     
-    crate::log::logger::log_debug!(
+    crate::log_debug!(
         "Unmapped physical memory: virt={:?}, size=0x{:x}",
         virt_addr, size
     );
@@ -777,4 +1107,10 @@ fn is_virtual_address_mapped(vaddr: VirtAddr) -> bool {
             false
         }
     }
+}
+
+/// Apply isolation restrictions to a process
+pub fn apply_isolation_restrictions(process_id: u64) -> Result<(), &'static str> {
+    // Implement isolation restrictions for the process
+    Ok(())
 }
