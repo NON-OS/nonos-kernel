@@ -1,15 +1,4 @@
 //! NØNOS Interrupt Descriptor Table (IDT)
-//!
-//! - Full Intel exception coverage (0–31 vectors, no gaps)
-//! - IST stack isolation for DF, MC, PF, NMI
-//! - Per-CPU trap counters
-//! - Complete register & control state dump for diagnostics
-//! - Safe nested fault fallback to prevent triple faults
-//! - Crypto-chained logging via Ultra++ logger
-//! - Syscall (0x80) and hypercall trap stubs ready
-//! - Cause hints for faster debugging
-//!
-//! Integrates with: gdt.rs, logger.rs, cpu.rs
 
 use x86_64::structures::idt::{InterruptDescriptorTable, InterruptStackFrame, PageFaultErrorCode};
 use lazy_static::lazy_static;
@@ -20,16 +9,7 @@ use core::sync::atomic::{AtomicU64, Ordering};
 use x86_64::registers::control::{Cr0, Cr2, Cr3, Cr4};
 
 /// Per-CPU trap counters
-static TRAP_COUNTS: [AtomicU64; 32] = [
-    AtomicU64::new(0), AtomicU64::new(0), AtomicU64::new(0), AtomicU64::new(0),
-    AtomicU64::new(0), AtomicU64::new(0), AtomicU64::new(0), AtomicU64::new(0),
-    AtomicU64::new(0), AtomicU64::new(0), AtomicU64::new(0), AtomicU64::new(0),
-    AtomicU64::new(0), AtomicU64::new(0), AtomicU64::new(0), AtomicU64::new(0),
-    AtomicU64::new(0), AtomicU64::new(0), AtomicU64::new(0), AtomicU64::new(0),
-    AtomicU64::new(0), AtomicU64::new(0), AtomicU64::new(0), AtomicU64::new(0),
-    AtomicU64::new(0), AtomicU64::new(0), AtomicU64::new(0), AtomicU64::new(0),
-    AtomicU64::new(0), AtomicU64::new(0), AtomicU64::new(0), AtomicU64::new(0),
-];
+static TRAP_COUNTS: [AtomicU64; 32] = [AtomicU64::new(0); 32];
 
 lazy_static! {
     static ref IDT: InterruptDescriptorTable = {
@@ -87,7 +67,7 @@ lazy_static! {
         idt[32].set_handler_fn(timer_handler);     // Timer interrupt (IRQ 0)
         idt[33].set_handler_fn(keyboard_handler);  // Keyboard interrupt (IRQ 1)
         idt[34].set_handler_fn(cascade_handler);   // Cascade interrupt (IRQ 2)
-        idt[35].set_handler_fn(com2_handler);      // COM2 interrupt (IRQ 3) 
+        idt[35].set_handler_fn(com2_handler);      // COM2 interrupt (IRQ 3)
         idt[36].set_handler_fn(com1_handler);      // COM1 interrupt (IRQ 4)
         idt[37].set_handler_fn(lpt2_handler);      // LPT2 interrupt (IRQ 5)
         idt[38].set_handler_fn(floppy_handler);    // Floppy interrupt (IRQ 6)
@@ -110,6 +90,7 @@ lazy_static! {
     };
 }
 
+/// Load the IDT — brutally robust and optimized for diagnostics and isolation.
 pub fn init() {
     IDT.load();
     log_info!("IDT initialized: 32 vectors, IST isolation, trap counters active");
@@ -135,7 +116,6 @@ macro_rules! trap {
             cr0, cr2, cr3, cr4
         );
 
-        // Cause hint
         match $vec {
             0 => log_warn!("Hint: Check divisor register for zero"),
             13 => log_warn!("Hint: Possible invalid segment access or ring transition"),
@@ -178,10 +158,9 @@ extern "x86-interrupt" fn devna_handler(stack: InterruptStackFrame) {
     trap!(log_err, 7, "Device Not Available", stack);
 }
 
-extern "x86-interrupt" fn df_handler(stack: InterruptStackFrame, _code: u64) {
+extern "x86-interrupt" fn df_handler(stack: InterruptStackFrame, _code: u64) -> ! {
     enter_panic_mode();
     trap!(log_fatal, 8, "Double Fault", stack);
-    // Double fault is fatal - halt the system
     loop {
         x86_64::instructions::hlt();
     }
@@ -222,15 +201,13 @@ extern "x86-interrupt" fn ac_handler(stack: InterruptStackFrame, code: u64) {
     log_err!("Error Code={:#x}", code);
 }
 
-extern "x86-interrupt" fn mc_handler(stack: InterruptStackFrame) {
+extern "x86-interrupt" fn mc_handler(stack: InterruptStackFrame) -> ! {
     enter_panic_mode();
     trap!(log_fatal, 18, "Machine Check", stack);
-    // Machine check is fatal - halt the system
     loop {
         x86_64::instructions::hlt();
     }
 }
-
 
 extern "x86-interrupt" fn simd_handler(stack: InterruptStackFrame) {
     trap!(log_warn, 19, "SIMD FP Exception", stack);
@@ -247,39 +224,26 @@ extern "x86-interrupt" fn reserved_handler(stack: InterruptStackFrame) {
 // === Hardware Interrupt Handlers ===
 
 extern "x86-interrupt" fn timer_handler(_stack: InterruptStackFrame) {
-    // Handle timer interrupt
     crate::interrupts::timer::tick();
-    
-    // Signal end of interrupt to PIC
     unsafe {
         use x86_64::instructions::port::Port;
         Port::new(0x20).write(0x20u8); // Send EOI to master PIC
     }
-    
-    // Call scheduler tick if available
     if let Some(sched) = crate::sched::current_scheduler() {
         sched.tick();
     }
 }
 
 extern "x86-interrupt" fn keyboard_handler(_stack: InterruptStackFrame) {
-    // Handle keyboard interrupt
     unsafe {
         use x86_64::instructions::port::Port;
-        
-        // Read scancode from keyboard controller
         let scancode: u8 = Port::new(0x60).read();
-        
-        // Process scancode using existing keyboard driver
         crate::arch::x86_64::keyboard::handle_keyboard_interrupt();
-        
-        // Send EOI to PIC
         Port::new(0x20).write(0x20u8);
     }
 }
 
 extern "x86-interrupt" fn cascade_handler(_stack: InterruptStackFrame) {
-    // IRQ 2 - cascade, should not happen
     unsafe {
         use x86_64::instructions::port::Port;
         Port::new(0x20).write(0x20u8); // EOI
@@ -287,9 +251,7 @@ extern "x86-interrupt" fn cascade_handler(_stack: InterruptStackFrame) {
 }
 
 extern "x86-interrupt" fn com2_handler(_stack: InterruptStackFrame) {
-    // Handle COM2 serial port interrupt
     crate::arch::x86_64::serial::handle_interrupt();
-    
     unsafe {
         use x86_64::instructions::port::Port;
         Port::new(0x20).write(0x20u8); // EOI
@@ -297,9 +259,7 @@ extern "x86-interrupt" fn com2_handler(_stack: InterruptStackFrame) {
 }
 
 extern "x86-interrupt" fn com1_handler(_stack: InterruptStackFrame) {
-    // Handle COM1 serial port interrupt
     crate::arch::x86_64::serial::handle_interrupt();
-    
     unsafe {
         use x86_64::instructions::port::Port;
         Port::new(0x20).write(0x20u8); // EOI
@@ -307,7 +267,6 @@ extern "x86-interrupt" fn com1_handler(_stack: InterruptStackFrame) {
 }
 
 extern "x86-interrupt" fn lpt2_handler(_stack: InterruptStackFrame) {
-    // Handle LPT2 parallel port interrupt
     unsafe {
         use x86_64::instructions::port::Port;
         Port::new(0x20).write(0x20u8); // EOI
@@ -315,8 +274,6 @@ extern "x86-interrupt" fn lpt2_handler(_stack: InterruptStackFrame) {
 }
 
 extern "x86-interrupt" fn floppy_handler(_stack: InterruptStackFrame) {
-    // Handle floppy disk interrupt - legacy device, minimal support
-    
     unsafe {
         use x86_64::instructions::port::Port;
         Port::new(0x20).write(0x20u8); // EOI
@@ -324,7 +281,6 @@ extern "x86-interrupt" fn floppy_handler(_stack: InterruptStackFrame) {
 }
 
 extern "x86-interrupt" fn lpt1_handler(_stack: InterruptStackFrame) {
-    // Handle LPT1 parallel port interrupt
     unsafe {
         use x86_64::instructions::port::Port;
         Port::new(0x20).write(0x20u8); // EOI
@@ -332,9 +288,7 @@ extern "x86-interrupt" fn lpt1_handler(_stack: InterruptStackFrame) {
 }
 
 extern "x86-interrupt" fn rtc_handler(_stack: InterruptStackFrame) {
-    // Handle RTC interrupt
     crate::time::rtc::handle_interrupt();
-    
     unsafe {
         use x86_64::instructions::port::Port;
         Port::new(0xA0).write(0x20u8); // EOI to slave PIC
@@ -343,7 +297,6 @@ extern "x86-interrupt" fn rtc_handler(_stack: InterruptStackFrame) {
 }
 
 extern "x86-interrupt" fn free1_handler(_stack: InterruptStackFrame) {
-    // Free for use interrupt
     unsafe {
         use x86_64::instructions::port::Port;
         Port::new(0xA0).write(0x20u8); // EOI to slave PIC
@@ -352,7 +305,6 @@ extern "x86-interrupt" fn free1_handler(_stack: InterruptStackFrame) {
 }
 
 extern "x86-interrupt" fn free2_handler(_stack: InterruptStackFrame) {
-    // Free for use interrupt
     unsafe {
         use x86_64::instructions::port::Port;
         Port::new(0xA0).write(0x20u8); // EOI to slave PIC
@@ -361,7 +313,6 @@ extern "x86-interrupt" fn free2_handler(_stack: InterruptStackFrame) {
 }
 
 extern "x86-interrupt" fn free3_handler(_stack: InterruptStackFrame) {
-    // Free for use interrupt
     unsafe {
         use x86_64::instructions::port::Port;
         Port::new(0xA0).write(0x20u8); // EOI to slave PIC
@@ -370,24 +321,15 @@ extern "x86-interrupt" fn free3_handler(_stack: InterruptStackFrame) {
 }
 
 extern "x86-interrupt" fn mouse_handler(_stack: InterruptStackFrame) {
-    // Handle PS/2 mouse interrupt - basic implementation
     unsafe {
         use x86_64::instructions::port::Port;
-        
-        // Read mouse data from port 0x60
         let _mouse_data: u8 = Port::new(0x60).read();
-        
-        // Process mouse data (simplified)
-        // In full implementation, would parse mouse packets and generate events
-        
-        // Send EOI to both PICs
         Port::new(0xA0).write(0x20u8); // EOI to slave PIC
         Port::new(0x20).write(0x20u8); // EOI to master PIC
     }
 }
 
 extern "x86-interrupt" fn fpu_handler(_stack: InterruptStackFrame) {
-    // Handle FPU interrupt
     unsafe {
         use x86_64::instructions::port::Port;
         Port::new(0xA0).write(0x20u8); // EOI to slave PIC
@@ -396,8 +338,6 @@ extern "x86-interrupt" fn fpu_handler(_stack: InterruptStackFrame) {
 }
 
 extern "x86-interrupt" fn ata1_handler(_stack: InterruptStackFrame) {
-    // Handle primary ATA interrupt - using modern AHCI instead
-    
     unsafe {
         use x86_64::instructions::port::Port;
         Port::new(0xA0).write(0x20u8); // EOI to slave PIC
@@ -406,8 +346,6 @@ extern "x86-interrupt" fn ata1_handler(_stack: InterruptStackFrame) {
 }
 
 extern "x86-interrupt" fn ata2_handler(_stack: InterruptStackFrame) {
-    // Handle secondary ATA interrupt - using modern AHCI instead
-    
     unsafe {
         use x86_64::instructions::port::Port;
         Port::new(0xA0).write(0x20u8); // EOI to slave PIC
@@ -416,16 +354,15 @@ extern "x86-interrupt" fn ata2_handler(_stack: InterruptStackFrame) {
 }
 
 extern "x86-interrupt" fn syscall_handler(_stack: InterruptStackFrame) {
-    // Handle system call interrupt
     crate::syscall::handle_interrupt();
 }
 
+/// IDT integrity check — always returns true for now.
 pub fn verify_idt_integrity() -> bool {
-    // Simplified IDT integrity check
     true
 }
 
+/// Handler modification detection — always returns false for now.
 pub fn detect_handler_modifications() -> bool {
-    // Simplified handler modification detection
     false
 }
