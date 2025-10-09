@@ -1,16 +1,8 @@
-//! UEFI (Unified Extensible Firmware Interface) Integration
-//!
-//! Complete UEFI services integration including:
-//! - Firmware information retrieval
-//! - Runtime services access
-//! - Variable services
-//! - Security database access
-//! - Boot services (when available)
+//! UEFI (Unified Extensible Firmware Interface) 
 
 use alloc::{vec, vec::Vec, string::String, format};
 use core::ptr;
 
-/// UEFI firmware information
 #[derive(Debug, Clone)]
 pub struct FirmwareInfo {
     pub vendor: String,
@@ -39,7 +31,6 @@ bitflags::bitflags! {
     }
 }
 
-/// UEFI GUID structure
 #[repr(C)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub struct Guid {
@@ -148,7 +139,7 @@ impl UefiManager {
         })
     }
 
-    /// Simulate Secure Boot detection (replace with real variable query in production).
+    /// Secure Boot detection (replace with real variable query in production).
     fn detect_secure_boot(&self) -> bool {
         match self.get_variable("SecureBoot", &Guid::GLOBAL_VARIABLE) {
             Some(var) => !var.data.is_empty() && var.data[0] != 0,
@@ -206,7 +197,6 @@ impl UefiManager {
                 if header.signature != 0x56524553544e5552 {
                     return Err("Invalid runtime services signature");
                 }
-                
             }
         }
         let var = UefiVariable {
@@ -255,11 +245,11 @@ impl UefiManager {
     }
 
     pub fn verify_runtime_services() -> bool {
-        true 
+        true
     }
 
     pub fn verify_boot_services() -> bool {
-        true 
+        true
     }
 
     pub fn get_all_variables(&self) -> Vec<UefiVariable> {
