@@ -1,15 +1,18 @@
-//! NØNOS Architecture-Neutral Boot Interface
+//! NØNOS-Neutral Boot Interface
 //!
-//! Provides early boot initialization routines
+//! Early boot initialization routines for the kernel.
 
 use crate::log::logger::log_info;
 
-/// Early boot initialization - architecture neutral
+/// Performs early boot initialization in a platform-neutral manner.
+/// This should be the first initialization step before any subsystem is accessed.
 pub fn init_early() {
-    log_info!("Early boot initialization starting");
-    
-    // Initialize critical subsystems first
-    crate::log::init_logger();
-    
-    log_info!("Early boot initialization complete");
+    // Attempt to initialize the logger first to capture diagnostics from the earliest stage.
+    if let Err(e) = crate::log::init_logger() {
+        // If logger setup fails, fallback to a minimal panic or error handler.
+        // This ensures that early boot failures are not silent.
+        panic!("Logger initialization failed during early boot: {:?}", e);
+    }
+
+    log_info!("Early boot initialization completed.");
 }
