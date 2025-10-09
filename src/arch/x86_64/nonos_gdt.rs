@@ -1,15 +1,5 @@
 //! NØNOS x86_64 GDT/TSS — SMP, USER, PCID/KPTI hooks, CET, GS/FS, XSAVE, SYSCALL+INT80
 //!
-//! - Per-CPU dynamic GDT/TSS with allocator-backed IST stacks (+ guard pages)
-//! - Full selector map: kernel/user CS/DS/SS, TSS
-//! - CR0/CR4/EFER hardening; optional PCID, UMIP, SMEP, SMAP; NX forced
-//! - Dual syscall gateways: INT 0x80 and SYSCALL/SYSRET (feature-gated)
-//! - Per-CPU GS/KernelGS base; swapgs helpers; FS base for user TLS
-//! - CET (shadow stack/IBT) MSR stubs; wiring points for future enablement
-//! - XSAVE policy from CPUID leaf 0xD; default x87|SSE; AVX stays off until negotiated
-//! - KPTI/PCID scaffolding: user CR3 (U-CR3) + ASID plumbing hooks
-//! - BSP/AP init entry points; APIC-id keyed registry
-//!
 //! Safety: bring-up is single-threaded per CPU; global registration is lock-free.
 
 #![allow(clippy::module_name_repetitions)]
@@ -101,7 +91,7 @@ pub fn init() {
     // Function kept for compatibility with late init code
 }
 
-/// minimal allocator trait for early stacks (paged + guard if possible)  
+/// minimal allocator trait for early stacks (paged + guard if possible)
 pub trait IstAllocator {
     /// allocate `len` bytes with a preceding guard page; return usable [base,end)
     unsafe fn alloc_with_guard(&self, len: usize) -> (VirtAddr, VirtAddr);
@@ -174,10 +164,8 @@ pub unsafe fn set_user_fs_base(ptr: u64) {
 
 /// PCID/KPTI — supply user CR3 for this CPU (optional)
 pub unsafe fn set_user_cr3(apic_id: u32, _u_cr3: u64) {
-    // TODO: Fix CPU registry to allow mutable access to CpuArch fields
-    // For now, this is a no-op to allow compilation
     if let Some(_arch) = CPU_REG.write().get(&apic_id) {
-        // Cannot modify through immutable reference - needs architecture fix
+        // TODO: Mutable access to CpuArch fields for real PCID plumbing.
     }
 }
 
@@ -186,9 +174,9 @@ pub fn xsave_mask() -> u64 {
     bsp_ref().xsave_mask
 }
 
-// ─────────────────────────────────────────────────────────────────────
+// ────────────────────────────────────────────────────────────────
 // core bring-up
-// ─────────────────────────────────────────────────────────────────────
+// ────────────────────────────────────────────────────────────────
 
 unsafe fn init_cpu_common(apic_id: u32, alloc: &dyn IstAllocator, _is_bsp: bool, asid: u16) -> &'static CpuArch {
     // allocate struct from .bss static; no heap reliance
@@ -262,9 +250,9 @@ unsafe fn install_ist(tss: &mut TaskStateSegment, alloc: &dyn IstAllocator) {
     // IO bitmap & TSS misc remain default (no IO ports for user)
 }
 
-// ─────────────────────────────────────────────────────────────────────
+// ────────────────────────────────────────────────────────────────
 // control registers / features
-// ─────────────────────────────────────────────────────────────────────
+// ────────────────────────────────────────────────────────────────
 
 fn has_leaf7_edx(bit: u32) -> bool {
     let (_a, _b, _c, d) = cpuid(0x7, 0);
@@ -299,7 +287,6 @@ fn cpuid(leaf: u32, subleaf: u32) -> (u32, u32, u32, u32) {
 
 fn harden_crs() {
     unsafe {
-        // CR0: write protect
         let mut cr0 = Cr0::read();
         cr0.insert(Cr0Flags::WRITE_PROTECT);
         Cr0::write(cr0);
@@ -351,9 +338,9 @@ pub unsafe fn kpti_switch_to_kernel() {
     asm!("mov cr3, {}", in(reg) kcr3, options(nostack, preserves_flags));
 }
 
-// ─────────────────────────────────────────────────────────────────────
+// ────────────────────────────────────────────────────────────────
 // SYSCALL MSRs (alternative to INT 0x80)
-// ─────────────────────────────────────────────────────────────────────
+// ────────────────────────────────────────────────────────────────
 
 #[cfg(feature = "nonos-syscall-msr")]
 fn init_syscall_msrs(k_cs: SegmentSelector) {
@@ -379,9 +366,9 @@ fn init_syscall_msrs(k_cs: SegmentSelector) {
     }
 }
 
-// ─────────────────────────────────────────────────────────────────────
+// ────────────────────────────────────────────────────────────────
 // CET (shadow stacks / IBT) — stub wiring points
-// ─────────────────────────────────────────────────────────────────────
+// ────────────────────────────────────────────────────────────────
 
 #[cfg(feature = "nonos-cet")]
 pub unsafe fn cet_enable_stub() {
@@ -389,9 +376,9 @@ pub unsafe fn cet_enable_stub() {
     // Keep disabled until we have per-thread alloc + context switch integration.
 }
 
-// ─────────────────────────────────────────────────────────────────────
+// ────────────────────────────────────────────────────────────────
 // XSAVE policy
-// ─────────────────────────────────────────────────────────────────────
+// ────────────────────────────────────────────────────────────────
 
 fn init_xsave_policy() -> u64 {
     unsafe {
@@ -410,9 +397,9 @@ fn init_xsave_policy() -> u64 {
     }
 }
 
-// ─────────────────────────────────────────────────────────────────────
+// ────────────────────────────────────────────────────────────────
 // swapgs helpers (entry/exit)
-// ─────────────────────────────────────────────────────────────────────
+// ────────────────────────────────────────────────────────────────
 
 #[inline(always)]
 pub unsafe fn entry_swapgs_if_needed(rflags: RFlags) {
