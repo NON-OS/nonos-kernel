@@ -1,4 +1,4 @@
-//! NØNOS VGA Text Output 
+//! NØNOS VGA Text Output
 //!
 //! Features:
 //! - Multiple virtual consoles (TTYs) with per-console buffer and cursor.
@@ -27,7 +27,6 @@ pub const MAX_CONSOLES: usize = 4;
 /// Scrollback history per console
 pub const SCROLLBACK_LINES: usize = 200;
 
-#[allow(dead_code)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[repr(u8)]
 pub enum Color {
@@ -68,7 +67,6 @@ pub struct ScreenChar {
 
 impl Deref for ScreenChar {
     type Target = ScreenChar;
-    
     fn deref(&self) -> &Self::Target {
         self
     }
@@ -102,7 +100,7 @@ impl Console {
             color_code: ColorCode::new(Color::LightGray, Color::Black),
             history: [[ScreenChar {
                 ascii_character: b' ',
-                color_code: ColorCode(0)
+                color_code: ColorCode(0),
             }; BUFFER_WIDTH]; SCROLLBACK_LINES],
             history_head: 0,
         }
@@ -273,12 +271,10 @@ pub fn print_hex(value: u64) {
     let mut buffer = [0u8; 18]; // "0x" + 16 hex digits
     buffer[0] = b'0';
     buffer[1] = b'x';
-    
     for i in 0..16 {
         let nibble = (value >> (60 - i * 4)) & 0xF;
         buffer[2 + i] = hex_chars[nibble as usize];
     }
-    
     let hex_str = core::str::from_utf8(&buffer).unwrap();
     print(hex_str);
 }
