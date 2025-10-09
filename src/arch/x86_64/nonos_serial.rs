@@ -1,6 +1,4 @@
-//! Advanced Serial Port Driver
-//! 
-//! High-performance serial communication for debugging and logging
+//! Serial Port Driver
 
 use crate::arch::x86_64::port::{inb, outb};
 use core::fmt::{Write, Result};
@@ -10,50 +8,43 @@ pub struct SerialPort {
 }
 
 impl SerialPort {
-    /// Create new serial port instance
+    /// Create new serial port instance and initialize it.
     pub fn new(port: u16) -> Self {
         let mut serial = SerialPort { port };
         serial.init();
         serial
     }
-    
-    /// Initialize serial port with advanced configuration
+
+    /// Initialize serial port with advanced configuration.
     fn init(&mut self) {
         unsafe {
             // Disable interrupts
             outb(self.port + 1, 0x00);
-            
             // Enable DLAB (set baud rate divisor)
             outb(self.port + 3, 0x80);
-            
             // Set divisor to 3 (38400 baud)
             outb(self.port + 0, 0x03);
             outb(self.port + 1, 0x00);
-            
             // 8 bits, no parity, one stop bit
             outb(self.port + 3, 0x03);
-            
             // Enable FIFO, clear, with 14-byte threshold
             outb(self.port + 2, 0xC7);
-            
             // Enable IRQs, set RTS/DSR
             outb(self.port + 4, 0x0B);
         }
     }
-    
-    /// Check if transmit buffer is empty
+
+    /// Check if transmit buffer is empty.
     fn is_transmit_empty(&self) -> bool {
         unsafe { inb(self.port + 5) & 0x20 != 0 }
     }
-    
-    /// Write a byte to the serial port
+
+    /// Write a byte to the serial port.
     fn write_byte(&self, byte: u8) {
         while !self.is_transmit_empty() {
             unsafe { core::arch::asm!("pause"); }
         }
-        unsafe {
-            outb(self.port, byte);
-        }
+        unsafe { outb(self.port, byte); }
     }
 }
 
@@ -68,7 +59,7 @@ impl Write for SerialPort {
 
 static mut COM1: Option<SerialPort> = None;
 
-/// Get COM1 serial port
+/// Get COM1 serial port (lazy-initialized, single instance).
 pub unsafe fn get_serial() -> Option<&'static mut SerialPort> {
     if COM1.is_none() {
         COM1 = Some(SerialPort::new(0x3F8));
@@ -76,7 +67,7 @@ pub unsafe fn get_serial() -> Option<&'static mut SerialPort> {
     COM1.as_mut()
 }
 
-/// Write a single byte to the serial port
+/// Write a single byte to the serial port.
 pub fn write_byte(byte: u8) {
     unsafe {
         if let Some(serial) = get_serial() {
@@ -85,38 +76,36 @@ pub fn write_byte(byte: u8) {
     }
 }
 
-/// Initialize serial subsystem
+/// Initialize serial subsystem (boot-safe).
 pub fn init() {
-    unsafe {
-        let _ = get_serial();
-    }
+    unsafe { let _ = get_serial(); }
 }
 
-/// Handle serial port interrupt
+/// Handle serial port interrupt (IRQ4).
 pub fn handle_interrupt() {
     unsafe {
         if let Some(serial) = get_serial() {
             // Read interrupt identification register
             let iir = inb(serial.port + 2);
-            
+
             match iir & 0x0E {
                 0x04 => {
                     // Received data available
                     let _data = inb(serial.port);
-                    // Process received data (simplified)
+                    // TODO: Process received data
                 },
                 0x02 => {
                     // Transmitter holding register empty
-                    // Can send more data if needed
+                    // TODO: Can send more data if needed
                 },
                 0x06 => {
                     // Receiver line status
                     let _lsr = inb(serial.port + 5);
-                    // Handle line status errors
+                    // TODO: Handle line status errors
                 },
                 0x0C => {
                     // Character timeout
-                    // Handle timeout condition
+                    // TODO: Handle timeout condition
                 },
                 _ => {
                     // Unknown interrupt
