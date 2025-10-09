@@ -1,6 +1,4 @@
 //! x86_64 Port I/O Operations
-//!
-//! Low-level port I/O functions for hardware communication
 
 /// Read byte from I/O port
 #[inline]
