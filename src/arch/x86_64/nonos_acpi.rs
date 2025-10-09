@@ -1,10 +1,4 @@
-//! Complete ACPI (Advanced Configuration and Power Interface) Implementation
-//! 
-//! Full ACPI support including:
-//! - RSDP discovery and validation
-//! - RSDT/XSDT parsing
-//! - FADT, HPET, MADT, MCFG table parsing
-//! - Device enumeration and power management
+//! ACPI | Advanced Configuration and Power Interface
 
 use core::mem;
 use core::ptr;
@@ -23,7 +17,6 @@ const HPET_SIGNATURE: u32 = u32::from_le_bytes(*b"HPET");
 const MADT_SIGNATURE: u32 = u32::from_le_bytes(*b"APIC");
 const MCFG_SIGNATURE: u32 = u32::from_le_bytes(*b"MCFG");
 
-/// RSDP structure for ACPI 1.0
 #[repr(C, packed)]
 #[derive(Debug, Clone, Copy)]
 pub struct Rsdp {
@@ -34,7 +27,6 @@ pub struct Rsdp {
     pub rsdt_address: u32,
 }
 
-/// RSDP structure for ACPI 2.0+
 #[repr(C, packed)]
 #[derive(Debug, Clone, Copy)]
 pub struct RsdpExtended {
@@ -45,7 +37,6 @@ pub struct RsdpExtended {
     pub reserved: [u8; 3],
 }
 
-/// Generic ACPI table header
 #[repr(C, packed)]
 #[derive(Debug, Clone, Copy)]
 pub struct AcpiTableHeader {
@@ -60,7 +51,6 @@ pub struct AcpiTableHeader {
     pub creator_revision: u32,
 }
 
-/// HPET (High Precision Event Timer) table
 #[repr(C, packed)]
 #[derive(Debug, Clone, Copy)]
 pub struct Hpet {
@@ -77,7 +67,6 @@ pub struct Hpet {
     pub page_protection: u8,
 }
 
-/// FADT (Fixed ACPI Description Table)
 #[repr(C, packed)]
 #[derive(Debug, Clone, Copy)]
 pub struct Fadt {
@@ -122,7 +111,6 @@ pub struct Fadt {
     pub flags: u32,
 }
 
-/// MADT (Multiple APIC Description Table)
 #[repr(C, packed)]
 #[derive(Debug, Clone, Copy)]
 pub struct Madt {
@@ -131,7 +119,6 @@ pub struct Madt {
     pub flags: u32,
 }
 
-/// MCFG (Memory Mapped Configuration) table
 #[repr(C, packed)]
 #[derive(Debug, Clone, Copy)]
 pub struct Mcfg {
@@ -139,7 +126,6 @@ pub struct Mcfg {
     pub reserved: u64,
 }
 
-/// MCFG configuration space entry
 #[repr(C, packed)]
 #[derive(Debug, Clone, Copy)]
 pub struct McfgEntry {
@@ -150,7 +136,6 @@ pub struct McfgEntry {
     pub reserved: u32,
 }
 
-/// SRAT (System Resource Affinity Table)
 #[repr(C, packed)]
 #[derive(Debug, Clone, Copy)]
 pub struct Srat {
@@ -166,7 +151,6 @@ impl Srat {
     }
 }
 
-/// Iterator for SRAT entries
 pub struct SratEntryIterator {
     data: *const u8,
     remaining: usize,
@@ -189,15 +173,12 @@ impl Iterator for SratEntryIterator {
         if self.remaining < 2 {
             return None;
         }
-
         unsafe {
             let entry_type = *self.data;
             let entry_length = *self.data.add(1);
-
             if entry_length < 2 || entry_length as usize > self.remaining {
                 return None;
             }
-
             let entry = match entry_type {
                 0 => {
                     if entry_length >= core::mem::size_of::<ProcessorAffinityEntry>() as u8 {
@@ -216,7 +197,6 @@ impl Iterator for SratEntryIterator {
                 },
                 _ => None,
             };
-
             self.data = self.data.add(entry_length as usize);
             self.remaining -= entry_length as usize;
             entry
@@ -224,7 +204,6 @@ impl Iterator for SratEntryIterator {
     }
 }
 
-/// SRAT entry types
 #[derive(Debug, Clone, Copy)]
 pub enum SratEntry {
     ProcessorAffinity(ProcessorAffinityEntry),
@@ -232,7 +211,6 @@ pub enum SratEntry {
     ProcessorX2ApicAffinity(ProcessorX2ApicAffinityEntry),
 }
 
-/// Processor Local APIC/SAPIC Affinity Structure
 #[repr(C, packed)]
 #[derive(Debug, Clone, Copy)]
 pub struct ProcessorAffinityEntry {
@@ -246,7 +224,6 @@ pub struct ProcessorAffinityEntry {
     pub clock_domain: u32,
 }
 
-/// Memory Affinity Structure
 #[repr(C, packed)]
 #[derive(Debug, Clone, Copy)]
 pub struct MemoryAffinityEntry {
@@ -261,7 +238,6 @@ pub struct MemoryAffinityEntry {
     pub reserved3: u64,
 }
 
-/// Processor Local x2APIC Affinity Structure
 #[repr(C, packed)]
 #[derive(Debug, Clone, Copy)]
 pub struct ProcessorX2ApicAffinityEntry {
@@ -284,7 +260,7 @@ pub struct AcpiTables {
 }
 
 impl AcpiTables {
-    /// Find a table by signature
+    /// Find a table by signature and type
     pub fn find_table<T>(&self) -> Option<&'static T> {
         let signature = match core::any::type_name::<T>() {
             name if name.contains("Hpet") => HPET_SIGNATURE,
@@ -293,7 +269,6 @@ impl AcpiTables {
             name if name.contains("Mcfg") => MCFG_SIGNATURE,
             _ => return None,
         };
-        
         if let Some(&address) = self.tables.get(&signature) {
             unsafe {
                 Some(&*(address as *const T))
@@ -302,17 +277,15 @@ impl AcpiTables {
             None
         }
     }
-    
+
     /// Get all tables of a specific type
     pub fn find_tables<T>(&self) -> Vec<&'static T> {
         let mut results = Vec::new();
         for (&sig, &addr) in &self.tables {
             if sig == HPET_SIGNATURE && core::any::type_name::<T>().contains("Hpet") {
-                unsafe {
-                    results.push(&*(addr as *const T));
-                }
+                unsafe { results.push(&*(addr as *const T)); }
             }
-            // Add other table type checks as needed
+            // Extend for other types as needed
         }
         results
     }
@@ -326,7 +299,7 @@ pub fn get_acpi_tables() -> Option<&'static AcpiTables> {
     unsafe { ACPI_TABLES.as_ref() }
 }
 
-/// Initialize ACPI subsystem
+/// Initialize ACPI subsystem and enumerate tables
 pub fn init() -> Result<(), &'static str> {
     let rsdp = find_rsdp().ok_or("RSDP not found")?;
     let mut tables = AcpiTables {
@@ -335,7 +308,7 @@ pub fn init() -> Result<(), &'static str> {
         xsdt_address: if rsdp.rsdp.revision >= 2 { Some(rsdp.xsdt_address) } else { None },
         tables: BTreeMap::new(),
     };
-    
+
     // Parse RSDT or XSDT
     if let Some(xsdt_addr) = tables.xsdt_address {
         parse_xsdt(&mut tables, xsdt_addr)?;
@@ -344,11 +317,8 @@ pub fn init() -> Result<(), &'static str> {
     } else {
         return Err("No RSDT or XSDT found");
     }
-    
-    unsafe {
-        ACPI_TABLES = Some(tables);
-    }
-    
+
+    unsafe { ACPI_TABLES = Some(tables); }
     Ok(())
 }
 
@@ -358,17 +328,14 @@ fn find_rsdp() -> Option<RsdpExtended> {
     unsafe {
         let ebda_segment = ptr::read_volatile(0x040E as *const u16) as u32;
         let ebda_start = (ebda_segment << 4) as usize;
-        
         if let Some(rsdp) = search_rsdp(ebda_start, 1024) {
             return Some(rsdp);
         }
     }
-    
     // Search in BIOS memory area
     if let Some(rsdp) = search_rsdp(0xE0000, 0x20000) {
         return Some(rsdp);
     }
-    
     None
 }
 
@@ -379,8 +346,6 @@ fn search_rsdp(start: usize, length: usize) -> Option<RsdpExtended> {
             let potential_rsdp = addr as *const Rsdp;
             if ptr::read_volatile(potential_rsdp).signature == *RSDP_SIGNATURE {
                 let rsdp = ptr::read_volatile(potential_rsdp);
-                
-                // Validate checksum
                 if validate_checksum(&rsdp as *const _ as *const u8, mem::size_of::<Rsdp>()) {
                     if rsdp.revision >= 2 {
                         // ACPI 2.0+ extended RSDP
@@ -409,24 +374,16 @@ fn search_rsdp(start: usize, length: usize) -> Option<RsdpExtended> {
 fn parse_rsdt(tables: &mut AcpiTables, rsdt_addr: u64) -> Result<(), &'static str> {
     unsafe {
         let header = ptr::read_volatile(rsdt_addr as *const AcpiTableHeader);
-        if header.signature != RSDT_SIGNATURE {
-            return Err("Invalid RSDT signature");
-        }
-        
-        if !validate_checksum(rsdt_addr as *const u8, header.length as usize) {
-            return Err("RSDT checksum validation failed");
-        }
-        
+        if header.signature != RSDT_SIGNATURE { return Err("Invalid RSDT signature"); }
+        if !validate_checksum(rsdt_addr as *const u8, header.length as usize) { return Err("RSDT checksum failed"); }
         let entry_count = (header.length - mem::size_of::<AcpiTableHeader>() as u32) / 4;
         let entries_ptr = (rsdt_addr + mem::size_of::<AcpiTableHeader>() as u64) as *const u32;
         let entries = slice::from_raw_parts(entries_ptr, entry_count as usize);
-        
         for &entry_addr in entries {
             let table_header = ptr::read_volatile(entry_addr as *const AcpiTableHeader);
             tables.tables.insert(table_header.signature, entry_addr as u64);
         }
     }
-    
     Ok(())
 }
 
@@ -434,24 +391,16 @@ fn parse_rsdt(tables: &mut AcpiTables, rsdt_addr: u64) -> Result<(), &'static st
 fn parse_xsdt(tables: &mut AcpiTables, xsdt_addr: u64) -> Result<(), &'static str> {
     unsafe {
         let header = ptr::read_volatile(xsdt_addr as *const AcpiTableHeader);
-        if header.signature != XSDT_SIGNATURE {
-            return Err("Invalid XSDT signature");
-        }
-        
-        if !validate_checksum(xsdt_addr as *const u8, header.length as usize) {
-            return Err("XSDT checksum validation failed");
-        }
-        
+        if header.signature != XSDT_SIGNATURE { return Err("Invalid XSDT signature"); }
+        if !validate_checksum(xsdt_addr as *const u8, header.length as usize) { return Err("XSDT checksum failed"); }
         let entry_count = (header.length - mem::size_of::<AcpiTableHeader>() as u32) / 8;
         let entries_ptr = (xsdt_addr + mem::size_of::<AcpiTableHeader>() as u64) as *const u64;
         let entries = slice::from_raw_parts(entries_ptr, entry_count as usize);
-        
         for &entry_addr in entries {
             let table_header = ptr::read_volatile(entry_addr as *const AcpiTableHeader);
             tables.tables.insert(table_header.signature, entry_addr);
         }
     }
-    
     Ok(())
 }
 
@@ -467,7 +416,7 @@ fn validate_checksum(data: *const u8, length: usize) -> bool {
 /// Power management operations
 pub mod power {
     use super::*;
-    
+
     /// ACPI power states
     #[derive(Debug, Clone, Copy)]
     pub enum PowerState {
@@ -478,15 +427,14 @@ pub mod power {
         S4, // Suspend to Disk
         S5, // Soft Power Off
     }
-    
-    /// Enter ACPI power state
+
+    /// Enter ACPI power state (S5 implemented, others require hardware-specific support)
     pub fn enter_power_state(state: PowerState) -> Result<(), &'static str> {
         if let Some(tables) = get_acpi_tables() {
             if let Some(fadt) = tables.find_table::<Fadt>() {
                 match state {
                     PowerState::S0 => Ok(()), // Already in working state
                     PowerState::S5 => {
-                        // Soft power off
                         unsafe {
                             crate::arch::x86_64::port::outw(fadt.pm1a_control_block as u16, 0x2000);
                             if fadt.pm1b_control_block != 0 {
@@ -495,7 +443,7 @@ pub mod power {
                         }
                         Ok(())
                     },
-                    _ => Err("Power state not implemented"),
+                    _ => Err("Power state requires hardware-specific implementation"),
                 }
             } else {
                 Err("FADT not found")
@@ -504,24 +452,21 @@ pub mod power {
             Err("ACPI not initialized")
         }
     }
-    
-    /// System shutdown via ACPI
+
+    /// System shutdown via ACPI (uses S5 state)
     pub fn shutdown() -> Result<(), &'static str> {
         enter_power_state(PowerState::S5)
     }
-    
-    /// System reboot via ACPI
+
+    /// System reboot via ACPI (uses keyboard controller fallback if reset reg not available)
     pub fn reboot() -> Result<(), &'static str> {
         if let Some(tables) = get_acpi_tables() {
             if let Some(fadt) = tables.find_table::<Fadt>() {
                 unsafe {
-                    // Try ACPI reset
-                    if fadt.flags & (1 << 10) != 0 { // Reset register supported
-                        // Implementation would use reset register
-                        return Err("Reset register not implemented");
+                    if fadt.flags & (1 << 10) != 0 {
+                        // ACPI reset register support detected, needs full protocol
+                        return Err("ACPI reset register protocol not implemented");
                     }
-                    
-                    // Fallback to keyboard controller reset
                     crate::arch::x86_64::port::outb(0x64, 0xFE);
                 }
                 Ok(())
@@ -534,30 +479,27 @@ pub mod power {
     }
 }
 
-/// Device enumeration
+/// Device enumeration and hardware queries
 pub mod devices {
     use super::*;
-    
-    /// Enumerate PCI devices using MCFG
-    pub fn enumerate_pci_devices() -> Vec<(u8, u8, u8)> { // (bus, device, function)
+
+    /// Enumerate PCI devices using MCFG table (full hardware scan)
+    pub fn enumerate_pci_devices() -> Vec<(u8, u8, u8)> {
         let mut devices = Vec::new();
-        
         if let Some(tables) = get_acpi_tables() {
             if let Some(mcfg) = tables.find_table::<Mcfg>() {
                 unsafe {
                     let entry_count = (mcfg.header.length - mem::size_of::<Mcfg>() as u32) / mem::size_of::<McfgEntry>() as u32;
                     let entries_ptr = (mcfg as *const Mcfg as u64 + mem::size_of::<Mcfg>() as u64) as *const McfgEntry;
                     let entries = slice::from_raw_parts(entries_ptr, entry_count as usize);
-                    
                     for entry in entries {
                         for bus in entry.start_bus..=entry.end_bus {
                             for device in 0..32 {
                                 for function in 0..8 {
-                                    let config_addr = entry.base_address + 
-                                        ((bus as u64) << 20) + 
-                                        ((device as u64) << 15) + 
+                                    let config_addr = entry.base_address +
+                                        ((bus as u64) << 20) +
+                                        ((device as u64) << 15) +
                                         ((function as u64) << 12);
-                                    
                                     let vendor_id = ptr::read_volatile(config_addr as *const u16);
                                     if vendor_id != 0xFFFF {
                                         devices.push((bus, device, function));
@@ -569,27 +511,16 @@ pub mod devices {
                 }
             }
         }
-        
         devices
     }
-    
-    /// Get HPET base address
+
+    /// Get HPET base address from ACPI tables
     pub fn get_hpet_base() -> Option<u64> {
-        if let Some(tables) = get_acpi_tables() {
-            if let Some(hpet) = tables.find_table::<Hpet>() {
-                return Some(hpet.base_address);
-            }
-        }
-        None
+        get_acpi_tables().and_then(|tables| tables.find_table::<Hpet>().map(|hpet| hpet.base_address))
     }
-    
-    /// Get LAPIC base address
+
+    /// Get LAPIC base address from MADT
     pub fn get_lapic_base() -> Option<u32> {
-        if let Some(tables) = get_acpi_tables() {
-            if let Some(madt) = tables.find_table::<Madt>() {
-                return Some(madt.local_apic_address);
-            }
-        }
-        None
+        get_acpi_tables().and_then(|tables| tables.find_table::<Madt>().map(|madt| madt.local_apic_address))
     }
 }
