@@ -19,19 +19,16 @@ pub mod interrupt {
     pub mod nonos_apic;
     pub mod nonos_ioapic;
     pub mod nonos_pic_legacy;
-    
-    // Re-exports for backward compatibility
+
     pub use nonos_apic as apic;
     pub use nonos_ioapic as ioapic;
     pub use nonos_pic_legacy as pic_legacy;
 }
 
-/// Re-export interrupt stack frame
 pub use x86_64::structures::idt::InterruptStackFrame;
 
 pub mod keyboard;
 
-// Re-exports for backward compatibility
 pub use nonos_acpi as acpi;
 pub use nonos_boot as boot;
 pub use nonos_cpu as cpu;
@@ -49,36 +46,36 @@ pub use nonos_vga as vga;
 
 /// Port I/O operations for x86_64
 pub mod port_io {
-    /// Output byte to port
+    #[inline(always)]
     pub unsafe fn outb(port: u16, data: u8) {
         core::arch::asm!("out dx, al", in("dx") port, in("al") data, options(nostack, preserves_flags));
     }
-    
-    /// Input byte from port
+
+    #[inline(always)]
     pub unsafe fn inb(port: u16) -> u8 {
         let mut data: u8;
         core::arch::asm!("in al, dx", out("al") data, in("dx") port, options(nostack, preserves_flags));
         data
     }
-    
-    /// Output word to port
+
+    #[inline(always)]
     pub unsafe fn outw(port: u16, data: u16) {
         core::arch::asm!("out dx, ax", in("dx") port, in("ax") data, options(nostack, preserves_flags));
     }
-    
-    /// Input word from port
+
+    #[inline(always)]
     pub unsafe fn inw(port: u16) -> u16 {
         let mut data: u16;
         core::arch::asm!("in ax, dx", out("ax") data, in("dx") port, options(nostack, preserves_flags));
         data
     }
-    
-    /// Output double word to port
+
+    #[inline(always)]
     pub unsafe fn outl(port: u16, data: u32) {
         core::arch::asm!("out dx, eax", in("dx") port, in("eax") data, options(nostack, preserves_flags));
     }
-    
-    /// Input double word from port
+
+    #[inline(always)]
     pub unsafe fn inl(port: u16) -> u32 {
         let mut data: u32;
         core::arch::asm!("in eax, dx", out("eax") data, in("dx") port, options(nostack, preserves_flags));
@@ -88,11 +85,14 @@ pub mod port_io {
 
 pub mod time {
     pub mod nonos_timer;
-    
-    // Re-export for backward compatibility
+    // Uncomment temporarily
+    // pub mod tsc;
+    // pub mod pit;
+    // pub mod hpet;
+    // pub mod rtc;
+
     pub use nonos_timer as timer;
-    
-    /// Get current TSC value
+
     #[inline(always)]
     pub fn get_tsc() -> u64 {
         unsafe {
@@ -104,9 +104,7 @@ pub mod time {
     }
 }
 
-/// Hardware delay functions
 pub mod delay {
-    /// Delay for milliseconds using TSC
     pub fn delay_ms(ms: u64) {
         let freq = 2_500_000_000; // 2.5 GHz estimate
         let cycles = (ms * freq) / 1000;
@@ -120,7 +118,6 @@ pub mod delay {
     }
 }
 
-// Port I/O utilities
 pub mod port {
     #[inline(always)]
     pub unsafe fn inb(port: u16) -> u8 {
@@ -128,38 +125,37 @@ pub mod port {
         core::arch::asm!("in al, dx", out("al") value, in("dx") port, options(nomem, nostack, preserves_flags));
         value
     }
-    
+
     #[inline(always)]
     pub unsafe fn outb(port: u16, value: u8) {
         core::arch::asm!("out dx, al", in("dx") port, in("al") value, options(nomem, nostack, preserves_flags));
     }
-    
+
     #[inline(always)]
     pub unsafe fn inw(port: u16) -> u16 {
         let value: u16;
         core::arch::asm!("in ax, dx", out("ax") value, in("dx") port, options(nomem, nostack, preserves_flags));
         value
     }
-    
+
     #[inline(always)]
     pub unsafe fn outw(port: u16, value: u16) {
         core::arch::asm!("out dx, ax", in("dx") port, in("ax") value, options(nomem, nostack, preserves_flags));
     }
-    
+
     #[inline(always)]
     pub unsafe fn inl(port: u16) -> u32 {
         let value: u32;
         core::arch::asm!("in eax, dx", out("eax") value, in("dx") port, options(nomem, nostack, preserves_flags));
         value
     }
-    
+
     #[inline(always)]
     pub unsafe fn outl(port: u16, value: u32) {
         core::arch::asm!("out dx, eax", in("dx") port, in("eax") value, options(nomem, nostack, preserves_flags));
     }
 }
 
-// Framebuffer support stub
 pub mod framebuffer {
     #[derive(Clone, Copy)]
     pub struct FbInfo {
@@ -168,16 +164,14 @@ pub mod framebuffer {
         pub height: u32,
         pub stride: u32,
     }
-    
+
     pub fn probe() -> Option<FbInfo> {
-        None // Would be populated from bootloader info
+        None
     }
 }
 
-// Font support for framebuffer console
 pub mod font8x16 {
     pub fn glyph(_c: u8) -> &'static [u8; 16] {
-        // Simplified: return a blank glyph
         &[0; 16]
     }
 }
@@ -205,18 +199,11 @@ pub fn flush_tlb() {
     }
 }
 
-pub fn set_task_context(task_id: u32) {
-    // Set task context for switching
-}
+pub fn set_task_context(_task_id: u32) {}
 
-pub fn restore_kernel_context() {
-    // Restore kernel context
-}
+pub fn restore_kernel_context() {}
 
-/// Sleep for specified milliseconds using HLT instruction
 pub async fn hlt_sleep_ms(ms: u64) {
-    // In a real implementation, this would use a timer
-    // For compilation, provide a stub that yields
     for _ in 0..ms {
         unsafe {
             x86_64::instructions::hlt();
