@@ -1,7 +1,4 @@
-//! PCI Bus Management for x86_64
-//!
-//! Complete PCI bus enumeration, device management, and configuration
-//! with support for PCI Express, MSI-X interrupts, and DMA operations.
+//! PCI Bus Management 
 
 use alloc::{vec::Vec, collections::BTreeMap};
 use x86_64::{PhysAddr, VirtAddr};
@@ -47,9 +44,8 @@ impl PciDevice {
     pub fn new(bus: u8, slot: u8, function: u8) -> Option<Self> {
         let vendor_id = pci_config_read_word(bus, slot, function, PCI_VENDOR_ID);
         if vendor_id == 0xFFFF {
-            return None; // Device doesn't exist
+            return None;
         }
-
         let device_id = pci_config_read_word(bus, slot, function, PCI_DEVICE_ID);
         let class_code = pci_config_read_byte(bus, slot, function, PCI_CLASS_CODE);
         let subclass = pci_config_read_byte(bus, slot, function, PCI_SUBCLASS);
@@ -80,7 +76,6 @@ impl PciDevice {
         if bar_index > 5 {
             return Err("Invalid BAR index");
         }
-
         let bar_offset = PCI_BAR0 + (bar_index as u16 * 4);
         let bar_value = pci_config_read_dword(self.bus, self.slot, self.function, bar_offset);
 
@@ -99,7 +94,7 @@ impl PciDevice {
             let size_mask = pci_config_read_dword(self.bus, self.slot, self.function, bar_offset);
             pci_config_write_dword(self.bus, self.slot, self.function, bar_offset, bar_value);
 
-            let size = !(size_mask & !0xF).wrapping_add(1) as u64;
+            let size = (!(size_mask & !0xF)).wrapping_add(1) as u64;
 
             Ok(PciBar {
                 base_addr,
@@ -117,7 +112,7 @@ impl PciDevice {
             let size_mask = pci_config_read_dword(self.bus, self.slot, self.function, bar_offset);
             pci_config_write_dword(self.bus, self.slot, self.function, bar_offset, bar_value);
 
-            let size = !(size_mask & !0x3).wrapping_add(1) as u64;
+            let size = (!(size_mask & !0x3)).wrapping_add(1) as u64;
 
             Ok(PciBar {
                 base_addr,
@@ -132,7 +127,7 @@ impl PciDevice {
     /// Enable bus mastering for DMA operations
     pub fn enable_bus_mastering(&self) -> Result<(), &'static str> {
         let mut command = pci_config_read_word(self.bus, self.slot, self.function, PCI_COMMAND);
-        command |= 0x04; // Bus Master Enable
+        command |= 0x04;
         pci_config_write_word(self.bus, self.slot, self.function, PCI_COMMAND, command);
         Ok(())
     }
@@ -140,7 +135,7 @@ impl PciDevice {
     /// Enable memory space access
     pub fn enable_memory_space(&self) -> Result<(), &'static str> {
         let mut command = pci_config_read_word(self.bus, self.slot, self.function, PCI_COMMAND);
-        command |= 0x02; // Memory Space Enable
+        command |= 0x02;
         pci_config_write_word(self.bus, self.slot, self.function, PCI_COMMAND, command);
         Ok(())
     }
@@ -149,14 +144,10 @@ impl PciDevice {
     pub fn configure_msix(&self, vector: u8) -> Result<(), &'static str> {
         // Find MSI-X capability
         if let Some(msix_cap) = self.find_capability(0x11) {
-            // Enable MSI-X
             let control = pci_config_read_word(self.bus, self.slot, self.function, msix_cap + 2);
-            let new_control = control | 0x8000; // MSI-X Enable
+            let new_control = control | 0x8000;
             pci_config_write_word(self.bus, self.slot, self.function, msix_cap + 2, new_control);
-
-            // Configure MSI-X table entry 0
-            // This is simplified - real implementation would map MSI-X table
-            
+            // NOTE: Real implementation would map MSI-X table in memory and configure vectors.
             Ok(())
         } else {
             Err("MSI-X capability not found")
@@ -167,19 +158,14 @@ impl PciDevice {
     pub fn find_capability(&self, cap_id: u8) -> Option<u16> {
         let status = pci_config_read_word(self.bus, self.slot, self.function, PCI_STATUS);
         if (status & 0x10) == 0 {
-            return None; // No capabilities list
+            return None;
         }
-
         let mut cap_ptr = pci_config_read_byte(self.bus, self.slot, self.function, 0x34) as u16;
-        
         while cap_ptr != 0 && cap_ptr != 0xFF {
             let cap = pci_config_read_byte(self.bus, self.slot, self.function, cap_ptr);
-            if cap == cap_id {
-                return Some(cap_ptr);
-            }
+            if cap == cap_id { return Some(cap_ptr); }
             cap_ptr = pci_config_read_byte(self.bus, self.slot, self.function, cap_ptr + 1) as u16;
         }
-
         None
     }
 }
@@ -191,7 +177,7 @@ pub struct PciBar {
     pub size: u64,
     pub memory_mapped: bool,
     pub prefetchable: bool,
-    pub bar_type: u32, // 0 = 32-bit, 2 = 64-bit
+    pub bar_type: u32,
 }
 
 /// PCI capability structure
@@ -260,12 +246,10 @@ pub struct PciStats {
 /// Scan PCI bus for all devices
 pub fn scan_pci_bus() -> Result<Vec<PciDevice>, &'static str> {
     let mut devices = Vec::new();
-
     for bus in 0..=255 {
         for slot in 0..32 {
             if let Some(device) = PciDevice::new(bus, slot, 0) {
                 devices.push(device);
-
                 // Check for multi-function device
                 if (device.header_type & 0x80) != 0 {
                     for function in 1..8 {
@@ -277,7 +261,6 @@ pub fn scan_pci_bus() -> Result<Vec<PciDevice>, &'static str> {
             }
         }
     }
-
     Ok(devices)
 }
 
@@ -290,9 +273,7 @@ pub fn pci_config_read_dword(bus: u8, slot: u8, function: u8, offset: u16) -> u3
         | ((offset as u32) & 0xFC);
 
     unsafe {
-        // Write address to CONFIG_ADDRESS (0xCF8)
         x86_64::instructions::port::Port::new(0xCF8).write(address);
-        // Read data from CONFIG_DATA (0xCFC)
         x86_64::instructions::port::Port::new(0xCFC).read()
     }
 }
