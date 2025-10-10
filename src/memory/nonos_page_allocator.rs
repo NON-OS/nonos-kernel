@@ -1,164 +1,15 @@
-//! Production Page Frame Allocator
-//!
-//! Manages physical page allocation for kernel and user space
+//! Page Frame Allocator
 
-use x86_64::{PhysAddr, structures::paging::{PhysFrame, Size4KiB, FrameAllocator}};
 use core::sync::atomic::{AtomicUsize, Ordering};
 use spin::Mutex;
-use alloc::vec::Vec;
+use x86_64::{
+    PhysAddr,
+    structures::paging::{FrameAllocator, PhysFrame, Size4KiB},
+};
 
-/// Page frame size (4KB)
-pub const PAGE_SIZE: usize = 4096;
+use crate::memory::nonos_phys as phys;
 
-/// Maximum supported physical memory (1GB for now)
-const MAX_MEMORY: usize = 1024 * 1024 * 1024; 
-const MAX_FRAMES: usize = MAX_MEMORY / PAGE_SIZE;
-
-/// Bitmap-based page frame allocator
-pub struct BitmapFrameAllocator {
-    bitmap: Vec<u8>,
-    start_frame: PhysFrame<Size4KiB>,
-    total_frames: usize,
-    allocated_frames: AtomicUsize,
-}
-
-impl BitmapFrameAllocator {
-    /// Create new frame allocator
-    pub fn new(start_addr: PhysAddr, memory_size: usize) -> Self {
-        let start_frame = PhysFrame::containing_address(start_addr);
-        let total_frames = memory_size / PAGE_SIZE;
-        let bitmap_size = (total_frames + 7) / 8; // Round up to nearest byte
-        
-        let mut bitmap = Vec::with_capacity(bitmap_size);
-        bitmap.resize(bitmap_size, 0);
-        
-        BitmapFrameAllocator {
-            bitmap,
-            start_frame,
-            total_frames,
-            allocated_frames: AtomicUsize::new(0),
-        }
-    }
-    
-    /// Initialize with kernel memory regions marked as allocated
-    pub fn init_kernel_regions(&mut self, kernel_start: PhysAddr, kernel_end: PhysAddr) {
-        let start_frame_idx = self.frame_to_index(PhysFrame::containing_address(kernel_start));
-        let end_frame_idx = self.frame_to_index(PhysFrame::containing_address(kernel_end));
-        
-        for i in start_frame_idx..=end_frame_idx {
-            self.set_allocated(i);
-        }
-    }
-    
-    /// Mark multiboot regions as allocated
-    pub fn mark_multiboot_regions(&mut self, _multiboot_start: PhysAddr, _multiboot_end: PhysAddr) {
-        // TODO: Parse multiboot memory map and mark reserved regions
-        // For now, just mark the first MB as reserved (BIOS/bootloader stuff)
-        let reserved_frames = (1024 * 1024) / PAGE_SIZE; // First 1MB
-        for i in 0..reserved_frames {
-            if i < self.total_frames {
-                self.set_allocated(i);
-            }
-        }
-    }
-    
-    /// Convert frame to bitmap index
-    fn frame_to_index(&self, frame: PhysFrame<Size4KiB>) -> usize {
-        let frame_num = (frame.start_address().as_u64() - self.start_frame.start_address().as_u64()) 
-            / PAGE_SIZE as u64;
-        frame_num as usize
-    }
-    
-    /// Convert bitmap index to frame
-    fn index_to_frame(&self, index: usize) -> PhysFrame<Size4KiB> {
-        let addr = self.start_frame.start_address().as_u64() + (index * PAGE_SIZE) as u64;
-        PhysFrame::containing_address(PhysAddr::new(addr))
-    }
-    
-    /// Check if frame is allocated
-    fn is_allocated(&self, index: usize) -> bool {
-        if index >= self.total_frames {
-            return true; // Out of range = allocated
-        }
-        let byte_index = index / 8;
-        let bit_index = index % 8;
-        if byte_index < self.bitmap.len() {
-            (self.bitmap[byte_index] >> bit_index) & 1 != 0
-        } else {
-            true
-        }
-    }
-    
-    /// Set frame as allocated
-    fn set_allocated(&mut self, index: usize) {
-        if index >= self.total_frames {
-            return;
-        }
-        let byte_index = index / 8;
-        let bit_index = index % 8;
-        if byte_index < self.bitmap.len() {
-            if (self.bitmap[byte_index] >> bit_index) & 1 == 0 {
-                self.bitmap[byte_index] |= 1 << bit_index;
-                self.allocated_frames.fetch_add(1, Ordering::Relaxed);
-            }
-        }
-    }
-    
-    /// Set frame as free
-    fn set_free(&mut self, index: usize) {
-        if index >= self.total_frames {
-            return;
-        }
-        let byte_index = index / 8;
-        let bit_index = index % 8;
-        if byte_index < self.bitmap.len() {
-            if (self.bitmap[byte_index] >> bit_index) & 1 != 0 {
-                self.bitmap[byte_index] &= !(1 << bit_index);
-                self.allocated_frames.fetch_sub(1, Ordering::Relaxed);
-            }
-        }
-    }
-    
-    /// Find next free frame
-    fn find_free_frame(&self) -> Option<usize> {
-        for (byte_index, &byte) in self.bitmap.iter().enumerate() {
-            if byte != 0xFF { // Not all bits set
-                for bit_index in 0..8 {
-                    let frame_index = byte_index * 8 + bit_index;
-                    if frame_index >= self.total_frames {
-                        return None;
-                    }
-                    if (byte >> bit_index) & 1 == 0 {
-                        return Some(frame_index);
-                    }
-                }
-            }
-        }
-        None
-    }
-    
-    /// Get allocation statistics
-    pub fn get_stats(&self) -> FrameAllocatorStats {
-        FrameAllocatorStats {
-            total_frames: self.total_frames,
-            allocated_frames: self.allocated_frames.load(Ordering::Relaxed),
-            free_frames: self.total_frames - self.allocated_frames.load(Ordering::Relaxed),
-        }
-    }
-}
-
-unsafe impl FrameAllocator<Size4KiB> for BitmapFrameAllocator {
-    fn allocate_frame(&mut self) -> Option<PhysFrame<Size4KiB>> {
-        if let Some(index) = self.find_free_frame() {
-            self.set_allocated(index);
-            Some(self.index_to_frame(index))
-        } else {
-            None
-        }
-    }
-}
-
-/// Frame allocator statistics
+// Expose a stats view compatible with the previous API.
 #[derive(Debug, Clone, Copy)]
 pub struct FrameAllocatorStats {
     pub total_frames: usize,
@@ -166,38 +17,60 @@ pub struct FrameAllocatorStats {
     pub free_frames: usize,
 }
 
-/// Global frame allocator
-static FRAME_ALLOCATOR: Mutex<Option<BitmapFrameAllocator>> = Mutex::new(None);
+// Global wrapper state (optional counters for compatibility)
+struct WrapperStats {
+    allocated_frames: AtomicUsize,
+}
+static WRAP: Mutex<WrapperStats> = Mutex::new(WrapperStats {
+    allocated_frames: AtomicUsize::new(0),
+});
 
-/// Initialize the global frame allocator
-pub fn init_frame_allocator(memory_start: PhysAddr, memory_size: usize) {
-    let mut allocator = BitmapFrameAllocator::new(memory_start, memory_size);
-    
-    // Mark kernel regions as allocated
-    let kernel_start = PhysAddr::new(0x100000); // 1MB where kernel is loaded
-    let kernel_end = PhysAddr::new(0x400000);   // 4MB assumed kernel size
-    allocator.init_kernel_regions(kernel_start, kernel_end);
-    
-    // Mark multiboot and BIOS regions
-    allocator.mark_multiboot_regions(PhysAddr::new(0), PhysAddr::new(1024 * 1024));
-    
-    *FRAME_ALLOCATOR.lock() = Some(allocator);
+// Initialize the global frame allocator
+// Kept for API compatibility; the real allocator is initialized elsewhere from
+// firmware/boot info (nonos_phys::init_from_regions). This is now a no-op.
+pub fn init_frame_allocator(_memory_start: PhysAddr, _memory_size: usize) {
+    // No-op; production phys allocator is initialized earlier from boot info.
 }
 
-/// Allocate a physical page frame
+// Allocate a physical page frame (4KiB)
 pub fn allocate_frame() -> Option<PhysFrame<Size4KiB>> {
-    FRAME_ALLOCATOR.lock().as_mut()?.allocate_frame()
-}
-
-/// Deallocate a physical page frame
-pub fn deallocate_frame(frame: PhysFrame<Size4KiB>) {
-    if let Some(ref mut allocator) = *FRAME_ALLOCATOR.lock() {
-        let index = allocator.frame_to_index(frame);
-        allocator.set_free(index);
+    let frame = phys::alloc(phys::AllocFlags::empty())
+        .map(|f| PhysFrame::<Size4KiB>::containing_address(PhysAddr::new(f.0)));
+    if frame.is_some() {
+        WRAP.lock().allocated_frames.fetch_add(1, Ordering::Relaxed);
     }
+    frame
 }
 
-/// Get frame allocator statistics
+// Deallocate a physical page frame
+pub fn deallocate_frame(frame: PhysFrame<Size4KiB>) {
+    phys::free(phys::Frame(frame.start_address().as_u64()));
+    WRAP.lock().allocated_frames.fetch_sub(1, Ordering::Relaxed);
+}
+
+// Get frame allocator statistics
 pub fn get_frame_stats() -> Option<FrameAllocatorStats> {
-    FRAME_ALLOCATOR.lock().as_ref().map(|a| a.get_stats())
+    // Aggregate across zones exposed by the phys allocator.
+    let zs = phys::zone_stats();
+    let mut total = 0usize;
+    let mut free = 0usize;
+    for z in zs {
+        total = total.saturating_add(z.total_frames);
+        free = free.saturating_add(z.free_frames);
+    }
+    let alloc = total.saturating_sub(free);
+    Some(FrameAllocatorStats {
+        total_frames: total,
+        allocated_frames: alloc,
+        free_frames: free,
+    })
+}
+
+// Implement x86_64::FrameAllocator using the phys allocator directly.
+pub struct PhysFrameAllocator;
+
+unsafe impl FrameAllocator<Size4KiB> for PhysFrameAllocator {
+    fn allocate_frame(&mut self) -> Option<PhysFrame<Size4KiB>> {
+        allocate_frame()
+    }
 }
