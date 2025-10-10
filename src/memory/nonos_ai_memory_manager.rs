@@ -1,11 +1,12 @@
-//! Memory Management System 
+//! AI Memory Management System
 
 use core::sync::atomic::{AtomicU64, Ordering};
 use spin::{Mutex, Once};
-use x86_64::{VirtAddr, PhysAddr, structures::paging::PageTableFlags};
+use x86_64::{VirtAddr, structures::paging::PageTableFlags};
 
-use crate::memory::virt::{self, VmFlags};
+use crate::memory::layout::PAGE_SIZE;
 use crate::memory::nonos_alloc as alloc_api;
+use crate::memory::virt::{self, VmFlags};
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum MemoryAccessType {
@@ -18,23 +19,19 @@ pub enum MemoryAccessType {
 #[derive(Debug, Clone)]
 pub struct AIMemoryStatsSnapshot {
     pub ai_allocations: u64,
-    pub prediction_accuracy: f32,
-    pub prefetch_effectiveness: f32,
-    pub security_incidents: u64,
-    pub memory_saved: u64,
-    pub performance_improvement: u64,
+    pub w_x_violations: u64,
+    pub prefetch_attempts: u64,
+    pub prefetch_hits: u64,
+    pub prefetch_misses: u64,
 }
 
 #[derive(Default)]
 struct Counters {
     ai_allocations: AtomicU64,
-    prediction_hits: AtomicU64,
-    prediction_misses: AtomicU64,
+    wx_violations: AtomicU64,
+    prefetch_attempts: AtomicU64,
     prefetch_hits: AtomicU64,
     prefetch_misses: AtomicU64,
-    security_incidents: AtomicU64,
-    memory_saved: AtomicU64,
-    performance_improvement: AtomicU64,
 }
 
 pub struct AIMemoryManager {
@@ -44,12 +41,9 @@ pub struct AIMemoryManager {
 impl AIMemoryManager {
     pub fn new() -> Self { Self { ctrs: Counters::default() } }
 
-    pub fn initialize(&mut self) -> Result<(), &'static str> {
-        // No background threads; init is fast and deterministic
-        Ok(())
-    }
+    pub fn initialize(&mut self) -> Result<(), &'static str> { Ok(()) }
 
-    // AI-guided memory allocation (now: policy-aware mapping with flags)
+    // Real allocation via nonos_alloc with enforced W^X
     pub fn ai_allocate(
         &mut self,
         size: usize,
@@ -57,58 +51,69 @@ impl AIMemoryManager {
         flags: PageTableFlags,
     ) -> Result<VirtAddr, &'static str> {
         let vmf = vmflags_from_pte(flags)?;
-        let pages = ((size + crate::memory::layout::PAGE_SIZE - 1) / crate::memory::layout::PAGE_SIZE).max(1);
+        let pages = ((size + PAGE_SIZE - 1) / PAGE_SIZE).max(1);
         let base = unsafe { alloc_api::kalloc_pages(pages, vmf) };
         if base.as_u64() == 0 { return Err("Out of memory"); }
         self.ctrs.ai_allocations.fetch_add(1, Ordering::SeqCst);
         Ok(base)
     }
 
-    // Predictive prefetch (no-op placeholder; just bump misses for now)
-    pub fn predictive_prefetch(&mut self, _current_access: VirtAddr) -> Result<(), &'static str> {
-        self.ctrs.prefetch_misses.fetch_add(1, Ordering::Relaxed);
+    // Real prefetch: pre-touch the next page (if mapped) to warm TLB/cache.
+    pub fn predictive_prefetch(&mut self, current_access: VirtAddr) -> Result<(), &'static str> {
+        self.ctrs.prefetch_attempts.fetch_add(1, Ordering::Relaxed);
+
+        let page_base = VirtAddr::new(current_access.as_u64() & !((PAGE_SIZE as u64) - 1));
+        let next_page = VirtAddr::new(page_base.as_u64() + PAGE_SIZE as u64);
+
+        match virt::translate(next_page) {
+            Ok((_pa, _f, _sz)) => {
+                unsafe { core::ptr::read_volatile(next_page.as_ptr::<u8>()); }
+                self.ctrs.prefetch_hits.fetch_add(1, Ordering::Relaxed);
+            }
+            Err(_) => {
+                self.ctrs.prefetch_misses.fetch_add(1, Ordering::Relaxed);
+            }
+        }
         Ok(())
     }
 
-    // Security monitoring (no-op placeholder)
+    // Real security check: detect RW+X, remediate to RW+NX by default.
     pub fn monitor_memory_security(
         &mut self,
-        _access: VirtAddr,
+        access: VirtAddr,
         _access_type: MemoryAccessType,
     ) -> Result<(), &'static str> {
+        let (_pa, flags, _sz) = virt::translate(access).map_err(|_| "not mapped")?;
+        let is_writable = flags.contains(VmFlags::RW);
+        let is_executable = !flags.contains(VmFlags::NX);
+
+        if is_writable && is_executable {
+            self.ctrs.wx_violations.fetch_add(1, Ordering::SeqCst);
+            let page = VirtAddr::new(access.as_u64() & !((PAGE_SIZE as u64) - 1));
+            crate::memory::virt::protect_range_4k(page, PAGE_SIZE, (flags | VmFlags::NX) & !VmFlags::RW)
+                .map_err(|_| "protect failed")?;
+            crate::memory::proof::audit_protect(page.as_u64(), PAGE_SIZE as u64, (flags | VmFlags::NX).bits(), crate::memory::proof::CapTag::KERNEL);
+        }
         Ok(())
     }
 
     pub fn get_ai_stats(&self) -> AIMemoryStatsSnapshot {
-        let hits = self.ctrs.prediction_hits.load(Ordering::SeqCst) as f32;
-        let misses = self.ctrs.prediction_misses.load(Ordering::SeqCst) as f32;
-        let pa = if hits + misses > 0.0 { hits / (hits + misses) } else { 0.0 };
-
-        let ph = self.ctrs.prefetch_hits.load(Ordering::SeqCst) as f32;
-        let pm = self.ctrs.prefetch_misses.load(Ordering::SeqCst) as f32;
-        let pe = if ph + pm > 0.0 { ph / (ph + pm) } else { 0.0 };
-
         AIMemoryStatsSnapshot {
             ai_allocations: self.ctrs.ai_allocations.load(Ordering::SeqCst),
-            prediction_accuracy: pa,
-            prefetch_effectiveness: pe,
-            security_incidents: self.ctrs.security_incidents.load(Ordering::SeqCst),
-            memory_saved: self.ctrs.memory_saved.load(Ordering::SeqCst),
-            performance_improvement: self.ctrs.performance_improvement.load(Ordering::SeqCst),
+            w_x_violations: self.ctrs.wx_violations.load(Ordering::SeqCst),
+            prefetch_attempts: self.ctrs.prefetch_attempts.load(Ordering::SeqCst),
+            prefetch_hits: self.ctrs.prefetch_hits.load(Ordering::SeqCst),
+            prefetch_misses: self.ctrs.prefetch_misses.load(Ordering::SeqCst),
         }
     }
 }
 
-// Global AI memory manager instance
+// Global instance
 static AI_MEMORY_MANAGER: Once<Mutex<AIMemoryManager>> = Once::new();
 
 pub fn init_ai_memory_manager() -> Result<(), &'static str> {
     AI_MEMORY_MANAGER.call_once(|| Mutex::new(AIMemoryManager::new()));
-    AI_MEMORY_MANAGER
-        .get()
-        .ok_or("AI manager not available")?
-        .lock()
-        .initialize()
+    AI_MEMORY_MANAGER.get().ok_or("AI manager not available")?.lock().initialize()
 }
 
 pub fn get_ai_memory_manager() -> Option<&'static Mutex<AIMemoryManager>> {
@@ -123,9 +128,9 @@ pub fn ai_allocate_memory(size: usize, alignment: usize, flags: PageTableFlags) 
     }
 }
 
-pub fn ai_predictive_prefetch(_current_access: VirtAddr) -> Result<(), &'static str> {
+pub fn ai_predictive_prefetch(current_access: VirtAddr) -> Result<(), &'static str> {
     if let Some(manager) = get_ai_memory_manager() {
-        manager.lock().predictive_prefetch(_current_access)
+        manager.lock().predictive_prefetch(current_access)
     } else {
         Ok(())
     }
@@ -143,10 +148,8 @@ pub fn get_ai_memory_stats() -> Option<AIMemoryStatsSnapshot> {
     get_ai_memory_manager().map(|m| m.lock().get_ai_stats())
 }
 
-// Helpers
-
+// Helpers: enforce W^X when converting PageTableFlags → VmFlags
 fn vmflags_from_pte(f: PageTableFlags) -> Result<VmFlags, &'static str> {
-    // Enforce W^X: if WRITABLE set, force NX
     let mut vm = VmFlags::GLOBAL;
     if f.contains(PageTableFlags::WRITABLE) { vm |= VmFlags::RW | VmFlags::NX; }
     if f.contains(PageTableFlags::USER_ACCESSIBLE) { vm |= VmFlags::USER; }
