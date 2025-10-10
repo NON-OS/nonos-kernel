@@ -1,21 +1,22 @@
 //! VirtIO Network Device Driver
 //!
 //! Complete production implementation of the VirtIO network device driver
-//! with DMA support, interrupt handling, and high-performance packet processing.
-//! 
+//! with DMA support, interrupt handling, and high-performance packet
+//! processing.
+//!
 //! This driver implements the VirtIO 1.0 specification for network devices
 //! and provides zero-copy packet transmission and reception.
 
-use alloc::{vec, vec::Vec, collections::VecDeque, sync::Arc};
-use spin::Mutex;
+use alloc::{collections::VecDeque, sync::Arc, vec, vec::Vec};
 use core::mem;
 use core::ptr;
 use core::sync::atomic::{AtomicU64, Ordering};
+use spin::Mutex;
 use x86_64::PhysAddr;
 
-use crate::memory::alloc_dma_page;
-use crate::arch::x86_64::pci::{PciDevice, PciBar};
+use crate::arch::x86_64::pci::{PciBar, PciDevice};
 use crate::interrupts::register_interrupt_handler;
+use crate::memory::alloc_dma_page;
 
 /// VirtIO device vendor and device IDs
 const VIRTIO_VENDOR_ID: u16 = 0x1AF4;
@@ -125,8 +126,9 @@ pub struct VirtQueue {
     pub next_avail_idx: u16,
 }
 
-// SAFETY: VirtQueue contains raw pointers to DMA memory that we manage carefully
-// In our kernel context, we ensure proper synchronization at a higher level
+// SAFETY: VirtQueue contains raw pointers to DMA memory that we manage
+// carefully In our kernel context, we ensure proper synchronization at a higher
+// level
 unsafe impl Send for VirtQueue {}
 unsafe impl Sync for VirtQueue {}
 
@@ -140,7 +142,9 @@ impl VirtQueue {
         // Calculate memory requirements
         let desc_table_size = queue_size as usize * mem::size_of::<VirtqDesc>();
         let avail_ring_size = mem::size_of::<VirtqAvail>() + (queue_size as usize * 2) + 2;
-        let used_ring_size = mem::size_of::<VirtqUsed>() + (queue_size as usize * mem::size_of::<VirtqUsedElem>()) + 2;
+        let used_ring_size = mem::size_of::<VirtqUsed>()
+            + (queue_size as usize * mem::size_of::<VirtqUsedElem>())
+            + 2;
 
         // Allocate physically contiguous memory
         let desc_table_page = alloc_dma_page(desc_table_size)?;
@@ -234,12 +238,12 @@ impl VirtQueue {
             let ring_offset = mem::size_of::<VirtqAvail>();
             let ring_ptr = avail_ring_ptr.add(ring_offset) as *mut u16;
             let ring_idx = self.next_avail_idx % self.queue_size;
-            
+
             *ring_ptr.add(ring_idx as usize) = desc_idx;
-            
+
             // Memory barrier
             core::sync::atomic::fence(Ordering::SeqCst);
-            
+
             self.next_avail_idx = self.next_avail_idx.wrapping_add(1);
             (*self.avail_ring).idx = self.next_avail_idx;
         }
@@ -251,16 +255,16 @@ impl VirtQueue {
 
         unsafe {
             let current_used_idx = (*self.used_ring).idx;
-            
+
             while self.last_used_idx != current_used_idx {
                 let used_ring_ptr = self.used_ring as *mut u8;
                 let ring_offset = mem::size_of::<VirtqUsed>();
                 let ring_ptr = used_ring_ptr.add(ring_offset) as *mut VirtqUsedElem;
                 let ring_idx = self.last_used_idx % self.queue_size;
-                
+
                 let used_elem = *ring_ptr.add(ring_idx as usize);
                 used_buffers.push((used_elem.id as u16, used_elem.len));
-                
+
                 self.last_used_idx = self.last_used_idx.wrapping_add(1);
             }
         }
@@ -279,15 +283,9 @@ pub struct PacketBuffer {
 impl PacketBuffer {
     pub fn new(size: usize) -> Result<Self, &'static str> {
         let dma_page = alloc_dma_page(size)?;
-        let data = unsafe {
-            Vec::from_raw_parts(dma_page.virt_addr.as_mut_ptr::<u8>(), 0, size)
-        };
+        let data = unsafe { Vec::from_raw_parts(dma_page.virt_addr.as_mut_ptr::<u8>(), 0, size) };
 
-        Ok(PacketBuffer {
-            data,
-            phys_addr: dma_page.phys_addr,
-            capacity: size,
-        })
+        Ok(PacketBuffer { data, phys_addr: dma_page.phys_addr, capacity: size })
     }
 
     pub fn write_packet(&mut self, packet: &[u8]) -> Result<(), &'static str> {
@@ -340,13 +338,13 @@ pub struct NetworkStats {
 impl VirtioNetDevice {
     /// Initialize VirtIO network device
     pub fn new(pci_device: PciDevice) -> Result<Self, &'static str> {
-        if pci_device.vendor_id != VIRTIO_VENDOR_ID || 
-           pci_device.device_id != VIRTIO_NET_DEVICE_ID {
+        if pci_device.vendor_id != VIRTIO_VENDOR_ID || pci_device.device_id != VIRTIO_NET_DEVICE_ID
+        {
             return Err("Not a VirtIO network device");
         }
 
         let bar = pci_device.get_bar(0)?;
-        
+
         // Reset device
         unsafe {
             let status_reg = bar.base_addr + 0x12;
@@ -373,13 +371,12 @@ impl VirtioNetDevice {
         };
 
         // Negotiate features
-        let supported_features = 
-            (1 << VIRTIO_NET_F_MAC) |
-            (1 << VIRTIO_NET_F_STATUS) |
-            (1 << VIRTIO_NET_F_CTRL_VQ) |
-            (1 << VIRTIO_NET_F_CTRL_RX) |
-            (1 << VIRTIO_NET_F_CSUM) |
-            (1 << VIRTIO_NET_F_GUEST_CSUM);
+        let supported_features = (1 << VIRTIO_NET_F_MAC)
+            | (1 << VIRTIO_NET_F_STATUS)
+            | (1 << VIRTIO_NET_F_CTRL_VQ)
+            | (1 << VIRTIO_NET_F_CTRL_RX)
+            | (1 << VIRTIO_NET_F_CSUM)
+            | (1 << VIRTIO_NET_F_GUEST_CSUM);
 
         let negotiated_features = features & supported_features;
 
@@ -441,7 +438,7 @@ impl VirtioNetDevice {
             rx_buffers.push(buffer);
         }
 
-        // Allocate TX buffers  
+        // Allocate TX buffers
         let mut tx_buffers = Vec::new();
         for _ in 0..64 {
             let buffer = Arc::new(Mutex::new(PacketBuffer::new(2048)?));
@@ -485,18 +482,15 @@ impl VirtioNetDevice {
 
             // Set descriptor table address
             let queue_desc_reg = bar.base_addr + 0x08;
-            ptr::write_volatile(queue_desc_reg as *mut u32, 
-                queue.desc_table_phys.as_u64() as u32);
+            ptr::write_volatile(queue_desc_reg as *mut u32, queue.desc_table_phys.as_u64() as u32);
 
             // Set available ring address
             let queue_avail_reg = bar.base_addr + 0x04;
-            ptr::write_volatile(queue_avail_reg as *mut u32, 
-                queue.avail_ring_phys.as_u64() as u32);
+            ptr::write_volatile(queue_avail_reg as *mut u32, queue.avail_ring_phys.as_u64() as u32);
 
             // Set used ring address
             let queue_used_reg = bar.base_addr + 0x00;
-            ptr::write_volatile(queue_used_reg as *mut u32, 
-                queue.used_ring_phys.as_u64() as u32);
+            ptr::write_volatile(queue_used_reg as *mut u32, queue.used_ring_phys.as_u64() as u32);
         }
 
         Ok(())
@@ -506,18 +500,18 @@ impl VirtioNetDevice {
     pub fn setup_interrupts(&mut self) -> Result<(), &'static str> {
         // Allocate interrupt vector
         let vector = crate::interrupts::allocate_vector()?;
-        
+
         // Register interrupt handler with wrapper
         fn virtio_wrapper() {
-            // Call the actual x86-interrupt handler via unsafe conversion  
+            // Call the actual x86-interrupt handler via unsafe conversion
         }
         register_interrupt_handler(vector, virtio_wrapper)?;
-        
+
         // Configure MSI-X for the device
         self.pci_device.configure_msix(vector)?;
-        
+
         self.interrupt_vector = vector;
-        
+
         Ok(())
     }
 
@@ -534,13 +528,15 @@ impl VirtioNetDevice {
 
         // Prepare packet with VirtIO header
         let mut packet_data = Vec::with_capacity(packet.len() + mem::size_of::<VirtioNetHeader>());
-        
+
         let virtio_header = VirtioNetHeader::default();
         let header_bytes = unsafe {
-            core::slice::from_raw_parts(&virtio_header as *const _ as *const u8,
-                mem::size_of::<VirtioNetHeader>())
+            core::slice::from_raw_parts(
+                &virtio_header as *const _ as *const u8,
+                mem::size_of::<VirtioNetHeader>(),
+            )
         };
-        
+
         packet_data.extend_from_slice(header_bytes);
         packet_data.extend_from_slice(packet);
 
@@ -548,9 +544,8 @@ impl VirtioNetDevice {
 
         // Get TX queue and submit packet
         let mut tx_queue = self.tx_queue.lock();
-        
-        let desc_chain = tx_queue.alloc_desc_chain(1)
-            .ok_or("No free TX descriptors")?;
+
+        let desc_chain = tx_queue.alloc_desc_chain(1).ok_or("No free TX descriptors")?;
 
         // Setup descriptor
         unsafe {
@@ -595,7 +590,7 @@ impl VirtioNetDevice {
 
             // Copy packet data from DMA buffer
             // In a real implementation, you'd access the actual DMA buffer here
-            
+
             packets.push(packet_data);
 
             // Return descriptor to free list
@@ -621,12 +616,13 @@ impl VirtioNetDevice {
         for (i, buffer) in rx_buffers.iter().enumerate().take(32) {
             if let Some(desc_chain) = rx_queue.alloc_desc_chain(1) {
                 let buffer_guard = buffer.lock();
-                
+
                 unsafe {
                     let desc = &mut *rx_queue.desc_table.add(desc_chain[0] as usize);
                     desc.addr = buffer_guard.physical_addr().as_u64();
                     desc.len = buffer_guard.capacity as u32;
-                    desc.flags = 2; // VIRTQ_DESC_F_WRITE (device writes to this buffer)
+                    desc.flags = 2; // VIRTQ_DESC_F_WRITE (device writes to this
+                                    // buffer)
                 }
 
                 rx_queue.add_to_avail_ring(desc_chain[0]);
@@ -669,7 +665,7 @@ impl VirtioNetDevice {
 
         // Send link status command via control queue
         // Implementation would send proper control commands
-        
+
         Ok(())
     }
 }
@@ -681,31 +677,37 @@ static VIRTIO_NET_DEVICE: spin::Once<Arc<Mutex<VirtioNetDevice>>> = spin::Once::
 pub fn init_virtio_net() -> Result<(), &'static str> {
     // Scan PCI bus for VirtIO network devices
     let pci_devices = crate::arch::x86_64::pci::scan_pci_bus()?;
-    
+
     for device in pci_devices {
         if device.vendor_id == VIRTIO_VENDOR_ID && device.device_id == VIRTIO_NET_DEVICE_ID {
-            crate::log::info!("Found VirtIO network device at {:02x}:{:02x}.{}", 
-                device.bus, device.slot, device.function);
-            
+            crate::log::info!(
+                "Found VirtIO network device at {:02x}:{:02x}.{}",
+                device.bus,
+                device.slot,
+                device.function
+            );
+
             let mut virtio_device = VirtioNetDevice::new(device)?;
             virtio_device.setup_interrupts()?;
-            
+
             let device_arc = Arc::new(Mutex::new(virtio_device));
             VIRTIO_NET_DEVICE.call_once(|| device_arc.clone());
-            
+
             crate::log::info!("VirtIO network device initialized successfully");
-            crate::log::info!("MAC address: {:02x}:{:02x}:{:02x}:{:02x}:{:02x}:{:02x}",
+            crate::log::info!(
+                "MAC address: {:02x}:{:02x}:{:02x}:{:02x}:{:02x}:{:02x}",
                 device_arc.lock().mac_address[0],
-                device_arc.lock().mac_address[1], 
+                device_arc.lock().mac_address[1],
                 device_arc.lock().mac_address[2],
                 device_arc.lock().mac_address[3],
                 device_arc.lock().mac_address[4],
-                device_arc.lock().mac_address[5]);
-            
+                device_arc.lock().mac_address[5]
+            );
+
             return Ok(());
         }
     }
-    
+
     Err("No VirtIO network device found")
 }
 
@@ -715,27 +717,29 @@ pub fn get_virtio_net_device() -> Option<Arc<Mutex<VirtioNetDevice>>> {
 }
 
 /// Interrupt handler for VirtIO network device
-extern "x86-interrupt" fn virtio_net_interrupt_handler(_: crate::arch::x86_64::InterruptStackFrame) {
+extern "x86-interrupt" fn virtio_net_interrupt_handler(
+    _: crate::arch::x86_64::InterruptStackFrame,
+) {
     if let Some(device_arc) = get_virtio_net_device() {
         let device = device_arc.lock();
-        
+
         // Handle interrupt - process received packets
         let packets = device.receive_packets();
-        
+
         // Forward packets to network stack
         for packet in packets {
             if let Err(e) = crate::network::stack::receive_packet(&packet) {
                 crate::log::error!("Failed to process received packet: {:?}", e);
             }
         }
-        
+
         // ACK interrupt
         unsafe {
             let isr_reg = device.bar.base_addr + 0x13;
             let _isr = ptr::read_volatile(isr_reg as *const u8);
         }
     }
-    
+
     // Send EOI to interrupt controller
     crate::arch::x86_64::interrupt::apic::send_eoi();
 }
@@ -752,7 +756,7 @@ impl crate::network::stack::NetworkInterface for VirtioNetInterface {
             Err("VirtIO network device not available")
         }
     }
-    
+
     fn get_mac_address(&self) -> [u8; 6] {
         if let Some(device_arc) = get_virtio_net_device() {
             let device = device_arc.lock();
@@ -761,11 +765,11 @@ impl crate::network::stack::NetworkInterface for VirtioNetInterface {
             [0; 6]
         }
     }
-    
+
     fn is_link_up(&self) -> bool {
         true // Simplified - would check actual link status
     }
-    
+
     fn get_stats(&self) -> crate::network::NetworkStats {
         if let Some(device_arc) = get_virtio_net_device() {
             let device = device_arc.lock();

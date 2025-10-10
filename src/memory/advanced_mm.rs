@@ -9,11 +9,11 @@
 //! - Memory compression and deduplication
 //! - Advanced page fault handling with machine learning
 
-use core::sync::atomic::{AtomicU64, AtomicU32, AtomicBool, Ordering};
-use x86_64::registers::control::{Cr4, Cr4Flags};
-use x86_64::{VirtAddr, structures::paging::*};
+use alloc::{collections::BTreeMap, vec, vec::Vec};
+use core::sync::atomic::{AtomicBool, AtomicU32, AtomicU64, Ordering};
 use spin::RwLock;
-use alloc::{vec, vec::Vec, collections::BTreeMap};
+use x86_64::registers::control::{Cr4, Cr4Flags};
+use x86_64::{structures::paging::*, VirtAddr};
 
 /// Advanced memory management configuration
 #[derive(Debug, Clone)]
@@ -86,7 +86,10 @@ impl KASLRManager {
 
         crate::log::info!(
             "KASLR initialized: kernel={:#x}, heap={:#x}, stack={:#x}, module={:#x}",
-            kernel_slide, heap_slide, stack_slide, module_slide
+            kernel_slide,
+            heap_slide,
+            stack_slide,
+            module_slide
         );
 
         Ok(())
@@ -95,7 +98,7 @@ impl KASLRManager {
     fn generate_secure_slide(&self, region: &str) -> Result<u64, &'static str> {
         // Use hardware RNG with additional entropy mixing
         let mut entropy_sources = Vec::with_capacity(4);
-        
+
         // Hardware random number
         unsafe {
             let mut hw_rand: u64 = 0;
@@ -103,38 +106,38 @@ impl KASLRManager {
                 entropy_sources.push(hw_rand);
             }
         }
-        
+
         // TSC for timing entropy
         let tsc = unsafe { core::arch::x86_64::_rdtsc() };
         entropy_sources.push(tsc);
-        
+
         // Crypto module entropy
         entropy_sources.push(crate::crypto::util::secure_random_u64());
-        
+
         // Region-specific entropy
         let region_hash = self.hash_string(region);
         entropy_sources.push(region_hash);
-        
+
         // Combine all entropy sources
         let mut combined = 0u64;
         for (i, entropy) in entropy_sources.iter().enumerate() {
             combined ^= entropy.rotate_left((i * 13) as u32);
         }
-        
+
         // Apply entropy mask
         let entropy_mask = (1u64 << self.entropy_bits) - 1;
         let slide = combined & entropy_mask;
-        
+
         // Ensure alignment and valid range
         let aligned_slide = (slide << 12) & 0x7FFF_FFFF_F000_0000;
         Ok(aligned_slide)
     }
 
     fn hash_string(&self, s: &str) -> u64 {
-        let mut hash = 0xcbf29ce484222325u64; // FNV offset basis
+        let mut hash = 0xCBF29CE484222325u64; // FNV offset basis
         for byte in s.bytes() {
             hash ^= byte as u64;
-            hash = hash.wrapping_mul(0x100000001b3u64); // FNV prime
+            hash = hash.wrapping_mul(0x100000001B3u64); // FNV prime
         }
         hash
     }
@@ -186,7 +189,7 @@ impl PCIDManager {
     pub fn new() -> Self {
         // Modern Intel processors support up to 4096 PCIDs
         let max_pcid = if Self::check_pcid_support() { 4095 } else { 0 };
-        
+
         Self {
             enabled: AtomicBool::new(false),
             next_pcid: AtomicU32::new(1), // PCID 0 is reserved for kernel
@@ -249,27 +252,26 @@ impl PCIDManager {
     fn recycle_pcid(&self, process_id: u32, cr3_value: u64) -> Result<u32, &'static str> {
         // Find least recently used PCID
         if let Some(mut map) = self.pcid_map.try_write() {
-            if let Some(lru_process) = map.values()
-                .min_by_key(|entry| entry.last_used)
-                .map(|entry| entry.process_id) {
-                
+            if let Some(lru_process) =
+                map.values().min_by_key(|entry| entry.last_used).map(|entry| entry.process_id)
+            {
                 if let Some(mut lru_entry) = map.remove(&lru_process) {
                     // Invalidate TLB for recycled PCID
                     self.invalidate_pcid_tlb(lru_entry.pcid);
-                    
+
                     // Reuse the PCID
                     lru_entry.process_id = process_id;
                     lru_entry.cr3_value = cr3_value;
                     lru_entry.last_used = crate::time::timestamp_millis();
                     lru_entry.tlb_flush_count += 1;
-                    
+
                     let recycled_pcid = lru_entry.pcid;
                     map.insert(process_id, lru_entry);
                     return Ok(recycled_pcid);
                 }
             }
         }
-        
+
         Err("Failed to recycle PCID")
     }
 
@@ -346,16 +348,16 @@ impl GuardPageManager {
 
         let total_size = size + (self.guard_size * 2); // Guards before and after
         let raw_addr = crate::memory::alloc::allocate_kernel_memory(total_size)?;
-        
+
         // Set up guard pages (mark as non-accessible)
         let guard_start = raw_addr;
         let guard_end = VirtAddr::new(raw_addr.as_u64() + size as u64 + self.guard_size as u64);
-        
+
         self.setup_guard_page(guard_start)?;
         self.setup_guard_page(guard_end)?;
-        
+
         self.total_guard_pages.fetch_add(2, Ordering::SeqCst);
-        
+
         // Return address after first guard
         Ok(VirtAddr::new(raw_addr.as_u64() + self.guard_size as u64))
     }
@@ -364,19 +366,19 @@ impl GuardPageManager {
         // Map page as present but not readable/writable/executable
         let page = Page::containing_address(addr);
         let flags = PageTableFlags::empty(); // No permissions = guard page
-        
+
         unsafe {
             // This would integrate with the page table management system
             crate::memory::paging::map_page(page, flags)?;
         }
-        
+
         Ok(())
     }
 
     /// Handle guard page violation
     pub fn handle_guard_violation(&self, addr: VirtAddr) {
         self.guard_violations.fetch_add(1, Ordering::SeqCst);
-        
+
         crate::log::security_log!(
             "Guard page violation at address {:#x} - possible buffer overflow",
             addr.as_u64()
@@ -384,7 +386,8 @@ impl GuardPageManager {
 
         // Terminate the offending process
         if let Some(current) = crate::process::current_process() {
-            // current.terminate_with_signal(11); // TODO: implement terminate_with_signal
+            // current.terminate_with_signal(11); // TODO: implement
+            // terminate_with_signal
         } else {
             panic!("Kernel guard page violation at {:#x}", addr.as_u64());
         }
@@ -441,7 +444,7 @@ impl MemoryTaggingSystem {
 
         let tag_id = self.next_tag_id.fetch_add(1, Ordering::SeqCst);
         let stack_trace = self.capture_stack_trace();
-        
+
         let tag = MemoryTag {
             tag_id,
             allocation_type: alloc_type,
@@ -460,23 +463,28 @@ impl MemoryTaggingSystem {
     fn capture_stack_trace(&self) -> Vec<u64> {
         // Capture current stack trace for debugging
         let mut trace = Vec::new();
-        
+
         // Simple stack walk (in production would use proper unwinding)
         unsafe {
             let mut rbp: u64;
             core::arch::asm!("mov {}, rbp", out(reg) rbp);
-            
-            for _ in 0..16 { // Capture up to 16 frames
-                if rbp == 0 { break; }
-                
+
+            for _ in 0..16 {
+                // Capture up to 16 frames
+                if rbp == 0 {
+                    break;
+                }
+
                 let return_addr = core::ptr::read((rbp + 8) as *const u64);
                 trace.push(return_addr);
-                
+
                 rbp = core::ptr::read(rbp as *const u64);
-                if rbp < 0x1000 { break; } // Sanity check
+                if rbp < 0x1000 {
+                    break;
+                } // Sanity check
             }
         }
-        
+
         trace
     }
 
@@ -495,7 +503,7 @@ impl MemoryTaggingSystem {
                 }
             }
         }
-        
+
         None
     }
 }
@@ -529,16 +537,16 @@ impl NUMAManager {
     pub fn initialize(&self) -> Result<(), &'static str> {
         // Detect NUMA topology
         let nodes = self.detect_numa_topology()?;
-        
+
         if let Some(mut numa_nodes) = self.numa_nodes.try_write() {
             *numa_nodes = nodes;
         }
-        
+
         if !self.numa_nodes.read().is_empty() {
             self.enabled.store(true, Ordering::SeqCst);
             crate::log::info!("NUMA support enabled with {} nodes", self.numa_nodes.read().len());
         }
-        
+
         Ok(())
     }
 
@@ -546,7 +554,7 @@ impl NUMAManager {
         // In a real implementation, this would query ACPI SRAT tables
         // For now, create a simple topology
         let mut nodes = Vec::new();
-        
+
         // Simulate detecting 2 NUMA nodes
         for node_id in 0..2 {
             nodes.push(NUMANode {
@@ -557,12 +565,16 @@ impl NUMAManager {
                 access_latency: if node_id == 0 { 100 } else { 150 }, // Local vs remote latency
             });
         }
-        
+
         Ok(nodes)
     }
 
     /// Allocate memory on specific NUMA node
-    pub fn allocate_on_node(&self, size: usize, preferred_node: u32) -> Result<VirtAddr, &'static str> {
+    pub fn allocate_on_node(
+        &self,
+        size: usize,
+        preferred_node: u32,
+    ) -> Result<VirtAddr, &'static str> {
         if !self.enabled.load(Ordering::SeqCst) {
             return crate::memory::alloc::allocate_kernel_memory(size);
         }
@@ -595,7 +607,7 @@ impl NUMAManager {
         }
 
         let cpu_id = crate::sched::current_cpu_id();
-        
+
         if let Some(nodes) = self.numa_nodes.try_read() {
             for node in nodes.iter() {
                 if node.cpu_affinity.contains(&cpu_id) {
@@ -603,7 +615,7 @@ impl NUMAManager {
                 }
             }
         }
-        
+
         0 // Default to node 0
     }
 }
@@ -672,15 +684,16 @@ impl AdvancedMemoryManager {
     }
 
     /// High-level secure allocation with all features
-    pub fn secure_allocate(&self, size: usize, alloc_type: AllocationType) -> Result<VirtAddr, &'static str> {
+    pub fn secure_allocate(
+        &self,
+        size: usize,
+        alloc_type: AllocationType,
+    ) -> Result<VirtAddr, &'static str> {
         self.statistics.total_allocations.fetch_add(1, Ordering::SeqCst);
 
         // NUMA-aware allocation
-        let numa_node = if self.config.enable_numa_awareness {
-            self.numa.get_local_node()
-        } else {
-            0
-        };
+        let numa_node =
+            if self.config.enable_numa_awareness { self.numa.get_local_node() } else { 0 };
 
         // Allocate with guard pages if enabled
         let addr = if self.config.enable_guard_pages {
@@ -726,7 +739,7 @@ pub fn init_advanced_memory() -> Result<(), &'static str> {
     let config = AdvancedMMConfig::default();
     let manager = AdvancedMemoryManager::new(config);
     manager.initialize()?;
-    
+
     MEMORY_MANAGER.call_once(|| manager);
     Ok(())
 }

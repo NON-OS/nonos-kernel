@@ -1,4 +1,4 @@
-use alloc::{vec::Vec, string::String};
+use alloc::{string::String, vec::Vec};
 use core::sync::atomic::{AtomicBool, AtomicU32, Ordering};
 
 pub struct NetworkInterface {
@@ -43,9 +43,14 @@ impl NetworkDriver {
         }
     }
 
-    pub fn register_interface(&mut self, name: String, mac: [u8; 6], interface_type: InterfaceType) -> u32 {
+    pub fn register_interface(
+        &mut self,
+        name: String,
+        mac: [u8; 6],
+        interface_type: InterfaceType,
+    ) -> u32 {
         let interface_id = self.interfaces.len() as u32;
-        
+
         let interface = NetworkInterface {
             interface_id,
             interface_name: name,
@@ -63,7 +68,12 @@ impl NetworkDriver {
         interface_id
     }
 
-    pub fn send_packet(&mut self, interface_id: u32, data: &[u8], destination: &[u8; 6]) -> Result<(), &'static str> {
+    pub fn send_packet(
+        &mut self,
+        interface_id: u32,
+        data: &[u8],
+        destination: &[u8; 6],
+    ) -> Result<(), &'static str> {
         if self.emergency_shutdown.load(Ordering::Relaxed) {
             return Err("Network interfaces disabled due to emergency shutdown");
         }
@@ -73,7 +83,7 @@ impl NetworkDriver {
         }
 
         let interface = &self.interfaces[interface_id as usize];
-        
+
         if !interface.enabled.load(Ordering::Relaxed) {
             return Err("Network interface is disabled");
         }
@@ -89,7 +99,7 @@ impl NetworkDriver {
 
         // Simulate packet transmission
         self.transmit_ethernet_frame(interface, data, destination)?;
-        
+
         // Update statistics
         interface.packets_sent.fetch_add(1, Ordering::Relaxed);
         interface.bytes_sent.fetch_add(data.len() as u32, Ordering::Relaxed);
@@ -97,28 +107,36 @@ impl NetworkDriver {
         Ok(())
     }
 
-    fn transmit_ethernet_frame(&self, interface: &NetworkInterface, data: &[u8], destination: &[u8; 6]) -> Result<(), &'static str> {
+    fn transmit_ethernet_frame(
+        &self,
+        interface: &NetworkInterface,
+        data: &[u8],
+        destination: &[u8; 6],
+    ) -> Result<(), &'static str> {
         // Build Ethernet frame
         let mut frame = Vec::with_capacity(data.len() + 14); // 14 bytes for Ethernet header
-        
+
         // Destination MAC (6 bytes)
         frame.extend_from_slice(destination);
-        
+
         // Source MAC (6 bytes)
         frame.extend_from_slice(&interface.mac_address);
-        
+
         // EtherType (2 bytes) - IPv4
         frame.push(0x08);
         frame.push(0x00);
-        
+
         // Payload
         frame.extend_from_slice(data);
 
         // Hardware transmission simulation
         self.hardware_transmit(&frame)?;
 
-        crate::log::logger::log_info!("Transmitted {} byte frame on interface {}", 
-            frame.len(), interface.interface_name);
+        crate::log::logger::log_info!(
+            "Transmitted {} byte frame on interface {}",
+            frame.len(),
+            interface.interface_name
+        );
 
         Ok(())
     }
@@ -128,21 +146,21 @@ impl NetworkDriver {
         if frame.len() < 64 {
             return Err("Frame too small (minimum 64 bytes)");
         }
-        
+
         if frame.len() > 1518 {
             return Err("Frame too large (maximum 1518 bytes)");
         }
 
         // CRC calculation and validation would happen here
         let crc = self.calculate_ethernet_crc(frame);
-        
+
         // Physical layer transmission simulation
         self.physical_layer_transmit(frame, crc)
     }
 
     fn calculate_ethernet_crc(&self, data: &[u8]) -> u32 {
         let mut crc: u32 = 0xFFFFFFFF;
-        
+
         for &byte in data {
             crc ^= byte as u32;
             for _ in 0..8 {
@@ -153,7 +171,7 @@ impl NetworkDriver {
                 }
             }
         }
-        
+
         !crc
     }
 
@@ -165,14 +183,17 @@ impl NetworkDriver {
 
         // Simulate transmission timing and collision detection
         let transmission_time_us = (frame.len() * 8) / 10; // 10 Mbps simulation
-        
+
         // Anti-collision and carrier sense
         if self.detect_carrier_collision() {
             return Err("Carrier collision detected");
         }
 
-        crate::log::logger::log_info!("Physical transmission completed in {}μs (CRC: 0x{:08X})", 
-            transmission_time_us, crc);
+        crate::log::logger::log_info!(
+            "Physical transmission completed in {}μs (CRC: 0x{:08X})",
+            transmission_time_us,
+            crc
+        );
 
         Ok(())
     }
@@ -192,14 +213,14 @@ impl NetworkDriver {
         }
 
         let interface = &self.interfaces[interface_id as usize];
-        
+
         if !interface.enabled.load(Ordering::Relaxed) {
             return Err("Network interface is disabled");
         }
 
         // Simulate packet reception from hardware
         let received_frame = self.hardware_receive()?;
-        
+
         // Validate Ethernet frame
         if received_frame.len() < 14 {
             return Err("Invalid Ethernet frame (too short)");
@@ -224,8 +245,11 @@ impl NetworkDriver {
         interface.packets_received.fetch_add(1, Ordering::Relaxed);
         interface.bytes_received.fetch_add(payload.len() as u32, Ordering::Relaxed);
 
-        crate::log::logger::log_info!("Received {} byte payload on interface {}", 
-            payload.len(), interface.interface_name);
+        crate::log::logger::log_info!(
+            "Received {} byte payload on interface {}",
+            payload.len(),
+            interface.interface_name
+        );
 
         Ok(payload)
     }
@@ -233,27 +257,27 @@ impl NetworkDriver {
     fn hardware_receive(&self) -> Result<Vec<u8>, &'static str> {
         // Simulate hardware frame reception
         // This would normally read from network interface buffer
-        
+
         // Simulate a basic Ethernet frame reception
         let mut frame = Vec::new();
-        
+
         // Simulate received frame (example IPv4 ping)
         frame.extend_from_slice(&[0x00, 0x11, 0x22, 0x33, 0x44, 0x55]); // Dest MAC
         frame.extend_from_slice(&[0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF]); // Src MAC
         frame.extend_from_slice(&[0x08, 0x00]); // EtherType (IPv4)
         frame.extend_from_slice(&[0x45, 0x00, 0x00, 0x54]); // IPv4 header start
         frame.extend_from_slice(&[0x00, 0x00, 0x00, 0x00]); // More IPv4 data
-        
+
         Ok(frame)
     }
 
     fn is_suspicious_packet(&self, data: &[u8]) -> bool {
         // Deep packet inspection for security threats
-        
+
         // Check for common attack patterns
         let malicious_patterns: [&[u8]; 8] = [
             b"../../../etc/passwd",
-            b"<script>............",  // Pad to same length
+            b"<script>............", // Pad to same length
             b"SELECT * FROM......",
             b"UNION SELECT.......",
             b"DROP TABLE.........",
@@ -304,11 +328,8 @@ impl NetworkDriver {
                 return true;
             }
 
-            let bad_char_skip = if i + j < text.len() {
-                bad_char_table[text[i + j] as usize]
-            } else {
-                1
-            };
+            let bad_char_skip =
+                if i + j < text.len() { bad_char_table[text[i + j] as usize] } else { 1 };
 
             i += bad_char_skip.max(1);
         }
@@ -395,12 +416,14 @@ impl NetworkDriver {
 
     pub fn emergency_shutdown(&mut self) {
         self.emergency_shutdown.store(true, Ordering::Relaxed);
-        
+
         for interface in &self.interfaces {
             interface.enabled.store(false, Ordering::Relaxed);
         }
 
-        crate::log::logger::log_info!("Emergency network shutdown completed - all interfaces disabled");
+        crate::log::logger::log_info!(
+            "Emergency network shutdown completed - all interfaces disabled"
+        );
     }
 
     pub fn get_interface_statistics(&self, interface_id: u32) -> Option<NetworkStatistics> {
@@ -409,7 +432,7 @@ impl NetworkDriver {
         }
 
         let interface = &self.interfaces[interface_id as usize];
-        
+
         Some(NetworkStatistics {
             interface_id: interface.interface_id,
             interface_name: interface.interface_name.clone(),
@@ -451,7 +474,11 @@ pub fn register_ethernet_interface(name: String, mac: [u8; 6]) -> Result<u32, &'
     }
 }
 
-pub fn send_packet(interface_id: u32, data: &[u8], destination: &[u8; 6]) -> Result<(), &'static str> {
+pub fn send_packet(
+    interface_id: u32,
+    data: &[u8],
+    destination: &[u8; 6],
+) -> Result<(), &'static str> {
     unsafe {
         if let Some(ref mut driver) = NETWORK_DRIVER {
             driver.send_packet(interface_id, data, destination)
@@ -495,15 +522,13 @@ pub fn send_ethernet_frame(interface_id: u32, frame: &[u8]) -> Result<(), &'stat
     if frame.len() < 14 {
         return Err("Frame too short - minimum 14 bytes for Ethernet header");
     }
-    
+
     // Extract destination MAC from frame
-    let dest_mac: [u8; 6] = [
-        frame[0], frame[1], frame[2], frame[3], frame[4], frame[5]
-    ];
-    
+    let dest_mac: [u8; 6] = [frame[0], frame[1], frame[2], frame[3], frame[4], frame[5]];
+
     // Extract payload (skip 14-byte Ethernet header)
     let payload = &frame[14..];
-    
+
     // Use existing send_packet function
     send_packet(interface_id, payload, &dest_mac)
 }

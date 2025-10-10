@@ -4,7 +4,7 @@
 extern "C" {
     static __nonos_manifest_start: [u8; 0];
     static __nonos_manifest_end: [u8; 0];
-    static __nonos_signature_start: [u8; 0]; 
+    static __nonos_signature_start: [u8; 0];
     static __nonos_signature_end: [u8; 0];
 }
 

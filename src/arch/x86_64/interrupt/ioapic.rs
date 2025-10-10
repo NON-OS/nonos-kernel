@@ -16,18 +16,18 @@
 use alloc::format;
 
 use core::sync::atomic::{AtomicUsize, Ordering};
+use lazy_static::lazy_static;
 use spin::Mutex;
 use x86_64::{PhysAddr, VirtAddr};
-use lazy_static::lazy_static;
 
-use crate::memory::virt::{self, VmFlags};
 use crate::memory::layout::PAGE_SIZE;
 use crate::memory::proof::{self, CapTag};
+use crate::memory::virt::{self, VmFlags};
 
 /// ——————————————————— Registers (4K MMIO window) ———————————————————
 const IOREGSEL: u64 = 0x00; // selector (u32)
-const IOWIN:    u64 = 0x10; // data     (u32)
-const IOAPICID:  u32 = 0x00;
+const IOWIN: u64 = 0x10; // data     (u32)
+const IOAPICID: u32 = 0x00;
 const IOAPICVER: u32 = 0x01;
 const IOAPICARB: u32 = 0x02;
 const IOREDTBL0: u32 = 0x10; // two u32 per entry: low (even), high (odd)
@@ -56,18 +56,30 @@ pub struct Rte {
 impl Rte {
     pub const fn fixed(vector: u8, dest_apic_id: u32) -> Self {
         Self {
-            vector, delivery: 0, logical: false,
-            active_low: false, level_trigger: false, masked: true,
+            vector,
+            delivery: 0,
+            logical: false,
+            active_low: false,
+            level_trigger: false,
+            masked: true,
             dest_apic_id,
         }
     }
     fn to_u32s(self) -> (u32, u32) {
         let mut low = self.vector as u32;
         low |= (self.delivery as u32) << 8;
-        if self.logical { low |= 1 << 11; }
-        if self.active_low { low |= 1 << 13; }
-        if self.level_trigger { low |= 1 << 15; }
-        if self.masked { low |= 1 << 16; }
+        if self.logical {
+            low |= 1 << 11;
+        }
+        if self.active_low {
+            low |= 1 << 13;
+        }
+        if self.level_trigger {
+            low |= 1 << 15;
+        }
+        if self.masked {
+            low |= 1 << 16;
+        }
         let high = (self.dest_apic_id & 0xFF) << 24; // physical mode
         (low, high)
     }
@@ -75,10 +87,10 @@ impl Rte {
         Self {
             vector: (low & 0xFF) as u8,
             delivery: ((low >> 8) & 0x7) as u8,
-            logical: (low & (1<<11)) != 0,
-            active_low: (low & (1<<13)) != 0,
-            level_trigger: (low & (1<<15)) != 0,
-            masked: (low & (1<<16)) != 0,
+            logical: (low & (1 << 11)) != 0,
+            active_low: (low & (1 << 13)) != 0,
+            level_trigger: (low & (1 << 15)) != 0,
+            masked: (low & (1 << 16)) != 0,
             dest_apic_id: (high >> 24) & 0xFF,
         }
     }
@@ -87,11 +99,22 @@ impl Rte {
 /// ——————————————————— ACPI MADT descriptors we consume ———————————————————
 /// Provide these from your ACPI parser (don’t make this module parse tables).
 #[derive(Clone, Copy, Debug)]
-pub struct MadtIoApic { pub phys_base: u64, pub gsi_base: u32 }
+pub struct MadtIoApic {
+    pub phys_base: u64,
+    pub gsi_base: u32,
+}
 #[derive(Clone, Debug, Copy)]
-pub struct MadtIso    { pub bus_irq: u8, pub gsi: u32, pub flags: IsoFlags }
+pub struct MadtIso {
+    pub bus_irq: u8,
+    pub gsi: u32,
+    pub flags: IsoFlags,
+}
 #[derive(Clone, Debug, Copy)]
-pub struct MadtNmi    { pub cpu: u32, pub lint: u8, pub flags: IsoFlags }
+pub struct MadtNmi {
+    pub cpu: u32,
+    pub lint: u8,
+    pub flags: IsoFlags,
+}
 
 bitflags::bitflags! {
     #[derive(Clone, Debug, Copy)]
@@ -107,33 +130,39 @@ bitflags::bitflags! {
 #[derive(Clone, Copy)]
 struct IoApicChip {
     gsi_base: u32,
-    redirs:   u32,
-    mmio:     VirtAddr,
+    redirs: u32,
+    mmio: VirtAddr,
 }
 const MAX_IOAPIC: usize = 8;
 static IOAPICS: Mutex<[Option<IoApicChip>; MAX_IOAPIC]> = Mutex::new([None; MAX_IOAPIC]);
 static COUNT: AtomicUsize = AtomicUsize::new(0);
 
 struct VecIso {
-    iso:  smallvec::SmallVec<[MadtIso; 16]>,
+    iso: smallvec::SmallVec<[MadtIso; 16]>,
     nmis: smallvec::SmallVec<[MadtNmi; 8]>,
 }
 
 lazy_static! {
     /// ISA overrides and NMI policy (from MADT)
-    static ref ISO: Mutex<VecIso> = Mutex::new(VecIso { 
-        iso: smallvec::SmallVec::new(), 
-        nmis: smallvec::SmallVec::new() 
+    static ref ISO: Mutex<VecIso> = Mutex::new(VecIso {
+        iso: smallvec::SmallVec::new(),
+        nmis: smallvec::SmallVec::new()
     });
 }
 
 /// Simple vector allocator with a reserved range (pluggable later).
-/// Default: allocate in 0x30..0x7F, skipping 0xFF (spurious) and vectors you mark reserved.
+/// Default: allocate in 0x30..0x7F, skipping 0xFF (spurious) and vectors you
+/// mark reserved.
 static VEC_ALLOC: Mutex<VecAlloc> = Mutex::new(VecAlloc { next: 0x30, reserved: [false; 256] });
-struct VecAlloc { next: u8, reserved: [bool; 256] }
+struct VecAlloc {
+    next: u8,
+    reserved: [bool; 256],
+}
 
 impl VecAlloc {
-    fn reserve(&mut self, v: u8) { self.reserved[v as usize] = true; }
+    fn reserve(&mut self, v: u8) {
+        self.reserved[v as usize] = true;
+    }
     fn alloc(&mut self) -> Option<u8> {
         for _ in 0..200 {
             let v = self.next;
@@ -145,7 +174,9 @@ impl VecAlloc {
         }
         None
     }
-    fn free(&mut self, v: u8) { self.reserved[v as usize] = false; }
+    fn free(&mut self, v: u8) {
+        self.reserved[v as usize] = false;
+    }
 }
 
 lazy_static! {
@@ -174,10 +205,19 @@ pub unsafe fn init(ioapics: &[MadtIoApic], iso: &[MadtIso], nmis: &[MadtNmi]) {
         t[n] = Some(IoApicChip { gsi_base: d.gsi_base, redirs: maxredir, mmio: va });
         n += 1;
 
-        proof::audit_map(va.as_u64(), d.phys_base, PAGE_SIZE as u64, (VmFlags::RW|VmFlags::NX|VmFlags::GLOBAL|VmFlags::PCD).bits(), CapTag::KERNEL);
-        crate::log::logger::try_get_logger().map(|l| l.log(&format!(
-            "[IOAPIC] mmio=0x{:x} gsi_base={} redirs={}", d.phys_base, d.gsi_base, maxredir
-        )));
+        proof::audit_map(
+            va.as_u64(),
+            d.phys_base,
+            PAGE_SIZE as u64,
+            (VmFlags::RW | VmFlags::NX | VmFlags::GLOBAL | VmFlags::PCD).bits(),
+            CapTag::KERNEL,
+        );
+        crate::log::logger::try_get_logger().map(|l| {
+            l.log(&format!(
+                "[IOAPIC] mmio=0x{:x} gsi_base={} redirs={}",
+                d.phys_base, d.gsi_base, maxredir
+            ))
+        });
     }
     COUNT.store(n, Ordering::Relaxed);
 
@@ -192,23 +232,36 @@ pub unsafe fn init(ioapics: &[MadtIoApic], iso: &[MadtIso], nmis: &[MadtNmi]) {
 }
 
 /// Count of IOAPICs registered.
-pub fn count() -> usize { COUNT.load(Ordering::Relaxed) }
+pub fn count() -> usize {
+    COUNT.load(Ordering::Relaxed)
+}
 
 /// Claim a GSI for MSI/MSI-X path (so we don’t also program IOAPIC).
-pub fn claim_gsi_for_msi(gsi: u32) { let mut g = MSI_CLAIMED_GSI.lock(); if (gsi as usize) < g.len() { g.set(gsi as usize, true); } }
+pub fn claim_gsi_for_msi(gsi: u32) {
+    let mut g = MSI_CLAIMED_GSI.lock();
+    if (gsi as usize) < g.len() {
+        g.set(gsi as usize, true);
+    }
+}
 
 /// Allocate a vector for a given GSI with proper flags derived from ISO table.
-/// Returns (vector, RTE) preconfigured and masked; caller should unmask after handler installed.
+/// Returns (vector, RTE) preconfigured and masked; caller should unmask after
+/// handler installed.
 pub fn alloc_route(gsi: u32, dest_apic_id: u32) -> Result<(u8, Rte), ()> {
     ensure_not_msi(gsi)?;
     let mut va = VEC_ALLOC.lock();
     let vector = va.alloc().ok_or(())?;
 
     let mut rte = Rte::fixed(vector, dest_apic_id);
-    // Derive polarity/trigger from ISO (typical ISA: IRQ0..15) or fall back to edge/high
+    // Derive polarity/trigger from ISO (typical ISA: IRQ0..15) or fall back to
+    // edge/high
     if let Some(f) = iso_flags_for(gsi) {
-        if f.contains(IsoFlags::TRIGGER_LEVEL) { rte.level_trigger = true; }
-        if f.contains(IsoFlags::POLARITY_ACTIVE_LOW) { rte.active_low = true; }
+        if f.contains(IsoFlags::TRIGGER_LEVEL) {
+            rte.level_trigger = true;
+        }
+        if f.contains(IsoFlags::POLARITY_ACTIVE_LOW) {
+            rte.active_low = true;
+        }
     }
     rte.masked = true;
 
@@ -216,21 +269,33 @@ pub fn alloc_route(gsi: u32, dest_apic_id: u32) -> Result<(u8, Rte), ()> {
 }
 
 /// Program the route (write RTE). Safe RMW sequence.
-/// We always write HIGH then LOW (Intel SDM). For level triggers, masking/unmask handled by caller.
+/// We always write HIGH then LOW (Intel SDM). For level triggers,
+/// masking/unmask handled by caller.
 pub fn program_route(gsi: u32, rte: Rte) -> Result<(), ()> {
     let (chip, idx) = locate(gsi).ok_or(())?;
     let (low, high) = rte.to_u32s();
-    unsafe { redtbl_write(chip.mmio, idx, low, high); }
-    proof::audit_phys_alloc(((gsi as u64)<<32) | rte.vector as u64, ((rte.dest_apic_id as u64)<<32) | rte_flags_bits(rte) as u64, CapTag::KERNEL);
+    unsafe {
+        redtbl_write(chip.mmio, idx, low, high);
+    }
+    proof::audit_phys_alloc(
+        ((gsi as u64) << 32) | rte.vector as u64,
+        ((rte.dest_apic_id as u64) << 32) | rte_flags_bits(rte) as u64,
+        CapTag::KERNEL,
+    );
     Ok(())
 }
 
-/// Mask/unmask a GSI. For **level**-triggered, ensure your handler EOI’d the LAPIC before unmasking.
+/// Mask/unmask a GSI. For **level**-triggered, ensure your handler EOI’d the
+/// LAPIC before unmasking.
 pub fn mask(gsi: u32, masked: bool) -> Result<(), ()> {
     let (chip, idx) = locate(gsi).ok_or(())?;
     unsafe {
         let (mut low, high) = redtbl_read(chip.mmio, idx);
-        if masked { low |= 1<<16 } else { low &= !(1<<16) }
+        if masked {
+            low |= 1 << 16
+        } else {
+            low &= !(1 << 16)
+        }
         redtbl_write(chip.mmio, idx, low, high);
     }
     Ok(())
@@ -249,7 +314,9 @@ pub fn retarget(gsi: u32, dest_apic_id: u32) -> Result<(), ()> {
 }
 
 /// Free a vector allocated by alloc_route (call after mask+program is undone).
-pub fn free_vector(vec: u8) { VEC_ALLOC.lock().free(vec); }
+pub fn free_vector(vec: u8) {
+    VEC_ALLOC.lock().free(vec);
+}
 
 /// Query current RTE.
 pub fn query(gsi: u32) -> Option<Rte> {
@@ -282,14 +349,18 @@ pub fn restore(snap: &[(u32, Rte)]) {
 
 fn ensure_not_msi(gsi: u32) -> Result<(), ()> {
     let g = MSI_CLAIMED_GSI.lock();
-    if (gsi as usize) < g.len() && g[gsi as usize] { return Err(()); }
+    if (gsi as usize) < g.len() && g[gsi as usize] {
+        return Err(());
+    }
     Ok(())
 }
 
 fn iso_flags_for(gsi: u32) -> Option<IsoFlags> {
     let v = ISO.lock();
     for e in v.iso.iter() {
-        if e.gsi == gsi { return Some(e.flags); }
+        if e.gsi == gsi {
+            return Some(e.flags);
+        }
     }
     None
 }
@@ -307,9 +378,12 @@ fn locate(gsi: u32) -> Option<(IoApicChip, u32)> {
 }
 
 unsafe fn map_mmio(pa: PhysAddr) -> VirtAddr {
-    extern "Rust" { fn __nonos_alloc_mmio_va(pages: usize) -> u64; }
+    extern "Rust" {
+        fn __nonos_alloc_mmio_va(pages: usize) -> u64;
+    }
     let va = VirtAddr::new(__nonos_alloc_mmio_va(1));
-    virt::map4k_at(va, pa, VmFlags::RW | VmFlags::NX | VmFlags::GLOBAL | VmFlags::PCD).expect("ioapic map");
+    virt::map4k_at(va, pa, VmFlags::RW | VmFlags::NX | VmFlags::GLOBAL | VmFlags::PCD)
+        .expect("ioapic map");
     va
 }
 
@@ -317,7 +391,7 @@ unsafe fn map_mmio(pa: PhysAddr) -> VirtAddr {
 fn reg_write(base: VirtAddr, index: u32, val: u32) {
     unsafe {
         let sel = (base.as_u64() + IOREGSEL) as *mut u32;
-        let win = (base.as_u64() + IOWIN)    as *mut u32;
+        let win = (base.as_u64() + IOWIN) as *mut u32;
         core::ptr::write_volatile(sel, index);
         core::ptr::write_volatile(win, val);
     }
@@ -326,28 +400,37 @@ fn reg_write(base: VirtAddr, index: u32, val: u32) {
 fn reg_read(base: VirtAddr, index: u32) -> u32 {
     unsafe {
         let sel = (base.as_u64() + IOREGSEL) as *mut u32;
-        let win = (base.as_u64() + IOWIN)    as *const u32;
+        let win = (base.as_u64() + IOWIN) as *const u32;
         core::ptr::write_volatile(sel, index);
         core::ptr::read_volatile(win)
     }
 }
 unsafe fn redtbl_write(base: VirtAddr, i: u32, low: u32, high: u32) {
-    // Per SDM, program high then low. For level-triggered, keep your handler EOI rules!
+    // Per SDM, program high then low. For level-triggered, keep your handler EOI
+    // rules!
     reg_write(base, IOREDTBL0 + (i * 2) + 1, high);
     reg_write(base, IOREDTBL0 + (i * 2) + 0, low);
 }
 unsafe fn redtbl_read(base: VirtAddr, i: u32) -> (u32, u32) {
     let high = reg_read(base, IOREDTBL0 + (i * 2) + 1);
-    let low  = reg_read(base, IOREDTBL0 + (i * 2) + 0);
+    let low = reg_read(base, IOREDTBL0 + (i * 2) + 0);
     (low, high)
 }
 
 /// For proof event packing
 fn rte_flags_bits(r: Rte) -> u32 {
     let mut f = 0u32;
-    if r.logical { f |= 1<<0; }
-    if r.active_low { f |= 1<<1; }
-    if r.level_trigger { f |= 1<<2; }
-    if r.masked { f |= 1<<3; }
+    if r.logical {
+        f |= 1 << 0;
+    }
+    if r.active_low {
+        f |= 1 << 1;
+    }
+    if r.level_trigger {
+        f |= 1 << 2;
+    }
+    if r.masked {
+        f |= 1 << 3;
+    }
     f | ((r.delivery as u32) << 8)
 }

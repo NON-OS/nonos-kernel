@@ -1,6 +1,12 @@
-use alloc::{vec, vec::Vec, string::{String, ToString}, collections::BTreeMap, format};
+use crate::security::data_leak_detection::{monitor_network_data, DataLeakEvent};
 use crate::ui::SecurityLevel;
-use crate::security::data_leak_detection::{DataLeakEvent, monitor_network_data};
+use alloc::{
+    collections::BTreeMap,
+    format,
+    string::{String, ToString},
+    vec,
+    vec::Vec,
+};
 
 pub struct ThreatAssessment {
     pub threat_level: u8,
@@ -35,9 +41,9 @@ pub struct DnsServer {
 pub enum DnsProtocol {
     Udp = 1,
     Tcp = 2,
-    DoH = 3,    // DNS over HTTPS
-    DoT = 4,    // DNS over TLS
-    DoQ = 5,    // DNS over QUIC
+    DoH = 3, // DNS over HTTPS
+    DoT = 4, // DNS over TLS
+    DoQ = 5, // DNS over QUIC
 }
 
 #[derive(Clone)]
@@ -134,12 +140,12 @@ pub struct SuspiciousQuery {
 #[repr(u8)]
 #[derive(Clone, Copy)]
 pub enum SuspiciousPattern {
-    DgaGenerated = 1,     // Domain Generation Algorithm
-    Tunneling = 2,        // DNS Tunneling
-    FastFlux = 3,         // Fast Flux
-    Subdomain = 4,        // Excessive Subdomains
-    RandomString = 5,     // Random Character Strings
-    Base64Encoded = 6,    // Base64 Encoded Data
+    DgaGenerated = 1,  // Domain Generation Algorithm
+    Tunneling = 2,     // DNS Tunneling
+    FastFlux = 3,      // Fast Flux
+    Subdomain = 4,     // Excessive Subdomains
+    RandomString = 5,  // Random Character Strings
+    Base64Encoded = 6, // Base64 Encoded Data
 }
 
 #[derive(Clone)]
@@ -244,7 +250,12 @@ impl DnsPrivacyManager {
         }
     }
 
-    pub fn resolve_domain(&mut self, domain: &str, query_type: DnsQueryType, process_id: u32) -> Result<Vec<[u8; 4]>, &'static str> {
+    pub fn resolve_domain(
+        &mut self,
+        domain: &str,
+        query_type: DnsQueryType,
+        process_id: u32,
+    ) -> Result<Vec<[u8; 4]>, &'static str> {
         if self.is_domain_blocked(domain) {
             self.log_query(domain, query_type, [0, 0, 0, 0], 0, QueryStatus::Blocked, process_id);
             return Err("Domain is blocked");
@@ -253,7 +264,14 @@ impl DnsPrivacyManager {
         if let Some(cached) = self.get_cached_entry(domain) {
             let cached_clone = cached.clone();
             if !self.is_cache_expired(&cached) {
-                self.log_query(domain, query_type, [0, 0, 0, 0], 0, QueryStatus::Cached, process_id);
+                self.log_query(
+                    domain,
+                    query_type,
+                    [0, 0, 0, 0],
+                    0,
+                    QueryStatus::Cached,
+                    process_id,
+                );
                 return Ok(cached_clone.ip_addresses);
             }
         }
@@ -270,10 +288,17 @@ impl DnsPrivacyManager {
         let start_time = crate::time::get_timestamp();
 
         let query_result = self.perform_dns_query(domain, query_type, &server)?;
-        
+
         let response_time = (crate::time::get_timestamp() - start_time) as u32;
-        
-        self.log_query(domain, query_type, server.address, response_time, QueryStatus::Success, process_id);
+
+        self.log_query(
+            domain,
+            query_type,
+            server.address,
+            response_time,
+            QueryStatus::Success,
+            process_id,
+        );
         self.cache_result(domain, &query_result);
 
         Ok(query_result)
@@ -303,11 +328,8 @@ impl DnsPrivacyManager {
     }
 
     fn analyze_domain_for_threats(&self, domain: &str) -> DomainAnalysis {
-        let mut analysis = DomainAnalysis {
-            domain: domain.to_string(),
-            threat_score: 0,
-            patterns: Vec::new(),
-        };
+        let mut analysis =
+            DomainAnalysis { domain: domain.to_string(), threat_score: 0, patterns: Vec::new() };
 
         // Check for Domain Generation Algorithm patterns
         if self.is_dga_domain(domain) {
@@ -344,26 +366,26 @@ impl DnsPrivacyManager {
 
     fn is_dga_domain(&self, domain: &str) -> bool {
         let domain_part = domain.split('.').next().unwrap_or("");
-        
+
         if domain_part.len() < 8 || domain_part.len() > 20 {
             return false;
         }
 
-        let vowel_ratio = domain_part.chars()
-            .filter(|&c| "aeiou".contains(c))
-            .count() as f32 / domain_part.len() as f32;
+        let vowel_ratio = domain_part.chars().filter(|&c| "aeiou".contains(c)).count() as f32
+            / domain_part.len() as f32;
 
         vowel_ratio < 0.2 || vowel_ratio > 0.6
     }
 
     fn is_tunneling_attempt(&self, domain: &str) -> bool {
         let parts: Vec<&str> = domain.split('.').collect();
-        
+
         for part in &parts {
-            if part.len() > 63 { // DNS label length limit
+            if part.len() > 63 {
+                // DNS label length limit
                 return true;
             }
-            
+
             // Check for encoded data patterns
             if self.is_base64_encoded(part) || self.is_hex_encoded(part) {
                 return true;
@@ -384,7 +406,8 @@ impl DnsPrivacyManager {
         }
 
         let len = s.len() as f32;
-        let entropy: f32 = char_counts.iter()
+        let entropy: f32 = char_counts
+            .iter()
             .filter(|&&count| count > 0)
             .map(|&count| {
                 let p = count as f32 / len;
@@ -400,9 +423,8 @@ impl DnsPrivacyManager {
             return false;
         }
 
-        let base64_chars = s.chars().all(|c| {
-            c.is_ascii_alphanumeric() || c == '+' || c == '/' || c == '='
-        });
+        let base64_chars =
+            s.chars().all(|c| c.is_ascii_alphanumeric() || c == '+' || c == '/' || c == '=');
 
         base64_chars && s.len() % 4 == 0
     }
@@ -421,7 +443,7 @@ impl DnsPrivacyManager {
 
         for server in &self.dns_servers {
             let mut score = server.reliability as u32;
-            
+
             // Prefer encrypted protocols
             match server.protocol {
                 DnsProtocol::DoH | DnsProtocol::DoT => score += 50,
@@ -448,7 +470,12 @@ impl DnsPrivacyManager {
         best_server.ok_or("No DNS servers available")
     }
 
-    fn perform_dns_query(&self, domain: &str, query_type: DnsQueryType, server: &DnsServer) -> Result<Vec<[u8; 4]>, &'static str> {
+    fn perform_dns_query(
+        &self,
+        domain: &str,
+        query_type: DnsQueryType,
+        server: &DnsServer,
+    ) -> Result<Vec<[u8; 4]>, &'static str> {
         // Simplified DNS resolution - would implement actual DNS protocol
         match domain {
             "example.com" => Ok(vec![[93, 184, 216, 34]]),
@@ -458,7 +485,15 @@ impl DnsPrivacyManager {
         }
     }
 
-    fn log_query(&mut self, domain: &str, query_type: DnsQueryType, server: [u8; 4], response_time: u32, status: QueryStatus, process_id: u32) {
+    fn log_query(
+        &mut self,
+        domain: &str,
+        query_type: DnsQueryType,
+        server: [u8; 4],
+        response_time: u32,
+        status: QueryStatus,
+        process_id: u32,
+    ) {
         if !self.privacy_settings.enable_query_logging {
             return;
         }
@@ -523,8 +558,10 @@ impl DnsPrivacyManager {
 
     pub fn get_statistics(&self) -> DnsStatistics {
         let total_queries = self.query_log.len();
-        let blocked_queries = self.query_log.iter().filter(|q| matches!(q.status, QueryStatus::Blocked)).count();
-        let cached_queries = self.query_log.iter().filter(|q| matches!(q.status, QueryStatus::Cached)).count();
+        let blocked_queries =
+            self.query_log.iter().filter(|q| matches!(q.status, QueryStatus::Blocked)).count();
+        let cached_queries =
+            self.query_log.iter().filter(|q| matches!(q.status, QueryStatus::Cached)).count();
 
         DnsStatistics {
             total_queries,
@@ -541,14 +578,15 @@ impl DnsPrivacyManager {
             return 0;
         }
 
-        let total_time: u32 = self.query_log.iter()
+        let total_time: u32 = self
+            .query_log
+            .iter()
             .filter(|q| matches!(q.status, QueryStatus::Success))
             .map(|q| q.response_time)
             .sum();
-        
-        let success_count = self.query_log.iter()
-            .filter(|q| matches!(q.status, QueryStatus::Success))
-            .count();
+
+        let success_count =
+            self.query_log.iter().filter(|q| matches!(q.status, QueryStatus::Success)).count();
 
         if success_count > 0 {
             total_time / success_count as u32
@@ -565,8 +603,15 @@ impl DnsPrivacyManager {
 
         // Check for suspicious patterns
         let suspicious_patterns = [
-            "track", "analytics", "ads", "doubleclick", "googlesyndication",
-            "facebook", "fbcdn", "twitter", "amazon-adsystem"
+            "track",
+            "analytics",
+            "ads",
+            "doubleclick",
+            "googlesyndication",
+            "facebook",
+            "fbcdn",
+            "twitter",
+            "amazon-adsystem",
         ];
 
         for pattern in &suspicious_patterns {
@@ -642,7 +687,11 @@ pub fn init_dns_privacy() {
     }
 }
 
-pub fn resolve_dns(domain: &str, query_type: DnsQueryType, process_id: u32) -> Result<Vec<[u8; 4]>, &'static str> {
+pub fn resolve_dns(
+    domain: &str,
+    query_type: DnsQueryType,
+    process_id: u32,
+) -> Result<Vec<[u8; 4]>, &'static str> {
     unsafe {
         if let Some(ref mut manager) = DNS_PRIVACY_MANAGER {
             manager.resolve_domain(domain, query_type, process_id)
@@ -661,9 +710,7 @@ pub fn block_dns_domain(domain: String) {
 }
 
 pub fn get_dns_statistics() -> Option<DnsStatistics> {
-    unsafe {
-        DNS_PRIVACY_MANAGER.as_ref().map(|m| m.get_statistics())
-    }
+    unsafe { DNS_PRIVACY_MANAGER.as_ref().map(|m| m.get_statistics()) }
 }
 
 pub fn clear_dns_cache() {
@@ -689,7 +736,8 @@ fn calculate_domain_entropy(s: &str) -> f32 {
     }
 
     let len = s.len() as f32;
-    let entropy: f32 = char_counts.iter()
+    let entropy: f32 = char_counts
+        .iter()
         .filter(|&&count| count > 0)
         .map(|&count| {
             let p = count as f32 / len;

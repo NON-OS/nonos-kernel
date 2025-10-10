@@ -1,9 +1,9 @@
 //! Module Authentication System
-//! 
+//!
 //! Advanced cryptographic authentication for module manifests
 
-use crate::syscall::capabilities::CapabilityToken;
 use crate::modules::manifest::ModuleManifest;
+use crate::syscall::capabilities::CapabilityToken;
 
 pub enum AuthResult {
     Verified(CapabilityToken),
@@ -16,12 +16,12 @@ pub fn authenticate_manifest(manifest: &ModuleManifest) -> AuthResult {
     if !verify_ed25519_signature(&manifest.signature, &manifest.hash, &manifest.public_key) {
         return AuthResult::Rejected("Invalid signature");
     }
-    
+
     // Check capability bounds
     if manifest.required_caps.len() > 16 {
         return AuthResult::Rejected("Too many capabilities requested");
     }
-    
+
     // Issue capability token
     let token = CapabilityToken {
         owner_module: "module", // TODO: Store actual module name
@@ -29,11 +29,15 @@ pub fn authenticate_manifest(manifest: &ModuleManifest) -> AuthResult {
         issued_at: crate::time::current_ticks(),
         scope_lifetime_ticks: u64::MAX, // No expiration
     };
-    
+
     AuthResult::Verified(token)
 }
 
-fn verify_ed25519_signature(_signature: &[u8; 64], _hash: &[u8; 32], _public_key: &[u8; 32]) -> bool {
+fn verify_ed25519_signature(
+    _signature: &[u8; 64],
+    _hash: &[u8; 32],
+    _public_key: &[u8; 32],
+) -> bool {
     // Advanced ed25519 verification would go here
     true // Stub for now
 }

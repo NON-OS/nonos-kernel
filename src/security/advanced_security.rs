@@ -9,12 +9,12 @@
 //! - Kernel stack canaries with entropy rotation
 //! - Advanced ASLR with high-entropy randomization
 
-use core::sync::atomic::{AtomicU64, AtomicBool, Ordering};
+use alloc::collections::BTreeMap;
+use core::sync::atomic::{AtomicBool, AtomicU64, Ordering};
+use spin::RwLock;
 use x86_64::registers::control::{Cr4, Cr4Flags};
 use x86_64::registers::model_specific::Msr;
 use x86_64::VirtAddr;
-use spin::RwLock;
-use alloc::collections::BTreeMap;
 
 /// Advanced security features configuration
 #[derive(Debug, Clone)]
@@ -85,7 +85,7 @@ impl IntelCETManager {
 
         // Setup shadow stack
         self.setup_shadow_stack()?;
-        
+
         // Enable Indirect Branch Tracking
         self.enable_ibt()?;
 
@@ -98,17 +98,17 @@ impl IntelCETManager {
         unsafe {
             let cpuid = core::arch::x86_64::__cpuid(0x7);
             (cpuid.ecx & (1 << 7)) != 0 // CET_SS (Shadow Stack)
-                && (cpuid.edx & (1 << 20)) != 0 // CET_IBT (Indirect Branch Tracking)
+                && (cpuid.edx & (1 << 20)) != 0 // CET_IBT (Indirect Branch
+                                                // Tracking)
         }
     }
 
     fn setup_shadow_stack(&self) -> Result<(), &'static str> {
         const SHADOW_STACK_SIZE: u64 = 64 * 1024; // 64KB shadow stack
-        
+
         // Allocate shadow stack memory
-        let shadow_stack_addr = crate::memory::alloc::allocate_kernel_pages(
-            SHADOW_STACK_SIZE as usize / 4096
-        )?;
+        let shadow_stack_addr =
+            crate::memory::alloc::allocate_kernel_pages(SHADOW_STACK_SIZE as usize / 4096)?;
 
         // Configure shadow stack pointer
         unsafe {
@@ -141,13 +141,9 @@ impl IntelCETManager {
     /// Handle CET violation
     pub fn handle_cet_violation(&self, violation_type: CETViolationType, addr: VirtAddr) {
         self.cet_violation_count.fetch_add(1, Ordering::SeqCst);
-        
+
         // Log security event
-        crate::log::security_log!(
-            "CET Violation: {:?} at address {:?}", 
-            violation_type, 
-            addr
-        );
+        crate::log::security_log!("CET Violation: {:?} at address {:?}", violation_type, addr);
 
         // Terminate offending process
         if let Some(current_process) = crate::process::current_process() {
@@ -183,27 +179,27 @@ impl SMEPSMAPManager {
     pub fn initialize(&self) -> Result<(), &'static str> {
         unsafe {
             let mut cr4 = Cr4::read();
-            
+
             // Enable SMEP (bit 20)
             if self.check_smep_support() {
                 cr4 |= Cr4Flags::SUPERVISOR_MODE_EXECUTION_PROTECTION;
                 self.smep_enabled.store(true, Ordering::SeqCst);
             }
-            
+
             // Enable SMAP (bit 21)
             if self.check_smap_support() {
                 cr4 |= Cr4Flags::SUPERVISOR_MODE_ACCESS_PREVENTION;
                 self.smap_enabled.store(true, Ordering::SeqCst);
             }
-            
+
             // Enable UMIP (bit 11) - User Mode Instruction Prevention
             if self.check_umip_support() {
                 cr4 |= Cr4Flags::USER_MODE_INSTRUCTION_PREVENTION;
             }
-            
+
             Cr4::write(cr4);
         }
-        
+
         Ok(())
     }
 
@@ -264,19 +260,19 @@ impl AdvancedStackCanary {
     /// Get current stack canary for this CPU
     pub fn get_canary(&self) -> u64 {
         let cpu_id = crate::sched::current_cpu_id();
-        
+
         if let Some(canaries) = self.per_cpu_canaries.try_read() {
             if let Some(&canary) = canaries.get(&cpu_id) {
                 return canary;
             }
         }
-        
+
         // Generate new per-CPU canary
         let new_canary = Self::generate_random_canary();
         if let Some(mut canaries) = self.per_cpu_canaries.try_write() {
             canaries.insert(cpu_id, new_canary);
         }
-        
+
         new_canary
     }
 
@@ -284,14 +280,14 @@ impl AdvancedStackCanary {
     pub fn rotate_canaries(&self) {
         let new_master = Self::generate_random_canary();
         self.master_canary.store(new_master, Ordering::SeqCst);
-        
+
         // Update per-CPU canaries
         if let Some(mut canaries) = self.per_cpu_canaries.try_write() {
             for (cpu_id, canary) in canaries.iter_mut() {
                 *canary = Self::generate_random_canary() ^ new_master ^ (*cpu_id as u64);
             }
         }
-        
+
         self.canary_rotation_counter.fetch_add(1, Ordering::SeqCst);
     }
 
@@ -301,8 +297,8 @@ impl AdvancedStackCanary {
         if provided_canary != expected {
             // Stack smashing detected!
             crate::log::security_log!(
-                "STACK SMASHING DETECTED: expected {:#x}, got {:#x}", 
-                expected, 
+                "STACK SMASHING DETECTED: expected {:#x}, got {:#x}",
+                expected,
                 provided_canary
             );
             false
@@ -346,14 +342,14 @@ impl CFIManager {
     fn register_kernel_targets(&self) -> Result<(), &'static str> {
         // Register syscall handler targets
         if let Some(mut targets) = self.indirect_call_targets.try_write() {
-            // Example: register kernel functions as valid CFI targets  
+            // Example: register kernel functions as valid CFI targets
             targets.insert(
                 0xFFFF_8000_0010_0000, // Example kernel function address
                 CFITarget {
                     address: 0xFFFF_8000_0010_0000,
                     expected_signature: 0xDEADC0DE,
                     call_count: 0,
-                }
+                },
             );
         }
         Ok(())
@@ -374,10 +370,7 @@ impl CFIManager {
 
         // Invalid indirect call target
         self.violation_count.fetch_add(1, Ordering::SeqCst);
-        crate::log::security_log!(
-            "CFI Violation: Invalid indirect call target {:#x}", 
-            target
-        );
+        crate::log::security_log!("CFI Violation: Invalid indirect call target {:#x}", target);
         false
     }
 }
@@ -405,13 +398,13 @@ impl AdvancedASLR {
         // Generate high-entropy KASLR slide
         let slide = self.generate_kaslr_slide()?;
         self.kaslr_slide.store(slide, Ordering::SeqCst);
-        
+
         crate::log::info!(
             "Advanced ASLR initialized with {}-bit entropy, KASLR slide: {:#x}",
             self.entropy_bits,
             slide
         );
-        
+
         Ok(())
     }
 
@@ -419,7 +412,7 @@ impl AdvancedASLR {
         // Generate cryptographically secure random slide
         let entropy_mask = (1u64 << self.entropy_bits) - 1;
         let base_slide = crate::crypto::util::secure_random_u64() & entropy_mask;
-        
+
         // Align to page boundaries and ensure it's in valid kernel range
         let slide = (base_slide << 12) & 0x7FFF_FFFF_F000_0000;
         Ok(slide)
@@ -430,7 +423,7 @@ impl AdvancedASLR {
         if !self.stack_randomization.load(Ordering::SeqCst) {
             return base;
         }
-        
+
         let random_offset = (crate::crypto::util::secure_random_u64() & 0xFFFF) << 4;
         VirtAddr::new(base.as_u64().wrapping_sub(random_offset))
     }
@@ -440,11 +433,11 @@ impl AdvancedASLR {
         if !self.heap_randomization.load(Ordering::SeqCst) {
             return base;
         }
-        
+
         let max_offset = 0x4000_0000u64; // 1GB max randomization
         let random_offset = crate::crypto::util::secure_random_u64() % max_offset;
         let aligned_offset = (random_offset >> 12) << 12; // Page align
-        
+
         VirtAddr::new(base.as_u64().wrapping_add(aligned_offset))
     }
 }
@@ -526,12 +519,9 @@ impl AdvancedSecurityManager {
     /// Handle security violation
     pub fn handle_security_violation(&self, violation_type: SecurityViolationType) {
         self.security_violations.fetch_add(1, Ordering::SeqCst);
-        
-        crate::log::security_log!(
-            "Security violation detected: {:?}",
-            violation_type
-        );
-        
+
+        crate::log::security_log!("Security violation detected: {:?}", violation_type);
+
         // Take defensive action based on violation type
         match violation_type {
             SecurityViolationType::StackSmashing => {
@@ -591,7 +581,7 @@ pub fn init_advanced_security() -> Result<(), &'static str> {
     let config = AdvancedSecurityConfig::default();
     let manager = AdvancedSecurityManager::new(config);
     manager.initialize()?;
-    
+
     SECURITY_MANAGER.call_once(|| manager);
     Ok(())
 }

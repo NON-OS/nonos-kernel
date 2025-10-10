@@ -1,12 +1,13 @@
 //! NØNOS Inter-Process Communication (IPC) Subsystem
 //!
-//! Provides capability-enforced, memory-safe message channels between `.mod` instances.
-//! This subsystem forms the internal microbus for ZeroState module communication. Channels
-//! are enforced through declared IPC capabilities and designed for high-assurance sandboxing.
+//! Provides capability-enforced, memory-safe message channels between `.mod`
+//! instances. This subsystem forms the internal microbus for ZeroState module
+//! communication. Channels are enforced through declared IPC capabilities and
+//! designed for high-assurance sandboxing.
 
 use crate::syscall::capabilities::{Capability, CapabilityToken};
-use core::sync::atomic::{AtomicUsize, AtomicU64, Ordering};
 use alloc::{collections::VecDeque, string::String, sync::Arc, vec::Vec};
+use core::sync::atomic::{AtomicU64, AtomicUsize, Ordering};
 use spin::Mutex;
 
 /// Maximum payload size per IPC message (bytes)
@@ -32,12 +33,7 @@ impl IpcMessage {
         }
         let mut payload = [0u8; MAX_MSG_SIZE];
         payload[..data.len()].copy_from_slice(data);
-        Ok(Self {
-            from,
-            to,
-            payload,
-            len: data.len(),
-        })
+        Ok(Self { from, to, payload, len: data.len() })
     }
 
     /// Validate message integrity using CRC32 checksum
@@ -46,7 +42,7 @@ impl IpcMessage {
         if self.len > MAX_MSG_SIZE || self.from.is_empty() || self.to.is_empty() {
             return false;
         }
-        
+
         // Calculate CRC32 of payload for integrity verification
         let mut crc: u32 = 0xFFFFFFFF;
         for i in 0..self.len {
@@ -60,7 +56,7 @@ impl IpcMessage {
             }
         }
         crc ^= 0xFFFFFFFF;
-        
+
         // Message is valid if CRC is reasonable (not all zeros/ones)
         crc != 0 && crc != 0xFFFFFFFF
     }
@@ -138,10 +134,7 @@ pub struct IpcBus {
 impl IpcBus {
     pub const fn new() -> Self {
         const NONE: Option<Arc<IpcChannel>> = None;
-        Self {
-            channels: Mutex::new([NONE; MAX_CHANNELS]),
-            active_count: AtomicUsize::new(0),
-        }
+        Self { channels: Mutex::new([NONE; MAX_CHANNELS]), active_count: AtomicUsize::new(0) }
     }
 
     /// Open a new channel between modules with access verification.
@@ -183,17 +176,13 @@ impl IpcBus {
     /// List all active channel routes.
     pub fn list_routes(&self) -> Vec<(&'static str, &'static str)> {
         let slots = self.channels.lock();
-        slots
-            .iter()
-            .filter_map(|slot| slot.as_ref())
-            .map(|ch| (ch.from, ch.to))
-            .collect()
+        slots.iter().filter_map(|slot| slot.as_ref()).map(|ch| (ch.from, ch.to)).collect()
     }
 
     /// Get next message from any active channel
     pub fn get_next_message(&self) -> Option<IpcMessage> {
         let channels = self.channels.lock();
-        
+
         // Round-robin through all channels to get the next message
         for channel_opt in channels.iter() {
             if let Some(channel) = channel_opt.as_ref() {
@@ -210,7 +199,7 @@ impl IpcBus {
         let channels = self.channels.lock();
         let mut timed_out = Vec::new();
         let current_time = crate::time::timestamp_millis();
-        
+
         for channel_opt in channels.iter() {
             if let Some(channel) = channel_opt.as_ref() {
                 // Check for messages older than timeout threshold (5 seconds)
@@ -230,7 +219,7 @@ impl IpcBus {
         let channels = self.channels.lock();
         let mut dead_indices = Vec::new();
         let current_time = crate::time::timestamp_millis();
-        
+
         for (index, channel_opt) in channels.iter().enumerate() {
             if let Some(channel) = channel_opt.as_ref() {
                 // Consider a channel dead if no activity for 30 seconds
@@ -273,7 +262,10 @@ impl IpcBus {
     }
 
     /// Send system message without capability check
-    pub fn send_system_message(&self, envelope: super::message::IpcEnvelope) -> Result<(), &'static str> {
+    pub fn send_system_message(
+        &self,
+        envelope: super::message::IpcEnvelope,
+    ) -> Result<(), &'static str> {
         if let Some(channel) = self.find_channel(envelope.from, envelope.to) {
             let msg = IpcMessage::new(envelope.from, envelope.to, &envelope.data)?;
             channel.send(msg)

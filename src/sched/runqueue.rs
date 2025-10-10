@@ -1,6 +1,6 @@
 // sched/runqueue.rs
 //
-// NØNOS runqueue 
+// NØNOS runqueue
 // - Per-CPU multilevel feedback queues (O(1) pick-next via bitmap).
 // - 5 public priority bands (Realtime..Idle) mapped into 8 internal levels.
 // - Aging to prevent starvation (configurable per level).
@@ -15,21 +15,22 @@
 #![allow(dead_code)]
 
 use core::sync::atomic::{AtomicU64, Ordering};
-use spin::Mutex;
 use heapless::Deque;
+use spin::Mutex;
 
-use crate::sched::task::{TaskId, Priority};
 use crate::memory::proof::{self, CapTag};
+use crate::sched::task::{Priority, TaskId};
 
 // —————————————————— config ——————————————————
 
-const LEVELS: usize = 8;           // internal levels (0=highest)
-const QCAP: usize   = 1024;        // per-level FIFO capacity
+const LEVELS: usize = 8; // internal levels (0=highest)
+const QCAP: usize = 1024; // per-level FIFO capacity
 
 // Timeslice (ms) per public band; internal levels derive from band.
 pub const TIMESLICE_MS: [u32; 5] = [2, 4, 6, 8, 0]; // Idle=0 => cooperative
 
-// Aging: every AGING_TICKS ticks, bump runnable entities up one level (toward high).
+// Aging: every AGING_TICKS ticks, bump runnable entities up one level (toward
+// high).
 const AGING_TICKS: u32 = 64;
 
 // Mapping band→internal levels (compact and simple for now)
@@ -38,10 +39,10 @@ fn level_of(p: Priority) -> usize {
     match p {
         Priority::Realtime => 0,
         Priority::Critical => 0, // Same as realtime
-        Priority::High     => 1,
-        Priority::Normal   => 3, // leave level 2 for boosted wakes
-        Priority::Low      => 5,
-        Priority::Idle     => 7,
+        Priority::High => 1,
+        Priority::Normal => 3, // leave level 2 for boosted wakes
+        Priority::Low => 5,
+        Priority::Idle => 7,
     }
 }
 #[inline]
@@ -59,23 +60,44 @@ fn band_of_level(l: usize) -> Priority {
 
 struct CpuRq {
     q: [Deque<TaskId, QCAP>; LEVELS],
-    mask: u16,          // bit i set when level i non-empty
-    tick_ctr: u32,      // for aging
+    mask: u16,     // bit i set when level i non-empty
+    tick_ctr: u32, // for aging
 }
 impl CpuRq {
     const fn new() -> Self {
         Self {
-            q: [Deque::new(), Deque::new(), Deque::new(), Deque::new(),
-                Deque::new(), Deque::new(), Deque::new(), Deque::new()],
+            q: [
+                Deque::new(),
+                Deque::new(),
+                Deque::new(),
+                Deque::new(),
+                Deque::new(),
+                Deque::new(),
+                Deque::new(),
+                Deque::new(),
+            ],
             mask: 0,
             tick_ctr: 0,
         }
     }
-    #[inline] fn mark(&mut self, lvl: usize) { self.mask |= 1 << lvl; }
-    #[inline] fn unmark_if_empty(&mut self, lvl: usize) { if self.q[lvl].is_empty() { self.mask &= !(1 << lvl); } }
-    #[inline] fn highest_nonempty(&self) -> Option<usize> {
+    #[inline]
+    fn mark(&mut self, lvl: usize) {
+        self.mask |= 1 << lvl;
+    }
+    #[inline]
+    fn unmark_if_empty(&mut self, lvl: usize) {
+        if self.q[lvl].is_empty() {
+            self.mask &= !(1 << lvl);
+        }
+    }
+    #[inline]
+    fn highest_nonempty(&self) -> Option<usize> {
         // scan 0..LEVELS-1 (tiny), or use bit tricks
-        for i in 0..LEVELS { if (self.mask & (1 << i)) != 0 { return Some(i); } }
+        for i in 0..LEVELS {
+            if (self.mask & (1 << i)) != 0 {
+                return Some(i);
+            }
+        }
         None
     }
 }
@@ -84,15 +106,20 @@ impl CpuRq {
 static RQ: Mutex<CpuRq> = Mutex::new(CpuRq::new());
 static CURRENT_TID: AtomicU64 = AtomicU64::new(0); // 0 => none/idle
 
-#[inline] pub fn current_tid() -> TaskId { TaskId(CURRENT_TID.load(Ordering::Relaxed)) }
-#[inline] pub fn set_current(t: Option<TaskId>) {
+#[inline]
+pub fn current_tid() -> TaskId {
+    TaskId(CURRENT_TID.load(Ordering::Relaxed))
+}
+#[inline]
+pub fn set_current(t: Option<TaskId>) {
     CURRENT_TID.store(t.map(|x| x.0).unwrap_or(0), Ordering::Relaxed);
 }
 
 // —————————————————— public API ——————————————————
 
 /// Enqueue at the tail of its level.
-/// Use for newly runnable or after voluntary yield; timer-driven rotation uses `rotate_after_run`.
+/// Use for newly runnable or after voluntary yield; timer-driven rotation uses
+/// `rotate_after_run`.
 pub fn enqueue(tid: TaskId, prio: Priority) {
     let lvl = level_of(prio);
     let mut rq = RQ.lock();
@@ -101,7 +128,8 @@ pub fn enqueue(tid: TaskId, prio: Priority) {
     proof::audit_phys_alloc(0x1001, ((tid.0 as u64) << 8) | (lvl as u64), CapTag::KERNEL);
 }
 
-/// Dequeue a specific TID from whatever level it currently sits in (O(n) in-band).
+/// Dequeue a specific TID from whatever level it currently sits in (O(n)
+/// in-band).
 pub fn dequeue(tid: TaskId) {
     let mut rq = RQ.lock();
     for lvl in 0..LEVELS {
@@ -131,7 +159,9 @@ pub fn pick_next() -> Option<(TaskId, Priority)> {
     let mut rq = RQ.lock();
     // aging bookkeeping
     rq.tick_ctr = rq.tick_ctr.wrapping_add(1);
-    if rq.tick_ctr % AGING_TICKS == 0 { aging_step(&mut rq); }
+    if rq.tick_ctr % AGING_TICKS == 0 {
+        aging_step(&mut rq);
+    }
 
     let lvl = rq.highest_nonempty()?;
     let tid = rq.q[lvl].pop_front()?;
@@ -141,7 +171,8 @@ pub fn pick_next() -> Option<(TaskId, Priority)> {
     Some((tid, prio))
 }
 
-/// After a time slice, rotate current task to tail of its level (unless it changed).
+/// After a time slice, rotate current task to tail of its level (unless it
+/// changed).
 pub fn rotate_after_run(tid: TaskId, prio: Priority) {
     let lvl = level_of(prio);
     let mut rq = RQ.lock();
@@ -167,10 +198,10 @@ pub fn wake(tid: TaskId, base_prio: Priority, boost: bool) {
         let boosted = match base_prio {
             Priority::Realtime => Priority::Realtime,
             Priority::Critical => Priority::Critical, // Can't boost beyond critical
-            Priority::High     => Priority::Realtime,
-            Priority::Normal   => Priority::High,
-            Priority::Low      => Priority::Normal,
-            Priority::Idle     => Priority::Low,
+            Priority::High => Priority::Realtime,
+            Priority::Normal => Priority::High,
+            Priority::Low => Priority::Normal,
+            Priority::Idle => Priority::Low,
         };
         enqueue(tid, boosted);
     } else {
@@ -210,10 +241,10 @@ fn aging_step(rq: &mut CpuRq) {
 pub fn timeslice_ms_for(prio: Priority) -> u32 {
     match prio {
         Priority::Realtime => TIMESLICE_MS[0],
-        Priority::High     => TIMESLICE_MS[1],
-        Priority::Normal   => TIMESLICE_MS[2],
-        Priority::Low      => TIMESLICE_MS[3],
-        Priority::Idle     => TIMESLICE_MS[4],
+        Priority::High => TIMESLICE_MS[1],
+        Priority::Normal => TIMESLICE_MS[2],
+        Priority::Low => TIMESLICE_MS[3],
+        Priority::Idle => TIMESLICE_MS[4],
         Priority::Critical => TIMESLICE_MS[0], // Same as realtime
     }
 }

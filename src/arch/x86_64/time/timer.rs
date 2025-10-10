@@ -1,5 +1,5 @@
 //! Advanced Timer System
-//! 
+//!
 //! High-resolution timing with TSC and HPET support
 
 use core::sync::atomic::{AtomicU64, Ordering};
@@ -27,8 +27,8 @@ pub fn now_ns_checked() -> Option<u64> {
 }
 
 /// Sleep for specified nanoseconds
-pub fn sleep_long_ns<F>(ns: u64, callback: F) 
-where 
+pub fn sleep_long_ns<F>(ns: u64, callback: F)
+where
     F: Fn(),
 {
     let start = now_ns();
@@ -49,19 +49,19 @@ pub fn init() {
 /// Initialize timer system with frequency parameter
 pub fn init_with_freq(freq_hz: u32) {
     BOOT_TIME.store(rdtsc(), Ordering::SeqCst);
-    
+
     // Configure PIT (Programmable Interval Timer) frequency
     unsafe {
         let divisor = 1193182 / freq_hz; // PIT base frequency is 1.193182 MHz
-        
+
         // Set PIT to mode 3 (square wave generator)
         crate::arch::x86_64::port::outb(0x43, 0x36);
-        
+
         // Send frequency divisor
         crate::arch::x86_64::port::outb(0x40, (divisor & 0xFF) as u8);
         crate::arch::x86_64::port::outb(0x40, ((divisor >> 8) & 0xFF) as u8);
     }
-    
+
     // Try to configure HPET (High Precision Event Timer) if available
     if let Some(hpet_base) = detect_hpet() {
         configure_hpet(hpet_base, freq_hz);
@@ -88,20 +88,21 @@ fn configure_hpet(hpet_base: u64, freq_hz: u32) {
         // Read HPET capabilities
         let capabilities = core::ptr::read_volatile(hpet_base as *const u64);
         let counter_period = (capabilities >> 32) as u32; // femtoseconds per tick
-        
+
         // Calculate comparator value for desired frequency
-        let ticks_per_interrupt = (1_000_000_000_000_000u64 / counter_period as u64) / freq_hz as u64;
-        
+        let ticks_per_interrupt =
+            (1_000_000_000_000_000u64 / counter_period as u64) / freq_hz as u64;
+
         // Configure timer 0 for periodic interrupts
         let timer0_config_addr = (hpet_base + 0x100) as *mut u64;
         let timer0_comparator_addr = (hpet_base + 0x108) as *mut u64;
-        
+
         // Set timer 0 to periodic mode, enable interrupt
         core::ptr::write_volatile(timer0_config_addr, 0x004C); // Periodic, edge-triggered, IRQ 0
-        
+
         // Set comparator value
         core::ptr::write_volatile(timer0_comparator_addr, ticks_per_interrupt);
-        
+
         // Enable HPET
         let general_config_addr = (hpet_base + 0x010) as *mut u64;
         core::ptr::write_volatile(general_config_addr, 1); // Enable HPET
@@ -131,7 +132,7 @@ pub fn busy_sleep_ns(ns: u64) {
 
 /// High resolution timer callback
 pub fn hrtimer_after_ns<F>(ns: u64, callback: F) -> u64
-where 
+where
     F: Fn(),
 {
     // Simple implementation - execute callback after sleep

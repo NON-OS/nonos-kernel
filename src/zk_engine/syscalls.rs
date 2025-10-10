@@ -6,10 +6,10 @@
 //! - Performance optimizations
 //! - Error handling and logging
 
+use super::{get_zk_engine, ZKError, ZKProof};
+use crate::process::real_process::ProcessControlBlock;
 use alloc::vec::Vec;
 use core::slice;
-use crate::process::real_process::ProcessControlBlock;
-use super::{ZKProof, ZKError, get_zk_engine};
 
 /// System call numbers for ZK operations
 pub const SYS_ZK_PROVE: usize = 400;
@@ -18,10 +18,10 @@ pub const SYS_ZK_COMPILE_CIRCUIT: usize = 402;
 pub const SYS_ZK_GET_STATS: usize = 403;
 
 /// Maximum sizes for syscall parameters (security limits)
-const MAX_WITNESS_SIZE: usize = 1_000_000;  // 1MB
-const MAX_PROOF_SIZE: usize = 10_000;       // 10KB
-const MAX_PUBLIC_INPUTS: usize = 1000;       // 1000 inputs
-const MAX_CONSTRAINTS: usize = 100_000;      // 100K constraints
+const MAX_WITNESS_SIZE: usize = 1_000_000; // 1MB
+const MAX_PROOF_SIZE: usize = 10_000; // 10KB
+const MAX_PUBLIC_INPUTS: usize = 1000; // 1000 inputs
+const MAX_CONSTRAINTS: usize = 100_000; // 100K constraints
 
 /// ZK Prove syscall parameters
 #[repr(C)]
@@ -73,7 +73,6 @@ pub fn handle_zk_syscall(
     _arg5: usize,
     process: &ProcessControlBlock,
 ) -> Result<usize, &'static str> {
-    
     // Check if process has ZK permissions
     if !check_zk_permissions(process) {
         return Err("Process lacks ZK permissions");
@@ -89,16 +88,17 @@ pub fn handle_zk_syscall(
 }
 
 /// sys_zk_prove: Generate a zero-knowledge proof
-pub fn sys_zk_prove(params_ptr: usize, process: &ProcessControlBlock) -> Result<usize, &'static str> {
+pub fn sys_zk_prove(
+    params_ptr: usize,
+    process: &ProcessControlBlock,
+) -> Result<usize, &'static str> {
     // Validate parameters pointer
     if !is_valid_user_ptr(params_ptr, core::mem::size_of::<ZKProveParams>(), process) {
         return Err("Invalid parameters pointer");
     }
 
     // Read parameters from user space
-    let params = unsafe {
-        &*(params_ptr as *const ZKProveParams)
-    };
+    let params = unsafe { &*(params_ptr as *const ZKProveParams) };
 
     // Validate parameter values
     if params.witness_len > MAX_WITNESS_SIZE {
@@ -123,14 +123,11 @@ pub fn sys_zk_prove(params_ptr: usize, process: &ProcessControlBlock) -> Result<
     }
 
     // Copy witness data from user space
-    let witness_data = unsafe {
-        slice::from_raw_parts(params.witness_ptr, params.witness_len)
-    };
+    let witness_data = unsafe { slice::from_raw_parts(params.witness_ptr, params.witness_len) };
 
     // Copy public inputs from user space
-    let public_inputs_data = unsafe {
-        slice::from_raw_parts(params.public_inputs_ptr, params.public_inputs_len)
-    };
+    let public_inputs_data =
+        unsafe { slice::from_raw_parts(params.public_inputs_ptr, params.public_inputs_len) };
 
     // Deserialize witness (simplified format: length-prefixed values)
     let witness = match deserialize_witness(witness_data) {
@@ -153,7 +150,7 @@ pub fn sys_zk_prove(params_ptr: usize, process: &ProcessControlBlock) -> Result<
         Err(ZKError::ProvingFailed) => return Err("Proof generation failed"),
         Err(_) => return Err("ZK engine error"),
     };
-    
+
     let proving_time = crate::time::timestamp_millis() - start_time;
 
     // Serialize proof
@@ -167,7 +164,7 @@ pub fn sys_zk_prove(params_ptr: usize, process: &ProcessControlBlock) -> Result<
     unsafe {
         let user_buffer = slice::from_raw_parts_mut(params.proof_output_ptr, proof_bytes.len());
         user_buffer.copy_from_slice(&proof_bytes);
-        
+
         // Update output length
         *(params.proof_output_len) = proof_bytes.len();
     }
@@ -175,7 +172,9 @@ pub fn sys_zk_prove(params_ptr: usize, process: &ProcessControlBlock) -> Result<
     // Log the operation
     crate::log::info!(
         "Process {} generated ZK proof for circuit {} in {}ms",
-        process.pid, params.circuit_id, proving_time
+        process.pid,
+        params.circuit_id,
+        proving_time
     );
 
     // Update process ZK usage statistics
@@ -186,16 +185,17 @@ pub fn sys_zk_prove(params_ptr: usize, process: &ProcessControlBlock) -> Result<
 }
 
 /// sys_zk_verify: Verify a zero-knowledge proof
-pub fn sys_zk_verify(params_ptr: usize, process: &ProcessControlBlock) -> Result<usize, &'static str> {
+pub fn sys_zk_verify(
+    params_ptr: usize,
+    process: &ProcessControlBlock,
+) -> Result<usize, &'static str> {
     // Validate parameters pointer
     if !is_valid_user_ptr(params_ptr, core::mem::size_of::<ZKVerifyParams>(), process) {
         return Err("Invalid parameters pointer");
     }
 
     // Read parameters from user space
-    let params = unsafe {
-        &*(params_ptr as *const ZKVerifyParams)
-    };
+    let params = unsafe { &*(params_ptr as *const ZKVerifyParams) };
 
     // Validate parameter values
     if params.proof_len > MAX_PROOF_SIZE {
@@ -212,9 +212,7 @@ pub fn sys_zk_verify(params_ptr: usize, process: &ProcessControlBlock) -> Result
     }
 
     // Copy proof data from user space
-    let proof_data = unsafe {
-        slice::from_raw_parts(params.proof_ptr, params.proof_len)
-    };
+    let proof_data = unsafe { slice::from_raw_parts(params.proof_ptr, params.proof_len) };
 
     // Deserialize proof
     let proof = match get_zk_engine().deserialize_proof(proof_data) {
@@ -230,7 +228,7 @@ pub fn sys_zk_verify(params_ptr: usize, process: &ProcessControlBlock) -> Result
         Err(ZKError::VerificationFailed) => return Err("Verification failed"),
         Err(_) => return Err("ZK engine error"),
     };
-    
+
     let verification_time = crate::time::timestamp_millis() - start_time;
 
     // Copy result to user space
@@ -241,18 +239,26 @@ pub fn sys_zk_verify(params_ptr: usize, process: &ProcessControlBlock) -> Result
     // Log the operation
     crate::log::info!(
         "Process {} verified ZK proof for circuit {} in {}ms (result: {})",
-        process.pid, proof.circuit_id, verification_time, is_valid
+        process.pid,
+        proof.circuit_id,
+        verification_time,
+        is_valid
     );
 
     // Update process ZK usage statistics
     process.zk_proofs_verified.fetch_add(1, core::sync::atomic::Ordering::Relaxed);
-    process.zk_verification_time_ms.fetch_add(verification_time, core::sync::atomic::Ordering::Relaxed);
+    process
+        .zk_verification_time_ms
+        .fetch_add(verification_time, core::sync::atomic::Ordering::Relaxed);
 
     Ok(0) // Success
 }
 
 /// sys_zk_compile_circuit: Compile a circuit from constraints
-pub fn sys_zk_compile_circuit(params_ptr: usize, process: &ProcessControlBlock) -> Result<usize, &'static str> {
+pub fn sys_zk_compile_circuit(
+    params_ptr: usize,
+    process: &ProcessControlBlock,
+) -> Result<usize, &'static str> {
     // Check if process has circuit compilation permissions
     if !check_circuit_compilation_permissions(process) {
         return Err("Process lacks circuit compilation permissions");
@@ -264,12 +270,11 @@ pub fn sys_zk_compile_circuit(params_ptr: usize, process: &ProcessControlBlock) 
     }
 
     // Read parameters from user space
-    let params = unsafe {
-        &*(params_ptr as *const ZKCompileParams)
-    };
+    let params = unsafe { &*(params_ptr as *const ZKCompileParams) };
 
     // Validate parameter values
-    if params.constraints_len > MAX_CONSTRAINTS * 64 { // Rough estimate
+    if params.constraints_len > MAX_CONSTRAINTS * 64 {
+        // Rough estimate
         return Err("Too many constraints");
     }
 
@@ -287,9 +292,8 @@ pub fn sys_zk_compile_circuit(params_ptr: usize, process: &ProcessControlBlock) 
     }
 
     // Copy constraints data from user space
-    let constraints_data = unsafe {
-        slice::from_raw_parts(params.constraints_ptr, params.constraints_len)
-    };
+    let constraints_data =
+        unsafe { slice::from_raw_parts(params.constraints_ptr, params.constraints_len) };
 
     // Deserialize constraints
     let constraints = match deserialize_constraints(constraints_data) {
@@ -305,7 +309,7 @@ pub fn sys_zk_compile_circuit(params_ptr: usize, process: &ProcessControlBlock) 
         Err(ZKError::OutOfMemory) => return Err("Out of memory"),
         Err(_) => return Err("Circuit compilation failed"),
     };
-    
+
     let compilation_time = crate::time::timestamp_millis() - start_time;
 
     // Copy circuit ID to user space
@@ -316,7 +320,9 @@ pub fn sys_zk_compile_circuit(params_ptr: usize, process: &ProcessControlBlock) 
     // Log the operation
     crate::log::info!(
         "Process {} compiled circuit {} in {}ms",
-        process.pid, circuit_id, compilation_time
+        process.pid,
+        circuit_id,
+        compilation_time
     );
 
     // Update process ZK usage statistics
@@ -326,7 +332,10 @@ pub fn sys_zk_compile_circuit(params_ptr: usize, process: &ProcessControlBlock) 
 }
 
 /// sys_zk_get_stats: Get ZK engine statistics
-pub fn sys_zk_get_stats(stats_ptr: usize, process: &ProcessControlBlock) -> Result<usize, &'static str> {
+pub fn sys_zk_get_stats(
+    stats_ptr: usize,
+    process: &ProcessControlBlock,
+) -> Result<usize, &'static str> {
     // Validate parameters pointer
     if !is_valid_user_ptr(stats_ptr, core::mem::size_of::<ZKStatsUserspace>(), process) {
         return Err("Invalid stats pointer");
@@ -334,19 +343,30 @@ pub fn sys_zk_get_stats(stats_ptr: usize, process: &ProcessControlBlock) -> Resu
 
     // Get engine statistics
     let engine_stats = get_zk_engine().get_stats();
-    
+
     let total_proofs = engine_stats.proofs_generated.load(core::sync::atomic::Ordering::SeqCst);
-    let total_verifications = engine_stats.proofs_verified.load(core::sync::atomic::Ordering::SeqCst);
-    let total_proving_time = engine_stats.total_proving_time_ms.load(core::sync::atomic::Ordering::SeqCst);
-    let total_verification_time = engine_stats.total_verification_time_ms.load(core::sync::atomic::Ordering::SeqCst);
+    let total_verifications =
+        engine_stats.proofs_verified.load(core::sync::atomic::Ordering::SeqCst);
+    let total_proving_time =
+        engine_stats.total_proving_time_ms.load(core::sync::atomic::Ordering::SeqCst);
+    let total_verification_time =
+        engine_stats.total_verification_time_ms.load(core::sync::atomic::Ordering::SeqCst);
 
     let user_stats = ZKStatsUserspace {
         proofs_generated: total_proofs,
         proofs_verified: total_verifications,
-        verification_failures: engine_stats.verification_failures.load(core::sync::atomic::Ordering::SeqCst),
-        circuits_compiled: engine_stats.circuits_compiled.load(core::sync::atomic::Ordering::SeqCst),
+        verification_failures: engine_stats
+            .verification_failures
+            .load(core::sync::atomic::Ordering::SeqCst),
+        circuits_compiled: engine_stats
+            .circuits_compiled
+            .load(core::sync::atomic::Ordering::SeqCst),
         avg_proving_time_ms: if total_proofs > 0 { total_proving_time / total_proofs } else { 0 },
-        avg_verification_time_ms: if total_verifications > 0 { total_verification_time / total_verifications } else { 0 },
+        avg_verification_time_ms: if total_verifications > 0 {
+            total_verification_time / total_verifications
+        } else {
+            0
+        },
     };
 
     // Copy stats to user space
@@ -367,14 +387,20 @@ fn check_zk_permissions(process: &crate::process::real_process::ProcessControlBl
 }
 
 /// Check if process has circuit compilation permissions (more restricted)
-fn check_circuit_compilation_permissions(process: &crate::process::real_process::ProcessControlBlock) -> bool {
+fn check_circuit_compilation_permissions(
+    process: &crate::process::real_process::ProcessControlBlock,
+) -> bool {
     // Circuit compilation is more privileged - could require special permission
     // For now, same as general ZK permissions
     check_zk_permissions(process)
 }
 
 /// Validate user space pointer
-fn is_valid_user_ptr(ptr: usize, size: usize, process: &crate::process::real_process::ProcessControlBlock) -> bool {
+fn is_valid_user_ptr(
+    ptr: usize,
+    size: usize,
+    process: &crate::process::real_process::ProcessControlBlock,
+) -> bool {
     // Check if pointer is in valid user space range
     if ptr == 0 || size == 0 {
         return false;
@@ -414,7 +440,10 @@ fn deserialize_witness(data: &[u8]) -> Result<Vec<Vec<u8>>, &'static str> {
         }
 
         let witness_len = u32::from_le_bytes([
-            data[offset], data[offset + 1], data[offset + 2], data[offset + 3]
+            data[offset],
+            data[offset + 1],
+            data[offset + 2],
+            data[offset + 3],
         ]) as usize;
         offset += 4;
 
@@ -437,7 +466,9 @@ fn deserialize_public_inputs(data: &[u8]) -> Result<Vec<Vec<u8>>, &'static str> 
 }
 
 /// Deserialize constraints from user space format
-fn deserialize_constraints(data: &[u8]) -> Result<Vec<crate::zk_engine::circuit::Constraint>, &'static str> {
+fn deserialize_constraints(
+    data: &[u8],
+) -> Result<Vec<crate::zk_engine::circuit::Constraint>, &'static str> {
     // Simplified constraint format for now
     if data.len() % 64 != 0 {
         return Err("Invalid constraints format");

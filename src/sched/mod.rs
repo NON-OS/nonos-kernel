@@ -1,15 +1,15 @@
-pub mod scheduler;
-pub mod task;
+pub mod advanced_scheduler;
 pub mod executor;
 pub mod nonos_scheduler;
-pub mod advanced_scheduler;
 pub mod runqueue;
+pub mod scheduler;
+pub mod task;
 
 use alloc::format;
 
 // Re-export main scheduler functions
 pub use executor::run_scheduler;
-pub use task::{kspawn, Priority, Affinity};
+pub use task::{kspawn, Affinity, Priority};
 
 /// Get current CPU ID from APIC
 pub fn current_cpu_id() -> u32 {
@@ -38,13 +38,13 @@ pub fn enter() -> ! {
 /// Initialize the scheduler subsystem
 pub fn init() {
     crate::log::logger::log_info!("Initializing scheduler subsystem");
-    
+
     // Initialize the task executor
     executor::init();
-    
+
     // Initialize the runqueue
     scheduler::init();
-    
+
     crate::log::logger::log_info!("Scheduler subsystem initialized");
 }
 
@@ -69,7 +69,10 @@ pub fn current_scheduler() -> Option<&'static scheduler::Scheduler> {
 /// Spawn a new task
 pub fn spawn_task(name: &str, task_fn: fn(), priority: u8) {
     // Simplified task spawning for compilation
-    crate::log::logger::log_info!("{}", &format!("Spawning task: {} with priority: {}", name, priority));
+    crate::log::logger::log_info!(
+        "{}",
+        &format!("Spawning task: {} with priority: {}", name, priority)
+    );
 }
 
 /// Scheduler tick - delegate to nonos_scheduler

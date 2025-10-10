@@ -2,8 +2,8 @@
 //!
 //! Real VGA driver with hardware register control and multiple color modes
 
-use core::sync::atomic::{AtomicUsize, Ordering};
 use core::cell::UnsafeCell;
+use core::sync::atomic::{AtomicUsize, Ordering};
 use spin::Mutex;
 use x86_64::instructions::port::{Port, PortReadOnly, PortWriteOnly};
 
@@ -63,10 +63,7 @@ struct VgaChar {
 
 impl VgaChar {
     fn new(character: u8, foreground: VgaColor, background: VgaColor) -> VgaChar {
-        VgaChar {
-            character,
-            color: (background as u8) << 4 | (foreground as u8),
-        }
+        VgaChar { character, color: (background as u8) << 4 | (foreground as u8) }
     }
 }
 
@@ -89,7 +86,7 @@ struct VgaState {
 pub struct VgaDriver {
     state: Mutex<VgaState>,
     characters_written: AtomicUsize,
-    
+
     // Hardware ports
     crtc_index: UnsafeCell<Port<u8>>,
     crtc_data: UnsafeCell<Port<u8>>,
@@ -107,7 +104,7 @@ impl VgaDriver {
     /// Create new VGA driver
     pub fn new() -> Self {
         let buffer = unsafe { &mut *(VGA_BUFFER_ADDR as *mut VgaBuffer) };
-        
+
         VgaDriver {
             state: Mutex::new(VgaState {
                 buffer,
@@ -129,24 +126,24 @@ impl VgaDriver {
             input_status: UnsafeCell::new(PortReadOnly::new(VGA_INPUT_STATUS_1)),
         }
     }
-    
+
     /// Initialize VGA hardware
     pub fn initialize(&self) -> Result<(), &'static str> {
         // Set up 80x25 text mode
         self.set_text_mode()?;
-        
+
         // Clear screen
         self.clear_screen();
-        
+
         // Enable cursor
         self.enable_cursor()?;
-        
+
         // Update hardware cursor position
         self.update_cursor_position(0, 0)?;
-        
+
         Ok(())
     }
-    
+
     /// Set VGA to text mode
     fn set_text_mode(&self) -> Result<(), &'static str> {
         // Disable interrupts during mode switch
@@ -155,92 +152,121 @@ impl VgaDriver {
                 // Set miscellaneous register
                 let mut misc_port = PortWriteOnly::new(VGA_MISC_WRITE);
                 misc_port.write(0x67u8);
-                
+
                 // Reset sequencer
-                unsafe { (*self.seq_index.get()).write(0x00); }
-                unsafe { (*self.seq_data.get()).write(0x03); }
-                
+                unsafe {
+                    (*self.seq_index.get()).write(0x00);
+                }
+                unsafe {
+                    (*self.seq_data.get()).write(0x03);
+                }
+
                 // Set sequencer registers
                 let seq_regs = [0x03, 0x00, 0x03, 0x00, 0x02];
                 for (i, &val) in seq_regs.iter().enumerate() {
-                    unsafe { (*self.seq_index.get()).write(i as u8); }
-                    unsafe { (*self.seq_data.get()).write(val); }
+                    unsafe {
+                        (*self.seq_index.get()).write(i as u8);
+                    }
+                    unsafe {
+                        (*self.seq_data.get()).write(val);
+                    }
                 }
-                
+
                 // Unlock CRTC registers
-                unsafe { (*self.crtc_index.get()).write(0x03); }
-                unsafe { (*self.crtc_data.get()).write(0x80 | (*self.crtc_data.get()).read()); }
-                unsafe { (*self.crtc_index.get()).write(0x11); }
-                unsafe { (*self.crtc_data.get()).write(0x7F & (*self.crtc_data.get()).read()); }
-                
+                unsafe {
+                    (*self.crtc_index.get()).write(0x03);
+                }
+                unsafe {
+                    (*self.crtc_data.get()).write(0x80 | (*self.crtc_data.get()).read());
+                }
+                unsafe {
+                    (*self.crtc_index.get()).write(0x11);
+                }
+                unsafe {
+                    (*self.crtc_data.get()).write(0x7F & (*self.crtc_data.get()).read());
+                }
+
                 // Set CRTC registers for 80x25 text mode
                 let crtc_regs = [
-                    0x5F, 0x4F, 0x50, 0x82, 0x55, 0x81, 0xBF, 0x1F,
-                    0x00, 0x47, 0x0D, 0x0E, 0x00, 0x00, 0x00, 0x50,
-                    0x9C, 0x0E, 0x8F, 0x28, 0x1F, 0x96, 0xB9, 0xA3,
-                    0xFF,
+                    0x5F, 0x4F, 0x50, 0x82, 0x55, 0x81, 0xBF, 0x1F, 0x00, 0x47, 0x0D, 0x0E, 0x00,
+                    0x00, 0x00, 0x50, 0x9C, 0x0E, 0x8F, 0x28, 0x1F, 0x96, 0xB9, 0xA3, 0xFF,
                 ];
-                
+
                 for (i, &val) in crtc_regs.iter().enumerate() {
-                    unsafe { (*self.crtc_index.get()).write(i as u8); }
-                    unsafe { (*self.crtc_data.get()).write(val); }
+                    unsafe {
+                        (*self.crtc_index.get()).write(i as u8);
+                    }
+                    unsafe {
+                        (*self.crtc_data.get()).write(val);
+                    }
                 }
-                
+
                 // Set graphics controller registers
                 let gc_regs = [0x00, 0x00, 0x00, 0x00, 0x00, 0x10, 0x0E, 0x00, 0xFF];
                 for (i, &val) in gc_regs.iter().enumerate() {
-                    unsafe { (*self.gc_index.get()).write(i as u8); }
-                    unsafe { (*self.gc_data.get()).write(val); }
+                    unsafe {
+                        (*self.gc_index.get()).write(i as u8);
+                    }
+                    unsafe {
+                        (*self.gc_data.get()).write(val);
+                    }
                 }
-                
+
                 // Set attribute controller registers
                 let ac_regs = [
-                    0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x14, 0x07,
-                    0x38, 0x39, 0x3A, 0x3B, 0x3C, 0x3D, 0x3E, 0x3F,
-                    0x0C, 0x00, 0x0F, 0x08, 0x00,
+                    0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x14, 0x07, 0x38, 0x39, 0x3A, 0x3B, 0x3C,
+                    0x3D, 0x3E, 0x3F, 0x0C, 0x00, 0x0F, 0x08, 0x00,
                 ];
-                
+
                 // Reset attribute controller flip-flop
-                unsafe { (*self.input_status.get()).read(); }
-                
-                for (i, &val) in ac_regs.iter().enumerate() {
-                    unsafe { (*self.ac_index.get()).write(i as u8); }
-                    unsafe { (*self.ac_write.get()).write(val); }
+                unsafe {
+                    (*self.input_status.get()).read();
                 }
-                
+
+                for (i, &val) in ac_regs.iter().enumerate() {
+                    unsafe {
+                        (*self.ac_index.get()).write(i as u8);
+                    }
+                    unsafe {
+                        (*self.ac_write.get()).write(val);
+                    }
+                }
+
                 // Enable video
-                unsafe { (*self.ac_index.get()).write(0x20); }
+                unsafe {
+                    (*self.ac_index.get()).write(0x20);
+                }
             }
         });
-        
+
         Ok(())
     }
-    
+
     /// Clear the screen
     pub fn clear_screen(&self) {
         let mut state = self.state.lock();
         let blank = VgaChar::new(b' ', VgaColor::White, VgaColor::Black);
-        
+
         for row in 0..VGA_HEIGHT {
             for col in 0..VGA_WIDTH {
                 state.buffer.chars[row][col] = blank;
             }
         }
-        
+
         state.cursor_row = 0;
         state.cursor_col = 0;
     }
-    
+
     /// Set text colors
     pub fn set_colors(&self, foreground: VgaColor, background: VgaColor) {
         let mut state = self.state.lock();
         state.color = VgaChar::new(0, foreground, background).color;
     }
-    
+
     /// Write a string to the screen
     pub fn write_string(&self, s: &str) {
         let mut state = self.state.lock();
-        
+
         for byte in s.bytes() {
             match byte {
                 b'\n' => self.new_line(&mut state),
@@ -254,7 +280,8 @@ impl VgaDriver {
                         self.write_byte(&mut state, b' ');
                     }
                 }
-                b'\x08' => { // Backspace
+                b'\x08' => {
+                    // Backspace
                     if state.cursor_col > 0 {
                         state.cursor_col -= 1;
                         self.write_byte(&mut state, b' ');
@@ -268,29 +295,26 @@ impl VgaDriver {
                     self.write_byte(&mut state, byte);
                 }
             }
-            
+
             self.characters_written.fetch_add(1, Ordering::Relaxed);
         }
-        
+
         // Update hardware cursor
         let _ = self.update_cursor_position(state.cursor_row, state.cursor_col);
     }
-    
+
     /// Write a single byte to current cursor position
     fn write_byte(&self, state: &mut VgaState, byte: u8) {
-        let character = VgaChar {
-            character: byte,
-            color: state.color,
-        };
-        
+        let character = VgaChar { character: byte, color: state.color };
+
         state.buffer.chars[state.cursor_row][state.cursor_col] = character;
         state.cursor_col += 1;
     }
-    
+
     /// Move to new line
     fn new_line(&self, state: &mut VgaState) {
         state.cursor_col = 0;
-        
+
         if state.cursor_row < VGA_HEIGHT - 1 {
             state.cursor_row += 1;
         } else {
@@ -298,7 +322,7 @@ impl VgaDriver {
             self.scroll_up(state);
         }
     }
-    
+
     /// Scroll screen up by one line
     fn scroll_up(&self, state: &mut VgaState) {
         for row in 1..VGA_HEIGHT {
@@ -306,14 +330,14 @@ impl VgaDriver {
                 state.buffer.chars[row - 1][col] = state.buffer.chars[row][col];
             }
         }
-        
+
         // Clear last line
         let blank = VgaChar::new(b' ', VgaColor::White, VgaColor::Black);
         for col in 0..VGA_WIDTH {
             state.buffer.chars[VGA_HEIGHT - 1][col] = blank;
         }
     }
-    
+
     /// Enable hardware cursor
     fn enable_cursor(&self) -> Result<(), &'static str> {
         unsafe {
@@ -321,97 +345,115 @@ impl VgaDriver {
             (*self.crtc_index.get()).write(0x0A);
             let cursor_start = (*self.crtc_data.get()).read() & 0xC0;
             (*self.crtc_data.get()).write(cursor_start | 14);
-            
+
             // Set cursor end
             (*self.crtc_index.get()).write(0x0B);
             let cursor_end = (*self.crtc_data.get()).read() & 0xE0;
             (*self.crtc_data.get()).write(cursor_end | 15);
         }
-        
+
         Ok(())
     }
-    
+
     /// Disable hardware cursor
     pub fn disable_cursor(&self) -> Result<(), &'static str> {
         unsafe {
             (*self.crtc_index.get()).write(0x0A);
             (*self.crtc_data.get()).write(0x20);
         }
-        
+
         Ok(())
     }
-    
+
     /// Update hardware cursor position
     fn update_cursor_position(&self, row: usize, col: usize) -> Result<(), &'static str> {
         let position = (row * VGA_WIDTH + col) as u16;
-        
+
         unsafe {
             // Set cursor location high byte
             (*self.crtc_index.get()).write(0x0E);
             (*self.crtc_data.get()).write((position >> 8) as u8);
-            
+
             // Set cursor location low byte
             (*self.crtc_index.get()).write(0x0F);
             (*self.crtc_data.get()).write((position & 0xFF) as u8);
         }
-        
+
         Ok(())
     }
-    
+
     /// Set cursor position
     pub fn set_cursor(&self, row: usize, col: usize) -> Result<(), &'static str> {
         if row >= VGA_HEIGHT || col >= VGA_WIDTH {
             return Err("Cursor position out of bounds");
         }
-        
+
         {
             let mut state = self.state.lock();
             state.cursor_row = row;
             state.cursor_col = col;
         }
-        
+
         self.update_cursor_position(row, col)
     }
-    
+
     /// Get cursor position
     pub fn get_cursor(&self) -> (usize, usize) {
         let state = self.state.lock();
         (state.cursor_row, state.cursor_col)
     }
-    
+
     /// Write character at specific position with colors
-    pub fn write_char_at(&self, row: usize, col: usize, character: u8, fg: VgaColor, bg: VgaColor) -> Result<(), &'static str> {
+    pub fn write_char_at(
+        &self,
+        row: usize,
+        col: usize,
+        character: u8,
+        fg: VgaColor,
+        bg: VgaColor,
+    ) -> Result<(), &'static str> {
         if row >= VGA_HEIGHT || col >= VGA_WIDTH {
             return Err("Position out of bounds");
         }
-        
+
         let mut state = self.state.lock();
         let vga_char = VgaChar::new(character, fg, bg);
         state.buffer.chars[row][col] = vga_char;
-        
+
         Ok(())
     }
-    
+
     /// Fill region with character and colors
-    pub fn fill_region(&self, start_row: usize, start_col: usize, end_row: usize, end_col: usize,
-                      character: u8, fg: VgaColor, bg: VgaColor) -> Result<(), &'static str> {
-        if start_row >= VGA_HEIGHT || start_col >= VGA_WIDTH ||
-           end_row >= VGA_HEIGHT || end_col >= VGA_WIDTH {
+    pub fn fill_region(
+        &self,
+        start_row: usize,
+        start_col: usize,
+        end_row: usize,
+        end_col: usize,
+        character: u8,
+        fg: VgaColor,
+        bg: VgaColor,
+    ) -> Result<(), &'static str> {
+        if start_row >= VGA_HEIGHT
+            || start_col >= VGA_WIDTH
+            || end_row >= VGA_HEIGHT
+            || end_col >= VGA_WIDTH
+        {
             return Err("Region out of bounds");
         }
-        
+
         let mut state = self.state.lock();
         let vga_char = VgaChar::new(character, fg, bg);
-        
+
         for row in start_row..=end_row {
             for col in start_col..=end_col {
                 state.buffer.chars[row][col] = vga_char;
             }
         }
-        
+
         Ok(())
     }
-    
+
     /// Get statistics
     pub fn get_stats(&self) -> VgaStats {
         VgaStats {
@@ -435,11 +477,11 @@ static mut VGA_DRIVER: Option<VgaDriver> = None;
 pub fn init_vga() -> Result<(), &'static str> {
     let vga = VgaDriver::new();
     vga.initialize()?;
-    
+
     unsafe {
         VGA_DRIVER = Some(vga);
     }
-    
+
     Ok(())
 }
 

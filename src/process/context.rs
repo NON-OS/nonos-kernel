@@ -25,12 +25,12 @@ pub struct CpuContext {
     pub r13: u64,
     pub r14: u64,
     pub r15: u64,
-    
+
     // Control registers
     pub rip: u64,
     pub rflags: u64,
-    pub cr3: u64,  // Page table base
-    
+    pub cr3: u64, // Page table base
+
     // Segment selectors
     pub cs: u16,
     pub ss: u16,
@@ -38,7 +38,7 @@ pub struct CpuContext {
     pub es: u16,
     pub fs: u16,
     pub gs: u16,
-    
+
     // FPU/SIMD state pointer
     pub fpu_state: Option<VirtAddr>,
 }
@@ -46,12 +46,31 @@ pub struct CpuContext {
 impl Default for CpuContext {
     fn default() -> Self {
         CpuContext {
-            rax: 0, rbx: 0, rcx: 0, rdx: 0,
-            rsi: 0, rdi: 0, rbp: 0, rsp: 0,
-            r8: 0, r9: 0, r10: 0, r11: 0,
-            r12: 0, r13: 0, r14: 0, r15: 0,
-            rip: 0, rflags: 0x200, cr3: 0,
-            cs: 0x08, ss: 0x10, ds: 0x10, es: 0x10, fs: 0x10, gs: 0x10,
+            rax: 0,
+            rbx: 0,
+            rcx: 0,
+            rdx: 0,
+            rsi: 0,
+            rdi: 0,
+            rbp: 0,
+            rsp: 0,
+            r8: 0,
+            r9: 0,
+            r10: 0,
+            r11: 0,
+            r12: 0,
+            r13: 0,
+            r14: 0,
+            r15: 0,
+            rip: 0,
+            rflags: 0x200,
+            cr3: 0,
+            cs: 0x08,
+            ss: 0x10,
+            ds: 0x10,
+            es: 0x10,
+            fs: 0x10,
+            gs: 0x10,
             fpu_state: None,
         }
     }
@@ -65,7 +84,7 @@ impl CpuContext {
         // Simplified for now
         CpuContext::default()
     }
-    
+
     /// Switch to this context
     pub unsafe fn switch_to(&self) {
         // This would use inline assembly to restore registers

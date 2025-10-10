@@ -2,23 +2,25 @@
 //!
 //! Design
 //!  - Small/medium sizes served from per-CPU magazines over page-backed slabs.
-//!  - Large sizes served by VM: page-granular map/unmap (+ optional guard pages).
+//!  - Large sizes served by VM: page-granular map/unmap (+ optional guard
+//!    pages).
 //!  - Zero-on-free by default (zero-state posture). Zero-on-alloc optional.
 //!  - NUMA/zone hints forwarded to phys (DMA32/LOWMEM supported).
-//!  - Proof posture: page map/unmap audited via virt hooks; phys frames audited.
+//!  - Proof posture: page map/unmap audited via virt hooks; phys frames
+//!    audited.
 //!
 //! Not a global #[alloc_error_handler]; this is the kernel-internal heap API.
 //! Exposes: kmalloc/kfree, kalloc_aligned, kalloc_pages/kfree_pages, stats().
 
 #![allow(dead_code)]
 
-use core::{ptr, mem, cell::UnsafeCell};
-use spin::{Mutex, Lazy};
-use x86_64::{VirtAddr, PhysAddr};
+use core::{cell::UnsafeCell, mem, ptr};
+use spin::{Lazy, Mutex};
+use x86_64::{PhysAddr, VirtAddr};
 
-use crate::memory::layout::{PAGE_SIZE, KHEAP_BASE};
+use crate::memory::layout::{KHEAP_BASE, PAGE_SIZE};
+use crate::memory::phys::{self, AllocFlags as PFlags, Frame};
 use crate::memory::virt::{self, VmFlags};
-use crate::memory::phys::{self, Frame, AllocFlags as PFlags};
 
 /// Number of magazines per heap instance
 const NUM_MAGS: usize = 8;
@@ -34,14 +36,18 @@ struct HeapStats {
 
 /// Zero policy for small/large allocs.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum ZeroPolicy { OnFree, OnAlloc, Never }
+pub enum ZeroPolicy {
+    OnFree,
+    OnAlloc,
+    Never,
+}
 
 /// Heap policy (set at init).
 #[derive(Clone, Copy, Debug)]
 pub struct HeapPolicy {
-    pub zero: ZeroPolicy,         // default: OnFree
-    pub guard_large: bool,        // add 1 guard page before/after large-alloc mappings
-    pub prefer_lowmem: bool,      // prefer <=4GiB phys frames for slabs
+    pub zero: ZeroPolicy,    // default: OnFree
+    pub guard_large: bool,   // add 1 guard page before/after large-alloc mappings
+    pub prefer_lowmem: bool, // prefer <=4GiB phys frames for slabs
 }
 
 impl Default for HeapPolicy {
@@ -51,22 +57,19 @@ impl Default for HeapPolicy {
 }
 
 /// Size classes (bytes). Keep power-of-two to simplify magazines.
-const CLASSES: &[usize] = &[
-    16, 32, 64, 128, 256, 512,
-    1024, 2048, 4096, 8192, 16384, 32768, 65536,
-];
+const CLASSES: &[usize] = &[16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384, 32768, 65536];
 
 /// Slab header precedes objects in the same mapped pages.
 #[repr(C)]
 struct Slab {
-    class: u32,           // index into CLASSES
-    obj_size: u32,        // bytes per object (class size)
-    used: u32,            // in-use count
-    cap:  u32,            // capacity (#objects)
-    free_head: u32,       // index of first free; 0xFFFF_FFFF = none
-    next: *mut Slab,      // linked list in a magazine
-    base_va: VirtAddr,    // base VA of the slab's mapped pages
-    pages: u32,           // #4K pages backing this slab
+    class: u32,        // index into CLASSES
+    obj_size: u32,     // bytes per object (class size)
+    used: u32,         // in-use count
+    cap: u32,          // capacity (#objects)
+    free_head: u32,    // index of first free; 0xFFFF_FFFF = none
+    next: *mut Slab,   // linked list in a magazine
+    base_va: VirtAddr, // base VA of the slab's mapped pages
+    pages: u32,        // #4K pages backing this slab
 }
 
 /// Per-CPU magazine: intrusive list of slabs for each class + a local bump.
@@ -80,11 +83,7 @@ unsafe impl Sync for Magazine {}
 impl Heap {
     const fn new() -> Self {
         Self {
-            pol: HeapPolicy {
-                zero: ZeroPolicy::OnFree,
-                guard_large: true,
-                prefer_lowmem: false,
-            },
+            pol: HeapPolicy { zero: ZeroPolicy::OnFree, guard_large: true, prefer_lowmem: false },
             mags: {
                 const INIT: UnsafeCell<Magazine> = UnsafeCell::new(Magazine::new());
                 [INIT; MAX_CPUS]
@@ -101,7 +100,9 @@ impl Heap {
 const CLASSES_LEN: usize = 13;
 
 impl Magazine {
-    const fn new() -> Self { Self { head: [core::ptr::null_mut(); CLASSES_LEN] } }
+    const fn new() -> Self {
+        Self { head: [core::ptr::null_mut(); CLASSES_LEN] }
+    }
 }
 
 /// Global heap state.
@@ -113,9 +114,9 @@ struct Heap {
     vm_cursor: UnsafeCell<u64>,
     /// Stats (best-effort).
     alloc_small: core::sync::atomic::AtomicU64,
-    free_small:  core::sync::atomic::AtomicU64,
+    free_small: core::sync::atomic::AtomicU64,
     alloc_large: core::sync::atomic::AtomicU64,
-    free_large:  core::sync::atomic::AtomicU64,
+    free_large: core::sync::atomic::AtomicU64,
 }
 
 unsafe impl Sync for Heap {} // UnsafeCell per-CPU is fine under our discipline.
@@ -127,16 +128,18 @@ static HEAP: Lazy<Mutex<Heap>> = Lazy::new(|| {
     Mutex::new(Heap {
         pol: HeapPolicy::default(),
         mags: [const { UnsafeCell::new(Magazine::new()) }; MAX_CPUS],
-        vm_cursor: UnsafeCell::new(0xffff_ffff_c000_0000u64), // example high VA pool
+        vm_cursor: UnsafeCell::new(0xFFFF_FFFF_C000_0000u64), // example high VA pool
         alloc_small: 0u64.into(),
-        free_small:  0u64.into(),
+        free_small: 0u64.into(),
         alloc_large: 0u64.into(),
-        free_large:  0u64.into(),
+        free_large: 0u64.into(),
     })
 });
 
 #[inline(always)]
-fn cpu_id() -> usize { crate::arch::x86_64::cpu::current_cpu_id() }
+fn cpu_id() -> usize {
+    crate::arch::x86_64::cpu::current_cpu_id()
+}
 
 // ───────────────────────────────────────────────────────────────────────────────
 // Public API
@@ -149,18 +152,23 @@ pub fn init(policy: HeapPolicy) {
 
 /// Allocate `size` bytes, alignment = class size (<=64K). Returns ptr or null.
 pub unsafe fn kmalloc(size: usize) -> *mut u8 {
-    if size == 0 { return core::ptr::null_mut(); }
+    if size == 0 {
+        return core::ptr::null_mut();
+    }
     if let Some((class, sz)) = class_for(size) {
         alloc_small(class, sz)
     } else {
         // route to large VM path (page-granular)
-        kalloc_large(size, 16, /*align hint*/ true)
+        kalloc_large(size, 16, /* align hint */ true)
     }
 }
 
-/// Allocate `size` bytes aligned to `align` (power-of-two). Falls back to VM path if >64K or alignment > class.
+/// Allocate `size` bytes aligned to `align` (power-of-two). Falls back to VM
+/// path if >64K or alignment > class.
 pub unsafe fn kalloc_aligned(size: usize, align: usize) -> *mut u8 {
-    if size == 0 { return core::ptr::null_mut(); }
+    if size == 0 {
+        return core::ptr::null_mut();
+    }
     if align.is_power_of_two() && align <= 65536 {
         if let Some((class, sz)) = class_for(size.max(align)) {
             return alloc_small(class, sz);
@@ -171,7 +179,9 @@ pub unsafe fn kalloc_aligned(size: usize, align: usize) -> *mut u8 {
 
 /// Free a pointer returned by kmalloc/kalloc_aligned.
 pub unsafe fn kfree(p: *mut u8, size: usize) {
-    if p.is_null() { return; }
+    if p.is_null() {
+        return;
+    }
     if let Some((class, sz)) = class_for(size) {
         free_small(p, class, sz);
     } else {
@@ -181,14 +191,18 @@ pub unsafe fn kfree(p: *mut u8, size: usize) {
 
 /// Page-granular allocation (N pages). Optional guard pages from policy.
 pub unsafe fn kalloc_pages(pages: usize, flags: VmFlags) -> VirtAddr {
-    if pages == 0 { return VirtAddr::zero(); }
-    map_large_pages(pages, flags, /*guard=*/HEAP.lock().pol.guard_large)
+    if pages == 0 {
+        return VirtAddr::zero();
+    }
+    map_large_pages(pages, flags, /* guard= */ HEAP.lock().pol.guard_large)
 }
 
 /// Free page-granular allocation (must match pages used).
 pub unsafe fn kfree_pages(base: VirtAddr, pages: usize) {
-    if pages == 0 { return; }
-    unmap_large_pages(base, pages, /*guard=*/HEAP.lock().pol.guard_large)
+    if pages == 0 {
+        return;
+    }
+    unmap_large_pages(base, pages, /* guard= */ HEAP.lock().pol.guard_large)
 }
 
 pub fn stats() -> (u64, u64, u64, u64) {
@@ -208,7 +222,9 @@ pub fn stats() -> (u64, u64, u64, u64) {
 #[inline]
 fn class_for(n: usize) -> Option<(usize, usize)> {
     for (i, &c) in CLASSES.iter().enumerate() {
-        if c >= n { return Some((i, c)); }
+        if c >= n {
+            return Some((i, c));
+        }
     }
     None
 }
@@ -229,7 +245,9 @@ unsafe fn alloc_small(class: usize, sz: usize) -> *mut u8 {
 
     // need a new slab: allocate page(s), map, format freelist
     let slab = new_slab(class, sz, &h.pol);
-    if slab.is_null() { return core::ptr::null_mut(); }
+    if slab.is_null() {
+        return core::ptr::null_mut();
+    }
     (*slab).next = head;
     mag.head[class] = slab;
 
@@ -268,11 +286,15 @@ unsafe fn free_small(p: *mut u8, class: usize, sz: usize) {
         let mut cur = mag.head[class];
         while !cur.is_null() {
             if cur == slab {
-                if prev.is_null() { mag.head[class] = (*cur).next; }
-                else { (*prev).next = (*cur).next; }
+                if prev.is_null() {
+                    mag.head[class] = (*cur).next;
+                } else {
+                    (*prev).next = (*cur).next;
+                }
                 break;
             }
-            prev = cur; cur = (*cur).next;
+            prev = cur;
+            cur = (*cur).next;
         }
         // unmap pages backing this slab
         unmap_slab_pages(slab);
@@ -283,17 +305,23 @@ unsafe fn free_small(p: *mut u8, class: usize, sz: usize) {
 
 /// Allocate and format a new slab for class `class` size `sz`.
 unsafe fn new_slab(class: usize, sz: usize, _pol: &HeapPolicy) -> *mut Slab {
-    // Choose pages: try to fit reasonable number of objects. Target ~4–8 KiB object space.
+    // Choose pages: try to fit reasonable number of objects. Target ~4–8 KiB object
+    // space.
     let mut pages = 1usize;
     while pages * PAGE_SIZE < (sz * 32 + mem::size_of::<Slab>() + 256) {
         pages *= 2;
-        if pages >= 16 { break; } // cap slab at 64 KiB
+        if pages >= 16 {
+            break;
+        } // cap slab at 64 KiB
     }
     // Map pages for the slab
     let va = map_large_pages(pages, VmFlags::RW | VmFlags::NX | VmFlags::GLOBAL, false);
-    if va.is_null() { return core::ptr::null_mut(); }
+    if va.is_null() {
+        return core::ptr::null_mut();
+    }
 
-    // Layout: [Slab hdr][(obj_count * 4B) freelist array][objs each with 8B backptr prefix]
+    // Layout: [Slab hdr][(obj_count * 4B) freelist array][objs each with 8B backptr
+    // prefix]
     let hdr = va.as_u64() as *mut Slab;
     ptr::write_bytes(hdr as *mut u8, 0, mem::size_of::<Slab>());
 
@@ -319,7 +347,7 @@ unsafe fn new_slab(class: usize, sz: usize, _pol: &HeapPolicy) -> *mut Slab {
         // back-pointer to slab
         *(obj as *mut *mut Slab) = hdr;
         // next index (u32) placed right after backptr
-        let next = if i + 1 < cap { (i + 1) as u32 } else { 0xffff_ffff };
+        let next = if i + 1 < cap { (i + 1) as u32 } else { 0xFFFF_FFFF };
         let next_slot = obj.add(mem::size_of::<*mut Slab>()) as *mut u32;
         *next_slot = next;
     }
@@ -330,7 +358,9 @@ unsafe fn new_slab(class: usize, sz: usize, _pol: &HeapPolicy) -> *mut Slab {
 #[inline]
 unsafe fn carve_obj_from_slab(slab: *mut Slab, pol: &HeapPolicy) -> Option<*mut u8> {
     let head = (*slab).free_head;
-    if head == 0xffff_ffff { return None; }
+    if head == 0xFFFF_FFFF {
+        return None;
+    }
     let sz = (*slab).obj_size as usize;
     let obj = obj_ptr(slab, head as usize, sz);
     // advance head to "next" index
@@ -389,11 +419,18 @@ unsafe fn unmap_slab_pages(slab: *mut Slab) {
 unsafe fn kalloc_large(size: usize, align: usize, zero_on_alloc: bool) -> *mut u8 {
     // Round up to pages
     let pages = ((size + PAGE_SIZE - 1) / PAGE_SIZE).max(1);
-    let base = map_large_pages(pages, VmFlags::RW | VmFlags::NX | VmFlags::GLOBAL, HEAP.lock().pol.guard_large);
-    if base.is_null() { return core::ptr::null_mut(); }
+    let base = map_large_pages(
+        pages,
+        VmFlags::RW | VmFlags::NX | VmFlags::GLOBAL,
+        HEAP.lock().pol.guard_large,
+    );
+    if base.is_null() {
+        return core::ptr::null_mut();
+    }
 
-    // Alignment: if caller asked for > 4K, we can over-map and return aligned subrange.
-    // For now keep it simple: require align <= 4K for large path. (Extend later: overmap+trim)
+    // Alignment: if caller asked for > 4K, we can over-map and return aligned
+    // subrange. For now keep it simple: require align <= 4K for large path.
+    // (Extend later: overmap+trim)
     debug_assert!(align <= PAGE_SIZE);
 
     let ptr = base.as_u64() as *mut u8;
@@ -412,7 +449,8 @@ unsafe fn kfree_large(p: *mut u8, size: usize) {
     HEAP.lock().free_large.fetch_add(1, core::sync::atomic::Ordering::Relaxed);
 }
 
-/// Map `pages` of anonymous kernel memory; if guard=true add one guard page before & after.
+/// Map `pages` of anonymous kernel memory; if guard=true add one guard page
+/// before & after.
 unsafe fn map_large_pages(pages: usize, flags: VmFlags, guard: bool) -> VirtAddr {
     let h = HEAP.lock();
     let mut cursor = *h.vm_cursor.get();
@@ -466,7 +504,14 @@ pub fn allocate_kernel_memory(size: usize) -> Result<VirtAddr, &'static str> {
 
 /// Helper function for allocating kernel pages
 pub fn allocate_kernel_pages(pages: usize) -> Result<VirtAddr, &'static str> {
-    let addr = unsafe { kalloc_pages(pages, crate::memory::virt::VmFlags::RW | crate::memory::virt::VmFlags::NX | crate::memory::virt::VmFlags::GLOBAL) };
+    let addr = unsafe {
+        kalloc_pages(
+            pages,
+            crate::memory::virt::VmFlags::RW
+                | crate::memory::virt::VmFlags::NX
+                | crate::memory::virt::VmFlags::GLOBAL,
+        )
+    };
     if addr.is_null() {
         Err("Failed to allocate kernel pages")
     } else {

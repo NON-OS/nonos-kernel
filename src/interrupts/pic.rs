@@ -33,11 +33,7 @@ pub struct Pic {
 
 impl Pic {
     const fn new(offset: u8, command_port: u16, data_port: u16) -> Pic {
-        Pic {
-            offset,
-            command: Port::new(command_port),
-            data: Port::new(data_port),
-        }
+        Pic { offset, command: Port::new(command_port), data: Port::new(data_port) }
     }
 
     /// Check if this PIC handles the given interrupt
@@ -121,8 +117,8 @@ impl ChainedPics {
     /// Disable all interrupts
     pub fn disable_all(&mut self) {
         unsafe {
-            self.pics[0].data.write(0xff);
-            self.pics[1].data.write(0xff);
+            self.pics[0].data.write(0xFF);
+            self.pics[1].data.write(0xFF);
         }
     }
 
@@ -169,7 +165,7 @@ static mut PICS: ChainedPics = ChainedPics::new(0x20, 0x28);
 pub fn init() {
     unsafe {
         PICS.initialize();
-        
+
         // Enable timer and keyboard interrupts initially
         PICS.enable_interrupt(0x20); // Timer
         PICS.enable_interrupt(0x21); // Keyboard

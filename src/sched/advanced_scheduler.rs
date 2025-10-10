@@ -9,9 +9,13 @@
 //! - CPU topology awareness
 //! - Priority inheritance for locks
 
-use core::sync::atomic::{AtomicU64, AtomicU32, AtomicBool, Ordering};
-use alloc::{collections::{BTreeMap, VecDeque}, vec::Vec, boxed::Box};
-use spin::{RwLock, Mutex};
+use alloc::{
+    boxed::Box,
+    collections::{BTreeMap, VecDeque},
+    vec::Vec,
+};
+use core::sync::atomic::{AtomicBool, AtomicU32, AtomicU64, Ordering};
+use spin::{Mutex, RwLock};
 
 /// Advanced scheduler configuration
 #[derive(Debug, Clone)]
@@ -48,12 +52,12 @@ impl Default for AdvancedSchedulerConfig {
 /// Task scheduling policy
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum SchedulingPolicy {
-    Normal,         // CFS scheduling
-    Batch,          // Lower priority batch processing
-    Idle,           // Only when nothing else to run
-    FIFO,           // Real-time FIFO
-    RoundRobin,     // Real-time round-robin
-    Deadline,       // Real-time deadline scheduling
+    Normal,     // CFS scheduling
+    Batch,      // Lower priority batch processing
+    Idle,       // Only when nothing else to run
+    FIFO,       // Real-time FIFO
+    RoundRobin, // Real-time round-robin
+    Deadline,   // Real-time deadline scheduling
 }
 
 /// Task priority levels
@@ -76,33 +80,33 @@ pub struct AdvancedTask {
     pub priority: Priority,
     pub policy: SchedulingPolicy,
     pub state: TaskState,
-    
+
     // CFS-specific fields
-    pub vruntime: AtomicU64,        // Virtual runtime for CFS
-    pub load_weight: u32,           // Load weight based on nice value
+    pub vruntime: AtomicU64, // Virtual runtime for CFS
+    pub load_weight: u32,    // Load weight based on nice value
     pub last_ran_time: AtomicU64,
-    
+
     // Real-time fields
     pub rt_priority: u32,
     pub rt_deadline: AtomicU64,
     pub rt_period: u64,
     pub rt_runtime: u64,
     pub rt_remaining: AtomicU64,
-    
+
     // NUMA fields
     pub numa_preferred_node: AtomicU32,
     pub numa_faults: [AtomicU64; 8], // Per-node fault counters
     pub numa_last_migration: AtomicU64,
-    
+
     // Statistics
     pub cpu_time_ns: AtomicU64,
     pub context_switches: AtomicU64,
     pub cache_misses: AtomicU64,
     pub energy_consumed_uj: AtomicU64, // microjoules
-    
+
     // Machine learning features
     pub ml_features: TaskMLFeatures,
-    
+
     // CPU affinity
     pub cpu_affinity: u64, // Bitmask of allowed CPUs
 }
@@ -165,9 +169,9 @@ impl CFSScheduler {
         // Set initial vruntime to current min_vruntime for fairness
         let min_vrt = self.min_vruntime.load(Ordering::SeqCst);
         task.vruntime.store(min_vrt, Ordering::SeqCst);
-        
+
         let vruntime = task.vruntime.load(Ordering::SeqCst);
-        
+
         if let Some(mut ready_tasks) = self.ready_tasks.try_write() {
             self.total_weight.fetch_add(task.load_weight as u64, Ordering::SeqCst);
             ready_tasks.insert(vruntime, task);
@@ -190,10 +194,10 @@ impl CFSScheduler {
         // vruntime += runtime * NICE_0_LOAD / load_weight
         const NICE_0_LOAD: u64 = 1024;
         let weighted_runtime = (runtime_ns * NICE_0_LOAD) / (task.load_weight as u64);
-        
+
         let old_vruntime = task.vruntime.fetch_add(weighted_runtime, Ordering::SeqCst);
         let new_vruntime = old_vruntime + weighted_runtime;
-        
+
         // Update global min_vruntime
         let current_min = self.min_vruntime.load(Ordering::SeqCst);
         if new_vruntime < current_min {
@@ -206,10 +210,10 @@ impl CFSScheduler {
         if self.total_weight.load(Ordering::SeqCst) == 0 {
             return self.time_slice_ns;
         }
-        
-        let slice = (self.time_slice_ns * task.load_weight as u64) / 
-                   self.total_weight.load(Ordering::SeqCst);
-        
+
+        let slice = (self.time_slice_ns * task.load_weight as u64)
+            / self.total_weight.load(Ordering::SeqCst);
+
         core::cmp::max(slice, self.granularity_ns)
     }
 }
@@ -226,7 +230,7 @@ pub struct RealTimeScheduler {
 impl RealTimeScheduler {
     pub fn new(time_slice_ns: u64) -> Self {
         const INIT: Mutex<VecDeque<Box<AdvancedTask>>> = Mutex::new(VecDeque::new());
-        
+
         Self {
             fifo_queues: [INIT; 100],
             rr_queues: [INIT; 100],
@@ -270,7 +274,7 @@ impl RealTimeScheduler {
                 return Some(task);
             }
         }
-        
+
         // Then check FIFO queues (highest priority first)
         for priority in (0..100).rev() {
             if let Some(queue) = self.fifo_queues.get(priority) {
@@ -281,7 +285,7 @@ impl RealTimeScheduler {
                 }
             }
         }
-        
+
         // Finally check Round-Robin queues
         for priority in (0..100).rev() {
             if let Some(queue) = self.rr_queues.get(priority) {
@@ -292,7 +296,7 @@ impl RealTimeScheduler {
                 }
             }
         }
-        
+
         None
     }
 
@@ -341,23 +345,23 @@ impl NUMALoadBalancer {
     pub fn initialize(&self) -> Result<(), &'static str> {
         // Detect NUMA topology
         let nodes = self.detect_numa_topology()?;
-        
+
         if let Some(mut numa_nodes) = self.numa_nodes.try_write() {
             *numa_nodes = nodes;
         }
-        
+
         if !self.numa_nodes.read().is_empty() {
             self.enabled.store(true, Ordering::SeqCst);
             crate::log::info!("NUMA load balancing enabled");
         }
-        
+
         Ok(())
     }
 
     fn detect_numa_topology(&self) -> Result<Vec<NUMANode>, &'static str> {
         // Simplified NUMA detection - in reality would parse ACPI tables
         let mut nodes = Vec::new();
-        
+
         // Create 2 NUMA nodes with 2 CPUs each
         for node_id in 0..2 {
             nodes.push(NUMANode {
@@ -368,7 +372,7 @@ impl NUMALoadBalancer {
                 memory_pressure: AtomicU32::new(0),
             });
         }
-        
+
         Ok(nodes)
     }
 
@@ -377,10 +381,10 @@ impl NUMALoadBalancer {
         if !self.enabled.load(Ordering::SeqCst) {
             return false;
         }
-        
+
         let now = crate::time::timestamp_nanos();
         let last_balance = self.last_balance_time.load(Ordering::SeqCst);
-        
+
         now - last_balance > self.balance_interval_ns
     }
 
@@ -389,24 +393,24 @@ impl NUMALoadBalancer {
         if !self.should_balance() {
             return;
         }
-        
+
         self.last_balance_time.store(crate::time::timestamp_nanos(), Ordering::SeqCst);
-        
+
         if let Some(nodes) = self.numa_nodes.try_read() {
             // Calculate load imbalance between nodes
             let mut node_loads: Vec<(u32, f64)> = Vec::new();
-            
+
             for node in nodes.iter() {
                 let load = self.calculate_node_load(node, cpu_runqueues);
                 node_loads.push((node.node_id, load));
             }
-            
+
             // Find most and least loaded nodes
             node_loads.sort_by(|a, b| a.1.partial_cmp(&b.1).unwrap());
-            
+
             if let (Some(min_node), Some(max_node)) = (node_loads.first(), node_loads.last()) {
                 let imbalance = max_node.1 - min_node.1;
-                
+
                 if imbalance > self.migration_threshold {
                     // Migrate tasks from overloaded to underloaded node
                     self.migrate_tasks(max_node.0, min_node.0, cpu_runqueues);
@@ -415,10 +419,14 @@ impl NUMALoadBalancer {
         }
     }
 
-    fn calculate_node_load(&self, node: &NUMANode, cpu_runqueues: &[Mutex<VecDeque<Box<AdvancedTask>>>]) -> f64 {
+    fn calculate_node_load(
+        &self,
+        node: &NUMANode,
+        cpu_runqueues: &[Mutex<VecDeque<Box<AdvancedTask>>>],
+    ) -> f64 {
         let mut total_load = 0.0;
         let mut cpu_count = 0;
-        
+
         // Check each CPU in the node
         for cpu_id in 0..64 {
             if (node.cpu_mask & (1 << cpu_id)) != 0 {
@@ -430,7 +438,7 @@ impl NUMALoadBalancer {
                 }
             }
         }
-        
+
         if cpu_count > 0 {
             total_load / cpu_count as f64
         } else {
@@ -438,10 +446,16 @@ impl NUMALoadBalancer {
         }
     }
 
-    fn migrate_tasks(&self, from_node: u32, to_node: u32, _cpu_runqueues: &[Mutex<VecDeque<Box<AdvancedTask>>>]) {
+    fn migrate_tasks(
+        &self,
+        from_node: u32,
+        to_node: u32,
+        _cpu_runqueues: &[Mutex<VecDeque<Box<AdvancedTask>>>],
+    ) {
         crate::log::debug!("Migrating tasks from NUMA node {} to node {}", from_node, to_node);
         // Implementation would move tasks between CPU runqueues
-        // This is a simplified version - real implementation would be more complex
+        // This is a simplified version - real implementation would be more
+        // complex
     }
 }
 
@@ -514,7 +528,7 @@ impl MLTaskPredictor {
 
         // Generate new prediction
         let prediction = self.generate_prediction(task)?;
-        
+
         // Cache the prediction
         if let Some(mut cache) = self.prediction_cache.try_write() {
             cache.insert(task.task_id, prediction.clone());
@@ -525,7 +539,7 @@ impl MLTaskPredictor {
 
     fn generate_prediction(&self, task: &AdvancedTask) -> Option<TaskPrediction> {
         let features = &task.ml_features;
-        
+
         if let Some(weights) = self.model_weights.try_read() {
             // Simple linear model - in reality would use more sophisticated ML
             let runtime_score = features.avg_cpu_utilization * weights.runtime_weight;
@@ -533,13 +547,14 @@ impl MLTaskPredictor {
             let memory_score = features.avg_memory_access_pattern * weights.memory_weight;
             let cache_score = features.cache_locality_score * weights.cache_weight;
             let energy_score = features.energy_efficiency_score * weights.energy_weight;
-            
+
             let total_score = runtime_score + cpu_score + memory_score + cache_score + energy_score;
-            
+
             Some(TaskPrediction {
                 predicted_runtime_ns: (total_score * 10_000_000.0) as u64, // Convert to nanoseconds
                 predicted_cpu_usage: features.avg_cpu_utilization,
-                predicted_memory_usage: (features.avg_memory_access_pattern * 1024.0 * 1024.0) as u64,
+                predicted_memory_usage: (features.avg_memory_access_pattern * 1024.0 * 1024.0)
+                    as u64,
                 cache_friendly: features.cache_locality_score > 0.7,
                 energy_efficiency: features.energy_efficiency_score,
                 confidence: core::cmp::min(100, (total_score * 100.0) as u32) as f32 / 100.0,
@@ -557,11 +572,11 @@ pub struct AdvancedScheduler {
     rt_scheduler: RealTimeScheduler,
     numa_balancer: NUMALoadBalancer,
     ml_predictor: MLTaskPredictor,
-    
+
     // Per-CPU runqueues
     cpu_runqueues: Vec<Mutex<VecDeque<Box<AdvancedTask>>>>,
     current_tasks: Vec<AtomicU64>, // Current task ID per CPU
-    
+
     // Global statistics
     context_switches: AtomicU64,
     preemptions: AtomicU64,
@@ -573,18 +588,18 @@ impl AdvancedScheduler {
     pub fn new(config: AdvancedSchedulerConfig, num_cpus: usize) -> Self {
         let mut cpu_runqueues = Vec::with_capacity(num_cpus);
         let mut current_tasks = Vec::with_capacity(num_cpus);
-        
+
         for _ in 0..num_cpus {
             cpu_runqueues.push(Mutex::new(VecDeque::new()));
             current_tasks.push(AtomicU64::new(0));
         }
-        
+
         Self {
             cfs_scheduler: CFSScheduler::new(config.cfs_time_slice_ns),
             rt_scheduler: RealTimeScheduler::new(config.rt_time_slice_ns),
             numa_balancer: NUMALoadBalancer::new(
                 config.numa_migration_threshold,
-                config.load_balance_interval_ms
+                config.load_balance_interval_ms,
             ),
             ml_predictor: MLTaskPredictor::new(),
             cpu_runqueues,
@@ -618,7 +633,8 @@ impl AdvancedScheduler {
         if self.config.enable_ml_prediction {
             if let Some(_prediction) = self.ml_predictor.predict_task(&task) {
                 // Use prediction to influence scheduling decisions
-                // (Implementation would adjust task parameters based on prediction)
+                // (Implementation would adjust task parameters based on
+                // prediction)
             }
         }
 
@@ -701,7 +717,7 @@ pub fn init_advanced_scheduler(num_cpus: usize) -> Result<(), &'static str> {
     let config = AdvancedSchedulerConfig::default();
     let scheduler = AdvancedScheduler::new(config, num_cpus);
     scheduler.initialize()?;
-    
+
     ADVANCED_SCHEDULER.call_once(|| scheduler);
     Ok(())
 }

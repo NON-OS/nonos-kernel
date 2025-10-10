@@ -1,9 +1,10 @@
 //! Module Manifest System
-//! 
-//! Advanced manifest parsing and validation for cryptographically signed modules
+//!
+//! Advanced manifest parsing and validation for cryptographically signed
+//! modules
 
-use alloc::vec::Vec;
 use crate::syscall::capabilities::Capability;
+use alloc::vec::Vec;
 
 /// Module manifest with cryptographic binding
 pub struct ModuleManifest {
@@ -54,8 +55,14 @@ impl ModuleManifest {
     pub fn module_id(&self) -> u64 {
         // Generate unique ID from hash
         u64::from_le_bytes([
-            self.hash[0], self.hash[1], self.hash[2], self.hash[3],
-            self.hash[4], self.hash[5], self.hash[6], self.hash[7],
+            self.hash[0],
+            self.hash[1],
+            self.hash[2],
+            self.hash[3],
+            self.hash[4],
+            self.hash[5],
+            self.hash[6],
+            self.hash[7],
         ])
     }
 }

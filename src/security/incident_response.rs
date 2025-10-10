@@ -2,10 +2,10 @@
 //!
 //! Real-time security incident detection, logging, and automated response
 
-use alloc::{vec::Vec, string::String, collections::BTreeMap, vec};
+use crate::arch::x86_64::time::timer;
+use alloc::{collections::BTreeMap, string::String, vec, vec::Vec};
 use core::sync::atomic::{AtomicU32, AtomicU64, Ordering};
 use spin::Mutex;
-use crate::arch::x86_64::time::timer;
 
 #[derive(Debug, Clone)]
 pub struct SecurityIncident {
@@ -65,10 +65,10 @@ impl IncidentResponse {
     fn log_incident(&self, mut incident: SecurityIncident) -> u64 {
         incident.incident_id = self.incident_counter.fetch_add(1, Ordering::SeqCst);
         incident.timestamp = timer::get_timestamp_ms().unwrap_or(0);
-        
+
         let incident_id = incident.incident_id;
         self.incidents.lock().push(incident.clone());
-        
+
         // Automated response based on severity
         match incident.severity {
             Severity::Critical => self.handle_critical_incident(&incident),
@@ -76,7 +76,7 @@ impl IncidentResponse {
             Severity::Medium => self.handle_medium_incident(&incident),
             Severity::Low => self.handle_low_incident(&incident),
         }
-        
+
         incident_id
     }
 
@@ -86,26 +86,26 @@ impl IncidentResponse {
             IncidentType::SystemCompromise | IncidentType::RootkitDetected => {
                 // Lock down system
                 self.system_lockdown.store(true, Ordering::SeqCst);
-                
+
                 // Disable network interfaces
                 if let Some(ip) = incident.source_ip {
                     self.block_ip_immediately(ip);
                 }
-                
+
                 // Quarantine affected process
                 if let Some(pid) = incident.affected_process {
                     self.quarantine_process(pid);
                 }
-            },
+            }
             IncidentType::DataExfiltration => {
                 // Block network access immediately
                 if let Some(ip) = incident.source_ip {
                     self.block_ip_immediately(ip);
                 }
-                
+
                 // Alert system administrator
                 self.send_emergency_alert(incident);
-            },
+            }
             _ => {
                 // General critical response
                 if let Some(ip) = incident.source_ip {
@@ -113,7 +113,7 @@ impl IncidentResponse {
                 }
             }
         }
-        
+
         self.send_emergency_alert(incident);
     }
 
@@ -121,12 +121,12 @@ impl IncidentResponse {
         if let Some(ip) = incident.source_ip {
             self.block_ip_temporarily(ip, 3600); // Block for 1 hour
         }
-        
+
         if let Some(pid) = incident.affected_process {
             // Suspend process for investigation
             self.suspend_process(pid);
         }
-        
+
         self.send_alert(incident);
     }
 
@@ -134,7 +134,7 @@ impl IncidentResponse {
         if let Some(ip) = incident.source_ip {
             self.rate_limit_ip(ip);
         }
-        
+
         // Log for investigation
         self.queue_for_investigation(incident);
     }
@@ -147,7 +147,7 @@ impl IncidentResponse {
     fn block_ip_immediately(&self, ip: [u8; 4]) {
         let mut blocked_ips = self.blocked_ips.lock();
         blocked_ips.insert(ip, u64::MAX); // Permanent block
-        
+
         // Implementation: Add to kernel firewall rules
         let _ = crate::network::firewall::block_ip(ip);
     }
@@ -156,7 +156,7 @@ impl IncidentResponse {
         let mut blocked_ips = self.blocked_ips.lock();
         let expiry = timer::get_timestamp_ms().unwrap_or(0) + (duration_seconds * 1000);
         blocked_ips.insert(ip, expiry);
-        
+
         let _ = crate::network::firewall::block_ip_temporarily(ip, duration_seconds);
     }
 
@@ -166,7 +166,7 @@ impl IncidentResponse {
 
     fn quarantine_process(&self, pid: u32) {
         self.quarantined_processes.lock().push(pid);
-        
+
         // Implementation: Isolate process in secure container
         let _ = crate::process::isolate_process(pid);
     }
@@ -178,7 +178,7 @@ impl IncidentResponse {
 
     fn send_emergency_alert(&self, incident: &SecurityIncident) {
         self.alerts_sent.fetch_add(1, Ordering::SeqCst);
-        
+
         // Emergency alert through secure channels
         let alert_msg = alloc::format!(
             "CRITICAL SECURITY INCIDENT #{}: {} detected at {}. Immediate action required.",
@@ -186,21 +186,21 @@ impl IncidentResponse {
             self.incident_type_to_string(incident.incident_type),
             incident.timestamp
         );
-        
+
         // Send through emergency communication channels
         let _ = crate::drivers::console::emergency_alert(&alert_msg);
     }
 
     fn send_alert(&self, incident: &SecurityIncident) {
         self.alerts_sent.fetch_add(1, Ordering::SeqCst);
-        
+
         let alert_msg = alloc::format!(
             "Security Incident #{}: {} severity {} detected",
             incident.incident_id,
             self.incident_type_to_string(incident.incident_type),
             self.severity_to_string(incident.severity)
         );
-        
+
         let _ = crate::drivers::console::log_alert(&alert_msg);
     }
 
@@ -273,7 +273,7 @@ pub fn trigger_integrity_violation(failures: &[String]) {
         let evidence = failures.join(", ").into_bytes();
         let incident = SecurityIncident {
             incident_id: 0, // Will be set by log_incident
-            timestamp: 0, // Will be set by log_incident
+            timestamp: 0,   // Will be set by log_incident
             incident_type: IncidentType::IntegrityViolation,
             severity: Severity::High,
             source_ip: None,
@@ -281,7 +281,7 @@ pub fn trigger_integrity_violation(failures: &[String]) {
             description: alloc::format!("System integrity violations detected: {}", failures.len()),
             evidence,
         };
-        
+
         system.log_incident(incident);
     }
 }
@@ -299,7 +299,7 @@ pub fn trigger_privacy_violation(violations: &[String]) {
             description: alloc::format!("Privacy violations detected: {}", violations.len()),
             evidence,
         };
-        
+
         system.log_incident(incident);
     }
 }
@@ -316,7 +316,7 @@ pub fn trigger_rootkit_detected(rootkit_info: &str) {
             description: alloc::format!("Rootkit detected: {}", rootkit_info),
             evidence: rootkit_info.as_bytes().to_vec(),
         };
-        
+
         system.log_incident(incident);
     }
 }
@@ -333,7 +333,7 @@ pub fn trigger_network_intrusion(source_ip: [u8; 4], details: &str) {
             description: alloc::format!("Network intrusion from {:?}: {}", source_ip, details),
             evidence: details.as_bytes().to_vec(),
         };
-        
+
         system.log_incident(incident);
     }
 }

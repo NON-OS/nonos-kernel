@@ -28,12 +28,8 @@ pub fn is_trusted_module(module_name: &str) -> bool {
 
 /// Add trusted module
 pub fn add_trusted_module(name: String, hash: [u8; 32]) {
-    let trust = ModuleTrust {
-        name: name.clone(),
-        hash,
-        trusted: true,
-    };
-    
+    let trust = ModuleTrust { name: name.clone(), hash, trusted: true };
+
     let mut db = MODULE_DB.write();
     db.insert(name, trust);
 }

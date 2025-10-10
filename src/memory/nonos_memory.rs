@@ -1,8 +1,8 @@
 #![no_std]
 
 use alloc::collections::BTreeMap;
-use spin::{RwLock, Mutex};
-use x86_64::{VirtAddr, PhysAddr, structures::paging::PageTableFlags};
+use spin::{Mutex, RwLock};
+use x86_64::{structures::paging::PageTableFlags, PhysAddr, VirtAddr};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum NonosMemoryRegionType {
@@ -67,7 +67,7 @@ impl NonosMemoryManager {
         size: usize,
         region_type: NonosMemoryRegionType,
         security_level: NonosSecurityLevel,
-        owner_process: u64
+        owner_process: u64,
     ) -> Result<VirtAddr, &'static str> {
         if size == 0 {
             return Err("Invalid size");
@@ -85,12 +85,24 @@ impl NonosMemoryManager {
         let physical_addr = PhysAddr::new(0x10000000 + (region_id * 4096));
 
         let permissions = match region_type {
-            NonosMemoryRegionType::Code => PageTableFlags::PRESENT | PageTableFlags::USER_ACCESSIBLE,
-            NonosMemoryRegionType::Data => PageTableFlags::PRESENT | PageTableFlags::WRITABLE | PageTableFlags::USER_ACCESSIBLE,
-            NonosMemoryRegionType::Stack => PageTableFlags::PRESENT | PageTableFlags::WRITABLE | PageTableFlags::USER_ACCESSIBLE,
-            NonosMemoryRegionType::Heap => PageTableFlags::PRESENT | PageTableFlags::WRITABLE | PageTableFlags::USER_ACCESSIBLE,
-            NonosMemoryRegionType::Shared => PageTableFlags::PRESENT | PageTableFlags::WRITABLE | PageTableFlags::USER_ACCESSIBLE,
-            NonosMemoryRegionType::Device => PageTableFlags::PRESENT | PageTableFlags::WRITABLE | PageTableFlags::NO_CACHE,
+            NonosMemoryRegionType::Code => {
+                PageTableFlags::PRESENT | PageTableFlags::USER_ACCESSIBLE
+            }
+            NonosMemoryRegionType::Data => {
+                PageTableFlags::PRESENT | PageTableFlags::WRITABLE | PageTableFlags::USER_ACCESSIBLE
+            }
+            NonosMemoryRegionType::Stack => {
+                PageTableFlags::PRESENT | PageTableFlags::WRITABLE | PageTableFlags::USER_ACCESSIBLE
+            }
+            NonosMemoryRegionType::Heap => {
+                PageTableFlags::PRESENT | PageTableFlags::WRITABLE | PageTableFlags::USER_ACCESSIBLE
+            }
+            NonosMemoryRegionType::Shared => {
+                PageTableFlags::PRESENT | PageTableFlags::WRITABLE | PageTableFlags::USER_ACCESSIBLE
+            }
+            NonosMemoryRegionType::Device => {
+                PageTableFlags::PRESENT | PageTableFlags::WRITABLE | PageTableFlags::NO_CACHE
+            }
         };
 
         let region = NonosMemoryRegion {
@@ -102,7 +114,12 @@ impl NonosMemoryManager {
             security_level,
             permissions,
             owner_process,
-            encrypted: matches!(security_level, NonosSecurityLevel::Secret | NonosSecurityLevel::TopSecret | NonosSecurityLevel::QuantumSecure),
+            encrypted: matches!(
+                security_level,
+                NonosSecurityLevel::Secret
+                    | NonosSecurityLevel::TopSecret
+                    | NonosSecurityLevel::QuantumSecure
+            ),
             isolation_domain: self.calculate_isolation_domain(owner_process, security_level),
             created_time: self.get_timestamp(),
             access_count: 0,
@@ -111,7 +128,7 @@ impl NonosMemoryManager {
         // Register region
         self.regions.write().insert(region_id, region);
         self.allocated_regions.write().insert(virtual_addr, region_id);
-        
+
         // Update total allocated
         *self.total_allocated.lock() += size;
 
@@ -126,25 +143,28 @@ impl NonosMemoryManager {
 
         let mut regions = self.regions.write();
         let region = regions.remove(&region_id).ok_or("Region not found")?;
-        
+
         // Update allocated regions
         self.allocated_regions.write().remove(&virtual_addr);
-        
+
         // Update total allocated
         *self.total_allocated.lock() -= region.size;
 
         // In production, this would also clear/zero the memory for security
-        
+
         Ok(())
     }
 
-    pub fn get_region_info(&self, virtual_addr: VirtAddr) -> Result<NonosMemoryRegionInfo, &'static str> {
+    pub fn get_region_info(
+        &self,
+        virtual_addr: VirtAddr,
+    ) -> Result<NonosMemoryRegionInfo, &'static str> {
         let allocated = self.allocated_regions.read();
         let region_id = allocated.get(&virtual_addr).ok_or("Address not allocated")?;
-        
+
         let regions = self.regions.read();
         let region = regions.get(region_id).ok_or("Region not found")?;
-        
+
         Ok(NonosMemoryRegionInfo {
             region_id: region.region_id,
             virtual_addr: region.virtual_addr,
@@ -163,7 +183,7 @@ impl NonosMemoryManager {
         &self,
         process_id: u64,
         virtual_addr: VirtAddr,
-        requested_access: PageTableFlags
+        requested_access: PageTableFlags,
     ) -> bool {
         if !self.security_enabled {
             return true;
@@ -193,7 +213,8 @@ impl NonosMemoryManager {
 
         // Check isolation domain if enabled
         if self.isolation_enabled {
-            let expected_domain = self.calculate_isolation_domain(process_id, region.security_level);
+            let expected_domain =
+                self.calculate_isolation_domain(process_id, region.security_level);
             if region.isolation_domain != expected_domain {
                 return false;
             }
@@ -202,7 +223,11 @@ impl NonosMemoryManager {
         true
     }
 
-    fn calculate_isolation_domain(&self, process_id: u64, security_level: NonosSecurityLevel) -> u64 {
+    fn calculate_isolation_domain(
+        &self,
+        process_id: u64,
+        security_level: NonosSecurityLevel,
+    ) -> u64 {
         // Simple domain calculation - in production this would be more sophisticated
         (process_id % 16) + ((security_level as u64) * 16)
     }
@@ -214,7 +239,7 @@ impl NonosMemoryManager {
     pub fn get_memory_statistics(&self) -> NonosMemoryStatistics {
         let total_allocated = *self.total_allocated.lock();
         let total_regions = self.regions.read().len();
-        
+
         NonosMemoryStatistics {
             total_allocated_bytes: total_allocated,
             total_regions,
@@ -260,7 +285,7 @@ pub fn allocate_nonos_secure_memory(
     size: usize,
     region_type: NonosMemoryRegionType,
     security_level: NonosSecurityLevel,
-    owner_process: u64
+    owner_process: u64,
 ) -> Result<VirtAddr, &'static str> {
     NONOS_MEMORY_MANAGER.allocate_secure_memory(size, region_type, security_level, owner_process)
 }
@@ -272,7 +297,7 @@ pub fn deallocate_nonos_secure_memory(virtual_addr: VirtAddr) -> Result<(), &'st
 pub fn check_nonos_memory_access(
     process_id: u64,
     virtual_addr: VirtAddr,
-    requested_access: PageTableFlags
+    requested_access: PageTableFlags,
 ) -> bool {
     NONOS_MEMORY_MANAGER.check_memory_access(process_id, virtual_addr, requested_access)
 }

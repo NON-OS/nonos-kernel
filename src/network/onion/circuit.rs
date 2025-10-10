@@ -19,9 +19,9 @@ use alloc::{collections::BTreeMap, string::String, vec, vec::Vec};
 use core::sync::atomic::{AtomicU32, Ordering};
 use spin::Mutex;
 
-use super::{OnionError, RelayDescriptor};
 use super::cell::Cell;
 use super::crypto::{HopCrypto, LayerKeys, OnionCrypto};
+use super::{OnionError, RelayDescriptor};
 use crate::network::get_network_stack;
 
 pub type CircuitId = u32;
@@ -72,13 +72,13 @@ pub enum LinkSpecifier {
 /// Circuit purpose types
 #[derive(Debug, Clone, PartialEq)]
 pub enum CircuitPurpose {
-    General,        // General client circuits
-    HiddenService,  // Hidden service circuits
-    HSDir,          // Hidden service directory queries
-    Introduction,   // Introduction points
-    Rendezvous,     // Rendezvous points
-    Testing,        // Circuit testing
-    Preemptive,     // Pre-built circuits for performance
+    General,       // General client circuits
+    HiddenService, // Hidden service circuits
+    HSDir,         // Hidden service directory queries
+    Introduction,  // Introduction points
+    Rendezvous,    // Rendezvous points
+    Testing,       // Circuit testing
+    Preemptive,    // Pre-built circuits for performance
 }
 
 /// Path selection constraints
@@ -88,8 +88,8 @@ pub struct PathConstraints {
     pub require_exit: bool,
     pub exclude_nodes: Vec<[u8; 20]>, // Node fingerprints to exclude
     pub country_exclude: Vec<String>, // Country codes to exclude
-    pub max_family_members: u8,        // Max relays from same family
-    pub min_bandwidth: u64,            // Minimum bandwidth requirement
+    pub max_family_members: u8,       // Max relays from same family
+    pub min_bandwidth: u64,           // Minimum bandwidth requirement
 }
 
 impl Default for PathConstraints {
@@ -269,8 +269,8 @@ struct PathSelector {
 
 #[derive(Debug, Clone)]
 struct NodePerformance {
-    success_rate: f32,     // 0..1
-    average_rtt: u32,      // ms
+    success_rate: f32, // 0..1
+    average_rtt: u32,  // ms
     bandwidth_estimate: u64,
     last_success: u64,
     failure_count: u32,
@@ -414,7 +414,11 @@ impl CircuitManager {
     /* ===== Build flow ===== */
 
     /// Send CREATE2 cell with ntor handshake
-    fn send_create_cell(&self, circuit_id: CircuitId, guard: &RelayDescriptor) -> Result<(), OnionError> {
+    fn send_create_cell(
+        &self,
+        circuit_id: CircuitId,
+        guard: &RelayDescriptor,
+    ) -> Result<(), OnionError> {
         // prepare ntor handshake for hop 0
         let mut hop_crypto = HopCrypto::new(&guard.ntor_onion_key)?;
         let cell = Cell::create2_cell(circuit_id, 2, hop_crypto.handshake_data()); // 2 = ntor
@@ -433,7 +437,11 @@ impl CircuitManager {
     }
 
     /// Send EXTEND2 cell with ntor handshake via existing circuit
-    fn send_extend_cell(&self, circuit_id: CircuitId, target: &RelayDescriptor) -> Result<(), OnionError> {
+    fn send_extend_cell(
+        &self,
+        circuit_id: CircuitId,
+        target: &RelayDescriptor,
+    ) -> Result<(), OnionError> {
         let extend_info = ExtendInfo {
             identity_key: target.identity_digest.to_vec(),
             onion_key: target.ntor_onion_key.clone(),
@@ -441,13 +449,8 @@ impl CircuitManager {
             address: target.address,
             port: target.port,
             link_specifiers: vec![
-                LinkSpecifier::IPv4 {
-                    addr: target.address,
-                    port: target.port,
-                },
-                LinkSpecifier::Ed25519 {
-                    identity: target.ed25519_identity.clone(),
-                },
+                LinkSpecifier::IPv4 { addr: target.address, port: target.port },
+                LinkSpecifier::Ed25519 { identity: target.ed25519_identity.clone() },
             ],
         };
 
@@ -467,7 +470,11 @@ impl CircuitManager {
     }
 
     /// Handle CREATED/CREATED2 response from guard
-    pub fn handle_created_cell(&mut self, circuit_id: CircuitId, cell: Cell) -> Result<(), OnionError> {
+    pub fn handle_created_cell(
+        &mut self,
+        circuit_id: CircuitId,
+        cell: Cell,
+    ) -> Result<(), OnionError> {
         let (target_hop_0, keys, rtt) = {
             let mut bmap = self.building.lock();
             let b = bmap.get_mut(&circuit_id).ok_or(OnionError::CircuitBuildFailed)?;
@@ -483,18 +490,20 @@ impl CircuitManager {
             let rtt = now_ms().saturating_sub(start) as u32;
 
             b.current_hop = 1;
-            
+
             // Extract values we need
             let target_hop_0 = b.target_hops[0].clone();
             let keys = LayerKeys::from_hop_crypto(crypto);
-            
+
             (target_hop_0, keys, rtt)
         }; // bmap is dropped here
 
         // add hop 0 to circuit with derived LayerKeys
         {
             let mut circuits = self.circuits.lock();
-            let entry = circuits.entry(circuit_id).or_insert_with(|| Circuit::new(circuit_id, CircuitPurpose::General));
+            let entry = circuits
+                .entry(circuit_id)
+                .or_insert_with(|| Circuit::new(circuit_id, CircuitPurpose::General));
             entry.add_hop(target_hop_0, keys)?;
             entry.hops[0].rtt_ms = ewma_update(entry.hops[0].rtt_ms, rtt);
             entry.touch();
@@ -521,7 +530,11 @@ impl CircuitManager {
     }
 
     /// Handle EXTENDED/EXTENDED2 response (for hop >= 1)
-    pub fn handle_extended_cell(&mut self, circuit_id: CircuitId, cell: Cell) -> Result<(), OnionError> {
+    pub fn handle_extended_cell(
+        &mut self,
+        circuit_id: CircuitId,
+        cell: Cell,
+    ) -> Result<(), OnionError> {
         let (expected_hop, relay, keys, rtt) = {
             let mut bmap = self.building.lock();
             let b = bmap.get_mut(&circuit_id).ok_or(OnionError::CircuitBuildFailed)?;
@@ -531,10 +544,7 @@ impl CircuitManager {
                 return Err(OnionError::InvalidCell);
             }
 
-            let crypto = b
-                .crypto_state
-                .get_mut(expected_hop)
-                .ok_or(OnionError::CryptoError)?;
+            let crypto = b.crypto_state.get_mut(expected_hop).ok_or(OnionError::CryptoError)?;
             let start = now_ms();
             crypto.complete_handshake(&cell.payload)?;
             let rtt = now_ms().saturating_sub(start) as u32;
@@ -542,13 +552,15 @@ impl CircuitManager {
             // Extract values we need
             let relay = b.target_hops[expected_hop].clone();
             let keys = LayerKeys::from_hop_crypto(crypto);
-            
+
             (expected_hop, relay, keys, rtt)
         }; // bmap is dropped here
 
         {
             let mut circuits = self.circuits.lock();
-            let entry = circuits.entry(circuit_id).or_insert_with(|| Circuit::new(circuit_id, CircuitPurpose::General));
+            let entry = circuits
+                .entry(circuit_id)
+                .or_insert_with(|| Circuit::new(circuit_id, CircuitPurpose::General));
             entry.add_hop(relay, keys)?;
             let idx = entry.hop_count() - 1;
             entry.hops[idx].rtt_ms = ewma_update(entry.hops[idx].rtt_ms, rtt);
@@ -617,12 +629,7 @@ impl CircuitManager {
 
     /// Get all open circuits
     pub fn get_open_circuits(&self) -> Vec<CircuitId> {
-        self.circuits
-            .lock()
-            .iter()
-            .filter(|(_, c)| c.is_open())
-            .map(|(id, _)| *id)
-            .collect()
+        self.circuits.lock().iter().filter(|(_, c)| c.is_open()).map(|(id, _)| *id).collect()
     }
 
     /// Close circuit gracefully (DESTROY)
@@ -630,7 +637,7 @@ impl CircuitManager {
         if let Some(mut circuit) = self.circuits.lock().remove(&circuit_id) {
             circuit.state = CircuitState::Closing;
             let cell = Cell::destroy_cell(circuit_id, 0); // reason: none
-            // best-effort send; even on failure we consider it tear-down
+                                                          // best-effort send; even on failure we consider it tear-down
             let _ = self.send_cell_through_circuit(circuit_id, cell);
         }
         Ok(())
@@ -658,7 +665,10 @@ impl CircuitManager {
             let mut circuits = self.circuits.lock();
             let expired_ids: Vec<_> = circuits
                 .iter()
-                .filter(|(_, c)| c.is_expired(max_age_ms) || matches!(c.state, CircuitState::Failed | CircuitState::Closed))
+                .filter(|(_, c)| {
+                    c.is_expired(max_age_ms)
+                        || matches!(c.state, CircuitState::Failed | CircuitState::Closed)
+                })
                 .map(|(id, _)| *id)
                 .collect();
             for id in expired_ids {
@@ -683,14 +693,13 @@ impl CircuitManager {
                 self.perf.global.failed_circuits.fetch_add(1, Ordering::Relaxed);
                 // mark a placeholder failed circuit (optional)
                 let mut circuits = self.circuits.lock();
-                circuits
-                    .entry(id)
-                    .and_modify(|c| c.state = CircuitState::Failed)
-                    .or_insert_with(|| {
+                circuits.entry(id).and_modify(|c| c.state = CircuitState::Failed).or_insert_with(
+                    || {
                         let mut c = Circuit::new(id, CircuitPurpose::General);
                         c.state = CircuitState::Failed;
                         c
-                    });
+                    },
+                );
             }
         }
     }
@@ -701,8 +710,7 @@ impl CircuitManager {
     fn send_cell_to_relay(&self, cell: Cell, relay: &RelayDescriptor) -> Result<(), OnionError> {
         if let Some(net) = get_network_stack() {
             let packet = cell.serialize();
-            net.send_tcp_packet(&packet)
-                .map_err(|_| OnionError::NetworkError)?;
+            net.send_tcp_packet(&packet).map_err(|_| OnionError::NetworkError)?;
             Ok(())
         } else {
             Err(OnionError::NetworkError)
@@ -710,7 +718,11 @@ impl CircuitManager {
     }
 
     /// Send cell through existing circuit with encryption (to guard).
-    fn send_cell_through_circuit(&self, circuit_id: CircuitId, mut cell: Cell) -> Result<(), OnionError> {
+    fn send_cell_through_circuit(
+        &self,
+        circuit_id: CircuitId,
+        mut cell: Cell,
+    ) -> Result<(), OnionError> {
         let mut circuits = self.circuits.lock();
         if let Some(c) = circuits.get_mut(&circuit_id) {
             let enc = c.encrypt_forward(&cell.payload)?;
@@ -750,12 +762,16 @@ impl PathSelector {
     }
 
     fn init(&self) -> Result<(), OnionError> {
-        // In a full integration, we will populate relays from consensus/microdescriptors.
+        // In a full integration, we will populate relays from
+        // consensus/microdescriptors.
         Ok(())
     }
 
     /// Choose a 3-hop path that satisfies constraints (basic heuristic).
-    fn select_optimal_path(&self, constraints: &PathConstraints) -> Result<Vec<RelayDescriptor>, OnionError> {
+    fn select_optimal_path(
+        &self,
+        constraints: &PathConstraints,
+    ) -> Result<Vec<RelayDescriptor>, OnionError> {
         let guards = self.guard_nodes.lock();
         let middles = self.middle_nodes.lock();
         let exits = self.exit_nodes.lock();
@@ -826,9 +842,7 @@ impl PerformanceMonitor {
     }
 
     fn record_circuit_built(&self, circuit_id: CircuitId, build_time_ms: u64) {
-        self.global
-            .total_circuits_built
-            .fetch_add(1, Ordering::Relaxed);
+        self.global.total_circuits_built.fetch_add(1, Ordering::Relaxed);
 
         // update average build time (online mean)
         let current_avg = self.global.average_build_time_ms.load(Ordering::Relaxed) as u64;
@@ -839,9 +853,7 @@ impl PerformanceMonitor {
             (current_avg.saturating_mul(total_built.saturating_sub(1)) + build_time_ms)
                 / total_built
         };
-        self.global
-            .average_build_time_ms
-            .store(new_avg as u32, Ordering::Relaxed);
+        self.global.average_build_time_ms.store(new_avg as u32, Ordering::Relaxed);
 
         // note: per-circuit metrics are updated by Circuit via get_performance_metrics
         let mut map = self.circuit_stats.lock();
@@ -862,11 +874,7 @@ impl PerformanceMonitor {
 
 impl CircuitPool {
     fn new(pool_size: usize, min_circuits: usize) -> Self {
-        CircuitPool {
-            prebuilt_circuits: Mutex::new(Vec::new()),
-            pool_size,
-            min_circuits,
-        }
+        CircuitPool { prebuilt_circuits: Mutex::new(Vec::new()), pool_size, min_circuits }
     }
 
     fn init(&self) -> Result<(), OnionError> {

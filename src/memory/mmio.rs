@@ -23,17 +23,32 @@ use spin::Mutex;
 use x86_64::{PhysAddr, VirtAddr};
 
 use crate::memory::layout::PAGE_SIZE;
-use crate::memory::virt::{self, VmFlags};
 use crate::memory::proof::{self, CapTag};
+use crate::memory::virt::{self, VmFlags};
 
 /// CPU-ordering helpers
-#[inline(always)] pub fn lfence() { unsafe { core::arch::asm!("lfence", options(nomem, nostack, preserves_flags)) } }
-#[inline(always)] pub fn sfence() { unsafe { core::arch::asm!("sfence", options(nomem, nostack, preserves_flags)) } }
-#[inline(always)] pub fn mfence() { unsafe { core::arch::asm!("mfence", options(nomem, nostack, preserves_flags)) } }
+#[inline(always)]
+pub fn lfence() {
+    unsafe { core::arch::asm!("lfence", options(nomem, nostack, preserves_flags)) }
+}
+#[inline(always)]
+pub fn sfence() {
+    unsafe { core::arch::asm!("sfence", options(nomem, nostack, preserves_flags)) }
+}
+#[inline(always)]
+pub fn mfence() {
+    unsafe { core::arch::asm!("mfence", options(nomem, nostack, preserves_flags)) }
+}
 
 /// PAT cache kinds we expose at the API.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum CacheKind { UC, UcMinus, WC, WT, WB }
+pub enum CacheKind {
+    UC,
+    UcMinus,
+    WC,
+    WT,
+    WB,
+}
 
 /// Alias for compatibility
 pub type CacheAttr = CacheKind;
@@ -44,11 +59,11 @@ pub fn pat_flags_for(kind: CacheKind) -> Option<VmFlags> {
     // NOTE: this is a placeholder. When PAT is configured, translate PAT index
     // into PTE (PAT/PWT/PCD) bits and OR them into VmFlags via virt layer.
     match kind {
-        CacheKind::UC       => Some(VmFlags::PCD),                         // PCD=1 PWT=0
-        CacheKind::UcMinus => Some(VmFlags::PCD | VmFlags::PWT),          // UC- (device-like)
-        CacheKind::WT       => Some(VmFlags::PWT),                         // WT
-        CacheKind::WB       => Some(VmFlags::empty()),                     // WB default
-        CacheKind::WC       => None, // until PAT WC index is actually programmed
+        CacheKind::UC => Some(VmFlags::PCD), // PCD=1 PWT=0
+        CacheKind::UcMinus => Some(VmFlags::PCD | VmFlags::PWT), // UC- (device-like)
+        CacheKind::WT => Some(VmFlags::PWT), // WT
+        CacheKind::WB => Some(VmFlags::empty()), // WB default
+        CacheKind::WC => None,               // until PAT WC index is actually programmed
     }
 }
 
@@ -57,10 +72,10 @@ pub fn pat_flags_for(kind: CacheKind) -> Option<VmFlags> {
 struct Region {
     base_va: u64,
     base_pa: u64,
-    len:     usize,
-    flags:   VmFlags,
-    refs:    u32,
-    label:   [u8; 16], // short tag (PCI BDF, device id, etc.)
+    len: usize,
+    flags: VmFlags,
+    refs: u32,
+    label: [u8; 16], // short tag (PCI BDF, device id, etc.)
 }
 
 const MAX_MMIO: usize = 128;
@@ -70,12 +85,19 @@ fn reg_insert(r: Region) -> Result<usize, ()> {
     let mut t = REG.lock();
     // overlap guard
     for e in t.iter().flatten() {
-        let a0 = r.base_va; let a1 = r.base_va + r.len as u64;
-        let b0 = e.base_va; let b1 = e.base_va + e.len as u64;
-        if a0 < b1 && b0 < a1 { return Err(()); }
+        let a0 = r.base_va;
+        let a1 = r.base_va + r.len as u64;
+        let b0 = e.base_va;
+        let b1 = e.base_va + e.len as u64;
+        if a0 < b1 && b0 < a1 {
+            return Err(());
+        }
     }
     for (i, slot) in t.iter_mut().enumerate() {
-        if slot.is_none() { *slot = Some(r); return Ok(i); }
+        if slot.is_none() {
+            *slot = Some(r);
+            return Ok(i);
+        }
     }
     Err(())
 }
@@ -84,7 +106,9 @@ fn reg_find(va: u64) -> Option<usize> {
     let t = REG.lock();
     for (i, e) in t.iter().enumerate() {
         if let Some(r) = e {
-            if va >= r.base_va && va < r.base_va + r.len as u64 { return Some(i); }
+            if va >= r.base_va && va < r.base_va + r.len as u64 {
+                return Some(i);
+            }
         }
     }
     None
@@ -98,7 +122,9 @@ fn reg_remove(idx: usize) -> Region {
 
 fn reg_addref(idx: usize) {
     let mut t = REG.lock();
-    if let Some(r) = &mut t[idx] { r.refs = r.refs.saturating_add(1); }
+    if let Some(r) = &mut t[idx] {
+        r.refs = r.refs.saturating_add(1);
+    }
 }
 
 fn reg_set_label(idx: usize, label: &str) {
@@ -107,7 +133,9 @@ fn reg_set_label(idx: usize, label: &str) {
         let bytes = label.as_bytes();
         let n = bytes.len().min(16);
         r.label[..n].copy_from_slice(&bytes[..n]);
-        for b in &mut r.label[n..] { *b = 0; }
+        for b in &mut r.label[n..] {
+            *b = 0;
+        }
     }
 }
 
@@ -123,8 +151,8 @@ fn vmflags_for(kind: CacheKind) -> VmFlags {
 /// A mapped MMIO window. Not Send/Sync by default.
 pub struct Mmio {
     base: VirtAddr,
-    len:  usize,
-    idx:  usize,                 // registry index
+    len: usize,
+    idx: usize, // registry index
     _nosend: PhantomData<*mut ()>,
 }
 
@@ -134,8 +162,15 @@ impl Mmio {
     ///
     /// Safety: caller guarantees the physical region is a device MMIO BAR or
     /// ACPI/firmware table; not regular RAM.
-    pub unsafe fn ioremap(pa: PhysAddr, len: usize, kind: CacheKind, label: &str) -> Result<Self, ()> {
-        if len == 0 { return Err(()); }
+    pub unsafe fn ioremap(
+        pa: PhysAddr,
+        len: usize,
+        kind: CacheKind,
+        label: &str,
+    ) -> Result<Self, ()> {
+        if len == 0 {
+            return Err(());
+        }
         let off = (pa.as_u64() & (PAGE_SIZE as u64 - 1)) as usize;
         let pa_aln = PhysAddr::new(pa.as_u64() & !((PAGE_SIZE as u64) - 1));
         let total = off + len;
@@ -143,7 +178,13 @@ impl Mmio {
 
         let flags = vmflags_for(kind);
         let base = map_mmio_pages(pa_aln, pages, flags).map_err(|_| ())?;
-        proof::audit_map(base.as_u64(), pa_aln.as_u64(), (pages * PAGE_SIZE) as u64, flags.bits(), CapTag::DMA | CapTag::KERNEL);
+        proof::audit_map(
+            base.as_u64(),
+            pa_aln.as_u64(),
+            (pages * PAGE_SIZE) as u64,
+            flags.bits(),
+            CapTag::DMA | CapTag::KERNEL,
+        );
 
         let idx = reg_insert(Region {
             base_va: base.as_u64() + off as u64,
@@ -151,7 +192,7 @@ impl Mmio {
             len,
             flags,
             refs: 1,
-            label: [0;16],
+            label: [0; 16],
         })?;
         reg_set_label(idx, label);
 
@@ -170,7 +211,10 @@ impl Mmio {
         let r = {
             let mut t = REG.lock();
             let ent = t[self.idx].as_mut().expect("mmio: stale");
-            if ent.refs > 1 { ent.refs -= 1; return; }
+            if ent.refs > 1 {
+                ent.refs -= 1;
+                return;
+            }
             ent.clone()
         };
 
@@ -184,21 +228,49 @@ impl Mmio {
             let va = VirtAddr::new(start.as_u64() + (i * PAGE_SIZE) as u64);
             let _ = virt::unmap4k(va);
         }
-        proof::audit_unmap(start.as_u64(), (pages * PAGE_SIZE) as u64, CapTag::DMA | CapTag::KERNEL);
+        proof::audit_unmap(
+            start.as_u64(),
+            (pages * PAGE_SIZE) as u64,
+            CapTag::DMA | CapTag::KERNEL,
+        );
 
         let _ = reg_remove(self.idx);
     }
 
     // ——— typed volatile IO ———
-    #[inline] pub fn read8 (&self, off: usize) ->  u8 { unsafe { ptr::read_volatile(self.ptr(off) as *const u8) } }
-    #[inline] pub fn read16(&self, off: usize) -> u16 { unsafe { ptr::read_volatile(self.ptr(off) as *const u16) } }
-    #[inline] pub fn read32(&self, off: usize) -> u32 { unsafe { ptr::read_volatile(self.ptr(off) as *const u32) } }
-    #[inline] pub fn read64(&self, off: usize) -> u64 { unsafe { ptr::read_volatile(self.ptr(off) as *const u64) } }
+    #[inline]
+    pub fn read8(&self, off: usize) -> u8 {
+        unsafe { ptr::read_volatile(self.ptr(off) as *const u8) }
+    }
+    #[inline]
+    pub fn read16(&self, off: usize) -> u16 {
+        unsafe { ptr::read_volatile(self.ptr(off) as *const u16) }
+    }
+    #[inline]
+    pub fn read32(&self, off: usize) -> u32 {
+        unsafe { ptr::read_volatile(self.ptr(off) as *const u32) }
+    }
+    #[inline]
+    pub fn read64(&self, off: usize) -> u64 {
+        unsafe { ptr::read_volatile(self.ptr(off) as *const u64) }
+    }
 
-    #[inline] pub fn write8 (&self, off: usize, v:  u8) { unsafe { ptr::write_volatile(self.ptr(off) as *mut u8,  v) } }
-    #[inline] pub fn write16(&self, off: usize, v: u16) { unsafe { ptr::write_volatile(self.ptr(off) as *mut u16, v) } }
-    #[inline] pub fn write32(&self, off: usize, v: u32) { unsafe { ptr::write_volatile(self.ptr(off) as *mut u32, v) } }
-    #[inline] pub fn write64(&self, off: usize, v: u64) { unsafe { ptr::write_volatile(self.ptr(off) as *mut u64, v) } }
+    #[inline]
+    pub fn write8(&self, off: usize, v: u8) {
+        unsafe { ptr::write_volatile(self.ptr(off) as *mut u8, v) }
+    }
+    #[inline]
+    pub fn write16(&self, off: usize, v: u16) {
+        unsafe { ptr::write_volatile(self.ptr(off) as *mut u16, v) }
+    }
+    #[inline]
+    pub fn write32(&self, off: usize, v: u32) {
+        unsafe { ptr::write_volatile(self.ptr(off) as *mut u32, v) }
+    }
+    #[inline]
+    pub fn write64(&self, off: usize, v: u64) {
+        unsafe { ptr::write_volatile(self.ptr(off) as *mut u64, v) }
+    }
 
     /// Posted-write flush: read back a harmless register to ensure ordering.
     pub fn flush_posted(&self, readback_off: usize) {
@@ -206,7 +278,8 @@ impl Mmio {
         lfence();
     }
 
-    #[inline] fn ptr(&self, off: usize) -> *mut u8 {
+    #[inline]
+    fn ptr(&self, off: usize) -> *mut u8 {
         assert!(off < self.len, "mmio: oob");
         (self.base.as_u64() as usize + off) as *mut u8
     }
@@ -233,9 +306,13 @@ impl Mmio {
     /// Mask/unmask MSI-X entry in table mapped via this MMIO window.
     pub fn msix_mask_entry(&self, table_off: usize, entry: u16, mask: bool) {
         // MSI-X vector control: offset = table + entry*16 + 12; bit 0 = Mask
-        let off = table_off + (entry as usize)*16 + 12;
+        let off = table_off + (entry as usize) * 16 + 12;
         let mut v = self.read32(off);
-        if mask { v |= 1 } else { v &= !1 };
+        if mask {
+            v |= 1
+        } else {
+            v &= !1
+        };
         self.write32(off, v);
         sfence();
         self.flush_posted(off);
@@ -243,7 +320,7 @@ impl Mmio {
 
     /// Program MSI/MSI-X address/data (doorbell) — typical for x86 APIC
     pub fn msix_program(&self, table_off: usize, entry: u16, addr: u64, data: u32) {
-        let base = table_off + (entry as usize)*16;
+        let base = table_off + (entry as usize) * 16;
         self.write32(base + 0, (addr & 0xFFFF_FFFF) as u32);
         self.write32(base + 4, (addr >> 32) as u32);
         self.write32(base + 8, data);
@@ -255,24 +332,38 @@ impl Mmio {
 /// Map a single 4K probe page; returns VA adjusted by original offset.
 pub unsafe fn probe_map(pa: PhysAddr, kind: CacheKind) -> Result<VirtAddr, ()> {
     let flags = vmflags_for(kind);
-    let base = map_mmio_pages(PhysAddr::new(pa.as_u64() & !((PAGE_SIZE as u64)-1)), 1, flags).map_err(|_| ())?;
-    proof::audit_map(base.as_u64(), pa.as_u64() & !((PAGE_SIZE as u64)-1), PAGE_SIZE as u64, flags.bits(), CapTag::DMA | CapTag::KERNEL);
+    let base = map_mmio_pages(PhysAddr::new(pa.as_u64() & !((PAGE_SIZE as u64) - 1)), 1, flags)
+        .map_err(|_| ())?;
+    proof::audit_map(
+        base.as_u64(),
+        pa.as_u64() & !((PAGE_SIZE as u64) - 1),
+        PAGE_SIZE as u64,
+        flags.bits(),
+        CapTag::DMA | CapTag::KERNEL,
+    );
     Ok(VirtAddr::new(base.as_u64() + (pa.as_u64() & (PAGE_SIZE as u64 - 1))))
 }
 
 pub unsafe fn probe_unmap(adj_va: VirtAddr) {
-    let va = VirtAddr::new(adj_va.as_u64() & !((PAGE_SIZE as u64)-1));
+    let va = VirtAddr::new(adj_va.as_u64() & !((PAGE_SIZE as u64) - 1));
     let _ = virt::unmap4k(va);
     proof::audit_unmap(va.as_u64(), PAGE_SIZE as u64, CapTag::DMA | CapTag::KERNEL);
 }
 
 // —————————————————— internals ——————————————————
 
-
-unsafe fn map_mmio_pages(pa_aligned: PhysAddr, pages: usize, flags: VmFlags) -> Result<VirtAddr, ()> {
-    extern "Rust" { fn __nonos_alloc_mmio_va(pages: usize) -> u64; }
+unsafe fn map_mmio_pages(
+    pa_aligned: PhysAddr,
+    pages: usize,
+    flags: VmFlags,
+) -> Result<VirtAddr, ()> {
+    extern "Rust" {
+        fn __nonos_alloc_mmio_va(pages: usize) -> u64;
+    }
     let va_base = __nonos_alloc_mmio_va(pages);
-    if va_base == 0 { return Err(()); }
+    if va_base == 0 {
+        return Err(());
+    }
 
     for i in 0..pages {
         let va = VirtAddr::new(va_base + (i * PAGE_SIZE) as u64);

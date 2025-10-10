@@ -77,16 +77,13 @@ impl Framebuffer {
 
     /// Clear full screen to an RGB color (8-bit channels). Accepts logical RGB; we’ll
     /// reorder for BGR when needed.
-pub fn clear(&mut self, r: u8, g: u8, b: u8) {
-        let width = self.width;
-        let height = self.height;
-        let fmt = self.fmt;
-        for y in 0..height {
+    pub fn clear(&mut self, r: u8, g: u8, b: u8) {
+        for y in 0..self.height {
             if let Some(row) = self.row_slice_mut(y) {
-                for x in 0..width {
+                for x in 0..self.width {
                     let px = (x as usize) * 4;
                     if px + 3 >= row.len() { break; }
-                    match fmt {
+                    match self.fmt {
                         fb_format::RGB | fb_format::BITMASK => {
                             row[px + 0] = b; // little-endian BGRA in memory for RGB layout
                             row[px + 1] = g;
@@ -107,13 +104,12 @@ pub fn clear(&mut self, r: u8, g: u8, b: u8) {
     }
 
     /// Put a single pixel if within bounds.
-pub fn put_pixel(&mut self, x: u32, y: u32, r: u8, g: u8, b: u8) {
+    pub fn put_pixel(&mut self, x: u32, y: u32, r: u8, g: u8, b: u8) {
         if x >= self.width || y >= self.height { return; }
-        let fmt = self.fmt;
         if let Some(row) = self.row_slice_mut(y) {
             let px = (x as usize) * 4;
             if px + 3 >= row.len() { return; }
-            match fmt {
+            match self.fmt {
                 fb_format::RGB | fb_format::BITMASK => {
                     row[px + 0] = b;
                     row[px + 1] = g;
@@ -189,3 +185,4 @@ pub fn init_from_handoff(h: &crate::handoff::ZeroStateBootInfo) -> Option<Frameb
 
     unsafe { Framebuffer::from_handoff(base_virt, size, pitch, width, height, bpp, fmt) }
 }
+// Example usage in your kernel main.rs:

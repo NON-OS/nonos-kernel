@@ -8,8 +8,8 @@
 
 #![allow(dead_code)]
 
-use alloc::{vec::Vec, vec, string::String, format};
-use core::sync::atomic::{AtomicU64, AtomicU32, Ordering};
+use alloc::{format, string::String, vec, vec::Vec};
+use core::sync::atomic::{AtomicU32, AtomicU64, Ordering};
 use spin::{Mutex, RwLock};
 
 /// Audit event types
@@ -62,28 +62,28 @@ impl AuditSeverity {
 pub struct AuditEvent {
     /// Event timestamp (nanoseconds since boot)
     pub timestamp: u64,
-    
+
     /// Event type
     pub event_type: AuditEventType,
-    
+
     /// Event severity
     pub severity: AuditSeverity,
-    
+
     /// Process ID that triggered event
     pub pid: u32,
-    
+
     /// User ID (if applicable)
     pub uid: u32,
-    
+
     /// Event description
     pub description: String,
-    
+
     /// Additional event data
     pub data: Vec<u8>,
-    
+
     /// Event checksum for integrity
     pub checksum: u64,
-    
+
     /// Sequence number
     pub sequence: u64,
 }
@@ -103,28 +103,28 @@ pub struct AuditStats {
 pub struct AuditSystem {
     /// Event log ring buffer
     event_log: Mutex<Vec<AuditEvent>>,
-    
+
     /// Maximum log entries before rotation
     max_log_entries: usize,
-    
+
     /// Current log sequence number
     sequence_counter: AtomicU64,
-    
+
     /// Audit statistics
     stats: AuditStats,
-    
+
     /// Event filters (only log events matching filters)
     event_filters: RwLock<Vec<AuditEventType>>,
-    
+
     /// Minimum severity to log
     min_severity: AtomicU32,
-    
+
     /// Audit enabled flag
     enabled: AtomicU32,
-    
+
     /// Cryptographic key for log integrity
     integrity_key: Mutex<[u8; 32]>,
-    
+
     /// Real-time threat detection rules
     threat_rules: RwLock<Vec<ThreatRule>>,
 }
@@ -134,8 +134,8 @@ pub struct AuditSystem {
 pub struct ThreatRule {
     pub name: String,
     pub event_pattern: AuditEventType,
-    pub max_frequency: u64,    // Max events per second
-    pub time_window: u64,      // Time window in seconds
+    pub max_frequency: u64, // Max events per second
+    pub time_window: u64,   // Time window in seconds
     pub action: ThreatAction,
     pub enabled: bool,
 }
@@ -143,11 +143,11 @@ pub struct ThreatRule {
 /// Actions to take when threat is detected
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum ThreatAction {
-    Log,           // Just log the threat
-    Alert,         // Send alert to security subsystem
-    Block,         // Block the operation
-    Quarantine,    // Quarantine the process
-    Shutdown,      // Emergency shutdown
+    Log,        // Just log the threat
+    Alert,      // Send alert to security subsystem
+    Block,      // Block the operation
+    Quarantine, // Quarantine the process
+    Shutdown,   // Emergency shutdown
 }
 
 /// Global audit system instance
@@ -159,7 +159,7 @@ impl AuditSystem {
     pub fn new() -> Self {
         // Initialize with default threat detection rules
         let mut threat_rules = Vec::new();
-        
+
         // Rule: Detect excessive system calls
         threat_rules.push(ThreatRule {
             name: String::from("Excessive Syscalls"),
@@ -169,7 +169,7 @@ impl AuditSystem {
             action: ThreatAction::Alert,
             enabled: true,
         });
-        
+
         // Rule: Detect crypto operation attacks
         threat_rules.push(ThreatRule {
             name: String::from("Crypto Attack"),
@@ -179,7 +179,7 @@ impl AuditSystem {
             action: ThreatAction::Block,
             enabled: true,
         });
-        
+
         // Rule: Detect privacy breaches
         threat_rules.push(ThreatRule {
             name: String::from("Privacy Breach"),
@@ -189,7 +189,7 @@ impl AuditSystem {
             action: ThreatAction::Shutdown,
             enabled: true,
         });
-        
+
         AuditSystem {
             event_log: Mutex::new(Vec::with_capacity(10000)),
             max_log_entries: 10000,
@@ -209,18 +209,18 @@ impl AuditSystem {
             threat_rules: RwLock::new(threat_rules),
         }
     }
-    
+
     /// Initialize integrity key for audit logs
     pub fn set_integrity_key(&self, key: &[u8; 32]) {
         *self.integrity_key.lock() = *key;
     }
-    
+
     /// Log audit event
     pub fn log_event(&self, mut event: AuditEvent) {
         if self.enabled.load(Ordering::Relaxed) == 0 {
             return;
         }
-        
+
         // Check if event type should be logged
         {
             let filters = self.event_filters.read();
@@ -228,7 +228,7 @@ impl AuditSystem {
                 return;
             }
         }
-        
+
         // Check minimum severity
         let min_severity_value = self.min_severity.load(Ordering::Relaxed);
         if let Some(min_severity) = AuditSeverity::from_u32(min_severity_value) {
@@ -236,49 +236,49 @@ impl AuditSystem {
                 return;
             }
         }
-        
+
         // Assign sequence number
         event.sequence = self.sequence_counter.fetch_add(1, Ordering::SeqCst);
-        
+
         // Calculate integrity checksum
         event.checksum = self.calculate_event_checksum(&event);
-        
+
         // Check for threats
         self.check_threat_rules(&event);
-        
+
         // Add to log
         {
             let mut log = self.event_log.lock();
-            
+
             // Rotate log if full
             if log.len() >= self.max_log_entries {
                 log.remove(0); // Remove oldest entry
             }
-            
+
             log.push(event.clone());
         }
-        
+
         // Update statistics
         self.stats.events_logged.fetch_add(1, Ordering::Relaxed);
-        
+
         if event.event_type == AuditEventType::SecurityViolation {
             self.stats.security_violations.fetch_add(1, Ordering::Relaxed);
         }
-        
+
         if event.event_type == AuditEventType::PrivacyBreach {
             self.stats.privacy_breaches.fetch_add(1, Ordering::Relaxed);
         }
-        
+
         if event.severity == AuditSeverity::Critical || event.severity == AuditSeverity::Emergency {
             self.stats.critical_events.fetch_add(1, Ordering::Relaxed);
         }
     }
-    
+
     /// Calculate cryptographic checksum for event integrity
     fn calculate_event_checksum(&self, event: &AuditEvent) -> u64 {
         let key = self.integrity_key.lock();
         let mut checksum = 0u64;
-        
+
         // Simple checksum based on event data and key
         checksum ^= event.timestamp;
         checksum ^= event.event_type as u64;
@@ -286,36 +286,36 @@ impl AuditSystem {
         checksum ^= event.pid as u64;
         checksum ^= event.uid as u64;
         checksum ^= event.sequence;
-        
+
         // Include description hash
         for byte in event.description.bytes() {
             checksum ^= (byte as u64) << ((checksum & 7) * 8);
         }
-        
+
         // Include key in checksum
         for (i, &key_byte) in key.iter().enumerate() {
             checksum ^= (key_byte as u64) << ((i & 7) * 8);
         }
-        
+
         checksum
     }
-    
+
     /// Check event against threat detection rules
     fn check_threat_rules(&self, event: &AuditEvent) {
         let rules = self.threat_rules.read();
-        
+
         for rule in rules.iter() {
             if !rule.enabled {
                 continue;
             }
-            
+
             if event.event_type == rule.event_pattern {
                 // Count recent events of this type
                 let recent_count = self.count_recent_events(
-                    rule.event_pattern, 
-                    event.timestamp - (rule.time_window * 1_000_000_000)
+                    rule.event_pattern,
+                    event.timestamp - (rule.time_window * 1_000_000_000),
                 );
-                
+
                 if recent_count >= rule.max_frequency {
                     // Threat detected!
                     self.handle_threat_detection(rule, event, recent_count);
@@ -323,16 +323,15 @@ impl AuditSystem {
             }
         }
     }
-    
+
     /// Count recent events of specific type
     fn count_recent_events(&self, event_type: AuditEventType, since_timestamp: u64) -> u64 {
         let log = self.event_log.lock();
-        
-        log.iter()
-            .filter(|e| e.event_type == event_type && e.timestamp >= since_timestamp)
-            .count() as u64
+
+        log.iter().filter(|e| e.event_type == event_type && e.timestamp >= since_timestamp).count()
+            as u64
     }
-    
+
     /// Handle threat detection
     fn handle_threat_detection(&self, rule: &ThreatRule, event: &AuditEvent, event_count: u64) {
         // Log the threat detection
@@ -350,48 +349,48 @@ impl AuditSystem {
             checksum: 0,
             sequence: 0,
         };
-        
+
         self.log_event(threat_event);
-        
+
         // Take action based on rule
         match rule.action {
             ThreatAction::Log => {
                 // Already logged above
-            },
+            }
             ThreatAction::Alert => {
                 // Send alert to security monitoring
                 crate::log::logger::log_critical(&format!(
-                    "SECURITY ALERT: {} detected for PID {}", 
+                    "SECURITY ALERT: {} detected for PID {}",
                     rule.name, event.pid
                 ));
-            },
+            }
             ThreatAction::Block => {
                 // Block further operations from this process
                 crate::log::logger::log_critical(&format!(
-                    "BLOCKING PROCESS {} due to threat: {}", 
+                    "BLOCKING PROCESS {} due to threat: {}",
                     event.pid, rule.name
                 ));
                 // In real implementation, would block process operations
-            },
+            }
             ThreatAction::Quarantine => {
                 // Quarantine the process
                 crate::log::logger::log_critical(&format!(
-                    "QUARANTINING PROCESS {} due to threat: {}", 
+                    "QUARANTINING PROCESS {} due to threat: {}",
                     event.pid, rule.name
                 ));
                 // In real implementation, would isolate process
-            },
+            }
             ThreatAction::Shutdown => {
                 // Emergency shutdown
                 crate::log::logger::log_emergency(&format!(
-                    "EMERGENCY SHUTDOWN triggered by threat: {}", 
+                    "EMERGENCY SHUTDOWN triggered by threat: {}",
                     rule.name
                 ));
                 // In real implementation, would trigger emergency shutdown
-            },
+            }
         }
     }
-    
+
     /// Get audit statistics
     pub fn get_stats(&self) -> AuditSystemStats {
         AuditSystemStats {
@@ -405,18 +404,18 @@ impl AuditSystem {
             threat_rules: self.threat_rules.read().len(),
         }
     }
-    
+
     /// Export audit log (for forensic analysis)
     pub fn export_log(&self) -> Vec<AuditEvent> {
         self.event_log.lock().clone()
     }
-    
+
     /// Verify log integrity
     pub fn verify_log_integrity(&self) -> Result<u64, u64> {
         let log = self.event_log.lock();
         let mut valid_count = 0u64;
         let mut invalid_count = 0u64;
-        
+
         for event in log.iter() {
             let calculated_checksum = self.calculate_event_checksum(event);
             if calculated_checksum == event.checksum {
@@ -426,7 +425,7 @@ impl AuditSystem {
                 self.stats.integrity_failures.fetch_add(1, Ordering::Relaxed);
             }
         }
-        
+
         if invalid_count > 0 {
             Err(invalid_count)
         } else {
@@ -454,19 +453,19 @@ pub fn init_audit_system() -> Result<(), &'static str> {
         if AUDIT_INITIALIZED.load(Ordering::Acquire) != 0 {
             return Ok(());
         }
-        
+
         let audit_system = AuditSystem::new();
-        
+
         // Generate integrity key from hardware entropy
         let mut integrity_key = [0u8; 32];
         for i in 0..32 {
             integrity_key[i] = (crate::time::get_tsc() as u8).wrapping_mul(i as u8 + 1);
         }
         audit_system.set_integrity_key(&integrity_key);
-        
+
         AUDIT_SYSTEM = Some(audit_system);
         AUDIT_INITIALIZED.store(1, Ordering::Release);
-        
+
         crate::log_info!("Security audit system initialized");
         Ok(())
     }
@@ -500,7 +499,7 @@ pub fn log_syscall(syscall_num: u64, arg0: u64, arg1: u64, arg2: u64, result: u6
             checksum: 0,
             sequence: 0,
         };
-        
+
         audit.log_event(event);
     }
 }
@@ -519,7 +518,7 @@ pub fn log_time_sync(timestamp: u64) {
             checksum: 0,
             sequence: 0,
         };
-        
+
         audit.log_event(event);
     }
 }
@@ -538,7 +537,7 @@ pub fn log_security_violation(description: String, severity: AuditSeverity) {
             checksum: 0,
             sequence: 0,
         };
-        
+
         audit.log_event(event);
     }
 }
@@ -557,7 +556,7 @@ pub fn log_privacy_breach(description: String) {
             checksum: 0,
             sequence: 0,
         };
-        
+
         audit.log_event(event);
     }
 }
@@ -576,7 +575,7 @@ pub fn log_crypto_operation(operation: &str, key_id: u32) {
             checksum: 0,
             sequence: 0,
         };
-        
+
         audit.log_event(event);
     }
 }
@@ -595,7 +594,7 @@ pub fn log_network_connection(destination: &str, port: u16) {
             checksum: 0,
             sequence: 0,
         };
-        
+
         audit.log_event(event);
     }
 }

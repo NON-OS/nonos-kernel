@@ -1,10 +1,10 @@
 //! Advanced SHA-3/Keccak Implementation
-//! 
+//!
 //! Production-grade cryptographic hashing with hardware acceleration
 
+use alloc::vec::Vec;
 #[cfg(feature = "nonos-hash-sha3")]
 use sha3::{Digest, Sha3_256 as Sha3Core, Sha3_512};
-use alloc::vec::Vec;
 
 #[cfg(feature = "nonos-hash-sha3")]
 /// Advanced SHA-3 256-bit hasher
@@ -16,22 +16,19 @@ pub struct Sha3_256 {
 impl Sha3_256 {
     /// Create new SHA-3 256 hasher
     pub fn new() -> Self {
-        Self {
-            inner: Sha3Core::new(),
-            
-        }
+        Self { inner: Sha3Core::new() }
     }
-    
+
     /// Update hash with data
     pub fn update(&mut self, data: &[u8]) {
         self.inner.update(data);
     }
-    
+
     /// Finalize and get hash result
     pub fn finalize(self) -> [u8; 32] {
         self.inner.finalize().into()
     }
-    
+
     /// One-shot hash function
     pub fn digest(data: &[u8]) -> [u8; 32] {
         let mut hasher = Self::new();
@@ -56,19 +53,17 @@ pub struct Sha3_512Hasher {
 #[cfg(feature = "nonos-hash-sha3")]
 impl Sha3_512Hasher {
     pub fn new() -> Self {
-        Self {
-            inner: Sha3_512::new(),
-        }
+        Self { inner: Sha3_512::new() }
     }
-    
+
     pub fn update(&mut self, data: &[u8]) {
         self.inner.update(data);
     }
-    
+
     pub fn finalize(self) -> [u8; 64] {
         self.inner.finalize().into()
     }
-    
+
     pub fn digest(data: &[u8]) -> [u8; 64] {
         let mut hasher = Self::new();
         hasher.update(data);
@@ -88,37 +83,33 @@ pub fn hw_accelerated_hash(data: &[u8]) -> [u8; 32] {
 /// Batch hashing for high-performance scenarios
 pub fn batch_hash(data_chunks: &[&[u8]]) -> Vec<[u8; 32]> {
     let mut results = Vec::with_capacity(data_chunks.len());
-    
+
     for chunk in data_chunks {
         results.push(Sha3_256::digest(chunk));
     }
-    
+
     results
 }
 
 #[cfg(feature = "nonos-hash-sha3")]
 /// Advanced cryptographic derivation using SHA-3
-pub fn derive_key_sha3(
-    base_key: &[u8; 32], 
-    context: &[u8], 
-    output_len: usize
-) -> Vec<u8> {
+pub fn derive_key_sha3(base_key: &[u8; 32], context: &[u8], output_len: usize) -> Vec<u8> {
     let mut result = Vec::new();
     let mut counter = 0u32;
-    
+
     while result.len() < output_len {
         let mut hasher = Sha3_256::new();
         hasher.update(base_key);
         hasher.update(context);
         hasher.update(&counter.to_le_bytes());
-        
+
         let hash = hasher.finalize();
         let needed = core::cmp::min(32, output_len - result.len());
         result.extend_from_slice(&hash[..needed]);
-        
+
         counter += 1;
     }
-    
+
     result
 }
 
@@ -141,7 +132,7 @@ pub fn batch_hash(data_chunks: &[&[u8]]) -> Vec<[u8; 32]> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    
+
     #[cfg(feature = "nonos-hash-sha3")]
     #[test]
     fn test_sha3_basic() {
@@ -151,7 +142,7 @@ mod tests {
         assert_eq!(hash1, hash2);
         assert_ne!(hash1, [0u8; 32]);
     }
-    
+
     #[cfg(feature = "nonos-hash-sha3")]
     #[test]
     fn test_key_derivation() {

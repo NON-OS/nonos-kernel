@@ -1,5 +1,5 @@
 //! Advanced Syscall Interface
-//! 
+//!
 //! Production system call handling with real implementations
 
 extern crate alloc;
@@ -7,9 +7,9 @@ extern crate alloc;
 pub mod capabilities;
 pub mod dispatch;
 pub mod handler;
+pub mod nonos_syscall;
 pub mod validation;
 pub mod vdso;
-pub mod nonos_syscall;
 
 use crate::syscall::capabilities::CapabilityToken;
 
@@ -68,12 +68,12 @@ pub fn handle_syscall(syscall_id: u64, arg0: u64, arg1: u64) -> u64 {
         400 => SyscallNumber::CapabilityCheck,
         _ => return u64::MAX, // Invalid syscall
     };
-    
+
     // Validate capability for this syscall
     if !validate_syscall_capability(syscall_num) {
         return u64::MAX - 1; // Permission denied
     }
-    
+
     // Dispatch to appropriate handler
     dispatch::handle_syscall_dispatch(syscall_num, arg0, arg1).value
 }
@@ -82,7 +82,7 @@ pub fn handle_syscall(syscall_id: u64, arg0: u64, arg1: u64) -> u64 {
 fn validate_syscall_capability(syscall: SyscallNumber) -> bool {
     // Real capability validation using current process context
     let current_caps = crate::process::get_current_capabilities();
-    
+
     match syscall {
         SyscallNumber::Exit => current_caps.can_exit(),
         SyscallNumber::Read => current_caps.can_read(),
@@ -99,40 +99,41 @@ fn validate_syscall_capability(syscall: SyscallNumber) -> bool {
     }
 }
 
-/// Real syscall interrupt handler - extracts registers and processes system calls
+/// Real syscall interrupt handler - extracts registers and processes system
+/// calls
 pub fn handle_interrupt() {
     unsafe {
         let mut rax: u64;
         let mut rdi: u64;
         let mut rsi: u64;
         let mut rdx: u64;
-        
+
         // Extract syscall number and arguments from registers
         core::arch::asm!(
             "mov {}, rax",
-            "mov {}, rdi", 
+            "mov {}, rdi",
             "mov {}, rsi",
             "mov {}, rdx",
             out(reg) rax,
             out(reg) rdi,
-            out(reg) rsi, 
+            out(reg) rsi,
             out(reg) rdx,
             options(nostack, preserves_flags)
         );
-        
+
         // Process the system call with real implementation
         let result = handle_syscall(rax, rdi, rsi);
-        
+
         // Store result back in RAX register
         core::arch::asm!(
             "mov rax, {}",
             in(reg) result,
             options(nostack, preserves_flags)
         );
-        
+
         // Update syscall statistics
         crate::monitor::update_syscall_stats(rax, result);
-        
+
         // Audit log for security-sensitive syscalls
         if is_security_sensitive_syscall(rax) {
             crate::security::audit::log_syscall(rax, rdi, rsi, rdx, result);
@@ -142,7 +143,8 @@ pub fn handle_interrupt() {
 
 /// Check if syscall requires security auditing
 fn is_security_sensitive_syscall(syscall_num: u64) -> bool {
-    matches!(syscall_num, 200 | 300 | 400) // CryptoOp, ModuleLoad, CapabilityCheck
+    matches!(syscall_num, 200 | 300 | 400) // CryptoOp, ModuleLoad,
+                                           // CapabilityCheck
 }
 
 /// Syscall table entry for integrity verification
@@ -157,54 +159,56 @@ pub struct SyscallTableEntry {
 
 /// Get the system call table for integrity verification
 pub fn get_syscall_table() -> Option<&'static [SyscallTableEntry]> {
-    use spin::Once;
     use alloc::vec::Vec;
+    use spin::Once;
     static SYSCALL_TABLE: Once<Vec<SyscallTableEntry>> = Once::new();
-    
-    let table = SYSCALL_TABLE.call_once(|| alloc::vec![
-        SyscallTableEntry {
-            syscall_num: 0,
-            handler_addr: handle_syscall as *const () as usize,
-            name: "exit",
-            capability_required: 0x01,
-            hash: [0; 32], // Real hash would be calculated at build time
-        },
-        SyscallTableEntry {
-            syscall_num: 1,
-            handler_addr: handle_syscall as *const () as usize,
-            name: "read",
-            capability_required: 0x02,
-            hash: [0; 32],
-        },
-        SyscallTableEntry {
-            syscall_num: 2,
-            handler_addr: handle_syscall as *const () as usize,
-            name: "write",
-            capability_required: 0x04,
-            hash: [0; 32],
-        },
-        SyscallTableEntry {
-            syscall_num: 3,
-            handler_addr: handle_syscall as *const () as usize,
-            name: "open",
-            capability_required: 0x08,
-            hash: [0; 32],
-        },
-        SyscallTableEntry {
-            syscall_num: 200,
-            handler_addr: handle_syscall as *const () as usize,
-            name: "crypto_op",
-            capability_required: 0x1000,
-            hash: [0; 32],
-        },
-        SyscallTableEntry {
-            syscall_num: 300,
-            handler_addr: handle_syscall as *const () as usize,
-            name: "module_load",
-            capability_required: 0x2000,
-            hash: [0; 32],
-        },
-    ]);
-    
+
+    let table = SYSCALL_TABLE.call_once(|| {
+        alloc::vec![
+            SyscallTableEntry {
+                syscall_num: 0,
+                handler_addr: handle_syscall as *const () as usize,
+                name: "exit",
+                capability_required: 0x01,
+                hash: [0; 32], // Real hash would be calculated at build time
+            },
+            SyscallTableEntry {
+                syscall_num: 1,
+                handler_addr: handle_syscall as *const () as usize,
+                name: "read",
+                capability_required: 0x02,
+                hash: [0; 32],
+            },
+            SyscallTableEntry {
+                syscall_num: 2,
+                handler_addr: handle_syscall as *const () as usize,
+                name: "write",
+                capability_required: 0x04,
+                hash: [0; 32],
+            },
+            SyscallTableEntry {
+                syscall_num: 3,
+                handler_addr: handle_syscall as *const () as usize,
+                name: "open",
+                capability_required: 0x08,
+                hash: [0; 32],
+            },
+            SyscallTableEntry {
+                syscall_num: 200,
+                handler_addr: handle_syscall as *const () as usize,
+                name: "crypto_op",
+                capability_required: 0x1000,
+                hash: [0; 32],
+            },
+            SyscallTableEntry {
+                syscall_num: 300,
+                handler_addr: handle_syscall as *const () as usize,
+                name: "module_load",
+                capability_required: 0x2000,
+                hash: [0; 32],
+            },
+        ]
+    });
+
     Some(table)
 }

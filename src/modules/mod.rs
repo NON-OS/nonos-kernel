@@ -2,12 +2,16 @@ pub mod auth;
 pub mod manifest;
 pub mod mod_loader;
 pub mod mod_runner;
+pub mod nonos_module_loader;
 pub mod registry;
 pub mod runtime;
 pub mod sandbox;
-pub mod nonos_module_loader;
 
-use alloc::{vec::Vec, collections::BTreeMap, string::{String, ToString}};
+use alloc::{
+    collections::BTreeMap,
+    string::{String, ToString},
+    vec::Vec,
+};
 
 #[derive(Debug, Clone)]
 pub struct LoadedModule {
@@ -38,8 +42,8 @@ pub fn notify_module_message_ready(module_name: &str) {
         unsafe {
             let signal = 1u64;
             core::ptr::write_volatile(
-                (module.base_address + module.msg_queue_offset) as *mut u64, 
-                signal
+                (module.base_address + module.msg_queue_offset) as *mut u64,
+                signal,
             );
         }
     }
@@ -61,18 +65,16 @@ struct ModuleEntry {
 pub fn get_loaded_modules() -> Vec<LoadedModule> {
     let mut modules = Vec::new();
     let loaded_modules = LOADED_MODULES.lock();
-    
+
     for (name, entry) in loaded_modules.iter() {
         // Parse ELF headers to get real module info
-        let elf_header = unsafe { 
-            &*((entry.base_address) as *const ElfHeader) 
-        };
-        
-        if elf_header.e_ident[0] == 0x7f && 
-           elf_header.e_ident[1] == b'E' && 
-           elf_header.e_ident[2] == b'L' && 
-           elf_header.e_ident[3] == b'F' {
-            
+        let elf_header = unsafe { &*((entry.base_address) as *const ElfHeader) };
+
+        if elf_header.e_ident[0] == 0x7F
+            && elf_header.e_ident[1] == b'E'
+            && elf_header.e_ident[2] == b'L'
+            && elf_header.e_ident[3] == b'F'
+        {
             modules.push(LoadedModule {
                 name: name.clone(),
                 base_address: entry.base_address,
@@ -82,7 +84,7 @@ pub fn get_loaded_modules() -> Vec<LoadedModule> {
             });
         }
     }
-    
+
     modules
 }
 
@@ -116,20 +118,21 @@ fn verify_elf_signature(base_addr: usize) -> bool {
     // Real ELF signature verification
     unsafe {
         let elf_header = &*((base_addr) as *const ElfHeader);
-        
+
         // Check ELF magic
-        if elf_header.e_ident[0] != 0x7f || 
-           elf_header.e_ident[1] != b'E' ||
-           elf_header.e_ident[2] != b'L' ||
-           elf_header.e_ident[3] != b'F' {
+        if elf_header.e_ident[0] != 0x7F
+            || elf_header.e_ident[1] != b'E'
+            || elf_header.e_ident[2] != b'L'
+            || elf_header.e_ident[3] != b'F'
+        {
             return false;
         }
-        
+
         // Check architecture (x86_64)
-        if elf_header.e_machine != 0x3e {
+        if elf_header.e_machine != 0x3E {
             return false;
         }
-        
+
         // Verify digital signature in ELF sections
         verify_elf_digital_signature(base_addr, elf_header)
     }
@@ -140,17 +143,18 @@ fn verify_elf_digital_signature(base_addr: usize, elf_header: &ElfHeader) -> boo
     unsafe {
         let section_headers = core::slice::from_raw_parts(
             (base_addr + elf_header.e_shoff as usize) as *const ElfSectionHeader,
-            elf_header.e_shnum as usize
+            elf_header.e_shnum as usize,
         );
-        
+
         // Look for .signature section
         for section in section_headers {
-            if section.sh_type == 0x70000000 { // Custom signature section type
+            if section.sh_type == 0x70000000 {
+                // Custom signature section type
                 let sig_data = core::slice::from_raw_parts(
                     (base_addr + section.sh_offset as usize) as *const u8,
-                    section.sh_size as usize
+                    section.sh_size as usize,
                 );
-                
+
                 // Verify signature using kernel's trusted keys
                 return crate::security::trusted_keys::verify_signature(sig_data);
             }
@@ -176,25 +180,22 @@ struct ElfSectionHeader {
 /// Real module loading from storage
 pub fn load_module_from_disk(module_path: &str) -> Result<(), &'static str> {
     // Real file system access to load module
-    let module_data = crate::fs::read_file(module_path)
-        .map_err(|_| "Failed to read module file")?;
-    
+    let module_data =
+        crate::fs::read_file(module_path).map_err(|_| "Failed to read module file")?;
+
     // Parse ELF and allocate memory
     let (base_addr, size, entry_point) = load_elf_module(&module_data)?;
-    
+
     // Create message queue for module IPC
     let msg_queue_offset = allocate_message_queue(base_addr)?;
-    
+
     // Register module
     let module_name = extract_module_name_from_path(module_path);
-    LOADED_MODULES.lock().insert(module_name, ModuleEntry {
-        base_address: base_addr,
-        size,
-        entry_point,
-        msg_queue_offset,
-        ref_count: 1,
-    });
-    
+    LOADED_MODULES.lock().insert(
+        module_name,
+        ModuleEntry { base_address: base_addr, size, entry_point, msg_queue_offset, ref_count: 1 },
+    );
+
     // Call module's init function
     unsafe {
         let init_fn: extern "C" fn() -> i32 = core::mem::transmute(entry_point);
@@ -203,7 +204,7 @@ pub fn load_module_from_disk(module_path: &str) -> Result<(), &'static str> {
             return Err("Module initialization failed");
         }
     }
-    
+
     Ok(())
 }
 
@@ -212,65 +213,66 @@ fn load_elf_module(elf_data: &[u8]) -> Result<(usize, usize, usize), &'static st
     if elf_data.len() < core::mem::size_of::<ElfHeader>() {
         return Err("Invalid ELF file");
     }
-    
+
     let elf_header = unsafe { &*(elf_data.as_ptr() as *const ElfHeader) };
-    
+
     // Validate ELF header
-    if elf_header.e_ident[0] != 0x7f || 
-       elf_header.e_ident[1] != b'E' ||
-       elf_header.e_ident[2] != b'L' ||
-       elf_header.e_ident[3] != b'F' {
+    if elf_header.e_ident[0] != 0x7F
+        || elf_header.e_ident[1] != b'E'
+        || elf_header.e_ident[2] != b'L'
+        || elf_header.e_ident[3] != b'F'
+    {
         return Err("Not a valid ELF file");
     }
-    
+
     // Calculate total memory needed
     let program_headers = unsafe {
         core::slice::from_raw_parts(
             elf_data.as_ptr().add(elf_header.e_phoff as usize) as *const ElfProgramHeader,
-            elf_header.e_phnum as usize
+            elf_header.e_phnum as usize,
         )
     };
-    
+
     let mut max_addr = 0usize;
     let mut min_addr = usize::MAX;
-    
+
     for ph in program_headers {
-        if ph.p_type == 1 { // PT_LOAD
+        if ph.p_type == 1 {
+            // PT_LOAD
             min_addr = min_addr.min(ph.p_vaddr as usize);
             max_addr = max_addr.max((ph.p_vaddr + ph.p_memsz) as usize);
         }
     }
-    
+
     let total_size = max_addr - min_addr;
-    let base_addr = crate::memory::alloc::allocate_kernel_pages(
-        (total_size + 0xfff) / 0x1000
-    )?;
-    
+    let base_addr = crate::memory::alloc::allocate_kernel_pages((total_size + 0xFFF) / 0x1000)?;
+
     // Load program segments
     for ph in program_headers {
-        if ph.p_type == 1 { // PT_LOAD
+        if ph.p_type == 1 {
+            // PT_LOAD
             let dest_addr = base_addr + (ph.p_vaddr as usize - min_addr);
             let file_data = &elf_data[ph.p_offset as usize..(ph.p_offset + ph.p_filesz) as usize];
-            
+
             unsafe {
                 core::ptr::copy_nonoverlapping(
                     file_data.as_ptr(),
                     dest_addr.as_mut_ptr(),
-                    file_data.len()
+                    file_data.len(),
                 );
-                
+
                 // Zero BSS section
                 if ph.p_memsz > ph.p_filesz {
                     core::ptr::write_bytes(
                         (dest_addr + file_data.len()).as_mut_ptr::<u8>(),
                         0,
-                        (ph.p_memsz - ph.p_filesz) as usize
+                        (ph.p_memsz - ph.p_filesz) as usize,
                     );
                 }
             }
         }
     }
-    
+
     let entry_point = base_addr.as_u64() as usize + (elf_header.e_entry as usize - min_addr);
     Ok((base_addr.as_u64() as usize, total_size, entry_point))
 }
@@ -290,12 +292,12 @@ struct ElfProgramHeader {
 fn allocate_message_queue(base_addr: usize) -> Result<usize, &'static str> {
     // Allocate 4KB for message queue at end of module memory
     let queue_page = crate::memory::alloc::allocate_kernel_pages(1)?;
-    
+
     // Initialize message queue structure
     unsafe {
         core::ptr::write_bytes(queue_page.as_u64() as *mut u8, 0, 4096);
     }
-    
+
     Ok(queue_page.as_u64() as usize - base_addr)
 }
 

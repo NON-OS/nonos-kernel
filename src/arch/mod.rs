@@ -1,5 +1,5 @@
 //! Architecture-specific implementations
-//! 
+//!
 //! Advanced hardware abstraction for x86_64
 
 pub mod boot;

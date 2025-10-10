@@ -2,11 +2,13 @@
 //!
 //! Production system call interface with proper error handling
 
-use alloc::{vec::Vec, string::String};
-use core::arch::{asm, naked_asm};
-use x86_64::{VirtAddr, registers::rflags::RFlags, structures::gdt::SegmentSelector, PrivilegeLevel};
-use crate::process::process::get_current_process_id;
 use crate::memory::virtual_memory;
+use crate::process::process::get_current_process_id;
+use alloc::{string::String, vec::Vec};
+use core::arch::{asm, naked_asm};
+use x86_64::{
+    registers::rflags::RFlags, structures::gdt::SegmentSelector, PrivilegeLevel, VirtAddr,
+};
 
 /// System call numbers (Linux-compatible subset)
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -145,7 +147,7 @@ impl SyscallResult {
     pub fn ok(value: i64) -> Self {
         SyscallResult { value, errno: 0 }
     }
-    
+
     pub fn error(errno: u32) -> Self {
         SyscallResult { value: -1, errno }
     }
@@ -155,16 +157,16 @@ impl SyscallResult {
 #[repr(C)]
 #[derive(Debug, Clone, Copy)]
 pub struct SyscallRegs {
-    pub rax: u64,  // syscall number and return value
-    pub rdi: u64,  // arg0
-    pub rsi: u64,  // arg1
-    pub rdx: u64,  // arg2
-    pub r10: u64,  // arg3 (rcx is used by syscall instruction)
-    pub r8: u64,   // arg4
-    pub r9: u64,   // arg5
-    pub rcx: u64,  // return RIP
-    pub r11: u64,  // saved RFLAGS
-    pub rsp: u64,  // user stack pointer
+    pub rax: u64, // syscall number and return value
+    pub rdi: u64, // arg0
+    pub rsi: u64, // arg1
+    pub rdx: u64, // arg2
+    pub r10: u64, // arg3 (rcx is used by syscall instruction)
+    pub r8: u64,  // arg4
+    pub r9: u64,  // arg5
+    pub rcx: u64, // return RIP
+    pub r11: u64, // saved RFLAGS
+    pub rsp: u64, // user stack pointer
 }
 
 /// File descriptor table entry
@@ -197,7 +199,7 @@ pub struct ProcessFdTable {
 impl ProcessFdTable {
     pub fn new() -> Self {
         let mut fds = Vec::with_capacity(256);
-        
+
         // Initialize with standard streams
         fds.push(Some(FileDescriptor {
             fd: 0,
@@ -206,7 +208,7 @@ impl ProcessFdTable {
             flags: 0,
             inode: None,
         })); // stdin
-        
+
         fds.push(Some(FileDescriptor {
             fd: 1,
             file_type: FileDescriptorType::CharDevice,
@@ -214,7 +216,7 @@ impl ProcessFdTable {
             flags: 0,
             inode: None,
         })); // stdout
-        
+
         fds.push(Some(FileDescriptor {
             fd: 2,
             file_type: FileDescriptorType::CharDevice,
@@ -222,57 +224,48 @@ impl ProcessFdTable {
             flags: 0,
             inode: None,
         })); // stderr
-        
+
         // Fill rest with None
         for _ in 3..256 {
             fds.push(None);
         }
-        
-        ProcessFdTable {
-            fds,
-            next_fd: 3,
-        }
+
+        ProcessFdTable { fds, next_fd: 3 }
     }
-    
+
     pub fn allocate_fd(&mut self, file_type: FileDescriptorType) -> Result<i32, u32> {
         for (i, fd_slot) in self.fds.iter_mut().enumerate().skip(self.next_fd as usize) {
             if fd_slot.is_none() {
                 let fd = i as i32;
-                *fd_slot = Some(FileDescriptor {
-                    fd,
-                    file_type,
-                    offset: 0,
-                    flags: 0,
-                    inode: None,
-                });
+                *fd_slot = Some(FileDescriptor { fd, file_type, offset: 0, flags: 0, inode: None });
                 return Ok(fd);
             }
         }
-        
+
         Err(24) // EMFILE - too many open files
     }
-    
+
     pub fn get_fd(&self, fd: i32) -> Option<&FileDescriptor> {
         if fd < 0 || fd as usize >= self.fds.len() {
             return None;
         }
         self.fds[fd as usize].as_ref()
     }
-    
+
     pub fn close_fd(&mut self, fd: i32) -> Result<(), u32> {
         if fd < 0 || fd as usize >= self.fds.len() {
             return Err(9); // EBADF
         }
-        
+
         if self.fds[fd as usize].is_none() {
             return Err(9); // EBADF
         }
-        
+
         self.fds[fd as usize] = None;
         if fd < self.next_fd {
             self.next_fd = fd;
         }
-        
+
         Ok(())
     }
 }
@@ -281,13 +274,13 @@ impl ProcessFdTable {
 #[no_mangle]
 pub extern "C" fn nonos_syscall_handler(regs: &mut SyscallRegs) {
     let syscall_num = SyscallNumber::from(regs.rax);
-    
+
     // Validate user pointers before processing
     if let Err(errno) = validate_syscall_args(syscall_num, regs) {
         regs.rax = SyscallResult::error(errno).value as u64;
         return;
     }
-    
+
     let result = match syscall_num {
         SyscallNumber::Read => sys_read(regs.rdi as i32, regs.rsi, regs.rdx as usize),
         SyscallNumber::Write => sys_write(regs.rdi as i32, regs.rsi, regs.rdx as usize),
@@ -302,7 +295,7 @@ pub extern "C" fn nonos_syscall_handler(regs: &mut SyscallRegs) {
         SyscallNumber::Gettimeofday => sys_gettimeofday(regs.rdi, regs.rsi),
         _ => SyscallResult::error(38), // ENOSYS - function not implemented
     };
-    
+
     regs.rax = result.value as u64;
 }
 
@@ -312,64 +305,64 @@ fn validate_syscall_args(syscall_num: SyscallNumber, regs: &SyscallRegs) -> Resu
         SyscallNumber::Read | SyscallNumber::Write => {
             let buffer_addr = regs.rsi;
             let length = regs.rdx as usize;
-            
+
             if buffer_addr == 0 && length > 0 {
                 return Err(14); // EFAULT
             }
-            
+
             // Check if buffer is in user space
             if !is_user_address(VirtAddr::new(buffer_addr)) {
                 return Err(14); // EFAULT
             }
-            
+
             // Check for buffer overflow
             if buffer_addr.checked_add(length as u64).is_none() {
                 return Err(14); // EFAULT
             }
-        },
-        
+        }
+
         SyscallNumber::Open => {
             let path_addr = regs.rdi;
             if path_addr == 0 {
                 return Err(14); // EFAULT
             }
-            
+
             if !is_user_address(VirtAddr::new(path_addr)) {
                 return Err(14); // EFAULT
             }
-            
+
             // Validate path string
             if let Err(_) = validate_user_string(VirtAddr::new(path_addr), 4096) {
                 return Err(14); // EFAULT
             }
-        },
-        
+        }
+
         SyscallNumber::Execve => {
             let filename_addr = regs.rdi;
             let argv_addr = regs.rsi;
             let envp_addr = regs.rdx;
-            
+
             if filename_addr == 0 {
                 return Err(14); // EFAULT
             }
-            
+
             if !is_user_address(VirtAddr::new(filename_addr)) {
                 return Err(14); // EFAULT
             }
-            
+
             // Validate argv and envp arrays if present
             if argv_addr != 0 && !is_user_address(VirtAddr::new(argv_addr)) {
                 return Err(14); // EFAULT
             }
-            
+
             if envp_addr != 0 && !is_user_address(VirtAddr::new(envp_addr)) {
                 return Err(14); // EFAULT
             }
-        },
-        
+        }
+
         _ => {} // No special validation needed
     }
-    
+
     Ok(())
 }
 
@@ -399,22 +392,24 @@ fn sys_read(fd: i32, _buffer: u64, count: usize) -> SyscallResult {
     if count == 0 {
         return SyscallResult::ok(0);
     }
-    
+
     // Get current process and its FD table
     let _process_id = match get_current_process_id() {
         Some(pid) => pid,
         None => return SyscallResult::error(9), // EBADF
     };
-    
+
     // For now, simulate reading from stdin/stdout/stderr
     match fd {
-        0 => { // stdin - simulate keyboard input
+        0 => {
+            // stdin - simulate keyboard input
             // In real implementation, would read from keyboard buffer
             SyscallResult::ok(0) // No input available
-        },
-        1 | 2 => { // stdout/stderr - invalid for reading
+        }
+        1 | 2 => {
+            // stdout/stderr - invalid for reading
             SyscallResult::error(9) // EBADF
-        },
+        }
         _ => {
             // Regular file - would interact with VFS
             // For now, simulate empty file
@@ -428,12 +423,14 @@ fn sys_write(fd: i32, buffer: u64, count: usize) -> SyscallResult {
     if count == 0 {
         return SyscallResult::ok(0);
     }
-    
+
     match fd {
-        0 => { // stdin - invalid for writing
+        0 => {
+            // stdin - invalid for writing
             SyscallResult::error(9) // EBADF
-        },
-        1 | 2 => { // stdout/stderr - write to console
+        }
+        1 | 2 => {
+            // stdout/stderr - write to console
             // Copy data from user space
             let mut output = Vec::with_capacity(count);
             unsafe {
@@ -442,21 +439,21 @@ fn sys_write(fd: i32, buffer: u64, count: usize) -> SyscallResult {
                     // This would need proper page fault handling
                     let byte = core::ptr::read_volatile(user_ptr.add(i));
                     output.push(byte);
-                    
+
                     // Safety break to prevent infinite loops
                     if i > 4096 {
                         break;
                     }
                 }
             }
-            
+
             // Convert to string and output to VGA
             if let Ok(text) = core::str::from_utf8(&output) {
                 crate::arch::x86_64::vga::print(text);
             }
-            
+
             SyscallResult::ok(count as i64)
-        },
+        }
         _ => {
             // Regular file - would interact with VFS
             SyscallResult::error(9) // EBADF for now
@@ -471,13 +468,13 @@ fn sys_open(pathname: u64, _flags: i32, _mode: u32) -> SyscallResult {
         Ok(p) => p,
         Err(_) => return SyscallResult::error(14), // EFAULT
     };
-    
+
     // For now, only support a few basic paths
     match path.as_str() {
-        "/dev/null" => SyscallResult::ok(3), // Return a dummy FD
-        "/dev/zero" => SyscallResult::ok(4), // Return a dummy FD
+        "/dev/null" => SyscallResult::ok(3),     // Return a dummy FD
+        "/dev/zero" => SyscallResult::ok(4),     // Return a dummy FD
         "/proc/version" => SyscallResult::ok(5), // Return a dummy FD
-        _ => SyscallResult::error(2), // ENOENT - file not found
+        _ => SyscallResult::error(2),            // ENOENT - file not found
     }
 }
 
@@ -486,12 +483,12 @@ fn sys_close(fd: i32) -> SyscallResult {
     if fd < 0 {
         return SyscallResult::error(9); // EBADF
     }
-    
+
     // Can't close stdin/stdout/stderr
     if fd < 3 {
         return SyscallResult::error(9); // EBADF
     }
-    
+
     // For now, just accept closing any FD >= 3
     SyscallResult::ok(0)
 }
@@ -500,33 +497,33 @@ fn sys_close(fd: i32) -> SyscallResult {
 fn sys_brk(addr: u64) -> SyscallResult {
     // Get current process heap info
     let current_brk = get_current_process_brk().unwrap_or(0x400000000); // Default heap start
-    
+
     if addr == 0 {
         // Return current brk
         return SyscallResult::ok(current_brk as i64);
     }
-    
+
     if addr < current_brk {
         // Can't shrink heap below current position
         return SyscallResult::ok(current_brk as i64);
     }
-    
+
     // Calculate pages needed
     let page_aligned_addr = (addr + 4095) & !4095;
     let pages_needed = (page_aligned_addr - current_brk) / 4096;
-    
+
     // Allocate memory pages
     for i in 0..pages_needed {
         let page_addr = VirtAddr::new(current_brk + (i * 4096));
-        
+
         if let Some(frame) = crate::memory::page_allocator::allocate_frame() {
             if let Err(_) = virtual_memory::map_memory_range(
                 page_addr,
                 frame.start_address(),
                 4096,
-                x86_64::structures::paging::PageTableFlags::PRESENT |
-                x86_64::structures::paging::PageTableFlags::WRITABLE |
-                x86_64::structures::paging::PageTableFlags::USER_ACCESSIBLE
+                x86_64::structures::paging::PageTableFlags::PRESENT
+                    | x86_64::structures::paging::PageTableFlags::WRITABLE
+                    | x86_64::structures::paging::PageTableFlags::USER_ACCESSIBLE,
             ) {
                 return SyscallResult::error(12); // ENOMEM
             }
@@ -534,7 +531,7 @@ fn sys_brk(addr: u64) -> SyscallResult {
             return SyscallResult::error(12); // ENOMEM
         }
     }
-    
+
     // Update process brk
     set_current_process_brk(page_aligned_addr);
     SyscallResult::ok(page_aligned_addr as i64)
@@ -553,7 +550,7 @@ fn sys_execve(filename: u64, _argv: u64, _envp: u64) -> SyscallResult {
         Ok(p) => p,
         Err(_) => return SyscallResult::error(14), // EFAULT
     };
-    
+
     // execve implementation would load ELF and replace current process
     // For now, return error
     SyscallResult::error(2) // ENOENT
@@ -564,7 +561,9 @@ fn sys_exit(_status: i32) -> SyscallResult {
     // This should never return - process should be terminated
     // For now, just halt
     loop {
-        unsafe { asm!("hlt"); }
+        unsafe {
+            asm!("hlt");
+        }
     }
 }
 
@@ -588,7 +587,7 @@ fn sys_gettimeofday(tv: u64, _tz: u64) -> SyscallResult {
     let timestamp_ms = crate::time::timestamp_millis();
     let seconds = timestamp_ms / 1000;
     let microseconds = (timestamp_ms % 1000) * 1000;
-    
+
     if tv != 0 {
         // Write timeval struct to user space
         unsafe {
@@ -596,14 +595,14 @@ fn sys_gettimeofday(tv: u64, _tz: u64) -> SyscallResult {
             core::ptr::write_volatile(timeval_ptr, [seconds, microseconds]);
         }
     }
-    
+
     SyscallResult::ok(0)
 }
 
 /// Read string from user space
 fn read_user_string(addr: VirtAddr, max_len: usize) -> Result<String, ()> {
     let mut result = String::new();
-    
+
     unsafe {
         let ptr = addr.as_ptr::<u8>();
         for i in 0..max_len {
@@ -614,7 +613,7 @@ fn read_user_string(addr: VirtAddr, max_len: usize) -> Result<String, ()> {
             result.push(byte as char);
         }
     }
-    
+
     if result.len() == max_len {
         Err(()) // String too long
     } else {
@@ -642,21 +641,21 @@ pub unsafe extern "C" fn syscall_entry() {
         "push r11",      // Saved RFLAGS
         "push rsp",      // User stack
         "push r9",
-        "push r8", 
+        "push r8",
         "push r10",      // arg3
         "push rdx",      // arg2
         "push rsi",      // arg1
         "push rdi",      // arg0
         "push rax",      // syscall number
-        
+
         // Set up kernel stack
         "mov rdi, rsp",  // Pass register struct as argument
         "call {}",       // Call syscall_handler
-        
+
         // Restore registers (result in rax)
         "add rsp, 8",    // Skip old rax (now has return value)
         "pop rdi",
-        "pop rsi", 
+        "pop rsi",
         "pop rdx",
         "pop r10",
         "pop r8",
@@ -664,10 +663,10 @@ pub unsafe extern "C" fn syscall_entry() {
         "pop rsp",       // Restore user stack
         "pop r11",       // Restore RFLAGS
         "pop rcx",       // Restore RIP
-        
+
         // Return to user space
         "sysretq",
-        
+
         sym nonos_syscall_handler,
         options()
     );
@@ -679,27 +678,26 @@ pub fn init_syscall_interface() -> Result<(), &'static str> {
     unsafe {
         // STAR - syscall target address
         x86_64::registers::model_specific::Star::write(
-            SegmentSelector::new(1, PrivilegeLevel::Ring0),  // Kernel CS
-            SegmentSelector::new(2, PrivilegeLevel::Ring0),  // Kernel SS
-            SegmentSelector::new(3, PrivilegeLevel::Ring3),  // User CS
-            SegmentSelector::new(4, PrivilegeLevel::Ring3),  // User SS
-        ).map_err(|_| "Failed to set STAR MSR")?;
-        
+            SegmentSelector::new(1, PrivilegeLevel::Ring0), // Kernel CS
+            SegmentSelector::new(2, PrivilegeLevel::Ring0), // Kernel SS
+            SegmentSelector::new(3, PrivilegeLevel::Ring3), // User CS
+            SegmentSelector::new(4, PrivilegeLevel::Ring3), // User SS
+        )
+        .map_err(|_| "Failed to set STAR MSR")?;
+
         // LSTAR - syscall entry point
-        x86_64::registers::model_specific::LStar::write(
-            VirtAddr::new(syscall_entry as u64)
-        );
-        
+        x86_64::registers::model_specific::LStar::write(VirtAddr::new(syscall_entry as u64));
+
         // SFMASK - flags to clear on syscall
         x86_64::registers::model_specific::SFMask::write(
-            RFlags::INTERRUPT_FLAG | RFlags::DIRECTION_FLAG
+            RFlags::INTERRUPT_FLAG | RFlags::DIRECTION_FLAG,
         );
-        
+
         // Enable syscall/sysret in EFER
         let mut efer = x86_64::registers::model_specific::Efer::read();
         efer |= x86_64::registers::model_specific::EferFlags::SYSTEM_CALL_EXTENSIONS;
         x86_64::registers::model_specific::Efer::write(efer);
     }
-    
+
     Ok(())
 }

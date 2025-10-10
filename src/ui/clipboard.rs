@@ -1,5 +1,5 @@
-use alloc::{vec, vec::Vec, string::String, format};
-use crate::security::data_leak_detection::{DataLeakEvent, monitor_file_access, FileOperation};
+use crate::security::data_leak_detection::{monitor_file_access, DataLeakEvent, FileOperation};
+use alloc::{format, string::String, vec, vec::Vec};
 
 #[derive(Clone)]
 pub struct ImageData {
@@ -86,7 +86,12 @@ impl ClipboardManager {
         }
     }
 
-    pub fn copy_data(&mut self, data: &[u8], format: ClipboardFormat, source_process: u32) -> Result<(), &'static str> {
+    pub fn copy_data(
+        &mut self,
+        data: &[u8],
+        format: ClipboardFormat,
+        source_process: u32,
+    ) -> Result<(), &'static str> {
         if data.is_empty() {
             return Err("Empty data cannot be copied to clipboard");
         }
@@ -96,9 +101,10 @@ impl ClipboardManager {
         }
 
         let sensitivity = self.analyze_data_sensitivity(data);
-        
+
         if self.monitoring_enabled {
-            if let Some(_leak_event) = monitor_file_access("clipboard", data, FileOperation::Write) {
+            if let Some(_leak_event) = monitor_file_access("clipboard", data, FileOperation::Write)
+            {
                 return Err("Potential data leak detected in clipboard operation");
             }
         }
@@ -129,7 +135,11 @@ impl ClipboardManager {
         Ok(())
     }
 
-    pub fn paste_data(&mut self, requesting_process: u32, format_filter: Option<ClipboardFormat>) -> Result<Vec<u8>, &'static str> {
+    pub fn paste_data(
+        &mut self,
+        requesting_process: u32,
+        format_filter: Option<ClipboardFormat>,
+    ) -> Result<Vec<u8>, &'static str> {
         if self.clipboard_data.is_empty() {
             return Err("Clipboard is empty");
         }
@@ -152,7 +162,12 @@ impl ClipboardManager {
             latest_entry.data.clone()
         };
 
-        self.log_access(requesting_process, AccessType::Read, decrypted_data.len(), latest_entry.format);
+        self.log_access(
+            requesting_process,
+            AccessType::Read,
+            decrypted_data.len(),
+            latest_entry.format,
+        );
 
         Ok(decrypted_data)
     }
@@ -164,7 +179,9 @@ impl ClipboardManager {
             sensitivity = sensitivity.max(9);
         }
 
-        if self.contains_pattern(data, b"BEGIN PRIVATE KEY") || self.contains_pattern(data, b"BEGIN RSA PRIVATE KEY") {
+        if self.contains_pattern(data, b"BEGIN PRIVATE KEY")
+            || self.contains_pattern(data, b"BEGIN RSA PRIVATE KEY")
+        {
             sensitivity = sensitivity.max(10);
         }
 
@@ -219,11 +236,11 @@ impl ClipboardManager {
     fn encrypt_clipboard_data(&self, data: &[u8]) -> Result<Vec<u8>, &'static str> {
         let key = self.get_encryption_key();
         let mut encrypted = Vec::with_capacity(data.len());
-        
+
         for (i, &byte) in data.iter().enumerate() {
             encrypted.push(byte ^ key[i % key.len()]);
         }
-        
+
         Ok(encrypted)
     }
 
@@ -234,11 +251,11 @@ impl ClipboardManager {
     fn get_encryption_key(&self) -> [u8; 32] {
         let mut key = [0u8; 32];
         let timestamp = crate::time::get_timestamp();
-        
+
         for i in 0..32 {
             key[i] = ((timestamp >> (i % 8)) ^ (i as u64 * 31)) as u8;
         }
-        
+
         key
     }
 
@@ -246,7 +263,13 @@ impl ClipboardManager {
         true
     }
 
-    fn log_access(&mut self, process_id: u32, access_type: AccessType, data_size: usize, format: ClipboardFormat) {
+    fn log_access(
+        &mut self,
+        process_id: u32,
+        access_type: AccessType,
+        data_size: usize,
+        format: ClipboardFormat,
+    ) {
         if !self.monitoring_enabled {
             return;
         }
@@ -273,7 +296,7 @@ impl ClipboardManager {
 
         self.clipboard_data.clear();
         self.log_access(requesting_process, AccessType::Clear, 0, ClipboardFormat::Text);
-        
+
         Ok(())
     }
 
@@ -318,14 +341,13 @@ impl ClipboardManager {
     }
 
     pub fn get_text(&self) -> Option<String> {
-        self.clipboard_data.last()
-            .and_then(|entry| {
-                if entry.format == ClipboardFormat::Text {
-                    String::from_utf8(entry.data.clone()).ok()
-                } else {
-                    None
-                }
-            })
+        self.clipboard_data.last().and_then(|entry| {
+            if entry.format == ClipboardFormat::Text {
+                String::from_utf8(entry.data.clone()).ok()
+            } else {
+                None
+            }
+        })
     }
 
     pub fn analyze_sensitivity(&self, data: &[u8]) -> u8 {
@@ -333,40 +355,38 @@ impl ClipboardManager {
     }
 
     pub fn get_html(&self) -> Option<String> {
-        self.clipboard_data.last()
-            .and_then(|entry| {
-                if entry.format == ClipboardFormat::Html {
-                    String::from_utf8(entry.data.clone()).ok()
-                } else {
-                    None
-                }
-            })
+        self.clipboard_data.last().and_then(|entry| {
+            if entry.format == ClipboardFormat::Html {
+                String::from_utf8(entry.data.clone()).ok()
+            } else {
+                None
+            }
+        })
     }
 
     pub fn get_rtf(&self) -> Option<String> {
-        self.clipboard_data.last()
-            .and_then(|entry| {
-                if entry.format == ClipboardFormat::Rtf || entry.format == ClipboardFormat::RichText {
-                    String::from_utf8(entry.data.clone()).ok()
-                } else {
-                    None
-                }
-            })
+        self.clipboard_data.last().and_then(|entry| {
+            if entry.format == ClipboardFormat::Rtf || entry.format == ClipboardFormat::RichText {
+                String::from_utf8(entry.data.clone()).ok()
+            } else {
+                None
+            }
+        })
     }
 
     pub fn get_image(&self) -> Option<ImageData> {
-        self.clipboard_data.last()
-            .and_then(|entry| {
-                if entry.format == ClipboardFormat::Image {
-                    Some(ImageData { data: entry.data.clone() })
-                } else {
-                    None
-                }
-            })
+        self.clipboard_data.last().and_then(|entry| {
+            if entry.format == ClipboardFormat::Image {
+                Some(ImageData { data: entry.data.clone() })
+            } else {
+                None
+            }
+        })
     }
 
     pub fn get_files(&self) -> Vec<String> {
-        self.clipboard_data.last()
+        self.clipboard_data
+            .last()
             .and_then(|entry| {
                 if entry.format == ClipboardFormat::Files || entry.format == ClipboardFormat::File {
                     String::from_utf8(entry.data.clone())
@@ -448,7 +468,11 @@ pub fn init_clipboard() {
     }
 }
 
-pub fn clipboard_copy(data: &[u8], format: ClipboardFormat, process_id: u32) -> Result<(), &'static str> {
+pub fn clipboard_copy(
+    data: &[u8],
+    format: ClipboardFormat,
+    process_id: u32,
+) -> Result<(), &'static str> {
     unsafe {
         if let Some(ref mut manager) = CLIPBOARD_MANAGER {
             if let Some(ref security) = CLIPBOARD_SECURITY {
@@ -469,7 +493,10 @@ pub fn clipboard_copy(data: &[u8], format: ClipboardFormat, process_id: u32) -> 
     }
 }
 
-pub fn clipboard_paste(process_id: u32, format_filter: Option<ClipboardFormat>) -> Result<Vec<u8>, &'static str> {
+pub fn clipboard_paste(
+    process_id: u32,
+    format_filter: Option<ClipboardFormat>,
+) -> Result<Vec<u8>, &'static str> {
     unsafe {
         if let Some(ref mut manager) = CLIPBOARD_MANAGER {
             if let Some(ref security) = CLIPBOARD_SECURITY {
@@ -508,9 +535,7 @@ pub fn get_clipboard_formats() -> Vec<ClipboardFormat> {
 }
 
 pub fn get_clipboard_stats() -> Option<ClipboardStatistics> {
-    unsafe {
-        CLIPBOARD_MANAGER.as_ref().map(|m| m.get_clipboard_statistics())
-    }
+    unsafe { CLIPBOARD_MANAGER.as_ref().map(|m| m.get_clipboard_statistics()) }
 }
 
 pub fn get_clipboard_data(format: ClipboardFormat) -> Result<Vec<u8>, &'static str> {
@@ -533,27 +558,15 @@ pub fn get_clipboard_data(format: ClipboardFormat) -> Result<Vec<u8>, &'static s
                     let files = manager.get_files();
                     Ok(format!("{:?}", files).into_bytes())
                 }
-                ClipboardFormat::Audio => {
-                    Err("Audio format not yet implemented")
-                }
-                ClipboardFormat::Video => {
-                    Err("Video format not yet implemented")
-                }
-                ClipboardFormat::File => {
-                    Err("File format not yet implemented")
-                }
-                ClipboardFormat::Binary => {
-                    Err("Binary format not yet implemented")
-                }
+                ClipboardFormat::Audio => Err("Audio format not yet implemented"),
+                ClipboardFormat::Video => Err("Video format not yet implemented"),
+                ClipboardFormat::File => Err("File format not yet implemented"),
+                ClipboardFormat::Binary => Err("Binary format not yet implemented"),
                 ClipboardFormat::Rtf => {
                     manager.get_rtf().map(|rtf| rtf.into_bytes()).ok_or("No RTF data")
                 }
-                ClipboardFormat::Csv => {
-                    Err("CSV format not yet implemented")
-                }
-                ClipboardFormat::Json => {
-                    Err("JSON format not yet implemented")
-                }
+                ClipboardFormat::Csv => Err("CSV format not yet implemented"),
+                ClipboardFormat::Json => Err("JSON format not yet implemented"),
             }
         } else {
             Err("Clipboard manager not initialized")

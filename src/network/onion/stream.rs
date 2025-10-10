@@ -17,20 +17,20 @@ TorOnion Stream Management
 
 extern crate alloc;
 
-use alloc::{collections::BTreeMap, string::String, vec, vec::Vec, boxed::Box};
+use alloc::{boxed::Box, collections::BTreeMap, string::String, vec, vec::Vec};
 use core::cmp::min;
 use core::sync::atomic::{AtomicU16, AtomicU32, AtomicU64, Ordering};
 use spin::Mutex;
 
-use super::{CircuitId, OnionError};
 use super::cell::{Cell, RelayCell, RelayCommand};
+use super::{CircuitId, OnionError};
 use crate::network::get_network_stack;
 
 pub type StreamId = u16;
 
 /* ============================================================
-   Constants
-   ============================================================ */
+Constants
+============================================================ */
 
 /// Payload bytes per RELAY cell (Tor v3)
 const RELAY_PAYLOAD_SIZE: usize = 498;
@@ -51,18 +51,18 @@ const MAX_RECV_BUFFER_SIZE: usize = 64 * 1024;
 const DEFAULT_STREAM_QUANTUM_CELLS: i32 = 10;
 
 /* ============================================================
-   Stream state
-   ============================================================ */
+Stream state
+============================================================ */
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum StreamState {
-    NewResolve,       // Just created, waiting for RESOLVE
-    NewConnect,       // Just created, waiting for BEGIN
-    SentConnect,      // BEGIN sent, waiting for CONNECTED
-    SentResolve,      // RESOLVE sent, waiting for RESOLVED
-    Open,             // Stream is open and ready for data
-    ExitWait,         // Waiting for exit node to close
-    Closed,           // Stream is fully closed
+    NewResolve,  // Just created, waiting for RESOLVE
+    NewConnect,  // Just created, waiting for BEGIN
+    SentConnect, // BEGIN sent, waiting for CONNECTED
+    SentResolve, // RESOLVE sent, waiting for RESOLVED
+    Open,        // Stream is open and ready for data
+    ExitWait,    // Waiting for exit node to close
+    Closed,      // Stream is fully closed
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -107,11 +107,11 @@ impl StreamEndReason {
 /// Supported application protocols over streams
 #[derive(Debug, Clone)]
 pub enum StreamProtocol {
-    TCP,              // Raw TCP
-    HTTP,             // HTTP/HTTPS
-    DNS,              // DNS over Tor
-    Directory,        // Tor directory
-    ControlPort,      // Tor control protocol
+    TCP,         // Raw TCP
+    HTTP,        // HTTP/HTTPS
+    DNS,         // DNS over Tor
+    Directory,   // Tor directory
+    ControlPort, // Tor control protocol
     Custom(String),
 }
 
@@ -127,10 +127,10 @@ pub struct OnionStream {
     pub last_activity: u64,
 
     // flow control (stream-level)
-    pub send_window: i32,     // cells we can put on circuit for this stream
-    pub recv_window: i32,     // cells we may receive before we must SENDME
-    pub package_window: i32,  // used to throttle packing DATA
-    pub deliver_window: i32,  // used to throttle delivering up to app
+    pub send_window: i32,    // cells we can put on circuit for this stream
+    pub recv_window: i32,    // cells we may receive before we must SENDME
+    pub package_window: i32, // used to throttle packing DATA
+    pub deliver_window: i32, // used to throttle delivering up to app
 
     // buffers
     pub send_buffer: Vec<u8>, // app->stream pending bytes
@@ -150,7 +150,13 @@ pub struct OnionStream {
 }
 
 impl OnionStream {
-    pub fn new(stream_id: StreamId, circuit_id: CircuitId, target: String, port: u16, protocol: StreamProtocol) -> Self {
+    pub fn new(
+        stream_id: StreamId,
+        circuit_id: CircuitId,
+        target: String,
+        port: u16,
+        protocol: StreamProtocol,
+    ) -> Self {
         let now = current_time_ms();
         Self {
             stream_id,
@@ -183,12 +189,18 @@ impl OnionStream {
     }
 
     #[inline]
-    pub fn is_open(&self) -> bool { self.state == StreamState::Open }
+    pub fn is_open(&self) -> bool {
+        self.state == StreamState::Open
+    }
     #[inline]
-    pub fn is_closed(&self) -> bool { self.state == StreamState::Closed }
+    pub fn is_closed(&self) -> bool {
+        self.state == StreamState::Closed
+    }
 
     #[inline]
-    fn update_activity(&mut self) { self.last_activity = current_time_ms(); }
+    fn update_activity(&mut self) {
+        self.last_activity = current_time_ms();
+    }
 
     /// Application writes bytes to the stream (may buffer if windows are shut).
     pub fn send_data(&mut self, data: &[u8]) -> Result<(), OnionError> {
@@ -277,7 +289,9 @@ impl OnionStream {
             StreamState::SentResolve => {
                 self.state = StreamState::Open;
                 let mut buf = Vec::with_capacity(addresses.len() * 4);
-                for a in addresses { buf.extend_from_slice(&a); }
+                for a in addresses {
+                    buf.extend_from_slice(&a);
+                }
                 self.application_data.insert("resolved_addresses".into(), buf);
                 self.application_data.insert("resolution_ttl".into(), ttl.to_be_bytes().to_vec());
                 self.update_activity();
@@ -295,7 +309,8 @@ impl OnionStream {
         Ok(())
     }
 
-    /// Called when a SENDME for this stream is received (increments sending windows).
+    /// Called when a SENDME for this stream is received (increments sending
+    /// windows).
     pub fn handle_sendme(&mut self) {
         self.send_window += STREAM_SENDME_INCREMENT;
         self.package_window += STREAM_SENDME_INCREMENT;
@@ -305,11 +320,17 @@ impl OnionStream {
 
     /// Internal: split and send data as RELAY_DATA cells.
     fn flush_data(&mut self, data: &[u8]) -> Result<(), OnionError> {
-        if data.is_empty() { return Ok(()); }
+        if data.is_empty() {
+            return Ok(());
+        }
 
         // Enforce windows & scheduler deficit
         let mut remaining = data;
-        while !remaining.is_empty() && self.send_window > 0 && self.package_window > 0 && self.deficit > 0 {
+        while !remaining.is_empty()
+            && self.send_window > 0
+            && self.package_window > 0
+            && self.deficit > 0
+        {
             let take = min(remaining.len(), RELAY_PAYLOAD_SIZE);
             let chunk = &remaining[..take];
 
@@ -338,12 +359,20 @@ impl OnionStream {
 
     /// Try to flush buffered data opportunistically (scheduler calls this).
     fn try_flush_buffered(&mut self) -> Result<bool, OnionError> {
-        if self.send_buffer.is_empty() || self.send_window <= 0 || self.package_window <= 0 || self.deficit <= 0 {
+        if self.send_buffer.is_empty()
+            || self.send_window <= 0
+            || self.package_window <= 0
+            || self.deficit <= 0
+        {
             return Ok(false);
         }
 
         let mut emitted_any = false;
-        while !self.send_buffer.is_empty() && self.send_window > 0 && self.package_window > 0 && self.deficit > 0 {
+        while !self.send_buffer.is_empty()
+            && self.send_window > 0
+            && self.package_window > 0
+            && self.deficit > 0
+        {
             let take = min(self.send_buffer.len(), RELAY_PAYLOAD_SIZE);
             let chunk: Vec<u8> = self.send_buffer.drain(..take).collect();
 
@@ -371,8 +400,8 @@ impl OnionStream {
         }
         #[cfg(not(feature = "relay_sendme_cell"))]
         {
-            // Tor SENDME is a dedicated command; using empty DATA as a compatibility fallback.
-            // Switch to the dedicated constructor if available.
+            // Tor SENDME is a dedicated command; using empty DATA as a compatibility
+            // fallback. Switch to the dedicated constructor if available.
             let cell = Cell::relay_data_cell(self.circuit_id, self.stream_id, Vec::new());
             send_cell(cell)
         }
@@ -380,8 +409,8 @@ impl OnionStream {
 }
 
 /* ============================================================
-   Metrics
-   ============================================================ */
+Metrics
+============================================================ */
 
 #[derive(Debug, Clone)]
 pub struct StreamMetrics {
@@ -397,8 +426,8 @@ pub struct StreamMetrics {
 }
 
 /* ============================================================
-   Stream Manager
-   ============================================================ */
+Stream Manager
+============================================================ */
 
 pub struct StreamManager {
     streams: Mutex<BTreeMap<StreamId, OnionStream>>,
@@ -422,7 +451,12 @@ impl StreamManager {
     }
 
     /// Create a new CONNECT (BEGIN) stream over `circuit_id`.
-    pub fn create_stream(&self, circuit_id: CircuitId, target: String, port: u16) -> Result<StreamId, OnionError> {
+    pub fn create_stream(
+        &self,
+        circuit_id: CircuitId,
+        target: String,
+        port: u16,
+    ) -> Result<StreamId, OnionError> {
         let sid = self.next_stream_id();
         let proto = self.detect_protocol(&target, port);
         let mut s = OnionStream::new(sid, circuit_id, target.clone(), port, proto);
@@ -442,18 +476,24 @@ impl StreamManager {
     }
 
     /// Create a DNS RESOLVE stream.
-    pub fn create_resolve_stream(&self, circuit_id: CircuitId, hostname: String) -> Result<StreamId, OnionError> {
+    pub fn create_resolve_stream(
+        &self,
+        circuit_id: CircuitId,
+        hostname: String,
+    ) -> Result<StreamId, OnionError> {
         let sid = self.next_stream_id();
         let mut s = OnionStream::new_resolve(sid, circuit_id, hostname.clone());
 
-        // Tor RESOLVE uses RELAY_RESOLVE command; if unavailable, send a RESOLVE payload via DATA as fallback.
+        // Tor RESOLVE uses RELAY_RESOLVE command; if unavailable, send a RESOLVE
+        // payload via DATA as fallback.
         let payload = {
             let mut p = hostname.into_bytes();
             p.push(0); // NUL-terminated per older clients; adjust if we have a dedicated RESOLVE cell
             p
         };
 
-        // If we have Cell::relay_resolve_cell, prefer it; otherwise use DATA as transport shim.
+        // If we have Cell::relay_resolve_cell, prefer it; otherwise use DATA as
+        // transport shim.
         #[cfg(feature = "relay_resolve_cell")]
         let cell = Cell::relay_resolve_cell(circuit_id, sid, payload);
         #[cfg(not(feature = "relay_resolve_cell"))]
@@ -475,9 +515,7 @@ impl StreamManager {
         let mut map = self.streams.lock();
         let s = map.get_mut(&stream_id).ok_or(OnionError::StreamClosed)?;
         s.send_data(data)?;
-        self.stream_stats
-            .total_data_transferred
-            .fetch_add(data.len() as u64, Ordering::Relaxed);
+        self.stream_stats.total_data_transferred.fetch_add(data.len() as u64, Ordering::Relaxed);
         Ok(())
     }
 
@@ -487,15 +525,17 @@ impl StreamManager {
         let s = map.get_mut(&stream_id).ok_or(OnionError::StreamClosed)?;
         let out = s.recv_data()?;
         if !out.is_empty() {
-            self.stream_stats
-                .total_data_transferred
-                .fetch_add(out.len() as u64, Ordering::Relaxed);
+            self.stream_stats.total_data_transferred.fetch_add(out.len() as u64, Ordering::Relaxed);
         }
         Ok(out)
     }
 
     /// Circuit has delivered a relay cell: dispatch by command/stream_id.
-    pub fn handle_relay_cell(&self, circuit_id: CircuitId, relay: RelayCell) -> Result<(), OnionError> {
+    pub fn handle_relay_cell(
+        &self,
+        circuit_id: CircuitId,
+        relay: RelayCell,
+    ) -> Result<(), OnionError> {
         match relay.header.command {
             RelayCommand::RelayData => {
                 let sid = relay.header.stream_id;
@@ -510,8 +550,18 @@ impl StreamManager {
                 if let Some(s) = map.get_mut(&sid) {
                     // CONNECTED payload: [ip(4)][ttl(4)] or empty
                     if relay.payload.len() >= 8 {
-                        let addr = [relay.payload[0], relay.payload[1], relay.payload[2], relay.payload[3]];
-                        let ttl = u32::from_be_bytes([relay.payload[4], relay.payload[5], relay.payload[6], relay.payload[7]]);
+                        let addr = [
+                            relay.payload[0],
+                            relay.payload[1],
+                            relay.payload[2],
+                            relay.payload[3],
+                        ];
+                        let ttl = u32::from_be_bytes([
+                            relay.payload[4],
+                            relay.payload[5],
+                            relay.payload[6],
+                            relay.payload[7],
+                        ]);
                         s.handle_connected(addr, ttl)?;
                     } else {
                         s.handle_connected([0, 0, 0, 0], 0)?;
@@ -522,7 +572,8 @@ impl StreamManager {
                 let sid = relay.header.stream_id;
                 let mut map = self.streams.lock();
                 if let Some(s) = map.get_mut(&sid) {
-                    // Very simplified: payload may carry multiple A records concatenated (4 bytes each) + optional TTL
+                    // Very simplified: payload may carry multiple A records concatenated (4 bytes
+                    // each) + optional TTL
                     let mut addrs = Vec::new();
                     for chunk in relay.payload.chunks_exact(4) {
                         addrs.push([chunk[0], chunk[1], chunk[2], chunk[3]]);
@@ -564,7 +615,11 @@ impl StreamManager {
     }
 
     /// Close a stream gracefully (sends END).
-    pub fn close_stream(&self, stream_id: StreamId, reason: StreamEndReason) -> Result<(), OnionError> {
+    pub fn close_stream(
+        &self,
+        stream_id: StreamId,
+        reason: StreamEndReason,
+    ) -> Result<(), OnionError> {
         let mut map = self.streams.lock();
         if let Some(s) = map.get_mut(&stream_id) {
             if s.state == StreamState::Closed {
@@ -577,7 +632,8 @@ impl StreamManager {
         Ok(())
     }
 
-    /// On timer / tick: run scheduler to flush buffered data subject to windows & congestion.
+    /// On timer / tick: run scheduler to flush buffered data subject to windows
+    /// & congestion.
     pub fn tick(&self, circuit_id: CircuitId) {
         // Refill per-stream deficit (quantum)
         if let Some(ids) = self.by_circuit.lock().get(&circuit_id).cloned() {
@@ -629,15 +685,12 @@ impl StreamManager {
     }
 
     pub fn get_active_streams(&self) -> Vec<StreamId> {
-        self.streams
-            .lock()
-            .iter()
-            .filter(|(_, s)| s.is_open())
-            .map(|(k, _)| *k)
-            .collect()
+        self.streams.lock().iter().filter(|(_, s)| s.is_open()).map(|(k, _)| *k).collect()
     }
 
-    pub fn get_statistics(&self) -> &StreamStatistics { &self.stream_stats }
+    pub fn get_statistics(&self) -> &StreamStatistics {
+        &self.stream_stats
+    }
 
     pub fn cleanup_closed_streams(&self) {
         let mut map = self.streams.lock();
@@ -690,7 +743,11 @@ impl StreamManager {
             80 | 443 => StreamProtocol::HTTP,
             53 => StreamProtocol::DNS,
             _ => {
-                if target.ends_with(".onion") { StreamProtocol::Directory } else { StreamProtocol::TCP }
+                if target.ends_with(".onion") {
+                    StreamProtocol::Directory
+                } else {
+                    StreamProtocol::TCP
+                }
             }
         }
     }
@@ -710,8 +767,8 @@ impl StreamManager {
 }
 
 /* ============================================================
-   Flow control & congestion
-   ============================================================ */
+Flow control & congestion
+============================================================ */
 
 struct FlowControlManager {
     circuit_windows: Mutex<BTreeMap<CircuitId, CircuitWindow>>,
@@ -728,10 +785,7 @@ struct CircuitWindow {
 
 impl FlowControlManager {
     fn new() -> Self {
-        Self {
-            circuit_windows: Mutex::new(BTreeMap::new()),
-            congestion: CongestionControl::new(),
-        }
+        Self { circuit_windows: Mutex::new(BTreeMap::new()), congestion: CongestionControl::new() }
     }
 
     fn cw_mut(&self, cid: CircuitId) -> &mut CircuitWindow {
@@ -748,7 +802,8 @@ impl FlowControlManager {
                 },
             );
         }
-        // We can't return a &mut from a temporary; so we operate via closures externally.
+        // We can't return a &mut from a temporary; so we operate via closures
+        // externally.
         drop(map);
         // Caller must re-lock (helper methods below do that)
         // This pattern avoids returning refs across lock boundaries.
@@ -805,9 +860,9 @@ struct CongestionControl {
 
 #[derive(Debug, Clone, Copy)]
 enum CongestionAlgorithm {
-    FixedWindow,  // default Tor alike
-    AIMD,         // additive increase, multiplicative decrease
-    Vegas,        // RTT-based probing
+    FixedWindow, // default Tor alike
+    AIMD,        // additive increase, multiplicative decrease
+    Vegas,       // RTT-based probing
 }
 
 #[derive(Debug, Clone)]
@@ -841,7 +896,8 @@ impl CongestionControl {
             CongestionAlgorithm::FixedWindow => {}
             CongestionAlgorithm::AIMD => {
                 // simplistic AIMD: on ack, could increase circuit package window gradually
-                // (actual window tuning happens in FlowControlManager if we decide to link them)
+                // (actual window tuning happens in FlowControlManager if we decide to link
+                // them)
                 let mut m = self.measurements.lock();
                 if let Some(mm) = m.get_mut(&cid) {
                     mm.bandwidth_cells_per_s = mm.bandwidth_cells_per_s.saturating_add(1);
@@ -853,13 +909,14 @@ impl CongestionControl {
 
     fn on_tick(&self, cid: CircuitId) {
         self.ensure(cid);
-        // In a full implementation, we derive target window from recent RTT/bw samples.
+        // In a full implementation, we derive target window from recent RTT/bw
+        // samples.
     }
 }
 
 /* ============================================================
-   Protocol handlers (registry)
-   ============================================================ */
+Protocol handlers (registry)
+============================================================ */
 
 struct ProtocolHandlerRegistry {
     handlers: Mutex<BTreeMap<String, Box<dyn ProtocolHandler>>>,
@@ -919,22 +976,34 @@ trait ProtocolHandlerCore {
 #[derive(Clone)]
 struct HttpHandler;
 impl ProtocolHandlerCore for HttpHandler {
-    fn on_data(&self, _s: &mut OnionStream, data: &[u8]) -> Result<Vec<u8>, OnionError> { Ok(data.to_vec()) }
-    fn on_connect(&self, _s: &mut OnionStream) -> Result<(), OnionError> { Ok(()) }
-    fn on_close(&self, _s: &mut OnionStream) -> Result<(), OnionError> { Ok(()) }
+    fn on_data(&self, _s: &mut OnionStream, data: &[u8]) -> Result<Vec<u8>, OnionError> {
+        Ok(data.to_vec())
+    }
+    fn on_connect(&self, _s: &mut OnionStream) -> Result<(), OnionError> {
+        Ok(())
+    }
+    fn on_close(&self, _s: &mut OnionStream) -> Result<(), OnionError> {
+        Ok(())
+    }
 }
 
 #[derive(Clone)]
 struct DnsHandler;
 impl ProtocolHandlerCore for DnsHandler {
-    fn on_data(&self, _s: &mut OnionStream, data: &[u8]) -> Result<Vec<u8>, OnionError> { Ok(data.to_vec()) }
-    fn on_connect(&self, _s: &mut OnionStream) -> Result<(), OnionError> { Ok(()) }
-    fn on_close(&self, _s: &mut OnionStream) -> Result<(), OnionError> { Ok(()) }
+    fn on_data(&self, _s: &mut OnionStream, data: &[u8]) -> Result<Vec<u8>, OnionError> {
+        Ok(data.to_vec())
+    }
+    fn on_connect(&self, _s: &mut OnionStream) -> Result<(), OnionError> {
+        Ok(())
+    }
+    fn on_close(&self, _s: &mut OnionStream) -> Result<(), OnionError> {
+        Ok(())
+    }
 }
 
 /* ============================================================
-   Stats
-   ============================================================ */
+Stats
+============================================================ */
 
 #[derive(Debug, Default)]
 pub struct StreamStatistics {
@@ -947,8 +1016,8 @@ pub struct StreamStatistics {
 }
 
 /* ============================================================
-   Utilities
-   ============================================================ */
+Utilities
+============================================================ */
 
 fn current_time_ms() -> u64 {
     // Prefer kernel-wide timer if available

@@ -1,5 +1,5 @@
-use alloc::{vec::Vec, string::String, collections::BTreeMap, format};
-use crate::security::data_leak_detection::{DataLeakEvent, monitor_network_data};
+use crate::security::data_leak_detection::{monitor_network_data, DataLeakEvent};
+use alloc::{collections::BTreeMap, format, string::String, vec::Vec};
 
 pub struct BrowserEngine {
     tabs: Vec<BrowserTab>,
@@ -228,7 +228,7 @@ impl BrowserEngine {
 
     pub fn create_tab(&mut self, url: String) -> Result<u32, &'static str> {
         let tab_id = self.tabs.len() as u32;
-        
+
         if !self.security_policy.is_url_allowed(&url) {
             return Err("URL blocked by security policy");
         }
@@ -241,7 +241,10 @@ impl BrowserEngine {
             status: TabStatus::Loading,
             security_level: SecurityLevel::Insecure,
             last_activity: crate::time::get_timestamp(),
-            javascript_enabled: matches!(self.security_policy.javascript_policy, JavaScriptPolicy::AllowedAll | JavaScriptPolicy::AllowedSafe),
+            javascript_enabled: matches!(
+                self.security_policy.javascript_policy,
+                JavaScriptPolicy::AllowedAll | JavaScriptPolicy::AllowedSafe
+            ),
             cookies_enabled: !matches!(self.security_policy.cookie_policy, CookiePolicy::Blocked),
         };
 
@@ -279,14 +282,20 @@ impl BrowserEngine {
     }
 
     fn find_tab_index(&self, tab_id: u32) -> Result<usize, &'static str> {
-        self.tabs.iter().position(|tab| tab.id == tab_id)
-            .ok_or("Tab not found")
+        self.tabs.iter().position(|tab| tab.id == tab_id).ok_or("Tab not found")
     }
 
     fn is_phishing_url(&self, url: &str) -> bool {
         let phishing_indicators = [
-            "phishing", "fake", "scam", "malicious", "suspicious",
-            "payp4l", "g00gle", "microsofft", "amazom"
+            "phishing",
+            "fake",
+            "scam",
+            "malicious",
+            "suspicious",
+            "payp4l",
+            "g00gle",
+            "microsofft",
+            "amazom",
         ];
 
         for indicator in &phishing_indicators {
@@ -300,7 +309,7 @@ impl BrowserEngine {
 
     fn is_malware_url(&self, url: &str) -> bool {
         let malware_extensions = [".exe", ".bat", ".scr", ".pif", ".com", ".vbs", ".jar"];
-        
+
         for ext in &malware_extensions {
             if url.to_lowercase().ends_with(ext) {
                 return true;
@@ -310,10 +319,17 @@ impl BrowserEngine {
         false
     }
 
-    pub fn load_content(&mut self, tab_id: u32, content: Vec<u8>, content_type: String) -> Result<(), &'static str> {
+    pub fn load_content(
+        &mut self,
+        tab_id: u32,
+        content: Vec<u8>,
+        content_type: String,
+    ) -> Result<(), &'static str> {
         let tab_index = self.find_tab_index(tab_id)?;
 
-        if self.security_policy.content_filtering.block_malware && self.scan_content_for_malware(&content) {
+        if self.security_policy.content_filtering.block_malware
+            && self.scan_content_for_malware(&content)
+        {
             self.tabs[tab_index].status = TabStatus::Blocked;
             return Err("Malicious content detected");
         }
@@ -327,7 +343,7 @@ impl BrowserEngine {
         self.tabs[tab_index].last_activity = crate::time::get_timestamp();
 
         self.update_security_level(tab_index);
-        
+
         // Clone values to avoid borrow conflicts
         let tab_url = self.tabs[tab_index].url.clone();
         let tab_content = self.tabs[tab_index].content.clone();
@@ -377,11 +393,8 @@ impl BrowserEngine {
                 return true;
             }
 
-            let bad_char_skip = if i + j < text.len() {
-                bad_char_table[text[i + j] as usize]
-            } else {
-                1
-            };
+            let bad_char_skip =
+                if i + j < text.len() { bad_char_table[text[i + j] as usize] } else { 1 };
 
             i += bad_char_skip.max(1);
         }
@@ -391,7 +404,7 @@ impl BrowserEngine {
 
     fn update_security_level(&mut self, tab_index: usize) {
         let url = &self.tabs[tab_index].url;
-        
+
         if url.starts_with("https://") {
             self.tabs[tab_index].security_level = SecurityLevel::Secure;
         } else if url.starts_with("http://") {
@@ -466,7 +479,13 @@ impl BrowserEngine {
         }
     }
 
-    pub fn set_cookie(&mut self, domain: String, name: String, value: String, expires: u64) -> Result<(), &'static str> {
+    pub fn set_cookie(
+        &mut self,
+        domain: String,
+        name: String,
+        value: String,
+        expires: u64,
+    ) -> Result<(), &'static str> {
         if matches!(self.security_policy.cookie_policy, CookiePolicy::Blocked) {
             return Err("Cookies are blocked");
         }
@@ -489,7 +508,8 @@ impl BrowserEngine {
     }
 
     pub fn get_cookies_for_domain(&self, domain: &str) -> Vec<&Cookie> {
-        self.cookies.values()
+        self.cookies
+            .values()
             .filter(|cookie| cookie.domain == domain || domain.ends_with(&cookie.domain))
             .collect()
     }
@@ -500,7 +520,7 @@ impl BrowserEngine {
         }
 
         let download_id = self.downloads.len() as u32;
-        
+
         let download = Download {
             id: download_id,
             url,
@@ -522,8 +542,18 @@ impl BrowserEngine {
             history_entries: self.history.len(),
             cached_items: self.cache.len(),
             stored_cookies: self.cookies.len(),
-            active_downloads: self.downloads.iter().filter(|d| matches!(d.status, DownloadStatus::Downloading | DownloadStatus::Queued)).count(),
-            completed_downloads: self.downloads.iter().filter(|d| matches!(d.status, DownloadStatus::Completed)).count(),
+            active_downloads: self
+                .downloads
+                .iter()
+                .filter(|d| {
+                    matches!(d.status, DownloadStatus::Downloading | DownloadStatus::Queued)
+                })
+                .count(),
+            completed_downloads: self
+                .downloads
+                .iter()
+                .filter(|d| matches!(d.status, DownloadStatus::Completed))
+                .count(),
             fingerprinting_blocked: 0, // TODO: Track actual fingerprinting attempts blocked
         }
     }
@@ -658,9 +688,7 @@ pub fn close_browser_tab(tab_id: u32) -> Result<(), &'static str> {
 }
 
 pub fn get_browser_stats() -> Option<BrowserStatistics> {
-    unsafe {
-        BROWSER_ENGINE.as_ref().map(|b| b.get_browser_statistics())
-    }
+    unsafe { BROWSER_ENGINE.as_ref().map(|b| b.get_browser_statistics()) }
 }
 
 /// Detect fingerprinting attempts by websites

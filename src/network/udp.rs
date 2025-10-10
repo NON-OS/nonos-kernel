@@ -2,7 +2,7 @@
 //!
 //! High-performance UDP datagram processing
 
-use alloc::{vec::Vec, collections::VecDeque};
+use alloc::{collections::VecDeque, vec::Vec};
 use spin::Mutex;
 
 /// UDP header
@@ -75,7 +75,7 @@ impl UdpDatagram {
             length: (8 + payload.len()) as u16,
             checksum: 0, // Would calculate proper checksum
         };
-        
+
         UdpDatagram { header, payload }
     }
 }
@@ -109,7 +109,7 @@ pub fn unbind_socket(port: u16) -> Option<UdpSocket> {
 /// Process all UDP sockets for pending operations
 pub fn process_all_sockets() {
     let sockets = UDP_SOCKETS.lock();
-    
+
     for (port, socket) in sockets.iter() {
         // Process pending transmit data
         let mut tx_buf = socket.tx_buffer.lock();
@@ -120,12 +120,15 @@ pub fn process_all_sockets() {
                 break; // Stop processing on error
             }
         }
-        
+
         // Process received data buffers
         let rx_buf = socket.rx_buffer.lock();
         if !rx_buf.is_empty() {
-            crate::log::logger::log_debug!("UDP port {} has {} packets in receive buffer", 
-                port, rx_buf.len());
+            crate::log::logger::log_debug!(
+                "UDP port {} has {} packets in receive buffer",
+                port,
+                rx_buf.len()
+            );
         }
     }
 }
@@ -139,13 +142,13 @@ fn send_udp_datagram(src_port: u16, dst_port: u16, data: Vec<u8>) -> Result<(), 
     udp_packet.extend_from_slice(&((8 + data.len()) as u16).to_be_bytes());
     udp_packet.extend_from_slice(&0u16.to_be_bytes()); // Checksum (would calculate properly)
     udp_packet.extend_from_slice(&data);
-    
+
     // Send to network layer (would use real IP addresses)
     crate::network::send_ip_packet(
         [127, 0, 0, 1], // Source IP
-        [127, 0, 0, 1], // Destination IP  
+        [127, 0, 0, 1], // Destination IP
         crate::network::ip::IP_PROTOCOL_UDP,
-        udp_packet
+        udp_packet,
     )
 }
 
@@ -153,20 +156,20 @@ fn send_udp_datagram(src_port: u16, dst_port: u16, data: Vec<u8>) -> Result<(), 
 pub fn cleanup_expired_sockets() {
     let mut sockets = UDP_SOCKETS.lock();
     let mut to_remove = Vec::new();
-    
+
     // Check each socket for inactivity
     for (port, socket) in sockets.iter() {
         let rx_buf = socket.rx_buffer.lock();
         let tx_buf = socket.tx_buffer.lock();
-        
+
         // Remove sockets with stale data (both buffers empty for cleanup)
         let should_cleanup = rx_buf.is_empty() && tx_buf.is_empty();
-        
+
         if should_cleanup && is_ephemeral_port(*port) {
             to_remove.push(*port);
         }
     }
-    
+
     // Remove expired sockets
     for port in to_remove {
         sockets.remove(&port);

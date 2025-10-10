@@ -1,195 +1,131 @@
-# NØNOS Kernel Makefile
+# -------------------------------
+# NONOS Kernel-Only Makefile
+# -------------------------------
 
-# Configuration
-KERNEL_DIR := .
-TARGET := x86_64-nonos
-BUILD_DIR := $(KERNEL_DIR)/target/$(TARGET)
-RELEASE_DIR := $(BUILD_DIR)/release
-DEBUG_DIR := $(BUILD_DIR)/debug
+# ---------- QEMU / OVMF ----------
+QEMU_DIR   := $(shell brew --prefix qemu)/share/qemu
+CODE_FD    := $(QEMU_DIR)/edk2-x86_64-code.fd
+VARS_FD    := OVMF_VARS_rw.fd
 
-# Tools
-CARGO := cargo
-QEMU := qemu-system-x86_64
-GDB := gdb
-OBJDUMP := objdump
-OBJCOPY := objcopy
+# ---------- ESP paths ----------
+ESP_DIR       := esp
+ESP_BOOT_DIR  := $(ESP_DIR)/EFI/BOOT
+EFI_BOOT      := $(ESP_BOOT_DIR)/BOOTX64.EFI      # kernel goes here
+KERNEL_COPY   := $(ESP_DIR)/NONOS_KERNEL.EFI      # convenience copy
 
-# QEMU configuration - base args
-QEMU_ARGS := -machine q35 \
-             -m 512M \
-             -smp 2 \
-             -serial stdio
+# ---------- Kernel (external repo or same tree) ----------
+# If kernel & boot are the same repo, call:
+#     make KERNEL_REPO=. run
+KERNEL_REPO         ?= ../nonos-kernel
+KERNEL_TARGET_JSON  ?= x86_64-nonos.json
+KERNEL_TARGET_TRIPLE?=
+KERNEL_PROFILE      ?= debug                 # debug | release
 
-# Check for KVM support (Linux only) and set display
-ifeq ($(UNAME_S),Linux)
-    ifneq ($(wildcard /dev/kvm),)
-        QEMU_ARGS += -enable-kvm -cpu host
-    endif
-    QEMU_ARGS += -display gtk
-else ifeq ($(UNAME_S),Darwin)
-    # macOS: Use hvf (Hypervisor.framework) if available
-    QEMU_ARGS += -accel hvf -cpu max
-    # Use cocoa display on macOS (default), or sdl if preferred
-    QEMU_ARGS += -display cocoa
-endif
+# Force errors on unset vars in recipes
+.SHELLFLAGS := -o pipefail -c
 
-# OVMF UEFI firmware
-# Detect OS and set appropriate paths
-UNAME_S := $(shell uname -s)
-ifeq ($(UNAME_S),Darwin)
-    # macOS paths (Homebrew QEMU)
-    QEMU_SHARE := $(shell brew --prefix qemu)/share/qemu
-    OVMF_CODE := $(QEMU_SHARE)/edk2-x86_64-code.fd
-    OVMF_VARS := $(QEMU_SHARE)/edk2-i386-vars.fd
-else
-    # Linux paths
-    OVMF_CODE := /usr/share/OVMF/OVMF_CODE.fd
-    OVMF_VARS := /usr/share/OVMF/OVMF_VARS.fd
-endif
+.PHONY: all run kernel vars esp startup check-esp clean build
 
-# Default target
-.PHONY: all
-all: build
+all: run
 
-# Build targets
-.PHONY: build
+# -------------------------------
+# Build-only (no staging, no QEMU)
+# -------------------------------
 build:
-	@echo "Building NØNOS kernel..."
-	cd $(KERNEL_DIR) && $(CARGO) build --target $(TARGET).json
-	@echo "Build complete!"
+	@[ -d "$(KERNEL_REPO)" ] || { echo "Missing $(KERNEL_REPO). Set KERNEL_REPO to your kernel path."; exit 1; }
+	@echo "==> Building kernel in $(KERNEL_REPO) ($(KERNEL_PROFILE))"
+	@cd "$(KERNEL_REPO)" && { \
+	  if [ -f "$(KERNEL_TARGET_JSON)" ]; then \
+	    TARGET_FLAG="--target $(KERNEL_TARGET_JSON)"; \
+	  else \
+	    if [ -n "$(KERNEL_TARGET_TRIPLE)" ]; then \
+	      TARGET_FLAG="--target $(KERNEL_TARGET_TRIPLE)"; \
+	    else \
+	      echo "ERROR: '$(KERNEL_TARGET_JSON)' not found and no KERNEL_TARGET_TRIPLE provided."; \
+	      echo "       e.g. make KERNEL_TARGET_TRIPLE=x86_64-unknown-uefi build"; \
+	      exit 1; \
+	    fi; \
+	  fi; \
+	  if command -v jq >/dev/null 2>&1; then \
+	    KPATH=$$(cargo build $$TARGET_FLAG $$(test "$(KERNEL_PROFILE)" = release && printf %s --release) --message-format=json \
+	      | jq -r 'select(.executable!=null) | .executable' | tail -n1); \
+	  else \
+	    KPATH=$$(cargo build $$TARGET_FLAG $$(test "$(KERNEL_PROFILE)" = release && printf %s --release) --message-format=json \
+	      | sed -n 's/.*"executable":"\([^"]*\)".*/\1/p' | tail -n1); \
+	  fi; \
+	  [ -n "$$KPATH" ] && [ -f "$$KPATH" ] || { echo "ERROR: kernel binary not found (check build output)"; exit 1; }; \
+	  echo "==> Built kernel EFI:"; echo "    $$KPATH"; \
+	}
 
-.PHONY: release
-release:
-	@echo "Building NØNOS kernel (release)..."
-	cd $(KERNEL_DIR) && $(CARGO) build --release --target $(TARGET).json
-	@echo "Release build complete!"
+# -------------------------------
+# Build kernel and stage into ESP
+# -------------------------------
+kernel:
+	@[ -d "$(KERNEL_REPO)" ] || { echo "Missing $(KERNEL_REPO). Set KERNEL_REPO to your kernel path."; exit 1; }
+	@echo "==> Building kernel in $(KERNEL_REPO) ($(KERNEL_PROFILE))"
+	@cd "$(KERNEL_REPO)" && { \
+	  if [ -f "$(KERNEL_TARGET_JSON)" ]; then \
+	    TARGET_FLAG="--target $(KERNEL_TARGET_JSON)"; \
+	  else \
+	    if [ -n "$(KERNEL_TARGET_TRIPLE)" ]; then \
+	      TARGET_FLAG="--target $(KERNEL_TARGET_TRIPLE)"; \
+	    else \
+	      echo "ERROR: '$(KERNEL_TARGET_JSON)' not found and no KERNEL_TARGET_TRIPLE provided."; \
+	      echo "       e.g. make KERNEL_TARGET_TRIPLE=x86_64-unknown-uefi kernel"; \
+	      exit 1; \
+	    fi; \
+	  fi; \
+	  if command -v jq >/dev/null 2>&1; then \
+	    KPATH=$$(cargo build $$TARGET_FLAG $$(test "$(KERNEL_PROFILE)" = release && printf %s --release) --message-format=json \
+	      | jq -r 'select(.executable!=null) | .executable' | tail -n1); \
+	  else \
+	    KPATH=$$(cargo build $$TARGET_FLAG $$(test "$(KERNEL_PROFILE)" = release && printf %s --release) --message-format=json \
+	      | sed -n 's/.*"executable":"\([^"]*\)".*/\1/p' | tail -n1); \
+	  fi; \
+	  echo "    kernel EFI: $$KPATH"; \
+	  [ -n "$$KPATH" ] && [ -f "$$KPATH" ] || { echo "ERROR: kernel binary not found (check build output)"; exit 1; }; \
+	  mkdir -p "$(ESP_BOOT_DIR)"; \
+	  cp -f "$$KPATH" "$(EFI_BOOT)"; \
+	  cp -f "$$KPATH" "$(KERNEL_COPY)"; \
+	}
 
-# Clean build artifacts
-.PHONY: clean
+# -------------------------------
+# UEFI variables & ESP helpers
+# -------------------------------
+vars:
+	@[ -f "$(CODE_FD)" ] || { echo "Missing $(CODE_FD). Install/reinstall qemu via Homebrew."; exit 1; }
+	@[ -f "$(VARS_FD)" ] || qemu-img create -f raw "$(VARS_FD)" "$$(stat -f%z "$(CODE_FD)")"
+
+startup:
+	@mkdir -p "$(ESP_DIR)"
+	@printf "%s\n" \
+	  "echo NONOS startup.nsh launching..." \
+	  "for %p in 0 1 2 3 4 5" \
+	  "  if exist fs%p:\EFI\BOOT\BOOTX64.EFI then" \
+	  "    fs%p:" \
+	  "    \EFI\BOOT\BOOTX64.EFI" \
+	  "    exit" \
+	  "  endif" \
+	  "endfor" \
+	  "echo NONOS: BOOTX64.EFI not found on any fs*" \
+	  > "$(ESP_DIR)/startup.nsh"
+
+check-esp:
+	@echo "==> ESP contents:"
+	@find "$(ESP_DIR)" -maxdepth 4 -type f -print | sed 's/^/   /'
+
+esp: kernel vars startup check-esp
+
+# -------------------------------
+# Run QEMU
+# -------------------------------
+run: esp
+	qemu-system-x86_64 \
+		-machine q35,accel=hvf -cpu host -m 1024 \
+		-drive if=pflash,format=raw,readonly=on,file="$(CODE_FD)" \
+		-drive if=pflash,format=raw,file="$(VARS_FD)" \
+		-drive format=raw,file=fat:rw:$(ESP_DIR) \
+		-serial stdio -monitor none -no-reboot
+
 clean:
-	@echo "Cleaning build artifacts..."
-	cd $(KERNEL_DIR) && $(CARGO) clean
-	rm -rf build/
-	@echo "Clean complete!"
-
-# Run in QEMU
-.PHONY: run
-run: build
-	@echo "Running NØNOS in QEMU..."
-	@mkdir -p build/esp/EFI/BOOT
-	@cp $(DEBUG_DIR)/nonos_kernel build/esp/kernel.bin
-	@$(MAKE) create-disk
-	$(QEMU) $(QEMU_ARGS) \
-	        -drive if=pflash,format=raw,readonly=on,file=$(OVMF_CODE) \
-	        -drive if=pflash,format=raw,file=build/OVMF_VARS.fd \
-	        -drive format=raw,file=build/nonos.img
-
-.PHONY: run-release
-run-release: release
-	@echo "Running NØNOS (release) in QEMU..."
-	@mkdir -p build/esp/EFI/BOOT
-	@cp $(RELEASE_DIR)/nonos_kernel build/esp/kernel.bin
-	@$(MAKE) create-disk
-	$(QEMU) $(QEMU_ARGS) \
-	        -drive if=pflash,format=raw,readonly=on,file=$(OVMF_CODE) \
-	        -drive if=pflash,format=raw,file=build/OVMF_VARS.fd \
-	        -drive format=raw,file=build/nonos.img
-
-# Debug with GDB
-.PHONY: debug
-debug: build
-	@echo "Starting QEMU with GDB server..."
-	@mkdir -p build/esp/EFI/BOOT
-	@cp $(DEBUG_DIR)/nonos_kernel build/esp/kernel.bin
-	@$(MAKE) create-disk
-	$(QEMU) $(QEMU_ARGS) \
-	        -drive if=pflash,format=raw,readonly=on,file=$(OVMF_CODE) \
-	        -drive if=pflash,format=raw,file=build/OVMF_VARS.fd \
-	        -drive format=raw,file=build/nonos.img \
-	        -s -S &
-	@echo "QEMU started. Connect with GDB using: target remote :1234"
-	$(GDB) $(DEBUG_DIR)/nonos_kernel \
-	       -ex "target remote :1234" \
-	       -ex "break _start" \
-	       -ex "continue"
-
-# Create disk image
-.PHONY: create-disk
-create-disk:
-	@echo "Creating disk image..."
-	@mkdir -p build
-	@cp $(OVMF_VARS) build/OVMF_VARS.fd
-	@dd if=/dev/zero of=build/nonos.img bs=1M count=64 2>/dev/null
-ifeq ($(UNAME_S),Linux)
-	@mkfs.vfat build/nonos.img > /dev/null 2>&1
-endif
-	@echo "Disk image created!"
-
-# Disassemble kernel
-.PHONY: disasm
-disasm: build
-	@echo "Disassembling kernel..."
-	$(OBJDUMP) -d $(DEBUG_DIR)/nonos_kernel > build/kernel.asm
-	@echo "Disassembly saved to build/kernel.asm"
-
-# Check code
-.PHONY: check
-check:
-	@echo "Checking code..."
-	cd $(KERNEL_DIR) && $(CARGO) check --target $(TARGET).json
-
-# Run clippy
-.PHONY: clippy
-clippy:
-	@echo "Running clippy..."
-	cd $(KERNEL_DIR) && $(CARGO) clippy --target $(TARGET).json -- -W clippy::all
-
-# Format code
-.PHONY: fmt
-fmt:
-	@echo "Formatting code..."
-	cd $(KERNEL_DIR) && $(CARGO) fmt
-
-# Run tests
-.PHONY: test
-test:
-	@echo "Running tests..."
-	cd $(KERNEL_DIR) && $(CARGO) test --target $(TARGET).json
-
-# Install dependencies
-.PHONY: deps
-deps:
-	@echo "Installing dependencies..."
-	rustup component add rust-src
-	rustup component add llvm-tools-preview
-	cargo install bootimage
-	@echo "Dependencies installed!"
-
-# Documentation
-.PHONY: doc
-doc:
-	@echo "Building documentation..."
-	cd $(KERNEL_DIR) && $(CARGO) doc --target $(TARGET).json --open
-
-# Help
-.PHONY: help
-help:
-	@echo "NØNOS Kernel Build System"
-	@echo ""
-	@echo "Available targets:"
-	@echo "  make build        - Build kernel (debug)"
-	@echo "  make release      - Build kernel (release)"
-	@echo "  make run          - Run kernel in QEMU"
-	@echo "  make run-release  - Run release build in QEMU"
-	@echo "  make debug        - Run with GDB debugger"
-	@echo "  make clean        - Clean build artifacts"
-	@echo "  make check        - Check code for errors"
-	@echo "  make clippy       - Run clippy linter"
-	@echo "  make fmt          - Format code"
-	@echo "  make test         - Run tests"
-	@echo "  make doc          - Build and open documentation"
-	@echo "  make disasm       - Disassemble kernel"
-	@echo "  make deps         - Install dependencies"
-	@echo "  make help         - Show this help"
-
-.DEFAULT_GOAL := help
+	rm -rf "$(ESP_DIR)" "$(VARS_FD)" target

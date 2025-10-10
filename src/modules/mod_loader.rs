@@ -4,17 +4,17 @@
 //! Responsible for manifest validation, signer auth, capability tokenization,
 //! queueing, and secure capsule admission into the ZeroState VM.
 
+use crate::log::logger::{log_info, log_warn};
 use crate::modules::auth::{authenticate_manifest, AuthResult};
 use crate::modules::manifest::ModuleManifest;
 use crate::modules::mod_runner::launch_module;
 use crate::modules::registry::register_module_instance;
-use crate::syscall::capabilities::{CapabilityToken};
-use crate::log::logger::{log_info, log_warn};
+use crate::syscall::capabilities::CapabilityToken;
 
-use alloc::{vec::Vec, format};
+use crate::time::current_uptime;
+use alloc::{format, vec::Vec};
 use core::time::Duration;
 use spin::Mutex;
-use crate::time::current_uptime;
 
 const MAX_VERIFIED_QUEUE: usize = 32;
 
@@ -31,10 +31,8 @@ struct LoaderState {
     rejected_count: usize,
 }
 
-static MODULE_LOADER: Mutex<LoaderState> = Mutex::new(LoaderState {
-    queue: Vec::new(),
-    rejected_count: 0,
-});
+static MODULE_LOADER: Mutex<LoaderState> =
+    Mutex::new(LoaderState { queue: Vec::new(), rejected_count: 0 });
 
 /// Initialize secure loader
 pub fn init_module_loader() {
@@ -59,8 +57,11 @@ pub fn verify_and_queue(manifest: &'static ModuleManifest) -> Result<(), &'stati
             };
             state.queue.push(entry);
 
-            log_info!("mod_loader: Accepted module '{}' queued with {} caps",
-                manifest.name, cap_count);
+            log_info!(
+                "mod_loader: Accepted module '{}' queued with {} caps",
+                manifest.name,
+                cap_count
+            );
 
             Ok(())
         }
@@ -94,12 +95,7 @@ pub fn rejected_count() -> usize {
 
 /// For CLI/REPL usage: get snapshot of pending queue
 pub fn queued_modules() -> Vec<&'static str> {
-    MODULE_LOADER
-        .lock()
-        .queue
-        .iter()
-        .map(|entry| entry.manifest.name)
-        .collect()
+    MODULE_LOADER.lock().queue.iter().map(|entry| entry.manifest.name).collect()
 }
 
 /// Result of module load operation
@@ -110,9 +106,11 @@ pub enum ModuleLoadResult {
 }
 
 /// Load a core module (used during boot)
-pub fn load_core_module(manifest: &'static ModuleManifest) -> Result<ModuleLoadResult, &'static str> {
+pub fn load_core_module(
+    manifest: &'static ModuleManifest,
+) -> Result<ModuleLoadResult, &'static str> {
     verify_and_queue(manifest)?;
-    
+
     // For core modules, immediately admit them
     match admit_next_module() {
         Ok(_) => Ok(ModuleLoadResult::Launched),

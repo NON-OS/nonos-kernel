@@ -1,4 +1,4 @@
-//! NØNOS VGA Text Output 
+//! NØNOS VGA Text Output
 //!
 //! Features:
 //! - Multiple virtual consoles (TTYs) with per-console buffer and cursor.
@@ -10,16 +10,16 @@
 //! - Works entirely in `no_std` VGA text mode.
 
 use core::fmt::{self, Write};
-use core::ptr::NonNull;
 use core::marker::PhantomData;
-use core::sync::atomic::{AtomicUsize, Ordering};
 use core::ops::{Deref, DerefMut};
+use core::ptr::NonNull;
+use core::sync::atomic::{AtomicUsize, Ordering};
 use spin::Mutex;
 use volatile::Volatile;
 
 pub const BUFFER_HEIGHT: usize = 25;
 pub const BUFFER_WIDTH: usize = 80;
-pub const VGA_ADDRESS: usize = 0xb8000;
+pub const VGA_ADDRESS: usize = 0xB8000;
 
 /// Number of virtual consoles
 pub const MAX_CONSOLES: usize = 4;
@@ -68,7 +68,7 @@ pub struct ScreenChar {
 
 impl Deref for ScreenChar {
     type Target = ScreenChar;
-    
+
     fn deref(&self) -> &Self::Target {
         self
     }
@@ -100,10 +100,8 @@ impl Console {
             row: 0,
             col: 0,
             color_code: ColorCode::new(Color::LightGray, Color::Black),
-            history: [[ScreenChar {
-                ascii_character: b' ',
-                color_code: ColorCode(0)
-            }; BUFFER_WIDTH]; SCROLLBACK_LINES],
+            history: [[ScreenChar { ascii_character: b' ', color_code: ColorCode(0) };
+                BUFFER_WIDTH]; SCROLLBACK_LINES],
             history_head: 0,
         }
     }
@@ -148,14 +146,12 @@ impl VgaManager {
     fn redraw(&mut self) {
         let active_idx = self.active;
         let history_head = self.consoles[active_idx].history_head;
-        let mut hist_idx = if history_head >= BUFFER_HEIGHT {
-            history_head - BUFFER_HEIGHT
-        } else {
-            0
-        };
+        let mut hist_idx =
+            if history_head >= BUFFER_HEIGHT { history_head - BUFFER_HEIGHT } else { 0 };
         for row in 0..BUFFER_HEIGHT {
             for col in 0..BUFFER_WIDTH {
-                let ch = self.consoles[active_idx].history[(hist_idx + row) % SCROLLBACK_LINES][col];
+                let ch =
+                    self.consoles[active_idx].history[(hist_idx + row) % SCROLLBACK_LINES][col];
                 self.buf().chars[row][col].write(ch);
             }
         }
@@ -176,7 +172,8 @@ impl VgaManager {
                 let row = self.consoles[active].row;
                 let col = self.consoles[active].col;
                 self.buf().chars[row][col].write(ch);
-                self.consoles[active].history[self.consoles[active].history_head % SCROLLBACK_LINES][col] = ch;
+                self.consoles[active].history
+                    [self.consoles[active].history_head % SCROLLBACK_LINES][col] = ch;
                 self.consoles[active].col += 1;
             }
         }
@@ -184,7 +181,8 @@ impl VgaManager {
 
     fn new_line(&mut self) {
         let active_idx = self.active;
-        self.consoles[active_idx].history_head = (self.consoles[active_idx].history_head + 1) % SCROLLBACK_LINES;
+        self.consoles[active_idx].history_head =
+            (self.consoles[active_idx].history_head + 1) % SCROLLBACK_LINES;
         if self.consoles[active_idx].row + 1 >= BUFFER_HEIGHT {
             self.scroll_up();
         } else {
@@ -273,12 +271,12 @@ pub fn print_hex(value: u64) {
     let mut buffer = [0u8; 18]; // "0x" + 16 hex digits
     buffer[0] = b'0';
     buffer[1] = b'x';
-    
+
     for i in 0..16 {
         let nibble = (value >> (60 - i * 4)) & 0xF;
         buffer[2 + i] = hex_chars[nibble as usize];
     }
-    
+
     let hex_str = core::str::from_utf8(&buffer).unwrap();
     print(hex_str);
 }

@@ -1,10 +1,11 @@
 //! Module Registry System
-//! 
-//! Advanced registry for tracking all module instances with cryptographic audit trail
+//!
+//! Advanced registry for tracking all module instances with cryptographic audit
+//! trail
 
 use crate::modules::mod_runner::ModuleInstance;
 use alloc::collections::BTreeMap;
-use alloc::{vec::Vec, format};
+use alloc::{format, vec::Vec};
 use spin::RwLock;
 
 /// Global module registry with cryptographic audit trail
@@ -30,15 +31,13 @@ pub enum EventType {
     CapabilityRevoked,
 }
 
-static REGISTRY: RwLock<ModuleRegistry> = RwLock::new(ModuleRegistry {
-    instances: BTreeMap::new(),
-    audit_log: Vec::new(),
-});
+static REGISTRY: RwLock<ModuleRegistry> =
+    RwLock::new(ModuleRegistry { instances: BTreeMap::new(), audit_log: Vec::new() });
 
 /// Register a new module instance
 pub fn register_module_instance(name: &str, instance: &ModuleInstance) {
     let mut registry = REGISTRY.write();
-    
+
     // Add audit log entry
     let event = RegistryEvent {
         timestamp: current_timestamp(),
@@ -46,10 +45,10 @@ pub fn register_module_instance(name: &str, instance: &ModuleInstance) {
         module_id: instance.id,
         data_hash: compute_instance_hash(instance),
     };
-    
+
     registry.audit_log.push(event);
     registry.instances.insert(instance.id, instance.clone());
-    
+
     log_registry_event(name, "registered");
 }
 

@@ -1,15 +1,16 @@
 //! Multiboot2 Header for QEMU/GRUB compatibility
-//! This allows the kernel to be loaded directly by multiboot-compliant bootloaders
+//! This allows the kernel to be loaded directly by multiboot-compliant
+//! bootloaders
 
 use core::arch::asm;
 
 /// Get current CPU features using CPUID
 pub fn get_cpu_features() -> (u32, u32, u32, u32) {
     let mut eax: u32;
-    let mut ebx: u32; 
+    let mut ebx: u32;
     let mut ecx: u32;
     let mut edx: u32;
-    
+
     unsafe {
         // Use a different register and move it to avoid rbx conflicts
         asm!(
@@ -22,7 +23,7 @@ pub fn get_cpu_features() -> (u32, u32, u32, u32) {
             tmp = lateout(reg) ebx,
         );
     }
-    
+
     (eax, ebx, ecx, edx)
 }
 
@@ -45,7 +46,7 @@ pub fn enable_processor_features() {
 }
 
 /// Multiboot2 magic number
-const MULTIBOOT2_MAGIC: u32 = 0x36d76289;
+const MULTIBOOT2_MAGIC: u32 = 0x36D76289;
 
 /// Multiboot2 architecture (i386)
 const MULTIBOOT2_ARCH: u32 = 0;
@@ -57,7 +58,7 @@ struct Multiboot2Header {
     architecture: u32,
     header_length: u32,
     checksum: u32,
-    
+
     // End tag
     end_tag_type: u16,
     end_tag_flags: u16,
@@ -65,7 +66,8 @@ struct Multiboot2Header {
 }
 
 const MULTIBOOT2_HEADER_LENGTH: u32 = core::mem::size_of::<Multiboot2Header>() as u32;
-const MULTIBOOT2_CHECKSUM: u32 = (-(MULTIBOOT2_MAGIC as i32 + MULTIBOOT2_ARCH as i32 + MULTIBOOT2_HEADER_LENGTH as i32)) as u32;
+const MULTIBOOT2_CHECKSUM: u32 =
+    (-(MULTIBOOT2_MAGIC as i32 + MULTIBOOT2_ARCH as i32 + MULTIBOOT2_HEADER_LENGTH as i32)) as u32;
 
 #[used]
 #[no_mangle]
@@ -75,7 +77,7 @@ static MULTIBOOT2_HEADER: Multiboot2Header = Multiboot2Header {
     architecture: MULTIBOOT2_ARCH,
     header_length: MULTIBOOT2_HEADER_LENGTH,
     checksum: MULTIBOOT2_CHECKSUM,
-    
+
     // End tag
     end_tag_type: 0,
     end_tag_flags: 0,

@@ -5,9 +5,9 @@
 use alloc::vec::Vec;
 
 /// IP Protocol constants (RFC 790)
-pub const IP_PROTOCOL_TCP: u8 = 6;   // Transmission Control Protocol
-pub const IP_PROTOCOL_UDP: u8 = 17;  // User Datagram Protocol
-pub const IP_PROTOCOL_ICMP: u8 = 1;  // Internet Control Message Protocol
+pub const IP_PROTOCOL_TCP: u8 = 6; // Transmission Control Protocol
+pub const IP_PROTOCOL_UDP: u8 = 17; // User Datagram Protocol
+pub const IP_PROTOCOL_ICMP: u8 = 1; // Internet Control Message Protocol
 
 /// IP packet
 pub enum IpPacket {
@@ -149,11 +149,8 @@ impl IpPacket {
             dst_addr: [data[16], data[17], data[18], data[19]],
         };
 
-        let payload = if data.len() > header_length {
-            data[header_length..].to_vec()
-        } else {
-            Vec::new()
-        };
+        let payload =
+            if data.len() > header_length { data[header_length..].to_vec() } else { Vec::new() };
 
         Ok(IpPacket::V4(Ipv4Packet { header, payload }))
     }

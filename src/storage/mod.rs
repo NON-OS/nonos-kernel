@@ -2,15 +2,15 @@
 //!
 //! Production storage with NVMe, AHCI, encryption, and high-performance I/O
 
-pub mod nvme;
 pub mod ahci;
 pub mod block_device;
-pub mod raid;
 pub mod crypto_storage;
+pub mod nvme;
+pub mod raid;
 pub mod swap;
 
-use alloc::{vec::Vec, boxed::Box, sync::Arc, format, string::String};
-use core::sync::atomic::{AtomicU64, AtomicU32, Ordering};
+use alloc::{boxed::Box, format, string::String, sync::Arc, vec::Vec};
+use core::sync::atomic::{AtomicU32, AtomicU64, Ordering};
 use spin::{Mutex, RwLock};
 
 /// Storage device types
@@ -62,8 +62,8 @@ pub struct IoRequest {
     pub priority: u8,       // Request priority (0-255)
     pub flags: IoFlags,     // Request flags
     pub completion_callback: Option<Box<dyn Fn(IoResult) + Send + Sync>>,
-    pub request_id: u64,    // Unique request identifier
-    pub timestamp: u64,     // Request timestamp
+    pub request_id: u64, // Unique request identifier
+    pub timestamp: u64,  // Request timestamp
 }
 
 /// I/O request flags
@@ -71,7 +71,7 @@ bitflags::bitflags! {
     #[derive(Clone, Copy, Debug)]
     pub struct IoFlags: u32 {
         const SYNC           = 1 << 0;  // Synchronous operation
-        const ASYNC          = 1 << 1;  // Asynchronous operation  
+        const ASYNC          = 1 << 1;  // Asynchronous operation
         const HIGH_PRIORITY  = 1 << 2;  // High priority request
         const BYPASS_CACHE   = 1 << 3;  // Bypass cache
         const WRITE_THROUGH  = 1 << 4;  // Write-through cache
@@ -128,46 +128,51 @@ pub struct DeviceStatistics {
 pub trait StorageDevice: Send + Sync {
     /// Get device information
     fn device_info(&self) -> DeviceInfo;
-    
+
     /// Get device capabilities
     fn capabilities(&self) -> DeviceCapabilities;
-    
+
     /// Submit I/O request
     fn submit_request(&self, request: IoRequest) -> Result<(), IoStatus>;
-    
+
     /// Check if device is ready
     fn is_ready(&self) -> bool;
-    
+
     /// Get device statistics
     fn statistics(&self) -> &DeviceStatistics;
 
     /// Read blocks from the device
-    fn read_blocks(&self, start_block: u64, block_count: u32, buffer: &mut [u8]) -> Result<(), IoStatus>;
+    fn read_blocks(
+        &self,
+        start_block: u64,
+        block_count: u32,
+        buffer: &mut [u8],
+    ) -> Result<(), IoStatus>;
 
     /// Get total number of sectors
     fn total_sectors(&self) -> u64;
-    
+
     /// Perform device maintenance
     fn maintenance(&self) -> Result<(), &'static str>;
-    
+
     /// Get S.M.A.R.T. data
     fn smart_data(&self) -> Option<SmartData>;
-    
+
     /// Secure erase device
     fn secure_erase(&self) -> Result<(), &'static str>;
-    
+
     /// Set power state
     fn set_power_state(&self, state: PowerState) -> Result<(), &'static str>;
-    
+
     /// Check if device supports secure erase
     fn supports_secure_erase(&self) -> bool;
-    
+
     /// Verify sanitize completion
     fn verify_sanitize_completion(&self) -> Result<(), &'static str>;
-    
+
     /// Wait for command completion
     fn wait_for_completion(&self, command_id: u16, timeout_ms: u64) -> Result<(), &'static str>;
-    
+
     /// Parse controller identify data
     fn parse_controller_identify(&self, data: &[u8]) -> Result<(), &'static str>;
 }
@@ -231,28 +236,31 @@ impl StorageManager {
             device_id_counter: AtomicU32::new(0),
         }
     }
-    
+
     /// Register a new storage device
     pub fn register_device(&self, device: Arc<dyn StorageDevice>) -> u32 {
         let device_id = self.device_id_counter.fetch_add(1, Ordering::Relaxed);
         let mut devices = self.devices.write();
         devices.push(device);
-        
-        crate::log::logger::log_info!("{}", &format!(
-            "Registered storage device ID {} ({:?})", 
-            device_id, 
-            devices.last().unwrap().device_info().device_type
-        ));
-        
+
+        crate::log::logger::log_info!(
+            "{}",
+            &format!(
+                "Registered storage device ID {} ({:?})",
+                device_id,
+                devices.last().unwrap().device_info().device_type
+            )
+        );
+
         device_id
     }
-    
+
     /// Get device by ID
     pub fn get_device(&self, device_id: u32) -> Option<Arc<dyn StorageDevice>> {
         let devices = self.devices.read();
         devices.get(device_id as usize).cloned()
     }
-    
+
     /// Submit I/O request to scheduler
     pub fn submit_io(&self, device_id: u32, request: IoRequest) -> Result<(), IoStatus> {
         if let Some(device) = self.get_device(device_id) {
@@ -262,12 +270,12 @@ impl StorageManager {
             Err(IoStatus::InvalidRequest)
         }
     }
-    
+
     /// Get storage statistics
     pub fn get_storage_stats(&self) -> StorageStats {
         let devices = self.devices.read();
         let mut stats = StorageStats::default();
-        
+
         for device in devices.iter() {
             let device_stats = device.statistics();
             stats.total_reads += device_stats.reads_completed.load(Ordering::Relaxed);
@@ -275,10 +283,10 @@ impl StorageManager {
             stats.total_bytes_read += device_stats.bytes_read.load(Ordering::Relaxed);
             stats.total_bytes_written += device_stats.bytes_written.load(Ordering::Relaxed);
         }
-        
+
         stats
     }
-    
+
     /// Perform maintenance on all devices
     pub fn maintenance_all_devices(&self) -> Result<(), &'static str> {
         let devices = self.devices.read();
@@ -319,17 +327,17 @@ impl IoScheduler {
             max_concurrent_requests: 64,
         }
     }
-    
+
     /// Schedule I/O request using intelligent algorithms
     pub fn schedule_request(
-        &mut self, 
-        device: Arc<dyn StorageDevice>, 
-        request: IoRequest
+        &mut self,
+        device: Arc<dyn StorageDevice>,
+        request: IoRequest,
     ) -> Result<(), IoStatus> {
         if self.active_requests >= self.max_concurrent_requests {
             return Err(IoStatus::DeviceNotReady);
         }
-        
+
         // Prioritize requests based on flags and priority
         if request.flags.contains(IoFlags::HIGH_PRIORITY) || request.priority > 200 {
             self.high_priority_queue.push((device, request));
@@ -338,11 +346,11 @@ impl IoScheduler {
         } else {
             self.low_priority_queue.push((device, request));
         }
-        
+
         // Process queued requests
         self.process_queued_requests()
     }
-    
+
     /// Process queued I/O requests with elevator algorithm
     fn process_queued_requests(&mut self) -> Result<(), IoStatus> {
         // Process high priority first
@@ -352,34 +360,38 @@ impl IoScheduler {
                 self.high_priority_queue.push((device, request));
                 break;
             }
-            
+
             self.submit_to_device(device, request)?;
         }
-        
+
         // Process normal priority
         while let Some((device, request)) = self.normal_priority_queue.pop() {
             if self.active_requests >= self.max_concurrent_requests {
                 self.normal_priority_queue.push((device, request));
                 break;
             }
-            
+
             self.submit_to_device(device, request)?;
         }
-        
+
         // Process low priority
         while let Some((device, request)) = self.low_priority_queue.pop() {
             if self.active_requests >= self.max_concurrent_requests {
                 self.low_priority_queue.push((device, request));
                 break;
             }
-            
+
             self.submit_to_device(device, request)?;
         }
-        
+
         Ok(())
     }
-    
-    fn submit_to_device(&mut self, device: Arc<dyn StorageDevice>, request: IoRequest) -> Result<(), IoStatus> {
+
+    fn submit_to_device(
+        &mut self,
+        device: Arc<dyn StorageDevice>,
+        request: IoRequest,
+    ) -> Result<(), IoStatus> {
         self.active_requests += 1;
         device.submit_request(request)?;
         Ok(())
@@ -392,19 +404,19 @@ static STORAGE_MANAGER: StorageManager = StorageManager::new();
 /// Initialize storage subsystem
 pub fn init() -> Result<(), &'static str> {
     crate::log::logger::log_info!("Initializing advanced storage subsystem");
-    
+
     // Initialize NVMe subsystem
     nvme::init()?;
-    
-    // Initialize AHCI subsystem  
+
+    // Initialize AHCI subsystem
     ahci::init()?;
-    
+
     // Initialize crypto storage
     crypto_storage::init()?;
-    
+
     // Discover and register storage devices
     discover_storage_devices()?;
-    
+
     crate::log::logger::log_info!("Storage subsystem initialized successfully");
     Ok(())
 }
@@ -413,10 +425,10 @@ pub fn init() -> Result<(), &'static str> {
 fn discover_storage_devices() -> Result<(), &'static str> {
     // Scan PCI bus for NVMe controllers
     nvme::scan_and_register_nvme_devices(&STORAGE_MANAGER)?;
-    
+
     // Scan PCI bus for AHCI controllers
     ahci::scan_and_register_ahci_devices(&STORAGE_MANAGER)?;
-    
+
     Ok(())
 }
 
@@ -428,7 +440,7 @@ pub fn get_storage_manager() -> &'static StorageManager {
 /// Get primary storage device
 pub fn get_primary_storage() -> Option<Box<dyn crate::storage::StorageDevice>> {
     let manager = &STORAGE_MANAGER;
-    // Note: This would need to clone the device, but since StorageDevice 
+    // Note: This would need to clone the device, but since StorageDevice
     // likely doesn't implement Clone, we'll return None for now
     // TODO: Implement a different approach for device access
     None
@@ -444,30 +456,27 @@ pub fn get_stats() -> StorageStats {
     STORAGE_MANAGER.get_storage_stats()
 }
 
+use crate::storage::swap::{free_swap_slot, read_page, SwapSlot};
 use x86_64::VirtAddr;
-use crate::storage::swap::{SwapSlot, read_page, free_swap_slot};
 
 /// Read a page from swap storage
 pub fn read_swap_page(swap_offset: u64) -> Result<Vec<u8>, &'static str> {
     // Create swap slot from offset
     let swap_slot = SwapSlot {
-        device_id: (swap_offset >> 32) as u32,  // High 32 bits are device ID
-        slot: swap_offset & 0xFFFFFFFF,         // Low 32 bits are slot number
+        device_id: (swap_offset >> 32) as u32, // High 32 bits are device ID
+        slot: swap_offset & 0xFFFFFFFF,        // Low 32 bits are slot number
     };
-    
+
     let mut buffer = [0u8; 4096];
-    read_page(swap_slot, &mut buffer)
-        .map_err(|_| "Failed to read swap page")?;
-    
+    read_page(swap_slot, &mut buffer).map_err(|_| "Failed to read swap page")?;
+
     Ok(buffer.to_vec())
 }
 
 /// Free a page in swap storage  
 pub fn free_swap_page(swap_offset: u64) {
-    let swap_slot = SwapSlot {
-        device_id: (swap_offset >> 32) as u32,
-        slot: swap_offset & 0xFFFFFFFF,
-    };
-    
+    let swap_slot =
+        SwapSlot { device_id: (swap_offset >> 32) as u32, slot: swap_offset & 0xFFFFFFFF };
+
     free_swap_slot(swap_slot);
 }

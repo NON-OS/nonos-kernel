@@ -7,36 +7,25 @@
 //! - Constant-time operations for security
 //! - Production-grade random number generation
 
-use alloc::{vec::Vec, vec};
+use super::{circuit::Circuit, ZKError};
+use alloc::{vec, vec::Vec};
 use core::ops::{Add, Mul};
-use super::{ZKError, circuit::Circuit};
 
-/// BN254 field modulus: 21888242871839275222246405745257275088548364400416034343698204186575808495617
-const BN254_MODULUS: [u64; 4] = [
-    0x3c208c16d87cfd47,
-    0x97816a916871ca8d,
-    0xb85045b68181585d,
-    0x30644e72e131a029,
-];
+/// BN254 field modulus:
+/// 21888242871839275222246405745257275088548364400416034343698204186575808495617
+const BN254_MODULUS: [u64; 4] =
+    [0x3C208C16D87CFD47, 0x97816A916871CA8D, 0xB85045B68181585D, 0x30644E72E131A029];
 
 /// Montgomery R = 2^256 mod p for Montgomery arithmetic
-const MONTGOMERY_R: [u64; 4] = [
-    0xd35d438dc58f0d9d,
-    0xa78eb28f5c70b3dd,
-    0x666ea36f7879462c,
-    0x0e0a77c19a07df2f,
-];
+const MONTGOMERY_R: [u64; 4] =
+    [0xD35D438DC58F0D9D, 0xA78EB28F5C70B3DD, 0x666EA36F7879462C, 0x0E0A77C19A07DF2F];
 
 /// Montgomery R^2 mod p
-const MONTGOMERY_R2: [u64; 4] = [
-    0xf32cfc5b538afa89,
-    0xb5e71911d44501fb,
-    0x47ab1eff0a417ff6,
-    0x06d89f71cab8351f,
-];
+const MONTGOMERY_R2: [u64; 4] =
+    [0xF32CFC5B538AFA89, 0xB5E71911D44501FB, 0x47AB1EFF0A417FF6, 0x06D89F71CAB8351F];
 
 /// Montgomery N' = -p^(-1) mod 2^64
-const MONTGOMERY_INV: u64 = 0x87d20782e4866389;
+const MONTGOMERY_INV: u64 = 0x87D20782E4866389;
 
 /// BN254 curve parameter B = 3
 const CURVE_B: [u64; 4] = [3, 0, 0, 0];
@@ -46,30 +35,14 @@ const G1_GENERATOR_X: [u64; 4] = [1, 0, 0, 0];
 const G1_GENERATOR_Y: [u64; 4] = [2, 0, 0, 0];
 
 /// BN254 G2 generator point coordinates (Fp2 elements)
-const G2_GENERATOR_X_C0: [u64; 4] = [
-    0x46debd5cd992f6ed,
-    0x674322d4f75edadd,
-    0x426a00665e5c4479,
-    0x1800deef121f1e76,
-];
-const G2_GENERATOR_X_C1: [u64; 4] = [
-    0x97e485b7aef312c2,
-    0xf1aa493335a9e712,
-    0x7260bfb731fb5d25,
-    0x198e9393920d483a,
-];
-const G2_GENERATOR_Y_C0: [u64; 4] = [
-    0x4ce6cc0166fa7daa,
-    0xe3d1e7690c43d37b,
-    0x4aab71808dcb408f,
-    0x12c85ea5db8c6deb,
-];
-const G2_GENERATOR_Y_C1: [u64; 4] = [
-    0x55acdadcd122975b,
-    0xbc4b313370b38ef3,
-    0xec9e99ad690c3395,
-    0x090689d0585ff075,
-];
+const G2_GENERATOR_X_C0: [u64; 4] =
+    [0x46DEBD5CD992F6ED, 0x674322D4F75EDADD, 0x426A00665E5C4479, 0x1800DEEF121F1E76];
+const G2_GENERATOR_X_C1: [u64; 4] =
+    [0x97E485B7AEF312C2, 0xF1AA493335A9E712, 0x7260BFB731FB5D25, 0x198E9393920D483A];
+const G2_GENERATOR_Y_C0: [u64; 4] =
+    [0x4CE6CC0166FA7DAA, 0xE3D1E7690C43D37B, 0x4AAB71808DCB408F, 0x12C85EA5DB8C6DEB];
+const G2_GENERATOR_Y_C1: [u64; 4] =
+    [0x55ACDADCD122975B, 0xBC4B313370B38EF3, 0xEC9E99AD690C3395, 0x090689D0585FF075];
 
 /// BN254 field element in Montgomery form
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -145,7 +118,7 @@ impl Proof {
     /// Serialize proof to bytes
     pub fn serialize(&self) -> Vec<u8> {
         let mut data = Vec::with_capacity(192); // 3 * 64 bytes roughly
-        
+
         // Serialize G1Point a (x, y coordinates)
         if let Some((x, y)) = self.a.to_affine() {
             let x_mont = x.from_montgomery();
@@ -159,10 +132,10 @@ impl Proof {
         } else {
             data.extend_from_slice(&[0u8; 64]); // Identity point
         }
-        
-        // Serialize G2Point b 
+
+        // Serialize G2Point b
         data.extend_from_slice(&self.b.serialize());
-        
+
         // Serialize G1Point c
         if let Some((x, y)) = self.c.to_affine() {
             let x_mont = x.from_montgomery();
@@ -176,20 +149,20 @@ impl Proof {
         } else {
             data.extend_from_slice(&[0u8; 64]); // Identity point
         }
-        
+
         data
     }
-    
+
     /// Deserialize proof from bytes
     pub fn deserialize(data: &[u8]) -> Result<Self, ZKError> {
         if data.len() < 192 {
             return Err(ZKError::InvalidFormat);
         }
-        
+
         // For now, return a dummy proof - full implementation would parse the bytes
         Ok(Proof {
             a: G1Point::identity(),
-            b: G2Point::identity(), 
+            b: G2Point::identity(),
             c: G1Point::identity(),
             circuit_id: 0, // Default circuit ID for deserialized proofs
         })
@@ -231,12 +204,13 @@ impl FieldElement {
     /// Montgomery multiplication - REAL implementation
     pub fn montgomery_mul(&self, other: &FieldElement) -> FieldElement {
         let mut t = [0u64; 8];
-        
+
         // Compute product
         for i in 0..4 {
             let mut c = 0u128;
             for j in 0..4 {
-                let prod = (self.limbs[i] as u128) * (other.limbs[j] as u128) + (t[i + j] as u128) + c;
+                let prod =
+                    (self.limbs[i] as u128) * (other.limbs[j] as u128) + (t[i + j] as u128) + c;
                 t[i + j] = prod as u64;
                 c = prod >> 64;
             }
@@ -247,7 +221,7 @@ impl FieldElement {
         for i in 0..4 {
             let k = (t[i] as u128 * MONTGOMERY_INV as u128) as u64;
             let mut c = 0u128;
-            
+
             for j in 0..4 {
                 let prod = (k as u128) * (BN254_MODULUS[j] as u128) + (t[i + j] as u128) + c;
                 if i + j == 0 {
@@ -257,8 +231,8 @@ impl FieldElement {
                     c = prod >> 64;
                 }
             }
-            
-            for j in 4..8-i {
+
+            for j in 4..8 - i {
                 let sum = (t[i + j] as u128) + c;
                 t[i + j] = sum as u64;
                 c = sum >> 64;
@@ -266,7 +240,7 @@ impl FieldElement {
         }
 
         let mut result = [t[4], t[5], t[6], t[7]];
-        
+
         // Final reduction if needed
         if Self::gte(&result, &BN254_MODULUS) {
             Self::sub_assign(&mut result, &BN254_MODULUS);
@@ -297,7 +271,7 @@ impl FieldElement {
     /// Field subtraction
     pub fn sub(&self, other: &FieldElement) -> FieldElement {
         let mut result = self.limbs;
-        
+
         if Self::gte(&self.limbs, &other.limbs) {
             Self::sub_assign(&mut result, &other.limbs);
         } else {
@@ -335,7 +309,7 @@ impl FieldElement {
 
         // Use Fermat's little theorem: a^(p-2) = a^(-1) mod p
         let mut exp = BN254_MODULUS;
-        
+
         // Subtract 2 from exponent
         if exp[0] >= 2 {
             exp[0] -= 2;
@@ -386,20 +360,20 @@ impl FieldElement {
             core::arch::asm!("rdtsc", out("rax") rax);
             rax
         };
-        
+
         // Mix with some compile-time constants for additional entropy
         let mut limbs = [
-            entropy ^ 0x123456789abcdef0,
-            entropy.wrapping_mul(0xfedcba9876543210),
-            entropy.wrapping_add(0x0f0f0f0f0f0f0f0f),
-            entropy.rotate_left(32) ^ 0xf0f0f0f0f0f0f0f0,
+            entropy ^ 0x123456789ABCDEF0,
+            entropy.wrapping_mul(0xFEDCBA9876543210),
+            entropy.wrapping_add(0x0F0F0F0F0F0F0F0F),
+            entropy.rotate_left(32) ^ 0xF0F0F0F0F0F0F0F0,
         ];
-        
+
         // Reduce modulo field characteristic
         while Self::gte(&limbs, &BN254_MODULUS) {
             Self::sub_assign(&mut limbs, &BN254_MODULUS);
         }
-        
+
         FieldElement { limbs }.to_montgomery()
     }
 
@@ -412,7 +386,7 @@ impl FieldElement {
         // For BN254, p ≡ 3 (mod 4), so we can use a^((p+1)/4)
         let mut exp = BN254_MODULUS;
         Self::add_assign(&mut exp, &[1, 0, 0, 0]);
-        
+
         // Divide by 4
         for i in (1..4).rev() {
             exp[i - 1] |= (exp[i] & 3) << 62;
@@ -421,7 +395,7 @@ impl FieldElement {
         exp[3] >>= 2;
 
         let candidate = self.pow(&exp);
-        
+
         // Verify it's a square root
         if candidate.square() == *self {
             Some(candidate)
@@ -465,19 +439,14 @@ impl FieldElement {
         if self.is_zero() {
             return None;
         }
-        
+
         // For prime p, a^(-1) = a^(p-2) mod p
         // BN254 modulus - 2
-        let exp = [
-            0x3c208c16d87cfd45,
-            0x97816a916871ca8d,
-            0xb85045b68181585d,
-            0x30644e72e131a029,
-        ];
-        
+        let exp = [0x3C208C16D87CFD45, 0x97816A916871CA8D, 0xB85045B68181585D, 0x30644E72E131A029];
+
         Some(self.pow(&exp))
     }
-    
+
     /// Convert to bytes
     pub fn to_bytes(&self) -> [u8; 32] {
         let mont_form = self.from_montgomery();
@@ -488,34 +457,35 @@ impl FieldElement {
         }
         bytes
     }
-    
+
     /// Create from bytes
     pub fn from_bytes(bytes: &[u8]) -> Result<Self, ZKError> {
         if bytes.len() < 32 {
             return Err(ZKError::InvalidProof);
         }
-        
+
         let mut limbs = [0u64; 4];
         for i in 0..4 {
             limbs[i] = u64::from_le_bytes([
-                bytes[i * 8], bytes[i * 8 + 1], bytes[i * 8 + 2], bytes[i * 8 + 3],
-                bytes[i * 8 + 4], bytes[i * 8 + 5], bytes[i * 8 + 6], bytes[i * 8 + 7],
+                bytes[i * 8],
+                bytes[i * 8 + 1],
+                bytes[i * 8 + 2],
+                bytes[i * 8 + 3],
+                bytes[i * 8 + 4],
+                bytes[i * 8 + 5],
+                bytes[i * 8 + 6],
+                bytes[i * 8 + 7],
             ]);
         }
-        
+
         Ok(FieldElement { limbs }.to_montgomery())
     }
-    
 }
 
 impl G1Point {
     /// Point at infinity
     pub const fn infinity() -> Self {
-        G1Point {
-            x: FieldElement::zero(),
-            y: FieldElement::one(),
-            z: FieldElement::zero(),
-        }
+        G1Point { x: FieldElement::zero(), y: FieldElement::one(), z: FieldElement::zero() }
     }
 
     /// Generator point
@@ -595,10 +565,10 @@ impl G1Point {
         // Convert to NAF representation for efficiency
         let naf = self.compute_naf(scalar);
         let mut result = G1Point::infinity();
-        
+
         for &naf_digit in naf.iter().rev() {
             result = result.double();
-            
+
             if naf_digit > 0 {
                 result = result.add(self);
             } else if naf_digit < 0 {
@@ -611,11 +581,7 @@ impl G1Point {
 
     /// Point negation
     pub fn neg(&self) -> G1Point {
-        G1Point {
-            x: self.x,
-            y: self.y.neg(),
-            z: self.z,
-        }
+        G1Point { x: self.x, y: self.y.neg(), z: self.z }
     }
 
     /// Check if point is on curve
@@ -629,7 +595,7 @@ impl G1Point {
         let x3 = self.x.square().mul(&self.x);
         let z6 = self.z.square().square().square();
         let b_z6 = FieldElement::from_u64(3).mul(&z6);
-        
+
         y2 == x3.add(&b_z6)
     }
 
@@ -650,15 +616,15 @@ impl G1Point {
     fn compute_naf(&self, scalar: &[u64; 4]) -> Vec<i8> {
         let mut naf = Vec::new();
         let mut k = *scalar;
-        
+
         while !Self::is_zero_scalar(&k) {
             if k[0] & 1 == 1 {
                 let width = 2; // Window size
                 let z = (k[0] as i32) & ((1 << (width + 1)) - 1);
                 let zi = if z < (1 << width) { z } else { z - (1 << (width + 1)) };
-                
+
                 naf.push(zi as i8);
-                
+
                 if zi < 0 {
                     Self::add_scalar(&mut k, &[(-zi) as u64, 0, 0, 0]);
                 } else {
@@ -667,10 +633,10 @@ impl G1Point {
             } else {
                 naf.push(0);
             }
-            
+
             Self::div2_scalar(&mut k);
         }
-        
+
         naf
     }
 
@@ -708,19 +674,19 @@ impl G1Point {
         if let Some((x, y)) = self.to_affine() {
             let mut bytes = [0u8; 32];
             let x_mont = x.from_montgomery();
-            
+
             // Store x coordinate
             for i in 0..4 {
                 let limb_bytes = x_mont.limbs[i].to_le_bytes();
                 bytes[i * 8..(i + 1) * 8].copy_from_slice(&limb_bytes);
             }
-            
+
             // Set compression bit based on y coordinate parity
             let y_mont = y.from_montgomery();
             if y_mont.limbs[0] & 1 == 1 {
                 bytes[31] |= 0x80;
             }
-            
+
             bytes
         } else {
             [0u8; 32] // Point at infinity
@@ -741,37 +707,40 @@ impl G1Point {
         // Extract x coordinate
         let mut x_bytes = [0u8; 32];
         x_bytes.copy_from_slice(&bytes[0..32]);
-        
+
         // Clear compression bit
         let y_bit = (x_bytes[31] & 0x80) != 0;
-        x_bytes[31] &= 0x7f;
-        
+        x_bytes[31] &= 0x7F;
+
         let mut limbs = [0u64; 4];
         for i in 0..4 {
             limbs[i] = u64::from_le_bytes([
-                x_bytes[i * 8], x_bytes[i * 8 + 1], x_bytes[i * 8 + 2], x_bytes[i * 8 + 3],
-                x_bytes[i * 8 + 4], x_bytes[i * 8 + 5], x_bytes[i * 8 + 6], x_bytes[i * 8 + 7],
+                x_bytes[i * 8],
+                x_bytes[i * 8 + 1],
+                x_bytes[i * 8 + 2],
+                x_bytes[i * 8 + 3],
+                x_bytes[i * 8 + 4],
+                x_bytes[i * 8 + 5],
+                x_bytes[i * 8 + 6],
+                x_bytes[i * 8 + 7],
             ]);
         }
 
         let x = FieldElement { limbs }.to_montgomery();
-        
+
         // Compute y^2 = x^3 + 3
         let x3 = x.square().mul(&x);
         let y_squared = x3.add(&FieldElement::from_u64(3));
-        
+
         // Find square root
         let y = y_squared.sqrt().ok_or(ZKError::InvalidProof)?;
-        
+
         // Choose correct sign based on compression bit
-        let y_final = if (y.from_montgomery().limbs[0] & 1) == (y_bit as u64) {
-            y
-        } else {
-            y.neg()
-        };
+        let y_final =
+            if (y.from_montgomery().limbs[0] & 1) == (y_bit as u64) { y } else { y.neg() };
 
         let point = G1Point { x, y: y_final, z: FieldElement::one() };
-        
+
         if point.is_on_curve() {
             Ok(point)
         } else {
@@ -791,22 +760,14 @@ impl G1Point {
 
     /// Negate a point  
     pub fn negate(&self) -> Self {
-        G1Point {
-            x: self.x,
-            y: self.y.neg(),
-            z: self.z,
-        }
+        G1Point { x: self.x, y: self.y.neg(), z: self.z }
     }
 }
 
 impl G2Point {
     /// Point at infinity
     pub const fn infinity() -> Self {
-        G2Point {
-            x: G2FieldElement::zero(),
-            y: G2FieldElement::one(),
-            z: G2FieldElement::zero(),
-        }
+        G2Point { x: G2FieldElement::zero(), y: G2FieldElement::one(), z: G2FieldElement::zero() }
     }
 
     /// Generator point
@@ -915,7 +876,7 @@ impl G2Point {
         let x3 = self.x.square().mul(&self.x);
         let z6 = self.z.square().square().square();
         let b_z6 = G2FieldElement::from_base_field(&FieldElement::from_u64(3)).mul(&z6);
-        
+
         y2 == x3.add(&b_z6)
     }
 
@@ -925,13 +886,13 @@ impl G2Point {
         if let Some((x, _y)) = self.to_affine() {
             let x0_mont = x.c0.from_montgomery();
             let x1_mont = x.c1.from_montgomery();
-            
+
             // Store real part
             for i in 0..4 {
                 let limb_bytes = x0_mont.limbs[i].to_le_bytes();
                 bytes[i * 8..(i + 1) * 8].copy_from_slice(&limb_bytes);
             }
-            
+
             // Store imaginary part
             for i in 0..4 {
                 let limb_bytes = x1_mont.limbs[i].to_le_bytes();
@@ -950,16 +911,28 @@ impl G2Point {
         // Extract coordinates
         let mut c0_limbs = [0u64; 4];
         let mut c1_limbs = [0u64; 4];
-        
+
         for i in 0..4 {
             c0_limbs[i] = u64::from_le_bytes([
-                bytes[i * 8], bytes[i * 8 + 1], bytes[i * 8 + 2], bytes[i * 8 + 3],
-                bytes[i * 8 + 4], bytes[i * 8 + 5], bytes[i * 8 + 6], bytes[i * 8 + 7],
+                bytes[i * 8],
+                bytes[i * 8 + 1],
+                bytes[i * 8 + 2],
+                bytes[i * 8 + 3],
+                bytes[i * 8 + 4],
+                bytes[i * 8 + 5],
+                bytes[i * 8 + 6],
+                bytes[i * 8 + 7],
             ]);
-            
+
             c1_limbs[i] = u64::from_le_bytes([
-                bytes[(i + 4) * 8], bytes[(i + 4) * 8 + 1], bytes[(i + 4) * 8 + 2], bytes[(i + 4) * 8 + 3],
-                bytes[(i + 4) * 8 + 4], bytes[(i + 4) * 8 + 5], bytes[(i + 4) * 8 + 6], bytes[(i + 4) * 8 + 7],
+                bytes[(i + 4) * 8],
+                bytes[(i + 4) * 8 + 1],
+                bytes[(i + 4) * 8 + 2],
+                bytes[(i + 4) * 8 + 3],
+                bytes[(i + 4) * 8 + 4],
+                bytes[(i + 4) * 8 + 5],
+                bytes[(i + 4) * 8 + 6],
+                bytes[(i + 4) * 8 + 7],
             ]);
         }
 
@@ -970,7 +943,7 @@ impl G2Point {
 
         // Compute y from curve equation (simplified)
         let point = G2Point { x, y: G2FieldElement::one(), z: G2FieldElement::one() };
-        
+
         Ok(point)
     }
 
@@ -991,25 +964,21 @@ impl G2Point {
     pub fn identity() -> Self {
         Self::infinity()
     }
-    
+
     /// Check if point is identity (alias for is_infinity)
     pub fn is_identity(&self) -> bool {
         self.is_infinity()
     }
-    
+
     /// Negate a point
     pub fn negate(&self) -> Self {
-        G2Point {
-            x: self.x,
-            y: self.y.neg(),
-            z: self.z,
-        }
+        G2Point { x: self.x, y: self.y.neg(), z: self.z }
     }
 
     /// Serialize G2Point to bytes
     pub fn serialize(&self) -> Vec<u8> {
         let mut data = Vec::with_capacity(128); // 4 * 32 bytes for x and y coordinates
-        
+
         if let Some((x, y)) = self.to_affine() {
             // Serialize x coordinate (c0, c1)
             let x0_mont = x.c0.from_montgomery();
@@ -1020,7 +989,7 @@ impl G2Point {
             for limb in x1_mont.limbs.iter() {
                 data.extend_from_slice(&limb.to_le_bytes());
             }
-            
+
             // Serialize y coordinate (c0, c1)
             let y0_mont = y.c0.from_montgomery();
             let y1_mont = y.c1.from_montgomery();
@@ -1033,7 +1002,7 @@ impl G2Point {
         } else {
             data.extend_from_slice(&[0u8; 128]); // Identity point
         }
-        
+
         data
     }
 }
@@ -1041,26 +1010,17 @@ impl G2Point {
 impl G2FieldElement {
     /// Zero element
     pub const fn zero() -> Self {
-        G2FieldElement {
-            c0: FieldElement::zero(),
-            c1: FieldElement::zero(),
-        }
+        G2FieldElement { c0: FieldElement::zero(), c1: FieldElement::zero() }
     }
 
     /// One element
     pub const fn one() -> Self {
-        G2FieldElement {
-            c0: FieldElement::one(),
-            c1: FieldElement::zero(),
-        }
+        G2FieldElement { c0: FieldElement::one(), c1: FieldElement::zero() }
     }
 
     /// Create from base field element
     pub fn from_base_field(base: &FieldElement) -> Self {
-        G2FieldElement {
-            c0: *base,
-            c1: FieldElement::zero(),
-        }
+        G2FieldElement { c0: *base, c1: FieldElement::zero() }
     }
 
     /// Check if zero
@@ -1070,18 +1030,12 @@ impl G2FieldElement {
 
     /// Addition in Fp2
     pub fn add(&self, other: &G2FieldElement) -> G2FieldElement {
-        G2FieldElement {
-            c0: self.c0.add(&other.c0),
-            c1: self.c1.add(&other.c1),
-        }
+        G2FieldElement { c0: self.c0.add(&other.c0), c1: self.c1.add(&other.c1) }
     }
 
     /// Subtraction in Fp2
     pub fn sub(&self, other: &G2FieldElement) -> G2FieldElement {
-        G2FieldElement {
-            c0: self.c0.sub(&other.c0),
-            c1: self.c1.sub(&other.c1),
-        }
+        G2FieldElement { c0: self.c0.sub(&other.c0), c1: self.c1.sub(&other.c1) }
     }
 
     /// Multiplication in Fp2: (a + bu)(c + du) = (ac - bd) + (ad + bc)u
@@ -1090,9 +1044,9 @@ impl G2FieldElement {
         let v0 = self.c0.mul(&other.c0);
         let v1 = self.c1.mul(&other.c1);
         let v2 = self.c0.add(&self.c1).mul(&other.c0.add(&other.c1));
-        
+
         G2FieldElement {
-            c0: v0.sub(&v1), // ac - bd (since u^2 = -1)
+            c0: v0.sub(&v1),          // ac - bd (since u^2 = -1)
             c1: v2.sub(&v0).sub(&v1), // ad + bc
         }
     }
@@ -1103,11 +1057,8 @@ impl G2FieldElement {
         let a_squared = self.c0.square();
         let b_squared = self.c1.square();
         let two_ab = self.c0.mul(&self.c1).double();
-        
-        G2FieldElement {
-            c0: a_squared.sub(&b_squared),
-            c1: two_ab,
-        }
+
+        G2FieldElement { c0: a_squared.sub(&b_squared), c1: two_ab }
     }
 
     /// Doubling
@@ -1117,10 +1068,7 @@ impl G2FieldElement {
 
     /// Negation
     pub fn neg(&self) -> G2FieldElement {
-        G2FieldElement {
-            c0: self.c0.neg(),
-            c1: self.c1.neg(),
-        }
+        G2FieldElement { c0: self.c0.neg(), c1: self.c1.neg() }
     }
 
     /// Inverse in Fp2
@@ -1133,21 +1081,15 @@ impl G2FieldElement {
         let a_squared = self.c0.square();
         let b_squared = self.c1.square();
         let norm = a_squared.add(&b_squared);
-        
+
         let norm_inv = norm.inverse()?;
-        
-        Some(G2FieldElement {
-            c0: self.c0.mul(&norm_inv),
-            c1: self.c1.neg().mul(&norm_inv),
-        })
+
+        Some(G2FieldElement { c0: self.c0.mul(&norm_inv), c1: self.c1.neg().mul(&norm_inv) })
     }
 
     /// Conjugation: (a + bu)* = a - bu
     pub fn conjugate(&self) -> G2FieldElement {
-        G2FieldElement {
-            c0: self.c0,
-            c1: self.c1.neg(),
-        }
+        G2FieldElement { c0: self.c0, c1: self.c1.neg() }
     }
 }
 
@@ -1161,15 +1103,14 @@ impl GTElement {
 
     /// Check if identity
     pub fn is_identity(&self) -> bool {
-        self.coeffs[0] == FieldElement::one() && 
-        self.coeffs[1..].iter().all(|c| c.is_zero())
+        self.coeffs[0] == FieldElement::one() && self.coeffs[1..].iter().all(|c| c.is_zero())
     }
 
     /// Multiplication in Fp12
     pub fn mul(&self, other: &GTElement) -> GTElement {
         // Simplified Fp12 multiplication (real implementation would be optimized)
         let mut result = [FieldElement::zero(); 12];
-        
+
         for i in 0..12 {
             for j in 0..12 {
                 if i + j < 12 {
@@ -1177,7 +1118,7 @@ impl GTElement {
                 }
             }
         }
-        
+
         GTElement { coeffs: result }
     }
 
@@ -1186,12 +1127,12 @@ impl GTElement {
         // Simplified final exponentiation
         *self
     }
-    
+
     /// Check equality (alias for PartialEq)
     pub fn equals(&self, other: &GTElement) -> bool {
         self == other
     }
-    
+
     /// Multiply (alias for mul)
     pub fn multiply(&self, other: &GTElement) -> GTElement {
         self.mul(other)
@@ -1217,14 +1158,14 @@ impl Groth16Prover {
     pub fn generate_keys(circuit: &Circuit) -> Result<(ProvingKey, VerifyingKey), ZKError> {
         // Real trusted setup would require ceremony
         // This is simplified for compilation
-        
+
         let alpha_g1 = G1Point::generator();
         let beta_g1 = G1Point::generator();
         let beta_g2 = G2Point::generator();
         let gamma_g2 = G2Point::generator();
         let delta_g1 = G1Point::generator();
         let delta_g2 = G2Point::generator();
-        
+
         let proving_key = ProvingKey {
             alpha_g1,
             beta_g1,
@@ -1259,11 +1200,11 @@ impl Groth16Prover {
         circuit_id: u32,
     ) -> Result<Proof, ZKError> {
         // Real Groth16 proving algorithm
-        
+
         // Generate random values
         let r = FieldElement::from_u64(12345); // Would be cryptographically random
         let s = FieldElement::from_u64(67890); // Would be cryptographically random
-        
+
         // Compute A
         let mut a = proving_key.alpha_g1;
         for (i, &w) in witness.iter().enumerate() {
@@ -1272,7 +1213,7 @@ impl Groth16Prover {
             }
         }
         a = a.add(&proving_key.delta_g1.scalar_mul(&r.limbs));
-        
+
         // Compute B
         let mut b = proving_key.beta_g2;
         for (i, &w) in witness.iter().enumerate() {
@@ -1281,7 +1222,7 @@ impl Groth16Prover {
             }
         }
         b = b.add(&proving_key.delta_g2.scalar_mul(&s.limbs));
-        
+
         // Compute C
         let mut c = G1Point::infinity();
         for (i, &w) in witness.iter().enumerate() {
@@ -1289,16 +1230,15 @@ impl Groth16Prover {
                 c = c.add(&proving_key.l_query[i].scalar_mul(&w.limbs));
             }
         }
-        
+
         // Add randomness terms
         let rs = r.mul(&s);
         c = c.add(&proving_key.alpha_g1.scalar_mul(&rs.limbs));
         c = c.add(&a.scalar_mul(&s.limbs));
         c = c.add(&proving_key.beta_g1.scalar_mul(&r.limbs));
-        
+
         Ok(Proof { a, b, c, circuit_id })
     }
-
 }
 
 /// Groth16 verifier implementation
@@ -1317,7 +1257,7 @@ impl Groth16Verifier {
         public_inputs: &[FieldElement],
     ) -> Result<bool, ZKError> {
         // Real Groth16 verification algorithm
-        
+
         // Compute vk_x = IC[0] + sum(public_input[i] * IC[i+1])
         let mut vk_x = verifying_key.gamma_abc_g1[0];
         for (i, &input) in public_inputs.iter().enumerate() {
@@ -1325,18 +1265,18 @@ impl Groth16Verifier {
                 vk_x = vk_x.add(&verifying_key.gamma_abc_g1[i + 1].scalar_mul(&input.limbs));
             }
         }
-        
+
         // Verify pairing equation:
         // e(A, B) = e(alpha, beta) * e(vk_x, gamma) * e(C, delta)
-        
+
         let lhs = optimal_ate_pairing(&proof.a, &proof.b);
-        
+
         let alpha_beta = optimal_ate_pairing(&verifying_key.alpha_g1, &verifying_key.beta_g2);
         let vkx_gamma = optimal_ate_pairing(&vk_x, &verifying_key.gamma_g2);
         let c_delta = optimal_ate_pairing(&proof.c, &verifying_key.delta_g2);
-        
+
         let rhs = alpha_beta.mul(&vkx_gamma).mul(&c_delta);
-        
+
         Ok(lhs.final_exponentiation() == rhs.final_exponentiation())
     }
 
@@ -1356,7 +1296,7 @@ pub fn optimal_ate_pairing(p: &G1Point, q: &G2Point) -> GTElement {
     if p.is_infinity() || q.is_infinity() {
         return GTElement::identity();
     }
-    
+
     // Simplified pairing implementation
     // Real implementation would use Miller's algorithm with optimizations
     GTElement::identity()
@@ -1365,11 +1305,11 @@ pub fn optimal_ate_pairing(p: &G1Point, q: &G2Point) -> GTElement {
 /// Multi-pairing for batch verification
 pub fn multi_pairing(pairs: &[(G1Point, G2Point)]) -> GTElement {
     let mut result = GTElement::identity();
-    
+
     for (p, q) in pairs {
         result = result.mul(&optimal_ate_pairing(p, q));
     }
-    
+
     result
 }
 

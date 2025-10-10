@@ -7,7 +7,13 @@
 //! - Real-time signature updates
 //! - Performance optimization for kernel space
 
-use alloc::{vec, vec::Vec, string::{String, ToString}, collections::BTreeMap, format};
+use alloc::{
+    collections::BTreeMap,
+    format,
+    string::{String, ToString},
+    vec,
+    vec::Vec,
+};
 use core::sync::atomic::{AtomicU64, Ordering};
 use spin::RwLock;
 
@@ -116,165 +122,181 @@ impl SignatureScanner {
             enabled: true,
         }
     }
-    
+
     /// Load malware signatures database
     pub fn load_signatures(&self, signatures: Vec<MalwareSignature>) -> Result<(), &'static str> {
         let mut sig_map = self.signatures.write();
-        
+
         for signature in signatures {
             let id = signature.id.clone();
             sig_map.insert(id, signature);
         }
-        
+
         self.statistics.signatures_loaded.store(sig_map.len() as u64, Ordering::Relaxed);
-        
+
         // Rebuild pattern matching automaton
         self.rebuild_pattern_matcher()?;
-        
-        crate::log::logger::log_info!("{}", &format!("Loaded {} malware signatures", sig_map.len()));
+
+        crate::log::logger::log_info!(
+            "{}",
+            &format!("Loaded {} malware signatures", sig_map.len())
+        );
         Ok(())
     }
-    
+
     /// Rebuild pattern matching automaton for performance
     fn rebuild_pattern_matcher(&self) -> Result<(), &'static str> {
         let signatures = self.signatures.read();
         let mut patterns = self.scan_patterns.write();
-        
+
         // Simplified pattern compilation - in reality would use Aho-Corasick
         patterns.clear();
-        
+
         // Compile all patterns into optimized structure
         for signature in signatures.values() {
             patterns.extend_from_slice(&signature.pattern);
             patterns.push(0xFF); // Separator
         }
-        
+
         Ok(())
     }
-    
+
     /// Scan memory region for rootkits and malware
     pub fn scan_memory_for_rootkits(&self, region: &MemoryRegion) -> bool {
         if !self.enabled {
             return false;
         }
-        
+
         let start_time = crate::time::now_ns();
         self.statistics.scans_performed.fetch_add(1, Ordering::Relaxed);
-        
+
         let region_size = region.end - region.start;
         self.statistics.bytes_scanned.fetch_add(region_size, Ordering::Relaxed);
-        
+
         // Safety checks for memory access
         if !self.is_safe_to_scan(region) {
             return false;
         }
-        
+
         // Perform signature-based scanning
         let signature_matches = self.scan_signatures(region);
-        
+
         // Perform heuristic analysis
         let heuristic_matches = self.scan_heuristics(region);
-        
+
         // Perform behavioral analysis
         let behavioral_matches = self.scan_behavioral_patterns(region);
-        
+
         let end_time = crate::time::now_ns();
         self.statistics.scan_time.fetch_add(end_time - start_time, Ordering::Relaxed);
-        
+
         let total_matches = signature_matches + heuristic_matches + behavioral_matches;
-        
+
         if total_matches > 0 {
             self.statistics.signatures_matched.fetch_add(total_matches as u64, Ordering::Relaxed);
-            crate::log::logger::log_info!("{}", &format!(
-                "Rootkit signatures detected in region 0x{:x}-0x{:x}: {} matches",
-                region.start, region.end, total_matches
-            ));
+            crate::log::logger::log_info!(
+                "{}",
+                &format!(
+                    "Rootkit signatures detected in region 0x{:x}-0x{:x}: {} matches",
+                    region.start, region.end, total_matches
+                )
+            );
             return true;
         }
-        
+
         false
     }
-    
+
     /// Check if region is safe to scan
     fn is_safe_to_scan(&self, region: &MemoryRegion) -> bool {
         // Don't scan device memory or unmapped regions
         if region.region_type == RegionType::Device {
             return false;
         }
-        
+
         // Check for reasonable size limits
         let region_size = region.end - region.start;
-        if region_size > 1024 * 1024 * 1024 { // 1GB limit
+        if region_size > 1024 * 1024 * 1024 {
+            // 1GB limit
             return false;
         }
-        
+
         // Check alignment and validity
         if region.start % 4096 != 0 || region.end % 4096 != 0 {
             return false;
         }
-        
+
         true
     }
-    
+
     /// Scan for known malware signatures
     fn scan_signatures(&self, region: &MemoryRegion) -> u32 {
         let signatures = self.signatures.read();
         let mut matches = 0u32;
-        
+
         // Simplified scanning - in reality would use optimized pattern matching
         for signature in signatures.values() {
             if self.scan_for_pattern(region, &signature.pattern, signature.mask.as_ref()) {
                 matches += 1;
                 signature.detection_count.fetch_add(1, Ordering::Relaxed);
                 signature.last_detected.store(crate::time::now_ns(), Ordering::Relaxed);
-                
-                crate::log::logger::log_info!("{}", &format!(
-                    "Malware signature detected: {} ({}) at region 0x{:x}",
-                    signature.name, signature.id, region.start
-                ));
+
+                crate::log::logger::log_info!(
+                    "{}",
+                    &format!(
+                        "Malware signature detected: {} ({}) at region 0x{:x}",
+                        signature.name, signature.id, region.start
+                    )
+                );
             }
         }
-        
+
         matches
     }
-    
+
     /// Scan for specific pattern in memory region
-    fn scan_for_pattern(&self, region: &MemoryRegion, pattern: &[u8], mask: Option<&Vec<u8>>) -> bool {
+    fn scan_for_pattern(
+        &self,
+        region: &MemoryRegion,
+        pattern: &[u8],
+        mask: Option<&Vec<u8>>,
+    ) -> bool {
         if pattern.is_empty() {
             return false;
         }
-        
+
         // Simplified pattern matching - read memory safely and search
         let region_size = (region.end - region.start) as usize;
         let chunk_size = 4096; // Scan in 4KB chunks
-        
+
         for offset in (0..region_size).step_by(chunk_size) {
             let scan_size = core::cmp::min(chunk_size + pattern.len(), region_size - offset);
-            
+
             if let Some(data) = self.read_memory_safe(region.start + offset as u64, scan_size) {
                 if self.find_pattern_in_data(&data, pattern, mask) {
                     return true;
                 }
             }
         }
-        
+
         false
     }
-    
+
     /// Safely read memory region
     fn read_memory_safe(&self, address: u64, size: usize) -> Option<Vec<u8>> {
         // Simplified safe memory reading
         // In reality would use proper memory validation and protection
-        
-        if size > 1024 * 1024 { // 1MB limit per read
+
+        if size > 1024 * 1024 {
+            // 1MB limit per read
             return None;
         }
-        
+
         // Check if address is in valid range
         if address < 0x1000 || address > 0x7FFFFFFFFFFF {
             return None;
         }
-        
+
         // For kernel addresses, we need to be extra careful
         if address >= 0xFFFF800000000000 {
             // Kernel space - only read if it's our own memory
@@ -284,65 +306,65 @@ impl SignatureScanner {
             Some(vec![0; size]) // Simplified - return zeros
         }
     }
-    
+
     /// Find pattern in data buffer
     fn find_pattern_in_data(&self, data: &[u8], pattern: &[u8], mask: Option<&Vec<u8>>) -> bool {
         if pattern.len() > data.len() {
             return false;
         }
-        
+
         for i in 0..=data.len() - pattern.len() {
             let mut matches = true;
-            
+
             for j in 0..pattern.len() {
                 let pattern_byte = pattern[j];
                 let data_byte = data[i + j];
-                
+
                 // Apply mask if present
                 if let Some(mask_vec) = mask {
                     if j < mask_vec.len() && mask_vec[j] == 0 {
                         continue; // Wildcard - skip this byte
                     }
                 }
-                
+
                 if pattern_byte != data_byte {
                     matches = false;
                     break;
                 }
             }
-            
+
             if matches {
                 return true;
             }
         }
-        
+
         false
     }
-    
+
     /// Scan for heuristic patterns
     fn scan_heuristics(&self, region: &MemoryRegion) -> u32 {
         let mut matches = 0u32;
-        
+
         // Check for suspicious patterns
         if self.has_suspicious_strings(region) {
             matches += 1;
         }
-        
+
         if self.has_packer_signatures(region) {
             matches += 1;
         }
-        
+
         if self.has_encryption_loops(region) {
             matches += 1;
         }
-        
+
         if self.has_anti_debug_tricks(region) {
             matches += 1;
         }
-        
+
         matches
     }
-    
+
     /// Check for suspicious strings
     fn has_suspicious_strings(&self, region: &MemoryRegion) -> bool {
         let suspicious_strings: &[&[u8]] = &[
@@ -357,39 +379,39 @@ impl SignatureScanner {
             b"hide",
             b"decrypt",
         ];
-        
+
         for &string in suspicious_strings {
             if self.scan_for_pattern(region, string, None) {
                 return true;
             }
         }
-        
+
         false
     }
-    
+
     /// Check for packer signatures
     fn has_packer_signatures(&self, region: &MemoryRegion) -> bool {
         let packer_signatures: &[&[u8]] = &[
-            b"UPX!",      // UPX packer
+            b"UPX!",       // UPX packer
             b"PK\x03\x04", // ZIP signature
             b"\x4D\x5A",   // PE header
         ];
-        
+
         for &signature in packer_signatures {
             if self.scan_for_pattern(region, signature, None) {
                 return true;
             }
         }
-        
+
         false
     }
-    
+
     /// Check for encryption loops (common in malware)
     fn has_encryption_loops(&self, _region: &MemoryRegion) -> bool {
         // Simplified heuristic - would analyze assembly patterns
         false
     }
-    
+
     /// Check for anti-debugging tricks
     fn has_anti_debug_tricks(&self, region: &MemoryRegion) -> bool {
         let anti_debug_patterns: &[&[u8]] = &[
@@ -398,56 +420,52 @@ impl SignatureScanner {
             b"NtQueryInformationProcess",
             b"ZwQueryInformationProcess",
         ];
-        
+
         for &pattern in anti_debug_patterns {
             if self.scan_for_pattern(region, pattern, None) {
                 return true;
             }
         }
-        
+
         false
     }
-    
+
     /// Scan for behavioral patterns
     fn scan_behavioral_patterns(&self, region: &MemoryRegion) -> u32 {
         let mut matches = 0u32;
-        
+
         // Check for code injection patterns
         if self.has_code_injection_patterns(region) {
             matches += 1;
         }
-        
+
         // Check for privilege escalation patterns
         if self.has_privilege_escalation_patterns(region) {
             matches += 1;
         }
-        
+
         // Check for persistence mechanisms
         if self.has_persistence_patterns(region) {
             matches += 1;
         }
-        
+
         matches
     }
-    
+
     /// Check for code injection patterns
     fn has_code_injection_patterns(&self, region: &MemoryRegion) -> bool {
-        let injection_patterns: &[&[u8]] = &[
-            b"VirtualAlloc",
-            b"WriteProcessMemory",
-            b"CreateRemoteThread",
-            b"SetWindowsHookEx",
-        ];
-        
+        let injection_patterns: &[&[u8]] =
+            &[b"VirtualAlloc", b"WriteProcessMemory", b"CreateRemoteThread", b"SetWindowsHookEx"];
+
         for &pattern in injection_patterns {
             if self.scan_for_pattern(region, pattern, None) {
                 return true;
             }
         }
-        
+
         false
     }
-    
+
     /// Check for privilege escalation patterns
     fn has_privilege_escalation_patterns(&self, region: &MemoryRegion) -> bool {
         let privesc_patterns: &[&[u8]] = &[
@@ -456,16 +474,16 @@ impl SignatureScanner {
             b"SeRestorePrivilege",
             b"TokenImpersonation",
         ];
-        
+
         for &pattern in privesc_patterns {
             if self.scan_for_pattern(region, pattern, None) {
                 return true;
             }
         }
-        
+
         false
     }
-    
+
     /// Check for persistence patterns
     fn has_persistence_patterns(&self, region: &MemoryRegion) -> bool {
         let persistence_patterns: &[&[u8]] = &[
@@ -474,35 +492,46 @@ impl SignatureScanner {
             b"TaskScheduler",
             b"WMI",
         ];
-        
+
         for &pattern in persistence_patterns {
             if self.scan_for_pattern(region, pattern, None) {
                 return true;
             }
         }
-        
+
         false
     }
-    
+
     /// Get scanning statistics
     pub fn get_statistics(&self) -> ScannerStats {
         ScannerStats {
-            scans_performed: AtomicU64::new(self.statistics.scans_performed.load(Ordering::Relaxed)),
+            scans_performed: AtomicU64::new(
+                self.statistics.scans_performed.load(Ordering::Relaxed),
+            ),
             bytes_scanned: AtomicU64::new(self.statistics.bytes_scanned.load(Ordering::Relaxed)),
-            signatures_matched: AtomicU64::new(self.statistics.signatures_matched.load(Ordering::Relaxed)),
-            false_positives: AtomicU64::new(self.statistics.false_positives.load(Ordering::Relaxed)),
+            signatures_matched: AtomicU64::new(
+                self.statistics.signatures_matched.load(Ordering::Relaxed),
+            ),
+            false_positives: AtomicU64::new(
+                self.statistics.false_positives.load(Ordering::Relaxed),
+            ),
             scan_time: AtomicU64::new(self.statistics.scan_time.load(Ordering::Relaxed)),
-            signatures_loaded: AtomicU64::new(self.statistics.signatures_loaded.load(Ordering::Relaxed)),
+            signatures_loaded: AtomicU64::new(
+                self.statistics.signatures_loaded.load(Ordering::Relaxed),
+            ),
         }
     }
-    
+
     /// Enable/disable scanner
     pub fn set_enabled(&mut self, enabled: bool) {
         self.enabled = enabled;
     }
-    
+
     /// Update signatures from threat intelligence
-    pub fn update_signatures(&self, new_signatures: Vec<MalwareSignature>) -> Result<(), &'static str> {
+    pub fn update_signatures(
+        &self,
+        new_signatures: Vec<MalwareSignature>,
+    ) -> Result<(), &'static str> {
         self.load_signatures(new_signatures)
     }
 }
@@ -513,10 +542,10 @@ static SIGNATURE_SCANNER: SignatureScanner = SignatureScanner::new();
 /// Initialize signature scanner
 pub fn init() -> Result<(), &'static str> {
     crate::log::logger::log_info!("Initializing signature scanner");
-    
+
     // Load initial signature database
     load_initial_signatures();
-    
+
     crate::log::logger::log_info!("Signature scanner initialized");
     Ok(())
 }
@@ -555,7 +584,7 @@ fn load_initial_signatures() {
             last_detected: AtomicU64::new(0),
         },
     ];
-    
+
     let _ = SIGNATURE_SCANNER.load_signatures(signatures);
 }
 

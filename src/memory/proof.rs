@@ -4,22 +4,27 @@
 //   - Canonical, versioned audit events for memory state transitions.
 //   - Per-CPU bounded queues for low contention; batch hashing into a rolling
 //     commitment (Keccak/SHA3-256). Optional periodic checkpoints.
-//   - Zero-state posture: no persistent logs; root commitment exported on demand.
+//   - Zero-state posture: no persistent logs; root commitment exported on
+//     demand.
 //   - Export surface for user/capsule to fetch snapshots (copy-out).
 //   - Works across phys.rs + virt.rs hooks; extensible for other subsystems.
 //
 // Design:
 //   - Each CPU has a ring buffer (heapless::spsc::Queue) of Event.
-//   - A per-CPU rolling root is updated by folding event batches (batch size tunable).
-//   - Global commitment = hash(root_prev || cpu0_root || cpu1_root || ... || epoch).
-//   - All fields little-endian, domain-separated, schema-versioned for ZK circuits.
+//   - A per-CPU rolling root is updated by folding event batches (batch size
+//     tunable).
+//   - Global commitment = hash(root_prev || cpu0_root || cpu1_root || ... ||
+//     epoch).
+//   - All fields little-endian, domain-separated, schema-versioned for ZK
+//     circuits.
 //   - Backpressure: if queue is full, we either drop (with counter) OR block if
 //     called from non-IRQ context. Here we drop in IRQ paths and count drops.
 //
 // Safety notes:
 //   - Export APIs copy into caller-provided buffers; constant-time-ish loops.
 //   - No allocations here; all static or caller-provided.
-//   - Timestamps use rdtsc best-effort; monotonic seq per CPU enforces ordering.
+//   - Timestamps use rdtsc best-effort; monotonic seq per CPU enforces
+//     ordering.
 //
 // Dependencies:
 //   - crate::crypto::sha3::Sha3_256
@@ -32,8 +37,8 @@
 
 #![allow(dead_code)]
 
-use core::sync::atomic::{AtomicU64, AtomicUsize, Ordering};
 use core;
+use core::sync::atomic::{AtomicU64, AtomicUsize, Ordering};
 use heapless::spsc::Queue;
 use spin::Mutex;
 
@@ -46,15 +51,15 @@ struct Sha3_256;
 
 #[cfg(not(feature = "nonos-hash-sha3"))]
 impl Sha3_256 {
-    fn new() -> Self { 
-        Self 
+    fn new() -> Self {
+        Self
     }
-    
+
     fn update(&mut self, data: &[u8]) {
         // Use BLAKE3 as fallback when SHA3 feature is not enabled
         // This maintains cryptographic security while providing compatibility
     }
-    
+
     fn finalize(self) -> [u8; 32] {
         // When SHA3 is not available, use BLAKE3 hash instead
         // This ensures we still have a secure cryptographic hash function
@@ -80,13 +85,13 @@ pub const BATCH_SIZE: usize = 32;
 #[repr(u8)]
 #[derive(Clone, Copy, Debug)]
 pub enum Kind {
-    Map4K        = 0x01,
-    Unmap4K      = 0x02,
-    Map2M        = 0x03,
-    Unmap2M      = 0x04,
-    PhysAlloc    = 0x10,
-    PhysFree     = 0x11,
-    Protect4K    = 0x20,
+    Map4K = 0x01,
+    Unmap4K = 0x02,
+    Map2M = 0x03,
+    Unmap2M = 0x04,
+    PhysAlloc = 0x10,
+    PhysFree = 0x11,
+    Protect4K = 0x20,
     ProtectRange = 0x21,
 }
 
@@ -105,19 +110,19 @@ bitflags::bitflags! {
 #[repr(C)]
 #[derive(Clone, Copy, Debug)]
 pub struct Event {
-    pub ver:    u32,     // schema version
-    pub kind:   u8,      // Kind as u8
-    pub _pad:   [u8;3],  // reserved/padding (domain sep)
-    pub cpu:    u32,     // cpu id (apic id or logical id)
-    pub seq:    u64,     // per-cpu monotonic
-    pub tsc:    u64,     // rdtsc snapshot (best-effort)
-    pub epoch:  u64,     // logical epoch if you rotate keys/roots
-    pub vaddr:  u64,     // 0 for phys-only
-    pub paddr:  u64,     // physical base (if applicable)
-    pub len:    u64,     // byte length (page or range)
-    pub flags:  u64,     // mapping/arch flags (virt) or alloc flags (phys)
-    pub captag: u32,     // capability tags
-    pub _rsvd:  u32,     // reserved
+    pub ver: u32,      // schema version
+    pub kind: u8,      // Kind as u8
+    pub _pad: [u8; 3], // reserved/padding (domain sep)
+    pub cpu: u32,      // cpu id (apic id or logical id)
+    pub seq: u64,      // per-cpu monotonic
+    pub tsc: u64,      // rdtsc snapshot (best-effort)
+    pub epoch: u64,    // logical epoch if you rotate keys/roots
+    pub vaddr: u64,    // 0 for phys-only
+    pub paddr: u64,    // physical base (if applicable)
+    pub len: u64,      // byte length (page or range)
+    pub flags: u64,    // mapping/arch flags (virt) or alloc flags (phys)
+    pub captag: u32,   // capability tags
+    pub _rsvd: u32,    // reserved
 }
 
 // ───────────────────────────────────────────────────────────────────────────────
@@ -126,19 +131,14 @@ pub struct Event {
 
 struct CpuAudit {
     q: Queue<Event, RING_CAPACITY>,
-    root: [u8; 32],             // rolling root for this CPU
+    root: [u8; 32], // rolling root for this CPU
     seq: AtomicU64,
-    drops: AtomicUsize,         // dropped due to full queue
+    drops: AtomicUsize, // dropped due to full queue
 }
 
 impl CpuAudit {
     const fn new() -> Self {
-        Self {
-            q: Queue::new(),
-            root: [0;32],
-            seq: AtomicU64::new(0),
-            drops: AtomicUsize::new(0),
-        }
+        Self { q: Queue::new(), root: [0; 32], seq: AtomicU64::new(0), drops: AtomicUsize::new(0) }
     }
 }
 
@@ -199,7 +199,7 @@ fn cpu_id() -> u32 {
 }
 
 // hash(prev_root || serialized_event)
-fn fold_one(prev: &[u8;32], ev: &Event) -> [u8;32] {
+fn fold_one(prev: &[u8; 32], ev: &Event) -> [u8; 32] {
     let mut h = Sha3_256::new();
     h.update(prev);
 
@@ -222,10 +222,11 @@ fn fold_one(prev: &[u8;32], ev: &Event) -> [u8;32] {
 }
 
 /// Fold a small batch: root := H(root || ev1 || ev2 || ...).
-fn fold_batch(root: &mut [u8;32], batch: &[Event]) {
+fn fold_batch(root: &mut [u8; 32], batch: &[Event]) {
     let mut h = Sha3_256::new();
     h.update(root);
-    for ev in batch { // serialized in canonical order
+    for ev in batch {
+        // serialized in canonical order
         h.update(&ev.ver.to_le_bytes());
         h.update(&[ev.kind]);
         h.update(&ev._pad);
@@ -254,7 +255,7 @@ fn make_event(kind: Kind, vaddr: u64, paddr: u64, len: u64, flags: u64, captag: 
     Event {
         ver: SCHEMA_VERSION,
         kind: kind as u8,
-        _pad: [0;3],
+        _pad: [0; 3],
         cpu,
         seq,
         tsc: rdtsc(),
@@ -295,10 +296,13 @@ fn push_event(ev: Event) {
     if cq.q.len() >= BATCH_SIZE {
         let mut batch: heapless::Vec<Event, BATCH_SIZE> = heapless::Vec::new();
         for _ in 0..BATCH_SIZE {
-            if let Some(e) = cq.q.dequeue() { let _ = batch.push(e); }
+            if let Some(e) = cq.q.dequeue() {
+                let _ = batch.push(e);
+            }
         }
         fold_batch(&mut cq.root, &batch);
-        // update global root cheaply (H(prev_global || cpu_root || epoch || boot_nonce))
+        // update global root cheaply (H(prev_global || cpu_root || epoch ||
+        // boot_nonce))
         update_global_root_locked(&mut *GLOBAL_ROOT.lock(), s);
     }
 }
@@ -307,27 +311,34 @@ fn push_event(ev: Event) {
 // Public hooks for memory layer
 // ───────────────────────────────────────────────────────────────────────────────
 
-#[inline] pub fn audit_map(vaddr: u64, paddr: u64, len: u64, flags: u64, cap: CapTag) {
+#[inline]
+pub fn audit_map(vaddr: u64, paddr: u64, len: u64, flags: u64, cap: CapTag) {
     push_event(make_event(Kind::Map4K, vaddr, paddr, len, flags, cap));
 }
-#[inline] pub fn audit_unmap(vaddr: u64, len: u64, cap: CapTag) {
+#[inline]
+pub fn audit_unmap(vaddr: u64, len: u64, cap: CapTag) {
     push_event(make_event(Kind::Unmap4K, vaddr, 0, len, 0, cap));
 }
-#[inline] pub fn audit_map2m(vaddr: u64, paddr: u64, flags: u64, cap: CapTag) {
-    push_event(make_event(Kind::Map2M, vaddr, paddr, 2*1024*1024, flags, cap));
+#[inline]
+pub fn audit_map2m(vaddr: u64, paddr: u64, flags: u64, cap: CapTag) {
+    push_event(make_event(Kind::Map2M, vaddr, paddr, 2 * 1024 * 1024, flags, cap));
 }
-#[inline] pub fn audit_unmap2m(vaddr: u64, cap: CapTag) {
-    push_event(make_event(Kind::Unmap2M, vaddr, 0, 2*1024*1024, 0, cap));
+#[inline]
+pub fn audit_unmap2m(vaddr: u64, cap: CapTag) {
+    push_event(make_event(Kind::Unmap2M, vaddr, 0, 2 * 1024 * 1024, 0, cap));
 }
-#[inline] pub fn audit_protect(vaddr: u64, len: u64, flags: u64, cap: CapTag) {
+#[inline]
+pub fn audit_protect(vaddr: u64, len: u64, flags: u64, cap: CapTag) {
     push_event(make_event(Kind::Protect4K, vaddr, 0, len, flags, cap));
 }
 
 // Physical allocator hooks
-#[inline] pub fn audit_phys_alloc(paddr: u64, len: u64, cap: CapTag) {
+#[inline]
+pub fn audit_phys_alloc(paddr: u64, len: u64, cap: CapTag) {
     push_event(make_event(Kind::PhysAlloc, 0, paddr, len, 0, cap));
 }
-#[inline] pub fn audit_phys_free(paddr: u64, len: u64, cap: CapTag) {
+#[inline]
+pub fn audit_phys_free(paddr: u64, len: u64, cap: CapTag) {
     push_event(make_event(Kind::PhysFree, 0, paddr, len, 0, cap));
 }
 
@@ -338,7 +349,7 @@ fn push_event(ev: Event) {
 #[derive(Clone, Copy, Debug, Default)]
 pub struct SnapshotHeader {
     pub schema: u32,
-    pub epoch:  u64,
+    pub epoch: u64,
     pub boot_nonce: u64,
     pub cpu_count: u32,
     pub drop_total: u64,
@@ -347,7 +358,7 @@ pub struct SnapshotHeader {
 
 /// Copy current per-CPU roots into `roots_out` and fill `hdr_out`.
 /// Returns number of CPUs reported. Constant-time-ish over max CPUs.
-pub fn snapshot(roots_out: &mut [[u8;32]], hdr_out: &mut SnapshotHeader) -> usize {
+pub fn snapshot(roots_out: &mut [[u8; 32]], hdr_out: &mut SnapshotHeader) -> usize {
     let cpus = CPUS.lock();
     let s = cpus.as_ref().expect("proof not initialized");
     let mut drops = 0usize;
@@ -371,13 +382,18 @@ pub fn snapshot(roots_out: &mut [[u8;32]], hdr_out: &mut SnapshotHeader) -> usiz
 pub fn drain_events(cpu_idx: usize, out_buf: &mut [Event]) -> usize {
     let mut cpus = CPUS.lock();
     let s = cpus.as_mut().expect("proof not initialized");
-    if cpu_idx >= s.len() { return 0; }
+    if cpu_idx >= s.len() {
+        return 0;
+    }
     let q = &mut s[cpu_idx].q;
     let mut n = 0;
     while n < out_buf.len() {
         if let Some(e) = q.dequeue() {
-            out_buf[n] = e; n += 1;
-        } else { break; }
+            out_buf[n] = e;
+            n += 1;
+        } else {
+            break;
+        }
     }
     // fold any remainder to keep root fresh
     if n > 0 {
@@ -391,18 +407,22 @@ pub fn drain_events(cpu_idx: usize, out_buf: &mut [Event]) -> usize {
 // Global commitment
 // ───────────────────────────────────────────────────────────────────────────────
 
-fn update_global_root_locked(out: &mut [u8;32], cpus: &[CpuAudit]) {
+fn update_global_root_locked(out: &mut [u8; 32], cpus: &[CpuAudit]) {
     let mut h = Sha3_256::new();
     // Domain separation for global root
     h.update(b"NONOS:MEM-ROOT:v1");
     h.update(&BOOT_NONCE.load(Ordering::Relaxed).to_le_bytes());
     h.update(&EPOCH.load(Ordering::Relaxed).to_le_bytes());
-    for c in cpus.iter() { h.update(&c.root); }
+    for c in cpus.iter() {
+        h.update(&c.root);
+    }
     *out = h.finalize();
 }
 
 /// Current global commitment (copy).
-pub fn root() -> [u8;32] { *GLOBAL_ROOT.lock() }
+pub fn root() -> [u8; 32] {
+    *GLOBAL_ROOT.lock()
+}
 
 // ───────────────────────────────────────────────────────────────────────────────
 // Stats / debug
@@ -412,14 +432,16 @@ pub fn dropped_events_total() -> u64 {
     let cpus = CPUS.lock();
     let s = cpus.as_ref().expect("proof not initialized");
     let mut d = 0u64;
-    for c in s.iter() { d += c.drops.load(Ordering::Relaxed) as u64; }
+    for c in s.iter() {
+        d += c.drops.load(Ordering::Relaxed) as u64;
+    }
     d
 }
 
 // Utility to create a static CPU array in the caller.
 pub const fn empty_cpu_array<const N: usize>() -> [CpuAudit; N] {
-    // const constructors not allowed for heapless::Queue; we rely on CpuAudit::new()
-    // so this function is just a placeholder; prefer caller to allocate static mut.
-    // Kept for API symmetry; remove if not needed.
+    // const constructors not allowed for heapless::Queue; we rely on
+    // CpuAudit::new() so this function is just a placeholder; prefer caller to
+    // allocate static mut. Kept for API symmetry; remove if not needed.
     panic!("allocate CpuAudit array in a static mut and pass &mut [] to init()");
 }

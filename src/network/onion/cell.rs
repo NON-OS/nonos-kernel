@@ -3,13 +3,13 @@
 //! Complete implementation of Tor protocol cells with proper serialization,
 //! relay commands, and stream multiplexing. Production-ready cell handling.
 
-use alloc::{vec::Vec, vec, collections::BTreeMap, string::String};
-use spin::Mutex;
+use alloc::{collections::BTreeMap, string::String, vec, vec::Vec};
 use core::sync::atomic::{AtomicU16, Ordering};
+use spin::Mutex;
 
-use super::{OnionError, CircuitId, StreamId};
 use super::circuit::{CircuitManager, ExtendInfo, LinkSpecifier};
 use super::stream::StreamManager;
+use super::{CircuitId, OnionError, StreamId};
 use crate::crypto::hash;
 
 /// Tor cell types (command field)
@@ -23,17 +23,17 @@ pub enum CellType {
     Destroy = 4,
     CreateFast = 5,
     CreatedFast = 6,
-    
+
     // Variable-length cells (versions 0)
     Versions = 7,
     NetInfo = 8,
     RelayEarly = 9,
     Create2 = 10,
     Created2 = 11,
-    
+
     // Padding cell for traffic analysis resistance
     VPadding = 128,
-    
+
     // CERTS cell for link authentication
     Certs = 129,
     AuthChallenge = 130,
@@ -98,10 +98,10 @@ pub struct Cell {
 #[derive(Debug, Clone)]
 pub struct RelayHeader {
     pub command: RelayCommand,
-    pub recognized: u16,      // Always 0 for valid cells
+    pub recognized: u16, // Always 0 for valid cells
     pub stream_id: StreamId,
-    pub digest: [u8; 4],      // Running digest
-    pub length: u16,          // Payload length
+    pub digest: [u8; 4], // Running digest
+    pub length: u16,     // Payload length
 }
 
 /// Parsed relay cell with header and payload
@@ -110,7 +110,7 @@ pub struct RelayCell {
     pub circuit_id: CircuitId,
     pub header: RelayHeader,
     pub payload: Vec<u8>,
-    pub hop_level: u8,        // Which hop processed this cell
+    pub hop_level: u8, // Which hop processed this cell
 }
 
 impl Cell {
@@ -118,7 +118,7 @@ impl Cell {
     pub fn new(circuit_id: CircuitId, command: CellType, payload: Vec<u8>) -> Self {
         let mut cell_payload = payload;
         cell_payload.resize(CELL_PAYLOAD_SIZE, 0); // Pad to fixed size
-        
+
         Cell {
             circuit_id,
             command: command as u8,
@@ -129,12 +129,7 @@ impl Cell {
 
     /// Create variable-length cell
     pub fn new_var(circuit_id: CircuitId, command: CellType, payload: Vec<u8>) -> Self {
-        Cell {
-            circuit_id,
-            command: command as u8,
-            payload,
-            is_variable_length: true,
-        }
+        Cell { circuit_id, command: command as u8, payload, is_variable_length: true }
     }
 
     /// Create CREATE cell for circuit establishment
@@ -143,12 +138,16 @@ impl Cell {
     }
 
     /// Create CREATE2 cell for ntor handshake
-    pub fn create2_cell(circuit_id: CircuitId, handshake_type: u16, handshake_data: Vec<u8>) -> Self {
+    pub fn create2_cell(
+        circuit_id: CircuitId,
+        handshake_type: u16,
+        handshake_data: Vec<u8>,
+    ) -> Self {
         let mut payload = Vec::new();
         payload.extend_from_slice(&handshake_type.to_be_bytes());
         payload.extend_from_slice(&(handshake_data.len() as u16).to_be_bytes());
         payload.extend_from_slice(&handshake_data);
-        
+
         Cell::new_var(circuit_id, CellType::Create2, payload)
     }
 
@@ -162,14 +161,18 @@ impl Cell {
         let mut payload = Vec::new();
         payload.extend_from_slice(&(handshake_data.len() as u16).to_be_bytes());
         payload.extend_from_slice(&handshake_data);
-        
+
         Cell::new_var(circuit_id, CellType::Created2, payload)
     }
 
     /// Create EXTEND cell for adding hops
-    pub fn extend_cell(circuit_id: CircuitId, extend_info: ExtendInfo, handshake_data: Vec<u8>) -> Self {
+    pub fn extend_cell(
+        circuit_id: CircuitId,
+        extend_info: ExtendInfo,
+        handshake_data: Vec<u8>,
+    ) -> Self {
         let relay_payload = Self::encode_extend_payload(extend_info, handshake_data);
-        
+
         let relay_cell = RelayCell {
             circuit_id,
             header: RelayHeader {
@@ -182,14 +185,20 @@ impl Cell {
             payload: relay_payload,
             hop_level: 0,
         };
-        
+
         Cell::from_relay_cell(relay_cell)
     }
 
     /// Create EXTEND2 cell for ntor handshake extension
-    pub fn extend2_cell(circuit_id: CircuitId, extend_info: ExtendInfo, handshake_type: u16, handshake_data: Vec<u8>) -> Self {
-        let relay_payload = Self::encode_extend2_payload(extend_info, handshake_type, handshake_data);
-        
+    pub fn extend2_cell(
+        circuit_id: CircuitId,
+        extend_info: ExtendInfo,
+        handshake_type: u16,
+        handshake_data: Vec<u8>,
+    ) -> Self {
+        let relay_payload =
+            Self::encode_extend2_payload(extend_info, handshake_type, handshake_data);
+
         let relay_cell = RelayCell {
             circuit_id,
             header: RelayHeader {
@@ -202,7 +211,7 @@ impl Cell {
             payload: relay_payload,
             hop_level: 0,
         };
-        
+
         Cell::from_relay_cell(relay_cell)
     }
 
@@ -220,7 +229,7 @@ impl Cell {
             payload: handshake_data,
             hop_level: 0,
         };
-        
+
         Cell::from_relay_cell(relay_cell)
     }
 
@@ -229,7 +238,7 @@ impl Cell {
         let mut payload = Vec::new();
         payload.extend_from_slice(&(handshake_data.len() as u16).to_be_bytes());
         payload.extend_from_slice(&handshake_data);
-        
+
         let relay_cell = RelayCell {
             circuit_id,
             header: RelayHeader {
@@ -242,7 +251,7 @@ impl Cell {
             payload,
             hop_level: 0,
         };
-        
+
         Cell::from_relay_cell(relay_cell)
     }
 
@@ -265,15 +274,20 @@ impl Cell {
             payload: data,
             hop_level: 0,
         };
-        
+
         Cell::from_relay_cell(relay_cell)
     }
 
     /// Create RELAY_BEGIN cell for stream initiation
-    pub fn relay_begin_cell(circuit_id: CircuitId, stream_id: StreamId, target: String, port: u16) -> Self {
+    pub fn relay_begin_cell(
+        circuit_id: CircuitId,
+        stream_id: StreamId,
+        target: String,
+        port: u16,
+    ) -> Self {
         let mut payload = format!("{}:{}\0", target, port).into_bytes();
         payload.push(0); // Flags (always 0 for now)
-        
+
         let relay_cell = RelayCell {
             circuit_id,
             header: RelayHeader {
@@ -286,16 +300,21 @@ impl Cell {
             payload,
             hop_level: 0,
         };
-        
+
         Cell::from_relay_cell(relay_cell)
     }
 
     /// Create RELAY_CONNECTED cell for stream confirmation
-    pub fn relay_connected_cell(circuit_id: CircuitId, stream_id: StreamId, addr: [u8; 4], ttl: u32) -> Self {
+    pub fn relay_connected_cell(
+        circuit_id: CircuitId,
+        stream_id: StreamId,
+        addr: [u8; 4],
+        ttl: u32,
+    ) -> Self {
         let mut payload = Vec::new();
-        payload.extend_from_slice(&addr);    // IPv4 address
+        payload.extend_from_slice(&addr); // IPv4 address
         payload.extend_from_slice(&ttl.to_be_bytes());
-        
+
         let relay_cell = RelayCell {
             circuit_id,
             header: RelayHeader {
@@ -308,7 +327,7 @@ impl Cell {
             payload,
             hop_level: 0,
         };
-        
+
         Cell::from_relay_cell(relay_cell)
     }
 
@@ -326,27 +345,27 @@ impl Cell {
             payload: vec![reason],
             hop_level: 0,
         };
-        
+
         Cell::from_relay_cell(relay_cell)
     }
 
     /// Convert RelayCell to Cell
     pub fn from_relay_cell(relay_cell: RelayCell) -> Self {
         let mut payload = Vec::new();
-        
+
         // Relay header
         payload.push(relay_cell.header.command as u8);
         payload.extend_from_slice(&relay_cell.header.recognized.to_be_bytes());
         payload.extend_from_slice(&relay_cell.header.stream_id.to_be_bytes());
         payload.extend_from_slice(&relay_cell.header.digest);
         payload.extend_from_slice(&relay_cell.header.length.to_be_bytes());
-        
+
         // Relay payload
         payload.extend_from_slice(&relay_cell.payload);
-        
+
         // Pad to cell size
         payload.resize(CELL_PAYLOAD_SIZE, 0);
-        
+
         Cell {
             circuit_id: relay_cell.circuit_id,
             command: CellType::Relay as u8,
@@ -375,13 +394,7 @@ impl Cell {
             return Err(OnionError::InvalidCell);
         }
 
-        let header = RelayHeader {
-            command,
-            recognized,
-            stream_id,
-            digest,
-            length,
-        };
+        let header = RelayHeader { command, recognized, stream_id, digest, length };
 
         let payload_end = RELAY_HEADER_SIZE + length as usize;
         let payload = if payload_end <= self.payload.len() {
@@ -390,18 +403,13 @@ impl Cell {
             return Err(OnionError::InvalidCell);
         };
 
-        Ok(RelayCell {
-            circuit_id: self.circuit_id,
-            header,
-            payload,
-            hop_level: 0,
-        })
+        Ok(RelayCell { circuit_id: self.circuit_id, header, payload, hop_level: 0 })
     }
 
     /// Serialize cell to bytes for network transmission
     pub fn serialize(&self) -> Vec<u8> {
         let mut data = Vec::new();
-        
+
         if self.is_variable_length {
             // Variable-length cell format
             data.extend_from_slice(&self.circuit_id.to_be_bytes());
@@ -412,12 +420,12 @@ impl Cell {
             // Fixed-length cell format
             data.extend_from_slice(&self.circuit_id.to_be_bytes());
             data.push(self.command);
-            
+
             let mut payload = self.payload.clone();
             payload.resize(CELL_PAYLOAD_SIZE, 0);
             data.extend_from_slice(&payload);
         }
-        
+
         data
     }
 
@@ -429,41 +437,31 @@ impl Cell {
 
         let circuit_id = u32::from_be_bytes([data[0], data[1], data[2], data[3]]);
         let command = data[4];
-        
+
         // Check if variable-length cell
         let is_var_length = Self::is_variable_length_command(command);
-        
+
         if is_var_length {
             if data.len() < VAR_CELL_HEADER_SIZE {
                 return Err(OnionError::InvalidCell);
             }
-            
+
             let payload_len = u16::from_be_bytes([data[5], data[6]]) as usize;
             if data.len() < VAR_CELL_HEADER_SIZE + payload_len {
                 return Err(OnionError::InvalidCell);
             }
-            
+
             let payload = data[VAR_CELL_HEADER_SIZE..VAR_CELL_HEADER_SIZE + payload_len].to_vec();
-            
-            Ok(Cell {
-                circuit_id,
-                command,
-                payload,
-                is_variable_length: true,
-            })
+
+            Ok(Cell { circuit_id, command, payload, is_variable_length: true })
         } else {
             if data.len() != CELL_SIZE {
                 return Err(OnionError::InvalidCell);
             }
-            
+
             let payload = data[CELL_HEADER_SIZE..].to_vec();
-            
-            Ok(Cell {
-                circuit_id,
-                command,
-                payload,
-                is_variable_length: false,
-            })
+
+            Ok(Cell { circuit_id, command, payload, is_variable_length: false })
         }
     }
 
@@ -475,32 +473,36 @@ impl Cell {
     /// Encode EXTEND cell payload
     fn encode_extend_payload(extend_info: ExtendInfo, handshake_data: Vec<u8>) -> Vec<u8> {
         let mut payload = Vec::new();
-        
+
         // IPv4 address
         payload.extend_from_slice(&extend_info.address);
         payload.extend_from_slice(&extend_info.port.to_be_bytes());
-        
+
         // Onion key hash
         let onion_key_hash = hash::blake3_hash(&extend_info.onion_key);
         payload.extend_from_slice(&onion_key_hash[..20]);
-        
+
         // Identity key hash
         let identity_hash = hash::blake3_hash(&extend_info.identity_key);
         payload.extend_from_slice(&identity_hash[..20]);
-        
+
         // Handshake data
         payload.extend_from_slice(&handshake_data);
-        
+
         payload
     }
 
     /// Encode EXTEND2 cell payload
-    fn encode_extend2_payload(extend_info: ExtendInfo, handshake_type: u16, handshake_data: Vec<u8>) -> Vec<u8> {
+    fn encode_extend2_payload(
+        extend_info: ExtendInfo,
+        handshake_type: u16,
+        handshake_data: Vec<u8>,
+    ) -> Vec<u8> {
         let mut payload = Vec::new();
-        
+
         // Number of link specifiers
         payload.push(extend_info.link_specifiers.len() as u8);
-        
+
         // Link specifiers
         for spec in &extend_info.link_specifiers {
             match spec {
@@ -528,12 +530,12 @@ impl Cell {
                 }
             }
         }
-        
+
         // Handshake type and data
         payload.extend_from_slice(&handshake_type.to_be_bytes());
         payload.extend_from_slice(&(handshake_data.len() as u16).to_be_bytes());
         payload.extend_from_slice(&handshake_data);
-        
+
         payload
     }
 }
@@ -596,18 +598,31 @@ impl CellProcessor {
     }
 
     /// Process incoming cell from network
-    pub fn process_cell(&mut self, cell: Cell, circuit_manager: &mut CircuitManager, stream_manager: &mut StreamManager) -> Result<(), OnionError> {
+    pub fn process_cell(
+        &mut self,
+        cell: Cell,
+        circuit_manager: &mut CircuitManager,
+        stream_manager: &mut StreamManager,
+    ) -> Result<(), OnionError> {
         self.statistics.cells_processed.fetch_add(1, Ordering::Relaxed);
 
         match cell.command {
             cmd if cmd == CellType::Create as u8 => self.handle_create_cell(cell, circuit_manager),
-            cmd if cmd == CellType::Create2 as u8 => self.handle_create2_cell(cell, circuit_manager),
-            cmd if cmd == CellType::Created as u8 => self.handle_created_cell(cell, circuit_manager),
-            cmd if cmd == CellType::Created2 as u8 => self.handle_created2_cell(cell, circuit_manager),
+            cmd if cmd == CellType::Create2 as u8 => {
+                self.handle_create2_cell(cell, circuit_manager)
+            }
+            cmd if cmd == CellType::Created as u8 => {
+                self.handle_created_cell(cell, circuit_manager)
+            }
+            cmd if cmd == CellType::Created2 as u8 => {
+                self.handle_created2_cell(cell, circuit_manager)
+            }
             cmd if cmd == CellType::Relay as u8 || cmd == CellType::RelayEarly as u8 => {
                 self.handle_relay_cell(cell, circuit_manager, stream_manager)
             }
-            cmd if cmd == CellType::Destroy as u8 => self.handle_destroy_cell(cell, circuit_manager),
+            cmd if cmd == CellType::Destroy as u8 => {
+                self.handle_destroy_cell(cell, circuit_manager)
+            }
             cmd if cmd == CellType::Padding as u8 => {
                 // Padding cells are ignored
                 Ok(())
@@ -619,27 +634,48 @@ impl CellProcessor {
         }
     }
 
-    fn handle_create_cell(&self, cell: Cell, circuit_manager: &mut CircuitManager) -> Result<(), OnionError> {
+    fn handle_create_cell(
+        &self,
+        cell: Cell,
+        circuit_manager: &mut CircuitManager,
+    ) -> Result<(), OnionError> {
         self.statistics.create_cells_processed.fetch_add(1, Ordering::Relaxed);
         // Process CREATE cell - typically only relevant for relays
         Ok(())
     }
 
-    fn handle_create2_cell(&self, cell: Cell, circuit_manager: &mut CircuitManager) -> Result<(), OnionError> {
+    fn handle_create2_cell(
+        &self,
+        cell: Cell,
+        circuit_manager: &mut CircuitManager,
+    ) -> Result<(), OnionError> {
         self.statistics.create_cells_processed.fetch_add(1, Ordering::Relaxed);
         // Process CREATE2 cell - typically only relevant for relays
         Ok(())
     }
 
-    fn handle_created_cell(&self, cell: Cell, circuit_manager: &mut CircuitManager) -> Result<(), OnionError> {
+    fn handle_created_cell(
+        &self,
+        cell: Cell,
+        circuit_manager: &mut CircuitManager,
+    ) -> Result<(), OnionError> {
         circuit_manager.handle_created_cell(cell.circuit_id, cell)
     }
 
-    fn handle_created2_cell(&self, cell: Cell, circuit_manager: &mut CircuitManager) -> Result<(), OnionError> {
+    fn handle_created2_cell(
+        &self,
+        cell: Cell,
+        circuit_manager: &mut CircuitManager,
+    ) -> Result<(), OnionError> {
         circuit_manager.handle_created_cell(cell.circuit_id, cell)
     }
 
-    fn handle_relay_cell(&self, cell: Cell, circuit_manager: &mut CircuitManager, stream_manager: &mut StreamManager) -> Result<(), OnionError> {
+    fn handle_relay_cell(
+        &self,
+        cell: Cell,
+        circuit_manager: &mut CircuitManager,
+        stream_manager: &mut StreamManager,
+    ) -> Result<(), OnionError> {
         self.statistics.relay_cells_processed.fetch_add(1, Ordering::Relaxed);
 
         // First decrypt the cell through circuit layers
@@ -653,18 +689,24 @@ impl CellProcessor {
 
         // Parse as relay cell
         let relay_cell = decrypted_cell.parse_relay_cell()?;
-        
+
         // Dispatch based on relay command
         match relay_cell.header.command {
             RelayCommand::RelayData => {
-                self.statistics.data_bytes_transferred.fetch_add(relay_cell.payload.len() as u16, Ordering::Relaxed);
+                self.statistics
+                    .data_bytes_transferred
+                    .fetch_add(relay_cell.payload.len() as u16, Ordering::Relaxed);
                 stream_manager.handle_data(relay_cell.header.stream_id, &relay_cell.payload)
             }
             RelayCommand::RelayBegin => stream_manager.handle_begin(relay_cell),
             RelayCommand::RelayConnected => stream_manager.handle_connected(relay_cell),
             RelayCommand::RelayEnd => stream_manager.handle_end(relay_cell),
-            RelayCommand::RelayExtended => circuit_manager.handle_extended_cell(cell.circuit_id, cell),
-            RelayCommand::RelayExtended2 => circuit_manager.handle_extended_cell(cell.circuit_id, cell),
+            RelayCommand::RelayExtended => {
+                circuit_manager.handle_extended_cell(cell.circuit_id, cell)
+            }
+            RelayCommand::RelayExtended2 => {
+                circuit_manager.handle_extended_cell(cell.circuit_id, cell)
+            }
             RelayCommand::RelayResolve => self.handle_resolve(relay_cell),
             RelayCommand::RelayResolved => self.handle_resolved(relay_cell),
             _ => {
@@ -674,7 +716,11 @@ impl CellProcessor {
         }
     }
 
-    fn handle_destroy_cell(&self, cell: Cell, circuit_manager: &mut CircuitManager) -> Result<(), OnionError> {
+    fn handle_destroy_cell(
+        &self,
+        cell: Cell,
+        circuit_manager: &mut CircuitManager,
+    ) -> Result<(), OnionError> {
         self.statistics.destroy_cells_processed.fetch_add(1, Ordering::Relaxed);
         circuit_manager.close_circuit(cell.circuit_id)
     }

@@ -2,66 +2,66 @@
 //!
 //! Fine-grained privilege control with capability inheritance and delegation
 
-use alloc::{collections::BTreeSet, string::String, vec::Vec, format};
+use alloc::{collections::BTreeSet, format, string::String, vec::Vec};
 use core::fmt;
 
 /// System capabilities for fine-grained access control
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 pub enum Capability {
     // Process control capabilities
-    SysAdmin,        // CAP_SYS_ADMIN - full system administration
-    SysNice,         // CAP_SYS_NICE - modify process priority/scheduling
-    SysTime,         // CAP_SYS_TIME - modify system time
-    SysResource,     // CAP_SYS_RESOURCE - override resource limits
-    SysModule,       // CAP_SYS_MODULE - load/unload kernel modules
-    
+    SysAdmin,    // CAP_SYS_ADMIN - full system administration
+    SysNice,     // CAP_SYS_NICE - modify process priority/scheduling
+    SysTime,     // CAP_SYS_TIME - modify system time
+    SysResource, // CAP_SYS_RESOURCE - override resource limits
+    SysModule,   // CAP_SYS_MODULE - load/unload kernel modules
+
     // File system capabilities
-    DacOverride,     // CAP_DAC_OVERRIDE - bypass file permission checks
-    DacReadSearch,   // CAP_DAC_READ_SEARCH - bypass file read permission checks
-    FOwner,          // CAP_FOWNER - bypass permission checks for file ownership
-    FSetId,          // CAP_FSETID - don't clear set-user-ID and set-group-ID bits
-    
+    DacOverride,   // CAP_DAC_OVERRIDE - bypass file permission checks
+    DacReadSearch, // CAP_DAC_READ_SEARCH - bypass file read permission checks
+    FOwner,        // CAP_FOWNER - bypass permission checks for file ownership
+    FSetId,        // CAP_FSETID - don't clear set-user-ID and set-group-ID bits
+
     // Network capabilities
-    NetAdmin,        // CAP_NET_ADMIN - network administration
-    NetBindService,  // CAP_NET_BIND_SERVICE - bind to privileged ports
-    NetBroadcast,    // CAP_NET_BROADCAST - make socket broadcasts
-    NetRaw,          // CAP_NET_RAW - use raw sockets
-    
+    NetAdmin,       // CAP_NET_ADMIN - network administration
+    NetBindService, // CAP_NET_BIND_SERVICE - bind to privileged ports
+    NetBroadcast,   // CAP_NET_BROADCAST - make socket broadcasts
+    NetRaw,         // CAP_NET_RAW - use raw sockets
+
     // IPC capabilities
-    IpcLock,         // CAP_IPC_LOCK - lock memory
-    IpcOwner,        // CAP_IPC_OWNER - bypass permission checks for IPC
-    
+    IpcLock,  // CAP_IPC_LOCK - lock memory
+    IpcOwner, // CAP_IPC_OWNER - bypass permission checks for IPC
+
     // Process capabilities
-    Kill,            // CAP_KILL - send signals to arbitrary processes
-    SetUid,          // CAP_SETUID - set user ID
-    SetGid,          // CAP_SETGID - set group ID
-    SetPCap,         // CAP_SETPCAP - transfer capabilities
-    
+    Kill,    // CAP_KILL - send signals to arbitrary processes
+    SetUid,  // CAP_SETUID - set user ID
+    SetGid,  // CAP_SETGID - set group ID
+    SetPCap, // CAP_SETPCAP - transfer capabilities
+
     // Security capabilities
-    SysChroot,       // CAP_SYS_CHROOT - use chroot()
-    SysPtrace,       // CAP_SYS_PTRACE - trace arbitrary processes
-    AuditWrite,      // CAP_AUDIT_WRITE - write to audit log
-    AuditControl,    // CAP_AUDIT_CONTROL - configure audit subsystem
-    
+    SysChroot,    // CAP_SYS_CHROOT - use chroot()
+    SysPtrace,    // CAP_SYS_PTRACE - trace arbitrary processes
+    AuditWrite,   // CAP_AUDIT_WRITE - write to audit log
+    AuditControl, // CAP_AUDIT_CONTROL - configure audit subsystem
+
     // Device capabilities
-    Mknod,           // CAP_MKNOD - create device files
-    SysRawIO,        // CAP_SYS_RAWIO - perform I/O port operations
-    SysBoot,         // CAP_SYS_BOOT - reboot system
-    
+    Mknod,    // CAP_MKNOD - create device files
+    SysRawIO, // CAP_SYS_RAWIO - perform I/O port operations
+    SysBoot,  // CAP_SYS_BOOT - reboot system
+
     // Advanced security capabilities
-    MacAdmin,        // CAP_MAC_ADMIN - MAC security administration
-    MacOverride,     // CAP_MAC_OVERRIDE - override MAC restrictions
-    
+    MacAdmin,    // CAP_MAC_ADMIN - MAC security administration
+    MacOverride, // CAP_MAC_OVERRIDE - override MAC restrictions
+
     // Container capabilities
-    SysContainer,    // Custom: container management
-    SysNamespace,    // Custom: namespace operations
-    
+    SysContainer, // Custom: container management
+    SysNamespace, // Custom: namespace operations
+
     // Hardware capabilities
-    SysHardware,     // Custom: direct hardware access
-    SysCrypto,       // Custom: cryptographic operations
-    
+    SysHardware, // Custom: direct hardware access
+    SysCrypto,   // Custom: cryptographic operations
+
     // Custom application capabilities
-    Custom(String),  // Custom capability by name
+    Custom(String), // Custom capability by name
 }
 
 impl Capability {
@@ -192,16 +192,16 @@ impl fmt::Display for Capability {
 pub struct CapabilitySet {
     // Effective capabilities (currently active)
     pub effective: BTreeSet<Capability>,
-    
+
     // Permitted capabilities (can be made effective)
     pub permitted: BTreeSet<Capability>,
-    
+
     // Inheritable capabilities (passed to child processes)
     pub inheritable: BTreeSet<Capability>,
-    
+
     // Bounding set (limits what can be gained)
     pub bounding: BTreeSet<Capability>,
-    
+
     // Ambient capabilities (preserved across exec)
     pub ambient: BTreeSet<Capability>,
 }
@@ -210,7 +210,7 @@ impl CapabilitySet {
     /// Create new capability set for root user
     pub fn new_root() -> Self {
         let all_caps = Self::all_capabilities();
-        
+
         CapabilitySet {
             effective: all_caps.clone(),
             permitted: all_caps.clone(),
@@ -219,11 +219,11 @@ impl CapabilitySet {
             ambient: BTreeSet::new(), // Ambient starts empty
         }
     }
-    
+
     /// Create new capability set for regular user
     pub fn new_user() -> Self {
         let user_caps = Self::default_user_capabilities();
-        
+
         CapabilitySet {
             effective: user_caps.clone(),
             permitted: user_caps.clone(),
@@ -232,7 +232,7 @@ impl CapabilitySet {
             ambient: BTreeSet::new(),
         }
     }
-    
+
     /// Create empty capability set
     pub fn new_empty() -> Self {
         CapabilitySet {
@@ -243,11 +243,11 @@ impl CapabilitySet {
             ambient: BTreeSet::new(),
         }
     }
-    
+
     /// Get all available system capabilities
     pub fn all_capabilities() -> BTreeSet<Capability> {
         let mut caps = BTreeSet::new();
-        
+
         // System administration
         caps.insert(Capability::SysAdmin);
         caps.insert(Capability::SysNice);
@@ -258,56 +258,56 @@ impl CapabilitySet {
         caps.insert(Capability::SysRawIO);
         caps.insert(Capability::SysChroot);
         caps.insert(Capability::SysPtrace);
-        
+
         // File system
         caps.insert(Capability::DacOverride);
         caps.insert(Capability::DacReadSearch);
         caps.insert(Capability::FOwner);
         caps.insert(Capability::FSetId);
         caps.insert(Capability::Mknod);
-        
+
         // Network
         caps.insert(Capability::NetAdmin);
         caps.insert(Capability::NetBindService);
         caps.insert(Capability::NetBroadcast);
         caps.insert(Capability::NetRaw);
-        
+
         // Process control
         caps.insert(Capability::Kill);
         caps.insert(Capability::SetUid);
         caps.insert(Capability::SetGid);
         caps.insert(Capability::SetPCap);
-        
+
         // IPC
         caps.insert(Capability::IpcLock);
         caps.insert(Capability::IpcOwner);
-        
+
         // Security
         caps.insert(Capability::AuditWrite);
         caps.insert(Capability::AuditControl);
         caps.insert(Capability::MacAdmin);
         caps.insert(Capability::MacOverride);
-        
+
         // Advanced features
         caps.insert(Capability::SysContainer);
         caps.insert(Capability::SysNamespace);
         caps.insert(Capability::SysHardware);
         caps.insert(Capability::SysCrypto);
-        
+
         caps
     }
-    
+
     /// Get default capabilities for regular users
     pub fn default_user_capabilities() -> BTreeSet<Capability> {
         let mut caps = BTreeSet::new();
-        
+
         // Basic user capabilities
         caps.insert(Capability::Kill); // Can send signals to own processes
         caps.insert(Capability::AuditWrite); // Can write to audit log
-        
+
         caps
     }
-    
+
     /// Check if capability is in effective set
     pub fn has_capability(&self, cap_name: &str) -> bool {
         // Handle string-based capability lookup
@@ -323,34 +323,34 @@ impl CapabilitySet {
             "CAP_SETGID" => Capability::SetGid,
             _ => return false, // Unknown capability
         };
-        
+
         self.effective.contains(&capability)
     }
-    
+
     /// Check if specific capability is effective
     pub fn has_effective(&self, cap: &Capability) -> bool {
         self.effective.contains(cap)
     }
-    
+
     /// Add capability to effective set
     pub fn add_effective(&mut self, cap: Capability) -> Result<(), &'static str> {
         if !self.permitted.contains(&cap) {
             return Err("Capability not in permitted set");
         }
-        
+
         if !self.bounding.contains(&cap) {
             return Err("Capability not in bounding set");
         }
-        
+
         self.effective.insert(cap);
         Ok(())
     }
-    
+
     /// Remove capability from effective set
     pub fn remove_effective(&mut self, cap: &Capability) {
         self.effective.remove(cap);
     }
-    
+
     /// Drop capability entirely
     pub fn drop_capability(&mut self, cap: &Capability) {
         self.effective.remove(cap);
@@ -358,36 +358,40 @@ impl CapabilitySet {
         self.inheritable.remove(cap);
         self.ambient.remove(cap);
     }
-    
+
     /// Grant capability (requires CAP_SETPCAP)
-    pub fn grant_capability(&mut self, cap: Capability, source: &CapabilitySet) -> Result<(), &'static str> {
+    pub fn grant_capability(
+        &mut self,
+        cap: Capability,
+        source: &CapabilitySet,
+    ) -> Result<(), &'static str> {
         if !source.has_effective(&Capability::SetPCap) {
             return Err("Source lacks CAP_SETPCAP");
         }
-        
+
         if !source.permitted.contains(&cap) {
             return Err("Source doesn't have capability in permitted set");
         }
-        
+
         if !self.bounding.contains(&cap) {
             return Err("Capability not in target bounding set");
         }
-        
+
         self.permitted.insert(cap.clone());
         self.effective.insert(cap);
         Ok(())
     }
-    
+
     /// Create capability set for child process
     pub fn inherit_to_child(&self, is_setuid: bool) -> CapabilitySet {
         let mut child = CapabilitySet::new_empty();
-        
+
         // Bounding set is intersection with parent
         child.bounding = self.bounding.clone();
-        
+
         // Inheritable capabilities are preserved
         child.inheritable = self.inheritable.clone();
-        
+
         if is_setuid {
             // For setuid programs, clear most capabilities
             child.permitted.clear();
@@ -397,15 +401,15 @@ impl CapabilitySet {
             child.permitted = self.inheritable.intersection(&self.bounding).cloned().collect();
             child.effective = child.permitted.intersection(&self.ambient).cloned().collect();
         }
-        
+
         child
     }
-    
+
     /// Serialize capabilities for auditing
     pub fn to_audit_string(&self) -> String {
         let effective: Vec<String> = self.effective.iter().map(|c| format!("{}", c)).collect();
         let permitted: Vec<String> = self.permitted.iter().map(|c| format!("{}", c)).collect();
-        
+
         format!(
             "effective=[{}] permitted=[{}] inheritable=[{}]",
             effective.join(","),
@@ -413,14 +417,15 @@ impl CapabilitySet {
             self.inheritable.len()
         )
     }
-    
-    /// Check if this capability set is a subset of another (for privilege escalation checks)
+
+    /// Check if this capability set is a subset of another (for privilege
+    /// escalation checks)
     pub fn is_subset_of(&self, other: &CapabilitySet) -> bool {
-        self.effective.is_subset(&other.effective) &&
-        self.permitted.is_subset(&other.permitted) &&
-        self.inheritable.is_subset(&other.inheritable)
+        self.effective.is_subset(&other.effective)
+            && self.permitted.is_subset(&other.permitted)
+            && self.inheritable.is_subset(&other.inheritable)
     }
-    
+
     /// Get capability count for each set
     pub fn get_stats(&self) -> CapabilityStats {
         CapabilityStats {

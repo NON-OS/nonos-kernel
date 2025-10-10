@@ -3,12 +3,9 @@
 pub mod logger;
 
 pub use logger::{
-    Logger, LogLevel, Severity,
-    init as init_logger,
-    try_get_logger,
-    log, log_info, log_warn, log_err, log_dbg, log_fatal,
-    info, debug, security_log, log_warn_macro as log_warning,
-    enter_panic_mode
+    debug, enter_panic_mode, info, init as init_logger, log, log_dbg, log_err, log_fatal, log_info,
+    log_warn, log_warn_macro as log_warning, security_log, try_get_logger, LogLevel, Logger,
+    Severity,
 };
 
 /// Error logging macro - REAL IMPLEMENTATION

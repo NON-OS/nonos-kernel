@@ -1,21 +1,21 @@
 // This file is part of the NONOS Operating Systems Kernel.
-// 
+//
 //  Copyright (C) [2025] [NONOS]
-//  
+//
 //  This program is free software: you can redistribute it and/or modify
 //  it under the terms of the GNU Affero General Public License as published by
 //  the Free Software Foundation, either version 3 of the License, or
 //  (at your option) any later version.
-//  
+//
 //  This program is distributed in the hope that it will be useful,
 //  but WITHOUT ANY WARRANTY; without even the implied warranty of
 //  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 //  GNU Affero General Public License for more details.
 
-use core::sync::atomic::{AtomicU64, AtomicU32, AtomicBool, Ordering};
-use spin::{RwLock, Mutex};
-use alloc::{vec::Vec, string::String, boxed::Box, collections::BTreeMap, format};
 use crate::crypto::secure_random_u64;
+use alloc::{boxed::Box, collections::BTreeMap, format, string::String, vec::Vec};
+use core::sync::atomic::{AtomicBool, AtomicU32, AtomicU64, Ordering};
+use spin::{Mutex, RwLock};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[repr(u64)]
@@ -281,7 +281,11 @@ impl NonosCapabilityEngine {
         })
     }
 
-    pub fn create_isolation_chamber(&self, level: IsolationLevel, initial_caps: &[NonosCapability]) -> Result<u64, &'static str> {
+    pub fn create_isolation_chamber(
+        &self,
+        level: IsolationLevel,
+        initial_caps: &[NonosCapability],
+    ) -> Result<u64, &'static str> {
         if self.emergency_lockdown.load(Ordering::Acquire) {
             return Err("System in emergency lockdown");
         }
@@ -307,10 +311,10 @@ impl NonosCapabilityEngine {
             },
             memory_limit: match level {
                 IsolationLevel::None | IsolationLevel::Basic => 1024 * 1024 * 100, // 100MB
-                IsolationLevel::Cryptographic => 1024 * 1024 * 50, // 50MB
-                IsolationLevel::Ephemeral => 1024 * 1024 * 25, // 25MB
-                IsolationLevel::ZeroState => 1024 * 1024 * 10, // 10MB
-                IsolationLevel::QuantumSecure => 1024 * 1024 * 5, // 5MB
+                IsolationLevel::Cryptographic => 1024 * 1024 * 50,                 // 50MB
+                IsolationLevel::Ephemeral => 1024 * 1024 * 25,                     // 25MB
+                IsolationLevel::ZeroState => 1024 * 1024 * 10,                     // 10MB
+                IsolationLevel::QuantumSecure => 1024 * 1024 * 5,                  // 5MB
             },
             io_bandwidth_limit: 1024 * 1024, // 1MB/s
             syscall_budget: 1000,
@@ -331,8 +335,9 @@ impl NonosCapabilityEngine {
         };
 
         let current_time = crate::time::get_kernel_time_ns();
-        let chamber_data = format!("chamber_id:{},level:{:?},timestamp:{}", chamber_id, level, current_time);
-        
+        let chamber_data =
+            format!("chamber_id:{},level:{:?},timestamp:{}", chamber_id, level, current_time);
+
         // Simple signature using HMAC-like construction
         let mut chamber_signature = [0u8; 64];
         crate::crypto::fill_random(&mut chamber_signature[..32]);
@@ -369,20 +374,22 @@ impl NonosCapabilityEngine {
         let mut quantum_key = [0u8; 64];
         crate::crypto::fill_random(&mut quantum_key);
 
-        let particles = (0..4).map(|_| {
-            let mut state_vector = [0f64; 4];
-            for i in 0..4 {
-                state_vector[i] = (secure_random_u64() as f64) / (u64::MAX as f64);
-            }
-            
-            QuantumParticle {
-                state_vector,
-                spin: (secure_random_u64() as f64) / (u64::MAX as f64) * 2.0 - 1.0,
-                position_uncertainty: 0.1,
-                momentum_uncertainty: 0.1,
-                last_measurement: crate::time::get_kernel_time_ns(),
-            }
-        }).collect();
+        let particles = (0..4)
+            .map(|_| {
+                let mut state_vector = [0f64; 4];
+                for i in 0..4 {
+                    state_vector[i] = (secure_random_u64() as f64) / (u64::MAX as f64);
+                }
+
+                QuantumParticle {
+                    state_vector,
+                    spin: (secure_random_u64() as f64) / (u64::MAX as f64) * 2.0 - 1.0,
+                    position_uncertainty: 0.1,
+                    momentum_uncertainty: 0.1,
+                    last_measurement: crate::time::get_kernel_time_ns(),
+                }
+            })
+            .collect();
 
         Ok(QuantumState {
             entangled_particles: particles,
@@ -420,24 +427,32 @@ impl NonosCapabilityEngine {
         Ok(())
     }
 
-    fn perform_quantum_measurement(&self, quantum_state: &QuantumState) -> Result<(), &'static str> {
+    fn perform_quantum_measurement(
+        &self,
+        quantum_state: &QuantumState,
+    ) -> Result<(), &'static str> {
         // Simplified quantum measurement simulation
         let current_time = crate::time::get_kernel_time_ns();
-        
+
         for particle in &quantum_state.entangled_particles {
-            if current_time - particle.last_measurement > 1_000_000_000 { // 1 second
+            if current_time - particle.last_measurement > 1_000_000_000 {
+                // 1 second
                 // Measurement collapses the quantum state
                 let measurement_result = (secure_random_u64() as f64) / (u64::MAX as f64);
-                
-                // In a real quantum system, this would affect the particle's state
-                // For now, we just record the measurement
+
+                // In a real quantum system, this would affect the particle's
+                // state For now, we just record the measurement
             }
         }
-        
+
         Ok(())
     }
 
-    pub fn check_capability(&self, process_id: u64, capability: NonosCapability) -> Result<bool, &'static str> {
+    pub fn check_capability(
+        &self,
+        process_id: u64,
+        capability: NonosCapability,
+    ) -> Result<bool, &'static str> {
         if self.emergency_lockdown.load(Ordering::Acquire) {
             return Err("System in emergency lockdown");
         }
@@ -456,9 +471,12 @@ impl NonosCapabilityEngine {
                 violation_type: ViolationType::UnauthorizedCapabilityUse,
                 attempted_capability: Some(capability),
                 severity: ViolationSeverity::Medium,
-                context: format!("Process {} attempted to use capability {:?}", process_id, capability),
+                context: format!(
+                    "Process {} attempted to use capability {:?}",
+                    process_id, capability
+                ),
             });
-            
+
             chamber.violation_count.fetch_add(1, Ordering::Release);
             return Ok(false);
         }
@@ -473,21 +491,27 @@ impl NonosCapabilityEngine {
                 severity: ViolationSeverity::High,
                 context: format!("Process {} used expired capability {:?}", process_id, capability),
             });
-            
+
             return Ok(false);
         }
 
         Ok(true)
     }
 
-    pub fn seal_memory_region(&self, chamber_id: u64, start_addr: u64, size: u64, protection: u32) -> Result<(), &'static str> {
+    pub fn seal_memory_region(
+        &self,
+        chamber_id: u64,
+        start_addr: u64,
+        size: u64,
+        protection: u32,
+    ) -> Result<(), &'static str> {
         let chambers = self.chambers.read();
         let chamber = chambers.get(&chamber_id).ok_or("Chamber not found")?;
 
         let mut encryption_key = [0u8; 32];
         let mut integrity_hash = [0u8; 32];
         let mut access_pattern_hash = [0u8; 32];
-        
+
         crate::crypto::fill_random(&mut encryption_key);
         crate::crypto::hash_memory_region(start_addr, size as usize, &mut integrity_hash)?;
         crate::crypto::fill_random(&mut access_pattern_hash);
@@ -500,7 +524,10 @@ impl NonosCapabilityEngine {
             integrity_hash,
             access_pattern_hash,
             sealed: true,
-            ephemeral: matches!(chamber.level, IsolationLevel::Ephemeral | IsolationLevel::ZeroState),
+            ephemeral: matches!(
+                chamber.level,
+                IsolationLevel::Ephemeral | IsolationLevel::ZeroState
+            ),
             quantum_locked: matches!(chamber.level, IsolationLevel::QuantumSecure),
         };
 
@@ -508,19 +535,26 @@ impl NonosCapabilityEngine {
         Ok(())
     }
 
-    pub fn create_attestation_chain(&self, chamber_id: u64, subject: [u8; 32], capabilities: &[NonosCapability]) -> Result<(), &'static str> {
+    pub fn create_attestation_chain(
+        &self,
+        chamber_id: u64,
+        subject: [u8; 32],
+        capabilities: &[NonosCapability],
+    ) -> Result<(), &'static str> {
         let chambers = self.chambers.read();
         let chamber = chambers.get(&chamber_id).ok_or("Chamber not found")?;
 
         let caps_bits = capabilities.iter().fold(0u64, |acc, &cap| acc | (cap as u64));
         let timestamp = crate::time::get_kernel_time_ns();
-        
+
         let mut nonce = [0u8; 16];
         crate::crypto::fill_random(&mut nonce);
 
-        let attestation_data = format!("issuer:{:?},subject:{:?},caps:{},timestamp:{},nonce:{:?}",
-            self.attestation_root, subject, caps_bits, timestamp, nonce);
-        
+        let attestation_data = format!(
+            "issuer:{:?},subject:{:?},caps:{},timestamp:{},nonce:{:?}",
+            self.attestation_root, subject, caps_bits, timestamp, nonce
+        );
+
         // Simple signature using key material
         let mut signature = [0u8; 64];
         crate::crypto::fill_random(&mut signature[..32]);
@@ -550,9 +584,10 @@ impl NonosCapabilityEngine {
 
     fn log_violation(&self, violation: SecurityViolation) {
         self.violation_log.write().push(violation.clone());
-        
+
         // Emergency lockdown for critical violations
-        if matches!(violation.severity, ViolationSeverity::Critical | ViolationSeverity::Emergency) {
+        if matches!(violation.severity, ViolationSeverity::Critical | ViolationSeverity::Emergency)
+        {
             self.emergency_lockdown.store(true, Ordering::Release);
         }
     }
@@ -589,7 +624,7 @@ impl NonosCapabilityEngine {
 
     pub fn emergency_lockdown(&self) {
         self.emergency_lockdown.store(true, Ordering::Release);
-        
+
         // Destroy all ephemeral chambers
         let chamber_ids: Vec<u64> = self.chambers.read().keys().copied().collect();
         for chamber_id in chamber_ids {
@@ -651,7 +686,10 @@ pub fn get_capability_engine() -> Option<&'static NonosCapabilityEngine> {
     unsafe { CAPABILITY_ENGINE.as_ref() }
 }
 
-pub fn create_isolation_chamber(level: IsolationLevel, capabilities: &[NonosCapability]) -> Result<u64, &'static str> {
+pub fn create_isolation_chamber(
+    level: IsolationLevel,
+    capabilities: &[NonosCapability],
+) -> Result<u64, &'static str> {
     get_capability_engine()
         .ok_or("Capability engine not initialized")?
         .create_isolation_chamber(level, capabilities)
@@ -663,7 +701,10 @@ pub fn enter_chamber(chamber_id: u64, process_id: u64) -> Result<(), &'static st
         .enter_chamber(chamber_id, process_id)
 }
 
-pub fn check_capability(process_id: u64, capability: NonosCapability) -> Result<bool, &'static str> {
+pub fn check_capability(
+    process_id: u64,
+    capability: NonosCapability,
+) -> Result<bool, &'static str> {
     get_capability_engine()
         .ok_or("Capability engine not initialized")?
         .check_capability(process_id, capability)
@@ -672,12 +713,12 @@ pub fn check_capability(process_id: u64, capability: NonosCapability) -> Result<
 /// Generate secure random bytes for cryptographic operations
 pub fn get_secure_random_bytes() -> [u8; 32] {
     let mut bytes = [0u8; 32];
-    
+
     // Use hardware random number generator if available
     for i in 0..32 {
         bytes[i] = secure_random_u8();
     }
-    
+
     bytes
 }
 
@@ -687,7 +728,7 @@ fn secure_random_u8() -> u8 {
     if let Some(hw_rand) = try_hardware_rng() {
         return hw_rand;
     }
-    
+
     // Fallback to software PRNG seeded with TSC
     static mut SEED: u64 = 1;
     unsafe {
@@ -709,6 +750,6 @@ fn try_hardware_rng() -> Option<u8> {
             }
         }
     }
-    
+
     None
 }

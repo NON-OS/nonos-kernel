@@ -18,24 +18,25 @@
 #![allow(dead_code)]
 
 use core::fmt;
-use spin::Mutex;
 use lazy_static::lazy_static;
+use spin::Mutex;
 use x86_64::{
-    PhysAddr, VirtAddr,
     registers::control::{Cr3, Cr3Flags},
     structures::paging::{
-        FrameAllocator, Mapper, Page, PageTable, PageTableFlags as PtF,
-        mapper::Translate, OffsetPageTable,
-        PhysFrame, Size2MiB, Size4KiB,
+        mapper::Translate, FrameAllocator, Mapper, OffsetPageTable, Page, PageTable,
+        PageTableFlags as PtF, PhysFrame, Size2MiB, Size4KiB,
     },
+    PhysAddr, VirtAddr,
 };
 
-use crate::memory::layout::{PAGE_SIZE, HUGE_2M, KERNEL_BASE};
-use crate::memory::phys::{Frame, AllocFlags, alloc as phys_alloc, alloc_contig as phys_alloc_contig, free as phys_free};
 use crate::memory::kaslr::Kaslr;
+use crate::memory::layout::{HUGE_2M, KERNEL_BASE, PAGE_SIZE};
+use crate::memory::phys::{
+    alloc as phys_alloc, alloc_contig as phys_alloc_contig, free as phys_free, AllocFlags, Frame,
+};
 
 // Optional: your zk/onion audit hooks (implement these in memory/proof.rs)
-use crate::memory::proof::{audit_map, audit_unmap, audit_protect};
+use crate::memory::proof::{audit_map, audit_protect, audit_unmap};
 
 // ───────────────────────────────────────────────────────────────────────────────
 // Flags & Errors
@@ -67,7 +68,9 @@ pub enum VmErr {
 }
 
 impl fmt::Display for VmErr {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result { write!(f, "{:?}", self) }
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{:?}", self)
+    }
 }
 
 // ───────────────────────────────────────────────────────────────────────────────
@@ -82,10 +85,7 @@ pub const SELFREF_SLOT: usize = 510;
 pub fn selfref_l4_va() -> VirtAddr {
     // [L4=SELFREF, L3=SELFREF, L2=SELFREF, L1=SELFREF, offset=0]
     let idx = SELFREF_SLOT as u64;
-    VirtAddr::new(
-        (0xFFFFu64 << 48) |
-        (idx << 39) | (idx << 30) | (idx << 21) | (idx << 12)
-    )
+    VirtAddr::new((0xFFFFu64 << 48) | (idx << 39) | (idx << 30) | (idx << 21) | (idx << 12))
 }
 
 // ───────────────────────────────────────────────────────────────────────────────
@@ -112,7 +112,9 @@ impl AddressSpace {
         (old, flags)
     }
 
-    pub fn root_phys(&self) -> u64 { self.cr3_frame.start_address().as_u64() }
+    pub fn root_phys(&self) -> u64 {
+        self.cr3_frame.start_address().as_u64()
+    }
 }
 
 // Singleton kernel address space handle + Mapper root (borrowed).
@@ -126,8 +128,8 @@ lazy_static! {
 // Init & helpers
 // ───────────────────────────────────────────────────────────────────────────────
 
-/// Must be called exactly once with the physical address of the kernel root page table.
-/// Also installs the self-reference slot (maps PML4 into itself).
+/// Must be called exactly once with the physical address of the kernel root
+/// page table. Also installs the self-reference slot (maps PML4 into itself).
 pub unsafe fn init(root_pt_phys: u64) -> Result<(), VmErr> {
     let aspace = AddressSpace::from_root(root_pt_phys)?;
     // Temporarily install to get a canonical VA for the root table.
@@ -139,10 +141,7 @@ pub unsafe fn init(root_pt_phys: u64) -> Result<(), VmErr> {
 
     // Install self-ref (L4[SELFREF] points to itself).
     if root_pt[SELFREF_SLOT].is_unused() {
-        root_pt[SELFREF_SLOT].set_addr(
-            PhysAddr::new(root_pt_phys),
-            PtF::PRESENT | PtF::WRITABLE,
-        );
+        root_pt[SELFREF_SLOT].set_addr(PhysAddr::new(root_pt_phys), PtF::PRESENT | PtF::WRITABLE);
     }
 
     *KSPACE.lock() = Some(aspace);
@@ -151,8 +150,8 @@ pub unsafe fn init(root_pt_phys: u64) -> Result<(), VmErr> {
 }
 
 /// Returns a mutable handle to the kernel root page table (guarded).
-fn with_root_mut<T, F>(f: F) -> Result<T, VmErr> 
-where 
+fn with_root_mut<T, F>(f: F) -> Result<T, VmErr>
+where
     F: FnOnce(&mut PageTable) -> T,
 {
     let mut guard = ROOT_PT.lock();
@@ -167,12 +166,12 @@ where
 fn root_mut() -> Result<OffsetPageTable<'static>, VmErr> {
     // Use the kernel's direct mapping offset
     let phys_offset = VirtAddr::new(KERNEL_BASE);
-    
+
     let (l4_table_frame, _) = Cr3::read();
     let phys_addr = l4_table_frame.start_address();
     let virt_addr = phys_offset + phys_addr.as_u64();
     let page_table_ptr: *mut PageTable = virt_addr.as_mut_ptr();
-    
+
     let l4_table = unsafe { &mut *page_table_ptr };
     Ok(unsafe { OffsetPageTable::new(l4_table, phys_offset) })
 }
@@ -188,19 +187,35 @@ fn to_ptf(f: VmFlags) -> Result<PtF, VmErr> {
         return Err(VmErr::WxViolation);
     }
     let mut r = PtF::PRESENT;
-    if f.contains(VmFlags::RW)     { r |= PtF::WRITABLE; }
-    if f.contains(VmFlags::USER)   { r |= PtF::USER_ACCESSIBLE; }
-    if f.contains(VmFlags::PWT)    { r |= PtF::from_bits_truncate(0x8); } // Page-level WT (bit 3)
-    if f.contains(VmFlags::PCD)    { r |= PtF::from_bits_truncate(0x10); } // Page-level CD (bit 4)
-    if f.contains(VmFlags::GLOBAL) { r |= PtF::GLOBAL; }
-    if f.contains(VmFlags::NX)     { r |= PtF::NO_EXECUTE; }
+    if f.contains(VmFlags::RW) {
+        r |= PtF::WRITABLE;
+    }
+    if f.contains(VmFlags::USER) {
+        r |= PtF::USER_ACCESSIBLE;
+    }
+    if f.contains(VmFlags::PWT) {
+        r |= PtF::from_bits_truncate(0x8);
+    } // Page-level WT (bit 3)
+    if f.contains(VmFlags::PCD) {
+        r |= PtF::from_bits_truncate(0x10);
+    } // Page-level CD (bit 4)
+    if f.contains(VmFlags::GLOBAL) {
+        r |= PtF::GLOBAL;
+    }
+    if f.contains(VmFlags::NX) {
+        r |= PtF::NO_EXECUTE;
+    }
     Ok(r)
 }
 
 #[inline]
-fn is_aligned_4k(a: u64) -> bool { (a & 0xfff) == 0 }
+fn is_aligned_4k(a: u64) -> bool {
+    (a & 0xFFF) == 0
+}
 #[inline]
-fn is_aligned_2m(a: u64) -> bool { (a & ((1<<21)-1)) == 0 }
+fn is_aligned_2m(a: u64) -> bool {
+    (a & ((1 << 21) - 1)) == 0
+}
 
 // ───────────────────────────────────────────────────────────────────────────────
 // Frame allocator shim for x86_64::Mapper
@@ -214,7 +229,8 @@ unsafe impl FrameAllocator<Size4KiB> for PhysAllocShim {
 }
 unsafe impl FrameAllocator<Size2MiB> for PhysAllocShim {
     fn allocate_frame(&mut self) -> Option<PhysFrame<Size2MiB>> {
-        phys_alloc_contig(512, 512, AllocFlags::empty()).map(|f| PhysFrame::containing_address(PhysAddr::new(f.0)))
+        phys_alloc_contig(512, 512, AllocFlags::empty())
+            .map(|f| PhysFrame::containing_address(PhysAddr::new(f.0)))
     }
 }
 
@@ -223,65 +239,75 @@ unsafe impl FrameAllocator<Size2MiB> for PhysAllocShim {
 // ───────────────────────────────────────────────────────────────────────────────
 
 pub fn map4k_at(va: VirtAddr, pa: PhysAddr, flags: VmFlags) -> Result<(), VmErr> {
-    if !is_aligned_4k(va.as_u64()) || !is_aligned_4k(pa.as_u64()) { 
-        return Err(VmErr::Misaligned); 
+    if !is_aligned_4k(va.as_u64()) || !is_aligned_4k(pa.as_u64()) {
+        return Err(VmErr::Misaligned);
     }
-    
+
     let hw_flags = to_ptf(flags)?;
     let mut mapper = root_mut()?;
     let mut frame_allocator = PhysAllocShim;
-    
+
     let page = Page::<Size4KiB>::containing_address(va);
     let frame = PhysFrame::<Size4KiB>::containing_address(pa);
-    
+
     // Map the page
     unsafe {
-        mapper.map_to(page, frame, hw_flags, &mut frame_allocator)
+        mapper
+            .map_to(page, frame, hw_flags, &mut frame_allocator)
             .map_err(|_| VmErr::NoMemory)?
             .flush();
     }
-    
-    audit_map(va.as_u64(), pa.as_u64(), PAGE_SIZE as u64, flags.bits(), crate::memory::proof::CapTag::empty());
+
+    audit_map(
+        va.as_u64(),
+        pa.as_u64(),
+        PAGE_SIZE as u64,
+        flags.bits(),
+        crate::memory::proof::CapTag::empty(),
+    );
     Ok(())
 }
 
 pub fn unmap4k(va: VirtAddr) -> Result<(), VmErr> {
-    if !is_aligned_4k(va.as_u64()) { 
-        return Err(VmErr::Misaligned); 
+    if !is_aligned_4k(va.as_u64()) {
+        return Err(VmErr::Misaligned);
     }
-    
+
     let mut mapper = root_mut()?;
     let page = Page::<Size4KiB>::containing_address(va);
-    
+
     // Unmap the page
     let (frame, flush) = mapper.unmap(page).map_err(|_| VmErr::NotMapped)?;
     flush.flush();
-    
+
     // Free the physical frame
     phys_free(Frame(frame.start_address().as_u64()));
-    
+
     audit_unmap(va.as_u64(), PAGE_SIZE as u64, crate::memory::proof::CapTag::empty());
     Ok(())
 }
 
 pub fn protect4k(va: VirtAddr, flags: VmFlags) -> Result<(), VmErr> {
-    if !is_aligned_4k(va.as_u64()) { 
-        return Err(VmErr::Misaligned); 
+    if !is_aligned_4k(va.as_u64()) {
+        return Err(VmErr::Misaligned);
     }
-    
+
     let hw_flags = to_ptf(flags)?;
     let mut mapper = root_mut()?;
-    
+
     let page = Page::<Size4KiB>::containing_address(va);
-    
+
     // Update page table flags
     unsafe {
-        mapper.update_flags(page, hw_flags)
-            .map_err(|_| VmErr::NotMapped)?
-            .flush();
+        mapper.update_flags(page, hw_flags).map_err(|_| VmErr::NotMapped)?.flush();
     }
-    
-    audit_protect(va.as_u64(), PAGE_SIZE as u64, flags.bits(), crate::memory::proof::CapTag::empty());
+
+    audit_protect(
+        va.as_u64(),
+        PAGE_SIZE as u64,
+        flags.bits(),
+        crate::memory::proof::CapTag::empty(),
+    );
     Ok(())
 }
 
@@ -300,7 +326,9 @@ fn has_split_l2(root: &PageTable, va: VirtAddr) -> bool {
 }
 
 pub fn map2m_at(va: VirtAddr, pa: PhysAddr, flags: VmFlags) -> Result<(), VmErr> {
-    if !is_aligned_2m(va.as_u64()) || !is_aligned_2m(pa.as_u64()) { return Err(VmErr::Misaligned); }
+    if !is_aligned_2m(va.as_u64()) || !is_aligned_2m(pa.as_u64()) {
+        return Err(VmErr::Misaligned);
+    }
     let hw = to_ptf(flags)? | PtF::HUGE_PAGE;
     let mut root = root_mut()?;
 
@@ -313,24 +341,32 @@ pub fn map2m_at(va: VirtAddr, pa: PhysAddr, flags: VmFlags) -> Result<(), VmErr>
         root.map_to(page, frame, hw, &mut PhysAllocShim).map_err(|_| VmErr::NoMemory)?.flush();
     }
 
-    audit_map(va.as_u64(), pa.as_u64(), HUGE_2M as u64, flags.bits(), crate::memory::proof::CapTag::empty());
+    audit_map(
+        va.as_u64(),
+        pa.as_u64(),
+        HUGE_2M as u64,
+        flags.bits(),
+        crate::memory::proof::CapTag::empty(),
+    );
     Ok(())
 }
 
 pub fn unmap2m(va: VirtAddr) -> Result<(), VmErr> {
-    if !is_aligned_2m(va.as_u64()) { return Err(VmErr::Misaligned); }
+    if !is_aligned_2m(va.as_u64()) {
+        return Err(VmErr::Misaligned);
+    }
     let mut root = root_mut()?;
 
     unsafe {
         let page = Page::<Size2MiB>::containing_address(va);
-        
+
         // Try to unmap as a 2MB page first
         match root.unmap(page) {
             Ok((frame, flush)) => {
                 flush.flush();
                 // Free the 2MB physical frame
                 phys_free(Frame(frame.start_address().as_u64()));
-                
+
                 audit_unmap(va.as_u64(), HUGE_2M as u64, crate::memory::proof::CapTag::empty());
                 return Ok(());
             }
@@ -338,19 +374,20 @@ pub fn unmap2m(va: VirtAddr) -> Result<(), VmErr> {
                 // Page might be split into 4KB pages, unmap each 4KB page in the 2MB range
                 let start_page = Page::<Size4KiB>::containing_address(va);
                 let pages_per_2mb = HUGE_2M / PAGE_SIZE;
-                
+
                 for i in 0..pages_per_2mb {
-                    let page_4k = Page::<Size4KiB>::from_start_address(
-                        VirtAddr::new(start_page.start_address().as_u64() + (i * PAGE_SIZE) as u64)
-                    ).unwrap();
-                    
+                    let page_4k = Page::<Size4KiB>::from_start_address(VirtAddr::new(
+                        start_page.start_address().as_u64() + (i * PAGE_SIZE) as u64,
+                    ))
+                    .unwrap();
+
                     if let Ok((frame, flush)) = root.unmap(page_4k) {
                         flush.flush();
                         // Free the 4KB physical frame
                         phys_free(Frame(frame.start_address().as_u64()));
                     }
                 }
-                
+
                 audit_unmap(va.as_u64(), HUGE_2M as u64, crate::memory::proof::CapTag::empty());
                 return Ok(());
             }
@@ -362,21 +399,30 @@ pub fn unmap2m(va: VirtAddr) -> Result<(), VmErr> {
 // Range ops
 // ───────────────────────────────────────────────────────────────────────────────
 
-pub fn map_range_4k_at(base: VirtAddr, pa: PhysAddr, len: usize, flags: VmFlags) -> Result<(), VmErr> {
-    if (len == 0) || !is_aligned_4k(base.as_u64()) || !is_aligned_4k(pa.as_u64()) { return Err(VmErr::Misaligned); }
+pub fn map_range_4k_at(
+    base: VirtAddr,
+    pa: PhysAddr,
+    len: usize,
+    flags: VmFlags,
+) -> Result<(), VmErr> {
+    if (len == 0) || !is_aligned_4k(base.as_u64()) || !is_aligned_4k(pa.as_u64()) {
+        return Err(VmErr::Misaligned);
+    }
     let pages = (len + PAGE_SIZE - 1) / PAGE_SIZE;
     for p in 0..pages {
         map4k_at(
             VirtAddr::new(base.as_u64() + (p * PAGE_SIZE) as u64),
             PhysAddr::new(pa.as_u64() + (p * PAGE_SIZE) as u64),
-            flags
+            flags,
         )?;
     }
     Ok(())
 }
 
 pub fn unmap_range_4k(base: VirtAddr, len: usize) -> Result<(), VmErr> {
-    if (len == 0) || !is_aligned_4k(base.as_u64()) { return Err(VmErr::Misaligned); }
+    if (len == 0) || !is_aligned_4k(base.as_u64()) {
+        return Err(VmErr::Misaligned);
+    }
     let pages = (len + PAGE_SIZE - 1) / PAGE_SIZE;
     for p in 0..pages {
         unmap4k(VirtAddr::new(base.as_u64() + (p * PAGE_SIZE) as u64))?;
@@ -385,7 +431,9 @@ pub fn unmap_range_4k(base: VirtAddr, len: usize) -> Result<(), VmErr> {
 }
 
 pub fn protect_range_4k(base: VirtAddr, len: usize, flags: VmFlags) -> Result<(), VmErr> {
-    if (len == 0) || !is_aligned_4k(base.as_u64()) { return Err(VmErr::Misaligned); }
+    if (len == 0) || !is_aligned_4k(base.as_u64()) {
+        return Err(VmErr::Misaligned);
+    }
     for off in (0..len).step_by(PAGE_SIZE) {
         protect4k(VirtAddr::new(base.as_u64() + off as u64), flags)?;
     }
@@ -399,7 +447,7 @@ pub fn protect_range_4k(base: VirtAddr, len: usize, flags: VmFlags) -> Result<()
 /// Returns (PA, flags, page_size). None if unmapped. Works for 4K/2M.
 pub fn translate(va: VirtAddr) -> Result<(PhysAddr, VmFlags, usize), VmErr> {
     let mapper = root_mut()?;
-    
+
     // Use translate_addr which is simpler and returns Option<PhysAddr>
     if let Some(phys_addr) = mapper.translate_addr(va) {
         // Walk page tables to get flags and determine page size
@@ -409,33 +457,33 @@ pub fn translate(va: VirtAddr) -> Result<(PhysAddr, VmFlags, usize), VmErr> {
             let l4_phys = l4_frame.start_address();
             let l4_virt = VirtAddr::new(KERNEL_BASE + l4_phys.as_u64());
             let l4_table: &PageTable = &*(l4_virt.as_ptr() as *const PageTable);
-            
+
             // Walk the page tables
-            let l4_idx = ((va.as_u64() >> 39) & 0x1ff) as usize;
-            let l3_idx = ((va.as_u64() >> 30) & 0x1ff) as usize;
-            let l2_idx = ((va.as_u64() >> 21) & 0x1ff) as usize;
-            let l1_idx = ((va.as_u64() >> 12) & 0x1ff) as usize;
-            
+            let l4_idx = ((va.as_u64() >> 39) & 0x1FF) as usize;
+            let l3_idx = ((va.as_u64() >> 30) & 0x1FF) as usize;
+            let l2_idx = ((va.as_u64() >> 21) & 0x1FF) as usize;
+            let l1_idx = ((va.as_u64() >> 12) & 0x1FF) as usize;
+
             if l4_table[l4_idx].is_unused() {
                 return Err(VmErr::NotMapped);
             }
-            
+
             let l3_phys = l4_table[l4_idx].addr();
             let l3_virt = VirtAddr::new(KERNEL_BASE + l3_phys.as_u64());
             let l3_table: &PageTable = &*(l3_virt.as_ptr() as *const PageTable);
-            
+
             if l3_table[l3_idx].is_unused() {
                 return Err(VmErr::NotMapped);
             }
-            
+
             let l2_phys = l3_table[l3_idx].addr();
             let l2_virt = VirtAddr::new(KERNEL_BASE + l2_phys.as_u64());
             let l2_table: &PageTable = &*(l2_virt.as_ptr() as *const PageTable);
-            
+
             if l2_table[l2_idx].is_unused() {
                 return Err(VmErr::NotMapped);
             }
-            
+
             // Check if it's a 2MB huge page
             if l2_table[l2_idx].flags().contains(PtF::HUGE_PAGE) {
                 let flags = vmflags_from_ptf(l2_table[l2_idx].flags());
@@ -445,35 +493,53 @@ pub fn translate(va: VirtAddr) -> Result<(PhysAddr, VmFlags, usize), VmErr> {
                 let l1_phys = l2_table[l2_idx].addr();
                 let l1_virt = VirtAddr::new(KERNEL_BASE + l1_phys.as_u64());
                 let l1_table: &PageTable = &*(l1_virt.as_ptr() as *const PageTable);
-                
+
                 if l1_table[l1_idx].is_unused() {
                     return Err(VmErr::NotMapped);
                 }
-                
+
                 let flags = vmflags_from_ptf(l1_table[l1_idx].flags());
                 (flags, PAGE_SIZE)
             }
         };
-        
+
         Ok((phys_addr, flags, page_size))
     } else {
         Err(VmErr::NotMapped)
     }
 }
 
-#[inline] fn l4_idx(va: VirtAddr) -> usize { ((va.as_u64() >> 39) & 0x1ff) as usize }
-#[inline] fn l3_idx(va: VirtAddr) -> usize { ((va.as_u64() >> 30) & 0x1ff) as usize }
-#[inline] fn l2_idx(va: VirtAddr) -> usize { ((va.as_u64() >> 21) & 0x1ff) as usize }
-#[inline] fn l1_idx(va: VirtAddr) -> usize { ((va.as_u64() >> 12) & 0x1ff) as usize }
+#[inline]
+fn l4_idx(va: VirtAddr) -> usize {
+    ((va.as_u64() >> 39) & 0x1FF) as usize
+}
+#[inline]
+fn l3_idx(va: VirtAddr) -> usize {
+    ((va.as_u64() >> 30) & 0x1FF) as usize
+}
+#[inline]
+fn l2_idx(va: VirtAddr) -> usize {
+    ((va.as_u64() >> 21) & 0x1FF) as usize
+}
+#[inline]
+fn l1_idx(va: VirtAddr) -> usize {
+    ((va.as_u64() >> 12) & 0x1FF) as usize
+}
 
 #[inline]
 unsafe fn table_mut(p: PhysAddr) -> &'static mut PageTable {
     &mut *(VirtAddr::new(KERNEL_BASE + p.as_u64()).as_u64() as *mut PageTable)
 }
 
-unsafe fn walk_l2_entry_mut<'a>(root: &'a mut PageTable, va: VirtAddr) -> Option<(&'a mut PageTable, usize)> {
-    let l3 = if root[l4_idx(va)].is_unused() { return None } else { table_mut(root[l4_idx(va)].addr()) };
-    if l3[l3_idx(va)].is_unused() { return None }
+unsafe fn walk_l2_entry_mut<'a>(
+    root: &'a mut PageTable,
+    va: VirtAddr,
+) -> Option<(&'a mut PageTable, usize)> {
+    let l3 =
+        if root[l4_idx(va)].is_unused() { return None } else { table_mut(root[l4_idx(va)].addr()) };
+    if l3[l3_idx(va)].is_unused() {
+        return None;
+    }
     let l2 = table_mut(l3[l3_idx(va)].addr());
     Some((l2, l2_idx(va)))
 }
@@ -483,29 +549,52 @@ unsafe fn table_ref(p: PhysAddr) -> &'static PageTable {
 }
 
 unsafe fn walk_l2_entry<'a>(root: &'a PageTable, va: VirtAddr) -> Option<(&'a PageTable, usize)> {
-    let l3 = if root[l4_idx(va)].is_unused() { return None } else { table_ref(root[l4_idx(va)].addr()) };
-    if l3[l3_idx(va)].is_unused() { return None }
+    let l3 =
+        if root[l4_idx(va)].is_unused() { return None } else { table_ref(root[l4_idx(va)].addr()) };
+    if l3[l3_idx(va)].is_unused() {
+        return None;
+    }
     let l2 = table_ref(l3[l3_idx(va)].addr());
     Some((l2, l2_idx(va)))
 }
 
-unsafe fn walk_l1_entry_mut<'a>(root: &'a mut PageTable, va: VirtAddr) -> Option<(&'a mut PageTable, usize)> {
-    let l3 = if root[l4_idx(va)].is_unused() { return None } else { table_mut(root[l4_idx(va)].addr()) };
-    if l3[l3_idx(va)].is_unused() { return None }
+unsafe fn walk_l1_entry_mut<'a>(
+    root: &'a mut PageTable,
+    va: VirtAddr,
+) -> Option<(&'a mut PageTable, usize)> {
+    let l3 =
+        if root[l4_idx(va)].is_unused() { return None } else { table_mut(root[l4_idx(va)].addr()) };
+    if l3[l3_idx(va)].is_unused() {
+        return None;
+    }
     let l2 = table_mut(l3[l3_idx(va)].addr());
-    if l2[l2_idx(va)].is_unused() || l2[l2_idx(va)].flags().contains(PtF::HUGE_PAGE) { return None }
+    if l2[l2_idx(va)].is_unused() || l2[l2_idx(va)].flags().contains(PtF::HUGE_PAGE) {
+        return None;
+    }
     let l1 = table_mut(l2[l2_idx(va)].addr());
     Some((l1, l1_idx(va)))
 }
 
 fn vmflags_from_ptf(p: PtF) -> VmFlags {
     let mut f = VmFlags::empty();
-    if p.contains(PtF::WRITABLE)        { f |= VmFlags::RW; }
-    if p.contains(PtF::USER_ACCESSIBLE) { f |= VmFlags::USER; }
-    if p.bits() & 0x8 != 0              { f |= VmFlags::PWT; } // bit 3 
-    if p.bits() & 0x10 != 0             { f |= VmFlags::PCD; } // bit 4
-    if p.contains(PtF::GLOBAL)          { f |= VmFlags::GLOBAL; }
-    if p.contains(PtF::NO_EXECUTE)      { f |= VmFlags::NX; }
+    if p.contains(PtF::WRITABLE) {
+        f |= VmFlags::RW;
+    }
+    if p.contains(PtF::USER_ACCESSIBLE) {
+        f |= VmFlags::USER;
+    }
+    if p.bits() & 0x8 != 0 {
+        f |= VmFlags::PWT;
+    } // bit 3
+    if p.bits() & 0x10 != 0 {
+        f |= VmFlags::PCD;
+    } // bit 4
+    if p.contains(PtF::GLOBAL) {
+        f |= VmFlags::GLOBAL;
+    }
+    if p.contains(PtF::NO_EXECUTE) {
+        f |= VmFlags::NX;
+    }
     f
 }
 
@@ -515,7 +604,9 @@ fn vmflags_from_ptf(p: PtF) -> VmFlags {
 
 /// Map a stack with a guard page below it: [guard][stack...]
 pub fn map_stack_with_guard(base: VirtAddr, size: usize, flags: VmFlags) -> Result<(), VmErr> {
-    if size == 0 { return Err(VmErr::BadRange); }
+    if size == 0 {
+        return Err(VmErr::BadRange);
+    }
     let stack_pages = (size + PAGE_SIZE - 1) / PAGE_SIZE;
     // guard page unmapped at base - PAGE_SIZE
     // map stack starting at `base`
@@ -523,14 +614,15 @@ pub fn map_stack_with_guard(base: VirtAddr, size: usize, flags: VmFlags) -> Resu
         map4k_at(
             VirtAddr::new(base.as_u64() + (p * PAGE_SIZE) as u64),
             PhysAddr::new(phys_alloc(AllocFlags::empty()).ok_or(VmErr::NoMemory)?.0),
-            flags
+            flags,
         )?;
     }
     Ok(())
 }
 
 /// Apply KASLR slide to a VA (for relocatable kernel segments).
-#[inline] pub fn va_slide(va: u64, kaslr: &Kaslr) -> VirtAddr {
+#[inline]
+pub fn va_slide(va: u64, kaslr: &Kaslr) -> VirtAddr {
     VirtAddr::new(va + kaslr.slide)
 }
 
@@ -548,7 +640,9 @@ pub fn gc_tables() -> Result<(), VmErr> {
 }
 
 /// Single-CPU local shootdown (used implicit invlpg in ops already).
-pub fn tlb_shootdown_local() { core::sync::atomic::fence(core::sync::atomic::Ordering::SeqCst); }
+pub fn tlb_shootdown_local() {
+    core::sync::atomic::fence(core::sync::atomic::Ordering::SeqCst);
+}
 
 // ───────────────────────────────────────────────────────────────────────────────
 // Mapper for x86_64 crate (using our root)
@@ -556,7 +650,10 @@ pub fn tlb_shootdown_local() { core::sync::atomic::fence(core::sync::atomic::Ord
 
 pub struct MapCtx;
 impl MapCtx {
-    #[inline] pub fn root() -> Result<OffsetPageTable<'static>, VmErr> { root_mut() }
+    #[inline]
+    pub fn root() -> Result<OffsetPageTable<'static>, VmErr> {
+        root_mut()
+    }
 }
 
 // ───────────────────────────────────────────────────────────────────────────────
@@ -572,7 +669,9 @@ pub fn assert_wx_exclusive(range_base: VirtAddr, len: usize) -> Result<(), VmErr
         if let Ok((_pa, fl, _sz)) = translate(va) {
             let x = !fl.contains(VmFlags::NX);
             let w = fl.contains(VmFlags::RW);
-            if x && w { return Err(VmErr::WxViolation); }
+            if x && w {
+                return Err(VmErr::WxViolation);
+            }
         }
     }
     Ok(())
@@ -582,10 +681,11 @@ pub fn assert_wx_exclusive(range_base: VirtAddr, len: usize) -> Result<(), VmErr
 pub fn init_from_bootinfo(boot_info: &'static bootloader_api::BootInfo) {
     // Initialize virtual memory subsystem
     // This is a simplified implementation
-    
+
     // Set up initial virtual memory mappings based on bootloader info
-    // In production, this would properly parse memory regions and set up page tables
-    
+    // In production, this would properly parse memory regions and set up page
+    // tables
+
     // For now, just initialize the basic virtual memory system
     unsafe {
         // Initialize virtual memory with a simple higher-half kernel setup
@@ -599,7 +699,7 @@ pub fn get_kernel_mapper() -> Result<OffsetPageTable<'static>, VmErr> {
 }
 
 /// Dump virtual memory information
-pub fn dump<F>(mut writer: F) 
+pub fn dump<F>(mut writer: F)
 where
     F: FnMut(&str),
 {
@@ -610,7 +710,10 @@ where
 }
 
 /// Map physical memory to virtual address space
-pub fn map_physical_memory(phys_addr: x86_64::PhysAddr, size: usize) -> Result<x86_64::VirtAddr, VmErr> {
+pub fn map_physical_memory(
+    phys_addr: x86_64::PhysAddr,
+    size: usize,
+) -> Result<x86_64::VirtAddr, VmErr> {
     // TODO: Implement proper virtual address allocation
     let virt_addr = x86_64::VirtAddr::new(0xFFFF_8000_0000_0000 + phys_addr.as_u64());
     map_range_4k_at(virt_addr, phys_addr, size, VmFlags::RW)?;

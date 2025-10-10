@@ -1,5 +1,5 @@
 //! Advanced Capability System
-//! 
+//!
 //! Fine-grained capability-based security with cryptographic tokens
 
 use alloc::vec::Vec;
@@ -7,16 +7,16 @@ use alloc::vec::Vec;
 /// Core system capabilities
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Capability {
-    CoreExec,       // Basic execution rights
-    IO,            // Input/output operations
-    Network,       // Network access
-    IPC,          // Inter-process communication
-    Memory,       // Memory allocation
-    Crypto,       // Cryptographic operations
-    FileSystem,   // Filesystem access
-    Hardware,     // Direct hardware access
-    Debug,        // Debug/profiling access
-    Admin,        // Administrative privileges
+    CoreExec,   // Basic execution rights
+    IO,         // Input/output operations
+    Network,    // Network access
+    IPC,        // Inter-process communication
+    Memory,     // Memory allocation
+    Crypto,     // Cryptographic operations
+    FileSystem, // Filesystem access
+    Hardware,   // Direct hardware access
+    Debug,      // Debug/profiling access
+    Admin,      // Administrative privileges
 }
 
 /// Cryptographically signed capability token
@@ -33,13 +33,13 @@ impl CapabilityToken {
     pub fn grants(&self, cap: Capability) -> bool {
         self.permissions.contains(&cap)
     }
-    
+
     /// Verify token signature
     pub fn verify(&self) -> bool {
         // Cryptographic verification would go here
         true
     }
-    
+
     /// Check if token is still valid (not expired)
     pub fn is_valid(&self) -> bool {
         if let Some(expires) = self.expires_at {

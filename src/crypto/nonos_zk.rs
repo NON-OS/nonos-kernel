@@ -1,6 +1,6 @@
 #![no_std]
 
-use alloc::{vec::Vec, collections::BTreeMap};
+use alloc::{collections::BTreeMap, vec::Vec};
 use spin::{Mutex, RwLock};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
@@ -33,20 +33,20 @@ impl NonosZKProofSystem {
         &self,
         circuit_type: NonosZKCircuitType,
         public_inputs: &[u8],
-        private_witness: &[u8]
+        private_witness: &[u8],
     ) -> Result<Vec<u8>, &'static str> {
         // Simple proof generation - in production this would be a real ZK proof
         let mut proof = Vec::new();
         proof.extend_from_slice(&(circuit_type as u64).to_le_bytes());
         proof.extend_from_slice(public_inputs);
-        
+
         // Hash the private witness for proof generation
         let mut witness_hash = 0u64;
         for &byte in private_witness {
             witness_hash = witness_hash.wrapping_mul(31).wrapping_add(byte as u64);
         }
         proof.extend_from_slice(&witness_hash.to_le_bytes());
-        
+
         Ok(proof)
     }
 
@@ -54,7 +54,7 @@ impl NonosZKProofSystem {
         &self,
         circuit_type: NonosZKCircuitType,
         public_inputs: &[u8],
-        proof: &[u8]
+        proof: &[u8],
     ) -> Result<bool, &'static str> {
         if proof.len() < 16 {
             return Ok(false);
@@ -62,10 +62,9 @@ impl NonosZKProofSystem {
 
         // Extract circuit type from proof
         let proof_circuit_type = u64::from_le_bytes([
-            proof[0], proof[1], proof[2], proof[3],
-            proof[4], proof[5], proof[6], proof[7]
+            proof[0], proof[1], proof[2], proof[3], proof[4], proof[5], proof[6], proof[7],
         ]);
-        
+
         if proof_circuit_type != circuit_type as u64 {
             return Ok(false);
         }
@@ -75,7 +74,7 @@ impl NonosZKProofSystem {
         if proof.len() < 16 + expected_inputs_len {
             return Ok(false);
         }
-        
+
         let proof_inputs = &proof[8..8 + expected_inputs_len];
         Ok(proof_inputs == public_inputs)
     }
@@ -94,7 +93,7 @@ pub fn init_zk_system() -> Result<(), &'static str> {
 pub fn generate_zk_proof(
     circuit_type: NonosZKCircuitType,
     public_inputs: &[u8],
-    private_witness: &[u8]
+    private_witness: &[u8],
 ) -> Result<Vec<u8>, &'static str> {
     NONOS_ZK_SYSTEM.generate_proof(circuit_type, public_inputs, private_witness)
 }
@@ -102,7 +101,7 @@ pub fn generate_zk_proof(
 pub fn verify_zk_proof(
     circuit_type: NonosZKCircuitType,
     public_inputs: &[u8],
-    proof: &[u8]
+    proof: &[u8],
 ) -> Result<bool, &'static str> {
     NONOS_ZK_SYSTEM.verify_proof(circuit_type, public_inputs, proof)
 }

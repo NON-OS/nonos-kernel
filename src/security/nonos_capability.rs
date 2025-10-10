@@ -1,7 +1,7 @@
 #![no_std]
 
-use alloc::{vec::Vec, collections::BTreeMap};
-use spin::{RwLock, Mutex};
+use alloc::{collections::BTreeMap, vec::Vec};
+use spin::{Mutex, RwLock};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 pub enum NonosCapabilityType {
@@ -86,14 +86,20 @@ impl NonosCapabilityMatrix {
         &self,
         subject_id: u64,
         capability: NonosCapabilityType,
-        object_id: Option<u64>
+        object_id: Option<u64>,
     ) -> NonosCapabilityResult {
         let start_time = self.get_timestamp_ns();
-        
+
         // Check revocations first
         if let Some(revoked_caps) = self.revocations.read().get(&subject_id) {
             if revoked_caps.contains(&(capability as u64)) {
-                self.log_audit_entry(subject_id, capability, object_id, NonosCapabilityResult::Denied, start_time);
+                self.log_audit_entry(
+                    subject_id,
+                    capability,
+                    object_id,
+                    NonosCapabilityResult::Denied,
+                    start_time,
+                );
                 return NonosCapabilityResult::Denied;
             }
         }
@@ -104,7 +110,13 @@ impl NonosCapabilityMatrix {
                 if grant.capability == capability && self.matches_object(grant, object_id) {
                     if self.validate_grant_conditions(grant) {
                         let enforcement_time = self.get_timestamp_ns() - start_time;
-                        self.log_audit_entry(subject_id, capability, object_id, NonosCapabilityResult::Allowed, enforcement_time);
+                        self.log_audit_entry(
+                            subject_id,
+                            capability,
+                            object_id,
+                            NonosCapabilityResult::Allowed,
+                            enforcement_time,
+                        );
                         return NonosCapabilityResult::Allowed;
                     }
                 }
@@ -112,7 +124,13 @@ impl NonosCapabilityMatrix {
         }
 
         let enforcement_time = self.get_timestamp_ns() - start_time;
-        self.log_audit_entry(subject_id, capability, object_id, NonosCapabilityResult::Denied, enforcement_time);
+        self.log_audit_entry(
+            subject_id,
+            capability,
+            object_id,
+            NonosCapabilityResult::Denied,
+            enforcement_time,
+        );
         NonosCapabilityResult::Denied
     }
 
@@ -126,21 +144,21 @@ impl NonosCapabilityMatrix {
 
     fn validate_grant_conditions(&self, grant: &NonosCapabilityGrant) -> bool {
         let current_time = self.get_timestamp_ns();
-        
+
         // Check expiry
         if let Some(expiry) = grant.expiry_time {
             if current_time > expiry {
                 return false;
             }
         }
-        
+
         // Check usage limits
         if let Some(max_usage) = grant.max_usage {
             if grant.usage_count >= max_usage {
                 return false;
             }
         }
-        
+
         true
     }
 
@@ -148,7 +166,7 @@ impl NonosCapabilityMatrix {
         &self,
         subject_id: u64,
         capability: NonosCapabilityType,
-        object_id: Option<u64>
+        object_id: Option<u64>,
     ) -> Result<(), &'static str> {
         let grant = NonosCapabilityGrant {
             capability,
@@ -162,18 +180,18 @@ impl NonosCapabilityMatrix {
 
         let mut grants = self.grants.write();
         grants.entry(subject_id).or_insert_with(Vec::new).push(grant);
-        
+
         Ok(())
     }
 
     pub fn revoke_capability(
         &self,
         subject_id: u64,
-        capability: NonosCapabilityType
+        capability: NonosCapabilityType,
     ) -> Result<(), &'static str> {
         let mut revocations = self.revocations.write();
         revocations.entry(subject_id).or_insert_with(Vec::new).push(capability as u64);
-        
+
         Ok(())
     }
 
@@ -183,7 +201,7 @@ impl NonosCapabilityMatrix {
         capability: NonosCapabilityType,
         object_id: Option<u64>,
         result: NonosCapabilityResult,
-        enforcement_time: u64
+        enforcement_time: u64,
     ) {
         let entry = NonosCapabilityAuditEntry {
             timestamp: self.get_timestamp_ns(),
@@ -196,7 +214,7 @@ impl NonosCapabilityMatrix {
 
         if let Some(mut log) = self.audit_log.try_lock() {
             log.push(entry);
-            
+
             // Maintain log size
             if log.len() > 10000 {
                 log.drain(0..1000);
@@ -212,13 +230,13 @@ impl NonosCapabilityMatrix {
     pub fn get_capability_statistics(&self) -> NonosCapabilityStatistics {
         let audit_log = self.audit_log.lock();
         let total_checks = audit_log.len() as u64;
-        let allowed_checks = audit_log.iter()
-            .filter(|e| matches!(e.result, NonosCapabilityResult::Allowed))
-            .count() as u64;
-        let denied_checks = audit_log.iter()
-            .filter(|e| matches!(e.result, NonosCapabilityResult::Denied))
-            .count() as u64;
-        
+        let allowed_checks =
+            audit_log.iter().filter(|e| matches!(e.result, NonosCapabilityResult::Allowed)).count()
+                as u64;
+        let denied_checks =
+            audit_log.iter().filter(|e| matches!(e.result, NonosCapabilityResult::Denied)).count()
+                as u64;
+
         let average_enforcement_time = if total_checks > 0 {
             audit_log.iter().map(|e| e.enforcement_time_ns).sum::<u64>() / total_checks
         } else {
@@ -249,7 +267,7 @@ pub static NONOS_CAPABILITY_MATRIX: NonosCapabilityMatrix = NonosCapabilityMatri
 pub fn check_capability(
     subject_id: u64,
     capability: NonosCapabilityType,
-    object_id: Option<u64>
+    object_id: Option<u64>,
 ) -> NonosCapabilityResult {
     NONOS_CAPABILITY_MATRIX.check_capability(subject_id, capability, object_id)
 }
@@ -257,14 +275,14 @@ pub fn check_capability(
 pub fn grant_capability(
     subject_id: u64,
     capability: NonosCapabilityType,
-    object_id: Option<u64>
+    object_id: Option<u64>,
 ) -> Result<(), &'static str> {
     NONOS_CAPABILITY_MATRIX.grant_capability(subject_id, capability, object_id)
 }
 
 pub fn revoke_capability(
     subject_id: u64,
-    capability: NonosCapabilityType
+    capability: NonosCapabilityType,
 ) -> Result<(), &'static str> {
     NONOS_CAPABILITY_MATRIX.revoke_capability(subject_id, capability)
 }

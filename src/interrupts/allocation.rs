@@ -1,7 +1,8 @@
 //! Interrupt Vector Allocation
 //!
 //! Management of interrupt vectors for device drivers and system components.
-//! Provides allocation and deallocation of interrupt vectors with conflict detection.
+//! Provides allocation and deallocation of interrupt vectors with conflict
+//! detection.
 
 use alloc::collections::BTreeMap;
 use alloc::string::{String, ToString};
@@ -19,10 +20,7 @@ struct InterruptAllocator {
 
 impl InterruptAllocator {
     const fn new() -> Self {
-        Self {
-            allocated_vectors: BTreeMap::new(),
-            next_vector: DEVICE_INTERRUPT_START,
-        }
+        Self { allocated_vectors: BTreeMap::new(), next_vector: DEVICE_INTERRUPT_START }
     }
 
     fn allocate(&mut self, name: &str) -> Result<u8, &'static str> {
@@ -117,43 +115,45 @@ pub fn get_allocated_vectors() -> BTreeMap<u8, String> {
 pub type InterruptHandler = fn();
 
 /// Interrupt handler registration table
-static INTERRUPT_HANDLERS: Mutex<BTreeMap<u8, InterruptHandler>> = 
-    Mutex::new(BTreeMap::new());
+static INTERRUPT_HANDLERS: Mutex<BTreeMap<u8, InterruptHandler>> = Mutex::new(BTreeMap::new());
 
 /// Register an interrupt handler for a vector
-pub fn register_interrupt_handler(vector: u8, handler: InterruptHandler) -> Result<(), &'static str> {
+pub fn register_interrupt_handler(
+    vector: u8,
+    handler: InterruptHandler,
+) -> Result<(), &'static str> {
     let mut handlers = INTERRUPT_HANDLERS.lock();
-    
+
     if handlers.contains_key(&vector) {
         return Err("Handler already registered for this vector");
     }
-    
+
     handlers.insert(vector, handler);
-    
+
     // Enable the interrupt in the interrupt controller
     crate::arch::x86_64::interrupt::apic::enable_interrupt(vector);
-    
+
     Ok(())
 }
 
 /// Unregister an interrupt handler
 pub fn unregister_interrupt_handler(vector: u8) -> Result<(), &'static str> {
     let mut handlers = INTERRUPT_HANDLERS.lock();
-    
+
     if handlers.remove(&vector).is_none() {
         return Err("No handler registered for this vector");
     }
-    
+
     // Disable the interrupt in the interrupt controller
     crate::arch::x86_64::interrupt::apic::disable_interrupt(vector);
-    
+
     Ok(())
 }
 
 /// Call interrupt handler for a vector
 pub fn call_interrupt_handler(vector: u8) {
     let handlers = INTERRUPT_HANDLERS.lock();
-    
+
     if let Some(&handler) = handlers.get(&vector) {
         // Call the handler
         handler();
@@ -172,14 +172,15 @@ pub fn init_interrupt_allocation() {
 pub fn get_interrupt_stats() -> InterruptStats {
     let guard = INTERRUPT_ALLOCATOR.lock();
     let handlers = INTERRUPT_HANDLERS.lock();
-    
+
     let allocated_count = guard.as_ref().map_or(0, |a| a.allocated_vectors.len());
-    
+
     InterruptStats {
         total_vectors: (DEVICE_INTERRUPT_END - DEVICE_INTERRUPT_START + 1) as usize,
         allocated_vectors: allocated_count,
         registered_handlers: handlers.len(),
-        available_vectors: (DEVICE_INTERRUPT_END - DEVICE_INTERRUPT_START + 1) as usize - allocated_count,
+        available_vectors: (DEVICE_INTERRUPT_END - DEVICE_INTERRUPT_START + 1) as usize
+            - allocated_count,
     }
 }
 

@@ -6,9 +6,9 @@
 
 use crate::ipc::message::{IpcEnvelope, MessageType, MsgFlags};
 use crate::syscall::capabilities::CapabilityToken;
-use alloc::{vec::Vec, string::String, format};
-use core::time::Duration;
+use alloc::{format, string::String, vec::Vec};
 use core::sync::atomic::{AtomicU64, Ordering};
+use core::time::Duration;
 use spin::Mutex;
 
 /// Maximum IPC stream chunk size
@@ -27,7 +27,12 @@ pub struct IpcStream {
 }
 
 impl IpcStream {
-    pub fn new(session_id: &'static str, from: &'static str, to: &'static str, encrypted: bool) -> Self {
+    pub fn new(
+        session_id: &'static str,
+        from: &'static str,
+        to: &'static str,
+        encrypted: bool,
+    ) -> Self {
         Self {
             session_id,
             from,
@@ -58,19 +63,11 @@ impl IpcStream {
             flags |= MsgFlags::ENCRYPTED;
         }
 
-        IpcEnvelope::new(
-            MessageType::User,
-            self.from,
-            self.to,
-            chunk,
-            Some(self.session_id),
-        )
+        IpcEnvelope::new(MessageType::User, self.from, self.to, chunk, Some(self.session_id))
     }
 
     pub fn is_idle(&self, now: Duration, timeout: Duration) -> bool {
-        now.checked_sub(self.last_activity)
-            .map(|delta| delta > timeout)
-            .unwrap_or(true)
+        now.checked_sub(self.last_activity).map(|delta| delta > timeout).unwrap_or(true)
     }
 }
 

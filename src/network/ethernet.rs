@@ -5,9 +5,9 @@
 use alloc::vec::Vec;
 
 /// Ethernet Type constants (RFC 7042)
-pub const ETHERTYPE_IP: u16 = 0x0800;    // IPv4
-pub const ETHERTYPE_IPV6: u16 = 0x86DD;  // IPv6
-pub const ETHERTYPE_ARP: u16 = 0x0806;   // Address Resolution Protocol
+pub const ETHERTYPE_IP: u16 = 0x0800; // IPv4
+pub const ETHERTYPE_IPV6: u16 = 0x86DD; // IPv6
+pub const ETHERTYPE_ARP: u16 = 0x0806; // Address Resolution Protocol
 
 /// Ethernet frame header
 #[repr(C, packed)]
@@ -26,11 +26,11 @@ impl MacAddress {
     pub fn new(addr: [u8; 6]) -> Self {
         MacAddress(addr)
     }
-    
+
     pub fn broadcast() -> Self {
         MacAddress([0xFF; 6])
     }
-    
+
     pub fn is_broadcast(&self) -> bool {
         self.0 == [0xFF; 6]
     }
@@ -59,24 +59,17 @@ impl EthernetFrame {
 
         let mut dst_mac = [0u8; 6];
         let mut src_mac = [0u8; 6];
-        
+
         dst_mac.copy_from_slice(&data[0..6]);
         src_mac.copy_from_slice(&data[6..12]);
-        
+
         let ethertype = u16::from_be_bytes([data[12], data[13]]);
-        
-        let header = EthernetHeader {
-            dst_mac,
-            src_mac,
-            ethertype,
-        };
+
+        let header = EthernetHeader { dst_mac, src_mac, ethertype };
 
         let payload = data[14..].to_vec();
 
-        Ok(EthernetFrame {
-            header,
-            payload,
-        })
+        Ok(EthernetFrame { header, payload })
     }
 
     /// Get ethertype from the frame

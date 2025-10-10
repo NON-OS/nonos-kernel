@@ -1,26 +1,26 @@
 extern crate alloc;
 use alloc::vec::Vec;
 
-pub mod hash;
-pub mod vault;
-pub mod entropy;
-pub mod rsa;
-pub mod sig;
-pub mod zk;
 pub mod advanced_crypto;
-pub mod sha3;
-pub mod util;
-pub mod nonos_zk;
 pub mod aead;
-pub mod curve25519;
-pub mod hmac;
 pub mod bigint;
+pub mod curve25519;
+pub mod entropy;
+pub mod hash;
+pub mod hmac;
+pub mod nonos_zk;
+pub mod rsa;
+pub mod sha3;
+pub mod sig;
+pub mod util;
+pub mod vault;
+pub mod zk;
 
-pub use hash::blake3_hash;
-pub use vault::{init_vault, is_vault_ready};
 pub use entropy::seed_rng;
-pub use zk::{generate_snapshot_signature, AttestationProof};
+pub use hash::blake3_hash;
 pub use util::*;
+pub use vault::{init_vault, is_vault_ready};
+pub use zk::{generate_snapshot_signature, AttestationProof};
 
 // Crypto context for file system
 pub struct CryptoContext {
@@ -38,13 +38,13 @@ pub fn create_merkle_tree(leaves: &[[u8; 32]]) -> Result<Vec<[u8; 32]>, &'static
     if leaves.is_empty() {
         return Ok(Vec::new());
     }
-    
+
     let mut tree = Vec::new();
     let mut current_level = leaves.to_vec();
-    
+
     while current_level.len() > 1 {
         let mut next_level = Vec::new();
-        
+
         for chunk in current_level.chunks(2) {
             let hash = if chunk.len() == 2 {
                 let mut combined = [0u8; 64];
@@ -56,11 +56,11 @@ pub fn create_merkle_tree(leaves: &[[u8; 32]]) -> Result<Vec<[u8; 32]>, &'static
             };
             next_level.push(hash);
         }
-        
+
         tree.extend_from_slice(&current_level);
         current_level = next_level;
     }
-    
+
     tree.extend_from_slice(&current_level);
     Ok(tree)
 }
@@ -121,12 +121,16 @@ pub fn fill_random(buffer: &mut [u8]) {
 }
 
 /// Hash a memory region
-pub fn hash_memory_region(start_addr: u64, size: usize, output: &mut [u8; 32]) -> Result<(), &'static str> {
+pub fn hash_memory_region(
+    start_addr: u64,
+    size: usize,
+    output: &mut [u8; 32],
+) -> Result<(), &'static str> {
     if size == 0 {
         *output = [0u8; 32];
         return Ok(());
     }
-    
+
     unsafe {
         let memory_slice = core::slice::from_raw_parts(start_addr as *const u8, size);
         *output = blake3_hash(memory_slice);

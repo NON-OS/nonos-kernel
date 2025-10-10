@@ -1,32 +1,35 @@
 //! Relay Implementation (v1)
 //! - RSA/Ed25519/X25519 (ntor) keys
-//! - TLS server handshakes per connection (delegated to tls::TLSConnection) OR cell I/O loop with fixed-size cells (514 bytes) and strict parsing
+//! - TLS server handshakes per connection (delegated to tls::TLSConnection) OR
+//!   cell I/O loop with fixed-size cells (514 bytes) and strict parsing
 //! - CREATE (TAP) and CREATE2 (ntor) handshakes -> per-circuit AES-CTR keys/IVs
 //! - EXTEND2/EXTENDED2 hop extension
 //! - BEGIN/CONNECTED/END with exit-policy enforcement
 //! - Flow-safe send/recv with error bubbling and accounting
 //!
 //! Assumptions:
-//! - `cell::{Cell, RelayCell, RelayCommand}` serialize/deserialize exactly Tor cell wire format.
+//! - `cell::{Cell, RelayCell, RelayCommand}` serialize/deserialize exactly Tor
+//!   cell wire format.
 //! - `crypto::hash` provides sha256/blake3; `vault` provides secure randomness.
-//! - `tls::TLSConnection` completes a TLS 1.3 handshake (record protection handled by stack).
+//! - `tls::TLSConnection` completes a TLS 1.3 handshake (record protection
+//!   handled by stack).
 //! - `TcpSocket` delivers a TLS-protected bytestream once handshake completes.
 
 #![allow(clippy::needless_return)]
 
-use alloc::{vec::Vec, collections::BTreeMap, string::String, vec};
+use alloc::{collections::BTreeMap, string::String, vec, vec::Vec};
+use core::sync::atomic::{AtomicBool, AtomicU32, AtomicU64, Ordering};
 use spin::Mutex;
-use core::sync::atomic::{AtomicU32, AtomicU64, AtomicBool, Ordering};
 
-use super::{OnionError, CircuitId};
 use super::cell::{Cell, CellType, RelayCell, RelayCommand};
-use super::crypto::{LayerKeys, NTOR_ONIONSKIN_LEN, NTOR_REPLY_LEN, KEY_LEN, IV_LEN};
+use super::crypto::{LayerKeys, IV_LEN, KEY_LEN, NTOR_ONIONSKIN_LEN, NTOR_REPLY_LEN};
 use super::directory::ExitRule;
-use super::nonos_crypto::{RSAKeyPair, RealCurve25519, RealEd25519, RealDH, RealRSA};
+use super::nonos_crypto::{RSAKeyPair, RealCurve25519, RealDH, RealEd25519, RealRSA};
 use super::tls::{TLSConnection, TLSState};
+use super::{CircuitId, OnionError};
 use crate::crypto::{hash, vault};
-use crate::network::{tcp::TcpSocket, stack::IpAddress};
 use crate::network::get_network_stack;
+use crate::network::{stack::IpAddress, tcp::TcpSocket};
 
 const CELL_LEN: usize = 514; // fixed tor cell
 const CREATED_TAP_REPLY_LEN: usize = 128 + 20; // DH pub + KH (TAP)
@@ -57,10 +60,10 @@ pub struct RelayConfig {
 }
 
 struct RelayKeys {
-    identity: RSAKeyPair,     // RSA identity (Tor historical; ed25519 for modern)
-    onion: RSAKeyPair,        // RSA onion key (TAP)
-    ntor_secret: [u8; 32],    // curve25519 secret
-    ntor_public: [u8; 32],    // curve25519 public
+    identity: RSAKeyPair,  // RSA identity (Tor historical; ed25519 for modern)
+    onion: RSAKeyPair,     // RSA onion key (TAP)
+    ntor_secret: [u8; 32], // curve25519 secret
+    ntor_public: [u8; 32], // curve25519 public
     ed25519_secret: [u8; 32],
     ed25519_public: [u8; 32],
 }
@@ -134,14 +137,7 @@ impl OnionRelay {
         let mut ed25519_secret = [0u8; 32];
         ed25519_secret.copy_from_slice(&vault::generate_random_bytes(32)?);
         let ed25519_public = RealEd25519::public_key(&ed25519_secret);
-        Ok(RelayKeys {
-            identity,
-            onion,
-            ntor_secret,
-            ntor_public,
-            ed25519_secret,
-            ed25519_public,
-        })
+        Ok(RelayKeys { identity, onion, ntor_secret, ntor_public, ed25519_secret, ed25519_public })
     }
 
     pub fn start(&self) -> Result<(), OnionError> {
@@ -184,10 +180,14 @@ impl OnionRelay {
         // Note: TLS implementation needs server-side support for relay functionality
         let mut buf = vec![0u8; 4096];
         let n = socket_recv_timeout(&c.socket, &mut buf, RECV_TIMEOUT_MS)?;
-        if n == 0 { return Err(OnionError::NetworkError); }
+        if n == 0 {
+            return Err(OnionError::NetworkError);
+        }
 
-        // Use handshake_full for TLS setup (client-side oriented, needs adaptation for server)
-        let dummy_verifier: &'static dyn crate::network::onion::tls::CertVerifier = &crate::network::onion::tls::DummyCertVerifier;
+        // Use handshake_full for TLS setup (client-side oriented, needs adaptation for
+        // server)
+        let dummy_verifier: &'static dyn crate::network::onion::tls::CertVerifier =
+            &crate::network::onion::tls::DummyCertVerifier;
         let _session_info = tls.handshake_full(&c.socket, None, None, dummy_verifier)?;
         // Handshake response already sent during handshake_full
         c.tls_state = TLSState::Connected;
@@ -220,7 +220,9 @@ impl OnionRelay {
                 socket_recv_exact(&c.socket, &mut read_buf)?
             };
 
-            if n != CELL_LEN { continue; }
+            if n != CELL_LEN {
+                continue;
+            }
 
             self.stats.cells_processed.fetch_add(1, Ordering::SeqCst);
             {
@@ -249,13 +251,16 @@ impl OnionRelay {
     // ---- CREATE (TAP) ----
     fn handle_create_tap(&self, conn_id: u32, cell: Cell) -> Result<(), OnionError> {
         // TAP isn’t preferred anymore; keep for compatibility.
-        if cell.payload.len() < 128 { return Err(OnionError::InvalidCell); }
+        if cell.payload.len() < 128 {
+            return Err(OnionError::InvalidCell);
+        }
 
         // Server DH
         let (priv_dh, pub_dh) = RealDH::generate_keypair()?;
         let shared = RealDH::compute_shared(&priv_dh, &cell.payload[..128])?;
 
-        // Tor KDF: derive 16+16 keys, 16+16 IVs, 4+4 digests (total 72 bytes to match LayerKeys)
+        // Tor KDF: derive 16+16 keys, 16+16 IVs, 4+4 digests (total 72 bytes to match
+        // LayerKeys)
         let km = kdf_tor_72(&shared)?;
 
         let keys = LayerKeys::new(
@@ -284,7 +289,7 @@ impl OnionRelay {
 
         let mut reply = Vec::with_capacity(CREATED_TAP_REPLY_LEN);
         reply.extend_from_slice(&pub_dh); // 128
-        reply.extend_from_slice(&kh);     // 20
+        reply.extend_from_slice(&kh); // 20
 
         let created = Cell::created_cell(cell.circuit_id, reply);
         self.insert_circuit_and_send(conn_id, circuit, created)
@@ -293,7 +298,9 @@ impl OnionRelay {
     // ---- CREATE2 (ntor) ----
     fn handle_create2_ntor(&self, conn_id: u32, cell: Cell) -> Result<(), OnionError> {
         // Payload: [HS_TYPE(2) | HS_LEN(2) | ONIONSKIN...]
-        if cell.payload.len() < 4 { return Err(OnionError::InvalidCell); }
+        if cell.payload.len() < 4 {
+            return Err(OnionError::InvalidCell);
+        }
         let hs_type = u16::from_be_bytes([cell.payload[0], cell.payload[1]]);
         let hs_len = u16::from_be_bytes([cell.payload[2], cell.payload[3]]) as usize;
         if hs_type != 2 || hs_len != NTOR_ONIONSKIN_LEN || cell.payload.len() < 4 + hs_len {
@@ -327,7 +334,12 @@ impl OnionRelay {
         self.insert_circuit_and_send(conn_id, circuit, created2)
     }
 
-    fn insert_circuit_and_send(&self, conn_id: u32, circuit: RelayCircuit, out: Cell) -> Result<(), OnionError> {
+    fn insert_circuit_and_send(
+        &self,
+        conn_id: u32,
+        circuit: RelayCircuit,
+        out: Cell,
+    ) -> Result<(), OnionError> {
         self.circuits.lock().insert(circuit.circuit_id, circuit);
         self.stats.circuits_created.fetch_add(1, Ordering::SeqCst);
         self.send_cell(conn_id, out)
@@ -335,7 +347,8 @@ impl OnionRelay {
 
     // ---- RELAY handling ----
     fn handle_relay(&self, conn_id: u32, cell: Cell) -> Result<(), OnionError> {
-        // Find circuit and attempt backward-direction decrypt (as we’re receiving from prev hop)
+        // Find circuit and attempt backward-direction decrypt (as we’re receiving from
+        // prev hop)
         let keys = {
             let m = self.circuits.lock();
             let c = m.get(&cell.circuit_id).ok_or(OnionError::CircuitBuildFailed)?;
@@ -345,7 +358,12 @@ impl OnionRelay {
         // Decrypt relay payload (backward path when received from previous hop)
         let mut plain = decrypt_aes_ctr(&keys.backward_key, &keys.backward_iv, &cell.payload)?;
         // Parse relay cell; recognized==0 means “for us”
-        let relay_in = Cell { circuit_id: cell.circuit_id, command: cell.command, payload: plain, is_variable_length: false };
+        let relay_in = Cell {
+            circuit_id: cell.circuit_id,
+            command: cell.command,
+            payload: plain,
+            is_variable_length: false,
+        };
         let parsed = relay_in.parse_relay_cell()?;
 
         if parsed.header.recognized == 0 {
@@ -360,16 +378,17 @@ impl OnionRelay {
     fn process_local_relay(&self, conn_id: u32, rc: RelayCell) -> Result<(), OnionError> {
         match rc.header.command {
             RelayCommand::RelayExtend2 => self.handle_extend2(conn_id, rc),
-            RelayCommand::RelayBegin    => self.handle_begin(conn_id, rc),
-            RelayCommand::RelayData     => self.handle_data(conn_id, rc),
-            RelayCommand::RelayEnd      => self.handle_end(conn_id, rc),
-            RelayCommand::RelaySendme   => self.handle_sendme(conn_id, rc),
+            RelayCommand::RelayBegin => self.handle_begin(conn_id, rc),
+            RelayCommand::RelayData => self.handle_data(conn_id, rc),
+            RelayCommand::RelayEnd => self.handle_end(conn_id, rc),
+            RelayCommand::RelaySendme => self.handle_sendme(conn_id, rc),
             _ => Ok(()),
         }
     }
 
     fn forward_encrypted(&self, mut cell: Cell) -> Result<(), OnionError> {
-        // Forward as-is to next hop (re-encryption happens at the next hop after it decrypts one layer)
+        // Forward as-is to next hop (re-encryption happens at the next hop after it
+        // decrypts one layer)
         let next = {
             let m = self.circuits.lock();
             let c = m.get(&cell.circuit_id).ok_or(OnionError::CircuitBuildFailed)?;
@@ -391,11 +410,17 @@ impl OnionRelay {
         // TLS to next hop
         let next_id = self.next_connection_id.fetch_add(1, Ordering::SeqCst);
         let tc = TorConnection {
-            id: next_id, socket: next, remote_addr: info.addr_v4, remote_port: info.port,
-            state: ConnectionState::Connected, tls_state: TLSState::Start, last_activity_ms: now_ms()
+            id: next_id,
+            socket: next,
+            remote_addr: info.addr_v4,
+            remote_port: info.port,
+            state: ConnectionState::Connected,
+            tls_state: TLSState::Start,
+            last_activity_ms: now_ms(),
         };
         self.connections.lock().insert(next_id, tc);
-        self.perform_tls_server_handshake(next_id)?; // act as server or client? In Tor, as client; here we reuse server TLS for simplicity of integration.
+        self.perform_tls_server_handshake(next_id)?; // act as server or client? In Tor, as client; here we reuse server TLS for
+                                                     // simplicity of integration.
 
         // Create circuit on next hop
         let next_circ = Self::generate_circuit_id();
@@ -418,7 +443,11 @@ impl OnionRelay {
         self.send_cell(conn_id, extended2)
     }
 
-    fn block_until_created2(&self, next_conn: u32, next_circ: CircuitId) -> Result<Vec<u8>, OnionError> {
+    fn block_until_created2(
+        &self,
+        next_conn: u32,
+        next_circ: CircuitId,
+    ) -> Result<Vec<u8>, OnionError> {
         let mut buf = vec![0u8; CELL_LEN];
         loop {
             let n = {
@@ -426,7 +455,9 @@ impl OnionRelay {
                 let c = m.get(&next_conn).ok_or(OnionError::NetworkError)?;
                 socket_recv_exact(&c.socket, &mut buf)?
             };
-            if n != CELL_LEN { continue; }
+            if n != CELL_LEN {
+                continue;
+            }
             let cell = Cell::deserialize(&buf)?;
             if cell.circuit_id == next_circ && cell.command == CellType::Created2 as u8 {
                 // Return payload of CREATED2
@@ -450,7 +481,8 @@ impl OnionRelay {
         // Connect out
         let out = TcpSocket::new();
         socket_connect(&out, ip, port)?;
-        // Store mapping (stream routing) – omitted: you likely have a stream manager; integrate there.
+        // Store mapping (stream routing) – omitted: you likely have a stream manager;
+        // integrate there.
 
         // Reply CONNECTED
         let connected = Cell::relay_connected_cell(rc.circuit_id, rc.header.stream_id, ip, 1800);
@@ -496,29 +528,35 @@ impl OnionRelay {
     }
 
     fn generate_circuit_id() -> CircuitId {
-        let b = vault::generate_random_bytes(4).unwrap_or(vec![0,0,0,1]);
+        let b = vault::generate_random_bytes(4).unwrap_or(vec![0, 0, 0, 1]);
         u32::from_be_bytes([b[0], b[1], b[2], b[3]])
     }
 
     // ---- ntor server side ----
     fn ntor_server_handshake(&self, onionskin: &[u8]) -> Result<NtorResponse, OnionError> {
-        if onionskin.len() != NTOR_ONIONSKIN_LEN { return Err(OnionError::InvalidCell); }
+        if onionskin.len() != NTOR_ONIONSKIN_LEN {
+            return Err(OnionError::InvalidCell);
+        }
         // onionskin layout for ntor-curve25519-sha256-1:
         // NODE_ID (20) | KEYID(B) (32) | CLIENT_PK(X) (32)
         let node_id = &onionskin[0..20];
         let keyid_b = &onionskin[20..52];
         let client_pk = &onionskin[52..84];
 
-        // Verify our identities (NODE_ID can be SHA1 of RSA identity key; KEYID(B) is our ntor public)
+        // Verify our identities (NODE_ID can be SHA1 of RSA identity key; KEYID(B) is
+        // our ntor public)
         let our_keyid = &self.relay_keys.ntor_public;
-        if keyid_b != our_keyid { return Err(OnionError::AuthenticationFailed); }
+        if keyid_b != our_keyid {
+            return Err(OnionError::AuthenticationFailed);
+        }
 
         // Ephemeral Y
         let mut y = [0u8; 32];
         y.copy_from_slice(&vault::generate_random_bytes(32)?);
         let y_pub = RealCurve25519::public_key(&y);
 
-        let mut x = [0u8; 32]; x.copy_from_slice(client_pk);
+        let mut x = [0u8; 32];
+        x.copy_from_slice(client_pk);
         let secret1 = RealCurve25519::scalar_mult(&self.relay_keys.ntor_secret, &x);
         let secret2 = RealCurve25519::scalar_mult(&y, &x);
 
@@ -564,25 +602,35 @@ struct Extend2Info {
     handshake_data: Vec<u8>, // ntor client handshake to forward
 }
 
-// Parse EXTEND2 payload (link specifiers + handshake type/len + handshake data).
+// Parse EXTEND2 payload (link specifiers + handshake type/len + handshake
+// data).
 fn parse_extend2(payload: &[u8]) -> Result<Extend2Info, OnionError> {
     // EXTEND2: NSPEC(1) | [spec...] | HTYPE(2) | HLEN(2) | HDATA(HLEN)
-    if payload.len() < 1 + 2 + 2 { return Err(OnionError::InvalidCell); }
+    if payload.len() < 1 + 2 + 2 {
+        return Err(OnionError::InvalidCell);
+    }
     let nspec = payload[0] as usize;
     let mut off = 1usize;
     let mut addr_v4 = [0u8; 4];
     let mut port: u16 = 0;
 
     for _ in 0..nspec {
-        if payload.len() < off + 3 { return Err(OnionError::InvalidCell); }
-        let stype = payload[off];        // 0x00=IPv4, 0x01=IPv6, 0x02=Legacy ID, 0x03=Ed25519, ...
-        let slen = u16::from_be_bytes([payload[off+1], payload[off+2]]) as usize;
+        if payload.len() < off + 3 {
+            return Err(OnionError::InvalidCell);
+        }
+        let stype = payload[off]; // 0x00=IPv4, 0x01=IPv6, 0x02=Legacy ID, 0x03=Ed25519, ...
+        let slen = u16::from_be_bytes([payload[off + 1], payload[off + 2]]) as usize;
         off += 3;
-        if payload.len() < off + slen { return Err(OnionError::InvalidCell); }
-        let sdata = &payload[off..off+slen];
+        if payload.len() < off + slen {
+            return Err(OnionError::InvalidCell);
+        }
+        let sdata = &payload[off..off + slen];
         match stype {
-            0x00 => { // IPv4: addr(4) port(2)
-                if slen != 6 { return Err(OnionError::InvalidCell); }
+            0x00 => {
+                // IPv4: addr(4) port(2)
+                if slen != 6 {
+                    return Err(OnionError::InvalidCell);
+                }
                 addr_v4.copy_from_slice(&sdata[0..4]);
                 port = u16::from_be_bytes([sdata[4], sdata[5]]);
             }
@@ -591,12 +639,16 @@ fn parse_extend2(payload: &[u8]) -> Result<Extend2Info, OnionError> {
         off += slen;
     }
 
-    if payload.len() < off + 4 { return Err(OnionError::InvalidCell); }
-    let htype = u16::from_be_bytes([payload[off], payload[off+1]]);
-    let hlen  = u16::from_be_bytes([payload[off+2], payload[off+3]]) as usize;
+    if payload.len() < off + 4 {
+        return Err(OnionError::InvalidCell);
+    }
+    let htype = u16::from_be_bytes([payload[off], payload[off + 1]]);
+    let hlen = u16::from_be_bytes([payload[off + 2], payload[off + 3]]) as usize;
     off += 4;
-    if htype != 2 || payload.len() < off + hlen { return Err(OnionError::InvalidCell); }
-    let hdata = payload[off..off+hlen].to_vec();
+    if htype != 2 || payload.len() < off + hlen {
+        return Err(OnionError::InvalidCell);
+    }
+    let hdata = payload[off..off + hlen].to_vec();
 
     Ok(Extend2Info { addr_v4, port, handshake_data: hdata })
 }
@@ -610,8 +662,8 @@ fn parse_begin_target(bytes: &[u8]) -> Result<(&str, u16), OnionError> {
 }
 
 fn exit_policy_allows(rules: &[ExitRule], host: &str, port: u16) -> bool {
-    // Minimal implementation: honor explicit rejects for port, otherwise allow if `is_exit`
-    // Extend with IP/CIDR and pattern matching as needed.
+    // Minimal implementation: honor explicit rejects for port, otherwise allow if
+    // `is_exit` Extend with IP/CIDR and pattern matching as needed.
     for r in rules {
         match r {
             super::directory::ExitRule::Reject { addr: _, port: rule_port } => {
@@ -637,7 +689,8 @@ fn resolve_host(host: &str) -> Result<[u8; 4], OnionError> {
 // ---- cryptographic helpers aligned with LayerKeys (72 bytes total) ----
 
 fn kdf_tor_72(secret: &[u8]) -> Result<Vec<u8>, OnionError> {
-    // Build 72 bytes using HKDF-like expansion with SHA-256 (stable & constant-time primitives)
+    // Build 72 bytes using HKDF-like expansion with SHA-256 (stable & constant-time
+    // primitives)
     hkdf_expand(secret, b"nonos-tor-kdf:keys+ivs+digests", 72)
 }
 
@@ -670,8 +723,11 @@ fn hmac_sha256(key: &[u8], data: &[u8]) -> Result<[u8; 32], OnionError> {
         k0[..key.len()].copy_from_slice(key);
     }
     let mut ipad = [0x36u8; 64];
-    let mut opad = [0x5cu8; 64];
-    for i in 0..64 { ipad[i] ^= k0[i]; opad[i] ^= k0[i]; }
+    let mut opad = [0x5Cu8; 64];
+    for i in 0..64 {
+        ipad[i] ^= k0[i];
+        opad[i] ^= k0[i];
+    }
 
     let mut inner = Vec::with_capacity(64 + data.len());
     inner.extend_from_slice(&ipad);
@@ -687,9 +743,13 @@ fn hmac_sha256(key: &[u8], data: &[u8]) -> Result<[u8; 32], OnionError> {
     Ok(out)
 }
 
-fn decrypt_aes_ctr(key: &[u8; KEY_LEN], iv: &[u8; IV_LEN], data: &[u8]) -> Result<Vec<u8>, OnionError> {
-    // Use your crypto::LayerKeys AES-CTR semantics: CTR with 128-bit key and 128-bit IV
-    // We do a local minimal CTR (re-using the design in crypto.rs)
+fn decrypt_aes_ctr(
+    key: &[u8; KEY_LEN],
+    iv: &[u8; IV_LEN],
+    data: &[u8],
+) -> Result<Vec<u8>, OnionError> {
+    // Use your crypto::LayerKeys AES-CTR semantics: CTR with 128-bit key and
+    // 128-bit IV We do a local minimal CTR (re-using the design in crypto.rs)
     use core::cmp::min;
     let mut out = vec![0u8; data.len()];
     let mut counter_block = [0u8; 16];
@@ -703,16 +763,19 @@ fn decrypt_aes_ctr(key: &[u8; KEY_LEN], iv: &[u8; IV_LEN], data: &[u8]) -> Resul
         block[8..16].copy_from_slice(&ctr_bytes);
         let ks = aes_encrypt_block(key, &block)?;
         let n = min(16, chunk.len());
-        for j in 0..n { out[i*16 + j] = chunk[j] ^ ks[j]; }
+        for j in 0..n {
+            out[i * 16 + j] = chunk[j] ^ ks[j];
+        }
         block_ctr = block_ctr.wrapping_add(1);
     }
     Ok(out)
 }
 
 fn aes_encrypt_block(key: &[u8; 16], block: &[u8; 16]) -> Result<[u8; 16], OnionError> {
-    // Use own hardware-accelerated vault if available. Here we delegate to crypto::vault if exposed,
-    // else fall back to the software path from crypto.rs (not re-duplicated here).
-    // For v1, we call into a hypothetical vault primitive:
+    // Use own hardware-accelerated vault if available. Here we delegate to
+    // crypto::vault if exposed, else fall back to the software path from
+    // crypto.rs (not re-duplicated here). For v1, we call into a hypothetical
+    // vault primitive:
     if let Ok(b) = crate::crypto::vault::aes128_ecb_encrypt_block(key, block) {
         return Ok(b);
     }
@@ -771,7 +834,9 @@ fn socket_recv_exact(sock: &TcpSocket, dst: &mut [u8]) -> Result<usize, OnionErr
     let mut off = 0usize;
     while off < dst.len() {
         let n = socket_recv_timeout(sock, &mut dst[off..], RECV_TIMEOUT_MS)?;
-        if n == 0 { break; }
+        if n == 0 {
+            break;
+        }
         off += n;
     }
     Ok(off)
@@ -779,25 +844,41 @@ fn socket_recv_exact(sock: &TcpSocket, dst: &mut [u8]) -> Result<usize, OnionErr
 
 // ---- small utils ----
 
-fn now_ms() -> u64 { crate::time::timestamp_millis() }
+fn now_ms() -> u64 {
+    crate::time::timestamp_millis()
+}
 
 fn as_arr_16(s: &[u8]) -> Result<[u8; 16], OnionError> {
-    if s.len() != 16 { return Err(OnionError::CryptoError); }
-    let mut a = [0u8; 16]; a.copy_from_slice(s); Ok(a)
+    if s.len() != 16 {
+        return Err(OnionError::CryptoError);
+    }
+    let mut a = [0u8; 16];
+    a.copy_from_slice(s);
+    Ok(a)
 }
 fn as_arr_4(s: &[u8]) -> Result<[u8; 4], OnionError> {
-    if s.len() != 4 { return Err(OnionError::CryptoError); }
-    let mut a = [0u8; 4]; a.copy_from_slice(s); Ok(a)
+    if s.len() != 4 {
+        return Err(OnionError::CryptoError);
+    }
+    let mut a = [0u8; 4];
+    a.copy_from_slice(s);
+    Ok(a)
 }
 
 // Extend TcpSocket with required methods expected by network stack.
 pub trait TcpSocketExt {
     fn connection_id(&self) -> u32;
-    fn from_connection(id: u32) -> Self where Self: Sized;
+    fn from_connection(id: u32) -> Self
+    where
+        Self: Sized;
 }
 impl TcpSocketExt for TcpSocket {
-    fn connection_id(&self) -> u32 { TcpSocket::connection_id(self) }
-    fn from_connection(id: u32) -> Self { TcpSocket::from_connection(id) }
+    fn connection_id(&self) -> u32 {
+        TcpSocket::connection_id(self)
+    }
+    fn from_connection(id: u32) -> Self {
+        TcpSocket::from_connection(id)
+    }
 }
 
 pub struct RelayManager {

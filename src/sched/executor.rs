@@ -1,10 +1,10 @@
 //! Advanced Async Executor for NON-OS
-//! 
+//!
 //! High-performance async executor with capability-aware scheduling
 
 use crate::sched::scheduler;
-use spin::Mutex;
 use alloc::vec::Vec;
+use spin::Mutex;
 
 /// Task execution state
 static EXECUTOR_STATE: Mutex<ExecutorState> = Mutex::new(ExecutorState::new());
@@ -16,10 +16,7 @@ struct ExecutorState {
 
 impl ExecutorState {
     const fn new() -> Self {
-        Self {
-            ready_queue: Vec::new(),
-            current_task: None,
-        }
+        Self { ready_queue: Vec::new(), current_task: None }
     }
 }
 
@@ -34,13 +31,9 @@ pub fn init() {
     let mut state = EXECUTOR_STATE.lock();
     state.ready_queue.clear();
     state.current_task = None;
-    
+
     // Create idle task
-    state.ready_queue.push(TaskHandle {
-        id: 0,
-        name: "idle",
-        entry: idle_task,
-    });
+    state.ready_queue.push(TaskHandle { id: 0, name: "idle", entry: idle_task });
 }
 
 fn idle_task() {
@@ -60,13 +53,13 @@ pub fn yield_to_scheduler() {
 pub fn run_scheduler() -> ! {
     // Initialize scheduler
     scheduler::init_scheduler();
-    
+
     // Create initial system tasks
     create_system_tasks();
-    
+
     // Run main scheduler loop
     scheduler::run_scheduler();
-    
+
     // If we get here, all tasks completed - enter idle loop
     loop {
         unsafe {
@@ -77,38 +70,46 @@ pub fn run_scheduler() -> ! {
 
 fn create_system_tasks() {
     use crate::sched::scheduler::spawn_task;
-    
+
     // Spawn system monitoring task
-    spawn_task("system.monitor", async {
-        loop {
-            // Perform actual health check
-            crate::system_monitor::periodic_health_check();
-            
-            // Sleep for 5 seconds between checks
-            simple_delay(5000).await;
-        }
-    }, 1);
-    
-    // Spawn memory management task  
-    spawn_task("memory.maintenance", async {
-        loop {
-            // Check heap health
-            let heap_stats = crate::memory::heap::get_heap_stats();
-            if !crate::memory::heap::check_heap_health() {
-                crate::log::logger::log_critical("Heap health degraded");
+    spawn_task(
+        "system.monitor",
+        async {
+            loop {
+                // Perform actual health check
+                crate::system_monitor::periodic_health_check();
+
+                // Sleep for 5 seconds between checks
+                simple_delay(5000).await;
             }
-            
-            // Sleep for 30 seconds between maintenance
-            simple_delay(30000).await;
-        }
-    }, 0);
+        },
+        1,
+    );
+
+    // Spawn memory management task
+    spawn_task(
+        "memory.maintenance",
+        async {
+            loop {
+                // Check heap health
+                let heap_stats = crate::memory::heap::get_heap_stats();
+                if !crate::memory::heap::check_heap_health() {
+                    crate::log::logger::log_critical("Heap health degraded");
+                }
+
+                // Sleep for 30 seconds between maintenance
+                simple_delay(30000).await;
+            }
+        },
+        0,
+    );
 }
 
 // Simple delay implementation
 async fn simple_delay(ms: u64) {
     let start = crate::time::timestamp_millis();
     let target = start + ms;
-    
+
     while crate::time::timestamp_millis() < target {
         // Yield to scheduler by checking if we should continue
         core::hint::spin_loop();

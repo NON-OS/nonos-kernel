@@ -1,10 +1,10 @@
 //! Module Runtime Execution Engine
-//! 
+//!
 //! Advanced sandboxed execution environment for verified modules
 
 use crate::modules::manifest::ModuleManifest;
+use crate::runtime::isolation::{create_isolation_context, IsolationContext};
 use crate::syscall::capabilities::CapabilityToken;
-use crate::runtime::isolation::{IsolationContext, create_isolation_context};
 use alloc::sync::Arc;
 
 /// Module instance with full runtime context
@@ -27,10 +27,13 @@ pub enum ModuleState {
 }
 
 /// Launch verified module in sandboxed environment
-pub fn launch_module(manifest: &'static ModuleManifest, token: CapabilityToken) -> Result<ModuleInstance, &'static str> {
+pub fn launch_module(
+    manifest: &'static ModuleManifest,
+    token: CapabilityToken,
+) -> Result<ModuleInstance, &'static str> {
     // Create isolation context with memory bounds
     let isolation_ctx = create_isolation_context(&manifest.memory_requirements)?;
-    
+
     // Initialize module instance
     let instance = ModuleInstance {
         id: manifest.module_id(),
@@ -39,10 +42,10 @@ pub fn launch_module(manifest: &'static ModuleManifest, token: CapabilityToken) 
         capability_token: token,
         state: ModuleState::Loading,
     };
-    
+
     // Load module into isolated memory space
     load_module_binary(&instance)?;
-    
+
     // Transition to running state
     Ok(instance)
 }

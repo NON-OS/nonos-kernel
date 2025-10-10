@@ -1,14 +1,14 @@
 // NONOS syscall handler implementation
 
-use alloc::{vec::Vec, collections::BTreeMap};
-use spin::RwLock;
-use x86_64::VirtAddr;
 use crate::{
     memory::nonos_memory::{
-        allocate_nonos_secure_memory, NonosMemoryRegionType, NonosSecurityLevel
+        allocate_nonos_secure_memory, NonosMemoryRegionType, NonosSecurityLevel,
     },
     syscall::capabilities::CapabilityToken,
 };
+use alloc::{collections::BTreeMap, vec::Vec};
+use spin::RwLock;
+use x86_64::VirtAddr;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 pub enum NonosSyscallNumber {
@@ -56,7 +56,8 @@ pub struct NonosSyscallHandler {
 
 #[derive(Debug)]
 pub struct NonosCapabilityChecker {
-    required_capabilities: BTreeMap<NonosSyscallNumber, Vec<crate::security::nonos_capability::NonosCapabilityType>>,
+    required_capabilities:
+        BTreeMap<NonosSyscallNumber, Vec<crate::security::nonos_capability::NonosCapabilityType>>,
 }
 
 impl NonosSyscallHandler {
@@ -73,7 +74,7 @@ impl NonosSyscallHandler {
         &self,
         syscall_number: NonosSyscallNumber,
         args: &[u64],
-        capability_token: Option<&CapabilityToken>
+        capability_token: Option<&CapabilityToken>,
     ) -> NonosSyscallResult {
         // Update syscall count
         if let Some(mut counts) = self.syscall_counts.try_write() {
@@ -134,7 +135,7 @@ impl NonosSyscallHandler {
             size,
             NonosMemoryRegionType::Heap,
             security_level,
-            self.get_current_process_id()
+            self.get_current_process_id(),
         ) {
             Ok(addr) => NonosSyscallResult::Success(addr.as_u64()),
             Err(e) => NonosSyscallResult::Error(e),
@@ -180,7 +181,7 @@ impl NonosSyscallHandler {
             Some(self.get_current_process_id()),
             priority_enum,
             memory_size,
-            entry_point
+            entry_point,
         ) {
             Ok(pid) => NonosSyscallResult::Success(pid),
             Err(e) => NonosSyscallResult::Error(e),
@@ -208,7 +209,7 @@ impl NonosSyscallHandler {
         if args.len() < 2 {
             return NonosSyscallResult::InvalidArguments;
         }
-        
+
         // Simplified file operations
         NonosSyscallResult::Success(1) // Return file descriptor 1
     }
@@ -256,13 +257,13 @@ impl NonosSyscallHandler {
 
         // Simplified IPC send
         let payload = Vec::new(); // In real implementation, would read from payload_ptr
-        
+
         match crate::ipc::nonos_ipc::send_ipc_message(
             self.get_current_process_id(),
             channel_id,
             recipient_id,
             crate::ipc::nonos_ipc::NonosMessageType::Data,
-            payload
+            payload,
         ) {
             Ok(msg_id) => NonosSyscallResult::Success(msg_id),
             Err(e) => NonosSyscallResult::Error(e),
@@ -275,8 +276,9 @@ impl NonosSyscallHandler {
         }
 
         let channel_id = args[0];
-        
-        match crate::ipc::nonos_ipc::receive_ipc_message(self.get_current_process_id(), channel_id) {
+
+        match crate::ipc::nonos_ipc::receive_ipc_message(self.get_current_process_id(), channel_id)
+        {
             Ok(Some(msg)) => NonosSyscallResult::Success(msg.message_id),
             Ok(None) => NonosSyscallResult::Success(0), // No message available
             Err(e) => NonosSyscallResult::Error(e),
@@ -309,24 +311,19 @@ impl NonosSyscallHandler {
     }
 
     pub fn get_syscall_statistics(&self) -> Vec<(NonosSyscallNumber, u64)> {
-        self.syscall_counts.read()
-            .iter()
-            .map(|(&syscall, &count)| (syscall, count))
-            .collect()
+        self.syscall_counts.read().iter().map(|(&syscall, &count)| (syscall, count)).collect()
     }
 }
 
 impl NonosCapabilityChecker {
     pub const fn new() -> Self {
-        Self {
-            required_capabilities: BTreeMap::new(),
-        }
+        Self { required_capabilities: BTreeMap::new() }
     }
 
     pub fn check_syscall_permission(
         &self,
         _syscall_number: NonosSyscallNumber,
-        _capability_token: Option<&CapabilityToken>
+        _capability_token: Option<&CapabilityToken>,
     ) -> bool {
         // Simplified capability checking - in production this would be comprehensive
         true
@@ -340,7 +337,7 @@ pub static NONOS_SYSCALL_HANDLER: NonosSyscallHandler = NonosSyscallHandler::new
 pub fn handle_nonos_syscall(
     syscall_number: NonosSyscallNumber,
     args: &[u64],
-    capability_token: Option<&CapabilityToken>
+    capability_token: Option<&CapabilityToken>,
 ) -> NonosSyscallResult {
     NONOS_SYSCALL_HANDLER.handle_syscall(syscall_number, args, capability_token)
 }

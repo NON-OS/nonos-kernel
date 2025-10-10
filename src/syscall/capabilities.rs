@@ -6,7 +6,7 @@
 //! This system enables syscall restriction, IPC boundary control, and optional
 //! zero-knowledge delegation in future phases.
 
-use alloc::{string::String, format, vec::Vec, collections::BTreeSet};
+use alloc::{collections::BTreeSet, format, string::String, vec::Vec};
 use core::fmt;
 
 /// Enum of all secure kernel-level privileges.
@@ -32,7 +32,7 @@ impl Capability {
 
 impl TryFrom<u8> for Capability {
     type Error = &'static str;
-    
+
     fn try_from(value: u8) -> Result<Self, Self::Error> {
         match value {
             0x01 => Ok(Capability::CoreExec),
@@ -69,13 +69,14 @@ impl CapabilityToken {
     pub fn has(&self, cap: Capability) -> bool {
         self.permissions.contains(&cap)
     }
-    
+
     /// Alias for has() - checks if token grants a capability
     pub fn grants(&self, cap: Capability) -> bool {
         self.has(cap)
     }
 
-    /// Alternative method name for grants() - checks if token grants a capability
+    /// Alternative method name for grants() - checks if token grants a
+    /// capability
     pub fn grants_capability(&self, cap: &Capability) -> bool {
         self.has(*cap)
     }
@@ -137,7 +138,7 @@ pub fn init_capabilities() {
     unsafe {
         CURRENT_TOKEN = None;
     }
-    
+
     // Log capability system initialization
     if let Some(logger) = crate::log::logger::try_get_logger() {
         logger.log("[SYSCALL] Capability system initialized");

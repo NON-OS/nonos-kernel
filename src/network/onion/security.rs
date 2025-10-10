@@ -2,13 +2,13 @@
 //!
 //! Security using NONOS crypto infrastructure
 
-use alloc::{vec::Vec, collections::BTreeMap, vec};
-use spin::Mutex;
+use alloc::{collections::BTreeMap, vec, vec::Vec};
 use core::sync::atomic::{AtomicU32, AtomicU64, Ordering};
+use spin::Mutex;
 
-use super::{OnionError, CircuitId};
 use super::cell::Cell;
-use crate::crypto::{hash, vault, entropy};
+use super::{CircuitId, OnionError};
+use crate::crypto::{entropy, hash, vault};
 
 /// Security manager with actual threat detection
 pub struct SecurityManager {
@@ -63,7 +63,7 @@ impl SecurityManager {
     pub fn check_client_rate_limit(&self, client_ip: [u8; 4]) -> Result<(), OnionError> {
         let current_time = Self::get_timestamp();
         let mut limiters = self.rate_limiters.lock();
-        
+
         let limiter = limiters.entry(client_ip).or_insert_with(|| RateLimiter {
             ip: client_ip,
             cells_this_second: AtomicU32::new(0),
@@ -83,13 +83,13 @@ impl SecurityManager {
         if current_count > 1000 {
             limiter.violations.fetch_add(1, Ordering::Relaxed);
             self.stats.rate_limit_violations.fetch_add(1, Ordering::Relaxed);
-            
+
             // Block IP after 3 violations
             if limiter.violations.load(Ordering::Relaxed) > 3 {
                 self.stats.blocked_ips.fetch_add(1, Ordering::Relaxed);
                 return Err(OnionError::SecurityViolation);
             }
-            
+
             return Err(OnionError::NetworkError);
         }
 
@@ -99,13 +99,13 @@ impl SecurityManager {
     pub fn check_circuit_limit(&self, client_ip: [u8; 4]) -> Result<(), OnionError> {
         let mut counters = self.circuit_counters.lock();
         let current_count = counters.get(&client_ip).copied().unwrap_or(0);
-        
+
         // Max 100 circuits per IP
         if current_count >= 100 {
             self.stats.blocked_ips.fetch_add(1, Ordering::Relaxed);
             return Err(OnionError::SecurityViolation);
         }
-        
+
         counters.insert(client_ip, current_count + 1);
         Ok(())
     }
@@ -113,15 +113,15 @@ impl SecurityManager {
     pub fn detect_timing_attack(&self, circuit_id: CircuitId) -> Result<(), OnionError> {
         let current_time = Self::get_timestamp();
         let mut timings = self.timing_detector.cell_timings.lock();
-        
+
         let circuit_timings = timings.entry(circuit_id).or_insert_with(Vec::new);
         circuit_timings.push(current_time);
-        
+
         // Keep only last 100 timings
         if circuit_timings.len() > 100 {
             circuit_timings.remove(0);
         }
-        
+
         // Detect regular patterns (simplified correlation analysis)
         if circuit_timings.len() >= 10 {
             let correlation = self.calculate_timing_correlation(circuit_timings);
@@ -130,7 +130,7 @@ impl SecurityManager {
                 return Err(OnionError::SecurityViolation);
             }
         }
-        
+
         Ok(())
     }
 
@@ -138,21 +138,27 @@ impl SecurityManager {
         if timings.len() < 2 {
             return 0.0;
         }
-        
+
         // Calculate intervals between timings
         let mut intervals = Vec::new();
         for i in 1..timings.len() {
-            intervals.push((timings[i] - timings[i-1]) as f32);
+            intervals.push((timings[i] - timings[i - 1]) as f32);
         }
-        
+
         // Calculate variance - low variance indicates regular timing
         let mean = intervals.iter().sum::<f32>() / intervals.len() as f32;
-        let variance = intervals.iter()
-            .map(|x| { let diff = x - mean; diff * diff })
-            .sum::<f32>() / intervals.len() as f32;
-        
+        let variance = intervals
+            .iter()
+            .map(|x| {
+                let diff = x - mean;
+                diff * diff
+            })
+            .sum::<f32>()
+            / intervals.len() as f32;
+
         // High correlation if variance is very low
-        if variance < 100.0 { // Less than 100ms variance
+        if variance < 100.0 {
+            // Less than 100ms variance
             0.8 // High correlation score
         } else {
             variance / 10000.0 // Normalize variance to 0-1 range
@@ -162,75 +168,69 @@ impl SecurityManager {
     pub fn secure_allocate(&self, size: usize) -> Result<*mut u8, OnionError> {
         // Allocate with guard pages
         let total_size = size + 16; // 8 bytes before + 8 bytes after
-        let mut raw_ptr = vault::allocate_secure_memory(total_size)
-            .map_err(|_| OnionError::CryptoError)?;
-        
+        let mut raw_ptr =
+            vault::allocate_secure_memory(total_size).map_err(|_| OnionError::CryptoError)?;
+
         // Add canary values
         let canary = self.memory_protector.generate_canary();
         unsafe {
             core::ptr::write(raw_ptr.as_ptr() as *mut u64, canary);
             core::ptr::write((raw_ptr.as_ptr() as *mut u64).add(1 + size / 8), canary);
         }
-        
+
         let user_ptr = unsafe { raw_ptr.as_mut_ptr().add(8) };
-        
+
         // Store allocation info
-        let alloc_info = AllocInfo {
-            size,
-            canary,
-            allocated_at: Self::get_timestamp(),
-        };
-        
+        let alloc_info = AllocInfo { size, canary, allocated_at: Self::get_timestamp() };
+
         self.memory_protector.allocations.lock().insert(user_ptr as usize, alloc_info);
-        
+
         Ok(user_ptr)
     }
 
     pub fn secure_deallocate(&self, ptr: *mut u8, size: usize) -> Result<(), OnionError> {
         let mut allocations = self.memory_protector.allocations.lock();
-        let alloc_info = allocations.remove(&(ptr as usize))
-            .ok_or(OnionError::CryptoError)?;
-        
+        let alloc_info = allocations.remove(&(ptr as usize)).ok_or(OnionError::CryptoError)?;
+
         if alloc_info.size != size {
             self.stats.memory_violations.fetch_add(1, Ordering::Relaxed);
             return Err(OnionError::SecurityViolation);
         }
-        
+
         // Check canaries
         let raw_ptr = unsafe { ptr.sub(8) };
         unsafe {
             let front_canary = core::ptr::read(raw_ptr as *const u64);
             let back_canary = core::ptr::read((raw_ptr as *const u64).add(1 + size / 8));
-            
+
             if front_canary != alloc_info.canary || back_canary != alloc_info.canary {
                 self.stats.memory_violations.fetch_add(1, Ordering::Relaxed);
                 return Err(OnionError::SecurityViolation);
             }
         }
-        
+
         // Zero memory before freeing
         unsafe {
             core::ptr::write_bytes(ptr, 0, size);
         }
-        
+
         // Convert raw pointer back to Vec to deallocate
         let vec = unsafe { Vec::from_raw_parts(raw_ptr, alloc_info.size, alloc_info.size) };
-        vault::deallocate_secure_memory(vec)
-            .map_err(|_| OnionError::CryptoError)?;
-        
+        vault::deallocate_secure_memory(vec).map_err(|_| OnionError::CryptoError)?;
+
         Ok(())
     }
 
     pub fn sanitize_buffer(&self, buffer: &mut [u8]) {
         // Overwrite with cryptographically secure random data
         entropy::fill_random(buffer);
-        
+
         // Second pass with zeros
         buffer.fill(0);
-        
+
         // Third pass with random again
         entropy::fill_random(buffer);
-        
+
         // Final zero
         buffer.fill(0);
     }
@@ -239,20 +239,16 @@ impl SecurityManager {
         // Generate 1-5 padding cells
         let num_padding = (entropy::rand_u32() % 5) + 1;
         let mut padding_cells = Vec::new();
-        
+
         for _ in 0..num_padding {
             let mut padding_data = vec![0u8; 509];
             entropy::fill_random(&mut padding_data);
-            
-            let padding_cell = Cell::new(
-                circuit_id, 
-                super::cell::CellType::Padding, 
-                padding_data
-            );
-            
+
+            let padding_cell = Cell::new(circuit_id, super::cell::CellType::Padding, padding_data);
+
             padding_cells.push(padding_cell);
         }
-        
+
         Ok(padding_cells)
     }
 
@@ -260,12 +256,12 @@ impl SecurityManager {
         if a.len() != b.len() {
             return false;
         }
-        
+
         let mut result = 0u8;
         for i in 0..a.len() {
             result |= a[i] ^ b[i];
         }
-        
+
         result == 0
     }
 
@@ -294,14 +290,15 @@ impl MemoryProtector {
             canary_seed: entropy::rand_u64(),
         }
     }
-    
+
     fn generate_canary(&self) -> u64 {
-        // Generate unique canary for each allocation  
+        // Generate unique canary for each allocation
         let mut data = Vec::new();
         data.extend_from_slice(&self.canary_seed.to_le_bytes());
         data.extend_from_slice(&entropy::rand_u64().to_le_bytes());
         data.extend_from_slice(&SecurityManager::get_timestamp().to_le_bytes());
-        hash::blake3_hash(&data)[..8].try_into()
+        hash::blake3_hash(&data)[..8]
+            .try_into()
             .map(u64::from_le_bytes)
             .unwrap_or(0xDEADBEEFCAFEBABE)
     }
@@ -316,19 +313,19 @@ impl SecurityStats {
             memory_violations: AtomicU32::new(0),
         }
     }
-    
+
     pub fn get_blocked_ips(&self) -> u32 {
         self.blocked_ips.load(Ordering::Relaxed)
     }
-    
+
     pub fn get_timing_attacks(&self) -> u32 {
         self.timing_attacks_detected.load(Ordering::Relaxed)
     }
-    
+
     pub fn get_rate_violations(&self) -> u32 {
         self.rate_limit_violations.load(Ordering::Relaxed)
     }
-    
+
     pub fn get_memory_violations(&self) -> u32 {
         self.memory_violations.load(Ordering::Relaxed)
     }
@@ -342,12 +339,12 @@ impl ConstantTime {
         let mask = condition.wrapping_sub(1);
         (true_val & !mask) | (false_val & mask)
     }
-    
+
     pub fn select_u32(condition: u32, true_val: u32, false_val: u32) -> u32 {
         let mask = condition.wrapping_sub(1);
         (true_val & !mask) | (false_val & mask)
     }
-    
+
     pub fn is_zero(value: u8) -> u8 {
         let mut result = value;
         result |= result >> 4;
@@ -355,11 +352,11 @@ impl ConstantTime {
         result |= result >> 1;
         (result ^ 1) & 1
     }
-    
+
     pub fn conditional_copy(condition: u8, dst: &mut [u8], src: &[u8]) {
         assert_eq!(dst.len(), src.len());
         let mask = condition.wrapping_sub(1);
-        
+
         for i in 0..dst.len() {
             dst[i] = (src[i] & !mask) | (dst[i] & mask);
         }
@@ -375,13 +372,13 @@ impl SecureRandom {
         entropy::fill_random(&mut nonce);
         nonce
     }
-    
+
     pub fn generate_session_key() -> [u8; 32] {
         let mut key = [0u8; 32];
         entropy::fill_random(&mut key);
         key
     }
-    
+
     pub fn generate_circuit_id() -> u32 {
         // Ensure circuit ID is not zero and has entropy
         loop {
@@ -391,7 +388,7 @@ impl SecureRandom {
             }
         }
     }
-    
+
     pub fn timing_jitter_ms() -> u32 {
         // Random jitter 0-50ms for timing attack resistance
         entropy::rand_u32() % 50
@@ -407,37 +404,37 @@ impl NetworkSecurity {
         if cell.payload.len() > 509 {
             return Err(OnionError::InvalidCell);
         }
-        
+
         // Check circuit ID is not zero
         if cell.circuit_id == 0 {
             return Err(OnionError::InvalidCell);
         }
-        
+
         // Basic command validation
         match cell.command {
             0..=15 | 128..=132 => Ok(()),
             _ => Err(OnionError::InvalidCell),
         }
     }
-    
+
     pub fn check_connection_limits(active_connections: u32) -> Result<(), OnionError> {
         const MAX_CONNECTIONS: u32 = 10000;
-        
+
         if active_connections > MAX_CONNECTIONS {
             return Err(OnionError::NetworkError);
         }
-        
+
         Ok(())
     }
-    
+
     pub fn validate_handshake_timing(start_time: u64, end_time: u64) -> Result<(), OnionError> {
         let duration = end_time - start_time;
-        
+
         // Handshake should take between 100ms and 30 seconds
         if duration < 100 || duration > 30000 {
             return Err(OnionError::SecurityViolation);
         }
-        
+
         Ok(())
     }
 }

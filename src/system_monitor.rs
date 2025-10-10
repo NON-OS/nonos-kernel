@@ -1,10 +1,10 @@
 //! System Health Monitoring
-//! 
+//!
 //! Simple, reliable system monitoring for production use
 
-use core::sync::atomic::{AtomicU64, AtomicBool, Ordering};
 use crate::memory::heap;
 use crate::time;
+use core::sync::atomic::{AtomicBool, AtomicU64, Ordering};
 
 /// System health status
 #[derive(Debug, Clone, Copy)]
@@ -32,29 +32,29 @@ pub fn init() {
 /// Get current system health snapshot
 pub fn get_system_health() -> SystemHealth {
     HEALTH_CHECKS.fetch_add(1, Ordering::Relaxed);
-    
+
     let heap_stats = heap::get_heap_stats();
     let current_time = time::timestamp_millis();
     let boot_time = BOOT_TIME.load(Ordering::SeqCst);
-    
+
     // Calculate heap usage percentage
     let heap_usage_percent = if heap_stats.total_size > 0 {
         ((heap_stats.current_usage * 100) / heap_stats.total_size).min(100) as u8
     } else {
         0
     };
-    
+
     // Calculate uptime
     let uptime_seconds = (current_time - boot_time) / 1000;
-    
+
     // Determine if system is healthy
     let is_healthy = heap_stats.enabled &&
         heap_usage_percent < 90 &&
         heap_stats.failures < heap_stats.allocations / 20 &&  // Less than 5% failure rate
         SYSTEM_STABLE.load(Ordering::Relaxed);
-    
+
     LAST_HEALTH_CHECK.store(current_time, Ordering::SeqCst);
-    
+
     SystemHealth {
         heap_usage_percent,
         heap_failures: heap_stats.failures,
@@ -85,16 +85,16 @@ pub fn get_basic_stats() -> (u64, u64, u64) {
 /// Periodic health check function (call from scheduler)
 pub fn periodic_health_check() {
     let health = get_system_health();
-    
+
     // Log warnings for concerning conditions
     if health.heap_usage_percent > 75 {
         crate::log::logger::log_critical("High heap usage detected");
     }
-    
+
     if health.heap_failures > 10 {
         crate::log::logger::log_critical("Multiple heap allocation failures");
     }
-    
+
     if !health.is_healthy {
         crate::log::logger::log_critical("System health check failed");
     }

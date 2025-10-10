@@ -2,19 +2,19 @@
 //!
 //! Complete interrupt handling system for production use
 
-pub mod handlers;
-pub mod real_handlers;
-pub mod pic;
-pub mod apic;
-pub mod timer;
 pub mod allocation;
+pub mod apic;
+pub mod handlers;
+pub mod pic;
+pub mod real_handlers;
+pub mod timer;
 
-use x86_64::structures::idt::{InterruptDescriptorTable, InterruptStackFrame};
-use lazy_static::lazy_static;
 use crate::arch::x86_64::gdt;
 use core::sync::atomic::{AtomicU64, Ordering};
+use lazy_static::lazy_static;
+use x86_64::structures::idt::{InterruptDescriptorTable, InterruptStackFrame};
 
-pub use allocation::{allocate_vector, register_interrupt_handler, init_interrupt_allocation};
+pub use allocation::{allocate_vector, init_interrupt_allocation, register_interrupt_handler};
 
 /// System interrupt vectors
 pub const TIMER_INTERRUPT_ID: u8 = 32;
@@ -90,14 +90,13 @@ lazy_static! {
 
 /// Initialize interrupt system
 pub fn init() {
-    pic::init();           // Initialize PIC
-    IDT.load();           // Load IDT
-    
+    pic::init(); // Initialize PIC
+    IDT.load(); // Load IDT
+
     x86_64::instructions::interrupts::enable();
-    
+
     crate::log::logger::log_critical("Interrupt system initialized");
 }
-
 
 /// Get interrupt statistics
 pub fn get_stats() -> (u64, u64, u64, u64) {

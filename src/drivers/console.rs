@@ -1,10 +1,15 @@
 //! NONOS Console Driver with Real Hardware Output
 //!
-//! Production console driver supporting VGA text mode, serial ports, and framebuffer
+//! Production console driver supporting VGA text mode, serial ports, and
+//! framebuffer
 
-use alloc::{string::{String, ToString}, vec::Vec, collections::VecDeque};
-use spin::Mutex;
+use alloc::{
+    collections::VecDeque,
+    string::{String, ToString},
+    vec::Vec,
+};
 use core::fmt::Write;
+use spin::Mutex;
 
 /// Console colors for VGA text mode
 #[allow(dead_code)]
@@ -69,18 +74,18 @@ pub struct Console {
     vga_cursor_x: usize,
     vga_cursor_y: usize,
     vga_color: u8,
-    
+
     // Serial port state
     serial_port: u16,
     serial_initialized: bool,
-    
+
     // Message buffer for emergency logs
     log_buffer: VecDeque<LogMessage>,
     max_log_entries: usize,
-    
+
     // Current output devices
     output_devices: OutputDevice,
-    
+
     // Statistics
     messages_logged: u64,
     emergency_alerts: u64,
@@ -111,16 +116,16 @@ impl Console {
     pub fn init(&mut self) -> Result<(), &'static str> {
         // Initialize VGA text mode
         self.init_vga_text_mode()?;
-        
+
         // Initialize serial port
         self.init_serial_port()?;
-        
+
         // Clear screen
         self.clear_screen();
-        
+
         // Print initialization message
         self.write_message("NONOS Console Driver Initialized", LogLevel::Info, "console");
-        
+
         Ok(())
     }
 
@@ -130,18 +135,18 @@ impl Console {
         unsafe {
             // Set VGA mode through BIOS interrupt (simplified)
             // In real implementation, this would program VGA registers directly
-            
+
             // Clear screen buffer
             for i in 0..(self.vga_width * self.vga_height * 2) {
                 core::ptr::write_volatile((self.vga_buffer as *mut u16).add(i), 0);
             }
         }
-        
+
         // Set cursor position to top-left
         self.vga_cursor_x = 0;
         self.vga_cursor_y = 0;
         self.update_vga_cursor();
-        
+
         Ok(())
     }
 
@@ -150,35 +155,35 @@ impl Console {
         unsafe {
             // Disable interrupts
             crate::arch::x86_64::port::outb(self.serial_port + 1, 0x00);
-            
+
             // Enable DLAB (set baud rate divisor)
             crate::arch::x86_64::port::outb(self.serial_port + 3, 0x80);
-            
+
             // Set divisor to 3 (38400 baud)
             crate::arch::x86_64::port::outb(self.serial_port + 0, 0x03);
             crate::arch::x86_64::port::outb(self.serial_port + 1, 0x00);
-            
+
             // 8 bits, no parity, one stop bit
             crate::arch::x86_64::port::outb(self.serial_port + 3, 0x03);
-            
+
             // Enable FIFO, clear them, with 14-byte threshold
             crate::arch::x86_64::port::outb(self.serial_port + 2, 0xC7);
-            
+
             // IRQs enabled, RTS/DSR set
             crate::arch::x86_64::port::outb(self.serial_port + 4, 0x0B);
-            
+
             // Test serial chip (send byte 0xAE and check if serial returns same byte)
             crate::arch::x86_64::port::outb(self.serial_port + 4, 0x1E);
             crate::arch::x86_64::port::outb(self.serial_port + 0, 0xAE);
-            
+
             if crate::arch::x86_64::port::inb(self.serial_port + 0) != 0xAE {
                 return Err("Serial port test failed");
             }
-            
+
             // Set serial to normal operation mode
             crate::arch::x86_64::port::outb(self.serial_port + 4, 0x0F);
         }
-        
+
         self.serial_initialized = true;
         Ok(())
     }
@@ -201,22 +206,22 @@ impl Console {
                     self.vga_cursor_x = 0;
                     self.vga_cursor_y += 1;
                 }
-                
+
                 let offset = (self.vga_cursor_y * self.vga_width + self.vga_cursor_x) * 2;
                 unsafe {
                     let buffer_ptr = self.vga_buffer as *mut u8;
                     core::ptr::write_volatile(buffer_ptr.add(offset), c);
                     core::ptr::write_volatile(buffer_ptr.add(offset + 1), self.vga_color);
                 }
-                
+
                 self.vga_cursor_x += 1;
             }
         }
-        
+
         if self.vga_cursor_y >= self.vga_height {
             self.scroll_screen();
         }
-        
+
         self.update_vga_cursor();
     }
 
@@ -228,16 +233,16 @@ impl Console {
                 for col in 0..self.vga_width {
                     let src = (row * self.vga_width + col) * 2;
                     let dst = ((row - 1) * self.vga_width + col) * 2;
-                    
+
                     let buffer_ptr = self.vga_buffer as *mut u8;
                     let char = core::ptr::read_volatile(buffer_ptr.add(src));
                     let attr = core::ptr::read_volatile(buffer_ptr.add(src + 1));
-                    
+
                     core::ptr::write_volatile(buffer_ptr.add(dst), char);
                     core::ptr::write_volatile(buffer_ptr.add(dst + 1), attr);
                 }
             }
-            
+
             // Clear last line
             let last_row = self.vga_height - 1;
             for col in 0..self.vga_width {
@@ -247,19 +252,19 @@ impl Console {
                 core::ptr::write_volatile(buffer_ptr.add(offset + 1), self.vga_color);
             }
         }
-        
+
         self.vga_cursor_y = self.vga_height - 1;
     }
 
     /// Update VGA hardware cursor position
     fn update_vga_cursor(&self) {
         let pos = self.vga_cursor_y * self.vga_width + self.vga_cursor_x;
-        
+
         unsafe {
             // Tell VGA we want to set cursor high byte
             crate::arch::x86_64::port::outb(0x3D4, 0x0E);
             crate::arch::x86_64::port::outb(0x3D5, ((pos >> 8) & 0xFF) as u8);
-            
+
             // Tell VGA we want to set cursor low byte
             crate::arch::x86_64::port::outb(0x3D4, 0x0F);
             crate::arch::x86_64::port::outb(0x3D5, (pos & 0xFF) as u8);
@@ -278,7 +283,7 @@ impl Console {
         if !self.serial_initialized {
             return Err("Serial port not initialized");
         }
-        
+
         unsafe {
             // Wait for transmit buffer to be empty
             let mut timeout = 10000;
@@ -288,15 +293,15 @@ impl Console {
                 }
                 timeout -= 1;
             }
-            
+
             if timeout == 0 {
                 return Err("Serial port timeout");
             }
-            
+
             // Send character
             crate::arch::x86_64::port::outb(self.serial_port, c);
         }
-        
+
         Ok(())
     }
 
@@ -318,7 +323,7 @@ impl Console {
                 core::ptr::write_volatile(buffer_ptr.add(offset + 1), self.vga_color);
             }
         }
-        
+
         self.vga_cursor_x = 0;
         self.vga_cursor_y = 0;
         self.update_vga_cursor();
@@ -332,7 +337,7 @@ impl Console {
     /// Write formatted message to console
     pub fn write_message(&mut self, message: &str, level: LogLevel, module: &'static str) {
         let timestamp = crate::arch::x86_64::time::timer::get_timestamp_ms().unwrap_or(0);
-        
+
         // Create formatted message with timestamp and level
         let formatted_message = alloc::format!(
             "[{:08}] [{:8}] [{}] {}\n",
@@ -341,7 +346,7 @@ impl Console {
             module,
             message
         );
-        
+
         // Set color based on log level
         let (fg_color, bg_color) = match level {
             LogLevel::Emergency | LogLevel::Alert => (Color::White, Color::Red),
@@ -351,10 +356,10 @@ impl Console {
             LogLevel::Info => (Color::LightGray, Color::Black),
             LogLevel::Debug => (Color::DarkGray, Color::Black),
         };
-        
+
         let old_color = self.vga_color;
         self.set_color(fg_color, bg_color);
-        
+
         // Write to selected output devices
         match self.output_devices {
             OutputDevice::VgaText => {
@@ -371,25 +376,20 @@ impl Console {
                 // Would implement framebuffer output here
             }
         }
-        
+
         // Restore original color
         self.vga_color = old_color;
-        
+
         // Add to log buffer
-        let log_msg = LogMessage {
-            level,
-            timestamp,
-            message: message.to_string(),
-            module,
-        };
-        
+        let log_msg = LogMessage { level, timestamp, message: message.to_string(), module };
+
         if self.log_buffer.len() >= self.max_log_entries {
             self.log_buffer.pop_front();
         }
         self.log_buffer.push_back(log_msg);
-        
+
         self.messages_logged += 1;
-        
+
         if level <= LogLevel::Alert {
             self.emergency_alerts += 1;
         }
@@ -399,32 +399,32 @@ impl Console {
     pub fn emergency_alert(&mut self, message: &str) {
         // Save current state
         let old_color = self.vga_color;
-        
+
         // Set emergency colors (flashing red background)
         self.set_color(Color::White, Color::Red);
-        
+
         // Create emergency message
         let alert_msg = alloc::format!("!!! EMERGENCY !!! {}", message);
-        
+
         // Write emergency border
         let border = "=".repeat(self.vga_width.min(alert_msg.len() + 4));
         self.write_vga_string(&border);
         self.write_vga_char(b'\n');
-        
+
         // Write the alert
         self.write_message(&alert_msg, LogLevel::Emergency, "SYSTEM");
-        
+
         // Write bottom border
         self.write_vga_string(&border);
         self.write_vga_char(b'\n');
-        
+
         // Also send to serial with special formatting
         let serial_alert = alloc::format!("\x07\x07\x07!!! EMERGENCY !!! {}\n", message); // Bell chars
         let _ = self.write_serial_string(&serial_alert);
-        
+
         // Restore color
         self.vga_color = old_color;
-        
+
         // Make cursor blink by updating position
         for _ in 0..5 {
             self.update_vga_cursor();
@@ -449,12 +449,8 @@ impl Console {
 
     /// Get recent log messages
     pub fn get_recent_logs(&self, count: usize) -> Vec<LogMessage> {
-        let start = if self.log_buffer.len() > count {
-            self.log_buffer.len() - count
-        } else {
-            0
-        };
-        
+        let start = if self.log_buffer.len() > count { self.log_buffer.len() - count } else { 0 };
+
         self.log_buffer.iter().skip(start).cloned().collect()
     }
 
@@ -614,8 +610,8 @@ macro_rules! console_alert {
 macro_rules! console_error {
     ($($arg:tt)*) => {
         $crate::drivers::console::write_message(
-            &alloc::format!($($arg)*), 
-            $crate::drivers::console::LogLevel::Error, 
+            &alloc::format!($($arg)*),
+            $crate::drivers::console::LogLevel::Error,
             "KERNEL"
         )
     };
@@ -625,8 +621,8 @@ macro_rules! console_error {
 macro_rules! console_warn {
     ($($arg:tt)*) => {
         $crate::drivers::console::write_message(
-            &alloc::format!($($arg)*), 
-            $crate::drivers::console::LogLevel::Warning, 
+            &alloc::format!($($arg)*),
+            $crate::drivers::console::LogLevel::Warning,
             "KERNEL"
         )
     };
@@ -636,8 +632,8 @@ macro_rules! console_warn {
 macro_rules! console_info {
     ($($arg:tt)*) => {
         $crate::drivers::console::write_message(
-            &alloc::format!($($arg)*), 
-            $crate::drivers::console::LogLevel::Info, 
+            &alloc::format!($($arg)*),
+            $crate::drivers::console::LogLevel::Info,
             "KERNEL"
         )
     };
@@ -647,8 +643,8 @@ macro_rules! console_info {
 macro_rules! console_debug {
     ($($arg:tt)*) => {
         $crate::drivers::console::write_message(
-            &alloc::format!($($arg)*), 
-            $crate::drivers::console::LogLevel::Debug, 
+            &alloc::format!($($arg)*),
+            $crate::drivers::console::LogLevel::Debug,
             "KERNEL"
         )
     };

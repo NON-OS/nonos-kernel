@@ -8,7 +8,7 @@ static RNG_STATE: AtomicU64 = AtomicU64::new(1);
 pub unsafe fn init_early() {
     // Initialize with hardware entropy if available
     seed_rng();
-    
+
     // Try to get CPU entropy
     if is_rdrand_available() {
         let hw_entropy = get_rdrand();
@@ -65,11 +65,7 @@ pub fn get_rdrand() -> u64 {
 pub fn get_random_bytes(buffer: &mut [u8]) {
     let mut offset = 0;
     while offset < buffer.len() {
-        let rand_val = if is_rdrand_available() {
-            get_rdrand()
-        } else {
-            rand_u64()
-        };
+        let rand_val = if is_rdrand_available() { get_rdrand() } else { rand_u64() };
         let bytes = rand_val.to_le_bytes();
         let copy_len = core::cmp::min(8, buffer.len() - offset);
         buffer[offset..offset + copy_len].copy_from_slice(&bytes[..copy_len]);
@@ -92,17 +88,13 @@ pub fn secure_rand_u32() -> u32 {
 pub fn secure_random_bytes(buffer: &mut [u8]) {
     // Mix multiple entropy sources
     harvest_time_entropy();
-    
+
     for chunk in buffer.chunks_mut(8) {
-        let mut entropy = if is_rdrand_available() {
-            get_rdrand()
-        } else {
-            rand_u64()
-        };
-        
+        let mut entropy = if is_rdrand_available() { get_rdrand() } else { rand_u64() };
+
         // Mix with TSC for additional entropy
         entropy ^= crate::arch::x86_64::time::get_tsc();
-        
+
         let bytes = entropy.to_le_bytes();
         let len = core::cmp::min(chunk.len(), 8);
         chunk[..len].copy_from_slice(&bytes[..len]);

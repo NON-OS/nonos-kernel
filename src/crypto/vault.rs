@@ -1,7 +1,8 @@
 //! NØNOS Advanced Cryptographic Vault
-//! 
-//! Ultra-secure cryptographic operations with hardware entropy, quantum resistance,
-//! and zero-knowledge proof capabilities for production-grade security
+//!
+//! Ultra-secure cryptographic operations with hardware entropy, quantum
+//! resistance, and zero-knowledge proof capabilities for production-grade
+//! security
 //!
 //! Features:
 //! - Hardware-backed entropy collection from RDRAND and timing sources
@@ -13,9 +14,9 @@
 //! - Real-time entropy monitoring
 
 extern crate alloc;
-use alloc::{vec::Vec, collections::BTreeMap, string::String};
-use core::sync::atomic::{AtomicBool, AtomicU64, Ordering};
+use alloc::{collections::BTreeMap, string::String, vec::Vec};
 use core::fmt::{self, Debug, Formatter};
+use core::sync::atomic::{AtomicBool, AtomicU64, Ordering};
 use spin::{Mutex, RwLock};
 use x86_64::instructions::random::RdRand;
 
@@ -66,18 +67,17 @@ pub struct VaultPublicKey {
 
 impl Default for VaultPublicKey {
     fn default() -> Self {
-        Self {
-            key_bytes: [0u8; 32],
-            algorithm: String::from("Ed25519"),
-            created_at: 0,
-        }
+        Self { key_bytes: [0u8; 32], algorithm: String::from("Ed25519"), created_at: 0 }
     }
 }
 
 impl Debug for VaultKey {
     fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        write!(f, "VaultKey(id={}, derived={}, usage={:?}, security_level={})", 
-               self.id, self.derived, self.usage, self.security_level)
+        write!(
+            f,
+            "VaultKey(id={}, derived={}, usage={:?}, security_level={})",
+            self.id, self.derived, self.usage, self.security_level
+        )
     }
 }
 
@@ -161,7 +161,7 @@ impl EntropyPool {
     /// Collect high-quality entropy from multiple sources
     pub fn collect_entropy(&self, bytes_needed: usize) -> Result<Vec<u8>, &'static str> {
         let mut entropy = Vec::with_capacity(bytes_needed);
-        
+
         // Hardware random number generator
         for _ in 0..bytes_needed {
             if let Some(hw_random) = RdRand::new().and_then(|mut rng| rng.get_u64()) {
@@ -192,7 +192,7 @@ impl EntropyPool {
         self.accumulated_entropy.fetch_add(bytes_needed as u64, Ordering::SeqCst);
         self.entropy_estimate.store(
             (bytes_needed as u64 * 8).min(self.accumulated_entropy.load(Ordering::SeqCst)),
-            Ordering::SeqCst
+            Ordering::SeqCst,
         );
 
         if entropy.len() >= bytes_needed {
@@ -235,13 +235,13 @@ impl CryptoVault {
         // Generate master key from high-entropy sources
         let master_entropy = self.entropy_pool.collect_entropy(64)?;
         let mut master_key = [0u8; 64];
-        
+
         // Additional key strengthening using PBKDF2-like construction
         let mut current = master_entropy;
         for iteration in 0..self.qr_params.iterations {
             current = self.strengthen_key_material(&current, iteration)?;
         }
-        
+
         if current.len() >= 64 {
             master_key.copy_from_slice(&current[..64]);
         } else {
@@ -275,7 +275,7 @@ impl CryptoVault {
         // Advanced key derivation using HKDF-like construction
         let salt = self.entropy_pool.collect_entropy(32)?;
         let info = purpose.to_le_bytes();
-        
+
         let derived_key = self.hkdf_expand(master_key, &salt, &info, length)?;
 
         // Cache derived key
@@ -296,7 +296,7 @@ impl CryptoVault {
     /// Quantum-resistant encryption
     pub fn qr_encrypt(&self, plaintext: &[u8], key_id: u64) -> Result<Vec<u8>, &'static str> {
         let key = self.get_or_derive_key(key_id, 32)?;
-        
+
         // Generate quantum-resistant parameters
         let nonce = self.entropy_pool.collect_entropy(16)?;
         let auth_tag = self.entropy_pool.collect_entropy(32)?;
@@ -306,7 +306,8 @@ impl CryptoVault {
         ciphertext.extend_from_slice(&nonce);
         ciphertext.extend_from_slice(&auth_tag);
 
-        // XOR-based encryption with key rotation (production would use proper PQ crypto)
+        // XOR-based encryption with key rotation (production would use proper PQ
+        // crypto)
         for (i, &byte) in plaintext.iter().enumerate() {
             let key_byte = key[i % key.len()];
             let nonce_byte = nonce[i % nonce.len()];
@@ -326,19 +327,20 @@ impl CryptoVault {
 
     /// Quantum-resistant decryption
     pub fn qr_decrypt(&self, ciphertext: &[u8], key_id: u64) -> Result<Vec<u8>, &'static str> {
-        if ciphertext.len() < 48 { // nonce(16) + auth_tag(32)
+        if ciphertext.len() < 48 {
+            // nonce(16) + auth_tag(32)
             return Err("Invalid ciphertext format");
         }
 
         let key = self.get_or_derive_key(key_id, 32)?;
-        
+
         let nonce = &ciphertext[0..16];
         let _auth_tag = &ciphertext[16..48];
         let encrypted_data = &ciphertext[48..];
 
         // Verify authentication tag (simplified)
         let _expected_tag = self.entropy_pool.collect_entropy(32)?;
-        
+
         // Decrypt data
         let mut plaintext = Vec::with_capacity(encrypted_data.len());
         for (i, &byte) in encrypted_data.iter().enumerate() {
@@ -361,16 +363,16 @@ impl CryptoVault {
     /// Generate cryptographic signature
     pub fn sign_data(&self, data: &[u8], key_id: u64) -> Result<Vec<u8>, &'static str> {
         let signing_key = self.get_or_derive_key(key_id, 64)?;
-        
+
         // Create message hash
         let message_hash = self.blake3_hash(data);
-        
+
         // Generate signature (simplified Ed25519-like)
         let mut signature = Vec::with_capacity(64);
         let nonce = self.entropy_pool.collect_entropy(32)?;
-        
+
         signature.extend_from_slice(&nonce);
-        
+
         // Combine message hash with key for signature
         for i in 0..32 {
             let sig_byte = message_hash[i] ^ signing_key[i] ^ nonce[i];
@@ -389,17 +391,22 @@ impl CryptoVault {
     }
 
     /// Verify cryptographic signature
-    pub fn verify_signature(&self, data: &[u8], signature: &[u8], key_id: u64) -> Result<bool, &'static str> {
+    pub fn verify_signature(
+        &self,
+        data: &[u8],
+        signature: &[u8],
+        key_id: u64,
+    ) -> Result<bool, &'static str> {
         if signature.len() != 64 {
             return Err("Invalid signature length");
         }
 
         let verification_key = self.get_or_derive_key(key_id, 64)?;
         let message_hash = self.blake3_hash(data);
-        
+
         let nonce = &signature[0..32];
         let sig_data = &signature[32..64];
-        
+
         // Verify signature
         let mut expected_sig = Vec::with_capacity(32);
         for i in 0..32 {
@@ -421,18 +428,22 @@ impl CryptoVault {
     }
 
     /// Advanced key strengthening
-    fn strengthen_key_material(&self, input: &[u8], iteration: u32) -> Result<Vec<u8>, &'static str> {
+    fn strengthen_key_material(
+        &self,
+        input: &[u8],
+        iteration: u32,
+    ) -> Result<Vec<u8>, &'static str> {
         let mut output = Vec::with_capacity(input.len());
-        
+
         // Apply multiple rounds of cryptographic hashing and mixing
         let iteration_bytes = iteration.to_le_bytes();
         let mut working_data = Vec::with_capacity(input.len() + 4);
         working_data.extend_from_slice(input);
         working_data.extend_from_slice(&iteration_bytes);
-        
+
         // Hash the working data
         let hashed = self.blake3_hash(&working_data);
-        
+
         // Mix with original input using XOR
         for (i, &hash_byte) in hashed.iter().enumerate() {
             if i < input.len() {
@@ -441,22 +452,28 @@ impl CryptoVault {
                 output.push(hash_byte);
             }
         }
-        
+
         // Ensure output is at least as long as input
         while output.len() < input.len() {
             let extra_hash = self.blake3_hash(&output);
             output.extend_from_slice(&extra_hash);
         }
-        
+
         output.truncate(input.len());
         Ok(output)
     }
 
     /// HKDF-like key expansion
-    fn hkdf_expand(&self, key: &[u8], salt: &[u8], info: &[u8], length: usize) -> Result<Vec<u8>, &'static str> {
+    fn hkdf_expand(
+        &self,
+        key: &[u8],
+        salt: &[u8],
+        info: &[u8],
+        length: usize,
+    ) -> Result<Vec<u8>, &'static str> {
         let mut output = Vec::with_capacity(length);
         let mut counter = 1u8;
-        
+
         while output.len() < length {
             let mut hmac_input = Vec::new();
             if !output.is_empty() {
@@ -464,19 +481,19 @@ impl CryptoVault {
             }
             hmac_input.extend_from_slice(info);
             hmac_input.push(counter);
-            
+
             // Simple HMAC-like construction
             let mut keyed_input = Vec::new();
             keyed_input.extend_from_slice(key);
             keyed_input.extend_from_slice(salt);
             keyed_input.extend_from_slice(&hmac_input);
-            
+
             let hash = self.blake3_hash(&keyed_input);
             output.extend_from_slice(&hash);
-            
+
             counter = counter.wrapping_add(1);
         }
-        
+
         output.truncate(length);
         Ok(output)
     }
@@ -488,7 +505,7 @@ impl CryptoVault {
                 return Ok(cached_key.clone());
             }
         }
-        
+
         self.derive_key(key_id, length)
     }
 
@@ -496,8 +513,8 @@ impl CryptoVault {
     fn blake3_hash(&self, input: &[u8]) -> [u8; 32] {
         // Simplified Blake3-like hash (production would use actual Blake3)
         let mut hash = [0u8; 32];
-        let mut state = 0x6a09e667f3bcc908u64;
-        
+        let mut state = 0x6A09E667F3BCC908u64;
+
         for chunk in input.chunks(8) {
             let mut chunk_val = 0u64;
             for (i, &byte) in chunk.iter().enumerate() {
@@ -505,14 +522,14 @@ impl CryptoVault {
             }
             state = state.wrapping_add(chunk_val).rotate_left(17);
         }
-        
+
         // Generate 32 bytes of hash output
         for i in 0..4 {
-            let word = state.wrapping_add(i as u64).wrapping_mul(0x9e3779b97f4a7c15);
+            let word = state.wrapping_add(i as u64).wrapping_mul(0x9E3779B97F4A7C15);
             let bytes = word.to_le_bytes();
             hash[i * 8..(i + 1) * 8].copy_from_slice(&bytes);
         }
-        
+
         hash
     }
 
@@ -520,7 +537,7 @@ impl CryptoVault {
     fn log_operation(&self, operation: VaultOperation) {
         let mut log = self.audit_log.lock();
         log.push(operation);
-        
+
         // Keep only the most recent 10000 operations
         if log.len() > 10000 {
             log.drain(0..1000);
@@ -540,16 +557,16 @@ impl CryptoVault {
 
     /// Check if vault is ready for operations
     pub fn is_ready(&self) -> bool {
-        self.vault_initialized.load(Ordering::SeqCst) && 
-        self.master_key.read().is_some() &&
-        self.entropy_pool.entropy_available() > 0
+        self.vault_initialized.load(Ordering::SeqCst)
+            && self.master_key.read().is_some()
+            && self.entropy_pool.entropy_available() > 0
     }
 
     /// Get entropy statistics
     pub fn entropy_stats(&self) -> (u64, u64) {
         (
             self.entropy_pool.accumulated_entropy.load(Ordering::SeqCst),
-            self.entropy_pool.entropy_available()
+            self.entropy_pool.entropy_available(),
         )
     }
 
@@ -558,9 +575,9 @@ impl CryptoVault {
         if new_level < self.security_level.load(Ordering::SeqCst) {
             return Err("Cannot downgrade security level");
         }
-        
+
         self.security_level.store(new_level, Ordering::SeqCst);
-        
+
         self.log_operation(VaultOperation {
             timestamp: self.get_timestamp(),
             operation_type: VaultOpType::SecurityLevelChange,
@@ -568,7 +585,7 @@ impl CryptoVault {
             result: true,
             entropy_consumed: 0,
         });
-        
+
         Ok(())
     }
 }
@@ -577,7 +594,7 @@ impl CryptoVault {
 pub fn init_vault() -> Result<(), &'static str> {
     let vault = CryptoVault::new();
     vault.initialize()?;
-    
+
     *CRYPTO_VAULT.write() = Some(vault);
     VAULT_READY.store(true, Ordering::SeqCst);
     Ok(())
@@ -590,7 +607,7 @@ pub fn is_vault_ready() -> bool {
 
 /// Get reference to global vault
 pub fn with_vault<F, R>(f: F) -> Result<R, &'static str>
-where 
+where
     F: FnOnce(&CryptoVault) -> R,
 {
     let vault_guard = CRYPTO_VAULT.read();
@@ -631,7 +648,7 @@ pub fn get_vault_metadata() -> VaultMetadata {
         entropy_bits: 512,
         hardware_security_features: alloc::vec![
             String::from("RDRAND"),
-            String::from("RDSEED"), 
+            String::from("RDSEED"),
             String::from("AES-NI"),
             String::from("SHA Extensions"),
             String::from("CET"),
@@ -644,29 +661,30 @@ pub fn get_vault_metadata() -> VaultMetadata {
 
 /// Generate cryptographically secure random bytes
 pub fn generate_random_bytes(length: usize) -> Result<Vec<u8>, &'static str> {
-    with_vault(|vault| {
-        vault.entropy_pool.collect_entropy(length)
-    }).unwrap_or_else(|_| Err("Vault not available"))
+    with_vault(|vault| vault.entropy_pool.collect_entropy(length))
+        .unwrap_or_else(|_| Err("Vault not available"))
 }
 
 /// Generate a random u64 value
 pub fn random_u64() -> Result<u64, &'static str> {
     let bytes = generate_random_bytes(8)?;
     Ok(u64::from_le_bytes([
-        bytes[0], bytes[1], bytes[2], bytes[3],
-        bytes[4], bytes[5], bytes[6], bytes[7],
+        bytes[0], bytes[1], bytes[2], bytes[3], bytes[4], bytes[5], bytes[6], bytes[7],
     ]))
 }
 
 /// AES-128 ECB encrypt single block - Production Implementation
-pub fn aes128_ecb_encrypt_block(key: &[u8; 16], block: &[u8; 16]) -> Result<[u8; 16], &'static str> {
+pub fn aes128_ecb_encrypt_block(
+    key: &[u8; 16],
+    block: &[u8; 16],
+) -> Result<[u8; 16], &'static str> {
     // Production AES-128 implementation using industry standard
     let mut state = *block;
     let round_keys = aes_key_expansion(key);
-    
+
     // Initial round
     add_round_key(&mut state, &round_keys[0]);
-    
+
     // Main rounds (9 for AES-128)
     for round in 1..10 {
         sub_bytes(&mut state);
@@ -674,76 +692,81 @@ pub fn aes128_ecb_encrypt_block(key: &[u8; 16], block: &[u8; 16]) -> Result<[u8;
         mix_columns(&mut state);
         add_round_key(&mut state, &round_keys[round]);
     }
-    
+
     // Final round (no MixColumns)
     sub_bytes(&mut state);
     shift_rows(&mut state);
     add_round_key(&mut state, &round_keys[10]);
-    
+
     Ok(state)
 }
 
 // AES-128 S-Box (SubBytes transformation)
 const SBOX: [u8; 256] = [
-    0x63, 0x7c, 0x77, 0x7b, 0xf2, 0x6b, 0x6f, 0xc5, 0x30, 0x01, 0x67, 0x2b, 0xfe, 0xd7, 0xab, 0x76,
-    0xca, 0x82, 0xc9, 0x7d, 0xfa, 0x59, 0x47, 0xf0, 0xad, 0xd4, 0xa2, 0xaf, 0x9c, 0xa4, 0x72, 0xc0,
-    0xb7, 0xfd, 0x93, 0x26, 0x36, 0x3f, 0xf7, 0xcc, 0x34, 0xa5, 0xe5, 0xf1, 0x71, 0xd8, 0x31, 0x15,
-    0x04, 0xc7, 0x23, 0xc3, 0x18, 0x96, 0x05, 0x9a, 0x07, 0x12, 0x80, 0xe2, 0xeb, 0x27, 0xb2, 0x75,
-    0x09, 0x83, 0x2c, 0x1a, 0x1b, 0x6e, 0x5a, 0xa0, 0x52, 0x3b, 0xd6, 0xb3, 0x29, 0xe3, 0x2f, 0x84,
-    0x53, 0xd1, 0x00, 0xed, 0x20, 0xfc, 0xb1, 0x5b, 0x6a, 0xcb, 0xbe, 0x39, 0x4a, 0x4c, 0x58, 0xcf,
-    0xd0, 0xef, 0xaa, 0xfb, 0x43, 0x4d, 0x33, 0x85, 0x45, 0xf9, 0x02, 0x7f, 0x50, 0x3c, 0x9f, 0xa8,
-    0x51, 0xa3, 0x40, 0x8f, 0x92, 0x9d, 0x38, 0xf5, 0xbc, 0xb6, 0xda, 0x21, 0x10, 0xff, 0xf3, 0xd2,
-    0xcd, 0x0c, 0x13, 0xec, 0x5f, 0x97, 0x44, 0x17, 0xc4, 0xa7, 0x7e, 0x3d, 0x64, 0x5d, 0x19, 0x73,
-    0x60, 0x81, 0x4f, 0xdc, 0x22, 0x2a, 0x90, 0x88, 0x46, 0xee, 0xb8, 0x14, 0xde, 0x5e, 0x0b, 0xdb,
-    0xe0, 0x32, 0x3a, 0x0a, 0x49, 0x06, 0x24, 0x5c, 0xc2, 0xd3, 0xac, 0x62, 0x91, 0x95, 0xe4, 0x79,
-    0xe7, 0xc8, 0x37, 0x6d, 0x8d, 0xd5, 0x4e, 0xa9, 0x6c, 0x56, 0xf4, 0xea, 0x65, 0x7a, 0xae, 0x08,
-    0xba, 0x78, 0x25, 0x2e, 0x1c, 0xa6, 0xb4, 0xc6, 0xe8, 0xdd, 0x74, 0x1f, 0x4b, 0xbd, 0x8b, 0x8a,
-    0x70, 0x3e, 0xb5, 0x66, 0x48, 0x03, 0xf6, 0x0e, 0x61, 0x35, 0x57, 0xb9, 0x86, 0xc1, 0x1d, 0x9e,
-    0xe1, 0xf8, 0x98, 0x11, 0x69, 0xd9, 0x8e, 0x94, 0x9b, 0x1e, 0x87, 0xe9, 0xce, 0x55, 0x28, 0xdf,
-    0x8c, 0xa1, 0x89, 0x0d, 0xbf, 0xe6, 0x42, 0x68, 0x41, 0x99, 0x2d, 0x0f, 0xb0, 0x54, 0xbb, 0x16
+    0x63, 0x7C, 0x77, 0x7B, 0xF2, 0x6B, 0x6F, 0xC5, 0x30, 0x01, 0x67, 0x2B, 0xFE, 0xD7, 0xAB, 0x76,
+    0xCA, 0x82, 0xC9, 0x7D, 0xFA, 0x59, 0x47, 0xF0, 0xAD, 0xD4, 0xA2, 0xAF, 0x9C, 0xA4, 0x72, 0xC0,
+    0xB7, 0xFD, 0x93, 0x26, 0x36, 0x3F, 0xF7, 0xCC, 0x34, 0xA5, 0xE5, 0xF1, 0x71, 0xD8, 0x31, 0x15,
+    0x04, 0xC7, 0x23, 0xC3, 0x18, 0x96, 0x05, 0x9A, 0x07, 0x12, 0x80, 0xE2, 0xEB, 0x27, 0xB2, 0x75,
+    0x09, 0x83, 0x2C, 0x1A, 0x1B, 0x6E, 0x5A, 0xA0, 0x52, 0x3B, 0xD6, 0xB3, 0x29, 0xE3, 0x2F, 0x84,
+    0x53, 0xD1, 0x00, 0xED, 0x20, 0xFC, 0xB1, 0x5B, 0x6A, 0xCB, 0xBE, 0x39, 0x4A, 0x4C, 0x58, 0xCF,
+    0xD0, 0xEF, 0xAA, 0xFB, 0x43, 0x4D, 0x33, 0x85, 0x45, 0xF9, 0x02, 0x7F, 0x50, 0x3C, 0x9F, 0xA8,
+    0x51, 0xA3, 0x40, 0x8F, 0x92, 0x9D, 0x38, 0xF5, 0xBC, 0xB6, 0xDA, 0x21, 0x10, 0xFF, 0xF3, 0xD2,
+    0xCD, 0x0C, 0x13, 0xEC, 0x5F, 0x97, 0x44, 0x17, 0xC4, 0xA7, 0x7E, 0x3D, 0x64, 0x5D, 0x19, 0x73,
+    0x60, 0x81, 0x4F, 0xDC, 0x22, 0x2A, 0x90, 0x88, 0x46, 0xEE, 0xB8, 0x14, 0xDE, 0x5E, 0x0B, 0xDB,
+    0xE0, 0x32, 0x3A, 0x0A, 0x49, 0x06, 0x24, 0x5C, 0xC2, 0xD3, 0xAC, 0x62, 0x91, 0x95, 0xE4, 0x79,
+    0xE7, 0xC8, 0x37, 0x6D, 0x8D, 0xD5, 0x4E, 0xA9, 0x6C, 0x56, 0xF4, 0xEA, 0x65, 0x7A, 0xAE, 0x08,
+    0xBA, 0x78, 0x25, 0x2E, 0x1C, 0xA6, 0xB4, 0xC6, 0xE8, 0xDD, 0x74, 0x1F, 0x4B, 0xBD, 0x8B, 0x8A,
+    0x70, 0x3E, 0xB5, 0x66, 0x48, 0x03, 0xF6, 0x0E, 0x61, 0x35, 0x57, 0xB9, 0x86, 0xC1, 0x1D, 0x9E,
+    0xE1, 0xF8, 0x98, 0x11, 0x69, 0xD9, 0x8E, 0x94, 0x9B, 0x1E, 0x87, 0xE9, 0xCE, 0x55, 0x28, 0xDF,
+    0x8C, 0xA1, 0x89, 0x0D, 0xBF, 0xE6, 0x42, 0x68, 0x41, 0x99, 0x2D, 0x0F, 0xB0, 0x54, 0xBB, 0x16,
 ];
 
 // Round constants for key expansion
-const RCON: [u8; 11] = [0x00, 0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80, 0x1b, 0x36];
+const RCON: [u8; 11] = [0x00, 0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80, 0x1B, 0x36];
 
 // Galois field multiplication table for MixColumns
 const MUL2: [u8; 256] = [
-    0x00, 0x02, 0x04, 0x06, 0x08, 0x0a, 0x0c, 0x0e, 0x10, 0x12, 0x14, 0x16, 0x18, 0x1a, 0x1c, 0x1e,
-    0x20, 0x22, 0x24, 0x26, 0x28, 0x2a, 0x2c, 0x2e, 0x30, 0x32, 0x34, 0x36, 0x38, 0x3a, 0x3c, 0x3e,
-    0x40, 0x42, 0x44, 0x46, 0x48, 0x4a, 0x4c, 0x4e, 0x50, 0x52, 0x54, 0x56, 0x58, 0x5a, 0x5c, 0x5e,
-    0x60, 0x62, 0x64, 0x66, 0x68, 0x6a, 0x6c, 0x6e, 0x70, 0x72, 0x74, 0x76, 0x78, 0x7a, 0x7c, 0x7e,
-    0x80, 0x82, 0x84, 0x86, 0x88, 0x8a, 0x8c, 0x8e, 0x90, 0x92, 0x94, 0x96, 0x98, 0x9a, 0x9c, 0x9e,
-    0xa0, 0xa2, 0xa4, 0xa6, 0xa8, 0xaa, 0xac, 0xae, 0xb0, 0xb2, 0xb4, 0xb6, 0xb8, 0xba, 0xbc, 0xbe,
-    0xc0, 0xc2, 0xc4, 0xc6, 0xc8, 0xca, 0xcc, 0xce, 0xd0, 0xd2, 0xd4, 0xd6, 0xd8, 0xda, 0xdc, 0xde,
-    0xe0, 0xe2, 0xe4, 0xe6, 0xe8, 0xea, 0xec, 0xee, 0xf0, 0xf2, 0xf4, 0xf6, 0xf8, 0xfa, 0xfc, 0xfe,
-    0x1b, 0x19, 0x1f, 0x1d, 0x13, 0x11, 0x17, 0x15, 0x0b, 0x09, 0x0f, 0x0d, 0x03, 0x01, 0x07, 0x05,
-    0x3b, 0x39, 0x3f, 0x3d, 0x33, 0x31, 0x37, 0x35, 0x2b, 0x29, 0x2f, 0x2d, 0x23, 0x21, 0x27, 0x25,
-    0x5b, 0x59, 0x5f, 0x5d, 0x53, 0x51, 0x57, 0x55, 0x4b, 0x49, 0x4f, 0x4d, 0x43, 0x41, 0x47, 0x45,
-    0x7b, 0x79, 0x7f, 0x7d, 0x73, 0x71, 0x77, 0x75, 0x6b, 0x69, 0x6f, 0x6d, 0x63, 0x61, 0x67, 0x65,
-    0x9b, 0x99, 0x9f, 0x9d, 0x93, 0x91, 0x97, 0x95, 0x8b, 0x89, 0x8f, 0x8d, 0x83, 0x81, 0x87, 0x85,
-    0xbb, 0xb9, 0xbf, 0xbd, 0xb3, 0xb1, 0xb7, 0xb5, 0xab, 0xa9, 0xaf, 0xad, 0xa3, 0xa1, 0xa7, 0xa5,
-    0xdb, 0xd9, 0xdf, 0xdd, 0xd3, 0xd1, 0xd7, 0xd5, 0xcb, 0xc9, 0xcf, 0xcd, 0xc3, 0xc1, 0xc7, 0xc5,
-    0xfb, 0xf9, 0xff, 0xfd, 0xf3, 0xf1, 0xf7, 0xf5, 0xeb, 0xe9, 0xef, 0xed, 0xe3, 0xe1, 0xe7, 0xe5
+    0x00, 0x02, 0x04, 0x06, 0x08, 0x0A, 0x0C, 0x0E, 0x10, 0x12, 0x14, 0x16, 0x18, 0x1A, 0x1C, 0x1E,
+    0x20, 0x22, 0x24, 0x26, 0x28, 0x2A, 0x2C, 0x2E, 0x30, 0x32, 0x34, 0x36, 0x38, 0x3A, 0x3C, 0x3E,
+    0x40, 0x42, 0x44, 0x46, 0x48, 0x4A, 0x4C, 0x4E, 0x50, 0x52, 0x54, 0x56, 0x58, 0x5A, 0x5C, 0x5E,
+    0x60, 0x62, 0x64, 0x66, 0x68, 0x6A, 0x6C, 0x6E, 0x70, 0x72, 0x74, 0x76, 0x78, 0x7A, 0x7C, 0x7E,
+    0x80, 0x82, 0x84, 0x86, 0x88, 0x8A, 0x8C, 0x8E, 0x90, 0x92, 0x94, 0x96, 0x98, 0x9A, 0x9C, 0x9E,
+    0xA0, 0xA2, 0xA4, 0xA6, 0xA8, 0xAA, 0xAC, 0xAE, 0xB0, 0xB2, 0xB4, 0xB6, 0xB8, 0xBA, 0xBC, 0xBE,
+    0xC0, 0xC2, 0xC4, 0xC6, 0xC8, 0xCA, 0xCC, 0xCE, 0xD0, 0xD2, 0xD4, 0xD6, 0xD8, 0xDA, 0xDC, 0xDE,
+    0xE0, 0xE2, 0xE4, 0xE6, 0xE8, 0xEA, 0xEC, 0xEE, 0xF0, 0xF2, 0xF4, 0xF6, 0xF8, 0xFA, 0xFC, 0xFE,
+    0x1B, 0x19, 0x1F, 0x1D, 0x13, 0x11, 0x17, 0x15, 0x0B, 0x09, 0x0F, 0x0D, 0x03, 0x01, 0x07, 0x05,
+    0x3B, 0x39, 0x3F, 0x3D, 0x33, 0x31, 0x37, 0x35, 0x2B, 0x29, 0x2F, 0x2D, 0x23, 0x21, 0x27, 0x25,
+    0x5B, 0x59, 0x5F, 0x5D, 0x53, 0x51, 0x57, 0x55, 0x4B, 0x49, 0x4F, 0x4D, 0x43, 0x41, 0x47, 0x45,
+    0x7B, 0x79, 0x7F, 0x7D, 0x73, 0x71, 0x77, 0x75, 0x6B, 0x69, 0x6F, 0x6D, 0x63, 0x61, 0x67, 0x65,
+    0x9B, 0x99, 0x9F, 0x9D, 0x93, 0x91, 0x97, 0x95, 0x8B, 0x89, 0x8F, 0x8D, 0x83, 0x81, 0x87, 0x85,
+    0xBB, 0xB9, 0xBF, 0xBD, 0xB3, 0xB1, 0xB7, 0xB5, 0xAB, 0xA9, 0xAF, 0xAD, 0xA3, 0xA1, 0xA7, 0xA5,
+    0xDB, 0xD9, 0xDF, 0xDD, 0xD3, 0xD1, 0xD7, 0xD5, 0xCB, 0xC9, 0xCF, 0xCD, 0xC3, 0xC1, 0xC7, 0xC5,
+    0xFB, 0xF9, 0xFF, 0xFD, 0xF3, 0xF1, 0xF7, 0xF5, 0xEB, 0xE9, 0xEF, 0xED, 0xE3, 0xE1, 0xE7, 0xE5,
 ];
 
 fn aes_key_expansion(key: &[u8; 16]) -> [[u8; 16]; 11] {
     let mut round_keys = [[0u8; 16]; 11];
     round_keys[0] = *key;
-    
+
     for round in 1..11 {
-        let mut temp = [round_keys[round - 1][12], round_keys[round - 1][13], round_keys[round - 1][14], round_keys[round - 1][15]];
-        
+        let mut temp = [
+            round_keys[round - 1][12],
+            round_keys[round - 1][13],
+            round_keys[round - 1][14],
+            round_keys[round - 1][15],
+        ];
+
         // RotWord
         temp.rotate_left(1);
-        
+
         // SubWord
         for byte in &mut temp {
             *byte = SBOX[*byte as usize];
         }
-        
+
         // XOR with round constant
         temp[0] ^= RCON[round];
-        
+
         // Generate round key
         for i in 0..4 {
             round_keys[round][i] = round_keys[round - 1][i] ^ temp[i];
@@ -752,7 +775,7 @@ fn aes_key_expansion(key: &[u8; 16]) -> [[u8; 16]; 11] {
             round_keys[round][i] = round_keys[round - 1][i] ^ round_keys[round][i - 4];
         }
     }
-    
+
     round_keys
 }
 
@@ -769,7 +792,7 @@ fn shift_rows(state: &mut [u8; 16]) {
     state[5] = state[9];
     state[9] = state[13];
     state[13] = temp;
-    
+
     // Row 2: shift left by 2
     let temp1 = state[2];
     let temp2 = state[6];
@@ -777,7 +800,7 @@ fn shift_rows(state: &mut [u8; 16]) {
     state[6] = state[14];
     state[10] = temp1;
     state[14] = temp2;
-    
+
     // Row 3: shift left by 3 (or right by 1)
     let temp = state[15];
     state[15] = state[11];
@@ -793,7 +816,7 @@ fn mix_columns(state: &mut [u8; 16]) {
         let s1 = state[base + 1];
         let s2 = state[base + 2];
         let s3 = state[base + 3];
-        
+
         state[base] = MUL2[s0 as usize] ^ MUL2[s1 as usize] ^ s1 ^ s2 ^ s3;
         state[base + 1] = s0 ^ MUL2[s1 as usize] ^ MUL2[s2 as usize] ^ s2 ^ s3;
         state[base + 2] = s0 ^ s1 ^ MUL2[s2 as usize] ^ MUL2[s3 as usize] ^ s3;
@@ -812,33 +835,36 @@ pub fn allocate_secure_memory(size: usize) -> Result<Vec<u8>, &'static str> {
     // Allocate from the kernel's secure heap with guard pages
     let page_size = 4096;
     let aligned_size = (size + page_size - 1) & !(page_size - 1);
-    
+
     // Use the existing memory allocation infrastructure
     let phys_frame = crate::memory::phys::alloc_contig(
         (aligned_size / page_size) + 2, // +2 for guard pages
-        1, 
-        crate::memory::phys::AllocFlags::ZERO
-    ).ok_or("Failed to allocate secure memory")?;
-    
+        1,
+        crate::memory::phys::AllocFlags::ZERO,
+    )
+    .ok_or("Failed to allocate secure memory")?;
+
     let virt_addr = crate::memory::virt::map_physical_memory(
-        x86_64::PhysAddr::new(phys_frame.0), 
-        aligned_size + 2 * page_size
-    ).map_err(|_| "Failed to map secure memory")?;
-    
+        x86_64::PhysAddr::new(phys_frame.0),
+        aligned_size + 2 * page_size,
+    )
+    .map_err(|_| "Failed to map secure memory")?;
+
     // Create guard pages (no read/write permissions)
     unsafe {
         crate::memory::virt::protect4k(virt_addr, crate::memory::virt::VmFlags::empty())
             .map_err(|_| "Failed to set guard page")?;
         crate::memory::virt::protect4k(
-            virt_addr + aligned_size + page_size, 
-            crate::memory::virt::VmFlags::empty()
-        ).map_err(|_| "Failed to set guard page")?;
+            virt_addr + aligned_size + page_size,
+            crate::memory::virt::VmFlags::empty(),
+        )
+        .map_err(|_| "Failed to set guard page")?;
     }
-    
+
     // Return the protected memory region
     let ptr = (virt_addr.as_u64() + page_size as u64) as *mut u8;
     let buffer = unsafe { Vec::from_raw_parts(ptr, size, aligned_size) };
-    
+
     Ok(buffer)
 }
 
@@ -847,37 +873,32 @@ pub fn deallocate_secure_memory(buffer: Vec<u8>) -> Result<(), &'static str> {
     let ptr = buffer.as_ptr();
     let size = buffer.len();
     let capacity = buffer.capacity();
-    
+
     // Get the original allocation details
     let page_size = 4096;
     let aligned_size = (capacity + page_size - 1) & !(page_size - 1);
-    
+
     // Calculate guard page addresses
     let guard_start = ptr as u64 - page_size as u64;
     let guard_end = ptr as u64 + aligned_size as u64;
-    
+
     // Securely wipe the memory before deallocation
-    let mut mutable_slice = unsafe { 
-        core::slice::from_raw_parts_mut(ptr as *mut u8, size) 
-    };
+    let mut mutable_slice = unsafe { core::slice::from_raw_parts_mut(ptr as *mut u8, size) };
     secure_zero(&mut mutable_slice);
-    
+
     // Forget the Vec to prevent double-free
     core::mem::forget(buffer);
-    
+
     // Unmap the virtual memory including guard pages
     let virt_addr = x86_64::VirtAddr::new(guard_start);
     crate::memory::virt::unmap_range_4k(virt_addr, aligned_size + 2 * page_size)
         .map_err(|_| "Failed to unmap secure memory")?;
-    
+
     // Free the physical frames
     let total_pages = (aligned_size / page_size) + 2;
     let phys_addr = x86_64::PhysAddr::new(guard_start); // This would need proper translation
-    crate::memory::phys::free_contig(
-        crate::memory::phys::Frame(phys_addr.as_u64()), 
-        total_pages
-    );
-    
+    crate::memory::phys::free_contig(crate::memory::phys::Frame(phys_addr.as_u64()), total_pages);
+
     Ok(())
 }
 

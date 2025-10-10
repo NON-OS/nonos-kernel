@@ -1,18 +1,19 @@
 //! NØNOS Kernel Heap Initialization
 //!
-//! This module sets up a virtual heap for dynamic memory allocation in the kernel
-//! using `linked_list_allocator`. The heap is mapped during paging init and supports
-//! RAM-only operation under the ZeroState runtime. Future extensions may include
-//! multiple heap pools, fragmentation diagnostics, and mod-specific allocators.
+//! This module sets up a virtual heap for dynamic memory allocation in the
+//! kernel using `linked_list_allocator`. The heap is mapped during paging init
+//! and supports RAM-only operation under the ZeroState runtime. Future
+//! extensions may include multiple heap pools, fragmentation diagnostics, and
+//! mod-specific allocators.
 
+use alloc::collections::BTreeMap;
+use alloc::format;
+use alloc::vec::Vec;
 use core::alloc::{GlobalAlloc, Layout};
 use core::ptr::null_mut;
 use core::sync::atomic::{AtomicBool, AtomicU64, AtomicUsize, Ordering};
 use linked_list_allocator::LockedHeap;
 use spin::Mutex;
-use alloc::format;
-use alloc::vec::Vec;
-use alloc::collections::BTreeMap;
 
 /// Static bounds for heap (will later support dynamic regions)
 pub const HEAP_START: usize = 0x_4444_0000;
@@ -55,7 +56,7 @@ fn log_heap_status(msg: &str) {
         logger.log(msg);
     } else {
         // fallback to VGA for very early init
-        let vga = 0xb8000 as *mut u8;
+        let vga = 0xB8000 as *mut u8;
         for (i, byte) in msg.bytes().enumerate().take(80) {
             unsafe {
                 *vga.offset(i as isize * 2) = byte;
@@ -84,20 +85,26 @@ unsafe impl GlobalAlloc for DummyAllocator {
         let ptr = KERNEL_HEAP.alloc(layout);
         if !ptr.is_null() {
             HEAP_ALLOCATIONS.fetch_add(1, Ordering::Relaxed);
-            let new_usage = HEAP_BYTES_ALLOCATED.fetch_add(layout.size(), Ordering::Relaxed) + layout.size();
-            
+            let new_usage =
+                HEAP_BYTES_ALLOCATED.fetch_add(layout.size(), Ordering::Relaxed) + layout.size();
+
             // Track this allocation
             track_allocation(ptr, layout);
-            
+
             // Update peak usage tracking
             let mut peak = HEAP_PEAK_USAGE.load(Ordering::Relaxed);
             while new_usage > peak {
-                match HEAP_PEAK_USAGE.compare_exchange_weak(peak, new_usage, Ordering::Relaxed, Ordering::Relaxed) {
+                match HEAP_PEAK_USAGE.compare_exchange_weak(
+                    peak,
+                    new_usage,
+                    Ordering::Relaxed,
+                    Ordering::Relaxed,
+                ) {
                     Ok(_) => break,
                     Err(x) => peak = x,
                 }
             }
-            
+
             // Warn if heap usage is getting high
             if new_usage > (HEAP_SIZE * 3) / 4 {
                 log_heap_status("[HEAP] WARNING: Heap usage above 75%");
@@ -105,7 +112,7 @@ unsafe impl GlobalAlloc for DummyAllocator {
         } else {
             HEAP_ALLOCATION_FAILURES.fetch_add(1, Ordering::Relaxed);
         }
-        
+
         ptr
     }
 
@@ -114,7 +121,7 @@ unsafe impl GlobalAlloc for DummyAllocator {
             KERNEL_HEAP.dealloc(ptr, layout);
             HEAP_DEALLOCATIONS.fetch_add(1, Ordering::Relaxed);
             HEAP_BYTES_ALLOCATED.fetch_sub(layout.size(), Ordering::Relaxed);
-            
+
             // Stop tracking this allocation
             untrack_allocation(ptr);
         }
@@ -125,19 +132,19 @@ unsafe impl GlobalAlloc for DummyAllocator {
 #[alloc_error_handler]
 fn alloc_error(layout: Layout) -> ! {
     HEAP_ALLOCATION_FAILURES.fetch_add(1, Ordering::Relaxed);
-    
+
     // Log detailed heap statistics for debugging
     let allocs = HEAP_ALLOCATIONS.load(Ordering::Relaxed);
     let deallocs = HEAP_DEALLOCATIONS.load(Ordering::Relaxed);
     let current_usage = HEAP_BYTES_ALLOCATED.load(Ordering::Relaxed);
     let peak_usage = HEAP_PEAK_USAGE.load(Ordering::Relaxed);
     let failures = HEAP_ALLOCATION_FAILURES.load(Ordering::Relaxed);
-    
+
     crate::log::logger::log_critical(&format!(
         "[HEAP] CRITICAL: OOM - Size: {}, Align: {}, Usage: {}/{}, Peak: {}, Allocs: {}, Deallocs: {}, Failures: {}",
         layout.size(), layout.align(), current_usage, HEAP_SIZE, peak_usage, allocs, deallocs, failures
     ));
-    
+
     // In production, we might want to trigger emergency cleanup or restart
     // For now, halt the system safely
     panic!("[HEAP] Out of memory - System halted");
@@ -170,7 +177,7 @@ pub struct HeapStats {
 /// Check heap health and return true if healthy
 pub fn check_heap_health() -> bool {
     let stats = get_heap_stats();
-    
+
     // Consider unhealthy if:
     // - Not enabled
     // - Usage above 90%
@@ -178,17 +185,17 @@ pub fn check_heap_health() -> bool {
     if !stats.enabled {
         return false;
     }
-    
+
     if stats.current_usage > (stats.total_size * 9) / 10 {
         log_heap_status("[HEAP] WARNING: Critical memory usage detected");
         return false;
     }
-    
+
     if stats.failures > stats.allocations / 10 {
         log_heap_status("[HEAP] WARNING: High failure rate detected");
         return false;
     }
-    
+
     true
 }
 
@@ -209,11 +216,8 @@ pub fn get_all_allocations() -> Vec<AllocationInfo> {
 /// Track a new allocation
 fn track_allocation(ptr: *mut u8, layout: Layout) {
     if !ptr.is_null() {
-        let info = AllocationInfo {
-            ptr: ptr as usize,
-            size: layout.size(),
-            layout_align: layout.align(),
-        };
+        let info =
+            AllocationInfo { ptr: ptr as usize, size: layout.size(), layout_align: layout.align() };
         ACTIVE_ALLOCATIONS.lock().insert(ptr as usize, info);
     }
 }

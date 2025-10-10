@@ -1,8 +1,8 @@
 #![no_std]
 
-use alloc::{vec::Vec, collections::BTreeMap, string::String};
-use spin::{RwLock, Mutex};
 use crate::syscall::capabilities::CapabilityToken;
+use alloc::{collections::BTreeMap, string::String, vec::Vec};
+use spin::{Mutex, RwLock};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum NonosModuleType {
@@ -62,7 +62,7 @@ impl NonosModuleLoader {
         name: &str,
         module_type: NonosModuleType,
         code: Vec<u8>,
-        signature: &[u8; 64]
+        signature: &[u8; 64],
     ) -> Result<u64, &'static str> {
         // Verify signature if security is enabled
         if self.security_enabled {
@@ -81,8 +81,7 @@ impl NonosModuleLoader {
         // Find entry point (simplified - just use first 8 bytes as entry point)
         let entry_point = if code.len() >= 8 {
             Some(u64::from_le_bytes([
-                code[0], code[1], code[2], code[3],
-                code[4], code[5], code[6], code[7]
+                code[0], code[1], code[2], code[3], code[4], code[5], code[6], code[7],
             ]))
         } else {
             None
@@ -104,60 +103,60 @@ impl NonosModuleLoader {
 
         self.loaded_modules.write().insert(module_id, module);
         self.module_signatures.write().insert(module_id, *signature);
-        
+
         Ok(module_id)
     }
 
     pub fn unload_module(&self, module_id: u64) -> Result<(), &'static str> {
         let mut modules = self.loaded_modules.write();
         let module = modules.get_mut(&module_id).ok_or("Module not found")?;
-        
+
         // Check if module can be unloaded
         if matches!(module.state, NonosModuleState::Running) {
             return Err("Cannot unload running module");
         }
-        
+
         // Mark as stopped
         module.state = NonosModuleState::Stopped;
-        
+
         // Remove from loaded modules
         modules.remove(&module_id);
         self.module_signatures.write().remove(&module_id);
-        
+
         Ok(())
     }
 
     pub fn start_module(&self, module_id: u64) -> Result<(), &'static str> {
         let mut modules = self.loaded_modules.write();
         let module = modules.get_mut(&module_id).ok_or("Module not found")?;
-        
+
         if module.state != NonosModuleState::Loaded {
             return Err("Module not in loadable state");
         }
-        
+
         // Simplified module execution - just change state
         module.state = NonosModuleState::Running;
-        
+
         Ok(())
     }
 
     pub fn stop_module(&self, module_id: u64) -> Result<(), &'static str> {
         let mut modules = self.loaded_modules.write();
         let module = modules.get_mut(&module_id).ok_or("Module not found")?;
-        
+
         if module.state != NonosModuleState::Running {
             return Err("Module not running");
         }
-        
+
         module.state = NonosModuleState::Stopped;
-        
+
         Ok(())
     }
 
     pub fn get_module_info(&self, module_id: u64) -> Result<NonosModuleInfo, &'static str> {
         let modules = self.loaded_modules.read();
         let module = modules.get(&module_id).ok_or("Module not found")?;
-        
+
         Ok(NonosModuleInfo {
             module_id: module.module_id,
             name: module.name.clone(),
@@ -209,7 +208,7 @@ pub fn load_module(
     name: &str,
     module_type: NonosModuleType,
     code: Vec<u8>,
-    signature: &[u8; 64]
+    signature: &[u8; 64],
 ) -> Result<u64, &'static str> {
     NONOS_MODULE_LOADER.load_module(name, module_type, code, signature)
 }

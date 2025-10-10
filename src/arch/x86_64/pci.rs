@@ -3,7 +3,7 @@
 //! Complete PCI bus enumeration, device management, and configuration
 //! with support for PCI Express, MSI-X interrupts, and DMA operations.
 
-use alloc::{vec::Vec, collections::BTreeMap};
+use alloc::{collections::BTreeMap, vec::Vec};
 use x86_64::{PhysAddr, VirtAddr};
 
 /// PCI Configuration Space offsets
@@ -101,13 +101,7 @@ impl PciDevice {
 
             let size = !(size_mask & !0xF).wrapping_add(1) as u64;
 
-            Ok(PciBar {
-                base_addr,
-                size,
-                memory_mapped: true,
-                prefetchable,
-                bar_type,
-            })
+            Ok(PciBar { base_addr, size, memory_mapped: true, prefetchable, bar_type })
         } else {
             // I/O BAR
             let base_addr = (bar_value & !0x3) as u64;
@@ -119,13 +113,7 @@ impl PciDevice {
 
             let size = !(size_mask & !0x3).wrapping_add(1) as u64;
 
-            Ok(PciBar {
-                base_addr,
-                size,
-                memory_mapped: false,
-                prefetchable: false,
-                bar_type: 0,
-            })
+            Ok(PciBar { base_addr, size, memory_mapped: false, prefetchable: false, bar_type: 0 })
         }
     }
 
@@ -156,7 +144,7 @@ impl PciDevice {
 
             // Configure MSI-X table entry 0
             // This is simplified - real implementation would map MSI-X table
-            
+
             Ok(())
         } else {
             Err("MSI-X capability not found")
@@ -171,7 +159,7 @@ impl PciDevice {
         }
 
         let mut cap_ptr = pci_config_read_byte(self.bus, self.slot, self.function, 0x34) as u16;
-        
+
         while cap_ptr != 0 && cap_ptr != 0xFF {
             let cap = pci_config_read_byte(self.bus, self.slot, self.function, cap_ptr);
             if cap == cap_id {

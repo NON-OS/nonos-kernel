@@ -2,9 +2,9 @@
 //!
 //! Complete page tracking and metadata system
 
-use x86_64::{VirtAddr, PhysAddr};
 use alloc::collections::BTreeMap;
 use spin::RwLock;
+use x86_64::{PhysAddr, VirtAddr};
 
 // Page flags for advanced memory management
 bitflags::bitflags! {
@@ -20,7 +20,7 @@ bitflags::bitflags! {
         const NO_EXECUTE    = 1 << 7;   // Page is not executable
         const NO_CACHE      = 1 << 8;   // Page is not cached
         const WRITE_THROUGH = 1 << 9;   // Write-through caching
-        
+
         // Extended flags for NONOS
         const COPY_ON_WRITE = 1 << 16;  // Copy-on-write page
         const SWAP_PAGE     = 1 << 17;  // Page is swapped out
@@ -95,50 +95,50 @@ impl PageInfo {
             compression_ratio: None,
         }
     }
-    
+
     /// Check if page is present in physical memory
     pub fn is_present(&self) -> bool {
         self.flags.contains(PageFlags::PRESENT) && self.physical_addr.is_some()
     }
-    
+
     /// Check if page is swapped out
     pub fn is_swapped(&self) -> bool {
         self.flags.contains(PageFlags::SWAP_PAGE) && self.swap_location.is_some()
     }
-    
+
     /// Check if page is copy-on-write
     pub fn is_cow(&self) -> bool {
         self.flags.contains(PageFlags::COPY_ON_WRITE)
     }
-    
+
     /// Check if page is writable
     pub fn is_writable(&self) -> bool {
         self.flags.contains(PageFlags::WRITABLE) && !self.flags.contains(PageFlags::READONLY)
     }
-    
+
     /// Check if page is executable
     pub fn is_executable(&self) -> bool {
         self.flags.contains(PageFlags::EXECUTABLE) && !self.flags.contains(PageFlags::NO_EXECUTE)
     }
-    
+
     /// Mark page as accessed
     pub fn mark_accessed(&mut self) {
         self.flags.insert(PageFlags::ACCESSED);
         self.last_accessed = crate::time::now_ns();
     }
-    
+
     /// Mark page as dirty
     pub fn mark_dirty(&mut self) {
         if self.is_writable() {
             self.flags.insert(PageFlags::DIRTY);
         }
     }
-    
+
     /// Increment reference count
     pub fn add_reference(&mut self) {
         self.reference_count += 1;
     }
-    
+
     /// Decrement reference count
     pub fn remove_reference(&mut self) -> u32 {
         if self.reference_count > 0 {
@@ -146,7 +146,7 @@ impl PageInfo {
         }
         self.reference_count
     }
-    
+
     /// Set swap location
     pub fn set_swap_location(&mut self, swap_info: SwapInfo) {
         self.swap_location = Some(swap_info);
@@ -154,19 +154,19 @@ impl PageInfo {
         self.flags.remove(PageFlags::PRESENT);
         self.physical_addr = None;
     }
-    
+
     /// Clear swap location
     pub fn clear_swap_location(&mut self) {
         self.swap_location = None;
         self.flags.remove(PageFlags::SWAP_PAGE);
     }
-    
+
     /// Set encryption key
     pub fn set_encryption_key(&mut self, key: [u8; 32]) {
         self.encryption_key = Some(key);
         self.flags.insert(PageFlags::ENCRYPTED);
     }
-    
+
     /// Clear encryption
     pub fn clear_encryption(&mut self) {
         self.encryption_key = None;
@@ -205,7 +205,7 @@ where
 {
     let page_addr = addr.as_u64() & !0xFFF; // Page-align address
     let mut table = PAGE_INFO_TABLE.write();
-    
+
     if let Some(page_info) = table.get_mut(&page_addr) {
         updater(page_info);
         true
@@ -217,9 +217,7 @@ where
 /// Get all page information (for debugging/monitoring)
 pub fn get_all_page_info() -> alloc::vec::Vec<(VirtAddr, PageInfo)> {
     let table = PAGE_INFO_TABLE.read();
-    table.iter()
-        .map(|(&addr, info)| (VirtAddr::new(addr), info.clone()))
-        .collect()
+    table.iter().map(|(&addr, info)| (VirtAddr::new(addr), info.clone())).collect()
 }
 
 /// Statistics for page management
@@ -243,53 +241,53 @@ pub struct PageStats {
 pub fn get_page_stats() -> PageStats {
     let mut stats = PageStats::default();
     let table = PAGE_INFO_TABLE.read();
-    
+
     for (_, page_info) in table.iter() {
         stats.total_pages += 1;
-        
+
         if page_info.is_present() {
             stats.present_pages += 1;
         }
-        
+
         if page_info.is_swapped() {
             stats.swapped_pages += 1;
         }
-        
+
         if page_info.is_cow() {
             stats.cow_pages += 1;
         }
-        
+
         if page_info.flags.contains(PageFlags::LOCKED) {
             stats.locked_pages += 1;
         }
-        
+
         if page_info.flags.contains(PageFlags::ENCRYPTED) {
             stats.encrypted_pages += 1;
         }
-        
+
         if page_info.flags.contains(PageFlags::COMPRESSED) {
             stats.compressed_pages += 1;
         }
-        
+
         if page_info.flags.contains(PageFlags::SHARED) {
             stats.shared_pages += 1;
         }
-        
+
         if page_info.is_executable() {
             stats.executable_pages += 1;
         }
-        
+
         if page_info.is_writable() {
             stats.writable_pages += 1;
         }
-        
+
         if page_info.flags.contains(PageFlags::USER) {
             stats.user_pages += 1;
         } else {
             stats.kernel_pages += 1;
         }
     }
-    
+
     stats
 }
 
@@ -302,7 +300,7 @@ pub fn init() {
 pub fn cleanup_unreferenced_pages() -> u64 {
     let mut table = PAGE_INFO_TABLE.write();
     let mut removed_count = 0u64;
-    
+
     table.retain(|_addr, page_info| {
         if page_info.reference_count == 0 && !page_info.flags.contains(PageFlags::LOCKED) {
             removed_count += 1;
@@ -311,6 +309,6 @@ pub fn cleanup_unreferenced_pages() -> u64 {
             true // Keep this entry
         }
     });
-    
+
     removed_count
 }

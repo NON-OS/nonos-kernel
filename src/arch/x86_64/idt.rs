@@ -11,24 +11,48 @@
 //!
 //! Integrates with: gdt.rs, logger.rs, cpu.rs
 
-use x86_64::structures::idt::{InterruptDescriptorTable, InterruptStackFrame, PageFaultErrorCode};
-use lazy_static::lazy_static;
 use crate::arch::x86_64::gdt;
 use crate::log::logger::enter_panic_mode;
-use crate::{log_fatal, log_err, log_warn, log_info, log_dbg};
+use crate::{log_dbg, log_err, log_fatal, log_info, log_warn};
 use core::sync::atomic::{AtomicU64, Ordering};
+use lazy_static::lazy_static;
 use x86_64::registers::control::{Cr0, Cr2, Cr3, Cr4};
+use x86_64::structures::idt::{InterruptDescriptorTable, InterruptStackFrame, PageFaultErrorCode};
 
 /// Per-CPU trap counters
 static TRAP_COUNTS: [AtomicU64; 32] = [
-    AtomicU64::new(0), AtomicU64::new(0), AtomicU64::new(0), AtomicU64::new(0),
-    AtomicU64::new(0), AtomicU64::new(0), AtomicU64::new(0), AtomicU64::new(0),
-    AtomicU64::new(0), AtomicU64::new(0), AtomicU64::new(0), AtomicU64::new(0),
-    AtomicU64::new(0), AtomicU64::new(0), AtomicU64::new(0), AtomicU64::new(0),
-    AtomicU64::new(0), AtomicU64::new(0), AtomicU64::new(0), AtomicU64::new(0),
-    AtomicU64::new(0), AtomicU64::new(0), AtomicU64::new(0), AtomicU64::new(0),
-    AtomicU64::new(0), AtomicU64::new(0), AtomicU64::new(0), AtomicU64::new(0),
-    AtomicU64::new(0), AtomicU64::new(0), AtomicU64::new(0), AtomicU64::new(0),
+    AtomicU64::new(0),
+    AtomicU64::new(0),
+    AtomicU64::new(0),
+    AtomicU64::new(0),
+    AtomicU64::new(0),
+    AtomicU64::new(0),
+    AtomicU64::new(0),
+    AtomicU64::new(0),
+    AtomicU64::new(0),
+    AtomicU64::new(0),
+    AtomicU64::new(0),
+    AtomicU64::new(0),
+    AtomicU64::new(0),
+    AtomicU64::new(0),
+    AtomicU64::new(0),
+    AtomicU64::new(0),
+    AtomicU64::new(0),
+    AtomicU64::new(0),
+    AtomicU64::new(0),
+    AtomicU64::new(0),
+    AtomicU64::new(0),
+    AtomicU64::new(0),
+    AtomicU64::new(0),
+    AtomicU64::new(0),
+    AtomicU64::new(0),
+    AtomicU64::new(0),
+    AtomicU64::new(0),
+    AtomicU64::new(0),
+    AtomicU64::new(0),
+    AtomicU64::new(0),
+    AtomicU64::new(0),
+    AtomicU64::new(0),
 ];
 
 lazy_static! {
@@ -87,7 +111,7 @@ lazy_static! {
         idt[32].set_handler_fn(timer_handler);     // Timer interrupt (IRQ 0)
         idt[33].set_handler_fn(keyboard_handler);  // Keyboard interrupt (IRQ 1)
         idt[34].set_handler_fn(cascade_handler);   // Cascade interrupt (IRQ 2)
-        idt[35].set_handler_fn(com2_handler);      // COM2 interrupt (IRQ 3) 
+        idt[35].set_handler_fn(com2_handler);      // COM2 interrupt (IRQ 3)
         idt[36].set_handler_fn(com1_handler);      // COM1 interrupt (IRQ 4)
         idt[37].set_handler_fn(lpt2_handler);      // LPT2 interrupt (IRQ 5)
         idt[38].set_handler_fn(floppy_handler);    // Floppy interrupt (IRQ 6)
@@ -231,7 +255,6 @@ extern "x86-interrupt" fn mc_handler(stack: InterruptStackFrame) {
     }
 }
 
-
 extern "x86-interrupt" fn simd_handler(stack: InterruptStackFrame) {
     trap!(log_warn, 19, "SIMD FP Exception", stack);
 }
@@ -249,13 +272,13 @@ extern "x86-interrupt" fn reserved_handler(stack: InterruptStackFrame) {
 extern "x86-interrupt" fn timer_handler(_stack: InterruptStackFrame) {
     // Handle timer interrupt
     crate::interrupts::timer::tick();
-    
+
     // Signal end of interrupt to PIC
     unsafe {
         use x86_64::instructions::port::Port;
         Port::new(0x20).write(0x20u8); // Send EOI to master PIC
     }
-    
+
     // Call scheduler tick if available
     if let Some(sched) = crate::sched::current_scheduler() {
         sched.tick();
@@ -266,13 +289,13 @@ extern "x86-interrupt" fn keyboard_handler(_stack: InterruptStackFrame) {
     // Handle keyboard interrupt
     unsafe {
         use x86_64::instructions::port::Port;
-        
+
         // Read scancode from keyboard controller
         let scancode: u8 = Port::new(0x60).read();
-        
+
         // Process scancode using existing keyboard driver
         crate::arch::x86_64::keyboard::handle_keyboard_interrupt();
-        
+
         // Send EOI to PIC
         Port::new(0x20).write(0x20u8);
     }
@@ -289,7 +312,7 @@ extern "x86-interrupt" fn cascade_handler(_stack: InterruptStackFrame) {
 extern "x86-interrupt" fn com2_handler(_stack: InterruptStackFrame) {
     // Handle COM2 serial port interrupt
     crate::arch::x86_64::serial::handle_interrupt();
-    
+
     unsafe {
         use x86_64::instructions::port::Port;
         Port::new(0x20).write(0x20u8); // EOI
@@ -299,7 +322,7 @@ extern "x86-interrupt" fn com2_handler(_stack: InterruptStackFrame) {
 extern "x86-interrupt" fn com1_handler(_stack: InterruptStackFrame) {
     // Handle COM1 serial port interrupt
     crate::arch::x86_64::serial::handle_interrupt();
-    
+
     unsafe {
         use x86_64::instructions::port::Port;
         Port::new(0x20).write(0x20u8); // EOI
@@ -316,7 +339,7 @@ extern "x86-interrupt" fn lpt2_handler(_stack: InterruptStackFrame) {
 
 extern "x86-interrupt" fn floppy_handler(_stack: InterruptStackFrame) {
     // Handle floppy disk interrupt - legacy device, minimal support
-    
+
     unsafe {
         use x86_64::instructions::port::Port;
         Port::new(0x20).write(0x20u8); // EOI
@@ -334,7 +357,7 @@ extern "x86-interrupt" fn lpt1_handler(_stack: InterruptStackFrame) {
 extern "x86-interrupt" fn rtc_handler(_stack: InterruptStackFrame) {
     // Handle RTC interrupt
     crate::time::rtc::handle_interrupt();
-    
+
     unsafe {
         use x86_64::instructions::port::Port;
         Port::new(0xA0).write(0x20u8); // EOI to slave PIC
@@ -373,13 +396,13 @@ extern "x86-interrupt" fn mouse_handler(_stack: InterruptStackFrame) {
     // Handle PS/2 mouse interrupt - basic implementation
     unsafe {
         use x86_64::instructions::port::Port;
-        
+
         // Read mouse data from port 0x60
         let _mouse_data: u8 = Port::new(0x60).read();
-        
+
         // Process mouse data (simplified)
         // In full implementation, would parse mouse packets and generate events
-        
+
         // Send EOI to both PICs
         Port::new(0xA0).write(0x20u8); // EOI to slave PIC
         Port::new(0x20).write(0x20u8); // EOI to master PIC
@@ -397,7 +420,7 @@ extern "x86-interrupt" fn fpu_handler(_stack: InterruptStackFrame) {
 
 extern "x86-interrupt" fn ata1_handler(_stack: InterruptStackFrame) {
     // Handle primary ATA interrupt - using modern AHCI instead
-    
+
     unsafe {
         use x86_64::instructions::port::Port;
         Port::new(0xA0).write(0x20u8); // EOI to slave PIC
@@ -407,7 +430,7 @@ extern "x86-interrupt" fn ata1_handler(_stack: InterruptStackFrame) {
 
 extern "x86-interrupt" fn ata2_handler(_stack: InterruptStackFrame) {
     // Handle secondary ATA interrupt - using modern AHCI instead
-    
+
     unsafe {
         use x86_64::instructions::port::Port;
         Port::new(0xA0).write(0x20u8); // EOI to slave PIC

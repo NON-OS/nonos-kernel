@@ -2,9 +2,13 @@
 //!
 //! Production-grade stateful firewall with deep packet inspection
 
-use alloc::{vec::Vec, collections::BTreeMap, string::{String, ToString}};
-use spin::Mutex;
+use alloc::{
+    collections::BTreeMap,
+    string::{String, ToString},
+    vec::Vec,
+};
 use core::sync::atomic::{AtomicU32, AtomicU64, Ordering};
+use spin::Mutex;
 
 /// Firewall rule action
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -249,11 +253,11 @@ impl Firewall {
 
         // Parse Ethernet header
         let ethertype = u16::from_be_bytes([packet[12], packet[13]]);
-        
+
         match ethertype {
             0x0800 => self.parse_ipv4_packet(&packet[14..]), // IPv4
             0x86DD => self.parse_ipv6_packet(&packet[14..]), // IPv6
-            _ => None, // Unsupported protocol
+            _ => None,                                       // Unsupported protocol
         }
     }
 
@@ -277,9 +281,9 @@ impl Firewall {
         let dst_ip = [ip_packet[16], ip_packet[17], ip_packet[18], ip_packet[19]];
 
         let (src_port, dst_port) = match protocol {
-            6 => self.parse_tcp_ports(&ip_packet[ihl..]), // TCP
+            6 => self.parse_tcp_ports(&ip_packet[ihl..]),  // TCP
             17 => self.parse_udp_ports(&ip_packet[ihl..]), // UDP
-            _ => (0, 0), // Other protocols don't have ports
+            _ => (0, 0),                                   // Other protocols don't have ports
         };
 
         let protocol_enum = match protocol {
@@ -312,15 +316,11 @@ impl Firewall {
         }
 
         let next_header = ip_packet[6];
-        let src_ip = [
-            ip_packet[8], ip_packet[9], ip_packet[10], ip_packet[11]
-        ]; // Simplified - just use first 4 bytes
-        let dst_ip = [
-            ip_packet[24], ip_packet[25], ip_packet[26], ip_packet[27]
-        ]; // Simplified - just use first 4 bytes
+        let src_ip = [ip_packet[8], ip_packet[9], ip_packet[10], ip_packet[11]]; // Simplified - just use first 4 bytes
+        let dst_ip = [ip_packet[24], ip_packet[25], ip_packet[26], ip_packet[27]]; // Simplified - just use first 4 bytes
 
         let (src_port, dst_port) = match next_header {
-            6 => self.parse_tcp_ports(&ip_packet[40..]), // TCP
+            6 => self.parse_tcp_ports(&ip_packet[40..]),  // TCP
             17 => self.parse_udp_ports(&ip_packet[40..]), // UDP
             _ => (0, 0),
         };
@@ -424,13 +424,8 @@ impl Firewall {
             return; // Only track TCP connections for now
         }
 
-        let conn_key = (
-            packet.src_ip,
-            packet.src_port,
-            packet.dst_ip,
-            packet.dst_port,
-            packet.protocol,
-        );
+        let conn_key =
+            (packet.src_ip, packet.src_port, packet.dst_ip, packet.dst_port, packet.protocol);
 
         let current_time = crate::arch::x86_64::time::timer::get_timestamp_ms().unwrap_or(0);
 
@@ -438,7 +433,7 @@ impl Firewall {
         if let Some(conn) = self.connection_table.get_mut(&conn_key) {
             // Update existing connection
             conn.last_activity = current_time;
-            
+
             match direction {
                 PacketDirection::Incoming => {
                     conn.packets_received += 1;
@@ -545,11 +540,14 @@ impl Firewall {
 
     fn add_rate_limit(&mut self, ip: [u8; 4], limit: u32) {
         let current_time = crate::arch::x86_64::time::timer::get_timestamp_ms().unwrap_or(0);
-        self.rate_limiters.insert(ip, RateLimitEntry {
-            packets_this_second: AtomicU32::new(0),
-            last_reset: AtomicU64::new(current_time),
-            violations: AtomicU32::new(0),
-        });
+        self.rate_limiters.insert(
+            ip,
+            RateLimitEntry {
+                packets_this_second: AtomicU32::new(0),
+                last_reset: AtomicU64::new(current_time),
+                violations: AtomicU32::new(0),
+            },
+        );
     }
 
     /// Send rejection message for rejected packets
@@ -571,14 +569,18 @@ impl Firewall {
         // Would construct and send TCP RST packet
         // For now, just log it
         crate::log::logger::log_debug!(
-            "Sending TCP RST to {:?}:{}", packet.src_ip, packet.src_port
+            "Sending TCP RST to {:?}:{}",
+            packet.src_ip,
+            packet.src_port
         );
     }
 
     fn send_icmp_port_unreachable(&self, packet: &PacketInfo) {
         // Would construct and send ICMP destination unreachable message
         crate::log::logger::log_debug!(
-            "Sending ICMP port unreachable to {:?}:{}", packet.src_ip, packet.src_port
+            "Sending ICMP port unreachable to {:?}:{}",
+            packet.src_ip,
+            packet.src_port
         );
     }
 
@@ -587,9 +589,7 @@ impl Firewall {
         let current_time = crate::arch::x86_64::time::timer::get_timestamp_ms().unwrap_or(0);
 
         // Clean up expired blocked IPs
-        self.blocked_ips.retain(|_ip, &mut expiry| {
-            expiry == 0 || current_time < expiry
-        });
+        self.blocked_ips.retain(|_ip, &mut expiry| expiry == 0 || current_time < expiry);
 
         // Clean up old connections
         self.connection_table.retain(|_key, conn| {
@@ -599,7 +599,7 @@ impl Firewall {
                 TcpState::Closed => 0,            // Remove immediately
                 _ => 300000,                      // 5 minutes
             };
-            
+
             current_time - conn.last_activity < timeout
         });
     }
@@ -653,7 +653,7 @@ pub fn init() -> Result<(), &'static str> {
     let mut firewall = Firewall::new();
 
     // Add default rules
-    
+
     // Allow loopback traffic
     firewall.add_rule(FirewallRule {
         id: 0,
@@ -722,8 +722,8 @@ pub fn block_ip(ip: [u8; 4]) -> Result<(), &'static str> {
 /// Block IP address temporarily
 pub fn block_ip_temporarily(ip: [u8; 4], duration_seconds: u64) -> Result<(), &'static str> {
     if let Some(firewall) = FIREWALL.lock().as_mut() {
-        let expiry = crate::arch::x86_64::time::timer::get_timestamp_ms().unwrap_or(0) 
-                    + (duration_seconds * 1000);
+        let expiry = crate::arch::x86_64::time::timer::get_timestamp_ms().unwrap_or(0)
+            + (duration_seconds * 1000);
         firewall.blocked_ips.insert(ip, expiry);
         Ok(())
     } else {

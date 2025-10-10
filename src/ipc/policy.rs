@@ -1,12 +1,13 @@
 //! NØNOS IPC Policy Enforcement Layer
 //!
-//! Provides robust, zero-trust, capability-driven access control for message routing and
-//! channel provisioning between sandboxed `.mod` runtime environments. This system enables
-//! enforceable isolation boundaries and structured privilege elevation.
+//! Provides robust, zero-trust, capability-driven access control for message
+//! routing and channel provisioning between sandboxed `.mod` runtime
+//! environments. This system enables enforceable isolation boundaries and
+//! structured privilege elevation.
 
-use crate::syscall::capabilities::{Capability, CapabilityToken};
 use crate::ipc::message::{IpcEnvelope, MessageType, MsgFlags};
 use crate::log::logger::{log_info, log_warn};
+use crate::syscall::capabilities::{Capability, CapabilityToken};
 
 /// IPC routing policy trait
 pub trait IpcPolicy {

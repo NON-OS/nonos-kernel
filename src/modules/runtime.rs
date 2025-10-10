@@ -7,13 +7,13 @@
 //! - zkSnapshot generation for cryptographic relay export
 //! - Fully memory-aware and restart-compatible
 
-use crate::syscall::capabilities::CapabilityToken;
-use crate::crypto::zk::{AttestationProof, generate_snapshot_signature};
+use crate::crypto::zk::{generate_snapshot_signature, AttestationProof};
 use crate::log::logger::{log_info, log_warn};
+use crate::syscall::capabilities::CapabilityToken;
 
 use crate::time::Instant;
-use core::time::Duration;
 use alloc::format;
+use core::time::Duration;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum CapsuleState {
@@ -50,9 +50,23 @@ pub struct RuntimeCapsule {
 
 impl RuntimeCapsule {
     /// Construct a new live runtime capsule instance
-    pub fn new(name: &'static str, token: CapabilityToken, policy: FaultPolicy, memory_bytes: usize) -> Self {
+    pub fn new(
+        name: &'static str,
+        token: CapabilityToken,
+        policy: FaultPolicy,
+        memory_bytes: usize,
+    ) -> Self {
         let now = Instant::now();
-        log_info!("{}: {}", "runtime", &format!("Capsule '{}' created | policy: {:?} | mem={} KB", name, policy, memory_bytes / 1024));
+        log_info!(
+            "{}: {}",
+            "runtime",
+            &format!(
+                "Capsule '{}' created | policy: {:?} | mem={} KB",
+                name,
+                policy,
+                memory_bytes / 1024
+            )
+        );
         Self {
             name,
             token,
@@ -78,7 +92,11 @@ impl RuntimeCapsule {
     /// Lifecycle transition: suspend capsule
     pub fn suspend(&mut self) {
         self.state = CapsuleState::Suspended;
-        log_warn!("{}: {}", "runtime", &format!("Capsule '{}' suspended due to soft fault", self.name));
+        log_warn!(
+            "{}: {}",
+            "runtime",
+            &format!("Capsule '{}' suspended due to soft fault", self.name)
+        );
     }
 
     /// Lifecycle transition: faulted
@@ -108,7 +126,11 @@ impl RuntimeCapsule {
             FaultPolicy::Suspend => self.suspend(),
             FaultPolicy::Escalate => {
                 // TODO: Signal system-wide fault escalation mechanism
-                log_warn!("{}: {}", "runtime", &format!("Capsule '{}' triggered escalation", self.name));
+                log_warn!(
+                    "{}: {}",
+                    "runtime",
+                    &format!("Capsule '{}' triggered escalation", self.name)
+                );
             }
         }
     }
@@ -153,7 +175,7 @@ impl RuntimeCapsule {
         let dummy_key = [0u8; 32]; // Stub private key
         match generate_snapshot_signature(&data, &dummy_key) {
             Ok(proof) => proof.ed25519_signature,
-            Err(_) => [0u8; 64]  // Return zero signature on error
+            Err(_) => [0u8; 64], // Return zero signature on error
         }
     }
 

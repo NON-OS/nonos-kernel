@@ -1,7 +1,7 @@
 //! Simple IDT setup for NON-OS kernel
 
-use x86_64::structures::idt::{InterruptDescriptorTable, InterruptStackFrame};
 use lazy_static::lazy_static;
+use x86_64::structures::idt::{InterruptDescriptorTable, InterruptStackFrame};
 
 lazy_static! {
     static ref IDT: InterruptDescriptorTable = {
@@ -27,6 +27,8 @@ extern "x86-interrupt" fn double_fault_handler(
 ) {
     crate::arch::x86_64::vga::print("EXCEPTION: DOUBLE FAULT\n");
     loop {
-        unsafe { core::arch::asm!("hlt"); }
+        unsafe {
+            core::arch::asm!("hlt");
+        }
     }
 }

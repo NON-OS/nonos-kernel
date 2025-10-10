@@ -3,26 +3,24 @@
 //! Production-grade process management with memory isolation, scheduling,
 //! capabilities, and full lifecycle management. REAL IMPLEMENTATIONS ONLY.
 
-pub mod process;
-pub mod context;
-pub mod scheduler;
-pub mod numa;
-pub mod realtime;
 pub mod capabilities;
+pub mod context;
+pub mod numa;
+pub mod process;
 pub mod real_process;
+pub mod realtime;
+pub mod scheduler;
 
-use ::alloc::vec::Vec;
-use ::alloc::vec;
 use ::alloc::string::String;
 use ::alloc::sync::Arc;
+use ::alloc::vec;
+use ::alloc::vec::Vec;
 
 // Re-export the real process types
 pub use real_process::{
-    ProcessControlBlock, ProcessState, Priority, Pid, Tid,
-    init_process_management, current_process, current_pid, 
-    create_process, context_switch, get_process_table,
-    syscalls, ProcessManagementStats, get_process_stats,
-    isolate_process, suspend_process
+    context_switch, create_process, current_pid, current_process, get_process_stats,
+    get_process_table, init_process_management, isolate_process, suspend_process, syscalls, Pid,
+    Priority, ProcessControlBlock, ProcessManagementStats, ProcessState, Tid,
 };
 
 /// Process type for compatibility (wrapper around real process)
@@ -54,21 +52,22 @@ impl Process {
     pub fn is_authorized_executable_region(&self, address: u64) -> bool {
         if let Some(ref pcb) = self.pcb {
             let memory = pcb.memory.lock();
-            
+
             // Check if address is in code segment
             if address >= memory.code_start.as_u64() && address < memory.code_end.as_u64() {
                 return true;
             }
-            
+
             // Check VMAs for executable regions
             for vma in &memory.vmas {
-                if address >= vma.start.as_u64() && 
-                   address < vma.end.as_u64() && 
-                   vma.flags.contains(x86_64::structures::paging::PageTableFlags::PRESENT) {
+                if address >= vma.start.as_u64()
+                    && address < vma.end.as_u64()
+                    && vma.flags.contains(x86_64::structures::paging::PageTableFlags::PRESENT)
+                {
                     return true;
                 }
             }
-            
+
             false
         } else {
             false
@@ -211,13 +210,10 @@ pub fn enumerate_all_processes() -> Vec<Process> {
     // Get all processes from the real process table
     let table = real_process::get_process_table();
     let all_pcbs = table.get_all_processes();
-    all_pcbs.into_iter().map(|pcb| {
-        Process {
-            pid: pcb.pid,
-            name: pcb.name.clone(),
-            pcb: Some(pcb),
-        }
-    }).collect()
+    all_pcbs
+        .into_iter()
+        .map(|pcb| Process { pid: pcb.pid, name: pcb.name.clone(), pcb: Some(pcb) })
+        .collect()
 }
 
 pub fn enumerate_visible_processes() -> Vec<Process> {
@@ -297,57 +293,57 @@ impl ProcessCapabilities {
     pub fn new_root() -> Self {
         ProcessCapabilities { caps: 0xFFFFFFFFFFFFFFFF }
     }
-    
+
     /// Check if can exit
     pub fn can_exit(&self) -> bool {
         (self.caps & 0x01) != 0
     }
-    
+
     /// Check if can read
     pub fn can_read(&self) -> bool {
         (self.caps & 0x02) != 0
     }
-    
+
     /// Check if can write
     pub fn can_write(&self) -> bool {
         (self.caps & 0x04) != 0
     }
-    
+
     /// Check if can open files
     pub fn can_open_files(&self) -> bool {
         (self.caps & 0x08) != 0
     }
-    
+
     /// Check if can close files
     pub fn can_close_files(&self) -> bool {
         (self.caps & 0x10) != 0
     }
-    
+
     /// Check if can allocate memory
     pub fn can_allocate_memory(&self) -> bool {
         (self.caps & 0x20) != 0
     }
-    
+
     /// Check if can deallocate memory
     pub fn can_deallocate_memory(&self) -> bool {
         (self.caps & 0x40) != 0
     }
-    
+
     /// Check if can load modules
     pub fn can_load_modules(&self) -> bool {
         (self.caps & 0x80) != 0
     }
-    
+
     /// Check if can use crypto
     pub fn can_use_crypto(&self) -> bool {
         (self.caps & 0x100) != 0
     }
-    
+
     /// Check if can send IPC
     pub fn can_send_ipc(&self) -> bool {
         (self.caps & 0x200) != 0
     }
-    
+
     /// Check if can receive IPC
     pub fn can_receive_ipc(&self) -> bool {
         (self.caps & 0x400) != 0
@@ -359,15 +355,14 @@ pub fn update_memory_usage(bytes: usize) {
     if let Some(current) = current_process() {
         // Update memory accounting in the process control block
         let memory = current.memory.lock();
-        memory.resident_pages.fetch_add(
-            (bytes + 4095) as u64 / 4096, 
-            core::sync::atomic::Ordering::Relaxed
-        );
-            
+        memory
+            .resident_pages
+            .fetch_add((bytes + 4095) as u64 / 4096, core::sync::atomic::Ordering::Relaxed);
+
         crate::log::logger::log_debug!(
-            "Updated memory usage for process {}: +{} bytes", 
-            current.pid, bytes
+            "Updated memory usage for process {}: +{} bytes",
+            current.pid,
+            bytes
         );
     }
 }
-

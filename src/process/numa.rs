@@ -2,7 +2,7 @@
 //!
 //! Advanced NUMA topology detection and memory allocation policies
 
-use alloc::{vec::Vec, vec, collections::BTreeMap};
+use alloc::{collections::BTreeMap, vec, vec::Vec};
 use core::sync::atomic::{AtomicU64, AtomicUsize, Ordering};
 use x86_64::PhysAddr;
 
@@ -13,7 +13,7 @@ pub type NumaNodeId = u32;
 #[derive(Debug)]
 pub struct NumaNode {
     pub node_id: NumaNodeId,
-    pub cpu_mask: u64,         // CPUs belonging to this node
+    pub cpu_mask: u64, // CPUs belonging to this node
     pub memory_start: PhysAddr,
     pub memory_size: usize,
     pub memory_free: AtomicUsize,
@@ -26,7 +26,7 @@ pub struct NumaTopology {
     nodes: Vec<NumaNode>,
     node_map: BTreeMap<NumaNodeId, usize>, // Node ID to index mapping
     total_nodes: u32,
-    
+
     // Statistics
     cross_node_allocations: AtomicU64,
     local_allocations: AtomicU64,
@@ -45,11 +45,11 @@ impl NumaTopology {
             migration_count: AtomicU64::new(0),
         }
     }
-    
+
     /// Detect NUMA topology from hardware
     pub fn detect_topology() -> Self {
         let mut topology = NumaTopology::new();
-        
+
         // Parse ACPI SRAT (System Resource Affinity Table) for real topology
         if let Some(acpi_tables) = crate::arch::x86_64::acpi::get_acpi_tables() {
             if let Some(srat) = acpi_tables.find_table::<crate::arch::x86_64::acpi::Srat>() {
@@ -58,15 +58,20 @@ impl NumaTopology {
                     match entry {
                         crate::arch::x86_64::acpi::SratEntry::ProcessorAffinity(cpu_affinity) => {
                             let node_id = cpu_affinity.proximity_domain_low as u32;
-                            topology.associate_cpu_with_node(cpu_affinity.local_apic_id as u32, node_id);
-                        },
+                            topology.associate_cpu_with_node(
+                                cpu_affinity.local_apic_id as u32,
+                                node_id,
+                            );
+                        }
                         crate::arch::x86_64::acpi::SratEntry::MemoryAffinity(mem_affinity) => {
                             let node_id = mem_affinity.proximity_domain;
                             let base_addr = PhysAddr::new(mem_affinity.base_address);
                             let size = mem_affinity.length_bytes;
                             topology.add_memory_range_to_node(node_id, base_addr, size);
-                        },
-                        crate::arch::x86_64::acpi::SratEntry::ProcessorX2ApicAffinity(x2apic_affinity) => {
+                        }
+                        crate::arch::x86_64::acpi::SratEntry::ProcessorX2ApicAffinity(
+                            x2apic_affinity,
+                        ) => {
                             let node_id = x2apic_affinity.proximity_domain;
                             topology.associate_cpu_with_node(x2apic_affinity.x2apic_id, node_id);
                         }
@@ -76,7 +81,7 @@ impl NumaTopology {
         } else {
             crate::log_warn!("ACPI not available, using fallback NUMA topology");
         }
-        
+
         // If no ACPI, create reasonable fallback topology
         topology.add_node(NumaNode {
             node_id: 0,
@@ -87,51 +92,55 @@ impl NumaTopology {
             memory_used: AtomicUsize::new(0),
             distance_map: vec![10, 20], // 10 = local, 20 = remote
         });
-        
+
         topology.add_node(NumaNode {
             node_id: 1,
-            cpu_mask: 0xF0, // CPUs 4-7
+            cpu_mask: 0xF0,                          // CPUs 4-7
             memory_start: PhysAddr::new(0x40000000), // 1GB
             memory_size: 512 * 1024 * 1024,
             memory_free: AtomicUsize::new(512 * 1024 * 1024),
             memory_used: AtomicUsize::new(0),
             distance_map: vec![20, 10],
         });
-        
+
         topology
     }
-    
+
     /// Add NUMA node to topology
     pub fn add_node(&mut self, node: NumaNode) {
         let node_id = node.node_id;
         let index = self.nodes.len();
-        
+
         self.nodes.push(node);
         self.node_map.insert(node_id, index);
         self.total_nodes += 1;
     }
-    
+
     /// Get node by ID
     pub fn get_node(&self, node_id: NumaNodeId) -> Option<&NumaNode> {
-        self.node_map.get(&node_id)
-            .and_then(|&index| self.nodes.get(index))
+        self.node_map.get(&node_id).and_then(|&index| self.nodes.get(index))
     }
-    
+
     /// Get node by CPU
     pub fn node_for_cpu(&self, cpu_id: u32) -> Option<NumaNodeId> {
         let cpu_mask = 1u64 << cpu_id;
-        
+
         for node in &self.nodes {
             if node.cpu_mask & cpu_mask != 0 {
                 return Some(node.node_id);
             }
         }
-        
+
         None
     }
-    
+
     /// Find best node for allocation
-    pub fn best_node_for_allocation(&self, current_cpu: u32, size: usize, policy: NumaAllocationPolicy) -> Option<NumaNodeId> {
+    pub fn best_node_for_allocation(
+        &self,
+        current_cpu: u32,
+        size: usize,
+        policy: NumaAllocationPolicy,
+    ) -> Option<NumaNodeId> {
         match policy {
             NumaAllocationPolicy::Local => {
                 // Try current CPU's node first
@@ -143,12 +152,12 @@ impl NumaTopology {
                     }
                 }
                 None
-            },
-            
+            }
+
             NumaAllocationPolicy::Interleave => {
                 // Round-robin across nodes
                 let preferred_node = (current_cpu as NumaNodeId) % self.total_nodes;
-                
+
                 // Try preferred node first, then others
                 for offset in 0..self.total_nodes {
                     let node_id = (preferred_node + offset) % self.total_nodes;
@@ -159,8 +168,8 @@ impl NumaTopology {
                     }
                 }
                 None
-            },
-            
+            }
+
             NumaAllocationPolicy::Preferred(preferred_node) => {
                 // Try preferred node first
                 if let Some(node) = self.get_node(preferred_node) {
@@ -168,7 +177,7 @@ impl NumaTopology {
                         return Some(preferred_node);
                     }
                 }
-                
+
                 // Fall back to any available node
                 for node in &self.nodes {
                     if node.memory_free.load(Ordering::Relaxed) >= size {
@@ -176,8 +185,8 @@ impl NumaTopology {
                     }
                 }
                 None
-            },
-            
+            }
+
             NumaAllocationPolicy::Bind(bound_node) => {
                 // Must use specific node
                 if let Some(node) = self.get_node(bound_node) {
@@ -189,35 +198,40 @@ impl NumaTopology {
             }
         }
     }
-    
+
     /// Allocate memory on specific node
-    pub fn allocate_on_node(&mut self, node_id: NumaNodeId, size: usize) -> Result<PhysAddr, &'static str> {
+    pub fn allocate_on_node(
+        &mut self,
+        node_id: NumaNodeId,
+        size: usize,
+    ) -> Result<PhysAddr, &'static str> {
         if let Some(index) = self.node_map.get(&node_id).copied() {
             if let Some(node) = self.nodes.get_mut(index) {
                 let available = node.memory_free.load(Ordering::Relaxed);
                 if available >= size {
                     node.memory_free.fetch_sub(size, Ordering::Relaxed);
                     node.memory_used.fetch_add(size, Ordering::Relaxed);
-                    
+
                     // Calculate allocation address (simplified)
                     let used = node.memory_used.load(Ordering::Relaxed) - size;
                     let addr = node.memory_start + used as u64;
-                    
+
                     // Update statistics
-                    if self.node_for_cpu(0) == Some(node_id) { // Simplified CPU check
+                    if self.node_for_cpu(0) == Some(node_id) {
+                        // Simplified CPU check
                         self.local_allocations.fetch_add(1, Ordering::Relaxed);
                     } else {
                         self.cross_node_allocations.fetch_add(1, Ordering::Relaxed);
                     }
-                    
+
                     return Ok(addr);
                 }
             }
         }
-        
+
         Err("Cannot allocate on requested NUMA node")
     }
-    
+
     /// Get distance between nodes
     pub fn node_distance(&self, from: NumaNodeId, to: NumaNodeId) -> Option<u32> {
         if let Some(node) = self.get_node(from) {
@@ -226,12 +240,12 @@ impl NumaTopology {
             None
         }
     }
-    
+
     /// Find closest node with available memory
     pub fn closest_available_node(&self, from: NumaNodeId, size: usize) -> Option<NumaNodeId> {
         let mut best_node = None;
         let mut best_distance = u32::MAX;
-        
+
         for node in &self.nodes {
             if node.memory_free.load(Ordering::Relaxed) >= size {
                 if let Some(distance) = self.node_distance(from, node.node_id) {
@@ -242,22 +256,22 @@ impl NumaTopology {
                 }
             }
         }
-        
+
         best_node
     }
-    
+
     /// Get NUMA statistics
     pub fn get_stats(&self) -> NumaStats {
         let mut total_memory = 0;
         let mut total_free = 0;
         let mut total_used = 0;
-        
+
         for node in &self.nodes {
             total_memory += node.memory_size;
             total_free += node.memory_free.load(Ordering::Relaxed);
             total_used += node.memory_used.load(Ordering::Relaxed);
         }
-        
+
         NumaStats {
             total_nodes: self.total_nodes,
             total_memory,
@@ -268,40 +282,46 @@ impl NumaTopology {
             migration_count: self.migration_count.load(Ordering::Relaxed),
         }
     }
-    
+
     /// Balance memory across nodes
     pub fn balance_memory(&mut self) -> Result<u32, &'static str> {
         let stats = self.get_stats();
         let average_usage = stats.total_used / self.total_nodes as usize;
         let mut migrations = 0;
-        
+
         // Simple balancing algorithm - collect node info first to avoid double borrow
-        let node_info: Vec<(u32, usize)> = self.nodes.iter()
+        let node_info: Vec<(u32, usize)> = self
+            .nodes
+            .iter()
             .map(|node| (node.node_id, node.memory_used.load(Ordering::Relaxed)))
             .collect();
-        
+
         for (node_id, current_usage) in node_info {
-            if current_usage > average_usage * 110 / 100 { // 10% above average
+            if current_usage > average_usage * 110 / 100 {
+                // 10% above average
                 // This node is overloaded, try to migrate some memory
                 let excess = current_usage - average_usage;
-                
+
                 // Find underutilized node
                 for target_node in &self.nodes {
                     if target_node.node_id != node_id {
                         let target_usage = target_node.memory_used.load(Ordering::Relaxed);
-                        if target_usage < average_usage * 90 / 100 { // 10% below average
+                        if target_usage < average_usage * 90 / 100 {
+                            // 10% below average
                             // Simulate migration (in real implementation, would move pages)
                             let migrate_size = excess.min(average_usage - target_usage);
-                            
+
                             // Find source node and update it
-                            if let Some(source_node) = self.nodes.iter().find(|n| n.node_id == node_id) {
+                            if let Some(source_node) =
+                                self.nodes.iter().find(|n| n.node_id == node_id)
+                            {
                                 source_node.memory_used.fetch_sub(migrate_size, Ordering::Relaxed);
                                 source_node.memory_free.fetch_add(migrate_size, Ordering::Relaxed);
                             }
-                            
+
                             target_node.memory_used.fetch_add(migrate_size, Ordering::Relaxed);
                             target_node.memory_free.fetch_sub(migrate_size, Ordering::Relaxed);
-                            
+
                             migrations += 1;
                             self.migration_count.fetch_add(1, Ordering::Relaxed);
                             break;
@@ -310,7 +330,7 @@ impl NumaTopology {
                 }
             }
         }
-        
+
         Ok(migrations)
     }
 
@@ -331,7 +351,7 @@ impl NumaTopology {
                 memory_used: AtomicUsize::new(0),
                 distance_map: Vec::new(),
             };
-            
+
             let node_index = self.nodes.len();
             self.nodes.push(new_node);
             self.node_map.insert(node_id, node_index);
@@ -343,7 +363,8 @@ impl NumaTopology {
     pub fn add_memory_range_to_node(&mut self, node_id: u32, base_addr: PhysAddr, size: u64) {
         // Find or create node
         if let Some(node_index) = self.node_map.get(&node_id).cloned() {
-            // Update existing node's memory info (simplified - assumes single contiguous range)
+            // Update existing node's memory info (simplified - assumes single contiguous
+            // range)
             if self.nodes[node_index].memory_size == 0 {
                 self.nodes[node_index].memory_start = base_addr;
             }
@@ -360,7 +381,7 @@ impl NumaTopology {
                 memory_used: AtomicUsize::new(0),
                 distance_map: Vec::new(),
             };
-            
+
             let node_index = self.nodes.len();
             self.nodes.push(new_node);
             self.node_map.insert(node_id, node_index);
@@ -372,10 +393,10 @@ impl NumaTopology {
 /// NUMA allocation policy
 #[derive(Debug, Clone, Copy)]
 pub enum NumaAllocationPolicy {
-    Local,              // Allocate on local node
-    Interleave,         // Interleave across all nodes
+    Local,                 // Allocate on local node
+    Interleave,            // Interleave across all nodes
     Preferred(NumaNodeId), // Prefer specific node, fall back to others
-    Bind(NumaNodeId),   // Bind to specific node only
+    Bind(NumaNodeId),      // Bind to specific node only
 }
 
 /// NUMA statistics

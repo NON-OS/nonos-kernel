@@ -2,23 +2,27 @@
 //!
 //! Unified IPC module re-exports the entire inter-process communication system.
 //! It serves as the primary messaging backbone of ZeroState, offering secure,
-//! capability-scoped, session-aware, and optionally encrypted communication between
-//! isolated `.mod` sandboxed environments.
+//! capability-scoped, session-aware, and optionally encrypted communication
+//! between isolated `.mod` sandboxed environments.
 
 #![allow(unused_imports)]
 
 pub mod channel;
 pub mod message;
+pub mod nonos_ipc;
 pub mod policy;
 pub mod transport;
-pub mod nonos_ipc;
 
 use crate::syscall::capabilities::CapabilityToken;
-use channel::{IPC_BUS, IpcChannel, IpcMessage};
+use alloc::{
+    format,
+    string::{String, ToString},
+    vec::Vec,
+};
+use channel::{IpcChannel, IpcMessage, IPC_BUS};
 use message::{IpcEnvelope, MessageType};
 use policy::{IpcPolicy, ACTIVE_POLICY};
-use transport::{IpcStream, send_stream_payload};
-use alloc::{vec::Vec, string::{String, ToString}, format};
+use transport::{send_stream_payload, IpcStream};
 // use log_{info, warn};
 
 /// IPC System Diagnostic Report
@@ -38,10 +42,7 @@ pub fn init_ipc() {
 }
 
 /// Attempt to send a validated IPC envelope
-pub fn send_envelope(
-    envelope: IpcEnvelope,
-    token: &CapabilityToken,
-) -> Result<(), &'static str> {
+pub fn send_envelope(envelope: IpcEnvelope, token: &CapabilityToken) -> Result<(), &'static str> {
     unsafe {
         if !ACTIVE_POLICY.allow_message(&envelope, token) {
             // warn!(target: "ipc::policy", "Message rejected by policy: {:?}", envelope);
@@ -75,7 +76,7 @@ pub fn list_routes() -> Vec<(&'static str, &'static str)> {
 pub fn get_ipc_status() -> IpcStatus {
     IpcStatus {
         active_routes: IPC_BUS.list_routes().len(),
-        open_streams: 0, // TODO: Track active IpcStream instances
+        open_streams: 0,       // TODO: Track active IpcStream instances
         messages_in_flight: 0, // TODO: Hook scheduler message counters
     }
 }
@@ -104,40 +105,36 @@ pub fn init() {
 pub fn process_message_queue() {
     const MAX_MESSAGES_PER_ITERATION: usize = 128;
     let mut processed = 0;
-    
+
     // Process pending messages in the IPC bus
     while processed < MAX_MESSAGES_PER_ITERATION {
         match IPC_BUS.get_next_message() {
-            Some(message) => {
-                match process_single_message(message) {
-                    Ok(()) => {
-                        processed += 1;
-                        crate::log::logger::log_debug!("IPC message processed successfully");
-                    }
-                    Err(e) => {
-                        crate::log::logger::log_warn!(
-                            "Failed to process IPC message: {}", e
-                        );
-                        processed += 1;
-                    }
+            Some(message) => match process_single_message(message) {
+                Ok(()) => {
+                    processed += 1;
+                    crate::log::logger::log_debug!("IPC message processed successfully");
                 }
-            }
+                Err(e) => {
+                    crate::log::logger::log_warn!("Failed to process IPC message: {}", e);
+                    processed += 1;
+                }
+            },
             None => break, // No more messages
         }
     }
-    
+
     // Handle message timeouts
     handle_message_timeouts();
-    
+
     // Clean up dead channels
     cleanup_dead_channels();
-    
+
     // Update IPC statistics
     update_ipc_statistics();
-    
+
     // Process capability validation queue
     process_capability_validation_queue();
-    
+
     if processed > 0 {
         crate::log::logger::log_info!("Processed {} IPC messages", processed);
     }
@@ -149,13 +146,13 @@ fn process_single_message(message: IpcMessage) -> Result<(), &'static str> {
     if !message.validate_integrity() {
         return Err("Message integrity validation failed");
     }
-    
+
     // Check if destination module is still alive
     if !is_module_alive(&message.to) {
         cleanup_module_channels(&message.to);
         return Err("Destination module is dead");
     }
-    
+
     // Route message to destination
     match route_message_to_destination(&message) {
         Ok(()) => {
@@ -173,38 +170,34 @@ fn process_single_message(message: IpcMessage) -> Result<(), &'static str> {
 
 fn route_message_to_destination(message: &IpcMessage) -> Result<(), &'static str> {
     // Find the target module's message queue
-    let target_queue = get_module_message_queue(&message.to)
-        .ok_or("Target module message queue not found")?;
-    
+    let target_queue =
+        get_module_message_queue(&message.to).ok_or("Target module message queue not found")?;
+
     // Check if queue has capacity
     if target_queue.is_full() {
         return Err("Target message queue is full");
     }
-    
+
     // Enqueue message with timeout
     target_queue.enqueue_with_timeout(message.clone(), get_message_timeout())?;
-    
+
     // Notify target module if it's waiting
     notify_module_message_available(&message.to);
-    
+
     Ok(())
 }
 
 fn handle_message_timeouts() {
     let timed_out_messages = IPC_BUS.get_timed_out_messages();
-    
+
     for message in timed_out_messages {
-        crate::log::logger::log_warn!(
-            "IPC message timed out: {} -> {}", message.from, message.to
-        );
-        
+        crate::log::logger::log_warn!("IPC message timed out: {} -> {}", message.from, message.to);
+
         // Send timeout notification to sender if possible
         if let Err(e) = send_timeout_notification(&message) {
-            crate::log::logger::log_err!(
-                "Failed to send timeout notification: {}", e
-            );
+            crate::log::logger::log_err!("Failed to send timeout notification: {}", e);
         }
-        
+
         // Update timeout statistics
         increment_timeout_counter(&message.from, &message.to);
     }
@@ -212,13 +205,13 @@ fn handle_message_timeouts() {
 
 fn cleanup_dead_channels() {
     let dead_channels = IPC_BUS.find_dead_channels();
-    
+
     for channel_index in dead_channels {
         crate::log::logger::log_info!("Cleaning up dead IPC channel: {}", channel_index);
-        
+
         // Remove channel from bus
         IPC_BUS.remove_channel(channel_index);
-        
+
         // Update channel cleanup statistics
         increment_channel_cleanup_counter();
     }
@@ -233,14 +226,14 @@ fn update_ipc_statistics() {
         bandwidth_bytes_per_sec: calculate_message_bandwidth(),
         capability_violations: get_capability_violation_count(),
     };
-    
+
     update_global_ipc_stats(current_stats);
 }
 
 fn process_capability_validation_queue() {
     const MAX_VALIDATIONS_PER_ITERATION: usize = 32;
     let mut processed = 0;
-    
+
     while processed < MAX_VALIDATIONS_PER_ITERATION {
         if let Some(validation_request) = get_next_capability_validation() {
             match validate_capability_request(&validation_request) {
@@ -249,9 +242,7 @@ fn process_capability_validation_queue() {
                     processed += 1;
                 }
                 Err(e) => {
-                    crate::log::logger::log_err!(
-                        "Capability validation failed: {}", e
-                    );
+                    crate::log::logger::log_err!("Capability validation failed: {}", e);
                     send_capability_validation_error(&validation_request.requester, e);
                     processed += 1;
                 }
@@ -295,7 +286,7 @@ fn send_timeout_notification(message: &IpcMessage) -> Result<(), &'static str> {
         timestamp: crate::time::timestamp_millis(),
         session_id: None,
     };
-    
+
     // Send without capability check since it's a kernel notification
     IPC_BUS.send_system_message(timeout_envelope)
 }
@@ -306,10 +297,12 @@ fn increment_message_delivery_counter(from: &str, to: &str) {
 
 fn handle_message_delivery_failure(message: &IpcMessage, error: &str) -> Result<(), &'static str> {
     crate::log::logger::log_err!(
-        "Message delivery failure: {} -> {}, error: {}", 
-        message.from, message.to, error
+        "Message delivery failure: {} -> {}, error: {}",
+        message.from,
+        message.to,
+        error
     );
-    
+
     // Try to send failure notification back to sender
     let failure_envelope = IpcEnvelope {
         from: "kernel",
@@ -319,18 +312,28 @@ fn handle_message_delivery_failure(message: &IpcMessage, error: &str) -> Result<
         timestamp: crate::time::timestamp_millis(),
         session_id: None,
     };
-    
+
     IPC_BUS.send_system_message(failure_envelope)
 }
 
 fn increment_timeout_counter(from: &str, to: &str) {}
 fn increment_channel_cleanup_counter() {}
 
-fn get_messages_processed_count() -> u64 { 0 }
-fn get_messages_dropped_count() -> u64 { 0 }
-fn calculate_average_message_latency() -> u64 { 0 }
-fn calculate_message_bandwidth() -> u64 { 0 }
-fn get_capability_violation_count() -> u64 { 0 }
+fn get_messages_processed_count() -> u64 {
+    0
+}
+fn get_messages_dropped_count() -> u64 {
+    0
+}
+fn calculate_average_message_latency() -> u64 {
+    0
+}
+fn calculate_message_bandwidth() -> u64 {
+    0
+}
+fn get_capability_violation_count() -> u64 {
+    0
+}
 
 fn get_next_capability_validation() -> Option<CapabilityValidationRequest> {
     None
@@ -341,7 +344,9 @@ struct CapabilityValidationRequest {
     capability: String,
 }
 
-fn validate_capability_request(request: &CapabilityValidationRequest) -> Result<bool, &'static str> {
+fn validate_capability_request(
+    request: &CapabilityValidationRequest,
+) -> Result<bool, &'static str> {
     Ok(true)
 }
 
@@ -350,8 +355,12 @@ fn send_capability_validation_error(_requester: &str, _error: &str) {}
 
 struct MessageQueue;
 impl MessageQueue {
-    fn is_full(&self) -> bool { false }
-    fn enqueue_with_timeout(&self, message: IpcMessage, timeout: u64) -> Result<(), &'static str> { Ok(()) }
+    fn is_full(&self) -> bool {
+        false
+    }
+    fn enqueue_with_timeout(&self, message: IpcMessage, timeout: u64) -> Result<(), &'static str> {
+        Ok(())
+    }
 }
 
 struct IpcStatistics {
@@ -372,19 +381,19 @@ pub fn run_ipc_daemon() {
     loop {
         // Process message queues
         process_message_queue();
-        
+
         // Handle channel management
         process_channel_management();
-        
+
         // Process capability requests
         process_capability_requests();
-        
+
         // Handle security auditing
         process_security_audit();
-        
+
         // Clean up resources
         cleanup_ipc_resources();
-        
+
         // Sleep briefly to avoid consuming all CPU
         crate::sched::yield_cpu();
     }

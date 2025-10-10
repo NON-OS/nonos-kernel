@@ -2,16 +2,19 @@
 //!
 //! Manages physical page allocation for kernel and user space
 
-use x86_64::{PhysAddr, structures::paging::{PhysFrame, Size4KiB, FrameAllocator}};
+use alloc::vec::Vec;
 use core::sync::atomic::{AtomicUsize, Ordering};
 use spin::Mutex;
-use alloc::vec::Vec;
+use x86_64::{
+    structures::paging::{FrameAllocator, PhysFrame, Size4KiB},
+    PhysAddr,
+};
 
 /// Page frame size (4KB)
 pub const PAGE_SIZE: usize = 4096;
 
 /// Maximum supported physical memory (1GB for now)
-const MAX_MEMORY: usize = 1024 * 1024 * 1024; 
+const MAX_MEMORY: usize = 1024 * 1024 * 1024;
 const MAX_FRAMES: usize = MAX_MEMORY / PAGE_SIZE;
 
 /// Bitmap-based page frame allocator
@@ -28,10 +31,10 @@ impl BitmapFrameAllocator {
         let start_frame = PhysFrame::containing_address(start_addr);
         let total_frames = memory_size / PAGE_SIZE;
         let bitmap_size = (total_frames + 7) / 8; // Round up to nearest byte
-        
+
         let mut bitmap = Vec::with_capacity(bitmap_size);
         bitmap.resize(bitmap_size, 0);
-        
+
         BitmapFrameAllocator {
             bitmap,
             start_frame,
@@ -39,17 +42,17 @@ impl BitmapFrameAllocator {
             allocated_frames: AtomicUsize::new(0),
         }
     }
-    
+
     /// Initialize with kernel memory regions marked as allocated
     pub fn init_kernel_regions(&mut self, kernel_start: PhysAddr, kernel_end: PhysAddr) {
         let start_frame_idx = self.frame_to_index(PhysFrame::containing_address(kernel_start));
         let end_frame_idx = self.frame_to_index(PhysFrame::containing_address(kernel_end));
-        
+
         for i in start_frame_idx..=end_frame_idx {
             self.set_allocated(i);
         }
     }
-    
+
     /// Mark multiboot regions as allocated
     pub fn mark_multiboot_regions(&mut self, _multiboot_start: PhysAddr, _multiboot_end: PhysAddr) {
         // TODO: Parse multiboot memory map and mark reserved regions
@@ -61,20 +64,21 @@ impl BitmapFrameAllocator {
             }
         }
     }
-    
+
     /// Convert frame to bitmap index
     fn frame_to_index(&self, frame: PhysFrame<Size4KiB>) -> usize {
-        let frame_num = (frame.start_address().as_u64() - self.start_frame.start_address().as_u64()) 
+        let frame_num = (frame.start_address().as_u64()
+            - self.start_frame.start_address().as_u64())
             / PAGE_SIZE as u64;
         frame_num as usize
     }
-    
+
     /// Convert bitmap index to frame
     fn index_to_frame(&self, index: usize) -> PhysFrame<Size4KiB> {
         let addr = self.start_frame.start_address().as_u64() + (index * PAGE_SIZE) as u64;
         PhysFrame::containing_address(PhysAddr::new(addr))
     }
-    
+
     /// Check if frame is allocated
     fn is_allocated(&self, index: usize) -> bool {
         if index >= self.total_frames {
@@ -88,7 +92,7 @@ impl BitmapFrameAllocator {
             true
         }
     }
-    
+
     /// Set frame as allocated
     fn set_allocated(&mut self, index: usize) {
         if index >= self.total_frames {
@@ -103,7 +107,7 @@ impl BitmapFrameAllocator {
             }
         }
     }
-    
+
     /// Set frame as free
     fn set_free(&mut self, index: usize) {
         if index >= self.total_frames {
@@ -118,11 +122,12 @@ impl BitmapFrameAllocator {
             }
         }
     }
-    
+
     /// Find next free frame
     fn find_free_frame(&self) -> Option<usize> {
         for (byte_index, &byte) in self.bitmap.iter().enumerate() {
-            if byte != 0xFF { // Not all bits set
+            if byte != 0xFF {
+                // Not all bits set
                 for bit_index in 0..8 {
                     let frame_index = byte_index * 8 + bit_index;
                     if frame_index >= self.total_frames {
@@ -136,7 +141,7 @@ impl BitmapFrameAllocator {
         }
         None
     }
-    
+
     /// Get allocation statistics
     pub fn get_stats(&self) -> FrameAllocatorStats {
         FrameAllocatorStats {
@@ -172,15 +177,15 @@ static FRAME_ALLOCATOR: Mutex<Option<BitmapFrameAllocator>> = Mutex::new(None);
 /// Initialize the global frame allocator
 pub fn init_frame_allocator(memory_start: PhysAddr, memory_size: usize) {
     let mut allocator = BitmapFrameAllocator::new(memory_start, memory_size);
-    
+
     // Mark kernel regions as allocated
     let kernel_start = PhysAddr::new(0x100000); // 1MB where kernel is loaded
-    let kernel_end = PhysAddr::new(0x400000);   // 4MB assumed kernel size
+    let kernel_end = PhysAddr::new(0x400000); // 4MB assumed kernel size
     allocator.init_kernel_regions(kernel_start, kernel_end);
-    
+
     // Mark multiboot and BIOS regions
     allocator.mark_multiboot_regions(PhysAddr::new(0), PhysAddr::new(1024 * 1024));
-    
+
     *FRAME_ALLOCATOR.lock() = Some(allocator);
 }
 

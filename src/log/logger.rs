@@ -7,8 +7,8 @@ use core::fmt::Write;
 use core::sync::atomic::{AtomicBool, AtomicU64, Ordering};
 use spin::Mutex;
 
-use crate::crypto::hash::blake3_hash;
 use crate::arch::x86_64::{serial, vga};
+use crate::crypto::hash::blake3_hash;
 use alloc::vec::Vec;
 
 /// Log severity levels
@@ -60,11 +60,11 @@ pub fn init() {
     if INITIALIZED.swap(true, Ordering::SeqCst) {
         return;
     }
-    
+
     // Set initial hash to boot entropy
     let boot_hash = blake3_hash(&crate::crypto::entropy::rand_u64().to_le_bytes());
     *LOGGER.prev_hash.lock() = boot_hash;
-    
+
     log_info!("[LOG] Cryptographic logger initialized");
 }
 
@@ -82,13 +82,13 @@ impl Logger {
     pub fn log(&self, msg: &str) {
         self.log_with_severity(Severity::Info, msg);
     }
-    
+
     pub fn log_with_severity(&self, severity: Severity, msg: &str) {
         // Check minimum level
         if severity < *self.min_level.lock() {
             return;
         }
-        
+
         // Get timestamp
         let timestamp = unsafe {
             if let Some(timer) = crate::arch::x86_64::time::timer::now_ns_checked() {
@@ -97,11 +97,11 @@ impl Logger {
                 self.sequence.fetch_add(1, Ordering::SeqCst)
             }
         };
-        
+
         // Create message
         let mut message = heapless::String::new();
         let _ = message.push_str(msg);
-        
+
         // Compute chained hash
         let prev_hash = *self.prev_hash.lock();
         let mut data = Vec::new();
@@ -110,16 +110,10 @@ impl Logger {
         data.extend_from_slice(message.as_bytes());
         data.extend_from_slice(&prev_hash);
         let hash = blake3_hash(&data);
-        
+
         // Create entry
-        let entry = LogEntry {
-            timestamp,
-            severity,
-            message: message.clone(),
-            hash,
-            prev_hash,
-        };
-        
+        let entry = LogEntry { timestamp, severity, message: message.clone(), hash, prev_hash };
+
         // Store in ring buffer
         {
             let mut entries = self.entries.lock();
@@ -128,14 +122,14 @@ impl Logger {
             }
             let _ = entries.push_back(entry.clone());
         }
-        
+
         // Update chain
         *self.prev_hash.lock() = hash;
-        
+
         // Output to sinks
         self.output_to_sinks(severity, &message);
     }
-    
+
     fn output_to_sinks(&self, severity: Severity, msg: &str) {
         // Format with color codes for VGA
         let (fg, bg) = match severity {
@@ -145,7 +139,7 @@ impl Logger {
             Severity::Error => (vga::Color::LightRed, vga::Color::Black),
             Severity::Fatal => (vga::Color::White, vga::Color::Red),
         };
-        
+
         // VGA output
         if self.panic_mode.load(Ordering::Relaxed) {
             vga::print_critical(msg);
@@ -156,54 +150,50 @@ impl Logger {
             vga::print("\n");
             vga::set_color(vga::Color::LightGray, vga::Color::Black);
         }
-        
+
         // Serial output
         if let Some(mut serial) = unsafe { serial::get_serial() } {
             let _ = writeln!(serial, "[{:?}] {}", severity, msg);
         }
-        
+
         // Network sink (if connected)
         #[cfg(feature = "net-log")]
         if crate::net::is_connected() {
             crate::net::send_log(severity, msg);
         }
     }
-    
+
     /// Enter panic mode (bypass locks for critical output)
     pub fn enter_panic_mode(&self) {
         self.panic_mode.store(true, Ordering::SeqCst);
     }
-    
+
     /// Get current log chain hash
     pub fn get_chain_hash(&self) -> [u8; 32] {
         *self.prev_hash.lock()
     }
-    
+
     /// Export recent entries for attestation
     pub fn export_recent(&self, count: usize) -> Vec<LogEntry> {
         let entries = self.entries.lock();
         let mut result = Vec::new();
-        
-        let start = if entries.len() > count {
-            entries.len() - count
-        } else {
-            0
-        };
-        
+
+        let start = if entries.len() > count { entries.len() - count } else { 0 };
+
         for (i, entry) in entries.iter().enumerate() {
             if i >= start {
                 result.push(entry.clone());
             }
         }
-        
+
         result
     }
-    
+
     /// Verify log chain integrity
     pub fn verify_chain(&self) -> bool {
         let entries = self.entries.lock();
         let mut prev = [0u8; 32];
-        
+
         for entry in entries.iter() {
             // Recompute hash
             let mut data = Vec::new();
@@ -212,18 +202,18 @@ impl Logger {
             data.extend_from_slice(entry.message.as_bytes());
             data.extend_from_slice(&entry.prev_hash);
             let computed = blake3_hash(&data);
-            
+
             if computed != entry.hash {
                 return false;
             }
-            
+
             if prev != [0; 32] && prev != entry.prev_hash {
                 return false;
             }
-            
+
             prev = entry.hash;
         }
-        
+
         true
     }
 }
@@ -310,7 +300,7 @@ macro_rules! info {
     };
 }
 
-#[macro_export] 
+#[macro_export]
 macro_rules! warn_log {
     ($($arg:tt)*) => {
         if let Some(logger) = $crate::log::try_get_logger() {
@@ -340,9 +330,12 @@ macro_rules! security_log {
     };
 }
 
-pub use {log, log_info, log_warn, log_err, log_dbg, log_debug, log_fatal, info, debug, security_log};
+pub use {
+    debug, info, log, log_dbg, log_debug, log_err, log_fatal, log_info, log_warn, security_log,
+};
 
-// Re-export warn_log with different name to avoid conflict with builtin attribute
+// Re-export warn_log with different name to avoid conflict with builtin
+// attribute
 pub use warn_log as log_warn_macro;
 
 /// Helper to enter panic mode

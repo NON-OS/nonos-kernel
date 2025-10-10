@@ -1,44 +1,36 @@
 //! Advanced Network Stack Module  
 //!
-//! Enterprise network stack with zero-copy I/O and high-performance packet processing
+//! Enterprise network stack with zero-copy I/O and high-performance packet
+//! processing
 
-pub mod stack;
+pub mod dns;
 pub mod ethernet;
+pub mod firewall;
 pub mod ip;
+pub mod onion;
+pub mod stack;
 pub mod tcp;
 pub mod udp;
-pub mod onion;
-pub mod dns;
-pub mod firewall;
 
-use ::alloc::vec::Vec;
 use ::alloc::vec;
+use ::alloc::vec::Vec;
 use alloc::string::String;
 
 pub use stack::{
-    NetworkStack, PacketBuffer, SocketHandle, NetworkStats,
-    init_network_stack, get_network_stack
+    get_network_stack, init_network_stack, NetworkStack, NetworkStats, PacketBuffer, SocketHandle,
 };
 
-pub use ethernet::{
-    EthernetFrame, EthernetHeader, MacAddress, EtherType
-};
+pub use ethernet::{EtherType, EthernetFrame, EthernetHeader, MacAddress};
 
-pub use ip::{
-    IpPacket, Ipv4Header, Ipv6Header, IpAddress, IpProtocol
-};
+pub use ip::{IpAddress, IpPacket, IpProtocol, Ipv4Header, Ipv6Header};
 
-pub use tcp::{
-    TcpSocket, TcpHeader, TcpState, TcpConnection
-};
+pub use tcp::{TcpConnection, TcpHeader, TcpSocket, TcpState};
 
-pub use udp::{
-    UdpSocket, UdpHeader, UdpDatagram
-};
+pub use udp::{UdpDatagram, UdpHeader, UdpSocket};
 
 pub use onion::{
-    OnionRouter, CircuitId, StreamId, create_circuit, create_stream, 
-    send_onion_data, recv_onion_data, init_onion_router
+    create_circuit, create_stream, init_onion_router, recv_onion_data, send_onion_data, CircuitId,
+    OnionRouter, StreamId,
 };
 
 pub fn is_suspicious_dns_query(destination: &str) -> bool {
@@ -58,7 +50,9 @@ pub fn detect_dns_over_https_tunneling(destination: &str) -> bool {
 }
 
 pub fn is_internal_network(destination: &str) -> bool {
-    destination.starts_with("192.168.") || destination.starts_with("10.") || destination.starts_with("172.")
+    destination.starts_with("192.168.")
+        || destination.starts_with("10.")
+        || destination.starts_with("172.")
 }
 
 pub fn is_encrypted_channel(port: u16, protocol: &str) -> bool {
@@ -82,12 +76,7 @@ pub fn is_encrypted_dns_server(destination: &str) -> bool {
 }
 
 pub fn get_traffic_statistics() -> NetworkTrafficStats {
-    NetworkTrafficStats {
-        bytes_sent: 0,
-        bytes_received: 0,
-        packets_sent: 0,
-        packets_received: 0,
-    }
+    NetworkTrafficStats { bytes_sent: 0, bytes_received: 0, packets_sent: 0, packets_received: 0 }
 }
 
 pub struct NetworkTrafficStats {
@@ -133,7 +122,7 @@ pub struct DnsQueryRecord {
 /// Initialize the network subsystem  
 pub fn init() {
     init_network_stack();
-    
+
     // Initialize onion routing
     if let Err(e) = init_onion_router() {
         crate::log::error!("Failed to initialize onion router: {:?}", e);
@@ -147,11 +136,11 @@ pub fn receive_packet(packet_data: &[u8]) -> Result<(), &'static str> {
     if packet_data.is_empty() {
         return Err("Empty packet");
     }
-    
+
     // TODO: Process packet through network stack layers
     // For now, just log that we received it
     crate::log::debug!("Received packet of {} bytes", packet_data.len());
-    
+
     Ok(())
 }
 
@@ -160,28 +149,28 @@ pub fn run_network_stack() {
     loop {
         // Process incoming packets from hardware
         process_packet_queue();
-        
+
         // Handle network timeouts and retransmissions
         handle_network_timeouts();
-        
+
         // Process ARP table maintenance
         process_arp_maintenance();
-        
+
         // Handle TCP connection state updates
         process_tcp_state_machine();
-        
+
         // Process UDP socket operations
         process_udp_operations();
-        
+
         // Clean up expired connections
         cleanup_expired_connections();
-        
+
         // Update network statistics
         update_network_statistics();
-        
+
         // Process onion routing circuits
         onion::process_circuit_maintenance();
-        
+
         // Yield CPU to other tasks
         crate::sched::yield_cpu();
     }
@@ -191,7 +180,7 @@ pub fn run_network_stack() {
 pub fn process_packet_queue() {
     const MAX_PACKETS_PER_ITERATION: usize = 64;
     let mut processed = 0;
-    
+
     while processed < MAX_PACKETS_PER_ITERATION {
         // Get next packet from network interface
         if let Some(stack) = get_network_stack() {
@@ -201,9 +190,7 @@ pub fn process_packet_queue() {
                         crate::log::logger::log_debug!("Processed packet successfully");
                     }
                     Err(e) => {
-                        crate::log::logger::log_warn!(
-                            "Failed to process packet: {}", e
-                        );
+                        crate::log::logger::log_warn!("Failed to process packet: {}", e);
                     }
                 }
                 processed += 1;
@@ -216,7 +203,7 @@ pub fn process_packet_queue() {
             break;
         }
     }
-    
+
     if processed > 0 {
         crate::log::logger::log_info!("Processed {} network packets", processed);
     }
@@ -227,10 +214,10 @@ fn process_single_packet(packet_data: &[u8]) -> Result<(), &'static str> {
     if packet_data.len() < 14 {
         return Err("Packet too small for Ethernet header");
     }
-    
+
     // Parse Ethernet header
     let eth_frame = ethernet::EthernetFrame::parse(packet_data)?;
-    
+
     match eth_frame.ethertype() {
         ethernet::EtherType::Ipv4 => {
             // IPv4 packet
@@ -254,13 +241,13 @@ fn process_single_packet(packet_data: &[u8]) -> Result<(), &'static str> {
             });
         }
     }
-    
+
     Ok(())
 }
 
 fn process_ipv4_packet(ip_data: &[u8]) -> Result<(), &'static str> {
     let ip_packet = ip::IpPacket::parse_ipv4(ip_data)?;
-    
+
     // Check if packet is for us
     let dest_ipv4 = match ip_packet.dest_addr() {
         ip::IpAddress::V4(addr) => addr,
@@ -270,7 +257,7 @@ fn process_ipv4_packet(ip_data: &[u8]) -> Result<(), &'static str> {
         // Route packet if we're acting as a router
         return route_packet(&ip_packet);
     }
-    
+
     // Process based on protocol
     match ip_packet.protocol() {
         ip::IP_PROTOCOL_TCP => {
@@ -286,7 +273,7 @@ fn process_ipv4_packet(ip_data: &[u8]) -> Result<(), &'static str> {
             return Err("Unsupported IP protocol");
         }
     }
-    
+
     Ok(())
 }
 
@@ -295,78 +282,77 @@ fn process_ipv6_packet(ip_data: &[u8]) -> Result<(), &'static str> {
     if ip_data.len() < 40 {
         return Err("IPv6 packet too small");
     }
-    
+
     // Parse IPv6 header
     let version = (ip_data[0] >> 4) & 0xF;
     if version != 6 {
         return Err("Invalid IPv6 version");
     }
-    
+
     let traffic_class = ((ip_data[0] & 0xF) << 4) | ((ip_data[1] >> 4) & 0xF);
-    let flow_label = ((ip_data[1] as u32 & 0xF) << 16) | ((ip_data[2] as u32) << 8) | (ip_data[3] as u32);
+    let flow_label =
+        ((ip_data[1] as u32 & 0xF) << 16) | ((ip_data[2] as u32) << 8) | (ip_data[3] as u32);
     let payload_length = u16::from_be_bytes([ip_data[4], ip_data[5]]);
     let next_header = ip_data[6];
     let hop_limit = ip_data[7];
-    
+
     // Extract source and destination addresses (16 bytes each)
     let src_addr = &ip_data[8..24];
     let dst_addr = &ip_data[24..40];
-    
+
     // Check if packet is for local host
     if !is_for_local_host_v6(dst_addr) {
         // Forward packet if we're acting as a router
         return route_ipv6_packet(ip_data);
     }
-    
+
     // Validate hop limit
     if hop_limit == 0 {
         return Err("IPv6 hop limit exceeded");
     }
-    
+
     // Validate payload length
     if ip_data.len() < 40 + payload_length as usize {
         return Err("IPv6 payload length mismatch");
     }
-    
+
     // Get payload
     let payload = &ip_data[40..(40 + payload_length as usize)];
-    
+
     // Process based on next header (protocol)
     match next_header {
         6 => {
             // TCP
             process_tcp_packet_v6(src_addr, dst_addr, payload)?
-        },
+        }
         17 => {
-            // UDP  
+            // UDP
             process_udp_packet_v6(src_addr, dst_addr, payload)?
-        },
+        }
         58 => {
             // ICMPv6
             process_icmpv6_packet(src_addr, dst_addr, payload)?
-        },
+        }
         0 => {
             // Hop-by-Hop Options Header - process and continue
             process_hop_by_hop_options(payload)?
-        },
+        }
         43 => {
             // Routing Header
             process_routing_header(payload)?
-        },
+        }
         44 => {
             // Fragment Header
             process_fragment_header(payload)?
-        },
+        }
         _ => {
-            crate::log::logger::log_warn!(
-                "Unsupported IPv6 next header: {}", next_header
-            );
+            crate::log::logger::log_warn!("Unsupported IPv6 next header: {}", next_header);
         }
     }
-    
+
     // Update IPv6 statistics
     increment_ipv6_packet_counter();
-    
+
     Ok(())
 }
 
@@ -375,10 +361,10 @@ fn process_arp_packet(arp_data: &[u8]) -> Result<(), &'static str> {
     if arp_data.len() < 28 {
         return Err("ARP packet too small");
     }
-    
+
     // Parse ARP header
     let operation = u16::from_be_bytes([arp_data[6], arp_data[7]]);
-    
+
     match operation {
         1 => {
             // ARP Request
@@ -388,13 +374,13 @@ fn process_arp_packet(arp_data: &[u8]) -> Result<(), &'static str> {
             // ARP Reply
             handle_arp_reply(arp_data)
         }
-        _ => Err("Unknown ARP operation")
+        _ => Err("Unknown ARP operation"),
     }
 }
 
 fn process_tcp_packet(ip_packet: &ip::IpPacket) -> Result<(), &'static str> {
     let tcp_header = tcp::TcpHeader::parse(ip_packet.payload())?;
-    
+
     // Find existing connection or create new one
     let src_ipv4 = match ip_packet.src_addr() {
         ip::IpAddress::V4(addr) => addr,
@@ -404,13 +390,8 @@ fn process_tcp_packet(ip_packet: &ip::IpPacket) -> Result<(), &'static str> {
         ip::IpAddress::V4(addr) => addr,
         ip::IpAddress::V6(_) => return Err("IPv6 not supported for TCP connections"),
     };
-    let connection_key = (
-        src_ipv4,
-        tcp_header.src_port,
-        dest_ipv4,
-        tcp_header.dst_port
-    );
-    
+    let connection_key = (src_ipv4, tcp_header.src_port, dest_ipv4, tcp_header.dst_port);
+
     if let Some(mut connection) = tcp::find_connection(&connection_key) {
         // Update existing connection
         connection.process_packet(&tcp_header, &ip_packet.payload()[20..])?;
@@ -421,17 +402,17 @@ fn process_tcp_packet(ip_packet: &ip::IpPacket) -> Result<(), &'static str> {
         // Packet for non-existent connection - send RST
         tcp::send_reset(&connection_key)?;
     }
-    
+
     Ok(())
 }
 
 fn process_udp_packet(ip_packet: &ip::IpPacket) -> Result<(), &'static str> {
     let udp_header = udp::UdpHeader::parse(&ip_packet.payload())?;
-    
+
     // Find socket listening on destination port
     if let Some(socket) = udp::find_socket(udp_header.dst_port) {
         let udp_data = &ip_packet.payload()[8..]; // Skip UDP header
-        // Store UDP data in socket's rx_buffer
+                                                  // Store UDP data in socket's rx_buffer
         if let Some(mut rx_buf) = socket.rx_buffer.try_lock() {
             rx_buf.push_back(udp_data.to_vec());
         }
@@ -439,7 +420,7 @@ fn process_udp_packet(ip_packet: &ip::IpPacket) -> Result<(), &'static str> {
         // No socket listening - send ICMP port unreachable
         send_icmp_port_unreachable(ip_packet)?;
     }
-    
+
     Ok(())
 }
 
@@ -447,10 +428,10 @@ fn process_icmp_packet(ip_packet: &ip::IpPacket) -> Result<(), &'static str> {
     if ip_packet.payload().len() < 8 {
         return Err("ICMP packet too small");
     }
-    
+
     let icmp_type = ip_packet.payload()[0];
     let icmp_code = ip_packet.payload()[1];
-    
+
     match icmp_type {
         8 => {
             // ICMP Echo Request (ping) - send reply
@@ -465,9 +446,7 @@ fn process_icmp_packet(ip_packet: &ip::IpPacket) -> Result<(), &'static str> {
             handle_icmp_unreachable(ip_packet, icmp_code)
         }
         _ => {
-            crate::log::logger::log_warn!(
-                "Unhandled ICMP type: {}", icmp_type
-            );
+            crate::log::logger::log_warn!("Unhandled ICMP type: {}", icmp_type);
             Ok(())
         }
     }
@@ -476,10 +455,10 @@ fn process_icmp_packet(ip_packet: &ip::IpPacket) -> Result<(), &'static str> {
 fn handle_network_timeouts() {
     // Check TCP connections for timeouts
     tcp::check_connection_timeouts();
-    
+
     // Check ARP cache for expired entries
     check_arp_timeouts();
-    
+
     // Check pending DNS queries
     dns::check_dns_timeouts();
 }
@@ -516,45 +495,48 @@ fn is_for_local_host(dest_addr: &[u8; 4]) -> bool {
 
 fn route_packet(ip_packet: &ip::IpPacket) -> Result<(), &'static str> {
     // IP forwarding/routing logic
-    
+
     // Check if routing is enabled
     if !is_routing_enabled() {
         return Err("IP forwarding disabled");
     }
-    
+
     // Check TTL - decrement and drop if zero
     if ip_packet.ttl() <= 1 {
         send_icmp_time_exceeded(ip_packet)?;
         return Err("TTL exceeded");
     }
-    
+
     // Look up route in routing table
-    let route = match lookup_route(&match ip_packet.dest_addr() { ip::IpAddress::V4(addr) => addr, ip::IpAddress::V6(_) => return Err("IPv6 routing not supported"), }) {
+    let route = match lookup_route(&match ip_packet.dest_addr() {
+        ip::IpAddress::V4(addr) => addr,
+        ip::IpAddress::V6(_) => return Err("IPv6 routing not supported"),
+    }) {
         Some(route) => route,
         None => {
             send_icmp_dest_unreachable(ip_packet)?;
             return Err("No route to destination");
         }
     };
-    
+
     // Check if we need to fragment
     let mtu = get_interface_mtu(route.interface_id);
     if ip_packet.total_length() > mtu {
         return fragment_and_forward(ip_packet, &route, mtu);
     }
-    
+
     // Create new packet with decremented TTL
     // TODO: IP forwarding with TTL decrement and header checksum update
     // let mut new_packet = ip_packet.clone();
     // new_packet.ttl -= 1;
     // new_packet.header_checksum = calculate_ip_packet_checksum(&new_packet);
-    
+
     // Forward to next hop
     let next_hop = route.next_hop.unwrap_or(match ip_packet.dest_addr() {
         ip::IpAddress::V4(addr) => addr,
         ip::IpAddress::V6(_) => return Err("IPv6 forwarding not supported"),
     });
-    
+
     // ARP lookup for next hop
     let dest_mac = match arp_lookup(&next_hop) {
         Some(mac) => mac,
@@ -565,24 +547,32 @@ fn route_packet(ip_packet: &ip::IpPacket) -> Result<(), &'static str> {
             return Ok(()); // Packet will be sent when ARP reply arrives
         }
     };
-    
+
     // Send packet out interface
     send_ethernet_frame(
         route.interface_id,
         &dest_mac,
         &get_local_mac_address(route.interface_id),
         ethernet::ETHERTYPE_IP,
-        &serialize_ip_packet(&ip_packet)
+        &serialize_ip_packet(&ip_packet),
     )?;
-    
+
     // Update routing statistics
     increment_forwarded_packet_counter();
-    
+
     crate::log::logger::log_debug!(
         "Forwarded IPv4 packet from {:?} to {:?} via interface {}",
-        match ip_packet.src_addr() { ip::IpAddress::V4(addr) => addr, ip::IpAddress::V6(_) => return Err("IPv6 not supported"), }, match ip_packet.dest_addr() { ip::IpAddress::V4(addr) => addr, ip::IpAddress::V6(_) => return Err("IPv6 not supported"), }, route.interface_id
+        match ip_packet.src_addr() {
+            ip::IpAddress::V4(addr) => addr,
+            ip::IpAddress::V6(_) => return Err("IPv6 not supported"),
+        },
+        match ip_packet.dest_addr() {
+            ip::IpAddress::V4(addr) => addr,
+            ip::IpAddress::V6(_) => return Err("IPv6 not supported"),
+        },
+        route.interface_id
     );
-    
+
     Ok(())
 }
 
@@ -634,17 +624,29 @@ fn route_ipv6_packet(_ip_data: &[u8]) -> Result<(), &'static str> {
     Err("IPv6 routing not implemented")
 }
 
-fn process_tcp_packet_v6(_src_addr: &[u8], _dst_addr: &[u8], _payload: &[u8]) -> Result<(), &'static str> {
+fn process_tcp_packet_v6(
+    _src_addr: &[u8],
+    _dst_addr: &[u8],
+    _payload: &[u8],
+) -> Result<(), &'static str> {
     // Process IPv6 TCP packet
     Ok(())
 }
 
-fn process_udp_packet_v6(_src_addr: &[u8], _dst_addr: &[u8], _payload: &[u8]) -> Result<(), &'static str> {
+fn process_udp_packet_v6(
+    _src_addr: &[u8],
+    _dst_addr: &[u8],
+    _payload: &[u8],
+) -> Result<(), &'static str> {
     // Process IPv6 UDP packet
     Ok(())
 }
 
-fn process_icmpv6_packet(_src_addr: &[u8], _dst_addr: &[u8], _payload: &[u8]) -> Result<(), &'static str> {
+fn process_icmpv6_packet(
+    _src_addr: &[u8],
+    _dst_addr: &[u8],
+    _payload: &[u8],
+) -> Result<(), &'static str> {
     // Process ICMPv6 packet
     Ok(())
 }
@@ -692,7 +694,11 @@ fn get_interface_mtu(_interface_id: u32) -> u16 {
     1500 // Standard Ethernet MTU
 }
 
-fn fragment_and_forward(_ip_packet: &ip::IpPacket, _route: &RouteEntry, _mtu: u16) -> Result<(), &'static str> {
+fn fragment_and_forward(
+    _ip_packet: &ip::IpPacket,
+    _route: &RouteEntry,
+    _mtu: u16,
+) -> Result<(), &'static str> {
     // Fragment and forward packet
     Err("Packet fragmentation not implemented")
 }
@@ -722,7 +728,7 @@ fn send_ethernet_frame(
     _dest_mac: &[u8; 6],
     _src_mac: &[u8; 6],
     _ethertype: u16,
-    _payload: &[u8]
+    _payload: &[u8],
 ) -> Result<(), &'static str> {
     // Send Ethernet frame
     Ok(())
@@ -748,10 +754,15 @@ struct RouteEntry {
 }
 
 /// Send IP packet to network interface
-pub fn send_ip_packet(src_ip: [u8; 4], dst_ip: [u8; 4], protocol: u8, payload: Vec<u8>) -> Result<(), &'static str> {
+pub fn send_ip_packet(
+    src_ip: [u8; 4],
+    dst_ip: [u8; 4],
+    protocol: u8,
+    payload: Vec<u8>,
+) -> Result<(), &'static str> {
     // Construct IPv4 header
     let mut ip_packet = Vec::with_capacity(20 + payload.len());
-    
+
     // IPv4 header fields
     ip_packet.push(0x45); // Version (4) + IHL (5)
     ip_packet.push(0x00); // Type of Service
@@ -763,14 +774,14 @@ pub fn send_ip_packet(src_ip: [u8; 4], dst_ip: [u8; 4], protocol: u8, payload: V
     ip_packet.extend_from_slice(&0u16.to_be_bytes()); // Header Checksum (calculate later)
     ip_packet.extend_from_slice(&src_ip); // Source IP
     ip_packet.extend_from_slice(&dst_ip); // Destination IP
-    
+
     // Calculate and insert header checksum
     let checksum = calculate_ip_checksum(&ip_packet[0..20]);
     ip_packet[10..12].copy_from_slice(&checksum.to_be_bytes());
-    
+
     // Add payload
     ip_packet.extend_from_slice(&payload);
-    
+
     // Route packet to appropriate interface
     route_and_send_packet(&ip_packet, dst_ip)
 }
@@ -778,7 +789,7 @@ pub fn send_ip_packet(src_ip: [u8; 4], dst_ip: [u8; 4], protocol: u8, payload: V
 /// Calculate IPv4 header checksum
 fn calculate_ip_checksum(header: &[u8]) -> u16 {
     let mut sum = 0u32;
-    
+
     // Sum all 16-bit words in header (excluding checksum field)
     for chunk in header.chunks(2) {
         if chunk.len() == 2 {
@@ -791,12 +802,12 @@ fn calculate_ip_checksum(header: &[u8]) -> u16 {
             sum += word as u32;
         }
     }
-    
+
     // Fold 32-bit sum to 16 bits
     while (sum >> 16) != 0 {
         sum = (sum & 0xFFFF) + (sum >> 16);
     }
-    
+
     !sum as u16
 }
 
@@ -810,23 +821,22 @@ fn route_and_send_packet(packet: &[u8], dst_ip: [u8; 4]) -> Result<(), &'static 
     } else {
         2 // Default gateway interface
     };
-    
+
     // Get network interface
-    let interface = get_network_interface(interface_id)
-        .ok_or("Network interface not available")?;
-    
+    let interface = get_network_interface(interface_id).ok_or("Network interface not available")?;
+
     // Construct Ethernet frame
     let mut ethernet_frame = Vec::with_capacity(14 + packet.len());
-    
+
     // Ethernet header
     let dst_mac = resolve_mac_address(dst_ip, interface_id)?;
     ethernet_frame.extend_from_slice(&dst_mac); // Destination MAC
     ethernet_frame.extend_from_slice(&interface.mac_address); // Source MAC
     ethernet_frame.extend_from_slice(&ethernet::ETHERTYPE_IP.to_be_bytes()); // EtherType
-    
+
     // IP packet
     ethernet_frame.extend_from_slice(packet);
-    
+
     // Send frame via network interface
     interface.transmit(&ethernet_frame)
 }
@@ -837,10 +847,10 @@ fn resolve_mac_address(ip: [u8; 4], interface_id: u32) -> Result<[u8; 6], &'stat
     if let Some(mac) = arp_cache_lookup(ip) {
         return Ok(mac);
     }
-    
+
     // Send ARP request if not in cache
     send_arp_request(ip, interface_id)?;
-    
+
     // HACK: Return broadcast MAC - missing ARP resolution
     Ok([0xFF; 6])
 }
@@ -894,7 +904,11 @@ fn arp_cache_lookup(ip: [u8; 4]) -> Option<[u8; 6]> {
 fn send_arp_request(ip: [u8; 4], interface_id: u32) -> Result<(), &'static str> {
     // Would implement ARP request generation and transmission
     // For now, just log the request
-    crate::log::logger::log_debug!("Sending ARP request for {:?} on interface {}", ip, interface_id);
+    crate::log::logger::log_debug!(
+        "Sending ARP request for {:?} on interface {}",
+        ip,
+        interface_id
+    );
     Ok(())
 }
 

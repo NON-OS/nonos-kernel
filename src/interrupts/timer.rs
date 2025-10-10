@@ -15,17 +15,17 @@ pub fn init() {
     // PIT (Programmable Interval Timer) setup
     unsafe {
         use x86_64::instructions::port::Port;
-        
+
         let frequency = 1193180 / TIMER_FREQUENCY; // PIT frequency divided by desired frequency
-        
+
         // Command port - channel 0, lobyte/hibyte, rate generator
         Port::new(0x43).write(0x36u8);
-        
+
         // Data port - set frequency
-        Port::new(0x40).write((frequency & 0xff) as u8);
-        Port::new(0x40).write(((frequency >> 8) & 0xff) as u8);
+        Port::new(0x40).write((frequency & 0xFF) as u8);
+        Port::new(0x40).write(((frequency >> 8) & 0xFF) as u8);
     }
-    
+
     crate::log::logger::log_critical("Timer initialized at 1kHz");
 }
 

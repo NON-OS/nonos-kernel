@@ -1,8 +1,8 @@
 #![no_std]
 
-use alloc::{vec::Vec, collections::BTreeMap};
-use core::sync::atomic::{AtomicU64, AtomicUsize, AtomicBool, Ordering};
-use spin::{RwLock, Mutex};
+use alloc::{collections::BTreeMap, vec::Vec};
+use core::sync::atomic::{AtomicBool, AtomicU64, AtomicUsize, Ordering};
+use spin::{Mutex, RwLock};
 use x86_64::VirtAddr;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -84,7 +84,7 @@ impl NonosProductionScheduler {
         parent_id: Option<u64>,
         priority: NonosPriority,
         memory_size: usize,
-        entry_point: u64
+        entry_point: u64,
     ) -> Result<u64, &'static str> {
         let process_id = self.next_process_id.fetch_add(1, Ordering::SeqCst);
         let current_time = self.get_timestamp();
@@ -98,7 +98,7 @@ impl NonosProductionScheduler {
             total_time: 0,
             memory_base: None, // Need to be allocated
             memory_size,
-            stack_pointer: 0,   // Need to be set up properly
+            stack_pointer: 0, // Need to be set up properly
             instruction_pointer: entry_point,
             capabilities: Vec::new(),
             isolation_domain: self.assign_isolation_domain(process_id),
@@ -109,12 +109,12 @@ impl NonosProductionScheduler {
 
         // Add to process table
         self.processes.write().insert(process_id, pcb);
-        
+
         // Add to appropriate ready queue
         self.add_to_ready_queue(process_id, priority);
-        
+
         self.total_processes.fetch_add(1, Ordering::SeqCst);
-        
+
         Ok(process_id)
     }
 
@@ -150,7 +150,7 @@ impl NonosProductionScheduler {
                 *self.running_process.write() = Some(process_id);
                 self.current_quantum.store(0, Ordering::SeqCst);
                 self.context_switches.fetch_add(1, Ordering::SeqCst);
-                
+
                 return Some(process_id);
             }
         }
@@ -162,86 +162,90 @@ impl NonosProductionScheduler {
     pub fn terminate_process(&self, process_id: u64) -> Result<(), &'static str> {
         let mut processes = self.processes.write();
         let pcb = processes.get_mut(&process_id).ok_or("Process not found")?;
-        
+
         // Update state
         pcb.state = NonosProcessState::Terminated;
-        
+
         // Remove from running if it's currently running
         let mut running = self.running_process.write();
         if *running == Some(process_id) {
             *running = None;
         }
-        
+
         // Remove from ready queues
         for queue in &self.ready_queues {
             let mut q = queue.lock();
             q.retain(|&pid| pid != process_id);
         }
-        
+
         self.total_processes.fetch_sub(1, Ordering::SeqCst);
-        
+
         Ok(())
     }
 
     pub fn block_process(&self, process_id: u64, reason: &str) -> Result<(), &'static str> {
         let mut processes = self.processes.write();
         let pcb = processes.get_mut(&process_id).ok_or("Process not found")?;
-        
+
         pcb.state = NonosProcessState::Blocked;
-        
+
         // Remove from ready queues
         for queue in &self.ready_queues {
             let mut q = queue.lock();
             q.retain(|&pid| pid != process_id);
         }
-        
+
         let mut running = self.running_process.write();
         if *running == Some(process_id) {
             *running = None;
         }
-        
+
         Ok(())
     }
 
     pub fn unblock_process(&self, process_id: u64) -> Result<(), &'static str> {
         let mut processes = self.processes.write();
         let pcb = processes.get_mut(&process_id).ok_or("Process not found")?;
-        
+
         if pcb.state != NonosProcessState::Blocked {
             return Err("Process not blocked");
         }
-        
+
         pcb.state = NonosProcessState::Ready;
         self.add_to_ready_queue(process_id, pcb.priority);
-        
+
         Ok(())
     }
 
-    pub fn set_process_priority(&self, process_id: u64, priority: NonosPriority) -> Result<(), &'static str> {
+    pub fn set_process_priority(
+        &self,
+        process_id: u64,
+        priority: NonosPriority,
+    ) -> Result<(), &'static str> {
         let mut processes = self.processes.write();
         let pcb = processes.get_mut(&process_id).ok_or("Process not found")?;
-        
+
         let old_priority = pcb.priority;
         pcb.priority = priority;
-        
+
         // If process is ready, move between queues
         if pcb.state == NonosProcessState::Ready {
             // Remove from old queue
             let mut old_queue = self.ready_queues[old_priority as usize].lock();
             old_queue.retain(|&pid| pid != process_id);
             drop(old_queue);
-            
+
             // Add to new queue
             self.add_to_ready_queue(process_id, priority);
         }
-        
+
         Ok(())
     }
 
     pub fn get_process_info(&self, process_id: u64) -> Result<NonosProcessInfo, &'static str> {
         let processes = self.processes.read();
         let pcb = processes.get(&process_id).ok_or("Process not found")?;
-        
+
         Ok(NonosProcessInfo {
             process_id: pcb.process_id,
             parent_id: pcb.parent_id,
@@ -267,7 +271,7 @@ impl NonosProductionScheduler {
     pub fn tick(&self) {
         // Called by timer interrupt to update quantum
         self.current_quantum.fetch_add(1_000_000, Ordering::SeqCst); // Add 1ms
-        
+
         // Update total time for running process
         if let Some(current_pid) = *self.running_process.read() {
             if let Some(pcb) = self.processes.write().get_mut(&current_pid) {
@@ -281,7 +285,7 @@ impl NonosProductionScheduler {
             pcb.state = NonosProcessState::Ready;
             self.add_to_ready_queue(process_id, pcb.priority);
         }
-        
+
         *self.running_process.write() = None;
     }
 
@@ -351,7 +355,7 @@ pub fn create_process(
     parent_id: Option<u64>,
     priority: NonosPriority,
     memory_size: usize,
-    entry_point: u64
+    entry_point: u64,
 ) -> Result<u64, &'static str> {
     NONOS_PRODUCTION_SCHEDULER.create_process(parent_id, priority, memory_size, entry_point)
 }

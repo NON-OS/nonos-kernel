@@ -2,17 +2,16 @@
 //!
 //! Production-ready virtual memory management with proper paging
 
-use x86_64::{
-    VirtAddr, PhysAddr,
-    structures::paging::{
-        PageTable, PageTableFlags, OffsetPageTable, Mapper, 
-        Size4KiB, Page, PhysFrame
-    },
-    registers::control::Cr3,
-};
 use crate::memory::page_allocator::{allocate_frame, deallocate_frame};
-use spin::Mutex;
 use alloc::format;
+use spin::Mutex;
+use x86_64::{
+    registers::control::Cr3,
+    structures::paging::{
+        Mapper, OffsetPageTable, Page, PageTable, PageTableFlags, PhysFrame, Size4KiB,
+    },
+    PhysAddr, VirtAddr,
+};
 
 /// Virtual memory manager
 pub struct VirtualMemoryManager {
@@ -25,13 +24,10 @@ impl VirtualMemoryManager {
     pub unsafe fn new(physical_offset: VirtAddr) -> Self {
         let level_4_table = active_level_4_table(physical_offset);
         let mapper = OffsetPageTable::new(level_4_table, physical_offset);
-        
-        VirtualMemoryManager {
-            mapper,
-            physical_offset,
-        }
+
+        VirtualMemoryManager { mapper, physical_offset }
     }
-    
+
     /// Map a virtual page to a physical frame
     pub fn map_page(
         &mut self,
@@ -40,30 +36,33 @@ impl VirtualMemoryManager {
         flags: PageTableFlags,
     ) -> Result<(), &'static str> {
         let mut frame_allocator = FrameAllocatorWrapper;
-        
+
         match unsafe { self.mapper.map_to(page, frame, flags, &mut frame_allocator) } {
             Ok(flush) => {
                 flush.flush();
                 Ok(())
-            },
+            }
             Err(e) => {
                 crate::log::logger::log_critical(&format!("Failed to map page: {:?}", e));
                 Err("Failed to map page")
             }
         }
     }
-    
+
     /// Unmap a virtual page
-    pub fn unmap_page(&mut self, page: Page<Size4KiB>) -> Result<PhysFrame<Size4KiB>, &'static str> {
+    pub fn unmap_page(
+        &mut self,
+        page: Page<Size4KiB>,
+    ) -> Result<PhysFrame<Size4KiB>, &'static str> {
         match self.mapper.unmap(page) {
             Ok((frame, flush)) => {
                 flush.flush();
                 Ok(frame)
-            },
-            Err(_) => Err("Failed to unmap page")
+            }
+            Err(_) => Err("Failed to unmap page"),
         }
     }
-    
+
     /// Get physical address for virtual address
     pub fn translate_addr(&self, addr: VirtAddr) -> Option<PhysAddr> {
         use x86_64::structures::paging::mapper::{Translate, TranslateResult};
@@ -72,7 +71,7 @@ impl VirtualMemoryManager {
             _ => None,
         }
     }
-    
+
     /// Map multiple contiguous pages
     pub fn map_range(
         &mut self,
@@ -84,12 +83,12 @@ impl VirtualMemoryManager {
         for i in 0..page_count {
             let page = start_page + i as u64;
             let frame = start_frame + i as u64;
-            
+
             self.map_page(page, frame, flags)?;
         }
         Ok(())
     }
-    
+
     /// Create identity mapping for a physical range
     pub fn identity_map_range(
         &mut self,
@@ -100,10 +99,10 @@ impl VirtualMemoryManager {
         let start_frame = PhysFrame::containing_address(start_addr);
         let start_page = Page::containing_address(VirtAddr::new(start_addr.as_u64()));
         let page_count = (size + 4095) / 4096; // Round up to page boundary
-        
+
         self.map_range(start_page, start_frame, page_count, flags)
     }
-    
+
     /// Create higher-half mapping
     pub fn higher_half_map_range(
         &mut self,
@@ -115,7 +114,7 @@ impl VirtualMemoryManager {
         let start_frame = PhysFrame::containing_address(phys_start);
         let start_page = Page::containing_address(virt_start);
         let page_count = (size + 4095) / 4096;
-        
+
         self.map_range(start_page, start_frame, page_count, flags)
     }
 }
@@ -144,43 +143,35 @@ static VMEM_MANAGER: Mutex<Option<VirtualMemoryManager>> = Mutex::new(None);
 /// Initialize virtual memory management
 pub fn init_virtual_memory() -> Result<(), &'static str> {
     let physical_offset = VirtAddr::new(0xFFFF800000000000); // Higher half
-    
+
     let mut manager = unsafe { VirtualMemoryManager::new(physical_offset) };
-    
+
     // Set up essential kernel mappings
     setup_kernel_mappings(&mut manager)?;
-    
+
     *VMEM_MANAGER.lock() = Some(manager);
-    
+
     Ok(())
 }
 
 /// Set up essential kernel virtual memory mappings
 fn setup_kernel_mappings(manager: &mut VirtualMemoryManager) -> Result<(), &'static str> {
     let flags = PageTableFlags::PRESENT | PageTableFlags::WRITABLE;
-    
+
     // Identity map VGA buffer
-    manager.identity_map_range(
-        PhysAddr::new(0xb8000),
-        4096,
-        flags,
-    )?;
-    
+    manager.identity_map_range(PhysAddr::new(0xB8000), 4096, flags)?;
+
     // Identity map first 16MB (kernel space)
-    manager.identity_map_range(
-        PhysAddr::new(0),
-        16 * 1024 * 1024,
-        flags,
-    )?;
-    
+    manager.identity_map_range(PhysAddr::new(0), 16 * 1024 * 1024, flags)?;
+
     // Map kernel heap region
     let heap_start = crate::memory::heap::HEAP_START as u64;
     let heap_size = crate::memory::heap::HEAP_SIZE;
-    
+
     // Allocate physical frames for heap
     let heap_pages = (heap_size + 4095) / 4096;
     let heap_virt_start = VirtAddr::new(heap_start);
-    
+
     for i in 0..heap_pages {
         if let Some(frame) = allocate_frame() {
             let page = Page::containing_address(heap_virt_start + (i * 4096) as u64);
@@ -189,7 +180,7 @@ fn setup_kernel_mappings(manager: &mut VirtualMemoryManager) -> Result<(), &'sta
             return Err("Failed to allocate frames for kernel heap");
         }
     }
-    
+
     Ok(())
 }
 
@@ -214,13 +205,13 @@ pub fn unmap_memory_range(virt_addr: VirtAddr, size: usize) -> Result<(), &'stat
     if let Some(ref mut vmem) = *manager {
         let start_page = Page::containing_address(virt_addr);
         let page_count = (size + 4095) / 4096;
-        
+
         for i in 0..page_count {
             let page = start_page + i as u64;
             match vmem.unmap_page(page) {
                 Ok(frame) => {
                     deallocate_frame(frame);
-                },
+                }
                 Err(_) => return Err("Failed to unmap page"),
             }
         }

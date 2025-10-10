@@ -1,33 +1,33 @@
 //! NØNOS IPC Message Types
 //!
-//! Provides structured and production-grade IPC message framing for ZeroState inter-module
-//! communication. Encapsulates typed envelopes, headers, priority flags, delivery context,
-//! and dispatchable payload categories.
+//! Provides structured and production-grade IPC message framing for ZeroState
+//! inter-module communication. Encapsulates typed envelopes, headers, priority
+//! flags, delivery context, and dispatchable payload categories.
 
+use alloc::{format, string::String, vec::Vec};
 use core::time::Duration;
-use alloc::{vec::Vec, string::String, format};
 
 /// Enum of all recognized IPC message categories.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum MessageType {
-    User,         // General module-level data
-    System,       // Kernel/platform control or broadcast
-    Signal,       // Control flow: ping, shutdown, suspend
-    Capability,   // Capability tokens, handshakes, or revocation
-    Error,        // Structured kernel or runtime errors
-    Debug,        // Trace or telemetry messaging
-    Auth,         // Authentication negotiation or requests
-    Timeout,      // Message timeout notification
+    User,            // General module-level data
+    System,          // Kernel/platform control or broadcast
+    Signal,          // Control flow: ping, shutdown, suspend
+    Capability,      // Capability tokens, handshakes, or revocation
+    Error,           // Structured kernel or runtime errors
+    Debug,           // Trace or telemetry messaging
+    Auth,            // Authentication negotiation or requests
+    Timeout,         // Message timeout notification
     DeliveryFailure, // Message delivery failure notification
-    Reserved(u8), // Reserved for future extensions
+    Reserved(u8),    // Reserved for future extensions
 }
 
 /// Bitflags for message header
 pub mod MsgFlags {
     pub const PRIORITY_HIGH: u8 = 0b0000_0001;
-    pub const ACK_REQUIRED: u8  = 0b0000_0010;
-    pub const ENCRYPTED: u8     = 0b0000_0100;
-    pub const SYSTEM_ONLY: u8   = 0b1000_0000;
+    pub const ACK_REQUIRED: u8 = 0b0000_0010;
+    pub const ENCRYPTED: u8 = 0b0000_0100;
+    pub const SYSTEM_ONLY: u8 = 0b1000_0000;
 }
 
 /// Structured IPC message header for routing and introspection
@@ -71,10 +71,7 @@ impl IpcEnvelope {
     }
 
     pub fn is_control(&self) -> bool {
-        matches!(
-            self.message_type,
-            MessageType::System | MessageType::Signal | MessageType::Error
-        )
+        matches!(self.message_type, MessageType::System | MessageType::Signal | MessageType::Error)
     }
 
     pub fn is_user(&self) -> bool {
@@ -85,4 +82,3 @@ impl IpcEnvelope {
         self.data.len()
     }
 }
-

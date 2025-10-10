@@ -1,12 +1,12 @@
 //! DMA Memory Management
 //!
-//! Direct Memory Access (DMA) allocator for device drivers with 
+//! Direct Memory Access (DMA) allocator for device drivers with
 //! physically contiguous memory allocation and cache coherency management.
 
 use alloc::vec::Vec;
+use core::ptr;
 use spin::Mutex;
 use x86_64::{PhysAddr, VirtAddr};
-use core::ptr;
 
 /// DMA page allocation result
 #[derive(Clone)]
@@ -21,7 +21,7 @@ impl DmaPage {
     pub fn phys_addr(&self) -> PhysAddr {
         self.phys_addr
     }
-    
+
     /// Get virtual address
     pub fn virt_addr(&self) -> VirtAddr {
         self.virt_addr
@@ -41,12 +41,7 @@ struct DmaPool {
 
 impl DmaPool {
     fn new() -> Self {
-        Self {
-            free_pages: Vec::new(),
-            allocated_pages: Vec::new(),
-            total_size: 0,
-            used_size: 0,
-        }
+        Self { free_pages: Vec::new(), allocated_pages: Vec::new(), total_size: 0, used_size: 0 }
     }
 
     fn allocate(&mut self, size: usize) -> Result<DmaPage, &'static str> {
@@ -57,7 +52,7 @@ impl DmaPool {
         for (i, page) in self.free_pages.iter().enumerate() {
             if page.size >= aligned_size {
                 let allocated_page = self.free_pages.remove(i);
-                
+
                 // If the page is larger than needed, split it
                 if allocated_page.size > aligned_size {
                     let remaining_page = DmaPage {
@@ -76,7 +71,7 @@ impl DmaPool {
 
                 self.allocated_pages.push(result.clone());
                 self.used_size += aligned_size;
-                
+
                 return Ok(result);
             }
         }
@@ -88,22 +83,18 @@ impl DmaPool {
     fn allocate_new_page(&mut self, size: usize) -> Result<DmaPage, &'static str> {
         // Use physical memory allocator to get physically contiguous pages
         let num_pages = (size + 4095) / 4096;
-        
+
         // Allocate physical memory
         let phys_frame = crate::memory::phys::alloc_frames(num_pages)
             .ok_or("Failed to allocate physical memory")?;
-        
+
         let phys_addr = PhysAddr::new(phys_frame * 4096);
-        
+
         // Map physical memory to virtual address space
         let virt_addr = crate::memory::virt::map_physical_memory(phys_addr, size)
             .map_err(|_| "Failed to map DMA memory")?;
 
-        let page = DmaPage {
-            virt_addr,
-            phys_addr,
-            size,
-        };
+        let page = DmaPage { virt_addr, phys_addr, size };
 
         self.allocated_pages.push(page.clone());
         self.total_size += size;
@@ -114,9 +105,11 @@ impl DmaPool {
 
     fn deallocate(&mut self, page: DmaPage) -> Result<(), &'static str> {
         // Find and remove from allocated pages
-        let index = self.allocated_pages.iter().position(|p| {
-            p.virt_addr == page.virt_addr && p.phys_addr == page.phys_addr
-        }).ok_or("Page not found in allocated list")?;
+        let index = self
+            .allocated_pages
+            .iter()
+            .position(|p| p.virt_addr == page.virt_addr && p.phys_addr == page.phys_addr)
+            .ok_or("Page not found in allocated list")?;
 
         let _allocated_page = self.allocated_pages.remove(index);
         self.used_size -= page.size;
@@ -209,15 +202,12 @@ pub fn alloc_dma_aligned(size: usize, alignment: usize) -> Result<DmaPage, &'sta
     let page = alloc_dma_page(padded_size)?;
 
     // Calculate aligned address
-    let aligned_virt = VirtAddr::new((page.virt_addr.as_u64() + alignment as u64 - 1) & !(alignment as u64 - 1));
+    let aligned_virt =
+        VirtAddr::new((page.virt_addr.as_u64() + alignment as u64 - 1) & !(alignment as u64 - 1));
     let offset = aligned_virt.as_u64() - page.virt_addr.as_u64();
     let aligned_phys = PhysAddr::new(page.phys_addr.as_u64() + offset);
 
-    Ok(DmaPage {
-        virt_addr: aligned_virt,
-        phys_addr: aligned_phys,
-        size: size,
-    })
+    Ok(DmaPage { virt_addr: aligned_virt, phys_addr: aligned_phys, size: size })
 }
 
 /// Sync DMA buffer for device access (cache coherency)
@@ -246,24 +236,23 @@ pub fn map_device_memory(phys_addr: PhysAddr, size: usize) -> Result<VirtAddr, &
 
 /// Unmap device memory
 pub fn unmap_device_memory(virt_addr: VirtAddr, size: usize) -> Result<(), &'static str> {
-    crate::memory::virt::unmap_memory(virt_addr, size)
-        .map_err(|_| "Failed to unmap device memory")
+    crate::memory::virt::unmap_memory(virt_addr, size).map_err(|_| "Failed to unmap device memory")
 }
 
 /// Initialize DMA allocator with initial memory pool
 pub fn init_dma_allocator() -> Result<(), &'static str> {
     let mut guard = DMA_ALLOCATOR.lock();
     let mut allocator = DmaPool::new();
-    
+
     // Pre-allocate a pool of DMA memory
     const INITIAL_POOL_SIZE: usize = 16 * 1024 * 1024; // 16MB
-    
+
     let initial_page = allocator.allocate_new_page(INITIAL_POOL_SIZE)?;
     allocator.free_pages.push(initial_page);
     allocator.used_size -= INITIAL_POOL_SIZE; // It's in free list, not allocated
-    
+
     *guard = Some(allocator);
-    
+
     crate::log::info!("DMA allocator initialized with {} bytes", INITIAL_POOL_SIZE);
     Ok(())
 }
@@ -272,14 +261,8 @@ pub fn init_dma_allocator() -> Result<(), &'static str> {
 pub fn get_dma_stats() -> DmaStats {
     let guard = DMA_ALLOCATOR.lock();
     guard.as_ref().map_or(
-        DmaStats {
-            total_size: 0,
-            used_size: 0,
-            free_size: 0,
-            allocated_pages: 0,
-            free_pages: 0,
-        },
-        |a| a.get_stats()
+        DmaStats { total_size: 0, used_size: 0, free_size: 0, allocated_pages: 0, free_pages: 0 },
+        |a| a.get_stats(),
     )
 }
 
@@ -294,11 +277,8 @@ impl DmaBounceBuffer {
     pub fn new(size: usize) -> Result<Self, &'static str> {
         // Allocate DMA memory in low memory (< 4GB) for compatibility
         let low_page = alloc_dma_page(size)?;
-        
-        Ok(Self {
-            low_page,
-            high_buffer: None,
-        })
+
+        Ok(Self { low_page, high_buffer: None })
     }
 
     /// Copy data from high memory buffer to low memory for DMA
@@ -311,7 +291,7 @@ impl DmaBounceBuffer {
             ptr::copy_nonoverlapping(
                 data.as_ptr(),
                 self.low_page.virt_addr.as_mut_ptr(),
-                data.len()
+                data.len(),
             );
         }
 
@@ -331,7 +311,7 @@ impl DmaBounceBuffer {
             ptr::copy_nonoverlapping(
                 self.low_page.virt_addr.as_ptr(),
                 buffer.as_mut_ptr(),
-                buffer.len()
+                buffer.len(),
             );
         }
 
@@ -371,32 +351,21 @@ pub struct DmaSegment {
 impl DmaScatterGather {
     /// Create a new scatter-gather list
     pub fn new() -> Self {
-        Self {
-            segments: Vec::new(),
-            total_size: 0,
-        }
+        Self { segments: Vec::new(), total_size: 0 }
     }
 
     /// Add a segment to the scatter-gather list
     pub fn add_segment(&mut self, data: &[u8]) -> Result<(), &'static str> {
         let page = alloc_dma_page(data.len())?;
-        
+
         // Copy data to DMA buffer
         unsafe {
-            ptr::copy_nonoverlapping(
-                data.as_ptr(),
-                page.virt_addr.as_mut_ptr(),
-                data.len()
-            );
+            ptr::copy_nonoverlapping(data.as_ptr(), page.virt_addr.as_mut_ptr(), data.len());
         }
 
         sync_dma_for_device(&page);
 
-        self.segments.push(DmaSegment {
-            page,
-            offset: 0,
-            length: data.len(),
-        });
+        self.segments.push(DmaSegment { page, offset: 0, length: data.len() });
 
         self.total_size += data.len();
         Ok(())
@@ -404,9 +373,7 @@ impl DmaScatterGather {
 
     /// Get physical addresses for hardware scatter-gather
     pub fn get_physical_segments(&self) -> Vec<(PhysAddr, usize)> {
-        self.segments.iter().map(|seg| {
-            (seg.page.phys_addr + seg.offset, seg.length)
-        }).collect()
+        self.segments.iter().map(|seg| (seg.page.phys_addr + seg.offset, seg.length)).collect()
     }
 }
 

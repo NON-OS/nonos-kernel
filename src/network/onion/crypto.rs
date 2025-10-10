@@ -19,17 +19,17 @@ use super::OnionError;
 
 /* ===== Protocol constants (kept for external compatibility) ===== */
 
-pub const TAP_C_HANDSHAKE_LEN: usize = 186;  // legacy TAP (not used)
+pub const TAP_C_HANDSHAKE_LEN: usize = 186; // legacy TAP (not used)
 pub const TAP_S_HANDSHAKE_LEN: usize = 148;
 
-pub const NTOR_ONIONSKIN_LEN: usize = 84;    // client pubkey(32) + client nonce(32) + pad(20)
-pub const NTOR_REPLY_LEN: usize = 64;        // server pubkey(32) + authenticator(32)
+pub const NTOR_ONIONSKIN_LEN: usize = 84; // client pubkey(32) + client nonce(32) + pad(20)
+pub const NTOR_REPLY_LEN: usize = 64; // server pubkey(32) + authenticator(32)
 
 pub const CELL_PAYLOAD_SIZE: usize = 509;
 pub const RELAY_PAYLOAD_SIZE: usize = 498;
 
-pub const KEY_LEN: usize = 16;  // AES-128
-pub const IV_LEN: usize = 16;   // 128-bit nonce/IV for CTR
+pub const KEY_LEN: usize = 16; // AES-128
+pub const IV_LEN: usize = 16; // 128-bit nonce/IV for CTR
 pub const DIGEST_LEN: usize = 4;
 
 /* ===== Crypto provider abstraction ===== */
@@ -51,15 +51,21 @@ pub trait CryptoProvider: Sync + Send {
     fn x25519_generate_keypair(&self) -> Result<([u8; 32], [u8; 32]), OnionError>;
     fn x25519(&self, sk: &[u8; 32], pk: &[u8; 32]) -> Result<[u8; 32], OnionError>;
 
-    /* Stream cipher (AES-128-CTR). If you prefer ChaCha20, provide the same API semantics. */
-    /// Apply keystream for `inout` starting at CTR = `counter`, then increment internal block ctr accordingly.
+    /* Stream cipher (AES-128-CTR). If you prefer ChaCha20, provide the same API
+     * semantics. */
+    /// Apply keystream for `inout` starting at CTR = `counter`, then increment
+    /// internal block ctr accordingly.
     fn aes128_ctr_apply(&self, key: &[u8; 16], iv: &[u8; 16], counter: u128, inout: &mut [u8]);
 
     /* Optional constant-time compare fallback */
     fn ct_eq(&self, a: &[u8], b: &[u8]) -> bool {
-        if a.len() != b.len() { return false; }
+        if a.len() != b.len() {
+            return false;
+        }
         let mut acc = 0u8;
-        for i in 0..a.len() { acc |= a[i] ^ b[i]; }
+        for i in 0..a.len() {
+            acc |= a[i] ^ b[i];
+        }
         acc == 0
     }
 }
@@ -98,7 +104,7 @@ impl LayerKeys {
         forward_iv: [u8; IV_LEN],
         backward_iv: [u8; IV_LEN],
         forward_digest: [u8; DIGEST_LEN],
-        backward_digest: [u8; DIGEST_LEN]
+        backward_digest: [u8; DIGEST_LEN],
     ) -> Self {
         Self {
             forward_key,
@@ -112,7 +118,8 @@ impl LayerKeys {
         }
     }
 
-    /// Encrypt forward (client -> exit). Stateless caller API; CTR state carried in `self`.
+    /// Encrypt forward (client -> exit). Stateless caller API; CTR state
+    /// carried in `self`.
     pub fn encrypt_forward(&mut self, data: &[u8]) -> Result<Vec<u8>, OnionError> {
         let mut out = data.to_vec();
         if !out.is_empty() {
@@ -147,9 +154,8 @@ impl LayerKeys {
         let mut h = [0u8; 32];
         provider().blake3(ciphertext, &mut h);
         self.forward_digest.copy_from_slice(&h[..DIGEST_LEN]);
-        self.fwd_ctr_blocks = self
-            .fwd_ctr_blocks
-            .saturating_add(((ciphertext.len() + 15) / 16) as u128);
+        self.fwd_ctr_blocks =
+            self.fwd_ctr_blocks.saturating_add(((ciphertext.len() + 15) / 16) as u128);
     }
 
     #[inline]
@@ -157,9 +163,8 @@ impl LayerKeys {
         let mut h = [0u8; 32];
         provider().blake3(plaintext, &mut h);
         self.backward_digest.copy_from_slice(&h[..DIGEST_LEN]);
-        self.bwd_ctr_blocks = self
-            .bwd_ctr_blocks
-            .saturating_add(((plaintext.len() + 15) / 16) as u128);
+        self.bwd_ctr_blocks =
+            self.bwd_ctr_blocks.saturating_add(((plaintext.len() + 15) / 16) as u128);
     }
 
     /// Construct from a completed `HopCrypto`.
@@ -192,7 +197,8 @@ pub enum HandshakeState {
     Failed,
 }
 
-/// Per-hop handshake state. Produces symmetric `LayerKeys` material when complete.
+/// Per-hop handshake state. Produces symmetric `LayerKeys` material when
+/// complete.
 #[derive(Debug)]
 pub struct HopCrypto {
     pub forward_key: Vec<u8>,
@@ -256,7 +262,8 @@ impl HopCrypto {
 
     /// Relay -> Client: server_pub(32) || authenticator(32)
     ///
-    /// Authenticator = HMAC-SHA256( DH(shared), "ntor-auth" || client_nonce || server_pub || client_pub )
+    /// Authenticator = HMAC-SHA256( DH(shared), "ntor-auth" || client_nonce ||
+    /// server_pub || client_pub )
     pub fn complete_handshake(&mut self, response: &[u8]) -> Result<(), OnionError> {
         if self.handshake_state != HandshakeState::Sent {
             return Err(OnionError::CryptoError);
@@ -306,10 +313,8 @@ impl HopCrypto {
 
         self.forward_key.copy_from_slice(&okm[0..KEY_LEN]);
         self.backward_key.copy_from_slice(&okm[KEY_LEN..KEY_LEN * 2]);
-        self.forward_iv
-            .copy_from_slice(&okm[KEY_LEN * 2..KEY_LEN * 2 + IV_LEN]);
-        self.backward_iv
-            .copy_from_slice(&okm[KEY_LEN * 2 + IV_LEN..KEY_LEN * 2 + IV_LEN * 2]);
+        self.forward_iv.copy_from_slice(&okm[KEY_LEN * 2..KEY_LEN * 2 + IV_LEN]);
+        self.backward_iv.copy_from_slice(&okm[KEY_LEN * 2 + IV_LEN..KEY_LEN * 2 + IV_LEN * 2]);
 
         self.handshake_state = HandshakeState::Complete;
         Ok(())
@@ -332,7 +337,9 @@ impl Clone for OnionCrypto {
     fn clone(&self) -> Self {
         Self {
             circuits: Mutex::new(alloc::collections::BTreeMap::new()),
-            operation_count: AtomicU64::new(self.operation_count.load(core::sync::atomic::Ordering::Relaxed)),
+            operation_count: AtomicU64::new(
+                self.operation_count.load(core::sync::atomic::Ordering::Relaxed),
+            ),
         }
     }
 }

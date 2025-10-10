@@ -13,8 +13,8 @@
  - Backpressure-friendly I/O helpers
 */
 
-use alloc::{boxed::Box, collections::BTreeMap, vec, vec::Vec};
 use crate::network::onion::relay::TcpSocketExt;
+use alloc::{boxed::Box, collections::BTreeMap, vec, vec::Vec};
 use core::cmp::min;
 use core::sync::atomic::{AtomicU32, AtomicU64, Ordering};
 use spin::{Mutex, Once};
@@ -168,12 +168,7 @@ impl TokenBucket {
     fn new(bytes_per_sec: u64, now_ms: u64) -> Self {
         let cap = if bytes_per_sec == 0 { 1 } else { bytes_per_sec }; // avoid div by zero
         let per_ms = core::cmp::max(1, cap / 1000);
-        Self {
-            capacity: cap,
-            tokens: cap,
-            refill_per_ms: per_ms,
-            last_refill_ms: now_ms,
-        }
+        Self { capacity: cap, tokens: cap, refill_per_ms: per_ms, last_refill_ms: now_ms }
     }
 
     fn set_rate(&mut self, bytes_per_sec: u64, now_ms: u64) {
@@ -242,9 +237,11 @@ pub fn init_tor_network(tls: &'static dyn TlsProvider, bandwidth_limit_bps: u64)
             bytes_sent: AtomicU64::new(0),
             bytes_received: AtomicU64::new(0),
             connection_failures: AtomicU32::new(0),
-            bandwidth_limit_bytes_per_sec: AtomicU64::new(
-                if bandwidth_limit_bps == 0 { 1_048_576 } else { bandwidth_limit_bps },
-            ),
+            bandwidth_limit_bytes_per_sec: AtomicU64::new(if bandwidth_limit_bps == 0 {
+                1_048_576
+            } else {
+                bandwidth_limit_bps
+            }),
         },
         pool: ConnectionPool {
             buckets: Mutex::new(BTreeMap::new()),
@@ -273,7 +270,8 @@ impl TorNetworkManager {
         self.connect_to_relay_ex(addr, port, DialOptions::default())
     }
 
-    /// Create or reuse a TCP connection with options (bandwidth/timeouts/SNI/ALPN).
+    /// Create or reuse a TCP connection with options
+    /// (bandwidth/timeouts/SNI/ALPN).
     pub fn connect_to_relay_ex(
         &self,
         addr: IpAddress,
@@ -287,7 +285,8 @@ impl TorNetworkManager {
                 let now = timestamp_ms();
                 let global = self.stats.bandwidth_limit_bytes_per_sec.load(Ordering::SeqCst);
                 let up = if opts.bandwidth_up_bps == 0 { global } else { opts.bandwidth_up_bps };
-                let down = if opts.bandwidth_down_bps == 0 { global } else { opts.bandwidth_down_bps };
+                let down =
+                    if opts.bandwidth_down_bps == 0 { global } else { opts.bandwidth_down_bps };
                 pooled.updown = Some(DirectionLimiters {
                     up: TokenBucket::new(up, now),
                     down: TokenBucket::new(down, now),
@@ -300,7 +299,8 @@ impl TorNetworkManager {
             return Ok(id);
         }
 
-        // Fresh connect (placeholder for full Happy Eyeballs when we have hostnames/multi-addrs)
+        // Fresh connect (placeholder for full Happy Eyeballs when we have
+        // hostnames/multi-addrs)
         let (sock, local_port) = self.direct_connect(addr, port, opts.connect_timeout_ms)?;
 
         let mut conn = TorConnection {
@@ -336,7 +336,8 @@ impl TorNetworkManager {
         Ok(id)
     }
 
-    /// Perform a TLS handshake using the configured TlsProvider and supplied options.
+    /// Perform a TLS handshake using the configured TlsProvider and supplied
+    /// options.
     pub fn perform_tls_handshake_ex(
         &self,
         id: u32,
@@ -352,9 +353,7 @@ impl TorNetworkManager {
         }
 
         conn.state = ConnectionState::TlsHandshake;
-        let session = self
-            .tls
-            .handshake_with_opts(&conn.socket, sni, alpn, min_tls_version)?;
+        let session = self.tls.handshake_with_opts(&conn.socket, sni, alpn, min_tls_version)?;
         conn.tls = Some(TlsConnectionState {
             handshake_complete: true,
             cipher_suite: Some(session.cipher_suite),
@@ -371,7 +370,8 @@ impl TorNetworkManager {
         self.perform_tls_handshake_ex(id, None, None, 0x0304)
     }
 
-    /// Send application data (obeys global + per-conn limits). Returns bytes written.
+    /// Send application data (obeys global + per-conn limits). Returns bytes
+    /// written.
     pub fn send_data(&self, id: u32, buf: &[u8]) -> Result<usize, OnionError> {
         if buf.is_empty() {
             return Ok(0);
@@ -460,9 +460,7 @@ impl TorNetworkManager {
     /// Resolve hostname to IP address via system DNS (A/AAAA).
     pub fn resolve_hostname(&self, hostname: &str) -> Result<IpAddress, OnionError> {
         let ips = crate::network::dns::resolve(hostname).map_err(|_| OnionError::NetworkError)?;
-        ips.into_iter().next()
-            .map(|ip| IpAddress::V4(ip))
-            .ok_or(OnionError::NetworkError)
+        ips.into_iter().next().map(|ip| IpAddress::V4(ip)).ok_or(OnionError::NetworkError)
     }
 
     /// Get per-connection stats snapshot.
@@ -487,15 +485,14 @@ impl TorNetworkManager {
 
     /// Update global bandwidth limit (bytes/sec).
     pub fn set_bandwidth_limit(&self, bytes_per_sec: u64) {
-        self.stats
-            .bandwidth_limit_bytes_per_sec
-            .store(bytes_per_sec, Ordering::SeqCst);
+        self.stats.bandwidth_limit_bytes_per_sec.store(bytes_per_sec, Ordering::SeqCst);
         let now = timestamp_ms();
         let mut tb = self.limiter.lock();
         tb.set_rate(bytes_per_sec, now);
     }
 
-    /// Sweep idle/errored/closed connections from active map; also evicts expired pooled conns.
+    /// Sweep idle/errored/closed connections from active map; also evicts
+    /// expired pooled conns.
     pub fn cleanup(&self) {
         let now = timestamp_ms();
         // Active map cleanup
@@ -523,7 +520,8 @@ impl TorNetworkManager {
 
     /* ===== Private helpers ===== */
 
-    /// Direct single-address connect (placeholder for future dual-stack racing).
+    /// Direct single-address connect (placeholder for future dual-stack
+    /// racing).
     fn direct_connect(
         &self,
         addr: IpAddress,
@@ -667,7 +665,8 @@ impl ConnectionPool {
         if entry.len() < self.max_pool_size {
             entry.push(conn);
         }
-        // else: silently drop (caller already removed from active; kernel may close on drop)
+        // else: silently drop (caller already removed from active; kernel may
+        // close on drop)
     }
 
     fn evict_idle(&self, now_ms: u64) {

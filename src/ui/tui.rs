@@ -1,25 +1,30 @@
 // ui/tui.rs
 //
-// NØNOS TUI 
-// - Backend abstraction: VGA text mode (b8000) and linear framebuffer (RGBA8) with glyph blit
-// - ANSI-lite: CR, LF, BS, FF (clear), TAB, \x1b[2J (CLS), \x1b[H (home), \x1b[?25l/h (cursor show/hide)
+// NØNOS TUI
+// - Backend abstraction: VGA text mode (b8000) and linear framebuffer (RGBA8)
+//   with glyph blit
+// - ANSI-lite: CR, LF, BS, FF (clear), TAB, \x1b[2J (CLS), \x1b[H (home),
+//   \x1b[?25l/h (cursor show/hide)
 // - Colors (16 VGA-style); for FB backend, maps to palette
 // - Scrolling region (full screen), lockless fast path for short writes
 // - Panic-safe: best-effort output even in reentry
-// - Line editor: history (64), left/right, home/end, backspace, delete, word-jump (M-b/M-f), TAB completion via CLI hook
+// - Line editor: history (64), left/right, home/end, backspace, delete,
+//   word-jump (M-b/M-f), TAB completion via CLI hook
 // - No heap on hot path; fixed-capacity string buffers
 //
 // Assumes arch keyboard exposes:
-//   - keyboard::get_event_blocking() -> KeyEvent { code: KeyCode, chr: Option<u8>, mods: Mod }
-//   - keyboard::KeyCode::{Enter,Backspace,Delete,Tab,Left,Right,Up,Down,Home,End,Char(u8)}
+//   - keyboard::get_event_blocking() -> KeyEvent { code: KeyCode, chr:
+//     Option<u8>, mods: Mod }
+//   - keyboard::KeyCode::{Enter,Backspace,Delete,Tab,Left,Right,Up,Down,Home,
+//     End,Char(u8)}
 //   - Mod { ctrl, alt, shift }
 //
 // All output is public; zero-state.
 
 #![allow(dead_code)]
 
+//use core::fmt::Write as _;
 use core::sync::atomic::{AtomicBool, Ordering};
-use core::fmt::Write as _;
 use spin::Mutex;
 
 // —————————————————— public API ——————————————————
@@ -29,12 +34,18 @@ pub fn init_if_framebuffer() {
     BACKEND.init_once();
 }
 
-pub fn write(s: &str) { BACKEND.write_str(s) }
+pub fn write(s: &str) {
+    BACKEND.write_str(s)
+}
 
-pub fn clear() { BACKEND.clear() }
+pub fn clear() {
+    BACKEND.clear()
+}
 
 /// Blocking, cooked read into `buf`; returns length (excludes trailing '\n')
-pub fn read_line(buf: &mut [u8]) -> usize { LINE.edit(buf) }
+pub fn read_line(buf: &mut [u8]) -> usize {
+    LINE.edit(buf)
+}
 
 // —————————————————— backend selection ——————————————————
 
@@ -45,9 +56,13 @@ struct Tty {
     imp: Mutex<Backend>,
 }
 impl Tty {
-    const fn new() -> Self { Self { inited: AtomicBool::new(false), imp: Mutex::new(Backend::Vga(Vga::new())) } }
+    const fn new() -> Self {
+        Self { inited: AtomicBool::new(false), imp: Mutex::new(Backend::Vga(Vga::new())) }
+    }
     fn init_once(&self) {
-        if self.inited.swap(true, Ordering::SeqCst) { return; }
+        if self.inited.swap(true, Ordering::SeqCst) {
+            return;
+        }
         let fb = crate::arch::x86_64::framebuffer::probe(); // returns Option<FbInfo>
         if let Some(info) = fb {
             // SAFETY: fb mem comes from bootloader map; map uncached and own it.
@@ -59,12 +74,16 @@ impl Tty {
     }
     fn write_str(&self, s: &str) {
         // best-effort even without init
-        if !self.inited.load(Ordering::Relaxed) { self.init_once(); }
+        if !self.inited.load(Ordering::Relaxed) {
+            self.init_once();
+        }
         let mut g = self.imp.lock();
         g.write(s);
     }
     fn clear(&self) {
-        if !self.inited.load(Ordering::Relaxed) { self.init_once(); }
+        if !self.inited.load(Ordering::Relaxed) {
+            self.init_once();
+        }
         let mut g = self.imp.lock();
         g.clear();
     }
@@ -72,73 +91,121 @@ impl Tty {
 
 // —————————————————— backends ——————————————————
 
-enum Backend { Vga(Vga), Fb(Fb) }
+enum Backend {
+    Vga(Vga),
+    Fb(Fb),
+}
 impl Backend {
-    fn write(&mut self, s: &str) { match self { Backend::Vga(v) => v.write(s), Backend::Fb(f) => f.write(s) } }
-    fn clear(&mut self)         { match self { Backend::Vga(v) => v.clear(), Backend::Fb(f) => f.clear() } }
+    fn write(&mut self, s: &str) {
+        match self {
+            Backend::Vga(v) => v.write(s),
+            Backend::Fb(f) => f.write(s),
+        }
+    }
+    fn clear(&mut self) {
+        match self {
+            Backend::Vga(v) => v.clear(),
+            Backend::Fb(f) => f.clear(),
+        }
+    }
 }
 
 // ========== VGA text (80×25) ==========
 
 struct Vga {
-    col: usize, row: usize,
-    fg: u8, bg: u8,
+    col: usize,
+    row: usize,
+    fg: u8,
+    bg: u8,
     cursor_on: bool,
 }
 impl Vga {
     const W: usize = 80;
     const H: usize = 25;
-    const PTR: usize = 0xb8000;
+    const PTR: usize = 0xB8000;
 
-    const fn new() -> Self { Self { col:0, row:0, fg:0x0a, bg:0x00, cursor_on:true } }
+    const fn new() -> Self {
+        Self { col: 0, row: 0, fg: 0x0A, bg: 0x00, cursor_on: true }
+    }
 
     fn write(&mut self, s: &str) {
         for &b in s.as_bytes() {
             match b {
-                b'\n' => { self.nl(); }
-                b'\r' => { self.col = 0; }
-                0x08  => { self.bs(); }
-                0x0C  => { self.cls(); }
-                0x09  => { self.tab(); }
-                0x1b  => { /* ANSI-lite parser */ self.parse_ansi(s); break; }
-                _     => { self.put(b as char); }
+                b'\n' => {
+                    self.nl();
+                }
+                b'\r' => {
+                    self.col = 0;
+                }
+                0x08 => {
+                    self.bs();
+                }
+                0x0C => {
+                    self.cls();
+                }
+                0x09 => {
+                    self.tab();
+                }
+                0x1B => {
+                    /* ANSI-lite parser */
+                    self.parse_ansi(s);
+                    break;
+                }
+                _ => {
+                    self.put(b as char);
+                }
             }
         }
         self.apply_cursor();
     }
 
-    fn clear(&mut self) { self.cls(); self.apply_cursor(); }
+    fn clear(&mut self) {
+        self.cls();
+        self.apply_cursor();
+    }
 
-    #[inline] fn put(&mut self, c: char) {
-        if self.col >= Self::W { self.nl(); }
+    #[inline]
+    fn put(&mut self, c: char) {
+        if self.col >= Self::W {
+            self.nl();
+        }
         let off = (self.row * Self::W + self.col) * 2;
         unsafe {
             let p = (Self::PTR as *mut u8).add(off);
             p.write_volatile(c as u8);
-            p.add(1).write_volatile((self.bg<<4) | (self.fg & 0x0f));
+            p.add(1).write_volatile((self.bg << 4) | (self.fg & 0x0F));
         }
         self.col += 1;
     }
-    #[inline] fn nl(&mut self) {
+    #[inline]
+    fn nl(&mut self) {
         self.col = 0;
-        if self.row+1 >= Self::H { self.scroll(); } else { self.row += 1; }
+        if self.row + 1 >= Self::H {
+            self.scroll();
+        } else {
+            self.row += 1;
+        }
     }
-    #[inline] fn bs(&mut self) {
+    #[inline]
+    fn bs(&mut self) {
         if self.col > 0 {
             self.col -= 1;
             self.put_at(' ', self.row, self.col);
         }
     }
-    #[inline] fn tab(&mut self) {
-        let next = ((self.col/4)+1)*4;
-        while self.col < next { self.put(' '); }
+    #[inline]
+    fn tab(&mut self) {
+        let next = ((self.col / 4) + 1) * 4;
+        while self.col < next {
+            self.put(' ');
+        }
     }
     fn put_at(&mut self, c: char, r: usize, c0: usize) {
         let off = (r * Self::W + c0) * 2;
         unsafe {
             let p = (Self::PTR as *mut u8).add(off);
             p.write_volatile(c as u8);
-            p.add(1).write_volatile((self.bg<<4) | (self.fg & 0x0f));
+            p.add(1).write_volatile((self.bg << 4) | (self.fg & 0x0F));
         }
     }
     fn scroll(&mut self) {
@@ -146,32 +213,43 @@ impl Vga {
         for r in 1..Self::H {
             for c in 0..Self::W {
                 let src = ((r * Self::W + c) * 2) as isize;
-                let dst = (((r-1) * Self::W + c) * 2) as isize;
+                let dst = (((r - 1) * Self::W + c) * 2) as isize;
                 unsafe {
                     let base = Self::PTR as *mut u8;
-                    let ch  = base.offset(src).read_volatile();
-                    let attr= base.offset(src+1).read_volatile();
+                    let ch = base.offset(src).read_volatile();
+                    let attr = base.offset(src + 1).read_volatile();
                     base.offset(dst).write_volatile(ch);
-                    base.offset(dst+1).write_volatile(attr);
+                    base.offset(dst + 1).write_volatile(attr);
                 }
             }
         }
         // clear last
-        for c in 0..Self::W { self.put_at(' ', Self::H-1, c); }
-        self.row = Self::H-1;
+        for c in 0..Self::W {
+            self.put_at(' ', Self::H - 1, c);
+        }
+        self.row = Self::H - 1;
         self.col = 0;
     }
     fn cls(&mut self) {
-        for r in 0..Self::H { for c in 0..Self::W { self.put_at(' ', r, c); } }
-        self.row=0; self.col=0;
+        for r in 0..Self::H {
+            for c in 0..Self::W {
+                self.put_at(' ', r, c);
+            }
+        }
+        self.row = 0;
+        self.col = 0;
     }
     fn apply_cursor(&self) {
-        if !self.cursor_on { return; }
+        if !self.cursor_on {
+            return;
+        }
         unsafe {
             use crate::arch::x86_64::port::outb;
             let pos = (self.row * Self::W + self.col) as u16;
-            outb(0x3D4, 0x0F); outb(0x3D5, (pos & 0xFF) as u8);
-            outb(0x3D4, 0x0E); outb(0x3D5, (pos >> 8) as u8);
+            outb(0x3D4, 0x0F);
+            outb(0x3D5, (pos & 0xFF) as u8);
+            outb(0x3D4, 0x0E);
+            outb(0x3D5, (pos >> 8) as u8);
         }
     }
     fn parse_ansi(&mut self, rest: &str) {
@@ -180,14 +258,27 @@ impl Vga {
         let bytes = rest.as_bytes();
         // find first '[' and following letter
         let mut i = 0;
-        while i < bytes.len() && bytes[i] != b'[' { i+=1; }
-        if i+1 >= bytes.len() { return; }
-        let code = bytes[bytes.len()-1];
+        while i < bytes.len() && bytes[i] != b'[' {
+            i += 1;
+        }
+        if i + 1 >= bytes.len() {
+            return;
+        }
+        let code = bytes[bytes.len() - 1];
         match code {
-            b'J' => { self.cls(); }    // ESC[?J → treat as full clear
-            b'H' => { self.row=0; self.col=0; }
-            b'l' => { self.cursor_on = false; }
-            b'h' => { self.cursor_on = true;  }
+            b'J' => {
+                self.cls();
+            } // ESC[?J → treat as full clear
+            b'H' => {
+                self.row = 0;
+                self.col = 0;
+            }
+            b'l' => {
+                self.cursor_on = false;
+            }
+            b'h' => {
+                self.cursor_on = true;
+            }
             _ => {}
         }
     }
@@ -197,93 +288,111 @@ impl Vga {
 
 struct Fb {
     info: crate::arch::x86_64::framebuffer::FbInfo,
-    col: usize, row: usize,
-    fg: [u8;3], bg: [u8;3],
+    col: usize,
+    row: usize,
+    fg: [u8; 3],
+    bg: [u8; 3],
     cursor_on: bool,
 }
 impl Fb {
     fn new(info: crate::arch::x86_64::framebuffer::FbInfo) -> Self {
-        Self {
-            info, col:0, row:0,
-            fg: [200, 255, 200], bg: [0,0,0],
-            cursor_on: true,
-        }
+        Self { info, col: 0, row: 0, fg: [200, 255, 200], bg: [0, 0, 0], cursor_on: true }
     }
     fn dims(&self) -> (usize, usize) {
-        let cw=8; let ch=16; // built-in bitmap font cell
+        let cw = 8;
+        let ch = 16; // built-in bitmap font cell
         (self.info.width as usize / cw, self.info.height as usize / ch)
     }
     fn write(&mut self, s: &str) {
         for &b in s.as_bytes() {
             match b {
                 b'\n' => self.nl(),
-                b'\r' => { self.col = 0; }
-                0x08  => self.bs(),
-                0x0C  => self.cls(),
-                0x09  => self.tab(),
-                0x1b  => { self.parse_ansi(s); break; }
-                _     => self.put(b as char),
+                b'\r' => {
+                    self.col = 0;
+                }
+                0x08 => self.bs(),
+                0x0C => self.cls(),
+                0x09 => self.tab(),
+                0x1B => {
+                    self.parse_ansi(s);
+                    break;
+                }
+                _ => self.put(b as char),
             }
         }
         self.cursor();
     }
-    fn clear(&mut self) { self.cls(); self.cursor(); }
+    fn clear(&mut self) {
+        self.cls();
+        self.cursor();
+    }
 
     fn put(&mut self, ch: char) {
-        let (w,h) = self.dims();
-        if self.col >= w { self.nl(); }
+        let (w, h) = self.dims();
+        if self.col >= w {
+            self.nl();
+        }
         self.blit_char(ch, self.col, self.row);
         self.col += 1;
     }
     fn nl(&mut self) {
-        let (w,h) = self.dims();
+        let (w, h) = self.dims();
         self.col = 0;
-        if self.row+1 >= h { self.scroll(); } else { self.row += 1; }
+        if self.row + 1 >= h {
+            self.scroll();
+        } else {
+            self.row += 1;
+        }
     }
     fn bs(&mut self) {
-        if self.col>0 { self.col -= 1; self.blit_char(' ', self.col, self.row); }
+        if self.col > 0 {
+            self.col -= 1;
+            self.blit_char(' ', self.col, self.row);
+        }
     }
     fn tab(&mut self) {
-        let next = ((self.col/4)+1)*4;
-        while self.col < next { self.put(' '); }
+        let next = ((self.col / 4) + 1) * 4;
+        while self.col < next {
+            self.put(' ');
+        }
     }
     fn cls(&mut self) {
         unsafe {
             let p = self.info.ptr as *mut u8;
             core::ptr::write_bytes(p, 0, (self.info.stride * self.info.height) as usize);
         }
-        self.col=0; self.row=0;
+        self.col = 0;
+        self.row = 0;
     }
     fn scroll(&mut self) {
-        let cw=8; let ch=16;
+        let cw = 8;
+        let ch = 16;
         let bytes_per_row = (self.info.stride as usize) * ch;
         let total_rows = (self.info.height as usize) / ch;
         unsafe {
             let base = self.info.ptr as *mut u8;
             // move up one cell-row
-            core::ptr::copy(
-                base.add(bytes_per_row),
-                base,
-                bytes_per_row * (total_rows-1)
-            );
+            core::ptr::copy(base.add(bytes_per_row), base, bytes_per_row * (total_rows - 1));
             // clear last
-            core::ptr::write_bytes(
-                base.add(bytes_per_row * (total_rows-1)),
-                0, bytes_per_row
-            );
+            core::ptr::write_bytes(base.add(bytes_per_row * (total_rows - 1)), 0, bytes_per_row);
         }
-        self.row = total_rows-1; self.col = 0;
+        self.row = total_rows - 1;
+        self.col = 0;
     }
     fn cursor(&self) {
-        if !self.cursor_on { return; }
+        if !self.cursor_on {
+            return;
+        }
         // simple underline cursor: invert last pixel row of the cell
-        let cw=8; let ch=16;
+        let cw = 8;
+        let ch = 16;
         let x = self.col * cw;
-        let y = self.row * ch + (ch-1);
-        if x+cw >= self.info.width as usize || y >= self.info.height as usize { return; }
+        let y = self.row * ch + (ch - 1);
+        if x + cw >= self.info.width as usize || y >= self.info.height as usize {
+            return;
+        }
         unsafe {
-            let mut p = (self.info.ptr as *mut u8)
-                .add(y * self.info.stride as usize + x * 4);
+            let mut p = (self.info.ptr as *mut u8).add(y * self.info.stride as usize + x * 4);
             for _ in 0..cw {
                 // 32bpp: BGRA
                 let b = p.read();
@@ -298,44 +407,57 @@ impl Fb {
     }
     fn blit_char(&self, ch: char, cx: usize, cy: usize) {
         let glyph = crate::arch::x86_64::font8x16::glyph(ch as u8); // [16]u8 bitmap
-        let cw=8; let chh=16;
-        let x0 = cx * cw; let y0 = cy * chh;
-        if x0+cw > self.info.width as usize || y0+chh > self.info.height as usize { return; }
+        let cw = 8;
+        let chh = 16;
+        let x0 = cx * cw;
+        let y0 = cy * chh;
+        if x0 + cw > self.info.width as usize || y0 + chh > self.info.height as usize {
+            return;
+        }
         unsafe {
             let mut row = 0usize;
             while row < chh {
                 let bits = glyph[row];
                 let mut col = 0usize;
                 while col < cw {
-                    let on = (bits >> (7-col)) & 1 != 0;
+                    let on = (bits >> (7 - col)) & 1 != 0;
                     let dst = (self.info.ptr as *mut u8)
-                        .add((y0+row)* self.info.stride as usize + (x0+col)*4);
+                        .add((y0 + row) * self.info.stride as usize + (x0 + col) * 4);
                     if on {
-                        dst.write(self.bg[2]);       // B
-                        dst.add(1).write(self.bg[1]);// G
-                        dst.add(2).write(self.bg[0]);// R
-                        dst.add(3).write(0xFF);      // A
+                        dst.write(self.bg[2]); // B
+                        dst.add(1).write(self.bg[1]); // G
+                        dst.add(2).write(self.bg[0]); // R
+                        dst.add(3).write(0xFF); // A
                     } else {
                         dst.write(self.fg[2]);
                         dst.add(1).write(self.fg[1]);
                         dst.add(2).write(self.fg[0]);
                         dst.add(3).write(0xFF);
                     }
-                    col+=1;
+                    col += 1;
                 }
-                row+=1;
+                row += 1;
             }
         }
     }
     fn parse_ansi(&mut self, rest: &str) {
         let bytes = rest.as_bytes();
-        if bytes.len()<2 { return; }
-        let code = bytes[bytes.len()-1];
+        if bytes.len() < 2 {
+            return;
+        }
+        let code = bytes[bytes.len() - 1];
         match code {
             b'J' => self.cls(),
-            b'H' => { self.col=0; self.row=0; }
-            b'l' => { self.cursor_on=false; }
-            b'h' => { self.cursor_on=true; }
+            b'H' => {
+                self.col = 0;
+                self.row = 0;
+            }
+            b'l' => {
+                self.cursor_on = false;
+            }
+            b'h' => {
+                self.cursor_on = true;
+            }
             _ => {}
         }
     }
@@ -362,7 +484,7 @@ impl Line {
 
     fn edit(&self, out: &mut [u8]) -> usize {
         use crate::arch::x86_64::keyboard::{get_event_blocking, KeyCode};
-        let mut buf: [u8; 256] = [0;256];
+        let mut buf: [u8; 256] = [0; 256];
         let mut len = 0usize;
         let mut cursor = 0usize;
         let mut hist_idx: Option<isize> = None;
@@ -371,96 +493,137 @@ impl Line {
             let ev = get_event_blocking();
             if let Some(keycode) = ev {
                 match keycode {
-                KeyCode::Enter => {
-                    BACKEND.write_str("\n");
-                    // commit
-                    let n = core::cmp::min(len, out.len());
-                    out[..n].copy_from_slice(&buf[..n]);
-                    self.remember(&buf[..len]);
-                    return n;
-                }
-                KeyCode::Backspace => {
-                    if cursor > 0 {
-                        // remove char before cursor
-                        for i in (cursor-1)..(len-1) { buf[i] = buf[i+1]; }
-                        cursor -= 1; len -= 1;
-                        self.redraw(&buf[..len], cursor);
+                    KeyCode::Enter => {
+                        BACKEND.write_str("\n");
+                        // commit
+                        let n = core::cmp::min(len, out.len());
+                        out[..n].copy_from_slice(&buf[..n]);
+                        self.remember(&buf[..len]);
+                        return n;
                     }
-                }
-                KeyCode::Delete => {
-                    if cursor < len {
-                        for i in cursor..(len-1) { buf[i] = buf[i+1]; }
-                        len -= 1;
-                        self.redraw(&buf[..len], cursor);
+                    KeyCode::Backspace => {
+                        if cursor > 0 {
+                            // remove char before cursor
+                            for i in (cursor - 1)..(len - 1) {
+                                buf[i] = buf[i + 1];
+                            }
+                            cursor -= 1;
+                            len -= 1;
+                            self.redraw(&buf[..len], cursor);
+                        }
                     }
-                }
-                KeyCode::Left => { if cursor>0 { cursor-=1; self.move_cursor_left(1); } }
-                KeyCode::Right => { if cursor<len { cursor+=1; self.move_cursor_right(1); } }
-                KeyCode::Home => { self.move_cursor_left(cursor); cursor=0; }
-                KeyCode::End  => { self.move_cursor_right(len-cursor); cursor=len; }
-
-                KeyCode::Tab => {
-                    // ask CLI for suggestion
-                    if let Some(sugg) = unsafe { cli_suggest_for_tab(core::str::from_utf8(&buf[..len]).unwrap_or("")) } {
-                        let bytes = sugg.as_bytes();
-                        let k = core::cmp::min(bytes.len(), buf.len());
-                        buf[..k].copy_from_slice(&bytes[..k]);
-                        len = k; cursor = len;
-                        self.redraw(&buf[..len], cursor);
+                    KeyCode::Delete => {
+                        if cursor < len {
+                            for i in cursor..(len - 1) {
+                                buf[i] = buf[i + 1];
+                            }
+                            len -= 1;
+                            self.redraw(&buf[..len], cursor);
+                        }
                     }
-                }
-
-                KeyCode::Char(b) => {
-                    let b = b as u8;
-                    if len < buf.len() {
-                        for i in (cursor..len).rev() { buf[i+1] = buf[i]; }
-                        buf[cursor] = b; len+=1; cursor+=1;
-                        self.redraw(&buf[..len], cursor);
+                    KeyCode::Left => {
+                        if cursor > 0 {
+                            cursor -= 1;
+                            self.move_cursor_left(1);
+                        }
                     }
-                }
-
-                KeyCode::Up => {
-                    if let Some(s) = self.hist_nav(-1, &mut hist_idx) {
-                        len = core::cmp::min(s.len(), buf.len());
-                        buf[..len].copy_from_slice(&s.as_bytes()[..len]);
+                    KeyCode::Right => {
+                        if cursor < len {
+                            cursor += 1;
+                            self.move_cursor_right(1);
+                        }
+                    }
+                    KeyCode::Home => {
+                        self.move_cursor_left(cursor);
+                        cursor = 0;
+                    }
+                    KeyCode::End => {
+                        self.move_cursor_right(len - cursor);
                         cursor = len;
-                        self.redraw(&buf[..len], cursor);
                     }
-                }
-                KeyCode::Down => {
-                    if let Some(s) = self.hist_nav(1, &mut hist_idx) {
-                        len = core::cmp::min(s.len(), buf.len());
-                        buf[..len].copy_from_slice(&s.as_bytes()[..len]);
-                        cursor = len;
-                        self.redraw(&buf[..len], cursor);
-                    } else {
-                        len = 0; cursor = 0;
-                        self.redraw(&buf[..len], cursor);
+
+                    KeyCode::Tab => {
+                        // ask CLI for suggestion
+                        if let Some(sugg) = unsafe {
+                            cli_suggest_for_tab(core::str::from_utf8(&buf[..len]).unwrap_or(""))
+                        } {
+                            let bytes = sugg.as_bytes();
+                            let k = core::cmp::min(bytes.len(), buf.len());
+                            buf[..k].copy_from_slice(&bytes[..k]);
+                            len = k;
+                            cursor = len;
+                            self.redraw(&buf[..len], cursor);
+                        }
                     }
-                }
 
-                // word movements with Ctrl+Arrow (if driver maps them), or M-b/M-f (Alt+b/f)
-                KeyCode::WordLeft => {
-                    let mut i = cursor;
-                    while i>0 && buf[i-1]==b' ' { i-=1; }
-                    while i>0 && buf[i-1]!=b' ' { i-=1; }
-                    self.move_cursor_left(cursor-i); cursor=i;
-                }
-                KeyCode::WordRight => {
-                    let mut i = cursor;
-                    while i<len && buf[i]!=b' ' { i+=1; }
-                    while i<len && buf[i]==b' ' { i+=1; }
-                    self.move_cursor_right(i-cursor); cursor=i;
-                }
+                    KeyCode::Char(b) => {
+                        let b = b as u8;
+                        if len < buf.len() {
+                            for i in (cursor..len).rev() {
+                                buf[i + 1] = buf[i];
+                            }
+                            buf[cursor] = b;
+                            len += 1;
+                            cursor += 1;
+                            self.redraw(&buf[..len], cursor);
+                        }
+                    }
 
-                _ => {}
-            }
+                    KeyCode::Up => {
+                        if let Some(s) = self.hist_nav(-1, &mut hist_idx) {
+                            len = core::cmp::min(s.len(), buf.len());
+                            buf[..len].copy_from_slice(&s.as_bytes()[..len]);
+                            cursor = len;
+                            self.redraw(&buf[..len], cursor);
+                        }
+                    }
+                    KeyCode::Down => {
+                        if let Some(s) = self.hist_nav(1, &mut hist_idx) {
+                            len = core::cmp::min(s.len(), buf.len());
+                            buf[..len].copy_from_slice(&s.as_bytes()[..len]);
+                            cursor = len;
+                            self.redraw(&buf[..len], cursor);
+                        } else {
+                            len = 0;
+                            cursor = 0;
+                            self.redraw(&buf[..len], cursor);
+                        }
+                    }
+
+                    // word movements with Ctrl+Arrow (if driver maps them), or M-b/M-f (Alt+b/f)
+                    KeyCode::WordLeft => {
+                        let mut i = cursor;
+                        while i > 0 && buf[i - 1] == b' ' {
+                            i -= 1;
+                        }
+                        while i > 0 && buf[i - 1] != b' ' {
+                            i -= 1;
+                        }
+                        self.move_cursor_left(cursor - i);
+                        cursor = i;
+                    }
+                    KeyCode::WordRight => {
+                        let mut i = cursor;
+                        while i < len && buf[i] != b' ' {
+                            i += 1;
+                        }
+                        while i < len && buf[i] == b' ' {
+                            i += 1;
+                        }
+                        self.move_cursor_right(i - cursor);
+                        cursor = i;
+                    }
+
+                    _ => {}
+                }
             } // closing if let Some(keycode) = ev
         }
     }
 
     fn remember(&self, line: &[u8]) {
-        if line.is_empty() { return; }
+        if line.is_empty() {
+            return;
+        }
         let s = core::str::from_utf8(line).unwrap_or("");
         let mut h = self.hist.lock();
         let mut head = self.head.lock();
@@ -472,17 +635,26 @@ impl Line {
     fn hist_nav(&self, dir: isize, idx: &mut Option<isize>) -> Option<heapless::String<256>> {
         let h = self.hist.lock();
         let head = *self.head.lock() as isize;
-        if h.iter().all(|s| s.is_empty()) { return None; }
+        if h.iter().all(|s| s.is_empty()) {
+            return None;
+        }
         let len = h.len() as isize;
         let cur = match idx {
             None => head - 1,
             Some(v) => *v + dir,
         };
-        if cur < head - len || cur >= head { *idx = None; return None; }
+        if cur < head - len || cur >= head {
+            *idx = None;
+            return None;
+        }
         *idx = Some(cur);
         let pos = ((cur % len) + len) % len;
         let s = &h[pos as usize];
-        if s.is_empty() { None } else { Some(s.clone()) }
+        if s.is_empty() {
+            None
+        } else {
+            Some(s.clone())
+        }
     }
 
     // redraw current line from buffer and re-position cursor
@@ -492,28 +664,45 @@ impl Line {
         BACKEND.write_str(core::str::from_utf8(data).unwrap_or(""));
         BACKEND.write_str("\x1b[K"); // clear to EOL (treat as no-op in our ANSI-lite)
         BACKEND.write_str("\r");
-        for _ in 0..cursor { BACKEND.write_str("\x1b[C"); /* right */ }
+        for _ in 0..cursor {
+            BACKEND.write_str("\x1b[C"); /* right */
+        }
     }
 
     fn move_cursor_left(&self, n: usize) {
-        for _ in 0..n { BACKEND.write_str("\x1b[D"); }
+        for _ in 0..n {
+            BACKEND.write_str("\x1b[D");
+        }
     }
     fn move_cursor_right(&self, n: usize) {
-        for _ in 0..n { BACKEND.write_str("\x1b[C"); }
+        for _ in 0..n {
+            BACKEND.write_str("\x1b[C");
+        }
     }
 }
 
 // —————————————————— tiny print trait for backends ——————————————————
 
-trait TtyWrite { fn write_str(&mut self, s: &str); fn clear(&mut self); }
+trait TtyWrite {
+    fn write_str(&mut self, s: &str);
+    fn clear(&mut self);
+}
 
 impl TtyWrite for Vga {
-    fn write_str(&mut self, s: &str) { self.write(s); }
-    fn clear(&mut self) { self.clear(); }
+    fn write_str(&mut self, s: &str) {
+        self.write(s);
+    }
+    fn clear(&mut self) {
+        self.clear();
+    }
 }
 impl TtyWrite for Fb {
-    fn write_str(&mut self, s: &str) { self.write(s); }
-    fn clear(&mut self) { self.clear(); }
+    fn write_str(&mut self, s: &str) {
+        self.write(s);
+    }
+    fn clear(&mut self) {
+        self.clear();
+    }
 }
 
 impl Tty {
@@ -521,7 +710,10 @@ impl Tty {
         use core::fmt::Write;
         struct W;
         impl core::fmt::Write for W {
-            fn write_str(&mut self, s: &str) -> core::fmt::Result { write(s); Ok(()) }
+            fn write_str(&mut self, s: &str) -> core::fmt::Result {
+                write(s);
+                Ok(())
+            }
         }
         let _ = W.write_fmt(args);
     }

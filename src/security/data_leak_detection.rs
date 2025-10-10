@@ -1,6 +1,6 @@
-use alloc::{vec, vec::Vec, string::String, collections::BTreeMap, format};
-use core::{mem, ptr, slice};
 use crate::ui::SecurityLevel;
+use alloc::{collections::BTreeMap, format, string::String, vec, vec::Vec};
+use core::{mem, ptr, slice};
 
 pub struct ThreatAssessment {
     pub threat_level: u8,
@@ -116,7 +116,7 @@ impl DataLeakDetector {
             monitoring_enabled: true,
             violation_count: 0,
         };
-        
+
         detector.initialize_default_patterns();
         detector
     }
@@ -131,7 +131,8 @@ impl DataLeakDetector {
 
         self.patterns.push(DataPattern {
             pattern_type: PatternType::SocialSecurity,
-            pattern_data: b"\\b(?!000|666|9\\d{2})\\d{3}[-\\s]?(?!00)\\d{2}[-\\s]?(?!0000)\\d{4}\\b".to_vec(),
+            pattern_data:
+                b"\\b(?!000|666|9\\d{2})\\d{3}[-\\s]?(?!00)\\d{2}[-\\s]?(?!0000)\\d{4}\\b".to_vec(),
             sensitivity_level: SensitivityLevel::Restricted,
             description: "Social Security Number Pattern".into(),
         });
@@ -160,7 +161,7 @@ impl DataLeakDetector {
 
     pub fn scan_memory_region(&mut self, memory: &[u8], process_id: u32) -> Vec<DataLeakEvent> {
         let mut events = Vec::new();
-        
+
         if !self.monitoring_enabled {
             return events;
         }
@@ -187,7 +188,7 @@ impl DataLeakDetector {
 
     fn find_pattern_matches(&self, data: &[u8], pattern: &[u8]) -> Option<Vec<usize>> {
         let mut matches = Vec::new();
-        
+
         if pattern.is_empty() || data.len() < pattern.len() {
             return None;
         }
@@ -209,7 +210,7 @@ impl DataLeakDetector {
         if pattern.is_empty() {
             return true;
         }
-        
+
         if text.len() < pattern.len() {
             return false;
         }
@@ -232,11 +233,8 @@ impl DataLeakDetector {
                 return true;
             }
 
-            let bad_char_skip = if i + j < text.len() {
-                bad_char_table[text[i + j] as usize]
-            } else {
-                1
-            };
+            let bad_char_skip =
+                if i + j < text.len() { bad_char_table[text[i + j] as usize] } else { 1 };
 
             i += bad_char_skip.max(1);
         }
@@ -244,13 +242,18 @@ impl DataLeakDetector {
         false
     }
 
-    pub fn monitor_network_traffic(&mut self, data: &[u8], destination_ip: [u8; 4], destination_port: u16) -> Option<DataLeakEvent> {
+    pub fn monitor_network_traffic(
+        &mut self,
+        data: &[u8],
+        destination_ip: [u8; 4],
+        destination_port: u16,
+    ) -> Option<DataLeakEvent> {
         if !self.monitoring_enabled {
             return None;
         }
 
         let contains_sensitive = self.scan_for_sensitive_data(data);
-        
+
         if contains_sensitive {
             self.violation_count += 1;
             Some(DataLeakEvent {
@@ -259,10 +262,14 @@ impl DataLeakDetector {
                 data_size: data.len(),
                 timestamp: crate::time::get_timestamp(),
                 process_id: 0,
-                destination: format!("{}.{}.{}.{}:{}", 
-                    destination_ip[0], destination_ip[1], 
-                    destination_ip[2], destination_ip[3], 
-                    destination_port),
+                destination: format!(
+                    "{}.{}.{}.{}:{}",
+                    destination_ip[0],
+                    destination_ip[1],
+                    destination_ip[2],
+                    destination_ip[3],
+                    destination_port
+                ),
             })
         } else {
             None
@@ -280,13 +287,18 @@ impl DataLeakDetector {
         false
     }
 
-    pub fn monitor_file_operations(&mut self, file_path: &str, data: &[u8], operation: FileOperation) -> Option<DataLeakEvent> {
+    pub fn monitor_file_operations(
+        &mut self,
+        file_path: &str,
+        data: &[u8],
+        operation: FileOperation,
+    ) -> Option<DataLeakEvent> {
         if !self.monitoring_enabled {
             return None;
         }
 
         let contains_sensitive = self.scan_for_sensitive_data(data);
-        
+
         if contains_sensitive && matches!(operation, FileOperation::Write | FileOperation::Create) {
             self.violation_count += 1;
             Some(DataLeakEvent {
@@ -302,14 +314,18 @@ impl DataLeakDetector {
         }
     }
 
-    pub fn encrypt_sensitive_data(&mut self, data: &[u8], key: &[u8; 32]) -> Result<usize, &'static str> {
+    pub fn encrypt_sensitive_data(
+        &mut self,
+        data: &[u8],
+        key: &[u8; 32],
+    ) -> Result<usize, &'static str> {
         if data.is_empty() {
             return Err("Empty data cannot be encrypted");
         }
 
         let encrypted = self.simple_xor_encrypt(data, key);
         let key_hash = self.hash_key(key);
-        
+
         let encrypted_data = EncryptedData {
             encrypted_content: encrypted,
             key_hash,
@@ -337,7 +353,11 @@ impl DataLeakDetector {
         hash
     }
 
-    pub fn decrypt_sensitive_data(&mut self, index: usize, key: &[u8; 32]) -> Result<Vec<u8>, &'static str> {
+    pub fn decrypt_sensitive_data(
+        &mut self,
+        index: usize,
+        key: &[u8; 32],
+    ) -> Result<Vec<u8>, &'static str> {
         if index >= self.encrypted_storage.len() {
             return Err("Invalid encrypted data index");
         }
@@ -347,9 +367,10 @@ impl DataLeakDetector {
             return Err("Invalid decryption key");
         }
 
-        let decrypted = self.simple_xor_encrypt(&self.encrypted_storage[index].encrypted_content, key);
+        let decrypted =
+            self.simple_xor_encrypt(&self.encrypted_storage[index].encrypted_content, key);
         self.encrypted_storage[index].access_count += 1;
-        
+
         Ok(decrypted)
     }
 
@@ -362,13 +383,15 @@ impl DataLeakDetector {
         }
     }
 
-    pub fn add_custom_pattern(&mut self, pattern_type: PatternType, pattern_data: Vec<u8>, sensitivity: SensitivityLevel, description: String) {
-        let pattern = DataPattern {
-            pattern_type,
-            pattern_data,
-            sensitivity_level: sensitivity,
-            description,
-        };
+    pub fn add_custom_pattern(
+        &mut self,
+        pattern_type: PatternType,
+        pattern_data: Vec<u8>,
+        sensitivity: SensitivityLevel,
+        description: String,
+    ) {
+        let pattern =
+            DataPattern { pattern_type, pattern_data, sensitivity_level: sensitivity, description };
         self.patterns.push(pattern);
     }
 
@@ -392,7 +415,10 @@ impl DataLeakDetector {
         // Check against known patterns
         for pattern in &self.patterns {
             // Simple byte pattern matching (could be enhanced with regex)
-            if data.windows(pattern.pattern_data.len()).any(|window| window == &pattern.pattern_data[..]) {
+            if data
+                .windows(pattern.pattern_data.len())
+                .any(|window| window == &pattern.pattern_data[..])
+            {
                 crate::log_warn!("Data leak detected: {} to {}", pattern.description, destination);
                 return true;
             }
@@ -428,7 +454,13 @@ impl NetworkMonitor {
         }
     }
 
-    pub fn log_data_transfer(&mut self, direction: TransferDirection, size: usize, contains_sensitive: bool, destination: String) {
+    pub fn log_data_transfer(
+        &mut self,
+        direction: TransferDirection,
+        size: usize,
+        contains_sensitive: bool,
+        destination: String,
+    ) {
         let transfer = DataTransfer {
             direction,
             size,
@@ -439,7 +471,13 @@ impl NetworkMonitor {
         self.data_transfer_log.push(transfer);
     }
 
-    pub fn add_suspicious_connection(&mut self, ip: [u8; 4], port: u16, data_size: usize, threat_score: u8) {
+    pub fn add_suspicious_connection(
+        &mut self,
+        ip: [u8; 4],
+        port: u16,
+        data_size: usize,
+        threat_score: u8,
+    ) {
         let connection = SuspiciousConnection {
             remote_ip: ip,
             remote_port: port,
@@ -503,7 +541,11 @@ pub fn init_data_leak_detection() {
     }
 }
 
-pub fn scan_process_memory(process_id: u32, memory_base: *const u8, size: usize) -> Vec<DataLeakEvent> {
+pub fn scan_process_memory(
+    process_id: u32,
+    memory_base: *const u8,
+    size: usize,
+) -> Vec<DataLeakEvent> {
     unsafe {
         if let Some(ref mut detector) = DATA_LEAK_DETECTOR {
             let memory_slice = slice::from_raw_parts(memory_base, size);
@@ -514,7 +556,11 @@ pub fn scan_process_memory(process_id: u32, memory_base: *const u8, size: usize)
     }
 }
 
-pub fn monitor_network_data(data: &[u8], dest_ip: [u8; 4], dest_port: u16) -> Option<DataLeakEvent> {
+pub fn monitor_network_data(
+    data: &[u8],
+    dest_ip: [u8; 4],
+    dest_port: u16,
+) -> Option<DataLeakEvent> {
     unsafe {
         if let Some(ref mut detector) = DATA_LEAK_DETECTOR {
             detector.monitor_network_traffic(data, dest_ip, dest_port)
@@ -524,7 +570,11 @@ pub fn monitor_network_data(data: &[u8], dest_ip: [u8; 4], dest_port: u16) -> Op
     }
 }
 
-pub fn monitor_file_access(file_path: &str, data: &[u8], operation: FileOperation) -> Option<DataLeakEvent> {
+pub fn monitor_file_access(
+    file_path: &str,
+    data: &[u8],
+    operation: FileOperation,
+) -> Option<DataLeakEvent> {
     unsafe {
         if let Some(ref mut detector) = DATA_LEAK_DETECTOR {
             detector.monitor_file_operations(file_path, data, operation)
@@ -535,15 +585,11 @@ pub fn monitor_file_access(file_path: &str, data: &[u8], operation: FileOperatio
 }
 
 pub fn get_leak_statistics() -> Option<DataLeakStatistics> {
-    unsafe {
-        DATA_LEAK_DETECTOR.as_ref().map(|d| d.get_violation_statistics())
-    }
+    unsafe { DATA_LEAK_DETECTOR.as_ref().map(|d| d.get_violation_statistics()) }
 }
 
 pub fn get_network_statistics() -> Option<NetworkStatistics> {
-    unsafe {
-        NETWORK_MONITOR.as_ref().map(|n| n.get_transfer_statistics())
-    }
+    unsafe { NETWORK_MONITOR.as_ref().map(|n| n.get_transfer_statistics()) }
 }
 
 pub fn encrypt_sensitive_memory(data: &[u8], key: &[u8; 32]) -> Result<usize, &'static str> {
@@ -591,98 +637,108 @@ pub fn contains_sensitive_patterns(data: &[u8]) -> bool {
 /// Real memory scanner - scans actual physical and virtual memory
 pub fn scan_memory() {
     crate::log::logger::log_info!("Starting real memory scan for data leaks");
-    
+
     unsafe {
         if let Some(ref mut detector) = DATA_LEAK_DETECTOR {
             let mut total_scanned = 0usize;
             let mut violations = 0usize;
-            
+
             // Get physical memory map from bootloader
             if let Some(memory_map) = crate::memory::get_memory_map() {
-                for region in memory_map.iter().filter(|r| matches!(r.memory_type, crate::memory::MemoryType::Usable)) {
+                for region in memory_map
+                    .iter()
+                    .filter(|r| matches!(r.memory_type, crate::memory::MemoryType::Usable))
+                {
                     let phys_start = region.base_address;
                     let size = region.size;
-                    
+
                     // Map physical memory to virtual addresses for scanning
                     if let Ok(virt_addr) = crate::memory::map_physical_memory(phys_start, size) {
-                        let memory_slice = core::slice::from_raw_parts(
-                            virt_addr.as_ptr::<u8>(), 
-                            size as usize
-                        );
-                        
+                        let memory_slice =
+                            core::slice::from_raw_parts(virt_addr.as_ptr::<u8>(), size as usize);
+
                         // Scan this memory region
                         let events = detector.scan_memory_region(memory_slice, 0);
                         violations += events.len();
                         total_scanned += size as usize;
-                        
+
                         for event in events {
-                            crate::log::logger::log_warn!("Memory leak at 0x{:x}: sensitive pattern detected", 
-                                phys_start);
+                            crate::log::logger::log_warn!(
+                                "Memory leak at 0x{:x}: sensitive pattern detected",
+                                phys_start
+                            );
                         }
-                        
+
                         // Unmap after scanning
                         crate::memory::unmap_physical_memory(virt_addr, size);
                     }
                 }
             }
-            
+
             // Scan kernel heap allocations
             let heap_allocations = crate::memory::heap::get_all_allocations();
             for allocation in heap_allocations {
-                let alloc_slice = core::slice::from_raw_parts(
-                    allocation.ptr as *const u8,
-                    allocation.size
-                );
-                
+                let alloc_slice =
+                    core::slice::from_raw_parts(allocation.ptr as *const u8, allocation.size);
+
                 let events = detector.scan_memory_region(alloc_slice, 0);
                 violations += events.len();
                 total_scanned += allocation.size;
-                
+
                 for event in events {
-                    crate::log::logger::log_warn!("Heap leak at 0x{:x}: {} bytes", 
-                        allocation.ptr as usize, event.data_size);
+                    crate::log::logger::log_warn!(
+                        "Heap leak at 0x{:x}: {} bytes",
+                        allocation.ptr as usize,
+                        event.data_size
+                    );
                 }
             }
-            
+
             // Scan process memory via process memory regions
             for process in crate::process::get_all_processes() {
                 // Process memory scanning would require page table access
                 // Skip process memory scanning for now
-                crate::log::logger::log_debug!("Process memory scan skipped for process {}", process.pid);
+                crate::log::logger::log_debug!(
+                    "Process memory scan skipped for process {}",
+                    process.pid
+                );
             }
-            
+
             // Scan DMA buffers from device drivers (placeholder - no DMA buffer API)
             for device in crate::drivers::get_all_devices() {
                 // Skip DMA scanning - would need device-specific buffer access
                 crate::log::logger::log_debug!("DMA scan skipped for device {}", device.name);
             }
-            
+
             // Scan network packet buffers
             if let Some(net_manager) = crate::network::get_network_stack() {
                 // Network buffer scanning would need interface-specific access
                 crate::log::logger::log_debug!("Network buffer scan attempted - skipped");
             }
-            
+
             // Scan file system cache
             let fs_cache = crate::filesystem::get_cache_manager();
             for cache_entry in fs_cache.all_entries() {
-                let cache_slice = core::slice::from_raw_parts(
-                    cache_entry.data_ptr(),
-                    cache_entry.size()
-                );
-                
+                let cache_slice =
+                    core::slice::from_raw_parts(cache_entry.data_ptr(), cache_entry.size());
+
                 let events = detector.scan_memory_region(cache_slice, 0xAAAA);
                 violations += events.len();
                 total_scanned += cache_entry.size();
-                
+
                 for event in events {
-                    crate::log::logger::log_warn!("FS cache leak in {}: sensitive data", 
-                        cache_entry.path());
+                    crate::log::logger::log_warn!(
+                        "FS cache leak in {}: sensitive data",
+                        cache_entry.path()
+                    );
                 }
             }
-            
-            crate::log::logger::log_info!("Memory scan complete: {} violations in {} bytes scanned", 
-                violations, total_scanned);
+
+            crate::log::logger::log_info!(
+                "Memory scan complete: {} violations in {} bytes scanned",
+                violations,
+                total_scanned
+            );
         }
     }
 }

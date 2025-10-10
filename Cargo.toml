@@ -38,7 +38,8 @@ default = [
   "nonos-consttime",
   "nonos-cet",
 ]
-
+host-gfx = ["tiny-skia"]
+mock-proof = []
 # syscall gateways (choose one)
 nonos-syscall-int80 = []          # INT 0x80 dispatcher
 nonos-syscall-msr   = []          # SYSCALL/SYSRET via MSRs (enable once wired)
@@ -97,6 +98,15 @@ subtle         = { version = "2.5",  default-features = false, optional = true }
 
 # ELF capsule loader (gated)
 xmas-elf = { version = "0.9", default-features = false, optional = true }
+
+# TrueType rasterizer; works in no_std with alloc
+# fontdue = { version = "0.9", default-features = false }  # Temporarily disabled - not actually no_std compatible
+
+
+
+# Optional: only for host-side tools or offline rasterization (NOT used in kernel)
+tiny-skia = { version = "0.11", optional = true }
+
 
 # misc utils
 bitflags = { version = "2.4", default-features = false }

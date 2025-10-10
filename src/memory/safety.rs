@@ -1,12 +1,12 @@
 //! Memory Safety Validation Module
-//! 
+//!
 //! Provides production-ready memory safety checks and validation functions
 //! to prevent memory corruption and improve system stability.
 
-use core::ptr;
-use alloc::format;
-use crate::memory::layout::{KERNEL_BASE, PAGE_SIZE};
 use crate::log::logger::log_critical;
+use crate::memory::layout::{KERNEL_BASE, PAGE_SIZE};
+use alloc::format;
+use core::ptr;
 
 /// Memory region bounds
 pub struct MemoryBounds {
@@ -28,16 +28,13 @@ pub const KERNEL_HEAP: MemoryBounds = MemoryBounds {
     name: "Kernel Heap",
 };
 
-pub const VGA_BUFFER: MemoryBounds = MemoryBounds {
-    start: 0xb8000,
-    end: 0xb8fa0,
-    name: "VGA Buffer",
-};
+pub const VGA_BUFFER: MemoryBounds =
+    MemoryBounds { start: 0xB8000, end: 0xB8FA0, name: "VGA Buffer" };
 
 /// Validate that a memory address is within expected bounds
 pub fn validate_address_bounds(addr: u64, size: usize, bounds: &MemoryBounds) -> bool {
     let end_addr = addr.saturating_add(size as u64);
-    
+
     if addr < bounds.start || end_addr > bounds.end {
         log_critical(&format!(
             "Memory bounds violation: addr=0x{:x}, size=0x{:x}, region={} [0x{:x}-0x{:x}]",
@@ -45,7 +42,7 @@ pub fn validate_address_bounds(addr: u64, size: usize, bounds: &MemoryBounds) ->
         ));
         return false;
     }
-    
+
     true
 }
 
@@ -55,11 +52,11 @@ pub fn validate_pointer_safety<T>(ptr: *const T, bounds: &MemoryBounds) -> bool 
         log_critical("Null pointer validation failed");
         return false;
     }
-    
+
     let addr = ptr as u64;
     let size = core::mem::size_of::<T>();
     let alignment = core::mem::align_of::<T>();
-    
+
     // Check alignment
     if addr % (alignment as u64) != 0 {
         log_critical(&format!(
@@ -68,12 +65,12 @@ pub fn validate_pointer_safety<T>(ptr: *const T, bounds: &MemoryBounds) -> bool 
         ));
         return false;
     }
-    
+
     // Check bounds
     if !validate_address_bounds(addr, size, bounds) {
         return false;
     }
-    
+
     true
 }
 
@@ -89,22 +86,22 @@ pub unsafe fn safe_copy_memory(
     if !validate_address_bounds(src as u64, count, src_bounds) {
         return Err("Source bounds violation");
     }
-    
+
     // Validate destination
     if !validate_address_bounds(dest as u64, count, dest_bounds) {
         return Err("Destination bounds violation");
     }
-    
+
     // Check for overlap
     let src_start = src as usize;
     let src_end = src_start + count;
     let dest_start = dest as usize;
     let dest_end = dest_start + count;
-    
+
     if src_start < dest_end && dest_start < src_end {
         return Err("Memory regions overlap");
     }
-    
+
     // Perform the copy
     ptr::copy_nonoverlapping(src, dest, count);
     Ok(())
@@ -119,7 +116,7 @@ pub fn validate_page_alignment(addr: u64, size: usize) -> bool {
         ));
         return false;
     }
-    
+
     if size % PAGE_SIZE != 0 {
         log_critical(&format!(
             "Page size violation: size=0x{:x} not multiple of page size {}",
@@ -127,7 +124,7 @@ pub fn validate_page_alignment(addr: u64, size: usize) -> bool {
         ));
         return false;
     }
-    
+
     true
 }
 
@@ -155,20 +152,20 @@ pub fn validate_virtual_address(addr: u64, size: usize, kernel_only: bool) -> bo
         log_critical(&format!("Non-canonical address: 0x{:x}", addr));
         return false;
     }
-    
+
     // Check end address is also canonical
     let end_addr = addr.saturating_add(size as u64);
     if !is_canonical_address(end_addr) {
         log_critical(&format!("Non-canonical end address: 0x{:x}", end_addr));
         return false;
     }
-    
+
     // Check privilege level if required
     if kernel_only && !is_kernel_address(addr) {
         log_critical(&format!("User address in kernel-only context: 0x{:x}", addr));
         return false;
     }
-    
+
     true
 }
 
@@ -187,7 +184,7 @@ pub unsafe fn check_guard_pattern(ptr: *const u64) -> bool {
     if ptr.is_null() {
         return false;
     }
-    
+
     let value = ptr.read_volatile();
     if value != GUARD_PATTERN {
         log_critical(&format!(
@@ -196,6 +193,6 @@ pub unsafe fn check_guard_pattern(ptr: *const u64) -> bool {
         ));
         return false;
     }
-    
+
     true
 }

@@ -1,15 +1,16 @@
 //! NØNOS Block Device Layer
 //!
-//! High-performance block device abstraction with caching, encryption, and compression
+//! High-performance block device abstraction with caching, encryption, and
+//! compression
 
 #![allow(dead_code)]
 
-use alloc::{vec::Vec, sync::Arc, collections::BTreeMap, vec};
-use core::sync::atomic::{AtomicU64, AtomicU32, Ordering};
+use alloc::{collections::BTreeMap, sync::Arc, vec, vec::Vec};
+use core::sync::atomic::{AtomicU32, AtomicU64, Ordering};
 use spin::{Mutex, RwLock};
 use x86_64::VirtAddr;
 
-use super::{StorageDevice, IoRequest, IoStatus, IoOperation, IoFlags};
+use super::{IoFlags, IoOperation, IoRequest, IoStatus, StorageDevice};
 
 /// Block cache entry
 #[derive(Clone)]
@@ -38,32 +39,32 @@ pub struct CacheStats {
 pub struct BlockDevice {
     /// Underlying storage device
     storage_device: Arc<dyn StorageDevice>,
-    
+
     /// Block cache (LRU with write-back)
     cache: RwLock<BTreeMap<u64, CacheEntry>>,
-    
+
     /// Cache configuration
     max_cache_entries: usize,
     block_size: u32,
-    
+
     /// Cache statistics
     cache_stats: CacheStats,
-    
+
     /// Write-back queue for dirty blocks
     write_back_queue: Mutex<Vec<u64>>,
-    
+
     /// Compression enabled
     compression_enabled: AtomicU32,
-    
+
     /// Encryption enabled
     encryption_enabled: AtomicU32,
-    
+
     /// Encryption key
     encryption_key: Mutex<[u8; 32]>,
-    
+
     /// Device ID for tracking
     device_id: u32,
-    
+
     /// Performance counters
     read_ops: AtomicU64,
     write_ops: AtomicU64,
@@ -80,7 +81,7 @@ impl BlockDevice {
     ) -> Self {
         let device_info = storage_device.device_info();
         let max_cache_entries = (max_cache_mb * 1024 * 1024) / device_info.block_size as usize;
-        
+
         BlockDevice {
             storage_device,
             cache: RwLock::new(BTreeMap::new()),
@@ -98,11 +99,11 @@ impl BlockDevice {
             total_bytes_written: AtomicU64::new(0),
         }
     }
-    
+
     /// Read block with caching
     pub fn read_block(&self, block_num: u64, buffer: &mut [u8]) -> Result<(), IoStatus> {
         self.read_ops.fetch_add(1, Ordering::Relaxed);
-        
+
         // Check cache first
         {
             let mut cache = self.cache.write();
@@ -110,21 +111,21 @@ impl BlockDevice {
                 // Cache hit
                 entry.access_count += 1;
                 entry.last_access = crate::time::current_ticks();
-                
+
                 buffer.copy_from_slice(&entry.data);
                 self.cache_stats.hits.fetch_add(1, Ordering::Relaxed);
                 self.total_bytes_read.fetch_add(buffer.len() as u64, Ordering::Relaxed);
-                
+
                 return Ok(());
             }
         }
-        
+
         // Cache miss - read from storage
         self.cache_stats.misses.fetch_add(1, Ordering::Relaxed);
-        
+
         let lba = block_num;
         let block_count = (buffer.len() as u32 + self.block_size - 1) / self.block_size;
-        
+
         let request = IoRequest {
             operation: IoOperation::Read,
             lba,
@@ -137,29 +138,29 @@ impl BlockDevice {
             request_id: self.generate_request_id(),
             timestamp: crate::time::current_ticks(),
         };
-        
+
         self.storage_device.submit_request(request)?;
-        
+
         // Add to cache if enabled
         if self.max_cache_entries > 0 {
             self.add_to_cache(block_num, buffer.to_vec(), false);
         }
-        
+
         self.total_bytes_read.fetch_add(buffer.len() as u64, Ordering::Relaxed);
         Ok(())
     }
-    
+
     /// Write block with caching
     pub fn write_block(&self, block_num: u64, data: &[u8]) -> Result<(), IoStatus> {
         self.write_ops.fetch_add(1, Ordering::Relaxed);
-        
+
         let write_through = true; // For now, always write through
-        
+
         if write_through {
             // Write-through: write to storage immediately
             let lba = block_num;
             let block_count = (data.len() as u32 + self.block_size - 1) / self.block_size;
-            
+
             let request = IoRequest {
                 operation: IoOperation::Write,
                 lba,
@@ -172,44 +173,44 @@ impl BlockDevice {
                 request_id: self.generate_request_id(),
                 timestamp: crate::time::current_ticks(),
             };
-            
+
             self.storage_device.submit_request(request)?;
         }
-        
+
         // Update cache
         self.add_to_cache(block_num, data.to_vec(), !write_through);
-        
+
         self.total_bytes_written.fetch_add(data.len() as u64, Ordering::Relaxed);
         Ok(())
     }
-    
+
     /// Add entry to cache with LRU eviction
     fn add_to_cache(&self, block_num: u64, data: Vec<u8>, dirty: bool) {
         let mut cache = self.cache.write();
-        
+
         // Check if cache is full
         while cache.len() >= self.max_cache_entries {
             self.evict_lru_entry(&mut cache);
         }
-        
+
         let current_time = crate::time::current_ticks();
         let encrypted = self.encryption_enabled.load(Ordering::Relaxed) != 0;
         let compressed = self.compression_enabled.load(Ordering::Relaxed) != 0;
-        
+
         let mut final_data = data;
-        
+
         // Apply compression if enabled
         if compressed {
             final_data = self.compress_data(&final_data);
             self.cache_stats.compression_saves.fetch_add(1, Ordering::Relaxed);
         }
-        
+
         // Apply encryption if enabled
         if encrypted {
             final_data = self.encrypt_data(&final_data);
             self.cache_stats.encryption_ops.fetch_add(1, Ordering::Relaxed);
         }
-        
+
         let entry = CacheEntry {
             block_num,
             data: final_data,
@@ -219,27 +220,27 @@ impl BlockDevice {
             encrypted,
             compressed,
         };
-        
+
         cache.insert(block_num, entry);
-        
+
         if dirty {
             let mut queue = self.write_back_queue.lock();
             queue.push(block_num);
         }
     }
-    
+
     /// Evict least recently used entry
     fn evict_lru_entry(&self, cache: &mut BTreeMap<u64, CacheEntry>) {
         let mut lru_block = None;
         let mut lru_time = u64::MAX;
-        
+
         for (block_num, entry) in cache.iter() {
             if entry.last_access < lru_time {
                 lru_time = entry.last_access;
                 lru_block = Some(*block_num);
             }
         }
-        
+
         if let Some(block_num) = lru_block {
             if let Some(entry) = cache.remove(&block_num) {
                 if entry.dirty {
@@ -250,21 +251,21 @@ impl BlockDevice {
             }
         }
     }
-    
+
     /// Write back dirty cache entry to storage
     fn write_back_entry(&self, entry: &CacheEntry) {
         let mut data = entry.data.clone();
-        
+
         // Decrypt if encrypted
         if entry.encrypted {
             data = self.decrypt_data(&data);
         }
-        
+
         // Decompress if compressed
         if entry.compressed {
             data = self.decompress_data(&data);
         }
-        
+
         let request = IoRequest {
             operation: IoOperation::Write,
             lba: entry.block_num,
@@ -277,12 +278,12 @@ impl BlockDevice {
             request_id: self.generate_request_id(),
             timestamp: crate::time::current_ticks(),
         };
-        
+
         if self.storage_device.submit_request(request).is_ok() {
             self.cache_stats.write_backs.fetch_add(1, Ordering::Relaxed);
         }
     }
-    
+
     /// Compress data using simple algorithm
     fn compress_data(&self, data: &[u8]) -> Vec<u8> {
         // Simple RLE compression for demonstration
@@ -290,10 +291,10 @@ impl BlockDevice {
         if data.is_empty() {
             return compressed;
         }
-        
+
         let mut current_byte = data[0];
         let mut count = 1u8;
-        
+
         for &byte in &data[1..] {
             if byte == current_byte && count < 255 {
                 count += 1;
@@ -304,10 +305,10 @@ impl BlockDevice {
                 count = 1;
             }
         }
-        
+
         compressed.push(count);
         compressed.push(current_byte);
-        
+
         // Return original if compression doesn't help
         if compressed.len() >= data.len() {
             data.to_vec()
@@ -315,70 +316,70 @@ impl BlockDevice {
             compressed
         }
     }
-    
+
     /// Decompress data
     fn decompress_data(&self, data: &[u8]) -> Vec<u8> {
         let mut decompressed = Vec::new();
-        
+
         for chunk in data.chunks_exact(2) {
             let count = chunk[0];
             let byte = chunk[1];
-            
+
             for _ in 0..count {
                 decompressed.push(byte);
             }
         }
-        
+
         decompressed
     }
-    
+
     /// Encrypt data using XOR cipher (simple demonstration)
     fn encrypt_data(&self, data: &[u8]) -> Vec<u8> {
         let key = self.encryption_key.lock();
         let mut encrypted = Vec::with_capacity(data.len());
-        
+
         for (i, &byte) in data.iter().enumerate() {
             encrypted.push(byte ^ key[i % 32]);
         }
-        
+
         encrypted
     }
-    
+
     /// Decrypt data using XOR cipher
     fn decrypt_data(&self, data: &[u8]) -> Vec<u8> {
         // XOR encryption is its own inverse
         self.encrypt_data(data)
     }
-    
+
     /// Flush all dirty cache entries
     pub fn flush_cache(&self) -> Result<(), IoStatus> {
         let cache = self.cache.read();
         let dirty_entries: Vec<_> = cache.values().filter(|e| e.dirty).cloned().collect();
         drop(cache);
-        
+
         for entry in dirty_entries {
             self.write_back_entry(&entry);
         }
-        
+
         // Clear write-back queue
         self.write_back_queue.lock().clear();
-        
+
         Ok(())
     }
-    
+
     /// Enable compression
     pub fn enable_compression(&self) {
         self.compression_enabled.store(1, Ordering::Release);
         crate::log_info!("Compression enabled for block device {}", self.device_id);
     }
-    
+
     /// Enable encryption with key
     pub fn enable_encryption(&self, key: &[u8; 32]) {
         *self.encryption_key.lock() = *key;
         self.encryption_enabled.store(1, Ordering::Release);
         crate::log_info!("Encryption enabled for block device {}", self.device_id);
     }
-    
+
     /// Get cache statistics
     pub fn get_cache_stats(&self) -> BlockCacheStats {
         BlockCacheStats {
@@ -401,7 +402,7 @@ impl BlockDevice {
             encryption_ops: self.cache_stats.encryption_ops.load(Ordering::Relaxed),
         }
     }
-    
+
     /// Get device performance stats
     pub fn get_performance_stats(&self) -> BlockDeviceStats {
         BlockDeviceStats {
@@ -412,13 +413,13 @@ impl BlockDevice {
             cache_stats: self.get_cache_stats(),
         }
     }
-    
+
     /// Generate unique request ID
     fn generate_request_id(&self) -> u64 {
         static REQUEST_COUNTER: AtomicU64 = AtomicU64::new(1);
         REQUEST_COUNTER.fetch_add(1, Ordering::Relaxed)
     }
-    
+
     /// Trim/discard blocks (for SSDs)
     pub fn trim_blocks(&self, start_block: u64, block_count: u32) -> Result<(), IoStatus> {
         let request = IoRequest {
@@ -433,10 +434,10 @@ impl BlockDevice {
             request_id: self.generate_request_id(),
             timestamp: crate::time::current_ticks(),
         };
-        
+
         self.storage_device.submit_request(request)
     }
-    
+
     /// Read multiple blocks efficiently
     pub fn read_blocks(&self, start_block: u64, blocks: &mut [Vec<u8>]) -> Result<(), IoStatus> {
         for (i, block_buffer) in blocks.iter_mut().enumerate() {
@@ -444,7 +445,7 @@ impl BlockDevice {
         }
         Ok(())
     }
-    
+
     /// Write multiple blocks efficiently  
     pub fn write_blocks(&self, start_block: u64, blocks: &[Vec<u8>]) -> Result<(), IoStatus> {
         for (i, block_data) in blocks.iter().enumerate() {
@@ -452,67 +453,73 @@ impl BlockDevice {
         }
         Ok(())
     }
-    
+
     /// Read sectors (512-byte units)
     pub fn read_sectors(&self, sector: u64, buffer: &mut [u8]) -> Result<(), IoStatus> {
         let bytes_per_sector = 512;
         let start_block = (sector * bytes_per_sector) / self.block_size as u64;
         let sector_count = (buffer.len() as u64 + bytes_per_sector - 1) / bytes_per_sector;
-        
+
         // For simplicity, read block by block
         for i in 0..sector_count {
             let block_num = start_block + i;
             let sector_offset = i * bytes_per_sector;
-            let bytes_to_read = core::cmp::min(bytes_per_sector, buffer.len() as u64 - sector_offset);
-            
+            let bytes_to_read =
+                core::cmp::min(bytes_per_sector, buffer.len() as u64 - sector_offset);
+
             if sector_offset + bytes_to_read <= buffer.len() as u64 {
                 let mut block_buffer = vec![0u8; self.block_size as usize];
                 self.read_block(block_num, &mut block_buffer)?;
-                
+
                 let src_offset = ((sector * bytes_per_sector) % self.block_size as u64) as usize;
                 let dst_start = sector_offset as usize;
                 let dst_end = dst_start + bytes_to_read as usize;
-                
+
                 if dst_end <= buffer.len() && src_offset < block_buffer.len() {
-                    let copy_len = core::cmp::min(bytes_to_read as usize, block_buffer.len() - src_offset);
-                    buffer[dst_start..dst_start + copy_len].copy_from_slice(&block_buffer[src_offset..src_offset + copy_len]);
+                    let copy_len =
+                        core::cmp::min(bytes_to_read as usize, block_buffer.len() - src_offset);
+                    buffer[dst_start..dst_start + copy_len]
+                        .copy_from_slice(&block_buffer[src_offset..src_offset + copy_len]);
                 }
             }
         }
-        
+
         Ok(())
     }
-    
+
     /// Write sectors (512-byte units)  
     pub fn write_sectors(&self, sector: u64, buffer: &[u8]) -> Result<(), IoStatus> {
         let bytes_per_sector = 512;
         let start_block = (sector * bytes_per_sector) / self.block_size as u64;
         let sector_count = (buffer.len() as u64 + bytes_per_sector - 1) / bytes_per_sector;
-        
+
         // For simplicity, write block by block
         for i in 0..sector_count {
             let block_num = start_block + i;
             let sector_offset = i * bytes_per_sector;
-            let bytes_to_write = core::cmp::min(bytes_per_sector, buffer.len() as u64 - sector_offset);
-            
+            let bytes_to_write =
+                core::cmp::min(bytes_per_sector, buffer.len() as u64 - sector_offset);
+
             if sector_offset + bytes_to_write <= buffer.len() as u64 {
                 // For partial block writes, read-modify-write
                 let mut block_buffer = vec![0u8; self.block_size as usize];
                 let _ = self.read_block(block_num, &mut block_buffer); // Ignore errors for new blocks
-                
+
                 let dst_offset = ((sector * bytes_per_sector) % self.block_size as u64) as usize;
                 let src_start = sector_offset as usize;
                 let src_end = src_start + bytes_to_write as usize;
-                
+
                 if src_end <= buffer.len() && dst_offset < block_buffer.len() {
-                    let copy_len = core::cmp::min(bytes_to_write as usize, block_buffer.len() - dst_offset);
-                    block_buffer[dst_offset..dst_offset + copy_len].copy_from_slice(&buffer[src_start..src_start + copy_len]);
+                    let copy_len =
+                        core::cmp::min(bytes_to_write as usize, block_buffer.len() - dst_offset);
+                    block_buffer[dst_offset..dst_offset + copy_len]
+                        .copy_from_slice(&buffer[src_start..src_start + copy_len]);
                 }
-                
+
                 self.write_block(block_num, &block_buffer)?;
             }
         }
-        
+
         Ok(())
     }
 }
@@ -548,38 +555,32 @@ pub struct BlockDeviceManager {
 
 impl BlockDeviceManager {
     pub const fn new() -> Self {
-        BlockDeviceManager {
-            devices: RwLock::new(Vec::new()),
-            next_device_id: AtomicU32::new(0),
-        }
+        BlockDeviceManager { devices: RwLock::new(Vec::new()), next_device_id: AtomicU32::new(0) }
     }
-    
+
     /// Register a new block device
     pub fn register_device(&self, storage_device: Arc<dyn StorageDevice>, cache_mb: usize) -> u32 {
         let device_id = self.next_device_id.fetch_add(1, Ordering::Relaxed);
         let block_device = Arc::new(BlockDevice::new(storage_device, device_id, cache_mb));
-        
+
         self.devices.write().push(block_device);
-        
-        crate::log_info!(
-            "Registered block device {} with {}MB cache", 
-            device_id, cache_mb
-        );
-        
+
+        crate::log_info!("Registered block device {} with {}MB cache", device_id, cache_mb);
+
         device_id
     }
-    
+
     /// Get block device by ID
     pub fn get_device(&self, device_id: u32) -> Option<Arc<BlockDevice>> {
         let devices = self.devices.read();
         devices.iter().find(|d| d.device_id == device_id).cloned()
     }
-    
+
     /// Get all block devices
     pub fn get_all_devices(&self) -> Vec<Arc<BlockDevice>> {
         self.devices.read().clone()
     }
-    
+
     /// Flush all devices
     pub fn flush_all(&self) -> Result<(), IoStatus> {
         for device in self.devices.read().iter() {

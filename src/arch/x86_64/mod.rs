@@ -28,7 +28,7 @@ pub mod keyboard;
 
 pub mod time {
     pub mod timer;
-    
+
     /// Get current TSC value
     #[inline(always)]
     pub fn get_tsc() -> u64 {
@@ -65,31 +65,31 @@ pub mod port {
         core::arch::asm!("in al, dx", out("al") value, in("dx") port, options(nomem, nostack, preserves_flags));
         value
     }
-    
+
     #[inline(always)]
     pub unsafe fn outb(port: u16, value: u8) {
         core::arch::asm!("out dx, al", in("dx") port, in("al") value, options(nomem, nostack, preserves_flags));
     }
-    
+
     #[inline(always)]
     pub unsafe fn inw(port: u16) -> u16 {
         let value: u16;
         core::arch::asm!("in ax, dx", out("ax") value, in("dx") port, options(nomem, nostack, preserves_flags));
         value
     }
-    
+
     #[inline(always)]
     pub unsafe fn outw(port: u16, value: u16) {
         core::arch::asm!("out dx, ax", in("dx") port, in("ax") value, options(nomem, nostack, preserves_flags));
     }
-    
+
     #[inline(always)]
     pub unsafe fn inl(port: u16) -> u32 {
         let value: u32;
         core::arch::asm!("in eax, dx", out("eax") value, in("dx") port, options(nomem, nostack, preserves_flags));
         value
     }
-    
+
     #[inline(always)]
     pub unsafe fn outl(port: u16, value: u32) {
         core::arch::asm!("out dx, eax", in("dx") port, in("eax") value, options(nomem, nostack, preserves_flags));
@@ -105,7 +105,7 @@ pub mod framebuffer {
         pub height: u32,
         pub stride: u32,
     }
-    
+
     pub fn probe() -> Option<FbInfo> {
         None // Would be populated from bootloader info
     }

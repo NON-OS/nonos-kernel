@@ -22,8 +22,8 @@ extern crate alloc;
 use alloc::{vec, vec::Vec};
 use core::cmp::min;
 
-use crate::network::{get_network_stack, tcp::TcpSocket};
 use super::relay::TcpSocketExt;
+use crate::network::{get_network_stack, tcp::TcpSocket};
 use crate::time;
 
 use super::OnionError;
@@ -64,7 +64,8 @@ pub enum CipherSuite {
 #[derive(Debug, Clone)]
 pub struct TlsSessionInfo {
     pub cipher_suite: u16,
-    /// client/server application traffic secrets (32 bytes each for SHA-256 suites)
+    /// client/server application traffic secrets (32 bytes each for SHA-256
+    /// suites)
     pub client_app_traffic_secret: Vec<u8>,
     pub server_app_traffic_secret: Vec<u8>,
 }
@@ -160,7 +161,8 @@ impl TLSConnection {
                             server_chosen_suite = suite;
                             server_pub.copy_from_slice(&sv_pub);
                         } else {
-                            // pre-ServerHello messages are illegal in TLS1.3 :( we ignore until SH arrives
+                            // pre-ServerHello messages are illegal in TLS1.3 :(
+                            // we ignore until SH arrives
                         }
                         hp = &hp[adv..];
                     }
@@ -220,8 +222,10 @@ impl TLSConnection {
 
                 if ct == ContentType::ApplicationData as u8 {
                     // AEAD open with server handshake keys
-                    let plaintext = self.rx_hs.open(self.suite, ContentType::ApplicationData, body)?;
-                    // The inner plaintext may contain multiple handshake messages (and possibly padding)
+                    let plaintext =
+                        self.rx_hs.open(self.suite, ContentType::ApplicationData, body)?;
+                    // The inner plaintext may contain multiple handshake messages (and possibly
+                    // padding)
                     let mut pcur = plaintext.as_slice();
                     while pcur.len() > 0 {
                         // find last content type byte (must be at end)
@@ -236,20 +240,26 @@ impl TLSConnection {
 
                                     match typ {
                                         x if x == HSType::EncryptedExtensions as u8 => {
-                                            // minimal parse: OK (extensions inside are not required for Tor)
+                                            // minimal parse: OK (extensions inside are not required
+                                            // for Tor)
                                             server_name_indication_ok = true; // if we want to enforce SNI, parse extension 0x0000 here
                                         }
                                         x if x == HSType::Certificate as u8 => {
                                             server_certs = parse_certificate_chain(hbody)?;
                                         }
                                         x if x == HSType::CertificateVerify as u8 => {
-                                            // Optional: we could verify the CertificateVerify signature here
-                                            // We defer to Finished MAC (mandatory) + external X.509 verification next.
+                                            // Optional: we could verify the CertificateVerify
+                                            // signature here
+                                            // We defer to Finished MAC (mandatory) + external X.509
+                                            // verification next.
                                             let _ = hbody; // placeholder
                                         }
                                         x if x == HSType::Finished as u8 => {
                                             // verify server Finished
-                                            let fin_ok = verify_finished(&self.ks.server_hs, self.transcript.hash());
+                                            let fin_ok = verify_finished(
+                                                &self.ks.server_hs,
+                                                self.transcript.hash(),
+                                            );
                                             if !fin_ok {
                                                 return Err(OnionError::CryptoError);
                                             }
@@ -332,10 +342,7 @@ struct Transcript {
 
 impl Transcript {
     fn new() -> Self {
-        Transcript {
-            state: [0u8; 32],
-            buffer: Vec::new(),
-        }
+        Transcript { state: [0u8; 32], buffer: Vec::new() }
     }
 
     #[inline]
@@ -436,7 +443,8 @@ impl KeySchedule {
     }
 }
 
-// We snapshot the transcript hash to use inside KeySchedule::derive_application()
+// We snapshot the transcript hash to use inside
+// KeySchedule::derive_application()
 static mut TRANSCRIPT_HASH_SNAPSHOT: [u8; 32] = [0; 32];
 struct THAccessor;
 static TRANSCRIPT_HASH: THAccessor = THAccessor;
@@ -489,23 +497,31 @@ impl AeadState {
         nonce
     }
 
-    fn seal(&mut self, suite: CipherSuite, inner_type: ContentType, plaintext: &[u8]) -> Result<Vec<u8>, OnionError> {
+    fn seal(
+        &mut self,
+        suite: CipherSuite,
+        inner_type: ContentType,
+        plaintext: &[u8],
+    ) -> Result<Vec<u8>, OnionError> {
         // inner = plaintext || content_type || zeros*
         let mut inner = Vec::with_capacity(plaintext.len() + 1);
         inner.extend_from_slice(plaintext);
         inner.push(inner_type as u8);
 
         // record header (AAD)
-        // type = ApplicationData, legacy_version = 0x0303, length = ciphertext len (filled after seal)
-        // AEAD AAD = header with the length that is also present on the wire; we compute after seal; most libs use the header with ciphertext length
-        // Here we compute ciphertext first with AAD = 5-byte header where length matches final ciphertext length.
+        // type = ApplicationData, legacy_version = 0x0303, length = ciphertext len
+        // (filled after seal) AEAD AAD = header with the length that is also
+        // present on the wire; we compute after seal; most libs use the header with
+        // ciphertext length Here we compute ciphertext first with AAD = 5-byte
+        // header where length matches final ciphertext length.
         let aad_type = ContentType::ApplicationData as u8;
         let aad_vers = TLS_1_2.to_be_bytes();
 
         let nonce = self.nonce();
         let aead = aead();
 
-        // We need the tag length to form header length properly; both AES-GCM and Chacha20-Poly1305 = 16
+        // We need the tag length to form header length properly; both AES-GCM and
+        // Chacha20-Poly1305 = 16
         let tag_len = 16usize;
         let mut ciphertext = aead.seal(suite, &self.key, &nonce, &[], &inner)?; // we’ll pass real AAD next block
 
@@ -518,14 +534,20 @@ impl AeadState {
         header[3] = (total_len >> 8) as u8;
         header[4] = (total_len & 0xFF) as u8;
 
-        // Re-seal with correct AAD (many AEAD APIs require AAD supplied during seal; we emulate by resealing)
+        // Re-seal with correct AAD (many AEAD APIs require AAD supplied during seal; we
+        // emulate by resealing)
         ciphertext = aead.seal(suite, &self.key, &nonce, &header, &inner)?;
 
         self.seq = self.seq.wrapping_add(1);
         Ok(ciphertext)
     }
 
-    fn open(&mut self, suite: CipherSuite, outer_type: ContentType, ciphertext: &[u8]) -> Result<Vec<u8>, OnionError> {
+    fn open(
+        &mut self,
+        suite: CipherSuite,
+        outer_type: ContentType,
+        ciphertext: &[u8],
+    ) -> Result<Vec<u8>, OnionError> {
         let mut header = [0u8; 5];
         header[0] = outer_type as u8;
         header[1..3].copy_from_slice(&TLS_1_2.to_be_bytes());
@@ -538,7 +560,9 @@ impl AeadState {
         let pt = a.open(suite, &self.key, &nonce, &header, ciphertext)?;
 
         // strip padding and trailing content type
-        if pt.is_empty() { return Err(OnionError::CryptoError); }
+        if pt.is_empty() {
+            return Err(OnionError::CryptoError);
+        }
         let (&last, data) = pt.split_last().unwrap();
         if last != ContentType::Handshake as u8 && last != ContentType::ApplicationData as u8 {
             return Err(OnionError::CryptoError);
@@ -558,18 +582,16 @@ fn build_client_hello(
     epk: &[u8; 32],
 ) -> Vec<u8> {
     let mut ch = Vec::with_capacity(512);
-    // Handshake header appended later by caller via wrap_handshake; here we build the body:
-    // legacy_version
+    // Handshake header appended later by caller via wrap_handshake; here we build
+    // the body: legacy_version
     ch.extend_from_slice(&TLS_1_2.to_be_bytes());
     // random
     ch.extend_from_slice(client_random);
     // legacy_session_id
     ch.push(0);
     // cipher_suites: we offer AES_128_GCM_SHA256 and CHACHA20_POLY1305_SHA256
-    let ciphers: [u16; 2] = [
-        CipherSuite::TlsAes128GcmSha256 as u16,
-        CipherSuite::TlsChacha20Poly1305Sha256 as u16,
-    ];
+    let ciphers: [u16; 2] =
+        [CipherSuite::TlsAes128GcmSha256 as u16, CipherSuite::TlsChacha20Poly1305Sha256 as u16];
     ch.extend_from_slice(&((ciphers.len() * 2) as u16).to_be_bytes());
     for cs in ciphers {
         ch.extend_from_slice(&cs.to_be_bytes());
@@ -586,7 +608,7 @@ fn build_client_hello(
         let mut body = Vec::new();
         body.push(2);
         body.extend_from_slice(&TLS_1_3.to_be_bytes());
-        push_ext(&mut ext, 0x002b, &body);
+        push_ext(&mut ext, 0x002B, &body);
     }
 
     // SNI
@@ -610,24 +632,24 @@ fn build_client_hello(
         for s in sigs {
             body.extend_from_slice(&s.to_be_bytes());
         }
-        push_ext(&mut ext, 0x000d, &body);
+        push_ext(&mut ext, 0x000D, &body);
     }
 
     // supported_groups (x25519, secp256r1)
     {
-        let groups: [u16; 2] = [0x001d, 0x0017];
+        let groups: [u16; 2] = [0x001D, 0x0017];
         let mut body = Vec::new();
         body.extend_from_slice(&((groups.len() as u16) * 2).to_be_bytes());
         for g in groups {
             body.extend_from_slice(&g.to_be_bytes());
         }
-        push_ext(&mut ext, 0x000a, &body);
+        push_ext(&mut ext, 0x000A, &body);
     }
 
     // key_share (x25519)
     {
         let mut ks = Vec::new();
-        ks.extend_from_slice(&0x001d_u16.to_be_bytes());
+        ks.extend_from_slice(&0x001D_u16.to_be_bytes());
         ks.extend_from_slice(&(epk.len() as u16).to_be_bytes());
         ks.extend_from_slice(epk);
 
@@ -643,7 +665,9 @@ fn build_client_hello(
         let mut list = Vec::new();
         for p in protocols {
             let pb = p.as_bytes();
-            if pb.len() > 255 { continue; }
+            if pb.len() > 255 {
+                continue;
+            }
             list.push(pb.len() as u8);
             list.extend_from_slice(pb);
         }
@@ -677,7 +701,8 @@ fn parse_handshake_view(input: &[u8]) -> Result<(u8, &[u8], usize), OnionError> 
 }
 
 fn parse_server_hello(body: &[u8]) -> Result<(u16, [u8; 32]), OnionError> {
-    // legacy_version(2) + random(32) + sid_len(1) + sid + cipher(2) + comp(1) + exts_len(2) + exts...
+    // legacy_version(2) + random(32) + sid_len(1) + sid + cipher(2) + comp(1) +
+    // exts_len(2) + exts...
     if body.len() < 2 + 32 + 1 + 2 + 1 + 2 {
         return Err(OnionError::InvalidCell);
     }
@@ -709,7 +734,7 @@ fn parse_server_hello(body: &[u8]) -> Result<(u16, [u8; 32]), OnionError> {
         }
         let ebody = &exts[4..4 + el];
         match ety {
-            0x002b => {
+            0x002B => {
                 // supported_versions(server)
                 if el != 2 || u16::from_be_bytes([ebody[0], ebody[1]]) != TLS_1_3 {
                     return Err(OnionError::CryptoError);
@@ -752,7 +777,8 @@ fn parse_certificate_chain(body: &[u8]) -> Result<Vec<Vec<u8>>, OnionError> {
     let ctx_len = body[off] as usize;
     off += 1 + ctx_len;
 
-    let list_len = ((body[off] as usize) << 16) | ((body[off + 1] as usize) << 8) | (body[off + 2] as usize);
+    let list_len =
+        ((body[off] as usize) << 16) | ((body[off + 1] as usize) << 8) | (body[off + 2] as usize);
     off += 3;
     if body.len() < off + list_len {
         return Err(OnionError::InvalidCell);
@@ -793,9 +819,10 @@ fn verify_finished(secret: &Secret, transcript_hash: &[u8; 32]) -> bool {
     let finished_key = expand_label(&secret.secret, b"finished", &[]);
     let mut mac = [0u8; 32];
     crypto().hmac_sha256(&finished_key, transcript_hash, &mut mac);
-    // the last received Finished message MAC is already appended to transcript by caller;
-    // verification compares with what we recomputed here
-    true // transcript addition handled by caller; if want strict check, compare against payload before transcript append
+    // the last received Finished message MAC is already appended to transcript by
+    // caller; verification compares with what we recomputed here
+    true // transcript addition handled by caller; if want strict check, compare
+         // against payload before transcript append
 }
 
 /* ===== HKDF-Expand-Label (SHA-256) ===== */
@@ -818,7 +845,8 @@ fn expand_label(prk: &[u8; 32], label: &[u8], context: &[u8]) -> [u8; 32] {
 }
 
 fn transcript_hash_placeholder(client_random: &[u8; 32], server_pub: &[u8; 32]) -> [u8; 32] {
-    // used only between SH and receipt of encrypted flight; real transcript is used afterwards
+    // used only between SH and receipt of encrypted flight; real transcript is used
+    // afterwards
     let mut buf = Vec::new();
     buf.extend_from_slice(client_random);
     buf.extend_from_slice(server_pub);
@@ -929,7 +957,8 @@ pub trait TlsCrypto: Sync + Send {
 }
 
 pub trait CertVerifier: Sync + Send {
-    /// `chain_der` = leaf..ca (DER each). Implement name checks, EKU, time, OCSP stapling 
+    /// `chain_der` = leaf..ca (DER each). Implement name checks, EKU, time,
+    /// OCSP stapling
     fn verify(&self, chain_der: &[Vec<u8>], sni: &str) -> Result<(), OnionError>;
 }
 

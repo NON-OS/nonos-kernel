@@ -1,6 +1,6 @@
 #![no_std]
 
-use alloc::{vec::Vec, collections::BTreeMap, string::String};
+use alloc::{collections::BTreeMap, string::String, vec::Vec};
 use spin::{Mutex, RwLock};
 // VirtAddr import removed - not used
 
@@ -42,7 +42,7 @@ impl NonosFilesystem {
 
     pub fn create_file(&self, name: &str, data: &[u8]) -> Result<(), &'static str> {
         let timestamp = self.get_timestamp();
-        
+
         let file = NonosFile {
             name: String::from(name),
             data: data.to_vec(),
@@ -54,19 +54,19 @@ impl NonosFilesystem {
         };
 
         self.files.write().insert(String::from(name), file);
-        
+
         if self.encryption_enabled {
             let key = self.generate_quantum_key(name)?;
             self.quantum_keys.lock().insert(String::from(name), key);
         }
-        
+
         Ok(())
     }
 
     pub fn read_file(&self, name: &str) -> Result<Vec<u8>, &'static str> {
         let files = self.files.read();
         let file = files.get(name).ok_or("File not found")?;
-        
+
         if file.encrypted {
             self.decrypt_file_data(&file.data, name)
         } else {
@@ -77,17 +77,17 @@ impl NonosFilesystem {
     pub fn write_file(&self, name: &str, data: &[u8]) -> Result<(), &'static str> {
         let mut files = self.files.write();
         let file = files.get_mut(name).ok_or("File not found")?;
-        
+
         let encrypted_data = if self.encryption_enabled {
             self.encrypt_file_data(data, name)?
         } else {
             data.to_vec()
         };
-        
+
         file.data = encrypted_data;
         file.size = data.len();
         file.modified = self.get_timestamp();
-        
+
         Ok(())
     }
 
@@ -107,29 +107,33 @@ impl NonosFilesystem {
         for (i, byte) in filename.bytes().enumerate() {
             key.push(byte ^ (i as u8) ^ 0xAA);
         }
-        
+
         // Pad to minimum key length
         while key.len() < 32 {
             key.push(0x55);
         }
-        
+
         Ok(key)
     }
 
     fn encrypt_file_data(&self, data: &[u8], filename: &str) -> Result<Vec<u8>, &'static str> {
         let keys = self.quantum_keys.lock();
         let key = keys.get(filename).ok_or("No encryption key found")?;
-        
+
         let mut encrypted = Vec::new();
         for (i, &byte) in data.iter().enumerate() {
             let key_byte = key[i % key.len()];
             encrypted.push(byte ^ key_byte);
         }
-        
+
         Ok(encrypted)
     }
 
-    fn decrypt_file_data(&self, encrypted_data: &[u8], filename: &str) -> Result<Vec<u8>, &'static str> {
+    fn decrypt_file_data(
+        &self,
+        encrypted_data: &[u8],
+        filename: &str,
+    ) -> Result<Vec<u8>, &'static str> {
         // XOR encryption is symmetric
         self.encrypt_file_data(encrypted_data, filename)
     }
@@ -141,7 +145,7 @@ impl NonosFilesystem {
     pub fn get_file_info(&self, name: &str) -> Result<NonosFileInfo, &'static str> {
         let files = self.files.read();
         let file = files.get(name).ok_or("File not found")?;
-        
+
         Ok(NonosFileInfo {
             name: file.name.clone(),
             size: file.size,

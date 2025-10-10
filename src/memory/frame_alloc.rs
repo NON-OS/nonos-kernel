@@ -1,7 +1,8 @@
 //! NØNOS Physical Frame Allocator
 //!
-//! Provides physical memory frame allocation for the ZeroState runtime. Uses UEFI bootloader memory map
-//! to establish ownership of `CONVENTIONAL` RAM regions, which are identity-safe and aligned for 4KiB paging.
+//! Provides physical memory frame allocation for the ZeroState runtime. Uses
+//! UEFI bootloader memory map to establish ownership of `CONVENTIONAL` RAM
+//! regions, which are identity-safe and aligned for 4KiB paging.
 //!
 //! This allocator supports:
 //! - Alignment-aware frame extraction
@@ -9,10 +10,10 @@
 //! - Integration with heap, paging, and module sandboxes
 //! - Optional extension to buddy systems, slab, or zone-based policies
 
+use alloc::vec::Vec;
 use spin::Mutex;
 use x86_64::structures::paging::{PhysFrame, Size4KiB};
 use x86_64::PhysAddr;
-use alloc::vec::Vec;
 
 /// A range of physical memory available for frame allocation
 #[derive(Debug, Clone)]
@@ -43,11 +44,7 @@ pub struct FrameAllocator {
 
 impl FrameAllocator {
     pub fn new() -> Self {
-        FrameAllocator {
-            usable: Vec::new(),
-            next: 0,
-            frames_allocated: 0,
-        }
+        FrameAllocator { usable: Vec::new(), next: 0, frames_allocated: 0 }
     }
 
     pub fn add_region(&mut self, start: PhysAddr, end: PhysAddr) {
@@ -84,8 +81,8 @@ lazy_static::lazy_static! {
 pub fn init() {
     let mut allocator = GLOBAL_ALLOCATOR.lock();
     // Reserve 16MB-512MB for kernel frames (avoiding low memory)
-    let start = PhysAddr::new(16 * 1024 * 1024);  // 16MB
-    let end = PhysAddr::new(512 * 1024 * 1024);   // 512MB
+    let start = PhysAddr::new(16 * 1024 * 1024); // 16MB
+    let end = PhysAddr::new(512 * 1024 * 1024); // 512MB
     allocator.add_region(start, end);
     log_allocator_status("[ALLOC] Frame allocator initialized with 496MB.");
 }
@@ -122,7 +119,7 @@ fn log_allocator_status(msg: &str) {
     if let Some(logger) = crate::log::logger::try_get_logger() {
         logger.log(msg);
     } else {
-        let vga = 0xb8000 as *mut u8;
+        let vga = 0xB8000 as *mut u8;
         for (i, byte) in msg.bytes().enumerate().take(80) {
             unsafe {
                 *vga.offset(i as isize * 2) = byte;

@@ -1,14 +1,15 @@
 //! NØNOS Capsule Runtime Manager
 //!
-//! Manages the lifecycle of isolated execution capsules in the zero-state environment.
+//! Manages the lifecycle of isolated execution capsules in the zero-state
+//! environment.
 
 use alloc::sync::Arc;
 use core::sync::atomic::{AtomicU64, Ordering};
 use spin::RwLock;
 
-use crate::memory::region::MemRegion;
-use crate::modules::runtime::{RuntimeCapsule, CapsuleState};
 use crate::log::logger::{log_info, log_warn};
+use crate::memory::region::MemRegion;
+use crate::modules::runtime::{CapsuleState, RuntimeCapsule};
 use alloc::{string::String, vec::Vec};
 
 /// Unique capsule identifier
@@ -44,17 +45,17 @@ impl CapsuleRuntime {
             children: Vec::new(),
         }
     }
-    
+
     /// Check if capsule is still active
     pub fn is_active(&self) -> bool {
         self.state.read().is_active()
     }
-    
+
     /// Suspend the capsule
     pub fn suspend(&self) {
         self.state.write().suspend();
     }
-    
+
     /// Resume from suspension
     pub fn resume(&self) {
         let mut state = self.state.write();
@@ -63,11 +64,11 @@ impl CapsuleRuntime {
             state.tick();
         }
     }
-    
+
     /// Terminate the capsule
     pub fn terminate(&self) {
         self.state.write().terminate();
-        
+
         // Clean up children
         for child_id in &self.children {
             if let Some(child) = get_capsule(*child_id) {
@@ -78,7 +79,7 @@ impl CapsuleRuntime {
 }
 
 // Global capsule registry
-static CAPSULES: RwLock<heapless::FnvIndexMap<CapsuleId, Arc<CapsuleRuntime>, 256>> = 
+static CAPSULES: RwLock<heapless::FnvIndexMap<CapsuleId, Arc<CapsuleRuntime>, 256>> =
     RwLock::new(heapless::FnvIndexMap::new());
 
 /// Initialize capsule runtime subsystem
@@ -90,9 +91,9 @@ pub fn init_capsule_runtime() {
 pub fn register_capsule(runtime: CapsuleRuntime) -> CapsuleId {
     let id = runtime.id;
     let arc = Arc::new(runtime);
-    
+
     CAPSULES.write().insert(id, arc.clone()).ok();
-    
+
     log_info!("[CAPSULE] Registered capsule {:?}: {}", id, arc.name);
     id
 }
@@ -111,7 +112,8 @@ pub fn unregister_capsule(id: CapsuleId) {
 
 /// List all active capsules
 pub fn list_active_capsules() -> Vec<(CapsuleId, String)> {
-    CAPSULES.read()
+    CAPSULES
+        .read()
         .iter()
         .filter(|(_, c)| c.is_active())
         .map(|(id, c)| (*id, c.name.clone()))
@@ -128,22 +130,17 @@ pub struct CapsuleStats {
 
 pub fn get_stats() -> CapsuleStats {
     let capsules = CAPSULES.read();
-    let mut stats = CapsuleStats {
-        total: capsules.len(),
-        active: 0,
-        suspended: 0,
-        memory_used: 0,
-    };
-    
+    let mut stats = CapsuleStats { total: capsules.len(), active: 0, suspended: 0, memory_used: 0 };
+
     for capsule in capsules.values() {
         stats.memory_used += capsule.memory.size_bytes() as usize;
-        
+
         match capsule.state.read().state() {
             CapsuleState::Active => stats.active += 1,
             CapsuleState::Suspended => stats.suspended += 1,
             _ => {}
         }
     }
-    
+
     stats
 }
