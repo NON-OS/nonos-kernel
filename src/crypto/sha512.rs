@@ -1,3 +1,12 @@
+//! SHA-512 
+//! Note:  This implementation aims to be suitable for kernel/no_std usage and careful about lifecycle and zeroization.
+
+#![cfg_attr(not(test), no_std)]
+
+use core::convert::TryInto;
+use core::ptr;
+
+/// 512-bit (64-byte) hash output
 pub type Hash512 = [u8; 64];
 
 const K: [u64; 80] = [
@@ -23,50 +32,193 @@ const K: [u64; 80] = [
     0x4cc5d4becb3e42b6, 0x597f299cfc657e2a, 0x5fcb6fab3ad6faec, 0x6c44198c4a475817,
 ];
 
-pub fn sha512(data: &[u8]) -> Hash512 {
-    let mut h = [
-        0x6a09e667f3bcc908u64, 0xbb67ae8584caa73b, 0x3c6ef372fe94f82b, 0xa54ff53a5f1d36f1,
-        0x510e527fade682d1, 0x9b05688c2b3e6c1f, 0x1f83d9abfb41bd6b, 0x5be0cd19137e2179,
-    ];
-    
-    let mut message = data.to_vec();
-    let original_len = message.len() as u128;
-    
-    message.push(0x80);
-    while (message.len() % 128) != 112 {
-        message.push(0x00);
+const INITIAL_STATE: [u64; 8] = [
+    0x6a09e667f3bcc908u64,
+    0xbb67ae8584caa73b,
+    0x3c6ef372fe94f82b,
+    0xa54ff53a5f1d36f1,
+    0x510e527fade682d1,
+    0x9b05688c2b3e6c1f,
+    0x1f83d9abfb41bd6b,
+    0x5be0cd19137e2179,
+];
+
+/// Sha512 streaming hasher (no heap)
+pub struct Sha512 {
+    state: [u64; 8],
+    buffer: [u8; 128],
+    buffer_len: usize,
+    bit_len: u128, // total message length in bits
+}
+
+impl Sha512 {
+    /// Create a new hasher (state initialized)
+    #[inline]
+    pub fn new() -> Self {
+        Self {
+            state: INITIAL_STATE,
+            buffer: [0u8; 128],
+            buffer_len: 0,
+            bit_len: 0,
+        }
     }
-    
-    message.extend_from_slice(&(original_len * 8).to_be_bytes());
-    
-    for chunk in message.chunks_exact(128) {
+
+    /// Reset to initial state (securely erases previous state)
+    pub fn reset(&mut self) {
+        // Zero previous state with volatile writes, then restore initial state
+        for v in &mut self.state {
+            unsafe { ptr::write_volatile(v, 0) };
+        }
+        for b in &mut self.buffer {
+            unsafe { ptr::write_volatile(b, 0) };
+        }
+        unsafe { ptr::write_volatile(&mut self.bit_len, 0) };
+
+        self.state = INITIAL_STATE;
+        self.buffer_len = 0;
+        self.bit_len = 0;
+    }
+
+    /// Update the hasher with input bytes. Can be called multiple times.
+    pub fn update(&mut self, mut input: &[u8]) {
+        // Update bit length (wraps on overflow per integer behavior)
+        self.bit_len = self.bit_len.wrapping_add((input.len() as u128) * 8);
+
+        // If buffer has some bytes, fill to 128 and process if full
+        if self.buffer_len != 0 {
+            let to_copy = core::cmp::min(128 - self.buffer_len, input.len());
+            let dst = &mut self.buffer[self.buffer_len..self.buffer_len + to_copy];
+            dst.copy_from_slice(&input[..to_copy]);
+            self.buffer_len += to_copy;
+            input = &input[to_copy..];
+
+            if self.buffer_len == 128 {
+                let block: &[u8; 128] = (&self.buffer).try_into().expect("128 bytes");
+                self.process_block(block);
+                self.buffer_len = 0;
+            }
+        }
+
+        // Process any full blocks directly from input
+        while input.len() >= 128 {
+            let block: &[u8; 128] = (&input[..128]).try_into().expect("128 bytes");
+            self.process_block(block);
+            input = &input[128..];
+        }
+
+        // Copy remaining bytes to buffer
+        if !input.is_empty() {
+            self.buffer[..input.len()].copy_from_slice(input);
+            self.buffer_len = input.len();
+        }
+    }
+
+    /// Finalize and produce the 64-byte digest. This consumes the hasher so
+    /// calling it twice is impossible (prevents accidental reuse after finalize).
+    pub fn finalize(mut self) -> Hash512 {
+        // Build padding into a local stack buffer (max 256 bytes -> two blocks)
+        // Copy the remaining buffer bytes first.
+        let mut pad_buf = [0u8; 256];
+        pad_buf[..self.buffer_len].copy_from_slice(&self.buffer[..self.buffer_len]);
+
+        // Append 0x80 as the single '1' bit
+        pad_buf[self.buffer_len] = 0x80;
+
+        // Calculate how many zero bytes are needed so that final length is congruent to 112 mod 128
+        let len_after_1 = self.buffer_len + 1;
+        let pad_zeros = if len_after_1 <= 112 {
+            112 - len_after_1
+        } else {
+            (128 - len_after_1) + 112
+        };
+
+        let total_pad = 1 + pad_zeros + 16; // 1 byte 0x80, pad zeros, 16 bytes length
+        let total_len = self.buffer_len + total_pad; // total bytes in pad_buf to process
+
+        // Append big-endian 128-bit length (bits)
+        let bit_len_be = self.bit_len.to_be_bytes();
+        let len_pos = self.buffer_len + 1 + pad_zeros;
+        pad_buf[len_pos..len_pos + 16].copy_from_slice(&bit_len_be);
+
+        // Process padding blocks (there will be 1 or 2 blocks)
+        let mut offset = 0;
+        while offset < total_len {
+            let chunk: &[u8; 128] = (&pad_buf[offset..offset + 128])
+                .try_into()
+                .expect("128 bytes chunk");
+            self.process_block(chunk);
+            offset += 128;
+        }
+
+        // Produce digest
+        let mut out = [0u8; 64];
+        for (i, &v) in self.state.iter().enumerate() {
+            out[i * 8..(i + 1) * 8].copy_from_slice(&v.to_be_bytes());
+        }
+
+        // Zero sensitive parts of self before drop to be extra safe (volatile)
+        for v in &mut self.state {
+            unsafe { ptr::write_volatile(v, 0) };
+        }
+        for b in &mut self.buffer {
+            unsafe { ptr::write_volatile(b, 0) };
+        }
+        unsafe { ptr::write_volatile(&mut self.bit_len, 0) };
+        self.buffer_len = 0;
+
+        out
+    }
+
+    /// Process one 128-byte block (big endian)
+    fn process_block(&mut self, block: &[u8; 128]) {
         let mut w = [0u64; 80];
-        
+
+        // load first 16 words
         for i in 0..16 {
+            let idx = i * 8;
             w[i] = u64::from_be_bytes([
-                chunk[i * 8], chunk[i * 8 + 1], chunk[i * 8 + 2], chunk[i * 8 + 3],
-                chunk[i * 8 + 4], chunk[i * 8 + 5], chunk[i * 8 + 6], chunk[i * 8 + 7],
+                block[idx],
+                block[idx + 1],
+                block[idx + 2],
+                block[idx + 3],
+                block[idx + 4],
+                block[idx + 5],
+                block[idx + 6],
+                block[idx + 7],
             ]);
         }
-        
+
         for i in 16..80 {
             let s0 = w[i - 15].rotate_right(1) ^ w[i - 15].rotate_right(8) ^ (w[i - 15] >> 7);
             let s1 = w[i - 2].rotate_right(19) ^ w[i - 2].rotate_right(61) ^ (w[i - 2] >> 6);
-            w[i] = w[i - 16].wrapping_add(s0).wrapping_add(w[i - 7]).wrapping_add(s1);
+            w[i] = w[i - 16]
+                .wrapping_add(s0)
+                .wrapping_add(w[i - 7])
+                .wrapping_add(s1);
         }
-        
-        let (mut a, mut b, mut c, mut d, mut e, mut f, mut g, mut h_val) = 
-            (h[0], h[1], h[2], h[3], h[4], h[5], h[6], h[7]);
-        
+
+        let mut a = self.state[0];
+        let mut b = self.state[1];
+        let mut c = self.state[2];
+        let mut d = self.state[3];
+        let mut e = self.state[4];
+        let mut f = self.state[5];
+        let mut g = self.state[6];
+        let mut h = self.state[7];
+
         for i in 0..80 {
             let s1 = e.rotate_right(14) ^ e.rotate_right(18) ^ e.rotate_right(41);
             let ch = (e & f) ^ ((!e) & g);
-            let temp1 = h_val.wrapping_add(s1).wrapping_add(ch).wrapping_add(K[i]).wrapping_add(w[i]);
+            let temp1 = h
+                .wrapping_add(s1)
+                .wrapping_add(ch)
+                .wrapping_add(K[i])
+                .wrapping_add(w[i]);
             let s0 = a.rotate_right(28) ^ a.rotate_right(34) ^ a.rotate_right(39);
             let maj = (a & b) ^ (a & c) ^ (b & c);
             let temp2 = s0.wrapping_add(maj);
-            
-            h_val = g;
+
+            h = g;
             g = f;
             f = e;
             e = d.wrapping_add(temp1);
@@ -75,21 +227,123 @@ pub fn sha512(data: &[u8]) -> Hash512 {
             b = a;
             a = temp1.wrapping_add(temp2);
         }
-        
-        h[0] = h[0].wrapping_add(a);
-        h[1] = h[1].wrapping_add(b);
-        h[2] = h[2].wrapping_add(c);
-        h[3] = h[3].wrapping_add(d);
-        h[4] = h[4].wrapping_add(e);
-        h[5] = h[5].wrapping_add(f);
-        h[6] = h[6].wrapping_add(g);
-        h[7] = h[7].wrapping_add(h_val);
+
+        self.state[0] = self.state[0].wrapping_add(a);
+        self.state[1] = self.state[1].wrapping_add(b);
+        self.state[2] = self.state[2].wrapping_add(c);
+        self.state[3] = self.state[3].wrapping_add(d);
+        self.state[4] = self.state[4].wrapping_add(e);
+        self.state[5] = self.state[5].wrapping_add(f);
+        self.state[6] = self.state[6].wrapping_add(g);
+        self.state[7] = self.state[7].wrapping_add(h);
     }
-    
-    let mut result = [0u8; 64];
-    for (i, &val) in h.iter().enumerate() {
-        result[i * 8..(i + 1) * 8].copy_from_slice(&val.to_be_bytes());
+}
+
+impl Drop for Sha512 {
+    fn drop(&mut self) {
+        // Attempt to zero sensitive data using volatile writes so compiler won't optimize them away.
+        for v in &mut self.state {
+            unsafe { ptr::write_volatile(v, 0) };
+        }
+        for b in &mut self.buffer {
+            unsafe { ptr::write_volatile(b, 0) };
+        }
+        unsafe { ptr::write_volatile(&mut self.bit_len, 0) };
+        self.buffer_len = 0;
     }
-    
-    result
+}
+
+/// Convenience one-shot function (stack-only, no heap)
+pub fn sha512(data: &[u8]) -> Hash512 {
+    let mut hasher = Sha512::new();
+    hasher.update(data);
+    hasher.finalize()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{sha512, Hash512, Sha512};
+    use hex_literal::hex;
+
+    fn hex_to_bytes(s: &str) -> Vec<u8> {
+        hex::decode(s.replace(|c: char| c.is_whitespace(), "")).expect("valid hex")
+    }
+
+    fn assert_eq_hex(actual: &Hash512, expected_hex: &str) {
+        let expected_bytes = hex_to_bytes(expected_hex);
+        assert_eq!(&expected_bytes[..], &actual[..]);
+    }
+
+    #[test]
+    fn test_empty() {
+        let digest = sha512(b"");
+        assert_eq_hex(
+            &digest,
+            "cf83e1357eefb8bd
+             f1542850d66d8007
+             d620e4050b5715dc
+             83f4a921d36ce9ce
+             47d0d13c5d85f2b0
+             ff8318d2877eec2f
+             63b931bd47417a81
+             a538327af927da3e",
+        );
+    }
+
+    #[test]
+    fn test_abc() {
+        let digest = sha512(b"abc");
+        assert_eq_hex(
+            &digest,
+            "ddaf35a193617aba
+             cc417349ae204131
+             12e6fa4e89a97ea2
+             0a9eeee64b55d39a
+             2192992a274fc1a8
+             36ba3c23a3feebbd
+             454d4423643ce80e
+             2a9ac94fa54ca49f",
+        );
+    }
+
+    #[test]
+    fn test_quick_brown_fox() {
+        let digest = sha512(b"The quick brown fox jumps over the lazy dog");
+        assert_eq_hex(
+            &digest,
+            "07e547d9586f6a73
+             f73fbac0435ed769
+             51218fb7d0c8d788
+             a309d785436bbb64
+             2e93a252a954f239
+             12547d1e8a3b5ed6
+             e1bfd7097821233f
+             a0538f3db854fee6",
+        );
+    }
+
+    #[test]
+    fn test_streaming_matches_oneshot() {
+        let data = b"abcdefgh0123456789".repeat(100); // arbitrary longer message
+        let mut s = Sha512::new();
+        for chunk in data.chunks(50) {
+            s.update(chunk);
+        }
+        let out1 = s.finalize();
+        let out2 = sha512(&data);
+        assert_eq!(out1, out2);
+    }
+
+    #[test]
+    fn test_partial_buffers_and_boundaries() {
+        // Feed data that leaves buffer at different lengths before finalize
+        for len in 0..128 {
+            let data = vec![0x5Au8; len];
+            let out1 = sha512(&data);
+            let mut s = Sha512::new();
+            s.update(&data);
+            let out2 = s.finalize();
+            assert_eq!(out1, out2, "mismatch for len {}", len);
+        }
+    }
 }
