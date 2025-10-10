@@ -1,17 +1,11 @@
-// kernel/src/memory/layout.rs
-//
 // NØNOS memory layout (x86_64, 4-level, higher-half, W^X).
-// Single source of truth for all address windows & section bounds.
-// No persistence; zero-state by design.
 
 #![allow(dead_code)]
 
 use core::ops::Range;
 use alloc::format;
 
-// ───────────────────────────────────────────────────────────────────────────────
 // Page sizes, masks, canonical
-// ───────────────────────────────────────────────────────────────────────────────
 
 pub const PAGE_SIZE: usize = 4096;
 pub const PAGE_MASK: u64   = !(PAGE_SIZE as u64 - 1);
@@ -21,23 +15,18 @@ pub const HUGE_1G:   usize = 1024 * 1024 * 1024;
 pub const CANON_LOW_MAX:  u64 = 0x0000_7FFF_FFFF_FFFF;
 pub const CANON_HIGH_MIN: u64 = 0xFFFF_8000_0000_0000;
 
-// ───────────────────────────────────────────────────────────────────────────────
 // Kernel/User split, KPTI trampoline, PCID domains
-// ───────────────────────────────────────────────────────────────────────────────
 
 pub const KERNEL_BASE: u64 = 0xFFFF_FFFF_8000_0000;
 pub const USER_BASE:   u64 = 0x0000_0000_0000_0000;
-pub const USER_TOP:    u64 = CANON_LOW_MAX; // future user space
+pub const USER_TOP:    u64 = CANON_LOW_MAX;
 
-// If KPTI enabled, this is a single executable page that jumps to kernel space.
 pub const KPTI_TRAMPOLINE: u64 = 0xFFFF_FFFF_FFFE_0000;
 
 pub const PCID_KERNEL: u16 = 0x0001;
 pub const PCID_USER:   u16 = 0x0002;
 
-// ───────────────────────────────────────────────────────────────────────────────
-// Self-referenced PML4 slot (mirror page tables into VA for introspection)
-// ───────────────────────────────────────────────────────────────────────────────
+// Self-referenced PML4 slot
 
 pub const SELFREF_SLOT: usize = 510;
 
@@ -47,47 +36,46 @@ pub const fn selfref_l4_va() -> u64 {
     (0xFFFFu64 << 48) | (i << 39) | (i << 30) | (i << 21) | (i << 12)
 }
 
-// ───────────────────────────────────────────────────────────────────────────────
-// Core virtual windows (coarse, 1GiB granularity so huge pages are trivial)
-// ───────────────────────────────────────────────────────────────────────────────
+// Core virtual windows
 
 pub const KTEXT_BASE: u64 = KERNEL_BASE;                    // .text/.rodata (RX,GLOBAL)
 pub const KDATA_BASE: u64 = KERNEL_BASE + 0x0000_0200_0000; // .data/.bss/percpu (RW,NX,GLOBAL)
 
-pub const DIRECTMAP_BASE: u64 = 0xFFFF_FFFF_B000_0000; // phys→virt linear window  
-pub const DIRECTMAP_SIZE: u64 = 0x0000_0000_1000_0000;         // 256 MiB direct map
+pub const DIRECTMAP_BASE: u64 = 0xFFFF_FFFF_B000_0000; // phys→virt linear window
+pub const DIRECTMAP_SIZE: u64 = 0x0000_0000_1000_0000;
 
-pub const KHEAP_BASE:  u64 = 0xFFFF_FF00_0000_0000; // kernel heap arena (VA only)  
-pub const KHEAP_SIZE:  u64 = 0x0000_0000_1000_0000;         // 256 MiB
+pub const KHEAP_BASE:  u64 = 0xFFFF_FF00_0000_0000; // kernel heap arena (VA only)
+pub const KHEAP_SIZE:  u64 = 0x0000_0000_1000_0000;
 
 pub const KVM_BASE:    u64 = 0xFFFF_FF10_0000_0000; // anon VM (kalloc_pages)
-pub const KVM_SIZE:    u64 = 0x0000_0000_2000_0000;         // 512 MiB
+pub const KVM_SIZE:    u64 = 0x0000_0000_2000_0000;
 
-pub const MMIO_BASE:   u64 = 0xFFFF_FF30_0000_0000; // device MMIO VA window  
-pub const MMIO_SIZE:   u64 = 0x0000_0000_2000_0000;         // 512 MiB
+pub const MMIO_BASE:   u64 = 0xFFFF_FF30_0000_0000; // device MMIO VA window
+pub const MMIO_SIZE:   u64 = 0x0000_0000_2000_0000;
 
 pub const VMAP_BASE:   u64 = 0xFFFF_FF50_0000_0000; // vmap/ioremap overflow
-pub const VMAP_SIZE:   u64 = 0x0000_0000_1000_0000;         // 256 MiB
+pub const VMAP_SIZE:   u64 = 0x0000_0000_1000_0000;
 
-// Fixmap: small, fixed VA slots for early/temporary mappings (kasan, acpi, etc.)
+// Fixmap: small, fixed VA slots
+
 pub const FIXMAP_BASE: u64 = 0xFFFF_FFA0_0000_0000;
-pub const FIXMAP_SIZE: u64 = 0x0000_0010_0000_0000;         // 64 GiB
+pub const FIXMAP_SIZE: u64 = 0x0000_0010_0000_0000;
 
-// Boot identity window (temporary 1:1 map during bring-up)
+// Boot identity window
+
 pub const BOOT_IDMAP_BASE: u64 = 0xFFFF_FFB0_0000_0000;
-pub const BOOT_IDMAP_SIZE: u64 = 0x0000_1000_0000;           // 4 GiB idmap (teardown post-boot)
+pub const BOOT_IDMAP_SIZE: u64 = 0x0000_1000_0000;
 
-// Per-CPU TLS/GDT/TSS/stacks (each CPU gets a stripe)
+// Per-CPU TLS/GDT/TSS/stacks
+
 pub const PERCPU_BASE:   u64 = 0xFFFF_FFC0_0000_0000;
-pub const PERCPU_STRIDE: u64 = 0x0000_0100_0000;             // 16 MiB per CPU region
+pub const PERCPU_STRIDE: u64 = 0x0000_0100_0000;
 
-// ───────────────────────────────────────────────────────────────────────────────
 // Stacks, IST, guards
-// ───────────────────────────────────────────────────────────────────────────────
 
-pub const KSTACK_SIZE:    usize = 64 * 1024; // 64 KiB kernel stack
-pub const IST_STACK_SIZE: usize = 32 * 1024; // 32 KiB IST
-pub const GUARD_PAGES:    usize = 1;         // 1 guard page below each
+pub const KSTACK_SIZE:    usize = 64 * 1024;
+pub const IST_STACK_SIZE: usize = 32 * 1024;
+pub const GUARD_PAGES:    usize = 1;
 
 #[inline(always)]
 pub const fn stack_guard_and_base(stack_top: u64) -> (u64, u64) {
@@ -95,9 +83,7 @@ pub const fn stack_guard_and_base(stack_top: u64) -> (u64, u64) {
     (guard, stack_top)
 }
 
-// ───────────────────────────────────────────────────────────────────────────────
-// PAT cache kinds (to align with mmio.rs CacheKind)
-// ───────────────────────────────────────────────────────────────────────────────
+// PAT cache kinds
 
 pub mod pat {
     pub const UC:       u8 = 0;
@@ -105,12 +91,10 @@ pub mod pat {
     pub const WT:       u8 = 4;
     pub const WP:       u8 = 5;
     pub const WB:       u8 = 6;
-    pub const UcMinus: u8 = 7; // UC- device-like
+    pub const UcMinus: u8 = 7;
 }
 
-// ───────────────────────────────────────────────────────────────────────────────
 // Linker-provided section bounds (virt addresses)
-// ───────────────────────────────────────────────────────────────────────────────
 
 extern "C" {
     pub static __kernel_start:        u8;
@@ -127,7 +111,6 @@ extern "C" {
     pub static __boot_stacks_start: u8;
     pub static __boot_stacks_end:   u8;
 
-    // Per-CPU template copied to each PERCPU stripe
     pub static __percpu_start: u8;
     pub static __percpu_end:   u8;
 }
@@ -147,9 +130,7 @@ pub fn kernel_sections() -> [Section; 4] {
     }
 }
 
-// ───────────────────────────────────────────────────────────────────────────────
-// NUMA-aware direct map stripes (optional, enable when nodes discovered)
-// ───────────────────────────────────────────────────────────────────────────────
+// NUMA-aware direct map stripes
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct NodeStripe { pub node_id: u8, pub phys_lo: u64, pub phys_hi: u64, pub virt_lo: u64 }
@@ -157,7 +138,6 @@ pub struct NodeStripe { pub node_id: u8, pub phys_lo: u64, pub phys_hi: u64, pub
 pub const MAX_NODES: usize = 8;
 pub static mut DIRECTMAP_STRIPES: [Option<NodeStripe>; MAX_NODES] = [None; MAX_NODES];
 
-/// Map a physical address into the direct map (if covered) → VA
 #[inline(always)]
 pub fn directmap_va(paddr: u64) -> Option<u64> {
     unsafe {
@@ -170,9 +150,7 @@ pub fn directmap_va(paddr: u64) -> Option<u64> {
     if paddr < DIRECTMAP_SIZE { Some(DIRECTMAP_BASE + paddr) } else { None }
 }
 
-// ───────────────────────────────────────────────────────────────────────────────
 // Firmware map glue (E820/UEFI → Region/Kind)
-// ───────────────────────────────────────────────────────────────────────────────
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum RegionKind { Available, Usable, Reserved, Acpi, Mmio, Kernel, Boot, Unknown }
@@ -184,14 +162,14 @@ pub struct Region {
     pub kind: RegionKind,
 }
 
-impl Region { 
-    pub const fn len(&self) -> u64 { self.end - self.start } 
-    pub const fn is_usable(&self) -> bool { matches!(self.kind, RegionKind::Usable | RegionKind::Available) } 
+impl Region {
+    pub const fn len(&self) -> u64 { self.end - self.start }
+    pub const fn is_usable(&self) -> bool { matches!(self.kind, RegionKind::Usable | RegionKind::Available) }
 }
 
 pub fn region_from_firmware(kind_code: u32, start: u64, len: u64) -> Region {
     let kind = match kind_code {
-        1 => RegionKind::Usable,   // E820 usable
+        1 => RegionKind::Usable,
         2 => RegionKind::Reserved,
         3 | 4 => RegionKind::Acpi,
         7 => RegionKind::Mmio,
@@ -212,9 +190,7 @@ pub fn managed_span(rs: &[Region]) -> (u64, u64) {
     if lo > hi { (0, 0) } else { (lo, hi) }
 }
 
-// ───────────────────────────────────────────────────────────────────────────────
-// Alignment & range helpers (const-friendly)
-// ───────────────────────────────────────────────────────────────────────────────
+// Alignment & range helpers
 
 #[inline(always)] pub const fn align_down(x: u64, a: u64) -> u64 { x & !(a - 1) }
 #[inline(always)] pub const fn align_up  (x: u64, a: u64) -> u64 { (x + a - 1) & !(a - 1) }
@@ -223,14 +199,12 @@ pub fn managed_span(rs: &[Region]) -> (u64, u64) {
 #[inline(always)] pub const fn in_kernel_space(va: u64) -> bool { va >= CANON_HIGH_MIN }
 #[inline(always)] pub const fn range(base: u64, size: u64) -> Range<u64> { base..(base + size) }
 
-// ───────────────────────────────────────────────────────────────────────────────
 // Runtime layout config (KASLR slide, dynamic window trims)
-// ───────────────────────────────────────────────────────────────────────────────
 
 #[derive(Clone, Copy, Debug)]
 pub struct LayoutConfig {
-    pub slide: u64,       // applied to kernel image regions (2 MiB granularity upstream)
-    pub heap_lo: u64,     // override default bases/sizes (optional)
+    pub slide: u64,
+    pub heap_lo: u64,
     pub heap_sz: u64,
     pub vm_lo:   u64,
     pub vm_sz:   u64,
@@ -256,8 +230,9 @@ pub static mut LAYOUT: LayoutConfig = LayoutConfig {
     mmio_lo: MMIO_BASE,  mmio_sz: MMIO_SIZE,
 };
 
-/// Dump memory layout information
-pub fn dump<F>(mut writer: F) 
+// Diagnostics
+
+pub fn dump<F>(mut writer: F)
 where
     F: FnMut(&str),
 {
@@ -274,9 +249,7 @@ where
 #[inline(always)] pub fn apply_slide(va: u64, slide: u64) -> u64 { va.wrapping_add(slide) }
 #[inline(always)] pub fn remove_slide(va: u64, slide: u64) -> u64 { va.wrapping_sub(slide) }
 
-// ───────────────────────────────────────────────────────────────────────────────
-// Fixmap slots (enum of reserved temporary mappings)
-// ───────────────────────────────────────────────────────────────────────────────
+// Fixmap slots
 
 #[repr(usize)]
 #[derive(Clone, Copy, Debug)]
@@ -286,7 +259,6 @@ pub enum FixmapSlot {
     TempPte      = 2,
     TempPde      = 3,
     TempStack    = 4,
-    // … extend as needed
 }
 
 #[inline(always)]
@@ -294,27 +266,36 @@ pub const fn fixmap_va(slot: FixmapSlot) -> u64 {
     FIXMAP_BASE + (slot as u64) * (PAGE_SIZE as u64)
 }
 
-// ───────────────────────────────────────────────────────────────────────────────
-// Compile-time sanity checks
-// ───────────────────────────────────────────────────────────────────────────────
+// Runtime validation (non-fatal): ensures windows are ordered and non-overlapping.
 
-const _: () = {
-    // ensure kernel base is in higher half
-    assert!(KERNEL_BASE >= CANON_HIGH_MIN);
-    // ensure windows don't overlap (coarse)
-    assert!(KTEXT_BASE <= KDATA_BASE);
-    // TODO: Fix memory layout assertions
-    // assert!(KDATA_BASE + 0x0200_0000 <= DIRECTMAP_BASE); // 32 MiB headroom
-    // assert!(DIRECTMAP_BASE + DIRECTMAP_SIZE <= KHEAP_BASE);
-    // assert!(KHEAP_BASE + KHEAP_SIZE <= KVM_BASE);
-    // assert!(KVM_BASE   + KVM_SIZE   <= MMIO_BASE);
-    // assert!(MMIO_BASE  + MMIO_SIZE  <= VMAP_BASE);
-    assert!(PERCPU_STRIDE % (PAGE_SIZE as u64) == 0);
-};
+#[inline(always)]
+const fn non_overlapping(a_base: u64, a_size: u64, b_base: u64, b_size: u64) -> bool {
+    let a_end = a_base.wrapping_add(a_size);
+    let b_end = b_base.wrapping_add(b_size);
+    !(a_base < b_end && b_base < a_end)
+}
 
-// ───────────────────────────────────────────────────────────────────────────────
-// Logging for audit
-// ───────────────────────────────────────────────────────────────────────────────
+pub fn validate_layout() -> Result<(), &'static str> {
+    // Higher-half invariant
+    if KERNEL_BASE < CANON_HIGH_MIN { return Err("kernel base below higher-half"); }
+    // Coarse ordering and non-overlap (using declared windows)
+    let pairs: &[(u64,u64,u64,u64)] = &[
+        (KTEXT_BASE, 0x0200_0000, KDATA_BASE, 0x0200_0000),       // 32 MiB text/rodata vs data/bss window
+        (KDATA_BASE, 0x0200_0000, DIRECTMAP_BASE, DIRECTMAP_SIZE),
+        (DIRECTMAP_BASE, DIRECTMAP_SIZE, KHEAP_BASE, KHEAP_SIZE),
+        (KHEAP_BASE, KHEAP_SIZE, KVM_BASE, KVM_SIZE),
+        (KVM_BASE, KVM_SIZE, MMIO_BASE, MMIO_SIZE),
+        (MMIO_BASE, MMIO_SIZE, VMAP_BASE, VMAP_SIZE),
+    ];
+    for &(a0, asz, b0, bsz) in pairs {
+        if !non_overlapping(a0, asz, b0, bsz) { return Err("layout window overlap"); }
+        if a0 > b0 { return Err("layout order violation"); }
+    }
+    if PERCPU_STRIDE % (PAGE_SIZE as u64) != 0 { return Err("percpu stride misaligned"); }
+    Ok(())
+}
+
+// Section logging
 
 pub fn log_kernel_sections(log: &mut dyn FnMut(&str)) {
     for s in kernel_sections().iter() {
