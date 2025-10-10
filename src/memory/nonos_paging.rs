@@ -1,80 +1,45 @@
-//! NØNOS Memory Paging System
-//!
-//! Sets up basic paging for the kernel with higher-half mapping.
+// NØNOS Paging — delegates to memory::virt
 
 use x86_64::{
-    VirtAddr, PhysAddr,
-    structures::paging::{PageTable, PageTableFlags, OffsetPageTable, Mapper, FrameAllocator, Size4KiB, Page, PhysFrame},
+    PhysAddr, VirtAddr,
+    structures::paging::{PageTableFlags, Page, Size4KiB, PhysFrame},
 };
+
+use crate::memory::{virt, virt::VmFlags};
 use crate::memory::frame_alloc;
 
-/// Virtual offset used for kernel-to-physical mapping (higher half mapping)
-const PHYS_MEM_OFFSET: u64 = 0xFFFF800000000000;
+/// Virtual offset used for kernel-to-physical mapping (higher-half)
+const PHYS_MEM_OFFSET: u64 = 0xFFFF_8000_0000_0000;
 
-/// Simple frame allocator that uses our frame allocator
-pub struct SimpleFrameAllocator;
-
-unsafe impl FrameAllocator<Size4KiB> for SimpleFrameAllocator {
-    fn allocate_frame(&mut self) -> Option<PhysFrame<Size4KiB>> {
-        frame_alloc::alloc_frame()
-    }
-}
-
-/// Initialize basic paging for the kernel
+/// Initialize basic paging for the kernel: map the first 16 MiB into the higher-half window.
 pub fn init() {
-    let phys_offset = VirtAddr::new(PHYS_MEM_OFFSET);
-    let level_4_table = unsafe { active_level_4_table(phys_offset) };
-    let mut mapper = unsafe { OffsetPageTable::new(level_4_table, phys_offset) };
-    let mut frame_allocator = SimpleFrameAllocator;
-
-    // Map essential kernel regions
-    map_kernel_identity(&mut mapper, &mut frame_allocator);
+    let flags = VmFlags::RW | VmFlags::NX | VmFlags::GLOBAL;
+    // Map [0, 16MiB) at higher-half + phys
+    let _ = virt::map_range_4k_at(
+        VirtAddr::new(PHYS_MEM_OFFSET),
+        PhysAddr::new(0),
+        16 * 1024 * 1024,
+        flags,
+    );
 }
 
-/// Extracts the active L4 table from CR3 and returns a writable reference
-unsafe fn active_level_4_table(phys_offset: VirtAddr) -> &'static mut PageTable {
-    use x86_64::registers::control::Cr3;
-    let (frame, _) = Cr3::read();
-    let phys = frame.start_address().as_u64();
-    let virt = phys_offset + phys;
-    let table_ptr = virt.as_mut_ptr::<PageTable>();
-    &mut *table_ptr
-}
-
-/// Identity-maps the static kernel region using 4KiB pages
-fn map_kernel_identity(mapper: &mut OffsetPageTable, allocator: &mut impl FrameAllocator<Size4KiB>) {
-    // Map the lower 16MB of physical memory for basic kernel operations
-    let start_phys = PhysAddr::new(0);
-    let end_phys = PhysAddr::new(16 * 1024 * 1024); // 16 MiB
-
-    for frame_addr in (start_phys.as_u64()..end_phys.as_u64()).step_by(4096) {
-        let frame: PhysFrame<Size4KiB> = PhysFrame::containing_address(PhysAddr::new(frame_addr));
-        let virt = VirtAddr::new(PHYS_MEM_OFFSET + frame_addr);
-        let page = Page::containing_address(virt);
-
-        let flags = PageTableFlags::PRESENT | PageTableFlags::WRITABLE;
-        unsafe {
-            if let Ok(mapping) = mapper.map_to(page, frame, flags, allocator) {
-                mapping.flush();
-            }
-        }
-    }
-}
-
-/// Helper function to map a single page with given flags
+/// Map a single page to a newly-allocated physical frame with the requested flags.
 pub unsafe fn map_page(page: Page<Size4KiB>, flags: PageTableFlags) -> Result<(), &'static str> {
-    let phys_offset = VirtAddr::new(PHYS_MEM_OFFSET);
-    let level_4_table = active_level_4_table(phys_offset);
-    let mut mapper = OffsetPageTable::new(level_4_table, phys_offset);
-    let mut frame_allocator = SimpleFrameAllocator;
-    
-    // Allocate a frame for the page
-    let frame = frame_allocator.allocate_frame().ok_or("Failed to allocate frame")?;
-    
-    // Map the page to the frame
-    mapper.map_to(page, frame, flags, &mut frame_allocator)
-        .map_err(|_| "Failed to map page")?
-        .flush();
-    
-    Ok(())
+    let pa = frame_alloc::alloc_frame()
+        .map(|f: PhysFrame<Size4KiB>| f.start_address())
+        .ok_or("no frames")?;
+    let v = VirtAddr::new(page.start_address().as_u64());
+    let vmf = pte_to_vmflags(flags)?;
+    virt::map4k_at(v, pa, vmf).map_err(|_| "map failed")
+}
+
+#[inline]
+fn pte_to_vmflags(f: PageTableFlags) -> Result<VmFlags, &'static str> {
+    let mut vm = VmFlags::GLOBAL;
+    if f.contains(PageTableFlags::WRITABLE) { vm |= VmFlags::RW | VmFlags::NX; }
+    if f.contains(PageTableFlags::USER_ACCESSIBLE) { vm |= VmFlags::USER; }
+    if f.contains(PageTableFlags::NO_EXECUTE) { vm |= VmFlags::NX; }
+    if f.contains(PageTableFlags::PWT) { vm |= VmFlags::PWT; }
+    if f.contains(PageTableFlags::PCD) { vm |= VmFlags::PCD; }
+    Ok(vm)
 }
