@@ -65,11 +65,11 @@ pub fn init_memory_hardening() -> Result<(), &'static str> {
     // Stack canary seed
     let canary = crate::crypto::vault::generate_random_bytes(8).map_err(|_| "rand failed")?;
     STACK_CANARY.store(u64::from_le_bytes(canary.try_into().unwrap()), Ordering::SeqCst);
-    // SMEP/SMAP are enabled elsewhere (real MMU module); do not duplicate here.
+    // SMEP/SMAP handled in MMU init; no duplication here.
     Ok(())
 }
 
-// Secure allocation with unmapped guard pages 
+// Secure allocation with unmapped guard pages (no fake mappings).
 pub fn secure_alloc(size: usize, align: usize) -> Result<VirtAddr, &'static str> {
     if size == 0 || !align.is_power_of_two() { return Err("invalid"); }
     let padded = (size + align - 1) & !(align - 1);
@@ -125,7 +125,7 @@ pub fn secure_free(addr: VirtAddr) -> Result<(), &'static str> {
         return Err("metadata corruption");
     }
 
-    // Zero payload then unmap frames page-by-page; keep guards unmapped
+    // Zero payload then unmap frames page-by-page; we keep guards unmapped
     unsafe { ptr::write_bytes(md.base_addr.as_mut_ptr::<u8>(), 0, md.size); }
 
     let pages = ((md.size + PAGE_SIZE - 1) / PAGE_SIZE).max(1);
@@ -143,7 +143,7 @@ pub fn secure_free(addr: VirtAddr) -> Result<(), &'static str> {
 // Toggle W^X: mark executable (no write)
 pub fn make_executable(addr: VirtAddr, size: usize) -> Result<(), &'static str> {
     if size == 0 { return Ok(()); }
-    protect_range(addr, size, VmFlags::GLOBAL) // RX: Present + X (no NX) is implicit by not setting NX
+    protect_range(addr, size, VmFlags::GLOBAL) // RX: NX cleared by not setting it
 }
 
 // Toggle W^X: mark writable (NX)
@@ -153,7 +153,6 @@ pub fn make_writable(addr: VirtAddr, size: usize) -> Result<(), &'static str> {
 }
 
 fn protect_range(base: VirtAddr, size: usize, vmf: VmFlags) -> Result<(), &'static str> {
-    // page-align down/up
     let start = VirtAddr::new(base.as_u64() & !((PAGE_SIZE as u64) - 1));
     let end = base.as_u64() + size as u64;
     let len = ((end - start.as_u64() + (PAGE_SIZE as u64 - 1)) & !((PAGE_SIZE as u64) - 1)) as usize;
@@ -163,6 +162,7 @@ fn protect_range(base: VirtAddr, size: usize, vmf: VmFlags) -> Result<(), &'stat
 // Helpers
 
 fn reserve_va(bytes: usize) -> Result<VirtAddr, &'static str> {
+    use core::sync::atomic::AtomicU64;
     let bump = NEXT_HWIN.fetch_update(Ordering::SeqCst, Ordering::SeqCst, |cur| {
         let aligned = (cur + (PAGE_SIZE as u64 - 1)) & !((PAGE_SIZE as u64) - 1);
         let next = aligned.checked_add(bytes as u64)?;
@@ -173,7 +173,6 @@ fn reserve_va(bytes: usize) -> Result<VirtAddr, &'static str> {
 
 fn add_canaries(addr: VirtAddr, size: usize) {
     unsafe {
-        // start canary
         let p = addr.as_mut_ptr::<u64>();
         *p = HEAP_MAGIC_ALIVE;
         if size >= 16 {
@@ -200,5 +199,3 @@ fn checksum(addr: VirtAddr, size: usize) -> u64 {
 
 #[inline]
 fn timestamp_ms() -> u64 { crate::time::timestamp_millis() }
-
-// Optional: guard fault handler integration would live in page-fault path.
