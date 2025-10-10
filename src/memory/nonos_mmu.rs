@@ -1,31 +1,28 @@
 //! Real Hardware MMU Control with Direct Register Access
-//! 
-//! This module provides real hardware Memory Management Unit control
-//! with actual page table manipulation, TLB management, and SMEP/SMAP enforcement.
 
-use crate::memory::{PhysAddr, VirtAddr};
+#![allow(dead_code)]
+
+use alloc::{collections::BTreeMap, vec::Vec};
 use core::arch::asm;
-use spin::{Mutex, RwLock};
-use alloc::{vec::Vec, collections::BTreeMap};
+use spin::{Mutex, Once, RwLock};
+use x86_64::{PhysAddr, VirtAddr};
 
-/// Real Hardware MMU Controller
+use crate::memory::frame_alloc;
+use crate::memory::layout::KERNEL_BASE;
+
 pub struct RealMMU {
-    /// Current page table root (CR3)
     current_cr3: Mutex<u64>,
-    /// Page table hierarchy cache
-    page_tables: RwLock<BTreeMap<u64, PageTableEntry>>,
-    /// TLB invalidation queue
+    page_tables: RwLock<BTreeMap<u64, PageTableEntry>>, // best-effort cache
     tlb_invalidation_queue: Mutex<Vec<VirtAddr>>,
-    /// SMEP/SMAP configuration
     protection_flags: Mutex<ProtectionFlags>,
 }
 
 #[derive(Debug, Clone, Copy)]
 pub struct ProtectionFlags {
-    pub smep_enabled: bool,    // Supervisor Mode Execution Prevention
-    pub smap_enabled: bool,    // Supervisor Mode Access Prevention
-    pub nx_enabled: bool,      // No Execute bit
-    pub wp_enabled: bool,      // Write Protection
+    pub smep_enabled: bool,
+    pub smap_enabled: bool,
+    pub nx_enabled: bool,
+    pub wp_enabled: bool,
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -43,6 +40,14 @@ pub struct PageTableEntry {
     pub physical_address: u64,
 }
 
+#[derive(Debug, Clone, Copy)]
+pub struct PagePermissions {
+    pub writable: bool,
+    pub user_accessible: bool,
+    pub executable: bool,
+    pub cache_disabled: bool,
+}
+
 impl RealMMU {
     pub fn new() -> Self {
         Self {
@@ -50,166 +55,121 @@ impl RealMMU {
             page_tables: RwLock::new(BTreeMap::new()),
             tlb_invalidation_queue: Mutex::new(Vec::new()),
             protection_flags: Mutex::new(ProtectionFlags {
-                smep_enabled: true,
-                smap_enabled: true,
-                nx_enabled: true,
-                wp_enabled: true,
+                smep_enabled: false,
+                smap_enabled: false,
+                nx_enabled: false,
+                wp_enabled: true, // CR0.WP typically enabled by kernel policy
             }),
         }
     }
-    
-    /// Initialize MMU with hardware detection and setup
+
+    /// Initialize MMU: detect features, enable NXE/SMEP/SMAP safely, install a minimal table if needed.
     pub fn initialize(&self) -> Result<(), &'static str> {
-        // Enable hardware features
+        // Enable SMEP/SMAP if supported
         self.enable_smep_smap()?;
+        // Enable global NXE
         self.enable_nx_bit()?;
-        self.setup_initial_page_tables()?;
-        
-        crate::log::logger::log_info!("Real MMU initialized with hardware features");
+        // If CR3 is zero (fresh bring-up), install a minimal root
+        if *self.current_cr3.lock() == 0 {
+            self.setup_initial_page_tables()?;
+        }
+        crate::log::logger::log_info!("Real MMU initialized (NXE/SMEP/SMAP policy applied)");
         Ok(())
     }
-    
-    /// Real hardware SMEP/SMAP enablement
+
+    fn cpuid(leaf: u32, subleaf: u32) -> (u32, u32, u32, u32) {
+        // Returns (EAX, EBX, ECX, EDX)
+        let mut eax = leaf;
+        let mut ebx: u32;
+        let mut ecx = subleaf;
+        let mut edx: u32;
+        unsafe {
+            asm!(
+                "cpuid",
+                inout("eax") eax, out("ebx") ebx, inout("ecx") ecx, out("edx") edx,
+                options(nostack, preserves_flags)
+            );
+        }
+        (eax, ebx, ecx, edx)
+    }
+
+    /// Enable SMEP/SMAP in CR4 if supported by CPUID(7,0).EBX
     fn enable_smep_smap(&self) -> Result<(), &'static str> {
+        let (_a, ebx, _c, _d) = self.cpuid(0x07, 0x00);
+        let has_smep = (ebx & (1 << 7)) != 0;
+        let has_smap = (ebx & (1 << 20)) != 0;
+
         unsafe {
             // Read CR4
             let mut cr4: u64;
-            asm!("mov {}, cr4", out(reg) cr4);
-            
-            // Enable SMEP (bit 20) and SMAP (bit 21)
-            cr4 |= (1 << 20) | (1 << 21);
-            
-            // Write back CR4
-            asm!("mov cr4, {}", in(reg) cr4);
-            
-            // Verify SMEP/SMAP are supported
-            let mut cpuid_result: u32;
-            asm!(
-                "cpuid",
-                inout("eax") 0x7u32 => cpuid_result,
-                out("ebx") _,
-                out("ecx") _,
-                out("edx") _,
-            );
-            
-            if (cpuid_result & (1 << 7)) == 0 {
-                return Err("SMEP not supported by hardware");
+            asm!("mov {}, cr4", out(reg) cr4, options(nostack, preserves_flags));
+
+            if has_smep {
+                cr4 |= 1 << 20;
             }
+            if has_smap {
+                cr4 |= 1 << 21;
+            }
+
+            asm!("mov cr4, {}", in(reg) cr4, options(nostack, preserves_flags));
         }
-        
+
         let mut flags = self.protection_flags.lock();
-        flags.smep_enabled = true;
-        flags.smap_enabled = true;
-        
+        flags.smep_enabled = has_smep;
+        flags.smap_enabled = has_smap;
+
         Ok(())
     }
-    
-    /// Enable NX (No Execute) bit support
+
+    /// Ensure IA32_EFER.NXE (bit 11) is set if NX supported by CPUID(0x80000001).EDX bit 20.
     fn enable_nx_bit(&self) -> Result<(), &'static str> {
+        let (_a, _b, _c, edx) = self.cpuid(0x8000_0001, 0);
+        let nx_supported = (edx & (1 << 20)) != 0;
+        if !nx_supported {
+            return Err("NXE not supported by CPU");
+        }
+
+        // IA32_EFER MSR = 0xC000_0080
+        const IA32_EFER: u32 = 0xC000_0080;
         unsafe {
-            // Check if NX is supported
-            let mut cpuid_edx: u32;
+            let mut eax: u32;
+            let mut edx: u32;
             asm!(
-                "cpuid",
-                inout("eax") 0x80000001u32 => _,
-                out("ebx") _,
-                out("ecx") _,
-                out("edx") cpuid_edx,
+                "rdmsr",
+                in("ecx") IA32_EFER,
+                out("eax") eax, out("edx") edx,
+                options(nostack, preserves_flags)
             );
-            
-            if (cpuid_edx & (1 << 20)) == 0 {
-                return Err("NX bit not supported");
-            }
-            
-            // Enable NX bit in EFER MSR
-            let mut efer: u64;
-            asm!("rdmsr", in("ecx") 0xC0000080u32, out("eax") efer, out("edx") _);
-            efer |= 1 << 11; // NXE bit
-            asm!("wrmsr", in("ecx") 0xC0000080u32, in("eax") efer, in("edx") 0);
+            let mut efer = ((edx as u64) << 32) | (eax as u64);
+            efer |= 1 << 11; // NXE
+            let eax2 = (efer & 0xFFFF_FFFF) as u32;
+            let edx2 = (efer >> 32) as u32;
+            asm!(
+                "wrmsr",
+                in("ecx") IA32_EFER,
+                in("eax") eax2, in("edx") edx2,
+                options(nostack, preserves_flags)
+            );
         }
-        
-        let mut flags = self.protection_flags.lock();
-        flags.nx_enabled = true;
-        
+
+        self.protection_flags.lock().nx_enabled = true;
         Ok(())
     }
-    
-    /// Setup initial page tables with real memory layout
+
+    /// Allocate a blank PML4 and minimally load it into CR3 (no mappings done here).
     fn setup_initial_page_tables(&self) -> Result<(), &'static str> {
-        // Allocate PML4 table
-        let pml4_frame = self.allocate_page_table_frame()?;
-        let pml4_virt = self.frame_to_virt(pml4_frame);
-        
-        // Clear PML4 table
+        let pml4 = self.allocate_page_table_frame()?;
+        // Zero the PML4
+        let pml4_va = self.frame_to_virt(pml4);
         unsafe {
-            core::ptr::write_bytes(pml4_virt.as_mut_ptr::<u64>(), 0, 512);
+            core::ptr::write_bytes(pml4_va.as_mut_ptr::<u64>(), 0, 512);
         }
-        
-        // Map kernel space (higher half)
-        self.map_kernel_space(pml4_virt)?;
-        
-        // Map user space (lower half)  
-        self.map_user_space(pml4_virt)?;
-        
-        // Load new page table
-        self.load_page_table(pml4_frame)?;
-        
+        self.load_page_table(pml4)?;
         Ok(())
     }
-    
-    /// Map kernel space with proper permissions
-    fn map_kernel_space(&self, pml4_virt: VirtAddr) -> Result<(), &'static str> {
-        // Map kernel code (read-only, executable)
-        self.map_memory_range(
-            pml4_virt,
-            VirtAddr::new(0xFFFF800000000000), // Kernel start
-            PhysAddr::new(0x100000),           // Physical kernel start
-            0x400000,                          // 4MB kernel
-            PagePermissions {
-                writable: false,
-                user_accessible: false,
-                executable: true,
-                cache_disabled: false,
-            }
-        )?;
-        
-        // Map kernel data (read-write, non-executable)
-        self.map_memory_range(
-            pml4_virt,
-            VirtAddr::new(0xFFFF800000400000), // Kernel data start
-            PhysAddr::new(0x500000),           // Physical data start
-            0x400000,                          // 4MB data
-            PagePermissions {
-                writable: true,
-                user_accessible: false,
-                executable: false,
-                cache_disabled: false,
-            }
-        )?;
-        
-        Ok(())
-    }
-    
-    /// Map user space with restricted permissions
-    fn map_user_space(&self, pml4_virt: VirtAddr) -> Result<(), &'static str> {
-        // Map user code (read-only, executable, user accessible)
-        self.map_memory_range(
-            pml4_virt,
-            VirtAddr::new(0x400000),     // User code start
-            PhysAddr::new(0x1000000),    // Physical user start
-            0x100000,                    // 1MB user space
-            PagePermissions {
-                writable: false,
-                user_accessible: true,
-                executable: true,
-                cache_disabled: false,
-            }
-        )?;
-        
-        Ok(())
-    }
-    
-    /// Real memory range mapping with 4-level page tables
+
+    /// Map a virtual range with given permissions using a raw 4-level walk.
+    /// Intended for early boot/platform bring-up. Prefer memory::virt for normal use.
     fn map_memory_range(
         &self,
         pml4_virt: VirtAddr,
@@ -218,20 +178,17 @@ impl RealMMU {
         size: usize,
         permissions: PagePermissions,
     ) -> Result<(), &'static str> {
-        let page_size = 4096;
-        let num_pages = (size + page_size - 1) / page_size;
-        
-        for i in 0..num_pages {
-            let virt_addr = VirtAddr::new(virt_start.as_u64() + (i * page_size) as u64);
-            let phys_addr = PhysAddr::new(phys_start.as_u64() + (i * page_size) as u64);
-            
-            self.map_single_page(pml4_virt, virt_addr, phys_addr, permissions)?;
+        let page_size = 4096usize;
+        let pages = (size + page_size - 1) / page_size;
+        for i in 0..pages {
+            let va = VirtAddr::new(virt_start.as_u64() + (i * page_size) as u64);
+            let pa = PhysAddr::new(phys_start.as_u64() + (i * page_size) as u64);
+            self.map_single_page(pml4_virt, va, pa, permissions)?;
         }
-        
         Ok(())
     }
-    
-    /// Map single 4KB page with real page table manipulation
+
+    /// Map a single 4 KiB page by building intermediate tables as needed.
     fn map_single_page(
         &self,
         pml4_virt: VirtAddr,
@@ -239,165 +196,144 @@ impl RealMMU {
         phys_addr: PhysAddr,
         permissions: PagePermissions,
     ) -> Result<(), &'static str> {
-        // Extract page table indices from virtual address
         let pml4_index = (virt_addr.as_u64() >> 39) & 0x1FF;
         let pdpt_index = (virt_addr.as_u64() >> 30) & 0x1FF;
         let pd_index = (virt_addr.as_u64() >> 21) & 0x1FF;
         let pt_index = (virt_addr.as_u64() >> 12) & 0x1FF;
-        
+
         unsafe {
-            // Get PML4 entry
+            // PML4
             let pml4_table = pml4_virt.as_ptr::<u64>();
-            let pml4_entry = pml4_table.add(pml4_index as usize);
-            
-            // Ensure PDPT exists
-            let pdpt_phys = if (*pml4_entry & 1) == 0 {
-                // Allocate new PDPT
-                let pdpt_frame = self.allocate_page_table_frame()?;
-                let pdpt_virt = self.frame_to_virt(pdpt_frame);
-                core::ptr::write_bytes(pdpt_virt.as_mut_ptr::<u64>(), 0, 512);
-                
-                *pml4_entry = pdpt_frame.as_u64() | 0x3; // Present + Writable
-                pdpt_frame
+            let pml4_entry_ptr = pml4_table.add(pml4_index as usize);
+            let pdpt_phys = if (*pml4_entry_ptr & 1) == 0 {
+                let f = self.allocate_page_table_frame()?;
+                let v = self.frame_to_virt(f);
+                core::ptr::write_bytes(v.as_mut_ptr::<u64>(), 0, 512);
+                *pml4_entry_ptr = f.as_u64() | 0x3; // Present|Writable
+                f
             } else {
-                PhysAddr::new(*pml4_entry & 0x000FFFFFFFFFF000)
+                PhysAddr::new(*pml4_entry_ptr & 0x000F_FFFF_FFFF_F000)
             };
-            
-            // Get PDPT entry
+
+            // PDPT
             let pdpt_virt = self.frame_to_virt(pdpt_phys);
-            let pdpt_table = pdpt_virt.as_ptr::<u64>();
-            let pdpt_entry = pdpt_table.add(pdpt_index as usize);
-            
-            // Ensure PD exists
-            let pd_phys = if (*pdpt_entry & 1) == 0 {
-                let pd_frame = self.allocate_page_table_frame()?;
-                let pd_virt = self.frame_to_virt(pd_frame);
-                core::ptr::write_bytes(pd_virt.as_mut_ptr::<u64>(), 0, 512);
-                
-                *pdpt_entry = pd_frame.as_u64() | 0x3;
-                pd_frame
+            let pdpt_entry_ptr = pdpt_virt.as_ptr::<u64>().add(pdpt_index as usize);
+            let pd_phys = if (*pdpt_entry_ptr & 1) == 0 {
+                let f = self.allocate_page_table_frame()?;
+                let v = self.frame_to_virt(f);
+                core::ptr::write_bytes(v.as_mut_ptr::<u64>(), 0, 512);
+                *pdpt_entry_ptr = f.as_u64() | 0x3;
+                f
             } else {
-                PhysAddr::new(*pdpt_entry & 0x000FFFFFFFFFF000)
+                PhysAddr::new(*pdpt_entry_ptr & 0x000F_FFFF_FFFF_F000)
             };
-            
-            // Get PD entry
+
+            // PD
             let pd_virt = self.frame_to_virt(pd_phys);
-            let pd_table = pd_virt.as_ptr::<u64>();
-            let pd_entry = pd_table.add(pd_index as usize);
-            
-            // Ensure PT exists
-            let pt_phys = if (*pd_entry & 1) == 0 {
-                let pt_frame = self.allocate_page_table_frame()?;
-                let pt_virt = self.frame_to_virt(pt_frame);
-                core::ptr::write_bytes(pt_virt.as_mut_ptr::<u64>(), 0, 512);
-                
-                *pd_entry = pt_frame.as_u64() | 0x3;
-                pt_frame
+            let pd_entry_ptr = pd_virt.as_ptr::<u64>().add(pd_index as usize);
+            let pt_phys = if (*pd_entry_ptr & 1) == 0 {
+                let f = self.allocate_page_table_frame()?;
+                let v = self.frame_to_virt(f);
+                core::ptr::write_bytes(v.as_mut_ptr::<u64>(), 0, 512);
+                *pd_entry_ptr = f.as_u64() | 0x3;
+                f
             } else {
-                PhysAddr::new(*pd_entry & 0x000FFFFFFFFFF000)
+                PhysAddr::new(*pd_entry_ptr & 0x000F_FFFF_FFFF_F000)
             };
-            
-            // Set final page table entry
+
+            // PT
             let pt_virt = self.frame_to_virt(pt_phys);
-            let pt_table = pt_virt.as_ptr::<u64>();
-            let pt_entry = pt_table.add(pt_index as usize);
-            
-            let mut entry_flags = 1u64; // Present
-            if permissions.writable { entry_flags |= 2; }           // Writable
-            if permissions.user_accessible { entry_flags |= 4; }   // User
-            if !permissions.executable { entry_flags |= 1 << 63; } // NX
-            if permissions.cache_disabled { entry_flags |= 16; }   // PCD
-            
-            *pt_entry = phys_addr.as_u64() | entry_flags;
+            let pt_entry_ptr = pt_virt.as_ptr::<u64>().add(pt_index as usize);
+
+            // Enforce W^X: if executable, cannot be writable
+            if permissions.executable && permissions.writable {
+                return Err("W^X violation: requested RW+X");
+            }
+
+            let mut entry = phys_addr.as_u64() | 1; // Present
+            if permissions.writable { entry |= 1 << 1; }       // W
+            if permissions.user_accessible { entry |= 1 << 2; } // U/S
+            if permissions.cache_disabled { entry |= 1 << 4; }  // PCD
+            if !permissions.executable { entry |= 1u64 << 63; } // NX
+
+            *pt_entry_ptr = entry;
         }
-        
-        // Cache page table entry
+
+        // Cache best-effort shadow
         let mut cache = self.page_tables.write();
-        cache.insert(virt_addr.as_u64(), PageTableEntry {
-            present: true,
-            writable: permissions.writable,
-            user_accessible: permissions.user_accessible,
-            write_through: false,
-            cache_disabled: permissions.cache_disabled,
-            accessed: false,
-            dirty: false,
-            huge_page: false,
-            global: false,
-            no_execute: !permissions.executable,
-            physical_address: phys_addr.as_u64(),
-        });
-        
+        cache.insert(
+            virt_addr.as_u64(),
+            PageTableEntry {
+                present: true,
+                writable: permissions.writable,
+                user_accessible: permissions.user_accessible,
+                write_through: false,
+                cache_disabled: permissions.cache_disabled,
+                accessed: false,
+                dirty: false,
+                huge_page: false,
+                global: false,
+                no_execute: !permissions.executable,
+                physical_address: phys_addr.as_u64(),
+            },
+        );
+
         Ok(())
     }
-    
-    /// Load page table into CR3 register
+
     fn load_page_table(&self, pml4_frame: PhysAddr) -> Result<(), &'static str> {
         unsafe {
-            asm!("mov cr3, {}", in(reg) pml4_frame.as_u64());
+            asm!("mov cr3, {}", in(reg) pml4_frame.as_u64(), options(nostack, preserves_flags));
         }
-        
         *self.current_cr3.lock() = pml4_frame.as_u64();
-        
-        // Invalidate TLB
         self.invalidate_tlb_all();
-        
-        crate::log::logger::log_info!("Loaded new page table at 0x{:x}", pml4_frame.as_u64());
+        crate::log::logger::log_info!("CR3 <- {:#x}", pml4_frame.as_u64());
         Ok(())
     }
-    
-    /// Real TLB invalidation
+
     pub fn invalidate_tlb_all(&self) {
         unsafe {
-            // Flush entire TLB by reloading CR3
             let cr3: u64;
-            asm!("mov {}, cr3", out(reg) cr3);
-            asm!("mov cr3, {}", in(reg) cr3);
+            asm!("mov {}, cr3", out(reg) cr3, options(nostack, preserves_flags));
+            asm!("mov cr3, {}", in(reg) cr3, options(nostack, preserves_flags));
         }
     }
-    
-    /// Invalidate specific TLB entry
+
     pub fn invalidate_tlb_page(&self, virt_addr: VirtAddr) {
-        unsafe {
-            asm!("invlpg [{}]", in(reg) virt_addr.as_u64());
-        }
-        
-        // Add to invalidation queue for other CPUs
-        let mut queue = self.tlb_invalidation_queue.lock();
-        queue.push(virt_addr);
+        unsafe { asm!("invlpg [{}]", in(reg) virt_addr.as_u64(), options(nostack, preserves_flags)) }
+        self.tlb_invalidation_queue.lock().push(virt_addr);
     }
-    
-    /// Allocate frame for page table
+
     fn allocate_page_table_frame(&self) -> Result<PhysAddr, &'static str> {
-        // Use frame allocator to get physical page
-        crate::memory::frame_alloc::allocate_frame()
-            .ok_or("Failed to allocate page table frame")
+        frame_alloc::allocate_frame().ok_or("Failed to allocate page table frame")
     }
-    
-    /// Convert physical frame to virtual address for manipulation
+
+    #[inline]
     fn frame_to_virt(&self, frame: PhysAddr) -> VirtAddr {
-        // Direct mapping in higher half
-        VirtAddr::new(0xFFFF800000000000 + frame.as_u64())
+        // Use the higher-half direct offset used elsewhere in the kernel
+        VirtAddr::new(KERNEL_BASE + frame.as_u64())
     }
-    
-    /// Real memory protection change
+
+    /// Update permissions of an existing mapping. Enforces W^X.
     pub fn change_page_protection(
         &self,
         virt_addr: VirtAddr,
         new_permissions: PagePermissions,
     ) -> Result<(), &'static str> {
-        // Walk page tables to find entry
-        let current_cr3 = *self.current_cr3.lock();
-        let pml4_virt = self.frame_to_virt(PhysAddr::new(current_cr3));
-        
-        // Update page table entry with new permissions
+        if new_permissions.executable && new_permissions.writable {
+            return Err("W^X violation: RW+X not allowed");
+        }
+
+        let cr3 = *self.current_cr3.lock();
+        if cr3 == 0 {
+            return Err("CR3 not initialized");
+        }
+        let pml4_virt = self.frame_to_virt(PhysAddr::new(cr3));
         self.update_page_entry(pml4_virt, virt_addr, new_permissions)?;
-        
-        // Invalidate TLB for this page
         self.invalidate_tlb_page(virt_addr);
-        
         Ok(())
     }
-    
+
     fn update_page_entry(
         &self,
         pml4_virt: VirtAddr,
@@ -408,60 +344,80 @@ impl RealMMU {
         let pdpt_index = (virt_addr.as_u64() >> 30) & 0x1FF;
         let pd_index = (virt_addr.as_u64() >> 21) & 0x1FF;
         let pt_index = (virt_addr.as_u64() >> 12) & 0x1FF;
-        
+
         unsafe {
-            // Walk to page table entry
+            // Walk tables
             let pml4_table = pml4_virt.as_ptr::<u64>();
             let pml4_entry = *pml4_table.add(pml4_index as usize);
-            if (pml4_entry & 1) == 0 { return Err("Page not mapped"); }
-            
-            let pdpt_virt = self.frame_to_virt(PhysAddr::new(pml4_entry & 0x000FFFFFFFFFF000));
-            let pdpt_table = pdpt_virt.as_ptr::<u64>();
-            let pdpt_entry = *pdpt_table.add(pdpt_index as usize);
-            if (pdpt_entry & 1) == 0 { return Err("Page not mapped"); }
-            
-            let pd_virt = self.frame_to_virt(PhysAddr::new(pdpt_entry & 0x000FFFFFFFFFF000));
-            let pd_table = pd_virt.as_ptr::<u64>();
-            let pd_entry = *pd_table.add(pd_index as usize);
-            if (pd_entry & 1) == 0 { return Err("Page not mapped"); }
-            
-            let pt_virt = self.frame_to_virt(PhysAddr::new(pd_entry & 0x000FFFFFFFFFF000));
-            let pt_table = pt_virt.as_ptr::<u64>();
-            let pt_entry_ptr = pt_table.add(pt_index as usize);
+            if (pml4_entry & 1) == 0 { return Err("Not mapped"); }
+
+            let pdpt_virt = self.frame_to_virt(PhysAddr::new(pml4_entry & 0x000F_FFFF_FFFF_F000));
+            let pdpt_entry = *pdpt_virt.as_ptr::<u64>().add(pdpt_index as usize);
+            if (pdpt_entry & 1) == 0 { return Err("Not mapped"); }
+
+            let pd_virt = self.frame_to_virt(PhysAddr::new(pdpt_entry & 0x000F_FFFF_FFFF_F000));
+            let pd_entry = *pd_virt.as_ptr::<u64>().add(pd_index as usize);
+            if (pd_entry & 1) == 0 { return Err("Not mapped"); }
+
+            let pt_virt = self.frame_to_virt(PhysAddr::new(pd_entry & 0x000F_FFFF_FFFF_F000));
+            let pt_entry_ptr = pt_virt.as_ptr::<u64>().add(pt_index as usize);
             let old_entry = *pt_entry_ptr;
-            
-            if (old_entry & 1) == 0 { return Err("Page not mapped"); }
-            
-            // Update permissions while preserving physical address
-            let phys_addr = old_entry & 0x000FFFFFFFFFF000;
-            let mut new_entry = phys_addr | 1; // Present
-            
-            if permissions.writable { new_entry |= 2; }
-            if permissions.user_accessible { new_entry |= 4; }
-            if !permissions.executable { new_entry |= 1 << 63; }
-            if permissions.cache_disabled { new_entry |= 16; }
-            
+            if (old_entry & 1) == 0 { return Err("Not mapped"); }
+
+            // Enforce W^X again here
+            if permissions.executable && permissions.writable {
+                return Err("W^X violation: RW+X not allowed");
+            }
+
+            let phys = old_entry & 0x000F_FFFF_FFFF_F000;
+            let mut new_entry = phys | 1;
+            if permissions.writable { new_entry |= 1 << 1; }
+            if permissions.user_accessible { new_entry |= 1 << 2; }
+            if permissions.cache_disabled { new_entry |= 1 << 4; }
+            if !permissions.executable { new_entry |= 1u64 << 63; }
+
             *pt_entry_ptr = new_entry;
         }
-        
+
         Ok(())
+    }
+
+    // Example helpers to quickly map kernel/user ranges (kept minimal).
+    pub fn map_kernel_space_example(&self, pml4_virt: VirtAddr) -> Result<(), &'static str> {
+        self.map_memory_range(
+            pml4_virt,
+            VirtAddr::new(0xFFFF_8000_0000_0000),
+            PhysAddr::new(0x0010_0000),
+            0x0040_0000,
+            PagePermissions { writable: false, user_accessible: false, executable: true, cache_disabled: false },
+        )?;
+        self.map_memory_range(
+            pml4_virt,
+            VirtAddr::new(0xFFFF_8000_0040_0000),
+            PhysAddr::new(0x0050_0000),
+            0x0040_0000,
+            PagePermissions { writable: true, user_accessible: false, executable: false, cache_disabled: false },
+        )?;
+        Ok(())
+    }
+
+    pub fn map_user_space_example(&self, pml4_virt: VirtAddr) -> Result<(), &'static str> {
+        self.map_memory_range(
+            pml4_virt,
+            VirtAddr::new(0x0040_0000),
+            PhysAddr::new(0x0100_0000),
+            0x0010_0000,
+            PagePermissions { writable: false, user_accessible: true, executable: true, cache_disabled: false },
+        )
     }
 }
 
-#[derive(Debug, Clone, Copy)]
-pub struct PagePermissions {
-    pub writable: bool,
-    pub user_accessible: bool,
-    pub executable: bool,
-    pub cache_disabled: bool,
-}
+// Global instance
 
-// Global MMU instance
-use spin::Once;
 static REAL_MMU: Once<RealMMU> = Once::new();
 
 pub fn init_real_mmu() -> Result<(), &'static str> {
-    let mmu = REAL_MMU.call_once(|| RealMMU::new());
+    let mmu = REAL_MMU.call_once(RealMMU::new);
     mmu.initialize()
 }
 
