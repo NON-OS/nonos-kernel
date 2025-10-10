@@ -1,419 +1,199 @@
-//! DMA Memory Management
-//!
-//! Direct Memory Access (DMA) allocator for device drivers with 
-//! physically contiguous memory allocation and cache coherency management.
+// DMA allocator and mapping helpers (coherent and streaming)
 
-use alloc::vec::Vec;
+#![allow(dead_code)]
+
+use core::sync::atomic::{AtomicU64, Ordering};
 use spin::Mutex;
 use x86_64::{PhysAddr, VirtAddr};
-use core::ptr;
 
-/// DMA page allocation result
-#[derive(Clone)]
+use crate::memory::nonos_phys as phys;
+use crate::memory::nonos_phys::{AllocFlags};
+use crate::memory::virt::{self, VmFlags};
+use crate::memory::layout::PAGE_SIZE;
+
+pub type PhysicalAddress = PhysAddr;
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum DmaDir {
+    ToDevice,
+    FromDevice,
+    Bidirectional,
+}
+
+#[derive(Debug, Clone, Copy)]
 pub struct DmaPage {
-    pub virt_addr: VirtAddr,
+    pub virt: VirtAddr,
     pub phys_addr: PhysAddr,
     pub size: usize,
 }
 
-impl DmaPage {
-    /// Get physical address
-    pub fn phys_addr(&self) -> PhysAddr {
-        self.phys_addr
-    }
-    
-    /// Get virtual address
-    pub fn virt_addr(&self) -> VirtAddr {
-        self.virt_addr
-    }
+#[derive(Debug)]
+pub struct DmaMapping {
+    pub dma_addr: PhysAddr,
+    pub len: usize,
+    // If we had to bounce due to addressability/contiguity, store the bounce.
+    pub bounce: Option<DmaPage>,
+    pub dir: DmaDir,
+    // Original buffer for sync-back when needed.
+    orig_va: VirtAddr,
 }
 
-/// Physical address type for compatibility
-pub type PhysicalAddress = PhysAddr;
+const DMA_VA_BASE_64: u64 = 0xFFFF_9800_0000_0000;
+const DMA_VA_END_64:  u64 = 0xFFFF_9A00_0000_0000;
 
-/// DMA memory pool for managing physically contiguous allocations
-struct DmaPool {
-    free_pages: Vec<DmaPage>,
-    allocated_pages: Vec<DmaPage>,
-    total_size: usize,
-    used_size: usize,
+const DMA_VA_BASE_32: u64 = 0xFFFF_9A00_0000_0000;
+const DMA_VA_END_32:  u64 = 0xFFFF_9B00_0000_0000;
+
+static DMA_NEXT_64: AtomicU64 = AtomicU64::new(DMA_VA_BASE_64);
+static DMA_NEXT_32: AtomicU64 = AtomicU64::new(DMA_VA_BASE_32);
+
+#[inline]
+fn dma_flags_coherent() -> VmFlags {
+    // RW, non-executable, global, cache disabled for coherency.
+    VmFlags::RW | VmFlags::NX | VmFlags::GLOBAL | VmFlags::PCD | VmFlags::PWT
 }
 
-impl DmaPool {
-    fn new() -> Self {
-        Self {
-            free_pages: Vec::new(),
-            allocated_pages: Vec::new(),
-            total_size: 0,
-            used_size: 0,
-        }
-    }
-
-    fn allocate(&mut self, size: usize) -> Result<DmaPage, &'static str> {
-        // Round up to page size
-        let aligned_size = (size + 4095) & !4095;
-
-        // Try to find a suitable free page
-        for (i, page) in self.free_pages.iter().enumerate() {
-            if page.size >= aligned_size {
-                let allocated_page = self.free_pages.remove(i);
-                
-                // If the page is larger than needed, split it
-                if allocated_page.size > aligned_size {
-                    let remaining_page = DmaPage {
-                        virt_addr: allocated_page.virt_addr + aligned_size,
-                        phys_addr: allocated_page.phys_addr + aligned_size,
-                        size: allocated_page.size - aligned_size,
-                    };
-                    self.free_pages.push(remaining_page);
-                }
-
-                let result = DmaPage {
-                    virt_addr: allocated_page.virt_addr,
-                    phys_addr: allocated_page.phys_addr,
-                    size: aligned_size,
-                };
-
-                self.allocated_pages.push(result.clone());
-                self.used_size += aligned_size;
-                
-                return Ok(result);
-            }
-        }
-
-        // No suitable free page found, allocate new memory
-        self.allocate_new_page(aligned_size)
-    }
-
-    fn allocate_new_page(&mut self, size: usize) -> Result<DmaPage, &'static str> {
-        // Use physical memory allocator to get physically contiguous pages
-        let num_pages = (size + 4095) / 4096;
-        
-        // Allocate physical memory
-        let phys_frame = crate::memory::phys::alloc_frames(num_pages)
-            .ok_or("Failed to allocate physical memory")?;
-        
-        let phys_addr = PhysAddr::new(phys_frame * 4096);
-        
-        // Map physical memory to virtual address space
-        let virt_addr = crate::memory::virt::map_physical_memory(phys_addr, size)
-            .map_err(|_| "Failed to map DMA memory")?;
-
-        let page = DmaPage {
-            virt_addr,
-            phys_addr,
-            size,
-        };
-
-        self.allocated_pages.push(page.clone());
-        self.total_size += size;
-        self.used_size += size;
-
-        Ok(page)
-    }
-
-    fn deallocate(&mut self, page: DmaPage) -> Result<(), &'static str> {
-        // Find and remove from allocated pages
-        let index = self.allocated_pages.iter().position(|p| {
-            p.virt_addr == page.virt_addr && p.phys_addr == page.phys_addr
-        }).ok_or("Page not found in allocated list")?;
-
-        let _allocated_page = self.allocated_pages.remove(index);
-        self.used_size -= page.size;
-
-        // Zero out the memory for security
-        unsafe {
-            ptr::write_bytes(page.virt_addr.as_mut_ptr::<u8>(), 0, page.size);
-        }
-
-        // Add to free list
-        self.free_pages.push(page);
-
-        // Try to coalesce adjacent free pages
-        self.coalesce_free_pages();
-
-        Ok(())
-    }
-
-    fn coalesce_free_pages(&mut self) {
-        // Sort free pages by virtual address
-        self.free_pages.sort_by_key(|page| page.virt_addr);
-
-        let mut i = 0;
-        while i < self.free_pages.len().saturating_sub(1) {
-            let current_end = self.free_pages[i].virt_addr + self.free_pages[i].size;
-            let next_start = self.free_pages[i + 1].virt_addr;
-
-            // Check if pages are adjacent
-            if current_end == next_start {
-                // Merge pages
-                let next_page = self.free_pages.remove(i + 1);
-                self.free_pages[i].size += next_page.size;
-            } else {
-                i += 1;
-            }
-        }
-    }
-
-    fn get_stats(&self) -> DmaStats {
-        DmaStats {
-            total_size: self.total_size,
-            used_size: self.used_size,
-            free_size: self.total_size - self.used_size,
-            allocated_pages: self.allocated_pages.len(),
-            free_pages: self.free_pages.len(),
-        }
-    }
+fn alloc_dma_va_64(pages: usize) -> Option<VirtAddr> {
+    let bytes = (pages * PAGE_SIZE) as u64;
+    let base = DMA_NEXT_64
+        .fetch_update(Ordering::SeqCst, Ordering::SeqCst, |cur| {
+            let next = cur.checked_add(bytes)?;
+            if next > DMA_VA_END_64 { None } else { Some(next) }
+        })
+        .ok()?;
+    Some(VirtAddr::new(base))
 }
 
-/// DMA allocator statistics
-#[derive(Debug, Clone, Copy)]
-pub struct DmaStats {
-    pub total_size: usize,
-    pub used_size: usize,
-    pub free_size: usize,
-    pub allocated_pages: usize,
-    pub free_pages: usize,
+fn alloc_dma_va_32(pages: usize) -> Option<VirtAddr> {
+    let bytes = (pages * PAGE_SIZE) as u64;
+    let base = DMA_NEXT_32
+        .fetch_update(Ordering::SeqCst, Ordering::SeqCst, |cur| {
+            let next = cur.checked_add(bytes)?;
+            if next > DMA_VA_END_32 { None } else { Some(next) }
+        })
+        .ok()?;
+    Some(VirtAddr::new(base))
 }
 
-/// Global DMA allocator
-static DMA_ALLOCATOR: Mutex<Option<DmaPool>> = Mutex::new(None);
+/// Allocate one 4K DMA-coherent page anywhere (<64-bit)
+pub fn alloc_dma_page() -> Option<DmaPage> {
+    alloc_dma_pages_aligned(1, 1, false)
+}
 
-/// Allocate DMA-coherent memory
-pub fn alloc_dma_page(size: usize) -> Result<DmaPage, &'static str> {
-    let mut guard = DMA_ALLOCATOR.lock();
-    if guard.is_none() {
-        return Err("DMA allocator not initialized");
+/// Free a DMA page previously allocated
+pub fn free_dma_page(p: DmaPage) {
+    // Unmap the mapped range; physical frame is returned to phys allocator.
+    let pages = (p.size + PAGE_SIZE - 1) / PAGE_SIZE;
+    let base = VirtAddr::new(p.virt.as_u64() & !((PAGE_SIZE as u64) - 1));
+    for i in 0..pages {
+        let va = VirtAddr::new(base.as_u64() + (i * PAGE_SIZE) as u64);
+        let _ = virt::unmap4k(va);
     }
-    guard.as_mut().unwrap().allocate(size)
+    // Physical frames were freed by unmap4k path; nothing else to do here.
 }
 
-/// Free DMA-coherent memory
-pub fn free_dma_page(page: DmaPage) -> Result<(), &'static str> {
-    let mut guard = DMA_ALLOCATOR.lock();
-    if let Some(allocator) = guard.as_mut() {
-        allocator.deallocate(page)
-    } else {
-        Err("DMA allocator not initialized")
-    }
-}
-
-/// Allocate DMA buffer with specific alignment
-pub fn alloc_dma_aligned(size: usize, alignment: usize) -> Result<DmaPage, &'static str> {
-    if !alignment.is_power_of_two() {
-        return Err("Alignment must be power of two");
-    }
-
-    // Allocate slightly larger buffer to accommodate alignment
-    let padded_size = size + alignment - 1;
-    let page = alloc_dma_page(padded_size)?;
-
-    // Calculate aligned address
-    let aligned_virt = VirtAddr::new((page.virt_addr.as_u64() + alignment as u64 - 1) & !(alignment as u64 - 1));
-    let offset = aligned_virt.as_u64() - page.virt_addr.as_u64();
-    let aligned_phys = PhysAddr::new(page.phys_addr.as_u64() + offset);
-
-    Ok(DmaPage {
-        virt_addr: aligned_virt,
-        phys_addr: aligned_phys,
-        size: size,
-    })
-}
-
-/// Sync DMA buffer for device access (cache coherency)
-pub fn sync_dma_for_device(page: &DmaPage) {
-    // On x86_64, memory is coherent by default, but we might need
-    // to flush write buffers for some devices
-    unsafe {
-        core::arch::asm!("mfence", options(nomem, nostack));
-    }
-}
-
-/// Sync DMA buffer for CPU access (cache coherency)
-pub fn sync_dma_for_cpu(page: &DmaPage) {
-    // On x86_64, memory is coherent by default, but we might need
-    // to invalidate caches in some cases
-    unsafe {
-        core::arch::asm!("mfence", options(nomem, nostack));
-    }
-}
-
-/// Map device memory for MMIO access
-pub fn map_device_memory(phys_addr: PhysAddr, size: usize) -> Result<VirtAddr, &'static str> {
-    crate::memory::virt::map_physical_memory(phys_addr, size)
-        .map_err(|_| "Failed to map device memory")
-}
-
-/// Unmap device memory
-pub fn unmap_device_memory(virt_addr: VirtAddr, size: usize) -> Result<(), &'static str> {
-    crate::memory::virt::unmap_memory(virt_addr, size)
-        .map_err(|_| "Failed to unmap device memory")
-}
-
-/// Initialize DMA allocator with initial memory pool
+/// Initialize DMA allocator (optional, idempotent)
 pub fn init_dma_allocator() -> Result<(), &'static str> {
-    let mut guard = DMA_ALLOCATOR.lock();
-    let mut allocator = DmaPool::new();
-    
-    // Pre-allocate a pool of DMA memory
-    const INITIAL_POOL_SIZE: usize = 16 * 1024 * 1024; // 16MB
-    
-    let initial_page = allocator.allocate_new_page(INITIAL_POOL_SIZE)?;
-    allocator.free_pages.push(initial_page);
-    allocator.used_size -= INITIAL_POOL_SIZE; // It's in free list, not allocated
-    
-    *guard = Some(allocator);
-    
-    crate::log::info!("DMA allocator initialized with {} bytes", INITIAL_POOL_SIZE);
+    // Nothing required; VA windows are static and monotonically carved.
     Ok(())
 }
 
-/// Get DMA allocator statistics
-pub fn get_dma_stats() -> DmaStats {
-    let guard = DMA_ALLOCATOR.lock();
-    guard.as_ref().map_or(
-        DmaStats {
-            total_size: 0,
-            used_size: 0,
-            free_size: 0,
-            allocated_pages: 0,
-            free_pages: 0,
-        },
-        |a| a.get_stats()
-    )
-}
+/// Allocate n contiguous coherent pages, aligned to align_pages (power-of-two).
+/// If must_32bit is true, ensure physical addressability under 4 GiB.
+pub fn alloc_dma_pages_aligned(n_pages: usize, align_pages: usize, must_32bit: bool) -> Option<DmaPage> {
+    assert!(align_pages.is_power_of_two());
+    if n_pages == 0 { return None; }
 
-/// DMA bounce buffer for devices that can't access high memory
-pub struct DmaBounceBuffer {
-    low_page: DmaPage,
-    high_buffer: Option<Vec<u8>>,
-}
+    let frames = phys::alloc_contig(n_pages, align_pages, if must_32bit { AllocFlags::DMA32 } else { AllocFlags::empty() })?;
+    let base_phys = PhysAddr::new(frames.0);
+    let va_base = if must_32bit { alloc_dma_va_32(n_pages)? } else { alloc_dma_va_64(n_pages)? };
+    let flags = dma_flags_coherent();
 
-impl DmaBounceBuffer {
-    /// Create a new bounce buffer
-    pub fn new(size: usize) -> Result<Self, &'static str> {
-        // Allocate DMA memory in low memory (< 4GB) for compatibility
-        let low_page = alloc_dma_page(size)?;
-        
-        Ok(Self {
-            low_page,
-            high_buffer: None,
-        })
-    }
-
-    /// Copy data from high memory buffer to low memory for DMA
-    pub fn copy_to_device(&mut self, data: &[u8]) -> Result<(), &'static str> {
-        if data.len() > self.low_page.size {
-            return Err("Data too large for bounce buffer");
-        }
-
-        unsafe {
-            ptr::copy_nonoverlapping(
-                data.as_ptr(),
-                self.low_page.virt_addr.as_mut_ptr(),
-                data.len()
-            );
-        }
-
-        sync_dma_for_device(&self.low_page);
-        Ok(())
-    }
-
-    /// Copy data from low memory DMA buffer back to high memory
-    pub fn copy_from_device(&self, buffer: &mut [u8]) -> Result<(), &'static str> {
-        if buffer.len() > self.low_page.size {
-            return Err("Buffer too large for bounce buffer");
-        }
-
-        sync_dma_for_cpu(&self.low_page);
-
-        unsafe {
-            ptr::copy_nonoverlapping(
-                self.low_page.virt_addr.as_ptr(),
-                buffer.as_mut_ptr(),
-                buffer.len()
-            );
-        }
-
-        Ok(())
-    }
-
-    /// Get physical address of the low memory buffer
-    pub fn phys_addr(&self) -> PhysAddr {
-        self.low_page.phys_addr
-    }
-
-    /// Get size of the buffer
-    pub fn size(&self) -> usize {
-        self.low_page.size
-    }
-}
-
-impl Drop for DmaBounceBuffer {
-    fn drop(&mut self) {
-        let _ = free_dma_page(self.low_page.clone());
-    }
-}
-
-/// DMA scatter-gather list for complex transfers
-pub struct DmaScatterGather {
-    pub segments: Vec<DmaSegment>,
-    pub total_size: usize,
-}
-
-/// DMA segment for scatter-gather operations
-pub struct DmaSegment {
-    pub page: DmaPage,
-    pub offset: usize,
-    pub length: usize,
-}
-
-impl DmaScatterGather {
-    /// Create a new scatter-gather list
-    pub fn new() -> Self {
-        Self {
-            segments: Vec::new(),
-            total_size: 0,
+    for i in 0..n_pages {
+        let va = VirtAddr::new(va_base.as_u64() + (i * PAGE_SIZE) as u64);
+        let pa = PhysAddr::new(base_phys.as_u64() + (i * PAGE_SIZE) as u64);
+        if let Err(_e) = virt::map4k_at(va, pa, flags) {
+            // rollback on failure
+            for j in 0..i {
+                let va_j = VirtAddr::new(va_base.as_u64() + (j * PAGE_SIZE) as u64);
+                let _ = virt::unmap4k(va_j);
+            }
+            // leak of frames would be bad; attempt to free the contiguous region
+            phys::free_contig(phys::Frame(base_phys.as_u64()), n_pages);
+            return None;
         }
     }
 
-    /// Add a segment to the scatter-gather list
-    pub fn add_segment(&mut self, data: &[u8]) -> Result<(), &'static str> {
-        let page = alloc_dma_page(data.len())?;
-        
-        // Copy data to DMA buffer
-        unsafe {
-            ptr::copy_nonoverlapping(
-                data.as_ptr(),
-                page.virt_addr.as_mut_ptr(),
-                data.len()
-            );
-        }
-
-        sync_dma_for_device(&page);
-
-        self.segments.push(DmaSegment {
-            page,
-            offset: 0,
-            length: data.len(),
-        });
-
-        self.total_size += data.len();
-        Ok(())
-    }
-
-    /// Get physical addresses for hardware scatter-gather
-    pub fn get_physical_segments(&self) -> Vec<(PhysAddr, usize)> {
-        self.segments.iter().map(|seg| {
-            (seg.page.phys_addr + seg.offset, seg.length)
-        }).collect()
-    }
+    Some(DmaPage { virt: va_base, phys_addr: base_phys, size: n_pages * PAGE_SIZE })
 }
 
-impl Drop for DmaScatterGather {
-    fn drop(&mut self) {
-        for segment in &self.segments {
-            let _ = free_dma_page(segment.page.clone());
+/// Streaming map: Establish a DMA address for a buffer. If the buffer is fully
+/// physically contiguous and satisfies constraints, returns direct mapping;
+/// otherwise uses a coherent bounce buffer and returns that DMA address.
+///
+/// Caller must keep DmaMapping alive for the duration and call unmap_streaming().
+pub fn map_streaming(buf_va: VirtAddr, len: usize, dir: DmaDir, require_32bit: bool) -> Option<DmaMapping> {
+    if len == 0 { return None; }
+
+    // Try to translate the first page and see if the entire range is contiguous.
+    let (first_pa, _fl, _sz) = crate::memory::virt::translate(buf_va).ok()?;
+    let first_off = (buf_va.as_u64() & (PAGE_SIZE as u64 - 1)) as usize;
+
+    let mut checked = PAGE_SIZE - first_off.min(PAGE_SIZE);
+    let mut cur_pa = first_pa;
+
+    while checked < len {
+        let va = VirtAddr::new((buf_va.as_u64() & !0xFFF) + (checked as u64));
+        let (pa, _f, _s) = crate::memory::virt::translate(va).ok()?;
+        let expected = PhysAddr::new(cur_pa.as_u64() + (PAGE_SIZE as u64));
+        if pa != expected {
+            // non-contiguous
+            break;
         }
+        cur_pa = pa;
+        checked += PAGE_SIZE;
+    }
+
+    let fully_contig = checked >= len;
+
+    if fully_contig {
+        let dma_start = PhysAddr::new(first_pa.as_u64() + first_off as u64);
+        if require_32bit && dma_start.as_u64().saturating_add(len as u64) > (1u64 << 32) {
+            // use bounce due to addressability
+        } else {
+            return Some(DmaMapping { dma_addr: dma_start, len, bounce: None, dir, orig_va: buf_va });
+        }
+    }
+
+    // Bounce path: allocate coherent region and copy if host->device
+    let pages = ((len + first_off + PAGE_SIZE - 1) / PAGE_SIZE).max(1);
+    let bounce = alloc_dma_pages_aligned(pages, 1, require_32bit)?;
+    let dst = unsafe { core::slice::from_raw_parts_mut(bounce.virt.as_mut_ptr::<u8>().add(first_off), len) };
+    let src = unsafe { core::slice::from_raw_parts(buf_va.as_ptr::<u8>(), len) };
+
+    if matches!(dir, DmaDir::ToDevice | DmaDir::Bidirectional) {
+        dst.copy_from_slice(src);
+    }
+
+    Some(DmaMapping {
+        dma_addr: PhysAddr::new(bounce.phys_addr.as_u64() + first_off as u64),
+        len,
+        bounce: Some(bounce),
+        dir,
+        orig_va: buf_va,
+    })
+}
+
+/// Unmap streaming mapping; if FromDevice/Bidirectional with bounce, copy back.
+pub fn unmap_streaming(map: DmaMapping) {
+    if let Some(b) = map.bounce {
+        if matches!(map.dir, DmaDir::FromDevice | DmaDir::Bidirectional) {
+            let src = unsafe { core::slice::from_raw_parts(b.virt.as_ptr::<u8>(), b.size) };
+            let off = (map.dma_addr.as_u64() - b.phys_addr.as_u64()) as usize;
+            let len = map.len.min(b.size.saturating_sub(off));
+            let dst = unsafe { core::slice::from_raw_parts_mut(map.orig_va.as_mut_ptr::<u8>(), len) };
+            dst.copy_from_slice(&src[off..off + len]);
+        }
+        free_dma_page(b);
     }
 }
