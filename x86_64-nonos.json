@@ -1,31 +1,44 @@
 {
   "llvm-target": "x86_64-unknown-none",
-  "data-layout": "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-i128:128-f80:128-n8:16:32:64-S128",
   "arch": "x86_64",
-  "target-endian": "little",
-  "target-pointer-width": "64",
-  "target-c-int-width": 32,
+  "vendor": "nonos",
   "os": "none",
-  "vendor": "unknown",
+  "env": "",
+  "data-layout": "e-m:e-i64:64-f80:128-n8:16:32:64-S128",
+
+  "target-endian": "little",
+  "target-pointer-width": 64,
+  "target-c-int-width": "32",
+
   "executables": true,
-  "linker-flavor": "ld.lld",
-  "linker": "rust-lld",
   "panic-strategy": "abort",
   "disable-redzone": true,
+
+  // Keep frame pointers for sanity in interrupts/backtraces
+  "frame-pointer": "always",
+
+  // Conservative CPU/features for kernel bring-up
+  "cpu": "x86-64",
   "features": "-mmx,-sse3,-ssse3,-sse4.1,-sse4.2,-avx,-avx2",
+
+  "linker-flavor": "ld.lld",
+  "linker": "rust-lld",
+
+  // Use the kernel linker script
   "pre-link-args": {
     "ld.lld": [
-      "--script=simple_linker.ld"
+      "--script=linker.ld"
     ]
   },
+
   "relocation-model": "static",
   "code-model": "small",
   "position-independent-executables": false,
   "static-position-independent-executables": false,
-  "exe-suffix": "",
-  "has-rpath": false,
+
   "no-default-libraries": true,
-  "stack-probes": {
-    "kind": "inline"
-  }
+  "has-rpath": false,
+
+  // Inline stack probes so no external runtime is needed
+  "stack-probes": { "kind": "inline" }
 }
