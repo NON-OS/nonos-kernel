@@ -24,12 +24,20 @@ pub use nonos_network_stack::{
 
 extern crate alloc;
 
-/// Bring up base network + onion router.
+/// Bring up base network + TLS + onion router.
 /// Call this once during system initialization (after NIC registration).
 pub fn init() {
+    // 1) Base stack
     init_network_stack();
 
-    // Initialize onion routing stack (directory + circuits); errors are logged.
+    // 2) TLS stack (crypto + strict link certificate verifier)
+    if let Err(e) = onion::tls::init_tls_stack_production(&onion::tls::KERNEL_TLS_CRYPTO) {
+        crate::log::error!("tls: init failed: {:?}", e);
+    } else {
+        crate::log::info!("tls: production crypto/verifier initialized");
+    }
+
+    // 3) Onion routing stack (directory + circuits)
     if let Err(e) = onion::init_onion_router() {
         crate::log::error!("onion: init failed: {:?}", e);
     } else {
@@ -54,7 +62,7 @@ pub fn configure_ipv4(ip: [u8; 4], prefix: u8, gateway: Option<[u8; 4]>, dns_v4:
 }
 
 /// Network daemon loop: runs periodic maintenance for subsystems.
-/// A dedicated worker to keep timers and housekeeping active.
+/// On a dedicated worker to keep timers and housekeeping active.
 pub fn run_network_stack() {
     loop {
         // Onion maintenance: circuit timeouts, security checks
