@@ -15,14 +15,13 @@ use smoltcp::phy::{ChecksumCapabilities, Device as SmolPhyDevice, DeviceCapabili
 use smoltcp::socket::{tcp, udp};
 use smoltcp::time::{Duration as SmolDuration, Instant as SmolInstant};
 use smoltcp::wire::{
-    EthernetAddress, HardwareAddress, IpAddress as SmolIpAddress, IpCidr, Ipv4Address, Ipv4Cidr, Ipv6Address,
-    Ipv4Gateway,
+    EthernetAddress, HardwareAddress, IpAddress as SmolIpAddress, IpCidr, Ipv4Address, Ipv4Cidr, Ipv4Gateway,
+    Ipv6Address,
 };
 
-// Public re-exports expected by network/mod.rs
 pub use super::ip::IpAddress;
 
-/// TcpSocket wrapper for API symmetry; carries a connection id.
+/// Public TcpSocket wrapper used by callers.
 #[derive(Debug, Clone)]
 pub struct TcpSocket {
     id: u32,
@@ -34,6 +33,17 @@ impl TcpSocket {
     }
     pub fn connection_id(&self) -> u32 { self.id }
     pub fn from_connection(id: u32) -> Self { Self { id, remote_port: 0 } }
+}
+
+/// Legacy "Socket" shim type used in onion/relay.rs
+#[derive(Debug, Clone)]
+pub struct Socket {
+    conn_id: Option<u32>,
+}
+impl Socket {
+    pub fn new() -> Self { Self { conn_id: None } }
+    pub fn for_connection(id: u32) -> Self { Self { conn_id: Some(id) } }
+    pub fn connection_id(&self) -> Option<u32> { self.conn_id }
 }
 
 static NEXT_ID: AtomicU32 = AtomicU32::new(1);
@@ -65,11 +75,8 @@ pub struct NetworkStack {
 
 static STACK: Once<NetworkStack> = Once::new();
 
-// ===== Public entry points =====
-
 pub fn init_network_stack() {
     STACK.call_once(|| {
-        // Device adapter: loopback if no NIC registered
         let dev = SmolDeviceAdapter;
 
         // Interface configuration
@@ -93,7 +100,7 @@ pub fn init_network_stack() {
             conns: Mutex::new(BTreeMap::new()),
             next_id: AtomicU32::new(1),
             stats: Mutex::new(NetworkStats::default()),
-            default_dns_v4: Mutex::new(Ipv4Address::new(1, 1, 1, 1)), // Cloudflare by default
+            default_dns_v4: Mutex::new(Ipv4Address::new(1, 1, 1, 1)), // Cloudflare default
         }
     });
 }
@@ -102,7 +109,7 @@ pub fn get_network_stack() -> Option<&'static NetworkStack> {
     STACK.get()
 }
 
-// ===== Device registration (drivers at boot) =====
+/* ===== Device adapter ===== */
 
 pub trait SmolDevice: Send + Sync + 'static {
     fn now_ms(&self) -> u64;
@@ -131,7 +138,8 @@ fn now_ms() -> u64 {
     crate::time::timestamp_millis()
 }
 
-// Adapter that implements smoltcp::phy::Device for our SmolDevice
+// smoltcp device adapter
+
 pub struct SmolDeviceAdapter;
 
 impl<'a> SmolPhyDevice for SmolDeviceAdapter {
@@ -186,19 +194,9 @@ impl TxToken for TxT {
     }
 }
 
-// ====== Core poller ======
+/* ===== Interface helpers ===== */
 
 impl NetworkStack {
-    fn poll(&self) {
-        let ts = SmolInstant::from_millis(now_ms() as i64);
-        // poll interface with sockets
-        {
-            let mut iface = self.iface.lock();
-            let mut sockets = self.sockets.lock();
-            let _ = iface.poll(ts, &mut *sockets);
-        }
-    }
-
     pub fn set_ipv4_config(&self, ip: [u8; 4], prefix: u8, gateway: Option<[u8; 4]>) {
         let mut iface = self.iface.lock();
         let _ = iface.update_ip_addrs(|ips| {
@@ -208,18 +206,98 @@ impl NetworkStack {
         });
         if let Some(gw) = gateway {
             let mut routes = self.routes.lock();
-            let cidr = Ipv4Cidr::new(Ipv4Address::UNSPECIFIED, 0);
-            routes.add_default_ipv4_route(Ipv4Gateway::Direct(Ipv4Address::from_bytes(&gw))).ok();
+            routes
+                .add_default_ipv4_route(Ipv4Gateway::Direct(Ipv4Address::from_bytes(&gw)))
+                .ok();
             iface.set_routes(routes.clone());
         }
     }
 
-    pub fn set_default_dns_v4(&self, v4: [u8; 4]) {
-        *self.default_dns_v4.lock() = Ipv4Address::from_bytes(&v4);
+    #[inline]
+    fn poll(&self) {
+        let ts = SmolInstant::from_millis(now_ms() as i64);
+        let mut iface = self.iface.lock();
+        let mut sockets = self.sockets.lock();
+        let _ = iface.poll(ts, &mut *sockets);
     }
 
-    // ====== TCP client operations ======
+    fn pick_single_active_conn(&self) -> Option<u32> {
+        let conns = self.conns.lock();
+        let mut last: Option<u32> = None;
+        for (id, c) in conns.iter() {
+            if !c.closed {
+                last = Some(*id);
+            }
+        }
+        // Only return if exactly one
+        if conns.iter().filter(|(_, c)| !c.closed).count() == 1 {
+            last
+        } else {
+            None
+        }
+    }
+}
 
+/* ===== TCP server/listener for relay.rs ===== */
+
+impl NetworkStack {
+    pub fn bind_tcp_port(&self, port: u16) -> Result<(), &'static str> {
+        let mut sockets = self.sockets.lock();
+        let rx = tcp::SocketBuffer::new(vec![0; 8192]);
+        let tx = tcp::SocketBuffer::new(vec![0; 8192]);
+        let mut s = tcp::Socket::new(rx, tx);
+        s.listen(port).map_err(|_| "listen failed")?;
+        let _handle = sockets.add(s);
+        Ok(())
+    }
+
+    pub fn listen_tcp(&self, _backlog: usize) -> Result<(), &'static str> {
+        // smoltcp does not use backlog; kept for API parity
+        Ok(())
+    }
+
+    pub fn accept_tcp_connection(&self) -> Result<u32, &'static str> {
+        // Walk sockets to find a listening socket with an established endpoint.
+        // smoltcp models a single tcp::Socket per connection; emulate accept by picking the first active listener.
+        let mut sockets = self.sockets.lock();
+        let now = now_ms();
+        for i in 0..sockets.len() {
+            if let Some(h) = sockets.handles().nth(i) {
+                if let Some(sock) = sockets.get_mut::<tcp::Socket>(h) {
+                    if sock.is_active() && (sock.may_recv() || sock.may_send()) {
+                        // Promote to managed connection entry
+                        let id = self.next_id.fetch_add(1, Ordering::SeqCst);
+                        drop(sockets);
+                        let mut conns = self.conns.lock();
+                        conns.insert(id, ConnectionEntry {
+                            id,
+                            tcp: h,
+                            last_activity_ms: now,
+                            closed: false,
+                        });
+                        return Ok(id);
+                    }
+                }
+            }
+        }
+        Err("no pending connection")
+    }
+}
+
+/* ===== TCP client (dial) ===== */
+
+impl NetworkStack {
+    // relay.rs name/signature (IpAddress enum)
+    pub fn connect_tcp(&self, addr: IpAddress, port: u16) -> Result<(), &'static str> {
+        let v4 = match addr {
+            IpAddress::V4(a) => a,
+            IpAddress::V6(_) => return Err("ipv6 not supported here"),
+        };
+        let tmp = TcpSocket::new();
+        self.tcp_connect(&tmp, v4, port)
+    }
+
+    // real_network.rs uses this (explicit socket + v4 address)
     pub fn tcp_connect(&self, sock: &TcpSocket, addr_v4: [u8; 4], port: u16) -> Result<(), &'static str> {
         let mut sockets = self.sockets.lock();
         let tcp_rx = tcp::SocketBuffer::new(vec![0; 16384]);
@@ -281,7 +359,11 @@ impl NetworkStack {
         let s: &tcp::Socket = sockets.get(c.tcp);
         s.local_endpoint().map(|ep| ep.port())
     }
+}
 
+/* ===== TCP I/O ===== */
+
+impl NetworkStack {
     pub fn tcp_send(&self, conn_id: u32, buf: &[u8]) -> Result<usize, &'static str> {
         let handle = {
             let mut conns = self.conns.lock();
@@ -298,7 +380,6 @@ impl NetworkStack {
                 let mut sockets = self.sockets.lock();
                 let s: &mut tcp::Socket = sockets.get_mut(handle);
                 if !s.may_send() {
-                    // peer closed
                     return Err("send not permitted");
                 }
                 match s.send_slice(&buf[sent..]) {
@@ -357,7 +438,7 @@ impl NetworkStack {
             }
             self.poll();
             if now_ms().saturating_sub(start) > 15_000 {
-                // no data available within timeout; return empty
+                // no data within timeout; return empty (non-blocking semantics)
                 return Ok(Vec::new());
             }
             crate::time::yield_now();
@@ -386,9 +467,30 @@ impl NetworkStack {
         }
         Ok(())
     }
+}
 
-    // ===== HTTP/1.1 client for directory.rs (bounded) =====
+/* ===== Legacy for relay.rs (send/recv) ===== */
 
+impl NetworkStack {
+    pub fn send_tcp_data(&self, socket: &Socket, data: &[u8]) -> Result<usize, &'static str> {
+        let id = if let Some(id) = socket.connection_id() {
+            id
+        } else if let Some(id) = self.pick_single_active_conn() {
+            id
+        } else {
+            return Err("no unambiguous connection for legacy Socket");
+        };
+        self.tcp_send(id, data)
+    }
+
+    pub fn recv_tcp_data(&self, conn_id: u32, max_len: usize) -> Result<Vec<u8>, &'static str> {
+        self.tcp_receive(conn_id, max_len)
+    }
+}
+
+/* ===== HTTP/1.1 client (bounded) ===== */
+
+impl NetworkStack {
     pub fn http_request(&self, addr: [u8; 4], port: u16, req: &[u8]) -> Result<Vec<u8>, &'static str> {
         let tmp = TcpSocket::new();
         self.tcp_connect(&tmp, addr, port)?;
@@ -412,16 +514,13 @@ impl NetworkStack {
                     headers_done = true;
                     // parse headers
                     let headers = &buf[..idx+4];
-                    // quick status check
                     if !headers.starts_with(b"HTTP/1.1 200") && !headers.starts_with(b"HTTP/1.0 200") {
                         let _ = self.tcp_close(id);
                         return Err("http non-200");
                     }
                     for line in headers.split(|&b| b == b'\n') {
                         if line.len() >= 18 && starts_no_case(line, b"content-length:") {
-                            if let Ok(n) = parse_usize_ascii(&line[15..]) {
-                                content_length = Some(n);
-                            }
+                            if let Ok(n) = parse_usize_ascii(&line[15..]) { content_length = Some(n); }
                         }
                     }
                     if let Some(n) = content_length {
@@ -444,8 +543,12 @@ impl NetworkStack {
         let _ = self.tcp_close(id);
         Ok(buf)
     }
+}
 
-    // ===== DNS resolver helpers (used by nonos_dns.rs) =====
+/* ===== DNS helpers used by nonos_dns.rs ===== */
+
+impl NetworkStack {
+    pub fn set_default_dns_v4(&self, v4: [u8; 4]) { *self.default_dns_v4.lock() = Ipv4Address::from_bytes(&v4); }
 
     pub fn dns_query_a(&self, hostname: &str, timeout_ms: u64) -> Result<Vec<[u8; 4]>, &'static str> {
         use smoltcp::socket::udp::{PacketBuffer, PacketMetadata};
@@ -463,10 +566,7 @@ impl NetworkStack {
             let mut sockets = self.sockets.lock();
             let s: &mut udp::Socket = sockets.get_mut(handle);
             s.bind(0).map_err(|_| "dns bind")?;
-            let _ = s.send_slice(
-                &query,
-                (SmolIpAddress::Ipv4(server), 53).into()
-            ).map_err(|_| "dns send")?;
+            let _ = s.send_slice(&query, (SmolIpAddress::Ipv4(server), 53).into()).map_err(|_| "dns send")?;
         }
 
         let start = now_ms();
@@ -491,7 +591,20 @@ impl NetworkStack {
     }
 }
 
-// ===== Small helpers =====
+/* ===== Extra: best-effort "send_tcp_packet" used by circuit.rs ===== */
+
+impl NetworkStack {
+    pub fn send_tcp_packet(&self, data: &[u8]) -> Result<(), &'static str> {
+        if let Some(id) = self.pick_single_active_conn() {
+            let _ = self.tcp_send(id, data)?;
+            Ok(())
+        } else {
+            Err("no active tcp connection to send packet")
+        }
+    }
+}
+
+/* ===== helpers ===== */
 
 fn starts_no_case(s: &[u8], pref: &[u8]) -> bool {
     if s.len() < pref.len() { return false }
@@ -513,7 +626,7 @@ fn find_subsequence(h: &[u8], n: &[u8]) -> Option<usize> {
     h.windows(n.len()).position(|w| w == n)
 }
 
-// ===== DNS (very small, RFC1035 A) =====
+// Minimal RFC1035 A query builder/decoder (bounds-checked)
 
 fn build_dns_query(name: &str) -> Vec<u8> {
     let mut out = Vec::new();
@@ -527,7 +640,7 @@ fn build_dns_query(name: &str) -> Vec<u8> {
     // qname
     for label in name.split('.') {
         let lb = label.as_bytes();
-        if lb.len() > 63 { continue; }
+        if lb.is_empty() || lb.len() > 63 { continue; }
         out.push(lb.len() as u8);
         out.extend_from_slice(lb);
     }
@@ -547,26 +660,26 @@ fn parse_dns_response_a(data: &[u8]) -> Result<Vec<[u8; 4]>, &'static str> {
     // skip header + question
     let mut off = 12usize;
     for _ in 0..qd {
-        // skip qname
         while off < data.len() && data[off] != 0 {
             off += 1 + data[off] as usize;
         }
-        off += 1; // zero
-        off += 4; // qtype+qclass
+        off = off.saturating_add(1); // zero
+        off = off.saturating_add(4); // qtype+qclass
+        if off > data.len() { return Err("dns malformed qd"); }
     }
 
     // answers
     let mut out = Vec::new();
     for _ in 0..an {
         if off + 10 > data.len() { break; }
-        // name (skip, compressed or not)
+        // name (skip: compressed or labels)
         if data[off] & 0xC0 == 0xC0 {
-            off += 2;
+            off = off.saturating_add(2);
         } else {
             while off < data.len() && data[off] != 0 {
-                off += 1 + data[off] as usize;
+                off = off.saturating_add(1 + data[off] as usize);
             }
-            off += 1;
+            off = off.saturating_add(1);
         }
         if off + 10 > data.len() { break; }
         let typ = u16::from_be_bytes([data[off], data[off+1]]); off += 2;
@@ -578,7 +691,7 @@ fn parse_dns_response_a(data: &[u8]) -> Result<Vec<[u8; 4]>, &'static str> {
             a.copy_from_slice(&data[off..off+4]);
             out.push(a);
         }
-        off += rdlen;
+        off = off.saturating_add(rdlen);
     }
     Ok(out)
 }
