@@ -18,11 +18,17 @@ const ROUNDS: usize = 7;
 // Flags
 const CHUNK_START: u32 = 1 << 0;
 const CHUNK_END: u32   = 1 << 1;
-// const PARENT: u32      = 1 << 2; // used in parent node compress
-// const ROOT: u32        = 1 << 3; // used at finalization if needed
+const PARENT: u32      = 1 << 2;
+const ROOT: u32        = 1 << 3;
 // const KEYED_HASH: u32  = 1 << 4;
 // const DERIVE_KEY: u32  = 1 << 5;
 // const DERIVE_KEY_MATERIAL: u32 = 1 << 6;
+
+/// Per-round message word permutation base (official BLAKE3 MSG_PERMUTATION).
+/// The schedule for round r is this permutation applied r times to [0..15].
+const MSG_PERMUTATION: [usize; 16] = [
+    2, 6, 3, 10, 7, 0, 4, 13, 1, 11, 12, 5, 9, 14, 15, 8,
+];
 
 /// One-shot BLAKE3 (32-byte digest) for the default hash mode.
 pub fn blake3_hash(input: &[u8]) -> [u8; OUT_LEN] {
@@ -72,8 +78,8 @@ pub fn blake3_hash(input: &[u8]) -> [u8; OUT_LEN] {
 
     // Final output from the lone CV using the BLAKE3 XOF-style output function
     let cv = cvs_get(&cvs, 0);
-    // We produce 32 bytes (one block of the output function)
-    output_from_cv(cv)
+    // We produce 32 bytes (output block 0)
+    output_block_from_cv(cv, 0)
 }
 
 // ---- Internal helpers ----
@@ -94,17 +100,36 @@ fn g(m: &[u32; 16], v: &mut [u32; 16], a: usize, b: usize, c: usize, d: usize, x
 }
 
 #[inline]
-fn round(m: &[u32; 16], v: &mut [u32; 16]) {
+fn apply_permutation(times: usize, idx: &mut [usize; 16]) {
+    // Apply MSG_PERMUTATION 'times' times to idx mapping
+    let mut tmp = [0usize; 16];
+    for _ in 0..times {
+        for i in 0..16 {
+            tmp[i] = idx[MSG_PERMUTATION[i]];
+        }
+        *idx = tmp;
+    }
+}
+
+#[inline]
+fn round(m: &[u32; 16], v: &mut [u32; 16], r: usize) {
+    // Compute the schedule for round r by applying the base permutation r times.
+    let mut s = [0usize; 16];
+    for i in 0..16 { s[i] = i; }
+    if r != 0 {
+        apply_permutation(r, &mut s);
+    }
+
     // Column rounds
-    g(m, v, 0, 4, 8, 12, 0, 1);
-    g(m, v, 1, 5, 9, 13, 2, 3);
-    g(m, v, 2, 6, 10, 14, 4, 5);
-    g(m, v, 3, 7, 11, 15, 6, 7);
+    g(m, v, 0, 4,  8, 12, s[0],  s[1]);
+    g(m, v, 1, 5,  9, 13, s[2],  s[3]);
+    g(m, v, 2, 6, 10, 14, s[4],  s[5]);
+    g(m, v, 3, 7, 11, 15, s[6],  s[7]);
     // Diagonal rounds
-    g(m, v, 0, 5, 10, 15, 8, 9);
-    g(m, v, 1, 6, 11, 12, 10, 11);
-    g(m, v, 2, 7, 8, 13, 12, 13);
-    g(m, v, 3, 4, 9, 14, 14, 15);
+    g(m, v, 0, 5, 10, 15, s[8],  s[9]);
+    g(m, v, 1, 6, 11, 12, s[10], s[11]);
+    g(m, v, 2, 7,  8, 13, s[12], s[13]);
+    g(m, v, 3, 4,  9, 14, s[14], s[15]);
 }
 
 #[inline]
@@ -123,17 +148,16 @@ fn compress(
         IV[0], IV[1], IV[2], IV[3],
         counter_low, counter_high, block_len, flags,
     ];
-    // rounds
-    for _ in 0..ROUNDS {
-        round(block_words, &mut v);
+    // rounds with per-round schedule
+    for r in 0..ROUNDS {
+        round(block_words, &mut v, r);
     }
 
-    // output = (v[0..8] ^ v[8..16]) concatenated (chaining value words only per BLAKE3 spec)
+    // output = v[0..8] ^ v[8..16] in first 8 words; keep the upper 8 words for XOF expansion 
     let mut out = [0u32; 16];
     for i in 0..8 {
         out[i] = v[i] ^ v[i + 8];
     }
-    // The upper 8 words are "output block" words as well (v[8..16] ^ cv?), but CV derivation uses only first 8 words
     out[8..16].copy_from_slice(&v[8..16]);
     out
 }
@@ -177,8 +201,7 @@ fn compress_chunk(chunk: &[u8], chunk_counter: u64) -> [u32; 8] {
         let ctr_hi = (chunk_counter >> 32) as u32;
 
         let out = compress(cv, &block_words, take as u32, ctr_lo, ctr_hi, flags);
-        // derive next CV from first 8 words XOR with previous cv per spec:
-        // In BLAKE3, chaining value for next block is the first 8 words of output (already XOR'd form).
+        // chaining value for next block = first 8 words of output (already XOR'd)
         let mut next_cv = [0u32; 8];
         next_cv.copy_from_slice(&out[0..8]);
         cv = next_cv;
@@ -203,30 +226,24 @@ fn parent_compress(left: [u32; 8], right: [u32; 8]) -> [u32; 8] {
     }
     let block_words = words_from_block(&block);
 
-    // Flags: parent node (set PARENT=1<<2), but we only set it in the flags position.
-    // Even if the flag isn't used downstream here, we mirror spec semantics to keep compatibility.
-    let flags_parent = 1 << 2;
-
-    let out = compress(IV, &block_words, BLOCK_LEN as u32, 0, 0, flags_parent);
+    let out = compress(IV, &block_words, BLOCK_LEN as u32, 0, 0, PARENT);
     let mut cv = [0u32; 8];
     cv.copy_from_slice(&out[0..8]);
     cv
 }
 
-// Final output function: derive 32 bytes from the final CV
-fn output_from_cv(cv: [u32; 8]) -> [u8; 32] {
-    // The output function uses counter as a block counter (XOF). For a 32B digest, 1 block is enough.
-    let mut block = [0u8; BLOCK_LEN];
-    // Form a block from the CV (first 32 bytes), rest zero
-    for (i, &w) in cv.iter().enumerate() {
-        block[i * 4..i * 4 + 4].copy_from_slice(&w.to_le_bytes());
-    }
-    // Compress with flags=ROOT (1<<3), counter=0, block_len=BLOCK_LEN
-    let block_words = words_from_block(&block);
-    let flags_root = 1 << 3;
-    let out = compress(IV, &block_words, BLOCK_LEN as u32, 0, 0, flags_root);
-
-    // The first 32 bytes of out (little-endian words) form the digest
+// Correct XOF output: compress keyed by CV with zero message block, block_len=0,
+// counter = output block index, flags = ROOT. For a 32-byte digest, use block 0.
+fn output_block_from_cv(cv: [u32; 8], block_counter: u64) -> [u8; 32] {
+    let zero_block_words = [0u32; 16];
+    let out = compress(
+        cv,
+        &zero_block_words,
+        0,
+        (block_counter & 0xFFFF_FFFF) as u32,
+        (block_counter >> 32) as u32,
+        ROOT,
+    );
     let mut digest = [0u8; 32];
     for i in 0..8 {
         digest[i * 4..i * 4 + 4].copy_from_slice(&out[i].to_le_bytes());
