@@ -14,17 +14,14 @@
   "panic-strategy": "abort",
   "disable-redzone": true,
 
-  // Keep frame pointers for sanity in interrupts/backtraces
   "frame-pointer": "always",
 
-  // Conservative CPU/features for kernel bring-up
   "cpu": "x86-64",
   "features": "-mmx,-sse3,-ssse3,-sse4.1,-sse4.2,-avx,-avx2",
 
   "linker-flavor": "ld.lld",
   "linker": "rust-lld",
 
-  // Use the kernel linker script
   "pre-link-args": {
     "ld.lld": [
       "--script=linker.ld"
@@ -39,6 +36,5 @@
   "no-default-libraries": true,
   "has-rpath": false,
 
-  // Inline stack probes so no external runtime is needed
   "stack-probes": { "kind": "inline" }
 }
