@@ -1,482 +1,360 @@
-//! PS/2 Keyboard Driver
-//!
-//! Real keyboard driver with scancode processing and input buffering
+//! PS/2 Keyboard Driver 
 
-use alloc::collections::VecDeque;
-use core::sync::atomic::{AtomicBool, AtomicU64, Ordering};
-use core::cell::UnsafeCell;
-use spin::Mutex;
-use x86_64::instructions::port::{Port, PortReadOnly, PortWriteOnly};
+use core::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
+use core::hint::spin_loop;
 
-/// Keyboard controller I/O ports
-const KEYBOARD_DATA_PORT: u16 = 0x60;
-const KEYBOARD_STATUS_PORT: u16 = 0x64;
-const KEYBOARD_COMMAND_PORT: u16 = 0x64;
+// Ports
+const KBD_DATA: u16 = 0x60;
+const KBD_STATUS: u16 = 0x64;
+const KBD_CMD: u16 = 0x64;
 
-/// Keyboard status register bits
-const STATUS_OUTPUT_BUFFER_FULL: u8 = 0x01;
-const STATUS_INPUT_BUFFER_FULL: u8 = 0x02;
-const STATUS_SYSTEM_FLAG: u8 = 0x04;
-const STATUS_COMMAND_DATA: u8 = 0x08;
-const STATUS_KEYBOARD_LOCK: u8 = 0x10;
-const STATUS_AUXILIARY_BUFFER_FULL: u8 = 0x20;
-const STATUS_TIMEOUT_ERROR: u8 = 0x40;
-const STATUS_PARITY_ERROR: u8 = 0x80;
+// Commands
+const CMD_READ_CFG: u8 = 0x20;
+const CMD_WRITE_CFG: u8 = 0x60;
 
-/// Keyboard commands
-const CMD_SET_LEDS: u8 = 0xED;
-const CMD_ECHO: u8 = 0xEE;
-const CMD_GET_SET_SCANCODE: u8 = 0xF0;
-const CMD_IDENTIFY: u8 = 0xF2;
-const CMD_SET_REPEAT_RATE: u8 = 0xF3;
-const CMD_ENABLE_SCANNING: u8 = 0xF4;
-const CMD_DISABLE_SCANNING: u8 = 0xF5;
-const CMD_SET_DEFAULTS: u8 = 0xF6;
-const CMD_RESEND: u8 = 0xFE;
-const CMD_RESET: u8 = 0xFF;
+// Keyboard device commands (send to 0x60)
+const KBD_ENABLE_SCANNING: u8 = 0xF4;
+const KBD_SET_LEDS: u8 = 0xED;
 
-/// Controller commands
-const CTRL_CMD_READ_CONFIG: u8 = 0x20;
-const CTRL_CMD_WRITE_CONFIG: u8 = 0x60;
-const CTRL_CMD_DISABLE_SECOND_PORT: u8 = 0xA7;
-const CTRL_CMD_ENABLE_SECOND_PORT: u8 = 0xA8;
-const CTRL_CMD_TEST_SECOND_PORT: u8 = 0xA9;
-const CTRL_CMD_CONTROLLER_TEST: u8 = 0xAA;
-const CTRL_CMD_TEST_FIRST_PORT: u8 = 0xAB;
-const CTRL_CMD_DISABLE_FIRST_PORT: u8 = 0xAD;
-const CTRL_CMD_ENABLE_FIRST_PORT: u8 = 0xAE;
+// IRQ1 vector (typical PIC remap to 0x20..0x2F => 0x21 for IRQ1)
+const KBD_VECTOR: u8 = 0x21;
 
-/// Keyboard responses
-const RESP_ACK: u8 = 0xFA;
-const RESP_RESEND: u8 = 0xFE;
-const RESP_TEST_FAILED: u8 = 0xFC;
-const RESP_TEST_PASSED: u8 = 0x55;
+// Modifiers
+static SHIFT: AtomicBool = AtomicBool::new(false);
+static CTRL: AtomicBool = AtomicBool::new(false);
+static ALT: AtomicBool = AtomicBool::new(false);
+static CAPS: AtomicBool = AtomicBool::new(false);
 
-/// Key modifiers
-#[derive(Debug, Clone, Copy, PartialEq)]
-pub struct KeyModifiers {
-    pub shift: bool,
-    pub ctrl: bool,
-    pub alt: bool,
-    pub caps_lock: bool,
-    pub num_lock: bool,
-    pub scroll_lock: bool,
+// Extended prefix
+const SC_EXT_E0: u8 = 0xE0;
+const SC_EXT_E1: u8 = 0xE1;
+static EXTENDED: AtomicBool = AtomicBool::new(false);
+
+// Lock-free SPSC ring buffer (power-of-two size)
+struct SpscU8Ring<const N: usize> {
+    buf: [u8; N],
+    head: AtomicUsize,
+    tail: AtomicUsize,
 }
-
-impl Default for KeyModifiers {
-    fn default() -> Self {
-        KeyModifiers {
-            shift: false,
-            ctrl: false,
-            alt: false,
-            caps_lock: false,
-            num_lock: false,
-            scroll_lock: false,
+impl<const N: usize> SpscU8Ring<N> {
+    const fn new() -> Self {
+        Self {
+            buf: [0; N],
+            head: AtomicUsize::new(0),
+            tail: AtomicUsize::new(0),
         }
+    }
+    #[inline]
+    fn mask() -> usize {
+        N - 1
+    }
+    #[inline]
+    fn push(&self, byte: u8) {
+        let head = self.head.load(Ordering::Relaxed);
+        let next = (head.wrapping_add(1)) & Self::mask();
+        let tail = self.tail.load(Ordering::Acquire);
+        if next == tail {
+            // Full: drop oldest by advancing tail
+            self.tail.store((tail.wrapping_add(1)) & Self::mask(), Ordering::Release);
+        }
+        self.buf[head] = byte;
+        self.head.store(next, Ordering::Release);
+    }
+    #[inline]
+    fn pop(&self) -> Option<u8> {
+        let tail = self.tail.load(Ordering::Relaxed);
+        let head = self.head.load(Ordering::Acquire);
+        if tail == head {
+            return None;
+        }
+        let byte = self.buf[tail];
+        self.tail.store((tail.wrapping_add(1)) & Self::mask(), Ordering::Release);
+        Some(byte)
+    }
+    #[inline]
+    fn is_empty(&self) -> bool {
+        self.head.load(Ordering::Acquire) == self.tail.load(Ordering::Relaxed)
     }
 }
 
-/// Key event
-#[derive(Debug, Clone, Copy, PartialEq)]
-pub struct KeyEvent {
-    pub scancode: u8,
-    pub ascii: Option<char>,
-    pub modifiers: KeyModifiers,
-    pub pressed: bool,
+// Events: minimal set for extended keys
+#[derive(Clone, Copy)]
+pub enum KeyEvent {
+    Up,
+    Down,
+    Left,
+    Right,
 }
 
-/// Keyboard state
-struct KeyboardState {
-    modifiers: KeyModifiers,
-    input_buffer: VecDeque<KeyEvent>,
-    led_state: u8,
+// Separate ring for events (small)
+struct SpscEvtRing<const N: usize> {
+    buf: [u8; N],
+    head: AtomicUsize,
+    tail: AtomicUsize,
 }
-
-/// PS/2 Keyboard driver
-pub struct PS2Keyboard {
-    data_port: UnsafeCell<Port<u8>>,
-    status_port: UnsafeCell<PortReadOnly<u8>>,
-    command_port: UnsafeCell<PortWriteOnly<u8>>,
-    state: Mutex<KeyboardState>,
-    initialized: AtomicBool,
-    
-    // Statistics
-    keys_pressed: AtomicU64,
-    invalid_scancodes: AtomicU64,
-}
-
-impl PS2Keyboard {
-    /// Create new PS/2 keyboard driver
-    pub fn new() -> Self {
-        PS2Keyboard {
-            data_port: UnsafeCell::new(Port::new(KEYBOARD_DATA_PORT)),
-            status_port: UnsafeCell::new(PortReadOnly::new(KEYBOARD_STATUS_PORT)),
-            command_port: UnsafeCell::new(PortWriteOnly::new(KEYBOARD_COMMAND_PORT)),
-            state: Mutex::new(KeyboardState {
-                modifiers: KeyModifiers::default(),
-                input_buffer: VecDeque::with_capacity(256),
-                led_state: 0,
-            }),
-            initialized: AtomicBool::new(false),
-            keys_pressed: AtomicU64::new(0),
-            invalid_scancodes: AtomicU64::new(0),
+impl<const N: usize> SpscEvtRing<N> {
+    const fn new() -> Self {
+        Self {
+            buf: [0; N],
+            head: AtomicUsize::new(0),
+            tail: AtomicUsize::new(0),
         }
     }
-    
-    /// Initialize keyboard controller and device
-    pub fn initialize(&self) -> Result<(), &'static str> {
-        // Disable devices during setup
-        self.send_controller_command(CTRL_CMD_DISABLE_FIRST_PORT)?;
-        self.send_controller_command(CTRL_CMD_DISABLE_SECOND_PORT)?;
-        
-        // Flush output buffer
-        while self.is_output_buffer_full() {
-            unsafe { (*self.data_port.get()).read(); }
+    #[inline] fn mask() -> usize { N - 1 }
+    #[inline]
+    fn push_evt(&self, e: KeyEvent) {
+        let code = match e {
+            KeyEvent::Up => 1,
+            KeyEvent::Down => 2,
+            KeyEvent::Left => 3,
+            KeyEvent::Right => 4,
+        };
+        let head = self.head.load(Ordering::Relaxed);
+        let next = (head.wrapping_add(1)) & Self::mask();
+        let tail = self.tail.load(Ordering::Acquire);
+        if next == tail {
+            self.tail.store((tail.wrapping_add(1)) & Self::mask(), Ordering::Release);
         }
-        
-        // Test controller
-        self.send_controller_command(CTRL_CMD_CONTROLLER_TEST)?;
-        let response = self.wait_for_data(1000)?;
-        if response != RESP_TEST_PASSED {
-            return Err("Controller self-test failed");
-        }
-        
-        // Read configuration
-        self.send_controller_command(CTRL_CMD_READ_CONFIG)?;
-        let mut config = self.wait_for_data(1000)?;
-        
-        // Enable interrupts and scanning
-        config |= 0x01; // Enable first port interrupt
-        config &= !0x10; // Enable first port clock
-        config &= !0x20; // Enable first port translation
-        
-        // Write configuration back
-        self.send_controller_command(CTRL_CMD_WRITE_CONFIG)?;
-        self.send_controller_data(config)?;
-        
-        // Test first port
-        self.send_controller_command(CTRL_CMD_TEST_FIRST_PORT)?;
-        let test_result = self.wait_for_data(1000)?;
-        if test_result != 0x00 {
-            return Err("First port test failed");
-        }
-        
-        // Enable first port
-        self.send_controller_command(CTRL_CMD_ENABLE_FIRST_PORT)?;
-        
-        // Reset keyboard
-        self.send_keyboard_command(CMD_RESET)?;
-        let reset_response = self.wait_for_data(5000)?; // Reset takes longer
-        if reset_response != RESP_ACK {
-            return Err("Keyboard reset failed");
-        }
-        
-        // Wait for self-test result
-        let self_test = self.wait_for_data(5000)?;
-        if self_test != RESP_TEST_PASSED {
-            return Err("Keyboard self-test failed");
-        }
-        
-        // Set scan code set 2 (default)
-        self.send_keyboard_command(CMD_GET_SET_SCANCODE)?;
-        if self.wait_for_data(1000)? != RESP_ACK {
-            return Err("Failed to set scancode set");
-        }
-        self.send_keyboard_data(2)?;
-        if self.wait_for_data(1000)? != RESP_ACK {
-            return Err("Failed to set scancode set");
-        }
-        
-        // Enable scanning
-        self.send_keyboard_command(CMD_ENABLE_SCANNING)?;
-        if self.wait_for_data(1000)? != RESP_ACK {
-            return Err("Failed to enable scanning");
-        }
-        
-        // Initialize LED state
-        self.update_leds()?;
-        
-        self.initialized.store(true, Ordering::Relaxed);
-        Ok(())
+        self.buf[head] = code;
+        self.head.store(next, Ordering::Release);
     }
-    
-    /// Handle keyboard interrupt (called from interrupt handler)
-    pub fn handle_interrupt(&self) {
-        if !self.initialized.load(Ordering::Relaxed) {
+    #[inline]
+    fn pop_evt(&self) -> Option<KeyEvent> {
+        let tail = self.tail.load(Ordering::Relaxed);
+        let head = self.head.load(Ordering::Acquire);
+        if tail == head { return None; }
+        let code = self.buf[tail];
+        self.tail.store((tail.wrapping_add(1)) & Self::mask(), Ordering::Release);
+        match code {
+            1 => Some(KeyEvent::Up),
+            2 => Some(KeyEvent::Down),
+            3 => Some(KeyEvent::Left),
+            4 => Some(KeyEvent::Right),
+            _ => None,
+        }
+    }
+    #[inline]
+    fn is_empty(&self) -> bool {
+        self.head.load(Ordering::Acquire) == self.tail.load(Ordering::Relaxed)
+    }
+}
+
+// Global rings
+const RING_SIZE: usize = 1024; // must be power of two
+static CHAR_RING: SpscU8Ring<RING_SIZE> = SpscU8Ring::new();
+static EVT_RING: SpscEvtRing<64> = SpscEvtRing::new();
+
+// IO helpers
+#[inline(always)]
+unsafe fn inb(port: u16) -> u8 {
+    let mut v: u8;
+    core::arch::asm!("in al, dx", in("dx") port, out("al") v, options(nostack, preserves_flags));
+    v
+}
+#[inline(always)]
+unsafe fn outb(port: u16, val: u8) {
+    core::arch::asm!("out dx, al", in("dx") port, in("al") val, options(nostack, preserves_flags));
+}
+
+// Wait while input buffer full or until output buffer ready (with small spin)
+fn wait_input_empty() {
+    for _ in 0..10000 {
+        let s = unsafe { inb(KBD_STATUS) };
+        if (s & 0x02) == 0 {
+            break;
+        }
+        spin_loop();
+    }
+}
+fn wait_output_full() -> bool {
+    for _ in 0..10000 {
+        let s = unsafe { inb(KBD_STATUS) };
+        if (s & 0x01) != 0 {
+            return true;
+        }
+        spin_loop();
+    }
+    false
+}
+
+// Minimal i8042 bring-up (non-blocking, tolerant)
+fn i8042_init_best_effort() {
+    // Flush any pending output
+    while unsafe { inb(KBD_STATUS) } & 1 != 0 {
+        let _ = unsafe { inb(KBD_DATA) };
+    }
+
+    // Enable scanning on the device (keyboard cmd 0xF4)
+    wait_input_empty();
+    unsafe { outb(KBD_DATA, KBD_ENABLE_SCANNING) };
+    // The keyboard should respond 0xFA (ACK); we ignore if absent to stay non-blocking
+    if wait_output_full() {
+        let _ = unsafe { inb(KBD_DATA) };
+    }
+}
+
+// LED update (Caps only here)
+fn update_leds() {
+    let caps_on = CAPS.load(Ordering::Relaxed);
+    // Send ED, then LED bitmask: bit1=Num, bit0=Scroll, bit2=Caps
+    wait_input_empty();
+    unsafe { outb(KBD_DATA, KBD_SET_LEDS) };
+    if wait_output_full() {
+        let _ = unsafe { inb(KBD_DATA) }; // ACK
+    }
+    wait_input_empty();
+    let mask = if caps_on { 0b100 } else { 0 };
+    unsafe { outb(KBD_DATA, mask) };
+    if wait_output_full() {
+        let _ = unsafe { inb(KBD_DATA) }; // ACK
+    }
+}
+
+// Scancode to char tables
+const NORMAL: [Option<u8>; 0x60] = {
+    let mut t: [Option<u8>; 0x60] = [None; 0x60];
+    t[0x02] = Some(b'1'); t[0x03] = Some(b'2'); t[0x04] = Some(b'3'); t[0x05] = Some(b'4');
+    t[0x06] = Some(b'5'); t[0x07] = Some(b'6'); t[0x08] = Some(b'7'); t[0x09] = Some(b'8');
+    t[0x0A] = Some(b'9'); t[0x0B] = Some(b'0'); t[0x0C] = Some(b'-'); t[0x0D] = Some(b'=');
+    t[0x0E] = Some(0x08); // Backspace
+    t[0x0F] = Some(b'\t');
+    t[0x10] = Some(b'q'); t[0x11] = Some(b'w'); t[0x12] = Some(b'e'); t[0x13] = Some(b'r');
+    t[0x14] = Some(b't'); t[0x15] = Some(b'y'); t[0x16] = Some(b'u'); t[0x17] = Some(b'i');
+    t[0x18] = Some(b'o'); t[0x19] = Some(b'p'); t[0x1A] = Some(b'['); t[0x1B] = Some(b']');
+    t[0x1C] = Some(b'\n');
+    t[0x1E] = Some(b'a'); t[0x1F] = Some(b's'); t[0x20] = Some(b'd'); t[0x21] = Some(b'f');
+    t[0x22] = Some(b'g'); t[0x23] = Some(b'h'); t[0x24] = Some(b'j'); t[0x25] = Some(b'k');
+    t[0x26] = Some(b'l'); t[0x27] = Some(b';'); t[0x28] = Some(b'\''); t[0x29] = Some(b'`');
+    t[0x2B] = Some(b'\\');
+    t[0x2C] = Some(b'z'); t[0x2D] = Some(b'x'); t[0x2E] = Some(b'c'); t[0x2F] = Some(b'v');
+    t[0x30] = Some(b'b'); t[0x31] = Some(b'n'); t[0x32] = Some(b'm'); t[0x33] = Some(b',');
+    t[0x34] = Some(b'.'); t[0x35] = Some(b'/');
+    t[0x39] = Some(b' ');
+    t
+};
+const SHIFTED: [Option<u8>; 0x60] = {
+    let mut t: [Option<u8>; 0x60] = [None; 0x60];
+    t[0x02] = Some(b'!'); t[0x03] = Some(b'@'); t[0x04] = Some(b'#'); t[0x05] = Some(b'$');
+    t[0x06] = Some(b'%'); t[0x07] = Some(b'^'); t[0x08] = Some(b'&'); t[0x09] = Some(b'*');
+    t[0x0A] = Some(b'('); t[0x0B] = Some(b')'); t[0x0C] = Some(b'_'); t[0x0D] = Some(b'+');
+    t[0x0E] = Some(0x08);
+    t[0x0F] = Some(b'\t');
+    t[0x10] = Some(b'Q'); t[0x11] = Some(b'W'); t[0x12] = Some(b'E'); t[0x13] = Some(b'R');
+    t[0x14] = Some(b'T'); t[0x15] = Some(b'Y'); t[0x16] = Some(b'U'); t[0x17] = Some(b'I');
+    t[0x18] = Some(b'O'); t[0x19] = Some(b'P'); t[0x1A] = Some(b'{'); t[0x1B] = Some(b'}');
+    t[0x1C] = Some(b'\n');
+    t[0x1E] = Some(b'A'); t[0x1F] = Some(b'S'); t[0x20] = Some(b'D'); t[0x21] = Some(b'F');
+    t[0x22] = Some(b'G'); t[0x23] = Some(b'H'); t[0x24] = Some(b'J'); t[0x25] = Some(b'K');
+    t[0x26] = Some(b'L'); t[0x27] = Some(b':'); t[0x28] = Some(b'"'); t[0x29] = Some(b'~');
+    t[0x2B] = Some(b'|');
+    t[0x2C] = Some(b'Z'); t[0x2D] = Some(b'X'); t[0x2E] = Some(b'C'); t[0x2F] = Some(b'V');
+    t[0x30] = Some(b'B'); t[0x31] = Some(b'N'); t[0x32] = Some(b'M'); t[0x33] = Some(b'<');
+    t[0x34] = Some(b'>'); t[0x35] = Some(b'?');
+    t[0x39] = Some(b' ');
+    t
+};
+
+// ISR
+extern "x86-interrupt" fn keyboard_isr(_: crate::arch::x86_64::InterruptStackFrame) {
+    // Check status
+    let status = unsafe { inb(KBD_STATUS) };
+    if (status & 1) == 0 {
+        eoi();
+        return;
+    }
+    let sc = unsafe { inb(KBD_DATA) };
+
+    // Handle extended prefixes (E0/E1)
+    if sc == SC_EXT_E0 || sc == SC_EXT_E1 {
+        EXTENDED.store(true, Ordering::Relaxed);
+        eoi();
+        return;
+    }
+
+    let is_break = (sc & 0x80) != 0;
+    let code = sc & 0x7F;
+
+    // Modifiers on make/break
+    match code {
+        0x2A | 0x36 => { SHIFT.store(!is_break, Ordering::Relaxed); eoi(); return; } // Shift
+        0x1D => { CTRL.store(!is_break, Ordering::Relaxed); eoi(); return; }          // Ctrl
+        0x38 => { ALT.store(!is_break, Ordering::Relaxed); eoi(); return; }           // Alt
+        0x3A => { // Caps (toggle on make)
+            if !is_break {
+                let old = CAPS.load(Ordering::Relaxed);
+                CAPS.store(!old, Ordering::Relaxed);
+                update_leds();
+            }
+            eoi();
             return;
         }
-        
-        if !self.is_output_buffer_full() {
-            return;
-        }
-        
-        let scancode = unsafe { (*self.data_port.get()).read() };
-        self.process_scancode(scancode);
+        _ => {}
     }
-    
-    /// Process incoming scancode
-    fn process_scancode(&self, scancode: u8) {
-        let mut state = self.state.lock();
-        
-        // Handle extended scancodes (0xE0 prefix)
-        if scancode == 0xE0 {
-            // Extended scancode follows - would need state machine
-            return;
-        }
-        
-        // Determine if key was pressed or released
-        let pressed = (scancode & 0x80) == 0;
-        let key_code = scancode & 0x7F;
-        
-        // Update modifier states
-        match key_code {
-            0x2A | 0x36 => state.modifiers.shift = pressed,      // Left/Right Shift
-            0x1D => state.modifiers.ctrl = pressed,              // Ctrl
-            0x38 => state.modifiers.alt = pressed,               // Alt
-            0x3A => {                                           // Caps Lock
-                if pressed {
-                    state.modifiers.caps_lock = !state.modifiers.caps_lock;
-                    let _ = self.update_leds_from_state(&state.modifiers);
-                }
-            },
-            0x45 => {                                           // Num Lock
-                if pressed {
-                    state.modifiers.num_lock = !state.modifiers.num_lock;
-                    let _ = self.update_leds_from_state(&state.modifiers);
-                }
-            },
-            0x46 => {                                           // Scroll Lock
-                if pressed {
-                    state.modifiers.scroll_lock = !state.modifiers.scroll_lock;
-                    let _ = self.update_leds_from_state(&state.modifiers);
-                }
-            },
+
+    // Only process make codes for character/events
+    if is_break {
+        eoi();
+        return;
+    }
+
+    // Extended handling for arrows (E0)
+    if EXTENDED.swap(false, Ordering::Relaxed) {
+        match code {
+            0x48 => EVT_RING.push_evt(KeyEvent::Up),
+            0x50 => EVT_RING.push_evt(KeyEvent::Down),
+            0x4B => EVT_RING.push_evt(KeyEvent::Left),
+            0x4D => EVT_RING.push_evt(KeyEvent::Right),
             _ => {}
         }
-        
-        if pressed {
-            self.keys_pressed.fetch_add(1, Ordering::Relaxed);
+        eoi();
+        return;
+    }
+
+    // Map to character
+    let shift = SHIFT.load(Ordering::Relaxed);
+    let caps = CAPS.load(Ordering::Relaxed);
+    let mut ch_opt = if shift {
+        SHIFTED.get(code as usize).copied().flatten()
+    } else {
+        NORMAL.get(code as usize).copied().flatten()
+    };
+
+    if let Some(mut ch) = ch_opt {
+        // Apply CapsLock case toggle for letters if shift not already uppercase
+        if ch.is_ascii_alphabetic() {
+            let upper = shift ^ caps;
+            ch = if upper { ch.to_ascii_uppercase() } else { ch.to_ascii_lowercase() };
         }
-        
-        // Convert scancode to ASCII
-        let ascii = self.scancode_to_ascii(key_code, &state.modifiers);
-        
-        // Create key event
-        let event = KeyEvent {
-            scancode: key_code,
-            ascii,
-            modifiers: state.modifiers,
-            pressed,
-        };
-        
-        // Add to input buffer
-        if state.input_buffer.len() < 256 {
-            state.input_buffer.push_back(event);
-        }
+        // Push to ring
+        CHAR_RING.push(ch);
     }
-    
-    /// Convert scancode to ASCII character
-    fn scancode_to_ascii(&self, scancode: u8, modifiers: &KeyModifiers) -> Option<char> {
-        let base_char = match scancode {
-            // Numbers
-            0x02 => '1', 0x03 => '2', 0x04 => '3', 0x05 => '4', 0x06 => '5',
-            0x07 => '6', 0x08 => '7', 0x09 => '8', 0x0A => '9', 0x0B => '0',
-            
-            // Letters
-            0x10 => 'q', 0x11 => 'w', 0x12 => 'e', 0x13 => 'r', 0x14 => 't',
-            0x15 => 'y', 0x16 => 'u', 0x17 => 'i', 0x18 => 'o', 0x19 => 'p',
-            0x1E => 'a', 0x1F => 's', 0x20 => 'd', 0x21 => 'f', 0x22 => 'g',
-            0x23 => 'h', 0x24 => 'j', 0x25 => 'k', 0x26 => 'l',
-            0x2C => 'z', 0x2D => 'x', 0x2E => 'c', 0x2F => 'v', 0x30 => 'b',
-            0x31 => 'n', 0x32 => 'm',
-            
-            // Symbols
-            0x0C => '-', 0x0D => '=', 0x1A => '[', 0x1B => ']', 0x27 => ';',
-            0x28 => '\'', 0x29 => '`', 0x2B => '\\', 0x33 => ',', 0x34 => '.',
-            0x35 => '/',
-            
-            // Special keys
-            0x39 => ' ',    // Space
-            0x1C => '\n',   // Enter
-            0x0E => '\x08', // Backspace
-            0x0F => '\t',   // Tab
-            
-            _ => return None,
-        };
-        
-        // Handle shift modifications
-        if modifiers.shift {
-            let shifted = match base_char {
-                '1' => '!', '2' => '@', '3' => '#', '4' => '$', '5' => '%',
-                '6' => '^', '7' => '&', '8' => '*', '9' => '(', '0' => ')',
-                '-' => '_', '=' => '+', '[' => '{', ']' => '}', '\\' => '|',
-                ';' => ':', '\'' => '"', '`' => '~', ',' => '<', '.' => '>',
-                '/' => '?',
-                c if c.is_ascii_lowercase() => c.to_ascii_uppercase(),
-                c => c,
-            };
-            Some(shifted)
-        } else {
-            // Handle caps lock for letters
-            if modifiers.caps_lock && base_char.is_ascii_lowercase() {
-                Some(base_char.to_ascii_uppercase())
-            } else {
-                Some(base_char)
-            }
-        }
-    }
-    
-    /// Read next key event from buffer
-    pub fn read_key(&self) -> Option<KeyEvent> {
-        let mut state = self.state.lock();
-        state.input_buffer.pop_front()
-    }
-    
-    /// Check if input is available
-    pub fn has_input(&self) -> bool {
-        let state = self.state.lock();
-        !state.input_buffer.is_empty()
-    }
-    
-    /// Update keyboard LEDs
-    fn update_leds(&self) -> Result<(), &'static str> {
-        let state = self.state.lock();
-        self.update_leds_from_state(&state.modifiers)
-    }
-    
-    /// Update LEDs from modifier state
-    fn update_leds_from_state(&self, modifiers: &KeyModifiers) -> Result<(), &'static str> {
-        let mut led_state = 0u8;
-        if modifiers.scroll_lock { led_state |= 0x01; }
-        if modifiers.num_lock { led_state |= 0x02; }
-        if modifiers.caps_lock { led_state |= 0x04; }
-        
-        self.send_keyboard_command(CMD_SET_LEDS)?;
-        if self.wait_for_data(1000)? != RESP_ACK {
-            return Err("Failed to set LEDs command");
-        }
-        
-        self.send_keyboard_data(led_state)?;
-        if self.wait_for_data(1000)? != RESP_ACK {
-            return Err("Failed to set LEDs data");
-        }
-        
-        Ok(())
-    }
-    
-    /// Send command to keyboard controller
-    fn send_controller_command(&self, command: u8) -> Result<(), &'static str> {
-        self.wait_input_buffer_empty(1000)?;
-        unsafe { (*self.command_port.get()).write(command); }
-        Ok(())
-    }
-    
-    /// Send data to keyboard controller
-    fn send_controller_data(&self, data: u8) -> Result<(), &'static str> {
-        self.wait_input_buffer_empty(1000)?;
-        unsafe { (*self.data_port.get()).write(data); }
-        Ok(())
-    }
-    
-    /// Send command to keyboard device
-    fn send_keyboard_command(&self, command: u8) -> Result<(), &'static str> {
-        self.wait_input_buffer_empty(1000)?;
-        unsafe { (*self.data_port.get()).write(command); }
-        Ok(())
-    }
-    
-    /// Send data to keyboard device
-    fn send_keyboard_data(&self, data: u8) -> Result<(), &'static str> {
-        self.wait_input_buffer_empty(1000)?;
-        unsafe { (*self.data_port.get()).write(data); }
-        Ok(())
-    }
-    
-    /// Wait for input buffer to be empty
-    fn wait_input_buffer_empty(&self, timeout_ms: u32) -> Result<(), &'static str> {
-        for _ in 0..(timeout_ms * 1000) {
-            if !self.is_input_buffer_full() {
-                return Ok(());
-            }
-            self.micro_delay();
-        }
-        Err("Input buffer timeout")
-    }
-    
-    /// Wait for output data to be available
-    fn wait_for_data(&self, timeout_ms: u32) -> Result<u8, &'static str> {
-        for _ in 0..(timeout_ms * 1000) {
-            if self.is_output_buffer_full() {
-                return Ok(unsafe { (*self.data_port.get()).read() });
-            }
-            self.micro_delay();
-        }
-        Err("Output data timeout")
-    }
-    
-    /// Check if output buffer has data
-    fn is_output_buffer_full(&self) -> bool {
-        let status = unsafe { (*self.status_port.get()).read() };
-        (status & STATUS_OUTPUT_BUFFER_FULL) != 0
-    }
-    
-    /// Check if input buffer is full
-    fn is_input_buffer_full(&self) -> bool {
-        let status = unsafe { (*self.status_port.get()).read() };
-        (status & STATUS_INPUT_BUFFER_FULL) != 0
-    }
-    
-    /// Microsecond delay (very rough)
-    fn micro_delay(&self) {
-        for _ in 0..100 {
-            unsafe { core::arch::asm!("pause"); }
-        }
-    }
-    
-    /// Get keyboard statistics
-    pub fn get_stats(&self) -> KeyboardStats {
-        KeyboardStats {
-            keys_pressed: self.keys_pressed.load(Ordering::Relaxed),
-            invalid_scancodes: self.invalid_scancodes.load(Ordering::Relaxed),
-            buffer_length: {
-                let state = self.state.lock();
-                state.input_buffer.len()
-            },
-        }
-    }
+
+    eoi();
 }
 
-/// Keyboard statistics
-#[derive(Debug, Clone)]
-pub struct KeyboardStats {
-    pub keys_pressed: u64,
-    pub invalid_scancodes: u64,
-    pub buffer_length: usize,
+#[inline(always)]
+fn eoi() {
+    crate::arch::x86_64::interrupt::apic::send_eoi();
 }
 
-/// Global keyboard driver instance
-static mut KEYBOARD_DRIVER: Option<PS2Keyboard> = None;
+// Public API
 
-/// Initialize keyboard driver
 pub fn init_keyboard() -> Result<(), &'static str> {
-    let keyboard = PS2Keyboard::new();
-    keyboard.initialize()?;
-    
-    unsafe {
-        KEYBOARD_DRIVER = Some(keyboard);
-    }
-    
+    // Register ISR
+    crate::interrupts::register_interrupt_handler(KBD_VECTOR, keyboard_isr)?;
+    // Best-effort controller init (non-blocking)
+    i8042_init_best_effort();
     Ok(())
 }
 
-/// Get keyboard driver instance
-pub fn get_keyboard() -> Option<&'static PS2Keyboard> {
-    unsafe { KEYBOARD_DRIVER.as_ref() }
+pub fn read_char() -> Option<char> {
+    CHAR_RING.pop().map(|b| b as char)
 }
 
-/// Handle keyboard interrupt (called from interrupt handler)
-pub fn handle_keyboard_interrupt() {
-    if let Some(keyboard) = get_keyboard() {
-        keyboard.handle_interrupt();
-    }
+pub fn has_data() -> bool {
+    !CHAR_RING.is_empty()
+}
+
+pub fn read_event() -> Option<KeyEvent> {
+    EVT_RING.pop_evt()
 }
