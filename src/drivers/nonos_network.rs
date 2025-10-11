@@ -1,556 +1,450 @@
-use alloc::{vec::Vec, string::String};
-use core::sync::atomic::{AtomicBool, AtomicU32, Ordering};
+//! Network core 
 
-pub struct NetworkInterface {
-    interface_id: u32,
-    interface_name: String,
-    mac_address: [u8; 6],
-    ip_address: [u8; 4],
-    enabled: AtomicBool,
-    packets_sent: AtomicU32,
-    packets_received: AtomicU32,
-    bytes_sent: AtomicU32,
-    bytes_received: AtomicU32,
-    interface_type: InterfaceType,
-}
+use alloc::{collections::BTreeMap, sync::Arc, vec, vec::Vec};
+use core::sync::atomic::{AtomicU64, Ordering};
+use spin::{Mutex, RwLock};
 
-#[repr(u8)]
-#[derive(Clone, Copy)]
-pub enum InterfaceType {
-    Ethernet = 1,
-    WiFi = 2,
-    Loopback = 3,
-    Bluetooth = 4,
-    Cellular = 5,
-}
+pub mod stack {
+    use super::*;
+    use core::mem;
 
-pub struct NetworkDriver {
-    interfaces: Vec<NetworkInterface>,
-    emergency_shutdown: AtomicBool,
-    packet_filter_enabled: bool,
-    intrusion_detection: bool,
-    firewall_enabled: bool,
-}
-
-impl NetworkDriver {
-    pub fn new() -> Self {
-        NetworkDriver {
-            interfaces: Vec::new(),
-            emergency_shutdown: AtomicBool::new(false),
-            packet_filter_enabled: true,
-            intrusion_detection: true,
-            firewall_enabled: true,
+    // Interface contract
+    pub trait NetworkInterface: Send + Sync + 'static {
+        fn send_packet(&self, frame: &[u8]) -> Result<(), &'static str>;
+        fn get_mac_address(&self) -> [u8; 6];
+        fn is_link_up(&self) -> bool;
+        fn get_stats(&self) -> NetworkStats;
+        fn mtu(&self) -> usize {
+            1500
+        }
+        fn name(&self) -> &'static str {
+            "iface"
         }
     }
 
-    pub fn register_interface(&mut self, name: String, mac: [u8; 6], interface_type: InterfaceType) -> u32 {
-        let interface_id = self.interfaces.len() as u32;
-        
-        let interface = NetworkInterface {
-            interface_id,
-            interface_name: name,
-            mac_address: mac,
-            ip_address: [0, 0, 0, 0],
-            enabled: AtomicBool::new(true),
-            packets_sent: AtomicU32::new(0),
-            packets_received: AtomicU32::new(0),
-            bytes_sent: AtomicU32::new(0),
-            bytes_received: AtomicU32::new(0),
-            interface_type,
-        };
-
-        self.interfaces.push(interface);
-        interface_id
+    #[derive(Default, Clone)]
+    pub struct NetworkStats {
+        pub rx_packets: AtomicU64,
+        pub tx_packets: AtomicU64,
+        pub rx_bytes: AtomicU64,
+        pub tx_bytes: AtomicU64,
+        pub active_sockets: AtomicU64,
+        pub packets_dropped: AtomicU64,
+        pub arp_lookups: AtomicU64,
     }
 
-    pub fn send_packet(&mut self, interface_id: u32, data: &[u8], destination: &[u8; 6]) -> Result<(), &'static str> {
-        if self.emergency_shutdown.load(Ordering::Relaxed) {
-            return Err("Network interfaces disabled due to emergency shutdown");
+    // Interface registry and IP/MAC config
+    static IFACES: Mutex<BTreeMap<&'static str, Arc<dyn NetworkInterface>>> = Mutex::new(BTreeMap::new());
+    static DEFAULT_IFACE: Mutex<Option<Arc<dyn NetworkInterface>>> = Mutex::new(None);
+
+    static LOCAL_MAC: RwLock<[u8; 6]> = RwLock::new([0; 6]);
+    static LOCAL_IP: RwLock<[u8; 4]> = RwLock::new([0, 0, 0, 0]);
+    static DEFAULT_GW: RwLock<[u8; 4]> = RwLock::new([0, 0, 0, 0]);
+
+    pub fn register_interface(name: &'static str, iface: Arc<dyn NetworkInterface>, make_default: bool) {
+        IFACES.lock().insert(name, iface.clone());
+        if make_default {
+            *DEFAULT_IFACE.lock() = Some(iface.clone());
+            *LOCAL_MAC.write() = iface.get_mac_address();
         }
+    }
 
-        if interface_id as usize >= self.interfaces.len() {
-            return Err("Invalid interface ID");
-        }
-
-        let interface = &self.interfaces[interface_id as usize];
-        
-        if !interface.enabled.load(Ordering::Relaxed) {
-            return Err("Network interface is disabled");
-        }
-
-        // Security checks
-        if self.packet_filter_enabled && self.is_suspicious_packet(data) {
-            return Err("Packet blocked by security filter");
-        }
-
-        if self.firewall_enabled && self.is_blocked_destination(destination) {
-            return Err("Destination blocked by firewall");
-        }
-
-        // Simulate packet transmission
-        self.transmit_ethernet_frame(interface, data, destination)?;
-        
-        // Update statistics
-        interface.packets_sent.fetch_add(1, Ordering::Relaxed);
-        interface.bytes_sent.fetch_add(data.len() as u32, Ordering::Relaxed);
-
+    pub fn set_default_interface(name: &str) -> Result<(), &'static str> {
+        let iface = IFACES.lock().get(name).cloned().ok_or("iface not found")?;
+        *DEFAULT_IFACE.lock() = Some(iface);
         Ok(())
     }
 
-    fn transmit_ethernet_frame(&self, interface: &NetworkInterface, data: &[u8], destination: &[u8; 6]) -> Result<(), &'static str> {
-        // Build Ethernet frame
-        let mut frame = Vec::with_capacity(data.len() + 14); // 14 bytes for Ethernet header
-        
-        // Destination MAC (6 bytes)
-        frame.extend_from_slice(destination);
-        
-        // Source MAC (6 bytes)
-        frame.extend_from_slice(&interface.mac_address);
-        
-        // EtherType (2 bytes) - IPv4
-        frame.push(0x08);
-        frame.push(0x00);
-        
-        // Payload
-        frame.extend_from_slice(data);
-
-        // Hardware transmission simulation
-        self.hardware_transmit(&frame)?;
-
-        crate::log::logger::log_info!("Transmitted {} byte frame on interface {}", 
-            frame.len(), interface.interface_name);
-
-        Ok(())
+    pub fn get_default_interface() -> Option<Arc<dyn NetworkInterface>> {
+        DEFAULT_IFACE.lock().as_ref().cloned()
     }
 
-    fn hardware_transmit(&self, frame: &[u8]) -> Result<(), &'static str> {
-        // Simulate hardware-level frame transmission
-        if frame.len() < 64 {
-            return Err("Frame too small (minimum 64 bytes)");
+    pub fn set_ipv4(ip: [u8; 4], gw: Option<[u8; 4]>) {
+        *LOCAL_IP.write() = ip;
+        if let Some(g) = gw {
+            *DEFAULT_GW.write() = g;
         }
-        
-        if frame.len() > 1518 {
-            return Err("Frame too large (maximum 1518 bytes)");
-        }
-
-        // CRC calculation and validation would happen here
-        let crc = self.calculate_ethernet_crc(frame);
-        
-        // Physical layer transmission simulation
-        self.physical_layer_transmit(frame, crc)
+    }
+    pub fn get_ipv4() -> [u8; 4] {
+        *LOCAL_IP.read()
+    }
+    pub fn get_mac() -> [u8; 6] {
+        *LOCAL_MAC.read()
     }
 
-    fn calculate_ethernet_crc(&self, data: &[u8]) -> u32 {
-        let mut crc: u32 = 0xFFFFFFFF;
-        
-        for &byte in data {
-            crc ^= byte as u32;
-            for _ in 0..8 {
-                if crc & 1 != 0 {
-                    crc = (crc >> 1) ^ 0xEDB88320;
-                } else {
-                    crc >>= 1;
-                }
+    // Filters
+    pub enum FilterAction {
+        Accept,
+        Drop,
+    }
+    pub trait PacketFilter: Send + Sync + 'static {
+        fn pre_recv(&self, _frame: &[u8]) -> FilterAction {
+            FilterAction::Accept
+        }
+        fn post_recv(&self, _ethertype: u16, _payload: &[u8]) -> FilterAction {
+            FilterAction::Accept
+        }
+        fn pre_send(&self, _frame: &[u8]) -> FilterAction {
+            FilterAction::Accept
+        }
+    }
+    static FILTERS: Mutex<Vec<Arc<dyn PacketFilter>>> = Mutex::new(Vec::new());
+    pub fn add_filter(f: Arc<dyn PacketFilter>) {
+        FILTERS.lock().push(f);
+    }
+    fn run_pre(frame: &[u8]) -> bool {
+        for f in FILTERS.lock().iter() {
+            if matches!(f.pre_recv(frame), FilterAction::Drop) {
+                return false;
             }
         }
-        
-        !crc
+        true
     }
-
-    fn physical_layer_transmit(&self, frame: &[u8], crc: u32) -> Result<(), &'static str> {
-        // Simulate physical transmission with error detection
-        if frame.is_empty() {
-            return Err("Cannot transmit empty frame");
-        }
-
-        // Simulate transmission timing and collision detection
-        let transmission_time_us = (frame.len() * 8) / 10; // 10 Mbps simulation
-        
-        // Anti-collision and carrier sense
-        if self.detect_carrier_collision() {
-            return Err("Carrier collision detected");
-        }
-
-        crate::log::logger::log_info!("Physical transmission completed in {}μs (CRC: 0x{:08X})", 
-            transmission_time_us, crc);
-
-        Ok(())
-    }
-
-    fn detect_carrier_collision(&self) -> bool {
-        // Simulate CSMA/CD collision detection
-        false // Simplified - no collision
-    }
-
-    pub fn receive_packet(&mut self, interface_id: u32) -> Result<Vec<u8>, &'static str> {
-        if self.emergency_shutdown.load(Ordering::Relaxed) {
-            return Err("Network interfaces disabled due to emergency shutdown");
-        }
-
-        if interface_id as usize >= self.interfaces.len() {
-            return Err("Invalid interface ID");
-        }
-
-        let interface = &self.interfaces[interface_id as usize];
-        
-        if !interface.enabled.load(Ordering::Relaxed) {
-            return Err("Network interface is disabled");
-        }
-
-        // Simulate packet reception from hardware
-        let received_frame = self.hardware_receive()?;
-        
-        // Validate Ethernet frame
-        if received_frame.len() < 14 {
-            return Err("Invalid Ethernet frame (too short)");
-        }
-
-        // Extract destination MAC
-        let dest_mac = &received_frame[0..6];
-        if dest_mac != interface.mac_address && dest_mac != &[0xFF; 6] {
-            return Err("Frame not addressed to this interface");
-        }
-
-        // Extract payload (skip 14-byte Ethernet header)
-        let payload = received_frame[14..].to_vec();
-
-        // Security inspection
-        if self.intrusion_detection && self.detect_intrusion_attempt(&payload) {
-            crate::log::logger::log_info!("Intrusion attempt detected in received packet");
-            return Err("Malicious packet blocked by intrusion detection");
-        }
-
-        // Update statistics
-        interface.packets_received.fetch_add(1, Ordering::Relaxed);
-        interface.bytes_received.fetch_add(payload.len() as u32, Ordering::Relaxed);
-
-        crate::log::logger::log_info!("Received {} byte payload on interface {}", 
-            payload.len(), interface.interface_name);
-
-        Ok(payload)
-    }
-
-    fn hardware_receive(&self) -> Result<Vec<u8>, &'static str> {
-        // Simulate hardware frame reception
-        // This would normally read from network interface buffer
-        
-        // Simulate a basic Ethernet frame reception
-        let mut frame = Vec::new();
-        
-        // Simulate received frame (example IPv4 ping)
-        frame.extend_from_slice(&[0x00, 0x11, 0x22, 0x33, 0x44, 0x55]); // Dest MAC
-        frame.extend_from_slice(&[0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF]); // Src MAC
-        frame.extend_from_slice(&[0x08, 0x00]); // EtherType (IPv4)
-        frame.extend_from_slice(&[0x45, 0x00, 0x00, 0x54]); // IPv4 header start
-        frame.extend_from_slice(&[0x00, 0x00, 0x00, 0x00]); // More IPv4 data
-        
-        Ok(frame)
-    }
-
-    fn is_suspicious_packet(&self, data: &[u8]) -> bool {
-        // Deep packet inspection for security threats
-        
-        // Check for common attack patterns
-        let malicious_patterns: [&[u8]; 8] = [
-            b"../../../etc/passwd",
-            b"<script>............",  // Pad to same length
-            b"SELECT * FROM......",
-            b"UNION SELECT.......",
-            b"DROP TABLE.........",
-            b"%2e%2e%2f..........",
-            b"cmd.exe............",
-            b"/bin/sh............",
-        ];
-
-        for pattern in &malicious_patterns {
-            if self.boyer_moore_search(data, pattern) {
-                return true;
+    fn run_post(ethertype: u16, payload: &[u8]) -> bool {
+        for f in FILTERS.lock().iter() {
+            if matches!(f.post_recv(ethertype, payload), FilterAction::Drop) {
+                return false;
             }
         }
-
-        // Check for buffer overflow attempts
-        if data.len() > 65536 {
-            return true;
+        true
+    }
+    fn run_send(frame: &[u8]) -> bool {
+        for f in FILTERS.lock().iter() {
+            if matches!(f.pre_send(frame), FilterAction::Drop) {
+                return false;
+            }
         }
-
-        // Check for port scanning patterns
-        if data.len() < 20 && data.iter().all(|&b| b == 0x00) {
-            return true;
-        }
-
-        false
+        true
     }
 
-    fn boyer_moore_search(&self, text: &[u8], pattern: &[u8]) -> bool {
-        if pattern.is_empty() || text.len() < pattern.len() {
-            return false;
-        }
+    // Ethernet/ARP
+    const ETH_HDR: usize = 14;
+    const ET_IPV4: u16 = 0x0800;
+    const ET_ARP: u16 = 0x0806;
 
-        let mut bad_char_table = [pattern.len(); 256];
-        for (i, &byte) in pattern.iter().enumerate() {
-            if i < pattern.len() - 1 {
-                bad_char_table[byte as usize] = pattern.len() - 1 - i;
+    #[repr(C, packed)]
+    struct EthHeader {
+        dst: [u8; 6],
+        src: [u8; 6],
+        et_be: [u8; 2],
+    }
+    #[inline]
+    fn be16(b: [u8; 2]) -> u16 {
+        u16::from_be_bytes(b)
+    }
+    #[inline]
+    fn to_be16(v: u16) -> [u8; 2] {
+        v.to_be_bytes()
+    }
+    #[inline]
+    fn to_be32(v: u32) -> [u8; 4] {
+        v.to_be_bytes()
+    }
+
+    static ARP_CACHE: Mutex<BTreeMap<[u8; 4], [u8; 6]>> = Mutex::new(BTreeMap::new());
+    pub fn arp_lookup(ip: [u8; 4]) -> Option<[u8; 6]> {
+        ARP_CACHE.lock().get(&ip).cloned()
+    }
+    pub fn arp_insert(ip: [u8; 4], mac: [u8; 6]) {
+        ARP_CACHE.lock().insert(ip, mac);
+    }
+
+    fn send_arp_request(target_ip: [u8; 4]) -> Result<(), &'static str> {
+        let iface = get_default_interface().ok_or("no default iface")?;
+        let src_mac = iface.get_mac_address();
+        let src_ip = get_ipv4();
+
+        let mut frame = [0u8; ETH_HDR + 28];
+        // Ethernet
+        frame[0..6].copy_from_slice(&[0xFF; 6]);
+        frame[6..12].copy_from_slice(&src_mac);
+        frame[12..14].copy_from_slice(&to_be16(ET_ARP));
+        // ARP
+        let p = &mut frame[ETH_HDR..];
+        p[0..2].copy_from_slice(&to_be16(1)); // htype Ethernet
+        p[2..4].copy_from_slice(&to_be16(ET_IPV4));
+        p[4] = 6;
+        p[5] = 4;
+        p[6..8].copy_from_slice(&to_be16(1)); // request
+        p[8..14].copy_from_slice(&src_mac);
+        p[14..18].copy_from_slice(&src_ip);
+        p[18..24].copy_from_slice(&[0u8; 6]);
+        p[24..28].copy_from_slice(&target_ip);
+
+        if !run_send(&frame) {
+            return Err("send filtered");
+        }
+        iface.send_packet(&frame)
+    }
+
+    fn handle_arp(payload: &[u8]) {
+        if payload.len() < 28 {
+            return;
+        }
+        let oper = be16([payload[6], payload[7]]);
+        let sha = <[u8; 6]>::try_from(&payload[8..14]).unwrap_or([0; 6]);
+        let spa = <[u8; 4]>::try_from(&payload[14..18]).unwrap_or([0; 4]);
+        let tha = <[u8; 6]>::try_from(&payload[18..24]).unwrap_or([0; 6]);
+        let tpa = <[u8; 4]>::try_from(&payload[24..28]).unwrap_or([0; 4]);
+
+        // Cache sender MAC
+        arp_insert(spa, sha);
+
+        // Reply if it's a request for us
+        if oper == 1 && tpa == get_ipv4() {
+            if let Some(iface) = get_default_interface() {
+                let src_mac = iface.get_mac_address();
+                let src_ip = get_ipv4();
+
+                let mut frame = [0u8; ETH_HDR + 28];
+                // Ethernet
+                frame[0..6].copy_from_slice(&sha);
+                frame[6..12].copy_from_slice(&src_mac);
+                frame[12..14].copy_from_slice(&to_be16(ET_ARP));
+                // ARP reply
+                let p = &mut frame[ETH_HDR..];
+                p[0..2].copy_from_slice(&to_be16(1));
+                p[2..4].copy_from_slice(&to_be16(ET_IPV4));
+                p[4] = 6;
+                p[5] = 4;
+                p[6..8].copy_from_slice(&to_be16(2)); // reply
+                p[8..14].copy_from_slice(&src_mac);
+                p[14..18].copy_from_slice(&src_ip);
+                p[18..24].copy_from_slice(&tha);
+                p[24..28].copy_from_slice(&spa);
+                let _ = iface.send_packet(&frame);
             }
+        }
+    }
+
+    // IPv4 + UDP
+    #[repr(C, packed)]
+    struct Ipv4Header {
+        vihl: u8,
+        dscp_ecn: u8,
+        total_len_be: [u8; 2],
+        id_be: [u8; 2],
+        flags_frag_be: [u8; 2],
+        ttl: u8,
+        proto: u8,
+        hdr_checksum_be: [u8; 2],
+        src: [u8; 4],
+        dst: [u8; 4],
+    }
+    #[repr(C, packed)]
+    struct UdpHeader {
+        sport_be: [u8; 2],
+        dport_be: [u8; 2],
+        len_be: [u8; 2],
+        csum_be: [u8; 2],
+    }
+    const IP_PROTO_UDP: u8 = 17;
+
+    fn csum16(mut sum: u32) -> u16 {
+        while (sum >> 16) != 0 {
+            sum = (sum & 0xFFFF) + (sum >> 16);
+        }
+        !(sum as u16)
+    }
+    fn ip_checksum(h: &Ipv4Header) -> u16 {
+        let w = unsafe { core::slice::from_raw_parts(h as *const _ as *const u16, 10) };
+        let mut sum = 0u32;
+        for (i, v) in w.iter().enumerate() {
+            if i == 5 {
+                continue;
+            }
+            sum += u16::from_be(*v) as u32;
+        }
+        csum16(sum)
+    }
+    fn udp_checksum(ip: &Ipv4Header, udp: &UdpHeader, payload: &[u8]) -> u16 {
+        let mut sum = 0u32;
+        sum += u16::from_be_bytes([ip.src[0], ip.src[1]]) as u32;
+        sum += u16::from_be_bytes([ip.src[2], ip.src[3]]) as u32;
+        sum += u16::from_be_bytes([ip.dst[0], ip.dst[1]]) as u32;
+        sum += u16::from_be_bytes([ip.dst[2], ip.dst[3]]) as u32;
+        sum += IP_PROTO_UDP as u32;
+        let udp_len = u16::from_be_bytes(udp.len_be) as u32;
+        sum += udp_len;
+
+        let uw = unsafe { core::slice::from_raw_parts(udp as *const _ as *const u16, 4) };
+        for v in uw {
+            sum += u16::from_be(*v) as u32;
         }
 
         let mut i = 0;
-        while i <= text.len() - pattern.len() {
-            let mut j = pattern.len();
-            while j > 0 && pattern[j - 1] == text[i + j - 1] {
-                j -= 1;
-            }
+        while i + 1 < payload.len() {
+            sum += u16::from_be_bytes([payload[i], payload[i + 1]]) as u32;
+            i += 2;
+        }
+        if i < payload.len() {
+            sum += u16::from_be_bytes([payload[i], 0]) as u32;
+        }
 
-            if j == 0 {
-                return true;
-            }
+        csum16(sum)
+    }
 
-            let bad_char_skip = if i + j < text.len() {
-                bad_char_table[text[i + j] as usize]
-            } else {
-                1
+    type UdpHandler = Arc<dyn Fn(&[u8], [u8; 4], u16) + Send + Sync>;
+    static UDP_LISTENERS: Mutex<BTreeMap<u16, UdpHandler>> = Mutex::new(BTreeMap::new());
+
+    pub fn udp_listen(port: u16, handler: UdpHandler) {
+        UDP_LISTENERS.lock().insert(port, handler);
+    }
+
+    pub fn udp_send(dst_ip: [u8; 4], dst_port: u16, src_port: u16, payload: &[u8]) -> Result<(), &'static str> {
+        let iface = get_default_interface().ok_or("no default iface")?;
+        let src_mac = iface.get_mac_address();
+        let dst_mac = if let Some(m) = arp_lookup(dst_ip) {
+            m
+        } else {
+            // Broadcast ARP and bail; caller can retry
+            let _ = send_arp_request(dst_ip);
+            return Err("ARP unresolved");
+        };
+
+        let src_ip = get_ipv4();
+        let mtu = iface.mtu();
+        let overhead = ETH_HDR + 20 + 8;
+        if payload.len() + overhead > mtu {
+            return Err("payload exceeds MTU (no fragmentation)");
+        }
+
+        let total = overhead + payload.len();
+        let mut frame = vec![0u8; total];
+
+        // Ethernet
+        frame[0..6].copy_from_slice(&dst_mac);
+        frame[6..12].copy_from_slice(&src_mac);
+        frame[12..14].copy_from_slice(&to_be16(ET_IPV4));
+
+        // IPv4
+        let ip_off = ETH_HDR;
+        {
+            let hdr = Ipv4Header {
+                vihl: (4 << 4) | 5,
+                dscp_ecn: 0,
+                total_len_be: (20u16 + 8 + payload.len() as u16).to_be_bytes(),
+                id_be: 0u16.to_be_bytes(),
+                flags_frag_be: 0u16.to_be_bytes(),
+                ttl: 64,
+                proto: IP_PROTO_UDP,
+                hdr_checksum_be: [0, 0],
+                src: src_ip,
+                dst: dst_ip,
             };
-
-            i += bad_char_skip.max(1);
-        }
-
-        false
-    }
-
-    fn is_blocked_destination(&self, mac: &[u8; 6]) -> bool {
-        // Firewall rules for MAC addresses
-        let blocked_macs = [
-            [0x00, 0x00, 0x00, 0x00, 0x00, 0x00], // Null MAC
-            [0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF], // Broadcast (conditional)
-        ];
-
-        blocked_macs.contains(mac)
-    }
-
-    fn detect_intrusion_attempt(&self, data: &[u8]) -> bool {
-        // Advanced intrusion detection system
-
-        // Check for DDoS patterns
-        if self.is_ddos_pattern(data) {
-            return true;
-        }
-
-        // Check for protocol anomalies
-        if self.detect_protocol_anomaly(data) {
-            return true;
-        }
-
-        // Check for reconnaissance attempts
-        if self.is_reconnaissance_attempt(data) {
-            return true;
-        }
-
-        false
-    }
-
-    fn is_ddos_pattern(&self, data: &[u8]) -> bool {
-        // Detect DDoS attack patterns
-        data.len() < 10 || (data.len() == 20 && data.iter().all(|&b| b == 0xAA))
-    }
-
-    fn detect_protocol_anomaly(&self, data: &[u8]) -> bool {
-        // Check for malformed protocol headers
-        if data.len() >= 4 {
-            // Check IP version (should be 4 or 6)
-            let version = (data[0] >> 4) & 0x0F;
-            if version != 4 && version != 6 {
-                return true;
+            unsafe {
+                core::ptr::copy_nonoverlapping(
+                    &hdr as *const _ as *const u8,
+                    frame.as_mut_ptr().add(ip_off),
+                    mem::size_of::<Ipv4Header>(),
+                );
             }
-        }
-        false
-    }
-
-    fn is_reconnaissance_attempt(&self, data: &[u8]) -> bool {
-        // Detect port scanning and network reconnaissance
-        data.len() == 0 || (data.len() < 50 && data.iter().all(|&b| b < 0x20))
-    }
-
-    pub fn disable_interface(&mut self, interface_id: u32) -> Result<(), &'static str> {
-        if interface_id as usize >= self.interfaces.len() {
-            return Err("Invalid interface ID");
+            let ip_hdr: &mut Ipv4Header = unsafe { &mut *(frame.as_mut_ptr().add(ip_off) as *mut Ipv4Header) };
+            let c = ip_checksum(ip_hdr);
+            ip_hdr.hdr_checksum_be = c.to_be_bytes();
         }
 
-        self.interfaces[interface_id as usize].enabled.store(false, Ordering::Relaxed);
-        crate::log::logger::log_info!("Network interface {} disabled", interface_id);
-        Ok(())
-    }
+        // UDP
+        let udp_off = ip_off + 20;
+        {
+            let hdr = UdpHeader {
+                sport_be: src_port.to_be_bytes(),
+                dport_be: dst_port.to_be_bytes(),
+                len_be: (8 + payload.len() as u16).to_be_bytes(),
+                csum_be: [0, 0],
+            };
+            unsafe {
+                core::ptr::copy_nonoverlapping(
+                    &hdr as *const _ as *const u8,
+                    frame.as_mut_ptr().add(udp_off),
+                    mem::size_of::<UdpHeader>(),
+                );
+            }
+            frame[udp_off + 8..udp_off + 8 + payload.len()].copy_from_slice(payload);
 
-    pub fn enable_interface(&mut self, interface_id: u32) -> Result<(), &'static str> {
-        if self.emergency_shutdown.load(Ordering::Relaxed) {
-            return Err("Cannot enable interface during emergency shutdown");
+            let udp_hdr: &mut UdpHeader = unsafe { &mut *(frame.as_mut_ptr().add(udp_off) as *mut UdpHeader) };
+            let ip_hdr: &Ipv4Header = unsafe { &*(frame.as_ptr().add(ip_off) as *const Ipv4Header) };
+            let c = udp_checksum(ip_hdr, udp_hdr, &frame[udp_off + 8..]);
+            udp_hdr.csum_be = c.to_be_bytes();
         }
 
-        if interface_id as usize >= self.interfaces.len() {
-            return Err("Invalid interface ID");
+        if !run_send(&frame) {
+            return Err("send filtered");
+        }
+        iface.send_packet(&frame)
+    }
+
+    // RX entrypoint used by NIC ISR
+    pub fn receive_packet(frame: &[u8]) -> Result<(), &'static str> {
+        if !run_pre(frame) {
+            return Err("filtered pre-recv");
+        }
+        if frame.len() < ETH_HDR {
+            return Err("frame too short");
         }
 
-        self.interfaces[interface_id as usize].enabled.store(true, Ordering::Relaxed);
-        crate::log::logger::log_info!("Network interface {} enabled", interface_id);
-        Ok(())
-    }
+        // Ethernet
+        let mut eth = EthHeader {
+            dst: [0; 6],
+            src: [0; 6],
+            et_be: [0; 2],
+        };
+        eth.dst.copy_from_slice(&frame[0..6]);
+        eth.src.copy_from_slice(&frame[6..12]);
+        eth.et_be.copy_from_slice(&frame[12..14]);
 
-    pub fn emergency_shutdown(&mut self) {
-        self.emergency_shutdown.store(true, Ordering::Relaxed);
-        
-        for interface in &self.interfaces {
-            interface.enabled.store(false, Ordering::Relaxed);
+        let et = be16(eth.et_be);
+        let payload = &frame[ETH_HDR..];
+
+        if !run_post(et, payload) {
+            return Err("filtered post-recv");
         }
 
-        crate::log::logger::log_info!("Emergency network shutdown completed - all interfaces disabled");
-    }
-
-    pub fn get_interface_statistics(&self, interface_id: u32) -> Option<NetworkStatistics> {
-        if interface_id as usize >= self.interfaces.len() {
-            return None;
-        }
-
-        let interface = &self.interfaces[interface_id as usize];
-        
-        Some(NetworkStatistics {
-            interface_id: interface.interface_id,
-            interface_name: interface.interface_name.clone(),
-            packets_sent: interface.packets_sent.load(Ordering::Relaxed),
-            packets_received: interface.packets_received.load(Ordering::Relaxed),
-            bytes_sent: interface.bytes_sent.load(Ordering::Relaxed),
-            bytes_received: interface.bytes_received.load(Ordering::Relaxed),
-            enabled: interface.enabled.load(Ordering::Relaxed),
-        })
-    }
-}
-
-pub struct NetworkStatistics {
-    pub interface_id: u32,
-    pub interface_name: String,
-    pub packets_sent: u32,
-    pub packets_received: u32,
-    pub bytes_sent: u32,
-    pub bytes_received: u32,
-    pub enabled: bool,
-}
-
-static mut NETWORK_DRIVER: Option<NetworkDriver> = None;
-
-pub fn init_network() {
-    unsafe {
-        NETWORK_DRIVER = Some(NetworkDriver::new());
-    }
-    crate::log::logger::log_info!("Network driver initialized");
-}
-
-pub fn register_ethernet_interface(name: String, mac: [u8; 6]) -> Result<u32, &'static str> {
-    unsafe {
-        if let Some(ref mut driver) = NETWORK_DRIVER {
-            Ok(driver.register_interface(name, mac, InterfaceType::Ethernet))
-        } else {
-            Err("Network driver not initialized")
-        }
-    }
-}
-
-pub fn send_packet(interface_id: u32, data: &[u8], destination: &[u8; 6]) -> Result<(), &'static str> {
-    unsafe {
-        if let Some(ref mut driver) = NETWORK_DRIVER {
-            driver.send_packet(interface_id, data, destination)
-        } else {
-            Err("Network driver not initialized")
-        }
-    }
-}
-
-pub fn receive_packet(interface_id: u32) -> Result<Vec<u8>, &'static str> {
-    unsafe {
-        if let Some(ref mut driver) = NETWORK_DRIVER {
-            driver.receive_packet(interface_id)
-        } else {
-            Err("Network driver not initialized")
-        }
-    }
-}
-
-pub fn emergency_disable_all() {
-    unsafe {
-        if let Some(ref mut driver) = NETWORK_DRIVER {
-            driver.emergency_shutdown();
-        }
-    }
-    crate::log::logger::log_info!("Emergency network shutdown executed");
-}
-
-pub fn get_network_statistics(interface_id: u32) -> Option<NetworkStatistics> {
-    unsafe {
-        if let Some(ref driver) = NETWORK_DRIVER {
-            driver.get_interface_statistics(interface_id)
-        } else {
-            None
-        }
-    }
-}
-
-/// Send raw Ethernet frame via network interface (required by network layer)
-pub fn send_ethernet_frame(interface_id: u32, frame: &[u8]) -> Result<(), &'static str> {
-    if frame.len() < 14 {
-        return Err("Frame too short - minimum 14 bytes for Ethernet header");
-    }
-    
-    // Extract destination MAC from frame
-    let dest_mac: [u8; 6] = [
-        frame[0], frame[1], frame[2], frame[3], frame[4], frame[5]
-    ];
-    
-    // Extract payload (skip 14-byte Ethernet header)
-    let payload = &frame[14..];
-    
-    // Use existing send_packet function
-    send_packet(interface_id, payload, &dest_mac)
-}
-
-/// Initialize network drivers
-pub fn init_network_drivers() -> Result<(), &'static str> {
-    crate::log_info!("Initializing network drivers");
-    
-    // Initialize basic network interfaces
-    let loopback_interface = NetworkInterface {
-        interface_id: 0,
-        interface_name: "lo".into(),
-        mac_address: [0, 0, 0, 0, 0, 0],
-        ip_address: [127, 0, 0, 1],
-        enabled: AtomicBool::new(true),
-        packets_sent: AtomicU32::new(0),
-        packets_received: AtomicU32::new(0),
-        bytes_sent: AtomicU32::new(0),
-        bytes_received: AtomicU32::new(0),
-        interface_type: InterfaceType::Loopback,
-    };
-    
-    crate::log_info!("Network drivers initialized successfully");
-    Ok(())
-}
-
-/// Get primary network interface MAC address
-pub fn get_primary_mac_address() -> Option<[u8; 6]> {
-    unsafe {
-        if let Some(ref driver) = NETWORK_DRIVER {
-            // Find first enabled Ethernet interface
-            for interface in &driver.interfaces {
-                if interface.enabled.load(Ordering::Relaxed) && 
-                   matches!(interface.interface_type, InterfaceType::Ethernet) {
-                    return Some(interface.mac_address);
+        match et {
+            ET_ARP => {
+                handle_arp(payload);
+                Ok(())
+            }
+            ET_IPV4 => {
+                if payload.len() < 20 {
+                    return Err("ipv4 too short");
                 }
-            }
-            
-            // Fallback to any interface with non-zero MAC
-            for interface in &driver.interfaces {
-                if interface.mac_address != [0; 6] {
-                    return Some(interface.mac_address);
+                let ip: &Ipv4Header = unsafe { &*(payload.as_ptr() as *const Ipv4Header) };
+                if (ip.vihl >> 4) != 4 || (ip.vihl & 0x0F) != 5 {
+                    return Err("ipv4 header invalid");
                 }
+                if ip.proto == IP_PROTO_UDP {
+                    if payload.len() < 28 {
+                        return Err("udp too short");
+                    }
+                    let udp_off = 20;
+                    let udp: &UdpHeader = unsafe { &*(payload.as_ptr().add(udp_off) as *const UdpHeader) };
+                    let dport = u16::from_be_bytes(udp.dport_be);
+                    let sport = u16::from_be_bytes(udp.sport_be);
+                    let ulen = u16::from_be_bytes(udp.len_be) as usize;
+                    if ulen < 8 || udp_off + ulen > payload.len() {
+                        return Err("udp len invalid");
+                    }
+                    let data = &payload[udp_off + 8..udp_off + ulen];
+                    if let Some(h) = UDP_LISTENERS.lock().get(&dport).cloned() {
+                        h(data, ip.src, sport);
+                    }
+                }
+                Ok(())
             }
+            _ => Ok(()),
         }
     }
-    
-    // Generate pseudo-MAC address if no interfaces found
-    Some([0x02, 0x00, 0x4C, 0x4F, 0x4F, 0x50]) // "LOOP" in hex with local bit set
+
+    // Convenience raw send through default interface
+    pub fn try_send_raw(frame: &[u8]) -> Result<(), &'static str> {
+        if let Some(iface) = get_default_interface() {
+            if !run_send(frame) {
+                return Err("send filtered");
+            }
+            iface.send_packet(frame)
+        } else {
+            Err("no default interface")
+        }
+    }
 }
