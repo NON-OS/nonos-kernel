@@ -1,6 +1,4 @@
-//! Advanced Device Drivers Module
-//!
-//! Enterprise device drivers with DMA and MSI-X support
+//! Device Drivers Module
 
 use alloc::collections::BTreeMap;
 
@@ -67,59 +65,65 @@ pub use nonos_virtio_net::{
 
 /// Initialize all hardware drivers
 pub fn init_all_drivers() -> Result<(), &'static str> {
+    // Initialize DMA subsystem first for coherent allocations used by drivers.
+    // Pre-create a couple of common pools for descriptor rings and IO buffers.
+    crate::memory::dma::init_dma_allocator()?;
+    let _ = crate::memory::dma::create_dma_pool(4096, 128);
+    let _ = crate::memory::dma::create_dma_pool(2048, 256);
+
     crate::log::logger::log_critical("Initializing comprehensive hardware driver ecosystem...");
-    
+
     // Initialize PCI first (required for other drivers)
     nonos_pci::init_pci()?;
     crate::log::logger::log_critical("✓ PCI subsystem initialized");
-    
+
     // Initialize storage controllers
     if let Err(_) = nonos_nvme::init_nvme() {
         crate::log::logger::log_critical("⚠ NVMe controller not found or failed to initialize");
     } else {
         crate::log::logger::log_critical("✓ NVMe subsystem initialized");
     }
-    
+
     if let Err(_) = nonos_ahci::init_ahci() {
         crate::log::logger::log_critical("⚠ AHCI controller not found or failed to initialize");
     } else {
         crate::log::logger::log_critical("✓ AHCI/SATA subsystem initialized");
     }
-    
+
     // Initialize USB controllers
     if let Err(_) = nonos_xhci::init_xhci() {
         crate::log::logger::log_critical("⚠ xHCI controller not found or failed to initialize");
     } else {
         crate::log::logger::log_critical("✓ USB 3.0/xHCI subsystem initialized");
     }
-    
+
     // Initialize audio
     if let Err(_) = nonos_audio::init_hd_audio() {
         crate::log::logger::log_critical("⚠ HD Audio controller not found or failed to initialize");
     } else {
         crate::log::logger::log_critical("✓ HD Audio subsystem initialized");
     }
-    
+
     // Initialize graphics
     if let Err(_) = nonos_gpu::init_gpu() {
         crate::log::logger::log_critical("⚠ GPU not found or failed to initialize");
     } else {
         crate::log::logger::log_critical("✓ GPU subsystem initialized");
     }
-    
+
     // Initialize VirtIO network
     if let Err(_) = nonos_virtio_net::init_virtio_net() {
         crate::log::logger::log_critical("⚠ VirtIO network device not found or failed to initialize");
     } else {
         crate::log::logger::log_critical("✓ VirtIO network subsystem initialized");
     }
-    
-    crate::log::logger::log_critical("🚀 NONOS hardware driver ecosystem initialization complete!");
+
+    crate::log::logger::log_critical(" NONOS hardware driver ecosystem initialization complete!");
     crate::log::logger::log_critical("   - Advanced storage: NVMe, AHCI/SATA with cryptographic integration");
     crate::log::logger::log_critical("   - High-speed I/O: USB 3.0/xHCI with security whitelisting");
     crate::log::logger::log_critical("   - Audio processing: HD Audio with secure rendering");
     crate::log::logger::log_critical("   - Graphics acceleration: GPU with encrypted framebuffers");
-    
+
     Ok(())
 }
 
@@ -148,15 +152,15 @@ pub struct HardwareStats {
 impl Default for HardwareStats {
     fn default() -> Self {
         Self {
-            pci_stats: PciStats { 
+            pci_stats: PciStats {
                 total_devices: 0,
                 devices_by_class: BTreeMap::new(),
                 msix_devices: 0,
                 dma_engines: 0,
-                devices_found: 0, 
-                dma_transfers: 0, 
-                interrupts_handled: 0, 
-                errors: 0 
+                devices_found: 0,
+                dma_transfers: 0,
+                interrupts_handled: 0,
+                errors: 0,
             },
             nvme_stats: NvmeStats { commands_completed: 0, bytes_read: 0, bytes_written: 0, errors: 0, namespaces: 0 },
             ahci_stats: AhciStats { read_ops: 0, write_ops: 0, trim_ops: 0, errors: 0, bytes_read: 0, bytes_written: 0, devices_count: 0 },
@@ -199,9 +203,9 @@ pub enum SecurityLevel {
 /// Get list of critical drivers for security monitoring
 pub fn get_critical_drivers() -> alloc::vec::Vec<CriticalDriver> {
     use alloc::vec::Vec;
-    
+
     let mut drivers = Vec::new();
-    
+
     // Add AHCI controller as critical storage driver
     if let Some(ahci_ctrl) = get_ahci_controller() {
         drivers.push(CriticalDriver {
@@ -209,9 +213,9 @@ pub fn get_critical_drivers() -> alloc::vec::Vec<CriticalDriver> {
             driver_type: DriverType::Storage,
             base_address: ahci_ctrl as *const _ as usize,
             size: core::mem::size_of_val(ahci_ctrl),
-            hash: crate::crypto::nonos_hash::blake3_hash(unsafe { 
+            hash: crate::crypto::nonos_hash::blake3_hash(unsafe {
                 core::slice::from_raw_parts(
-                    ahci_ctrl as *const _ as *const u8, 
+                    ahci_ctrl as *const _ as *const u8,
                     core::mem::size_of_val(ahci_ctrl)
                 )
             }),
@@ -219,7 +223,7 @@ pub fn get_critical_drivers() -> alloc::vec::Vec<CriticalDriver> {
             security_level: SecurityLevel::Critical,
         });
     }
-    
+
     // Add NVMe controller as critical storage driver
     if let Some(nvme_ctrl) = nonos_nvme::get_controller() {
         drivers.push(CriticalDriver {
@@ -227,9 +231,9 @@ pub fn get_critical_drivers() -> alloc::vec::Vec<CriticalDriver> {
             driver_type: DriverType::Storage,
             base_address: nvme_ctrl as *const _ as usize,
             size: core::mem::size_of_val(nvme_ctrl),
-            hash: crate::crypto::nonos_hash::blake3_hash(unsafe { 
+            hash: crate::crypto::nonos_hash::blake3_hash(unsafe {
                 core::slice::from_raw_parts(
-                    nvme_ctrl as *const _ as *const u8, 
+                    nvme_ctrl as *const _ as *const u8,
                     core::mem::size_of_val(nvme_ctrl)
                 )
             }),
@@ -237,7 +241,7 @@ pub fn get_critical_drivers() -> alloc::vec::Vec<CriticalDriver> {
             security_level: SecurityLevel::Critical,
         });
     }
-    
+
     // Add PCI manager as system driver
     if let Some(pci_mgr) = get_pci_manager() {
         drivers.push(CriticalDriver {
@@ -245,9 +249,9 @@ pub fn get_critical_drivers() -> alloc::vec::Vec<CriticalDriver> {
             driver_type: DriverType::System,
             base_address: pci_mgr as *const _ as usize,
             size: core::mem::size_of_val(pci_mgr),
-            hash: crate::crypto::nonos_hash::blake3_hash(unsafe { 
+            hash: crate::crypto::nonos_hash::blake3_hash(unsafe {
                 core::slice::from_raw_parts(
-                    pci_mgr as *const _ as *const u8, 
+                    pci_mgr as *const _ as *const u8,
                     core::mem::size_of_val(pci_mgr)
                 )
             }),
@@ -255,7 +259,7 @@ pub fn get_critical_drivers() -> alloc::vec::Vec<CriticalDriver> {
             security_level: SecurityLevel::Critical,
         });
     }
-    
+
     drivers
 }
 
@@ -283,18 +287,18 @@ pub enum SecurityStatus {
 /// Get all hardware devices for security scanning
 pub fn get_all_devices() -> alloc::vec::Vec<DeviceInfo> {
     use alloc::vec::Vec;
-    
+
     let mut devices = Vec::new();
-    
+
     // Scan PCI bus for all devices
     if let Some(pci_manager) = get_pci_manager() {
         let pci_devices = pci_manager.enumerate_all_devices();
-        
+
         for pci_dev in pci_devices {
             devices.push(DeviceInfo {
                 name: match (pci_dev.vendor_id, pci_dev.device_id) {
                     (0x8086, _) => "Intel Device",
-                    (0x1022, _) => "AMD Device", 
+                    (0x1022, _) => "AMD Device",
                     (0x10DE, _) => "NVIDIA Device",
                     (0x1234, 0x1111) => "QEMU VGA",
                     (0x1AF4, _) => "VirtIO Device",
@@ -320,11 +324,11 @@ pub fn get_all_devices() -> alloc::vec::Vec<DeviceInfo> {
                         _ => 0x00,
                     }
                 }),
-                security_status: SecurityStatus::Verified, // Would be checked in real system
+                security_status: SecurityStatus::Verified, // Has TO be checked in real system
             });
         }
     }
-    
+
     // Add virtual devices and platform devices
     devices.push(DeviceInfo {
         name: "System Timer",
@@ -336,7 +340,7 @@ pub fn get_all_devices() -> alloc::vec::Vec<DeviceInfo> {
         capabilities: 0,
         security_status: SecurityStatus::Verified,
     });
-    
+
     devices.push(DeviceInfo {
         name: "Interrupt Controller",
         device_type: DriverType::System,
@@ -347,7 +351,7 @@ pub fn get_all_devices() -> alloc::vec::Vec<DeviceInfo> {
         capabilities: 0,
         security_status: SecurityStatus::Verified,
     });
-    
+
     devices
 }
 
@@ -367,30 +371,30 @@ fn classify_device_type(class_code: u32) -> DriverType {
     }
 }
 
-/// Add compatibility functions for keyboard buffer  
+/// Compatibility functions for keyboard buffer
 pub mod keyboard_buffer {
     use alloc::collections::VecDeque;
     use spin::Mutex;
-    
+
     static KEYBOARD_BUFFER: Mutex<VecDeque<char>> = Mutex::new(VecDeque::new());
-    
+
     /// Add character to keyboard buffer
     pub fn add_to_buffer(ch: char) {
         let mut buffer = KEYBOARD_BUFFER.lock();
         buffer.push_back(ch);
-        
+
         // Limit buffer size
         if buffer.len() > 256 {
             buffer.pop_front();
         }
     }
-    
+
     /// Read character from keyboard buffer
     pub fn read_char() -> Option<char> {
         let mut buffer = KEYBOARD_BUFFER.lock();
         buffer.pop_front()
     }
-    
+
     /// Check if buffer has data
     pub fn has_data() -> bool {
         let buffer = KEYBOARD_BUFFER.lock();
