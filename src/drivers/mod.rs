@@ -6,14 +6,15 @@ pub mod nonos_keyboard;
 pub mod nonos_vga;
 pub mod nonos_pci;
 pub mod nonos_nvme;
-pub mod nonos_ahci;     // Advanced SATA controller
-pub mod nonos_xhci;     // USB 3.0 controller
-pub mod nonos_audio;    // HD Audio controller
-pub mod nonos_gpu;      // Graphics processing unit
-pub mod nonos_virtio_net; // VirtIO network driver
-pub mod nonos_network;    // Network driver interface
-pub mod nonos_usb;        // Real USB host controller driver
-pub mod nonos_console;    // Real console driver with VGA/serial
+pub mod nonos_ahci;         // Advanced SATA controller
+pub mod nonos_xhci;         // USB 3.0 controller
+pub mod nonos_audio;        // HD Audio controller
+pub mod nonos_gpu;          // Graphics processing unit
+pub mod nonos_virtio_net;   // VirtIO network driver
+pub mod nonos_network;      // Network driver interface
+pub mod nonos_usb;          // USB host/controller manager
+pub mod nonos_console;      // Console driver with VGA/serial
+pub mod nonos_monster;      // MONSTER driver orchestrator and health manager
 
 // Re-exports for backward compatibility
 pub use nonos_keyboard as keyboard;
@@ -28,6 +29,8 @@ pub use nonos_virtio_net as virtio_net;
 pub use nonos_network as network;
 pub use nonos_usb as usb;
 pub use nonos_console as console;
+// Convenience alias for MONSTER orchestrator
+pub use nonos_monster as monster;
 
 pub use nonos_pci::{
     PciManager, PciDevice, PciBar, PciCapability, DmaEngine, DmaDescriptor,
@@ -63,66 +66,21 @@ pub use nonos_virtio_net::{
     VirtioNetDevice, VirtioNetInterface, init_virtio_net, get_virtio_net_device
 };
 
-/// Initialize all hardware drivers
+/// Initialize all hardware drivers.
+/// - Initializes DMA allocator and common pools first.
+/// - Delegates the rest of the bring-up to the MONSTER orchestrator,
+///   which is idempotent and performs safe, ordered initialization.
+/// - Logs critical milestones.
 pub fn init_all_drivers() -> Result<(), &'static str> {
-    // Initialize DMA subsystem first for coherent allocations used by drivers.
-    // Pre-create a couple of common pools for descriptor rings and IO buffers.
+    // DMA subsystem first for coherent allocations used by drivers.
     crate::memory::dma::init_dma_allocator()?;
     let _ = crate::memory::dma::create_dma_pool(4096, 128);
     let _ = crate::memory::dma::create_dma_pool(2048, 256);
 
-    crate::log::logger::log_critical("Initializing comprehensive hardware driver ecosystem...");
-
-    // Initialize PCI first (required for other drivers)
-    nonos_pci::init_pci()?;
-    crate::log::logger::log_critical("✓ PCI subsystem initialized");
-
-    // Initialize storage controllers
-    if let Err(_) = nonos_nvme::init_nvme() {
-        crate::log::logger::log_critical("⚠ NVMe controller not found or failed to initialize");
-    } else {
-        crate::log::logger::log_critical("✓ NVMe subsystem initialized");
-    }
-
-    if let Err(_) = nonos_ahci::init_ahci() {
-        crate::log::logger::log_critical("⚠ AHCI controller not found or failed to initialize");
-    } else {
-        crate::log::logger::log_critical("✓ AHCI/SATA subsystem initialized");
-    }
-
-    // Initialize USB controllers
-    if let Err(_) = nonos_xhci::init_xhci() {
-        crate::log::logger::log_critical("⚠ xHCI controller not found or failed to initialize");
-    } else {
-        crate::log::logger::log_critical("✓ USB 3.0/xHCI subsystem initialized");
-    }
-
-    // Initialize audio
-    if let Err(_) = nonos_audio::init_hd_audio() {
-        crate::log::logger::log_critical("⚠ HD Audio controller not found or failed to initialize");
-    } else {
-        crate::log::logger::log_critical("✓ HD Audio subsystem initialized");
-    }
-
-    // Initialize graphics
-    if let Err(_) = nonos_gpu::init_gpu() {
-        crate::log::logger::log_critical("⚠ GPU not found or failed to initialize");
-    } else {
-        crate::log::logger::log_critical("✓ GPU subsystem initialized");
-    }
-
-    // Initialize VirtIO network
-    if let Err(_) = nonos_virtio_net::init_virtio_net() {
-        crate::log::logger::log_critical("⚠ VirtIO network device not found or failed to initialize");
-    } else {
-        crate::log::logger::log_critical("✓ VirtIO network subsystem initialized");
-    }
-
-    crate::log::logger::log_critical(" NONOS hardware driver ecosystem initialization complete!");
-    crate::log::logger::log_critical("   - Advanced storage: NVMe, AHCI/SATA with cryptographic integration");
-    crate::log::logger::log_critical("   - High-speed I/O: USB 3.0/xHCI with security whitelisting");
-    crate::log::logger::log_critical("   - Audio processing: HD Audio with secure rendering");
-    crate::log::logger::log_critical("   - Graphics acceleration: GPU with encrypted framebuffers");
+    crate::log::logger::log_critical("Initializing NONOS driver stack via MONSTER orchestrator...");
+    // Delegate to MONSTER (handles PCI, NVMe, xHCI+USB, VirtIO, GPU, Audio).
+    nonos_monster::monster_init()?;
+    crate::log::logger::log_critical("✓ NONOS driver stack initialized");
 
     Ok(())
 }
@@ -324,12 +282,12 @@ pub fn get_all_devices() -> alloc::vec::Vec<DeviceInfo> {
                         _ => 0x00,
                     }
                 }),
-                security_status: SecurityStatus::Verified, // Has TO be checked in real system
+                security_status: SecurityStatus::Verified, // To be verified once shift to real system
             });
         }
     }
 
-    // Add virtual devices and platform devices
+    // Add virtual/platform devices
     devices.push(DeviceInfo {
         name: "System Timer",
         device_type: DriverType::System,
