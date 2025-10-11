@@ -1,324 +1,334 @@
-use crate::crypto::hash::sha256;
-use crate::crypto::ed25519::{KeyPair, sign};
-use crate::crypto::rng::random_u64;
+//! NONOS ZK 
+
+#![allow(clippy::result_unit_err)]
+
+extern crate alloc;
 use alloc::vec::Vec;
+use core::ptr;
 
-static mut ZK_INITIALIZED: bool = false;
+use crate::crypto::hash::{blake3_hash, sha256};
+use crate::crypto::rng::{get_random_bytes, random_u64};
+use crate::crypto::ed25519::{KeyPair, Signature as EdSig, sign as ed25519_sign, verify as ed25519_verify};
+
+// Domain separation tags
+const DOM_ATTEST: &[u8] = b"NONOS_ATTEST_V1";
+const DOM_COMMIT: &[u8] = b"NONOS_COMMIT_V1";
+const DOM_CRED:   &[u8] = b"NONOS_CRED_V1";
+
+// ------------------------ Attestations ------------------------
 
 #[repr(C)]
+#[derive(Clone, Copy)]
 pub struct AttestationProof {
-    pub hash: [u8; 32],
-    pub signature: [u8; 64],
-    pub nonce: u64,
+    pub msg_hash: [u8; 32],   // SHA-256(message)
+    pub nonce:    [u8; 32],   // 256-bit random nonce
+    pub signature: [u8; 64],  // Ed25519 signature over transcript
+    pub pubkey:    [u8; 32],  // Ed25519 public key of signer (for transport/debug)
 }
 
-pub fn init_zk_system() -> Result<(), &'static str> {
-    unsafe {
-        ZK_INITIALIZED = true;
+/// Create an attestation over arbitrary data using Ed25519.
+///
+/// Transcript M = DOM_ATTEST || msg_hash || nonce
+pub fn create_attestation(data: &[u8], keypair: &KeyPair) -> AttestationProof {
+    let msg_hash = sha256(data);
+    let nonce = get_random_bytes();
+
+    let mut t = Vec::with_capacity(DOM_ATTEST.len() + 32 + 32);
+    t.extend_from_slice(DOM_ATTEST);
+    t.extend_from_slice(&msg_hash);
+    t.extend_from_slice(&nonce);
+
+    let sig = ed25519_sign(keypair, &t).to_bytes();
+
+    // zeroize transcript buffer
+    for b in t.iter_mut() {
+        unsafe { ptr::write_volatile(b, 0) };
     }
-    Ok(())
-}
 
-pub fn generate_snapshot_signature(data: &[u8], keypair: &KeyPair) -> Vec<u8> {
-    let signature = sign(keypair, data);
-    let mut result = Vec::with_capacity(64);
-    result.extend_from_slice(&signature.to_bytes());
-    result
-}
-
-pub fn create_attestation_proof(data: &[u8], keypair: &KeyPair) -> AttestationProof {
-    let hash = sha256(data);
-    let sig_data = sign(keypair, &hash);
     AttestationProof {
-        hash,
-        signature: sig_data.to_bytes(),
-        nonce: random_u64(),
+        msg_hash,
+        nonce,
+        signature: sig,
+        pubkey: keypair.public,
     }
 }
 
-pub fn verify_attestation_proof(proof: &AttestationProof, data: &[u8]) -> bool {
-    let computed_hash = sha256(data);
-    proof.hash == computed_hash
-}
-
-#[repr(C)]
-pub struct PlonkProof {
-    pub commitments: [u8; 256],
-    pub evaluations: [u8; 128],
-    pub opening_proof: [u8; 64],
-}
-
-pub fn generate_plonk_proof(circuit: &[u8], witness: &[u8]) -> Result<(Vec<u8>, Vec<u8>), &'static str> {
-    let mut proof_data = Vec::with_capacity(448);
-    
-    let circuit_hash = sha256(circuit);
-    let witness_hash = sha256(witness);
-    
-    proof_data.extend_from_slice(&circuit_hash);
-    proof_data.extend_from_slice(&witness_hash);
-    
-    for i in 0..14 {
-        let round_data = sha256(&[&proof_data, &[i as u8]].concat());
-        proof_data.extend_from_slice(&round_data);
-    }
-    
-    let vk = sha256(&proof_data);
-    Ok((proof_data, vk.to_vec()))
-}
-
-pub fn verify_plonk_proof(statement: &[u8], proof: &[u8], vk: &[u8]) -> Result<bool, &'static str> {
-    if proof.len() != 448 || vk.len() != 32 {
-        return Err("Invalid sizes");
-    }
-    
-    let statement_hash = sha256(statement);
-    let proof_hash = sha256(proof);
-    let combined = sha256(&[&statement_hash[..], &proof_hash[..]].concat());
-    
-    Ok(vk == combined.as_slice())
-}
-
-#[repr(C)]
-pub struct ZkGate {
-    pub gate_type: u8,
-    pub left_wire: u32,
-    pub right_wire: u32,
-    pub output_wire: u32,
-    pub constant: u64,
-}
-
-#[repr(C)]
-pub struct ZkCircuit {
-    pub gates: Vec<ZkGate>,
-    pub public_inputs: Vec<u32>,
-    pub wire_count: u32,
-}
-
-pub const GATE_ADD: u8 = 0;
-pub const GATE_MUL: u8 = 1;
-pub const GATE_CONST: u8 = 2;
-
-impl ZkCircuit {
-    pub fn new() -> Self {
-        Self {
-            gates: Vec::new(),
-            public_inputs: Vec::new(),
-            wire_count: 0,
-        }
-    }
-    
-    pub fn add_wire(&mut self) -> u32 {
-        let wire = self.wire_count;
-        self.wire_count += 1;
-        wire
-    }
-    
-    pub fn add_gate(&mut self, gate_type: u8, left: u32, right: u32, output: u32, constant: u64) {
-        self.gates.push(ZkGate {
-            gate_type,
-            left_wire: left,
-            right_wire: right,
-            output_wire: output,
-            constant,
-        });
-    }
-    
-    pub fn set_public_input(&mut self, wire: u32) {
-        self.public_inputs.push(wire);
-    }
-    
-    pub fn evaluate(&self, witness: &[u64]) -> Result<Vec<u64>, &'static str> {
-        let mut values = witness.to_vec();
-        values.resize(self.wire_count as usize, 0);
-        
-        for gate in &self.gates {
-            let result = match gate.gate_type {
-                GATE_ADD => values[gate.left_wire as usize] + values[gate.right_wire as usize],
-                GATE_MUL => values[gate.left_wire as usize] * values[gate.right_wire as usize],
-                GATE_CONST => gate.constant,
-                _ => return Err("Unknown gate type"),
-            };
-            values[gate.output_wire as usize] = result;
-        }
-        
-        Ok(values)
-    }
-}
-
-#[repr(C)]
-pub struct ZkConstraint {
-    pub a_wire: u32,
-    pub b_wire: u32,
-    pub c_wire: u32,
-    pub q_l: u64,
-    pub q_r: u64,
-    pub q_o: u64,
-    pub q_m: u64,
-    pub q_c: u64,
-}
-
-pub enum ZkGateType {
-    Add,
-    Mul,
-    Const(u64),
-}
-
-#[repr(C)]
-pub struct ZkCredential {
-    pub id: [u8; 32],
-    pub public_key: [u8; 32],
-    pub attributes: Vec<u8>,
-    pub signature: [u8; 64],
-    pub timestamp: u64,
-}
-
-#[repr(C)]
-pub struct IdentityRegistry {
-    pub entries: Vec<ZkCredential>,
-    pub count: usize,
-}
-
-impl IdentityRegistry {
-    pub fn new() -> Self {
-        Self {
-            entries: Vec::new(),
-            count: 0,
-        }
-    }
-    
-    pub fn register(&mut self, credential: ZkCredential) {
-        self.entries.push(credential);
-        self.count += 1;
-    }
-    
-    pub fn lookup(&self, id: &[u8; 32]) -> Option<&ZkCredential> {
-        self.entries.iter().find(|cred| &cred.id == id)
-    }
-    
-    pub fn verify(&self, id: &[u8; 32], challenge: &[u8]) -> bool {
-        if let Some(cred) = self.lookup(id) {
-            let expected = sha256(&[&cred.public_key[..], challenge].concat());
-            let actual = sha256(&cred.attributes);
-            expected == actual
-        } else {
-            false
-        }
-    }
-}
-
-#[repr(C)]
-pub struct ZkIdentityProvider {
-    pub registry: IdentityRegistry,
-    pub master_key: [u8; 32],
-}
-
-impl ZkIdentityProvider {
-    pub fn new(master_key: [u8; 32]) -> Self {
-        Self {
-            registry: IdentityRegistry::new(),
-            master_key,
-        }
-    }
-    
-    pub fn issue_credential(&mut self, id: [u8; 32], public_key: [u8; 32], attributes: Vec<u8>) -> ZkCredential {
-        let mut sig_data = Vec::new();
-        sig_data.extend_from_slice(&id);
-        sig_data.extend_from_slice(&public_key);
-        sig_data.extend_from_slice(&attributes);
-        
-        let sig_hash = sha256(&sig_data);
-        let mut signature = [0u8; 64];
-        
-        for i in 0..32 {
-            signature[i] = sig_hash[i] ^ self.master_key[i];
-            signature[i + 32] = sig_hash[i] ^ self.master_key[31 - i];
-        }
-        
-        let credential = ZkCredential {
-            id,
-            public_key,
-            attributes,
-            signature,
-            timestamp: random_u64(),
-        };
-        
-        self.registry.register(credential.clone());
-        credential
-    }
-}
-
-#[repr(C)]
-pub struct ZkProof {
-    pub data: Vec<u8>,
-    pub size: usize,
-}
-
-impl ZkProof {
-    pub fn new(input: &[u8]) -> Self {
-        let hash = sha256(input);
-        Self {
-            data: hash.to_vec(),
-            size: hash.len(),
-        }
-    }
-    
-    pub fn verify(&self, expected: &[u8]) -> bool {
-        let computed = sha256(expected);
-        self.data == computed.as_slice()
-    }
-}
-
-pub fn commit_value(value: u64, randomness: &[u8; 32]) -> [u8; 32] {
-    let mut input = [0u8; 40];
-    input[0..8].copy_from_slice(&value.to_le_bytes());
-    input[8..40].copy_from_slice(randomness);
-    sha256(&input)
-}
-
-pub fn open_commitment(commitment: &[u8; 32], value: u64, randomness: &[u8; 32]) -> bool {
-    let computed = commit_value(value, randomness);
-    commitment == &computed
-}
-
-pub fn create_range_proof(value: u64, min: u64, max: u64, randomness: &[u8; 32]) -> Result<Vec<u8>, &'static str> {
-    if value < min || value > max {
-        return Err("Out of range");
-    }
-    
-    let commitment = commit_value(value, randomness);
-    let mut proof = Vec::with_capacity(72);
-    proof.extend_from_slice(&commitment);
-    proof.extend_from_slice(&value.to_le_bytes());
-    proof.extend_from_slice(&randomness[0..8]);
-    proof.extend_from_slice(&min.to_le_bytes());
-    proof.extend_from_slice(&max.to_le_bytes());
-    
-    let proof_hash = sha256(&proof);
-    proof.extend_from_slice(&proof_hash);
-    
-    Ok(proof)
-}
-
-pub fn verify_range_proof(proof: &[u8], expected_commitment: &[u8; 32]) -> bool {
-    if proof.len() != 104 {
+/// Verify an attestation given the data, expected signer public key, and proof.
+///
+/// IMPORTANT: do not trust the public key embedded in the proof for authorization.
+/// Always provide and enforce the expected_pubkey of the intended signer.
+///
+/// Checks:
+/// - msg_hash matches SHA-256(data)
+/// - proof.pubkey equals expected_pubkey (transport sanity)
+/// - Ed25519 signature over transcript M = DOM_ATTEST || msg_hash || nonce with expected_pubkey
+pub fn verify_attestation(
+    data: &[u8],
+    expected_pubkey: &[u8; 32],
+    proof: &AttestationProof,
+) -> bool {
+    if sha256(data) != proof.msg_hash {
         return false;
     }
-    
-    let commitment = &proof[0..32];
-    let value = u64::from_le_bytes(proof[32..40].try_into().unwrap_or([0; 8]));
-    let randomness_prefix = &proof[40..48];
-    let min = u64::from_le_bytes(proof[48..56].try_into().unwrap_or([0; 8]));
-    let max = u64::from_le_bytes(proof[56..64].try_into().unwrap_or([0; 8]));
-    let proof_hash = &proof[64..96];
-    
-    if commitment != expected_commitment.as_slice() {
+    if &proof.pubkey != expected_pubkey {
         return false;
     }
-    
-    if value < min || value > max {
-        return false;
+
+    let mut t = Vec::with_capacity(DOM_ATTEST.len() + 32 + 32);
+    t.extend_from_slice(DOM_ATTEST);
+    t.extend_from_slice(&proof.msg_hash);
+    t.extend_from_slice(&proof.nonce);
+
+    let sig = EdSig::from_bytes(&proof.signature);
+    let ok = ed25519_verify(expected_pubkey, &t, &sig);
+
+    // zeroize transcript buffer
+    for b in t.iter_mut() {
+        unsafe { ptr::write_volatile(b, 0) };
     }
-    
-    let computed_hash = sha256(&proof[0..64]);
-    proof_hash == computed_hash.as_slice()
+
+    ok
+}
+
+// ------------------------ Commitments ------------------------
+//
+// Hash-based commitment (binding and hiding if randomness is secret):
+// C = BLAKE3(DOM_COMMIT || len(value) || value || nonce)
+//
+
+/// Commit to an arbitrary value with 32-byte randomness (nonce).
+pub fn commit(value: &[u8], nonce32: &[u8; 32]) -> [u8; 32] {
+    let mut t = Vec::with_capacity(DOM_COMMIT.len() + 8 + value.len() + 32);
+    t.extend_from_slice(DOM_COMMIT);
+    t.extend_from_slice(&(value.len() as u64).to_le_bytes());
+    t.extend_from_slice(value);
+    t.extend_from_slice(nonce32);
+    let c = blake3_hash(&t);
+
+    // zeroize transcript buffer
+    for b in t.iter_mut() {
+        unsafe { ptr::write_volatile(b, 0) };
+    }
+    c
+}
+
+/// Verify a commitment against a value and nonce.
+pub fn verify_commitment(commitment: &[u8; 32], value: &[u8], nonce32: &[u8; 32]) -> bool {
+    &commit(value, nonce32) == commitment
+}
+
+/// Convenience: commit to a u64 in little-endian.
+pub fn commit_u64(value: u64, nonce32: &[u8; 32]) -> [u8; 32] {
+    commit(&value.to_le_bytes(), nonce32)
+}
+
+// ------------------------ Credentials (Issuer-signed) ------------------------
+
+#[repr(C)]
+#[derive(Clone, Copy)]
+pub struct Credential {
+    pub id: [u8; 32],           // identifier derived from contents
+    pub subject_pubkey: [u8; 32],
+    pub attrs_hash: [u8; 32],   // BLAKE3(attributes)
+    pub timestamp: u64,         // caller-provided (e.g., UNIX seconds)
+    pub signature: [u8; 64],    // Ed25519 over transcript digest
+    pub issuer_pubkey: [u8; 32],
+}
+
+impl Credential {
+    fn transcript_digest(&self) -> [u8; 32] {
+        // H = BLAKE3(DOM_CRED || id || subject_pubkey || attrs_hash || timestamp_le)
+        let mut t = Vec::with_capacity(DOM_CRED.len() + 32 + 32 + 32 + 8);
+        t.extend_from_slice(DOM_CRED);
+        t.extend_from_slice(&self.id);
+        t.extend_from_slice(&self.subject_pubkey);
+        t.extend_from_slice(&self.attrs_hash);
+        t.extend_from_slice(&self.timestamp.to_le_bytes());
+        let h = blake3_hash(&t);
+        // zeroize t
+        for b in t.iter_mut() {
+            unsafe { ptr::write_volatile(b, 0) };
+        }
+        h
+    }
+}
+
+/// Issue a credential from an issuer Ed25519 keypair to a subject public key and attributes.
+pub fn issue_credential(
+    issuer: &KeyPair,
+    subject_pubkey: &[u8; 32],
+    attributes: &[u8],
+    timestamp: u64,
+) -> Credential {
+    let attrs_hash = blake3_hash(attributes);
+
+    // deterministically derive an ID from subject, attrs_hash, and timestamp with extra randomness
+    let mut id_t = Vec::with_capacity(32 + 32 + 8 + 16);
+    id_t.extend_from_slice(subject_pubkey);
+    id_t.extend_from_slice(&attrs_hash);
+    id_t.extend_from_slice(&timestamp.to_le_bytes());
+    // add 16 bytes of randomness to prevent collisions under identical inputs
+    id_t.extend_from_slice(&random_u64().to_le_bytes());
+    id_t.extend_from_slice(&random_u64().to_le_bytes());
+    let id = blake3_hash(&id_t);
+    for b in id_t.iter_mut() {
+        unsafe { ptr::write_volatile(b, 0) };
+    }
+
+    let mut cred = Credential {
+        id,
+        subject_pubkey: *subject_pubkey,
+        attrs_hash,
+        timestamp,
+        signature: [0u8; 64],
+        issuer_pubkey: issuer.public,
+    };
+
+    // Sign transcript digest
+    let digest = cred.transcript_digest();
+    let sig = ed25519_sign(issuer, &digest).to_bytes();
+    cred.signature = sig;
+
+    // zeroize digest copy
+    let mut d = [0u8; 32];
+    d.copy_from_slice(&digest);
+    for b in d.iter_mut() {
+        unsafe { ptr::write_volatile(b, 0) };
+    }
+
+    cred
+}
+
+/// Verify a credential using the issuer's public key embedded in the credential.
+///
+/// Callers should also separately authorize issuer_pubkey against a trusted root or allowlist.
+pub fn verify_credential(cred: &Credential) -> bool {
+    let digest = cred.transcript_digest();
+    let sig = EdSig::from_bytes(&cred.signature);
+    let ok = ed25519_verify(&cred.issuer_pubkey, &digest, &sig);
+
+    // zeroize digest copy
+    let mut d = [0u8; 32];
+    d.copy_from_slice(&digest);
+    for b in d.iter_mut() {
+        unsafe { ptr::write_volatile(b, 0) };
+    }
+
+    ok
+}
+
+// ------------------------ Range proofs via ZK (verification shims) ------------------------
+//
+// Halo2 or Groth16 circuits to prove ranges, relations, etc.
+// We only provide verification wrappers here. Proof generation belongs to host tools.
+
+// Halo2 (KZG/Bn256), host-only
+#[cfg(feature = "zk-halo2")]
+pub mod halo2_range {
+    extern crate alloc;
+    use alloc::vec::Vec;
+
+    use crate::crypto::halo2::{Halo2Error, halo2_verify_kzg_bn256};
+
+    /// Verify a Halo2 proof using KZG/Bn256 (Blake2b transcript) with per-column public inputs.
+    /// - params_bytes: serialized ParamsKZG::<Bn256>
+    /// - vk_bytes:     serialized VerifyingKey::<G1Affine>
+    /// - proof_bytes:  transcript-encoded proof
+    /// - public_inputs_columns_le32: &[&[[u8; 32]]], each inner slice is one instance column of Fr (LE32)
+    pub fn verify(
+        params_bytes: &[u8],
+        vk_bytes: &[u8],
+        proof_bytes: &[u8],
+        public_inputs_columns_le32: &[&[[u8; 32]]],
+    ) -> Result<(), Halo2Error> {
+        halo2_verify_kzg_bn256(params_bytes, vk_bytes, proof_bytes, public_inputs_columns_le32)
+    }
+
+    /// Helper to convert a single public input vector into one-column layout.
+    pub fn single_column(inputs_le32: &[[u8; 32]]) -> [&[[u8; 32]]; 1] {
+        [inputs_le32]
+    }
+}
+
+// Groth16 (BN254), host-only
+#[cfg(feature = "zk-groth16")]
+pub mod groth16_range {
+    use crate::crypto::groth16::{Groth16Error, groth16_verify_bn254};
+
+    /// Verify a Groth16 proof over BN254.
+    /// - vk_bytes: canonical serialized verifying key (compressed or uncompressed)
+    /// - proof_bytes: canonical serialized proof (compressed or uncompressed)
+    /// - public_inputs_fr_le32: list of 32-byte LE encodings of Fr public inputs
+    pub fn verify(
+        vk_bytes: &[u8],
+        proof_bytes: &[u8],
+        public_inputs_fr_le32: &[[u8; 32]],
+    ) -> Result<(), Groth16Error> {
+        groth16_verify_bn254(vk_bytes, proof_bytes, public_inputs_fr_le32)
+    }
+}
+
+// ------------------------ Utilities ------------------------
+
+/// Wipe a mutable slice using volatile writes.
+#[inline(always)]
+pub fn zeroize_mut(buf: &mut [u8]) {
+    for b in buf {
+        unsafe { ptr::write_volatile(b, 0) };
+    }
+}
+
+/// Wipe a fixed array by value (returns a zeroed clone).
+#[inline(always)]
+pub fn zeroize_array<const N: usize>(mut a: [u8; N]) -> [u8; N] {
+    for b in a.iter_mut() {
+        unsafe { ptr::write_volatile(b, 0) };
+    }
+    [0u8; N]
+}
+
+// ------------------------ Tests (host-only) ------------------------
+
+#[cfg(all(test, feature = "std"))]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn attest_roundtrip() {
+        let kp = KeyPair::from_seed([7u8; 32]);
+        let data = b"attest test";
+        let proof = create_attestation(data, &kp);
+        assert!(verify_attestation(data, &kp.public, &proof));
+
+        // tamper: wrong signer
+        let other = KeyPair::from_seed([8u8; 32]);
+        assert!(!verify_attestation(data, &other.public, &proof));
+    }
+
+    #[test]
+    fn commit_roundtrip() {
+        let v = b"secret";
+        let r = get_random_bytes();
+        let c = commit(v, &r);
+        assert!(verify_commitment(&c, v, &r));
+
+        // tamper
+        let mut rr = r;
+        rr[0] ^= 1;
+        assert!(!verify_commitment(&c, v, &rr));
+    }
+
+    #[test]
+    fn credential_roundtrip() {
+        let issuer = KeyPair::from_seed([9u8; 32]);
+        let subject = KeyPair::from_seed([1u8; 32]);
+        let attrs = b"anon cred attrs";
+        let cred = issue_credential(&issuer, &subject.public, attrs, 123456789);
+        assert!(verify_credential(&cred));
+
+        // tamper signature
+        let mut bad = cred;
+        bad.signature[1] ^= 1;
+        assert!(!verify_credential(&bad));
+    }
 }
