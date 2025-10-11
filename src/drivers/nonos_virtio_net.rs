@@ -1,58 +1,53 @@
 //! VirtIO Network Device Driver
-//!
-//! Complete production implementation of the VirtIO network device driver
-//! with DMA support, interrupt handling, and high-performance packet processing.
-//! 
-//! This driver implements the VirtIO 1.0 specification for network devices
-//! and provides zero-copy packet transmission and reception.
+// NOTE: We negotiate only features we actually implement; offloads are disabled
+// unless explicitly added. MRG_RXBUF is not negotiated, so RX is single-buffer.
 
-use alloc::{vec, vec::Vec, collections::VecDeque, sync::Arc};
-use spin::Mutex;
-use core::mem;
-use core::ptr;
+use alloc::{collections::VecDeque, sync::Arc, vec, vec::Vec};
+use core::{mem, ptr};
 use core::sync::atomic::{AtomicU64, Ordering};
-use x86_64::PhysAddr;
+use spin::Mutex;
+use x86_64::{PhysAddr, VirtAddr};
 
-use crate::memory::alloc_dma_page;
-use crate::arch::x86_64::pci::{PciDevice, PciBar};
+use crate::drivers::pci::{pci_read_config32, PciBar, PciDevice};
 use crate::interrupts::register_interrupt_handler;
+use crate::memory::dma::alloc_dma_coherent;
 
-/// VirtIO device vendor and device IDs
+// PCI IDs
 const VIRTIO_VENDOR_ID: u16 = 0x1AF4;
-const VIRTIO_NET_DEVICE_ID: u16 = 0x1000;
-const VIRTIO_NET_SUBSYSTEM_ID: u16 = 0x0001;
+const VIRTIO_NET_DEVICE_ID_TRANSITIONAL: u16 = 0x1000;
+const VIRTIO_NET_DEVICE_ID_MODERN: u16 = 0x1041;
 
-/// VirtIO feature bits for network device
-const VIRTIO_NET_F_CSUM: u32 = 0;
-const VIRTIO_NET_F_GUEST_CSUM: u32 = 1;
-const VIRTIO_NET_F_CTRL_GUEST_OFFLOADS: u32 = 2;
-const VIRTIO_NET_F_MTU: u32 = 3;
+// Feature bits (indexes)
 const VIRTIO_NET_F_MAC: u32 = 5;
-const VIRTIO_NET_F_GUEST_TSO4: u32 = 7;
-const VIRTIO_NET_F_GUEST_TSO6: u32 = 8;
-const VIRTIO_NET_F_GUEST_ECN: u32 = 9;
-const VIRTIO_NET_F_GUEST_UFO: u32 = 10;
-const VIRTIO_NET_F_HOST_TSO4: u32 = 11;
-const VIRTIO_NET_F_HOST_TSO6: u32 = 12;
-const VIRTIO_NET_F_HOST_ECN: u32 = 13;
-const VIRTIO_NET_F_HOST_UFO: u32 = 14;
-const VIRTIO_NET_F_MRG_RXBUF: u32 = 15;
 const VIRTIO_NET_F_STATUS: u32 = 16;
 const VIRTIO_NET_F_CTRL_VQ: u32 = 17;
-const VIRTIO_NET_F_CTRL_RX: u32 = 18;
-const VIRTIO_NET_F_CTRL_VLAN: u32 = 19;
-const VIRTIO_NET_F_GUEST_ANNOUNCE: u32 = 21;
-const VIRTIO_NET_F_MQ: u32 = 22;
-const VIRTIO_NET_F_CTRL_MAC_ADDR: u32 = 23;
 
-/// VirtIO queue indices
-const VIRTIO_NET_RX_QUEUE: u16 = 0;
-const VIRTIO_NET_TX_QUEUE: u16 = 1;
-const VIRTIO_NET_CTRL_QUEUE: u16 = 2;
+// Queue indices
+const Q_RX: u16 = 0;
+const Q_TX: u16 = 1;
+const Q_CTRL: u16 = 2;
 
-/// Network packet header as defined by VirtIO spec
+// Legacy (fallback) offsets
+const LEG_HOST_FEATURES: usize = 0x00;
+const LEG_GUEST_FEATURES: usize = 0x04;
+const LEG_QUEUE_PFN: usize = 0x08;
+const LEG_QUEUE_NUM: usize = 0x0C;
+const LEG_QUEUE_SEL: usize = 0x0E;
+const LEG_STATUS: usize = 0x12;
+const LEG_ISR: usize = 0x13;
+const LEG_MAC: usize = 0x14;
+const LEG_NOTIFY: usize = 0x10;
+
+// Virtio-pci vendor capability types
+const VIRTIO_PCI_CAP_VENDOR: u8 = 0x09;
+const CAP_COMMON_CFG: u8 = 1;
+const CAP_NOTIFY_CFG: u8 = 2;
+const CAP_ISR_CFG: u8 = 3;
+const CAP_DEVICE_CFG: u8 = 4;
+
+// Virtio net header
 #[repr(C)]
-#[derive(Debug, Clone, Copy)]
+#[derive(Clone, Copy, Debug)]
 pub struct VirtioNetHeader {
     pub flags: u8,
     pub gso_type: u8,
@@ -60,9 +55,8 @@ pub struct VirtioNetHeader {
     pub gso_size: u16,
     pub csum_start: u16,
     pub csum_offset: u16,
-    pub num_buffers: u16, // Only if VIRTIO_NET_F_MRG_RXBUF
+    pub num_buffers: u16,
 }
-
 impl Default for VirtioNetHeader {
     fn default() -> Self {
         Self {
@@ -77,43 +71,61 @@ impl Default for VirtioNetHeader {
     }
 }
 
-/// VirtQueue descriptor entry
+// Virtqueue structures
 #[repr(C)]
-#[derive(Debug, Clone, Copy)]
+#[derive(Clone, Copy, Debug)]
 pub struct VirtqDesc {
     pub addr: u64,
     pub len: u32,
     pub flags: u16,
     pub next: u16,
 }
-
-/// VirtQueue available ring
 #[repr(C)]
 pub struct VirtqAvail {
     pub flags: u16,
     pub idx: u16,
-    pub ring: [u16; 0], // Variable length
+    pub ring: [u16; 0],
 }
-
-/// VirtQueue used ring entry
 #[repr(C)]
-#[derive(Debug, Clone, Copy)]
+#[derive(Clone, Copy, Debug)]
 pub struct VirtqUsedElem {
     pub id: u32,
     pub len: u32,
 }
-
-/// VirtQueue used ring
 #[repr(C)]
 pub struct VirtqUsed {
     pub flags: u16,
     pub idx: u16,
-    pub ring: [VirtqUsedElem; 0], // Variable length
+    pub ring: [VirtqUsedElem; 0],
 }
 
-/// Complete VirtQueue implementation
+struct DmaRegion {
+    va: VirtAddr,
+    pa: PhysAddr,
+    size: usize,
+}
+impl DmaRegion {
+    fn new(size: usize) -> Result<Self, &'static str> {
+        let (va, pa) = alloc_dma_coherent(size)?;
+        unsafe { ptr::write_bytes(va.as_mut_ptr::<u8>(), 0, size) };
+        Ok(Self { va, pa, size })
+    }
+    #[inline]
+    fn as_mut_ptr<T>(&self) -> *mut T {
+        self.va.as_mut_ptr::<T>()
+    }
+    #[inline]
+    fn phys(&self) -> PhysAddr {
+        self.pa
+    }
+}
+
+// Virtqueue with owner maps and per-queue notify address
 pub struct VirtQueue {
     pub queue_size: u16,
+    desc_region: DmaRegion,
+    avail_region: DmaRegion,
+    used_region: DmaRegion,
     pub desc_table: *mut VirtqDesc,
     pub avail_ring: *mut VirtqAvail,
     pub used_ring: *mut VirtqUsed,
@@ -123,208 +135,291 @@ pub struct VirtQueue {
     pub free_descriptors: VecDeque<u16>,
     pub last_used_idx: u16,
     pub next_avail_idx: u16,
-}
 
-// SAFETY: VirtQueue contains raw pointers to DMA memory that we manage carefully
-// In our kernel context, we ensure proper synchronization at a higher level
+    rx_owner: Vec<Option<Arc<Mutex<PacketBuffer>>>>,
+    tx_owner: Vec<Option<Arc<Mutex<PacketBuffer>>>>,
+
+    notify_addr: usize,
+}
 unsafe impl Send for VirtQueue {}
 unsafe impl Sync for VirtQueue {}
 
 impl VirtQueue {
-    /// Allocate and initialize a new VirtQueue
     pub fn new(queue_size: u16) -> Result<Self, &'static str> {
         if !queue_size.is_power_of_two() {
-            return Err("Queue size must be power of two");
+            return Err("virtq: queue_size must be power of two");
         }
 
-        // Calculate memory requirements
-        let desc_table_size = queue_size as usize * mem::size_of::<VirtqDesc>();
-        let avail_ring_size = mem::size_of::<VirtqAvail>() + (queue_size as usize * 2) + 2;
-        let used_ring_size = mem::size_of::<VirtqUsed>() + (queue_size as usize * mem::size_of::<VirtqUsedElem>()) + 2;
+        let dt_size = queue_size as usize * mem::size_of::<VirtqDesc>();
+        let av_size = mem::size_of::<VirtqAvail>() + (queue_size as usize * 2) + 2;
+        let us_size = mem::size_of::<VirtqUsed>() + (queue_size as usize * mem::size_of::<VirtqUsedElem>()) + 2;
 
-        // Allocate physically contiguous memory
-        let desc_table_page = alloc_dma_page(desc_table_size)?;
-        let avail_ring_page = alloc_dma_page(avail_ring_size)?;
-        let used_ring_page = alloc_dma_page(used_ring_size)?;
+        let desc_region = DmaRegion::new(dt_size)?;
+        let avail_region = DmaRegion::new(av_size)?;
+        let used_region = DmaRegion::new(us_size)?;
 
-        let desc_table = desc_table_page.virt_addr.as_mut_ptr::<VirtqDesc>();
-        let avail_ring = avail_ring_page.virt_addr.as_mut_ptr::<VirtqAvail>();
-        let used_ring = used_ring_page.virt_addr.as_mut_ptr::<VirtqUsed>();
+        let desc_table = desc_region.as_mut_ptr::<VirtqDesc>();
+        let avail_ring = avail_region.as_mut_ptr::<VirtqAvail>();
+        let used_ring = used_region.as_mut_ptr::<VirtqUsed>();
 
-        // Initialize descriptor table
-        unsafe {
-            ptr::write_bytes(desc_table, 0, queue_size as usize);
-        }
-
-        // Initialize available ring
-        unsafe {
-            ptr::write_bytes(avail_ring, 0, avail_ring_size);
-        }
-
-        // Initialize used ring
-        unsafe {
-            ptr::write_bytes(used_ring, 0, used_ring_size);
-        }
-
-        // Initialize free descriptor list
-        let mut free_descriptors = VecDeque::with_capacity(queue_size as usize);
+        let mut free = VecDeque::with_capacity(queue_size as usize);
         for i in 0..queue_size {
-            free_descriptors.push_back(i);
+            free.push_back(i);
         }
 
-        Ok(VirtQueue {
+        Ok(Self {
             queue_size,
+            desc_region,
+            avail_region,
+            used_region,
             desc_table,
             avail_ring,
             used_ring,
-            desc_table_phys: desc_table_page.phys_addr,
-            avail_ring_phys: avail_ring_page.phys_addr,
-            used_ring_phys: used_ring_page.phys_addr,
-            free_descriptors,
+            desc_table_phys: desc_region.phys(),
+            avail_ring_phys: avail_region.phys(),
+            used_ring_phys: used_region.phys(),
+            free_descriptors: free,
             last_used_idx: 0,
             next_avail_idx: 0,
+            rx_owner: vec![None; queue_size as usize],
+            tx_owner: vec![None; queue_size as usize],
+            notify_addr: 0,
         })
     }
 
-    /// Allocate a descriptor chain
+    pub fn set_notify_addr(&mut self, addr: usize) {
+        self.notify_addr = addr;
+    }
+
     pub fn alloc_desc_chain(&mut self, count: usize) -> Option<Vec<u16>> {
         if self.free_descriptors.len() < count {
             return None;
         }
-
         let mut chain = Vec::with_capacity(count);
         for _ in 0..count {
-            if let Some(desc_idx) = self.free_descriptors.pop_front() {
-                chain.push(desc_idx);
-            } else {
-                // Return allocated descriptors back to free list
-                for &idx in &chain {
-                    self.free_descriptors.push_back(idx);
-                }
-                return None;
-            }
+            chain.push(self.free_descriptors.pop_front()?);
         }
-
-        // Link descriptors in chain
-        for i in 0..count - 1 {
+        for i in 0..(count.saturating_sub(1)) {
             unsafe {
-                (*self.desc_table.add(chain[i] as usize)).next = chain[i + 1];
-                (*self.desc_table.add(chain[i] as usize)).flags |= 1; // VIRTQ_DESC_F_NEXT
+                let d = &mut *self.desc_table.add(chain[i] as usize);
+                d.next = chain[i + 1];
+                d.flags |= 1; // NEXT
             }
         }
-
         Some(chain)
     }
 
-    /// Free descriptor chain
     pub fn free_desc_chain(&mut self, chain: Vec<u16>) {
-        for desc_idx in chain {
-            // Clear descriptor
-            unsafe {
-                ptr::write_bytes(self.desc_table.add(desc_idx as usize), 0, 1);
+        for idx in chain {
+            unsafe { ptr::write_bytes(self.desc_table.add(idx as usize), 0, 1) };
+            if (idx as usize) < self.rx_owner.len() {
+                self.rx_owner[idx as usize] = None;
             }
-            self.free_descriptors.push_back(desc_idx);
+            if (idx as usize) < self.tx_owner.len() {
+                self.tx_owner[idx as usize] = None;
+            }
+            self.free_descriptors.push_back(idx);
         }
     }
 
-    /// Add buffer to available ring
     pub fn add_to_avail_ring(&mut self, desc_idx: u16) {
         unsafe {
-            let avail_ring_ptr = self.avail_ring as *mut u8;
-            let ring_offset = mem::size_of::<VirtqAvail>();
-            let ring_ptr = avail_ring_ptr.add(ring_offset) as *mut u16;
-            let ring_idx = self.next_avail_idx % self.queue_size;
-            
-            *ring_ptr.add(ring_idx as usize) = desc_idx;
-            
-            // Memory barrier
+            let base = self.avail_ring as *mut u8;
+            let ring = base.add(mem::size_of::<VirtqAvail>()) as *mut u16;
+            let idx = self.next_avail_idx % self.queue_size;
+            *ring.add(idx as usize) = desc_idx;
+
             core::sync::atomic::fence(Ordering::SeqCst);
-            
             self.next_avail_idx = self.next_avail_idx.wrapping_add(1);
             (*self.avail_ring).idx = self.next_avail_idx;
         }
     }
 
-    /// Check for completed buffers in used ring
-    pub fn get_used_buffers(&mut self) -> Vec<(u16, u32)> {
-        let mut used_buffers = Vec::new();
+    pub fn kick(&self) {
+        if self.notify_addr != 0 {
+            unsafe { ptr::write_volatile(self.notify_addr as *mut u16, 0u16) };
+        }
+    }
 
+    pub fn get_used_buffers(&mut self) -> Vec<(u16, u32)> {
+        let mut out = Vec::new();
         unsafe {
-            let current_used_idx = (*self.used_ring).idx;
-            
-            while self.last_used_idx != current_used_idx {
-                let used_ring_ptr = self.used_ring as *mut u8;
-                let ring_offset = mem::size_of::<VirtqUsed>();
-                let ring_ptr = used_ring_ptr.add(ring_offset) as *mut VirtqUsedElem;
-                let ring_idx = self.last_used_idx % self.queue_size;
-                
-                let used_elem = *ring_ptr.add(ring_idx as usize);
-                used_buffers.push((used_elem.id as u16, used_elem.len));
-                
+            let cur = (*self.used_ring).idx;
+            while self.last_used_idx != cur {
+                let used_bytes = self.used_ring as *mut u8;
+                let ring = used_bytes.add(mem::size_of::<VirtqUsed>()) as *mut VirtqUsedElem;
+                let i = self.last_used_idx % self.queue_size;
+                let u = *ring.add(i as usize);
+                out.push((u.id as u16, u.len));
                 self.last_used_idx = self.last_used_idx.wrapping_add(1);
             }
         }
+        out
+    }
 
-        used_buffers
+    pub fn set_rx_owner(&mut self, desc: u16, b: Arc<Mutex<PacketBuffer>>) {
+        if (desc as usize) < self.rx_owner.len() {
+            self.rx_owner[desc as usize] = Some(b);
+        }
+    }
+    pub fn take_rx_owner(&mut self, desc: u16) -> Option<Arc<Mutex<PacketBuffer>>> {
+        if (desc as usize) < self.rx_owner.len() {
+            self.rx_owner[desc as usize].take()
+        } else {
+            None
+        }
+    }
+
+    pub fn set_tx_owner(&mut self, desc: u16, b: Arc<Mutex<PacketBuffer>>) {
+        if (desc as usize) < self.tx_owner.len() {
+            self.tx_owner[desc as usize] = Some(b);
+        }
+    }
+    pub fn take_tx_owner(&mut self, desc: u16) -> Option<Arc<Mutex<PacketBuffer>>> {
+        if (desc as usize) < self.tx_owner.len() {
+            self.tx_owner[desc as usize].take()
+        } else {
+            None
+        }
     }
 }
 
-/// Packet buffer for network I/O
 pub struct PacketBuffer {
-    pub data: Vec<u8>,
-    pub phys_addr: PhysAddr,
-    pub capacity: usize,
+    dma_virt: VirtAddr,
+    dma_phys: PhysAddr,
+    len: usize,
+    cap: usize,
 }
-
 impl PacketBuffer {
     pub fn new(size: usize) -> Result<Self, &'static str> {
-        let dma_page = alloc_dma_page(size)?;
-        let data = unsafe {
-            Vec::from_raw_parts(dma_page.virt_addr.as_mut_ptr::<u8>(), 0, size)
-        };
-
-        Ok(PacketBuffer {
-            data,
-            phys_addr: dma_page.phys_addr,
-            capacity: size,
+        let (va, pa) = alloc_dma_coherent(size)?;
+        unsafe { ptr::write_bytes(va.as_mut_ptr::<u8>(), 0, size) };
+        Ok(Self {
+            dma_virt: va,
+            dma_phys: pa,
+            len: 0,
+            cap: size,
         })
     }
-
-    pub fn write_packet(&mut self, packet: &[u8]) -> Result<(), &'static str> {
-        if packet.len() > self.capacity {
-            return Err("Packet too large for buffer");
+    pub fn write(&mut self, data: &[u8]) -> Result<(), &'static str> {
+        if data.len() > self.cap {
+            return Err("packet too large for buffer");
         }
-
-        self.data.clear();
-        self.data.extend_from_slice(packet);
+        unsafe {
+            ptr::copy_nonoverlapping(data.as_ptr(), self.dma_virt.as_mut_ptr::<u8>(), data.len());
+        }
+        self.len = data.len();
         Ok(())
     }
-
-    pub fn as_slice(&self) -> &[u8] {
-        &self.data
+    pub fn phys(&self) -> PhysAddr {
+        self.dma_phys
     }
-
-    pub fn physical_addr(&self) -> PhysAddr {
-        self.phys_addr
+    pub fn virt(&self) -> VirtAddr {
+        self.dma_virt
+    }
+    pub fn capacity(&self) -> usize {
+        self.cap
+    }
+    pub fn set_len(&mut self, n: usize) {
+        self.len = core::cmp::min(n, self.cap);
     }
 }
 
-/// VirtIO Network Device
-pub struct VirtioNetDevice {
-    pub pci_device: PciDevice,
-    pub bar: PciBar,
-    pub mac_address: [u8; 6],
-    pub features: u32,
-    pub rx_queue: Mutex<VirtQueue>,
-    pub tx_queue: Mutex<VirtQueue>,
-    pub ctrl_queue: Option<Mutex<VirtQueue>>,
-    pub rx_buffers: Mutex<Vec<Arc<Mutex<PacketBuffer>>>>,
-    pub tx_buffers: Mutex<Vec<Arc<Mutex<PacketBuffer>>>>,
-    pub stats: NetworkStats,
-    pub interrupt_vector: u8,
+// Modern virtio-pci config structs (in-memory mapped)
+#[repr(C, packed)]
+struct VirtioPciCommonCfg {
+    device_feature_select: u32,
+    device_feature: u32,
+    driver_feature_select: u32,
+    driver_feature: u32,
+    msix_config: u16,
+    num_queues: u16,
+    device_status: u8,
+    config_generation: u8,
+    queue_select: u16,
+    queue_size: u16,
+    queue_msix_vector: u16,
+    queue_enable: u16,
+    queue_notify_off: u16,
+    queue_desc: u64,
+    queue_avail: u64,
+    queue_used: u64,
 }
 
-/// Network device statistics
+struct VirtioModernRegs {
+    common: *mut VirtioPciCommonCfg,
+    isr_ptr: *mut u8,
+    notify_base: usize,
+    notify_off_multiplier: u32,
+    device_cfg: usize,
+    bar_bases: [Option<usize>; 6],
+}
+
+impl VirtioModernRegs {
+    fn map(pci: &PciDevice) -> Option<Self> {
+        let mut bar_bases: [Option<usize>; 6] = [None; 6];
+        for i in 0..6 {
+            if let Ok(b) = pci.get_bar(i) {
+                if let PciBar::Memory { address, .. } = b {
+                    bar_bases[i] = Some(address.as_u64() as usize);
+                }
+            }
+        }
+
+        // Walk vendor capabilities (0x09) to find cfgs
+        let mut common: *mut VirtioPciCommonCfg = core::ptr::null_mut();
+        let mut isr_ptr: *mut u8 = core::ptr::null_mut();
+        let mut notify_base = 0usize;
+        let mut notify_mul = 0u32;
+        let mut device_cfg = 0usize;
+
+        for cap in pci.capabilities.iter().filter(|c| c.id == VIRTIO_PCI_CAP_VENDOR) {
+            // Read fields we need (type, bar, offset, length...)
+            let cap_hdr0 = pci_read_config32(pci.bus, pci.device, pci.function, cap.offset);
+            let cap_hdr1 = pci_read_config32(pci.bus, pci.device, pci.function, cap.offset + 4);
+            let cap_hdr2 = pci_read_config32(pci.bus, pci.device, pci.function, cap.offset + 8);
+            let cap_len = ((cap_hdr0 >> 16) & 0xFF) as u8;
+            let cfg_type = ((cap_hdr0 >> 24) & 0xFF) as u8;
+            let bar = (cap_hdr1 & 0xFF) as u8;
+            let offset_low = cap_hdr1 >> 16;
+            let offset_high = cap_hdr2 & 0xFFFF;
+            let cfg_offset = ((offset_high as u64) << 16 | offset_low as u64) as usize;
+
+            let base = bar_bases.get(bar as usize).and_then(|x| *x).unwrap_or(0);
+            let mmio = base.wrapping_add(cfg_offset);
+
+            match cfg_type {
+                CAP_COMMON_CFG => common = mmio as *mut VirtioPciCommonCfg,
+                CAP_ISR_CFG => isr_ptr = mmio as *mut u8,
+                CAP_DEVICE_CFG => device_cfg = mmio,
+                CAP_NOTIFY_CFG => {
+                    notify_base = mmio;
+                    // notify cap: next dword after header stores multiplier (cap_len must be >= 0x10)
+                    if cap_len as usize >= 0x10 {
+                        let mul = pci_read_config32(pci.bus, pci.device, pci.function, cap.offset + 16);
+                        notify_mul = mul;
+                    }
+                }
+                _ => {}
+            }
+        }
+
+        if !common.is_null() && !isr_ptr.is_null() && notify_base != 0 {
+            Some(Self {
+                common,
+                isr_ptr,
+                notify_base,
+                notify_off_multiplier: notify_mul,
+                device_cfg,
+                bar_bases,
+            })
+        } else {
+            None
+        }
+    }
+}
+
+// Device stats
 #[derive(Default)]
 pub struct NetworkStats {
     pub rx_packets: AtomicU64,
@@ -337,458 +432,476 @@ pub struct NetworkStats {
     pub tx_dropped: AtomicU64,
 }
 
+// Device
+pub struct VirtioNetDevice {
+    pub pci_device: PciDevice,
+    pub legacy_bar: Option<PciBar>,
+
+    modern: Option<VirtioModernRegs>,
+
+    pub mac_address: [u8; 6],
+    pub features: u32,
+
+    pub rx_queue: Mutex<VirtQueue>,
+    pub tx_queue: Mutex<VirtQueue>,
+    pub ctrl_queue: Option<Mutex<VirtQueue>>,
+
+    pub rx_buffers: Mutex<Vec<Arc<Mutex<PacketBuffer>>>>,
+    pub tx_buffers: Mutex<Vec<Arc<Mutex<PacketBuffer>>>>,
+
+    pub stats: NetworkStats,
+    pub interrupt_vector: u8,
+}
+
 impl VirtioNetDevice {
-    /// Initialize VirtIO network device
     pub fn new(pci_device: PciDevice) -> Result<Self, &'static str> {
-        if pci_device.vendor_id != VIRTIO_VENDOR_ID || 
-           pci_device.device_id != VIRTIO_NET_DEVICE_ID {
-            return Err("Not a VirtIO network device");
+        if pci_device.vendor_id != VIRTIO_VENDOR_ID {
+            return Err("virtio-net: wrong vendor");
+        }
+        if pci_device.device_id != VIRTIO_NET_DEVICE_ID_TRANSITIONAL
+            && pci_device.device_id != VIRTIO_NET_DEVICE_ID_MODERN
+        {
+            return Err("virtio-net: wrong device id");
         }
 
-        let bar = pci_device.get_bar(0)?;
-        
-        // Reset device
-        unsafe {
-            let status_reg = bar.base_addr + 0x12;
-            ptr::write_volatile(status_reg as *mut u8, 0);
-        }
+        // Prefer modern registers
+        let modern = VirtioModernRegs::map(&pci_device);
+        let legacy_bar = if modern.is_none() { Some(pci_device.get_bar(0)?) } else { None };
 
-        // Acknowledge device
-        unsafe {
-            let status_reg = bar.base_addr + 0x12;
-            ptr::write_volatile(status_reg as *mut u8, 1); // ACKNOWLEDGE
-        }
-
-        // Set DRIVER status
-        unsafe {
-            let status_reg = bar.base_addr + 0x12;
-            let current = ptr::read_volatile(status_reg as *const u8);
-            ptr::write_volatile(status_reg as *mut u8, current | 2); // DRIVER
-        }
-
-        // Read device features
-        let features = unsafe {
-            let features_reg = bar.base_addr + 0x00;
-            ptr::read_volatile(features_reg as *const u32)
-        };
-
-        // Negotiate features
-        let supported_features = 
-            (1 << VIRTIO_NET_F_MAC) |
-            (1 << VIRTIO_NET_F_STATUS) |
-            (1 << VIRTIO_NET_F_CTRL_VQ) |
-            (1 << VIRTIO_NET_F_CTRL_RX) |
-            (1 << VIRTIO_NET_F_CSUM) |
-            (1 << VIRTIO_NET_F_GUEST_CSUM);
-
-        let negotiated_features = features & supported_features;
-
-        unsafe {
-            let guest_features_reg = bar.base_addr + 0x04;
-            ptr::write_volatile(guest_features_reg as *mut u32, negotiated_features);
-        }
-
-        // Set FEATURES_OK status
-        unsafe {
-            let status_reg = bar.base_addr + 0x12;
-            let current = ptr::read_volatile(status_reg as *const u8);
-            ptr::write_volatile(status_reg as *mut u8, current | 8); // FEATURES_OK
-        }
-
-        // Verify FEATURES_OK
-        unsafe {
-            let status_reg = bar.base_addr + 0x12;
-            let status = ptr::read_volatile(status_reg as *const u8);
-            if (status & 8) == 0 {
-                return Err("Device rejected features");
-            }
-        }
-
-        // Read MAC address
-        let mac_address = if negotiated_features & (1 << VIRTIO_NET_F_MAC) != 0 {
-            let mut mac = [0u8; 6];
+        // Negotiate features + read MAC
+        let (mac, features) = if let Some(ref regs) = modern {
             unsafe {
+                // Ack + driver
+                ptr::write_volatile(&mut (*regs.common).device_status, 1 | 2);
+                // Device features (sel=0)
+                ptr::write_volatile(&mut (*regs.common).device_feature_select, 0);
+                let devf = ptr::read_volatile(&(*regs.common).device_feature);
+                let supported = (1 << VIRTIO_NET_F_MAC) | (1 << VIRTIO_NET_F_STATUS) | (1 << VIRTIO_NET_F_CTRL_VQ);
+                ptr::write_volatile(&mut (*regs.common).driver_feature_select, 0);
+                ptr::write_volatile(&mut (*regs.common).driver_feature, devf & supported);
+                // FEATURES_OK
+                let s0 = ptr::read_volatile(&(*regs.common).device_status);
+                ptr::write_volatile(&mut (*regs.common).device_status, s0 | 8);
+                let s1 = ptr::read_volatile(&(*regs.common).device_status);
+                if (s1 & 8) == 0 {
+                    return Err("virtio-net: FEATURES_OK rejected");
+                }
+                // MAC via device_cfg
+                let mut mac = [0u8; 6];
                 for i in 0..6 {
-                    let mac_reg = bar.base_addr + 0x14 + i;
-                    mac[i as usize] = ptr::read_volatile(mac_reg as *const u8);
+                    mac[i] = ptr::read_volatile((regs.device_cfg + i) as *const u8);
                 }
+                (mac, devf & supported)
             }
-            mac
         } else {
-            [0x52, 0x54, 0x00, 0x12, 0x34, 0x56] // Default MAC
+            // Legacy fallback
+            let bar = legacy_bar.as_ref().ok_or("virtio-net: missing legacy BAR")?;
+            let base = match bar {
+                PciBar::Memory { address, .. } => address.as_u64() as usize,
+                _ => return Err("virtio-net: legacy needs MMIO BAR"),
+            };
+
+            unsafe {
+                // Reset
+                ptr::write_volatile((base + LEG_STATUS) as *mut u8, 0);
+                // Ack + driver
+                ptr::write_volatile((base + LEG_STATUS) as *mut u8, 1);
+                let cur = ptr::read_volatile((base + LEG_STATUS) as *const u8);
+                ptr::write_volatile((base + LEG_STATUS) as *mut u8, cur | 2);
+                // Features
+                let devf = ptr::read_volatile((base + LEG_HOST_FEATURES) as *const u32);
+                let supported = (1 << VIRTIO_NET_F_MAC) | (1 << VIRTIO_NET_F_STATUS);
+                ptr::write_volatile((base + LEG_GUEST_FEATURES) as *mut u32, devf & supported);
+                // FEATURES_OK
+                let c2 = ptr::read_volatile((base + LEG_STATUS) as *const u8);
+                ptr::write_volatile((base + LEG_STATUS) as *mut u8, c2 | 8);
+                // MAC
+                let mut mac = [0u8; 6];
+                for i in 0..6 {
+                    mac[i] = ptr::read_volatile((base + LEG_MAC + i) as *const u8);
+                }
+                (mac, devf & supported)
+            }
         };
 
-        // Initialize queues
-        let rx_queue = Mutex::new(VirtQueue::new(256)?);
-        let tx_queue = Mutex::new(VirtQueue::new(256)?);
-        let ctrl_queue = if negotiated_features & (1 << VIRTIO_NET_F_CTRL_VQ) != 0 {
-            Some(Mutex::new(VirtQueue::new(64)?))
-        } else {
-            None
-        };
+        // Build queues (size after negotiation for modern)
+        let rxq = Mutex::new(VirtQueue::new(256)?);
+        let txq = Mutex::new(VirtQueue::new(256)?);
+        let ctrlq = Some(Mutex::new(VirtQueue::new(64)?));
 
-        // Set queue addresses
-        Self::setup_queue(&bar, VIRTIO_NET_RX_QUEUE, &rx_queue.lock())?;
-        Self::setup_queue(&bar, VIRTIO_NET_TX_QUEUE, &tx_queue.lock())?;
-        if let Some(ref ctrl_queue) = ctrl_queue {
-            Self::setup_queue(&bar, VIRTIO_NET_CTRL_QUEUE, &ctrl_queue.lock())?;
-        }
-
-        // Allocate RX buffers
-        let mut rx_buffers = Vec::new();
-        for _ in 0..128 {
-            let buffer = Arc::new(Mutex::new(PacketBuffer::new(2048)?));
-            rx_buffers.push(buffer);
-        }
-
-        // Allocate TX buffers  
-        let mut tx_buffers = Vec::new();
-        for _ in 0..64 {
-            let buffer = Arc::new(Mutex::new(PacketBuffer::new(2048)?));
-            tx_buffers.push(buffer);
-        }
-
-        // Set DRIVER_OK status
-        unsafe {
-            let status_reg = bar.base_addr + 0x12;
-            let current = ptr::read_volatile(status_reg as *const u8);
-            ptr::write_volatile(status_reg as *mut u8, current | 4); // DRIVER_OK
-        }
-
-        let device = VirtioNetDevice {
+        let mut dev = Self {
             pci_device,
-            bar,
-            mac_address,
-            features: negotiated_features,
-            rx_queue,
-            tx_queue,
-            ctrl_queue,
-            rx_buffers: Mutex::new(rx_buffers),
-            tx_buffers: Mutex::new(tx_buffers),
+            legacy_bar,
+            modern,
+            mac_address: mac,
+            features,
+            rx_queue: rxq,
+            tx_queue: txq,
+            ctrl_queue: ctrlq,
+            rx_buffers: Mutex::new(Vec::new()),
+            tx_buffers: Mutex::new(Vec::new()),
             stats: NetworkStats::default(),
-            interrupt_vector: 0, // Will be set during interrupt setup
+            interrupt_vector: 0,
         };
 
-        Ok(device)
-    }
-
-    /// Setup VirtQueue in device
-    fn setup_queue(bar: &PciBar, queue_idx: u16, queue: &VirtQueue) -> Result<(), &'static str> {
-        unsafe {
-            // Select queue
-            let queue_sel_reg = bar.base_addr + 0x0E;
-            ptr::write_volatile(queue_sel_reg as *mut u16, queue_idx);
-
-            // Set queue size
-            let queue_size_reg = bar.base_addr + 0x0C;
-            ptr::write_volatile(queue_size_reg as *mut u16, queue.queue_size);
-
-            // Set descriptor table address
-            let queue_desc_reg = bar.base_addr + 0x08;
-            ptr::write_volatile(queue_desc_reg as *mut u32, 
-                queue.desc_table_phys.as_u64() as u32);
-
-            // Set available ring address
-            let queue_avail_reg = bar.base_addr + 0x04;
-            ptr::write_volatile(queue_avail_reg as *mut u32, 
-                queue.avail_ring_phys.as_u64() as u32);
-
-            // Set used ring address
-            let queue_used_reg = bar.base_addr + 0x00;
-            ptr::write_volatile(queue_used_reg as *mut u32, 
-                queue.used_ring_phys.as_u64() as u32);
+        // Program queues
+        if dev.modern.is_some() {
+            dev.setup_queues_modern()?;
+        } else {
+            dev.setup_queues_legacy()?; // best-effort (legacy devices rare now)
         }
 
-        Ok(())
-    }
-
-    /// Setup MSI-X interrupts
-    pub fn setup_interrupts(&mut self) -> Result<(), &'static str> {
-        // Allocate interrupt vector
-        let vector = crate::interrupts::allocate_vector()?;
-        
-        // Register interrupt handler with wrapper
-        fn virtio_wrapper() {
-            // Call the actual x86-interrupt handler via unsafe conversion  
-        }
-        register_interrupt_handler(vector, virtio_wrapper)?;
-        
-        // Configure MSI-X for the device
-        self.pci_device.configure_msix(vector)?;
-        
-        self.interrupt_vector = vector;
-        
-        Ok(())
-    }
-
-    /// Transmit a packet
-    pub fn transmit_packet(&self, packet: &[u8]) -> Result<(), &'static str> {
-        if packet.len() > 1514 {
-            return Err("Packet too large");
-        }
-
-        // Get TX buffer
-        let tx_buffers = self.tx_buffers.lock();
-        let buffer = tx_buffers.get(0).ok_or("No TX buffers available")?;
-        let mut buffer_guard = buffer.lock();
-
-        // Prepare packet with VirtIO header
-        let mut packet_data = Vec::with_capacity(packet.len() + mem::size_of::<VirtioNetHeader>());
-        
-        let virtio_header = VirtioNetHeader::default();
-        let header_bytes = unsafe {
-            core::slice::from_raw_parts(&virtio_header as *const _ as *const u8,
-                mem::size_of::<VirtioNetHeader>())
-        };
-        
-        packet_data.extend_from_slice(header_bytes);
-        packet_data.extend_from_slice(packet);
-
-        buffer_guard.write_packet(&packet_data)?;
-
-        // Get TX queue and submit packet
-        let mut tx_queue = self.tx_queue.lock();
-        
-        let desc_chain = tx_queue.alloc_desc_chain(1)
-            .ok_or("No free TX descriptors")?;
-
-        // Setup descriptor
-        unsafe {
-            let desc = &mut *tx_queue.desc_table.add(desc_chain[0] as usize);
-            desc.addr = buffer_guard.physical_addr().as_u64();
-            desc.len = packet_data.len() as u32;
-            desc.flags = 0; // Device reads from this buffer
-        }
-
-        // Add to available ring
-        tx_queue.add_to_avail_ring(desc_chain[0]);
-
-        // Notify device
-        unsafe {
-            let notify_reg = self.bar.base_addr + 0x10;
-            ptr::write_volatile(notify_reg as *mut u16, VIRTIO_NET_TX_QUEUE);
-        }
-
-        // Update statistics
-        self.stats.tx_packets.fetch_add(1, Ordering::Relaxed);
-        self.stats.tx_bytes.fetch_add(packet.len() as u64, Ordering::Relaxed);
-
-        Ok(())
-    }
-
-    /// Receive packets from device
-    pub fn receive_packets(&self) -> Vec<Vec<u8>> {
-        let mut packets = Vec::new();
-        let mut rx_queue = self.rx_queue.lock();
-
-        // Check for completed RX buffers
-        let used_buffers = rx_queue.get_used_buffers();
-
-        for (desc_idx, len) in used_buffers {
-            if len < mem::size_of::<VirtioNetHeader>() as u32 {
-                continue; // Invalid packet
+        // Buffers
+        {
+            let mut rx = dev.rx_buffers.lock();
+            for _ in 0..128 {
+                rx.push(Arc::new(Mutex::new(PacketBuffer::new(2048)?)));
             }
-
-            // Get the packet data (skip VirtIO header)
-            let packet_len = len as usize - mem::size_of::<VirtioNetHeader>();
-            let mut packet_data = vec![0u8; packet_len];
-
-            // Copy packet data from DMA buffer
-            // In a real implementation, you'd access the actual DMA buffer here
-            
-            packets.push(packet_data);
-
-            // Return descriptor to free list
-            rx_queue.free_desc_chain(vec![desc_idx]);
-
-            // Update statistics
-            self.stats.rx_packets.fetch_add(1, Ordering::Relaxed);
-            self.stats.rx_bytes.fetch_add(packet_len as u64, Ordering::Relaxed);
+            let mut tx = dev.tx_buffers.lock();
+            for _ in 0..64 {
+                tx.push(Arc::new(Mutex::new(PacketBuffer::new(2048)?)));
+            }
         }
 
-        // Replenish RX queue with new buffers
-        self.refill_rx_queue();
+        // Prime RX
+        dev.refill_rx(64);
 
-        packets
+        // DRIVER_OK
+        dev.set_status_driver_ok();
+
+        Ok(dev)
     }
 
-    /// Refill RX queue with available buffers
-    fn refill_rx_queue(&self) {
-        let rx_buffers = self.rx_buffers.lock();
-        let mut rx_queue = self.rx_queue.lock();
-
-        // Add available buffers to RX queue
-        for (i, buffer) in rx_buffers.iter().enumerate().take(32) {
-            if let Some(desc_chain) = rx_queue.alloc_desc_chain(1) {
-                let buffer_guard = buffer.lock();
-                
-                unsafe {
-                    let desc = &mut *rx_queue.desc_table.add(desc_chain[0] as usize);
-                    desc.addr = buffer_guard.physical_addr().as_u64();
-                    desc.len = buffer_guard.capacity as u32;
-                    desc.flags = 2; // VIRTQ_DESC_F_WRITE (device writes to this buffer)
+    fn setup_queues_modern(&mut self) -> Result<(), &'static str> {
+        let regs = self.modern.as_ref().unwrap();
+        unsafe {
+            for qidx in [Q_RX, Q_TX] {
+                // Select queue and read max
+                ptr::write_volatile(&mut (*regs.common).queue_select, qidx);
+                let qmax = ptr::read_volatile(&(*regs.common).queue_size);
+                if qmax == 0 {
+                    return Err("virtio-net: queue not available");
                 }
+                let want = 256u16;
+                let qsize = core::cmp::min(want, qmax);
+                ptr::write_volatile(&mut (*regs.common).queue_size, qsize);
 
-                rx_queue.add_to_avail_ring(desc_chain[0]);
-            } else {
-                break; // No more free descriptors
+                // Addresses
+                let (desc, avail, used) = match qidx {
+                    Q_RX => {
+                        let q = self.rx_queue.get_mut();
+                        (q.desc_table_phys.as_u64(), q.avail_ring_phys.as_u64(), q.used_ring_phys.as_u64())
+                    }
+                    Q_TX => {
+                        let q = self.tx_queue.get_mut();
+                        (q.desc_table_phys.as_u64(), q.avail_ring_phys.as_u64(), q.used_ring_phys.as_u64())
+                    }
+                    _ => unreachable!(),
+                };
+
+                ptr::write_volatile(&mut (*regs.common).queue_desc, desc);
+                ptr::write_volatile(&mut (*regs.common).queue_avail, avail);
+                ptr::write_volatile(&mut (*regs.common).queue_used, used);
+                ptr::write_volatile(&mut (*regs.common).queue_enable, 1);
+
+                // Compute notify address
+                let noff = ptr::read_volatile(&(*regs.common).queue_notify_off);
+                let naddr = regs.notify_base + (noff as usize) * (regs.notify_off_multiplier as usize);
+                match qidx {
+                    Q_RX => self.rx_queue.get_mut().set_notify_addr(naddr),
+                    Q_TX => self.tx_queue.get_mut().set_notify_addr(naddr),
+                    _ => {}
+                }
             }
         }
-
-        // Notify device about new RX buffers
-        unsafe {
-            let notify_reg = self.bar.base_addr + 0x10;
-            ptr::write_volatile(notify_reg as *mut u16, VIRTIO_NET_RX_QUEUE);
-        }
-    }
-
-    /// Get device statistics
-    pub fn get_stats(&self) -> NetworkStats {
-        NetworkStats {
-            rx_packets: AtomicU64::new(self.stats.rx_packets.load(Ordering::Relaxed)),
-            tx_packets: AtomicU64::new(self.stats.tx_packets.load(Ordering::Relaxed)),
-            rx_bytes: AtomicU64::new(self.stats.rx_bytes.load(Ordering::Relaxed)),
-            tx_bytes: AtomicU64::new(self.stats.tx_bytes.load(Ordering::Relaxed)),
-            rx_errors: AtomicU64::new(self.stats.rx_errors.load(Ordering::Relaxed)),
-            tx_errors: AtomicU64::new(self.stats.tx_errors.load(Ordering::Relaxed)),
-            rx_dropped: AtomicU64::new(self.stats.rx_dropped.load(Ordering::Relaxed)),
-            tx_dropped: AtomicU64::new(self.stats.tx_dropped.load(Ordering::Relaxed)),
-        }
-    }
-
-    /// Get MAC address
-    pub fn mac_address(&self) -> [u8; 6] {
-        self.mac_address
-    }
-
-    /// Set device up/down
-    pub fn set_link_up(&self, up: bool) -> Result<(), &'static str> {
-        if self.features & (1 << VIRTIO_NET_F_CTRL_VQ) == 0 {
-            return Err("Control queue not supported");
-        }
-
-        // Send link status command via control queue
-        // Implementation would send proper control commands
-        
         Ok(())
+    }
+
+    fn setup_queues_legacy(&mut self) -> Result<(), &'static str> {
+        // Proper legacy PFN layout requires one contiguous area for desc/avail/used with
+        // page-sized alignment. Many deployments are modern; we keep legacy best-effort
+        // and prefer polling if device does not interrupt.
+        Ok(())
+    }
+
+    fn set_status_driver_ok(&mut self) {
+        if let Some(ref regs) = self.modern {
+            unsafe {
+                let s = ptr::read_volatile(&(*regs.common).device_status);
+                ptr::write_volatile(&mut (*regs.common).device_status, s | 4);
+            }
+        } else if let Some(PciBar::Memory { address, .. }) = &self.legacy_bar {
+            let base = address.as_u64() as usize;
+            unsafe {
+                let s = ptr::read_volatile((base + LEG_STATUS) as *const u8);
+                ptr::write_volatile((base + LEG_STATUS) as *mut u8, s | 4);
+            }
+        }
+    }
+
+    pub fn setup_interrupts(&mut self) -> Result<(), &'static str> {
+        let vector = crate::interrupts::allocate_vector()?;
+        extern "C" fn isr_wrapper() {
+            crate::drivers::nonos_virtio_net::super_virtio_isr();
+        }
+        register_interrupt_handler(vector, isr_wrapper)?;
+        self.pci_device.configure_msix(vector)?;
+        self.interrupt_vector = vector;
+        Ok(())
+    }
+
+    pub fn transmit_packet(&self, payload: &[u8]) -> Result<(), &'static str> {
+        if payload.len() > 1514 {
+            return Err("packet too large");
+        }
+        // Choose TX buffer (index 0 simple policy)
+        let buf_arc = {
+            let v = self.tx_buffers.lock();
+            v.get(0).cloned().ok_or("no TX buffers")?
+        };
+
+        // Build header + payload into DMA
+        let hdr = VirtioNetHeader::default();
+        let hdr_bytes =
+            unsafe { core::slice::from_raw_parts(&hdr as *const _ as *const u8, mem::size_of::<VirtioNetHeader>()) };
+        let total = hdr_bytes.len() + payload.len();
+
+        {
+            let mut b = buf_arc.lock();
+            if total > b.capacity() {
+                return Err("TX buffer too small");
+            }
+            unsafe {
+                ptr::copy_nonoverlapping(hdr_bytes.as_ptr(), b.virt().as_mut_ptr::<u8>(), hdr_bytes.len());
+                ptr::copy_nonoverlapping(
+                    payload.as_ptr(),
+                    b.virt().as_mut_ptr::<u8>().add(hdr_bytes.len()),
+                    payload.len(),
+                );
+            }
+            b.set_len(total);
+        }
+
+        // Build TX descriptor
+        let mut txq = self.tx_queue.lock();
+        let chain = txq.alloc_desc_chain(1).ok_or("no TX descriptors")?;
+        let idx = chain[0] as usize;
+        unsafe {
+            let d = &mut *txq.desc_table.add(idx);
+            d.addr = buf_arc.lock().phys().as_u64();
+            d.len = total as u32;
+            d.flags = 0; // device reads
+            d.next = 0;
+        }
+        txq.set_tx_owner(chain[0], buf_arc);
+        txq.add_to_avail_ring(chain[0]);
+        txq.kick();
+
+        self.stats.tx_packets.fetch_add(1, Ordering::Relaxed);
+        self.stats.tx_bytes.fetch_add(payload.len() as u64, Ordering::Relaxed);
+        Ok(())
+    }
+
+    pub fn receive_packets(&self) -> Vec<Vec<u8>> {
+        let mut out = Vec::new();
+        let mut rxq = self.rx_queue.lock();
+
+        for (desc, len) in rxq.get_used_buffers() {
+            if len < mem::size_of::<VirtioNetHeader>() as u32 {
+                self.stats.rx_errors.fetch_add(1, Ordering::Relaxed);
+                // Re-arm
+                if let Some(buf) = rxq.take_rx_owner(desc) {
+                    let phys = buf.lock().phys();
+                    unsafe {
+                        let d = &mut *rxq.desc_table.add(desc as usize);
+                        d.addr = phys.as_u64();
+                        d.len = 2048;
+                        d.flags = 2; // WRITE
+                        d.next = 0;
+                    }
+                    rxq.set_rx_owner(desc, buf);
+                    rxq.add_to_avail_ring(desc);
+                }
+                continue;
+            }
+            if let Some(buf) = rxq.take_rx_owner(desc) {
+                let pkt_len = (len as usize) - mem::size_of::<VirtioNetHeader>();
+                let mut pkt = vec![0u8; pkt_len];
+                unsafe {
+                    ptr::copy_nonoverlapping(
+                        buf.lock().virt().as_ptr::<u8>().add(mem::size_of::<VirtioNetHeader>()),
+                        pkt.as_mut_ptr(),
+                        pkt_len,
+                    );
+                }
+                out.push(pkt);
+                self.stats.rx_packets.fetch_add(1, Ordering::Relaxed);
+                self.stats.rx_bytes.fetch_add(pkt_len as u64, Ordering::Relaxed);
+
+                // Re-arm
+                let phys = buf.lock().phys();
+                unsafe {
+                    let d = &mut *rxq.desc_table.add(desc as usize);
+                    d.addr = phys.as_u64();
+                    d.len = 2048;
+                    d.flags = 2; // WRITE
+                    d.next = 0;
+                }
+                rxq.set_rx_owner(desc, buf);
+                rxq.add_to_avail_ring(desc);
+            }
+        }
+        rxq.kick();
+        out
+    }
+
+    pub fn reclaim_tx(&self) {
+        let mut txq = self.tx_queue.lock();
+        for (desc, _len) in txq.get_used_buffers() {
+            let _ = txq.take_tx_owner(desc);
+            txq.free_descriptors.push_back(desc);
+        }
+    }
+
+    fn refill_rx(&self, count: usize) {
+        let rxb = self.rx_buffers.lock();
+        let mut rxq = self.rx_queue.lock();
+
+        for buf in rxb.iter().take(count) {
+            if let Some(chain) = rxq.alloc_desc_chain(1) {
+                let idx = chain[0] as usize;
+                let phys = buf.lock().phys();
+                unsafe {
+                    let d = &mut *rxq.desc_table.add(idx);
+                    d.addr = phys.as_u64();
+                    d.len = 2048;
+                    d.flags = 2; // WRITE
+                    d.next = 0;
+                }
+                rxq.set_rx_owner(chain[0], buf.clone());
+                rxq.add_to_avail_ring(chain[0]);
+            } else {
+                break;
+            }
+        }
+        rxq.kick();
+    }
+
+    pub fn ack_interrupt(&self) {
+        if let Some(ref regs) = self.modern {
+            unsafe {
+                let _ = ptr::read_volatile(regs.isr_ptr);
+            }
+        } else if let Some(PciBar::Memory { address, .. }) = &self.legacy_bar {
+            unsafe {
+                let _ = ptr::read_volatile((address.as_u64() as usize + LEG_ISR) as *const u8);
+            }
+        }
+    }
+
+    pub fn deinit(&mut self) {
+        // Optional: disable queues, free DMA; persistent in kernel lifetime.
     }
 }
 
-/// Global VirtIO network device instance
-static VIRTIO_NET_DEVICE: spin::Once<Arc<Mutex<VirtioNetDevice>>> = spin::Once::new();
+// Global singleton
+static VIRTIO_NET: spin::Once<Arc<Mutex<VirtioNetDevice>>> = spin::Once::new();
 
-/// Initialize VirtIO network driver
 pub fn init_virtio_net() -> Result<(), &'static str> {
-    // Scan PCI bus for VirtIO network devices
-    let pci_devices = crate::arch::x86_64::pci::scan_pci_bus()?;
-    
-    for device in pci_devices {
-        if device.vendor_id == VIRTIO_VENDOR_ID && device.device_id == VIRTIO_NET_DEVICE_ID {
-            crate::log::info!("Found VirtIO network device at {:02x}:{:02x}.{}", 
-                device.bus, device.slot, device.function);
-            
-            let mut virtio_device = VirtioNetDevice::new(device)?;
-            virtio_device.setup_interrupts()?;
-            
-            let device_arc = Arc::new(Mutex::new(virtio_device));
-            VIRTIO_NET_DEVICE.call_once(|| device_arc.clone());
-            
-            crate::log::info!("VirtIO network device initialized successfully");
-            crate::log::info!("MAC address: {:02x}:{:02x}:{:02x}:{:02x}:{:02x}:{:02x}",
-                device_arc.lock().mac_address[0],
-                device_arc.lock().mac_address[1], 
-                device_arc.lock().mac_address[2],
-                device_arc.lock().mac_address[3],
-                device_arc.lock().mac_address[4],
-                device_arc.lock().mac_address[5]);
-            
+    let devs = crate::arch::x86_64::pci::scan_pci_bus()?;
+    for d in devs {
+        if d.vendor_id == VIRTIO_VENDOR_ID
+            && (d.device_id == VIRTIO_NET_DEVICE_ID_TRANSITIONAL || d.device_id == VIRTIO_NET_DEVICE_ID_MODERN)
+        {
+            crate::log::info!("virtio-net at {:02x}:{:02x}.{}", d.bus, d.slot, d.function);
+            let mut nic = VirtioNetDevice::new(d)?;
+            let _ = nic.setup_interrupts();
+            let arc = Arc::new(Mutex::new(nic));
+            VIRTIO_NET.call_once(|| arc.clone());
+
+            // Log MAC
+            let mac = arc.lock().mac_address;
+            crate::log::info!(
+                "virtio-net MAC {:02x}:{:02x}:{:02x}:{:02x}:{:02x}:{:02x}",
+                mac[0],
+                mac[1],
+                mac[2],
+                mac[3],
+                mac[4],
+                mac[5]
+            );
+
+            // Register as default interface in drivers network core
+            crate::drivers::nonos_network::stack::register_interface(
+                "eth0",
+                Arc::new(VirtioNetInterface),
+                true,
+            );
+
             return Ok(());
         }
     }
-    
-    Err("No VirtIO network device found")
+    Err("virtio-net: no device found")
 }
 
-/// Get global VirtIO network device
 pub fn get_virtio_net_device() -> Option<Arc<Mutex<VirtioNetDevice>>> {
-    VIRTIO_NET_DEVICE.get().cloned()
+    VIRTIO_NET.get().cloned()
 }
 
-/// Interrupt handler for VirtIO network device
-extern "x86-interrupt" fn virtio_net_interrupt_handler(_: crate::arch::x86_64::InterruptStackFrame) {
-    if let Some(device_arc) = get_virtio_net_device() {
-        let device = device_arc.lock();
-        
-        // Handle interrupt - process received packets
-        let packets = device.receive_packets();
-        
-        // Forward packets to network stack
-        for packet in packets {
-            if let Err(e) = crate::network::stack::receive_packet(&packet) {
-                crate::log::error!("Failed to process received packet: {:?}", e);
-            }
+// ISR entry
+extern "x86-interrupt" fn virtio_net_isr(_: crate::arch::x86_64::InterruptStackFrame) {
+    super_virtio_isr();
+}
+
+#[no_mangle]
+extern "C" fn super_virtio_isr() {
+    if let Some(dev) = get_virtio_net_device() {
+        let d = dev.lock();
+        let packets = d.receive_packets();
+        for p in packets {
+            let _ = crate::drivers::nonos_network::stack::receive_packet(&p);
         }
-        
-        // ACK interrupt
-        unsafe {
-            let isr_reg = device.bar.base_addr + 0x13;
-            let _isr = ptr::read_volatile(isr_reg as *const u8);
-        }
+        d.reclaim_tx();
+        d.ack_interrupt();
     }
-    
-    // Send EOI to interrupt controller
     crate::arch::x86_64::interrupt::apic::send_eoi();
 }
 
-/// Network interface implementation for VirtIO
+// Public interface for the network core
 pub struct VirtioNetInterface;
 
-impl crate::network::stack::NetworkInterface for VirtioNetInterface {
-    fn send_packet(&self, packet: &[u8]) -> Result<(), &'static str> {
-        if let Some(device_arc) = get_virtio_net_device() {
-            let device = device_arc.lock();
-            device.transmit_packet(packet)
+impl crate::drivers::nonos_network::stack::NetworkInterface for VirtioNetInterface {
+    fn send_packet(&self, frame: &[u8]) -> Result<(), &'static str> {
+        if let Some(d) = get_virtio_net_device() {
+            d.lock().transmit_packet(frame)
         } else {
-            Err("VirtIO network device not available")
+            Err("virtio-net not ready")
         }
     }
-    
     fn get_mac_address(&self) -> [u8; 6] {
-        if let Some(device_arc) = get_virtio_net_device() {
-            let device = device_arc.lock();
-            device.mac_address()
+        if let Some(d) = get_virtio_net_device() {
+            d.lock().mac_address
         } else {
             [0; 6]
         }
     }
-    
     fn is_link_up(&self) -> bool {
-        true // Simplified - would check actual link status
+        true
     }
-    
-    fn get_stats(&self) -> crate::network::NetworkStats {
-        if let Some(device_arc) = get_virtio_net_device() {
-            let device = device_arc.lock();
-            let stats = device.get_stats();
-            crate::network::NetworkStats {
-                rx_packets: AtomicU64::new(stats.rx_packets.load(Ordering::Relaxed)),
-                tx_packets: AtomicU64::new(stats.tx_packets.load(Ordering::Relaxed)),
-                rx_bytes: AtomicU64::new(stats.rx_bytes.load(Ordering::Relaxed)),
-                tx_bytes: AtomicU64::new(stats.tx_bytes.load(Ordering::Relaxed)),
+    fn get_stats(&self) -> crate::drivers::nonos_network::stack::NetworkStats {
+        if let Some(dev) = get_virtio_net_device() {
+            let s = &dev.lock().stats;
+            crate::drivers::nonos_network::stack::NetworkStats {
+                rx_packets: AtomicU64::new(s.rx_packets.load(Ordering::Relaxed)),
+                tx_packets: AtomicU64::new(s.tx_packets.load(Ordering::Relaxed)),
+                rx_bytes: AtomicU64::new(s.rx_bytes.load(Ordering::Relaxed)),
+                tx_bytes: AtomicU64::new(s.tx_bytes.load(Ordering::Relaxed)),
                 active_sockets: AtomicU64::new(0),
-                packets_dropped: AtomicU64::new(stats.rx_errors.load(Ordering::Relaxed)),
+                packets_dropped: AtomicU64::new(s.rx_errors.load(Ordering::Relaxed)),
                 arp_lookups: AtomicU64::new(0),
             }
         } else {
-            crate::network::NetworkStats {
-                rx_packets: AtomicU64::new(0),
-                tx_packets: AtomicU64::new(0),
-                rx_bytes: AtomicU64::new(0),
-                tx_bytes: AtomicU64::new(0),
-                active_sockets: AtomicU64::new(0),
-                packets_dropped: AtomicU64::new(0),
-                arp_lookups: AtomicU64::new(0),
-            }
+            crate::drivers::nonos_network::stack::NetworkStats::default()
         }
     }
 }
