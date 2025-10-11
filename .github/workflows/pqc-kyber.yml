@@ -1,0 +1,30 @@
+name: PQC Kyber (ML-KEM) build-and-test
+
+on:
+  push:
+    paths:
+      - "src/crypto/**"
+      - "third_party/pqclean/**"
+      - "build.rs"
+      - ".github/workflows/pqc-kyber.yml"
+  pull_request:
+
+jobs:
+  test-mlkem:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        params: [mlkem512, mlkem768, mlkem1024]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Build (no default features) with selected param
+        run: |
+          cargo build --release --no-default-features --features ${PARAM}
+        env:
+          PARAM: ${{ matrix.params }}
+      - name: Test (unit tests) with selected param
+        run: |
+          cargo test --release --no-default-features --features ${PARAM} -- --nocapture
+        env:
+          PARAM: ${{ matrix.params }}
