@@ -58,6 +58,7 @@ use core::sync::atomic::Ordering;
 use spin::Once;
 use x86_64::{
     PhysAddr, VirtAddr,
+    registers::control::Cr3,
     structures::paging::{
         mapper::Translate, Mapper, Page, PageTableFlags, PhysFrame, Size4KiB,
     },
@@ -96,7 +97,11 @@ pub enum RegionType {
 
 #[inline]
 pub fn map_temporary_frame(frame: PhysAddr) -> VirtAddr {
-    VirtAddr::new(0xFFFF_8000_0000_0000 + frame.as_u64())
+    if let Some(va) = crate::memory::layout::directmap_va(frame.as_u64()) {
+        VirtAddr::new(va)
+    } else {
+        VirtAddr::new(0)
+    }
 }
 
 pub fn update_page_mapping(vaddr: VirtAddr, frame: PhysAddr, flags_raw: u64) -> Result<(), &'static str> {
@@ -115,7 +120,7 @@ pub fn update_page_mapping(vaddr: VirtAddr, frame: PhysAddr, flags_raw: u64) -> 
         match mapper.translate_page(page) {
             Ok(_) => {
                 mapper.update_flags(page, flags).map_err(|_| "upd")?.flush();
-                mapper.remap(page, pframe, flags).ok(); // no-op on most mappers; safe if unsupported
+                // If remap unsupported, caller should unmap+map explicitly; we keep update_flags strict.
             }
             Err(_) => {
                 mapper.map_to(page, pframe, flags, &mut *fa).map_err(|_| "map")?.flush();
@@ -138,15 +143,48 @@ pub fn remove_swap_info(_vaddr: VirtAddr) {}
 pub fn switch_address_space(_page_table_phys: PhysAddr) {}
 
 #[inline]
-pub fn get_kernel_page_table() -> PhysAddr { PhysAddr::new(0x1000) }
-
-#[inline]
-pub fn alloc_kernel_stack() -> Option<VirtAddr> {
-    Some(VirtAddr::new(0xFFFF_8000_2000_0000))
+pub fn get_kernel_page_table() -> PhysAddr {
+    let (frame, _flags) = Cr3::read();
+    frame.start_address()
 }
 
 #[inline]
-pub fn free_kernel_stack(_stack: VirtAddr) {}
+pub fn alloc_kernel_stack() -> Option<VirtAddr> {
+    use crate::memory::layout::{KSTACK_SIZE, GUARD_PAGES, PAGE_SIZE};
+    let total_pages = (KSTACK_SIZE + GUARD_PAGES * PAGE_SIZE) / PAGE_SIZE;
+    if total_pages == 0 { return None; }
+
+    // Allocate a contiguous VA+frames range for the stack
+    let base = unsafe { crate::memory::alloc::kalloc_pages(total_pages, crate::memory::virt::VmFlags::RW | crate::memory::virt::VmFlags::NX) };
+    if base.as_u64() == 0 {
+        return None;
+    }
+
+    // Turn the lowest page(s) into guard by unmapping them
+    for g in 0..GUARD_PAGES {
+        let _ = crate::memory::virt::unmap4k(VirtAddr::new(base.as_u64() + (g * PAGE_SIZE) as u64));
+    }
+
+    Some(VirtAddr::new(base.as_u64() + (GUARD_PAGES * PAGE_SIZE) as u64))
+}
+
+#[inline]
+pub fn free_kernel_stack(stack_top: VirtAddr) {
+    use crate::memory::layout::{KSTACK_SIZE, GUARD_PAGES, PAGE_SIZE};
+    let total_pages = (KSTACK_SIZE + GUARD_PAGES * PAGE_SIZE) / PAGE_SIZE;
+    if total_pages == 0 { return; }
+    let base = VirtAddr::new(stack_top.as_u64() - (GUARD_PAGES * PAGE_SIZE) as u64);
+
+    for i in 0..total_pages {
+        let va = VirtAddr::new(base.as_u64() + (i * PAGE_SIZE) as u64);
+        if let Ok((pa, _f, _sz)) = crate::memory::virt::translate(va) {
+            let _ = crate::memory::virt::unmap4k(va);
+            crate::memory::phys::free(crate::memory::phys::Frame(pa.as_u64()));
+        } else {
+            // Page might already be unmapped (guard or freed); ignore
+        }
+    }
+}
 
 #[inline]
 pub fn is_executable_region(addr: u64) -> bool {
@@ -214,29 +252,7 @@ pub fn run_memory_manager() {}
 
 pub fn run_periodic_cleanup() {}
 
-pub fn alloc_dma_coherent(size: usize) -> Option<*mut u8> {
-    if size == 0 {
-        return None;
-    }
-    let pages = (size + 4095) / 4096;
-    let mut base_page = alloc_dma_page()?;
-    let base_phys = base_page.phys_addr;
-    unsafe {
-        let mut total = 4096usize;
-        while total < pages * 4096 {
-            let next = alloc_dma_page()?;
-            // enforce contiguity; if broken, free and abort (caller can retry)
-            if next.phys_addr.as_u64() != base_phys.as_u64() + total as u64 {
-                free_dma_page(next);
-                free_dma_page(base_page);
-                return None;
-            }
-            total += 4096;
-        }
-    }
-    let virt = VirtAddr::new(0xFFFF_8000_0000_0000 + base_phys.as_u64());
-    Some(virt.as_mut_ptr())
-}
+// Use crate::memory::dma::{alloc_dma_coherent, free_dma_coherent}.
 
 #[inline]
 pub fn allocate_frame() -> Option<PhysAddr> { frame_alloc::allocate_frame() }
@@ -439,17 +455,35 @@ fn deallocate_page_at(addr: u64) -> Result<(), &'static str> {
     Ok(())
 }
 
+fn is_range_free(addr: VirtAddr, size: usize) -> bool {
+    if size == 0 { return false; }
+    let pages = (size + 0xFFF) / 0x1000;
+    unsafe {
+        if let Ok(mapper) = virt::get_kernel_mapper() {
+            for i in 0..pages {
+                let va = VirtAddr::new(addr.as_u64() + (i as u64 * 0x1000));
+                if mapper.translate_addr(va).is_some() {
+                    return false;
+                }
+            }
+            true
+        } else {
+            false
+        }
+    }
+}
+
 fn find_free_virtual_range(size: usize) -> Option<VirtAddr> {
+    if size == 0 { return None; }
+    // Search a sane user-space region for now
     let mut addr = VirtAddr::new(0x0040_0000);
     let end = VirtAddr::new(0x7FFF_FFFF_0000);
     while addr.as_u64() + size as u64 <= end.as_u64() {
         if is_range_free(addr, size) { return Some(addr); }
-        addr += 0x1000;
+        addr = VirtAddr::new(addr.as_u64() + 0x1000);
     }
     None
 }
-
-fn is_range_free(_addr: VirtAddr, _size: usize) -> bool { true }
 
 fn find_kernel_memory_region(addr: u64) -> Option<MemoryRegion> {
     for r in get_kernel_memory_regions() {
@@ -549,6 +583,7 @@ pub enum MemoryType {
     Device,
 }
 
+// In production, prefer real boot memory map; keep this as a fallback if needed.
 pub fn get_memory_map() -> Option<alloc::vec::Vec<MemoryMapEntry>> {
     let mut m = alloc::vec::Vec::new();
     m.push(MemoryMapEntry { base_address: 0x0, size: 0x80000, memory_type: MemoryType::Reserved, attributes: 0 });
