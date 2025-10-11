@@ -1,0 +1,584 @@
+//! NONOS Base Network Stack 
+
+#![no_std]
+
+extern crate alloc;
+
+use alloc::{boxed::Box, collections::BTreeMap, vec, vec::Vec};
+use core::cmp::min;
+use core::sync::atomic::{AtomicU32, Ordering};
+use spin::{Mutex, Once};
+
+// smoltcp
+use smoltcp::iface::{Config as IfaceConfig, Interface, SocketHandle as SmolHandle, SocketSet, Routes};
+use smoltcp::phy::{ChecksumCapabilities, Device as SmolPhyDevice, DeviceCapabilities, Medium, RxToken, TxToken};
+use smoltcp::socket::{tcp, udp};
+use smoltcp::time::{Duration as SmolDuration, Instant as SmolInstant};
+use smoltcp::wire::{
+    EthernetAddress, HardwareAddress, IpAddress as SmolIpAddress, IpCidr, Ipv4Address, Ipv4Cidr, Ipv6Address,
+    Ipv4Gateway,
+};
+
+// Public re-exports expected by network/mod.rs
+pub use super::ip::IpAddress;
+
+/// TcpSocket wrapper for API symmetry; carries a connection id.
+#[derive(Debug, Clone)]
+pub struct TcpSocket {
+    id: u32,
+    pub remote_port: u16,
+}
+impl TcpSocket {
+    pub fn new() -> Self {
+        Self { id: NEXT_ID.fetch_add(1, Ordering::SeqCst), remote_port: 0 }
+    }
+    pub fn connection_id(&self) -> u32 { self.id }
+    pub fn from_connection(id: u32) -> Self { Self { id, remote_port: 0 } }
+}
+
+static NEXT_ID: AtomicU32 = AtomicU32::new(1);
+
+#[derive(Debug, Default, Clone)]
+pub struct NetworkStats {
+    pub tx_packets: u64,
+    pub rx_packets: u64,
+    pub tx_bytes: u64,
+    pub rx_bytes: u64,
+}
+
+struct ConnectionEntry {
+    id: u32,
+    tcp: SmolHandle,
+    last_activity_ms: u64,
+    closed: bool,
+}
+
+pub struct NetworkStack {
+    iface: Mutex<Interface<'static, SmolDeviceAdapter>>,
+    sockets: Mutex<SocketSet<'static>>,
+    routes: Mutex<Routes>,
+    conns: Mutex<BTreeMap<u32, ConnectionEntry>>,
+    next_id: AtomicU32,
+    stats: Mutex<NetworkStats>,
+    default_dns_v4: Mutex<Ipv4Address>,
+}
+
+static STACK: Once<NetworkStack> = Once::new();
+
+// ===== Public entry points =====
+
+pub fn init_network_stack() {
+    STACK.call_once(|| {
+        // Device adapter: loopback if no NIC registered
+        let dev = SmolDeviceAdapter;
+
+        // Interface configuration
+        let mut cfg = IfaceConfig::new(HardwareAddress::Ethernet(EthernetAddress(DEFAULT_MAC)));
+        cfg.random_seed = 0xD1E5_7A2C;
+        let mut iface = Interface::new(cfg, dev, SmolInstant::from_millis(now_ms() as i64));
+
+        // Default addresses: loopback v4 and v6
+        let _ = iface.update_ip_addrs(|ips| {
+            let _ = ips.push(IpCidr::new(SmolIpAddress::Ipv4(Ipv4Address::new(127, 0, 0, 1)), 8));
+            let _ = ips.push(IpCidr::new(SmolIpAddress::Ipv6(Ipv6Address::LOOPBACK), 128));
+        });
+
+        let routes = Routes::new(BTreeMap::new());
+        let sockets = SocketSet::new(vec![]);
+
+        NetworkStack {
+            iface: Mutex::new(iface),
+            sockets: Mutex::new(sockets),
+            routes: Mutex::new(routes),
+            conns: Mutex::new(BTreeMap::new()),
+            next_id: AtomicU32::new(1),
+            stats: Mutex::new(NetworkStats::default()),
+            default_dns_v4: Mutex::new(Ipv4Address::new(1, 1, 1, 1)), // Cloudflare by default
+        }
+    });
+}
+
+pub fn get_network_stack() -> Option<&'static NetworkStack> {
+    STACK.get()
+}
+
+// ===== Device registration (drivers at boot) =====
+
+pub trait SmolDevice: Send + Sync + 'static {
+    fn now_ms(&self) -> u64;
+    fn recv(&self) -> Option<Vec<u8>>; // a full Ethernet frame
+    fn transmit(&self, frame: &[u8]) -> Result<(), ()>;
+    fn mac(&self) -> [u8; 6];
+    fn link_mtu(&self) -> usize { 1500 }
+}
+
+static DEVICE_SLOT: Once<&'static dyn SmolDevice> = Once::new();
+const DEFAULT_MAC: [u8; 6] = [0x02, 0x00, 0x00, 0x00, 0x00, 0x01];
+
+pub fn register_device(dev: &'static dyn SmolDevice) {
+    DEVICE_SLOT.call_once(|| dev);
+    if let Some(stack) = get_network_stack() {
+        let mac = dev.mac();
+        let mut iface = stack.iface.lock();
+        iface.set_hardware_addr(HardwareAddress::Ethernet(EthernetAddress(mac)));
+    }
+}
+
+fn now_ms() -> u64 {
+    if let Some(dev) = DEVICE_SLOT.get() {
+        return dev.now_ms();
+    }
+    crate::time::timestamp_millis()
+}
+
+// Adapter that implements smoltcp::phy::Device for our SmolDevice
+pub struct SmolDeviceAdapter;
+
+impl<'a> SmolPhyDevice for SmolDeviceAdapter {
+    type RxToken = RxT;
+    type TxToken = TxT;
+
+    fn capabilities(&self) -> DeviceCapabilities {
+        let mut caps = DeviceCapabilities::default();
+        caps.max_transmission_unit = DEVICE_SLOT.get().map(|d| d.link_mtu()).unwrap_or(1500);
+        caps.medium = Medium::Ethernet;
+        caps.checksum = ChecksumCapabilities::default();
+        caps
+    }
+
+    fn receive(&mut self, _ts: SmolInstant) -> Option<(Self::RxToken, Self::TxToken)> {
+        if let Some(dev) = DEVICE_SLOT.get() {
+            if let Some(frame) = dev.recv() {
+                return Some((RxT(frame), TxT));
+            }
+        }
+        None
+    }
+
+    fn transmit(&mut self, _ts: SmolInstant) -> Option<Self::TxToken> {
+        Some(TxT)
+    }
+}
+
+pub struct RxT(Vec<u8>);
+impl RxToken for RxT {
+    fn consume<R, F>(self, _ts: SmolInstant, f: F) -> R
+    where
+        F: FnOnce(&mut [u8]) -> R,
+    {
+        let mut buf = self.0;
+        f(&mut buf)
+    }
+}
+
+pub struct TxT;
+impl TxToken for TxT {
+    fn consume<R, F>(self, _ts: SmolInstant, len: usize, f: F) -> R
+    where
+        F: FnOnce(&mut [u8]) -> R,
+    {
+        let mut out = vec![0u8; len];
+        let res = f(&mut out);
+        if let Some(dev) = DEVICE_SLOT.get() {
+            let _ = dev.transmit(&out);
+        }
+        res
+    }
+}
+
+// ====== Core poller ======
+
+impl NetworkStack {
+    fn poll(&self) {
+        let ts = SmolInstant::from_millis(now_ms() as i64);
+        // poll interface with sockets
+        {
+            let mut iface = self.iface.lock();
+            let mut sockets = self.sockets.lock();
+            let _ = iface.poll(ts, &mut *sockets);
+        }
+    }
+
+    pub fn set_ipv4_config(&self, ip: [u8; 4], prefix: u8, gateway: Option<[u8; 4]>) {
+        let mut iface = self.iface.lock();
+        let _ = iface.update_ip_addrs(|ips| {
+            ips.clear();
+            let _ = ips.push(IpCidr::new(SmolIpAddress::Ipv4(Ipv4Address::from_bytes(&ip)), prefix));
+            let _ = ips.push(IpCidr::new(SmolIpAddress::Ipv6(Ipv6Address::LOOPBACK), 128));
+        });
+        if let Some(gw) = gateway {
+            let mut routes = self.routes.lock();
+            let cidr = Ipv4Cidr::new(Ipv4Address::UNSPECIFIED, 0);
+            routes.add_default_ipv4_route(Ipv4Gateway::Direct(Ipv4Address::from_bytes(&gw))).ok();
+            iface.set_routes(routes.clone());
+        }
+    }
+
+    pub fn set_default_dns_v4(&self, v4: [u8; 4]) {
+        *self.default_dns_v4.lock() = Ipv4Address::from_bytes(&v4);
+    }
+
+    // ====== TCP client operations ======
+
+    pub fn tcp_connect(&self, sock: &TcpSocket, addr_v4: [u8; 4], port: u16) -> Result<(), &'static str> {
+        let mut sockets = self.sockets.lock();
+        let tcp_rx = tcp::SocketBuffer::new(vec![0; 16384]);
+        let tcp_tx = tcp::SocketBuffer::new(vec![0; 16384]);
+        let mut s = tcp::Socket::new(tcp_rx, tcp_tx);
+
+        s.set_timeout(Some(SmolDuration::from_millis(10_000)));
+        let handle = sockets.add(s);
+
+        // register conn entry
+        let id = sock.connection_id();
+        {
+            let mut conns = self.conns.lock();
+            conns.insert(id, ConnectionEntry {
+                id,
+                tcp: handle,
+                last_activity_ms: now_ms(),
+                closed: false,
+            });
+        }
+        drop(sockets);
+
+        // Initiate connect
+        {
+            let mut sockets = self.sockets.lock();
+            let socket: &mut tcp::Socket = sockets.get_mut(handle);
+            socket.connect(
+                smoltcp::iface::SocketAddr::new(
+                    SmolIpAddress::Ipv4(Ipv4Address::from_bytes(&addr_v4)),
+                    port,
+                ),
+                0,
+            ).map_err(|_| "tcp connect error")?;
+        }
+
+        // Poll until established or timeout
+        let start = now_ms();
+        loop {
+            {
+                let sockets = self.sockets.lock();
+                let s: &tcp::Socket = sockets.get(handle);
+                if s.is_active() && s.may_send() {
+                    break;
+                }
+            }
+            self.poll();
+            if now_ms().saturating_sub(start) > 15_000 {
+                return Err("tcp connect timeout");
+            }
+            crate::time::yield_now();
+        }
+        Ok(())
+    }
+
+    pub fn get_local_port(&self, sock: &TcpSocket) -> Option<u16> {
+        let conns = self.conns.lock();
+        let c = conns.get(&sock.connection_id())?;
+        let sockets = self.sockets.lock();
+        let s: &tcp::Socket = sockets.get(c.tcp);
+        s.local_endpoint().map(|ep| ep.port())
+    }
+
+    pub fn tcp_send(&self, conn_id: u32, buf: &[u8]) -> Result<usize, &'static str> {
+        let handle = {
+            let mut conns = self.conns.lock();
+            let c = conns.get_mut(&conn_id).ok_or("no such connection")?;
+            if c.closed { return Err("closed"); }
+            c.last_activity_ms = now_ms();
+            c.tcp
+        };
+
+        let mut sent = 0usize;
+        let start = now_ms();
+        loop {
+            {
+                let mut sockets = self.sockets.lock();
+                let s: &mut tcp::Socket = sockets.get_mut(handle);
+                if !s.may_send() {
+                    // peer closed
+                    return Err("send not permitted");
+                }
+                match s.send_slice(&buf[sent..]) {
+                    Ok(n) if n > 0 => {
+                        sent += n;
+                        let mut stats = self.stats.lock();
+                        stats.tx_packets += 1;
+                        stats.tx_bytes += n as u64;
+                        if sent == buf.len() {
+                            break;
+                        }
+                    }
+                    Ok(_) | Err(_) => { /* backpressure, keep polling */ }
+                }
+            }
+            self.poll();
+            if now_ms().saturating_sub(start) > 15_000 {
+                return Err("send timeout");
+            }
+            crate::time::yield_now();
+        }
+        Ok(sent)
+    }
+
+    pub fn tcp_receive(&self, conn_id: u32, max_len: usize) -> Result<Vec<u8>, &'static str> {
+        let handle = {
+            let conns = self.conns.lock();
+            let c = conns.get(&conn_id).ok_or("no such connection")?;
+            c.tcp
+        };
+
+        let mut out = Vec::new();
+        let start = now_ms();
+        loop {
+            {
+                let mut sockets = self.sockets.lock();
+                let s: &mut tcp::Socket = sockets.get_mut(handle);
+                let available = s.recv_queue();
+                if available > 0 {
+                    let to_take = min(available, max_len);
+                    out.resize(to_take, 0);
+                    match s.recv_slice(&mut out) {
+                        Ok(n) if n > 0 => {
+                            let mut stats = self.stats.lock();
+                            stats.rx_packets += 1;
+                            stats.rx_bytes += n as u64;
+                            out.truncate(n);
+                            return Ok(out);
+                        }
+                        _ => {}
+                    }
+                } else if !s.can_recv() && !s.may_send() {
+                    // closed
+                    return Ok(Vec::new());
+                }
+            }
+            self.poll();
+            if now_ms().saturating_sub(start) > 15_000 {
+                // no data available within timeout; return empty
+                return Ok(Vec::new());
+            }
+            crate::time::yield_now();
+        }
+    }
+
+    pub fn tcp_is_closed(&self, conn_id: u32) -> Option<bool> {
+        let conns = self.conns.lock();
+        let c = conns.get(&conn_id)?;
+        let sockets = self.sockets.lock();
+        let s: &tcp::Socket = sockets.get(c.tcp);
+        Some(!s.is_active())
+    }
+
+    pub fn tcp_close(&self, conn_id: u32) -> Result<(), &'static str> {
+        let handle = {
+            let mut conns = self.conns.lock();
+            let c = conns.get_mut(&conn_id).ok_or("no such connection")?;
+            c.closed = true;
+            c.tcp
+        };
+        {
+            let mut sockets = self.sockets.lock();
+            let s: &mut tcp::Socket = sockets.get_mut(handle);
+            let _ = s.close();
+        }
+        Ok(())
+    }
+
+    // ===== HTTP/1.1 client for directory.rs (bounded) =====
+
+    pub fn http_request(&self, addr: [u8; 4], port: u16, req: &[u8]) -> Result<Vec<u8>, &'static str> {
+        let tmp = TcpSocket::new();
+        self.tcp_connect(&tmp, addr, port)?;
+        let id = tmp.connection_id();
+        let _ = self.tcp_send(id, req)?;
+        // Read until headers parsed + content-length satisfied or close (cap 5 MiB)
+        const CAP: usize = 5 * 1024 * 1024;
+        let mut buf = Vec::with_capacity(4096);
+        let mut headers_done = false;
+        let mut content_length: Option<usize> = None;
+
+        let start = now_ms();
+        loop {
+            let chunk = self.tcp_receive(id, 4096)?;
+            if !chunk.is_empty() {
+                if buf.len() + chunk.len() > CAP { let _ = self.tcp_close(id); return Err("http cap exceeded"); }
+                buf.extend_from_slice(&chunk);
+            }
+            if !headers_done {
+                if let Some(idx) = find_subsequence(&buf, b"\r\n\r\n") {
+                    headers_done = true;
+                    // parse headers
+                    let headers = &buf[..idx+4];
+                    // quick status check
+                    if !headers.starts_with(b"HTTP/1.1 200") && !headers.starts_with(b"HTTP/1.0 200") {
+                        let _ = self.tcp_close(id);
+                        return Err("http non-200");
+                    }
+                    for line in headers.split(|&b| b == b'\n') {
+                        if line.len() >= 18 && starts_no_case(line, b"content-length:") {
+                            if let Ok(n) = parse_usize_ascii(&line[15..]) {
+                                content_length = Some(n);
+                            }
+                        }
+                    }
+                    if let Some(n) = content_length {
+                        let body_len = buf.len() - (idx + 4);
+                        if body_len >= n { break; }
+                    }
+                }
+            } else if let Some(n) = content_length {
+                if let Some(idx) = find_subsequence(&buf, b"\r\n\r\n") {
+                    let body_len = buf.len() - (idx + 4);
+                    if body_len >= n { break; }
+                }
+            }
+            if now_ms().saturating_sub(start) > 20_000 { break; }
+            self.poll();
+            crate::time::yield_now();
+        }
+
+        // Close connection
+        let _ = self.tcp_close(id);
+        Ok(buf)
+    }
+
+    // ===== DNS resolver helpers (used by nonos_dns.rs) =====
+
+    pub fn dns_query_a(&self, hostname: &str, timeout_ms: u64) -> Result<Vec<[u8; 4]>, &'static str> {
+        use smoltcp::socket::udp::{PacketBuffer, PacketMetadata};
+        let mut sockets = self.sockets.lock();
+        let rx = PacketBuffer::new(vec![PacketMetadata::EMPTY; 8], vec![0; 1536]);
+        let tx = PacketBuffer::new(vec![PacketMetadata::EMPTY; 8], vec![0; 1536]);
+        let handle = sockets.add(udp::Socket::new(rx, tx));
+        drop(sockets);
+
+        let server = *self.default_dns_v4.lock();
+        let query = build_dns_query(hostname);
+
+        // Bind and send
+        {
+            let mut sockets = self.sockets.lock();
+            let s: &mut udp::Socket = sockets.get_mut(handle);
+            s.bind(0).map_err(|_| "dns bind")?;
+            let _ = s.send_slice(
+                &query,
+                (SmolIpAddress::Ipv4(server), 53).into()
+            ).map_err(|_| "dns send")?;
+        }
+
+        let start = now_ms();
+        loop {
+            {
+                let mut sockets = self.sockets.lock();
+                let s: &mut udp::Socket = sockets.get_mut(handle);
+                if let Ok((data, _ep)) = s.recv() {
+                    let addrs = parse_dns_response_a(&data)?;
+                    sockets.remove(handle);
+                    return Ok(addrs);
+                }
+            }
+            self.poll();
+            if now_ms().saturating_sub(start) > timeout_ms {
+                let mut sockets = self.sockets.lock();
+                sockets.remove(handle);
+                return Err("dns timeout");
+            }
+            crate::time::yield_now();
+        }
+    }
+}
+
+// ===== Small helpers =====
+
+fn starts_no_case(s: &[u8], pref: &[u8]) -> bool {
+    if s.len() < pref.len() { return false }
+    s[..pref.len()].eq_ignore_ascii_case(pref)
+}
+
+fn parse_usize_ascii(s: &[u8]) -> Result<usize, ()> {
+    let mut n: usize = 0;
+    for &b in s {
+        if b == b' ' || b == b'\r' { break; }
+        if !(b'0'..=b'9').contains(&b) { return Err(()); }
+        n = n.saturating_mul(10).saturating_add((b - b'0') as usize);
+    }
+    Ok(n)
+}
+
+fn find_subsequence(h: &[u8], n: &[u8]) -> Option<usize> {
+    if n.is_empty() { return Some(0); }
+    h.windows(n.len()).position(|w| w == n)
+}
+
+// ===== DNS (very small, RFC1035 A) =====
+
+fn build_dns_query(name: &str) -> Vec<u8> {
+    let mut out = Vec::new();
+    // header
+    out.extend_from_slice(&0x1234u16.to_be_bytes()); // id
+    out.extend_from_slice(&0x0100u16.to_be_bytes()); // rd
+    out.extend_from_slice(&1u16.to_be_bytes()); // qdcount
+    out.extend_from_slice(&0u16.to_be_bytes()); // ancount
+    out.extend_from_slice(&0u16.to_be_bytes()); // nscount
+    out.extend_from_slice(&0u16.to_be_bytes()); // arcount
+    // qname
+    for label in name.split('.') {
+        let lb = label.as_bytes();
+        if lb.len() > 63 { continue; }
+        out.push(lb.len() as u8);
+        out.extend_from_slice(lb);
+    }
+    out.push(0);
+    // qtype A
+    out.extend_from_slice(&1u16.to_be_bytes());
+    // qclass IN
+    out.extend_from_slice(&1u16.to_be_bytes());
+    out
+}
+
+fn parse_dns_response_a(data: &[u8]) -> Result<Vec<[u8; 4]>, &'static str> {
+    if data.len() < 12 { return Err("dns short"); }
+    let qd = u16::from_be_bytes([data[4], data[5]]) as usize;
+    let an = u16::from_be_bytes([data[6], data[7]]) as usize;
+
+    // skip header + question
+    let mut off = 12usize;
+    for _ in 0..qd {
+        // skip qname
+        while off < data.len() && data[off] != 0 {
+            off += 1 + data[off] as usize;
+        }
+        off += 1; // zero
+        off += 4; // qtype+qclass
+    }
+
+    // answers
+    let mut out = Vec::new();
+    for _ in 0..an {
+        if off + 10 > data.len() { break; }
+        // name (skip, compressed or not)
+        if data[off] & 0xC0 == 0xC0 {
+            off += 2;
+        } else {
+            while off < data.len() && data[off] != 0 {
+                off += 1 + data[off] as usize;
+            }
+            off += 1;
+        }
+        if off + 10 > data.len() { break; }
+        let typ = u16::from_be_bytes([data[off], data[off+1]]); off += 2;
+        off += 2; // class
+        off += 4; // ttl
+        let rdlen = u16::from_be_bytes([data[off], data[off+1]]) as usize; off += 2;
+        if typ == 1 && rdlen == 4 && off + 4 <= data.len() {
+            let mut a = [0u8; 4];
+            a.copy_from_slice(&data[off..off+4]);
+            out.push(a);
+        }
+        off += rdlen;
+    }
+    Ok(out)
+}
