@@ -1,216 +1,251 @@
-use core::sync::atomic::{AtomicU64, Ordering};
+//! ChaCha20-based CSPRNG 
 
+use core::sync::atomic::{AtomicBool, AtomicU64, Ordering};
+use core::ptr;
+use spin::Mutex;
+
+static GLOBAL_INIT: AtomicBool = AtomicBool::new(false);
 static GLOBAL_COUNTER: AtomicU64 = AtomicU64::new(1);
-static mut RNG_STATE: [u32; 4] = [0x9E3779B9, 0x243F6A88, 0xB7E15162, 0x8AED2A6A];
+static mut GLOBAL_RNG: Option<Mutex<ChaChaRng>> = None;
 
-/// ChaCha20-based RNG state
+/// ChaCha20 core-based RNG
 pub struct ChaChaRng {
+    key: [u8; 32],
     state: [u32; 16],
-    output: [u32; 16],
+    output: [u8; 64],
     index: usize,
 }
 
 impl ChaChaRng {
-    pub fn new(seed: u64) -> Self {
-        let mut rng = Self {
-            state: [0; 16],
-            output: [0; 16],
-            index: 16,
+    pub fn new(seed: [u8; 32]) -> Self {
+        let mut s = Self {
+            key: seed,
+            state: [0u32; 16],
+            output: [0u8; 64],
+            index: 64,
         };
-        
+        s.rekey(seed);
+        s
+    }
+
+    fn rekey(&mut self, seed: [u8; 32]) {
+        self.key = seed;
         // ChaCha20 constants
-        rng.state[0] = 0x61707865;
-        rng.state[1] = 0x3320646e;
-        rng.state[2] = 0x79622d32;
-        rng.state[3] = 0x6b206574;
-        
-        // Key from seed
-        rng.state[4] = seed as u32;
-        rng.state[5] = (seed >> 32) as u32;
-        rng.state[6] = (!seed) as u32;
-        rng.state[7] = ((!seed) >> 32) as u32;
-        rng.state[8] = seed.wrapping_mul(0x9E3779B97F4A7C15) as u32;
-        rng.state[9] = (seed.wrapping_mul(0x9E3779B97F4A7C15) >> 32) as u32;
-        rng.state[10] = seed.wrapping_add(0xA0761D6478BD642F) as u32;
-        rng.state[11] = (seed.wrapping_add(0xA0761D6478BD642F) >> 32) as u32;
-        
-        // Counter and nonce
-        rng.state[12] = 0;
-        rng.state[13] = 0;
-        rng.state[14] = 0;
-        rng.state[15] = 0;
-        
-        rng
+        self.state[0] = 0x6170_7865;
+        self.state[1] = 0x3320_646e;
+        self.state[2] = 0x7962_2d32;
+        self.state[3] = 0x6b20_6574;
+        // 256-bit key, little-endian words
+        for i in 0..8 {
+            let j = i * 4;
+            self.state[4 + i] =
+                u32::from_le_bytes([seed[j], seed[j + 1], seed[j + 2], seed[j + 3]]);
+        }
+        // counter and nonce zero (counter increments as it generate)
+        self.state[12] = 0;
+        self.state[13] = 0;
+        self.state[14] = 0;
+        self.state[15] = 0;
+        self.index = 64; // force regenerate on next use
     }
-    
-    fn quarter_round(state: &mut [u32; 16], a: usize, b: usize, c: usize, d: usize) {
-        state[a] = state[a].wrapping_add(state[b]);
-        state[d] ^= state[a];
-        state[d] = state[d].rotate_left(16);
-        
-        state[c] = state[c].wrapping_add(state[d]);
-        state[b] ^= state[c];
-        state[b] = state[b].rotate_left(12);
-        
-        state[a] = state[a].wrapping_add(state[b]);
-        state[d] ^= state[a];
-        state[d] = state[d].rotate_left(8);
-        
-        state[c] = state[c].wrapping_add(state[d]);
-        state[b] ^= state[c];
-        state[b] = state[b].rotate_left(7);
+
+    #[inline(always)]
+    fn quarter_round(s: &mut [u32; 16], a: usize, b: usize, c: usize, d: usize) {
+        s[a] = s[a].wrapping_add(s[b]);
+        s[d] ^= s[a];
+        s[d] = s[d].rotate_left(16);
+
+        s[c] = s[c].wrapping_add(s[d]);
+        s[b] ^= s[c];
+        s[b] = s[b].rotate_left(12);
+
+        s[a] = s[a].wrapping_add(s[b]);
+        s[d] ^= s[a];
+        s[d] = s[d].rotate_left(8);
+
+        s[c] = s[c].wrapping_add(s[d]);
+        s[b] ^= s[c];
+        s[b] = s[b].rotate_left(7);
     }
-    
+
     fn generate_block(&mut self) {
-        let mut working_state = self.state;
-        
+        let mut working = self.state;
         // 20 rounds (10 double rounds)
         for _ in 0..10 {
-            // Column rounds
-            Self::quarter_round(&mut working_state, 0, 4, 8, 12);
-            Self::quarter_round(&mut working_state, 1, 5, 9, 13);
-            Self::quarter_round(&mut working_state, 2, 6, 10, 14);
-            Self::quarter_round(&mut working_state, 3, 7, 11, 15);
-            
-            // Diagonal rounds
-            Self::quarter_round(&mut working_state, 0, 5, 10, 15);
-            Self::quarter_round(&mut working_state, 1, 6, 11, 12);
-            Self::quarter_round(&mut working_state, 2, 7, 8, 13);
-            Self::quarter_round(&mut working_state, 3, 4, 9, 14);
+            // column rounds
+            Self::quarter_round(&mut working, 0, 4, 8, 12);
+            Self::quarter_round(&mut working, 1, 5, 9, 13);
+            Self::quarter_round(&mut working, 2, 6, 10, 14);
+            Self::quarter_round(&mut working, 3, 7, 11, 15);
+            // diagonal rounds
+            Self::quarter_round(&mut working, 0, 5, 10, 15);
+            Self::quarter_round(&mut working, 1, 6, 11, 12);
+            Self::quarter_round(&mut working, 2, 7, 8, 13);
+            Self::quarter_round(&mut working, 3, 4, 9, 14);
         }
-        
-        // Add original state
+        // add original state
         for i in 0..16 {
-            self.output[i] = working_state[i].wrapping_add(self.state[i]);
+            working[i] = working[i].wrapping_add(self.state[i]);
         }
-        
-        // Increment counter
+        // serialize keystream (little endian)
+        for (i, w) in working.iter().enumerate() {
+            let bytes = w.to_le_bytes();
+            let off = i * 4;
+            self.output[off..off + 4].copy_from_slice(&bytes);
+        }
+        // increment 64-bit counter (state[12], state[13])
         self.state[12] = self.state[12].wrapping_add(1);
         if self.state[12] == 0 {
             self.state[13] = self.state[13].wrapping_add(1);
         }
-        
         self.index = 0;
     }
-    
-    pub fn next_u32(&mut self) -> u32 {
-        if self.index >= 16 {
-            self.generate_block();
+
+    pub fn fill_bytes(&mut self, out: &mut [u8]) {
+        let mut written = 0usize;
+        while written < out.len() {
+            if self.index >= 64 {
+                self.generate_block();
+            }
+            let take = core::cmp::min(64 - self.index, out.len() - written);
+            out[written..written + take]
+                .copy_from_slice(&self.output[self.index..self.index + take]);
+            self.index += take;
+            written += take;
         }
-        
-        let result = self.output[self.index];
-        self.index += 1;
-        result
     }
-    
+
     pub fn next_u64(&mut self) -> u64 {
-        let low = self.next_u32() as u64;
-        let high = self.next_u32() as u64;
-        (high << 32) | low
+        let mut tmp = [0u8; 8];
+        self.fill_bytes(&mut tmp);
+        u64::from_le_bytes(tmp)
     }
-    
-    pub fn fill_bytes(&mut self, bytes: &mut [u8]) {
-        for chunk in bytes.chunks_mut(4) {
-            let val = self.next_u32();
-            let val_bytes = val.to_le_bytes();
-            for (i, &byte) in val_bytes.iter().enumerate() {
-                if i < chunk.len() {
-                    chunk[i] = byte;
+
+    pub fn reseed(&mut self, seed: [u8; 32]) {
+        self.rekey(seed);
+        for b in &mut self.output {
+            unsafe { ptr::write_volatile(b, 0) };
+        }
+        self.index = 64;
+    }
+}
+
+impl Drop for ChaChaRng {
+    fn drop(&mut self) {
+        for b in &mut self.key {
+            unsafe { ptr::write_volatile(b, 0) };
+        }
+        for w in &mut self.state {
+            unsafe { ptr::write_volatile(w, 0) };
+        }
+        for b in &mut self.output {
+            unsafe { ptr::write_volatile(b, 0) };
+        }
+        self.index = 0;
+    }
+}
+
+/// Best-effort entropy collection
+fn get_entropy64() -> u64 {
+    let mut e = GLOBAL_COUNTER.fetch_add(1, Ordering::SeqCst);
+    // RDTSC on x86_64 if available
+    #[cfg(target_arch = "x86_64")]
+    unsafe {
+        let mut lo: u32 = 0;
+        let mut hi: u32 = 0;
+        core::arch::asm!("rdtsc", out("eax") lo, out("edx") hi, options(nomem, nostack));
+        e ^= (lo as u64) | ((hi as u64) << 32);
+    }
+    // pointer jitter
+    let addr = &e as *const u64 as u64;
+    e ^= addr;
+    e
+}
+
+/// Initialize global RNG (idempotent)
+pub fn init_rng() {
+    if GLOBAL_INIT.swap(true, Ordering::AcqRel) {
+        return;
+    }
+    let mut seed = [0u8; 32];
+    for i in 0..4 {
+        let v = get_entropy64();
+        seed[i * 8..i * 8 + 8].copy_from_slice(&v.to_le_bytes());
+    }
+    unsafe {
+        GLOBAL_RNG = Some(Mutex::new(ChaChaRng::new(seed)));
+    }
+}
+
+/// Reseed or seed the global RNG (best-effort)
+pub fn seed_rng() {
+    let mut seed = [0u8; 32];
+    for i in 0..4 {
+        let v = get_entropy64();
+        seed[i * 8..i * 8 + 8].copy_from_slice(&v.to_le_bytes());
+    }
+    unsafe {
+        if let Some(r) = &GLOBAL_RNG {
+            r.lock().reseed(seed);
+        } else {
+            GLOBAL_RNG = Some(Mutex::new(ChaChaRng::new(seed)));
+            GLOBAL_INIT.store(true, Ordering::Release);
+        }
+    }
+}
+
+/// Get 32 random bytes from global RNG. Ensures RNG initialized.
+pub fn get_random_bytes() -> [u8; 32] {
+    if !GLOBAL_INIT.load(Ordering::Acquire) {
+        init_rng();
+    }
+    let mut out = [0u8; 32];
+    unsafe {
+        if let Some(r) = &GLOBAL_RNG {
+            r.lock().fill_bytes(&mut out);
+        } else {
+            // fallback (unlikely)
+            let v = get_entropy64();
+            out[..8].copy_from_slice(&v.to_le_bytes());
+        }
+    }
+    out
+}
+
+/// Fill a buffer with random bytes.
+pub fn fill_random_bytes(buf: &mut [u8]) {
+    if !GLOBAL_INIT.load(Ordering::Acquire) {
+        init_rng();
+    }
+    unsafe {
+        if let Some(r) = &GLOBAL_RNG {
+            r.lock().fill_bytes(buf);
+        } else {
+            for chunk in buf.chunks_mut(8) {
+                let v = get_entropy64();
+                let bytes = v.to_le_bytes();
+                for (i, b) in chunk.iter_mut().enumerate() {
+                    *b = bytes[i];
                 }
             }
         }
     }
 }
 
-/// Simple xorshift64 for quick random numbers
-fn xorshift64(state: &mut u64) -> u64 {
-    *state ^= *state << 13;
-    *state ^= *state >> 7;
-    *state ^= *state << 17;
-    *state
-}
-
-/// Get entropy from hardware sources
-fn get_entropy() -> u64 {
-    let mut entropy = 0u64;
-    
-    // Use atomic counter as basic entropy
-    entropy ^= GLOBAL_COUNTER.fetch_add(1, Ordering::SeqCst);
-    
-    // Mix in some hardware-based entropy if available
-    #[cfg(target_arch = "x86_64")]
+/// Random u64
+pub fn random_u64() -> u64 {
+    if !GLOBAL_INIT.load(Ordering::Acquire) {
+        init_rng();
+    }
     unsafe {
-        // Try to use RDTSC
-        let mut eax: u32;
-        let mut edx: u32;
-        core::arch::asm!(
-            "rdtsc",
-            out("eax") eax,
-            out("edx") edx,
-            options(nomem, nostack)
-        );
-        entropy ^= (eax as u64) | ((edx as u64) << 32);
-    }
-    
-    // Add some memory address entropy
-    let stack_addr = &entropy as *const u64 as u64;
-    entropy ^= stack_addr;
-    
-    entropy
-}
-
-/// Initialize RNG system
-pub fn init_rng() {
-    let seed = get_entropy();
-    unsafe {
-        RNG_STATE[0] = seed as u32;
-        RNG_STATE[1] = (seed >> 32) as u32;
-        RNG_STATE[2] = (!seed) as u32;
-        RNG_STATE[3] = ((!seed) >> 32) as u32;
-    }
-}
-
-/// Seed the global RNG
-pub fn seed_rng() {
-    init_rng();
-}
-
-/// Get random bytes using global RNG
-pub fn get_random_bytes() -> [u8; 32] {
-    let mut result = [0u8; 32];
-    let mut rng_state = get_entropy();
-    
-    for chunk in result.chunks_mut(8) {
-        let val = xorshift64(&mut rng_state);
-        let bytes = val.to_le_bytes();
-        chunk.copy_from_slice(&bytes[..chunk.len()]);
-    }
-    
-    result
-}
-
-/// Fill buffer with random bytes
-pub fn fill_random_bytes(buffer: &mut [u8]) {
-    let mut rng_state = get_entropy();
-    
-    for chunk in buffer.chunks_mut(8) {
-        let val = xorshift64(&mut rng_state);
-        let bytes = val.to_le_bytes();
-        for (i, &byte) in bytes.iter().enumerate() {
-            if i < chunk.len() {
-                chunk[i] = byte;
-            }
+        if let Some(r) = &GLOBAL_RNG {
+            return r.lock().next_u64();
         }
     }
+    get_entropy64()
 }
 
-/// Generate a random u64
-pub fn random_u64() -> u64 {
-    let mut rng_state = get_entropy();
-    xorshift64(&mut rng_state)
-}
-
-/// Generate a random u32
+/// Random u32
 pub fn random_u32() -> u32 {
-    random_u64() as u32
+    (random_u64() & 0xFFFF_FFFF) as u32
 }
