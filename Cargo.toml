@@ -9,7 +9,7 @@ description = "NØNOS ZeroState microkernel — RAM-resident, capability-enforce
 repository = "https://github.com/NON-OS/nonos-kernel"
 build = "build.rs"
 
-# We use the modern feature resolver to avoid unifying features across deps unexpectedly
+# Use the modern feature resolver to avoid accidental feature unification across the workspace
 resolver = "2"
 
 [[bin]]
@@ -22,16 +22,18 @@ path = "src/lib.rs"
 crate-type = ["staticlib", "rlib"]
 
 ######################################################################
-# FEATURES — structured, composable, production-first
+# FEATURES 
+# Notes:
+# - default is a hardened, RAM-resident microkernel profile.
+# - additional features are opt-in and grouped by domain.
 ######################################################################
 [features]
-# PRODUCTION defaults – security-first, with internal crypto + Kyber768
-# Extended with core FS (RAM/VFS/CryptoFS) and minimal networking toggles.
+# Release defaults (security-first, internal crypto, PQC enabled, RAM/VFS/CryptoFS on)
 default = [
   # Kernel hardening
-  "nonos-syscall-int80",
-  "nonos-log-serial",
-  "nonos-hash-sha3",
+  "nonos-syscall-int80",  # syscall path (choose 1)
+  "nonos-log-serial",     # serial logging by default
+  "nonos-hash-sha3",      # internal SHA3
   "nonos-heap-guard",
   "nonos-wx-audit",
   "nonos-page-zero",
@@ -40,31 +42,36 @@ default = [
   "nonos-smap-smep",
   "nonos-consttime",
   "nonos-cet",
-  # Crypto stack (internal)
+
+  # Internal crypto stack
   "crypto-core",
   "crypto-aead",
   "crypto-ed25519-int",
-  # PQC (vendor via PQClean, default to ML-KEM-768)
+
+  # PQC (ML-KEM-768 by default)
   "mlkem768",
-  # Filesystem (ZeroState RAM-only + VFS + CryptoFS)
+
+  # Filesystem: RAM-only + VFS router + CryptoFS
   "fs-ram",
   "fs-vfs",
   "fs-cryptofs",
-  # Networking (core interfaces only; sockets optional)
+
+  # Networking (core interfaces)
   "net-core",
-  # Architecture tag (x86_64 bare-metal)
+
+  # Architecture tag
   "arch-x86_64",
 ]
 
-# syscall gateways (choose one; INT 0x80 by default)
+# Syscall gateways (select exactly one at a time)
 nonos-syscall-int80 = []
 nonos-syscall-msr   = []
 
-# logging backends
+# Logging backends
 nonos-log-serial = []
 nonos-log-vga    = []
 
-# memory & hardening toggles
+# Memory & hardening toggles
 nonos-heap-guard = []
 nonos-wx-audit   = []
 nonos-page-zero  = []
@@ -73,92 +80,90 @@ nonos-pcid       = []
 nonos-nx-stack   = []
 nonos-smap-smep  = []
 
-# arch/runtime
+# Arch/runtime toggles
 nonos-apic = []
 nonos-smp  = []
-arch-x86_64 = []  # explicit architecture feature flag
+arch-x86_64 = []
 
-# capsule loader + crypto (external options remain optional)
-nonos-capsule-elf      = ["xmas-elf"]
-nonos-hash-sha3        = ["sha3"]
-nonos-consttime        = ["subtle"]
+# Capsule loader + crypto bindings (optional externals)
+nonos-capsule-elf = ["xmas-elf"]
+nonos-hash-sha3   = ["sha3"]
+nonos-consttime   = ["subtle"]
 
-# Backward-compat feature alias: use internal Ed25519 by default
-# If need to switch to dalek for any reason, enable `crypto-ed25519-dalek`.
+# Crypto flavor (internal Ed25519 by default; dalek alternative opt-in)
 nonos-crypto-ed25519 = ["crypto-ed25519-int"]
 
-# advanced hooks
+# Advanced hooks (kept OFF by default)
 nonos-zk     = []
 nonos-onion  = []
 nonos-cet    = []
 nonos-fallback-entry = []
 
-# networking and additional features
+# Runtime toggles referenced in code (satisfy unexpected_cfgs = "deny")
+cli   = []
+sched = []
+
+# Networking & timers
 net-log = []
 relay_sendme_cell = []
 relay_resolve_cell = []
 arch_time_timer = []
 
-# CRYPTO GROUPS (internal)
-# Core primitives: RNG, BLAKE3, SHA-256/HMAC/HKDF, constant-time utils (internal modules)
-crypto-core = []
-# AEADs: ChaCha20-Poly1305 and AES-256-GCM (internal)
-crypto-aead = []
-# Ed25519 (internal, fast scalar-mul path)
-crypto-ed25519-int = []
-# Ed25519 via dalek (optional alternative)
-crypto-ed25519-dalek = ["ed25519-dalek"]
+# Internal crypto groups
+crypto-core         = []
+crypto-aead         = []
+crypto-ed25519-int  = []
+crypto-ed25519-dalek = ["ed25519-dalek"]  # optional
 
-# PQC parameter sets (one must be active; default selects mlkem768)
+# PQC parameter sets (choose exactly one; default = mlkem768)
 mlkem512  = []
 mlkem768  = []
 mlkem1024 = []
 
-# Filesystem features (ZeroState default: RAM-only + VFS + CryptoFS)
-# on_disk_fs provides optional on-disk support (AHCI/NVMe/VirtIO) — OFF by default.
-fs-ram       = []   # in-memory anonymous FS
-fs-vfs       = []   # VFS router/mounts
-fs-cryptofs  = []   # RAM-only CryptoFS backend (/secure)
-on_disk_fs   = []   # enable on-disk paths (AHCI/NVMe/VirtIO); requires drivers-* features
+# Filesystem features
+fs-ram      = []  # in-memory anonymous FS
+fs-vfs      = []  # VFS router/mounts
+fs-cryptofs = []  # RAM-only CryptoFS backend (/secure)
+on_disk_fs  = []  # enable on-disk paths (requires drivers-*; OFF by default)
 
-# Driver toggles (OFF by default; opt-in when enabling on_disk_fs or specific HW)
+# Drivers (opt-in for on-disk FS / hardware)
 drivers-ahci       = []
 drivers-nvme       = []
 drivers-virtio-blk = []
 drivers-virtio-net = []
 
-# Networking stack toggles (minimal core enabled by default)
-net-core    = []   # core network interfaces/types
-net-sockets = []   # userspace socket API
-net-ipv4    = []   # IPv4 stack
-net-ipv6    = []   # IPv6 stack
+# Networking stack options
+net-core    = []
+net-sockets = []
+net-ipv4    = []
+net-ipv6    = []
 
-# Memory subsystem toggles (augment existing hardening flags)
-mem-slab     = []  # optional slab allocator paths
-mem-pagecache= []  # FS page cache (RAM-only backing)
+# Memory subsystem extras
+mem-slab       = []  # optional slab allocator
+mem-pagecache  = []  # FS page cache (RAM-backed)
 
 # Host-only: enable std for tools/tests when not building the kernel image
 std = []
 
 ######################################################################
-# DEPENDENCIES — all no_std compatible by default
+# DEPENDENCIES — no_std-compatible by default
 ######################################################################
 [dependencies]
-# architecture / memory mgmt
+# Architecture / memory mgmt
 x86_64 = { version = "0.14", default-features = false, features = ["abi_x86_interrupt", "instructions"] }
 
-# synchronization primitives
+# Synchronization primitives
 spin = { version = "0.9", default-features = false, features = ["mutex", "spin_mutex", "lazy", "rwlock"] }
 lazy_static = { version = "1.4", features = ["spin_no_std"] }
 
-# memory alloc + containers
+# Memory alloc + containers
 linked_list_allocator = { version = "0.10", default-features = false, features = ["use_spin"] }
 hashbrown = { version = "0.14", default-features = false }
-arrayvec = { version = "0.7", default-features = false }
-smallvec = { version = "1.15", default-features = false }
-bitvec = { version = "1.0", default-features = false, features = ["alloc"] }
+arrayvec  = { version = "0.7",  default-features = false }
+smallvec  = { version = "1.15", default-features = false }
+bitvec    = { version = "1.0",  default-features = false, features = ["alloc"] }
 
-# crypto (external optional toggles kept for compatibility)
+# Crypto (optional externals retained for compatibility)
 ed25519-dalek = { version = "1", default-features = false, features = ["u64_backend"], optional = true }
 sha3           = { version = "0.10", default-features = false, optional = true }
 subtle         = { version = "2.5",  default-features = false, optional = true }
@@ -166,22 +171,23 @@ subtle         = { version = "2.5",  default-features = false, optional = true }
 # ELF capsule loader (optional)
 xmas-elf = { version = "0.9", default-features = false, optional = true }
 
-# misc utils
+# Misc utils
 bitflags = { version = "2.4", default-features = false }
 cfg-if   = { version = "1.0", default-features = false }
 volatile = { version = "0.4", default-features = false }
 heapless = { version = "0.8", default-features = false }
-blake3 = { version = "1.0", default-features = false }
+blake3   = { version = "1.0", default-features = false }
 bootloader_api = { version = "0.11", default-features = false }
 
-# Optional: host-side tools/tests when `--features std`
+# Host-only tooling/tests when `--features std`
 [target.'cfg(feature = "std")'.dependencies]
 rand = { version = "0.8", default-features = true }
 
 ######################################################################
-# TARGET-SPECIFIC OVERRIDES (we are bare-metal x86_64)
+# TARGET-SPECIFIC OVERRIDES (bare-metal x86_64)
 ######################################################################
 [target.'cfg(target_arch = "x86_64")'.dependencies]
+# (reserved for arch-specific deps if/when needed)
 
 ######################################################################
 # BUILD PROFILES — tuned for small, auditable kernels
@@ -195,7 +201,7 @@ codegen-units = 1
 overflow-checks = true
 incremental = true
 
-# Keep crypto libs fast even in dev if they are used externally
+# Keep external crypto libs fast even in dev.
 [profile.dev.package."ed25519-dalek"]
 opt-level = 3
 [profile.dev.package."sha3"]
@@ -204,7 +210,7 @@ opt-level = 3
 [profile.release]
 panic = "abort"
 opt-level = 3
-lto = "fat"            # aggressive link-time optimization for kernel
+lto = "fat"            # aggressive LTO for kernel
 strip = "symbols"
 debug = false
 codegen-units = 1
@@ -218,21 +224,24 @@ opt-level = 3
 opt-level = 3
 
 ######################################################################
-# BUILD DEPENDENCIES — build.rs integrates PQClean and embeds manifest/signature
+# BUILD DEPENDENCIES — build.rs integrates PQClean + manifest signing
 ######################################################################
 [build-dependencies]
 blake3 = { version = "1.5", default-features = false }
-cc = "1.1"
-glob = "0.3"
+cc    = "1.1"
+glob  = "0.3"
+# Required by build.rs for Ed25519 signing and SHA-512 digest
+ed25519-dalek = { version = "1", default-features = false, features = ["u64_backend"] }
+sha2          = { version = "0.10", default-features = false }
 
-# Ensure build scripts remain deterministic/minimal
+# Build scripts deterministic/minimal
 [profile.dev.build-override]
 opt-level = 0
 [profile.release.build-override]
 opt-level = "z"
 
 ######################################################################
-# LINTS (Rust >= 1.75) — sane defaults, not overly strict 
+# LINTS (Rust >= 1.75) 
 ######################################################################
 [lints.rust]
 unused_imports = "warn"
@@ -240,6 +249,7 @@ unused_variables = "warn"
 missing_docs = "allow"
 unreachable_pub = "warn"
 unsafe_op_in_unsafe_fn = "warn"
+# Deny unknown cfgs so features must be declared above
 unexpected_cfgs = "deny"
 
 ######################################################################
