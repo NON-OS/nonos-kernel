@@ -2,29 +2,17 @@
 
 /*!
 TorOnion Stream Management
-
- - Multiplex many streams over a circuit
- - Stream & circuit flow control with SENDME (Tor semantics)
- - Fair scheduler (round-robin + deficit/quantum)
- - Congestion-control pluggable (Fixed, AIMD, Vegas stubs)
- - Protocol handler registry (HTTP/DNS/Custom hooks)
- - Robust handling of CONNECTED / DATA / RESOLVED / END / SENDME (stream & circuit)
-
- Notes:
- - We keep RELAY payload size at 498 bytes (Tor spec).
- - For sending SENDME, this module uses a helper that falls back to a DATA(0) cell if a dedicated SENDME constructor is not present in `Cell`.
 */
 
 extern crate alloc;
 
-use alloc::{collections::BTreeMap, string::String, vec, vec::Vec, boxed::Box};
+use alloc::{boxed::Box, collections::BTreeMap, string::String, vec, vec::Vec};
 use core::cmp::min;
 use core::sync::atomic::{AtomicU16, AtomicU32, AtomicU64, Ordering};
 use spin::Mutex;
 
 use super::{CircuitId, OnionError};
 use super::cell::{Cell, RelayCell, RelayCommand};
-use crate::network::get_network_stack;
 
 pub type StreamId = u16;
 
@@ -56,13 +44,13 @@ const DEFAULT_STREAM_QUANTUM_CELLS: i32 = 10;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum StreamState {
-    NewResolve,       // Just created, waiting for RESOLVE
-    NewConnect,       // Just created, waiting for BEGIN
-    SentConnect,      // BEGIN sent, waiting for CONNECTED
-    SentResolve,      // RESOLVE sent, waiting for RESOLVED
-    Open,             // Stream is open and ready for data
-    ExitWait,         // Waiting for exit node to close
-    Closed,           // Stream is fully closed
+    NewResolve,
+    NewConnect,
+    SentConnect,
+    SentResolve,
+    Open,
+    ExitWait,
+    Closed,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -107,12 +95,7 @@ impl StreamEndReason {
 /// Supported application protocols over streams
 #[derive(Debug, Clone)]
 pub enum StreamProtocol {
-    TCP,              // Raw TCP
-    HTTP,             // HTTP/HTTPS
-    DNS,              // DNS over Tor
-    Directory,        // Tor directory
-    ControlPort,      // Tor control protocol
-    Custom(String),
+    TCP, HTTP, DNS, Directory, ControlPort, Custom(String),
 }
 
 /// Per-stream object
@@ -127,14 +110,14 @@ pub struct OnionStream {
     pub last_activity: u64,
 
     // flow control (stream-level)
-    pub send_window: i32,     // cells we can put on circuit for this stream
-    pub recv_window: i32,     // cells we may receive before we must SENDME
-    pub package_window: i32,  // used to throttle packing DATA
-    pub deliver_window: i32,  // used to throttle delivering up to app
+    pub send_window: i32,
+    pub recv_window: i32,
+    pub package_window: i32,
+    pub deliver_window: i32,
 
     // buffers
-    pub send_buffer: Vec<u8>, // app->stream pending bytes
-    pub recv_buffer: Vec<u8>, // stream->app accumulated bytes
+    pub send_buffer: Vec<u8>,
+    pub recv_buffer: Vec<u8>,
 
     // statistics
     pub bytes_sent: AtomicU64,
@@ -182,22 +165,16 @@ impl OnionStream {
         s
     }
 
-    #[inline]
-    pub fn is_open(&self) -> bool { self.state == StreamState::Open }
-    #[inline]
-    pub fn is_closed(&self) -> bool { self.state == StreamState::Closed }
-
-    #[inline]
-    fn update_activity(&mut self) { self.last_activity = current_time_ms(); }
+    #[inline] pub fn is_open(&self) -> bool { self.state == StreamState::Open }
+    #[inline] pub fn is_closed(&self) -> bool { self.state == StreamState::Closed }
+    #[inline] fn update_activity(&mut self) { self.last_activity = current_time_ms(); }
 
     /// Application writes bytes to the stream (may buffer if windows are shut).
     pub fn send_data(&mut self, data: &[u8]) -> Result<(), OnionError> {
         if self.state != StreamState::Open {
             return Err(OnionError::StreamClosed);
         }
-        // Can we send cells now?
         if self.send_window <= 0 || self.package_window <= 0 {
-            // buffer
             if self.send_buffer.len() + data.len() > MAX_SEND_BUFFER_SIZE {
                 return Err(OnionError::NetworkError);
             }
@@ -205,7 +182,6 @@ impl OnionStream {
             self.update_activity();
             return Ok(());
         }
-        // try flush immediately
         self.flush_data(data)?;
         self.update_activity();
         Ok(())
@@ -218,10 +194,8 @@ impl OnionStream {
         }
         let out = core::mem::take(&mut self.recv_buffer);
 
-        // Deliver count influences SENDME emission
         self.deliver_window -= num_cells_for_len(out.len());
         if self.deliver_window <= STREAM_SENDME_WINDOW - STREAM_SENDME_INCREMENT {
-            // Ask peer to send more (stream-level SENDME)
             self.enqueue_sendme()?;
             self.deliver_window += STREAM_SENDME_INCREMENT;
         }
@@ -235,7 +209,6 @@ impl OnionStream {
             return Err(OnionError::StreamClosed);
         }
         if self.recv_window <= 0 {
-            // flow control violation; drop or treat as error
             return Err(OnionError::NetworkError);
         }
         if self.recv_buffer.len() + data.len() > MAX_RECV_BUFFER_SIZE {
@@ -247,7 +220,6 @@ impl OnionStream {
         self.cells_received.fetch_add(1, Ordering::Relaxed);
         self.recv_window -= 1;
 
-        // If window low, emit SENDME preemptively (optional early)
         if self.recv_window <= STREAM_SENDME_WINDOW - STREAM_SENDME_INCREMENT {
             self.enqueue_sendme()?;
             self.recv_window += STREAM_SENDME_INCREMENT;
@@ -299,7 +271,6 @@ impl OnionStream {
     pub fn handle_sendme(&mut self) {
         self.send_window += STREAM_SENDME_INCREMENT;
         self.package_window += STREAM_SENDME_INCREMENT;
-        // scheduler credit
         self.deficit += DEFAULT_STREAM_QUANTUM_CELLS;
     }
 
@@ -307,7 +278,6 @@ impl OnionStream {
     fn flush_data(&mut self, data: &[u8]) -> Result<(), OnionError> {
         if data.is_empty() { return Ok(()); }
 
-        // Enforce windows & scheduler deficit
         let mut remaining = data;
         while !remaining.is_empty() && self.send_window > 0 && self.package_window > 0 && self.deficit > 0 {
             let take = min(remaining.len(), RELAY_PAYLOAD_SIZE);
@@ -325,7 +295,6 @@ impl OnionStream {
             remaining = &remaining[take..];
         }
 
-        // If not fully sent, buffer the rest
         if !remaining.is_empty() {
             if self.send_buffer.len() + remaining.len() > MAX_SEND_BUFFER_SIZE {
                 return Err(OnionError::NetworkError);
@@ -363,19 +332,9 @@ impl OnionStream {
 
     /// Issue a SENDME for this stream.
     fn enqueue_sendme(&mut self) -> Result<(), OnionError> {
-        // Prefer a proper SENDME cell if our `Cell` exposes it; fallback to DATA(0)
-        #[cfg(feature = "relay_sendme_cell")]
-        {
-            let cell = Cell::relay_sendme_cell(self.circuit_id, self.stream_id);
-            send_cell(cell)
-        }
-        #[cfg(not(feature = "relay_sendme_cell"))]
-        {
-            // Tor SENDME is a dedicated command; using empty DATA as a compatibility fallback.
-            // Switch to the dedicated constructor if available.
-            let cell = Cell::relay_data_cell(self.circuit_id, self.stream_id, Vec::new());
-            send_cell(cell)
-        }
+        // Fallback to empty DATA as SENDME shim if a dedicated SENDME cell is not available.
+        let cell = Cell::relay_data_cell(self.circuit_id, self.stream_id, Vec::new());
+        send_cell(cell)
     }
 }
 
@@ -446,19 +405,10 @@ impl StreamManager {
         let sid = self.next_stream_id();
         let mut s = OnionStream::new_resolve(sid, circuit_id, hostname.clone());
 
-        // Tor RESOLVE uses RELAY_RESOLVE command; if unavailable, send a RESOLVE payload via DATA as fallback.
-        let payload = {
-            let mut p = hostname.into_bytes();
-            p.push(0); // NUL-terminated per older clients; adjust if we have a dedicated RESOLVE cell
-            p
-        };
+        let mut payload = hostname.into_bytes();
+        payload.push(0); // NUL-terminated (compat)
 
-        // If we have Cell::relay_resolve_cell, prefer it; otherwise use DATA as transport shim.
-        #[cfg(feature = "relay_resolve_cell")]
-        let cell = Cell::relay_resolve_cell(circuit_id, sid, payload);
-        #[cfg(not(feature = "relay_resolve_cell"))]
         let cell = Cell::relay_data_cell(circuit_id, sid, payload);
-
         send_cell(cell)?;
         s.state = StreamState::SentResolve;
 
@@ -508,7 +458,6 @@ impl StreamManager {
                 let sid = relay.header.stream_id;
                 let mut map = self.streams.lock();
                 if let Some(s) = map.get_mut(&sid) {
-                    // CONNECTED payload: [ip(4)][ttl(4)] or empty
                     if relay.payload.len() >= 8 {
                         let addr = [relay.payload[0], relay.payload[1], relay.payload[2], relay.payload[3]];
                         let ttl = u32::from_be_bytes([relay.payload[4], relay.payload[5], relay.payload[6], relay.payload[7]]);
@@ -522,12 +471,11 @@ impl StreamManager {
                 let sid = relay.header.stream_id;
                 let mut map = self.streams.lock();
                 if let Some(s) = map.get_mut(&sid) {
-                    // Very simplified: payload may carry multiple A records concatenated (4 bytes each) + optional TTL
                     let mut addrs = Vec::new();
                     for chunk in relay.payload.chunks_exact(4) {
                         addrs.push([chunk[0], chunk[1], chunk[2], chunk[3]]);
                     }
-                    s.handle_resolved(addrs, 60)?; // default TTL if not present
+                    s.handle_resolved(addrs, 60)?; // default TTL
                 }
             }
             RelayCommand::RelayEnd => {
@@ -536,7 +484,6 @@ impl StreamManager {
                 if let Some(s) = map.get_mut(&sid) {
                     let reason = relay.payload.get(0).copied().unwrap_or(0);
                     s.handle_end(StreamEndReason::from_u8(reason))?;
-                    // cleanup if fully closed
                     if s.is_closed() {
                         map.remove(&sid);
                         self.remove_from_circuit(circuit_id, sid);
@@ -557,7 +504,6 @@ impl StreamManager {
                     }
                 }
             }
-            // Other relay commands ignored here or handled elsewhere (BEGIN, EXTEND, etc.)
             _ => {}
         }
         Ok(())
@@ -671,17 +617,9 @@ impl StreamManager {
         }
     }
 
-    pub fn handle_begin(&mut self, _cell: super::cell::RelayCell) -> Result<(), OnionError> {
-        Ok(())
-    }
-
-    pub fn handle_connected(&mut self, _cell: super::cell::RelayCell) -> Result<(), OnionError> {
-        Ok(())
-    }
-
-    pub fn handle_end(&mut self, _cell: super::cell::RelayCell) -> Result<(), OnionError> {
-        Ok(())
-    }
+    pub fn handle_begin(&mut self, _cell: super::cell::RelayCell) -> Result<(), OnionError> { Ok(()) }
+    pub fn handle_connected(&mut self, _cell: super::cell::RelayCell) -> Result<(), OnionError> { Ok(()) }
+    pub fn handle_end(&mut self, _cell: super::cell::RelayCell) -> Result<(), OnionError> { Ok(()) }
 
     /* -------- internals -------- */
 
@@ -734,28 +672,6 @@ impl FlowControlManager {
         }
     }
 
-    fn cw_mut(&self, cid: CircuitId) -> &mut CircuitWindow {
-        // SAFETY: we always insert before returning reference in same scope
-        let mut map = self.circuit_windows.lock();
-        if !map.contains_key(&cid) {
-            map.insert(
-                cid,
-                CircuitWindow {
-                    send_window: CIRCUIT_SENDME_WINDOW,
-                    recv_window: CIRCUIT_SENDME_WINDOW,
-                    package_window: CIRCUIT_SENDME_WINDOW,
-                    deliver_window: CIRCUIT_SENDME_WINDOW,
-                },
-            );
-        }
-        // We can't return a &mut from a temporary; so we operate via closures externally.
-        drop(map);
-        // Caller must re-lock (helper methods below do that)
-        // This pattern avoids returning refs across lock boundaries.
-        // See helper methods below.
-        unreachable!()
-    }
-
     fn ensure(&self, cid: CircuitId) {
         let mut map = self.circuit_windows.lock();
         map.entry(cid).or_insert(CircuitWindow {
@@ -805,9 +721,7 @@ struct CongestionControl {
 
 #[derive(Debug, Clone, Copy)]
 enum CongestionAlgorithm {
-    FixedWindow,  // default Tor alike
-    AIMD,         // additive increase, multiplicative decrease
-    Vegas,        // RTT-based probing
+    FixedWindow, AIMD, Vegas,
 }
 
 #[derive(Debug, Clone)]
@@ -836,24 +750,12 @@ impl CongestionControl {
         });
     }
 
-    fn on_ack(&self, cid: CircuitId) {
-        match self.algorithm {
-            CongestionAlgorithm::FixedWindow => {}
-            CongestionAlgorithm::AIMD => {
-                // simplistic AIMD: on ack, could increase circuit package window gradually
-                // (actual window tuning happens in FlowControlManager if we decide to link them)
-                let mut m = self.measurements.lock();
-                if let Some(mm) = m.get_mut(&cid) {
-                    mm.bandwidth_cells_per_s = mm.bandwidth_cells_per_s.saturating_add(1);
-                }
-            }
-            CongestionAlgorithm::Vegas => {}
-        }
+    fn on_ack(&self, _cid: CircuitId) {
+        // AIMD/Vegas hooks could adjust windows over time; fixed-window by default.
     }
 
     fn on_tick(&self, cid: CircuitId) {
         self.ensure(cid);
-        // In a full implementation, we derive target window from recent RTT/bw samples.
     }
 }
 
@@ -868,7 +770,6 @@ struct ProtocolHandlerRegistry {
 impl ProtocolHandlerRegistry {
     fn new() -> Self {
         let r = Self { handlers: Mutex::new(BTreeMap::new()) };
-        // Can register defaults here (e.g., "http", "dns") if desired.
         r
     }
 
@@ -882,7 +783,7 @@ impl ProtocolHandlerRegistry {
         self.handlers.lock().get(key).map(|h| h.box_clone())
     }
 }
-
+ cell.rs for clarity and command updates
 trait ProtocolHandler: Send + Sync {
     fn handle_data(&self, stream: &mut OnionStream, data: &[u8]) -> Result<Vec<u8>, OnionError>;
     fn handle_connect(&self, stream: &mut OnionStream) -> Result<(), OnionError>;
@@ -914,24 +815,6 @@ trait ProtocolHandlerCore {
     fn on_close(&self, stream: &mut OnionStream) -> Result<(), OnionError>;
 }
 
-/* Example handler skeletons (no heavy logic by default) */
-
-#[derive(Clone)]
-struct HttpHandler;
-impl ProtocolHandlerCore for HttpHandler {
-    fn on_data(&self, _s: &mut OnionStream, data: &[u8]) -> Result<Vec<u8>, OnionError> { Ok(data.to_vec()) }
-    fn on_connect(&self, _s: &mut OnionStream) -> Result<(), OnionError> { Ok(()) }
-    fn on_close(&self, _s: &mut OnionStream) -> Result<(), OnionError> { Ok(()) }
-}
-
-#[derive(Clone)]
-struct DnsHandler;
-impl ProtocolHandlerCore for DnsHandler {
-    fn on_data(&self, _s: &mut OnionStream, data: &[u8]) -> Result<Vec<u8>, OnionError> { Ok(data.to_vec()) }
-    fn on_connect(&self, _s: &mut OnionStream) -> Result<(), OnionError> { Ok(()) }
-    fn on_close(&self, _s: &mut OnionStream) -> Result<(), OnionError> { Ok(()) }
-}
-
 /* ============================================================
    Stats
    ============================================================ */
@@ -951,15 +834,7 @@ pub struct StreamStatistics {
    ============================================================ */
 
 fn current_time_ms() -> u64 {
-    // Prefer kernel-wide timer if available
-    #[cfg(feature = "arch_time_timer")]
-    {
-        crate::arch::x86_64::time::timer::get_timestamp_ms().unwrap_or(0)
-    }
-    #[cfg(not(feature = "arch_time_timer"))]
-    {
-        crate::time::timestamp_millis()
-    }
+    crate::time::timestamp_millis()
 }
 
 #[inline]
@@ -968,13 +843,8 @@ fn num_cells_for_len(len: usize) -> i32 {
 }
 
 fn send_cell(cell: Cell) -> Result<(), OnionError> {
-    if let Some(net) = get_network_stack() {
-        let packet = cell.serialize();
-        // Actual path should push this into the circuit's first hop;
-        // Here we rely on network stack providing an appropriate send method.
-        // net.send_packet(packet)?;
-        // If expose a generic TCP writer for Tor links, we will call it here.
-        let _ = packet;
-    }
-    Ok(())
+    // Route via the live CircuitManager so layered encryption is applied.
+    let guard = super::get_onion_router().lock();
+    let router = guard.as_ref().ok_or(OnionError::NetworkError)?;
+    router.circuit_manager.transmit_cell(cell.circuit_id, cell)
 }
