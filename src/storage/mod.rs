@@ -1,6 +1,4 @@
-//! Ultra-Advanced Storage Subsystem
-//!
-//! Production storage with NVMe, AHCI, encryption, and high-performance I/O
+//! Storage Subsystem
 
 pub mod nonos_nvme;
 pub mod nonos_ahci;
@@ -36,17 +34,17 @@ pub enum StorageType {
 bitflags::bitflags! {
     #[derive(Clone, Copy, Debug)]
     pub struct DeviceCapabilities: u32 {
-        const READ            = 1 << 0;
-        const WRITE           = 1 << 1;
-        const TRIM            = 1 << 2;  // SSD trim support
-        const FLUSH           = 1 << 3;  // Cache flush support
-        const SECURE_ERASE    = 1 << 4;  // Secure erase support
-        const ENCRYPTION      = 1 << 5;  // Hardware encryption
-        const COMPRESSION     = 1 << 6;  // Hardware compression
-        const DEDUPLICATION   = 1 << 7;  // Hardware deduplication
-        const NCQ             = 1 << 8;  // Native Command Queuing
+        const READ             = 1 << 0;
+        const WRITE            = 1 << 1;
+        const TRIM             = 1 << 2;  // SSD trim support
+        const FLUSH            = 1 << 3;  // Cache flush support
+        const SECURE_ERASE     = 1 << 4;  // Secure erase support
+        const ENCRYPTION       = 1 << 5;  // Hardware encryption
+        const COMPRESSION      = 1 << 6;  // Hardware compression
+        const DEDUPLICATION    = 1 << 7;  // Hardware deduplication
+        const NCQ              = 1 << 8;  // Native Command Queuing
         const POWER_MANAGEMENT = 1 << 9;  // Power management
-        const SMART           = 1 << 10; // S.M.A.R.T. monitoring
+        const SMART            = 1 << 10; // S.M.A.R.T. monitoring
     }
 }
 
@@ -60,7 +58,7 @@ pub enum IoOperation {
     SecureErase,
 }
 
-/// I/O request with advanced features
+/// I/O request + features
 pub struct IoRequest {
     pub operation: IoOperation,
     pub lba: u64,           // Logical Block Address
@@ -79,7 +77,7 @@ bitflags::bitflags! {
     #[derive(Clone, Copy, Debug)]
     pub struct IoFlags: u32 {
         const SYNC           = 1 << 0;  // Synchronous operation
-        const ASYNC          = 1 << 1;  // Asynchronous operation  
+        const ASYNC          = 1 << 1;  // Asynchronous operation
         const HIGH_PRIORITY  = 1 << 2;  // High priority request
         const BYPASS_CACHE   = 1 << 3;  // Bypass cache
         const WRITE_THROUGH  = 1 << 4;  // Write-through cache
@@ -134,49 +132,20 @@ pub struct DeviceStatistics {
 
 /// Storage device trait
 pub trait StorageDevice: Send + Sync {
-    /// Get device information
     fn device_info(&self) -> DeviceInfo;
-    
-    /// Get device capabilities
     fn capabilities(&self) -> DeviceCapabilities;
-    
-    /// Submit I/O request
     fn submit_request(&self, request: IoRequest) -> Result<(), IoStatus>;
-    
-    /// Check if device is ready
     fn is_ready(&self) -> bool;
-    
-    /// Get device statistics
     fn statistics(&self) -> &DeviceStatistics;
-
-    /// Read blocks from the device
     fn read_blocks(&self, start_block: u64, block_count: u32, buffer: &mut [u8]) -> Result<(), IoStatus>;
-
-    /// Get total number of sectors
     fn total_sectors(&self) -> u64;
-    
-    /// Perform device maintenance
     fn maintenance(&self) -> Result<(), &'static str>;
-    
-    /// Get S.M.A.R.T. data
     fn smart_data(&self) -> Option<SmartData>;
-    
-    /// Secure erase device
     fn secure_erase(&self) -> Result<(), &'static str>;
-    
-    /// Set power state
     fn set_power_state(&self, state: PowerState) -> Result<(), &'static str>;
-    
-    /// Check if device supports secure erase
     fn supports_secure_erase(&self) -> bool;
-    
-    /// Verify sanitize completion
     fn verify_sanitize_completion(&self) -> Result<(), &'static str>;
-    
-    /// Wait for command completion
     fn wait_for_completion(&self, command_id: u16, timeout_ms: u64) -> Result<(), &'static str>;
-    
-    /// Parse controller identify data
     fn parse_controller_identify(&self, data: &[u8]) -> Result<(), &'static str>;
 }
 
@@ -239,28 +208,28 @@ impl StorageManager {
             device_id_counter: AtomicU32::new(0),
         }
     }
-    
+
     /// Register a new storage device
     pub fn register_device(&self, device: Arc<dyn StorageDevice>) -> u32 {
         let device_id = self.device_id_counter.fetch_add(1, Ordering::Relaxed);
         let mut devices = self.devices.write();
         devices.push(device);
-        
+
         crate::log::logger::log_info!("{}", &format!(
-            "Registered storage device ID {} ({:?})", 
-            device_id, 
+            "Registered storage device ID {} ({:?})",
+            device_id,
             devices.last().unwrap().device_info().device_type
         ));
-        
+
         device_id
     }
-    
+
     /// Get device by ID
     pub fn get_device(&self, device_id: u32) -> Option<Arc<dyn StorageDevice>> {
         let devices = self.devices.read();
         devices.get(device_id as usize).cloned()
     }
-    
+
     /// Submit I/O request to scheduler
     pub fn submit_io(&self, device_id: u32, request: IoRequest) -> Result<(), IoStatus> {
         if let Some(device) = self.get_device(device_id) {
@@ -270,12 +239,12 @@ impl StorageManager {
             Err(IoStatus::InvalidRequest)
         }
     }
-    
+
     /// Get storage statistics
     pub fn get_storage_stats(&self) -> StorageStats {
         let devices = self.devices.read();
         let mut stats = StorageStats::default();
-        
+
         for device in devices.iter() {
             let device_stats = device.statistics();
             stats.total_reads += device_stats.reads_completed.load(Ordering::Relaxed);
@@ -283,10 +252,10 @@ impl StorageManager {
             stats.total_bytes_read += device_stats.bytes_read.load(Ordering::Relaxed);
             stats.total_bytes_written += device_stats.bytes_written.load(Ordering::Relaxed);
         }
-        
+
         stats
     }
-    
+
     /// Perform maintenance on all devices
     pub fn maintenance_all_devices(&self) -> Result<(), &'static str> {
         let devices = self.devices.read();
@@ -308,7 +277,7 @@ pub struct StorageStats {
     pub pending_requests: u32,
 }
 
-/// I/O scheduler with advanced algorithms
+/// I/O scheduler with algorithms
 pub struct IoScheduler {
     high_priority_queue: Vec<(Arc<dyn StorageDevice>, IoRequest)>,
     normal_priority_queue: Vec<(Arc<dyn StorageDevice>, IoRequest)>,
@@ -327,17 +296,17 @@ impl IoScheduler {
             max_concurrent_requests: 64,
         }
     }
-    
-    /// Schedule I/O request using intelligent algorithms
+
+    /// Schedule I/O request using algorithms
     pub fn schedule_request(
-        &mut self, 
-        device: Arc<dyn StorageDevice>, 
-        request: IoRequest
+        &mut self,
+        device: Arc<dyn StorageDevice>,
+        request: IoRequest,
     ) -> Result<(), IoStatus> {
         if self.active_requests >= self.max_concurrent_requests {
             return Err(IoStatus::DeviceNotReady);
         }
-        
+
         // Prioritize requests based on flags and priority
         if request.flags.contains(IoFlags::HIGH_PRIORITY) || request.priority > 200 {
             self.high_priority_queue.push((device, request));
@@ -346,51 +315,51 @@ impl IoScheduler {
         } else {
             self.low_priority_queue.push((device, request));
         }
-        
+
         // Process queued requests
         self.process_queued_requests()
     }
-    
-    /// Process queued I/O requests with elevator algorithm
+
+    /// Process queued I/O requests
     fn process_queued_requests(&mut self) -> Result<(), IoStatus> {
-        // Process high priority first
+        // High priority first
         while let Some((device, request)) = self.high_priority_queue.pop() {
             if self.active_requests >= self.max_concurrent_requests {
-                // Put it back and break
                 self.high_priority_queue.push((device, request));
                 break;
             }
-            
             self.submit_to_device(device, request)?;
         }
-        
-        // Process normal priority
+        // Normal priority
         while let Some((device, request)) = self.normal_priority_queue.pop() {
             if self.active_requests >= self.max_concurrent_requests {
                 self.normal_priority_queue.push((device, request));
                 break;
             }
-            
             self.submit_to_device(device, request)?;
         }
-        
-        // Process low priority
+        // Low priority
         while let Some((device, request)) = self.low_priority_queue.pop() {
             if self.active_requests >= self.max_concurrent_requests {
                 self.low_priority_queue.push((device, request));
                 break;
             }
-            
             self.submit_to_device(device, request)?;
         }
-        
+
         Ok(())
     }
-    
-    fn submit_to_device(&mut self, device: Arc<dyn StorageDevice>, request: IoRequest) -> Result<(), IoStatus> {
-        self.active_requests += 1;
-        device.submit_request(request)?;
-        Ok(())
+
+    fn submit_to_device(
+        &mut self,
+        device: Arc<dyn StorageDevice>,
+        request: IoRequest,
+    ) -> Result<(), IoStatus> {
+        self.active_requests = self.active_requests.saturating_add(1);
+        let res = device.submit_request(request);
+        // In RAM-only path, device submission is synchronous; decrement now.
+        self.active_requests = self.active_requests.saturating_sub(1);
+        res
     }
 }
 
@@ -400,31 +369,28 @@ static STORAGE_MANAGER: StorageManager = StorageManager::new();
 /// Initialize storage subsystem
 pub fn init() -> Result<(), &'static str> {
     crate::log::logger::log_info!("Initializing advanced storage subsystem");
-    
-    // Initialize NVMe subsystem
+
+    // Initialize subsystems
     nonos_nvme::init()?;
-    
-    // Initialize AHCI subsystem  
     nonos_ahci::init()?;
-    
-    // Initialize crypto storage
     nonos_crypto_storage::init()?;
-    
+
     // Discover and register storage devices
     discover_storage_devices()?;
-    
+
     crate::log::logger::log_info!("Storage subsystem initialized successfully");
     Ok(())
 }
 
 /// Discover and register all storage devices
 fn discover_storage_devices() -> Result<(), &'static str> {
-    // Scan PCI bus for NVMe controllers
+    // Scan for devices (NVMe shim will ensure a RAM disk fallback)
     nonos_nvme::scan_and_register_nvme_devices(&STORAGE_MANAGER)?;
-    
-    // Scan PCI bus for AHCI controllers
     nonos_ahci::scan_and_register_ahci_devices(&STORAGE_MANAGER)?;
-    
+
+    // Ensure a default RAM disk exists even if scans didn’t add one.
+    crate::storage::nonos_block_device::RamDisk::ensure_default_registered(&STORAGE_MANAGER);
+
     Ok(())
 }
 
@@ -433,13 +399,9 @@ pub fn get_storage_manager() -> &'static StorageManager {
     &STORAGE_MANAGER
 }
 
-/// Get primary storage device
-pub fn get_primary_storage() -> Option<Box<dyn crate::storage::StorageDevice>> {
-    let manager = &STORAGE_MANAGER;
-    // Note: This would need to clone the device, but since StorageDevice 
-    // likely doesn't implement Clone, we'll return None for now
-    // TODO: Implement a different approach for device access
-    None
+/// Get primary storage device (device 0)
+pub fn get_primary_storage() -> Option<Arc<dyn crate::storage::StorageDevice>> {
+    STORAGE_MANAGER.get_device(0)
 }
 
 /// Submit I/O request to storage subsystem
@@ -462,20 +424,20 @@ pub fn read_swap_page(swap_offset: u64) -> Result<Vec<u8>, &'static str> {
         device_id: (swap_offset >> 32) as u32,  // High 32 bits are device ID
         slot: swap_offset & 0xFFFFFFFF,         // Low 32 bits are slot number
     };
-    
+
     let mut buffer = [0u8; 4096];
     read_page(swap_slot, &mut buffer)
         .map_err(|_| "Failed to read swap page")?;
-    
+
     Ok(buffer.to_vec())
 }
 
-/// Free a page in swap storage  
+/// Free a page in swap storage
 pub fn free_swap_page(swap_offset: u64) {
     let swap_slot = SwapSlot {
         device_id: (swap_offset >> 32) as u32,
         slot: swap_offset & 0xFFFFFFFF,
     };
-    
+
     free_swap_slot(swap_slot);
 }
