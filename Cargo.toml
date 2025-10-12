@@ -26,6 +26,7 @@ crate-type = ["staticlib", "rlib"]
 ######################################################################
 [features]
 # PRODUCTION defaults – security-first, with internal crypto + Kyber768
+# Extended with core FS (RAM/VFS/CryptoFS) and minimal networking toggles.
 default = [
   # Kernel hardening
   "nonos-syscall-int80",
@@ -45,6 +46,14 @@ default = [
   "crypto-ed25519-int",
   # PQC (vendor via PQClean, default to ML-KEM-768)
   "mlkem768",
+  # Filesystem (ZeroState RAM-only + VFS + CryptoFS)
+  "fs-ram",
+  "fs-vfs",
+  "fs-cryptofs",
+  # Networking (core interfaces only; sockets optional)
+  "net-core",
+  # Architecture tag (x86_64 bare-metal)
+  "arch-x86_64",
 ]
 
 # syscall gateways (choose one; INT 0x80 by default)
@@ -67,6 +76,7 @@ nonos-smap-smep  = []
 # arch/runtime
 nonos-apic = []
 nonos-smp  = []
+arch-x86_64 = []  # explicit architecture feature flag
 
 # capsule loader + crypto (external options remain optional)
 nonos-capsule-elf      = ["xmas-elf"]
@@ -103,6 +113,29 @@ crypto-ed25519-dalek = ["ed25519-dalek"]
 mlkem512  = []
 mlkem768  = []
 mlkem1024 = []
+
+# Filesystem features (ZeroState default: RAM-only + VFS + CryptoFS)
+# on_disk_fs provides optional on-disk support (AHCI/NVMe/VirtIO) — OFF by default.
+fs-ram       = []   # in-memory anonymous FS
+fs-vfs       = []   # VFS router/mounts
+fs-cryptofs  = []   # RAM-only CryptoFS backend (/secure)
+on_disk_fs   = []   # enable on-disk paths (AHCI/NVMe/VirtIO); requires drivers-* features
+
+# Driver toggles (OFF by default; opt-in when enabling on_disk_fs or specific HW)
+drivers-ahci       = []
+drivers-nvme       = []
+drivers-virtio-blk = []
+drivers-virtio-net = []
+
+# Networking stack toggles (minimal core enabled by default)
+net-core    = []   # core network interfaces/types
+net-sockets = []   # userspace socket API
+net-ipv4    = []   # IPv4 stack
+net-ipv6    = []   # IPv6 stack
+
+# Memory subsystem toggles (augment existing hardening flags)
+mem-slab     = []  # optional slab allocator paths
+mem-pagecache= []  # FS page cache (RAM-only backing)
 
 # Host-only: enable std for tools/tests when not building the kernel image
 std = []
@@ -199,7 +232,7 @@ opt-level = 0
 opt-level = "z"
 
 ######################################################################
-# LINTS (Rust >= 1.75) — sane defaults, not overly strict for kernel bring-up
+# LINTS (Rust >= 1.75) — sane defaults, not overly strict 
 ######################################################################
 [lints.rust]
 unused_imports = "warn"
