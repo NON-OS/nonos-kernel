@@ -10,7 +10,7 @@ pub mod nonos_realtime;
 pub mod nonos_capabilities;
 pub mod nonos_exec;
 pub mod nox_process_mng;
-pub mod context;
+pub mod nonos_context;
 
 // Re-exports with concise names
 pub use nonos_core as core;
@@ -21,7 +21,7 @@ pub use nonos_realtime as realtime;
 pub use nonos_capabilities as capabilities;
 pub use nonos_exec as exec;
 pub use nox_process_mng as nox;
-pub use context as ctx;
+pub use nonos_context as ctx;
 
 use alloc::{string::String, sync::Arc, vec::Vec};
 use spin::{Once, RwLock};
@@ -151,7 +151,7 @@ impl Process {
     }
 }
 
-// per-process metadata registry
+// Per-process metadata registry
 pub struct ProcessManager {
     processes: RwLock<alloc::collections::BTreeMap<u32, Process>>,
 }
