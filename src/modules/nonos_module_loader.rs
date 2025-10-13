@@ -1,8 +1,11 @@
-#![no_std]
+//! NØNOS Secure RAM-Only Module Loader & Registry
 
 use alloc::{vec::Vec, collections::BTreeMap, string::String};
 use spin::{RwLock, Mutex};
 use crate::syscall::capabilities::CapabilityToken;
+use crate::crypto::verify_ed25519;
+use crate::crypto::nonos_hash::blake3_hash;
+use crate::memory::secure_erase;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum NonosModuleType {
@@ -36,6 +39,7 @@ pub struct NonosLoadedModule {
     pub memory_size: usize,
     pub capabilities: Vec<CapabilityToken>,
     pub signature_verified: bool,
+    pub hash: [u8; 32],
     pub load_time: u64,
 }
 
@@ -57,6 +61,7 @@ impl NonosModuleLoader {
         }
     }
 
+    /// Load and verify a module. All contents are RAM-only, wiped on unload.
     pub fn load_module(
         &self,
         name: &str,
@@ -64,11 +69,10 @@ impl NonosModuleLoader {
         code: Vec<u8>,
         signature: &[u8; 64]
     ) -> Result<u64, &'static str> {
-        // Verify signature if security is enabled
-        if self.security_enabled {
-            if !self.verify_module_signature(&code, signature) {
-                return Err("Invalid module signature");
-            }
+        // Cryptographic verification (Ed25519 + hash)
+        let hash = blake3_hash(&code);
+        if self.security_enabled && !verify_ed25519(&hash, signature)? {
+            return Err("Invalid module signature");
         }
 
         let module_id = {
@@ -78,7 +82,6 @@ impl NonosModuleLoader {
             id
         };
 
-        // Find entry point (simplified - just use first 8 bytes as entry point)
         let entry_point = if code.len() >= 8 {
             Some(u64::from_le_bytes([
                 code[0], code[1], code[2], code[3],
@@ -99,65 +102,54 @@ impl NonosModuleLoader {
             memory_size: 0,
             capabilities: Vec::new(),
             signature_verified: self.security_enabled,
+            hash,
             load_time: self.get_timestamp(),
         };
 
         self.loaded_modules.write().insert(module_id, module);
         self.module_signatures.write().insert(module_id, *signature);
-        
+
         Ok(module_id)
     }
 
+    /// Securely erase and unload module. RAM-only, wiped after unload.
     pub fn unload_module(&self, module_id: u64) -> Result<(), &'static str> {
         let mut modules = self.loaded_modules.write();
         let module = modules.get_mut(&module_id).ok_or("Module not found")?;
-        
-        // Check if module can be unloaded
-        if matches!(module.state, NonosModuleState::Running) {
-            return Err("Cannot unload running module");
-        }
-        
-        // Mark as stopped
-        module.state = NonosModuleState::Stopped;
-        
-        // Remove from loaded modules
+
+        // Wipe code from RAM
+        secure_erase(&mut module.code);
+
+        // Remove from registry
         modules.remove(&module_id);
         self.module_signatures.write().remove(&module_id);
-        
+
         Ok(())
     }
 
     pub fn start_module(&self, module_id: u64) -> Result<(), &'static str> {
         let mut modules = self.loaded_modules.write();
         let module = modules.get_mut(&module_id).ok_or("Module not found")?;
-        
         if module.state != NonosModuleState::Loaded {
             return Err("Module not in loadable state");
         }
-        
-        // Simplified module execution - just change state
         module.state = NonosModuleState::Running;
-        
         Ok(())
     }
 
     pub fn stop_module(&self, module_id: u64) -> Result<(), &'static str> {
         let mut modules = self.loaded_modules.write();
         let module = modules.get_mut(&module_id).ok_or("Module not found")?;
-        
         if module.state != NonosModuleState::Running {
             return Err("Module not running");
         }
-        
         module.state = NonosModuleState::Stopped;
-        
         Ok(())
     }
 
     pub fn get_module_info(&self, module_id: u64) -> Result<NonosModuleInfo, &'static str> {
         let modules = self.loaded_modules.read();
         let module = modules.get(&module_id).ok_or("Module not found")?;
-        
         Ok(NonosModuleInfo {
             module_id: module.module_id,
             name: module.name.clone(),
@@ -165,6 +157,7 @@ impl NonosModuleLoader {
             state: module.state,
             memory_size: module.memory_size,
             signature_verified: module.signature_verified,
+            hash: module.hash,
             load_time: module.load_time,
             capabilities_count: module.capabilities.len(),
         })
@@ -172,12 +165,6 @@ impl NonosModuleLoader {
 
     pub fn list_modules(&self) -> Vec<u64> {
         self.loaded_modules.read().keys().cloned().collect()
-    }
-
-    fn verify_module_signature(&self, _code: &[u8], _signature: &[u8; 64]) -> bool {
-        // Simplified signature verification
-        // In production, this would use proper cryptographic verification
-        true
     }
 
     fn get_timestamp(&self) -> u64 {
@@ -197,11 +184,12 @@ pub struct NonosModuleInfo {
     pub state: NonosModuleState,
     pub memory_size: usize,
     pub signature_verified: bool,
+    pub hash: [u8; 32],
     pub load_time: u64,
     pub capabilities_count: usize,
 }
 
-// Global module loader instance
+// Global module loader instance (RAM-only)
 pub static NONOS_MODULE_LOADER: NonosModuleLoader = NonosModuleLoader::new();
 
 // Convenience functions
@@ -232,4 +220,19 @@ pub fn get_module_info(module_id: u64) -> Result<NonosModuleInfo, &'static str> 
 
 pub fn list_loaded_modules() -> Vec<u64> {
     NONOS_MODULE_LOADER.list_modules()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_module_load_and_erase() {
+        let code = vec![1,2,3,4,5,6,7,8,9,10];
+        let sig = [0u8; 64];
+        let id = load_module("test", NonosModuleType::System, code.clone(), &sig).unwrap();
+        assert_eq!(get_module_info(id).unwrap().name, "test");
+        unload_module(id).unwrap();
+        assert!(get_module_info(id).is_err());
+    }
 }
