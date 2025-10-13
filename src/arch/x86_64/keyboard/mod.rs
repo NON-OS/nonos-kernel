@@ -1,12 +1,11 @@
-//! Keyboard Driver with Multiple Layout Support
+//! NØNOS Keyboard Subsystem
 
 use crate::arch::x86_64::port::{inb, outb};
 use crate::ui::event::{Event, publish, Pri};
 use spin::Mutex;
 use super::layouts::{Layout, get_ascii_mapping};
 
-/// Keyboard state tracking with layout selection
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct KeyboardState {
     pub shift_pressed: bool,
     pub ctrl_pressed: bool,
@@ -101,7 +100,7 @@ fn enable_keyboard_interrupt() {
     }
 }
 
-/// Get current keyboard state
+/// Get current keyboard state (thread-safe)
 pub fn get_keyboard_state() -> KeyboardState {
     *KEYBOARD_STATE.lock()
 }
@@ -151,7 +150,43 @@ pub enum KeyCode {
     Unknown,
 }
 
-/// Get blocking keyboard event (stub)
-pub fn get_event_blocking() -> Option<KeyCode> {
-    None
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_keyboard_state_default() {
+        let state = KeyboardState::new();
+        assert!(!state.shift_pressed);
+        assert_eq!(state.layout, Layout::UsQwerty);
+    }
+
+    #[test]
+    fn test_set_and_get_layout() {
+        set_layout(Layout::Dvorak);
+        assert_eq!(get_layout(), Layout::Dvorak);
+        set_layout(Layout::UsQwerty);
+        assert_eq!(get_layout(), Layout::UsQwerty);
+    }
+
+    #[test]
+    fn test_key_repeat_manager_basic() {
+        let mut kr = KeyRepeatManager::new();
+        assert!(!kr.handle_key(42));
+        for _ in 0..501 {
+            kr.handle_key(42);
+        }
+        assert!(kr.handle_key(42));
+    }
+
+    #[test]
+    fn test_keyboard_state_modifiers() {
+        let mut state = KeyboardState::new();
+        state.shift_pressed = true;
+        state.ctrl_pressed = true;
+        state.alt_pressed = false;
+        assert!(state.shift_pressed);
+        assert!(state.ctrl_pressed);
+        assert!(!state.alt_pressed);
+    }
 }
