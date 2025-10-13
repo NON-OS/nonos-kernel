@@ -1,20 +1,10 @@
-// arch/x86_64/interrupt/ioapic.rs
-//
-// NØNOS I/O APIC.
-// - Multi-IOAPIC registry
-// - ACPI MADT parsing hooks: ISO (Interrupt Source Override) + NMI entries
-// - Correct edge/level + polarity from firmware; safe RTE read-modify-write
-// - Vector allocator (pluggable), reserved ranges, per-CPU affinity
-// - Mask/unmask, retarget, query, snapshot/restore
-// - MSI/MSI-X aware (do not double-route if device moved to MSI)
-// - Audited via memory::proof (public commit)
-//
-// Zero-state. No persistence. Call init() in early boot with IRQs disabled.
+//! NØNOS I/O APIC Driver 
 
 #![allow(dead_code)]
+#![cfg_attr(not(feature = "ioapic"), allow(unused))]
 
+use alloc::vec::Vec;
 use alloc::format;
-
 use core::sync::atomic::{AtomicUsize, Ordering};
 use spin::Mutex;
 use x86_64::{PhysAddr, VirtAddr};
@@ -24,25 +14,15 @@ use crate::memory::virt::{self, VmFlags};
 use crate::memory::layout::PAGE_SIZE;
 use crate::memory::proof::{self, CapTag};
 
-/// ——————————————————— Registers (4K MMIO window) ———————————————————
+/// IOAPIC MMIO Registers
 const IOREGSEL: u64 = 0x00; // selector (u32)
 const IOWIN:    u64 = 0x10; // data     (u32)
 const IOAPICID:  u32 = 0x00;
 const IOAPICVER: u32 = 0x01;
-const IOAPICARB: u32 = 0x02;
 const IOREDTBL0: u32 = 0x10; // two u32 per entry: low (even), high (odd)
 
-/// ——————————————————— Redirection Table Entry model ———————————————————
-/// Bits (low dword):
-///  7:0   vector
-/// 10:8   delivery mode (000=fixed, 100=NMI)
-/// 11     dest mode (0=physical, 1=logical)
-/// 12     delivery status (RO)
-/// 13     polarity (0=high, 1=low)
-/// 14     remote IRR (RO)
-/// 15     trigger (0=edge, 1=level)
-/// 16     mask (1=masked)
-#[derive(Clone, Copy, Debug)]
+/// Redirection Table Entry (RTE) for I/O APIC
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct Rte {
     pub vector: u8,
     pub delivery: u8, // 0=fixed, 4=NMI
@@ -50,10 +30,11 @@ pub struct Rte {
     pub active_low: bool,
     pub level_trigger: bool,
     pub masked: bool,
-    pub dest_apic_id: u32, // physical: 8 bits (xAPIC); logical: full mask (x2APIC flat/cluster)
+    pub dest_apic_id: u32,
 }
 
 impl Rte {
+    /// Create a fixed (masked) RTE for a given vector and APIC ID.
     pub const fn fixed(vector: u8, dest_apic_id: u32) -> Self {
         Self {
             vector, delivery: 0, logical: false,
@@ -61,17 +42,19 @@ impl Rte {
             dest_apic_id,
         }
     }
-    fn to_u32s(self) -> (u32, u32) {
+    /// Convert RTE to two u32s (low, high) for MMIO programming.
+    pub fn to_u32s(self) -> (u32, u32) {
         let mut low = self.vector as u32;
         low |= (self.delivery as u32) << 8;
         if self.logical { low |= 1 << 11; }
         if self.active_low { low |= 1 << 13; }
         if self.level_trigger { low |= 1 << 15; }
         if self.masked { low |= 1 << 16; }
-        let high = (self.dest_apic_id & 0xFF) << 24; // physical mode
+        let high = (self.dest_apic_id & 0xFF) << 24;
         (low, high)
     }
-    fn from_u32s(low: u32, high: u32) -> Self {
+    /// Parse RTE from MMIO format.
+    pub fn from_u32s(low: u32, high: u32) -> Self {
         Self {
             vector: (low & 0xFF) as u8,
             delivery: ((low >> 8) & 0x7) as u8,
@@ -84,12 +67,15 @@ impl Rte {
     }
 }
 
-/// ——————————————————— ACPI MADT descriptors we consume ———————————————————
-/// Provide these from your ACPI parser (don’t make this module parse tables).
+/// MADT I/O APIC descriptor (from ACPI)
 #[derive(Clone, Copy, Debug)]
 pub struct MadtIoApic { pub phys_base: u64, pub gsi_base: u32 }
+
+/// MADT ISO (Interrupt Source Override) descriptor
 #[derive(Clone, Debug, Copy)]
 pub struct MadtIso    { pub bus_irq: u8, pub gsi: u32, pub flags: IsoFlags }
+
+/// MADT NMI descriptor
 #[derive(Clone, Debug, Copy)]
 pub struct MadtNmi    { pub cpu: u32, pub lint: u8, pub flags: IsoFlags }
 
@@ -103,13 +89,14 @@ bitflags::bitflags! {
     }
 }
 
-/// ——————————————————— IOAPIC topology registry ———————————————————
+/// Registered IOAPIC chip state
 #[derive(Clone, Copy)]
 struct IoApicChip {
     gsi_base: u32,
     redirs:   u32,
     mmio:     VirtAddr,
 }
+
 const MAX_IOAPIC: usize = 8;
 static IOAPICS: Mutex<[Option<IoApicChip>; MAX_IOAPIC]> = Mutex::new([None; MAX_IOAPIC]);
 static COUNT: AtomicUsize = AtomicUsize::new(0);
@@ -120,15 +107,13 @@ struct VecIso {
 }
 
 lazy_static! {
-    /// ISA overrides and NMI policy (from MADT)
-    static ref ISO: Mutex<VecIso> = Mutex::new(VecIso { 
-        iso: smallvec::SmallVec::new(), 
-        nmis: smallvec::SmallVec::new() 
+    static ref ISO: Mutex<VecIso> = Mutex::new(VecIso {
+        iso: smallvec::SmallVec::new(),
+        nmis: smallvec::SmallVec::new()
     });
 }
 
-/// Simple vector allocator with a reserved range (pluggable later).
-/// Default: allocate in 0x30..0x7F, skipping 0xFF (spurious) and vectors you mark reserved.
+/// Vector allocator (0x30..0x7E, skipping reserved and spurious)
 static VEC_ALLOC: Mutex<VecAlloc> = Mutex::new(VecAlloc { next: 0x30, reserved: [false; 256] });
 struct VecAlloc { next: u8, reserved: [bool; 256] }
 
@@ -149,85 +134,79 @@ impl VecAlloc {
 }
 
 lazy_static! {
-    /// Devices that switched to MSI/MSI-X (we won't also route their GSIs)
+    /// Devices that switched to MSI/MSI-X (we won't route their GSIs)
     static ref MSI_CLAIMED_GSI: Mutex<bitvec::vec::BitVec> = Mutex::new(bitvec::vec::BitVec::repeat(false, 1024));
 }
 
-/// ——————————————————— Public init ———————————————————
-
 /// Map and register IOAPICs (MMIO UC). Provide MADT IOAPIC list first.
-pub unsafe fn init(ioapics: &[MadtIoApic], iso: &[MadtIso], nmis: &[MadtNmi]) {
-    // Save ISO/NMI policy
+/// # Safety
+/// Call in early boot with IRQs disabled.
+pub unsafe fn init(ioapics: &[MadtIoApic], iso: &[MadtIso], nmis: &[MadtNmi]) -> Result<(), &'static str> {
     {
         let mut v = ISO.lock();
         v.iso.extend_from_slice(iso);
         v.nmis.extend_from_slice(nmis);
     }
-
-    // Map chips
     let mut t = IOAPICS.lock();
     let mut n = 0usize;
     for d in ioapics.iter().take(MAX_IOAPIC) {
-        let va = map_mmio(PhysAddr::new(d.phys_base));
+        let va = map_mmio(PhysAddr::new(d.phys_base))?;
         let ver = reg_read(va, IOAPICVER);
         let maxredir = ((ver >> 16) & 0xFF) + 1;
         t[n] = Some(IoApicChip { gsi_base: d.gsi_base, redirs: maxredir, mmio: va });
         n += 1;
-
-        proof::audit_map(va.as_u64(), d.phys_base, PAGE_SIZE as u64, (VmFlags::RW|VmFlags::NX|VmFlags::GLOBAL|VmFlags::PCD).bits(), CapTag::KERNEL);
+        proof::audit_map(va.as_u64(), d.phys_base, PAGE_SIZE as u64,
+            (VmFlags::RW | VmFlags::NX | VmFlags::GLOBAL | VmFlags::PCD).bits(), CapTag::KERNEL);
         crate::log::logger::try_get_logger().map(|l| l.log(&format!(
             "[IOAPIC] mmio=0x{:x} gsi_base={} redirs={}", d.phys_base, d.gsi_base, maxredir
         )));
     }
     COUNT.store(n, Ordering::Relaxed);
-
-    // Reserve vectors we know are in use
     {
         let mut va = VEC_ALLOC.lock();
         va.reserve(crate::arch::x86_64::interrupt::apic::VEC_TIMER);
         va.reserve(crate::arch::x86_64::interrupt::apic::VEC_THERMAL);
         va.reserve(crate::arch::x86_64::interrupt::apic::VEC_ERROR);
-        // add more reserved IDs here as you assign them
     }
+    Ok(())
 }
 
 /// Count of IOAPICs registered.
 pub fn count() -> usize { COUNT.load(Ordering::Relaxed) }
 
-/// Claim a GSI for MSI/MSI-X path (so we don’t also program IOAPIC).
-pub fn claim_gsi_for_msi(gsi: u32) { let mut g = MSI_CLAIMED_GSI.lock(); if (gsi as usize) < g.len() { g.set(gsi as usize, true); } }
+/// Claim a GSI for MSI/MSI-X path (we won't also program IOAPIC for this GSI)
+pub fn claim_gsi_for_msi(gsi: u32) {
+    let mut g = MSI_CLAIMED_GSI.lock();
+    if (gsi as usize) < g.len() { g.set(gsi as usize, true); }
+}
 
-/// Allocate a vector for a given GSI with proper flags derived from ISO table.
-/// Returns (vector, RTE) preconfigured and masked; caller should unmask after handler installed.
-pub fn alloc_route(gsi: u32, dest_apic_id: u32) -> Result<(u8, Rte), ()> {
+/// Allocate a vector for a given GSI, deriving flags from ISO table.
+pub fn alloc_route(gsi: u32, dest_apic_id: u32) -> Result<(u8, Rte), &'static str> {
     ensure_not_msi(gsi)?;
     let mut va = VEC_ALLOC.lock();
-    let vector = va.alloc().ok_or(())?;
-
+    let vector = va.alloc().ok_or("Vector allocation failed")?;
     let mut rte = Rte::fixed(vector, dest_apic_id);
-    // Derive polarity/trigger from ISO (typical ISA: IRQ0..15) or fall back to edge/high
     if let Some(f) = iso_flags_for(gsi) {
         if f.contains(IsoFlags::TRIGGER_LEVEL) { rte.level_trigger = true; }
         if f.contains(IsoFlags::POLARITY_ACTIVE_LOW) { rte.active_low = true; }
     }
     rte.masked = true;
-
     Ok((vector, rte))
 }
 
-/// Program the route (write RTE). Safe RMW sequence.
-/// We always write HIGH then LOW (Intel SDM). For level triggers, masking/unmask handled by caller.
-pub fn program_route(gsi: u32, rte: Rte) -> Result<(), ()> {
-    let (chip, idx) = locate(gsi).ok_or(())?;
+/// Program a route (write RTE to IOAPIC). Safe RMW sequence.
+pub fn program_route(gsi: u32, rte: Rte) -> Result<(), &'static str> {
+    let (chip, idx) = locate(gsi).ok_or("GSI not found")?;
     let (low, high) = rte.to_u32s();
     unsafe { redtbl_write(chip.mmio, idx, low, high); }
-    proof::audit_phys_alloc(((gsi as u64)<<32) | rte.vector as u64, ((rte.dest_apic_id as u64)<<32) | rte_flags_bits(rte) as u64, CapTag::KERNEL);
+    proof::audit_phys_alloc(((gsi as u64)<<32) | rte.vector as u64,
+        ((rte.dest_apic_id as u64)<<32) | rte_flags_bits(rte) as u64, CapTag::KERNEL);
     Ok(())
 }
 
-/// Mask/unmask a GSI. For **level**-triggered, ensure your handler EOI’d the LAPIC before unmasking.
-pub fn mask(gsi: u32, masked: bool) -> Result<(), ()> {
-    let (chip, idx) = locate(gsi).ok_or(())?;
+/// Mask or unmask a GSI. For level-triggered, ensure handler EOI'd LAPIC before unmasking.
+pub fn mask(gsi: u32, masked: bool) -> Result<(), &'static str> {
+    let (chip, idx) = locate(gsi).ok_or("GSI not found")?;
     unsafe {
         let (mut low, high) = redtbl_read(chip.mmio, idx);
         if masked { low |= 1<<16 } else { low &= !(1<<16) }
@@ -236,9 +215,9 @@ pub fn mask(gsi: u32, masked: bool) -> Result<(), ()> {
     Ok(())
 }
 
-/// Retarget destination APIC ID. Useful for CPU affinity changes.
-pub fn retarget(gsi: u32, dest_apic_id: u32) -> Result<(), ()> {
-    let (chip, idx) = locate(gsi).ok_or(())?;
+/// Retarget destination APIC ID (for CPU affinity changes).
+pub fn retarget(gsi: u32, dest_apic_id: u32) -> Result<(), &'static str> {
+    let (chip, idx) = locate(gsi).ok_or("GSI not found")?;
     unsafe {
         let (low, mut high) = redtbl_read(chip.mmio, idx);
         high &= !(0xFF << 24);
@@ -248,19 +227,21 @@ pub fn retarget(gsi: u32, dest_apic_id: u32) -> Result<(), ()> {
     Ok(())
 }
 
-/// Free a vector allocated by alloc_route (call after mask+program is undone).
-pub fn free_vector(vec: u8) { VEC_ALLOC.lock().free(vec); }
+/// Free a vector previously allocated by alloc_route.
+pub fn free_vector(vec: u8) {
+    VEC_ALLOC.lock().free(vec);
+}
 
-/// Query current RTE.
+/// Query current RTE for a GSI.
 pub fn query(gsi: u32) -> Option<Rte> {
     let (chip, idx) = locate(gsi)?;
     let (low, high) = unsafe { redtbl_read(chip.mmio, idx) };
     Some(Rte::from_u32s(low, high))
 }
 
-/// Snapshot all RTEs (for debug or suspend). Returns (gsi, rte) pairs.
-pub fn snapshot() -> alloc::vec::Vec<(u32, Rte)> {
-    let mut out = alloc::vec::Vec::new();
+/// Snapshot all RTEs (for suspend/debug). Returns (gsi, rte) pairs.
+pub fn snapshot() -> Vec<(u32, Rte)> {
+    let mut out = Vec::new();
     let t = IOAPICS.lock();
     for chip in t.iter().flatten() {
         for i in 0..chip.redirs {
@@ -271,18 +252,20 @@ pub fn snapshot() -> alloc::vec::Vec<(u32, Rte)> {
     out
 }
 
-/// Restore snapshot (masked). Useful for resume flows.
+/// Restore a snapshot (all masked).
 pub fn restore(snap: &[(u32, Rte)]) {
     for (gsi, rte) in snap {
         let _ = program_route(*gsi, Rte { masked: true, ..*rte });
     }
 }
 
-// ——————————————————— Internals ———————————————————
+// Internal helpers
 
-fn ensure_not_msi(gsi: u32) -> Result<(), ()> {
+fn ensure_not_msi(gsi: u32) -> Result<(), &'static str> {
     let g = MSI_CLAIMED_GSI.lock();
-    if (gsi as usize) < g.len() && g[gsi as usize] { return Err(()); }
+    if (gsi as usize) < g.len() && g[gsi as usize] {
+        return Err("GSI is claimed for MSI");
+    }
     Ok(())
 }
 
@@ -306,11 +289,12 @@ fn locate(gsi: u32) -> Option<(IoApicChip, u32)> {
     None
 }
 
-unsafe fn map_mmio(pa: PhysAddr) -> VirtAddr {
+unsafe fn map_mmio(pa: PhysAddr) -> Result<VirtAddr, &'static str> {
     extern "Rust" { fn __nonos_alloc_mmio_va(pages: usize) -> u64; }
     let va = VirtAddr::new(__nonos_alloc_mmio_va(1));
-    virt::map4k_at(va, pa, VmFlags::RW | VmFlags::NX | VmFlags::GLOBAL | VmFlags::PCD).expect("ioapic map");
-    va
+    virt::map4k_at(va, pa, VmFlags::RW | VmFlags::NX | VmFlags::GLOBAL | VmFlags::PCD)
+        .map_err(|_| "MMIO mapping failed")?;
+    Ok(va)
 }
 
 #[inline(always)]
@@ -332,7 +316,7 @@ fn reg_read(base: VirtAddr, index: u32) -> u32 {
     }
 }
 unsafe fn redtbl_write(base: VirtAddr, i: u32, low: u32, high: u32) {
-    // Per SDM, program high then low. For level-triggered, keep your handler EOI rules!
+    // Intel SDM: write high then low
     reg_write(base, IOREDTBL0 + (i * 2) + 1, high);
     reg_write(base, IOREDTBL0 + (i * 2) + 0, low);
 }
@@ -341,8 +325,7 @@ unsafe fn redtbl_read(base: VirtAddr, i: u32) -> (u32, u32) {
     let low  = reg_read(base, IOREDTBL0 + (i * 2) + 0);
     (low, high)
 }
-
-/// For proof event packing
+/// Pack RTE flags for audit event
 fn rte_flags_bits(r: Rte) -> u32 {
     let mut f = 0u32;
     if r.logical { f |= 1<<0; }
@@ -350,4 +333,23 @@ fn rte_flags_bits(r: Rte) -> u32 {
     if r.level_trigger { f |= 1<<2; }
     if r.masked { f |= 1<<3; }
     f | ((r.delivery as u32) << 8)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn test_rte_pack_unpack() {
+        let orig = Rte::fixed(42, 2);
+        let (low, high) = orig.to_u32s();
+        let unpacked = Rte::from_u32s(low, high);
+        assert_eq!(orig, unpacked);
+    }
+    #[test]
+    fn test_vec_alloc() {
+        let mut va = VecAlloc { next: 0x30, reserved: [false; 256] };
+        let v = va.alloc().unwrap();
+        va.free(v);
+        assert!(va.alloc().is_some());
+    }
 }
