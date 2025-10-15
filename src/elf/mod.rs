@@ -1,4 +1,4 @@
-//! NØNOS ELF Loader Subsystem
+//! NØNOS ELF Loader Subsystem 
 
 pub mod types;
 pub mod errors;
@@ -9,6 +9,7 @@ pub mod tls;
 pub mod dynlink;
 pub mod interpreter;
 
+// Public API exports for kernel integration
 pub use loader::{
     ElfLoader, ElfImage, LoadedSegment, DynamicInfo, init_elf_loader, get_elf_loader, load_elf_executable
 };
