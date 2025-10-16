@@ -1,7 +1,7 @@
 [build]
 target = "x86_64-nonos.json"
 
-[target.x86_64-nonos.json]
+[target.x86_64-nonos]
 rustflags = [
   "-C", "force-frame-pointers=yes",
   "-C", "link-arg=-nostdlib",
