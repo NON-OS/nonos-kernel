@@ -232,9 +232,11 @@ unsafe fn map_mmio_pages(pa_aligned: PhysAddr, pages: usize, flags: VmFlags) -> 
     Ok(base)
 }
 
+#[inline] pub unsafe fn mmio_r8(addr: usize) -> u8 { core::ptr::read_volatile(addr as *const u8) }
 #[inline] pub unsafe fn mmio_r16(addr: usize) -> u16 { core::ptr::read_volatile(addr as *const u16) }
 #[inline] pub unsafe fn mmio_r32(addr: usize) -> u32 { core::ptr::read_volatile(addr as *const u32) }
 #[inline] pub unsafe fn mmio_r64(addr: usize) -> u64 { core::ptr::read_volatile(addr as *const u64) }
+#[inline] pub unsafe fn mmio_w8(addr: usize, value: u8) { core::ptr::write_volatile(addr as *mut u8, value) }
 #[inline] pub unsafe fn mmio_w16(addr: usize, value: u16) { core::ptr::write_volatile(addr as *mut u16, value) }
 #[inline] pub unsafe fn mmio_w32(addr: usize, value: u32) { core::ptr::write_volatile(addr as *mut u32, value) }
 #[inline] pub unsafe fn mmio_w64(addr: usize, value: u64) { core::ptr::write_volatile(addr as *mut u64, value) }
