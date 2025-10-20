@@ -1,6 +1,9 @@
 //! NONOS Kernel core crate
 
 #![no_std]
+#![feature(alloc_error_handler)]
+#![feature(asm_sym)]
+#![feature(naked_functions)]
 #![deny(warnings)]
 #![deny(unused_must_use, unused_imports, unused_variables, unused_mut)]
 #![deny(unsafe_op_in_unsafe_fn)]
@@ -124,4 +127,33 @@ fn halt_loop() -> ! {
     loop {
         unsafe { core::arch::asm!("hlt", options(nomem, nostack, preserves_flags)); }
     }
+}
+
+// Logging macros
+#[macro_export]
+macro_rules! log_debug {
+    ($fmt:expr $(, $($arg:tt)*)?) => {{
+        crate::log::log(crate::log::Severity::Debug, &crate::alloc::format!($fmt $(, $($arg)*)?));
+    }};
+}
+
+#[macro_export]
+macro_rules! log_info {
+    ($fmt:expr $(, $($arg:tt)*)?) => {{
+        crate::log::log(crate::log::Severity::Info, &crate::alloc::format!($fmt $(, $($arg)*)?));
+    }};
+}
+
+#[macro_export]
+macro_rules! log_error {
+    ($fmt:expr $(, $($arg:tt)*)?) => {{
+        crate::log::log(crate::log::Severity::Err, &crate::alloc::format!($fmt $(, $($arg)*)?));
+    }};
+}
+
+#[macro_export]
+macro_rules! log_err {
+    ($fmt:expr $(, $($arg:tt)*)?) => {{
+        crate::log::log(crate::log::Severity::Err, &crate::alloc::format!($fmt $(, $($arg)*)?));
+    }};
 }      
