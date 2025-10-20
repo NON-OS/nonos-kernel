@@ -2,7 +2,7 @@
 
 use alloc::vec::Vec;
 use crate::crypto::constant_time;
-use crate::crypto::blake3::blake3_hash as blake3_core;
+// BLAKE3 is implemented directly in this module
 
 pub type Hash256 = [u8; 32];
 
@@ -87,7 +87,7 @@ pub fn sha256(data: &[u8]) -> Hash256 {
 
 /// BLAKE3 (32-byte output). See src/crypto/blake3.rs.
 pub fn blake3_hash(data: &[u8]) -> [u8; 32] {
-    blake3_core(data)
+    crate::crypto::blake3::blake3_hash(data)
 }
 
 /// HMAC-SHA256 (returns 32-byte MAC)
