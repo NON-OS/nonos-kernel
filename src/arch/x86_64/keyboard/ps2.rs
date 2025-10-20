@@ -2,7 +2,7 @@
 
 use crate::arch::x86_64::port::{inb, outb};
 use crate::arch::x86_64::keyboard::input::{push_event, InputEvent};
-use crate::arch::x86_64::keyboard::mod::{handle_keyboard_interrupt};
+use crate::arch::x86_64::keyboard::{handle_keyboard_interrupt};
 
 /// PS/2 controller ports
 const PS2_DATA_PORT: u16 = 0x60;

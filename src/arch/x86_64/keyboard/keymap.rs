@@ -1,7 +1,7 @@
 //! Unicode and Extended Key Mapping Table
 
-use super::mod::{KeyCode};
-use super::layouts::{Layout, get_ascii_mapping};
+use super::{KeyCode};
+use super::layout::{Layout, get_ascii_mapping};
 
 /// Key mapping: scan code + layout + modifiers -> KeyCode
 ///
