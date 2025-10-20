@@ -1,0 +1,12 @@
+[package]
+name = "nonos-tools"
+version = "0.1.0"
+edition = "2021"
+
+[[bin]]
+name = "keygen"
+path = "src/keygen.rs"
+
+[dependencies]
+ed25519-dalek = { version = "1.0", features = ["u64_backend"] }
+rand = "0.7"
