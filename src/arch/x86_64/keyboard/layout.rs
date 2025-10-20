@@ -40,9 +40,9 @@ pub static DVORAK: [u8; 128] = [
 
 /// AZERTY layout: scan codes to ASCII.
 pub static AZERTY: [u8; 128] = [
-    0, 27, b'&', b'é', b'"', b'\'', b'(', b'-', b'è', b'_', b'ç', b'à', b')', b'=', 8,
+    0, 27, b'&', b'\xE9', b'"', b'\'', b'(', b'-', b'\xE8', b'_', b'\xE7', b'\xE0', b')', b'=', 8,
     b'\t', b'a', b'z', b'e', b'r', b't', b'y', b'u', b'i', b'o', b'p', b'^', b'$', b'\n',
-    0, b'q', b's', b'd', b'f', b'g', b'h', b'j', b'k', b'l', b'm', b'ù', b'`',
+    0, b'q', b's', b'd', b'f', b'g', b'h', b'j', b'k', b'l', b'm', b'\xF9', b'`',
     0, b'\\', b'w', b'x', b'c', b'v', b'b', b'n', b',', b';', b':', b'!', 0,
     b'*', 0, b' ', 0,
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
