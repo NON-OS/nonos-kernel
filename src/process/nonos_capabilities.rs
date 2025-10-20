@@ -1,6 +1,6 @@
-/// Nonos process capability bitset 
-
 #![no_std]
+
+//! Nonos process capability bitset
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct CapabilitySet {

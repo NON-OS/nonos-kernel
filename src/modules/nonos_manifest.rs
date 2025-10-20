@@ -1,7 +1,7 @@
 //! NØNOS Module Manifest 
 
 use alloc::{string::String, vec::Vec};
-use crate::crypto::nonos_hash::blake3_hash;
+use crate::crypto::blake3::blake3_hash;
 use crate::security::trusted_keys::{get_trusted_keys, TrustedKey};
 use crate::process::capabilities::Capability;
 

@@ -8,14 +8,14 @@ use spin::Once;
 use crate::memory::PageFlags;
 
 pub mod nonos_vfs;
-pub mod nonos_cryptofs;
+pub mod nonos_crypto;
 pub mod nonos_filesystem;
 pub mod fd;
 pub mod path;
 
 // Re-exports for compatibility and syscall surface
 pub use nonos_vfs as vfs;
-pub use nonos_cryptofs as cryptofs;
+pub use nonos_crypto as cryptofs;
 
 pub use nonos_vfs::{
     CowPageRef, DeviceOperations, FileBuffer, FileCacheEntry, FileMetadata, FileMode, FileSystemOperations,
@@ -23,7 +23,7 @@ pub use nonos_vfs::{
     get_vfs, get_vfs_mut, init_vfs,
 };
 
-pub use nonos_cryptofs::{
+pub use nonos_crypto::{
     CryptoFileSystem, CryptoFsStatistics, create_encrypted_file, create_ephemeral_file, get_cryptofs, init_cryptofs,
 };
 
@@ -49,8 +49,8 @@ impl FileSystemManager {
         nonos_vfs::init_vfs();
         self.vfs = nonos_vfs::get_vfs();
 
-        nonos_cryptofs::init_cryptofs(1024 * 1024, 4096).map_err(|_| "Failed to init CryptoFS")?;
-        self.cryptofs = nonos_cryptofs::get_cryptofs();
+        nonos_crypto::init_cryptofs(1024 * 1024, 4096).map_err(|_| "Failed to init CryptoFS")?;
+        self.cryptofs = nonos_crypto::get_cryptofs();
 
         // Mount routes (VFS will route / -> NonosFs and /secure -> CryptoFS)
         if let Some(vfs) = self.vfs {
@@ -66,7 +66,7 @@ impl FileSystemManager {
 
     pub fn store_distributed_data(&self, data: &[u8], path: &str) -> Result<(), &'static str> {
         if self.cryptofs.is_some() {
-            let _inode = nonos_cryptofs::create_ephemeral_file(path, data)?;
+            let _inode = nonos_crypto::create_ephemeral_file(path, data)?;
             Ok(())
         } else {
             Err("CryptoFS not initialized")
@@ -103,7 +103,7 @@ pub enum MappingProtection {
 /// Initialize the filesystem subsystem
 pub fn init() {
     nonos_vfs::init_vfs();
-    let _ = nonos_cryptofs::init_cryptofs(1024 * 1024, 4096); // RAM-only
+    let _ = nonos_crypto::init_cryptofs(1024 * 1024, 4096); // RAM-only
     let _ = nonos_filesystem::init_nonos_filesystem();
 }
 
@@ -115,7 +115,7 @@ pub fn run_filesystem_sync() {
         vfs.sync_metadata();
     }
 
-    if let Some(cryptofs) = nonos_cryptofs::get_cryptofs() {
+    if let Some(cryptofs) = nonos_crypto::get_cryptofs() {
         cryptofs.sync_all();
     }
 
@@ -134,7 +134,7 @@ pub fn process_pending_operations() {
         processed += vfs.process_pending_operations(MAX_OPERATIONS_PER_BATCH);
     }
 
-    if let Some(cryptofs) = nonos_cryptofs::get_cryptofs() {
+    if let Some(cryptofs) = nonos_crypto::get_cryptofs() {
         let remaining = MAX_OPERATIONS_PER_BATCH.saturating_sub(processed);
         if remaining > 0 {
             processed += cryptofs.process_pending_operations(remaining);

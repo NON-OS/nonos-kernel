@@ -1,6 +1,6 @@
-/// User-pointer validation and safe copy helpers.
-
 #![no_std]
+
+//! User-pointer validation and safe copy helpers.
 
 use core::ptr;
 

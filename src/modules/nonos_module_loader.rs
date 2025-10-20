@@ -4,7 +4,7 @@ use alloc::{vec::Vec, collections::BTreeMap, string::String};
 use spin::{RwLock, Mutex};
 use crate::syscall::capabilities::CapabilityToken;
 use crate::crypto::verify_ed25519;
-use crate::crypto::nonos_hash::blake3_hash;
+use crate::crypto::blake3::blake3_hash;
 use crate::memory::secure_erase;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

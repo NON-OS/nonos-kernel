@@ -15,7 +15,7 @@
 use core::sync::atomic::{AtomicU64, AtomicU32, AtomicBool, Ordering};
 use spin::{RwLock, Mutex};
 use alloc::{vec::Vec, string::String, boxed::Box, collections::BTreeMap, format};
-use crate::crypto::secure_random_u64;
+use crate::crypto::rng::random_u64;
 
 /// Type alias for capability types
 pub type NonosCapabilityType = NonosCapability;
@@ -98,7 +98,7 @@ impl CapabilitySet {
     }
 
     pub fn is_expired(&self) -> bool {
-        let current_time = crate::time::get_kernel_time_ns();
+        let current_time = crate::nonos_time::get_kernel_time_ns();
         current_time > self.expiration.load(Ordering::Acquire)
     }
 
@@ -333,7 +333,7 @@ impl NonosCapabilityEngine {
             None
         };
 
-        let current_time = crate::time::get_kernel_time_ns();
+        let current_time = crate::nonos_time::get_kernel_time_ns();
         let chamber_data = format!("chamber_id:{},level:{:?},timestamp:{}", chamber_id, level, current_time);
         
         // Simple signature using HMAC-like construction
@@ -375,15 +375,15 @@ impl NonosCapabilityEngine {
         let particles = (0..4).map(|_| {
             let mut state_vector = [0f64; 4];
             for i in 0..4 {
-                state_vector[i] = (secure_random_u64() as f64) / (u64::MAX as f64);
+                state_vector[i] = (random_u64() as f64) / (u64::MAX as f64);
             }
             
             QuantumParticle {
                 state_vector,
-                spin: (secure_random_u64() as f64) / (u64::MAX as f64) * 2.0 - 1.0,
+                spin: (random_u64() as f64) / (u64::MAX as f64) * 2.0 - 1.0,
                 position_uncertainty: 0.1,
                 momentum_uncertainty: 0.1,
-                last_measurement: crate::time::get_kernel_time_ns(),
+                last_measurement: crate::nonos_time::get_kernel_time_ns(),
             }
         }).collect();
 
@@ -403,7 +403,7 @@ impl NonosCapabilityEngine {
         let chambers = self.chambers.read();
         let chamber = chambers.get(&chamber_id).ok_or("Chamber not found")?;
 
-        chamber.last_access_timestamp.store(crate::time::get_kernel_time_ns(), Ordering::Release);
+        chamber.last_access_timestamp.store(crate::nonos_time::get_kernel_time_ns(), Ordering::Release);
         chamber.access_count.fetch_add(1, Ordering::Release);
 
         {
@@ -425,12 +425,12 @@ impl NonosCapabilityEngine {
 
     fn perform_quantum_measurement(&self, quantum_state: &QuantumState) -> Result<(), &'static str> {
         // Simplified quantum measurement simulation
-        let current_time = crate::time::get_kernel_time_ns();
+        let current_time = crate::nonos_time::get_kernel_time_ns();
         
         for particle in &quantum_state.entangled_particles {
             if current_time - particle.last_measurement > 1_000_000_000 { // 1 second
                 // Measurement collapses the quantum state
-                let measurement_result = (secure_random_u64() as f64) / (u64::MAX as f64);
+                let measurement_result = (random_u64() as f64) / (u64::MAX as f64);
                 
                 // In a real quantum system, this would affect the particle's state
                 // For now, we just record the measurement
@@ -453,7 +453,7 @@ impl NonosCapabilityEngine {
 
         if !chamber.capability_whitelist.has_capability(capability) {
             self.log_violation(SecurityViolation {
-                timestamp: crate::time::get_kernel_time_ns(),
+                timestamp: crate::nonos_time::get_kernel_time_ns(),
                 process_id,
                 chamber_id: Some(*chamber_id),
                 violation_type: ViolationType::UnauthorizedCapabilityUse,
@@ -468,7 +468,7 @@ impl NonosCapabilityEngine {
 
         if !chamber.capability_whitelist.use_capability() {
             self.log_violation(SecurityViolation {
-                timestamp: crate::time::get_kernel_time_ns(),
+                timestamp: crate::nonos_time::get_kernel_time_ns(),
                 process_id,
                 chamber_id: Some(*chamber_id),
                 violation_type: ViolationType::CapabilityExpired,
@@ -516,7 +516,7 @@ impl NonosCapabilityEngine {
         let chamber = chambers.get(&chamber_id).ok_or("Chamber not found")?;
 
         let caps_bits = capabilities.iter().fold(0u64, |acc, &cap| acc | (cap as u64));
-        let timestamp = crate::time::get_kernel_time_ns();
+        let timestamp = crate::nonos_time::get_kernel_time_ns();
         
         let mut nonce = [0u8; 16];
         crate::crypto::fill_random(&mut nonce);

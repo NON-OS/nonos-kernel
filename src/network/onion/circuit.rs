@@ -129,7 +129,7 @@ impl Circuit {
     pub fn hop_count(&self) -> usize { self.hops.len() }
     pub fn is_expired(&self, max_age_ms: u64) -> bool { Self::now_ms().saturating_sub(self.created_time) > max_age_ms }
     pub fn touch(&mut self) { self.last_activity = Self::now_ms(); }
-    #[inline] fn now_ms() -> u64 { use crate::time; time::timestamp_millis() }
+    #[inline] fn now_ms() -> u64 { crate::nonos_time::now_ns() / 1_000_000 }
 }
 
 #[derive(Debug, Clone)]
@@ -533,7 +533,7 @@ impl CircuitPool {
 
 /* ===== helpers ===== */
 
-#[inline] fn now_ms() -> u64 { use crate::time; time::timestamp_millis() }
+#[inline] fn now_ms() -> u64 { crate::nonos_time::now_ns() / 1_000_000 }
 
 #[inline] fn ewma_update(old_ms: u32, sample_ms: u32) -> u32 {
     if old_ms == 0 { return sample_ms; }

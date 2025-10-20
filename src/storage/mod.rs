@@ -5,7 +5,7 @@ pub mod nonos_ahci;
 pub mod nonos_block_device;
 pub mod nonos_raid;
 pub mod nonos_crypto_storage;
-pub mod nonos_swap;
+// pub mod nonos_swap; // TODO: missing module
 
 // Re-export for compatibility
 pub use nonos_nvme as nvme;
@@ -13,7 +13,7 @@ pub use nonos_ahci as ahci;
 pub use nonos_block_device as block_device;
 pub use nonos_raid as raid;
 pub use nonos_crypto_storage as crypto_storage;
-pub use nonos_swap as swap;
+// pub use nonos_swap as swap; // TODO: missing module
 
 use alloc::{vec::Vec, boxed::Box, sync::Arc, format, string::String};
 use core::sync::atomic::{AtomicU64, AtomicU32, Ordering};
@@ -415,7 +415,101 @@ pub fn get_stats() -> StorageStats {
 }
 
 use x86_64::VirtAddr;
-use crate::storage::nonos_swap::{SwapSlot, read_page, free_swap_slot};
+
+/// Swap slot identifier
+#[derive(Debug, Clone, Copy)]
+pub struct SwapSlot {
+    device_id: u32,
+    slot: u64,
+}
+
+impl SwapSlot {
+    /// Create a new swap slot
+    pub fn new(device_id: u32, slot: u64) -> Self {
+        Self { device_id, slot }
+    }
+}
+
+/// Swap manager for handling page swapping
+static SWAP_MANAGER: Mutex<SwapManager> = Mutex::new(SwapManager::new());
+
+struct SwapManager {
+    swap_table: hashbrown::HashMap<u64, Vec<u8>>,
+    next_slot: AtomicU64,
+    total_size: AtomicU64,
+}
+
+impl SwapManager {
+    const fn new() -> Self {
+        Self {
+            swap_table: hashbrown::HashMap::new(),
+            next_slot: AtomicU64::new(1),
+            total_size: AtomicU64::new(0),
+        }
+    }
+
+    fn allocate_slot(&mut self) -> u64 {
+        self.next_slot.fetch_add(1, Ordering::SeqCst)
+    }
+
+    fn write_page(&mut self, slot_id: u64, data: Vec<u8>) -> Result<(), &'static str> {
+        if data.len() != 4096 {
+            return Err("Invalid page size");
+        }
+        
+        self.swap_table.insert(slot_id, data);
+        self.total_size.fetch_add(4096, Ordering::SeqCst);
+        Ok(())
+    }
+
+    fn read_page(&mut self, slot_id: u64, buffer: &mut [u8]) -> Result<(), &'static str> {
+        if buffer.len() < 4096 {
+            return Err("Buffer too small");
+        }
+
+        match self.swap_table.get(&slot_id) {
+            Some(data) => {
+                buffer[..4096].copy_from_slice(data);
+                Ok(())
+            }
+            None => Err("Swap slot not found")
+        }
+    }
+
+    fn free_slot(&mut self, slot_id: u64) -> Result<(), &'static str> {
+        match self.swap_table.remove(&slot_id) {
+            Some(_) => {
+                self.total_size.fetch_sub(4096, Ordering::SeqCst);
+                Ok(())
+            }
+            None => Err("Swap slot not found")
+        }
+    }
+}
+
+/// Read a page from swap slot
+fn read_page(swap_slot: SwapSlot, buffer: &mut [u8]) -> Result<(), &'static str> {
+    let slot_id = (swap_slot.device_id as u64) << 32 | swap_slot.slot;
+    SWAP_MANAGER.lock().read_page(slot_id, buffer)
+}
+
+/// Free a swap slot
+fn free_swap_slot(swap_slot: SwapSlot) {
+    let slot_id = (swap_slot.device_id as u64) << 32 | swap_slot.slot;
+    let _ = SWAP_MANAGER.lock().free_slot(slot_id);
+}
+
+/// Allocate a new swap slot and write data
+pub fn allocate_swap_page(data: &[u8]) -> Result<u64, &'static str> {
+    if data.len() != 4096 {
+        return Err("Invalid page size");
+    }
+    
+    let mut manager = SWAP_MANAGER.lock();
+    let slot_id = manager.allocate_slot();
+    manager.write_page(slot_id, data.to_vec())?;
+    Ok(slot_id)
+}
 
 /// Read a page from swap storage
 pub fn read_swap_page(swap_offset: u64) -> Result<Vec<u8>, &'static str> {

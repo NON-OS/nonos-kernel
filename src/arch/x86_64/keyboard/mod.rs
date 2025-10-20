@@ -25,11 +25,11 @@ pub fn handle_keyboard_interrupt() {
 
 /// Prelude for ergonomic import of all keyboard APIs.
 pub mod prelude {
-    pub use super::input::*;
-    pub use super::keymap::*;
-    pub use super::layout::*;
-    pub use super::ps2::*;
-    pub use super::usb_hid::*;
+    // pub use super::input::*;
+    // pub use super::keymap::*;
+    // pub use super::layout::*;
+    // pub use super::ps2::*;
+    // pub use super::usb_hid::*;
 }
 
 #[cfg(test)]

@@ -1,6 +1,6 @@
-/// x86_64 CPU context layout for process/thread switching.
-
 #![no_std]
+
+//! x86_64 CPU context layout for process/thread switching.
 
 #[repr(C)]
 #[derive(Clone, Copy, Debug, Default)]

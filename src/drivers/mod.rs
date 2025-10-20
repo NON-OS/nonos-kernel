@@ -173,7 +173,7 @@ pub fn get_critical_drivers() -> alloc::vec::Vec<CriticalDriver> {
             driver_type: DriverType::Storage,
             base_address: ahci_ctrl as *const _ as usize,
             size: core::mem::size_of_val(ahci_ctrl),
-            hash: crate::crypto::nonos_hash::blake3_hash(unsafe {
+            hash: crate::crypto::blake3::blake3_hash(unsafe {
                 core::slice::from_raw_parts(
                     ahci_ctrl as *const _ as *const u8,
                     core::mem::size_of_val(ahci_ctrl)
@@ -191,7 +191,7 @@ pub fn get_critical_drivers() -> alloc::vec::Vec<CriticalDriver> {
             driver_type: DriverType::Storage,
             base_address: nvme_ctrl as *const _ as usize,
             size: core::mem::size_of_val(nvme_ctrl),
-            hash: crate::crypto::nonos_hash::blake3_hash(unsafe {
+            hash: crate::crypto::blake3::blake3_hash(unsafe {
                 core::slice::from_raw_parts(
                     nvme_ctrl as *const _ as *const u8,
                     core::mem::size_of_val(nvme_ctrl)
@@ -209,7 +209,7 @@ pub fn get_critical_drivers() -> alloc::vec::Vec<CriticalDriver> {
             driver_type: DriverType::System,
             base_address: pci_mgr as *const _ as usize,
             size: core::mem::size_of_val(pci_mgr),
-            hash: crate::crypto::nonos_hash::blake3_hash(unsafe {
+            hash: crate::crypto::blake3::blake3_hash(unsafe {
                 core::slice::from_raw_parts(
                     pci_mgr as *const _ as *const u8,
                     core::mem::size_of_val(pci_mgr)

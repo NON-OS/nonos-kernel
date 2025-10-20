@@ -20,7 +20,7 @@ use core::sync::atomic::{AtomicU32, AtomicU64, Ordering};
 use spin::{Mutex, Once};
 
 use super::OnionError;
-use crate::network::{tcp::TcpSocket, IpAddress};
+use crate::network::{tcp::TcpSocket, nonos_ip::IpAddress};
 
 /* ===== TLS integration ===== */
 

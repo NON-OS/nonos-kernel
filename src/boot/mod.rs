@@ -46,11 +46,7 @@ macro_rules! serial_println {
     () => { serial_print!("\n") };
     ($($arg:tt)*) => { serial_print!("{}\n", format_args!($($arg)*)); };
 }
-macro_rules! log_info {
-    ($($arg:tt)*) => {
-        serial_println!("[INFO] {}", format_args!($($arg)*));
-    };
-}
+// log_info macro defined in log module
 
 use core::panic::PanicInfo;
 use x86_64::VirtAddr;
@@ -217,15 +213,15 @@ unsafe fn init_interrupts() {
 
 unsafe fn init_core_subsystems() {
     crate::log::logger::init();
-    log_info!("[BOOT] Logger initialized");
+    crate::log::info("[BOOT] Logger initialized");
     crate::crypto::vault::init_vault();
-    log_info!("[BOOT] Crypto vault initialized");
+    crate::log::info("[BOOT] Crypto vault initialized");
     crate::sched::init();
-    log_info!("[BOOT] Scheduler initialized");
+    crate::log::info("[BOOT] Scheduler initialized");
     crate::ipc::init_ipc();
-    log_info!("[BOOT] IPC initialized");
+    crate::log::info("[BOOT] IPC initialized");
     crate::ui::cli::spawn();
-    log_info!("[BOOT] CLI spawned");
+    crate::log::info("[BOOT] CLI spawned");
 }
 
 unsafe fn init_module_system() {
@@ -339,7 +335,8 @@ pub fn _serial_print(args: core::fmt::Arguments) {
     let _ = SerialPort.write_fmt(args);
 }
 
-// Re-export boot memory interfaces for convenience
+// Re-export boot memory interfaces for convenience (currently unused)
+/*
 pub use crate::memory::boot_memory::{
     BootMemoryManager,
     BootMemoryInfo,
@@ -349,3 +346,4 @@ pub use crate::memory::boot_memory::{
     enable_memory_protection,
     get_memory_stats,
 };
+*/

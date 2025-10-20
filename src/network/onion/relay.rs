@@ -12,7 +12,7 @@ use core::sync::atomic::{AtomicU64, Ordering};
 use spin::Mutex;
 
 use crate::network::{get_network_stack, tcp::TcpSocket};
-use crate::time;
+// use crate::time; // Using crate::nonos_time instead
 
 use super::cell::{Cell, CELL_SIZE};
 use super::directory::RelayDescriptor;

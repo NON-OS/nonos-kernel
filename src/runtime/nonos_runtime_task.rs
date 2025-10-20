@@ -1,10 +1,10 @@
-/// A cooperative runtime daemon that:
-/// Processes IPC,
-/// Monitors ZeroState capsules,
-/// Runs the supervisor (restart policy),
-/// Yields to the scheduler.
-
 #![no_std]
+
+//! A cooperative runtime daemon that:
+//! Processes IPC,
+//! Monitors ZeroState capsules,
+//! Runs the supervisor (restart policy),
+//! Yields to the scheduler.
 
 extern crate alloc;
 

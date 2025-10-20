@@ -783,7 +783,6 @@ impl ProtocolHandlerRegistry {
         self.handlers.lock().get(key).map(|h| h.box_clone())
     }
 }
- cell.rs for clarity and command updates
 trait ProtocolHandler: Send + Sync {
     fn handle_data(&self, stream: &mut OnionStream, data: &[u8]) -> Result<Vec<u8>, OnionError>;
     fn handle_connect(&self, stream: &mut OnionStream) -> Result<(), OnionError>;

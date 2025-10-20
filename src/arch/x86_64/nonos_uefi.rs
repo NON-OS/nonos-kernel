@@ -1,6 +1,6 @@
 //! UEFI (Unified Extensible Firmware Interface) 
 
-use alloc::{vec, vec::Vec, string::String, format};
+use alloc::{vec, vec::Vec, string::String};
 use core::ptr;
 
 #[derive(Debug, Clone)]

@@ -1,6 +1,6 @@
-/// Syscall handler registration.
-
 #![no_std]
+
+//! Syscall handler registration.
 
 /// Returns a function pointer to the core syscall entry.
 #[inline(always)]

@@ -4,9 +4,9 @@ pub mod nonos_network_stack;
 pub mod nonos_ethernet;
 pub mod nonos_ip;
 pub mod nonos_tcp;
-pub mod nonos_udp;
+// pub mod nonos_udp; // TODO: missing module
 pub mod nonos_dns;
-pub mod nonos_firewall;
+// pub mod nonos_firewall; // TODO: missing module
 pub mod onion;
 
 // Re-exports (stable external surface)
@@ -14,9 +14,9 @@ pub use nonos_network_stack as stack;
 pub use nonos_ethernet as ethernet;
 pub use nonos_ip as ip;
 pub use nonos_tcp as tcp;
-pub use nonos_udp as udp;
+// pub use nonos_udp as udp; // TODO: missing module
 pub use nonos_dns as dns;
-pub use nonos_firewall as firewall;
+// pub use nonos_firewall as firewall; // TODO: missing module
 
 pub use nonos_network_stack::{
     NetworkStack, NetworkStats, init_network_stack, get_network_stack, register_device,

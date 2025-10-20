@@ -1,6 +1,6 @@
-/// IPC policy for ZeroState RAM-only profile
-
 #![no_std]
+
+//! IPC policy for ZeroState RAM-only profile
 
 use crate::syscall::capabilities::CapabilityToken;
 use super::nonos_message::{IpcEnvelope, SecurityLevel};
