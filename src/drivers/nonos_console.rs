@@ -28,6 +28,17 @@ pub enum Color {
     White = 0xF,
 }
 
+#[repr(u8)]
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub enum LogLevel {
+    Trace = 0,
+    Debug = 1,
+    Info = 2,
+    Warning = 3,
+    Error = 4,
+    Critical = 5,
+}
+
 #[inline(always)]
 fn vga_color(fg: Color, bg: Color) -> u8 {
     ((bg as u8) << 4) | (fg as u8 & 0x0F)
