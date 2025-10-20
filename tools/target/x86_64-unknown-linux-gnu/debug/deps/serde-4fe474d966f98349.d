@@ -1,0 +1,14 @@
+/home/nonos/nonos-kernel/tools/target/x86_64-unknown-linux-gnu/debug/deps/serde-4fe474d966f98349.d: /home/nonos/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/lib.rs /home/nonos/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/integer128.rs /home/nonos/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/mod.rs /home/nonos/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/de.rs /home/nonos/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/ser.rs /home/nonos/nonos-kernel/tools/target/x86_64-unknown-linux-gnu/debug/build/serde-43f549f0176e9054/out/private.rs
+
+/home/nonos/nonos-kernel/tools/target/x86_64-unknown-linux-gnu/debug/deps/libserde-4fe474d966f98349.rlib: /home/nonos/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/lib.rs /home/nonos/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/integer128.rs /home/nonos/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/mod.rs /home/nonos/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/de.rs /home/nonos/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/ser.rs /home/nonos/nonos-kernel/tools/target/x86_64-unknown-linux-gnu/debug/build/serde-43f549f0176e9054/out/private.rs
+
+/home/nonos/nonos-kernel/tools/target/x86_64-unknown-linux-gnu/debug/deps/libserde-4fe474d966f98349.rmeta: /home/nonos/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/lib.rs /home/nonos/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/integer128.rs /home/nonos/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/mod.rs /home/nonos/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/de.rs /home/nonos/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/ser.rs /home/nonos/nonos-kernel/tools/target/x86_64-unknown-linux-gnu/debug/build/serde-43f549f0176e9054/out/private.rs
+
+/home/nonos/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/lib.rs:
+/home/nonos/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/integer128.rs:
+/home/nonos/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/mod.rs:
+/home/nonos/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/de.rs:
+/home/nonos/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/ser.rs:
+/home/nonos/nonos-kernel/tools/target/x86_64-unknown-linux-gnu/debug/build/serde-43f549f0176e9054/out/private.rs:
+
+# env-dep:OUT_DIR=/home/nonos/nonos-kernel/tools/target/x86_64-unknown-linux-gnu/debug/build/serde-43f549f0176e9054/out
