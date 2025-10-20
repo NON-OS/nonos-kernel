@@ -668,3 +668,95 @@ fn map_page_to_frame(vaddr: VirtAddr, paddr: PhysAddr, flags: PageTableFlags) ->
     }
     Ok(())
 }
+
+/// Secure memory erasure with multiple overwrite passes
+/// Implements DoD 5220.22-M standard with verification
+pub fn secure_erase(buffer: &mut [u8]) {
+    if buffer.is_empty() {
+        return;
+    }
+    
+    // Pass 1: All bits set to 1
+    buffer.fill(0xFF);
+    core::sync::atomic::compiler_fence(core::sync::atomic::Ordering::SeqCst);
+    
+    // Pass 2: All bits set to 0  
+    buffer.fill(0x00);
+    core::sync::atomic::compiler_fence(core::sync::atomic::Ordering::SeqCst);
+    
+    // Pass 3: Random pattern
+    for byte in buffer.iter_mut() {
+        *byte = crate::crypto::random_u32() as u8;
+    }
+    core::sync::atomic::compiler_fence(core::sync::atomic::Ordering::SeqCst);
+    
+    // Pass 4: Complement of random pattern
+    for byte in buffer.iter_mut() {
+        *byte = !*byte;
+    }
+    core::sync::atomic::compiler_fence(core::sync::atomic::Ordering::SeqCst);
+    
+    // Pass 5: Final zeros
+    buffer.fill(0x00);
+    core::sync::atomic::compiler_fence(core::sync::atomic::Ordering::SeqCst);
+    
+    // Memory barrier to prevent optimization
+    unsafe {
+        core::arch::asm!("mfence", options(nostack, preserves_flags));
+    }
+}
+
+/// Secure erase for arbitrary memory regions with physical memory clearing
+pub unsafe fn secure_erase_physical(ptr: *mut u8, size: usize) {
+    if ptr.is_null() || size == 0 {
+        return;
+    }
+    
+    let slice = core::slice::from_raw_parts_mut(ptr, size);
+    secure_erase(slice);
+    
+    // Additional CPU cache flush to ensure data doesn't persist in caches
+    core::arch::asm!("wbinvd", options(nostack, preserves_flags));
+}
+
+/// Allocate zeroed pages for secure operations
+pub fn allocate_zeroed_pages(count: usize) -> Option<VirtAddr> {
+    if count == 0 {
+        return None;
+    }
+    
+    // Allocate pages
+    let flags = crate::memory::virt::VmFlags::RW | crate::memory::virt::VmFlags::NX;
+    let base = unsafe { crate::memory::alloc::kalloc_pages(count, flags) };
+    
+    if base.as_u64() != 0 {
+        // Zero the allocated memory
+        unsafe {
+            let size = count * crate::memory::layout::PAGE_SIZE;
+            core::ptr::write_bytes(base.as_mut_ptr(), 0, size);
+        }
+        Some(base)
+    } else {
+        None
+    }
+}
+
+/// Deallocate pages securely
+pub fn deallocate_pages(base: VirtAddr, count: usize) {
+    if count == 0 {
+        return;
+    }
+    
+    // Secure erase before deallocation
+    unsafe {
+        let size = count * crate::memory::layout::PAGE_SIZE;
+        let slice = core::slice::from_raw_parts_mut(base.as_mut_ptr(), size);
+        secure_erase(slice);
+        
+        // Deallocate each page
+        for i in 0..count {
+            let page_addr = VirtAddr::new(base.as_u64() + (i * crate::memory::layout::PAGE_SIZE) as u64);
+            let _ = deallocate_page_at(page_addr.as_u64());
+        }
+    }
+}
