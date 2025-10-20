@@ -45,8 +45,16 @@ default = [
 
   # Internal crypto stack
   "crypto-core",
-  "crypto-aead",
+  "crypto-aead", 
   "crypto-ed25519-int",
+  
+  # Post-quantum cryptography
+  "mlkem768",
+  "mldsa3",
+  
+  # Zero-knowledge proof systems
+  "zk-halo2",
+  "zk-groth16",
 
   # PQC (ML-KEM-768 by default)
   "mlkem768",
@@ -120,6 +128,15 @@ mlkem512  = []
 mlkem768  = []
 mlkem1024 = []
 
+# Dilithium parameter sets  
+mldsa2 = []
+mldsa3 = []
+mldsa5 = []
+
+# Zero-knowledge proof systems
+zk-halo2 = []
+zk-groth16 = []
+
 # Filesystem features
 fs-ram      = []  # in-memory anonymous FS
 fs-vfs      = []  # VFS router/mounts
@@ -143,7 +160,7 @@ mem-slab       = []  # optional slab allocator
 mem-pagecache  = []  # FS page cache (RAM-backed)
 
 # Host-only: enable std for tools/tests when not building the kernel image
-std = []
+std = ["rand"]
 
 ######################################################################
 # DEPENDENCIES — no_std-compatible by default
@@ -180,8 +197,7 @@ blake3   = { version = "1.0", default-features = false }
 bootloader_api = { version = "0.11", default-features = false }
 
 # Host-only tooling/tests when `--features std`
-[target.'cfg(feature = "std")'.dependencies]
-rand = { version = "0.8", default-features = true }
+rand = { version = "0.8", default-features = true, optional = true }
 
 ######################################################################
 # TARGET-SPECIFIC OVERRIDES (bare-metal x86_64)
