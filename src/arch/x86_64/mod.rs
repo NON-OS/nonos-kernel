@@ -85,13 +85,13 @@ pub mod port_io {
 
 pub mod time {
     pub mod nonos_timer;
-    // Uncomment temporarily
-    // pub mod tsc;
-    // pub mod pit;
-    // pub mod hpet;
-    // pub mod rtc;
+    pub mod tsc;
+    pub mod pit;
+    pub mod hpet;
+    pub mod rtc;
 
     pub use nonos_timer as timer;
+    pub use tsc::rdtsc as tsc_now;
 
     #[inline(always)]
     pub fn get_tsc() -> u64 {
