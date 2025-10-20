@@ -61,6 +61,14 @@ pub fn stop_and_erase_module(module_id: u64, sandbox_cfg: &SandboxConfig, manife
     Ok(())
 }
 
+pub fn stop_module_runtime(module_id: u64) -> Result<(), &'static str> {
+    stop_module(module_id)
+}
+
+pub fn start_module_runtime(module_id: u64) -> Result<(), &'static str> {
+    start_module(module_id)
+}
+
 /// Securely wipes the memory region (RAM-only, zero-state).
 fn secure_erase_module_runtime(memory_base: Option<u64>, memory_size: usize) {
     if let Some(base) = memory_base {
