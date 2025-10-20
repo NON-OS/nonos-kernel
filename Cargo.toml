@@ -137,6 +137,10 @@ mldsa5 = []
 zk-halo2 = []
 zk-groth16 = []
 
+# Additional features
+nonos-syscall-trace = []
+ui = []
+
 # Filesystem features
 fs-ram      = []  # in-memory anonymous FS
 fs-vfs      = []  # VFS router/mounts
