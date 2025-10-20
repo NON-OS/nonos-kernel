@@ -6,15 +6,33 @@ pub mod nonos_logger;
 pub use nonos_logger as logger;
 
 pub use nonos_logger::{
-    Logger, LogLevel, Severity,
+    Severity,
     init as init_logger,
-    try_get_logger,
-    log, log_info, log_warn, log_err, log_dbg, log_fatal,
-    info, debug, security_log, log_warn_macro as log_warning,
-    enter_panic_mode
+    log, enter_panic_mode, log_critical
 };
 
-/// Error logging macro - REAL IMPLEMENTATION
+// Logging functions
+pub fn info(msg: &str) {
+    log(Severity::Info, msg);
+}
+
+pub fn warn(msg: &str) {
+    log(Severity::Warn, msg);  
+}
+
+pub fn debug(msg: &str) {
+    log(Severity::Debug, msg);
+}
+
+pub fn security_log(msg: &str) {
+    log(Severity::Fatal, msg);
+}
+
+pub fn log_warning(msg: &str) {
+    log(Severity::Warn, msg);
+}
+
+/// Error logging macro 
 #[macro_export]
 macro_rules! error {
     ($($arg:tt)*) => {
@@ -22,7 +40,7 @@ macro_rules! error {
     };
 }
 
-/// Warning logging macro - REAL IMPLEMENTATION
+/// Warning logging macro 
 #[macro_export]
 macro_rules! warning {
     ($($arg:tt)*) => {
@@ -30,7 +48,7 @@ macro_rules! warning {
     };
 }
 
-/// Warn logging macro - REAL IMPLEMENTATION  
+/// Warn logging macro   
 #[macro_export]
 macro_rules! log_warn_macro {
     ($($arg:tt)*) => {
