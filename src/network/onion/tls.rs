@@ -10,7 +10,7 @@ use alloc::{vec, vec::Vec};
 use core::cmp::min;
 
 use crate::network::{get_network_stack, tcp::TcpSocket};
-use crate::time;
+// use crate::time; // Using crate::nonos_time instead
 
 use super::OnionError;
 

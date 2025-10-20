@@ -2,9 +2,9 @@
 
 extern crate alloc;
 
-use alloc::{vec::Vec, string::String};
+use alloc::vec::Vec;
 use core::sync::atomic::{AtomicU64, Ordering};
-use crate::capabilities::{Capability, CapabilityToken, sign_token, verify_token};
+use crate::capabilities::{Capability, CapabilityToken};
 
 /// Delegation allows a token to grant a subset of its rights to another module (with expiry).
 #[derive(Debug, Clone)]

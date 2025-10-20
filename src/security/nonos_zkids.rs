@@ -8,6 +8,23 @@ use alloc::{vec::Vec, string::String, collections::BTreeMap};
 use spin::RwLock;
 use crate::crypto::{generate_plonk_proof, verify_plonk_proof, hash::blake3_hash, sig::ed25519::Ed25519Signature, fill_random};
 
+// Define macros at top of file
+#[macro_export]
+macro_rules! require_capability {
+    ($session:expr, $cap:expr) => {
+        if !crate::security::nonos_zkids::has_capability($session, &$cap) {
+            return Err("Insufficient privileges");
+        }
+    };
+}
+
+#[macro_export]
+macro_rules! require_admin {
+    ($session:expr) => {
+        require_capability!($session, crate::security::nonos_zkids::Capability::SystemAdmin);
+    };
+}
+
 /// ZKID cryptographic identity
 #[derive(Clone, Debug)]
 pub struct ZkId {
@@ -365,18 +382,4 @@ fn current_timestamp() -> u64 {
 }
 
 // Capability-based system access control macros
-#[macro_export]
-macro_rules! require_capability {
-    ($session:expr, $cap:expr) => {
-        if !crate::security::nonos_zkids::has_capability($session, &$cap) {
-            return Err("Insufficient privileges");
-        }
-    };
-}
 
-#[macro_export]
-macro_rules! require_admin {
-    ($session:expr) => {
-        require_capability!($session, crate::security::nonos_zkids::Capability::SystemAdmin);
-    };
-}

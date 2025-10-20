@@ -84,7 +84,7 @@ impl NoxProcessManager {
         path: &str,
         args: &[&str],
         parent: Option<NoxPid>,
-        node: Option<u16>,then mod.rs
+        node: Option<u16>,
     ) -> Result<NoxPid, &'static str> {
         if path.is_empty() || path.len() > PATH_MAX_BYTES {
             return Err("EINVAL");
@@ -94,7 +94,7 @@ impl NoxProcessManager {
         let n = min(args.len(), ARGS_MAX_COUNT);
         let mut total = 0usize;
         let mut out_args: Vec<String> = Vec::with_capacity(n);
-        for s in args.iter().take(n) {then mod.rs
+        for s in args.iter().take(n) {
             total = total.saturating_add(s.len());
             if total > ARGS_MAX_TOTAL_BYTES {
                 return Err("E2BIG");
@@ -192,7 +192,7 @@ impl NoxProcessManager {
         w.pending_migration_to = Some(to_node);
         w.state = NoxState::Migrating { from_node, to_node };
         Ok(())
-    }then mod.rs
+    }
 
     /// Complete a previously requested migration. Moves process to target node and Ready state.
     pub fn complete_migration(&self, pid: NoxPid) -> Result<(), &'static str> {

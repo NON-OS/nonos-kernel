@@ -49,6 +49,11 @@ struct Vga {
     cursor_dirty: bool,
 }
 
+// SAFETY: VGA buffer is a fixed memory-mapped region that is safe to access
+// from multiple threads as long as access is synchronized through the mutex
+unsafe impl Send for Vga {}
+unsafe impl Sync for Vga {}
+
 impl Vga {
     const fn new() -> Self {
         Self {

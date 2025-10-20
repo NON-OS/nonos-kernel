@@ -1,6 +1,6 @@
 //! NØNOS Vault Subsystem Entry Point
 
-#![cfg_attr(not(feature = "vault"), allow(dead_code))]
+#![allow(dead_code)]
 
 pub mod nonos_vault;
 pub mod nonos_vault_crypto;

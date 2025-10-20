@@ -3,7 +3,7 @@
 use alloc::{string::String, vec::Vec, collections::BTreeMap};
 use spin::Mutex;
 use crate::modules::nonos_manifest::{ModuleManifest, PrivacyPolicy};
-use crate::crypto::nonos_hash::blake3_hash;
+use crate::crypto::blake3::blake3_hash;
 use crate::security::trusted_keys::{TrustedKey, get_trusted_keys};
 
 /// RAM-only registry of loaded modules. Privacy: never persists to disk.

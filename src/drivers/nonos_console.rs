@@ -68,6 +68,10 @@ struct Console {
     cursor_dirty: bool,
 }
 
+// SAFETY: Console VGA buffer access is synchronized through mutex
+unsafe impl Send for Console {}
+unsafe impl Sync for Console {}
+
 impl Console {
     const fn new() -> Self {
         Self {

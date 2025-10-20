@@ -61,9 +61,9 @@ pub fn init_all_security() -> Result<(), &'static str> {
     nonos_random::init()?;
     // Rootkit & signature scanners
     nonos_rootkit_scanner::init()?;
-    nonos_signature_scanner::init()?;
+    // nonos_signature_scanner::init()?; // TODO: module missing
     // Threat intelligence
-    nonos_threat_intel::init()?;
+    // nonos_threat_intel::init()?; // TODO: module missing
     // Trusted hashes and keys
     nonos_trusted_hashes::init()?;
     nonos_trusted_keys::init()?;
@@ -72,9 +72,9 @@ pub fn init_all_security() -> Result<(), &'static str> {
     nonos_data_leak_detection::add_sensitive_pattern("private_key");
     nonos_data_leak_detection::add_sensitive_pattern("ssn");
     nonos_dns_privacy::scan_dns_queries();
-    nonos_privacy_violation::check_violations();
+    // nonos_privacy_violation::check_violations(); // TODO: module missing
     // Incident response
-    nonos_incident_response::init()?;
+    // nonos_incident_response::init()?; // TODO: module missing
     // ZKIDS identity system
     nonos_zkids::init_zkids()?;
     // Quantum security engine 
@@ -87,7 +87,7 @@ pub fn run_periodic_checks() {
     let _ = nonos_rootkit_scanner::scan_system();
     let _ = nonos_data_leak_detection::scan_memory();
     let _ = nonos_trusted_hashes::list_trusted_hashes();
-    let _ = nonos_privacy_violation::check_violations();
+    // let _ = nonos_privacy_violation::check_violations(); // TODO: module missing
     nonos_monitor::log_event(
         nonos_monitor::NonosSecurityEventType::IntegrityBreach,
         1,

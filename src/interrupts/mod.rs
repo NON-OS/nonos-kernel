@@ -85,14 +85,16 @@ extern "x86-interrupt" fn isr_simd_fp(frame: InterruptStackFrame) {
 extern "x86-interrupt" fn isr_virtualization(frame: InterruptStackFrame) {
     nonos_handlers::virtualization_handler(frame);
 }
-extern "x86-interrupt" fn isr_machine_check(frame: InterruptStackFrame) -> ! {
-    nonos_handlers::machine_check_handler(frame)
+extern "x86-interrupt" fn isr_machine_check(frame: InterruptStackFrame) {
+    nonos_handlers::machine_check_handler(frame);
+    loop { x86_64::instructions::hlt(); }
 }
 
 // Exceptions with error code
-extern "x86-interrupt" fn isr_double_fault(frame: InterruptStackFrame, code: u64) -> ! {
+extern "x86-interrupt" fn isr_double_fault(frame: InterruptStackFrame, code: u64) {
     let _ = code;
-    nonos_handlers::double_fault_handler(frame, code)
+    nonos_handlers::double_fault_handler(frame, code);
+    loop { x86_64::instructions::hlt(); }
 }
 extern "x86-interrupt" fn isr_invalid_tss(frame: InterruptStackFrame, code: u64) {
     nonos_handlers::invalid_tss_handler(frame, code);

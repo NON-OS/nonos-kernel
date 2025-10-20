@@ -2,9 +2,9 @@
 
 extern crate alloc;
 
-use alloc::{vec::Vec, string::String};
+use alloc::vec::Vec;
 
-use crate::capabilities::{Capability, CapabilityToken};
+use crate::capabilities::Capability;
 
 #[derive(Debug, Clone)]
 pub struct MultiSigToken {

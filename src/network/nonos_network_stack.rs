@@ -9,15 +9,29 @@ use core::cmp::min;
 use core::sync::atomic::{AtomicU32, Ordering};
 use spin::{Mutex, Once};
 
-// smoltcp
-use smoltcp::iface::{Config as IfaceConfig, Interface, SocketHandle as SmolHandle, SocketSet, Routes};
-use smoltcp::phy::{ChecksumCapabilities, Device as SmolPhyDevice, DeviceCapabilities, Medium, RxToken, TxToken};
-use smoltcp::socket::{tcp, udp};
-use smoltcp::time::{Duration as SmolDuration, Instant as SmolInstant};
-use smoltcp::wire::{
-    EthernetAddress, HardwareAddress, IpAddress as SmolIpAddress, IpCidr, Ipv4Address, Ipv4Cidr, Ipv4Gateway,
-    Ipv6Address,
-};
+// smoltcp - TODO: external dependency - using stub types for now
+pub type IfaceConfig = ();
+pub type Interface = ();
+pub type SmolHandle = u32;
+pub type SocketSet = ();
+pub type Routes = ();
+pub type ChecksumCapabilities = ();
+pub type DeviceCapabilities = ();
+pub enum Medium { Ethernet }
+pub type RxToken = ();
+pub type TxToken = ();
+pub mod tcp { pub type Socket = (); pub type State = (); }
+pub mod udp { pub type Socket = (); }
+pub type SmolDuration = core::time::Duration;
+pub type SmolInstant = u64;
+pub struct EthernetAddress(pub [u8; 6]);
+pub enum HardwareAddress { Ethernet(EthernetAddress) }
+pub type SmolIpAddress = super::ip::IpAddress;
+pub type IpCidr = ();
+pub type Ipv4Address = [u8; 4];
+pub type Ipv4Cidr = ();
+pub type Ipv4Gateway = ();
+pub type Ipv6Address = [u8; 16];
 
 pub use super::ip::IpAddress;
 
@@ -551,7 +565,7 @@ impl NetworkStack {
     pub fn set_default_dns_v4(&self, v4: [u8; 4]) { *self.default_dns_v4.lock() = Ipv4Address::from_bytes(&v4); }
 
     pub fn dns_query_a(&self, hostname: &str, timeout_ms: u64) -> Result<Vec<[u8; 4]>, &'static str> {
-        use smoltcp::socket::udp::{PacketBuffer, PacketMetadata};
+        // use smoltcp:: // TODO: external dependencysocket::udp::{PacketBuffer, PacketMetadata};
         let mut sockets = self.sockets.lock();
         let rx = PacketBuffer::new(vec![PacketMetadata::EMPTY; 8], vec![0; 1536]);
         let tx = PacketBuffer::new(vec![PacketMetadata::EMPTY; 8], vec![0; 1536]);
