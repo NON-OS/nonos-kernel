@@ -6,7 +6,7 @@ use crate::modules::nonos_manifest::ModuleManifest;
 use crate::modules::nonos_auth::{authenticate_module, AuthContext};
 use crate::modules::nonos_sandbox::SandboxConfig;
 use crate::modules::nonos_registry::register_module;
-use crate::modules::nonos_runtime::{start_module_runtime, stop_module_runtime};
+use crate::modules::nonos_mod_runner::{run_module, stop_module_runtime, start_module_runtime};
 
 /// Orchestrator config: privacy, capability, attestation controls
 #[derive(Debug, Clone)]
