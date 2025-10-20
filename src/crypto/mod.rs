@@ -14,6 +14,7 @@ pub mod sha512;
 pub mod chacha20poly1305;
 pub mod aes_gcm;
 pub mod ed25519;
+pub mod sha3;
 
 // PQC: Kyber (ML-KEM) via PQClean
 #[cfg(any(feature = "mlkem512", feature = "mlkem768", feature = "mlkem1024"))]
@@ -37,6 +38,7 @@ pub mod nonos_zk;
 // -----------------------------
 pub use constant_time::*;
 pub use hash::{sha256, blake3_hash, hmac_sha256, hmac_verify, hkdf_extract, hkdf_expand, Hash256};
+pub use sha3::{Sha3_256, Sha3_512, Shake128, Shake256, sha3_256, sha3_512, shake128, shake256};
 pub use rng::{get_random_bytes, fill_random_bytes, random_u64, random_u32, seed_rng, init_rng, ChaChaRng};
 pub use aes::Aes256;
 pub use sha512::{sha512, Hash512};
