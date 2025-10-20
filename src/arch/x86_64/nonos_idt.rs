@@ -32,7 +32,7 @@ lazy_static! {
             idt.double_fault
                 .set_handler_fn(core::mem::transmute::<
                     extern "x86-interrupt" fn(InterruptStackFrame, u64),
-                    extern "x86-interrupt" fn(InterruptStackFrame, u64) -> !
+                    extern "x86-interrupt" fn(InterruptStackFrame, u64)
                 >(df_handler))
                 .set_stack_index(gdt::DF_IST_INDEX);
         }
@@ -51,7 +51,7 @@ lazy_static! {
             idt.machine_check
                 .set_handler_fn(core::mem::transmute::<
                     extern "x86-interrupt" fn(InterruptStackFrame),
-                    extern "x86-interrupt" fn(InterruptStackFrame) -> !
+                    extern "x86-interrupt" fn(InterruptStackFrame)
                 >(mc_handler))
                 .set_stack_index(gdt::MC_IST_INDEX);
         }
@@ -158,7 +158,7 @@ extern "x86-interrupt" fn devna_handler(stack: InterruptStackFrame) {
     trap!(log_err, 7, "Device Not Available", stack);
 }
 
-extern "x86-interrupt" fn df_handler(stack: InterruptStackFrame, _code: u64) -> ! {
+extern "x86-interrupt" fn df_handler(stack: InterruptStackFrame, _code: u64) {
     enter_panic_mode();
     trap!(log_fatal, 8, "Double Fault", stack);
     loop {
@@ -201,7 +201,7 @@ extern "x86-interrupt" fn ac_handler(stack: InterruptStackFrame, code: u64) {
     log_err!("Error Code={:#x}", code);
 }
 
-extern "x86-interrupt" fn mc_handler(stack: InterruptStackFrame) -> ! {
+extern "x86-interrupt" fn mc_handler(stack: InterruptStackFrame) {
     enter_panic_mode();
     trap!(log_fatal, 18, "Machine Check", stack);
     loop {
