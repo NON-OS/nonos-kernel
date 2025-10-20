@@ -5,7 +5,7 @@
 
 extern crate alloc;
 use alloc::vec::Vec;
-use core::ops::{Add, Sub};
+// use core::ops::{Add, Sub};
 use core::ptr;
 use spin::Once;
 
@@ -189,7 +189,7 @@ fn fe_tobytes(f: &Fe) -> [u8; 32] {
         pos += sizes[i];
     }
     // reduce acc mod p
-    let p = ((1i128<<255) - 19);
+    let p = (1i128<<255) - 19;
     acc %= p; if acc<0 { acc += p; }
     for i in 0..32 { s[i] = ((acc >> (8*i)) & 0xff) as u8; }
     s
@@ -198,7 +198,7 @@ fn fe_tobytes(f: &Fe) -> [u8; 32] {
 fn fe_frombytes(s: &[u8; 32]) -> Fe {
     let mut acc: i128 = 0;
     for i in 0..32 { acc |= (s[i] as i128) << (8*i); }
-    acc &= ((1i128<<255)-1);
+    acc &= (1i128<<255)-1;
     let sizes=[26,25,26,25,26,25,26,25,26,25];
     let mut out=[0i32;10];
     let mut pos=0u32;
