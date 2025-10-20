@@ -190,21 +190,21 @@ pub fn log_critical(msg: &str) {
 // === Macros ===
 #[macro_export]
 macro_rules! log_info {
-    ($($arg:tt)*) => { $crate::log::logger::log($crate::log::logger::Severity::Info, &format!($($arg)*)); };
+    ($($arg:tt)*) => { $crate::log::log($crate::log::Severity::Info, &alloc::format!($($arg)*)) };
 }
 #[macro_export]
 macro_rules! log_warn {
-    ($($arg:tt)*) => { $crate::log::logger::log($crate::log::logger::Severity::Warn, &format!($($arg)*)); };
+    ($($arg:tt)*) => { $crate::log::log($crate::log::Severity::Warn, &alloc::format!($($arg)*)) };
 }
 #[macro_export]
 macro_rules! log_err {
-    ($($arg:tt)*) => { $crate::log::logger::log($crate::log::logger::Severity::Err, &format!($($arg)*)); };
+    ($($arg:tt)*) => { $crate::log::log($crate::log::Severity::Err, &alloc::format!($($arg)*)) };
 }
 #[macro_export]
 macro_rules! log_dbg {
-    ($($arg:tt)*) => { $crate::log::logger::log($crate::log::logger::Severity::Debug, &format!($($arg)*)); };
+    ($($arg:tt)*) => { $crate::log::log($crate::log::Severity::Debug, &alloc::format!($($arg)*)) };
 }
 #[macro_export]
 macro_rules! log_fatal {
-    ($($arg:tt)*) => { $crate::log::logger::log($crate::log::logger::Severity::Fatal, &format!($($arg)*)); };
+    ($($arg:tt)*) => { $crate::log::log($crate::log::Severity::Fatal, &alloc::format!($($arg)*)) };
 }
