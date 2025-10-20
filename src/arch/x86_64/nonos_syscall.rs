@@ -341,7 +341,7 @@ pub extern "C" fn syscall_handler(
 }
 
 /// Assembly syscall entry point
-#[naked]
+#[unsafe(naked)]
 extern "C" fn syscall_entry_asm() {
     unsafe {
         core::arch::naked_asm!(
