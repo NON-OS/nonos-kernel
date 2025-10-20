@@ -4,9 +4,7 @@ pub mod nonos_acpi;
 pub mod nonos_cpu;
 pub mod nonos_boot;
 pub mod nonos_gdt;
-pub mod nonos_gdt_simple;
 pub mod nonos_idt;
-pub mod nonos_idt_simple;
 pub mod nonos_multiboot;
 pub mod nonos_pci;
 pub mod nonos_serial;
@@ -21,27 +19,25 @@ pub mod interrupt {
     pub mod nonos_pic_legacy;
 
     pub use nonos_apic as apic;
-    pub use nonos_ioapic as ioapic;
-    pub use nonos_pic_legacy as pic_legacy;
+    // pub use nonos_ioapic as ioapic;
+    // pub use nonos_pic_legacy as pic_legacy;
 }
 
 pub use x86_64::structures::idt::InterruptStackFrame;
 
 pub mod keyboard;
 
-pub use nonos_acpi as acpi;
-pub use nonos_boot as boot;
+// pub use nonos_acpi as acpi;
+// pub use nonos_boot as boot;
 pub use nonos_cpu as cpu;
 pub use nonos_gdt as gdt;
-pub use nonos_gdt_simple as gdt_simple;
 pub use nonos_idt as idt;
-pub use nonos_idt_simple as idt_simple;
-pub use nonos_multiboot as multiboot;
+// pub use nonos_multiboot as multiboot;
 pub use nonos_pci as pci;
 pub use nonos_serial as serial;
-pub use nonos_smm as smm;
+// pub use nonos_smm as smm;
 pub use nonos_syscall as syscall;
-pub use nonos_uefi as uefi;
+// pub use nonos_uefi as uefi;
 pub use nonos_vga as vga;
 
 /// Port I/O operations for x86_64
