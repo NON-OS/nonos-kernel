@@ -33,13 +33,15 @@ pub use nonos_console as console;
 pub use nonos_monster as monster;
 
 pub use nonos_pci::{
-    PciManager, PciDevice, PciBar, PciCapability, DmaEngine, DmaDescriptor,
-    MsixCapability, MsixTableEntry, PciStats, init_pci, get_pci_manager
+    PciManager, PciDevice, PciBar, PciCapability, init_pci, get_pci_manager
+};
+
+pub use crate::arch::x86_64::nonos_pci::{
+    DmaEngine, DmaDescriptor, MsixCapability, MsixTableEntry, PciStats
 };
 
 pub use nonos_nvme::{
-    NvmeDriver, NvmeQueue, NvmeCommand, NvmeCompletion, NvmeController,
-    NvmeNamespace, NvmeRequest, NvmeStats
+    NvmeDriver, NvmeCompletion, NvmeController, NvmeNamespace, NvmeStats
 };
 
 pub use nonos_ahci::{
@@ -48,17 +50,17 @@ pub use nonos_ahci::{
 };
 
 pub use nonos_xhci::{
-    XhciController, UsbDevice, UsbSpeed, TransferDirection, XhciStats,
+    XhciController, XhciStats,
     init_xhci, get_controller as get_xhci_controller
 };
 
 pub use nonos_audio::{
-    HdAudioController, AudioFormat, AudioBuffer, StreamType, AudioStats,
+    HdAudioController, AudioStats,
     init_hd_audio, get_controller as get_audio_controller
 };
 
 pub use nonos_gpu::{
-    GpuDriver, DisplayMode, PixelFormat, GpuSurface, GpuCommand, GpuStats,
+    GpuDriver, DisplayMode, PixelFormat, GpuSurface, GpuStats,
     init_gpu, get_driver as get_gpu_driver
 };
 
