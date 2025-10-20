@@ -1,11 +1,9 @@
 //! NØNOS Boot Sequence 
 
 pub mod nonos_multiboot;
-pub mod nonos_super_kernel;
 
 // Re-exports for backward compatibility
 pub use nonos_multiboot as multiboot;
-pub use nonos_super_kernel as super_kernel;
 
 /// Initialize VGA output for early boot messages
 pub fn init_vga_output() {
@@ -341,15 +339,7 @@ pub fn _serial_print(args: core::fmt::Arguments) {
     let _ = SerialPort.write_fmt(args);
 }
 
-// Re-export super kernel and boot memory interfaces for convenience
-pub use nonos_super_kernel::{
-    super_kernel_entry,
-    set_debug_mode,
-    set_gui_mode,
-    is_debug_mode,
-    is_secure_boot,
-    is_zk_attestation,
-};
+// Re-export boot memory interfaces for convenience
 pub use crate::memory::boot_memory::{
     BootMemoryManager,
     BootMemoryInfo,

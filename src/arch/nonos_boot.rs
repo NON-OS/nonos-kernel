@@ -1,6 +1,6 @@
 //! NØNOS-Boot Interface
 
-use crate::log::logger::log_info;
+use crate::log_info;
 use crate::arch::nonos_cpu;
 use crate::arch::nonos_gdt;
 use crate::arch::nonos_idt;
