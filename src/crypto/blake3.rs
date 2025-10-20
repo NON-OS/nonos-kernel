@@ -3,7 +3,7 @@
 #![allow(clippy::many_single_char_names)]
 #![allow(clippy::identity_op)]
 
-use core::convert::TryInto;
+// use core::convert::TryInto;
 
 const IV: [u32; 8] = [
     0x6A09E667, 0xBB67AE85, 0x3C6EF372, 0xA54FF53A,
