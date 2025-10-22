@@ -1,5 +1,7 @@
 //! ELF Interpreter/PT_INTERP Support for Loader
 
+extern crate alloc;
+use alloc::string::{String, ToString};
 use crate::elf::errors::ElfError;
 use crate::elf::types::ProgramHeader;
 
@@ -21,6 +23,6 @@ impl InterpreterInfo {
         let path_bytes = &elf_data[file_offset..file_offset + size];
         let null_pos = path_bytes.iter().position(|&b| b == 0).unwrap_or(path_bytes.len());
         let path_str = core::str::from_utf8(&path_bytes[..null_pos]).map_err(|_| ElfError::InterpreterNotFound)?;
-        Ok(InterpreterInfo { path: path_str.to_string() })
+        Ok(InterpreterInfo { path: path_str.into() })
     }
 }
