@@ -1,6 +1,6 @@
 //! ELF Loader with Dynamic Linking and ASLR
 
-use alloc::{vec::Vec, string::String, collections::BTreeMap};
+use alloc::{vec::Vec, string::{String, ToString}, collections::BTreeMap};
 use core::{mem, ptr};
 use x86_64::{VirtAddr, structures::paging::PageTableFlags};
 use crate::memory::{page_allocator, virtual_memory};
@@ -294,7 +294,7 @@ impl ElfLoader {
                 let entry_ptr = elf_data[entry_offset..].as_ptr() as *const DynamicEntry;
                 let entry = ptr::read(entry_ptr);
 
-                match entry.tag {
+                match entry.d_tag {
                     0 => break, // DT_NULL
                     1 => {},    // DT_NEEDED (can be filled after string table found)
                     5 => {      // DT_STRTAB
@@ -351,7 +351,7 @@ impl ElfLoader {
         let path_bytes = &elf_data[file_offset..file_offset + size];
         let null_pos = path_bytes.iter().position(|&b| b == 0).unwrap_or(path_bytes.len());
         let path_str = core::str::from_utf8(&path_bytes[..null_pos]).map_err(|_| ElfError::InterpreterNotFound)?;
-        Ok(path_str.to_string())
+        Ok(path_str.into())
     }
 }
 
