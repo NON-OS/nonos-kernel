@@ -56,10 +56,12 @@ pub const SHAREDSECRET_BYTES: usize = 32;
 
 #[repr(C)]
 #[derive(Clone)]
+#[derive(Debug)]
 pub struct KyberPublicKey { pub bytes: [u8; PUBLICKEY_BYTES] }
 
 #[repr(C)]
 #[derive(Clone)]
+#[derive(Debug)]
 pub struct KyberSecretKey { pub bytes: [u8; SECRETKEY_BYTES] }
 
 impl Drop for KyberSecretKey {
@@ -74,6 +76,7 @@ impl Drop for KyberSecretKey {
 pub struct KyberCiphertext { pub bytes: [u8; CIPHERTEXT_BYTES] }
 
 #[repr(C)]
+#[derive(Debug)]
 pub struct KyberKeyPair {
     pub public_key: KyberPublicKey,
     pub secret_key: KyberSecretKey,
