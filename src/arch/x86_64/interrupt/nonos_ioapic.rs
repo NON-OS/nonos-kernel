@@ -156,9 +156,13 @@ pub unsafe fn init(ioapics: &[MadtIoApic], iso: &[MadtIso], nmis: &[MadtNmi]) ->
         n += 1;
         proof::audit_map(va.as_u64(), d.phys_base, PAGE_SIZE as u64,
             (VmFlags::RW | VmFlags::NX | VmFlags::GLOBAL | VmFlags::PCD).bits(), CapTag::KERNEL);
-        crate::log::logger::try_get_logger().map(|l| l.log(&format!(
-            "[IOAPIC] mmio=0x{:x} gsi_base={} redirs={}", d.phys_base, d.gsi_base, maxredir
-        )));
+        if let Some(logger) = crate::log::logger::try_get_logger() {
+            if let Some(log_mgr) = logger.lock().as_mut() {
+                log_mgr.log(crate::log::nonos_logger::Severity::Info, &format!(
+                    "[IOAPIC] mmio=0x{:x} gsi_base={} redirs={}", d.phys_base, d.gsi_base, maxredir
+                ));
+            }
+        }
     }
     COUNT.store(n, Ordering::Relaxed);
     {
