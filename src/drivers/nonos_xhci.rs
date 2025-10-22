@@ -73,7 +73,7 @@ const IMAN_IP: u32 = 1 << 0;  // Interrupt Pending
 const IMAN_IE: u32 = 1 << 1;  // Interrupt Enable
 
 // TRB types
-const TRB_TYPE_NORMAL: u32 = 1;
+pub const TRB_TYPE_NORMAL: u32 = 1;
 const TRB_TYPE_SETUP_STAGE: u32 = 2;
 const TRB_TYPE_DATA_STAGE: u32 = 3;
 const TRB_TYPE_STATUS_STAGE: u32 = 4;
@@ -83,7 +83,7 @@ const TRB_TYPE_ADDRESS_DEVICE_CMD: u32 = 11;
 
 // Control TRB specifics
 const TRB_DIR_IN: u32 = 1 << 16; // For DATA_STAGE direction
-const TRB_IOC: u32 = 1 << 5;     // Interrupt On Completion
+pub const TRB_IOC: u32 = 1 << 5;     // Interrupt On Completion
 const TRB_ENT: u32 = 1 << 1;     // Evaluate Next TRB (for chained)
 
 // Command Ring Control Register flags
@@ -125,20 +125,20 @@ impl DmaRegion {
 // TRB: 16 bytes
 #[repr(C, align(16))]
 #[derive(Clone, Copy)]
-struct Trb {
-    d0: u32,
-    d1: u32,
-    d2: u32,
-    d3: u32,
+pub struct Trb {
+    pub d0: u32,
+    pub d1: u32,
+    pub d2: u32,
+    pub d3: u32,
 }
 impl Default for Trb {
     fn default() -> Self { Trb { d0: 0, d1: 0, d2: 0, d3: 0 } }
 }
 impl Trb {
-    fn set_type(&mut self, trb_type: u32) {
+    pub fn set_type(&mut self, trb_type: u32) {
         self.d3 = (self.d3 & !(0x3F << 10)) | ((trb_type & 0x3F) << 10);
     }
-    fn set_cycle(&mut self, cycle: bool) {
+    pub fn set_cycle(&mut self, cycle: bool) {
         if cycle { self.d3 |= 1; } else { self.d3 &= !1; }
     }
     fn get_type(&self) -> u32 { (self.d3 >> 10) & 0x3F }
@@ -224,7 +224,7 @@ struct InputContext {
 // Rings
 struct TransferRing {
     trbs: DmaRegion,
-    cycle: bool,
+    pub cycle: bool,
     enqueue_index: usize,
     ring_size: usize,
 }
@@ -254,7 +254,7 @@ impl TransferRing {
         })
     }
 
-    fn enqueue(&mut self, mut trb: Trb) -> u64 {
+    pub fn enqueue(&mut self, mut trb: Trb) -> u64 {
         // Place TRB with current cycle
         let idx = self.enqueue_index;
         unsafe {
@@ -337,11 +337,11 @@ pub struct XhciController {
     cap_base: usize,
     op_base: usize,
     rt_base: usize,
-    db_base: usize,
+    pub db_base: usize,
 
     max_slots: u8,
     context_size_64: bool,
-    num_ports: u8,
+    pub num_ports: u8,
 
     // Rings and contexts
     cmd_ring: TransferRing,
@@ -353,7 +353,7 @@ pub struct XhciController {
 
     // Device state (single device for now)
     slot_id: u8,
-    ep0_ring: Option<TransferRing>,
+    pub ep0_ring: Option<TransferRing>,
 
     // Stats
     interrupts: AtomicU64,
@@ -361,9 +361,20 @@ pub struct XhciController {
     transfers_completed: AtomicU64,
 }
 
-static XHCI_ONCE: spin::Once<&'static Mutex<XhciController>> = spin::Once::new();
+pub static XHCI_ONCE: spin::Once<&'static Mutex<XhciController>> = spin::Once::new();
 
 impl XhciController {
+    pub fn get_stats(&self) -> XhciStats {
+        XhciStats {
+            transfers: self.transfers_completed.load(Ordering::Relaxed),
+            errors: 0,
+            interrupts: self.interrupts.load(Ordering::Relaxed),
+            bytes_transferred: 0, // Missing implement of bytes tracking
+            devices_connected: 1,
+            max_slots: 32, // NEXT DEVELOPMENT: get from controller capabilities
+            max_ports: 8,  // ****                                          ****
+        }
+    }
     pub fn init(pci: PciDevice) -> Result<&'static Mutex<Self>, &'static str> {
         let bar = pci.get_bar(0)?;
         let cap_base = match bar {
@@ -608,8 +619,7 @@ impl XhciController {
             if cycle == self.evt_ring.cycle {
                 let trb_type = trb.get_type();
                 match trb_type {
-                    // Command Completion Event type=33 decimal, but spec: 0x21. However hardware returns encoded types.
-                    // We accept any event and check if it matches our command by comparing TRB Pointer (d0,d1)
+                    // Command Completion Event type=33 decimal, but spec: 0x21. 
                     _ => {
                         let event_trb_ptr = trb.d0 as u64 | ((trb.d1 as u64) << 32);
                         // Advance ring
@@ -780,7 +790,7 @@ impl XhciController {
         Ok(w_length as usize)
     }
 
-    fn wait_transfer_completion(&mut self, trb_ptr_match: u64) -> Result<(), &'static str> {
+    pub fn wait_transfer_completion(&mut self, trb_ptr_match: u64) -> Result<(), &'static str> {
         let mut spins = 2_000_000u32;
         loop {
             let iman = unsafe { mmio_r32(self.rt_base + RT_IR0_IMAN) };
@@ -841,8 +851,8 @@ pub fn init_xhci() -> Result<(), &'static str> {
 
 pub struct XhciControllerHandle;
 
-pub fn get_controller() -> Option<&'static XhciController> {
-    XHCI_ONCE.get().map(|m| &*m.lock())
+pub fn get_controller() -> Option<spin::MutexGuard<'static, XhciController>> {
+    XHCI_ONCE.get().map(|m| m.lock())
 }
 
 impl XhciControllerHandle {
@@ -860,5 +870,130 @@ impl XhciControllerHandle {
         } else {
             XhciStats::default()
         }
+    }
+}
+
+/// Perform USB control transfer with xHCI hardware implementation
+pub fn control_transfer(
+    slot_id: u8,
+    setup_packet: [u8; 8],
+    data_buffer: Option<&mut [u8]>,
+    timeout_us: u32,
+) -> Result<usize, &'static str> {
+    if let Some(ctrl_mutex) = XHCI_ONCE.get() {
+        let mut ctrl = ctrl_mutex.lock();
+        let ep0 = ctrl.ep0_ring.as_mut().ok_or("xHCI: EP0 ring not initialized")?;
+        
+        // Parse setup packet
+        let bm_request_type = setup_packet[0];
+        let b_request = setup_packet[1];
+        let w_value = u16::from_le_bytes([setup_packet[2], setup_packet[3]]);
+        let w_index = u16::from_le_bytes([setup_packet[4], setup_packet[5]]);
+        let w_length = u16::from_le_bytes([setup_packet[6], setup_packet[7]]);
+        
+        // Determine transfer direction
+        let is_in = (bm_request_type & 0x80) != 0;
+        let has_data_stage = w_length > 0;
+        
+        // Setup Stage TRB
+        let mut setup_trb = Trb::default();
+        setup_trb.d0 = (setup_packet[0] as u32)
+            | ((setup_packet[1] as u32) << 8)
+            | ((w_value as u32) << 16);
+        setup_trb.d1 = (w_index as u32) | ((w_length as u32) << 16);
+        
+        if has_data_stage {
+            setup_trb.d2 = if is_in { 2 << 16 } else { 3 << 16 }; // TRT: IN=2, OUT=3
+        } else {
+            setup_trb.d2 = 0; // No data stage
+        }
+        setup_trb.set_type(TRB_TYPE_SETUP_STAGE);
+        setup_trb.set_cycle(ep0.cycle);
+        
+        let mut last_trb_ptr = ep0.enqueue(setup_trb);
+        let mut bytes_transferred = 0;
+        
+        // Data Stage TRB (if needed)
+        if has_data_stage && data_buffer.is_some() {
+            let buffer = data_buffer.unwrap();
+            let transfer_len = core::cmp::min(w_length as usize, buffer.len());
+            
+            // Create DMA buffer for the transfer
+            let mut dma_buf = DmaRegion::new(transfer_len, true)
+                .map_err(|_| "Failed to allocate DMA buffer")?;
+            
+            // For OUT transfers, copy data to DMA buffer
+            if !is_in {
+                unsafe {
+                    core::ptr::copy_nonoverlapping(
+                        buffer.as_ptr(),
+                        dma_buf.va.as_mut_ptr::<u8>(),
+                        transfer_len
+                    );
+                }
+            }
+            
+            let mut data_trb = Trb::default();
+            data_trb.d0 = (dma_buf.phys() & 0xFFFF_FFFF) as u32;
+            data_trb.d1 = (dma_buf.phys() >> 32) as u32;
+            data_trb.d2 = transfer_len as u32;
+            data_trb.d3 = TRB_IOC; // Interrupt on completion
+            data_trb.set_type(TRB_TYPE_DATA_STAGE);
+            data_trb.set_cycle(ep0.cycle);
+            
+            last_trb_ptr = ep0.enqueue(data_trb);
+            
+            // Status Stage TRB (opposite direction of data stage)
+            let mut status_trb = Trb::default();
+            status_trb.d2 = 0;
+            status_trb.d3 = if is_in { 0 } else { TRB_IOC }; // Direction bit
+            status_trb.set_type(TRB_TYPE_STATUS_STAGE);
+            status_trb.set_cycle(ep0.cycle);
+            
+            last_trb_ptr = ep0.enqueue(status_trb);
+            
+            // Ring doorbell for EP0
+            unsafe {
+                mmio_w32(ctrl.db_base + (slot_id as usize) * 4, 1);
+            }
+            
+            // Wait for completion
+            ctrl.wait_transfer_completion(last_trb_ptr)?;
+            
+            // For IN transfers, copy data back from DMA buffer
+            if is_in {
+                unsafe {
+                    core::ptr::copy_nonoverlapping(
+                        dma_buf.va.as_ptr::<u8>(),
+                        buffer.as_mut_ptr(),
+                        transfer_len
+                    );
+                }
+            }
+            
+            bytes_transferred = transfer_len;
+        } else {
+            // No data stage, just status stage
+            let mut status_trb = Trb::default();
+            status_trb.d2 = 0;
+            status_trb.d3 = TRB_IOC;
+            status_trb.set_type(TRB_TYPE_STATUS_STAGE);
+            status_trb.set_cycle(ep0.cycle);
+            
+            last_trb_ptr = ep0.enqueue(status_trb);
+            
+            // Ring doorbell
+            unsafe {
+                mmio_w32(ctrl.db_base + (slot_id as usize) * 4, 1);
+            }
+            
+            // Wait for completion
+            ctrl.wait_transfer_completion(last_trb_ptr)?;
+        }
+        
+        ctrl.transfers_completed.fetch_add(1, Ordering::Relaxed);
+        Ok(bytes_transferred)
+    } else {
+        Err("xHCI controller not initialized")
     }
 }
