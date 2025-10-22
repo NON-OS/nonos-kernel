@@ -68,7 +68,9 @@ pub use nonos_virtio_net::{
     VirtioNetDevice, VirtioNetInterface, init_virtio_net, get_virtio_net_device
 };
 
-/// Initialize all hardware dri    crate::memory::dma::init_dma_allocator()?;
+/// Initialize all hardware drivers
+pub fn init() -> Result<(), &'static str> {
+    crate::memory::dma::init_dma_allocator()?;
     let _ = crate::memory::dma::create_dma_pool(4096, 128);
     let _ = crate::memory::dma::create_dma_pool(2048, 256);
 
