@@ -35,7 +35,11 @@ pub fn add_signature(token: &mut MultiSigToken, signer_id: u64, key: &[u8;32]) {
     hasher.update(&token.nonce.to_le_bytes());
     hasher.update(&token.expires_at_ms.unwrap_or(0).to_le_bytes());
     let mac = hasher.finalize();
-    token.signatures.push(mac.as_bytes().clone());
+    let mac_bytes = mac.as_bytes();
+    let mut signature = [0u8; 64];
+    signature[..32].copy_from_slice(mac_bytes);
+    signature[32..].copy_from_slice(mac_bytes); // Duplicate the hash to fill 64 bytes
+    token.signatures.push(signature);
     token.signers.push(signer_id);
 }
 
@@ -46,7 +50,7 @@ pub fn verify_multisig(token: &MultiSigToken, required: usize, keys: &[(&u64, &[
         if i >= token.signers.len() { break; }
         let signer_id = token.signers[i];
         for (id, key) in keys {
-            if *id == signer_id {
+            if **id == signer_id {
                 let mut hasher = blake3::Hasher::new_keyed(key);
                 hasher.update(&signer_id.to_le_bytes());
                 hasher.update(&token.owner_module.to_le_bytes());
