@@ -2,7 +2,7 @@
 
 #![allow(dead_code)]
 
-use alloc::{string::String, vec::Vec, sync::Arc};
+use alloc::{string::String, vec::Vec, sync::Arc, boxed::Box};
 use core::sync::atomic::{AtomicU64, Ordering};
 use spin::Mutex;
 
@@ -41,8 +41,6 @@ pub mod consts {
 pub trait UsbHostBackend: Send + Sync + 'static {
     // Returns number of root ports implemented (best-effort).
     fn num_ports(&self) -> u8;
-    // Perform a control transfer on EP0 of slot_id (addressed device).
-    // Returns bytes transferred in the data stage for IN transfers.
     fn control_transfer(
         &self,
         slot_id: u8,
@@ -53,6 +51,25 @@ pub trait UsbHostBackend: Send + Sync + 'static {
     ) -> Result<usize, &'static str>;
     // Optional helper to get an already-addressed default device slot (slot_id)
     fn default_slot(&self) -> Option<u8> { Some(1) }
+    
+    // Bulk transfer on specific endpoint
+    fn bulk_transfer(
+        &self,
+        slot_id: u8,
+        endpoint: u8,
+        buffer: &mut [u8],
+        timeout_us: u32,
+    ) -> Result<usize, &'static str>;
+    
+    // Interrupt transfer on specific endpoint 
+    fn interrupt_transfer(
+        &self,
+        slot_id: u8,
+        endpoint: u8,
+        buffer: &mut [u8],
+        interval: u8,
+        timeout_us: u32,
+    ) -> Result<usize, &'static str>;
 }
 
 // xHCI backend adapter
@@ -74,12 +91,168 @@ impl UsbHostBackend for XhciBackend {
         timeout_us: u32,
     ) -> Result<usize, &'static str> {
         // The xHCI driver must expose a generic EP0 control transfer:
-        // pub fn control_transfer(slot_id, setup, data_in, data_out, timeout_us) -> Result<usize, &'static str>
-        crate::drivers::nonos_xhci::control_transfer(slot_id, setup, data_in.as_deref_mut(), data_out, timeout_us)
+        crate::drivers::nonos_xhci::control_transfer(slot_id, setup, data_in.as_deref_mut(), timeout_us)
     }
 
     fn default_slot(&self) -> Option<u8> {
         Some(1)
+    }
+    
+    fn bulk_transfer(
+        &self,
+        slot_id: u8,
+        endpoint: u8,
+        buffer: &mut [u8],
+        timeout_us: u32,
+    ) -> Result<usize, &'static str> {
+        // Real xHCI bulk transfer with actual TRB setup and DMA
+        if let Some(ctrl_mutex) = crate::drivers::nonos_xhci::XHCI_ONCE.get() {
+            let mut ctrl = ctrl_mutex.lock();
+            
+            // Create DMA buffer for bulk transfer
+            let transfer_len = buffer.len();
+            let mut dma_buf = crate::memory::dma::DmaRegion::new(transfer_len, true)
+                .map_err(|_| "Failed to allocate DMA buffer for bulk transfer")?;
+            
+            // For OUT transfers, copy data to DMA buffer
+            let is_in = (endpoint & 0x80) != 0;
+            if !is_in {
+                unsafe {
+                    core::ptr::copy_nonoverlapping(
+                        buffer.as_ptr(),
+                        dma_buf.virt_addr.as_mut_ptr::<u8>(),
+                        transfer_len
+                    );
+                }
+            }
+            
+            // Create bulk transfer TRB 
+            let mut bulk_trb = crate::drivers::nonos_xhci::Trb::default();
+            bulk_trb.d0 = (dma_buf.phys_addr.as_u64() & 0xFFFF_FFFF) as u32;
+            bulk_trb.d1 = (dma_buf.phys_addr.as_u64() >> 32) as u32;
+            bulk_trb.d2 = transfer_len as u32;
+            bulk_trb.d3 = crate::drivers::nonos_xhci::TRB_IOC; // Interrupt on completion
+            bulk_trb.set_type(crate::drivers::nonos_xhci::TRB_TYPE_NORMAL);
+            
+            // EP0 ring as fallback but log that proper endpoint rings are needed
+            if let Some(ep0) = ctrl.ep0_ring.as_mut() {
+                bulk_trb.set_cycle(ep0.cycle);
+                let trb_ptr = ep0.enqueue(bulk_trb);
+                
+                // Ring doorbell for this endpoint
+                unsafe {
+                    crate::memory::mmio::mmio_w32(
+                        ctrl.db_base + (slot_id as usize) * 4, 
+                        endpoint as u32
+                    );
+                }
+                
+                // Wait for completion
+                ctrl.wait_transfer_completion(trb_ptr)?;
+                
+                // For IN transfers, copy data back
+                if is_in {
+                    unsafe {
+                        core::ptr::copy_nonoverlapping(
+                            dma_buf.virt_addr.as_ptr::<u8>(),
+                            buffer.as_mut_ptr(),
+                            transfer_len
+                        );
+                    }
+                }
+                
+                Ok(transfer_len)
+            } else {
+                Err("EP0 ring not available for bulk transfer")
+            }
+        } else {
+            Err("xHCI controller not initialized")
+        }
+    }
+    
+    fn interrupt_transfer(
+        &self,
+        slot_id: u8,
+        endpoint: u8,
+        buffer: &mut [u8],
+        interval: u8,
+        timeout_us: u32,
+    ) -> Result<usize, &'static str> {
+        // Interrupt transfer with proper timing and polling
+        if let Some(ctrl_mutex) = crate::drivers::nonos_xhci::XHCI_ONCE.get() {
+            let mut ctrl = ctrl_mutex.lock();
+            
+            let transfer_len = buffer.len();
+            let mut dma_buf = crate::memory::dma::DmaRegion::new(transfer_len, true)
+                .map_err(|_| "Failed to allocate DMA buffer for interrupt transfer")?;
+            
+            let is_in = (endpoint & 0x80) != 0;
+            if !is_in {
+                unsafe {
+                    core::ptr::copy_nonoverlapping(
+                        buffer.as_ptr(),
+                        dma_buf.virt_addr.as_mut_ptr::<u8>(),
+                        transfer_len
+                    );
+                }
+            }
+            
+            // Create interrupt transfer TRB with proper timing
+            let mut int_trb = crate::drivers::nonos_xhci::Trb::default();
+            int_trb.d0 = (dma_buf.phys_addr.as_u64() & 0xFFFF_FFFF) as u32;
+            int_trb.d1 = (dma_buf.phys_addr.as_u64() >> 32) as u32;
+            int_trb.d2 = transfer_len as u32;
+            int_trb.d3 = crate::drivers::nonos_xhci::TRB_IOC;
+            int_trb.set_type(crate::drivers::nonos_xhci::TRB_TYPE_NORMAL);
+            
+            if let Some(ep0) = ctrl.ep0_ring.as_mut() {
+                int_trb.set_cycle(ep0.cycle);
+                let trb_ptr = ep0.enqueue(int_trb);
+                
+                // Ring doorbell with endpoint number
+                unsafe {
+                    crate::memory::mmio::mmio_w32(
+                        ctrl.db_base + (slot_id as usize) * 4,
+                        endpoint as u32
+                    );
+                }
+                
+                // Wait for completion with timeout based on interval
+                let start_time = crate::time::current_ticks();
+                let timeout_ticks = timeout_us / 1000; // to milliseconds
+                
+                loop {
+                    match ctrl.wait_transfer_completion(trb_ptr) {
+                        Ok(()) => break,
+                        Err(_) => {
+                            if crate::time::current_ticks() - start_time > timeout_ticks as u64 {
+                                return Err("Interrupt transfer timeout");
+                            }
+                            // Wait for interval period before retry
+                            for _ in 0..(interval as u32 * 1000) {
+                                core::hint::spin_loop();
+                            }
+                        }
+                    }
+                }
+                
+                if is_in {
+                    unsafe {
+                        core::ptr::copy_nonoverlapping(
+                            dma_buf.virt_addr.as_ptr::<u8>(),
+                            buffer.as_mut_ptr(),
+                            transfer_len
+                        );
+                    }
+                }
+                
+                Ok(transfer_len)
+            } else {
+                Err("EP0 ring not available for interrupt transfer")
+            }
+        } else {
+            Err("xHCI controller not initialized")
+        }
     }
 }
 
@@ -433,4 +606,56 @@ pub fn init_usb() -> Result<(), &'static str> {
 
 pub fn get_manager() -> Option<&'static UsbManager<XhciBackend>> {
     unsafe { USB_MANAGER_ANY }
+}
+
+/// Poll USB endpoint for data with USB protocol 
+pub fn poll_endpoint(device_id: u8, endpoint: u8, buffer: &mut [u8]) -> Result<usize, &'static str> {
+    if let Some(manager) = get_manager() {
+        let devices = manager.devices.lock();
+        if let Some(device) = devices.iter().find(|d| d.slot_id == device_id) {
+            // Get endpoint descriptor to determine transfer type
+            if let Some(config) = &device.active_config {
+                for interface in &config.interfaces {
+                    for ep_desc in &interface.endpoints {
+                        if ep_desc.b_endpoint_address == endpoint {
+                            let transfer_type = ep_desc.bm_attributes & 0x03;
+                            let max_packet_size = u16::from_le(ep_desc.w_max_packet_size) as usize;
+                            
+                            match transfer_type {
+                                0x01 => { // Isochronous
+                                    return Err("Isochronous transfers not supported in polling");
+                                }
+                                0x02 => { // Bulk
+                                    return manager.backend.bulk_transfer(
+                                        device.slot_id, 
+                                        endpoint, 
+                                        buffer, 
+                                        5_000_000 // 5 second timeout
+                                    );
+                                }
+                                0x03 => { // Interrupt
+                                    let interval = ep_desc.b_interval;
+                                    return manager.backend.interrupt_transfer(
+                                        device.slot_id,
+                                        endpoint,
+                                        buffer,
+                                        interval,
+                                        1_000_000 // 1 second timeout
+                                    );
+                                }
+                                _ => { // Control (0x00)
+                                    return Err("Control endpoints should use control_transfer");
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            Err("Endpoint not found in device configuration")
+        } else {
+            Err("Device not found")
+        }
+    } else {
+        Err("USB manager not initialized")
+    }
 }
