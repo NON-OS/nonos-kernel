@@ -19,7 +19,7 @@ pub enum KeyCode {
 
 /// Handle keyboard interrupt
 pub fn handle_keyboard_interrupt() {
-    let scan_code = crate::arch::x86_64::port::inb(0x60);
+    let scan_code = unsafe { crate::arch::x86_64::port::inb(0x60) };
     input::push_event(input::InputEvent::KeyPress(scan_code));
 }
 
