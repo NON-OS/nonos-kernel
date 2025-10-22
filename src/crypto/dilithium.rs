@@ -34,12 +34,14 @@ pub const SIGNATURE_BYTES: usize = 4595;
 
 #[repr(C)]
 #[derive(Clone)]
+#[derive(Debug)]
 pub struct DilithiumPublicKey {
     pub bytes: [u8; PUBLICKEY_BYTES],
 }
 
 #[repr(C)]
 #[derive(Clone)]
+#[derive(Debug)]
 pub struct DilithiumSecretKey {
     pub bytes: [u8; SECRETKEY_BYTES],
 }
@@ -59,6 +61,7 @@ pub struct DilithiumSignature {
 }
 
 #[repr(C)]
+#[derive(Debug)]
 pub struct DilithiumKeyPair {
     pub public_key: DilithiumPublicKey,
     pub secret_key: DilithiumSecretKey,
