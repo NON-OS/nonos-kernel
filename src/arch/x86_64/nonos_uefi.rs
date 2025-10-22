@@ -1,6 +1,6 @@
 //! UEFI (Unified Extensible Firmware Interface) 
 
-use alloc::{vec, vec::Vec, string::String};
+use alloc::{vec, vec::Vec, string::{String, ToString}};
 use core::ptr;
 
 #[derive(Debug, Clone)]
@@ -177,7 +177,7 @@ impl UefiManager {
     /// Thread-safe variable lookup.
     pub fn get_variable(&self, name: &str, guid: &Guid) -> Option<UefiVariable> {
         let cache = self.variables_cache.read();
-        cache.get(&(name.to_string(), *guid)).cloned()
+        cache.get(&(name.into(), *guid)).cloned()
     }
 
     /// Set UEFI variable, validating runtime services header signature.
@@ -200,13 +200,13 @@ impl UefiManager {
             }
         }
         let var = UefiVariable {
-            name: name.to_string(),
+            name: name.into(),
             guid: *guid,
             attributes,
             data: data.to_vec(),
         };
         let mut cache = self.variables_cache.write();
-        cache.insert((name.to_string(), *guid), var);
+        cache.insert((name.into(), *guid), var);
         Ok(())
     }
 
