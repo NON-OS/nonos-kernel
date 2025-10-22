@@ -8,6 +8,7 @@ pub mod loader;
 pub mod tls;
 pub mod dynlink;
 pub mod interpreter;
+pub mod minimal;
 
 // Public API exports for kernel integration
 pub use loader::{
