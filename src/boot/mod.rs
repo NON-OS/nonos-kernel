@@ -213,15 +213,15 @@ unsafe fn init_interrupts() {
 
 unsafe fn init_core_subsystems() {
     crate::log::logger::init();
-    crate::log::info("[BOOT] Logger initialized");
+    crate::log::info!("[BOOT] Logger initialized");
     crate::crypto::vault::init_vault();
-    crate::log::info("[BOOT] Crypto vault initialized");
+    crate::log::info!("[BOOT] Crypto vault initialized");
     crate::sched::init();
-    crate::log::info("[BOOT] Scheduler initialized");
+    crate::log::info!("[BOOT] Scheduler initialized");
     crate::ipc::init_ipc();
-    crate::log::info("[BOOT] IPC initialized");
+    crate::log::info!("[BOOT] IPC initialized");
     crate::ui::cli::spawn();
-    crate::log::info("[BOOT] CLI spawned");
+    crate::log::info!("[BOOT] CLI spawned");
 }
 
 unsafe fn init_module_system() {
@@ -232,30 +232,17 @@ unsafe fn init_module_system() {
 
 unsafe fn load_initial_modules() {
     let test_manifest = crate::modules::manifest::ModuleManifest {
-        name: "init",
-        version: "1.0.0",
-        hash: [0; 32],
-        signature: [0; 64],
-        public_key: [0; 32],
-        signer: crate::crypto::vault::VaultPublicKey::default(),
-        auth_chain_id: None,
-        auth_method: crate::modules::manifest::AuthMethod::VaultSignature,
-        zk_attestation: None,
-        required_caps: alloc::vec![
-            crate::syscall::capabilities::Capability::CoreExec,
-            crate::syscall::capabilities::Capability::IO,
+        name: "init".into(),
+        version: "1.0.0".into(),
+        author: "NØNOS".into(),
+        description: "Initial boot module".into(),
+        capabilities: alloc::vec![
+            crate::process::capabilities::Capability::CoreExec,
+            crate::process::capabilities::Capability::IO,
         ],
-        fault_policy: Some(crate::modules::runtime::FaultPolicy::Restart),
-        memory_bytes: 64 * 1024,
-        timestamp: 0,
-        expiry_seconds: None,
-        entry_point_addr: Some(0x400000),
-        module_type: crate::modules::manifest::ModuleType::System,
-        memory_requirements: crate::modules::manifest::MemoryRequirements {
-            min_heap: 64 * 1024,
-            max_heap: 128 * 1024,
-            stack_size: 8 * 1024,
-        },
+        privacy_policy: crate::modules::manifest::PrivacyPolicy::ZeroStateOnly,
+        attestation_chain: alloc::vec![],
+        hash: [0; 32],
     };
     let manifest_ref = alloc::boxed::Box::leak(alloc::boxed::Box::new(test_manifest));
     crate::modules::mod_loader::verify_and_queue(manifest_ref).ok();
