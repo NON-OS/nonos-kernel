@@ -19,6 +19,7 @@ const DOM_CRED:   &[u8] = b"NONOS_CRED_V1";
 
 #[repr(C)]
 #[derive(Clone, Copy)]
+#[derive(Debug)]
 pub struct AttestationProof {
     pub msg_hash: [u8; 32],   // SHA-256(message)
     pub nonce:    [u8; 32],   // 256-bit random nonce
