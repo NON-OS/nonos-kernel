@@ -38,14 +38,14 @@ all: build
 .PHONY: build
 build:
 	@echo "Building NØNOS kernel (optimized)..."
-	cd $(KERNEL_DIR) && $(CARGO) build --release --target $(TARGET).json
+	cd $(KERNEL_DIR) && $(CARGO) build --release --target $(TARGET).json -Zbuild-std=core,alloc
 	@strip --strip-all target/$(TARGET)/release/nonos_kernel 2>/dev/null || true
 	@echo "Build complete!"
 
 .PHONY: release
 release:
 	@echo "Building NØNOS kernel (release)..."
-	cd $(KERNEL_DIR) && $(CARGO) build --release --target $(TARGET).json
+	cd $(KERNEL_DIR) && $(CARGO) build --release --target $(TARGET).json -Zbuild-std=core,alloc
 	@echo "Release build complete!"
 
 # Clean build artifacts
