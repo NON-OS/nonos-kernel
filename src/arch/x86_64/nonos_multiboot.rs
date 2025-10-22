@@ -285,3 +285,9 @@ fn init_baremetal_features() -> Result<(), &'static str> {
     crate::log::info!("Initialized bare-metal hardware features");
     Ok(())
 }
+
+/// Initialize multiboot subsystem 
+pub fn init() -> Result<(), &'static str> {
+    crate::log::info!("Multiboot subsystem initialized");
+    Ok(())
+}
