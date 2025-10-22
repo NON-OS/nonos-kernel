@@ -48,13 +48,16 @@ default = [
   "crypto-aead", 
   "crypto-ed25519-int",
   
+  # UI subsystem for production
+  "ui",
+  
   # Post-quantum cryptography
   "mlkem768",
   "mldsa3",
   
   # Zero-knowledge proof systems
-  "zk-halo2",
-  "zk-groth16",
+  # "zk-halo2",    # Disabled for production no_std build
+  # "zk-groth16",  # Disabled for production no_std build
 
   # PQC (ML-KEM-768 by default)
   "mlkem768",
@@ -199,6 +202,9 @@ volatile = { version = "0.4", default-features = false }
 heapless = { version = "0.8", default-features = false }
 blake3   = { version = "1.0", default-features = false }
 bootloader_api = { version = "0.11", default-features = false }
+
+# Network stack
+smoltcp = { version = "0.11", default-features = false, features = ["alloc", "socket-raw", "socket-udp", "socket-tcp", "proto-ipv4", "proto-ipv6", "medium-ethernet"] }
 
 # Host-only tooling/tests when `--features std`
 rand = { version = "0.8", default-features = true, optional = true }
