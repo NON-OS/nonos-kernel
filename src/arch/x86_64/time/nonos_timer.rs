@@ -2,7 +2,7 @@
 
 use core::sync::atomic::{AtomicU64, AtomicBool, Ordering};
 use spin::Mutex;
-use alloc::collections::BTreeMap;
+use alloc::{collections::BTreeMap, boxed::Box};
 
 static BOOT_TIME: AtomicU64 = AtomicU64::new(0);
 static TSC_FREQUENCY: AtomicU64 = AtomicU64::new(0);
@@ -14,7 +14,7 @@ static NEXT_TIMER_ID: AtomicU64 = AtomicU64::new(1);
 /// Timer callback structure
 struct TimerCallback {
     expiry_ns: u64,
-    callback: fn(),
+    callback: Box<dyn Fn() + Send + Sync>,
 }
 
 /// Get nanoseconds since boot with real TSC calibration
@@ -86,7 +86,9 @@ pub fn init() {
     ACTIVE_TIMERS.lock().clear();
     TIMER_INITIALIZED.store(true, Ordering::SeqCst);
     if let Some(logger) = crate::log::logger::try_get_logger() {
-        logger.log(&alloc::format!("[TIMER] Initialized with TSC frequency: {} Hz", tsc_freq));
+        if let Some(log_mgr) = logger.lock().as_mut() {
+            log_mgr.log(crate::log::nonos_logger::Severity::Info, &alloc::format!("[TIMER] Initialized with TSC frequency: {} Hz", tsc_freq));
+        }
     }
 }
 
@@ -120,7 +122,9 @@ fn configure_hpet_for_timing(hpet_base: u64) {
         core::ptr::write_volatile(counter_reg, 0);
         core::ptr::write_volatile(config_reg, 1);
         if let Some(logger) = crate::log::logger::try_get_logger() {
-            logger.log(&alloc::format!("[TIMER] HPET configured, period: {} fs", period_fs));
+            if let Some(log_mgr) = logger.lock().as_mut() {
+                log_mgr.log(crate::log::Severity::Info, &alloc::format!("[TIMER] HPET configured, period: {} fs", period_fs));
+            }
         }
     }
 }
@@ -162,7 +166,7 @@ fn detect_hpet() -> Option<u64> {
 }
 
 /// Check if given address contains valid HPET
-fn is_valid_hpet_base(base: u64) -> bool {
+pub fn is_valid_hpet_base(base: u64) -> bool {
     unsafe {
         let capabilities_ptr = base as *const u64;
         let capabilities = core::ptr::read_volatile(capabilities_ptr);
@@ -215,13 +219,13 @@ pub fn busy_sleep_ns(ns: u64) {
 /// High resolution timer callback with real timer management
 pub fn hrtimer_after_ns<F>(ns: u64, callback: F) -> u64
 where
-    F: Fn() + 'static,
+    F: Fn() + Send + Sync + 'static,
 {
     let timer_id = NEXT_TIMER_ID.fetch_add(1, Ordering::Relaxed);
     let expiry_time = now_ns() + ns;
     let timer_callback = TimerCallback {
         expiry_ns: expiry_time,
-        callback: unsafe { core::mem::transmute(callback as *const ()) },
+        callback: Box::new(callback),
     };
     ACTIVE_TIMERS.lock().insert(timer_id, timer_callback);
     check_expired_timers();
@@ -262,14 +266,16 @@ fn rdtsc() -> u64 {
     unsafe {
         let mut hi: u32;
         let mut lo: u32;
-        core::arch::asm!(
-            "lfence",
-            "rdtsc",
-            "lfence",
-            out("eax") lo,
-            out("edx") hi,
-            options(nostack, preserves_flags)
-        );
+        unsafe {
+            core::arch::asm!(
+                "lfence",
+                "rdtsc",
+                "lfence",
+                out("eax") lo,
+                out("edx") hi,
+                options(nostack, preserves_flags)
+            );
+        }
         ((hi as u64) << 32) | (lo as u64)
     }
 }
@@ -280,13 +286,15 @@ pub fn rdtscp() -> (u64, u32) {
         let mut hi: u32;
         let mut lo: u32;
         let mut aux: u32;
-        core::arch::asm!(
-            "rdtscp",
-            out("eax") lo,
-            out("edx") hi,
-            out("ecx") aux,
-            options(nostack, preserves_flags)
-        );
+        unsafe {
+            core::arch::asm!(
+                "rdtscp",
+                out("eax") lo,
+                out("edx") hi,
+                out("ecx") aux,
+                options(nostack, preserves_flags)
+            );
+        }
         (((hi as u64) << 32) | (lo as u64), aux)
     }
 }
