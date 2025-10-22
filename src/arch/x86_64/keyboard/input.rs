@@ -1,6 +1,7 @@
 //! Kernel Input Event Multiplexer
 
 use alloc::collections::VecDeque;
+use alloc::vec::Vec;
 use spin::Mutex;
 
 /// Describes a discrete input event from any device.
