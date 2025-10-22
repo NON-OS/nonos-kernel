@@ -1,6 +1,7 @@
 //! Dynamic Linking Helpers for ELF Loader
 
 use x86_64::VirtAddr;
+use alloc::{vec::Vec, string::String};
 
 /// Dynamic linking information for loaded ELF image.
 #[derive(Debug, Clone)]
