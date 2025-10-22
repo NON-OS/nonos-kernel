@@ -36,6 +36,12 @@ pub enum ElfError {
     StringTableError,
     /// Unknown or unsupported ELF format.
     UnknownFormat,
-    /// Any other error (use .to_string() for details).
+    /// Any other error (use .into() for details).
     Other(&'static str),
+}
+
+impl From<&'static str> for ElfError {
+    fn from(s: &'static str) -> Self {
+        ElfError::Other(s)
+    }
 }
