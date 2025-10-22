@@ -68,14 +68,7 @@ pub use nonos_virtio_net::{
     VirtioNetDevice, VirtioNetInterface, init_virtio_net, get_virtio_net_device
 };
 
-/// Initialize all hardware drivers.
-/// - Initializes DMA allocator and common pools first.
-/// - Delegates the rest of the bring-up to the MONSTER orchestrator,
-///   which is idempotent and performs safe, ordered initialization.
-/// - Logs critical milestones.
-pub fn init_all_drivers() -> Result<(), &'static str> {
-    // DMA subsystem first for coherent allocations used by drivers.
-    crate::memory::dma::init_dma_allocator()?;
+/// Initialize all hardware dri    crate::memory::dma::init_dma_allocator()?;
     let _ = crate::memory::dma::create_dma_pool(4096, 128);
     let _ = crate::memory::dma::create_dma_pool(2048, 256);
 
@@ -189,12 +182,12 @@ pub fn get_critical_drivers() -> alloc::vec::Vec<CriticalDriver> {
         drivers.push(CriticalDriver {
             name: "NVMe Storage Controller",
             driver_type: DriverType::Storage,
-            base_address: nvme_ctrl as *const _ as usize,
-            size: core::mem::size_of_val(nvme_ctrl),
+            base_address: &*nvme_ctrl as *const _ as usize,
+            size: core::mem::size_of_val(&nvme_ctrl),
             hash: crate::crypto::blake3::blake3_hash(unsafe {
                 core::slice::from_raw_parts(
-                    nvme_ctrl as *const _ as *const u8,
-                    core::mem::size_of_val(nvme_ctrl)
+                    &*nvme_ctrl as *const _ as *const u8,
+                    core::mem::size_of_val(&nvme_ctrl)
                 )
             }),
             version: 1,
@@ -264,7 +257,7 @@ pub fn get_all_devices() -> alloc::vec::Vec<DeviceInfo> {
                     (0x1AF4, _) => "VirtIO Device",
                     _ => "Unknown Device",
                 },
-                device_type: classify_device_type(pci_dev.class_code as u32),
+                device_type: classify_device_type(pci_dev.class as u32),
                 vendor_id: pci_dev.vendor_id,
                 device_id: pci_dev.device_id,
                 address: pci_dev.bars[0].as_ref().map(|bar| match bar {
