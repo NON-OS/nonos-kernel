@@ -206,3 +206,9 @@ pub async fn hlt_sleep_ms(ms: u64) {
         }
     }
 }
+
+pub fn idle_cpu() {
+    unsafe {
+        x86_64::instructions::hlt();
+    }
+}
