@@ -72,6 +72,11 @@ pub fn init_cpu_detection() {
     });
 }
 
+/// Initialize CPU features (alias for init_cpu_detection)
+pub fn init_features() {
+    init_cpu_detection();
+}
+
 /// Get the number of logical CPUs in the system.
 pub fn get_cpu_count() -> usize {
     init_cpu_detection();
@@ -308,11 +313,11 @@ pub fn init_cpu_optimizations() {
 pub fn get_cache_stats() -> Option<BTreeMap<String, u32>> {
     if let Some(cpu_data) = get_cpu_data(0) {
         let mut stats = BTreeMap::new();
-        stats.insert("l1d_size".to_string(), cpu_data.cache.l1_data_size);
-        stats.insert("l1i_size".to_string(), cpu_data.cache.l1_instruction_size);
-        stats.insert("l2_size".to_string(), cpu_data.cache.l2_size);
-        stats.insert("l3_size".to_string(), cpu_data.cache.l3_size);
-        stats.insert("line_size".to_string(), cpu_data.cache.line_size);
+        stats.insert("l1d_size".into(), cpu_data.cache.l1_data_size);
+        stats.insert("l1i_size".into(), cpu_data.cache.l1_instruction_size);
+        stats.insert("l2_size".into(), cpu_data.cache.l2_size);
+        stats.insert("l3_size".into(), cpu_data.cache.l3_size);
+        stats.insert("line_size".into(), cpu_data.cache.line_size);
         Some(stats)
     } else {
         None
@@ -355,27 +360,31 @@ unsafe fn detect_frequency_cpuid_15h() -> Option<u64> {
     let mut ebx: u32;
     let mut ecx: u32;
     let mut edx: u32;
-    core::arch::asm!(
-        "push rbx",
-        "cpuid",
-        "mov {ebx:e}, ebx",
-        "pop rbx",
-        inout("eax") 0u32 => eax,
-        ebx = out(reg) ebx,
-        out("ecx") ecx,
-        out("edx") edx
-    );
+    unsafe {
+        core::arch::asm!(
+            "push rbx",
+            "cpuid",
+            "mov {ebx:e}, ebx",
+            "pop rbx",
+            inout("eax") 0u32 => eax,
+            ebx = out(reg) ebx,
+            out("ecx") ecx,
+            out("edx") edx
+        );
+    }
     if eax < 0x15 { return None; }
-    core::arch::asm!(
-        "push rbx",
-        "cpuid",
-        "mov {ebx:e}, ebx",
-        "pop rbx",
-        inout("eax") 0x15u32 => eax,
-        ebx = out(reg) ebx,
-        out("ecx") ecx,
-        out("edx") edx
-    );
+    unsafe {
+        core::arch::asm!(
+            "push rbx",
+            "cpuid",
+            "mov {ebx:e}, ebx",
+            "pop rbx",
+            inout("eax") 0x15u32 => eax,
+            ebx = out(reg) ebx,
+            out("ecx") ecx,
+            out("edx") edx
+        );
+    }
     let denominator = eax;
     let numerator = ebx;
     let crystal_freq = ecx;
