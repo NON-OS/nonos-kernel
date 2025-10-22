@@ -255,7 +255,7 @@ const SHIFTED: [Option<u8>; 0x60] = {
 };
 
 // ISR
-extern "x86-interrupt" fn keyboard_isr(_: crate::arch::x86_64::InterruptStackFrame) {
+fn keyboard_isr(_: crate::arch::x86_64::InterruptStackFrame) {
     // Check status
     let status = unsafe { inb(KBD_STATUS) };
     if (status & 1) == 0 {
@@ -357,4 +357,39 @@ pub fn has_data() -> bool {
 
 pub fn read_event() -> Option<KeyEvent> {
     EVT_RING.pop_evt()
+}
+
+/// Keyboard interface structure 
+pub struct KeyboardInterface {
+    pub initialized: bool,
+}
+
+impl KeyboardInterface {
+    pub fn read_char(&self) -> Option<char> {
+        read_char()
+    }
+    
+    pub fn has_data(&self) -> bool {
+        has_data()
+    }
+    
+    pub fn read_event(&self) -> Option<KeyEvent> {
+        read_event()
+    }
+    
+    pub fn get_modifiers(&self) -> u8 {
+        let mut mods = 0;
+        if SHIFT.load(Ordering::Relaxed) { mods |= 0x01; }
+        if CTRL.load(Ordering::Relaxed) { mods |= 0x02; }
+        if ALT.load(Ordering::Relaxed) { mods |= 0x04; }
+        if CAPS.load(Ordering::Relaxed) { mods |= 0x08; }
+        mods
+    }
+}
+
+static KEYBOARD_INTERFACE: KeyboardInterface = KeyboardInterface { initialized: false };
+
+/// Get the global keyboard interface for hardware interaction
+pub fn get_keyboard() -> &'static KeyboardInterface {
+    &KEYBOARD_INTERFACE
 }
