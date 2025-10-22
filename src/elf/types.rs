@@ -72,3 +72,11 @@ pub struct RelaEntry {
     pub r_info: u64,
     pub r_addend: i64,
 }
+
+/// Dynamic section entry
+#[repr(C)]
+#[derive(Debug, Clone)]
+pub struct DynamicEntry {
+    pub d_tag: u64,
+    pub value: u64,
+}
