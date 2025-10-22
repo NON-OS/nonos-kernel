@@ -325,7 +325,7 @@ fn ge_unpack(s: &[u8;32]) -> Option<GeP3> {
     if (fe_is_odd(&x) as u8) != sign { x = fe_sub(&Fe::zero(), &x); }
     // check on-curve
     if !fe_equal(&fe_mul(&fe_sq(&x), &v), &u) { return None; }
-    Some(GeP3 { X:x, Y, Z:Fe::one(), T: fe_mul(&x, &y) })
+    Some(GeP3 { X:x, Y:y, Z:Fe::one(), T: fe_mul(&x, &y) })
 }
 
 // ---------------- Scalar arithmetic (mod L) ----------------
@@ -717,7 +717,7 @@ mod tests {
         let msg: [u8;0]=[];
         let sig = sign(&kp, &msg);
         assert!(verify(&kp.public, &msg, &sig));
-        // Known signature prefix matches (full vector compare can be added)
+        // Known signature prefix matches (full vector we can add too)
         assert_eq!(&sig.R[..4], &[0xe5,0x56,0x43,0x00]);
     }
 
