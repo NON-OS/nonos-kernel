@@ -1,6 +1,7 @@
 //! USB HID Keyboard/Mouse Support 
 
 use crate::arch::x86_64::keyboard::input::{push_event, InputEvent};
+use alloc::vec::Vec;
 
 /// Initialize USB HID subsystem and register keyboard/mouse devices.
 pub fn init_usb_hid() -> Result<(), &'static str> {
@@ -58,7 +59,6 @@ fn poll_hid_keyboard_report(
             dev.slot_id,
             ep.b_endpoint_address,
             &mut report,
-            1000,
         ).is_ok() {
             return Some(report);
         }
@@ -77,7 +77,6 @@ fn poll_hid_mouse_report(
             dev.slot_id,
             ep.b_endpoint_address,
             &mut report,
-            1000,
         ).is_ok() {
             return Some(report);
         }
