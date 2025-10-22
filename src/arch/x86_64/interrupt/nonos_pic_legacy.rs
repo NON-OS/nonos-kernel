@@ -206,12 +206,16 @@ unsafe fn try_route_imcr_to_apic() {
 #[inline(always)]
 unsafe fn inb(port: u16) -> u8 {
     let mut v: u8;
-    core::arch::asm!("in al, dx", out("al") v, in("dx") port, options(nomem, nostack, preserves_flags));
+    unsafe {
+        core::arch::asm!("in al, dx", out("al") v, in("dx") port, options(nomem, nostack, preserves_flags));
+    }
     v
 }
 #[inline(always)]
 unsafe fn outb(port: u16, val: u8) {
-    core::arch::asm!("out dx, al", in("al") val, in("dx") port, options(nomem, nostack, preserves_flags));
+    unsafe {
+        core::arch::asm!("out dx, al", in("al") val, in("dx") port, options(nomem, nostack, preserves_flags));
+    }
 }
 #[inline(always)]
 fn io_wait() { unsafe { outb(0x80, 0); } }
