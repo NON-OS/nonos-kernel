@@ -13,9 +13,7 @@ use crate::arch::nonos_pci;
 /// Called first before any other subsystem.
 pub fn init_early() {
     // Initialize logger for diagnostics from the earliest stage.
-    if let Err(e) = crate::log::init_logger() {
-        panic!("Logger initialization failed during early boot: {:?}", e);
-    }
+    crate::log::init_logger();
     log_info!("Logger initialized.");
 
     // Initialize CPU features (SSE, AVX, etc.), disables interrupts until setup is complete.
