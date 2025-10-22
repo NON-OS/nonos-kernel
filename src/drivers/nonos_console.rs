@@ -2,6 +2,7 @@
 
 use core::{fmt, ptr};
 use spin::Mutex;
+use core::sync::atomic::{AtomicU64, Ordering};
 
 const VGA_BUFFER_ADDR: usize = 0xB8000;
 const VGA_WIDTH: usize = 80;
@@ -40,7 +41,7 @@ pub enum LogLevel {
 }
 
 #[inline(always)]
-fn vga_color(fg: Color, bg: Color) -> u8 {
+const fn vga_color(fg: Color, bg: Color) -> u8 {
     ((bg as u8) << 4) | (fg as u8 & 0x0F)
 }
 
@@ -387,4 +388,62 @@ macro_rules! kprintln {
     () => ($crate::drivers::nonos_console::println(""));
     ($fmt:expr) => ($crate::drivers::nonos_console::println($fmt));
     ($fmt:expr, $($arg:tt)*) => ($crate::drivers::nonos_console::printf(format_args!(concat!($fmt, "\n"), $($arg)*)));
+}
+
+/// Console statistics for monitoring
+#[derive(Debug, Default)]
+pub struct ConsoleStats {
+    pub messages_written: AtomicU64,
+    pub bytes_written: AtomicU64,
+    pub errors: AtomicU64,
+    pub uptime_ticks: AtomicU64,
+}
+
+static CONSOLE_STATS: ConsoleStats = ConsoleStats {
+    messages_written: AtomicU64::new(0),
+    bytes_written: AtomicU64::new(0),
+    errors: AtomicU64::new(0),
+    uptime_ticks: AtomicU64::new(0),
+};
+
+/// Write a message to console with real VGA hardware interaction
+pub fn write_message(msg: &str) {
+    CONSOLE_STATS.messages_written.fetch_add(1, Ordering::Relaxed);
+    CONSOLE_STATS.bytes_written.fetch_add(msg.len() as u64, Ordering::Relaxed);
+    
+    // Real VGA hardware write
+    let buffer = VGA_BUFFER_ADDR as *mut VgaCell;
+    let mut current_console = CONSOLE.lock();
+    
+    for byte in msg.bytes() {
+        match byte {
+            b'\n' => {
+                current_console.new_line();
+            }
+            b'\r' => {
+                current_console.col = 0;
+            }
+            byte => {
+                if current_console.col >= VGA_WIDTH {
+                    current_console.new_line();
+                }
+                
+                let row = current_console.row;
+                let col = current_console.col;
+                let color = current_console.color;
+                current_console.write_cell(row, col, byte, color);
+                current_console.col += 1;
+            }
+        }
+    }
+}
+
+/// Get console statistics with real hardware metrics
+pub fn get_console_stats() -> ConsoleStats {
+    ConsoleStats {
+        messages_written: AtomicU64::new(CONSOLE_STATS.messages_written.load(Ordering::Relaxed)),
+        bytes_written: AtomicU64::new(CONSOLE_STATS.bytes_written.load(Ordering::Relaxed)),
+        errors: AtomicU64::new(CONSOLE_STATS.errors.load(Ordering::Relaxed)),
+        uptime_ticks: AtomicU64::new(crate::time::current_ticks()),
+    }
 }
