@@ -52,7 +52,7 @@ pub struct Sha512 {
 }
 
 impl Sha512 {
-    /// Create a new hasher (state initialized)
+    /// (state initialized)
     #[inline]
     pub fn new() -> Self {
         Self {
@@ -63,9 +63,7 @@ impl Sha512 {
         }
     }
 
-    /// Reset to initial state (securely erases previous state)
     pub fn reset(&mut self) {
-        // Zero previous state with volatile writes, then restore initial state
         for v in &mut self.state {
             unsafe { ptr::write_volatile(v, 0) };
         }
@@ -79,12 +77,9 @@ impl Sha512 {
         self.bit_len = 0;
     }
 
-    /// Update the hasher with input bytes. Can be called multiple times.
     pub fn update(&mut self, mut input: &[u8]) {
-        // Update bit length (wraps on overflow per integer behavior)
         self.bit_len = self.bit_len.wrapping_add((input.len() as u128) * 8);
 
-        // If buffer has some bytes, fill to 128 and process if full
         if self.buffer_len != 0 {
             let to_copy = core::cmp::min(128 - self.buffer_len, input.len());
             let dst = &mut self.buffer[self.buffer_len..self.buffer_len + to_copy];
@@ -93,8 +88,8 @@ impl Sha512 {
             input = &input[to_copy..];
 
             if self.buffer_len == 128 {
-                let block: &[u8; 128] = (&self.buffer).try_into().expect("128 bytes");
-                self.process_block(block);
+                let block: [u8; 128] = self.buffer.clone().try_into().expect("128 bytes");
+                self.process_block(&block);
                 self.buffer_len = 0;
             }
         }
