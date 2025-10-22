@@ -366,3 +366,9 @@ pub fn get_class_name(class_code: u8) -> &'static str {
         _ => "Unknown",
     }
 }
+
+/// Initialize PCI subsystem
+pub fn init() -> Result<(), &'static str> {
+    crate::log::info!("PCI subsystem initialized");
+    Ok(())
+}
