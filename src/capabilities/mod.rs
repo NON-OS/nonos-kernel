@@ -149,9 +149,12 @@ pub fn set_signing_key(key: &[u8]) -> Result<(), &'static str> {
     if key.len() != 32 { return Err("cap: key size"); }
     let mut arr = [0u8; 32];
     arr.copy_from_slice(key);
-    let mut ok = true;
-    SIGNING_KEY.call_once(|| arr).map_err(|_| { ok = false; () }).ok();
-    if ok { Ok(()) } else { Err("cap: key already set") }
+    if SIGNING_KEY.get().is_some() {
+        Err("cap: key already set")
+    } else {
+        SIGNING_KEY.call_once(|| arr);
+        Ok(())
+    }
 }
 
 #[inline]
