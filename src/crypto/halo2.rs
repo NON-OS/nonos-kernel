@@ -6,7 +6,7 @@ extern crate alloc;
 use alloc::vec::Vec;
 
 use core::fmt;
-use std::io::Cursor;
+// use std::io::Cursor; // Not available in no_std
 
 use halo2_proofs::{
     plonk::{self, VerifyingKey},
