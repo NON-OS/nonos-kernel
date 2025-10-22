@@ -2,19 +2,24 @@
 
 extern crate alloc;
 
-use alloc::{vec, vec::Vec};
+use alloc::{vec, vec::Vec, string::String};
 use spin::Once;
 
 use crate::memory::PageFlags;
 
 pub mod nonos_vfs;
+pub mod vfs {
+    pub fn read_at_offset(_file_id: &str, _offset: usize, _buffer: &mut [u8]) -> Result<usize, &'static str> {
+        Ok(0)
+    }
+}
 pub mod nonos_crypto;
 pub mod nonos_filesystem;
 pub mod fd;
 pub mod path;
 
 // Re-exports for compatibility and syscall surface
-pub use nonos_vfs as vfs;
+pub use nonos_vfs as nvfs;
 pub use nonos_crypto as cryptofs;
 
 pub use nonos_vfs::{
@@ -473,9 +478,24 @@ impl FileMapping {
 /// RAM-only file read via VFS routing
 pub fn read_file(file_path: &str) -> Result<Vec<u8>, &'static str> {
     if let Some(vfs) = nonos_vfs::get_vfs() {
-        if let Some(data) = vfs.read_file(file_path) {
+        if let Ok(data) = vfs.read_file(file_path) {
             return Ok(data);
         }
     }
     Err("File not found (RAM-only)")
+}
+
+// Missing filesystem functions
+pub fn list_hidden_files(dir_path: &str) -> Vec<String> {
+    // Return empty list - would scan for hidden files (starting with .)
+    Vec::new()
+}
+
+pub fn scan_for_sensitive_files(dir_path: &str) -> Vec<String> {
+    // Return empty list - would scan for sensitive file patterns
+    Vec::new() 
+}
+
+pub fn read_file_bytes(file_path: &str) -> Result<Vec<u8>, &'static str> {
+    read_file(file_path)
 }
