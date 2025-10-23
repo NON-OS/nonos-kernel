@@ -36,6 +36,7 @@ pub struct NonosIPCMessage {
     pub priority: u8,
 }
 
+#[derive(Debug, Clone)]
 struct ChannelQueue {
     queue: alloc::collections::VecDeque<NonosIPCMessage>,
     cap: usize,
@@ -76,6 +77,18 @@ pub struct NonosIPCChannel {
     pub participants: Vec<u64>,                    // allowed PIDs
     pub encryption_enabled: bool,
     queue: Mutex<ChannelQueue>,                    // bounded per-channel queue
+}
+
+impl Clone for NonosIPCChannel {
+    fn clone(&self) -> Self {
+        Self {
+            channel_id: self.channel_id,
+            channel_type: self.channel_type,
+            participants: self.participants.clone(),
+            encryption_enabled: self.encryption_enabled,
+            queue: Mutex::new(self.queue.lock().clone()),
+        }
+    }
 }
 
 impl NonosIPCChannel {
@@ -213,7 +226,8 @@ impl NonosIPCManager {
         if !ch.has_participant(receiver_id) {
             return Err("receiver not authorized for channel");
         }
-        Ok(ch.queue.lock().pop_for(receiver_id))
+        let result = ch.queue.lock().pop_for(receiver_id);
+        Ok(result)
     }
 
     /// Destroy a channel; only participants are allowed to request destruction
