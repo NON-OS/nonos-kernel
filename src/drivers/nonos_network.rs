@@ -22,7 +22,7 @@ pub mod stack {
         }
     }
 
-    #[derive(Default, Clone)]
+    #[derive(Default)]
     pub struct NetworkStats {
         pub rx_packets: AtomicU64,
         pub tx_packets: AtomicU64,

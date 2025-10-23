@@ -7,6 +7,7 @@
 use core::{mem, ptr};
 use core::sync::atomic::{AtomicU64, Ordering};
 use alloc::vec::Vec;
+use alloc::boxed::Box;
 use spin::Mutex;
 use x86_64::{PhysAddr, VirtAddr};
 
@@ -127,7 +128,7 @@ impl Default for NvmeSubmission {
 
 #[repr(C, align(16))]
 #[derive(Clone, Copy)]
-struct NvmeCompletion {
+pub struct NvmeCompletion {
     // DW0-1
     result: u32,
     rsvd: u32,
@@ -159,12 +160,12 @@ impl DmaRegion {
 struct Queue {
     // Submission
     sq: DmaRegion,
-    sq_entries: *mut NvmeSubmission,
+    sq_entries: core::ptr::NonNull<NvmeSubmission>,
     sq_tail: u16,
 
     // Completion
     cq: DmaRegion,
-    cq_entries: *mut NvmeCompletion,
+    cq_entries: core::ptr::NonNull<NvmeCompletion>,
     cq_head: u16,
     cq_phase: u16,
 
@@ -172,13 +173,16 @@ struct Queue {
     qsize: u16,
 }
 
+unsafe impl Send for Queue {}
+unsafe impl Sync for Queue {}
+
 impl Queue {
     fn new(qid: u16, qsize: u16) -> Result<Self, &'static str> {
         let sq = DmaRegion::new(qsize as usize * mem::size_of::<NvmeSubmission>())?;
         let cq = DmaRegion::new(qsize as usize * mem::size_of::<NvmeCompletion>())?;
         Ok(Self {
-            sq_entries: sq.as_mut_ptr::<NvmeSubmission>(),
-            cq_entries: cq.as_mut_ptr::<NvmeCompletion>(),
+            sq_entries: core::ptr::NonNull::new(sq.as_mut_ptr::<NvmeSubmission>()).unwrap(),
+            cq_entries: core::ptr::NonNull::new(cq.as_mut_ptr::<NvmeCompletion>()).unwrap(),
             sq,
             cq,
             sq_tail: 0,
@@ -313,7 +317,9 @@ impl NvmeController {
         // Optional: configure MSI-X 
         {
             let mut g = me.lock();
-            let _ = g.pci.configure_msix(crate::interrupts::allocate_vector()?);
+            if let Some(vector) = crate::interrupts::allocate_vector() {
+                let _ = g.pci.configure_msix(vector);
+            }
         }
 
         // Identify controller and discover namespace 1 (common minimal case)
@@ -364,7 +370,7 @@ impl NvmeController {
 
         // Write to SQ
         let idx = q.sq_next_index();
-        unsafe { ptr::write_volatile(q.sq_entries.add(idx), cmd); }
+        unsafe { ptr::write_volatile(q.sq_entries.as_ptr().add(idx), cmd); }
 
         // Update SQ tail
         q.sq_tail = q.sq_tail.wrapping_add(1);
@@ -378,7 +384,7 @@ impl NvmeController {
         let mut spins = 2_000_000u32;
         loop {
             let idx = q.cq_next_index();
-            let cqe = unsafe { ptr::read_volatile(q.cq_entries.add(idx)) };
+            let cqe = unsafe { ptr::read_volatile(q.cq_entries.as_ptr().add(idx)) };
             let phase = (cqe.status & 1) as u16;
 
             if phase == q.cq_phase {
@@ -552,7 +558,7 @@ impl NvmeController {
         Ok((base, pl_pa.as_u64()))
     }
 
-    pub fn read(&self, lba: u64, count: u16, buf_pa: PhysAddr) -> Result<(), &'static str> {
+    pub fn read(&mut self, lba: u64, count: u16, buf_pa: PhysAddr) -> Result<(), &'static str> {
         let ns = self.ns.as_ref().ok_or("NVMe: namespace not ready")?;
         let mut io = self.io.lock();
         let q = io.as_mut().ok_or("NVMe: IO queue not ready")?;
@@ -578,7 +584,7 @@ impl NvmeController {
         // Submit to IO SQ
         cmd.cid = q.sq_tail;
         let sq_idx = q.sq_next_index();
-        unsafe { ptr::write_volatile(q.sq_entries.add(sq_idx), cmd); }
+        unsafe { ptr::write_volatile(q.sq_entries.as_ptr().add(sq_idx), cmd); }
         q.sq_tail = q.sq_tail.wrapping_add(1);
         self.ring_sq_tail(q.qid, q.sq_tail);
 
@@ -589,7 +595,7 @@ impl NvmeController {
         Ok(())
     }
 
-    pub fn write(&self, lba: u64, count: u16, buf_pa: PhysAddr) -> Result<(), &'static str> {
+    pub fn write(&mut self, lba: u64, count: u16, buf_pa: PhysAddr) -> Result<(), &'static str> {
         let ns = self.ns.as_ref().ok_or("NVMe: namespace not ready")?;
         let mut io = self.io.lock();
         let q = io.as_mut().ok_or("NVMe: IO queue not ready")?;
@@ -609,7 +615,7 @@ impl NvmeController {
         // Submit
         cmd.cid = q.sq_tail;
         let sq_idx = q.sq_next_index();
-        unsafe { ptr::write_volatile(q.sq_entries.add(sq_idx), cmd); }
+        unsafe { ptr::write_volatile(q.sq_entries.as_ptr().add(sq_idx), cmd); }
         q.sq_tail = q.sq_tail.wrapping_add(1);
         self.ring_sq_tail(q.qid, q.sq_tail);
 
@@ -640,8 +646,8 @@ pub fn init_nvme() -> Result<(), &'static str> {
     Ok(())
 }
 
-pub fn get_controller() -> Option<&'static NvmeController> {
-    NVME_ONCE.get().map(|m| &*m.lock())
+pub fn get_controller() -> Option<spin::MutexGuard<'static, NvmeController>> {
+    NVME_ONCE.get().map(|m| m.lock())
 }
 
 pub struct NvmeDriver;

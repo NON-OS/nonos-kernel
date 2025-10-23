@@ -16,7 +16,17 @@ pub struct MonsterStats {
     pub ticks: u64,
 }
 
-static STATS: Mutex<MonsterStats> = Mutex::new(MonsterStats::default());
+static STATS: Mutex<MonsterStats> = Mutex::new(MonsterStats {
+    pci_devices: 0,
+    nvme_bytes_rw: 0,
+    usb_devices: 0,
+    net_rx: 0,
+    net_tx: 0,
+    gpu_memory: 0,
+    audio_streams: 0,
+    errors: 0,
+    ticks: 0,
+});
 static MONSTER_INITED: AtomicBool = AtomicBool::new(false);
 
 pub fn monster_init() -> Result<(), &'static str> {
@@ -26,13 +36,13 @@ pub fn monster_init() -> Result<(), &'static str> {
 
     // PCI first (required by downstream drivers)
     if let Err(e) = crate::drivers::nonos_pci::init_pci() {
-        crate::log::logger::log_warn(&format!("MONSTER: PCI init failed: {}", e));
+        crate::log::logger::log_warn!("MONSTER: PCI init failed: {}", e);
         STATS.lock().errors += 1;
     }
 
     // Storage (NVMe preferred)
     if let Err(e) = crate::drivers::nonos_nvme::init_nvme() {
-        crate::log::logger::log_warn(&format!("MONSTER: NVMe init skipped/failed: {}", e));
+        crate::log::logger::log_warn!("MONSTER: NVMe init skipped/failed: {}", e);
         STATS.lock().errors += 1;
     }
 
@@ -40,31 +50,31 @@ pub fn monster_init() -> Result<(), &'static str> {
     match crate::drivers::nonos_xhci::init_xhci() {
         Ok(_) => {
             if let Err(e) = crate::drivers::nonos_usb::init_usb() {
-                crate::log::logger::log_warn(&format!("MONSTER: USB init skipped/failed: {}", e));
+                crate::log::logger::log_warn!("MONSTER: USB init skipped/failed: {}", e);
                 STATS.lock().errors += 1;
             }
         }
         Err(e) => {
-            crate::log::logger::log_warn(&format!("MONSTER: xHCI init skipped/failed: {}", e));
+            crate::log::logger::log_warn!("MONSTER: xHCI init skipped/failed: {}", e);
             STATS.lock().errors += 1;
         }
     }
 
     // Network (virtio-net)
     if let Err(e) = crate::drivers::nonos_virtio_net::init_virtio_net() {
-        crate::log::logger::log_warn(&format!("MONSTER: virtio-net init skipped/failed: {}", e));
+        crate::log::logger::log_warn!("MONSTER: virtio-net init skipped/failed: {}", e);
         STATS.lock().errors += 1;
     }
 
     // Graphics
     if let Err(e) = crate::drivers::nonos_gpu::init_gpu() {
-        crate::log::logger::log_warn(&format!("MONSTER: GPU init skipped/failed: {}", e));
+        crate::log::logger::log_warn!("MONSTER: GPU init skipped/failed: {}", e);
         STATS.lock().errors += 1;
     }
 
     // Audio (best-effort)
     if let Err(e) = crate::drivers::nonos_audio::init_hd_audio() {
-        crate::log::logger::log_warn(&format!("MONSTER: HD Audio init skipped/failed: {}", e));
+        crate::log::logger::log_warn!("MONSTER: HD Audio init skipped/failed: {}", e);
         STATS.lock().errors += 1;
     }
 
@@ -109,13 +119,9 @@ fn refresh_stats() {
         #[allow(unused_must_use)]
         {
             // Handle potential panic paths defensively with match
-            let res = core::panic::AssertUnwindSafe(|| {
-                // SAFETY: we expect nonos_pci to provide this API.
-                let devs = crate::drivers::nonos_pci::scan_and_collect();
-                devs.len() as u64
-            });
-            // Use std-like catch_unwind equivalent not available; so just assign directly:
-            count = res;
+            // SAFETY: we expect nonos_pci to provide this API.
+            let devs = crate::drivers::nonos_pci::scan_and_collect();
+            count = devs.len() as u64;
         }
         count
     };
@@ -142,8 +148,7 @@ fn refresh_stats() {
     };
 
     // GPU memory
-    let gpu_mem = crate::drivers::nonos_gpu::get_driver()
-        .map(|g| g.get_stats().memory_allocated)
+    let gpu_mem = crate::drivers::nonos_gpu::with_driver(|g| g.get_stats().memory_allocated)
         .unwrap_or(0);
 
     // Audio streams (from driver stats)
