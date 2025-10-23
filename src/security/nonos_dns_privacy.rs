@@ -2,7 +2,7 @@
 
 extern crate alloc;
 
-use alloc::{string::String, vec::Vec};
+use alloc::{string::{String, ToString}, vec::Vec};
 use core::sync::atomic::{AtomicU64, Ordering};
 use spin::Mutex;
 
@@ -31,15 +31,16 @@ static SCAN_COUNTER: AtomicU64 = AtomicU64::new(0);
 pub fn scan_dns_queries() -> NonosDnsPrivacyScanResult {
     let mut findings = Vec::new();
 
-    if let Some(queries) = crate::network::get_recent_dns_queries() {
+    let queries = crate::network::get_recent_dns_queries();
+    if !queries.is_empty() {
         for query in queries {
             // Personally identifiable info or known privacy-leaking domains
-            if is_privacy_leaking_query(&query.domain) {
+            if is_privacy_leaking_query(&query) {
                 findings.push(DnsPrivacyFinding {
                     timestamp: crate::time::timestamp_millis(),
-                    domain: query.domain.clone(),
-                    query_type: query.query_type.clone(),
-                    leaked_data: query.leaked_data.clone(),
+                    domain: query.clone(),
+                    query_type: "A".to_string(),
+                    leaked_data: Some("hostname".to_string()),
                     severity: 3,
                 });
             }

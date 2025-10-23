@@ -54,9 +54,10 @@ pub fn list_sensitive_patterns() -> Vec<String> {
 pub fn scan_memory() -> NonosDataLeakScanResult {
     let mut leaks = Vec::new();
 
-    if let Some(regions) = crate::memory::get_all_process_regions() {
+    let regions = crate::memory::get_all_process_regions();
+    if !regions.is_empty() {
         for region in regions {
-            leaks.extend(scan_region_for_leaks(region.start, region.end));
+            leaks.extend(scan_region_for_leaks(region.0 as u64, region.1 as u64));
         }
     }
 
@@ -88,7 +89,7 @@ fn scan_region_for_leaks(start: u64, end: u64) -> Vec<DataLeakFinding> {
 
     unsafe {
         // Read memory region safely
-        if let Ok(slice) = crate::memory::read_bytes(start, region_size as usize) {
+        if let Ok(slice) = crate::memory::read_bytes(start as usize, region_size as usize) {
             // Simple entropy check
             let entropy = estimate_entropy(&slice);
             if entropy > 7.0 {
