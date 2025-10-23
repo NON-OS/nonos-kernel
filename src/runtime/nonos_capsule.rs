@@ -116,7 +116,7 @@ impl Capsule {
     /// Send data to a peer via IPC envelopes (Data message).
     pub fn send(
         &self,
-        to: &str,
+        to: &'static str,
         data: &[u8],
         token: &CapabilityToken,
     ) -> Result<(), &'static str> {
