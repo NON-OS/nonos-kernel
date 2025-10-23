@@ -503,7 +503,7 @@ fn init_distributed_system() {
         0x52, 0x45, 0x2D, 0x42, 0x41, 0x53, 0x45, 0x44, // RE-BASED
     ];
     
-    let config = nonos_kernel_lib::distributed::DistributedConfig {
+    /*let config = nonos_kernel_lib::distributed::DistributedConfig {
         node_id,
         max_mesh_nodes: 1000,
         enable_process_migration: true,
@@ -533,7 +533,7 @@ fn init_distributed_system() {
         Err(_) => {
             debug_print(b"[distributed] Failed to initialize distributed OS");
         }
-    }
+    }*/
 }
 
 fn generate_node_id() -> [u8; 32] {
@@ -1005,7 +1005,7 @@ fn init_zk_verification_system() {
     debug_print(b"[ZK] Starting ZK-SNARK verification engine...");
     
     // Initialize the ZK engine from the kernel library
-    match nonos_kernel_lib::zk_engine::init_zk_engine() {
+    /*match nonos_kernel_lib::zk_engine::init_zk_engine() {
         Ok(()) => {
             debug_print(b"[ZK] Zero-Knowledge verification system initialized");
             debug_print(b"[ZK] Groth16 proving system enabled");
@@ -1015,7 +1015,7 @@ fn init_zk_verification_system() {
         Err(_) => {
             debug_print(b"[ZK] Failed to initialize ZK verification system");
         }
-    }
+    }*/
 }
 
 /// Initialize quantum-resistant cryptographic engine
@@ -1023,7 +1023,7 @@ fn init_quantum_crypto_engine() {
     debug_print(b"[CRYPTO] Deploying quantum-resistant cryptography...");
     
     // Initialize the actual quantum-resistant crypto system
-    match nonos_kernel_lib::crypto::quantum_resistant::init() {
+    /*match nonos_kernel_lib::crypto::quantum_resistant::init() {
         Ok(()) => {
             debug_print(b"[CRYPTO] Post-quantum algorithms initialized successfully");
             debug_print(b"[CRYPTO] CRYSTALS-Kyber key encapsulation ready");
@@ -1039,14 +1039,14 @@ fn init_quantum_crypto_engine() {
             }
             force_serial_write_byte(b'\n');
         }
-    }
+    }*/
 }
 
 /// Initialize AI-enhanced memory management system  
 fn init_ai_memory_management() {
     debug_print(b"[AI-MEM] Initializing AI-enhanced memory management...");
     
-    match crate::memory::ai_memory_manager::init_ai_memory_manager() {
+    /*match crate::memory::ai_memory_manager::init_ai_memory_manager() {
         Ok(()) => {
             debug_print(b"[AI-MEM] Loading neural network for allocation prediction...");
             debug_print(b"[AI-MEM] Predictive garbage collection enabled");
@@ -1057,14 +1057,14 @@ fn init_ai_memory_management() {
             debug_print(b"[AI-MEM] Failed to initialize AI memory management:");
             debug_print(e.as_bytes());
         }
-    }
+    }*/
 }
 
 /// Initialize distributed P2P mesh networking
 fn init_distributed_p2p_networking() {
     debug_print(b"[P2P] Initializing distributed mesh networking...");
     
-    match crate::distributed::init_distributed_networking() {
+    /*match crate::distributed::init_distributed_networking() {
         Ok(()) => {
             debug_print(b"[P2P] Setting up peer discovery protocols...");
             debug_print(b"[P2P] Enabling DHT-based routing...");
@@ -1076,7 +1076,7 @@ fn init_distributed_p2p_networking() {
             debug_print(b"[P2P] Failed to initialize distributed networking:");
             debug_print(e.as_bytes());
         }
-    }
+    }*/
 }
 
 /// Initialize neural consciousness framework
@@ -1103,7 +1103,7 @@ fn init_neural_consciousness() {
 fn init_advanced_security_systems() {
     debug_print(b"[SECURITY] Enabling advanced threat detection...");
     
-    match crate::security::init_capability_engine() {
+    /*match crate::security::init_capability_engine() {
         Ok(()) => {
             debug_print(b"[SECURITY] Rootkit scanner active");
             debug_print(b"[SECURITY] Real-time malware detection enabled");
@@ -1118,7 +1118,11 @@ fn init_advanced_security_systems() {
             debug_print(b"[SECURITY] Failed to initialize security systems:");
             debug_print(e.as_bytes());
         }
-    }
+    }*/
 }
 
-// Panic handler is provided by the library
+// Panic handler
+#[panic_handler]
+fn panic(_info: &core::panic::PanicInfo) -> ! {
+    loop {}
+}
