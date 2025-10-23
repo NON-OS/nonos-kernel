@@ -47,19 +47,23 @@ impl VaultSealStore {
         };
         let sealed_data = match &policy {
             SealPolicy::RAMOnly => {
-                let master_key = NONOS_VAULT.master_key().read().as_ref().ok_or("No master key")?;
+                let master_key_guard = NONOS_VAULT.master_key().read();
+                let master_key = master_key_guard.as_ref().ok_or("No master key")?;
                 let mut nonce = [0u8; 12];
                 nonce.copy_from_slice(&get_random_bytes()[..12]);
-                let ct = aes256_gcm_encrypt(master_key, &nonce, aad, plaintext)?;
+                let key32: &[u8; 32] = master_key[..32].try_into().unwrap();
+                let ct = aes256_gcm_encrypt(key32, &nonce, aad, plaintext)?;
                 let mut sealed = nonce.to_vec();
                 sealed.extend_from_slice(&ct);
                 sealed
             }
             SealPolicy::UEFI => {
-                let master_key = NONOS_VAULT.master_key().read().as_ref().ok_or("No master key")?;
+                let master_key_guard = NONOS_VAULT.master_key().read();
+                let master_key = master_key_guard.as_ref().ok_or("No master key")?;
                 let mut nonce = [0u8; 12];
                 nonce.copy_from_slice(&get_random_bytes()[..12]);
-                let ct = aes256_gcm_encrypt(master_key, &nonce, aad, plaintext)?;
+                let key32: &[u8; 32] = master_key[..32].try_into().unwrap();
+                let ct = aes256_gcm_encrypt(key32, &nonce, aad, plaintext)?;
                 let mut sealed = nonce.to_vec();
                 sealed.extend_from_slice(&ct);
                 // Store in UEFI variable
@@ -72,10 +76,12 @@ impl VaultSealStore {
                 sealed
             }
             SealPolicy::Disk => {
-                let master_key = NONOS_VAULT.master_key().read().as_ref().ok_or("No master key")?;
+                let master_key_guard = NONOS_VAULT.master_key().read();
+                let master_key = master_key_guard.as_ref().ok_or("No master key")?;
                 let mut nonce = [0u8; 12];
                 nonce.copy_from_slice(&get_random_bytes()[..12]);
-                let ct = aes256_gcm_encrypt(master_key, &nonce, aad, plaintext)?;
+                let key32: &[u8; 32] = master_key[..32].try_into().unwrap();
+                let ct = aes256_gcm_encrypt(key32, &nonce, aad, plaintext)?;
                 let mut sealed = nonce.to_vec();
                 sealed.extend_from_slice(&ct);
                 // Store in file (using RAM or encrypted filesystem)
@@ -106,41 +112,53 @@ impl VaultSealStore {
         }
         let pt = match &sealed.policy {
             SealPolicy::RAMOnly => {
-                let master_key = NONOS_VAULT.master_key().read().as_ref().ok_or("No master key")?;
+                let master_key_guard = NONOS_VAULT.master_key().read();
+                let master_key = master_key_guard.as_ref().ok_or("No master key")?;
                 if sealed.sealed_data.len() < 12 + 16 {
                     return Err("Sealed data too short");
                 }
                 let mut nonce = [0u8; 12];
                 nonce.copy_from_slice(&sealed.sealed_data[..12]);
                 let ct_and_tag = &sealed.sealed_data[12..];
-                aes256_gcm_decrypt(master_key, &nonce, &sealed.aad, ct_and_tag)?
+                {
+                let key32: &[u8; 32] = master_key[..32].try_into().unwrap();
+                aes256_gcm_decrypt(key32, &nonce, &sealed.aad, ct_and_tag)?
+                }
             }
             SealPolicy::UEFI => {
                 // Read from UEFI variable
                 let var = uefi_get_variable("NONOS_VAULT_SECRET", &Guid::GLOBAL_VARIABLE)
                     .ok_or("UEFI variable not found")?;
                 let sealed_buf = var.data;
-                let master_key = NONOS_VAULT.master_key().read().as_ref().ok_or("No master key")?;
+                let master_key_guard = NONOS_VAULT.master_key().read();
+                let master_key = master_key_guard.as_ref().ok_or("No master key")?;
                 if sealed_buf.len() < 12 + 16 {
                     return Err("Sealed data too short");
                 }
                 let mut nonce = [0u8; 12];
                 nonce.copy_from_slice(&sealed_buf[..12]);
                 let ct_and_tag = &sealed_buf[12..];
-                aes256_gcm_decrypt(master_key, &nonce, &sealed.aad, ct_and_tag)?
+                {
+                let key32: &[u8; 32] = master_key[..32].try_into().unwrap();
+                aes256_gcm_decrypt(key32, &nonce, &sealed.aad, ct_and_tag)?
+                }
             }
             SealPolicy::Disk => {
                 // Read from file
                 let fs = NonosFilesystem::new();
                 let sealed_buf = fs.read_file("nonos_vault.sealed")?;
-                let master_key = NONOS_VAULT.master_key().read().as_ref().ok_or("No master key")?;
+                let master_key_guard = NONOS_VAULT.master_key().read();
+                let master_key = master_key_guard.as_ref().ok_or("No master key")?;
                 if sealed_buf.len() < 12 + 16 {
                     return Err("Sealed data too short");
                 }
                 let mut nonce = [0u8; 12];
                 nonce.copy_from_slice(&sealed_buf[..12]);
                 let ct_and_tag = &sealed_buf[12..];
-                aes256_gcm_decrypt(master_key, &nonce, &sealed.aad, ct_and_tag)?
+                {
+                let key32: &[u8; 32] = master_key[..32].try_into().unwrap();
+                aes256_gcm_decrypt(key32, &nonce, &sealed.aad, ct_and_tag)?
+                }
             }
             SealPolicy::Custom(backend) => {
                 return Err("Custom backend not implemented");
