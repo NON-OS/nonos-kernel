@@ -107,8 +107,8 @@ fn scan_syscall_table() -> Vec<u32> {
     let mut out = Vec::new();
     // Example: compare syscall table hashes, check for unexpected handlers
     let anomalies = crate::arch::x86_64::syscall::detect_syscall_hooks();
-    for id in anomalies {
-        out.push(id);
+    if anomalies {
+        out.push(0xDEADBEEF);
     }
     out
 }
@@ -118,13 +118,13 @@ fn scan_kernel_integrity() -> Vec<String> {
     let mut out = Vec::new();
     // Example: hash kernel .text/.data, check interrupt table, check page tables
     if !crate::memory::verify_kernel_data_integrity() {
-        out.push("Kernel data section modified".to_string());
+        out.push("Kernel data section modified".into());
     }
     if !crate::arch::x86_64::idt::verify_idt_integrity() {
-        out.push("Interrupt Descriptor Table modified".to_string());
+        out.push("Interrupt Descriptor Table modified".into());
     }
     if !crate::memory::verify_kernel_page_tables() {
-        out.push("Kernel page tables tampered".to_string());
+        out.push("Kernel page tables tampered".into());
     }
     out
 }
