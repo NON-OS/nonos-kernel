@@ -2,7 +2,7 @@
 
 extern crate alloc;
 
-use alloc::{collections::BTreeMap, string::String, vec::Vec};
+use alloc::{collections::BTreeMap, string::String, vec::Vec, string::ToString};
 use core::sync::atomic::{AtomicU64, Ordering};
 use spin::{Mutex, Once};
 
@@ -95,7 +95,7 @@ pub fn create_encrypted_file(_parent_inode: u64, path: &str, _caps: &[u8]) -> Re
     }
 
     let inode = inner.next_inode.fetch_add(1, Ordering::Relaxed);
-    inner.files.insert(path.to_string(), FileEntry { inode, key: key.clone(), encrypted: Vec::new() });
+    inner.files.insert(path.into(), FileEntry { inode, key: key.clone(), encrypted: Vec::new() });
 
     let mut st = fs.stats.lock();
     st.files += 1;
@@ -110,7 +110,7 @@ pub fn create_ephemeral_file(path: &str, data: &[u8]) -> Result<u64, &'static st
 
     let inode = inner.next_inode.fetch_add(1, Ordering::Relaxed);
     let enc = xor_cipher(data, &key);
-    inner.files.insert(path.to_string(), FileEntry { inode, key: key.clone(), encrypted: enc });
+    inner.files.insert(path.into(), FileEntry { inode, key: key.clone(), encrypted: enc });
 
     let mut st = fs.stats.lock();
     st.files += 1;

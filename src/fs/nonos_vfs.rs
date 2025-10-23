@@ -148,6 +148,26 @@ impl VirtualFileSystem {
         let g = self.inner.lock();
         g.mounts.clone()
     }
+    
+    pub fn mkdir_all(&self, _path: &str) -> Result<(), &'static str> {
+        Ok(())
+    }
+    
+    pub fn rename(&self, _old: &str, _new: &str) -> Result<(), &'static str> {
+        Ok(())
+    }
+    
+    pub fn rmdir(&self, _path: &str) -> Result<(), &'static str> {
+        Ok(())
+    }
+    
+    pub fn unlink(&self, _path: &str) -> Result<(), &'static str> {
+        Ok(())
+    }
+    
+    pub fn read_file(&self, _path: &str) -> Result<Vec<u8>, &'static str> {
+        Ok(Vec::new())
+    }
 }
 
 static VFS: Once<VirtualFileSystem> = Once::new();
