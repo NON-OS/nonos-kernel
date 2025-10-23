@@ -24,9 +24,7 @@ pub fn bind(service: &str, capsule: &str) {
     let mut r = REG.write();
     r.map.insert(service.into(), capsule.into());
     crate::drivers::console::write_message(
-        &alloc::format!("service: '{}' -> '{}'", service, capsule),
-        crate::drivers::console::LogLevel::Info,
-        "runtime",
+        &alloc::format!("service: '{}' -> '{}'", service, capsule)
     );
 }
 
