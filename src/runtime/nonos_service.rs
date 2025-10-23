@@ -3,7 +3,7 @@
 extern crate alloc;
 
 use alloc::{collections::BTreeMap, string::String};
-use spin::RwLock;
+use spin::{RwLock, Once};
 
 use crate::runtime::nonos_zerostate::send_from_capsule;
 use crate::syscall::capabilities::CapabilityToken;
@@ -17,11 +17,15 @@ impl SvcReg {
     fn new() -> Self { Self { map: BTreeMap::new() } }
 }
 
-static REG: RwLock<SvcReg> = RwLock::new(SvcReg::new());
+static REG: Once<RwLock<SvcReg>> = Once::new();
+
+fn get_reg() -> &'static RwLock<SvcReg> {
+    REG.call_once(|| RwLock::new(SvcReg::new()))
+}
 
 /// Bind a service name to a capsule.
 pub fn bind(service: &str, capsule: &str) {
-    let mut r = REG.write();
+    let mut r = get_reg().write();
     r.map.insert(service.into(), capsule.into());
     crate::drivers::console::write_message(
         &alloc::format!("service: '{}' -> '{}'", service, capsule)
@@ -30,13 +34,13 @@ pub fn bind(service: &str, capsule: &str) {
 
 /// Unbind a service.
 pub fn unbind(service: &str) {
-    let mut r = REG.write();
+    let mut r = get_reg().write();
     r.map.remove(service);
 }
 
 /// Resolve a service to a capsule name.
 pub fn resolve(service: &str) -> Option<String> {
-    REG.read().map.get(service).cloned()
+    get_reg().read().map.get(service).cloned()
 }
 
 /// Send payload from a capsule to a service.
