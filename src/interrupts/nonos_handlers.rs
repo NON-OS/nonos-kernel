@@ -19,27 +19,27 @@ const KEYBOARD_IRQ_LINE: u8 = 1;
 
 #[inline]
 fn log_exception(name: &str, frame: &InterruptStackFrame) {
-    crate::log::logger::log_critical(
+    crate::log::logger::log_critical(&alloc::format!(
         "{}: rip={:#x} cs={:?} rsp={:#x} rflags={:#x}",
         name,
         frame.instruction_pointer.as_u64(),
         frame.code_segment,
         frame.stack_pointer.as_u64(),
         frame.cpu_flags
-    );
+    ));
 }
 
 #[inline]
 fn log_page_fault(frame: &InterruptStackFrame, code: u64) {
     let addr = Cr2::read().as_u64();
-    crate::log::logger::log_critical(
+    crate::log::logger::log_critical(&alloc::format!(
         "PAGE FAULT: addr={:#x} err={:#x} rip={:#x} rsp={:#x} rflags={:#x}",
         addr,
         code,
         frame.instruction_pointer.as_u64(),
         frame.stack_pointer.as_u64(),
         frame.cpu_flags
-    );
+    ));
 }
 
 // -----------------------------

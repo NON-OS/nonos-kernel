@@ -39,3 +39,8 @@ pub fn on_timer_interrupt() {
         }
     }
 }
+
+/// Timer tick function (alias for on_timer_interrupt)
+pub fn tick() {
+    on_timer_interrupt();
+}

@@ -15,7 +15,8 @@ pub use nonos_allocation as allocation;
 
 use core::sync::atomic::{AtomicU64, Ordering};
 use lazy_static::lazy_static;
-use x86_64::structures::idt::{InterruptDescriptorTable, InterruptStackFrame};
+use x86_64::structures::idt::{InterruptDescriptorTable, InterruptStackFrame, PageFaultErrorCode};
+use x86_64::VirtAddr;
 use x86_64::PrivilegeLevel;
 
 use crate::arch::x86_64::gdt;
@@ -76,7 +77,7 @@ extern "x86-interrupt" fn isr_device_na(frame: InterruptStackFrame) {
 extern "x86-interrupt" fn isr_x87_fp(frame: InterruptStackFrame) {
     nonos_handlers::x87_floating_point_handler(frame);
 }
-extern "x86-interrupt" fn isr_alignment_check(frame: InterruptStackFrame) {
+extern "x86-interrupt" fn isr_alignment_check(frame: InterruptStackFrame, code: u64) {
     nonos_handlers::alignment_check_handler(frame);
 }
 extern "x86-interrupt" fn isr_simd_fp(frame: InterruptStackFrame) {
@@ -108,8 +109,8 @@ extern "x86-interrupt" fn isr_stack_segment_fault(frame: InterruptStackFrame, co
 extern "x86-interrupt" fn isr_gpf(frame: InterruptStackFrame, code: u64) {
     nonos_handlers::general_protection_fault_handler(frame, code);
 }
-extern "x86-interrupt" fn isr_page_fault(frame: InterruptStackFrame, code: u64) {
-    nonos_handlers::page_fault_handler(frame, code);
+extern "x86-interrupt" fn isr_page_fault(frame: InterruptStackFrame, code: PageFaultErrorCode) {
+    nonos_handlers::page_fault_handler(frame, code.bits());
 }
 
 // Hardware IRQs
@@ -148,7 +149,7 @@ lazy_static! {
         idt.device_not_available.set_handler_fn(isr_device_na);
         unsafe {
             idt.double_fault
-                .set_handler_fn(isr_double_fault)
+                .set_handler_addr(VirtAddr::new(isr_double_fault as *const () as u64))
                 .set_stack_index(gdt::DF_IST_INDEX);
         }
         idt.invalid_tss.set_handler_fn(isr_invalid_tss);
@@ -164,7 +165,7 @@ lazy_static! {
         idt.alignment_check.set_handler_fn(isr_alignment_check);
         unsafe {
             idt.machine_check
-                .set_handler_fn(isr_machine_check)
+                .set_handler_addr(VirtAddr::new(isr_machine_check as *const () as u64))
                 .set_stack_index(gdt::MC_IST_INDEX);
         }
         idt.simd_floating_point.set_handler_fn(isr_simd_fp);
