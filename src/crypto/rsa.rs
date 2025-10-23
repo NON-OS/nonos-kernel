@@ -760,28 +760,7 @@ pub fn encrypt(data: &[u8], key: &RsaPublicKey) -> Result<Vec<u8>, &'static str>
     Ok(encrypted.to_bytes_be())
 }
 
-pub fn generate_keypair() -> Result<(RsaPublicKey, RsaPrivateKey), &'static str> {
-    // Generate two large primes p and q
-    let p = generate_prime(1024)?;
-    let q = generate_prime(1024)?;
-    
-    // n = p * q
-    let n = p.multiply(&q);
-    
-    // φ(n) = (p-1)(q-1)
-    let phi_n = p.subtract(&BigUint::from_u64(1)).multiply(&q.subtract(&BigUint::from_u64(1)));
-    
-    // Choose e = 65537 (common choice)
-    let e = BigUint::from_u64(65537);
-    
-    // Compute d = e^(-1) mod φ(n)
-    let d = mod_inverse(&e, &phi_n)?;
-    
-    let public_key = RsaPublicKey { n: n.clone(), e, bits: 2048 };
-    let private_key = RsaPrivateKey { n, d, p, q, bits: 2048, dp: BigUint::new(), dq: BigUint::new(), q_inv: BigUint::new() };
-    
-    Ok((public_key, private_key))
-}
+// Removed duplicate generate_keypair function
 
 pub fn extract_public_key(private: &RsaPrivateKey) -> RsaPublicKey {
     RsaPublicKey { 
@@ -803,8 +782,7 @@ pub fn create_public_key(n_bytes: Vec<u8>, e_bytes: Vec<u8>) -> RsaPublicKey {
 
 fn generate_random_odd(bits: usize) -> Result<BigUint, &'static str> {
     let bytes = (bits + 7) / 8;
-    let mut random_bytes = vec![0u8; bytes];
-    get_entropy(&mut random_bytes);
+    let mut random_bytes = get_entropy(bytes);
     
     // Set high bit and low bit 
     random_bytes[0] |= 0x80;
@@ -856,8 +834,7 @@ fn miller_rabin_test(n: &BigUint, rounds: u32) -> bool {
 fn generate_random_range(min: &BigUint, max: &BigUint) -> BigUint {
     let range = max.subtract(min);
     let bytes = (range.bit_length() + 7) / 8;
-    let mut random_bytes = vec![0u8; bytes];
-    get_entropy(&mut random_bytes);
+    let random_bytes = get_entropy(bytes);
     
     let mut result = BigUint::from_bytes_be(&random_bytes);
     result = result.modulo(&range);
@@ -903,7 +880,8 @@ fn extended_gcd(a: &BigUint, b: &BigUint) -> (BigUint, BigUint, BigUint) {
     }
     
     let (gcd, x1, y1) = extended_gcd(&b.modulo(a), a);
-    let x = y1.subtract(&b.divide(a).multiply(&x1));
+    let (quotient, _) = b.divide(a);
+    let x = y1.subtract(&quotient.multiply(&x1));
     let y = x1;
     
     (gcd, x, y)
@@ -922,8 +900,7 @@ fn pkcs1_v15_encrypt_pad(data: &[u8], key_size: usize) -> Result<Vec<u8>, &'stat
     let padding_len = key_size - data.len() - 3;
     for i in 2..(2 + padding_len) {
         loop {
-            let mut random = [0u8; 1];
-            get_entropy(&mut random);
+            let random = get_entropy(1);
             if random[0] != 0 {
                 padded[i] = random[0];
                 break;
