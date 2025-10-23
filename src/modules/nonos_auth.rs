@@ -1,6 +1,6 @@
 //! NØNOS Module Authentication 
 
-use alloc::{vec::Vec, string::String};
+use alloc::{vec::Vec, string::String, string::ToString};
 use crate::crypto::{verify, blake3_hash, nonos_zk::AttestationProof};
 use crate::security::nonos_trusted_keys::get_trusted_keys;
 use crate::memory::secure_erase;
@@ -41,10 +41,21 @@ pub fn authenticate_module(
     };
 
     // 1. Classical Ed25519/BLAKE3 verification
-    match verify(&hash, ed25519_signature, ed25519_pubkey) {
-        Ok(true) => ctx.verified = true,
-        Ok(false) => ctx.failure_reason = Some("Ed25519 verification failed".to_string()),
-        Err(e) => ctx.failure_reason = Some(format!("Ed25519 error: {e}")),
+    if ed25519_signature.len() != 64 {
+        ctx.failure_reason = Some("Invalid signature length".into());
+        return ctx;
+    }
+    
+    let mut r = [0u8; 32];
+    let mut s = [0u8; 32];
+    r.copy_from_slice(&ed25519_signature[..32]);
+    s.copy_from_slice(&ed25519_signature[32..]);
+    let sig = crate::crypto::ed25519::Signature { R: r, S: s };
+    
+    if verify(ed25519_pubkey, &hash, &sig) {
+        ctx.verified = true;
+    } else {
+        ctx.failure_reason = Some("Ed25519 verification failed".into());
     }
 
     // 2. Post-Quantum Dilithium verification (disabled - feature not enabled)
@@ -52,7 +63,7 @@ pub fn authenticate_module(
     if let (Some(sig), Some(pk)) = (dilithium_signature, dilithium_pubkey) {
         match dilithium_verify(&hash, sig, pk) {
             Ok(true) => ctx.pqc_verified = true,
-            Ok(false) => ctx.failure_reason = Some("Dilithium PQC verification failed".to_string()),
+            Ok(false) => ctx.failure_reason = Some("Dilithium PQC verification failed".into()),
             Err(e) => ctx.failure_reason = Some(format!("Dilithium error: {e}")),
         }
     }
@@ -65,7 +76,7 @@ pub fn authenticate_module(
         if verify_attestation_chain(att, &hash, &get_trusted_keys()) {
             ctx.attestation_chain = Some(att.clone());
         } else {
-            ctx.failure_reason = Some("Attestation chain verification failed".to_string());
+            ctx.failure_reason = Some("Attestation chain verification failed".into());
         }
     }
     */
@@ -80,7 +91,9 @@ pub fn erase_auth_context(ctx: &mut AuthContext) {
     ctx.pqc_verified = false;
     ctx.attestation_chain = None;
     if let Some(ref mut reason) = ctx.failure_reason {
-        secure_erase(reason.as_bytes());
+        // Convert to mutable bytes for secure erasure
+        let mut bytes = reason.as_bytes().to_vec();
+        secure_erase(&mut bytes);
         *reason = String::new();
     }
 }
@@ -104,7 +117,7 @@ mod tests {
             verified: true,
             pqc_verified: true,
             attestation_chain: None,
-            failure_reason: Some("Test".to_string()),
+            failure_reason: Some("Test".into()),
         };
         erase_auth_context(&mut ctx);
         assert!(!ctx.verified);
