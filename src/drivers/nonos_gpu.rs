@@ -70,12 +70,14 @@ pub struct DisplayMode {
     pub pitch: u32, // bytes per scanline
 }
 
+#[derive(Clone)]
 pub struct Framebuffer {
     pub fb_phys: PhysAddr,
     pub fb_len: usize, // total LFB length from BAR
     pub fb_virt: usize, // VA mapping 
 }
 
+#[derive(Clone)]
 pub struct Backbuffer {
     va: usize,
     len: usize,
@@ -93,6 +95,7 @@ impl Backbuffer {
     }
 }
 
+#[derive(Clone)]
 pub struct GpuSurface {
     pub mode: DisplayMode,
     pub format: PixelFormat,
@@ -413,7 +416,7 @@ impl GpuDriver {
     }
 
     pub fn get_surface() -> Option<GpuSurface> {
-        GPU_ONCE.get().map(|m| m.lock().surface)
+        GPU_ONCE.get().map(|m| m.lock().surface.clone())
     }
 
     pub fn get_stats(&self) -> GpuStats {
@@ -453,8 +456,11 @@ pub fn init_gpu() -> Result<(), &'static str> {
     Ok(())
 }
 
-pub fn get_driver() -> Option<&'static GpuDriver> {
-    unsafe { GPU_HANDLE.as_ref().map(|m| &*m.lock()) }
+pub fn with_driver<T, F>(f: F) -> Option<T>
+where
+    F: FnOnce(&GpuDriver) -> T,
+{
+    unsafe { GPU_HANDLE.as_ref().map(|m| f(&*m.lock())) }
 }
 
 pub fn set_mode_32bpp(width: u16, height: u16) -> Result<DisplayMode, &'static str> {
