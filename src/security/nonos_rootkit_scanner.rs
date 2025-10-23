@@ -92,7 +92,8 @@ fn scan_loaded_modules() -> Vec<String> {
 fn scan_filesystem() -> Vec<String> {
     let mut out = Vec::new();
     // Example: integrate with VFS, scan /proc, /dev, /etc
-    if let Some(files) = crate::filesystem::list_hidden_files() {
+    let files = crate::filesystem::list_hidden_files("/");
+    if !files.is_empty() {
         for f in files {
             if f.contains("rootkit") || f.contains(".ko") || f.contains(".so") {
                 out.push(f);

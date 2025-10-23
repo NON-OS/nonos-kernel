@@ -202,15 +202,8 @@ pub fn authenticate_with_zkproof(id_hash: [u8; 32], response: AuthResponse) -> R
     if mgr.config.require_zk_proofs {
         let proof_statement = create_proof_statement(&challenge, &zkid);
         let verification_key = derive_verification_key(&zkid);
-        match verify_plonk_proof(&proof_statement, &response.zkproof) {
-            Ok(is_valid) => {
-                if !is_valid { return Err("Zero-knowledge proof verification failed"); }
-            }
-            Err(e) => {
-                crate::log_warn!("[ZKIDS] Proof verification error: {}", e);
-                return Err("Proof verification error");
-            }
-        }
+        let is_valid = verify_plonk_proof(&proof_statement, &response.zkproof);
+        if !is_valid { return Err("Zero-knowledge proof verification failed"); }
     }
 
     // Ed25519 signature verification
@@ -372,13 +365,8 @@ fn capability_to_bytes(capability: &Capability) -> [u8; 32] {
 }
 
 fn verify_signature(signature: &Ed25519Signature, message: &[u8], public_key: &[u8; 32]) -> bool {
-    match crate::crypto::sig::ed25519::verify_signature(signature, message, public_key) {
-        Ok(is_valid) => is_valid,
-        Err(e) => {
-            crate::log_warn!("[ZKIDS] Signature verification error: {}", e);
-            false
-        }
-    }
+    let sig_bytes = [&signature.R[..], &signature.S[..]].concat();
+    crate::crypto::verify_signature(message, &sig_bytes, public_key)
 }
 
 fn current_timestamp() -> u64 {
