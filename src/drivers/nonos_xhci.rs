@@ -222,7 +222,7 @@ struct InputContext {
 }
 
 // Rings
-struct TransferRing {
+pub struct TransferRing {
     trbs: DmaRegion,
     pub cycle: bool,
     enqueue_index: usize,

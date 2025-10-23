@@ -1,9 +1,10 @@
 //! PCI/PCIe Bus Manager
 
 use core::fmt;
-use alloc::vec::Vec;
+use alloc::{vec::Vec, collections::BTreeMap};
 use x86_64::PhysAddr;
 use spin::Mutex;
+use crate::arch::x86_64::nonos_pci::PciStats;
 
 // I/O ports for legacy PCI config mechanism #1
 const PCI_CONFIG_ADDRESS: u16 = 0xCF8;
@@ -333,5 +334,23 @@ pub fn get_pci_manager() -> Option<&'static PciManager> {
 impl PciManager {
     pub fn enumerate_all_devices(&self) -> Vec<PciDevice> {
         self.devices.clone()
+    }
+    
+    pub fn get_stats(&self) -> PciStats {
+        let mut devices_by_class = BTreeMap::new();
+        for device in &self.devices {
+            *devices_by_class.entry(device.class).or_insert(0) += 1;
+        }
+        
+        PciStats {
+            total_devices: self.devices.len(),
+            devices_by_class,
+            msix_devices: self.devices.iter().filter(|d| !d.capabilities.is_empty()).count(),
+            dma_engines: 0, // TODO: implement DMA engine counting
+            devices_found: self.devices.len() as u64,
+            dma_transfers: 0, // TODO: implement DMA transfer counting
+            interrupts_handled: 0, // TODO: implement interrupt counting
+            errors: 0, // TODO: implement error counting
+        }
     }
 }

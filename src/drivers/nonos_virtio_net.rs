@@ -8,7 +8,7 @@ use core::sync::atomic::{AtomicU64, Ordering};
 use spin::Mutex;
 use x86_64::{PhysAddr, VirtAddr};
 
-use crate::drivers::pci::{pci_read_config32, PciBar, PciDevice};
+use crate::drivers::nonos_pci::{pci_read_config32, PciBar, PciDevice};
 use crate::interrupts::register_interrupt_handler;
 use crate::memory::dma::alloc_dma_coherent;
 
@@ -99,6 +99,7 @@ pub struct VirtqUsed {
     pub ring: [VirtqUsedElem; 0],
 }
 
+#[derive(Clone)]
 struct DmaRegion {
     va: VirtAddr,
     pa: PhysAddr,
@@ -167,6 +168,10 @@ impl VirtQueue {
             free.push_back(i);
         }
 
+        let desc_table_phys = desc_region.phys();
+        let avail_ring_phys = avail_region.phys();
+        let used_ring_phys = used_region.phys();
+
         Ok(Self {
             queue_size,
             desc_region,
@@ -175,9 +180,9 @@ impl VirtQueue {
             desc_table,
             avail_ring,
             used_ring,
-            desc_table_phys: desc_region.phys(),
-            avail_ring_phys: avail_region.phys(),
-            used_ring_phys: used_region.phys(),
+            desc_table_phys,
+            avail_ring_phys,
+            used_ring_phys,
             free_descriptors: free,
             last_used_idx: 0,
             next_avail_idx: 0,
@@ -347,13 +352,16 @@ struct VirtioPciCommonCfg {
 }
 
 struct VirtioModernRegs {
-    common: *mut VirtioPciCommonCfg,
-    isr_ptr: *mut u8,
+    common: core::ptr::NonNull<VirtioPciCommonCfg>,
+    isr_ptr: core::ptr::NonNull<u8>,
     notify_base: usize,
     notify_off_multiplier: u32,
     device_cfg: usize,
     bar_bases: [Option<usize>; 6],
 }
+
+unsafe impl Send for VirtioModernRegs {}
+unsafe impl Sync for VirtioModernRegs {}
 
 impl VirtioModernRegs {
     fn map(pci: &PciDevice) -> Option<Self> {
@@ -367,8 +375,8 @@ impl VirtioModernRegs {
         }
 
         // Walk vendor capabilities (0x09) to find cfgs
-        let mut common: *mut VirtioPciCommonCfg = core::ptr::null_mut();
-        let mut isr_ptr: *mut u8 = core::ptr::null_mut();
+        let mut common: Option<core::ptr::NonNull<VirtioPciCommonCfg>> = None;
+        let mut isr_ptr: Option<core::ptr::NonNull<u8>> = None;
         let mut notify_base = 0usize;
         let mut notify_mul = 0u32;
         let mut device_cfg = 0usize;
@@ -389,8 +397,8 @@ impl VirtioModernRegs {
             let mmio = base.wrapping_add(cfg_offset);
 
             match cfg_type {
-                CAP_COMMON_CFG => common = mmio as *mut VirtioPciCommonCfg,
-                CAP_ISR_CFG => isr_ptr = mmio as *mut u8,
+                CAP_COMMON_CFG => common = core::ptr::NonNull::new(mmio as *mut VirtioPciCommonCfg),
+                CAP_ISR_CFG => isr_ptr = core::ptr::NonNull::new(mmio as *mut u8),
                 CAP_DEVICE_CFG => device_cfg = mmio,
                 CAP_NOTIFY_CFG => {
                     notify_base = mmio;
@@ -404,15 +412,19 @@ impl VirtioModernRegs {
             }
         }
 
-        if !common.is_null() && !isr_ptr.is_null() && notify_base != 0 {
-            Some(Self {
-                common,
-                isr_ptr,
-                notify_base,
-                notify_off_multiplier: notify_mul,
-                device_cfg,
-                bar_bases,
-            })
+        if let (Some(common), Some(isr_ptr)) = (common, isr_ptr) {
+            if notify_base != 0 {
+                Some(Self {
+                    common,
+                    isr_ptr,
+                    notify_base,
+                    notify_off_multiplier: notify_mul,
+                    device_cfg,
+                    bar_bases,
+                })
+            } else {
+                None
+            }
         } else {
             None
         }
@@ -471,18 +483,19 @@ impl VirtioNetDevice {
         // Negotiate features + read MAC
         let (mac, features) = if let Some(ref regs) = modern {
             unsafe {
+                let common_ptr = regs.common.as_ptr();
                 // Ack + driver
-                ptr::write_volatile(&mut (*regs.common).device_status, 1 | 2);
+                ptr::write_unaligned(ptr::addr_of_mut!((*common_ptr).device_status), 1 | 2);
                 // Device features (sel=0)
-                ptr::write_volatile(&mut (*regs.common).device_feature_select, 0);
-                let devf = ptr::read_volatile(&(*regs.common).device_feature);
+                ptr::write_unaligned(ptr::addr_of_mut!((*common_ptr).device_feature_select), 0);
+                let devf = ptr::read_unaligned(ptr::addr_of!((*common_ptr).device_feature));
                 let supported = (1 << VIRTIO_NET_F_MAC) | (1 << VIRTIO_NET_F_STATUS) | (1 << VIRTIO_NET_F_CTRL_VQ);
-                ptr::write_volatile(&mut (*regs.common).driver_feature_select, 0);
-                ptr::write_volatile(&mut (*regs.common).driver_feature, devf & supported);
+                ptr::write_unaligned(ptr::addr_of_mut!((*common_ptr).driver_feature_select), 0);
+                ptr::write_unaligned(ptr::addr_of_mut!((*common_ptr).driver_feature), devf & supported);
                 // FEATURES_OK
-                let s0 = ptr::read_volatile(&(*regs.common).device_status);
-                ptr::write_volatile(&mut (*regs.common).device_status, s0 | 8);
-                let s1 = ptr::read_volatile(&(*regs.common).device_status);
+                let s0 = ptr::read_unaligned(ptr::addr_of!((*common_ptr).device_status));
+                ptr::write_unaligned(ptr::addr_of_mut!((*common_ptr).device_status), s0 | 8);
+                let s1 = ptr::read_unaligned(ptr::addr_of!((*common_ptr).device_status));
                 if (s1 & 8) == 0 {
                     return Err("virtio-net: FEATURES_OK rejected");
                 }
@@ -575,16 +588,17 @@ impl VirtioNetDevice {
     fn setup_queues_modern(&mut self) -> Result<(), &'static str> {
         let regs = self.modern.as_ref().unwrap();
         unsafe {
+            let common_ptr = regs.common.as_ptr();
             for qidx in [Q_RX, Q_TX] {
                 // Select queue and read max
-                ptr::write_volatile(&mut (*regs.common).queue_select, qidx);
-                let qmax = ptr::read_volatile(&(*regs.common).queue_size);
+                ptr::write_unaligned(ptr::addr_of_mut!((*common_ptr).queue_select), qidx);
+                let qmax = ptr::read_unaligned(ptr::addr_of!((*common_ptr).queue_size));
                 if qmax == 0 {
                     return Err("virtio-net: queue not available");
                 }
                 let want = 256u16;
                 let qsize = core::cmp::min(want, qmax);
-                ptr::write_volatile(&mut (*regs.common).queue_size, qsize);
+                ptr::write_unaligned(ptr::addr_of_mut!((*common_ptr).queue_size), qsize);
 
                 // Addresses
                 let (desc, avail, used) = match qidx {
@@ -599,13 +613,13 @@ impl VirtioNetDevice {
                     _ => unreachable!(),
                 };
 
-                ptr::write_volatile(&mut (*regs.common).queue_desc, desc);
-                ptr::write_volatile(&mut (*regs.common).queue_avail, avail);
-                ptr::write_volatile(&mut (*regs.common).queue_used, used);
-                ptr::write_volatile(&mut (*regs.common).queue_enable, 1);
+                ptr::write_unaligned(ptr::addr_of_mut!((*common_ptr).queue_desc), desc);
+                ptr::write_unaligned(ptr::addr_of_mut!((*common_ptr).queue_avail), avail);
+                ptr::write_unaligned(ptr::addr_of_mut!((*common_ptr).queue_used), used);
+                ptr::write_unaligned(ptr::addr_of_mut!((*common_ptr).queue_enable), 1);
 
                 // Compute notify address
-                let noff = ptr::read_volatile(&(*regs.common).queue_notify_off);
+                let noff = ptr::read_unaligned(ptr::addr_of!((*common_ptr).queue_notify_off));
                 let naddr = regs.notify_base + (noff as usize) * (regs.notify_off_multiplier as usize);
                 match qidx {
                     Q_RX => self.rx_queue.get_mut().set_notify_addr(naddr),
@@ -627,8 +641,9 @@ impl VirtioNetDevice {
     fn set_status_driver_ok(&mut self) {
         if let Some(ref regs) = self.modern {
             unsafe {
-                let s = ptr::read_volatile(&(*regs.common).device_status);
-                ptr::write_volatile(&mut (*regs.common).device_status, s | 4);
+                let common_ptr = regs.common.as_ptr();
+                let s = ptr::read_unaligned(&(*common_ptr).device_status);
+                ptr::write_unaligned(&mut (*common_ptr).device_status, s | 4);
             }
         } else if let Some(PciBar::Memory { address, .. }) = &self.legacy_bar {
             let base = address.as_u64() as usize;
@@ -640,8 +655,8 @@ impl VirtioNetDevice {
     }
 
     pub fn setup_interrupts(&mut self) -> Result<(), &'static str> {
-        let vector = crate::interrupts::allocate_vector()?;
-        extern "C" fn isr_wrapper() {
+        let vector = crate::interrupts::allocate_vector().ok_or("Failed to allocate interrupt vector")?;
+        fn isr_wrapper(_frame: crate::arch::x86_64::InterruptStackFrame) {
             crate::drivers::nonos_virtio_net::super_virtio_isr();
         }
         register_interrupt_handler(vector, isr_wrapper)?;
@@ -790,7 +805,7 @@ impl VirtioNetDevice {
     pub fn ack_interrupt(&self) {
         if let Some(ref regs) = self.modern {
             unsafe {
-                let _ = ptr::read_volatile(regs.isr_ptr);
+                let _ = ptr::read_volatile(regs.isr_ptr.as_ptr());
             }
         } else if let Some(PciBar::Memory { address, .. }) = &self.legacy_bar {
             unsafe {
@@ -808,12 +823,12 @@ impl VirtioNetDevice {
 static VIRTIO_NET: spin::Once<Arc<Mutex<VirtioNetDevice>>> = spin::Once::new();
 
 pub fn init_virtio_net() -> Result<(), &'static str> {
-    let devs = crate::arch::x86_64::pci::scan_pci_bus()?;
+    let devs = crate::drivers::nonos_pci::scan_and_collect();
     for d in devs {
         if d.vendor_id == VIRTIO_VENDOR_ID
             && (d.device_id == VIRTIO_NET_DEVICE_ID_TRANSITIONAL || d.device_id == VIRTIO_NET_DEVICE_ID_MODERN)
         {
-            crate::log::info!("virtio-net at {:02x}:{:02x}.{}", d.bus, d.slot, d.function);
+            crate::log::info!("virtio-net at {:02x}:{:02x}.{}", d.bus, d.device, d.function);
             let mut nic = VirtioNetDevice::new(d)?;
             let _ = nic.setup_interrupts();
             let arc = Arc::new(Mutex::new(nic));

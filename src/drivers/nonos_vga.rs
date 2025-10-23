@@ -29,7 +29,7 @@ pub enum Color {
 }
 
 #[inline(always)]
-fn vga_color(fg: Color, bg: Color) -> u8 {
+const fn vga_color(fg: Color, bg: Color) -> u8 {
     ((bg as u8) << 4) | (fg as u8 & 0x0F)
 }
 
