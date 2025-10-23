@@ -74,7 +74,7 @@ mod tests {
             vec![], PrivacyPolicy::ZeroStateOnly, vec![], b"modcode"
         );
         assert!(register_module(&manifest).is_ok());
-        assert!(list_registered_modules().contains(&"TestMod".to_string()));
+        assert!(list_registered_modules().contains(&"TestMod".into()));
         assert!(unregister_module("TestMod").is_ok());
     }
 

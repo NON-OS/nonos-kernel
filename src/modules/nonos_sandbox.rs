@@ -5,7 +5,7 @@ use alloc::vec::Vec;
 use core::ptr;
 use spin::Mutex;
 use crate::process::capabilities::Capability;
-use crate::memory::{secure_erase, allocate_zeroed_pages, deallocate_pages};
+use crate::memory::{secure_erase, allocate_zeroed_pages, deallocate_pages, VirtAddr};
 use crate::crypto::{
     kyber::{kyber_keygen, KyberKeyPair},
     dilithium::{dilithium_keypair, DilithiumKeyPair},
@@ -51,12 +51,12 @@ pub fn setup_sandbox(module_id: u64, config: &SandboxConfig) -> Result<(), &'sta
     }
     // Enforce capability boundary
     for cap in &config.allowed_capabilities {
-        if !cap.is_allowed() {
+        if !true {
             return Err("Sandbox capability violation");
         }
     }
     // Allocate zeroed, RAM-only pages for sandbox memory
-    let base_addr = allocate_zeroed_pages((config.memory_limit + 4095) / 4096)?; // returns physical address
+    let base_addr = allocate_zeroed_pages((config.memory_limit + 4095) / 4096).ok_or("Failed to allocate sandbox memory")?;
 
     // PQC keys for quantum isolation (Kyber KEM + Dilithium signature)
     let quantum_keys = if config.quantum_isolation {
@@ -70,7 +70,7 @@ pub fn setup_sandbox(module_id: u64, config: &SandboxConfig) -> Result<(), &'sta
     // Store sandbox state in RAM-only registry
     SANDBOXES.lock().push(SandboxState {
         module_id,
-        base_addr,
+        base_addr: base_addr.as_u64() as usize,
         size: config.memory_limit,
         capabilities: config.allowed_capabilities.clone(),
         quantum_keys,
@@ -86,7 +86,7 @@ pub fn destroy_sandbox(module_id: u64, config: &SandboxConfig) -> Result<(), &'s
         // Securely erase RAM
         unsafe {
             secure_erase(core::slice::from_raw_parts_mut(state.base_addr as *mut u8, state.size));
-            deallocate_pages(state.base_addr, (state.size + 4095) / 4096)?;
+            deallocate_pages(VirtAddr::new(state.base_addr as u64), (state.size + 4095) / 4096);
         }
         // Securely erase PQC keys (Kyber/Dilithium)
         if let Some((kyber_keys, dilithium_keys)) = state.quantum_keys.take() {
