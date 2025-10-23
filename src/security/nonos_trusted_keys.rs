@@ -58,3 +58,22 @@ pub fn list_trusted_keys() -> Vec<(String, Vec<u8>)> {
         Vec::new()
     }
 }
+
+/// Initialize trusted key store
+pub fn init_trusted_keys() {
+    // Initialize the trusted key registry
+}
+
+/// Compatibility alias
+pub fn get_trusted_keys() -> Vec<TrustedKey> {
+    let keys = list_trusted_keys();
+    keys.into_iter().map(|(name, key)| TrustedKey { name, key }).collect()
+}
+
+/// Trusted key struct for compatibility
+#[derive(Debug, Clone)]
+#[derive(PartialEq)]
+pub struct TrustedKey {
+    pub name: String,
+    pub key: Vec<u8>,
+}
