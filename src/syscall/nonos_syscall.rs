@@ -1,4 +1,4 @@
-#![no_std]
+// Module-level attributes removed - no_std is set at crate level
 
 #[inline]
 pub fn legacy_handle_syscall2(id: u64, a0: u64, a1: u64) -> u64 {

@@ -1,6 +1,6 @@
 //! Syscall Dispatch System (ZeroState)
 
-#![no_std]
+// Module-level attributes removed - no_std is set at crate level
 
 extern crate alloc;
 
@@ -68,7 +68,7 @@ fn handle_exit(status: u64) -> SyscallResult {
     #[allow(unused)]
     {
         if let Some(_proc) = crate::process::current_process() {
-            crate::process::syscalls::sys_exit(status as i32);
+            crate::process::nonos_core::syscalls::sys_exit(status as i32);
         }
     }
     loop {

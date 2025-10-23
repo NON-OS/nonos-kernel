@@ -2,7 +2,7 @@
 
 extern crate alloc;
 
-use crate::capabilities::{
+pub use crate::capabilities::{
     Capability, CapabilityToken, create_token, sign_token, verify_token, revoke_token, has_signing_key, roles,
     delegation, audit, resource, multisig, chain,
 };
