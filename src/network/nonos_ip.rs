@@ -2,7 +2,7 @@
 
 #![no_std]
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 pub enum IpAddress {
     V4([u8; 4]),
     V6([u8; 16]),

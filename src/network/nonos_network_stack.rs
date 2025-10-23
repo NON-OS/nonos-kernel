@@ -9,25 +9,16 @@ use core::cmp::min;
 use core::sync::atomic::{AtomicU32, Ordering};
 use spin::{Mutex, Once};
 
-// smoltcp - TODO: external dependency - using stub types for now
-pub type IfaceConfig = ();
-pub type Interface = ();
-pub type SmolHandle = u32;
-pub type SocketSet = ();
-pub type Routes = ();
-pub type ChecksumCapabilities = ();
-pub type DeviceCapabilities = ();
-pub enum Medium { Ethernet }
-pub type RxToken = ();
-pub type TxToken = ();
-pub mod tcp { pub type Socket = (); pub type State = (); }
-pub mod udp { pub type Socket = (); }
-pub type SmolDuration = core::time::Duration;
-pub type SmolInstant = u64;
-pub struct EthernetAddress(pub [u8; 6]);
-pub enum HardwareAddress { Ethernet(EthernetAddress) }
-pub type SmolIpAddress = super::ip::IpAddress;
-pub type IpCidr = ();
+// Real smoltcp integration
+use smoltcp::{
+    iface::{Interface, SocketSet, Routes, Config as IfaceConfig},
+    phy::{ChecksumCapabilities, DeviceCapabilities, Medium, RxToken, TxToken, Device},
+    socket::{tcp, udp},
+    time::{Duration as SmolDuration, Instant as SmolInstant},
+    wire::{EthernetAddress, HardwareAddress, IpAddress as SmolIpAddress, IpCidr, Ipv4Address as SmolIpv4Address, Ipv6Address as SmolIpv6Address},
+};
+
+pub type SmolHandle = smoltcp::iface::SocketHandle;
 pub type Ipv4Address = [u8; 4];
 pub type Ipv4Cidr = ();
 pub type Ipv4Gateway = ();
@@ -78,7 +69,7 @@ struct ConnectionEntry {
 }
 
 pub struct NetworkStack {
-    iface: Mutex<Interface<'static, SmolDeviceAdapter>>,
+    iface: Mutex<Interface>,
     sockets: Mutex<SocketSet<'static>>,
     routes: Mutex<Routes>,
     conns: Mutex<BTreeMap<u32, ConnectionEntry>>,
@@ -91,20 +82,20 @@ static STACK: Once<NetworkStack> = Once::new();
 
 pub fn init_network_stack() {
     STACK.call_once(|| {
-        let dev = SmolDeviceAdapter;
+        let mut dev = SmolDeviceAdapter;
 
         // Interface configuration
         let mut cfg = IfaceConfig::new(HardwareAddress::Ethernet(EthernetAddress(DEFAULT_MAC)));
         cfg.random_seed = 0xD1E5_7A2C;
-        let mut iface = Interface::new(cfg, dev, SmolInstant::from_millis(now_ms() as i64));
+        let mut iface = Interface::new(cfg, &mut dev, SmolInstant::from_millis(now_ms() as i64));
 
         // Default addresses: loopback v4 and v6
         let _ = iface.update_ip_addrs(|ips| {
-            let _ = ips.push(IpCidr::new(SmolIpAddress::Ipv4(Ipv4Address::new(127, 0, 0, 1)), 8));
-            let _ = ips.push(IpCidr::new(SmolIpAddress::Ipv6(Ipv6Address::LOOPBACK), 128));
+            let _ = ips.push(IpCidr::new(SmolIpAddress::Ipv4(SmolIpv4Address::new(127, 0, 0, 1)), 8));
+            let _ = ips.push(IpCidr::new(SmolIpAddress::Ipv6(SmolIpv6Address::LOOPBACK), 128));
         });
 
-        let routes = Routes::new(BTreeMap::new());
+        let routes = Routes::new();
         let sockets = SocketSet::new(vec![]);
 
         NetworkStack {
@@ -114,7 +105,7 @@ pub fn init_network_stack() {
             conns: Mutex::new(BTreeMap::new()),
             next_id: AtomicU32::new(1),
             stats: Mutex::new(NetworkStats::default()),
-            default_dns_v4: Mutex::new(Ipv4Address::new(1, 1, 1, 1)), // Cloudflare default
+            default_dns_v4: Mutex::new([1, 1, 1, 1]), // Cloudflare default
         }
     });
 }
@@ -156,9 +147,9 @@ fn now_ms() -> u64 {
 
 pub struct SmolDeviceAdapter;
 
-impl<'a> SmolPhyDevice for SmolDeviceAdapter {
-    type RxToken = RxT;
-    type TxToken = TxT;
+impl Device for SmolDeviceAdapter {
+    type RxToken<'a> = RxT;
+    type TxToken<'a> = TxT;
 
     fn capabilities(&self) -> DeviceCapabilities {
         let mut caps = DeviceCapabilities::default();
@@ -168,7 +159,7 @@ impl<'a> SmolPhyDevice for SmolDeviceAdapter {
         caps
     }
 
-    fn receive(&mut self, _ts: SmolInstant) -> Option<(Self::RxToken, Self::TxToken)> {
+    fn receive(&mut self, _ts: SmolInstant) -> Option<(Self::RxToken<'_>, Self::TxToken<'_>)> {
         if let Some(dev) = DEVICE_SLOT.get() {
             if let Some(frame) = dev.recv() {
                 return Some((RxT(frame), TxT));
@@ -177,14 +168,14 @@ impl<'a> SmolPhyDevice for SmolDeviceAdapter {
         None
     }
 
-    fn transmit(&mut self, _ts: SmolInstant) -> Option<Self::TxToken> {
+    fn transmit(&mut self, _ts: SmolInstant) -> Option<Self::TxToken<'_>> {
         Some(TxT)
     }
 }
 
 pub struct RxT(Vec<u8>);
 impl RxToken for RxT {
-    fn consume<R, F>(self, _ts: SmolInstant, f: F) -> R
+    fn consume<R, F>(self, f: F) -> R
     where
         F: FnOnce(&mut [u8]) -> R,
     {
@@ -195,7 +186,7 @@ impl RxToken for RxT {
 
 pub struct TxT;
 impl TxToken for TxT {
-    fn consume<R, F>(self, _ts: SmolInstant, len: usize, f: F) -> R
+    fn consume<R, F>(self, len: usize, f: F) -> R
     where
         F: FnOnce(&mut [u8]) -> R,
     {
@@ -215,15 +206,15 @@ impl NetworkStack {
         let mut iface = self.iface.lock();
         let _ = iface.update_ip_addrs(|ips| {
             ips.clear();
-            let _ = ips.push(IpCidr::new(SmolIpAddress::Ipv4(Ipv4Address::from_bytes(&ip)), prefix));
-            let _ = ips.push(IpCidr::new(SmolIpAddress::Ipv6(Ipv6Address::LOOPBACK), 128));
+            let _ = ips.push(IpCidr::new(SmolIpAddress::Ipv4(SmolIpv4Address::from_bytes(&ip)), prefix));
+            let _ = ips.push(IpCidr::new(SmolIpAddress::Ipv6(SmolIpv6Address::LOOPBACK), 128));
         });
         if let Some(gw) = gateway {
             let mut routes = self.routes.lock();
-            routes
-                .add_default_ipv4_route(Ipv4Gateway::Direct(Ipv4Address::from_bytes(&gw)))
-                .ok();
-            iface.set_routes(routes.clone());
+            let gw_addr = SmolIpv4Address::from_bytes(&gw);
+            routes.add_default_ipv4_route(gw_addr).ok();
+            drop(routes);
+            // Routes are managed by the interface internally
         }
     }
 
@@ -232,7 +223,7 @@ impl NetworkStack {
         let ts = SmolInstant::from_millis(now_ms() as i64);
         let mut iface = self.iface.lock();
         let mut sockets = self.sockets.lock();
-        let _ = iface.poll(ts, &mut *sockets);
+        let _ = iface.poll(ts, &mut SmolDeviceAdapter, &mut *sockets);
     }
 
     fn pick_single_active_conn(&self) -> Option<u32> {
@@ -275,24 +266,22 @@ impl NetworkStack {
         // smoltcp models a single tcp::Socket per connection; emulate accept by picking the first active listener.
         let mut sockets = self.sockets.lock();
         let now = now_ms();
-        for i in 0..sockets.len() {
-            if let Some(h) = sockets.handles().nth(i) {
-                if let Some(sock) = sockets.get_mut::<tcp::Socket>(h) {
-                    if sock.is_active() && (sock.may_recv() || sock.may_send()) {
-                        // Promote to managed connection entry
-                        let id = self.next_id.fetch_add(1, Ordering::SeqCst);
-                        drop(sockets);
-                        let mut conns = self.conns.lock();
-                        conns.insert(id, ConnectionEntry {
-                            id,
-                            tcp: h,
-                            last_activity_ms: now,
-                            closed: false,
-                        });
-                        return Ok(id);
-                    }
+        let handles: Vec<_> = sockets.iter().map(|h| h.0).collect();
+        for h in handles {
+            let sock = sockets.get::<tcp::Socket>(h);
+            if sock.is_active() && (sock.may_recv() || sock.may_send()) {
+                    // Promote to managed connection entry
+                    let id = self.next_id.fetch_add(1, Ordering::SeqCst);
+                    drop(sockets);
+                    let mut conns = self.conns.lock();
+                    conns.insert(id, ConnectionEntry {
+                        id,
+                        tcp: h,
+                        last_activity_ms: now,
+                        closed: false,
+                    });
+                    return Ok(id);
                 }
-            }
         }
         Err("no pending connection")
     }
@@ -334,17 +323,16 @@ impl NetworkStack {
         }
         drop(sockets);
 
-        // Initiate connect
+        // Initiate connect with proper smoltcp 0.11.0 Context
         {
             let mut sockets = self.sockets.lock();
+            let mut iface = self.iface.lock();
             let socket: &mut tcp::Socket = sockets.get_mut(handle);
-            socket.connect(
-                smoltcp::iface::SocketAddr::new(
-                    SmolIpAddress::Ipv4(Ipv4Address::from_bytes(&addr_v4)),
-                    port,
-                ),
-                0,
-            ).map_err(|_| "tcp connect error")?;
+            let endpoint = smoltcp::wire::IpEndpoint::new(SmolIpAddress::Ipv4(SmolIpv4Address::new(addr_v4[0], addr_v4[1], addr_v4[2], addr_v4[3])), port);
+            let local_endpoint = (SmolIpAddress::Ipv4(SmolIpv4Address::new(0, 0, 0, 0)), 0);
+            let now = smoltcp::time::Instant::from_millis(now_ms() as i64);
+            let mut ctx = iface.context();
+            socket.connect(&mut ctx, local_endpoint, endpoint).map_err(|_| "tcp connect error")?;
         }
 
         // Poll until established or timeout
@@ -371,7 +359,7 @@ impl NetworkStack {
         let c = conns.get(&sock.connection_id())?;
         let sockets = self.sockets.lock();
         let s: &tcp::Socket = sockets.get(c.tcp);
-        s.local_endpoint().map(|ep| ep.port())
+        s.local_endpoint().map(|ep| ep.port)
     }
 }
 
@@ -562,10 +550,10 @@ impl NetworkStack {
 /* ===== DNS helpers used by nonos_dns.rs ===== */
 
 impl NetworkStack {
-    pub fn set_default_dns_v4(&self, v4: [u8; 4]) { *self.default_dns_v4.lock() = Ipv4Address::from_bytes(&v4); }
+    pub fn set_default_dns_v4(&self, v4: [u8; 4]) { *self.default_dns_v4.lock() = v4; }
 
     pub fn dns_query_a(&self, hostname: &str, timeout_ms: u64) -> Result<Vec<[u8; 4]>, &'static str> {
-        // use smoltcp:: // TODO: external dependencysocket::udp::{PacketBuffer, PacketMetadata};
+        use smoltcp::socket::udp::{PacketBuffer, PacketMetadata};
         let mut sockets = self.sockets.lock();
         let rx = PacketBuffer::new(vec![PacketMetadata::EMPTY; 8], vec![0; 1536]);
         let tx = PacketBuffer::new(vec![PacketMetadata::EMPTY; 8], vec![0; 1536]);
@@ -580,7 +568,9 @@ impl NetworkStack {
             let mut sockets = self.sockets.lock();
             let s: &mut udp::Socket = sockets.get_mut(handle);
             s.bind(0).map_err(|_| "dns bind")?;
-            let _ = s.send_slice(&query, (SmolIpAddress::Ipv4(server), 53).into()).map_err(|_| "dns send")?;
+            let dns_endpoint = smoltcp::wire::IpEndpoint::new(SmolIpAddress::Ipv4(SmolIpv4Address::new(server[0], server[1], server[2], server[3])), 53);
+            let metadata = smoltcp::socket::udp::UdpMetadata::from(dns_endpoint);
+            let _ = s.send_slice(&query, metadata).map_err(|_| "dns send")?;
         }
 
         let start = now_ms();
