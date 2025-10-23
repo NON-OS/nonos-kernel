@@ -51,12 +51,12 @@ impl VaultAuditManager {
         let mut log = self.log.lock();
         for event in log.iter_mut() {
             if let Some(ctx) = &mut event.context {
-                for b in ctx.as_mut_vec() {
+                for b in unsafe { ctx.as_mut_vec() } {
                     *b = 0;
                 }
             }
             if let Some(st) = &mut event.status {
-                for b in st.as_mut_vec() {
+                for b in unsafe { st.as_mut_vec() } {
                     *b = 0;
                 }
             }
