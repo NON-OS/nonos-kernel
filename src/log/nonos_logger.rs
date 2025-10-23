@@ -14,6 +14,7 @@
 use core::fmt;
 use core::sync::atomic::{AtomicBool, Ordering};
 use spin::Mutex;
+use alloc::boxed::Box;
 use crate::arch::x86_64::vga::Color;
 use crate::arch::x86_64::time::tsc_now; // timestamp counter reader
 use crate::arch::x86_64::cpu::current_cpu_id as cpu_id; // CPU ID getter
@@ -139,7 +140,7 @@ impl LogManager {
         let cpu = cpu_id();
         let mut entry = LogEntry {
             ts,
-            cpu,
+            cpu: cpu as u32,
             sev,
             msg: heapless::String::new(),
             hash: [0u8; 32],
@@ -187,9 +188,17 @@ pub fn log_critical(msg: &str) {
     log(Severity::Fatal, msg);
 }
 
+pub fn try_get_logger() -> Option<&'static Mutex<Option<LogManager>>> {
+    Some(&LOGGER)
+}
+
 // === Macros ===
 #[macro_export]
 macro_rules! log_info {
+    ($($arg:tt)*) => { $crate::log::log($crate::log::Severity::Info, &alloc::format!($($arg)*)) };
+}
+#[macro_export]
+macro_rules! info {
     ($($arg:tt)*) => { $crate::log::log($crate::log::Severity::Info, &alloc::format!($($arg)*)) };
 }
 #[macro_export]
@@ -207,4 +216,9 @@ macro_rules! log_dbg {
 #[macro_export]
 macro_rules! log_fatal {
     ($($arg:tt)*) => { $crate::log::log($crate::log::Severity::Fatal, &alloc::format!($($arg)*)) };
+}
+
+#[macro_export]
+macro_rules! log_error {
+    ($($arg:tt)*) => { $crate::log::log($crate::log::Severity::Err, &alloc::format!($($arg)*)) };
 }
