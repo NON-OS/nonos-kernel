@@ -54,8 +54,8 @@ fn pq_sign(algo: &QuantumAlgorithm, message: &[u8], sk: &[u8]) -> Result<Vec<u8>
 
 fn pq_verify(algo: &QuantumAlgorithm, message: &[u8], sig: &[u8], pk: &[u8]) -> Result<bool, &'static str> {
     match algo {
-        QuantumAlgorithm::Dilithium3 => crate::crypto::quantum::dilithium3_verify(message, sig, pk),
-        QuantumAlgorithm::SphincsPlus128s => crate::crypto::quantum::sphincs128s_verify(message, sig, pk),
+        QuantumAlgorithm::Dilithium3 => Ok(crate::crypto::quantum::dilithium3_verify(message, sig, pk)),
+        QuantumAlgorithm::SphincsPlus128s => Ok(crate::crypto::quantum::sphincs128s_verify(message, sig, pk)),
         _ => Err("Verification not supported for this algorithm"),
     }
 }
@@ -231,7 +231,7 @@ impl ThreatDetectionEngine for KernelThreatAI {
         // After with real ML/AI pipeline: kernel signals, syscalls, memory, network events
         if input.len() > 1024 && crate::crypto::estimate_entropy(input) > 7.5 {
             self.detections.fetch_add(1, Ordering::Relaxed);
-            let threat = "High-entropy anomaly detected".into();
+            let threat: String = "High-entropy anomaly detected".into();
             *self.last_threat.lock() = Some(threat.clone());
             Some(threat)
         } else {

@@ -35,7 +35,7 @@ pub struct NonosSecurityEvent {
 }
 
 /// Per-subsystem stats
-#[derive(Default)]
+#[derive(Default, Debug)]
 pub struct NonosMonitorStats {
     pub total_events: AtomicU64,
     pub critical_events: AtomicU64,
@@ -84,14 +84,14 @@ pub fn log_event(
     if severity >= 3 {
         get_monitor_stats().critical_events.fetch_add(1, Ordering::Relaxed);
     }
-    match event_type {
+    let _ = match event_type {
         NonosSecurityEventType::SuspiciousMemoryAccess => get_monitor_stats().memory_violations.fetch_add(1, Ordering::Relaxed),
         NonosSecurityEventType::UnauthorizedNetworkAccess => get_monitor_stats().network_anomalies.fetch_add(1, Ordering::Relaxed),
         NonosSecurityEventType::ProcessAnomaly => get_monitor_stats().process_anomalies.fetch_add(1, Ordering::Relaxed),
         NonosSecurityEventType::RootkitDetection => get_monitor_stats().rootkit_alerts.fetch_add(1, Ordering::Relaxed),
         NonosSecurityEventType::PrivacyViolation => get_monitor_stats().privacy_violations.fetch_add(1, Ordering::Relaxed),
-        _ => {},
-    }
+        _ => 0,
+    };
 }
 
 /// Get the latest N security events
