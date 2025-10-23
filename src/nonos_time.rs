@@ -2,7 +2,9 @@
 //!
 //! Provides time-related functions for the kernel
 
-use crate::arch::x86_64::time::timer;
+#![allow(dead_code)]
+
+pub use crate::arch::x86_64::time::timer;
 
 /// Get current time in nanoseconds since boot
 pub fn now_ns() -> u64 {
