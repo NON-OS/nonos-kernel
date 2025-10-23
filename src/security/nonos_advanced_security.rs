@@ -150,7 +150,7 @@ impl AdvancedSecurityManager {
     }
     pub fn report_violation(&self, msg: &str) {
         self.violations.fetch_add(1, Ordering::Release);
-        crate::log::security_log!(format!("SECURITY VIOLATION: {}", msg), crate::security::audit::AuditSeverity::Critical);
+        crate::log::security_log!("SECURITY VIOLATION: {}", msg);
     }
     pub fn stats(&self) -> SecurityStats {
         SecurityStats {
