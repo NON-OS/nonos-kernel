@@ -236,17 +236,20 @@ where
 fn check_expired_timers() {
     let current_time = now_ns();
     let mut timers = ACTIVE_TIMERS.lock();
-    let mut expired_timers = alloc::vec::Vec::new();
+    let mut expired_timer_ids = alloc::vec::Vec::new();
     for (&timer_id, timer) in timers.iter() {
         if current_time >= timer.expiry_ns {
-            expired_timers.push((timer_id, timer.callback));
+            expired_timer_ids.push(timer_id);
         }
     }
-    for &(timer_id, _) in &expired_timers {
-        timers.remove(&timer_id);
+    let mut expired_callbacks = alloc::vec::Vec::new();
+    for timer_id in expired_timer_ids {
+        if let Some(timer) = timers.remove(&timer_id) {
+            expired_callbacks.push(timer.callback);
+        }
     }
     drop(timers);
-    for (_, callback) in expired_timers {
+    for callback in expired_callbacks {
         callback();
     }
 }
