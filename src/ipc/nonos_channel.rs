@@ -36,7 +36,6 @@ impl IpcMessage {
 }
 
 /// Internal channel registry entry (registered routes are &'static str pairs).
-#[derive(Clone)]
 struct ChannelEntry {
     from: &'static str,
     to: &'static str,

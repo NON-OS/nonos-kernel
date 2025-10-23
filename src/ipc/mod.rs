@@ -160,8 +160,6 @@ pub fn process_message_queue() {
     if processed > 0 {
         crate::drivers::console::write_message(
             &alloc::format!("IPC processed {}", processed),
-            crate::drivers::console::LogLevel::Info,
-            "ipc",
         );
     }
 }

@@ -64,7 +64,7 @@ struct Registry {
 }
 
 impl Registry {
-    fn new() -> Self {
+    const fn new() -> Self {
         Self { map: BTreeMap::new() }
     }
 }
