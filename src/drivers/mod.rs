@@ -61,7 +61,7 @@ pub use nonos_audio::{
 
 pub use nonos_gpu::{
     GpuDriver, DisplayMode, PixelFormat, GpuSurface, GpuStats,
-    init_gpu, get_driver as get_gpu_driver
+    init_gpu, with_driver as with_gpu_driver
 };
 
 pub use nonos_virtio_net::{
@@ -90,7 +90,7 @@ pub fn get_hardware_stats() -> HardwareStats {
         ahci_stats: get_ahci_controller().map(|ctrl| ctrl.get_stats()).unwrap_or_default(),
         xhci_stats: get_xhci_controller().map(|ctrl| ctrl.get_stats()).unwrap_or_default(),
         audio_stats: get_audio_controller().map(|ctrl| ctrl.get_stats()).unwrap_or_default(),
-        gpu_stats: get_gpu_driver().map(|drv| drv.get_stats()).unwrap_or_default(),
+        gpu_stats: with_gpu_driver(|drv| drv.get_stats()).unwrap_or_default(),
     }
 }
 
