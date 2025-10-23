@@ -492,7 +492,7 @@ impl NonosCapabilityEngine {
         let mut access_pattern_hash = [0u8; 32];
         
         crate::crypto::fill_random(&mut encryption_key);
-        crate::crypto::hash_memory_region(start_addr, size as usize, &mut integrity_hash)?;
+        crate::crypto::hash_memory_region(start_addr as usize, size as usize, &mut integrity_hash)?;
         crate::crypto::fill_random(&mut access_pattern_hash);
 
         let region = SealedMemoryRegion {
@@ -577,7 +577,7 @@ impl NonosCapabilityEngine {
             crate::crypto::secure_zero(&mut region.encryption_key);
             if region.ephemeral {
                 // In a real implementation, this would securely erase the memory region
-                crate::crypto::secure_erase_memory_region(region.start_addr, region.size)?;
+                crate::crypto::secure_erase_memory_region(region.start_addr as usize, region.size as usize)?;
             }
         }
         regions.clear();

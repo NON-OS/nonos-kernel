@@ -110,7 +110,7 @@ pub fn get_security_stats() -> SecurityStats {
                 key_count: 0,
                 compliance_events: 0,
                 qkd_count: 0,
-                entropy_bits: 0,
+                entropy_bits: 0.0,
                 threat_detections: 0,
                 trust_verifications: 0,
             }
