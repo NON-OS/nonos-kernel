@@ -2,7 +2,7 @@
 
 use core::{mem, ptr};
 use core::sync::atomic::{AtomicU64, Ordering};
-use alloc::{vec::Vec, string::String};
+use alloc::{vec::Vec, string::String, boxed::Box};
 use spin::Mutex;
 use x86_64::{PhysAddr, VirtAddr};
 
@@ -513,6 +513,6 @@ pub fn init_hd_audio() -> Result<(), &'static str> {
     Ok(())
 }
 
-pub fn get_controller() -> Option<&'static HdAudioController> {
-    HDA_ONCE.get().map(|m| &*m.lock())
+pub fn get_controller() -> Option<spin::MutexGuard<'static, HdAudioController>> {
+    HDA_ONCE.get().map(|m| m.lock())
 }
