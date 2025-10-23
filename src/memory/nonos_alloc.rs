@@ -346,7 +346,7 @@ unsafe fn kfree_large(p: *mut u8, size: usize) {
 }
 
 /// Map `pages` of anonymous kernel memory; if guard=true, keep 1 page gaps around.
-unsafe fn map_large_pages(pages: usize, flags: VmFlags, guard: bool) -> VirtAddr {
+pub unsafe fn map_large_pages(pages: usize, flags: VmFlags, guard: bool) -> VirtAddr {
     let h = HEAP.lock();
     let mut cursor = *h.vm_cursor.get();
     let heap_end = KHEAP_BASE + KHEAP_SIZE;
@@ -392,11 +392,6 @@ unsafe fn unmap_large_pages(base: VirtAddr, pages: usize, guard: bool) {
 
 // Convenience helpers
 
-pub fn allocate_kernel_memory(size: usize) -> Result<VirtAddr, &'static str> {
-    let ptr = unsafe { kmalloc(size) };
-    if ptr.is_null() { Err("kmalloc failed") } else { Ok(VirtAddr::new(ptr as u64)) }
-}
-
 pub fn allocate_kernel_pages(pages: usize) -> Result<VirtAddr, &'static str> {
     let addr = unsafe { kalloc_pages(pages, VmFlags::RW | VmFlags::NX | VmFlags::GLOBAL) };
     if addr.as_u64() == 0 { Err("kalloc_pages failed") } else { Ok(addr) }
@@ -404,3 +399,44 @@ pub fn allocate_kernel_pages(pages: usize) -> Result<VirtAddr, &'static str> {
 
 pub fn allocate_frame() -> Option<PhysAddr> { crate::memory::frame_alloc::allocate_frame() }
 pub fn deallocate_frame(addr: PhysAddr) { crate::memory::frame_alloc::deallocate_frame(addr) }
+
+pub unsafe fn kalloc(size: usize) -> *mut core::ffi::c_void {
+    let layout = core::alloc::Layout::from_size_align(size, 8).unwrap();
+    // Use the heap allocation system directly
+    if size == 0 { return core::ptr::null_mut(); }
+    kalloc_large(size, 8, false) as *mut core::ffi::c_void
+}
+
+pub unsafe fn kfree_void(ptr: *mut core::ffi::c_void) {
+    if !ptr.is_null() {
+        let layout = core::alloc::Layout::from_size_align(8, 8).unwrap();
+        // Use the heap deallocation system directly  
+        kfree_large(ptr as *mut u8, 8);
+    }
+}
+
+/// Allocate kernel memory with real physical frame backing and virtual mapping
+pub fn allocate_kernel_memory(size: usize) -> Result<VirtAddr, &'static str> {
+    // Align size to page boundary for kernel allocations
+    let aligned_size = (size + PAGE_SIZE - 1) & !(PAGE_SIZE - 1);
+    let pages = aligned_size / PAGE_SIZE;
+    
+    if pages == 0 {
+        return Err("Zero-size allocation");
+    }
+    
+    // Use existing large page allocator which handles physical mapping
+    let virt_start = unsafe { map_large_pages(pages, VmFlags::RW | VmFlags::NX | VmFlags::GLOBAL, false) };
+    
+    if virt_start.as_u64() == 0 {
+        return Err("Failed to allocate virtual memory");
+    }
+    
+    // Zero the allocated memory for security
+    unsafe {
+        ptr::write_bytes(virt_start.as_mut_ptr::<u8>(), 0, aligned_size);
+    }
+    
+    Ok(virt_start)
+}
+

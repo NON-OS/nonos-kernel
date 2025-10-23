@@ -341,11 +341,11 @@ impl GuardPageManager {
     /// Allocate memory with guard pages
     pub fn allocate_guarded(&self, size: usize) -> Result<VirtAddr, &'static str> {
         if !self.enabled.load(Ordering::SeqCst) {
-            return crate::memory::alloc::allocate_kernel_memory(size);
+            return crate::memory::nonos_alloc::allocate_kernel_memory(size);
         }
 
         let total_size = size + (self.guard_size * 2); // Guards before and after
-        let raw_addr = crate::memory::alloc::allocate_kernel_memory(total_size)?;
+        let raw_addr = crate::memory::nonos_alloc::allocate_kernel_memory(total_size)?;
         
         // Set up guard pages (mark as non-accessible)
         let guard_start = raw_addr;
@@ -564,7 +564,7 @@ impl NUMAManager {
     /// Allocate memory on specific NUMA node
     pub fn allocate_on_node(&self, size: usize, preferred_node: u32) -> Result<VirtAddr, &'static str> {
         if !self.enabled.load(Ordering::SeqCst) {
-            return crate::memory::alloc::allocate_kernel_memory(size);
+            return crate::memory::nonos_alloc::allocate_kernel_memory(size);
         }
 
         if let Some(nodes) = self.numa_nodes.try_read() {
@@ -579,13 +579,13 @@ impl NUMAManager {
         }
 
         // Fallback to any available node
-        crate::memory::alloc::allocate_kernel_memory(size)
+        crate::memory::nonos_alloc::allocate_kernel_memory(size)
     }
 
     fn allocate_from_node(&self, node: &NUMANode, size: usize) -> Result<VirtAddr, &'static str> {
         // In a real implementation, this would allocate from node-local memory
         // For now, use regular allocation with node tracking
-        crate::memory::alloc::allocate_kernel_memory(size)
+        crate::memory::nonos_alloc::allocate_kernel_memory(size)
     }
 
     /// Get optimal NUMA node for current CPU
@@ -688,7 +688,7 @@ impl AdvancedMemoryManager {
         } else if self.config.enable_numa_awareness {
             self.numa.allocate_on_node(size, numa_node)?
         } else {
-            crate::memory::alloc::allocate_kernel_memory(size)?
+            crate::memory::nonos_alloc::allocate_kernel_memory(size)?
         };
 
         // Apply KASLR randomization
