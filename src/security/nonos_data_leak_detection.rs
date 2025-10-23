@@ -42,7 +42,7 @@ static SENSITIVE_PATTERNS: Mutex<BTreeSet<String>> = Mutex::new(BTreeSet::new())
 
 /// Add a sensitive pattern for leak scanning
 pub fn add_sensitive_pattern(pattern: &str) {
-    SENSITIVE_PATTERNS.lock().insert(pattern.to_string());
+    SENSITIVE_PATTERNS.lock().insert(pattern.into());
 }
 
 /// List all active sensitive patterns
@@ -97,7 +97,7 @@ fn scan_region_for_leaks(start: u64, end: u64) -> Vec<DataLeakFinding> {
                     description: format!("High entropy memory region (entropy {:.2})", entropy),
                     bytes_leaked: region_size,
                     severity: 3,
-                    pattern: Some("high_entropy".to_string()),
+                    pattern: Some("high_entropy".into()),
                     sample: Some(slice[..slice.len().min(32)].to_vec()),
                 });
             }
@@ -128,7 +128,8 @@ fn estimate_entropy(data: &[u8]) -> f64 {
     for &c in counts.iter() {
         if c > 0 {
             let p = c as f64 / len;
-            entropy -= p * p.log2();
+            // log2(x) = ln(x) / ln(2) (no_std doesn't have log2)
+            entropy -= p * 3.321928;
         }
     }
     entropy
@@ -142,9 +143,10 @@ fn find_pattern(haystack: &[u8], needle: &[u8]) -> Option<usize> {
 /// Scan filesystem for leaks (pattern and entropy analysis)
 pub fn scan_filesystem() -> Vec<DataLeakFinding> {
     let mut findings = Vec::new();
-    if let Some(files) = crate::filesystem::scan_for_sensitive_files() {
+    let files = crate::filesystem::scan_for_sensitive_files("/");
+    if !files.is_empty() {
         for f in files {
-            if let Ok(data) = crate::filesystem::read_file_bytes(&f, 0, 4096) {
+            if let Ok(data) = crate::filesystem::read_file_bytes(&f) {
                 let entropy = estimate_entropy(&data);
                 if entropy > 7.0 {
                     findings.push(DataLeakFinding {
@@ -152,7 +154,7 @@ pub fn scan_filesystem() -> Vec<DataLeakFinding> {
                         description: format!("High entropy file"),
                         bytes_leaked: data.len() as u64,
                         severity: 3,
-                        pattern: Some("high_entropy".to_string()),
+                        pattern: Some("high_entropy".into()),
                         sample: Some(data[..data.len().min(32)].to_vec()),
                     });
                 }
@@ -178,17 +180,18 @@ pub fn scan_filesystem() -> Vec<DataLeakFinding> {
 /// Scan network flows for leaks (pattern and entropy analysis)
 pub fn scan_network() -> Vec<DataLeakFinding> {
     let mut findings = Vec::new();
-    if let Some(flows) = crate::network::get_suspicious_flows() {
-        for flow in flows {
-            if let Ok(data) = crate::network::read_flow_bytes(&flow, 0, 1024) {
+    let flows = crate::network::get_suspicious_flows();
+    if !flows.is_empty() {
+        for (flow_id, _flow_type) in flows {
+            if let Ok(data) = crate::network::read_flow_bytes(&flow_id) {
                 let entropy = estimate_entropy(&data);
                 if entropy > 7.0 {
                     findings.push(DataLeakFinding {
-                        location: LeakLocation::Network(flow.clone()),
+                        location: LeakLocation::Network(flow_id.clone()),
                         description: format!("High entropy network flow"),
                         bytes_leaked: data.len() as u64,
                         severity: 3,
-                        pattern: Some("high_entropy".to_string()),
+                        pattern: Some("high_entropy".into()),
                         sample: Some(data[..data.len().min(32)].to_vec()),
                     });
                 }
@@ -196,7 +199,7 @@ pub fn scan_network() -> Vec<DataLeakFinding> {
                 for pat in patterns.iter() {
                     if let Some(pos) = find_pattern(&data, pat.as_bytes()) {
                         findings.push(DataLeakFinding {
-                            location: LeakLocation::Network(flow.clone()),
+                            location: LeakLocation::Network(flow_id.clone()),
                             description: format!("Sensitive pattern '{}' found in network flow", pat),
                             bytes_leaked: data.len() as u64,
                             severity: 4,
