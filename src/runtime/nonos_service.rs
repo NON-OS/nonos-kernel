@@ -2,7 +2,7 @@
 
 extern crate alloc;
 
-use alloc::{collections::BTreeMap, string::String};
+use alloc::{boxed::Box, collections::BTreeMap, string::String};
 use spin::{RwLock, Once};
 
 use crate::runtime::nonos_zerostate::send_from_capsule;
@@ -46,5 +46,6 @@ pub fn resolve(service: &str) -> Option<String> {
 /// Send payload from a capsule to a service.
 pub fn send_to_service(from_capsule: &str, service: &str, payload: &[u8], token: &CapabilityToken) -> Result<(), &'static str> {
     let Some(target_capsule) = resolve(service) else { return Err("service not found"); };
-    send_from_capsule(from_capsule, &target_capsule, payload, token)
+    let target_capsule_static: &'static str = Box::leak(target_capsule.into_boxed_str());
+    send_from_capsule(from_capsule, target_capsule_static, payload, token)
 }

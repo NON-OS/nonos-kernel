@@ -86,21 +86,25 @@ pub fn get_capsule_by_name(name: &str) -> Option<Arc<Capsule>> {
 /// Send a payload from capsule to a peer with isolation checks
 pub fn send_from_capsule(
     from: &str,
-    to: &str,
+    to: &'static str,
     payload: &[u8],
     token: &CapabilityToken,
 ) -> Result<(), &'static str> {
-    let (cap, iso) = {
+    let (cap, iso_result) = {
         let reg = get_registry().read();
-        let id = reg.by_name.get(from).ok_or("capsule not found")?;
-        let cap = reg.by_id.get(id).ok_or("capsule missing")?.clone();
-        let iso = reg.iso.get(id).ok_or("isolation missing")?.clone();
-        (cap, iso)
+        let id = reg.by_name.get(from).copied().ok_or("capsule not found")?;
+        let cap = reg.by_id.get(&id).cloned().ok_or("capsule missing")?;
+        let iso = reg.iso.get(&id).ok_or("isolation missing")?;
+        
+        // Do isolation checks while we have the lock
+        let iso_result = iso.check_inbox_capacity()
+            .and_then(|_| iso.charge_message(payload.len()));
+        
+        (cap, iso_result)
     };
 
-    // Isolation checks
-    iso.check_inbox_capacity()?;
-    iso.charge_message(payload.len())?;
+    // Check isolation result
+    iso_result?;
 
     // Send via capsule
     cap.send(to, payload, token)
