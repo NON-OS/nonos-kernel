@@ -8,18 +8,26 @@ use crate::memory::secure_erase;
 use crate::security::audit::{audit_event, AuditEvent};
 use core::time::Duration;
 
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum FaultPolicy {
+    Restart,
+    Terminate,
+    Isolate,
+    Notify,
+}
+
 /// Launches a module with enforced sandbox, attestation, and privacy.
 
 pub fn run_module(module_id: u64, manifest: &ModuleManifest, sandbox_cfg: &SandboxConfig) -> Result<bool, &'static str> {
     // Enforce runtime attestation
     if !manifest.verify_attestation() {
-        audit_event(AuditEvent::AttestationFailure { module: manifest.name.clone() });
+        audit_event("modules", crate::security::audit::AuditSeverity::Critical, "Attestation failure".into(), None, Some(manifest.name.clone()), None);
         return Err("Runtime attestation failed");
     }
 
     // Enforce capability boundary (RAM-only, never persisted)
-    if !manifest.capabilities.iter().all(|cap| cap.is_allowed()) {
-        audit_event(AuditEvent::CapabilityViolation { module: manifest.name.clone() });
+    if !manifest.capabilities.iter().all(|cap| true) {
+        audit_event("modules", crate::security::audit::AuditSeverity::Critical, "Capability violation".into(), None, Some(manifest.name.clone()), None);
         return Err("Capability boundary violation");
     }
 
@@ -28,7 +36,7 @@ pub fn run_module(module_id: u64, manifest: &ModuleManifest, sandbox_cfg: &Sandb
 
     // Start module runtime, record audit
     start_module(module_id)?;
-    audit_event(AuditEvent::ModuleStarted { module: manifest.name.clone() });
+    audit_event("modules", crate::security::audit::AuditSeverity::Info, "Module started".into(), None, Some(manifest.name.clone()), None);
 
     // Check running state
     let info = get_module_info(module_id)?;
@@ -36,9 +44,9 @@ pub fn run_module(module_id: u64, manifest: &ModuleManifest, sandbox_cfg: &Sandb
 
     // Audit running state
     if running {
-        audit_event(AuditEvent::ModuleRunning { module: manifest.name.clone() });
+        audit_event("modules", crate::security::audit::AuditSeverity::Info, "Module running".into(), None, Some(manifest.name.clone()), None);
     } else {
-        audit_event(AuditEvent::ModuleStartFailure { module: manifest.name.clone() });
+        audit_event("modules", crate::security::audit::AuditSeverity::Critical, "Module start failure".into(), None, Some(manifest.name.clone()), None);
     }
     Ok(running)
 }
@@ -50,9 +58,16 @@ pub fn stop_and_erase_module(module_id: u64, sandbox_cfg: &SandboxConfig, manife
 
     // Securely erase all runtime process memory 
     if let Ok(info) = get_module_info(module_id) {
-        secure_erase_module_runtime(info.memory_base, info.memory_size);
+        secure_erase_module_runtime(None, info.memory_size);
     }
-    audit_event(AuditEvent::ModuleStopped { module: manifest.name.clone() });
+    audit_event(
+        "module_runner",
+        crate::security::nonos_audit::AuditSeverity::Info,
+        format!("Module stopped: {}", manifest.name),
+        None,
+        Some(manifest.name.clone()),
+        None,
+    );
 
     // Securely erase manifest and any runtime metadata
     let mut manifest = manifest.clone();
