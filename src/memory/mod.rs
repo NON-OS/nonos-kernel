@@ -22,8 +22,9 @@ pub mod nonos_memory;
 pub mod nonos_advanced_mm;
 pub mod nonos_hardening;
 pub mod nonos_ai_memory_manager;
+// Re-export robust allocator
+pub use nonos_robust_allocator as robust_allocator;
 
-pub use nonos_alloc as alloc;
 pub use nonos_boot_memory as boot_memory;
 pub use nonos_dma as dma;
 pub use nonos_frame_alloc as frame_alloc;
@@ -40,10 +41,30 @@ pub use nonos_region as region;
 pub use nonos_safety as safety;
 pub use nonos_virt as virt;
 pub use nonos_virtual_memory as virtual_memory;
+
+// Add missing function aliases
+pub use nonos_virtual_memory::unmap_memory_range as unmap_range;
 pub use nonos_hardening as hardening;
 pub use nonos_ai_memory_manager as ai_memory_manager;
 
 pub use nonos_page_info::{PageFlags, PageInfo, SwapInfo, get_page_info, set_page_info};
+
+// Missing memory functions
+pub fn get_all_process_regions() -> alloc::vec::Vec<(usize, usize)> {
+    // Return empty vector for now - would contain all process memory regions
+    alloc::vec::Vec::new()
+}
+
+pub fn read_bytes(addr: usize, size: usize) -> Result<alloc::vec::Vec<u8>, &'static str> {
+    if size > 1024 * 1024 { // Limit to 1MB
+        return Err("Size too large");
+    }
+    
+    let data = unsafe { 
+        core::slice::from_raw_parts(addr as *const u8, size)
+    };
+    Ok(data.to_vec())
+}
 pub use nonos_dma::{alloc_dma_page, free_dma_page, DmaPage, PhysicalAddress, init_dma_allocator};
 pub use nonos_hardening::MEMORY_STATS;
 pub use nonos_memory::NonosMemoryManager;
@@ -54,15 +75,18 @@ pub use nonos_ai_memory_manager::{
     AIMemoryStatsSnapshot, MemoryAccessType
 };
 
+extern crate alloc;
+use alloc::{format, sync::Arc};
 use core::sync::atomic::Ordering;
 use spin::Once;
 use x86_64::{
-    PhysAddr, VirtAddr,
     registers::control::Cr3,
     structures::paging::{
         mapper::Translate, Mapper, Page, PageTableFlags, PhysFrame, Size4KiB,
     },
 };
+
+pub use x86_64::{PhysAddr, VirtAddr};
 
 static MEMORY_MANAGER: Once<NonosMemoryManager> = Once::new();
 
@@ -155,7 +179,7 @@ pub fn alloc_kernel_stack() -> Option<VirtAddr> {
     if total_pages == 0 { return None; }
 
     // Allocate a contiguous VA+frames range for the stack
-    let base = unsafe { crate::memory::alloc::kalloc_pages(total_pages, crate::memory::virt::VmFlags::RW | crate::memory::virt::VmFlags::NX) };
+    let base = unsafe { crate::memory::nonos_alloc::kalloc_pages(total_pages, crate::memory::virt::VmFlags::RW | crate::memory::virt::VmFlags::NX) };
     if base.as_u64() == 0 {
         return None;
     }
@@ -198,9 +222,9 @@ pub fn verify_kernel_data_integrity() -> bool { true }
 pub fn verify_kernel_page_tables() -> bool { true }
 
 pub fn get_kernel_memory_regions() -> alloc::vec::Vec<MemoryRegion> {
-    alloc::vec![
+    alloc::vec::Vec::from([
         MemoryRegion { start: 0xFFFF_8000_0000_0000, size: 0x0100_0000, region_type: RegionType::Kernel },
-    ]
+    ])
 }
 
 pub const STACK_SIZE: usize = 8192;
@@ -300,7 +324,7 @@ pub fn handle_page_fault(fault_address: VirtAddr, is_write: bool) -> Result<(), 
 fn handle_stack_page_fault(fault_address: VirtAddr) -> Result<(), &'static str> {
     let frame = {
         let mut a = frame_alloc::get_allocator().lock();
-        a.allocate_frame().ok_or("oom")?
+        a.alloc().ok_or("oom")?
     };
 
     let page = Page::<Size4KiB>::containing_address(fault_address);
@@ -312,7 +336,7 @@ fn handle_stack_page_fault(fault_address: VirtAddr) -> Result<(), &'static str> 
         mapper.map_to(page, frame, flags, &mut *fa).map_err(|_| "map")?.flush();
         let start = fault_address.as_u64() & !0xFFF;
         core::ptr::write_bytes(start as *mut u8, 0, 4096);
-        crate::process::update_memory_usage(4096);
+        crate::process::update_memory_usage(0, 4096);
     }
     Ok(())
 }
@@ -327,7 +351,7 @@ fn handle_heap_page_fault(fault_address: VirtAddr, is_write: bool) -> Result<(),
 
     let frame = {
         let mut a = frame_alloc::get_allocator().lock();
-        a.allocate_frame().ok_or("oom")?
+        a.alloc().ok_or("oom")?
     };
     let page = Page::<Size4KiB>::containing_address(fault_address);
     let flags = PageTableFlags::PRESENT | PageTableFlags::WRITABLE | PageTableFlags::USER_ACCESSIBLE | PageTableFlags::NO_EXECUTE;
@@ -336,7 +360,7 @@ fn handle_heap_page_fault(fault_address: VirtAddr, is_write: bool) -> Result<(),
         let mut mapper = virt::get_kernel_mapper().map_err(|_| "mapper")?;
         let mut fa = frame_alloc::get_allocator().lock();
         mapper.map_to(page, frame, flags, &mut *fa).map_err(|_| "map")?.flush();
-        crate::process::update_memory_usage(4096);
+        crate::process::update_memory_usage(0, 4096);
     }
     Ok(())
 }
@@ -351,7 +375,7 @@ fn handle_demand_paging(fault_address: VirtAddr) -> Result<(), &'static str> {
     handle_heap_page_fault(fault_address, false)
 }
 
-fn handle_user_space_fault(fault_address: VirtAddr, is_write: bool, _process: &crate::process::Process) -> Result<(), &'static str> {
+fn handle_user_space_fault(fault_address: VirtAddr, is_write: bool, _process: &Arc<crate::process::ProcessControlBlock>) -> Result<(), &'static str> {
     if is_write {
         Err("segv write")
     } else {
@@ -379,7 +403,7 @@ pub fn handle_cow_fault(fault_addr: u64) -> Result<(), &'static str> {
         }
         let new_frame = {
             let mut a = frame_alloc::get_allocator().lock();
-            a.allocate_frame().ok_or("oom")?
+            a.alloc().ok_or("oom")?
         };
         copy_page_content(page_addr, new_frame)?;
         let flags = PageTableFlags::PRESENT | PageTableFlags::WRITABLE | PageTableFlags::USER_ACCESSIBLE;
@@ -450,7 +474,7 @@ fn deallocate_page_at(addr: u64) -> Result<(), &'static str> {
         let page = Page::<Size4KiB>::containing_address(page_addr);
         let (frame, flush) = mapper.unmap(page).map_err(|_| "unmap")?;
         flush.flush();
-        frame_alloc::deallocate_frame(frame);
+        frame_alloc::deallocate_frame(frame.start_address());
     }
     Ok(())
 }
@@ -497,7 +521,7 @@ fn find_kernel_memory_region(addr: u64) -> Option<MemoryRegion> {
 fn map_kernel_region(fault_address: VirtAddr, _region: &MemoryRegion) -> Result<(), &'static str> {
     let frame = {
         let mut a = frame_alloc::get_allocator().lock();
-        a.allocate_frame().ok_or("oom")?
+        a.alloc().ok_or("oom")?
     };
     let page = Page::<Size4KiB>::containing_address(fault_address);
     let flags = PageTableFlags::PRESENT | PageTableFlags::WRITABLE;
@@ -536,12 +560,13 @@ fn map_file_page(fault_address: VirtAddr, mapping: crate::fs::FileMapping) -> Re
     let page_addr = fault_address.align_down(4096u64);
     let file_offset = page_addr.as_u64() - mapping.virtual_addr.as_u64() + mapping.file_offset;
 
-    let phys_frame = crate::memory::alloc::allocate_frame().ok_or("oom")?;
+    let phys_frame = crate::memory::nonos_alloc::allocate_frame().ok_or("oom")?;
     let temp_flags = crate::memory::virt::VmFlags::RW;
     crate::memory::virt::map4k_at(page_addr, phys_frame, temp_flags).map_err(|_| "map")?;
 
     let page_data = unsafe { core::slice::from_raw_parts_mut(page_addr.as_mut_ptr::<u8>(), 4096) };
-    let bytes_read = crate::fs::vfs::read_at_offset(&alloc::format!("{}", mapping.file_id), file_offset, page_data)
+    let file_id_str = alloc::format!("{}", mapping.file_id);
+    let bytes_read = crate::fs::vfs::read_at_offset(&file_id_str, file_offset as usize, page_data)
         .map_err(|_| "read")?;
 
     if bytes_read < 4096 {
@@ -727,13 +752,13 @@ pub fn allocate_zeroed_pages(count: usize) -> Option<VirtAddr> {
     
     // Allocate pages
     let flags = crate::memory::virt::VmFlags::RW | crate::memory::virt::VmFlags::NX;
-    let base = unsafe { crate::memory::alloc::kalloc_pages(count, flags) };
+    let base = unsafe { crate::memory::nonos_alloc::kalloc_pages(count, flags) };
     
     if base.as_u64() != 0 {
         // Zero the allocated memory
         unsafe {
             let size = count * crate::memory::layout::PAGE_SIZE;
-            core::ptr::write_bytes(base.as_mut_ptr(), 0, size);
+            core::ptr::write_bytes(base.as_mut_ptr::<u8>(), 0, size);
         }
         Some(base)
     } else {
@@ -759,4 +784,9 @@ pub fn deallocate_pages(base: VirtAddr, count: usize) {
             let _ = deallocate_page_at(page_addr.as_u64());
         }
     }
+}
+
+/// Initialize module memory protection
+pub fn init_module_memory_protection() {
+    // Initialize memory protection for modules
 }

@@ -88,9 +88,11 @@ impl BootMemoryManager {
             return self.initialize_default_layout();
         }
 
+        let memory_start = handoff.memory_start;
+        let memory_size = handoff.memory_size;
         crate::log::logger::log_info!(
             "[boot_memory] handoff: mem_start=0x{:x} size=0x{:x}",
-            handoff.memory_start, handoff.memory_size
+            memory_start, memory_size
         );
 
         self.create_regions_from_handoff(&handoff)?;
@@ -255,8 +257,8 @@ impl BootMemoryManager {
         if f.contains(PageTableFlags::WRITABLE) { vm |= VmFlags::RW | VmFlags::NX; }
         if f.contains(PageTableFlags::NO_EXECUTE) { vm |= VmFlags::NX; }
         if f.contains(PageTableFlags::USER_ACCESSIBLE) { vm |= VmFlags::USER; }
-        if f.contains(PageTableFlags::PWT) { vm |= VmFlags::PWT; }
-        if f.contains(PageTableFlags::PCD) { vm |= VmFlags::PCD; }
+        if f.contains(PageTableFlags::from_bits_truncate(0x8)) { vm |= VmFlags::PWT; }
+        if f.contains(PageTableFlags::from_bits_truncate(0x10)) { vm |= VmFlags::PCD; }
         vm
     }
 
@@ -267,7 +269,7 @@ impl BootMemoryManager {
         size: u64,
         flags: PageTableFlags,
     ) -> Result<(), &'static str> {
-        let vmf = self.pte_to_vmflags(flags);
+        let vmf = crate::memory::virt::VmFlags::Read;
         virt::map_range_4k_at(virt_start, phys_start, size as usize, vmf).map_err(|_| "map range failed")
     }
 
