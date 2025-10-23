@@ -4,7 +4,7 @@ extern crate alloc;
 
 use alloc::{collections::BTreeMap, string::String, vec::Vec};
 use core::sync::atomic::{AtomicU64, Ordering};
-use spin::RwLock;
+use spin::{RwLock, Once};
 
 use crate::runtime::nonos_capsule::CapsuleState;
 use crate::runtime::nonos_zerostate::{get_capsule_by_name, start_capsule, stop_capsule};
@@ -77,13 +77,17 @@ impl SupReg {
     }
 }
 
-static SUP: RwLock<SupReg> = RwLock::new(SupReg::new());
+static SUP: Once<RwLock<SupReg>> = Once::new();
+
+fn get_sup() -> &'static RwLock<SupReg> {
+    SUP.call_once(|| RwLock::new(SupReg::new()))
+}
 static LAST_RUN_MS: AtomicU64 = AtomicU64::new(0);
 
 /// Register a capsule name for supervision with a policy
 pub fn register(name: &str, policy: SupervisorPolicy) {
     let now = crate::time::timestamp_millis();
-    let mut s = SUP.write();
+    let mut s = get_sup().write();
     if !s.policies.contains_key(name) {
         s.policies.insert(name.into(), policy);
     }
@@ -100,7 +104,7 @@ pub fn register(name: &str, policy: SupervisorPolicy) {
 
 /// Remove a capsule from supervision (keeps counters for diagnostics)
 pub fn unregister(name: &str) {
-    let mut s = SUP.write();
+    let mut s = get_sup().write();
     s.watched.retain(|n| n != name);
     s.policies.remove(name);
     // keep restarts to preserve history
@@ -113,7 +117,7 @@ pub fn run_once(token: &CapabilityToken) {
 
     // Collect names to avoid holding the lock across restarts
     let names = {
-        let s = SUP.read();
+        let s = get_sup().read();
         s.watched.clone()
     };
 
@@ -122,7 +126,7 @@ pub fn run_once(token: &CapabilityToken) {
         let state = cap.health();
 
         let (policy, mut window) = {
-            let s = SUP.read();
+            let s = get_sup().read();
             let policy = match s.policies.get(&name) {
                 Some(p) => p.clone(),
                 None => SupervisorPolicy::default(),
@@ -146,7 +150,7 @@ pub fn run_once(token: &CapabilityToken) {
                 );
             } else {
                 window.mark(now);
-                let mut s = SUP.write();
+                let mut s = get_sup().write();
                 s.restarts.insert(name.clone(), window);
                 crate::drivers::console::write_message(
                     &alloc::format!("supervisor: restarted '{}'", name)
@@ -158,6 +162,6 @@ pub fn run_once(token: &CapabilityToken) {
 
 /// Return restart counters for a capsule (count within current 1-minute window and last restart time)
 pub fn restart_stats(name: &str) -> Option<(u32, u64)> {
-    let s = SUP.read();
+    let s = get_sup().read();
     s.restarts.get(name).map(|w| (w.count, w.last_restart_ms))
 }
