@@ -49,7 +49,7 @@ impl<const N: usize> SpscU8Ring<N> {
         N - 1
     }
     #[inline]
-    fn push(&self, byte: u8) {
+    fn push(&mut self, byte: u8) {
         let head = self.head.load(Ordering::Relaxed);
         let next = (head.wrapping_add(1)) & Self::mask();
         let tail = self.tail.load(Ordering::Acquire);
@@ -102,7 +102,7 @@ impl<const N: usize> SpscEvtRing<N> {
     }
     #[inline] fn mask() -> usize { N - 1 }
     #[inline]
-    fn push_evt(&self, e: KeyEvent) {
+    fn push_evt(&mut self, e: KeyEvent) {
         let code = match e {
             KeyEvent::Up => 1,
             KeyEvent::Down => 2,
@@ -141,8 +141,8 @@ impl<const N: usize> SpscEvtRing<N> {
 
 // Global rings
 const RING_SIZE: usize = 1024; // must be power of two
-static CHAR_RING: SpscU8Ring<RING_SIZE> = SpscU8Ring::new();
-static EVT_RING: SpscEvtRing<64> = SpscEvtRing::new();
+static mut CHAR_RING: SpscU8Ring<RING_SIZE> = SpscU8Ring::new();
+static mut EVT_RING: SpscEvtRing<64> = SpscEvtRing::new();
 
 // IO helpers
 #[inline(always)]
@@ -300,10 +300,10 @@ fn keyboard_isr(_: crate::arch::x86_64::InterruptStackFrame) {
     // Extended handling for arrows (E0)
     if EXTENDED.swap(false, Ordering::Relaxed) {
         match code {
-            0x48 => EVT_RING.push_evt(KeyEvent::Up),
-            0x50 => EVT_RING.push_evt(KeyEvent::Down),
-            0x4B => EVT_RING.push_evt(KeyEvent::Left),
-            0x4D => EVT_RING.push_evt(KeyEvent::Right),
+            0x48 => unsafe { EVT_RING.push_evt(KeyEvent::Up) },
+            0x50 => unsafe { EVT_RING.push_evt(KeyEvent::Down) },
+            0x4B => unsafe { EVT_RING.push_evt(KeyEvent::Left) },
+            0x4D => unsafe { EVT_RING.push_evt(KeyEvent::Right) },
             _ => {}
         }
         eoi();
@@ -326,7 +326,7 @@ fn keyboard_isr(_: crate::arch::x86_64::InterruptStackFrame) {
             ch = if upper { ch.to_ascii_uppercase() } else { ch.to_ascii_lowercase() };
         }
         // Push to ring
-        CHAR_RING.push(ch);
+        unsafe { CHAR_RING.push(ch) };
     }
 
     eoi();
@@ -348,15 +348,15 @@ pub fn init_keyboard() -> Result<(), &'static str> {
 }
 
 pub fn read_char() -> Option<char> {
-    CHAR_RING.pop().map(|b| b as char)
+    unsafe { CHAR_RING.pop().map(|b| b as char) }
 }
 
 pub fn has_data() -> bool {
-    !CHAR_RING.is_empty()
+    unsafe { !CHAR_RING.is_empty() }
 }
 
 pub fn read_event() -> Option<KeyEvent> {
-    EVT_RING.pop_evt()
+    unsafe { EVT_RING.pop_evt() }
 }
 
 /// Keyboard interface structure 
