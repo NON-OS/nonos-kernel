@@ -129,3 +129,22 @@ mod tests {
         assert!(res.contains("hi"));
     }
 }
+
+/// Spawn CLI interface for user interaction
+pub fn spawn() {
+    init_cli(256);
+    register_default_commands();
+    
+    // Start CLI prompt loop
+    crate::log::info!("CLI spawned and ready for commands");
+}
+
+fn register_default_commands() {
+    let _ = register_command("help", "Show available commands", Box::new(|_| {
+        Ok("Available commands: help, echo, exit".into())
+    }));
+    
+    let _ = register_command("echo", "Echo arguments", Box::new(|args| {
+        Ok(args.join(" "))
+    }));
+}

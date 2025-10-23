@@ -15,6 +15,7 @@ use crate::process;
 const MAX_FRAMEBUFFER_PIXELS: usize = 1920 * 1080 * 2; // allow up to 2x FHD as a conservative cap
 
 /// Window description.
+#[derive(Clone)]
 pub struct Window {
     pub id: u32,
     pub title: alloc::string::String,
