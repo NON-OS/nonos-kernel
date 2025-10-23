@@ -55,8 +55,8 @@ pub fn get_frame_stats() -> Option<FrameAllocatorStats> {
     let mut total = 0usize;
     let mut free = 0usize;
     for z in zs {
-        total = total.saturating_add(z.total_frames);
-        free = free.saturating_add(z.free_frames);
+        total = total.saturating_add(z.1.frames_total);
+        free = free.saturating_add(z.1.frames_free);
     }
     let alloc = total.saturating_sub(free);
     Some(FrameAllocatorStats {

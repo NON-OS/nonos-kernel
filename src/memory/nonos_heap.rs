@@ -13,6 +13,14 @@ use crate::memory::virt::{self, VmFlags};
 use crate::memory::nonos_phys as phys;
 use crate::memory::layout::PAGE_SIZE;
 
+#[derive(Debug, Clone)]
+pub struct HeapStats {
+    pub total_size: usize,
+    pub current_usage: usize,
+    pub peak_usage: usize,
+    pub allocation_count: usize,
+}
+
 // Static heap window; mapped on init
 pub const HEAP_START: usize = 0x_4444_0000;
 pub const HEAP_SIZE: usize = 2 * 1024 * 1024; // 2 MiB
@@ -77,18 +85,15 @@ pub fn get_heap_stats() -> HeapStats {
         total_size: HEAP_SIZE,
         current_usage: HEAP_BYTES_ALLOCATED.load(Ordering::Relaxed),
         peak_usage: HEAP_PEAK_USAGE.load(Ordering::Relaxed),
-        allocations: HEAP_ALLOCATIONS.load(Ordering::Relaxed),
-        deallocations: HEAP_DEALLOCATIONS.load(Ordering::Relaxed),
-        failures: HEAP_ALLOCATION_FAILURES.load(Ordering::Relaxed),
-        enabled: HEAP_ENABLED.load(Ordering::Relaxed),
+        allocation_count: HEAP_ALLOCATIONS.load(Ordering::Relaxed) as usize,
     }
 }
 
 pub fn check_heap_health() -> bool {
     let s = get_heap_stats();
-    if !s.enabled { return false; }
+    if s.total_size == 0 { return false; }
     if s.current_usage > (s.total_size * 9) / 10 { log_heap_status("[HEAP] high usage >90%"); return false; }
-    if s.failures > s.allocations / 10 { log_heap_status("[HEAP] elevated failure rate"); return false; }
+    if s.allocation_count == 0 { log_heap_status("[HEAP] no allocations"); return false; }
     true
 }
 
@@ -121,7 +126,9 @@ fn map_kernel_heap_region(start: usize, size: usize) -> Result<(), ()> {
 
 fn log_heap_status(msg: &str) {
     if let Some(logger) = crate::log::logger::try_get_logger() {
-        logger.log(msg);
+        if let Some(ref mut mgr) = *logger.lock() {
+            mgr.log(crate::log::Severity::Err, msg);
+        }
     }
 }
 
@@ -299,8 +306,8 @@ fn alloc_error(layout: Layout) -> ! {
     HEAP_ALLOCATION_FAILURES.fetch_add(1, Ordering::Relaxed);
     let s = get_heap_stats();
     crate::log::logger::log_critical(&format!(
-        "[HEAP] OOM size={} align={} usage={}/{} peak={} allocs={} frees={} fails={}",
-        layout.size(), layout.align(), s.current_usage, s.total_size, s.peak_usage, s.allocations, s.deallocations, s.failures
+        "[HEAP] OOM size={} align={} usage={}/{} peak={} allocs={}",
+        layout.size(), layout.align(), s.current_usage, s.total_size, s.peak_usage, s.allocation_count
     ));
     panic!("[HEAP] OOM");
 }
