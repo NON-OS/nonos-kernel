@@ -43,14 +43,14 @@ impl VaultPolicyEngine {
     /// Add/update a policy rule for a context
     pub fn set_policy(&self, context: &str, rule: VaultPolicyRule) {
         let mut rules = self.rules.write();
-        let entry = rules.entry(context.to_string()).or_insert_with(Vec::new);
-        // Replace if same capability exists
+        let entry = rules.entry(context.into()).or_insert_with(Vec::new);
+        let capability_debug = format!("{:?}", rule.capability);
         if let Some(existing) = entry.iter_mut().find(|r| r.capability == rule.capability) {
             *existing = rule;
         } else {
             entry.push(rule);
         }
-        self.audit("set_policy", Some(context.to_string()), Some(format!("{:?}", rule.capability)));
+        self.audit("set_policy", Some(context.into()), Some(capability_debug));
     }
 
     /// Check if a context/capability is allowed
@@ -60,18 +60,18 @@ impl VaultPolicyEngine {
             for rule in list {
                 if rule.capability == cap {
                     if !rule.allow {
-                        self.audit("policy_denied", Some(context.to_string()), Some(format!("{:?}", cap)));
+                        self.audit("policy_denied", Some(context.into()), Some(format!("{:?}", cap)));
                         return false;
                     }
                     if let Some(expiry) = rule.expires_at {
                         if crate::time::timestamp_millis() > expiry {
-                            self.audit("policy_expired", Some(context.to_string()), Some(format!("{:?}", cap)));
+                            self.audit("policy_expired", Some(context.into()), Some(format!("{:?}", cap)));
                             return false;
                         }
                     }
                     if let Some(max) = rule.max_uses {
                         if rule.used >= max {
-                            self.audit("policy_limit", Some(context.to_string()), Some(format!("{:?}", cap)));
+                            self.audit("policy_limit", Some(context.into()), Some(format!("{:?}", cap)));
                             return false;
                         }
                     }
@@ -80,7 +80,7 @@ impl VaultPolicyEngine {
             }
         }
         // Default: deny if no rule
-        self.audit("policy_default_deny", Some(context.to_string()), Some(format!("{:?}", cap)));
+        self.audit("policy_default_deny", Some(context.into()), Some(format!("{:?}", cap)));
         false
     }
 
@@ -90,7 +90,7 @@ impl VaultPolicyEngine {
         if let Some(list) = rules.get_mut(context) {
             if let Some(rule) = list.iter_mut().find(|r| r.capability == cap) {
                 rule.used += 1;
-                self.audit("policy_usage", Some(context.to_string()), Some(format!("used={}", rule.used)));
+                self.audit("policy_usage", Some(context.into()), Some(format!("used={}", rule.used)));
             }
         }
     }
@@ -99,7 +99,7 @@ impl VaultPolicyEngine {
     pub fn clear_policy(&self, context: &str) {
         let mut rules = self.rules.write();
         rules.remove(context);
-        self.audit("clear_policy", Some(context.to_string()), None);
+        self.audit("clear_policy", Some(context.into()), None);
     }
 
     /// List all policies for diagnostics
@@ -110,9 +110,9 @@ impl VaultPolicyEngine {
 
     fn audit(&self, event: &str, context: Option<String>, status: Option<String>) {
         let ts = crate::time::timestamp_millis();
-        NONOS_VAULT.audit_log.lock().push(VaultAuditEvent {
+        NONOS_VAULT.audit_log().lock().push(VaultAuditEvent {
             timestamp: ts,
-            event: event.to_string(),
+            event: event.into(),
             context,
             status,
         });
