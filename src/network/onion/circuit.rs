@@ -265,7 +265,7 @@ impl CircuitManager {
     }
 
     fn send_extend_cell(&self, circuit_id: CircuitId, target: &RelayDescriptor) -> Result<(), OnionError> {
-        let extend_info = super::cell::ExtendInfo {
+        let extend_info = ExtendInfo {
             identity_key: target.identity_digest.to_vec(),
             onion_key: target.ntor_onion_key.clone(),
             ntor_onion_key: target.ntor_onion_key.clone(),
@@ -473,6 +473,32 @@ impl CircuitManager {
             }
         } else {
             Err(OnionError::CircuitBuildFailed)
+        }
+    }
+
+    pub fn transmit_cell(&self, circuit_id: CircuitId, mut cell: Cell) -> Result<(), OnionError> {
+        let mut circuits = self.circuits.lock();
+        if let Some(circuit) = circuits.get_mut(&circuit_id) {
+            if !circuit.is_open() {
+                return Err(OnionError::CircuitError);
+            }
+            
+            // Encrypt the cell payload through all hops
+            let encrypted_payload = circuit.encrypt_forward(&cell.payload)?;
+            cell.payload = encrypted_payload;
+            cell.circuit_id = circuit_id;
+            
+            // Send to the first relay in the circuit
+            if let Some(first_relay) = circuit.hops.first() {
+                let relay_ref = first_relay.relay.clone();
+                circuit.touch(); // Update last activity
+                drop(circuits);
+                self.send_cell_to_relay(cell, &relay_ref)
+            } else {
+                Err(OnionError::CircuitError)
+            }
+        } else {
+            Err(OnionError::CircuitNotFound)
         }
     }
 }

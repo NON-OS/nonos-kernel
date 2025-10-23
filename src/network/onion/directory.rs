@@ -501,7 +501,7 @@ impl DirectoryService {
                     // dir-source <nickname> <identity> <address> <dirport> <orport>
                     let parts = it.collect::<Vec<_>>();
                     if parts.len() >= 5 {
-                        let nickname = parts[0].to_string();
+                        let nickname = parts[0].into();
                         let identity = hex20(parts[1]).unwrap_or([0; 20]);
                         let addr = parse_ipv4(parts[2]).unwrap_or([0,0,0,0]);
                         let dir_port = parts[3].parse().unwrap_or(80);
@@ -512,7 +512,7 @@ impl DirectoryService {
                 "params" => {
                     for kv in it {
                         if let Some((k, v)) = kv.split_once('=') {
-                            if let Ok(val) = v.parse::<i32>() { c.params.insert(k.to_string(), val); }
+                            if let Ok(val) = v.parse::<i32>() { c.params.insert(k.into(), val); }
                         }
                     }
                 }
@@ -521,7 +521,7 @@ impl DirectoryService {
                     // r nickname b64id b64desc YYYY-MM-DD HH:MM:SS addr orport dirport
                     let parts = it.collect::<Vec<_>>();
                     if parts.len() < 8 { continue; }
-                    let nickname = parts[0].to_string();
+                    let nickname = parts[0].into();
                     let id = b64_20(parts[1]).unwrap_or([0;20]);
                     let d = b64_20(parts[2]).unwrap_or([0;20]);
                     let published = parse_timestamp_fields(&parts[3..6]).unwrap_or(0);
@@ -771,7 +771,7 @@ impl DirectoryService {
     }
 
     fn secure_random_u64(&self) -> u64 {
-        vault::random_u64().unwrap_or(0x9E3779B97F4A7C15)
+        vault::random_u64()
     }
 
     fn jitter(&self, max: u64) -> u64 {
@@ -783,19 +783,19 @@ impl DirectoryService {
         // Addresses are illustrative; plug real ed25519 identities for your deployment.
         vec![
             DirectoryAuthority {
-                nickname: "moria1".to_string(),
+                nickname: "moria1".into(),
                 ed25519_identity: None,
                 identity_fingerprint: hex_to_vec("0000000000000000000000000000000000000000").unwrap_or_default(),
                 address: [128, 31, 0, 39], dir_port: 9131, or_port: 9101,
             },
             DirectoryAuthority {
-                nickname: "tor26".to_string(),
+                nickname: "tor26".into(),
                 ed25519_identity: None,
                 identity_fingerprint: hex_to_vec("0000000000000000000000000000000000000000").unwrap_or_default(),
                 address: [86, 59, 21, 38], dir_port: 80, or_port: 443,
             },
             DirectoryAuthority {
-                nickname: "dizum".to_string(),
+                nickname: "dizum".into(),
                 ed25519_identity: None,
                 identity_fingerprint: hex_to_vec("0000000000000000000000000000000000000000").unwrap_or_default(),
                 address: [194, 109, 206, 212], dir_port: 80, or_port: 443,
@@ -1080,7 +1080,7 @@ fn parse_microdesc(text: &Vec<u8>) -> Option<MicroParsed> {
             }
         } else if l.starts_with("family ") {
             // "family $FPR1 $FPR2 ..."
-            out.family = l[7..].trim().to_string();
+            out.family = l[7..].trim().into();
         }
     }
     Some(out)
