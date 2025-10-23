@@ -1,13 +1,17 @@
 //! NØNOS Kernel Scheduler
 
 use alloc::collections::VecDeque;
-use spin::Mutex;
+use spin::{Mutex, Once};
 use crate::sched::task::Task;
 use crate::sched::runqueue::RunQueue;
 use crate::sched::realtime;
 
 /// The global run queue for normal tasks.
-static RUNQUEUE: Mutex<RunQueue> = Mutex::new(RunQueue::new());
+static RUNQUEUE: Once<Mutex<RunQueue>> = Once::new();
+
+fn get_queue() -> &'static Mutex<RunQueue> {
+    RUNQUEUE.call_once(|| Mutex::new(RunQueue::new()))
+}
 
 /// The main scheduler structure.
 pub struct Scheduler {
@@ -19,7 +23,7 @@ static mut GLOBAL_SCHEDULER: Option<Scheduler> = None;
 /// Initialize the scheduler subsystem.
 pub fn init() {
     unsafe { GLOBAL_SCHEDULER = Some(Scheduler { running_tasks: 0 }); }
-    RUNQUEUE.lock().clear();
+    get_queue().lock().clear();
     realtime::init();
 }
 
@@ -33,7 +37,7 @@ pub fn spawn(task: Task) {
     if task.priority == crate::sched::task::Priority::RealTime {
         realtime::spawn_realtime(task);
     } else {
-        RUNQUEUE.lock().push(task);
+        get_queue().lock().push(task);
     }
 }
 
@@ -44,7 +48,7 @@ pub fn run() -> ! {
         realtime::run_realtime_tasks();
 
         // Then run normal tasks
-        let mut rq = RUNQUEUE.lock();
+        let mut rq = get_queue().lock();
         if let Some(mut task) = rq.pop() {
             task.run();
             if !task.is_complete() {
@@ -71,4 +75,12 @@ pub fn wakeup() {
 /// Entry point to start the scheduler loop (used by kernel).
 pub fn enter() -> ! {
     run()
+}
+
+impl Scheduler {
+    /// Handle scheduler tick (preemption, time slicing)
+    pub fn tick(&self) {
+        // For now, just call the global tick function
+        tick();
+    }
 }
