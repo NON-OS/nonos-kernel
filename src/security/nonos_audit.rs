@@ -74,3 +74,23 @@ pub fn get_audit_log() -> Vec<SecurityAuditEvent> {
 pub fn clear_audit_log() {
     AUDIT_LOG.lock().clear();
 }
+
+/// Initialize audit system
+pub fn init() -> Result<(), &'static str> {
+    Ok(())
+}
+
+/// Audit event compatibility alias
+pub type AuditEvent = SecurityAuditEvent;
+
+/// Log audit event compatibility function
+pub fn audit_event(
+    subsystem: &'static str,
+    severity: AuditSeverity,
+    description: String,
+    process_id: Option<u64>,
+    module: Option<String>,
+    extra_tags: Option<Vec<String>>,
+) {
+    log_security_event(subsystem, severity, description, process_id, module, extra_tags);
+}
