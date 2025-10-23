@@ -1,5 +1,3 @@
-#![no_std]
-
 extern crate alloc;
 
 pub mod nonos_core;
@@ -14,6 +12,8 @@ pub mod nonos_context;
 
 // Re-exports with concise names
 pub use nonos_core as core;
+pub use nonos_core as real_process;
+pub use nonos_core::{ProcessControlBlock, ProcessTable, PROCESS_TABLE};
 pub use nonos_control as control;
 pub use nonos_scheduler as scheduler;
 pub use nonos_numa as numa;
@@ -24,8 +24,10 @@ pub use nox_process_mng as nox;
 pub use nonos_context as ctx;
 
 use alloc::{string::String, sync::Arc, vec::Vec};
+use crate::process::nonos_core::Ordering;
 use spin::{Once, RwLock};
 use x86_64::structures::paging::PageTableFlags;
+use crate::process::nonos_core::Pid;
 
 // Capability view exposed to syscall gate and policy
 pub type ProcessCapabilities = capabilities::CapabilitySet;
@@ -214,7 +216,7 @@ pub fn get_current_process_capabilities() -> ProcessCapabilities {
     if let Some(pcb) = current_process() {
         let bits = pcb
             .caps_bits
-            .load(core::sync::atomic::Ordering::Relaxed);
+            .load(Ordering::Relaxed);
         capabilities::CapabilitySet::from_bits(bits)
     } else {
         capabilities::CapabilitySet::from_bits(u64::MAX)
@@ -225,4 +227,31 @@ pub fn get_current_process_capabilities() -> ProcessCapabilities {
 pub fn exit_current_process(status: i32) -> ! {
     // Route to the kernel's syscall exit path (no halt loop).
     core::syscalls::sys_exit(status)
+}
+
+/// Get the current process with real process tracking
+pub fn get_current_process() -> Option<Arc<ProcessControlBlock>> {
+    // In a real system, this would get the current process from the scheduler
+    // For now, return the first process if any exist
+    current_process()
+}
+
+/// Update memory usage statistics for a process
+pub fn update_memory_usage(process_id: u64, delta: i64) {
+    // Find the process and update its memory statistics
+    if let Some(pcb) = PROCESS_TABLE.find_by_pid(process_id as Pid) {
+        let memory = pcb.memory.lock();
+        if delta > 0 {
+            memory.resident_pages.fetch_add((delta as u64 + 4095) / 4096, Ordering::Relaxed);
+        } else {
+            memory.resident_pages.fetch_sub(((-delta) as u64 + 4095) / 4096, Ordering::Relaxed);
+        }
+        
+        // Log significant memory changes for debugging
+        let current_pages = memory.resident_pages.load(Ordering::Relaxed);
+        if delta.abs() > 1024 * 1024 { // 1MB threshold
+            crate::log::info!("Process {} memory usage: {} pages (delta: {} bytes)", 
+                process_id, current_pages, delta);
+        }
+    }
 }
