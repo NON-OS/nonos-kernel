@@ -20,14 +20,19 @@ use crate::memory::phys::{AllocFlags};
 use crate::memory::proof::{audit_map, audit_protect, audit_unmap, CapTag};
 
 bitflags::bitflags! {
-    #[derive(Clone, Copy)]
+    #[derive(Clone, Copy, Debug)]
     pub struct VmFlags: u64 {
+        const PRESENT = 1<<0;
         const RW      = 1<<1;
         const USER    = 1<<2;
         const PWT     = 1<<3;
         const PCD     = 1<<4;
         const GLOBAL  = 1<<8;
         const NX      = 1<<63;
+        
+        // Convenience aliases
+        const Read = Self::PRESENT.bits();
+        const CACHE_DISABLE = Self::PCD.bits();
     }
 }
 
