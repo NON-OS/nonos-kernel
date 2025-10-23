@@ -90,6 +90,9 @@ pub enum OnionError {
     Timeout,
     RateLimited,
     StreamNotFound,
+    CircuitError,
+    CircuitNotFound,
+    CertificateError,
 }
 
 impl From<&'static str> for OnionError {
