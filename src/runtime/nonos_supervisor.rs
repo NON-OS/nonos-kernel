@@ -94,9 +94,7 @@ pub fn register(name: &str, policy: SupervisorPolicy) {
         s.watched.push(name.into());
     }
     crate::drivers::console::write_message(
-        &alloc::format!("supervisor: watching '{}'", name),
-        crate::drivers::console::LogLevel::Info,
-        "runtime",
+        &alloc::format!("supervisor: watching '{}'", name)
     );
 }
 
@@ -144,18 +142,14 @@ pub fn run_once(token: &CapabilityToken) {
             let _ = stop_capsule(&name);
             if let Err(e) = start_capsule(&name, token) {
                 crate::drivers::console::write_message(
-                    &alloc::format!("supervisor: failed to restart '{}': {}", name, e),
-                    crate::drivers::console::LogLevel::Error,
-                    "runtime",
+                    &alloc::format!("supervisor: failed to restart '{}': {}", name, e)
                 );
             } else {
                 window.mark(now);
                 let mut s = SUP.write();
                 s.restarts.insert(name.clone(), window);
                 crate::drivers::console::write_message(
-                    &alloc::format!("supervisor: restarted '{}'", name),
-                    crate::drivers::console::LogLevel::Warning,
-                    "runtime",
+                    &alloc::format!("supervisor: restarted '{}'", name)
                 );
             }
         }
