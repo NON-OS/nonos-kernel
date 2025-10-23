@@ -2,7 +2,7 @@
 
 extern crate alloc;
 
-use alloc::{collections::BTreeMap, vec::Vec};
+use alloc::{collections::BTreeMap, vec::Vec, string::ToString};
 use core::mem::size_of;
 use core::sync::atomic::{AtomicI32, Ordering};
 use spin::Mutex;
@@ -53,7 +53,7 @@ pub fn cstr_to_string(ptr: *const u8) -> Result<alloc::string::String, &'static 
         off += 1;
     }
     core::str::from_utf8(&bytes)
-        .map(|s| s.to_string())
+        .map(|s| s.into())
         .map_err(|_| "Invalid UTF-8 in path")
 }
 
@@ -116,7 +116,7 @@ pub fn write_file_descriptor(fd: i32, buf: *const u8, count: usize) -> Option<us
                         crate::arch::x86_64::vga::print("\n");
                     } else if byte.is_ascii_graphic() || byte == b' ' {
                         let ch = byte as char;
-                        crate::arch::x86_64::vga::print(&ch.to_string());
+                        crate::arch::x86_64::vga::print(&alloc::format!("{}", ch));
                     }
                 }
             }
@@ -344,4 +344,30 @@ pub fn unlink_syscall(pathname: *const u8) -> Result<(), &'static str> {
 /// Sync all filesystem buffers to disk (RAM-only: no-op)
 pub fn sync_all() -> Result<(), &'static str> {
     Ok(())
+}
+
+/// lseek syscall implementation
+pub fn lseek_syscall(fd: i32, offset: i64, whence: i32) -> Result<i64, &'static str> {
+    if fd < 0 || fd > 4096 {
+        return Err("Invalid file descriptor");
+    }
+    
+    let mut table = FD_TABLE.lock();
+    let entry = table.get_mut(&fd).ok_or("File descriptor not open")?;
+    
+    let new_offset = match whence {
+        0 => offset as usize, // SEEK_SET
+        1 => entry.offset.saturating_add(offset as usize), // SEEK_CUR
+        2 => {
+            // SEEK_END - get file size and add offset
+            match nonos_filesystem::NONOS_FILESYSTEM.get_file_info(&entry.path) {
+                Ok(info) => info.size.saturating_add(offset as usize),
+                Err(_) => return Err("Cannot get file size"),
+            }
+        }
+        _ => return Err("Invalid whence parameter"),
+    };
+    
+    entry.offset = new_offset;
+    Ok(new_offset as i64)
 }

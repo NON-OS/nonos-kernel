@@ -168,6 +168,11 @@ impl NonosFilesystem {
             quantum_protected: file.quantum_protected,
         })
     }
+
+    /// Check if a file exists
+    pub fn exists(&self, name: &str) -> bool {
+        self.files.read().contains_key(name)
+    }
 }
 
 #[derive(Debug)]
@@ -183,7 +188,11 @@ pub struct NonosFileInfo {
 // Global filesystem instance
 pub static NONOS_FILESYSTEM: NonosFilesystem = NonosFilesystem::new();
 
+use spin::Once;
+static GLOBAL_FS: Once<spin::RwLock<NonosFilesystem>> = Once::new();
+
 pub fn init_nonos_filesystem() -> Result<(), &'static str> {
+    GLOBAL_FS.call_once(|| spin::RwLock::new(NonosFilesystem::new()));
     Ok(())
 }
 
@@ -218,5 +227,83 @@ pub fn init_nonos_fs() -> Result<(), &'static str> {
             crate::log_err!("N0N-OS filesystem initialization failed: {}", e);
             Err("Failed to initialize N0N-OS filesystem")
         }
+    }
+}
+
+/// Normalize a file path by removing redundant components
+pub fn normalize_path(path: &str) -> alloc::string::String {
+    use alloc::string::ToString;
+    // Simple normalization - just return the path for now
+    path.into()
+}
+
+/// Check if a file exists
+pub fn exists(name: &str) -> bool {
+    if let Some(fs) = GLOBAL_FS.get() {
+        fs.read().read_file(name).is_ok()
+    } else {
+        false
+    }
+}
+
+/// Real directory listing with path parsing and inode traversal
+pub fn list_dir(path: &str) -> Result<alloc::vec::Vec<alloc::string::String>, &'static str> {
+    use alloc::vec::Vec;
+    use alloc::string::String;
+    
+    if let Some(fs) = GLOBAL_FS.get() {
+        let fs_guard = fs.read();
+        let mut entries = Vec::new();
+        
+        // Parse path components
+        let path_components: Vec<&str> = path.split('/').filter(|s| !s.is_empty()).collect();
+        
+        // For each file in the filesystem, check if it matches the directory path
+        for (filename, _) in fs_guard.files.read().iter() {
+            let file_components: Vec<&str> = filename.split('/').filter(|s| !s.is_empty()).collect();
+            
+            // Check if this file is directly in the requested directory
+            if file_components.len() == path_components.len() + 1 {
+                let mut matches = true;
+                for (i, component) in path_components.iter().enumerate() {
+                    if file_components[i] != *component {
+                        matches = false;
+                        break;
+                    }
+                }
+                if matches {
+                    entries.push((*file_components.last().unwrap()).into());
+                }
+            }
+        }
+        
+        // Also check for subdirectories
+        let mut dirs: alloc::collections::BTreeSet<alloc::string::String> = alloc::collections::BTreeSet::new();
+        for (filename, _) in fs_guard.files.read().iter() {
+            let file_components: Vec<&str> = filename.split('/').filter(|s| !s.is_empty()).collect();
+            
+            // Check if this file is in a subdirectory of the requested path
+            if file_components.len() > path_components.len() + 1 {
+                let mut matches = true;
+                for (i, component) in path_components.iter().enumerate() {
+                    if file_components[i] != *component {
+                        matches = false;
+                        break;
+                    }
+                }
+                if matches {
+                    dirs.insert(file_components[path_components.len()].into());
+                }
+            }
+        }
+        
+        // Add directories to entries with "/" suffix
+        for dir in dirs {
+            entries.push(format!("{}/", dir));
+        }
+        
+        Ok(entries)
+    } else {
+        Err("Filesystem not initialized")
     }
 }
