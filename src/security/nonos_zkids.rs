@@ -5,7 +5,7 @@
 extern crate alloc;
 
 use alloc::{vec::Vec, string::String, collections::BTreeMap};
-use spin::RwLock;
+use spin::{RwLock, Once};
 use crate::crypto::{generate_plonk_proof, verify_plonk_proof, hash::blake3_hash, sig::ed25519::Ed25519Signature, fill_random};
 
 // Define macros at top of file
@@ -105,12 +105,16 @@ impl Default for ZkidsConfig {
     }
 }
 
-static ZKIDS_MANAGER: RwLock<ZkidsManager> = RwLock::new(ZkidsManager {
-    registered_ids: BTreeMap::new(),
-    active_sessions: BTreeMap::new(),
-    pending_challenges: BTreeMap::new(),
-    config: ZkidsConfig::default(),
-});
+static ZKIDS_MANAGER: Once<RwLock<ZkidsManager>> = Once::new();
+
+fn get_zkids_manager() -> &'static RwLock<ZkidsManager> {
+    ZKIDS_MANAGER.call_once(|| RwLock::new(ZkidsManager {
+        registered_ids: BTreeMap::new(),
+        active_sessions: BTreeMap::new(),
+        pending_challenges: BTreeMap::new(),
+        config: ZkidsConfig::default(),
+    }))
+}
 
 /// Initialize ZKIDS subsystem (creates genesis admin identity)
 pub fn init_zkids() -> Result<(), &'static str> {
@@ -136,14 +140,14 @@ pub fn init_zkids() -> Result<(), &'static str> {
         last_auth: 0,
         auth_count: 0,
     };
-    let mut mgr = ZKIDS_MANAGER.write();
+    let mut mgr = get_zkids_manager().write();
     mgr.registered_ids.insert(id_hash, genesis);
     Ok(())
 }
 
 /// Register a new ZKID (public key, capabilities)
 pub fn register_zkid(public_key: [u8; 32], capabilities: Vec<Capability>) -> Result<[u8; 32], &'static str> {
-    let mut mgr = ZKIDS_MANAGER.write();
+    let mut mgr = get_zkids_manager().write();
     if mgr.registered_ids.len() >= mgr.config.max_registered_ids {
         return Err("Maximum number of registered IDs reached");
     }
@@ -163,7 +167,7 @@ pub fn register_zkid(public_key: [u8; 32], capabilities: Vec<Capability>) -> Res
 
 /// Create authentication challenge for a ZKID
 pub fn create_auth_challenge(id_hash: [u8; 32], required_caps: Vec<Capability>) -> Result<AuthChallenge, &'static str> {
-    let mgr = ZKIDS_MANAGER.read();
+    let mgr = get_zkids_manager().read();
     let zkid = mgr.registered_ids.get(&id_hash).ok_or("Unknown identity")?;
     for required_cap in &required_caps {
         if !zkid.capabilities.contains(required_cap) {
@@ -179,14 +183,14 @@ pub fn create_auth_challenge(id_hash: [u8; 32], required_caps: Vec<Capability>) 
         timestamp: current_timestamp(),
         required_capabilities: required_caps,
     };
-    let mut mgr = ZKIDS_MANAGER.write();
+    let mut mgr = get_zkids_manager().write();
     mgr.pending_challenges.insert(challenge_id, challenge.clone());
     Ok(challenge)
 }
 
 /// Authenticate using ZK proof and Ed25519 signature
 pub fn authenticate_with_zkproof(id_hash: [u8; 32], response: AuthResponse) -> Result<[u8; 32], &'static str> {
-    let mut mgr = ZKIDS_MANAGER.write();
+    let mut mgr = get_zkids_manager().write();
     let challenge = mgr.pending_challenges.remove(&response.challenge_id).ok_or("Invalid or expired challenge")?;
     let current_time = current_timestamp();
     if current_time - challenge.timestamp > mgr.config.challenge_timeout_seconds {
@@ -198,7 +202,7 @@ pub fn authenticate_with_zkproof(id_hash: [u8; 32], response: AuthResponse) -> R
     if mgr.config.require_zk_proofs {
         let proof_statement = create_proof_statement(&challenge, &zkid);
         let verification_key = derive_verification_key(&zkid);
-        match verify_plonk_proof(&proof_statement, &response.zkproof, &verification_key) {
+        match verify_plonk_proof(&proof_statement, &response.zkproof) {
             Ok(is_valid) => {
                 if !is_valid { return Err("Zero-knowledge proof verification failed"); }
             }
@@ -233,7 +237,7 @@ pub fn authenticate_with_zkproof(id_hash: [u8; 32], response: AuthResponse) -> R
 
 /// Validate session and return capabilities
 pub fn validate_session(session_id: [u8; 32]) -> Result<Vec<Capability>, &'static str> {
-    let mut mgr = ZKIDS_MANAGER.write();
+    let mut mgr = get_zkids_manager().write();
     let session = mgr.active_sessions.get_mut(&session_id).ok_or("Invalid session")?;
     let current_time = current_timestamp();
     if current_time > session.expires_at {
@@ -252,7 +256,7 @@ pub fn has_capability(session_id: [u8; 32], capability: &Capability) -> bool {
 /// Export ZKID (admin only)
 pub fn export_zkid(session_id: [u8; 32], target_id: [u8; 32]) -> Result<Vec<u8>, &'static str> {
     require_admin!(session_id);
-    let mgr = ZKIDS_MANAGER.read();
+    let mgr = get_zkids_manager().read();
     let zkid = mgr.registered_ids.get(&target_id).ok_or("ZKID not found")?;
     let mut export_data = Vec::new();
     export_data.extend_from_slice(&zkid.id_hash);
@@ -269,7 +273,7 @@ pub fn import_zkid(session_id: [u8; 32], import_data: &[u8]) -> Result<[u8; 32],
     id_hash.copy_from_slice(&import_data[0..32]);
     public_key.copy_from_slice(&import_data[32..64]);
     let capabilities = vec![Capability::FileSystem, Capability::ProcessManager];
-    let mut mgr = ZKIDS_MANAGER.write();
+    let mut mgr = get_zkids_manager().write();
     let zkid = ZkId {
         id_hash,
         public_key,
@@ -284,7 +288,7 @@ pub fn import_zkid(session_id: [u8; 32], import_data: &[u8]) -> Result<[u8; 32],
 
 /// Clean up expired sessions and challenges
 pub fn cleanup_expired() {
-    let mut mgr = ZKIDS_MANAGER.write();
+    let mut mgr = get_zkids_manager().write();
     let current_time = current_timestamp();
     let expired_sessions: Vec<[u8; 32]> = mgr.active_sessions.iter()
         .filter(|(_, s)| current_time > s.expires_at)
@@ -298,7 +302,7 @@ pub fn cleanup_expired() {
 
 /// System statistics
 pub fn get_zkids_stats() -> ZkidsStats {
-    let mgr = ZKIDS_MANAGER.read();
+    let mgr = get_zkids_manager().read();
     ZkidsStats {
         registered_ids: mgr.registered_ids.len(),
         active_sessions: mgr.active_sessions.len(),
@@ -380,6 +384,3 @@ fn verify_signature(signature: &Ed25519Signature, message: &[u8], public_key: &[
 fn current_timestamp() -> u64 {
     crate::arch::x86_64::time::timer::now_ns() / 1_000_000_000
 }
-
-// Capability-based system access control macros
-
