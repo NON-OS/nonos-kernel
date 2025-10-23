@@ -53,6 +53,10 @@ impl NoxProcess {
             (Ready, Migrating { .. }) | (Running, Migrating { .. }) | (Suspended, Migrating { .. }) => true,
             // No direct transitions between distinct Migrating states
             (Migrating { .. }, Migrating { .. }) => false,
+            // Same state transitions (no-op but allowed)
+            (Ready, Ready) | (Running, Running) | (Suspended, Suspended) => true,
+            // Migration to runtime states
+            (Migrating { .. }, Running) | (Migrating { .. }, Suspended) => true,
         }
     }
 }

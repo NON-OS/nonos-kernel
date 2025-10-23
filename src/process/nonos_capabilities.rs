@@ -87,42 +87,46 @@ impl CapabilitySet {
 /// Optional semantic grouping (helper) for policy code.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Capability {
-    Exit,              // bit 0
-    Read,              // bit 1
-    Write,             // bit 2
-    OpenFiles,         // bit 3
-    CloseFiles,        // bit 4
-    AllocateMemory,    // bit 5
-    DeallocateMemory,  // bit 6
-    LoadModules,       // bit 7
-    UseCrypto,         // bit 8
-    SendIpc,           // bit 9
-    ReceiveIpc,        // bit 10
-    Stat,              // bit 11 (derived OR direct)
-    Seek,              // bit 12 (derived OR direct)
-    ModifyDirs,        // bit 13 (derived OR direct)
-    Unlink,            // bit 14 (derived OR direct)
+    CoreExec,          // bit 0 - basic execution
+    IO,                // bit 1 - general I/O
+    Exit,              // bit 2
+    Read,              // bit 3
+    Write,             // bit 4
+    OpenFiles,         // bit 5
+    CloseFiles,        // bit 6
+    AllocateMemory,    // bit 7
+    DeallocateMemory,  // bit 8
+    LoadModules,       // bit 9
+    UseCrypto,         // bit 10
+    SendIpc,           // bit 11
+    ReceiveIpc,        // bit 12
+    Stat,              // bit 13 (derived OR direct)
+    Seek,              // bit 14 (derived OR direct)
+    ModifyDirs,        // bit 15 (derived OR direct)
+    Unlink,            // bit 16 (derived OR direct)
 }
 
 impl Capability {
     #[inline]
     pub const fn bit(self) -> u8 {
         match self {
-            Capability::Exit => 0,
-            Capability::Read => 1,
-            Capability::Write => 2,
-            Capability::OpenFiles => 3,
-            Capability::CloseFiles => 4,
-            Capability::AllocateMemory => 5,
-            Capability::DeallocateMemory => 6,
-            Capability::LoadModules => 7,
-            Capability::UseCrypto => 8,
-            Capability::SendIpc => 9,
-            Capability::ReceiveIpc => 10,
-            Capability::Stat => 11,
-            Capability::Seek => 12,
-            Capability::ModifyDirs => 13,
-            Capability::Unlink => 14,
+            Capability::CoreExec => 0,
+            Capability::IO => 1,
+            Capability::Exit => 2,
+            Capability::Read => 3,
+            Capability::Write => 4,
+            Capability::OpenFiles => 5,
+            Capability::CloseFiles => 6,
+            Capability::AllocateMemory => 7,
+            Capability::DeallocateMemory => 8,
+            Capability::LoadModules => 9,
+            Capability::UseCrypto => 10,
+            Capability::SendIpc => 11,
+            Capability::ReceiveIpc => 12,
+            Capability::Stat => 13,
+            Capability::Seek => 14,
+            Capability::ModifyDirs => 15,
+            Capability::Unlink => 16,
         }
     }
 }

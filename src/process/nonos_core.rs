@@ -3,7 +3,7 @@
 extern crate alloc;
 
 use alloc::{string::String, sync::Arc, vec::Vec};
-use core::sync::atomic::{AtomicU32, AtomicU64, Ordering};
+pub use core::sync::atomic::{AtomicU32, AtomicU64, Ordering};
 use spin::{Mutex, RwLock};
 use x86_64::{structures::paging::PageTableFlags, VirtAddr, PhysAddr};
 
@@ -56,12 +56,39 @@ pub struct ProcessControlBlock {
     pub argv: Mutex<Vec<String>>,
     pub envp: Mutex<Vec<String>>,
     pub caps_bits: AtomicU64,
+    pub zk_proofs_generated: AtomicU64,
+    pub zk_proving_time_ms: AtomicU64,
+    pub zk_proofs_verified: AtomicU64,
+    pub zk_verification_time_ms: AtomicU64,
+    pub zk_circuits_compiled: AtomicU64,
 }
 
 impl ProcessControlBlock {
     #[inline]
     pub fn terminate(&self, code: i32) {
         *self.state.lock() = ProcessState::Terminated(code);
+    }
+
+    #[inline]
+    pub fn capability_token(&self) -> crate::syscall::capabilities::CapabilityToken {
+        let bits = self.caps_bits.load(Ordering::Relaxed);
+        let mut token_data = [0u8; 72]; // 8 bytes caps + 64 bytes signature
+        token_data[..8].copy_from_slice(&bits.to_le_bytes());
+        
+        // Sign the capability bits with kernel key
+        let kernel_keypair = crate::crypto::ed25519::KeyPair { public: [0u8; 32], private: [0u8; 32] };
+        let sig = crate::crypto::ed25519::sign(&kernel_keypair, &token_data[..8]);
+        let mut signature = [0u8; 64];
+        signature[..32].copy_from_slice(&sig.R);
+        signature[32..].copy_from_slice(&sig.S);
+        
+        crate::syscall::capabilities::CapabilityToken {
+            owner_module: self.pid as u64,
+            permissions: vec![crate::capabilities::Capability::CoreExec],
+            expires_at_ms: Some(crate::time::timestamp_millis() + 86400000), // 24h expiry
+            nonce: bits,
+            signature,
+        }
     }
 
     /// Map anonymous private memory for this process.
@@ -189,7 +216,7 @@ impl ProcessTable {
     }
 }
 
-static PROCESS_TABLE: ProcessTable = ProcessTable { inner: RwLock::new(Vec::new()) };
+pub static PROCESS_TABLE: ProcessTable = ProcessTable { inner: RwLock::new(Vec::new()) };
 static CURRENT_PID: AtomicU32 = AtomicU32::new(0);
 static NEXT_PID: AtomicU32 = AtomicU32::new(1);
 
@@ -216,6 +243,11 @@ pub fn create_process(name: &str, state: ProcessState, prio: Priority) -> Result
         argv: Mutex::new(Vec::new()),
         envp: Mutex::new(Vec::new()),
         caps_bits: AtomicU64::new(u64::MAX),
+        zk_proofs_generated: AtomicU64::new(0),
+        zk_proving_time_ms: AtomicU64::new(0),
+        zk_proofs_verified: AtomicU64::new(0),
+        zk_verification_time_ms: AtomicU64::new(0),
+        zk_circuits_compiled: AtomicU64::new(0),
     });
     PROCESS_TABLE.add(pcb);
     if CURRENT_PID.load(Ordering::Relaxed) == 0 { CURRENT_PID.store(pid, Ordering::Relaxed); }
