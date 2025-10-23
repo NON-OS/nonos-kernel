@@ -431,18 +431,18 @@ impl SwapSlot {
 }
 
 /// Swap manager for handling page swapping
-static SWAP_MANAGER: Mutex<SwapManager> = Mutex::new(SwapManager::new());
+static SWAP_MANAGER: Mutex<Option<SwapManager>> = Mutex::new(None);
 
 struct SwapManager {
-    swap_table: hashbrown::HashMap<u64, Vec<u8>>,
+    swap_table: alloc::collections::BTreeMap<u64, Vec<u8>>,
     next_slot: AtomicU64,
     total_size: AtomicU64,
 }
 
 impl SwapManager {
-    const fn new() -> Self {
+    fn new() -> Self {
         Self {
-            swap_table: hashbrown::HashMap::new(),
+            swap_table: alloc::collections::BTreeMap::new(),
             next_slot: AtomicU64::new(1),
             total_size: AtomicU64::new(0),
         }
@@ -490,13 +490,21 @@ impl SwapManager {
 /// Read a page from swap slot
 fn read_page(swap_slot: SwapSlot, buffer: &mut [u8]) -> Result<(), &'static str> {
     let slot_id = (swap_slot.device_id as u64) << 32 | swap_slot.slot;
-    SWAP_MANAGER.lock().read_page(slot_id, buffer)
+    let mut manager_guard = SWAP_MANAGER.lock();
+    if let Some(manager) = manager_guard.as_mut() {
+        manager.read_page(slot_id, buffer)
+    } else {
+        Err("Swap manager not initialized")
+    }
 }
 
 /// Free a swap slot
 fn free_swap_slot(swap_slot: SwapSlot) {
     let slot_id = (swap_slot.device_id as u64) << 32 | swap_slot.slot;
-    let _ = SWAP_MANAGER.lock().free_slot(slot_id);
+    let mut manager_guard = SWAP_MANAGER.lock();
+    if let Some(manager) = manager_guard.as_mut() {
+        let _ = manager.free_slot(slot_id);
+    }
 }
 
 /// Allocate a new swap slot and write data
@@ -505,10 +513,18 @@ pub fn allocate_swap_page(data: &[u8]) -> Result<u64, &'static str> {
         return Err("Invalid page size");
     }
     
-    let mut manager = SWAP_MANAGER.lock();
-    let slot_id = manager.allocate_slot();
-    manager.write_page(slot_id, data.to_vec())?;
-    Ok(slot_id)
+    let mut manager_guard = SWAP_MANAGER.lock();
+    if manager_guard.is_none() {
+        *manager_guard = Some(SwapManager::new());
+    }
+    
+    if let Some(manager) = manager_guard.as_mut() {
+        let slot_id = manager.allocate_slot();
+        manager.write_page(slot_id, data.to_vec())?;
+        Ok(slot_id)
+    } else {
+        Err("Failed to initialize swap manager")
+    }
 }
 
 /// Read a page from swap storage
