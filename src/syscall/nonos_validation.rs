@@ -1,4 +1,4 @@
-#![no_std]
+// Module-level attributes removed - no_std is set at crate level
 
 //! User-pointer validation and safe copy helpers.
 
@@ -22,7 +22,10 @@ pub const MAX_GUARDED_COPY: usize = 8 * 1024 * 1024;
 
 #[inline]
 pub fn is_canonical(addr: u64) -> bool {
-    #[cfg(target_arch = "x86_64")] { VirtAddr::new(addr).is_canonical() }
+    #[cfg(target_arch = "x86_64")] { 
+        let sign_bits = addr >> 47;
+        sign_bits == 0 || sign_bits == 0x1FFFF 
+    }
     #[cfg(not(target_arch = "x86_64"))] { true }
 }
 

@@ -1,6 +1,7 @@
-#![no_std]
+// Module-level attributes removed - no_std is set at crate level
 
 use core::sync::atomic::{AtomicU32, Ordering};
+use spin::Once;
 
 #[repr(C, align(64))]
 struct VdsoData {
@@ -14,7 +15,7 @@ struct VdsoData {
     _pad: u32,
 }
 
-impl const Default for VdsoData {
+impl Default for VdsoData {
     fn default() -> Self {
         Self {
             seq: AtomicU32::new(0),
@@ -29,7 +30,11 @@ impl const Default for VdsoData {
     }
 }
 
-static VDSO: VdsoData = VdsoData::default();
+static VDSO: Once<VdsoData> = Once::new();
+
+fn get_vdso() -> &'static VdsoData {
+    VDSO.call_once(|| VdsoData::default())
+}
 
 #[inline(always)]
 fn rdtsc() -> u64 {
@@ -64,42 +69,48 @@ pub fn vdso_init(tsc_hz: u64, mono_ns: u64, real_ns: u64) {
     let tsc_now = rdtsc();
 
     // seq write begin
-    VDSO.seq.fetch_add(1, Ordering::Relaxed);
-    // publish
-    VDSO.tsc_mul = mul;
-    VDSO.tsc_shift = shift;
-    VDSO.tsc_base = tsc_now;
-    VDSO.mono_base_ns = mono_ns;
-    VDSO.real_base_ns = real_ns;
+    get_vdso().seq.fetch_add(1, Ordering::Relaxed);
+    // publish - use unsafe to modify static data
+    unsafe {
+        let vdso_ptr = get_vdso() as *const VdsoData as *mut VdsoData;
+        (*vdso_ptr).tsc_mul = mul;
+        (*vdso_ptr).tsc_shift = shift;
+        (*vdso_ptr).tsc_base = tsc_now;
+        (*vdso_ptr).mono_base_ns = mono_ns;
+        (*vdso_ptr).real_base_ns = real_ns;
+    }
     // seq write end
-    VDSO.seq.fetch_add(1, Ordering::Release);
+    get_vdso().seq.fetch_add(1, Ordering::Release);
 }
 
 // Update bases, typically from timer tick.
 pub fn vdso_update(mono_ns: u64, real_ns: u64) {
     let tsc_now = rdtsc();
-    VDSO.seq.fetch_add(1, Ordering::Relaxed);
-    VDSO.tsc_base = tsc_now;
-    VDSO.mono_base_ns = mono_ns;
-    VDSO.real_base_ns = real_ns;
-    VDSO.seq.fetch_add(1, Ordering::Release);
+    get_vdso().seq.fetch_add(1, Ordering::Relaxed);
+    unsafe {
+        let vdso_ptr = get_vdso() as *const VdsoData as *mut VdsoData;
+        (*vdso_ptr).tsc_base = tsc_now;
+        (*vdso_ptr).mono_base_ns = mono_ns;
+        (*vdso_ptr).real_base_ns = real_ns;
+    }
+    get_vdso().seq.fetch_add(1, Ordering::Release);
 }
 
 #[inline]
-fn read_time_pair() -> (u64, u64, u64, u64, u32, u64) {
+fn read_time_pair() -> (u64, u32, u64, u64, u32, u64) {
     loop {
-        let s1 = VDSO.seq.load(Ordering::Acquire);
+        let s1 = get_vdso().seq.load(Ordering::Acquire);
         if (s1 & 1) != 0 { continue; }
 
         // snapshot
-        let tsc_mul = VDSO.tsc_mul;
-        let tsc_shift = VDSO.tsc_shift;
-        let tsc_base = VDSO.tsc_base;
-        let mono_base_ns = VDSO.mono_base_ns;
-        let real_base_ns = VDSO.real_base_ns;
+        let tsc_mul = get_vdso().tsc_mul;
+        let tsc_shift = get_vdso().tsc_shift;
+        let tsc_base = get_vdso().tsc_base;
+        let mono_base_ns = get_vdso().mono_base_ns;
+        let real_base_ns = get_vdso().real_base_ns;
         let tsc_now = rdtsc();
 
-        let s2 = VDSO.seq.load(Ordering::Acquire);
+        let s2 = get_vdso().seq.load(Ordering::Acquire);
         if s1 == s2 { return (tsc_mul, tsc_shift, tsc_base, mono_base_ns, s2, real_base_ns); }
     }
 }
@@ -144,5 +155,5 @@ pub fn vdso_ticks() -> u64 {
 
 // Returns the kernel VA of the vDSO data.
 pub fn vdso_data_ptr() -> *const () {
-    &VDSO as *const VdsoData as *const ()
+    get_vdso() as *const VdsoData as *const ()
 }
