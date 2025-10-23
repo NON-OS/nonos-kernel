@@ -20,7 +20,7 @@ pub enum QuantumAlgorithm {
     Lattice,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 pub struct QuantumKey {
     pub algo: QuantumAlgorithm,
     pub key_id: [u8; 32],
@@ -148,7 +148,7 @@ impl QuantumKeyVault {
             old_key_id: *key_id,
             new_key_id: new_key.key_id,
             rotated_at: crate::time::timestamp_millis() / 1000,
-            reason: reason.to_string(),
+            reason: reason.into(),
         });
         Some(new_key)
     }
@@ -231,7 +231,7 @@ impl ThreatDetectionEngine for KernelThreatAI {
         // After with real ML/AI pipeline: kernel signals, syscalls, memory, network events
         if input.len() > 1024 && crate::crypto::estimate_entropy(input) > 7.5 {
             self.detections.fetch_add(1, Ordering::Relaxed);
-            let threat = "High-entropy anomaly detected".to_string();
+            let threat = "High-entropy anomaly detected".into();
             *self.last_threat.lock() = Some(threat.clone());
             Some(threat)
         } else {
@@ -271,8 +271,8 @@ impl QuantumAuditLog {
     pub fn log_event(&self, event_type: &str, details: &str, key_id: Option<[u8; 32]>) {
         self.events.lock().push(QuantumAuditEvent {
             timestamp: crate::time::timestamp_millis(),
-            event_type: event_type.to_string(),
-            details: details.to_string(),
+            event_type: event_type.into(),
+            details: details.into(),
             key_id,
         })
     }
@@ -353,4 +353,14 @@ impl QuantumSecurityEngine {
     pub fn recent_audit(&self, n: usize) -> Vec<QuantumAuditEvent> {
         self.audit.recent(n)
     }
+}
+
+#[derive(Debug, Clone)]
+pub struct QuantumSecurityStats {
+    pub key_count: u64,
+    pub compliance_events: u64,
+    pub qkd_count: u64,
+    pub entropy_bits: f64,
+    pub threat_detections: u64,
+    pub trust_verifications: u64,
 }
