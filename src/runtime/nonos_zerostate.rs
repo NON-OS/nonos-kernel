@@ -4,7 +4,7 @@ extern crate alloc;
 
 use alloc::{collections::BTreeMap, string::String, sync::Arc, vec::Vec};
 use core::sync::atomic::{AtomicU64, Ordering};
-use spin::RwLock;
+use spin::{RwLock, Once};
 
 use crate::runtime::nonos_capsule::{Capsule, CapsuleId, CapsuleQuotas, CapsuleState};
 use crate::runtime::nonos_isolation::{IsolationPolicy, IsolationState};
@@ -27,8 +27,12 @@ impl Registry {
     }
 }
 
-static REGISTRY: RwLock<Registry> = RwLock::new(Registry::new());
+static REGISTRY: Once<RwLock<Registry>> = Once::new();
 static TICKS: AtomicU64 = AtomicU64::new(0);
+
+fn get_registry() -> &'static RwLock<Registry> {
+    REGISTRY.call_once(|| RwLock::new(Registry::new()))
+}
 
 /// Create and register a capsule
 pub fn register_capsule(
@@ -46,16 +50,14 @@ pub fn register_capsule(
     let iso = IsolationState::new(name, policy);
 
     {
-        let mut reg = REGISTRY.write();
+        let mut reg = get_registry().write();
         reg.by_name.insert(String::from(name), cap.id.get());
         reg.iso.insert(cap.id.get(), iso);
         reg.by_id.insert(cap.id.get(), Arc::clone(&cap));
     }
 
     crate::drivers::console::write_message(
-        &alloc::format!("zerostate: registered capsule '{}' id={}", name, cap.id.get()),
-        crate::drivers::console::LogLevel::Info,
-        "runtime",
+        &alloc::format!("zerostate: registered capsule '{}' id={}", name, cap.id.get())
     );
 
     cap
@@ -76,7 +78,7 @@ pub fn stop_capsule(name: &str) -> Result<(), &'static str> {
 
 /// Get capsule by name
 pub fn get_capsule_by_name(name: &str) -> Option<Arc<Capsule>> {
-    let reg = REGISTRY.read();
+    let reg = get_registry().read();
     let id = reg.by_name.get(name)?;
     reg.by_id.get(id).cloned()
 }
@@ -89,10 +91,10 @@ pub fn send_from_capsule(
     token: &CapabilityToken,
 ) -> Result<(), &'static str> {
     let (cap, iso) = {
-        let reg = REGISTRY.read();
+        let reg = get_registry().read();
         let id = reg.by_name.get(from).ok_or("capsule not found")?;
         let cap = reg.by_id.get(id).ok_or("capsule missing")?.clone();
-        let iso = reg.iso.get(id).ok_or("isolation missing")?;
+        let iso = reg.iso.get(id).ok_or("isolation missing")?.clone();
         (cap, iso)
     };
 
@@ -124,7 +126,7 @@ pub fn monitor_once() {
 
     let mut warn_list: Vec<&'static str> = Vec::new();
     {
-        let reg = REGISTRY.read();
+        let reg = get_registry().read();
         for cap in reg.by_id.values() {
             match cap.health() {
                 CapsuleState::Running => {}
@@ -136,9 +138,7 @@ pub fn monitor_once() {
 
     if !warn_list.is_empty() {
         crate::drivers::console::write_message(
-            &alloc::format!("zerostate: degraded {:?}", warn_list),
-            crate::drivers::console::LogLevel::Warning,
-            "runtime",
+            &alloc::format!("zerostate: degraded {:?}", warn_list)
         );
     }
 
@@ -163,9 +163,7 @@ pub fn init_runtime(token: &CapabilityToken) -> Result<(), &'static str> {
   crate::ipc::nonos_inbox::register_inbox("kernel");
   
   crate::drivers::console::write_message(
-        "zerostate: runtime online",
-        crate::drivers::console::LogLevel::Info,
-        "runtime",
+        "zerostate: runtime online"
     );
 
     Ok(())
