@@ -1,6 +1,6 @@
 //! NØNOS Module Manifest 
 
-use alloc::{string::String, vec::Vec};
+use alloc::{string::String, vec::Vec, string::ToString};
 use crate::crypto::blake3::blake3_hash;
 use crate::security::trusted_keys::{get_trusted_keys, TrustedKey};
 use crate::process::capabilities::Capability;
@@ -23,6 +23,31 @@ pub enum PrivacyPolicy {
     Ephemeral,              // Temporary data allowed (RAM), wiped on session end
     EncryptedPersistent,    // Data at rest is encrypted with ephemeral keys
     None,                   // No privacy guarantees (not recommended)
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum AuthMethod {
+    VaultSignature,
+    Ed25519Signature,
+    TrustedKeys,
+    None,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum ModuleType {
+    System,
+    User,
+    Driver,
+    Service,
+    Library,
+}
+
+#[derive(Debug, Clone)]
+pub struct MemoryRequirements {
+    pub min_heap: usize,
+    pub max_heap: usize,
+    pub stack_size: usize,
+    pub needs_dma: bool,
 }
 
 impl ModuleManifest {
@@ -78,10 +103,10 @@ mod tests {
     #[test]
     fn test_manifest_creation_and_erase() {
         let manifest = ModuleManifest::new(
-            "Test".to_string(),
-            "1.0".to_string(),
-            "Author".to_string(),
-            "Desc".to_string(),
+            "Test".into(),
+            "1.0".into(),
+            "Author".into(),
+            "Desc".into(),
             vec![],
             PrivacyPolicy::ZeroStateOnly,
             vec![],

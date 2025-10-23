@@ -58,7 +58,7 @@ pub fn load(request: LoaderRequest, policy: &LoaderPolicy) -> Result<u64, &'stat
     );
 
     if !auth.verified && !auth.pqc_verified {
-        return Err(format!("Module authentication failed: {:?}", auth.failure_reason).as_str());
+        return Err("Module authentication failed");
     }
 
     // Register manifest in system registry (RAM-only)
