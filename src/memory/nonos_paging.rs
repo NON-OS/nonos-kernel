@@ -39,7 +39,7 @@ fn pte_to_vmflags(f: PageTableFlags) -> Result<VmFlags, &'static str> {
     if f.contains(PageTableFlags::WRITABLE) { vm |= VmFlags::RW | VmFlags::NX; }
     if f.contains(PageTableFlags::USER_ACCESSIBLE) { vm |= VmFlags::USER; }
     if f.contains(PageTableFlags::NO_EXECUTE) { vm |= VmFlags::NX; }
-    if f.contains(PageTableFlags::PWT) { vm |= VmFlags::PWT; }
-    if f.contains(PageTableFlags::PCD) { vm |= VmFlags::PCD; }
+    if f.contains(PageTableFlags::from_bits_truncate(0x8)) { vm |= VmFlags::PWT; }
+    if f.contains(PageTableFlags::from_bits_truncate(0x10)) { vm |= VmFlags::PCD; }
     Ok(vm)
 }

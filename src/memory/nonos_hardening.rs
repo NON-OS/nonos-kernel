@@ -63,8 +63,9 @@ static NEXT_HWIN: AtomicU64 = AtomicU64::new(HWIN_BASE);
 
 pub fn init_memory_hardening() -> Result<(), &'static str> {
     // Stack canary seed
-    let canary = crate::crypto::vault::generate_random_bytes(8).map_err(|_| "rand failed")?;
-    STACK_CANARY.store(u64::from_le_bytes(canary.try_into().unwrap()), Ordering::SeqCst);
+    let mut canary = [0u8; 8];
+    crate::crypto::vault::generate_random_bytes(&mut canary).map_err(|_| "rand failed")?;
+    STACK_CANARY.store(u64::from_le_bytes(canary), Ordering::SeqCst);
     // SMEP/SMAP handled in MMU init; no duplication here.
     Ok(())
 }

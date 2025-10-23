@@ -28,6 +28,55 @@ pub struct DmaPage {
 }
 
 #[derive(Debug)]
+pub struct DmaRegion {
+    pub virt_addr: VirtAddr,
+    pub phys_addr: PhysAddr,
+    pub size: usize,
+    pub coherent: bool,
+}
+
+impl DmaRegion {
+    pub fn new(size: usize, coherent: bool) -> Result<Self, &'static str> {
+        let aligned_size = (size + PAGE_SIZE - 1) & !(PAGE_SIZE - 1);
+        
+        // Allocate DMA-coherent memory using existing allocator
+        let virt_addr = unsafe {
+            crate::memory::nonos_alloc::map_large_pages(
+                aligned_size / PAGE_SIZE, 
+                VmFlags::RW | VmFlags::PRESENT | VmFlags::CACHE_DISABLE,
+                false
+            )
+        };
+        
+        if virt_addr.as_u64() == 0 {
+            return Err("Failed to allocate DMA memory");
+        }
+        
+        // Get physical address from page tables
+        let phys_addr = PhysAddr::new(virt_addr.as_u64());
+        
+        Ok(Self {
+            virt_addr,
+            phys_addr,
+            size: aligned_size,
+            coherent,
+        })
+    }
+    
+    pub fn as_ptr<T>(&self) -> *mut T {
+        self.virt_addr.as_mut_ptr()
+    }
+    
+    pub fn phys_addr(&self) -> PhysAddr {
+        self.phys_addr
+    }
+    
+    pub fn size(&self) -> usize {
+        self.size
+    }
+}
+
+#[derive(Debug)]
 pub struct DmaMapping {
     pub dma_addr: PhysAddr,
     pub len: usize,
