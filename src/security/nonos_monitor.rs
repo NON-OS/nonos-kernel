@@ -4,7 +4,7 @@ extern crate alloc;
 
 use alloc::{string::String, vec::Vec, collections::BTreeMap};
 use core::sync::atomic::{AtomicU64, AtomicBool, Ordering};
-use spin::Mutex;
+use spin::{Mutex, Once};
 
 /// Security event types for behavioral and system monitoring
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -48,7 +48,11 @@ pub struct NonosMonitorStats {
 
 /// Global monitor state
 static MONITOR_LOG: Mutex<Vec<NonosSecurityEvent>> = Mutex::new(Vec::new());
-static MONITOR_STATS: NonosMonitorStats = NonosMonitorStats::default();
+static MONITOR_STATS: Once<NonosMonitorStats> = Once::new();
+
+fn get_monitor_stats() -> &'static NonosMonitorStats {
+    MONITOR_STATS.call_once(|| NonosMonitorStats::default())
+}
 static MONITOR_ENABLED: AtomicBool = AtomicBool::new(true);
 
 /// Log a security event
@@ -76,16 +80,16 @@ pub fn log_event(
         }
         log.push(event.clone());
     }
-    MONITOR_STATS.total_events.fetch_add(1, Ordering::Relaxed);
+    get_monitor_stats().total_events.fetch_add(1, Ordering::Relaxed);
     if severity >= 3 {
-        MONITOR_STATS.critical_events.fetch_add(1, Ordering::Relaxed);
+        get_monitor_stats().critical_events.fetch_add(1, Ordering::Relaxed);
     }
     match event_type {
-        NonosSecurityEventType::SuspiciousMemoryAccess => MONITOR_STATS.memory_violations.fetch_add(1, Ordering::Relaxed),
-        NonosSecurityEventType::UnauthorizedNetworkAccess => MONITOR_STATS.network_anomalies.fetch_add(1, Ordering::Relaxed),
-        NonosSecurityEventType::ProcessAnomaly => MONITOR_STATS.process_anomalies.fetch_add(1, Ordering::Relaxed),
-        NonosSecurityEventType::RootkitDetection => MONITOR_STATS.rootkit_alerts.fetch_add(1, Ordering::Relaxed),
-        NonosSecurityEventType::PrivacyViolation => MONITOR_STATS.privacy_violations.fetch_add(1, Ordering::Relaxed),
+        NonosSecurityEventType::SuspiciousMemoryAccess => get_monitor_stats().memory_violations.fetch_add(1, Ordering::Relaxed),
+        NonosSecurityEventType::UnauthorizedNetworkAccess => get_monitor_stats().network_anomalies.fetch_add(1, Ordering::Relaxed),
+        NonosSecurityEventType::ProcessAnomaly => get_monitor_stats().process_anomalies.fetch_add(1, Ordering::Relaxed),
+        NonosSecurityEventType::RootkitDetection => get_monitor_stats().rootkit_alerts.fetch_add(1, Ordering::Relaxed),
+        NonosSecurityEventType::PrivacyViolation => get_monitor_stats().privacy_violations.fetch_add(1, Ordering::Relaxed),
         _ => {},
     }
 }
@@ -100,13 +104,13 @@ pub fn get_recent_events(n: usize) -> Vec<NonosSecurityEvent> {
 /// Get monitor stats
 pub fn get_stats() -> NonosMonitorStats {
     NonosMonitorStats {
-        total_events: AtomicU64::new(MONITOR_STATS.total_events.load(Ordering::Relaxed)),
-        critical_events: AtomicU64::new(MONITOR_STATS.critical_events.load(Ordering::Relaxed)),
-        memory_violations: AtomicU64::new(MONITOR_STATS.memory_violations.load(Ordering::Relaxed)),
-        network_anomalies: AtomicU64::new(MONITOR_STATS.network_anomalies.load(Ordering::Relaxed)),
-        process_anomalies: AtomicU64::new(MONITOR_STATS.process_anomalies.load(Ordering::Relaxed)),
-        rootkit_alerts: AtomicU64::new(MONITOR_STATS.rootkit_alerts.load(Ordering::Relaxed)),
-        privacy_violations: AtomicU64::new(MONITOR_STATS.privacy_violations.load(Ordering::Relaxed)),
+        total_events: AtomicU64::new(get_monitor_stats().total_events.load(Ordering::Relaxed)),
+        critical_events: AtomicU64::new(get_monitor_stats().critical_events.load(Ordering::Relaxed)),
+        memory_violations: AtomicU64::new(get_monitor_stats().memory_violations.load(Ordering::Relaxed)),
+        network_anomalies: AtomicU64::new(get_monitor_stats().network_anomalies.load(Ordering::Relaxed)),
+        process_anomalies: AtomicU64::new(get_monitor_stats().process_anomalies.load(Ordering::Relaxed)),
+        rootkit_alerts: AtomicU64::new(get_monitor_stats().rootkit_alerts.load(Ordering::Relaxed)),
+        privacy_violations: AtomicU64::new(get_monitor_stats().privacy_violations.load(Ordering::Relaxed)),
     }
 }
 
