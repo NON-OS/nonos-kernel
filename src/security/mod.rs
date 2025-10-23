@@ -24,6 +24,7 @@ pub mod nonos_zkids;
 pub mod nonos_quantum_security_engine;
 
 // --- Re-Exports ---
+pub use nonos_capability as capability;
 pub use nonos_capability::*;
 pub use nonos_advanced_security::*;
 pub use nonos_audit as audit;
@@ -36,6 +37,7 @@ pub use nonos_rootkit_scanner::*;
 // pub use nonos_signature_scanner::*;
 // pub use nonos_threat_intel::*;
 pub use nonos_trusted_hashes::*;
+pub use nonos_trusted_keys as trusted_keys;
 pub use nonos_trusted_keys::*;
 pub use nonos_data_leak_detection::*;
 pub use nonos_dns_privacy::*;
@@ -61,9 +63,9 @@ pub fn init_all_security() -> Result<(), &'static str> {
     nonos_random::init()?;
     // Rootkit & signature scanners
     nonos_rootkit_scanner::init()?;
-    // nonos_signature_scanner::init()?; // TODO: module missing
+    // nonos_signature_scanner::init()?; // module missing
     // Threat intelligence
-    // nonos_threat_intel::init()?; // TODO: module missing
+    // nonos_threat_intel::init()?; // module missing
     // Trusted hashes and keys
     nonos_trusted_hashes::init()?;
     nonos_trusted_keys::init()?;
@@ -72,9 +74,9 @@ pub fn init_all_security() -> Result<(), &'static str> {
     nonos_data_leak_detection::add_sensitive_pattern("private_key");
     nonos_data_leak_detection::add_sensitive_pattern("ssn");
     nonos_dns_privacy::scan_dns_queries();
-    // nonos_privacy_violation::check_violations(); // TODO: module missing
+    // nonos_privacy_violation::check_violations(); // module missing
     // Incident response
-    // nonos_incident_response::init()?; // TODO: module missing
+    // nonos_incident_response::init()?; // module missing
     // ZKIDS identity system
     nonos_zkids::init_zkids()?;
     // Quantum security engine 
@@ -87,7 +89,7 @@ pub fn run_periodic_checks() {
     let _ = nonos_rootkit_scanner::scan_system();
     let _ = nonos_data_leak_detection::scan_memory();
     let _ = nonos_trusted_hashes::list_trusted_hashes();
-    // let _ = nonos_privacy_violation::check_violations(); // TODO: module missing
+    // let _ = nonos_privacy_violation::check_violations(); // module missing
     nonos_monitor::log_event(
         nonos_monitor::NonosSecurityEventType::IntegrityBreach,
         1,
@@ -108,6 +110,9 @@ pub fn get_security_stats() -> SecurityStats {
                 key_count: 0,
                 compliance_events: 0,
                 qkd_count: 0,
+                entropy_bits: 0,
+                threat_detections: 0,
+                trust_verifications: 0,
             }
         },
         zkids: nonos_zkids::get_zkids_stats(),
