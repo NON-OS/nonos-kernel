@@ -162,17 +162,16 @@ impl SecurityManager {
     pub fn secure_allocate(&self, size: usize) -> Result<*mut u8, OnionError> {
         // Allocate with guard pages
         let total_size = size + 16; // 8 bytes before + 8 bytes after
-        let mut raw_ptr = vault::allocate_secure_memory(total_size)
-            .map_err(|_| OnionError::CryptoError)?;
+        let mut raw_ptr = vault::allocate_secure_memory(total_size);
         
         // Add canary values
         let canary = self.memory_protector.generate_canary();
         unsafe {
-            core::ptr::write(raw_ptr.as_ptr() as *mut u64, canary);
-            core::ptr::write((raw_ptr.as_ptr() as *mut u64).add(1 + size / 8), canary);
+            core::ptr::write(raw_ptr as *mut u64, canary);
+            core::ptr::write((raw_ptr as *mut u64).add(1 + size / 8), canary);
         }
         
-        let user_ptr = unsafe { raw_ptr.as_mut_ptr().add(8) };
+        let user_ptr = unsafe { (raw_ptr as *mut u8).add(8) };
         
         // Store allocation info
         let alloc_info = AllocInfo {
@@ -213,10 +212,8 @@ impl SecurityManager {
             core::ptr::write_bytes(ptr, 0, size);
         }
         
-        // Convert raw pointer back to Vec to deallocate
-        let vec = unsafe { Vec::from_raw_parts(raw_ptr, alloc_info.size, alloc_info.size) };
-        vault::deallocate_secure_memory(vec)
-            .map_err(|_| OnionError::CryptoError)?;
+        // Deallocate secure memory
+        vault::deallocate_secure_memory(raw_ptr, alloc_info.size);
         
         Ok(())
     }

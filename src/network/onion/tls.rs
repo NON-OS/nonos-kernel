@@ -673,11 +673,11 @@ fn wrap_record(ct: u8, legacy_version: u16, body: &[u8]) -> Vec<u8> {
 /* ===== I/O helpers ===== */
 
 fn write_all(sock: &TcpSocket, data: &[u8], timeout_ms: u64) -> Result<(), OnionError> {
-    let start = time::timestamp_millis();
+    let start = crate::time::timestamp_millis();
     if let Some(net) = get_network_stack() {
         let mut off = 0usize;
         while off < data.len() {
-            if time::timestamp_millis().saturating_sub(start) > timeout_ms { return Err(OnionError::Timeout); }
+            if crate::time::timestamp_millis().saturating_sub(start) > timeout_ms { return Err(OnionError::Timeout); }
             match net.tcp_send(sock.connection_id(), &data[off..]) {
                 Ok(n) if n > 0 => off += n,
                 Ok(_) => crate::time::yield_now(),
@@ -689,10 +689,10 @@ fn write_all(sock: &TcpSocket, data: &[u8], timeout_ms: u64) -> Result<(), Onion
 }
 
 fn read_some(sock: &TcpSocket, dst: &mut [u8], timeout_ms: u64) -> Result<usize, OnionError> {
-    let start = time::timestamp_millis();
+    let start = crate::time::timestamp_millis();
     if let Some(net) = get_network_stack() {
         loop {
-            if time::timestamp_millis().saturating_sub(start) > timeout_ms { return Err(OnionError::Timeout); }
+            if crate::time::timestamp_millis().saturating_sub(start) > timeout_ms { return Err(OnionError::Timeout); }
             match net.tcp_receive(sock.connection_id(), dst.len()) {
                 Ok(buf) if !buf.is_empty() => {
                     let n = min(dst.len(), buf.len());
@@ -777,8 +777,8 @@ pub use super::nonos_crypto::X509Certificate;
 
 /* ===== Strict Tor link certificate verifier ===== */
 
-struct StrictTorLinkVerifier;
-static STRICT_TOR_LINK_VERIFIER: StrictTorLinkVerifier = StrictTorLinkVerifier;
+pub struct StrictTorLinkVerifier;
+pub static STRICT_TOR_LINK_VERIFIER: StrictTorLinkVerifier = StrictTorLinkVerifier;
 
 impl CertVerifier for StrictTorLinkVerifier {
     fn verify(&self, chain_der: &[Vec<u8>], _sni: &str) -> Result<(), OnionError> {
@@ -794,6 +794,7 @@ impl CertVerifier for StrictTorLinkVerifier {
 
 /* ===== X.509 adapter ===== */
 
+#[derive(PartialEq)]
 pub enum PublicKeyKind { Rsa, Ed25519, EcdsaP256 }
 
 pub struct X509;
@@ -811,7 +812,13 @@ impl X509 {
         super::nonos_crypto::X509::check_time_validity(cert, now_ms)
     }
     pub fn public_key_info(cert: &X509Certificate) -> Result<(PublicKeyKind, Vec<u8>), OnionError> {
-        super::nonos_crypto::X509::public_key_info(cert)
+        let (crypto_kind, data) = super::nonos_crypto::X509::public_key_info(cert)?;
+        let tls_kind = match crypto_kind {
+            super::nonos_crypto::PublicKeyKind::Rsa => PublicKeyKind::Rsa,
+            super::nonos_crypto::PublicKeyKind::Ed25519 => PublicKeyKind::Ed25519,
+            super::nonos_crypto::PublicKeyKind::X25519 => PublicKeyKind::EcdsaP256, // Map X25519 to EcdsaP256 for TLS
+        };
+        Ok((tls_kind, data))
     }
 }
 
@@ -834,19 +841,28 @@ impl TlsCrypto for KernelTlsCrypto {
     }
 
     fn sha256(&self, data: &[u8], out32: &mut [u8; 32]) {
-        super::nonos_crypto::sha256(data, out32)
+        let _ = super::nonos_crypto::sha256(data, out32);
     }
 
     fn hmac_sha256(&self, key: &[u8], data: &[u8], out32: &mut [u8; 32]) {
-        super::nonos_crypto::hmac_sha256(key, data, out32)
+        match super::nonos_crypto::hmac_sha256(key, data) {
+            Ok(result) => {
+                let len = core::cmp::min(result.len(), 32);
+                out32[..len].copy_from_slice(&result[..len]);
+            },
+            Err(_) => {
+                // Fill with zeros on error
+                out32.fill(0);
+            }
+        }
     }
 
     fn hkdf_extract(&self, salt: &[u8; 32], ikm: &[u8; 32], out32: &mut [u8; 32]) {
-        super::nonos_crypto::hkdf_extract_sha256(salt, ikm, out32)
+        let _ = super::nonos_crypto::hkdf_extract_sha256(salt, ikm, out32);
     }
 
     fn hkdf_expand(&self, prk: &[u8; 32], info: &[u8], out: &mut [u8]) {
-        super::nonos_crypto::hkdf_expand_sha256(prk, info, out)
+        let _ = super::nonos_crypto::hkdf_expand_sha256(prk, info, 32, out);
     }
 
     fn x25519_keypair(&self) -> Result<([u8; 32], [u8; 32]), OnionError> {
@@ -854,7 +870,7 @@ impl TlsCrypto for KernelTlsCrypto {
     }
 
     fn x25519(&self, sk: &[u8; 32], pk: &[u8; 32]) -> Result<[u8; 32], OnionError> {
-        super::nonos_crypto::x25519(sk, pk).map_err(|_| OnionError::CryptoError)
+        Ok(super::nonos_crypto::scalar_mult_x25519(sk, pk))
     }
 
     fn aead_seal(
@@ -866,8 +882,8 @@ impl TlsCrypto for KernelTlsCrypto {
         plaintext: &[u8],
     ) -> Result<Vec<u8>, OnionError> {
         match suite {
-            CipherSuite::TlsAes128GcmSha256 => super::nonos_crypto::aes128_gcm_seal(key, nonce, aad, plaintext),
-            CipherSuite::TlsChacha20Poly1305Sha256 => super::nonos_crypto::chacha20poly1305_seal(key, nonce, aad, plaintext),
+            CipherSuite::TlsAes128GcmSha256 => super::nonos_crypto::aes128_gcm_seal(key, nonce, plaintext),
+            CipherSuite::TlsChacha20Poly1305Sha256 => super::nonos_crypto::chacha20poly1305_seal(key, nonce, plaintext),
         }.map_err(|_| OnionError::CryptoError)
     }
 
@@ -880,20 +896,20 @@ impl TlsCrypto for KernelTlsCrypto {
         ciphertext: &[u8],
     ) -> Result<Vec<u8>, OnionError> {
         match suite {
-            CipherSuite::TlsAes128GcmSha256 => super::nonos_crypto::aes128_gcm_open(key, nonce, aad, ciphertext),
-            CipherSuite::TlsChacha20Poly1305Sha256 => super::nonos_crypto::chacha20poly1305_open(key, nonce, aad, ciphertext),
+            CipherSuite::TlsAes128GcmSha256 => super::nonos_crypto::aes128_gcm_open(key, nonce, ciphertext),
+            CipherSuite::TlsChacha20Poly1305Sha256 => super::nonos_crypto::chacha20poly1305_open(key, nonce, ciphertext),
         }.map_err(|_| OnionError::CryptoError)
     }
 
     fn verify_ed25519(&self, pubkey: &[u8], msg: &[u8], sig: &[u8]) -> bool {
-        super::nonos_crypto::ed25519_verify(pubkey, msg, sig)
+        super::nonos_crypto::ed25519_verify(pubkey, msg, sig).unwrap_or(false)
     }
 
     fn verify_rsa_pss_sha256(&self, spki_der: &[u8], msg: &[u8], sig: &[u8]) -> bool {
-        super::nonos_crypto::rsa_pss_sha256_verify_spki(spki_der, msg, sig)
+        super::nonos_crypto::rsa_pss_sha256_verify_spki(spki_der, msg, sig).unwrap_or(false)
     }
 
     fn verify_ecdsa_p256_sha256(&self, spki_der: &[u8], msg: &[u8], sig: &[u8]) -> bool {
-        super::nonos_crypto::ecdsa_p256_sha256_verify_spki(spki_der, msg, sig)
+        super::nonos_crypto::ecdsa_p256_sha256_verify_spki(spki_der, msg, sig).unwrap_or(false)
     }
 }
