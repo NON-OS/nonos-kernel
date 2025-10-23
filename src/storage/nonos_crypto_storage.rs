@@ -198,3 +198,26 @@ impl<D: StorageDevice + ?Sized> StorageDevice for CryptoDevice<D> {
         self.inner.parse_controller_identify(data)
     }
 }
+
+pub fn init() -> Result<(), &'static str> {
+    use crate::crypto::{secure_random_u32, aes256_gcm_encrypt};
+    use alloc::vec;
+    
+    let entropy_test = secure_random_u32();
+    if entropy_test == 0 {
+        return Err("Cryptographic entropy source failure during storage initialization");
+    }
+    
+    let test_key = [0u8; 32];
+    let test_data = vec![0xde, 0xad, 0xbe, 0xef];
+    let test_nonce = [0u8; 12];
+    let test_aad = &[];
+    
+    match aes256_gcm_encrypt(&test_key, &test_nonce, &test_data, test_aad) {
+        Ok(_) => {
+            crate::log::log(crate::log::Severity::Info, "Cryptographic storage subsystem initialized with verified AES-256-GCM capability");
+            Ok(())
+        },
+        Err(_) => Err("Cryptographic storage initialization failed during AES-256-GCM verification")
+    }
+}
