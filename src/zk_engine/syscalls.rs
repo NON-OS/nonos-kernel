@@ -8,7 +8,7 @@
 
 use alloc::vec::Vec;
 use core::slice;
-use crate::process::real_process::ProcessControlBlock;
+use crate::process::core::ProcessControlBlock;
 use super::{ZKProof, ZKError, get_zk_engine};
 
 /// System call numbers for ZK operations

@@ -8,13 +8,13 @@ use alloc::{vec::Vec, collections::BTreeMap, string::String};
 use super::groth16::{FieldElement, Proof};
 use super::circuit::{Circuit, CircuitBuilder, LinearCombination, Variable};
 use super::{ZKEngine, ZKError};
-use crate::crypto::{hash::blake3_hash, sig::ed25519::{Ed25519Keypair, Ed25519Signature}};
+use crate::crypto::{hash::blake3_hash, ed25519::{KeyPair, Signature as Ed25519Signature}};
 use crate::memory::{VirtAddr, PhysAddr};
 use core::mem;
 
 /// Kernel attestation manager
 pub struct AttestationManager {
-    signing_keypair: Ed25519Keypair,
+    signing_keypair: KeyPair,
     measurement_history: Vec<KernelMeasurement>,
     attestation_circuit: Option<Circuit>,
     zk_engine: Option<&'static ZKEngine>,
@@ -22,8 +22,7 @@ pub struct AttestationManager {
 
 impl AttestationManager {
     pub fn new() -> Result<Self, ZKError> {
-        let signing_keypair = Ed25519Keypair::generate()
-            .map_err(|_| ZKError::CryptoError)?;
+        let signing_keypair = KeyPair::generate();
         
         Ok(Self {
             signing_keypair,
@@ -51,7 +50,7 @@ impl AttestationManager {
             measurement,
             signature,
             zk_proof,
-            public_key: self.signing_keypair.public_key,
+            public_key: self.signing_keypair.public,
             timestamp: crate::time::timestamp_millis(),
         })
     }
@@ -60,7 +59,7 @@ impl AttestationManager {
     pub fn verify_attestation(attestation: &KernelAttestation) -> Result<bool, ZKError> {
         // Verify signature
         let message = attestation.measurement.to_bytes();
-        if !attestation.signature.verify(message.as_slice().try_into().map_err(|_| ZKError::InvalidInput)?, &attestation.public_key).map_err(|_| ZKError::VerificationFailed)? {
+        if !crate::crypto::ed25519::verify(&attestation.public_key, &message, &attestation.signature) {
             return Ok(false);
         }
         
@@ -181,8 +180,7 @@ impl AttestationManager {
     
     fn sign_measurement(&self, measurement: &KernelMeasurement) -> Result<Ed25519Signature, ZKError> {
         let message = measurement.to_bytes();
-        self.signing_keypair.sign(&message)
-            .map_err(|_| ZKError::CryptoError)
+        Ok(crate::crypto::ed25519::sign(&self.signing_keypair, &message))
     }
     
     fn generate_integrity_proof(&self, measurement: &KernelMeasurement) -> Result<Option<Proof>, ZKError> {
@@ -250,8 +248,7 @@ impl AttestationManager {
     
     /// Rotate signing key
     pub fn rotate_key(&mut self) -> Result<(), ZKError> {
-        self.signing_keypair = Ed25519Keypair::generate()
-            .map_err(|_| ZKError::CryptoError)?;
+        self.signing_keypair = KeyPair::generate();
         Ok(())
     }
 }
@@ -308,7 +305,11 @@ impl KernelAttestation {
         
         // Parse signature
         // For now, create a dummy signature - full implementation would parse properly
-        let signature = Ed25519Signature::from_bytes(&data[offset..offset + 64]);
+        let signature = {
+            let mut sig_bytes = [0u8; 64];
+            sig_bytes.copy_from_slice(&data[offset..offset + 64]);
+            Ed25519Signature::from_bytes(&sig_bytes)
+        };
         if data[offset..offset + 64].len() != 64 {
             return Err(ZKError::InvalidFormat);
         }
@@ -561,7 +562,7 @@ impl AttestationPolicy {
                 pub_key_array.copy_from_slice(&attestation.public_key);
                 // Convert message to fixed size array for verification
                 let message_hash = crate::crypto::hash::blake3_hash(&message);
-                Ok(attestation.signature.verify(&message_hash, &pub_key_array).map_err(|_| ZKError::AttestationError("Verification failed".into()))?)
+                Ok(crate::crypto::ed25519::verify(&pub_key_array, &message_hash, &attestation.signature))
             }
             
             AttestationPolicy::Standard => {
