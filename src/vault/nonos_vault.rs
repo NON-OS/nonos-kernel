@@ -46,8 +46,18 @@ impl NonosVault {
         let master_key = self.generate_master_key()?;
         *self.master_key.write() = Some(master_key);
         *self.initialized.write() = true;
-        self.audit("initialize", Some("vault.init"), Some("success"));
+        self.audit("initialize", Some("vault.init".into()), Some("success".into()));
         Ok(())
+    }
+
+    /// Get access to the master key for authorized operations
+    pub fn master_key(&self) -> &RwLock<Option<[u8; 64]>> {
+        &self.master_key
+    }
+
+    /// Get access to the audit log for authorized operations
+    pub fn audit_log(&self) -> &Mutex<Vec<VaultAuditEvent>> {
+        &self.audit_log
     }
 
     /// Is vault initialized?
@@ -68,7 +78,7 @@ impl NonosVault {
         // Check if already derived
         if let Some(existing_key) = self.derived_keys.read().get(&key_id) {
             if existing_key.len() == key_length {
-                self.audit("derive_key", Some(context.to_string()), Some("cached"));
+                self.audit("derive_key", Some(context.into()), Some("cached"));
                 return Ok(existing_key.clone());
             }
         }
@@ -79,7 +89,7 @@ impl NonosVault {
 
         // Cache derived key
         self.derived_keys.write().insert(key_id, okm.clone());
-        self.audit("derive_key", Some(context.to_string()), Some("new"));
+        self.audit("derive_key", Some(context.into()), Some("new"));
 
         Ok(okm)
     }
@@ -93,7 +103,7 @@ impl NonosVault {
             pool[(*index + i) % 4096] ^= entropy;
         }
         *index = (*index + 1024) % 4096;
-        self.audit("collect_entropy", None, Some("success"));
+        self.audit("collect_entropy", None, Some("success".into()));
         Ok(())
     }
 
@@ -105,7 +115,7 @@ impl NonosVault {
         for i in 0..64 {
             key[i] = pool[(*index + i) % 4096];
         }
-        self.audit("generate_master_key", None, Some("success"));
+        self.audit("generate_master_key", None, Some("success".into()));
         Ok(key)
     }
 
@@ -151,7 +161,7 @@ impl NonosVault {
             pool.fill(0);
         }
         *self.initialized.write() = false;
-        self.audit("secure_erase", None, Some("success"));
+        self.audit("secure_erase", None, Some("success".into()));
     }
 
     /// Audit event (internal use)
@@ -159,9 +169,9 @@ impl NonosVault {
         let ts = self.timestamp();
         self.audit_log.lock().push(VaultAuditEvent {
             timestamp: ts,
-            event: event.to_string(),
+            event: event.into(),
             context,
-            status: status.map(|s| s.to_string()),
+            status: status.map(|s| s.into()),
         });
     }
 
