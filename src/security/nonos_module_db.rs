@@ -36,7 +36,7 @@ pub fn add_trusted_module(name: &str, hash: [u8; 32]) {
 pub fn mark_module_loaded(name: &str) {
     unsafe {
         if let Some(db) = MODULE_DB.as_mut() {
-            if !db.loaded_modules.contains(&name.to_string()) {
+            if !db.loaded_modules.contains(&name.into()) {
                 db.loaded_modules.push(name.into());
             }
         }
