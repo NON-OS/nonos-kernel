@@ -41,13 +41,13 @@ impl VaultSealStore {
         let ts = crate::time::timestamp_millis();
         let audit = VaultAuditEvent {
             timestamp: ts,
-            event: "seal_secret".to_string(),
+            event: "seal_secret".into(),
             context: Some(hexify(&blake3_hash(plaintext))),
             status: Some(format!("{:?}", policy)),
         };
         let sealed_data = match &policy {
             SealPolicy::RAMOnly => {
-                let master_key = NONOS_VAULT.master_key.read().as_ref().ok_or("No master key")?;
+                let master_key = NONOS_VAULT.master_key().read().as_ref().ok_or("No master key")?;
                 let mut nonce = [0u8; 12];
                 nonce.copy_from_slice(&get_random_bytes()[..12]);
                 let ct = aes256_gcm_encrypt(master_key, &nonce, aad, plaintext)?;
@@ -56,7 +56,7 @@ impl VaultSealStore {
                 sealed
             }
             SealPolicy::UEFI => {
-                let master_key = NONOS_VAULT.master_key.read().as_ref().ok_or("No master key")?;
+                let master_key = NONOS_VAULT.master_key().read().as_ref().ok_or("No master key")?;
                 let mut nonce = [0u8; 12];
                 nonce.copy_from_slice(&get_random_bytes()[..12]);
                 let ct = aes256_gcm_encrypt(master_key, &nonce, aad, plaintext)?;
@@ -72,7 +72,7 @@ impl VaultSealStore {
                 sealed
             }
             SealPolicy::Disk => {
-                let master_key = NONOS_VAULT.master_key.read().as_ref().ok_or("No master key")?;
+                let master_key = NONOS_VAULT.master_key().read().as_ref().ok_or("No master key")?;
                 let mut nonce = [0u8; 12];
                 nonce.copy_from_slice(&get_random_bytes()[..12]);
                 let ct = aes256_gcm_encrypt(master_key, &nonce, aad, plaintext)?;
@@ -96,7 +96,7 @@ impl VaultSealStore {
             audit: audit.clone(),
         };
         self.sealed.lock().push(entry.clone());
-        NONOS_VAULT.audit_log.lock().push(audit);
+        NONOS_VAULT.audit_log().lock().push(audit);
         Ok(entry)
     }
 
@@ -106,7 +106,7 @@ impl VaultSealStore {
         }
         let pt = match &sealed.policy {
             SealPolicy::RAMOnly => {
-                let master_key = NONOS_VAULT.master_key.read().as_ref().ok_or("No master key")?;
+                let master_key = NONOS_VAULT.master_key().read().as_ref().ok_or("No master key")?;
                 if sealed.sealed_data.len() < 12 + 16 {
                     return Err("Sealed data too short");
                 }
@@ -120,7 +120,7 @@ impl VaultSealStore {
                 let var = uefi_get_variable("NONOS_VAULT_SECRET", &Guid::GLOBAL_VARIABLE)
                     .ok_or("UEFI variable not found")?;
                 let sealed_buf = var.data;
-                let master_key = NONOS_VAULT.master_key.read().as_ref().ok_or("No master key")?;
+                let master_key = NONOS_VAULT.master_key().read().as_ref().ok_or("No master key")?;
                 if sealed_buf.len() < 12 + 16 {
                     return Err("Sealed data too short");
                 }
@@ -133,7 +133,7 @@ impl VaultSealStore {
                 // Read from file
                 let fs = NonosFilesystem::new();
                 let sealed_buf = fs.read_file("nonos_vault.sealed")?;
-                let master_key = NONOS_VAULT.master_key.read().as_ref().ok_or("No master key")?;
+                let master_key = NONOS_VAULT.master_key().read().as_ref().ok_or("No master key")?;
                 if sealed_buf.len() < 12 + 16 {
                     return Err("Sealed data too short");
                 }
@@ -148,11 +148,11 @@ impl VaultSealStore {
         };
         let audit = VaultAuditEvent {
             timestamp: crate::time::timestamp_millis(),
-            event: "unseal_secret".to_string(),
+            event: "unseal_secret".into(),
             context: Some(hexify(&blake3_hash(&pt))),
             status: Some(format!("{:?}", sealed.policy)),
         };
-        NONOS_VAULT.audit_log.lock().push(audit);
+        NONOS_VAULT.audit_log().lock().push(audit);
         Ok(pt)
     }
 
@@ -169,7 +169,7 @@ impl VaultSealStore {
             entry.sealed_data.clear();
         }
         sealed.clear();
-        if let Some(policy) = backend {
+        if let Some(ref policy) = backend {
             match policy {
                 SealPolicy::UEFI => {
                     // Overwrite UEFI variable
@@ -189,11 +189,11 @@ impl VaultSealStore {
         }
         let audit = VaultAuditEvent {
             timestamp: crate::time::timestamp_millis(),
-            event: "secure_erase_sealed".to_string(),
+            event: "secure_erase_sealed".into(),
             context: backend.map(|b| format!("{:?}", b)),
-            status: Some("success".to_string()),
+            status: Some("success".into()),
         };
-        NONOS_VAULT.audit_log.lock().push(audit);
+        NONOS_VAULT.audit_log().lock().push(audit);
     }
 }
 
