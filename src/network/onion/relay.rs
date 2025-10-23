@@ -19,6 +19,38 @@ use super::directory::RelayDescriptor;
 use super::tls::{TLSConnection, KERNEL_TLS_CRYPTO, STRICT_TOR_LINK_VERIFIER};
 use super::OnionError;
 
+/// Onion relay for routing traffic
+pub struct OnionRelay {
+    pub connection: ORConnection,
+    pub status: RelayStatus,
+}
+
+/// Relay configuration
+pub struct RelayConfig {
+    pub connect_timeout_ms: u64,
+    pub handshake_timeout_ms: u64,
+    pub io_timeout_ms: u64,
+}
+
+impl Default for RelayConfig {
+    fn default() -> Self {
+        Self {
+            connect_timeout_ms: CONNECT_TIMEOUT_MS,
+            handshake_timeout_ms: TLS_HANDSHAKE_TIMEOUT_MS,
+            io_timeout_ms: IO_READ_TIMEOUT_MS,
+        }
+    }
+}
+
+/// Relay status enumeration
+#[derive(Debug, Clone, Copy)]
+pub enum RelayStatus {
+    Disconnected,
+    Connecting,
+    Connected,
+    Failed,
+}
+
 /* Defaults (ms) */
 const CONNECT_TIMEOUT_MS: u64 = 15_000;
 const TLS_HANDSHAKE_TIMEOUT_MS: u64 = 30_000;
@@ -113,18 +145,18 @@ impl ORConnection {
                 processed += 1;
                 self.rx_counter.fetch_add(1, Ordering::Relaxed);
             } else {
-                crate::log::warn!("relay: invalid cell received, dropping 1 cell to resync");
+                crate::log_warn!("relay: invalid cell received, dropping 1 cell to resync");
             }
         }
         Ok(processed)
     }
 
     fn write_all(&self, data: &[u8], timeout_ms: u64) -> Result<(), OnionError> {
-        let start = time::timestamp_millis();
+        let start = crate::time::timestamp_millis();
         if let Some(net) = get_network_stack() {
             let mut off = 0usize;
             while off < data.len() {
-                if time::timestamp_millis().saturating_sub(start) > timeout_ms {
+                if crate::time::timestamp_millis().saturating_sub(start) > timeout_ms {
                     return Err(OnionError::Timeout);
                 }
                 match net.tcp_send(self.sock.connection_id(), &data[off..]) {
@@ -140,12 +172,12 @@ impl ORConnection {
     }
 
     fn read_exact(&self, dst: &mut [u8], timeout_ms: u64) -> Result<(), OnionError> {
-        let start = time::timestamp_millis();
+        let start = crate::time::timestamp_millis();
         let mut filled = 0usize;
 
         if let Some(net) = get_network_stack() {
             while filled < dst.len() {
-                if time::timestamp_millis().saturating_sub(start) > timeout_ms {
+                if crate::time::timestamp_millis().saturating_sub(start) > timeout_ms {
                     return Err(OnionError::Timeout);
                 }
                 let want = dst.len() - filled;
@@ -246,7 +278,7 @@ impl RelayManager {
                     }
                     Err(OnionError::Timeout) => {}
                     Err(e) => {
-                        crate::log::warn!("relay: link {} closed due to error: {:?}", id, e);
+                        crate::log_warn!("relay: link {} closed due to error: {:?}", id, e);
                         dead.push(*id);
                     }
                 }

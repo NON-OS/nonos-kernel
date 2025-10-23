@@ -14,13 +14,12 @@
 */
 
 use alloc::{boxed::Box, collections::BTreeMap, vec, vec::Vec};
-use crate::network::onion::relay::TcpSocketExt;
 use core::cmp::min;
 use core::sync::atomic::{AtomicU32, AtomicU64, Ordering};
 use spin::{Mutex, Once};
 
 use super::OnionError;
-use crate::network::{tcp::TcpSocket, nonos_ip::IpAddress};
+use crate::network::{nonos_network_stack::TcpSocket, nonos_ip::IpAddress};
 
 /* ===== TLS integration ===== */
 
@@ -461,7 +460,6 @@ impl TorNetworkManager {
     pub fn resolve_hostname(&self, hostname: &str) -> Result<IpAddress, OnionError> {
         let ips = crate::network::dns::resolve(hostname).map_err(|_| OnionError::NetworkError)?;
         ips.into_iter().next()
-            .map(|ip| IpAddress::V4(ip))
             .ok_or(OnionError::NetworkError)
     }
 
