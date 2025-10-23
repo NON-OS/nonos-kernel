@@ -99,9 +99,7 @@ impl Capsule {
         self.running.store(true, Ordering::Relaxed);
 
         crate::drivers::console::write_message(
-            &alloc::format!("capsule '{}' started (id={})", self.name, self.id.get()),
-            crate::drivers::console::LogLevel::Info,
-            "runtime",
+            &alloc::format!("capsule '{}' started (id={})", self.name, self.id.get())
         );
         Ok(())
     }
@@ -111,9 +109,7 @@ impl Capsule {
         self.running.store(false, Ordering::Relaxed);
         crate::ipc::nonos_channel::IPC_BUS.remove_all_channels_for_module(self.name);
         crate::drivers::console::write_message(
-            &alloc::format!("capsule '{}' stopped", self.name),
-            crate::drivers::console::LogLevel::Warning,
-            "runtime",
+            &alloc::format!("capsule '{}' stopped", self.name)
         );
     }
 
