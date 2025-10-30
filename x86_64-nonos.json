@@ -1,5 +1,5 @@
 {
-  "llvm-target": "x86_64-unknown-none",
+  "llvm-target": "x86_64-unknown-none-elf",
   "arch": "x86_64",
   "vendor": "nonos",
   "os": "none",
@@ -37,5 +37,6 @@
   "no-default-libraries": true,
   "has-rpath": false,
 
-  "stack-probes": { "kind": "inline" }
+  "stack-probes": { "kind": "inline" },
+  "eh-frame-header": false
 }
