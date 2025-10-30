@@ -1,20 +1,18 @@
-//! Real Hardware MMU Control with Direct Register Access
-
-#![allow(dead_code)]
+#![no_std]
 
 use alloc::{collections::BTreeMap, vec::Vec};
 use core::arch::asm;
-use spin::{Mutex, Once, RwLock};
+use spin::{Mutex, Once};
 use x86_64::{PhysAddr, VirtAddr};
 
-use crate::memory::frame_alloc;
-use crate::memory::layout::KERNEL_BASE;
+use crate::memory::nonos_frame_alloc as frame_alloc;
+use crate::memory::nonos_layout as layout;
 
-pub struct RealMMU {
+pub struct MMU {
     current_cr3: Mutex<u64>,
-    page_tables: RwLock<BTreeMap<u64, PageTableEntry>>, // best-effort cache
-    tlb_invalidation_queue: Mutex<Vec<VirtAddr>>,
+    page_tables: Mutex<BTreeMap<u64, PageTableEntry>>,
     protection_flags: Mutex<ProtectionFlags>,
+    initialized: Mutex<bool>,
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -48,32 +46,37 @@ pub struct PagePermissions {
     pub cache_disabled: bool,
 }
 
-impl RealMMU {
-    pub fn new() -> Self {
+impl MMU {
+    pub const fn new() -> Self {
         Self {
             current_cr3: Mutex::new(0),
-            page_tables: RwLock::new(BTreeMap::new()),
-            tlb_invalidation_queue: Mutex::new(Vec::new()),
+            page_tables: Mutex::new(BTreeMap::new()),
             protection_flags: Mutex::new(ProtectionFlags {
                 smep_enabled: false,
                 smap_enabled: false,
                 nx_enabled: false,
-                wp_enabled: true, // CR0.WP typically enabled by kernel policy
+                wp_enabled: true,
             }),
+            initialized: Mutex::new(false),
         }
     }
 
-    /// Initialize MMU: detect features, enable NXE/SMEP/SMAP safely, install a minimal table if needed.
     pub fn initialize(&self) -> Result<(), &'static str> {
-        // Enable SMEP/SMAP if supported
+        let mut init_guard = self.initialized.lock();
+        if *init_guard {
+            return Ok(());
+        }
+        
         self.enable_smep_smap()?;
-        // Enable global NXE
         self.enable_nx_bit()?;
-        // If CR3 is zero (fresh bring-up), install a minimal root
-        if *self.current_cr3.lock() == 0 {
+        
+        let cr3_guard = self.current_cr3.lock();
+        if *cr3_guard == 0 {
+            drop(cr3_guard);
             self.setup_initial_page_tables()?;
         }
-        crate::log::logger::log_info!("Real MMU initialized (NXE/SMEP/SMAP policy applied)");
+        
+        *init_guard = true;
         Ok(())
     }
 
@@ -85,8 +88,14 @@ impl RealMMU {
         let mut edx: u32;
         unsafe {
             asm!(
+                "push rbx",
                 "cpuid",
-                inout("eax") eax, out("ebx") ebx, inout("ecx") ecx, out("edx") edx,
+                "mov {0:e}, ebx",
+                "pop rbx",
+                out(reg) ebx,
+                inout("eax") eax, 
+                inout("ecx") ecx, 
+                out("edx") edx,
                 options(nostack, preserves_flags)
             );
         }
@@ -95,7 +104,7 @@ impl RealMMU {
 
     /// Enable SMEP/SMAP in CR4 if supported by CPUID(7,0).EBX
     fn enable_smep_smap(&self) -> Result<(), &'static str> {
-        let (_a, ebx, _c, _d) = self.cpuid(0x07, 0x00);
+        let (_a, ebx, _c, _d) = MMU::cpuid(0x07, 0x00);
         let has_smep = (ebx & (1 << 7)) != 0;
         let has_smap = (ebx & (1 << 20)) != 0;
 
@@ -123,7 +132,7 @@ impl RealMMU {
 
     /// Ensure IA32_EFER.NXE (bit 11) is set if NX supported by CPUID(0x80000001).EDX bit 20.
     fn enable_nx_bit(&self) -> Result<(), &'static str> {
-        let (_a, _b, _c, edx) = self.cpuid(0x8000_0001, 0);
+        let (_a, _b, _c, edx) = MMU::cpuid(0x8000_0001, 0);
         let nx_supported = (edx & (1 << 20)) != 0;
         if !nx_supported {
             return Err("NXE not supported by CPU");
@@ -203,8 +212,8 @@ impl RealMMU {
 
         unsafe {
             // PML4
-            let pml4_table = pml4_virt.as_ptr::<u64>();
-            let pml4_entry_ptr = pml4_table.add(pml4_index as usize);
+            let pml4_table = pml4_virt.as_mut_ptr::<u64>();
+            let pml4_entry_ptr: *mut u64 = pml4_table.add(pml4_index as usize);
             let pdpt_phys = if (*pml4_entry_ptr & 1) == 0 {
                 let f = self.allocate_page_table_frame()?;
                 let v = self.frame_to_virt(f);
@@ -217,7 +226,7 @@ impl RealMMU {
 
             // PDPT
             let pdpt_virt = self.frame_to_virt(pdpt_phys);
-            let pdpt_entry_ptr = pdpt_virt.as_ptr::<u64>().add(pdpt_index as usize);
+            let pdpt_entry_ptr = pdpt_virt.as_ptr::<u64>().add(pdpt_index as usize) as *mut u64;
             let pd_phys = if (*pdpt_entry_ptr & 1) == 0 {
                 let f = self.allocate_page_table_frame()?;
                 let v = self.frame_to_virt(f);
@@ -230,7 +239,7 @@ impl RealMMU {
 
             // PD
             let pd_virt = self.frame_to_virt(pd_phys);
-            let pd_entry_ptr = pd_virt.as_ptr::<u64>().add(pd_index as usize);
+            let pd_entry_ptr = pd_virt.as_ptr::<u64>().add(pd_index as usize) as *mut u64;
             let pt_phys = if (*pd_entry_ptr & 1) == 0 {
                 let f = self.allocate_page_table_frame()?;
                 let v = self.frame_to_virt(f);
@@ -243,7 +252,7 @@ impl RealMMU {
 
             // PT
             let pt_virt = self.frame_to_virt(pt_phys);
-            let pt_entry_ptr = pt_virt.as_ptr::<u64>().add(pt_index as usize);
+            let pt_entry_ptr = pt_virt.as_ptr::<u64>().add(pt_index as usize) as *mut u64;
 
             // Enforce W^X: if executable, cannot be writable
             if permissions.executable && permissions.writable {
@@ -259,8 +268,7 @@ impl RealMMU {
             *pt_entry_ptr = entry;
         }
 
-        // Cache best-effort shadow
-        let mut cache = self.page_tables.write();
+        let mut cache = self.page_tables.lock();
         cache.insert(
             virt_addr.as_u64(),
             PageTableEntry {
@@ -300,8 +308,9 @@ impl RealMMU {
     }
 
     pub fn invalidate_tlb_page(&self, virt_addr: VirtAddr) {
-        unsafe { asm!("invlpg [{}]", in(reg) virt_addr.as_u64(), options(nostack, preserves_flags)) }
-        self.tlb_invalidation_queue.lock().push(virt_addr);
+        unsafe { 
+            asm!("invlpg [{}]", in(reg) virt_addr.as_u64(), options(nostack, preserves_flags)) 
+        }
     }
 
     fn allocate_page_table_frame(&self) -> Result<PhysAddr, &'static str> {
@@ -310,8 +319,7 @@ impl RealMMU {
 
     #[inline]
     fn frame_to_virt(&self, frame: PhysAddr) -> VirtAddr {
-        // Use the higher-half direct offset used elsewhere in the kernel
-        VirtAddr::new(KERNEL_BASE + frame.as_u64())
+        VirtAddr::new(layout::DIRECTMAP_BASE + frame.as_u64())
     }
 
     /// Update permissions of an existing mapping. Enforces W^X.
@@ -360,7 +368,7 @@ impl RealMMU {
             if (pd_entry & 1) == 0 { return Err("Not mapped"); }
 
             let pt_virt = self.frame_to_virt(PhysAddr::new(pd_entry & 0x000F_FFFF_FFFF_F000));
-            let pt_entry_ptr = pt_virt.as_ptr::<u64>().add(pt_index as usize);
+            let pt_entry_ptr = pt_virt.as_ptr::<u64>().add(pt_index as usize) as *mut u64;
             let old_entry = *pt_entry_ptr;
             if (old_entry & 1) == 0 { return Err("Not mapped"); }
 
@@ -382,45 +390,63 @@ impl RealMMU {
         Ok(())
     }
 
-    // Example helpers to quickly map kernel/user ranges (kept minimal).
-    pub fn map_kernel_space_example(&self, pml4_virt: VirtAddr) -> Result<(), &'static str> {
-        self.map_memory_range(
-            pml4_virt,
-            VirtAddr::new(0xFFFF_8000_0000_0000),
-            PhysAddr::new(0x0010_0000),
-            0x0040_0000,
-            PagePermissions { writable: false, user_accessible: false, executable: true, cache_disabled: false },
-        )?;
-        self.map_memory_range(
-            pml4_virt,
-            VirtAddr::new(0xFFFF_8000_0040_0000),
-            PhysAddr::new(0x0050_0000),
-            0x0040_0000,
-            PagePermissions { writable: true, user_accessible: false, executable: false, cache_disabled: false },
-        )?;
-        Ok(())
+    pub fn get_current_cr3(&self) -> u64 {
+        *self.current_cr3.lock()
     }
 
-    pub fn map_user_space_example(&self, pml4_virt: VirtAddr) -> Result<(), &'static str> {
-        self.map_memory_range(
-            pml4_virt,
-            VirtAddr::new(0x0040_0000),
-            PhysAddr::new(0x0100_0000),
-            0x0010_0000,
-            PagePermissions { writable: false, user_accessible: true, executable: true, cache_disabled: false },
-        )
+    pub fn is_initialized(&self) -> bool {
+        *self.initialized.lock()
+    }
+
+    pub fn map_kernel_range(&self, virt_start: VirtAddr, phys_start: PhysAddr, size: usize, permissions: PagePermissions) -> Result<(), &'static str> {
+        if !self.is_initialized() {
+            return Err("MMU not initialized");
+        }
+        
+        let cr3 = self.get_current_cr3();
+        if cr3 == 0 {
+            return Err("No page table loaded");
+        }
+        
+        let pml4_virt = self.frame_to_virt(PhysAddr::new(cr3));
+        self.map_memory_range(pml4_virt, virt_start, phys_start, size, permissions)
     }
 }
 
-// Global instance
+static MMU_INSTANCE: Once<MMU> = Once::new();
 
-static REAL_MMU: Once<RealMMU> = Once::new();
-
-pub fn init_real_mmu() -> Result<(), &'static str> {
-    let mmu = REAL_MMU.call_once(RealMMU::new);
+pub fn init_mmu() -> Result<(), &'static str> {
+    let mmu = MMU_INSTANCE.call_once(MMU::new);
     mmu.initialize()
 }
 
-pub fn get_real_mmu() -> &'static RealMMU {
-    REAL_MMU.get().expect("Real MMU not initialized")
+pub fn get_mmu() -> Result<&'static MMU, &'static str> {
+    MMU_INSTANCE.get().ok_or("MMU not initialized")
+}
+
+pub fn map_kernel_memory(virt_start: VirtAddr, phys_start: PhysAddr, size: usize, writable: bool, executable: bool) -> Result<(), &'static str> {
+    let mmu = get_mmu()?;
+    let permissions = PagePermissions {
+        writable,
+        user_accessible: false,
+        executable,
+        cache_disabled: false,
+    };
+    
+    let cr3 = mmu.get_current_cr3();
+    if cr3 == 0 {
+        return Err("No page table loaded");
+    }
+    
+    let pml4_virt = mmu.frame_to_virt(PhysAddr::new(cr3));
+    mmu.map_memory_range(pml4_virt, virt_start, phys_start, size, permissions)
+}
+
+pub fn invalidate_page(addr: VirtAddr) -> Result<(), &'static str> {
+    get_mmu()?.invalidate_tlb_page(addr);
+    Ok(())
+}
+
+pub fn current_cr3() -> Result<u64, &'static str> {
+    Ok(get_mmu()?.get_current_cr3())
 }
