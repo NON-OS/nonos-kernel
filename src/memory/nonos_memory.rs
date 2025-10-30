@@ -1,350 +1,331 @@
 #![no_std]
 
+extern crate alloc;
+use core::sync::atomic::{AtomicU64, AtomicUsize, Ordering};
+use alloc::vec::Vec;
 use alloc::collections::BTreeMap;
-use core::sync::atomic::{AtomicU64, Ordering};
-use spin::RwLock;
-use x86_64::{PhysAddr, VirtAddr, structures::paging::PageTableFlags};
+use spin::Mutex;
+use x86_64::{VirtAddr, PhysAddr};
+use crate::memory::nonos_layout as layout;
+use crate::memory::nonos_alloc as mem_alloc;
+use crate::memory::nonos_virt as virt;
 
-use crate::memory::layout::PAGE_SIZE;
-use crate::memory::nonos_alloc as alloc_api;
-use crate::memory::virt::{self, VmFlags};
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum NonosMemoryRegionType {
-    Code = 0,
-    Data = 1,
-    Stack = 2,
-    Heap = 3,
-    Shared = 4,
-    Device = 5,
-}
+static MEMORY_MANAGER: Mutex<MemoryManager> = Mutex::new(MemoryManager::new());
+static MEMORY_STATS: MemoryStats = MemoryStats::new();
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum NonosSecurityLevel {
-    Public = 0,
-    Internal = 1,
-    Confidential = 2,
-    Secret = 3,
-    TopSecret = 4,
-    QuantumSecure = 5,
+pub enum RegionType {
+    Code,
+    Data,
+    Stack,
+    Heap,
+    Device,
+    Capsule,
 }
 
-#[derive(Debug)]
-pub struct NonosMemoryRegion {
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+pub enum SecurityLevel {
+    Public,
+    Internal,
+    Confidential,
+    Secret,
+    TopSecret,
+}
+
+#[derive(Debug, Clone, Copy)]
+pub struct MemoryRegion {
     pub region_id: u64,
     pub virtual_addr: VirtAddr,
-    pub physical_addr: PhysAddr, // first page PA (informational)
+    pub physical_addr: PhysAddr,
     pub size: usize,
-    pub region_type: NonosMemoryRegionType,
-    pub security_level: NonosSecurityLevel,
-    pub permissions: PageTableFlags,
+    pub region_type: RegionType,
+    pub security_level: SecurityLevel,
     pub owner_process: u64,
     pub encrypted: bool,
-    pub isolation_domain: u64,
-    pub created_time: u64,
+    pub creation_time: u64,
     pub access_count: u64,
-    pub pages: usize,
 }
 
-#[derive(Debug)]
-pub struct NonosMemoryManager {
-    regions: RwLock<BTreeMap<u64, NonosMemoryRegion>>,
-    by_va: RwLock<BTreeMap<u64, u64>>, // base VA -> region_id
-    next_region_id: AtomicU64,
+struct MemoryManager {
+    regions: BTreeMap<u64, MemoryRegion>,
+    va_to_region: BTreeMap<u64, u64>,
+    next_region_id: u64,
+    initialized: bool,
+}
+
+struct MemoryStats {
     total_allocated: AtomicU64,
-    security_enabled: bool,
-    isolation_enabled: bool,
+    region_count: AtomicUsize,
+    allocations: AtomicU64,
+    deallocations: AtomicU64,
+    peak_usage: AtomicU64,
 }
 
-impl NonosMemoryManager {
-    pub const fn new() -> Self {
+impl MemoryStats {
+    const fn new() -> Self {
         Self {
-            regions: RwLock::new(BTreeMap::new()),
-            by_va: RwLock::new(BTreeMap::new()),
-            next_region_id: AtomicU64::new(1),
             total_allocated: AtomicU64::new(0),
-            security_enabled: true,
-            isolation_enabled: true,
+            region_count: AtomicUsize::new(0),
+            allocations: AtomicU64::new(0),
+            deallocations: AtomicU64::new(0),
+            peak_usage: AtomicU64::new(0),
         }
     }
 
-    pub fn allocate_secure_memory(
-        &self,
-        size: usize,
-        region_type: NonosMemoryRegionType,
-        security_level: NonosSecurityLevel,
-        owner_process: u64,
-    ) -> Result<VirtAddr, &'static str> {
+    fn record_allocation(&self, size: u64) {
+        let new_total = self.total_allocated.fetch_add(size, Ordering::Relaxed) + size;
+        self.region_count.fetch_add(1, Ordering::Relaxed);
+        self.allocations.fetch_add(1, Ordering::Relaxed);
+
+        loop {
+            let current_peak = self.peak_usage.load(Ordering::Relaxed);
+            if new_total <= current_peak {
+                break;
+            }
+            if self.peak_usage.compare_exchange_weak(
+                current_peak,
+                new_total,
+                Ordering::Relaxed,
+                Ordering::Relaxed
+            ).is_ok() {
+                break;
+            }
+        }
+    }
+
+    fn record_deallocation(&self, size: u64) {
+        self.total_allocated.fetch_sub(size, Ordering::Relaxed);
+        self.region_count.fetch_sub(1, Ordering::Relaxed);
+        self.deallocations.fetch_add(1, Ordering::Relaxed);
+    }
+}
+
+impl MemoryManager {
+    const fn new() -> Self {
+        Self {
+            regions: BTreeMap::new(),
+            va_to_region: BTreeMap::new(),
+            next_region_id: 1,
+            initialized: false,
+        }
+    }
+
+    fn init(&mut self) -> Result<(), &'static str> {
+        if self.initialized {
+            return Ok(());
+        }
+
+        self.regions.clear();
+        self.va_to_region.clear();
+        self.next_region_id = 1;
+        self.initialized = true;
+
+        Ok(())
+    }
+
+    fn allocate_region(&mut self, size: usize, region_type: RegionType, security_level: SecurityLevel, owner_process: u64) -> Result<VirtAddr, &'static str> {
+        if !self.initialized {
+            return Err("Memory manager not initialized");
+        }
+
         if size == 0 {
-            return Err("Invalid size");
+            return Err("Invalid allocation size");
         }
 
-        let (vmf, pte) = perms_for_region(region_type)?;
-        let pages = ((size + PAGE_SIZE - 1) / PAGE_SIZE).max(1);
+        let va = self.allocate_virtual_memory(size, region_type)?;
+        let pa = self.get_physical_address(va)?;
 
-        // Map anonymous kernel memory with the right permissions
-        let base = unsafe { alloc_api::kalloc_pages(pages, vmf) };
-        if base.as_u64() == 0 {
-            return Err("Out of memory");
-        }
+        let region_id = self.next_region_id;
+        self.next_region_id += 1;
 
-        // First page PA (informational)
-        let first_pa = virt::translate(base)
-            .map(|(pa, _, _)| pa)
-            .map_err(|_| "translate failed")?;
-
-        let region_id = self.next_region_id.fetch_add(1, Ordering::SeqCst);
-        let region = NonosMemoryRegion {
+        let region = MemoryRegion {
             region_id,
-            virtual_addr: base,
-            physical_addr: first_pa,
+            virtual_addr: va,
+            physical_addr: pa,
             size,
             region_type,
             security_level,
-            permissions: pte,
             owner_process,
-            encrypted: matches!(
-                security_level,
-                NonosSecurityLevel::Secret | NonosSecurityLevel::TopSecret | NonosSecurityLevel::QuantumSecure
-            ),
-            isolation_domain: self.calculate_isolation_domain(owner_process, security_level),
-            created_time: rdtsc(),
+            encrypted: matches!(security_level, SecurityLevel::Secret | SecurityLevel::TopSecret),
+            creation_time: self.get_timestamp(),
             access_count: 0,
-            pages,
         };
 
-        {
-            self.regions.write().insert(region_id, region);
-            self.by_va.write().insert(base.as_u64(), region_id);
-        }
-        self.total_allocated.fetch_add(size as u64, Ordering::SeqCst);
+        self.regions.insert(region_id, region);
+        self.va_to_region.insert(va.as_u64(), region_id);
 
-        Ok(base)
+        MEMORY_STATS.record_allocation(size as u64);
+
+        Ok(va)
     }
 
-    pub fn deallocate_secure_memory(&self, virtual_addr: VirtAddr) -> Result<(), &'static str> {
-        let rid = {
-            let map = self.by_va.read();
-            *map.get(&virtual_addr.as_u64()).ok_or("Address not allocated")?
-        };
+    fn deallocate_region(&mut self, va: VirtAddr) -> Result<(), &'static str> {
+        let region_id = self.va_to_region.remove(&va.as_u64())
+            .ok_or("Address not found")?;
 
-        let mut reg = self.regions.write();
-        let region = reg.remove(&rid).ok_or("Region not found")?;
+        let region = self.regions.remove(&region_id)
+            .ok_or("Region not found")?;
 
-        // Scrub before unmap
+        self.secure_zero_memory(va, region.size)?;
+        self.free_virtual_memory(va, region.size)?;
+
+        MEMORY_STATS.record_deallocation(region.size as u64);
+
+        Ok(())
+    }
+
+    fn get_region_info(&self, va: VirtAddr) -> Option<&MemoryRegion> {
+        let region_id = self.va_to_region.get(&va.as_u64())?;
+        self.regions.get(region_id)
+    }
+
+    fn validate_access(&self, process_id: u64, va: VirtAddr, write: bool) -> bool {
+        if let Some(region) = self.get_region_info(va) {
+            if region.owner_process != process_id {
+                return false;
+            }
+
+            match region.region_type {
+                RegionType::Code => !write,
+                RegionType::Data | RegionType::Stack | RegionType::Heap => true,
+                RegionType::Device => true,
+                RegionType::Capsule => region.security_level >= SecurityLevel::Confidential,
+            }
+        } else {
+            false
+        }
+    }
+
+    fn allocate_virtual_memory(&self, size: usize, region_type: RegionType) -> Result<VirtAddr, &'static str> {
+        let page_count = (size + layout::PAGE_SIZE - 1) / layout::PAGE_SIZE;
+
+        let writable = matches!(region_type, RegionType::Data | RegionType::Stack | RegionType::Heap | RegionType::Device);
+        let executable = matches!(region_type, RegionType::Code);
+
+        mem_alloc::allocate_pages(page_count)
+    }
+
+    fn free_virtual_memory(&self, va: VirtAddr, size: usize) -> Result<(), &'static str> {
+        let page_count = (size + layout::PAGE_SIZE - 1) / layout::PAGE_SIZE;
+        mem_alloc::free_pages(va, page_count)
+    }
+
+    fn get_physical_address(&self, va: VirtAddr) -> Result<PhysAddr, &'static str> {
+        virt::translate_addr(va).map_err(|_| "Address translation failed")
+    }
+
+    fn secure_zero_memory(&self, va: VirtAddr, size: usize) -> Result<(), &'static str> {
         unsafe {
-            for i in 0..region.pages {
-                let va = VirtAddr::new(region.virtual_addr.as_u64() + (i * PAGE_SIZE) as u64);
-                if virt::translate(va).is_ok() {
-                    core::ptr::write_bytes(va.as_mut_ptr::<u8>(), 0, PAGE_SIZE);
-                }
-            }
+            core::ptr::write_bytes(va.as_mut_ptr::<u8>(), 0, size);
         }
-
-        // Unmap and free frames
-        unsafe { alloc_api::kfree_pages(region.virtual_addr, region.pages) };
-
-        // Drop index and accounting
-        self.by_va.write().remove(&region.virtual_addr.as_u64());
-        self.total_allocated
-            .fetch_sub(region.size as u64, Ordering::SeqCst);
-
         Ok(())
     }
 
-    pub fn get_region_info(
-        &self,
-        virtual_addr: VirtAddr,
-    ) -> Result<NonosMemoryRegionInfo, &'static str> {
-        let rid = {
-            let map = self.by_va.read();
-            *map.get(&virtual_addr.as_u64()).ok_or("Address not allocated")?
-        };
-        let regs = self.regions.read();
-        let r = regs.get(&rid).ok_or("Region not found")?;
-
-        Ok(NonosMemoryRegionInfo {
-            region_id: r.region_id,
-            virtual_addr: r.virtual_addr,
-            size: r.size,
-            region_type: r.region_type,
-            security_level: r.security_level,
-            owner_process: r.owner_process,
-            encrypted: r.encrypted,
-            isolation_domain: r.isolation_domain,
-            created_time: r.created_time,
-            access_count: r.access_count,
-        })
+    fn get_timestamp(&self) -> u64 {
+        unsafe { core::arch::x86_64::_rdtsc() }
     }
 
-    pub fn check_memory_access(
-        &self,
-        process_id: u64,
-        virtual_addr: VirtAddr,
-        requested_access: PageTableFlags,
-    ) -> bool {
-        if !self.security_enabled {
-            return true;
+    fn get_stats(&self) -> ManagerStats {
+        ManagerStats {
+            total_regions: self.regions.len(),
+            allocated_memory: MEMORY_STATS.total_allocated.load(Ordering::Relaxed),
+            peak_memory: MEMORY_STATS.peak_usage.load(Ordering::Relaxed),
+            allocations: MEMORY_STATS.allocations.load(Ordering::Relaxed),
+            deallocations: MEMORY_STATS.deallocations.load(Ordering::Relaxed),
         }
-
-        let rid = {
-            let map = self.by_va.read();
-            if let Some(id) = map.get(&virtual_addr.as_u64()) {
-                *id
-            } else {
-                return false;
-            }
-        };
-        let regs = self.regions.read();
-        let r = if let Some(x) = regs.get(&rid) { x } else { return false };
-
-        if r.owner_process != process_id {
-            return false;
-        }
-        if !r.permissions.contains(requested_access) {
-            return false;
-        }
-        if self.isolation_enabled {
-            let expected = self.calculate_isolation_domain(process_id, r.security_level);
-            if r.isolation_domain != expected {
-                return false;
-            }
-        }
-        true
-    }
-
-    #[inline]
-    fn calculate_isolation_domain(
-        &self,
-        process_id: u64,
-        security_level: NonosSecurityLevel,
-    ) -> u64 {
-        (process_id & 0xF) + ((security_level as u64) << 4)
-    }
-
-    pub fn get_memory_statistics(&self) -> NonosMemoryStatistics {
-        NonosMemoryStatistics {
-            total_allocated_bytes: self.total_allocated.load(Ordering::Relaxed) as usize,
-            total_regions: self.regions.read().len(),
-            security_enabled: self.security_enabled,
-            isolation_enabled: self.isolation_enabled,
-        }
-    }
-
-    pub fn zero_memory(&self, virtual_addr: VirtAddr, size: usize) -> Result<(), &'static str> {
-        if size == 0 {
-            return Ok(());
-        }
-        unsafe { core::ptr::write_bytes(virtual_addr.as_mut_ptr::<u8>(), 0, size) }
-        Ok(())
-    }
-
-    // Back-compat helpers
-    pub fn get_total_memory(&self) -> usize {
-        64 * 1024 * 1024 * 1024
-    }
-    pub fn get_available_memory(&self) -> usize {
-        self.get_total_memory()
-            .saturating_sub(self.total_allocated.load(Ordering::Relaxed) as usize)
-    }
-    pub fn get_used_memory(&self) -> usize {
-        self.total_allocated.load(Ordering::Relaxed) as usize
-    }
-    pub fn allocate(&self, size: usize) -> Result<u64, &'static str> {
-        self.allocate_secure_memory(
-            size,
-            NonosMemoryRegionType::Heap,
-            NonosSecurityLevel::Internal,
-            0,
-        )
-        .map(|va| va.as_u64())
     }
 }
 
 #[derive(Debug)]
-pub struct NonosMemoryRegionInfo {
-    pub region_id: u64,
-    pub virtual_addr: VirtAddr,
-    pub size: usize,
-    pub region_type: NonosMemoryRegionType,
-    pub security_level: NonosSecurityLevel,
-    pub owner_process: u64,
-    pub encrypted: bool,
-    pub isolation_domain: u64,
-    pub created_time: u64,
-    pub access_count: u64,
-}
-
-#[derive(Debug)]
-pub struct NonosMemoryStatistics {
-    pub total_allocated_bytes: usize,
+pub struct ManagerStats {
     pub total_regions: usize,
-    pub security_enabled: bool,
-    pub isolation_enabled: bool,
+    pub allocated_memory: u64,
+    pub peak_memory: u64,
+    pub allocations: u64,
+    pub deallocations: u64,
 }
 
-// Global singleton
-pub static NONOS_MEMORY_MANAGER: NonosMemoryManager = NonosMemoryManager::new();
-
-// Convenience wrappers
-pub fn allocate_nonos_secure_memory(
-    size: usize,
-    region_type: NonosMemoryRegionType,
-    security_level: NonosSecurityLevel,
-    owner_process: u64,
-) -> Result<VirtAddr, &'static str> {
-    NONOS_MEMORY_MANAGER.allocate_secure_memory(size, region_type, security_level, owner_process)
+pub fn init() -> Result<(), &'static str> {
+    let mut manager = MEMORY_MANAGER.lock();
+    manager.init()
 }
 
-pub fn deallocate_nonos_secure_memory(virtual_addr: VirtAddr) -> Result<(), &'static str> {
-    NONOS_MEMORY_MANAGER.deallocate_secure_memory(virtual_addr)
+pub fn allocate_memory(size: usize, region_type: RegionType, security_level: SecurityLevel, owner_process: u64) -> Result<VirtAddr, &'static str> {
+    let mut manager = MEMORY_MANAGER.lock();
+    manager.allocate_region(size, region_type, security_level, owner_process)
 }
 
-pub fn check_nonos_memory_access(
-    process_id: u64,
-    virtual_addr: VirtAddr,
-    requested_access: PageTableFlags,
-) -> bool {
-    NONOS_MEMORY_MANAGER.check_memory_access(process_id, virtual_addr, requested_access)
+pub fn deallocate_memory(va: VirtAddr) -> Result<(), &'static str> {
+    let mut manager = MEMORY_MANAGER.lock();
+    manager.deallocate_region(va)
 }
 
-pub fn get_nonos_memory_stats() -> NonosMemoryStatistics {
-    NONOS_MEMORY_MANAGER.get_memory_statistics()
+pub fn get_region_info(va: VirtAddr) -> Option<MemoryRegion> {
+    let manager = MEMORY_MANAGER.lock();
+    manager.get_region_info(va).copied()
 }
 
-fn perms_for_region(kind: NonosMemoryRegionType) -> Result<(VmFlags, PageTableFlags), &'static str> {
-    Ok(match kind {
-        NonosMemoryRegionType::Code => (
-            VmFlags::GLOBAL, // RX (NX not set)
-            PageTableFlags::PRESENT | PageTableFlags::USER_ACCESSIBLE,
-        ),
-        NonosMemoryRegionType::Data
-        | NonosMemoryRegionType::Stack
-        | NonosMemoryRegionType::Heap
-        | NonosMemoryRegionType::Shared => (
-            VmFlags::RW | VmFlags::NX | VmFlags::GLOBAL, // RW+NX
-            PageTableFlags::PRESENT
-                | PageTableFlags::WRITABLE
-                | PageTableFlags::USER_ACCESSIBLE
-                | PageTableFlags::NO_EXECUTE,
-        ),
-        NonosMemoryRegionType::Device => (
-            VmFlags::RW | VmFlags::NX | VmFlags::GLOBAL | VmFlags::PCD | VmFlags::PWT, // UC-
-            PageTableFlags::PRESENT
-                | PageTableFlags::WRITABLE
-                | PageTableFlags::NO_CACHE
-                | PageTableFlags::WRITE_THROUGH
-                | PageTableFlags::NO_EXECUTE,
-        ),
-    })
+pub fn validate_memory_access(process_id: u64, va: VirtAddr, write: bool) -> bool {
+    let manager = MEMORY_MANAGER.lock();
+    manager.validate_access(process_id, va, write)
 }
 
-#[inline]
-fn rdtsc() -> u64 {
+pub fn allocate_code_region(size: usize, owner_process: u64) -> Result<VirtAddr, &'static str> {
+    allocate_memory(size, RegionType::Code, SecurityLevel::Public, owner_process)
+}
+
+pub fn allocate_data_region(size: usize, owner_process: u64) -> Result<VirtAddr, &'static str> {
+    allocate_memory(size, RegionType::Data, SecurityLevel::Internal, owner_process)
+}
+
+pub fn allocate_heap_region(size: usize, owner_process: u64) -> Result<VirtAddr, &'static str> {
+    allocate_memory(size, RegionType::Heap, SecurityLevel::Internal, owner_process)
+}
+
+pub fn allocate_stack_region(size: usize, owner_process: u64) -> Result<VirtAddr, &'static str> {
+    allocate_memory(size, RegionType::Stack, SecurityLevel::Internal, owner_process)
+}
+
+pub fn allocate_secure_capsule(size: usize, owner_process: u64) -> Result<VirtAddr, &'static str> {
+    allocate_memory(size, RegionType::Capsule, SecurityLevel::Secret, owner_process)
+}
+
+pub fn allocate_device_region(size: usize, owner_process: u64) -> Result<VirtAddr, &'static str> {
+    allocate_memory(size, RegionType::Device, SecurityLevel::Public, owner_process)
+}
+
+pub fn zero_memory(va: VirtAddr, size: usize) -> Result<(), &'static str> {
     unsafe {
-        let mut hi: u32;
-        let mut lo: u32;
-        core::arch::asm!("rdtsc", out("edx") hi, out("eax") lo, options(nomem, nostack, preserves_flags));
-        ((hi as u64) << 32) | (lo as u64)
+        core::ptr::write_bytes(va.as_mut_ptr::<u8>(), 0, size);
     }
+    Ok(())
+}
+
+pub fn copy_memory(src: VirtAddr, dst: VirtAddr, size: usize) -> Result<(), &'static str> {
+    unsafe {
+        core::ptr::copy_nonoverlapping(src.as_ptr::<u8>(), dst.as_mut_ptr::<u8>(), size);
+    }
+    Ok(())
+}
+
+pub fn get_memory_stats() -> ManagerStats {
+    let manager = MEMORY_MANAGER.lock();
+    manager.get_stats()
+}
+
+pub fn get_total_memory() -> u64 {
+    MEMORY_STATS.total_allocated.load(Ordering::Relaxed)
+}
+
+pub fn get_peak_memory() -> u64 {
+    MEMORY_STATS.peak_usage.load(Ordering::Relaxed)
+}
+
+pub fn get_allocation_count() -> u64 {
+    MEMORY_STATS.allocations.load(Ordering::Relaxed)
+}
+
+pub fn is_valid_address(va: VirtAddr) -> bool {
+    let manager = MEMORY_MANAGER.lock();
+    manager.get_region_info(va).is_some()
 }
