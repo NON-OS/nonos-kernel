@@ -4,7 +4,7 @@ use crate::modules::nonos_module_loader::{start_module, stop_module, get_module_
 use crate::modules::nonos_manifest::ModuleManifest;
 use crate::modules::nonos_sandbox::{setup_sandbox, destroy_sandbox, SandboxConfig};
 use crate::process::capabilities::Capability;
-use crate::memory::secure_erase;
+use crate::memory::memory::zero_memory;
 use crate::security::audit::{audit_event, AuditEvent};
 use core::time::Duration;
 
@@ -88,7 +88,7 @@ pub fn start_module_runtime(module_id: u64) -> Result<(), &'static str> {
 fn secure_erase_module_runtime(memory_base: Option<u64>, memory_size: usize) {
     if let Some(base) = memory_base {
         unsafe {
-            secure_erase(core::slice::from_raw_parts_mut(base as *mut u8, memory_size));
+            zero_memory(x86_64::VirtAddr::new(base), memory_size).ok();
         }
     }
 }

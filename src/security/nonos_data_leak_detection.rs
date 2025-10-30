@@ -57,7 +57,7 @@ pub fn scan_memory() -> NonosDataLeakScanResult {
     let regions = crate::memory::get_all_process_regions();
     if !regions.is_empty() {
         for region in regions {
-            leaks.extend(scan_region_for_leaks(region.0 as u64, region.1 as u64));
+            leaks.extend(scan_region_for_leaks(region.0.as_u64(), region.1 as u64));
         }
     }
 

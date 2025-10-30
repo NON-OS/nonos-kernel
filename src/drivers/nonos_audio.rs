@@ -7,7 +7,7 @@ use spin::Mutex;
 use x86_64::{PhysAddr, VirtAddr};
 
 use crate::drivers::pci::{self, PciBar, PciDevice, pci_read_config32};
-use crate::memory::dma::alloc_dma_coherent;
+use crate::memory::dma::{alloc_dma_coherent, DmaConstraints};
 use crate::memory::mmio::{mmio_r8, mmio_r16, mmio_r32, mmio_w8, mmio_w16, mmio_w32};
 
 // HDA BAR index (we read from PCI config)
@@ -107,7 +107,14 @@ struct DmaRegion {
 }
 impl DmaRegion {
     fn new(size: usize) -> Result<Self, &'static str> {
-        let (va, pa) = alloc_dma_coherent(size)?;
+        let constraints = DmaConstraints {
+            alignment: 128,
+            max_segment_size: size,
+            dma32_only: false,
+            coherent: true,
+        };
+        let dma_region = alloc_dma_coherent(size, constraints)?;
+        let (va, pa) = (dma_region.virt_addr, dma_region.phys_addr);
         unsafe { ptr::write_bytes(va.as_mut_ptr::<u8>(), 0, size); }
         Ok(Self { va, pa, size })
     }
@@ -159,26 +166,26 @@ impl HdAudioController {
         // Reset controller
         unsafe {
             // Clear CRST
-            let mut gctl = mmio_r32(base + GCTL);
+            let mut gctl = mmio_r32(VirtAddr::new((base + GCTL) as u64));
             gctl &= !GCTL_CRST;
-            mmio_w32(base + GCTL, gctl);
+            mmio_w32(VirtAddr::new((base + GCTL) as u64), gctl);
         }
-        if !Self::spin(|| unsafe { mmio_r32(base + GCTL) } & GCTL_CRST == 0, 1_000_000) {
+        if !Self::spin(|| unsafe { mmio_r32(VirtAddr::new((base + GCTL) as u64)) } & GCTL_CRST == 0, 1_000_000) {
             return Err("HDA: failed to clear CRST");
         }
 
         unsafe {
             // Set CRST
-            let mut gctl = mmio_r32(base + GCTL);
+            let mut gctl = mmio_r32(VirtAddr::new((base + GCTL) as u64));
             gctl |= GCTL_CRST;
-            mmio_w32(base + GCTL, gctl);
+            mmio_w32(VirtAddr::new((base + GCTL) as u64), gctl);
         }
-        if !Self::spin(|| unsafe { mmio_r32(base + GCTL) } & GCTL_CRST != 0, 1_000_000) {
+        if !Self::spin(|| unsafe { mmio_r32(VirtAddr::new((base + GCTL) as u64)) } & GCTL_CRST != 0, 1_000_000) {
             return Err("HDA: failed to set CRST");
         }
 
         // Read capabilities
-        let gcap = unsafe { mmio_r16(base + GCAP) };
+        let gcap = unsafe { mmio_r16(VirtAddr::new((base + GCAP) as u64)) };
         let iss = ((gcap >> 12) & 0xF) as u8;
         let oss = ((gcap >> 8) & 0xF) as u8;
         let bss = ((gcap >> 3) & 0x1F) as u8;
@@ -191,39 +198,39 @@ impl HdAudioController {
 
         unsafe {
             // Program CORB base
-            mmio_w32(base + CORBLBASE, (corb.phys() & 0xFFFF_FFFF) as u32);
-            mmio_w32(base + CORBUBASE, (corb.phys() >> 32) as u32);
+            mmio_w32(VirtAddr::new((base + CORBLBASE) as u64), (corb.phys() & 0xFFFF_FFFF) as u32);
+            mmio_w32(VirtAddr::new((base + CORBUBASE) as u64), (corb.phys() >> 32) as u32);
             // Set CORB size: 256 entries -> write 0x02
-            mmio_w8(base + CORBSIZE, 0x02);
+            mmio_w8(VirtAddr::new((base + CORBSIZE) as u64), 0x02);
             // Reset CORBWP and CORBRP
-            mmio_w16(base + CORBWP, 0);
-            mmio_w16(base + CORBRP, (1 << 15)); // set RP reset
-            mmio_w16(base + CORBRP, 0);
+            mmio_w16(VirtAddr::new((base + CORBWP) as u64), 0);
+            mmio_w16(VirtAddr::new((base + CORBRP) as u64), (1 << 15)); // set RP reset
+            mmio_w16(VirtAddr::new((base + CORBRP) as u64), 0);
             // Enable CORB RUN
-            mmio_w8(base + CORBCTL, CORBCTL_CORBRUN);
+            mmio_w8(VirtAddr::new((base + CORBCTL) as u64), CORBCTL_CORBRUN);
             // Clear CORB status
-            mmio_w8(base + CORBSTS, CORBSTS_CORBINT);
+            mmio_w8(VirtAddr::new((base + CORBSTS) as u64), CORBSTS_CORBINT);
         }
 
         unsafe {
             // Program RIRB base
-            mmio_w32(base + RIRBLBASE, (rirb.phys() & 0xFFFF_FFFF) as u32);
-            mmio_w32(base + RIRBUBASE, (rirb.phys() >> 32) as u32);
+            mmio_w32(VirtAddr::new((base + RIRBLBASE) as u64), (rirb.phys() & 0xFFFF_FFFF) as u32);
+            mmio_w32(VirtAddr::new((base + RIRBUBASE) as u64), (rirb.phys() >> 32) as u32);
             // Set RIRB size: 256 -> 0x02
-            mmio_w8(base + RIRBSIZE, 0x02);
+            mmio_w8(VirtAddr::new((base + RIRBSIZE) as u64), 0x02);
             // Reset RIRBWP by setting bit 15
-            mmio_w16(base + RIRBWP, 1 << 15);
-            mmio_w16(base + RIRBWP, 0);
+            mmio_w16(VirtAddr::new((base + RIRBWP) as u64), 1 << 15);
+            mmio_w16(VirtAddr::new((base + RIRBWP) as u64), 0);
             // Set RINTCNT to 1
-            mmio_w16(base + RINTCNT, 1);
+            mmio_w16(VirtAddr::new((base + RINTCNT) as u64), 1);
             // Enable RIRB DMA + interrupt
-            mmio_w8(base + RIRBCTL, RIRBCTL_RIRBDMAEN | RIRBCTL_RINTCTL);
+            mmio_w8(VirtAddr::new((base + RIRBCTL) as u64), RIRBCTL_RIRBDMAEN | RIRBCTL_RINTCTL);
             // Clear RIRB status
-            mmio_w8(base + RIRBSTS, RIRBSTS_RIRBOIS);
+            mmio_w8(VirtAddr::new((base + RIRBSTS) as u64), RIRBSTS_RIRBOIS);
         }
 
         // Read STATESTS to find codecs
-        let codec_mask = unsafe { mmio_r16(base + STATESTS) };
+        let codec_mask = unsafe { mmio_r16(VirtAddr::new((base + STATESTS) as u64)) };
         let primary_codec = (0..=15).find(|c| (codec_mask & (1 << c)) != 0).map(|c| c as u8);
 
         // Prepare output stream and buffers: use stream 1 (first output)
@@ -281,23 +288,23 @@ impl HdAudioController {
 
         unsafe {
             // Write command at CORBWP+1
-            let mut wp = mmio_r16(self.base + CORBWP) as usize;
+            let mut wp = mmio_r16(VirtAddr::new((self.base + CORBWP) as u64)) as usize;
             wp = (wp + 1) % self.corb_entries;
             let ptr_corb = self.corb.as_mut_ptr::<u32>().add(wp);
             ptr::write_volatile(ptr_corb, cmd);
-            mmio_w16(self.base + CORBWP, wp as u16);
+            mmio_w16(VirtAddr::new((self.base + CORBWP) as u64), wp as u16);
         }
 
         // Wait for RIRB response (RIRBWP increments)
         let mut spins = 1_000_000u32;
         while spins > 0 {
             unsafe {
-                let sts = mmio_r8(self.base + RIRBSTS);
+                let sts = mmio_r8(VirtAddr::new((self.base + RIRBSTS) as u64));
                 if (sts & RIRBSTS_RIRBOIS) != 0 {
-                    mmio_w8(self.base + RIRBSTS, RIRBSTS_RIRBOIS);
+                    mmio_w8(VirtAddr::new((self.base + RIRBSTS) as u64), RIRBSTS_RIRBOIS);
                 }
                 // Any new response?
-                let wp = mmio_r16(self.base + RIRBWP) as usize;
+                let wp = mmio_r16(VirtAddr::new((self.base + RIRBWP) as u64)) as usize;
                 // Last response is at wp
                 if wp != 0 {
                     let rp = wp % self.rirb_entries;
@@ -305,7 +312,7 @@ impl HdAudioController {
                     let resp = ptr::read_volatile(base.add(rp));
                     let resp_lo = (resp & 0xFFFF_FFFF) as u32;
                     // Clear RIRBWP by writing it back
-                    mmio_w16(self.base + RIRBWP, wp as u16);
+                    mmio_w16(VirtAddr::new((self.base + RIRBWP) as u64), wp as u16);
                     return Ok(resp_lo);
                 }
             }
@@ -320,15 +327,15 @@ impl HdAudioController {
         let cmd = ((cad as u32) << 28) | ((nid as u32) << 20) | ((verb as u32) << 8) | (payload as u32);
         unsafe {
             // Wait not busy
-            if !Self::spin(|| (mmio_r8(self.base + IRS) & IRS_BUSY) == 0, 100_000) {
+            if !Self::spin(|| (mmio_r8(VirtAddr::new((self.base + IRS) as u64)) & IRS_BUSY) == 0, 100_000) {
                 return Err("HDA: immediate command busy timeout");
             }
-            mmio_w32(self.base + IC, cmd);
+            mmio_w32(VirtAddr::new((self.base + IC) as u64), cmd);
             // Wait valid
-            if !Self::spin(|| (mmio_r8(self.base + IRS) & IRS_VALID) != 0, 1_000_000) {
+            if !Self::spin(|| (mmio_r8(VirtAddr::new((self.base + IRS) as u64)) & IRS_VALID) != 0, 1_000_000) {
                 return Err("HDA: immediate response timeout");
             }
-            let resp = mmio_r32(self.base + IR);
+            let resp = mmio_r32(VirtAddr::new((self.base + IR) as u64));
             Ok(resp)
         }
     }
@@ -379,46 +386,46 @@ impl HdAudioController {
         // Reset stream
         unsafe {
             // Set SRST
-            let mut ctl = mmio_r32(sd + SD_CTL);
+            let mut ctl = mmio_r32(VirtAddr::new((sd + SD_CTL) as u64));
             ctl |= SD_CTL_SRST;
-            mmio_w32(sd + SD_CTL, ctl);
+            mmio_w32(VirtAddr::new((sd + SD_CTL) as u64), ctl);
         }
-        if !Self::spin(|| unsafe { mmio_r32(sd + SD_CTL) } & SD_CTL_SRST != 0, 100_000) {
+        if !Self::spin(|| unsafe { mmio_r32(VirtAddr::new((sd + SD_CTL) as u64)) } & SD_CTL_SRST != 0, 100_000) {
             return Err("HDA: stream SRST set timeout");
         }
         unsafe {
             // Clear SRST
-            let mut ctl = mmio_r32(sd + SD_CTL);
+            let mut ctl = mmio_r32(VirtAddr::new((sd + SD_CTL) as u64));
             ctl &= !SD_CTL_SRST;
-            mmio_w32(sd + SD_CTL, ctl);
+            mmio_w32(VirtAddr::new((sd + SD_CTL) as u64), ctl);
         }
-        if !Self::spin(|| unsafe { mmio_r32(sd + SD_CTL) } & SD_CTL_SRST == 0, 100_000) {
+        if !Self::spin(|| unsafe { mmio_r32(VirtAddr::new((sd + SD_CTL) as u64)) } & SD_CTL_SRST == 0, 100_000) {
             return Err("HDA: stream SRST clear timeout");
         }
 
         // Set BDL pointer
         unsafe {
-            mmio_w32(sd + SD_BDPL, (self.bdl.phys() & 0xFFFF_FFFF) as u32);
-            mmio_w32(sd + SD_BDPU, (self.bdl.phys() >> 32) as u32);
+            mmio_w32(VirtAddr::new((sd + SD_BDPL) as u64), (self.bdl.phys() & 0xFFFF_FFFF) as u32);
+            mmio_w32(VirtAddr::new((sd + SD_BDPU) as u64), (self.bdl.phys() >> 32) as u32);
         }
 
         // Program CBL (cumulative byte length), LVI (last valid index)
         unsafe {
-            mmio_w32(sd + SD_CBL, total_len as u32);
-            mmio_w32(sd + SD_LVI, 0); // only entry 0 valid
+            mmio_w32(VirtAddr::new((sd + SD_CBL) as u64), total_len as u32);
+            mmio_w32(VirtAddr::new((sd + SD_LVI) as u64), 0); // only entry 0 valid
         }
 
         // Format: 48kHz, 16-bit, 2 channels -> HDA fmt: [15:14 mult][13:11 base][10:8 rate][7:4 bits][3:0 chans-1]
         let fmt = Self::hda_format(self.sample_rate, self.bits_per_sample, self.channels)?;
         unsafe {
-            mmio_w16(sd + SD_FMT, fmt);
+            mmio_w16(VirtAddr::new((sd + SD_FMT) as u64), fmt);
         }
 
         // Enable interrupts (optional)
         unsafe {
-            let mut ctl = mmio_r32(sd + SD_CTL);
+            let mut ctl = mmio_r32(VirtAddr::new((sd + SD_CTL) as u64));
             ctl |= SD_CTL_IOCE | SD_CTL_FEIE | SD_CTL_DEIE;
-            mmio_w32(sd + SD_CTL, ctl);
+            mmio_w32(VirtAddr::new((sd + SD_CTL) as u64), ctl);
         }
 
         Ok(())
@@ -452,15 +459,15 @@ impl HdAudioController {
         let sd = self.stream_regs(self.out_stream);
         unsafe {
             // LPIB reset
-            mmio_w32(sd + SD_LPIB, 0);
+            mmio_w32(VirtAddr::new((sd + SD_LPIB) as u64), 0);
             // RUN
-            let mut ctl = mmio_r32(sd + SD_CTL);
+            let mut ctl = mmio_r32(VirtAddr::new((sd + SD_CTL) as u64));
             ctl |= SD_CTL_RUN;
-            mmio_w32(sd + SD_CTL, ctl);
+            mmio_w32(VirtAddr::new((sd + SD_CTL) as u64), ctl);
         }
 
         // Poll until LPIB reaches CBL
-        if !Self::spin(|| unsafe { mmio_r32(sd + SD_LPIB) } >= unsafe { mmio_r32(sd + SD_CBL) }, 10_000_000) {
+        if !Self::spin(|| unsafe { mmio_r32(VirtAddr::new((sd + SD_LPIB) as u64)) } >= unsafe { mmio_r32(VirtAddr::new((sd + SD_CBL) as u64)) }, 10_000_000) {
             self.errors.fetch_add(1, Ordering::Relaxed);
             return Err("HDA: playback did not complete in time");
         }
@@ -469,9 +476,9 @@ impl HdAudioController {
 
         // Stop
         unsafe {
-            let mut ctl = mmio_r32(sd + SD_CTL);
+            let mut ctl = mmio_r32(VirtAddr::new((sd + SD_CTL) as u64));
             ctl &= !SD_CTL_RUN;
-            mmio_w32(sd + SD_CTL, ctl);
+            mmio_w32(VirtAddr::new((sd + SD_CTL) as u64), ctl);
         }
 
         Ok(())

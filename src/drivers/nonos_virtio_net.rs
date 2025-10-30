@@ -10,7 +10,7 @@ use x86_64::{PhysAddr, VirtAddr};
 
 use crate::drivers::nonos_pci::{pci_read_config32, PciBar, PciDevice};
 use crate::interrupts::register_interrupt_handler;
-use crate::memory::dma::alloc_dma_coherent;
+use crate::memory::dma::{alloc_dma_coherent, DmaConstraints};
 
 // PCI IDs
 const VIRTIO_VENDOR_ID: u16 = 0x1AF4;
@@ -107,7 +107,14 @@ struct DmaRegion {
 }
 impl DmaRegion {
     fn new(size: usize) -> Result<Self, &'static str> {
-        let (va, pa) = alloc_dma_coherent(size)?;
+        let constraints = DmaConstraints {
+            alignment: 64,
+            max_segment_size: size,
+            dma32_only: false,
+            coherent: true,
+        };
+        let dma_region = alloc_dma_coherent(size, constraints)?;
+        let (va, pa) = (dma_region.virt_addr, dma_region.phys_addr);
         unsafe { ptr::write_bytes(va.as_mut_ptr::<u8>(), 0, size) };
         Ok(Self { va, pa, size })
     }
@@ -297,7 +304,14 @@ pub struct PacketBuffer {
 }
 impl PacketBuffer {
     pub fn new(size: usize) -> Result<Self, &'static str> {
-        let (va, pa) = alloc_dma_coherent(size)?;
+        let constraints = DmaConstraints {
+            alignment: 64,
+            max_segment_size: size,
+            dma32_only: false,
+            coherent: true,
+        };
+        let dma_region = alloc_dma_coherent(size, constraints)?;
+        let (va, pa) = (dma_region.virt_addr, dma_region.phys_addr);
         unsafe { ptr::write_bytes(va.as_mut_ptr::<u8>(), 0, size) };
         Ok(Self {
             dma_virt: va,

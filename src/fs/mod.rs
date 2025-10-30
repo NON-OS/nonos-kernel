@@ -5,7 +5,7 @@ extern crate alloc;
 use alloc::{vec, vec::Vec, string::String};
 use spin::Once;
 
-use crate::memory::PageFlags;
+use crate::memory::page_info::PageFlags;
 
 pub mod nonos_vfs;
 pub mod vfs {

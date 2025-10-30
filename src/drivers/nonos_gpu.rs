@@ -2,10 +2,10 @@
 
 use core::{arch::asm, ptr};
 use spin::Mutex;
-use x86_64::PhysAddr;
+use x86_64::{PhysAddr, VirtAddr};
 
 use crate::drivers::pci::{self, PciBar, PciDevice, pci_read_config32, pci_write_config32};
-use crate::memory::dma::alloc_dma_coherent;
+use crate::memory::dma::{alloc_dma_coherent, DmaConstraints};
 use crate::memory::mmio::mmio_w32;
 
 const VENDOR_QEMU: u16 = 0x1234;
@@ -85,7 +85,14 @@ pub struct Backbuffer {
 impl Backbuffer {
     fn new(bytes: usize) -> Result<Self, &'static str> {
         // Coherent DMA region is convenient contiguous RAM for fast CPU copies
-        let (va, _pa) = alloc_dma_coherent(bytes)?;
+        let constraints = DmaConstraints {
+            alignment: 64,
+            max_segment_size: bytes,
+            dma32_only: false,
+            coherent: true,
+        };
+        let dma_region = alloc_dma_coherent(bytes, constraints)?;
+        let (va, _pa) = (dma_region.virt_addr, dma_region.phys_addr);
         unsafe { ptr::write_bytes(va.as_mut_ptr::<u8>(), 0, bytes) };
         Ok(Backbuffer { va: va.as_u64() as usize, len: bytes })
     }
@@ -350,7 +357,7 @@ impl GpuDriver {
         let pitch = pitch.min(prog_pitch);
 
         // Touch LFB to ensure mapping present
-        unsafe { mmio_w32(fb_virt, 0) };
+        unsafe { mmio_w32(VirtAddr::new(fb_virt as u64), 0) };
 
         // Create backbuffer sized to full surface
         let backbuf_bytes = pitch as usize * DEFAULT_HEIGHT as usize;

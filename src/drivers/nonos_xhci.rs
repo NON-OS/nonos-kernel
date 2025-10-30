@@ -7,7 +7,7 @@ use spin::Mutex;
 use x86_64::{PhysAddr, VirtAddr};
 
 use crate::drivers::pci::{self, PciBar, PciDevice};
-use crate::memory::dma::alloc_dma_coherent;
+use crate::memory::dma::{alloc_dma_coherent, DmaConstraints};
 use crate::memory::mmio::{mmio_r32, mmio_r64, mmio_w32, mmio_w64};
 
 // Constants
@@ -112,7 +112,14 @@ struct DmaRegion {
 }
 impl DmaRegion {
     fn new(size: usize, zero: bool) -> Result<Self, &'static str> {
-        let (va, pa) = alloc_dma_coherent(size)?;
+        let constraints = DmaConstraints {
+            alignment: 64,
+            max_segment_size: size,
+            dma32_only: false,
+            coherent: true,
+        };
+        let dma_region = alloc_dma_coherent(size, constraints)?;
+        let (va, pa) = (dma_region.virt_addr, dma_region.phys_addr);
         if zero {
             unsafe { ptr::write_bytes(va.as_mut_ptr::<u8>(), 0, size); }
         }
@@ -383,12 +390,12 @@ impl XhciController {
         };
 
         // Parse capabilities
-        let caplen = unsafe { mmio_r32(cap_base + CAP_CAPLENGTH) } & 0xFF;
-        let hcs1 = unsafe { mmio_r32(cap_base + CAP_HCSPARAMS1) };
-        let hcs2 = unsafe { mmio_r32(cap_base + CAP_HCSPARAMS2) };
-        let hcc1 = unsafe { mmio_r32(cap_base + CAP_HCCPARAMS1) };
-        let dboff = unsafe { mmio_r32(cap_base + CAP_DBOFF) };
-        let rtsoff = unsafe { mmio_r32(cap_base + CAP_RTSOFF) };
+        let caplen = unsafe { mmio_r32(VirtAddr::new((cap_base + CAP_CAPLENGTH) as u64)) } & 0xFF;
+        let hcs1 = unsafe { mmio_r32(VirtAddr::new((cap_base + CAP_HCSPARAMS1) as u64)) };
+        let hcs2 = unsafe { mmio_r32(VirtAddr::new((cap_base + CAP_HCSPARAMS2) as u64)) };
+        let hcc1 = unsafe { mmio_r32(VirtAddr::new((cap_base + CAP_HCCPARAMS1) as u64)) };
+        let dboff = unsafe { mmio_r32(VirtAddr::new((cap_base + CAP_DBOFF) as u64)) };
+        let rtsoff = unsafe { mmio_r32(VirtAddr::new((cap_base + CAP_RTSOFF) as u64)) };
 
         let op_base = cap_base + caplen as usize;
         let db_base = cap_base + dboff as usize;
@@ -399,28 +406,28 @@ impl XhciController {
         let csz = ((hcc1 >> 2) & 1) != 0; // Context Size 1=64B
 
         // Stop & Reset controller
-        let mut cmd = unsafe { mmio_r32(op_base + OP_USBCMD) };
+        let mut cmd = unsafe { mmio_r32(VirtAddr::new((op_base + OP_USBCMD) as u64)) };
         cmd &= !USBCMD_RS;
-        unsafe { mmio_w32(op_base + OP_USBCMD, cmd); }
+        unsafe { mmio_w32(VirtAddr::new((op_base + OP_USBCMD) as u64), cmd); }
 
         // Wait HCH set
-        if !Self::spin_wait(|| unsafe { mmio_r32(op_base + OP_USBSTS) } & USBSTS_HCH != 0, 1_000_000) {
+        if !Self::spin_wait(|| unsafe { mmio_r32(VirtAddr::new((op_base + OP_USBSTS) as u64)) } & USBSTS_HCH != 0, 1_000_000) {
             return Err("xHCI: HC did not halt");
         }
 
         // Host Controller Reset
         unsafe {
-            mmio_w32(op_base + OP_USBCMD, USBCMD_HCRST);
+            mmio_w32(VirtAddr::new((op_base + OP_USBCMD) as u64), USBCMD_HCRST);
         }
-        if !Self::spin_wait(|| unsafe { mmio_r32(op_base + OP_USBCMD) } & USBCMD_HCRST == 0, 1_000_000) {
+        if !Self::spin_wait(|| unsafe { mmio_r32(VirtAddr::new((op_base + OP_USBCMD) as u64)) } & USBCMD_HCRST == 0, 1_000_000) {
             return Err("xHCI: HCRST did not clear");
         }
-        if !Self::spin_wait(|| unsafe { mmio_r32(op_base + OP_USBSTS) } & USBSTS_CNR == 0, 1_000_000) {
+        if !Self::spin_wait(|| unsafe { mmio_r32(VirtAddr::new((op_base + OP_USBSTS) as u64)) } & USBSTS_CNR == 0, 1_000_000) {
             return Err("xHCI: Controller Not Ready stayed set");
         }
 
         // Program PAGESIZE (host supports 4K)
-        unsafe { mmio_w32(op_base + OP_PAGESIZE, 1); } // 2^12
+        unsafe { mmio_w32(VirtAddr::new((op_base + OP_PAGESIZE) as u64), 1); } // 2^12
 
         // Create command ring and event ring
         let cmd_ring = TransferRing::new(256)?;
@@ -455,35 +462,35 @@ impl XhciController {
         }
 
         // Program DCBAAP
-        unsafe { mmio_w64(op_base + OP_DCBAAP, dcbaa.phys()); }
+        unsafe { mmio_w64(VirtAddr::new((op_base + OP_DCBAAP) as u64), dcbaa.phys()); }
 
         // Program Command Ring (CRCR)
         unsafe {
             // Clear any old value first
-            mmio_w64(op_base + OP_CRCR, 0);
+            mmio_w64(VirtAddr::new((op_base + OP_CRCR) as u64), 0);
             // Write base | RCS=1
-            mmio_w64(op_base + OP_CRCR, (cmd_ring.trbs.phys() & !0x3F) | CRCR_RCS);
+            mmio_w64(VirtAddr::new((op_base + OP_CRCR) as u64), (cmd_ring.trbs.phys() & !0x3F) | CRCR_RCS);
         }
 
         // Program Event Ring (Runtime, Interrupter 0)
         unsafe {
             // ERSTSZ
-            mmio_w32(rt_base + RT_IR0_ERSTSZ, 1);
+            mmio_w32(VirtAddr::new((rt_base + RT_IR0_ERSTSZ) as u64), 1);
             // ERSTBA
-            mmio_w64(rt_base + RT_IR0_ERSTBA, evt_ring.erst.phys());
+            mmio_w64(VirtAddr::new((rt_base + RT_IR0_ERSTBA) as u64), evt_ring.erst.phys());
             // ERDP = dequeue pointer | EHB=1 clear
-            mmio_w64(rt_base + RT_IR0_ERDP, evt_ring.current_dequeue_phys());
+            mmio_w64(VirtAddr::new((rt_base + RT_IR0_ERDP) as u64), evt_ring.current_dequeue_phys());
             // Enable IMAN.IE
-            let mut iman = mmio_r32(rt_base + RT_IR0_IMAN);
+            let mut iman = mmio_r32(VirtAddr::new((rt_base + RT_IR0_IMAN) as u64));
             iman |= IMAN_IE;
-            mmio_w32(rt_base + RT_IR0_IMAN, iman);
+            mmio_w32(VirtAddr::new((rt_base + RT_IR0_IMAN) as u64), iman);
         }
 
         // Enable doorbell and interrupts, run controller
         unsafe {
-            let mut usbcmd = mmio_r32(op_base + OP_USBCMD);
+            let mut usbcmd = mmio_r32(VirtAddr::new((op_base + OP_USBCMD) as u64));
             usbcmd |= USBCMD_INTE | USBCMD_RS;
-            mmio_w32(op_base + OP_USBCMD, usbcmd);
+            mmio_w32(VirtAddr::new((op_base + OP_USBCMD) as u64), usbcmd);
         }
 
         // Create controller struct
@@ -529,11 +536,11 @@ impl XhciController {
     }
 
     fn read_portsc(&self, port: u8) -> u32 {
-        unsafe { mmio_r32(self.port_reg(port, 0)) }
+        unsafe { mmio_r32(VirtAddr::new(self.port_reg(port, 0) as u64)) }
     }
 
     fn write_portsc(&self, port: u8, val: u32) {
-        unsafe { mmio_w32(self.port_reg(port, 0), val); }
+        unsafe { mmio_w32(VirtAddr::new(self.port_reg(port, 0) as u64), val); }
     }
 
     fn enumerate_first_device(&mut self) -> Result<(), &'static str> {
@@ -598,7 +605,7 @@ impl XhciController {
         let ptr_phys = self.cmd_ring.enqueue(trb);
         // Ring doorbell for command ring is doorbell[0] with value 0
         unsafe {
-            mmio_w32(self.db_base + 0 * 4, 0);
+            mmio_w32(VirtAddr::new((self.db_base + 0 * 4) as u64), 0);
         }
         ptr_phys
     }
@@ -608,10 +615,10 @@ impl XhciController {
         let mut spins = 2_000_000u32;
         loop {
             // Read IMAN.IP; optionally handle interrupts in future
-            let iman = unsafe { mmio_r32(self.rt_base + RT_IR0_IMAN) };
+            let iman = unsafe { mmio_r32(VirtAddr::new((self.rt_base + RT_IR0_IMAN) as u64)) };
             if (iman & IMAN_IP) != 0 {
                 // Clear pending by writing 1 to IP
-                unsafe { mmio_w32(self.rt_base + RT_IR0_IMAN, iman | IMAN_IP); }
+                unsafe { mmio_w32(VirtAddr::new((self.rt_base + RT_IR0_IMAN) as u64), iman | IMAN_IP); }
             }
 
             let trb = self.evt_ring.trb_at(self.evt_ring.dequeue_index);
@@ -625,7 +632,7 @@ impl XhciController {
                         // Advance ring
                         self.evt_ring.advance();
                         // Update ERDP with EHB clear
-                        unsafe { mmio_w64(self.rt_base + RT_IR0_ERDP, self.evt_ring.current_dequeue_phys() | ERDP_EHB); }
+                        unsafe { mmio_w64(VirtAddr::new((self.rt_base + RT_IR0_ERDP) as u64), self.evt_ring.current_dequeue_phys() | ERDP_EHB); }
                         if event_trb_ptr == (cmd_trb_ptr & !0xF) {
                             // Check completion code in d2[31:24]
                             let ccode = (trb.d2 >> 24) & 0xFF;
@@ -780,7 +787,7 @@ impl XhciController {
 
         // Ring doorbell for slot_id EP0: DB[slot_id] = 1 (endpoint 1 = EP0 OUT? For control, endpoint 1 = EP0)
         unsafe {
-            mmio_w32(self.db_base + (slot_id as usize) * 4, 1);
+            mmio_w32(VirtAddr::new((self.db_base + (slot_id as usize) * 4) as u64), 1);
         }
 
         // Wait for transfer event that references our Status TRB or check IOC on data TRB
@@ -793,9 +800,9 @@ impl XhciController {
     pub fn wait_transfer_completion(&mut self, trb_ptr_match: u64) -> Result<(), &'static str> {
         let mut spins = 2_000_000u32;
         loop {
-            let iman = unsafe { mmio_r32(self.rt_base + RT_IR0_IMAN) };
+            let iman = unsafe { mmio_r32(VirtAddr::new((self.rt_base + RT_IR0_IMAN) as u64)) };
             if (iman & IMAN_IP) != 0 {
-                unsafe { mmio_w32(self.rt_base + RT_IR0_IMAN, iman | IMAN_IP); }
+                unsafe { mmio_w32(VirtAddr::new((self.rt_base + RT_IR0_IMAN) as u64), iman | IMAN_IP); }
             }
 
             let trb = self.evt_ring.trb_at(self.evt_ring.dequeue_index);
@@ -806,7 +813,7 @@ impl XhciController {
                 let event_trb_ptr = trb.d0 as u64 | ((trb.d1 as u64) << 32);
                 // Advance ring and ERDP
                 self.evt_ring.advance();
-                unsafe { mmio_w64(self.rt_base + RT_IR0_ERDP, self.evt_ring.current_dequeue_phys() | ERDP_EHB); }
+                unsafe { mmio_w64(VirtAddr::new((self.rt_base + RT_IR0_ERDP) as u64), self.evt_ring.current_dequeue_phys() | ERDP_EHB); }
 
                 if (event_trb_ptr & !0xF) == (trb_ptr_match & !0xF) {
                     let ccode = (trb.d2 >> 24) & 0xFF;
@@ -954,7 +961,7 @@ pub fn control_transfer(
             
             // Ring doorbell for EP0
             unsafe {
-                mmio_w32(ctrl.db_base + (slot_id as usize) * 4, 1);
+                mmio_w32(VirtAddr::new((ctrl.db_base + (slot_id as usize) * 4) as u64), 1);
             }
             
             // Wait for completion
@@ -984,7 +991,7 @@ pub fn control_transfer(
             
             // Ring doorbell
             unsafe {
-                mmio_w32(ctrl.db_base + (slot_id as usize) * 4, 1);
+                mmio_w32(VirtAddr::new((ctrl.db_base + (slot_id as usize) * 4) as u64), 1);
             }
             
             // Wait for completion

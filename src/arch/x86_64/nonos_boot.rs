@@ -165,9 +165,9 @@ unsafe fn init_interrupts_early() -> bool {
             rip, fault_address.as_u64(), error_code
         );
         if error_code.contains(PageFaultErrorCode::CAUSED_BY_WRITE) {
-            crate::memory::handle_page_fault(fault_address, true).unwrap();
+            crate::memory::virt::handle_page_fault(fault_address, error_code.bits()).unwrap();
         } else {
-            crate::memory::handle_page_fault(fault_address, false).unwrap();
+            crate::memory::virt::handle_page_fault(fault_address, error_code.bits()).unwrap();
         }
     }
     SIMPLE_IDT.breakpoint.set_handler_fn(breakpoint_handler);

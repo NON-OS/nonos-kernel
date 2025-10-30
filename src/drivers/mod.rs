@@ -71,8 +71,8 @@ pub use nonos_virtio_net::{
 /// Initialize all hardware drivers
 pub fn init_all_drivers() -> Result<(), &'static str> {
     crate::memory::dma::init_dma_allocator()?;
-    let _ = crate::memory::dma::create_dma_pool(4096, 128);
-    let _ = crate::memory::dma::create_dma_pool(2048, 256);
+    let _ = crate::memory::dma::create_dma_pool(4096, 128, crate::memory::dma::DmaConstraints::default());
+    let _ = crate::memory::dma::create_dma_pool(2048, 256, crate::memory::dma::DmaConstraints::default());
 
     crate::log::logger::log_critical("Initializing NONOS driver stack via MONSTER orchestrator...");
     // Delegate to MONSTER (handles PCI, NVMe, xHCI+USB, VirtIO, GPU, Audio).

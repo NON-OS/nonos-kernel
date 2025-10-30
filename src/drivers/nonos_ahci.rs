@@ -8,7 +8,7 @@ use alloc::collections::BTreeMap;
 use x86_64::{VirtAddr, PhysAddr};
 use crate::memory::mmio::{mmio_r32, mmio_w32};
 use crate::drivers::pci::{PciDevice, pci_read_config32};
-use crate::memory::dma::alloc_dma_coherent;
+use crate::memory::dma::{alloc_dma_coherent, DmaConstraints};
 
 /// HBA registers offsets
 const HBA_CAP: u32 = 0x00;
@@ -143,13 +143,34 @@ struct PortDma {
 
 impl PortDma {
     fn new() -> Result<Self, &'static str> {
-        let (cl_va, cl_pa) = alloc_dma_coherent(1024)?;
+        let cl_constraints = DmaConstraints {
+            alignment: 1024,
+            max_segment_size: 1024,
+            dma32_only: true,
+            coherent: true,
+        };
+        let cl_dma_region = alloc_dma_coherent(1024, cl_constraints)?;
+        let (cl_va, cl_pa) = (cl_dma_region.virt_addr, cl_dma_region.phys_addr);
         unsafe { core::ptr::write_bytes(cl_va.as_mut_ptr::<u8>(), 0, 1024); }
 
-        let (fis_va, fis_pa) = alloc_dma_coherent(256)?;
+        let fis_constraints = DmaConstraints {
+            alignment: 256,
+            max_segment_size: 256,
+            dma32_only: true,
+            coherent: true,
+        };
+        let fis_dma_region = alloc_dma_coherent(256, fis_constraints)?;
+        let (fis_va, fis_pa) = (fis_dma_region.virt_addr, fis_dma_region.phys_addr);
         unsafe { core::ptr::write_bytes(fis_va.as_mut_ptr::<u8>(), 0, 256); }
 
-        let (ct_va, ct_pa) = alloc_dma_coherent(256 * 32)?;
+        let ct_constraints = DmaConstraints {
+            alignment: 128,
+            max_segment_size: 256 * 32,
+            dma32_only: true,
+            coherent: true,
+        };
+        let ct_dma_region = alloc_dma_coherent(256 * 32, ct_constraints)?;
+        let (ct_va, ct_pa) = (ct_dma_region.virt_addr, ct_dma_region.phys_addr);
         unsafe { core::ptr::write_bytes(ct_va.as_mut_ptr::<u8>(), 0, 256 * 32); }
 
         Ok(Self {
@@ -336,7 +357,14 @@ impl AhciController {
     /// Identify SATA device
     fn identify_device(&mut self, port: u32) -> Result<(), &'static str> {
         // Buffer for 512 bytes
-        let (buf_va, buf_pa) = alloc_dma_coherent(512)?;
+        let buf_constraints = DmaConstraints {
+            alignment: 2,
+            max_segment_size: 512,
+            dma32_only: false,
+            coherent: true,
+        };
+        let buf_dma_region = alloc_dma_coherent(512, buf_constraints)?;
+        let (buf_va, buf_pa) = (buf_dma_region.virt_addr, buf_dma_region.phys_addr);
         unsafe { core::ptr::write_bytes(buf_va.as_mut_ptr::<u8>(), 0, 512); }
 
         let slot = self.find_free_slot(port)?;
@@ -460,7 +488,14 @@ impl AhciController {
         let total_bytes = blocks * 512;
 
         // Allocate TRIM buffer
-        let (buf_va, buf_pa) = alloc_dma_coherent(total_bytes)?;
+        let buf_constraints = DmaConstraints {
+            alignment: 2,
+            max_segment_size: total_bytes,
+            dma32_only: false,
+            coherent: true,
+        };
+        let buf_dma_region = alloc_dma_coherent(total_bytes, buf_constraints)?;
+        let (buf_va, buf_pa) = (buf_dma_region.virt_addr, buf_dma_region.phys_addr);
         unsafe { core::ptr::write_bytes(buf_va.as_mut_ptr::<u8>(), 0, total_bytes); }
 
         // Fill descriptors
@@ -512,11 +547,11 @@ impl AhciController {
     // -------------------- Low-level helpers --------------------
 
     fn read_hba_reg(&self, offset: u32) -> u32 {
-        unsafe { mmio_r32(self.base_addr + offset as usize) }
+        unsafe { mmio_r32(VirtAddr::new((self.base_addr + offset as usize) as u64)) }
     }
 
     fn write_hba_reg(&self, offset: u32, value: u32) {
-        unsafe { mmio_w32(self.base_addr + offset as usize, value) }
+        unsafe { mmio_w32(VirtAddr::new((self.base_addr + offset as usize) as u64), value) }
     }
 
     fn read_port_reg(&self, port: u32, offset: u32) -> u32 {

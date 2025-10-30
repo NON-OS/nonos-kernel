@@ -11,7 +11,7 @@ use alloc::boxed::Box;
 use spin::Mutex;
 use x86_64::{PhysAddr, VirtAddr};
 
-use crate::memory::dma::alloc_dma_coherent;
+use crate::memory::dma::{alloc_dma_coherent, DmaConstraints};
 use crate::memory::mmio::{mmio_r32, mmio_r64, mmio_w32, mmio_w64};
 use crate::drivers::pci::PciDevice;
 
@@ -149,9 +149,19 @@ struct DmaRegion {
 impl DmaRegion {
     fn new(size: usize) -> Result<Self, &'static str> {
         let size_rounded = ((size + PAGE_SIZE - 1) / PAGE_SIZE) * PAGE_SIZE;
-        let (va, pa) = alloc_dma_coherent(size_rounded)?;
-        unsafe { ptr::write_bytes(va.as_mut_ptr::<u8>(), 0, size_rounded); }
-        Ok(Self { va, pa, size: size_rounded })
+        let constraints = DmaConstraints {
+            alignment: PAGE_SIZE,
+            max_segment_size: size_rounded,
+            dma32_only: false,
+            coherent: true,
+        };
+        let dma_region = alloc_dma_coherent(size_rounded, constraints)?;
+        unsafe { ptr::write_bytes(dma_region.virt_addr.as_mut_ptr::<u8>(), 0, size_rounded); }
+        Ok(Self { 
+            va: dma_region.virt_addr, 
+            pa: dma_region.phys_addr, 
+            size: size_rounded 
+        })
     }
     #[inline] fn phys(&self) -> u64 { self.pa.as_u64() }
     #[inline] fn as_mut_ptr<T>(&self) -> *mut T { self.va.as_mut_ptr::<T>() }
@@ -250,15 +260,15 @@ impl NvmeController {
         };
 
         // Read CAP for MPSMIN, DSTRD
-        let cap = unsafe { mmio_r64(mmio_base + REG_CAP) };
+        let cap = unsafe { mmio_r64(VirtAddr::new((mmio_base + REG_CAP) as u64)) };
         let dstrd = ((cap >> 32) & 0xF) as u32; // doorbell stride power-of-two: register stride = 4 << dstrd
         let mpsmin = ((cap >> 48) & 0xF) as u32; // minimum memory page size = 2^(12 + mpsmin)
 
         // Disable controller if enabled
-        let cc = unsafe { mmio_r32(mmio_base + REG_CC) };
+        let cc = unsafe { mmio_r32(VirtAddr::new((mmio_base + REG_CC) as u64)) };
         if (cc & CC_ENABLE) != 0 {
             // Clear CC.EN
-            unsafe { mmio_w32(mmio_base + REG_CC, cc & !CC_ENABLE); }
+            unsafe { mmio_w32(VirtAddr::new((mmio_base + REG_CC) as u64), cc & !CC_ENABLE); }
             if !Self::wait(|csts| (csts & CSTS_RDY) == 0, mmio_base, 1_000_000) {
                 return Err("NVMe: timeout waiting for CC.EN=0 -> CSTS.RDY=0");
             }
@@ -266,9 +276,9 @@ impl NvmeController {
 
         // Unmask interrupts (we’ll set MSI-X in PCI path)
         unsafe {
-            mmio_w32(mmio_base + REG_INTMS, 0);
-            mmio_w32(mmio_base + REG_INTMC, 0xFFFF_FFFF);
-            mmio_w32(mmio_base + REG_INTMC, 0); // clear any masks
+            mmio_w32(VirtAddr::new((mmio_base + REG_INTMS) as u64), 0);
+            mmio_w32(VirtAddr::new((mmio_base + REG_INTMC) as u64), 0xFFFF_FFFF);
+            mmio_w32(VirtAddr::new((mmio_base + REG_INTMC) as u64), 0); // clear any masks
         }
 
         // Create admin queue
@@ -278,11 +288,11 @@ impl NvmeController {
         unsafe {
             // Admin Queue Attributes: AQA (CQ/SQ size - 1)
             let aqa = ((ADMIN_Q_ENTRIES as u32 - 1) << 16) | ((ADMIN_Q_ENTRIES as u32 - 1) << 0);
-            mmio_w32(mmio_base + REG_AQA, aqa);
+            mmio_w32(VirtAddr::new((mmio_base + REG_AQA) as u64), aqa);
 
             // Base addresses must be 4K aligned
-            mmio_w64(mmio_base + REG_ASQ, admin_q.sq.phys());
-            mmio_w64(mmio_base + REG_ACQ, admin_q.cq.phys());
+            mmio_w64(VirtAddr::new((mmio_base + REG_ASQ) as u64), admin_q.sq.phys());
+            mmio_w64(VirtAddr::new((mmio_base + REG_ACQ) as u64), admin_q.cq.phys());
         }
 
         // Enable controller: set CC with MPS to PAGE_SIZE, CSS to NVM
@@ -295,7 +305,7 @@ impl NvmeController {
         cc_new |= CC_CSS_NVM; // CSS=NVM
         cc_new |= CC_ENABLE;
 
-        unsafe { mmio_w32(mmio_base + REG_CC, cc_new); }
+        unsafe { mmio_w32(VirtAddr::new((mmio_base + REG_CC) as u64), cc_new); }
         if !Self::wait(|csts| (csts & CSTS_RDY) != 0, mmio_base, 1_000_000) {
             return Err("NVMe: timeout waiting for CSTS.RDY=1");
         }
@@ -340,7 +350,7 @@ impl NvmeController {
 
     fn wait<F: Fn(u32) -> bool>(pred: F, base: usize, mut spins: u32) -> bool {
         while spins > 0 {
-            let csts = unsafe { mmio_r32(base + REG_CSTS) };
+            let csts = unsafe { mmio_r32(VirtAddr::new((base + REG_CSTS) as u64)) };
             if pred(csts) { return true; }
             spins -= 1;
         }
@@ -348,11 +358,11 @@ impl NvmeController {
     }
 
     fn ring_sq_tail(&self, qid: u16, tail: u16) {
-        unsafe { mmio_w32(self.mmio_base + db_offset_sq(self.db_stride, qid), tail as u32); }
+        unsafe { mmio_w32(VirtAddr::new((self.mmio_base + db_offset_sq(self.db_stride, qid)) as u64), tail as u32); }
     }
 
     fn ring_cq_head(&self, qid: u16, head: u16) {
-        unsafe { mmio_w32(self.mmio_base + db_offset_cq(self.db_stride, qid), head as u32); }
+        unsafe { mmio_w32(VirtAddr::new((self.mmio_base + db_offset_cq(self.db_stride, qid)) as u64), head as u32); }
     }
 
     fn admin_submit_sync(&self, mut cmd: NvmeSubmission, data_len: usize, data_pa: Option<PhysAddr>) -> Result<NvmeCompletion, &'static str> {
@@ -419,7 +429,14 @@ impl NvmeController {
     fn identify_controller(&self) -> Result<(), &'static str> {
         // Identify Controller -> 4096 bytes buffer
         let id_bytes = 4096usize;
-        let (buf_va, buf_pa) = alloc_dma_coherent(id_bytes)?;
+        let constraints = DmaConstraints {
+            alignment: PAGE_SIZE,
+            max_segment_size: id_bytes,
+            dma32_only: false,
+            coherent: true,
+        };
+        let dma_region = alloc_dma_coherent(id_bytes, constraints)?;
+        let (buf_va, buf_pa) = (dma_region.virt_addr, dma_region.phys_addr);
         unsafe { ptr::write_bytes(buf_va.as_mut_ptr::<u8>(), 0, id_bytes); }
 
         let mut cmd = NvmeSubmission::default();
@@ -435,7 +452,14 @@ impl NvmeController {
     fn identify_first_namespace(&self) -> Result<Option<NvmeNamespace>, &'static str> {
         // Identify active NS list (CNS=0x02) returns 4096 bytes of NSIDs
         let list_bytes = 4096usize;
-        let (list_va, list_pa) = alloc_dma_coherent(list_bytes)?;
+        let list_constraints = DmaConstraints {
+            alignment: PAGE_SIZE,
+            max_segment_size: list_bytes,
+            dma32_only: false,
+            coherent: true,
+        };
+        let list_dma_region = alloc_dma_coherent(list_bytes, list_constraints)?;
+        let (list_va, list_pa) = (list_dma_region.virt_addr, list_dma_region.phys_addr);
         unsafe { ptr::write_bytes(list_va.as_mut_ptr::<u8>(), 0, list_bytes); }
 
         let mut cmd = NvmeSubmission::default();
@@ -453,7 +477,14 @@ impl NvmeController {
         }
 
         // Identify Namespace (CNS=0x00)
-        let (ns_va, ns_pa) = alloc_dma_coherent(4096)?;
+        let ns_constraints = DmaConstraints {
+            alignment: PAGE_SIZE,
+            max_segment_size: 4096,
+            dma32_only: false,
+            coherent: true,
+        };
+        let ns_dma_region = alloc_dma_coherent(4096, ns_constraints)?;
+        let (ns_va, ns_pa) = (ns_dma_region.virt_addr, ns_dma_region.phys_addr);
         unsafe { ptr::write_bytes(ns_va.as_mut_ptr::<u8>(), 0, 4096); }
 
         let mut cmd_ns = NvmeSubmission::default();
@@ -543,7 +574,14 @@ impl NvmeController {
         // Each PRP list entry is 8 bytes; one 4K page can hold 512 entries.
         let entries_needed = pages_needed as usize;
         let prp_list_bytes = ((entries_needed * 8) + PAGE_SIZE - 1) / PAGE_SIZE * PAGE_SIZE;
-        let (pl_va, pl_pa) = alloc_dma_coherent(prp_list_bytes)?;
+        let prp_constraints = DmaConstraints {
+            alignment: PAGE_SIZE,
+            max_segment_size: prp_list_bytes,
+            dma32_only: false,
+            coherent: true,
+        };
+        let prp_dma_region = alloc_dma_coherent(prp_list_bytes, prp_constraints)?;
+        let (pl_va, pl_pa) = (prp_dma_region.virt_addr, prp_dma_region.phys_addr);
         unsafe { ptr::write_bytes(pl_va.as_mut_ptr::<u8>(), 0, prp_list_bytes); }
 
         // Fill PRP entries starting at second page boundary of the data buffer

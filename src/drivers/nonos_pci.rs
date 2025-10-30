@@ -2,7 +2,7 @@
 
 use core::fmt;
 use alloc::{vec::Vec, collections::BTreeMap};
-use x86_64::PhysAddr;
+use x86_64::{PhysAddr, VirtAddr};
 use spin::Mutex;
 use crate::arch::x86_64::nonos_pci::PciStats;
 
@@ -138,10 +138,10 @@ impl PciDevice {
         let vector_ctrl_mask = 0u32; // unmasked
 
         unsafe {
-            crate::memory::mmio::mmio_w32(entry0 + 0, msg_addr_lo);
-            crate::memory::mmio::mmio_w32(entry0 + 4, msg_addr_hi);
-            crate::memory::mmio::mmio_w32(entry0 + 8, msg_data);
-            crate::memory::mmio::mmio_w32(entry0 + 12, vector_ctrl_mask);
+            crate::memory::mmio::mmio_w32(VirtAddr::new((entry0 + 0) as u64), msg_addr_lo);
+            crate::memory::mmio::mmio_w32(VirtAddr::new((entry0 + 4) as u64), msg_addr_hi);
+            crate::memory::mmio::mmio_w32(VirtAddr::new((entry0 + 8) as u64), msg_data);
+            crate::memory::mmio::mmio_w32(VirtAddr::new((entry0 + 12) as u64), vector_ctrl_mask);
         }
 
         // Enable MSI-X in capability

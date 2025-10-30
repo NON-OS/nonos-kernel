@@ -5,7 +5,7 @@ use alloc::vec::Vec;
 use core::ptr;
 use spin::Mutex;
 use crate::process::capabilities::Capability;
-use crate::memory::{secure_erase, allocate_zeroed_pages, deallocate_pages, VirtAddr};
+use crate::memory::{memory::zero_memory, allocator::allocate_pages, allocator::free_pages, VirtAddr};
 use crate::crypto::{
     kyber::{kyber_keygen, KyberKeyPair},
     dilithium::{dilithium_keypair, DilithiumKeyPair},
@@ -56,7 +56,7 @@ pub fn setup_sandbox(module_id: u64, config: &SandboxConfig) -> Result<(), &'sta
         }
     }
     // Allocate zeroed, RAM-only pages for sandbox memory
-    let base_addr = allocate_zeroed_pages((config.memory_limit + 4095) / 4096).ok_or("Failed to allocate sandbox memory")?;
+    let base_addr = allocate_pages((config.memory_limit + 4095) / 4096)?;
 
     // PQC keys for quantum isolation (Kyber KEM + Dilithium signature)
     let quantum_keys = if config.quantum_isolation {
@@ -85,8 +85,8 @@ pub fn destroy_sandbox(module_id: u64, config: &SandboxConfig) -> Result<(), &'s
         let mut state = sandboxes.remove(idx);
         // Securely erase RAM
         unsafe {
-            secure_erase(core::slice::from_raw_parts_mut(state.base_addr as *mut u8, state.size));
-            deallocate_pages(VirtAddr::new(state.base_addr as u64), (state.size + 4095) / 4096);
+            zero_memory(x86_64::VirtAddr::new(state.base_addr as u64), state.size).ok();
+            free_pages(VirtAddr::new(state.base_addr as u64), (state.size + 4095) / 4096).ok();
         }
         // Securely erase PQC keys (Kyber/Dilithium)
         if let Some((kyber_keys, dilithium_keys)) = state.quantum_keys.take() {

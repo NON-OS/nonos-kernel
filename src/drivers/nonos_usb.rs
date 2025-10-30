@@ -5,6 +5,7 @@
 use alloc::{string::String, vec::Vec, sync::Arc, boxed::Box};
 use core::sync::atomic::{AtomicU64, Ordering};
 use spin::Mutex;
+use x86_64::VirtAddr;
 
 // Re-export common USB constants
 pub mod consts {
@@ -111,7 +112,13 @@ impl UsbHostBackend for XhciBackend {
             
             // Create DMA buffer for bulk transfer
             let transfer_len = buffer.len();
-            let mut dma_buf = crate::memory::dma::DmaRegion::new(transfer_len, true)
+            let constraints = crate::memory::dma::DmaConstraints {
+                alignment: 64,
+                max_segment_size: transfer_len,
+                dma32_only: false,
+                coherent: true,
+            };
+            let mut dma_buf = crate::memory::dma::alloc_dma_coherent(transfer_len, constraints)
                 .map_err(|_| "Failed to allocate DMA buffer for bulk transfer")?;
             
             // For OUT transfers, copy data to DMA buffer
@@ -142,7 +149,7 @@ impl UsbHostBackend for XhciBackend {
                 // Ring doorbell for this endpoint
                 unsafe {
                     crate::memory::mmio::mmio_w32(
-                        ctrl.db_base + (slot_id as usize) * 4, 
+                        VirtAddr::new((ctrl.db_base + (slot_id as usize) * 4) as u64), 
                         endpoint as u32
                     );
                 }
@@ -183,7 +190,13 @@ impl UsbHostBackend for XhciBackend {
             let mut ctrl = ctrl_mutex.lock();
             
             let transfer_len = buffer.len();
-            let mut dma_buf = crate::memory::dma::DmaRegion::new(transfer_len, true)
+            let constraints = crate::memory::dma::DmaConstraints {
+                alignment: 64,
+                max_segment_size: transfer_len,
+                dma32_only: false,
+                coherent: true,
+            };
+            let mut dma_buf = crate::memory::dma::alloc_dma_coherent(transfer_len, constraints)
                 .map_err(|_| "Failed to allocate DMA buffer for interrupt transfer")?;
             
             let is_in = (endpoint & 0x80) != 0;
@@ -212,7 +225,7 @@ impl UsbHostBackend for XhciBackend {
                 // Ring doorbell with endpoint number
                 unsafe {
                     crate::memory::mmio::mmio_w32(
-                        ctrl.db_base + (slot_id as usize) * 4,
+                        VirtAddr::new((ctrl.db_base + (slot_id as usize) * 4) as u64),
                         endpoint as u32
                     );
                 }
