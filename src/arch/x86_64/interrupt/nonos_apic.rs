@@ -299,7 +299,7 @@ fn mmio_w32(off: u32, v: u32) { unsafe { core::ptr::write_volatile((mmio_base().
 unsafe fn map_apic_mmio(pa: PhysAddr) -> VirtAddr {
     extern "Rust" { fn __nonos_alloc_mmio_va(pages: usize) -> u64; }
     let va = VirtAddr::new(__nonos_alloc_mmio_va(1));
-    virt::map4k_at(va, pa, VmFlags::RW | VmFlags::NX | VmFlags::GLOBAL | VmFlags::PCD).expect("lapic map");
+    virt::map_page_4k(va, pa, true, false, false).expect("lapic map");
     va
 }
 

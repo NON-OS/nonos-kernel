@@ -5,7 +5,7 @@ use spin::{RwLock, Mutex};
 use crate::syscall::capabilities::CapabilityToken;
 use crate::crypto::verify_ed25519;
 use crate::crypto::blake3::blake3_hash;
-use crate::memory::secure_erase;
+use crate::memory::memory::zero_memory;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum NonosModuleType {
@@ -125,7 +125,7 @@ impl NonosModuleLoader {
         let module = modules.get_mut(&module_id).ok_or("Module not found")?;
 
         // Wipe code from RAM
-        secure_erase(&mut module.code);
+        zero_memory(x86_64::VirtAddr::from_ptr(module.code.as_mut_ptr()), module.code.len()).ok();
 
         // Remove from registry
         modules.remove(&module_id);

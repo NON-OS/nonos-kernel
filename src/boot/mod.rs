@@ -159,25 +159,14 @@ unsafe fn init_memory(boot_info: &'static BootInfo) -> Result<(), &'static str> 
         }
     }
 
-    crate::memory::phys::init_from_regions(
-        &usable_regions[..], 0,
-        crate::memory::phys::ScrubPolicy::OnFree,
-        |words| {
-            let bytes = words * 8;
-            let pages = (bytes + 4095) / 4096;
-            let addr = EARLY_ALLOC.alloc_pages(pages);
-            unsafe {
-                core::slice::from_raw_parts_mut(
-                    addr.as_u64() as *mut core::sync::atomic::AtomicU64, words
-                )
-            }
-        },
-        None,
-    );
+    crate::memory::phys::init(
+        x86_64::PhysAddr::new(usable_regions[0].start_addr()),
+        x86_64::PhysAddr::new(usable_regions[0].end_addr())
+    ).expect("Failed to initialize physical memory");
 
     let phys_offset = VirtAddr::new(0xFFFF_8000_0000_0000);
     let l4_table = get_level_4_table(phys_offset);
-    crate::memory::virt::init(l4_table as u64).map_err(|_| "Virtual memory init failed")?;
+    crate::memory::virt::init(x86_64::PhysAddr::new(l4_table as u64)).map_err(|_| "Virtual memory init failed")?;
 
     const HEAP_SIZE: usize = 8 * 1024 * 1024; // 8 MiB
     let heap_start = VirtAddr::new(0xFFFF_8800_0000_0000);
@@ -185,13 +174,13 @@ unsafe fn init_memory(boot_info: &'static BootInfo) -> Result<(), &'static str> 
         let page = heap_start + (i * 4096) as u64;
         let frame = crate::memory::phys::alloc(AllocFlags::empty())
             .expect("Failed to allocate heap frame");
-        crate::memory::virt::map4k_at(
+        crate::memory::virt::map_page_4k(
             page,
             PhysAddr::new(frame.0),
-            VmFlags::RW | VmFlags::NX | VmFlags::GLOBAL,
+            true, false, false
         ).map_err(|_| "Failed to map heap page")?;
     }
-    crate::memory::heap::init_kernel_heap();
+    crate::memory::heap::init().expect("Failed to initialize heap");
     Ok(())
 }
 

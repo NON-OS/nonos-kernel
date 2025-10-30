@@ -295,7 +295,7 @@ fn locate(gsi: u32) -> Option<(IoApicChip, u32)> {
 unsafe fn map_mmio(pa: PhysAddr) -> Result<VirtAddr, &'static str> {
     extern "Rust" { fn __nonos_alloc_mmio_va(pages: usize) -> u64; }
     let va = VirtAddr::new(__nonos_alloc_mmio_va(1));
-    virt::map4k_at(va, pa, VmFlags::RW | VmFlags::NX | VmFlags::GLOBAL | VmFlags::PCD)
+    virt::map_page_4k(va, pa, true, false, false)
         .map_err(|_| "MMIO mapping failed")?;
     Ok(va)
 }

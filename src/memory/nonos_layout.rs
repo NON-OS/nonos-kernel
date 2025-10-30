@@ -1,32 +1,27 @@
-// NØNOS memory layout (x86_64, 4-level, higher-half, W^X).
-
-#![allow(dead_code)]
+#![no_std]
 
 use core::ops::Range;
-use alloc::format;
+use core::cmp;
+use core::convert::TryInto;
 
-// Page sizes, masks, canonical
+use crate::memory::nonos_kaslr;
 
 pub const PAGE_SIZE: usize = 4096;
-pub const PAGE_MASK: u64   = !(PAGE_SIZE as u64 - 1);
-pub const HUGE_2M:   usize = 2 * 1024 * 1024;
-pub const HUGE_1G:   usize = 1024 * 1024 * 1024;
+pub const PAGE_MASK: u64 = !(PAGE_SIZE as u64 - 1);
+pub const HUGE_2M: usize = 2 * 1024 * 1024;
+pub const HUGE_1G: usize = 1024 * 1024 * 1024;
 
-pub const CANON_LOW_MAX:  u64 = 0x0000_7FFF_FFFF_FFFF;
+pub const CANON_LOW_MAX: u64 = 0x0000_7FFF_FFFF_FFFF;
 pub const CANON_HIGH_MIN: u64 = 0xFFFF_8000_0000_0000;
 
-// Kernel/User split, KPTI trampoline, PCID domains
-
 pub const KERNEL_BASE: u64 = 0xFFFF_FFFF_8000_0000;
-pub const USER_BASE:   u64 = 0x0000_0000_0000_0000;
-pub const USER_TOP:    u64 = CANON_LOW_MAX;
+pub const USER_BASE: u64 = 0x0000_0000_0000_0000;
+pub const USER_TOP: u64 = CANON_LOW_MAX;
 
 pub const KPTI_TRAMPOLINE: u64 = 0xFFFF_FFFF_FFFE_0000;
 
 pub const PCID_KERNEL: u16 = 0x0001;
-pub const PCID_USER:   u16 = 0x0002;
-
-// Self-referenced PML4 slot
+pub const PCID_USER: u16 = 0x0002;
 
 pub const SELFREF_SLOT: usize = 510;
 
@@ -36,88 +31,96 @@ pub const fn selfref_l4_va() -> u64 {
     (0xFFFFu64 << 48) | (i << 39) | (i << 30) | (i << 21) | (i << 12)
 }
 
-// Core virtual windows
+pub const KTEXT_BASE: u64 = KERNEL_BASE;
+pub const KDATA_BASE: u64 = KERNEL_BASE + 0x0000_0200_0000;
 
-pub const KTEXT_BASE: u64 = KERNEL_BASE;                    // .text/.rodata (RX,GLOBAL)
-pub const KDATA_BASE: u64 = KERNEL_BASE + 0x0000_0200_0000; // .data/.bss/percpu (RW,NX,GLOBAL)
-
-pub const DIRECTMAP_BASE: u64 = 0xFFFF_FFFF_B000_0000; // phys→virt linear window
+pub const DIRECTMAP_BASE: u64 = 0xFFFF_FFFF_B000_0000;
 pub const DIRECTMAP_SIZE: u64 = 0x0000_0000_1000_0000;
 
-pub const KHEAP_BASE:  u64 = 0xFFFF_FF00_0000_0000; // kernel heap arena (VA only)
-pub const KHEAP_SIZE:  u64 = 0x0000_0000_1000_0000;
+pub const KHEAP_BASE: u64 = 0xFFFF_FF00_0000_0000;
+pub const KHEAP_SIZE: u64 = 0x0000_0000_1000_0000;
 
-pub const KVM_BASE:    u64 = 0xFFFF_FF10_0000_0000; // anon VM (kalloc_pages)
-pub const KVM_SIZE:    u64 = 0x0000_0000_2000_0000;
+pub const KVM_BASE: u64 = 0xFFFF_FF10_0000_0000;
+pub const KVM_SIZE: u64 = 0x0000_0000_2000_0000;
 
-pub const MMIO_BASE:   u64 = 0xFFFF_FF30_0000_0000; // device MMIO VA window
-pub const MMIO_SIZE:   u64 = 0x0000_0000_2000_0000;
+pub const MMIO_BASE: u64 = 0xFFFF_FF30_0000_0000;
+pub const MMIO_SIZE: u64 = 0x0000_0000_2000_0000;
 
-pub const VMAP_BASE:   u64 = 0xFFFF_FF50_0000_0000; // vmap/ioremap overflow
-pub const VMAP_SIZE:   u64 = 0x0000_0000_1000_0000;
+pub const VMAP_BASE: u64 = 0xFFFF_FF50_0000_0000;
+pub const VMAP_SIZE: u64 = 0x0000_0000_1000_0000;
 
-// Fixmap: small, fixed VA slots
+pub const MAX_PHYS_ADDR: u64 = 0x0000_FFFF_FFFF_FFFF;
+
+pub const DMA_BASE: u64 = 0xFFFF_FF60_0000_0000;
+pub const DMA_SIZE: u64 = 0x0000_0000_1000_0000;
 
 pub const FIXMAP_BASE: u64 = 0xFFFF_FFA0_0000_0000;
 pub const FIXMAP_SIZE: u64 = 0x0000_0010_0000_0000;
 
-// Boot identity window
-
 pub const BOOT_IDMAP_BASE: u64 = 0xFFFF_FFB0_0000_0000;
 pub const BOOT_IDMAP_SIZE: u64 = 0x0000_1000_0000;
 
-// Per-CPU TLS/GDT/TSS/stacks
-
-pub const PERCPU_BASE:   u64 = 0xFFFF_FFC0_0000_0000;
+pub const PERCPU_BASE: u64 = 0xFFFF_FFC0_0000_0000;
 pub const PERCPU_STRIDE: u64 = 0x0000_0100_0000;
 
-// Stacks, IST, guards
-
-pub const KSTACK_SIZE:    usize = 64 * 1024;
+pub const KSTACK_SIZE: usize = 64 * 1024;
 pub const IST_STACK_SIZE: usize = 32 * 1024;
-pub const GUARD_PAGES:    usize = 1;
+pub const GUARD_PAGES: usize = 1;
 
 #[inline(always)]
-pub const fn stack_guard_and_base(stack_top: u64) -> (u64, u64) {
-    let guard = align_down(stack_top - (GUARD_PAGES as u64) * PAGE_SIZE as u64, PAGE_SIZE as u64);
-    (guard, stack_top)
+pub const fn align_down(x: u64, a: u64) -> u64 { 
+    if a == 0 || (a & (a - 1)) != 0 { 
+        return x; // Invalid alignment, return as-is
+    }
+    x & !(a - 1) 
 }
 
-// PAT cache kinds
-
-pub mod pat {
-    pub const UC:       u8 = 0;
-    pub const WC:       u8 = 1;
-    pub const WT:       u8 = 4;
-    pub const WP:       u8 = 5;
-    pub const WB:       u8 = 6;
-    pub const UcMinus: u8 = 7;
+#[inline(always)]
+pub const fn align_up(x: u64, a: u64) -> u64 { 
+    if a == 0 || (a & (a - 1)) != 0 { 
+        return x; // Invalid alignment, return as-is
+    }
+    (x + a - 1) & !(a - 1) 
 }
 
-// Linker-provided section bounds (virt addresses)
-
-extern "C" {
-    pub static __kernel_start:        u8;
-    pub static __kernel_text_start:   u8;
-    pub static __kernel_text_end:     u8;
-    pub static __kernel_rodata_start: u8;
-    pub static __kernel_rodata_end:   u8;
-    pub static __kernel_data_start:   u8;
-    pub static __kernel_data_end:     u8;
-    pub static __kernel_bss_start:    u8;
-    pub static __kernel_bss_end:      u8;
-    pub static __kernel_end:          u8;
-
-    pub static __boot_stacks_start: u8;
-    pub static __boot_stacks_end:   u8;
-
-    pub static __percpu_start: u8;
-    pub static __percpu_end:   u8;
+#[inline(always)]
+pub const fn is_aligned(x: u64, a: u64) -> bool { 
+    if a == 0 { return false; }
+    (x & (a - 1)) == 0 
 }
+
+#[inline(always)]
+pub const fn in_kernel_space(va: u64) -> bool { va >= CANON_HIGH_MIN }
+
+#[inline(always)]
+pub const fn in_user_space(va: u64) -> bool { va <= USER_TOP }
+
+#[inline(always)]
+pub const fn range(base: u64, size: u64) -> Range<u64> { base..(base.saturating_add(size)) }
 
 #[derive(Clone, Copy, Debug)]
 pub struct Section { pub start: u64, pub end: u64, pub rx: bool, pub rw: bool, pub nx: bool, pub global: bool }
 impl Section { pub const fn size(&self) -> u64 { self.end - self.start } }
+
+extern "C" {
+    // Symbols in kernel linker script.
+    static __kernel_start: u8;
+    static __kernel_text_start: u8;
+    static __kernel_text_end: u8;
+    static __kernel_rodata_start: u8;
+    static __kernel_rodata_end: u8;
+    static __kernel_data_start: u8;
+    static __kernel_data_end: u8;
+    static __kernel_bss_start: u8;
+    static __kernel_bss_end: u8;
+    static __kernel_end: u8;
+
+    static __boot_stacks_start: u8;
+    static __boot_stacks_end: u8;
+
+    static __percpu_start: u8;
+    static __percpu_end: u8;
+}
 
 pub fn kernel_sections() -> [Section; 4] {
     unsafe {
@@ -130,180 +133,207 @@ pub fn kernel_sections() -> [Section; 4] {
     }
 }
 
-// NUMA-aware direct map stripes
-
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub struct NodeStripe { pub node_id: u8, pub phys_lo: u64, pub phys_hi: u64, pub virt_lo: u64 }
-
-pub const MAX_NODES: usize = 8;
-pub static mut DIRECTMAP_STRIPES: [Option<NodeStripe>; MAX_NODES] = [None; MAX_NODES];
-
-#[inline(always)]
-pub fn directmap_va(paddr: u64) -> Option<u64> {
-    unsafe {
-        for s in DIRECTMAP_STRIPES.iter().flatten() {
-            if paddr >= s.phys_lo && paddr < s.phys_hi {
-                return Some(s.virt_lo + (paddr - s.phys_lo));
-            }
-        }
-    }
-    if paddr < DIRECTMAP_SIZE { Some(DIRECTMAP_BASE + paddr) } else { None }
-}
-
-// Firmware map glue (E820/UEFI → Region/Kind)
-
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum RegionKind { Available, Usable, Reserved, Acpi, Mmio, Kernel, Boot, Unknown }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub struct Region {
-    pub start: u64,
-    pub end: u64,
-    pub kind: RegionKind,
-}
+pub struct Region { pub start: u64, pub end: u64, pub kind: RegionKind }
 
-impl Region {
-    pub const fn len(&self) -> u64 { self.end - self.start }
+impl Region { 
+    pub const fn len(&self) -> u64 { self.end - self.start } 
     pub const fn is_usable(&self) -> bool { matches!(self.kind, RegionKind::Usable | RegionKind::Available) }
+    pub const fn start_addr(&self) -> u64 { self.start }
+    pub const fn end_addr(&self) -> u64 { self.end }
 }
 
 pub fn region_from_firmware(kind_code: u32, start: u64, len: u64) -> Region {
-    let kind = match kind_code {
-        1 => RegionKind::Usable,
-        2 => RegionKind::Reserved,
-        3 | 4 => RegionKind::Acpi,
-        7 => RegionKind::Mmio,
-        _ => RegionKind::Unknown,
-    };
+    let kind = match kind_code { 1 => RegionKind::Usable, 2 => RegionKind::Reserved, 3 | 4 => RegionKind::Acpi, 7 => RegionKind::Mmio, _ => RegionKind::Unknown };
     Region { start, end: start + len, kind }
 }
 
 pub fn managed_span(rs: &[Region]) -> (u64, u64) {
     let mut lo = u64::MAX; let mut hi = 0u64;
-    for r in rs {
-        if r.is_usable() {
-            let s = align_up(r.start, PAGE_SIZE as u64);
-            let e = align_down(r.end, PAGE_SIZE as u64);
-            if e > s { lo = lo.min(s); hi = hi.max(e); }
-        }
-    }
-    if lo > hi { (0, 0) } else { (lo, hi) }
+    for r in rs { if r.is_usable() { let s = align_up(r.start, PAGE_SIZE as u64); let e = align_down(r.end, PAGE_SIZE as u64); if e > s { lo = lo.min(s); hi = hi.max(e); } } }
+    if lo > hi { (0,0) } else { (lo, hi) }
 }
-
-// Alignment & range helpers
-
-#[inline(always)] pub const fn align_down(x: u64, a: u64) -> u64 { x & !(a - 1) }
-#[inline(always)] pub const fn align_up  (x: u64, a: u64) -> u64 { (x + a - 1) & !(a - 1) }
-#[inline(always)] pub const fn is_aligned(x: u64, a: u64) -> bool { (x & (a - 1)) == 0 }
-
-#[inline(always)] pub const fn in_kernel_space(va: u64) -> bool { va >= CANON_HIGH_MIN }
-#[inline(always)] pub const fn range(base: u64, size: u64) -> Range<u64> { base..(base + size) }
-
-// Runtime layout config (KASLR slide, dynamic window trims)
 
 #[derive(Clone, Copy, Debug)]
-pub struct LayoutConfig {
-    pub slide: u64,
-    pub heap_lo: u64,
-    pub heap_sz: u64,
-    pub vm_lo:   u64,
-    pub vm_sz:   u64,
-    pub mmio_lo: u64,
-    pub mmio_sz: u64,
-}
+pub struct LayoutConfig { pub slide: u64, pub heap_lo: u64, pub heap_sz: u64, pub vm_lo:   u64, pub vm_sz:   u64, pub mmio_lo: u64, pub mmio_sz: u64 }
+impl Default for LayoutConfig { fn default() -> Self { Self { slide: 0, heap_lo: KHEAP_BASE, heap_sz: KHEAP_SIZE, vm_lo: KVM_BASE, vm_sz: KVM_SIZE, mmio_lo: MMIO_BASE, mmio_sz: MMIO_SIZE } } }
 
-impl Default for LayoutConfig {
-    fn default() -> Self {
-        Self {
-            slide: 0,
-            heap_lo: KHEAP_BASE, heap_sz: KHEAP_SIZE,
-            vm_lo:   KVM_BASE,   vm_sz:   KVM_SIZE,
-            mmio_lo: MMIO_BASE,  mmio_sz: MMIO_SIZE,
-        }
-    }
-}
+pub static mut LAYOUT: LayoutConfig = LayoutConfig { slide: 0, heap_lo: KHEAP_BASE, heap_sz: KHEAP_SIZE, vm_lo: KVM_BASE, vm_sz: KVM_SIZE, mmio_lo: MMIO_BASE, mmio_sz: MMIO_SIZE };
 
-pub static mut LAYOUT: LayoutConfig = LayoutConfig {
-    slide: 0,
-    heap_lo: KHEAP_BASE, heap_sz: KHEAP_SIZE,
-    vm_lo:   KVM_BASE,   vm_sz:   KVM_SIZE,
-    mmio_lo: MMIO_BASE,  mmio_sz: MMIO_SIZE,
-};
-
-// Diagnostics
-
-pub fn dump<F>(mut writer: F)
-where
-    F: FnMut(&str),
-{
+pub fn apply_kaslr_slide(slide: u64) -> Result<(), &'static str> {
+    if slide & (PAGE_SIZE as u64 - 1) != 0 { return Err("slide not page-aligned"); }
     unsafe {
-        writer(&format!("Memory Layout:\n"));
-        writer(&format!("  Kernel Base: 0x{:016x}\n", KERNEL_BASE));
-        writer(&format!("  Heap Base:   0x{:016x} (size: 0x{:x})\n", LAYOUT.heap_lo, LAYOUT.heap_sz));
-        writer(&format!("  VM Base:     0x{:016x} (size: 0x{:x})\n", LAYOUT.vm_lo, LAYOUT.vm_sz));
-        writer(&format!("  MMIO Base:   0x{:016x} (size: 0x{:x})\n", LAYOUT.mmio_lo, LAYOUT.mmio_sz));
-        writer(&format!("  KASLR Slide: 0x{:016x}\n", LAYOUT.slide));
+        LAYOUT.slide = slide;
+        // update derived windows
+        LAYOUT.heap_lo = KHEAP_BASE.wrapping_add(slide);
+        LAYOUT.vm_lo   = KVM_BASE.wrapping_add(slide);
+        LAYOUT.mmio_lo = MMIO_BASE.wrapping_add(slide);
     }
+    Ok(())
 }
 
-#[inline(always)] pub fn apply_slide(va: u64, slide: u64) -> u64 { va.wrapping_add(slide) }
-#[inline(always)] pub fn remove_slide(va: u64, slide: u64) -> u64 { va.wrapping_sub(slide) }
-
-// Fixmap slots
-
-#[repr(usize)]
-#[derive(Clone, Copy, Debug)]
-pub enum FixmapSlot {
-    EarlyConsole = 0,
-    AcpiTable    = 1,
-    TempPte      = 2,
-    TempPde      = 3,
-    TempStack    = 4,
+pub fn slid_address(base: u64) -> u64 {
+    unsafe { base.wrapping_add(LAYOUT.slide) }
 }
 
-#[inline(always)]
-pub const fn fixmap_va(slot: FixmapSlot) -> u64 {
-    FIXMAP_BASE + (slot as u64) * (PAGE_SIZE as u64)
-}
-
-// Runtime validation (non-fatal): ensures windows are ordered and non-overlapping.
-
-#[inline(always)]
-const fn non_overlapping(a_base: u64, a_size: u64, b_base: u64, b_size: u64) -> bool {
-    let a_end = a_base.wrapping_add(a_size);
-    let b_end = b_base.wrapping_add(b_size);
-    !(a_base < b_end && b_base < a_end)
+pub fn slid_range(base: u64, size: u64) -> Range<u64> {
+    let b = slid_address(base);
+    b..b.saturating_add(size)
 }
 
 pub fn validate_layout() -> Result<(), &'static str> {
-    // Higher-half invariant
+    // basic invariants
     if KERNEL_BASE < CANON_HIGH_MIN { return Err("kernel base below higher-half"); }
-    // Coarse ordering and non-overlap (using declared windows)
+    if PERCPU_STRIDE % (PAGE_SIZE as u64) != 0 { return Err("percpu stride misaligned"); }
+
     let pairs: &[(u64,u64,u64,u64)] = &[
-        (KTEXT_BASE, 0x0200_0000, KDATA_BASE, 0x0200_0000),       // 32 MiB text/rodata vs data/bss window
+        (KTEXT_BASE, 0x0200_0000, KDATA_BASE, 0x0200_0000),
         (KDATA_BASE, 0x0200_0000, DIRECTMAP_BASE, DIRECTMAP_SIZE),
         (DIRECTMAP_BASE, DIRECTMAP_SIZE, KHEAP_BASE, KHEAP_SIZE),
         (KHEAP_BASE, KHEAP_SIZE, KVM_BASE, KVM_SIZE),
         (KVM_BASE, KVM_SIZE, MMIO_BASE, MMIO_SIZE),
         (MMIO_BASE, MMIO_SIZE, VMAP_BASE, VMAP_SIZE),
     ];
-    for &(a0, asz, b0, bsz) in pairs {
-        if !non_overlapping(a0, asz, b0, bsz) { return Err("layout window overlap"); }
-        if a0 > b0 { return Err("layout order violation"); }
+
+    unsafe {
+        let slide = LAYOUT.slide;
+        for &(a0, asz, b0, bsz) in pairs {
+            let a0s = a0.wrapping_add(slide);
+            let b0s = b0.wrapping_add(slide);
+            if a0s < b0s + bsz && b0s < a0s + asz { return Err("layout window overlap"); }
+            if a0s > b0s { return Err("layout order violation"); }
+        }
     }
-    if PERCPU_STRIDE % (PAGE_SIZE as u64) != 0 { return Err("percpu stride misaligned"); }
+
     Ok(())
 }
 
-// Section logging
+pub fn kernel_vaddr_to_phys(v: u64) -> Option<u64> {
+    if !in_kernel_space(v) { return None; }
+    let slide = unsafe { LAYOUT.slide };
+    Some(v.wrapping_sub(slide).wrapping_sub(KERNEL_BASE - 0))
+}
 
-pub fn log_kernel_sections(log: &mut dyn FnMut(&str)) {
+pub fn heap_base_for(size: usize) -> Result<u64, &'static str> {
+    let slide = unsafe { LAYOUT.slide };
+    let base = KHEAP_BASE.wrapping_add(slide);
+    let aligned = align_up(base, PAGE_SIZE as u64);
+    if size as u64 > unsafe { LAYOUT.heap_sz } { return Err("request > heap size"); }
+    Ok(aligned)
+}
+
+pub fn vm_window() -> (u64, u64) {
+    let slide = unsafe { LAYOUT.slide };
+    (KVM_BASE.wrapping_add(slide), KVM_SIZE)
+}
+
+pub fn log_kernel_sections(mut log: impl FnMut(&str)) {
     for s in kernel_sections().iter() {
         let perm = if s.rx { "RX" } else if s.rw { "RW" } else { "R" };
         let nx   = if s.nx { "NX" } else { "X" };
-        log(&format!(
-            "[layout] {:#016x}-{:#016x} {:>6}KiB {} {} global={}",
-            s.start, s.end, s.size()/1024, perm, nx, s.global
-        ));
+        log(&alloc::format!("[layout] {:#016x}-{:#016x} {:>6}KiB {} {} global={}", slid_address(s.start), slid_address(s.end), s.size()/1024, perm, nx, s.global));
     }
+}
+
+pub fn randomize_layout_from_kaslr(policy: crate::memory::nonos_kaslr::Policy) -> Result<nonos_kaslr::Kaslr, &'static str> {
+    match nonos_kaslr::init(policy) {
+        Ok(k) => {
+            apply_kaslr_slide(k.slide)?;
+            Ok(k)
+        }
+        Err(e) => Err(e)
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct StackRegion {
+    pub base: u64,
+    pub size: usize,
+    pub guard_size: usize,
+    pub cpu_id: Option<u32>,
+    pub thread_id: Option<u64>,
+}
+
+#[derive(Debug, Clone)]
+pub struct PercpuRegion {
+    pub base: u64,
+    pub size: usize,
+    pub cpu_id: u32,
+}
+
+#[derive(Debug, Clone)]
+pub struct ModuleRegion {
+    pub base: u64,
+    pub size: usize,
+    pub name: &'static str,
+    pub permissions: u32,
+}
+
+pub fn get_all_stack_regions() -> alloc::vec::Vec<StackRegion> {
+    let mut regions = alloc::vec::Vec::new();
+    
+    // Add main kernel stacks
+    let max_cpus = 64; // Reasonable default
+    for cpu_id in 0..max_cpus {
+        let stack_base = PERCPU_BASE + (cpu_id as u64) * PERCPU_STRIDE;
+        regions.push(StackRegion {
+            base: stack_base,
+            size: KSTACK_SIZE,
+            guard_size: GUARD_PAGES * PAGE_SIZE,
+            cpu_id: Some(cpu_id),
+            thread_id: None,
+        });
+        
+        // IST stacks
+        for ist_num in 0..8 {
+            regions.push(StackRegion {
+                base: stack_base + KSTACK_SIZE as u64 + (ist_num * IST_STACK_SIZE) as u64,
+                size: IST_STACK_SIZE,
+                guard_size: GUARD_PAGES * PAGE_SIZE,
+                cpu_id: Some(cpu_id),
+                thread_id: None,
+            });
+        }
+    }
+    
+    regions
+}
+
+pub fn get_percpu_regions() -> alloc::vec::Vec<PercpuRegion> {
+    let mut regions = alloc::vec::Vec::new();
+    let max_cpus = 64;
+    
+    for cpu_id in 0..max_cpus {
+        regions.push(PercpuRegion {
+            base: PERCPU_BASE + (cpu_id as u64) * PERCPU_STRIDE,
+            size: PERCPU_STRIDE as usize,
+            cpu_id,
+        });
+    }
+    
+    regions
+}
+
+pub fn get_module_regions() -> alloc::vec::Vec<ModuleRegion> {
+    let mut regions = alloc::vec::Vec::new();
+    
+    // Add kernel sections as module regions
+    for section in kernel_sections().iter() {
+        let mut perms = 0;
+        if section.rx { perms |= 1; }
+        if section.rw { perms |= 2; }
+        if !section.nx { perms |= 4; }
+        
+        regions.push(ModuleRegion {
+            base: section.start,
+            size: section.size() as usize,
+            name: "kernel",
+            permissions: perms,
+        });
+    }
+    
+    regions
 }

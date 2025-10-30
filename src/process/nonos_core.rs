@@ -293,15 +293,15 @@ pub fn suspend_process(_pid: Pid) -> Result<(), &'static str> { Ok(()) }
 // -------------------- Mapping primitives --------------------
 #[cfg(not(test))]
 fn allocate_physical_page() -> Option<PhysAddr> {
-    crate::memory::robust_allocator::allocate_pages_robust(1)
+    crate::memory::phys::alloc(crate::memory::phys::AllocFlags::empty()).map(|f| x86_64::PhysAddr::new(f.0))
 }
 #[cfg(not(test))]
 fn map_page_to_phys(page_va: VirtAddr, phys: PhysAddr, flags: PageTableFlags) -> Result<(), ()> {
-    crate::memory::virtual_memory::map_memory_range(page_va, phys, 4096, flags).map_err(|_| ())
+    crate::memory::virt::map_page_4k(page_va, phys, true, false, false).map_err(|_| ())
 }
 #[cfg(not(test))]
 fn unmap_range(addr: VirtAddr, len: usize) -> Result<(), ()> {
-    crate::memory::virtual_memory::unmap_range(addr, len).map_err(|_| ())
+    crate::memory::virt::unmap_range(addr, len).map_err(|_| ())
 }
 
 // Test-only (compiled only during `cargo test`)

@@ -143,9 +143,9 @@ pub fn random_u64() -> u64 {
 }
 
 pub fn allocate_secure_memory(size: usize) -> *mut u8 {
-    unsafe { crate::memory::nonos_alloc::kalloc(size) as *mut u8 }
+    crate::memory::allocator::allocate_aligned(size, 8).ok().map(|va| va.as_mut_ptr::<u8>()).unwrap_or(core::ptr::null_mut())
 }
 
 pub fn deallocate_secure_memory(ptr: *mut u8, _size: usize) {
-    unsafe { crate::memory::nonos_alloc::kfree_void(ptr as *mut core::ffi::c_void) }
+    crate::memory::allocator::free_pages(x86_64::VirtAddr::from_ptr(ptr), 1).ok();
 }

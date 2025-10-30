@@ -3,7 +3,7 @@
 use alloc::{vec::Vec, string::{String, ToString}, collections::BTreeMap};
 use core::{mem, ptr};
 use x86_64::{VirtAddr, structures::paging::PageTableFlags};
-use crate::memory::{page_allocator, virtual_memory};
+use crate::memory::{frame_alloc, virtual_memory};
 use crate::elf::types::*;
 use crate::elf::errors::ElfError;
 use crate::elf::aslr::AslrManager;
@@ -223,13 +223,25 @@ impl ElfLoader {
         // Allocate and map memory
         let pages_needed = (size + 0xFFF) >> 12;
         for i in 0..pages_needed {
-            if let Some(frame) = page_allocator::allocate_frame() {
+            if let Some(frame) = frame_alloc::allocate_frame() {
                 let page_vaddr = vaddr + (i * 4096);
+                // Convert PageTableFlags to VmProtection
+                let protection = if flags.contains(x86_64::structures::paging::PageTableFlags::WRITABLE) {
+                    if flags.contains(x86_64::structures::paging::PageTableFlags::NO_EXECUTE) {
+                        crate::memory::virtual_memory::VmProtection::ReadWrite
+                    } else {
+                        crate::memory::virtual_memory::VmProtection::ReadWriteExecute
+                    }
+                } else if flags.contains(x86_64::structures::paging::PageTableFlags::NO_EXECUTE) {
+                    crate::memory::virtual_memory::VmProtection::Read
+                } else {
+                    crate::memory::virtual_memory::VmProtection::ReadExecute
+                };
                 virtual_memory::map_memory_range(
                     page_vaddr,
-                    frame.start_address(),
                     4096,
-                    flags
+                    protection,
+                    crate::memory::virtual_memory::VmType::File
                 )?;
             } else {
                 return Err(ElfError::MemoryAllocationFailed);

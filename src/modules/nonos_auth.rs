@@ -3,7 +3,7 @@
 use alloc::{vec::Vec, string::String, string::ToString};
 use crate::crypto::{verify, blake3_hash, nonos_zk::AttestationProof};
 use crate::security::nonos_trusted_keys::get_trusted_keys;
-use crate::memory::secure_erase;
+use crate::memory::memory::zero_memory;
 
 /// Authentication result
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -93,7 +93,7 @@ pub fn erase_auth_context(ctx: &mut AuthContext) {
     if let Some(ref mut reason) = ctx.failure_reason {
         // Convert to mutable bytes for secure erasure
         let mut bytes = reason.as_bytes().to_vec();
-        secure_erase(&mut bytes);
+        zero_memory(x86_64::VirtAddr::from_ptr(bytes.as_mut_ptr()), bytes.len()).ok();
         *reason = String::new();
     }
 }
