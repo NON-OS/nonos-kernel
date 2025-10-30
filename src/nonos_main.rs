@@ -111,6 +111,32 @@ fn kernel_main() -> ! {
 }
 
 #[no_mangle]
+pub extern "C" fn memcpy(dest: *mut u8, src: *const u8, len: usize) -> *mut u8 {
+    unsafe {
+        for i in 0..len {
+            *dest.add(i) = *src.add(i);
+        }
+    }
+    dest
+}
+
+#[no_mangle]
+pub extern "C" fn memmove(dest: *mut u8, src: *const u8, len: usize) -> *mut u8 {
+    unsafe {
+        if dest < src as *mut u8 || dest >= src.add(len) as *mut u8 {
+            for i in 0..len {
+                *dest.add(i) = *src.add(i);
+            }
+        } else {
+            for i in (0..len).rev() {
+                *dest.add(i) = *src.add(i);
+            }
+        }
+    }
+    dest
+}
+
+#[no_mangle]
 pub extern "C" fn memset(dest: *mut u8, val: i32, len: usize) -> *mut u8 {
     unsafe {
         for i in 0..len {
