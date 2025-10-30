@@ -193,14 +193,12 @@ unsafe fn __cpuid_count(leaf: u32, subleaf: u32) -> core::arch::x86_64::CpuidRes
     
     core::arch::asm!(
         "mov {ebx}, rbx",
-        "mov ecx, {subleaf}",
         "cpuid",
         "xchg {ebx}, rbx",
         inout("eax") leaf => eax,
-        lateout("ecx") ecx,
+        inout("ecx") subleaf => ecx,
         out("edx") edx,
         ebx = out(reg) ebx,
-        subleaf = in(reg) subleaf,
         options(nomem, nostack, preserves_flags)
     );
     
