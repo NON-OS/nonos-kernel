@@ -1,399 +1,372 @@
-//! Boot Memory Management
+#![no_std]
 
+use core::sync::atomic::{AtomicU64, AtomicUsize, Ordering};
 use alloc::vec::Vec;
-use x86_64::{PhysAddr, VirtAddr, structures::paging::PageTableFlags};
-use crate::memory::layout::*;
-use crate::memory::virt::{self, VmFlags};
+use spin::Mutex;
+use x86_64::{PhysAddr, VirtAddr};
+use crate::memory::nonos_layout as layout;
 
-/// Boot memory information from bootloader
+static BOOT_MEMORY_MANAGER: Mutex<Option<BootMemoryManager>> = Mutex::new(None);
+static TOTAL_MEMORY: AtomicU64 = AtomicU64::new(0);
+static AVAILABLE_MEMORY: AtomicU64 = AtomicU64::new(0);
+static ALLOCATION_COUNT: AtomicUsize = AtomicUsize::new(0);
+
 #[repr(C, packed)]
 #[derive(Debug, Clone, Copy)]
-pub struct BootMemoryInfo {
+pub struct BootHandoff {
     pub magic: u64,
-    pub abi_version: u16,
-    pub hdr_size: u16,
-    pub boot_flags: u32,
+    pub version: u16,
+    pub flags: u16,
+    pub memory_base: u64,
+    pub memory_size: u64,
+    pub kernel_base: u64,
+    pub kernel_size: u64,
     pub capsule_base: u64,
     pub capsule_size: u64,
-    pub capsule_hash: [u8; 32],
-    pub memory_start: u64,
-    pub memory_size: u64,
     pub entropy: [u8; 32],
-    pub rtc_utc: [u8; 8],
-    pub reserved: [u8; 8],
+    pub timestamp: u64,
 }
 
-/// Memory region types
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum BootMemoryType {
+pub enum RegionType {
     Available,
     Reserved,
     Kernel,
-    Bootloader,
-    Firmware,
-    HardwareReserved,
+    Capsule,
+    Hardware,
     Defective,
 }
 
-/// Memory region descriptor
 #[derive(Debug, Clone, Copy)]
-pub struct BootMemoryRegion {
+pub struct MemoryRegion {
     pub start: PhysAddr,
     pub end: PhysAddr,
-    pub region_type: BootMemoryType,
-    pub attributes: u32,
+    pub region_type: RegionType,
+    pub flags: u32,
 }
 
-impl BootMemoryRegion {
-    #[inline] pub fn size(&self) -> u64 { self.end.as_u64() - self.start.as_u64() }
-    #[inline] pub fn is_available(&self) -> bool { matches!(self.region_type, BootMemoryType::Available) }
-    #[inline] pub fn contains(&self, addr: PhysAddr) -> bool { addr >= self.start && addr < self.end }
+impl MemoryRegion {
+    pub const fn new(start: u64, end: u64, region_type: RegionType, flags: u32) -> Self {
+        Self {
+            start: PhysAddr::new(start),
+            end: PhysAddr::new(end),
+            region_type,
+            flags,
+        }
+    }
+
+    pub const fn size(&self) -> u64 {
+        self.end.as_u64() - self.start.as_u64()
+    }
+
+    pub const fn contains(&self, addr: PhysAddr) -> bool {
+        addr.as_u64() >= self.start.as_u64() && addr.as_u64() < self.end.as_u64()
+    }
+
+    pub const fn is_available(&self) -> bool {
+        matches!(self.region_type, RegionType::Available)
+    }
 }
 
-/// Boot memory manager
 pub struct BootMemoryManager {
-    regions: Vec<BootMemoryRegion>,
-    kernel_base: VirtAddr,
-    kernel_size: u64,
-    available_memory: u64,
-    reserved_memory: u64,
-    identity_mapped: bool,
+    regions: Vec<MemoryRegion>,
+    next_free: PhysAddr,
+    total_size: u64,
+    allocated_size: u64,
+    initialized: bool,
 }
 
 impl BootMemoryManager {
-    pub fn new() -> Self {
+    const fn new() -> Self {
         Self {
             regions: Vec::new(),
-            kernel_base: VirtAddr::new(KERNEL_BASE),
-            kernel_size: 0,
-            available_memory: 0,
-            reserved_memory: 0,
-            identity_mapped: false,
+            next_free: PhysAddr::new(0),
+            total_size: 0,
+            allocated_size: 0,
+            initialized: false,
         }
     }
 
-    pub fn initialize_from_handoff(&mut self, handoff_addr: u64) -> Result<(), &'static str> {
+    fn init_from_handoff(&mut self, handoff_addr: u64) -> Result<(), &'static str> {
         if handoff_addr == 0 {
-            return self.initialize_default_layout();
+            return self.init_default();
         }
 
         let handoff = unsafe {
-            let p = handoff_addr as *const BootMemoryInfo;
-            if p.is_null() { return self.initialize_default_layout(); }
-            p.read()
+            let ptr = handoff_addr as *const BootHandoff;
+            if ptr.is_null() {
+                return self.init_default();
+            }
+            ptr.read_volatile()
         };
 
-        if handoff.magic != 0x3042_4F53_4F4E_4F4Eu64 || handoff.abi_version != 1 {
-            crate::log_warn!("[boot_memory] invalid handoff; using defaults");
-            return self.initialize_default_layout();
+        if handoff.magic != 0x4E4F4E4F534F5300 || handoff.version != 1 {
+            return self.init_default();
         }
 
-        let memory_start = handoff.memory_start;
-        let memory_size = handoff.memory_size;
-        crate::log::logger::log_info!(
-            "[boot_memory] handoff: mem_start=0x{:x} size=0x{:x}",
-            memory_start, memory_size
-        );
+        self.setup_regions_from_handoff(&handoff)?;
+        self.validate_layout()?;
+        self.initialized = true;
 
-        self.create_regions_from_handoff(&handoff)?;
-        self.setup_initial_mapping()?;
         Ok(())
     }
 
-    fn create_regions_from_handoff(&mut self, handoff: &BootMemoryInfo) -> Result<(), &'static str> {
+    fn init_default(&mut self) -> Result<(), &'static str> {
         self.regions.clear();
 
-        // Low memory [0, 1MiB) reserved
-        self.add_region(PhysAddr::new(0), PhysAddr::new(0x10_0000), BootMemoryType::Reserved, 0);
+        self.add_region(0x0, 0x100000, RegionType::Reserved, 0);
+        self.add_region(0x100000, 0x400000, RegionType::Kernel, 0);
+        self.add_region(0x400000, 0x8000000, RegionType::Available, 0);
+        self.add_region(0xB8000, 0xC0000, RegionType::Hardware, 0);
+        self.add_region(0xFEC00000, 0xFEC01000, RegionType::Hardware, 0);
+        self.add_region(0xFEE00000, 0xFEE01000, RegionType::Hardware, 0);
 
-        // Kernel region (estimate from linker bounds)
-        let kernel_start = PhysAddr::new(0x10_0000);
-        let kernel_end = PhysAddr::new(kernel_start.as_u64() + self.estimate_kernel_size());
-        self.add_region(kernel_start, kernel_end, BootMemoryType::Kernel, 0);
+        self.find_next_free()?;
+        self.calculate_totals();
+        self.initialized = true;
 
-        // Bootloader capsule if present
+        Ok(())
+    }
+
+    fn setup_regions_from_handoff(&mut self, handoff: &BootHandoff) -> Result<(), &'static str> {
+        self.regions.clear();
+
+        self.add_region(0x0, 0x100000, RegionType::Reserved, 0);
+
+        if handoff.kernel_size > 0 {
+            let kernel_end = handoff.kernel_base + handoff.kernel_size;
+            self.add_region(handoff.kernel_base, kernel_end, RegionType::Kernel, 0);
+        }
+
         if handoff.capsule_size > 0 {
-            let c0 = PhysAddr::new(handoff.capsule_base);
-            let c1 = PhysAddr::new(handoff.capsule_base + handoff.capsule_size);
-            self.add_region(c0, c1, BootMemoryType::Bootloader, 0);
+            let capsule_end = handoff.capsule_base + handoff.capsule_size;
+            self.add_region(handoff.capsule_base, capsule_end, RegionType::Capsule, 0);
         }
 
-        // Main memory
         if handoff.memory_size > 0 {
-            let mem_lo = kernel_end.as_u64().max(handoff.memory_start);
-            let mem_hi = handoff.memory_start + handoff.memory_size;
-            if mem_hi > mem_lo {
-                let lo = PhysAddr::new(align_up(mem_lo, PAGE_SIZE as u64));
-                let hi = PhysAddr::new(align_down(mem_hi, PAGE_SIZE as u64));
-                if hi > lo {
-                    self.add_region(lo, hi, BootMemoryType::Available, 0);
-                    self.available_memory = hi.as_u64() - lo.as_u64();
-                }
+            let mem_start = self.align_up(handoff.memory_base, layout::PAGE_SIZE as u64);
+            let mem_end = self.align_down(handoff.memory_base + handoff.memory_size, layout::PAGE_SIZE as u64);
+            
+            if mem_end > mem_start {
+                self.add_region(mem_start, mem_end, RegionType::Available, 0);
             }
         }
 
-        self.add_high_memory_regions()?;
+        self.add_hardware_regions();
+        self.sort_regions();
+        self.find_next_free()?;
+        self.calculate_totals();
+
+        Ok(())
+    }
+
+    fn add_hardware_regions(&mut self) {
+        self.add_region(0xB8000, 0xC0000, RegionType::Hardware, 0);
+        self.add_region(0xA0000, 0x100000, RegionType::Hardware, 0);
+        self.add_region(0xC0000000, 0x100000000, RegionType::Hardware, 0);
+        self.add_region(0xFEC00000, 0xFEC01000, RegionType::Hardware, 0);
+        self.add_region(0xFEE00000, 0xFEE01000, RegionType::Hardware, 0);
+    }
+
+    fn add_region(&mut self, start: u64, end: u64, region_type: RegionType, flags: u32) {
+        if start >= end {
+            return;
+        }
+        
+        let region = MemoryRegion::new(start, end, region_type, flags);
+        self.regions.push(region);
+    }
+
+    fn sort_regions(&mut self) {
         self.regions.sort_by_key(|r| r.start.as_u64());
-
-        crate::log::logger::log_info!(
-            "[boot_memory] regions={}, available={} KiB",
-            self.regions.len(),
-            self.available_memory / 1024
-        );
-        Ok(())
     }
 
-    fn initialize_default_layout(&mut self) -> Result<(), &'static str> {
-        crate::log::logger::log_info!("[boot_memory] default layout");
-
-        self.regions.clear();
-        // Available low RAM [0, 0xA0000)
-        self.add_region(PhysAddr::new(0x0), PhysAddr::new(0xA0000), BootMemoryType::Available, 0);
-        // Reserved [0xA0000, 0x100000)
-        self.add_region(PhysAddr::new(0xA0000), PhysAddr::new(0x100000), BootMemoryType::Reserved, 0);
-        // Kernel [1MiB, 16MiB)
-        self.add_region(PhysAddr::new(0x100000), PhysAddr::new(0x1000000), BootMemoryType::Kernel, 0);
-        // Available [16MiB, 128MiB)
-        self.add_region(PhysAddr::new(0x1000000), PhysAddr::new(0x8000000), BootMemoryType::Available, 0);
-
-        self.available_memory = 0x7000000;
-        self.setup_initial_mapping()?;
-        Ok(())
-    }
-
-    fn add_high_memory_regions(&mut self) -> Result<(), &'static str> {
-        // PCI hole [3GiB, 4GiB)
-        self.add_region(PhysAddr::new(0xC000_0000), PhysAddr::new(0x1_0000_0000), BootMemoryType::HardwareReserved, 0);
-        // LAPIC
-        self.add_region(PhysAddr::new(0xFEE0_0000), PhysAddr::new(0xFEE0_1000), BootMemoryType::HardwareReserved, 0);
-        // IOAPIC
-        self.add_region(PhysAddr::new(0xFEC0_0000), PhysAddr::new(0xFEC0_1000), BootMemoryType::HardwareReserved, 0);
-        Ok(())
-    }
-
-    fn add_region(&mut self, start: PhysAddr, end: PhysAddr, region_type: BootMemoryType, attributes: u32) {
-        if start >= end { return; }
-        let r = BootMemoryRegion { start, end, region_type, attributes };
-        if matches!(region_type, BootMemoryType::Reserved | BootMemoryType::HardwareReserved) {
-            self.reserved_memory += r.size();
-        }
-        self.regions.push(r);
-    }
-
-    fn estimate_kernel_size(&self) -> u64 {
-        unsafe {
-            let s = &crate::memory::layout::__kernel_start as *const _ as u64;
-            let e = &crate::memory::layout::__kernel_end as *const _ as u64;
-            let sz = e - s;
-            align_up(sz, HUGE_2M as u64) + (4 * 1024 * 1024)
-        }
-    }
-
-    fn setup_initial_mapping(&mut self) -> Result<(), &'static str> {
-        self.map_kernel_sections()?;
-        self.setup_direct_mapping()?;
-        self.map_hardware_regions()?;
-        self.identity_mapped = true;
-        Ok(())
-    }
-
-    fn map_kernel_sections(&mut self) -> Result<(), &'static str> {
-        for sec in kernel_sections().iter() {
-            let pa = PhysAddr::new(sec.start - KERNEL_BASE);
-            let va = VirtAddr::new(sec.start);
-            let len = sec.size() as usize;
-
-            let mut flags = VmFlags::GLOBAL;
-            if sec.rw { flags |= VmFlags::RW | VmFlags::NX; } else { /* RX */ }
-            if sec.nx { flags |= VmFlags::NX; }
-
-            virt::map_range_4k_at(va, pa, len, flags).map_err(|_| "kernel section map failed")?;
-            crate::log::logger::log_info!(
-                "[boot_memory] map sect {:#x}-{:#x} -> {:#x} {:?}",
-                sec.start, sec.end, pa.as_u64(), flags
-            );
-        }
-        Ok(())
-    }
-
-    fn setup_direct_mapping(&mut self) -> Result<(), &'static str> {
-        let size = (DIRECTMAP_SIZE.min(self.available_memory)) as usize;
-        if size == 0 { return Ok(()); }
-        let va = VirtAddr::new(DIRECTMAP_BASE);
-        let pa = PhysAddr::new(0);
-        let flags = VmFlags::RW | VmFlags::NX | VmFlags::GLOBAL;
-        virt::map_range_4k_at(va, pa, size, flags).map_err(|_| "direct map failed")?;
-        crate::log::logger::log_info!(
-            "[boot_memory] direct map {} MiB @ {:#x}",
-            size / (1024 * 1024), DIRECTMAP_BASE
-        );
-        Ok(())
-    }
-
-    fn map_hardware_regions(&mut self) -> Result<(), &'static str> {
-        let flags = VmFlags::RW | VmFlags::NX | VmFlags::GLOBAL | VmFlags::PCD | VmFlags::PWT;
-
-        // VGA text buffer at MMIO_BASE
-        virt::map_range_4k_at(
-            VirtAddr::new(MMIO_BASE),
-            PhysAddr::new(0xB8000),
-            PAGE_SIZE,
-            flags,
-        ).map_err(|_| "vga map failed")?;
-
-        // LAPIC at MMIO_BASE + 0x1000
-        virt::map_range_4k_at(
-            VirtAddr::new(MMIO_BASE + 0x1000),
-            PhysAddr::new(0xFEE0_0000),
-            PAGE_SIZE,
-            flags,
-        ).map_err(|_| "lapic map failed")?;
-
-        Ok(())
-    }
-
-    fn pte_to_vmflags(f: PageTableFlags) -> VmFlags {
-        let mut vm = VmFlags::GLOBAL;
-        if f.contains(PageTableFlags::WRITABLE) { vm |= VmFlags::RW | VmFlags::NX; }
-        if f.contains(PageTableFlags::NO_EXECUTE) { vm |= VmFlags::NX; }
-        if f.contains(PageTableFlags::USER_ACCESSIBLE) { vm |= VmFlags::USER; }
-        if f.contains(PageTableFlags::from_bits_truncate(0x8)) { vm |= VmFlags::PWT; }
-        if f.contains(PageTableFlags::from_bits_truncate(0x10)) { vm |= VmFlags::PCD; }
-        vm
-    }
-
-    fn map_memory_range(
-        &mut self,
-        virt_start: VirtAddr,
-        phys_start: PhysAddr,
-        size: u64,
-        flags: PageTableFlags,
-    ) -> Result<(), &'static str> {
-        let vmf = crate::memory::virt::VmFlags::Read;
-        virt::map_range_4k_at(virt_start, phys_start, size as usize, vmf).map_err(|_| "map range failed")
-    }
-
-    fn allocate_page_aligned(&mut self, size: usize) -> Result<PhysAddr, &'static str> {
-        let need = align_up(size as u64, PAGE_SIZE as u64);
-        for r in self.regions.iter_mut() {
-            if r.is_available() {
-                let cur = align_up(r.start.as_u64(), PAGE_SIZE as u64);
-                let end = r.end.as_u64();
-                if cur + need <= end {
-                    let alloc = PhysAddr::new(cur);
-                    r.start = PhysAddr::new(cur + need);
-                    return Ok(alloc);
-                }
+    fn find_next_free(&mut self) -> Result<(), &'static str> {
+        for region in &self.regions {
+            if region.is_available() && region.size() >= layout::PAGE_SIZE as u64 {
+                self.next_free = region.start;
+                return Ok(());
             }
         }
+        Err("No available memory found")
+    }
+
+    fn calculate_totals(&mut self) {
+        self.total_size = 0;
+        for region in &self.regions {
+            self.total_size += region.size();
+        }
+    }
+
+    fn validate_layout(&self) -> Result<(), &'static str> {
+        if self.regions.is_empty() {
+            return Err("No memory regions defined");
+        }
+
+        let mut has_available = false;
+        for region in &self.regions {
+            if region.start >= region.end {
+                return Err("Invalid region bounds");
+            }
+            if region.is_available() {
+                has_available = true;
+            }
+        }
+
+        if !has_available {
+            return Err("No available memory regions");
+        }
+
+        Ok(())
+    }
+
+    fn allocate_aligned(&mut self, size: usize, align: usize) -> Result<PhysAddr, &'static str> {
+        let needed = Self::align_up_static(size as u64, align as u64);
+        let next_free_val = self.next_free.as_u64();
+        
+        for region in &mut self.regions {
+            if !region.is_available() {
+                continue;
+            }
+
+            let aligned_start = Self::align_up_static(next_free_val, align as u64);
+            let aligned_end = aligned_start + needed;
+
+            if aligned_start >= region.start.as_u64() && 
+               aligned_end <= region.end.as_u64() {
+                let result = PhysAddr::new(aligned_start);
+                self.next_free = PhysAddr::new(aligned_end);
+                self.allocated_size += needed;
+                
+                ALLOCATION_COUNT.fetch_add(1, Ordering::Relaxed);
+                AVAILABLE_MEMORY.fetch_sub(needed, Ordering::Relaxed);
+                
+                return Ok(result);
+            }
+        }
+
         Err("Out of memory")
     }
 
-    pub fn get_stats(&self) -> BootMemoryStats {
-        let mut stats = BootMemoryStats {
-            total_regions: self.regions.len(),
-            available_memory: 0,
-            reserved_memory: 0,
-            kernel_memory: 0,
-            bootloader_memory: 0,
-            hardware_memory: 0,
-            total_memory: 0,
-        };
-        for r in &self.regions {
-            let sz = r.size();
-            stats.total_memory += sz;
-            match r.region_type {
-                BootMemoryType::Available => stats.available_memory += sz,
-                BootMemoryType::Reserved => stats.reserved_memory += sz,
-                BootMemoryType::Kernel => stats.kernel_memory += sz,
-                BootMemoryType::Bootloader => stats.bootloader_memory += sz,
-                BootMemoryType::HardwareReserved => stats.hardware_memory += sz,
-                _ => stats.reserved_memory += sz,
+    fn align_up_static(value: u64, align: u64) -> u64 {
+        (value + align - 1) & !(align - 1)
+    }
+
+    fn get_region_stats(&self) -> RegionStats {
+        let mut stats = RegionStats::default();
+        
+        for region in &self.regions {
+            let size = region.size();
+            stats.total_memory += size;
+            
+            match region.region_type {
+                RegionType::Available => stats.available_memory += size,
+                RegionType::Reserved => stats.reserved_memory += size,
+                RegionType::Kernel => stats.kernel_memory += size,
+                RegionType::Capsule => stats.capsule_memory += size,
+                RegionType::Hardware => stats.hardware_memory += size,
+                RegionType::Defective => stats.defective_memory += size,
             }
         }
+        
+        stats.allocated_memory = self.allocated_size;
+        stats.region_count = self.regions.len();
         stats
     }
 
-    pub fn dump_memory_map(&self) {
-        crate::log::logger::log_info!("Memory Map:");
-        for (i, r) in self.regions.iter().enumerate() {
-            crate::log::logger::log_info!(
-                "[boot_memory] {:2}: {:#016x}-{:#016x} {:>8} KiB {:?}",
-                i,
-                r.start.as_u64(),
-                r.end.as_u64(),
-                r.size() / 1024,
-                r.region_type
-            );
-        }
-        let s = self.get_stats();
-        crate::log::logger::log_info!(
-            "[boot_memory] Stats: total={} MiB avail={} MiB reserved={} MiB",
-            s.total_memory / (1024 * 1024),
-            s.available_memory / (1024 * 1024),
-            s.reserved_memory / (1024 * 1024)
-        );
+    const fn align_up(&self, addr: u64, align: u64) -> u64 {
+        (addr + align - 1) & !(align - 1)
     }
 
-    pub fn enable_paging(&self) -> Result<(), &'static str> {
-        // Paging is managed by the kernel VM; nothing to do here.
-        Ok(())
-    }
-
-    pub fn get_available_regions(&self) -> Vec<BootMemoryRegion> {
-        self.regions.iter().copied().filter(|r| r.is_available()).collect()
-    }
-
-    pub fn find_region(&self, addr: PhysAddr) -> Option<&BootMemoryRegion> {
-        self.regions.iter().find(|r| r.contains(addr))
+    const fn align_down(&self, addr: u64, align: u64) -> u64 {
+        addr & !(align - 1)
     }
 }
 
-/// Memory statistics
-#[derive(Debug, Clone)]
-pub struct BootMemoryStats {
-    pub total_regions: usize,
+#[derive(Debug, Default)]
+pub struct RegionStats {
+    pub total_memory: u64,
     pub available_memory: u64,
+    pub allocated_memory: u64,
     pub reserved_memory: u64,
     pub kernel_memory: u64,
-    pub bootloader_memory: u64,
+    pub capsule_memory: u64,
     pub hardware_memory: u64,
-    pub total_memory: u64,
+    pub defective_memory: u64,
+    pub region_count: usize,
 }
 
-use spin::Mutex;
-static BOOT_MEMORY_MANAGER: Mutex<Option<BootMemoryManager>> = Mutex::new(None);
+pub fn init(handoff_addr: u64) -> Result<(), &'static str> {
+    let mut guard = BOOT_MEMORY_MANAGER.lock();
+    if guard.is_some() {
+        return Err("Boot memory already initialized");
+    }
 
-pub fn init_boot_memory(handoff_addr: u64) -> Result<(), &'static str> {
-    let mut g = BOOT_MEMORY_MANAGER.lock();
-    if g.is_some() { return Err("boot memory already initialized"); }
-    let mut m = BootMemoryManager::new();
-    m.initialize_from_handoff(handoff_addr)?;
-    m.dump_memory_map();
-    *g = Some(m);
-    crate::log::logger::log_info!("[boot_memory] initialized");
+    let mut manager = BootMemoryManager::new();
+    manager.init_from_handoff(handoff_addr)?;
+    
+    let stats = manager.get_region_stats();
+    TOTAL_MEMORY.store(stats.total_memory, Ordering::Relaxed);
+    AVAILABLE_MEMORY.store(stats.available_memory, Ordering::Relaxed);
+
+    *guard = Some(manager);
     Ok(())
 }
 
-pub fn get_boot_memory_manager() -> Option<&'static Mutex<Option<BootMemoryManager>>> {
-    Some(&BOOT_MEMORY_MANAGER)
-}
-
-pub fn get_memory_stats() -> Option<BootMemoryStats> {
-    let g = BOOT_MEMORY_MANAGER.lock();
-    g.as_ref().map(|m| m.get_stats())
-}
-
-pub fn allocate_boot_pages(count: usize) -> Result<PhysAddr, &'static str> {
-    let mut g = BOOT_MEMORY_MANAGER.lock();
-    if let Some(ref mut m) = *g {
-        m.allocate_page_aligned(count * PAGE_SIZE)
+pub fn allocate_pages(count: usize) -> Result<PhysAddr, &'static str> {
+    let mut guard = BOOT_MEMORY_MANAGER.lock();
+    if let Some(ref mut manager) = *guard {
+        manager.allocate_aligned(count * layout::PAGE_SIZE, layout::PAGE_SIZE)
     } else {
-        Err("boot memory not initialized")
+        Err("Boot memory not initialized")
     }
 }
 
-pub fn enable_memory_protection() -> Result<(), &'static str> {
-    let g = BOOT_MEMORY_MANAGER.lock();
-    if let Some(ref m) = *g { m.enable_paging() } else { Err("boot memory not initialized") }
+pub fn allocate_aligned(size: usize, align: usize) -> Result<PhysAddr, &'static str> {
+    let mut guard = BOOT_MEMORY_MANAGER.lock();
+    if let Some(ref mut manager) = *guard {
+        manager.allocate_aligned(size, align)
+    } else {
+        Err("Boot memory not initialized")
+    }
+}
+
+pub fn get_stats() -> Option<RegionStats> {
+    let guard = BOOT_MEMORY_MANAGER.lock();
+    guard.as_ref().map(|manager| manager.get_region_stats())
+}
+
+pub fn get_available_regions() -> Vec<MemoryRegion> {
+    let guard = BOOT_MEMORY_MANAGER.lock();
+    if let Some(ref manager) = *guard {
+        manager.regions.iter()
+            .filter(|r| r.is_available())
+            .copied()
+            .collect()
+    } else {
+        Vec::new()
+    }
+}
+
+pub fn find_region(addr: PhysAddr) -> Option<MemoryRegion> {
+    let guard = BOOT_MEMORY_MANAGER.lock();
+    if let Some(ref manager) = *guard {
+        manager.regions.iter()
+            .find(|r| r.contains(addr))
+            .copied()
+    } else {
+        None
+    }
+}
+
+pub fn total_memory() -> u64 {
+    TOTAL_MEMORY.load(Ordering::Relaxed)
+}
+
+pub fn available_memory() -> u64 {
+    AVAILABLE_MEMORY.load(Ordering::Relaxed)
+}
+
+pub fn allocation_count() -> usize {
+    ALLOCATION_COUNT.load(Ordering::Relaxed)
 }
