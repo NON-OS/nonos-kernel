@@ -1,19 +1,17 @@
-// Kernel heap with page-backed mapping, canary redzones, stats, and allocation tracking.
-
-#![allow(dead_code)]
+#![no_std]
 
 use core::alloc::{GlobalAlloc, Layout};
-use core::ptr::{null_mut};
+use core::ptr::{self, null_mut, NonNull};
 use core::sync::atomic::{AtomicBool, AtomicU64, AtomicUsize, Ordering};
-use linked_list_allocator::LockedHeap;
+use core::mem;
 use spin::Mutex;
-use x86_64::{PhysAddr, VirtAddr};
+use x86_64::{VirtAddr, PhysAddr};
+use alloc::collections::BTreeSet;
 
-use crate::memory::virt::{self, VmFlags};
 use crate::memory::nonos_phys as phys;
-use crate::memory::layout::PAGE_SIZE;
+use crate::memory::nonos_layout as layout;
+use crate::memory::nonos_frame_alloc as frame_alloc;
 
-#[derive(Debug, Clone)]
 pub struct HeapStats {
     pub total_size: usize,
     pub current_usage: usize,
@@ -21,293 +19,339 @@ pub struct HeapStats {
     pub allocation_count: usize,
 }
 
-// Static heap window; mapped on init
-pub const HEAP_START: usize = 0x_4444_0000;
-pub const HEAP_SIZE: usize = 2 * 1024 * 1024; // 2 MiB
-
-// Underlying allocator backing store
-static KERNEL_HEAP: LockedHeap = LockedHeap::empty();
-
-// Global allocator wrapper with redzones/canaries/stats
-#[global_allocator]
-static GLOBAL_ALLOC: KernelAllocator = KernelAllocator;
-
-static HEAP_ENABLED: AtomicBool = AtomicBool::new(false);
-static HEAP_ZERO_ON_ALLOC: AtomicBool = AtomicBool::new(false);
-
-static HEAP_ALLOCATIONS: AtomicU64 = AtomicU64::new(0);
-static HEAP_DEALLOCATIONS: AtomicU64 = AtomicU64::new(0);
-static HEAP_BYTES_ALLOCATED: AtomicUsize = AtomicUsize::new(0);
-static HEAP_PEAK_USAGE: AtomicUsize = AtomicUsize::new(0);
-static HEAP_ALLOCATION_FAILURES: AtomicU64 = AtomicU64::new(0);
-
-// Live allocation map for diagnostics
-use alloc::collections::BTreeMap;
-use alloc::vec::Vec;
-use alloc::format;
-static ACTIVE_ALLOCATIONS: Mutex<BTreeMap<usize, AllocationInfo>> = Mutex::new(BTreeMap::new());
-
-// Canary/redzone config
-const REDZONE: usize = 32;
-const CANARY: u64 = 0xC0DEC0DE_D15EA5E1;
-
-#[repr(C)]
-struct AllocHeader {
-    total_size: usize, // full block given to underlying heap (including header/padding/redzones)
-    payload_size: usize,
-    align: usize,
-    pad: usize,        // bytes from end-of-header to payload start before redzone
-    canary: u64,
+struct HeapStatistics {
+    total_size: AtomicUsize,
+    current_usage: AtomicUsize,
+    peak_usage: AtomicUsize,
+    allocation_count: AtomicUsize,
+    deallocation_count: AtomicUsize,
 }
 
-// Public API
-
-pub fn init() { init_kernel_heap().expect("heap init failed"); }
-
-pub fn init_heap() -> Result<(), &'static str> { init_kernel_heap() }
-
-pub fn set_heap_zero_on_alloc(enable: bool) {
-    HEAP_ZERO_ON_ALLOC.store(enable, Ordering::SeqCst);
-}
-
-pub fn init_kernel_heap() -> Result<(), &'static str> {
-    map_kernel_heap_region(HEAP_START, HEAP_SIZE).map_err(|_| "heap map failed")?;
-    unsafe {
-        KERNEL_HEAP.lock().init(HEAP_START as *mut u8, HEAP_SIZE);
-    }
-    HEAP_ENABLED.store(true, Ordering::SeqCst);
-    log_heap_status("[HEAP] online");
-    Ok(())
-}
-
-pub fn get_heap_stats() -> HeapStats {
-    HeapStats {
-        total_size: HEAP_SIZE,
-        current_usage: HEAP_BYTES_ALLOCATED.load(Ordering::Relaxed),
-        peak_usage: HEAP_PEAK_USAGE.load(Ordering::Relaxed),
-        allocation_count: HEAP_ALLOCATIONS.load(Ordering::Relaxed) as usize,
-    }
-}
-
-pub fn check_heap_health() -> bool {
-    let s = get_heap_stats();
-    if s.total_size == 0 { return false; }
-    if s.current_usage > (s.total_size * 9) / 10 { log_heap_status("[HEAP] high usage >90%"); return false; }
-    if s.allocation_count == 0 { log_heap_status("[HEAP] no allocations"); return false; }
-    true
-}
-
-#[derive(Debug, Clone, Copy)]
-pub struct AllocationInfo {
-    pub ptr: usize,
-    pub size: usize,
-    pub layout_align: usize,
-}
-
-pub fn get_all_allocations() -> Vec<AllocationInfo> {
-    ACTIVE_ALLOCATIONS.lock().values().cloned().collect()
-}
-
-// Internals
-
-fn map_kernel_heap_region(start: usize, size: usize) -> Result<(), ()> {
-    let va0 = VirtAddr::new(start as u64);
-    let pages = (size + PAGE_SIZE - 1) / PAGE_SIZE;
-    let flags = VmFlags::RW | VmFlags::NX | VmFlags::GLOBAL;
-
-    for i in 0..pages {
-        let va = VirtAddr::new(va0.as_u64() + (i * PAGE_SIZE) as u64);
-        let frame = phys::alloc(phys::AllocFlags::empty()).ok_or(())?;
-        let pa = PhysAddr::new(frame.0);
-        virt::map4k_at(va, pa, flags).map_err(|_| ())?;
-    }
-    Ok(())
-}
-
-fn log_heap_status(msg: &str) {
-    if let Some(logger) = crate::log::logger::try_get_logger() {
-        if let Some(ref mut mgr) = *logger.lock() {
-            mgr.log(crate::log::Severity::Err, msg);
+impl HeapStatistics {
+    const fn new() -> Self {
+        Self {
+            total_size: AtomicUsize::new(0),
+            current_usage: AtomicUsize::new(0),
+            peak_usage: AtomicUsize::new(0),
+            allocation_count: AtomicUsize::new(0),
+            deallocation_count: AtomicUsize::new(0),
         }
     }
-}
 
-// Allocation header/math
-
-#[inline]
-fn compute_layout_overhead(layout: Layout) -> (usize, usize) {
-    let align = layout.align().max(core::mem::align_of::<AllocHeader>());
-    let header = core::mem::size_of::<AllocHeader>();
-    let after_header = (align - ((header) & (align - 1))) & (align - 1);
-    // total = header + pad + REDZONE + payload + REDZONE
-    let total = header + after_header + REDZONE + layout.size() + REDZONE;
-    (align, total)
-}
-
-#[inline]
-unsafe fn place_header_and_canaries(base: *mut u8, layout: Layout, align: usize, total: usize) -> *mut u8 {
-    let header_ptr = base as *mut AllocHeader;
-    let header_size = core::mem::size_of::<AllocHeader>();
-    let pad = (align - (header_size & (align - 1))) & (align - 1);
-
-    let payload = base.add(header_size + pad + REDZONE);
-    // prefix canary occupies REDZONE bytes; fill as 8-byte chunks
-    for off in (header_size + pad..header_size + pad + REDZONE).step_by(core::mem::size_of::<u64>()) {
-        core::ptr::write_unaligned(base.add(off) as *mut u64, CANARY);
-    }
-    // suffix canary after payload
-    let suffix_start = header_size + pad + REDZONE + layout.size();
-    for off in (suffix_start..suffix_start + REDZONE).step_by(core::mem::size_of::<u64>()) {
-        core::ptr::write_unaligned(base.add(off) as *mut u64, CANARY);
-    }
-    core::ptr::write(header_ptr, AllocHeader {
-        total_size: total,
-        payload_size: layout.size(),
-        align,
-        pad,
-        canary: CANARY,
-    });
-    payload
-}
-
-#[inline]
-unsafe fn validate_and_load_header(payload: *mut u8) -> (*mut u8, AllocHeader) {
-    let header_size = core::mem::size_of::<AllocHeader>();
-    // Find header by scanning back: payload - REDZONE - pad - header_size
-    // We must read pad; but we need header to know pad. We stored a canary prefix pattern in redzone.
-    // Use maximum pad bound (align_of::<AllocHeader>() <= 64 typical). We'll compute by trial from 0..align-1.
-    // Simpler: store header pointer just before payload in the prefix redzone first 8 bytes.
-    // For compatibility, compute it now:
-    let meta_ptr_ptr = (payload as usize - 8) as *const u64;
-    // If not initialized this way (legacy), fallback to best effort by scanning a few candidates.
-    let header_ptr_guess = *(meta_ptr_ptr) as usize as *mut AllocHeader;
-
-    let hdr = if header_ptr_guess as usize & 0x7 == 0 {
-        // optimistic path
-        core::ptr::read(header_ptr_guess)
-    } else {
-        // Fallback scan small range (up to 64 bytes)
-        let mut found: Option<AllocHeader> = None;
-        for pad in 0..64usize {
-            let hp = (payload as usize - REDZONE - pad - header_size) as *const AllocHeader;
-            let candidate = core::ptr::read(hp);
-            if candidate.canary == CANARY && candidate.payload_size > 0 && candidate.total_size >= candidate.payload_size {
-                found = Some(candidate);
+    fn record_allocation(&self, size: usize) {
+        self.allocation_count.fetch_add(1, Ordering::Relaxed);
+        let new_usage = self.current_usage.fetch_add(size, Ordering::Relaxed) + size;
+        
+        loop {
+            let current_peak = self.peak_usage.load(Ordering::Relaxed);
+            if new_usage <= current_peak {
+                break;
+            }
+            if self.peak_usage.compare_exchange_weak(
+                current_peak,
+                new_usage,
+                Ordering::Relaxed,
+                Ordering::Relaxed
+            ).is_ok() {
                 break;
             }
         }
-        found.unwrap_or(AllocHeader { total_size: 0, payload_size: 0, align: 0, pad: 0, canary: 0 })
-    };
+    }
 
-    // Verify prefix redzone
-    if hdr.canary == CANARY && hdr.total_size != 0 {
-        let base = (payload as usize - (header_size + hdr.pad + REDZONE)) as *const u8;
-        for off in (header_size + hdr.pad..header_size + hdr.pad + REDZONE).step_by(core::mem::size_of::<u64>()) {
-            let v = core::ptr::read_unaligned(base.add(off) as *const u64);
-            if v != CANARY { heap_corruption_panic("prefix canary"); }
+    fn record_deallocation(&self, size: usize) {
+        self.deallocation_count.fetch_add(1, Ordering::Relaxed);
+        self.current_usage.fetch_sub(size, Ordering::Relaxed);
+    }
+
+    fn set_total_size(&self, size: usize) {
+        self.total_size.store(size, Ordering::Relaxed);
+    }
+
+    fn get_stats(&self) -> HeapStats {
+        HeapStats {
+            total_size: self.total_size.load(Ordering::Relaxed),
+            current_usage: self.current_usage.load(Ordering::Relaxed),
+            peak_usage: self.peak_usage.load(Ordering::Relaxed),
+            allocation_count: self.allocation_count.load(Ordering::Relaxed),
         }
-        // Verify suffix redzone
-        let suffix = (payload as usize + hdr.payload_size) as *const u8;
-        for off in (0..REDZONE).step_by(core::mem::size_of::<u64>()) {
-            let v = core::ptr::read_unaligned(suffix.add(off) as *const u64);
-            if v != CANARY { heap_corruption_panic("suffix canary"); }
-        }
-        let base_ptr = (payload as usize - (header_size + hdr.pad + REDZONE)) as *mut u8;
-        (base_ptr, hdr)
-    } else {
-        heap_corruption_panic("invalid header");
-        (core::ptr::null_mut(), hdr)
     }
 }
 
-#[inline]
-fn heap_corruption_panic(where_: &str) -> ! {
-    crate::log::logger::log_critical(&format!("[HEAP] corruption: {}", where_));
-    panic!("[HEAP] corruption");
+use linked_list_allocator::LockedHeap;
+
+#[repr(C)]
+#[derive(Clone, Copy)]
+struct AllocationHeader {
+    magic: u32,
+    size: usize,
+    canary_offset: usize,
+    allocated_at: u64,
 }
 
-// Allocation tracking
-
-fn track_allocation(ptr: *mut u8, layout: Layout) {
-    if ptr.is_null() { return; }
-    ACTIVE_ALLOCATIONS.lock().insert(ptr as usize, AllocationInfo {
-        ptr: ptr as usize, size: layout.size(), layout_align: layout.align(),
-    });
+fn get_timestamp() -> u64 {
+    unsafe {
+        let mut timestamp: u64;
+        core::arch::asm!(
+            "rdtsc",
+            "shl rdx, 32",
+            "or rax, rdx",
+            out("rax") timestamp,
+            out("rdx") _,
+        );
+        timestamp
+    }
 }
 
-fn untrack_allocation(ptr: *mut u8) {
-    ACTIVE_ALLOCATIONS.lock().remove(&(ptr as usize));
+pub struct SecureHeapAllocator {
+    inner: LockedHeap,
+    allocated_ptrs: Mutex<BTreeSet<usize>>,
+    canary_value: u64,
+    initialized: AtomicBool,
+    heap_size: AtomicUsize,
 }
 
-// Global allocator wrapper
+impl SecureHeapAllocator {
+    const fn new() -> Self {
+        Self {
+            inner: LockedHeap::empty(),
+            allocated_ptrs: Mutex::new(BTreeSet::new()),
+            canary_value: 0xDEADBEEFCAFEBABE,
+            initialized: AtomicBool::new(false),
+            heap_size: AtomicUsize::new(0),
+        }
+    }
 
-pub struct KernelAllocator;
+    pub fn is_initialized(&self) -> bool {
+        self.initialized.load(Ordering::Acquire)
+    }
 
-unsafe impl GlobalAlloc for KernelAllocator {
+    pub unsafe fn init(&self, heap_start: *mut u8, heap_size: usize) {
+        self.inner.lock().init(heap_start, heap_size);
+        self.heap_size.store(heap_size, Ordering::Release);
+        self.initialized.store(true, Ordering::Release);
+    }
+
+    pub fn get_heap_size(&self) -> usize {
+        self.heap_size.load(Ordering::Acquire)
+    }
+
+}
+
+unsafe impl GlobalAlloc for SecureHeapAllocator {
     unsafe fn alloc(&self, layout: Layout) -> *mut u8 {
-        if !HEAP_ENABLED.load(Ordering::SeqCst) {
-            HEAP_ALLOCATION_FAILURES.fetch_add(1, Ordering::Relaxed);
+        if !self.is_initialized() {
             return null_mut();
         }
-        // bound very large requests
-        if layout.size() > HEAP_SIZE / 2 {
-            HEAP_ALLOCATION_FAILURES.fetch_add(1, Ordering::Relaxed);
+        
+        let header_size = mem::size_of::<AllocationHeader>();
+        let total_size = match header_size.checked_add(layout.size()) {
+            Some(size) => match size.checked_add(mem::size_of::<u64>()) {
+                Some(final_size) => final_size,
+                None => return null_mut(),
+            },
+            None => return null_mut(),
+        };
+        
+        let align = if layout.align() > 8 { layout.align() } else { 8 };
+        let adjusted_layout = match Layout::from_size_align(total_size, align) {
+            Ok(layout) => layout,
+            Err(_) => return null_mut(),
+        };
+            
+        let raw_ptr = self.inner.alloc(adjusted_layout);
+        if raw_ptr.is_null() {
             return null_mut();
         }
-
-        let (align, total) = compute_layout_overhead(layout);
-        let big_layout = Layout::from_size_align(total, align).unwrap();
-        let base = KERNEL_HEAP.alloc(big_layout);
-        if base.is_null() {
-            HEAP_ALLOCATION_FAILURES.fetch_add(1, Ordering::Relaxed);
-            return null_mut();
-        }
-
-        let payload = place_header_and_canaries(base, layout, align, total);
-
-        if HEAP_ZERO_ON_ALLOC.load(Ordering::Relaxed) && layout.size() != 0 {
-            core::ptr::write_bytes(payload, 0, layout.size());
-        }
-
-        HEAP_ALLOCATIONS.fetch_add(1, Ordering::Relaxed);
-        let new_usage = HEAP_BYTES_ALLOCATED.fetch_add(layout.size(), Ordering::Relaxed) + layout.size();
-        // peak
-        let mut peak = HEAP_PEAK_USAGE.load(Ordering::Relaxed);
-        while new_usage > peak {
-            match HEAP_PEAK_USAGE.compare_exchange_weak(peak, new_usage, Ordering::Relaxed, Ordering::Relaxed) {
-                Ok(_) => break,
-                Err(x) => peak = x,
+        
+        let header_ptr = raw_ptr as *mut AllocationHeader;
+        let data_ptr = raw_ptr.add(header_size);
+        let canary_ptr = data_ptr.add(layout.size()) as *mut u64;
+        
+        let header = AllocationHeader {
+            magic: 0xDEADBEEF,
+            size: layout.size(),
+            canary_offset: layout.size(),
+            allocated_at: get_timestamp(),
+        };
+        
+        ptr::write_volatile(header_ptr, header);
+        ptr::write_volatile(canary_ptr, self.canary_value);
+        
+        let data_addr = data_ptr as usize;
+        {
+            let mut allocated = self.allocated_ptrs.lock();
+            if allocated.contains(&data_addr) {
+                self.inner.dealloc(raw_ptr, adjusted_layout);
+                return null_mut();
             }
+            allocated.insert(data_addr);
         }
-
-        track_allocation(payload, layout);
-
-        payload
+        
+        HEAP_STATS.record_allocation(layout.size());
+        
+        if HEAP_ZERO_ON_ALLOC.load(Ordering::Relaxed) {
+            ptr::write_bytes(data_ptr, 0, layout.size());
+        }
+        
+        data_ptr
     }
 
     unsafe fn dealloc(&self, ptr: *mut u8, layout: Layout) {
-        if ptr.is_null() { return; }
-
-        let (base, hdr) = validate_and_load_header(ptr);
-        // erase redzones (optional)
-        // copy header pointer into last 8 bytes of prefix redzone for faster lookup next time
-
-        KERNEL_HEAP.dealloc(base, Layout::from_size_align(hdr.total_size, hdr.align).unwrap());
-
-        HEAP_DEALLOCATIONS.fetch_add(1, Ordering::Relaxed);
-        HEAP_BYTES_ALLOCATED.fetch_sub(layout.size(), Ordering::Relaxed);
-
-        untrack_allocation(ptr);
+        if ptr.is_null() || !self.is_initialized() {
+            return;
+        }
+        
+        let ptr_addr = ptr as usize;
+        
+        let was_allocated = {
+            let mut allocated = self.allocated_ptrs.lock();
+            allocated.remove(&ptr_addr)
+        };
+        
+        if !was_allocated {
+            return;
+        }
+        
+        let header_size = mem::size_of::<AllocationHeader>();
+        let raw_ptr = ptr.sub(header_size);
+        let header_ptr = raw_ptr as *const AllocationHeader;
+        let header = ptr::read_volatile(header_ptr);
+        
+        if header.magic != 0xDEADBEEF || header.size != layout.size() {
+            return;
+        }
+        
+        let canary_ptr = ptr.add(header.canary_offset) as *const u64;
+        let canary = ptr::read_volatile(canary_ptr);
+        if canary != self.canary_value {
+            return;
+        }
+        
+        if HEAP_ZERO_ON_FREE.load(Ordering::Relaxed) {
+            ptr::write_bytes(ptr, 0, layout.size());
+        }
+        
+        let total_size = header_size + layout.size() + mem::size_of::<u64>();
+        let align = if layout.align() > 8 { layout.align() } else { 8 };
+        if let Ok(adjusted_layout) = Layout::from_size_align(total_size, align) {
+            HEAP_STATS.record_deallocation(layout.size());
+            self.inner.dealloc(raw_ptr, adjusted_layout);
+        }
     }
 }
 
-#[alloc_error_handler]
-fn alloc_error(layout: Layout) -> ! {
-    HEAP_ALLOCATION_FAILURES.fetch_add(1, Ordering::Relaxed);
-    let s = get_heap_stats();
-    crate::log::logger::log_critical(&format!(
-        "[HEAP] OOM size={} align={} usage={}/{} peak={} allocs={}",
-        layout.size(), layout.align(), s.current_usage, s.total_size, s.peak_usage, s.allocation_count
-    ));
-    panic!("[HEAP] OOM");
+#[global_allocator]
+static KERNEL_HEAP: SecureHeapAllocator = SecureHeapAllocator::new();
+static HEAP_ZERO_ON_ALLOC: AtomicBool = AtomicBool::new(true);
+static HEAP_ZERO_ON_FREE: AtomicBool = AtomicBool::new(true);
+static HEAP_STATS: HeapStatistics = HeapStatistics::new();
+pub fn set_heap_zero_on_alloc(enable: bool) { 
+    HEAP_ZERO_ON_ALLOC.store(enable, Ordering::SeqCst); 
+}
+
+pub fn set_heap_zero_on_free(enable: bool) { 
+    HEAP_ZERO_ON_FREE.store(enable, Ordering::SeqCst); 
+}
+
+pub fn init() -> Result<(), &'static str> {
+    if KERNEL_HEAP.is_initialized() {
+        return Ok(());
+    }
+    
+    let heap_size = layout::KHEAP_SIZE as usize;
+    let heap_pages = (heap_size + layout::PAGE_SIZE - 1) / layout::PAGE_SIZE;
+    
+    let heap_frames = allocate_heap_frames(heap_pages)?;
+    let heap_start = map_heap_memory(&heap_frames)?;
+    
+    unsafe {
+        KERNEL_HEAP.init(heap_start, heap_size);
+    }
+    
+    HEAP_STATS.set_total_size(heap_size);
+    
+    Ok(())
+}
+
+fn allocate_heap_frames(page_count: usize) -> Result<alloc::vec::Vec<PhysAddr>, &'static str> {
+    let mut frames = alloc::vec::Vec::new();
+    
+    for _ in 0..page_count {
+        match frame_alloc::allocate_frame() {
+            Some(addr) => frames.push(addr),
+            None => return Err("Failed to allocate heap frames"),
+        }
+    }
+    
+    Ok(frames)
+}
+
+fn map_heap_memory(frames: &[PhysAddr]) -> Result<*mut u8, &'static str> {
+    use crate::memory::nonos_virt;
+    
+    let heap_start = VirtAddr::new(layout::KHEAP_BASE);
+    
+    for (i, &frame_addr) in frames.iter().enumerate() {
+        let virt_addr = VirtAddr::new(heap_start.as_u64() + (i * layout::PAGE_SIZE) as u64);
+        
+        nonos_virt::map_page_4k(
+            virt_addr,
+            frame_addr,
+            true,  // writable  
+            false, // not user
+            false, // not executable
+        ).map_err(|_| "Failed to map heap page")?;
+    }
+    
+    Ok(heap_start.as_mut_ptr())
+}
+
+pub fn get_heap_stats() -> HeapStats {
+    HEAP_STATS.get_stats()
+}
+
+pub fn get_allocator() -> &'static SecureHeapAllocator {
+    &KERNEL_HEAP
+}
+
+pub fn verify_heap_integrity() -> bool {
+    if !KERNEL_HEAP.is_initialized() {
+        return false;
+    }
+    
+    let heap_size = KERNEL_HEAP.get_heap_size();
+    if heap_size == 0 {
+        return false;
+    }
+    
+    let allocated_ptrs = KERNEL_HEAP.allocated_ptrs.lock();
+    for &ptr_addr in allocated_ptrs.iter() {
+        if ptr_addr < layout::KHEAP_BASE as usize || 
+           ptr_addr >= (layout::KHEAP_BASE + layout::KHEAP_SIZE) as usize {
+            return false;
+        }
+        
+        unsafe {
+            let header_size = mem::size_of::<AllocationHeader>();
+            let header_ptr = (ptr_addr - header_size) as *const AllocationHeader;
+            let header = ptr::read_volatile(header_ptr);
+            
+            if header.magic != 0xDEADBEEF {
+                return false;
+            }
+            
+            let canary_ptr = (ptr_addr + header.canary_offset) as *const u64;
+            let canary = ptr::read_volatile(canary_ptr);
+            if canary != KERNEL_HEAP.canary_value {
+                return false;
+            }
+            
+            let current_time = get_timestamp();
+            if current_time < header.allocated_at {
+                return false;
+            }
+        }
+    }
+    
+    true
 }
