@@ -1,101 +1,252 @@
-//! Filesystem subsystem (ZeroState default: RAM-only, anonymous).
+// NØNOS Operating System
+// Copyright (C) 2025 NØNOS Contributors
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+//! NØNOS Filesystem Subsystem
+//! eK says - "Do you RAM ?"
+//! RAM-only filesystem with encrypted storage support (ZeroState default).
+
+#![no_std]
 
 extern crate alloc;
 
-use alloc::{vec, vec::Vec, string::String};
-use spin::Once;
+use alloc::{string::String, vec::Vec};
+use core::sync::atomic::{Ordering, compiler_fence};
+use spin::{Once, RwLock};
 
 use crate::memory::page_info::PageFlags;
 
+// ============================================================================
+// SUBMODULES
+// ============================================================================
+
 pub mod nonos_vfs;
+pub mod nonos_crypto;
+pub mod nonos_filesystem;
+pub mod fd;
+pub mod path;
+pub mod cache;
+
+/// Legacy VFS shim for compatibility
 pub mod vfs {
     pub fn read_at_offset(_file_id: &str, _offset: usize, _buffer: &mut [u8]) -> Result<usize, &'static str> {
         Ok(0)
     }
 }
-pub mod nonos_crypto;
-pub mod nonos_filesystem;
-pub mod fd;
-pub mod path;
 
-// Re-exports for compatibility and syscall surface
+// ============================================================================
+// MODULE ALIASES
+// ============================================================================
+
 pub use nonos_vfs as nvfs;
 pub use nonos_crypto as cryptofs;
 
+// ============================================================================
+// RE-EXPORTS
+// ============================================================================
+
+// VFS types
 pub use nonos_vfs::{
-    CowPageRef, DeviceOperations, FileBuffer, FileCacheEntry, FileMetadata, FileMode, FileSystemOperations,
-    FileSystemType, FileType, IoOperation, IoRequest, IoStatistics, MountPoint, VfsInode, VirtualFileSystem,
+    CowPageRef, DeviceOperations, FileBuffer, FileCacheEntry, FileMetadata, FileMode,
+    FileSystemOperations, FileSystemType, FileType, IoOperation, IoRequest, IoStatistics,
+    MountPoint, VfsInode, VirtualFileSystem, VfsError, VfsResult,
     get_vfs, get_vfs_mut, init_vfs,
 };
 
+// CryptoFS types
 pub use nonos_crypto::{
-    CryptoFileSystem, CryptoFsStatistics, create_encrypted_file, create_ephemeral_file, get_cryptofs, init_cryptofs,
+    CryptoFileSystem, CryptoFsStatistics, CryptoFsError, CryptoResult,
+    create_encrypted_file, create_ephemeral_file, get_cryptofs, init_cryptofs,
+    read_encrypted, write_encrypted, delete_encrypted, clear_crypto_state,
+    rotate_file_key, nonce_counter_warning,
 };
 
+// File descriptor operations
 pub use fd::{
     open_file_syscall, read_file_descriptor, write_file_descriptor, close_file_descriptor,
     stat_file_syscall, fstat_file_syscall, rmdir_syscall, unlink_syscall, sync_all,
+    FdError, FdResult,
 };
 
-// Global filesystem manager for integration
-static FILESYSTEM_MANAGER: Once<FileSystemManager> = Once::new();
+// Path utilities
+pub use path::{
+    PathError, PathResult, cstr_to_string, normalize_path, validate_path,
+    validate_path_secure, is_absolute, is_relative, parent, file_name, extension,
+    join, join_normalize, join_secure, components, MAX_PATH_LEN,
+};
 
+// Filesystem types
+pub use nonos_filesystem::{FsError, FsResult};
+
+// Cache operations
+pub use cache::{
+    get_cache_statistics, get_cache_hit_ratio, init_all_caches, clear_all_caches,
+    CACHE_STATS,
+};
+
+// ============================================================================
+// CONSTANTS
+// ============================================================================
+
+/// Maximum operations per sync batch
+const MAX_OPERATIONS_PER_BATCH: usize = 64;
+
+// ============================================================================
+// ERROR TYPES
+// ============================================================================
+
+/// Filesystem subsystem errors
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum FsSubsystemError {
+    VfsNotInitialized,
+    CryptoFsNotInitialized,
+    ManagerNotInitialized,
+    PageCacheError,
+    InodeCacheError,
+    DentryCacheError,
+    WritebackError,
+    StorageDeviceError,
+    FilesystemFull,
+    SuperblockCorrupted,
+    InodeTableCorrupted,
+    InternalError(&'static str),
+}
+
+impl FsSubsystemError {
+    pub const fn to_errno(self) -> i32 {
+        match self {
+            Self::VfsNotInitialized | Self::CryptoFsNotInitialized |
+            Self::ManagerNotInitialized | Self::WritebackError |
+            Self::StorageDeviceError | Self::SuperblockCorrupted |
+            Self::InodeTableCorrupted | Self::InternalError(_) => -5, // EIO
+            Self::PageCacheError | Self::InodeCacheError |
+            Self::DentryCacheError => -12,                             // ENOMEM
+            Self::FilesystemFull => -28,                               // ENOSPC
+        }
+    }
+
+    pub const fn as_str(self) -> &'static str {
+        match self {
+            Self::VfsNotInitialized => "VFS not initialized",
+            Self::CryptoFsNotInitialized => "CryptoFS not initialized",
+            Self::ManagerNotInitialized => "Filesystem manager not initialized",
+            Self::PageCacheError => "Page cache error",
+            Self::InodeCacheError => "Inode cache error",
+            Self::DentryCacheError => "Dentry cache error",
+            Self::WritebackError => "Writeback error",
+            Self::StorageDeviceError => "Storage device error",
+            Self::FilesystemFull => "Filesystem full",
+            Self::SuperblockCorrupted => "Superblock corrupted",
+            Self::InodeTableCorrupted => "Inode table corrupted",
+            Self::InternalError(msg) => msg,
+        }
+    }
+}
+
+impl From<FsSubsystemError> for &'static str {
+    fn from(err: FsSubsystemError) -> Self {
+        err.as_str()
+    }
+}
+
+pub type FsSubsystemResult<T> = Result<T, FsSubsystemError>;
+
+// ============================================================================
+// FILESYSTEM MANAGER
+// ============================================================================
+
+static FILESYSTEM_MANAGER: Once<RwLock<FileSystemManager>> = Once::new();
+
+/// Filesystem manager coordinating VFS, CryptoFS, and caches
 pub struct FileSystemManager {
-    vfs: Option<&'static VirtualFileSystem>,
-    cryptofs: Option<&'static CryptoFileSystem>,
+    initialized: bool,
+    vfs_initialized: bool,
+    cryptofs_initialized: bool,
+    stats: FileSystemManagerStats,
+}
+
+#[derive(Debug, Default, Clone)]
+pub struct FileSystemManagerStats {
+    pub syncs: u64,
+    pub distributed_bytes: u64,
+    pub errors: u64,
 }
 
 impl FileSystemManager {
-    pub fn new() -> Self {
-        Self { vfs: None, cryptofs: None }
+    const fn new() -> Self {
+        Self {
+            initialized: false,
+            vfs_initialized: false,
+            cryptofs_initialized: false,
+            stats: FileSystemManagerStats { syncs: 0, distributed_bytes: 0, errors: 0 },
+        }
     }
 
-    pub fn init(&mut self) -> Result<(), &'static str> {
+    pub fn init(&mut self) -> FsSubsystemResult<()> {
         nonos_vfs::init_vfs();
-        self.vfs = nonos_vfs::get_vfs();
+        self.vfs_initialized = nonos_vfs::get_vfs().is_some();
 
-        nonos_crypto::init_cryptofs(1024 * 1024, 4096).map_err(|_| "Failed to init CryptoFS")?;
-        self.cryptofs = nonos_crypto::get_cryptofs();
+        match nonos_crypto::init_cryptofs(1024 * 1024, 4096) {
+            Ok(()) => self.cryptofs_initialized = true,
+            Err(_) => self.cryptofs_initialized = false,
+        }
 
-        // Mount routes (VFS will route / -> NonosFs and /secure -> CryptoFS)
-        if let Some(vfs) = self.vfs {
+        if let Some(vfs) = nonos_vfs::get_vfs() {
             vfs.mount("/", nonos_vfs::FileSystemType::RamFs);
             vfs.mount("/secure", nonos_vfs::FileSystemType::CryptoFS);
         }
 
-        // Ensure in-memory filesystem initialized
         let _ = nonos_filesystem::init_nonos_filesystem();
-
+        cache::init_all_caches();
+        self.initialized = true;
         Ok(())
     }
 
-    pub fn store_distributed_data(&self, data: &[u8], path: &str) -> Result<(), &'static str> {
-        if self.cryptofs.is_some() {
-            let _inode = nonos_crypto::create_ephemeral_file(path, data)?;
-            Ok(())
-        } else {
-            Err("CryptoFS not initialized")
+    pub fn store_distributed_data(&mut self, data: &[u8], path: &str) -> FsSubsystemResult<()> {
+        if !self.cryptofs_initialized {
+            return Err(FsSubsystemError::CryptoFsNotInitialized);
         }
+        nonos_crypto::create_ephemeral_file(path, data)
+            .map_err(|_| FsSubsystemError::WritebackError)?;
+        self.stats.distributed_bytes += data.len() as u64;
+        Ok(())
     }
 
-    pub fn get_storage_stats(&self) -> (usize, usize) {
-        // RAM-only default
-        (0, 0)
-    }
+    pub fn get_storage_stats(&self) -> (usize, usize) { (0, 0) }
+    pub fn get_statistics(&self) -> FileSystemManagerStats { self.stats.clone() }
+    pub fn is_initialized(&self) -> bool { self.initialized }
 }
 
-pub fn init_filesystem_manager() -> Result<(), &'static str> {
+pub fn init_filesystem_manager() -> FsSubsystemResult<()> {
     FILESYSTEM_MANAGER.call_once(|| {
         let mut manager = FileSystemManager::new();
-        manager.init().expect("Failed to initialize filesystem manager");
-        manager
+        if let Err(e) = manager.init() {
+            crate::log::logger::log_err!("Failed to initialize filesystem manager: {}", e.as_str());
+        }
+        RwLock::new(manager)
     });
     Ok(())
 }
 
-pub fn get_filesystem_manager() -> &'static FileSystemManager {
-    FILESYSTEM_MANAGER.get().expect("Filesystem manager not initialized")
+pub fn get_filesystem_manager() -> Option<&'static RwLock<FileSystemManager>> {
+    FILESYSTEM_MANAGER.get()
 }
+
+// ============================================================================
+// MAPPING TYPES
+// ============================================================================
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum MappingProtection {
@@ -105,14 +256,62 @@ pub enum MappingProtection {
     ReadExecute,
 }
 
+#[derive(Debug, Clone)]
+pub struct FileMapping {
+    pub file_id: u64,
+    pub file_offset: u64,
+    pub virtual_addr: x86_64::VirtAddr,
+    pub size: usize,
+    pub permissions: PageFlags,
+}
+
+impl FileMapping {
+    pub fn new(file_id: u64, file_offset: u64, virtual_addr: x86_64::VirtAddr,
+               size: usize, permissions: PageFlags) -> Self {
+        Self { file_id, file_offset, virtual_addr, size, permissions }
+    }
+}
+
+// ============================================================================
+// INITIALIZATION
+// ============================================================================
+
 /// Initialize the filesystem subsystem
 pub fn init() {
     nonos_vfs::init_vfs();
-    let _ = nonos_crypto::init_cryptofs(1024 * 1024, 4096); // RAM-only
+    let _ = nonos_crypto::init_cryptofs(1024 * 1024, 4096);
     let _ = nonos_filesystem::init_nonos_filesystem();
+    cache::init_all_caches();
+    crate::log::logger::log_info!("Filesystem subsystem initialized (RAM-only mode)");
 }
 
-/// Run filesystem sync operations (RAM-only: in-memory maintenance)
+// ============================================================================
+// FILE OPERATIONS
+// ============================================================================
+
+/// Read a file via VFS routing (RAM-only)
+pub fn read_file(file_path: &str) -> Result<Vec<u8>, &'static str> {
+    nonos_vfs::get_vfs()
+        .ok_or("VFS not initialized")?
+        .read_file(file_path)
+}
+
+/// Alias for read_file
+pub fn read_file_bytes(file_path: &str) -> Result<Vec<u8>, &'static str> {
+    read_file(file_path)
+}
+
+/// List hidden files in a directory
+pub fn list_hidden_files(_dir_path: &str) -> Vec<String> { Vec::new() }
+
+/// Scan for sensitive file patterns
+pub fn scan_for_sensitive_files(_dir_path: &str) -> Vec<String> { Vec::new() }
+
+// ============================================================================
+// SYNC OPERATIONS
+// ============================================================================
+
+/// Run filesystem sync operations
 pub fn run_filesystem_sync() {
     flush_dirty_pages();
 
@@ -125,14 +324,16 @@ pub fn run_filesystem_sync() {
     }
 
     sync_all_mounted_filesystems();
-    update_fs_statistics();
+
+    if let Some(manager) = get_filesystem_manager() {
+        manager.write().stats.syncs += 1;
+    }
 
     crate::log::logger::log_info!("Filesystem sync completed");
 }
 
 /// Process pending filesystem operations
 pub fn process_pending_operations() {
-    const MAX_OPERATIONS_PER_BATCH: usize = 64;
     let mut processed = 0;
 
     if let Some(vfs) = nonos_vfs::get_vfs_mut() {
@@ -158,344 +359,99 @@ pub fn process_pending_operations() {
 
     let remaining = MAX_OPERATIONS_PER_BATCH.saturating_sub(processed);
     if remaining > 0 {
-        processed += process_inode_cache_maintenance(remaining);
+        processed += cache::process_inode_cache_maintenance(remaining);
     }
 
     if processed > 0 {
         crate::log_debug!("Processed {} filesystem operations", processed);
     }
-
-    check_filesystem_errors();
 }
+
+/// Clear all filesystem caches for ZeroState privacy wipe
+pub fn clear_caches() {
+    nonos_vfs::clear_vfs_caches();
+    nonos_crypto::clear_crypto_state();
+    cache::clear_all_caches();
+    compiler_fence(Ordering::SeqCst);
+    crate::log::logger::log_info!("Filesystem caches cleared (ZeroState wipe)");
+}
+
+// ============================================================================
+// INTERNAL HELPERS
+// ============================================================================
 
 fn flush_dirty_pages() {
-    let dirty_pages = get_dirty_pages();
-
+    let dirty_pages = cache::get_dirty_pages();
     for (file_id, page_list) in dirty_pages {
         for page in page_list {
-            match write_page_to_storage(file_id, page.offset, &page.data) {
-                Ok(()) => {
-                    mark_page_clean(file_id, page.offset);
-                    crate::log_debug!("Flushed dirty page: file={}, offset={}", file_id, page.offset);
-                }
-                Err(e) => {
-                    crate::log::logger::log_err!("Failed to flush page: file={}, error={}", file_id, e);
-                    mark_page_for_retry(file_id, page.offset);
-                }
+            if write_page_to_storage(file_id, page.offset, &page.data).is_ok() {
+                cache::mark_page_clean(file_id, page.offset);
             }
         }
     }
 }
 
-fn sync_all_mounted_filesystems() {
-    let mounted_fs = get_mounted_filesystems();
-
-    for mount in mounted_fs {
-        match mount.filesystem {
-            nonos_vfs::FileSystemType::CryptoFS => {
-                sync_cryptofs_mount(&mount);
-            }
-            nonos_vfs::FileSystemType::TmpFs | nonos_vfs::FileSystemType::RamFs => {
-                sync_tempfs_mount(&mount);
-            }
-            nonos_vfs::FileSystemType::ProcFs => { /* virtual */ }
-            _ => {
-                sync_generic_mount(&mount);
-            }
-        }
+fn write_page_to_storage(file_id: u64, offset: u64, data: &[u8]) -> Result<(), &'static str> {
+    if nonos_vfs::get_vfs().is_some() {
+        cache::CACHE_STATS.writebacks.fetch_add(1, Ordering::Relaxed);
+        crate::log_debug!("Writeback: file={}, offset={}, size={}", file_id, offset, data.len());
     }
+    Ok(())
 }
 
 fn process_file_cache_writeback(max_operations: usize) -> usize {
     let mut processed = 0;
-
-    let writeback_files = get_writeback_files();
+    let writeback_files = cache::get_writeback_files();
 
     for file in writeback_files.into_iter().take(max_operations) {
-        match writeback_file_data(&file) {
-            Ok(()) => {
-                mark_file_clean(&file);
-                processed += 1;
-            }
-            Err(e) => {
-                crate::log_warn!("Writeback failed for file {}: {}", file.path, e);
-                schedule_writeback_retry(&file);
-                processed += 1;
-            }
+        if writeback_file_data(&file).is_ok() {
+            cache::mark_file_clean(&file);
+        } else {
+            cache::schedule_writeback_retry(&file);
         }
+        processed += 1;
     }
-
     processed
+}
+
+fn writeback_file_data(file: &cache::FileInfo) -> Result<(), &'static str> {
+    if nonos_vfs::get_vfs().is_some() {
+        crate::log_debug!("Writeback complete: {}", file.path);
+        Ok(())
+    } else {
+        Err("VFS not initialized")
+    }
 }
 
 fn process_dentry_cache_updates(max_operations: usize) -> usize {
     let mut processed = 0;
-
-    let pending_dentries = get_pending_dentry_updates();
+    let pending_dentries = cache::get_pending_dentry_updates();
 
     for dentry in pending_dentries.into_iter().take(max_operations) {
-        match update_directory_entry(&dentry) {
-            Ok(()) => {
-                commit_dentry_update(&dentry);
-                processed += 1;
-            }
-            Err(e) => {
-                crate::log_warn!("Failed to update directory entry {}: {}", dentry.name, e);
-                processed += 1;
-            }
+        if cache::update_directory_entry(&dentry).is_ok() {
+            cache::commit_dentry_update(&dentry);
         }
+        processed += 1;
     }
-
     processed
 }
-
-fn process_inode_cache_maintenance(max_operations: usize) -> usize {
-    let mut processed = 0;
-
-    processed += cleanup_unused_inodes(max_operations);
-
-    if processed < max_operations {
-        processed += update_inode_timestamps(max_operations - processed);
-    }
-
-    if processed < max_operations {
-        processed += writeback_dirty_inodes(max_operations - processed);
-    }
-
-    processed
-}
-
-fn check_filesystem_errors() {
-    if has_filesystem_errors() {
-        crate::log::logger::log_critical("Filesystem errors detected - running fsck");
-        schedule_filesystem_check();
-    }
-
-    if has_storage_device_errors() {
-        crate::log::logger::log_critical("Storage device errors detected");
-        handle_storage_device_errors();
-    }
-
-    if is_filesystem_nearly_full() {
-        crate::log_warn!("Filesystem is nearly full - cleaning up");
-        schedule_cleanup_operation();
-    }
-}
-
-fn update_fs_statistics() {
-    let stats = calculate_filesystem_stats();
-    update_global_fs_stats(stats);
-}
-
-// Helper functions implementations
-
-fn get_dirty_pages() -> alloc::collections::BTreeMap<u64, Vec<DirtyPage>> {
-    alloc::collections::BTreeMap::new()
-}
-
-struct DirtyPage {
-    offset: u64,
-    data: Vec<u8>,
-}
-
-fn write_page_to_storage(_file_id: u64, _offset: u64, _data: &[u8]) -> Result<(), &'static str> {
-    Ok(())
-}
-
-fn mark_page_clean(_file_id: u64, _offset: u64) {}
-
-fn mark_page_for_retry(_file_id: u64, _offset: u64) {}
 
 fn get_mounted_filesystems() -> Vec<MountPoint> {
-    if let Some(vfs) = nonos_vfs::get_vfs() {
-        return vfs.mounts();
-    }
-    vec![]
+    nonos_vfs::get_vfs().map(|vfs| vfs.mounts()).unwrap_or_default()
 }
 
-fn sync_cryptofs_mount(_mount: &MountPoint) {}
-
-fn sync_tempfs_mount(_mount: &MountPoint) {}
-
-fn sync_generic_mount(_mount: &MountPoint) {}
-
-fn get_writeback_files() -> Vec<FileInfo> {
-    vec![]
-}
-
-struct FileInfo {
-    path: alloc::string::String,
-    inode: u64,
-}
-
-fn writeback_file_data(_file: &FileInfo) -> Result<(), &'static str> {
-    Ok(())
-}
-
-fn mark_file_clean(_file: &FileInfo) {}
-
-fn schedule_writeback_retry(_file: &FileInfo) {}
-
-fn get_pending_dentry_updates() -> Vec<DirectoryEntry> {
-    vec![]
-}
-
-struct DirectoryEntry {
-    name: alloc::string::String,
-    inode: u64,
-}
-
-fn update_directory_entry(_dentry: &DirectoryEntry) -> Result<(), &'static str> {
-    Ok(())
-}
-
-fn commit_dentry_update(_dentry: &DirectoryEntry) {}
-
-fn cleanup_unused_inodes(_max: usize) -> usize {
-    0
-}
-fn update_inode_timestamps(_max: usize) -> usize {
-    0
-}
-fn writeback_dirty_inodes(_max: usize) -> usize {
-    0
-}
-
-fn has_filesystem_errors() -> bool {
-    false
-}
-fn schedule_filesystem_check() {
-    crate::log::logger::log_info!("Scheduling filesystem integrity check (RAM-only)");
-    check_superblock_integrity();
-    scan_inode_table();
-    verify_directory_structure();
-    check_block_allocation_bitmap();
-    repair_filesystem_inconsistencies();
-}
-
-fn has_storage_device_errors() -> bool {
-    false
-}
-
-fn handle_storage_device_errors() {
-    crate::log_warn!("Handling storage device errors (on-disk disabled in ZeroState)");
-}
-
-fn check_superblock_integrity() {
-    crate::log::logger::log_info!("Checking superblock integrity (RAM-only simulated)");
-    let _ = read_filesystem_block(0, 1024);
-}
-
-fn scan_inode_table() {
-    crate::log::logger::log_info!("Scanning inode table for corruption (RAM-only simulated)");
-}
-
-fn verify_directory_structure() {
-    crate::log::logger::log_info!("Verifying directory structure (RAM-only simulated)");
-}
-
-fn check_block_allocation_bitmap() {
-    crate::log::logger::log_info!("Checking block allocation bitmap (RAM-only simulated)");
-}
-
-fn repair_filesystem_inconsistencies() {
-    repair_orphaned_inodes();
-    fix_directory_link_counts();
-    repair_block_allocation_errors();
-}
-
-fn read_filesystem_block(_block_num: u64, size: usize) -> Result<Vec<u8>, &'static str> {
-    Ok(vec![0u8; size])
-}
-
-fn repair_superblock() {
-    crate::log_warn!("Attempting superblock repair");
-}
-
-fn repair_orphaned_inodes() {
-    crate::log::logger::log_info!("Repairing orphaned inodes");
-}
-
-fn fix_directory_link_counts() {
-    crate::log::logger::log_info!("Fixing directory link counts");
-}
-
-fn repair_block_allocation_errors() {
-    crate::log::logger::log_info!("Repairing block allocation errors");
-}
-
-fn is_filesystem_nearly_full() -> bool {
-    false
-}
-fn schedule_cleanup_operation() {}
-
-fn calculate_filesystem_stats() -> FilesystemStats {
-    FilesystemStats {
-        total_files: 0,
-        total_directories: 0,
-        bytes_used: 0,
-        bytes_free: 0,
-    }
-}
-
-struct FilesystemStats {
-    total_files: u64,
-    total_directories: u64,
-    bytes_used: u64,
-    bytes_free: u64,
-}
-
-fn update_global_fs_stats(_stats: FilesystemStats) {}
-
-// File mapping for memory-mapped files
-#[derive(Debug, Clone)]
-pub struct FileMapping {
-    pub file_id: u64,
-    pub file_offset: u64,
-    pub virtual_addr: x86_64::VirtAddr,
-    pub size: usize,
-    pub permissions: PageFlags,
-}
-
-impl FileMapping {
-    pub fn new(
-        file_id: u64,
-        file_offset: u64,
-        virtual_addr: x86_64::VirtAddr,
-        size: usize,
-        permissions: PageFlags,
-    ) -> Self {
-        Self {
-            file_id,
-            file_offset,
-            virtual_addr,
-            size,
-            permissions,
+fn sync_all_mounted_filesystems() {
+    for mount in get_mounted_filesystems() {
+        match mount.filesystem {
+            nonos_vfs::FileSystemType::CryptoFS => {
+                if let Some(cryptofs) = nonos_crypto::get_cryptofs() {
+                    cryptofs.sync_all();
+                }
+            }
+            nonos_vfs::FileSystemType::TmpFs | nonos_vfs::FileSystemType::RamFs => {
+                // RAM-only, no sync needed
+            }
+            _ => {}
         }
     }
-}
-
-/// RAM-only file read via VFS routing
-pub fn read_file(file_path: &str) -> Result<Vec<u8>, &'static str> {
-    if let Some(vfs) = nonos_vfs::get_vfs() {
-        if let Ok(data) = vfs.read_file(file_path) {
-            return Ok(data);
-        }
-    }
-    Err("File not found (RAM-only)")
-}
-
-// Missing filesystem functions
-pub fn list_hidden_files(dir_path: &str) -> Vec<String> {
-    // Return empty list - would scan for hidden files (starting with .)
-    Vec::new()
-}
-
-pub fn scan_for_sensitive_files(dir_path: &str) -> Vec<String> {
-    // Return empty list - would scan for sensitive file patterns
-    Vec::new() 
-}
-
-pub fn read_file_bytes(file_path: &str) -> Result<Vec<u8>, &'static str> {
-    read_file(file_path)
 }
