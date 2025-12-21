@@ -13,48 +13,94 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+//
+//! NØNOS Boot Handoff ABI
+//!
+//! Defines the shared ABI between the bootloader and kernel for passing
+//! boot information. The bootloader allocates a `BootHandoffV1` structure
+//! and passes its physical address in the RDI register on kernel entry.
+//!
+//! # Protocol
+//!
+//! 1. Bootloader allocates `BootHandoffV1` in boot services memory
+//! 2. Bootloader fills in all available information
+//! 3. Bootloader jumps to kernel entry with handoff pointer in RDI
+//! 4. Kernel validates handoff using magic/version/size fields
+//! 5. Kernel copies or references handoff data before reclaiming memory
+//!
+//! # Security
+//!
+//! The handoff includes security measurements and attestation data:
+//! - Kernel image SHA-256 hash
+//! - Signature verification status
+//! - Secure boot state
+//! - Random seed from hardware RNG
 
-//! NONOS Boot Handoff ABI
-
-#![allow(dead_code)]
+extern crate alloc;
 
 use core::mem::size_of;
+use spin::Once;
 
-/// Magic value "NONO" in little-endian
+// ============================================================================
+// Constants
+// ============================================================================
+
+/// Magic value "NONO" in little-endian (0x4E = 'N', 0x4F = 'O')
 pub const HANDOFF_MAGIC: u32 = 0x4E_4F_4E_4F;
 
-/// Current handoff version
+/// Current handoff protocol version
 pub const HANDOFF_VERSION: u16 = 1;
 
-/// Handoff feature flags
+/// Maximum command line length (safety limit)
+const MAX_CMDLINE_LEN: usize = 4096;
+
+// ============================================================================
+// Feature Flags
+// ============================================================================
+
+/// Handoff feature flags indicating bootloader-enabled features
 pub mod flags {
-    /// W^X enforcement is active
+    /// W^X (Write XOR Execute) enforcement is active
     pub const WX: u64 = 1 << 0;
-    /// NX bit is enabled
+    /// NX (No-Execute) bit is enabled
     pub const NXE: u64 = 1 << 1;
-    /// SMEP is enabled
+    /// SMEP (Supervisor Mode Execution Prevention) is enabled
     pub const SMEP: u64 = 1 << 2;
-    /// SMAP is enabled
+    /// SMAP (Supervisor Mode Access Prevention) is enabled
     pub const SMAP: u64 = 1 << 3;
-    /// UMIP is enabled
+    /// UMIP (User-Mode Instruction Prevention) is enabled
     pub const UMIP: u64 = 1 << 4;
-    /// Identity mapping preserved for low memory
+    /// Identity mapping preserved for low memory (<1MB)
     pub const IDMAP_PRESERVED: u64 = 1 << 5;
-    /// Framebuffer is available
+    /// Framebuffer is available and valid
     pub const FB_AVAILABLE: u64 = 1 << 6;
-    /// ACPI RSDP is available
+    /// ACPI RSDP pointer is available
     pub const ACPI_AVAILABLE: u64 = 1 << 7;
-    /// TPM measurements available
+    /// TPM measurements were recorded during boot
     pub const TPM_MEASURED: u64 = 1 << 8;
-    /// Secure boot is enabled
+    /// Secure Boot is enabled in firmware
     pub const SECURE_BOOT: u64 = 1 << 9;
+
+    /// Get human-readable flag names
+    pub fn flag_names(flags: u64) -> &'static [&'static str] {
+        const NAMES: [&str; 10] = [
+            "W^X", "NXE", "SMEP", "SMAP", "UMIP",
+            "IDMAP", "FB", "ACPI", "TPM", "SECBOOT",
+        ];
+        // Return appropriate subset based on flags
+        &NAMES[..(64 - flags.leading_zeros() as usize).min(10)]
+    }
 }
+
+// ============================================================================
+// Boot Information Structures
+// ============================================================================
 
 /// Framebuffer information from bootloader
 #[repr(C)]
 #[derive(Debug, Clone, Copy, Default)]
 pub struct FramebufferInfo {
-    /// Physical address of framebuffer
+    /// Physical address of framebuffer memory
     pub ptr: u64,
     /// Size of framebuffer in bytes
     pub size: u64,
@@ -62,10 +108,40 @@ pub struct FramebufferInfo {
     pub width: u32,
     /// Height in pixels
     pub height: u32,
-    /// Bytes per scanline
+    /// Bytes per scanline (pitch)
     pub stride: u32,
     /// Pixel format (0=RGB, 1=BGR, 2=RGBX, 3=BGRX)
     pub pixel_format: u32,
+}
+
+/// Pixel format constants
+pub mod pixel_format {
+    /// RGB (24-bit, no padding)
+    pub const RGB: u32 = 0;
+    /// BGR (24-bit, no padding)
+    pub const BGR: u32 = 1;
+    /// RGBX (32-bit, X padding)
+    pub const RGBX: u32 = 2;
+    /// BGRX (32-bit, X padding)
+    pub const BGRX: u32 = 3;
+}
+
+impl FramebufferInfo {
+    /// Check if framebuffer is valid
+    #[inline]
+    pub fn is_valid(&self) -> bool {
+        self.ptr != 0 && self.width > 0 && self.height > 0 && self.stride > 0
+    }
+
+    /// Get bytes per pixel
+    #[inline]
+    pub fn bytes_per_pixel(&self) -> u32 {
+        match self.pixel_format {
+            pixel_format::RGB | pixel_format::BGR => 3,
+            pixel_format::RGBX | pixel_format::BGRX => 4,
+            _ => 4, // Default to 32-bit
+        }
+    }
 }
 
 /// Memory map entry compatible with UEFI memory descriptor
@@ -248,7 +324,10 @@ impl Default for RngSeed {
     }
 }
 
-/// The bootloader allocates this structure and passes its physical address in RDI when jumping to the kernel entry point.
+/// Main boot handoff structure passed from bootloader to kernel
+///
+/// The bootloader allocates this structure and passes its physical address
+/// in RDI when jumping to the kernel entry point.
 #[repr(C)]
 #[derive(Debug, Clone, Copy)]
 pub struct BootHandoffV1 {
@@ -318,22 +397,27 @@ impl BootHandoffV1 {
     }
 
     /// Get command line if available
+    ///
+    /// # Safety
+    ///
+    /// The command line pointer must remain valid for the returned lifetime.
     pub unsafe fn cmdline(&self) -> Option<&'static str> {
         if self.cmdline_ptr == 0 {
             return None;
         }
+
         let ptr = self.cmdline_ptr as *const u8;
         let mut len = 0;
-        while *ptr.add(len) != 0 {
+
+        // Find null terminator with safety limit
+        while len < MAX_CMDLINE_LEN && *ptr.add(len) != 0 {
             len += 1;
-            if len > 4096 {
-                // Safety limit
-                break;
-            }
         }
+
         if len == 0 {
             return None;
         }
+
         let slice = core::slice::from_raw_parts(ptr, len);
         core::str::from_utf8(slice).ok()
     }
@@ -371,29 +455,122 @@ impl Default for BootHandoffV1 {
     }
 }
 
-/// Global boot handoff storage
-static mut BOOT_HANDOFF: Option<&'static BootHandoffV1> = None;
+// ============================================================================
+// Global Handoff Storage
+// ============================================================================
 
-/// # Safety # Initialize boot handoff from pointer.
-/// Must be called exactly once during early boot with a valid pointer.
-pub unsafe fn init_handoff(ptr: u64) -> Result<&'static BootHandoffV1, &'static str> {
+/// Global boot handoff storage (initialized once during boot)
+static BOOT_HANDOFF: Once<&'static BootHandoffV1> = Once::new();
+
+// ============================================================================
+// Errors
+// ============================================================================
+
+/// Handoff initialization errors
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum HandoffError {
+    /// Null pointer provided
+    NullPointer,
+    /// Invalid magic value
+    InvalidMagic,
+    /// Version mismatch
+    VersionMismatch { expected: u16, got: u16 },
+    /// Size mismatch
+    SizeMismatch { expected: u16, got: u16 },
+    /// Already initialized
+    AlreadyInitialized,
+}
+
+impl HandoffError {
+    /// Get error description
+    pub const fn as_str(&self) -> &'static str {
+        match self {
+            Self::NullPointer => "Null handoff pointer",
+            Self::InvalidMagic => "Invalid handoff magic value",
+            Self::VersionMismatch { .. } => "Handoff version mismatch",
+            Self::SizeMismatch { .. } => "Handoff size mismatch",
+            Self::AlreadyInitialized => "Handoff already initialized",
+        }
+    }
+}
+
+impl core::fmt::Display for HandoffError {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        match self {
+            Self::VersionMismatch { expected, got } => {
+                write!(f, "Handoff version mismatch: expected {}, got {}", expected, got)
+            }
+            Self::SizeMismatch { expected, got } => {
+                write!(f, "Handoff size mismatch: expected {}, got {}", expected, got)
+            }
+            _ => write!(f, "{}", self.as_str()),
+        }
+    }
+}
+
+// ============================================================================
+// Initialization and Access
+// ============================================================================
+
+/// Initialize boot handoff from pointer
+///
+/// # Safety
+///
+/// - Must be called exactly once during early boot
+/// - `ptr` must point to a valid `BootHandoffV1` structure
+/// - The memory must remain valid for the kernel's lifetime
+///
+/// # Returns
+///
+/// Reference to the validated handoff structure.
+pub unsafe fn init_handoff(ptr: u64) -> Result<&'static BootHandoffV1, HandoffError> {
     if ptr == 0 {
-        return Err("Null handoff pointer");
+        return Err(HandoffError::NullPointer);
     }
 
     let handoff = &*(ptr as *const BootHandoffV1);
 
-    if !handoff.is_valid() {
-        return Err("Invalid handoff structure");
+    // Validate magic
+    if handoff.magic != HANDOFF_MAGIC {
+        return Err(HandoffError::InvalidMagic);
     }
 
-    BOOT_HANDOFF = Some(handoff);
+    // Validate version
+    if handoff.version != HANDOFF_VERSION {
+        return Err(HandoffError::VersionMismatch {
+            expected: HANDOFF_VERSION,
+            got: handoff.version,
+        });
+    }
+
+    // Validate size
+    let expected_size = size_of::<BootHandoffV1>() as u16;
+    if handoff.size != expected_size {
+        return Err(HandoffError::SizeMismatch {
+            expected: expected_size,
+            got: handoff.size,
+        });
+    }
+
+    // Store in global (once)
+    if BOOT_HANDOFF.get().is_some() {
+        return Err(HandoffError::AlreadyInitialized);
+    }
+
+    BOOT_HANDOFF.call_once(|| handoff);
     Ok(handoff)
 }
 
 /// Get the boot handoff if initialized
+#[inline]
 pub fn get_handoff() -> Option<&'static BootHandoffV1> {
-    unsafe { BOOT_HANDOFF }
+    BOOT_HANDOFF.get().copied()
+}
+
+/// Check if handoff has been initialized
+#[inline]
+pub fn is_initialized() -> bool {
+    BOOT_HANDOFF.get().is_some()
 }
 
 /// Get total usable memory from handoff
@@ -403,13 +580,17 @@ pub fn total_memory() -> u64 {
         .unwrap_or(0)
 }
 
+// ============================================================================
+// Tests
+// ============================================================================
+
 #[cfg(test)]
 mod tests {
     use super::*;
 
     #[test]
     fn test_handoff_size() {
-        // Ensure structure is correctly sized for ABI
+        // Ensure structure fits in a single page for ABI compatibility
         assert!(size_of::<BootHandoffV1>() < 4096);
     }
 
@@ -417,5 +598,135 @@ mod tests {
     fn test_default_valid() {
         let h = BootHandoffV1::default();
         assert!(h.is_valid());
+        assert_eq!(h.magic, HANDOFF_MAGIC);
+        assert_eq!(h.version, HANDOFF_VERSION);
+    }
+
+    #[test]
+    fn test_flags() {
+        let mut h = BootHandoffV1::default();
+        h.flags = flags::WX | flags::NXE | flags::SMEP;
+
+        assert!(h.has_flag(flags::WX));
+        assert!(h.has_flag(flags::NXE));
+        assert!(h.has_flag(flags::SMEP));
+        assert!(!h.has_flag(flags::SMAP));
+        assert!(!h.has_flag(flags::FB_AVAILABLE));
+    }
+
+    #[test]
+    fn test_framebuffer_available() {
+        let mut h = BootHandoffV1::default();
+
+        // No framebuffer by default
+        assert!(h.framebuffer().is_none());
+
+        // Set flag but no pointer
+        h.flags = flags::FB_AVAILABLE;
+        assert!(h.framebuffer().is_none());
+
+        // Set pointer
+        h.fb.ptr = 0xFD00_0000;
+        assert!(h.framebuffer().is_some());
+    }
+
+    #[test]
+    fn test_acpi_available() {
+        let mut h = BootHandoffV1::default();
+
+        assert!(h.acpi_rsdp().is_none());
+
+        h.flags = flags::ACPI_AVAILABLE;
+        h.acpi.rsdp = 0xE0000;
+        assert_eq!(h.acpi_rsdp(), Some(0xE0000));
+    }
+
+    #[test]
+    fn test_secure_boot() {
+        let mut h = BootHandoffV1::default();
+
+        assert!(!h.secure_boot_enabled());
+
+        h.flags = flags::SECURE_BOOT;
+        assert!(h.secure_boot_enabled());
+
+        h.flags = 0;
+        h.meas.secure_boot = 1;
+        assert!(h.secure_boot_enabled());
+    }
+
+    #[test]
+    fn test_kernel_verified() {
+        let mut h = BootHandoffV1::default();
+
+        assert!(!h.kernel_verified());
+
+        h.meas.kernel_sig_ok = 1;
+        assert!(h.kernel_verified());
+    }
+
+    #[test]
+    fn test_memory_map_empty() {
+        let mmap = MemoryMap::default();
+        unsafe {
+            assert!(mmap.entries().is_empty());
+            assert_eq!(mmap.total_usable_memory(), 0);
+        }
+    }
+
+    #[test]
+    fn test_modules_empty() {
+        let modules = Modules::default();
+        unsafe {
+            assert!(modules.modules().is_empty());
+        }
+    }
+
+    #[test]
+    fn test_framebuffer_info_valid() {
+        let mut fb = FramebufferInfo::default();
+        assert!(!fb.is_valid());
+
+        fb.ptr = 0xFD00_0000;
+        fb.width = 800;
+        fb.height = 600;
+        fb.stride = 3200;
+        assert!(fb.is_valid());
+    }
+
+    #[test]
+    fn test_framebuffer_bytes_per_pixel() {
+        let mut fb = FramebufferInfo::default();
+
+        fb.pixel_format = pixel_format::RGB;
+        assert_eq!(fb.bytes_per_pixel(), 3);
+
+        fb.pixel_format = pixel_format::BGR;
+        assert_eq!(fb.bytes_per_pixel(), 3);
+
+        fb.pixel_format = pixel_format::RGBX;
+        assert_eq!(fb.bytes_per_pixel(), 4);
+
+        fb.pixel_format = pixel_format::BGRX;
+        assert_eq!(fb.bytes_per_pixel(), 4);
+    }
+
+    #[test]
+    fn test_error_display() {
+        let e = HandoffError::NullPointer;
+        assert_eq!(e.as_str(), "Null handoff pointer");
+
+        let e = HandoffError::VersionMismatch { expected: 1, got: 2 };
+        let s = alloc::format!("{}", e);
+        assert!(s.contains("1"));
+        assert!(s.contains("2"));
+    }
+
+    #[test]
+    fn test_magic_value() {
+        // "NONO" in ASCII
+        assert_eq!(HANDOFF_MAGIC, 0x4E_4F_4E_4F);
+        assert_eq!((HANDOFF_MAGIC >> 24) as u8, b'O');
+        assert_eq!(((HANDOFF_MAGIC >> 16) & 0xFF) as u8, b'N');
     }
 }
