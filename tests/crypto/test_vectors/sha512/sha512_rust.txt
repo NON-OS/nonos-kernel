@@ -1,0 +1,7 @@
+running 5 tests
+test crypto::sha512::tests::test_streaming_matches_oneshot ... ok
+test crypto::sha512::tests::test_empty ... ok
+test crypto::sha512::tests::test_abc ... ok
+test crypto::sha512::tests::test_quick_brown_fox ... ok
+test crypto::sha512::tests::test_partial_buffers_and_boundaries ... ok
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 810 filtered out; finished in 0.00s
