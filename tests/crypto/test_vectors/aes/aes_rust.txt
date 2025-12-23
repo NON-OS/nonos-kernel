@@ -1,0 +1,18 @@
+running 27 tests
+test crypto::aes::tests::test_counter_increment ... ok
+test crypto::aes::tests::test_ctr_empty_data ... ok
+test crypto::aes::tests::test_aes128_fips197_appendix_c1 ... ok
+test crypto::aes::tests::test_aes128_nist_sp800_38a ... ok
+test crypto::aes::tests::test_gf_mul_commutative ... ok
+test crypto::aes::tests::test_gf_mul_identity ... ok
+test crypto::aes::tests::test_gf_mul_known_values ... ok
+test crypto::aes::tests::test_gf_mul_zero ... ok
+test crypto::aes::tests::test_sbox_known_values ... ok
+test crypto::aes::tests::test_aes256_fips197_appendix_c3 ... ok
+test crypto::aes::tests::test_aes256_nist_sp800_38a ... ok
+test crypto::aes::tests::test_aes256_zero_key_plaintext ... ok
+test crypto::aes::tests::test_ctr_single_byte ... ok
+test crypto::aes::tests::test_sbox_inverse ... ok
+test crypto::aes::tests::test_aes128_ctr_roundtrip ... ok
+test crypto::aes::tests::test_aes256_ctr_roundtrip ... ok
+test result: ok. 27 passed; 0 failed; 0 ignored; 0 measured; 788 filtered out; finished in 0.09s
