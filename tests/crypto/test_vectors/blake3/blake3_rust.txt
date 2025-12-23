@@ -1,0 +1,24 @@
+running 22 tests
+test crypto::blake3::tests::test_2_bytes ... ok
+test crypto::blake3::tests::test_1_byte ... ok
+test crypto::blake3::tests::test_1024_bytes ... ok
+test crypto::blake3::tests::test_1023_bytes ... ok
+test crypto::blake3::tests::test_1025_bytes ... ok
+test crypto::blake3::tests::test_2048_bytes ... ok
+test crypto::blake3::tests::test_3_bytes ... ok
+test crypto::blake3::tests::test_block_boundary ... ok
+test crypto::blake3::tests::test_derive_key_official ... ok
+test crypto::blake3::tests::test_empty ... ok
+test crypto::blake3::tests::test_chunk_boundary ... ok
+test crypto::blake3::tests::test_incremental_byte_by_byte ... ok
+test crypto::blake3::tests::test_keyed_hash_empty ... ok
+test crypto::blake3::tests::test_keyed_hash_official ... ok
+test crypto::blake3::tests::test_incremental_single ... ok
+test crypto::blake3::tests::test_reset ... ok
+test crypto::blake3::tests::test_xof_extended ... ok
+test crypto::blake3::tests::test_xof_incremental ... ok
+test crypto::blake3::tests::test_8192_bytes ... ok
+test crypto::blake3::tests::test_incremental_chunks ... ok
+test crypto::blake3::tests::test_31744_bytes ... ok
+test crypto::blake3::tests::test_large_input ... ok
+test result: ok. 22 passed; 0 failed; 0 ignored; 0 measured; 793 filtered out; finished in 0.01s
