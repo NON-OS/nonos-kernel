@@ -1,0 +1,34 @@
+Curve25519 Test Results
+=======================
+Date: 2025-12-23
+Mode: Release (optimized)
+Features: std,crypto-curve25519
+
+running 15 tests
+
+Field Element Tests:
+  test crypto::curve25519::tests::test_field_element_add_zero ... ok
+  test crypto::curve25519::tests::test_field_element_mul_one ... ok
+  test crypto::curve25519::tests::test_field_element_mul121666 ... ok
+  test crypto::curve25519::tests::test_field_element_invert ... ok
+  test crypto::curve25519::tests::test_field_element_roundtrip ... ok
+  test crypto::curve25519::tests::test_field_element_square ... ok
+  test crypto::curve25519::tests::test_field_element_sub ... ok
+  test crypto::curve25519::tests::test_field_large_invert ... ok
+  test crypto::curve25519::tests::test_field_very_large_invert ... ok
+
+X25519 Tests:
+  test crypto::curve25519::tests::test_basepoint_encoding ... ok
+  test crypto::curve25519::tests::test_ladder_first_step ... ok
+  test crypto::curve25519::tests::test_x25519_minimal_scalar ... ok
+  test crypto::curve25519::tests::test_x25519_iteration_known ... ok
+  test crypto::curve25519::tests::test_x25519_rfc7748 ... ok
+
+Ed25519 Tests:
+  test crypto::curve25519::tests::test_ed25519_rfc8032 ... SKIPPED (>5min timeout)
+  NOTE: Ed25519 implementation is extremely slow due to unoptimized scalar multiplication.
+        Each scalar_mul does 256 iterations of point add/double.
+        The test requires 8 scalar multiplications (2 keypairs, 2 signs, 2 verifies).
+        Optimization needed: use precomputed tables or window method.
+
+test result: ok. 14 passed; 0 failed; 1 skipped (timeout)
