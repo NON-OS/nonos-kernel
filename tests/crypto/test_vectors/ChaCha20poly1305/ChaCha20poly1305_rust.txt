@@ -1,0 +1,15 @@
+running 13 tests
+test crypto::chacha20poly1305::tests::test_chacha20_block0_aead ... ok
+test crypto::chacha20poly1305::tests::test_chacha20_block_rfc8439 ... ok
+test crypto::chacha20poly1305::tests::test_empty_plaintext ... ok
+test crypto::chacha20poly1305::tests::test_empty_aad ... ok
+test crypto::chacha20poly1305::tests::test_aad_tampering ... ok
+test crypto::chacha20poly1305::tests::test_ciphertext_tampering ... ok
+test crypto::chacha20poly1305::tests::test_in_place ... ok
+test crypto::chacha20poly1305::tests::test_aead_rfc8439 ... ok
+test crypto::chacha20poly1305::tests::test_poly1305_aead_tag ... ok
+test crypto::chacha20poly1305::tests::test_poly1305_clamping ... ok
+test crypto::chacha20poly1305::tests::test_poly1305_rfc8439 ... ok
+test crypto::chacha20poly1305::tests::test_large_plaintext ... ok
+test crypto::chacha20poly1305::tests::test_tag_tampering ... ok
+test result: ok. 13 passed; 0 failed; 0 ignored; 0 measured; 802 filtered out; finished in 0.00s
