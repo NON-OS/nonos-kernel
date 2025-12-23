@@ -1,0 +1,13 @@
+running 11 tests
+test crypto::aes_gcm::tests::test_gf128_mul ... ok
+test crypto::aes_gcm::tests::test_nist_case_13_empty ... ok
+test crypto::aes_gcm::tests::test_nist_case_14_one_block ... ok
+test crypto::aes_gcm::tests::test_one_block ... ok
+test crypto::aes_gcm::tests::test_in_place ... ok
+test crypto::aes_gcm::tests::test_truncated_ciphertext ... ok
+test crypto::aes_gcm::tests::test_nist_case_16_with_aad ... ok
+test crypto::aes_gcm::tests::test_partial_block ... ok
+test crypto::aes_gcm::tests::test_nonce_affects_tag ... ok
+test crypto::aes_gcm::tests::test_with_aad ... ok
+test crypto::aes_gcm::tests::test_large_plaintext ... ok
+test result: ok. 11 passed; 0 failed; 0 ignored; 0 measured; 804 filtered out; finished in 0.09s
