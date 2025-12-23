@@ -1,0 +1,12 @@
+running 10 tests
+test crypto::ed25519::tests::test_sc_addmul_simple ... ok
+test crypto::ed25519::tests::test_sc_reduce_known_values ... ok
+test crypto::ed25519::tests::test_r_reduction_produces_correct_R ... ok
+test crypto::ed25519::tests::test_verify_equation_directly ... ok
+test crypto::ed25519::tests::test_sc_addmul_vs_separate_ops ... ok
+test crypto::ed25519::tests::debug_rfc8032_tv1 ... ok
+test crypto::ed25519::tests::trace_rfc8032_tv1_intermediates ... ok
+test crypto::ed25519::tests::rfc8032_tv1 ... ok
+test crypto::ed25519::tests::sign_verify_roundtrip ... ok
+test crypto::ed25519::tests::batch_verify_basic ... ok
+test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 805 filtered out; finished in 0.03s
