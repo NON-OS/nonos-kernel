@@ -1,0 +1,38 @@
+========================================================================
+Ed25519 Test results
+========================================================================
+
+Date: 2025-12-23
+Mode: Release (optimized)
+Features: std
+
+========================================================================
+
+running 10 tests
+test crypto::ed25519::tests::test_sc_reduce_known_values ... ok
+test crypto::ed25519::tests::test_sc_addmul_simple ... ok
+test crypto::ed25519::tests::test_r_reduction_produces_correct_R ... ok
+test crypto::ed25519::tests::test_verify_equation_directly ... ok
+test crypto::ed25519::tests::rfc8032_tv1 ... ok
+test crypto::ed25519::tests::test_sc_addmul_vs_separate_ops ... ok
+test crypto::ed25519::tests::debug_rfc8032_tv1 ... ok
+test crypto::ed25519::tests::trace_rfc8032_tv1_intermediates ... ok
+test crypto::ed25519::tests::sign_verify_roundtrip ... ok
+test crypto::ed25519::tests::batch_verify_basic ... ok
+
+========================================================================
+
+test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured
+
+========================================================================
+Checklist for:
+========================================================================
+[x] Constant-time scalar multiplication (ge_scalarmult_ct)
+[x] Constant-time comparisons (fe_equal, sc_ge, ct_eq_32)
+[x] SAFETY comments on all unsafe blocks
+[x] Secure key zeroization (Drop implementation with volatile writes)
+[x] Memory barrier after zeroization
+[x] No panic!(), unwrap(), expect() in production code
+[x] All RFC 8032 test vectors pass
+[x] Sign/verify roundtrip works
+[x] Batch verification works
