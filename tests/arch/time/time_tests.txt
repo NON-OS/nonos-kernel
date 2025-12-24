@@ -1,0 +1,84 @@
+Time Module || Test Results
+======================================================================================================
+Date: 2025-12-24
+Mode: Debug (test profile)
+======================================================================================================
+running 72 tests
+test arch::x86_64::time::hpet::tests::test_constants ... ok
+test arch::x86_64::time::hpet::tests::test_register_offsets ... ok
+test arch::x86_64::time::hpet::tests::test_interrupt_mode ... ok
+test arch::x86_64::time::hpet::tests::test_error_messages ... ok
+test arch::x86_64::time::hpet::tests::test_stats_initial ... ok
+test arch::x86_64::time::hpet::tests::test_timer_capabilities_default ... ok
+test arch::x86_64::time::hpet::tests::test_time_conversion_units ... ok
+test arch::x86_64::time::hpet::tests::test_timer_config_default ... ok
+test arch::x86_64::time::hpet::tests::test_timer_mode ... ok
+test arch::x86_64::time::hpet::tests::test_timer_register_offsets ... ok
+test arch::x86_64::time::hpet::tests::test_timer_state_default ... ok
+test arch::x86_64::time::nonos_timer::tests::test_clock_source_conversion ... ok
+test arch::x86_64::time::nonos_timer::tests::test_clock_source_properties ... ok
+test arch::x86_64::time::nonos_timer::tests::test_default_hpet_state ... ok
+test arch::x86_64::time::nonos_timer::tests::test_default_per_cpu_timer ... ok
+test arch::x86_64::time::nonos_timer::tests::test_default_pit_state ... ok
+test arch::x86_64::time::nonos_timer::tests::test_default_tsc_calibration ... ok
+test arch::x86_64::time::nonos_timer::tests::test_format_duration ... ok
+test arch::x86_64::time::nonos_timer::tests::test_frequency_period_conversion ... ok
+test arch::x86_64::time::nonos_timer::tests::test_sleep_strategy ... ok
+test arch::x86_64::time::nonos_timer::tests::test_timer_error_messages ... ok
+test arch::x86_64::time::nonos_timer::tests::test_timer_mode ... ok
+test arch::x86_64::time::nonos_timer::tests::test_timer_state ... ok
+test arch::x86_64::time::nonos_timer::tests::test_timer_statistics_default ... ok
+test arch::x86_64::time::pit::tests::test_access_mode_bits ... ok
+test arch::x86_64::time::pit::tests::test_channel_from_num ... ok
+test arch::x86_64::time::pit::tests::test_channel_ports ... ok
+test arch::x86_64::time::pit::tests::test_channel_select_bits ... ok
+test arch::x86_64::time::pit::tests::test_constants ... ok
+test arch::x86_64::time::pit::tests::test_divisor_to_period_ns ... ok
+test arch::x86_64::time::pit::tests::test_find_best_divisor ... ok
+test arch::x86_64::time::pit::tests::test_frequency_to_divisor ... ok
+test arch::x86_64::time::pit::tests::test_mode_bits ... ok
+test arch::x86_64::time::pit::tests::test_mode_from_num ... ok
+test arch::x86_64::time::pit::tests::test_divisor_to_frequency ... FAILED
+test arch::x86_64::time::pit::tests::test_mode_properties ... ok
+test arch::x86_64::time::pit::tests::test_pit_error_messages ... ok
+test arch::x86_64::time::pit::tests::test_statistics_default ... ok
+test arch::x86_64::time::rtc::tests::test_bcd_conversion ... ok
+test arch::x86_64::time::rtc::tests::test_day_name ... ok
+test arch::x86_64::time::rtc::tests::test_day_of_week ... ok
+test arch::x86_64::time::rtc::tests::test_day_of_year ... ok
+test arch::x86_64::time::rtc::tests::test_days_in_month ... ok
+test arch::x86_64::time::rtc::tests::test_format_iso8601 ... ok
+test arch::x86_64::time::rtc::tests::test_leap_year ... ok
+test arch::x86_64::time::rtc::tests::test_month_name ... ok
+test arch::x86_64::time::rtc::tests::test_periodic_rate ... ok
+test arch::x86_64::time::rtc::tests::test_register_values ... ok
+test arch::x86_64::time::rtc::tests::test_rtc_alarm_validation ... ok
+test arch::x86_64::time::rtc::tests::test_rtc_error_messages ... ok
+test arch::x86_64::time::rtc::tests::test_rtc_time_validation ... ok
+test arch::x86_64::time::rtc::tests::test_statistics_default ... ok
+test arch::x86_64::time::rtc::tests::test_unix_timestamp_conversion ... ok
+test arch::x86_64::time::test::tests::test_category_count ... ok
+test arch::x86_64::time::test::tests::test_get_test ... ok
+test arch::x86_64::time::test::tests::test_result_is_failed ... ok
+test arch::x86_64::time::test::tests::test_result_is_passed ... ok
+test arch::x86_64::time::test::tests::test_result_names ... ok
+test arch::x86_64::time::test::tests::test_stats_add_result ... ok
+test arch::x86_64::time::test::tests::test_software_tests_pass ... ok
+test arch::x86_64::time::test::tests::test_stats_all_passed ... ok
+test arch::x86_64::time::test::tests::test_stats_pass_rate ... ok
+test arch::x86_64::time::test::tests::test_test_registry ... ok
+test arch::x86_64::time::tsc::tests::test_calibration_default ... ok
+test arch::x86_64::time::tsc::tests::test_calibration_source ... ok
+test arch::x86_64::time::tsc::tests::test_frequency_bounds ... ok
+test arch::x86_64::time::tsc::tests::test_per_cpu_default ... ok
+test arch::x86_64::time::tsc::tests::test_statistics_default ... ok
+test arch::x86_64::time::tsc::tests::test_ticks_conversion_zero_freq ... ok
+test arch::x86_64::time::tsc::tests::test_time_conversion_functions ... ok
+test arch::x86_64::time::tsc::tests::test_tsc_error_messages ... ok
+test arch::x86_64::time::tsc::tests::test_tsc_features_reliable ... ok
+======================================================================================================
+test result: FAILED. 71 passed; 1 failed; 0 ignored; 0 measured; 769 filtered out; finished in 0.00s
+======================================================================================================
+Known Failures:
+- test_divisor_to_frequency: Floating-point precision issue
+======================================================================================================
