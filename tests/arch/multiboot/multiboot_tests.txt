@@ -1,0 +1,25 @@
+Multiboot Module || Test Results
+====================================================================================================
+Date: 2025-12-24
+Mode: Debug (test profile)
+====================================================================================================
+running 16 tests
+test arch::x86_64::multiboot::nonos_multiboot::tests::test_acpi_rsdp_is_acpi2 ... ok
+test arch::x86_64::multiboot::nonos_multiboot::tests::test_console_types ... ok
+test arch::x86_64::multiboot::nonos_multiboot::tests::test_error_messages ... ok
+test arch::x86_64::multiboot::nonos_multiboot::tests::test_memory_map_entry ... ok
+test arch::x86_64::multiboot::nonos_multiboot::tests::test_framebuffer_type ... ok
+test arch::x86_64::multiboot::nonos_multiboot::tests::test_format_bytes ... ok
+test arch::x86_64::multiboot::nonos_multiboot::tests::test_acpi_rsdp_checksum ... FAILED
+test arch::x86_64::multiboot::nonos_multiboot::tests::test_error_display ... ok
+test arch::x86_64::multiboot::nonos_multiboot::tests::test_memory_type_names ... ok
+test arch::x86_64::multiboot::nonos_multiboot::tests::test_module_info_size ... ok
+test arch::x86_64::multiboot::nonos_multiboot::tests::test_multiboot_header_checksum ... ok
+test arch::x86_64::multiboot::nonos_multiboot::tests::test_multiboot_stats ... ok
+test arch::x86_64::multiboot::nonos_multiboot::tests::test_platform_names ... ok
+test arch::x86_64::multiboot::nonos_multiboot::tests::test_platform_properties ... ok
+test arch::x86_64::multiboot::nonos_multiboot::tests::test_tag_type_names ... ok
+test arch::x86_64::multiboot::nonos_multiboot::tests::test_timer_frequencies ... ok
+====================================================================================================
+test result: FAILED. 15 passed; 1 failed; 0 ignored; 0 measured; 825 filtered out; finished in 0.00s
+====================================================================================================
