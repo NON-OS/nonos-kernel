@@ -1,0 +1,21 @@
+SMM module || Test Results
+================================================================================================
+Date: 2025-12-24
+Mode: Debug (test profile)
+================================================================================================
+running 12 tests
+test arch::x86_64::smm::nonos_smm::tests::test_amd_msr_constants ... ok
+test arch::x86_64::smm::nonos_smm::tests::test_cpu_vendor_names ... ok
+test arch::x86_64::smm::nonos_smm::tests::test_error_messages ... ok
+test arch::x86_64::smm::nonos_smm::tests::test_intel_msr_constants ... ok
+test arch::x86_64::smm::nonos_smm::tests::test_smi_en_bits ... ok
+test arch::x86_64::smm::nonos_smm::tests::test_region_type_names ... ok
+test arch::x86_64::smm::nonos_smm::tests::test_smi_source_decode ... ok
+test arch::x86_64::smm::nonos_smm::tests::test_smi_source_names ... ok
+test arch::x86_64::smm::nonos_smm::tests::test_smm_region_contains ... ok
+test arch::x86_64::smm::nonos_smm::tests::test_smm_region_contains_range ... ok
+test arch::x86_64::smm::nonos_smm::tests::test_smm_stats ... ok
+test arch::x86_64::smm::nonos_smm::tests::test_smramc_bits ... ok
+================================================================================================
+test result: ok. 12 passed; 0 failed; 0 ignored; 0 measured; 829 filtered out; finished in 0.00s
+================================================================================================
