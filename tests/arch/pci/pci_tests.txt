@@ -1,0 +1,14 @@
+PCI module || Test Results
+===============================================================================================
+Date: 2025-12-24
+Mode: Debug (test profile)
+===============================================================================================
+running 5 tests
+test arch::x86_64::pci::nonos_pci::tests::test_bar_type ... ok
+test arch::x86_64::pci::nonos_pci::tests::test_dma_descriptor ... ok
+test arch::x86_64::pci::nonos_pci::tests::test_error_as_str ... ok
+test arch::x86_64::pci::nonos_pci::tests::test_make_config_address ... ok
+test arch::x86_64::pci::nonos_pci::tests::test_pci_stats_default ... ok
+===============================================================================================
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 836 filtered out; finished in 0.00s
+===============================================================================================
