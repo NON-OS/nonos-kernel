@@ -1,0 +1,13 @@
+FS Crypto Module || Test Results
+=================================================================================================
+Date: 2025-12-24
+Mode: Debug (test profile)
+=================================================================================================
+running 4 tests
+test fs::nonos_crypto::tests::test_crypto_error_to_errno ... ok
+test fs::nonos_crypto::tests::test_secure_zeroize ... ok
+test fs::nonos_crypto::tests::test_nonce_generation ... ok
+test fs::nonos_crypto::tests::test_validate_path ... ok
+=================================================================================================
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 837 filtered out; finished in 0.00s
+=================================================================================================
