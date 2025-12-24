@@ -1,0 +1,12 @@
+FS File Descriptor Module Test Results
+=================================================================================================
+Date: 2025-12-24
+Mode: Debug (test profile)
+=================================================================================================
+running 3 tests
+test fs::fd::tests::test_fd_error_to_errno ... ok
+test fs::fd::tests::test_validate_fd_range ... ok
+test fs::fd::tests::test_open_file_flags ... ok
+=================================================================================================
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 838 filtered out; finished in 0.00s
+=================================================================================================
