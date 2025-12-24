@@ -1,0 +1,23 @@
+ACPI module || Test Results
+================================================================================================
+Date: 2025-12-24
+Mode: Debug (test profile)
+================================================================================================
+running 14 tests
+test arch::x86_64::acpi::nonos_acpi::tests::test_acpi_error_messages ... ok
+test arch::x86_64::acpi::nonos_acpi::tests::test_address_space ... ok
+test arch::x86_64::acpi::nonos_acpi::tests::test_fadt_flags ... ok
+test arch::x86_64::acpi::nonos_acpi::tests::test_generic_address_size ... ok
+test arch::x86_64::acpi::nonos_acpi::tests::test_interrupt_override ... ok
+test arch::x86_64::acpi::nonos_acpi::tests::test_madt_entry_types ... ok
+test arch::x86_64::acpi::nonos_acpi::tests::test_pm_profile ... ok
+test arch::x86_64::acpi::nonos_acpi::tests::test_rsdp_extended_size ... ok
+test arch::x86_64::acpi::nonos_acpi::tests::test_rsdp_signature ... ok
+test arch::x86_64::acpi::nonos_acpi::tests::test_rsdp_size ... ok
+test arch::x86_64::acpi::nonos_acpi::tests::test_sdt_header_size ... ok
+test arch::x86_64::acpi::nonos_acpi::tests::test_sleep_state ... ok
+test arch::x86_64::acpi::nonos_acpi::tests::test_stats_initial ... ok
+test arch::x86_64::acpi::nonos_acpi::tests::test_table_signatures ... ok
+===================================================================================================
+test result: ok. 14 passed; 0 failed; 0 ignored; 0 measured; 827 filtered out; finished in 0.00s
+===================================================================================================
