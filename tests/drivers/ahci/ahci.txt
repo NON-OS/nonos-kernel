@@ -1,0 +1,61 @@
+NØNOS Operating System
+Copyright (C) 2025 NØNOS Contributors
+======================================================================================================
+AHCI Driver Module Test Results
+======================================================================================================
+Date: 2025-12-25
+Mode: Debug (test profile)
+======================================================================================================
+running 27 tests
+test drivers::ahci::tests::test_ahci_error_display ... ok
+test drivers::ahci::tests::test_ahci_error_equality ... ok
+test drivers::ahci::tests::test_ahci_error_variants ... ok
+test drivers::ahci::tests::test_ahci_stats_copy ... ok
+test drivers::ahci::tests::test_ahci_stats_default ... ok
+test drivers::ahci::tests::test_ata_command_values ... ok
+test drivers::ahci::tests::test_cmd_bits ... ok
+test drivers::ahci::tests::test_command_header_layout ... ok
+test drivers::ahci::tests::test_command_header_size ... ok
+test drivers::ahci::tests::test_command_slot_constants ... ok
+test drivers::ahci::tests::test_command_table_alignment ... ok
+test drivers::ahci::tests::test_device_type_debug ... ok
+test drivers::ahci::tests::test_device_type_from_signature ... ok
+test drivers::ahci::tests::test_device_type_names ... ok
+test drivers::ahci::tests::test_error_debug ... ok
+test drivers::ahci::tests::test_error_display ... ok
+test drivers::ahci::tests::test_error_from_str ... ok
+test drivers::ahci::tests::test_fis_type_values ... ok
+test drivers::ahci::tests::test_hba_register_constants ... ok
+test drivers::ahci::tests::test_hdr_flags_cfl_range ... ok
+test drivers::ahci::tests::test_hdr_flags_read ... ok
+test drivers::ahci::tests::test_hdr_flags_write ... ok
+test drivers::ahci::tests::test_is_tfes_bit ... ok
+test drivers::ahci::tests::test_port_register_constants ... ok
+test drivers::ahci::tests::test_prdt_entry_size ... ok
+test drivers::ahci::tests::test_prdt_layout ... ok
+test drivers::ahci::tests::test_security_constants ... ok
+======================================================================================================
+test result: ok. 27 passed; 0 failed; 0 ignored; 0 measured; 838 filtered out; finished in 0.00s
+======================================================================================================
+Module Structure
+======================================================================================================
+src/drivers/ahci/
+├── mod.rs           (201 lines) - Module root, global instance, documentation
+├── error.rs         (130 lines) - AhciError enum with 24 variants
+├── constants.rs     (143 lines) - AHCI 1.3.1 register offsets and constants
+├── types.rs         (195 lines) - CommandHeader, CommandTable, AhciDevice structs
+├── dma.rs           (165 lines) - PortDma, SendPtr for DMA memory management
+├── stats.rs         (43 lines)  - AhciStats structure
+├── tests.rs         (344 lines) - 27 unit tests
+└── controller/
+    ├── mod.rs       (171 lines) - AhciController struct and delegation
+    ├── helpers.rs   (101 lines) - RegisterAccess trait, MMIO helpers
+    ├── validation.rs(79 lines)  - LBA/DMA buffer validation
+    ├── encryption.rs(58 lines)  - AES-256-CTR encryption
+    ├── commands.rs  (222 lines) - Command building functions
+    ├── io.rs        (264 lines) - Read/write/TRIM operations
+    ├── init.rs      (228 lines) - Controller/port initialization
+    └── secure_erase.rs(125 lines) - Secure erase and verification
+======================================================================================================
+Total: 2469 lines across 15 files (average 165 lines/file)
+======================================================================================================
