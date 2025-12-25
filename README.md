@@ -1,4 +1,4 @@
-![NØNOS Banner](./assets/nonos-banner.PNG)
+![NØNOS Banner](./assets/nonos-banner.png)
 
 # NØNOS MICROKERNEL
 **Zero-State Capability-Based Security Microkernel with Cryptographic subsystem**
