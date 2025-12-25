@@ -1,0 +1,16 @@
+FS Path Module Test Results
+===============================================================================================
+Date: 2025-12-24
+Mode: Debug (test profile)
+===============================================================================================
+running 8 tests
+test fs::path::tests::test_file_name ... ok
+test fs::path::tests::test_extension ... ok
+test fs::path::tests::test_join ... ok
+test fs::path::tests::test_components ... ok
+test fs::path::tests::test_normalize_absolute ... ok
+test fs::path::tests::test_parent ... ok
+test fs::path::tests::test_normalize_relative ... ok
+test fs::path::tests::test_traversal_detection ... ok
+===============================================================================================
+test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 833 filtered out; finished in 0.00s
