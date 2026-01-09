@@ -1,12 +1,23 @@
-//! SHA-512 
-//! Note:  This implementation aims to be suitable for kernel/no_std usage and careful about lifecycle and zeroization.
-
-#![cfg_attr(not(test), no_std)]
+// NØNOS Operating System
+// Copyright (C) 2026 NØNOS Contributors
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use core::convert::TryInto;
 use core::ptr;
+use core::sync::atomic::{compiler_fence, Ordering};
 
-/// 512-bit (64-byte) hash output
 pub type Hash512 = [u8; 64];
 
 const K: [u64; 80] = [
@@ -43,16 +54,14 @@ const INITIAL_STATE: [u64; 8] = [
     0x5be0cd19137e2179,
 ];
 
-/// Sha512 streaming hasher (no heap)
 pub struct Sha512 {
     state: [u64; 8],
     buffer: [u8; 128],
     buffer_len: usize,
-    bit_len: u128, // total message length in bits
+    bit_len: u128,
 }
 
 impl Sha512 {
-    /// (state initialized)
     #[inline]
     pub fn new() -> Self {
         Self {
@@ -71,6 +80,7 @@ impl Sha512 {
             unsafe { ptr::write_volatile(b, 0) };
         }
         unsafe { ptr::write_volatile(&mut self.bit_len, 0) };
+        compiler_fence(Ordering::SeqCst);
 
         self.state = INITIAL_STATE;
         self.buffer_len = 0;
@@ -94,32 +104,24 @@ impl Sha512 {
             }
         }
 
-        // Process any full blocks directly from input
         while input.len() >= 128 {
             let block: &[u8; 128] = (&input[..128]).try_into().expect("128 bytes");
             self.process_block(block);
             input = &input[128..];
         }
 
-        // Copy remaining bytes to buffer
         if !input.is_empty() {
             self.buffer[..input.len()].copy_from_slice(input);
             self.buffer_len = input.len();
         }
     }
 
-    /// Finalize and produce the 64-byte digest. This consumes the hasher so
-    /// calling it twice is impossible (prevents accidental reuse after finalize).
     pub fn finalize(mut self) -> Hash512 {
-        // Build padding into a local stack buffer (max 256 bytes -> two blocks)
-        // Copy the remaining buffer bytes first.
         let mut pad_buf = [0u8; 256];
         pad_buf[..self.buffer_len].copy_from_slice(&self.buffer[..self.buffer_len]);
 
-        // Append 0x80 as the single '1' bit
         pad_buf[self.buffer_len] = 0x80;
 
-        // Calculate how many zero bytes are needed so that final length is congruent to 112 mod 128
         let len_after_1 = self.buffer_len + 1;
         let pad_zeros = if len_after_1 <= 112 {
             112 - len_after_1
@@ -127,15 +129,13 @@ impl Sha512 {
             (128 - len_after_1) + 112
         };
 
-        let total_pad = 1 + pad_zeros + 16; // 1 byte 0x80, pad zeros, 16 bytes length
-        let total_len = self.buffer_len + total_pad; // total bytes in pad_buf to process
+        let total_pad = 1 + pad_zeros + 16;
+        let total_len = self.buffer_len + total_pad;
 
-        // Append big-endian 128-bit length (bits)
         let bit_len_be = self.bit_len.to_be_bytes();
         let len_pos = self.buffer_len + 1 + pad_zeros;
         pad_buf[len_pos..len_pos + 16].copy_from_slice(&bit_len_be);
 
-        // Process padding blocks (there will be 1 or 2 blocks)
         let mut offset = 0;
         while offset < total_len {
             let chunk: &[u8; 128] = (&pad_buf[offset..offset + 128])
@@ -145,13 +145,11 @@ impl Sha512 {
             offset += 128;
         }
 
-        // Produce digest
         let mut out = [0u8; 64];
         for (i, &v) in self.state.iter().enumerate() {
             out[i * 8..(i + 1) * 8].copy_from_slice(&v.to_be_bytes());
         }
 
-        // Zero sensitive parts of self before drop to be extra safe (volatile)
         for v in &mut self.state {
             unsafe { ptr::write_volatile(v, 0) };
         }
@@ -160,15 +158,14 @@ impl Sha512 {
         }
         unsafe { ptr::write_volatile(&mut self.bit_len, 0) };
         self.buffer_len = 0;
+        compiler_fence(Ordering::SeqCst);
 
         out
     }
 
-    /// Process one 128-byte block (big endian)
     fn process_block(&mut self, block: &[u8; 128]) {
         let mut w = [0u64; 80];
 
-        // load first 16 words
         for i in 0..16 {
             let idx = i * 8;
             w[i] = u64::from_be_bytes([
@@ -236,7 +233,6 @@ impl Sha512 {
 
 impl Drop for Sha512 {
     fn drop(&mut self) {
-        // Attempt to zero sensitive data using volatile writes so compiler won't optimize them away.
         for v in &mut self.state {
             unsafe { ptr::write_volatile(v, 0) };
         }
@@ -245,10 +241,10 @@ impl Drop for Sha512 {
         }
         unsafe { ptr::write_volatile(&mut self.bit_len, 0) };
         self.buffer_len = 0;
+        compiler_fence(Ordering::SeqCst);
     }
 }
 
-/// Convenience one-shot function (stack-only, no heap)
 pub fn sha512(data: &[u8]) -> Hash512 {
     let mut hasher = Sha512::new();
     hasher.update(data);
@@ -258,10 +254,16 @@ pub fn sha512(data: &[u8]) -> Hash512 {
 #[cfg(test)]
 mod tests {
     use super::{sha512, Hash512, Sha512};
-    use hex_literal::hex;
+    use alloc::vec::Vec;
 
     fn hex_to_bytes(s: &str) -> Vec<u8> {
-        hex::decode(s.replace(|c: char| c.is_whitespace(), "")).expect("valid hex")
+        let s = s.replace(|c: char| c.is_whitespace(), "");
+        let mut result = Vec::with_capacity(s.len() / 2);
+        for i in (0..s.len()).step_by(2) {
+            let byte = u8::from_str_radix(&s[i..i+2], 16).expect("valid hex");
+            result.push(byte);
+        }
+        result
     }
 
     fn assert_eq_hex(actual: &Hash512, expected_hex: &str) {
@@ -319,7 +321,7 @@ mod tests {
 
     #[test]
     fn test_streaming_matches_oneshot() {
-        let data = b"abcdefgh0123456789".repeat(100); // arbitrary longer message
+        let data = b"abcdefgh0123456789".repeat(100);
         let mut s = Sha512::new();
         for chunk in data.chunks(50) {
             s.update(chunk);
@@ -331,7 +333,6 @@ mod tests {
 
     #[test]
     fn test_partial_buffers_and_boundaries() {
-        // Feed data that leaves buffer at different lengths before finalize
         for len in 0..128 {
             let data = vec![0x5Au8; len];
             let out1 = sha512(&data);
