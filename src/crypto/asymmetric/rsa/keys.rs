@@ -22,8 +22,8 @@ use crate::crypto::CryptoError;
 
 use super::RSA_2048;
 
-// Re-export BigUint for backwards compatibility
-pub use crate::crypto::util::bigint::BigUint as BigUintExport;
+/// Re-export BigUint for backwards compatibility
+/// pub use crate::crypto::util::bigint::BigUint as BigUintExport;
 
 #[derive(Debug, Clone)]
 pub struct RsaPublicKey {
