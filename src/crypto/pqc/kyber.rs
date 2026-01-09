@@ -1,20 +1,23 @@
-//! ML-KEM (Kyber) — via PQClean (constant-time, audited).
-//!
-//! Default parameter set: ML-KEM-768 (Kyber768).
-//! Switch with features: `mlkem512` or `mlkem1024`.
-//!
-//! Sizes (FIPS 203):
-//! - ML-KEM-512:  pk=800,   sk=1632, ct=768,  ss=32
-//! - ML-KEM-768:  pk=1184,  sk=2400, ct=1088, ss=32
-//! - ML-KEM-1024: pk=1568,  sk=3168, ct=1568, ss=32
-//!
-//! The complete cryptography lives in vendored C under third_party/pqclean.
+// NØNOS Operating System
+// Copyright (C) 2026 NØNOS Contributors
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 extern crate alloc;
 use alloc::vec::Vec;
 use core::ptr;
 
-// PQClean RNG bridge — used by src/crypto/pqclean_support/randombytes.c
 #[no_mangle]
 pub extern "C" fn nonos_randombytes(buf: *mut u8, n: usize) {
     if buf.is_null() || n == 0 { return; }
@@ -30,28 +33,24 @@ pub const KYBER_PARAM_NAME: &str = "ML-KEM-512";
 pub const KYBER_PARAM_NAME: &str = "ML-KEM-768";
 #[cfg(feature = "mlkem1024")]
 pub const KYBER_PARAM_NAME: &str = "ML-KEM-1024";
-
 #[cfg(feature = "mlkem512")]
 pub const PUBLICKEY_BYTES: usize = 800;
 #[cfg(feature = "mlkem512")]
 pub const SECRETKEY_BYTES: usize = 1632;
 #[cfg(feature = "mlkem512")]
 pub const CIPHERTEXT_BYTES: usize = 768;
-
 #[cfg(feature = "mlkem768")]
 pub const PUBLICKEY_BYTES: usize = 1184;
 #[cfg(feature = "mlkem768")]
 pub const SECRETKEY_BYTES: usize = 2400;
 #[cfg(feature = "mlkem768")]
 pub const CIPHERTEXT_BYTES: usize = 1088;
-
 #[cfg(feature = "mlkem1024")]
 pub const PUBLICKEY_BYTES: usize = 1568;
 #[cfg(feature = "mlkem1024")]
 pub const SECRETKEY_BYTES: usize = 3168;
 #[cfg(feature = "mlkem1024")]
 pub const CIPHERTEXT_BYTES: usize = 1568;
-
 pub const SHAREDSECRET_BYTES: usize = 32;
 
 #[repr(C)]
@@ -63,12 +62,12 @@ pub struct KyberPublicKey { pub bytes: [u8; PUBLICKEY_BYTES] }
 #[derive(Clone)]
 #[derive(Debug)]
 pub struct KyberSecretKey { pub bytes: [u8; SECRETKEY_BYTES] }
-
 impl Drop for KyberSecretKey {
     fn drop(&mut self) {
         for b in &mut self.bytes {
             unsafe { ptr::write_volatile(b, 0) };
         }
+        core::sync::atomic::compiler_fence(core::sync::atomic::Ordering::SeqCst);
     }
 }
 
@@ -82,7 +81,14 @@ pub struct KyberKeyPair {
     pub secret_key: KyberSecretKey,
 }
 
-#[cfg(all(feature = "mlkem768", not(feature = "mlkem512"), not(feature = "mlkem1024")))]
+#[cfg(test)]
+mod ffi {
+    pub unsafe fn keypair(_pk: *mut u8, _sk: *mut u8) -> i32 { -1 }
+    pub unsafe fn encaps(_ct: *mut u8, _ss: *mut u8, _pk: *const u8) -> i32 { -1 }
+    pub unsafe fn decaps(_ss: *mut u8, _ct: *const u8, _sk: *const u8) -> i32 { -1 }
+}
+
+#[cfg(all(not(test), feature = "mlkem768", not(feature = "mlkem512"), not(feature = "mlkem1024")))]
 mod ffi {
     extern "C" {
         pub fn PQCLEAN_KYBER768_CLEAN_crypto_kem_keypair(pk: *mut u8, sk: *mut u8) -> i32;
@@ -94,7 +100,7 @@ mod ffi {
     pub unsafe fn decaps(ss: *mut u8, ct: *const u8, sk: *const u8) -> i32 { PQCLEAN_KYBER768_CLEAN_crypto_kem_dec(ss, ct, sk) }
 }
 
-#[cfg(feature = "mlkem512")]
+#[cfg(all(not(test), feature = "mlkem512"))]
 mod ffi {
     extern "C" {
         pub fn PQCLEAN_KYBER512_CLEAN_crypto_kem_keypair(pk: *mut u8, sk: *mut u8) -> i32;
@@ -106,7 +112,7 @@ mod ffi {
     pub unsafe fn decaps(ss: *mut u8, ct: *const u8, sk: *const u8) -> i32 { PQCLEAN_KYBER512_CLEAN_crypto_kem_dec(ss, ct, sk) }
 }
 
-#[cfg(feature = "mlkem1024")]
+#[cfg(all(not(test), feature = "mlkem1024"))]
 mod ffi {
     extern "C" {
         pub fn PQCLEAN_KYBER1024_CLEAN_crypto_kem_keypair(pk: *mut u8, sk: *mut u8) -> i32;
@@ -145,8 +151,6 @@ pub fn kyber_decaps(ct: &KyberCiphertext, sk: &KyberSecretKey) -> Result<[u8; SH
     ok(rc)?;
     Ok(ss)
 }
-
-// Serialization helpers
 
 pub fn kyber_serialize_public_key(pk: &KyberPublicKey) -> Vec<u8> { pk.bytes.to_vec() }
 pub fn kyber_deserialize_public_key(data: &[u8]) -> Result<KyberPublicKey, KyberError> {
