@@ -1,4 +1,18 @@
-//! ML-DSA (Dilithium) — via PQClean audited
+// NØNOS Operating System
+// Copyright (C) 2026 NØNOS Contributors
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 extern crate alloc;
 use alloc::vec::Vec;
@@ -10,21 +24,18 @@ pub const D_PARAM_NAME: &str = "ML-DSA-44 (Dilithium2)";
 pub const D_PARAM_NAME: &str = "ML-DSA-65 (Dilithium3)";
 #[cfg(feature = "mldsa5")]
 pub const D_PARAM_NAME: &str = "ML-DSA-87 (Dilithium5)";
-
 #[cfg(feature = "mldsa2")]
 pub const PUBLICKEY_BYTES: usize = 1312;
 #[cfg(feature = "mldsa2")]
 pub const SECRETKEY_BYTES: usize = 2528;
 #[cfg(feature = "mldsa2")]
 pub const SIGNATURE_BYTES: usize = 2420;
-
 #[cfg(feature = "mldsa3")]
 pub const PUBLICKEY_BYTES: usize = 1952;
 #[cfg(feature = "mldsa3")]
 pub const SECRETKEY_BYTES: usize = 4000;
 #[cfg(feature = "mldsa3")]
 pub const SIGNATURE_BYTES: usize = 3293;
-
 #[cfg(feature = "mldsa5")]
 pub const PUBLICKEY_BYTES: usize = 2592;
 #[cfg(feature = "mldsa5")]
@@ -51,6 +62,7 @@ impl Drop for DilithiumSecretKey {
         for b in &mut self.bytes {
             unsafe { ptr::write_volatile(b, 0) };
         }
+        core::sync::atomic::compiler_fence(core::sync::atomic::Ordering::SeqCst);
     }
 }
 
@@ -73,8 +85,14 @@ pub enum DilithiumError {
     InvalidLength,
 }
 
-// FFI bindings per parameter set
-#[cfg(all(feature = "mldsa2", not(feature = "mldsa3"), not(feature = "mldsa5")))]
+#[cfg(test)]
+mod ffi {
+    pub unsafe fn keypair(_pk: *mut u8, _sk: *mut u8) -> i32 { -1 }
+    pub unsafe fn sign(_sig: *mut u8, _siglen: *mut usize, _m: *const u8, _mlen: usize, _sk: *const u8) -> i32 { -1 }
+    pub unsafe fn verify(_sig: *const u8, _siglen: usize, _m: *const u8, _mlen: usize, _pk: *const u8) -> i32 { -1 }
+}
+
+#[cfg(all(not(test), feature = "mldsa2", not(feature = "mldsa3"), not(feature = "mldsa5")))]
 mod ffi {
     extern "C" {
         pub fn PQCLEAN_DILITHIUM2_CLEAN_crypto_sign_keypair(pk: *mut u8, sk: *mut u8) -> i32;
@@ -104,7 +122,7 @@ mod ffi {
     }
 }
 
-#[cfg(all(feature = "mldsa3", not(feature = "mldsa2"), not(feature = "mldsa5")))]
+#[cfg(all(not(test), feature = "mldsa3", not(feature = "mldsa2"), not(feature = "mldsa5")))]
 mod ffi {
     extern "C" {
         pub fn PQCLEAN_DILITHIUM3_CLEAN_crypto_sign_keypair(pk: *mut u8, sk: *mut u8) -> i32;
@@ -134,7 +152,7 @@ mod ffi {
     }
 }
 
-#[cfg(all(feature = "mldsa5", not(feature = "mldsa2"), not(feature = "mldsa3")))]
+#[cfg(all(not(test), feature = "mldsa5", not(feature = "mldsa2"), not(feature = "mldsa3")))]
 mod ffi {
     extern "C" {
         pub fn PQCLEAN_DILITHIUM5_CLEAN_crypto_sign_keypair(pk: *mut u8, sk: *mut u8) -> i32;
@@ -172,8 +190,6 @@ fn ok(rc: i32) -> Result<(), DilithiumError> {
         Err(DilithiumError::FfiError)
     }
 }
-
-// API
 
 pub fn dilithium_keypair() -> Result<DilithiumKeyPair, DilithiumError> {
     let mut pk = DilithiumPublicKey { bytes: [0u8; PUBLICKEY_BYTES] };
@@ -214,8 +230,6 @@ pub fn dilithium_verify(pk: &DilithiumPublicKey, msg: &[u8], sig: &DilithiumSign
     };
     rc == 0
 }
-
-// Serialization helpers
 
 pub fn dilithium_serialize_public_key(pk: &DilithiumPublicKey) -> Vec<u8> {
     pk.bytes.to_vec()
