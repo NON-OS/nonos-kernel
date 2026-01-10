@@ -1,22 +1,48 @@
-//! NØNOS ELF Loader Subsystem 
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod types;
-pub mod errors;
 pub mod aslr;
-pub mod reloc;
-pub mod loader;
-pub mod tls;
 pub mod dynlink;
+pub mod errors;
 pub mod interpreter;
+pub mod loader;
 pub mod minimal;
+pub mod reloc;
+pub mod tls;
+pub mod types;
 
-// Public API exports for kernel integration
-pub use loader::{
-    ElfLoader, ElfImage, LoadedSegment, DynamicInfo, init_elf_loader, get_elf_loader, load_elf_executable
+pub use types::{
+    DynamicEntry, ElfHeader, ProgramHeader, RelaEntry, SectionHeader, Symbol,
 };
-pub use types::{ElfHeader, ProgramHeader, SectionHeader, Symbol, RelaEntry};
+
+pub use types::{
+    elf_class, elf_data, elf_machine, elf_osabi, elf_type, phdr_flags, phdr_type,
+    reloc_type, shdr_flags, shdr_type, symbol_bind, symbol_type, ELF_MAGIC,
+};
+
+pub use errors::{ElfError, ElfResult};
+
+pub use loader::{
+    get_elf_loader, init_elf_loader, is_initialized, load_elf_executable,
+    DynamicInfo, ElfImage, ElfLoader, LoadedSegment,
+};
+
 pub use aslr::AslrManager;
-pub use errors::ElfError;
-pub use tls::TlsInfo;
 pub use dynlink::DynLinkInfo;
 pub use interpreter::InterpreterInfo;
+pub use reloc::process_relocations;
+pub use tls::TlsInfo;
+pub use minimal::{entry_from_bytes, validate_elf, validate_elf_detailed};
