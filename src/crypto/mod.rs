@@ -26,6 +26,7 @@ pub mod pqc;
 pub mod symmetric;
 pub mod util;
 pub mod zk;
+pub mod zk_kernel;
 
 pub use util::constant_time;
 pub use util::rng;
@@ -64,7 +65,6 @@ pub use pqc::ntru;
 pub use pqc::mceliece;
 pub use pqc::quantum;
 
-pub use zk::zk_kernel;
 pub use zk::nonos_zk;
 
 #[cfg(feature = "zk-halo2")]
@@ -72,7 +72,7 @@ pub use zk::halo2::{Halo2Verifier, Halo2Error, halo2_verify};
 #[cfg(feature = "zk-groth16")]
 pub use zk::groth16::{Groth16Verifier, Groth16Error, groth16_verify_bn254};
 
-pub use zk::zk_kernel::{
+pub use zk_kernel::{
     FieldElement, PedersenCommitment, SchnorrProof, SigmaProof, RangeProof,
     EqualityProof, MembershipProof,
     PlonkProof, PlonkEvaluations, PlonkCircuit, plonk_prove, plonk_verify,
