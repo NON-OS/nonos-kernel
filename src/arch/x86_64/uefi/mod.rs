@@ -1,5 +1,5 @@
 // NØNOS Operating System
-// Copyright (C) 2025 NØNOS Contributors
+// Copyright (C) 2026 NØNOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -13,105 +13,32 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-//
-// NØNOS x86_64 UEFI Module
 
-pub mod nonos_uefi;
+mod api;
+pub mod constants;
+pub mod crc;
+pub mod error;
+pub mod manager;
+pub mod secure_boot;
+pub mod signature;
+pub mod stats;
+pub mod tables;
+pub mod types;
+pub mod variable;
 
-// ============================================================================
-// Structures
-// ============================================================================
-
-pub use nonos_uefi::FirmwareInfo;
-pub use nonos_uefi::UefiVariable;
-pub use nonos_uefi::UefiManager;
-pub use nonos_uefi::RuntimeServices;
-pub use nonos_uefi::ServiceTableHeader;
-pub use nonos_uefi::Guid;
-pub use nonos_uefi::VariableAttributes;
-pub use nonos_uefi::UefiStats;
-
-// ============================================================================
-// Enumerations
-// ============================================================================
-
-pub use nonos_uefi::ResetType;
-
-// ============================================================================
-// Submodules
-// ============================================================================
-
-pub use nonos_uefi::secure_boot;
-
-// ============================================================================
-// Initialization
-// ============================================================================
-
-/// Initialize UEFI
-#[inline]
-pub fn init(runtime_services_addr: Option<u64>) -> Result<(), &'static str> {
-    nonos_uefi::init(runtime_services_addr)
-}
-
-// ============================================================================
-// Query Functions
-// ============================================================================
-
-/// Get firmware information
-#[inline]
-pub fn get_firmware_info() -> Option<FirmwareInfo> {
-    nonos_uefi::get_firmware_info()
-}
-
-/// Get UEFI variable
-#[inline]
-pub fn get_variable(name: &str, guid: &Guid) -> Option<UefiVariable> {
-    nonos_uefi::get_variable(name, guid)
-}
-
-/// Set UEFI variable
-#[inline]
-pub fn set_variable(
-    name: &str,
-    guid: &Guid,
-    attributes: VariableAttributes,
-    data: &[u8],
-) -> Result<(), &'static str> {
-    nonos_uefi::set_variable(name, guid, attributes, data)
-}
-
-/// Check if Secure Boot is enabled
-#[inline]
-pub fn is_secure_boot_enabled() -> bool {
-    nonos_uefi::is_secure_boot_enabled()
-}
-
-/// Check if in setup mode
-#[inline]
-pub fn is_setup_mode() -> bool {
-    nonos_uefi::is_setup_mode()
-}
-
-/// Reset system
-#[inline]
-pub fn reset_system(reset_type: ResetType) -> Result<(), &'static str> {
-    nonos_uefi::reset_system(reset_type)
-}
-
-/// Get UEFI statistics
-#[inline]
-pub fn get_uefi_stats() -> UefiStats {
-    nonos_uefi::get_uefi_stats()
-}
-
-/// Verify runtime services
-#[inline]
-pub fn verify_runtime_services() -> bool {
-    nonos_uefi::verify_runtime_services()
-}
-
-/// Verify boot services
-#[inline]
-pub fn verify_boot_services() -> bool {
-    nonos_uefi::verify_boot_services()
-}
+pub use api::{
+    get_firmware_info, get_time, get_uefi_stats, get_variable, init, is_secure_boot_enabled,
+    is_setup_mode, reset_system, set_variable, verify_boot_services, verify_runtime_services,
+};
+pub use constants::status;
+pub use crc::{compute as crc32_compute, Crc32};
+pub use error::{UefiError, UefiResult};
+pub use manager::{is_initialized, UefiManager, UEFI_MANAGER};
+pub use signature::{
+    build_signature_list, hash_in_signature_lists, parse_signature_lists, SignatureEntry,
+    SignatureList,
+};
+pub use stats::UefiStats;
+pub use tables::{EfiTime, EfiTimeCapabilities, MemoryDescriptor, MemoryType, RuntimeServices, TableHeader};
+pub use types::{Guid, ResetType, VariableAttributes};
+pub use variable::{FirmwareInfo, UefiVariable};
