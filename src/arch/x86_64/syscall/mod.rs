@@ -1,5 +1,5 @@
 // NØNOS Operating System
-// Copyright (C) 2025 NØNOS Contributors
+// Copyright (C) 2026 NØNOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -13,97 +13,21 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-//
-//! NØNOS x86_64 System Call Module
 
-pub mod nonos_syscall;
+pub mod error;
+pub mod handlers;
+pub mod manager;
+pub mod msr;
+pub mod numbers;
+pub mod security;
+pub mod stats;
+pub mod util;
 
-// ============================================================================
-// Error Types
-// ============================================================================
-
-pub use nonos_syscall::SyscallError;
-
-// ============================================================================
-// Constants
-// ============================================================================
-
-pub use nonos_syscall::syscall_numbers;
-
-// ============================================================================
-// Type Aliases
-// ============================================================================
-
-pub use nonos_syscall::SyscallHandler;
-
-// ============================================================================
-// Core Types
-// ============================================================================
-
-pub use nonos_syscall::SyscallInfo;
-pub use nonos_syscall::SyscallRecord;
-pub use nonos_syscall::SecurityConfig;
-
-// ============================================================================
-// Statistics
-// ============================================================================
-
-pub use nonos_syscall::SyscallStats;
-
-// ============================================================================
-// Manager
-// ============================================================================
-
-pub use nonos_syscall::SyscallManager;
-
-// ============================================================================
-// Security
-// ============================================================================
-
-pub use nonos_syscall::security;
-
-// ============================================================================
-// Public API
-// ============================================================================
-
-/// Initialize syscall subsystem
-#[inline]
-pub fn init() -> Result<(), SyscallError> {
-    nonos_syscall::init()
-}
-
-/// Check if syscall subsystem is initialized
-#[inline]
-pub fn is_initialized() -> bool {
-    nonos_syscall::is_initialized()
-}
-
-/// Detect syscall hooks
-#[inline]
-pub fn detect_syscall_hooks() -> bool {
-    nonos_syscall::detect_syscall_hooks()
-}
-
-/// Verify syscall table integrity
-#[inline]
-pub fn verify_syscall_table_integrity() -> bool {
-    nonos_syscall::verify_syscall_table_integrity()
-}
-
-/// Get recent syscalls
-#[inline]
-pub fn get_recent_calls() -> alloc::vec::Vec<SyscallRecord> {
-    nonos_syscall::get_recent_calls()
-}
-
-/// Get syscall statistics
-#[inline]
-pub fn get_syscall_stats() -> SyscallStats {
-    nonos_syscall::get_syscall_stats()
-}
-
-/// Configure security settings
-#[inline]
-pub fn configure_security(config: SecurityConfig) {
-    nonos_syscall::configure_security(config)
-}
+pub use error::SyscallError;
+pub use manager::{
+    configure_security, detect_syscall_hooks, get_recent_calls, get_syscall_stats, init,
+    is_initialized, verify_syscall_table_integrity, SyscallHandler, SyscallInfo, SyscallManager,
+};
+pub use numbers as syscall_numbers;
+pub use security::SecurityConfig;
+pub use stats::{SyscallRecord, SyscallStats};
