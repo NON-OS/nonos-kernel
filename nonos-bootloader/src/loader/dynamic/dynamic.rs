@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::loader::errors::{LoaderError, LoaderResult};
-use crate::loader::types::{dyn_tag, Elf64Dyn, DynamicInfo};
+use crate::loader::types::{dyn_tag, DynamicInfo, Elf64Dyn};
 use crate::log::logger::log_debug;
 
 pub fn parse_dynamic_section(
@@ -24,6 +24,7 @@ pub fn parse_dynamic_section(
     dyn_size: usize,
 ) -> LoaderResult<DynamicInfo> {
     let entry_size = core::mem::size_of::<Elf64Dyn>();
+
     if dyn_offset + dyn_size > data.len() {
         return Err(LoaderError::SegmentOutOfBounds);
     }
@@ -34,10 +35,13 @@ pub fn parse_dynamic_section(
 
     let entry_count = dyn_size / entry_size;
     let mut info = DynamicInfo::default();
+
     for i in 0..entry_count {
         let offset = dyn_offset + i * entry_size;
+
         // SAFETY: We've validated bounds
         let dyn_entry = unsafe { &*(data.as_ptr().add(offset) as *const Elf64Dyn) };
+
         if dyn_entry.d_tag == dyn_tag::DT_NULL {
             break;
         }
@@ -46,6 +50,7 @@ pub fn parse_dynamic_section(
     }
 
     log_debug("dynamic", "Parsed dynamic section");
+
     Ok(info)
 }
 
@@ -124,8 +129,6 @@ fn parse_dynamic_entry(entry: &Elf64Dyn, info: &mut DynamicInfo) {
     }
 }
 
-/// # Safety
-/// Caller must ensure base_addr points to valid loaded ELF image.
 pub unsafe fn parse_dynamic_at_address(
     base_addr: u64,
     dyn_vaddr: u64,
@@ -140,6 +143,7 @@ pub unsafe fn parse_dynamic_at_address(
     let dyn_ptr = (base_addr + dyn_vaddr) as *const Elf64Dyn;
     let entry_count = dyn_size / entry_size;
     let mut info = DynamicInfo::default();
+
     for i in 0..entry_count {
         let dyn_entry = &*dyn_ptr.add(i);
 
