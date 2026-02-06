@@ -19,7 +19,7 @@
 
 The ZeroState Bootloader is the cryptographic foundation of the NØNOS operating system. It runs before anything else, in the UEFI pre-boot environment and its sole purpose is to guarantee that only verified | attested code ever executes on the machine.
 
-This is not a traditional bootloader that simply loads a kernel and jumps to it. By this Zero-State architecture the mission focus on a mathematically enforcment to a zero-trust architecture where every kernel binary must prove three things before it runs: that its code has not been tampered with, that it was signed by a trusted party and that it carries a valid zero-knowledge attestation proof. Miss any of these and the machine resets. There is no fallback, no recovery mode, no way around it. The most beautiful part is it belongs in the hands of every single operator, it seeks for privacy but removes the the assumptions where a person needs to trust what to run. 
+This is not a traditional bootloader that simply loads a kernel and jumps to it. By this Zero-State architecture the mission focus on a mathematically enforcment to a zero-trust architecture where every kernel binary must prove three things before it runs: that its code has not been tampered with, that it was signed by a trusted party and that it carries a valid zero-knowledge attestation proof. Miss any of these and the machine resets. There is no fallback, no recovery mode, no way around it. The most beautiful part is it belongs in the hands of every single operator, it seeks for privacy but removes the assumptions where a person needs to trust what to run. 
 
 The cryptography is real mostly likely is correct to say it will evolve with the future and needs, also by user feedbacks. An overview includes Ed25519 signatures using the dalek library. BLAKE3 hashing for integrity and key derivation. Groth16 zero-knowledge proofs over BLS12-381 via arkworks. Every comparison is constant-time. Every key derivation uses proper domain separation. This is production code, not a prototype anymore but moving to his challenges.
 
@@ -327,6 +327,18 @@ If the file is missing, defaults are used.
 | ark-bls12-381 | 0.4 | BLS12-381 curve |
 
 All cryptographic code is pure Rust with no C dependencies.
+
+---
+
+## Boot Sequence
+
+<p align="center">
+  <img src="assets/bootloader.png" alt="ZeroState Bootloader — Final verification before kernel handoff" width="800">
+</p>
+
+<p align="center">
+  <em>All cryptographic checks passed. Transferring control to kernel.</em>
+</p>
 
 ---
 
