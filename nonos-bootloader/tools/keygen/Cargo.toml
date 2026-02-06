@@ -1,0 +1,26 @@
+[package]
+name = "nonos-keygen"
+version = "0.1.0"
+edition = "2021"
+publish = false
+description = "NONOS key generator"
+
+# Exclude from parent workspace
+[workspace]
+
+[dependencies]
+clap = { version = "4.2", features = ["derive"] }
+ed25519-dalek = { version = "2.1", features = ["std", "rand_core"] }
+rand = "0.8"
+hex = "0.4"
+base64 = "0.22"
+sha2 = "0.10"
+blake3 = "1.4"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+anyhow = "1.0"
+zeroize = "1.5"
+tempfile = "3.6"
+chrono = { version = "0.4", features = ["serde"] }
+which = "4.4"
+hostname = "0.4"
