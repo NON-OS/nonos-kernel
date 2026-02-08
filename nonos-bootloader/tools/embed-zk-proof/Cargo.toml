@@ -1,0 +1,16 @@
+[package]
+name = "embed-zk-proof"
+version = "0.1.0"
+edition = "2021"
+publish = false
+authors = ["eK <team@nonos.systems>"]
+description = "Embed Groth16 ZK proofs into signed NONOS kernel binaries"
+license = "AGPL-3.0"
+
+[workspace]
+
+[dependencies]
+anyhow = "1.0"
+clap = { version = "4.0", features = ["derive"] }
+blake3 = "1.5"
+hex = "0.4"
