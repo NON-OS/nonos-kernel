@@ -224,7 +224,7 @@ opt-level = 0
 lto = false
 debug = true
 codegen-units = 1
-overflow-checks = true
+overflow-checks = false
 incremental = true
 
 # Keep external crypto libs fast even in dev.
