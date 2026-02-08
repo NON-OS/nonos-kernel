@@ -1,0 +1,56 @@
+[package]
+name = "nonos-threshold-sign"
+version = "1.0.0"
+edition = "2021"
+publish = false
+license = "AGPL-3.0"
+authors = ["eK <team@nonos.systems>"]
+description = "FROST threshold signature for NONOS"
+
+# Exclude from parent workspace
+[workspace]
+
+[lib]
+name = "nonos_threshold_sign"
+path = "src/lib.rs"
+
+[[bin]]
+name = "threshold-keygen"
+path = "src/bin/keygen.rs"
+
+[[bin]]
+name = "threshold-sign"
+path = "src/bin/sign.rs"
+
+[[bin]]
+name = "threshold-round1"
+path = "src/bin/round1.rs"
+
+[[bin]]
+name = "threshold-round2"
+path = "src/bin/round2.rs"
+
+[[bin]]
+name = "threshold-aggregate"
+path = "src/bin/aggregate.rs"
+
+[[bin]]
+name = "threshold-verify"
+path = "src/bin/verify.rs"
+
+[[bin]]
+name = "threshold-create-package"
+path = "src/bin/create_package.rs"
+
+[dependencies]
+curve25519-dalek = { version = "4.1", features = ["serde", "zeroize"] }
+rand_core = { version = "0.6", features = ["std"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+sha2 = "0.10"
+hex = "0.4"
+clap = { version = "4.5", features = ["derive"] }
+zeroize = { version = "1.7", features = ["derive"] }
+
+[dev-dependencies]
+rand_core = { version = "0.6", features = ["std", "getrandom"] }
