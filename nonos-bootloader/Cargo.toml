@@ -1,0 +1,94 @@
+[package]
+name = "nonos_boot"
+version = "0.1.0"
+edition = "2021"
+publish = false
+authors = ["eK <team@nonos.systems>"]
+description = "NØNOS Bootloader — UEFI stage-0 loader for zero-trust enviroment execution"
+license = "AGPL-3.0"
+repository = "https://github.com/NON-OS/nonos-kernel/tree/main/nonos-bootloader"
+readme = "README.md"
+documentation = ["https://docs.nonos.systems", "https://nonos.systems/whitepaper"]
+keywords = ["bootloader", "uefi", "zk", "os", "capsule"]
+categories = ["embedded", "no-std", "cryptography", "os"]
+
+# Modern feature resolution across workspace
+resolver = "2"
+
+[[bin]]
+name = "nonos_boot"
+path = "src/main.rs"
+
+[dependencies]
+# UEFI stack
+uefi = { version = "0.23", features = ["alloc"] }
+uefi-services = "0.20"
+r-efi = "4.0.0"
+
+# Logging (firmware-safe; actual sink is internal)
+log = "0.4"
+
+# ELF parsing and zero-copy helpers
+xmas-elf = "0.8"
+zerocopy = "0.6"
+
+# Measurements / hashing
+sha2 = { version = "0.10", default-features = false, features = ["force-soft"] }
+blake3 = { version = "1.5", default-features = false, features = ["pure"] }
+
+# Misc utilities
+bitflags = "2.4"
+uuid = { version = "1.6", default-features = false, features = ["macro-diagnostics"] }
+bootloader_api = { version = "0.11", default-features = false }
+heapless = { version = "0.8", default-features = false }
+spin = "0.9"
+goblin = { version = "0.7", default-features = false, features = ["elf32", "elf64", "alloc", "endian_fd"] }
+
+# ZK backend (arkworks Groth16); only compiled with `zk-groth16`
+# Note: arkworks 0.4 has alloc support via no default-features
+ark-std = { version = "0.4", default-features = false, optional = true }
+ark-ff = { version = "0.4", default-features = false, optional = true }
+ark-serialize = { version = "0.4", default-features = false, optional = true }
+ark-bls12-381 = { version = "0.4", default-features = false, features = ["curve"], optional = true }
+ark-groth16 = { version = "0.4", default-features = false, optional = true }
+
+# Optional: zeroize buffers after verification (defense-in-depth)
+zeroize = { version = "1.5", default-features = false, features = ["alloc"], optional = true }
+
+# Future/experimental SNARKs (For now: disabled by default for UEFI)
+halo2_proofs = { version = "0.2", optional = true }
+snarkvm = { version = "0.11", optional = true }
+
+# Signature stack (ed25519-dalek v2, uses sha2 0.10 with force-soft for UEFI)
+ed25519-dalek = { version = "2.1", default-features = false, features = ["alloc", "zeroize"] }
+# curve25519-dalek v4 is pulled in automatically by ed25519-dalek v2
+
+[features]
+default = ["logging", "zk-groth16", "zk-vk-provisioned", "zk-zeroize"]
+
+logging = []
+standard = []
+hardened = ["standard"]
+efi-rng = []
+nonos-syscall-msr = []
+nonos-cet = []
+
+zk-groth16 = [
+  "ark-std",
+  "ark-ff",
+  "ark-serialize",
+  "ark-bls12-381",
+  "ark-groth16",
+]
+
+zk-vk-provisioned = []
+zk-bind-manifest = []
+zk-testvectors = []
+host-tests = []
+zk-zeroize = ["zeroize"]
+
+[build-dependencies]
+cc = "1.0"
+embed-manifest = "1.4.0"
+sha2 = "0.10"
+blake3 = "1.5"
