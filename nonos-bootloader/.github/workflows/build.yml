@@ -1,0 +1,107 @@
+name: Build NONOS UEFI Bootloader
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Install Rust nightly
+      uses: dtolnay/rust-toolchain@nightly
+      with:
+        targets: x86_64-unknown-uefi
+        components: rust-src, rustfmt, clippy
+
+    - name: Install build dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y build-essential python3 python3-pip
+        pip3 install pynacl cryptography
+
+    - name: Generate development signing key
+      run: |
+        mkdir -p keys
+        python3 -c "import os; open('keys/signing_key_v1.bin', 'wb').write(os.urandom(32))"
+        echo "Development signing key generated for CI build"
+
+    - name: Cache Cargo dependencies
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.cargo/registry
+          ~/.cargo/git
+          target
+        key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-cargo-
+
+    - name: Check Rust formatting
+      run: cargo fmt --check
+
+    - name: Run Clippy lints
+      run: cargo clippy --target x86_64-unknown-uefi -- -D warnings
+      continue-on-error: true
+
+    - name: Build bootloader (release)
+      run: cargo build --target x86_64-unknown-uefi --release
+
+    - name: Build all tools
+      run: make tools
+
+    - name: Verify UEFI binary
+      run: |
+        ls -la target/x86_64-unknown-uefi/release/
+        file target/x86_64-unknown-uefi/release/nonos_boot.efi || true
+
+    - name: Upload bootloader artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: nonos-bootloader
+        path: |
+          target/x86_64-unknown-uefi/release/nonos_boot.efi
+        retention-days: 30
+
+    - name: Upload tools artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: nonos-tools
+        path: |
+          tools/keygen/target/release/keygen
+          tools/sign-kernel/target/release/sign-kernel
+          tools/threshold-sign/target/release/threshold-sign
+          tools/embed-zk-proof/target/release/embed-zk-proof
+          tools/zk-embed/target/release/zk-embed
+          tools/nonos-attestation-circuit/target/release/generate-keys
+        retention-days: 30
+
+  security:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Install Rust
+      uses: dtolnay/rust-toolchain@stable
+
+    - name: Install cargo-audit
+      run: cargo install cargo-audit
+
+    - name: Security audit
+      run: cargo audit || true
+
+    - name: Check for unsafe code usage
+      run: |
+        echo "=== Unsafe code locations ==="
+        grep -rn "unsafe" src/ --include="*.rs" | head -50 || echo "No unsafe blocks found"
