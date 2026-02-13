@@ -1,0 +1,28 @@
+[build]
+# NOTE: Default target removed to allow tools/ subdirectories to build for host.
+# Build bootloader with: cargo build --target x86_64-unknown-uefi (+ features like zk-groth16)
+# Force using rustup rustc via RUSTC env var if needed
+# rustc = "rustup run nightly rustc"
+
+[target.x86_64-unknown-uefi]
+runner = "echo 'UEFI binary built:'"
+
+rustflags = [
+    "-C", "panic=abort",
+    "-C", "target-feature=+crt-static",
+    # Force curve25519-dalek to use pure Rust (serial) backend, not SIMD
+    "--cfg", "curve25519_dalek_backend=\"serial\"",
+]
+
+# NOTE: build-std in [unstable] applies to ALL targets, which breaks host tools.
+# We then:
+# pass -Zbuild-std manually in the build script for UEFI/freestanding builds.
+# Do *NOT* add [unstable] section here.
+
+[env]
+NONOS_BOOT_TARGET = "x86_64-unknown-uefi"
+NONOS_BOOT_MODE = "uefi"
+BLAKE3_NO_SSE2 = "1"
+BLAKE3_NO_SSE41 = "1"
+BLAKE3_NO_AVX2 = "1"
+BLAKE3_NO_AVX512 = "1"
