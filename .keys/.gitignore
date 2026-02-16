@@ -1,0 +1,6 @@
+# NØNOS Signing Keys !
+*.seed
+*.key
+*.pem
+# Public keys are committed
+!*.pub
