@@ -1,12 +1,14 @@
 [build]
 target = "x86_64-nonos.json"
 
+[unstable]
+build-std = ["core", "alloc"]
+build-std-features = ["compiler-builtins-mem"]
+
 [target.x86_64-nonos]
 rustflags = [
   "-C", "force-frame-pointers=yes",
-  "-C", "link-arg=-nostdlib",
-  "-C", "link-arg=-static",
-  "-C", "link-arg=--gc-sections",
-  "-C", "link-arg=-z",
-  "-C", "link-arg=max-page-size=0x1000",
 ]
+
+# Platform's are defined in the Makefile for portability
+# Use `make run` instead of `cargo run` for QEMU testing
