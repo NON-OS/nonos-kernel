@@ -1,77 +1,109 @@
 [package]
 name = "nonos_kernel"
-version = "0.2.0"
+version = "0.8.0"
 edition = "2021"
 publish = false
 license = "AGPL-3.0"
 authors = ["eK@nonos.systems"]
-description = "NØNOS ZeroState microkernel — RAM-resident, capability-enforced, signed capsules"
+description = "NØNOS ZeroState microkernel, RAM-resident, capability-enforced, signed capsules"
 repository = "https://github.com/NON-OS/nonos-kernel"
 build = "build.rs"
 
 # Use the modern feature resolver to avoid accidental feature unification across the workspace
 resolver = "2"
 
-[[bin]]
-name = "nonos_kernel"
-path = "src/nonos_main.rs"
-
 [lib]
-name = "nonos_kernel_lib"
+name = "nonos_kernel"
 path = "src/lib.rs"
 crate-type = ["staticlib", "rlib"]
 
-######################################################################
+[[bin]]
+name = "nonos-kernel"
+path = "src/nonos_main.rs"
+
 # FEATURES 
 # Notes:
-# - default is a hardened, RAM-resident microkernel profile.
+# - My default is a hardened, RAM-resident microkernel profile.
 # - additional features are opt-in and grouped by domain.
-######################################################################
 [features]
-# Release defaults (security-first, internal crypto, PQC enabled, RAM/VFS/CryptoFS on)
 default = [
   # Kernel hardening
-  "nonos-syscall-int80",  # syscall path (choose 1)
-  "nonos-log-serial",     # serial logging by default
-  "nonos-hash-sha3",      # internal SHA3
+  "nonos-syscall-int80",
+  "nonos-log-serial",
+  "nonos-log-vga",
+  "nonos-hash-sha3",
   "nonos-heap-guard",
   "nonos-wx-audit",
   "nonos-page-zero",
   "nonos-kaslr",
+  "nonos-pcid",
   "nonos-nx-stack",
   "nonos-smap-smep",
   "nonos-consttime",
   "nonos-cet",
+  "nonos-fallback-entry",
+
+  # Architecture & runtime
+  "nonos-apic",
+  "nonos-smp",
+  "arch-x86_64",
 
   # Internal crypto stack
   "crypto-core",
-  "crypto-aead", 
+  "crypto-aead",
   "crypto-ed25519-int",
-  
-  # UI subsystem for production
+  "crypto-curve25519",
+
+  # Capsule loader
+  "nonos-capsule-elf",
+
+  # Advanced hooks
+  "nonos-zk",
+  "nonos-onion",
+  "sha1-legacy",
+
+  # Runtime toggles
+  "cli",
+  "sched",
+
+  # UI subsystem
   "ui",
-  
+
   # Post-quantum cryptography
   "mlkem768",
   "mldsa3",
-  
+
   # Zero-knowledge proof systems
-  # "zk-halo2",    # Disabled for production no_std build
-  # "zk-groth16",  # Disabled for production no_std build
+  "zk-groth16",
 
-  # PQC (ML-KEM-768 by default)
-  "mlkem768",
-
-  # Filesystem: RAM-only + VFS router + CryptoFS
+  # Filesystem features
   "fs-ram",
   "fs-vfs",
   "fs-cryptofs",
+  "on_disk_fs",
 
-  # Networking (core interfaces)
+  # Drivers
+  "drivers-ahci",
+  "drivers-nvme",
+  "drivers-virtio-blk",
+  "drivers-virtio-net",
+
+  # Networking
   "net-core",
+  "net-sockets",
+  "net-ipv4",
+  "net-ipv6",
+  "net-log",
+  "relay_sendme_cell",
+  "relay_resolve_cell",
 
-  # Architecture tag
-  "arch-x86_64",
+  # Memory subsystem
+  "mem-slab",
+  "mem-pagecache",
+  "arch_time_timer",
+
+  # Syscall tracing
+  "nonos-syscall-trace",
 ]
 
 # Syscall gateways (select exactly one at a time)
@@ -104,15 +136,19 @@ nonos-consttime   = ["subtle"]
 # Crypto flavor (internal Ed25519 by default; dalek alternative opt-in)
 nonos-crypto-ed25519 = ["crypto-ed25519-int"]
 
-# Advanced hooks (kept OFF by default)
+# Advanced hooks (kept OFF by default at early releases)
 nonos-zk     = []
-nonos-onion  = []
+nonos-onion  = ["sha1-legacy"]  # Onion routing requires legacy SHA-1 for TAP protocol
 nonos-cet    = []
 nonos-fallback-entry = []
+
+# Legacy/deprecated crypto (OFF by default, use only for protocol compatibility)
+sha1-legacy = []  # SHA-1 is cryptographically broken and only for Git/TAP/TOTP compat
 
 # Runtime toggles referenced in code (satisfy unexpected_cfgs = "deny")
 cli   = []
 sched = []
+standalone = []  # When building lib as standalone kernel (includes panic/alloc handlers)
 
 # Networking & timers
 net-log = []
@@ -125,6 +161,7 @@ crypto-core         = []
 crypto-aead         = []
 crypto-ed25519-int  = []
 crypto-ed25519-dalek = ["ed25519-dalek"]  # optional
+crypto-curve25519   = ["curve25519-dalek", "x25519-dalek"]  # production X25519
 
 # PQC parameter sets (choose exactly one; default = mlkem768)
 mlkem512  = []
@@ -137,8 +174,8 @@ mldsa3 = []
 mldsa5 = []
 
 # Zero-knowledge proof systems
-zk-halo2 = []
-zk-groth16 = []
+zk-halo2 = ["halo2_proofs", "halo2curves"]
+zk-groth16 = ["ark-bn254", "ark-groth16", "ark-serialize", "ark-ff", "ark-ec", "ark-std"]
 
 # Additional features
 nonos-syscall-trace = []
@@ -169,9 +206,7 @@ mem-pagecache  = []  # FS page cache (RAM-backed)
 # Host-only: enable std for tools/tests when not building the kernel image
 std = ["rand"]
 
-######################################################################
 # DEPENDENCIES — no_std-compatible by default
-######################################################################
 [dependencies]
 # Architecture / memory mgmt
 x86_64 = { version = "0.14", default-features = false, features = ["abi_x86_interrupt", "instructions"] }
@@ -189,6 +224,8 @@ bitvec    = { version = "1.0",  default-features = false, features = ["alloc"] }
 
 # Crypto (optional externals retained for compatibility)
 ed25519-dalek = { version = "1", default-features = false, features = ["u64_backend"], optional = true }
+curve25519-dalek = { version = "4", default-features = false, features = ["alloc"], optional = true }
+x25519-dalek = { version = "2", default-features = false, features = ["static_secrets"], optional = true }
 sha3           = { version = "0.10", default-features = false, optional = true }
 subtle         = { version = "2.5",  default-features = false, optional = true }
 
@@ -201,7 +238,9 @@ cfg-if   = { version = "1.0", default-features = false }
 volatile = { version = "0.4", default-features = false }
 heapless = { version = "0.8", default-features = false }
 blake3   = { version = "1.0", default-features = false }
+sha2     = { version = "0.10", default-features = false, features = ["force-soft"] }
 bootloader_api = { version = "0.11", default-features = false }
+miniz_oxide = { version = "0.7", default-features = false, features = ["with-alloc"] }
 
 # Network stack
 smoltcp = { version = "0.11", default-features = false, features = ["alloc", "socket-raw", "socket-udp", "socket-tcp", "proto-ipv4", "proto-ipv6", "medium-ethernet"] }
@@ -209,49 +248,25 @@ smoltcp = { version = "0.11", default-features = false, features = ["alloc", "so
 # Host-only tooling/tests when `--features std`
 rand = { version = "0.8", default-features = true, optional = true }
 
-######################################################################
+# Zero-knowledge proof systems (arkworks 0.4 — subgroup checks enabled by default)
+# Note: ark-bn254 requires "curve" feature to export G1Affine, G2Affine, Fr, Bn254
+ark-bn254     = { version = "0.4", default-features = false, features = ["curve"], optional = true }
+ark-groth16   = { version = "0.4", default-features = false, optional = true }
+ark-serialize = { version = "0.4", default-features = false, features = ["derive"], optional = true }
+ark-ff        = { version = "0.4", default-features = false, optional = true }
+ark-ec        = { version = "0.4", default-features = false, optional = true }
+ark-std       = { version = "0.4", default-features = false, optional = true }
+
+# Halo2 proof system (KZG commitment on BN256)
+halo2_proofs = { version = "0.3", default-features = false, optional = true }
+halo2curves  = { version = "0.6", default-features = false, optional = true }
+
 # TARGET-SPECIFIC OVERRIDES (bare-metal x86_64)
-######################################################################
 [target.'cfg(target_arch = "x86_64")'.dependencies]
 # (reserved for arch-specific deps if/when needed)
 
-######################################################################
-# BUILD PROFILES — tuned for small, auditable kernels
-######################################################################
-[profile.dev]
-panic = "abort"
-opt-level = 0
-lto = false
-debug = true
-codegen-units = 1
-overflow-checks = true
-incremental = true
 
-# Keep external crypto libs fast even in dev.
-[profile.dev.package."ed25519-dalek"]
-opt-level = 3
-[profile.dev.package."sha3"]
-opt-level = 3
-
-[profile.release]
-panic = "abort"
-opt-level = 3
-lto = "fat"            # aggressive LTO for kernel
-strip = "symbols"
-debug = false
-codegen-units = 1
-overflow-checks = false
-incremental = false
-rpath = false
-
-[profile.release.package."ed25519-dalek"]
-opt-level = 3
-[profile.release.package."sha3"]
-opt-level = 3
-
-######################################################################
-# BUILD DEPENDENCIES — build.rs integrates PQClean + manifest signing
-######################################################################
+# BUILD DEPENDENCIES, build.rs integrates PQClean + manifest signing
 [build-dependencies]
 blake3 = { version = "1.5", default-features = false }
 cc    = "1.1"
@@ -260,15 +275,7 @@ glob  = "0.3"
 ed25519-dalek = { version = "1", default-features = false, features = ["u64_backend"] }
 sha2          = { version = "0.10", default-features = false }
 
-# Build scripts deterministic/minimal
-[profile.dev.build-override]
-opt-level = 0
-[profile.release.build-override]
-opt-level = "z"
-
-######################################################################
 # LINTS (Rust >= 1.75) 
-######################################################################
 [lints.rust]
 unused_imports = "warn"
 unused_variables = "warn"
@@ -278,9 +285,7 @@ unsafe_op_in_unsafe_fn = "warn"
 # Deny unknown cfgs so features must be declared above
 unexpected_cfgs = "deny"
 
-######################################################################
-# NONOS METADATA — machine-readable kernel contract
-######################################################################
+# NONOS METADATA, machine-readable kernel contract
 [package.metadata.nonos]
 zerostate = true
 vm = { higher_half = "0xffff_8000_0000_0000", heap_min = "2MiB" }
@@ -288,3 +293,8 @@ security = { wx = true, nx = true, smep = true, smap = true, kaslr = true, cet =
 caps = ["LOG","YIELD","TIME","IPC","KSTAT"]
 abi.syscall.v0 = { numbers = [1, 2, 3, 5], names = ["LOG_WRITE","YIELD","TIME_NOW","KSTAT_READ"] }
 capsule = { format = "ELF64", sections = [".text",".rodata",".data",".bss",".nonos.manifest",".nonos.sig"], sig = "ed25519", hash = "sha3-256" }
+
+# DEV DEPENDENCIES (for tests only)
+[dev-dependencies]
+hex-literal = "0.4"
+hex = "0.4"
