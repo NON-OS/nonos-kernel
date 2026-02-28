@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -35,6 +35,7 @@ pub fn syscall_munmap(addr: u64, length: u64, _: u64, _: u64, _: u64, _: u64) ->
     };
 
     let num_pages = (length + 4095) / 4096;
+
     for i in 0..num_pages {
         let page_addr = x86_64::VirtAddr::new(addr + i * 4096);
         let _ = crate::memory::paging::unmap_page(page_addr);

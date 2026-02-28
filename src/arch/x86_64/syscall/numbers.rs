@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -49,7 +49,7 @@ pub const SYS_SHMCTL: u64 = 31;
 pub const SYS_DUP: u64 = 32;
 pub const SYS_DUP2: u64 = 33;
 pub const SYS_PAUSE: u64 = 34;
-pub const SYS_NANOSLEEP: u64 = 35;
+pub const SYS_NONOSLEEP: u64 = 35;
 pub const SYS_GETITIMER: u64 = 36;
 pub const SYS_ALARM: u64 = 37;
 pub const SYS_SETITIMER: u64 = 38;
@@ -83,4 +83,5 @@ pub const SYS_GETGID: u64 = 104;
 pub const SYS_GETEUID: u64 = 107;
 pub const SYS_GETEGID: u64 = 108;
 pub const SYS_GETPPID: u64 = 110;
+
 pub const MAX_SYSCALL: u64 = 512;

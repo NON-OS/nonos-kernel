@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -152,7 +152,7 @@ impl SyscallManager {
         table.insert(SYS_DUP2, SyscallInfo::new(SYS_DUP2, "dup2", handlers::syscall_dup2));
         table.insert(SYS_PIPE, SyscallInfo::new(SYS_PIPE, "pipe", handlers::syscall_pipe));
 
-        table.insert(SYS_NANOSLEEP, SyscallInfo::new(SYS_NANOSLEEP, "nanosleep", handlers::syscall_nanosleep));
+        table.insert(SYS_NONOSLEEP, SyscallInfo::new(SYS_NONOSLEEP, "nanosleep", handlers::syscall_nanosleep));
         table.insert(SYS_SCHED_YIELD, SyscallInfo::new(SYS_SCHED_YIELD, "sched_yield", handlers::syscall_sched_yield));
         table.insert(SYS_ALARM, SyscallInfo::new(SYS_ALARM, "alarm", handlers::syscall_alarm));
 
@@ -184,6 +184,7 @@ impl SyscallManager {
     pub fn dispatch(&self, number: u64, args: [u64; 6]) -> u64 {
         let start_time = crate::time::now_ns();
         self.stats.total_calls.fetch_add(1, Ordering::Relaxed);
+
         if let Err(e) = self.validate_syscall(number, &args) {
             self.stats.blocked_calls.fetch_add(1, Ordering::Relaxed);
             self.stats.error_count.fetch_add(1, Ordering::Relaxed);
@@ -203,6 +204,7 @@ impl SyscallManager {
         };
 
         let result = handler(args[0], args[1], args[2], args[3], args[4], args[5]);
+
         let end_time = crate::time::now_ns();
         let duration = end_time.saturating_sub(start_time);
         self.stats.total_time_ns.fetch_add(duration, Ordering::Relaxed);
