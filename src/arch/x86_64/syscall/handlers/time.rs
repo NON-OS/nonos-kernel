@@ -19,7 +19,6 @@ use spin::Mutex;
 
 extern crate alloc;
 
-/// Per-process alarm state: (pid -> expire_time in milliseconds)
 static PROCESS_ALARMS: Mutex<BTreeMap<u32, u64>> = Mutex::new(BTreeMap::new());
 
 pub fn syscall_nanosleep(req: u64, rem: u64, _: u64, _: u64, _: u64, _: u64) -> u64 {
@@ -42,11 +41,6 @@ pub fn syscall_gettimeofday(tv: u64, tz: u64, _: u64, _: u64, _: u64, _: u64) ->
     result.value as u64
 }
 
-/// Implement the alarm syscall.
-///
-/// Sets an alarm to deliver SIGALRM to the calling process after `seconds` seconds.
-/// Returns the number of seconds remaining until any previously scheduled alarm
-/// was due to be delivered, or zero if there was no previously scheduled alarm.
 pub fn syscall_alarm(seconds: u64, _: u64, _: u64, _: u64, _: u64, _: u64) -> u64 {
     let pid = crate::process::current_pid().unwrap_or(1);
     let now_ms = crate::time::timestamp_millis();
@@ -77,7 +71,6 @@ pub fn syscall_alarm(seconds: u64, _: u64, _: u64, _: u64, _: u64, _: u64) -> u6
     previous_remaining
 }
 
-/// Check and deliver expired alarms. Called from timer interrupt handler.
 pub fn check_alarms() {
     let now_ms = crate::time::timestamp_millis();
     let mut expired = alloc::vec::Vec::new();
@@ -105,7 +98,6 @@ pub fn check_alarms() {
     }
 }
 
-/// Cancel alarm for a specific process (called when process exits)
 pub fn cancel_process_alarm(pid: u32) {
     PROCESS_ALARMS.lock().remove(&pid);
 }
