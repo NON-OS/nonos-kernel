@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -19,7 +19,7 @@ mod numpad;
 mod scan;
 mod state;
 #[cfg(test)]
-mod test
+mod test;
 
 pub use convert::{ascii_to_keycode, keycode_to_ascii, keycode_to_ascii_with_mods};
 pub use numpad::NumpadKey;
