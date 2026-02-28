@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -24,15 +24,10 @@ use super::tables::AddressSpace;
 #[repr(u8)]
 pub enum SleepState {
     S0 = 0,
-    /// S1 - Power on suspend (CPU stops, RAM powered)
     S1 = 1,
-    /// S2 - CPU off (similar to S1, CPU context lost)
     S2 = 2,
-    /// S3 - Suspend to RAM (STR, standby)
     S3 = 3,
-    /// S4 - Suspend to Disk (hibernate)
     S4 = 4,
-    /// S5 - Soft Off (mechanical off)
     S5 = 5,
 }
 
@@ -53,8 +48,7 @@ mod pm1_bits {
     pub(super) const SLP_TYP_SHIFT: u16 = 10;
     pub(super) const SLP_EN: u16 = 1 << 13;
 }
-/// Transitions the system to the specified ACPI sleep state.
-/// S5 causes system shutdown, S3 suspends to RAM, etc.
+
 pub fn enter_sleep_state(state: SleepState) -> AcpiResult<()> {
     match state {
         SleepState::S0 => Ok(()), // Already in S0
@@ -63,27 +57,31 @@ pub fn enter_sleep_state(state: SleepState) -> AcpiResult<()> {
     }
 }
 
-/// Enter S5 (soft off) state
 fn enter_s5() -> AcpiResult<()> {
     parser::with_data(|data| {
         let pm1a = data.pm1a_control;
         let pm1b = data.pm1b_control;
         let slp_typ = data.slp_typ[5];
+
         if pm1a == 0 {
             return Err(AcpiError::HardwareAccessFailed);
         }
 
+        // Build PM1 control value
         let value = pm1_bits::SLP_EN | ((slp_typ as u16) << pm1_bits::SLP_TYP_SHIFT);
+
         // Write to PM1a_CNT
         unsafe {
             crate::arch::x86_64::port::outw(pm1a as u16, value);
         }
 
+        // Write to PM1b_CNT if present
         if pm1b != 0 {
             unsafe {
                 crate::arch::x86_64::port::outw(pm1b as u16, value);
             }
         }
+
         // If we reach here, the system should have powered off
         // but some systems need a small delay
         for _ in 0..1000 {
@@ -94,16 +92,13 @@ fn enter_s5() -> AcpiResult<()> {
     })
     .unwrap_or(Err(AcpiError::NotInitialized))
 }
-/// Attempts to power off the system using ACPI S5 state.
-/// This function does not return on success.
+
 pub fn shutdown() -> AcpiResult<()> {
     enter_sleep_state(SleepState::S5)
 }
-/// Attempts to reboot using multiple methods:
-/// 1. ACPI reset register (if available)
-/// 2. Keyboard controller reset
-/// 3. Triple fault (last resort)
+
 pub fn reboot() -> AcpiResult<()> {
+    // Try ACPI reset register first
     if let Some(reset_performed) = parser::with_data(|data| {
         if let Some(ref reset_reg) = data.reset_reg {
             unsafe {
@@ -129,6 +124,7 @@ pub fn reboot() -> AcpiResult<()> {
         false
     }) {
         if reset_performed {
+            // Give it a moment to take effect
             for _ in 0..10000 {
                 core::hint::spin_loop();
             }
@@ -137,6 +133,7 @@ pub fn reboot() -> AcpiResult<()> {
 
     // Fallback 1: Keyboard controller reset
     unsafe {
+        // Wait for input buffer to be clear
         for _ in 0..1000 {
             if crate::arch::x86_64::port::inb(0x64) & 0x02 == 0 {
                 break;
@@ -154,6 +151,7 @@ pub fn reboot() -> AcpiResult<()> {
 
     // Fallback 2: Triple fault
     unsafe {
+        // Load null IDT and trigger interrupt
         let null_idt: [u8; 6] = [0; 6];
         core::arch::asm!(
             "lidt [{}]",
@@ -171,6 +169,8 @@ pub fn is_sleep_state_supported(state: SleepState) -> bool {
             parser::with_data(|data| data.pm1a_control != 0).unwrap_or(false)
         }
         _ => {
+            // S1-S4 require DSDT parsing to determine support
+            // For now, only S0 and S5 are implemented
             false
         }
     }
