@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -22,9 +22,11 @@ pub const BYTES_PER_CHAR: usize = 2;
 pub const VGA_BUFFER_SIZE: usize = SCREEN_SIZE * BYTES_PER_CHAR;
 pub const MAX_CONSOLES: usize = 4;
 pub const SCROLLBACK_LINES: usize = 200;
+
 // CRT Controller ports (internal)
 pub(crate) const CRT_INDEX: u16 = 0x3D4;
 pub(crate) const CRT_DATA: u16 = 0x3D5;
+
 // Cursor registers (internal)
 pub(crate) const CURSOR_HIGH: u8 = 0x0E;
 pub(crate) const CURSOR_LOW: u8 = 0x0F;
