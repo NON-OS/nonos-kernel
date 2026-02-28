@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -21,7 +21,9 @@ use crate::arch::x86_64::idt::entry::InterruptFrame;
 use crate::arch::x86_64::idt::table::Idt;
 
 pub(crate) static mut IDT: Idt = Idt::new();
+
 pub(crate) static INITIALIZED: AtomicBool = AtomicBool::new(false);
+
 pub(crate) static INTERRUPT_COUNTS: [AtomicU64; IDT_ENTRIES] = {
     const INIT: AtomicU64 = AtomicU64::new(0);
     [INIT; IDT_ENTRIES]
@@ -30,6 +32,7 @@ pub(crate) static INTERRUPT_COUNTS: [AtomicU64; IDT_ENTRIES] = {
 pub(crate) static TOTAL_INTERRUPTS: AtomicU64 = AtomicU64::new(0);
 pub(crate) static EXCEPTION_COUNT: AtomicU64 = AtomicU64::new(0);
 pub(crate) static IRQ_COUNT: AtomicU64 = AtomicU64::new(0);
+
 pub(crate) static mut IRQ_HANDLERS: [Option<fn(u8)>; 16] = [None; 16];
 pub(crate) static mut SYSCALL_HANDLER: Option<fn(&mut InterruptFrame)> = None;
 pub(crate) static mut OTHER_HANDLERS: [Option<fn(&mut InterruptFrame)>; 256] = [None; 256];
