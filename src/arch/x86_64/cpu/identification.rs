@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -54,16 +54,20 @@ impl CpuId {
     pub fn detect() -> Self {
         let (_, ebx, ecx, edx) = cpuid(0);
         let vendor = CpuVendor::from_cpuid_string(ebx, ecx, edx);
+
         let (eax, ebx, _, _) = cpuid(1);
+
         let stepping = (eax & 0xF) as u8;
         let model = ((eax >> 4) & 0xF) as u8;
         let family = ((eax >> 8) & 0xF) as u8;
         let ext_model = ((eax >> 16) & 0xF) as u8;
         let ext_family = ((eax >> 20) & 0xFF) as u8;
+
         let brand_index = (ebx & 0xFF) as u8;
         let clflush_size = ((ebx >> 8) & 0xFF) as u8;
         let max_logical_processors = ((ebx >> 16) & 0xFF) as u8;
         let apic_id = ((ebx >> 24) & 0xFF) as u8;
+
         let display_family = if family == 0xF {
             (ext_family as u16) + (family as u16)
         } else {
