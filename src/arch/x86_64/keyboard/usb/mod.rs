@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -25,17 +25,29 @@ mod state;
 pub mod types;
 pub mod usage;
 
+// Device types
 pub use device::{HidDeviceState, UsbHidKeyboard, UsbHidMouse};
+
+// Error handling
 pub use error::{UsbHidError, UsbHidResult};
+
+// Driver lifecycle
 pub use driver::{init, poll, shutdown, get_device_info};
 pub use enumeration::enumerate_devices;
+
+// State accessors
 pub use state::{device_count, get_stats, is_initialized, reset_stats};
+
+// Keyboard functions
 pub use keyboard::{get_leds, set_leds};
+
+// Report parsing
 pub use report::{
     parse_keyboard_modifiers, parse_keyboard_report, parse_keyboard_report_all,
     parse_mouse_report, parse_mouse_report_scroll,
 };
 
+// HID usage codes
 pub use usage::hid_to_scancode;
 
 // Type re-exports
