@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -26,6 +26,7 @@ pub mod stats;
 pub mod syscall;
 pub mod table;
 pub mod tss;
+
 #[cfg(test)]
 mod tests;
 
@@ -40,6 +41,7 @@ pub use stats::{get_stats, selectors, GdtStats, Selectors};
 pub use syscall::setup_syscall;
 pub use table::{Gdt, GdtPtr};
 pub use tss::{Tss, TssEntry};
+
 // Legacy aliases for compatibility
 pub const NMI_IST_INDEX: u16 = IST_NMI as u16;
 pub const DF_IST_INDEX: u16 = IST_DOUBLE_FAULT as u16;
