@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -15,18 +15,21 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 extern crate alloc;
+
 use alloc::vec::Vec;
+
 use super::serial::serial_print;
 
-/// Initializes the interrupt subsystem including APIC, IOAPIC and timer.
-/// # Safety {
-/// Must be called after CPU structures (GDT, IDT) are initialized
-/// Must be called exactly once during boot
-/// Interrupts will be enabled at the end of this function
-/// }
+/// # Safety
+///
+/// Must be called after GDT/IDT are initialized.
 pub unsafe fn init_interrupts() -> Result<(), &'static str> {
+    // SAFETY: Caller guarantees CPU structures are initialized
     use crate::arch::x86_64::interrupt::nonos_ioapic::{IsoFlags, MadtIoApic, MadtIso, MadtNmi};
-    crate::arch::x86_64::interrupt::apic::init();
+
+    let _ = unsafe { crate::arch::x86_64::interrupt::apic::init() };
+
+    // ACPI initialization is optional - fallback to legacy if it fails
     match crate::arch::x86_64::acpi::init() {
         Ok(()) => {}
         Err(e) => {
@@ -34,6 +37,7 @@ pub unsafe fn init_interrupts() -> Result<(), &'static str> {
         }
     }
 
+    // Initialize IOAPIC if ACPI is available
     if crate::arch::x86_64::acpi::is_initialized() {
         if let Some(madt) = crate::arch::x86_64::acpi::madt::parse_madt() {
             let ioapics: Vec<MadtIoApic> = madt
@@ -66,7 +70,7 @@ pub unsafe fn init_interrupts() -> Result<(), &'static str> {
                 .collect();
 
             if let Err(e) =
-                crate::arch::x86_64::interrupt::nonos_ioapic::init(&ioapics, &isos, &nmis)
+                unsafe { crate::arch::x86_64::interrupt::nonos_ioapic::init(&ioapics, &isos, &nmis) }
             {
                 serial_print(format_args!("[BOOT] IOAPIC init failed: {}\n", e.as_str()));
             } else {
@@ -81,6 +85,9 @@ pub unsafe fn init_interrupts() -> Result<(), &'static str> {
     }
 
     crate::arch::x86_64::time::timer::init();
+
+    // SAFETY: All interrupt handlers are set up, safe to enable interrupts
     x86_64::instructions::interrupts::enable();
+
     Ok(())
 }
