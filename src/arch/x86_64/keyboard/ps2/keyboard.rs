@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -18,23 +18,23 @@ use super::controller::Controller;
 use super::super::error::{Ps2Error, Ps2Result};
 use super::super::types::LedState;
 
-pub const CMD_SET_LEDS: u8 = 0xED;
-pub const CMD_ECHO: u8 = 0xEE;
-pub const CMD_GET_SET_SCANCODE: u8 = 0xF0;
-pub const CMD_IDENTIFY: u8 = 0xF2;
-pub const CMD_SET_TYPEMATIC: u8 = 0xF3;
-pub const CMD_ENABLE_SCANNING: u8 = 0xF4;
-pub const CMD_DISABLE_SCANNING: u8 = 0xF5;
-pub const CMD_SET_DEFAULTS: u8 = 0xF6;
-pub const CMD_RESEND: u8 = 0xFE;
-pub const CMD_RESET: u8 = 0xFF;
+const CMD_SET_LEDS: u8 = 0xED;
+const _CMD_ECHO: u8 = 0xEE;
+const CMD_GET_SET_SCANCODE: u8 = 0xF0;
+const _CMD_IDENTIFY: u8 = 0xF2;
+const CMD_SET_TYPEMATIC: u8 = 0xF3;
+const CMD_ENABLE_SCANNING: u8 = 0xF4;
+const CMD_DISABLE_SCANNING: u8 = 0xF5;
+const _CMD_SET_DEFAULTS: u8 = 0xF6;
+const _CMD_RESEND: u8 = 0xFE;
+const CMD_RESET: u8 = 0xFF;
 
-pub const RESP_ACK: u8 = 0xFA;
-pub const RESP_RESEND: u8 = 0xFE;
-pub const RESP_ECHO: u8 = 0xEE;
-pub const RESP_SELF_TEST_PASS: u8 = 0xAA;
-pub const RESP_SELF_TEST_FAIL1: u8 = 0xFC;
-pub const RESP_SELF_TEST_FAIL2: u8 = 0xFD;
+const RESP_ACK: u8 = 0xFA;
+const _RESP_RESEND: u8 = 0xFE;
+const _RESP_ECHO: u8 = 0xEE;
+const RESP_SELF_TEST_PASS: u8 = 0xAA;
+const _RESP_SELF_TEST_FAIL1: u8 = 0xFC;
+const _RESP_SELF_TEST_FAIL2: u8 = 0xFD;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ScanCodeSet {
