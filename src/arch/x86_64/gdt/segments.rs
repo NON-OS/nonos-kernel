@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -17,7 +17,8 @@
 use core::arch::asm;
 use crate::arch::x86_64::gdt::constants::*;
 
-/// # Safety: Immediately after loading a new GDT.
+/// # Safety
+/// Must be called immediately after loading a new GDT.
 #[inline]
 pub(crate) unsafe fn reload_segments_internal() { unsafe {
     asm!(
@@ -48,7 +49,8 @@ pub(crate) unsafe fn reload_segments_internal() { unsafe {
     );
 }}
 
-/// # Safety: GDT must be loaded first.
+/// # Safety
+/// GDT must be loaded first.
 pub unsafe fn reload_segments() { unsafe {
     reload_segments_internal();
 }}
