@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -16,6 +16,7 @@
 
 mod api;
 mod types;
+
 #[cfg(test)]
 mod tests;
 
@@ -24,5 +25,5 @@ pub use types::{flags, memory_type, pixel_format};
 pub use types::{HANDOFF_MAGIC, HANDOFF_VERSION};
 pub use types::{
     AcpiInfo, BootHandoffV1, FramebufferInfo, Measurements, MemoryMap, MemoryMapEntry, Module,
-    Modules, RngSeed, SmbiosInfo, Timing,
+    Modules, RngSeed, SmbiosInfo, Timing, ZkAttestation,
 };
