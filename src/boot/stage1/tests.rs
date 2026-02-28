@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::types::{BootInfo, FramebufferInfo, MemoryDescriptor, EFI_CONVENTIONAL_MEMORY};
+
 #[test]
 fn test_memory_descriptor_fields() {
     let desc = MemoryDescriptor {
@@ -32,11 +33,13 @@ fn test_memory_descriptor_fields() {
 
 #[test]
 fn test_memory_descriptor_size() {
+    // Ensure MemoryDescriptor has expected layout for FFI
     assert_eq!(core::mem::size_of::<MemoryDescriptor>(), 32);
 }
 
 #[test]
 fn test_framebuffer_info_size() {
+    // Ensure FramebufferInfo has expected layout for FFI
     assert!(core::mem::size_of::<FramebufferInfo>() >= 24);
 }
 
@@ -69,12 +72,14 @@ fn test_memory_region_overflow_protection() {
         attribute: 0,
     };
 
+    // Test that overflow is handled correctly
     let region_end = desc.phys_start.saturating_add(desc.page_count.saturating_mul(4096));
     assert_eq!(region_end, u64::MAX);
 }
 
 #[test]
 fn test_apic_id_extraction() {
+    // Test APIC ID extraction logic (without actual CPUID call)
     let mock_ebx: u32 = 0x12_00_00_00; // APIC ID = 0x12
     let apic_id = (mock_ebx >> 24) & 0xFF;
     assert_eq!(apic_id, 0x12);
