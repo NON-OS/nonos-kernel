@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -29,6 +29,7 @@ pub(crate) static ACTIVE_CONSOLE: AtomicUsize = AtomicUsize::new(0);
 pub(crate) static INITIALIZED: AtomicBool = AtomicBool::new(false);
 pub(crate) static VGA_LOCK: AtomicBool = AtomicBool::new(false);
 pub(crate) static PANIC_MODE: AtomicBool = AtomicBool::new(false);
+
 pub(crate) static CHARS_WRITTEN: AtomicU64 = AtomicU64::new(0);
 pub(crate) static LINES_SCROLLED: AtomicU64 = AtomicU64::new(0);
 pub(crate) static CONSOLE_SWITCHES: AtomicU64 = AtomicU64::new(0);
