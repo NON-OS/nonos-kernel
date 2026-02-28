@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -18,7 +18,7 @@
 mod tests {
     use super::super::*;
     use core::mem;
-    // Error Type Tests
+
     #[test]
     fn test_error_messages_complete() {
         let errors = [
@@ -50,8 +50,6 @@ mod tests {
             assert!(!err.as_str().is_empty());
         }
     }
-
-    // Table Structure Size Tests
 
     #[test]
     fn test_rsdp_structure_sizes() {
@@ -106,8 +104,6 @@ mod tests {
         assert_eq!(mem::size_of::<tables::Slit>(), 44);
     }
 
-    // Table Signature Tests
-
     #[test]
     fn test_table_signatures() {
         assert_eq!(tables::SIG_RSDT, u32::from_le_bytes(*b"RSDT"));
@@ -124,8 +120,6 @@ mod tests {
     fn test_rsdp_signature() {
         assert_eq!(&tables::RSDP_SIGNATURE, b"RSD PTR ");
     }
-
-    // PM Profile Tests
 
     #[test]
     fn test_pm_profile_values() {
@@ -154,8 +148,6 @@ mod tests {
         assert!(!tables::PmProfile::Desktop.is_mobile());
     }
 
-    // MADT Entry Type Tests
-
     #[test]
     fn test_madt_entry_types() {
         assert_eq!(tables::MadtEntryType::LocalApic as u8, 0);
@@ -178,16 +170,12 @@ mod tests {
         assert_eq!(tables::MadtEntryType::from_u8(99), None);
     }
 
-    // SRAT Entry Type Tests
-
     #[test]
     fn test_srat_entry_types() {
         assert_eq!(tables::SratEntryType::ProcessorAffinity as u8, 0);
         assert_eq!(tables::SratEntryType::MemoryAffinity as u8, 1);
         assert_eq!(tables::SratEntryType::ProcessorX2ApicAffinity as u8, 2);
     }
-
-    // Address Space Tests
 
     #[test]
     fn test_address_space_values() {
@@ -210,8 +198,6 @@ mod tests {
         assert_eq!(tables::AddressSpace::from_u8(0xFF), None);
     }
 
-    // Sleep State Tests
-
     #[test]
     fn test_sleep_state_values() {
         assert_eq!(power::SleepState::S0 as u8, 0);
@@ -225,8 +211,6 @@ mod tests {
         assert!(!power::SleepState::S5.name().is_empty());
         assert!(power::SleepState::S3.name().contains("RAM"));
     }
-
-    // Data Structure Tests
 
     #[test]
     fn test_acpi_data_defaults() {
@@ -275,21 +259,18 @@ mod tests {
         assert_eq!(seg.config_address(0, 1, 0, 0), Some(0xE000_8000));
         assert_eq!(seg.config_address(0, 0, 1, 0), Some(0xE000_1000));
 
-        // Invalid parameters
-        assert_eq!(seg.config_address(0, 32, 0, 0), None); // device >= 32
-        assert_eq!(seg.config_address(0, 0, 8, 0), None); // function >= 8
-        assert_eq!(seg.config_address(0, 0, 0, 4096), None); // offset >= 4096
+        assert_eq!(seg.config_address(0, 32, 0, 0), None);
+        assert_eq!(seg.config_address(0, 0, 8, 0), None);
+        assert_eq!(seg.config_address(0, 0, 0, 4096), None);
     }
 
     #[test]
     fn test_irq_to_gsi() {
         let mut data = data::AcpiData::new();
 
-        // Without override
         assert_eq!(data.irq_to_gsi(0), 0);
         assert_eq!(data.irq_to_gsi(1), 1);
 
-        // Add override
         data.overrides.push(data::InterruptOverride {
             source_irq: 0,
             gsi: 2,
@@ -298,10 +279,8 @@ mod tests {
         });
 
         assert_eq!(data.irq_to_gsi(0), 2);
-        assert_eq!(data.irq_to_gsi(1), 1); // No override
+        assert_eq!(data.irq_to_gsi(1), 1);
     }
-
-    // Statistics Tests
 
     #[test]
     fn test_stats_default() {
@@ -311,8 +290,6 @@ mod tests {
         assert_eq!(stats.ioapics_found, 0);
         assert_eq!(stats.parse_errors, 0);
     }
-
-    // Device Tests
 
     #[test]
     fn test_pci_device_bdf() {
@@ -356,8 +333,6 @@ mod tests {
         }.is_display());
     }
 
-    // FADT Flags Tests
-
     #[test]
     fn test_fadt_flags() {
         assert_eq!(tables::fadt_flags::WBINVD, 1 << 0);
@@ -366,14 +341,10 @@ mod tests {
         assert_eq!(tables::fadt_flags::TMR_VAL_EXT, 1 << 8);
     }
 
-    // MADT Flags Tests
-
     #[test]
     fn test_madt_flags() {
         assert_eq!(tables::madt_flags::PCAT_COMPAT, 1);
     }
-
-    // HPET Register Tests
 
     #[test]
     fn test_hpet_registers() {
@@ -383,8 +354,6 @@ mod tests {
         assert_eq!(tables::hpet::registers::timer_config(0), 0x100);
         assert_eq!(tables::hpet::registers::timer_config(1), 0x120);
     }
-
-    // SLIT Distance Tests
 
     #[test]
     fn test_slit_constants() {
@@ -397,12 +366,10 @@ mod tests {
         let distances = tables::slit::NumaDistances::new_simple(4, 20);
         assert_eq!(distances.node_count, 4);
 
-        // Local distances should be 10
         for i in 0..4 {
             assert_eq!(distances.distance(i, i), Some(10));
         }
 
-        // Remote distances should be 20
         assert_eq!(distances.distance(0, 1), Some(20));
         assert_eq!(distances.distance(1, 0), Some(20));
     }
