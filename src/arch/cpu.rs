@@ -14,10 +14,31 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod cpu;
-pub mod nonos_boot;
-pub mod x86_64;
+pub fn cpu_yield() {
+    // SAFETY: hlt is always safe to execute
+    unsafe { core::arch::asm!("hlt"); }
+}
 
-pub use cpu::{cpu_yield, disable_interrupts, enable_interrupts, get_cpu_id, idle_cpu, init_cpu_features};
-pub use nonos_boot as boot;
-pub use x86_64::*;
+pub fn idle_cpu() {
+    // SAFETY: sti and hlt are safe, atomic to prevent race condition
+    unsafe {
+        core::arch::asm!("sti; hlt", options(nomem, nostack));
+    }
+}
+
+pub fn disable_interrupts() {
+    // SAFETY: cli is always safe
+    unsafe { core::arch::asm!("cli"); }
+}
+
+pub fn enable_interrupts() {
+    // SAFETY: sti is always safe
+    unsafe { core::arch::asm!("sti"); }
+}
+
+pub fn get_cpu_id() -> u32 {
+    0
+}
+
+pub fn init_cpu_features() {
+}
