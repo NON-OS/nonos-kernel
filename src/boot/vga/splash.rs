@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -18,7 +18,7 @@ use super::colors;
 use super::output::{clear_screen, visual_delay, write_at, VGA_WIDTH};
 
 pub fn show_boot_splash() {
-    // # SAFETY: Writing to VGA memory for boot splash display
+    // SAFETY: Writing to VGA memory for boot splash display
     unsafe {
         clear_screen(colors::BLACK);
         visual_delay(5);
@@ -82,7 +82,9 @@ pub fn show_boot_splash() {
     }
 }
 
-/// # Safety: Writes directly to VGA memory.
+/// # Safety
+///
+/// Writes directly to VGA memory.
 unsafe fn show_boot_status(row: usize, name: &str, success: bool) { unsafe {
     write_at(row, 5, b"[", colors::LIGHT_GRAY, 0);
     write_at(row, 6, b"INIT", colors::LIGHT_GREEN, 0);
@@ -93,7 +95,9 @@ unsafe fn show_boot_status(row: usize, name: &str, success: bool) { unsafe {
     let copy_len = name_bytes.len().min(40);
     padded[..copy_len].copy_from_slice(&name_bytes[..copy_len]);
     padded[copy_len] = b' ';
+
     write_at(row, 12, &padded, colors::LIGHT_GRAY, 2);
+
     if success {
         write_at(row, 53, b"[  OK  ]", colors::LIGHT_GREEN, 0);
     } else {
@@ -103,10 +107,14 @@ unsafe fn show_boot_status(row: usize, name: &str, success: bool) { unsafe {
     visual_delay(3);
 }}
 
-/// # Safety; Writes directly to VGA memory.
+/// # Safety
+///
+/// Writes directly to VGA memory.
 pub unsafe fn show_panic(message: &str) { unsafe {
     use super::output::VGA_BUFFER;
+
     let vga = VGA_BUFFER as *mut u16;
+
     let header = b"KERNEL PANIC";
     for (i, &byte) in header.iter().enumerate() {
         *vga.add(i) = 0x4F00 | (byte as u16);
@@ -120,28 +128,33 @@ pub unsafe fn show_panic(message: &str) { unsafe {
 }}
 
 pub fn show_status_line(row: usize, prefix: &str, message: &str, attr: u8) {
-    // # SAFETY: Writing to VGA memory
+    // SAFETY: Writing to VGA memory
     unsafe {
         let prefix_bytes = prefix.as_bytes();
         let msg_bytes = message.as_bytes();
+
         write_at(row, 0, prefix_bytes, colors::LIGHT_GREEN, 0);
         write_at(row, prefix_bytes.len() + 1, msg_bytes, attr, 0);
     }
 }
 
 pub fn show_progress(row: usize, current: usize, total: usize) {
-    // # SAFETY: Writing to VGA memory
+    // SAFETY: Writing to VGA memory
     unsafe {
         let bar_width = 50;
         let filled = if total > 0 { (current * bar_width) / total } else { 0 };
+
         write_at(row, 5, b"[", colors::LIGHT_GRAY, 0);
+
         for i in 0..bar_width {
             let ch = if i < filled { b'=' } else { b' ' };
             write_at(row, 6 + i, &[ch], colors::LIGHT_CYAN, 0);
         }
 
         write_at(row, 6 + bar_width, b"]", colors::LIGHT_GRAY, 0);
+
         let percent = if total > 0 { (current * 100) / total } else { 0 };
+
         let mut pct_buf = [b' '; 5];
         if percent >= 100 {
             pct_buf[0] = b'1';
@@ -157,6 +170,7 @@ pub fn show_progress(row: usize, current: usize, total: usize) {
             pct_buf[2] = b'0' + percent as u8;
         }
         pct_buf[3] = b'%';
+
         write_at(row, 8 + bar_width, &pct_buf, colors::WHITE, 0);
     }
 }
