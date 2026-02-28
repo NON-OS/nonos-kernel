@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -18,12 +18,14 @@ use core::panic::PanicInfo;
 
 use super::stage1::serial_print;
 use super::vga;
+
 #[cfg(not(test))]
 #[panic_handler]
 fn panic(info: &PanicInfo) -> ! {
     serial_print(format_args!("\n!!! KERNEL PANIC !!!\n"));
     serial_print(format_args!("{}\n", info));
-    // # SAFETY: Showing panic message on VGA for diagnostics
+
+    // SAFETY: Showing panic message on VGA for diagnostics
     unsafe {
         vga::show_panic("KERNEL PANIC - See serial for details");
     }
@@ -34,36 +36,24 @@ fn panic(info: &PanicInfo) -> ! {
 #[inline(always)]
 pub fn halt_loop() -> ! {
     loop {
-        // # SAFETY: Disable interrupts and halt CPU in infinite loop
-        unsafe {
-            x86_64::instructions::interrupts::disable();
-            x86_64::instructions::hlt();
-        }
-    }
-}
-
-#[inline]
-pub fn halt() {
-    // # SAFETY: Halt instruction is safe
-    unsafe {
+        x86_64::instructions::interrupts::disable();
         x86_64::instructions::hlt();
     }
 }
 
 #[inline]
+pub fn halt() {
+    x86_64::instructions::hlt();
+}
+
+#[inline]
 pub fn disable_interrupts() {
-    // # SAFETY: Disabling interrupts is safe in kernel context
-    unsafe {
-        x86_64::instructions::interrupts::disable();
-    }
+    x86_64::instructions::interrupts::disable();
 }
 
 #[inline]
 pub fn enable_interrupts() {
-    // # SAFETY: Enabling interrupts is safe when handlers are set up
-    unsafe {
-        x86_64::instructions::interrupts::enable();
-    }
+    x86_64::instructions::interrupts::enable();
 }
 
 #[inline]
