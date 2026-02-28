@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -17,37 +17,37 @@
 use crate::arch::x86_64::port::{inb, outb};
 use super::super::error::{Ps2Error, Ps2Result};
 
-pub const DATA_PORT: u16 = 0x60;
-pub const STATUS_PORT: u16 = 0x64;
-pub const COMMAND_PORT: u16 = 0x64;
+const DATA_PORT: u16 = 0x60;
+const STATUS_PORT: u16 = 0x64;
+const COMMAND_PORT: u16 = 0x64;
 
-pub const STATUS_OUTPUT_FULL: u8 = 1 << 0;
-pub const STATUS_INPUT_FULL: u8 = 1 << 1;
-pub const STATUS_SYSTEM_FLAG: u8 = 1 << 2;
-pub const STATUS_COMMAND: u8 = 1 << 3;
-pub const STATUS_TIMEOUT: u8 = 1 << 6;
-pub const STATUS_PARITY: u8 = 1 << 7;
+const STATUS_OUTPUT_FULL: u8 = 1 << 0;
+const STATUS_INPUT_FULL: u8 = 1 << 1;
+const _STATUS_SYSTEM_FLAG: u8 = 1 << 2;
+const _STATUS_COMMAND: u8 = 1 << 3;
+const _STATUS_TIMEOUT: u8 = 1 << 6;
+const _STATUS_PARITY: u8 = 1 << 7;
 
-pub const CMD_READ_CONFIG: u8 = 0x20;
-pub const CMD_WRITE_CONFIG: u8 = 0x60;
-pub const CMD_DISABLE_PORT2: u8 = 0xA7;
-pub const CMD_ENABLE_PORT2: u8 = 0xA8;
-pub const CMD_TEST_PORT2: u8 = 0xA9;
-pub const CMD_SELF_TEST: u8 = 0xAA;
-pub const CMD_TEST_PORT1: u8 = 0xAB;
-pub const CMD_DISABLE_PORT1: u8 = 0xAD;
-pub const CMD_ENABLE_PORT1: u8 = 0xAE;
-pub const CMD_WRITE_PORT2: u8 = 0xD4;
+const CMD_READ_CONFIG: u8 = 0x20;
+const CMD_WRITE_CONFIG: u8 = 0x60;
+const CMD_DISABLE_PORT2: u8 = 0xA7;
+const CMD_ENABLE_PORT2: u8 = 0xA8;
+const CMD_TEST_PORT2: u8 = 0xA9;
+const CMD_SELF_TEST: u8 = 0xAA;
+const CMD_TEST_PORT1: u8 = 0xAB;
+const CMD_DISABLE_PORT1: u8 = 0xAD;
+const CMD_ENABLE_PORT1: u8 = 0xAE;
+const CMD_WRITE_PORT2: u8 = 0xD4;
 
-pub const CONFIG_PORT1_IRQ: u8 = 1 << 0;
-pub const CONFIG_PORT2_IRQ: u8 = 1 << 1;
-pub const CONFIG_SYSTEM_FLAG: u8 = 1 << 2;
-pub const CONFIG_PORT1_CLOCK: u8 = 1 << 4;
-pub const CONFIG_PORT2_CLOCK: u8 = 1 << 5;
-pub const CONFIG_PORT1_TRANSLATE: u8 = 1 << 6;
+const CONFIG_PORT1_IRQ: u8 = 1 << 0;
+const CONFIG_PORT2_IRQ: u8 = 1 << 1;
+const _CONFIG_SYSTEM_FLAG: u8 = 1 << 2;
+const _CONFIG_PORT1_CLOCK: u8 = 1 << 4;
+const CONFIG_PORT2_CLOCK: u8 = 1 << 5;
+const CONFIG_PORT1_TRANSLATE: u8 = 1 << 6;
 
-pub const SELF_TEST_PASS: u8 = 0x55;
-pub const PORT_TEST_PASS: u8 = 0x00;
+const SELF_TEST_PASS: u8 = 0x55;
+const PORT_TEST_PASS: u8 = 0x00;
 
 const TIMEOUT_CYCLES: u32 = 100_000;
 
