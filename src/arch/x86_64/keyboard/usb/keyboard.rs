@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -38,7 +38,7 @@ const MODIFIER_KEYS: [(fn(&ModifierState) -> bool, u8); 8] = [
     (|m| m.right_gui, KEY_RIGHT_GUI),
 ];
 
-pub fn poll_keyboard(dev: &mut HidDeviceState, stats: &RwLock<UsbHidStats>) {
+pub(super) fn poll_keyboard(dev: &mut HidDeviceState, stats: &RwLock<UsbHidStats>) {
     let mut report = [0u8; KEYBOARD_REPORT_SIZE];
 
     let result = crate::drivers::usb::poll_endpoint(
