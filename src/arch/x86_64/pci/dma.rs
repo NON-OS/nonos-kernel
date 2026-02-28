@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -96,7 +96,7 @@ impl DmaEngine {
 
         let buffer = DmaBuffer { virt_addr, phys_addr, size, coherent: true };
         self.coherent_buffers.push(buffer);
-        Ok(self.coherent_buffers.last().unwrap())
+        self.coherent_buffers.last().ok_or(PciError::DmaAllocationFailed { size })
     }
 
     pub fn alloc_streaming(&mut self, size: usize) -> PciResult<&DmaBuffer> {
@@ -106,7 +106,7 @@ impl DmaEngine {
 
         let buffer = DmaBuffer { virt_addr, phys_addr, size, coherent: false };
         self.streaming_buffers.push(buffer);
-        Ok(self.streaming_buffers.last().unwrap())
+        self.streaming_buffers.last().ok_or(PciError::DmaAllocationFailed { size })
     }
 
     pub fn sync_for_device(&self, buffer: &DmaBuffer) {
