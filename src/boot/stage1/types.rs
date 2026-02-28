@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -26,6 +26,7 @@ pub struct MemoryDescriptor {
 
 /// EFI memory type for conventional (usable) memory
 pub const EFI_CONVENTIONAL_MEMORY: u32 = 7;
+
 #[repr(C)]
 pub struct BootInfo {
     pub memory_map: &'static [MemoryDescriptor],
