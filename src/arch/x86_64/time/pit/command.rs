@@ -14,22 +14,24 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub fn detect_hpet() -> Option<u64> {
-    if crate::arch::x86_64::acpi::is_initialized() {
-        if let Some(addr) = crate::arch::x86_64::acpi::hpet_address() {
-            if super::timer::is_valid_hpet_base(addr) {
-                return Some(addr);
-            }
-        }
-    }
-    const HPET_DEFAULT_BASE: u64 = 0xFED00000;
-    if super::timer::is_valid_hpet_base(HPET_DEFAULT_BASE) {
-        Some(HPET_DEFAULT_BASE)
-    } else {
-        None
-    }
-}
+pub(super) const MODE_0: u8 = 0x00;
+pub(super) const MODE_1: u8 = 0x02;
+pub(super) const MODE_2: u8 = 0x04;
+pub(super) const MODE_3: u8 = 0x06;
+pub(super) const MODE_4: u8 = 0x08;
+pub(super) const MODE_5: u8 = 0x0A;
 
-pub fn read_hpet_counter(base: u64) -> u64 {
-    unsafe { core::ptr::read_volatile((base + 0xF0) as *const u64) }
-}
+pub(super) const ACCESS_LATCH: u8 = 0x00;
+pub(super) const ACCESS_LOBYTE: u8 = 0x10;
+pub(super) const ACCESS_HIBYTE: u8 = 0x20;
+pub(super) const ACCESS_LOHI: u8 = 0x30;
+
+pub(super) const CHANNEL_0: u8 = 0x00;
+pub(super) const CHANNEL_1: u8 = 0x40;
+pub(super) const CHANNEL_2: u8 = 0x80;
+pub(super) const READ_BACK: u8 = 0xC0;
+
+pub(super) const READBACK_COUNT: u8 = 0x20;
+pub(super) const READBACK_CH0: u8 = 0x02;
+pub(super) const READBACK_CH1: u8 = 0x04;
+pub(super) const READBACK_CH2: u8 = 0x08;
