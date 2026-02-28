@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -29,7 +29,7 @@ const MOUSE_BUTTONS: [(fn(&MouseButtonState) -> bool, u8); 5] = [
     (|b| b.button5, 4),
 ];
 
-pub fn poll_mouse(dev: &mut HidDeviceState, stats: &RwLock<UsbHidStats>) {
+pub(super) fn poll_mouse(dev: &mut HidDeviceState, stats: &RwLock<UsbHidStats>) {
     let mut report = [0u8; 8];
 
     let result = crate::drivers::usb::poll_endpoint(
