@@ -1,47 +1,66 @@
-//! NØNOS-Boot Interface
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::log_info;
-use crate::arch::nonos_cpu;
-use crate::arch::nonos_gdt;
-use crate::arch::nonos_idt;
-use crate::arch::nonos_acpi;
-use crate::arch::nonos_multiboot;
-use crate::arch::nonos_serial;
-use crate::arch::nonos_pci;
 
-/// Performs early boot initialization in a platform-neutral manner.
-/// Called first before any other subsystem.
+use crate::arch::x86_64::cpu;
+use crate::arch::x86_64::gdt;
+use crate::arch::x86_64::idt;
+use crate::arch::x86_64::serial;
+use crate::arch::x86_64::acpi;
+use crate::arch::x86_64::multiboot;
+use crate::arch::x86_64::pci;
+
 pub fn init_early() {
-    // Initialize logger for diagnostics from the earliest stage.
     crate::log::init_logger();
     log_info!("Logger initialized.");
 
-    // Initialize CPU features (SSE, AVX, etc.), disables interrupts until setup is complete.
-    nonos_cpu::init_features();
+    if let Err(e) = cpu::init() {
+        let _ = e;
+    }
     log_info!("CPU features initialized.");
 
-    // Setup GDT (Global Descriptor Table) for segmentation and task state.
-    nonos_gdt::init();
+    if let Err(e) = gdt::init() {
+        let _ = e;
+    }
     log_info!("GDT initialized.");
 
-    // Setup IDT (Interrupt Descriptor Table) for exception and interrupt handling.
-    nonos_idt::init();
+    if let Err(e) = idt::init() {
+        let _ = e;
+    }
     log_info!("IDT initialized.");
 
-    // Parse ACPI tables for platform information and hardware enumeration.
-    nonos_acpi::init();
+    if let Err(e) = acpi::init() {
+        let _ = e;
+    }
     log_info!("ACPI tables parsed.");
 
-    // Parse and validate multiboot information from bootloader.
-    nonos_multiboot::init();
+    if let Err(e) = multiboot::init() {
+        let _ = e;
+    }
     log_info!("Multiboot info parsed.");
 
-    // Initialize serial port for early kernel debug output.
-    nonos_serial::init();
+    if let Err(e) = serial::init() {
+        let _ = e;
+    }
     log_info!("Serial port initialized.");
 
-    // Setup PCI bus scanning for device enumeration.
-    nonos_pci::init();
+    if let Err(e) = pci::init() {
+        let _ = e;
+    }
     log_info!("PCI bus scanned.");
 
     log_info!("Early boot initialization completed.");
