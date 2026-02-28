@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -18,26 +18,26 @@ use super::controller::Controller;
 use super::super::error::{Ps2Error, Ps2Result};
 use super::super::types::MouseButtons;
 
-pub const CMD_SET_SCALING_1_1: u8 = 0xE6;
-pub const CMD_SET_SCALING_2_1: u8 = 0xE7;
-pub const CMD_SET_RESOLUTION: u8 = 0xE8;
-pub const CMD_STATUS_REQUEST: u8 = 0xE9;
-pub const CMD_SET_STREAM_MODE: u8 = 0xEA;
-pub const CMD_READ_DATA: u8 = 0xEB;
-pub const CMD_SET_REMOTE_MODE: u8 = 0xF0;
-pub const CMD_GET_DEVICE_ID: u8 = 0xF2;
-pub const CMD_SET_SAMPLE_RATE: u8 = 0xF3;
-pub const CMD_ENABLE_REPORTING: u8 = 0xF4;
-pub const CMD_DISABLE_REPORTING: u8 = 0xF5;
-pub const CMD_SET_DEFAULTS: u8 = 0xF6;
-pub const CMD_RESET: u8 = 0xFF;
+const _CMD_SET_SCALING_1_1: u8 = 0xE6;
+const _CMD_SET_SCALING_2_1: u8 = 0xE7;
+const CMD_SET_RESOLUTION: u8 = 0xE8;
+const _CMD_STATUS_REQUEST: u8 = 0xE9;
+const _CMD_SET_STREAM_MODE: u8 = 0xEA;
+const _CMD_READ_DATA: u8 = 0xEB;
+const _CMD_SET_REMOTE_MODE: u8 = 0xF0;
+const CMD_GET_DEVICE_ID: u8 = 0xF2;
+const CMD_SET_SAMPLE_RATE: u8 = 0xF3;
+const CMD_ENABLE_REPORTING: u8 = 0xF4;
+const _CMD_DISABLE_REPORTING: u8 = 0xF5;
+const CMD_SET_DEFAULTS: u8 = 0xF6;
+const CMD_RESET: u8 = 0xFF;
 
-pub const RESP_ACK: u8 = 0xFA;
-pub const RESP_SELF_TEST_PASS: u8 = 0xAA;
+const RESP_ACK: u8 = 0xFA;
+const RESP_SELF_TEST_PASS: u8 = 0xAA;
 
-pub const DEVICE_ID_STANDARD: u8 = 0x00;
-pub const DEVICE_ID_WHEEL: u8 = 0x03;
-pub const DEVICE_ID_5_BUTTON: u8 = 0x04;
+const _DEVICE_ID_STANDARD: u8 = 0x00;
+const DEVICE_ID_WHEEL: u8 = 0x03;
+const DEVICE_ID_5_BUTTON: u8 = 0x04;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum MouseType {
