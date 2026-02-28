@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -20,10 +20,10 @@ use spin::{Mutex, RwLock};
 use super::device::HidDeviceState;
 use super::types::{UsbHidStats, MAX_HID_DEVICES};
 
-pub static INITIALIZED: AtomicBool = AtomicBool::new(false);
-pub static DEVICE_COUNT: AtomicU8 = AtomicU8::new(0);
+pub(super) static INITIALIZED: AtomicBool = AtomicBool::new(false);
+pub(super) static DEVICE_COUNT: AtomicU8 = AtomicU8::new(0);
 
-pub static DEVICES: Mutex<[HidDeviceState; MAX_HID_DEVICES]> = Mutex::new([
+pub(super) static DEVICES: Mutex<[HidDeviceState; MAX_HID_DEVICES]> = Mutex::new([
     HidDeviceState::new(),
     HidDeviceState::new(),
     HidDeviceState::new(),
@@ -34,7 +34,7 @@ pub static DEVICES: Mutex<[HidDeviceState; MAX_HID_DEVICES]> = Mutex::new([
     HidDeviceState::new(),
 ]);
 
-pub static STATS: RwLock<UsbHidStats> = RwLock::new(UsbHidStats::new());
+pub(super) static STATS: RwLock<UsbHidStats> = RwLock::new(UsbHidStats::new());
 
 #[inline]
 pub fn is_initialized() -> bool {
