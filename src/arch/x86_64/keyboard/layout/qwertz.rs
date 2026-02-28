@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -16,7 +16,7 @@
 
 use super::types::{DeadKey, Layout, LayoutInfo};
 
-pub static BASE: [u8; 128] = [
+pub(super) static BASE: [u8; 128] = [
     0,    27,   b'1', b'2', b'3', b'4', b'5', b'6', b'7', b'8', b'9', b'0', 0xDF, 0xB4, 8,    b'\t',
     b'q', b'w', b'e', b'r', b't', b'z', b'u', b'i', b'o', b'p', 0xFC, b'+', b'\n', 0,   b'a', b's',
     b'd', b'f', b'g', b'h', b'j', b'k', b'l', 0xF6, 0xE4, b'^', 0,    b'#', b'y', b'x', b'c', b'v',
@@ -27,7 +27,7 @@ pub static BASE: [u8; 128] = [
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 ];
 
-pub static SHIFT: [u8; 128] = [
+pub(super) static SHIFT: [u8; 128] = [
     0,    27,   b'!', b'"', 0xA7, b'$', b'%', b'&', b'/', b'(', b')', b'=', b'?', b'`', 8,    b'\t',
     b'Q', b'W', b'E', b'R', b'T', b'Z', b'U', b'I', b'O', b'P', 0xDC, b'*', b'\n', 0,   b'A', b'S',
     b'D', b'F', b'G', b'H', b'J', b'K', b'L', 0xD6, 0xC4, 0xB0, 0,    b'\'',b'Y', b'X', b'C', b'V',
@@ -52,7 +52,7 @@ static ALTGR: [u8; 128] = [
 static DEAD_BASE: [(u8, DeadKey); 1] = [(0x29, DeadKey::Circumflex)];
 static DEAD_SHIFT: [(u8, DeadKey); 1] = [(0x29, DeadKey::Ring)];
 
-pub static LAYOUT_INFO: LayoutInfo = LayoutInfo::with_dead_keys(
+pub(super) static LAYOUT_INFO: LayoutInfo = LayoutInfo::with_dead_keys(
     Layout::Qwertz,
     &BASE,
     &SHIFT,
