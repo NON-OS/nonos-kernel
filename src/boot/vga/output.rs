@@ -21,11 +21,12 @@ pub const VGA_WIDTH: usize = 80;
 pub const VGA_HEIGHT: usize = 25;
 
 static VGA_LOCK: Mutex<()> = Mutex::new(());
+
 #[inline]
 pub fn visual_delay(iterations: u32) {
     for _ in 0..iterations {
         for _ in 0..100_000 {
-            // # SAFETY: pause instruction is safe to execute
+            // SAFETY: pause instruction is safe to execute
             unsafe {
                 core::arch::asm!("pause", options(nomem, nostack));
             }
@@ -33,10 +34,10 @@ pub fn visual_delay(iterations: u32) {
     }
 }
 
-/// # Safety {
+/// # Safety
+///
 /// Writes directly to VGA memory at 0xB8000.
 /// Thread-safe: acquires VGA lock before writing.
-/// }
 pub unsafe fn write_at(row: usize, col: usize, text: &[u8], attr: u8, delay: u32) {
     if row >= VGA_HEIGHT {
         return;
@@ -52,7 +53,7 @@ pub unsafe fn write_at(row: usize, col: usize, text: &[u8], attr: u8, delay: u32
             let _lock = VGA_LOCK.lock();
             let vga = VGA_BUFFER as *mut u8;
             let offset = (row * VGA_WIDTH + x) * 2;
-            // # SAFETY: Bounds checked above, VGA buffer is always mapped
+            // SAFETY: Bounds checked above, VGA buffer is always mapped
             unsafe {
                 *vga.add(offset) = byte;
                 *vga.add(offset + 1) = attr;
@@ -65,16 +66,17 @@ pub unsafe fn write_at(row: usize, col: usize, text: &[u8], attr: u8, delay: u32
     }
 }
 
-/// # Safety {
+/// # Safety
+///
 /// Writes directly to VGA memory.
 /// Thread-safe: acquires VGA lock before writing.
-/// }
 pub unsafe fn clear_screen(attr: u8) {
     let _lock = VGA_LOCK.lock();
     let vga = VGA_BUFFER as *mut u8;
+
     for i in 0..(VGA_WIDTH * VGA_HEIGHT) {
         let offset = i * 2;
-        // # SAFETY: VGA buffer is always mapped at 0xB8000
+        // SAFETY: VGA buffer is always mapped at 0xB8000
         unsafe {
             *vga.add(offset) = b' ';
             *vga.add(offset + 1) = attr;
@@ -82,20 +84,20 @@ pub unsafe fn clear_screen(attr: u8) {
     }
 }
 
-/// # Safety {
+/// # Safety
+///
 /// Writes directly to VGA memory.
 /// Thread-safe: acquires VGA lock before writing.
-/// }
 #[inline]
 pub unsafe fn write_string(row: usize, col: usize, text: &[u8], attr: u8) {
-    // # SAFETY: Caller guarantees VGA buffer access is valid
+    // SAFETY: Caller guarantees VGA buffer access is valid
     unsafe { write_at(row, col, text, attr, 0) };
 }
 
-/// # Safety {
+/// # Safety
+///
 /// Writes directly to VGA memory.
 /// Thread-safe: acquires VGA lock before writing.
-/// }
 pub unsafe fn write_char(row: usize, col: usize, ch: u8, attr: u8) {
     if row >= VGA_HEIGHT || col >= VGA_WIDTH {
         return;
@@ -104,17 +106,17 @@ pub unsafe fn write_char(row: usize, col: usize, ch: u8, attr: u8) {
     let _lock = VGA_LOCK.lock();
     let vga = VGA_BUFFER as *mut u8;
     let offset = (row * VGA_WIDTH + col) * 2;
-    // # SAFETY: Bounds checked above, VGA buffer is always mapped
+    // SAFETY: Bounds checked above, VGA buffer is always mapped
     unsafe {
         *vga.add(offset) = ch;
         *vga.add(offset + 1) = attr;
     }
 }
 
-/// # Safety {
+/// # Safety
+///
 /// Reads directly from VGA memory.
 /// Thread-safe: acquires VGA lock before reading.
-/// }
 pub unsafe fn read_char(row: usize, col: usize) -> (u8, u8) {
     if row >= VGA_HEIGHT || col >= VGA_WIDTH {
         return (0, 0);
@@ -123,16 +125,16 @@ pub unsafe fn read_char(row: usize, col: usize) -> (u8, u8) {
     let _lock = VGA_LOCK.lock();
     let vga = VGA_BUFFER as *const u8;
     let offset = (row * VGA_WIDTH + col) * 2;
-    // # SAFETY: Bounds checked above, VGA buffer is always mapped
+    // SAFETY: Bounds checked above, VGA buffer is always mapped
     let ch = unsafe { *vga.add(offset) };
     let attr = unsafe { *vga.add(offset + 1) };
     (ch, attr)
 }
 
-/// # Safety {
+/// # Safety
+///
 /// Writes directly to VGA memory.
 /// Thread-safe: acquires VGA lock before writing.
-/// }
 pub unsafe fn fill_row(row: usize, ch: u8, attr: u8) {
     if row >= VGA_HEIGHT {
         return;
@@ -142,7 +144,7 @@ pub unsafe fn fill_row(row: usize, ch: u8, attr: u8) {
     let vga = VGA_BUFFER as *mut u8;
     for col in 0..VGA_WIDTH {
         let offset = (row * VGA_WIDTH + col) * 2;
-        // # SAFETY: Bounds checked above, VGA buffer is always mapped
+        // SAFETY: Bounds checked above, VGA buffer is always mapped
         unsafe {
             *vga.add(offset) = ch;
             *vga.add(offset + 1) = attr;
@@ -150,24 +152,25 @@ pub unsafe fn fill_row(row: usize, ch: u8, attr: u8) {
     }
 }
 
-/// # Safety {
+/// # Safety
+///
 /// Writes directly to VGA memory.
 /// Thread-safe: acquires VGA lock before writing.
-/// }
 pub unsafe fn scroll_up(lines: usize, attr: u8) {
     if lines == 0 || lines >= VGA_HEIGHT {
-        // # SAFETY: clear_screen acquires its own lock
+        // SAFETY: clear_screen acquires its own lock
         unsafe { clear_screen(attr) };
         return;
     }
 
     let _lock = VGA_LOCK.lock();
     let vga = VGA_BUFFER as *mut u8;
+
     for row in 0..(VGA_HEIGHT - lines) {
         for col in 0..VGA_WIDTH {
             let src_offset = ((row + lines) * VGA_WIDTH + col) * 2;
             let dst_offset = (row * VGA_WIDTH + col) * 2;
-            // # SAFETY: Bounds checked by loop limits, VGA buffer is always mapped
+            // SAFETY: Bounds checked by loop limits, VGA buffer is always mapped
             unsafe {
                 *vga.add(dst_offset) = *vga.add(src_offset);
                 *vga.add(dst_offset + 1) = *vga.add(src_offset + 1);
@@ -175,10 +178,11 @@ pub unsafe fn scroll_up(lines: usize, attr: u8) {
         }
     }
 
+    // Clear the newly exposed rows at the bottom
     for row in (VGA_HEIGHT - lines)..VGA_HEIGHT {
         for col in 0..VGA_WIDTH {
             let offset = (row * VGA_WIDTH + col) * 2;
-            // # SAFETY: Bounds checked by loop limits
+            // SAFETY: Bounds checked by loop limits
             unsafe {
                 *vga.add(offset) = b' ';
                 *vga.add(offset + 1) = attr;
