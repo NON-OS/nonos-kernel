@@ -14,21 +14,24 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod api;
-pub mod constants;
-pub mod error;
-pub mod manager;
-pub mod ops;
-pub mod stats;
-pub mod types;
+use super::stats::{PortStats, PORT_STATS};
+use super::types::{Port, PortReadOnly, PortValue, PortWriteOnly};
 
-pub use api::{get_stats, port, port_read_only, port_write_only};
-pub use constants::*;
-pub use error::PortError;
-pub use manager::{init, is_initialized, is_reserved, release_range, reserve_range, PortManager, PORT_MANAGER};
-pub use ops::{
-    inb, inb_p, inl, insb, insl, insw, inw, inw_p, io_delay, io_delay_n, outb, outb_p, outl,
-    outsb, outsl, outsw, outw, outw_p,
-};
-pub use stats::{PortStats, PortStatsSnapshot, PORT_STATS};
-pub use types::{Port, PortRange, PortReadOnly, PortValue, PortWriteOnly};
+#[inline]
+pub const fn port<T: PortValue>(port: u16) -> Port<T> {
+    Port::new(port)
+}
+
+#[inline]
+pub const fn port_read_only<T: PortValue>(port: u16) -> PortReadOnly<T> {
+    PortReadOnly::new(port)
+}
+
+#[inline]
+pub const fn port_write_only<T: PortValue>(port: u16) -> PortWriteOnly<T> {
+    PortWriteOnly::new(port)
+}
+
+pub fn get_stats() -> &'static PortStats {
+    &PORT_STATS
+}
