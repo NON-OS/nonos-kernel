@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -13,19 +13,31 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-//
-/// # Safety: CPUID instruction is always safe on x86_64 processors.
+
+/// Returns the APIC ID of the current processor.
+///
+/// # Safety
+///
+/// CPUID instruction is always safe on x86_64 processors.
 #[inline]
 pub fn read_apic_id() -> u32 {
-    let result = unsafe { core::arch::x86_64::__cpuid(1) };
+    let result = core::arch::x86_64::__cpuid(1);
     (result.ebx >> 24) & 0xFF
 }
-/// # Safety {
+
+/// Initializes CPU structures (GDT, IDT) for the bootstrap processor.
+///
+/// # Safety
+///
 /// Must be called exactly once for the BSP during early boot.
 /// Must be called before any interrupt handling or task switching.
-/// }
+///
+/// # Errors
+///
+/// Returns an error if GDT initialization fails.
 pub unsafe fn init_cpu_structures() -> Result<(), &'static str> {
+    // SAFETY: Caller guarantees single BSP initialization
     crate::arch::x86_64::gdt::init().map_err(|_| "Failed to initialize GDT")?;
-    crate::arch::x86_64::idt::init();
+    let _ = crate::arch::x86_64::idt::init();
     Ok(())
 }
