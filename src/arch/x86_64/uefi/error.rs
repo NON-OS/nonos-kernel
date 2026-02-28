@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -16,90 +16,159 @@
 
 use super::constants::status;
 use core::fmt;
-
+///
+/// This enum represents all possible errors that can occur during UEFI
+/// operations. Each variant includes relevant context information.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum UefiError {
+    /// UEFI subsystem has not been initialized
     NotInitialized,
+
+    /// UEFI subsystem is already initialized
     AlreadyInitialized,
+
+    /// Runtime services table is not available
     RuntimeServicesNotAvailable,
+
+    /// Boot services have already been exited
     BootServicesExited,
+
+    /// Variable was not found
     VariableNotFound {
+        /// Name of the variable that was not found
         name: &'static str,
     },
 
+    /// Variable write operation failed
     VariableWriteFailed {
+        /// EFI status code from the failed operation
         status: u64,
     },
 
+    /// Variable read operation failed
     VariableReadFailed {
+        /// EFI status code from the failed operation
         status: u64,
     },
 
+    /// Table signature verification failed
     InvalidSignature {
+        /// Expected signature value
         expected: u64,
+        /// Actual signature found
         found: u64,
     },
 
+    /// CRC32 checksum verification failed
     CrcMismatch {
+        /// Expected CRC value from table header
         expected: u32,
+        /// Computed CRC value
         computed: u32,
     },
 
+    /// Secure Boot validation failed
     SecureBootFailed,
+
+    /// Operation requires Setup Mode but system is not in Setup Mode
     NotInSetupMode,
+
+    /// Invalid GUID format or value
     InvalidGuid,
+
+    /// Provided buffer is too small for the data
     BufferTooSmall {
+        /// Required buffer size
         required: usize,
+        /// Provided buffer size
         provided: usize,
     },
 
+    /// Access to the variable was denied
     AccessDenied,
+
+    /// Variable is write protected
     WriteProtected,
+
+    /// Security policy violation occurred
     SecurityViolation,
+
+    /// System is out of resources
     OutOfResources,
+
+    /// Invalid parameter provided to operation
     InvalidParameter {
+        /// Name of the invalid parameter
         param: &'static str,
     },
 
+    /// Failed to parse signature list structure
     SignatureListParseError {
+        /// Byte offset where parsing failed
         offset: usize,
     },
 
+    /// Hash was not found in the authorized signature database (db)
     HashNotInDatabase,
+
+    /// Hash was found in the revoked signature database (dbx)
     HashRevoked,
+
+    /// Memory allocation failed
     AllocationFailed {
+        /// Requested allocation size
         size: usize,
     },
 
+    /// Null pointer encountered
     NullPointer {
+        /// Description of what was null
         context: &'static str,
     },
 
+    /// Operation timed out
     Timeout {
+        /// Operation that timed out
         operation: &'static str,
     },
 
+    /// Table revision is not supported
     UnsupportedRevision {
+        /// Minimum required revision
         minimum: u32,
+        /// Actual revision
         actual: u32,
     },
 
+    /// Protocol not found
     ProtocolNotFound {
+        /// Protocol description
         protocol: &'static str,
     },
 
+    /// Variable name is too long
     VariableNameTooLong {
+        /// Actual name length
         length: usize,
+        /// Maximum allowed length
         max_length: usize,
     },
 
+    /// Variable data exceeds maximum size
     VariableDataTooLarge {
+        /// Actual data size
         size: usize,
+        /// Maximum allowed size
         max_size: usize,
     },
 }
 
 impl UefiError {
+    /// Get a human-readable error message
+    ///
+    /// # Returns
+    ///
+    /// A static string describing the error
     pub const fn as_str(&self) -> &'static str {
         match self {
             UefiError::NotInitialized => "UEFI not initialized",
@@ -133,6 +202,15 @@ impl UefiError {
         }
     }
 
+    /// Convert an EFI status code to an error
+    ///
+    /// # Arguments
+    ///
+    /// * `efi_status` - The EFI status code to convert
+    ///
+    /// # Returns
+    ///
+    /// `None` if the status indicates success, `Some(error)` otherwise
     pub fn from_efi_status(efi_status: u64) -> Option<Self> {
         match efi_status {
             status::EFI_SUCCESS => None,
@@ -153,6 +231,11 @@ impl UefiError {
         }
     }
 
+    /// Convert error to an EFI status code
+    ///
+    /// # Returns
+    ///
+    /// The corresponding EFI status code
     pub const fn to_efi_status(&self) -> u64 {
         match self {
             UefiError::NotInitialized => status::EFI_NOT_STARTED,
@@ -186,6 +269,11 @@ impl UefiError {
         }
     }
 
+    /// Check if this error is recoverable
+    ///
+    /// # Returns
+    ///
+    /// `true` if the operation might succeed if retried, `false` otherwise
     pub const fn is_recoverable(&self) -> bool {
         matches!(
             self,
@@ -195,7 +283,12 @@ impl UefiError {
                 | UefiError::OutOfResources
         )
     }
-  
+
+    /// Check if this is a security-related error
+    ///
+    /// # Returns
+    ///
+    /// `true` if the error is security-related, `false` otherwise
     pub const fn is_security_error(&self) -> bool {
         matches!(
             self,

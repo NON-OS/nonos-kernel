@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -14,102 +14,255 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-/// Runtime Services table signature: "RUNTSERV" in little-endian
 pub const RUNTIME_SERVICES_SIGNATURE: u64 = 0x56524553544E5552;
+
+/// Boot Services table signature: "BOOTSERV" in little-endian
 pub const BOOT_SERVICES_SIGNATURE: u64 = 0x56524553544F4F42;
+
+/// System Table signature: "IBI SYST" in little-endian
 pub const SYSTEM_TABLE_SIGNATURE: u64 = 0x5453595320494249;
 
+/// Maximum UEFI variable name length (in characters)
 pub const MAX_VARIABLE_NAME_LENGTH: usize = 256;
+
 /// Maximum UEFI variable data size (1MB as per UEFI spec recommendation)
 pub const MAX_VARIABLE_DATA_SIZE: usize = 1024 * 1024;
 
+/// Signature list header size (bytes)
 pub const SIGNATURE_LIST_HEADER_SIZE: usize = 28;
+
+/// Signature data header size (GUID only)
 pub const SIGNATURE_DATA_HEADER_SIZE: usize = 16;
 
+/// SHA-256 hash size in bytes
 pub const SHA256_HASH_SIZE: usize = 32;
+
+/// SHA-384 hash size in bytes
 pub const SHA384_HASH_SIZE: usize = 48;
+
+/// SHA-512 hash size in bytes
 pub const SHA512_HASH_SIZE: usize = 64;
 
 /// UEFI 2.0 revision
 pub const UEFI_REVISION_2_0: u32 = 0x00020000;
+
 /// UEFI 2.1 revision
 pub const UEFI_REVISION_2_1: u32 = 0x00020100;
+
 /// UEFI 2.3 revision
 pub const UEFI_REVISION_2_3: u32 = 0x00020300;
+
 /// UEFI 2.3.1 revision
 pub const UEFI_REVISION_2_3_1: u32 = 0x0002001F;
+
 /// UEFI 2.4 revision
 pub const UEFI_REVISION_2_4: u32 = 0x00020400;
+
 /// UEFI 2.5 revision
 pub const UEFI_REVISION_2_5: u32 = 0x00020500;
+
 /// UEFI 2.6 revision
 pub const UEFI_REVISION_2_6: u32 = 0x00020600;
+
 /// UEFI 2.7 revision
 pub const UEFI_REVISION_2_7: u32 = 0x00020700;
+
 /// UEFI 2.8 revision
 pub const UEFI_REVISION_2_8: u32 = 0x00020800;
+
 /// UEFI 2.9 revision
 pub const UEFI_REVISION_2_9: u32 = 0x00020900;
+
 /// UEFI 2.10 revision
 pub const UEFI_REVISION_2_10: u32 = 0x00020A00;
 
 /// Cold reset type value
 pub const RESET_TYPE_COLD: u32 = 0;
+
+/// Warm reset type value
 pub const RESET_TYPE_WARM: u32 = 1;
+
+/// Shutdown reset type value
 pub const RESET_TYPE_SHUTDOWN: u32 = 2;
+
+/// Platform-specific reset type value
 pub const RESET_TYPE_PLATFORM_SPECIFIC: u32 = 3;
+
+/// Timezone value indicating time is unspecified
 pub const EFI_UNSPECIFIED_TIMEZONE: i16 = 0x07FF;
+
+/// Daylight time adjustment value
 pub const EFI_TIME_ADJUST_DAYLIGHT: u8 = 0x01;
+
+/// Time is in daylight time
 pub const EFI_TIME_IN_DAYLIGHT: u8 = 0x02;
 
 /// EFI Status codes as defined in UEFI Specification
 pub mod status {
+    /// Operation completed successfully
     pub const EFI_SUCCESS: u64 = 0;
+
+    /// Image failed to load
     pub const EFI_LOAD_ERROR: u64 = 1;
+
+    /// A parameter was incorrect
     pub const EFI_INVALID_PARAMETER: u64 = 2;
+
+    /// The operation is not supported
     pub const EFI_UNSUPPORTED: u64 = 3;
+
+    /// The buffer was not the proper size for the request
     pub const EFI_BAD_BUFFER_SIZE: u64 = 4;
+
+    /// The buffer is not large enough to hold the requested data
     pub const EFI_BUFFER_TOO_SMALL: u64 = 5;
+
+    /// There is no data pending upon return
     pub const EFI_NOT_READY: u64 = 6;
+
+    /// The physical device reported an error while attempting the operation
     pub const EFI_DEVICE_ERROR: u64 = 7;
+
+    /// The device cannot be written to
     pub const EFI_WRITE_PROTECTED: u64 = 8;
+
+    /// A resource has run out
     pub const EFI_OUT_OF_RESOURCES: u64 = 9;
+
+    /// An inconsistency was detected on the file system
     pub const EFI_VOLUME_CORRUPTED: u64 = 10;
+
+    /// There is no more space on the file system
     pub const EFI_VOLUME_FULL: u64 = 11;
+
+    /// The device does not contain any medium to perform the operation
     pub const EFI_NO_MEDIA: u64 = 12;
+
+    /// The medium in the device has changed since the last access
     pub const EFI_MEDIA_CHANGED: u64 = 13;
+
+    /// The item was not found
     pub const EFI_NOT_FOUND: u64 = 14;
+
+    /// Access was denied
     pub const EFI_ACCESS_DENIED: u64 = 15;
+
+    /// The server was not found or did not respond to the request
     pub const EFI_NO_RESPONSE: u64 = 16;
+
+    /// A mapping to a device does not exist
     pub const EFI_NO_MAPPING: u64 = 17;
+
+    /// The timeout time expired
     pub const EFI_TIMEOUT: u64 = 18;
+
+    /// The protocol has not been started
     pub const EFI_NOT_STARTED: u64 = 19;
+
+    /// The protocol has already been started
     pub const EFI_ALREADY_STARTED: u64 = 20;
+
+    /// The operation was aborted
     pub const EFI_ABORTED: u64 = 21;
+
+    /// An ICMP error occurred during the network operation
     pub const EFI_ICMP_ERROR: u64 = 22;
+
+    /// A TFTP error occurred during the network operation
     pub const EFI_TFTP_ERROR: u64 = 23;
+
+    /// A protocol error occurred during the network operation
     pub const EFI_PROTOCOL_ERROR: u64 = 24;
+
+    /// The function encountered an internal version that was incompatible
     pub const EFI_INCOMPATIBLE_VERSION: u64 = 25;
+
+    /// The function was not performed due to a security violation
     pub const EFI_SECURITY_VIOLATION: u64 = 26;
+
+    /// A CRC error was detected
     pub const EFI_CRC_ERROR: u64 = 27;
+
+    /// Beginning or end of media was reached
     pub const EFI_END_OF_MEDIA: u64 = 28;
+
+    /// The end of the file was reached
     pub const EFI_END_OF_FILE: u64 = 31;
+
+    /// The language specified was invalid
     pub const EFI_INVALID_LANGUAGE: u64 = 32;
+
+    /// The security status of the data is unknown or compromised
     pub const EFI_COMPROMISED_DATA: u64 = 33;
+
+    /// There is an address conflict during address allocation
     pub const EFI_IP_ADDRESS_CONFLICT: u64 = 34;
+
+    /// A HTTP error occurred during the network operation
     pub const EFI_HTTP_ERROR: u64 = 35;
+
+    /// High bit mask for error status codes
     pub const EFI_ERROR_BIT: u64 = 1u64 << 63;
 
+    /// Check if status code indicates an error
+    ///
+    /// In UEFI, error status codes have the high bit set OR are non-zero
+    /// values in the standard error range (1-35).
+    ///
+    /// # Arguments
+    ///
+    /// * `status` - The EFI status code to check
+    ///
+    /// # Returns
+    ///
+    /// `true` if the status indicates an error, `false` otherwise
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use nonos_kernel::arch::x86_64::uefi::constants::status;
+    ///
+    /// assert!(!status::is_error(status::EFI_SUCCESS));
+    /// assert!(status::is_error(status::EFI_NOT_FOUND));
+    /// assert!(status::is_error(status::EFI_SECURITY_VIOLATION));
+    /// ```
     #[inline]
     pub const fn is_error(status: u64) -> bool {
         (status & EFI_ERROR_BIT) != 0 || (status != 0 && status <= 35)
     }
 
+    /// Check if status code indicates success
+    ///
+    /// # Arguments
+    ///
+    /// * `status` - The EFI status code to check
+    ///
+    /// # Returns
+    ///
+    /// `true` if the status indicates success, `false` otherwise
     #[inline]
     pub const fn is_success(status: u64) -> bool {
         status == EFI_SUCCESS
     }
 
+    /// Get human-readable name for an EFI status code
+    ///
+    /// # Arguments
+    ///
+    /// * `status` - The EFI status code
+    ///
+    /// # Returns
+    ///
+    /// A static string with the status code name
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use nonos_kernel::arch::x86_64::uefi::constants::status;
+    ///
+    /// assert_eq!(status::name(status::EFI_SUCCESS), "EFI_SUCCESS");
+    /// assert_eq!(status::name(status::EFI_NOT_FOUND), "EFI_NOT_FOUND");
+    /// ```
     pub const fn name(status: u64) -> &'static str {
         match status {
             EFI_SUCCESS => "EFI_SUCCESS",
@@ -150,6 +303,15 @@ pub mod status {
         }
     }
 
+    /// Get description for an EFI status code
+    ///
+    /// # Arguments
+    ///
+    /// * `status` - The EFI status code
+    ///
+    /// # Returns
+    ///
+    /// A static string describing the status code
     pub const fn description(status: u64) -> &'static str {
         match status {
             EFI_SUCCESS => "Operation completed successfully",
