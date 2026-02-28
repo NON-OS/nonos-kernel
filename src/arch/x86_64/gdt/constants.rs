@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -19,6 +19,7 @@ pub const TSS_SIZE: usize = 104;
 pub const IST_COUNT: usize = 7;
 pub const DEFAULT_STACK_SIZE: usize = 16384;
 pub const IOPB_SIZE: usize = 8192;
+
 // Segment selectors
 pub const SEL_NULL: u16 = 0x00;
 pub const SEL_KERNEL_CODE: u16 = 0x08;
@@ -30,6 +31,7 @@ pub const SEL_KERNEL_CODE_RAW: u16 = 0x08;
 pub const SEL_KERNEL_DATA_RAW: u16 = 0x10;
 pub const SEL_USER_DATA_RAW: u16 = 0x18;
 pub const SEL_USER_CODE_RAW: u16 = 0x20;
+
 // IST indices
 pub const IST_DOUBLE_FAULT: usize = 1;
 pub const IST_NMI: usize = 2;
@@ -37,6 +39,7 @@ pub const IST_MACHINE_CHECK: usize = 3;
 pub const IST_DEBUG: usize = 4;
 pub const IST_PAGE_FAULT: usize = 5;
 pub const IST_GP: usize = 6;
+
 // Access byte flags (internal)
 pub(crate) const ACCESS_PRESENT: u8 = 1 << 7;
 pub(crate) const ACCESS_DPL_RING0: u8 = 0 << 5;
@@ -45,13 +48,16 @@ pub(crate) const ACCESS_TYPE_SYSTEM: u8 = 0 << 4;
 pub(crate) const ACCESS_TYPE_CODE_DATA: u8 = 1 << 4;
 pub(crate) const ACCESS_EXECUTABLE: u8 = 1 << 3;
 pub(crate) const ACCESS_RW: u8 = 1 << 1;
+
 // TSS types (internal)
 pub(crate) const TSS_TYPE_AVAILABLE_64: u8 = 0x9;
 pub(crate) const TSS_TYPE_BUSY_64: u8 = 0xB;
+
 // Flags (internal)
 pub(crate) const FLAG_GRANULARITY: u8 = 1 << 7;
 pub(crate) const FLAG_SIZE_32: u8 = 1 << 6;
 pub(crate) const FLAG_LONG_MODE: u8 = 1 << 5;
+
 // MSR addresses
 pub(crate) const MSR_FS_BASE: u32 = 0xC000_0100;
 pub(crate) const MSR_GS_BASE: u32 = 0xC000_0101;
