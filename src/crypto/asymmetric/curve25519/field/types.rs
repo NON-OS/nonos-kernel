@@ -1,0 +1,44 @@
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+use core::sync::atomic::{compiler_fence, Ordering};
+
+#[derive(Clone)]
+pub struct FieldElement(pub [u64; 5]);
+
+impl Drop for FieldElement {
+    fn drop(&mut self) {
+        // SAFETY: Volatile writes prevent compiler optimization of zeroization.
+        unsafe {
+            core::ptr::write_volatile(&mut self.0[0], 0);
+            core::ptr::write_volatile(&mut self.0[1], 0);
+            core::ptr::write_volatile(&mut self.0[2], 0);
+            core::ptr::write_volatile(&mut self.0[3], 0);
+            core::ptr::write_volatile(&mut self.0[4], 0);
+        }
+        compiler_fence(Ordering::SeqCst);
+    }
+}
+
+impl FieldElement {
+    pub const fn zero() -> Self {
+        FieldElement([0, 0, 0, 0, 0])
+    }
+
+    pub const fn one() -> Self {
+        FieldElement([1, 0, 0, 0, 0])
+    }
+}
