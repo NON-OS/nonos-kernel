@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -17,33 +17,58 @@
 extern crate alloc;
 
 use super::serial::serial_print;
+
 /// Initializes core kernel subsystems.
-/// # SAFETY: Caller guarantees memory and interrupts are initialized
+///
+/// # Safety
+///
+/// Must be called after memory and interrupts are initialized.
+/// Must be called exactly once during boot.
+///
+/// # Errors
+///
+/// Returns an error if any subsystem fails to initialize.
 pub unsafe fn init_core_subsystems() -> Result<(), &'static str> {
+    // SAFETY: Caller guarantees memory and interrupts are initialized
     crate::log::logger::init();
     crate::log::info!("[BOOT] Logger initialized");
-    crate::crypto::vault::init_vault();
+
+    let _ = crate::crypto::vault::init_vault();
     crate::log::info!("[BOOT] Crypto vault initialized");
+
     crate::sched::init();
     crate::log::info!("[BOOT] Scheduler initialized");
+
     crate::ipc::init_ipc();
     crate::log::info!("[BOOT] IPC initialized");
+
     crate::ui::cli::spawn();
     crate::log::info!("[BOOT] CLI spawned");
 
     Ok(())
 }
 
-
+/// Initializes the module loading system.
+///
+/// # Safety
+///
+/// Must be called after core subsystems are initialized.
+///
+/// # Errors
+///
+/// Returns an error if module system initialization fails.
 pub unsafe fn init_module_system() -> Result<(), &'static str> {
-    // # SAFETY: Caller guarantees core subsystems are initialized
+    // SAFETY: Caller guarantees core subsystems are initialized
     crate::modules::mod_loader::init_module_loader();
     crate::syscall::capabilities::init_capabilities();
-    // # SAFETY: Module loader initialized above
+
+    // SAFETY: Module loader initialized above
     unsafe { load_initial_modules() }
 }
 
-/// # Safety: After module loader is initialized.
+/// # Safety
+///
+/// Must be called after module loader is initialized.
 unsafe fn load_initial_modules() -> Result<(), &'static str> {
     let test_manifest = crate::modules::manifest::ModuleManifest {
         name: "init".into(),
@@ -62,6 +87,7 @@ unsafe fn load_initial_modules() -> Result<(), &'static str> {
     };
 
     let manifest_ref = alloc::boxed::Box::leak(alloc::boxed::Box::new(test_manifest));
+
     crate::modules::mod_loader::verify_and_queue(manifest_ref).map_err(|e| {
         serial_print(format_args!("[BOOT] Failed to queue module 'init': {:?}\n", e));
         "Failed to load initial module"
@@ -70,7 +96,13 @@ unsafe fn load_initial_modules() -> Result<(), &'static str> {
     serial_print(format_args!("[BOOT] Initial module 'init' queued successfully\n"));
     Ok(())
 }
-/// # Safety: final boot step. 
+
+/// Starts the scheduler and never returns.
+///
+/// # Safety
+///
+/// Must be called as the final boot step after all initialization is complete.
 pub unsafe fn start_scheduler() -> ! {
+    // SAFETY: Caller guarantees all initialization is complete
     crate::sched::enter()
 }
