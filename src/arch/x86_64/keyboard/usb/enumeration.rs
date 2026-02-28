@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -45,8 +45,8 @@ pub fn enumerate_devices() -> UsbHidResult<()> {
     for usb_dev in usb_mgr.devices() {
         if let Some(cfg) = &usb_dev.active_config {
             for iface in &cfg.interfaces {
-                if let Some(new_dev) = try_create_hid_device(usb_dev, iface) {
-                    if let Some(slot) = find_free_slot(&devices) {
+                if let Some(new_dev) = try_create_hid_device(&usb_dev, iface) {
+                    if let Some(slot) = find_free_slot(&devices[..]) {
                         devices[slot] = new_dev;
                         device_count += 1;
                         STATS.write().devices_connected += 1;
@@ -67,7 +67,7 @@ pub fn enumerate_devices() -> UsbHidResult<()> {
 
 fn try_create_hid_device(
     usb_dev: &crate::drivers::usb::UsbDevice,
-    iface: &crate::drivers::usb::UsbInterface,
+    iface: &crate::drivers::usb::UsbInterfaceInfo,
 ) -> Option<HidDeviceState> {
     let class = iface.iface.b_interface_class;
     let subclass = iface.iface.b_interface_sub_class;
