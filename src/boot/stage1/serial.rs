@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -23,49 +23,73 @@ const LSR_TX_EMPTY: u8 = 0x20;
 const MAX_TX_WAIT: u32 = 100_000; // Timeout for transmit wait
 
 static SERIAL_LOCK: Mutex<()> = Mutex::new(());
-/// # Safety {
+
+/// Initializes the COM1 serial port.
+///
+/// # Safety
+///
 /// Must be called exactly once during early boot before any serial output.
-/// Writes directly to I/O ports }
+/// Writes directly to I/O ports.
 pub unsafe fn init_serial() {
     let _lock = SERIAL_LOCK.lock();
+
+    // SAFETY: Writes directly to I/O ports for COM1 initialization
     unsafe {
         let mut data = Port::<u8>::new(COM1);
         let mut ier = Port::<u8>::new(COM1 + 1);
         let mut lcr = Port::<u8>::new(COM1 + 3);
         let mut fcr = Port::<u8>::new(COM1 + 2);
         let mut mcr = Port::<u8>::new(COM1 + 4);
-      
-        ier.write(0x00); // Disable interrupts
-        lcr.write(0x80); // Enable DLAB (set baud rate divisor)
-      
+
+        // Disable interrupts
+        ier.write(0x00);
+
+        // Enable DLAB (set baud rate divisor)
+        lcr.write(0x80);
+
         // Set divisor to 3 (38400 baud)
         data.write(0x03); // Low byte
         ier.write(0x00);  // High byte
-  
-        lcr.write(0x03); // 8 bits, no parity, one stop bit
-        fcr.write(0xC7); // Enable FIFO, clear TX/RX queues, 14-byte threshold
-        mcr.write(0x0B); // Enable DTR, RTS, and OUT2 (required for interrupts)
-        ier.write(0x01); // Enable receive interrupts
+
+        // 8 bits, no parity, one stop bit
+        lcr.write(0x03);
+
+        // Enable FIFO, clear TX/RX queues, 14-byte threshold
+        fcr.write(0xC7);
+
+        // Enable DTR, RTS, and OUT2 (required for interrupts)
+        mcr.write(0x0B);
+
+        // Enable receive interrupts
+        ier.write(0x01);
     }
 }
 
 struct SerialWriter;
+
 impl SerialWriter {
-    /// # Safety {
-    /// Direct port I/O for serial transmission }
+    /// Write a single byte to the serial port with timeout.
+    ///
+    /// # Safety
+    ///
+    /// Direct port I/O for serial transmission.
     #[inline]
     unsafe fn write_byte(&mut self, byte: u8) {
         let mut port = Port::<u8>::new(COM1);
         let mut lsr = Port::<u8>::new(COM1 + 5);
+
+        // Wait for transmit buffer to be empty with timeout
         let mut wait_count = 0u32;
         while unsafe { lsr.read() } & LSR_TX_EMPTY == 0 {
             wait_count += 1;
             if wait_count >= MAX_TX_WAIT {
+                // Timeout - transmit anyway to avoid deadlock
                 break;
             }
             core::hint::spin_loop();
         }
-        // # SAFETY: Port I/O is safe after initialization
+
+        // SAFETY: Port I/O is safe after initialization
         unsafe { port.write(byte) };
     }
 }
@@ -73,13 +97,16 @@ impl SerialWriter {
 impl Write for SerialWriter {
     fn write_str(&mut self, s: &str) -> core::fmt::Result {
         for byte in s.bytes() {
-            // # SAFETY: Serial port initialized before use
+            // SAFETY: Serial port initialized before use
             unsafe { self.write_byte(byte) };
         }
         Ok(())
     }
 }
 
+/// Thread-safe serial print function.
+///
+/// Acquires lock before writing to prevent interleaved output from multiple CPUs.
 pub fn serial_print(args: core::fmt::Arguments) {
     let _lock = SERIAL_LOCK.lock();
     let _ = SerialWriter.write_fmt(args);
