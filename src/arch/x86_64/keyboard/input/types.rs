@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -35,6 +35,7 @@ impl Default for DeviceId {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 #[repr(u8)]
+#[allow(dead_code)]
 pub enum EventPriority {
     Low = 0,
     Normal = 1,
@@ -96,6 +97,7 @@ pub struct KeyEvent {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[repr(u8)]
+#[allow(dead_code)]
 pub enum MouseButton {
     Left = 0,
     Right = 1,
@@ -126,6 +128,7 @@ pub struct MouseScrollEvent {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[allow(dead_code)]
 pub enum InputEventKind {
     KeyPress(KeyEvent),
     KeyRelease(KeyEvent),
