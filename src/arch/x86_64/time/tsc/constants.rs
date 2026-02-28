@@ -14,22 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub fn detect_hpet() -> Option<u64> {
-    if crate::arch::x86_64::acpi::is_initialized() {
-        if let Some(addr) = crate::arch::x86_64::acpi::hpet_address() {
-            if super::timer::is_valid_hpet_base(addr) {
-                return Some(addr);
-            }
-        }
-    }
-    const HPET_DEFAULT_BASE: u64 = 0xFED00000;
-    if super::timer::is_valid_hpet_base(HPET_DEFAULT_BASE) {
-        Some(HPET_DEFAULT_BASE)
-    } else {
-        None
-    }
-}
+pub const MAX_CPUS: usize = 256;
 
-pub fn read_hpet_counter(base: u64) -> u64 {
-    unsafe { core::ptr::read_volatile((base + 0xF0) as *const u64) }
-}
+pub const DEFAULT_CALIBRATION_MS: u32 = 50;
+
+pub const CALIBRATION_SAMPLES: usize = 5;
+
+pub const MIN_FREQUENCY: u64 = 100_000_000;
+
+pub const MAX_FREQUENCY: u64 = 10_000_000_000;
