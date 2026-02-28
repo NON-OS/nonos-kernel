@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -148,7 +148,7 @@ impl EfiTime {
     pub fn to_unix_timestamp(&self) -> i64 {
         let days_per_month: [i64; 12] = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
 
-        let mut year = self.year as i64;
+        let year = self.year as i64;
         let month = self.month as i64;
         let day = self.day as i64;
 

@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -15,7 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 const CRC32_POLYNOMIAL: u32 = 0xEDB88320;
+
 const CRC32_TABLE: [u32; 256] = generate_table();
+
 const fn generate_table() -> [u32; 256] {
     let mut table = [0u32; 256];
     let mut i = 0;
