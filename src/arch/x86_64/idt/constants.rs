@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -16,14 +16,18 @@
 
 pub const IDT_ENTRIES: usize = 256;
 pub const KERNEL_CS: u16 = 0x08;
+
 // Gate types
 pub const GATE_INTERRUPT: u8 = 0x0E;
 pub const GATE_TRAP: u8 = 0x0F;
+
 // Privilege levels
 pub const DPL_KERNEL: u8 = 0;
 pub const DPL_USER: u8 = 3;
+
 // Flags
 pub const PRESENT: u8 = 1 << 7;
+
 // Exception vector numbers
 pub const VEC_DIVIDE_ERROR: u8 = 0;
 pub const VEC_DEBUG: u8 = 1;
@@ -47,8 +51,10 @@ pub const VEC_MACHINE_CHECK: u8 = 18;
 pub const VEC_SIMD_FP: u8 = 19;
 pub const VEC_VIRTUALIZATION: u8 = 20;
 pub const VEC_CONTROL_PROTECTION: u8 = 21;
+
 // Hardware interrupt base (after remapping PIC)
 pub const IRQ_BASE: u8 = 32;
+
 // IST indices (matching GDT)
 pub const IST_DOUBLE_FAULT: u8 = 1;
 pub const IST_NMI: u8 = 2;
@@ -56,11 +62,13 @@ pub const IST_MACHINE_CHECK: u8 = 3;
 pub const IST_DEBUG: u8 = 4;
 pub const IST_PAGE_FAULT: u8 = 5;
 pub const IST_GP: u8 = 6;
+
 // PIC ports
 pub(crate) const PIC1_COMMAND: u16 = 0x20;
 pub(crate) const PIC1_DATA: u16 = 0x21;
 pub(crate) const PIC2_COMMAND: u16 = 0xA0;
 pub(crate) const PIC2_DATA: u16 = 0xA1;
+
 // PIC commands
 pub(crate) const PIC_EOI: u8 = 0x20;
 pub(crate) const ICW1_INIT: u8 = 0x11;
