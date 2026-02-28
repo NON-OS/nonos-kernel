@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -320,15 +320,17 @@ pub fn cpuid(leaf: u32) -> (u32, u32, u32, u32) {
     let ebx: u32;
     let ecx: u32;
     let edx: u32;
-    // SAFETY: CPUID is always valid on x86_64
+    // SAFETY: CPUID is always valid on x86_64. We save/restore rbx manually because LLVM uses it.
     unsafe {
         asm!(
+            "mov {tmp:r}, rbx",
             "cpuid",
+            "xchg {tmp:r}, rbx",
+            tmp = out(reg) ebx,
             inout("eax") leaf => eax,
-            lateout("ebx") ebx,
             lateout("ecx") ecx,
             lateout("edx") edx,
-            options(nomem, nostack, preserves_flags)
+            options(nostack, preserves_flags)
         );
     }
     (eax, ebx, ecx, edx)
@@ -340,15 +342,17 @@ pub fn cpuid_count(leaf: u32, subleaf: u32) -> (u32, u32, u32, u32) {
     let ebx: u32;
     let ecx: u32;
     let edx: u32;
-    // SAFETY: CPUID is always valid on x86_64
+    // SAFETY: CPUID is always valid on x86_64. We save/restore rbx manually because LLVM uses it.
     unsafe {
         asm!(
+            "mov {tmp:r}, rbx",
             "cpuid",
+            "xchg {tmp:r}, rbx",
+            tmp = out(reg) ebx,
             inout("eax") leaf => eax,
             inout("ecx") subleaf => ecx,
-            lateout("ebx") ebx,
             lateout("edx") edx,
-            options(nomem, nostack, preserves_flags)
+            options(nostack, preserves_flags)
         );
     }
     (eax, ebx, ecx, edx)
