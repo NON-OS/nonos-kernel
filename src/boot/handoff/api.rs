@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -63,29 +63,31 @@ impl core::fmt::Display for HandoffError {
         }
     }
 }
-/// # Safety {
-/// Must be called exactly once during early boot
-/// ptr must point to a valid BootHandoffV1 structure
-/// The memory must remain valid for the kernel lifetime
-/// ptr must be properly aligned for BootHandoffV1
-/// }
+
+/// # Safety
+///
+/// ptr must point to a valid, aligned BootHandoffV1 structure.
 pub unsafe fn init_handoff(ptr: u64) -> Result<&'static BootHandoffV1, HandoffError> {
     const MAX_HANDOFF_PTR: u64 = 0x0000_FFFF_FFFF_FFFF; // Max physical address
     const HANDOFF_ALIGNMENT: u64 = 8; // Required alignment
+
     if ptr == 0 {
         return Err(HandoffError::NullPointer);
     }
 
+    // Validate pointer is in valid physical address space
     if ptr > MAX_HANDOFF_PTR {
         return Err(HandoffError::NullPointer);
     }
 
+    // Validate alignment
     if ptr % HANDOFF_ALIGNMENT != 0 {
         return Err(HandoffError::NullPointer);
     }
 
-    // # SAFETY: Caller guarantees ptr points to valid BootHandoffV1
+    // SAFETY: Caller guarantees ptr points to valid BootHandoffV1
     let handoff = unsafe { &*(ptr as *const BootHandoffV1) };
+
     if handoff.magic != HANDOFF_MAGIC {
         return Err(HandoffError::InvalidMagic);
     }
@@ -105,16 +107,19 @@ pub unsafe fn init_handoff(ptr: u64) -> Result<&'static BootHandoffV1, HandoffEr
         });
     }
 
+    // Validate framebuffer if present
     if handoff.has_flag(super::types::flags::FB_AVAILABLE) {
         if handoff.fb.ptr > MAX_HANDOFF_PTR {
-            return Err(HandoffError::InvalidMagic); 
+            return Err(HandoffError::InvalidMagic); // Reuse error for invalid data
         }
     }
 
+    // Validate memory map pointer if present
     if handoff.mmap.ptr != 0 && handoff.mmap.ptr > MAX_HANDOFF_PTR {
         return Err(HandoffError::InvalidMagic);
     }
 
+    // Validate ACPI RSDP if present
     if handoff.has_flag(super::types::flags::ACPI_AVAILABLE) {
         if handoff.acpi.rsdp > MAX_HANDOFF_PTR {
             return Err(HandoffError::InvalidMagic);
@@ -148,7 +153,9 @@ pub fn total_memory() -> u64 {
 #[cfg(test)]
 mod tests {
     extern crate alloc;
+
     use super::*;
+
     #[test]
     fn test_error_display() {
         let e = HandoffError::NullPointer;
