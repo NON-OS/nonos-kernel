@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -156,11 +156,11 @@ impl QueueStatsAtomic {
 }
 
 pub(super) struct InputQueueState {
-    pub inner: Mutex<InputQueueInner>,
-    pub config: RwLock<QueueConfig>,
-    pub stats: QueueStatsAtomic,
-    pub shutdown: AtomicBool,
-    pub waiters: Mutex<Vec<&'static WaitHandle>>,
+    inner: Mutex<InputQueueInner>,
+    pub(super) config: RwLock<QueueConfig>,
+    stats: QueueStatsAtomic,
+    pub(super) shutdown: AtomicBool,
+    pub(super) waiters: Mutex<Vec<&'static WaitHandle>>,
 }
 
 pub(super) static INPUT_QUEUE: InputQueueState = InputQueueState {
