@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -14,10 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! ACPI table discovery and parsing.
-//!
-//! Handles RSDP discovery, root table parsing, and individual table parsing.
-
 use core::mem;
 use core::ptr;
 use core::sync::atomic::{AtomicBool, Ordering};
@@ -31,7 +27,7 @@ use super::data::*;
 static INITIALIZED: AtomicBool = AtomicBool::new(false);
 static TABLES: RwLock<Option<TableRegistry>> = RwLock::new(None);
 static STATS: RwLock<AcpiStats> = RwLock::new(AcpiStats::new());
-/// Discovered tables: signature -> physical address
+
 struct TableRegistry {
     tables: BTreeMap<u32, u64>,
     data: AcpiData,
@@ -42,12 +38,16 @@ pub fn init() -> AcpiResult<()> {
         return Err(AcpiError::AlreadyInitialized);
     }
 
+    // Find RSDP in memory
     let rsdp = find_rsdp()?;
+
+    // Create table registry
     let mut registry = TableRegistry {
         tables: BTreeMap::new(),
         data: AcpiData::new(),
     };
 
+    // Copy RSDP info
     registry.data.revision = rsdp.base.revision;
     registry.data.oem_id = rsdp.base.oem_id;
 
@@ -77,6 +77,7 @@ pub fn init() -> AcpiResult<()> {
         stats.overrides_found = registry.data.overrides.len() as u32;
         stats.pcie_segments = registry.data.pcie_segments.len() as u32;
 
+        // Count unique NUMA nodes
         let mut nodes: alloc::collections::BTreeSet<u32> = alloc::collections::BTreeSet::new();
         for region in &registry.data.numa_regions {
             nodes.insert(region.proximity_domain);
@@ -95,7 +96,7 @@ pub fn is_initialized() -> bool {
 }
 
 fn find_rsdp() -> AcpiResult<RsdpExtended> {
-    // SAFETY: Search EBDA first
+    // Search EBDA first
     unsafe {
         let ebda_segment = ptr::read_volatile(rsdp::EBDA_PTR_ADDR as *const u16);
         if ebda_segment != 0 {
@@ -106,6 +107,7 @@ fn find_rsdp() -> AcpiResult<RsdpExtended> {
         }
     }
 
+    // Search BIOS ROM area
     if let Some(rsdp) = search_rsdp_range(rsdp::BIOS_ROM_START, rsdp::BIOS_ROM_SIZE) {
         return Ok(rsdp);
     }
@@ -113,7 +115,6 @@ fn find_rsdp() -> AcpiResult<RsdpExtended> {
     Err(AcpiError::RsdpNotFound)
 }
 
-/// Search for RSDP in a memory range
 fn search_rsdp_range(start: usize, length: usize) -> Option<RsdpExtended> {
     for addr in (start..start + length).step_by(rsdp::RSDP_ALIGNMENT) {
         unsafe {
@@ -122,13 +123,17 @@ fn search_rsdp_range(start: usize, length: usize) -> Option<RsdpExtended> {
 
             if sig == rsdp::RSDP_SIGNATURE {
                 let rsdp = ptr::read_volatile(ptr);
+
+                // Validate base checksum
                 if !rsdp.validate_checksum() {
                     continue;
                 }
 
                 if rsdp.is_acpi2() {
+                    // ACPI 2.0+ extended RSDP
                     let ext_ptr = addr as *const RsdpExtended;
                     let ext_rsdp = ptr::read_volatile(ext_ptr);
+
                     if ext_rsdp.validate_extended_checksum() {
                         return Some(ext_rsdp);
                     }
@@ -211,14 +216,15 @@ fn parse_fadt(registry: &mut TableRegistry) -> AcpiResult<()> {
             registry.data.reset_reg = Some(fadt.reset_reg);
             registry.data.reset_value = fadt.reset_value;
         }
-      
+
+        // Default S5 sleep type (varies by system, commonly 0 or 5)
+        // Full implementation would parse DSDT AML for _S5_ object
         registry.data.slp_typ[5] = 0;
     }
 
     Ok(())
 }
 
-/// Parse MADT
 fn parse_madt(registry: &mut TableRegistry) {
     let addr = match registry.tables.get(&SIG_MADT) {
         Some(&a) => a,
@@ -434,6 +440,7 @@ fn parse_srat_processor_affinity(registry: &mut TableRegistry, ptr: u64, len: u8
     unsafe {
         let entry = ptr::read_volatile(ptr as *const SratProcessorAffinity);
         if entry.is_enabled() {
+            // Update processor proximity domain
             for proc in &mut registry.data.processors {
                 if proc.apic_id == entry.apic_id as u32 {
                     proc.proximity_domain = entry.proximity_domain();
@@ -469,6 +476,7 @@ fn parse_srat_x2apic_affinity(registry: &mut TableRegistry, ptr: u64, len: u8) {
     unsafe {
         let entry = ptr::read_volatile(ptr as *const SratX2ApicAffinity);
         if entry.is_enabled() {
+            // Update processor proximity domain
             for proc in &mut registry.data.processors {
                 if proc.apic_id == entry.x2apic_id {
                     proc.proximity_domain = entry.proximity_domain;
