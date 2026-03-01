@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -14,11 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+//! VirtIO virtqueue implementation.
+
 use alloc::{collections::VecDeque, sync::Arc, vec::Vec};
 use core::{mem, ptr};
 use core::sync::atomic::Ordering;
 use spin::Mutex;
 use x86_64::PhysAddr;
+
 use super::buffer::PacketBuffer;
 use super::constants::*;
 use super::dma::DmaRegion;
@@ -34,6 +37,7 @@ pub struct VirtqDesc {
 
 impl VirtqDesc {
     pub const SIZE: usize = 16;
+
     pub const fn new() -> Self {
         Self {
             addr: 0,
@@ -86,26 +90,33 @@ pub struct VirtqUsed {
 
 pub struct VirtQueue {
     pub queue_size: u16,
+
     _desc_region: DmaRegion,
     _avail_region: DmaRegion,
     _used_region: DmaRegion,
+
     pub desc_table: *mut VirtqDesc,
     pub avail_ring: *mut VirtqAvail,
     pub used_ring: *mut VirtqUsed,
+
     pub desc_table_phys: PhysAddr,
     pub avail_ring_phys: PhysAddr,
     pub used_ring_phys: PhysAddr,
+
     pub free_descriptors: VecDeque<u16>,
     pub last_used_idx: u16,
     pub next_avail_idx: u16,
+
     rx_owner: Vec<Option<Arc<Mutex<PacketBuffer>>>>,
     tx_owner: Vec<Option<Arc<Mutex<PacketBuffer>>>>,
+
     notify_addr: usize,
 }
 
 // SAFETY: VirtQueue uses DMA memory and atomic operations correctly
 unsafe impl Send for VirtQueue {}
 unsafe impl Sync for VirtQueue {}
+
 impl VirtQueue {
     pub fn new(queue_size: u16) -> Result<Self, &'static str> {
         if !queue_size.is_power_of_two() {
@@ -125,9 +136,11 @@ impl VirtQueue {
         let desc_region = DmaRegion::new(dt_size)?;
         let avail_region = DmaRegion::new(av_size)?;
         let used_region = DmaRegion::new(us_size)?;
+
         let desc_table = desc_region.as_mut_ptr::<VirtqDesc>();
         let avail_ring = avail_region.as_mut_ptr::<VirtqAvail>();
         let used_ring = used_region.as_mut_ptr::<VirtqUsed>();
+
         let mut free = VecDeque::with_capacity(queue_size as usize);
         for i in 0..queue_size {
             free.push_back(i);
@@ -136,8 +149,10 @@ impl VirtQueue {
         let desc_table_phys = desc_region.phys();
         let avail_ring_phys = avail_region.phys();
         let used_ring_phys = used_region.phys();
+
         let rx_owner = vec![None; queue_size as usize];
         let tx_owner = vec![None; queue_size as usize];
+
         Ok(Self {
             queue_size,
             _desc_region: desc_region,
@@ -332,21 +347,21 @@ impl VirtQueue {
         }
     }
 
-    pub unsafe fn get_desc(&self, idx: u16) -> Option<&VirtqDesc> {
+    pub unsafe fn get_desc(&self, idx: u16) -> Option<&VirtqDesc> { unsafe {
         if idx < self.queue_size {
             Some(&*self.desc_table.add(idx as usize))
         } else {
             None
         }
-    }
+    }}
 
-    pub unsafe fn get_desc_mut(&mut self, idx: u16) -> Option<&mut VirtqDesc> {
+    pub unsafe fn get_desc_mut(&mut self, idx: u16) -> Option<&mut VirtqDesc> { unsafe {
         if idx < self.queue_size {
             Some(&mut *self.desc_table.add(idx as usize))
         } else {
             None
         }
-    }
+    }}
 }
 
 impl Drop for VirtQueue {
