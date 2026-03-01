@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -13,6 +13,8 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+//! NVMe controller core implementation.
 
 use alloc::vec::Vec;
 use spin::Mutex;
@@ -59,6 +61,7 @@ impl NvmeController {
         let version_raw = init::read_version(mmio_base);
         let version = ControllerVersion::from_register(version_raw);
         let dstrd = init::get_doorbell_stride(mmio_base);
+
         let sq_doorbell = init::calculate_sq_doorbell(mmio_base, dstrd, 0);
         let cq_doorbell = init::calculate_cq_doorbell(mmio_base, dstrd, 0);
         let admin_queue = AdminQueue::new(ADMIN_QUEUE_DEPTH, sq_doorbell, cq_doorbell)?;
@@ -103,12 +106,14 @@ impl NvmeController {
 
         self.discover_namespaces()?;
         self.create_default_io_queue()?;
+
         self.initialized = true;
         Ok(())
     }
 
     fn discover_namespaces(&self) -> Result<(), NvmeError> {
         let admin = self.admin_queue.lock();
+
         let nsids = admin::get_active_namespace_list(&admin, 0)?;
         if nsids.is_empty() {
             return Err(NvmeError::NoActiveNamespaces);
@@ -128,6 +133,7 @@ impl NvmeController {
     fn create_default_io_queue(&self) -> Result<(), NvmeError> {
         let qid: u16 = 1;
         let depth = IO_QUEUE_DEPTH;
+
         let sq_doorbell =
             init::calculate_sq_doorbell(self.mmio_base, self.doorbell_stride, qid);
         let cq_doorbell =
@@ -160,6 +166,7 @@ impl NvmeController {
         }
 
         self.security.check_rate_limit()?;
+
         let ns = {
             let ns_mgr = self.namespaces.lock();
             ns_mgr.first().cloned().ok_or(NvmeError::NamespaceNotReady)?
@@ -167,6 +174,7 @@ impl NvmeController {
 
         let io_queues = self.io_queues.lock();
         let io_queue = io_queues.first().ok_or(NvmeError::IoQueueNotReady)?;
+
         io::read_blocks(io_queue, &ns, lba, count, buffer_phys, &self.stats)
     }
 
@@ -184,6 +192,7 @@ impl NvmeController {
 
         let io_queues = self.io_queues.lock();
         let io_queue = io_queues.first().ok_or(NvmeError::IoQueueNotReady)?;
+
         io::write_blocks(io_queue, &ns, lba, count, buffer_phys, &self.stats)
     }
 
@@ -199,6 +208,7 @@ impl NvmeController {
 
         let io_queues = self.io_queues.lock();
         let io_queue = io_queues.first().ok_or(NvmeError::IoQueueNotReady)?;
+
         io::flush(io_queue, &ns, &self.stats)
     }
 
@@ -214,6 +224,7 @@ impl NvmeController {
 
         let io_queues = self.io_queues.lock();
         let io_queue = io_queues.first().ok_or(NvmeError::IoQueueNotReady)?;
+
         io::trim(io_queue, &ns, ranges, &self.stats)
     }
 
