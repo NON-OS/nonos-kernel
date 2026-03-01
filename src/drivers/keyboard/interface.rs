@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -14,7 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+//! Keyboard interface.
+
 use core::sync::atomic::{AtomicU64, Ordering};
+
 use super::constants::{KBD_MAX_INTERRUPTS_PER_SEC, KBD_RATE_LIMIT_WINDOW_US, KBD_VECTOR};
 use super::event::KeyEvent;
 use super::io::{i8042_init_best_effort, read_data_if_available, send_eoi};
@@ -25,6 +28,7 @@ use super::scancode::{
 
 static ISR_WINDOW_START: AtomicU64 = AtomicU64::new(0);
 static ISR_COUNT_IN_WINDOW: AtomicU64 = AtomicU64::new(0);
+
 pub struct KeyboardInterface {
     pub initialized: bool,
 }
@@ -137,6 +141,9 @@ fn keyboard_isr(_: crate::arch::x86_64::InterruptStackFrame) {
 
 pub fn handle_keyboard_interrupt() {
     if let Some(sc) = read_data_if_available() {
+        crate::sys::serial::print(b"[KBD] scancode=0x");
+        crate::sys::serial::print_hex(sc as u64);
+        crate::sys::serial::println(b"");
         process_scancode(sc);
     }
 }
