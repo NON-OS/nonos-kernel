@@ -20,7 +20,7 @@ use alloc::string::String;
 use core::sync::atomic::{AtomicU64, Ordering};
 
 pub const MAX_CACHED_PAGES: usize = 4096;
-pub const PAGE_SIZE: usize = 4096;
+pub const _PAGE_SIZE: usize = 4096;
 pub const WRITEBACK_BATCH_SIZE: usize = 32;
 pub const MAX_CACHED_INODES: usize = 1024;
 pub const MAX_OPERATION_RETRIES: u32 = 3;
