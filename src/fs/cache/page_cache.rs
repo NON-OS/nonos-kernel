@@ -64,6 +64,7 @@ impl PageCache {
     pub(crate) fn insert_page(&mut self, file_id: u64, offset: u64, data: Vec<u8>, dirty: bool) {
         let key = (file_id, offset);
         self.lru_counter += 1;
+
         while self.pages.len() >= MAX_CACHED_PAGES {
             self.evict_lru_page();
         }
@@ -76,6 +77,7 @@ impl PageCache {
         };
 
         self.total_cached_bytes += page.data.len();
+
         if dirty && !self.dirty_list.contains(&key) {
             self.dirty_list.push(key);
         }
@@ -83,7 +85,7 @@ impl PageCache {
         self.pages.insert(key, page);
     }
 
-    pub fn mark_clean(&mut self, file_id: u64, offset: u64) {
+    pub(crate) fn mark_clean(&mut self, file_id: u64, offset: u64) {
         let key = (file_id, offset);
         if let Some(page) = self.pages.get_mut(&key) {
             page.dirty = false;
@@ -94,6 +96,7 @@ impl PageCache {
     fn evict_lru_page(&mut self) {
         let mut lru_key: Option<(u64, u64)> = None;
         let mut lru_time = u64::MAX;
+
         for (key, page) in &self.pages {
             if !page.dirty && page.accessed < lru_time && page.ref_count == 0 {
                 lru_time = page.accessed;
@@ -119,14 +122,14 @@ impl PageCache {
         }
     }
 
-    pub fn clear(&mut self) {
+    pub(crate) fn clear(&mut self) {
         self.pages.clear();
         self.dirty_list.clear();
         self.total_cached_bytes = 0;
         self.lru_counter = 0;
     }
 
-    pub fn stats(&self) -> (usize, usize, usize) {
+    pub(crate) fn stats(&self) -> (usize, usize, usize) {
         (self.pages.len(), self.dirty_list.len(), self.total_cached_bytes)
     }
 }
@@ -138,6 +141,7 @@ pub fn init_page_cache() {
 pub fn get_dirty_pages() -> BTreeMap<u64, Vec<DirtyPage>> {
     init_page_cache();
     let mut result = BTreeMap::new();
+
     if let Some(cache) = PAGE_CACHE.get() {
         let cache_guard = cache.lock();
         for (key, page) in &cache_guard.pages {
