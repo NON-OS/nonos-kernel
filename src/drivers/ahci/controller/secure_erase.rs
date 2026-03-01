@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2025 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -13,14 +13,16 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-//
+
 //! AHCI secure erase and verification operations.
 
 use alloc::{format, collections::BTreeMap};
 use spin::{Mutex, RwLock};
 use core::sync::atomic::{AtomicU64, AtomicU32, AtomicBool, Ordering};
+
 use crate::memory::dma::{alloc_dma_coherent, DmaConstraints};
 use crate::crypto::aes::Aes256;
+
 use super::super::error::AhciError;
 use super::super::types::AhciDevice;
 use super::super::dma::PortDma;
@@ -29,8 +31,7 @@ use super::commands;
 use super::io::{find_free_slot, wait_complete_or_error};
 use super::helpers::RegisterAccess;
 
-/// Secure erase device implementation.
-pub fn secure_erase_device<T: RegisterAccess>(
+pub(super) fn secure_erase_device<T: RegisterAccess>(
     ctrl: &T,
     ports: &RwLock<BTreeMap<u32, AhciDevice>>,
     port_dma: &Mutex<BTreeMap<u32, PortDma>>,
@@ -53,13 +54,11 @@ pub fn secure_erase_device<T: RegisterAccess>(
         port
     ));
 
-    // Step 1: SECURITY ERASE PREPARE
     let slot = find_free_slot(ctrl, port)?;
     commands::build_security_erase_prepare_command(port_dma, port, slot)?;
     ctrl.write_port_reg(port, PORT_CI, 1 << slot);
     wait_complete_or_error(ctrl, errors, port_resets, command_timeout.load(Ordering::Relaxed), port, slot)?;
 
-    // Step 2: SECURITY ERASE UNIT
     let slot = find_free_slot(ctrl, port)?;
     commands::build_security_erase_unit_command(port_dma, port, slot, enhanced)?;
     let old_timeout = command_timeout.swap(COMMAND_TIMEOUT_ERASE, Ordering::Relaxed);
@@ -72,8 +71,7 @@ pub fn secure_erase_device<T: RegisterAccess>(
     Ok(())
 }
 
-/// Verify erasure by sampling sectors.
-pub fn verify_erasure<T: RegisterAccess>(
+pub(super) fn verify_erasure<T: RegisterAccess>(
     ctrl: &T,
     ports: &RwLock<BTreeMap<u32, AhciDevice>>,
     port_dma: &Mutex<BTreeMap<u32, PortDma>>,
@@ -116,6 +114,7 @@ pub fn verify_erasure<T: RegisterAccess>(
         encryption_enabled.store(old_enc, Ordering::SeqCst);
         result?;
 
+        // SAFETY: buf_va points to 512 bytes of valid DMA memory.
         let data = unsafe { core::slice::from_raw_parts(buf_va.as_ptr::<u8>(), 512) };
         if !data.iter().all(|&b| b == 0) {
             crate::log::logger::log_critical(&format!(
