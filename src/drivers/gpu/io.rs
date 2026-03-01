@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -14,10 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+//! I/O port access for GPU driver.
+
 use core::arch::asm;
 
 #[inline(always)]
-pub fn outw(port: u16, val: u16) {
+pub(super) fn outw(port: u16, val: u16) {
     // SAFETY: VBE I/O ports are valid for GPU register access
     unsafe {
         asm!(
@@ -30,7 +32,7 @@ pub fn outw(port: u16, val: u16) {
 }
 
 #[inline(always)]
-pub fn inw(port: u16) -> u16 {
+pub(super) fn inw(port: u16) -> u16 {
     let val: u16;
     // SAFETY: VBE I/O ports are valid for GPU register access
     unsafe {
@@ -44,30 +46,3 @@ pub fn inw(port: u16) -> u16 {
     val
 }
 
-#[inline(always)]
-pub fn outb(port: u16, val: u8) {
-    // SAFETY: I/O port access is valid in kernel mode
-    unsafe {
-        asm!(
-            "out dx, al",
-            in("dx") port,
-            in("al") val,
-            options(nostack, preserves_flags)
-        );
-    }
-}
-
-#[inline(always)]
-pub fn inb(port: u16) -> u8 {
-    let val: u8;
-    // SAFETY: I/O port access is valid in kernel mode
-    unsafe {
-        asm!(
-            "in al, dx",
-            in("dx") port,
-            out("al") val,
-            options(nostack, preserves_flags)
-        );
-    }
-    val
-}
