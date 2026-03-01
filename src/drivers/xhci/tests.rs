@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -14,10 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+//! Unit tests for xHCI driver components.
+
 #[cfg(test)]
 mod tests {
     use super::super::*;
     use core::mem;
+
     #[test]
     fn test_trb_size_and_alignment() {
         assert_eq!(mem::size_of::<Trb>(), 16);
@@ -27,10 +30,13 @@ mod tests {
     #[test]
     fn test_trb_type_field() {
         let mut trb = Trb::default();
+
         trb.set_type(constants::TRB_TYPE_NORMAL);
         assert_eq!(trb.get_type(), constants::TRB_TYPE_NORMAL);
+
         trb.set_type(constants::TRB_TYPE_LINK);
         assert_eq!(trb.get_type(), constants::TRB_TYPE_LINK);
+
         trb.set_type(constants::TRB_TYPE_SETUP_STAGE);
         assert_eq!(trb.get_type(), constants::TRB_TYPE_SETUP_STAGE);
     }
@@ -169,12 +175,16 @@ mod tests {
 
         slot.set_speed(4);
         assert_eq!(slot.speed(), 4);
+
         slot.set_root_hub_port(3);
         assert_eq!(slot.root_hub_port(), 3);
+
         slot.set_context_entries(5);
         assert_eq!(slot.context_entries(), 5);
+
         slot.set_hub(true);
         assert!(slot.hub());
+
         slot.set_mtt(true);
         assert!(slot.mtt());
     }
@@ -186,6 +196,7 @@ mod tests {
         ep.set_tr_dequeue_pointer(0x1000_0010, true);
         assert_eq!(ep.tr_dequeue_pointer(), 0x1000_0010);
         assert!(ep.dcs());
+
         ep.set_tr_dequeue_pointer(0x2000_0020, false);
         assert_eq!(ep.tr_dequeue_pointer(), 0x2000_0020);
         assert!(!ep.dcs());
@@ -194,8 +205,10 @@ mod tests {
     #[test]
     fn test_ep_context_max_packet_size() {
         let mut ep = types::EpContext::default();
+
         ep.set_max_packet_size(512);
         assert_eq!(ep.max_packet_size(), 512);
+
         ep.set_max_packet_size(1024);
         assert_eq!(ep.max_packet_size(), 1024);
     }
