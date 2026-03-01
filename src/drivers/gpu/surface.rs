@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -13,6 +13,8 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+//! GPU surface and framebuffer types.
 
 use core::ptr;
 use x86_64::PhysAddr;
@@ -105,6 +107,7 @@ impl Backbuffer {
         let dma_region = alloc_dma_coherent(bytes, constraints)
             .map_err(|_| "Failed to allocate DMA buffer")?;
         let va = dma_region.virt_addr.as_u64() as usize;
+
         // SAFETY: va is valid and properly aligned from DMA allocation
         unsafe { ptr::write_bytes(va as *mut u8, 0, bytes) };
 
@@ -142,6 +145,7 @@ impl GpuSurface {
     pub fn clear(&self, color: u32) {
         let pixels = (self.mode.pitch as usize / 4) * self.mode.height as usize;
         let mut p = self.backbuf.as_mut_ptr_u32();
+
         for _ in 0..pixels {
             // SAFETY: p is within allocated backbuffer bounds
             unsafe { ptr::write_volatile(p, color) };
@@ -169,6 +173,7 @@ impl GpuSurface {
 
         let x2 = x.saturating_add(w).min(self.mode.width);
         let y2 = y.saturating_add(h).min(self.mode.height);
+
         if x >= self.mode.width || y >= self.mode.height {
             return;
         }
@@ -195,17 +200,20 @@ impl GpuSurface {
 
         let x2 = x.saturating_add(src_w).min(self.mode.width);
         let y2 = y.saturating_add(src_h).min(self.mode.height);
+
         if x >= self.mode.width || y >= self.mode.height {
             return;
         }
 
         let copy_w = (x2 - x) as usize;
         let stride_px = (self.mode.pitch / 4) as usize;
+
         for row in 0..(y2 - y) as usize {
             let dst_row = (y as usize + row) * stride_px + x as usize;
             let src_row = row * src_w as usize;
             let dst_ptr = self.backbuf.as_mut_ptr_u32().wrapping_add(dst_row);
             let src_ptr = src.as_ptr().wrapping_add(src_row);
+
             // SAFETY: bounds checked, both pointers valid within their buffers
             unsafe {
                 for i in 0..copy_w {
@@ -218,18 +226,21 @@ impl GpuSurface {
 
     pub fn present(&self, rect: Option<(u16, u16, u16, u16)>) {
         let (x, y, w, h) = rect.unwrap_or((0, 0, self.mode.width, self.mode.height));
+
         if w == 0 || h == 0 {
             return;
         }
 
         let x2 = x.saturating_add(w).min(self.mode.width);
         let y2 = y.saturating_add(h).min(self.mode.height);
+
         if x >= self.mode.width || y >= self.mode.height {
             return;
         }
 
         let bytes_per_px = (self.mode.bpp / 8) as usize;
         let stride_bytes = self.mode.pitch as usize;
+
         let max_needed = y2 as usize * stride_bytes;
         if max_needed > self.fb.fb_len {
             return;
@@ -239,6 +250,7 @@ impl GpuSurface {
             let line_bytes = (x2 as usize - x as usize) * bytes_per_px;
             let dst = (self.fb.fb_virt + row * stride_bytes + x as usize * bytes_per_px) as *mut u8;
             let src = (self.backbuf.va + row * stride_bytes + x as usize * bytes_per_px) as *const u8;
+
             // SAFETY: bounds validated, both pointers within their respective buffers
             unsafe {
                 for i in 0..line_bytes {
