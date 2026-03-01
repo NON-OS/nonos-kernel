@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -14,19 +14,21 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+//! Intel WiFi hardware register access.
+
 use x86_64::VirtAddr;
 
-pub struct WifiRegs {
+pub(super) struct WifiRegs {
     base: VirtAddr,
 }
 
 impl WifiRegs {
-    pub fn new(base: VirtAddr) -> Self {
+    pub(super) fn new(base: VirtAddr) -> Self {
         Self { base }
     }
 
     #[inline]
-    pub fn read32(&self, offset: u32) -> u32 {
+    pub(super) fn read32(&self, offset: u32) -> u32 {
         // SAFETY: base + offset is a valid MMIO address mapped during device init.
         unsafe {
             let addr = (self.base.as_u64() + offset as u64) as *const u32;
@@ -35,7 +37,7 @@ impl WifiRegs {
     }
 
     #[inline]
-    pub fn write32(&self, offset: u32, value: u32) {
+    pub(super) fn write32(&self, offset: u32, value: u32) {
         // SAFETY: base + offset is a valid MMIO address mapped during device init.
         unsafe {
             let addr = (self.base.as_u64() + offset as u64) as *mut u32;
@@ -44,19 +46,19 @@ impl WifiRegs {
     }
 
     #[inline]
-    pub fn set_bits(&self, offset: u32, bits: u32) {
+    pub(super) fn set_bits(&self, offset: u32, bits: u32) {
         let val = self.read32(offset);
         self.write32(offset, val | bits);
     }
 
     #[inline]
-    pub fn clear_bits(&self, offset: u32, bits: u32) {
+    pub(super) fn clear_bits(&self, offset: u32, bits: u32) {
         let val = self.read32(offset);
         self.write32(offset, val & !bits);
     }
 
     #[inline]
-    pub fn poll(&self, offset: u32, mask: u32, expected: u32, timeout_us: u64) -> bool {
+    pub(super) fn poll(&self, offset: u32, mask: u32, expected: u32, timeout_us: u64) -> bool {
         let start = Self::timestamp();
         loop {
             if (self.read32(offset) & mask) == expected {
@@ -73,7 +75,7 @@ impl WifiRegs {
         crate::arch::x86_64::time::tsc::elapsed_us()
     }
 
-    pub fn read_prph(&self, addr: u32) -> u32 {
+    pub(super) fn read_prph(&self, addr: u32) -> u32 {
         use super::constants::*;
         self.write32(csr::EEPROM_REG, INT_MASK_DISABLED);
         self.write32(PRPH_DWORD, addr | PRPH_READ_FLAG);
@@ -81,21 +83,21 @@ impl WifiRegs {
         self.read32(PRPH_DATA)
     }
 
-    pub fn write_prph(&self, addr: u32, val: u32) {
+    pub(super) fn _write_prph(&self, addr: u32, val: u32) {
         use super::constants::*;
         self.write32(PRPH_DWORD, addr | PRPH_READ_FLAG);
         core::hint::spin_loop();
         self.write32(PRPH_DATA, val);
     }
 
-    pub fn read_mem(&self, addr: u32) -> u32 {
+    pub(super) fn _read_mem(&self, addr: u32) -> u32 {
         use super::constants::*;
         self.write32(HBUS_TARG_MEM_RADDR, addr);
         core::hint::spin_loop();
         self.read32(HBUS_TARG_MEM_WDAT)
     }
 
-    pub fn write_mem(&self, addr: u32, val: u32) {
+    pub(super) fn _write_mem(&self, addr: u32, val: u32) {
         use super::constants::*;
         self.write32(HBUS_TARG_MEM_RADDR, addr);
         core::hint::spin_loop();
