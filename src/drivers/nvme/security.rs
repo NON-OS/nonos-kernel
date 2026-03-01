@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -13,6 +13,8 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+//! NVMe security validation.
 
 use core::sync::atomic::{AtomicU32, AtomicU64, Ordering};
 use x86_64::PhysAddr;
@@ -49,6 +51,7 @@ impl RateLimiter {
 
         let now_ticks = Self::current_ticks();
         let window_start = self.window_start_ticks.load(Ordering::Relaxed);
+
         let ticks_per_window = Self::ticks_per_ms() * RATE_WINDOW_MS;
         if now_ticks.saturating_sub(window_start) >= ticks_per_window {
             self.window_start_ticks.store(now_ticks, Ordering::Relaxed);
