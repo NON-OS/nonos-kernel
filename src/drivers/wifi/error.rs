@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -13,6 +13,8 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+//! WiFi driver error types.
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum WifiError {
@@ -36,6 +38,15 @@ pub enum WifiError {
     RfKill,
     NvmError,
     OutOfMemory,
+    InvalidFrame,
+    InvalidKey,
+    MicFailure,
+    ReplayAttack,
+    IntegrityFailure,
+    UnsupportedSecurity,
+    HandshakeTimeout,
+    HandshakeFailed,
+    DecryptionFailed,
 }
 
 impl WifiError {
@@ -61,6 +72,15 @@ impl WifiError {
             WifiError::RfKill => 0x0012,
             WifiError::NvmError => 0x0013,
             WifiError::OutOfMemory => 0x0014,
+            WifiError::InvalidFrame => 0x0015,
+            WifiError::InvalidKey => 0x0016,
+            WifiError::MicFailure => 0x0017,
+            WifiError::ReplayAttack => 0x0018,
+            WifiError::IntegrityFailure => 0x0019,
+            WifiError::UnsupportedSecurity => 0x001A,
+            WifiError::HandshakeTimeout => 0x001B,
+            WifiError::HandshakeFailed => 0x001C,
+            WifiError::DecryptionFailed => 0x001D,
         }
     }
 
@@ -86,6 +106,15 @@ impl WifiError {
             WifiError::RfKill => "RF kill active",
             WifiError::NvmError => "NVM error",
             WifiError::OutOfMemory => "Out of memory",
+            WifiError::InvalidFrame => "Invalid EAPOL frame",
+            WifiError::InvalidKey => "Invalid encryption key",
+            WifiError::MicFailure => "MIC verification failed",
+            WifiError::ReplayAttack => "Replay attack detected",
+            WifiError::IntegrityFailure => "Key integrity check failed",
+            WifiError::UnsupportedSecurity => "Unsupported security type",
+            WifiError::HandshakeTimeout => "Handshake timeout",
+            WifiError::HandshakeFailed => "4-way handshake failed",
+            WifiError::DecryptionFailed => "Data decryption failed",
         }
     }
 }
