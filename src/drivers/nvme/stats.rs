@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -14,7 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+//! NVMe statistics tracking.
+
 use core::sync::atomic::{AtomicU64, AtomicU32, Ordering};
+
 #[derive(Debug)]
 pub struct NvmeStats {
     pub commands_submitted: AtomicU64,
@@ -300,6 +303,7 @@ impl IoStats {
     pub fn record_latency(&self, latency_ns: u64) {
         self.latency_sum_ns.fetch_add(latency_ns, Ordering::Relaxed);
         self.latency_count.fetch_add(1, Ordering::Relaxed);
+
         let mut max = self.max_latency_ns.load(Ordering::Relaxed);
         while latency_ns > max {
             match self.max_latency_ns.compare_exchange_weak(
