@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -14,9 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+//! RTL8139 I/O port access.
 
 #[inline]
-pub fn inb(port: u16) -> u8 {
+pub(super) fn inb(port: u16) -> u8 {
     // SAFETY: I/O port access for RTL8139 hardware registers
     unsafe {
         let val: u8;
@@ -31,7 +32,7 @@ pub fn inb(port: u16) -> u8 {
 }
 
 #[inline]
-pub fn outb(port: u16, value: u8) {
+pub(super) fn outb(port: u16, value: u8) {
     // SAFETY: I/O port access for RTL8139 hardware registers
     unsafe {
         core::arch::asm!(
@@ -44,7 +45,7 @@ pub fn outb(port: u16, value: u8) {
 }
 
 #[inline]
-pub fn inw(port: u16) -> u16 {
+pub(super) fn inw(port: u16) -> u16 {
     // SAFETY: I/O port access for RTL8139 hardware registers
     unsafe {
         let val: u16;
@@ -59,7 +60,7 @@ pub fn inw(port: u16) -> u16 {
 }
 
 #[inline]
-pub fn outw(port: u16, value: u16) {
+pub(super) fn outw(port: u16, value: u16) {
     // SAFETY: I/O port access for RTL8139 hardware registers
     unsafe {
         core::arch::asm!(
@@ -72,7 +73,7 @@ pub fn outw(port: u16, value: u16) {
 }
 
 #[inline]
-pub fn inl(port: u16) -> u32 {
+pub(super) fn inl(port: u16) -> u32 {
     // SAFETY: I/O port access for RTL8139 hardware registers
     unsafe {
         let val: u32;
@@ -87,7 +88,7 @@ pub fn inl(port: u16) -> u32 {
 }
 
 #[inline]
-pub fn outl(port: u16, value: u32) {
+pub(super) fn outl(port: u16, value: u32) {
     // SAFETY: I/O port access for RTL8139 hardware registers
     unsafe {
         core::arch::asm!(
