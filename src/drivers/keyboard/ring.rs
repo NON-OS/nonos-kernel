@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+//! Lock-free ring buffers.
 
 use super::event::KeyEvent;
 use core::sync::atomic::{AtomicUsize, Ordering};
@@ -43,6 +44,7 @@ impl<const N: usize> SpscU8Ring<N> {
         let head = self.head.load(Ordering::Relaxed);
         let next = (head.wrapping_add(1)) & Self::mask();
         let tail = self.tail.load(Ordering::Acquire);
+
         if next == tail {
             self.tail
                 .store((tail.wrapping_add(1)) & Self::mask(), Ordering::Release);
@@ -56,6 +58,7 @@ impl<const N: usize> SpscU8Ring<N> {
     pub fn pop(&self) -> Option<u8> {
         let tail = self.tail.load(Ordering::Relaxed);
         let head = self.head.load(Ordering::Acquire);
+
         if tail == head {
             return None;
         }
@@ -105,6 +108,7 @@ impl<const N: usize> SpscEvtRing<N> {
         let head = self.head.load(Ordering::Relaxed);
         let next = (head.wrapping_add(1)) & Self::mask();
         let tail = self.tail.load(Ordering::Acquire);
+
         if next == tail {
             self.tail
                 .store((tail.wrapping_add(1)) & Self::mask(), Ordering::Release);
@@ -118,6 +122,7 @@ impl<const N: usize> SpscEvtRing<N> {
     pub fn pop_evt(&self) -> Option<KeyEvent> {
         let tail = self.tail.load(Ordering::Relaxed);
         let head = self.head.load(Ordering::Acquire);
+
         if tail == head {
             return None;
         }
