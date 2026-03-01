@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -13,6 +13,8 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+//! WiFi network scanning.
 
 use alloc::string::{String, ToString};
 use alloc::vec::Vec;
@@ -157,18 +159,14 @@ impl ScanConfig {
     }
 }
 
-pub fn sort_by_signal(results: &mut [ScanResult]) {
+pub(super) fn _sort_by_signal(results: &mut [ScanResult]) {
     results.sort_by(|a, b| b.rssi.cmp(&a.rssi));
 }
 
-pub fn filter_by_security(results: &[ScanResult], security: SecurityType) -> Vec<ScanResult> {
+pub(super) fn _filter_by_security(results: &[ScanResult], security: SecurityType) -> Vec<ScanResult> {
     results
         .iter()
         .filter(|r| r.security == security)
         .cloned()
         .collect()
-}
-
-pub fn find_network<'a>(results: &'a [ScanResult], ssid: &str) -> Option<&'a ScanResult> {
-    results.iter().find(|r| r.ssid == ssid)
 }
