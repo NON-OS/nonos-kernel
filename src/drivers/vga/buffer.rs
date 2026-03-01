@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -13,6 +13,8 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+//! VGA text buffer.
 
 use super::color::{decode_color, vga_color, Color, DEFAULT_COLOR};
 use super::constants::*;
@@ -51,7 +53,6 @@ pub struct Vga {
 }
 
 // SAFETY: VGA buffer is a fixed memory-mapped region that is safe to access
-// from multiple threads as long as access is synchronized through the mutex.
 unsafe impl Send for Vga {}
 unsafe impl Sync for Vga {}
 
