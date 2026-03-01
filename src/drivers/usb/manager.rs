@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -13,6 +13,8 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+//! USB device manager.
 
 extern crate alloc;
 
@@ -81,8 +83,47 @@ impl<B: UsbHostBackend> UsbManager<B> {
     }
 
     pub fn enumerate(&self) -> Result<(), &'static str> {
-        let slot = self.backend.default_slot().ok_or("usb: no default slot")?;
+        crate::log::logger::log_critical("[USB] Starting device enumeration...");
 
+        let slots = match self.backend.enumerate_all_devices() {
+            Ok(s) => {
+                crate::log::logger::log_critical(&alloc::format!("[USB] xHCI returned {} slot(s)", s.len()));
+                s
+            }
+            Err(e) => {
+                crate::log::logger::log_critical(&alloc::format!("[USB] xHCI enumerate failed: {}", e));
+                return Err(e);
+            }
+        };
+
+        if slots.is_empty() {
+            crate::log::logger::log_critical("[USB] No USB devices found on any port");
+            return Err("usb: no devices found");
+        }
+
+        for slot in &slots {
+            crate::log::logger::log_critical(&alloc::format!("[USB] Processing slot {}", slot));
+            match self.enumerate_slot(*slot) {
+                Ok(()) => {
+                    crate::log::logger::log_critical(&alloc::format!("[USB] Slot {} enumerated OK", slot));
+                }
+                Err(e) => {
+                    crate::log::logger::log_critical(&alloc::format!("[USB] Slot {} failed: {}", slot, e));
+                }
+            }
+        }
+
+        let device_count = self.devices.lock().len();
+        crate::log::logger::log_critical(&alloc::format!("[USB] Total devices: {}", device_count));
+
+        if device_count == 0 {
+            return Err("usb: failed to enumerate any devices");
+        }
+
+        Ok(())
+    }
+
+    fn enumerate_slot(&self, slot: u8) -> Result<(), &'static str> {
         let mut buf = [0u8; 18];
         let setup_short = [
             DIR_IN | TYPE_STD | RT_DEV,
@@ -104,7 +145,6 @@ impl<B: UsbHostBackend> UsbManager<B> {
         if n < 18 {
             return Err("usb: short device descriptor");
         }
-        // SAFETY: buffer contains valid descriptor data, using read_unaligned for packed struct.
         let dev_desc: DeviceDescriptor = unsafe {
             core::ptr::read_unaligned(buf.as_ptr() as *const DeviceDescriptor)
         };
@@ -123,7 +163,6 @@ impl<B: UsbHostBackend> UsbManager<B> {
         if n < cfg_hdr_buf.len() {
             return Err("usb: short config header");
         }
-        // SAFETY: buffer contains valid descriptor data, using read_unaligned for packed struct.
         let cfg_hdr: ConfigDescriptorHeader = unsafe {
             core::ptr::read_unaligned(cfg_hdr_buf.as_ptr() as *const ConfigDescriptorHeader)
         };
@@ -141,12 +180,12 @@ impl<B: UsbHostBackend> UsbManager<B> {
         if n < total_len {
             return Err("usb: short config descriptor");
         }
-        // SAFETY: buffer contains valid descriptor data, using read_unaligned for packed struct.
         let cfg_hdr_full: ConfigDescriptorHeader = unsafe {
             core::ptr::read_unaligned(cfg_buf.as_ptr() as *const ConfigDescriptorHeader)
         };
 
         let interfaces = parse_interfaces(&cfg_buf)?;
+
         let cfg_value = cfg_hdr_full.b_configuration_value;
         let setup_set_cfg = [
             DIR_OUT | TYPE_STD | RT_DEV,
@@ -156,6 +195,7 @@ impl<B: UsbHostBackend> UsbManager<B> {
             0, 0,
         ];
         self.backend.control_transfer(slot, setup_set_cfg, None, None, DEFAULT_CONTROL_TIMEOUT_US)?;
+
         let device = UsbDevice {
             slot_id: slot,
             addr: 0,
@@ -250,6 +290,7 @@ impl<B: UsbHostBackend> UsbManager<B> {
             for ep_desc in &interface.endpoints {
                 if ep_desc.b_endpoint_address == endpoint {
                     let transfer_type = ep_desc.transfer_type();
+
                     return match transfer_type {
                         EP_TYPE_ISOCHRONOUS => {
                             Err("Isochronous transfers not supported in polling")
@@ -289,17 +330,129 @@ impl<B: UsbHostBackend> UsbManager<B> {
 
         Err("Endpoint not found in device configuration")
     }
+
+    pub fn bulk_in_transfer(&self, slot_id: u8, endpoint: u8, buffer: &mut [u8]) -> Result<usize, &'static str> {
+        self.stats.bulk_transfers.fetch_add(1, Ordering::Relaxed);
+        let ep_addr = endpoint | 0x80; // Set direction IN bit
+        self.backend.bulk_transfer(slot_id, ep_addr, buffer, DEFAULT_BULK_TIMEOUT_US)
+            .map_err(|e| {
+                self.stats.bulk_errors.fetch_add(1, Ordering::Relaxed);
+                e
+            })
+    }
+
+    pub fn bulk_out_transfer(&self, slot_id: u8, endpoint: u8, data: &[u8]) -> Result<usize, &'static str> {
+        self.stats.bulk_transfers.fetch_add(1, Ordering::Relaxed);
+        let ep_addr = endpoint & 0x7F; // Clear direction bit for OUT
+        let mut buffer = alloc::vec![0u8; data.len()];
+        buffer.copy_from_slice(data);
+        self.backend.bulk_transfer(slot_id, ep_addr, &mut buffer, DEFAULT_BULK_TIMEOUT_US)
+            .map_err(|e| {
+                self.stats.bulk_errors.fetch_add(1, Ordering::Relaxed);
+                e
+            })
+    }
+
+    pub fn control_transfer(
+        &self,
+        slot_id: u8,
+        setup: [u8; 8],
+        data_in: Option<&mut [u8]>,
+        data_out: Option<&[u8]>,
+    ) -> Result<usize, &'static str> {
+        self.stats.ctrl_transfers.fetch_add(1, Ordering::Relaxed);
+        self.backend.control_transfer(slot_id, setup, data_in, data_out, DEFAULT_CONTROL_TIMEOUT_US)
+            .map_err(|e| {
+                self.stats.ctrl_errors.fetch_add(1, Ordering::Relaxed);
+                e
+            })
+    }
+
+    pub fn bulk_in(&self, slot_id: u8, endpoint: u8, buffer: &mut [u8]) -> Result<usize, &'static str> {
+        self.bulk_in_transfer(slot_id, endpoint, buffer)
+    }
+
+    pub fn bulk_out(&self, slot_id: u8, endpoint: u8, data: &[u8]) -> Result<usize, &'static str> {
+        self.bulk_out_transfer(slot_id, endpoint, data)
+    }
+
+    pub fn control_in(
+        &self,
+        slot_id: u8,
+        request_type: u8,
+        request: u8,
+        value: u16,
+        index: u16,
+        buffer: &mut [u8],
+    ) -> Result<usize, &'static str> {
+        let setup = [
+            request_type,
+            request,
+            (value & 0xFF) as u8,
+            (value >> 8) as u8,
+            (index & 0xFF) as u8,
+            (index >> 8) as u8,
+            (buffer.len() & 0xFF) as u8,
+            (buffer.len() >> 8) as u8,
+        ];
+        self.control_transfer(slot_id, setup, Some(buffer), None)
+    }
+
+    pub fn control_out(
+        &self,
+        slot_id: u8,
+        request_type: u8,
+        request: u8,
+        value: u16,
+        index: u16,
+        data: &[u8],
+    ) -> Result<usize, &'static str> {
+        let setup = [
+            request_type,
+            request,
+            (value & 0xFF) as u8,
+            (value >> 8) as u8,
+            (index & 0xFF) as u8,
+            (index >> 8) as u8,
+            (data.len() & 0xFF) as u8,
+            (data.len() >> 8) as u8,
+        ];
+        self.control_transfer(slot_id, setup, None, if data.is_empty() { None } else { Some(data) })
+    }
+
+    pub fn get_string_descriptor(&self, slot_id: u8, index: u8) -> Result<String, &'static str> {
+        self.get_string(slot_id, index)
+    }
 }
 
 static USB_MANAGER: spin::Once<&'static UsbManager<XhciBackend>> = spin::Once::new();
+
 pub fn init_usb() -> Result<(), &'static str> {
     let mgr = USB_MANAGER.call_once(|| {
         let m = UsbManager::new(XhciBackend);
         Box::leak(Box::new(m))
     });
 
+    super::msc::init_msc_driver();
+    super::cdc_eth::init();
+    super::rtl8152::init();
+
     mgr.enumerate()?;
+
+    let devices = mgr.devices();
+    crate::log_info!("[USB] Enumerated {} device(s)", devices.len());
+    for dev in &devices {
+        crate::log_info!(
+            "[USB] Device slot {}: VID={:04x} PID={:04x} class={:02x}",
+            dev.slot_id,
+            dev.vendor_id(),
+            dev.product_id(),
+            dev.device_class()
+        );
+    }
+
     mgr.bind_class_drivers();
+
     crate::log::logger::log_critical("USB core initialized");
     Ok(())
 }
