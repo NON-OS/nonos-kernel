@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -13,6 +13,8 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+//! VirtIO PCI modern register access.
 
 use core::ptr;
 use crate::drivers::pci::{pci_read_config32, PciBar, PciDevice};
@@ -40,7 +42,8 @@ pub struct VirtioPciCommonCfg {
 
 impl VirtioPciCommonCfg {
     pub const SIZE: usize = 64;
-    pub unsafe fn read_device_features(ptr: *mut Self) -> u64 {
+
+    pub unsafe fn read_device_features(ptr: *mut Self) -> u64 { unsafe {
         ptr::write_unaligned(ptr::addr_of_mut!((*ptr).device_feature_select), 0);
         let low = ptr::read_unaligned(ptr::addr_of!((*ptr).device_feature)) as u64;
 
@@ -48,57 +51,58 @@ impl VirtioPciCommonCfg {
         let high = ptr::read_unaligned(ptr::addr_of!((*ptr).device_feature)) as u64;
 
         low | (high << 32)
-    }
+    }}
 
-    pub unsafe fn write_driver_features(ptr: *mut Self, features: u64) {
+    pub unsafe fn write_driver_features(ptr: *mut Self, features: u64) { unsafe {
         ptr::write_unaligned(ptr::addr_of_mut!((*ptr).driver_feature_select), 0);
         ptr::write_unaligned(ptr::addr_of_mut!((*ptr).driver_feature), features as u32);
+
         ptr::write_unaligned(ptr::addr_of_mut!((*ptr).driver_feature_select), 1);
         ptr::write_unaligned(ptr::addr_of_mut!((*ptr).driver_feature), (features >> 32) as u32);
-    }
+    }}
 
-    pub unsafe fn read_status(ptr: *mut Self) -> u8 {
+    pub unsafe fn read_status(ptr: *mut Self) -> u8 { unsafe {
         ptr::read_unaligned(ptr::addr_of!((*ptr).device_status))
-    }
+    }}
 
-    pub unsafe fn write_status(ptr: *mut Self, status: u8) {
+    pub unsafe fn write_status(ptr: *mut Self, status: u8) { unsafe {
         ptr::write_unaligned(ptr::addr_of_mut!((*ptr).device_status), status);
-    }
+    }}
 
-    pub unsafe fn read_num_queues(ptr: *mut Self) -> u16 {
+    pub unsafe fn read_num_queues(ptr: *mut Self) -> u16 { unsafe {
         ptr::read_unaligned(ptr::addr_of!((*ptr).num_queues))
-    }
+    }}
 
-    pub unsafe fn select_queue(ptr: *mut Self, queue: u16) {
+    pub unsafe fn select_queue(ptr: *mut Self, queue: u16) { unsafe {
         ptr::write_unaligned(ptr::addr_of_mut!((*ptr).queue_select), queue);
-    }
+    }}
 
-    pub unsafe fn read_queue_size(ptr: *mut Self) -> u16 {
+    pub unsafe fn read_queue_size(ptr: *mut Self) -> u16 { unsafe {
         ptr::read_unaligned(ptr::addr_of!((*ptr).queue_size))
-    }
+    }}
 
-    pub unsafe fn write_queue_size(ptr: *mut Self, size: u16) {
+    pub unsafe fn write_queue_size(ptr: *mut Self, size: u16) { unsafe {
         ptr::write_unaligned(ptr::addr_of_mut!((*ptr).queue_size), size);
-    }
+    }}
 
-    pub unsafe fn enable_queue(ptr: *mut Self) {
+    pub unsafe fn enable_queue(ptr: *mut Self) { unsafe {
         ptr::write_unaligned(ptr::addr_of_mut!((*ptr).queue_enable), 1);
-    }
+    }}
 
-    pub unsafe fn read_queue_notify_off(ptr: *mut Self) -> u16 {
+    pub unsafe fn read_queue_notify_off(ptr: *mut Self) -> u16 { unsafe {
         ptr::read_unaligned(ptr::addr_of!((*ptr).queue_notify_off))
-    }
+    }}
 
     pub unsafe fn write_queue_addresses(
         ptr: *mut Self,
         desc: u64,
         avail: u64,
         used: u64,
-    ) {
+    ) { unsafe {
         ptr::write_unaligned(ptr::addr_of_mut!((*ptr).queue_desc), desc);
         ptr::write_unaligned(ptr::addr_of_mut!((*ptr).queue_avail), avail);
         ptr::write_unaligned(ptr::addr_of_mut!((*ptr).queue_used), used);
-    }
+    }}
 }
 
 pub struct VirtioModernRegs {
@@ -107,7 +111,7 @@ pub struct VirtioModernRegs {
     pub notify_base: usize,
     pub notify_off_multiplier: u32,
     pub device_cfg: usize,
-    bar_bases: [Option<usize>; 6],
+    _bar_bases: [Option<usize>; 6],
 }
 
 // SAFETY: VirtioModernRegs contains pointers to MMIO memory accessed through volatile operations
@@ -193,7 +197,7 @@ impl VirtioModernRegs {
                     notify_base,
                     notify_off_multiplier: notify_mul,
                     device_cfg,
-                    bar_bases,
+                    _bar_bases: bar_bases,
                 })
             } else {
                 None
