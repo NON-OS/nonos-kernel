@@ -23,7 +23,7 @@ use spin::Once;
 
 use super::super::error::{FsError, FsResult};
 use super::super::types::{DirEntry, FsStatistics};
-use super::fs::NonosFilesystem;
+use super::core::NonosFilesystem;
 
 pub static NONOS_FILESYSTEM: NonosFilesystem = NonosFilesystem::new();
 
