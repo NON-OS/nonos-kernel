@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+//! Intel WiFi PCIe transport layer.
+
 use super::constants::{
     csr, csr_bits, APM_INIT_TIMEOUT_US, INT_COALESCING_TIMEOUT, NIC_ACCESS_TIMEOUT_US,
     STOP_MASTER_TIMEOUT_US, ALL_INTS_MASK, INT_MASK_DISABLED,
@@ -23,17 +25,15 @@ use super::regs::WifiRegs;
 use crate::drivers::pci::{pci_read_config32, pci_write_config32, PciDevice};
 use x86_64::VirtAddr;
 
-pub struct PcieTransport {
-    pub pci_device: PciDevice,
+pub(crate) struct PcieTransport {
+    pub _pci_device: PciDevice,
     pub regs: WifiRegs,
-    mmio_base: VirtAddr,
-    mmio_size: usize,
-    hw_rev: u32,
-    hw_type: HwType,
+    _hw_rev: u32,
+    _hw_type: HwType,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum HwType {
+pub(super) enum HwType {
     Family7000,
     Family8000,
     Family9000,
@@ -43,9 +43,9 @@ pub enum HwType {
 }
 
 impl PcieTransport {
-    pub fn new(pci_device: PciDevice) -> Result<Self, WifiError> {
+    pub(super) fn new(pci_device: PciDevice) -> Result<Self, WifiError> {
         let bar0 = pci_device.get_bar(0).ok_or(WifiError::DeviceNotFound)?;
-        let (mmio_base, mmio_size) = bar0.mmio_region().ok_or(WifiError::DeviceNotFound)?;
+        let (mmio_base, _mmio_size) = bar0.mmio_region().ok_or(WifiError::DeviceNotFound)?;
 
         let cmd = pci_read_config32(
             pci_device.bus,
@@ -70,12 +70,10 @@ impl PcieTransport {
         crate::log::info!("iwlwifi: HW rev 0x{:08x}, type {:?}", hw_rev, hw_type);
 
         let mut trans = Self {
-            pci_device,
+            _pci_device: pci_device,
             regs,
-            mmio_base: mmio_virt,
-            mmio_size,
-            hw_rev,
-            hw_type,
+            _hw_rev: hw_rev,
+            _hw_type: hw_type,
         };
 
         trans.apm_init()?;
@@ -128,7 +126,7 @@ impl PcieTransport {
         Ok(())
     }
 
-    pub fn grab_nic_access(&self) -> Result<(), WifiError> {
+    pub(super) fn grab_nic_access(&self) -> Result<(), WifiError> {
         self.regs
             .set_bits(csr::GP_CNTRL, csr_bits::GP_CNTRL_MAC_ACCESS_REQ);
 
@@ -146,26 +144,26 @@ impl PcieTransport {
         Ok(())
     }
 
-    pub fn release_nic_access(&self) {
+    pub(super) fn release_nic_access(&self) {
         self.regs
             .clear_bits(csr::GP_CNTRL, csr_bits::GP_CNTRL_MAC_ACCESS_REQ);
     }
 
-    pub fn read_prph(&self, addr: u32) -> Result<u32, WifiError> {
+    pub(super) fn _read_prph(&self, addr: u32) -> Result<u32, WifiError> {
         self.grab_nic_access()?;
         let val = self.regs.read_prph(addr);
         self.release_nic_access();
         Ok(val)
     }
 
-    pub fn write_prph(&self, addr: u32, val: u32) -> Result<(), WifiError> {
+    pub(super) fn _write_prph(&self, addr: u32, val: u32) -> Result<(), WifiError> {
         self.grab_nic_access()?;
-        self.regs.write_prph(addr, val);
+        self.regs._write_prph(addr, val);
         self.release_nic_access();
         Ok(())
     }
 
-    pub fn stop_device(&mut self) {
+    pub(super) fn _stop_device(&mut self) {
         self.regs
             .set_bits(csr::RESET, csr_bits::RESET_REG_FLAG_STOP_MASTER);
 
@@ -184,34 +182,34 @@ impl PcieTransport {
         self.regs.write32(csr::FH_INT_STATUS, ALL_INTS_MASK);
     }
 
-    pub fn sw_reset(&mut self) {
+    pub(super) fn _sw_reset(&mut self) {
         self.regs
             .set_bits(csr::RESET, csr_bits::RESET_REG_FLAG_SW_RESET);
         self.udelay(10);
     }
 
-    pub fn is_rf_kill(&self) -> bool {
+    pub(super) fn is_rf_kill(&self) -> bool {
         let val = self.regs.read32(csr::GP_CNTRL);
         (val & csr_bits::GP_CNTRL_INIT_DONE) == 0
     }
 
-    pub fn hw_type(&self) -> HwType {
-        self.hw_type
+    pub(super) fn _hw_type(&self) -> HwType {
+        self._hw_type
     }
 
-    pub fn hw_rev(&self) -> u32 {
-        self.hw_rev
+    pub(super) fn _hw_rev(&self) -> u32 {
+        self._hw_rev
     }
 
-    pub fn enable_interrupts(&self, mask: u32) {
+    pub(super) fn _enable_interrupts(&self, mask: u32) {
         self.regs.write32(csr::INT_MASK, mask);
     }
 
-    pub fn disable_interrupts(&self) {
+    pub(super) fn _disable_interrupts(&self) {
         self.regs.write32(csr::INT_MASK, 0);
     }
 
-    pub fn ack_interrupts(&self) -> u32 {
+    pub(super) fn ack_interrupts(&self) -> u32 {
         let inta = self.regs.read32(csr::INT);
         self.regs.write32(csr::INT, inta);
         inta
