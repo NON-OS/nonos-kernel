@@ -14,17 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Syscall handler registration.
-//!
-//! Provides function pointers for syscall entry handling.
-
-/// Returns a function pointer to the core syscall entry.
 #[inline(always)]
 pub fn syscall_entry_ptr() -> extern "C" fn() {
     super::handle_interrupt
 }
 
-/// For portability, we return the entry pointer for the caller to wire up.
 #[inline]
 pub fn register_syscall_handler() -> extern "C" fn() {
     syscall_entry_ptr()
