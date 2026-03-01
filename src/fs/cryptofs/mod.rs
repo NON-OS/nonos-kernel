@@ -16,8 +16,16 @@
 
 mod error;
 mod types;
-mod cryptofs_impl;
+mod crypto;
+mod core;
+mod ops;
+mod legacy;
+
+#[cfg(test)]
+mod tests;
 
 pub use error::{CryptoFsError, CryptoResult};
 pub use types::*;
-pub use cryptofs_impl::*;
+pub use core::{CryptoFileSystem, init_cryptofs, get_cryptofs};
+pub use ops::*;
+pub use legacy::*;
