@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -14,24 +14,26 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+//! PS/2 keyboard I/O operations.
+
 use super::constants::*;
 use core::hint::spin_loop;
 
 const MAX_POLL_ITERATIONS: usize = 10000;
 
 #[inline(always)]
-pub unsafe fn inb(port: u16) -> u8 {
+pub unsafe fn inb(port: u16) -> u8 { unsafe {
     // SAFETY: Caller ensures valid port.
     let mut v: u8;
     core::arch::asm!("in al, dx", in("dx") port, out("al") v, options(nostack, preserves_flags));
     v
-}
+}}
 
 #[inline(always)]
-pub unsafe fn outb(port: u16, val: u8) {
+pub unsafe fn outb(port: u16, val: u8) { unsafe {
     // SAFETY: Caller ensures valid port.
     core::arch::asm!("out dx, al", in("dx") port, in("al") val, options(nostack, preserves_flags));
-}
+}}
 
 pub fn wait_input_empty() {
     for _ in 0..MAX_POLL_ITERATIONS {
