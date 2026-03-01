@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -13,6 +13,8 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+//! DMA memory management for xHCI driver.
 
 use core::ptr;
 use x86_64::{PhysAddr, VirtAddr};
@@ -215,13 +217,13 @@ impl DmaRegion {
         Ok(())
     }
 
-    pub unsafe fn as_slice(&self) -> &[u8] {
+    pub unsafe fn as_slice(&self) -> &[u8] { unsafe {
         core::slice::from_raw_parts(self.va.as_ptr::<u8>(), self.size)
-    }
+    }}
 
-    pub unsafe fn as_slice_mut(&self) -> &mut [u8] {
+    pub unsafe fn as_slice_mut(&self) -> &mut [u8] { unsafe {
         core::slice::from_raw_parts_mut(self.va.as_mut_ptr::<u8>(), self.size)
-    }
+    }}
 }
 
 impl Drop for DmaRegion {
