@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -13,6 +13,8 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+//! Bochs VBE interface.
 
 use super::constants::*;
 use super::io::{inw, outw};
@@ -44,7 +46,7 @@ pub fn vbe_enable_lfb() {
     );
 }
 
-pub fn vbe_enable_lfb_clear() {
+pub(super) fn vbe_enable_lfb_clear() {
     vbe_write(
         VBE_DISPI_INDEX_ENABLE,
         VBE_DISPI_ENABLED | VBE_DISPI_LFB_ENABLED,
@@ -52,7 +54,16 @@ pub fn vbe_enable_lfb_clear() {
 }
 
 pub fn program_mode(width: u16, height: u16, bpp: u16) -> u32 {
+    program_mode_internal(width, height, bpp, false)
+}
+
+pub(crate) fn program_mode_clear(width: u16, height: u16, bpp: u16) -> u32 {
+    program_mode_internal(width, height, bpp, true)
+}
+
+fn program_mode_internal(width: u16, height: u16, bpp: u16, clear: bool) -> u32 {
     vbe_disable();
+
     vbe_write(VBE_DISPI_INDEX_XRES, width);
     vbe_write(VBE_DISPI_INDEX_YRES, height);
     vbe_write(VBE_DISPI_INDEX_BPP, bpp);
@@ -60,7 +71,12 @@ pub fn program_mode(width: u16, height: u16, bpp: u16) -> u32 {
     vbe_write(VBE_DISPI_INDEX_VIRT_HEIGHT, height);
     vbe_write(VBE_DISPI_INDEX_X_OFFSET, 0);
     vbe_write(VBE_DISPI_INDEX_Y_OFFSET, 0);
-    vbe_enable_lfb();
+
+    if clear {
+        vbe_enable_lfb_clear();
+    } else {
+        vbe_enable_lfb();
+    }
 
     (width as u32) * (bpp as u32 / 8)
 }
@@ -89,6 +105,7 @@ pub fn validate_mode(fb_size: usize, width: u16, height: u16, bpp: u16) -> Resul
 
     let pitch = width as u32 * (bpp as u32 / 8);
     let needed = pitch as usize * height as usize;
+
     if needed > fb_size {
         return Err("Requested mode exceeds framebuffer size");
     }
