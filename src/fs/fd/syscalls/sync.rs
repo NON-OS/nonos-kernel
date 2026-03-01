@@ -50,6 +50,7 @@ pub fn fd_allocate(fd: i32, offset: usize, len: usize) -> FdResult<()> {
     })?;
 
     let mut data = crate::fs::read_file(&path).unwrap_or_default();
+
     let required_size = offset.saturating_add(len);
     if required_size > data.len() {
         data.resize(required_size, 0);
@@ -67,6 +68,7 @@ pub fn fd_chmod(fd: i32, mode: u32) -> FdResult<()> {
     }
 
     let path = get_entry_read(fd, |entry| Ok(entry.path.clone()))?;
+
     if !ramfs::NONOS_FILESYSTEM.exists(&path) {
         return Err(FdError::NotFound);
     }
@@ -83,6 +85,7 @@ pub fn fd_chown(fd: i32, owner: u32, group: u32) -> FdResult<()> {
     }
 
     let path = get_entry_read(fd, |entry| Ok(entry.path.clone()))?;
+
     if !ramfs::NONOS_FILESYSTEM.exists(&path) {
         return Err(FdError::NotFound);
     }
