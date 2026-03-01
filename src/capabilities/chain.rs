@@ -24,16 +24,8 @@ use alloc::vec::Vec;
 
 use super::{verify_token, Capability, CapabilityToken};
 
-// ============================================================================
-// Constants
-// ============================================================================
-
 /// Maximum chain depth (prevents infinite delegation chains)
 const MAX_CHAIN_DEPTH: usize = 16;
-
-// ============================================================================
-// Chain Errors
-// ============================================================================
 
 /// Errors during chain verification
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -86,10 +78,6 @@ impl core::fmt::Display for ChainError {
         }
     }
 }
-
-// ============================================================================
-// Capability Chain
-// ============================================================================
 
 /// A chain of linked capability tokens
 ///
@@ -166,12 +154,10 @@ impl CapabilityChain {
     /// * `Ok(())` - Chain is valid
     /// * `Err(ChainError)` - Verification failed with reason
     pub fn verify(&self) -> Result<(), ChainError> {
-        // Check empty
         if self.tokens.is_empty() {
             return Err(ChainError::EmptyChain);
         }
 
-        // Check depth
         if self.tokens.len() > MAX_CHAIN_DEPTH {
             return Err(ChainError::TooDeep {
                 depth: self.tokens.len(),
@@ -179,14 +165,11 @@ impl CapabilityChain {
             });
         }
 
-        // Verify each token
         for (i, token) in self.tokens.iter().enumerate() {
-            // Check signature
             if !verify_token(token) {
                 return Err(ChainError::InvalidToken { index: i });
             }
 
-            // Check expiry
             if !token.not_expired() {
                 return Err(ChainError::ExpiredToken { index: i });
             }
@@ -202,7 +185,6 @@ impl CapabilityChain {
     pub fn verify_capability(&self, cap: Capability) -> Result<(), ChainError> {
         self.verify()?;
 
-        // Check capability exists in all tokens
         for token in &self.tokens {
             if !token.grants(cap) {
                 return Err(ChainError::CapabilityNotFound);
@@ -220,10 +202,8 @@ impl CapabilityChain {
             return Vec::new();
         }
 
-        // Start with first token's capabilities
         let mut caps: Vec<Capability> = self.tokens[0].permissions.clone();
 
-        // Intersect with each subsequent token
         for token in self.tokens.iter().skip(1) {
             caps.retain(|c| token.grants(*c));
         }
@@ -273,10 +253,6 @@ impl Default for CapabilityChain {
         Self::empty()
     }
 }
-
-// ============================================================================
-// Tests
-// ============================================================================
 
 #[cfg(test)]
 mod tests {
