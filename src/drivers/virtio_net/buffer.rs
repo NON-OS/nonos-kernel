@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -13,6 +13,8 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+//! Packet buffer management.
 
 use core::ptr;
 use x86_64::{PhysAddr, VirtAddr};
@@ -231,6 +233,7 @@ impl BufferPool {
     pub fn new(count: usize, buffer_size: usize) -> Result<Self, &'static str> {
         let mut buffers = alloc::vec::Vec::with_capacity(count);
         let mut free_indices = alloc::collections::VecDeque::with_capacity(count);
+
         for i in 0..count {
             buffers.push(PacketBuffer::new(buffer_size)?);
             free_indices.push_back(i);
@@ -246,6 +249,7 @@ impl BufferPool {
     pub fn acquire(&mut self) -> Option<(usize, &mut PacketBuffer)> {
         let idx = self.free_indices.pop_front()?;
         let buf = &mut self.buffers[idx];
+
         if buf.acquire().is_err() {
             self.free_indices.push_back(idx);
             return None;
