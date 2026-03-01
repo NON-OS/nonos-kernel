@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2025 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -13,7 +13,7 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-//
+
 //! AHCI controller and port initialization.
 
 use alloc::{vec::Vec, format, string::String, collections::BTreeMap};
@@ -31,8 +31,7 @@ use super::commands;
 use super::io::{find_free_slot, wait_complete_or_error};
 use super::helpers::RegisterAccess;
 
-/// BIOS handoff.
-pub fn bios_handoff<T: RegisterAccess>(ctrl: &T) -> Result<(), AhciError> {
+pub(super) fn bios_handoff<T: RegisterAccess>(ctrl: &T) -> Result<(), AhciError> {
     if (ctrl.read_hba_reg(HBA_CAP2) & 1) == 0 {
         return Ok(());
     }
@@ -43,8 +42,7 @@ pub fn bios_handoff<T: RegisterAccess>(ctrl: &T) -> Result<(), AhciError> {
     Ok(())
 }
 
-/// Initialize HBA.
-pub fn init_hba<T: RegisterAccess>(ctrl: &T) -> Result<u32, AhciError> {
+pub(super) fn init_hba<T: RegisterAccess>(ctrl: &T) -> Result<u32, AhciError> {
     let cap = ctrl.read_hba_reg(HBA_CAP);
     let ports_impl = ctrl.read_hba_reg(HBA_PI);
 
@@ -55,7 +53,6 @@ pub fn init_hba<T: RegisterAccess>(ctrl: &T) -> Result<u32, AhciError> {
 
     bios_handoff(ctrl)?;
 
-    // Enable AHCI mode + reset
     let mut ghc = ctrl.read_hba_reg(HBA_GHC) | (1 << 31);
     ctrl.write_hba_reg(HBA_GHC, ghc);
     ghc |= 1;
@@ -65,19 +62,16 @@ pub fn init_hba<T: RegisterAccess>(ctrl: &T) -> Result<u32, AhciError> {
         return Err(AhciError::HbaResetTimeout);
     }
 
-    // Re-enable AHCI mode
     ctrl.write_hba_reg(HBA_GHC, ctrl.read_hba_reg(HBA_GHC) | (1 << 31));
 
     Ok(ports_impl)
 }
 
-/// Enable interrupts.
-pub fn enable_interrupts<T: RegisterAccess>(ctrl: &T) {
+pub(super) fn enable_interrupts<T: RegisterAccess>(ctrl: &T) {
     ctrl.write_hba_reg(HBA_GHC, ctrl.read_hba_reg(HBA_GHC) | (1 << 1));
 }
 
-/// Stop a port.
-pub fn stop_port<T: RegisterAccess>(ctrl: &T, port: u32) -> Result<(), AhciError> {
+pub(super) fn stop_port<T: RegisterAccess>(ctrl: &T, port: u32) -> Result<(), AhciError> {
     let mut cmd = ctrl.read_port_reg(port, PORT_CMD) & !CMD_ST;
     ctrl.write_port_reg(port, PORT_CMD, cmd);
 
@@ -94,8 +88,7 @@ pub fn stop_port<T: RegisterAccess>(ctrl: &T, port: u32) -> Result<(), AhciError
     Ok(())
 }
 
-/// Initialize a port.
-pub fn init_port<T: RegisterAccess>(
+pub(super) fn init_port<T: RegisterAccess>(
     ctrl: &T,
     port_dma: &Mutex<BTreeMap<u32, PortDma>>,
     ports: &RwLock<BTreeMap<u32, AhciDevice>>,
@@ -144,8 +137,7 @@ pub fn init_port<T: RegisterAccess>(
     Ok(())
 }
 
-/// Identify a SATA device.
-pub fn identify_device<T: RegisterAccess>(
+pub(super) fn identify_device<T: RegisterAccess>(
     ctrl: &T,
     port_dma: &Mutex<BTreeMap<u32, PortDma>>,
     ports: &RwLock<BTreeMap<u32, AhciDevice>>,
@@ -163,6 +155,7 @@ pub fn identify_device<T: RegisterAccess>(
     }).map_err(|_| AhciError::DmaAllocationFailed)?;
 
     let (buf_va, buf_pa) = (buf_dma_region.virt_addr, buf_dma_region.phys_addr);
+    // SAFETY: buf_va points to valid DMA memory we just allocated.
     unsafe { core::ptr::write_bytes(buf_va.as_mut_ptr::<u8>(), 0, 512); }
 
     let slot = find_free_slot(ctrl, port)?;
@@ -170,6 +163,7 @@ pub fn identify_device<T: RegisterAccess>(
     ctrl.write_port_reg(port, PORT_CI, 1 << slot);
     wait_complete_or_error(ctrl, errors, port_resets, command_timeout, port, slot)?;
 
+    // SAFETY: buf_va points to 512 bytes of valid DMA memory containing IDENTIFY data.
     let identify_data = unsafe { core::slice::from_raw_parts(buf_va.as_ptr::<u16>(), 256) };
 
     let sectors = if identify_data[83] & (1 << 10) != 0 {
@@ -188,6 +182,7 @@ pub fn identify_device<T: RegisterAccess>(
     let supports_trim = (identify_data[169] & (1 << 0)) != 0;
     let supports_security_erase = identify_data[128] & (1 << 0) != 0;
 
+    // SAFETY: buf_va points to 512 bytes of valid DMA memory.
     let identify_bytes = unsafe { core::slice::from_raw_parts(buf_va.as_ptr::<u8>(), 512) };
     let identify_checksum = sha256(identify_bytes);
     let integrity_verified = verify_device_integrity(sectors, &model, &serial)?;
@@ -218,7 +213,6 @@ pub fn identify_device<T: RegisterAccess>(
     Ok(())
 }
 
-/// Extract ATA string from identify data.
 fn extract_string(words: &[u16]) -> String {
     let mut result = Vec::new();
     for &word in words {
@@ -229,7 +223,6 @@ fn extract_string(words: &[u16]) -> String {
     String::from_utf8_lossy(&result).trim().into()
 }
 
-/// Verify device integrity.
 fn verify_device_integrity(sectors: u64, model: &str, serial: &str) -> Result<bool, AhciError> {
     if sectors > MAX_DEVICE_SECTORS { return Ok(false); }
     if sectors == 0 { return Err(AhciError::ZeroSectorCapacity); }
