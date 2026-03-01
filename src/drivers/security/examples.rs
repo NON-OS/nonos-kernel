@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -14,10 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+//! Example usage of the driver security module
+
 use x86_64::{PhysAddr, VirtAddr};
 
 use super::{
-    is_config_write_allowed, safe_mmio_read32, safe_mmio_write32, validate_dma_buffer,
+    is_config_write_allowed, safe_mmio_read32, validate_dma_buffer,
     validate_lba_range, validate_mmio_region, validate_pci_access, validate_prp_list,
     DriverError, DriverOpType, RateLimiter,
 };
@@ -129,7 +131,9 @@ pub fn example_secure_driver_flow() -> Result<(), DriverError> {
         0x5000_1000u64,
     ];
     validate_prp_list(&prp_list, dma_size)?;
+
     validate_pci_access(0, 1, 0, 0x10)?;
+
     validate_lba_range(0, 16, 1000)?;
 
     let queue = SecureNvmeQueue::new();
@@ -157,9 +161,13 @@ mod tests {
     fn test_secure_flows() {
         assert!(validate_mmio_region(0xE000_0000, 4096).is_ok());
         assert!(validate_mmio_region(0xFED0_0000, 4096).is_ok());
+
         assert!(validate_dma_buffer(PhysAddr::new(0x5000_0000), 4096).is_ok());
+
         assert!(validate_lba_range(0, 100, 1000).is_ok());
+
         assert!(validate_pci_access(0, 0, 0, 0).is_ok());
+
         assert!(is_config_write_allowed(0x10));
         assert!(!is_config_write_allowed(0x04));
     }
