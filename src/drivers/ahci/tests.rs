@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2025 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -13,8 +13,8 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-//
-//! Unit tests for the AHCI driver module.
+
+//! AHCI driver unit tests.
 
 use super::*;
 use super::constants::*;
@@ -34,7 +34,6 @@ fn test_ahci_error_display() {
 
 #[test]
 fn test_ahci_error_variants() {
-    // Ensure all error variants are distinct
     let errors = [
         AhciError::Bar5NotConfigured,
         AhciError::HbaResetTimeout,
@@ -62,10 +61,8 @@ fn test_ahci_error_variants() {
         AhciError::NoControllerFound,
     ];
 
-    // Verify count matches enum variants
     assert_eq!(errors.len(), 24);
 
-    // Verify each has a non-empty description
     for err in &errors {
         assert!(!err.as_str().is_empty());
     }
@@ -76,7 +73,6 @@ fn test_ahci_error_equality() {
     assert_eq!(AhciError::Bar5NotConfigured, AhciError::Bar5NotConfigured);
     assert_ne!(AhciError::Bar5NotConfigured, AhciError::HbaResetTimeout);
 
-    // Test Copy trait
     let err1 = AhciError::CommandFailed;
     let err2 = err1;
     assert_eq!(err1, err2);
@@ -135,54 +131,46 @@ fn test_ahci_stats_copy() {
 
 #[test]
 fn test_command_header_size() {
-    // AHCI spec: Command header must be 32 bytes
     assert_eq!(core::mem::size_of::<CommandHeader>(), 32);
 }
 
 #[test]
 fn test_prdt_entry_size() {
-    // AHCI spec: PRDT entry must be 16 bytes
     assert_eq!(core::mem::size_of::<PhysicalRegionDescriptor>(), 16);
 }
 
 #[test]
 fn test_command_table_alignment() {
-    // AHCI spec: Command table must be 128-byte aligned
     assert_eq!(core::mem::align_of::<CommandTable>(), 128);
 }
 
 #[test]
 fn test_hdr_flags_read() {
-    // Read command: CFL=5, W=0
     let flags = hdr_flags_for(5, false);
-    assert_eq!(flags & 0x1F, 5); // CFL
-    assert_eq!(flags & (1 << 6), 0); // W bit clear
+    assert_eq!(flags & 0x1F, 5);
+    assert_eq!(flags & (1 << 6), 0);
 }
 
 #[test]
 fn test_hdr_flags_write() {
-    // Write command: CFL=5, W=1
     let flags = hdr_flags_for(5, true);
-    assert_eq!(flags & 0x1F, 5); // CFL
-    assert_ne!(flags & (1 << 6), 0); // W bit set
+    assert_eq!(flags & 0x1F, 5);
+    assert_ne!(flags & (1 << 6), 0);
 }
 
 #[test]
 fn test_hdr_flags_cfl_range() {
-    // CFL is 5 bits, so values 0-31 should work
     for cfl in 0..=31u16 {
         let flags = hdr_flags_for(cfl, false);
         assert_eq!(flags & 0x1F, cfl);
     }
 
-    // Values > 31 should be truncated
     let flags = hdr_flags_for(32, false);
     assert_eq!(flags & 0x1F, 0);
 }
 
 #[test]
 fn test_hba_register_constants() {
-    // Verify HBA register offsets match AHCI spec
     assert_eq!(HBA_CAP, 0x00);
     assert_eq!(HBA_GHC, 0x04);
     assert_eq!(HBA_IS, 0x08);
@@ -194,7 +182,6 @@ fn test_hba_register_constants() {
 
 #[test]
 fn test_port_register_constants() {
-    // Verify port register offsets match AHCI spec
     assert_eq!(PORT_CLB, 0x00);
     assert_eq!(PORT_CLBU, 0x04);
     assert_eq!(PORT_FB, 0x08);
@@ -218,7 +205,6 @@ fn test_cmd_bits() {
     assert_eq!(CMD_FR, 1 << 14);
     assert_eq!(CMD_CR, 1 << 15);
 
-    // Verify they're distinct
     assert_ne!(CMD_ST, CMD_FRE);
     assert_ne!(CMD_FRE, CMD_FR);
     assert_ne!(CMD_FR, CMD_CR);
@@ -231,13 +217,11 @@ fn test_is_tfes_bit() {
 
 #[test]
 fn test_fis_type_values() {
-    // FIS type values per SATA spec
     assert_eq!(FIS_TYPE_REG_H2D, 0x27);
 }
 
 #[test]
 fn test_ata_command_values() {
-    // ATA command values per ACS spec
     assert_eq!(ATA_CMD_IDENTIFY, 0xEC);
     assert_eq!(ATA_CMD_READ_DMA_EXT, 0x25);
     assert_eq!(ATA_CMD_WRITE_DMA_EXT, 0x35);
@@ -249,44 +233,35 @@ fn test_ata_command_values() {
 
 #[test]
 fn test_security_constants() {
-    // Verify security constants are reasonable
     assert!(MAX_DEVICE_SECTORS > 0);
     assert!(COMMAND_TIMEOUT_DEFAULT > 0);
     assert!(COMMAND_TIMEOUT_ERASE > COMMAND_TIMEOUT_DEFAULT);
     assert!(TRIM_RATE_LIMIT_INTERVAL_US > 0);
     assert!(PORT_RESET_TIMEOUT > 0);
-
-    // MAX_DEVICE_SECTORS = 8TB / 512 bytes = 0x0010_0000_0000
     assert_eq!(MAX_DEVICE_SECTORS, 0x0010_0000_0000);
 }
 
 #[test]
 fn test_command_slot_constants() {
-    // AHCI spec mandates 32 command slots per port
     assert_eq!(COMMAND_SLOTS_PER_PORT, 32);
-
-    // Command table slot size should be reasonable
     assert!(COMMAND_TABLE_SLOT_SIZE >= 128);
     assert_eq!(COMMAND_TABLE_SLOT_SIZE, 256);
 }
 
 #[test]
 fn test_error_from_str() {
-    // Test From<&'static str> implementation
     let err: AhciError = "Port not initialized".into();
     assert_eq!(err, AhciError::PortNotInitialized);
 
     let err: AhciError = "Device does not support TRIM".into();
     assert_eq!(err, AhciError::TrimNotSupported);
 
-    // Unknown strings should map to CommandFailed as fallback
     let err: AhciError = "Unknown error".into();
     assert_eq!(err, AhciError::CommandFailed);
 }
 
 #[test]
 fn test_command_header_layout() {
-    // Verify CommandHeader field offsets
     let header = CommandHeader {
         flags: 0x1234,
         prdtl: 0x5678,
@@ -296,7 +271,6 @@ fn test_command_header_layout() {
         reserved: [0; 4],
     };
 
-    // Check that we can access all fields
     assert_eq!(header.flags, 0x1234);
     assert_eq!(header.prdtl, 0x5678);
     assert_eq!(header.prdbc, 0xDEAD_BEEF);
@@ -321,7 +295,6 @@ fn test_prdt_layout() {
 
 #[test]
 fn test_device_type_debug() {
-    // Test Debug trait implementation
     let sata = AhciDeviceType::Sata;
     let debug_str = format!("{:?}", sata);
     assert_eq!(debug_str, "Sata");
@@ -329,7 +302,6 @@ fn test_device_type_debug() {
 
 #[test]
 fn test_error_debug() {
-    // Test Debug trait implementation
     let err = AhciError::CommandTimeout;
     let debug_str = format!("{:?}", err);
     assert_eq!(debug_str, "CommandTimeout");
@@ -337,7 +309,6 @@ fn test_error_debug() {
 
 #[test]
 fn test_error_display() {
-    // Test Display trait implementation
     let err = AhciError::CommandTimeout;
     let display_str = format!("{}", err);
     assert_eq!(display_str, "AHCI command timeout");
