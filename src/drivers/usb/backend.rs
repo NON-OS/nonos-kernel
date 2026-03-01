@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -13,6 +13,8 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+//! USB host controller backend abstraction.
 
 extern crate alloc;
 
@@ -33,6 +35,10 @@ pub trait UsbHostBackend: Send + Sync + 'static {
     fn default_slot(&self) -> Option<u8> {
         Some(1)
     }
+
+    fn enumerate_all_devices(&self) -> Result<alloc::vec::Vec<u8>, &'static str>;
+
+    fn get_enumerated_slots(&self) -> alloc::vec::Vec<u8>;
 
     fn bulk_transfer(
         &self,
@@ -82,6 +88,14 @@ impl UsbHostBackend for XhciBackend {
         Some(1)
     }
 
+    fn enumerate_all_devices(&self) -> Result<alloc::vec::Vec<u8>, &'static str> {
+        crate::drivers::xhci::enumerate_all_devices()
+    }
+
+    fn get_enumerated_slots(&self) -> alloc::vec::Vec<u8> {
+        crate::drivers::xhci::get_enumerated_slots()
+    }
+
     fn bulk_transfer(
         &self,
         slot_id: u8,
@@ -121,17 +135,14 @@ impl UsbHostBackend for XhciBackend {
             bulk_trb.d3 = crate::drivers::xhci::TRB_IOC;
             bulk_trb.set_type(crate::drivers::xhci::TRB_TYPE_NORMAL);
 
-            if let Some(ep0) = ctrl.ep0_ring.as_mut() {
+            if let Some(ep0) = ctrl.get_ep0_ring(slot_id) {
                 bulk_trb.set_cycle(ep0.cycle());
                 let trb_ptr = ep0.enqueue(bulk_trb);
 
-                // SAFETY: MMIO address is valid doorbell register
-                unsafe {
-                    crate::memory::mmio::mmio_w32(
-                        VirtAddr::new((ctrl.db_base + (slot_id as usize) * 4) as u64),
-                        endpoint as u32
-                    );
-                }
+                crate::memory::mmio::mmio_w32(
+                    VirtAddr::new((ctrl.db_base + (slot_id as usize) * 4) as u64),
+                    endpoint as u32
+                );
 
                 let start_time = crate::time::current_ticks();
                 let timeout_ticks = (timeout_us / 1000) as u64;
@@ -152,7 +163,6 @@ impl UsbHostBackend for XhciBackend {
                 }
 
                 if is_in {
-                    // SAFETY: DMA buffer contains valid data, destination buffer has sufficient size
                     unsafe {
                         core::ptr::copy_nonoverlapping(
                             dma_buf.virt_addr.as_ptr::<u8>(),
@@ -211,17 +221,14 @@ impl UsbHostBackend for XhciBackend {
             int_trb.d3 = crate::drivers::xhci::TRB_IOC;
             int_trb.set_type(crate::drivers::xhci::TRB_TYPE_NORMAL);
 
-            if let Some(ep0) = ctrl.ep0_ring.as_mut() {
+            if let Some(ep0) = ctrl.get_ep0_ring(slot_id) {
                 int_trb.set_cycle(ep0.cycle());
                 let trb_ptr = ep0.enqueue(int_trb);
 
-                // SAFETY: MMIO address is valid doorbell register
-                unsafe {
-                    crate::memory::mmio::mmio_w32(
-                        VirtAddr::new((ctrl.db_base + (slot_id as usize) * 4) as u64),
-                        endpoint as u32
-                    );
-                }
+                crate::memory::mmio::mmio_w32(
+                    VirtAddr::new((ctrl.db_base + (slot_id as usize) * 4) as u64),
+                    endpoint as u32
+                );
 
                 let start_time = crate::time::current_ticks();
                 let timeout_ticks = timeout_us / 1000;
@@ -241,7 +248,6 @@ impl UsbHostBackend for XhciBackend {
                 }
 
                 if is_in {
-                    // SAFETY: DMA buffer contains valid data, destination buffer has sufficient size
                     unsafe {
                         core::ptr::copy_nonoverlapping(
                             dma_buf.virt_addr.as_ptr::<u8>(),
