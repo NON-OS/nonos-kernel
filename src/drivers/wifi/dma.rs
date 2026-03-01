@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -13,6 +13,8 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+//! Intel WiFi DMA ring buffer management.
 
 use super::constants::{
     BC_TBL_ALIGNMENT, KERNEL_PHYS_MASK, KERNEL_RESERVED_SIZE, RX_BD_ALIGNMENT,
@@ -44,7 +46,7 @@ fn validate_dma_phys_addr(addr: PhysAddr) -> Result<(), WifiError> {
 }
 
 #[repr(C, align(256))]
-pub struct TxFrameDescriptor {
+pub(super) struct TxFrameDescriptor {
     pub tb: [TransferBuffer; 20],
     pub num_tbs: u32,
     _pad: [u8; 12],
@@ -52,13 +54,13 @@ pub struct TxFrameDescriptor {
 
 #[repr(C)]
 #[derive(Clone, Copy, Default)]
-pub struct TransferBuffer {
+pub(super) struct TransferBuffer {
     pub lo: u32,
     pub hi_n_len: u32,
 }
 
 impl TransferBuffer {
-    pub fn new(addr: PhysAddr, len: u16) -> Self {
+    pub(super) fn new(addr: PhysAddr, len: u16) -> Self {
         Self {
             lo: addr.as_u64() as u32,
             hi_n_len: ((addr.as_u64() >> 32) as u32 & 0xFF) | ((len as u32) << 16),
@@ -76,10 +78,10 @@ impl Default for TxFrameDescriptor {
     }
 }
 
-pub struct TxQueue {
+pub(crate) struct TxQueue {
     tfds_phys: PhysAddr,
     tfds_virt: VirtAddr,
-    bc_tbl_phys: PhysAddr,
+    _bc_tbl_phys: PhysAddr,
     bc_tbl_virt: VirtAddr,
     buffers: Vec<Option<DmaRegion>>,
     write_ptr: AtomicU32,
@@ -89,7 +91,7 @@ pub struct TxQueue {
 }
 
 impl TxQueue {
-    pub fn new(id: u8, size: usize) -> Result<Self, WifiError> {
+    pub(super) fn new(id: u8, size: usize) -> Result<Self, WifiError> {
         let tfd_size = size * core::mem::size_of::<TxFrameDescriptor>();
         let constraints = DmaConstraints {
             alignment: TFD_ALIGNMENT,
@@ -130,7 +132,7 @@ impl TxQueue {
         Ok(Self {
             tfds_phys: tfd_region.phys_addr,
             tfds_virt: tfd_region.virt_addr,
-            bc_tbl_phys: bc_region.phys_addr,
+            _bc_tbl_phys: bc_region.phys_addr,
             bc_tbl_virt: bc_region.virt_addr,
             buffers,
             write_ptr: AtomicU32::new(0),
@@ -140,23 +142,23 @@ impl TxQueue {
         })
     }
 
-    pub fn id(&self) -> u8 {
+    pub(super) fn id(&self) -> u8 {
         self.id
     }
 
-    pub fn phys_addr(&self) -> PhysAddr {
+    pub(super) fn phys_addr(&self) -> PhysAddr {
         self.tfds_phys
     }
 
-    pub fn bc_tbl_phys(&self) -> PhysAddr {
-        self.bc_tbl_phys
+    pub(super) fn _bc_tbl_phys(&self) -> PhysAddr {
+        self._bc_tbl_phys
     }
 
-    pub fn write_ptr(&self) -> u32 {
+    pub(super) fn write_ptr(&self) -> u32 {
         self.write_ptr.load(Ordering::Acquire)
     }
 
-    pub fn available_space(&self) -> usize {
+    pub(super) fn available_space(&self) -> usize {
         let write = self.write_ptr.load(Ordering::Acquire) as usize;
         let read = self.read_ptr as usize;
         if write >= read {
@@ -166,7 +168,7 @@ impl TxQueue {
         }
     }
 
-    pub fn enqueue(&mut self, data: &[u8]) -> Result<u32, WifiError> {
+    pub(super) fn enqueue(&mut self, data: &[u8]) -> Result<u32, WifiError> {
         if self.available_space() == 0 {
             return Err(WifiError::BufferTooSmall);
         }
@@ -224,7 +226,7 @@ impl TxQueue {
         Ok(idx as u32)
     }
 
-    pub fn reclaim(&mut self, count: usize) {
+    pub(super) fn _reclaim(&mut self, count: usize) {
         for _ in 0..count {
             let idx = self.read_ptr as usize;
             self.buffers[idx] = None;
@@ -233,7 +235,7 @@ impl TxQueue {
     }
 }
 
-pub struct RxQueue {
+pub(crate) struct RxQueue {
     rb_stts_phys: PhysAddr,
     rb_stts_virt: VirtAddr,
     bd_phys: PhysAddr,
@@ -244,7 +246,7 @@ pub struct RxQueue {
 }
 
 impl RxQueue {
-    pub fn new(size: usize) -> Result<Self, WifiError> {
+    pub(super) fn new(size: usize) -> Result<Self, WifiError> {
         let bd_size = size * 8;
         let constraints = DmaConstraints {
             alignment: RX_BD_ALIGNMENT,
@@ -299,23 +301,23 @@ impl RxQueue {
         })
     }
 
-    pub fn bd_phys(&self) -> PhysAddr {
+    pub(super) fn bd_phys(&self) -> PhysAddr {
         self.bd_phys
     }
 
-    pub fn stts_phys(&self) -> PhysAddr {
+    pub(super) fn stts_phys(&self) -> PhysAddr {
         self.rb_stts_phys
     }
 
-    pub fn write_ptr(&self) -> u32 {
+    pub(super) fn write_ptr(&self) -> u32 {
         self.write_ptr
     }
 
-    pub fn set_write_ptr(&mut self, val: u32) {
+    pub(super) fn set_write_ptr(&mut self, val: u32) {
         self.write_ptr = val;
     }
 
-    pub fn hw_read_ptr(&self) -> u32 {
+    pub(super) fn hw_read_ptr(&self) -> u32 {
         // SAFETY: rb_stts_virt points to valid DMA status memory.
         unsafe {
             let stts = self.rb_stts_virt.as_ptr::<u32>();
@@ -323,13 +325,13 @@ impl RxQueue {
         }
     }
 
-    pub fn get_buffer(&self, idx: usize) -> &[u8] {
+    pub(super) fn get_buffer(&self, idx: usize) -> &[u8] {
         let buf = &self.buffers[idx % self.size];
         // SAFETY: buffer was allocated with RX_BUFFER_SIZE, idx bounded by modulo.
         unsafe { core::slice::from_raw_parts(buf.virt_addr.as_ptr(), RX_BUFFER_SIZE) }
     }
 
-    pub fn replenish(&mut self, idx: usize) -> Result<(), WifiError> {
+    pub(super) fn replenish(&mut self, idx: usize) -> Result<(), WifiError> {
         let buf_constraints = DmaConstraints {
             alignment: RX_BUFFER_ALIGNMENT,
             max_segment_size: RX_BUFFER_SIZE,
