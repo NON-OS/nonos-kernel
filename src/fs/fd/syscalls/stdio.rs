@@ -25,7 +25,7 @@ pub(crate) fn write_stdout(buf: *const u8, count: usize) -> FdResult<usize> {
         return Err(FdError::NullPointer);
     }
 
-    // ## SAFETY: Caller guarantees buf is valid for count bytes
+    // SAFETY: Caller guarantees buf is valid for count bytes
     unsafe {
         let slice = core::slice::from_raw_parts(buf, count);
         for &byte in slice {
@@ -44,7 +44,8 @@ pub(crate) fn write_stderr(buf: *const u8, count: usize) -> FdResult<usize> {
     if buf.is_null() {
         return Err(FdError::NullPointer);
     }
-    // ## SAFETY: Caller guarantees buf is valid for count bytes
+
+    // SAFETY: Caller guarantees buf is valid for count bytes
     unsafe {
         let slice = core::slice::from_raw_parts(buf, count);
         for &byte in slice {
@@ -63,7 +64,7 @@ pub(crate) fn read_stdin(buf: *mut u8, count: usize) -> FdResult<usize> {
     }
 
     if let Some(ch) = crate::drivers::keyboard_buffer::read_char() {
-        // ## SAFETY: buf is valid and non-null checked above
+        // SAFETY: buf is valid and non-null checked above
         unsafe { core::ptr::write(buf, ch as u8) }
         Ok(1)
     } else {
