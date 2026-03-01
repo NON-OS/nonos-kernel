@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -14,7 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+//! RTL8139 constants and register definitions.
+
 pub const REALTEK_VENDOR_ID: u16 = 0x10EC;
+
 pub const RTL8139_DEVICE_IDS: &[u16] = &[
     0x8139,
     0x8138,
