@@ -6,12 +6,8 @@
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 
-//! Settings serialization/deserialization
-
 use super::types::Settings;
 
-/// Serialize settings to a buffer
-/// Format: key=value\n for each setting
 pub fn serialize(settings: &Settings, buf: &mut [u8]) -> usize {
     let mut pos = 0;
 

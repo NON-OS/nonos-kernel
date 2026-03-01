@@ -6,8 +6,6 @@
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 
-//! Settings persistence to FAT32 filesystem
-
 use core::sync::atomic::Ordering;
 use crate::storage::block::{BlockDeviceType, BlockError, BlockResult, get_device};
 use super::types::Settings;
