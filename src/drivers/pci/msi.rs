@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -13,6 +13,8 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+//! MSI/MSI-X interrupt configuration.
 
 use x86_64::VirtAddr;
 
@@ -34,7 +36,9 @@ pub fn configure_msi_multi(config: &ConfigSpace, msi: &MsiInfo, vectors: &[u8]) 
     let requested = vectors.len().min(max_vectors);
     let log2_count = (requested as u32).next_power_of_two().trailing_zeros() as u8;
     let actual_log2 = log2_count.min(msi.multi_message_capable);
+
     let msg = MsiMessage::for_local_apic(vectors[0]);
+
     let offset = msi.offset as u16;
 
     config.write32(offset + 4, msg.address as u32)?;
@@ -113,7 +117,7 @@ pub fn unmask_msi_vector(config: &ConfigSpace, msi: &MsiInfo, vector: u8) -> Res
 }
 
 pub fn configure_msix(
-    config: &ConfigSpace,
+    _config: &ConfigSpace,
     msix: &MsixInfo,
     bars: &[PciBar; 6],
     vector: u16,
@@ -135,13 +139,11 @@ pub fn configure_msix(
     let msg = MsiMessage::for_local_apic(irq_vector);
 
     // SAFETY: MSI-X table is mapped and aligned
-    unsafe {
-        let entry = VirtAddr::new(entry_addr);
-        crate::memory::mmio::mmio_w32(entry, msg.address as u32);
-        crate::memory::mmio::mmio_w32(entry + 4u64, (msg.address >> 32) as u32);
-        crate::memory::mmio::mmio_w32(entry + 8u64, msg.data);
-        crate::memory::mmio::mmio_w32(entry + 12u64, 0);
-    }
+    let entry = VirtAddr::new(entry_addr);
+    crate::memory::mmio::mmio_w32(entry, msg.address as u32);
+    crate::memory::mmio::mmio_w32(entry + 4u64, (msg.address >> 32) as u32);
+    crate::memory::mmio::mmio_w32(entry + 8u64, msg.data);
+    crate::memory::mmio::mmio_w32(entry + 12u64, 0);
 
     Ok(())
 }
@@ -211,10 +213,8 @@ pub fn mask_msix_vector(msix: &MsixInfo, bars: &[PciBar; 6], vector: u16) -> Res
     let ctrl_addr = table_base.as_u64() + entry_offset as u64 + MSIX_ENTRY_VECTOR_CTRL as u64;
 
     // SAFETY: MSI-X table is mapped and aligned
-    unsafe {
-        let current = crate::memory::mmio::mmio_r32(VirtAddr::new(ctrl_addr));
-        crate::memory::mmio::mmio_w32(VirtAddr::new(ctrl_addr), current | MSIX_ENTRY_MASKED);
-    }
+    let current = crate::memory::mmio::mmio_r32(VirtAddr::new(ctrl_addr));
+    crate::memory::mmio::mmio_w32(VirtAddr::new(ctrl_addr), current | MSIX_ENTRY_MASKED);
 
     Ok(())
 }
@@ -234,10 +234,8 @@ pub fn unmask_msix_vector(msix: &MsixInfo, bars: &[PciBar; 6], vector: u16) -> R
     let ctrl_addr = table_base.as_u64() + entry_offset as u64 + MSIX_ENTRY_VECTOR_CTRL as u64;
 
     // SAFETY: MSI-X table is mapped and aligned
-    unsafe {
-        let current = crate::memory::mmio::mmio_r32(VirtAddr::new(ctrl_addr));
-        crate::memory::mmio::mmio_w32(VirtAddr::new(ctrl_addr), current & !MSIX_ENTRY_MASKED);
-    }
+    let current = crate::memory::mmio::mmio_r32(VirtAddr::new(ctrl_addr));
+    crate::memory::mmio::mmio_w32(VirtAddr::new(ctrl_addr), current & !MSIX_ENTRY_MASKED);
 
     Ok(())
 }
@@ -259,11 +257,9 @@ pub fn is_msix_vector_pending(msix: &MsixInfo, bars: &[PciBar; 6], vector: u16) 
     let pba_addr = pba_base.as_u64() + msix.pba_offset as u64 + (qword_index as u64 * 8);
 
     // SAFETY: PBA is mapped and aligned
-    let pending = unsafe {
-        let low = crate::memory::mmio::mmio_r32(VirtAddr::new(pba_addr)) as u64;
-        let high = crate::memory::mmio::mmio_r32(VirtAddr::new(pba_addr + 4)) as u64;
-        (high << 32) | low
-    };
+    let low = crate::memory::mmio::mmio_r32(VirtAddr::new(pba_addr)) as u64;
+    let high = crate::memory::mmio::mmio_r32(VirtAddr::new(pba_addr + 4)) as u64;
+    let pending = (high << 32) | low;
 
     Ok((pending & (1u64 << bit_index)) != 0)
 }
