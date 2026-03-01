@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -14,10 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+//! NVMe specification constants.
+
 pub const NVME_CLASS: u8 = 0x01;
 pub const NVME_SUBCLASS: u8 = 0x08;
 pub const NVME_PROGIF: u8 = 0x02;
+
 pub const NVME_BAR_INDEX: u8 = 0;
+
 pub const REG_CAP: usize = 0x0000;
 pub const REG_VS: usize = 0x0008;
 pub const REG_INTMS: usize = 0x000C;
@@ -34,6 +38,7 @@ pub const REG_BPINFO: usize = 0x0040;
 pub const REG_BPRSEL: usize = 0x0044;
 pub const REG_BPMBL: usize = 0x0048;
 pub const REG_DBS: usize = 0x1000;
+
 pub const CAP_MQES_MASK: u64 = 0xFFFF;
 pub const CAP_CQR_BIT: u64 = 1 << 16;
 pub const CAP_AMS_SHIFT: u32 = 17;
@@ -52,6 +57,7 @@ pub const CAP_MPSMAX_SHIFT: u32 = 52;
 pub const CAP_MPSMAX_MASK: u64 = 0xF << 52;
 pub const CAP_PMRS_BIT: u64 = 1 << 56;
 pub const CAP_CMBS_BIT: u64 = 1 << 57;
+
 pub const CC_EN: u32 = 1 << 0;
 pub const CC_CSS_SHIFT: u32 = 4;
 pub const CC_CSS_NVM: u32 = 0 << 4;
@@ -68,6 +74,7 @@ pub const CC_SHN_NORMAL: u32 = 1 << 14;
 pub const CC_SHN_ABRUPT: u32 = 2 << 14;
 pub const CC_IOSQES_SHIFT: u32 = 16;
 pub const CC_IOCQES_SHIFT: u32 = 20;
+
 pub const CSTS_RDY: u32 = 1 << 0;
 pub const CSTS_CFS: u32 = 1 << 1;
 pub const CSTS_SHST_SHIFT: u32 = 2;
@@ -77,8 +84,10 @@ pub const CSTS_SHST_OCCURRING: u32 = 1 << 2;
 pub const CSTS_SHST_COMPLETE: u32 = 2 << 2;
 pub const CSTS_NSSRO: u32 = 1 << 4;
 pub const CSTS_PP: u32 = 1 << 5;
+
 pub const AQA_ASQS_SHIFT: u32 = 0;
 pub const AQA_ACQS_SHIFT: u32 = 16;
+
 pub const ADMIN_OPC_DELETE_SQ: u8 = 0x00;
 pub const ADMIN_OPC_CREATE_SQ: u8 = 0x01;
 pub const ADMIN_OPC_GET_LOG_PAGE: u8 = 0x02;
@@ -106,6 +115,7 @@ pub const ADMIN_OPC_SECURITY_SEND: u8 = 0x81;
 pub const ADMIN_OPC_SECURITY_RECV: u8 = 0x82;
 pub const ADMIN_OPC_SANITIZE: u8 = 0x84;
 pub const ADMIN_OPC_GET_LBA_STATUS: u8 = 0x86;
+
 pub const IO_OPC_FLUSH: u8 = 0x00;
 pub const IO_OPC_WRITE: u8 = 0x01;
 pub const IO_OPC_READ: u8 = 0x02;
@@ -121,6 +131,7 @@ pub const IO_OPC_RESERVATION_RELEASE: u8 = 0x15;
 pub const IO_OPC_ZONE_MGMT_SEND: u8 = 0x79;
 pub const IO_OPC_ZONE_MGMT_RECV: u8 = 0x7A;
 pub const IO_OPC_ZONE_APPEND: u8 = 0x7D;
+
 pub const CNS_NAMESPACE: u32 = 0x00;
 pub const CNS_CONTROLLER: u32 = 0x01;
 pub const CNS_ACTIVE_NS_LIST: u32 = 0x02;
@@ -134,6 +145,7 @@ pub const CNS_PRIMARY_CTRL_CAP: u32 = 0x14;
 pub const CNS_SECONDARY_CTRL_LIST: u32 = 0x15;
 pub const CNS_NS_GRANULARITY: u32 = 0x16;
 pub const CNS_UUID_LIST: u32 = 0x17;
+
 pub const LID_ERROR_INFO: u8 = 0x01;
 pub const LID_SMART_HEALTH: u8 = 0x02;
 pub const LID_FW_SLOT_INFO: u8 = 0x03;
@@ -149,6 +161,7 @@ pub const LID_ANA: u8 = 0x0C;
 pub const LID_PERSISTENT_EVENT: u8 = 0x0D;
 pub const LID_LBA_STATUS_INFO: u8 = 0x0E;
 pub const LID_ENDURANCE_GRP_AGG: u8 = 0x0F;
+
 pub const FID_ARBITRATION: u8 = 0x01;
 pub const FID_POWER_MGMT: u8 = 0x02;
 pub const FID_LBA_RANGE_TYPE: u8 = 0x03;
@@ -173,35 +186,47 @@ pub const FID_LBA_STATUS_INFO_ATTRS: u8 = 0x15;
 pub const FID_HOST_BEHAVIOR: u8 = 0x16;
 pub const FID_SANITIZE_CONFIG: u8 = 0x17;
 pub const FID_ENDURANCE_GRP_EVENT: u8 = 0x18;
+
 pub const SQ_FLAGS_PHYS_CONTIG: u16 = 1 << 0;
 pub const SQ_FLAGS_PRIO_URGENT: u16 = 0 << 1;
 pub const SQ_FLAGS_PRIO_HIGH: u16 = 1 << 1;
 pub const SQ_FLAGS_PRIO_MEDIUM: u16 = 2 << 1;
 pub const SQ_FLAGS_PRIO_LOW: u16 = 3 << 1;
+
 pub const CQ_FLAGS_PHYS_CONTIG: u16 = 1 << 0;
 pub const CQ_FLAGS_IRQ_ENABLED: u16 = 1 << 1;
+
 pub const PAGE_SIZE: usize = 4096;
 pub const PAGE_MASK: usize = PAGE_SIZE - 1;
 pub const PAGE_SHIFT: u32 = 12;
+
 pub const ADMIN_QUEUE_DEPTH: u16 = 32;
 pub const IO_QUEUE_DEPTH: u16 = 256;
 pub const MAX_IO_QUEUES: u16 = 64;
+
 pub const SUBMISSION_ENTRY_SIZE: usize = 64;
 pub const COMPLETION_ENTRY_SIZE: usize = 16;
+
 pub const DEFAULT_TIMEOUT_SPINS: u32 = 2_000_000;
 pub const ENABLE_TIMEOUT_SPINS: u32 = 5_000_000;
 pub const DISABLE_TIMEOUT_SPINS: u32 = 5_000_000;
+
 pub const DEFAULT_RATE_LIMIT_PER_SEC: u32 = 100_000;
 pub const RATE_WINDOW_MS: u64 = 1000;
+
 pub const KERNEL_PHYS_START: u64 = 0x0000_0000_0000_0000;
 pub const KERNEL_PHYS_END: u64 = 0x0000_0000_4000_0000;
 pub const MAX_DMA_SIZE: usize = 128 * 1024 * 1024;
 pub const MAX_TRANSFER_SIZE: usize = 2 * 1024 * 1024;
+
 pub const MAX_PRP_ENTRIES_PER_PAGE: usize = PAGE_SIZE / 8;
+
 pub const MAX_CID_MISMATCHES: u32 = 10;
+
 pub const IDENTIFY_DATA_SIZE: usize = 4096;
 pub const NS_LIST_SIZE: usize = 4096;
 pub const NS_LIST_ENTRIES: usize = NS_LIST_SIZE / 4;
+
 pub const IDENTIFY_NS_NSZE_OFFSET: usize = 0x00;
 pub const IDENTIFY_NS_NCAP_OFFSET: usize = 0x08;
 pub const IDENTIFY_NS_NUSE_OFFSET: usize = 0x10;
@@ -229,12 +254,14 @@ pub const IDENTIFY_NS_NPDG_OFFSET: usize = 0x44;
 pub const IDENTIFY_NS_NPDA_OFFSET: usize = 0x46;
 pub const IDENTIFY_NS_NOWS_OFFSET: usize = 0x48;
 pub const IDENTIFY_NS_LBAF_OFFSET: usize = 0x80;
+
 pub const LBAF_MS_SHIFT: u32 = 0;
 pub const LBAF_MS_MASK: u32 = 0xFFFF;
 pub const LBAF_LBADS_SHIFT: u32 = 16;
 pub const LBAF_LBADS_MASK: u32 = 0xFF << 16;
 pub const LBAF_RP_SHIFT: u32 = 24;
 pub const LBAF_RP_MASK: u32 = 0x3 << 24;
+
 pub const IDENTIFY_CTRL_VID_OFFSET: usize = 0x00;
 pub const IDENTIFY_CTRL_SSVID_OFFSET: usize = 0x02;
 pub const IDENTIFY_CTRL_SN_OFFSET: usize = 0x04;
@@ -306,6 +333,7 @@ pub const IDENTIFY_CTRL_ACWU_OFFSET: usize = 0x214;
 pub const IDENTIFY_CTRL_SGLS_OFFSET: usize = 0x218;
 pub const IDENTIFY_CTRL_MNAN_OFFSET: usize = 0x21C;
 pub const IDENTIFY_CTRL_SUBNQN_OFFSET: usize = 0x300;
+
 pub const ONCS_COMPARE: u16 = 1 << 0;
 pub const ONCS_WRITE_UNC: u16 = 1 << 1;
 pub const ONCS_DSM: u16 = 1 << 2;
@@ -314,6 +342,7 @@ pub const ONCS_SAVE_FEATURES: u16 = 1 << 4;
 pub const ONCS_RESERVATIONS: u16 = 1 << 5;
 pub const ONCS_TIMESTAMP: u16 = 1 << 6;
 pub const ONCS_VERIFY: u16 = 1 << 7;
+
 pub const OACS_SECURITY: u16 = 1 << 0;
 pub const OACS_FORMAT: u16 = 1 << 1;
 pub const OACS_FW_DOWNLOAD: u16 = 1 << 2;
@@ -324,11 +353,14 @@ pub const OACS_MI: u16 = 1 << 6;
 pub const OACS_VIRT_MGMT: u16 = 1 << 7;
 pub const OACS_DOORBELL_BUF: u16 = 1 << 8;
 pub const OACS_GET_LBA_STATUS: u16 = 1 << 9;
+
 pub const DSM_ATTR_INTEGRAL_READ: u32 = 1 << 0;
 pub const DSM_ATTR_INTEGRAL_WRITE: u32 = 1 << 1;
 pub const DSM_ATTR_DEALLOCATE: u32 = 1 << 2;
+
 pub const DSM_RANGE_SIZE: usize = 16;
 pub const DSM_MAX_RANGES: usize = 256;
+
 pub const NSID_ALL: u32 = 0xFFFF_FFFF;
 
 #[inline]
