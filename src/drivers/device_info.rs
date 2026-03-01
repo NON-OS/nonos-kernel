@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -13,6 +13,8 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+//! Device enumeration and information.
 
 use alloc::vec::Vec;
 
@@ -41,7 +43,9 @@ pub enum SecurityStatus {
 
 pub fn get_all_devices() -> Vec<DeviceInfo> {
     let mut devices = Vec::new();
+
     let pci_devices = pci::scan_and_collect();
+
     for pci_dev in pci_devices {
         let bar_addr = match &pci_dev.bars[0] {
             pci::PciBar::Memory32 { address, .. } => address.as_u64() as usize,
@@ -51,6 +55,7 @@ pub fn get_all_devices() -> Vec<DeviceInfo> {
             pci::PciBar::NotPresent => 0,
         };
         let bar_size = pci_dev.bars[0].size() as usize;
+
         devices.push(DeviceInfo {
             name: match (pci_dev.vendor_id(), pci_dev.device_id_value()) {
                 (0x8086, _) => "Intel Device",
