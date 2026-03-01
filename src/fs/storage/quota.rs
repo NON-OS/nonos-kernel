@@ -90,6 +90,7 @@ pub fn set_grace_period(seconds: u64) {
 pub fn check_can_allocate(bytes: usize) -> StorageResult<()> {
     let current_usage = stats::get_total_storage_used();
     let quota = GLOBAL_QUOTA.read();
+
     if current_usage + bytes > quota.hard_limit {
         return Err(StorageError::QuotaExceeded);
     }
@@ -147,6 +148,7 @@ pub fn get_remaining_capacity() -> (usize, usize) {
     let current_usage = stats::get_total_storage_used();
     let inode_stats = stats::get_inode_statistics();
     let quota = GLOBAL_QUOTA.read();
+
     let remaining_bytes = quota.hard_limit.saturating_sub(current_usage);
     let remaining_files = quota.file_limit.saturating_sub(inode_stats.used_inodes);
 
