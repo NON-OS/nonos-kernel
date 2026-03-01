@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2025 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -13,26 +13,18 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-//
-//! Provides runtime statistics for monitoring and debugging.
+
+//! AHCI controller statistics.
+
 #[derive(Debug, Default, Clone, Copy)]
 pub struct AhciStats {
-    /// Total read operations completed
     pub read_ops: u64,
-    /// Total write operations completed
     pub write_ops: u64,
-    /// Total TRIM operations completed
     pub trim_ops: u64,
-    /// Total errors encountered
     pub errors: u64,
-    /// Total bytes read
     pub bytes_read: u64,
-    /// Total bytes written
     pub bytes_written: u64,
-    /// Number of detected devices
     pub devices_count: u32,
-    /// Number of port resets performed
     pub port_resets: u64,
-    /// Number of validation failures
     pub validation_failures: u64,
 }
