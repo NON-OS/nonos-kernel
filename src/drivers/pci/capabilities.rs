@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -13,6 +13,8 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+//! PCI capability enumeration.
 
 extern crate alloc;
 
@@ -30,17 +32,20 @@ const MAX_CAPABILITY_CHAIN: usize = 64;
 
 pub fn enumerate_capabilities(bus: u8, device: u8, function: u8) -> Vec<PciCapability> {
     let mut caps = Vec::new();
+
     let status = (read32_unchecked(bus, device, function, CFG_STATUS as u8) >> 16) as u16;
     if (status & STS_CAPABILITIES_LIST) == 0 {
         return caps;
     }
 
     let mut ptr = (read32_unchecked(bus, device, function, CFG_CAPABILITIES_PTR as u8) & 0xFF) as u8;
+
     let mut guard = 0;
     while ptr >= 0x40 && ptr != 0xFF && guard < MAX_CAPABILITY_CHAIN {
         let header = read32_unchecked(bus, device, function, ptr);
         let id = (header & 0xFF) as u8;
         let next = ((header >> 8) & 0xFF) as u8;
+
         let version = match id {
             CAP_ID_PM => ((header >> 16) & 0x07) as u8,
             CAP_ID_PCIE => ((header >> 16) & 0x0F) as u8,
@@ -61,6 +66,7 @@ pub fn enumerate_capabilities(bus: u8, device: u8, function: u8) -> Vec<PciCapab
 
 pub fn enumerate_pcie_capabilities(bus: u8, device: u8, function: u8) -> Vec<PcieCapability> {
     let mut caps = Vec::new();
+
     let pcie_cap = enumerate_capabilities(bus, device, function)
         .into_iter()
         .find(|c| c.id == CAP_ID_PCIE);
@@ -71,8 +77,10 @@ pub fn enumerate_pcie_capabilities(bus: u8, device: u8, function: u8) -> Vec<Pci
 
     let mut offset = 0x100u16;
     let mut guard = 0;
+
     while offset != 0 && offset < PCIE_CONFIG_SPACE_SIZE && guard < MAX_CAPABILITY_CHAIN {
         let header = read_pcie_config(bus, device, function, offset);
+
         if header == 0 || header == 0xFFFF_FFFF {
             break;
         }
@@ -80,6 +88,7 @@ pub fn enumerate_pcie_capabilities(bus: u8, device: u8, function: u8) -> Vec<Pci
         let id = (header & 0xFFFF) as u16;
         let version = ((header >> 16) & 0x0F) as u8;
         let next = ((header >> 20) & 0xFFF) as u16;
+
         if id != 0 {
             caps.push(PcieCapability::new(id, version, offset));
         }
@@ -122,6 +131,7 @@ pub fn parse_msi_capability(config: &ConfigSpace, cap: &PciCapability) -> Result
     }
 
     let msg_ctrl = config.read16(cap.offset as u16 + 2)?;
+
     let enabled = (msg_ctrl & MSI_CTRL_ENABLE) != 0;
     let is_64bit = (msg_ctrl & MSI_CTRL_64BIT) != 0;
     let per_vector_mask = (msg_ctrl & MSI_CTRL_PVM) != 0;
@@ -146,11 +156,14 @@ pub fn parse_msix_capability(config: &ConfigSpace, cap: &PciCapability) -> Resul
     let msg_ctrl = config.read16(cap.offset as u16 + 2)?;
     let table_reg = config.read32(cap.offset as u16 + 4)?;
     let pba_reg = config.read32(cap.offset as u16 + 8)?;
+
     let enabled = (msg_ctrl & MSIX_CTRL_ENABLE) != 0;
     let function_mask = (msg_ctrl & MSIX_CTRL_FUNCTION_MASK) != 0;
     let table_size = msg_ctrl & MSIX_CTRL_TABLE_SIZE_MASK;
+
     let table_bar = (table_reg & 0x7) as u8;
     let table_offset = table_reg & !0x7;
+
     let pba_bar = (pba_reg & 0x7) as u8;
     let pba_offset = pba_reg & !0x7;
 
@@ -176,13 +189,16 @@ pub fn parse_power_management_capability(
 
     let pmc = config.read16(cap.offset as u16 + 2)?;
     let pmcsr = config.read16(cap.offset as u16 + 4)?;
+
     let version = (pmc & PM_CAP_VER_MASK) as u8;
     let pme_clock = (pmc & PM_CAP_PME_CLOCK) != 0;
     let dsi = (pmc & PM_CAP_DSI) != 0;
     let aux_current = ((pmc & PM_CAP_AUX_MASK) >> 6) as u8;
     let d1_support = (pmc & PM_CAP_D1) != 0;
     let d2_support = (pmc & PM_CAP_D2) != 0;
+
     let pme_support = ((pmc >> 11) & 0x1F) as u8;
+
     let current_state = (pmcsr & PM_CTRL_STATE_MASK) as u8;
     let no_soft_reset = (pmcsr & PM_CTRL_NO_SOFT_RESET) != 0;
     let pme_enabled = (pmcsr & PM_CTRL_PME_ENABLE) != 0;
@@ -213,17 +229,23 @@ pub fn parse_pcie_capability(config: &ConfigSpace, cap: &PciCapability) -> Resul
     let dev_caps = config.read32(cap.offset as u16 + 4)?;
     let link_caps = config.read32(cap.offset as u16 + 12)?;
     let link_status = config.read16(cap.offset as u16 + 18)?;
+
     let version = ((pcie_caps >> 0) & 0x0F) as u8;
     let device_type_raw = ((pcie_caps >> 4) & 0x0F) as u8;
     let slot_implemented = ((pcie_caps >> 8) & 0x01) != 0;
     let interrupt_message_number = ((pcie_caps >> 9) & 0x1F) as u8;
+
     let device_type = PcieDeviceType::from(device_type_raw);
+
     let max_payload_supported = (dev_caps & 0x07) as u8;
     let max_payload_size = 128u16 << max_payload_supported;
+
     let max_read_request_supported = ((dev_caps >> 12) & 0x07) as u8;
     let max_read_request_size = 128u16 << max_read_request_supported;
+
     let link_speed_supported = (link_caps & 0x0F) as u8;
     let link_width_supported = ((link_caps >> 4) & 0x3F) as u8;
+
     let link_speed = (link_status & 0x0F) as u8;
     let link_width = ((link_status >> 4) & 0x3F) as u8;
 
@@ -270,6 +292,7 @@ impl<'a> CapabilityWalker<'a> {
 
 impl<'a> Iterator for CapabilityWalker<'a> {
     type Item = Result<PciCapability>;
+
     fn next(&mut self) -> Option<Self::Item> {
         if self.current_offset < 0x40
             || self.current_offset == 0xFF
@@ -285,6 +308,7 @@ impl<'a> Iterator for CapabilityWalker<'a> {
 
         let id = (header & 0xFF) as u8;
         let next = ((header >> 8) & 0xFF) as u8;
+
         let version = match id {
             CAP_ID_PM => ((header >> 16) & 0x07) as u8,
             CAP_ID_PCIE => ((header >> 16) & 0x0F) as u8,
@@ -292,6 +316,7 @@ impl<'a> Iterator for CapabilityWalker<'a> {
         };
 
         let cap = PciCapability::with_version(id, self.current_offset, version);
+
         self.current_offset = if next == 0 || next == self.current_offset {
             0
         } else {
@@ -353,6 +378,7 @@ pub fn get_pcie_info(config: &ConfigSpace) -> Result<Option<PcieInfo>> {
 
 pub fn collect_all_capabilities(config: &ConfigSpace) -> Result<Vec<PciCapability>> {
     let mut caps = Vec::new();
+
     if let Some(walker) = CapabilityWalker::new(config)? {
         for cap_result in walker {
             caps.push(cap_result?);
