@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2025 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -13,8 +13,8 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-//
-//! AHCI I/O operations (read, write, TRIM).
+
+//! AHCI I/O operations.
 
 use alloc::collections::BTreeMap;
 use spin::{Mutex, RwLock};
@@ -31,8 +31,7 @@ use super::super::constants::*;
 use super::{commands, encryption, validation};
 use super::helpers::RegisterAccess;
 
-/// Read sectors implementation.
-pub fn read_sectors<T: RegisterAccess>(
+pub(super) fn read_sectors<T: RegisterAccess>(
     ctrl: &T,
     ports: &RwLock<BTreeMap<u32, AhciDevice>>,
     port_dma: &Mutex<BTreeMap<u32, PortDma>>,
@@ -72,8 +71,7 @@ pub fn read_sectors<T: RegisterAccess>(
     Ok(())
 }
 
-/// Write sectors implementation.
-pub fn write_sectors<T: RegisterAccess>(
+pub(super) fn write_sectors<T: RegisterAccess>(
     ctrl: &T,
     ports: &RwLock<BTreeMap<u32, AhciDevice>>,
     port_dma: &Mutex<BTreeMap<u32, PortDma>>,
@@ -113,8 +111,7 @@ pub fn write_sectors<T: RegisterAccess>(
     Ok(())
 }
 
-/// TRIM sectors with rate limiting.
-pub fn trim_sectors<T: RegisterAccess>(
+pub(super) fn trim_sectors<T: RegisterAccess>(
     ctrl: &T,
     ports: &RwLock<BTreeMap<u32, AhciDevice>>,
     port_dma: &Mutex<BTreeMap<u32, PortDma>>,
@@ -161,15 +158,16 @@ pub fn trim_sectors<T: RegisterAccess>(
     }).map_err(|_| AhciError::DmaAllocationFailed)?;
 
     let (buf_va, buf_pa) = (buf_dma_region.virt_addr, buf_dma_region.phys_addr);
+    // SAFETY: buf_va points to valid DMA memory we just allocated.
     unsafe { core::ptr::write_bytes(buf_va.as_mut_ptr::<u8>(), 0, total_bytes); }
 
-    // Fill TRIM descriptors
     let mut desc_written = 0usize;
     let mut ptr_u8 = buf_va.as_mut_ptr::<u8>();
     for _ in 0..blocks {
         let block_desc = core::cmp::min(64, total_desc - desc_written);
         for _ in 0..block_desc {
             let this_count = core::cmp::min(remaining, 0xFFFF);
+            // SAFETY: ptr_u8 points to valid DMA memory within bounds.
             unsafe {
                 core::ptr::write(ptr_u8, (current_lba & 0xFF) as u8);
                 core::ptr::write(ptr_u8.add(1), ((current_lba >> 8) & 0xFF) as u8);
@@ -184,6 +182,7 @@ pub fn trim_sectors<T: RegisterAccess>(
             current_lba = current_lba.checked_add(this_count).ok_or(AhciError::LbaOverflow)?;
             remaining -= this_count;
             desc_written += 1;
+            // SAFETY: Advancing pointer within allocated DMA buffer.
             unsafe { ptr_u8 = ptr_u8.add(8); }
             if remaining == 0 { break; }
         }
@@ -198,8 +197,7 @@ pub fn trim_sectors<T: RegisterAccess>(
     Ok(())
 }
 
-/// Find a free command slot.
-pub fn find_free_slot<T: RegisterAccess>(ctrl: &T, port: u32) -> Result<u32, AhciError> {
+pub(super) fn find_free_slot<T: RegisterAccess>(ctrl: &T, port: u32) -> Result<u32, AhciError> {
     let slots = ctrl.read_port_reg(port, PORT_SACT) | ctrl.read_port_reg(port, PORT_CI);
     for slot in 0..32 {
         if (slots & (1 << slot)) == 0 {
@@ -209,8 +207,7 @@ pub fn find_free_slot<T: RegisterAccess>(ctrl: &T, port: u32) -> Result<u32, Ahc
     Err(AhciError::NoFreeSlots)
 }
 
-/// Wait for command completion or error.
-pub fn wait_complete_or_error<T: RegisterAccess>(
+pub(super) fn wait_complete_or_error<T: RegisterAccess>(
     ctrl: &T,
     errors: &AtomicU64,
     port_resets: &AtomicU64,
@@ -251,8 +248,7 @@ pub fn wait_complete_or_error<T: RegisterAccess>(
     }
 }
 
-/// Reset port on error.
-pub fn reset_port_on_error<T: RegisterAccess>(
+pub(super) fn reset_port_on_error<T: RegisterAccess>(
     ctrl: &T,
     port_resets: &AtomicU64,
     port: u32,
