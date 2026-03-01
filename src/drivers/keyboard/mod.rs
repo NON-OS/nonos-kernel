@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+//! PS/2 keyboard driver.
 pub mod constants;
 pub mod error;
 pub mod event;
@@ -21,8 +22,10 @@ pub mod interface;
 pub mod io;
 pub mod ring;
 pub mod scancode;
+
 #[cfg(test)]
 mod tests;
+
 pub use constants::{
     CHAR_RING_SIZE, EVT_RING_SIZE, KBD_DATA, KBD_STATUS, KBD_VECTOR, LED_CAPS_LOCK, LED_NUM_LOCK,
     LED_SCROLL_LOCK, NORMAL, SC_BREAK_BIT, SC_CAPSLOCK, SC_EXT_E0, SC_LALT, SC_LCTRL, SC_LSHIFT,
