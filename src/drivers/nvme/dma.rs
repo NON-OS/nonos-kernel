@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -13,6 +13,8 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+//! NVMe DMA memory management.
 
 use core::ptr;
 use x86_64::{PhysAddr, VirtAddr};
@@ -46,6 +48,7 @@ impl DmaRegion {
 
         let region = alloc_dma_coherent(aligned_size, constraints)
             .map_err(|_| NvmeError::DmaAllocationFailed)?;
+
         // SAFETY: region.virt_addr is valid and aligned, size is within bounds
         unsafe {
             ptr::write_bytes(region.virt_addr.as_mut_ptr::<u8>(), 0, aligned_size);
@@ -77,6 +80,7 @@ impl DmaRegion {
 
         let region = alloc_dma_coherent(aligned_size, constraints)
             .map_err(|_| NvmeError::DmaAllocationFailed)?;
+
         // SAFETY: region.virt_addr is valid and aligned, size is within bounds
         unsafe {
             ptr::write_bytes(region.virt_addr.as_mut_ptr::<u8>(), 0, aligned_size);
@@ -167,7 +171,6 @@ impl DmaRegion {
 }
 
 // SAFETY: DmaRegion contains physical/virtual addresses that are valid from any thread.
-// The underlying DMA memory is coherent and doesn't require synchronization.
 unsafe impl Send for DmaRegion {}
 unsafe impl Sync for DmaRegion {}
 
@@ -178,9 +181,11 @@ pub struct PrpList {
 
 impl PrpList {
     const ENTRIES_PER_PAGE: usize = PAGE_SIZE / 8;
+
     pub fn allocate(entry_count: usize) -> Result<Self, NvmeError> {
         let pages_needed = (entry_count + Self::ENTRIES_PER_PAGE - 1) / Self::ENTRIES_PER_PAGE;
         let size = pages_needed * PAGE_SIZE;
+
         let region = DmaRegion::allocate(size)
             .map_err(|_| NvmeError::PrpListAllocationFailed)?;
 
@@ -275,6 +280,7 @@ impl PrpBuilder {
         let base = buf_phys.as_u64();
         let first_page_offset = (base as usize) & (PAGE_SIZE - 1);
         let first_page_remaining = PAGE_SIZE - first_page_offset;
+
         if size <= first_page_remaining {
             return Ok(Self {
                 prp1: base,
@@ -295,6 +301,7 @@ impl PrpBuilder {
 
         let pages_needed = (remaining_after_first + PAGE_SIZE - 1) / PAGE_SIZE;
         let mut prp_list = PrpList::allocate(pages_needed)?;
+
         let mut next_page = (base & !((PAGE_SIZE as u64) - 1)) + PAGE_SIZE as u64;
         for i in 0..pages_needed {
             prp_list.set_entry(i, next_page);
