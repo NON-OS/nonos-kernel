@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -13,6 +13,8 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+//! PCI device manager.
 
 extern crate alloc;
 
@@ -44,6 +46,17 @@ impl PciManager {
             devices: Vec::new(),
             initialized: false,
         }
+    }
+
+    fn with_devices(devices: Vec<PciDevice>) -> Self {
+        let mut mgr = Self::new();
+        mgr.devices = devices;
+        mgr.initialized = true;
+        mgr
+    }
+
+    pub fn is_ready(&self) -> bool {
+        self.initialized
     }
 
     pub fn devices(&self) -> &[PciDevice] {
@@ -82,13 +95,6 @@ impl PciManager {
         self.devices.iter().filter(|d| d.class() == class).collect()
     }
 
-    pub fn find_all_by_vendor(&self, vendor: u16) -> Vec<&PciDevice> {
-        self.devices
-            .iter()
-            .filter(|d| d.vendor_id() == vendor)
-            .collect()
-    }
-
     pub fn find_usb_controllers(&self) -> Vec<&PciDevice> {
         self.devices.iter().filter(|d| d.is_usb_controller()).collect()
     }
@@ -121,10 +127,6 @@ impl PciManager {
 
     pub fn find_pcie_devices(&self) -> Vec<&PciDevice> {
         self.devices.iter().filter(|d| d.is_pcie()).collect()
-    }
-
-    pub fn find_msi_capable(&self) -> Vec<&PciDevice> {
-        self.devices.iter().filter(|d| d.supports_msi()).collect()
     }
 
     pub fn find_msix_capable(&self) -> Vec<&PciDevice> {
@@ -163,21 +165,28 @@ fn probe_device(bus: u8, device_num: u8, function: u8) -> Option<PciDevice> {
     let prog_if = ((class_reg >> 8) & 0xFF) as u8;
     let subclass = ((class_reg >> 16) & 0xFF) as u8;
     let class = ((class_reg >> 24) & 0xFF) as u8;
+
     let header_reg = read32_unchecked(bus, device_num, function, CFG_CACHE_LINE_SIZE as u8);
     let header_type_raw = ((header_reg >> 16) & 0xFF) as u8;
     let multifunction = (header_type_raw & HDR_TYPE_MULTIFUNCTION) != 0;
     let header_type = HeaderType::from(header_type_raw);
+
     let subsys_reg = read32_unchecked(bus, device_num, function, CFG_SUBSYSTEM_VENDOR_ID as u8);
     let subsystem_vendor_id = (subsys_reg & 0xFFFF) as u16;
     let subsystem_id = ((subsys_reg >> 16) & 0xFFFF) as u16;
+
     let int_reg = read32_unchecked(bus, device_num, function, CFG_INTERRUPT_LINE as u8);
     let interrupt_line = (int_reg & 0xFF) as u8;
     let interrupt_pin = ((int_reg >> 8) & 0xFF) as u8;
+
     let address = PciAddress::new(bus, device_num, function);
     let config = ConfigSpace::new(address);
+
     let bars = decode_all_bars_unchecked(bus, device_num, function);
+
     let capabilities = collect_all_capabilities(&config).unwrap_or_default();
     let pcie_capabilities = enumerate_pcie_capabilities(bus, device_num, function);
+
     let msi = get_msi_info(&config).ok().flatten();
     let msix = get_msix_info(&config).ok().flatten();
     let power_management = get_power_management_info(&config).ok().flatten();
@@ -223,6 +232,7 @@ fn enumerate_bus(bus: u8, devices: &mut Vec<PciDevice>) {
     for device_num in 0..32u8 {
         let id = read32_unchecked(bus, device_num, 0, CFG_VENDOR_ID as u8);
         let vendor_id = (id & 0xFFFF) as u16;
+
         if vendor_id == 0xFFFF || vendor_id == 0x0000 {
             continue;
         }
@@ -230,6 +240,7 @@ fn enumerate_bus(bus: u8, devices: &mut Vec<PciDevice>) {
         let header_reg = read32_unchecked(bus, device_num, 0, CFG_CACHE_LINE_SIZE as u8);
         let header_type = ((header_reg >> 16) & 0xFF) as u8;
         let multifunction = (header_type & HDR_TYPE_MULTIFUNCTION) != 0;
+
         if let Some(dev) = probe_device(bus, device_num, 0) {
             devices.push(dev);
         }
@@ -268,10 +279,7 @@ pub fn init_pci() -> Result<()> {
     let device_count = devices.len();
 
     PCI_MANAGER.call_once(|| {
-        Mutex::new(PciManager {
-            devices,
-            initialized: true,
-        })
+        Mutex::new(PciManager::with_devices(devices))
     });
 
     crate::log::logger::log_critical(&alloc::format!(
