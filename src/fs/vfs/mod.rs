@@ -16,10 +16,20 @@
 
 mod error;
 mod types;
-mod fd_table;
-mod vfs_impl;
+mod open_file;
+mod table;
+mod fd_ops;
+mod vfs_core;
+mod vfs_dir;
+mod vfs_file;
+mod vfs_global;
+
+#[cfg(test)]
+mod fd_tests;
 
 pub use error::{VfsError, VfsResult};
 pub use types::*;
-pub use fd_table::*;
-pub use vfs_impl::*;
+pub use open_file::OpenFile;
+pub use fd_ops::*;
+pub use vfs_core::VirtualFileSystem;
+pub use vfs_global::*;
