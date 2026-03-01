@@ -22,10 +22,6 @@ use alloc::vec::Vec;
 
 use super::{caps_to_bits, signing_key, Capability, CapabilityToken};
 
-// ============================================================================
-// Errors
-// ============================================================================
-
 /// Delegation operation errors
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum DelegationError {
@@ -65,10 +61,6 @@ impl core::fmt::Display for DelegationError {
         write!(f, "{}", self.as_str())
     }
 }
-
-// ============================================================================
-// Delegation Structure
-// ============================================================================
 
 /// A delegation of capabilities from one module to another
 ///
@@ -143,10 +135,6 @@ impl core::fmt::Display for Delegation {
     }
 }
 
-// ============================================================================
-// Delegation Operations
-// ============================================================================
-
 /// Compute delegation signature material
 fn delegation_material(d: &Delegation, parent_nonce: u64) -> [u8; 48] {
     let mut mat = [0u8; 48];
@@ -186,12 +174,10 @@ pub fn create_delegation(
     caps: &[Capability],
     ttl_ms: Option<u64>,
 ) -> Result<Delegation, DelegationError> {
-    // Validate inputs
     if caps.is_empty() {
         return Err(DelegationError::NoCapabilities);
     }
 
-    // Check parent token is valid
     if !parent.is_valid() {
         if !parent.not_expired() {
             return Err(DelegationError::ParentExpired);
@@ -199,18 +185,15 @@ pub fn create_delegation(
         return Err(DelegationError::InvalidParentToken);
     }
 
-    // Check all requested capabilities are held by parent
     for cap in caps {
         if !parent.grants(*cap) {
             return Err(DelegationError::CapabilityNotHeld);
         }
     }
 
-    // Compute expiry (cannot exceed parent's expiry)
     let now = crate::time::timestamp_millis();
     let mut expiry = ttl_ms.map(|t| now.saturating_add(t));
 
-    // Cap at parent's expiry if parent has one
     if let Some(parent_exp) = parent.expires_at_ms {
         expiry = Some(match expiry {
             Some(e) => e.min(parent_exp),
@@ -246,7 +229,6 @@ pub fn sign_delegation(d: &mut Delegation) -> Result<(), DelegationError> {
 
     let mat = delegation_material(d, d.parent_nonce);
 
-    // Compute dual MAC for 64-byte signature
     let mac1 = blake3::keyed_hash(key, &mat);
     let mut hasher2 = blake3::Hasher::new_keyed(key);
     hasher2.update(&mat);
@@ -270,22 +252,18 @@ pub fn sign_delegation(d: &mut Delegation) -> Result<(), DelegationError> {
 ///
 /// `true` if signature is valid and delegation hasn't expired
 pub fn verify_delegation(d: &Delegation, parent: &CapabilityToken) -> bool {
-    // Check expiry
     if d.is_expired() {
         return false;
     }
 
-    // Check parent nonce matches
     if d.parent_nonce != parent.nonce {
         return false;
     }
 
-    // Check delegator matches parent owner
     if d.delegator != parent.owner_module {
         return false;
     }
 
-    // Verify signature
     let Some(key) = signing_key() else {
         return false;
     };
@@ -298,7 +276,6 @@ pub fn verify_delegation(d: &Delegation, parent: &CapabilityToken) -> bool {
     hasher2.update(b"DELEG");
     let mac2 = hasher2.finalize();
 
-    // Verify both halves
     d.signature[..32] == *mac1.as_bytes() && d.signature[32..] == *mac2.as_bytes()
 }
 
@@ -335,10 +312,6 @@ pub fn verify_delegation_strict(
 
     Ok(())
 }
-
-// ============================================================================
-// Tests
-// ============================================================================
 
 #[cfg(test)]
 mod tests {
@@ -398,7 +371,6 @@ mod tests {
 
     #[test]
     fn test_delegation_expiry_check() {
-        // No expiry
         let d = Delegation {
             delegator: 1,
             delegatee: 2,
@@ -411,7 +383,6 @@ mod tests {
         assert!(d.is_valid());
         assert!(d.remaining_ms().is_none());
 
-        // Future expiry
         let d = Delegation {
             delegator: 1,
             delegatee: 2,
