@@ -52,6 +52,7 @@ impl Drop for FileKey {
 pub(crate) fn derive_key(filename: &str, salt: &[u8; SALT_SIZE]) -> [u8; KEY_SIZE] {
     let filename_bytes = filename.as_bytes();
     let total_len = SALT_SIZE + filename_bytes.len() + KEY_DERIVATION_CONTEXT.len();
+
     let mut input = Vec::with_capacity(total_len);
     input.extend_from_slice(salt);
     input.extend_from_slice(filename_bytes);
