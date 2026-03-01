@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -13,6 +13,8 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+//! NVMe admin command handling.
 
 use alloc::vec::Vec;
 use super::super::constants::*;
@@ -49,6 +51,7 @@ pub fn get_active_namespace_list(
     start_nsid: u32,
 ) -> Result<Vec<u32>, NvmeError> {
     let buffer = DmaRegion::allocate(NS_LIST_SIZE)?;
+
     let cmd = SubmissionEntry::build_identify(
         0,
         start_nsid,
@@ -57,6 +60,7 @@ pub fn get_active_namespace_list(
     );
 
     let _completion = admin_queue.submit_and_wait(cmd)?;
+
     // SAFETY: buffer is valid DMA region with 4096 bytes
     let data: &[u8; 4096] = unsafe {
         &*(buffer.as_ptr::<[u8; 4096]>())
@@ -74,6 +78,7 @@ pub fn identify_namespace(
     }
 
     let buffer = DmaRegion::allocate(IDENTIFY_DATA_SIZE)?;
+
     let cmd = SubmissionEntry::build_identify(
         0,
         nsid,
@@ -82,6 +87,7 @@ pub fn identify_namespace(
     );
 
     let _completion = admin_queue.submit_and_wait(cmd)?;
+
     // SAFETY: buffer is valid DMA region with 4096 bytes
     let data: &[u8; 4096] = unsafe {
         &*(buffer.as_ptr::<[u8; 4096]>())
@@ -151,6 +157,7 @@ pub fn delete_io_submission_queue(
     let mut cmd = SubmissionEntry::new();
     cmd.set_opcode(ADMIN_OPC_DELETE_SQ);
     cmd.cdw10 = qid as u32;
+
     let _completion = admin_queue.submit_and_wait(cmd)?;
     Ok(())
 }
@@ -166,6 +173,7 @@ pub fn delete_io_completion_queue(
     let mut cmd = SubmissionEntry::new();
     cmd.set_opcode(ADMIN_OPC_DELETE_CQ);
     cmd.cdw10 = qid as u32;
+
     let _completion = admin_queue.submit_and_wait(cmd)?;
     Ok(())
 }
@@ -209,6 +217,7 @@ pub fn set_number_of_queues(
 
     let cmd = SubmissionEntry::build_set_features(0, FID_NUM_QUEUES, 0, value);
     let completion = admin_queue.submit_and_wait(cmd)?;
+
     let nsqa = (completion.dw0 & 0xFFFF) as u16;
     let ncqa = ((completion.dw0 >> 16) & 0xFFFF) as u16;
     Ok((nsqa + 1, ncqa + 1))
@@ -221,6 +230,7 @@ pub fn abort_command(
 ) -> Result<bool, NvmeError> {
     let cmd = SubmissionEntry::build_abort(0, sqid, cid);
     let completion = admin_queue.submit_and_wait(cmd)?;
+
     let aborted = (completion.dw0 & 0x1) == 0;
     Ok(aborted)
 }
@@ -232,6 +242,7 @@ pub fn get_log_page(
     buffer_size: usize,
 ) -> Result<DmaRegion, NvmeError> {
     let buffer = DmaRegion::allocate(buffer_size)?;
+
     let numdl = ((buffer_size / 4) - 1) as u16;
     let cmd = SubmissionEntry::build_get_log_page(
         0,
@@ -247,6 +258,7 @@ pub fn get_log_page(
 
 pub fn get_smart_log(admin_queue: &AdminQueue, nsid: u32) -> Result<SmartLog, NvmeError> {
     let buffer = get_log_page(admin_queue, LID_SMART_HEALTH, nsid, 512)?;
+
     let data = buffer.as_slice::<u8>();
     Ok(SmartLog::from_data(data))
 }
@@ -347,6 +359,7 @@ pub fn format_nvm(
     let mut cmd = SubmissionEntry::new();
     cmd.set_opcode(ADMIN_OPC_FORMAT_NVM);
     cmd.nsid = nsid;
+
     let mut cdw10: u32 = 0;
     cdw10 |= (lbaf & 0x0F) as u32;
     cdw10 |= ((metadata_location as u32) & 0x1) << 4;
