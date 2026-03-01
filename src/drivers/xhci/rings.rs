@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -14,7 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+//! xHCI ring management (Command, Transfer, and Event rings).
+
 use core::{mem, ptr};
+
 use super::constants::*;
 use super::dma::DmaRegion;
 use super::error::{XhciError, XhciResult};
@@ -103,7 +106,7 @@ impl TransferRing {
         Ok(phys)
     }
 
-    pub unsafe fn enqueue_raw(&mut self, mut trb: Trb) -> XhciResult<u64> {
+    pub unsafe fn enqueue_raw(&mut self, mut trb: Trb) -> XhciResult<u64> { unsafe {
         if self.enqueue_index == self.ring_size - 1 {
             return Err(XhciError::TrbRingFull);
         }
@@ -126,7 +129,7 @@ impl TransferRing {
         }
 
         Ok(phys)
-    }
+    }}
 
     pub fn dequeue_ptr(&self) -> u64 {
         self.trbs.phys() | (self.cycle as u64)
