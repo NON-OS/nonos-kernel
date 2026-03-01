@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -13,6 +13,8 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+//! MMIO Access Validation
 
 use super::constants::*;
 use super::error::DriverError;
@@ -38,6 +40,7 @@ pub fn validate_mmio_region(base: usize, size: usize) -> Result<(), DriverError>
     let is_low_mmio = base >= LOW_MMIO_START && base < LOW_MMIO_END;
     let is_platform_mmio = base >= PLATFORM_MMIO_START && base < PLATFORM_MMIO_END;
     let is_high_mmio = base >= HIGH_MMIO_START;
+
     if !is_low_mmio && !is_platform_mmio && !is_high_mmio {
         return Err(DriverError::InvalidMmioRegion);
     }
@@ -47,11 +50,13 @@ pub fn validate_mmio_region(base: usize, size: usize) -> Result<(), DriverError>
 
 pub fn safe_mmio_read32(addr: VirtAddr) -> Result<u32, DriverError> {
     let addr_usize = addr.as_u64() as usize;
+
     if addr_usize % 4 != 0 {
         return Err(DriverError::MmioAccessDenied);
     }
 
     validate_mmio_region(addr_usize & !0xFFF, PAGE_SIZE)?;
+
     // SAFETY: Address has been validated as within MMIO region
     let val = unsafe { core::ptr::read_volatile(addr_usize as *const u32) };
 
@@ -60,11 +65,13 @@ pub fn safe_mmio_read32(addr: VirtAddr) -> Result<u32, DriverError> {
 
 pub fn safe_mmio_write32(addr: VirtAddr, val: u32) -> Result<(), DriverError> {
     let addr_usize = addr.as_u64() as usize;
+
     if addr_usize % 4 != 0 {
         return Err(DriverError::MmioAccessDenied);
     }
 
     validate_mmio_region(addr_usize & !0xFFF, PAGE_SIZE)?;
+
     // SAFETY: Address has been validated as within MMIO region
     unsafe {
         core::ptr::write_volatile(addr_usize as *mut u32, val);
@@ -75,23 +82,28 @@ pub fn safe_mmio_write32(addr: VirtAddr, val: u32) -> Result<(), DriverError> {
 
 pub fn safe_mmio_read64(addr: VirtAddr) -> Result<u64, DriverError> {
     let addr_usize = addr.as_u64() as usize;
+
     if addr_usize % 8 != 0 {
         return Err(DriverError::MmioAccessDenied);
     }
 
     validate_mmio_region(addr_usize & !0xFFF, PAGE_SIZE)?;
+
     // SAFETY: Address has been validated as within MMIO region
     let val = unsafe { core::ptr::read_volatile(addr_usize as *const u64) };
+
     Ok(val)
 }
 
 pub fn safe_mmio_write64(addr: VirtAddr, val: u64) -> Result<(), DriverError> {
     let addr_usize = addr.as_u64() as usize;
+
     if addr_usize % 8 != 0 {
         return Err(DriverError::MmioAccessDenied);
     }
 
     validate_mmio_region(addr_usize & !0xFFF, PAGE_SIZE)?;
+
     // SAFETY: Address has been validated as within MMIO region
     unsafe {
         core::ptr::write_volatile(addr_usize as *mut u64, val);
