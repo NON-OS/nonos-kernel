@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -14,7 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+//! E1000 constants and register definitions.
+
 pub const INTEL_VENDOR_ID: u16 = 0x8086;
+
 pub const E1000_DEVICE_IDS: &[u16] = &[
     0x100E, 0x100F, 0x1015, 0x1016, 0x1017, 0x1019, 0x101D, 0x101E, 0x1026, 0x1027, 0x1028, 0x1076,
     0x1078, 0x1079, 0x107A, 0x107B, 0x10B9, 0x10D3, 0x10F5, 0x1533, 0x153A, 0x153B, 0x15A2, 0x15A3,
