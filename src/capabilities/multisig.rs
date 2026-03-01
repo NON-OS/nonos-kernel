@@ -23,19 +23,11 @@ use alloc::vec::Vec;
 
 use super::{caps_to_bits, default_nonce, Capability};
 
-// ============================================================================
-// Constants
-// ============================================================================
-
 /// Maximum number of signers per token
 const MAX_SIGNERS: usize = 16;
 
 /// Maximum threshold (must be <= MAX_SIGNERS)
 const MAX_THRESHOLD: usize = MAX_SIGNERS;
-
-// ============================================================================
-// Errors
-// ============================================================================
 
 /// Multi-signature operation errors
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -108,10 +100,6 @@ impl core::fmt::Display for MultiSigError {
         }
     }
 }
-
-// ============================================================================
-// Multi-Signature Token
-// ============================================================================
 
 /// A capability token requiring multiple signatures
 #[derive(Debug, Clone)]
@@ -205,10 +193,6 @@ impl core::fmt::Display for MultiSigToken {
     }
 }
 
-// ============================================================================
-// Token Operations
-// ============================================================================
-
 /// Compute signature material for a signer
 fn signature_material(token: &MultiSigToken, signer_id: u64) -> [u8; 40] {
     let mut mat = [0u8; 40];
@@ -241,12 +225,10 @@ pub fn create_multisig_token(
     authorized_signers: &[u64],
     ttl_ms: Option<u64>,
 ) -> Result<MultiSigToken, MultiSigError> {
-    // Validate threshold
     if threshold == 0 {
         return Err(MultiSigError::ZeroThreshold);
     }
 
-    // Validate signers
     if authorized_signers.is_empty() {
         return Err(MultiSigError::NoSigners);
     }
@@ -295,22 +277,18 @@ pub fn add_signature(
     signer_id: u64,
     key: &[u8; 32],
 ) -> Result<(), MultiSigError> {
-    // Check authorization
     if !token.is_authorized(signer_id) {
         return Err(MultiSigError::UnauthorizedSigner { signer_id });
     }
 
-    // Check for duplicate
     if token.has_signed(signer_id) {
         return Err(MultiSigError::DuplicateSigner { signer_id });
     }
 
-    // Check expiry
     if token.is_expired() {
         return Err(MultiSigError::TokenExpired);
     }
 
-    // Compute signature
     let mat = signature_material(token, signer_id);
     let mac = blake3::keyed_hash(key, &mat);
 
@@ -334,7 +312,6 @@ pub fn verify_multisig(
     token: &MultiSigToken,
     keys: &[(&u64, &[u8; 32])],
 ) -> Result<bool, MultiSigError> {
-    // Check expiry
     if token.is_expired() {
         return Err(MultiSigError::TokenExpired);
     }
@@ -342,11 +319,9 @@ pub fn verify_multisig(
     let mut valid_count = 0;
 
     for (signer_id, sig) in &token.signatures {
-        // Find the key for this signer
         let key = keys.iter().find(|(id, _)| **id == *signer_id);
 
         if let Some((_, key)) = key {
-            // Verify signature
             let mat = signature_material(token, *signer_id);
             let expected = blake3::keyed_hash(key, &mat);
 
@@ -409,10 +384,6 @@ pub const fn max_threshold() -> usize {
     MAX_THRESHOLD
 }
 
-// ============================================================================
-// Tests
-// ============================================================================
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -420,15 +391,12 @@ mod tests {
 
     #[test]
     fn test_create_token_validation() {
-        // Zero threshold
         let result = create_multisig_token(1, &[], 0, &[1, 2], None);
         assert_eq!(result.unwrap_err(), MultiSigError::ZeroThreshold);
 
-        // No signers
         let result = create_multisig_token(1, &[], 1, &[], None);
         assert_eq!(result.unwrap_err(), MultiSigError::NoSigners);
 
-        // Threshold exceeds signers
         let result = create_multisig_token(1, &[], 3, &[1, 2], None);
         assert!(matches!(
             result.unwrap_err(),
