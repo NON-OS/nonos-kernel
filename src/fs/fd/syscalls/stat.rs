@@ -37,7 +37,7 @@ fn write_stat(ptr: *mut u8, st: &KernelStat) -> bool {
         return false;
     }
 
-    // ## SAFETY: We're writing a known-sized struct to a user-provided buffer
+    // SAFETY: We're writing a known-sized struct to a user-provided buffer
     unsafe {
         let bytes: &[u8] = core::slice::from_raw_parts(
             (st as *const KernelStat) as *const u8,
@@ -58,6 +58,7 @@ pub fn stat_file_syscall(pathname: *const u8, statbuf: *mut u8) -> bool {
 
 fn stat_path(path: &str, statbuf: *mut u8) -> FdResult<()> {
     let p = ramfs::normalize_path(path);
+
     if ramfs::NONOS_FILESYSTEM.exists(&p) && ramfs::list_dir(&p).is_ok() {
         let st = KernelStat {
             mode: 0o755,
