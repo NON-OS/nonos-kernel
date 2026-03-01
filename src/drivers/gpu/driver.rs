@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -14,10 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+//! GPU driver implementation.
+
 use spin::Mutex;
 use x86_64::VirtAddr;
+
 use crate::drivers::pci::{self, PciDevice, pci_read_config32, pci_write_config32};
 use crate::memory::mmio::mmio_w32;
+
 use super::constants::*;
 use super::surface::*;
 use super::vbe;
@@ -46,6 +50,7 @@ impl GpuDriver {
     fn pci_enable_mem_and_busmaster(dev: &PciDevice) {
         let mut cmd = pci_read_config32(dev.bus, dev.device, dev.function, PCI_COMMAND_OFFSET) as u16;
         let mut changed = false;
+
         if (cmd & PCI_CMD_MEM_ENABLE) == 0 {
             cmd |= PCI_CMD_MEM_ENABLE;
             changed = true;
@@ -64,6 +69,7 @@ impl GpuDriver {
 
     fn pick_device() -> Option<PciDevice> {
         let devices = pci::scan_and_collect();
+
         if let Some(d) = devices.iter()
             .find(|d| d.vendor_id == VENDOR_QEMU && d.device_id == DEVICE_STD_VGA)
             .cloned()
@@ -86,6 +92,7 @@ impl GpuDriver {
         let bar0 = dev.get_bar(0).ok_or("GPU: BAR0 not present")?;
         let (fb_phys, fb_len) = bar0.mmio_region().ok_or("GPU: BAR0 not MMIO")?;
         let fb_virt = fb_phys.as_u64() as usize;
+
         if !vbe::vbe_detect() {
             return Err("GPU: Bochs VBE not detected");
         }
@@ -93,10 +100,13 @@ impl GpuDriver {
         let pitch = vbe::validate_mode(fb_len, DEFAULT_WIDTH, DEFAULT_HEIGHT, DEFAULT_BPP)?;
         let prog_pitch = vbe::program_mode(DEFAULT_WIDTH, DEFAULT_HEIGHT, DEFAULT_BPP);
         let pitch = pitch.min(prog_pitch);
+
         // SAFETY: fb_virt is a valid MMIO address from PCI BAR0
-        unsafe { mmio_w32(VirtAddr::new(fb_virt as u64), 0) };
+        mmio_w32(VirtAddr::new(fb_virt as u64), 0);
+
         let backbuf_bytes = pitch as usize * DEFAULT_HEIGHT as usize;
         let backbuf = Backbuffer::new(backbuf_bytes)?;
+
         let surface = GpuSurface {
             mode: DisplayMode {
                 width: DEFAULT_WIDTH,
@@ -123,18 +133,21 @@ impl GpuDriver {
     pub fn set_mode_32bpp(width: u16, height: u16) -> Result<DisplayMode, &'static str> {
         let drv = GPU_ONCE.get().ok_or("GPU not initialized")?;
         let mut g = drv.lock();
+
         let pitch = vbe::validate_mode(g.surface.fb.fb_len, width, height, 32)?;
         let prog_pitch = vbe::program_mode(width, height, 32);
         let pitch = pitch.min(prog_pitch);
+
         let need_bytes = pitch as usize * height as usize;
         g.surface.backbuf = Backbuffer::new(need_bytes)?;
+
         g.surface.mode = DisplayMode {
             width,
             height,
             bpp: 32,
             pitch,
         };
-      
+
         Ok(g.surface.mode)
     }
 
