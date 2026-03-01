@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -13,6 +13,8 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+//! DMA region management.
 
 use core::ptr;
 use x86_64::{PhysAddr, VirtAddr};
@@ -119,30 +121,30 @@ impl DmaRegion {
         }
     }
 
-    pub unsafe fn read_at<T: Copy>(&self, offset: usize) -> Option<T> {
+    pub unsafe fn read_at<T: Copy>(&self, offset: usize) -> Option<T> { unsafe {
         if offset + core::mem::size_of::<T>() > self.size {
             return None;
         }
         let ptr = (self.va.as_u64() as usize + offset) as *const T;
         Some(ptr::read_volatile(ptr))
-    }
+    }}
 
-    pub unsafe fn write_at<T: Copy>(&self, offset: usize, value: T) -> bool {
+    pub unsafe fn write_at<T: Copy>(&self, offset: usize, value: T) -> bool { unsafe {
         if offset + core::mem::size_of::<T>() > self.size {
             return false;
         }
         let ptr = (self.va.as_u64() as usize + offset) as *mut T;
         ptr::write_volatile(ptr, value);
         true
-    }
+    }}
 
-    pub unsafe fn as_slice(&self) -> &[u8] {
+    pub unsafe fn as_slice(&self) -> &[u8] { unsafe {
         core::slice::from_raw_parts(self.va.as_ptr(), self.size)
-    }
+    }}
 
-    pub unsafe fn as_mut_slice(&self) -> &mut [u8] {
+    pub unsafe fn as_mut_slice(&self) -> &mut [u8] { unsafe {
         core::slice::from_raw_parts_mut(self.va.as_mut_ptr(), self.size)
-    }
+    }}
 }
 
 impl Drop for DmaRegion {
