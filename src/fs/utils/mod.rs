@@ -18,38 +18,52 @@ extern crate alloc;
 
 mod error;
 mod types;
-mod scanner;
-mod filters;
+mod patterns;
+mod helpers;
+mod matchers;
+mod classify;
+mod scan_stats;
+mod scan_basic;
+mod scan_config;
+
+#[cfg(test)]
+mod filters_tests;
+#[cfg(test)]
+mod scan_tests;
 
 pub use error::{UtilsError, UtilsResult};
 pub use types::*;
-pub use scanner::*;
-pub use filters::*;
+pub use helpers::*;
+pub use matchers::*;
+pub use classify::*;
+pub use scan_basic::*;
+pub use scan_config::*;
+pub use scan_stats::{count_files_by_sensitivity, get_scan_statistics, get_scan_operation_count};
 
 use alloc::{string::String, vec::Vec};
 
 pub fn list_hidden_files(dir_path: &str) -> Vec<String> {
-    scanner::scan_hidden_files(dir_path)
+    scan_basic::scan_hidden_files(dir_path)
 }
 
 pub fn scan_for_sensitive_files(dir_path: &str) -> Vec<String> {
-    scanner::scan_sensitive_files(dir_path)
+    scan_basic::scan_sensitive_files(dir_path)
 }
 
 pub fn scan_files_with_config(dir_path: &str, config: &ScanConfig) -> UtilsResult<Vec<ScanResult>> {
-    scanner::scan_with_config(dir_path, config)
+    scan_config::scan_with_config(dir_path, config)
 }
 
 pub fn classify_file(path: &str) -> FileClassification {
-    filters::classify_file_by_path(path)
+    classify::classify_file_by_path(path)
 }
 
 #[inline]
 pub fn is_sensitive_file(path: &str) -> bool {
-    filters::matches_sensitive_pattern(path)
+    matchers::matches_sensitive_pattern(path)
 }
 
 #[inline]
 pub fn is_hidden_file(path: &str) -> bool {
-    filters::is_hidden(path)
+    helpers::is_hidden(path)
 }
