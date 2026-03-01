@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -14,35 +14,37 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+//! VGA port I/O operations.
+
 use super::constants::*;
 
 #[inline(always)]
-pub unsafe fn outb(port: u16, val: u8) {
+pub unsafe fn outb(port: u16, val: u8) { unsafe {
     // SAFETY: Caller ensures valid port.
     core::arch::asm!("out dx, al", in("dx") port, in("al") val, options(nostack, preserves_flags));
-}
+}}
 
 #[inline(always)]
-pub unsafe fn inb(port: u16) -> u8 {
+pub unsafe fn inb(port: u16) -> u8 { unsafe {
     // SAFETY: Caller ensures valid port.
     let mut v: u8;
     core::arch::asm!("in al, dx", in("dx") port, out("al") v, options(nostack, preserves_flags));
     v
-}
+}}
 
 #[inline]
-pub unsafe fn crt_write(reg: u8, val: u8) {
+pub unsafe fn crt_write(reg: u8, val: u8) { unsafe {
     // SAFETY: Caller ensures valid register.
     outb(CRT_INDEX_PORT, reg);
     outb(CRT_DATA_PORT, val);
-}
+}}
 
 #[inline]
-pub unsafe fn crt_read(reg: u8) -> u8 {
+pub unsafe fn crt_read(reg: u8) -> u8 { unsafe {
     // SAFETY: Caller ensures valid register.
     outb(CRT_INDEX_PORT, reg);
     inb(CRT_DATA_PORT)
-}
+}}
 
 pub fn set_cursor_position(pos: u16) {
     // SAFETY: Writing to VGA CRT controller ports.
@@ -71,6 +73,7 @@ pub fn enable_cursor(scanline_start: u8, scanline_end: u8) {
         outb(CRT_INDEX_PORT, CRT_CURSOR_START);
         let cur_start = inb(CRT_DATA_PORT);
         outb(CRT_DATA_PORT, (cur_start & 0xC0) | (scanline_start & CURSOR_START_MASK));
+
         outb(CRT_INDEX_PORT, CRT_CURSOR_END);
         let cur_end = inb(CRT_DATA_PORT);
         outb(CRT_DATA_PORT, (cur_end & 0xE0) | (scanline_end & CURSOR_END_MASK));
