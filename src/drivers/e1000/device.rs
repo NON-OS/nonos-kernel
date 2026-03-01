@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -14,13 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+//! E1000 device driver implementation.
+
 extern crate alloc;
 
 use alloc::vec::Vec;
 use core::sync::atomic::{AtomicU64, Ordering};
 use x86_64::{PhysAddr, VirtAddr};
+
 use crate::drivers::pci::{pci_read_config32, pci_write_config32, PciDevice};
 use crate::memory::dma::{alloc_dma_coherent, DmaConstraints};
+
 use super::constants::*;
 use super::descriptors::{E1000RxDesc, E1000TxDesc};
 
