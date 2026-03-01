@@ -15,17 +15,17 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub fn syscall_rt_sigaction(sig: u64, act: u64, oact: u64, sigsetsize: u64, _: u64, _: u64) -> u64 {
-    let result = crate::syscall::signals::syscalls::handle_rt_sigaction(sig, act, oact, sigsetsize);
+    let result = crate::syscall::signals::handle_rt_sigaction(sig, act, oact, sigsetsize);
     result.value as u64
 }
 
 pub fn syscall_rt_sigprocmask(how: u64, set: u64, oldset: u64, sigsetsize: u64, _: u64, _: u64) -> u64 {
-    let result = crate::syscall::signals::syscalls::handle_rt_sigprocmask(how, set, oldset, sigsetsize);
+    let result = crate::syscall::signals::handle_rt_sigprocmask(how, set, oldset, sigsetsize);
     result.value as u64
 }
 
 pub fn syscall_rt_sigreturn(_: u64, _: u64, _: u64, _: u64, _: u64, _: u64) -> u64 {
-    let result = crate::syscall::signals::syscalls::handle_rt_sigreturn();
+    let result = crate::syscall::signals::handle_rt_sigreturn();
     result.value as u64
 }
 
