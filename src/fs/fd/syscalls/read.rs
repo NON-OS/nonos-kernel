@@ -26,11 +26,13 @@ pub(crate) fn read_file_impl(entry: &mut OpenFile, buf: *mut u8, count: usize) -
     }
 
     let data = crate::fs::read_file(&entry.path)?;
+
     let start = entry.offset.min(data.len());
     let remaining = data.len().saturating_sub(start);
     let to_copy = remaining.min(count);
+
     if to_copy > 0 {
-        // ## SAFETY: Caller guarantees buf is valid
+        // SAFETY: Caller guarantees buf is valid
         unsafe {
             copy_to_user_ptr(&data[start..start + to_copy], buf)?;
         }
@@ -42,11 +44,13 @@ pub(crate) fn read_file_impl(entry: &mut OpenFile, buf: *mut u8, count: usize) -
 
 pub(crate) fn read_at_impl(path: &str, buf: *mut u8, count: usize, offset: usize) -> FdResult<usize> {
     let data = crate::fs::read_file(path)?;
+
     let start = offset.min(data.len());
     let remaining = data.len().saturating_sub(start);
     let to_copy = remaining.min(count);
+
     if to_copy > 0 {
-        // ## SAFETY: Caller guarantees buf is valid
+        // SAFETY: Caller guarantees buf is valid
         unsafe {
             copy_to_user_ptr(&data[start..start + to_copy], buf)?;
         }
