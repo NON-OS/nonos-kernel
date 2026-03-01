@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -14,11 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+//! Network stack implementation.
+
 use alloc::collections::BTreeMap;
 use alloc::sync::Arc;
 use alloc::vec::Vec;
 use core::mem;
-use core::sync::atomic::{AtomicU64, Ordering};
+use core::sync::atomic::AtomicU64;
 use spin::{Mutex, RwLock};
 
 pub trait NetworkInterface: Send + Sync + 'static {
@@ -160,6 +162,14 @@ fn to_be16(v: u16) -> [u8; 2] {
 #[inline]
 fn to_be32(v: u32) -> [u8; 4] {
     v.to_be_bytes()
+}
+
+pub fn ipv4_from_u32(ip: u32) -> [u8; 4] {
+    to_be32(ip)
+}
+
+pub fn ipv4_from_octets(a: u8, b: u8, c: u8, d: u8) -> [u8; 4] {
+    [a, b, c, d]
 }
 
 static ARP_CACHE: Mutex<BTreeMap<[u8; 4], [u8; 6]>> = Mutex::new(BTreeMap::new());
