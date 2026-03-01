@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -14,9 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+//! xHCI command and transfer completion handling.
+
 use core::sync::atomic::Ordering;
+
 use x86_64::VirtAddr;
+
 use crate::memory::mmio::{mmio_r32, mmio_w32, mmio_w64};
+
 use super::super::constants::*;
 use super::super::error::XhciError;
 use super::super::trb::Trb;
@@ -128,24 +133,20 @@ impl XhciController {
 
     fn process_pending_interrupts(&mut self) {
         // SAFETY: reading from valid runtime register
-        let iman = unsafe { mmio_r32(VirtAddr::new((self.rt_base + RT_IR0_IMAN) as u64)) };
+        let iman = mmio_r32(VirtAddr::new((self.rt_base + RT_IR0_IMAN) as u64));
         if (iman & IMAN_IP) != 0 {
             self.stats.inc_interrupts();
             // SAFETY: writing to valid runtime register
-            unsafe {
-                mmio_w32(VirtAddr::new((self.rt_base + RT_IR0_IMAN) as u64), iman | IMAN_IP);
-            }
+            mmio_w32(VirtAddr::new((self.rt_base + RT_IR0_IMAN) as u64), iman | IMAN_IP);
         }
     }
 
     fn advance_event_ring(&mut self) {
         self.evt_ring.advance();
         // SAFETY: writing to valid runtime register
-        unsafe {
-            mmio_w64(
-                VirtAddr::new((self.rt_base + RT_IR0_ERDP) as u64),
-                self.evt_ring.current_dequeue_phys() | ERDP_EHB,
-            );
-        }
+        mmio_w64(
+            VirtAddr::new((self.rt_base + RT_IR0_ERDP) as u64),
+            self.evt_ring.current_dequeue_phys() | ERDP_EHB,
+        );
     }
 }
