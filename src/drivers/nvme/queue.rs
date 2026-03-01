@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -13,6 +13,8 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+//! NVMe submission and completion queues.
 
 use core::ptr::{self, NonNull};
 use core::sync::atomic::{AtomicU16, AtomicU32, Ordering};
@@ -40,6 +42,7 @@ impl SubmissionQueue {
 
         let size = (depth as usize) * SUBMISSION_ENTRY_SIZE;
         let region = DmaRegion::allocate_aligned(size, 4096)?;
+
         let entries = NonNull::new(region.as_mut_ptr::<SubmissionEntry>())
             .ok_or(NvmeError::SubmissionQueueError)?;
 
@@ -76,9 +79,12 @@ impl SubmissionQueue {
     pub fn submit(&self, mut entry: SubmissionEntry) -> Result<u16, NvmeError> {
         let tail = self.tail.load(Ordering::Acquire);
         let cid = tail;
+
         entry.set_cid(cid);
         entry.sanitize();
+
         let index = (tail as usize) % (self.depth as usize);
+
         // SAFETY: index is within bounds, pointer is valid and aligned
         unsafe {
             let slot = self.entries.as_ptr().add(index);
@@ -87,18 +93,22 @@ impl SubmissionQueue {
 
         let new_tail = tail.wrapping_add(1) % self.depth;
         self.tail.store(new_tail, Ordering::Release);
+
         self.ring_doorbell(new_tail);
+
         Ok(cid)
     }
 
     pub fn submit_batch(&self, entries: &[SubmissionEntry]) -> Result<alloc::vec::Vec<u16>, NvmeError> {
         let mut cids = alloc::vec::Vec::with_capacity(entries.len());
         let mut tail = self.tail.load(Ordering::Acquire);
+
         for entry in entries {
             let cid = tail;
             let mut cmd = *entry;
             cmd.set_cid(cid);
             cmd.sanitize();
+
             let index = (tail as usize) % (self.depth as usize);
             // SAFETY: index is within bounds, pointer is valid and aligned
             unsafe {
@@ -119,9 +129,7 @@ impl SubmissionQueue {
     #[inline]
     fn ring_doorbell(&self, tail: u16) {
         // SAFETY: doorbell_addr is valid MMIO address
-        unsafe {
-            mmio_w32(VirtAddr::new(self.doorbell_addr as u64), tail as u32);
-        }
+        mmio_w32(VirtAddr::new(self.doorbell_addr as u64), tail as u32);
     }
 
     pub fn reset(&self) {
@@ -151,6 +159,7 @@ impl CompletionQueue {
 
         let size = (depth as usize) * COMPLETION_ENTRY_SIZE;
         let region = DmaRegion::allocate_aligned(size, 4096)?;
+
         let entries = NonNull::new(region.as_mut_ptr::<CompletionEntry>())
             .ok_or(NvmeError::CompletionQueueError)?;
 
@@ -193,10 +202,12 @@ impl CompletionQueue {
     pub fn poll(&self, expected_cid: u16, timeout_spins: u32) -> Result<CompletionEntry, NvmeError> {
         let mut spins = timeout_spins;
         let mut unexpected_count = 0u32;
+
         loop {
             let head = self.head.load(Ordering::Acquire);
             let expected_phase = self.phase.load(Ordering::Acquire) == 1;
             let index = (head as usize) % (self.depth as usize);
+
             // SAFETY: index is within bounds, pointer is valid and aligned
             let entry = unsafe {
                 let slot = self.entries.as_ptr().add(index);
@@ -215,6 +226,7 @@ impl CompletionQueue {
                 }
 
                 self.advance_head();
+
                 if entry.is_error() {
                     return Err(NvmeError::CommandFailed {
                         status_code: entry.status_field(),
@@ -237,6 +249,7 @@ impl CompletionQueue {
         let head = self.head.load(Ordering::Acquire);
         let expected_phase = self.phase.load(Ordering::Acquire) == 1;
         let index = (head as usize) % (self.depth as usize);
+
         // SAFETY: index is within bounds, pointer is valid and aligned
         let entry = unsafe {
             let slot = self.entries.as_ptr().add(index);
@@ -253,6 +266,7 @@ impl CompletionQueue {
 
     pub fn poll_all(&self) -> alloc::vec::Vec<CompletionEntry> {
         let mut entries = alloc::vec::Vec::new();
+
         while let Some(entry) = self.try_poll() {
             entries.push(entry);
         }
@@ -263,6 +277,7 @@ impl CompletionQueue {
     fn advance_head(&self) {
         let head = self.head.load(Ordering::Acquire);
         let new_head = head.wrapping_add(1) % self.depth;
+
         if new_head == 0 {
             let current_phase = self.phase.load(Ordering::Acquire);
             self.phase.store(current_phase ^ 1, Ordering::Release);
@@ -275,9 +290,7 @@ impl CompletionQueue {
     #[inline]
     fn ring_doorbell(&self, head: u16) {
         // SAFETY: doorbell_addr is valid MMIO address
-        unsafe {
-            mmio_w32(VirtAddr::new(self.doorbell_addr as u64), head as u32);
-        }
+        mmio_w32(VirtAddr::new(self.doorbell_addr as u64), head as u32);
     }
 
     pub fn reset(&self) {
@@ -348,8 +361,10 @@ impl QueuePair {
     pub fn submit_and_wait(&self, entry: SubmissionEntry) -> Result<CompletionEntry, NvmeError> {
         let cid = self.sq.submit(entry)?;
         self.pending_commands.fetch_add(1, Ordering::Relaxed);
+
         let timeout = self.timeout_spins.load(Ordering::Acquire);
         let result = self.cq.poll(cid, timeout);
+
         self.pending_commands.fetch_sub(1, Ordering::Relaxed);
         result
     }
