@@ -31,16 +31,16 @@ pub enum PathError {
 impl PathError {
     pub const fn to_errno(self) -> i32 {
         match self {
-            PathError::NullPointer => -14,        // EFAULT
-            PathError::TooLong => -36,            // ENAMETOOLONG
-            PathError::InvalidUtf8 => -22,        // EINVAL
-            PathError::Empty => -22,              // EINVAL
-            PathError::ContainsNull => -22,       // EINVAL
-            PathError::ComponentTooLong => -36,   // ENAMETOOLONG
-            PathError::InvalidCharacter => -22,   // EINVAL
-            PathError::TraversalAttempt => -1,    // EPERM
-            PathError::NotAbsolute => -22,        // EINVAL
-            PathError::NotRelative => -22,        // EINVAL
+            PathError::NullPointer => -14,
+            PathError::TooLong => -36,
+            PathError::InvalidUtf8 => -22,
+            PathError::Empty => -22,
+            PathError::ContainsNull => -22,
+            PathError::ComponentTooLong => -36,
+            PathError::InvalidCharacter => -22,
+            PathError::TraversalAttempt => -1,
+            PathError::NotAbsolute => -22,
+            PathError::NotRelative => -22,
         }
     }
 
