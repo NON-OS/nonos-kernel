@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -21,6 +21,7 @@ extern crate alloc;
 use alloc::vec::Vec;
 use core::sync::atomic::{AtomicU64, Ordering};
 use spin::Mutex;
+
 use super::constants::*;
 use super::error::{PciError, Result, SecurityViolation};
 use super::types::PciDevice;
@@ -28,6 +29,7 @@ use super::types::PciDevice;
 static SECURITY_VIOLATIONS: AtomicU64 = AtomicU64::new(0);
 static BLOCKED_WRITES: AtomicU64 = AtomicU64::new(0);
 static ALLOWED_BUS_MASTERS: AtomicU64 = AtomicU64::new(0);
+
 static DEVICE_BLOCKLIST: Mutex<Vec<(u16, u16)>> = Mutex::new(Vec::new());
 static DEVICE_ALLOWLIST: Mutex<Option<Vec<(u16, u16)>>> = Mutex::new(None);
 static BUS_MASTER_APPROVED: Mutex<Vec<(u8, u8, u8)>> = Mutex::new(Vec::new());
