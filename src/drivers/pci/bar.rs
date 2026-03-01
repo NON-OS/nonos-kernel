@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -13,6 +13,8 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+//! PCI BAR decoding and validation.
 
 use x86_64::PhysAddr;
 
@@ -148,6 +150,7 @@ pub fn decode_bar(bus: u8, device: u8, function: u8, index: u8) -> Result<PciBar
         let port = (original & BAR_IO_ADDR_MASK) as u16;
         let size_bits = size_mask & BAR_IO_ADDR_MASK;
         let size = (!size_bits).wrapping_add(1);
+
         if size == 0 {
             return Ok(PciBar::NotPresent);
         }
@@ -158,6 +161,7 @@ pub fn decode_bar(bus: u8, device: u8, function: u8, index: u8) -> Result<PciBar
     } else {
         let prefetchable = (original & BAR_MEMORY_PREFETCHABLE) != 0;
         let mem_type = (original & BAR_MEMORY_TYPE_MASK) >> 1;
+
         match mem_type {
             0 => {
                 let address = (original & BAR_MEMORY_ADDR_MASK) as u64;
@@ -191,6 +195,7 @@ pub fn decode_bar(bus: u8, device: u8, function: u8, index: u8) -> Result<PciBar
                 let address_lo = (original & BAR_MEMORY_ADDR_MASK) as u64;
                 let address_hi = original_hi as u64;
                 let address = address_lo | (address_hi << 32);
+
                 let size_lo = (size_mask & BAR_MEMORY_ADDR_MASK) as u64;
                 let size_hi = size_mask_hi as u64;
                 let size_combined = size_lo | (size_hi << 32);
@@ -238,6 +243,7 @@ pub fn decode_bar_unchecked(bus: u8, device: u8, function: u8, index: u8) -> Pci
         let port = (original & BAR_IO_ADDR_MASK) as u16;
         let size_bits = size_mask & BAR_IO_ADDR_MASK;
         let size = (!size_bits).wrapping_add(1);
+
         if size == 0 || port == 0 {
             return PciBar::NotPresent;
         }
@@ -246,11 +252,13 @@ pub fn decode_bar_unchecked(bus: u8, device: u8, function: u8, index: u8) -> Pci
     } else {
         let prefetchable = (original & BAR_MEMORY_PREFETCHABLE) != 0;
         let mem_type = (original & BAR_MEMORY_TYPE_MASK) >> 1;
+
         match mem_type {
             0 => {
                 let address = (original & BAR_MEMORY_ADDR_MASK) as u64;
                 let size_bits = size_mask & BAR_MEMORY_ADDR_MASK;
                 let size = ((!size_bits) as u64).wrapping_add(1) & 0xFFFF_FFFF;
+
                 if size == 0 || address == 0 {
                     return PciBar::NotPresent;
                 }
@@ -276,10 +284,12 @@ pub fn decode_bar_unchecked(bus: u8, device: u8, function: u8, index: u8) -> Pci
                 let address_lo = (original & BAR_MEMORY_ADDR_MASK) as u64;
                 let address_hi = original_hi as u64;
                 let address = address_lo | (address_hi << 32);
+
                 let size_lo = (size_mask & BAR_MEMORY_ADDR_MASK) as u64;
                 let size_hi = size_mask_hi as u64;
                 let size_combined = size_lo | (size_hi << 32);
                 let size = (!size_combined).wrapping_add(1);
+
                 if size == 0 || address == 0 {
                     return PciBar::NotPresent;
                 }
@@ -298,6 +308,7 @@ pub fn decode_bar_unchecked(bus: u8, device: u8, function: u8, index: u8) -> Pci
 pub fn decode_all_bars(bus: u8, device: u8, function: u8) -> [PciBar; 6] {
     let mut bars = [PciBar::NotPresent; 6];
     let mut index = 0u8;
+
     while index < 6 {
         match decode_bar(bus, device, function, index) {
             Ok(bar) => {
@@ -379,10 +390,12 @@ struct BarIterator {
 
 impl Iterator for BarIterator {
     type Item = BarInfo;
+
     fn next(&mut self) -> Option<Self::Item> {
         while self.current_index < 6 {
             let index = self.current_index;
             let bar = self.bars[index as usize];
+
             if bar.is_present() {
                 let info = BarInfo::from_bar(bar, index);
                 self.current_index = info.next_index();
