@@ -23,10 +23,6 @@ use core::sync::atomic::{AtomicU64, Ordering};
 
 use super::signing_key;
 
-// ============================================================================
-// Errors
-// ============================================================================
-
 /// Resource token operation errors
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ResourceError {
@@ -88,10 +84,6 @@ impl core::fmt::Display for ResourceError {
         }
     }
 }
-
-// ============================================================================
-// Resource Quota
-// ============================================================================
 
 /// Resource quota limits
 #[derive(Debug, Clone, Copy)]
@@ -160,10 +152,6 @@ impl Default for ResourceQuota {
         Self::new(0, 0, None)
     }
 }
-
-// ============================================================================
-// Resource Token
-// ============================================================================
 
 /// Nonce counter for token uniqueness
 static NONCE_CTR: AtomicU64 = AtomicU64::new(1);
@@ -304,10 +292,6 @@ impl core::fmt::Display for ResourceToken {
     }
 }
 
-// ============================================================================
-// Token Operations
-// ============================================================================
-
 /// Compute signature material
 fn token_material(owner: u64, quota: &ResourceQuota, nonce: u64) -> [u8; 40] {
     let mut mat = [0u8; 40];
@@ -331,7 +315,6 @@ fn token_material(owner: u64, quota: &ResourceQuota, nonce: u64) -> [u8; 40] {
 /// * `Ok(ResourceToken)` - Signed token
 /// * `Err(ResourceError)` - Creation failed
 pub fn create_resource_token(owner: u64, quota: ResourceQuota) -> Result<ResourceToken, ResourceError> {
-    // Validate quota
     if quota.is_empty() {
         return Err(ResourceError::ZeroQuota);
     }
@@ -356,7 +339,6 @@ pub fn sign_resource_token(tok: &mut ResourceToken) -> Result<(), ResourceError>
 
     let mat = token_material(tok.owner_module, &tok.original_quota, tok.nonce);
 
-    // Dual MAC for 64-byte signature
     let mac1 = blake3::keyed_hash(key, &mat);
     let mut hasher2 = blake3::Hasher::new_keyed(key);
     hasher2.update(&mat);
@@ -424,12 +406,10 @@ pub fn verify_resource_token_strict(tok: &ResourceToken) -> Result<(), ResourceE
 /// * `Ok(())` - Resources consumed
 /// * `Err(ResourceError)` - Insufficient resources or token invalid
 pub fn try_consume(token: &mut ResourceToken, bytes: u64, ops: u64) -> Result<(), ResourceError> {
-    // Check expiry
     if token.is_expired() {
         return Err(ResourceError::TokenExpired);
     }
 
-    // Check availability before consuming
     if !token.has_bytes(bytes) {
         return Err(ResourceError::InsufficientBytes {
             requested: bytes,
@@ -444,7 +424,6 @@ pub fn try_consume(token: &mut ResourceToken, bytes: u64, ops: u64) -> Result<()
         });
     }
 
-    // Consume atomically (both or neither)
     token.consume_bytes(bytes)?;
     token.consume_ops(ops)?;
 
@@ -458,10 +437,6 @@ pub fn reset_token(token: &mut ResourceToken) -> Result<(), ResourceError> {
     token.nonce = next_nonce();
     sign_resource_token(token)
 }
-
-// ============================================================================
-// Tests
-// ============================================================================
 
 #[cfg(test)]
 mod tests {
@@ -537,15 +512,12 @@ mod tests {
             signature: [0u8; 64],
         };
 
-        // Consume some
         assert!(token.consume_bytes(50).is_ok());
         assert_eq!(token.remaining_bytes, 50);
 
-        // Try to over-consume
         let result = token.consume_bytes(100);
         assert!(matches!(result, Err(ResourceError::InsufficientBytes { .. })));
 
-        // Ops
         assert!(token.consume_ops(5).is_ok());
         let result = token.consume_ops(10);
         assert!(matches!(result, Err(ResourceError::InsufficientOps { .. })));
