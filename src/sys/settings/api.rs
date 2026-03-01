@@ -6,11 +6,8 @@
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 
-//! Settings public API - getters and setters
-
 use super::state::{CURRENT_SETTINGS, mark_modified};
 
-/// Get brightness setting
 pub fn brightness() -> u8 {
     unsafe { CURRENT_SETTINGS.brightness }
 }
