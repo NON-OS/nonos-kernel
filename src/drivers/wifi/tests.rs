@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -14,7 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::rx::{FrameType, RxProcessor};
+//! WiFi driver unit tests.
+
+use super::rx::RxProcessor;
 use super::scan::{filter_by_security, ScanConfig, ScanResult, SecurityType, sort_by_signal};
 use super::tx::{calculate_tx_time, select_tx_rate, Ieee80211Header};
 use super::*;
