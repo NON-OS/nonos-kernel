@@ -17,12 +17,14 @@
 mod path;
 mod key;
 mod crypto;
-mod fs;
+mod core;
+mod ops;
+mod list;
 mod global;
 mod legacy;
 
 pub use path::normalize_path;
-pub use fs::NonosFilesystem;
+pub use core::NonosFilesystem;
 pub use global::{
     NONOS_FILESYSTEM,
     init_nonos_filesystem,
@@ -46,7 +48,6 @@ pub use global::{
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use super::path::validate_path;
     use super::super::error::FsError;
     use super::super::types::secure_zeroize;
@@ -67,6 +68,7 @@ mod tests {
 
     #[test]
     fn test_normalize_path() {
+        use super::path::normalize_path;
         assert_eq!(normalize_path("/a/b/c"), "/a/b/c");
         assert_eq!(normalize_path("/a//b/./c"), "/a/b/c");
         assert_eq!(normalize_path("/a/b/../c"), "/a/c");
