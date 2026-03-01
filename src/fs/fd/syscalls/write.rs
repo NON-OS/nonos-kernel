@@ -32,12 +32,13 @@ pub(crate) fn write_file_impl(entry: &mut OpenFile, buf: *const u8, count: usize
 
     let mut data_to_write = Vec::with_capacity(count);
     data_to_write.resize(count, 0);
-    // ## SAFETY: buf validity checked by caller
+    // SAFETY: buf validity checked by caller
     unsafe {
         copy_from_user_ptr(buf, &mut data_to_write)?;
     }
 
     let mut existing = crate::fs::read_file(&entry.path).unwrap_or_default();
+
     let write_offset = if entry.is_append() {
         existing.len()
     } else {
@@ -108,12 +109,13 @@ pub fn fd_write_at(fd: i32, buf: *const u8, count: usize, offset: usize) -> FdRe
 
     let mut data_to_write = Vec::with_capacity(count);
     data_to_write.resize(count, 0);
-    // ## SAFETY: buf validity checked above
+    // SAFETY: buf validity checked above
     unsafe {
         copy_from_user_ptr(buf, &mut data_to_write)?;
     }
 
     let mut existing = crate::fs::read_file(&path).unwrap_or_default();
+
     if offset > existing.len() {
         existing.resize(offset, 0);
     }
