@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -14,12 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+//! DMA buffer validation.
+
 use super::constants::*;
 use super::error::DriverError;
 use x86_64::PhysAddr;
 
 pub fn validate_dma_buffer(phys_addr: PhysAddr, size: usize) -> Result<(), DriverError> {
     let addr = phys_addr.as_u64();
+
     if size == 0 {
         return Err(DriverError::InvalidDmaBuffer);
     }
@@ -31,6 +34,7 @@ pub fn validate_dma_buffer(phys_addr: PhysAddr, size: usize) -> Result<(), Drive
     let end = addr
         .checked_add(size as u64)
         .ok_or(DriverError::InvalidDmaBuffer)?;
+
     if end <= addr {
         return Err(DriverError::InvalidDmaBuffer);
     }
