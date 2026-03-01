@@ -15,7 +15,22 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod error;
-mod operations;
+mod types;
+mod cstr;
+mod validate;
+mod normalize;
+mod parts;
+mod join;
+mod components;
+
+#[cfg(test)]
+mod tests;
 
 pub use error::{PathError, PathResult};
-pub use operations::*;
+pub use types::*;
+pub use cstr::*;
+pub use validate::*;
+pub use normalize::*;
+pub use parts::*;
+pub use join::*;
+pub use components::*;
