@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -13,6 +13,8 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+//! NVMe namespace management.
 
 use alloc::vec::Vec;
 use super::types::LbaFormat;
@@ -79,13 +81,15 @@ impl Namespace {
         let nsfeat = data[IDENTIFY_NS_NSFEAT_OFFSET];
         let nlbaf = data[IDENTIFY_NS_NLBAF_OFFSET];
         let flbas = data[IDENTIFY_NS_FLBAS_OFFSET];
-        let mc = data[IDENTIFY_NS_MC_OFFSET];
+        let _mc = data[IDENTIFY_NS_MC_OFFSET];
         let dpc = data[IDENTIFY_NS_DPC_OFFSET];
         let dps = data[IDENTIFY_NS_DPS_OFFSET];
         let nmic = data[IDENTIFY_NS_NMIC_OFFSET];
-        let rescap = data[IDENTIFY_NS_RESCAP_OFFSET];
+        let _rescap = data[IDENTIFY_NS_RESCAP_OFFSET];
+
         let active_lba_format_index = flbas & 0x0F;
         let num_lba_formats = (nlbaf as usize) + 1;
+
         let mut lba_formats = Vec::with_capacity(num_lba_formats);
         for i in 0..num_lba_formats {
             let offset = IDENTIFY_NS_LBAF_OFFSET + i * 4;
@@ -109,6 +113,7 @@ impl Namespace {
             512
         };
         let metadata_size = active_format.metadata_size;
+
         let features = NamespaceFeatures {
             thin_provisioning: (nsfeat & 0x01) != 0,
             ns_atomic_write_unit: (nsfeat & 0x02) != 0,
@@ -319,6 +324,7 @@ impl Default for NamespaceManager {
 
 pub fn parse_namespace_list(data: &[u8; 4096]) -> Vec<u32> {
     let mut nsids = Vec::new();
+
     for i in 0..(4096 / 4) {
         let offset = i * 4;
         let nsid = u32::from_le_bytes([
