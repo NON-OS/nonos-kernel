@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+//! NVMe storage driver.
+
 pub mod constants;
 pub mod controller;
 pub mod dma;
@@ -24,8 +26,10 @@ pub mod queue;
 pub mod security;
 pub mod stats;
 pub mod types;
+
 #[cfg(test)]
 mod tests;
+
 pub use controller::NvmeController;
 pub use controller::SmartLog;
 pub use driver::{get_controller, init_nvme, is_initialized, NamespaceInfo, NvmeDriver, NvmeSecurityStats};
