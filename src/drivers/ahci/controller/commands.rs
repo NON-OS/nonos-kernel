@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2025 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -13,7 +13,7 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-//
+
 //! AHCI command building functions.
 
 use spin::Mutex;
@@ -26,8 +26,7 @@ use super::super::dma::PortDma;
 use super::super::constants::*;
 use super::helpers::{hdr_flags_for, fill_h2d_fis};
 
-/// Setup a command slot for execution.
-pub fn setup_slot(
+pub(super) fn setup_slot(
     port_dma: &Mutex<BTreeMap<u32, PortDma>>,
     port: u32,
     slot: u32,
@@ -35,21 +34,20 @@ pub fn setup_slot(
     let pdma = port_dma.lock();
     let pdma = pdma.get(&port).ok_or(AhciError::PortDmaNotInitialized)?;
 
-    // SAFETY: cl_entries.0 points to a valid array of 32 CommandHeaders
+    // SAFETY: cl_entries.0 points to a valid array of 32 CommandHeaders.
     let ch = unsafe { pdma.cl_entries.0.add(slot as usize) };
     let (ct_ptr, ct_pa) = pdma.ct_for_slot(slot);
     Ok((ch, ct_ptr, ct_pa))
 }
 
-/// Build IDENTIFY DEVICE command.
-pub fn build_identify_command(
+pub(super) fn build_identify_command(
     port_dma: &Mutex<BTreeMap<u32, PortDma>>,
     port: u32,
     slot: u32,
     buffer_pa: PhysAddr,
 ) -> Result<(), AhciError> {
     let (ch, ct_ptr, ct_pa) = setup_slot(port_dma, port, slot)?;
-    // SAFETY: ch and ct_ptr point to valid DMA memory
+    // SAFETY: ch and ct_ptr point to valid DMA memory.
     unsafe {
         core::ptr::write_bytes(ch, 0, 1);
         core::ptr::write_bytes(ct_ptr, 0, 1);
@@ -71,8 +69,7 @@ pub fn build_identify_command(
     Ok(())
 }
 
-/// Build READ DMA EXT command.
-pub fn build_read_command(
+pub(super) fn build_read_command(
     port_dma: &Mutex<BTreeMap<u32, PortDma>>,
     port: u32,
     slot: u32,
@@ -83,7 +80,7 @@ pub fn build_read_command(
     let (ch, ct_ptr, ct_pa) = setup_slot(port_dma, port, slot)?;
     let bytes = (count as usize) * 512;
 
-    // SAFETY: ch and ct_ptr point to valid DMA memory
+    // SAFETY: ch and ct_ptr point to valid DMA memory.
     unsafe {
         core::ptr::write_bytes(ch, 0, 1);
         core::ptr::write_bytes(ct_ptr, 0, 1);
@@ -104,8 +101,7 @@ pub fn build_read_command(
     Ok(())
 }
 
-/// Build WRITE DMA EXT command.
-pub fn build_write_command(
+pub(super) fn build_write_command(
     port_dma: &Mutex<BTreeMap<u32, PortDma>>,
     port: u32,
     slot: u32,
@@ -116,7 +112,7 @@ pub fn build_write_command(
     let (ch, ct_ptr, ct_pa) = setup_slot(port_dma, port, slot)?;
     let bytes = (count as usize) * 512;
 
-    // SAFETY: ch and ct_ptr point to valid DMA memory
+    // SAFETY: ch and ct_ptr point to valid DMA memory.
     unsafe {
         core::ptr::write_bytes(ch, 0, 1);
         core::ptr::write_bytes(ct_ptr, 0, 1);
@@ -137,8 +133,7 @@ pub fn build_write_command(
     Ok(())
 }
 
-/// Build DSM/TRIM command.
-pub fn build_trim_command(
+pub(super) fn build_trim_command(
     port_dma: &Mutex<BTreeMap<u32, PortDma>>,
     port: u32,
     slot: u32,
@@ -148,7 +143,7 @@ pub fn build_trim_command(
     let (ch, ct_ptr, ct_pa) = setup_slot(port_dma, port, slot)?;
     let bytes = (blocks as usize) * 512;
 
-    // SAFETY: ch and ct_ptr point to valid DMA memory
+    // SAFETY: ch and ct_ptr point to valid DMA memory.
     unsafe {
         core::ptr::write_bytes(ch, 0, 1);
         core::ptr::write_bytes(ct_ptr, 0, 1);
@@ -176,14 +171,13 @@ pub fn build_trim_command(
     Ok(())
 }
 
-/// Build SECURITY ERASE PREPARE command.
-pub fn build_security_erase_prepare_command(
+pub(super) fn build_security_erase_prepare_command(
     port_dma: &Mutex<BTreeMap<u32, PortDma>>,
     port: u32,
     slot: u32,
 ) -> Result<(), AhciError> {
     let (ch, ct_ptr, ct_pa) = setup_slot(port_dma, port, slot)?;
-    // SAFETY: ch and ct_ptr point to valid DMA memory
+    // SAFETY: ch and ct_ptr point to valid DMA memory.
     unsafe {
         core::ptr::write_bytes(ch, 0, 1);
         core::ptr::write_bytes(ct_ptr, 0, 1);
@@ -203,15 +197,14 @@ pub fn build_security_erase_prepare_command(
     Ok(())
 }
 
-/// Build SECURITY ERASE UNIT command.
-pub fn build_security_erase_unit_command(
+pub(super) fn build_security_erase_unit_command(
     port_dma: &Mutex<BTreeMap<u32, PortDma>>,
     port: u32,
     slot: u32,
     enhanced: bool,
 ) -> Result<(), AhciError> {
     let (ch, ct_ptr, ct_pa) = setup_slot(port_dma, port, slot)?;
-    // SAFETY: ch and ct_ptr point to valid DMA memory
+    // SAFETY: ch and ct_ptr point to valid DMA memory.
     unsafe {
         core::ptr::write_bytes(ch, 0, 1);
         core::ptr::write_bytes(ct_ptr, 0, 1);
