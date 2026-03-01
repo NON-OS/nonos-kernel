@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+//! PCI statistics tracking.
+
 extern crate alloc;
 
 use alloc::collections::BTreeMap;
@@ -25,14 +27,18 @@ static MSI_CAPABLE_DEVICES: AtomicU64 = AtomicU64::new(0);
 static MSIX_CAPABLE_DEVICES: AtomicU64 = AtomicU64::new(0);
 static PCIE_DEVICES: AtomicU64 = AtomicU64::new(0);
 static DMA_CAPABLE_DEVICES: AtomicU64 = AtomicU64::new(0);
+
 static ENUMERATION_COUNT: AtomicU64 = AtomicU64::new(0);
 static ENUMERATION_TIME_US: AtomicU64 = AtomicU64::new(0);
+
 static CONFIG_READS: AtomicU64 = AtomicU64::new(0);
 static CONFIG_WRITES: AtomicU64 = AtomicU64::new(0);
 static CONFIG_ERRORS: AtomicU64 = AtomicU64::new(0);
+
 static INTERRUPTS_TOTAL: AtomicU64 = AtomicU64::new(0);
 static MSI_INTERRUPTS: AtomicU64 = AtomicU64::new(0);
 static LEGACY_INTERRUPTS: AtomicU64 = AtomicU64::new(0);
+
 static HOTPLUG_EVENTS: AtomicU64 = AtomicU64::new(0);
 static POWER_STATE_CHANGES: AtomicU64 = AtomicU64::new(0);
 static LINK_STATE_CHANGES: AtomicU64 = AtomicU64::new(0);
