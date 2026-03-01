@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2025 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -13,7 +13,7 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-//
+
 //! AES-256-CTR encryption for data-at-rest.
 
 use spin::Mutex;
@@ -21,12 +21,7 @@ use crate::crypto::aes::Aes256;
 
 use super::super::error::AhciError;
 
-/// Encrypts a buffer using AES-256-CTR with a sector-specific nonce.
-///
-/// # Safety
-///
-/// Caller must ensure `buffer` points to `size` bytes of valid memory.
-pub fn encrypt_buffer_aes(
+pub(super) fn encrypt_buffer_aes(
     aes_cipher: &Mutex<Option<Aes256>>,
     encryption_iv: &[u8; 16],
     buffer: u64,
@@ -40,25 +35,24 @@ pub fn encrypt_buffer_aes(
     unsafe {
         let data = core::slice::from_raw_parts_mut(buffer as *mut u8, size);
 
-        // Create sector-specific nonce: base IV XOR with LBA
         let mut nonce_counter = *encryption_iv;
-        // Mix in LBA for sector-specific encryption
         let lba_bytes = lba.to_le_bytes();
         for i in 0..8 {
             nonce_counter[i] ^= lba_bytes[i];
         }
 
-        // Apply AES-256-CTR
         cipher.ctr_apply(&mut nonce_counter, data);
+
+        // SAFETY: Zero sensitive cryptographic material to prevent leakage.
+        core::ptr::write_volatile(&mut nonce_counter, [0u8; 16]);
+        core::sync::atomic::compiler_fence(core::sync::atomic::Ordering::SeqCst);
     }
 
     Ok(())
 }
 
-/// Decrypts a buffer using AES-256-CTR.
-/// In CTR mode, decryption is identical to encryption.
 #[inline]
-pub fn decrypt_buffer_aes(
+pub(super) fn decrypt_buffer_aes(
     aes_cipher: &Mutex<Option<Aes256>>,
     encryption_iv: &[u8; 16],
     buffer: u64,
