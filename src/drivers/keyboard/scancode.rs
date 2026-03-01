@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+//! Scancode processing.
+
 use super::constants::*;
 use super::event::KeyEvent;
 use super::io::update_leds;
@@ -21,20 +23,20 @@ use super::ring::{SpscEvtRing, SpscU8Ring};
 use core::sync::atomic::{AtomicBool, Ordering};
 
 static SHIFT: AtomicBool = AtomicBool::new(false);
+
 static CTRL: AtomicBool = AtomicBool::new(false);
+
 static ALT: AtomicBool = AtomicBool::new(false);
+
 static CAPS: AtomicBool = AtomicBool::new(false);
+
 static EXTENDED: AtomicBool = AtomicBool::new(false);
 
 // SAFETY: SpscU8Ring uses atomic operations for head/tail synchronization.
-// There is exactly ONE producer (keyboard interrupt handler) and ONE consumer
-// (input reading from main context). Push and pop operations are lock-free
-// and wait-free. The interrupt handler is non-reentrant on x86.
-static mut CHAR_RING: SpscU8Ring<CHAR_RING_SIZE> = SpscU8Ring::new();
+static mut CHAR_RING: SpscU8Ring<{ CHAR_RING_SIZE }> = SpscU8Ring::new();
 
 // SAFETY: Same invariants as CHAR_RING - single producer (interrupt),
-// single consumer (main thread), with atomic synchronization.
-static mut EVT_RING: SpscEvtRing<EVT_RING_SIZE> = SpscEvtRing::new();
+static mut EVT_RING: SpscEvtRing<{ EVT_RING_SIZE }> = SpscEvtRing::new();
 
 pub fn process_scancode(sc: u8) {
     if sc == SC_EXT_E0 || sc == SC_EXT_E1 {
@@ -44,6 +46,7 @@ pub fn process_scancode(sc: u8) {
 
     let is_break = (sc & SC_BREAK_BIT) != 0;
     let code = sc & 0x7F;
+
     match code {
         SC_LSHIFT | SC_RSHIFT => {
             SHIFT.store(!is_break, Ordering::Relaxed);
@@ -76,7 +79,7 @@ pub fn process_scancode(sc: u8) {
         if let Some(event) = extended_to_event(code) {
             // SAFETY: Called from interrupt handler (single producer).
             unsafe {
-                EVT_RING.push_evt(event);
+                (*(&raw mut EVT_RING)).push_evt(event);
             }
         }
         return;
@@ -84,6 +87,7 @@ pub fn process_scancode(sc: u8) {
 
     let shift = SHIFT.load(Ordering::Relaxed);
     let caps = CAPS.load(Ordering::Relaxed);
+
     let ch_opt = if shift {
         SHIFTED.get(code as usize).copied().flatten()
     } else {
@@ -101,7 +105,7 @@ pub fn process_scancode(sc: u8) {
         }
         // SAFETY: Called from interrupt handler (single producer).
         unsafe {
-            CHAR_RING.push(ch);
+            (*(&raw mut CHAR_RING)).push(ch);
         }
     }
 }
@@ -125,25 +129,25 @@ fn extended_to_event(code: u8) -> Option<KeyEvent> {
 #[inline]
 pub fn read_char() -> Option<char> {
     // SAFETY: Single consumer (main thread).
-    unsafe { CHAR_RING.pop().map(|b| b as char) }
+    unsafe { (*(&raw mut CHAR_RING)).pop().map(|b| b as char) }
 }
 
 #[inline]
 pub fn has_data() -> bool {
     // SAFETY: Read-only operation.
-    unsafe { !CHAR_RING.is_empty() }
+    unsafe { !(*(&raw const CHAR_RING)).is_empty() }
 }
 
 #[inline]
 pub fn read_event() -> Option<KeyEvent> {
     // SAFETY: Single consumer (main thread).
-    unsafe { EVT_RING.pop_evt() }
+    unsafe { (*(&raw mut EVT_RING)).pop_evt() }
 }
 
 #[inline]
 pub fn has_event() -> bool {
     // SAFETY: Read-only operation.
-    unsafe { !EVT_RING.is_empty() }
+    unsafe { !(*(&raw const EVT_RING)).is_empty() }
 }
 
 #[inline]
@@ -187,7 +191,7 @@ pub fn is_caps_lock_active() -> bool {
 #[inline]
 pub fn pending_char_count() -> usize {
     // SAFETY: Read-only operation.
-    unsafe { CHAR_RING.len() }
+    unsafe { (*(&raw const CHAR_RING)).len() }
 }
 
 #[cfg(test)]
@@ -200,15 +204,21 @@ mod tests {
         CTRL.store(false, Ordering::Relaxed);
         ALT.store(false, Ordering::Relaxed);
         CAPS.store(false, Ordering::Relaxed);
+
         assert_eq!(get_modifiers(), 0);
+
         SHIFT.store(true, Ordering::Relaxed);
         assert_eq!(get_modifiers(), 0x01);
+
         CTRL.store(true, Ordering::Relaxed);
         assert_eq!(get_modifiers(), 0x03);
+
         ALT.store(true, Ordering::Relaxed);
         assert_eq!(get_modifiers(), 0x07);
+
         CAPS.store(true, Ordering::Relaxed);
         assert_eq!(get_modifiers(), 0x0F);
+
         SHIFT.store(false, Ordering::Relaxed);
         CTRL.store(false, Ordering::Relaxed);
         ALT.store(false, Ordering::Relaxed);
