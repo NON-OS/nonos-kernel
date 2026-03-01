@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -14,17 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+//! Intel WiFi firmware loading.
+
 use super::constants::*;
 use super::error::WifiError;
 use super::pcie::PcieTransport;
 use alloc::vec::Vec;
 use crate::memory::dma::{alloc_dma_coherent, DmaConstraints, DmaRegion};
 
-const IWL_UCODE_TLV_INST: u32 = 1;
-const IWL_UCODE_TLV_DATA: u32 = 2;
-const IWL_UCODE_TLV_INIT: u32 = 3;
-const IWL_UCODE_TLV_INIT_DATA: u32 = 4;
-const IWL_UCODE_TLV_BOOT: u32 = 5;
 const IWL_UCODE_TLV_PAGING: u32 = 33;
 const IWL_UCODE_TLV_SEC_RT: u32 = 20;
 const IWL_UCODE_TLV_SEC_INIT: u32 = 21;
@@ -56,12 +53,12 @@ pub struct FirmwareInfo {
     pub human_readable: [u8; 64],
 }
 
-pub struct FirmwareSection {
+pub(super) struct FirmwareSection {
     pub data: Vec<u8>,
     pub offset: u32,
 }
 
-pub struct Firmware {
+pub(crate) struct Firmware {
     pub info: FirmwareInfo,
     pub init_sections: Vec<FirmwareSection>,
     pub runtime_sections: Vec<FirmwareSection>,
@@ -71,7 +68,7 @@ pub struct Firmware {
 }
 
 impl Firmware {
-    pub fn parse(data: &[u8]) -> Result<Self, WifiError> {
+    pub(super) fn parse(data: &[u8]) -> Result<Self, WifiError> {
         if data.len() < core::mem::size_of::<UcodeHeader>() {
             return Err(WifiError::FirmwareInvalid);
         }
@@ -215,18 +212,18 @@ impl Firmware {
     }
 }
 
-pub struct FirmwareLoader {
+pub(crate) struct FirmwareLoader {
     fw_regions: Vec<DmaRegion>,
 }
 
 impl FirmwareLoader {
-    pub fn new() -> Self {
+    pub(super) fn new() -> Self {
         Self {
             fw_regions: Vec::new(),
         }
     }
 
-    pub fn load(&mut self, trans: &mut PcieTransport, fw: &Firmware) -> Result<(), WifiError> {
+    pub(super) fn load(&mut self, trans: &mut PcieTransport, fw: &Firmware) -> Result<(), WifiError> {
         crate::log::info!("iwlwifi: Loading firmware sections...");
 
         for section in &fw.runtime_sections {
