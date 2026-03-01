@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -14,12 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! USB subsystem.
-
 extern crate alloc;
 
-use alloc::vec::Vec;
-
+mod api;
 mod backend;
 mod class_driver;
 pub mod constants;
@@ -27,94 +24,35 @@ pub mod error;
 mod descriptors;
 mod device;
 mod manager;
+pub mod msc;
+pub mod cdc_eth;
+pub mod rtl8152;
 
 #[cfg(test)]
 mod tests;
 
-pub use constants::*;
-
-pub use descriptors::{
-    DeviceDescriptor, ConfigDescriptorHeader, InterfaceDescriptor, EndpointDescriptor,
-    UsbStringTable, UsbInterfaceInfo, UsbConfiguration, parse_interfaces,
+pub use api::{
+    device_count, find_device, find_devices_by_class, find_hid_devices, find_mass_storage_devices,
+    get_devices, get_stats, is_initialized, print_device_tree,
 };
-
-pub use device::UsbDevice;
-
 pub use backend::{UsbHostBackend, XhciBackend};
-
 pub use class_driver::{
-    UsbClassDriver, register_class_driver, unregister_class_driver, get_class_drivers,
-    bind_drivers_to_device, interface_matches, device_matches_vid_pid, device_matches_vid_pid_list,
+    bind_drivers_to_device, device_matches_vid_pid, device_matches_vid_pid_list, get_class_drivers,
+    interface_matches, register_class_driver, unregister_class_driver, UsbClassDriver,
 };
-
-pub use manager::{
-    UsbManager, UsbStats, UsbStatsSnapshot,
-    init_usb, get_manager, poll_endpoint,
+pub use constants::*;
+pub use descriptors::{
+    parse_interfaces, ConfigDescriptorHeader, DeviceDescriptor, EndpointDescriptor,
+    InterfaceDescriptor, UsbConfiguration, UsbInterfaceInfo, UsbStringTable,
+};
+pub use device::UsbDevice;
+pub use manager::{get_manager, init_usb, poll_endpoint, UsbManager, UsbStats, UsbStatsSnapshot};
+pub use msc::{
+    get_capacity, get_msc_device, get_msc_devices, init_msc_driver, inquiry as msc_inquiry,
+    query_all_capacities, query_capacity, read_blocks, read_capacity_10, read_capacity_16,
+    test_unit_ready, write_blocks, InquiryResponse, MscDeviceState, StorageCapacity,
 };
 
 pub mod consts {
     pub use super::constants::*;
-}
-
-pub fn get_devices() -> Vec<UsbDevice> {
-    get_manager().map(|m| m.devices()).unwrap_or_default()
-}
-
-pub fn get_stats() -> Option<UsbStatsSnapshot> {
-    get_manager().map(|m| m.stats())
-}
-
-pub fn is_initialized() -> bool {
-    get_manager().is_some()
-}
-
-pub fn device_count() -> usize {
-    get_manager().map(|m| m.devices().len()).unwrap_or(0)
-}
-
-pub fn find_device(vid: u16, pid: u16) -> Option<UsbDevice> {
-    get_devices().into_iter().find(|d| d.matches_vid_pid(vid, pid))
-}
-
-pub fn find_devices_by_class(class: u8) -> Vec<UsbDevice> {
-    get_devices().into_iter().filter(|d| d.device_class() == class).collect()
-}
-
-pub fn find_hid_devices() -> Vec<UsbDevice> {
-    get_devices().into_iter().filter(|d| d.is_hid()).collect()
-}
-
-pub fn find_mass_storage_devices() -> Vec<UsbDevice> {
-    get_devices().into_iter().filter(|d| d.is_mass_storage()).collect()
-}
-
-pub fn print_device_tree() {
-    let devices = get_devices();
-    if devices.is_empty() {
-        crate::log_info!("[USB] No devices enumerated");
-        return;
-    }
-
-    crate::log_info!("[USB] Enumerated devices:");
-    for dev in devices {
-        crate::log_info!(
-            "  Slot {}: {} (VID={:04x} PID={:04x}) - {}",
-            dev.slot_id,
-            dev.display_name(),
-            dev.vendor_id(),
-            dev.product_id(),
-            dev.usb_version_string()
-        );
-
-        if let Some(config) = &dev.active_config {
-            for iface in &config.interfaces {
-                crate::log_info!(
-                    "    Interface {}: {} ({} endpoints)",
-                    iface.iface.b_interface_number,
-                    iface.iface.class_name(),
-                    iface.endpoints.len()
-                );
-            }
-        }
-    }
 }
