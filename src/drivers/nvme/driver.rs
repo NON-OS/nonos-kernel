@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -14,14 +14,18 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+//! NVMe driver interface.
+
 use spin::Once;
 use x86_64::PhysAddr;
+
 use super::constants;
 use super::controller::{NvmeController, SmartLog};
 use super::error::NvmeError;
 use super::stats::{NvmeStatsSnapshot, SecurityStatsSnapshot};
 
 static NVME_CONTROLLER: Once<NvmeController> = Once::new();
+
 pub fn init_nvme() -> Result<(), NvmeError> {
     if NVME_CONTROLLER.is_completed() {
         return Ok(());
@@ -39,7 +43,9 @@ pub fn init_nvme() -> Result<(), NvmeError> {
 
     let mut controller = NvmeController::new(pci_device)?;
     controller.init()?;
+
     NVME_CONTROLLER.call_once(|| controller);
+
     crate::log::logger::log_critical("NVMe subsystem initialized");
     Ok(())
 }
@@ -54,6 +60,7 @@ pub fn is_initialized() -> bool {
 }
 
 pub struct NvmeDriver;
+
 impl NvmeDriver {
     pub fn read_blocks(lba: u64, count: u16, dst_phys: PhysAddr) -> Result<(), NvmeError> {
         let ctrl = get_controller().ok_or(NvmeError::ControllerNotInitialized)?;
