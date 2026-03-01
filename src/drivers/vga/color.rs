@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -13,6 +13,8 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+//! VGA color definitions.
 
 #[repr(u8)]
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -103,7 +105,9 @@ pub fn decode_color(attr: u8) -> (Color, Color) {
 }
 
 pub const DEFAULT_FG: Color = Color::LightGrey;
+
 pub const DEFAULT_BG: Color = Color::Black;
+
 pub const DEFAULT_COLOR: u8 = vga_color(DEFAULT_FG, DEFAULT_BG);
 
 #[cfg(test)]
