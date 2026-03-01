@@ -24,16 +24,8 @@ use spin::Mutex;
 
 use super::{Capability, CapabilityToken};
 
-// ============================================================================
-// Constants
-// ============================================================================
-
 /// Maximum audit log entries (ring buffer size)
 const MAX_LOG_ENTRIES: usize = 4096;
-
-// ============================================================================
-// Audit Entry
-// ============================================================================
 
 /// Single audit log entry recording a capability use
 #[derive(Debug, Clone)]
@@ -92,10 +84,6 @@ impl core::fmt::Display for AuditEntry {
         )
     }
 }
-
-// ============================================================================
-// Statistics
-// ============================================================================
 
 /// Audit log statistics
 struct AuditStats {
@@ -168,10 +156,6 @@ impl core::fmt::Display for AuditStatsSnapshot {
     }
 }
 
-// ============================================================================
-// Ring Buffer
-// ============================================================================
-
 /// Ring buffer for audit entries
 struct AuditBuffer {
     /// Entry storage
@@ -194,11 +178,9 @@ impl AuditBuffer {
     /// Add an entry to the ring buffer
     fn push(&mut self, entry: AuditEntry) {
         if self.entries.len() < MAX_LOG_ENTRIES {
-            // Still filling initial buffer
             self.entries.push(entry);
             self.write_pos = self.entries.len();
         } else {
-            // Buffer full, overwrite oldest
             let pos = self.write_pos % MAX_LOG_ENTRIES;
             self.entries[pos] = entry;
             self.write_pos = pos + 1;
@@ -219,15 +201,11 @@ impl AuditBuffer {
     /// Get entries in chronological order
     fn get_chronological(&self) -> Vec<AuditEntry> {
         if !self.wrapped {
-            // Not wrapped yet, entries are already in order
             self.entries.clone()
         } else {
-            // Wrapped: oldest is at write_pos, newest is at write_pos-1
             let pos = self.write_pos % MAX_LOG_ENTRIES;
             let mut result = Vec::with_capacity(self.entries.len());
-            // Add from write_pos to end
             result.extend_from_slice(&self.entries[pos..]);
-            // Add from start to write_pos
             result.extend_from_slice(&self.entries[..pos]);
             result
         }
@@ -253,10 +231,6 @@ impl AuditBuffer {
     }
 }
 
-// ============================================================================
-// Global State
-// ============================================================================
-
 static BUFFER: Mutex<AuditBuffer> = Mutex::new(AuditBuffer {
     entries: Vec::new(),
     write_pos: 0,
@@ -264,10 +238,6 @@ static BUFFER: Mutex<AuditBuffer> = Mutex::new(AuditBuffer {
 });
 
 static STATS: AuditStats = AuditStats::new();
-
-// ============================================================================
-// Public API
-// ============================================================================
 
 /// Log a capability token use
 ///
@@ -295,10 +265,8 @@ pub fn log_use(
         success,
     };
 
-    // Update statistics first (lock-free)
     STATS.record(success);
 
-    // Then add to buffer (requires lock)
     BUFFER.lock().push(entry);
 }
 
@@ -394,10 +362,6 @@ pub fn clear_log() {
 pub const fn capacity() -> usize {
     MAX_LOG_ENTRIES
 }
-
-// ============================================================================
-// Tests
-// ============================================================================
 
 #[cfg(test)]
 mod tests {
