@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -14,9 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+//! Rate limiter for network traffic.
+
 use super::constants::RATE_LIMIT_WINDOW_MS;
 use super::error::VirtioNetError;
 use core::sync::atomic::{AtomicU64, Ordering};
+
 #[derive(Debug)]
 pub struct RateLimiter {
     max_pps: u64,
@@ -41,7 +44,9 @@ impl RateLimiter {
 
     pub fn check_rate_limit(&self, current_time_ms: u64) -> Result<(), VirtioNetError> {
         self.total_packets.fetch_add(1, Ordering::Relaxed);
+
         let window_start = self.window_start.load(Ordering::Acquire);
+
         if current_time_ms >= window_start + RATE_LIMIT_WINDOW_MS {
             if self
                 .window_start
@@ -58,6 +63,7 @@ impl RateLimiter {
         }
 
         let count = self.packet_count.fetch_add(1, Ordering::AcqRel);
+
         if count >= self.burst_limit {
             self.violations.fetch_add(1, Ordering::Relaxed);
             return Err(VirtioNetError::RateLimitExceeded);
@@ -65,8 +71,10 @@ impl RateLimiter {
 
         let window_start_now = self.window_start.load(Ordering::Acquire);
         let elapsed = current_time_ms.saturating_sub(window_start_now);
+
         if elapsed > 0 {
             let current_rate = (count.saturating_mul(1000)) / elapsed;
+
             if current_rate > self.max_pps {
                 self.violations.fetch_add(1, Ordering::Relaxed);
                 return Err(VirtioNetError::RateLimitExceeded);
