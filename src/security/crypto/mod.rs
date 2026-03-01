@@ -1,0 +1,51 @@
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+pub mod key_management;
+pub mod constant_time;
+pub mod random;
+pub mod trusted_keys;
+pub mod trusted_hashes;
+
+pub use key_management::{
+    init as key_management_init, generate_key, import_key, use_key, export_key, rotate_key,
+    derive_key, delete_key, delete_all_keys, get_key_info, list_keys, list_keys_by_owner,
+    find_key_by_fingerprint,
+    KeyType, KeyUsage, KeyEntry, KeyStore, KeyAuditEntry, KeyOperation, KeyError, KeyResult,
+    KeyInfo,
+};
+
+pub use constant_time::{
+    init as constant_time_init, ct_compare, ct_verify, ct_select_u8, ct_select_u32, ct_select_u64,
+    ct_select_slice, ct_swap_slices, ct_lt_u32, ct_lt_u64, ct_gt_u32, ct_eq_u32, ct_eq_u64,
+    ct_min_u32, ct_max_u32, ct_copy_bounded, ct_zero, ct_zero_u64, ct_hmac_verify,
+    ct_signature_verify, run_self_tests, CtVerifyResult, TimingMode, SelfTestResult,
+    ed25519_ct, x25519_ct, aes_ct,
+};
+
+pub use random::{
+    init as random_init, secure_random_u64, fill_random, secure_random_u32, secure_random_u8,
+};
+
+pub use trusted_keys::{
+    init as trusted_keys_init, add_trusted_key, get_trusted_key, verify_signature,
+    list_trusted_keys, init_trusted_keys, get_trusted_keys, TrustedKeyDB, TrustedKey,
+};
+
+pub use trusted_hashes::{
+    init as trusted_hashes_init, add_trusted_hash, get_trusted_hash, verify_integrity,
+    list_trusted_hashes, TrustedHashDB,
+};
