@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -13,6 +13,8 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+//! Network module tests.
 
 use super::error::NetworkError;
 
@@ -54,6 +56,7 @@ fn test_ethernet_frame_size() {
     const MIN_PAYLOAD: usize = 46;
     const MAX_PAYLOAD: usize = 1500;
     const FCS_SIZE: usize = 4;
+
     let min_frame = ETH_HEADER_SIZE + MIN_PAYLOAD + FCS_SIZE;
     let max_frame = ETH_HEADER_SIZE + MAX_PAYLOAD + FCS_SIZE;
 
