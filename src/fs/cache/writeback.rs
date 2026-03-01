@@ -36,7 +36,7 @@ impl WritebackQueue {
         }
     }
 
-    fn add_file(&mut self, path: String, inode: u64) {
+    fn _add_file(&mut self, path: String, inode: u64) {
         if !self.files.iter().any(|f| f.inode == inode) {
             self.files.push(FileInfo {
                 path,
