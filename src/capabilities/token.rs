@@ -27,10 +27,6 @@ use spin::{Once, RwLock};
 
 use super::{bits_to_caps, caps_to_bits, Capability};
 
-// ============================================================================
-// Capability Token
-// ============================================================================
-
 /// Cryptographically signed capability token
 #[derive(Debug, Clone)]
 pub struct CapabilityToken {
@@ -77,7 +73,7 @@ impl CapabilityToken {
     /// Serialize to binary: [ver:1][owner:8][bits:8][exp:8][nonce:8][sig:64]
     pub fn to_bytes(&self) -> [u8; 97] {
         let mut out = [0u8; 97];
-        out[0] = 1; // version
+        out[0] = 1;
         out[1..9].copy_from_slice(&self.owner_module.to_le_bytes());
         out[9..17].copy_from_slice(&caps_to_bits(&self.permissions).to_le_bytes());
         out[17..25].copy_from_slice(&self.expires_at_ms.unwrap_or(0).to_le_bytes());
@@ -115,10 +111,6 @@ impl core::fmt::Display for CapabilityToken {
     }
 }
 
-// ============================================================================
-// Signing Key
-// ============================================================================
-
 static SIGNING_KEY: Once<[u8; 32]> = Once::new();
 
 /// Install signing key (once during boot)
@@ -137,10 +129,6 @@ pub fn has_signing_key() -> bool { SIGNING_KEY.get().is_some() }
 
 #[inline]
 pub fn signing_key() -> Option<&'static [u8; 32]> { SIGNING_KEY.get() }
-
-// ============================================================================
-// Signature Operations
-// ============================================================================
 
 fn token_material(owner: u64, bits: u64, exp: u64, nonce: u64) -> [u8; 32] {
     let mut out = [0u8; 32];
@@ -192,10 +180,6 @@ pub fn verify_token(tok: &CapabilityToken) -> bool {
     mac64(key, &mat) == tok.signature
 }
 
-// ============================================================================
-// Nonce & Creation
-// ============================================================================
-
 static NONCE_CTR: AtomicU64 = AtomicU64::new(1);
 
 #[inline]
@@ -222,10 +206,6 @@ pub fn create_token(
     sign_token(&mut tok)?;
     Ok(tok)
 }
-
-// ============================================================================
-// Revocation
-// ============================================================================
 
 static REVOKED: RwLock<BTreeSet<(u64, u64)>> = RwLock::new(BTreeSet::new());
 
