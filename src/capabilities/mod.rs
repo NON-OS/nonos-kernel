@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2025 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -13,10 +13,12 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-//
-//! Capability-Based Security System
 
 extern crate alloc;
+
+mod bits;
+pub mod roles;
+mod types;
 
 pub mod audit;
 pub mod chain;
@@ -25,106 +27,51 @@ pub mod multisig;
 pub mod resource;
 pub mod token;
 
-use alloc::vec::Vec;
-
-// Re-export token module
-pub use token::{
-    clear_revocations, create_token, default_nonce, has_signing_key, is_revoked,
-    revoke_token, revoked_count, set_signing_key, sign_token, signing_key,
-    verify_token, CapabilityToken,
+pub use bits::{
+    add_capability, bits_to_caps, capability_count, caps_to_bits, has_capability, remove_capability,
 };
 
-// ============================================================================
-// Core Capability Enum
-// ============================================================================
+pub use types::Capability;
 
-/// System capability types
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub enum Capability {
-    CoreExec,
-    IO,
-    Network,
-    IPC,
-    Memory,
-    Crypto,
-    FileSystem,
-    Hardware,
-    Debug,
-    Admin,
-}
+pub use token::{
+    clear_revocations, create_token, create_token_with_nonce, current_nonce_counter, default_nonce,
+    from_bytes, has_signing_key, is_revoked, is_token_not_revoked, is_token_signature_valid,
+    is_token_valid, mac64, reset_nonce_counter, revoke_all_for_owner, revoke_token, revoked_count,
+    set_signing_key, sign_token, signing_key, to_bytes, token_material, validate_token_full,
+    verify_token, CapabilityToken, TOKEN_BINARY_SIZE, TOKEN_VERSION,
+};
 
-impl Capability {
-    #[inline]
-    pub(crate) const fn bit(self) -> u64 {
-        match self {
-            Self::CoreExec => 1 << 0,
-            Self::IO => 1 << 1,
-            Self::Network => 1 << 2,
-            Self::IPC => 1 << 3,
-            Self::Memory => 1 << 4,
-            Self::Crypto => 1 << 5,
-            Self::FileSystem => 1 << 6,
-            Self::Hardware => 1 << 7,
-            Self::Debug => 1 << 8,
-            Self::Admin => 1 << 9,
-        }
-    }
+pub use audit::{
+    capacity as audit_capacity, clear_log, get_by_action, get_by_capability, get_by_module,
+    get_by_time_range, get_failures, get_log, get_recent, get_stats, get_successes, is_empty,
+    log_count, log_failure, log_raw, log_success, log_use, reset_stats, AuditCounters, AuditEntry,
+    AuditStatsSnapshot, MAX_LOG_ENTRIES, BUFFER as AUDIT_BUFFER, STATS as AUDIT_STATS,
+};
 
-    pub const fn all() -> [Capability; 10] {
-        [
-            Self::CoreExec, Self::IO, Self::Network, Self::IPC, Self::Memory,
-            Self::Crypto, Self::FileSystem, Self::Hardware, Self::Debug, Self::Admin,
-        ]
-    }
+pub use chain::{
+    effective_capabilities, first_invalid_index, is_chain_valid, max_chain_depth,
+    verify_all_capabilities, verify_chain, verify_chain_capability, CapabilityChain, ChainError,
+    MAX_CHAIN_DEPTH,
+};
 
-    pub const fn as_str(&self) -> &'static str {
-        match self {
-            Self::CoreExec => "CoreExec",
-            Self::IO => "IO",
-            Self::Network => "Network",
-            Self::IPC => "IPC",
-            Self::Memory => "Memory",
-            Self::Crypto => "Crypto",
-            Self::FileSystem => "FileSystem",
-            Self::Hardware => "Hardware",
-            Self::Debug => "Debug",
-            Self::Admin => "Admin",
-        }
-    }
-}
+pub use delegation::{
+    compute_delegation_signature, create_delegation, create_delegation_unchecked,
+    delegation_material, sign_delegation, verify_delegation, verify_delegation_standalone,
+    verify_delegation_strict, Delegation, DelegationError,
+};
 
-impl core::fmt::Display for Capability {
-    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        write!(f, "{}", self.as_str())
-    }
-}
+pub use multisig::{
+    add_signature, clear_signatures, compute_signature as multisig_compute_signature,
+    count_valid_signatures, create_multisig_token, create_multisig_token_with_nonce, max_signers,
+    max_threshold, remove_signature, signature_material, verify_multisig, verify_multisig_strict,
+    MultiSigError, MultiSigToken, MAX_SIGNERS, MAX_THRESHOLD, SIGNATURE_SIZE,
+};
 
-// ============================================================================
-// Bit Packing
-// ============================================================================
-
-#[inline]
-pub fn caps_to_bits(caps: &[Capability]) -> u64 {
-    caps.iter().fold(0u64, |acc, c| acc | c.bit())
-}
-
-#[inline]
-pub fn bits_to_caps(bits: u64) -> Vec<Capability> {
-    Capability::all().into_iter().filter(|c| bits & c.bit() != 0).collect()
-}
-
-// ============================================================================
-// Role Presets
-// ============================================================================
-
-pub mod roles {
-    use super::Capability::{self, *};
-
-    pub const KERNEL: &[Capability] = &[
-        CoreExec, IO, Network, IPC, Memory, Crypto, FileSystem, Hardware, Debug, Admin,
-    ];
-    pub const SYSTEM_SERVICE: &[Capability] = &[CoreExec, IPC, Memory, FileSystem];
-    pub const SANDBOXED_MOD: &[Capability] = &[CoreExec, IPC, Memory];
-    pub const NETWORK_SERVICE: &[Capability] = &[CoreExec, IPC, Memory, Network];
-    pub const USER_APP: &[Capability] = &[CoreExec, IPC];
-}
+pub use resource::{
+    compute_signature as resource_compute_signature, create_resource_token,
+    create_resource_token_with_nonce, next_nonce as resource_next_nonce, refund_bytes, refund_ops,
+    reset_nonce_counter as resource_reset_nonce_counter, reset_token, sign_resource_token,
+    token_material as resource_token_material, try_consume, try_consume_bytes, try_consume_ops,
+    verify_resource_token, verify_resource_token_strict, ResourceError, ResourceQuota,
+    ResourceToken,
+};
