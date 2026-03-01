@@ -78,7 +78,7 @@ impl OpenFile {
     }
 }
 
-// ## SAFETY: Caller must ensure `src` points to valid memory of at least `len` bytes.
+// SAFETY: Caller must ensure `src` points to valid memory of at least `len` bytes.
 #[inline]
 pub unsafe fn copy_from_user_ptr(src: *const u8, dst: &mut [u8]) -> FdResult<usize> { unsafe {
     if src.is_null() {
@@ -92,7 +92,7 @@ pub unsafe fn copy_from_user_ptr(src: *const u8, dst: &mut [u8]) -> FdResult<usi
     Ok(len)
 }}
 
-// ## SAFETY: Caller must ensure `dst` points to valid writable memory of at least `src.len()` bytes.
+// SAFETY: Caller must ensure `dst` points to valid writable memory of at least `src.len()` bytes.
 #[inline]
 pub unsafe fn copy_to_user_ptr(src: &[u8], dst: *mut u8) -> FdResult<usize> { unsafe {
     if dst.is_null() {
@@ -106,7 +106,7 @@ pub unsafe fn copy_to_user_ptr(src: &[u8], dst: *mut u8) -> FdResult<usize> { un
     Ok(len)
 }}
 
-// ## SAFETY: Caller must ensure `ptr` points to valid readable memory.
+// SAFETY: Caller must ensure `ptr` points to valid readable memory.
 #[inline]
 pub unsafe fn read_user_byte(ptr: *const u8) -> FdResult<u8> { unsafe {
     if ptr.is_null() {
@@ -115,7 +115,7 @@ pub unsafe fn read_user_byte(ptr: *const u8) -> FdResult<u8> { unsafe {
     Ok(core::ptr::read(ptr))
 }}
 
-// ## SAFETY: Caller must ensure `ptr` points to valid writable memory.
+// SAFETY: Caller must ensure `ptr` points to valid writable memory.
 #[inline]
 pub unsafe fn write_user_byte(ptr: *mut u8, value: u8) -> FdResult<()> { unsafe {
     if ptr.is_null() {
@@ -134,7 +134,7 @@ pub fn cstr_to_string(ptr: *const u8) -> FdResult<String> {
     let mut off = 0usize;
 
     loop {
-        // ## Safety: We check null above, and bounds below
+        // SAFETY: We check null above, and bounds below
         let b = unsafe { core::ptr::read(ptr.add(off)) };
         if b == 0 {
             break;
