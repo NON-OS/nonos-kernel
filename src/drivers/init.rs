@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -14,9 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+//! Driver initialization.
 
 use super::{
-    init_e1000, init_rtl8139, init_tpm, init_wifi, print_wifi_status, TpmError,
+    init_e1000, init_rtl8139, init_rtl8168, init_tpm, init_wifi, print_wifi_status, TpmError,
 };
 
 pub fn init_all_drivers() -> Result<(), &'static str> {
@@ -28,6 +29,11 @@ pub fn init_all_drivers() -> Result<(), &'static str> {
     crate::log::logger::log_critical("Initializing NONOS driver stack via MONSTER orchestrator...");
     super::monster::monster_init()?;
     crate::log::logger::log_critical("✓ NONOS driver stack initialized");
+
+    let i2c_count = super::i2c::init();
+    if i2c_count > 0 {
+        crate::log_info!("[I2C] Initialized {} Intel LPSS I2C controller(s)", i2c_count);
+    }
 
     crate::log_info!("[TPM] Probing for TPM 2.0...");
     match init_tpm() {
@@ -54,6 +60,13 @@ pub fn init_all_drivers() -> Result<(), &'static str> {
     match init_rtl8139() {
         Ok(()) => {
             crate::log::logger::log_critical("✓ Realtek RTL8139 Ethernet initialized");
+        }
+        Err(_) => {}
+    }
+
+    match init_rtl8168() {
+        Ok(()) => {
+            crate::log::logger::log_critical("✓ Realtek RTL8168 Gigabit Ethernet initialized");
         }
         Err(_) => {}
     }
