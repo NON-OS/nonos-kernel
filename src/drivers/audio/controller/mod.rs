@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2025 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+//! HD Audio controller implementation.
+
 mod helpers;
 mod corb_rirb;
 mod stream;
@@ -21,22 +23,18 @@ mod codec;
 mod init;
 mod hda_controller;
 
-// Re-export main controller
 pub use hda_controller::HdAudioController;
-// Re-export register access trait
 pub use helpers::RegisterAccess;
-// Re-export initialization types and functions
+
 pub use init::{
-    Capabilities, InitStage, init_stats,
+    Capabilities, InitStage,
     shutdown_controller, is_running, is_in_reset, read_version, validate_controller,
 };
 
-// Re-export codec types and functions
-pub use codec::{
+pub(crate) use codec::{
     CodecInfo, WidgetInfo, AudioPath, CodecPaths, CodecQuirks,
     vendor_name, device_name, get_codec_quirks, apply_codec_quirks, codec_stats,
     widget_type_name, pin_device_type_name,
 };
 
-// Re-export CORB/RIRB utilities
 pub use corb_rirb::compose_verb;
