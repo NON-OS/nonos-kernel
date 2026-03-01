@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -14,12 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+//! Network stack interface.
+
 use alloc::vec::Vec;
 use core::sync::atomic::{AtomicU64, Ordering};
-use super::device::VirtioNetDevice;
+
 use super::{get_virtio_net_device, VIRTIO_NET};
 
 pub struct VirtioNetInterface;
+
 impl crate::drivers::network::stack::NetworkInterface for VirtioNetInterface {
     fn send_packet(&self, frame: &[u8]) -> Result<(), &'static str> {
         if let Some(d) = get_virtio_net_device() {
