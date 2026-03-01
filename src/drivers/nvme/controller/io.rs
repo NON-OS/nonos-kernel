@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -13,6 +13,8 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+//! NVMe I/O command handling.
 
 use x86_64::PhysAddr;
 use super::super::constants::*;
@@ -36,8 +38,10 @@ pub fn read_blocks(
 
     let transfer_size = (block_count as usize) * (ns.block_size() as usize);
     DmaValidator::validate_buffer(buffer_phys, transfer_size)?;
+
     let prp_builder = PrpBuilder::build(buffer_phys, transfer_size)?;
     let (prp1, prp2, _prp_list) = prp_builder.into_prps();
+
     let cmd = SubmissionEntry::build_read(
         0,
         ns.nsid(),
@@ -49,6 +53,7 @@ pub fn read_blocks(
 
     stats.record_submit();
     let result = io_queue.submit_and_wait(cmd);
+
     match result {
         Ok(_) => {
             stats.record_complete();
@@ -74,8 +79,10 @@ pub fn write_blocks(
 
     let transfer_size = (block_count as usize) * (ns.block_size() as usize);
     DmaValidator::validate_buffer(buffer_phys, transfer_size)?;
+
     let prp_builder = PrpBuilder::build(buffer_phys, transfer_size)?;
     let (prp1, prp2, _prp_list) = prp_builder.into_prps();
+
     let cmd = SubmissionEntry::build_write(
         0,
         ns.nsid(),
@@ -145,6 +152,7 @@ pub fn trim(
 
     let buffer_size = ranges.len() * DSM_RANGE_SIZE;
     let buffer = DmaRegion::allocate(buffer_size)?;
+
     for (i, &(lba, count)) in ranges.iter().enumerate() {
         let range = DsmRange::new(lba, count, DSM_ATTR_DEALLOCATE);
         // SAFETY: buffer is valid DMA region, pointer arithmetic within bounds
@@ -292,6 +300,7 @@ pub fn submit_read_async(
 
     let prp_builder = PrpBuilder::build(buffer_phys, transfer_size)?;
     let (prp1, prp2, _prp_list) = prp_builder.into_prps();
+
     let cmd = SubmissionEntry::build_read(
         0,
         ns.nsid(),
@@ -323,8 +332,10 @@ pub fn submit_write_async(
 
     let transfer_size = (block_count as usize) * (ns.block_size() as usize);
     DmaValidator::validate_buffer(buffer_phys, transfer_size)?;
+
     let prp_builder = PrpBuilder::build(buffer_phys, transfer_size)?;
     let (prp1, prp2, _prp_list) = prp_builder.into_prps();
+
     let cmd = SubmissionEntry::build_write(
         0,
         ns.nsid(),
@@ -350,6 +361,7 @@ pub fn wait_for_completion(
     stats: &NvmeStats,
 ) -> Result<(), NvmeError> {
     let result = io_queue.wait(handle.cid);
+
     match result {
         Ok(_) => {
             stats.record_complete();
