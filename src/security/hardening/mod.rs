@@ -34,5 +34,5 @@ pub use memory_sanitization::{
     init_stack_canary, get_stack_canary, verify_stack_canary, stack_canary_failed,
     GuardPage, allocate_with_guards, free_with_guards, SensitiveData, SecureString,
     on_free, on_realloc, sanitize_process_memory, zerostate_shutdown_wipe,
-    SanitizationStats, get_stats as sanitization_stats, set_level, get_level,
+    SanitizationStats, sanitization_stats, set_level, get_level,
 };
