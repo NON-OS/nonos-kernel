@@ -179,7 +179,7 @@ impl ModuleManifest {
     }
 
     pub fn secure_erase(&mut self) {
-        // # SAFETY: Volatile writes ensure data is actually erased
+        // SAFETY: Volatile writes ensure data is actually erased
         secure_erase_string(&mut self.name);
         secure_erase_string(&mut self.version);
         secure_erase_string(&mut self.author);
@@ -194,7 +194,7 @@ impl ModuleManifest {
 }
 
 fn secure_erase_string(s: &mut String) {
-    // # SAFETY: Volatile writes prevent optimization
+    // SAFETY: Volatile writes prevent optimization
     let bytes = unsafe { s.as_bytes_mut() };
     for b in bytes.iter_mut() {
         unsafe { core::ptr::write_volatile(b, 0) };
