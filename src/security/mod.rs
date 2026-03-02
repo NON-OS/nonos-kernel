@@ -45,6 +45,8 @@ pub use crypto::constant_time;
 pub use crypto::random;
 pub use crypto::trusted_keys;
 pub use crypto::trusted_hashes;
+pub use crypto::trusted_keys as nonos_trusted_keys;
+pub use crypto::trusted_hashes as nonos_trusted_hashes;
 
 pub use crypto::{
     key_management_init, generate_key, import_key, use_key, export_key, rotate_key,
