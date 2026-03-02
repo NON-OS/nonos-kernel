@@ -37,6 +37,7 @@ pub mod userspace;
 pub mod elf_loader;
 pub mod address_space;
 pub mod accounting;
+pub mod acct_record;
 pub mod signal;
 
 pub use core::{
@@ -74,6 +75,9 @@ pub use operations_exec::{
 pub use capabilities::{CapabilitySet, Capability};
 
 pub use context::CpuContext;
+
+pub use core as nonos_core;
+pub use context as nonos_context;
 
 pub use accounting::{
     enable_accounting, disable_accounting, is_accounting_enabled,
