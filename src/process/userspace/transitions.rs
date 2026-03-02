@@ -16,6 +16,33 @@
 
 use super::types::{InterruptFrame, ExecContext};
 
+const CR4_SMEP: u64 = 1 << 20;
+const CR4_SMAP: u64 = 1 << 21;
+
+pub fn enable_smep() {
+    // SAFETY: Reading and writing CR4 to enable SMEP
+    unsafe {
+        let mut cr4: u64;
+        core::arch::asm!("mov {}, cr4", out(reg) cr4, options(nostack, preserves_flags));
+        if cr4 & CR4_SMEP == 0 {
+            cr4 |= CR4_SMEP;
+            core::arch::asm!("mov cr4, {}", in(reg) cr4, options(nostack, preserves_flags));
+        }
+    }
+}
+
+pub fn enable_smap() {
+    // SAFETY: Reading and writing CR4 to enable SMAP
+    unsafe {
+        let mut cr4: u64;
+        core::arch::asm!("mov {}, cr4", out(reg) cr4, options(nostack, preserves_flags));
+        if cr4 & CR4_SMAP == 0 {
+            cr4 |= CR4_SMAP;
+            core::arch::asm!("mov cr4, {}", in(reg) cr4, options(nostack, preserves_flags));
+        }
+    }
+}
+
 #[unsafe(naked)]
 #[no_mangle]
 pub unsafe extern "C" fn jump_to_usermode(entry: u64, stack: u64, arg: u64) -> ! {
