@@ -16,7 +16,7 @@
 
 use crate::storage::block::BlockResult;
 use super::super::types::*;
-use super::super::{serial_println, SECTOR_BUFFER};
+use super::super::state::SECTOR_BUFFER;
 
 pub fn read_fat_entry(
     fs: &Fat32,
@@ -138,7 +138,6 @@ pub fn allocate_cluster_chain(
     }
 
     if allocated < count {
-        serial_println(b"[FAT32] WARNING: Not enough free clusters");
         return Ok(None);
     }
 
