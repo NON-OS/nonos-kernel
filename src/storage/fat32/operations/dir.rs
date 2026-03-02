@@ -16,7 +16,7 @@
 
 use crate::storage::block::BlockResult;
 use super::super::types::*;
-use super::super::SECTOR_BUFFER;
+use super::super::state::SECTOR_BUFFER;
 use super::cluster::{is_eof, read_fat_entry};
 
 pub fn make_dir_entry(name: &[u8], is_dir: bool, first_cluster: u32, file_size: u32) -> DirEntry {
