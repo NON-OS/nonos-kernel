@@ -16,7 +16,7 @@
 
 use crate::storage::block::BlockResult;
 use super::super::types::*;
-use super::super::SECTOR_BUFFER;
+use super::super::state::SECTOR_BUFFER;
 
 pub fn write_cluster(
     fs: &Fat32,
