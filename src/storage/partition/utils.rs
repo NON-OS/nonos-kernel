@@ -18,9 +18,8 @@ extern crate alloc;
 
 use alloc::string::String;
 
-use super::types::{
-    partition_types, mbr_types, PartitionType, Partition, DetectedOs, OsType,
-};
+use super::constants::{partition_types, mbr_types};
+use super::types::{PartitionType, Partition, DetectedOs, OsType};
 
 pub fn guid_to_partition_type(guid: &[u8; 16]) -> PartitionType {
     if guid == &partition_types::EFI_SYSTEM {
