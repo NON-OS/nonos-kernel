@@ -60,6 +60,7 @@ pub fn load_module(image: &[u8], params: Option<&str>) -> LoaderResult<u64> {
     }
 
     let pubkey = extract_pubkey_from_header(image);
+
     let mut request = LoaderRequest::new(name, code.to_vec())
         .with_signature(signature, pubkey);
 
@@ -74,6 +75,7 @@ pub fn load_module(image: &[u8], params: Option<&str>) -> LoaderResult<u64> {
 
 pub fn load_with_policy(request: LoaderRequest, policy: &LoaderPolicy) -> LoaderResult<u64> {
     let manifest = ModuleManifest::new(&request.name, &request.code);
+
     if policy.privacy_enforced && manifest.privacy_policy != policy.required_privacy {
         return Err(LoaderError::PrivacyPolicyMismatch);
     }
@@ -107,6 +109,7 @@ pub fn load_with_policy(request: LoaderRequest, policy: &LoaderPolicy) -> Loader
         .map_err(|_| LoaderError::StartFailed)?;
 
     crate::log::logger::log_info!("Module loaded: {} (id={})", request.name, module_id);
+
     Ok(module_id)
 }
 
@@ -121,15 +124,18 @@ fn extract_pubkey_from_header(image: &[u8]) -> [u8; 32] {
 pub fn unload_module(name: &str, _force: bool) -> LoaderResult<()> {
     let info = super::super::registry::get_module_info(name)
         .map_err(|_| LoaderError::ModuleNotFound)?;
+
     if info.state.is_active() {
         stop_module(info.id)
             .map_err(|_| LoaderError::StopFailed)?;
     }
 
     let _ = super::super::sandbox::destroy_sandbox(info.id);
+
     unregister_module(name)
         .map_err(|_| LoaderError::ModuleNotFound)?;
 
     crate::log::logger::log_info!("Module unloaded: {} (id={})", name, info.id);
+
     Ok(())
 }
