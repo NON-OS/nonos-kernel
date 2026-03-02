@@ -1,0 +1,161 @@
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+
+extern crate alloc;
+
+use alloc::vec::Vec;
+use core::sync::atomic::{AtomicBool, AtomicU32, Ordering};
+use spin::Mutex;
+
+use crate::smp::{cpu_count, cpus_online, get_cpu, MAX_CPUS};
+use super::types::{IpiFn, IpiWork, IpiWorkQueue, IPI_CALL_FUNCTION, IPI_BARRIER};
+
+pub use crate::smp::cpu_id;
+
+static IPI_QUEUES: Mutex<[IpiWorkQueue; MAX_CPUS]> = {
+    const INIT: IpiWorkQueue = IpiWorkQueue::new();
+    Mutex::new([INIT; MAX_CPUS])
+};
+
+static BARRIER_ARRIVED: AtomicU32 = AtomicU32::new(0);
+static BARRIER_GENERATION: AtomicU32 = AtomicU32::new(0);
+static BARRIER_TARGET: AtomicU32 = AtomicU32::new(0);
+
+pub fn call_on_cpu(target_cpu: usize, func: IpiFn, arg: usize) -> Result<(), &'static str> {
+    if target_cpu >= cpu_count() {
+        return Err("Invalid CPU ID");
+    }
+
+    if target_cpu == cpu_id() {
+        func(arg);
+        return Ok(());
+    }
+
+    let cpu = get_cpu(target_cpu).ok_or("CPU not found")?;
+    if !cpu.is_online() {
+        return Err("CPU is offline");
+    }
+
+    let work = IpiWork {
+        func,
+        arg,
+        done: AtomicBool::new(false),
+    };
+
+    {
+        let mut queues = IPI_QUEUES.lock();
+        if !queues[target_cpu].push(work) {
+            return Err("IPI queue full");
+        }
+    }
+
+    crate::arch::x86_64::interrupt::apic::ipi_one(cpu.apic_id, IPI_CALL_FUNCTION);
+
+    Ok(())
+}
+
+pub fn call_on_all(func: IpiFn, arg: usize) {
+    let count = cpu_count();
+    let self_cpu = cpu_id();
+
+    for cpu in 0..count {
+        if cpu == self_cpu {
+            func(arg);
+        } else {
+            let _ = call_on_cpu(cpu, func, arg);
+        }
+    }
+}
+
+pub fn call_on_others(func: IpiFn, arg: usize) {
+    let count = cpu_count();
+    let self_cpu = cpu_id();
+
+    for cpu in 0..count {
+        if cpu != self_cpu {
+            let _ = call_on_cpu(cpu, func, arg);
+        }
+    }
+}
+
+pub fn handle_call_function_ipi() {
+    let my_cpu = cpu_id();
+
+    loop {
+        let work = {
+            let mut queues = IPI_QUEUES.lock();
+            queues[my_cpu].pop()
+        };
+
+        match work {
+            Some(w) => {
+                (w.func)(w.arg);
+                w.done.store(true, Ordering::Release);
+            }
+            None => break,
+        }
+    }
+}
+
+pub fn barrier_all() {
+    let target = cpus_online() as u32;
+    let _gen = BARRIER_GENERATION.fetch_add(1, Ordering::AcqRel);
+
+    BARRIER_TARGET.store(target, Ordering::Release);
+
+    crate::arch::x86_64::interrupt::apic::ipi_others(IPI_BARRIER);
+
+    let arrived = BARRIER_ARRIVED.fetch_add(1, Ordering::AcqRel) + 1;
+
+    if arrived == target {
+        BARRIER_ARRIVED.store(0, Ordering::Release);
+    } else {
+        while BARRIER_ARRIVED.load(Ordering::Acquire) != 0 {
+            core::hint::spin_loop();
+        }
+    }
+}
+
+pub fn handle_barrier_ipi() {
+    let target = BARRIER_TARGET.load(Ordering::Acquire);
+
+    let arrived = BARRIER_ARRIVED.fetch_add(1, Ordering::AcqRel) + 1;
+
+    if arrived == target {
+        BARRIER_ARRIVED.store(0, Ordering::Release);
+    } else {
+        while BARRIER_ARRIVED.load(Ordering::Acquire) != 0 {
+            core::hint::spin_loop();
+        }
+    }
+}
+
+pub fn broadcast_collect<T: Copy + Default>(
+    func: fn(arg: usize) -> T,
+    arg: usize,
+) -> Vec<T> {
+    let count = cpu_count();
+    let mut results = alloc::vec![T::default(); count];
+
+    for cpu in 0..count {
+        if cpu == cpu_id() {
+            results[cpu] = func(arg);
+        }
+    }
+
+    results
+}
