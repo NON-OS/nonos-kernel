@@ -1,0 +1,44 @@
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+
+extern crate alloc;
+
+pub mod crypto;
+pub mod error;
+pub mod manager;
+pub mod types;
+
+#[cfg(test)]
+mod tests;
+
+pub use error::{SandboxError, SandboxResult};
+
+pub use types::{SandboxConfig, SandboxState};
+
+pub use manager::{
+    destroy_sandbox,
+    get_sandbox_capabilities,
+    init_sandbox_boundary,
+    is_sandbox_active,
+    list_active_sandboxes,
+    sandbox_has_all_capabilities,
+    sandbox_has_capability,
+    setup_sandbox,
+    validate_capabilities,
+};
+
+pub use crypto::{generate_quantum_keys, secure_erase_quantum_keys};
