@@ -29,5 +29,5 @@ pub use cluster::{
 pub use create::{create_file, update_file};
 pub use dir::{make_dir_entry, find_free_dir_slot, update_dir_entry};
 pub use file::{rename_file, delete_file};
-pub use read::{read_directory, find_file, read_file, list_directory};
+pub use read::{read_directory, find_file, read_file, count_directory_entries};
 pub use write::write_cluster;
