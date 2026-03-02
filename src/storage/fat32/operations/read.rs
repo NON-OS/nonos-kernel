@@ -16,7 +16,7 @@
 
 use crate::storage::block::BlockResult;
 use super::super::types::*;
-use super::super::{serial_print, serial_println, serial_print_dec, SECTOR_BUFFER};
+use super::super::state::SECTOR_BUFFER;
 use super::cluster::{is_eof, read_fat_entry};
 
 pub fn read_directory(
@@ -147,38 +147,24 @@ pub fn read_file(
     Ok(bytes_read)
 }
 
-pub fn list_directory(
+pub fn count_directory_entries(
     fs: &Fat32,
     cluster: u32,
     read_fn: fn(u8, u64, &mut [u8]) -> BlockResult<()>,
-) -> BlockResult<()> {
-    fn print_entry(entry: &DirEntry) -> bool {
-        let mut name_buf = [0u8; 13];
-        let len = entry.get_short_name(&mut name_buf);
+) -> BlockResult<usize> {
+    static mut ENTRY_COUNT: usize = 0;
 
-        if entry.is_directory() {
-            serial_print(b"<DIR>  ");
-        } else {
-            serial_print(b"       ");
-        }
+    // SAFETY: Single-threaded kernel operation for entry counting.
+    unsafe { ENTRY_COUNT = 0; }
 
-        if !entry.is_directory() {
-            serial_print_dec(entry.file_size as u64);
-            serial_print(b"  ");
-        } else {
-            serial_print(b"          ");
-        }
-
-        serial_print(&name_buf[..len]);
-        serial_println(b"");
-
+    fn count_callback(_entry: &DirEntry) -> bool {
+        // SAFETY: Accessing static set before this callback is invoked.
+        unsafe { ENTRY_COUNT += 1; }
         true
     }
 
-    serial_println(b"Directory listing:");
-    serial_println(b"------------------");
-    read_directory(fs, cluster, read_fn, print_entry)?;
-    serial_println(b"------------------");
+    read_directory(fs, cluster, read_fn, count_callback)?;
 
-    Ok(())
+    // SAFETY: ENTRY_COUNT set by callback during read_directory.
+    Ok(unsafe { ENTRY_COUNT })
 }
