@@ -19,9 +19,9 @@ use super::pcid::pcid_enabled;
 
 #[inline(always)]
 pub fn invlpg(virt: VirtAddr) {
-    // # SAFETY: The INVLPG instruction is safe to execute:
+    // SAFETY: The INVLPG instruction is safe to execute:
     // 1. It only invalidates TLB entries - it does not access the memory at the address
-    // 2. We are in ring 0 (kernel mode) always true in kernel code
+    // 2. We are in ring 0 (kernel mode) - always true in kernel code
     // 3. The nostack option is correct as no stack space is used
     // 4. preserves_flags is correct as INVLPG does not modify RFLAGS
     unsafe {
@@ -35,11 +35,11 @@ pub fn invlpg(virt: VirtAddr) {
 
 #[inline(always)]
 pub fn flush_tlb() {
-    // # SAFETY: Reading CR3 and writing the same value back is safe:
+    // SAFETY: Reading CR3 and writing the same value back is safe:
     // 1. This is the canonical way to flush the TLB on x86_64
     // 2. Writing the same CR3 value does not change the page table base
-    // 3. We are in ring 0 (kernel mode) always true in kernel code
-    // # The nomem/nostack options are correct as these are pure register operations.
+    // 3. We are in ring 0 (kernel mode) - always true in kernel code
+    // The nomem/nostack options are correct as these are pure register operations.
     unsafe {
         let cr3: u64;
         core::arch::asm!("mov {}, cr3", out(reg) cr3, options(nomem, nostack));
@@ -50,13 +50,14 @@ pub fn flush_tlb() {
 #[inline(always)]
 pub fn flush_tlb_pcid(pcid: u16) {
     if pcid_enabled() {
+        // Use INVPCID instruction if available
         let descriptor: [u64; 2] = [pcid as u64, 0];
-        // # SAFETY: INVPCID instruction is safe to execute:
+        // SAFETY: INVPCID instruction is safe to execute:
         // 1. pcid_enabled() verified that PCID support is available
         // 2. The descriptor is a valid stack-allocated array with proper layout
         // 3. Type 1 (single-context invalidation) only invalidates TLB entries
-        // 4. We are in ring 0 (kernel mode) always true in kernel code
-        // # The nostack option is correct as no additional stack space is used.
+        // 4. We are in ring 0 (kernel mode) - always true in kernel code
+        // The nostack option is correct as no additional stack space is used.
         unsafe {
             core::arch::asm!(
                 "invpcid {}, [{}]",
