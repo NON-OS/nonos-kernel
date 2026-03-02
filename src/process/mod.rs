@@ -1,257 +1,85 @@
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 extern crate alloc;
 
-pub mod nonos_core;
-pub mod nonos_control;
-pub mod nonos_scheduler;
-pub mod nonos_numa;
-pub mod nonos_realtime;
-pub mod nonos_capabilities;
-pub mod nonos_exec;
-pub mod nox_process_mng;
-pub mod nonos_context;
+pub mod core;
+pub mod types;
+pub mod manager;
+pub mod fd_types;
+pub mod fd_table;
+pub mod clone_flags;
+mod clone_pcb;
+pub mod operations;
+pub mod operations_exec;
+pub mod control;
+pub mod scheduler;
+pub mod numa;
+pub mod realtime;
+pub mod capabilities;
+pub mod exec;
+pub mod nox;
+pub mod context;
+pub mod userspace;
+pub mod elf_loader;
+pub mod address_space;
+pub mod accounting;
+pub mod signal;
 
-// Re-exports with concise names
-pub use nonos_core as core;
-pub use nonos_core as real_process;
-pub use nonos_core::{ProcessControlBlock, ProcessTable, PROCESS_TABLE};
-pub use nonos_control as control;
-pub use nonos_scheduler as scheduler;
-pub use nonos_numa as numa;
-pub use nonos_realtime as realtime;
-pub use nonos_capabilities as capabilities;
-pub use nonos_exec as exec;
-pub use nox_process_mng as nox;
-pub use nonos_context as ctx;
+pub use core::{
+    ProcessControlBlock, ProcessTable, ProcessState, Priority, Pid, ThreadGroup,
+    PROCESS_TABLE, CURRENT_PID,
+    init_process_management, current_process, current_pid,
+    create_process, context_switch, get_process_table, get_process_stats,
+    isolate_process, suspend_process, is_process_active, is_process_active_by_id,
+    ProcessManagementStats, allocate_tid,
+};
 
-use alloc::{string::String, sync::Arc, vec::Vec};
-use crate::process::nonos_core::Ordering;
-use spin::{Once, RwLock};
-use x86_64::structures::paging::PageTableFlags;
-use crate::process::nonos_core::Pid;
+pub use types::Process;
 
-// Capability view exposed to syscall gate and policy
+pub use manager::{
+    ProcessManager, init_process_manager, get_process_manager, is_manager_initialized,
+};
+
+pub use clone_flags::{
+    CloneArgs,
+    CLONE_VM, CLONE_FS, CLONE_FILES, CLONE_SIGHAND, CLONE_THREAD,
+    CLONE_PARENT_SETTID, CLONE_CHILD_CLEARTID, CLONE_CHILD_SETTID, CLONE_SETTLS,
+    CLONE_NEWPID, CLONE_NEWUSER, CLONE_NEWNET, CLONE_NEWIPC, CLONE_NEWNS,
+    CLONE_NEWUTS, CLONE_NEWCGROUP, CLONE_PARENT, CLONE_VFORK, CLONE_DETACHED,
+};
+
+pub use operations::{fork_process, fork, clone_process, clone3};
+
+pub use operations_exec::{
+    exec_process, exec_fn, set_umask, set_root, update_memory_usage,
+    exit_current_process, exit_thread, get_thread_count, get_thread_ids,
+    get_current_process, get_current_process_capabilities,
+    enumerate_all_processes, get_all_processes,
+};
+
+pub use capabilities::{CapabilitySet, Capability};
+
+pub use context::CpuContext;
+
+pub use accounting::{
+    enable_accounting, disable_accounting, is_accounting_enabled,
+    record_process_exit, record_exit_from_pcb, get_accounting_stats,
+    get_recent_records, get_all_records, clear_records, find_by_pid,
+    ProcessRecord, AcctRecord, AFORK, ASU, ACORE, AXSIG,
+};
+
 pub type ProcessCapabilities = capabilities::CapabilitySet;
-
-// Keep external callers stable
-#[inline]
-pub fn init_process_management() {
-    core::init_process_management()
-}
-#[inline]
-pub fn current_process() -> Option<Arc<core::ProcessControlBlock>> {
-    core::current_process()
-}
-#[inline]
-pub fn current_pid() -> Option<u32> {
-    core::current_pid()
-}
-#[inline]
-pub fn create_process(
-    name: &str,
-    state: core::ProcessState,
-    prio: core::Priority,
-) -> Result<u32, &'static str> {
-    core::create_process(name, state, prio)
-}
-#[inline]
-pub fn context_switch(to: u32) -> Result<(), &'static str> {
-    core::context_switch(to)
-}
-#[inline]
-pub fn get_process_table() -> &'static core::ProcessTable {
-    core::get_process_table()
-}
-#[inline]
-pub fn get_process_stats() -> core::ProcessManagementStats {
-    core::get_process_stats()
-}
-#[inline]
-pub fn isolate_process(pid: u32) -> Result<(), &'static str> {
-    core::isolate_process(pid)
-}
-#[inline]
-pub fn suspend_process(pid: u32) -> Result<(), &'static str> {
-    core::suspend_process(pid)
-}
-
-// Lightweight process snapshot for non-core consumers
-#[derive(Clone)]
-pub struct Process {
-    pub pid: u32,
-    pub name: String,
-    pcb: Option<Arc<core::ProcessControlBlock>>,
-}
-
-impl Process {
-    #[inline]
-    pub fn pid(&self) -> u32 {
-        self.pid
-    }
-    #[inline]
-    pub fn name(&self) -> &str {
-        &self.name
-    }
-
-    pub fn serialize_state(&self) -> Vec<u8> {
-        let mut out = Vec::new();
-        out.extend_from_slice(&self.pid.to_le_bytes());
-        out.extend_from_slice(self.name.as_bytes());
-        out
-    }
-
-    pub fn terminate_with_signal(&self, signal: i32) {
-        if let Some(ref pcb) = self.pcb {
-            pcb.terminate(signal);
-        }
-    }
-
-    pub fn command_line(&self) -> Option<String> {
-        self.pcb.as_ref().and_then(|pcb| {
-            let argv = pcb.argv.lock();
-            if argv.is_empty() {
-                None
-            } else {
-                Some(argv.join(" "))
-            }
-        })
-    }
-
-    pub fn environment_variables(&self) -> Option<Vec<(String, String)>> {
-        self.pcb.as_ref().and_then(|pcb| {
-            let envp = pcb.envp.lock();
-            if envp.is_empty() {
-                return None;
-            }
-            let mut v = Vec::with_capacity(envp.len());
-            for e in envp.iter() {
-                if let Some(eq) = e.find('=') {
-                    v.push((String::from(&e[..eq]), String::from(&e[eq + 1..])));
-                } else {
-                    v.push((e.clone(), String::new()));
-                }
-            }
-            Some(v)
-        })
-    }
-
-    pub fn is_authorized_executable_region(&self, address: u64) -> bool {
-        self.pcb.as_ref().map_or(false, |pcb| {
-            let mem = pcb.memory.lock();
-            if address >= mem.code_start.as_u64() && address < mem.code_end.as_u64() {
-                return true;
-            }
-            for vma in &mem.vmas {
-                if address >= vma.start.as_u64()
-                    && address < vma.end.as_u64()
-                    && vma.flags.contains(PageTableFlags::PRESENT)
-                {
-                    return true;
-                }
-            }
-            false
-        })
-    }
-}
-
-// Per-process metadata registry
-pub struct ProcessManager {
-    processes: RwLock<alloc::collections::BTreeMap<u32, Process>>,
-}
-impl ProcessManager {
-    #[inline]
-    pub fn new() -> Self {
-        Self {
-            processes: RwLock::new(alloc::collections::BTreeMap::new()),
-        }
-    }
-    pub fn get_process(&self, pid: u32) -> Option<Process> {
-        self.processes.read().get(&pid).cloned()
-    }
-    pub fn get_active_process_count(&self) -> usize {
-        self.processes.read().len()
-    }
-    pub fn pause_process(&self, pid: u32) -> Result<(), &'static str> {
-        suspend_process(pid).map_err(|_| "suspend failed")
-    }
-    pub fn upsert(&self, p: Process) {
-        self.processes.write().insert(p.pid, p);
-    }
-}
-
-static PROCESS_MANAGER: Once<ProcessManager> = Once::new();
-#[inline]
-pub fn init_process_manager() {
-    PROCESS_MANAGER.call_once(ProcessManager::new);
-}
-#[inline]
-pub fn get_process_manager() -> &'static ProcessManager {
-    PROCESS_MANAGER
-        .get()
-        .expect("process manager not initialized")
-}
-
-#[inline]
-pub fn enumerate_all_processes() -> Vec<Process> {
-    core::get_process_table()
-        .get_all_processes()
-        .into_iter()
-        .map(|pcb| {
-            let name = pcb.name.lock().clone();
-            Process {
-                pid: pcb.pid,
-                name,
-                pcb: Some(pcb),
-            }
-        })
-        .collect()
-}
-
-#[inline]
-pub fn get_all_processes() -> Vec<Process> {
-    enumerate_all_processes()
-}
-
-#[inline]
-pub fn get_current_process_capabilities() -> ProcessCapabilities {
-    if let Some(pcb) = current_process() {
-        let bits = pcb
-            .caps_bits
-            .load(Ordering::Relaxed);
-        capabilities::CapabilitySet::from_bits(bits)
-    } else {
-        capabilities::CapabilitySet::from_bits(u64::MAX)
-    }
-}
-
-#[inline]
-pub fn exit_current_process(status: i32) -> ! {
-    // Route to the kernel's syscall exit path (no halt loop).
-    core::syscalls::sys_exit(status)
-}
-
-/// Get the current process with real process tracking
-pub fn get_current_process() -> Option<Arc<ProcessControlBlock>> {
-    // In a real system, this would get the current process from the scheduler
-    // For now, return the first process if any exist
-    current_process()
-}
-
-/// Update memory usage statistics for a process
-pub fn update_memory_usage(process_id: u64, delta: i64) {
-    // Find the process and update its memory statistics
-    if let Some(pcb) = PROCESS_TABLE.find_by_pid(process_id as Pid) {
-        let memory = pcb.memory.lock();
-        if delta > 0 {
-            memory.resident_pages.fetch_add((delta as u64 + 4095) / 4096, Ordering::Relaxed);
-        } else {
-            memory.resident_pages.fetch_sub(((-delta) as u64 + 4095) / 4096, Ordering::Relaxed);
-        }
-        
-        // Log significant memory changes for debugging
-        let current_pages = memory.resident_pages.load(Ordering::Relaxed);
-        if delta.abs() > 1024 * 1024 { // 1MB threshold
-            crate::log::info!("Process {} memory usage: {} pages (delta: {} bytes)", 
-                process_id, current_pages, delta);
-        }
-    }
-}
