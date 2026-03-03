@@ -37,9 +37,11 @@ pub fn handle_mmio_map(phys_addr: u64, size: u64, flags: u64) -> SyscallResult {
     }
 
     let writable = (flags & 0x1) != 0;
-    let _uncacheable = (flags & 0x2) != 0;
+    let uncacheable = (flags & 0x2) != 0;
 
     let phys = phys_addr;
+
+    let cache_disabled = uncacheable;
 
     if phys < 0x100000 && !(phys >= 0xA0000 && phys < 0xC0000) {
         return errno(1);
@@ -81,7 +83,7 @@ pub fn handle_mmio_map(phys_addr: u64, size: u64, flags: u64) -> SyscallResult {
             x86_64::PhysAddr::new(page_phys),
             writable,
             true,
-            false,
+            cache_disabled,
         ) {
             for j in 0..i {
                 let unmap_virt = virt_base + j * page_size;
