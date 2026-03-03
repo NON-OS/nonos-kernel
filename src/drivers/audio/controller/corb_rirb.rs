@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! CORB/RIRB command ring buffer and immediate command interface.
 
 use core::ptr;
 use core::sync::atomic::Ordering;
