@@ -29,4 +29,13 @@ pub use push::push_event;
 pub use pop::{pop_event, pop_event_filtered, peek_event, peek_event_filtered, drain_events, drain_events_filtered};
 pub use api::{configure, get_config, queue_len, is_empty, clear, stats, total_events, dropped_events, shutdown, restart, is_shutdown, register_waiter, unregister_waiter};
 
-pub(super) use state::INPUT_QUEUE;
+pub(super) fn queue_pressure() -> u8 {
+    let queue = &state::INPUT_QUEUE;
+    let inner = queue.inner.lock();
+    let config = queue.config.read();
+    let len = inner.events.len();
+    if config.max_size == 0 {
+        return 0;
+    }
+    ((len * 100) / config.max_size).min(100) as u8
+}
