@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! VGA text mode constants.
 
 pub const VGA_BUFFER_ADDR: usize = 0xB8000;
 
