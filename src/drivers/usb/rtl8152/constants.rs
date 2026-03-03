@@ -1,7 +1,18 @@
 // NONOS Operating System
 // Copyright (C) 2026 NONOS Contributors
-// SPDX-License-Identifier: AGPL-3.0-or-later
-
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
 pub const REALTEK_VENDOR_ID: u16 = 0x0BDA;
 pub const RTL8152_PRODUCT_IDS: &[u16] = &[
     0x8050, 0x8152, 0x8153, 0x8155, 0x8156, 0x8158, 0x8151, 0x8171,
