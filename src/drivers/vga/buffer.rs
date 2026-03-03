@@ -14,8 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! VGA text buffer.
-
 use super::color::{decode_color, vga_color, Color, DEFAULT_COLOR};
 use super::constants::*;
 use super::io;
