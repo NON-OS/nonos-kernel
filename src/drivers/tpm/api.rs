@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! TPM 2.0 public API.
 
 use alloc::vec::Vec;
 use core::sync::atomic::{AtomicBool, Ordering};
