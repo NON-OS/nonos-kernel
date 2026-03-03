@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! NVMe security validation.
 
 use core::sync::atomic::{AtomicU32, AtomicU64, Ordering};
 use x86_64::PhysAddr;
