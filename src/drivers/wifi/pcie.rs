@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Intel WiFi PCIe transport layer.
 
 use super::constants::{
     csr, csr_bits, APM_INIT_TIMEOUT_US, INT_COALESCING_TIMEOUT, NIC_ACCESS_TIMEOUT_US,
