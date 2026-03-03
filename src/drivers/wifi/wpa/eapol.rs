@@ -54,9 +54,13 @@ pub fn parse_eapol_frame(frame: &[u8]) -> Result<EapolFrame, WifiError> {
 
     let version = frame[0];
     let packet_type = frame[1];
-    let _body_len = u16::from_be_bytes([frame[2], frame[3]]);
+    let body_len = u16::from_be_bytes([frame[2], frame[3]]) as usize;
 
     if packet_type != 0x03 {
+        return Err(WifiError::InvalidFrame);
+    }
+
+    if frame.len() < 4 + body_len {
         return Err(WifiError::InvalidFrame);
     }
 
