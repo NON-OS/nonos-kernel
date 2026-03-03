@@ -62,3 +62,4 @@ pub(crate) use super::isr::isr_irq12 as isr_44;
 pub(crate) use super::isr::isr_irq13 as isr_45;
 pub(crate) use super::isr::isr_irq14 as isr_46;
 pub(crate) use super::isr::isr_irq15 as isr_47;
+pub(crate) use super::isr::isr_syscall;
