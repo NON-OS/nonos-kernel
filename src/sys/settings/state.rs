@@ -6,9 +6,12 @@
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 
+//! Settings state management
+
 use core::sync::atomic::{AtomicBool, Ordering};
 use super::types::Settings;
 
+// Global settings instance
 pub(super) static mut CURRENT_SETTINGS: Settings = Settings::default();
 pub(super) static SETTINGS_LOADED: AtomicBool = AtomicBool::new(false);
 pub(super) static SETTINGS_MODIFIED: AtomicBool = AtomicBool::new(false);
