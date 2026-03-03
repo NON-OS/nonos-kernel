@@ -14,10 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod api;
 mod ansi;
+mod api;
 mod constants;
 pub mod error;
+mod macros;
 mod types;
 mod vga;
 mod writer;
@@ -25,22 +26,10 @@ mod writer;
 #[cfg(test)]
 mod tests;
 
-pub use api::{
-    clear, get_console_stats, get_stats_snapshot, init_console, print, printf, println,
-    set_color, write_message,
-};
 pub use ansi::{apply_sgr, AnsiAction, AnsiParser, ParserState};
+pub use api::{
+    clear, get_console_stats, get_stats_snapshot, init_console, print, printf, println, set_color,
+    write_message,
+};
 pub use constants::*;
 pub use types::{Color, ConsoleStats, ConsoleStatsSnapshot, LogLevel, VgaCell};
-
-#[macro_export]
-macro_rules! kprint {
-    ($($arg:tt)*) => ($crate::drivers::console::printf(format_args!($($arg)*)));
-}
-
-#[macro_export]
-macro_rules! kprintln {
-    () => ($crate::drivers::console::println(""));
-    ($fmt:expr) => ($crate::drivers::console::println($fmt));
-    ($fmt:expr, $($arg:tt)*) => ($crate::drivers::console::printf(format_args!(concat!($fmt, "\n"), $($arg)*)));
-}
