@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! WiFi driver unit tests.
 
 use super::rx::RxProcessor;
 use super::scan::{filter_by_security, ScanConfig, ScanResult, SecurityType, sort_by_signal};
