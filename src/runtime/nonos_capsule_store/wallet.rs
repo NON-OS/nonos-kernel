@@ -20,6 +20,7 @@ use super::state::CAPSULE_STORE;
 pub fn set_wallet(sk: [u8; 32]) -> Result<EthAddress, &'static str> {
     let wallet = Wallet::from_secret_key(sk).ok_or("Invalid secret key")?;
     let addr = wallet.address().clone();
+
     let lock = CAPSULE_STORE.lock();
     if let Some(store) = lock.as_ref() {
         let mut w = store.wallet.write();
