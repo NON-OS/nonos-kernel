@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! xHCI controller initialization and reset.
 
 use core::ptr;
 use core::sync::atomic::AtomicU64;
@@ -130,7 +129,7 @@ impl XhciController {
         let usbcmd = mmio_r32(VirtAddr::new((op_base + OP_USBCMD) as u64));
         mmio_w32(VirtAddr::new((op_base + OP_USBCMD) as u64), usbcmd | USBCMD_INTE | USBCMD_RS);
 
-        let mut ctrl = XhciController {
+        let ctrl = XhciController {
             _pci: pci,
             _cap_base: cap_base,
             op_base,
