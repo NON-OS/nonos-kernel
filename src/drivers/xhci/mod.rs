@@ -14,8 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! xHCI USB 3.0 host controller driver.
-
 mod api;
 pub mod constants;
 pub mod controller;
