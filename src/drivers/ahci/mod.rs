@@ -29,6 +29,4 @@ pub use api::{get_controller, init_ahci};
 pub use controller::{hdr_flags_for, AhciController};
 pub use error::AhciError;
 pub use stats::AhciStats;
-pub use types::{
-    AhciDevice, AhciDeviceType, AhciHba, CommandHeader, CommandTable, PhysicalRegionDescriptor,
-};
+pub use types::{AhciDevice, AhciDeviceType, AhciHba, CommandHeader, CommandTable, PhysicalRegionDescriptor};
