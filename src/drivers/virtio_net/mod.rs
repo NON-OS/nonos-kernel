@@ -38,7 +38,7 @@ mod tests;
 
 pub use api::{
     get_isr_handler, get_virtio_net_device, init_virtio_net, is_ready, mac_address, receive,
-    statistics, transmit, VIRTIO_NET,
+    statistics, super_virtio_isr, transmit, VIRTIO_NET,
 };
 pub use buffer::PacketBuffer;
 pub use constants::*;
