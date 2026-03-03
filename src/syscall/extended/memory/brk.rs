@@ -63,11 +63,6 @@ pub fn handle_brk(addr: u64) -> SyscallResult {
     if new_page > current_page {
         let pages_to_allocate = (new_page - current_page) / 4096;
 
-        let _page_flags = x86_64::structures::paging::PageTableFlags::PRESENT
-            | x86_64::structures::paging::PageTableFlags::WRITABLE
-            | x86_64::structures::paging::PageTableFlags::USER_ACCESSIBLE
-            | x86_64::structures::paging::PageTableFlags::NO_EXECUTE;
-
         for i in 0..pages_to_allocate {
             let page_va = VirtAddr::new(current_page + i * 4096);
 
