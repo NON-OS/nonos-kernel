@@ -23,7 +23,8 @@ use crate::network::onion::{CircuitId, OnionError, StreamId};
 use crate::network::onion::circuit::CircuitManager;
 use crate::network::onion::stream::StreamManager;
 use super::types::{CellType, RelayCommand, CELL_PAYLOAD_SIZE};
-use super::cell::{Cell, RelayCell};
+use super::cell_core::Cell;
+use super::cell_relay::RelayCell;
 
 #[derive(Debug, Default)]
 pub struct CellStatistics {
