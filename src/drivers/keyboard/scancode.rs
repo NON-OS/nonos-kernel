@@ -14,8 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Scancode processing.
-
 use super::constants::*;
 use super::event::KeyEvent;
 use super::io::update_leds;
