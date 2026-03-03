@@ -14,8 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Console writer implementation.
-
 use super::constants::*;
 use super::types::{Color, VgaCell, make_color};
 use super::vga;
