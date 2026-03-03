@@ -76,10 +76,15 @@ pub fn probe_ahci_controller(
     // SAFETY: HBA memory is properly mapped
     unsafe {
         let cap = core::ptr::read_volatile(&(*hba).cap);
-        let _cap2 = core::ptr::read_volatile(&(*hba).cap2);
+        let cap2 = core::ptr::read_volatile(&(*hba).cap2);
         let version = core::ptr::read_volatile(&(*hba).vs);
         let pi = core::ptr::read_volatile(&(*hba).pi);
         let ghc = core::ptr::read_volatile(&(*hba).ghc);
+
+        let supports_bios_handoff = (cap2 & 0x1) != 0;
+        if supports_bios_handoff {
+            crate::log::debug!("ahci: BIOS handoff supported");
+        }
 
         if (ghc & GHC_AE) == 0 {
             core::ptr::write_volatile(&mut (*hba).ghc, ghc | GHC_AE);
