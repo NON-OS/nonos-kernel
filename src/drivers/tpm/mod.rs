@@ -14,8 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! TPM 2.0 driver.
-
 extern crate alloc;
 
 mod api;
