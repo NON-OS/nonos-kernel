@@ -114,7 +114,7 @@ fn read_time_pair() -> (u64, u32, u64, u64, u32, u64) {
         let tsc_base = get_vdso().tsc_base;
         let mono_base_ns = get_vdso().mono_base_ns;
         let real_base_ns = get_vdso().real_base_ns;
-        let _tsc_now = rdtsc();
+        core::sync::atomic::fence(Ordering::Acquire);
 
         let s2 = get_vdso().seq.load(Ordering::Acquire);
         if s1 == s2 { return (tsc_mul, tsc_shift, tsc_base, mono_base_ns, s2, real_base_ns); }
