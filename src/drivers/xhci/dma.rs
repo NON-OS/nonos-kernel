@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! DMA memory management for xHCI driver.
 
 use core::ptr;
 use x86_64::{PhysAddr, VirtAddr};
