@@ -14,8 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! HD Audio controller initialization.
-
 use super::super::error::AudioError;
 use super::super::types::DmaRegion;
 use super::super::constants::*;
