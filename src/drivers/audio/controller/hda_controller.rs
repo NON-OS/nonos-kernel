@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! HD Audio controller driver.
 
 use core::ptr;
 use core::sync::atomic::{AtomicU64, AtomicU8, AtomicBool, Ordering};
