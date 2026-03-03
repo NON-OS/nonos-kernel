@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! NVMe namespace management.
 
 use alloc::vec::Vec;
 use super::types::LbaFormat;
@@ -39,6 +38,8 @@ pub struct Namespace {
     pub features: NamespaceFeatures,
     pub protection: DataProtection,
     pub multi_path: MultiPathCapabilities,
+    pub metadata_capabilities: u8,
+    pub reservation_capabilities: u8,
     pub lba_formats: Vec<LbaFormat>,
     active_lba_format_index: u8,
 }
@@ -81,11 +82,11 @@ impl Namespace {
         let nsfeat = data[IDENTIFY_NS_NSFEAT_OFFSET];
         let nlbaf = data[IDENTIFY_NS_NLBAF_OFFSET];
         let flbas = data[IDENTIFY_NS_FLBAS_OFFSET];
-        let _mc = data[IDENTIFY_NS_MC_OFFSET];
+        let mc = data[IDENTIFY_NS_MC_OFFSET];
         let dpc = data[IDENTIFY_NS_DPC_OFFSET];
         let dps = data[IDENTIFY_NS_DPS_OFFSET];
         let nmic = data[IDENTIFY_NS_NMIC_OFFSET];
-        let _rescap = data[IDENTIFY_NS_RESCAP_OFFSET];
+        let rescap = data[IDENTIFY_NS_RESCAP_OFFSET];
 
         let active_lba_format_index = flbas & 0x0F;
         let num_lba_formats = (nlbaf as usize) + 1;
@@ -148,6 +149,8 @@ impl Namespace {
             features,
             protection,
             multi_path,
+            metadata_capabilities: mc,
+            reservation_capabilities: rescap,
             lba_formats,
             active_lba_format_index,
         })
