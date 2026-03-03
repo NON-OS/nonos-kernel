@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Low-level MMIO register access and utility functions.
 
 use x86_64::VirtAddr;
 use crate::memory::mmio::{mmio_r32, mmio_w32};
