@@ -21,7 +21,7 @@ use alloc::vec::Vec;
 use super::constants::{SECTOR_SIZE, GPT_SIGNATURE};
 use super::structures::{GptHeader, GptPartitionEntry};
 use super::types::{
-    DiskPartitionInfo, PartitionTableType, Partition, PartitionType, DetectedOs,
+    DiskPartitionInfo, PartitionTableType, Partition, PartitionType, DetectedOs, OsType,
 };
 use super::utils::{guid_to_partition_type, utf16le_to_string, detect_os_from_partition};
 
@@ -112,4 +112,22 @@ where
         dual_boot_capable,
         detected_os,
     })
+}
+
+pub fn identify_os_partitions<F>(read_sector: F, total_sectors: u64) -> Vec<DetectedOs>
+where
+    F: Fn(u64, &mut [u8]) -> Result<(), &'static str>,
+{
+    parse_gpt(read_sector, total_sectors)
+        .map(|info| info.detected_os)
+        .unwrap_or_default()
+}
+
+pub fn has_linux_partition<F>(read_sector: F, total_sectors: u64) -> bool
+where
+    F: Fn(u64, &mut [u8]) -> Result<(), &'static str>,
+{
+    identify_os_partitions(read_sector, total_sectors)
+        .iter()
+        .any(|os| os.os_type == OsType::Linux)
 }
