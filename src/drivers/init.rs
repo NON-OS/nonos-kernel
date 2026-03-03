@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Driver initialization.
 
 use super::{
     init_e1000, init_rtl8139, init_rtl8168, init_tpm, init_wifi, print_wifi_status, TpmError,
