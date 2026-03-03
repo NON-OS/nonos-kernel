@@ -14,8 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! WiFi receive path with frame filtering and processing.
-
 use alloc::collections::VecDeque;
 use alloc::vec::Vec;
 
@@ -180,7 +178,7 @@ impl _RxProcessor {
         let mut payload_offset = 24;
 
         if frame_type == _FrameType::Data && (subtype & 0x08) != 0 {
-            payload_offset += 2; // QoS control field
+            payload_offset += 2;
         }
 
         if (frame_control & 0x8000) != 0 {
@@ -270,28 +268,28 @@ impl _RxProcessor {
 
     pub(super) fn get_source_mac(info: &_RxFrameInfo) -> [u8; 6] {
         match (info.to_ds, info.from_ds) {
-            (false, false) => info.addr2, // IBSS: SA = Addr2
-            (true, false) => info.addr2,  // To AP: SA = Addr2
-            (false, true) => info.addr3,  // From AP: SA = Addr3
-            (true, true) => info.addr2,   // WDS: SA = Addr4 (not handled here)
+            (false, false) => info.addr2,
+            (true, false) => info.addr2,
+            (false, true) => info.addr3,
+            (true, true) => info.addr2,
         }
     }
 
     pub(super) fn get_dest_mac(info: &_RxFrameInfo) -> [u8; 6] {
         match (info.to_ds, info.from_ds) {
-            (false, false) => info.addr1, // IBSS: DA = Addr1
-            (true, false) => info.addr3,  // To AP: DA = Addr3
-            (false, true) => info.addr1,  // From AP: DA = Addr1
-            (true, true) => info.addr3,   // WDS: DA = Addr3
+            (false, false) => info.addr1,
+            (true, false) => info.addr3,
+            (false, true) => info.addr1,
+            (true, true) => info.addr3,
         }
     }
 
     pub(super) fn get_bssid(info: &_RxFrameInfo) -> [u8; 6] {
         match (info.to_ds, info.from_ds) {
-            (false, false) => info.addr3, // IBSS: BSSID = Addr3
-            (true, false) => info.addr1,  // To AP: BSSID = Addr1
-            (false, true) => info.addr2,  // From AP: BSSID = Addr2
-            (true, true) => [0; 6],       // WDS: No single BSSID
+            (false, false) => info.addr3,
+            (true, false) => info.addr1,
+            (false, true) => info.addr2,
+            (true, true) => [0; 6],
         }
     }
 
