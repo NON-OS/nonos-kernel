@@ -14,8 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! TPM 2.0 constants.
-
 pub const TPM_MMIO_BASE: u64 = 0xFED4_0000;
 pub const TPM_MMIO_SIZE: usize = 0x5000;
 pub const TPM_LOCALITY_0: u64 = TPM_MMIO_BASE;
