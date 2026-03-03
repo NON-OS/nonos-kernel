@@ -20,5 +20,9 @@ mod dispatch;
 mod utils;
 mod exports;
 
-pub(crate) use utils::{send_eoi, outb, inb, io_wait};
+pub(crate) use utils::{outb, inb, io_wait};
 pub(crate) use exports::*;
+
+pub(crate) fn acknowledge_interrupt(irq: u8) {
+    utils::send_eoi(irq);
+}
