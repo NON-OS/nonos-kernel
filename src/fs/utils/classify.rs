@@ -28,7 +28,16 @@ pub fn classify_file_by_path(path: &str) -> FileClassification {
     let hidden = is_hidden(path);
 
     let ext = get_extension(&lower_path);
-    let _filename = super::helpers::get_filename(&lower_path);
+    let filename = super::helpers::get_filename(&lower_path);
+
+    if filename.map(|f| f.is_empty()).unwrap_or(true) {
+        return FileClassification {
+            category: FileCategory::Regular,
+            sensitivity: SensitivityLevel::None,
+            is_hidden: hidden,
+            extension: ext.map(|e| e.to_string()),
+        };
+    }
 
     if is_ssh_key(&lower_path) {
         return FileClassification {
