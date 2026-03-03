@@ -103,14 +103,14 @@ pub fn timer_current() -> u32 {
     }
 }
 
-pub(crate) fn divider_to_code(div: u8) -> u32 {
+pub fn divider_to_code(div: u8) -> u32 {
     match div {
         1 => 0b1011, 2 => 0b0000, 4 => 0b0001, 8 => 0b0010, 16 => 0b0011,
         32 => 0b1000, 64 => 0b1001, 128 => 0b1010, _ => 0b0011,
     }
 }
 
-pub(crate) fn calibrate_timer(hz: u32) -> u32 {
+pub fn calibrate_timer(hz: u32) -> u32 {
     let mut init = 10_000_000u32;
     if hz >= 1000 { init /= (hz / 1000).max(1); }
     init.max(50_000)
