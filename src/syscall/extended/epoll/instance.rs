@@ -113,3 +113,20 @@ impl EpollInstance {
 
 pub static EPOLL_INSTANCES: Mutex<BTreeMap<u32, EpollInstance>> = Mutex::new(BTreeMap::new());
 pub static NEXT_EPOLL_ID: AtomicU32 = AtomicU32::new(1);
+pub static EPOLL_WAKEUP_COUNT: AtomicU32 = AtomicU32::new(0);
+
+pub fn allocate_epoll_id() -> u32 {
+    NEXT_EPOLL_ID.fetch_add(1, Ordering::SeqCst)
+}
+
+pub fn get_epoll_id() -> u32 {
+    NEXT_EPOLL_ID.load(Ordering::Relaxed)
+}
+
+pub fn record_wakeup() {
+    EPOLL_WAKEUP_COUNT.fetch_add(1, Ordering::Relaxed);
+}
+
+pub fn total_wakeups() -> u32 {
+    EPOLL_WAKEUP_COUNT.load(Ordering::Acquire)
+}
