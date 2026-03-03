@@ -15,8 +15,11 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod constants;
+mod core;
 mod descriptors;
-mod device;
+mod info;
+mod operations;
 
 pub use constants::*;
-pub use device::RealtekWifiDevice;
+pub use core::RealtekWifiDevice;
+pub use info::{RealtekDmaConfig, RealtekHardwareInfo};
