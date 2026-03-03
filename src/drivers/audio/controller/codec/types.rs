@@ -19,7 +19,7 @@ use super::quirks::CodecQuirks;
 use super::names::{vendor_name, device_name};
 
 #[derive(Clone, Copy, Debug)]
-pub(crate) struct CodecInfo {
+pub struct CodecInfo {
     pub cad: u8,
     pub vendor_id: u16,
     pub device_id: u16,
@@ -64,7 +64,7 @@ impl CodecInfo {
 }
 
 #[derive(Clone, Copy, Debug, Default)]
-pub(crate) struct WidgetInfo {
+pub struct WidgetInfo {
     pub nid: u8,
     pub widget_type: u8,
     pub caps: u32,
@@ -115,7 +115,7 @@ impl WidgetInfo {
 }
 
 #[derive(Clone, Copy, Debug, Default)]
-pub(crate) struct AudioPath {
+pub struct AudioPath {
     pub dac_nid: u8,
     pub path: [u8; 8],
     pub path_len: u8,
