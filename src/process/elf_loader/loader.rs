@@ -95,15 +95,24 @@ pub fn load_elf(data: &[u8], base_addr: u64) -> Result<LoadedElf, ElfError> {
 
                 let page_offset = vaddr & 0xFFF;
                 let aligned_vaddr = vaddr & !0xFFF;
-                let _aligned_filesz = (phdr.p_filesz + page_offset + 0xFFF) & !0xFFF;
+                let aligned_filesz = (phdr.p_filesz + page_offset + 0xFFF) & !0xFFF;
                 let aligned_memsz = (phdr.p_memsz + page_offset + 0xFFF) & !0xFFF;
 
-                let num_pages = aligned_memsz as usize / 4096;
+                let file_pages = aligned_filesz as usize / 4096;
+                let num_pages = aligned_memsz.max(aligned_filesz) as usize / 4096;
                 for i in 0..num_pages {
                     let page_addr = aligned_vaddr + (i as u64 * 4096);
+                    let is_file_backed = i < file_pages;
 
                     let frame = crate::memory::phys::alloc(crate::memory::phys::AllocFlags::empty())
                         .ok_or(ElfError::AllocationFailed)?;
+
+                    if !is_file_backed {
+                        unsafe {
+                            let virt = crate::memory::phys_to_virt(x86_64::PhysAddr::new(frame.0));
+                            core::ptr::write_bytes(virt.as_mut_ptr::<u8>(), 0, 4096);
+                        }
+                    }
 
                     let writable = phdr.p_flags & PF_W != 0;
                     let executable = phdr.p_flags & PF_X != 0;
