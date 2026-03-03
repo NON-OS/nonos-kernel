@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Intel HD Audio register constants and bit definitions.
 
 pub const HDA_CLASS: u8 = 0x04;
 pub const HDA_SUBCLASS: u8 = 0x03;
