@@ -137,7 +137,12 @@ pub fn probe_nvme_controller(
 
         let max_queue_entries = ((cap & CAP_MQES_MASK) + 1) as u16;
         let doorbell_stride = 1u8 << ((cap >> CAP_DSTRD_SHIFT) & 0xF);
-        let _timeout_500ms = ((cap & CAP_TO_MASK) >> CAP_TO_SHIFT) as u8;
+        let timeout_500ms = ((cap & CAP_TO_MASK) >> CAP_TO_SHIFT) as u8;
+
+        let timeout_ms = (timeout_500ms as u64) * 500;
+        if timeout_ms > 60000 {
+            crate::log_warn!("nvme: controller timeout {}ms exceeds 60s", timeout_ms);
+        }
 
         if (csts & CSTS_RDY) != 0 {
         } else {
