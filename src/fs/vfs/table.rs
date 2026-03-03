@@ -210,6 +210,10 @@ impl FileDescriptorTable {
         self.stats = IoStatistics::default();
         self.next_fd.store(RESERVED_FDS, Ordering::SeqCst);
     }
+
+    pub fn secure_clear_buffer(&self, buffer: &mut [u8]) {
+        secure_zeroize(buffer);
+    }
 }
 
 pub(super) static FD_TABLE: RwLock<FileDescriptorTable> = RwLock::new(FileDescriptorTable::new());
