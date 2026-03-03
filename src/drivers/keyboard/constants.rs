@@ -14,8 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! PS/2 keyboard constants.
-
 pub const KBD_DATA: u16 = 0x60;
 
 pub const KBD_STATUS: u16 = 0x64;
