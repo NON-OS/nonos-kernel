@@ -14,8 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Intel WiFi constants and device IDs.
-
 pub const INTEL_VENDOR_ID: u16 = 0x8086;
 
 pub const SUPPORTED_DEVICE_IDS: &[u16] = &[
