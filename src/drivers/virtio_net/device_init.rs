@@ -252,4 +252,18 @@ impl VirtioNetDevice {
 
         crate::log::info!("virtio-net: device deinitialized");
     }
+
+    pub fn get_supported_features(&self) -> Vec<&'static str> {
+        let mut features = Vec::new();
+        if self.features & (1 << VIRTIO_NET_F_MAC) != 0 {
+            features.push("MAC");
+        }
+        if self.features & (1 << VIRTIO_NET_F_STATUS) != 0 {
+            features.push("STATUS");
+        }
+        if self.features & (1 << VIRTIO_NET_F_CTRL_VQ) != 0 {
+            features.push("CTRL_VQ");
+        }
+        features
+    }
 }
