@@ -101,4 +101,12 @@ impl NonosFilesystem {
         let file_key = keys.get(filename).ok_or(FsError::NoEncryptionKey)?;
         Ok(file_key.key)
     }
+
+    pub fn next_nonce(&self) -> u64 {
+        self.nonce_counter.fetch_add(1, Ordering::SeqCst)
+    }
+
+    pub fn current_nonce(&self) -> u64 {
+        self.nonce_counter.load(Ordering::Relaxed)
+    }
 }
