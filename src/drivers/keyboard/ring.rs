@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Lock-free ring buffers.
 
 use super::event::KeyEvent;
 use core::sync::atomic::{AtomicUsize, Ordering};
