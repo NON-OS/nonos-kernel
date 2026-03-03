@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::arch::x86_64::acpi::data::*;
+use crate::arch::x86_64::acpi::tables::PmProfile;
 use super::state::{TABLES, STATS};
 
 pub fn revision() -> Option<u8> {
@@ -83,7 +84,7 @@ pub fn table_address(signature: &[u8; 4]) -> Option<u64> {
     TABLES.read().as_ref().and_then(|t| t.tables.get(&sig).copied())
 }
 
-pub(crate) fn with_data<F, R>(f: F) -> Option<R>
+pub fn with_data<F, R>(f: F) -> Option<R>
 where
     F: FnOnce(&AcpiData) -> R,
 {
