@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! USB protocol constants.
 
 pub const REQ_GET_STATUS: u8 = 0x00;
 pub const REQ_CLEAR_FEATURE: u8 = 0x01;
