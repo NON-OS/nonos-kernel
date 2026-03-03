@@ -14,8 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! xHCI device enumeration.
-
 use core::sync::atomic::Ordering;
 
 use super::super::constants::*;
@@ -109,7 +107,10 @@ impl XhciController {
         self.address_device(slot_id, port)?;
 
         let mut buf = DmaRegion::new(64, true).map_err(|e| e.as_str())?;
-        let _len = self.ctrl_get_descriptor_device(slot_id, &mut buf)?;
+        let len = self.ctrl_get_descriptor_device(slot_id, &mut buf)?;
+        if len == 0 {
+            return Err("Empty device descriptor");
+        }
         buf.clear();
 
         self.stats.devices_enumerated.fetch_add(1, Ordering::Relaxed);
