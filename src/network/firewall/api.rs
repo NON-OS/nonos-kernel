@@ -19,7 +19,7 @@ extern crate alloc;
 
 use alloc::string::String;
 
-use super::engine::Firewall;
+use super::engine_core::Firewall;
 use super::types::{Action, Direction, IpMatch, PortMatch, Protocol, Rule, RuleStats};
 
 static FIREWALL: Firewall = Firewall::new();
