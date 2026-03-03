@@ -21,5 +21,5 @@ pub mod types;
 
 pub use constants::*;
 pub use operations::*;
-pub use state::{init, mount, get_fs, fs_count, is_init, SECTOR_BUFFER};
+pub use state::{init, mount, get_fs, fs_count, is_init};
 pub use types::{Fat32BootSector, DirEntry, LfnEntry, Fat32};
