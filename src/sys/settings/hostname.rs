@@ -6,6 +6,8 @@
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 
+//! Hostname and domainname management
+
 static mut HOSTNAME: [u8; 64] = [0; 64];
 static mut HOSTNAME_LEN: usize = 5;
 static mut DOMAINNAME: [u8; 64] = [0; 64];
