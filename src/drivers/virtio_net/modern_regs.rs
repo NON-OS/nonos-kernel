@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! VirtIO PCI modern register access.
 
 use core::ptr;
 use crate::drivers::pci::{pci_read_config32, PciBar, PciDevice};
