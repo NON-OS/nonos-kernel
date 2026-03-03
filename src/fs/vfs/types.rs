@@ -185,4 +185,5 @@ pub struct VfsStatistics {
     pub rmdir_ops: u64,
     pub rename_ops: u64,
     pub unlink_ops: u64,
+    pub copy_ops: u64,
 }
