@@ -29,12 +29,15 @@ use super::state::CAPSULE_STORE;
 pub fn request_install(name: &str) -> Result<InstallationTask, &'static str> {
     let lock = CAPSULE_STORE.lock();
     let store = lock.as_ref().ok_or("Store not initialized")?;
+
     let id = blake3_hash(name.as_bytes());
+
     if store.installed.read().contains_key(&id) {
         return Err("Already installed");
     }
 
     let meta = store.available.read().get(&id).cloned().ok_or("Capsule not found")?;
+
     let state = if meta.nox_fee > 0 {
         InstallState::PaymentRequired
     } else {
@@ -62,14 +65,18 @@ pub fn request_install(name: &str) -> Result<InstallationTask, &'static str> {
 pub fn create_payment_tx(capsule_id: &[u8; 32]) -> Result<Vec<u8>, &'static str> {
     let lock = CAPSULE_STORE.lock();
     let store = lock.as_ref().ok_or("Store not initialized")?;
+
     let meta = store.available.read().get(capsule_id).cloned().ok_or("Capsule not found")?;
+
     if meta.nox_fee == 0 {
         return Err("No payment required");
     }
 
     let wallet = store.wallet.read();
     let wallet = wallet.as_ref().ok_or("Wallet not configured")?;
+
     let nonce = store.nonce.fetch_add(1, Ordering::SeqCst);
+
     let tx = Transaction::new_nox_transfer(
         store.fee_receiver.clone(),
         meta.nox_fee,
@@ -79,6 +86,7 @@ pub fn create_payment_tx(capsule_id: &[u8; 32]) -> Result<Vec<u8>, &'static str>
     );
 
     let signed = wallet.sign_transaction(&tx).ok_or("Signing failed")?;
+
     let mut pending = store.pending_installs.write();
     if let Some(task) = pending.get_mut(capsule_id) {
         task.state = InstallState::PaymentSubmitted;
@@ -90,6 +98,7 @@ pub fn create_payment_tx(capsule_id: &[u8; 32]) -> Result<Vec<u8>, &'static str>
 pub fn confirm_payment(capsule_id: &[u8; 32], tx_hash: [u8; 32]) -> Result<(), &'static str> {
     let lock = CAPSULE_STORE.lock();
     let store = lock.as_ref().ok_or("Store not initialized")?;
+
     let mut pending = store.pending_installs.write();
     let task = pending.get_mut(capsule_id).ok_or("No pending installation")?;
 
