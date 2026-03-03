@@ -138,13 +138,14 @@ pub fn handle_ioprio_set(which: i32, who: i32, ioprio: i32) -> SyscallResult {
     }
 
     let class = decode_ioprio_class(ioprio as u16);
-    let _level = decode_ioprio_level(ioprio as u16);
+    let level = decode_ioprio_level(ioprio as u16);
 
     if class < IOPRIO_CLASS_NONE || class > IOPRIO_CLASS_IDLE {
         return errno(22);
     }
 
-    if class == IOPRIO_CLASS_RT {
+    if class == IOPRIO_CLASS_RT && level > 7 {
+        return errno(22);
     }
 
     if let Err(_) = policy::set_ioprio(target_pid, ioprio as u16) {
