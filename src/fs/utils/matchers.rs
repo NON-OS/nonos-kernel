@@ -16,7 +16,7 @@
 
 extern crate alloc;
 
-use alloc::string::ToString;
+use alloc::string::{String, ToString};
 
 use super::helpers::{get_extension, get_filename};
 use super::patterns::*;
@@ -117,5 +117,25 @@ pub fn is_credential_file(lower_path: &str) -> bool {
         )
     } else {
         false
+    }
+}
+
+pub fn normalize_path(path: &str) -> String {
+    path.to_lowercase().replace("\\", "/").to_string()
+}
+
+pub fn get_file_category(path: &str) -> String {
+    if is_config_file(path) {
+        "config".to_string()
+    } else if is_crypto_file(path) {
+        "crypto".to_string()
+    } else if is_database_file(path) {
+        "database".to_string()
+    } else if is_executable_file(path) {
+        "executable".to_string()
+    } else if is_log_file(path) {
+        "log".to_string()
+    } else {
+        "other".to_string()
     }
 }
