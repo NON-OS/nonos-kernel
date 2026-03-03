@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Per-port DMA memory management.
 
 use x86_64::{VirtAddr, PhysAddr};
 use crate::memory::dma::{alloc_dma_coherent, DmaConstraints};
