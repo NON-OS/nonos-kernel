@@ -38,7 +38,10 @@ pub fn save_to_disk() -> bool {
         None => return false,
     };
 
-    let _settings = get_settings();
+    let settings = get_settings();
+    if settings.static_ip == [0, 0, 0, 0] && !settings.dhcp_enabled {
+        return false;
+    }
     let mut buf = [0u8; 2048];
     let len = serialize_settings(&mut buf);
 
