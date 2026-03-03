@@ -82,7 +82,11 @@ pub fn get_isolation_flags(pid: Pid) -> Option<IsolationFlags> {
 }
 
 pub fn unisolate_process(pid: Pid) -> Result<(), &'static str> {
-    let _pcb = PROCESS_TABLE.find_by_pid(pid).ok_or("Process not found")?;
+    let pcb = PROCESS_TABLE.find_by_pid(pid).ok_or("Process not found")?;
+
+    if *pcb.state.lock() == crate::process::ProcessState::Terminated(0) {
+        return Err("Cannot unisolate terminated process");
+    }
 
     if PROCESS_ISOLATION.write().remove(&pid).is_none() {
         return Err("Process was not isolated");
