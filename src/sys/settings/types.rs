@@ -6,8 +6,12 @@
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 
+//! Settings types and structures
+
+/// System settings (runtime copy in RAM)
 #[derive(Clone, Copy)]
 pub struct Settings {
+    /// Display brightness (0-100)
     pub brightness: u8,
     pub mouse_sensitivity: u8,
     pub sound_enabled: bool,
