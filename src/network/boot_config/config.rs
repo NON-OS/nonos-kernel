@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -14,14 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+
 use core::sync::atomic::{AtomicBool, Ordering};
 use spin::{Mutex, Once};
 
 use super::types::NetworkBootConfig;
 
-/// *** Network boot configuration - set once at boot, immutable after *** ///
 pub(super) static BOOT_CONFIG: Once<Mutex<NetworkBootConfig>> = Once::new();
+
 pub(super) static CONFIG_LOCKED: AtomicBool = AtomicBool::new(false);
+
 pub fn init() {
     BOOT_CONFIG.call_once(|| Mutex::new(NetworkBootConfig::default()));
     crate::log::info!("net: boot configuration system initialized");
