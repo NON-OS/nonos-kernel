@@ -150,7 +150,11 @@ impl WpaContext {
         }
 
         let kek = &self.ptk[KCK_LEN..KCK_LEN + KEK_LEN];
-        let _gtk = self.decrypt_key_data(kek, key_data)?;
+        let gtk = self.decrypt_key_data(kek, key_data)?;
+
+        if gtk.is_empty() {
+            return Err(WifiError::DecryptionFailed);
+        }
 
         let msg4 = self.build_eapol_msg4()?;
 
