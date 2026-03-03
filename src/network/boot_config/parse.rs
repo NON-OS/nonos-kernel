@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -13,6 +13,7 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 
 extern crate alloc;
 
@@ -35,6 +36,7 @@ pub fn parse_cmdline(cmdline: &str) {
     };
 
     crate::log::info!("net: parsing boot parameters...");
+
     for param in cmdline.split_whitespace() {
         if !param.starts_with("nonos.") {
             continue;
@@ -47,6 +49,7 @@ pub fn parse_cmdline(cmdline: &str) {
 
         let key = parts[0];
         let value = parts[1];
+
         match key {
             "nonos.privacy" => match value {
                 "standard" => {
@@ -54,11 +57,11 @@ pub fn parse_cmdline(cmdline: &str) {
                     config.onion.enabled = false;
                     crate::log::info!("net: privacy=STANDARD");
                 }
-                "anonymous" | "tor" => {
+                "anonymous" | "tor" | "anyone" => {
                     config.privacy_mode = PrivacyMode::TorOnly;
                     config.onion.enabled = true;
                     config.dns_mode = DnsMode::TorDns;
-                    crate::log::info!("net: privacy=ANONYMOUS (Tor)");
+                    crate::log::info!("net: privacy=ANONYMOUS (Anyone.io)");
                 }
                 "maximum" | "paranoid" => {
                     config.privacy_mode = PrivacyMode::Maximum;
@@ -132,9 +135,9 @@ pub fn parse_cmdline(cmdline: &str) {
                     config.dns_mode = DnsMode::Dhcp;
                     crate::log::info!("net: DNS mode=DHCP");
                 }
-                "tor" => {
+                "anyone" | "tor" => {
                     config.dns_mode = DnsMode::TorDns;
-                    crate::log::info!("net: DNS mode=Tor (anonymized)");
+                    crate::log::info!("net: DNS mode=Anyone.io (anonymized)");
                 }
                 "doh" | "https" => {
                     config.dns_mode = DnsMode::DoH;
@@ -147,24 +150,24 @@ pub fn parse_cmdline(cmdline: &str) {
                 _ => crate::log_warn!("net: unknown DNS mode: {}", value),
             },
 
-            "nonos.tor" => match value {
+            "nonos.anyone" | "nonos.tor" => match value {
                 "on" | "yes" | "1" | "true" => {
                     config.onion.enabled = true;
                     config.onion.auto_connect = true;
-                    crate::log::info!("net: Tor=ENABLED");
+                    crate::log::info!("net: Anyone.io=ENABLED");
                 }
                 "off" | "no" | "0" | "false" => {
                     config.onion.enabled = false;
                     config.onion.auto_connect = false;
-                    crate::log::info!("net: Tor=DISABLED");
+                    crate::log::info!("net: Anyone.io=DISABLED");
                 }
-                _ => crate::log_warn!("net: invalid tor value: {}", value),
+                _ => crate::log_warn!("net: invalid anyone value: {}", value),
             },
 
-            "nonos.tor_circuits" => {
+            "nonos.anyone_circuits" | "nonos.tor_circuits" => {
                 if let Ok(n) = value.parse::<u8>() {
                     config.onion.prebuild_circuits = n.min(10);
-                    crate::log::info!("net: Tor circuits={}", config.onion.prebuild_circuits);
+                    crate::log::info!("net: Anyone circuits={}", config.onion.prebuild_circuits);
                 }
             }
 
@@ -226,7 +229,6 @@ pub fn parse_cmdline(cmdline: &str) {
     crate::log::info!("net: boot parameters parsed");
 }
 
-/// Parse IPv4 address string (e.g., "10.0.2.15")
 pub fn parse_ipv4(s: &str) -> Option<[u8; 4]> {
     let parts: Vec<&str> = s.split('.').collect();
     if parts.len() != 4 {
@@ -243,9 +245,9 @@ pub fn parse_ipv4(s: &str) -> Option<[u8; 4]> {
     Some(ip)
 }
 
-/// *** initialize network configuration from boot handoff *** ///
 pub fn init_from_handoff() {
     use crate::boot::handoff::get_handoff;
+
     if let Some(handoff) = get_handoff() {
         if let Some(cmdline) = unsafe { handoff.cmdline() } {
             crate::log::info!("net: found boot cmdline: {}", cmdline);
@@ -258,6 +260,7 @@ pub fn init_from_handoff() {
 
 pub fn export_as_cmdline() -> String {
     let mut cmd = String::new();
+
     if let Some(config) = get_config() {
         let privacy = match config.privacy_mode {
             PrivacyMode::Standard => "standard",
@@ -295,15 +298,15 @@ pub fn export_as_cmdline() -> String {
             DnsMode::None => "none",
         };
         cmd.push_str(&alloc::format!("nonos.dns_mode={} ", dns_mode));
-       
+
         if config.onion.enabled {
-            cmd.push_str("nonos.tor=on ");
+            cmd.push_str("nonos.anyone=on ");
             cmd.push_str(&alloc::format!(
-                "nonos.tor_circuits={} ",
+                "nonos.anyone_circuits={} ",
                 config.onion.prebuild_circuits
             ));
         } else {
-            cmd.push_str("nonos.tor=off ");
+            cmd.push_str("nonos.anyone=off ");
         }
 
         if config.randomize_mac {
