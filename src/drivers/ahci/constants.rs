@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! AHCI register offsets and constants.
 
 pub const HBA_CAP: u32 = 0x00;
 pub const HBA_GHC: u32 = 0x04;
