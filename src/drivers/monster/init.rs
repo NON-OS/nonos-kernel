@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! MONSTER initialization.
 
 use super::stats::{record_error, refresh_stats};
 use core::sync::atomic::{AtomicBool, Ordering};
