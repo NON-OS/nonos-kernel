@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Driver security constants.
 
 pub const KERNEL_PHYS_END: u64 = 0x0000_0000_4000_0000;
 pub const MAX_DMA_SIZE: usize = 128 * 1024 * 1024;
