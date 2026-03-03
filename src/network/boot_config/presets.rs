@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+
 extern crate alloc;
 
 use alloc::string::String;
@@ -23,7 +24,6 @@ use super::types::{
     DnsMode, FirewallConfig, Ipv4Config, NetworkBootConfig, OnionConfig, PrivacyMode,
 };
 
-/// Apply "ZeroState Standard" preset balanced privacy with usability
 pub fn preset_standard() {
     if let Some(mut config) = configure() {
         *config = NetworkBootConfig {
@@ -50,7 +50,6 @@ pub fn preset_standard() {
     }
 }
 
-/// Apply "ZeroState Anonymous" preset  full ANYONE or/TOR anonymity
 pub fn preset_anonymous() {
     if let Some(mut config) = configure() {
         *config = NetworkBootConfig {
@@ -84,7 +83,6 @@ pub fn preset_anonymous() {
     }
 }
 
-/// Apply "ZeroState Maximum" preset paranoid security
 pub fn preset_maximum() {
     if let Some(mut config) = configure() {
         *config = NetworkBootConfig {
@@ -119,7 +117,6 @@ pub fn preset_maximum() {
     }
 }
 
-/// Apply "ZeroState Isolated" preset = no network
 pub fn preset_isolated() {
     if let Some(mut config) = configure() {
         *config = NetworkBootConfig {
