@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! VirtIO network driver constants.
 
 pub const MIN_ETHERNET_FRAME: usize = 60;
 pub const MAX_MTU: usize = 1500;
