@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! WiFi transmit path.
 
 
 pub(super) const IEEE80211_FTYPE_DATA: u16 = 0x0008;
