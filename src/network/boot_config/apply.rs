@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -14,17 +14,18 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+
 extern crate alloc;
 
 use super::config::{get_config, lock_config};
 use super::types::{FirewallConfig, OnionConfig, PrivacyMode};
-/// *** We apply the boot configuration to the network stack
-/// ***___Called once during kernel initialization***___ ///
+
 pub fn apply_boot_config() -> Result<(), &'static str> {
     let config = get_config().ok_or("Boot config not initialized")?;
+
     crate::log::info!("net: applying boot configuration...");
     crate::log::info!("net: privacy mode = {:?}", config.privacy_mode);
-    // 1. Apply privacy mode
+
     match config.privacy_mode {
         PrivacyMode::Isolated => {
             crate::log::info!("net: ISOLATED mode - network disabled");
@@ -34,14 +35,13 @@ pub fn apply_boot_config() -> Result<(), &'static str> {
             crate::log::info!("net: STANDARD mode - direct connections");
         }
         PrivacyMode::TorOnly => {
-            crate::log::info!("net: TOR-ONLY mode - all traffic through Tor");
+            crate::log::info!("net: ANONYMOUS mode - all traffic through Anyone.io");
         }
         PrivacyMode::Maximum => {
             crate::log::info!("net: MAXIMUM privacy mode");
         }
     }
 
-    // 2. Configure IPv4
     if config.ipv4.use_dhcp {
         crate::log::info!("net: using DHCP for IP configuration");
     } else {
@@ -59,7 +59,6 @@ pub fn apply_boot_config() -> Result<(), &'static str> {
         }
     }
 
-    // 3. Configure DNS
     match config.dns_mode {
         super::types::DnsMode::Dhcp => {
             crate::log::info!("net: DNS via DHCP");
@@ -71,7 +70,7 @@ pub fn apply_boot_config() -> Result<(), &'static str> {
             }
         }
         super::types::DnsMode::TorDns => {
-            crate::log::info!("net: DNS over Tor (anonymized)");
+            crate::log::info!("net: DNS over Anyone.io (anonymized)");
         }
         super::types::DnsMode::DoH => {
             crate::log::info!("net: DNS over HTTPS");
@@ -81,21 +80,18 @@ pub fn apply_boot_config() -> Result<(), &'static str> {
         }
     }
 
-    // 4. Configure firewall
     apply_firewall_config(&config.firewall)?;
-    // 5. Configure Tor/onion if enabled
+
     if config.onion.enabled {
         apply_onion_config(&config.onion)?;
     }
 
-    // 6. Lock configuration
     lock_config();
 
     crate::log::info!("net: boot configuration applied and locked");
     Ok(())
 }
 
-/// ** apply firewall configuration ** ///
 fn apply_firewall_config(fw_config: &FirewallConfig) -> Result<(), &'static str> {
     use crate::network::firewall::{
         self, Action, Direction, IpMatch, PortMatch, Protocol, Rule, RuleStats,
@@ -105,7 +101,6 @@ fn apply_firewall_config(fw_config: &FirewallConfig) -> Result<(), &'static str>
 
     fw.set_enabled(true);
 
-    /// ** add port rules if specified (restrict to specific ports) ** ///
     if !fw_config.allowed_ports.is_empty() {
         for &port in &fw_config.allowed_ports {
             fw.add_rule(Rule {
@@ -127,7 +122,6 @@ fn apply_firewall_config(fw_config: &FirewallConfig) -> Result<(), &'static str>
         }
     }
 
-    /// ** block specific IP ranges ** /// 
     for (ip, prefix) in &fw_config.blocked_ranges {
         fw.add_rule(Rule {
             id: 0,
@@ -167,9 +161,9 @@ fn apply_firewall_config(fw_config: &FirewallConfig) -> Result<(), &'static str>
     Ok(())
 }
 
-/// ** apply onion routing configuration ** ///
 fn apply_onion_config(onion_config: &OnionConfig) -> Result<(), &'static str> {
-    crate::log::info!("net: configuring Tor/onion routing...");
+    crate::log::info!("net: configuring Anyone.io onion routing...");
+
     if crate::network::onion::get_onion_router().lock().is_none() {
         if let Err(e) = crate::network::onion::init_onion_router() {
             crate::log::error!("net: failed to init onion router: {:?}", e);
@@ -178,7 +172,8 @@ fn apply_onion_config(onion_config: &OnionConfig) -> Result<(), &'static str> {
     }
 
     if onion_config.auto_connect {
-        crate::log::info!("net: auto-connecting to Tor network...");
+        crate::log::info!("net: auto-connecting to Anyone.io network...");
+
         for i in 0..onion_config.prebuild_circuits {
             match crate::network::onion::create_circuit(None) {
                 Ok(circuit_id) => {
@@ -192,9 +187,9 @@ fn apply_onion_config(onion_config: &OnionConfig) -> Result<(), &'static str> {
     }
 
     if onion_config.relay_mode {
-        crate::log::info!("net: Tor relay mode requested (not yet implemented in kernel)");
+        crate::log::info!("net: Anyone relay mode requested (not yet implemented in kernel)");
     }
 
-    crate::log::info!("net: Tor/onion configuration complete");
+    crate::log::info!("net: Anyone.io onion configuration complete");
     Ok(())
 }
