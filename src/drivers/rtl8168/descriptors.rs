@@ -116,7 +116,9 @@ impl Rtl8168TxDesc {
         let mut opts1 = (length as u32) & 0xFFFF;
         opts1 |= super::constants::tx_desc::OWN;
         opts1 |= super::constants::tx_desc::FS;
-        opts1 |= super::constants::tx_desc::LS;
+        if is_last_desc {
+            opts1 |= super::constants::tx_desc::LS;
+        }
         if is_last_ring {
             opts1 |= super::constants::tx_desc::EOR;
         }
