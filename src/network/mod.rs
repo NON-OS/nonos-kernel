@@ -1,91 +1,61 @@
-//! NONOS Network Subsystem
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 extern crate alloc;
-use alloc::string::String; 
 
-pub mod nonos_network_stack;
-pub mod nonos_ethernet;
-pub mod nonos_ip;
-pub mod nonos_tcp;
-// pub mod nonos_udp; // TODO: missing module
-pub mod nonos_dns;
-// pub mod nonos_firewall; // TODO: missing module
+mod api;
+pub mod boot_config;
+pub mod dns;
+pub mod ethernet;
+pub mod firewall;
+pub mod http_client;
+pub mod ip;
+pub mod manager;
 pub mod onion;
+pub mod socks;
+pub mod stack;
+pub mod tcp;
+pub mod transparent;
+pub mod udp;
 
-// Re-exports (stable external surface)
-pub use nonos_network_stack as stack;
-pub use nonos_ethernet as ethernet;
-pub use nonos_ip as ip;
-pub use nonos_tcp as tcp;
-// pub use nonos_udp as udp; // TODO: missing module
-pub use nonos_dns as dns;
-// pub use nonos_firewall as firewall; // TODO: missing module
+pub use api::is_network_ready;
 
-pub use nonos_network_stack::{
-    NetworkStack, NetworkStats, init_network_stack, get_network_stack, register_device,
+pub use manager::{
+    configure_ipv4, init, init_with_preset,
+    network_tick, poll_network, run_network_stack,
+};
+pub use manager::{get_recent_dns_queries, get_suspicious_flows, read_flow_bytes};
+
+pub use stack::{
+    get_network_stack, init_network_stack, register_device, ArpEntry, DhcpLease, NetworkStack,
+    NetworkStats, SmolDevice, Socket, SocketInfo, TcpSocket,
+    get_current_ipv4, get_current_gateway, get_current_dns, get_mac_address,
+    is_network_available,
 };
 
-/// Bring up base network + TLS + onion router.
-/// Call this once during system initialization (after NIC registration).
-pub fn init() {
-    // 1) Base stack
-    init_network_stack();
+pub use stack::http;
 
-    // 2) TLS stack (crypto + strict link certificate verifier)
-    if let Err(e) = onion::tls::init_tls_stack_production(&onion::tls::KERNEL_TLS_CRYPTO) {
-        crate::log::error!("tls: init failed: {:?}", e);
-    } else {
-        crate::log::info!("tls: production crypto/verifier initialized");
-    }
-
-    // 3) Onion routing stack (directory + circuits)
-    if let Err(e) = onion::init_onion_router() {
-        crate::log::error!("onion: init failed: {:?}", e);
-    } else {
-        crate::log::info!("onion: initialized");
-    }
-}
-
-/// Configure IPv4 address, prefix, gateway, and default DNS A server.
-pub fn configure_ipv4(ip: [u8; 4], prefix: u8, gateway: Option<[u8; 4]>, dns_v4: Option<[u8; 4]>) {
-    if let Some(stack) = get_network_stack() {
-        stack.set_ipv4_config(ip, prefix, gateway);
-        if let Some(dns) = dns_v4 {
-            stack.set_default_dns_v4(dns);
-        }
-        crate::log::info!(
-            "net: configured IPv4 {:?}/{}, gw={:?}, dns={:?}",
-            ip, prefix, gateway, dns_v4
-        );
-    } else {
-        crate::log_warn!("net: stack not initialized (configure_ipv4 ignored)");
-    }
-}
-
-/// Network daemon loop: runs periodic maintenance for subsystems.
-/// On a dedicated worker to keep timers and housekeeping active.
-pub fn run_network_stack() {
-    loop {
-        // Onion maintenance: circuit timeouts, security checks
-        onion::process_circuit_maintenance();
-
-        // Yield CPU to the scheduler; NIC and sockets are event/poll driven within the stack
-        crate::sched::yield_cpu();
-    }
-}
-
-// Missing network functions
-pub fn get_suspicious_flows() -> alloc::vec::Vec<(String, String)> {
-    // Return empty list - would analyze network flows for suspicious patterns
-    alloc::vec::Vec::new()
-}
-
-pub fn read_flow_bytes(flow_id: &str) -> Result<alloc::vec::Vec<u8>, &'static str> {
-    // Return empty data - would read raw bytes from a network flow
-    Ok(alloc::vec::Vec::new())
-}
-
-pub fn get_recent_dns_queries() -> alloc::vec::Vec<String> {
-    // Return empty list - would get recent DNS query history
-    alloc::vec::Vec::new()
-}
+pub use boot_config::{
+    deserialize_config as deserialize_network_config,
+    export_as_cmdline as export_network_cmdline,
+    get_status as get_network_status,
+    init_from_handoff as init_network_from_handoff,
+    parse_cmdline as parse_network_cmdline,
+    preset_anonymous, preset_isolated, preset_maximum, preset_standard,
+    print_status as print_network_status,
+    serialize_config as serialize_network_config,
+    DnsMode, FirewallConfig, Ipv4Config, NetworkBootConfig, OnionConfig, PrivacyMode,
+};
