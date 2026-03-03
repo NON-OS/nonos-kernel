@@ -29,6 +29,4 @@ pub use api::{
 pub use constants::*;
 pub use descriptors::{Rtl8168RxDesc, Rtl8168TxDesc};
 pub use device::Rtl8168Device;
-pub use interface::{
-    register_with_network_stack, Rtl8168SmolBridge, Rtl8168Stats, RTL8168_SMOL_BRIDGE,
-};
+pub use interface::{register_with_network_stack, Rtl8168SmolBridge, Rtl8168Stats, RTL8168_SMOL_BRIDGE};
