@@ -141,3 +141,19 @@ fn query_capacity(device_id: u8) -> BlockResult<()> {
 
     Ok(())
 }
+
+pub fn validate_csw(csw_data: &[u8; 13]) -> bool {
+    if csw_data.len() < 4 {
+        return false;
+    }
+    let sig = u32::from_le_bytes([csw_data[0], csw_data[1], csw_data[2], csw_data[3]]);
+    sig == CSW_SIGNATURE
+}
+
+pub fn csw_status(csw_data: &[u8; 13]) -> Option<u8> {
+    if validate_csw(csw_data) {
+        Some(csw_data[12])
+    } else {
+        None
+    }
+}
