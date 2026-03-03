@@ -23,6 +23,13 @@ use super::types::{FileMetadata, FileType};
 use super::vfs_core::VirtualFileSystem;
 
 impl VirtualFileSystem {
+    pub fn copy(&self, src: &str, dst: &str) -> VfsResult<()> {
+        let data: Vec<u8> = crate::fs::ramfs::NONOS_FILESYSTEM.read_file(src)?;
+        crate::fs::ramfs::NONOS_FILESYSTEM.create_file(dst, &data)?;
+        self.inner.lock().vfs_stats.copy_ops += 1;
+        Ok(())
+    }
+
     pub fn rename(&self, old_path: &str, new_path: &str) -> VfsResult<()> {
         let data = crate::fs::ramfs::NONOS_FILESYSTEM.read_file(old_path)?;
 
