@@ -14,27 +14,22 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! HD Audio controller implementation.
-
-mod helpers;
+mod api;
+pub mod codec;
 mod corb_rirb;
-mod stream;
-mod codec;
-mod init;
 mod hda_controller;
+mod helpers;
+mod init;
+mod stream;
 
+pub use api::{
+    codec_statistics, describe_pin_device, describe_widget, find_audio_paths, get_codec_details,
+    get_codec_device_name, get_codec_vendor_name,
+};
+pub use corb_rirb::compose_verb;
 pub use hda_controller::HdAudioController;
 pub use helpers::RegisterAccess;
-
 pub use init::{
-    Capabilities, InitStage,
-    shutdown_controller, is_running, is_in_reset, read_version, validate_controller,
+    is_in_reset, is_running, read_version, shutdown_controller, validate_controller, Capabilities,
+    InitStage,
 };
-
-pub(crate) use codec::{
-    CodecInfo, WidgetInfo, AudioPath, CodecPaths, CodecQuirks,
-    vendor_name, device_name, get_codec_quirks, apply_codec_quirks, codec_stats,
-    widget_type_name, pin_device_type_name,
-};
-
-pub use corb_rirb::compose_verb;
