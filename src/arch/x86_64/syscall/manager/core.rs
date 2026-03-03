@@ -36,6 +36,7 @@ pub struct SyscallManager {
     pub(crate) config: RwLock<SecurityConfig>,
     pub(crate) fork_counter: AtomicU32,
     pub(crate) fork_reset_time: AtomicU64,
+    pub(crate) rate_limited: AtomicBool,
 }
 
 impl SyscallManager {
@@ -55,7 +56,16 @@ impl SyscallManager {
             }),
             fork_counter: AtomicU32::new(0),
             fork_reset_time: AtomicU64::new(0),
+            rate_limited: AtomicBool::new(false),
         }
+    }
+
+    pub fn is_rate_limited(&self) -> bool {
+        self.rate_limited.load(Ordering::Relaxed)
+    }
+
+    pub fn set_rate_limited(&self, limited: bool) {
+        self.rate_limited.store(limited, Ordering::Relaxed);
     }
 
     pub fn init(&self) -> Result<(), SyscallError> {
