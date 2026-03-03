@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! LBA and DMA buffer validation.
 
 use alloc::format;
 use core::sync::atomic::{AtomicU64, Ordering};
@@ -59,10 +58,10 @@ pub(super) fn validate_dma_buffer(
         return Err(AhciError::InvalidBufferSize);
     }
 
-    let _buffer_end = buffer.checked_add(size as u64)
+    let buffer_end = buffer.checked_add(size as u64)
         .ok_or(AhciError::BufferAddressOverflow)?;
 
-    let is_kernel_text = buffer >= KERNEL_BASE && buffer < KERNEL_BASE + 0x0200_0000;
+    let is_kernel_text = buffer >= KERNEL_BASE && buffer_end <= KERNEL_BASE + 0x0200_0000;
     let is_mmio = buffer >= MMIO_BASE && buffer < MMIO_BASE + MMIO_SIZE;
 
     if is_kernel_text || is_mmio {
