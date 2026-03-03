@@ -6,6 +6,12 @@
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 
+//! Settings persistence module for NONOS
+//!
+//! Provides save/load functionality for system settings.
+//! Settings are stored in a simple key=value format on FAT32.
+
+// Submodules
 pub mod network;
 mod types;
 mod state;
