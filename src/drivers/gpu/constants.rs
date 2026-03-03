@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! GPU driver constants.
 
 pub const VENDOR_QEMU: u16 = 0x1234;
 pub const DEVICE_STD_VGA: u16 = 0x1111;
