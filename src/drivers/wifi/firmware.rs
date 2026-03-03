@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Intel WiFi firmware loading.
 
 use super::constants::*;
 use super::error::WifiError;
@@ -53,7 +52,7 @@ pub struct FirmwareInfo {
     pub human_readable: [u8; 64],
 }
 
-pub(super) struct FirmwareSection {
+pub(crate) struct FirmwareSection {
     pub data: Vec<u8>,
     pub offset: u32,
 }
