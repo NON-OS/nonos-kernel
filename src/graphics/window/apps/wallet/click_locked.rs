@@ -57,14 +57,22 @@ pub(super) fn handle_locked_click(x: u32, y: u32, w: u32, h: u32) -> bool {
 }
 
 fn generate_new_wallet() {
-    use crate::crypto::core::api::generate_secure_key;
+    use crate::crypto::core::api::generate_secure_key_checked;
     use crate::crypto::util::rng::seed_rng;
 
     lock_wallet();
 
-    let _ = seed_rng();
+    if seed_rng().is_err() {
+        set_status(b"RNG seed failed, retrying...", false);
+    }
 
-    let master_key = generate_secure_key();
+    let master_key = match generate_secure_key_checked() {
+        Ok(key) => key,
+        Err(e) => {
+            set_status(e.as_bytes(), false);
+            return;
+        }
+    };
 
     match init_wallet(master_key) {
         Ok(()) => {
