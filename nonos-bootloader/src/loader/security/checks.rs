@@ -26,6 +26,7 @@ pub fn check_wx_policy(
     policy: &SecurityPolicy,
 ) -> LoaderResult<usize> {
     let mut violations = 0;
+
     for segment in segments.iter().flatten() {
         if segment.has_wx() {
             violations += 1;

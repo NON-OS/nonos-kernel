@@ -21,10 +21,12 @@ use alloc::string::String;
 
 use crate::log::types::LogLevel;
 
+/// Format a log message with level and category
 pub fn format_log_message(level: LogLevel, category: &str, message: &str) -> String {
     format!("[{}] {}: {}\r\n", level.as_str(), category, message)
 }
 
+/// Format a log message with timestamp
 pub fn format_log_message_with_tick(
     tick: u64,
     level: LogLevel,
@@ -40,27 +42,32 @@ pub fn format_log_message_with_tick(
     )
 }
 
+/// Format a simple status message
 pub fn format_status(status: &str, message: &str) -> String {
     format!("  [{}] {}\r\n", status, message)
 }
 
+/// Format an OK status message
 pub fn format_ok(message: &str) -> String {
     format!("  [  OK  ] {}\r\n", message)
 }
 
+/// Format a FAIL status message
 pub fn format_fail(message: &str) -> String {
     format!("  [ FAIL ] {}\r\n", message)
 }
 
+/// Format a SKIP status message
 pub fn format_skip(message: &str) -> String {
     format!("  [ SKIP ] {}\r\n", message)
 }
 
+/// Format boot progress message
 pub fn format_boot_progress(phase: u8, message: &str) -> String {
     format!("  Phase {}: {}\r\n", phase, message)
 }
 
-/// up to 32 bytes
+/// Format hex bytes (up to 32 bytes)
 pub fn format_hex_bytes(bytes: &[u8]) -> String {
     let mut s = String::with_capacity(bytes.len() * 2);
     for &b in bytes.iter().take(32) {
@@ -83,6 +90,7 @@ pub fn format_hex_bytes(bytes: &[u8]) -> String {
     s
 }
 
+/// Format a 32-byte hash for display (first 8 and last 4 bytes)
 pub fn format_hash_short(hash: &[u8; 32]) -> String {
     let mut s = String::with_capacity(28);
     for &b in &hash[..4] {
@@ -117,7 +125,7 @@ pub fn format_hash_short(hash: &[u8; 32]) -> String {
     s
 }
 
-/// human-readable form
+/// Format memory size in human-readable form
 pub fn format_memory_size(bytes: u64) -> String {
     if bytes >= 1024 * 1024 * 1024 {
         format!("{} GB", bytes / (1024 * 1024 * 1024))

@@ -23,11 +23,14 @@ use uefi::Identify;
 use crate::log::buffer::{utf8_to_utf16, Utf16Buffer};
 use crate::log::global::{get_boot_services, increment_log_count, is_initialized};
 use crate::log::types::LogLevel;
+
 /// Write a log line to UEFI console using SystemTable
 pub fn write_log_st(st: &mut SystemTable<Boot>, level: LogLevel, category: &str, message: &str) {
     let log_line = format!("[{}] {}: {}\r\n", level.as_str(), category, message);
+
     let mut buf = [0u16; 512];
     let len = utf8_to_utf16(&log_line, &mut buf);
+
     if let Ok(s) = uefi::CStr16::from_u16_with_nul(&buf[..len]) {
         let _ = st.stdout().output_string(s);
     }
@@ -47,7 +50,8 @@ pub fn write_log_global(level: LogLevel, category: &str, message: &str) {
     }
 
     let log_line = format!("[{}] {}: {}\r\n", level.as_str(), category, message);
-    // ## SAFETY: Boot Services pointer is valid while logger is initialized
+
+    // SAFETY: Boot Services pointer is valid while logger is initialized
     unsafe {
         let bs = &*bs_ptr;
         write_to_console_via_bs(bs, &log_line);
@@ -78,28 +82,34 @@ unsafe fn write_to_console_via_bs(bs: &BootServices, message: &str) {
     }
 }
 
+/// Write raw UTF-16 string to console
 pub fn write_raw_st(st: &mut SystemTable<Boot>, message: &uefi::CStr16) {
     let _ = st.stdout().output_string(message);
 }
 
+/// Write a pre-formatted UTF-16 buffer to console
 pub fn write_buffer_st(st: &mut SystemTable<Boot>, buf: &Utf16Buffer) {
     if let Some(s) = buf.as_cstr16() {
         let _ = st.stdout().output_string(s);
     }
 }
 
+/// Write a newline to console
 pub fn write_newline_st(st: &mut SystemTable<Boot>) {
     let _ = st.stdout().output_string(cstr16!("\r\n"));
 }
 
+/// Clear the console screen
 pub fn clear_console_st(st: &mut SystemTable<Boot>) {
     let _ = st.stdout().clear();
 }
 
+/// Set console cursor position
 pub fn set_cursor_st(st: &mut SystemTable<Boot>, col: usize, row: usize) {
     let _ = st.stdout().set_cursor_position(col, row);
 }
 
+/// Enable or disable cursor visibility
 pub fn set_cursor_visible_st(st: &mut SystemTable<Boot>, visible: bool) {
     let _ = st.stdout().enable_cursor(visible);
 }

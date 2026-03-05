@@ -29,9 +29,60 @@ use super::display::{
 };
 use super::types::{CryptoVerifyResult, MIN_KERNEL_SIZE, SIGNATURE_SIZE};
 
+/// Compute the actual ELF file size from its header.
+/// This is more robust than searching for magic bytes.
+/// Returns the offset where the ELF ends (section header table end).
+fn compute_elf_size(data: &[u8]) -> Option<usize> {
+    // Need at least 64 bytes for ELF64 header
+    if data.len() < 64 {
+        return None;
+    }
 
+    // Check ELF magic
+    if &data[0..4] != b"\x7fELF" {
+        return None;
+    }
+
+    // Check it's 64-bit (class = 2)
+    if data[4] != 2 {
+        return None;
+    }
+
+    // Check endianness (1 = little endian)
+    let little_endian = data[5] == 1;
+    if !little_endian {
+        return None; // We only support little endian
+    }
+
+    // Read e_shoff (section header offset) at offset 40 (8 bytes)
+    let e_shoff = u64::from_le_bytes([
+        data[40], data[41], data[42], data[43],
+        data[44], data[45], data[46], data[47],
+    ]) as usize;
+
+    // Read e_shentsize (section header entry size) at offset 58 (2 bytes)
+    let e_shentsize = u16::from_le_bytes([data[58], data[59]]) as usize;
+
+    // Read e_shnum (number of section headers) at offset 60 (2 bytes)
+    let e_shnum = u16::from_le_bytes([data[60], data[61]]) as usize;
+
+    // ELF ends at section header table end
+    let elf_end = e_shoff.checked_add(e_shentsize.checked_mul(e_shnum)?)?;
+
+    // Sanity check
+    if elf_end > data.len() || elf_end < 64 {
+        return None;
+    }
+
+    Some(elf_end)
+}
+
+/// Find the ZK proof block offset if present.
+/// Returns the offset where the ZK block starts, or None if not present.
 fn find_zk_block_offset(kernel_data: &[u8]) -> Option<usize> {
+    // ZK block must be at least header + proof size
     let min_zk_size = ZK_PROOF_HEADER_SIZE + GROTH16_PROOF_SIZE;
+
     // Search backwards from the end for ZK magic
     // The ZK block is appended after [kernel_code][signature]
     if kernel_data.len() < 64 + min_zk_size {
@@ -49,6 +100,8 @@ fn find_zk_block_offset(kernel_data: &[u8]) -> Option<usize> {
     None
 }
 
+/// Verify kernel cryptography with proper handling of ZK proof blocks.
+/// Kernel structure: [kernel_code][64-byte Ed25519 signature][optional ZK proof block]
 pub fn verify_kernel_crypto(kernel_data: &[u8], st: &mut SystemTable<Boot>) -> CryptoVerifyResult {
     log_info("kernel_verify", "Starting cryptographic verification");
 
@@ -62,14 +115,33 @@ pub fn verify_kernel_crypto(kernel_data: &[u8], st: &mut SystemTable<Boot>) -> C
         return result;
     }
 
-    let zk_offset = find_zk_block_offset(kernel_data);
-    let sig_end = zk_offset.unwrap_or(kernel_data.len());
-    let sig_offset = sig_end - SIGNATURE_SIZE;
-    let kernel_code = &kernel_data[..sig_offset];
-    let signature = &kernel_data[sig_offset..sig_end];
-    if zk_offset.is_some() {
-        log_debug("kernel_verify", "ZK proof block detected in kernel binary");
+    // PRIMARY: Compute ELF size from header (most robust method)
+    // FALLBACK: Search for ZK magic, then assume signature-only
+    let kernel_code_end = if let Some(elf_size) = compute_elf_size(kernel_data) {
+        log_debug("kernel_verify", "ELF size computed from header");
+        elf_size
+    } else if let Some(zk_offset) = find_zk_block_offset(kernel_data) {
+        log_debug("kernel_verify", "ZK block detected, computing kernel end");
+        zk_offset - SIGNATURE_SIZE
+    } else if kernel_data.len() > SIGNATURE_SIZE {
+        log_debug("kernel_verify", "Using fallback: total - signature");
+        kernel_data.len() - SIGNATURE_SIZE
+    } else {
+        log_error("kernel_verify", "Cannot determine kernel code size");
+        return result;
+    };
+
+    // Signature is right after kernel code
+    let sig_offset = kernel_code_end;
+    let sig_end = sig_offset + SIGNATURE_SIZE;
+
+    if sig_end > kernel_data.len() {
+        log_error("kernel_verify", "Signature offset out of bounds");
+        return result;
     }
+
+    let kernel_code = &kernel_data[..kernel_code_end];
+    let signature = &kernel_data[sig_offset..sig_end];
 
     result.kernel_code_size = kernel_code.len();
     result.signature_present = true;
@@ -215,6 +287,7 @@ fn display_signature_components(signature: &[u8], st: &mut SystemTable<Boot>) {
     print(st, cstr16!("  [CRYPTO] Sig R: "));
     print_hex_bytes(st, &signature[0..8]);
     print(st, cstr16!("...\r\n"));
+
     print(st, cstr16!("  [CRYPTO] Sig S: "));
     print_hex_bytes(st, &signature[32..40]);
     print(st, cstr16!("...\r\n"));

@@ -76,7 +76,7 @@ pub fn init_boot_screen() {
         banner_y += CHAR_HEIGHT + 2;
     }
 
-    // Subtitle below banner with proper spacing
+    // Subtitle below banner - with proper spacing
     draw_string(
         banner_x + 4,
         banner_y + 8,
@@ -94,6 +94,7 @@ pub fn init_boot_screen() {
     let sep_y = banner_y + 52;
     fill_rect(banner_x, sep_y, width / 2 - 40, 1, COLOR_TEXT_DIM);
 
+    // Right panel - logo at top
     let right_panel_x = width / 2 + 60;
     draw_logo(right_panel_x + 40, 16);
 

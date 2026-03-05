@@ -20,6 +20,7 @@ use alloc::vec::Vec;
 
 pub fn load_validated_capsule(capsule_bytes: &[u8]) -> Option<Vec<u8>> {
     let (status, meta_opt) = validate_capsule(capsule_bytes);
+
     match status {
         CapsuleStatus::Valid => {
             log_info("loader", "Capsule status: Valid, extracting payload");

@@ -46,7 +46,7 @@ impl SecurityPolicy {
         Self {
             enforce_wx: true,
             require_signature: true,
-            max_kernel_size: 64 * 1024 * 1024,
+            max_kernel_size: 128 * 1024 * 1024,
             min_load_address: memory::MIN_LOAD_ADDRESS,
             max_load_address: memory::MAX_LOAD_ADDRESS,
             allow_debug_symbols: false,

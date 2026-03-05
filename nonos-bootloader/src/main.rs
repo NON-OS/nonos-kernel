@@ -19,9 +19,12 @@
 
 extern crate alloc;
 
+use alloc::format;
 use uefi::prelude::*;
 use uefi::table::runtime::ResetType;
-use uefi_services::init;
+
+
+// ============================================================================
 
 use nonos_boot::config::load_bootloader_config;
 use nonos_boot::display::{
@@ -52,13 +55,8 @@ fn efi_main(_handle: Handle, mut system_table: SystemTable<Boot>) -> Status {
         .stdout()
         .output_string(uefi::cstr16!("[BOOT] NONOS Bootloader v1.0\r\n"));
 
-    // Initialize UEFI services
-    if init(&mut system_table).is_err() {
-        let _ = system_table
-            .stdout()
-            .output_string(uefi::cstr16!("[FATAL] UEFI init failed\r\n"));
-        loop {}
-    }
+    // Initialize UEFI services (allocator, panic handler, etc.)
+    uefi_services::init(&mut system_table).unwrap();
 
     // Initialize graphical display
     let gop_available = init_gop(&mut system_table);
@@ -71,7 +69,7 @@ fn efi_main(_handle: Handle, mut system_table: SystemTable<Boot>) -> Status {
     init_logger(&mut system_table);
     log_info("boot", "UEFI services initialized");
 
-    // ## Stage 1: UEFI, log REAL addresses ##
+    // Stage 1: UEFI - log REAL addresses
     update_stage(STAGE_UEFI, StageStatus::Success);
     draw_boot_progress(1, TOTAL_BOOT_STAGES);
     if gop_available {
@@ -94,13 +92,13 @@ fn efi_main(_handle: Handle, mut system_table: SystemTable<Boot>) -> Status {
         );
     }
 
-    // ## Stage 2: Configuration ##
+    // Stage 2: Configuration
     let _config = load_bootloader_config(&mut system_table);
     if gop_available {
         log_ok(b"boot.toml loaded");
     }
 
-    // ## Stage 3: Security ##
+    // Stage 3: Security
     update_stage(STAGE_SECURITY, StageStatus::Running);
     draw_boot_progress(2, TOTAL_BOOT_STAGES);
     let security = initialize_security_subsystem(&mut system_table);
@@ -139,18 +137,19 @@ fn efi_main(_handle: Handle, mut system_table: SystemTable<Boot>) -> Status {
     update_stage(STAGE_SECURITY, StageStatus::Success);
     draw_boot_progress(3, TOTAL_BOOT_STAGES);
 
-    // ## Stage 4: Hardware discovery ##
+    // Stage 4: Hardware discovery
     update_stage(STAGE_HARDWARE, StageStatus::Running);
     let hw = discover_system_hardware(&mut system_table);
 
     if gop_available {
-        // ## Log ACPI addresses ##
+        // Log real ACPI addresses
         if let Some(rsdp) = hw.rsdp_address {
             log_hex(b"ACPI RSDP @ ", rsdp);
         }
         log_ok(b"ACPI tables parsed");
         log_ok(b"PCI bus enumerated");
-        // ## Log a few memory map entries to show real data ##
+
+        // Log a few memory map entries to show real data
         let bs = system_table.boot_services();
         let mmap_size = bs.memory_map_size().map_size;
         log_size(b"MemoryMap size ", mmap_size);
@@ -159,7 +158,7 @@ fn efi_main(_handle: Handle, mut system_table: SystemTable<Boot>) -> Status {
     update_stage(STAGE_HARDWARE, StageStatus::Success);
     draw_boot_progress(4, TOTAL_BOOT_STAGES);
 
-    // ## Stage 5: Load kernel binary ##
+    // Stage 5: Load kernel binary
     update_stage(STAGE_KERNEL_LOAD, StageStatus::Running);
     draw_boot_progress(4, TOTAL_BOOT_STAGES);
 
@@ -169,14 +168,14 @@ fn efi_main(_handle: Handle, mut system_table: SystemTable<Boot>) -> Status {
             update_stage(STAGE_KERNEL_LOAD, StageStatus::Success);
             draw_boot_progress(5, TOTAL_BOOT_STAGES);
             if gop_available {
-                // ## actual addresses and sizes ##
+                // REAL data - actual addresses and sizes
                 log_size(b"kernel.bin ", data.len());
                 log_hex(b"kernel base ", data.as_ptr() as u64);
                 log_hex(
                     b"kernel end  ",
                     (data.as_ptr() as u64) + (data.len() as u64),
                 );
-                // ## first 8 bytes of kernel (ELF magic + class) ##
+                // Show first 8 bytes of kernel (ELF magic + class)
                 if data.len() >= 8 {
                     let mut magic = [0u8; 8];
                     magic.copy_from_slice(&data[..8]);
@@ -196,20 +195,22 @@ fn efi_main(_handle: Handle, mut system_table: SystemTable<Boot>) -> Status {
         }
     };
 
-    // ## Prepare crypto state for stage 6-7-8 ##
+    // Prepare crypto state for visualization
     let mut crypto_state = BootCryptoState::new();
 
-    // ## Stage 6: BLAKE3 hash computation ##
+    // Stage 6: BLAKE3 hash computation
     update_stage(STAGE_BLAKE3_HASH, StageStatus::Running);
     draw_boot_progress(5, TOTAL_BOOT_STAGES);
 
     let crypto_result =
         nonos_boot::kernel_verify::verify_kernel_crypto(&kernel_data, &mut system_table);
 
+    // Update crypto state with hash
     crypto_state
         .kernel_hash
         .copy_from_slice(&crypto_result.kernel_hash_full);
-    // ## hash reveal ##
+
+    // Animate hash reveal
     if gop_available {
         for _ in 0..32 {
             animate_hash_reveal();
@@ -221,15 +222,16 @@ fn efi_main(_handle: Handle, mut system_table: SystemTable<Boot>) -> Status {
     update_stage(STAGE_BLAKE3_HASH, StageStatus::Success);
     draw_boot_progress(6, TOTAL_BOOT_STAGES);
     if gop_available {
-        // ## FULL 32-byte BLAKE3 hash ##
+        // Show FULL 32-byte BLAKE3 hash
         log_ok(b"BLAKE3-256 hash computed");
         log_hash(b"BLAKE3 ", &crypto_result.kernel_hash_full);
     }
 
-    // ## Stage 7: Ed25519 signature verification ##
+    // Stage 7: Ed25519 signature verification
     update_stage(STAGE_ED25519_VERIFY, StageStatus::Running);
     draw_boot_progress(6, TOTAL_BOOT_STAGES);
-    // ## Extract signature bytes from kernel ##
+
+    // Extract REAL signature bytes from kernel
     if kernel_data.len() >= 64 {
         let sig_end = find_signature_end(&kernel_data);
         let sig_offset = sig_end - 64;
@@ -241,7 +243,7 @@ fn efi_main(_handle: Handle, mut system_table: SystemTable<Boot>) -> Status {
             .copy_from_slice(&kernel_data[sig_offset + 32..sig_offset + 64]);
 
         if gop_available {
-            // ## Show signature bytes ##
+            // Show REAL signature bytes
             log_ok(b"Ed25519 signature extracted");
             log_hash(b"sig.R  ", &crypto_state.signature_r);
             log_hash(b"sig.S  ", &crypto_state.signature_s);
@@ -270,12 +272,13 @@ fn efi_main(_handle: Handle, mut system_table: SystemTable<Boot>) -> Status {
         log_ok(b"Ed25519 signature VALID");
     }
 
-    // ## Stage 8: ZK attestation - MANDATORY ##
+    // Stage 8: ZK attestation - MANDATORY
     update_stage(STAGE_ZK_VERIFY, StageStatus::Running);
     draw_boot_progress(7, TOTAL_BOOT_STAGES);
 
     let has_proof = has_zk_proof(&kernel_data);
     let zk_result = verify_boot_attestation(&kernel_data);
+
     if gop_available {
         if has_proof {
             log_ok(b"ZK proof block found");
@@ -294,7 +297,7 @@ fn efi_main(_handle: Handle, mut system_table: SystemTable<Boot>) -> Status {
         show_crypto_verification(&crypto_state);
     }
 
-    // ## *ZK attestation is MANDATORY - boot fails without valid proof* ##
+    // ZK attestation is MANDATORY - boot fails without valid proof
     if !has_proof {
         log_error("zk", "ZK attestation REQUIRED - no proof found in kernel");
         update_stage(STAGE_ZK_VERIFY, StageStatus::Failed);
@@ -321,12 +324,12 @@ fn efi_main(_handle: Handle, mut system_table: SystemTable<Boot>) -> Status {
     draw_boot_progress(8, TOTAL_BOOT_STAGES);
     if gop_available {
         log_ok(b"Groth16/BLS12-381 VERIFIED");
-        // ## Show ZK program hash and commitment ##
+        // Show REAL ZK program hash and commitment
         log_hash(b"ZK prog ", &zk_result.program_hash);
         log_hash(b"capsule ", &zk_result.capsule_commitment);
     }
 
-    // ## Extend TPM measurements with verified boot state ##
+    // Extend TPM measurements with verified boot state
     if security.measured_boot_active {
         let mut sig_bytes = [0u8; 64];
         if kernel_data.len() >= 64 {
@@ -341,15 +344,31 @@ fn efi_main(_handle: Handle, mut system_table: SystemTable<Boot>) -> Status {
         log_info("tpm", "boot measurements extended to TPM");
     }
 
-    // ## Stage 9: Parse ELF ##
+    // Stage 9: Parse ELF
     update_stage(STAGE_ELF_PARSE, StageStatus::Running);
     draw_boot_progress(8, TOTAL_BOOT_STAGES);
 
-    let kernel_elf = if kernel_data.len() > 64 {
+    // Use kernel_code_size from crypto verification, which properly handles ZK block
+    // Kernel structure: [kernel_code][64-byte Ed25519 signature][optional ZK proof block]
+    let kernel_elf = if crypto_result.kernel_code_size > 0 && crypto_result.kernel_code_size <= kernel_data.len() {
+        &kernel_data[..crypto_result.kernel_code_size]
+    } else if kernel_data.len() > 64 {
+        // Fallback if crypto verification didn't set kernel_code_size
         &kernel_data[..kernel_data.len() - 64]
     } else {
         &kernel_data[..]
     };
+
+    // Debug output before ELF parse
+    if gop_available {
+        log_size(b"ELF len   ", kernel_elf.len());
+        log_size(b"code_size ", crypto_result.kernel_code_size);
+        if kernel_elf.len() >= 8 {
+            let mut hdr = [0u8; 8];
+            hdr.copy_from_slice(&kernel_elf[..8]);
+            log_hash(b"ELF hdr   ", &hdr);
+        }
+    }
 
     let kernel_image = match load_kernel(&mut system_table, kernel_elf) {
         Ok(image) => {
@@ -357,7 +376,7 @@ fn efi_main(_handle: Handle, mut system_table: SystemTable<Boot>) -> Status {
             update_stage(STAGE_ELF_PARSE, StageStatus::Success);
             draw_boot_progress(9, TOTAL_BOOT_STAGES);
             if gop_available {
-                // ## REAL ELF addresses ##
+                // REAL ELF addresses
                 log_ok(b"ELF64 parsed successfully");
                 log_hex(b"entry   ", image.entry_point as u64);
                 log_hex(b"base    ", image.address as u64);
@@ -366,10 +385,17 @@ fn efi_main(_handle: Handle, mut system_table: SystemTable<Boot>) -> Status {
             }
             image
         }
-        Err(_) => {
-            log_error("loader", "ELF parsing failed");
+        Err(e) => {
+            log_error("loader", &format!("ELF parsing failed: {}", e));
             update_stage(STAGE_ELF_PARSE, StageStatus::Failed);
             if gop_available {
+                // Show debug info on failure
+                log_size(b"FAIL len  ", kernel_elf.len());
+                log_size(b"FAIL code ", crypto_result.kernel_code_size);
+                log_size(b"FAIL full ", kernel_data.len());
+                // Show goblin error type on screen
+                let err_str = format!("{}", e);
+                panel_error(err_str.as_bytes());
                 panel_error(b"ELF parse failed");
                 show_error_screen(b"Kernel ELF parsing failed");
             }
@@ -377,9 +403,11 @@ fn efi_main(_handle: Handle, mut system_table: SystemTable<Boot>) -> Status {
         }
     };
 
-    // ## Stage 10: Handoff ##
+    // Stage 10: Handoff
+    log_info("handoff", "starting handoff preparation");
     update_stage(STAGE_HANDOFF, StageStatus::Running);
     draw_boot_progress(10, TOTAL_BOOT_STAGES);
+    log_info("handoff", "collecting entropy");
 
     let crypto_handoff = CryptoHandoff {
         signature_valid: crypto_result.signature_valid,
@@ -390,7 +418,7 @@ fn efi_main(_handle: Handle, mut system_table: SystemTable<Boot>) -> Status {
         zk_capsule_commitment: zk_result.capsule_commitment,
     };
 
-    let entropy = match collect_boot_entropy_64() {
+    let entropy = match collect_boot_entropy_64(&system_table) {
         Ok(e) => e,
         Err(msg) => {
             log_error("entropy", msg);
@@ -403,6 +431,7 @@ fn efi_main(_handle: Handle, mut system_table: SystemTable<Boot>) -> Status {
     };
     let mut rng_seed = [0u8; 32];
     rng_seed.copy_from_slice(&entropy[..32]);
+    log_info("handoff", "entropy collected, preparing handoff");
 
     if gop_available {
         log_ok(b"Entropy collected");
@@ -433,19 +462,21 @@ fn efi_main(_handle: Handle, mut system_table: SystemTable<Boot>) -> Status {
     );
 }
 
-/// ## ZK proof block magic bytes ##
+/// ZK proof block magic bytes.
 const ZK_PROOF_MAGIC: [u8; 4] = [0x4E, 0xC3, 0x5A, 0x50];
-/// _* Find where the Ed25519 signature ends in the kernel binary.
+
+/// Find where the Ed25519 signature ends in the kernel binary.
 /// Returns kernel_data.len() if no ZK block, or ZK block offset if present.
-/// Kernel structure: [kernel_code][64-byte signature][optional ZK block]_*
+/// Kernel structure: [kernel_code][64-byte signature][optional ZK block]
 fn find_signature_end(kernel_data: &[u8]) -> usize {
-    // ## Minimum ZK block size: header(80) + proof(192) = 272 bytes ##
+    // Minimum ZK block size: header(80) + proof(192) = 272 bytes
     const MIN_ZK_SIZE: usize = 272;
+
     if kernel_data.len() < 64 + MIN_ZK_SIZE {
         return kernel_data.len();
     }
 
-    // ## Search in the last 4KB for ZK magic ##
+    // Search in the last 4KB for ZK magic
     let search_start = kernel_data.len().saturating_sub(4096);
     for i in (search_start..kernel_data.len().saturating_sub(MIN_ZK_SIZE)).rev() {
         if kernel_data.len() - i >= 4 && &kernel_data[i..i + 4] == &ZK_PROOF_MAGIC {
@@ -456,14 +487,14 @@ fn find_signature_end(kernel_data: &[u8]) -> usize {
     kernel_data.len()
 }
 
-/// ## Delay for visual (approx 80ms) ##
+/// Delay for visual feedback (approx 80ms).
 fn mini_delay() {
     for _ in 0..8_000_000 {
         core::hint::spin_loop();
     }
 }
 
-/// ## Short delay (approx 15ms) ##
+/// Short delay for animations (approx 15ms).
 fn micro_delay() {
     for _ in 0..1_500_000 {
         core::hint::spin_loop();
@@ -480,6 +511,7 @@ fn fatal_reset(st: &mut SystemTable<Boot>, reason: &str) -> ! {
     let _ = st
         .stdout()
         .output_string(cstr16!("\r\nSystem will restart...\r\n"));
+
     // Wait a bit before reset
     for _ in 0..10_000_000 {
         core::hint::spin_loop();

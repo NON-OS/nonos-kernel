@@ -63,6 +63,7 @@ pub fn validate_capsule(capsule: &[u8]) -> (CapsuleStatus, Option<CapsuleMetadat
     }
 
     let header = &capsule[0..header_len];
+
     let version = match read_u32_le(&header[0..4]) {
         Some(v) => v,
         None => {
@@ -96,6 +97,7 @@ pub fn validate_capsule(capsule: &[u8]) -> (CapsuleStatus, Option<CapsuleMetadat
         return (CapsuleStatus::InvalidFormat, None);
     }
     let len_payload = offset_sig - offset_payload;
+
     if offset_payload
         .checked_add(len_payload)
         .map_or(true, |v| v > tot)
@@ -108,6 +110,7 @@ pub fn validate_capsule(capsule: &[u8]) -> (CapsuleStatus, Option<CapsuleMetadat
     let payload_hash = blake3::hash(payload);
     let mut payload_hash_arr = [0u8; 32];
     payload_hash_arr.copy_from_slice(payload_hash.as_bytes());
+
     if payload_hash_arr != expected_hash {
         log_error("capsule", "payload hash mismatch");
         let meta = CapsuleMetadata {

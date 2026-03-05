@@ -18,6 +18,7 @@
 
 extern crate alloc;
 
+// Core boot modules
 pub mod config;
 pub mod crypto;
 pub mod display;

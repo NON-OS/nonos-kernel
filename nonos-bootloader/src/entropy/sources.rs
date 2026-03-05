@@ -19,6 +19,7 @@ pub fn rdtsc_serialized() -> u64 {
     #[cfg(target_arch = "x86_64")]
     unsafe {
         core::arch::asm!("lfence", options(nostack, nomem));
+
         let mut hi: u32;
         let mut lo: u32;
         core::arch::asm!(
@@ -143,6 +144,7 @@ pub fn rdrand64() -> Option<u64> {
 
 pub fn collect_hw_rng_bytes(buf: &mut [u8; 64], iterations: usize) {
     let mut off = 0usize;
+
     for _ in 0..iterations {
         if let Some(x) = rdseed64() {
             buf[off % 64] ^= x as u8;

@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub const MIN_KERNEL_SIZE: usize = 64 + 1024;
+
 pub const SIGNATURE_SIZE: usize = 64;
 
 ///

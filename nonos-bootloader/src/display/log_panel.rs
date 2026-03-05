@@ -54,6 +54,7 @@ impl LogEntry {
 
 static mut LOG_BUFFER: [LogEntry; MAX_LOG_LINES] = [LogEntry::empty(); MAX_LOG_LINES];
 static LOG_COUNT: AtomicUsize = AtomicUsize::new(0);
+
 /// Small delay for log visibility
 fn log_delay() {
     for _ in 0..800_000 {
@@ -65,7 +66,7 @@ pub fn log(level: LogLevel, msg: &[u8]) {
     let count = LOG_COUNT.load(Ordering::Relaxed);
     let idx = count % MAX_LOG_LINES;
 
-    // ## SAFETY: Single-threaded bootloader context
+    // SAFETY: Single-threaded bootloader context
     unsafe {
         let entry = &mut LOG_BUFFER[idx];
         entry.level = level;
@@ -75,6 +76,7 @@ pub fn log(level: LogLevel, msg: &[u8]) {
     }
 
     LOG_COUNT.store(count + 1, Ordering::Release);
+
     // Always do full redraw to prevent overlap
     redraw_visible(count + 1);
     log_delay();
@@ -192,6 +194,7 @@ pub fn log_hash(prefix: &[u8], hash: &[u8]) {
     }
 
     log(LogLevel::Ok, &buf[..pos]);
+
     // Second line for remaining bytes
     if hash.len() > 16 {
         let mut buf2 = [0u8; 58];
@@ -230,10 +233,12 @@ pub fn log_hash_full(label: &[u8], hash: &[u8]) {
 pub fn log_mem(start: u64, end: u64, kind: &[u8]) {
     let mut buf = [0u8; 58];
     let hex = b"0123456789abcdef";
+
     // Format: 0xSTART-0xEND TYPE
     let mut pos = 0;
     buf[pos..pos + 2].copy_from_slice(b"0x");
     pos += 2;
+
     // Start address (12 hex digits for readability)
     for i in (0..12).rev() {
         buf[pos] = hex[((start >> (i * 4)) & 0xF) as usize];
@@ -245,6 +250,7 @@ pub fn log_mem(start: u64, end: u64, kind: &[u8]) {
 
     buf[pos..pos + 2].copy_from_slice(b"0x");
     pos += 2;
+
     // End address
     for i in (0..12).rev() {
         buf[pos] = hex[((end >> (i * 4)) & 0xF) as usize];

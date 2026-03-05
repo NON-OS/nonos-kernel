@@ -20,41 +20,57 @@ use super::console::{write_log_global, write_log_st};
 use crate::log::global::should_log;
 use crate::log::types::LogLevel;
 
+// ============================================================================
+// SystemTable-based logging API (explicit system table reference)
+// ============================================================================
+
+/// Log a trace message with system table
 #[inline]
 pub fn log_trace_st(st: &mut SystemTable<Boot>, category: &str, message: &str) {
     write_log_st(st, LogLevel::Trace, category, message);
 }
 
+/// Log a debug message with system table
 #[inline]
 pub fn log_debug_st(st: &mut SystemTable<Boot>, category: &str, message: &str) {
     write_log_st(st, LogLevel::Debug, category, message);
 }
 
+/// Log an info message with system table
 #[inline]
 pub fn log_info_st(st: &mut SystemTable<Boot>, category: &str, message: &str) {
     write_log_st(st, LogLevel::Info, category, message);
 }
 
+/// Log a warning message with system table
 #[inline]
 pub fn log_warn_st(st: &mut SystemTable<Boot>, category: &str, message: &str) {
     write_log_st(st, LogLevel::Warn, category, message);
 }
 
+/// Log an error message with system table
 #[inline]
 pub fn log_error_st(st: &mut SystemTable<Boot>, category: &str, message: &str) {
     write_log_st(st, LogLevel::Error, category, message);
 }
 
+/// Log a critical message with system table
 #[inline]
 pub fn log_critical_st(st: &mut SystemTable<Boot>, category: &str, message: &str) {
     write_log_st(st, LogLevel::Critical, category, message);
 }
 
+/// Log a fatal message with system table
 #[inline]
 pub fn log_fatal_st(st: &mut SystemTable<Boot>, category: &str, message: &str) {
     write_log_st(st, LogLevel::Fatal, category, message);
 }
 
+// ============================================================================
+// Global logging API (uses global Boot Services pointer)
+// ============================================================================
+
+/// Log a trace message (global)
 #[inline]
 pub fn log_trace(category: &str, message: &str) {
     if should_log(LogLevel::Trace) {
@@ -62,6 +78,7 @@ pub fn log_trace(category: &str, message: &str) {
     }
 }
 
+/// Log a debug message (global)
 #[inline]
 pub fn log_debug(category: &str, message: &str) {
     if should_log(LogLevel::Debug) {
@@ -69,6 +86,7 @@ pub fn log_debug(category: &str, message: &str) {
     }
 }
 
+/// Log an info message (global)
 #[inline]
 pub fn log_info(category: &str, message: &str) {
     if should_log(LogLevel::Info) {
@@ -76,6 +94,7 @@ pub fn log_info(category: &str, message: &str) {
     }
 }
 
+/// Log a warning message (global)
 #[inline]
 pub fn log_warn(category: &str, message: &str) {
     if should_log(LogLevel::Warn) {
@@ -83,6 +102,7 @@ pub fn log_warn(category: &str, message: &str) {
     }
 }
 
+/// Log an error message (global)
 #[inline]
 pub fn log_error(category: &str, message: &str) {
     if should_log(LogLevel::Error) {
@@ -90,6 +110,7 @@ pub fn log_error(category: &str, message: &str) {
     }
 }
 
+/// Log a critical message (global)
 #[inline]
 pub fn log_critical(category: &str, message: &str) {
     if should_log(LogLevel::Critical) {
@@ -97,11 +118,14 @@ pub fn log_critical(category: &str, message: &str) {
     }
 }
 
+/// Log a fatal message (global)
 #[inline]
 pub fn log_fatal(category: &str, message: &str) {
+    // Fatal always logs regardless of level
     write_log_global(LogLevel::Fatal, category, message);
 }
 
+/// Log at a specific level (global)
 #[inline]
 pub fn log_at_level(level: LogLevel, category: &str, message: &str) {
     if should_log(level) {
@@ -109,6 +133,7 @@ pub fn log_at_level(level: LogLevel, category: &str, message: &str) {
     }
 }
 
+/// Log at a specific level with system table
 #[inline]
 pub fn log_at_level_st(st: &mut SystemTable<Boot>, level: LogLevel, category: &str, message: &str) {
     write_log_st(st, level, category, message);

@@ -15,7 +15,11 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub const DS_ENTROPY_ACCUM: &str = "NONOS:BOOT:ENTROPY:ACCUM";
+
 pub const DS_ENTROPY_OUTPUT: &str = "NONOS:BOOT:ENTROPY:OUTPUT";
+
 pub const ENTROPY_POOL_SIZE: usize = 64;
+
 pub const TSC_JITTER_ROUNDS: u32 = 256;
+
 pub const HW_RNG_ITERATIONS: usize = 32;

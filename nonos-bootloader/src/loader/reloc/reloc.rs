@@ -98,7 +98,7 @@ impl RelocationContext {
     }
 
     pub fn parse_dynamic(&mut self, dyn_ptr: *const Dyn64, dyn_count: usize) {
-        // ## SAFETY: Caller ensures dyn_ptr points to valid dynamic section
+        // SAFETY: Caller ensures dyn_ptr points to valid dynamic section
         unsafe {
             for i in 0..dyn_count {
                 let dyn_entry = &*dyn_ptr.add(i);
@@ -132,13 +132,14 @@ impl RelocationContext {
 
 pub fn process_relocations(ctx: &RelocationContext) -> Result<usize, LoaderError> {
     let mut reloc_count = 0;
+
     if let Some(rela_addr) = ctx.rela_addr {
         if ctx.rela_size > 0 && ctx.rela_ent > 0 {
             let entry_count = ctx.rela_size / ctx.rela_ent;
             log_debug("reloc", "Processing RELA relocations");
 
             for i in 0..entry_count {
-                // ## SAFETY: rela_addr points to valid relocation table
+                // SAFETY: rela_addr points to valid relocation table
                 let rela = unsafe {
                     let ptr = (rela_addr as *const u8).add(i * ctx.rela_ent) as *const Rela64;
                     &*ptr
@@ -156,7 +157,7 @@ pub fn process_relocations(ctx: &RelocationContext) -> Result<usize, LoaderError
             log_debug("reloc", "Processing PLT relocations");
 
             for i in 0..entry_count {
-                // ## SAFETY: jmprel_addr points to valid relocation table
+                // SAFETY: jmprel_addr points to valid relocation table
                 let rela = unsafe {
                     let ptr = (jmprel_addr as *const u8).add(i * ctx.rela_ent) as *const Rela64;
                     &*ptr
@@ -179,7 +180,8 @@ fn apply_relocation(rela: &Rela64, ctx: &RelocationContext) -> Result<(), Loader
     let reloc_type = rela.reloc_type();
     let target_addr = ctx.base_addr.wrapping_add(rela.r_offset);
     let addend = rela.r_addend;
-    // ## SAFETY: target_addr is within the loaded image bounds
+
+    // SAFETY: Assumes target_addr is within the loaded image bounds
     unsafe {
         match reloc_type {
             reloc_type::R_X86_64_NONE => {}
@@ -255,7 +257,7 @@ pub fn process_elf_relocations(
     let dyn_entry_size = core::mem::size_of::<Dyn64>();
     let dyn_count = dyn_size / dyn_entry_size;
 
-    // ## SAFETY: We've validated bounds above ^
+    // SAFETY: We've validated bounds above
     let dyn_ptr = unsafe { payload.as_ptr().add(dyn_offset) as *const Dyn64 };
     ctx.parse_dynamic(dyn_ptr, dyn_count);
 

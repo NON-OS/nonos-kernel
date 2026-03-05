@@ -16,7 +16,9 @@
 
 use crate::log::types::{CompactLogEntry, LogEntry, LogLevel};
 
+/// Default ring buffer capacity (entries)
 pub const DEFAULT_RING_CAPACITY: usize = 256;
+
 /// Ring buffer for storing log entries
 pub struct LogRingBuffer<const N: usize = DEFAULT_RING_CAPACITY> {
     entries: [CompactLogEntry; N],
@@ -48,10 +50,11 @@ impl<const N: usize> LogRingBuffer<N> {
     pub fn push_compact(&mut self, entry: CompactLogEntry) {
         self.entries[self.head] = entry;
         self.head = (self.head + 1) % N;
+
         if self.count < N {
             self.count += 1;
         } else {
-            // Overflow oldest entry is lost
+            // Overflow - oldest entry is lost
             self.tail = (self.tail + 1) % N;
             self.overflow_count += 1;
         }
@@ -92,6 +95,7 @@ impl<const N: usize> LogRingBuffer<N> {
         N
     }
 
+    /// Get overflow count (entries lost due to buffer full)
     pub fn overflow_count(&self) -> u64 {
         self.overflow_count
     }
@@ -105,6 +109,7 @@ impl<const N: usize> LogRingBuffer<N> {
         Some(&self.entries[actual_idx])
     }
 
+    /// Get the most recent entry
     pub fn last(&self) -> Option<&CompactLogEntry> {
         if self.count == 0 {
             return None;
@@ -113,11 +118,12 @@ impl<const N: usize> LogRingBuffer<N> {
         Some(&self.entries[idx])
     }
 
+    /// Clear all entries
     pub fn clear(&mut self) {
         self.head = 0;
         self.tail = 0;
         self.count = 0;
-        // ## Note: we don't reset overflow_count to preserve history
+        // Note: we don't reset overflow_count to preserve history
     }
 
     /// Iterate over entries from oldest to newest
@@ -175,18 +181,21 @@ mod tests {
     fn test_ring_buffer_push() {
         let mut buf: LogRingBuffer<4> = LogRingBuffer::new();
         assert!(buf.is_empty());
-      
+
         buf.push_message(1, LogLevel::Info, 0, "test1");
         assert_eq!(buf.len(), 1);
+
         buf.push_message(2, LogLevel::Info, 0, "test2");
         buf.push_message(3, LogLevel::Info, 0, "test3");
         buf.push_message(4, LogLevel::Info, 0, "test4");
         assert!(buf.is_full());
         assert_eq!(buf.overflow_count(), 0);
-        // Push one more should overflow
+
+        // Push one more - should overflow
         buf.push_message(5, LogLevel::Info, 0, "test5");
         assert_eq!(buf.len(), 4);
         assert_eq!(buf.overflow_count(), 1);
+
         // First entry should now be test2
         let first = buf.get(0).unwrap();
         assert_eq!(first.tick, 2);

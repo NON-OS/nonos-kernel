@@ -20,6 +20,7 @@ use crate::log::logger::log_debug;
 
 use super::types::RsdpDescriptor;
 
+///
 pub fn discover_acpi_rsdp(system_table: &mut SystemTable<Boot>) -> Option<u64> {
     for entry in system_table.config_table() {
         if entry.guid == uefi::table::cfg::ACPI2_GUID || entry.guid == uefi::table::cfg::ACPI_GUID {
@@ -32,9 +33,11 @@ pub fn discover_acpi_rsdp(system_table: &mut SystemTable<Boot>) -> Option<u64> {
     None
 }
 
+///
 fn validate_rsdp(rsdp_address: u64) -> bool {
     unsafe {
         let rsdp = &*(rsdp_address as *const RsdpDescriptor);
+
         if &rsdp.signature != RsdpDescriptor::SIGNATURE {
             return false;
         }
@@ -45,6 +48,7 @@ fn validate_rsdp(rsdp_address: u64) -> bool {
     }
 }
 
+///
 pub fn get_cpu_count_from_acpi(_rsdp_address: u64) -> usize {
     log_debug(
         "acpi",

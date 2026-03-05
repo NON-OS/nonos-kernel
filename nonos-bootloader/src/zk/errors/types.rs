@@ -14,32 +14,51 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+/// ZK verification error types
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ZkError {
+    // Proof size and format errors
     ProofTooLarge,
     ProofSizeInvalid,
+
+    // Public inputs errors
     InputsTooLarge,
     InputsMisaligned,
     InputsCountMismatch,
+
+    // Manifest errors
     ManifestMissing,
     ManifestTooLarge,
+
+    // Commitment errors
     CommitmentMismatch,
+
+    // Verifying key errors
     UnknownProgramHash,
     VerifyingKeyEmpty,
     VerifyingKeyDeserialize,
+
+    // Proof deserialization errors
     ProofDeserializeA,
     ProofDeserializeB,
     ProofDeserializeC,
+
+    // Backend errors
     BackendVerifyFailed,
     BackendUnsupported,
+
+    // Parse errors
     SectionTooSmall,
     HeaderTruncated,
     OffsetRange,
     HashOffsets,
+
+    // Internal errors
     Internal,
 }
 
 impl ZkError {
+    /// Get human-readable error message
     pub fn as_str(self) -> &'static str {
         use ZkError::*;
         match self {
@@ -67,6 +86,7 @@ impl ZkError {
         }
     }
 
+    /// Get error category for logging
     pub fn category(self) -> &'static str {
         use ZkError::*;
         match self {
@@ -82,9 +102,11 @@ impl ZkError {
         }
     }
 
+    /// Check if error is recoverable
     pub fn is_recoverable(self) -> bool {
         use ZkError::*;
         match self {
+            // These might be recoverable with retry or different inputs
             UnknownProgramHash | ManifestMissing => true,
             // Most errors are not recoverable
             _ => false,

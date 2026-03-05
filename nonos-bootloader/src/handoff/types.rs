@@ -29,16 +29,6 @@ pub struct FramebufferInfo {
 
 #[repr(C)]
 #[derive(Copy, Clone)]
-pub struct MemoryMapEntry {
-    pub memory_type: u32,
-    pub physical_start: u64,
-    pub virtual_start: u64,
-    pub page_count: u64,
-    pub attribute: u64,
-}
-
-#[repr(C)]
-#[derive(Copy, Clone)]
 pub struct MemoryMap {
     pub ptr: u64,
     pub entry_size: u32,
@@ -145,8 +135,6 @@ impl BootHandoffV1 {
             && self.size as usize == size_of::<Self>()
     }
 }
-
-pub type KernelEntry = extern "C" fn(u64) -> !;
 
 #[derive(Clone, Copy)]
 pub struct CryptoHandoff {

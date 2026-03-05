@@ -17,8 +17,10 @@
 use uefi::prelude::*;
 use uefi::table::boot::{AllocateType, MemoryType};
 
+///
 pub fn discover_memory_size(system_table: &mut SystemTable<Boot>) -> u64 {
     let bs = system_table.boot_services();
+
     let map_info = bs.memory_map_size();
     let buf_size = map_info.map_size + (map_info.entry_size * 8);
     let pages_needed = buf_size.div_ceil(4096);
@@ -32,6 +34,7 @@ pub fn discover_memory_size(system_table: &mut SystemTable<Boot>) -> u64 {
     };
 
     let buf = unsafe { core::slice::from_raw_parts_mut(ptr as *mut u8, buf_size) };
+
     let total = if let Ok(mem_map) = bs.memory_map(buf) {
         mem_map.entries().map(|desc| desc.page_count * 4096).sum()
     } else {

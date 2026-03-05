@@ -217,6 +217,7 @@ pub fn verify_kernel_version(embedded_version: u32, minimum_version: u32) -> boo
 
 pub fn detect_secure_boot_bypass(system_table: &mut SystemTable<Boot>) -> bool {
     let rt = system_table.runtime_services();
+
     let mut setup_mode = [0u8; 1];
     if let Ok(_) = rt.get_variable(
         cstr16!("SetupMode"),

@@ -23,27 +23,34 @@ pub struct Transcript {
 }
 
 impl Transcript {
+    /// Create a new transcript with domain separation
     pub fn new(domain: &str) -> Self {
         let mut h = blake3::Hasher::new_derive_key(domain);
         h.update(domain.as_bytes());
         Transcript { h }
     }
 
+    /// Absorb labeled data into the transcript
     pub fn absorb(&mut self, label: &str, data: &[u8]) {
+        // Include label length and bytes
         self.h.update(&(label.len() as u32).to_le_bytes());
         self.h.update(label.as_bytes());
+        // Include data length and bytes
         self.h.update(&(data.len() as u32).to_le_bytes());
         self.h.update(data);
     }
 
+    /// Absorb a 32-byte value with label
     pub fn absorb32(&mut self, label: &str, value: &[u8; 32]) {
         self.absorb(label, value);
     }
 
+    /// Absorb a u64 value with label
     pub fn absorb_u64(&mut self, label: &str, value: u64) {
         self.absorb(label, &value.to_le_bytes());
     }
 
+    /// Generate a 32-byte challenge
     pub fn challenge32(&self, label: &str) -> [u8; 32] {
         let mut h2 = self.h.clone();
         h2.update(&(label.len() as u32).to_le_bytes());
@@ -51,18 +58,23 @@ impl Transcript {
         *h2.finalize().as_bytes()
     }
 
+    /// Generate a challenge and absorb it back into the transcript
     pub fn challenge32_and_absorb(&mut self, label: &str) -> [u8; 32] {
         let challenge = self.challenge32(label);
         self.absorb(label, &challenge);
         challenge
     }
 
+    /// Get current state hash (for debugging/logging)
     pub fn state_hash(&self) -> [u8; 32] {
         *self.h.clone().finalize().as_bytes()
     }
 }
 
+/// Domain separator for boot attestation transcript
 pub const TRANSCRIPT_DOMAIN_BOOT: &str = "NONOS:BOOT:ATTESTATION:v1";
+
+/// Domain separator for circuit verification transcript
 pub const TRANSCRIPT_DOMAIN_CIRCUIT: &str = "NONOS:CIRCUIT:VERIFY:v1";
 
 #[cfg(test)]

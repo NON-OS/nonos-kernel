@@ -18,10 +18,11 @@ use core::mem::size_of;
 use uefi::prelude::*;
 use uefi::table::boot::{AllocateType, MemoryType};
 use uefi::table::runtime::ResetType;
+
 use super::config::{get_acpi_rsdp, get_framebuffer_info, get_smbios_entry};
 use super::timing::{get_uefi_time_epoch, read_tsc};
 use super::types::{
-    flags, BootHandoffV1, CryptoHandoff, KernelEntry, Measurements, MemoryMap, MemoryMapEntry,
+    flags, BootHandoffV1, CryptoHandoff, Measurements, MemoryMap,
     RngSeed, ZkAttestation, HANDOFF_MAGIC, HANDOFF_VERSION,
 };
 use crate::loader::KernelImage;
@@ -35,10 +36,13 @@ fn fatal_alloc_error(st: &SystemTable<Boot>, msg: &str) -> ! {
 
 fn detect_cpu_security_features() -> (bool, bool, bool) {
     let cpuid_result = core::arch::x86_64::__cpuid_count(7, 0);
+
     // EBX bit 7: SMEP (Supervisor Mode Execution Prevention)
     let smep = (cpuid_result.ebx & (1 << 7)) != 0;
+
     // EBX bit 20: SMAP (Supervisor Mode Access Prevention)
     let smap = (cpuid_result.ebx & (1 << 20)) != 0;
+
     // ECX bit 2: UMIP (User-Mode Instruction Prevention)
     let umip = (cpuid_result.ecx & (1 << 2)) != 0;
 
@@ -47,8 +51,10 @@ fn detect_cpu_security_features() -> (bool, bool, bool) {
 
 fn estimate_tsc_frequency(bs: &uefi::table::boot::BootServices) -> u64 {
     let tsc_start = read_tsc();
+    // Stall for 10ms
     let _ = bs.stall(10_000);
     let tsc_end = read_tsc();
+
     if tsc_end > tsc_start {
         // 10ms = 10,000us, so multiply by 100 to get Hz
         (tsc_end - tsc_start) * 100
@@ -68,6 +74,7 @@ pub fn exit_and_jump(
     log_info("handoff", "Preparing allocations before ExitBootServices.");
 
     let bs = st.boot_services();
+
     let bh_addr = match bs.allocate_pages(AllocateType::AnyPages, MemoryType::LOADER_DATA, 1) {
         Ok(addr) => addr,
         Err(_) => fatal_alloc_error(&st, "Failed to allocate BootHandoff page"),
@@ -81,12 +88,6 @@ pub fn exit_and_jump(
         };
     let stack_top = (stack_addr as usize) + (stack_pages * 0x1000);
 
-    let mmap_pages: usize = 4;
-    let mmap_buffer_addr =
-        match bs.allocate_pages(AllocateType::AnyPages, MemoryType::LOADER_DATA, mmap_pages) {
-            Ok(addr) => addr,
-            Err(_) => fatal_alloc_error(&st, "Failed to allocate memory map buffer"),
-        };
 
     let cmdline_addr: u64 = if let Some(s) = cmdline {
         let cmd_bytes = s.as_bytes();
@@ -95,7 +96,7 @@ pub fn exit_and_jump(
         if let Ok(cmd_addr) =
             bs.allocate_pages(AllocateType::AnyPages, MemoryType::LOADER_DATA, cmd_pages)
         {
-            // ## SAFETY: cmd_addr points to allocated pages
+            // SAFETY: cmd_addr points to allocated pages
             unsafe {
                 let ptr = cmd_addr as *mut u8;
                 core::ptr::copy_nonoverlapping(cmd_bytes.as_ptr(), ptr, cmd_bytes.len());
@@ -119,6 +120,7 @@ pub fn exit_and_jump(
     let unix_epoch_ms = get_uefi_time_epoch(&st);
     let tsc_hz = estimate_tsc_frequency(bs);
 
+    // Detect CPU security features
     let (smep, smap, umip) = detect_cpu_security_features();
 
     let mut handoff_flags: u64 = 0;
@@ -153,9 +155,10 @@ pub fn exit_and_jump(
     handoff_flags |= flags::IDMAP_PRESERVED;
 
     let bh_ptr = bh_addr as *mut BootHandoffV1;
-    // ## SAFETY: bh_addr points to allocated page
+    // SAFETY: bh_addr points to allocated page
     unsafe {
         core::ptr::write_bytes(bh_ptr as *mut u8, 0, size_of::<BootHandoffV1>());
+
         (*bh_ptr).magic = HANDOFF_MAGIC;
         (*bh_ptr).version = HANDOFF_VERSION;
         (*bh_ptr).size = size_of::<BootHandoffV1>() as u16;
@@ -198,38 +201,7 @@ pub fn exit_and_jump(
 
     let (_runtime_st, _final_mmap) = st.exit_boot_services();
 
-    // TEMPORARILY DISABLED: Memory map copying crashes after ExitBootServices
-    // due to uefi crate's iterator being corrupted. The kernel will discover
-    // memory via ACPI instead. Re-enable once uefi crate is fixed.
-    //
-    // // ## SAFETY: Operating in post-ExitBootServices environment
-    // unsafe {
-    //     let mmap_buffer = mmap_buffer_addr as *mut MemoryMapEntry;
-    //     let max_entries = (mmap_pages * 0x1000) / size_of::<MemoryMapEntry>();
-    //
-    //     let mut entry_count: u32 = 0;
-    //     for (i, desc) in final_mmap.entries().enumerate() {
-    //         if i >= max_entries {
-    //             break;
-    //         }
-    //
-    //         let entry = mmap_buffer.add(i);
-    //         (*entry).memory_type = desc.ty.0;
-    //         (*entry).physical_start = desc.phys_start;
-    //         (*entry).virtual_start = desc.virt_start;
-    //         (*entry).page_count = desc.page_count;
-    //         (*entry).attribute = desc.att.bits();
-    //
-    //         entry_count += 1;
-    //     }
-    //
-    //     (*bh_ptr).mmap.ptr = mmap_buffer_addr;
-    //     (*bh_ptr).mmap.entry_size = size_of::<MemoryMapEntry>() as u32;
-    //     (*bh_ptr).mmap.entry_count = entry_count;
-    //     (*bh_ptr).mmap.desc_version = 1;
-    // }
-
-    // Empty memory map, kernel should use ACPI for memory discovery
+    // Memory map passed via ACPI - kernel discovers memory that way
     unsafe {
         (*bh_ptr).mmap.ptr = 0;
         (*bh_ptr).mmap.entry_size = 0;
@@ -240,8 +212,10 @@ pub fn exit_and_jump(
     let boothandoff_ptr = bh_addr;
     let entry_addr = kernel.entry_point as u64;
 
-    // ## SAFETY: Transferring control to kernel
+    // SAFETY: Transferring control to kernel
     unsafe {
+
+        // Use explicit registers to avoid any compiler confusion
         // RAX = entry address, RCX = stack, RDI = handoff
         core::arch::asm!(
             // Disable interrupts during transition
@@ -249,7 +223,7 @@ pub fn exit_and_jump(
             // Set up registers in safe order
             "mov rax, {entry}",     // RAX = kernel entry point
             "mov rcx, {stack}",     // RCX = new stack pointer
-            "mov rdi, {handoff}",   // RDI = handoff pointer (kernel first arg)
+            "mov rdi, {handoff}",   // RDI = handoff pointer (kernel's first arg)
             // Now set stack and jump
             "mov rsp, rcx",         // Set new stack
             "xor rbp, rbp",         // Clear frame pointer

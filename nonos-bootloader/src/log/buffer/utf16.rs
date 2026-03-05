@@ -14,7 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+/// Maximum UTF-16 buffer size
 pub const UTF16_BUFFER_SIZE: usize = 512;
+
 /// UTF-16 buffer for UEFI output
 pub struct Utf16Buffer {
     data: [u16; UTF16_BUFFER_SIZE],
@@ -72,11 +74,12 @@ impl Utf16Buffer {
         count
     }
 
-    /// Get the buffer as a slice including null terminator
+    /// Get the buffer as a slice (including null terminator)
     pub fn as_slice(&self) -> &[u16] {
         &self.data[..=self.len]
     }
 
+    /// Get the buffer as a UEFI CStr16 if possible
     pub fn as_cstr16(&self) -> Option<&uefi::CStr16> {
         uefi::CStr16::from_u16_with_nul(&self.data[..=self.len]).ok()
     }
@@ -86,10 +89,12 @@ impl Utf16Buffer {
         self.len
     }
 
+    /// Check if empty
     pub fn is_empty(&self) -> bool {
         self.len == 0
     }
 
+    /// Get remaining capacity
     pub fn remaining(&self) -> usize {
         UTF16_BUFFER_SIZE - 1 - self.len
     }
@@ -101,6 +106,8 @@ impl Default for Utf16Buffer {
     }
 }
 
+/// Convert a UTF-8 string to a static UTF-16 buffer
+/// Returns the number of u16 units written (including null terminator)
 pub fn utf8_to_utf16(src: &str, dst: &mut [u16]) -> usize {
     let mut idx = 0;
     for c in src.chars() {
@@ -147,7 +154,8 @@ pub fn format_log_line_with_tick(
 ) {
     buf.clear();
     buf.push_char('[');
-    // Format tick as simple decimal up to 10 digits
+
+    // Format tick as simple decimal (up to 10 digits)
     let mut tick_buf = [0u8; 12];
     let mut n = tick;
     let mut i = tick_buf.len();

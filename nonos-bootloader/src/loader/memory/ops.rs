@@ -115,14 +115,13 @@ pub fn allocate_below_4gb(
         Err(_) => allocate_anywhere(bs, pages, table),
     }
 }
-// ## SAFETY
+
 pub unsafe fn zero_memory(addr: u64, size: usize) {
     if size > 0 {
         core::ptr::write_bytes(addr as *mut u8, 0, size);
     }
 }
 
-// ## SAFETY
 pub unsafe fn copy_memory(src: *const u8, dst: u64, size: usize) {
     if size > 0 {
         core::ptr::copy_nonoverlapping(src, dst as *mut u8, size);

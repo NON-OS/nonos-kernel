@@ -19,11 +19,17 @@ use uefi::prelude::*;
 use super::global::{init_global_state, shutdown_global_state};
 use super::storage::{disable_boot_log, enable_boot_log};
 
+/// Initialize the logging system.
+///
+/// This should be called early in boot before any logging functions are used.
 pub fn init_logging(st: &mut SystemTable<Boot>) {
     init_global_state(st);
     enable_boot_log();
 }
 
+/// Shutdown the logging system.
+///
+/// This should be called before ExitBootServices.
 pub fn shutdown_logging() {
     disable_boot_log();
     shutdown_global_state();

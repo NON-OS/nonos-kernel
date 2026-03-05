@@ -125,8 +125,8 @@ pub mod memory {
     pub const PAGE_SIZE: usize = 0x1000;
     pub const PAGE_SHIFT: usize = 12;
     pub const PAGE_MASK: usize = PAGE_SIZE - 1;
-    pub const MAX_KERNEL_SIZE: usize = 256 * 1024 * 1024;
-    pub const MIN_LOAD_ADDRESS: u64 = 0x4000000; // 64MB well above UEFI/ACPI regions
+    pub const MAX_KERNEL_SIZE: usize = 512 * 1024 * 1024; // 512MB to support wallpaper assets + bootstrap heap
+    pub const MIN_LOAD_ADDRESS: u64 = 0x4000000; // 64MB - well above UEFI/ACPI regions
     pub const MAX_LOAD_ADDRESS: u64 = 0x1_0000_0000 - (256 * 1024 * 1024);
     pub const MAX_LOAD_SEGMENTS: usize = 32;
     pub const MAX_ALLOCATIONS: usize = 64;

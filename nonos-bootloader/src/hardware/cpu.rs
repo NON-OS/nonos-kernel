@@ -16,10 +16,12 @@
 
 use super::types::CpuFeatureFlags;
 
+///
 pub fn detect_cpu_features() -> CpuFeatureFlags {
     #[cfg(target_arch = "x86_64")]
     unsafe {
         let mut flags = CpuFeatureFlags::default();
+
         let (_, _, _, edx) = cpuid(0x80000001);
         flags.nxe = (edx & (1 << 20)) != 0;
 
@@ -43,6 +45,7 @@ unsafe fn cpuid(leaf: u32) -> (u32, u32, u32, u32) {
     let ebx: u32;
     let ecx: u32;
     let edx: u32;
+
     core::arch::asm!(
         "push rbx",
         "cpuid",

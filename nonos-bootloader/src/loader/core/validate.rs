@@ -58,10 +58,35 @@ impl Default for ValidatedSegment {
 
 pub fn validate_elf(payload: &[u8]) -> LoaderResult<ValidationResult<'_>> {
     log_info("loader", "Parsing ELF binary...");
+    log_info("loader", &format!("Payload size: {} bytes", payload.len()));
+
+    // Verify ELF magic before calling goblin
+    if payload.len() < 64 {
+        log_error("loader", "Payload too small for ELF header");
+        return Err(LoaderError::ElfParseError("payload too small"));
+    }
+    if &payload[0..4] != b"\x7fELF" {
+        log_error("loader", &format!("Invalid ELF magic: {:02x}{:02x}{:02x}{:02x}",
+            payload[0], payload[1], payload[2], payload[3]));
+        return Err(LoaderError::ElfParseError("invalid ELF magic"));
+    }
 
     let elf = Elf::parse(payload).map_err(|e| {
-        log_error("loader", &format!("ELF parse failed: {:?}", e));
-        LoaderError::ElfParseError("goblin parse error")
+        // Log the full error and create short description for display
+        log_error("loader", &format!("Goblin error: {:?}", e));
+        let short_err = match &e {
+            goblin::error::Error::Malformed(s) => {
+                log_error("loader", &format!("Malformed: {}", s));
+                "malformed"
+            }
+            goblin::error::Error::BadMagic(_) => "bad magic",
+            goblin::error::Error::Scroll(s) => {
+                log_error("loader", &format!("Scroll: {}", s));
+                "scroll"
+            }
+            _ => "parse error",
+        };
+        LoaderError::ElfParseError(short_err)
     })?;
 
     log_info("loader", "ELF parsed successfully");
@@ -145,13 +170,17 @@ pub fn validate_elf(payload: &[u8]) -> LoaderResult<ValidationResult<'_>> {
         } else {
             ph.p_vaddr
         } as u64;
-        if target == 0 {
-            log_error("loader", "PT_LOAD has no placement address.");
+
+        // For ET_DYN (PIE), segments start at 0 and will be relocated
+        // For ET_EXEC, segments must have valid non-zero addresses
+        if target == 0 && is_exec {
+            log_error("loader", "ET_EXEC PT_LOAD has no placement address.");
             return Err(LoaderError::UnsupportedElf("no placement address"));
         }
 
-        if target < memory::MIN_LOAD_ADDRESS {
-            log_error("loader", "SECURITY: Load address too low (below 1MB)");
+        // Only check MIN_LOAD_ADDRESS for ET_EXEC; ET_DYN addresses are relative
+        if is_exec && target < memory::MIN_LOAD_ADDRESS {
+            log_error("loader", "SECURITY: Load address too low (below 64MB)");
             return Err(LoaderError::AddressOutOfRange);
         }
 
@@ -164,7 +193,8 @@ pub fn validate_elf(payload: &[u8]) -> LoaderResult<ValidationResult<'_>> {
             LoaderError::IntegerOverflow
         })?;
 
-        if seg_end > memory::MAX_LOAD_ADDRESS {
+        // Only check MAX_LOAD_ADDRESS for ET_EXEC; ET_DYN addresses are relative
+        if is_exec && seg_end > memory::MAX_LOAD_ADDRESS {
             log_error(
                 "loader",
                 "SECURITY: Segment extends beyond maximum load address",
@@ -216,7 +246,7 @@ pub fn validate_elf(payload: &[u8]) -> LoaderResult<ValidationResult<'_>> {
     if total_bytes > memory::MAX_KERNEL_SIZE {
         log_error(
             "loader",
-            "SECURITY: Kernel size exceeds maximum allowed (256 MiB)",
+            "SECURITY: Kernel size exceeds maximum allowed (512 MiB)",
         );
         return Err(LoaderError::KernelTooLarge);
     }
@@ -227,6 +257,7 @@ pub fn validate_elf(payload: &[u8]) -> LoaderResult<ValidationResult<'_>> {
     }
 
     log_info("loader", "Kernel size validated");
+
     Ok(ValidationResult {
         elf,
         loads,

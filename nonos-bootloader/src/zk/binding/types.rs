@@ -14,16 +14,23 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+/// Domain separator for capsule commitment
 pub const DS_COMMITMENT: &str = "NONOS:CAPSULE:COMMITMENT:v1";
+
+/// Maximum manifest size (128 KB)
 pub const MAX_MANIFEST_SIZE: usize = 128 * 1024;
 
+/// Binding input source for commitment computation
 #[derive(Debug, Clone)]
 pub enum BindingInput<'a> {
+    /// Bind to public inputs directly
     PublicInputs(&'a [u8]),
+    /// Bind to manifest bytes
     Manifest(&'a [u8]),
 }
 
 impl<'a> BindingInput<'a> {
+    /// Get the underlying bytes
     pub fn as_bytes(&self) -> &[u8] {
         match self {
             BindingInput::PublicInputs(b) => b,
@@ -31,6 +38,7 @@ impl<'a> BindingInput<'a> {
         }
     }
 
+    /// Check if binding uses manifest
     pub fn is_manifest(&self) -> bool {
         matches!(self, BindingInput::Manifest(_))
     }

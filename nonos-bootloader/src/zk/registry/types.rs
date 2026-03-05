@@ -87,6 +87,7 @@ pub struct CircuitSectionEntry {
 }
 
 pub const CIRCUIT_SECTION_MAGIC: [u8; 4] = [b'N', 0xC3, b'Z', b'K'];
+
 pub const DS_CIRCUIT_SIGN: &str = "NONOS:CIRCUIT:SIGN:v1";
 
 impl CircuitEntry {
@@ -117,7 +118,6 @@ impl CircuitEntry {
 }
 
 fn verify_circuit_signature(msg: &[u8; 32], sig: &[u8; 64], pubkey: &[u8; 32]) -> bool {
-    use ed25519_dalek::Verifier;
     let Ok(vk) = VerifyingKey::from_bytes(pubkey) else {
         return false;
     };
