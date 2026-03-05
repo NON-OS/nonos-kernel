@@ -17,7 +17,8 @@
 use crate::arch::x86_64::idt::constants::*;
 use crate::arch::x86_64::idt::entry::{InterruptFrame, PageFaultError};
 use crate::arch::x86_64::idt::state::{IRQ_HANDLERS, OTHER_HANDLERS, SYSCALL_HANDLER};
-use super::utils::{exception_panic, exception_panic_with_cr2, read_cr2, send_eoi};
+use super::utils::{exception_panic, exception_panic_with_cr2, read_cr2};
+use super::acknowledge_interrupt;
 
 pub(crate) fn handle_exception(frame: &mut InterruptFrame) {
     let vector = frame.vector as u8;
@@ -95,7 +96,7 @@ pub(crate) fn handle_irq(frame: &mut InterruptFrame) {
         }
     }
 
-    send_eoi(irq);
+    acknowledge_interrupt(irq);
 }
 
 pub(crate) fn handle_syscall(frame: &mut InterruptFrame) {
