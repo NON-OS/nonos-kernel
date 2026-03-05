@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod log;
-mod panic;
-mod main;
+pub mod log;
+pub mod panic;
+pub mod main;
 #[cfg(test)]
 mod tests;
 
