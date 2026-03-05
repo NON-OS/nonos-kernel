@@ -58,8 +58,11 @@ pub(super) fn handle_locked_click(x: u32, y: u32, w: u32, h: u32) -> bool {
 
 fn generate_new_wallet() {
     use crate::crypto::core::api::generate_secure_key;
+    use crate::crypto::util::rng::seed_rng;
 
     lock_wallet();
+
+    let _ = seed_rng();
 
     let master_key = generate_secure_key();
 
