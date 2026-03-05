@@ -113,7 +113,11 @@ pub fn handle_call_function_ipi() {
 
 pub fn barrier_all() {
     let target = cpus_online() as u32;
-    let _gen = BARRIER_GENERATION.fetch_add(1, Ordering::AcqRel);
+    let gen = BARRIER_GENERATION.fetch_add(1, Ordering::AcqRel);
+
+    if gen > u32::MAX - 1000 {
+        BARRIER_GENERATION.store(0, Ordering::Release);
+    }
 
     BARRIER_TARGET.store(target, Ordering::Release);
 

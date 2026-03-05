@@ -17,7 +17,7 @@
 use core::sync::atomic::{AtomicU32, Ordering};
 
 #[repr(C, align(256))]
-pub struct RtlTxDesc {
+pub(super) struct RtlTxDesc {
     pub word0: AtomicU32,
     pub word1: AtomicU32,
     pub word2: AtomicU32,
@@ -33,7 +33,7 @@ pub struct RtlTxDesc {
 }
 
 impl RtlTxDesc {
-    pub const fn new() -> Self {
+    pub(super) const fn new() -> Self {
         Self {
             word0: AtomicU32::new(0),
             word1: AtomicU32::new(0),
@@ -50,7 +50,7 @@ impl RtlTxDesc {
         }
     }
 
-    pub fn set_own(&self, own: bool) {
+    pub(super) fn set_own(&self, own: bool) {
         let val = self.word0.load(Ordering::Acquire);
         if own {
             self.word0.store(val | (1 << 31), Ordering::Release);
@@ -59,22 +59,22 @@ impl RtlTxDesc {
         }
     }
 
-    pub fn is_own(&self) -> bool {
+    pub(super) fn is_own(&self) -> bool {
         self.word0.load(Ordering::Acquire) & (1 << 31) != 0
     }
 
-    pub fn set_pkt_size(&self, size: u16) {
+    pub(super) fn set_pkt_size(&self, size: u16) {
         let val = self.word0.load(Ordering::Acquire);
         let new_val = (val & 0xFFFF0000) | (size as u32);
         self.word0.store(new_val, Ordering::Release);
     }
 
-    pub fn set_buffer_addr(&self, addr: u64) {
+    pub(super) fn set_buffer_addr(&self, addr: u64) {
         self.word10.store(addr as u32, Ordering::Release);
         self.word11.store((addr >> 32) as u32, Ordering::Release);
     }
 
-    pub fn set_first_seg(&self, first: bool) {
+    pub(super) fn set_first_seg(&self, first: bool) {
         let val = self.word0.load(Ordering::Acquire);
         if first {
             self.word0.store(val | (1 << 26), Ordering::Release);
@@ -83,7 +83,7 @@ impl RtlTxDesc {
         }
     }
 
-    pub fn set_last_seg(&self, last: bool) {
+    pub(super) fn set_last_seg(&self, last: bool) {
         let val = self.word0.load(Ordering::Acquire);
         if last {
             self.word0.store(val | (1 << 27), Ordering::Release);
@@ -92,13 +92,13 @@ impl RtlTxDesc {
         }
     }
 
-    pub fn set_offset(&self, offset: u8) {
+    pub(super) fn set_offset(&self, offset: u8) {
         let val = self.word0.load(Ordering::Acquire);
         let new_val = (val & 0xFF00FFFF) | ((offset as u32) << 16);
         self.word0.store(new_val, Ordering::Release);
     }
 
-    pub fn configure_tx(&self, size: u16, addr: u64) {
+    pub(super) fn configure_tx(&self, size: u16, addr: u64) {
         self.word0.store(0, Ordering::Release);
         self.word1.store(0, Ordering::Release);
         self.word2.store(0, Ordering::Release);
@@ -120,7 +120,7 @@ impl RtlTxDesc {
 }
 
 #[repr(C, align(256))]
-pub struct RtlRxDesc {
+pub(super) struct RtlRxDesc {
     pub word0: AtomicU32,
     pub word1: AtomicU32,
     pub word2: AtomicU32,
@@ -130,7 +130,7 @@ pub struct RtlRxDesc {
 }
 
 impl RtlRxDesc {
-    pub const fn new() -> Self {
+    pub(super) const fn new() -> Self {
         Self {
             word0: AtomicU32::new(0),
             word1: AtomicU32::new(0),
@@ -141,52 +141,52 @@ impl RtlRxDesc {
         }
     }
 
-    pub fn is_own(&self) -> bool {
+    pub(super) fn is_own(&self) -> bool {
         self.word0.load(Ordering::Acquire) & (1 << 31) != 0
     }
 
-    pub fn set_own(&self) {
+    pub(super) fn set_own(&self) {
         let val = self.word0.load(Ordering::Acquire);
         self.word0.store(val | (1 << 31), Ordering::Release);
     }
 
-    pub fn clear_own(&self) {
+    pub(super) fn clear_own(&self) {
         let val = self.word0.load(Ordering::Acquire);
         self.word0.store(val & !(1 << 31), Ordering::Release);
     }
 
-    pub fn pkt_len(&self) -> u16 {
+    pub(super) fn pkt_len(&self) -> u16 {
         (self.word0.load(Ordering::Acquire) & 0x3FFF) as u16
     }
 
-    pub fn is_first_seg(&self) -> bool {
+    pub(super) fn is_first_seg(&self) -> bool {
         self.word0.load(Ordering::Acquire) & (1 << 26) != 0
     }
 
-    pub fn is_last_seg(&self) -> bool {
+    pub(super) fn is_last_seg(&self) -> bool {
         self.word0.load(Ordering::Acquire) & (1 << 27) != 0
     }
 
-    pub fn is_crc_err(&self) -> bool {
+    pub(super) fn is_crc_err(&self) -> bool {
         self.word0.load(Ordering::Acquire) & (1 << 14) != 0
     }
 
-    pub fn is_icv_err(&self) -> bool {
+    pub(super) fn is_icv_err(&self) -> bool {
         self.word0.load(Ordering::Acquire) & (1 << 15) != 0
     }
 
-    pub fn set_buffer_addr(&self, addr: u64) {
+    pub(super) fn set_buffer_addr(&self, addr: u64) {
         self.word4.store(addr as u32, Ordering::Release);
         self.word5.store((addr >> 32) as u32, Ordering::Release);
     }
 
-    pub fn set_buffer_size(&self, size: u16) {
+    pub(super) fn set_buffer_size(&self, size: u16) {
         let val = self.word0.load(Ordering::Acquire);
         let new_val = (val & 0xFFFF0000) | (size as u32);
         self.word0.store(new_val, Ordering::Release);
     }
 
-    pub fn configure_rx(&self, size: u16, addr: u64) {
+    pub(super) fn configure_rx(&self, size: u16, addr: u64) {
         self.word0.store(0, Ordering::Release);
         self.word1.store(0, Ordering::Release);
         self.word2.store(0, Ordering::Release);

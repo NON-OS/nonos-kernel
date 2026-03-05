@@ -14,11 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod constants;
-mod handshake;
-mod crypto;
-mod eapol;
-mod context;
+pub mod constants;
+pub mod handshake;
+pub mod crypto;
+pub mod eapol;
+pub mod context;
 pub mod sae;
 
 pub use constants::*;

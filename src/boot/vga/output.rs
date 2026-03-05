@@ -178,6 +178,7 @@ pub unsafe fn scroll_up(lines: usize, attr: u8) {
         }
     }
 
+    // Clear the newly exposed rows at the bottom
     for row in (VGA_HEIGHT - lines)..VGA_HEIGHT {
         for col in 0..VGA_WIDTH {
             let offset = (row * VGA_WIDTH + col) * 2;

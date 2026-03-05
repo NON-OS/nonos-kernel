@@ -239,3 +239,16 @@ pub fn get_module_state(module_id: u64) -> RunnerResult<ExecutionState> {
         .map(|c| c.state)
         .ok_or(RunnerError::ModuleNotFound)
 }
+
+pub fn list_running_modules() -> Vec<u64> {
+    let contexts = CONTEXTS.read();
+    contexts.iter()
+        .filter(|(_, ctx)| ctx.state.is_active())
+        .map(|(id, _)| *id)
+        .collect()
+}
+
+pub fn get_all_module_ids() -> Vec<u64> {
+    let contexts = CONTEXTS.read();
+    contexts.keys().copied().collect()
+}

@@ -13,9 +13,9 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-mod constants;
-mod device;
-mod driver;
+pub mod constants;
+pub mod device;
+pub mod driver;
 
 pub use constants::*;
 pub use device::Rtl8152Device;

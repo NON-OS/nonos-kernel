@@ -14,11 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod analysis;
-mod approval;
-mod policy;
-mod stats;
-mod validation;
+pub mod analysis;
+pub mod approval;
+pub mod policy;
+pub mod stats;
+pub mod validation;
 
 pub use analysis::{
     audit_device, device_security_level, is_dma_capable, is_security_relevant,

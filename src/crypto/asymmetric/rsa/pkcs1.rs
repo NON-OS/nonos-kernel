@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -33,6 +33,7 @@ pub fn sign_pkcs1v15(private_key: &RsaPrivateKey, message: &[u8]) -> CryptoResul
 pub fn verify_pkcs1v15(public_key: &RsaPublicKey, message: &[u8], signature: &[u8]) -> bool {
     let hash = sha256(message);
     let expected_digest_info = pkcs1_digest_info_sha256(&hash);
+
     if let Ok(decrypted) = rsa_public_operation(&BigUint::from_bytes_be(signature), public_key) {
         let decrypted_bytes = decrypted.to_bytes_be();
         if let Ok(unpadded) = pkcs1_unpad_type1(&decrypted_bytes) {
@@ -82,14 +83,18 @@ fn pkcs1_unpad_type1(em: &[u8]) -> CryptoResult<Vec<u8>> {
     let mut sep_idx: usize = 0;
     let mut found_sep: u8 = 0;
     let mut invalid_padding: u8 = 0;
+
     for i in 2..em.len() {
         let is_zero = ct_eq_u8(em[i], 0x00);
         let is_ff = ct_eq_u8(em[i], 0xFF);
+
         // Update sep_idx only on first zero (when found_sep is still 0)
         let should_update = is_zero & (1 ^ found_sep);
         sep_idx = ct_select_usize(should_update, i, sep_idx);
+
         // Mark that we found separator
         found_sep |= is_zero;
+
         // If we haven't found separator yet and byte is not 0xFF, invalid
         let in_padding = 1 ^ found_sep;
         invalid_padding |= in_padding & (1 ^ is_ff) & (1 ^ is_zero);
@@ -132,11 +137,12 @@ fn ct_ge_usize(a: usize, b: usize) -> u8 {
     let diff = a.wrapping_sub(b);
     let a_inv = !a;
     let borrow = ((a_inv & b) | ((a_inv | b) & diff)) >> (usize::BITS - 1);
-    (1 ^ (borrow as u8)) // 1 if no borrow (a >= b), 0 if borrow (a < b)
+    1 ^ (borrow as u8) // 1 if no borrow (a >= b), 0 if borrow (a < b)
 }
 
 fn pkcs1_digest_info_sha256(hash: &[u8]) -> Vec<u8> {
     let mut digest_info = Vec::new();
+
     let sha256_oid = [
         0x30, 0x31, 0x30, 0x0d, 0x06, 0x09, 0x60, 0x86, 0x48, 0x01, 0x65, 0x03, 0x04, 0x02, 0x01,
         0x05, 0x00, 0x04, 0x20,

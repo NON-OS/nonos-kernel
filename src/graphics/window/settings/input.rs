@@ -14,13 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::graphics::window::state::TITLE_BAR_HEIGHT;
 use super::state::*;
 use super::{privacy, network, appearance, system, power};
 
-pub fn handle_click(win_x: u32, win_y: u32, win_w: u32, click_x: i32, click_y: i32) -> bool {
-    let content_y = win_y + TITLE_BAR_HEIGHT;
-
+pub fn handle_click(win_x: u32, content_y: u32, win_w: u32, click_x: i32, click_y: i32) -> bool {
     if handle_sidebar_click(win_x, content_y, click_x, click_y) {
         return true;
     }
@@ -53,4 +50,12 @@ fn handle_sidebar_click(win_x: u32, content_y: u32, click_x: i32, click_y: i32) 
     }
 
     false
+}
+
+pub fn handle_key(key: u8) -> bool {
+    let page = get_page();
+    match page {
+        PAGE_NETWORK => network::process_key(key),
+        _ => false,
+    }
 }

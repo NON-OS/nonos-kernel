@@ -8,8 +8,6 @@
 
 
 pub(super) const SCSI_TEST_UNIT_READY: u8 = 0x00;
-pub(super) const SCSI_REQUEST_SENSE: u8 = 0x03;
-pub(super) const SCSI_INQUIRY: u8 = 0x12;
 pub(super) const SCSI_READ_CAPACITY_10: u8 = 0x25;
 pub(super) const SCSI_READ_10: u8 = 0x28;
 pub(super) const SCSI_WRITE_10: u8 = 0x2A;

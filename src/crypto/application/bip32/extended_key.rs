@@ -18,9 +18,9 @@
 
 extern crate alloc;
 
-use alloc::vec::Vec;
 use core::ptr;
 use core::sync::atomic::{compiler_fence, Ordering};
+use alloc::vec::Vec;
 
 use crate::crypto::asymmetric::secp256k1::{public_key_from_secret, CompressedPublicKey, SecretKey};
 use crate::crypto::hash::{sha256, ripemd160};
@@ -220,4 +220,16 @@ fn compress_public_key(uncompressed: &[u8; 65]) -> CryptoResult<CompressedPublic
     compressed[1..33].copy_from_slice(&uncompressed[1..33]);
 
     Ok(compressed)
+}
+
+impl ExtendedPrivateKey {
+    pub fn serialize(&self) -> Vec<u8> {
+        self.to_bytes().to_vec()
+    }
+}
+
+impl ExtendedPublicKey {
+    pub fn serialize(&self) -> Vec<u8> {
+        self.to_bytes().to_vec()
+    }
 }

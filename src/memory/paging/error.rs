@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -14,31 +14,73 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+//! Paging Error Types
+
 use core::fmt;
+
+/// Errors from paging operations.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum PagingError {
+    /// Paging manager not initialized
     NotInitialized,
+
+    /// No active page table loaded
     NoActivePageTable,
+
+    /// Failed to allocate page table frame
     FrameAllocationFailed,
+
+    /// Page not mapped
     PageNotMapped,
+
+    /// PML4 entry not present
     Pml4NotPresent,
+
+    /// PDPT entry not present
     PdptNotPresent,
+
+    /// PD entry not present
     PdNotPresent,
+
+    /// PT entry not present
     PtNotPresent,
+
+    /// Address space not found
     AddressSpaceNotFound,
+
+    /// Invalid virtual address
     InvalidAddress,
+
+    /// W^X violation: page cannot be both writable and executable
     WXViolation,
+
+    /// Page already mapped
     AlreadyMapped,
+
+    /// Permission denied
     PermissionDenied,
+
+    /// Unhandled page fault
     UnhandledPageFault,
+
+    /// Copy-on-write fault handling failed
     CowFaultFailed,
+
+    /// Demand fault handling failed
     DemandFaultFailed,
+
+    /// Invalid page size
     InvalidPageSize,
+
+    /// Address not page-aligned
     NotAligned,
+
+    /// Kernel space violation (user tried to access kernel memory)
     KernelSpaceViolation,
 }
 
 impl PagingError {
+    /// Returns a human-readable description.
     pub const fn as_str(&self) -> &'static str {
         match self {
             Self::NotInitialized => "Paging manager not initialized",
@@ -63,6 +105,7 @@ impl PagingError {
         }
     }
 
+    /// Returns true if this error is fatal (system cannot continue).
     pub const fn is_fatal(&self) -> bool {
         matches!(
             self,
@@ -72,6 +115,7 @@ impl PagingError {
         )
     }
 
+    /// Returns true if this is a security violation.
     pub const fn is_security_violation(&self) -> bool {
         matches!(
             self,
@@ -81,6 +125,7 @@ impl PagingError {
         )
     }
 
+    /// Returns true if this error is recoverable.
     pub const fn is_recoverable(&self) -> bool {
         matches!(
             self,
@@ -92,7 +137,8 @@ impl PagingError {
         )
     }
 
-      pub const fn is_demand_pageable(&self) -> bool {
+    /// Returns true if the page fault can be handled by demand paging.
+    pub const fn is_demand_pageable(&self) -> bool {
         matches!(
             self,
             Self::PageNotMapped
@@ -110,7 +156,9 @@ impl fmt::Display for PagingError {
     }
 }
 
+/// Result type for paging operations.
 pub type PagingResult<T> = Result<T, PagingError>;
+
 impl From<&'static str> for PagingError {
     fn from(s: &'static str) -> Self {
         match s {
@@ -138,17 +186,25 @@ impl From<&'static str> for PagingError {
     }
 }
 
+/// Page fault information for error handling.
 #[derive(Debug, Clone, Copy)]
 pub struct PageFaultInfo {
+    /// Faulting virtual address
     pub address: u64,
+    /// Error code from CPU
     pub error_code: u64,
+    /// Was it a write access
     pub is_write: bool,
+    /// Was it a user-mode access
     pub is_user: bool,
+    /// Was it an instruction fetch
     pub is_instruction_fetch: bool,
+    /// Was the page present (protection fault vs not-present)
     pub page_was_present: bool,
 }
 
 impl PageFaultInfo {
+    /// Creates fault info from address and error code.
     pub const fn from_fault(address: u64, error_code: u64) -> Self {
         Self {
             address,
@@ -160,10 +216,12 @@ impl PageFaultInfo {
         }
     }
 
+    /// Returns true if this is a copy-on-write fault.
     pub const fn is_cow_fault(&self) -> bool {
         self.page_was_present && self.is_write
     }
 
+    /// Returns true if this could be a demand-page fault.
     pub const fn is_demand_fault(&self) -> bool {
         !self.page_was_present
     }

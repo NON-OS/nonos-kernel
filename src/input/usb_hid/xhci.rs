@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+//! xHCI controller initialization and management
 
 use core::ptr::addr_of_mut;
 use core::sync::atomic::{AtomicU8, AtomicU64, Ordering};
@@ -23,6 +24,9 @@ use super::transfer::{get_descriptor, set_configuration, set_protocol, set_idle,
 use super::hid::start_hid_poll;
 use super::{USB_INIT, KBD_AVAIL, MOUSE_AVAIL};
 
+// =============================================================================
+// xHCI Register Offsets
+// =============================================================================
 
 pub(crate) const XHCI_CAP_CAPLENGTH: u64 = 0x00;
 pub(crate) const XHCI_CAP_HCSPARAMS1: u64 = 0x04;
@@ -56,6 +60,9 @@ pub(crate) const PORTSC_CSC: u32 = 1 << 17;
 pub(crate) const PORTSC_PRC: u32 = 1 << 21;
 pub(crate) const PORTSC_WRC: u32 = 1 << 19;
 
+// =============================================================================
+// TRB Types and Constants
+// =============================================================================
 
 pub(crate) const TRB_TYPE_ENABLE_SLOT: u32 = 9;
 pub(crate) const TRB_TYPE_ADDRESS_DEVICE: u32 = 11;
@@ -63,6 +70,9 @@ pub(crate) const TRB_TYPE_CONFIGURE_ENDPOINT: u32 = 12;
 
 pub(crate) const TRB_CYCLE: u32 = 1 << 0;
 
+// =============================================================================
+// Static Memory Structures (4KB aligned for DMA)
+// =============================================================================
 
 #[repr(C, align(4096))]
 pub(crate) struct DcbaaArray { pub entries: [u64; 17] }
@@ -95,10 +105,14 @@ pub(crate) static mut INPUT_CTX: InputContext = InputContext {
     ctrl: [0; 8], slot: [0; 8], ep: [[0; 8]; 31],
 };
 
+// USB data buffer for descriptors and transfers
 #[repr(C, align(4096))]
 pub(crate) struct UsbBuffer { pub data: [u8; 4096] }
 pub(crate) static mut USB_BUF: UsbBuffer = UsbBuffer { data: [0; 4096] };
 
+// =============================================================================
+// Global State
+// =============================================================================
 
 pub(crate) static XHCI_BAR: AtomicU64 = AtomicU64::new(0);
 pub(crate) static XHCI_OP: AtomicU64 = AtomicU64::new(0);
@@ -114,6 +128,9 @@ pub(crate) static HID_EP_DCI: AtomicU8 = AtomicU8::new(0);
 pub(crate) static HID_INTERVAL: AtomicU8 = AtomicU8::new(8);
 pub(crate) static MAX_PACKET: AtomicU8 = AtomicU8::new(8);
 
+// =============================================================================
+// Low-level Functions
+// =============================================================================
 
 #[inline]
 pub(crate) unsafe fn mr32(a: u64) -> u32 { unsafe { core::ptr::read_volatile(a as *const u32) } }
@@ -124,6 +141,9 @@ pub(crate) unsafe fn mw64(a: u64, v: u64) { unsafe { core::ptr::write_volatile(a
 
 pub(crate) fn spin(n: u32) { for _ in 0..n { core::hint::spin_loop(); } }
 
+// =============================================================================
+// xHCI Initialization
+// =============================================================================
 
 pub fn init_xhci(bar: u64) -> bool {
     serial::println(b"[USB] Init xHCI...");
@@ -151,6 +171,7 @@ pub fn init_xhci(bar: u64) -> bool {
         XHCI_RT.store(rt, Ordering::SeqCst);
         MAX_PORTS.store(max_ports, Ordering::SeqCst);
 
+        // Stop
         if (mr32(op + XHCI_OP_USBCMD) & USBCMD_RS) != 0 {
             mw32(op + XHCI_OP_USBCMD, mr32(op + XHCI_OP_USBCMD) & !USBCMD_RS);
             for _ in 0..100_000 {
@@ -159,6 +180,7 @@ pub fn init_xhci(bar: u64) -> bool {
             }
         }
 
+        // Reset
         mw32(op + XHCI_OP_USBCMD, USBCMD_HCRST);
         for _ in 0..1_000_000 {
             if (mr32(op + XHCI_OP_USBCMD) & USBCMD_HCRST) == 0
@@ -170,12 +192,16 @@ pub fn init_xhci(bar: u64) -> bool {
             return false;
         }
 
+        // Setup structures
+        // SAFETY: Single-threaded initialization, no concurrent access to DCBAA
         let dcbaa_p = addr_of_mut!(DCBAA) as u64;
         mw64(op + XHCI_OP_DCBAAP, dcbaa_p);
 
+        // SAFETY: Single-threaded initialization, no concurrent access to CMD_RING
         let cmd_p = addr_of_mut!(CMD_RING) as u64;
         mw64(op + XHCI_OP_CRCR, cmd_p | 1);
 
+        // SAFETY: Single-threaded initialization, no concurrent access to EVENT_RING/ERST
         let evt_p = addr_of_mut!(EVENT_RING) as u64;
         let erst_ptr = addr_of_mut!(ERST);
         (*erst_ptr).ring_base = evt_p;
@@ -188,6 +214,7 @@ pub fn init_xhci(bar: u64) -> bool {
 
         mw32(op + XHCI_OP_CONFIG, max_slots.min(16) as u32);
 
+        // Start
         mw32(op + XHCI_OP_USBCMD, USBCMD_RS | USBCMD_INTE);
         spin(10000);
 
@@ -251,6 +278,7 @@ fn enumerate_device(port: u8, speed: u8) -> bool {
     serial::print_dec(port as u64);
     serial::println(b"");
 
+    // Enable Slot
     queue_cmd(0, 0, 0, TRB_TYPE_ENABLE_SLOT << 10);
 
     let slot = if let Some((33, code, _)) = wait_event(100_000) {
@@ -258,6 +286,7 @@ fn enumerate_device(port: u8, speed: u8) -> bool {
             serial::println(b"[USB] EnableSlot fail");
             return false;
         }
+        // Get slot ID from previous event TRB
         let ei = EVT_RING_IDX.load(Ordering::Relaxed);
         let pi = if ei == 0 { 255 } else { ei - 1 } as usize;
         unsafe { ((EVENT_RING.trbs[pi][3] >> 24) & 0xFF) as u8 }
@@ -276,11 +305,13 @@ fn enumerate_device(port: u8, speed: u8) -> bool {
     serial::println(b"");
     SLOT_ID.store(slot, Ordering::SeqCst);
 
+    // Setup input context for Address Device
     let max_pkt = match speed {
         1 => 8, 2 => 8, 3 => 64, 4 | 5 => 512, _ => 8
     };
     MAX_PACKET.store(max_pkt as u8, Ordering::SeqCst);
 
+    // SAFETY: Single-threaded device enumeration, no concurrent access to INPUT_CTX
     unsafe {
         let input_ctx_ptr = addr_of_mut!(INPUT_CTX);
         for i in 0..8 { (*input_ctx_ptr).ctrl[i] = 0; (*input_ctx_ptr).slot[i] = 0; }
@@ -289,17 +320,20 @@ fn enumerate_device(port: u8, speed: u8) -> bool {
         (*input_ctx_ptr).slot[0] = ((speed as u32) << 20) | (1 << 27);
         (*input_ctx_ptr).slot[1] = (port as u32) << 16;
 
+        // SAFETY: Single-threaded device enumeration, no concurrent access to EP0_RING
         let ep0_p = addr_of_mut!(EP0_RING) as u64;
         (*input_ctx_ptr).ep[0][1] = (3 << 1) | (4 << 3) | ((max_pkt as u32) << 16);
         (*input_ctx_ptr).ep[0][2] = (ep0_p & 0xFFFFFFFF) as u32 | 1;
         (*input_ctx_ptr).ep[0][3] = (ep0_p >> 32) as u32;
         (*input_ctx_ptr).ep[0][4] = 8;
 
+        // SAFETY: Single-threaded device enumeration, no concurrent access to DEV_CTX/DCBAA
         let dev_p = addr_of_mut!(DEV_CTX) as u64;
         let dcbaa_ptr = addr_of_mut!(DCBAA);
         (*dcbaa_ptr).entries[slot as usize] = dev_p;
     }
 
+    // Address Device
     let inp_p = addr_of_mut!(INPUT_CTX) as u64;
     queue_cmd((inp_p & 0xFFFFFFFF) as u32, (inp_p >> 32) as u32, 0,
               (TRB_TYPE_ADDRESS_DEVICE << 10) | ((slot as u32) << 24));
@@ -318,17 +352,21 @@ fn enumerate_device(port: u8, speed: u8) -> bool {
 
     serial::println(b"[USB] Device addressed");
 
+    // Get Device Descriptor (first 8 bytes to get max packet size)
     unsafe { for i in 0..64 { USB_BUF.data[i] = 0; } }
     if !get_descriptor(slot, super::transfer::USB_DESC_DEVICE, 0, 8) {
         serial::println(b"[USB] GetDevDesc8 fail");
+        // Continue anyway
     }
 
+    // Get Configuration Descriptor
     unsafe { for i in 0..256 { USB_BUF.data[i] = 0; } }
     if !get_descriptor(slot, super::transfer::USB_DESC_CONFIGURATION, 0, 9) {
         serial::println(b"[USB] GetCfgDesc fail");
         return false;
     }
 
+    // Get full configuration
     let total_len = unsafe { (USB_BUF.data[2] as u16) | ((USB_BUF.data[3] as u16) << 8) };
     serial::print(b"[USB] Cfg len ");
     serial::print_dec(total_len as u64);
@@ -340,24 +378,32 @@ fn enumerate_device(port: u8, speed: u8) -> bool {
         return false;
     }
 
+    // Parse and find HID endpoint
     if let Some((cfg_val, iface, ep_info)) = parse_config_descriptor() {
+        // Set Configuration
         if !set_configuration(slot, cfg_val) {
             serial::println(b"[USB] SetCfg fail");
+            // Continue anyway
         }
         serial::println(b"[USB] Configuration set");
 
+        // Set Protocol to Boot Protocol (0)
         if !set_protocol(slot, iface, 0) {
             serial::println(b"[USB] SetProto fail");
         }
 
+        // Set Idle
         set_idle(slot, iface);
 
+        // Configure endpoint
         let ep_num = ep_info.address & 0x0F;
         let ep_dci = ep_num * 2 + 1; // IN endpoint DCI
         HID_EP_ADDR.store(ep_info.address, Ordering::SeqCst);
         HID_EP_DCI.store(ep_dci, Ordering::SeqCst);
         HID_INTERVAL.store(ep_info.interval, Ordering::SeqCst);
 
+        // Setup input context for Configure Endpoint
+        // SAFETY: Single-threaded device enumeration, no concurrent access to INPUT_CTX/DEV_CTX/HID_EP_RING
         unsafe {
             let input_ctx_ptr = addr_of_mut!(INPUT_CTX);
             for i in 0..8 { (*input_ctx_ptr).ctrl[i] = 0; (*input_ctx_ptr).slot[i] = 0; }
@@ -365,14 +411,18 @@ fn enumerate_device(port: u8, speed: u8) -> bool {
 
             (*input_ctx_ptr).ctrl[1] = 1 << (ep_dci as u32); // Add endpoint
 
+            // Copy current slot context from device context
             let dev_ctx_ptr = addr_of_mut!(DEV_CTX);
             for i in 0..8 { (*input_ctx_ptr).slot[i] = (*dev_ctx_ptr).slot[i]; }
+            // Update context entries
             let ctx_entries = ep_dci.max(1);
             (*input_ctx_ptr).slot[0] = ((*input_ctx_ptr).slot[0] & 0x07FFFFFF) | ((ctx_entries as u32) << 27);
 
+            // Setup interrupt endpoint context
             let ep_idx = (ep_dci - 1) as usize;
             let hid_p = addr_of_mut!(HID_EP_RING) as u64;
 
+            // EP Type: 7 = Interrupt IN
             let interval_exp = ep_info.interval.saturating_sub(1).min(15);
             (*input_ctx_ptr).ep[ep_idx][0] = (interval_exp as u32) << 16; // Interval
             (*input_ctx_ptr).ep[ep_idx][1] = (3 << 1) | (7 << 3) | ((ep_info.max_packet as u32) << 16);
@@ -381,6 +431,7 @@ fn enumerate_device(port: u8, speed: u8) -> bool {
             (*input_ctx_ptr).ep[ep_idx][4] = ep_info.max_packet as u32; // Avg TRB Length
         }
 
+        // Configure Endpoint command
         let inp_p = addr_of_mut!(INPUT_CTX) as u64;
         queue_cmd((inp_p & 0xFFFFFFFF) as u32, (inp_p >> 32) as u32, 0,
                   (TRB_TYPE_CONFIGURE_ENDPOINT << 10) | ((slot as u32) << 24));
@@ -393,6 +444,9 @@ fn enumerate_device(port: u8, speed: u8) -> bool {
             } else {
                 serial::println(b"[USB] Endpoint configured");
 
+                // Determine device type from protocol
+                // Protocol 1 = keyboard, Protocol 2 = mouse
+                // SAFETY: Single-threaded device enumeration, no concurrent access to USB_BUF
                 let proto = unsafe {
                     let usb_buf_ptr = addr_of_mut!(USB_BUF);
                     (*usb_buf_ptr).data.iter().position(|&x| x == super::transfer::USB_DESC_INTERFACE)
@@ -408,6 +462,7 @@ fn enumerate_device(port: u8, speed: u8) -> bool {
                     serial::println(b"[USB] Mouse ready");
                 }
 
+                // Queue initial interrupt transfer
                 start_hid_poll();
                 return true;
             }

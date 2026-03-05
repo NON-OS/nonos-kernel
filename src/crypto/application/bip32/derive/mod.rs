@@ -14,16 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod constants;
-mod master;
-mod child;
-mod path;
-mod validate;
-mod scalar_math;
+pub mod constants;
+pub mod master;
+pub mod child;
+pub mod path;
+pub mod validate;
+pub mod scalar_math;
 
 pub use master::derive_master_key;
 pub use child::derive_child;
-pub use path::{derive_path, derive_eth_key};
 
 #[cfg(test)]
 mod tests {

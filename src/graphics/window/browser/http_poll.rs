@@ -75,7 +75,7 @@ pub fn poll_fetch() -> bool {
 
                         match async_ops::http_start_request(ip, port, request) {
                             Ok(()) => {
-                                *FETCH_STATE.lock() = FetchState::Fetching;
+                                *FETCH_STATE.lock() = FetchState::Connecting;
                                 true
                             }
                             Err(e) => {
@@ -102,6 +102,8 @@ pub fn poll_fetch() -> bool {
                 AsyncResult::Pending => true,
                 AsyncResult::Ready(response) => {
                     if let Some(body) = extract_body(&response) {
+                        set_status(b"Parsing response...");
+                        *FETCH_STATE.lock() = FetchState::Parsing;
                         let host = get_host_string();
                         process_response(body, &host, response.len(), false);
                         *FETCH_STATE.lock() = FetchState::Done;

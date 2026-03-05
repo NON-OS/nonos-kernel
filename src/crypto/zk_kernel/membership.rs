@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -67,13 +67,17 @@ impl MembershipProof {
         }
     }
 
-    // # SECURITY: Constant-time verification using error accumulation
+    // SECURITY: Constant-time verification using error accumulation
     // Direction is public info, so direction-based ordering is not a timing leak
     pub fn verify(&self, root: &[u8; 32]) -> bool {
+        // Accumulate validity - no early returns
         let mut valid: u8 = 1;
+
+        // Constant-time length comparison
         valid &= ct_eq_usize(self.path.len(), self.directions.len());
 
         let mut current = self.leaf_commitment;
+
         // Always iterate over the full path
         // Direction is public, so branching on it is acceptable
         for (sibling, &direction) in self.path.iter().zip(self.directions.iter()) {
@@ -88,13 +92,14 @@ impl MembershipProof {
             current = blake3_hash(&combined);
         }
 
+        // Constant-time final comparison
         valid &= ct_bytes_eq(&current, root);
 
         valid == 1
     }
 }
 
-// # SECURITY: Constant-time usize equality returns 1 if equal, 0 if not
+// SECURITY: Constant-time usize equality - returns 1 if equal, 0 if not
 #[inline]
 fn ct_eq_usize(a: usize, b: usize) -> u8 {
     let diff = a ^ b;
@@ -102,13 +107,14 @@ fn ct_eq_usize(a: usize, b: usize) -> u8 {
     (1 ^ is_nonzero) as u8
 }
 
-// # SECURITY: Constant-time byte equality check
+// SECURITY: Constant-time byte equality check
 #[inline]
 fn ct_bytes_eq(a: &[u8; 32], b: &[u8; 32]) -> u8 {
     let mut diff: u8 = 0;
     for i in 0..32 {
         diff |= a[i] ^ b[i];
     }
+    // If diff is 0, return 1; if diff is nonzero, return 0
     let is_nonzero = (diff as u16 | (diff as u16).wrapping_neg()) >> 8;
     (1 ^ is_nonzero) as u8
 }

@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+//! Circuit utility functions
 
 use crate::network::onion::OnionError;
 use crate::network::onion::cell::CellType;
@@ -33,6 +34,8 @@ pub(super) fn ewma_update(old_ms: u32, sample_ms: u32) -> u32 {
     (alpha_num * sample_ms + (alpha_den - alpha_num) * old_ms) / alpha_den
 }
 
+/// For Created2/Extended2 payloads, strip the first 2 bytes length prefix and return the slice.
+/// For others, return the full payload.
 pub(super) fn strip_len_prefix_if_any(is_var: bool, command: u8, payload: &[u8]) -> Result<&[u8], OnionError> {
     if is_var && (command == CellType::Created2 as u8) {
         if payload.len() < 2 {
@@ -44,6 +47,7 @@ pub(super) fn strip_len_prefix_if_any(is_var: bool, command: u8, payload: &[u8])
         }
         return Ok(&payload[2..2 + n]);
     }
+    // For EXTENDED2, we receive it inside a RELAY cell; CellProcessor passes only relay payload here.
     if !is_var && command == CellType::Relay as u8 {
         if payload.len() >= 2 {
             let n = u16::from_be_bytes([payload[0], payload[1]]) as usize;

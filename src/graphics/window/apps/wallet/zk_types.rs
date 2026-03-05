@@ -20,7 +20,6 @@ use alloc::vec::Vec;
 use core::sync::atomic::{AtomicBool, Ordering};
 use spin::Mutex;
 
-use crate::zk_engine::ZKError;
 use crate::zk_engine::groth16::{Proof, ProvingKey, VerifyingKey};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -89,54 +88,6 @@ impl WalletZKProof {
         result
     }
 
-    pub(crate) fn from_bytes(data: &[u8]) -> Result<Self, ZKError> {
-        if data.len() < 38 {
-            return Err(ZKError::InvalidFormat);
-        }
-
-        let proof_type = match data[0] {
-            0 => WalletProofType::BalanceOwnership,
-            1 => WalletProofType::TransactionAuth,
-            2 => WalletProofType::StealthSpendKey,
-            3 => WalletProofType::BalanceSufficiency,
-            _ => return Err(ZKError::InvalidFormat),
-        };
-
-        let proof_len = u32::from_le_bytes([data[1], data[2], data[3], data[4]]) as usize;
-        if data.len() < 5 + proof_len + 1 {
-            return Err(ZKError::InvalidFormat);
-        }
-
-        let proof = Proof::deserialize(&data[5..5 + proof_len])?;
-
-        let mut offset = 5 + proof_len;
-        let num_inputs = data[offset] as usize;
-        offset += 1;
-
-        let mut public_inputs = Vec::with_capacity(num_inputs);
-        for _ in 0..num_inputs {
-            if offset + 32 > data.len() {
-                return Err(ZKError::InvalidFormat);
-            }
-            let mut input = [0u8; 32];
-            input.copy_from_slice(&data[offset..offset + 32]);
-            public_inputs.push(input);
-            offset += 32;
-        }
-
-        if offset + 32 > data.len() {
-            return Err(ZKError::InvalidFormat);
-        }
-        let mut commitment = [0u8; 32];
-        commitment.copy_from_slice(&data[offset..offset + 32]);
-
-        Ok(Self {
-            proof_type,
-            proof,
-            public_inputs,
-            commitment,
-        })
-    }
 }
 
 pub(crate) fn is_zk_available() -> bool {
@@ -155,3 +106,4 @@ pub(crate) fn get_zk_status() -> (bool, u8, u8) {
     drop(keys);
     (initialized, circuits_ready, 4)
 }
+

@@ -14,6 +14,22 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 use core::sync::atomic::Ordering;
 use crate::sys::io::{inb, outb};
 use crate::sys::serial;
@@ -24,6 +40,7 @@ pub fn has_scroll_wheel() -> bool {
     SCROLL_WHEEL_AVAILABLE.load(Ordering::Relaxed)
 }
 
+/// Initialize PS/2 mouse for polling mode with multiple retry attempts
 pub fn init() {
     serial::println(b"[MOUSE] Initializing PS/2 mouse...");
 
@@ -31,14 +48,17 @@ pub fn init() {
     unsafe {
         flush_buffer();
 
+        // Enable auxiliary device (mouse port)
         if !wait_write() {
             serial::println(b"[MOUSE] Controller not responding");
             return;
         }
         outb(0x64, 0xA8);
 
+        // Small delay for controller
         for _ in 0..10000 { core::hint::spin_loop(); }
 
+        // Get current controller configuration
         if !wait_write() { return; }
         outb(0x64, 0x20);
 
@@ -49,6 +69,8 @@ pub fn init() {
             0x00
         };
 
+        // Enable mouse clock (clear bit 5) and enable mouse interrupt (set bit 1)
+        // IRQ12 will fire when mouse data is available
         let new_config = (config & !0x20) | 0x02;
         if !wait_write() { return; }
         outb(0x64, 0x60);
@@ -57,6 +79,7 @@ pub fn init() {
 
         serial::println(b"[MOUSE] IRQ12 enabled for mouse");
 
+        // Try to reset mouse multiple times
         let mut mouse_ok = false;
 
         for attempt in 0..3 {
@@ -92,10 +115,13 @@ pub fn init() {
             serial::println(b"[MOUSE] Trying without reset...");
         }
 
+        // Set defaults
         if mouse_write(0xF6) {
             let _ = mouse_read();
         }
 
+        // Magic sequence to enable scroll wheel: set sample rate 200, 100, 80
+        // This puts compatible mice into scroll wheel mode (IntelliMouse)
         let magic_rates = [200u8, 100, 80];
         for rate in magic_rates {
             if mouse_write(0xF3) {
@@ -106,6 +132,7 @@ pub fn init() {
             }
         }
 
+        // Get device ID to check if scroll wheel is active
         if mouse_write(0xF2) {
             let _ = mouse_read();
             if let Some(device_id) = mouse_read() {
@@ -116,6 +143,7 @@ pub fn init() {
             }
         }
 
+        // Set final sample rate to 100 samples/sec for responsiveness
         if mouse_write(0xF3) {
             let _ = mouse_read();
             if mouse_write(100) {
@@ -123,6 +151,7 @@ pub fn init() {
             }
         }
 
+        // Set resolution (2 = 4 counts/mm)
         if mouse_write(0xE8) {
             let _ = mouse_read();
             if mouse_write(0x02) {
@@ -130,6 +159,7 @@ pub fn init() {
             }
         }
 
+        // Enable data reporting
         if mouse_write(0xF4) {
             if let Some(ack) = mouse_read() {
                 if ack == 0xFA {

@@ -20,7 +20,7 @@ use super::state::{WINDOWS, FOCUSED_WINDOW, MAX_WINDOWS, SnapZone};
 use super::scroll;
 use super::manager::minimize;
 
-pub(crate) fn snap_focused(zone: SnapZone) {
+pub fn snap_focused(zone: SnapZone) {
     let focused = FOCUSED_WINDOW.load(Ordering::Relaxed);
     if focused >= MAX_WINDOWS || !WINDOWS[focused].active.load(Ordering::Relaxed) {
         return;
@@ -34,19 +34,19 @@ pub(crate) fn snap_focused(zone: SnapZone) {
     apply_snap_zone(focused, zone, screen_w, screen_h);
 }
 
-pub(crate) fn snap_left() {
+pub fn snap_left() {
     snap_focused(SnapZone::Left);
 }
 
-pub(crate) fn snap_right() {
+pub fn snap_right() {
     snap_focused(SnapZone::Right);
 }
 
-pub(crate) fn snap_top() {
+pub fn snap_top() {
     snap_focused(SnapZone::Top);
 }
 
-pub(crate) fn unsnap_focused() {
+pub fn unsnap_focused() {
     let focused = FOCUSED_WINDOW.load(Ordering::Relaxed);
     if focused >= MAX_WINDOWS || !WINDOWS[focused].active.load(Ordering::Relaxed) {
         return;

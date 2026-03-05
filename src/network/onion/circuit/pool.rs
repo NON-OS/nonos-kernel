@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+//! Circuit pool for prebuilt circuits
 
 use alloc::vec::Vec;
 use spin::Mutex;
@@ -44,5 +45,10 @@ impl CircuitPool {
         if v.len() < self.pool_size {
             v.push(id);
         }
+    }
+
+    pub(super) fn needs_circuits(&self) -> bool {
+        let v = self.prebuilt_circuits.lock();
+        v.len() < self.min_circuits
     }
 }

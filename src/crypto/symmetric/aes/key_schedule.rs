@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -37,6 +37,7 @@ pub(crate) fn sub_word_ct(x: u32) -> u32 {
 
 pub(crate) fn expand_key_128(key: &[u8; 16], round_keys: &mut [[u8; 16]; 11]) {
     let mut w = [0u32; 44];
+
     for i in 0..4 {
         let j = i * 4;
         w[i] = u32::from_be_bytes([key[j], key[j + 1], key[j + 2], key[j + 3]]);

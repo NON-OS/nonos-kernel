@@ -18,9 +18,5 @@ mod builder;
 mod parser;
 mod query;
 
-pub(super) use builder::{build_dns_query, build_dns_query_type};
-pub(super) use parser::{
-    parse_dns_response_a, parse_dns_response_aaaa, parse_dns_response_any,
-    parse_dns_response_cname, parse_dns_response_mx, parse_dns_response_ns,
-    parse_dns_response_txt,
-};
+pub(crate) use builder::build_dns_query;
+pub(crate) use parser::parse_dns_response_a;

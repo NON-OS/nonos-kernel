@@ -14,14 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+//! UDP type definitions.
 
 extern crate alloc;
 
 use alloc::vec::Vec;
 use core::sync::atomic::AtomicU64;
 
+/// UDP socket identifier
 pub type UdpSocketId = u32;
 
+/// UDP socket state
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum UdpState {
     Unbound,
@@ -30,6 +33,7 @@ pub enum UdpState {
     Closed,
 }
 
+/// UDP socket statistics
 #[derive(Debug, Default, Clone)]
 pub struct UdpStats {
     pub packets_sent: u64,
@@ -39,6 +43,7 @@ pub struct UdpStats {
     pub errors: u64,
 }
 
+/// Received UDP packet
 #[derive(Debug, Clone)]
 pub struct UdpPacket {
     pub src_addr: [u8; 4],
@@ -47,6 +52,7 @@ pub struct UdpPacket {
     pub timestamp: u64,
 }
 
+/// UDP header structure
 #[derive(Debug, Clone, Copy)]
 pub struct UdpHeader {
     pub src_port: u16,
@@ -56,6 +62,7 @@ pub struct UdpHeader {
 }
 
 impl UdpHeader {
+    /// Parse UDP header from bytes
     pub fn parse(data: &[u8]) -> Option<Self> {
         if data.len() < 8 {
             return None;
@@ -68,6 +75,7 @@ impl UdpHeader {
         })
     }
 
+    /// Serialize UDP header to bytes
     pub fn serialize(&self) -> [u8; 8] {
         let mut buf = [0u8; 8];
         buf[0..2].copy_from_slice(&self.src_port.to_be_bytes());
@@ -77,16 +85,19 @@ impl UdpHeader {
         buf
     }
 
+    /// Calculate UDP checksum (pseudo-header + header + data)
     pub fn calculate_checksum(src_ip: [u8; 4], dst_ip: [u8; 4], data: &[u8]) -> u16 {
         let mut sum: u32 = 0;
 
+        // Pseudo-header
         sum += u16::from_be_bytes([src_ip[0], src_ip[1]]) as u32;
         sum += u16::from_be_bytes([src_ip[2], src_ip[3]]) as u32;
         sum += u16::from_be_bytes([dst_ip[0], dst_ip[1]]) as u32;
         sum += u16::from_be_bytes([dst_ip[2], dst_ip[3]]) as u32;
-        sum += 17u32;
-        sum += (8 + data.len()) as u32;
+        sum += 17u32; // UDP protocol number
+        sum += (8 + data.len()) as u32; // UDP length
 
+        // UDP header + data
         let total_len = 8 + data.len();
         let padded = if total_len % 2 != 0 {
             total_len + 1
@@ -100,6 +111,7 @@ impl UdpHeader {
             sum += u16::from_be_bytes([b1, b2]) as u32;
         }
 
+        // Fold 32-bit sum to 16 bits
         while (sum >> 16) != 0 {
             sum = (sum & 0xFFFF) + (sum >> 16);
         }
@@ -108,6 +120,7 @@ impl UdpHeader {
     }
 }
 
+/// Global UDP statistics
 pub struct GlobalUdpStats {
     pub packets_sent: AtomicU64,
     pub packets_received: AtomicU64,

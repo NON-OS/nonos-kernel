@@ -19,6 +19,7 @@ use crate::graphics::framebuffer::{fill_rect, COLOR_ACCENT, COLOR_TEXT_WHITE};
 use crate::graphics::font::draw_char;
 use super::state::*;
 use super::render_ui::{draw_file_picker, draw_toolbar, draw_line_numbers, draw_line_number, draw_status_bar};
+use super::find_search::{is_match_position, is_current_match_position};
 
 fn syntax_color(ch: u8) -> u32 {
     match ch {
@@ -91,6 +92,22 @@ fn draw_text_area(x: u32, y: u32, w: u32, h: u32) {
                         8,
                         LINE_HEIGHT,
                         0xFF264F78,
+                    );
+                } else if is_current_match_position(char_idx) {
+                    fill_rect(
+                        text_x + (col as u32) * 8,
+                        text_y + display_line * LINE_HEIGHT,
+                        8,
+                        LINE_HEIGHT,
+                        0xFFD29922,
+                    );
+                } else if is_match_position(char_idx) {
+                    fill_rect(
+                        text_x + (col as u32) * 8,
+                        text_y + display_line * LINE_HEIGHT,
+                        8,
+                        LINE_HEIGHT,
+                        0xFF3D4A3A,
                     );
                 }
 

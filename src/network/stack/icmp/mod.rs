@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod types;
-mod v4;
-mod v6;
+pub mod types;
+pub mod v4;
+pub mod v6;
 
 pub use types::PingResult;

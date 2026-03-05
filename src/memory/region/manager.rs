@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -14,23 +14,35 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+//! Region Manager Implementation
+
 extern crate alloc;
+
 use alloc::collections::BTreeMap;
 use alloc::vec::Vec;
+
 use super::constants::align_size;
 use super::error::{RegionError, RegionResult};
 use super::stats::RegionStatistics;
 use super::types::{get_timestamp, MemRegion, RegionFlags, RegionStats, RegionType};
 use crate::memory::layout;
+
+/// Core region manager.
 pub struct RegionManager {
+    /// All regions indexed by region ID
     regions: BTreeMap<u64, MemRegion>,
+    /// Free regions available for allocation
     free_regions: Vec<MemRegion>,
+    /// Regions grouped by type
     region_pools: BTreeMap<RegionType, Vec<MemRegion>>,
+    /// Next region ID
     next_region_id: u64,
+    /// Initialization status
     initialized: bool,
 }
 
 impl RegionManager {
+    /// Creates a new uninitialized region manager.
     pub const fn new() -> Self {
         Self {
             regions: BTreeMap::new(),
@@ -41,6 +53,7 @@ impl RegionManager {
         }
     }
 
+    /// Initializes the region manager.
     pub fn init(&mut self, stats: &RegionStatistics) -> RegionResult<()> {
         if self.initialized {
             return Ok(());
@@ -49,43 +62,60 @@ impl RegionManager {
         self.regions.clear();
         self.free_regions.clear();
         self.region_pools.clear();
+
         self.add_initial_regions(stats)?;
         self.initialized = true;
+
         Ok(())
     }
+
+    /// Returns true if initialized.
     pub const fn is_initialized(&self) -> bool {
         self.initialized
     }
+
+    /// Adds initial kernel regions.
     fn add_initial_regions(&mut self, stats: &RegionStatistics) -> RegionResult<()> {
+        // Kernel region
         let kernel_region = MemRegion::new(
             layout::KERNEL_BASE,
             (layout::KDATA_BASE - layout::KERNEL_BASE) as usize,
             RegionType::Kernel,
         );
         self.add_region(kernel_region, stats)?;
+
+        // Heap region
         let heap_region = MemRegion::new(
             layout::KHEAP_BASE,
             layout::KHEAP_SIZE as usize,
             RegionType::Heap,
         );
         self.add_region(heap_region, stats)?;
+
+        // VMAP region (available)
         let vmap_region = MemRegion::new(
             layout::VMAP_BASE,
             layout::VMAP_SIZE as usize,
             RegionType::Available,
         );
         self.add_region(vmap_region, stats)?;
+
+        // MMIO region
         let mmio_region = MemRegion::new(
             layout::MMIO_BASE,
             layout::MMIO_SIZE as usize,
             RegionType::Mmio,
         );
         self.add_region(mmio_region, stats)?;
+
         Ok(())
     }
+
     // ========================================================================
     // REGION MANAGEMENT
     // ========================================================================
+
+    /// Adds a region.
     pub fn add_region(
         &mut self,
         mut region: MemRegion,
@@ -93,14 +123,18 @@ impl RegionManager {
     ) -> RegionResult<u64> {
         let region_id = self.next_region_id;
         self.next_region_id += 1;
+
         region.creation_time = get_timestamp();
+
         if self.has_overlap(&region) {
             return Err(RegionError::Overlapping);
         }
 
         let is_free = region.region_type == RegionType::Available;
         stats.add_region(region.size as u64, is_free);
+
         self.regions.insert(region_id, region);
+
         if is_free {
             self.free_regions.push(region);
         }
@@ -114,14 +148,17 @@ impl RegionManager {
         Ok(region_id)
     }
 
+    /// Removes a region.
     pub fn remove_region(
         &mut self,
         region_id: u64,
         stats: &RegionStatistics,
     ) -> RegionResult<MemRegion> {
         let region = self.regions.remove(&region_id).ok_or(RegionError::NotFound)?;
+
         let is_free = region.region_type == RegionType::Available;
         stats.remove_region(region.size as u64, is_free);
+
         if is_free {
             self.free_regions.retain(|r| r.start != region.start);
         }
@@ -133,6 +170,7 @@ impl RegionManager {
         Ok(region)
     }
 
+    /// Allocates a region.
     pub fn allocate_region(
         &mut self,
         size: usize,
@@ -141,14 +179,19 @@ impl RegionManager {
         stats: &RegionStatistics,
     ) -> RegionResult<MemRegion> {
         let aligned_size = align_size(size, align as usize);
+
         for (i, region) in self.free_regions.iter().enumerate() {
             let aligned_start = (region.start + align - 1) & !(align - 1);
             let available_size = region.end().saturating_sub(aligned_start);
+
             if available_size >= aligned_size as u64 {
                 let mut allocated = MemRegion::new(aligned_start, aligned_size, region_type);
                 allocated.creation_time = get_timestamp();
+
                 let remaining_region = *region;
                 self.free_regions.remove(i);
+
+                // Add remaining fragments
                 let fragments = remaining_region.subtract(&allocated);
                 for fragment in fragments.iter().flatten() {
                     self.free_regions.push(*fragment);
@@ -157,7 +200,9 @@ impl RegionManager {
                 let region_id = self.next_region_id;
                 self.next_region_id += 1;
                 self.regions.insert(region_id, allocated);
+
                 stats.record_allocation(aligned_size as u64);
+
                 return Ok(allocated);
             }
         }
@@ -165,22 +210,29 @@ impl RegionManager {
         Err(RegionError::NoFreeRegion)
     }
 
+    /// Deallocates a region.
     pub fn deallocate_region(
         &mut self,
         region: MemRegion,
         stats: &RegionStatistics,
     ) -> RegionResult<()> {
         let available_region = MemRegion::new(region.start, region.size, RegionType::Available);
+
         self.free_regions.push(available_region);
         self.merge_adjacent_free_regions(stats);
+
         stats.record_deallocation(region.size as u64);
+
         Ok(())
     }
 
+    /// Merges adjacent free regions.
     pub fn merge_adjacent_free_regions(&mut self, stats: &RegionStatistics) {
         self.free_regions.sort_by_key(|r| r.start);
+
         let mut merged_regions = Vec::new();
         let mut current_region: Option<MemRegion> = None;
+
         for region in self.free_regions.drain(..) {
             match current_region.as_mut() {
                 Some(current) => {
@@ -205,6 +257,7 @@ impl RegionManager {
         self.free_regions = merged_regions;
     }
 
+    /// Splits a region at an offset.
     pub fn split_region(
         &mut self,
         region_id: u64,
@@ -212,6 +265,7 @@ impl RegionManager {
         stats: &RegionStatistics,
     ) -> RegionResult<(MemRegion, MemRegion)> {
         let region = self.regions.get(&region_id).ok_or(RegionError::NotFound)?.clone();
+
         if offset >= region.size {
             return Err(RegionError::InvalidSplitOffset);
         }
@@ -224,22 +278,30 @@ impl RegionManager {
         );
 
         self.regions.remove(&region_id);
+
         let first_id = self.next_region_id;
         self.next_region_id += 1;
         let second_id = self.next_region_id;
         self.next_region_id += 1;
+
         self.regions.insert(first_id, first_part);
         self.regions.insert(second_id, second_part);
+
         stats.record_split();
+
         Ok((first_part, second_part))
     }
+
     // ========================================================================
     // QUERY METHODS
     // ========================================================================
+
+    /// Finds a region by address.
     pub fn find_region_by_address(&self, addr: u64) -> Option<&MemRegion> {
         self.regions.values().find(|r| r.contains(addr))
     }
 
+    /// Finds regions by type.
     pub fn find_regions_by_type(&self, region_type: RegionType) -> Vec<MemRegion> {
         self.region_pools
             .get(&region_type)
@@ -247,24 +309,29 @@ impl RegionManager {
             .unwrap_or_default()
     }
 
+    /// Checks if a region overlaps with existing regions.
     pub fn has_overlap(&self, region: &MemRegion) -> bool {
         self.regions.values().any(|r| r.overlaps(region))
     }
 
+    /// Returns fragmentation info (fragment count, largest free).
     pub fn get_fragmentation_info(&self) -> (usize, u64) {
         let fragment_count = self.free_regions.len();
         let largest_free = self.free_regions.iter().map(|r| r.size as u64).max().unwrap_or(0);
         (fragment_count, largest_free)
     }
 
+    /// Protects a region with the specified flags.
     pub fn protect_region(&mut self, region_id: u64, flags: RegionFlags) -> RegionResult<()> {
         let region = self.regions.get_mut(&region_id).ok_or(RegionError::NotFound)?;
         region.set_flag(flags);
         Ok(())
     }
 
+    /// Returns region statistics.
     pub fn get_stats(&self, stats: &RegionStatistics) -> RegionStats {
         let (fragment_count, largest_free) = self.get_fragmentation_info();
+
         RegionStats {
             total_regions: self.regions.len(),
             free_regions: self.free_regions.len(),
@@ -279,10 +346,12 @@ impl RegionManager {
         }
     }
 
+    /// Returns number of regions.
     pub fn region_count(&self) -> usize {
         self.regions.len()
     }
 
+    /// Returns number of free regions.
     pub fn free_region_count(&self) -> usize {
         self.free_regions.len()
     }
@@ -293,15 +362,20 @@ impl Default for RegionManager {
         Self::new()
     }
 }
+
 // ============================================================================
 // GLOBAL STATE
 // ============================================================================
+
 use spin::Mutex;
+
 static REGION_MANAGER: Mutex<RegionManager> = Mutex::new(RegionManager::new());
 static REGION_STATS: RegionStatistics = RegionStatistics::new();
+
 // ============================================================================
 // PUBLIC API
 // ============================================================================
+
 pub fn init() -> super::error::RegionResult<()> {
     let mut manager = REGION_MANAGER.lock();
     manager.init(&REGION_STATS)

@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -13,6 +13,15 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+//! Boot Memory Manager Unit Tests
+//!
+//! Comprehensive tests for boot memory functionality including:
+//! - Constants validation
+//! - Error handling
+//! - Region operations
+//! - Allocation
+//! - Statistics
 
 use super::*;
 use super::constants::*;
@@ -447,5 +456,6 @@ fn test_allocation_count_initial() {
 
 #[test]
 fn test_is_initialized() {
+    // The manager may or may not be initialized from other tests
     let _ = is_initialized();
 }

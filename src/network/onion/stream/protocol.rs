@@ -14,11 +14,4 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
-pub(super) struct ProtocolHandlerRegistry;
-
-impl ProtocolHandlerRegistry {
-    pub(super) fn new() -> Self {
-        Self
-    }
-}
+//! Protocol handling for onion streams - placeholder for future implementation

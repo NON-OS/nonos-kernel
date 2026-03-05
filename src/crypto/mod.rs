@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -33,6 +33,28 @@ pub use util::rng;
 pub use util::entropy;
 pub use util::hmac;
 pub use util::bigint;
+
+pub mod random {
+    use super::{CryptoResult, CryptoError};
+
+    pub fn fill_bytes(buffer: &mut [u8]) -> CryptoResult<()> {
+        super::rng::fill_random_bytes(buffer);
+        Ok(())
+    }
+
+    pub fn get_bytes(buffer: &mut [u8]) -> CryptoResult<()> {
+        super::rng::fill_random_bytes(buffer);
+        Ok(())
+    }
+
+    pub fn get_bytes_checked(buffer: &mut [u8], min_entropy: usize) -> CryptoResult<()> {
+        if buffer.len() < min_entropy / 8 {
+            return Err(CryptoError::BufferTooSmall);
+        }
+        super::rng::fill_random_bytes(buffer);
+        Ok(())
+    }
+}
 
 pub use symmetric::aes;
 pub use symmetric::chacha20poly1305;
@@ -73,7 +95,7 @@ pub use zk::halo2::{Halo2Verifier, Halo2Error, halo2_verify};
 pub use zk::groth16::{Groth16Verifier, Groth16Error, groth16_verify_bn254};
 
 pub use zk_kernel::{
-    FieldElement, PedersenCommitment, SchnorrProof, SigmaProof, RangeProof,
+    FieldElement, PedersenCommitment, SchnorrProof, SigmaProof,
     EqualityProof, MembershipProof,
     PlonkProof, PlonkEvaluations, PlonkCircuit, plonk_prove, plonk_verify,
     KernelZkVerifier, KERNEL_ZK_VERIFIER, ZkResult, ProofSystem,
@@ -138,9 +160,12 @@ pub enum CryptoError {
     KemError,
     SigError,
     InvalidInput,
+    InvalidKey,
     KeyNotFound,
     BufferTooSmall,
     VerificationFailed,
+    InvalidState,
+    AuthenticationFailed,
 }
 
 pub type CryptoResult<T> = Result<T, CryptoError>;

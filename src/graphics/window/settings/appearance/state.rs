@@ -39,9 +39,6 @@ pub fn set_category(cat: u8) {
     let old = CURRENT_CATEGORY.swap(cat, Ordering::Relaxed);
     if old != cat {
         mark_content_dirty();
-        crate::graphics::window::settings::state::mark_dirty(
-            crate::graphics::window::settings::state::PAGE_APPEARANCE
-        );
     }
 }
 

@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -32,15 +32,18 @@ pub fn sphincs_verify(pk: &SphincsPublicKey, msg: &[u8], sig: &SphincsSignature)
     r.copy_from_slice(&sig.bytes[0..SPHINCS_N]);
 
     let (fors_msg, tree_idx, leaf_idx) = hash_message(&r, &pk.seed, &pk.root, msg);
+
     let mut addr = Address::default();
     addr.set_tree(tree_idx);
     addr.set_keypair(leaf_idx);
 
     let fors_sig = &sig.bytes[SPHINCS_N..SPHINCS_N + SPHINCS_FORS_SIG_BYTES];
     let fors_pk = fors_pk_from_sig(&pk.seed, fors_sig, &fors_msg, &mut addr);
+
     let mut node = fors_pk;
     let layer_height = SPHINCS_H / SPHINCS_D;
     let mut offset = SPHINCS_N + SPHINCS_FORS_SIG_BYTES;
+
     for layer in 0..SPHINCS_D {
         if offset + SPHINCS_WOTS_SIG_BYTES + layer_height * SPHINCS_N > sig.bytes.len() {
             return false;

@@ -111,6 +111,38 @@ pub struct LoadedSegment {
     pub filesz: u64,
 }
 
+impl LoadedSegment {
+    /// Get the end address of this segment
+    pub fn end_addr(&self) -> u64 {
+        self.vaddr.saturating_add(self.memsz)
+    }
+
+    /// Check if this segment is readable
+    pub fn is_readable(&self) -> bool {
+        self.flags & PF_R != 0
+    }
+
+    /// Check if this segment is writable
+    pub fn is_writable(&self) -> bool {
+        self.flags & PF_W != 0
+    }
+
+    /// Check if this segment is executable
+    pub fn is_executable(&self) -> bool {
+        self.flags & PF_X != 0
+    }
+
+    /// Get the BSS size (uninitialized data)
+    pub fn bss_size(&self) -> u64 {
+        self.memsz.saturating_sub(self.filesz)
+    }
+
+    /// Get file data parameters
+    pub fn get_file_params(&self) -> (u64, u64) {
+        (self.file_offset, self.filesz)
+    }
+}
+
 #[derive(Debug)]
 pub struct LoadedElf {
     pub entry: u64,
@@ -126,6 +158,43 @@ pub struct LoadedElf {
     pub tls_addr: u64,
     pub tls_size: u64,
     pub tls_align: u64,
+}
+
+impl LoadedElf {
+    /// Get the memory size of the loaded ELF
+    pub fn memory_size(&self) -> u64 {
+        self.max_addr.saturating_sub(self.min_addr)
+    }
+
+    /// Check if TLS is required
+    pub fn has_tls(&self) -> bool {
+        self.tls_size > 0
+    }
+
+    /// Get TLS configuration
+    pub fn get_tls_config(&self) -> (u64, u64, u64) {
+        (self.tls_addr, self.tls_size, self.tls_align)
+    }
+
+    /// Check if dynamic linker is required
+    pub fn needs_interp(&self) -> bool {
+        self.interp.is_some()
+    }
+
+    /// Get interpreter path if present
+    pub fn get_interp(&self) -> Option<&str> {
+        self.interp.as_deref()
+    }
+
+    /// Check if executable stack is allowed
+    pub fn allows_exec_stack(&self) -> bool {
+        self.exec_stack
+    }
+
+    /// Get program header information for auxiliary vector
+    pub fn get_phdr_info(&self) -> (u64, u16, u16) {
+        (self.phdr_addr, self.phnum, self.phentsize)
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

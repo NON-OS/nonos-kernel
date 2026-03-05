@@ -19,10 +19,10 @@ use alloc::vec::Vec;
 use alloc::format;
 use super::url::{ParsedUrl, DEFAULT_HTTP_PORT, DEFAULT_HTTPS_PORT};
 
-pub const HTTP_TIMEOUT_MS: u64 = 30_000;
-pub const MAX_REDIRECTS: u8 = 10;
-pub const MAX_RESPONSE_SIZE: usize = 10 * 1024 * 1024;
-pub const USER_AGENT: &[u8] = b"NONOS-HTTP/1.0";
+pub(super) const HTTP_TIMEOUT_MS: u64 = 30_000;
+pub(super) const MAX_REDIRECTS: u8 = 10;
+pub(super) const MAX_RESPONSE_SIZE: usize = 10 * 1024 * 1024;
+pub(super) const USER_AGENT: &[u8] = b"NONOS-HTTP/1.0";
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum HttpMethod {
@@ -34,7 +34,7 @@ pub enum HttpMethod {
 }
 
 impl HttpMethod {
-    pub fn as_str(&self) -> &'static str {
+    pub(super) fn as_str(&self) -> &'static str {
         match self {
             HttpMethod::Get => "GET",
             HttpMethod::Head => "HEAD",
@@ -70,7 +70,7 @@ impl Default for HttpRequestOptions {
     }
 }
 
-pub fn build_request(url: &ParsedUrl, method: HttpMethod, body: Option<&[u8]>, options: &HttpRequestOptions) -> Vec<u8> {
+pub(super) fn build_request(url: &ParsedUrl, method: HttpMethod, body: Option<&[u8]>, options: &HttpRequestOptions) -> Vec<u8> {
     let mut request = Vec::new();
 
     request.extend_from_slice(method.as_str().as_bytes());

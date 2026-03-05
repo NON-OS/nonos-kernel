@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -14,6 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+//! Buddy Allocator Types
+//!
+//! Data structures used by the buddy allocator.
+
 /// A block in the buddy system.
 #[derive(Debug, Clone, Copy)]
 pub struct BuddyBlock {
@@ -22,24 +26,38 @@ pub struct BuddyBlock {
     /// Order (log2 of size)
     pub order: usize,
 }
+
+/// Metadata for an allocated block.
 #[derive(Debug, Clone, Copy)]
 pub struct AllocatedBlock {
+    /// Virtual address
     pub addr: u64,
+    /// Actual allocated size
     pub size: usize,
+    /// Order used for allocation
     pub order: usize,
+    /// Allocation flags
     pub flags: u32,
 }
+
+/// Allocation statistics.
 #[derive(Debug, Clone, Copy, Default)]
 pub struct AllocStats {
+    /// Total currently allocated bytes
     pub total_allocated: u64,
+    /// Peak allocation bytes
     pub peak_allocated: u64,
+    /// Total allocation operations
     pub allocation_count: usize,
+    /// Total free operations
     pub free_count: usize,
+    /// Number of active allocations
     pub active_ranges: usize,
 }
 
 impl AllocStats {
-  pub const fn new() -> Self {
+    /// Creates empty statistics.
+    pub const fn new() -> Self {
         Self {
             total_allocated: 0,
             peak_allocated: 0,
@@ -49,6 +67,7 @@ impl AllocStats {
         }
     }
 
+    /// Returns the free memory.
     pub const fn free_memory(&self, total: u64) -> u64 {
         if total > self.total_allocated {
             total - self.total_allocated

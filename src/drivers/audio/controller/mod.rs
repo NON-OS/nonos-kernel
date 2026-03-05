@@ -14,13 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod api;
+pub mod api;
 pub mod codec;
-mod corb_rirb;
-mod hda_controller;
-mod helpers;
-mod init;
-mod stream;
+pub mod corb_rirb;
+pub mod hda_controller;
+pub mod helpers;
+pub mod init;
+pub mod stream;
 
 pub use api::{
     codec_statistics, describe_pin_device, describe_widget, find_audio_paths, get_codec_details,

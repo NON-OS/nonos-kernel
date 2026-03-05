@@ -14,9 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+//! Base64 and hex encoding/decoding utilities for directory parsing
 
 use alloc::{string::String, vec::Vec};
 
+/// Decode base64 to 20-byte array
 pub(super) fn b64_20(s: &str) -> Option<[u8; 20]> {
     let v = b64_any(s)?;
     if v.len() != 20 { return None; }
@@ -25,6 +27,7 @@ pub(super) fn b64_20(s: &str) -> Option<[u8; 20]> {
     Some(a)
 }
 
+/// Decode base64 to 32-byte array
 pub(super) fn b64_32(s: &str) -> Option<[u8; 32]> {
     let v = b64_any(s)?;
     if v.len() != 32 { return None; }
@@ -33,6 +36,7 @@ pub(super) fn b64_32(s: &str) -> Option<[u8; 32]> {
     Some(a)
 }
 
+/// Decode base64 string (supports both standard and URL-safe alphabets)
 pub(super) fn b64_any(s: &str) -> Option<Vec<u8>> {
     let mut buf = Vec::with_capacity((s.len() * 3) / 4 + 3);
     let mut quart = [0u8; 4];
@@ -94,6 +98,7 @@ fn decode_quart(q: &[u8; 4], out: &mut Vec<u8>) {
     out.push((n & 0xFF) as u8);
 }
 
+/// Encode bytes to URL-safe base64 without padding
 pub(super) fn b64_url_nopad(bytes: &[u8]) -> String {
     const ALPH: &[u8; 64] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
     let mut out = String::new();
@@ -123,6 +128,7 @@ pub(super) fn b64_url_nopad(bytes: &[u8]) -> String {
     out
 }
 
+/// Decode hex string to 20-byte array
 pub(super) fn hex20(s: &str) -> Option<[u8; 20]> {
     let v = hex_to_vec(s).ok()?;
     if v.len() != 20 { return None; }
@@ -131,6 +137,7 @@ pub(super) fn hex20(s: &str) -> Option<[u8; 20]> {
     Some(a)
 }
 
+/// Decode hex string to byte vector
 pub(super) fn hex_to_vec(s: &str) -> Result<Vec<u8>, &'static str> {
     let mut out = Vec::with_capacity(s.len() / 2);
     let bytes = s.as_bytes();

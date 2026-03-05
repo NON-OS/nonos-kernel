@@ -125,6 +125,33 @@ pub struct IoResult {
     pub completion_time: u64,
 }
 
+impl IoResult {
+    /// Get operation status
+    pub fn status(&self) -> IoStatus {
+        self.status
+    }
+
+    /// Get bytes transferred
+    pub fn bytes_transferred(&self) -> usize {
+        self.bytes_transferred
+    }
+
+    /// Get error code
+    pub fn error_code(&self) -> u32 {
+        self.error_code
+    }
+
+    /// Get completion time
+    pub fn completion_time(&self) -> u64 {
+        self.completion_time
+    }
+
+    /// Check if operation succeeded
+    pub fn is_success(&self) -> bool {
+        matches!(self.status, IoStatus::Success | IoStatus::Completed)
+    }
+}
+
 pub type IoCompletionCallback = fn(IoResult);
 
 #[derive(Clone)]
@@ -191,6 +218,73 @@ pub struct DeviceInfo {
     pub features: DeviceCapabilities,
 }
 
+impl DeviceInfo {
+    /// Get device type
+    pub fn device_type(&self) -> StorageType {
+        self.device_type
+    }
+
+    /// Get model name
+    pub fn model(&self) -> &str {
+        &self.model
+    }
+
+    /// Get vendor name
+    pub fn vendor(&self) -> &str {
+        &self.vendor
+    }
+
+    /// Get serial number
+    pub fn serial(&self) -> &str {
+        &self.serial
+    }
+
+    /// Get firmware name
+    pub fn firmware(&self) -> &str {
+        &self.firmware
+    }
+
+    /// Get firmware version
+    pub fn firmware_version(&self) -> &str {
+        &self.firmware_version
+    }
+
+    /// Get capacity in sectors/blocks
+    pub fn capacity(&self) -> u64 {
+        self.capacity
+    }
+
+    /// Get capacity in bytes
+    pub fn capacity_bytes(&self) -> u64 {
+        self.capacity_bytes
+    }
+
+    /// Get block size
+    pub fn block_size(&self) -> u32 {
+        self.block_size
+    }
+
+    /// Get max transfer size
+    pub fn max_transfer_size(&self) -> usize {
+        self.max_transfer_size
+    }
+
+    /// Get max queue depth
+    pub fn max_queue_depth(&self) -> u32 {
+        self.max_queue_depth
+    }
+
+    /// Get device capabilities
+    pub fn features(&self) -> DeviceCapabilities {
+        self.features
+    }
+
+    /// Check if device supports a capability
+    pub fn supports(&self, cap: DeviceCapabilities) -> bool {
+        self.features.contains(cap)
+    }
+}
+
 #[derive(Clone, Copy, Debug, Default)]
 pub struct SmartData {
     pub temperature: u16,
@@ -210,4 +304,101 @@ pub struct SmartData {
     pub reallocated_sectors: u32,
     pub pending_sectors: u32,
     pub health_status: u8,
+}
+
+impl SmartData {
+    /// Get temperature in Celsius
+    pub fn temperature_celsius(&self) -> u16 {
+        self.temperature
+    }
+
+    /// Get power on hours
+    pub fn power_on_hours(&self) -> u32 {
+        self.power_on_hours
+    }
+
+    /// Get power cycle count
+    pub fn power_cycles(&self) -> u64 {
+        self.power_cycles
+    }
+
+    /// Get unsafe shutdown count
+    pub fn unsafe_shutdowns(&self) -> u64 {
+        self.unsafe_shutdowns
+    }
+
+    /// Get media error count
+    pub fn media_errors(&self) -> u64 {
+        self.media_errors
+    }
+
+    /// Get error log entries
+    pub fn error_log_entries(&self) -> u64 {
+        self.error_log_entries
+    }
+
+    /// Check if there's a critical warning
+    pub fn has_critical_warning(&self) -> bool {
+        self.critical_warning != 0
+    }
+
+    /// Get available spare percentage
+    pub fn available_spare(&self) -> u8 {
+        self.available_spare
+    }
+
+    /// Get available spare threshold
+    pub fn spare_threshold(&self) -> u8 {
+        self.available_spare_threshold
+    }
+
+    /// Check if spare is below threshold
+    pub fn is_spare_low(&self) -> bool {
+        self.available_spare < self.available_spare_threshold
+    }
+
+    /// Get percentage used
+    pub fn percentage_used(&self) -> u8 {
+        self.percentage_used
+    }
+
+    /// Get total data read in units
+    pub fn data_units_read(&self) -> u64 {
+        self.data_units_read
+    }
+
+    /// Get total data written in units
+    pub fn data_units_written(&self) -> u64 {
+        self.data_units_written
+    }
+
+    /// Get host read commands
+    pub fn read_commands(&self) -> u64 {
+        self.host_read_commands
+    }
+
+    /// Get host write commands
+    pub fn write_commands(&self) -> u64 {
+        self.host_write_commands
+    }
+
+    /// Get reallocated sector count
+    pub fn reallocated_sectors(&self) -> u32 {
+        self.reallocated_sectors
+    }
+
+    /// Get pending sector count
+    pub fn pending_sectors(&self) -> u32 {
+        self.pending_sectors
+    }
+
+    /// Get health status
+    pub fn health_status(&self) -> u8 {
+        self.health_status
+    }
+
+    /// Check if drive is healthy
+    pub fn is_healthy(&self) -> bool {
+        self.health_status == 0 && !self.has_critical_warning()
+    }
 }

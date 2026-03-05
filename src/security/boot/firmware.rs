@@ -20,7 +20,7 @@ use alloc::collections::BTreeMap;
 use alloc::string::String;
 
 pub struct FirmwareDB {
-    trusted_hashes: BTreeMap<String, [u8; 32]>,
+    pub trusted_hashes: BTreeMap<String, [u8; 32]>,
 }
 
 static mut FIRMWARE_DB: Option<FirmwareDB> = None;

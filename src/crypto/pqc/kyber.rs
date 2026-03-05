@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -33,24 +33,28 @@ pub const KYBER_PARAM_NAME: &str = "ML-KEM-512";
 pub const KYBER_PARAM_NAME: &str = "ML-KEM-768";
 #[cfg(feature = "mlkem1024")]
 pub const KYBER_PARAM_NAME: &str = "ML-KEM-1024";
+
 #[cfg(feature = "mlkem512")]
 pub const PUBLICKEY_BYTES: usize = 800;
 #[cfg(feature = "mlkem512")]
 pub const SECRETKEY_BYTES: usize = 1632;
 #[cfg(feature = "mlkem512")]
 pub const CIPHERTEXT_BYTES: usize = 768;
+
 #[cfg(feature = "mlkem768")]
 pub const PUBLICKEY_BYTES: usize = 1184;
 #[cfg(feature = "mlkem768")]
 pub const SECRETKEY_BYTES: usize = 2400;
 #[cfg(feature = "mlkem768")]
 pub const CIPHERTEXT_BYTES: usize = 1088;
+
 #[cfg(feature = "mlkem1024")]
 pub const PUBLICKEY_BYTES: usize = 1568;
 #[cfg(feature = "mlkem1024")]
 pub const SECRETKEY_BYTES: usize = 3168;
 #[cfg(feature = "mlkem1024")]
 pub const CIPHERTEXT_BYTES: usize = 1568;
+
 pub const SHAREDSECRET_BYTES: usize = 32;
 
 #[repr(C)]
@@ -62,6 +66,7 @@ pub struct KyberPublicKey { pub bytes: [u8; PUBLICKEY_BYTES] }
 #[derive(Clone)]
 #[derive(Debug)]
 pub struct KyberSecretKey { pub bytes: [u8; SECRETKEY_BYTES] }
+
 impl Drop for KyberSecretKey {
     fn drop(&mut self) {
         for b in &mut self.bytes {
@@ -91,13 +96,13 @@ mod ffi {
 #[cfg(all(not(test), feature = "mlkem768", not(feature = "mlkem512"), not(feature = "mlkem1024")))]
 mod ffi {
     extern "C" {
-        pub fn PQCLEAN_KYBER768_CLEAN_crypto_kem_keypair(pk: *mut u8, sk: *mut u8) -> i32;
-        pub fn PQCLEAN_KYBER768_CLEAN_crypto_kem_enc(ct: *mut u8, ss: *mut u8, pk: *const u8) -> i32;
-        pub fn PQCLEAN_KYBER768_CLEAN_crypto_kem_dec(ss: *mut u8, ct: *const u8, sk: *const u8) -> i32;
+        pub(super) fn PQCLEAN_KYBER768_CLEAN_crypto_kem_keypair(pk: *mut u8, sk: *mut u8) -> i32;
+        pub(super) fn PQCLEAN_KYBER768_CLEAN_crypto_kem_enc(ct: *mut u8, ss: *mut u8, pk: *const u8) -> i32;
+        pub(super) fn PQCLEAN_KYBER768_CLEAN_crypto_kem_dec(ss: *mut u8, ct: *const u8, sk: *const u8) -> i32;
     }
-    pub unsafe fn keypair(pk: *mut u8, sk: *mut u8) -> i32 { PQCLEAN_KYBER768_CLEAN_crypto_kem_keypair(pk, sk) }
-    pub unsafe fn encaps(ct: *mut u8, ss: *mut u8, pk: *const u8) -> i32 { PQCLEAN_KYBER768_CLEAN_crypto_kem_enc(ct, ss, pk) }
-    pub unsafe fn decaps(ss: *mut u8, ct: *const u8, sk: *const u8) -> i32 { PQCLEAN_KYBER768_CLEAN_crypto_kem_dec(ss, ct, sk) }
+    pub(super) unsafe fn keypair(pk: *mut u8, sk: *mut u8) -> i32 { unsafe { PQCLEAN_KYBER768_CLEAN_crypto_kem_keypair(pk, sk) }}
+    pub(super) unsafe fn encaps(ct: *mut u8, ss: *mut u8, pk: *const u8) -> i32 { unsafe { PQCLEAN_KYBER768_CLEAN_crypto_kem_enc(ct, ss, pk) }}
+    pub(super) unsafe fn decaps(ss: *mut u8, ct: *const u8, sk: *const u8) -> i32 { unsafe { PQCLEAN_KYBER768_CLEAN_crypto_kem_dec(ss, ct, sk) }}
 }
 
 #[cfg(all(not(test), feature = "mlkem512"))]

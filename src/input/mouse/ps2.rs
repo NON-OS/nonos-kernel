@@ -14,8 +14,25 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 use crate::sys::io::{inb, outb};
 
+/// Wait for PS/2 controller input buffer empty (can write)
 pub(super) fn wait_write() -> bool {
     for _ in 0..100_000 {
         // SAFETY: Reading PS/2 status port
@@ -26,6 +43,7 @@ pub(super) fn wait_write() -> bool {
     false
 }
 
+/// Wait for PS/2 controller output buffer full (can read)
 pub(super) fn wait_read() -> bool {
     for _ in 0..100_000 {
         // SAFETY: Reading PS/2 status port
@@ -36,6 +54,7 @@ pub(super) fn wait_read() -> bool {
     false
 }
 
+/// Flush any pending data in the PS/2 buffer
 pub(super) fn flush_buffer() {
     for _ in 0..16 {
         // SAFETY: Reading PS/2 status and data ports
@@ -47,6 +66,7 @@ pub(super) fn flush_buffer() {
     }
 }
 
+/// Send command to PS/2 mouse (through controller command 0xD4)
 pub(super) fn mouse_write(cmd: u8) -> bool {
     if !wait_write() { return false; }
     // SAFETY: Writing to PS/2 controller command port
@@ -57,6 +77,7 @@ pub(super) fn mouse_write(cmd: u8) -> bool {
     true
 }
 
+/// Read response from PS/2 device with timeout
 pub(super) fn mouse_read() -> Option<u8> {
     if wait_read() {
         // SAFETY: Reading from PS/2 data port

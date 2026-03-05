@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -13,6 +13,8 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+//! Page Allocator Unit Tests
 
 use super::*;
 use super::constants::*;
@@ -168,6 +170,7 @@ fn test_allocator_stats_record_deallocation() {
     assert_eq!(stats.total_deallocations.load(Ordering::Relaxed), 1);
     assert_eq!(stats.active_pages.load(Ordering::Relaxed), 1);
     assert_eq!(stats.bytes_allocated.load(Ordering::Relaxed), 4096);
+    // Peak should still be 2
     assert_eq!(stats.peak_pages.load(Ordering::Relaxed), 2);
 }
 
@@ -177,6 +180,7 @@ fn test_allocator_stats_record_deallocation() {
 
 #[test]
 fn test_get_allocation_count_initial() {
+    // Note: This depends on global state, so it might not be 0
     let count = get_allocation_count();
     assert!(count >= 0);
 }
@@ -196,5 +200,6 @@ fn test_get_peak_pages_initial() {
 #[test]
 fn test_get_stats() {
     let stats = get_stats();
+    // Just verify it doesn't panic and returns valid structure
     assert!(stats.total_allocations >= stats.total_deallocations);
 }

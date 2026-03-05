@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -14,22 +14,48 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+//! Frame Allocator Error Types
+//!
+//! Specific error types for physical frame allocation operations.
+
 use core::fmt;
+
+/// Errors that can occur during frame allocation operations
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum FrameAllocError {
+    /// No physical frames available for allocation
     OutOfFrames,
+
+    /// Frame allocator has not been initialized
     NotInitialized,
+
+    /// Frame allocator is already initialized
     AlreadyInitialized,
+
+    /// Physical memory allocator dependency not ready
     PhysAllocatorNotReady,
+
+    /// Invalid memory region specified (start >= end)
     InvalidRegion,
+
+    /// Memory region boundaries are not page-aligned
     RegionNotAligned,
+
+    /// Attempted to free a frame that was not allocated
     FrameNotAllocated,
+
+    /// Maximum number of memory regions exceeded
     TooManyRegions,
+
+    /// Frame address is out of valid physical memory range
     AddressOutOfRange,
+
+    /// Double free detected
     DoubleFree,
 }
 
 impl FrameAllocError {
+    /// Returns a human-readable description of the error
     pub fn as_str(&self) -> &'static str {
         match self {
             Self::OutOfFrames => "No physical frames available",
@@ -45,6 +71,7 @@ impl FrameAllocError {
         }
     }
 
+    /// Returns true if this error might be recoverable with retry
     pub fn is_recoverable(&self) -> bool {
         matches!(self, Self::OutOfFrames | Self::AlreadyInitialized)
     }
@@ -55,7 +82,11 @@ impl fmt::Display for FrameAllocError {
         write!(f, "{}", self.as_str())
     }
 }
+
+/// Result type alias for frame allocation operations
 pub type FrameResult<T> = Result<T, FrameAllocError>;
+
+// Conversion from legacy string errors
 impl From<&'static str> for FrameAllocError {
     fn from(s: &'static str) -> Self {
         match s {

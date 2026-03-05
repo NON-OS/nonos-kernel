@@ -92,6 +92,7 @@ static mut DEVICES: [PciDevice; MAX_DEVICES] = [PciDevice::empty(); MAX_DEVICES]
 
 /// Build a PCI configuration address
 fn pci_address(bus: u8, device: u8, function: u8, offset: u8) -> u32 {
+    // Enable bit + Bus + Device + Function + Offset
     (1u32 << 31)
         | ((bus as u32) << 16)
         | ((device as u32) << 11)
@@ -202,8 +203,10 @@ pub fn init() {
 
     let mut count: u32 = 0;
 
+    // Scan all buses (0-255), devices (0-31), functions (0-7)
     for bus in 0..=255u8 {
         for device in 0..32u8 {
+            // First check function 0
             if device_exists(bus, device, 0) {
                 let dev = read_device(bus, device, 0);
 
@@ -212,6 +215,7 @@ pub fn init() {
                     count += 1;
                 }
 
+                // Check if multi-function device
                 if dev.header_type & 0x80 != 0 {
                     for function in 1..8u8 {
                         if device_exists(bus, device, function) {
@@ -234,6 +238,7 @@ pub fn init() {
     serial::print_dec(count as u64);
     serial::println(b" devices");
 
+    // Log notable devices
     for i in 0..count as usize {
         let dev = unsafe { DEVICES[i] };
         if dev.is_valid() {
@@ -347,13 +352,23 @@ pub fn get_bar_address(bar: u32) -> Option<u64> {
         return None;
     }
 
+    // Check if I/O or Memory BAR
     if bar & 0x01 != 0 {
+        // I/O BAR - address is bits 2-31
         Some((bar & 0xFFFF_FFFC) as u64)
     } else {
+        // Memory BAR
         let bar_type = (bar >> 1) & 0x03;
         match bar_type {
-            0x00 => Some((bar & 0xFFFF_FFF0) as u64),
-            0x02 => Some((bar & 0xFFFF_FFF0) as u64),
+            0x00 => {
+                // 32-bit memory BAR
+                Some((bar & 0xFFFF_FFF0) as u64)
+            }
+            0x02 => {
+                // 64-bit memory BAR - need to read next BAR too
+                // For now, just return lower 32 bits
+                Some((bar & 0xFFFF_FFF0) as u64)
+            }
             _ => None,
         }
     }

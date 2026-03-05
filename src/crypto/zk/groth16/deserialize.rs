@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -64,6 +64,7 @@ pub fn public_inputs_from_le_bytes(fr_le32: &[[u8; 32]]) -> Result<Vec<Fr>, Grot
     }
 
     let mut res = Vec::with_capacity(fr_le32.len());
+
     for bytes in fr_le32 {
         res.push(Fr::from_le_bytes_mod_order(bytes));
     }

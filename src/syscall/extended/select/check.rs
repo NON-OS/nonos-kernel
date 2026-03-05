@@ -16,12 +16,12 @@
 
 use crate::syscall::extended::epoll::{EPOLLIN, EPOLLOUT, EPOLLERR, EPOLLHUP, EPOLLPRI};
 
-pub fn is_fd_valid(fd: i32) -> bool {
+pub(crate) fn is_fd_valid(fd: i32) -> bool {
     use crate::process::fd_table;
     fd_table::get_fd(fd as u32).is_some()
 }
 
-pub fn is_fd_readable(fd: i32) -> bool {
+pub(crate) fn is_fd_readable(fd: i32) -> bool {
     use crate::process::fd_table;
 
     let _entry = match fd_table::get_fd(fd as u32) {
@@ -33,27 +33,27 @@ pub fn is_fd_readable(fd: i32) -> bool {
     (events & EPOLLIN) != 0
 }
 
-pub fn is_fd_writable(fd: i32) -> bool {
+pub(crate) fn is_fd_writable(fd: i32) -> bool {
     let events = crate::syscall::extended::epoll::check_fd_events_external(fd, EPOLLOUT);
     (events & EPOLLOUT) != 0
 }
 
-pub fn has_fd_exception(fd: i32) -> bool {
+pub(crate) fn has_fd_exception(fd: i32) -> bool {
     let events = crate::syscall::extended::epoll::check_fd_events_external(fd, EPOLLERR | EPOLLHUP);
     (events & (EPOLLERR | EPOLLHUP)) != 0
 }
 
-pub fn has_fd_error(fd: i32) -> bool {
+pub(crate) fn has_fd_error(fd: i32) -> bool {
     let events = crate::syscall::extended::epoll::check_fd_events_external(fd, EPOLLERR);
     (events & EPOLLERR) != 0
 }
 
-pub fn has_fd_hangup(fd: i32) -> bool {
+pub(crate) fn has_fd_hangup(fd: i32) -> bool {
     let events = crate::syscall::extended::epoll::check_fd_events_external(fd, EPOLLHUP);
     (events & EPOLLHUP) != 0
 }
 
-pub fn has_fd_priority_data(fd: i32) -> bool {
+pub(crate) fn has_fd_priority_data(fd: i32) -> bool {
     let events = crate::syscall::extended::epoll::check_fd_events_external(fd, EPOLLPRI);
     (events & EPOLLPRI) != 0
 }

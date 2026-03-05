@@ -14,13 +14,18 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+//! Ethernet type constants and enumerations
 
+/// IPv4 EtherType
 pub const ETHERTYPE_IP: u16 = 0x0800;
 
+/// IPv6 EtherType
 pub const ETHERTYPE_IPV6: u16 = 0x86DD;
 
+/// ARP EtherType
 pub const ETHERTYPE_ARP: u16 = 0x0806;
 
+/// Ethernet frame type enumeration
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum EtherType {
     Ipv4,
@@ -30,6 +35,7 @@ pub enum EtherType {
 }
 
 impl EtherType {
+    /// Convert from raw u16 ethertype value
     pub fn from_u16(val: u16) -> Self {
         match val {
             ETHERTYPE_IP => EtherType::Ipv4,
@@ -39,6 +45,7 @@ impl EtherType {
         }
     }
 
+    /// Convert to raw u16 ethertype value
     pub fn to_u16(self) -> u16 {
         match self {
             EtherType::Ipv4 => ETHERTYPE_IP,

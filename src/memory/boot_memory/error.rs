@@ -1,5 +1,6 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
+//
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
@@ -13,27 +14,63 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+//! Boot Memory Manager Error Types
+//!
+//! Error types for early boot memory management operations.
+
 use core::fmt;
+
+/// Errors that can occur during boot memory operations
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum BootMemoryError {
+    /// Boot memory manager not initialized
     NotInitialized,
+
+    /// Boot memory manager already initialized
     AlreadyInitialized,
+
+    /// Invalid boot handoff magic number
     InvalidHandoffMagic,
+
+    /// Unsupported handoff version
     UnsupportedVersion,
+
+    /// Invalid handoff pointer (null or misaligned)
     InvalidHandoffPointer,
+
+    /// No memory regions defined
     NoRegionsDefined,
+
+    /// No available memory regions found
     NoAvailableMemory,
+
+    /// Invalid region bounds (start >= end)
     InvalidRegionBounds,
+
+    /// Out of memory (allocation failed)
     OutOfMemory,
+
+    /// Requested allocation too large
     AllocationTooLarge,
+
+    /// Invalid alignment (not power of two)
     InvalidAlignment,
+
+    /// Region not found for address
     RegionNotFound,
+
+    /// Failed to parse memory map
     MemoryMapParseError,
+
+    /// Overlapping memory regions detected
     OverlappingRegions,
+
+    /// Region limit exceeded
     TooManyRegions,
 }
 
 impl BootMemoryError {
+    /// Returns a human-readable description of the error
     pub fn as_str(&self) -> &'static str {
         match self {
             Self::NotInitialized => "Boot memory manager not initialized",
@@ -54,6 +91,7 @@ impl BootMemoryError {
         }
     }
 
+    /// Returns true if this is a fatal error that prevents boot
     pub fn is_fatal(&self) -> bool {
         matches!(
             self,
@@ -64,6 +102,7 @@ impl BootMemoryError {
         )
     }
 
+    /// Returns true if initialization can proceed with defaults
     pub fn can_use_defaults(&self) -> bool {
         matches!(
             self,
@@ -80,7 +119,10 @@ impl fmt::Display for BootMemoryError {
         write!(f, "{}", self.as_str())
     }
 }
+
+/// Result type alias for boot memory operations
 pub type BootMemoryResult<T> = Result<T, BootMemoryError>;
+
 impl From<&'static str> for BootMemoryError {
     fn from(s: &'static str) -> Self {
         match s {

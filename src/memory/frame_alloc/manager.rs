@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -13,18 +13,21 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-
 use spin::Mutex;
 use x86_64::{PhysAddr, structures::paging::{PhysFrame, Size4KiB}};
+
 use crate::memory::phys;
 use super::constants::*;
-use super::error::{FrameAllocError, FrameResult};
+use super::error::FrameResult;
 use super::types::FrameAllocator;
+
 static GLOBAL_ALLOCATOR: Mutex<FrameAllocator> = Mutex::new(FrameAllocator::new());
+
 pub fn init() -> FrameResult<()> {
     let mut allocator = GLOBAL_ALLOCATOR.lock();
     if allocator.is_initialized() { return Ok(()); }
     allocator.init()?;
+
     if allocator.usable.is_empty() {
         let start = PhysAddr::new(DEFAULT_REGION_START);
         let end = PhysAddr::new(DEFAULT_REGION_END);

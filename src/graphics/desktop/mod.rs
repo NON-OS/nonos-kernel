@@ -14,21 +14,19 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod api;
 mod constants;
+mod menubar;
+mod menubar_icons;
 mod dock;
 mod dock_helpers;
 mod dock_icons_apps;
 mod dock_icons_system;
-mod grid;
-mod grid_wallpaper;
-mod logo;
-mod menubar;
-mod menubar_icons;
 mod sidebar;
 mod sidebar_icons;
 mod sidebar_utils;
-mod terminal_preview;
+mod grid;
+mod grid_wallpaper;
+mod api;
 
 pub use api::{
     draw_all,

@@ -131,7 +131,7 @@ pub(super) fn clear_highlights() {
     EDITOR_HAS_SELECTION.store(false, Ordering::Relaxed);
 }
 
-pub(super) fn is_match_position(pos: usize) -> bool {
+pub(crate) fn is_match_position(pos: usize) -> bool {
     let count = MATCH_COUNT.load(Ordering::Relaxed);
     let pattern_len = FIND_LEN.load(Ordering::Relaxed);
 
@@ -152,7 +152,7 @@ pub(super) fn is_match_position(pos: usize) -> bool {
     false
 }
 
-pub(super) fn is_current_match_position(pos: usize) -> bool {
+pub(crate) fn is_current_match_position(pos: usize) -> bool {
     let count = MATCH_COUNT.load(Ordering::Relaxed);
     if count == 0 {
         return false;

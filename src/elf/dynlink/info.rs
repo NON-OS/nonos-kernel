@@ -22,30 +22,36 @@ use x86_64::VirtAddr;
 #[derive(Debug, Clone)]
 pub struct DynLinkInfo {
     pub needed_libraries: Vec<String>,
-    pub symbol_table: Option<VirtAddr>,
-    pub string_table: Option<VirtAddr>,
-    pub string_table_size: usize,
+    pub symtab: Option<VirtAddr>,
+    pub strtab: Option<VirtAddr>,
+    pub strtab_size: usize,
+    pub sym_count: usize,
     pub rela_table: Option<VirtAddr>,
     pub rela_size: usize,
     pub plt_relocations: Option<VirtAddr>,
     pub plt_rela_size: usize,
-    pub init_function: Option<VirtAddr>,
-    pub fini_function: Option<VirtAddr>,
+    pub init: Option<VirtAddr>,
+    pub fini: Option<VirtAddr>,
+    pub init_array: Option<(VirtAddr, usize)>,
+    pub fini_array: Option<(VirtAddr, usize)>,
 }
 
 impl DynLinkInfo {
     pub fn new() -> Self {
         Self {
             needed_libraries: Vec::new(),
-            symbol_table: None,
-            string_table: None,
-            string_table_size: 0,
+            symtab: None,
+            strtab: None,
+            strtab_size: 0,
+            sym_count: 0,
             rela_table: None,
             rela_size: 0,
             plt_relocations: None,
             plt_rela_size: 0,
-            init_function: None,
-            fini_function: None,
+            init: None,
+            fini: None,
+            init_array: None,
+            fini_array: None,
         }
     }
 
@@ -62,19 +68,19 @@ impl DynLinkInfo {
     }
 
     pub fn has_symbols(&self) -> bool {
-        self.symbol_table.is_some()
+        self.symtab.is_some()
     }
 
     pub fn has_strings(&self) -> bool {
-        self.string_table.is_some() && self.string_table_size > 0
+        self.strtab.is_some() && self.strtab_size > 0
     }
 
     pub fn has_init(&self) -> bool {
-        self.init_function.is_some()
+        self.init.is_some() || self.init_array.is_some()
     }
 
     pub fn has_fini(&self) -> bool {
-        self.fini_function.is_some()
+        self.fini.is_some() || self.fini_array.is_some()
     }
 
     pub fn rela_count(&self) -> usize {
@@ -98,17 +104,18 @@ impl DynLinkInfo {
     }
 
     pub fn string_table_end(&self) -> Option<VirtAddr> {
-        self.string_table
-            .map(|addr| addr + self.string_table_size as u64)
+        self.strtab.map(|addr| addr + self.strtab_size as u64)
     }
 
     pub fn is_empty(&self) -> bool {
         self.needed_libraries.is_empty()
-            && self.symbol_table.is_none()
+            && self.symtab.is_none()
             && self.rela_table.is_none()
             && self.plt_relocations.is_none()
-            && self.init_function.is_none()
-            && self.fini_function.is_none()
+            && self.init.is_none()
+            && self.fini.is_none()
+            && self.init_array.is_none()
+            && self.fini_array.is_none()
     }
 }
 

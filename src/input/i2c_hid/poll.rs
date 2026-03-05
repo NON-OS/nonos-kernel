@@ -5,19 +5,19 @@
 // it under the terms of the GNU Affero General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
-//
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-// GNU Affero General Public License for more details.
-//
-// You should have received a copy of the GNU Affero General Public License
-// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+//! I2C HID touchpad polling.
+//!
+//! This module handles polling touchpad devices for input and updating cursor position.
 
 use super::device::HidDeviceType;
 use super::state::{self, DEVICES};
 
+/// Poll all touchpad devices for input.
+///
+/// Returns true if cursor position was updated, false otherwise.
 pub fn poll() -> bool {
+    // Check if I2C HID is available
     if !state::is_available() {
         return false;
     }
@@ -56,11 +56,13 @@ pub fn poll() -> bool {
     cursor_moved
 }
 
+/// Get current cursor position.
 #[inline]
 pub fn get_position() -> (i32, i32) {
     state::get_cursor()
 }
 
+/// Set screen bounds for cursor clamping.
 #[inline]
 pub fn set_screen_bounds(width: u32, height: u32) {
     state::set_screen_size(width, height);

@@ -97,7 +97,7 @@ impl GpuDriver {
         }
 
         let pitch = vbe::validate_mode(fb_len, DEFAULT_WIDTH, DEFAULT_HEIGHT, DEFAULT_BPP)?;
-        let prog_pitch = vbe::program_mode(DEFAULT_WIDTH, DEFAULT_HEIGHT, DEFAULT_BPP);
+        let prog_pitch = vbe::program_mode_clear(DEFAULT_WIDTH, DEFAULT_HEIGHT, DEFAULT_BPP);
         let pitch = pitch.min(prog_pitch);
 
         // SAFETY: fb_virt is a valid MMIO address from PCI BAR0

@@ -17,7 +17,6 @@
 use core::sync::atomic::Ordering;
 use alloc::format;
 
-use crate::crypto::rng::random_u64;
 use crate::security::policy::capability::types::Capability;
 use crate::security::policy::capability::isolation::IsolationLevel;
 use crate::security::policy::capability::quantum::QuantumState;
@@ -59,10 +58,15 @@ impl CapabilityEngine {
 
     pub(super) fn perform_quantum_measurement(&self, quantum_state: &QuantumState) -> Result<(), &'static str> {
         let current_time = crate::time::get_kernel_time_ns();
+        let rng_state = self.quantum_rng.lock();
 
         for particle in &quantum_state.entangled_particles {
             if current_time - particle.last_measurement > 1_000_000_000 {
-                let _measurement_result = (random_u64() as f64) / (u64::MAX as f64);
+                let rng_value = u64::from_le_bytes([
+                    rng_state[0], rng_state[1], rng_state[2], rng_state[3],
+                    rng_state[4], rng_state[5], rng_state[6], rng_state[7],
+                ]);
+                let _measurement_result = (rng_value as f64) / (u64::MAX as f64);
             }
         }
 
@@ -77,6 +81,15 @@ impl CapabilityEngine {
         if self.emergency_lockdown.load(Ordering::Acquire) {
             return Err("System in emergency lockdown");
         }
+
+        // Check capability registry first for per-process overrides
+        let registry = self.capability_registry.read();
+        if let Some(caps) = registry.get(&process_id) {
+            if caps.has_capability(capability) {
+                return Ok(true);
+            }
+        }
+        drop(registry);
 
         let active_processes = self.active_processes.read();
         let chamber_id = active_processes

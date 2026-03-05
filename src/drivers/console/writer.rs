@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+//! Console writer implementation.
+
 use super::constants::*;
 use super::types::{Color, VgaCell, make_color};
 use super::vga;
@@ -32,6 +34,7 @@ pub(super) struct Console {
 }
 
 // SAFETY: Console VGA buffer access is synchronized through mutex.
+// The buffer pointer is to memory-mapped hardware at a fixed address.
 unsafe impl Send for Console {}
 unsafe impl Sync for Console {}
 
@@ -122,6 +125,7 @@ impl Console {
         // SAFETY: Buffer points to VGA memory, we read and write within bounds.
         unsafe {
             let cell = vga::read_cell(self.buf, 0, 0);
+            // Swap foreground and background for proper inversion
             let fg = fg_from_attr(cell.color);
             let bg = bg_from_attr(cell.color);
             let inverted_color = (fg << 4) | bg;

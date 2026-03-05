@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+//! HID report processing and keyboard/mouse handling
 
 use core::ptr::addr_of_mut;
 use core::sync::atomic::{AtomicBool, AtomicU8, Ordering};
@@ -21,11 +22,17 @@ use super::ring::{queue_hid, ring_db};
 use super::xhci::{SLOT_ID, HID_EP_DCI, MAX_PACKET};
 use super::{MOUSE_X, MOUSE_Y, MOUSE_BTN, SCR_W, SCR_H};
 
+// =============================================================================
+// TRB Constants
+// =============================================================================
 
 const TRB_TYPE_NORMAL: u32 = 1;
 const TRB_IOC: u32 = 1 << 5;
 const TRB_ISP: u32 = 1 << 2;
 
+// =============================================================================
+// HID Report Buffers
+// =============================================================================
 
 #[repr(C, align(64))]
 pub(crate) struct HidReports {
@@ -34,6 +41,9 @@ pub(crate) struct HidReports {
 }
 pub(crate) static mut HID_REPORTS: HidReports = HidReports { kbd: [0; 8], mouse: [0; 8] };
 
+// =============================================================================
+// Keyboard State
+// =============================================================================
 
 pub(crate) static mut PREV_KEYS: [u8; 6] = [0; 6];
 pub(crate) static KEY_MOD: AtomicU8 = AtomicU8::new(0);
@@ -43,6 +53,9 @@ pub(crate) static KEY_QUEUE_TAIL: AtomicU8 = AtomicU8::new(0);
 
 pub(crate) static HID_POLL_PENDING: AtomicBool = AtomicBool::new(false);
 
+// =============================================================================
+// HID Keycode to ASCII
+// =============================================================================
 
 const HID_ASCII: [u8; 64] = [
     0,0,0,0, b'a',b'b',b'c',b'd', b'e',b'f',b'g',b'h', b'i',b'j',b'k',b'l',
@@ -58,6 +71,9 @@ const HID_ASCII_SHIFT: [u8; 64] = [
     b'}',b'|',0,b':', b'"',b'~',b'<',b'>', b'?',0,0,0, 0,0,0,0,
 ];
 
+// =============================================================================
+// HID Report Processing
+// =============================================================================
 
 pub fn process_keyboard_report() -> Option<u8> {
     // SAFETY: Single-threaded HID processing, no concurrent access to HID_REPORTS/PREV_KEYS/KEY_QUEUE
@@ -69,9 +85,11 @@ pub fn process_keyboard_report() -> Option<u8> {
 
         let prev_keys_ptr = addr_of_mut!(PREV_KEYS);
 
+        // Keys are in bytes 2-7
         for i in 2..8 {
             let key = report[i];
             if key != 0 {
+                // Check if this is a new key
                 let mut is_new = true;
                 for &prev in (*prev_keys_ptr).iter() {
                     if prev == key { is_new = false; break; }
@@ -79,6 +97,7 @@ pub fn process_keyboard_report() -> Option<u8> {
 
                 if is_new {
                     if let Some(ascii) = hid_to_ascii(key, modifiers) {
+                        // Add to queue
                         let tail = KEY_QUEUE_TAIL.load(Ordering::Relaxed);
                         let next = (tail + 1) & 0x0F;
                         if next != KEY_QUEUE_HEAD.load(Ordering::Relaxed) {
@@ -91,9 +110,11 @@ pub fn process_keyboard_report() -> Option<u8> {
             }
         }
 
+        // Update prev keys
         (*prev_keys_ptr).copy_from_slice(&report[2..8]);
     }
 
+    // Return key from queue
     let head = KEY_QUEUE_HEAD.load(Ordering::Relaxed);
     let tail = KEY_QUEUE_TAIL.load(Ordering::Relaxed);
     if head != tail {
@@ -149,9 +170,11 @@ pub fn start_hid_poll() {
         };
         let max_pkt = MAX_PACKET.load(Ordering::Relaxed) as u32;
 
+        // Queue Normal TRB for interrupt transfer
         queue_hid((buf_p & 0xFFFFFFFF) as u32, (buf_p >> 32) as u32,
                   max_pkt, (TRB_TYPE_NORMAL << 10) | TRB_IOC | TRB_ISP);
 
+        // Ring doorbell
         let slot = SLOT_ID.load(Ordering::Relaxed);
         let dci = HID_EP_DCI.load(Ordering::Relaxed);
         ring_db(slot, dci);

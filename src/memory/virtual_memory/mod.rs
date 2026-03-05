@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -13,15 +13,19 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+//! Virtual memory manager.
 
 extern crate alloc;
+
 pub mod constants;
 pub mod error;
 pub mod manager;
 pub mod stats;
 pub mod types;
+
 #[cfg(test)]
 mod tests;
+
 pub use constants::*;
 pub use error::{VmError, VmResult};
 pub use manager::*;

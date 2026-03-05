@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 extern crate alloc;
+
 use alloc::vec;
 use alloc::vec::Vec;
 use super::gf::GF2m;
@@ -26,6 +27,7 @@ use super::{
 
 fn compute_syndrome_poly(ct: &[u8], goppa: &[u16], support: &[u16]) -> Vec<u16> {
     let mut syndrome = vec![0u16; MCELIECE_T];
+
     for i in 0..MCELIECE_N {
         let byte_idx = i / 8;
         let bit_idx = i % 8;
@@ -42,6 +44,7 @@ fn compute_syndrome_poly(ct: &[u8], goppa: &[u16], support: &[u16]) -> Vec<u16> 
             continue;
         }
         let g_alpha_inv = GF2m::inv(g_alpha);
+
         let mut power = g_alpha_inv;
         for j in 0..MCELIECE_T {
             syndrome[j] = GF2m::add(syndrome[j], power);
@@ -54,6 +57,7 @@ fn compute_syndrome_poly(ct: &[u8], goppa: &[u16], support: &[u16]) -> Vec<u16> 
 
 pub fn mceliece_decaps(ct: &McElieceCiphertext, sk: &McElieceSecretKey) -> Result<[u8; MCELIECE_SHARED_SECRET_BYTES], &'static str> {
     let syndrome = compute_syndrome_poly(&ct.c, &sk.goppa_poly, &sk.support);
+
     if syndrome.iter().all(|&x| x == 0) {
         let error = vec![0u8; MCELIECE_N / 8];
         return Ok(hash_error(&error));
@@ -61,6 +65,7 @@ pub fn mceliece_decaps(ct: &McElieceCiphertext, sk: &McElieceSecretKey) -> Resul
 
     let error_locator = berlekamp_massey(&syndrome);
     let error_positions = chien_search(&error_locator, &sk.support);
+
     if error_positions.len() > MCELIECE_T {
         return Err("Too many errors to correct");
     }

@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+//! RTL8139 constants and register definitions.
 
 pub const REALTEK_VENDOR_ID: u16 = 0x10EC;
 

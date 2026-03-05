@@ -20,6 +20,7 @@ use core::sync::atomic::Ordering;
 
 use super::state::*;
 use super::rlp::*;
+use super::zk::{prove_balance_sufficiency, prove_transaction_auth, verify_wallet_proof};
 
 pub(super) fn execute_send() {
     use super::rpc;
@@ -115,6 +116,41 @@ pub(super) fn execute_send() {
     };
 
     let secret_key = derive_signing_key(&master_key, 0);
+
+    let gas_cost = (gas_price as u128) * 21000;
+    let total_required = value_wei.saturating_add(gas_cost);
+
+    let state = WALLET_STATE.lock();
+    let current_balance = state.get_active_account().map(|a| a.balance).unwrap_or(0);
+    drop(state);
+
+    if let Ok(sufficiency_proof) = prove_balance_sufficiency(current_balance, total_required) {
+        match verify_wallet_proof(&sufficiency_proof) {
+            Ok(true) => {}
+            Ok(false) => {
+                set_status(b"Balance proof verification failed", false);
+                return;
+            }
+            Err(_) => {
+                set_status(b"ZK verification error", false);
+                return;
+            }
+        }
+    }
+
+    if let Ok(auth_proof) = prove_transaction_auth(&secret_key, &sender_address, &to_address, value_wei) {
+        match verify_wallet_proof(&auth_proof) {
+            Ok(true) => {}
+            Ok(false) => {
+                set_status(b"Auth proof verification failed", false);
+                return;
+            }
+            Err(_) => {
+                set_status(b"ZK auth verification error", false);
+                return;
+            }
+        }
+    }
 
     let signed_tx = match build_and_sign_tx(
         &to_address,

@@ -14,25 +14,25 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod alignment;
-mod bound;
-mod breakpoint;
-mod context;
-mod debug;
-mod device;
-mod divide;
-mod double_fault;
-mod floating_point;
-mod gpf;
-mod machine_check;
-mod nmi;
-mod opcode;
-mod overflow;
-mod page_fault;
-mod segment;
-mod stack;
-mod tss;
-mod virtualization;
+pub mod alignment;
+pub mod bound;
+pub mod breakpoint;
+pub mod context;
+pub mod debug;
+pub mod device;
+pub mod divide;
+pub mod double_fault;
+pub mod floating_point;
+pub mod gpf;
+pub mod machine_check;
+pub mod nmi;
+pub mod opcode;
+pub mod overflow;
+pub mod page_fault;
+pub mod segment;
+pub mod stack;
+pub mod tss;
+pub mod virtualization;
 
 pub use alignment::handle as alignment_check;
 pub use bound::handle as bound_range_exceeded;
@@ -45,7 +45,7 @@ pub use double_fault::handle as double_fault;
 pub use floating_point::{handle_simd as simd_floating_point, handle_x87 as x87_floating_point};
 pub use gpf::handle as general_protection_fault;
 pub use machine_check::handle as machine_check;
-pub use nmi::{handle as nmi, NmiSource};
+pub use nmi::{handle as nmi, NmiSource, SYSTEM_CONTROL_PORT_A, SYSTEM_CONTROL_PORT_B};
 pub use opcode::handle as invalid_opcode;
 pub use overflow::handle as overflow;
 pub use page_fault::handle as page_fault;

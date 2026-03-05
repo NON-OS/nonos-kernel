@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod types;
-mod instance;
-mod syscalls;
-mod util;
+pub mod types;
+pub mod instance;
+pub mod syscalls;
+pub mod util;
 
 pub use types::{
     SFD_CLOEXEC, SFD_NONBLOCK, SIGNALFD_SIGINFO_SIZE,

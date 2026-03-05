@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -16,6 +16,7 @@
 
 use super::*;
 use crate::crypto::application::ethereum::rlp::{rlp_encode_length, trim_leading_zeros};
+
 #[test]
 fn test_hex_digit_numeric() {
     assert_eq!(hex_digit(b'0'), 0);

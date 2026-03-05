@@ -75,10 +75,12 @@ pub unsafe fn init_handoff(ptr: u64) -> Result<&'static BootHandoffV1, HandoffEr
         return Err(HandoffError::NullPointer);
     }
 
+    // Validate pointer is in valid physical address space
     if ptr > MAX_HANDOFF_PTR {
         return Err(HandoffError::NullPointer);
     }
 
+    // Validate alignment
     if ptr % HANDOFF_ALIGNMENT != 0 {
         return Err(HandoffError::NullPointer);
     }
@@ -105,16 +107,19 @@ pub unsafe fn init_handoff(ptr: u64) -> Result<&'static BootHandoffV1, HandoffEr
         });
     }
 
+    // Validate framebuffer if present
     if handoff.has_flag(super::types::flags::FB_AVAILABLE) {
         if handoff.fb.ptr > MAX_HANDOFF_PTR {
             return Err(HandoffError::InvalidMagic); // Reuse error for invalid data
         }
     }
 
+    // Validate memory map pointer if present
     if handoff.mmap.ptr != 0 && handoff.mmap.ptr > MAX_HANDOFF_PTR {
         return Err(HandoffError::InvalidMagic);
     }
 
+    // Validate ACPI RSDP if present
     if handoff.has_flag(super::types::flags::ACPI_AVAILABLE) {
         if handoff.acpi.rsdp > MAX_HANDOFF_PTR {
             return Err(HandoffError::InvalidMagic);

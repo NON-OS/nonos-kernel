@@ -18,7 +18,7 @@ use core::sync::atomic::{AtomicBool, AtomicI32, AtomicU32, AtomicU8, AtomicUsize
 
 pub const MAX_WINDOWS: usize = 8;
 pub(crate) const TITLE_BAR_HEIGHT: u32 = 28;
-pub(crate) const WINDOW_PADDING: u32 = 2;
+pub const WINDOW_PADDING: u32 = 2;
 pub(crate) const SCROLLBAR_WIDTH: u32 = 12;
 pub(crate) const SCROLLBAR_MIN_THUMB: u32 = 20;
 
@@ -59,7 +59,7 @@ pub(crate) enum ResizeEdge {
 
 #[derive(Clone, Copy, PartialEq, Eq, Default)]
 #[repr(u8)]
-pub(crate) enum SnapZone {
+pub enum SnapZone {
     #[default]
     None = 0,
     Left = 1,

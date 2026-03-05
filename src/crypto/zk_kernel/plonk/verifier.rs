@@ -115,7 +115,9 @@ impl PlonkProof {
 
         let linearization_check = alpha_fe.mul(&perm_lhs.sub(&perm_rhs));
         let gate_result = ab_product.sub(&c_fe);
-        let _total_constraint = gate_result.add(&linearization_check);
+        let total_constraint = gate_result.add(&linearization_check);
+
+        valid &= if total_constraint.is_zero() { 1u8 } else { 0u8 };
 
         valid == 1
     }

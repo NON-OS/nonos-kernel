@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod policy;
-mod restart_window;
-mod registry;
+pub mod policy;
+pub mod restart_window;
+pub mod registry;
 
 pub use policy::SupervisorPolicy;
 pub use registry::{register, unregister, run_once, restart_stats};

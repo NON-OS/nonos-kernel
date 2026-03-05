@@ -20,4 +20,3 @@ mod types;
 
 pub(crate) use rx::RxQueue;
 pub(crate) use tx::TxQueue;
-pub(super) use types::{TransferBuffer, TxFrameDescriptor};

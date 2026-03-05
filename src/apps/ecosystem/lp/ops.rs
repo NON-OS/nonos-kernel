@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+//! LP operations.
 
 use crate::apps::ecosystem::wallet::rpc::{EthRpcClient, RpcNetwork};
 use crate::apps::ecosystem::wallet::state as wallet_state;

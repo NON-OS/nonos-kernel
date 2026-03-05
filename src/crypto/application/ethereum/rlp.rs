@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -28,6 +28,7 @@ pub fn rlp_encode_u64(value: u64) -> Vec<u8> {
     let bytes = value.to_be_bytes();
     let start = bytes.iter().position(|&b| b != 0).unwrap_or(7);
     let len = 8 - start;
+
     let mut result = Vec::with_capacity(1 + len);
     result.push(0x80 + len as u8);
     result.extend_from_slice(&bytes[start..]);
@@ -45,6 +46,7 @@ pub fn rlp_encode_u128(value: u128) -> Vec<u8> {
     let bytes = value.to_be_bytes();
     let start = bytes.iter().position(|&b| b != 0).unwrap_or(15);
     let len = 16 - start;
+
     let mut result = Vec::with_capacity(1 + len);
     result.push(0x80 + len as u8);
     result.extend_from_slice(&bytes[start..]);
@@ -76,6 +78,7 @@ pub fn rlp_encode_bytes(bytes: &[u8]) -> Vec<u8> {
 
 pub fn rlp_encode_list(items: &[Vec<u8>]) -> Vec<u8> {
     let payload: Vec<u8> = items.iter().flat_map(|i| i.iter().cloned()).collect();
+
     if payload.len() < 56 {
         let mut result = Vec::with_capacity(1 + payload.len());
         result.push(0xc0 + payload.len() as u8);

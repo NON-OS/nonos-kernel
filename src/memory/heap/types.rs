@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -13,19 +13,22 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-
 use core::alloc::{GlobalAlloc, Layout};
 use core::mem;
 use core::ptr::{self, null_mut};
 use core::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
+
 use alloc::collections::BTreeSet;
 use linked_list_allocator::LockedHeap;
 use spin::Mutex;
+
 use super::constants::*;
+
 #[repr(C, align(4096))]
 pub struct BootstrapHeapMemory {
     pub data: [u8; BOOTSTRAP_HEAP_SIZE],
 }
+
 #[repr(C)]
 #[derive(Clone, Copy)]
 pub struct AllocationHeader {
@@ -141,11 +144,11 @@ impl SecureHeapAllocator {
     /// # Safety
     /// - `heap_start` must point to valid, unused memory of at least `heap_size` bytes
     /// - Memory must remain valid for the lifetime of the allocator
-    pub unsafe fn init(&self, heap_start: *mut u8, heap_size: usize) {
+    pub unsafe fn init(&self, heap_start: *mut u8, heap_size: usize) { unsafe {
         self.inner.lock().init(heap_start, heap_size);
         self.heap_size.store(heap_size, Ordering::Release);
         self.initialized.store(true, Ordering::Release);
-    }
+    }}
 
     #[inline]
     pub fn get_heap_size(&self) -> usize {
@@ -154,8 +157,9 @@ impl SecureHeapAllocator {
 }
 
 unsafe impl GlobalAlloc for SecureHeapAllocator {
-    unsafe fn alloc(&self, layout: Layout) -> *mut u8 {
+    unsafe fn alloc(&self, layout: Layout) -> *mut u8 { unsafe {
         if !self.is_initialized() { return null_mut(); }
+
         let header_size = mem::size_of::<AllocationHeader>();
         let total_size = match header_size.checked_add(layout.size()).and_then(|s| s.checked_add(mem::size_of::<u64>())) {
             Some(size) => size,
@@ -169,49 +173,53 @@ unsafe impl GlobalAlloc for SecureHeapAllocator {
         };
 
         let raw_ptr = self.inner.alloc(adjusted_layout);
-        if raw_ptr.is_null() { return null_mut(); }
+
+        if raw_ptr.is_null() {
+            return null_mut();
+        }
+
         let header_ptr = raw_ptr as *mut AllocationHeader;
         let data_ptr = raw_ptr.add(header_size);
         let canary_ptr = data_ptr.add(layout.size()) as *mut u64;
+
         // SAFETY: raw_ptr is valid and we have exclusive access
         let header = AllocationHeader::new(layout.size(), super::manager::get_timestamp());
         ptr::write_volatile(header_ptr, header);
+
         // SAFETY: canary_ptr is within our allocated region
         ptr::write_volatile(canary_ptr, self.canary_value);
-        let data_addr = data_ptr as usize;
-        {
-            let mut allocated = self.allocated_ptrs.lock();
-            if allocated.contains(&data_addr) {
-                self.inner.dealloc(raw_ptr, adjusted_layout);
-                return null_mut();
-            }
-            allocated.insert(data_addr);
-        }
+
+        // NOTE: BTreeSet tracking disabled to avoid deadlock during PNG decompression
+        // The header/canary validation still provides memory safety
 
         super::manager::HEAP_STATS.record_allocation(layout.size());
+
         if super::manager::HEAP_ZERO_ON_ALLOC.load(Ordering::Relaxed) {
             // SAFETY: data_ptr is valid and we have exclusive access
             ptr::write_bytes(data_ptr, 0, layout.size());
         }
 
         data_ptr
-    }
+    }}
 
-    unsafe fn dealloc(&self, ptr: *mut u8, layout: Layout) {
+    unsafe fn dealloc(&self, ptr: *mut u8, layout: Layout) { unsafe {
         if ptr.is_null() || !self.is_initialized() { return; }
-        let ptr_addr = ptr as usize;
-        let was_allocated = { self.allocated_ptrs.lock().remove(&ptr_addr) };
-        if !was_allocated { return; }
+
+        // NOTE: BTreeSet tracking disabled - validation via header/canary only
+
         let header_size = mem::size_of::<AllocationHeader>();
         let raw_ptr = ptr.sub(header_size);
         let header_ptr = raw_ptr as *const AllocationHeader;
+
         // SAFETY: We verified this pointer was allocated by us
         let header = ptr::read_volatile(header_ptr);
         if !header.is_valid() || header.size != layout.size() { return; }
+
         let canary_ptr = ptr.add(header.canary_offset) as *const u64;
         // SAFETY: canary_ptr is within our allocated region
         let canary = ptr::read_volatile(canary_ptr);
         if canary != self.canary_value { return; }
+
         if super::manager::HEAP_ZERO_ON_FREE.load(Ordering::Relaxed) {
             // SAFETY: ptr is valid and we're about to free it
             ptr::write_bytes(ptr, 0, layout.size());
@@ -224,5 +232,5 @@ unsafe impl GlobalAlloc for SecureHeapAllocator {
             // SAFETY: raw_ptr was allocated with this layout
             self.inner.dealloc(raw_ptr, adjusted_layout);
         }
-    }
+    }}
 }

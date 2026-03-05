@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -13,23 +13,30 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+//! Heap allocator constants.
 
 pub const ALLOCATION_MAGIC: u32 = 0xDEADBEEF;
 pub const CANARY_VALUE: u64 = 0xDEADBEEFCAFEBABE;
 pub const FREED_MAGIC: u32 = 0xFEEDFACE;
-pub const BOOTSTRAP_HEAP_SIZE: usize = 1024 * 1024;
+
+pub const BOOTSTRAP_HEAP_SIZE: usize = 160 * 1024 * 1024; // 160MB for 4K wallpaper decompression (50MB zlib buffer + 33MB RGBA + overhead)
 pub const BOOTSTRAP_HEAP_ALIGN: usize = 4096;
+
 pub const MIN_ALIGNMENT: usize = 8;
 pub const MAX_ALIGNMENT: usize = 4096;
 pub const DEFAULT_ALIGNMENT: usize = 16;
+
 pub const MAX_ALLOCATION_SIZE: usize = 256 * 1024 * 1024;
 pub const MIN_ALLOCATION_SIZE: usize = 8;
 pub const LARGE_ALLOCATION_THRESHOLD: usize = 64 * 1024;
+
 pub const ALLOCATION_HEADER_SIZE: usize = 24;
 pub const CANARY_SIZE: usize = 8;
 pub const ALLOCATION_OVERHEAD: usize = ALLOCATION_HEADER_SIZE + CANARY_SIZE;
+
 pub const FREED_MEMORY_PATTERN: u8 = 0xDD;
 pub const FRESH_MEMORY_PATTERN: u8 = 0xCD;
 pub const GUARD_PAGE_PATTERN: u8 = 0xFD;
+
 pub const MAX_ALLOCATION_COUNT: usize = usize::MAX - 1;
 pub const MAX_MEMORY_USAGE: usize = usize::MAX - 1;

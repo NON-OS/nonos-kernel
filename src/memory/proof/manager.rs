@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -13,14 +13,15 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-
 use alloc::collections::BTreeMap;
 use alloc::vec::Vec;
 use core::sync::atomic::{AtomicU64, Ordering};
 use spin::{Mutex, RwLock};
 use x86_64::PhysAddr;
+
 use crate::memory::{kaslr, layout};
 use super::types::*;
+
 struct ProofSystem {
     capsules: RwLock<BTreeMap<u64, CryptographicCapsule>>,
     proofs: RwLock<BTreeMap<u64, MemoryProof>>,
@@ -43,11 +44,13 @@ impl ProofSystem {
     fn create_capsule(&self, start: PhysAddr, end: PhysAddr, tag: CapTag, permissions: CapsulePermissions) -> Result<u64, &'static str> {
         if start >= end { return Err("Invalid memory region"); }
         if end.as_u64() - start.as_u64() < layout::PAGE_SIZE as u64 { return Err("Capsule too small"); }
+
         let capsule_id = self.next_capsule_id.fetch_add(1, Ordering::Relaxed);
         let creation_time = get_timestamp();
         let memory_region = MemoryRegion { start, end, tag };
         let integrity_hash = self.compute_region_hash(&memory_region, creation_time);
         let access_key = self.derive_access_key(capsule_id, &integrity_hash);
+
         let capsule = CryptographicCapsule { capsule_id, memory_region, integrity_hash, access_key, permissions, creation_time };
         self.capsules.write().insert(capsule_id, capsule);
         self.audit(AuditOperation::Create, capsule_id, AuditResult::Success);
@@ -104,12 +107,14 @@ impl ProofSystem {
         let proof_id = self.next_proof_id.fetch_add(1, Ordering::Relaxed);
         let timestamp = get_timestamp();
         let nonce = kaslr::boot_nonce().unwrap_or(0x1337);
+
         let mut proof_data = Vec::new();
         proof_data.extend_from_slice(&addr.to_le_bytes());
         proof_data.extend_from_slice(&size.to_le_bytes());
         proof_data.extend_from_slice(&(tag as u32).to_le_bytes());
         proof_data.extend_from_slice(&timestamp.to_le_bytes());
         proof_data.extend_from_slice(&nonce.to_le_bytes());
+
         let hash = blake3_hash(&proof_data);
         let proof = MemoryProof { tag, start_addr: addr, size, hash, timestamp, nonce };
         self.proofs.write().insert(proof_id, proof);
@@ -142,6 +147,7 @@ impl ProofSystem {
 }
 
 static PROOF_SYSTEM: ProofSystem = ProofSystem::new();
+
 fn get_timestamp() -> u64 {
     // SAFETY: rdtsc is always safe
     unsafe { core::arch::x86_64::_rdtsc() }
@@ -167,6 +173,7 @@ fn blake3_hash(data: &[u8]) -> [u8; 32] {
 }
 
 pub fn init() -> Result<(), &'static str> { Ok(()) }
+
 pub fn create_memory_capsule(start: PhysAddr, end: PhysAddr, tag: CapTag, read: bool, write: bool, execute: bool) -> Result<u64, &'static str> {
     let permissions = CapsulePermissions { read, write, execute, sealed: false };
     PROOF_SYSTEM.create_capsule(start, end, tag, permissions)

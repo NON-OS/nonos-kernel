@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -14,19 +14,39 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+//! Page Info Error Types
+//!
+//! Error types for page metadata operations.
+
 use core::fmt;
+
+/// Errors that can occur during page info operations
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum PageInfoError {
+    /// Page not found in the tracking table
     PageNotFound,
+
+    /// Page already exists in the tracking table
     PageAlreadyExists,
+
+    /// Page info manager not initialized
     NotInitialized,
+
+    /// Maximum tracked pages exceeded
     TooManyPages,
+
+    /// Invalid page address
     InvalidAddress,
+
+    /// Reference count underflow
     RefCountUnderflow,
+
+    /// Page is locked and cannot be modified
     PageLocked,
 }
 
 impl PageInfoError {
+    /// Returns a human-readable description of the error
     pub fn as_str(&self) -> &'static str {
         match self {
             Self::PageNotFound => "Page not found",
@@ -39,6 +59,7 @@ impl PageInfoError {
         }
     }
 
+    /// Returns true if the error is recoverable
     pub fn is_recoverable(&self) -> bool {
         matches!(self, Self::PageNotFound | Self::PageAlreadyExists)
     }
@@ -50,7 +71,9 @@ impl fmt::Display for PageInfoError {
     }
 }
 
+/// Result type alias for page info operations
 pub type PageInfoResult<T> = Result<T, PageInfoError>;
+
 impl From<&'static str> for PageInfoError {
     fn from(s: &'static str) -> Self {
         match s {

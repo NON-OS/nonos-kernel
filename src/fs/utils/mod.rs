@@ -16,15 +16,15 @@
 
 extern crate alloc;
 
-mod error;
-mod types;
-mod patterns;
-mod helpers;
-mod matchers;
-mod classify;
-mod scan_stats;
-mod scan_basic;
-mod scan_config;
+pub mod error;
+pub mod types;
+pub mod patterns;
+pub mod helpers;
+pub mod matchers;
+pub mod classify;
+pub mod scan_stats;
+pub mod scan_basic;
+pub mod scan_config;
 
 #[cfg(test)]
 mod filters_tests;

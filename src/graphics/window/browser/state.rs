@@ -5,14 +5,6 @@
 // it under the terms of the GNU Affero General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
-//
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-// GNU Affero General Public License for more details.
-//
-// You should have received a copy of the GNU Affero General Public License
-// along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 extern crate alloc;
 
@@ -53,7 +45,7 @@ pub(crate) static FETCH_PORT: AtomicUsize = AtomicUsize::new(80);
 pub(crate) static FETCH_HTTPS: AtomicBool = AtomicBool::new(false);
 pub(crate) static FETCH_IP: spin::Mutex<[u8; 4]> = spin::Mutex::new([0u8; 4]);
 pub(crate) static FETCH_START_MS: AtomicUsize = AtomicUsize::new(0);
-pub(crate) static FETCH_CONN_ID: AtomicUsize = AtomicUsize::new(0);
+pub static FETCH_CONN_ID: AtomicUsize = AtomicUsize::new(0);
 
 pub(crate) static PAGE_LINES: Mutex<Vec<(String, u32)>> = Mutex::new(Vec::new());
 pub(crate) static PAGE_TITLE: Mutex<[u8; MAX_TITLE_LEN]> = Mutex::new([0u8; MAX_TITLE_LEN]);

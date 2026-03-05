@@ -39,3 +39,59 @@ pub struct StreamStatistics {
     pub stream_creation_rate: AtomicU32,
     pub average_stream_lifetime: AtomicU64,
 }
+
+impl StreamStatistics {
+    /// Get current active stream count
+    pub fn get_active_count(&self) -> u32 {
+        self.active_streams.load(core::sync::atomic::Ordering::Relaxed)
+    }
+
+    /// Get total streams created
+    pub fn get_total_created(&self) -> u64 {
+        self.total_streams_created.load(core::sync::atomic::Ordering::Relaxed)
+    }
+
+    /// Get total streams closed
+    pub fn get_total_closed(&self) -> u64 {
+        self.total_streams_closed.load(core::sync::atomic::Ordering::Relaxed)
+    }
+
+    /// Get total data transferred
+    pub fn get_data_transferred(&self) -> u64 {
+        self.total_data_transferred.load(core::sync::atomic::Ordering::Relaxed)
+    }
+
+    /// Get stream creation rate
+    pub fn get_creation_rate(&self) -> u32 {
+        self.stream_creation_rate.load(core::sync::atomic::Ordering::Relaxed)
+    }
+
+    /// Get average stream lifetime
+    pub fn get_average_lifetime(&self) -> u64 {
+        self.average_stream_lifetime.load(core::sync::atomic::Ordering::Relaxed)
+    }
+
+    /// Record stream creation
+    pub fn record_stream_created(&self) {
+        self.total_streams_created.fetch_add(1, core::sync::atomic::Ordering::Relaxed);
+        self.active_streams.fetch_add(1, core::sync::atomic::Ordering::Relaxed);
+    }
+
+    /// Record stream closed
+    pub fn record_stream_closed(&self, lifetime_ms: u64) {
+        self.total_streams_closed.fetch_add(1, core::sync::atomic::Ordering::Relaxed);
+        self.active_streams.fetch_sub(1, core::sync::atomic::Ordering::Relaxed);
+        // Update average lifetime
+        let total = self.total_streams_closed.load(core::sync::atomic::Ordering::Relaxed);
+        if total > 0 {
+            let current_avg = self.average_stream_lifetime.load(core::sync::atomic::Ordering::Relaxed);
+            let new_avg = (current_avg.saturating_mul(total - 1) + lifetime_ms) / total;
+            self.average_stream_lifetime.store(new_avg, core::sync::atomic::Ordering::Relaxed);
+        }
+    }
+
+    /// Record data transfer
+    pub fn record_data(&self, bytes: u64) {
+        self.total_data_transferred.fetch_add(bytes, core::sync::atomic::Ordering::Relaxed);
+    }
+}

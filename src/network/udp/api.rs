@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+//! UDP public API functions.
 
 extern crate alloc;
 
@@ -24,10 +25,12 @@ use spin::Mutex;
 use super::socket::UdpSocket;
 use super::types::{GlobalUdpStats, UdpPacket, UdpSocketId, UdpState};
 
+/// Global socket table
 pub static SOCKET_TABLE: Mutex<BTreeMap<UdpSocketId, UdpSocket>> = Mutex::new(BTreeMap::new());
 static NEXT_SOCKET_ID: AtomicU32 = AtomicU32::new(1);
 static NEXT_EPHEMERAL_PORT: AtomicU32 = AtomicU32::new(49152);
 
+/// Global UDP statistics
 pub static GLOBAL_STATS: GlobalUdpStats = GlobalUdpStats {
     packets_sent: AtomicU64::new(0),
     packets_received: AtomicU64::new(0),
@@ -35,6 +38,7 @@ pub static GLOBAL_STATS: GlobalUdpStats = GlobalUdpStats {
     bytes_received: AtomicU64::new(0),
 };
 
+/// Allocate an ephemeral port
 pub fn allocate_ephemeral_port() -> Result<u16, &'static str> {
     let sockets = SOCKET_TABLE.lock();
     for _ in 0..1000 {
@@ -56,6 +60,7 @@ pub fn allocate_ephemeral_port() -> Result<u16, &'static str> {
     Err("No ephemeral ports available")
 }
 
+/// Create a new UDP socket and register it
 pub fn create_socket() -> Result<UdpSocketId, &'static str> {
     let id = NEXT_SOCKET_ID.fetch_add(1, Ordering::SeqCst);
     let socket = UdpSocket::new(id);
@@ -63,14 +68,17 @@ pub fn create_socket() -> Result<UdpSocketId, &'static str> {
     Ok(id)
 }
 
+/// Get a socket by ID
 pub fn get_socket(id: UdpSocketId) -> Option<UdpSocket> {
     SOCKET_TABLE.lock().remove(&id)
 }
 
+/// Return a socket to the table
 pub fn return_socket(socket: UdpSocket) {
     SOCKET_TABLE.lock().insert(socket.id(), socket);
 }
 
+/// Close and remove a socket
 pub fn close_socket(id: UdpSocketId) -> Result<(), &'static str> {
     let mut sockets = SOCKET_TABLE.lock();
     if let Some(mut socket) = sockets.remove(&id) {
@@ -81,6 +89,7 @@ pub fn close_socket(id: UdpSocketId) -> Result<(), &'static str> {
     }
 }
 
+/// Bind a socket to a port
 pub fn bind(id: UdpSocketId, port: u16) -> Result<(), &'static str> {
     let mut sockets = SOCKET_TABLE.lock();
     if let Some(socket) = sockets.get_mut(&id) {
@@ -90,6 +99,7 @@ pub fn bind(id: UdpSocketId, port: u16) -> Result<(), &'static str> {
     }
 }
 
+/// Connect a socket to a remote address
 pub fn connect(id: UdpSocketId, addr: [u8; 4], port: u16) -> Result<(), &'static str> {
     let mut sockets = SOCKET_TABLE.lock();
     if let Some(socket) = sockets.get_mut(&id) {
@@ -99,6 +109,7 @@ pub fn connect(id: UdpSocketId, addr: [u8; 4], port: u16) -> Result<(), &'static
     }
 }
 
+/// Send data on a socket
 pub fn send(id: UdpSocketId, data: &[u8]) -> Result<usize, &'static str> {
     let mut sockets = SOCKET_TABLE.lock();
     if let Some(socket) = sockets.get_mut(&id) {
@@ -108,6 +119,7 @@ pub fn send(id: UdpSocketId, data: &[u8]) -> Result<usize, &'static str> {
     }
 }
 
+/// Send data to a specific address
 pub fn send_to(
     id: UdpSocketId,
     data: &[u8],
@@ -122,6 +134,7 @@ pub fn send_to(
     }
 }
 
+/// Receive data from a socket
 pub fn recv(id: UdpSocketId, buf: &mut [u8]) -> Result<usize, &'static str> {
     let mut sockets = SOCKET_TABLE.lock();
     if let Some(socket) = sockets.get_mut(&id) {
@@ -131,6 +144,7 @@ pub fn recv(id: UdpSocketId, buf: &mut [u8]) -> Result<usize, &'static str> {
     }
 }
 
+/// Receive data with source address
 pub fn recv_from(id: UdpSocketId, buf: &mut [u8]) -> Result<(usize, [u8; 4], u16), &'static str> {
     let mut sockets = SOCKET_TABLE.lock();
     if let Some(socket) = sockets.get_mut(&id) {
@@ -140,6 +154,7 @@ pub fn recv_from(id: UdpSocketId, buf: &mut [u8]) -> Result<(usize, [u8; 4], u16
     }
 }
 
+/// Process incoming UDP packet
 pub fn process_incoming_packet(
     src_addr: [u8; 4],
     dst_port: u16,
@@ -179,6 +194,7 @@ pub fn process_incoming_packet(
     Err("No socket listening on port")
 }
 
+/// Get global UDP statistics
 pub fn get_global_stats() -> (u64, u64, u64, u64) {
     (
         GLOBAL_STATS.packets_sent.load(Ordering::Relaxed),
@@ -188,6 +204,7 @@ pub fn get_global_stats() -> (u64, u64, u64, u64) {
     )
 }
 
+/// Initialize UDP subsystem
 pub fn init() -> Result<(), &'static str> {
     crate::log::info!("UDP subsystem initialized");
     Ok(())

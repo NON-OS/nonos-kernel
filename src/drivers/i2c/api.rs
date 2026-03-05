@@ -20,7 +20,7 @@ use spin::Mutex;
 use super::error::I2cError;
 use super::pci::LpssController;
 
-static CONTROLLERS: Mutex<Vec<LpssController>> = Mutex::new(Vec::new());
+pub(crate) static CONTROLLERS: Mutex<Vec<LpssController>> = Mutex::new(Vec::new());
 
 pub fn get_controller(index: usize) -> Option<LpssController> {
     let controllers = CONTROLLERS.lock();

@@ -16,7 +16,7 @@
 
 use spin::Once;
 use super::types::{GeP2, GeCached};
-use super::ops::{ge_identity, ge_to_cached, ge_add, ge_double, ge_p1p1_to_p3, ge_p1p1_to_p2};
+use super::ops::{ge_to_cached, ge_add, ge_double, ge_p1p1_to_p3, ge_p1p1_to_p2};
 use super::pack::ge_basepoint;
 
 pub(crate) struct Precomp {
@@ -32,7 +32,7 @@ pub(crate) fn ensure_precomp() {
 fn build_precomp() -> Precomp {
     let B = ge_basepoint();
     let mut P = B;
-    let mut table = [[ge_to_cached(&ge_identity()); 8]; 32];
+    let mut table = [[GeCached::identity(); 8]; 32];
     for i in 0..32 {
         let P2 = ge_p1p1_to_p3(&ge_double(&GeP2 {
             X: P.X,

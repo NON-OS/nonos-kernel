@@ -138,16 +138,19 @@ pub fn detect_four_finger_gesture(tracked_contacts: &[TrackedContact]) -> Gestur
     Gesture::None
 }
 
+/// Check if a tap event occurred based on touch duration
 pub fn is_tap_event(touch_start_us: u64, touch_end_us: u64) -> bool {
     let duration = touch_end_us.saturating_sub(touch_start_us);
     duration < TAP_TIMEOUT_US
 }
 
+/// Check if a double tap occurred based on timing between taps
 pub fn is_double_tap(first_tap_us: u64, second_tap_us: u64) -> bool {
     let gap = second_tap_us.saturating_sub(first_tap_us);
     gap < DOUBLE_TAP_TIMEOUT_US
 }
 
+/// Get tap timing configuration
 pub fn tap_timing_config() -> (u64, u64) {
     (TAP_TIMEOUT_US, DOUBLE_TAP_TIMEOUT_US)
 }

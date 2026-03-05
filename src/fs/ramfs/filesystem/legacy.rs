@@ -21,22 +21,22 @@ use alloc::vec::Vec;
 
 use super::global::{create_file, read_file, write_file, delete_file, list_dir};
 
-pub(crate) fn create_file_legacy(name: &str, data: &[u8]) -> Result<(), &'static str> {
+pub fn create_file_legacy(name: &str, data: &[u8]) -> Result<(), &'static str> {
     create_file(name, data).map_err(|e| e.as_str())
 }
 
-pub(crate) fn read_file_legacy(name: &str) -> Result<Vec<u8>, &'static str> {
+pub fn read_file_legacy(name: &str) -> Result<Vec<u8>, &'static str> {
     read_file(name).map_err(|e| e.as_str())
 }
 
-pub(crate) fn write_file_legacy(name: &str, data: &[u8]) -> Result<(), &'static str> {
+pub fn write_file_legacy(name: &str, data: &[u8]) -> Result<(), &'static str> {
     write_file(name, data).map_err(|e| e.as_str())
 }
 
-pub(crate) fn delete_file_legacy(name: &str) -> Result<(), &'static str> {
+pub fn delete_file_legacy(name: &str) -> Result<(), &'static str> {
     delete_file(name).map_err(|e| e.as_str())
 }
 
-pub(crate) fn list_dir_legacy(path: &str) -> Result<Vec<String>, &'static str> {
+pub fn list_dir_legacy(path: &str) -> Result<Vec<String>, &'static str> {
     list_dir(path).map_err(|e| e.as_str())
 }

@@ -14,6 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+//! DNS resolver with caching support
+//!
+//! Supports the following record types:
+//! - A (IPv4 address)
+//! - AAAA (IPv6 address)
+//! - CNAME (Canonical name)
+//! - MX (Mail exchange)
+//! - TXT (Text records)
+//! - NS (Nameserver)
+//! - PTR (Pointer)
+//! - SRV (Service locator)
 
 mod types;
 mod cache;

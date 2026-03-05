@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -60,6 +60,7 @@ impl Hasher {
     fn push_cv(&mut self, cv: [u32; 8], chunk_counter: u64) {
         let mut cv = cv;
         let mut total_chunks = chunk_counter;
+
         while total_chunks & 1 == 1 {
             debug_assert!(self.cv_stack_len > 0);
             self.cv_stack_len -= 1;
@@ -74,6 +75,7 @@ impl Hasher {
 
     pub fn update(&mut self, input: &[u8]) -> &mut Self {
         let mut offset = 0;
+
         while offset < input.len() {
             if self.chunk_state.len() == CHUNK_LEN {
                 let cv = self.chunk_state.output().chaining_value();
@@ -97,6 +99,7 @@ impl Hasher {
 
     fn final_output(&self) -> Output {
         let mut output = self.chunk_state.output();
+
         let mut parent_nodes_remaining = self.cv_stack_len;
         while parent_nodes_remaining > 0 {
             parent_nodes_remaining -= 1;

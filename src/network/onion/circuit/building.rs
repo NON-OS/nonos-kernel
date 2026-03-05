@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+//! Circuit building state tracking
 
 use alloc::vec::Vec;
 use crate::network::onion::directory::RelayDescriptor;

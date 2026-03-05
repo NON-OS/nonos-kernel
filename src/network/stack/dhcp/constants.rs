@@ -17,28 +17,28 @@
 pub(super) const DHCP_MAGIC: [u8; 4] = [99, 130, 83, 99];
 
 pub(super) mod dhcp_msg {
-    pub const DISCOVER: u8 = 1;
-    pub const OFFER: u8 = 2;
-    pub const REQUEST: u8 = 3;
-    pub const ACK: u8 = 5;
-    pub const NAK: u8 = 6;
-    pub const RELEASE: u8 = 7;
+    pub(crate) const DISCOVER: u8 = 1;
+    pub(crate) const OFFER: u8 = 2;
+    pub(crate) const REQUEST: u8 = 3;
+    pub(crate) const ACK: u8 = 5;
+    pub(crate) const NAK: u8 = 6;
+    pub(crate) const RELEASE: u8 = 7;
 }
 
 pub(super) mod dhcp_opt {
-    pub const SUBNET_MASK: u8 = 1;
-    pub const ROUTER: u8 = 3;
-    pub const DNS: u8 = 6;
-    pub const HOSTNAME: u8 = 12;
-    pub const DOMAIN_NAME: u8 = 15;
-    pub const BROADCAST: u8 = 28;
-    pub const REQUESTED_IP: u8 = 50;
-    pub const LEASE_TIME: u8 = 51;
-    pub const MSG_TYPE: u8 = 53;
-    pub const SERVER_ID: u8 = 54;
-    pub const PARAM_REQUEST: u8 = 55;
-    pub const RENEWAL_TIME: u8 = 58;
-    pub const REBIND_TIME: u8 = 59;
-    pub const CLIENT_ID: u8 = 61;
-    pub const END: u8 = 255;
+    pub(crate) const SUBNET_MASK: u8 = 1;
+    pub(crate) const ROUTER: u8 = 3;
+    pub(crate) const DNS: u8 = 6;
+    pub(crate) const HOSTNAME: u8 = 12;
+    pub(crate) const DOMAIN_NAME: u8 = 15;
+    pub(crate) const BROADCAST: u8 = 28;
+    pub(crate) const REQUESTED_IP: u8 = 50;
+    pub(crate) const LEASE_TIME: u8 = 51;
+    pub(crate) const MSG_TYPE: u8 = 53;
+    pub(crate) const SERVER_ID: u8 = 54;
+    pub(crate) const PARAM_REQUEST: u8 = 55;
+    pub(crate) const RENEWAL_TIME: u8 = 58;
+    pub(crate) const REBIND_TIME: u8 = 59;
+    pub(crate) const CLIENT_ID: u8 = 61;
+    pub(crate) const END: u8 = 255;
 }

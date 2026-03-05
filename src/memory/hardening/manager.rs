@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -13,18 +13,21 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-
 use alloc::collections::BTreeMap;
 use core::sync::atomic::{AtomicU64, AtomicUsize, Ordering};
 use spin::{Mutex, RwLock};
 use x86_64::VirtAddr;
+
 use crate::memory::paging::PagePermissions;
 use crate::memory::{dma, heap, kaslr, layout, mmio, paging, safety};
+
 use super::constants::*;
 use super::stats::HardeningStats;
 use super::types::*;
+
 pub static HARDENING_STATS: HardeningStats = HardeningStats::new();
 static MEMORY_HARDENING: MemoryHardening = MemoryHardening::new();
+
 struct MemoryHardening {
     guard_pages: RwLock<BTreeMap<u64, GuardPage>>,
     stack_canaries: RwLock<BTreeMap<u64, StackCanary>>,
@@ -54,6 +57,7 @@ impl MemoryHardening {
     fn setup_kernel_guard_pages(&self) -> Result<(), &'static str> {
         let kernel_sections = layout::kernel_sections();
         let mut guards = self.guard_pages.write();
+
         for section in &kernel_sections {
             if section.rx && !section.rw {
                 let guard_before = GuardPage {
@@ -76,8 +80,10 @@ impl MemoryHardening {
     fn setup_stack_protection(&self) -> Result<(), &'static str> {
         let canary_value = self.generate_stack_canary();
         let stack_base = VirtAddr::new(layout::KHEAP_BASE - layout::KSTACK_SIZE as u64);
+
         let canary = StackCanary { value: canary_value, stack_base, stack_size: layout::KSTACK_SIZE };
         self.stack_canaries.write().insert(stack_base.as_u64(), canary);
+
         let guard_page = GuardPage {
             addr: VirtAddr::new(stack_base.as_u64().saturating_sub(layout::PAGE_SIZE as u64)),
             size: layout::PAGE_SIZE,
@@ -259,7 +265,8 @@ pub fn init_module_memory_protection() {
 pub fn verify_kernel_data_integrity() -> bool {
     if layout::validate_layout().is_err() { return false; }
 
-    let _current_cr3 = paging::get_current_cr3();
+    let current_cr3 = paging::get_current_cr3();
+    if current_cr3.as_u64() == 0 { return false; }
 
     // SAFETY: Reading CR4 is safe
     let current_cr4: u64;
@@ -284,6 +291,7 @@ pub fn verify_kernel_data_integrity() -> bool {
     if !safety::verify_stack_integrity() { return false; }
     if !heap::verify_heap_integrity() { return false; }
     if !kaslr::verify_slide_integrity() { return false; }
+
     let kernel_entry_point = layout::KERNEL_BASE;
     if paging::translate_address(VirtAddr::new(kernel_entry_point)).is_some() {
         if let Ok(entry_bytes) = read_bytes(kernel_entry_point as usize, NOP_SLED_CHECK_SIZE) {
@@ -296,8 +304,10 @@ pub fn verify_kernel_data_integrity() -> bool {
 }
 
 pub fn verify_kernel_page_tables() -> bool {
-    let _current_cr3 = paging::get_current_cr3();
+    let current_cr3 = paging::get_current_cr3();
+    if current_cr3.as_u64() == 0 { return false; }
     let kernel_sections = layout::kernel_sections();
+
     for section in &kernel_sections {
         let va = VirtAddr::new(section.start);
         if let Some(perms) = paging::get_page_permissions(va) {
@@ -310,6 +320,7 @@ pub fn verify_kernel_page_tables() -> bool {
 
 pub fn get_all_process_regions() -> alloc::vec::Vec<(VirtAddr, usize)> {
     let mut regions = alloc::vec::Vec::new();
+
     let kernel_sections = layout::kernel_sections();
     for section in &kernel_sections {
         regions.push((VirtAddr::new(section.start), section.size() as usize));
@@ -356,6 +367,7 @@ pub fn get_all_process_regions() -> alloc::vec::Vec<(VirtAddr, usize)> {
 pub fn read_bytes(start: usize, size: usize) -> Result<&'static [u8], &'static str> {
     let va = VirtAddr::new(start as u64);
     if !paging::is_mapped(va) { return Err("Memory not mapped"); }
+
     let end_va = VirtAddr::new((start + size) as u64);
     if !paging::is_mapped(end_va) { return Err("End of range not mapped"); }
 

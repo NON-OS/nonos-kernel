@@ -22,7 +22,7 @@ use alloc::vec::Vec;
 use core::ptr;
 use x86_64::VirtAddr;
 
-use crate::elf::errors::{ElfError, ElfResult};
+use crate::elf::errors::ElfResult;
 use crate::elf::types::{symbol_bind, symbol_type, Symbol};
 
 #[derive(Debug, Clone)]
@@ -187,7 +187,7 @@ impl Default for SymbolResolver {
     }
 }
 
-unsafe fn read_symbol_name(ptr: *const u8, max_len: usize) -> String {
+unsafe fn read_symbol_name(ptr: *const u8, max_len: usize) -> String { unsafe {
     let mut name = String::new();
     for i in 0..max_len.min(256) {
         let c = *ptr.add(i);
@@ -197,4 +197,4 @@ unsafe fn read_symbol_name(ptr: *const u8, max_len: usize) -> String {
         name.push(c as char);
     }
     name
-}
+}}

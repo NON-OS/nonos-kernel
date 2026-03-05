@@ -14,16 +14,18 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+//! NONOS Kernel Firewall Implementation
+//!
+//! Provides packet filtering, connection tracking, and network access control.
 
 pub mod api;
-mod engine_core;
-mod engine_packet;
+pub mod engine;
 pub mod types;
 
 pub use api::{
     add_rule, filter_inbound, filter_outbound, get_firewall, init, maintenance, remove_rule,
 };
-pub use engine_core::Firewall;
+pub use engine::Firewall;
 pub use types::{
     Action, ConnState, ConnTrack, Direction, FirewallStats, IpMatch, PortMatch, Protocol,
     RateLimit, Rule, RuleStats,

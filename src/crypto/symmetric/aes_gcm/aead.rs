@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -20,7 +20,7 @@ use alloc::vec::Vec;
 use crate::crypto::constant_time::ct_eq_16;
 use crate::crypto::symmetric::aes::Aes256;
 
-use super::ghash::{GhashKey, GhashState, u128_to_block};
+use super::ghash::GhashKey;
 use super::gcm::{aes_ctr_gcm, compute_tag, derive_j0};
 use super::TAG_SIZE;
 
@@ -38,10 +38,12 @@ impl Aes256Gcm {
 
     pub fn encrypt(&self, nonce: &[u8; 12], aad: &[u8], plaintext: &[u8]) -> Vec<u8> {
         let j0 = derive_j0(nonce);
+
         let mut ciphertext = plaintext.to_vec();
         aes_ctr_gcm(&self.aes, &j0, &mut ciphertext);
 
         let tag = compute_tag(&self.aes, &self.ghash_key, &j0, aad, &ciphertext);
+
         ciphertext.extend_from_slice(&tag);
         ciphertext
     }
@@ -54,13 +56,18 @@ impl Aes256Gcm {
 
         let ct_len = ciphertext_and_tag.len() - TAG_SIZE;
         let (ciphertext, tag) = ciphertext_and_tag.split_at(ct_len);
+
         let j0 = derive_j0(nonce);
+
         let expected_tag = compute_tag(&self.aes, &self.ghash_key, &j0, aad, ciphertext);
+
         let tag_array: [u8; 16] = tag.try_into().map_err(|_| "invalid tag length")?;
         let tag_valid = ct_eq_16(&expected_tag, &tag_array);
+
         // SECURITY: Always decrypt regardless of tag validity to prevent timing oracle
         let mut plaintext = ciphertext.to_vec();
         aes_ctr_gcm(&self.aes, &j0, &mut plaintext);
+
         if !tag_valid {
             // SECURITY: Zero plaintext to prevent leaking decrypted data on auth failure
             secure_zero_slice(&mut plaintext);

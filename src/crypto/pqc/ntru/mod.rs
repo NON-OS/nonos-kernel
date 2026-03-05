@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -14,32 +14,30 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod poly;
-mod types;
-mod serialize;
-mod keygen;
-mod encaps;
+mod constants;
 mod decaps;
+mod encaps;
+mod keygen;
+mod poly;
+mod serialize;
+mod types;
 
-pub use types::{NtruCiphertext, NtruKeyPair, NtruPublicKey, NtruSecretKey};
+pub use constants::{
+    ntru_param_name, NTRU_CIPHERTEXT_BYTES, NTRU_LOG_Q, NTRU_N, NTRU_PUBLICKEY_BYTES, NTRU_Q,
+    NTRU_SECRETKEY_BYTES, NTRU_SHARED_SECRET_BYTES,
+};
+
+pub use decaps::ntru_decaps;
+
+pub use encaps::ntru_encaps;
+
+pub use keygen::ntru_keygen;
+
 pub use serialize::{
     ntru_deserialize_ciphertext, ntru_deserialize_public_key, ntru_deserialize_secret_key,
     ntru_serialize_ciphertext, ntru_serialize_public_key, ntru_serialize_secret_key,
 };
-pub use keygen::ntru_keygen;
-pub use encaps::ntru_encaps;
-pub use decaps::ntru_decaps;
 
-pub const NTRU_N: usize = 821;
-pub const NTRU_Q: u16 = 4096;
-pub const NTRU_LOG_Q: usize = 12;
-pub const NTRU_PUBLICKEY_BYTES: usize = (NTRU_N * NTRU_LOG_Q + 7) / 8;
-pub const NTRU_SECRETKEY_BYTES: usize = NTRU_N + NTRU_PUBLICKEY_BYTES;
-pub const NTRU_CIPHERTEXT_BYTES: usize = (NTRU_N * NTRU_LOG_Q + 7) / 8;
-pub const NTRU_SHARED_SECRET_BYTES: usize = 32;
+pub use types::{NtruCiphertext, NtruKeyPair, NtruPublicKey, NtruSecretKey};
 
-pub(crate) const NTRU_WEIGHT: usize = 286;
-
-pub const fn ntru_param_name() -> &'static str {
-    "NTRU-HPS-4096-821"
-}
+pub(crate) use constants::NTRU_WEIGHT;

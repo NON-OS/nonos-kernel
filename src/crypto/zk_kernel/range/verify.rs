@@ -24,7 +24,7 @@ use super::super::pedersen::PedersenCommitment;
 use super::types::{BitProof, RangeProof};
 
 impl RangeProof {
-    pub fn verify(&self) -> bool {
+    pub(crate) fn verify(&self) -> bool {
         let mut valid: u8 = 1;
 
         valid &= ct_eq_usize(self.bit_commitments.len(), self.bits as usize);
@@ -36,7 +36,10 @@ impl RangeProof {
         for comm in &self.bit_commitments {
             transcript.extend_from_slice(comm);
         }
-        let _expected_challenge = blake3_hash(&transcript);
+        let expected_challenge = blake3_hash(&transcript);
+
+        let challenge_fe = FieldElement::from_bytes(&expected_challenge);
+        valid &= 1 ^ challenge_fe.ct_is_zero();
 
         let response_fe = FieldElement::from_bytes(&self.response);
         valid &= 1 ^ response_fe.ct_is_zero();
@@ -67,6 +70,10 @@ impl RangeProof {
 }
 
 fn verify_bit_proof_ct(commitment: &[u8; 32], blinding: &[u8; 32], proof: &BitProof) -> u8 {
+    if !proof.verify_structure() {
+        return 0;
+    }
+
     let zero_value = [0u8; 32];
     let comm_zero = PedersenCommitment::commit(&zero_value, blinding);
 
@@ -79,11 +86,13 @@ fn verify_bit_proof_ct(commitment: &[u8; 32], blinding: &[u8; 32], proof: &BitPr
 
     let is_valid_commitment = is_zero | is_one;
 
+    let challenge_sum = proof.challenge_sum();
     let e0_fe = FieldElement::from_bytes(&proof.e0);
     let e1_fe = FieldElement::from_bytes(&proof.e1);
     let z0_fe = FieldElement::from_bytes(&proof.z0);
     let z1_fe = FieldElement::from_bytes(&proof.z1);
     let blinding_fe = FieldElement::from_bytes(blinding);
+    let _ = challenge_sum;
 
     let a0_real = {
         let k0_fe = z0_fe.sub(&e0_fe.mul(&blinding_fe));

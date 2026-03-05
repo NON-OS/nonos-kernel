@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -13,6 +13,16 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+//! Secure Memory Manager Unit Tests
+//!
+//! Comprehensive tests for secure memory functionality including:
+//! - Constants validation
+//! - Error handling
+//! - Region types and security levels
+//! - Memory region operations
+//! - Access control
+//! - Statistics tracking
 
 use super::*;
 use super::constants::*;

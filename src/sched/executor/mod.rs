@@ -14,14 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod types;
-mod waker;
-mod queue;
-mod state;
-mod task;
-mod spawn;
-mod poll;
-mod stats;
+pub mod types;
+pub mod waker;
+pub mod queue;
+pub mod state;
+pub mod task;
+pub mod spawn;
+pub mod poll;
+pub mod stats;
 
 pub use types::{AsyncTask, AsyncTaskPriority, ExecutorStatsSnapshot};
 pub use spawn::{spawn_async, spawn_async_with_priority};

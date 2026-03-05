@@ -14,11 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod access;
-mod bridge;
-mod config_space;
-mod port_io;
-mod power;
+pub mod access;
+pub mod bridge;
+pub mod config_space;
+pub mod port_io;
+pub mod power;
 
 pub use access::{
     get_config_stats, make_config_address, read16, read32, read32_unchecked, read8,

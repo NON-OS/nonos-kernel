@@ -24,6 +24,8 @@ const COLOR_TEXT_DIM: u32 = 0xFF6B8080;
 const COLOR_TEXT_FEATURE: u32 = 0xFFB0D0D0;
 
 pub(super) fn draw(x: u32, y: u32, w: u32, h: u32) {
+    fill_rect(x, y, w, h, COLOR_BG_DARK);
+
     let cx = x + w / 2;
     let logo_y = y + 20;
     let logo_size = 60u32;

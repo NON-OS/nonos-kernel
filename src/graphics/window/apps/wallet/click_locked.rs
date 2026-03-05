@@ -42,8 +42,39 @@ pub(super) fn handle_locked_click(x: u32, y: u32, w: u32, h: u32) -> bool {
         return true;
     }
 
+    let new_btn_x1 = center_x.saturating_sub(60);
+    let new_btn_x2 = center_x + 60;
+    let new_btn_y1 = center_y + 90;
+    let new_btn_y2 = center_y + 118;
+
+    if x >= new_btn_x1 && x <= new_btn_x2 && y >= new_btn_y1 && y <= new_btn_y2 {
+        generate_new_wallet();
+        return true;
+    }
+
     PASSWORD_FOCUSED.store(false, Ordering::SeqCst);
     false
+}
+
+fn generate_new_wallet() {
+    use crate::crypto::core::api::generate_secure_key;
+
+    lock_wallet();
+
+    let master_key = generate_secure_key();
+
+    match init_wallet(master_key) {
+        Ok(()) => {
+            let mut pwd = PASSWORD_INPUT.lock();
+            for b in pwd.iter_mut() { *b = 0; }
+            PASSWORD_LEN.store(0, Ordering::SeqCst);
+            PASSWORD_FOCUSED.store(false, Ordering::SeqCst);
+            set_status(b"New wallet created", true);
+        }
+        Err(e) => {
+            set_status(e.as_bytes(), false);
+        }
+    }
 }
 
 pub(super) fn try_unlock() {

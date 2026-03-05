@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -21,9 +21,6 @@ use crate::crypto::util::bigint::BigUint;
 use crate::crypto::CryptoError;
 
 use super::RSA_2048;
-
-/// Re-export BigUint for backwards compatibility
-/// pub use crate::crypto::util::bigint::BigUint as BigUintExport;
 
 #[derive(Debug, Clone)]
 pub struct RsaPublicKey {
@@ -48,7 +45,7 @@ pub struct RsaPrivateKey {
 impl Drop for RsaPrivateKey {
     fn drop(&mut self) {
         // Note: BigUint from util::bigint already implements secure zeroization
-        // in its drop impl using volatile writes. No additional zeroization needed.
+        // in its Drop impl using volatile writes. No additional zeroization needed.
     }
 }
 
@@ -62,23 +59,30 @@ pub fn generate_keypair_with_bits(bits: usize) -> Result<(RsaPublicKey, RsaPriva
     }
 
     let prime_bits = bits / 2;
+
     let p = generate_prime(prime_bits)?;
     let q = generate_prime(prime_bits)?;
+
     // Ensure p != q
     if p == q {
         return generate_keypair_with_bits(bits);
     }
 
     let n = &p * &q;
+
     let one = BigUint::one();
     let p_minus_1 = &p - &one;
     let q_minus_1 = &q - &one;
     let phi_n = &p_minus_1 * &q_minus_1;
+
     let e = BigUint::from_u64(65537);
+
     let d = e.mod_inverse(&phi_n).ok_or(CryptoError::SigError)?;
+
     let dp = &d % &p_minus_1;
     let dq = &d % &q_minus_1;
     let qinv = q.mod_inverse(&p).ok_or(CryptoError::SigError)?;
+
     let public_key = RsaPublicKey {
         n: n.clone(),
         e: e.clone(),
@@ -106,13 +110,17 @@ fn generate_prime(bits: usize) -> Result<BigUint, CryptoError> {
     }
 
     let bytes = (bits + 7) / 8;
+
     for _ in 0..1000 {
         let mut candidate_bytes = get_entropy(bytes);
+
         // Set MSB to ensure correct bit length
         candidate_bytes[0] |= 0x80;
         // Set LSB to ensure odd number
         candidate_bytes[bytes - 1] |= 0x01;
+
         let candidate = BigUint::from_bytes_be(&candidate_bytes);
+
         // Use 64 rounds for cryptographic security
         if candidate.is_probably_prime(64) {
             return Ok(candidate);
@@ -166,6 +174,7 @@ pub(crate) fn rsa_private_operation(
     Ok(result)
 }
 
+/// RSA public key operation
 pub(crate) fn rsa_public_operation(
     ciphertext: &BigUint,
     public_key: &RsaPublicKey,

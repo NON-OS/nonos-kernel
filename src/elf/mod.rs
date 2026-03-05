@@ -34,6 +34,7 @@ pub mod stack;
 pub mod symbol;
 pub mod tls;
 pub mod types;
+
 pub use types::{
     DynamicEntry, ElfHeader, ProgramHeader, RelaEntry, SectionHeader, Symbol,
 };
@@ -44,6 +45,7 @@ pub use types::{
 };
 
 pub use errors::{ElfError, ElfResult};
+
 pub use loader::{
     get_elf_loader, init_elf_loader, is_initialized, load_elf_executable,
     DynamicInfo, ElfImage, ElfLoader, LoadedSegment,
@@ -65,4 +67,5 @@ pub use reloc::process_relocations;
 pub use stack::{setup_user_stack, StackConfig, StackLayout};
 pub use symbol::{ResolvedSymbol, SymbolLookup, SymbolResolver};
 pub use tls::TlsInfo;
+
 pub use minimal::{entry_from_bytes, validate_elf, validate_elf_detailed};

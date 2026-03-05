@@ -14,10 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+//! Directory service type definitions
 
 use alloc::{collections::BTreeMap, string::String, vec::Vec};
 use core::sync::atomic::{AtomicU32, AtomicU64};
 
+/// Exit policy rule for relay selection
 #[derive(Debug, Clone, PartialEq)]
 pub enum ExitRule {
     Accept { addr: String, port: String },
@@ -56,6 +58,7 @@ impl ExitRule {
     }
 }
 
+/// Directory authority information
 #[derive(Debug, Clone)]
 pub struct DirectoryAuthority {
     pub nickname: String,
@@ -66,6 +69,7 @@ pub struct DirectoryAuthority {
     pub or_port: u16,
 }
 
+/// Relay descriptor (populated from consensus+microdesc)
 #[derive(Debug, Clone)]
 pub struct RelayDescriptor {
     pub nickname: String,
@@ -86,17 +90,21 @@ pub struct RelayDescriptor {
     pub guard_probability: f32,
     pub middle_probability: f32,
     pub exit_probability: f32,
+    /// Exit policy - ports this relay accepts (empty = non-exit or unknown)
     pub exit_ports: Vec<PortRange>,
 }
 
 impl RelayDescriptor {
+    /// Check if this relay supports exiting to the given port
     pub fn allows_port(&self, port: u16) -> bool {
+        // If no exit ports specified but is_exit flag set, assume it supports common ports
         if self.exit_ports.is_empty() {
             return self.flags.is_exit;
         }
         self.exit_ports.iter().any(|r| r.contains(port))
     }
 
+    /// Check if this relay supports all required ports
     pub fn allows_all_ports(&self, ports: &[u16]) -> bool {
         if ports.is_empty() {
             return self.flags.is_exit;
@@ -105,6 +113,7 @@ impl RelayDescriptor {
     }
 }
 
+/// Relay flags from consensus
 #[derive(Debug, Clone, Default)]
 pub struct RelayFlags {
     pub is_authority: bool,
@@ -121,6 +130,7 @@ pub struct RelayFlags {
     pub is_valid: bool,
 }
 
+/// Network consensus document (parsed subset)
 #[derive(Debug, Clone)]
 pub struct NetworkConsensus {
     pub raw_body: Vec<u8>,
@@ -136,6 +146,7 @@ pub struct NetworkConsensus {
     pub bandwidth_weights: BandwidthWeights,
 }
 
+/// Header info for authorities as listed in consensus
 #[derive(Debug, Clone)]
 pub struct DirectoryAuthorityHeader {
     pub nickname: String,
@@ -145,6 +156,7 @@ pub struct DirectoryAuthorityHeader {
     pub or_port: u16,
 }
 
+/// Entry in consensus for a single relay
 #[derive(Debug, Clone)]
 pub struct ConsensusEntry {
     pub nickname: String,
@@ -162,6 +174,7 @@ pub struct ConsensusEntry {
     pub ed25519_id: Option<[u8; 32]>,
 }
 
+/// Authority signature on consensus
 #[derive(Debug, Clone)]
 pub struct ConsensusSignature {
     pub identity: [u8; 20],
@@ -175,6 +188,7 @@ pub enum SigAlg {
     Unknown,
 }
 
+/// Bandwidth weights for path selection
 #[derive(Debug, Clone, Default)]
 pub struct BandwidthWeights {
     pub weight_scale: u32,
@@ -184,6 +198,7 @@ pub struct BandwidthWeights {
     pub wmd: u32, pub wme: u32, pub wmg: u32, pub wmm: u32,
 }
 
+/// Router status enumeration
 #[derive(Debug, Clone, PartialEq)]
 pub enum RouterStatus {
     Running,
@@ -192,6 +207,7 @@ pub enum RouterStatus {
     Unknown,
 }
 
+/// Directory service statistics
 #[derive(Debug, Default)]
 pub struct DirectoryStats {
     pub consensus_fetches: AtomicU32,
@@ -204,6 +220,7 @@ pub struct DirectoryStats {
     pub exit_count: AtomicU32,
 }
 
+/// Path bias statistics for security analysis
 #[derive(Debug, Clone, Default)]
 pub struct PathBiasStats {
     pub circuits_attempted: u32,
@@ -212,13 +229,16 @@ pub struct PathBiasStats {
     pub last_updated: u64,
 }
 
+/// Parsed microdescriptor data
 #[derive(Default)]
 pub struct MicroParsed {
     pub ntor_key: [u8; 32],
     pub family: String,
+    /// Exit policy summary - ports this relay accepts (empty = rejects all exits)
     pub exit_ports: Vec<PortRange>,
 }
 
+/// Port range for exit policy
 #[derive(Debug, Clone, Copy, Default)]
 pub struct PortRange {
     pub min: u16,

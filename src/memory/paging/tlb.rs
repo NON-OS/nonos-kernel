@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -14,8 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+//! TLB (Translation Lookaside Buffer) Management
+
 use x86_64::{PhysAddr, VirtAddr};
+
 use super::constants::PAGE_SIZE_4K;
+
+/// Invalidates TLB entry for a single page.
 #[inline]
 pub fn invalidate_page(va: VirtAddr) {
     // SAFETY: INVLPG is always safe to execute
@@ -28,6 +33,7 @@ pub fn invalidate_page(va: VirtAddr) {
     }
 }
 
+/// Invalidates entire TLB by reloading CR3.
 #[inline]
 pub fn invalidate_all() {
     // SAFETY: Reading and writing CR3 is safe
@@ -38,6 +44,7 @@ pub fn invalidate_all() {
     }
 }
 
+/// Invalidates a range of pages.
 pub fn invalidate_range(start: VirtAddr, page_count: usize) {
     // For large ranges, it's more efficient to flush entire TLB
     if page_count > 32 {
@@ -51,6 +58,7 @@ pub fn invalidate_range(start: VirtAddr, page_count: usize) {
     }
 }
 
+/// Flushes TLB entries for a specific address space (by reloading CR3).
 #[inline]
 pub fn flush_address_space(cr3_value: PhysAddr) {
     // SAFETY: Loading valid page table into CR3
@@ -62,6 +70,8 @@ pub fn flush_address_space(cr3_value: PhysAddr) {
         );
     }
 }
+
+/// Gets current CR3 value.
 #[inline]
 pub fn get_cr3() -> PhysAddr {
     let cr3: u64;
@@ -71,6 +81,8 @@ pub fn get_cr3() -> PhysAddr {
     }
     PhysAddr::new(cr3 & !0xFFF) // Mask out flags
 }
+
+/// Sets CR3 to a new page table.
 #[inline]
 pub fn set_cr3(page_table_pa: PhysAddr) {
     // SAFETY: Caller must ensure page_table_pa points to valid page table
@@ -82,9 +94,12 @@ pub fn set_cr3(page_table_pa: PhysAddr) {
         );
     }
 }
+
 // ============================================================================
 // WRITE PROTECTION CONTROL
 // ============================================================================
+
+/// Enables write protection in CR0.
 #[inline]
 pub fn enable_write_protection() {
     // SAFETY: Modifying CR0 WP bit
@@ -98,12 +113,15 @@ pub fn enable_write_protection() {
         );
     }
 }
+
+/// Disables write protection in CR0.
+///
 /// # Safety
 ///
 /// Caller must ensure this is only used temporarily for legitimate
 /// kernel operations and re-enabled immediately after.
 #[inline]
-pub unsafe fn disable_write_protection() {
+pub unsafe fn disable_write_protection() { unsafe {
     core::arch::asm!(
         "mov {tmp}, cr0",
         "and {tmp:e}, 0xFFFEFFFF",
@@ -111,7 +129,10 @@ pub unsafe fn disable_write_protection() {
         tmp = out(reg) _,
         options(nostack, preserves_flags)
     );
-}
+}}
+
+/// Executes a closure with write protection temporarily disabled.
+///
 /// # Safety
 ///
 /// Caller must ensure the closure only performs legitimate kernel
@@ -120,9 +141,9 @@ pub unsafe fn disable_write_protection() {
 pub unsafe fn with_write_protection_disabled<F, R>(f: F) -> R
 where
     F: FnOnce() -> R,
-{
+{ unsafe {
     disable_write_protection();
     let result = f();
     enable_write_protection();
     result
-}
+}}

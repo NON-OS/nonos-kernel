@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -53,11 +53,10 @@ pub fn ct_popcount_u64(mut x: u64) -> u32 {
 
 #[inline(always)]
 pub fn ct_clz_u64(x: u64) -> u32 {
-    let mut n: u32 = 0;
     let mut val = x;
 
     let upper_zero = ct_is_zero_u64(val >> 32);
-    n = ct_select_u32(upper_zero != 0, 32, 0);
+    let mut n = ct_select_u32(upper_zero != 0, 32, 0);
     val = ct_select_u64(upper_zero != 0, val << 32, val);
 
     let upper_zero = ct_is_zero_u64(val >> 48);

@@ -14,15 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod types;
-mod core;
-mod ops;
-mod memory;
-mod tests;
-mod ed25519;
-mod x25519;
-mod aes;
-mod init;
+pub mod types;
+pub mod core;
+pub mod ops;
+pub mod memory;
+pub mod tests;
+pub mod ed25519;
+pub mod x25519;
+pub mod aes;
+pub mod init;
 
 pub use types::{CtVerifyResult, TimingMode, SelfTestResult};
 pub use self::core::{

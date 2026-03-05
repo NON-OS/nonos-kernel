@@ -14,15 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+//! NONOS Ecosystem Liquidity Provider Module.
+
 extern crate alloc;
 
-mod api;
 pub mod contract;
 mod ops;
 pub mod pool;
 pub mod state;
 
-pub use api::{start, stop, is_running};
 pub use contract::{
     add_liquidity, claim_lp_rewards, compound_rewards, get_lp_position, remove_liquidity,
     LpContract,
@@ -30,3 +30,19 @@ pub use contract::{
 pub use ops::auto_compound;
 pub use pool::{calculate_lp_share, estimate_output, PoolInfo};
 pub use state::{get_lp_state, init, is_initialized, LpState};
+
+use core::sync::atomic::{AtomicBool, Ordering};
+
+static RUNNING: AtomicBool = AtomicBool::new(false);
+
+pub fn start() {
+    RUNNING.store(true, Ordering::SeqCst);
+}
+
+pub fn stop() {
+    RUNNING.store(false, Ordering::SeqCst);
+}
+
+pub fn is_running() -> bool {
+    RUNNING.load(Ordering::Relaxed)
+}

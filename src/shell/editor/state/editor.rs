@@ -233,6 +233,28 @@ impl Editor {
     pub fn is_error(&self) -> bool {
         self.error
     }
+
+    pub fn get_register(&self, c: char) -> Option<&Register> {
+        if c == '"' {
+            Some(&self.default_register)
+        } else if c.is_ascii_lowercase() {
+            let idx = (c as usize) - ('a' as usize);
+            self.registers.get(idx)
+        } else {
+            None
+        }
+    }
+
+    pub fn get_register_mut(&mut self, c: char) -> Option<&mut Register> {
+        if c == '"' {
+            Some(&mut self.default_register)
+        } else if c.is_ascii_lowercase() {
+            let idx = (c as usize) - ('a' as usize);
+            self.registers.get_mut(idx)
+        } else {
+            None
+        }
+    }
 }
 
 impl Default for Editor {

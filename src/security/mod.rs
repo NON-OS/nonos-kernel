@@ -116,7 +116,12 @@ pub use network::dns_privacy;
 pub use network::zkids;
 
 pub use network::dns_privacy::*;
-pub use network::zkids::*;
+pub use network::zkids::{
+    ZkId, AuthChallenge, AuthResponse, AuthSession, ZkidsManager, ZkidsConfig, ZkidsStats,
+    Capability as ZkidsCapability,
+    register_zkid, create_auth_challenge, authenticate_with_zkproof, validate_session, has_capability, get_zkids_stats,
+    init_zkids, export_zkid, import_zkid, cleanup_expired,
+};
 
 pub use quantum::pqc;
 

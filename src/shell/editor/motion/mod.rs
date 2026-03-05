@@ -14,12 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod types;
-mod execute;
-mod word;
-mod line;
-mod search;
-mod util;
+pub mod types;
+pub mod execute;
+pub mod word;
+pub mod line;
+pub mod search;
+pub mod util;
 
 pub use self::types::{Motion, MotionResult};
 pub use self::execute::execute_motion;

@@ -84,7 +84,10 @@ pub fn verify_kernel(kernel_data: &[u8]) -> SecureBootResult<()> {
         return Err(SecureBootError::SignatureInvalid);
     }
 
-    let _result = verify_code_signature(code, &signature)?;
+    let code_hash = verify_code_signature(code, &signature)?;
+    if code_hash == [0u8; 32] {
+        return Err(SecureBootError::SignatureInvalid);
+    }
 
     let mut measurements = BOOT_MEASUREMENTS.write();
     measurements.kernel_hash = crate::crypto::blake3::blake3_hash(code);

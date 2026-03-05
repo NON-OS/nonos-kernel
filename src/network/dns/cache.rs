@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+//! DNS cache and statistics
 
 use alloc::collections::VecDeque;
 use alloc::vec::Vec;
@@ -22,6 +23,7 @@ use spin::Mutex;
 
 use super::types::{DnsCacheEntry, DnsQueryRecord, PendingQuery};
 
+/// DNS resolver cache and history
 pub struct DnsCache {
     pub entries: VecDeque<DnsCacheEntry>,
     pub query_history: VecDeque<DnsQueryRecord>,
@@ -29,6 +31,7 @@ pub struct DnsCache {
 }
 
 impl DnsCache {
+    /// Create new empty cache
     pub const fn new() -> Self {
         Self {
             entries: VecDeque::new(),
@@ -38,6 +41,7 @@ impl DnsCache {
     }
 }
 
+/// DNS statistics
 pub struct DnsStats {
     pub queries_total: AtomicU64,
     pub queries_cached: AtomicU64,
@@ -45,6 +49,7 @@ pub struct DnsStats {
 }
 
 impl DnsStats {
+    /// Create new statistics
     pub const fn new() -> Self {
         Self {
             queries_total: AtomicU64::new(0),
@@ -53,18 +58,22 @@ impl DnsStats {
         }
     }
 
+    /// Increment total queries
     pub fn inc_total(&self) {
         self.queries_total.fetch_add(1, Ordering::Relaxed);
     }
 
+    /// Increment cached hits
     pub fn inc_cached(&self) {
         self.queries_cached.fetch_add(1, Ordering::Relaxed);
     }
 
+    /// Increment failed queries
     pub fn inc_failed(&self) {
         self.queries_failed.fetch_add(1, Ordering::Relaxed);
     }
 
+    /// Get statistics tuple (total, cached, failed)
     pub fn get(&self) -> (u64, u64, u64) {
         (
             self.queries_total.load(Ordering::Relaxed),
@@ -74,6 +83,8 @@ impl DnsStats {
     }
 }
 
+/// Global DNS cache
 pub static DNS_CACHE: Mutex<DnsCache> = Mutex::new(DnsCache::new());
 
+/// Global DNS statistics
 pub static DNS_STATS: DnsStats = DnsStats::new();

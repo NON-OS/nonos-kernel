@@ -68,6 +68,7 @@ impl GnuHashTable {
         let bloom_filter = VirtAddr::new(hash_addr.as_u64() + 16);
         let buckets = VirtAddr::new(bloom_filter.as_u64() + (header.bloom_size as u64 * 8));
         let chains = VirtAddr::new(buckets.as_u64() + (header.nbuckets as u64 * 4));
+
         Ok(Self { header, bloom_filter, buckets, chains, symtab, strtab, strtab_size })
     }
 
@@ -147,7 +148,7 @@ impl GnuHashTable {
 
         // SAFETY: Symbol index is validated by hash table lookup
         let sym_ptr =
-            unsafe { (self.symtab.as_u64() + (sym_idx * Symbol::SIZE) as u64) as *const Symbol };
+            (self.symtab.as_u64() + (sym_idx * Symbol::SIZE) as u64) as *const Symbol;
 
         let sym = unsafe { ptr::read(sym_ptr) };
 

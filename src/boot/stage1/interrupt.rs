@@ -29,6 +29,7 @@ pub unsafe fn init_interrupts() -> Result<(), &'static str> {
 
     let _ = unsafe { crate::arch::x86_64::interrupt::apic::init() };
 
+    // ACPI initialization is optional - fallback to legacy if it fails
     match crate::arch::x86_64::acpi::init() {
         Ok(()) => {}
         Err(e) => {
@@ -36,6 +37,7 @@ pub unsafe fn init_interrupts() -> Result<(), &'static str> {
         }
     }
 
+    // Initialize IOAPIC if ACPI is available
     if crate::arch::x86_64::acpi::is_initialized() {
         if let Some(madt) = crate::arch::x86_64::acpi::madt::parse_madt() {
             let ioapics: Vec<MadtIoApic> = madt

@@ -34,7 +34,7 @@ const _DATA_SUBTYPE_DATA: u8 = 0;
 const _DATA_SUBTYPE_QOS_DATA: u8 = 8;
 
 #[derive(Debug, Clone)]
-pub(super) struct _RxFrameInfo {
+pub struct _RxFrameInfo {
     pub frame_type: _FrameType,
     pub subtype: u8,
     pub to_ds: bool,
@@ -49,7 +49,7 @@ pub(super) struct _RxFrameInfo {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub(super) enum _FrameType {
+pub enum _FrameType {
     Management,
     Control,
     Data,
@@ -57,7 +57,7 @@ pub(super) enum _FrameType {
 }
 
 #[derive(Debug, Clone)]
-pub(super) struct _RxFrame {
+pub struct _RxFrame {
     pub info: _RxFrameInfo,
     pub data: Vec<u8>,
     pub rssi: i8,
@@ -65,7 +65,7 @@ pub(super) struct _RxFrame {
     pub timestamp: u64,
 }
 
-pub(super) struct _RxProcessor {
+pub struct _RxProcessor {
     bssid_filter: Option<[u8; 6]>,
     our_mac: [u8; 6],
     pub promiscuous: bool,
@@ -77,7 +77,7 @@ pub(super) struct _RxProcessor {
 }
 
 impl _RxProcessor {
-    pub(super) fn new() -> Self {
+    pub fn new() -> Self {
         Self {
             bssid_filter: None,
             our_mac: [0; 6],
@@ -90,19 +90,19 @@ impl _RxProcessor {
         }
     }
 
-    pub(super) fn set_bssid_filter(&mut self, bssid: Option<[u8; 6]>) {
+    pub fn set_bssid_filter(&mut self, bssid: Option<[u8; 6]>) {
         self.bssid_filter = bssid;
     }
 
-    pub(super) fn set_our_mac(&mut self, mac: [u8; 6]) {
+    pub fn set_our_mac(&mut self, mac: [u8; 6]) {
         self.our_mac = mac;
     }
 
-    pub(super) fn set_promiscuous(&mut self, enable: bool) {
+    pub fn set_promiscuous(&mut self, enable: bool) {
         self.promiscuous = enable;
     }
 
-    pub(super) fn process_frame(&mut self, raw_frame: &[u8], rssi: i8, channel: u8) -> Option<_RxFrameInfo> {
+    pub fn process_frame(&mut self, raw_frame: &[u8], rssi: i8, channel: u8) -> Option<_RxFrameInfo> {
         self.frames_received += 1;
 
         let info = match self.parse_frame(raw_frame) {
@@ -237,36 +237,36 @@ impl _RxProcessor {
         false
     }
 
-    pub(super) fn dequeue_data(&mut self) -> Option<_RxFrame> {
+    pub fn dequeue_data(&mut self) -> Option<_RxFrame> {
         self.data_queue.pop_front()
     }
 
-    pub(super) fn dequeue_mgmt(&mut self) -> Option<_RxFrame> {
+    pub fn dequeue_mgmt(&mut self) -> Option<_RxFrame> {
         self.mgmt_queue.pop_front()
     }
 
-    pub(super) fn has_data(&self) -> bool {
+    pub fn has_data(&self) -> bool {
         !self.data_queue.is_empty()
     }
 
-    pub(super) fn has_mgmt(&self) -> bool {
+    pub fn has_mgmt(&self) -> bool {
         !self.mgmt_queue.is_empty()
     }
 
-    pub(super) fn data_queue_len(&self) -> usize {
+    pub fn data_queue_len(&self) -> usize {
         self.data_queue.len()
     }
 
-    pub(super) fn stats(&self) -> (u64, u64, u64) {
+    pub fn stats(&self) -> (u64, u64, u64) {
         (self.frames_received, self.frames_filtered, self.frames_malformed)
     }
 
-    pub(super) fn clear(&mut self) {
+    pub fn clear(&mut self) {
         self.data_queue.clear();
         self.mgmt_queue.clear();
     }
 
-    pub(super) fn get_source_mac(info: &_RxFrameInfo) -> [u8; 6] {
+    pub fn get_source_mac(info: &_RxFrameInfo) -> [u8; 6] {
         match (info.to_ds, info.from_ds) {
             (false, false) => info.addr2,
             (true, false) => info.addr2,
@@ -275,7 +275,7 @@ impl _RxProcessor {
         }
     }
 
-    pub(super) fn get_dest_mac(info: &_RxFrameInfo) -> [u8; 6] {
+    pub fn get_dest_mac(info: &_RxFrameInfo) -> [u8; 6] {
         match (info.to_ds, info.from_ds) {
             (false, false) => info.addr1,
             (true, false) => info.addr3,
@@ -284,7 +284,7 @@ impl _RxProcessor {
         }
     }
 
-    pub(super) fn get_bssid(info: &_RxFrameInfo) -> [u8; 6] {
+    pub fn get_bssid(info: &_RxFrameInfo) -> [u8; 6] {
         match (info.to_ds, info.from_ds) {
             (false, false) => info.addr3,
             (true, false) => info.addr1,
@@ -293,7 +293,7 @@ impl _RxProcessor {
         }
     }
 
-    pub(super) fn is_eapol_frame(data: &[u8], info: &_RxFrameInfo) -> bool {
+    pub fn is_eapol_frame(data: &[u8], info: &_RxFrameInfo) -> bool {
         if info.payload_len < 8 {
             return false;
         }

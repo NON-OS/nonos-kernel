@@ -14,17 +14,21 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+//! Firewall public API functions.
 
 extern crate alloc;
 
 use alloc::string::String;
 
-use super::engine_core::Firewall;
+use super::engine::Firewall;
 use super::types::{Action, Direction, IpMatch, PortMatch, Protocol, Rule, RuleStats};
 
+/// Global firewall instance
 static FIREWALL: Firewall = Firewall::new();
 
+/// Initialize the firewall with default rules
 pub fn init() -> Result<(), &'static str> {
+    // Allow loopback
     FIREWALL.add_rule(Rule {
         id: 0,
         name: String::from("allow-loopback"),
@@ -42,6 +46,7 @@ pub fn init() -> Result<(), &'static str> {
         stats: RuleStats::default(),
     });
 
+    // Allow established connections
     FIREWALL.add_rule(Rule {
         id: 0,
         name: String::from("allow-established"),
@@ -59,6 +64,7 @@ pub fn init() -> Result<(), &'static str> {
         stats: RuleStats::default(),
     });
 
+    // Allow outbound DNS
     FIREWALL.add_rule(Rule {
         id: 0,
         name: String::from("allow-dns-out"),
@@ -76,6 +82,7 @@ pub fn init() -> Result<(), &'static str> {
         stats: RuleStats::default(),
     });
 
+    // Allow outbound HTTP/HTTPS
     FIREWALL.add_rule(Rule {
         id: 0,
         name: String::from("allow-http-out"),
@@ -93,6 +100,7 @@ pub fn init() -> Result<(), &'static str> {
         stats: RuleStats::default(),
     });
 
+    // Allow Anyone.io directory/relay ports
     FIREWALL.add_rule(Rule {
         id: 0,
         name: String::from("allow-anyone-out"),
@@ -114,10 +122,12 @@ pub fn init() -> Result<(), &'static str> {
     Ok(())
 }
 
+/// Get the global firewall instance
 pub fn get_firewall() -> &'static Firewall {
     &FIREWALL
 }
 
+/// Process an incoming packet
 pub fn filter_inbound(
     protocol: Protocol,
     src_ip: [u8; 4],
@@ -138,6 +148,7 @@ pub fn filter_inbound(
     action == Action::Allow
 }
 
+/// Process an outgoing packet
 pub fn filter_outbound(
     protocol: Protocol,
     src_ip: [u8; 4],
@@ -158,14 +169,17 @@ pub fn filter_outbound(
     action == Action::Allow
 }
 
+/// Add a firewall rule
 pub fn add_rule(rule: Rule) -> u32 {
     FIREWALL.add_rule(rule)
 }
 
+/// Remove a firewall rule
 pub fn remove_rule(id: u32) -> Result<(), &'static str> {
     FIREWALL.remove_rule(id)
 }
 
+/// Run periodic maintenance
 pub fn maintenance() {
     FIREWALL.cleanup_expired_connections();
 }

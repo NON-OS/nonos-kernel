@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod types;
-mod prove;
-mod verify;
+pub(super) mod types;
+pub(super) mod prove;
+pub(super) mod verify;
 
-pub use types::{BitProof, RangeProof};
+pub(crate) use types::RangeProof;

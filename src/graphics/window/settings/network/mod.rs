@@ -25,6 +25,9 @@ pub mod state;
 pub mod wifi;
 
 pub(super) use input::handle_click;
-pub(super) use input::handle_key as process_key;
 pub(super) use render::draw;
 pub(super) use state::sync_from_system;
+
+pub(crate) fn process_key(key: u8) -> bool {
+    input::handle_key(key)
+}

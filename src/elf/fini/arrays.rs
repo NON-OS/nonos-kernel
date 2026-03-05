@@ -85,6 +85,7 @@ impl FiniArrayRunner {
 
         for i in (0..count).rev() {
             let fn_ptr_addr = info.addr.as_u64() + (i * FINI_FN_SIZE) as u64;
+
             // SAFETY: Caller ensures fini array is valid and functions are callable
             unsafe {
                 let fn_ptr = ptr::read(fn_ptr_addr as *const u64);
@@ -139,6 +140,7 @@ pub fn run_fini_array(addr: VirtAddr, size: usize) -> ElfResult<usize> {
 
     for i in (0..count).rev() {
         let fn_ptr_addr = addr.as_u64() + (i * FINI_FN_SIZE) as u64;
+
         // SAFETY: Caller ensures fini array is valid and functions are callable
         unsafe {
             let fn_ptr = ptr::read(fn_ptr_addr as *const u64);

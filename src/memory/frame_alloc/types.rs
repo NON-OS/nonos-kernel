@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -16,8 +16,10 @@
 use core::sync::atomic::{AtomicUsize, Ordering};
 use alloc::vec::Vec;
 use x86_64::{PhysAddr, structures::paging::{PhysFrame, Size4KiB, FrameAllocator as X86FrameAllocator}};
+
 use super::constants::*;
 use super::error::{FrameAllocError, FrameResult};
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct FrameRange {
     pub start: PhysAddr,
@@ -76,6 +78,7 @@ impl FrameAllocator {
 
     pub fn alloc(&mut self) -> Option<PhysFrame> {
         if !self.initialized { return None; }
+
         if let Some(frame) = crate::memory::phys::alloc(crate::memory::phys::AllocFlags::EMPTY) {
             let phys_frame = PhysFrame::containing_address(PhysAddr::new(frame.0));
             self.frames_allocated.fetch_add(1, Ordering::Relaxed);

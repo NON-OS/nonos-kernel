@@ -15,12 +15,12 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 
-mod types;
-mod helpers;
-mod account;
-mod session;
-mod manager;
-mod api;
+pub mod types;
+pub mod helpers;
+pub mod account;
+pub mod session;
+pub mod manager;
+pub mod api;
 
 pub use types::{PrivilegeLevel, SessionState, UID_ROOT, UID_ANONYMOUS, UID_DEFAULT, GID_ROOT, GID_WHEEL, GID_USERS};
 pub use account::UserAccount;

@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -13,6 +13,8 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+//! Page Info Unit Tests
 
 use super::*;
 use super::constants::*;
@@ -137,7 +139,9 @@ fn test_page_info_new() {
     let pa = PhysAddr::new(0x1000);
     let va = Some(VirtAddr::new(0xFFFF_8000_0000_1000));
     let flags = PageFlags::PRESENT.union(PageFlags::WRITABLE);
+
     let info = PageInfo::new(pa, va, flags);
+
     assert_eq!(info.physical_addr, pa);
     assert_eq!(info.virtual_addr, va);
     assert_eq!(info.flags, flags);
@@ -149,8 +153,10 @@ fn test_page_info_new() {
 #[test]
 fn test_page_info_is_mapped() {
     let pa = PhysAddr::new(0x1000);
+
     let mapped = PageInfo::new(pa, Some(VirtAddr::new(0x1000)), PageFlags::PRESENT);
     assert!(mapped.is_mapped());
+
     let unmapped = PageInfo::new(pa, None, PageFlags::PRESENT);
     assert!(!unmapped.is_mapped());
 }
@@ -158,8 +164,10 @@ fn test_page_info_is_mapped() {
 #[test]
 fn test_page_info_is_dirty() {
     let pa = PhysAddr::new(0x1000);
+
     let dirty = PageInfo::new(pa, None, PageFlags::DIRTY);
     assert!(dirty.is_dirty());
+
     let clean = PageInfo::new(pa, None, PageFlags::PRESENT);
     assert!(!clean.is_dirty());
 }
@@ -167,11 +175,17 @@ fn test_page_info_is_dirty() {
 #[test]
 fn test_page_info_is_locked() {
     let pa = PhysAddr::new(0x1000);
+
     let locked = PageInfo::new(pa, None, PageFlags::LOCKED);
     assert!(locked.is_locked());
+
     let unlocked = PageInfo::new(pa, None, PageFlags::PRESENT);
     assert!(!unlocked.is_locked());
 }
+
+// ============================================================================
+// PAGE STATS SNAPSHOT TESTS
+// ============================================================================
 
 #[test]
 fn test_page_stats_snapshot_default() {
@@ -190,9 +204,14 @@ fn test_page_stats_snapshot_default() {
     assert_eq!(snapshot.page_accesses, 0);
 }
 
+// ============================================================================
+// INTEGRATION TESTS
+// ============================================================================
+
 #[test]
 fn test_get_page_stats_returns_tuple() {
     let (total, mapped, dirty, locked, accesses) = get_page_stats();
+    // Just verify the function returns without panic
     assert!(total >= 0);
     assert!(mapped >= 0);
     assert!(dirty >= 0);

@@ -39,31 +39,16 @@ pub(super) fn has_md_clear() -> bool {
     (result.edx & (1 << 10)) != 0
 }
 
-pub(super) fn has_tsx() -> bool {
-    let result = core::arch::x86_64::__cpuid_count(7, 0);
-    let rtm = (result.ebx & (1 << 11)) != 0;
-    let hle = (result.ebx & (1 << 4)) != 0;
-    rtm || hle
-}
-
 pub(super) fn has_arch_capabilities() -> bool {
     let result = core::arch::x86_64::__cpuid_count(7, 0);
     (result.edx & (1 << 29)) != 0
 }
 
-pub(super) fn vendor() -> [u8; 12] {
+pub(super) fn is_amd() -> bool {
     let result = core::arch::x86_64::__cpuid(0);
     let mut vendor = [0u8; 12];
     vendor[0..4].copy_from_slice(&result.ebx.to_le_bytes());
     vendor[4..8].copy_from_slice(&result.edx.to_le_bytes());
     vendor[8..12].copy_from_slice(&result.ecx.to_le_bytes());
-    vendor
-}
-
-pub(super) fn is_intel() -> bool {
-    vendor() == *b"GenuineIntel"
-}
-
-pub(super) fn is_amd() -> bool {
-    vendor() == *b"AuthenticAMD"
+    vendor == *b"AuthenticAMD"
 }

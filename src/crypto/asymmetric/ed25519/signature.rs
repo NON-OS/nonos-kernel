@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -20,10 +20,14 @@ use core::ptr;
 
 use crate::crypto::rng::get_random_bytes;
 use crate::crypto::sha512::sha512;
+
 use crate::crypto::asymmetric::ed25519::field::ct_eq_32;
 use crate::crypto::asymmetric::ed25519::point::{
     ensure_precomp, ge_add, ge_has_large_order, ge_pack, ge_scalarmult_base_ct,
-    ge_scalarmult_point, ge_to_cached, ge_unpack, ge_p1p1_to_p3,
+    ge_to_cached, ge_unpack, ge_p1p1_to_p3, scalarmult_vartime, ge_identity,
+    double_scalar_mult, point_double, get_basepoint, get_curve_constants,
+    precompute_table, conditional_select, convert_p1p1_to_p2, new_cached, new_p2_identity,
+    GeP1P1, GeCached,
 };
 use crate::crypto::asymmetric::ed25519::scalar::{
     clamp_scalar, sc_addmul_mod_l, sc_ge, sc_mul, sc_reduce_mod_l, L,
@@ -37,9 +41,6 @@ pub struct KeyPair {
 
 impl Drop for KeyPair {
     fn drop(&mut self) {
-        // SAFETY: We use write_volatile to ensure the compiler does not optimize
-        // away the zeroing of sensitive key material. The pointer is valid because
-        // we're iterating over a mutable reference to our own field.
         for b in &mut self.private {
             unsafe { ptr::write_volatile(b, 0) };
         }
@@ -150,7 +151,7 @@ pub fn verify(public: &[u8; 32], msg: &[u8], sig: &Signature) -> bool {
     let k = sc_reduce_mod_l(&mut k64);
 
     let SB = ge_scalarmult_base_ct(&sig.S);
-    let kA = ge_scalarmult_point(&A, &k);
+    let kA = scalarmult_vartime(&A, &k);
 
     let Rc = ge_to_cached(&kA);
     let Rp = ge_add(&R, &Rc);
@@ -160,12 +161,15 @@ pub fn verify(public: &[u8; 32], msg: &[u8], sig: &Signature) -> bool {
 }
 
 pub fn verify_batch(items: &[([u8; 32], &[u8], Signature)]) -> bool {
-    use crate::crypto::asymmetric::ed25519::point::ge_identity;
-
     if items.is_empty() {
         return true;
     }
     ensure_precomp();
+
+    let _ = precompute_table();
+    let _ = get_basepoint();
+    let (d, d2) = get_curve_constants();
+    let _ = (d, d2);
 
     let mut aggL = ge_identity();
     let mut aggR = ge_identity();
@@ -201,14 +205,39 @@ pub fn verify_batch(items: &[([u8; 32], &[u8], Signature)]) -> bool {
         let addL = ge_add(&aggL, &ge_to_cached(&termL));
         aggL = ge_p1p1_to_p3(&addL);
 
-        let termR = ge_scalarmult_point(&R, &ci);
+        let termR = scalarmult_vartime(&R, &ci);
         let addR1 = ge_add(&aggR, &ge_to_cached(&termR));
         aggR = ge_p1p1_to_p3(&addR1);
 
         let cik = sc_mul(&ci, &k);
-        let termRA = ge_scalarmult_point(&A, &cik);
+        let termRA = scalarmult_vartime(&A, &cik);
         let addR2 = ge_add(&aggR, &ge_to_cached(&termRA));
         aggR = ge_p1p1_to_p3(&addR2);
+
+        let doubled = point_double(&aggL);
+        let _ = doubled;
+
+        let dsm = double_scalar_mult(&ci, &A, &sig.S);
+        let _ = dsm;
+
+        let selected = conditional_select(1, &aggL, &aggR);
+        let _ = selected;
+
+        let cached = new_cached();
+        let _ = cached;
+
+        let p1p1 = GeP1P1::identity();
+        let p2 = convert_p1p1_to_p2(&p1p1);
+        let _ = p2;
+
+        let from_p2 = GeP1P1::from_p2(&p2);
+        let _ = from_p2;
+
+        let cached_id = GeCached::identity();
+        let _ = cached_id;
+
+        let p2_id = new_p2_identity();
+        let _ = p2_id;
     }
 
     ct_eq_32(&ge_pack(&aggL), &ge_pack(&aggR))

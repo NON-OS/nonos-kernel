@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -61,6 +61,7 @@ impl EqualityProof {
         let c_fe = FieldElement::from_bytes(&challenge);
         let k_fe = FieldElement::from_bytes(&k);
         let response = k_fe.add(&c_fe.mul(&diff));
+
         for b in transcript.iter_mut() {
             unsafe { ptr::write_volatile(b, 0) };
         }
@@ -74,19 +75,23 @@ impl EqualityProof {
         }
     }
 
-    // # SECURITY: Constant-time verification using error accumulation
+    // SECURITY: Constant-time verification using error accumulation
     // Always performs all operations regardless of intermediate results
     pub fn verify(&self, comm1: &PedersenCommitment, comm2: &PedersenCommitment) -> bool {
+        // Accumulate validity - no early returns
         let mut valid: u8 = 1;
 
+        // Try to decompress all points (always do all operations)
         let r_point = EdwardsPoint::decompress(&self.nonce_commitment);
         let c1_point = comm1.to_point();
         let c2_point = comm2.to_point();
 
+        // Record if any decompression failed (before consuming Options)
         valid &= ct_option_is_some(&r_point);
         valid &= ct_option_is_some(&c1_point);
         valid &= ct_option_is_some(&c2_point);
 
+        // Use identity point as fallback for invalid decompressions (still compute everything)
         let r_pt = r_point.unwrap_or_else(EdwardsPoint::identity);
         let c1_pt = c1_point.unwrap_or_else(EdwardsPoint::identity);
         let c2_pt = c2_point.unwrap_or_else(EdwardsPoint::identity);
@@ -98,21 +103,25 @@ impl EqualityProof {
         transcript.extend_from_slice(&self.nonce_commitment);
         let expected_challenge = blake3_hash(&transcript);
 
+        // Constant-time challenge comparison
         valid &= ct_bytes_eq(&self.challenge, &expected_challenge);
 
         let h = PedersenCommitment::generator_h();
+
+        // Always compute the verification equation
         let lhs = h.scalar_mul(&self.response);
         let c1_minus_c2 = c1_pt.add(&c2_pt.negate());
         let c_times_diff = c1_minus_c2.scalar_mul(&self.challenge);
         let rhs = r_pt.add(&c_times_diff);
 
+        // Final equality check
         valid &= ct_bytes_eq(&lhs.compress(), &rhs.compress());
 
         valid == 1
     }
 }
 
-// # SECURITY: Constant-time check if Option is Some returns 1 if Some, 0 if None
+// SECURITY: Constant-time check if Option is Some - returns 1 if Some, 0 if None
 #[inline]
 fn ct_option_is_some<T>(opt: &Option<T>) -> u8 {
     match opt {
@@ -121,13 +130,14 @@ fn ct_option_is_some<T>(opt: &Option<T>) -> u8 {
     }
 }
 
-// # SECURITY: Constant-time byte equality check
+// SECURITY: Constant-time byte equality check
 #[inline]
 fn ct_bytes_eq(a: &[u8; 32], b: &[u8; 32]) -> u8 {
     let mut diff: u8 = 0;
     for i in 0..32 {
         diff |= a[i] ^ b[i];
     }
+    // If diff is 0, return 1; if diff is nonzero, return 0
     let is_nonzero = (diff as u16 | (diff as u16).wrapping_neg()) >> 8;
     (1 ^ is_nonzero) as u8
 }

@@ -14,12 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod constants;
-mod types;
-mod transitions;
-mod context;
-mod memory;
-mod api;
+pub mod constants;
+pub mod types;
+pub mod transitions;
+pub mod context;
+pub mod memory;
+pub mod api;
 
 pub use constants::{
     USER_HEAP_START, USER_STACK_BASE, USER_STACK_SIZE,

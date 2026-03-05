@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -13,15 +13,19 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+//! Physical memory frame allocator.
 
 extern crate alloc;
+
 pub mod allocator;
 mod bitmap;
 pub mod constants;
 pub mod error;
 mod types;
+
 #[cfg(test)]
 mod tests;
+
 pub use allocator::{
     phys_alloc as alloc, phys_alloc_contiguous as alloc_contiguous,
     phys_allocate_frame as allocate_frame, phys_deallocate_frame as deallocate_frame,
@@ -29,6 +33,7 @@ pub use allocator::{
     phys_init_with_bitmap as init_with_bitmap, phys_is_initialized as is_initialized,
     phys_managed_range as managed_range, phys_total_free_frames as total_free_frames,
     phys_total_memory as total_memory, phys_zone_stats as zone_stats,
+    phys_find_first_free as find_first_free,
 };
 pub use constants::*;
 pub use error::{PhysAllocError, PhysAllocResult};

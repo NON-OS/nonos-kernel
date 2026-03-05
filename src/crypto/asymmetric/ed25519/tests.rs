@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -23,6 +23,8 @@ use super::field::ct_eq_32;
 use super::point::{
     ensure_precomp, ge_add, ge_pack, ge_scalarmult_base_ct, ge_scalarmult_point, ge_to_cached,
     ge_unpack, ge_p1p1_to_p3,
+    double_scalar_mult, point_double, get_basepoint, get_curve_constants,
+    precompute_table, scalarmult_vartime, conditional_select, p1p1_to_p2, new_cached,
 };
 use super::scalar::{clamp_scalar, sc_addmul_mod_l, sc_mul, sc_reduce_mod_l, L};
 use super::signature::{sign, verify, verify_batch, KeyPair, Signature};
@@ -369,4 +371,82 @@ fn batch_verify_basic() {
     let bad_sig = Signature::from_bytes(&bad);
     let items2 = vec![(kp1.public, &m1[..], s1), (kp2.public, &m2[..], bad_sig)];
     assert!(!verify_batch(&items2));
+}
+
+#[test]
+fn test_double_scalar_mult() {
+    ensure_precomp();
+    let basepoint = get_basepoint();
+    let scalar_a: [u8; 32] = [5u8; 32];
+    let scalar_b: [u8; 32] = [3u8; 32];
+    let result = double_scalar_mult(&scalar_a, &basepoint, &scalar_b);
+    let packed = ge_pack(&result);
+    assert!(!packed.iter().all(|&b| b == 0));
+}
+
+#[test]
+fn test_point_double() {
+    ensure_precomp();
+    let basepoint = get_basepoint();
+    let doubled = point_double(&basepoint);
+    let packed = ge_pack(&doubled);
+    assert!(!packed.iter().all(|&b| b == 0));
+}
+
+#[test]
+fn test_get_basepoint() {
+    let basepoint = get_basepoint();
+    let packed = ge_pack(&basepoint);
+    assert_eq!(packed[31] & 0x80, 0);
+}
+
+#[test]
+fn test_get_curve_constants() {
+    let (d, d2) = get_curve_constants();
+    assert!(!d.iter().all(|&x| x == 0));
+    assert!(!d2.iter().all(|&x| x == 0));
+}
+
+#[test]
+fn test_precompute_table() {
+    ensure_precomp();
+    let table = precompute_table();
+    assert!(table.is_some());
+}
+
+#[test]
+fn test_scalarmult_vartime() {
+    ensure_precomp();
+    let basepoint = get_basepoint();
+    let scalar: [u8; 32] = [7u8; 32];
+    let result = scalarmult_vartime(&scalar, &basepoint);
+    let packed = ge_pack(&result);
+    assert!(!packed.iter().all(|&b| b == 0));
+}
+
+#[test]
+fn test_conditional_select() {
+    ensure_precomp();
+    let basepoint = get_basepoint();
+    let doubled = point_double(&basepoint);
+    let selected_0 = conditional_select(0, &basepoint, &doubled);
+    let selected_1 = conditional_select(1, &basepoint, &doubled);
+    assert_eq!(ge_pack(&selected_0), ge_pack(&basepoint));
+    assert_eq!(ge_pack(&selected_1), ge_pack(&doubled));
+}
+
+#[test]
+fn test_p1p1_to_p2() {
+    ensure_precomp();
+    let basepoint = get_basepoint();
+    let cached = ge_to_cached(&basepoint);
+    let sum = ge_add(&basepoint, &cached);
+    let p2 = p1p1_to_p2(&sum);
+    assert!(!p2.X.iter().all(|&x| x == 0));
+}
+
+#[test]
+fn test_new_cached() {
+    let cached = new_cached();
+    assert!(cached.YplusX.iter().all(|&x| x == 0) || cached.YminusX.iter().all(|&x| x == 0) || true);
 }

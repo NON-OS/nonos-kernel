@@ -170,3 +170,19 @@ pub fn clear_inode_cache() {
         cache.lock().clear();
     }
 }
+
+pub fn get_cached_inode(inode: u64) -> Option<CachedInode> {
+    init_inode_cache();
+    if let Some(cache) = INODE_CACHE.get() {
+        cache.lock().get(inode).cloned()
+    } else {
+        None
+    }
+}
+
+pub fn cache_inode(inode: CachedInode) {
+    init_inode_cache();
+    if let Some(cache) = INODE_CACHE.get() {
+        cache.lock().insert(inode);
+    }
+}

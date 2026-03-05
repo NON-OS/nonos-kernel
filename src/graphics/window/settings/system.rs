@@ -74,7 +74,7 @@ fn draw_bg_name(x: u32, y: u32, name: &str) {
 static BACKGROUND_CHANGED: core::sync::atomic::AtomicBool =
     core::sync::atomic::AtomicBool::new(false);
 
-pub(super) fn take_background_changed() -> bool {
+pub fn take_background_changed() -> bool {
     BACKGROUND_CHANGED.swap(false, Ordering::Relaxed)
 }
 

@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+//! LP pool calculations.
 
 extern crate alloc;
 
@@ -21,6 +22,7 @@ use alloc::string::String;
 
 const BASIS_POINTS: u128 = 10000;
 
+/// Fast square root using Newton-Raphson method
 fn fast_sqrt(x: f64) -> f64 {
     if x <= 0.0 {
         return 0.0;

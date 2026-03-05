@@ -14,15 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod error;
-mod types;
-mod open_file;
-mod table;
-mod fd_ops;
-mod vfs_core;
-mod vfs_dir;
-mod vfs_file;
-mod vfs_global;
+pub mod error;
+pub mod types;
+pub mod open_file;
+pub mod table;
+pub mod fd_ops;
+pub mod vfs_core;
+pub mod vfs_dir;
+pub mod vfs_file;
+pub mod vfs_global;
 
 #[cfg(test)]
 mod fd_tests;

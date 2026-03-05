@@ -102,7 +102,10 @@ pub fn authenticate_with_zkproof(id_hash: [u8; 32], response: AuthResponse) -> R
 
     if mgr.config.require_zk_proofs {
         let proof_statement = create_proof_statement(&challenge, &zkid);
-        let _verification_key = derive_verification_key(&zkid);
+        let verification_key = derive_verification_key(&zkid);
+        if verification_key.is_empty() {
+            return Err("Failed to derive verification key");
+        }
         let is_valid = verify_plonk_proof(&proof_statement, &response.zkproof);
         if !is_valid { return Err("Zero-knowledge proof verification failed"); }
     }

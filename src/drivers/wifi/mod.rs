@@ -16,19 +16,19 @@
 
 extern crate alloc;
 
-mod api;
-mod ccmp;
-mod constants;
-mod device;
-mod dma;
-mod error;
-mod firmware;
-mod pcie;
-mod regs;
-mod rx;
+pub mod api;
+pub mod ccmp;
+pub mod constants;
+pub mod device;
+pub mod dma;
+pub mod error;
+pub mod firmware;
+pub mod pcie;
+pub mod regs;
+pub mod rx;
 pub mod scan;
 pub mod smol_bridge;
-mod tx;
+pub mod tx;
 pub mod wpa;
 
 #[cfg(test)]
@@ -48,3 +48,4 @@ pub use smol_bridge::{
     is_registered, register_with_network_stack, unregister_from_network_stack, reset_stats,
     WiFiSmolBridge, WiFiStats, WIFI_SMOL_BRIDGE,
 };
+pub use rx::{_RxProcessor, _RxFrame, _RxFrameInfo, _FrameType};

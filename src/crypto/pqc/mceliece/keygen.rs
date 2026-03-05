@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -16,13 +16,24 @@
 
 use super::goppa::{
     generate_goppa_polynomial, generate_support, generate_permutation,
-    compute_parity_check_matrix, to_systematic_form,
+    compute_parity_check_matrix, to_systematic_form, is_irreducible, polynomial_gcd,
 };
 use super::{McElieceKeyPair, McEliecePublicKey, McElieceSecretKey};
 
 pub fn mceliece_keygen() -> Result<McElieceKeyPair, &'static str> {
     let goppa = generate_goppa_polynomial();
+
+    if !is_irreducible(&goppa) {
+        return Err("Generated polynomial is not irreducible");
+    }
+
     let support = generate_support();
+
+    let gcd_degree = polynomial_gcd(&goppa, &support.iter().map(|&x| x).collect::<alloc::vec::Vec<_>>());
+    if gcd_degree > 0 {
+        return Err("Polynomial and support are not coprime");
+    }
+
     let permutation = generate_permutation();
     let h = compute_parity_check_matrix(&goppa, &support);
     let t_matrix = to_systematic_form(&h).ok_or("Failed to compute systematic form")?;

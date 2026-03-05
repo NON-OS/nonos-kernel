@@ -14,9 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+//! Ethernet frame parsing and representation
 
 use super::types::EtherType;
 
+/// Ethernet header (14 bytes)
 #[derive(Debug, Clone)]
 pub struct EthernetHeader {
     pub dst: [u8; 6],
@@ -25,12 +27,15 @@ pub struct EthernetHeader {
 }
 
 impl EthernetHeader {
+    /// Header size in bytes
     pub const SIZE: usize = 14;
 
+    /// Create new ethernet header
     pub fn new(dst: [u8; 6], src: [u8; 6], ethertype: u16) -> Self {
         Self { dst, src, ethertype }
     }
 
+    /// Serialize header to bytes
     pub fn to_bytes(&self) -> [u8; 14] {
         let mut bytes = [0u8; 14];
         bytes[0..6].copy_from_slice(&self.dst);
@@ -40,6 +45,7 @@ impl EthernetHeader {
     }
 }
 
+/// Ethernet frame with header and payload
 #[derive(Debug, Clone)]
 pub struct EthernetFrame<'a> {
     pub header: EthernetHeader,
@@ -47,6 +53,7 @@ pub struct EthernetFrame<'a> {
 }
 
 impl<'a> EthernetFrame<'a> {
+    /// Parse ethernet frame from raw bytes
     pub fn parse(bytes: &'a [u8]) -> Result<Self, &'static str> {
         if bytes.len() < EthernetHeader::SIZE {
             return Err("ethernet: frame too short");
@@ -66,14 +73,17 @@ impl<'a> EthernetFrame<'a> {
         })
     }
 
+    /// Get the frame's ethertype as enum
     pub fn ethertype(&self) -> EtherType {
         EtherType::from_u16(self.header.ethertype)
     }
 
+    /// Check if destination is broadcast
     pub fn is_broadcast(&self) -> bool {
         self.header.dst == [0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF]
     }
 
+    /// Check if destination is multicast
     pub fn is_multicast(&self) -> bool {
         self.header.dst[0] & 0x01 != 0
     }

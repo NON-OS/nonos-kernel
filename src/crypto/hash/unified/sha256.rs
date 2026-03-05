@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -92,4 +92,10 @@ pub fn sha256(data: &[u8]) -> Hash256 {
         out[i * 4..(i + 1) * 4].copy_from_slice(&v.to_be_bytes());
     }
     out
+}
+
+/// Alias for sha256 for compatibility.
+#[inline]
+pub fn sha256_hash(data: &[u8]) -> Hash256 {
+    sha256(data)
 }

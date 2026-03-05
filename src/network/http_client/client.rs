@@ -121,16 +121,12 @@ impl HttpClient {
         let verifier = crate::network::onion::tls::get_cert_verifier()
             .unwrap_or(&crate::network::onion::tls::HTTPS_CERT_VERIFIER);
 
-        let session_info = tls.handshake_full(
+        let _session_info = tls.handshake_full(
             &socket,
             Some(&url.host),
             Some(&["http/1.1"]),
             verifier,
         ).map_err(|_| "TLS handshake failed")?;
-
-        if session_info.cipher_suite == 0 {
-            return Err("Invalid TLS session");
-        }
 
         let encrypted_request = tls.encrypt_app(&request)
             .map_err(|_| "TLS encrypt failed")?;

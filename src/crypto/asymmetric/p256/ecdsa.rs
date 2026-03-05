@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -19,6 +19,7 @@ use super::{AffinePoint, Scalar, SecretKey, PublicKey, Signature};
 pub fn generate_keypair() -> (SecretKey, PublicKey) {
     let mut sk = [0u8; 32];
     crate::crypto::rng::fill_random_bytes(&mut sk);
+
     loop {
         if let Some(scalar) = Scalar::from_bytes(&sk) {
             if !scalar.is_zero() {
@@ -43,6 +44,7 @@ pub fn public_key_from_secret(sk: &SecretKey) -> Option<PublicKey> {
 fn rfc6979_generate_k(sk: &[u8; 32], message_hash: &[u8; 32]) -> Option<Scalar> {
     let mut v = [0x01u8; 32];
     let mut k = [0x00u8; 32];
+
     let mut data = [0u8; 97];
     data[0..32].copy_from_slice(&v);
     data[32] = 0x00;
@@ -136,6 +138,7 @@ pub fn verify(pk: &PublicKey, message_hash: &[u8; 32], sig: &Signature) -> bool 
         None => (Scalar::ONE, 0u64),      // r was invalid
     };
     valid &= r_valid;
+
     // Parse s - use ONE as dummy if invalid
     let s_bytes: &[u8; 32] = sig[32..64].try_into().unwrap_or(&[0u8; 32]);
     let (s, s_valid) = match Scalar::from_bytes(s_bytes) {
@@ -146,6 +149,7 @@ pub fn verify(pk: &PublicKey, message_hash: &[u8; 32], sig: &Signature) -> bool 
     valid &= s_valid;
 
     let z = Scalar::from_bytes_reduce(message_hash);
+
     // Compute s_inv - use ONE as dummy if inversion fails (s was zero)
     let (s_inv, inv_valid) = match s.invert() {
         Some(inv) => (inv, 1u64),
@@ -156,14 +160,18 @@ pub fn verify(pk: &PublicKey, message_hash: &[u8; 32], sig: &Signature) -> bool 
     // Always compute u1, u2 regardless of validity
     let u1 = z.mul(&s_inv);
     let u2 = r.mul(&s_inv);
+
     let g = AffinePoint::generator().to_projective();
     let q = point.to_projective();
     let r_prime = g.mul(&u1).add(&q.mul(&u2)).to_affine();
+
     // Check for point at infinity (constant-time using flag)
     let not_infinity = if r_prime.infinity { 0u64 } else { 1u64 };
     valid &= not_infinity;
+
     // Always compute r from x-coordinate
     let computed_r = Scalar::from_bytes_reduce(&r_prime.x.to_bytes());
+
     // Constant-time comparison
     let r_matches = if computed_r.ct_eq(&r) { 1u64 } else { 0u64 };
     valid &= r_matches;

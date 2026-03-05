@@ -24,7 +24,6 @@ use crate::elf::auxv::AuxvBuilder;
 use crate::elf::errors::{ElfError, ElfResult};
 use crate::elf::loader::{ElfImage, ElfLoader};
 use crate::elf::stack::{setup_user_stack, StackConfig};
-use crate::elf::types::ProgramHeader;
 
 pub const DEFAULT_USER_STACK_TOP: u64 = 0x7FFF_FFFF_F000;
 
@@ -86,12 +85,12 @@ impl<'a> ProcessBuilder<'a> {
         let phdr_addr = self.find_phdr_addr(&executable, elf_data)?;
         let phnum = self.get_phnum(elf_data)?;
 
-        let auxv = AuxvBuilder::from_elf_image(&executable, phdr_addr, phnum)
-            .set_uid(self.config.uid as u64)
-            .set_euid(self.config.uid as u64)
-            .set_gid(self.config.gid as u64)
-            .set_egid(self.config.gid as u64)
-            .build();
+        let mut auxv_builder = AuxvBuilder::from_elf_image(&executable, phdr_addr, phnum);
+        auxv_builder.set_uid(self.config.uid as u64);
+        auxv_builder.set_euid(self.config.uid as u64);
+        auxv_builder.set_gid(self.config.gid as u64);
+        auxv_builder.set_egid(self.config.gid as u64);
+        let auxv = auxv_builder.build();
 
         let stack_config = StackConfig::new()
             .with_args(self.config.args)
@@ -117,7 +116,7 @@ impl<'a> ProcessBuilder<'a> {
     }
 
     fn find_phdr_addr(&self, image: &ElfImage, _elf_data: &[u8]) -> ElfResult<VirtAddr> {
-        Ok(image.base_addr + 64)
+        Ok(image.base_addr + 64u64)
     }
 
     fn get_phnum(&self, elf_data: &[u8]) -> ElfResult<u16> {

@@ -23,13 +23,17 @@ use x86_64::{structures::paging::PageTableFlags, VirtAddr};
 use crate::elf::tls::TlsInfo;
 use crate::elf::types::{phdr_type, RelaEntry};
 
+use crate::elf::dynlink::DynLinkInfo;
+
 #[derive(Debug)]
 pub struct ElfImage {
     pub base_addr: VirtAddr,
     pub entry_point: VirtAddr,
     pub size: usize,
+    pub memory_size: usize,
     pub segments: Vec<LoadedSegment>,
     pub dynamic_info: Option<DynamicInfo>,
+    pub dynlink_info: Option<DynLinkInfo>,
     pub tls_info: Option<TlsInfo>,
     pub interpreter: Option<String>,
 }

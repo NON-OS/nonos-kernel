@@ -14,12 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod types;
-mod state;
-mod verify;
-mod policy;
-mod keys;
-mod api;
+pub mod types;
+pub mod state;
+pub mod verify;
+pub mod policy;
+pub mod keys;
+pub mod api;
 
 pub use types::{BootMeasurements, TrustedBootKeys, TrustedKey, SecureBootPolicy, SecureBootError, SecureBootResult, AttestationReport, SecureBootStats};
 pub use verify::{verify_code_signature, verify_kernel, record_boot_measurements, verify_boot_chain, is_boot_chain_verified};

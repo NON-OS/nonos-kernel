@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -16,9 +16,14 @@
 
 #[cfg(any(feature = "mlkem512", feature = "mlkem768", feature = "mlkem1024"))]
 pub mod kyber;
+
 #[cfg(any(feature = "mldsa2", feature = "mldsa3", feature = "mldsa5"))]
 pub mod dilithium;
+
 pub mod sphincs;
+
 pub mod ntru;
+
 pub mod mceliece;
+
 pub mod quantum;

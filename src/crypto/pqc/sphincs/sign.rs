@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -57,12 +57,14 @@ pub fn sphincs_keygen() -> Result<SphincsKeyPair, &'static str> {
 
 pub fn sphincs_sign(sk: &SphincsSecretKey, msg: &[u8]) -> Result<SphincsSignature, &'static str> {
     let mut sig = Vec::with_capacity(SPHINCS_SIG_BYTES);
+
     let mut opt_rand = [0u8; SPHINCS_N];
     rng::fill_random_bytes(&mut opt_rand);
     let r = prf_msg(&sk.sk_prf, &opt_rand, msg);
     sig.extend_from_slice(&r);
 
     let (fors_msg, tree_idx, leaf_idx) = hash_message(&r, &sk.pk_seed, &sk.pk_root, msg);
+
     let mut addr = Address::default();
     addr.set_tree(tree_idx);
     addr.set_keypair(leaf_idx);
@@ -70,8 +72,10 @@ pub fn sphincs_sign(sk: &SphincsSecretKey, msg: &[u8]) -> Result<SphincsSignatur
     sig.extend_from_slice(&fors_sig);
 
     let fors_pk = fors_pk_from_sig(&sk.pk_seed, &fors_sig, &fors_msg, &mut addr);
+
     let mut node = fors_pk;
     let layer_height = SPHINCS_H / SPHINCS_D;
+
     for layer in 0..SPHINCS_D {
         addr.set_layer(layer as u32);
         addr.set_tree(tree_idx >> (layer * layer_height));

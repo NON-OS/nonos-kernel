@@ -130,12 +130,18 @@ pub fn scan() -> Result<Vec<ScanResult>, WifiError> {
 pub fn connect(ssid: &str, password: &str) -> Result<(), WifiError> {
     if is_realtek() {
         let dev = get_realtek_device().ok_or(WifiError::NotInitialized)?;
-        let mut guard = dev.lock();
-        guard.connect(ssid, password)
+        {
+            let mut guard = dev.lock();
+            guard.connect(ssid, password)?;
+        }
+        super::network::_register_with_network_stack()
     } else {
         let dev = get_device().ok_or(WifiError::NotInitialized)?;
-        let mut guard = dev.lock();
-        guard.connect(ssid, password)
+        {
+            let mut guard = dev.lock();
+            guard.connect(ssid, password)?;
+        }
+        super::network::_register_with_network_stack()
     }
 }
 

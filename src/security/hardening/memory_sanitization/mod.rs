@@ -14,14 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod types;
-mod state;
-mod primitives;
-mod erase;
-mod canary;
-mod guard;
-mod containers;
-mod api;
+pub mod types;
+pub mod state;
+pub mod primitives;
+pub mod erase;
+pub mod canary;
+pub mod guard;
+pub mod containers;
+pub mod api;
 
 pub use types::{SanitizationLevel, StackCanaryConfig, SanitizationStats};
 pub use erase::{secure_zero, secure_zero_slice, dod_5220_erase, paranoid_erase, gutmann_erase, sanitize, sanitize_slice};

@@ -14,12 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+//! Firewall type definitions.
 
 extern crate alloc;
 
 use alloc::string::String;
 use core::sync::atomic::{AtomicU64, Ordering};
 
+/// Firewall action for a rule
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Action {
     Allow,
@@ -29,6 +31,7 @@ pub enum Action {
     RateLimit,
 }
 
+/// Protocol type
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Protocol {
     Any,
@@ -37,6 +40,7 @@ pub enum Protocol {
     Icmp,
 }
 
+/// Traffic direction
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Direction {
     Inbound,
@@ -44,6 +48,7 @@ pub enum Direction {
     Both,
 }
 
+/// IP address match specification
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum IpMatch {
     Any,
@@ -52,6 +57,7 @@ pub enum IpMatch {
     Range([u8; 4], [u8; 4]),
 }
 
+/// Port match specification
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum PortMatch {
     Any,
@@ -60,12 +66,14 @@ pub enum PortMatch {
     List([u16; 8], usize),
 }
 
+/// Rate limiting configuration
 #[derive(Debug, Clone, Copy)]
 pub struct RateLimit {
     pub packets_per_second: u32,
     pub burst_size: u32,
 }
 
+/// Statistics for a rule
 #[derive(Debug, Default)]
 pub struct RuleStats {
     pub matches: AtomicU64,
@@ -83,6 +91,7 @@ impl Clone for RuleStats {
     }
 }
 
+/// Firewall rule
 #[derive(Debug, Clone)]
 pub struct Rule {
     pub id: u32,
@@ -101,6 +110,7 @@ pub struct Rule {
     pub stats: RuleStats,
 }
 
+/// Connection state for stateful firewall
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ConnState {
     New,
@@ -110,6 +120,7 @@ pub enum ConnState {
     TimeWait,
 }
 
+/// Connection tracking entry
 #[derive(Debug, Clone)]
 pub struct ConnTrack {
     pub src_ip: [u8; 4],
@@ -127,6 +138,7 @@ pub struct ConnTrack {
     pub timeout_ms: u64,
 }
 
+/// Firewall statistics
 #[derive(Debug, Default)]
 pub struct FirewallStats {
     pub packets_allowed: AtomicU64,
@@ -138,6 +150,7 @@ pub struct FirewallStats {
     pub connections_expired: AtomicU64,
 }
 
+/// Format IP address for logging
 pub fn format_ip(ip: [u8; 4]) -> String {
     alloc::format!("{}.{}.{}.{}", ip[0], ip[1], ip[2], ip[3])
 }

@@ -45,8 +45,9 @@ pub mod shortcuts;
 pub mod context_menu;
 pub mod context_menu_input;
 
-pub use state::{WindowType, WINDOWS, FOCUSED_WINDOW, MAX_WINDOWS, window_type_from_u32};
+pub use state::{WindowType, WINDOWS, FOCUSED_WINDOW, MAX_WINDOWS, window_type_from_u32, SnapZone};
 pub use manager::{open, close, minimize, maximize};
+pub use manager_snap::{snap_focused, snap_left, snap_right, snap_top, unsnap_focused};
 
 pub use render::{
     draw_window,
@@ -65,10 +66,12 @@ pub use input::{
     is_browser_focused,
     is_wallet_focused,
     is_ecosystem_focused,
+    is_file_manager_focused,
     is_text_input_focused,
     browser_special_key,
     wallet_special_key,
     ecosystem_special_key,
+    file_manager_special_key,
 };
 
 pub use ecosystem::{EcosystemTab, get_active_tab as ecosystem_active_tab};

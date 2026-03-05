@@ -112,4 +112,54 @@ impl CapabilitySet {
     pub fn can_delegate(&self) -> bool {
         self.delegation_depth.load(Ordering::Acquire) < self.max_delegations.load(Ordering::Acquire)
     }
+
+    /// Get delegation depth
+    pub fn get_delegation_depth(&self) -> u32 {
+        self.delegation_depth.load(Ordering::Acquire)
+    }
+
+    /// Get max delegations
+    pub fn get_max_delegations(&self) -> u32 {
+        self.max_delegations.load(Ordering::Acquire)
+    }
+
+    /// Get usage count
+    pub fn get_usage_count(&self) -> u64 {
+        self.usage_count.load(Ordering::Acquire)
+    }
+
+    /// Get expiration timestamp
+    pub fn get_expiration(&self) -> u64 {
+        self.expiration.load(Ordering::Acquire)
+    }
+
+    /// Check if origin signature is present
+    pub fn has_signature(&self) -> bool {
+        self.origin_signature.is_some()
+    }
+
+    /// Get origin signature if present
+    pub fn get_signature(&self) -> Option<&[u8; 64]> {
+        self.origin_signature.as_deref()
+    }
+
+    /// Check if issuer pubkey is present
+    pub fn has_issuer_pubkey(&self) -> bool {
+        self.issuer_pubkey.is_some()
+    }
+
+    /// Get issuer pubkey if present
+    pub fn get_issuer_pubkey(&self) -> Option<&[u8; 32]> {
+        self.issuer_pubkey.as_deref()
+    }
+
+    /// Check if quantum proof is present
+    pub fn has_quantum_proof(&self) -> bool {
+        self.quantum_proof.is_some()
+    }
+
+    /// Get quantum proof if present
+    pub fn get_quantum_proof(&self) -> Option<&[u8; 128]> {
+        self.quantum_proof.as_deref()
+    }
 }

@@ -14,12 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod arp;
-mod filter;
-mod headers;
-mod interface;
-mod packet;
-mod udp;
+pub mod arp;
+pub mod filter;
+pub mod headers;
+pub mod interface;
+pub mod packet;
+pub mod udp;
 
 pub use arp::{arp_insert, arp_lookup};
 pub use filter::{add_filter, FilterAction, PacketFilter};

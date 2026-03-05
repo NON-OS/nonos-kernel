@@ -24,20 +24,32 @@ pub(crate) fn try_parse_hp_precision_touchpad(
     logical_max_x: i32,
     logical_max_y: i32,
 ) -> bool {
+    // HP Precision Touchpad format (with scan time):
+    // Byte 0-1: Scan time (16-bit)
+    // Byte 2: Contact count (lower 5 bits)
+    // For each contact (5 bytes each):
+    //   Byte 0: Flags (bit 0 = tip, bit 1 = confidence, bits 2-7 = contact ID)
+    //   Byte 1-2: X position (16-bit LE)
+    //   Byte 3-4: Y position (16-bit LE)
+    // After contacts: Button byte
+
     if data.len() < 3 {
         return false;
     }
 
+    // Try offset 2 first (after 2-byte scan time) - common HP format
     if let Some(result) = try_parse_at_offset(data, 2, max_contacts, logical_max_x, logical_max_y) {
         *state = result;
         return true;
     }
 
+    // Try offset 0 (no scan time) - some touchpads
     if let Some(result) = try_parse_at_offset(data, 0, max_contacts, logical_max_x, logical_max_y) {
         *state = result;
         return true;
     }
 
+    // Try offset 3 (3-byte header) - less common
     if let Some(result) = try_parse_at_offset(data, 3, max_contacts, logical_max_x, logical_max_y) {
         *state = result;
         return true;
@@ -59,6 +71,7 @@ fn try_parse_at_offset(
 
     let contact_count = data[header_offset] & 0x1F;
 
+    // No contacts - return empty state with no buttons
     if contact_count == 0 {
         return Some(TouchpadState {
             contact_count: 0,
@@ -67,6 +80,7 @@ fn try_parse_at_offset(
         });
     }
 
+    // Validate contact count
     if contact_count > max_contacts.min(5) {
         return None;
     }
@@ -104,6 +118,7 @@ fn try_parse_at_offset(
             return None;
         }
 
+        // Count any contact with tip set
         if tip {
             valid_contacts += 1;
         }
@@ -113,6 +128,8 @@ fn try_parse_at_offset(
             x,
             y,
             tip,
+            // Require BOTH tip AND confidence for full pressure
+            // This filters out ghost touches that only have tip set
             pressure: if tip && confidence { 200 } else if confidence { 150 } else if tip { 50 } else { 0 },
             width: 0,
             height: 0,
@@ -121,11 +138,16 @@ fn try_parse_at_offset(
         offset += contact_size;
     }
 
+    // Must have at least one valid contact if contact_count > 0
     if contact_count > 0 && valid_contacts == 0 {
+        // All contacts invalid - treat as no contact
         state.contact_count = 0;
     }
 
+    // Read button byte - only if we have a valid parse
+    // NEVER read buttons for invalid parses to avoid ghost clicks
     if offset < data.len() && valid_contacts > 0 {
+        // Only accept button if the value looks reasonable (0, 1, 2, or 3)
         let btn = data[offset] & 0x03;
         state.buttons = btn;
     } else {
@@ -142,6 +164,7 @@ pub(crate) fn try_parse_precision_touchpad(
     logical_max_x: i32,
     logical_max_y: i32,
 ) -> bool {
+    // Standard precision touchpad without scan time
     if data.len() < 6 {
         return false;
     }
@@ -225,6 +248,7 @@ pub(crate) fn try_parse_windows_precision(
     logical_max_x: i32,
     logical_max_y: i32,
 ) -> bool {
+    // Windows Precision Touchpad with button byte at position 1
     if data.len() < 9 {
         return false;
     }
@@ -314,6 +338,7 @@ pub(crate) fn try_parse_synaptics(data: &[u8], state: &mut TouchpadState) -> boo
     let y1 = ((data[2] as i32) << 4) | ((data[3] as i32) >> 4);
     let pressure1 = data[4];
 
+    // Only set buttons from physical button press, not from pressure
     state.buttons = data[0] & 0x03;
 
     state.contacts[0] = TouchPoint {
@@ -350,6 +375,7 @@ pub(crate) fn try_parse_elan(data: &[u8], state: &mut TouchpadState) -> bool {
         return false;
     }
 
+    // ELAN header check
     if data[0] != 0x04 && data[0] != 0x0D {
         return false;
     }
@@ -433,6 +459,7 @@ pub(crate) fn try_parse_standard_touchpad(
         height: 0,
     };
 
+    // Only read button if we have valid contact
     if data.len() > 5 && tip {
         state.buttons = data[5] & 0x03;
     } else {
@@ -441,6 +468,10 @@ pub(crate) fn try_parse_standard_touchpad(
 
     true
 }
+
+// REMOVED: try_parse_mouse_report - touchpads should NEVER be parsed as mouse
+// Mouse reports are relative movement, touchpads are absolute positioning
+// Parsing touchpad data as mouse causes garbage movement and random button presses
 
 pub(crate) fn parse_buttons(data: &[u8], offset: usize) -> u8 {
     if offset < data.len() {

@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -13,19 +13,33 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-
 use alloc::vec::Vec;
 use core::ptr;
 use core::sync::atomic::{AtomicUsize, Ordering};
 use spin::RwLock;
+
 use crate::memory::layout;
 use super::constants::*;
 use super::error::{MemoryError, SafetyResult};
 use super::types::*;
+
 struct CorruptionDetector {
     canary_base: u64,
     violations: AtomicUsize,
     last_check: AtomicUsize,
+}
+
+impl CorruptionDetector {
+    /// Record the timestamp of the last corruption check
+    fn record_check(&self) {
+        let timestamp = get_timestamp() as usize;
+        self.last_check.store(timestamp, Ordering::Relaxed);
+    }
+
+    /// Get the timestamp of the last corruption check
+    fn last_check_time(&self) -> usize {
+        self.last_check.load(Ordering::Relaxed)
+    }
 }
 
 struct MemorySafety {
@@ -45,6 +59,7 @@ pub const REGIONS: &[MemoryRegion] = &[
 ];
 
 static MEMORY_SAFETY: MemorySafety = MemorySafety::new();
+
 impl MemorySafety {
     const fn new() -> Self {
         Self {
@@ -57,6 +72,7 @@ impl MemorySafety {
     }
 
     fn is_initialized(&self) -> bool { self.initialized.load(Ordering::Acquire) != 0 }
+
     fn initialize(&self) -> Result<(), &'static str> {
         if self.initialized.compare_exchange(0, 1, Ordering::AcqRel, Ordering::Acquire).is_err() { return Ok(()); }
         let mut regions = self.regions.write();
@@ -68,10 +84,13 @@ impl MemorySafety {
     fn validate_access(&self, addr: u64, size: usize, access_type: AccessType) -> SafetyResult<()> {
         if !self.is_initialized() { return Err(MemoryError::NotInitialized); }
         if addr == 0 { return Err(MemoryError::NullPointer); }
+
         let _end_addr = addr.checked_add(size as u64).ok_or(MemoryError::AddressOverflow)?;
         if size >= layout::PAGE_SIZE && addr % layout::PAGE_SIZE as u64 != 0 { return Err(MemoryError::BadAlignment); }
+
         let regions = self.regions.read();
         let region = regions.iter().find(|r| r.contains_range(addr, size as u64)).ok_or(MemoryError::UnmappedAccess)?;
+
         match access_type {
             AccessType::Read if !region.read_allowed => return Err(MemoryError::ReadViolation),
             AccessType::Write if !region.write_allowed => return Err(MemoryError::WriteViolation),
@@ -93,6 +112,7 @@ impl MemorySafety {
     }
 
     fn check_corruption(&self, addr: u64, size: usize) -> SafetyResult<()> {
+        self.corruption_detector.record_check();
         let canary = self.generate_canary(addr);
         // SAFETY: Address range validated as mapped and accessible
         unsafe {
@@ -117,6 +137,7 @@ impl MemorySafety {
         let history = self.access_history.read();
         let mut anomalies = Vec::new();
         if history.len() < 2 { return anomalies; }
+
         for window in history.windows(OVERFLOW_DETECTION_WINDOW) {
             if self.detect_buffer_overflow_pattern(window) {
                 anomalies.push(MemoryAnomaly::BufferOverflow { start_addr: window[0].addr, pattern_length: window.len() });
@@ -134,6 +155,7 @@ impl MemorySafety {
     fn detect_buffer_overflow_pattern(&self, window: &[AccessPattern]) -> bool {
         let mut sequential_writes = 0;
         let mut last_addr = 0;
+
         for pattern in window {
             if pattern.access_type == AccessType::Write {
                 if pattern.addr > last_addr && pattern.addr - last_addr < SEQUENTIAL_WRITE_GAP {
@@ -205,6 +227,11 @@ pub fn get_stats() -> MemoryStats {
     }
 }
 
+/// Get the timestamp of the last corruption check
+pub fn last_corruption_check() -> usize {
+    MEMORY_SAFETY.corruption_detector.last_check_time()
+}
+
 pub fn safe_copy(src: u64, dst: u64, size: usize) -> SafetyResult<()> {
     validate_read(src, size)?;
     validate_write(dst, size)?;
@@ -222,6 +249,7 @@ pub fn safe_zero(addr: u64, size: usize) -> SafetyResult<()> {
 
 pub fn get_guard_regions() -> Vec<GuardRegion> {
     let mut guards = Vec::new();
+
     for region in layout::get_all_stack_regions() {
         guards.push(GuardRegion { start: region.base - region.guard_size as u64, end: region.base, region_type: GuardType::StackGuard });
         guards.push(GuardRegion { start: region.base + region.size as u64, end: region.base + region.size as u64 + region.guard_size as u64, region_type: GuardType::StackGuard });
@@ -229,6 +257,7 @@ pub fn get_guard_regions() -> Vec<GuardRegion> {
 
     guards.push(GuardRegion { start: layout::KHEAP_BASE - layout::PAGE_SIZE as u64, end: layout::KHEAP_BASE, region_type: GuardType::HeapGuard });
     guards.push(GuardRegion { start: layout::KHEAP_BASE + layout::KHEAP_SIZE, end: layout::KHEAP_BASE + layout::KHEAP_SIZE + layout::PAGE_SIZE as u64, region_type: GuardType::HeapGuard });
+
     guards
 }
 
@@ -239,9 +268,11 @@ pub fn verify_stack_integrity() -> bool {
             if is_guard_compromised(guard.start, guard.end - guard.start) { return false; }
         }
     }
+
     // SAFETY: Reading RSP is always safe
     let current_rsp: u64;
     unsafe { core::arch::asm!("mov {}, rsp", out(reg) current_rsp); }
+
     for region in layout::get_all_stack_regions() {
         if current_rsp >= region.base && current_rsp < region.base + region.size as u64 {
             let canary_addr = region.base + region.size as u64 - 8;

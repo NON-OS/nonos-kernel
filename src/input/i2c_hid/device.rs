@@ -91,6 +91,7 @@ impl I2cHidDevice {
         self.device_type = self.determine_device_type();
 
         if matches!(self.device_type, HidDeviceType::Touchpad | HidDeviceType::Mouse) {
+            // Log device info
             crate::log::info!(
                 "i2c_hid: Touchpad VID:0x{:04X} PID:0x{:04X}",
                 self.hid_desc.vendor_id,
@@ -117,6 +118,8 @@ impl I2cHidDevice {
 
             self.touchpad_driver = Some(driver);
 
+            // Set idle rate to disable idle reports (report only on change)
+            // This reduces I2C bus traffic and improves responsiveness
             let _ = self.set_idle(0, 0);
         }
 
@@ -170,6 +173,7 @@ impl I2cHidDevice {
     }
 
     fn determine_device_type(&self) -> HidDeviceType {
+        // First check explicit touchpad/mouse detection from HID descriptor
         if self.report_desc.is_touchpad() {
             return HidDeviceType::Touchpad;
         }
@@ -180,11 +184,15 @@ impl I2cHidDevice {
             return HidDeviceType::Keyboard;
         }
 
+        // Fallback: if device is at a known touchpad address and has X/Y,
+        // assume it's a touchpad even if HID descriptor parsing was incomplete
         const TOUCHPAD_ADDRESSES: &[u8] = &[0x15, 0x2C, 0x10, 0x20, 0x38, 0x4B];
         if TOUCHPAD_ADDRESSES.contains(&self.address) {
             if self.report_desc.has_x && self.report_desc.has_y {
                 return HidDeviceType::Touchpad;
             }
+            // Even without X/Y detection, devices at touchpad addresses
+            // are very likely touchpads - try it anyway
             return HidDeviceType::Touchpad;
         }
 
@@ -250,24 +258,29 @@ impl I2cHidDevice {
         self.address
     }
 
+    /// Returns true if the touchpad driver is using parsed HID layout
     pub fn is_using_layout(&self) -> bool {
         self.touchpad_driver.as_ref().map_or(false, |d| d.is_using_layout())
     }
 
+    /// Get touchpad logical max coordinates
     pub fn touchpad_logical_max(&self) -> (i32, i32) {
         self.touchpad_driver
             .as_ref()
             .map_or((0, 0), |d| (d.logical_max_x(), d.logical_max_y()))
     }
 
+    /// Put the device to sleep
     pub fn sleep(&mut self) -> Result<(), I2cHidError> {
         self.set_power(HidPowerState::Sleep)
     }
 
+    /// Wake the device from sleep
     pub fn wake(&mut self) -> Result<(), I2cHidError> {
         self.set_power(HidPowerState::On)
     }
 
+    /// Get a feature report from the device
     pub fn get_feature_report(&mut self, report_id: u8) -> Result<Vec<u8>, I2cHidError> {
         let cmd = build_get_report_command(
             self.hid_desc.command_register,
@@ -284,6 +297,7 @@ impl I2cHidDevice {
         Ok(response)
     }
 
+    /// Set a feature report on the device
     pub fn set_feature_report(&mut self, report_id: u8, data: &[u8]) -> Result<(), I2cHidError> {
         let cmd = build_set_report_command(
             self.hid_desc.command_register,
@@ -297,6 +311,7 @@ impl I2cHidDevice {
         Ok(())
     }
 
+    /// Set the idle rate for the device
     pub fn set_idle(&mut self, report_id: u8, idle_rate: u8) -> Result<(), I2cHidError> {
         let cmd = build_set_idle_command(self.hid_desc.command_register, report_id, idle_rate);
         crate::drivers::i2c::write(self.controller, self.address, cmd[0], &cmd[1..])?;

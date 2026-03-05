@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+//! E1000 constants and register definitions.
 
 pub const INTEL_VENDOR_ID: u16 = 0x8086;
 

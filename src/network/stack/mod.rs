@@ -14,17 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod api;
+pub mod api;
 pub mod device;
 pub mod types;
 pub mod async_ops;
-mod core;
-mod tcp;
-mod dns_impl;
+pub mod core;
+pub mod tcp;
+pub mod dns_impl;
 pub mod http;
-mod icmp;
-mod dhcp;
-mod util;
+pub mod icmp;
+pub mod dhcp;
+pub mod util;
 
 pub use api::{is_network_connected, set_network_connected, get_socket_info, get_current_ipv4, get_current_gateway, get_current_dns, get_mac_address, is_network_available};
 pub use device::{register_device, SmolDevice, SmolDeviceAdapter};

@@ -51,17 +51,23 @@ pub static FM_CURRENT_DIR: AtomicU8 = AtomicU8::new(0);
 pub(crate) fn get_path() -> &'static str {
     let len = CURRENT_PATH_LEN.load(Ordering::Relaxed) as usize;
     // SAFETY: CURRENT_PATH is valid UTF-8 bytes set by set_path
-    unsafe { core::str::from_utf8_unchecked(&CURRENT_PATH[..len]) }
+    // Using addr_of! to avoid static_mut_refs warning
+    unsafe {
+        let ptr = core::ptr::addr_of!(CURRENT_PATH);
+        core::str::from_utf8_unchecked(&(&(*ptr))[..len])
+    }
 }
 
 pub(crate) fn set_path(path: &str) {
     let bytes = path.as_bytes();
     let len = bytes.len().min(MAX_PATH_LEN - 1);
     // SAFETY: Single-threaded access during file manager operations
+    // Using addr_of_mut! to avoid static_mut_refs warning
     unsafe {
-        CURRENT_PATH[..len].copy_from_slice(&bytes[..len]);
+        let ptr = core::ptr::addr_of_mut!(CURRENT_PATH);
+        (&mut (*ptr))[..len].copy_from_slice(&bytes[..len]);
         for i in len..MAX_PATH_LEN {
-            CURRENT_PATH[i] = 0;
+            (&mut (*ptr))[i] = 0;
         }
     }
     CURRENT_PATH_LEN.store(len as u8, Ordering::Relaxed);
@@ -71,21 +77,35 @@ pub(crate) fn set_path(path: &str) {
         if let Some(slash) = rest.find('/') {
             if let Ok(fs_id) = rest[..slash].parse::<u8>() {
                 // SAFETY: Single-threaded access
-                unsafe { CURRENT_SOURCE = FileSource::Fat32(fs_id); }
+                // Using addr_of_mut! to avoid static_mut_refs warning
+                unsafe {
+                    let ptr = core::ptr::addr_of_mut!(CURRENT_SOURCE);
+                    *ptr = FileSource::Fat32(fs_id);
+                }
             }
         } else if let Ok(fs_id) = rest.parse::<u8>() {
             // SAFETY: Single-threaded access
-            unsafe { CURRENT_SOURCE = FileSource::Fat32(fs_id); }
+            unsafe {
+                let ptr = core::ptr::addr_of_mut!(CURRENT_SOURCE);
+                *ptr = FileSource::Fat32(fs_id);
+            }
         }
     } else {
         // SAFETY: Single-threaded access
-        unsafe { CURRENT_SOURCE = FileSource::Ramfs; }
+        unsafe {
+            let ptr = core::ptr::addr_of_mut!(CURRENT_SOURCE);
+            *ptr = FileSource::Ramfs;
+        }
     }
 }
 
 pub(crate) fn get_current_source() -> FileSource {
     // SAFETY: Single-threaded access
-    unsafe { CURRENT_SOURCE }
+    // Using addr_of! to avoid static_mut_refs warning
+    unsafe {
+        let ptr = core::ptr::addr_of!(CURRENT_SOURCE);
+        *ptr
+    }
 }
 
 pub(crate) fn is_input_active() -> bool {
@@ -94,21 +114,29 @@ pub(crate) fn is_input_active() -> bool {
 
 pub(crate) fn get_input_text() -> &'static str {
     let len = INPUT_LEN.load(Ordering::Relaxed) as usize;
-    unsafe { core::str::from_utf8_unchecked(&INPUT_BUFFER[..len]) }
+    // Using addr_of! to avoid static_mut_refs warning
+    unsafe {
+        let ptr = core::ptr::addr_of!(INPUT_BUFFER);
+        core::str::from_utf8_unchecked(&(&(*ptr))[..len])
+    }
 }
 
 pub(crate) fn clear_input() {
     INPUT_LEN.store(0, Ordering::Relaxed);
+    // Using addr_of_mut! to avoid static_mut_refs warning
     unsafe {
-        INPUT_BUFFER.fill(0);
+        let ptr = core::ptr::addr_of_mut!(INPUT_BUFFER);
+        (&mut (*ptr)).fill(0);
     }
 }
 
 pub(crate) fn push_input_char(ch: u8) {
     let len = INPUT_LEN.load(Ordering::Relaxed) as usize;
     if len < MAX_NAME_LEN - 1 {
+        // Using addr_of_mut! to avoid static_mut_refs warning
         unsafe {
-            INPUT_BUFFER[len] = ch;
+            let ptr = core::ptr::addr_of_mut!(INPUT_BUFFER);
+            (&mut (*ptr))[len] = ch;
         }
         INPUT_LEN.store((len + 1) as u8, Ordering::Relaxed);
     }
@@ -117,13 +145,15 @@ pub(crate) fn push_input_char(ch: u8) {
 pub(crate) fn pop_input_char() {
     let len = INPUT_LEN.load(Ordering::Relaxed) as usize;
     if len > 0 {
+        // Using addr_of_mut! to avoid static_mut_refs warning
         unsafe {
-            INPUT_BUFFER[len - 1] = 0;
+            let ptr = core::ptr::addr_of_mut!(INPUT_BUFFER);
+            (&mut (*ptr))[len - 1] = 0;
         }
         INPUT_LEN.store((len - 1) as u8, Ordering::Relaxed);
     }
 }
 
-pub(crate) fn is_deleting() -> bool {
+pub fn is_deleting() -> bool {
     FM_DELETING.load(Ordering::Relaxed)
 }

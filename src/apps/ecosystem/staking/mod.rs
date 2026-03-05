@@ -14,16 +14,51 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+//! NONOS Ecosystem Staking Module.
+
 extern crate alloc;
 
-mod api;
 pub mod contract;
 pub mod rewards;
 pub mod state;
 
-pub use api::{start, stop, is_running, claim_pending_rewards};
 pub use contract::{
     claim_rewards, get_pending_rewards, get_staked_amount, stake, unstake, StakingContract,
 };
 pub use rewards::{calculate_apy, estimate_rewards, RewardsInfo};
 pub use state::{get_staking_state, init, StakingState};
+
+use alloc::string::String;
+use core::sync::atomic::{AtomicBool, Ordering};
+
+static RUNNING: AtomicBool = AtomicBool::new(false);
+
+pub fn start() {
+    RUNNING.store(true, Ordering::SeqCst);
+}
+
+pub fn stop() {
+    RUNNING.store(false, Ordering::SeqCst);
+}
+
+pub fn is_running() -> bool {
+    RUNNING.load(Ordering::Relaxed)
+}
+
+pub fn claim_pending_rewards() -> Result<String, &'static str> {
+    let state = get_staking_state().ok_or("Staking not initialized")?;
+    let pending = state.pending_rewards;
+
+    if pending == 0 {
+        return Err("No rewards to claim");
+    }
+
+    let amount_str = format_amount(pending);
+    Ok(amount_str)
+}
+
+fn format_amount(amount: u128) -> String {
+    let eth = amount / 1_000_000_000_000_000_000;
+    let decimals = (amount % 1_000_000_000_000_000_000) / 10_000_000_000_000_000;
+    alloc::format!("{}.{:02}", eth, decimals)
+}

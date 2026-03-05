@@ -29,9 +29,6 @@ pub(super) const FUTEX_WAIT_REQUEUE_PI: i32 = 11;
 pub(super) const FUTEX_CMP_REQUEUE_PI: i32 = 12;
 pub(super) const FUTEX_LOCK_PI2: i32 = 13;
 
-pub(super) const FUTEX_PRIVATE_FLAG: i32 = 128;
-pub(super) const FUTEX_CLOCK_REALTIME: i32 = 256;
-
 pub(super) const FUTEX_OP_SET: u32 = 0;
 pub(super) const FUTEX_OP_ADD: u32 = 1;
 pub(super) const FUTEX_OP_OR: u32 = 2;

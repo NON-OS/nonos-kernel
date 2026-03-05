@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -14,27 +14,42 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+//! Virtual Memory Manager Implementation
+//!
+//! Core page table management and mapping operations.
+
 extern crate alloc;
+
 use alloc::vec::Vec;
 use x86_64::registers::control::{Cr3, Cr3Flags};
 use x86_64::{PhysAddr, VirtAddr};
+
 use super::constants::*;
 use super::error::{VmError, VmResult};
 use super::stats::VM_STATS;
 use super::types::{MappedRange, PageSize, VmFlags};
 use crate::memory::{frame_alloc, layout};
+
 // ============================================================================
 // VIRTUAL MEMORY MANAGER
 // ============================================================================
+
+/// Virtual memory manager state.
 pub struct VirtualMemoryManager {
+    /// CR3 frame (page table root)
     cr3_frame: PhysAddr,
+    /// Kernel page table virtual address
     kernel_page_table: Option<VirtAddr>,
+    /// Tracked mapped ranges
     mapped_ranges: Vec<MappedRange>,
+    /// Next free virtual address in VMAP region
     next_free_addr: u64,
+    /// Initialization state
     initialized: bool,
 }
 
 impl VirtualMemoryManager {
+    /// Creates a new uninitialized manager.
     pub const fn new() -> Self {
         Self {
             cr3_frame: PhysAddr::new(0),
@@ -45,6 +60,7 @@ impl VirtualMemoryManager {
         }
     }
 
+    /// Initializes the manager with a CR3 frame.
     pub fn init(&mut self, cr3_frame: PhysAddr) -> VmResult<()> {
         if self.initialized {
             return Ok(());
@@ -59,6 +75,7 @@ impl VirtualMemoryManager {
         Ok(())
     }
 
+    /// Returns whether the manager is initialized.
     #[inline]
     pub fn is_initialized(&self) -> bool {
         self.initialized
@@ -67,6 +84,8 @@ impl VirtualMemoryManager {
     // ========================================================================
     // PAGE MAPPING
     // ========================================================================
+
+    /// Maps a 4K page.
     pub fn map_page_4k(&mut self, va: VirtAddr, pa: PhysAddr, flags: VmFlags) -> VmResult<()> {
         if !self.initialized {
             return Err(VmError::NotInitialized);
@@ -74,9 +93,12 @@ impl VirtualMemoryManager {
 
         self.validate_wx_permissions(flags)?;
         self.validate_alignment(va, pa, PageSize::Size4K)?;
+
         self.map_page_in_table(va, pa, flags, PageSize::Size4K)?;
+
         let range = MappedRange::new(va, pa, PAGE_SIZE_4K, flags, PageSize::Size4K);
         self.mapped_ranges.push(range);
+
         VM_STATS.record_mapping(PAGE_SIZE_4K);
         self.flush_tlb_single(va);
 
@@ -91,9 +113,12 @@ impl VirtualMemoryManager {
 
         self.validate_wx_permissions(flags)?;
         self.validate_alignment(va, pa, PageSize::Size2M)?;
+
         self.map_page_in_table(va, pa, flags, PageSize::Size2M)?;
+
         let range = MappedRange::new(va, pa, PAGE_SIZE_2M, flags, PageSize::Size2M);
         self.mapped_ranges.push(range);
+
         VM_STATS.record_mapping(PAGE_SIZE_2M);
         self.flush_tlb_single(va);
 
@@ -113,13 +138,16 @@ impl VirtualMemoryManager {
             .ok_or(VmError::AddressNotMapped)?;
 
         let range = self.mapped_ranges.remove(range_idx);
+
         self.unmap_page_in_table(va, page_size)?;
+
         VM_STATS.record_unmapping(range.size);
         self.flush_tlb_single(va);
 
         Ok(())
     }
 
+    /// Maps a range of pages.
     pub fn map_range(
         &mut self,
         va: VirtAddr,
@@ -132,6 +160,7 @@ impl VirtualMemoryManager {
         }
 
         let page_count = (size + PAGE_SIZE_4K - 1) / PAGE_SIZE_4K;
+
         for i in 0..page_count {
             let page_va = VirtAddr::new(va.as_u64() + (i * PAGE_SIZE_4K) as u64);
             let page_pa = PhysAddr::new(pa.as_u64() + (i * PAGE_SIZE_4K) as u64);
@@ -148,6 +177,7 @@ impl VirtualMemoryManager {
         }
 
         let page_count = (size + PAGE_SIZE_4K - 1) / PAGE_SIZE_4K;
+
         for i in 0..page_count {
             let page_va = VirtAddr::new(va.as_u64() + (i * PAGE_SIZE_4K) as u64);
             self.unmap_page(page_va, PageSize::Size4K)?;
@@ -159,6 +189,8 @@ impl VirtualMemoryManager {
     // ========================================================================
     // TRANSLATION
     // ========================================================================
+
+    /// Translates a virtual address to physical.
     pub fn translate(&self, va: VirtAddr) -> VmResult<(PhysAddr, VmFlags, usize)> {
         if !self.initialized {
             return Err(VmError::NotInitialized);
@@ -173,6 +205,7 @@ impl VirtualMemoryManager {
         }
     }
 
+    /// Finds a mapped range containing the given address.
     pub fn find_mapped_range(&self, va: VirtAddr) -> Option<&MappedRange> {
         self.mapped_ranges.iter().find(|range| range.contains(va))
     }
@@ -180,9 +213,12 @@ impl VirtualMemoryManager {
     // ========================================================================
     // VALIDATION
     // ========================================================================
+
+    /// Validates W^X permissions (no writable + executable).
     fn validate_wx_permissions(&self, flags: VmFlags) -> VmResult<()> {
         let writable = flags.contains(VmFlags::Write);
         let executable = !flags.contains(VmFlags::NoExecute);
+
         if writable && executable {
             VM_STATS.record_wx_violation();
             return Err(VmError::WXViolation);
@@ -202,6 +238,8 @@ impl VirtualMemoryManager {
     // ========================================================================
     // PAGE TABLE OPERATIONS
     // ========================================================================
+
+    /// Maps a page in the page table.
     fn map_page_in_table(
         &self,
         va: VirtAddr,
@@ -247,7 +285,7 @@ impl VirtualMemoryManager {
     ) -> VmResult<()>
     where
         F: FnMut(*mut u64) -> VmResult<()>,
-    {
+    { unsafe {
         let l4_table = self
             .kernel_page_table
             .ok_or(VmError::NotInitialized)?
@@ -257,6 +295,7 @@ impl VirtualMemoryManager {
         let l3_idx = l3_index(va.as_u64());
         let l2_idx = l2_index(va.as_u64());
         let l1_idx = l1_index(va.as_u64());
+
         // SAFETY: l4_table is valid and l4_idx < 512
         let l4_entry = l4_table.add(l4_idx);
         if !pte_is_present(*l4_entry) {
@@ -297,7 +336,7 @@ impl VirtualMemoryManager {
         let l1_entry = l1_table.add(l1_idx);
 
         callback(l1_entry)
-    }
+    }}
 
     /// Converts VmFlags to PTE flags.
     fn vm_flags_to_pte(&self, flags: VmFlags) -> u64 {
@@ -331,6 +370,8 @@ impl VirtualMemoryManager {
     // ========================================================================
     // TLB OPERATIONS
     // ========================================================================
+
+    /// Flushes a single TLB entry.
     pub fn flush_tlb_single(&self, va: VirtAddr) {
         // SAFETY: INVLPG is always safe to execute
         unsafe {
@@ -363,8 +404,11 @@ impl Default for VirtualMemoryManager {
 // Public API
 use spin::Mutex;
 use super::types::VmStatsSnapshot;
+
 static VIRTUAL_MEMORY_MANAGER: Mutex<VirtualMemoryManager> = Mutex::new(VirtualMemoryManager::new());
+
 pub fn init(cr3_frame: PhysAddr) -> VmResult<()> { VIRTUAL_MEMORY_MANAGER.lock().init(cr3_frame) }
+
 pub fn map_page_4k(va: VirtAddr, pa: PhysAddr, writable: bool, user: bool, executable: bool) -> VmResult<()> {
     let flags = build_flags(writable, user, executable);
     VIRTUAL_MEMORY_MANAGER.lock().map_page_4k(va, pa, flags)
@@ -403,6 +447,7 @@ pub fn translate_with_flags(va: VirtAddr) -> VmResult<(PhysAddr, VmFlags, usize)
 
 pub fn flush_tlb() { VIRTUAL_MEMORY_MANAGER.lock().flush_tlb_all(); }
 pub fn flush_tlb_page(va: VirtAddr) { VIRTUAL_MEMORY_MANAGER.lock().flush_tlb_single(va); }
+
 pub fn is_mapped(va: VirtAddr) -> bool {
     VIRTUAL_MEMORY_MANAGER.lock().find_mapped_range(va).is_some()
 }
@@ -419,7 +464,7 @@ pub fn validate_range(va: VirtAddr, size: usize, required_flags: VmFlags) -> boo
     true
 }
 
-pub fn handle_page_fault(va: VirtAddr, error_code: u64) -> VmResult<()> {
+pub fn handle_page_fault(_va: VirtAddr, error_code: u64) -> VmResult<()> {
     VM_STATS.record_page_fault();
     let present = (error_code & PF_PRESENT) != 0;
     let write = (error_code & PF_WRITE) != 0;
@@ -429,6 +474,7 @@ pub fn handle_page_fault(va: VirtAddr, error_code: u64) -> VmResult<()> {
 }
 
 pub fn get_stats() -> VmStatsSnapshot { VM_STATS.snapshot() }
+
 pub fn is_kpti_enabled() -> bool {
     let cr4: u64;
     // SAFETY: Reading CR4 is always safe

@@ -106,3 +106,26 @@ pub fn clear_dentry_cache() {
         cache.lock().clear();
     }
 }
+
+pub fn lookup_dentry(path: &str) -> Option<DirectoryEntry> {
+    init_dentry_cache();
+    if let Some(cache) = DENTRY_CACHE.get() {
+        cache.lock().lookup(path).cloned()
+    } else {
+        None
+    }
+}
+
+pub fn remove_dentry(path: &str) {
+    init_dentry_cache();
+    if let Some(cache) = DENTRY_CACHE.get() {
+        cache.lock().remove(path);
+    }
+}
+
+pub fn queue_dentry_update(entry: DirectoryEntry) {
+    init_dentry_cache();
+    if let Some(cache) = DENTRY_CACHE.get() {
+        cache.lock().queue_update(entry);
+    }
+}

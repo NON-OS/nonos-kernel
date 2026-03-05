@@ -114,14 +114,12 @@ impl CFI {
 
 pub struct ASLR {
     entropy_bits: u32,
-    kaslr_slide: AtomicU64,
     enabled: AtomicBool,
 }
 impl ASLR {
     pub fn new(entropy: u32) -> Self {
         Self {
             entropy_bits: entropy,
-            kaslr_slide: AtomicU64::new(0),
             enabled: AtomicBool::new(true),
         }
     }

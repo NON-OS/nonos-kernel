@@ -27,7 +27,7 @@ use super::input_click::check_window_click;
 
 pub use super::input_focus::{
     is_editor_focused, is_terminal_focused, is_browser_focused,
-    is_wallet_focused, is_ecosystem_focused, is_text_input_focused,
+    is_wallet_focused, is_ecosystem_focused, is_file_manager_focused, is_text_input_focused,
 };
 
 pub fn handle_click(mx: i32, my: i32, pressed: bool) -> bool {
@@ -131,4 +131,8 @@ pub fn wallet_special_key(key: crate::graphics::window::text_editor::SpecialKey)
 
 pub fn ecosystem_special_key(key: crate::graphics::window::text_editor::SpecialKey) {
     input_keys::ecosystem_special_key(key);
+}
+
+pub fn file_manager_special_key(key: u8) -> bool {
+    input_keys::file_manager_special_key(key)
 }

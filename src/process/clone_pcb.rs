@@ -23,7 +23,7 @@ use core::sync::atomic::{AtomicI32, AtomicU32, AtomicU64, Ordering};
 use super::core::{ProcessControlBlock, ProcessState, Priority, ThreadGroup, MemoryState};
 use super::clone_flags::CLONE_PARENT;
 
-pub fn create_thread_pcb(
+pub(crate) fn create_thread_pcb(
     parent: &Arc<ProcessControlBlock>,
     tid: u32,
     name: &str,
@@ -98,7 +98,7 @@ pub fn create_thread_pcb(
     Ok(pcb)
 }
 
-pub fn create_process_pcb(
+pub(crate) fn create_process_pcb(
     parent: &Arc<ProcessControlBlock>,
     pid: u32,
     name: &str,

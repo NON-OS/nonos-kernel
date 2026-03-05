@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -39,6 +39,7 @@ pub fn hkdf_expand(prk: &Hash256, info: &[u8], okm: &mut [u8]) -> Result<(), &'s
         t = hmac_sha256(prk, &hmac_in);
         let take = core::cmp::min(okm.len() - generated, 32);
         okm[generated..generated + take].copy_from_slice(&t[..take]);
+
         // SAFETY: write_volatile ensures the compiler cannot optimize away this
         // write. The pointer is valid from the mutable iterator over Vec<u8>.
         for b in hmac_in.iter_mut() {

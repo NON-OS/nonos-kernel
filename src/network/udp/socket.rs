@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+//! UDP socket implementation.
 
 extern crate alloc;
 
@@ -23,6 +24,7 @@ use core::sync::atomic::Ordering;
 use super::api::{allocate_ephemeral_port, GLOBAL_STATS, SOCKET_TABLE};
 use super::types::{UdpHeader, UdpPacket, UdpSocketId, UdpState, UdpStats};
 
+/// UDP socket structure
 #[derive(Debug)]
 pub struct UdpSocket {
     pub(super) id: UdpSocketId,
@@ -36,6 +38,7 @@ pub struct UdpSocket {
 }
 
 impl UdpSocket {
+    /// Create a new UDP socket
     pub fn new(id: UdpSocketId) -> Self {
         Self {
             id,
@@ -49,18 +52,22 @@ impl UdpSocket {
         }
     }
 
+    /// Get socket ID
     pub fn id(&self) -> UdpSocketId {
         self.id
     }
 
+    /// Get socket state
     pub fn state(&self) -> UdpState {
         self.state
     }
 
+    /// Get local port
     pub fn local_port(&self) -> u16 {
         self.local_port
     }
 
+    /// Bind to a local port
     pub fn bind(&mut self, port: u16) -> Result<(), &'static str> {
         if self.state != UdpState::Unbound {
             return Err("Socket already bound");
@@ -79,6 +86,7 @@ impl UdpSocket {
         Ok(())
     }
 
+    /// Connect to a remote address (sets default destination)
     pub fn connect(&mut self, addr: [u8; 4], port: u16) -> Result<(), &'static str> {
         if self.state == UdpState::Closed {
             return Err("Socket closed");
@@ -95,12 +103,14 @@ impl UdpSocket {
         Ok(())
     }
 
+    /// Send data to the connected remote address
     pub fn send(&mut self, data: &[u8]) -> Result<usize, &'static str> {
         let addr = self.remote_addr.ok_or("Not connected")?;
         let port = self.remote_port.ok_or("Not connected")?;
         self.send_to(data, addr, port)
     }
 
+    /// Send data to a specific address
     pub fn send_to(
         &mut self,
         data: &[u8],
@@ -148,6 +158,7 @@ impl UdpSocket {
         Err("Network stack not initialized")
     }
 
+    /// Receive data from the socket
     pub fn recv(&mut self, buf: &mut [u8]) -> Result<usize, &'static str> {
         if self.state == UdpState::Closed {
             return Err("Socket closed");
@@ -167,6 +178,7 @@ impl UdpSocket {
         Ok(len)
     }
 
+    /// Receive data with source address
     pub fn recv_from(&mut self, buf: &mut [u8]) -> Result<(usize, [u8; 4], u16), &'static str> {
         if self.state == UdpState::Closed {
             return Err("Socket closed");
@@ -186,6 +198,7 @@ impl UdpSocket {
         Ok((len, packet.src_addr, packet.src_port))
     }
 
+    /// Queue received packet
     pub fn queue_packet(&mut self, packet: UdpPacket) -> Result<(), &'static str> {
         let total_size: usize = self.recv_buffer.iter().map(|p| p.data.len()).sum();
         if total_size + packet.data.len() > self.recv_buffer_size {
@@ -197,14 +210,17 @@ impl UdpSocket {
         Ok(())
     }
 
+    /// Check if data is available
     pub fn has_data(&self) -> bool {
         !self.recv_buffer.is_empty()
     }
 
+    /// Get socket statistics
     pub fn stats(&self) -> &UdpStats {
         &self.stats
     }
 
+    /// Close the socket
     pub fn close(&mut self) {
         self.state = UdpState::Closed;
         self.recv_buffer.clear();

@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -14,16 +14,25 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+//! Physical Frame Allocator Core Implementation
+//!
+//! Bitmap-based physical memory allocator with randomized allocation.
+
 use core::ptr;
+
 use x86_64::PhysAddr;
+
 use super::bitmap;
 use super::constants::*;
 use super::error::{PhysAllocError, PhysAllocResult};
 use super::types::{AllocFlags, AllocatorState, Frame, ZoneStats};
 use crate::memory::layout;
+
 // ============================================================================
 // RANDOMIZATION
 // ============================================================================
+
+/// Derives a seed from KASLR nonce or falls back to constant.
 pub fn derive_seed() -> u64 {
     if let Ok(nonce) = crate::memory::kaslr::boot_nonce() {
         nonce.wrapping_add(SPLITMIX64_GOLDEN)
@@ -32,6 +41,7 @@ pub fn derive_seed() -> u64 {
     }
 }
 
+/// Splitmix64 mixing function for allocation randomization.
 #[inline]
 pub fn mix64(mut z: u64) -> u64 {
     z = (z ^ (z >> 30)).wrapping_mul(SPLITMIX64_MIX1);
@@ -42,7 +52,11 @@ pub fn mix64(mut z: u64) -> u64 {
 // ============================================================================
 // FRAME ZEROING
 // ============================================================================
-/// ## Safety
+
+/// Zeros a physical frame via direct mapping.
+///
+/// # Safety
+///
 /// This function accesses physical memory through the direct map.
 /// The frame must be within the managed range.
 pub fn zero_frame(frame: Frame) {
@@ -63,15 +77,19 @@ pub fn zero_frame(frame: Frame) {
     if va.wrapping_add(PAGE_SIZE_U64) > dm_base.wrapping_add(dm_size) {
         return;
     }
+
     // SAFETY: Address is within direct map bounds, writing zeros is safe
     unsafe {
         let ptr = va as *mut u8;
         ptr::write_bytes(ptr, 0, PAGE_SIZE);
     }
 }
+
 // ============================================================================
 // ALLOCATOR OPERATIONS
 // ============================================================================
+
+/// Initializes the allocator state with a bitmap.
 pub fn init_with_bitmap(
     state: &mut AllocatorState,
     managed_start: PhysAddr,
@@ -85,12 +103,14 @@ pub fn init_with_bitmap(
 
     let aligned_start = align_up(managed_start.as_u64(), PAGE_SIZE_U64);
     let aligned_end = align_down(managed_end.as_u64(), PAGE_SIZE_U64);
+
     if aligned_end <= aligned_start {
         return Err(PhysAllocError::NoCompletePagesInRange);
     }
 
     let frame_count = frames_in_range(aligned_start, aligned_end);
     let required_bytes = bitmap_bytes_for_frames(frame_count);
+
     if bitmap_bytes < required_bytes {
         return Err(PhysAllocError::BitmapTooSmall);
     }
@@ -99,19 +119,23 @@ pub fn init_with_bitmap(
         return Err(PhysAllocError::InvalidBitmapPointer);
     }
 
+    // Initialize state
     state.frame_start = aligned_start;
     state.frame_count = frame_count;
     state.bitmap_ptr = bitmap_ptr;
     state.bitmap_bytes = bitmap_bytes;
     state.next_hint = 0;
     state.random_seed = derive_seed();
+
     // SAFETY: bitmap_ptr is valid and we've verified it has enough space
     unsafe {
         ptr::write_bytes(bitmap_ptr, 0, required_bytes);
     }
+
     Ok(())
 }
 
+/// Allocates a single frame.
 pub fn allocate_frame(state: &mut AllocatorState, flags: AllocFlags) -> Option<Frame> {
     if !state.is_initialized() {
         return None;
@@ -120,14 +144,18 @@ pub fn allocate_frame(state: &mut AllocatorState, flags: AllocFlags) -> Option<F
     let bptr = state.bitmap_ptr;
     let total = state.frame_count;
     let start = state.frame_start;
+
+    // High memory allocation (search from end)
     if flags.contains(AllocFlags::HIGH) {
         for i in (0..total).rev() {
             // SAFETY: i < total, and bitmap is properly sized
             if unsafe { !bitmap::bit_test(bptr, i) } {
                 unsafe { bitmap::bit_set(bptr, i) };
                 state.next_hint = i as u64;
+
                 let pa = start.wrapping_add((i as u64).wrapping_mul(PAGE_SIZE_U64));
                 let frame = Frame::new(pa);
+
                 if flags.contains(AllocFlags::ZERO) {
                     zero_frame(frame);
                 }
@@ -138,18 +166,22 @@ pub fn allocate_frame(state: &mut AllocatorState, flags: AllocFlags) -> Option<F
         return None;
     }
 
+    // Randomized allocation with hint
     state.random_seed = state.random_seed.wrapping_add(1);
     let rnd = state.random_seed;
     let hint = state.next_hint as usize;
     let idx0 = (mix64(rnd) as usize).wrapping_add(hint) % total;
+
     for offset in 0..total {
         let i = (idx0 + offset) % total;
         // SAFETY: i < total, and bitmap is properly sized
         if unsafe { !bitmap::bit_test(bptr, i) } {
             unsafe { bitmap::bit_set(bptr, i) };
             state.next_hint = i as u64;
+
             let pa = start.wrapping_add((i as u64).wrapping_mul(PAGE_SIZE_U64));
             let frame = Frame::new(pa);
+
             if flags.contains(AllocFlags::ZERO) {
                 zero_frame(frame);
             }
@@ -161,6 +193,7 @@ pub fn allocate_frame(state: &mut AllocatorState, flags: AllocFlags) -> Option<F
     None
 }
 
+/// Deallocates a single frame.
 pub fn deallocate_frame(state: &mut AllocatorState, frame: Frame) -> PhysAllocResult<()> {
     if !state.is_initialized() {
         return Err(PhysAllocError::NotInitialized);
@@ -169,6 +202,7 @@ pub fn deallocate_frame(state: &mut AllocatorState, frame: Frame) -> PhysAllocRe
     let start = state.frame_start;
     let total = state.frame_count;
     let bptr = state.bitmap_ptr;
+
     if frame.addr() < start {
         return Err(PhysAllocError::AddressBelowRange);
     }
@@ -182,16 +216,19 @@ pub fn deallocate_frame(state: &mut AllocatorState, frame: Frame) -> PhysAllocRe
     if idx >= total {
         return Err(PhysAllocError::AddressAboveRange);
     }
+
     // SAFETY: idx < total, bitmap is valid
     if unsafe { !bitmap::bit_test(bptr, idx) } {
         return Err(PhysAllocError::DoubleFree);
     }
+
     // SAFETY: idx < total, bitmap is valid
     unsafe { bitmap::bit_clear(bptr, idx) };
 
     Ok(())
 }
 
+/// Allocates contiguous physical frames.
 pub fn allocate_contiguous(
     state: &mut AllocatorState,
     frame_count: usize,
@@ -208,12 +245,17 @@ pub fn allocate_contiguous(
 
     let bptr = state.bitmap_ptr;
     let start = state.frame_start;
+
     // SAFETY: bitmap is valid and total is correct
     let run_start = unsafe { bitmap::find_contiguous_free(bptr, total, frame_count)? };
+
+    // Mark all frames as allocated
     // SAFETY: run_start + frame_count <= total
     unsafe { bitmap::set_bit_range(bptr, run_start, frame_count) };
 
     let phys_addr = start.wrapping_add((run_start as u64).wrapping_mul(PAGE_SIZE_U64));
+
+    // Zero if requested
     if flags.contains(AllocFlags::ZERO) {
         for j in 0..frame_count {
             let frame_pa = phys_addr + (j as u64 * PAGE_SIZE_U64);
@@ -224,6 +266,7 @@ pub fn allocate_contiguous(
     Some(phys_addr)
 }
 
+/// Frees contiguous physical frames.
 pub fn free_contiguous(
     state: &mut AllocatorState,
     phys_addr: u64,
@@ -239,6 +282,7 @@ pub fn free_contiguous(
 
     let start = state.frame_start;
     let total = state.frame_count;
+
     if phys_addr < start {
         return Err(PhysAllocError::AddressBelowRange);
     }
@@ -254,32 +298,39 @@ pub fn free_contiguous(
     }
 
     let bptr = state.bitmap_ptr;
+
+    // Verify all frames are allocated before freeing
     // SAFETY: indices are within bounds
     if !unsafe { bitmap::is_range_allocated(bptr, start_idx, frame_count) } {
         return Err(PhysAllocError::DoubleFree);
     }
+
     // SAFETY: indices are within bounds
     unsafe { bitmap::clear_bit_range(bptr, start_idx, frame_count) };
 
     Ok(())
 }
 
+/// Gets zone statistics.
 pub fn get_zone_stats(state: &AllocatorState) -> ZoneStats {
     if !state.is_initialized() {
         return ZoneStats::new(0, 0);
     }
+
     // SAFETY: state is initialized, bitmap is valid
     let free = unsafe { bitmap::count_free_bits(state.bitmap_ptr, state.frame_count) };
 
     ZoneStats::new(state.frame_count, free)
 }
 
+/// Returns the managed memory range.
 pub fn managed_range(state: &AllocatorState) -> (u64, u64) {
     let start = state.frame_start;
     let end = start + ((state.frame_count as u64) * PAGE_SIZE_U64);
     (start, end)
 }
 
+/// Returns total managed memory in bytes.
 pub fn total_memory(state: &AllocatorState) -> u64 {
     (state.frame_count * PAGE_SIZE) as u64
 }
@@ -287,12 +338,17 @@ pub fn total_memory(state: &AllocatorState) -> u64 {
 // ============================================================================
 // GLOBAL STATE
 // ============================================================================
+
 extern crate alloc;
+
 use spin::Mutex;
+
 static ALLOCATOR: Mutex<AllocatorState> = Mutex::new(AllocatorState::new());
+
 // ============================================================================
 // PUBLIC API
 // ============================================================================
+
 pub fn phys_init_with_bitmap(
     managed_start: PhysAddr,
     managed_end: PhysAddr,
@@ -307,9 +363,11 @@ pub fn phys_init(managed_start: PhysAddr, managed_end: PhysAddr) -> PhysAllocRes
     let size = ((managed_end.as_u64().saturating_sub(managed_start.as_u64())) as usize / PAGE_SIZE)
         + BITS_PER_BYTE;
     let bytes = bitmap_bytes_for_frames(size);
+
     let mut v = alloc::vec::Vec::new();
     v.resize(bytes, 0u8);
     let bptr = v.leak().as_mut_ptr();
+
     phys_init_with_bitmap(managed_start, managed_end, bptr, bytes)
 }
 
@@ -366,4 +424,15 @@ pub fn phys_managed_range() -> (u64, u64) {
 
 pub fn phys_is_initialized() -> bool {
     ALLOCATOR.lock().is_initialized()
+}
+
+/// Find the first free frame starting from a given frame index.
+/// Returns the frame index if found, or None if all frames are allocated.
+pub fn phys_find_first_free(start_from: usize) -> Option<usize> {
+    let state = ALLOCATOR.lock();
+    if !state.is_initialized() {
+        return None;
+    }
+    // SAFETY: state is initialized, bitmap is valid
+    unsafe { bitmap::find_first_free(state.bitmap_ptr, state.frame_count, start_from) }
 }

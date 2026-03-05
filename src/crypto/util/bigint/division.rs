@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -17,7 +17,6 @@
 extern crate alloc;
 
 use alloc::vec;
-use alloc::vec::Vec;
 use core::cmp::Ordering;
 use core::ops::{Div, Rem};
 

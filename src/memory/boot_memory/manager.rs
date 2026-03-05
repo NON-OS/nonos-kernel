@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -17,6 +17,7 @@ use core::sync::atomic::{AtomicU64, AtomicUsize, Ordering};
 use alloc::vec::Vec;
 use spin::Mutex;
 use x86_64::PhysAddr;
+
 use super::constants::*;
 use super::error::{BootMemoryError, BootMemoryResult};
 use super::types::*;
@@ -241,8 +242,11 @@ pub fn find_region(addr: PhysAddr) -> Option<MemoryRegion> {
 
 #[inline]
 pub fn total_memory() -> u64 { TOTAL_MEMORY.load(Ordering::Relaxed) }
+
 #[inline]
 pub fn available_memory() -> u64 { AVAILABLE_MEMORY.load(Ordering::Relaxed) }
+
 #[inline]
 pub fn allocation_count() -> usize { ALLOCATION_COUNT.load(Ordering::Relaxed) }
+
 pub fn is_initialized() -> bool { BOOT_MEMORY_MANAGER.lock().is_some() }

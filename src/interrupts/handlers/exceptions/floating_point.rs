@@ -25,35 +25,35 @@ pub(crate) struct X87Status {
 }
 
 impl X87Status {
-    pub const fn from_bits(bits: u16) -> Self {
+    pub(crate) const fn from_bits(bits: u16) -> Self {
         Self { bits }
     }
 
-    pub const fn invalid_operation(&self) -> bool {
+    pub(crate) const fn invalid_operation(&self) -> bool {
         (self.bits & 0x01) != 0
     }
 
-    pub const fn denormalized_operand(&self) -> bool {
+    pub(crate) const fn denormalized_operand(&self) -> bool {
         (self.bits & 0x02) != 0
     }
 
-    pub const fn divide_by_zero(&self) -> bool {
+    pub(crate) const fn divide_by_zero(&self) -> bool {
         (self.bits & 0x04) != 0
     }
 
-    pub const fn overflow(&self) -> bool {
+    pub(crate) const fn overflow(&self) -> bool {
         (self.bits & 0x08) != 0
     }
 
-    pub const fn underflow(&self) -> bool {
+    pub(crate) const fn underflow(&self) -> bool {
         (self.bits & 0x10) != 0
     }
 
-    pub const fn precision(&self) -> bool {
+    pub(crate) const fn precision(&self) -> bool {
         (self.bits & 0x20) != 0
     }
 
-    pub const fn stack_fault(&self) -> bool {
+    pub(crate) const fn stack_fault(&self) -> bool {
         (self.bits & 0x40) != 0
     }
 }

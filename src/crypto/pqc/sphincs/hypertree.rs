@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -22,7 +22,7 @@ use super::hash::thash;
 use super::wots::wots_pk_gen;
 use super::SPHINCS_N;
 
-pub fn treehash(
+pub(crate) fn treehash(
     sk_seed: &[u8; SPHINCS_N],
     pk_seed: &[u8; SPHINCS_N],
     leaf_idx: u32,
@@ -48,7 +48,7 @@ pub fn treehash(
     thash(pk_seed, addr, &concat)
 }
 
-pub fn compute_auth_path(
+pub(crate) fn compute_auth_path(
     sk_seed: &[u8; SPHINCS_N],
     pk_seed: &[u8; SPHINCS_N],
     leaf_idx: u32,
@@ -56,6 +56,7 @@ pub fn compute_auth_path(
     addr: &mut Address,
 ) -> Vec<u8> {
     let mut auth_path = Vec::with_capacity(tree_height * SPHINCS_N);
+
     for height in 0..tree_height {
         let sibling_idx = (leaf_idx >> height) ^ 1;
         let node = treehash(sk_seed, pk_seed, sibling_idx, height as u32, addr);
