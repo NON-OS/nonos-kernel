@@ -17,7 +17,7 @@
 use uefi::prelude::*;
 
 pub fn read_tsc() -> u64 {
-    // ## SAFETY: RDTSC is always available on x86_64
+    // SAFETY: RDTSC is always available on x86_64
     unsafe { core::arch::x86_64::_rdtsc() }
 }
 
@@ -29,6 +29,7 @@ pub fn get_uefi_time_epoch(st: &SystemTable<Boot>) -> u64 {
         let hour = time.hour() as u64;
         let minute = time.minute() as u64;
         let second = time.second() as u64;
+
         let days_since_epoch = (year - 1970) * 365 + (year - 1969) / 4 - (year - 1901) / 100
             + (year - 1601) / 400
             + (367 * month - 362) / 12

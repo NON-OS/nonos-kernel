@@ -23,22 +23,22 @@ pub mod section;
 pub mod transcript;
 pub mod verify;
 
-// Re-export
+// Re-export error types
 pub use errors::ZkError;
 
-// Re-export 
+// Re-export binding functions
 pub use binding::{
     compute_capsule_commitment, compute_commit, is_manifest_binding_enabled, select_binding,
     verify_commitment, BindingInput, DS_COMMITMENT, MAX_MANIFEST_SIZE,
 };
 
-// Re-export 
+// Re-export verify types and functions
 pub use verify::{ct_eq32, derive_program_hash, verify_proof, ZkProof, ZkVerifyResult};
 #[cfg(feature = "zk-groth16")]
 pub use verify::{groth16_verify, GrothErr, GROTH16_PROOF_LEN};
 pub use verify::{DS_PROGRAM_HASH, MAX_INPUT_SIZE, MAX_PROOF_SIZE};
 
-// Re-export 
+// Re-export attestation types and functions
 pub use attest::{
     calculate_proof_block_size, create_zk_proof_block, find_zk_proof_offset, has_zk_proof,
     parse_zk_proof, parse_zk_proof_header, verify_boot_attestation,
@@ -46,12 +46,13 @@ pub use attest::{
     ZK_PROOF_HEADER_SIZE, ZK_PROOF_MAGIC, ZK_PROOF_VERSION,
 };
 
+// Re-export transcript
 pub use transcript::{Transcript, TRANSCRIPT_DOMAIN_BOOT, TRANSCRIPT_DOMAIN_CIRCUIT};
 
-// Re-export 
+// Re-export section parsing
 pub use section::{parse_section, validate_section};
 
-// Re-export
+// Re-export registry types and functions
 pub use registry::{derive_circuit_key, verify_circuit_key_derivation};
 pub use registry::{
     parse_circuit_section, CircuitCategory, CircuitEntry, CircuitPermission, CircuitSectionEntry,

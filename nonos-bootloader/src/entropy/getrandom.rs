@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::sources::{collect_hw_rng_bytes, rdtsc_serialized};
+
 /// C ABI getrandom implementation for libraries that need it (like arkworks).
 /// Uses hardware RNG (RDRAND/RDSEED) and TSC jitter for entropy.
 #[no_mangle]
@@ -24,8 +25,12 @@ pub unsafe extern "C" fn getrandom(buf: *mut u8, len: usize, _flags: u32) -> isi
     }
 
     let slice = unsafe { core::slice::from_raw_parts_mut(buf, len) };
+
+    // Collect entropy from hardware RNG and TSC
     let mut entropy = [0u8; 64];
     collect_hw_rng_bytes(&mut entropy, 16);
+
+    // Add TSC jitter entropy
     for i in 0..4 {
         let t1 = rdtsc_serialized();
         for _ in 0..100 { core::hint::spin_loop(); }
@@ -34,6 +39,7 @@ pub unsafe extern "C" fn getrandom(buf: *mut u8, len: usize, _flags: u32) -> isi
         entropy[32 + i * 8..40 + i * 8].copy_from_slice(&delta.to_le_bytes());
     }
 
+    // Expand entropy to fill the buffer
     let mut hasher = blake3::Hasher::new();
     hasher.update(&entropy);
     hasher.finalize_xof().fill(slice);

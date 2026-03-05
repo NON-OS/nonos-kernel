@@ -26,14 +26,19 @@ static BOOT_SERVICES: AtomicPtr<BootServices> = AtomicPtr::new(core::ptr::null_m
 /// Global pointer to UEFI System Table for logging
 static SYSTEM_TABLE: AtomicPtr<SystemTable<Boot>> = AtomicPtr::new(core::ptr::null_mut());
 
+/// Logger initialized flag
 static LOGGER_INITIALIZED: AtomicBool = AtomicBool::new(false);
 
+/// Current minimum log level (atomic for thread safety)
 static MIN_LOG_LEVEL: AtomicU8 = AtomicU8::new(LogLevel::Info as u8);
 
+/// Boot start tick for relative timestamps
 static BOOT_START_TICK: AtomicU64 = AtomicU64::new(0);
 
+/// Total log count
 static LOG_COUNT: AtomicU64 = AtomicU64::new(0);
 
+/// Initialize the global logger state
 pub fn init_global_state(st: &mut SystemTable<Boot>) {
     let bs_ptr = st.boot_services() as *const BootServices as *mut BootServices;
     let st_ptr = st as *mut SystemTable<Boot>;
@@ -41,6 +46,7 @@ pub fn init_global_state(st: &mut SystemTable<Boot>) {
     BOOT_SERVICES.store(bs_ptr, Ordering::Release);
     SYSTEM_TABLE.store(st_ptr, Ordering::Release);
     LOGGER_INITIALIZED.store(true, Ordering::Release);
+
     // Initialize boot tick
     let tick = get_current_tick_internal(bs_ptr);
     BOOT_START_TICK.store(tick, Ordering::Release);
@@ -53,26 +59,32 @@ pub fn shutdown_global_state() {
     SYSTEM_TABLE.store(core::ptr::null_mut(), Ordering::Release);
 }
 
+/// Check if logger is initialized
 pub fn is_initialized() -> bool {
     LOGGER_INITIALIZED.load(Ordering::Acquire)
 }
 
+/// Get Boot Services pointer (may be null)
 pub fn get_boot_services() -> *mut BootServices {
     BOOT_SERVICES.load(Ordering::Acquire)
 }
 
+/// Get System Table pointer (may be null)
 pub fn get_system_table() -> *mut SystemTable<Boot> {
     SYSTEM_TABLE.load(Ordering::Acquire)
 }
 
+/// Set minimum log level
 pub fn set_min_level(level: LogLevel) {
     MIN_LOG_LEVEL.store(level as u8, Ordering::Release);
 }
 
+/// Get minimum log level
 pub fn get_min_level() -> LogLevel {
     LogLevel::from_u8(MIN_LOG_LEVEL.load(Ordering::Acquire)).unwrap_or(LogLevel::Info)
 }
 
+/// Check if a level should be logged
 pub fn should_log(level: LogLevel) -> bool {
     if !is_initialized() {
         return false;
@@ -80,6 +92,7 @@ pub fn should_log(level: LogLevel) -> bool {
     level.should_log(get_min_level())
 }
 
+/// Get boot tick (time since boot start)
 pub fn get_boot_tick() -> u64 {
     let bs_ptr = BOOT_SERVICES.load(Ordering::Acquire);
     if bs_ptr.is_null() {
@@ -91,18 +104,23 @@ pub fn get_boot_tick() -> u64 {
     current.saturating_sub(start)
 }
 
+/// Internal: get current tick from Boot Services
 fn get_current_tick_internal(bs_ptr: *mut BootServices) -> u64 {
     if bs_ptr.is_null() {
         return 0;
     }
-    // ** Dev: I need to switch to a UEFI timer or TSC next, since now is a STS 
+
+    // Use stall count as a simple tick source
+    // In real implementation, this would use UEFI timer or TSC
     LOG_COUNT.load(Ordering::Acquire)
 }
 
+/// Increment and get log count
 pub fn increment_log_count() -> u64 {
     LOG_COUNT.fetch_add(1, Ordering::AcqRel)
 }
 
+/// Get total log count
 pub fn get_log_count() -> u64 {
     LOG_COUNT.load(Ordering::Acquire)
 }

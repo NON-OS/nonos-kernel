@@ -19,6 +19,7 @@ use uefi::CStr16;
 
 #[inline]
 pub fn mini_delay() {
+    // No-op in production - delays removed
 }
 
 #[inline]

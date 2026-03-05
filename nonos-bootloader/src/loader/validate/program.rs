@@ -91,14 +91,17 @@ pub fn validate_program_headers(
 
     let ph_offset = header.e_phoff as usize;
     let ph_size = core::mem::size_of::<Elf64Phdr>();
+
     for i in 0..header.e_phnum as usize {
         let offset = ph_offset + i * ph_size;
+
         if offset + ph_size > data.len() {
             return Err(LoaderError::SegmentOutOfBounds);
         }
 
-        // ## SAFETY: We've validated bounds and alignment
+        // SAFETY: We've validated bounds and alignment
         let phdr = unsafe { &*(data.as_ptr().add(offset) as *const Elf64Phdr) };
+
         if let Some(segment) = validate_program_header(phdr, data.len(), ctx)? {
             if load_idx < memory::MAX_LOAD_SEGMENTS {
                 segments[load_idx] = Some(segment);

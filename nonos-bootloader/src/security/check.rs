@@ -26,6 +26,7 @@ pub fn check_secure_boot(system_table: &mut SystemTable<Boot>) -> bool {
     let rt = system_table.runtime_services();
     let mut buf = [0u8; 1];
     let name = cstr16!("SecureBoot");
+
     match rt.get_variable(
         name,
         &uefi::table::runtime::VariableVendor::GLOBAL_VARIABLE,
@@ -57,6 +58,7 @@ pub fn check_platform_key(system_table: &mut SystemTable<Boot>) -> bool {
     let rt = system_table.runtime_services();
     let mut buf = [0u8; 2048];
     let name = cstr16!("PK");
+
     match rt.get_variable(
         name,
         &uefi::table::runtime::VariableVendor::GLOBAL_VARIABLE,
@@ -80,6 +82,7 @@ pub fn check_signature_db(system_table: &mut SystemTable<Boot>) -> bool {
     let rt = system_table.runtime_services();
     let mut buf = [0u8; 4096];
     let name = cstr16!("db");
+
     match rt.get_variable(
         name,
         &uefi::table::runtime::VariableVendor::GLOBAL_VARIABLE,
@@ -101,6 +104,7 @@ pub fn check_signature_db(system_table: &mut SystemTable<Boot>) -> bool {
 
 pub fn check_hardware_rng(system_table: &mut SystemTable<Boot>) -> bool {
     let bs = system_table.boot_services();
+
     if let Ok(handles) = bs.find_handles::<uefi::proto::rng::Rng>() {
         if !handles.is_empty() {
             log_info("rng", "EFI RNG protocol detected");
@@ -120,7 +124,9 @@ pub fn check_hardware_rng(system_table: &mut SystemTable<Boot>) -> bool {
 
 pub fn check_measured_boot(system_table: &mut SystemTable<Boot>) -> bool {
     use super::tpm::{extend_pcr_measurement, pcr};
+
     let test_data = b"NONOS:TPM:PROBE:v1";
+
     if extend_pcr_measurement(system_table, pcr::BOOTLOADER, test_data) {
         log_info("security", "TPM 2.0 measured boot available");
         true
@@ -147,6 +153,7 @@ unsafe fn cpuid(leaf: u32) -> (u32, u32, u32, u32) {
     let ebx: u32;
     let ecx: u32;
     let edx: u32;
+
     core::arch::asm!(
         "push rbx",
         "cpuid",

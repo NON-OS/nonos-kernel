@@ -17,6 +17,7 @@
 use super::types::BindingInput;
 #[cfg(feature = "zk-bind-manifest")]
 use super::types::MAX_MANIFEST_SIZE;
+
 /// Select binding source when manifest binding is enabled
 #[cfg(feature = "zk-bind-manifest")]
 pub fn select_binding<'a>(
@@ -29,6 +30,7 @@ pub fn select_binding<'a>(
     }
     Ok(BindingInput::Manifest(m))
 }
+
 /// Select binding source when manifest binding is disabled (default)
 #[cfg(not(feature = "zk-bind-manifest"))]
 pub fn select_binding<'a>(
@@ -38,6 +40,7 @@ pub fn select_binding<'a>(
     Ok(BindingInput::PublicInputs(public_inputs))
 }
 
+/// Check if manifest binding is enabled at compile time
 pub const fn is_manifest_binding_enabled() -> bool {
     cfg!(feature = "zk-bind-manifest")
 }

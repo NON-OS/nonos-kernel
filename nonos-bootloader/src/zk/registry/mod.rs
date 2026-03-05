@@ -22,6 +22,7 @@ mod store;
 mod types;
 
 pub use derive::{derive_circuit_key, verify_circuit_key_derivation};
+
 #[cfg(feature = "zk-groth16")]
 pub use keys::{
     compute_vk_fingerprint, verify_vk_fingerprint, CORE_CIRCUITS, ENTRIES,
@@ -38,6 +39,7 @@ pub use lookup::{
 
 pub use parse::parse_circuit_section;
 pub use store::DynamicCircuitStore;
+
 pub use types::{
     CircuitCategory, CircuitEntry, CircuitPermission, CircuitSectionEntry, CircuitSectionHeader,
     DynamicCircuitEntry, CIRCUIT_SECTION_MAGIC,

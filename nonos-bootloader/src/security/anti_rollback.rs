@@ -81,13 +81,20 @@ impl VersionState {
     }
 
     pub fn from_bytes(buf: &[u8; 48]) -> Self {
+        // Safe: buf is exactly 48 bytes, so these array extractions are guaranteed to succeed
+        let kernel_version = u64::from_le_bytes([buf[0], buf[1], buf[2], buf[3], buf[4], buf[5], buf[6], buf[7]]);
+        let bootloader_version = u64::from_le_bytes([buf[8], buf[9], buf[10], buf[11], buf[12], buf[13], buf[14], buf[15]]);
+        let minimum_kernel = u64::from_le_bytes([buf[16], buf[17], buf[18], buf[19], buf[20], buf[21], buf[22], buf[23]]);
+        let minimum_bootloader = u64::from_le_bytes([buf[24], buf[25], buf[26], buf[27], buf[28], buf[29], buf[30], buf[31]]);
+        let last_boot_timestamp = u64::from_le_bytes([buf[32], buf[33], buf[34], buf[35], buf[36], buf[37], buf[38], buf[39]]);
+        let boot_count = u64::from_le_bytes([buf[40], buf[41], buf[42], buf[43], buf[44], buf[45], buf[46], buf[47]]);
         Self {
-            kernel_version: u64::from_le_bytes(buf[0..8].try_into().unwrap()),
-            bootloader_version: u64::from_le_bytes(buf[8..16].try_into().unwrap()),
-            minimum_kernel: u64::from_le_bytes(buf[16..24].try_into().unwrap()),
-            minimum_bootloader: u64::from_le_bytes(buf[24..32].try_into().unwrap()),
-            last_boot_timestamp: u64::from_le_bytes(buf[32..40].try_into().unwrap()),
-            boot_count: u64::from_le_bytes(buf[40..48].try_into().unwrap()),
+            kernel_version,
+            bootloader_version,
+            minimum_kernel,
+            minimum_bootloader,
+            last_boot_timestamp,
+            boot_count,
         }
     }
 
@@ -115,6 +122,7 @@ impl AntiRollbackState {
 
     pub fn init(&mut self, tpm_available: bool) -> Result<(), RollbackError> {
         self.tpm_available = tpm_available;
+
         if tpm_available {
             match self.read_from_nvram() {
                 Ok(state) => {
@@ -214,13 +222,16 @@ impl AntiRollbackState {
 
     fn read_from_nvram(&self) -> Result<VersionState, RollbackError> {
         use crate::hardware::tpm::{nv_read, NvIndex};
+
         let index = NvIndex::new(NVRAM_VERSION_INDEX);
         let mut buf = [0u8; 48];
+
         match nv_read(&index, &mut buf) {
             Ok(48) => {
                 let state = VersionState::from_bytes(&buf);
                 let stored_hash = self.read_nvram_hash()?;
                 let computed_hash = state.compute_hash();
+
                 if !constant_time_eq_32(&stored_hash, &computed_hash) {
                     return Err(RollbackError::NvramReadFailed);
                 }
@@ -234,6 +245,7 @@ impl AntiRollbackState {
 
     fn write_to_nvram(&self) -> Result<(), RollbackError> {
         use crate::hardware::tpm::{nv_write, NvIndex};
+
         let index = NvIndex::new(NVRAM_VERSION_INDEX);
         let data = self.state.to_bytes();
 
@@ -248,8 +260,10 @@ impl AntiRollbackState {
 
     fn read_nvram_hash(&self) -> Result<[u8; 32], RollbackError> {
         use crate::hardware::tpm::{nv_read, NvIndex};
+
         let index = NvIndex::new(NVRAM_VERSION_INDEX + 1);
         let mut buf = [0u8; 32];
+
         match nv_read(&index, &mut buf) {
             Ok(32) => Ok(buf),
             _ => Err(RollbackError::NvramReadFailed),
@@ -267,6 +281,7 @@ fn constant_time_eq_32(a: &[u8; 32], b: &[u8; 32]) -> bool {
 }
 
 pub static ANTI_ROLLBACK: Mutex<AntiRollbackState> = Mutex::new(AntiRollbackState::new());
+
 pub fn init_anti_rollback(tpm_available: bool) -> Result<(), RollbackError> {
     let mut state = ANTI_ROLLBACK.lock();
     state.init(tpm_available)

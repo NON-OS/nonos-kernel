@@ -19,6 +19,7 @@ use core::mem::size_of;
 use crate::zk::errors::ZkError;
 use crate::zk::verify::ZkProof;
 
+/// Raw section header offsets
 #[repr(C)]
 struct RawHeader {
     program_hash_off: u32,
@@ -28,6 +29,7 @@ struct RawHeader {
     end_off: u32,
 }
 
+/// Read u32 from section at offset
 fn read_u32(section: &[u8], off: usize) -> Result<u32, ZkError> {
     if off + 4 > section.len() {
         return Err(ZkError::HeaderTruncated);
@@ -39,6 +41,7 @@ fn read_u32(section: &[u8], off: usize) -> Result<u32, ZkError> {
     ))
 }
 
+/// Read raw header from section
 fn read_header(section: &[u8]) -> Result<RawHeader, ZkError> {
     if section.len() < size_of::<RawHeader>() {
         return Err(ZkError::SectionTooSmall);
@@ -52,6 +55,7 @@ fn read_header(section: &[u8]) -> Result<RawHeader, ZkError> {
     })
 }
 
+/// Extract slice from section with bounds checking
 fn slice<'a>(section: &'a [u8], start: usize, end: usize) -> Result<&'a [u8], ZkError> {
     if start > end || end > section.len() {
         return Err(ZkError::OffsetRange);
@@ -71,16 +75,21 @@ pub fn parse_section(section: &[u8], manifest: Option<&[u8]>) -> Result<ZkProof,
     let cc_off = hdr.capsule_commitment_off as usize;
     let pi_off = hdr.public_inputs_off as usize;
     let proof_off = hdr.proof_off as usize;
+
+    // Validate all offsets
     if ph_off + 32 > end || cc_off + 32 > end || pi_off > proof_off || proof_off > end {
         return Err(ZkError::OffsetRange);
     }
 
+    // Extract program hash
     let mut program_hash = [0u8; 32];
     program_hash.copy_from_slice(slice(section, ph_off, ph_off + 32)?);
 
+    // Extract capsule commitment
     let mut capsule_commitment = [0u8; 32];
     capsule_commitment.copy_from_slice(slice(section, cc_off, cc_off + 32)?);
 
+    // Extract public inputs and proof blob
     let public_inputs = slice(section, pi_off, proof_off)?.to_vec();
     let proof_blob = slice(section, proof_off, end)?.to_vec();
 
@@ -93,6 +102,7 @@ pub fn parse_section(section: &[u8], manifest: Option<&[u8]>) -> Result<ZkProof,
     })
 }
 
+/// Validate section structure without parsing
 pub fn validate_section(section: &[u8]) -> Result<(), ZkError> {
     let hdr = read_header(section)?;
     let end = hdr.end_off as usize;
@@ -104,6 +114,7 @@ pub fn validate_section(section: &[u8]) -> Result<(), ZkError> {
     let cc_off = hdr.capsule_commitment_off as usize;
     let pi_off = hdr.public_inputs_off as usize;
     let proof_off = hdr.proof_off as usize;
+
     if ph_off + 32 > end || cc_off + 32 > end || pi_off > proof_off || proof_off > end {
         return Err(ZkError::OffsetRange);
     }

@@ -56,6 +56,7 @@ fn load_kernel_internal(
 ) -> LoaderResult<KernelImage> {
     let validation = validate_elf(payload)?;
     let bs = system_table.boot_services();
+
     if validation.is_exec {
         load_exec_kernel(bs, payload, &validation)
     } else if validation.is_dyn {
@@ -74,8 +75,10 @@ fn load_exec_kernel(
     let base = v.min_addr;
     let total_bytes = (v.max_addr - v.min_addr) as usize;
     let pages_needed = (total_bytes + PAGE_SIZE - 1) / PAGE_SIZE;
+
     let mut allocations: [(u64, usize); MAX_ALLOCS] = [(0, 0); MAX_ALLOCS];
     let mut alloc_count: usize = 0;
+
     let alloc_addr = match bs.allocate_pages(
         AllocateType::Address(base),
         MemoryType::LOADER_DATA,
@@ -128,9 +131,21 @@ fn load_exec_kernel(
         // Log segment permissions for security auditing
         let rwx = format!(
             "{}{}{}",
-            if (seg.p_flags & elf_flags::PF_R) != 0 { "R" } else { "-" },
-            if (seg.p_flags & elf_flags::PF_W) != 0 { "W" } else { "-" },
-            if (seg.p_flags & elf_flags::PF_X) != 0 { "X" } else { "-" }
+            if (seg.p_flags & elf_flags::PF_R) != 0 {
+                "R"
+            } else {
+                "-"
+            },
+            if (seg.p_flags & elf_flags::PF_W) != 0 {
+                "W"
+            } else {
+                "-"
+            },
+            if (seg.p_flags & elf_flags::PF_X) != 0 {
+                "X"
+            } else {
+                "-"
+            }
         );
 
         if seg.p_filesz > 0 {

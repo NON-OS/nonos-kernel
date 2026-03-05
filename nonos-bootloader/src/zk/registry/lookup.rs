@@ -29,6 +29,7 @@ pub enum LookupError {
 
 #[cfg(feature = "zk-groth16")]
 pub fn lookup_verified(program_hash: &[u8; 32]) -> Result<&'static [u8], LookupError> {
+    // First check CORE_CIRCUITS (built-in, trusted without fingerprint)
     for entry in CORE_CIRCUITS {
         if ct_eq32(&entry.program_hash, program_hash) {
             if !entry.vk_bytes.is_empty() {
@@ -36,6 +37,7 @@ pub fn lookup_verified(program_hash: &[u8; 32]) -> Result<&'static [u8], LookupE
             }
         }
     }
+    // Then check ENTRIES (simple hash->vk mapping, no fingerprint)
     for (h, vk) in ENTRIES {
         if ct_eq32(h, program_hash) {
             if !vk.is_empty() {
@@ -43,6 +45,7 @@ pub fn lookup_verified(program_hash: &[u8; 32]) -> Result<&'static [u8], LookupE
             }
         }
     }
+    // Finally check ENTRIES_WITH_FINGERPRINT (requires fingerprint verification)
     for (h, vk, fingerprint) in ENTRIES_WITH_FINGERPRINT {
         if ct_eq32(h, program_hash) {
             if verify_vk_fingerprint(vk, fingerprint) {
@@ -67,8 +70,8 @@ pub fn lookup(program_hash: &[u8; 32]) -> Option<&'static [u8]> {
 pub fn lookup_circuit(program_hash: &[u8; 32]) -> Option<&'static CircuitEntry> {
     for entry in CORE_CIRCUITS {
         if ct_eq32(&entry.program_hash, program_hash) {
-            // 1. Core circuits with signatures must have valid signatures
-            // 2. Core circuits without signatures are trusted (built-in)
+            // Core circuits with signatures must have valid signatures
+            // Core circuits without signatures are trusted (built-in)
             if entry.category == CircuitCategory::Core
                 && entry.signature.is_some()
                 && !entry.has_valid_signature()

@@ -105,7 +105,7 @@ pub fn put_pixel(x: u32, y: u32, color: u32) {
     let offset = (y * stride + x) as isize;
     let native_color = convert_color(color);
 
-    // ## SAFETY: Bounds checked above, fb_ptr points to valid framebuffer memory
+    // SAFETY: Bounds checked above, fb_ptr points to valid framebuffer memory
     unsafe {
         fb_ptr.offset(offset).write_volatile(native_color);
     }
@@ -135,7 +135,7 @@ pub fn fill_rect(x: u32, y: u32, w: u32, h: u32, color: u32) {
             }
 
             let offset = (py * stride + px) as isize;
-            // ## SAFETY: Bounds checked above
+            // SAFETY: Bounds checked above
             unsafe {
                 fb_ptr.offset(offset).write_volatile(native_color);
             }

@@ -57,6 +57,7 @@ pub fn parse_circuit_section(
 
     let mut signer = [0u8; 32];
     signer.copy_from_slice(&section[80..112]);
+
     if verify_signature {
         let mut trusted = false;
         for ts in trusted_signers {
@@ -70,10 +71,12 @@ pub fn parse_circuit_section(
         }
 
         use ed25519_dalek::{Signature, Verifier, VerifyingKey};
+
         let verifying_key =
             VerifyingKey::from_bytes(&signer).map_err(|_| "circuit: invalid signer public key")?;
 
         let sig = Signature::from_bytes(&signature);
+
         let mut signed_data = Vec::with_capacity(section.len() - 64);
         signed_data.extend_from_slice(&section[0..16]);
         signed_data.extend_from_slice(&section[80..]);
@@ -85,6 +88,7 @@ pub fn parse_circuit_section(
 
     let mut entries = Vec::with_capacity(count);
     let mut offset = 112;
+
     for _ in 0..count {
         if offset + 48 > section.len() {
             return Err("circuit: truncated entry");
@@ -115,6 +119,7 @@ pub fn parse_circuit_section(
         let version_len = section[offset] as usize;
         offset += 1;
         offset += 1;
+
         let vk_offset = u32::from_le_bytes(
             section[offset..offset + 4]
                 .try_into()
@@ -139,6 +144,7 @@ pub fn parse_circuit_section(
             return Err("circuit: VK out of bounds");
         }
         let vk_bytes = section[vk_offset..vk_offset + vk_len].to_vec();
+
         entries.push(DynamicCircuitEntry {
             program_hash,
             vk_bytes,

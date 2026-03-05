@@ -33,7 +33,7 @@ pub fn validate_elf(data: &[u8]) -> LoaderResult<ValidationContext> {
         return Err(LoaderError::InvalidClass);
     }
 
-    // ## SAFETY: We've validated minimum size
+    // SAFETY: We've validated minimum size
     let header = unsafe { &*(data.as_ptr() as *const Elf64Header) };
     let mut ctx = validate_header(header)?;
 

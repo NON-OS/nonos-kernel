@@ -16,20 +16,31 @@
 
 use super::level::LogLevel;
 
+/// Maximum message length in a log entry
 pub const MAX_MESSAGE_LEN: usize = 256;
+
+/// Maximum category length
 pub const MAX_CATEGORY_LEN: usize = 32;
 
+/// A single log entry for storage
 #[derive(Clone)]
 pub struct LogEntry {
+    /// Log level
     pub level: LogLevel,
+    /// Boot tick when logged (from boot start)
     pub tick: u64,
+    /// Category string (null-terminated, max 32 bytes)
     pub category: [u8; MAX_CATEGORY_LEN],
+    /// Category length
     pub category_len: u8,
+    /// Message string (null-terminated, max 256 bytes)
     pub message: [u8; MAX_MESSAGE_LEN],
+    /// Message length
     pub message_len: u16,
 }
 
 impl LogEntry {
+    /// Create a new empty log entry
     pub const fn new() -> Self {
         Self {
             level: LogLevel::Info,
@@ -41,15 +52,18 @@ impl LogEntry {
         }
     }
 
+    /// Create a log entry with data
     pub fn create(level: LogLevel, tick: u64, category: &str, message: &str) -> Self {
         let mut entry = Self::new();
         entry.level = level;
         entry.tick = tick;
+
         // Copy category
         let cat_bytes = category.as_bytes();
         let cat_len = cat_bytes.len().min(MAX_CATEGORY_LEN - 1);
         entry.category[..cat_len].copy_from_slice(&cat_bytes[..cat_len]);
         entry.category_len = cat_len as u8;
+
         // Copy message
         let msg_bytes = message.as_bytes();
         let msg_len = msg_bytes.len().min(MAX_MESSAGE_LEN - 1);
@@ -59,20 +73,24 @@ impl LogEntry {
         entry
     }
 
+    /// Get category as string slice
     pub fn category_str(&self) -> &str {
         let len = self.category_len as usize;
         core::str::from_utf8(&self.category[..len]).unwrap_or("")
     }
 
+    /// Get message as string slice
     pub fn message_str(&self) -> &str {
         let len = self.message_len as usize;
         core::str::from_utf8(&self.message[..len]).unwrap_or("")
     }
 
+    /// Check if entry is empty/unused
     pub fn is_empty(&self) -> bool {
         self.message_len == 0
     }
 
+    /// Calculate total size of this entry
     pub fn size(&self) -> usize {
         core::mem::size_of::<Self>()
     }
@@ -101,6 +119,7 @@ pub struct CompactLogEntry {
 }
 
 impl CompactLogEntry {
+    /// Create empty compact entry
     pub const fn new() -> Self {
         Self {
             tick: 0,
@@ -111,10 +130,12 @@ impl CompactLogEntry {
         }
     }
 
+    /// Create from full entry
     pub fn from_entry(entry: &LogEntry) -> Self {
         let mut compact = Self::new();
         compact.tick = entry.tick;
         compact.level = entry.level as u8;
+
         // Simple hash of category
         let mut hash = 0u8;
         for &b in &entry.category[..entry.category_len as usize] {
@@ -122,6 +143,7 @@ impl CompactLogEntry {
         }
         compact.category_hash = hash;
 
+        // Copy truncated message
         let msg_len = (entry.message_len as usize).min(52);
         compact.message[..msg_len].copy_from_slice(&entry.message[..msg_len]);
         compact.message_len = msg_len as u16;
@@ -129,10 +151,12 @@ impl CompactLogEntry {
         compact
     }
 
+    /// Get log level
     pub fn log_level(&self) -> LogLevel {
         LogLevel::from_u8(self.level).unwrap_or(LogLevel::Info)
     }
 
+    /// Get message as str
     pub fn message_str(&self) -> &str {
         let len = (self.message_len as usize).min(52);
         core::str::from_utf8(&self.message[..len]).unwrap_or("")
@@ -145,4 +169,5 @@ impl Default for CompactLogEntry {
     }
 }
 
+// Verify CompactLogEntry is exactly 64 bytes
 const _: () = assert!(core::mem::size_of::<CompactLogEntry>() == 64);

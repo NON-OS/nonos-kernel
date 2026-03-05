@@ -81,7 +81,7 @@ pub fn collect_boot_entropy(bs: &BootServices) -> Result<[u8; 64], &'static str>
 #[cfg(feature = "efi-rng")]
 fn collect_efi_rng(bs: &BootServices, h: &mut blake3::Hasher) {
     if let Ok(handle) = bs.locate_protocol::<Rng>() {
-        // ## SAFETY: UEFI protocol obtained from BootServices
+        // SAFETY: UEFI protocol obtained from BootServices
         let rng = unsafe { &mut *handle.get() };
         let mut buf = [0u8; 64];
         if rng.get_rng(None, &mut buf).is_ok() {
@@ -97,6 +97,7 @@ fn collect_tsc_jitter(bs: &BootServices, h: &mut blake3::Hasher) {
         bs.stall(23 + ((round as usize * 7) % 17));
         let t2 = rdtsc_serialized();
         let delta = t2.wrapping_sub(t1);
+
         let mut frame = [0u8; 24];
         frame[0..8].copy_from_slice(&t1.to_le_bytes());
         frame[8..16].copy_from_slice(&t2.to_le_bytes());
@@ -107,6 +108,7 @@ fn collect_tsc_jitter(bs: &BootServices, h: &mut blake3::Hasher) {
 }
 
 fn collect_rtc_entropy(h: &mut blake3::Hasher) {
+    // Use RDTSC for entropy since we don't have access to system table here
     let tsc = rdtsc_serialized();
     h.update(&tsc.to_le_bytes());
 }

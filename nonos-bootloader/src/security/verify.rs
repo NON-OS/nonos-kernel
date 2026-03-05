@@ -20,6 +20,7 @@ use crate::crypto::sig::{
 use crate::log::logger::{log_debug, log_error, log_info};
 
 const MIN_KERNEL_SIZE: usize = 64 + 1024;
+
 const SIGNATURE_SIZE: usize = 64;
 
 pub fn verify_kernel_signature_advanced(kernel_data: &[u8]) -> bool {

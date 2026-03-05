@@ -18,22 +18,36 @@ extern crate alloc;
 
 use crate::zk::verify::ZkVerifyResult;
 use alloc::vec::Vec;
+
 /// ZK proof block magic bytes: 'N' 0xC3 'Z' 'P'
 pub const ZK_PROOF_MAGIC: [u8; 4] = [0x4E, 0xC3, 0x5A, 0x50];
+
+/// Current ZK proof format version
 pub const ZK_PROOF_VERSION: u32 = 1;
+
+/// ZK proof header size (80 bytes)
 pub const ZK_PROOF_HEADER_SIZE: usize = 80;
+
+/// Groth16 proof size (192 bytes)
 pub const GROTH16_PROOF_SIZE: usize = 192;
 
+/// Result of boot attestation verification
 #[derive(Debug, Clone)]
 pub struct BootAttestationResult {
+    /// Whether ZK verification succeeded
     pub zk_verified: bool,
+    /// Program hash from the proof
     pub program_hash: [u8; 32],
+    /// Capsule commitment from the proof
     pub capsule_commitment: [u8; 32],
+    /// Detailed verification result
     pub detail: ZkVerifyResult,
+    /// Human-readable status message
     pub status_message: &'static str,
 }
 
 impl BootAttestationResult {
+    /// Create result for when no proof is present
     pub fn no_proof() -> Self {
         Self {
             zk_verified: false,
@@ -44,6 +58,7 @@ impl BootAttestationResult {
         }
     }
 
+    /// Create result for parse error
     pub fn parse_error(msg: &'static str) -> Self {
         Self {
             zk_verified: false,
@@ -54,6 +69,7 @@ impl BootAttestationResult {
         }
     }
 
+    /// Create result for verification failure
     pub fn verification_failed(
         program_hash: [u8; 32],
         capsule_commitment: [u8; 32],
@@ -68,6 +84,7 @@ impl BootAttestationResult {
         }
     }
 
+    /// Create result for successful verification
     pub fn verified(program_hash: [u8; 32], capsule_commitment: [u8; 32]) -> Self {
         Self {
             zk_verified: true,
@@ -82,15 +99,18 @@ impl BootAttestationResult {
 /// Parsed ZK proof block from capsule
 #[derive(Debug, Clone)]
 pub struct ZkProofBlock {
+    /// Program hash identifying the circuit
     pub program_hash: [u8; 32],
+    /// Capsule commitment
     pub capsule_commitment: [u8; 32],
-    /// 32-byte aligned
+    /// Public inputs (32-byte aligned)
     pub public_inputs: Vec<u8>,
-    /// 192 bytes for Groth16
+    /// Proof blob (192 bytes for Groth16)
     pub proof_blob: Vec<u8>,
 }
 
 impl ZkProofBlock {
+    /// Check if proof block has valid structure
     pub fn is_valid(&self) -> bool {
         self.public_inputs.len() % 32 == 0 && self.proof_blob.len() == GROTH16_PROOF_SIZE
     }

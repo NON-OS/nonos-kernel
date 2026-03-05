@@ -22,6 +22,7 @@ pub fn derive_circuit_key(
     context: &[u8],
 ) -> [u8; 32] {
     use blake3::Hasher;
+
     let mut hasher = Hasher::new_derive_key("NONOS:CIRCUIT_KEY:v1");
     hasher.update(program_hash);
     hasher.update(proof_commitment);

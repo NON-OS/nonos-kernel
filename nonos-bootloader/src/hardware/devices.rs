@@ -51,6 +51,7 @@ pub fn enumerate_graphics(system_table: &mut SystemTable<Boot>) -> usize {
     count
 }
 
+///
 pub fn enumerate_pci(system_table: &mut SystemTable<Boot>) -> usize {
     let bs = system_table.boot_services();
     let count = bs

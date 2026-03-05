@@ -21,10 +21,15 @@ use core::sync::atomic::{AtomicPtr, Ordering};
 use uefi::prelude::*;
 use uefi::table::boot::BootServices;
 use uefi::Identify;
+
 /// Global pointer to UEFI Boot Services for logging.
 /// This is set once during initialization and remains valid until ExitBootServices.
 static BOOT_SERVICES: AtomicPtr<BootServices> = AtomicPtr::new(core::ptr::null_mut());
-/// ## Safety
+
+/// Initialize the global logger with a reference to Boot Services.
+/// Must be called early in boot before any logging functions are used.
+///
+/// # Safety
 /// The SystemTable must remain valid for the lifetime of logging operations
 /// (until ExitBootServices is called).
 pub fn init_logger(st: &mut SystemTable<Boot>) {
@@ -41,6 +46,7 @@ pub enum LogLevel {
     Critical,
 }
 
+/// Internal logging implementation using global Boot Services.
 fn write_log_global(level: LogLevel, category: &str, message: &str) {
     let bs_ptr = BOOT_SERVICES.load(Ordering::Acquire);
     if bs_ptr.is_null() {
@@ -56,12 +62,16 @@ fn write_log_global(level: LogLevel, category: &str, message: &str) {
     };
 
     let log_line = format!("[{}] {}: {}\r\n", level_str, category, message);
-    // ## SAFETY: We need to output to console. Boot Services provides ConOut.
+
+    // SAFETY: We need to output to console. Boot Services provides ConOut.
+    // This is safe because:
     // 1. BOOT_SERVICES is set during init and cleared before ExitBootServices
     // 2. All logging happens while Boot Services is valid
     // 3. We're using the UEFI Simple Text Output Protocol
     unsafe {
         let bs = &*bs_ptr;
+        // Get ConOut from system table - we stored BootServices but need SystemTable for stdout
+        // Use BootServices to locate the Simple Text Output Protocol
         if let Ok(handles) = bs.locate_handle_buffer(
             uefi::table::boot::SearchType::ByProtocol(
                 &uefi::proto::console::text::Output::GUID
@@ -99,6 +109,7 @@ fn write_log(st: &mut SystemTable<Boot>, level: LogLevel, category: &str, messag
     };
 
     let log_line = format!("[{}] {}: {}\r\n", level_str, category, message);
+
     let mut buf = [0u16; 512];
     let mut idx = 0;
     for c in log_line.chars() {

@@ -27,7 +27,7 @@ use uefi::CStr16;
 
 use crate::log::logger::{log_error, log_info};
 
-const MAX_KERNEL_SIZE: usize = 64 * 1024 * 1024;
+const MAX_KERNEL_SIZE: usize = 512 * 1024 * 1024; // 512MB to support wallpaper assets + bootstrap heap
 
 #[derive(Debug)]
 pub enum FileLoadError {
@@ -121,17 +121,33 @@ fn read_regular_file(
             FileLoadError::AllocationFailed
         })?;
 
-    // ## SAFETY: buffer_addr points to pages*4096 bytes of valid memory
+    // SAFETY: buffer_addr points to pages*4096 bytes of valid memory
     let buffer = unsafe { core::slice::from_raw_parts_mut(buffer_addr as *mut u8, file_size) };
 
-    let bytes_read = file.read(buffer).map_err(|_| {
-        let _ = bs.free_pages(buffer_addr, pages);
-        log_error("file", "Failed to read file contents");
-        FileLoadError::ReadFailed
-    })?;
+    // Read file in loop - UEFI may return partial reads on some firmware
+    let mut total_read = 0usize;
+    while total_read < file_size {
+        let remaining = &mut buffer[total_read..];
+        match file.read(remaining) {
+            Ok(0) => {
+                // EOF before expected - file may be truncated
+                log_error("file", "Unexpected EOF during file read");
+                let _ = bs.free_pages(buffer_addr, pages);
+                return Err(FileLoadError::ReadFailed);
+            }
+            Ok(n) => {
+                total_read += n;
+            }
+            Err(_) => {
+                let _ = bs.free_pages(buffer_addr, pages);
+                log_error("file", "Failed to read file contents");
+                return Err(FileLoadError::ReadFailed);
+            }
+        }
+    }
 
-    let mut result = Vec::with_capacity(bytes_read);
-    result.extend_from_slice(&buffer[..bytes_read]);
+    let mut result = Vec::with_capacity(file_size);
+    result.extend_from_slice(buffer);
 
     let _ = bs.free_pages(buffer_addr, pages);
 
@@ -203,6 +219,7 @@ pub fn load_kernel_binary(system_table: &SystemTable<Boot>) -> FileResult<Vec<u8
 
 pub fn file_exists(system_table: &SystemTable<Boot>, path: &CStr16) -> bool {
     let bs = system_table.boot_services();
+
     if let Ok(handles) = bs.find_handles::<SimpleFileSystem>() {
         for &handle in handles.iter() {
             if let Ok(mut fs) = bs.open_protocol_exclusive::<SimpleFileSystem>(handle) {

@@ -18,6 +18,7 @@ use blake3;
 
 use super::types::{BindingInput, DS_COMMITMENT};
 
+/// Compute BLAKE3 commitment with domain separation
 #[inline]
 fn blake3_commit(bytes: &[u8]) -> [u8; 32] {
     let mut h = blake3::Hasher::new_derive_key(DS_COMMITMENT);
@@ -25,6 +26,7 @@ fn blake3_commit(bytes: &[u8]) -> [u8; 32] {
     *h.finalize().as_bytes()
 }
 
+/// Compute commitment from binding input
 pub fn compute_commit(binding: BindingInput<'_>) -> [u8; 32] {
     match binding {
         BindingInput::PublicInputs(pi) => blake3_commit(pi),
@@ -32,12 +34,14 @@ pub fn compute_commit(binding: BindingInput<'_>) -> [u8; 32] {
     }
 }
 
+/// Compute capsule commitment directly from code bytes
 pub fn compute_capsule_commitment(kernel_code: &[u8]) -> [u8; 32] {
     let mut hasher = blake3::Hasher::new_derive_key(DS_COMMITMENT);
     hasher.update(kernel_code);
     *hasher.finalize().as_bytes()
 }
 
+/// Verify that a commitment matches the binding
 pub fn verify_commitment(binding: BindingInput<'_>, expected: &[u8; 32]) -> bool {
     let computed = compute_commit(binding);
     // Constant-time comparison
