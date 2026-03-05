@@ -32,8 +32,8 @@ UNAME_S := $(shell uname -s)
 UNAME_M := $(shell uname -m)
 
 # Rust toolchain
-RUSTUP_HOME := $(HOME)/.rustup
-CARGO_HOME := $(HOME)/.cargo
+RUSTUP_HOME ?= $(HOME)/.rustup
+CARGO_HOME ?= $(HOME)/.cargo
 RUSTUP := $(CARGO_HOME)/bin/rustup
 export RUSTUP_TOOLCHAIN := nightly-2026-01-16
 
@@ -47,10 +47,16 @@ else
     NIGHTLY_BIN := $(RUSTUP_HOME)/toolchains/nightly-2026-01-16-x86_64-unknown-linux-gnu/bin
 endif
 
-CARGO := $(NIGHTLY_BIN)/cargo
-export RUSTC := $(NIGHTLY_BIN)/rustc
-export RUSTDOC := $(NIGHTLY_BIN)/rustdoc
-export PATH := $(NIGHTLY_BIN):$(CARGO_HOME)/bin:$(PATH)
+# Use toolchain-specific cargo if available, otherwise rely on RUSTUP_TOOLCHAIN
+ifneq ($(wildcard $(NIGHTLY_BIN)/cargo),)
+    CARGO := $(NIGHTLY_BIN)/cargo
+    export RUSTC := $(NIGHTLY_BIN)/rustc
+    export RUSTDOC := $(NIGHTLY_BIN)/rustdoc
+    export PATH := $(NIGHTLY_BIN):$(CARGO_HOME)/bin:$(PATH)
+else
+    CARGO := cargo
+    export PATH := $(CARGO_HOME)/bin:$(PATH)
+endif
 
 # QEMU + OVMF
 ifeq ($(UNAME_S),Darwin)
