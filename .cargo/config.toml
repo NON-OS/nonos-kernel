@@ -10,5 +10,5 @@ rustflags = [
   "-C", "force-frame-pointers=yes",
 ]
 
-# Platform's are defined in the Makefile for portability
+# Platform-specific runners are defined in the Makefile for portability
 # Use `make run` instead of `cargo run` for QEMU testing
