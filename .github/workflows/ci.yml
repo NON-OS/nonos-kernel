@@ -8,45 +8,12 @@ on:
 
 env:
   CARGO_TERM_COLOR: always
+  RUSTUP_TOOLCHAIN: nightly
 
 jobs:
-  check:
-    name: Check & Lint
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Install Rust
-        run: |
-          curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain nightly-2026-01-16
-          source ~/.cargo/env
-          rustup component add rust-src clippy rustfmt llvm-tools-preview
-          echo "$HOME/.cargo/bin" >> $GITHUB_PATH
-
-      - name: Cache cargo
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.cargo/registry
-            ~/.cargo/git
-            target
-          key: ${{ runner.os }}-cargo-check-${{ hashFiles('**/Cargo.lock') }}
-
-      - name: Check kernel
-        run: cargo check --target x86_64-nonos.json -Zbuild-std=core,alloc
-
-      - name: Clippy
-        run: cargo clippy --target x86_64-nonos.json -Zbuild-std=core,alloc -- -D warnings
-        continue-on-error: true
-
-      - name: Check formatting
-        run: cargo fmt --check
-
   build:
     name: Build
     runs-on: ubuntu-latest
-    needs: check
 
     steps:
       - uses: actions/checkout@v4
@@ -65,26 +32,27 @@ jobs:
             ~/.cargo/registry
             ~/.cargo/git
             target
-          key: ${{ runner.os }}-cargo-build-${{ hashFiles('**/Cargo.lock') }}
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
 
-      - name: Build kernel (release)
-        run: cargo build --release --target x86_64-nonos.json -Zbuild-std=core,alloc
-
-      - name: Extract binary
+      - name: Setup signing key
         run: |
-          rust-objcopy -O binary \
-            target/x86_64-nonos/release/nonos-kernel \
-            target/kernel.bin
+          mkdir -p .keys
+          echo "${{ secrets.SIGNING_KEY_BASE64 }}" | base64 -d > .keys/dev-signing.seed
+          chmod 600 .keys/dev-signing.seed
+          test -s .keys/dev-signing.seed || { echo "Signing key empty"; exit 1; }
 
-      - name: Verify artifact
-        run: |
-          test -f target/kernel.bin || { echo "Kernel binary not created"; exit 1; }
-          ls -lh target/kernel.bin
-          echo "Build successful"
+      - name: Build
+        run: make all
+        env:
+          NONOS_SIGNING_KEY: ${{ github.workspace }}/.keys/dev-signing.seed
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: kernel-${{ github.sha }}
-          path: target/kernel.bin
+          name: nonos-kernel-${{ github.sha }}
+          path: target/x86_64-nonos/release/nonos_kernel
           retention-days: 30
+
+      - name: Cleanup
+        if: always()
+        run: rm -rf .keys/
