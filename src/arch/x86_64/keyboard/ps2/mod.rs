@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod controller;
-mod keyboard;
-mod mouse;
+pub mod controller;
+pub mod keyboard;
+pub mod mouse;
 
 pub use controller::Controller;
 pub use keyboard::{Keyboard, ScanCodeDecoder, ScanCodeSet, ScanCodeState, TypematicConfig};

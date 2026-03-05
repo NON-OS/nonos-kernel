@@ -17,9 +17,9 @@
 pub mod config;
 pub mod stats;
 pub mod wait;
-mod state;
-mod push;
-mod pop;
+pub mod state;
+pub mod push;
+pub mod pop;
 pub mod api;
 
 pub use config::{QueueConfig, DEFAULT_MAX_QUEUE_SIZE, MAX_ALLOWED_QUEUE_SIZE, DEFAULT_PRESSURE_THRESHOLD, MAX_COALESCE_COUNT};
@@ -27,9 +27,9 @@ pub use stats::QueueStats;
 pub use wait::WaitHandle;
 pub use push::push_event;
 pub use pop::{pop_event, pop_event_filtered, peek_event, peek_event_filtered, drain_events, drain_events_filtered};
-pub use api::{configure, get_config, queue_len, is_empty, clear, stats, total_events, dropped_events, shutdown, restart, is_shutdown, register_waiter, unregister_waiter};
+pub use api::{configure, get_config, queue_len, is_empty, clear, stats, total_events, dropped_events, shutdown, restart, is_shutdown, register_waiter, unregister_waiter, queue_pressure};
 
-pub(super) fn queue_pressure() -> u8 {
+fn queue_pressure_inner() -> u8 {
     let queue = &state::INPUT_QUEUE;
     let inner = queue.inner.lock();
     let config = queue.config.read();

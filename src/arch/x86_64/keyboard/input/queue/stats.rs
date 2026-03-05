@@ -37,7 +37,7 @@ pub(crate) struct QueueStatsAtomic {
 }
 
 impl QueueStatsAtomic {
-    pub const fn new() -> Self {
+    pub(crate) const fn new() -> Self {
         Self {
             total_events: AtomicU64::new(0),
             dropped_events: AtomicU64::new(0),
@@ -48,7 +48,7 @@ impl QueueStatsAtomic {
         }
     }
 
-    pub fn snapshot(&self, current_size: usize) -> QueueStats {
+    pub(crate) fn snapshot(&self, current_size: usize) -> QueueStats {
         QueueStats {
             total_events: self.total_events.load(Ordering::Relaxed),
             dropped_events: self.dropped_events.load(Ordering::Relaxed),

@@ -18,7 +18,7 @@ pub mod error;
 pub mod input;
 pub mod keymap;
 pub mod layout;
-mod manager;
+pub mod manager;
 pub mod ps2;
 #[cfg(test)]
 mod test;

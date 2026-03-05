@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod constants;
-mod typematic;
-mod keyboard_impl;
-mod decoder;
+pub mod constants;
+pub mod typematic;
+pub mod keyboard_impl;
+pub mod decoder;
 
 pub use typematic::{ScanCodeSet, TypematicConfig};
 pub use keyboard_impl::Keyboard;

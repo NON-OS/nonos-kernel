@@ -76,6 +76,10 @@ pub fn is_shutdown() -> bool {
     INPUT_QUEUE.shutdown.load(Ordering::Acquire)
 }
 
+pub fn queue_pressure() -> u8 {
+    super::queue_pressure_inner()
+}
+
 pub fn register_waiter(handle: &'static WaitHandle) {
     INPUT_QUEUE.waiters.lock().push(handle);
 }
