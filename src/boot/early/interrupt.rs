@@ -24,7 +24,9 @@ pub unsafe fn init_interrupts() { unsafe {
     // SAFETY: Must be called after CPU structures are initialized
     use crate::arch::x86_64::interrupt::nonos_ioapic::{IsoFlags, MadtIoApic, MadtIso, MadtNmi};
 
-    crate::arch::x86_64::interrupt::apic::init();
+    if let Err(e) = crate::arch::x86_64::interrupt::apic::init() {
+        serial_print(format_args!("[BOOT] APIC init failed: {:?}\n", e));
+    }
 
     match crate::arch::x86_64::acpi::init() {
         Ok(()) => {}

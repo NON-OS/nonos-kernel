@@ -69,8 +69,11 @@ fn check_region_overlap(
 pub unsafe fn init_memory(boot_info: &'static BootInfo) -> Result<(), &'static str> { unsafe {
     // SAFETY: Must be called exactly once during early boot with valid boot info
     static mut USABLE_REGIONS: Option<heapless::Vec<crate::memory::layout::Region, 32>> = None;
-    USABLE_REGIONS = Some(heapless::Vec::new());
-    let regions = match USABLE_REGIONS.as_mut() {
+
+    // SAFETY: Single-threaded early boot, no concurrent access possible
+    let regions_ptr = core::ptr::addr_of_mut!(USABLE_REGIONS);
+    (*regions_ptr) = Some(heapless::Vec::new());
+    let regions = match (*regions_ptr).as_mut() {
         Some(r) => r,
         None => return Err("Failed to initialize memory regions"),
     };

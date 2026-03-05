@@ -73,7 +73,6 @@ impl BootHandoffV1 {
     }
 
     // SAFETY: The command line pointer must remain valid for the returned lifetime.
-    // The pointer must point to valid UTF-8 data.
     pub unsafe fn cmdline(&self) -> Option<&'static str> {
         const MAX_PHYS_ADDR: u64 = 0x0000_FFFF_FFFF_FFFF;
 

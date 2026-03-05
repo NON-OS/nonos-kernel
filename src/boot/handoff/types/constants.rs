@@ -18,6 +18,18 @@ pub const HANDOFF_MAGIC: u32 = 0x4E_4F_4E_4F;
 pub const HANDOFF_VERSION: u16 = 1;
 pub const MAX_CMDLINE_LEN: usize = 4096;
 
+pub fn validate_cmdline_len(len: usize) -> bool {
+    len <= MAX_CMDLINE_LEN
+}
+
+pub fn truncate_cmdline(cmdline: &str) -> &str {
+    if cmdline.len() <= MAX_CMDLINE_LEN {
+        cmdline
+    } else {
+        &cmdline[..MAX_CMDLINE_LEN]
+    }
+}
+
 pub mod flags {
     pub const WX: u64 = 1 << 0;
     pub const NXE: u64 = 1 << 1;

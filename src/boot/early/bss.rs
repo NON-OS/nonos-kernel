@@ -21,8 +21,8 @@ pub unsafe fn clear_bss() { unsafe {
         static mut __bss_end: u8;
     }
 
-    let start = &__bss_start as *const u8 as usize;
-    let end = &__bss_end as *const u8 as usize;
+    let start = &raw const __bss_start as *const u8 as usize;
+    let end = &raw const __bss_end as *const u8 as usize;
     let len = end.saturating_sub(start);
 
     if len > 0 {
