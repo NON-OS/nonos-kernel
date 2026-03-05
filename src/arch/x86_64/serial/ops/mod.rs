@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod io;
-mod init;
-mod read_write;
+pub mod io;
+pub mod init;
+pub mod read_write;
 #[cfg(test)]
 mod tests;
 
