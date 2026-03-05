@@ -14,11 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod lock;
-mod init;
-mod write;
-mod console;
-mod stats;
+pub mod lock;
+pub mod init;
+pub mod write;
+pub mod console;
+pub mod stats;
 
 pub use init::{init, is_initialized, enter_panic_mode};
 pub use write::{write_byte, write_str, write_str_to_console, clear, set_color, print_critical, print_hex};
