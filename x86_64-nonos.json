@@ -24,13 +24,13 @@
   "linker": "rust-lld",
 
   "pre-link-args": {
-    "ld.lld": ["-nostdlib", "-static", "--gc-sections", "-z", "max-page-size=0x1000"]
+    "ld.lld": ["-nostdlib", "-pie", "--gc-sections", "-z", "max-page-size=0x1000"]
   },
 
-  "relocation-model": "static",
+  "relocation-model": "pic",
   "code-model": "small",
-  "position-independent-executables": false,
-  "static-position-independent-executables": false,
+  "position-independent-executables": true,
+  "static-position-independent-executables": true,
 
   "no-default-libraries": true,
   "has-rpath": false,
