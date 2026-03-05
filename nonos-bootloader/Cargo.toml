@@ -4,11 +4,11 @@ version = "0.1.0"
 edition = "2021"
 publish = false
 authors = ["eK <team@nonos.systems>"]
-description = "NØNOS Bootloader — UEFI stage-0 loader for zero-trust enviroment execution"
+description = "NØN•OS Capsule Bootloader — UEFI stage-0 loader for zero-trust capsule execution"
 license = "AGPL-3.0"
-repository = "https://github.com/NON-OS/nonos-kernel/tree/main/nonos-bootloader"
+repository = "https://github.com/NON-OS/nonos-boot"
 readme = "README.md"
-documentation = ["https://docs.nonos.systems", "https://nonos.systems/whitepaper"]
+documentation = "https://docs.nonos.systems"
 keywords = ["bootloader", "uefi", "zk", "os", "capsule"]
 categories = ["embedded", "no-std", "cryptography", "os"]
 
@@ -33,6 +33,7 @@ xmas-elf = "0.8"
 zerocopy = "0.6"
 
 # Measurements / hashing
+# force-soft disables SIMD intrinsics that cause LLVM errors on UEFI target
 sha2 = { version = "0.10", default-features = false, features = ["force-soft"] }
 blake3 = { version = "1.5", default-features = false, features = ["pure"] }
 
@@ -55,7 +56,7 @@ ark-groth16 = { version = "0.4", default-features = false, optional = true }
 # Optional: zeroize buffers after verification (defense-in-depth)
 zeroize = { version = "1.5", default-features = false, features = ["alloc"], optional = true }
 
-# Future/experimental SNARKs (For now: disabled by default for UEFI)
+# Future/experimental SNARKs (disabled by default for UEFI)
 halo2_proofs = { version = "0.2", optional = true }
 snarkvm = { version = "0.11", optional = true }
 
@@ -92,3 +93,4 @@ cc = "1.0"
 embed-manifest = "1.4.0"
 sha2 = "0.10"
 blake3 = "1.5"
+
