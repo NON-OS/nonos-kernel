@@ -43,3 +43,10 @@ pub fn generate_secure_key() -> [u8; 32] {
     rng::fill_random_bytes(&mut key);
     key
 }
+
+pub fn generate_secure_key_checked() -> Result<[u8; 32], &'static str> {
+    let mut key = [0u8; 32];
+    rng::fill_random_bytes_secure(&mut key)
+        .map_err(|_| "Insufficient entropy for key generation")?;
+    Ok(key)
+}
