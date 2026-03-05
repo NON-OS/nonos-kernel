@@ -22,6 +22,6 @@ pub fn read_apic_id() -> u32 {
 pub unsafe fn init_cpu_structures() -> Result<(), &'static str> {
     // SAFETY: Must be called once for BSP during boot
     crate::arch::x86_64::gdt::init().map_err(|_| "Failed to initialize GDT")?;
-    crate::arch::x86_64::idt::init();
+    crate::arch::x86_64::idt::init().map_err(|_| "Failed to initialize IDT")?;
     Ok(())
 }

@@ -25,7 +25,6 @@ pub unsafe fn clear_bss() {
     }
 
     // SAFETY: These are linker-provided addresses, not actual values
-    // Using addr_of! to avoid creating references to linker symbols
     unsafe {
         let start = core::ptr::addr_of!(__bss_start) as usize;
         let end = core::ptr::addr_of!(__bss_end) as usize;

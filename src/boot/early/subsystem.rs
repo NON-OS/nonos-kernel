@@ -23,8 +23,11 @@ pub unsafe fn init_core_subsystems() {
     crate::log::logger::init();
     crate::log::info!("[BOOT] Logger initialized");
 
-    crate::crypto::vault::init_vault();
-    crate::log::info!("[BOOT] Crypto vault initialized");
+    if let Err(e) = crate::crypto::vault::init_vault() {
+        crate::log::error!("[BOOT] Crypto vault init failed: {:?}", e);
+    } else {
+        crate::log::info!("[BOOT] Crypto vault initialized");
+    }
 
     crate::sched::init();
     crate::log::info!("[BOOT] Scheduler initialized");
@@ -39,7 +42,9 @@ pub unsafe fn init_core_subsystems() {
 pub unsafe fn init_module_system() { unsafe {
     // SAFETY: Must be called after core subsystems are initialized
     crate::modules::mod_loader::init_module_loader();
-    crate::syscall::capabilities::init_capabilities();
+    if let Err(e) = crate::syscall::capabilities::init_capabilities() {
+        crate::log::error!("[BOOT] Capabilities init failed: {:?}", e);
+    }
     load_initial_modules();
 }}
 

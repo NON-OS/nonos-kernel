@@ -14,18 +14,21 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod constants;
-mod framebuffer;
-mod memory;
-mod info;
-mod security;
-mod handoff;
+pub mod constants;
+pub mod framebuffer;
+pub mod memory;
+pub mod info;
+pub mod security;
+pub mod handoff;
 #[cfg(test)]
 mod tests;
 
-pub use constants::{HANDOFF_MAGIC, HANDOFF_VERSION, MAX_CMDLINE_LEN, flags, pixel_format};
+pub use constants::{HANDOFF_MAGIC, HANDOFF_VERSION, flags, pixel_format};
+pub use constants::{validate_cmdline_len, truncate_cmdline};
 pub use framebuffer::FramebufferInfo;
 pub use memory::{memory_type, MemoryMapEntry, MemoryMap};
 pub use info::{AcpiInfo, SmbiosInfo, Module, Modules, Timing};
 pub use security::{Measurements, ZkAttestation, RngSeed};
 pub use handoff::BootHandoffV1;
+
+pub const MAX_CMDLINE: usize = constants::MAX_CMDLINE_LEN;

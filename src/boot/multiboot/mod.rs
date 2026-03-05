@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod parser;
-mod platform;
-mod types;
+pub mod parser;
+pub mod platform;
+pub mod types;
 
 #[cfg(test)]
 mod tests;

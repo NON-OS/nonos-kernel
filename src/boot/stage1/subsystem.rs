@@ -60,7 +60,8 @@ pub unsafe fn init_core_subsystems() -> Result<(), &'static str> {
 pub unsafe fn init_module_system() -> Result<(), &'static str> {
     // SAFETY: Caller guarantees core subsystems are initialized
     crate::modules::mod_loader::init_module_loader();
-    crate::syscall::capabilities::init_capabilities();
+    crate::syscall::capabilities::init_capabilities()
+        .map_err(|_| "Failed to initialize capabilities")?;
 
     // SAFETY: Module loader initialized above
     unsafe { load_initial_modules() }

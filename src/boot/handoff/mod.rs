@@ -14,16 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod api;
-mod types;
+pub mod api;
+pub mod types;
 
 #[cfg(test)]
 mod tests;
 
 pub use api::{get_handoff, init_handoff, is_initialized, total_memory, HandoffError};
 pub use types::{flags, memory_type, pixel_format};
-pub use types::{HANDOFF_MAGIC, HANDOFF_VERSION};
+pub use types::{HANDOFF_MAGIC, HANDOFF_VERSION, validate_cmdline_len, truncate_cmdline};
 pub use types::{
     AcpiInfo, BootHandoffV1, FramebufferInfo, Measurements, MemoryMap, MemoryMapEntry, Module,
-    Modules, RngSeed, SmbiosInfo, Timing, ZkAttestation,
+    Modules, RngSeed, SmbiosInfo, Timing, ZkAttestation, MAX_CMDLINE,
 };
