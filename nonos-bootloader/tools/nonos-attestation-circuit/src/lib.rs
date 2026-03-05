@@ -30,6 +30,6 @@ pub use constants::{
     compute_build_config_hash, compute_capsule_commitment, compute_cargo_lock_hash,
     compute_rustc_version_hash, compute_source_tree_hash, expected_program_hash_bytes,
     BuildProvenance, BUILD_PROVENANCE_HASH_COUNT, DS_BUILD_CONFIG, DS_BUILD_PROVENANCE,
-    DS_CARGO_LOCK, DS_COMMITMENT, DS_PROGRAM, DS_RUSTC_VERSION, DS_SOURCE_TREE,
-    GROTH16_PROOF_SIZE, MIN_HW_LEVEL, MIN_PCR_ENTROPY_BYTES, PCR_PREIMAGE_LEN,
+    DS_CARGO_LOCK, DS_COMMITMENT, DS_PROGRAM, DS_RUSTC_VERSION, DS_SOURCE_TREE, GROTH16_PROOF_SIZE,
+    MIN_HW_LEVEL, MIN_PCR_ENTROPY_BYTES, PCR_PREIMAGE_LEN,
 };

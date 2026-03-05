@@ -43,8 +43,8 @@ fn get_git_commit_hash() -> Result<[u8; 32], String> {
     let mut hash = [0u8; 32];
     for (i, chunk) in commit.as_bytes().chunks(2).take(32).enumerate() {
         if chunk.len() == 2 {
-            hash[i] = u8::from_str_radix(std::str::from_utf8(chunk).unwrap_or("00"), 16)
-                .unwrap_or(0);
+            hash[i] =
+                u8::from_str_radix(std::str::from_utf8(chunk).unwrap_or("00"), 16).unwrap_or(0);
         }
     }
 
@@ -71,8 +71,8 @@ fn get_git_tree_hash() -> Result<[u8; 32], String> {
     let mut hash = [0u8; 32];
     for (i, chunk) in tree.as_bytes().chunks(2).take(32).enumerate() {
         if chunk.len() == 2 {
-            hash[i] = u8::from_str_radix(std::str::from_utf8(chunk).unwrap_or("00"), 16)
-                .unwrap_or(0);
+            hash[i] =
+                u8::from_str_radix(std::str::from_utf8(chunk).unwrap_or("00"), 16).unwrap_or(0);
         }
     }
 
@@ -115,8 +115,7 @@ fn find_cargo_lock(start_dir: &Path) -> Result<Vec<u8>, String> {
     loop {
         let cargo_lock = dir.join("Cargo.lock");
         if cargo_lock.exists() {
-            return fs::read(&cargo_lock)
-                .map_err(|e| format!("failed to read Cargo.lock: {}", e));
+            return fs::read(&cargo_lock).map_err(|e| format!("failed to read Cargo.lock: {}", e));
         }
         match dir.parent() {
             Some(parent) => dir = parent,
@@ -130,8 +129,7 @@ fn find_cargo_toml(start_dir: &Path) -> Result<Vec<u8>, String> {
     loop {
         let cargo_toml = dir.join("Cargo.toml");
         if cargo_toml.exists() {
-            return fs::read(&cargo_toml)
-                .map_err(|e| format!("failed to read Cargo.toml: {}", e));
+            return fs::read(&cargo_toml).map_err(|e| format!("failed to read Cargo.toml: {}", e));
         }
         match dir.parent() {
             Some(parent) => dir = parent,
@@ -233,7 +231,10 @@ fn main() {
     );
 
     let composite_hash = provenance.compute_composite_hash();
-    eprintln!("  composite provenance hash: {}", hex::encode(composite_hash));
+    eprintln!(
+        "  composite provenance hash: {}",
+        hex::encode(composite_hash)
+    );
 
     let provenance_bytes = provenance.to_bytes();
 
@@ -246,5 +247,8 @@ fn main() {
         .expect("failed to write composite hash");
 
     eprintln!("wrote provenance to {}", output_path.display());
-    eprintln!("  total bytes: {}", provenance_bytes.len() + composite_hash.len());
+    eprintln!(
+        "  total bytes: {}",
+        provenance_bytes.len() + composite_hash.len()
+    );
 }

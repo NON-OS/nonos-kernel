@@ -4,9 +4,10 @@ version = "1.0.0"
 edition = "2021"
 publish = false
 license = "AGPL-3.0"
-authors = ["eK <team@nonos.systems>"]
+authors = ["NONOS Team by eK <team@nonos.systems>"]
 description = "Attestation circuit for NONOS capsule integrity and hardware measurements"
 
+# Standalone - not part of parent workspace
 [workspace]
 
 [lib]

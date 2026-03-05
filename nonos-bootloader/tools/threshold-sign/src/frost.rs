@@ -205,7 +205,10 @@ pub fn keygen<R: RngCore + CryptoRng>(
             secret_share: secret_share.to_bytes(),
             public_share: point_to_bytes(&public_share),
             group_public_key: point_to_bytes(&group_public_key),
-            verification_shares: verification_commitments.iter().map(point_to_bytes).collect(),
+            verification_shares: verification_commitments
+                .iter()
+                .map(point_to_bytes)
+                .collect(),
             config: config.clone(),
         };
 
@@ -277,12 +280,14 @@ fn compute_group_commitment(
     let mut group_commitment = EdwardsPoint::default();
 
     for (id, commit) in commitments {
-        let hiding = point_from_bytes(&commit.hiding_commitment)
-            .ok_or(FrostError::InvalidCommitment)?;
-        let binding = point_from_bytes(&commit.binding_commitment)
-            .ok_or(FrostError::InvalidCommitment)?;
+        let hiding =
+            point_from_bytes(&commit.hiding_commitment).ok_or(FrostError::InvalidCommitment)?;
+        let binding =
+            point_from_bytes(&commit.binding_commitment).ok_or(FrostError::InvalidCommitment)?;
 
-        let rho = binding_factors.get(id).ok_or(FrostError::InvalidParticipantId)?;
+        let rho = binding_factors
+            .get(id)
+            .ok_or(FrostError::InvalidParticipantId)?;
 
         group_commitment += hiding + (rho * binding);
     }
@@ -331,28 +336,36 @@ pub fn round2_sign(
 ) -> Result<SignatureShare, FrostError> {
     let mut binding_factors = BTreeMap::new();
     for id in signing_package.commitments.keys() {
-        let factor = compute_binding_factor(*id, &signing_package.message, &signing_package.commitments);
+        let factor =
+            compute_binding_factor(*id, &signing_package.message, &signing_package.commitments);
         binding_factors.insert(*id, factor);
     }
 
-    let group_commitment = compute_group_commitment(&signing_package.commitments, &binding_factors)?;
+    let group_commitment =
+        compute_group_commitment(&signing_package.commitments, &binding_factors)?;
 
-    let group_public_key = point_from_bytes(&key_share.group_public_key)
-        .ok_or(FrostError::VerificationFailed)?;
+    let group_public_key =
+        point_from_bytes(&key_share.group_public_key).ok_or(FrostError::VerificationFailed)?;
 
-    let challenge = compute_challenge(&group_commitment, &group_public_key, &signing_package.message);
+    let challenge = compute_challenge(
+        &group_commitment,
+        &group_public_key,
+        &signing_package.message,
+    );
 
     let hiding_nonce = scalar_from_bytes(&nonces.hiding_nonce);
     let binding_nonce = scalar_from_bytes(&nonces.binding_nonce);
     let secret_share = scalar_from_bytes(&key_share.secret_share);
 
-    let rho = binding_factors.get(&key_share.participant_id)
+    let rho = binding_factors
+        .get(&key_share.participant_id)
         .ok_or(FrostError::InvalidParticipantId)?;
 
     let participant_ids: Vec<_> = signing_package.commitments.keys().copied().collect();
     let lambda = lagrange_coefficient(key_share.participant_id, &participant_ids);
 
-    let signature_share = hiding_nonce + (rho * binding_nonce) + (lambda * secret_share * challenge);
+    let signature_share =
+        hiding_nonce + (rho * binding_nonce) + (lambda * secret_share * challenge);
 
     Ok(SignatureShare {
         participant_id: key_share.participant_id,
@@ -371,11 +384,13 @@ pub fn aggregate_signatures(
 
     let mut binding_factors = BTreeMap::new();
     for id in signing_package.commitments.keys() {
-        let factor = compute_binding_factor(*id, &signing_package.message, &signing_package.commitments);
+        let factor =
+            compute_binding_factor(*id, &signing_package.message, &signing_package.commitments);
         binding_factors.insert(*id, factor);
     }
 
-    let group_commitment = compute_group_commitment(&signing_package.commitments, &binding_factors)?;
+    let group_commitment =
+        compute_group_commitment(&signing_package.commitments, &binding_factors)?;
 
     let mut z = Scalar::ZERO;
     for share in signature_shares.values() {
@@ -386,10 +401,14 @@ pub fn aggregate_signatures(
     signature[..32].copy_from_slice(&point_to_bytes(&group_commitment));
     signature[32..].copy_from_slice(&z.to_bytes());
 
-    let _group_public_key = point_from_bytes(&pubkey_package.group_public_key)
-        .ok_or(FrostError::VerificationFailed)?;
+    let _group_public_key =
+        point_from_bytes(&pubkey_package.group_public_key).ok_or(FrostError::VerificationFailed)?;
 
-    verify_signature(&signing_package.message, &signature, &pubkey_package.group_public_key)?;
+    verify_signature(
+        &signing_package.message,
+        &signature,
+        &pubkey_package.group_public_key,
+    )?;
 
     Ok(signature)
 }
@@ -454,7 +473,8 @@ mod tests {
             signature_shares.insert(share.participant_id, sig_share);
         }
 
-        let signature = aggregate_signatures(&signing_package, &signature_shares, &pubkey_package).unwrap();
+        let signature =
+            aggregate_signatures(&signing_package, &signature_shares, &pubkey_package).unwrap();
 
         verify_signature(message, &signature, &pubkey_package.group_public_key).unwrap();
     }

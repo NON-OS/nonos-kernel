@@ -17,7 +17,6 @@
 use core::marker::PhantomData;
 
 use ark_ff::PrimeField;
-use ark_relations::r1cs::{ConstraintSynthesizer, ConstraintSystemRef, SynthesisError};
 use ark_r1cs_std::{
     alloc::AllocVar,
     boolean::Boolean,
@@ -25,6 +24,7 @@ use ark_r1cs_std::{
     fields::{fp::FpVar, FieldVar},
     uint8::UInt8,
 };
+use ark_relations::r1cs::{ConstraintSynthesizer, ConstraintSystemRef, SynthesisError};
 
 use crate::constants::{
     expected_program_hash_bytes, BuildProvenance, MIN_HW_LEVEL, MIN_PCR_ENTROPY_BYTES,
@@ -48,8 +48,8 @@ impl<F: PrimeField> Default for NonosAttestationCircuit<F> {
         // These values satisfy the circuit constraints for setup purposes
         let mut dummy_pcr = [0u8; PCR_PREIMAGE_LEN];
         // Fill with non-zero bytes to satisfy MIN_PCR_ENTROPY_BYTES constraint
-        for i in 0..MIN_PCR_ENTROPY_BYTES {
-            dummy_pcr[i] = (i as u8).wrapping_add(1);
+        for (i, byte) in dummy_pcr.iter_mut().take(MIN_PCR_ENTROPY_BYTES).enumerate() {
+            *byte = (i as u8).wrapping_add(1);
         }
 
         // Dummy capsule commitment (non-zero)
@@ -111,12 +111,8 @@ impl<F: PrimeField> ConstraintSynthesizer<F> for NonosAttestationCircuit<F> {
         let capsule_commitment_bytes = self
             .capsule_commitment
             .ok_or(SynthesisError::AssignmentMissing)?;
-        let program_hash_bytes = self
-            .program_hash
-            .ok_or(SynthesisError::AssignmentMissing)?;
-        let pcr_bytes = self
-            .pcr_preimage
-            .ok_or(SynthesisError::AssignmentMissing)?;
+        let program_hash_bytes = self.program_hash.ok_or(SynthesisError::AssignmentMissing)?;
+        let pcr_bytes = self.pcr_preimage.ok_or(SynthesisError::AssignmentMissing)?;
         let hw_level = self
             .hardware_attestation
             .ok_or(SynthesisError::AssignmentMissing)?;
@@ -139,7 +135,7 @@ impl<F: PrimeField> ConstraintSynthesizer<F> for NonosAttestationCircuit<F> {
         for byte in &pcr_var {
             let zero_byte = UInt8::<F>::new_constant(cs.clone(), 0u8)?;
             let is_nonzero = byte.is_neq(&zero_byte)?;
-            pcr_nonzero_count = pcr_nonzero_count + is_nonzero.select(&one, &fp_zero)?;
+            pcr_nonzero_count += is_nonzero.select(&one, &fp_zero)?;
         }
         let min_entropy =
             FpVar::<F>::new_constant(cs.clone(), F::from(MIN_PCR_ENTROPY_BYTES as u64))?;
@@ -163,8 +159,7 @@ impl<F: PrimeField> ConstraintSynthesizer<F> for NonosAttestationCircuit<F> {
         {
             let computed_hash = provenance.compute_composite_hash();
 
-            let provenance_var =
-                UInt8::<F>::new_witness_vec(cs.clone(), &provenance.to_bytes())?;
+            let provenance_var = UInt8::<F>::new_witness_vec(cs.clone(), &provenance.to_bytes())?;
             let computed_hash_var = UInt8::<F>::new_input_vec(cs.clone(), &computed_hash)?;
             let expected_hash_var = UInt8::<F>::new_input_vec(cs.clone(), &expected_hash)?;
 

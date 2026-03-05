@@ -4,8 +4,8 @@ version = "1.0.0"
 edition = "2021"
 publish = false
 license = "AGPL-3.0"
-authors = ["eK <team@nonos.systems>"]
-description = "FROST threshold signature for NONOS"
+authors = ["NONOS Team by eK <team@nonos.systems>"]
+description = "FROST threshold signature implementation for NONOS"
 
 # Exclude from parent workspace
 [workspace]

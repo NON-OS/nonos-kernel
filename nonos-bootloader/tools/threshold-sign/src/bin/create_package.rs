@@ -21,7 +21,10 @@ use std::fs;
 use std::path::PathBuf;
 
 #[derive(Parser, Debug)]
-#[command(name = "threshold-create-package", about = "Create FROST signing package")]
+#[command(
+    name = "threshold-create-package",
+    about = "Create FROST signing package"
+)]
 struct Args {
     /// Path to message file to sign
     #[arg(short = 'm', long)]
@@ -39,8 +42,7 @@ struct Args {
 fn main() -> Result<(), String> {
     let args = Args::parse();
 
-    let message = fs::read(&args.message)
-        .map_err(|e| format!("failed to read message: {}", e))?;
+    let message = fs::read(&args.message).map_err(|e| format!("failed to read message: {}", e))?;
 
     eprintln!("message: {} bytes", message.len());
     eprintln!("loading {} commitments...", args.commitments.len());

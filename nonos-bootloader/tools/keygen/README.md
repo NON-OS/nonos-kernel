@@ -177,7 +177,7 @@ blake3 keys/signer1.pub.raw
 sha256sum keys/signer1.pub.raw
 ```
 
-Compare these against the values in `signers.json`. If they match and everyone confirms their own key, you have a verified signer set.
+Compare these against the values in `signers.json`. If they match, and everyone confirms their own key, you have a verified signer set.
 
 ---
 

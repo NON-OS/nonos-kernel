@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use ark_bls12_381::{Bls12_381, Fr, G1Affine, G2Affine};
+use ark_bls12_381::{Bls12_381, Fr};
 use ark_ec::AffineRepr;
 use ark_ff::UniformRand;
 use ark_groth16::{Groth16, ProvingKey, VerifyingKey};
@@ -43,7 +43,9 @@ pub enum CeremonyError {
 impl std::fmt::Display for CeremonyError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Self::InsufficientParticipants => write!(f, "need at least {} participants", MIN_PARTICIPANTS),
+            Self::InsufficientParticipants => {
+                write!(f, "need at least {} participants", MIN_PARTICIPANTS)
+            }
             Self::InvalidPreviousParams => write!(f, "invalid previous parameters"),
             Self::InvalidContribution => write!(f, "invalid contribution"),
             Self::SerializationError(s) => write!(f, "serialization: {}", s),
@@ -262,11 +264,13 @@ fn apply_powers_of_tau(
     beta: Fr,
 ) -> Result<ProvingKey<Bls12_381>, CeremonyError> {
     use ark_ec::CurveGroup;
-    use ark_ff::Field;
 
     let mut new_pk = pk.clone();
 
-    let max_degree = pk.vk.gamma_abc_g1.len()
+    let max_degree = pk
+        .vk
+        .gamma_abc_g1
+        .len()
         .max(pk.a_query.len())
         .max(pk.b_g1_query.len())
         .max(pk.b_g2_query.len())
@@ -384,7 +388,10 @@ pub fn ceremony_finalize(
         ceremony_id: format!("nonos-ceremony-{}", final_params.round),
         circuit_name: "nonos-attestation".to_string(),
         circuit_hash: [0u8; 32],
-        created_at: contributions.first().map(|c| c.contribution_timestamp).unwrap_or(0),
+        created_at: contributions
+            .first()
+            .map(|c| c.contribution_timestamp)
+            .unwrap_or(0),
         minimum_participants: MIN_PARTICIPANTS,
         current_round: final_params.round,
         finalized: true,
@@ -408,10 +415,7 @@ pub fn add_destruction_attestation(
 ) {
     let attestation_data = format!(
         "{}:{}:{}:{}",
-        record.contributor_id,
-        record.round,
-        method,
-        witness_count
+        record.contributor_id, record.round, method, witness_count
     );
     let attestation_hash = *blake3::hash(attestation_data.as_bytes()).as_bytes();
 

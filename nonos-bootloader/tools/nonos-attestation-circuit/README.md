@@ -1,8 +1,8 @@
-# NØNOS Attestation Circuit (Groth16, BLS12-381)
+# NONOS Attestation Circuit (Groth16, BLS12-381)
 
-Attestation circuit and host utilities for embedding verifiable measurements into the NØNOS boot trust chain. This package produces and validates arkworks Groth16 verifying keys (VKs) in canonical compressed form, ready to embed into the bootloader via the provisioning toolchain.
+Aattestation circuit and host utilities for embedding verifiable measurements into the NØN·OS boot trust chain. This package produces and validates arkworks Groth16 verifying keys (VKs) in canonical compressed form, ready to embed into the bootloader via the provisioning toolchain.
 
-Status: the artifacts only (ProvingKey/VerifyingKey). Single‑party “generate” exists for controlled environments; for future additions we use a proper MPC/trusted ceremony externally and import the PK/VK here.
+Status: Real artifacts only (ProvingKey/VerifyingKey). Single‑party “generate” exists for controlled environments; for future additions we use a proper MPC/trusted ceremony externally and import the PK/VK here.
 
 ---
 
@@ -32,7 +32,7 @@ This directory provides:
 - A std host binary for production‑safe key operations:
   - generate: circuit-specific setup (single party). Use only if policy allows; otherwise use your ceremony outputs.
   - extract-vk: extracts a VK from an arkworks ProvingKey (PK) and writes canonical‑compressed bytes.
-  - inspect-vk: validates a VK and prints canonical length, fingerprint and expected public inputs.
+  - inspect-vk: validates a VK and prints canonical length, fingerprint, and expected public inputs.
 
 All outputs are arkworks CanonicalSerialize (compressed), the format enforced by the boot verifier.
 
