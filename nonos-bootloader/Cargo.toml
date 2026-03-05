@@ -4,11 +4,11 @@ version = "0.1.0"
 edition = "2021"
 publish = false
 authors = ["eK <team@nonos.systems>"]
-description = "NØN•OS Capsule Bootloader — UEFI stage-0 loader for zero-trust capsule execution"
+description = "NONOS Bootloader UEFI stage-0 loader for zero-trust capsule execution"
 license = "AGPL-3.0"
-repository = "https://github.com/NON-OS/nonos-boot"
+repository = "https://github.com/NON-OS/nonos-kernel/tree/main/nonos-bootloader"
 readme = "README.md"
-documentation = "https://docs.nonos.systems"
+documentation = "https://nonos.software"
 keywords = ["bootloader", "uefi", "zk", "os", "capsule"]
 categories = ["embedded", "no-std", "cryptography", "os"]
 
