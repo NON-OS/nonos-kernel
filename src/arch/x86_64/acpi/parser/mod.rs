@@ -14,14 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod state;
-mod rsdp;
-mod root;
-mod fadt;
-mod madt;
-mod other;
-mod getters;
-mod init;
+pub mod state;
+pub mod rsdp;
+pub mod root;
+pub mod fadt;
+pub mod madt;
+pub mod other;
+pub mod getters;
+pub mod init;
 
 pub use state::is_initialized;
 pub use init::init;
