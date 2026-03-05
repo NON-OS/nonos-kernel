@@ -16,8 +16,8 @@
 
 use clap::Parser;
 use nonos_threshold_sign::{
-    aggregate_signatures, round1_commit, round2_sign, verify_signature, KeyShare,
-    PublicKeyPackage, SigningPackage,
+    aggregate_signatures, round1_commit, round2_sign, verify_signature, KeyShare, PublicKeyPackage,
+    SigningPackage,
 };
 use rand_core::OsRng;
 use std::collections::BTreeMap;
@@ -46,8 +46,7 @@ fn main() -> Result<(), String> {
     println!("=== NONOS FROST Threshold Signing ===");
     println!();
 
-    let message = fs::read(&args.message)
-        .map_err(|e| format!("failed to read message: {}", e))?;
+    let message = fs::read(&args.message).map_err(|e| format!("failed to read message: {}", e))?;
     println!("message: {} bytes", message.len());
 
     let pubkey_json = fs::read_to_string(&args.public_key)
@@ -57,7 +56,7 @@ fn main() -> Result<(), String> {
 
     println!(
         "group public key: {}",
-        hex::encode(&pubkey_package.group_public_key)
+        hex::encode(pubkey_package.group_public_key)
     );
     println!(
         "threshold: {}-of-{}",
@@ -107,9 +106,7 @@ fn main() -> Result<(), String> {
     let mut signature_shares = BTreeMap::new();
 
     for share in &key_shares {
-        let nonce = nonces
-            .get(&share.participant_id)
-            .ok_or("missing nonce")?;
+        let nonce = nonces.get(&share.participant_id).ok_or("missing nonce")?;
         let sig_share = round2_sign(&signing_package, nonce, share)
             .map_err(|e| format!("signing failed for {}: {}", share.participant_id, e))?;
         println!(
@@ -124,7 +121,7 @@ fn main() -> Result<(), String> {
     let signature = aggregate_signatures(&signing_package, &signature_shares, &pubkey_package)
         .map_err(|e| format!("aggregation failed: {}", e))?;
 
-    println!("  signature: {}", hex::encode(&signature));
+    println!("  signature: {}", hex::encode(signature));
     println!();
 
     println!("verifying signature...");
@@ -133,8 +130,7 @@ fn main() -> Result<(), String> {
     println!("  signature valid");
     println!();
 
-    fs::write(&args.output, &signature)
-        .map_err(|e| format!("failed to write signature: {}", e))?;
+    fs::write(&args.output, signature).map_err(|e| format!("failed to write signature: {}", e))?;
     println!("wrote signature to {}", args.output.display());
 
     println!();

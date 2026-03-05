@@ -2,6 +2,8 @@
 
 Offline tooling for running multi-party Powers-of-Tau ceremonies. This is not part of the bootloader runtime - it's used once (or rarely) to establish the cryptographic trusted setup that underlies NØNOS ZK attestation.
 
+Status: Production ready.
+
 ---
 
 ## Where this fits
@@ -19,7 +21,7 @@ bootloader
     → verifies proofs using embedded VK
 ```
 
-The bootloader never sees `.ptau` files or ceremony scripts. It only uses the final verifying key bytes. This toolkit exists so that key generation can be done properly with multiple independent participants, auditable logs and no single point of trust.
+The bootloader never sees `.ptau` files or ceremony scripts. It only uses the final verifying key bytes. This toolkit exists so that key generation can be done properly - with multiple independent participants, auditable logs, and no single point of trust.
 
 ---
 
@@ -76,9 +78,9 @@ This single-party flow is for testing. Real ceremonies need multiple independent
 
 ---
 
-## Ceremony
+## Production ceremony
 
-A ceremony looks like this:
+A real ceremony looks like this:
 
 1. Coordinator creates the initial transcript
 2. Each participant, in sequence:

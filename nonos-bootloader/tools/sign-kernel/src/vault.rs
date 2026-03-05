@@ -23,10 +23,8 @@ pub const VAULT_TIMEOUT_SECS: u64 = 30;
 #[derive(Debug)]
 pub enum VaultError {
     ConnectionFailed(String),
-    AuthenticationFailed,
     KeyNotFound,
     InvalidKeyFormat,
-    SigningFailed(String),
     InvalidResponse(String),
     PermissionDenied,
     HttpError(String),
@@ -36,10 +34,8 @@ impl std::fmt::Display for VaultError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::ConnectionFailed(s) => write!(f, "connection failed: {}", s),
-            Self::AuthenticationFailed => write!(f, "authentication failed"),
             Self::KeyNotFound => write!(f, "key not found"),
             Self::InvalidKeyFormat => write!(f, "invalid key format"),
-            Self::SigningFailed(s) => write!(f, "signing failed: {}", s),
             Self::InvalidResponse(s) => write!(f, "invalid response: {}", s),
             Self::PermissionDenied => write!(f, "permission denied"),
             Self::HttpError(s) => write!(f, "HTTP error: {}", s),
@@ -60,11 +56,6 @@ struct SignRequest {
 #[derive(Deserialize)]
 struct VaultResponse<T> {
     data: T,
-}
-
-#[derive(Deserialize)]
-struct SecretData {
-    data: std::collections::HashMap<String, String>,
 }
 
 #[derive(Deserialize)]
@@ -106,7 +97,9 @@ impl VaultClient {
 
     fn request(&self, method: reqwest::Method, path: &str) -> reqwest::blocking::RequestBuilder {
         let url = format!("{}/v1/{}", self.addr, path);
-        let mut req = self.client.request(method, &url)
+        let mut req = self
+            .client
+            .request(method, &url)
             .header("X-Vault-Token", &self.token);
 
         if let Some(ref ns) = self.namespace {
@@ -114,42 +107,6 @@ impl VaultClient {
         }
 
         req
-    }
-
-    pub fn get_signing_key(&self, key_path: &str) -> Result<[u8; 32], VaultError> {
-        let response = self.request(reqwest::Method::GET, &format!("secret/data/{}", key_path))
-            .send()
-            .map_err(|e| VaultError::ConnectionFailed(e.to_string()))?;
-
-        if response.status() == reqwest::StatusCode::FORBIDDEN {
-            return Err(VaultError::PermissionDenied);
-        }
-
-        if response.status() == reqwest::StatusCode::NOT_FOUND {
-            return Err(VaultError::KeyNotFound);
-        }
-
-        if !response.status().is_success() {
-            return Err(VaultError::HttpError(response.status().to_string()));
-        }
-
-        let vault_resp: VaultResponse<SecretData> = response
-            .json()
-            .map_err(|e| VaultError::InvalidResponse(e.to_string()))?;
-
-        let key_hex = vault_resp.data.data.get("key")
-            .ok_or(VaultError::KeyNotFound)?;
-
-        let key_bytes = hex::decode(key_hex)
-            .map_err(|_| VaultError::InvalidKeyFormat)?;
-
-        if key_bytes.len() != 32 {
-            return Err(VaultError::InvalidKeyFormat);
-        }
-
-        let mut key = [0u8; 32];
-        key.copy_from_slice(&key_bytes);
-        Ok(key)
     }
 
     pub fn sign_with_transit(
@@ -164,7 +121,8 @@ impl VaultClient {
             prehashed: true,
         };
 
-        let response = self.request(reqwest::Method::POST, &format!("transit/sign/{}", key_name))
+        let response = self
+            .request(reqwest::Method::POST, &format!("transit/sign/{}", key_name))
             .json(&request)
             .send()
             .map_err(|e| VaultError::ConnectionFailed(e.to_string()))?;
@@ -189,7 +147,9 @@ impl VaultClient {
             .json()
             .map_err(|e| VaultError::InvalidResponse(e.to_string()))?;
 
-        let sig_str = vault_resp.data.signature
+        let sig_str = vault_resp
+            .data
+            .signature
             .strip_prefix("vault:v1:")
             .ok_or(VaultError::InvalidResponse("missing vault prefix".into()))?;
 
@@ -209,7 +169,8 @@ impl VaultClient {
     }
 
     pub fn get_transit_public_key(&self, key_name: &str) -> Result<[u8; 32], VaultError> {
-        let response = self.request(reqwest::Method::GET, &format!("transit/keys/{}", key_name))
+        let response = self
+            .request(reqwest::Method::GET, &format!("transit/keys/{}", key_name))
             .send()
             .map_err(|e| VaultError::ConnectionFailed(e.to_string()))?;
 
@@ -229,19 +190,28 @@ impl VaultClient {
             .json()
             .map_err(|e| VaultError::InvalidResponse(e.to_string()))?;
 
-        let latest_version = vault_resp.data.keys.keys()
+        let latest_version = vault_resp
+            .data
+            .keys
+            .keys()
             .filter_map(|k| k.parse::<u64>().ok())
             .max()
             .ok_or(VaultError::KeyNotFound)?;
 
-        let key_info = vault_resp.data.keys.get(&latest_version.to_string())
+        let key_info = vault_resp
+            .data
+            .keys
+            .get(&latest_version.to_string())
             .ok_or(VaultError::KeyNotFound)?;
 
-        let pubkey_b64 = key_info.public_key.as_ref()
+        let pubkey_b64 = key_info
+            .public_key
+            .as_ref()
             .ok_or(VaultError::KeyNotFound)?;
 
-        let pubkey_bytes = base64::Engine::decode(&base64::engine::general_purpose::STANDARD, pubkey_b64)
-            .map_err(|e| VaultError::InvalidResponse(e.to_string()))?;
+        let pubkey_bytes =
+            base64::Engine::decode(&base64::engine::general_purpose::STANDARD, pubkey_b64)
+                .map_err(|e| VaultError::InvalidResponse(e.to_string()))?;
 
         if pubkey_bytes.len() != 32 {
             return Err(VaultError::InvalidKeyFormat);
@@ -251,16 +221,6 @@ impl VaultClient {
         pubkey.copy_from_slice(&pubkey_bytes);
         Ok(pubkey)
     }
-
-    pub fn health_check(&self) -> Result<bool, VaultError> {
-        let response = self.client
-            .get(format!("{}/v1/sys/health", self.addr))
-            .timeout(Duration::from_secs(5))
-            .send()
-            .map_err(|e| VaultError::ConnectionFailed(e.to_string()))?;
-
-        Ok(response.status().is_success() || response.status() == reqwest::StatusCode::SERVICE_UNAVAILABLE)
-    }
 }
 
 pub fn sign_kernel_with_vault(
@@ -269,11 +229,7 @@ pub fn sign_kernel_with_vault(
     key_name: &str,
     kernel_data: &[u8],
 ) -> Result<[u8; 64], VaultError> {
-    let client = VaultClient::new(
-        vault_addr.to_string(),
-        vault_token.to_string(),
-        None,
-    )?;
+    let client = VaultClient::new(vault_addr.to_string(), vault_token.to_string(), None)?;
 
     let kernel_hash = blake3::hash(kernel_data);
     let hash_bytes: [u8; 32] = *kernel_hash.as_bytes();

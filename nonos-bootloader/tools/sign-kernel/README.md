@@ -1,6 +1,8 @@
-# NØNOS Kernel Signing Tool (Ed25519)
+# NONOS Kernel Signing Tool (Ed25519)
 
 Command-line tool for signing NØNOS kernel binaries with Ed25519. Supports both local key files for development and HashiCorp Vault transit backend for production environments where the private key never leaves secure hardware.
+
+Status: Production ready. Used in CI/CD and release workflows.
 
 ---
 
@@ -265,7 +267,7 @@ Release signing:
 ## FAQ
 
 **Q: Why Ed25519 and not ECDSA or RSA?**
-A: Ed25519 is fast, has small signatures (64 bytes), deterministic signing (no RNG needed at sign time) and strong security properties. Good fit for embedded bootloaders.
+A: Ed25519 is fast, has small signatures (64 bytes), deterministic signing (no RNG needed at sign time), and strong security properties. Good fit for embedded bootloaders.
 
 **Q: Can I use a hardware security module directly?**
 A: Use Vault as the abstraction layer. Vault supports HSM backends (PKCS#11, AWS CloudHSM, etc.) and presents a uniform API.

@@ -21,7 +21,10 @@ use std::fs;
 use std::path::PathBuf;
 
 #[derive(Parser, Debug)]
-#[command(name = "threshold-keygen", about = "Generate FROST threshold key shares")]
+#[command(
+    name = "threshold-keygen",
+    about = "Generate FROST threshold key shares"
+)]
 struct Args {
     #[arg(short = 't', long)]
     threshold: u16,
@@ -62,12 +65,12 @@ fn main() -> Result<(), String> {
     );
     println!();
 
-    let (key_shares, pubkey_package) = keygen(&config, &mut OsRng)
-        .map_err(|e| format!("keygen failed: {}", e))?;
+    let (key_shares, pubkey_package) =
+        keygen(&config, &mut OsRng).map_err(|e| format!("keygen failed: {}", e))?;
 
     println!(
         "group public key: {}",
-        hex::encode(&pubkey_package.group_public_key)
+        hex::encode(pubkey_package.group_public_key)
     );
     println!();
 
@@ -77,8 +80,7 @@ fn main() -> Result<(), String> {
             .join(format!("key_share_{}.json", share.participant_id));
         let share_json = serde_json::to_string_pretty(share)
             .map_err(|e| format!("failed to serialize share: {}", e))?;
-        fs::write(&share_path, share_json)
-            .map_err(|e| format!("failed to write share: {}", e))?;
+        fs::write(&share_path, share_json).map_err(|e| format!("failed to write share: {}", e))?;
         println!(
             "  wrote key share {} to {}",
             share.participant_id,

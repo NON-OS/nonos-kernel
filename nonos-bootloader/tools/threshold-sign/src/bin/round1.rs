@@ -21,7 +21,10 @@ use std::fs;
 use std::path::PathBuf;
 
 #[derive(Parser, Debug)]
-#[command(name = "threshold-round1", about = "FROST round 1: generate signing commitment")]
+#[command(
+    name = "threshold-round1",
+    about = "FROST round 1: generate signing commitment"
+)]
 struct Args {
     /// Path to this participant's key share
     #[arg(short = 'k', long)]
@@ -44,7 +47,10 @@ fn main() -> Result<(), String> {
     let key_share: KeyShare = serde_json::from_str(&share_json)
         .map_err(|e| format!("failed to parse key share: {}", e))?;
 
-    eprintln!("participant {}: generating round 1 commitment", key_share.participant_id);
+    eprintln!(
+        "participant {}: generating round 1 commitment",
+        key_share.participant_id
+    );
 
     let (nonces, commitment) = round1_commit(&key_share, &mut OsRng);
 
@@ -60,7 +66,10 @@ fn main() -> Result<(), String> {
         .map_err(|e| format!("failed to serialize nonces: {}", e))?;
     fs::write(&args.nonces_out, &nonces_json)
         .map_err(|e| format!("failed to write nonces: {}", e))?;
-    eprintln!("  wrote nonces to {} (KEEP SECRET)", args.nonces_out.display());
+    eprintln!(
+        "  wrote nonces to {} (KEEP SECRET)",
+        args.nonces_out.display()
+    );
 
     eprintln!();
     eprintln!("send {} to the coordinator", args.commitment_out.display());

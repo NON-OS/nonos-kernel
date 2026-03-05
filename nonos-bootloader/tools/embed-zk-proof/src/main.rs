@@ -29,7 +29,10 @@ const GROTH16_PROOF_SIZE: usize = 192;
 const DS_PROGRAM_HASH: &str = "NONOS:ZK:PROGRAM:v1";
 
 #[derive(Parser, Debug)]
-#[command(name = "embed-zk-proof", about = "Embed Groth16 ZK proof into signed NONOS kernel")]
+#[command(
+    name = "embed-zk-proof",
+    about = "Embed Groth16 ZK proof into signed NONOS kernel"
+)]
 struct Args {
     #[arg(short, long, value_name = "FILE")]
     input: PathBuf,
@@ -80,7 +83,7 @@ fn create_zk_proof_block(
             proof_blob.len()
         );
     }
-    if public_inputs.len() % 32 != 0 {
+    if !public_inputs.len().is_multiple_of(32) {
         bail!(
             "Public inputs must be 32-byte aligned, got {} bytes",
             public_inputs.len()
@@ -143,7 +146,11 @@ fn main() -> Result<()> {
                 inputs.len()
             );
         }
-        println!("Public inputs: {} bytes ({} field elements)", inputs.len(), inputs.len() / 32);
+        println!(
+            "Public inputs: {} bytes ({} field elements)",
+            inputs.len(),
+            inputs.len() / 32
+        );
         inputs
     } else {
         println!("Public inputs: none (using default empty)");
@@ -152,19 +159,21 @@ fn main() -> Result<()> {
     println!();
 
     let program_hash: [u8; 32] = if let Some(ref hex_str) = args.program_hash {
-        let bytes = hex::decode(hex_str)
-            .with_context(|| "Invalid hex string for program-hash")?;
+        let bytes = hex::decode(hex_str).with_context(|| "Invalid hex string for program-hash")?;
         if bytes.len() != 32 {
-            bail!("program-hash must be 32 bytes (64 hex chars), got {} bytes", bytes.len());
+            bail!(
+                "program-hash must be 32 bytes (64 hex chars), got {} bytes",
+                bytes.len()
+            );
         }
         let mut arr = [0u8; 32];
         arr.copy_from_slice(&bytes);
-        println!("Program Hash: {} (provided)", hex::encode(&arr));
+        println!("Program Hash: {} (provided)", hex::encode(arr));
         arr
     } else if let Some(ref program_id) = args.program_id {
         let hash = derive_program_hash(program_id);
         println!("Program ID: {}", program_id);
-        println!("Program Hash: {} (derived)", hex::encode(&hash));
+        println!("Program Hash: {} (derived)", hex::encode(hash));
         hash
     } else {
         bail!("Either --program-id or --program-hash must be provided");
@@ -172,7 +181,7 @@ fn main() -> Result<()> {
     println!();
 
     let capsule_commitment = compute_capsule_commitment(&public_inputs);
-    println!("Capsule Commitment: {}", hex::encode(&capsule_commitment));
+    println!("Capsule Commitment: {}", hex::encode(capsule_commitment));
     println!();
 
     let zk_block = create_zk_proof_block(
@@ -188,11 +197,20 @@ fn main() -> Result<()> {
         println!();
         println!("=== ZK Block Header ===");
         println!("  Magic:             {:02X?}", &zk_block[0..4]);
-        println!("  Version:           {}", u32::from_le_bytes([zk_block[4], zk_block[5], zk_block[6], zk_block[7]]));
+        println!(
+            "  Version:           {}",
+            u32::from_le_bytes([zk_block[4], zk_block[5], zk_block[6], zk_block[7]])
+        );
         println!("  Program Hash:      {}...", hex::encode(&zk_block[8..16]));
         println!("  Commitment:        {}...", hex::encode(&zk_block[40..48]));
-        println!("  Public Inputs Len: {}", u32::from_le_bytes([zk_block[72], zk_block[73], zk_block[74], zk_block[75]]));
-        println!("  Proof Blob Len:    {}", u32::from_le_bytes([zk_block[76], zk_block[77], zk_block[78], zk_block[79]]));
+        println!(
+            "  Public Inputs Len: {}",
+            u32::from_le_bytes([zk_block[72], zk_block[73], zk_block[74], zk_block[75]])
+        );
+        println!(
+            "  Proof Blob Len:    {}",
+            u32::from_le_bytes([zk_block[76], zk_block[77], zk_block[78], zk_block[79]])
+        );
     }
     println!();
 
@@ -203,7 +221,11 @@ fn main() -> Result<()> {
         .with_context(|| format!("Failed to write output: {}", args.output.display()))?;
 
     println!("=== Output ===");
-    println!("Written: {} ({} bytes)", args.output.display(), output_data.len());
+    println!(
+        "Written: {} ({} bytes)",
+        args.output.display(),
+        output_data.len()
+    );
     println!();
     println!("Breakdown:");
     println!("  Original kernel:    {} bytes", signed_kernel.len() - 64);
@@ -217,8 +239,11 @@ fn main() -> Result<()> {
     println!();
 
     let magic_offset = output_data.len() - zk_block.len();
-    if &output_data[magic_offset..magic_offset + 4] == &ZK_PROOF_MAGIC {
-        println!("Verification: ZK magic found at offset 0x{:X}", magic_offset);
+    if output_data[magic_offset..magic_offset + 4] == ZK_PROOF_MAGIC {
+        println!(
+            "Verification: ZK magic found at offset 0x{:X}",
+            magic_offset
+        );
     } else {
         println!("WARNING: ZK magic not found at expected offset!");
     }
@@ -247,7 +272,8 @@ mod tests {
         let public_inputs = vec![0u8; 64];
         let proof = vec![0u8; 192];
 
-        let block = create_zk_proof_block(&program_hash, &commitment, &public_inputs, &proof).unwrap();
+        let block =
+            create_zk_proof_block(&program_hash, &commitment, &public_inputs, &proof).unwrap();
 
         assert_eq!(&block[0..4], &ZK_PROOF_MAGIC);
         assert_eq!(block.len(), 80 + 64 + 192);

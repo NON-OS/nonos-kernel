@@ -135,17 +135,22 @@ The capsule commitment uses domain `NONOS:CAPSULE:COMMITMENT:v1`, binding the pu
 After embedding, the kernel binary has three sections:
 
 ```
-# ELF Kernel Code | Variable size
-
-# Key signature
-Ed25519 Signature (64 bytes)
-
-# ZK Proof Block to 272+ bytes
-- Magic: 0x4E 0xC3 0x5A 0x50  
-- Program Hash (32 bytes)      
-- Capsule Commitment (32 bytes) 
-- Public Inputs     
-- Groth16 Proof (192 bytes)     
+┌─────────────────────────────────────┐
+│         ELF Kernel Code             │  Variable size
+├─────────────────────────────────────┤
+│      Ed25519 Signature              │  64 bytes
+├─────────────────────────────────────┤
+│      ZK Proof Block                 │  272+ bytes
+│  ┌───────────────────────────────┐  │
+│  │ Magic: 0x4E 0xC3 0x5A 0x50    │  │
+│  │ Version: 1                    │  │
+│  │ Program Hash (32 bytes)       │  │
+│  │ Capsule Commitment (32 bytes) │  │
+│  │ Lengths (8 bytes)             │  │
+│  │ Public Inputs (variable)      │  │
+│  │ Groth16 Proof (192 bytes)     │  │
+│  └───────────────────────────────┘  │
+└─────────────────────────────────────┘
 ```
 
 The bootloader verifies the Ed25519 signature first, then locates and verifies the ZK proof. Both must pass.

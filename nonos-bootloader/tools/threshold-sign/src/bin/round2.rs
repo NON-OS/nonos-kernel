@@ -20,7 +20,10 @@ use std::fs;
 use std::path::PathBuf;
 
 #[derive(Parser, Debug)]
-#[command(name = "threshold-round2", about = "FROST round 2: generate signature share")]
+#[command(
+    name = "threshold-round2",
+    about = "FROST round 2: generate signature share"
+)]
 struct Args {
     /// Path to signing package (message + all commitments)
     #[arg(short = 'p', long)]
@@ -47,10 +50,10 @@ fn main() -> Result<(), String> {
     let signing_package: SigningPackage = serde_json::from_str(&package_json)
         .map_err(|e| format!("failed to parse signing package: {}", e))?;
 
-    let nonces_json = fs::read_to_string(&args.nonces)
-        .map_err(|e| format!("failed to read nonces: {}", e))?;
-    let nonces: SigningNonces = serde_json::from_str(&nonces_json)
-        .map_err(|e| format!("failed to parse nonces: {}", e))?;
+    let nonces_json =
+        fs::read_to_string(&args.nonces).map_err(|e| format!("failed to read nonces: {}", e))?;
+    let nonces: SigningNonces =
+        serde_json::from_str(&nonces_json).map_err(|e| format!("failed to parse nonces: {}", e))?;
 
     let share_json = fs::read_to_string(&args.key_share)
         .map_err(|e| format!("failed to read key share: {}", e))?;
@@ -64,9 +67,15 @@ fn main() -> Result<(), String> {
         ));
     }
 
-    eprintln!("participant {}: generating signature share", key_share.participant_id);
+    eprintln!(
+        "participant {}: generating signature share",
+        key_share.participant_id
+    );
     eprintln!("  message: {} bytes", signing_package.message.len());
-    eprintln!("  commitments from {} participants", signing_package.commitments.len());
+    eprintln!(
+        "  commitments from {} participants",
+        signing_package.commitments.len()
+    );
 
     let signature_share = round2_sign(&signing_package, &nonces, &key_share)
         .map_err(|e| format!("signing failed: {}", e))?;
@@ -78,11 +87,17 @@ fn main() -> Result<(), String> {
 
     eprintln!("  wrote signature share to {}", args.output.display());
     eprintln!();
-    eprintln!("send {} to the coordinator for aggregation", args.output.display());
+    eprintln!(
+        "send {} to the coordinator for aggregation",
+        args.output.display()
+    );
 
     // Nonces are consumed - remind user to delete
     eprintln!();
-    eprintln!("IMPORTANT: delete {} - nonces must not be reused", args.nonces.display());
+    eprintln!(
+        "IMPORTANT: delete {} - nonces must not be reused",
+        args.nonces.display()
+    );
 
     Ok(())
 }

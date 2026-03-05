@@ -20,7 +20,10 @@ use std::fs;
 use std::path::PathBuf;
 
 #[derive(Parser, Debug)]
-#[command(name = "threshold-verify", about = "Verify a FROST threshold signature")]
+#[command(
+    name = "threshold-verify",
+    about = "Verify a FROST threshold signature"
+)]
 struct Args {
     /// Path to message file
     #[arg(short = 'm', long)]
@@ -38,14 +41,16 @@ struct Args {
 fn main() -> Result<(), String> {
     let args = Args::parse();
 
-    let message = fs::read(&args.message)
-        .map_err(|e| format!("failed to read message: {}", e))?;
+    let message = fs::read(&args.message).map_err(|e| format!("failed to read message: {}", e))?;
 
-    let sig_bytes = fs::read(&args.signature)
-        .map_err(|e| format!("failed to read signature: {}", e))?;
+    let sig_bytes =
+        fs::read(&args.signature).map_err(|e| format!("failed to read signature: {}", e))?;
 
     if sig_bytes.len() != 64 {
-        return Err(format!("signature must be 64 bytes, got {}", sig_bytes.len()));
+        return Err(format!(
+            "signature must be 64 bytes, got {}",
+            sig_bytes.len()
+        ));
     }
 
     let signature: [u8; 64] = sig_bytes.try_into().unwrap();
@@ -67,8 +72,8 @@ fn main() -> Result<(), String> {
         }
     } else {
         // Raw binary
-        let bytes = fs::read(&args.public_key)
-            .map_err(|e| format!("failed to read public key: {}", e))?;
+        let bytes =
+            fs::read(&args.public_key).map_err(|e| format!("failed to read public key: {}", e))?;
         if bytes.len() != 32 {
             return Err(format!("public key must be 32 bytes, got {}", bytes.len()));
         }
@@ -76,8 +81,8 @@ fn main() -> Result<(), String> {
     };
 
     eprintln!("message: {} bytes", message.len());
-    eprintln!("signature: {}", hex::encode(&signature));
-    eprintln!("public key: {}", hex::encode(&public_key));
+    eprintln!("signature: {}", hex::encode(signature));
+    eprintln!("public key: {}", hex::encode(public_key));
     eprintln!();
 
     match verify_signature(&message, &signature, &public_key) {

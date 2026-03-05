@@ -16,6 +16,4 @@
 
 pub mod vault;
 
-pub use vault::{
-    sign_kernel_with_vault, VaultClient, VaultError, VAULT_TIMEOUT_SECS,
-};
+pub use vault::{sign_kernel_with_vault, VaultClient, VaultError, VAULT_TIMEOUT_SECS};

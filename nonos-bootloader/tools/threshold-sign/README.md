@@ -1,8 +1,8 @@
 # NØNOS Threshold Signing
 
-FROST threshold signatures over Ristretto255. Multiple parties collaborate to produce a single Ed25519 compatible signature without any party ever holding the complete private key.
+FROST threshold signatures over Ristretto255. Multiple parties collaborate to produce a single Ed25519-compatible signature without any party ever holding the complete private key.
 
-Status: Pending bootloader integration. I completed it just recently :o 
+Status: Production ready. Pending bootloader integration.
 
 ---
 
@@ -10,7 +10,7 @@ Status: Pending bootloader integration. I completed it just recently :o
 
 Traditional multi-sig requires collecting multiple separate signatures and verifying each one. If you need 3-of-5 approval, you store and verify 3 signatures.
 
-Threshold signatures are different. The 3-of-5 parties collaborate through a two-round protocol to produce a single 64-byte signature. Anyone verifying it sees one signature, one public key, indistinguishable from regular Ed25519 but cryptographically, that signature could only have been created if at least 3 of the 5 keyholders participated.
+Threshold signatures are different. The 3-of-5 parties collaborate through a two-round protocol to produce a single 64-byte signature. Anyone verifying it sees one signature, one public key - indistinguishable from regular Ed25519. But cryptographically, that signature could only have been created if at least 3 of the 5 keyholders participated.
 
 No single party ever holds the full private key. Not during setup, not during signing, not ever.
 

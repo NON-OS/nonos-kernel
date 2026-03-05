@@ -23,7 +23,6 @@ use std::{
 
 use anyhow::{bail, Context, Result};
 use base64::{engine::general_purpose::STANDARD as BASE64, Engine};
-use blake3;
 use chrono::Utc;
 use clap::Parser;
 use ed25519_dalek::SigningKey;
@@ -34,7 +33,10 @@ use tempfile::NamedTempFile;
 use zeroize::Zeroize;
 
 #[derive(Parser, Debug)]
-#[command(name = "nonos-keygen", about = "Generate Ed25519 signer keys for NONOS")]
+#[command(
+    name = "nonos-keygen",
+    about = "Generate Ed25519 signer keys for NONOS"
+)]
 struct Args {
     #[arg(short, long, default_value_t = 4)]
     count: usize,
@@ -111,15 +113,21 @@ fn main() -> Result<()> {
         std::process::exit(2);
     }
 
-    fs::create_dir_all(&args.out_dir).with_context(|| format!("creating {}", args.out_dir.display()))?;
+    fs::create_dir_all(&args.out_dir)
+        .with_context(|| format!("creating {}", args.out_dir.display()))?;
 
     let tool = "nonos-keygen".to_string();
     let tool_version = env!("CARGO_PKG_VERSION").to_string();
-    let rustc_version = get_command_output("rustc", &["--version"]).unwrap_or_else(|_| "unknown".into());
-    let cargo_version = get_command_output("cargo", &["--version"]).unwrap_or_else(|_| "unknown".into());
+    let rustc_version =
+        get_command_output("rustc", &["--version"]).unwrap_or_else(|_| "unknown".into());
+    let cargo_version =
+        get_command_output("cargo", &["--version"]).unwrap_or_else(|_| "unknown".into());
     let commit = git_commit_hash();
     let created_at = Utc::now().to_rfc3339();
-    let hostname = hostname::get().ok().and_then(|s| s.into_string().ok()).unwrap_or_else(|| "unknown".into());
+    let hostname = hostname::get()
+        .ok()
+        .and_then(|s| s.into_string().ok())
+        .unwrap_or_else(|| "unknown".into());
     let host_fingerprint = sha256_hex(hostname.as_bytes());
 
     let operator_hash = args.operator.as_ref().map(|op| sha256_hex(op.as_bytes()));
@@ -148,7 +156,11 @@ fn main() -> Result<()> {
         write_atomic_text(&pub_b64_path, &BASE64.encode(pub_bytes))?;
 
         if !args.pub_only {
-            let mode = if args.insecure_world_readable { 0o644 } else { 0o600 };
+            let mode = if args.insecure_world_readable {
+                0o644
+            } else {
+                0o600
+            };
             write_atomic(&sec_raw_path, &sec_bytes)?;
             set_mode_if_unix(&sec_raw_path, mode)?;
             write_atomic_text(&sec_hex_path, &hex::encode(&sec_bytes))?;
@@ -178,10 +190,7 @@ fn main() -> Result<()> {
     }
 
     if let Some(signers_path) = args.signers {
-        let sj = SignersJson {
-            threshold,
-            signers,
-        };
+        let sj = SignersJson { threshold, signers };
         let mut out_path = signers_path;
         if out_path.is_relative() {
             out_path = args.out_dir.join(out_path);
@@ -208,7 +217,11 @@ fn main() -> Result<()> {
     write_atomic(&gen_path, &gen_json)?;
     println!("Wrote generation_log.json -> {}", gen_path.display());
 
-    println!("Generated {} signer keypairs in {}", args.count, args.out_dir.display());
+    println!(
+        "Generated {} signer keypairs in {}",
+        args.count,
+        args.out_dir.display()
+    );
     println!("Reminder: protect secret key files and do NOT commit them to source control.");
 
     Ok(())
@@ -218,7 +231,8 @@ fn write_atomic(path: &PathBuf, data: &[u8]) -> Result<()> {
     let mut tmp = NamedTempFile::new_in(path.parent().unwrap_or(Path::new(".")))?;
     tmp.write_all(data)?;
     tmp.as_file().sync_all()?;
-    tmp.persist(path).with_context(|| format!("persisting to {}", path.display()))?;
+    tmp.persist(path)
+        .with_context(|| format!("persisting to {}", path.display()))?;
     Ok(())
 }
 
@@ -229,7 +243,8 @@ fn write_atomic_text(path: &PathBuf, text: &str) -> Result<()> {
 #[cfg(unix)]
 fn set_mode_if_unix(path: &PathBuf, mode: u32) -> Result<()> {
     use std::os::unix::fs::PermissionsExt;
-    fs::set_permissions(path, fs::Permissions::from_mode(mode)).with_context(|| format!("chmod {}", path.display()))?;
+    fs::set_permissions(path, fs::Permissions::from_mode(mode))
+        .with_context(|| format!("chmod {}", path.display()))?;
     Ok(())
 }
 
@@ -254,7 +269,7 @@ fn get_command_output(cmd: &str, args: &[&str]) -> Result<String> {
 }
 
 fn git_commit_hash() -> Option<String> {
-    if let Ok(out) = Command::new("git").args(&["rev-parse", "HEAD"]).output() {
+    if let Ok(out) = Command::new("git").args(["rev-parse", "HEAD"]).output() {
         if out.status.success() {
             if let Ok(s) = String::from_utf8(out.stdout) {
                 return Some(s.trim().to_string());

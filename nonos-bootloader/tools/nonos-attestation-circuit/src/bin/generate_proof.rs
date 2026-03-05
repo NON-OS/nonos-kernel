@@ -27,11 +27,14 @@ use clap::Parser;
 
 use nonos_attestation_circuit::{
     compute_capsule_commitment, expected_program_hash_bytes, BuildProvenance,
-    NonosAttestationCircuit, PCR_PREIMAGE_LEN, MIN_HW_LEVEL,
+    NonosAttestationCircuit, MIN_HW_LEVEL, PCR_PREIMAGE_LEN,
 };
 
 #[derive(Parser, Debug)]
-#[command(name = "generate-proof", about = "Generate Groth16 proof for NONOS boot attestation")]
+#[command(
+    name = "generate-proof",
+    about = "Generate Groth16 proof for NONOS boot attestation"
+)]
 struct Args {
     #[arg(short = 'k', long, value_name = "FILE")]
     proving_key: PathBuf,
@@ -59,20 +62,21 @@ fn main() -> Result<(), String> {
     println!();
 
     println!("Loading proving key from: {}", args.proving_key.display());
-    let pk_bytes = fs::read(&args.proving_key)
-        .map_err(|e| format!("Failed to read proving key: {e}"))?;
+    let pk_bytes =
+        fs::read(&args.proving_key).map_err(|e| format!("Failed to read proving key: {e}"))?;
 
     let pk: ProvingKey<Bls12_381> = ProvingKey::deserialize_with_mode(
         &pk_bytes[..],
         Compress::Yes,
         ark_serialize::Validate::Yes,
-    ).map_err(|e| format!("Failed to deserialize proving key: {e}"))?;
+    )
+    .map_err(|e| format!("Failed to deserialize proving key: {e}"))?;
 
     println!("  Proving key loaded ({} bytes)", pk_bytes.len());
     println!();
 
     let program_hash = expected_program_hash_bytes();
-    println!("Program hash: {}", hex::encode(&program_hash));
+    println!("Program hash: {}", hex::encode(program_hash));
 
     let mut pcr_preimage = [0u8; PCR_PREIMAGE_LEN];
     let mut hasher = blake3::Hasher::new();
@@ -89,12 +93,15 @@ fn main() -> Result<(), String> {
     public_input_seed.extend_from_slice(&pcr_preimage);
     let capsule_commitment = compute_capsule_commitment(&public_input_seed);
 
-    println!("Capsule commitment: {}", hex::encode(&capsule_commitment));
+    println!("Capsule commitment: {}", hex::encode(capsule_commitment));
     println!("Hardware attestation level: 0x{:X}", hardware_attestation);
     println!();
 
     let circuit = if let Some(ref provenance_path) = args.provenance {
-        println!("Loading build provenance from: {}", provenance_path.display());
+        println!(
+            "Loading build provenance from: {}",
+            provenance_path.display()
+        );
         let provenance_bytes = fs::read(provenance_path)
             .map_err(|e| format!("Failed to read provenance file: {e}"))?;
 
@@ -117,7 +124,10 @@ fn main() -> Result<(), String> {
             return Err("provenance hash mismatch - file may be corrupted".into());
         }
 
-        println!("  provenance composite hash: {}", hex::encode(&expected_hash));
+        println!(
+            "  provenance composite hash: {}",
+            hex::encode(expected_hash)
+        );
         println!();
 
         NonosAttestationCircuit::<Fr>::with_build_provenance(
@@ -146,17 +156,20 @@ fn main() -> Result<(), String> {
         .map_err(|e| format!("Proof generation failed: {e}"))?;
 
     let mut proof_bytes = Vec::new();
-    proof.serialize_with_mode(&mut proof_bytes, Compress::Yes)
+    proof
+        .serialize_with_mode(&mut proof_bytes, Compress::Yes)
         .map_err(|e| format!("Failed to serialize proof: {e}"))?;
 
     println!("  Proof generated ({} bytes)", proof_bytes.len());
 
     if proof_bytes.len() != 192 {
-        return Err(format!("Unexpected proof size: {} (expected 192)", proof_bytes.len()));
+        return Err(format!(
+            "Unexpected proof size: {} (expected 192)",
+            proof_bytes.len()
+        ));
     }
 
-    fs::write(&args.output, &proof_bytes)
-        .map_err(|e| format!("Failed to write proof: {e}"))?;
+    fs::write(&args.output, &proof_bytes).map_err(|e| format!("Failed to write proof: {e}"))?;
     println!("  Proof written to: {}", args.output.display());
 
     let circuit_for_inputs = if let Some(ref provenance_path) = args.provenance {
@@ -188,10 +201,12 @@ fn main() -> Result<(), String> {
     };
 
     let cs = ConstraintSystem::<Fr>::new_ref();
-    circuit_for_inputs.generate_constraints(cs.clone())
+    circuit_for_inputs
+        .generate_constraints(cs.clone())
         .map_err(|e| format!("Failed to synthesize circuit for public inputs: {e}"))?;
 
-    let public_input_field_elements: Vec<Fr> = cs.borrow()
+    let public_input_field_elements: Vec<Fr> = cs
+        .borrow()
         .ok_or("Failed to borrow constraint system")?
         .instance_assignment
         .iter()
@@ -199,32 +214,42 @@ fn main() -> Result<(), String> {
         .cloned()
         .collect();
 
-    println!("  Public inputs extracted: {} field elements", public_input_field_elements.len());
+    println!(
+        "  Public inputs extracted: {} field elements",
+        public_input_field_elements.len()
+    );
 
     if let Some(ref pi_path) = args.public_inputs_out {
         let mut public_inputs_bytes = Vec::with_capacity(public_input_field_elements.len() * 32);
         for fe in &public_input_field_elements {
             let bytes = fe.into_bigint().to_bytes_be();
             let padding = 32 - bytes.len();
-            public_inputs_bytes.extend(core::iter::repeat(0u8).take(padding));
+            public_inputs_bytes.extend(std::iter::repeat_n(0u8, padding));
             public_inputs_bytes.extend_from_slice(&bytes);
         }
 
         fs::write(pi_path, &public_inputs_bytes)
             .map_err(|e| format!("Failed to write public inputs: {e}"))?;
-        println!("  Public inputs written to: {} ({} bytes)", pi_path.display(), public_inputs_bytes.len());
+        println!(
+            "  Public inputs written to: {} ({} bytes)",
+            pi_path.display(),
+            public_inputs_bytes.len()
+        );
     }
 
     println!();
     println!("=== Proof Generation Complete ===");
     println!("Program hash:       {}", hex::encode(&program_hash[..8]));
-    println!("Capsule commitment: {}", hex::encode(&capsule_commitment[..8]));
+    println!(
+        "Capsule commitment: {}",
+        hex::encode(&capsule_commitment[..8])
+    );
     println!("Proof size:         {} bytes", proof_bytes.len());
 
     if args.verbose {
         println!();
-        println!("Full program hash: {}", hex::encode(&program_hash));
-        println!("Full commitment:   {}", hex::encode(&capsule_commitment));
+        println!("Full program hash: {}", hex::encode(program_hash));
+        println!("Full commitment:   {}", hex::encode(capsule_commitment));
     }
 
     Ok(())

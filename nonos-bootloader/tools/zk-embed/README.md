@@ -1,8 +1,8 @@
-# NØNOS ZK Embed Tool
+# NONOS ZK Embed Tool
 
 Generates Rust code for embedding Groth16 verifying keys into the bootloader. Takes your circuit's program ID and verifying key, derives the PROGRAM_HASH, normalizes the VK to canonical format, and outputs paste-ready code.
 
-Status: Used in the NØNOS release build process.
+Status: Production ready. Used in the NØNOS release build process.
 
 ---
 
@@ -109,7 +109,7 @@ The `zk-vk-provisioned` feature is a compile-time guard that fails the build if 
 
 The tool accepts arkworks `CanonicalSerialize` format for BLS12-381 Groth16 verifying keys. It tries both compressed and uncompressed formats automatically.
 
-Output is always canonical compressed, the exact byte representation the bootloader's verifier expects.
+Output is always canonical compressed - the exact byte representation the bootloader's verifier expects.
 
 If you have a VK in a different format, you'll need to convert it using arkworks first.
 

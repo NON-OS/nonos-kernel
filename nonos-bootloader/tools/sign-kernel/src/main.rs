@@ -25,7 +25,10 @@ mod vault;
 use vault::{sign_kernel_with_vault, VaultClient};
 
 #[derive(Parser, Debug)]
-#[command(name = "nonos-sign-kernel", about = "Sign NONOS kernel binary with Ed25519")]
+#[command(
+    name = "nonos-sign-kernel",
+    about = "Sign NONOS kernel binary with Ed25519"
+)]
 struct Args {
     #[arg(short, long, value_name = "FILE", conflicts_with = "vault_addr")]
     key: Option<PathBuf>,
@@ -88,14 +91,18 @@ fn main() -> Result<()> {
         let verifying_key = VerifyingKey::from_bytes(&pubkey_bytes)
             .map_err(|e| anyhow::anyhow!("invalid public key: {}", e))?;
 
-        println!("Public Key (hex): {}", hex::encode(verifying_key.as_bytes()));
+        println!(
+            "Public Key (hex): {}",
+            hex::encode(verifying_key.as_bytes())
+        );
 
         let pk_hash = blake3::hash(verifying_key.as_bytes());
         println!("Public Key BLAKE3: {}", pk_hash.to_hex());
         println!();
 
-        let sig_bytes = sign_kernel_with_vault(vault_addr, vault_token, &args.vault_key_name, &kernel_data)
-            .map_err(|e| anyhow::anyhow!("vault signing failed: {}", e))?;
+        let sig_bytes =
+            sign_kernel_with_vault(vault_addr, vault_token, &args.vault_key_name, &kernel_data)
+                .map_err(|e| anyhow::anyhow!("vault signing failed: {}", e))?;
 
         (sig_bytes, verifying_key)
     } else if let Some(ref key_path) = args.key {
@@ -115,7 +122,10 @@ fn main() -> Result<()> {
         let signing_key = SigningKey::from_bytes(&seed);
         let verifying_key: VerifyingKey = (&signing_key).into();
 
-        println!("Public Key (hex): {}", hex::encode(verifying_key.as_bytes()));
+        println!(
+            "Public Key (hex): {}",
+            hex::encode(verifying_key.as_bytes())
+        );
 
         let pk_hash = blake3::hash(verifying_key.as_bytes());
         println!("Public Key BLAKE3: {}", pk_hash.to_hex());
@@ -190,13 +200,9 @@ fn main() -> Result<()> {
 
     let pk = verifying_key.as_bytes();
     println!("pub const NONOS_SIGNING_KEY: &[u8; 32] = &[");
-    for (i, chunk) in pk.chunks(8).enumerate() {
+    for chunk in pk.chunks(8) {
         let hex_line: Vec<String> = chunk.iter().map(|b| format!("0x{:02x}", b)).collect();
-        if i < pk.len() / 8 - 1 || pk.len() % 8 != 0 {
-            println!("    {},", hex_line.join(", "));
-        } else {
-            println!("    {},", hex_line.join(", "));
-        }
+        println!("    {},", hex_line.join(", "));
     }
     println!("];");
 

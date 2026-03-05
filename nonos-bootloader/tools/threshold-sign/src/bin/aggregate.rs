@@ -23,7 +23,10 @@ use std::fs;
 use std::path::PathBuf;
 
 #[derive(Parser, Debug)]
-#[command(name = "threshold-aggregate", about = "FROST: aggregate signature shares")]
+#[command(
+    name = "threshold-aggregate",
+    about = "FROST: aggregate signature shares"
+)]
 struct Args {
     /// Path to signing package (message + commitments)
     #[arg(short = 'p', long)]
@@ -58,7 +61,10 @@ fn main() -> Result<(), String> {
     let pubkey_package: PublicKeyPackage = serde_json::from_str(&pubkey_json)
         .map_err(|e| format!("failed to parse public key: {}", e))?;
 
-    eprintln!("threshold: {}-of-{}", pubkey_package.config.threshold, pubkey_package.config.total_signers);
+    eprintln!(
+        "threshold: {}-of-{}",
+        pubkey_package.config.threshold, pubkey_package.config.total_signers
+    );
     eprintln!("message: {} bytes", signing_package.message.len());
     eprintln!();
 
@@ -85,17 +91,20 @@ fn main() -> Result<(), String> {
     let signature = aggregate_signatures(&signing_package, &signature_shares, &pubkey_package)
         .map_err(|e| format!("aggregation failed: {}", e))?;
 
-    eprintln!("  signature: {}", hex::encode(&signature));
+    eprintln!("  signature: {}", hex::encode(signature));
     eprintln!();
 
     eprintln!("verifying aggregated signature...");
-    verify_signature(&signing_package.message, &signature, &pubkey_package.group_public_key)
-        .map_err(|e| format!("verification failed: {}", e))?;
+    verify_signature(
+        &signing_package.message,
+        &signature,
+        &pubkey_package.group_public_key,
+    )
+    .map_err(|e| format!("verification failed: {}", e))?;
     eprintln!("  verification: PASSED");
     eprintln!();
 
-    fs::write(&args.output, &signature)
-        .map_err(|e| format!("failed to write signature: {}", e))?;
+    fs::write(&args.output, signature).map_err(|e| format!("failed to write signature: {}", e))?;
     eprintln!("wrote 64-byte signature to {}", args.output.display());
 
     Ok(())

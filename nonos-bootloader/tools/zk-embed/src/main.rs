@@ -16,7 +16,6 @@
 
 use std::{fs, path::PathBuf};
 
-use blake3;
 use clap::Parser;
 
 use ark_bls12_381::Bls12_381;
@@ -27,7 +26,11 @@ use ark_std::io::Cursor;
 const DS_PROGRAM_DEFAULT: &str = "NONOS:ZK:PROGRAM:v1";
 
 #[derive(Debug, Parser)]
-#[command(name = "zk-embed", version, about = "NONOS zk-embed - derive PROGRAM_HASH and emit Groth16 VK bytes")]
+#[command(
+    name = "zk-embed",
+    version,
+    about = "NONOS zk-embed — derive PROGRAM_HASH and emit Groth16 VK bytes"
+)]
 struct Args {
     #[arg(long, value_name = "STR", group = "pid")]
     program_id_str: Option<String>,
@@ -81,14 +84,22 @@ fn run() -> Result<(), String> {
 }
 
 fn load_program_id_bytes(args: &Args) -> Result<Vec<u8>, String> {
-    match (&args.program_id_str, &args.program_id_hex, &args.program_id_file) {
+    match (
+        &args.program_id_str,
+        &args.program_id_hex,
+        &args.program_id_file,
+    ) {
         (Some(s), None, None) => Ok(s.as_bytes().to_vec()),
         (None, Some(h), None) => {
             let h = h.trim().trim_start_matches("0x").trim_start_matches("0X");
             hex::decode(h).map_err(|e| format!("program-id-hex: {e}"))
         }
-        (None, None, Some(p)) => fs::read(p).map_err(|e| format!("read program-id-file {}: {e}", p.display())),
-        _ => Err("provide exactly one of --program-id-str | --program-id-hex | --program-id-file".into()),
+        (None, None, Some(p)) => {
+            fs::read(p).map_err(|e| format!("read program-id-file {}: {e}", p.display()))
+        }
+        _ => Err(
+            "provide exactly one of --program-id-str | --program-id-hex | --program-id-file".into(),
+        ),
     }
 }
 
@@ -99,7 +110,8 @@ fn derive_program_hash(ds_program: &str, program_id_bytes: &[u8]) -> [u8; 32] {
 }
 
 fn load_and_normalize_vk(path: &PathBuf) -> Result<Vec<u8>, String> {
-    let vk_raw = fs::read(path).map_err(|e| format!("read verifying key {}: {e}", path.display()))?;
+    let vk_raw =
+        fs::read(path).map_err(|e| format!("read verifying key {}: {e}", path.display()))?;
     if vk_raw.is_empty() {
         return Err("verifying key file is empty".into());
     }
@@ -116,7 +128,9 @@ fn load_and_normalize_vk(path: &PathBuf) -> Result<Vec<u8>, String> {
             Validate::Yes,
         )
     })
-    .map_err(|_| "failed to deserialize verifying key (neither compressed nor uncompressed)".to_string())?;
+    .map_err(|_| {
+        "failed to deserialize verifying key (neither compressed nor uncompressed)".to_string()
+    })?;
 
     let mut out = Vec::new();
     vk.serialize_with_mode(&mut out, Compress::Yes)
