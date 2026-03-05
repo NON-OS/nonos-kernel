@@ -139,7 +139,7 @@ zk-tools:
 ifeq ($(UNAME_S),Darwin)
 	cd $(ZK_CIRCUIT_DIR) && $(CARGO) build --release --bin generate-keys --bin generate-proof --target x86_64-apple-darwin
 else
-	cd $(ZK_CIRCUIT_DIR) && $(CARGO) build --release --bin generate-keys --bin generate-proof
+	cd $(ZK_CIRCUIT_DIR) && $(CARGO) build --release --bin generate-keys --bin generate-proof --target x86_64-unknown-linux-gnu
 endif
 
 generate-zk-keys: zk-tools
@@ -148,7 +148,7 @@ ifeq ($(UNAME_S),Darwin)
 	$(ZK_CIRCUIT_DIR)/target/x86_64-apple-darwin/release/generate-keys generate \
 		--output $(ZK_KEYS_DIR) --seed "$(ZK_KEY_SEED)" --allow-unsigned --print-program-hash
 else
-	$(ZK_CIRCUIT_DIR)/target/release/generate-keys generate \
+	$(ZK_CIRCUIT_DIR)/target/x86_64-unknown-linux-gnu/release/generate-keys generate \
 		--output $(ZK_KEYS_DIR) --seed "$(ZK_KEY_SEED)" --allow-unsigned --print-program-hash
 endif
 
@@ -160,7 +160,7 @@ ifeq ($(UNAME_S),Darwin)
 		--proving-key $(ZK_PROVING_KEY) --output $(ZK_PROOF_FILE) \
 		--public-inputs-out $(ZK_PUBLIC_INPUTS) --seed "nonos-boot-attestation-v1"
 else
-	$(ZK_CIRCUIT_DIR)/target/release/generate-proof \
+	$(ZK_CIRCUIT_DIR)/target/x86_64-unknown-linux-gnu/release/generate-proof \
 		--proving-key $(ZK_PROVING_KEY) --output $(ZK_PROOF_FILE) \
 		--public-inputs-out $(ZK_PUBLIC_INPUTS) --seed "nonos-boot-attestation-v1"
 endif
@@ -174,8 +174,8 @@ ifeq ($(UNAME_S),Darwin)
 		--proof $(ZK_PROOF_FILE) --program-hash $(ZK_PROGRAM_HASH) \
 		--public-inputs $(ZK_PUBLIC_INPUTS) --verbose
 else
-	cd $(BOOTLOADER_DIR)/tools/embed-zk-proof && $(CARGO) build --release
-	$(BOOTLOADER_DIR)/tools/embed-zk-proof/target/release/embed-zk-proof \
+	cd $(BOOTLOADER_DIR)/tools/embed-zk-proof && $(CARGO) build --release --target x86_64-unknown-linux-gnu
+	$(BOOTLOADER_DIR)/tools/embed-zk-proof/target/x86_64-unknown-linux-gnu/release/embed-zk-proof \
 		--input $(TARGET_DIR)/kernel_signed.bin --output $(TARGET_DIR)/kernel_attested.bin \
 		--proof $(ZK_PROOF_FILE) --program-hash $(ZK_PROGRAM_HASH) \
 		--public-inputs $(ZK_PUBLIC_INPUTS) --verbose
