@@ -25,7 +25,7 @@ mod init;
 mod hkdf;
 
 pub use types::SignatureAlgorithm;
-pub use random::{secure_random_u32, secure_random_u64, secure_random_u8, fill_random, generate_secure_key};
+pub use random::{secure_random_u32, secure_random_u64, secure_random_u8, fill_random, generate_secure_key, generate_secure_key_checked};
 pub use entropy::estimate_entropy;
 pub use keygen::{generate_keypair, sig};
 pub use verify::{ed25519_verify, verify_signature};
