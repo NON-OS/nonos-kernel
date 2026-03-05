@@ -76,13 +76,27 @@ pub fn get_entropy64() -> u64 {
 #[cold]
 fn emergency_entropy_mix() -> u64 {
     let counter = ENTROPY_COUNTER.fetch_add(1, Ordering::SeqCst);
-    let tsc = read_tsc();
+    let tsc1 = read_tsc();
+
+    let stack_addr: u64;
+    unsafe {
+        core::arch::asm!("mov {}, rsp", out(reg) stack_addr, options(nomem, nostack));
+    }
+
+    for _ in 0..counter.wrapping_rem(16).wrapping_add(1) {
+        core::hint::spin_loop();
+    }
+    let tsc2 = read_tsc();
+
+    let jitter = tsc2.wrapping_sub(tsc1);
 
     let mut state = counter;
     state = state.wrapping_add(0x9e3779b97f4a7c15);
-    state ^= tsc;
+    state ^= tsc1;
     state = (state ^ (state >> 30)).wrapping_mul(0xbf58476d1ce4e5b9);
+    state ^= stack_addr;
     state = (state ^ (state >> 27)).wrapping_mul(0x94d049bb133111eb);
+    state ^= jitter;
     state ^= state >> 31;
 
     state
