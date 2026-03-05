@@ -93,6 +93,81 @@ impl CpuDescriptor {
     pub fn is_online(&self) -> bool {
         self.state() == CpuState::Online
     }
+
+    /// Get CPU ID
+    pub fn get_cpu_id(&self) -> u32 {
+        self.cpu_id
+    }
+
+    /// Get APIC ID
+    pub fn get_apic_id(&self) -> u32 {
+        self.apic_id
+    }
+
+    /// Get NUMA node
+    pub fn get_numa_node(&self) -> u32 {
+        self.numa_node
+    }
+
+    /// Get stack base address
+    pub fn get_stack_base(&self) -> u64 {
+        self.stack_base.load(Ordering::Acquire)
+    }
+
+    /// Get stack size
+    pub fn get_stack_size(&self) -> usize {
+        self.stack_size
+    }
+
+    /// Get idle cycles
+    pub fn get_idle_cycles(&self) -> u64 {
+        self.idle_cycles.load(Ordering::Relaxed)
+    }
+
+    /// Get total cycles
+    pub fn get_total_cycles(&self) -> u64 {
+        self.total_cycles.load(Ordering::Relaxed)
+    }
+
+    /// Get current PID
+    pub fn get_current_pid(&self) -> u32 {
+        self.current_pid.load(Ordering::Relaxed)
+    }
+
+    /// Check if IPI is pending
+    pub fn has_ipi_pending(&self) -> bool {
+        self.ipi_pending.load(Ordering::Relaxed) > 0
+    }
+
+    /// Check if TLB shootdown is pending
+    pub fn has_tlb_shootdown_pending(&self) -> bool {
+        self.tlb_shootdown_pending.load(Ordering::Relaxed)
+    }
+
+    /// Get preempt disable count
+    pub fn get_preempt_disable_count(&self) -> u32 {
+        self.preempt_disable_count.load(Ordering::Relaxed)
+    }
+
+    /// Check if in interrupt
+    pub fn is_in_interrupt(&self) -> bool {
+        self.in_interrupt.load(Ordering::Relaxed)
+    }
+
+    /// Get last error
+    pub fn get_last_error(&self) -> u32 {
+        self.last_error.load(Ordering::Relaxed)
+    }
+
+    /// Calculate CPU utilization
+    pub fn get_utilization(&self) -> f64 {
+        let total = self.total_cycles.load(Ordering::Relaxed);
+        if total == 0 {
+            return 0.0;
+        }
+        let idle = self.idle_cycles.load(Ordering::Relaxed);
+        1.0 - (idle as f64 / total as f64)
+    }
 }
 
 #[derive(Debug)]
@@ -111,4 +186,66 @@ pub struct CpuStats {
     pub idle_cycles: u64,
     pub total_cycles: u64,
     pub current_pid: u32,
+}
+
+impl CpuStats {
+    /// Get CPU ID
+    pub fn cpu_id(&self) -> u32 {
+        self.cpu_id
+    }
+
+    /// Get APIC ID
+    pub fn apic_id(&self) -> u32 {
+        self.apic_id
+    }
+
+    /// Get CPU state
+    pub fn state(&self) -> CpuState {
+        self.state
+    }
+
+    /// Get idle cycles
+    pub fn idle_cycles(&self) -> u64 {
+        self.idle_cycles
+    }
+
+    /// Get total cycles
+    pub fn total_cycles(&self) -> u64 {
+        self.total_cycles
+    }
+
+    /// Get current PID
+    pub fn current_pid(&self) -> u32 {
+        self.current_pid
+    }
+
+    /// Calculate utilization
+    pub fn utilization(&self) -> f64 {
+        if self.total_cycles == 0 {
+            return 0.0;
+        }
+        1.0 - (self.idle_cycles as f64 / self.total_cycles as f64)
+    }
+}
+
+impl SmpStats {
+    /// Get CPU count
+    pub fn cpu_count(&self) -> usize {
+        self.cpu_count
+    }
+
+    /// Get online CPU count
+    pub fn cpus_online(&self) -> usize {
+        self.cpus_online
+    }
+
+    /// Get BSP APIC ID
+    pub fn bsp_apic_id(&self) -> u32 {
+        self.bsp_apic_id
+    }
+
+    /// Get per-CPU stats
+    pub fn per_cpu_stats(&self) -> &[CpuStats] {
+        &self.per_cpu
+    }
 }

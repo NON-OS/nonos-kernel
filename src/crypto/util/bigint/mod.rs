@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -31,12 +31,6 @@ mod primality;
 #[cfg(test)]
 mod tests;
 
-pub use arithmetic::*;
-pub use bitops::*;
-pub use conversion::*;
-pub use division::*;
-pub use modular::*;
-pub use primality::*;
 
 pub(crate) const LIMB_BITS: usize = 64;
 #[allow(dead_code)]

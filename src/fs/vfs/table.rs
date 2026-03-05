@@ -32,7 +32,7 @@ pub(super) struct FileDescriptorTable {
 }
 
 impl FileDescriptorTable {
-    pub const fn new() -> Self {
+    pub(super) const fn new() -> Self {
         FileDescriptorTable {
             files: BTreeMap::new(),
             next_fd: AtomicU32::new(RESERVED_FDS),
@@ -46,7 +46,7 @@ impl FileDescriptorTable {
         }
     }
 
-    pub fn allocate_fd(&self) -> VfsResult<u32> {
+    pub(super) fn allocate_fd(&self) -> VfsResult<u32> {
         for fd in RESERVED_FDS..MAX_FDS {
             if !self.files.contains_key(&fd) {
                 return Ok(fd);
@@ -55,7 +55,7 @@ impl FileDescriptorTable {
         Err(VfsError::TooManyOpenFiles)
     }
 
-    pub fn open(&mut self, path: &str, flags: OpenFlags) -> VfsResult<u32> {
+    pub(super) fn open(&mut self, path: &str, flags: OpenFlags) -> VfsResult<u32> {
         if path.is_empty() {
             return Err(VfsError::InvalidPath);
         }
@@ -99,7 +99,7 @@ impl FileDescriptorTable {
         Ok(fd)
     }
 
-    pub fn close(&mut self, fd: u32) -> VfsResult<()> {
+    pub(super) fn close(&mut self, fd: u32) -> VfsResult<()> {
         if let Some(mut file) = self.files.remove(&fd) {
             file.secure_clear();
             Ok(())
@@ -108,7 +108,7 @@ impl FileDescriptorTable {
         }
     }
 
-    pub fn read(&mut self, fd: u32, buffer: &mut [u8]) -> VfsResult<usize> {
+    pub(super) fn read(&mut self, fd: u32, buffer: &mut [u8]) -> VfsResult<usize> {
         let file = self.files.get_mut(&fd).ok_or(VfsError::InvalidFd)?;
 
         if !file.flags.is_readable() {
@@ -134,7 +134,7 @@ impl FileDescriptorTable {
         Ok(to_read)
     }
 
-    pub fn write(&mut self, fd: u32, buffer: &[u8]) -> VfsResult<usize> {
+    pub(super) fn write(&mut self, fd: u32, buffer: &[u8]) -> VfsResult<usize> {
         let file = self.files.get_mut(&fd).ok_or(VfsError::InvalidFd)?;
 
         if !file.flags.is_writable() {
@@ -167,7 +167,7 @@ impl FileDescriptorTable {
         Ok(buffer.len())
     }
 
-    pub fn lseek(&mut self, fd: u32, offset: i64, whence: u32) -> VfsResult<u64> {
+    pub(super) fn lseek(&mut self, fd: u32, offset: i64, whence: u32) -> VfsResult<u64> {
         let file = self.files.get_mut(&fd).ok_or(VfsError::InvalidFd)?;
 
         let new_pos = match whence {
@@ -198,11 +198,11 @@ impl FileDescriptorTable {
         Ok(new_pos)
     }
 
-    pub fn get_stats(&self) -> IoStatistics {
+    pub(super) fn get_stats(&self) -> IoStatistics {
         self.stats.clone()
     }
 
-    pub fn clear_all(&mut self) {
+    pub(super) fn clear_all(&mut self) {
         for (_, file) in self.files.iter_mut() {
             file.secure_clear();
         }
@@ -211,7 +211,15 @@ impl FileDescriptorTable {
         self.next_fd.store(RESERVED_FDS, Ordering::SeqCst);
     }
 
-    pub fn secure_clear_buffer(&self, buffer: &mut [u8]) {
+    pub(super) fn read_secure(&mut self, fd: u32, buffer: &mut [u8]) -> VfsResult<usize> {
+        let result = self.read(fd, buffer);
+        if result.is_err() {
+            self.secure_clear_buffer(buffer);
+        }
+        result
+    }
+
+    pub(super) fn secure_clear_buffer(&self, buffer: &mut [u8]) {
         secure_zeroize(buffer);
     }
 }

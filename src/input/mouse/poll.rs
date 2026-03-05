@@ -14,6 +14,22 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 use core::sync::atomic::Ordering;
 use crate::sys::io::inb;
 use super::state::{
@@ -54,18 +70,24 @@ fn process_packet(has_scroll: bool) -> bool {
     true
 }
 
+/// Poll mouse for data - call this in the main loop
+/// Returns true if mouse position/buttons were updated
 pub fn poll() -> bool {
+    // First check if interrupt handler already processed a packet
     if MOUSE_UPDATED.swap(false, Ordering::Relaxed) {
         return true;
     }
 
+    // Fallback: direct polling for environments without IRQs
     // SAFETY: Reading PS/2 status port
     let status = unsafe { inb(0x64) };
 
+    // Bit 0 = output buffer full, bit 5 = mouse data (vs keyboard)
     if status & 0x01 == 0 {
         return false;
     }
 
+    // Check if this is mouse data (bit 5 set in status)
     if status & 0x20 == 0 {
         return false;
     }
@@ -77,6 +99,7 @@ pub fn poll() -> bool {
 
     match idx {
         0 => {
+            // First byte must have bit 3 set (always-1 bit in standard PS/2 protocol)
             if data & 0x08 == 0 {
                 return false;
             }

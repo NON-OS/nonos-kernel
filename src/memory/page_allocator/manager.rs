@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -13,17 +13,19 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-
 use alloc::vec::Vec;
 use core::sync::atomic::Ordering;
 use spin::Mutex;
 use x86_64::{PhysAddr, VirtAddr};
+
 use crate::memory::{layout, frame_alloc, virt};
 use super::constants::*;
 use super::error::{PageAllocError, PageAllocResult};
 use super::types::*;
+
 static PAGE_ALLOCATOR: Mutex<PageAllocator> = Mutex::new(PageAllocator::new());
 static ALLOCATOR_STATS: AllocatorStats = AllocatorStats::new();
+
 struct PageAllocator {
     allocated_pages: Vec<AllocatedPage>,
     next_page_id: u64,
@@ -47,12 +49,16 @@ impl PageAllocator {
         if !self.initialized { return Err(PageAllocError::NotInitialized); }
         if size == 0 || size > MAX_ALLOCATION_SIZE { return Err(PageAllocError::InvalidSize); }
         if self.allocated_pages.len() >= MAX_TRACKED_PAGES { return Err(PageAllocError::TooManyPages); }
+
         let page_count = (size + layout::PAGE_SIZE - 1) / layout::PAGE_SIZE;
         let total_size = page_count * layout::PAGE_SIZE;
+
         let va = self.allocate_virtual_pages(page_count)?;
         let pa = self.get_physical_address(va)?;
+
         let page_id = self.next_page_id;
         self.next_page_id += 1;
+
         let allocated_page = AllocatedPage { page_id, virtual_addr: va, physical_addr: pa, allocation_time: get_timestamp(), size: total_size };
         self.allocated_pages.push(allocated_page);
         ALLOCATOR_STATS.record_allocation(total_size);
@@ -86,6 +92,7 @@ impl PageAllocator {
 
         let first_frame = allocated_frames[0];
         let va = VirtAddr::new(layout::VMAP_BASE + first_frame.as_u64());
+
         for (i, frame) in allocated_frames.iter().enumerate() {
             let page_va = VirtAddr::new(va.as_u64() + (i * layout::PAGE_SIZE) as u64);
             self.map_page(page_va, *frame)?;
@@ -137,6 +144,7 @@ pub fn allocate_page() -> PageAllocResult<VirtAddr> { PAGE_ALLOCATOR.lock().allo
 pub fn allocate_pages(count: usize) -> PageAllocResult<VirtAddr> { PAGE_ALLOCATOR.lock().allocate_page(count * layout::PAGE_SIZE) }
 pub fn allocate_sized(size: usize) -> PageAllocResult<VirtAddr> { PAGE_ALLOCATOR.lock().allocate_page(size) }
 pub fn deallocate_page(va: VirtAddr) -> PageAllocResult<()> { PAGE_ALLOCATOR.lock().deallocate_page(va) }
+
 pub fn get_page_info(va: VirtAddr) -> Option<PageInfo> {
     PAGE_ALLOCATOR.lock().get_page_info(va).map(|p| PageInfo {
         page_id: p.page_id, virtual_addr: p.virtual_addr, physical_addr: p.physical_addr,

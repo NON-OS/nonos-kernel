@@ -20,8 +20,9 @@ use super::constants::*;
 use super::state::{set_path, FILE_ENTRIES, FILE_ENTRY_COUNT, FM_SELECTED_ITEM};
 use super::path::{go_up, go_into};
 use super::listing::refresh_listing;
-use super::operations::{create_folder, delete_selected};
+use super::operations::{create_folder, delete_selected, rename_selected};
 use super::clipboard::{copy_selected, cut_selected, paste};
+use super::state::{FM_RENAMING, is_input_active, get_input_text, clear_input, push_input_char, pop_input_char};
 
 pub fn handle_file_manager_click(win_x: u32, win_y: u32, win_w: u32, click_x: i32, click_y: i32) -> bool {
     let content_y = (win_y + TITLE_BAR_HEIGHT) as i32;
@@ -58,6 +59,7 @@ pub fn handle_file_manager_click(win_x: u32, win_y: u32, win_w: u32, click_x: i3
                     let _ = delete_selected();
                 }
                 5 => {
+                    start_rename();
                 }
                 _ => {}
             }
@@ -99,4 +101,68 @@ pub fn handle_file_manager_click(win_x: u32, win_y: u32, win_w: u32, click_x: i3
     }
 
     false
+}
+
+fn start_rename() {
+    let selected = FM_SELECTED_ITEM.load(Ordering::Relaxed);
+    if selected == 255 || selected as usize >= FILE_ENTRY_COUNT.load(Ordering::Relaxed) as usize {
+        return;
+    }
+
+    // Copy current name into input buffer
+    let entry = unsafe { &FILE_ENTRIES[selected as usize] };
+    clear_input();
+    for &ch in entry.name[..entry.name_len as usize].iter() {
+        push_input_char(ch);
+    }
+
+    FM_RENAMING.store(true, Ordering::Relaxed);
+}
+
+pub fn handle_file_manager_key(ch: u8) -> bool {
+    if !is_input_active() {
+        return false;
+    }
+
+    if ch >= 0x20 && ch < 0x7F {
+        push_input_char(ch);
+        return true;
+    }
+
+    false
+}
+
+pub fn handle_file_manager_special_key(key: u8) -> bool {
+    if !is_input_active() {
+        return false;
+    }
+
+    match key {
+        0x0E => { // Backspace
+            pop_input_char();
+            true
+        }
+        0x1C => { // Enter - commit rename
+            if FM_RENAMING.load(Ordering::Relaxed) {
+                let new_name = get_input_text();
+                let _ = rename_selected(new_name);
+                FM_RENAMING.store(false, Ordering::Relaxed);
+                clear_input();
+            }
+            true
+        }
+        0x01 => { // Escape - cancel
+            FM_RENAMING.store(false, Ordering::Relaxed);
+            clear_input();
+            true
+        }
+        _ => false,
+    }
+}
+
+pub fn cancel_rename() {
+    if FM_RENAMING.load(Ordering::Relaxed) {
+        FM_RENAMING.store(false, Ordering::Relaxed);
+        clear_input();
+    }
 }

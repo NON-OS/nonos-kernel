@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -14,10 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+//! MMU Unit Tests
+
 use super::*;
+
 // ============================================================================
 // CONSTANT TESTS
 // ============================================================================
+
 #[test]
 fn test_pte_bits() {
     assert_eq!(PTE_PRESENT, 1 << 0);
@@ -59,9 +63,11 @@ fn test_page_table_constants() {
     assert_eq!(PAGE_TABLE_ENTRIES, 512);
     assert_eq!(PAGE_SIZE, 4096);
 }
+
 // ============================================================================
 // INDEX EXTRACTION TESTS
 // ============================================================================
+
 #[test]
 fn test_pml4_index() {
     assert_eq!(pml4_index(0), 0);
@@ -106,9 +112,11 @@ fn test_pte_address() {
     let pte_with_nx = 0x1234_5000 | PTE_PRESENT | PTE_NO_EXECUTE;
     assert_eq!(pte_address(pte_with_nx), 0x1234_5000);
 }
+
 // ============================================================================
 // PROTECTION FLAGS TESTS
 // ============================================================================
+
 #[test]
 fn test_protection_flags_new() {
     let flags = ProtectionFlags::new();
@@ -228,9 +236,11 @@ fn test_pte_wx_violation() {
     };
     assert!(violation.is_wx_violation());
 }
+
 // ============================================================================
 // PAGE PERMISSIONS TESTS
 // ============================================================================
+
 #[test]
 fn test_permissions_kernel_ro() {
     let perms = PagePermissions::kernel_ro();
@@ -290,9 +300,11 @@ fn test_permissions_to_pte() {
     assert!(pte.no_execute);
     assert_eq!(pte.physical_address, 0x4000);
 }
+
 // ============================================================================
 // ERROR TESTS
 // ============================================================================
+
 #[test]
 fn test_mmu_error_as_str() {
     assert_eq!(MmuError::NotInitialized.as_str(), "MMU not initialized");
@@ -336,9 +348,11 @@ fn test_mmu_error_from_str() {
         MmuError::WXViolation
     );
 }
+
 // ============================================================================
 // MMU TESTS
 // ============================================================================
+
 #[test]
 fn test_mmu_new() {
     let mmu = MMU::new();

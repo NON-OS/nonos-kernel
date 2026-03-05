@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -140,9 +140,12 @@ impl core::fmt::Display for BigUint {
         let ten = Self::from_u64(10);
 
         while !n.is_zero() {
-            let (q, r) = n.div_rem(&ten);
-            digits.push((r.limbs[0] as u8) + b'0');
-            n = q;
+            if let Some((q, r)) = n.div_rem(&ten) {
+                digits.push((r.limbs[0] as u8) + b'0');
+                n = q;
+            } else {
+                break;
+            }
         }
 
         digits.reverse();

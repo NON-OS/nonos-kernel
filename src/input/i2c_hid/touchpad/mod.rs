@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+//! Touchpad driver with multi-touch gesture support and palm rejection.
+
 extern crate alloc;
 
 pub mod constants;

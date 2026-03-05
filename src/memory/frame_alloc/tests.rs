@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -14,12 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+//! Frame Allocator Unit Tests
+
 use super::*;
 use super::constants::*;
 use super::error::FrameAllocError;
+
 // ============================================================================
 // CONSTANTS TESTS
 // ============================================================================
+
 #[test]
 fn test_frame_size_is_4k() {
     assert_eq!(FRAME_SIZE, 4096);
@@ -43,9 +47,11 @@ fn test_default_region_is_aligned() {
     assert_eq!(DEFAULT_REGION_START % FRAME_SIZE, 0);
     assert_eq!(DEFAULT_REGION_END % FRAME_SIZE, 0);
 }
+
 // ============================================================================
 // ERROR TESTS
 // ============================================================================
+
 #[test]
 fn test_error_display() {
     let err = FrameAllocError::OutOfFrames;
@@ -64,12 +70,15 @@ fn test_error_recoverable() {
 fn test_error_from_string() {
     let err: FrameAllocError = "Invalid region: start >= end".into();
     assert_eq!(err, FrameAllocError::InvalidRegion);
+
     let err: FrameAllocError = "Region boundaries must be page-aligned".into();
     assert_eq!(err, FrameAllocError::RegionNotAligned);
 }
+
 // ============================================================================
 // FRAME RANGE TESTS
 // ============================================================================
+
 #[test]
 fn test_frame_range_valid_creation() {
     let start = PhysAddr::new(0x100000);
@@ -115,12 +124,15 @@ fn test_frame_range_next_frame() {
     let start = PhysAddr::new(0x100000);
     let end = PhysAddr::new(0x100000 + FRAME_SIZE * 2); // 2 frames
     let mut range = FrameRange::new(start, end).unwrap();
+
     let frame1 = range.next_frame();
     assert!(frame1.is_some());
     assert_eq!(frame1.unwrap().start_address().as_u64(), 0x100000);
+
     let frame2 = range.next_frame();
     assert!(frame2.is_some());
     assert_eq!(frame2.unwrap().start_address().as_u64(), 0x100000 + FRAME_SIZE);
+
     let frame3 = range.next_frame();
     assert!(frame3.is_none());
 }
@@ -130,13 +142,16 @@ fn test_frame_range_exhausted() {
     let start = PhysAddr::new(0x100000);
     let end = PhysAddr::new(0x100000 + FRAME_SIZE);
     let mut range = FrameRange::new(start, end).unwrap();
+
     assert!(!range.is_exhausted());
     let _ = range.next_frame();
     assert!(range.is_exhausted());
 }
+
 // ============================================================================
 // FRAME ALLOCATOR TESTS
 // ============================================================================
+
 #[test]
 fn test_allocator_new() {
     let allocator = FrameAllocator::new();
@@ -150,6 +165,7 @@ fn test_allocator_add_region() {
     let mut allocator = FrameAllocator::new();
     let start = PhysAddr::new(0x100000);
     let end = PhysAddr::new(0x200000);
+
     let result = allocator.add_region(start, end);
     assert!(result.is_ok());
     assert_eq!(allocator.regions_available(), 1);
@@ -160,6 +176,7 @@ fn test_allocator_add_invalid_region() {
     let mut allocator = FrameAllocator::new();
     let start = PhysAddr::new(0x200000);
     let end = PhysAddr::new(0x100000);
+
     let result = allocator.add_region(start, end);
     assert_eq!(result, Err(FrameAllocError::InvalidRegion));
 }
@@ -167,6 +184,7 @@ fn test_allocator_add_invalid_region() {
 #[test]
 fn test_allocator_max_regions() {
     let mut allocator = FrameAllocator::new();
+
     for i in 0..MAX_MEMORY_REGIONS {
         let start = PhysAddr::new((i as u64 + 1) * 0x100000);
         let end = PhysAddr::new((i as u64 + 1) * 0x100000 + FRAME_SIZE);
@@ -183,6 +201,8 @@ fn test_allocator_max_regions() {
 fn test_allocator_alloc_without_init() {
     let mut allocator = FrameAllocator::new();
     let _ = allocator.add_region(PhysAddr::new(0x100000), PhysAddr::new(0x200000));
+
+    // Should return None because not initialized
     assert!(allocator.alloc().is_none());
 }
 
@@ -190,6 +210,7 @@ fn test_allocator_alloc_without_init() {
 fn test_allocator_dealloc_without_init() {
     let allocator = FrameAllocator::new();
     let frame = PhysFrame::containing_address(PhysAddr::new(0x100000));
+
     let result = allocator.dealloc(frame);
     assert_eq!(result, Err(FrameAllocError::NotInitialized));
 }
@@ -197,6 +218,8 @@ fn test_allocator_dealloc_without_init() {
 #[test]
 fn test_allocator_total_frames_remaining() {
     let mut allocator = FrameAllocator::new();
+
+    // Add two regions with 5 frames each
     let _ = allocator.add_region(
         PhysAddr::new(0x100000),
         PhysAddr::new(0x100000 + FRAME_SIZE * 5),
@@ -205,11 +228,14 @@ fn test_allocator_total_frames_remaining() {
         PhysAddr::new(0x200000),
         PhysAddr::new(0x200000 + FRAME_SIZE * 5),
     );
+
     assert_eq!(allocator.total_frames_remaining(), 10);
 }
+
 // ============================================================================
 // STATISTICS TESTS
 // ============================================================================
+
 #[test]
 fn test_stats_initial() {
     let allocator = FrameAllocator::new();

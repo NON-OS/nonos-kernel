@@ -19,7 +19,20 @@ mod generate;
 mod matrix;
 mod decode;
 
-pub(super) use poly::{poly_eval, poly_degree, poly_gcd};
+pub(super) use poly::poly_eval;
 pub(super) use generate::{generate_goppa_polynomial, generate_support, generate_permutation};
 pub(super) use matrix::{compute_parity_check_matrix, to_systematic_form};
 pub(super) use decode::{berlekamp_massey, chien_search};
+
+pub(super) fn is_irreducible(polynomial: &[u16]) -> bool {
+    let deg = poly::poly_degree(polynomial);
+    if deg <= 1 {
+        return true;
+    }
+    poly::is_likely_irreducible(polynomial)
+}
+
+pub(super) fn polynomial_gcd(a: &[u16], b: &[u16]) -> usize {
+    let gcd = poly::poly_gcd(a, b);
+    poly::poly_degree(&gcd)
+}

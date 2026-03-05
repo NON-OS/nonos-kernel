@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -14,23 +14,49 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+//! Region Error Types
+
 use core::fmt;
+
+/// Errors from region operations.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum RegionError {
+    /// Region manager not initialized
     NotInitialized,
+
+    /// Region overlaps with existing region
     Overlapping,
+
+    /// Region not found
     NotFound,
+
+    /// No suitable free region found
     NoFreeRegion,
+
+    /// Split offset beyond region size
     InvalidSplitOffset,
+
+    /// Invalid region size
     InvalidSize,
+
+    /// Invalid alignment
     InvalidAlignment,
+
+    /// Region already exists
     AlreadyExists,
+
+    /// Cannot merge regions of different types
     TypeMismatch,
+
+    /// Region is protected
     Protected,
+
+    /// Region is locked
     Locked,
 }
 
 impl RegionError {
+    /// Returns a human-readable description.
     pub const fn as_str(&self) -> &'static str {
         match self {
             Self::NotInitialized => "Region manager not initialized",
@@ -47,10 +73,12 @@ impl RegionError {
         }
     }
 
+    /// Returns true if this error is fatal.
     pub const fn is_fatal(&self) -> bool {
         matches!(self, Self::NotInitialized | Self::NoFreeRegion)
     }
 
+    /// Returns true if this error is recoverable.
     pub const fn is_recoverable(&self) -> bool {
         matches!(
             self,
@@ -65,7 +93,9 @@ impl fmt::Display for RegionError {
     }
 }
 
+/// Result type for region operations.
 pub type RegionResult<T> = Result<T, RegionError>;
+
 impl From<&'static str> for RegionError {
     fn from(s: &'static str) -> Self {
         match s {

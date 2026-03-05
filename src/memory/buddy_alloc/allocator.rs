@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -13,11 +13,19 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+//! Buddy Allocator Implementation
+//!
+//! Core allocator logic for the buddy system.
+
 extern crate alloc;
+
 use alloc::collections::BTreeMap;
 use alloc::vec::Vec;
 use x86_64::VirtAddr;
+
 use crate::memory::layout;
+
 use super::constants::*;
 use super::error::{BuddyAllocError, BuddyAllocResult};
 use super::stats::ALLOCATION_STATS;
@@ -26,15 +34,23 @@ use super::types::{AllocatedBlock, BuddyBlock};
 // ============================================================================
 // VMAP ALLOCATOR
 // ============================================================================
+
+/// Virtual memory buddy allocator.
 pub struct VmapAllocator {
+    /// Free lists for each order
     free_lists: [Vec<BuddyBlock>; FREE_LIST_COUNT],
+    /// Map of allocated blocks
     allocated_blocks: BTreeMap<u64, AllocatedBlock>,
+    /// Base address of managed region
     base_addr: u64,
+    /// Total size of managed region
     total_size: u64,
+    /// Whether allocator is initialized
     initialized: bool,
 }
 
 impl VmapAllocator {
+    /// Creates a new uninitialized allocator.
     pub const fn new() -> Self {
         const INIT: Vec<BuddyBlock> = Vec::new();
         Self {
@@ -46,15 +62,19 @@ impl VmapAllocator {
         }
     }
 
+    /// Initializes the allocator.
     pub fn init(&mut self) -> BuddyAllocResult<()> {
         if self.initialized {
             return Ok(());
         }
 
+        // Clear all free lists
         for list in &mut self.free_lists {
             list.clear();
         }
         self.allocated_blocks.clear();
+
+        // Add the entire region as a single block
         let initial_order = size_to_order(self.total_size as usize);
         if initial_order <= MAX_ORDER {
             let list_idx = initial_order.saturating_sub(MIN_ORDER);
@@ -69,17 +89,25 @@ impl VmapAllocator {
         self.initialized = true;
         Ok(())
     }
+
+    /// Finds a block of at least the specified order.
     pub fn find_block(&mut self, order: usize) -> Option<BuddyBlock> {
         for current_order in order..=MAX_ORDER {
             let list_idx = current_order.saturating_sub(MIN_ORDER);
             if list_idx >= self.free_lists.len() || self.free_lists[list_idx].is_empty() {
                 continue;
             }
+
+            // Remove block from free list
             let mut block = self.free_lists[list_idx].remove(0);
+
+            // Split block until we reach desired order
             while block.order > order {
                 let split_order = block.order - 1;
                 let split_size = 1u64 << split_order;
                 let buddy_addr = block.addr + split_size;
+
+                // Put buddy on free list
                 let buddy_idx = split_order.saturating_sub(MIN_ORDER);
                 if buddy_idx < self.free_lists.len() {
                     self.free_lists[buddy_idx].push(BuddyBlock {
@@ -99,6 +127,8 @@ impl VmapAllocator {
         }
         None
     }
+
+    /// Merges a freed block with its buddies if possible.
     pub fn merge_buddies(&mut self, mut block: BuddyBlock) {
         while block.order < MAX_ORDER {
             let buddy_addr = buddy_address(block.addr, block.order);
@@ -107,11 +137,14 @@ impl VmapAllocator {
             if list_idx >= self.free_lists.len() {
                 break;
             }
+
+            // Find buddy in free list
             let buddy_pos = self.free_lists[list_idx]
                 .iter()
                 .position(|b| b.addr == buddy_addr);
 
             if let Some(pos) = buddy_pos {
+                // Remove buddy and merge
                 self.free_lists[list_idx].remove(pos);
                 block = BuddyBlock {
                     addr: block.addr.min(buddy_addr),
@@ -121,11 +154,15 @@ impl VmapAllocator {
                 break;
             }
         }
+
+        // Add merged block to free list
         let list_idx = block.order.saturating_sub(MIN_ORDER);
         if list_idx < self.free_lists.len() {
             self.free_lists[list_idx].push(block);
         }
     }
+
+    /// Allocates a virtual address range.
     pub fn allocate_range(&mut self, size: usize, align: usize) -> BuddyAllocResult<VirtAddr> {
         if !self.initialized {
             return Err(BuddyAllocError::NotInitialized);
@@ -147,6 +184,7 @@ impl VmapAllocator {
         }
 
         if let Some(block) = self.find_block(required_order) {
+            // Validate block is within our region
             if block.addr < self.base_addr
                 || block.addr + (1u64 << block.order) > self.base_addr + self.total_size
             {
@@ -168,6 +206,8 @@ impl VmapAllocator {
             Err(BuddyAllocError::OutOfVirtualMemory)
         }
     }
+
+    /// Deallocates a virtual address range.
     pub fn deallocate_range(&mut self, addr: VirtAddr) -> BuddyAllocResult<()> {
         let addr_u64 = addr.as_u64();
 
@@ -185,16 +225,24 @@ impl VmapAllocator {
             Err(BuddyAllocError::InvalidAddress)
         }
     }
+
+    /// Returns the number of allocated blocks.
     pub fn allocated_count(&self) -> usize {
         self.allocated_blocks.len()
     }
+
+    /// Checks if an address is allocated.
     pub fn is_allocated(&self, addr: u64) -> bool {
         self.allocated_blocks.contains_key(&addr)
     }
+
+    /// Gets allocation size for an address.
     pub fn get_size(&self, addr: u64) -> Option<usize> {
         self.allocated_blocks.get(&addr).map(|b| b.size)
     }
 }
+
+/// Aligns a value up to the given alignment.
 #[inline]
 pub const fn align_up(value: usize, align: usize) -> usize {
     if align == 0 || align & (align - 1) != 0 {
@@ -258,7 +306,7 @@ pub fn free_pages(addr: VirtAddr, count: usize) -> BuddyAllocResult<()> {
     for i in 0..count {
         let page_addr = VirtAddr::new(addr.as_u64() + (i * PAGE_SIZE) as u64);
         if let Some(phys_addr) = unmap_page(page_addr)? {
-            frame_alloc::deallocate_frame(phys_addr);
+            let _ = frame_alloc::deallocate_frame(phys_addr);
         }
     }
 
@@ -272,6 +320,7 @@ pub fn allocate_aligned(size: usize, align: usize) -> BuddyAllocResult<VirtAddr>
 
     let page_count = (size + PAGE_SIZE - 1) / PAGE_SIZE;
     let total_size = page_count * PAGE_SIZE;
+
     let virt_addr = {
         let mut allocator = VMAP_ALLOCATOR.lock();
         allocator.allocate_range(total_size, align)?

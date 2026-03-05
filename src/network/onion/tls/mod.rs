@@ -15,15 +15,15 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 
-mod aead;
-mod connection;
-mod crypto_provider;
-mod io;
-mod keys;
-mod protocol;
-mod transcript;
-mod types;
-mod verify;
+pub mod aead;
+pub mod connection;
+pub mod crypto_provider;
+pub mod io;
+pub mod keys;
+pub mod protocol;
+pub mod transcript;
+pub mod types;
+pub mod verify;
 
 pub use connection::TLSConnection;
 pub use crypto_provider::{init_tls_crypto, KernelTlsCrypto, TlsCrypto, KERNEL_TLS_CRYPTO};

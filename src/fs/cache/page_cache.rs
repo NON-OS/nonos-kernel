@@ -180,6 +180,22 @@ pub fn get_page_cache_stats() -> (usize, usize, usize) {
     }
 }
 
+pub fn cache_page(file_id: u64, offset: u64, data: Vec<u8>, dirty: bool) {
+    init_page_cache();
+    if let Some(cache) = PAGE_CACHE.get() {
+        cache.lock().insert_page(file_id, offset, data, dirty);
+    }
+}
+
+pub fn get_cached_page(file_id: u64, offset: u64) -> Option<Vec<u8>> {
+    init_page_cache();
+    if let Some(cache) = PAGE_CACHE.get() {
+        cache.lock().get_page(file_id, offset).map(|p| p.data.clone())
+    } else {
+        None
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

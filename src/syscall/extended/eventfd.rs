@@ -37,19 +37,15 @@ const EVENTFD_MAX: u64 = u64::MAX - 1;
 const MAX_EVENTFD_INSTANCES: usize = 1024;
 
 pub struct EventFdInstance {
-    id: u32,
     counter: AtomicU64,
     flags: i32,
-    closed: bool,
 }
 
 impl EventFdInstance {
-    fn new(id: u32, initval: u32, flags: i32) -> Self {
+    fn new(_id: u32, initval: u32, flags: i32) -> Self {
         Self {
-            id,
             counter: AtomicU64::new(initval as u64),
             flags,
-            closed: false,
         }
     }
 

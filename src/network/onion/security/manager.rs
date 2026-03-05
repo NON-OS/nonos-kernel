@@ -22,9 +22,9 @@ use spin::Mutex;
 use crate::network::onion::{OnionError, CircuitId};
 use crate::crypto::{vault, entropy};
 
-use super::types::{RateLimiter, TimingAttackDetector, MemoryProtector, SecurityStats};
+use super::types::{RateLimiter, TimingAttackDetector, MemoryProtector, SecurityStats, AllocInfo};
 
-pub(crate) struct SecurityManager {
+struct SecurityManager {
     rate_limiters: Mutex<BTreeMap<[u8; 4], RateLimiter>>,
     circuit_counters: Mutex<BTreeMap<[u8; 4], u32>>,
     timing_detector: TimingAttackDetector,
@@ -33,7 +33,7 @@ pub(crate) struct SecurityManager {
 }
 
 impl SecurityManager {
-    pub fn new() -> Self {
+    fn new() -> Self {
         SecurityManager {
             rate_limiters: Mutex::new(BTreeMap::new()),
             circuit_counters: Mutex::new(BTreeMap::new()),
@@ -43,12 +43,11 @@ impl SecurityManager {
         }
     }
 
-    pub fn check_client_rate_limit(&self, client_ip: [u8; 4]) -> Result<(), OnionError> {
+    fn check_client_rate_limit(&self, client_ip: [u8; 4]) -> Result<(), OnionError> {
         let current_time = get_timestamp();
         let mut limiters = self.rate_limiters.lock();
 
         let limiter = limiters.entry(client_ip).or_insert_with(|| RateLimiter {
-            ip: client_ip,
             cells_this_second: AtomicU32::new(0),
             last_reset: AtomicU64::new(current_time),
             violations: AtomicU32::new(0),
@@ -76,7 +75,7 @@ impl SecurityManager {
         Ok(())
     }
 
-    pub fn check_circuit_limit(&self, client_ip: [u8; 4]) -> Result<(), OnionError> {
+    fn check_circuit_limit(&self, client_ip: [u8; 4]) -> Result<(), OnionError> {
         let mut counters = self.circuit_counters.lock();
         let current_count = counters.get(&client_ip).copied().unwrap_or(0);
 
@@ -89,7 +88,7 @@ impl SecurityManager {
         Ok(())
     }
 
-    pub fn detect_timing_attack(&self, circuit_id: CircuitId) -> Result<(), OnionError> {
+    fn detect_timing_attack(&self, circuit_id: CircuitId) -> Result<(), OnionError> {
         let current_time = get_timestamp();
         let mut timings = self.timing_detector.cell_timings.lock();
 
@@ -133,7 +132,7 @@ impl SecurityManager {
         }
     }
 
-    pub fn secure_allocate(&self, size: usize) -> Result<*mut u8, OnionError> {
+    fn secure_allocate(&self, size: usize) -> Result<*mut u8, OnionError> {
         let total_size = size + 16;
         let raw_ptr = vault::allocate_secure_memory(total_size);
 
@@ -145,10 +144,9 @@ impl SecurityManager {
 
         let user_ptr = unsafe { (raw_ptr as *mut u8).add(8) };
 
-        let alloc_info = super::types::AllocInfo {
+        let alloc_info = AllocInfo {
             size,
             canary,
-            allocated_at: get_timestamp(),
         };
 
         self.memory_protector.allocations.lock().insert(user_ptr as usize, alloc_info);
@@ -156,7 +154,7 @@ impl SecurityManager {
         Ok(user_ptr)
     }
 
-    pub fn secure_deallocate(&self, ptr: *mut u8, size: usize) -> Result<(), OnionError> {
+    fn secure_deallocate(&self, ptr: *mut u8, size: usize) -> Result<(), OnionError> {
         let mut allocations = self.memory_protector.allocations.lock();
         let alloc_info = allocations.remove(&(ptr as usize))
             .ok_or(OnionError::CryptoError)?;
@@ -186,7 +184,7 @@ impl SecurityManager {
         Ok(())
     }
 
-    pub fn sanitize_buffer(&self, buffer: &mut [u8]) {
+    fn sanitize_buffer(&self, buffer: &mut [u8]) {
         let _ = entropy::fill_random(buffer);
         buffer.fill(0);
         let _ = entropy::fill_random(buffer);
@@ -194,7 +192,7 @@ impl SecurityManager {
     }
 }
 
-pub(super) fn get_timestamp() -> u64 {
+fn get_timestamp() -> u64 {
     crate::arch::x86_64::time::timer::get_timestamp_ms().unwrap_or(0)
 }
 
@@ -206,10 +204,6 @@ pub fn init_security() -> Result<(), OnionError> {
     Ok(())
 }
 
-pub(crate) fn get_security_manager() -> &'static Mutex<Option<SecurityManager>> {
-    &SECURITY_MANAGER
-}
-
 pub fn check_client_security(client_ip: [u8; 4], circuit_id: CircuitId) -> Result<(), OnionError> {
     if let Some(manager) = SECURITY_MANAGER.lock().as_ref() {
         manager.check_client_rate_limit(client_ip)?;
@@ -219,11 +213,27 @@ pub fn check_client_security(client_ip: [u8; 4], circuit_id: CircuitId) -> Resul
     Ok(())
 }
 
-pub(crate) fn secure_zero(data: &mut [u8]) {
+pub fn secure_zero(data: &mut [u8]) {
     if let Some(manager) = SECURITY_MANAGER.lock().as_ref() {
         manager.sanitize_buffer(data);
     } else {
         data.fill(0);
         core::sync::atomic::compiler_fence(core::sync::atomic::Ordering::SeqCst);
+    }
+}
+
+pub fn secure_alloc(size: usize) -> Result<*mut u8, OnionError> {
+    if let Some(manager) = SECURITY_MANAGER.lock().as_ref() {
+        manager.secure_allocate(size)
+    } else {
+        Err(OnionError::SecurityViolation)
+    }
+}
+
+pub fn secure_dealloc(ptr: *mut u8, size: usize) -> Result<(), OnionError> {
+    if let Some(manager) = SECURITY_MANAGER.lock().as_ref() {
+        manager.secure_deallocate(ptr, size)
+    } else {
+        Err(OnionError::SecurityViolation)
     }
 }

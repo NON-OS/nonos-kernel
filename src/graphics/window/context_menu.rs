@@ -18,7 +18,7 @@ use core::sync::atomic::{AtomicBool, AtomicI32, AtomicU8, Ordering};
 use crate::graphics::framebuffer::fill_rect;
 use crate::graphics::font::draw_char;
 
-const MAX_MENU_ITEMS: usize = 10;
+pub const MAX_MENU_ITEMS: usize = 10;
 pub(super) const MENU_ITEM_HEIGHT: u32 = 28;
 pub(super) const MENU_PADDING: u32 = 4;
 const MENU_MIN_WIDTH: u32 = 150;

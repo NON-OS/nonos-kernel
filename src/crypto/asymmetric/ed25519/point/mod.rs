@@ -14,17 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod types;
-mod ops;
+pub(super) mod types;
+pub(super) mod ops;
 mod pack;
 mod precomp;
 mod scalarmult;
+mod helpers;
 
-pub(crate) use types::{GeP3, GeP2, GeCached, GeP1P1, D, D2};
-pub(crate) use ops::{ge_identity, ge_to_cached, ge_add, ge_double, ge_p1p1_to_p3, ge_p1p1_to_p2};
-pub(crate) use pack::{ge_pack, ge_unpack, ge_basepoint};
-pub(crate) use precomp::{Precomp, PRECOMP, ensure_precomp};
-pub(crate) use scalarmult::{
-    ge_scalarmult_base_ct, ge_scalarmult_ct, ct_byte_mask, ge_cmov,
-    ge_scalarmult_vartime, ge_scalarmult_point, ge_has_large_order
-};
+pub(crate) use types::{GeP1P1, GeCached};
+pub(crate) use ops::{ge_identity, ge_to_cached, ge_add, ge_p1p1_to_p3};
+pub(crate) use pack::{ge_pack, ge_unpack};
+pub(crate) use precomp::ensure_precomp;
+pub(crate) use scalarmult::{ge_scalarmult_base_ct, ge_has_large_order};
+pub(crate) use scalarmult::ge_scalarmult_vartime as scalarmult_vartime;
+pub(crate) use helpers::{double_scalar_mult, point_double, get_basepoint, get_curve_constants, precompute_table, conditional_select, convert_p1p1_to_p2, new_cached, new_p2_identity};

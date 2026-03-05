@@ -39,16 +39,16 @@ pub(crate) fn validate_dma_phys_addr(addr: PhysAddr) -> Result<(), WifiError> {
 
 #[repr(C, align(256))]
 pub(crate) struct TxFrameDescriptor {
-    pub tb: [TransferBuffer; 20],
-    pub num_tbs: u32,
+    pub(crate) tb: [TransferBuffer; 20],
+    pub(crate) num_tbs: u32,
     _pad: [u8; 12],
 }
 
 #[repr(C)]
 #[derive(Clone, Copy, Default)]
 pub(crate) struct TransferBuffer {
-    pub lo: u32,
-    pub hi_n_len: u32,
+    pub(crate) lo: u32,
+    pub(crate) hi_n_len: u32,
 }
 
 impl TransferBuffer {

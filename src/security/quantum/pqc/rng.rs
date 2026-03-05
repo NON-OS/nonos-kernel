@@ -21,7 +21,6 @@ use spin::Mutex;
 
 pub struct QuantumRng {
     pool: Mutex<Vec<u8>>,
-    entropy_bits: AtomicU64,
     health_checks: AtomicU32,
     last_check: AtomicU64,
     healthy: AtomicBool,
@@ -33,7 +32,6 @@ impl QuantumRng {
         for _ in 0..4096 { pool.push(crate::crypto::secure_random_u8()); }
         Self {
             pool: Mutex::new(pool),
-            entropy_bits: AtomicU64::new(8 * 4096),
             health_checks: AtomicU32::new(0),
             last_check: AtomicU64::new(crate::time::timestamp_millis()),
             healthy: AtomicBool::new(true),

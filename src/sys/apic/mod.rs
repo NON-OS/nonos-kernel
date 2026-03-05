@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod local;
-mod ioapic;
-mod vectors;
-mod api;
+pub mod local;
+pub mod ioapic;
+pub mod vectors;
+pub mod api;
 
 pub use local::{TIMER_VECTOR, init_local_apic, eoi, setup_timer, stop_timer};
 pub use ioapic::{init_ioapic, ioapic_set_irq, enable_irq, disable_irq};

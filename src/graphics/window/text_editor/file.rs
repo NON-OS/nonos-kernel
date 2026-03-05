@@ -256,7 +256,7 @@ pub(super) fn close_file() {
     reset_state();
 }
 
-pub(super) fn is_modified() -> bool {
+pub(crate) fn is_modified() -> bool {
     EDITOR_MODIFIED.load(Ordering::Relaxed)
 }
 

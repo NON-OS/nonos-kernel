@@ -14,24 +14,30 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+//! Path selection algorithms for circuit building
 
 use super::types::{BandwidthWeights, ConsensusEntry};
 
+/// Extract /16 network prefix from IPv4 address
 pub(super) fn ipv4_net16(a: [u8; 4]) -> u16 {
     ((a[0] as u16) << 8) | (a[1] as u16)
 }
 
+/// Check if two relays are in the same family
 pub(super) fn family_conflict(a: &ConsensusEntry, b: &ConsensusEntry) -> bool {
+    // Check ed25519 identity equality as "same node" guard
     if let (Some(x), Some(y)) = (a.ed25519_id, b.ed25519_id) {
         if x == y { return true; }
     }
     false
 }
 
+/// Check if two addresses are in the same /16 subnet
 pub(super) fn subnet16_conflict(a: [u8; 4], b: [u8; 4]) -> bool {
     ipv4_net16(a) == ipv4_net16(b)
 }
 
+/// Select a relay from candidates using bandwidth-weighted random selection
 pub(super) fn weighted_pick<'a>(
     v: &'a [&'a ConsensusEntry],
     w: &BandwidthWeights,
@@ -56,6 +62,7 @@ pub(super) fn weighted_pick<'a>(
     v[0]
 }
 
+/// Calculate weight for a relay based on position in circuit
 pub(super) fn relay_weight(e: &ConsensusEntry, w: &BandwidthWeights, pos: &str) -> u64 {
     let bw = e.measured_bandwidth.or(e.bandwidth).unwrap_or(1000) as u64;
     let mult = match pos {

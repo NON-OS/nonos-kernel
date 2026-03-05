@@ -25,7 +25,7 @@ use super::super::pedersen::PedersenCommitment;
 use super::types::{BitProof, RangeProof};
 
 impl RangeProof {
-    pub fn prove(value: u64, bits: u8) -> Result<Self, &'static str> {
+    pub(crate) fn prove(value: u64, bits: u8) -> Result<Self, &'static str> {
         if bits > 64 {
             return Err("bits must be <= 64");
         }
@@ -118,7 +118,7 @@ pub(crate) fn create_bit_proof(bit: u8, blinding: &[u8; 32], commitment: &[u8; 3
         let z0 = z0_fe.to_bytes();
         let z1 = sim_z;
 
-        BitProof { e0, e1, z0, z1 }
+        BitProof::new(e0, e1, z0, z1)
     } else {
         let a0 = {
             let mut tmp = Vec::with_capacity(64);
@@ -145,6 +145,6 @@ pub(crate) fn create_bit_proof(bit: u8, blinding: &[u8; 32], commitment: &[u8; 3
         let z0 = sim_z;
         let z1 = z1_fe.to_bytes();
 
-        BitProof { e0, e1, z0, z1 }
+        BitProof::new(e0, e1, z0, z1)
     }
 }

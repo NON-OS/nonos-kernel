@@ -127,8 +127,10 @@ impl ElfLoader {
             base_addr,
             entry_point,
             size: total_size,
+            memory_size: total_size,
             segments: loaded_segments,
             dynamic_info,
+            dynlink_info: None,
             tls_info,
             interpreter,
         };
@@ -502,6 +504,10 @@ impl ElfLoader {
         }
 
         Ok(())
+    }
+
+    pub fn load_library(&mut self, elf_data: &[u8]) -> Result<ElfImage, ElfError> {
+        self.load_executable(elf_data)
     }
 
         pub fn library_count(&self) -> usize {

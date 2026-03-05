@@ -14,11 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod check;
-mod instance;
-mod syscalls;
-mod types;
-mod util;
+pub mod check;
+pub mod instance;
+pub mod syscalls;
+pub mod types;
+pub mod util;
 
 pub use types::{
     EpollEvent, EPOLL_CLOEXEC, EPOLL_CTL_ADD, EPOLL_CTL_DEL, EPOLL_CTL_MOD,

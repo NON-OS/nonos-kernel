@@ -19,7 +19,6 @@ extern crate alloc;
 use alloc::collections::BTreeMap;
 use alloc::string::String;
 use alloc::vec::Vec;
-use x86_64::VirtAddr;
 
 use crate::elf::errors::{ElfError, ElfResult};
 
@@ -33,7 +32,7 @@ pub struct EmbeddedLibrary {
 }
 
 impl EmbeddedLibrary {
-    pub const fn new(name: &'static str, data: &'static [u8]) -> Self {
+    pub const fn new(_name: &'static str, data: &'static [u8]) -> Self {
         Self {
             name: String::new(),
             soname: None,
@@ -168,10 +167,10 @@ impl EmbeddedLibraryRegistry {
         self.get(name).filter(|lib| lib.version.is_compatible(required_version))
     }
 
-    pub fn resolve_dependencies(
-        &self,
-        library: &EmbeddedLibrary,
-    ) -> ElfResult<Vec<&EmbeddedLibrary>> {
+    pub fn resolve_dependencies<'a>(
+        &'a self,
+        library: &'a EmbeddedLibrary,
+    ) -> ElfResult<Vec<&'a EmbeddedLibrary>> {
         let mut resolved = Vec::new();
         let mut visited = Vec::new();
 

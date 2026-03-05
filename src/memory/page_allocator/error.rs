@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -12,24 +12,50 @@
 // GNU Affero General Public License for more details.
 //
 // You should have received a copy of the GNU Affero General Public License
-// along with this program. If not, see <https://www.gnu.org/licenses/>
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+//! Page Allocator Error Types
+//!
+//! Error types for page-level allocation operations.
 
 use core::fmt;
+
+/// Errors that can occur during page allocation operations
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum PageAllocError {
+    /// Page allocator not initialized
     NotInitialized,
+
+    /// Invalid allocation size (zero or too large)
     InvalidSize,
+
+    /// Failed to allocate physical frame
     FrameAllocationFailed,
+
+    /// Failed to map virtual page
     MappingFailed,
+
+    /// Page not found for deallocation
     PageNotFound,
+
+    /// Failed to unmap virtual page
     UnmapFailed,
+
+    /// Address translation failed
     TranslationFailed,
+
+    /// Maximum pages exceeded
     TooManyPages,
+
+    /// Out of virtual address space
     OutOfVirtualSpace,
+
+    /// Already initialized
     AlreadyInitialized,
 }
 
 impl PageAllocError {
+    /// Returns a human-readable description of the error
     pub fn as_str(&self) -> &'static str {
         match self {
             Self::NotInitialized => "Page allocator not initialized",
@@ -45,6 +71,7 @@ impl PageAllocError {
         }
     }
 
+    /// Returns true if the error is recoverable
     pub fn is_recoverable(&self) -> bool {
         matches!(
             self,
@@ -59,7 +86,9 @@ impl fmt::Display for PageAllocError {
     }
 }
 
+/// Result type alias for page allocation operations
 pub type PageAllocResult<T> = Result<T, PageAllocError>;
+
 impl From<&'static str> for PageAllocError {
     fn from(s: &'static str) -> Self {
         match s {

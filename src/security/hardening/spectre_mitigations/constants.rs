@@ -17,27 +17,17 @@
 pub(super) const MSR_IA32_SPEC_CTRL: u32 = 0x48;
 pub(super) const MSR_IA32_PRED_CMD: u32 = 0x49;
 pub(super) const MSR_IA32_FLUSH_CMD: u32 = 0x10B;
-pub(super) const MSR_IA32_TSX_CTRL: u32 = 0x122;
-pub(super) const MSR_IA32_MCU_OPT_CTRL: u32 = 0x123;
 pub(super) const MSR_IA32_ARCH_CAPABILITIES: u32 = 0x10A;
 
 pub(super) const SPEC_CTRL_IBRS: u64 = 1 << 0;
 pub(super) const SPEC_CTRL_STIBP: u64 = 1 << 1;
 pub(super) const SPEC_CTRL_SSBD: u64 = 1 << 2;
-pub(super) const SPEC_CTRL_IPRED_DIS_U: u64 = 1 << 3;
-pub(super) const SPEC_CTRL_IPRED_DIS_S: u64 = 1 << 4;
-pub(super) const SPEC_CTRL_RRSBA_DIS_U: u64 = 1 << 5;
-pub(super) const SPEC_CTRL_RRSBA_DIS_S: u64 = 1 << 6;
-pub(super) const SPEC_CTRL_BHI_DIS_S: u64 = 1 << 10;
 
 pub(super) const PRED_CMD_IBPB: u64 = 1 << 0;
 
 pub(super) const FLUSH_CMD_L1D: u64 = 1 << 0;
 
 pub(super) const ARCH_CAP_RDCL_NO: u64 = 1 << 0;
-pub(super) const ARCH_CAP_IBRS_ALL: u64 = 1 << 1;
-pub(super) const ARCH_CAP_RSBA: u64 = 1 << 2;
-pub(super) const ARCH_CAP_SKIP_L1DFL_VMENTRY: u64 = 1 << 3;
 pub(super) const ARCH_CAP_SSB_NO: u64 = 1 << 4;
 pub(super) const ARCH_CAP_MDS_NO: u64 = 1 << 5;
 pub(super) const ARCH_CAP_TAA_NO: u64 = 1 << 8;

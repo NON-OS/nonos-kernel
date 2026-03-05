@@ -144,6 +144,73 @@ impl ModeState {
         let current = self.count.unwrap_or(0);
         self.count = Some(current * 10 + digit);
     }
+
+    /// Get current mode
+    pub fn current_mode(&self) -> Mode {
+        self.mode
+    }
+
+    /// Get pending operator
+    pub fn get_pending_operator(&self) -> Option<Operator> {
+        self.pending_operator
+    }
+
+    /// Get count
+    pub fn get_count(&self) -> Option<u32> {
+        self.count
+    }
+
+    /// Get current register
+    pub fn get_register(&self) -> char {
+        self.register
+    }
+
+    /// Set current register
+    pub fn set_register(&mut self, reg: char) {
+        self.register = reg;
+    }
+
+    /// Get command buffer
+    pub fn get_command_buffer(&self) -> &str {
+        &self.command_buffer
+    }
+
+    /// Append to command buffer
+    pub fn append_command(&mut self, c: char) {
+        self.command_buffer.push(c);
+    }
+
+    /// Get search buffer
+    pub fn get_search_buffer(&self) -> &str {
+        &self.search_buffer
+    }
+
+    /// Append to search buffer
+    pub fn append_search(&mut self, c: char) {
+        self.search_buffer.push(c);
+    }
+
+    /// Get last search
+    pub fn get_last_search(&self) -> &str {
+        &self.last_search
+    }
+
+    /// Save current search as last search
+    pub fn save_search(&mut self) {
+        if !self.search_buffer.is_empty() {
+            self.last_search = self.search_buffer.clone();
+        }
+    }
+
+    /// Get search direction
+    pub fn get_search_direction(&self) -> SearchDirection {
+        self.search_direction
+    }
+
+    /// Set search direction
+    pub fn set_search_direction(&mut self, dir: SearchDirection) {
+        self.search_direction = dir;
+    }
 }
 
 impl Default for ModeState {

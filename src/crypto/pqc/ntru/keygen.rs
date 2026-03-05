@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -20,6 +20,7 @@ use super::poly::{sample_ternary, poly_inverse_mod_3, poly_inverse_mod_q};
 pub fn ntru_keygen() -> Result<NtruKeyPair, &'static str> {
     let (f, fp, fq) = loop {
         let f = sample_ternary(NTRU_WEIGHT / 2, NTRU_WEIGHT / 2);
+
         let fp = match poly_inverse_mod_3(&f) {
             Some(inv) => inv,
             None => continue,
@@ -34,9 +35,11 @@ pub fn ntru_keygen() -> Result<NtruKeyPair, &'static str> {
     };
 
     let g = sample_ternary(NTRU_WEIGHT / 2, NTRU_WEIGHT / 2);
+
     let pfq = fq.scale(3);
     let mut h = pfq.multiply(&g);
     h.reduce_mod_q();
+
     let h_coeffs = h.coeffs;
     Ok(NtruKeyPair {
         public_key: NtruPublicKey { h: h_coeffs.clone() },

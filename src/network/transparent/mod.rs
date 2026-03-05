@@ -14,12 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+//! Transparent Onion Routing
+//!
+//! This module intercepts all outbound TCP/IP traffic and routes it through
+//! the onion network automatically, providing network-level anonymity without
+//! requiring applications to be aware of the routing.
 
 mod interceptor;
-mod interceptor_types;
 
-pub(crate) use interceptor::{init_interceptor, get_interceptor};
-pub(crate) use interceptor_types::InterceptorConfig;
+pub(crate) use interceptor::{InterceptorConfig, init_interceptor, get_interceptor};
 
 pub(crate) fn init_transparent_routing(config: InterceptorConfig) {
     let _ = init_interceptor(config);

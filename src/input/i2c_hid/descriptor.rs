@@ -93,6 +93,7 @@ impl Default for HidDescriptor {
     }
 }
 
+/// Field location in HID report (bit offset and size)
 #[derive(Debug, Clone, Copy, Default)]
 pub struct FieldLocation {
     pub bit_offset: u16,
@@ -104,6 +105,7 @@ impl FieldLocation {
         self.bit_size > 0
     }
 
+    /// Extract field value from report data
     pub fn extract(&self, data: &[u8]) -> i32 {
         if !self.is_valid() || data.is_empty() {
             return 0;
@@ -116,6 +118,7 @@ impl FieldLocation {
             return 0;
         }
 
+        // Handle common cases efficiently
         match self.bit_size {
             1 => {
                 ((data[byte_offset] >> bit_in_byte) & 1) as i32
@@ -127,6 +130,7 @@ impl FieldLocation {
                 u16::from_le_bytes([data[byte_offset], data[byte_offset + 1]]) as i32
             }
             _ => {
+                // General case: extract bits across byte boundaries
                 let mut value: u32 = 0;
                 let mut bits_remaining = self.bit_size as u32;
                 let mut current_bit = self.bit_offset as u32;
@@ -155,6 +159,7 @@ impl FieldLocation {
     }
 }
 
+/// Contact field locations for one finger
 #[derive(Debug, Clone, Copy, Default)]
 pub struct ContactFields {
     pub tip_switch: FieldLocation,
@@ -167,6 +172,7 @@ pub struct ContactFields {
     pub height: FieldLocation,
 }
 
+/// Touchpad report layout extracted from HID descriptor
 #[derive(Debug, Clone, Default)]
 pub struct TouchpadLayout {
     pub report_id: u8,
@@ -258,6 +264,7 @@ impl ReportDescriptor {
             let item_type = (prefix >> 2) & 0x03;
             let tag = (prefix >> 4) & 0x0F;
 
+            // Long item
             if prefix == 0xFE {
                 if i + 2 < data.len() {
                     let long_size = data[i + 1] as usize;
@@ -282,7 +289,9 @@ impl ReportDescriptor {
             };
 
             match (item_type, tag) {
+                // Main items
                 (0, 0x08) => {
+                    // Input
                     let bits = (report_size * report_count) as u16;
 
                     if in_touchpad {
@@ -302,6 +311,7 @@ impl ReportDescriptor {
                     current_bit_offset += bits;
                 }
                 (0, 0x09) => {
+                    // Output
                     let bits = (report_size * report_count) as u16;
                     if report_id != 0 || bits > 0 {
                         self.output_reports.push(ReportInfo {
@@ -311,6 +321,7 @@ impl ReportDescriptor {
                     }
                 }
                 (0, 0x0B) => {
+                    // Feature
                     let bits = (report_size * report_count) as u16;
                     if report_id != 0 || bits > 0 {
                         self.feature_reports.push(ReportInfo {
@@ -320,7 +331,10 @@ impl ReportDescriptor {
                     }
                 }
                 (0, 0x0A) => {
+                    // Collection
                     let collection_type = value;
+                    // Touchpad collection: accept Application (0x01) or Logical (0x02)
+                    // with Digitizer page and Touchpad usage
                     if (collection_type == 0x01 || collection_type == 0x02)
                         && usage_page == HID_USAGE_PAGE_DIGITIZER as u32
                         && usage == HID_USAGE_TOUCHPAD as u32 {
@@ -328,6 +342,7 @@ impl ReportDescriptor {
                         self.has_touchpad = true;
                         self.touchpad_layout.report_id = report_id;
                     }
+                    // Touch screen detection
                     if (collection_type == 0x01 || collection_type == 0x02)
                         && usage_page == HID_USAGE_PAGE_DIGITIZER as u32
                         && usage == HID_USAGE_TOUCH_SCREEN as u32 {
@@ -335,6 +350,8 @@ impl ReportDescriptor {
                         self.has_touchpad = true;
                         self.touchpad_layout.report_id = report_id;
                     }
+                    // Finger collection: accept Physical (0x00) or Logical (0x02)
+                    // with Digitizer page and Finger usage (0x22)
                     if (collection_type == 0x00 || collection_type == 0x02)
                         && usage_page == HID_USAGE_PAGE_DIGITIZER as u32 && usage == 0x22 {
                         in_finger = true;
@@ -342,6 +359,7 @@ impl ReportDescriptor {
                     }
                 }
                 (0, 0x0C) => {
+                    // End Collection
                     if in_finger {
                         let finger_bits = current_bit_offset - finger_start_bit;
                         if self.touchpad_layout.contact_field_size == 0 {
@@ -351,9 +369,11 @@ impl ReportDescriptor {
                         finger_index += 1;
                     }
                     if !in_finger && in_touchpad {
+                        // May be end of touchpad collection - check usage
                     }
                 }
 
+                // Global items
                 (1, 0x00) => {
                     usage_page = value;
                 }
@@ -376,6 +396,7 @@ impl ReportDescriptor {
                     };
                 }
                 (1, 0x03) => {
+                    // Physical min
                 }
                 (1, 0x04) => {
                     physical_max = value as i32;
@@ -391,10 +412,12 @@ impl ReportDescriptor {
                     current_bit_offset = 0;  // Reset for new report
                 }
 
+                // Local items
                 (2, 0x00) => {
                     usage = value;
                     pending_usage = Some((value, usage_page));
 
+                    // Track touchpad capabilities from Digitizer page
                     if usage_page == HID_USAGE_PAGE_DIGITIZER as u32 {
                         match usage as u8 {
                             x if x == HID_USAGE_TOUCHPAD || x == HID_USAGE_TOUCH_SCREEN => {
@@ -408,11 +431,13 @@ impl ReportDescriptor {
                             _ => {}
                         }
                     }
+                    // X/Y coordinates come from Generic Desktop page
                     if usage_page == HID_USAGE_PAGE_GENERIC_DESKTOP as u32 {
                         match usage as u8 {
                             x if x == HID_USAGE_MOUSE => self.has_mouse = true,
                             x if x == HID_USAGE_KEYBOARD => self.has_keyboard = true,
                             x if x == HID_USAGE_X => {
+                                // X coordinate
                                 self.has_x = true;
                                 if logical_max > 0 {
                                     self.logical_max_x = logical_max;
@@ -420,6 +445,7 @@ impl ReportDescriptor {
                                 }
                             }
                             x if x == HID_USAGE_Y => {
+                                // Y coordinate
                                 self.has_y = true;
                                 if logical_max > 0 {
                                     self.logical_max_y = logical_max;
@@ -431,6 +457,7 @@ impl ReportDescriptor {
                     }
                 }
                 (2, 0x0A) => {
+                    // Usage Maximum - for usage ranges
                 }
                 _ => {}
             }
@@ -445,6 +472,7 @@ impl ReportDescriptor {
                     logical_min: i32, logical_max: i32, in_finger: bool, finger_index: usize) {
         let loc = FieldLocation { bit_offset, bit_size };
 
+        // Digitizer page - touchpad specific fields
         if usage_page == HID_USAGE_PAGE_DIGITIZER as u32 {
             match usage as u8 {
                 0x56 => self.touchpad_layout.scan_time = loc,
@@ -465,20 +493,25 @@ impl ReportDescriptor {
                     self.touchpad_layout.contacts[finger_index].height = loc;
                 }
                 0x30 if in_finger && finger_index < 5 => {
+                    // Pressure (Digitizer page 0x30 = Tip Pressure)
                     self.touchpad_layout.contacts[finger_index].pressure = loc;
                 }
                 _ => {}
             }
         }
 
+        // Generic Desktop page - X/Y coordinates
+        // These are used even inside touchpad/finger collections
         if usage_page == HID_USAGE_PAGE_GENERIC_DESKTOP as u32 && in_finger && finger_index < 5 {
             match usage as u8 {
                 x if x == HID_USAGE_X => {
+                    // X coordinate
                     self.touchpad_layout.contacts[finger_index].x = loc;
                     self.logical_min_x = logical_min;
                     self.logical_max_x = logical_max.max(1);
                 }
                 x if x == HID_USAGE_Y => {
+                    // Y coordinate
                     self.touchpad_layout.contacts[finger_index].y = loc;
                     self.logical_min_y = logical_min;
                     self.logical_max_y = logical_max.max(1);
@@ -487,10 +520,12 @@ impl ReportDescriptor {
             }
         }
 
+        // Button page - primary button
         if usage_page == HID_USAGE_PAGE_BUTTON as u32 {
             match usage as u8 {
                 x if x == HID_USAGE_BUTTON_PRIMARY => self.touchpad_layout.button = loc,
                 x if x == HID_USAGE_BUTTON_SECONDARY => {
+                    // Secondary button - could store separately if needed
                 }
                 _ => {}
             }

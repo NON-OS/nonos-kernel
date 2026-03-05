@@ -23,4 +23,8 @@ pub use state::init;
 pub(crate) use state::dimensions;
 pub use colors::*;
 pub use primitives::{get_pixel, put_pixel, fill_rect, clear, hline, vline, draw_rect, fill_rounded_rect};
-pub use double_buffer::{init_double_buffer, swap_buffers, is_enabled as is_double_buffer_enabled};
+pub use double_buffer::{init_double_buffer, swap_buffers};
+
+pub fn is_double_buffer_enabled() -> bool {
+    double_buffer::is_enabled()
+}

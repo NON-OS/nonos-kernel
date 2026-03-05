@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -14,25 +14,57 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+//! Buddy Allocator Error Types
+//!
+//! Error types for buddy allocator operations.
+
 use core::fmt;
+
+/// Errors that can occur during buddy allocator operations
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum BuddyAllocError {
+    /// Allocator not initialized
     NotInitialized,
+
+    /// Invalid allocation size (zero or too large)
     InvalidSize,
+
+    /// Invalid page count
     InvalidPageCount,
+
+    /// Invalid alignment (not power of two)
     InvalidAlignment,
+
+    /// Allocation too large for buddy allocator
     AllocationTooLarge,
+
+    /// Out of virtual memory
     OutOfVirtualMemory,
+
+    /// Failed to allocate physical frame
     FrameAllocationFailed,
+
+    /// Failed to map page
     MappingFailed,
+
+    /// Invalid deallocation address
     InvalidAddress,
+
+    /// Address translation failed
     TranslationFailed,
+
+    /// Failed to unmap page
     UnmapFailed,
+
+    /// Block outside valid range
     BlockOutOfRange,
+
+    /// Double free detected
     DoubleFree,
 }
 
 impl BuddyAllocError {
+    /// Returns a human-readable description of the error
     pub fn as_str(&self) -> &'static str {
         match self {
             Self::NotInitialized => "Allocator not initialized",
@@ -51,6 +83,7 @@ impl BuddyAllocError {
         }
     }
 
+    /// Returns true if this is a fatal error
     pub fn is_fatal(&self) -> bool {
         matches!(
             self,
@@ -58,6 +91,7 @@ impl BuddyAllocError {
         )
     }
 
+    /// Returns true if this indicates corruption
     pub fn indicates_corruption(&self) -> bool {
         matches!(
             self,
@@ -71,7 +105,10 @@ impl fmt::Display for BuddyAllocError {
         write!(f, "{}", self.as_str())
     }
 }
+
+/// Result type alias for buddy allocator operations
 pub type BuddyAllocResult<T> = Result<T, BuddyAllocError>;
+
 impl From<&'static str> for BuddyAllocError {
     fn from(s: &'static str) -> Self {
         match s {

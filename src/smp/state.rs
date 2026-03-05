@@ -46,7 +46,3 @@ pub(crate) fn cpu_count() -> usize {
 pub(crate) fn cpus_online() -> usize {
     CPUS_ONLINE.load(Ordering::Acquire)
 }
-
-pub(crate) fn is_smp_initialized() -> bool {
-    SMP_INITIALIZED.load(Ordering::Acquire)
-}

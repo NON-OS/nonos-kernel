@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::FieldElement;
 use crate::crypto::entropy::get_entropy;
 use crate::crypto::CryptoResult;
 
@@ -22,11 +21,11 @@ pub type X25519PrivateKey = [u8; 32];
 pub type X25519PublicKey = [u8; 32];
 pub type X25519SharedSecret = [u8; 32];
 
-const X25519_BASEPOINT: [u8; 32] = [
+const _X25519_BASEPOINT: [u8; 32] = [
     9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 ];
 
-fn x25519_clamp(k: &mut [u8; 32]) {
+fn _x25519_clamp(k: &mut [u8; 32]) {
     k[0] &= 248;
     k[31] &= 127;
     k[31] |= 64;
@@ -47,7 +46,7 @@ pub fn x25519_keypair() -> CryptoResult<(X25519PublicKey, X25519PrivateKey)> {
     let entropy = get_entropy(32);
     let mut private = [0u8; 32];
     private.copy_from_slice(&entropy);
-    x25519_clamp(&mut private);
+    _x25519_clamp(&mut private);
     let public = x25519_base(&private);
     Ok((public, private))
 }
@@ -76,7 +75,7 @@ pub fn x25519(scalar: &X25519PrivateKey, point: &X25519PublicKey) -> X25519Share
     let mut k = *scalar;
     x25519_clamp(&mut k);
     let u = FieldElement::from_bytes(point);
-    let x_1 = u;
+    let x_1 = u.clone();
     let mut x_2 = FieldElement::one();
     let mut z_2 = FieldElement::zero();
     let mut x_3 = u;

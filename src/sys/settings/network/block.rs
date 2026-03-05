@@ -16,7 +16,7 @@
 
 use crate::storage::block::{BlockDeviceType, BlockError, BlockResult, get_device};
 
-pub fn block_read(device_id: u8, sector: u64, buffer: &mut [u8]) -> BlockResult<()> {
+pub(super) fn block_read(device_id: u8, sector: u64, buffer: &mut [u8]) -> BlockResult<()> {
     let dev = get_device(device_id).ok_or(BlockError::InvalidDevice)?;
 
     match dev.device_type {
@@ -27,7 +27,7 @@ pub fn block_read(device_id: u8, sector: u64, buffer: &mut [u8]) -> BlockResult<
     }
 }
 
-pub fn block_write(device_id: u8, sector: u64, buffer: &[u8]) -> BlockResult<()> {
+pub(super) fn block_write(device_id: u8, sector: u64, buffer: &[u8]) -> BlockResult<()> {
     let dev = get_device(device_id).ok_or(BlockError::InvalidDevice)?;
 
     if dev.read_only {

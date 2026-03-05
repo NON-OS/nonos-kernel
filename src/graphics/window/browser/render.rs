@@ -5,14 +5,6 @@
 // it under the terms of the GNU Affero General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
-//
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-// GNU Affero General Public License for more details.
-//
-// You should have received a copy of the GNU Affero General Public License
-// along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 extern crate alloc;
 
@@ -25,6 +17,7 @@ use crate::graphics::window::draw_string;
 
 use super::constants::*;
 use super::state::*;
+use super::find::{is_match_position, is_current_match_position, get_pattern_len};
 
 pub(super) fn draw(x: u32, y: u32, w: u32, h: u32) {
     draw_toolbar(x, y, w);
@@ -108,7 +101,9 @@ fn draw_content(x: u32, y: u32, w: u32, h: u32) {
     if lines.is_empty() {
         draw_welcome_message(x, y, w, h);
     } else {
+        let pattern_len = get_pattern_len();
         for (i, (line, color)) in lines.iter().skip(scroll).take(visible_lines).enumerate() {
+            let line_idx = scroll + i;
             let line_y = y + 8 + (i as u32) * 16;
             let display: String = if line.len() > max_chars {
                 line.chars().take(max_chars).collect()
@@ -118,7 +113,16 @@ fn draw_content(x: u32, y: u32, w: u32, h: u32) {
 
             for (j, ch) in display.bytes().enumerate() {
                 if ch >= 0x20 && ch < 0x7F {
-                    draw_char(x + 16 + (j as u32) * 8, line_y, ch, *color);
+                    let char_x = x + 16 + (j as u32) * 8;
+                    if pattern_len > 0 && is_current_match_position(line_idx, j) {
+                        fill_rect(char_x, line_y, 8, 16, 0xFFD29922);
+                        draw_char(char_x, line_y, ch, 0xFF0D1117);
+                    } else if pattern_len > 0 && is_match_position(line_idx, j) {
+                        fill_rect(char_x, line_y, 8, 16, 0xFF3D4A3A);
+                        draw_char(char_x, line_y, ch, COLOR_TEXT_WHITE);
+                    } else {
+                        draw_char(char_x, line_y, ch, *color);
+                    }
                 }
             }
         }

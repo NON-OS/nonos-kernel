@@ -22,7 +22,7 @@ use super::types::WakerData;
 use super::state::{EXECUTOR_STATS, WOKEN_TASKS};
 
 impl WakerData {
-    pub fn new(task_id: u64) -> Arc<Self> {
+    pub(super) fn new(task_id: u64) -> Arc<Self> {
         Arc::new(Self {
             task_id,
             woken: core::sync::atomic::AtomicBool::new(false),

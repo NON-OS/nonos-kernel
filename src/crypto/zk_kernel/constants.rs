@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -16,18 +16,25 @@
 
 //! Domain separation constants for zero-knowledge proofs.
 
+/// Domain separator for Schnorr proofs.
 pub const DOM_SCHNORR: &[u8] = b"NONOS_ZK_SCHNORR_V1";
 
+/// Domain separator for Pedersen commitments.
 pub const DOM_PEDERSEN: &[u8] = b"NONOS_ZK_PEDERSEN_V1";
 
+/// Domain separator for range proofs.
 pub const DOM_RANGE: &[u8] = b"NONOS_ZK_RANGE_V1";
 
+/// Domain separator for equality proofs.
 pub const DOM_EQUALITY: &[u8] = b"NONOS_ZK_EQUALITY_V1";
 
+/// Domain separator for Merkle membership proofs.
 pub const DOM_MERKLE: &[u8] = b"NONOS_ZK_MERKLE_V1";
 
+/// Domain separator for Sigma protocols.
 pub const DOM_SIGMA: &[u8] = b"NONOS_ZK_SIGMA_V1";
 
+/// Domain separator for PLONK proofs.
 pub const DOM_PLONK: &[u8] = b"NONOS_ZK_PLONK_V1";
 
 /// The L scalar field modulus (curve25519 group order).

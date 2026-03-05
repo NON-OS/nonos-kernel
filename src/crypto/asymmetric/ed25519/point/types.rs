@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::crypto::asymmetric::ed25519::field::Fe;
+pub(crate) use crate::crypto::asymmetric::ed25519::field::Fe;
 
 #[derive(Copy, Clone)]
 pub(crate) struct GeP3 {
@@ -39,12 +39,72 @@ pub(crate) struct GeCached {
     pub(crate) T2d: Fe,
 }
 
+impl GeCached {
+    pub(crate) fn identity() -> Self {
+        Self {
+            YplusX: Fe::one(),
+            YminusX: Fe::one(),
+            Z: Fe::one(),
+            T2d: Fe::zero(),
+        }
+    }
+}
+
+impl GeP2 {
+    pub(crate) fn identity() -> Self {
+        Self {
+            X: Fe::zero(),
+            Y: Fe::one(),
+            Z: Fe::one(),
+        }
+    }
+}
+
+impl GeP3 {
+    pub(crate) fn identity() -> Self {
+        Self {
+            X: Fe::zero(),
+            Y: Fe::one(),
+            Z: Fe::one(),
+            T: Fe::zero(),
+        }
+    }
+
+    pub(crate) fn to_p2(&self) -> GeP2 {
+        GeP2 {
+            X: self.X,
+            Y: self.Y,
+            Z: self.Z,
+        }
+    }
+}
+
 #[derive(Copy, Clone)]
 pub(crate) struct GeP1P1 {
     pub(crate) X: Fe,
     pub(crate) Y: Fe,
     pub(crate) Z: Fe,
     pub(crate) T: Fe,
+}
+
+impl GeP1P1 {
+    pub(crate) fn identity() -> Self {
+        Self {
+            X: Fe::zero(),
+            Y: Fe::one(),
+            Z: Fe::one(),
+            T: Fe::one(),
+        }
+    }
+
+    pub(crate) fn from_p2(p: &GeP2) -> Self {
+        Self {
+            X: p.X,
+            Y: p.Y,
+            Z: p.Z,
+            T: Fe::one(),
+        }
+    }
 }
 
 pub(crate) const D: Fe = Fe([

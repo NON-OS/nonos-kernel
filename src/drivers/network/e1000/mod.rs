@@ -14,12 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod constants;
-mod core;
-mod descriptors;
-mod global;
-mod init;
-mod operations;
+pub mod constants;
+pub mod core;
+pub mod descriptors;
+pub mod global;
+pub mod init;
+pub mod operations;
 
 pub use self::core::E1000;
 pub use global::{get_driver, init, is_initialized, poll};

@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -22,6 +22,7 @@ use super::{SecretKey, PublicKey, Signature, RecoverableSignature};
 fn rfc6979_generate_k(sk: &[u8; 32], message_hash: &[u8; 32]) -> Option<Scalar> {
     let mut v = [0x01u8; 32];
     let mut k = [0x00u8; 32];
+
     let mut data = [0u8; 97];
     data[0..32].copy_from_slice(&v);
     data[32] = 0x00;
@@ -29,6 +30,7 @@ fn rfc6979_generate_k(sk: &[u8; 32], message_hash: &[u8; 32]) -> Option<Scalar> 
     data[65..97].copy_from_slice(message_hash);
     k = crate::crypto::hmac_sha256(&k, &data);
     v = crate::crypto::hmac_sha256(&k, &v);
+
     data[0..32].copy_from_slice(&v);
     data[32] = 0x01;
     data[33..65].copy_from_slice(sk);
@@ -111,12 +113,11 @@ pub fn sign(sk: &SecretKey, message_hash: &[u8; 32]) -> Option<RecoverableSignat
     // If high_s, flip the recovery_id
     let recovery_id = y_even ^ (high_s as u8);
 
-    let mut sig = [0u8; 65];
-    sig[0..32].copy_from_slice(&r.to_bytes());
-    sig[32..64].copy_from_slice(&s.to_bytes());
-    sig[64] = recovery_id;
-
-    Some(sig)
+    Some(RecoverableSignature {
+        r: r.to_bytes(),
+        s: s.to_bytes(),
+        recovery_id,
+    })
 }
 
 // SECURITY: Constant-time verification - performs all operations regardless of validity
@@ -169,18 +170,23 @@ pub fn verify(pk: &PublicKey, message_hash: &[u8; 32], sig: &Signature) -> bool 
     // Always compute u1, u2 regardless of validity
     let u1 = z.mul(&s_inv);
     let u2 = r.mul(&s_inv);
+
     let g = AffinePoint::generator().to_projective();
     let q = point.to_projective();
+
     let point_r = g.mul(&u1).add(&q.mul(&u2)).to_affine();
+
     // Check for point at infinity (constant-time using flag)
     let not_infinity = if point_r.infinity { 0u64 } else { 1u64 };
     valid &= not_infinity;
+
     // Always compute r from x-coordinate - use dummy value if needed
     let (computed_r, r_parse_valid) = match Scalar::from_bytes(&point_r.x.to_bytes()) {
         Some(r) => (r, 1u64),
         None => (Scalar::ONE, 0u64),
     };
     valid &= r_parse_valid;
+
     // Constant-time comparison
     let r_matches = if computed_r.ct_eq(&r) { 1u64 } else { 0u64 };
     valid &= r_matches;
@@ -189,18 +195,20 @@ pub fn verify(pk: &PublicKey, message_hash: &[u8; 32], sig: &Signature) -> bool 
 }
 
 pub fn recover_public_key(message_hash: &[u8; 32], sig: &RecoverableSignature) -> Option<PublicKey> {
-    let r = Scalar::from_bytes(sig[0..32].try_into().ok()?)?;
-    let s = Scalar::from_bytes(sig[32..64].try_into().ok()?)?;
-    let recovery_id = sig[64];
+    let r = Scalar::from_bytes(&sig.r)?;
+    let s = Scalar::from_bytes(&sig.s)?;
+    let recovery_id = sig.recovery_id;
 
     if r.is_zero() || s.is_zero() || recovery_id > 3 {
         return None;
     }
 
     let z = Scalar::from_bytes(message_hash)?;
-    let r_fe = FieldElement::from_bytes(sig[0..32].try_into().ok()?)?;
+
+    let r_fe = FieldElement::from_bytes(&sig.r)?;
     let y_squared = r_fe.mul(&r_fe).mul(&r_fe).add(&FieldElement([7, 0, 0, 0]));
     let y = y_squared.sqrt()?;
+
     let y = if (recovery_id & 1 == 0) == y.is_even() {
         y
     } else {
@@ -212,8 +220,10 @@ pub fn recover_public_key(message_hash: &[u8; 32], sig: &RecoverableSignature) -
     let r_inv = r.invert()?;
     let u1 = z.negate().mul(&r_inv);
     let u2 = s.mul(&r_inv);
+
     let g = AffinePoint::generator().to_projective();
     let r_proj = r_point.to_projective();
+
     let pk_point = g.mul(&u1).add(&r_proj.mul(&u2)).to_affine();
 
     if pk_point.infinity {

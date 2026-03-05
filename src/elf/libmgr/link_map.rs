@@ -17,7 +17,6 @@
 extern crate alloc;
 
 use alloc::boxed::Box;
-use alloc::string::String;
 use alloc::vec::Vec;
 use core::ptr;
 use x86_64::VirtAddr;
@@ -70,7 +69,10 @@ impl LinkMap {
         name_bytes.push(0);
         self.names.push(name_bytes);
 
-        let name_ptr = self.names.last().unwrap().as_ptr();
+        // Safe: we just pushed, so last() is guaranteed to return Some
+        let name_ptr = self.names.last()
+            .map(|n| n.as_ptr())
+            .unwrap_or(core::ptr::null());
 
         let mut entry =
             Box::new(LinkMapEntry::new(base_addr.as_u64(), name_ptr, dynamic_addr.as_u64()));
@@ -106,7 +108,6 @@ impl LinkMap {
 
         if let Some(idx) = found_idx {
             let entry = &self.entries[idx];
-            let entry_ptr = entry.as_ref() as *const LinkMapEntry as *mut LinkMapEntry;
 
             // SAFETY: Pointers are valid within the link map
             unsafe {

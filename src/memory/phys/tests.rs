@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -13,6 +13,8 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+//! Physical Memory Allocator Unit Tests
 
 use super::*;
 
@@ -393,6 +395,7 @@ fn test_allocator_zone_stats() {
 
     let mut state = AllocatorState::new();
     let mut bitmap = [0u8; 2];
+
     let start = PhysAddr::new(0x5000_0000);
     let end = PhysAddr::new(0x5000_0000 + 16 * 4096);
 
@@ -405,6 +408,7 @@ fn test_allocator_zone_stats() {
 
     let _f1 = allocator::allocate_frame(&mut state, AllocFlags::EMPTY);
     let _f2 = allocator::allocate_frame(&mut state, AllocFlags::EMPTY);
+
     let stats = allocator::get_zone_stats(&state);
     assert_eq!(stats.frames_total, 16);
     assert_eq!(stats.frames_free, 14);
@@ -416,9 +420,12 @@ fn test_allocator_zone_stats() {
 
 #[test]
 fn test_mix64() {
+    // Mix should produce different outputs for different inputs
     let a = allocator::mix64(1);
     let b = allocator::mix64(2);
     assert_ne!(a, b);
+
+    // Same input should give same output
     let c = allocator::mix64(1);
     assert_eq!(a, c);
 }

@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -14,21 +14,36 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+//! Paging Statistics (Lock-Free)
+
 use core::sync::atomic::{AtomicU64, AtomicUsize, Ordering};
+
 use super::types::{PagePermissions, PageSize, PagingStats};
+
+/// Internal lock-free paging statistics.
 pub struct PagingStatistics {
+    /// Total page mappings
     pub(crate) total_mappings: AtomicUsize,
+    /// Page faults handled
     pub(crate) page_faults: AtomicU64,
+    /// TLB flushes performed
     pub(crate) tlb_flushes: AtomicU64,
+    /// Copy-on-write faults
     pub(crate) cow_faults: AtomicU64,
+    /// Demand loads
     pub(crate) demand_loads: AtomicU64,
+    /// Huge pages mapped
     pub(crate) huge_pages: AtomicUsize,
+    /// User pages
     pub(crate) user_pages: AtomicUsize,
+    /// Kernel pages
     pub(crate) kernel_pages: AtomicUsize,
+    /// Page modifications (protection changes)
     pub(crate) page_modifications: AtomicU64,
 }
 
 impl PagingStatistics {
+    /// Creates new statistics (all zeros).
     pub const fn new() -> Self {
         Self {
             total_mappings: AtomicUsize::new(0),
@@ -43,6 +58,7 @@ impl PagingStatistics {
         }
     }
 
+    /// Records a new mapping.
     pub fn record_mapping(&self, permissions: PagePermissions, size: PageSize) {
         self.total_mappings.fetch_add(1, Ordering::Relaxed);
 
@@ -57,6 +73,7 @@ impl PagingStatistics {
         }
     }
 
+    /// Records an unmapping.
     pub fn record_unmapping(&self, permissions: PagePermissions, size: PageSize) {
         self.total_mappings.fetch_sub(1, Ordering::Relaxed);
 
@@ -71,31 +88,37 @@ impl PagingStatistics {
         }
     }
 
+    /// Records a page fault.
     #[inline]
     pub fn record_page_fault(&self) {
         self.page_faults.fetch_add(1, Ordering::Relaxed);
     }
 
+    /// Records a TLB flush.
     #[inline]
     pub fn record_tlb_flush(&self) {
         self.tlb_flushes.fetch_add(1, Ordering::Relaxed);
     }
 
+    /// Records a copy-on-write fault.
     #[inline]
     pub fn record_cow_fault(&self) {
         self.cow_faults.fetch_add(1, Ordering::Relaxed);
     }
 
+    /// Records a demand load.
     #[inline]
     pub fn record_demand_load(&self) {
         self.demand_loads.fetch_add(1, Ordering::Relaxed);
     }
 
+    /// Records a page modification (protection change).
     #[inline]
     pub fn record_modification(&self) {
         self.page_modifications.fetch_add(1, Ordering::Relaxed);
     }
 
+    /// Creates a snapshot of current statistics.
     pub fn snapshot(&self, mappings_count: usize, address_spaces_count: usize) -> PagingStats {
         PagingStats {
             total_mappings: mappings_count,
@@ -111,14 +134,17 @@ impl PagingStatistics {
         }
     }
 
+    /// Returns total mappings count.
     pub fn total_mappings(&self) -> usize {
         self.total_mappings.load(Ordering::Relaxed)
     }
 
+    /// Returns page fault count.
     pub fn page_faults(&self) -> u64 {
         self.page_faults.load(Ordering::Relaxed)
     }
 
+    /// Returns TLB flush count.
     pub fn tlb_flushes(&self) -> u64 {
         self.tlb_flushes.load(Ordering::Relaxed)
     }

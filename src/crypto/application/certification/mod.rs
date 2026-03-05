@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -25,6 +25,7 @@ pub use metadata::*;
 pub use selftest::*;
 
 use core::sync::atomic::{AtomicBool, AtomicU32, Ordering};
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum CertificationStatus {
     Certified,
@@ -72,6 +73,7 @@ impl CryptoState {
 }
 
 pub static CRYPTO_STATE: CryptoState = CryptoState::new();
+
 pub fn get_certification_status() -> CertificationStatus {
     if !CRYPTO_STATE.overall_tests_run.load(Ordering::SeqCst) {
         return CertificationStatus::NotTested;
@@ -79,6 +81,7 @@ pub fn get_certification_status() -> CertificationStatus {
 
     let failed = CRYPTO_STATE.tests_failed.load(Ordering::SeqCst);
     let passed = CRYPTO_STATE.tests_passed.load(Ordering::SeqCst);
+
     if failed > 0 && passed > 0 {
         CertificationStatus::Degraded
     } else if failed > 0 {

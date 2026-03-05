@@ -27,3 +27,4 @@ pub(super) use render::draw as draw_settings;
 pub(super) use input::handle_click as handle_settings_click;
 pub use power::process_power_actions;
 pub use state::reset_all as reset_render_state;
+pub use system::take_background_changed;

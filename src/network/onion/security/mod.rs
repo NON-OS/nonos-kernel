@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 
-mod types;
-mod manager;
+pub mod types;
+pub mod manager;
 
 pub use manager::{check_client_security, init_security};

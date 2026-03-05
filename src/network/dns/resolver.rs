@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+//! DNS resolver implementation
 
 use alloc::string::String;
 use alloc::vec::Vec;
@@ -26,9 +27,11 @@ use super::types::{
 };
 use super::cache::{DNS_CACHE, DNS_STATS};
 
+/// Resolve hostname to IP addresses (A and AAAA records)
 pub fn resolve(hostname: &str) -> Result<Vec<IpAddress>, &'static str> {
     DNS_STATS.inc_total();
 
+    // Check cache first
     {
         let cache = DNS_CACHE.lock();
         let now = crate::time::timestamp_millis();
@@ -41,7 +44,9 @@ pub fn resolve(hostname: &str) -> Result<Vec<IpAddress>, &'static str> {
         }
     }
 
+    // Perform DNS query
     if let Some(ns) = crate::network::get_network_stack() {
+        // Record pending query
         {
             let mut cache = DNS_CACHE.lock();
             cache.pending_queries.push(PendingQuery {
@@ -53,6 +58,7 @@ pub fn resolve(hostname: &str) -> Result<Vec<IpAddress>, &'static str> {
 
         let result = ns.dns_query_a(hostname, 300);
 
+        // Remove from pending
         {
             let mut cache = DNS_CACHE.lock();
             cache.pending_queries.retain(|q| q.hostname != hostname);
@@ -60,9 +66,11 @@ pub fn resolve(hostname: &str) -> Result<Vec<IpAddress>, &'static str> {
 
         match result {
             Ok(addrs) => {
+                // Cache the result
                 let now = crate::time::timestamp_millis();
                 let mut cache = DNS_CACHE.lock();
 
+                // Add to history
                 cache.query_history.push_back(DnsQueryRecord {
                     hostname: String::from(hostname),
                     timestamp_ms: now,
@@ -72,8 +80,10 @@ pub fn resolve(hostname: &str) -> Result<Vec<IpAddress>, &'static str> {
                     cache.query_history.pop_front();
                 }
 
+                // Remove old entry if exists
                 cache.entries.retain(|e| e.hostname != hostname);
 
+                // Add new cache entry
                 cache.entries.push_back(DnsCacheEntry {
                     hostname: String::from(hostname),
                     addresses: addrs.clone(),
@@ -90,6 +100,7 @@ pub fn resolve(hostname: &str) -> Result<Vec<IpAddress>, &'static str> {
             Err(e) => {
                 DNS_STATS.inc_failed();
 
+                // Record failed query
                 let mut cache = DNS_CACHE.lock();
                 cache.query_history.push_back(DnsQueryRecord {
                     hostname: String::from(hostname),
@@ -109,6 +120,7 @@ pub fn resolve(hostname: &str) -> Result<Vec<IpAddress>, &'static str> {
     }
 }
 
+/// Resolve hostname to a single IPv4 address
 pub fn resolve_v4(hostname: &str) -> Result<[u8; 4], &'static str> {
     let v = resolve(hostname)?;
     for a in v {
@@ -119,6 +131,7 @@ pub fn resolve_v4(hostname: &str) -> Result<[u8; 4], &'static str> {
     Err("no A record")
 }
 
+/// Resolve hostname to IPv6 addresses (AAAA records)
 pub fn resolve_v6(hostname: &str) -> Result<Vec<[u8; 16]>, &'static str> {
     DNS_STATS.inc_total();
 
@@ -139,6 +152,7 @@ pub fn resolve_v6(hostname: &str) -> Result<Vec<[u8; 16]>, &'static str> {
     }
 }
 
+/// Resolve hostname to CNAME records
 pub fn resolve_cname(hostname: &str) -> Result<Vec<String>, &'static str> {
     DNS_STATS.inc_total();
 
@@ -159,6 +173,7 @@ pub fn resolve_cname(hostname: &str) -> Result<Vec<String>, &'static str> {
     }
 }
 
+/// Resolve hostname to MX records (mail servers)
 pub fn resolve_mx(hostname: &str) -> Result<Vec<MxRecord>, &'static str> {
     DNS_STATS.inc_total();
 
@@ -179,6 +194,7 @@ pub fn resolve_mx(hostname: &str) -> Result<Vec<MxRecord>, &'static str> {
     }
 }
 
+/// Resolve hostname to TXT records
 pub fn resolve_txt(hostname: &str) -> Result<Vec<String>, &'static str> {
     DNS_STATS.inc_total();
 
@@ -199,6 +215,7 @@ pub fn resolve_txt(hostname: &str) -> Result<Vec<String>, &'static str> {
     }
 }
 
+/// Resolve hostname to NS records (nameservers)
 pub fn resolve_ns(hostname: &str) -> Result<Vec<String>, &'static str> {
     DNS_STATS.inc_total();
 
@@ -219,6 +236,7 @@ pub fn resolve_ns(hostname: &str) -> Result<Vec<String>, &'static str> {
     }
 }
 
+/// Resolve hostname and return all record types
 pub fn resolve_any(hostname: &str) -> Result<Vec<DnsRecord>, &'static str> {
     DNS_STATS.inc_total();
 
@@ -239,6 +257,7 @@ pub fn resolve_any(hostname: &str) -> Result<Vec<DnsRecord>, &'static str> {
     }
 }
 
+/// Helper: record successful query
 fn record_success(hostname: &str) {
     let now = crate::time::timestamp_millis();
     let mut cache = DNS_CACHE.lock();
@@ -252,6 +271,7 @@ fn record_success(hostname: &str) {
     }
 }
 
+/// Helper: record failed query
 fn record_failure(hostname: &str) {
     DNS_STATS.inc_failed();
     let mut cache = DNS_CACHE.lock();
@@ -265,12 +285,15 @@ fn record_failure(hostname: &str) {
     }
 }
 
+/// Check and cleanup timed out DNS queries
 pub fn check_dns_timeouts() {
     let now = crate::time::timestamp_millis();
     let mut cache = DNS_CACHE.lock();
 
+    // Remove expired cache entries
     cache.entries.retain(|e| now < e.timestamp_ms + e.ttl_ms);
 
+    // Check pending queries for timeouts
     let timed_out: Vec<_> = cache
         .pending_queries
         .iter()
@@ -289,6 +312,7 @@ pub fn check_dns_timeouts() {
     }
 }
 
+/// Get recent DNS queries (for monitoring/diagnostics)
 pub fn get_recent_queries() -> Vec<String> {
     let cache = DNS_CACHE.lock();
     cache
@@ -300,15 +324,18 @@ pub fn get_recent_queries() -> Vec<String> {
         .collect()
 }
 
+/// Get DNS statistics (total, cached, failed)
 pub fn get_stats() -> (u64, u64, u64) {
     DNS_STATS.get()
 }
 
+/// Clear DNS cache
 pub fn clear_cache() {
     let mut cache = DNS_CACHE.lock();
     cache.entries.clear();
 }
 
+/// Initialize DNS subsystem
 pub fn init() -> Result<(), &'static str> {
     crate::log::info!("DNS resolver initialized");
     Ok(())

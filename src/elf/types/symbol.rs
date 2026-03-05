@@ -71,6 +71,8 @@ impl Symbol {
     }
 }
 
+pub type SymbolEntry = Symbol;
+
 impl Default for Symbol {
     fn default() -> Self {
         Self {

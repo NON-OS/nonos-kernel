@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod core;
-mod print;
+pub mod core;
+pub mod print;
 
 pub use core::init;
 pub use print::{print, print_str, println, print_hex, print_dec};

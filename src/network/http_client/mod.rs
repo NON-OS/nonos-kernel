@@ -14,15 +14,43 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod api;
+extern crate alloc;
+
 mod url;
 mod response;
 mod request;
 mod tls_util;
 mod client;
 
-pub use api::{fetch, fetch_response, download};
 pub use url::ParsedUrl;
 pub use response::HttpResponse;
 pub use request::{HttpMethod, HttpRequestOptions};
 pub use client::HttpClient;
+
+use alloc::vec::Vec;
+
+pub fn fetch(url: &str) -> Result<Vec<u8>, &'static str> {
+    let client = HttpClient::new();
+    let response = client.get(url)?;
+
+    if !response.is_success() {
+        return Err("request failed");
+    }
+
+    Ok(response.body)
+}
+
+pub fn fetch_response(url: &str) -> Result<HttpResponse, &'static str> {
+    let client = HttpClient::new();
+    client.get(url)
+}
+
+pub fn download(url: &str, path: &str) -> Result<usize, &'static str> {
+    let data = fetch(url)?;
+    let len = data.len();
+
+    crate::fs::nonos_vfs::vfs_write_file(path, &data)
+        .map_err(|_| "failed to write file")?;
+
+    Ok(len)
+}

@@ -23,7 +23,7 @@ use super::super::constants::*;
 use super::super::error::{TpmError, TpmResult};
 use super::super::mmio::{delay_ms, mmio_read8, mmio_read32, mmio_write8, mmio_write32, spin_delay};
 use super::super::status::PcrBankConfig;
-use crate::drivers::security::rate_limiter::{DriverOpType, RateLimiter};
+use crate::drivers::security::rate_limiter::RateLimiter;
 
 pub(crate) struct TpmDriver {
     pub(crate) base: u64,

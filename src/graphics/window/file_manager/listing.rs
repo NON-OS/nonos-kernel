@@ -39,14 +39,18 @@ fn refresh_ramfs_listing() -> u8 {
     if let Ok(entries) = ramfs::list_dir_entries(path) {
         for entry in entries.iter().take(MAX_ENTRIES) {
             // SAFETY: Single-threaded access
-            let file_entry = unsafe { &mut FILE_ENTRIES[count as usize] };
-            let name_bytes = entry.name.as_bytes();
-            let len = name_bytes.len().min(MAX_NAME_LEN - 1);
-            file_entry.name[..len].copy_from_slice(&name_bytes[..len]);
-            file_entry.name_len = len as u8;
-            file_entry.is_dir = entry.is_dir;
-            file_entry.size = entry.size as u32;
-            file_entry.cluster = 0;
+            // Using addr_of_mut! to avoid static_mut_refs warning
+            unsafe {
+                let entries_ptr = core::ptr::addr_of_mut!(FILE_ENTRIES);
+                let file_entry = &mut (&mut (*entries_ptr))[count as usize];
+                let name_bytes = entry.name.as_bytes();
+                let len = name_bytes.len().min(MAX_NAME_LEN - 1);
+                file_entry.name[..len].copy_from_slice(&name_bytes[..len]);
+                file_entry.name_len = len as u8;
+                file_entry.is_dir = entry.is_dir;
+                file_entry.size = entry.size as u32;
+                file_entry.cluster = 0;
+            }
             count += 1;
         }
     }
@@ -65,16 +69,23 @@ fn refresh_fat32_listing(fs_id: u8) -> u8 {
 
     static mut TEMP_COUNT: u8 = 0;
     // SAFETY: Single-threaded callback
-    unsafe { TEMP_COUNT = 0; }
+    // Using addr_of_mut! to avoid static_mut_refs warning
+    unsafe {
+        let ptr = core::ptr::addr_of_mut!(TEMP_COUNT);
+        *ptr = 0;
+    }
 
     fn collect_entry(entry: &fat32::DirEntry) -> bool {
         // SAFETY: Single-threaded callback, bounded by MAX_ENTRIES
+        // Using addr_of_mut! to avoid static_mut_refs warning
         unsafe {
-            if TEMP_COUNT as usize >= MAX_ENTRIES {
+            let count_ptr = core::ptr::addr_of_mut!(TEMP_COUNT);
+            if (*count_ptr) as usize >= MAX_ENTRIES {
                 return false;
             }
 
-            let file_entry = &mut FILE_ENTRIES[TEMP_COUNT as usize];
+            let entries_ptr = core::ptr::addr_of_mut!(FILE_ENTRIES);
+            let file_entry = &mut (&mut (*entries_ptr))[(*count_ptr) as usize];
             let mut name_buf = [0u8; 13];
             let len = entry.get_short_name(&mut name_buf);
             file_entry.name[..len].copy_from_slice(&name_buf[..len]);
@@ -82,14 +93,18 @@ fn refresh_fat32_listing(fs_id: u8) -> u8 {
             file_entry.is_dir = entry.is_directory();
             file_entry.size = entry.file_size;
             file_entry.cluster = entry.first_cluster();
-            TEMP_COUNT += 1;
+            *count_ptr += 1;
         }
         true
     }
 
     let _ = fat32::read_directory(&fs, dir_cluster, block_read, collect_entry);
     // SAFETY: Single-threaded access
-    unsafe { TEMP_COUNT }
+    // Using addr_of! to avoid static_mut_refs warning
+    unsafe {
+        let ptr = core::ptr::addr_of!(TEMP_COUNT);
+        *ptr
+    }
 }
 
 pub fn get_fat32_dir_cluster(fs: &fat32::Fat32, path: &str) -> u32 {

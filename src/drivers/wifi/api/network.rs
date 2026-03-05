@@ -24,10 +24,10 @@ use super::firmware::_load_firmware_from_disk;
 use super::init::{connect, get_device, get_realtek_device, is_realtek};
 use crate::network::stack::device::{SmolDevice, register_device};
 
-pub(crate) static _WIFI_NETWORK_DEVICE: spin::Once<_WifiNetworkDevice> = spin::Once::new();
-pub(crate) static _REALTEK_WIFI_NETWORK_DEVICE: spin::Once<_RealtekWifiNetworkDevice> = spin::Once::new();
+pub(super) static _WIFI_NETWORK_DEVICE: spin::Once<_WifiNetworkDevice> = spin::Once::new();
+pub(super) static _REALTEK_WIFI_NETWORK_DEVICE: spin::Once<_RealtekWifiNetworkDevice> = spin::Once::new();
 
-pub(crate) struct _WifiNetworkDevice {
+pub(super) struct _WifiNetworkDevice {
     device: Arc<Mutex<IntelWifiDevice>>,
 }
 
@@ -65,7 +65,7 @@ impl SmolDevice for _WifiNetworkDevice {
     }
 }
 
-pub(crate) struct _RealtekWifiNetworkDevice {
+pub(super) struct _RealtekWifiNetworkDevice {
     device: Arc<Mutex<RealtekWifiDevice>>,
 }
 
@@ -103,7 +103,7 @@ impl SmolDevice for _RealtekWifiNetworkDevice {
     }
 }
 
-pub(crate) fn _register_with_network_stack() -> Result<(), WifiError> {
+pub(super) fn _register_with_network_stack() -> Result<(), WifiError> {
     if is_realtek() {
         let dev = get_realtek_device().ok_or(WifiError::NotInitialized)?;
 
@@ -151,7 +151,7 @@ pub(crate) fn _register_with_network_stack() -> Result<(), WifiError> {
     }
 }
 
-pub(crate) fn _full_init(ssid: &str, password: &str) -> Result<(), WifiError> {
+pub(super) fn _full_init(ssid: &str, password: &str) -> Result<(), WifiError> {
     for fs_id in 0..4 {
         if _load_firmware_from_disk(fs_id).is_ok() {
             break;

@@ -19,8 +19,10 @@ use x86_64::instructions::port::Port;
 
 use super::context::{log_exception, ExceptionContext};
 
-const SYSTEM_CONTROL_PORT_A: u16 = 0x92;
-const SYSTEM_CONTROL_PORT_B: u16 = 0x61;
+/// System control port A - used for system reset and A20 gate control
+pub const SYSTEM_CONTROL_PORT_A: u16 = 0x92;
+/// System control port B - used for NMI source identification
+pub const SYSTEM_CONTROL_PORT_B: u16 = 0x61;
 
 #[derive(Debug, Clone, Copy)]
 pub enum NmiSource {

@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+//! Circuit manager for building and managing circuits
 
 use alloc::{collections::BTreeMap, vec, vec::Vec};
 use core::sync::atomic::{AtomicU32, Ordering};
@@ -213,7 +214,13 @@ impl CircuitManager {
     fn complete_circuit(&mut self, circuit_id: CircuitId) -> Result<(), OnionError> {
         let building = {
             let mut bmap = self.building.lock();
-            bmap.remove(&circuit_id).ok_or(OnionError::CircuitBuildFailed)?
+            let mut b = bmap.remove(&circuit_id).ok_or(OnionError::CircuitBuildFailed)?;
+            // Verify circuit id matches and mark as complete
+            if b.id != circuit_id {
+                return Err(OnionError::CircuitBuildFailed);
+            }
+            b.state = BuildState::Complete;
+            b
         };
         {
             let mut circuits = self.circuits.lock();
@@ -280,7 +287,9 @@ impl CircuitManager {
                 }
             }
             for id in fail_list {
-                bmap.remove(&id);
+                if let Some(mut b) = bmap.remove(&id) {
+                    b.state = BuildState::Failed;
+                }
                 self.perf.global.failed_circuits.fetch_add(1, Ordering::Relaxed);
                 let mut circuits = self.circuits.lock();
                 circuits.entry(id).and_modify(|c| c.state = CircuitState::Failed).or_insert_with(|| {
@@ -331,6 +340,7 @@ impl CircuitManager {
             }
 
             let encrypted_payload = circuit.encrypt_forward(&cell.payload)?;
+            let payload_len = encrypted_payload.len();
             cell.payload = encrypted_payload;
             cell.circuit_id = circuit_id;
 
@@ -338,6 +348,8 @@ impl CircuitManager {
                 let relay_ref = first_relay.relay.clone();
                 circuit.touch();
                 drop(circuits);
+                // Record data transfer for performance monitoring
+                self.perf.record_data_transfer(payload_len as u32);
                 self.send_cell_to_relay(cell, &relay_ref)
             } else {
                 Err(OnionError::CircuitError)
@@ -345,5 +357,15 @@ impl CircuitManager {
         } else {
             Err(OnionError::CircuitNotFound)
         }
+    }
+
+    /// Check if the circuit pool needs more prebuilt circuits
+    pub fn pool_needs_refill(&self) -> bool {
+        self.pool.needs_circuits()
+    }
+
+    /// Get total data transferred through all circuits
+    pub fn total_data_transferred(&self) -> u32 {
+        self.perf.total_data_transferred()
     }
 }

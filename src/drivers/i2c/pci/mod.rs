@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod constants;
-mod controller;
-mod detect;
-mod init;
+pub mod constants;
+pub mod controller;
+pub mod detect;
+pub mod init;
 
 pub use controller::LpssController;
 pub use detect::detect_hid_devices;

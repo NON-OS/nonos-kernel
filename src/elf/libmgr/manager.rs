@@ -22,12 +22,9 @@ use alloc::vec::Vec;
 use core::sync::atomic::{AtomicUsize, Ordering};
 use x86_64::VirtAddr;
 
-use crate::elf::cache::ImageCache;
 use crate::elf::embedded::EmbeddedLibraryRegistry;
 use crate::elf::errors::{ElfError, ElfResult};
 use crate::elf::fini::FiniArrayRunner;
-use crate::elf::got::GlobalOffsetTable;
-use crate::elf::hash::DualHashLookup;
 use crate::elf::init::InitArrayRunner;
 use crate::elf::loader::{ElfImage, ElfLoader};
 use crate::elf::symbol::SymbolResolver;
@@ -199,14 +196,16 @@ impl LibraryManager {
         library.state = LibraryState::Relocating;
 
         if let Some(ref dynlink) = library.image.dynlink_info {
-            self.symbol_resolver.parse_symbols(
-                dynlink.symtab,
-                dynlink.strtab,
-                dynlink.strtab_size,
-                dynlink.sym_count,
-                library.image.base_addr,
-                id,
-            )?;
+            if let (Some(symtab), Some(strtab)) = (dynlink.symtab, dynlink.strtab) {
+                self.symbol_resolver.parse_symbols(
+                    symtab,
+                    strtab,
+                    dynlink.strtab_size,
+                    dynlink.sym_count,
+                    library.image.base_addr,
+                    id,
+                )?;
+            }
         }
 
         library.state = LibraryState::Ready;

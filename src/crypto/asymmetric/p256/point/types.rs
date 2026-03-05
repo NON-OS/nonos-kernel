@@ -29,3 +29,36 @@ pub struct ProjectivePoint {
     pub y: FieldElement,
     pub z: FieldElement,
 }
+
+impl AffinePoint {
+    pub fn scalar_mul(&self, k: &Scalar) -> AffinePoint {
+        let mut result = AffinePoint {
+            x: FieldElement::default(),
+            y: FieldElement::default(),
+            infinity: true,
+        };
+
+        let k_bytes = k.to_bytes();
+        for i in (0..32).rev() {
+            for j in (0..8).rev() {
+                result = result.double();
+                if (k_bytes[i] >> j) & 1 == 1 {
+                    result = result.add(self);
+                }
+            }
+        }
+
+        result
+    }
+
+    fn double(&self) -> AffinePoint {
+        if self.infinity {
+            return self.clone();
+        }
+        self.clone()
+    }
+
+    fn add(&self, _other: &AffinePoint) -> AffinePoint {
+        self.clone()
+    }
+}

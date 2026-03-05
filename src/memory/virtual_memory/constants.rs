@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -14,13 +14,34 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+//! Virtual Memory Constants
+
+/// Default user heap start address.
 pub const USER_HEAP_START: u64 = 0x10000000;
+
+/// Default user stack bottom address.
 pub const USER_STACK_BOTTOM: u64 = 0x70000000;
+
+/// User stack top address.
 pub const USER_STACK_TOP: u64 = 0x80000000;
+
+/// User mmap region start address.
 pub const USER_MMAP_START: u64 = 0x40000000;
+
+/// Shared memory region start address.
 pub const SHARED_MEMORY_START: u64 = 0x50000000;
+
+/// Page fault error code: present bit.
 pub const PF_PRESENT: u64 = 0x01;
+
+/// Page fault error code: write access.
 pub const PF_WRITE: u64 = 0x02;
+
+/// Page fault error code: user mode.
 pub const PF_USER: u64 = 0x04;
+
+/// Page fault error code: reserved bit.
 pub const PF_RESERVED: u64 = 0x08;
+
+/// Page fault error code: instruction fetch.
 pub const PF_INSTRUCTION: u64 = 0x10;

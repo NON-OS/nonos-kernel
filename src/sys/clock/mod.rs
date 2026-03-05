@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod core;
-mod time;
-mod format;
+pub mod core;
+pub mod time;
+pub mod format;
 
 pub use core::{init, unix_ms};
 pub use time::{Time, get_time};

@@ -28,6 +28,7 @@ pub struct HttpResponse {
 }
 
 impl HttpResponse {
+    /// Create a new empty HttpResponse
     pub fn new() -> Self {
         Self {
             status_code: 0,
@@ -39,6 +40,7 @@ impl HttpResponse {
         }
     }
 
+    /// Get a header value by name (case-insensitive)
     pub fn header(&self, name: &str) -> Option<&str> {
         let name_lower = name.to_ascii_lowercase();
         for (k, v) in &self.headers {
@@ -49,19 +51,23 @@ impl HttpResponse {
         None
     }
 
+    /// Get the Content-Length header value as a number
     pub fn content_length(&self) -> Option<usize> {
         self.header("content-length")
             .and_then(|v| v.trim().parse().ok())
     }
 
+    /// Get the Content-Type header value
     pub fn content_type(&self) -> Option<&str> {
         self.header("content-type")
     }
 
+    /// Get the Location header value (for redirects)
     pub fn location(&self) -> Option<&str> {
         self.header("location")
     }
 
+    /// Check if the response is a redirect (3xx status)
     pub fn is_redirect(&self) -> bool {
         matches!(self.status_code, 301 | 302 | 303 | 307 | 308)
     }
@@ -75,7 +81,7 @@ impl HttpResponse {
     }
 }
 
-pub fn parse_response(data: &[u8]) -> Result<HttpResponse, &'static str> {
+pub(super) fn parse_response(data: &[u8]) -> Result<HttpResponse, &'static str> {
     let header_end = find_sequence(data, b"\r\n\r\n").ok_or("malformed response")?;
 
     let headers_raw = &data[..header_end];
@@ -202,7 +208,7 @@ fn parse_hex_size(data: &[u8]) -> Result<usize, &'static str> {
     Ok(size)
 }
 
-pub fn find_sequence(data: &[u8], seq: &[u8]) -> Option<usize> {
+pub(super) fn find_sequence(data: &[u8], seq: &[u8]) -> Option<usize> {
     data.windows(seq.len()).position(|w| w == seq)
 }
 

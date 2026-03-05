@@ -18,6 +18,7 @@ use core::sync::atomic::Ordering;
 use super::state::{WINDOWS, FOCUSED_WINDOW, MAX_WINDOWS, WindowType, window_type_from_u32};
 use super::text_editor::editor_key_impl;
 use super::apps::{browser_key, wallet_key, ecosystem_key};
+use super::file_manager::{handle_file_manager_key, handle_file_manager_special_key};
 
 pub(super) fn handle_key(ch: u8) {
     let focused = FOCUSED_WINDOW.load(Ordering::Relaxed);
@@ -42,6 +43,12 @@ pub(super) fn handle_key(ch: u8) {
         WindowType::Ecosystem => {
             ecosystem_key(ch);
         }
+        WindowType::FileManager => {
+            handle_file_manager_key(ch);
+        }
+        WindowType::Settings => {
+            super::settings::input::handle_key(ch);
+        }
         _ => {}
     }
 }
@@ -56,4 +63,8 @@ pub(super) fn wallet_special_key(key: crate::graphics::window::text_editor::Spec
 
 pub(super) fn ecosystem_special_key(key: crate::graphics::window::text_editor::SpecialKey) {
     super::apps::ecosystem_special_key(key);
+}
+
+pub(super) fn file_manager_special_key(key: u8) -> bool {
+    handle_file_manager_special_key(key)
 }

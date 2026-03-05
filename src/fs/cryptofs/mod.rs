@@ -14,12 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod error;
-mod types;
-mod crypto;
-mod core;
-mod ops;
-mod legacy;
+pub mod error;
+pub mod types;
+pub mod crypto;
+pub mod core;
+pub mod ops;
+pub mod legacy;
 
 #[cfg(test)]
 mod tests;

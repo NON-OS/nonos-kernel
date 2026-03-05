@@ -137,7 +137,7 @@ pub fn close(idx: usize) {
     }
 }
 
-pub(crate) fn focus(idx: usize) {
+pub fn focus(idx: usize) {
     if idx < MAX_WINDOWS && WINDOWS[idx].active.load(Ordering::Relaxed) {
         FOCUSED_WINDOW.store(idx, Ordering::Relaxed);
     }

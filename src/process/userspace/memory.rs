@@ -22,8 +22,6 @@ use super::context::with_user_access;
 
 const USER_SPACE_MAX: u64 = 0x0000_7FFF_FFFF_FFFF;
 
-const KERNEL_SPACE_START: u64 = 0xFFFF_8000_0000_0000;
-
 #[inline]
 fn is_user_address(addr: u64) -> bool {
     addr <= USER_SPACE_MAX

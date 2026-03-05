@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -25,10 +25,12 @@ use super::mgf1;
 pub fn sign_pss(msg: &[u8], key: &RsaPrivateKey) -> Result<Vec<u8>, &'static str> {
     let hash = sha256(msg);
     let salt = get_entropy(32);
+
     let em_bits = key.bits - 1;
     let em_len = (em_bits + 7) / 8;
     let hash_len = 32;
     let salt_len = 32;
+
     if em_len < hash_len + salt_len + 2 {
         return Err("Key too small for PSS");
     }
@@ -38,6 +40,7 @@ pub fn sign_pss(msg: &[u8], key: &RsaPrivateKey) -> Result<Vec<u8>, &'static str
     m_prime.extend_from_slice(&salt);
 
     let h = sha256(&m_prime);
+
     let ps_len = em_len - salt_len - hash_len - 2;
     let mut db = vec![0u8; ps_len];
     db.push(0x01);
@@ -45,6 +48,7 @@ pub fn sign_pss(msg: &[u8], key: &RsaPrivateKey) -> Result<Vec<u8>, &'static str
 
     let db_mask = mgf1(&h, db.len());
     let mut masked_db: Vec<u8> = db.iter().zip(db_mask.iter()).map(|(a, b)| a ^ b).collect();
+
     let top_bits = 8 * em_len - em_bits;
     if top_bits > 0 {
         masked_db[0] &= 0xFFu8 >> top_bits;
@@ -79,6 +83,7 @@ pub fn verify_pss(msg: &[u8], sig: &[u8], key: &RsaPublicKey) -> bool {
 
     // Accumulate validity flags - no early returns except for length (public info)
     let mut valid: u8 = 1;
+
     if sig.len() != key.bits / 8 {
         // Signature length is public information
         return false;
@@ -98,7 +103,7 @@ pub fn verify_pss(msg: &[u8], sig: &[u8], key: &RsaPublicKey) -> bool {
         em.insert(0, 0);
     }
 
-    // Truncate or pad to exact length, track validity
+    // Truncate or pad to exact length - track validity
     if em.len() != em_len {
         valid = 0;
         em.resize(em_len, 0);

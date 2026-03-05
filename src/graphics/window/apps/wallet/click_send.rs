@@ -138,13 +138,40 @@ fn generate_zk_proof_for_balance() {
 }
 
 fn generate_stealth_receive_address() {
+    use super::zk::{prove_stealth_spend_key, verify_wallet_proof};
+    use super::zk_helpers::generate_blinding_factor;
+
     let state = WALLET_STATE.lock();
     if let Some(ref keypair) = state.stealth_keypair {
         let meta = keypair.meta_address();
         let encoded = meta.encode();
         if encoded.len() > 0 {
+            let spend_secret = keypair.spend_secret;
+            let view_secret = keypair.view_secret;
+            let ephemeral_secret = generate_blinding_factor();
+            let stealth_addr = keypair.derive_stealth_address(&ephemeral_secret);
             drop(state);
-            set_status(b"Stealth address generated", true);
+
+            if let Ok(proof) = prove_stealth_spend_key(
+                &spend_secret,
+                &view_secret,
+                &ephemeral_secret,
+                &stealth_addr,
+            ) {
+                match verify_wallet_proof(&proof) {
+                    Ok(true) => {
+                        set_status(b"Stealth address generated with proof", true);
+                    }
+                    Ok(false) => {
+                        set_status(b"Stealth proof verification failed", false);
+                    }
+                    Err(_) => {
+                        set_status(b"Stealth address generated", true);
+                    }
+                }
+            } else {
+                set_status(b"Stealth address generated", true);
+            }
         } else {
             drop(state);
             set_status(b"Failed to encode stealth address", false);

@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -13,19 +13,22 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-
 use core::sync::atomic::{AtomicU64, AtomicUsize, Ordering};
 use alloc::collections::BTreeMap;
 use spin::Mutex;
 use x86_64::{VirtAddr, PhysAddr};
+
 use crate::memory::layout;
 use crate::memory::buddy_alloc as mem_alloc;
 use crate::memory::virt;
+
 use super::constants::*;
 use super::error::{SecureMemoryError, SecureMemoryResult};
 use super::types::*;
+
 static MEMORY_MANAGER: Mutex<MemoryManager> = Mutex::new(MemoryManager::new());
 static MEMORY_STATS: MemoryStats = MemoryStats::new();
+
 struct MemoryStats {
     total_allocated: AtomicU64,
     region_count: AtomicUsize,
@@ -88,11 +91,14 @@ impl MemoryManager {
         if !self.initialized { return Err(SecureMemoryError::NotInitialized); }
         if size < MIN_ALLOCATION_SIZE || size > MAX_ALLOCATION_SIZE { return Err(SecureMemoryError::InvalidSize); }
         if self.regions.len() >= MAX_REGIONS { return Err(SecureMemoryError::RegionLimitExceeded); }
+
         let va = self.allocate_virtual_memory(size)?;
         let pa = self.get_physical_address(va)?;
+
         let region_id = self.next_region_id;
         self.next_region_id = self.next_region_id.wrapping_add(1);
         if self.next_region_id == INVALID_REGION_ID { self.next_region_id = INITIAL_REGION_ID; }
+
         let region = MemoryRegion::new(region_id, va, pa, size, region_type, security_level, owner_process, self.get_timestamp());
         self.regions.insert(region_id, region);
         self.va_to_region.insert(va.as_u64(), region_id);
@@ -175,19 +181,24 @@ impl MemoryManager {
 
 // Public API
 pub fn init() -> SecureMemoryResult<()> { MEMORY_MANAGER.lock().init() }
+
 pub fn allocate_memory(size: usize, region_type: RegionType, security_level: SecurityLevel, owner_process: u64) -> SecureMemoryResult<VirtAddr> {
     MEMORY_MANAGER.lock().allocate_region(size, region_type, security_level, owner_process)
 }
 
 pub fn deallocate_memory(va: VirtAddr) -> SecureMemoryResult<()> { MEMORY_MANAGER.lock().deallocate_region(va) }
+
 pub fn get_region_info(va: VirtAddr) -> Option<MemoryRegion> { MEMORY_MANAGER.lock().get_region_info(va).copied() }
+
 pub fn validate_memory_access(process_id: u64, va: VirtAddr, write: bool) -> bool { MEMORY_MANAGER.lock().validate_access(process_id, va, write) }
+
 pub fn allocate_code_region(size: usize, owner_process: u64) -> SecureMemoryResult<VirtAddr> { allocate_memory(size, RegionType::Code, SecurityLevel::Public, owner_process) }
 pub fn allocate_data_region(size: usize, owner_process: u64) -> SecureMemoryResult<VirtAddr> { allocate_memory(size, RegionType::Data, SecurityLevel::Internal, owner_process) }
 pub fn allocate_heap_region(size: usize, owner_process: u64) -> SecureMemoryResult<VirtAddr> { allocate_memory(size, RegionType::Heap, SecurityLevel::Internal, owner_process) }
 pub fn allocate_stack_region(size: usize, owner_process: u64) -> SecureMemoryResult<VirtAddr> { allocate_memory(size, RegionType::Stack, SecurityLevel::Internal, owner_process) }
 pub fn allocate_secure_capsule(size: usize, owner_process: u64) -> SecureMemoryResult<VirtAddr> { allocate_memory(size, RegionType::Capsule, SecurityLevel::Secret, owner_process) }
 pub fn allocate_device_region(size: usize, owner_process: u64) -> SecureMemoryResult<VirtAddr> { allocate_memory(size, RegionType::Device, SecurityLevel::Public, owner_process) }
+
 pub fn zero_memory(va: VirtAddr, size: usize) -> SecureMemoryResult<()> {
     if size == 0 { return Ok(()); }
     // SAFETY: Caller guarantees valid memory

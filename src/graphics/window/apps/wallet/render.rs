@@ -99,7 +99,8 @@ fn draw_locked_view(x: u32, y: u32, w: u32, h: u32) {
     fill_rect(center_x - 60, center_y + 50, 120, 32, COLOR_ACCENT);
     draw_string(center_x - 30, center_y + 60, b"Unlock", COLOR_BG);
 
-    draw_string(center_x - 90, center_y + 90, b"Click field, type key", COLOR_TEXT_DIM);
+    fill_rect(center_x - 60, center_y + 90, 120, 28, 0xFF238636);
+    draw_string(center_x - 52, center_y + 98, b"New Wallet", 0xFFFFFFFF);
 }
 
 fn draw_sidebar(x: u32, y: u32, h: u32) {

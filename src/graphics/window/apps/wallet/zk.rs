@@ -20,7 +20,13 @@ use crate::zk_engine::ZKError;
 use crate::zk_engine::groth16::Groth16Prover;
 
 pub(crate) use super::zk_types::*;
-pub(crate) use super::zk_prove::prove_balance_ownership;
+pub(crate) use super::zk_prove::{
+    prove_balance_ownership,
+    prove_transaction_auth,
+    prove_stealth_spend_key,
+    prove_balance_sufficiency,
+    verify_wallet_proof,
+};
 use super::zk_circuit::*;
 
 pub(crate) fn init_wallet_zk() -> Result<(), ZKError> {

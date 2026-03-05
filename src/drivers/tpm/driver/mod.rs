@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod core;
-mod init;
-mod io;
-mod operations;
-mod pcr;
+pub(super) mod core;
+pub(super) mod init;
+pub(super) mod io;
+pub(super) mod operations;
+pub(super) mod pcr;
 
 pub(super) use core::TpmDriver;

@@ -14,14 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod constants;
-pub(crate) mod control;
-pub(crate) mod discovery;
-pub(crate) mod names;
-pub(crate) mod path;
-pub(crate) mod quirks;
-pub(crate) mod stats;
-pub(crate) mod types;
+pub mod constants;
+pub mod control;
+pub mod discovery;
+pub mod names;
+pub mod path;
+pub mod quirks;
+pub mod stats;
+pub mod types;
 
 pub(crate) use control::{set_volume, set_mute};
 pub(crate) use discovery::{discover_codec, discover_paths};

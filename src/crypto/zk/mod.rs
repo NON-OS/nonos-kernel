@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -19,3 +19,7 @@ pub mod groth16;
 #[cfg(feature = "zk-halo2")]
 pub mod halo2;
 pub mod nonos_zk;
+
+// Re-export zk_kernel from parent for convenient access
+pub use super::zk_kernel;
+

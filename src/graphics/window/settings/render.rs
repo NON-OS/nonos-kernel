@@ -48,6 +48,7 @@ pub fn draw(x: u32, y: u32, w: u32, h: u32) {
     }
 
     let page = get_page();
+
     draw_sidebar(x, y, h, page);
 
     let content_x = x + SIDEBAR_WIDTH;

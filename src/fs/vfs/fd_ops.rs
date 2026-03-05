@@ -72,3 +72,11 @@ pub fn vfs_write_legacy(fd: u32, buffer: &[u8]) -> Result<usize, &'static str> {
 pub fn vfs_lseek_legacy(fd: u32, offset: i64, whence: u32) -> Result<u64, &'static str> {
     vfs_lseek(fd, offset, whence).map_err(|e| e.as_str())
 }
+
+pub fn vfs_read_secure(fd: u32, buffer: &mut [u8]) -> VfsResult<usize> {
+    FD_TABLE.write().read_secure(fd, buffer)
+}
+
+pub fn vfs_secure_clear_buffer(buffer: &mut [u8]) {
+    FD_TABLE.read().secure_clear_buffer(buffer)
+}

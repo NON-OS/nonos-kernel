@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -14,23 +14,51 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+//! KASLR Error Types
+//!
+//! Error types for Kernel Address Space Layout Randomization.
+
 use core::fmt;
+
+/// Errors that can occur during KASLR operations
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum KaslrError {
+    /// KASLR not initialized
     NotInitialized,
-    InvalidPolicy, /// Invalid policy: min_slide >= max_slide
+
+    /// Invalid policy: min_slide >= max_slide
+    InvalidPolicy,
+
+    /// Invalid alignment granularity
     InvalidAlignment,
+
+    /// KASLR range too small for alignment
     RangeTooSmall,
+
+    /// Generated slide out of valid range
     SlideOutOfRange,
+
+    /// Generated slide not properly aligned
     SlideNotAligned,
+
+    /// Insufficient entropy for secure randomization
     InsufficientEntropy,
+
+    /// Layout application failed
     LayoutApplyFailed,
+
+    /// Slide integrity check failed
     IntegrityCheckFailed,
+
+    /// RDRAND/RDSEED not available
     HardwareRngUnavailable,
+
+    /// Key derivation failed
     KeyDerivationFailed,
 }
 
 impl KaslrError {
+    /// Returns a human-readable description of the error
     pub fn as_str(&self) -> &'static str {
         match self {
             Self::NotInitialized => "KASLR not initialized",
@@ -47,7 +75,8 @@ impl KaslrError {
         }
     }
 
-  pub fn is_security_critical(&self) -> bool {
+    /// Returns true if this is a security-critical error
+    pub fn is_security_critical(&self) -> bool {
         matches!(
             self,
             Self::InsufficientEntropy | Self::IntegrityCheckFailed | Self::SlideNotAligned
@@ -61,7 +90,9 @@ impl fmt::Display for KaslrError {
     }
 }
 
+/// Result type alias for KASLR operations
 pub type KaslrResult<T> = Result<T, KaslrError>;
+
 impl From<&'static str> for KaslrError {
     fn from(s: &'static str) -> Self {
         match s {

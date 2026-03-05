@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::{AtomicBool, AtomicU8, AtomicU32, Ordering};
+use core::sync::atomic::{AtomicBool, AtomicU8, Ordering};
 
 pub(crate) const SIDEBAR_WIDTH: u32 = 120;
 pub(crate) const PAGE_PRIVACY: u8 = 0;
@@ -24,7 +24,7 @@ pub(crate) const PAGE_SYSTEM: u8 = 3;
 pub(crate) const PAGE_POWER: u8 = 4;
 
 pub(crate) static SETTING_PRIVACY: AtomicBool = AtomicBool::new(true);
-pub(crate) static SETTING_ANON_NET: AtomicBool = AtomicBool::new(true);
+pub static SETTING_ANON_NET: AtomicBool = AtomicBool::new(true);
 pub(crate) static SETTING_ZERO_STATE: AtomicBool = AtomicBool::new(true);
 pub(crate) static SETTING_AUTO_WIPE: AtomicBool = AtomicBool::new(false);
 pub(crate) static SETTING_DARK_THEME: AtomicBool = AtomicBool::new(true);
@@ -35,53 +35,13 @@ pub(crate) static SETTING_DHCP_ENABLED: AtomicBool = AtomicBool::new(true);
 
 pub(crate) static SETTINGS_PAGE: AtomicU8 = AtomicU8::new(0);
 
-pub(crate) static DIRTY_FLAGS: AtomicU8 = AtomicU8::new(0xFF);
-pub(crate) static LAST_RENDERED_PAGE: AtomicU8 = AtomicU8::new(0xFF);
-pub(crate) static FRAME_COUNTER: AtomicU32 = AtomicU32::new(0);
-
-pub(crate) fn mark_dirty(page: u8) {
-    DIRTY_FLAGS.fetch_or(1 << page, Ordering::Relaxed);
-}
-
-pub(crate) fn mark_all_dirty() {
-    DIRTY_FLAGS.store(0xFF, Ordering::Relaxed);
-}
-
-pub(crate) fn is_dirty(page: u8) -> bool {
-    (DIRTY_FLAGS.load(Ordering::Relaxed) & (1 << page)) != 0
-}
-
-pub(crate) fn clear_dirty(page: u8) {
-    DIRTY_FLAGS.fetch_and(!(1 << page), Ordering::Relaxed);
-}
-
-pub(crate) fn should_throttle_frame() -> bool {
-    let frame = FRAME_COUNTER.fetch_add(1, Ordering::Relaxed);
-    let page = get_page();
-    if page == PAGE_APPEARANCE {
-        return frame % 3 != 0;
-    }
-    false
-}
-
-pub(crate) fn get_last_page() -> u8 {
-    LAST_RENDERED_PAGE.load(Ordering::Relaxed)
-}
-
-pub(crate) fn set_last_page(page: u8) {
-    LAST_RENDERED_PAGE.store(page, Ordering::Relaxed);
-}
-
 pub(crate) fn get_page() -> u8 {
     SETTINGS_PAGE.load(Ordering::Relaxed)
 }
 
 pub(crate) fn set_page(page: u8) {
     if page <= PAGE_POWER {
-        let old_page = SETTINGS_PAGE.swap(page, Ordering::Relaxed);
-        if old_page != page {
-            mark_dirty(page);
-        }
+        SETTINGS_PAGE.store(page, Ordering::Relaxed);
     }
 }
 
@@ -90,7 +50,6 @@ pub(crate) const PAGE_COUNT: u8 = 5;
 pub(crate) fn toggle_setting(setting: &AtomicBool) -> bool {
     let current = setting.load(Ordering::Relaxed);
     setting.store(!current, Ordering::Relaxed);
-    mark_dirty(get_page());
     !current
 }
 
@@ -110,7 +69,7 @@ pub(crate) fn is_dark_theme() -> bool {
     SETTING_DARK_THEME.load(Ordering::Relaxed)
 }
 
-pub(crate) fn is_dhcp_enabled() -> bool {
+pub fn is_dhcp_enabled() -> bool {
     SETTING_DHCP_ENABLED.load(Ordering::Relaxed)
 }
 
@@ -129,9 +88,7 @@ pub(crate) fn set_dhcp_enabled(enabled: bool) {
 }
 
 pub fn reset_render_state() {
-    DIRTY_FLAGS.store(0xFF, Ordering::Relaxed);
-    LAST_RENDERED_PAGE.store(0xFF, Ordering::Relaxed);
-    FRAME_COUNTER.store(0, Ordering::Relaxed);
+    SETTINGS_PAGE.store(0, Ordering::Relaxed);
 }
 
 pub fn reset_all() {

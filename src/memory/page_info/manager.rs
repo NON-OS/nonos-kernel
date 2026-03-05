@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -13,15 +13,16 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-
 use alloc::collections::BTreeMap;
 use core::sync::atomic::Ordering;
 use spin::Mutex;
 use x86_64::{PhysAddr, VirtAddr};
+
 use crate::memory::layout;
 use super::constants::*;
 use super::error::{PageInfoError, PageInfoResult};
 use super::types::*;
+
 static PAGE_INFO_MANAGER: Mutex<PageInfoManager> = Mutex::new(PageInfoManager::new());
 static PAGE_STATS: PageStats = PageStats::new();
 
@@ -45,8 +46,10 @@ impl PageInfoManager {
     fn add_page(&mut self, pa: PhysAddr, va: Option<VirtAddr>, flags: PageFlags) -> PageInfoResult<()> {
         let page_num = pa.as_u64() / layout::PAGE_SIZE as u64;
         if self.pages.len() >= MAX_TRACKED_PAGES { return Err(PageInfoError::TooManyPages); }
+
         let info = PageInfo::new(pa, va, flags);
         self.pages.insert(page_num, info);
+
         PAGE_STATS.increment_total();
         if va.is_some() { PAGE_STATS.increment_mapped(); }
         if flags.contains(PageFlags::DIRTY) { PAGE_STATS.increment_dirty(); }
@@ -78,6 +81,7 @@ impl PageInfoManager {
             let old_flags = info.flags;
             info.flags = flags;
             info.last_access = get_timestamp();
+
             let was_dirty = old_flags.contains(PageFlags::DIRTY);
             let is_dirty = flags.contains(PageFlags::DIRTY);
             if was_dirty != is_dirty {

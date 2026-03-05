@@ -1,3 +1,19 @@
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 #![no_std]
 #![feature(alloc_error_handler)]
 #![feature(abi_x86_interrupt)]
@@ -10,7 +26,8 @@ use core::alloc::Layout;
 
 #[alloc_error_handler]
 fn alloc_error_handler(layout: Layout) -> ! {
-    // SAFETY: Direct port I/O for emergency output when heap is exhausted
+    const _COM1: u16 = 0x3F8;
+
     unsafe {
         fn serial_byte(b: u8) {
             unsafe {
@@ -55,7 +72,6 @@ fn alloc_error_handler(layout: Layout) -> ! {
         serial_str(b"\r\n");
         serial_str(b"[OOM] System halted\r\n");
 
-        // SAFETY: VGA text buffer at 0xb8000 is identity-mapped
         let vga_base = 0xb8000 as *mut u16;
         let msg = b"OOM: Memory allocation failed - system halted";
         let attr: u16 = 0x4F00;
@@ -65,7 +81,6 @@ fn alloc_error_handler(layout: Layout) -> ! {
     }
 
     loop {
-        // SAFETY: HLT stops CPU until interrupt
         unsafe { core::arch::asm!("hlt", options(nomem, nostack, preserves_flags)); }
     }
 }
@@ -76,7 +91,6 @@ pub mod boot;
 pub mod bus;
 pub mod capabilities;
 pub mod crypto;
-pub mod daemon;
 pub mod drivers;
 pub mod elf;
 pub mod fs;
@@ -91,7 +105,6 @@ pub mod memory;
 pub mod modules;
 pub mod monitor;
 pub mod network;
-pub mod npkg;
 pub mod process;
 pub mod runtime;
 pub mod sched;
@@ -99,12 +112,14 @@ pub mod security;
 pub mod shell;
 pub mod smp;
 pub mod storage;
-pub mod sys;
 pub mod syscall;
-pub mod test;
+pub mod sys;
 pub mod ui;
 pub mod vault;
+pub mod daemon;
 pub mod zk_engine;
+pub mod test;
+pub mod npkg;
 
 pub use arch::x86_64::time as time;
 pub use fs as filesystem;
@@ -146,12 +161,10 @@ pub extern "C" fn kernel_main() -> ! {
 fn early_vga_error(args: core::fmt::Arguments<'_>) {
     let mut buf = [0u8; 256];
     use core::fmt::Write;
-
     struct SliceWriter<'a> {
         buf: &'a mut [u8],
         pos: usize,
     }
-
     impl<'a> core::fmt::Write for SliceWriter<'a> {
         fn write_str(&mut self, s: &str) -> core::fmt::Result {
             let bytes = s.as_bytes();
@@ -170,7 +183,6 @@ fn early_vga_error(args: core::fmt::Arguments<'_>) {
     let _ = writer.write_fmt(args);
     let len = writer.pos;
 
-    // SAFETY: VGA text buffer at 0xb8000 is identity-mapped during early boot
     unsafe {
         let vga_base = 0xb8000 as *mut u16;
         let attr: u16 = 0x4F00;
@@ -184,7 +196,6 @@ fn early_vga_error(args: core::fmt::Arguments<'_>) {
 #[inline(always)]
 fn halt_loop() -> ! {
     loop {
-        // SAFETY: HLT is always safe
         unsafe { core::arch::asm!("hlt", options(nomem, nostack, preserves_flags)); }
     }
 }

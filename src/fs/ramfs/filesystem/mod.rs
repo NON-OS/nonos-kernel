@@ -14,14 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod path;
-mod key;
-mod crypto;
-mod core;
-mod ops;
-mod list;
-mod global;
-mod legacy;
+pub mod path;
+pub mod key;
+pub mod crypto;
+pub mod core;
+pub mod ops;
+pub mod list;
+pub mod global;
+pub mod legacy;
 
 pub use path::normalize_path;
 pub use core::NonosFilesystem;
@@ -44,6 +44,13 @@ pub use global::{
     rename,
     stats,
     init_nonos_fs,
+};
+pub use legacy::{
+    create_file_legacy,
+    read_file_legacy,
+    write_file_legacy,
+    delete_file_legacy,
+    list_dir_legacy,
 };
 
 #[cfg(test)]

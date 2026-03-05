@@ -14,10 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+//! IP packet parsing
 
 use super::types::IpAddress;
 use super::header::{Ipv4Header, Ipv6Header};
 
+/// Parsed IP packet
 #[derive(Debug, Clone)]
 pub struct IpPacket<'a> {
     v4: Option<Ipv4Header>,
@@ -26,6 +28,7 @@ pub struct IpPacket<'a> {
 }
 
 impl<'a> IpPacket<'a> {
+    /// Parse IPv4 packet from raw bytes
     pub fn parse_ipv4(bytes: &'a [u8]) -> Result<Self, &'static str> {
         if bytes.len() < Ipv4Header::MIN_SIZE {
             return Err("ipv4: packet too short");
@@ -69,6 +72,7 @@ impl<'a> IpPacket<'a> {
         })
     }
 
+    /// Parse IPv6 packet from raw bytes
     pub fn parse_ipv6(bytes: &'a [u8]) -> Result<Self, &'static str> {
         if bytes.len() < Ipv6Header::SIZE {
             return Err("ipv6: packet too short");
@@ -109,6 +113,7 @@ impl<'a> IpPacket<'a> {
         })
     }
 
+    /// Get destination address
     pub fn dest_addr(&self) -> IpAddress {
         if let Some(h) = &self.v4 {
             IpAddress::V4(h.dst)
@@ -119,6 +124,7 @@ impl<'a> IpPacket<'a> {
         }
     }
 
+    /// Get source address
     pub fn src_addr(&self) -> IpAddress {
         if let Some(h) = &self.v4 {
             IpAddress::V4(h.src)
@@ -129,6 +135,7 @@ impl<'a> IpPacket<'a> {
         }
     }
 
+    /// Get protocol number
     pub fn protocol(&self) -> u8 {
         self.v4
             .as_ref()
@@ -137,14 +144,17 @@ impl<'a> IpPacket<'a> {
             .unwrap_or(0)
     }
 
+    /// Get payload bytes
     pub fn payload(&self) -> &'a [u8] {
         self.payload
     }
 
+    /// Get total length
     pub fn total_length(&self) -> u16 {
         self.v4.as_ref().map(|h| h.total_length).unwrap_or(0)
     }
 
+    /// Get TTL (IPv4) or hop limit (IPv6)
     pub fn ttl(&self) -> u8 {
         self.v4
             .as_ref()
@@ -153,10 +163,12 @@ impl<'a> IpPacket<'a> {
             .unwrap_or(0)
     }
 
+    /// Check if this is an IPv4 packet
     pub fn is_ipv4(&self) -> bool {
         self.v4.is_some()
     }
 
+    /// Check if this is an IPv6 packet
     pub fn is_ipv6(&self) -> bool {
         self.v6.is_some()
     }

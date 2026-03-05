@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -36,7 +36,7 @@ fn wots_chain(
     out
 }
 
-pub fn wots_pk_gen(
+pub(crate) fn wots_pk_gen(
     sk_seed: &[u8; SPHINCS_N],
     pk_seed: &[u8; SPHINCS_N],
     addr: &mut Address,
@@ -60,7 +60,7 @@ pub fn wots_pk_gen(
     thash(pk_seed, addr, &tmp)
 }
 
-pub fn wots_sign(
+pub(crate) fn wots_sign(
     sk_seed: &[u8; SPHINCS_N],
     pk_seed: &[u8; SPHINCS_N],
     msg: &[u8; SPHINCS_N],
@@ -99,7 +99,7 @@ pub fn wots_sign(
     sig
 }
 
-pub fn wots_pk_from_sig(
+pub(crate) fn wots_pk_from_sig(
     pk_seed: &[u8; SPHINCS_N],
     sig: &[u8],
     msg: &[u8; SPHINCS_N],

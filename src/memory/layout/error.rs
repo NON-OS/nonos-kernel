@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -14,24 +14,54 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+//! Memory Layout Error Types
+//!
+//! Error types for memory layout validation and manipulation.
+
 use core::fmt;
+
+/// Errors that can occur during layout operations
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum LayoutError {
+    /// KASLR slide is not page-aligned
     SlideNotAligned,
+
+    /// Kernel base is below higher-half
     KernelBaseTooLow,
+
+    /// Per-CPU stride is not page-aligned
     PercpuStrideMisaligned,
+
+    /// Layout windows overlap
     WindowOverlap,
+
+    /// Layout region ordering violation
     OrderViolation,
+
+    /// Requested size exceeds region capacity
     SizeExceedsCapacity,
+
+    /// Address is not in kernel space
     NotInKernelSpace,
+
+    /// Address is not in user space
     NotInUserSpace,
+
+    /// Invalid alignment value
     InvalidAlignment,
+
+    /// Layout not initialized
     NotInitialized,
+
+    /// Layout configuration locked
     ConfigLocked,
+
+    /// Invalid region boundaries
     InvalidRegionBounds,
 }
 
 impl LayoutError {
+    /// Returns a human-readable description of the error
     pub fn as_str(&self) -> &'static str {
         match self {
             Self::SlideNotAligned => "KASLR slide not page-aligned",
@@ -49,6 +79,7 @@ impl LayoutError {
         }
     }
 
+    /// Returns true if this is a configuration error (vs runtime error)
     pub fn is_config_error(&self) -> bool {
         matches!(
             self,
@@ -67,7 +98,9 @@ impl fmt::Display for LayoutError {
     }
 }
 
+/// Result type alias for layout operations
 pub type LayoutResult<T> = Result<T, LayoutError>;
+
 impl From<&'static str> for LayoutError {
     fn from(s: &'static str) -> Self {
         match s {

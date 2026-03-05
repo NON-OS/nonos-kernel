@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -86,11 +86,3 @@ pub(crate) fn words_from_le_bytes(bytes: &[u8; BLOCK_LEN]) -> [u32; 16] {
     words
 }
 
-#[inline]
-pub(crate) fn words_to_le_bytes(words: &[u32; 8]) -> [u8; 32] {
-    let mut bytes = [0u8; 32];
-    for (i, &w) in words.iter().enumerate() {
-        bytes[i * 4..(i + 1) * 4].copy_from_slice(&w.to_le_bytes());
-    }
-    bytes
-}

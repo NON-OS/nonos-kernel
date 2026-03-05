@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -14,21 +14,43 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+//! MMIO Error Types
+
 use core::fmt;
+
+/// Errors from MMIO operations.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum MmioError {
+    /// MMIO manager not initialized
     NotInitialized,
+
+    /// Invalid size (zero or too large)
     InvalidSize,
+
+    /// Physical address not page-aligned
     NotPageAligned,
+
+    /// MMIO virtual address space exhausted
     AddressSpaceExhausted,
+
+    /// MMIO region not found
     RegionNotFound,
+
+    /// Access beyond region bounds
     AccessOutOfBounds,
+
+    /// Invalid MMIO base address
     InvalidBaseAddress,
+
+    /// Failed to map MMIO page
     MappingFailed,
+
+    /// Failed to unmap MMIO page
     UnmapFailed,
 }
 
 impl MmioError {
+    /// Returns a human-readable description.
     pub fn as_str(&self) -> &'static str {
         match self {
             Self::NotInitialized => "MMIO manager not initialized",
@@ -43,6 +65,7 @@ impl MmioError {
         }
     }
 
+    /// Returns true if this is a fatal error.
     pub fn is_fatal(&self) -> bool {
         matches!(
             self,
@@ -57,7 +80,9 @@ impl fmt::Display for MmioError {
     }
 }
 
+/// Result type for MMIO operations.
 pub type MmioResult<T> = Result<T, MmioError>;
+
 impl From<&'static str> for MmioError {
     fn from(s: &'static str) -> Self {
         match s {

@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-#[cfg(feature = "sha1-legacy")]
-#[deprecated(since = "0.8.0", note = "SHA-1 is cryptographically broken. We use SHA-256 or SHA-3.")]
+// SHA-1 needed for WPA compatibility - use SHA-256 or SHA-3 for new code
+#[deprecated(since = "0.8.0", note = "SHA-1 is cryptographically broken. Use SHA-256 or SHA-3 instead.")]
 pub fn sha1(data: &[u8]) -> [u8; 20] {
     let mut h = [
         0x67452301u32,
@@ -28,6 +28,7 @@ pub fn sha1(data: &[u8]) -> [u8; 20] {
     let mut message = data.to_vec();
     let bit_len = (message.len() as u64) * 8;
     message.push(0x80);
+
     while (message.len() % 64) != 56 {
         message.push(0);
     }
@@ -35,6 +36,7 @@ pub fn sha1(data: &[u8]) -> [u8; 20] {
 
     for chunk in message.chunks_exact(64) {
         let mut w = [0u32; 80];
+
         for i in 0..16 {
             w[i] = u32::from_be_bytes([
                 chunk[i * 4],
@@ -53,6 +55,7 @@ pub fn sha1(data: &[u8]) -> [u8; 20] {
         let mut c = h[2];
         let mut d = h[3];
         let mut e = h[4];
+
         for i in 0..80 {
             let (f, k) = match i {
                 0..=19 => ((b & c) | (!b & d), 0x5A827999),

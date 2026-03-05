@@ -39,10 +39,6 @@ pub fn needs_save() -> bool {
     SETTINGS_MODIFIED.load(Ordering::Relaxed)
 }
 
-pub(super) fn clear_modified() {
-    SETTINGS_MODIFIED.store(false, Ordering::SeqCst);
-}
-
 pub fn reset_to_defaults() {
     unsafe {
         CURRENT_SETTINGS = Settings::default();

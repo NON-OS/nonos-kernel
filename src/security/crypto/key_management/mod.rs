@@ -15,16 +15,16 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 
-mod types;
-mod errors;
-mod entry;
-mod audit;
-mod store;
-mod ops;
-mod rotation;
-mod derivation;
-mod deletion;
-mod query;
+pub mod types;
+pub mod errors;
+pub mod entry;
+pub mod audit;
+pub mod store;
+pub mod ops;
+pub mod rotation;
+pub mod derivation;
+pub mod deletion;
+pub mod query;
 
 pub use types::{KeyType, KeyUsage};
 pub use errors::{KeyError, KeyResult};

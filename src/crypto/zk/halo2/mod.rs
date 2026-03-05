@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -38,6 +38,7 @@ pub(crate) const MAX_PROOF_BYTES: usize = 1 * 1024 * 1024;
 pub(crate) const MAX_PUBLIC_INPUTS: usize = 1 << 20;
 pub(crate) const MIN_K: u32 = 4;
 pub(crate) const MAX_K: u32 = 24;
+
 pub(crate) const FR_MODULUS_BYTES: [u8; 32] = [
     0x01, 0x00, 0x00, 0xf0, 0x93, 0xf5, 0xe1, 0x43,
     0x91, 0x70, 0xb9, 0x79, 0x48, 0xe8, 0x33, 0x28,

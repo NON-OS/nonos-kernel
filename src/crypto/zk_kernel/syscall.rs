@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -22,6 +22,7 @@ use super::verifier::{ZkResult, KERNEL_ZK_VERIFIER};
 use super::schnorr::SchnorrProof;
 use super::pedersen::PedersenCommitment;
 use super::plonk::plonk_prove;
+use super::range::RangeProof;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum ZkError {
@@ -127,6 +128,21 @@ pub fn syscall_zk_prove_schnorr(
 pub fn syscall_zk_prove_plonk(witness: &[[u8; 32]]) -> Result<Vec<u8>, ZkError> {
     match plonk_prove(witness) {
         Ok(proof) => Ok(proof.to_bytes()),
+        Err(_) => Err(ZkError::InternalError),
+    }
+}
+
+pub fn syscall_zk_prove_range(value: u64, bits: u8) -> Result<Vec<u8>, ZkError> {
+    match RangeProof::prove(value, bits) {
+        Ok(proof) => {
+            let mut result = Vec::with_capacity(1 + 32 + proof.bit_commitments.len() * 32);
+            result.push(proof.bits);
+            result.extend_from_slice(&proof.response);
+            for comm in &proof.bit_commitments {
+                result.extend_from_slice(comm);
+            }
+            Ok(result)
+        }
         Err(_) => Err(ZkError::InternalError),
     }
 }

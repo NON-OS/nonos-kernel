@@ -14,15 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod firmware;
-mod init;
-mod network;
-mod types;
+pub mod firmware;
+pub mod init;
+pub mod network;
+pub mod types;
 
 pub use firmware::{load_firmware_from_disk, try_load_firmware};
 pub use init::{
     connect, device_count, disconnect, get_device, get_link_info, get_realtek_device, init,
     is_available, is_connected, is_realtek, print_status, scan,
 };
-pub use network::{_full_init, _register_with_network_stack};
-pub use types::{LinkInfo, WifiDeviceType};
+pub use types::LinkInfo;

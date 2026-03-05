@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -14,14 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-#![no_std]
 extern crate alloc;
+
 mod address;
 mod rlp;
 mod transaction;
 
 #[cfg(test)]
 mod tests;
+
 pub use address::EthAddress;
 pub use rlp::{rlp_encode_bytes, rlp_encode_list, rlp_encode_u128, rlp_encode_u64};
 pub use transaction::{
@@ -29,7 +30,9 @@ pub use transaction::{
 };
 
 pub const NOX_TOKEN_ADDRESS: [u8; 20] = hex_to_bytes_20("0a26c80Be4E060e688d7C23aDdB92cBb5D2C9eCA");
+
 pub(crate) const HEX_CHARS: &[u8; 16] = b"0123456789abcdef";
+
 const fn hex_to_bytes_20(hex: &str) -> [u8; 20] {
     let bytes = hex.as_bytes();
     let mut result = [0u8; 20];

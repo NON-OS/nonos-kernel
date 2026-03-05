@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 extern crate alloc;
+
 use alloc::vec;
 use alloc::vec::Vec;
 use crate::crypto::rng;
@@ -26,6 +27,7 @@ use super::{
 pub fn mceliece_encaps(pk: &McEliecePublicKey) -> Result<(McElieceCiphertext, [u8; MCELIECE_SHARED_SECRET_BYTES]), &'static str> {
     let mut error = vec![0u8; MCELIECE_N / 8];
     let mut positions: Vec<usize> = (0..MCELIECE_N).collect();
+
     for i in (MCELIECE_N - MCELIECE_T..MCELIECE_N).rev() {
         let j = rng::random_range((i + 1) as u32) as usize;
         positions.swap(i, j);
@@ -38,6 +40,7 @@ pub fn mceliece_encaps(pk: &McEliecePublicKey) -> Result<(McElieceCiphertext, [u
 
     let r = MCELIECE_N - MCELIECE_K;
     let mut syndrome = vec![0u8; r / 8];
+
     for i in 0..r / 8 {
         syndrome[i] = error[i];
     }
@@ -45,6 +48,7 @@ pub fn mceliece_encaps(pk: &McEliecePublicKey) -> Result<(McElieceCiphertext, [u
     let t_row_bytes = MCELIECE_K / 8;
     for row in 0..r {
         let t_offset = row * t_row_bytes;
+
         let mut bit = 0u8;
         for j in 0..MCELIECE_K / 8 {
             if t_offset + j < pk.t_matrix.len() {
@@ -62,6 +66,8 @@ pub fn mceliece_encaps(pk: &McEliecePublicKey) -> Result<(McElieceCiphertext, [u
     let mut ciphertext = vec![0u8; MCELIECE_CIPHERTEXT_BYTES];
     ciphertext[..syndrome.len()].copy_from_slice(&syndrome);
     ciphertext[syndrome.len()..].fill(0);
+
     let shared_secret = hash_error(&error);
+
     Ok((McElieceCiphertext { c: ciphertext }, shared_secret))
 }

@@ -219,4 +219,66 @@ impl RealtekWifiDevice {
 
         self.write32(regs::HISR, isr);
     }
+
+    pub fn init_tx_descriptors(&mut self) {
+        for i in 0..TX_RING_SIZE {
+            let desc_ptr = (self.tx_ring_virt.as_u64() + (i * core::mem::size_of::<RtlTxDesc>()) as u64) as *mut RtlTxDesc;
+            unsafe {
+                ptr::write(desc_ptr, RtlTxDesc::new());
+            }
+        }
+    }
+
+    pub fn init_rx_descriptors(&mut self) {
+        for i in 0..RX_RING_SIZE {
+            let desc_ptr = (self.rx_ring_virt.as_u64() + (i * core::mem::size_of::<RtlRxDesc>()) as u64) as *mut RtlRxDesc;
+            let buf_addr = self.rx_buffers_phys.as_u64() + (i * RX_BUFFER_SIZE) as u64;
+            unsafe {
+                ptr::write(desc_ptr, RtlRxDesc::new());
+                let desc = &*desc_ptr;
+                desc.configure_rx(RX_BUFFER_SIZE as u16, buf_addr);
+            }
+        }
+    }
+
+    pub fn process_rx_ring(&mut self) -> Vec<Vec<u8>> {
+        let mut frames = Vec::new();
+
+        loop {
+            let desc_ptr = (self.rx_ring_virt.as_u64() + (self.rx_head * core::mem::size_of::<RtlRxDesc>()) as u64) as *const RtlRxDesc;
+            let desc = unsafe { &*desc_ptr };
+
+            if desc.is_own() {
+                break;
+            }
+
+            if desc.is_crc_err() || desc.is_icv_err() {
+                desc.clear_own();
+                desc.set_own();
+                self.rx_head = (self.rx_head + 1) % RX_RING_SIZE;
+                continue;
+            }
+
+            if !desc.is_first_seg() || !desc.is_last_seg() {
+                desc.set_own();
+                self.rx_head = (self.rx_head + 1) % RX_RING_SIZE;
+                continue;
+            }
+
+            let pkt_len = desc.pkt_len() as usize;
+            if pkt_len > 0 && pkt_len <= RX_BUFFER_SIZE {
+                let buf_addr = self.rx_buffers_virt.as_u64() + (self.rx_head * RX_BUFFER_SIZE) as u64;
+                let mut data = alloc::vec![0u8; pkt_len];
+                unsafe {
+                    ptr::copy_nonoverlapping(buf_addr as *const u8, data.as_mut_ptr(), pkt_len);
+                }
+                frames.push(data);
+            }
+
+            desc.set_own();
+            self.rx_head = (self.rx_head + 1) % RX_RING_SIZE;
+        }
+
+        frames
+    }
 }

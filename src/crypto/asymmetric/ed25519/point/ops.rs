@@ -15,18 +15,13 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::crypto::asymmetric::ed25519::field::{
-    fe_add, fe_copy, fe_mul, fe_sq, fe_sub, Fe,
+    fe_add, fe_copy, fe_mul, fe_sq, fe_sub,
 };
 use super::types::{GeP3, GeP2, GeCached, GeP1P1, D2};
 
 #[inline]
 pub(crate) fn ge_identity() -> GeP3 {
-    GeP3 {
-        X: Fe::zero(),
-        Y: Fe::one(),
-        Z: Fe::one(),
-        T: Fe::zero(),
-    }
+    GeP3::identity()
 }
 
 #[inline]

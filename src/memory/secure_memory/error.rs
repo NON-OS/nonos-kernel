@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -14,31 +14,75 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+//! Secure Memory Manager Error Types
+//!
+//! Error types for secure memory allocation and management operations.
+
 use core::fmt;
+
+/// Errors that can occur during secure memory operations
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum SecureMemoryError {
+    /// Memory manager not initialized
     NotInitialized,
+
+    /// Already initialized (double init attempt)
     AlreadyInitialized,
+
+    /// Invalid allocation size (zero or too large)
     InvalidSize,
+
+    /// Allocation failed (out of memory or mapping failed)
     AllocationFailed,
+
+    /// Address not found in managed regions
     AddressNotFound,
+
+    /// Region not found for the given ID
     RegionNotFound,
+
+    /// Address translation failed
     TranslationFailed,
+
+    /// Memory zeroing operation failed
     ZeroingFailed,
+
+    /// Access denied (permission or ownership violation)
     AccessDenied,
+
+    /// Invalid security level specified
     InvalidSecurityLevel,
+
+    /// Invalid region type specified
     InvalidRegionType,
+
+    /// Maximum region count exceeded
     RegionLimitExceeded,
+
+    /// Process ID mismatch (ownership violation)
     OwnershipViolation,
+
+    /// Write access to read-only region
     WriteToReadOnly,
+
+    /// Execute access to non-executable region
     ExecuteViolation,
+
+    /// Memory already deallocated
     AlreadyDeallocated,
+
+    /// Invalid virtual address (null or non-canonical)
     InvalidAddress,
+
+    /// Deallocation of system region not allowed
     SystemRegionProtected,
+
+    /// Internal data structure corruption detected
     InternalCorruption,
 }
 
 impl SecureMemoryError {
+    /// Returns a human-readable description of the error
     pub fn as_str(&self) -> &'static str {
         match self {
             Self::NotInitialized => "Memory manager not initialized",
@@ -63,6 +107,7 @@ impl SecureMemoryError {
         }
     }
 
+    /// Returns true if this is a security-critical error
     pub fn is_security_critical(&self) -> bool {
         matches!(
             self,
@@ -75,6 +120,7 @@ impl SecureMemoryError {
         )
     }
 
+    /// Returns true if this error indicates a programming bug
     pub fn is_internal_error(&self) -> bool {
         matches!(
             self,
@@ -82,6 +128,7 @@ impl SecureMemoryError {
         )
     }
 
+    /// Returns true if the operation should be retried
     pub fn is_retriable(&self) -> bool {
         matches!(self, Self::AllocationFailed)
     }
@@ -93,7 +140,9 @@ impl fmt::Display for SecureMemoryError {
     }
 }
 
+/// Result type alias for secure memory operations
 pub type SecureMemoryResult<T> = Result<T, SecureMemoryError>;
+
 impl From<&'static str> for SecureMemoryError {
     fn from(s: &'static str) -> Self {
         match s {

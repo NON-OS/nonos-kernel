@@ -1,0 +1,247 @@
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+//! Global IPC message bus.
+
+extern crate alloc;
+
+use alloc::{collections::VecDeque, string::String, vec::Vec};
+use core::sync::atomic::Ordering;
+use spin::{Mutex, RwLock};
+
+use super::channel::{ChannelEntry, IpcChannel};
+use super::hash::compute_channel_key;
+use super::message::IpcMessage;
+use super::stats::{BusStats, BusStatsSnapshot};
+
+/// Default maximum queue size
+pub const DEFAULT_MAX_QUEUE: usize = 4096;
+
+/// Default message timeout in milliseconds
+pub const DEFAULT_MSG_TIMEOUT_MS: u64 = 5_000;
+
+/// Global IPC message bus
+///
+/// Manages channel registration and message queuing.
+/// All operations are thread-safe using spin locks.
+pub struct IpcBus {
+    /// Registered channels
+    channels: RwLock<Vec<ChannelEntry>>,
+    /// Message queue (key, message)
+    queue: Mutex<VecDeque<(u64, IpcMessage)>>,
+    /// Maximum queue size
+    max_queue: usize,
+    /// Message timeout in milliseconds
+    msg_timeout_ms: u64,
+    /// Statistics
+    stats: BusStats,
+}
+
+impl IpcBus {
+    /// Create a new IPC bus
+    pub const fn new() -> Self {
+        Self {
+            channels: RwLock::new(Vec::new()),
+            queue: Mutex::new(VecDeque::new()),
+            max_queue: DEFAULT_MAX_QUEUE,
+            msg_timeout_ms: DEFAULT_MSG_TIMEOUT_MS,
+            stats: BusStats::new(),
+        }
+    }
+
+    /// Register a new channel route
+    pub fn open_channel(
+        &self,
+        from: &str,
+        to: &str,
+        _token: &crate::syscall::capabilities::CapabilityToken,
+    ) -> Result<(), &'static str> {
+        if from.is_empty() || to.is_empty() {
+            return Err("Invalid channel endpoints");
+        }
+
+        let mut ch = self.channels.write();
+
+        // Check if channel already exists
+        if ch.iter().any(|c| c.from == from && c.to == to) {
+            return Ok(()); // Idempotent
+        }
+
+        ch.push(ChannelEntry::new(from, to));
+        self.stats.channels_opened.fetch_add(1, Ordering::Relaxed);
+
+        Ok(())
+    }
+
+    /// Find a channel handle by endpoints
+    pub fn find_channel(&self, from: impl AsRef<str>, to: impl AsRef<str>) -> Option<IpcChannel> {
+        let f = from.as_ref();
+        let t = to.as_ref();
+        let key = compute_channel_key(f, t);
+
+        let ch = self.channels.read();
+        if ch.iter().any(|c| c.key == key && c.alive.load(Ordering::Relaxed)) {
+            Some(IpcChannel { key })
+        } else {
+            None
+        }
+    }
+
+    /// Check if a channel exists
+    pub fn channel_exists(&self, from: &str, to: &str) -> bool {
+        let key = compute_channel_key(from, to);
+        let ch = self.channels.read();
+        ch.iter().any(|c| c.key == key)
+    }
+
+    /// Enqueue a message for processing
+    pub fn enqueue(&self, key: u64, msg: IpcMessage) -> Result<(), &'static str> {
+        // Update channel activity
+        if let Some(c) = self.channels.read().iter().find(|c| c.key == key) {
+            c.record_send();
+        }
+
+        let bytes = msg.data.len() as u64;
+
+        let mut q = self.queue.lock();
+        if q.len() >= self.max_queue {
+            self.stats.queue_full_rejections.fetch_add(1, Ordering::Relaxed);
+            return Err("IPC queue full");
+        }
+
+        q.push_back((key, msg));
+        drop(q);
+
+        self.stats.messages_enqueued.fetch_add(1, Ordering::Relaxed);
+        self.stats.bytes_transferred.fetch_add(bytes, Ordering::Relaxed);
+
+        Ok(())
+    }
+
+    /// Pop the next message from the queue
+    pub fn get_next_message(&self) -> Option<IpcMessage> {
+        let mut q = self.queue.lock();
+        let result = q.pop_front().map(|(_key, msg)| msg);
+
+        if result.is_some() {
+            self.stats.messages_dequeued.fetch_add(1, Ordering::Relaxed);
+        }
+
+        result
+    }
+
+    /// Get and remove messages that exceeded timeout
+    pub fn get_timed_out_messages(&self) -> Vec<IpcMessage> {
+        let now = crate::time::timestamp_millis();
+        let mut q = self.queue.lock();
+        let mut out = Vec::new();
+        let mut remain = VecDeque::with_capacity(q.len());
+
+        while let Some((key, msg)) = q.pop_front() {
+            if now.saturating_sub(msg.timestamp_ms) > self.msg_timeout_ms {
+                out.push(msg);
+                self.stats.messages_timed_out.fetch_add(1, Ordering::Relaxed);
+
+                // Mark channel as potentially dead
+                if let Some(c) = self.channels.read().iter().find(|c| c.key == key) {
+                    c.alive.store(false, Ordering::Relaxed);
+                }
+            } else {
+                remain.push_back((key, msg));
+            }
+        }
+
+        *q = remain;
+        out
+    }
+
+    /// Find channels marked as dead
+    pub fn find_dead_channels(&self) -> Vec<usize> {
+        let ch = self.channels.read();
+        ch.iter()
+            .enumerate()
+            .filter(|(_i, c)| !c.alive.load(Ordering::Relaxed))
+            .map(|(i, _)| i)
+            .collect()
+    }
+
+    /// Remove a channel by index
+    pub fn remove_channel(&self, index: usize) {
+        let mut ch = self.channels.write();
+        if index < ch.len() {
+            ch.remove(index);
+            self.stats.channels_closed.fetch_add(1, Ordering::Relaxed);
+        }
+    }
+
+    /// Remove all channels for a module
+    pub fn remove_all_channels_for_module(&self, module: &str) {
+        let mut ch = self.channels.write();
+        let before = ch.len();
+        ch.retain(|c| c.from != module && c.to != module);
+        let removed = before - ch.len();
+        self.stats.channels_closed.fetch_add(removed as u64, Ordering::Relaxed);
+    }
+
+    /// List all routes as (from, to) pairs
+    pub fn list_routes(&self) -> Vec<(String, String)> {
+        self.channels
+            .read()
+            .iter()
+            .map(|c| (c.from.clone(), c.to.clone()))
+            .collect()
+    }
+
+    /// Get active channel count
+    pub fn get_active_channel_count(&self) -> usize {
+        self.channels.read().len()
+    }
+
+    /// Get current queue depth
+    pub fn get_queue_depth(&self) -> usize {
+        self.queue.lock().len()
+    }
+
+    /// Send a system message without capability checks
+    ///
+    /// Used for kernel-originated notifications.
+    pub fn send_system_message(
+        &self,
+        env: crate::ipc::nonos_message::IpcEnvelope,
+    ) -> Result<(), &'static str> {
+        let key = compute_channel_key(&env.from, &env.to);
+        let msg = IpcMessage::new(&env.from, &env.to, &env.data)?;
+        self.enqueue(key, msg)
+    }
+
+    /// Get bus statistics snapshot
+    pub fn get_stats(&self) -> BusStatsSnapshot {
+        BusStatsSnapshot {
+            messages_enqueued: self.stats.messages_enqueued.load(Ordering::Relaxed),
+            messages_dequeued: self.stats.messages_dequeued.load(Ordering::Relaxed),
+            messages_timed_out: self.stats.messages_timed_out.load(Ordering::Relaxed),
+            channels_opened: self.stats.channels_opened.load(Ordering::Relaxed),
+            channels_closed: self.stats.channels_closed.load(Ordering::Relaxed),
+            bytes_transferred: self.stats.bytes_transferred.load(Ordering::Relaxed),
+            queue_full_rejections: self.stats.queue_full_rejections.load(Ordering::Relaxed),
+            current_queue_depth: self.get_queue_depth(),
+            current_channel_count: self.get_active_channel_count(),
+        }
+    }
+}
+
+/// Global IPC bus instance
+pub static IPC_BUS: IpcBus = IpcBus::new();

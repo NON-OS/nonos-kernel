@@ -21,7 +21,11 @@ use super::input_click;
 
 pub(super) fn handle_key(ch: u8) {
     if find::is_active() {
-        find::handle_find_key(ch);
+        if find::is_replace_mode() {
+            find::handle_replace_key(ch);
+        } else {
+            find::handle_find_key(ch);
+        }
         return;
     }
 

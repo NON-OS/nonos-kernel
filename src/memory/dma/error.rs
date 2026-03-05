@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -15,27 +15,60 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 //! DMA Error Types
+
 use core::fmt;
+
+/// Errors from DMA operations.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum DmaError {
+    /// DMA allocator not initialized
     NotInitialized,
+
+    /// Invalid allocation size (zero or too large)
     InvalidSize,
+
+    /// Failed to allocate physical frame
     FrameAllocationFailed,
+
+    /// DMA32 constraint not satisfied
     Dma32ConstraintFailed,
+
+    /// Virtual address space exhausted
     AddressSpaceExhausted,
+
+    /// Failed to map DMA page
     MappingFailed,
+
+    /// Failed to unmap DMA page
     UnmappingFailed,
+
+    /// DMA region not found
     RegionNotFound,
+
+    /// Streaming mapping not found
     MappingNotFound,
+
+    /// Address translation failed
     TranslationFailed,
+
+    /// Pool at capacity
     PoolFull,
+
+    /// Double free detected
     DoubleFree,
+
+    /// Region not found in pool
     NotInPool,
+
+    /// Invalid alignment
     InvalidAlignment,
+
+    /// Buffer not found
     BufferNotFound,
 }
 
 impl DmaError {
+    /// Returns a human-readable description.
     pub const fn as_str(&self) -> &'static str {
         match self {
             Self::NotInitialized => "DMA allocator not initialized",
@@ -56,6 +89,7 @@ impl DmaError {
         }
     }
 
+    /// Returns true if this error is fatal.
     pub const fn is_fatal(&self) -> bool {
         matches!(
             self,
@@ -63,6 +97,7 @@ impl DmaError {
         )
     }
 
+    /// Returns true if this error indicates a programming bug.
     pub const fn is_bug(&self) -> bool {
         matches!(
             self,
@@ -70,6 +105,7 @@ impl DmaError {
         )
     }
 
+    /// Returns true if this error is recoverable.
     pub const fn is_recoverable(&self) -> bool {
         matches!(
             self,
@@ -84,7 +120,9 @@ impl fmt::Display for DmaError {
     }
 }
 
+/// Result type for DMA operations.
 pub type DmaResult<T> = Result<T, DmaError>;
+
 impl From<&'static str> for DmaError {
     fn from(s: &'static str) -> Self {
         match s {

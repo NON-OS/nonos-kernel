@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -14,19 +14,37 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+//! MMU Error Types
+
 use core::fmt;
+
+/// Errors from MMU operations.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum MmuError {
+    /// MMU not initialized
     NotInitialized,
+
+    /// NX bit not supported by CPU
     NxNotSupported,
+
+    /// Failed to allocate page table frame
     FrameAllocationFailed,
+
+    /// W^X violation: page cannot be both writable and executable
     WXViolation,
+
+    /// Address not mapped
     NotMapped,
+
+    /// No page table loaded (CR3 = 0)
     NoPageTableLoaded,
+
+    /// Already initialized
     AlreadyInitialized,
 }
 
 impl MmuError {
+    /// Returns a human-readable description.
     pub fn as_str(&self) -> &'static str {
         match self {
             Self::NotInitialized => "MMU not initialized",
@@ -39,6 +57,7 @@ impl MmuError {
         }
     }
 
+    /// Returns true if this is a fatal error.
     pub fn is_fatal(&self) -> bool {
         matches!(
             self,
@@ -46,6 +65,7 @@ impl MmuError {
         )
     }
 
+    /// Returns true if this is a security violation.
     pub fn is_security_violation(&self) -> bool {
         matches!(self, Self::WXViolation)
     }
@@ -57,7 +77,9 @@ impl fmt::Display for MmuError {
     }
 }
 
+/// Result type for MMU operations.
 pub type MmuResult<T> = Result<T, MmuError>;
+
 impl From<&'static str> for MmuError {
     fn from(s: &'static str) -> Self {
         match s {

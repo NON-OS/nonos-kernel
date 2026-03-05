@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+//! Ethereum JSON-RPC client.
 
 extern crate alloc;
 
@@ -356,11 +357,13 @@ impl Log {
             return Ok(logs);
         }
 
+        // Empty array check
         let inner = trimmed[1..trimmed.len()-1].trim();
         if inner.is_empty() {
             return Ok(logs);
         }
 
+        // Parse each log object in the array
         let mut depth = 0;
         let mut start = 0;
         let bytes = inner.as_bytes();
@@ -376,6 +379,7 @@ impl Log {
                 b'}' => {
                     depth -= 1;
                     if depth == 0 {
+                        // Found a complete log object
                         let log_json = &inner[start..=i];
                         if let Ok(log) = Self::parse_single(log_json) {
                             logs.push(log);
@@ -395,12 +399,14 @@ impl Log {
         let transaction_hash = extract_json_string(json, "transactionHash").unwrap_or_default();
         let log_index = extract_json_hex_u64(json, "logIndex").unwrap_or(0);
 
+        // Parse topics array
         let mut topics = Vec::new();
         if let Some(topics_start) = json.find("\"topics\"") {
             let rest = &json[topics_start..];
             if let Some(arr_start) = rest.find('[') {
                 if let Some(arr_end) = rest.find(']') {
                     let topics_str = &rest[arr_start+1..arr_end];
+                    // Parse each topic string
                     let mut in_string = false;
                     let mut topic_start = 0;
                     for (i, c) in topics_str.char_indices() {
@@ -421,6 +427,7 @@ impl Log {
             }
         }
 
+        // Parse data field
         let data_hex = extract_json_string(json, "data").unwrap_or_default();
         let data = hex_to_bytes(&data_hex).unwrap_or_default();
 

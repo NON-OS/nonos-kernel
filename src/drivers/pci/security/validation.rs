@@ -18,7 +18,7 @@ use core::sync::atomic::{AtomicU64, Ordering};
 
 use super::super::constants::*;
 use super::super::error::{PciError, ProtectedRegion, Result, SecurityViolation};
-use super::approval::{is_bus_master_approved, BUS_MASTER_APPROVED};
+use super::approval::is_bus_master_approved;
 use super::policy::POLICY;
 
 pub(super) static SECURITY_VIOLATIONS: AtomicU64 = AtomicU64::new(0);

@@ -14,10 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+//! PCI bus scanning and xHCI controller detection
 
 use crate::sys::io::{inl, outl};
 use crate::sys::serial;
 
+// PCI Constants
 pub(crate) const PCI_CONFIG_ADDRESS: u16 = 0xCF8;
 pub(crate) const PCI_CONFIG_DATA: u16 = 0xCFC;
 
@@ -30,15 +32,14 @@ pub(crate) fn pci_addr(b: u8, d: u8, f: u8, o: u8) -> u32 {
 }
 
 pub(crate) fn pci_r32(b: u8, d: u8, f: u8, o: u8) -> u32 {
-    // SAFETY: PCI config space access via standard x86 I/O ports
     unsafe { outl(PCI_CONFIG_ADDRESS, pci_addr(b,d,f,o)); inl(PCI_CONFIG_DATA) }
 }
 
 pub(crate) fn pci_w32(b: u8, d: u8, f: u8, o: u8, v: u32) {
-    // SAFETY: PCI config space access via standard x86 I/O ports
     unsafe { outl(PCI_CONFIG_ADDRESS, pci_addr(b,d,f,o)); outl(PCI_CONFIG_DATA, v); }
 }
 
+/// Find xHCI controller on PCI bus
 pub fn find_xhci() -> Option<(u8, u8, u8, u64)> {
     serial::println(b"[USB] Scanning PCI...");
     for b in 0u8..=255 {

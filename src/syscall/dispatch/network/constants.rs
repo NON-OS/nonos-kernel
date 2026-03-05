@@ -16,7 +16,6 @@
 
 pub(super) const AF_UNIX: u64 = 1;
 pub(super) const AF_INET: u64 = 2;
-pub(super) const AF_INET6: u64 = 10;
 
 pub(super) const SOCK_STREAM: u64 = 1;
 pub(super) const SOCK_DGRAM: u64 = 2;

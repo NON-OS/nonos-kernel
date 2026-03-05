@@ -35,7 +35,7 @@ pub(crate) enum RpcError {
     DnsError,
     ParseError,
     InvalidResponse,
-    RpcError(String),
+    RpcResponseError,
 }
 
 fn build_rpc_request(method: &str, params: &str) -> Vec<u8> {
@@ -63,6 +63,11 @@ fn parse_hex_balance(response: &[u8]) -> Result<u128, RpcError> {
     let result_pattern = b"\"result\":\"0x";
     let mut pos = 0;
 
+    // Check for null result first (invalid response format)
+    if response.windows(14).any(|w| w == b"\"result\":null") {
+        return Err(RpcError::InvalidResponse);
+    }
+
     while pos + result_pattern.len() < response.len() {
         if &response[pos..pos + result_pattern.len()] == result_pattern {
             let start = pos + result_pattern.len();
@@ -79,7 +84,7 @@ fn parse_hex_balance(response: &[u8]) -> Result<u128, RpcError> {
     }
 
     if response.windows(7).any(|w| w == b"\"error\"") {
-        return Err(RpcError::RpcError(String::from("RPC returned error")));
+        return Err(RpcError::RpcResponseError);
     }
 
     Err(RpcError::ParseError)

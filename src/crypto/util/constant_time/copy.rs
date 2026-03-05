@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -17,6 +17,7 @@
 use core::ptr;
 
 use super::{compiler_fence, volatile_write};
+
 #[inline(never)]
 pub fn ct_conditional_move(dst: &mut [u8], src: &[u8], cond: bool) {
     if dst.len() != src.len() {
@@ -57,7 +58,7 @@ pub fn ct_conditional_swap_32(a: &mut [u8; 32], b: &mut [u8; 32], cond: bool) {
 #[inline(never)]
 pub fn secure_zero(data: &mut [u8]) {
     for byte in data.iter_mut() {
-        // # SAFETY: write_volatile ensures the compiler cannot optimize away this
+        // SAFETY: write_volatile ensures the compiler cannot optimize away this
         // write. The pointer is valid because it comes from a mutable reference.
         unsafe { ptr::write_volatile(byte, 0) };
     }
@@ -67,20 +68,20 @@ pub fn secure_zero(data: &mut [u8]) {
 #[inline(never)]
 pub fn secure_erase(data: &mut [u8]) {
     for byte in data.iter_mut() {
-        // # SAFETY: write_volatile prevents optimization. Pointer validity guaranteed
+        // SAFETY: write_volatile prevents optimization. Pointer validity guaranteed
         // by mutable reference from slice iteration.
         unsafe { ptr::write_volatile(byte, 0x00) };
     }
     compiler_fence();
 
     for byte in data.iter_mut() {
-        // # SAFETY: Same as above, volatile write to valid mutable reference.
+        // SAFETY: Same as above - volatile write to valid mutable reference.
         unsafe { ptr::write_volatile(byte, 0xFF) };
     }
     compiler_fence();
 
     for byte in data.iter_mut() {
-        // # SAFETY: Same as above, volatile write to valid mutable reference.
+        // SAFETY: Same as above - volatile write to valid mutable reference.
         unsafe { ptr::write_volatile(byte, 0x00) };
     }
     compiler_fence();

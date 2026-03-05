@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -13,9 +13,9 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
-
 use core::sync::atomic::{AtomicUsize, AtomicU64, Ordering};
 use x86_64::{PhysAddr, VirtAddr};
+
 #[derive(Debug, Clone, Copy)]
 pub struct AllocatedPage {
     pub page_id: u64,
@@ -48,6 +48,7 @@ impl AllocatorStats {
         self.total_allocations.fetch_add(1, Ordering::Relaxed);
         let new_count = self.active_pages.fetch_add(1, Ordering::Relaxed) + 1;
         self.bytes_allocated.fetch_add(size as u64, Ordering::Relaxed);
+
         loop {
             let current_peak = self.peak_pages.load(Ordering::Relaxed);
             if new_count <= current_peak { break; }

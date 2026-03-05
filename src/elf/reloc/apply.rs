@@ -67,6 +67,7 @@ fn apply_relocation_with_context(
 
     let addend = rela.r_addend;
     let base = image.base_addr.as_u64();
+
     let symbol_value = if sym_index != 0 {
         context
             .resolve_symbol(sym_index, image.base_addr)

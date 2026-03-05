@@ -18,7 +18,6 @@ extern crate alloc;
 
 use alloc::string::String;
 use alloc::vec::Vec;
-use x86_64::VirtAddr;
 
 use super::registry::{EmbeddedLibrary, EmbeddedLibraryRegistry};
 use crate::elf::errors::{ElfError, ElfResult};

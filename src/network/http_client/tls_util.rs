@@ -16,7 +16,7 @@
 
 use alloc::vec::Vec;
 
-pub fn wrap_tls_record(content_type: u8, data: &[u8]) -> Vec<u8> {
+pub(super) fn wrap_tls_record(content_type: u8, data: &[u8]) -> Vec<u8> {
     let len = data.len();
     let mut record = Vec::with_capacity(5 + len);
     record.push(content_type);

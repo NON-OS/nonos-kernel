@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+//! Circuit types and data structures
 
 use alloc::{string::String, vec::Vec};
 use crate::network::onion::directory::RelayDescriptor;
@@ -99,6 +100,49 @@ pub struct CircuitMetrics {
     pub total_bytes_received: u64,
     pub active_streams: u16,
     pub uptime_ms: u64,
+}
+
+impl CircuitMetrics {
+    /// Create new metrics with default values
+    pub fn new() -> Self {
+        Self {
+            total_rtt_ms: 0,
+            total_bytes_sent: 0,
+            total_bytes_received: 0,
+            active_streams: 0,
+            uptime_ms: 0,
+        }
+    }
+
+    /// Get the average round-trip time
+    pub fn average_rtt(&self) -> u64 {
+        self.total_rtt_ms
+    }
+
+    /// Get total bytes transferred
+    pub fn total_bytes(&self) -> u64 {
+        self.total_bytes_sent + self.total_bytes_received
+    }
+
+    /// Get active stream count
+    pub fn stream_count(&self) -> u16 {
+        self.active_streams
+    }
+
+    /// Get circuit uptime
+    pub fn uptime(&self) -> u64 {
+        self.uptime_ms
+    }
+
+    /// Record data transfer
+    pub fn record_sent(&mut self, bytes: u64) {
+        self.total_bytes_sent = self.total_bytes_sent.saturating_add(bytes);
+    }
+
+    /// Record data received
+    pub fn record_received(&mut self, bytes: u64) {
+        self.total_bytes_received = self.total_bytes_received.saturating_add(bytes);
+    }
 }
 
 #[derive(Debug, Clone)]

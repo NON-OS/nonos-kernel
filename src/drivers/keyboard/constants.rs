@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+//! PS/2 keyboard constants.
+
 pub const KBD_DATA: u16 = 0x60;
 
 pub const KBD_STATUS: u16 = 0x64;
@@ -220,6 +222,8 @@ pub const CHAR_RING_SIZE: usize = 1024;
 
 pub const EVT_RING_SIZE: usize = 64;
 
+/// Maximum keyboard interrupts per second (protects against malfunctioning hardware).
 pub const KBD_MAX_INTERRUPTS_PER_SEC: u64 = 1000;
 
+/// Rate limiting window in microseconds.
 pub const KBD_RATE_LIMIT_WINDOW_US: u64 = 1_000_000;

@@ -14,12 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+//! USB control transfers and descriptor parsing
 
 use core::ptr::addr_of_mut;
 use crate::sys::serial;
 use super::ring::{queue_ep0, ring_db, wait_event};
 use super::xhci::USB_BUF;
 
+// =============================================================================
+// TRB Types and Constants
+// =============================================================================
 
 pub(crate) const TRB_TYPE_SETUP: u32 = 2;
 pub(crate) const TRB_TYPE_DATA: u32 = 3;
@@ -28,19 +32,26 @@ pub(crate) const TRB_TYPE_STATUS: u32 = 4;
 pub(crate) const TRB_IOC: u32 = 1 << 5;
 pub(crate) const TRB_IDT: u32 = 1 << 6;
 
+// USB Standard Requests
 pub(crate) const USB_REQ_GET_DESCRIPTOR: u8 = 0x06;
 pub(crate) const USB_REQ_SET_CONFIGURATION: u8 = 0x09;
 
+// USB HID Class Requests
 pub(crate) const USB_HID_REQ_SET_PROTOCOL: u8 = 0x0B;
 pub(crate) const USB_HID_REQ_SET_IDLE: u8 = 0x0A;
 
+// USB Descriptor Types
 pub(crate) const USB_DESC_DEVICE: u8 = 0x01;
 pub(crate) const USB_DESC_CONFIGURATION: u8 = 0x02;
 pub(crate) const USB_DESC_INTERFACE: u8 = 0x04;
 pub(crate) const USB_DESC_ENDPOINT: u8 = 0x05;
 
+// USB Class Codes
 pub(crate) const USB_CLASS_HID: u8 = 0x03;
 
+// =============================================================================
+// Endpoint Info
+// =============================================================================
 
 pub(super) struct EndpointInfo {
     pub(super) address: u8,
@@ -55,9 +66,13 @@ impl EndpointInfo {
     }
 }
 
+// =============================================================================
+// USB Control Transfer
+// =============================================================================
 
 pub(crate) fn control_transfer(slot: u8, req_type: u8, req: u8, value: u16, index: u16,
                         data_ptr: u64, data_len: u16, dir_in: bool) -> bool {
+    // Setup stage TRB
     let setup0 = (req_type as u32) | ((req as u32) << 8) | ((value as u32) << 16);
     let setup1 = (index as u32) | ((data_len as u32) << 16);
     let setup2 = 8; // TRB transfer length = 8 (setup packet)
@@ -65,6 +80,7 @@ pub(crate) fn control_transfer(slot: u8, req_type: u8, req: u8, value: u16, inde
     let setup3 = (TRB_TYPE_SETUP << 10) | TRB_IDT | (trt << 16);
     queue_ep0(setup0, setup1, setup2, setup3);
 
+    // Data stage TRB (if needed)
     if data_len > 0 {
         let data0 = (data_ptr & 0xFFFFFFFF) as u32;
         let data1 = (data_ptr >> 32) as u32;
@@ -74,12 +90,15 @@ pub(crate) fn control_transfer(slot: u8, req_type: u8, req: u8, value: u16, inde
         queue_ep0(data0, data1, data2, data3);
     }
 
+    // Status stage TRB
     let status_dir = if data_len > 0 && dir_in { 0 } else { 1u32 << 16 };
     let status3 = (TRB_TYPE_STATUS << 10) | status_dir | TRB_IOC;
     queue_ep0(0, 0, 0, status3);
 
+    // Ring doorbell for EP0 (DCI=1)
     ring_db(slot, 1);
 
+    // Wait for completion
     for _ in 0..3 {
         if let Some((typ, code, _)) = wait_event(100_000) {
             if typ == 32 { // Transfer Event
@@ -93,6 +112,7 @@ pub(crate) fn control_transfer(slot: u8, req_type: u8, req: u8, value: u16, inde
         }
     }
 
+    // Check final status
     if let Some((_, code, _)) = wait_event(10_000) {
         return code == 1 || code == 13;
     }
@@ -115,16 +135,22 @@ pub(crate) fn set_configuration(slot: u8, config: u8) -> bool {
 }
 
 pub(crate) fn set_protocol(slot: u8, interface: u8, protocol: u8) -> bool {
+    // bmRequestType=0x21 (class, interface), bRequest=SET_PROTOCOL
     control_transfer(slot, 0x21, USB_HID_REQ_SET_PROTOCOL, protocol as u16, interface as u16, 0, 0, false)
 }
 
 pub(crate) fn set_idle(slot: u8, interface: u8) -> bool {
+    // bmRequestType=0x21, bRequest=SET_IDLE, wValue=0 (infinite), wIndex=interface
     control_transfer(slot, 0x21, USB_HID_REQ_SET_IDLE, 0, interface as u16, 0, 0, false)
 }
 
+// =============================================================================
+// Descriptor Parsing
+// =============================================================================
 
 pub(super) fn parse_config_descriptor() -> Option<(u8, u8, EndpointInfo)> {
-        // SAFETY: Single-threaded descriptor parsing, no concurrent access to USB_BUF
+    // Returns (config_value, interface_number, interrupt_in_endpoint)
+    // SAFETY: Single-threaded descriptor parsing, no concurrent access to USB_BUF
     unsafe {
         let usb_buf_ptr = addr_of_mut!(USB_BUF);
         let data = &(*usb_buf_ptr).data;
@@ -150,6 +176,7 @@ pub(super) fn parse_config_descriptor() -> Option<(u8, u8, EndpointInfo)> {
                         let iface_subclass = data[pos + 6];
                         let iface_protocol = data[pos + 7];
 
+                        // HID class, boot interface (subclass 1), keyboard (1) or mouse (2)
                         if iface_class == USB_CLASS_HID && iface_subclass == 1 {
                             found_hid = true;
                             serial::print(b"[USB] HID interface ");
@@ -167,6 +194,7 @@ pub(super) fn parse_config_descriptor() -> Option<(u8, u8, EndpointInfo)> {
                         let ep_max = (data[pos + 4] as u16) | ((data[pos + 5] as u16) << 8);
                         let ep_interval = data[pos + 6];
 
+                        // Interrupt IN endpoint (bit 7 = direction IN, bits 1:0 = 11 = interrupt)
                         let ep_info = EndpointInfo {
                             address: ep_addr,
                             attributes: ep_attr,

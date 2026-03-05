@@ -36,7 +36,7 @@ pub(super) struct SchedulerStats {
 }
 
 impl SchedulerStats {
-    pub const fn new() -> Self {
+    pub(super) const fn new() -> Self {
         Self {
             context_switches: AtomicU64::new(0),
             preemptions: AtomicU64::new(0),

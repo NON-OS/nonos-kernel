@@ -170,7 +170,6 @@ pub fn write_kernel_gs_base(base: u64) {
 
 const CR4_SMEP: u64 = 1 << 20;
 const CR4_SMAP: u64 = 1 << 21;
-const RFLAGS_AC: u64 = 1 << 18;
 
 pub fn enable_smep() {
     // SAFETY: CR4 manipulation is safe in kernel mode. SMEP (bit 20) prevents

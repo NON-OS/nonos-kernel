@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub const FD_SETSIZE: i32 = 1024;
-pub const NFDBITS: usize = 64;
+const NFDBITS: usize = 64;
 
 pub const POLLIN: i16 = 0x0001;
 pub const POLLPRI: i16 = 0x0002;
@@ -28,22 +28,22 @@ pub const POLLRDBAND: i16 = 0x0080;
 pub const POLLWRNORM: i16 = 0x0100;
 pub const POLLWRBAND: i16 = 0x0200;
 
-pub const EINVAL: i32 = 22;
-pub const EFAULT: i32 = 14;
-pub const EINTR: i32 = 4;
+pub(super) const EINVAL: i32 = 22;
+pub(super) const EFAULT: i32 = 14;
+pub(super) const EINTR: i32 = 4;
 
 #[repr(C)]
 #[derive(Clone, Copy)]
-pub struct FdSet {
+pub(super) struct FdSet {
     pub bits: [u64; FD_SETSIZE as usize / NFDBITS],
 }
 
 impl FdSet {
-    pub fn new() -> Self {
+    pub(super) fn new() -> Self {
         Self { bits: [0; FD_SETSIZE as usize / NFDBITS] }
     }
 
-    pub fn isset(&self, fd: i32) -> bool {
+    pub(super) fn isset(&self, fd: i32) -> bool {
         if fd < 0 || fd >= FD_SETSIZE {
             return false;
         }
@@ -52,7 +52,7 @@ impl FdSet {
         (self.bits[idx] & (1u64 << bit)) != 0
     }
 
-    pub fn set(&mut self, fd: i32) {
+    pub(super) fn set(&mut self, fd: i32) {
         if fd >= 0 && fd < FD_SETSIZE {
             let idx = fd as usize / NFDBITS;
             let bit = fd as usize % NFDBITS;
@@ -60,7 +60,7 @@ impl FdSet {
         }
     }
 
-    pub fn zero(&mut self) {
+    pub(super) fn zero(&mut self) {
         for i in 0..self.bits.len() {
             self.bits[i] = 0;
         }
@@ -69,14 +69,14 @@ impl FdSet {
 
 #[repr(C)]
 #[derive(Clone, Copy)]
-pub struct Timeval {
+pub(super) struct Timeval {
     pub tv_sec: i64,
     pub tv_usec: i64,
 }
 
 #[repr(C)]
 #[derive(Clone, Copy)]
-pub struct Timespec {
+pub(super) struct Timespec {
     pub tv_sec: i64,
     pub tv_nsec: i64,
 }

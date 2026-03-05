@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod control;
-mod core;
-mod init;
-mod operations;
-mod registers;
+pub mod control;
+pub mod core;
+pub mod init;
+pub mod operations;
+pub mod registers;
 
 pub use self::core::DesignWareI2c;

@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -37,6 +37,7 @@ pub fn mceliece_deserialize_public_key(bytes: &[u8]) -> Result<McEliecePublicKey
 
 pub fn mceliece_serialize_secret_key(sk: &McElieceSecretKey) -> Vec<u8> {
     let mut out = Vec::with_capacity(MCELIECE_SECRETKEY_BYTES);
+
     for &coeff in &sk.goppa_poly {
         out.extend_from_slice(&coeff.to_le_bytes());
     }
@@ -58,6 +59,7 @@ pub fn mceliece_deserialize_secret_key(bytes: &[u8]) -> Result<McElieceSecretKey
     }
 
     let mut offset = 0;
+
     let mut goppa_poly = vec![0u16; MCELIECE_T + 1];
     for coeff in &mut goppa_poly {
         if offset + 2 > bytes.len() {

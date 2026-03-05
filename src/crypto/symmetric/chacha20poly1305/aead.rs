@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -129,16 +129,20 @@ pub fn aead_encrypt_in_place(
     chacha20_block(key, nonce, 0, &mut block0);
     let mut otk = [0u8; 32];
     otk.copy_from_slice(&block0[..32]);
+
     chacha20_xor(key, nonce, 1, &mut buffer[..plaintext_len]);
 
     let tag = compute_tag(&otk, aad, &buffer[..plaintext_len]);
+
     buffer[plaintext_len..plaintext_len + TAG_SIZE].copy_from_slice(&tag);
+
     secure_zero_bytes(&mut otk);
     secure_zero_bytes(&mut block0);
+
     Ok(plaintext_len + TAG_SIZE)
 }
 
-// SECURITY: Constant-time decrypt_in_place always performs decryption to prevent timing oracle
+// SECURITY: Constant-time decrypt_in_place - always performs decryption to prevent timing oracle
 pub fn aead_decrypt_in_place(
     key: &[u8; 32],
     nonce: &[u8; 12],
@@ -160,10 +164,13 @@ pub fn aead_decrypt_in_place(
 
     let expected_tag = compute_tag(&otk, aad, &buffer[..ct_len]);
     let tag_ok = ct_eq(&expected_tag, tag);
+
     secure_zero_bytes(&mut otk);
     secure_zero_bytes(&mut block0);
+
     // SECURITY: Always decrypt regardless of tag validity to prevent timing oracle
     chacha20_xor(key, nonce, 1, &mut buffer[..ct_len]);
+
     if !tag_ok {
         // SECURITY: Zero buffer to prevent leaking decrypted data on auth failure
         secure_zero_bytes(&mut buffer[..ct_len]);

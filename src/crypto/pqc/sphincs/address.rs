@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -14,16 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub const ADDR_TYPE_WOTS: u8 = 0;
-pub const ADDR_TYPE_WOTS_PK: u8 = 1;
-pub const ADDR_TYPE_TREE: u8 = 2;
-pub const ADDR_TYPE_FORS_TREE: u8 = 3;
-pub const ADDR_TYPE_FORS_ROOTS: u8 = 4;
-pub const ADDR_TYPE_WOTS_PRF: u8 = 5;
-pub const ADDR_TYPE_FORS_PRF: u8 = 6;
+pub(super) const ADDR_TYPE_WOTS: u8 = 0;
+pub(super) const ADDR_TYPE_WOTS_PK: u8 = 1;
+pub(super) const ADDR_TYPE_TREE: u8 = 2;
+pub(super) const ADDR_TYPE_FORS_TREE: u8 = 3;
+pub(super) const ADDR_TYPE_FORS_ROOTS: u8 = 4;
+pub(super) const ADDR_TYPE_WOTS_PRF: u8 = 5;
+pub(super) const ADDR_TYPE_FORS_PRF: u8 = 6;
 
 #[derive(Clone, Copy, Default)]
-pub struct Address {
+pub(crate) struct Address {
     pub layer: u32,
     pub tree: u64,
     pub addr_type: u8,
@@ -35,7 +35,7 @@ pub struct Address {
 }
 
 impl Address {
-    pub fn to_bytes(&self) -> [u8; 32] {
+    pub(crate) fn to_bytes(&self) -> [u8; 32] {
         let mut out = [0u8; 32];
         out[0..4].copy_from_slice(&self.layer.to_be_bytes());
         out[4..12].copy_from_slice(&self.tree.to_be_bytes());
@@ -47,12 +47,12 @@ impl Address {
         out
     }
 
-    pub fn set_layer(&mut self, layer: u32) { self.layer = layer; }
-    pub fn set_tree(&mut self, tree: u64) { self.tree = tree; }
-    pub fn set_type(&mut self, t: u8) { self.addr_type = t; }
-    pub fn set_keypair(&mut self, kp: u32) { self.keypair = kp; }
-    pub fn set_chain(&mut self, c: u32) { self.chain = c; }
-    pub fn set_hash(&mut self, h: u32) { self.hash = h; }
-    pub fn set_tree_height(&mut self, th: u32) { self.tree_height = th; }
-    pub fn set_tree_index(&mut self, ti: u32) { self.tree_index = ti; }
+    pub(crate) fn set_layer(&mut self, layer: u32) { self.layer = layer; }
+    pub(crate) fn set_tree(&mut self, tree: u64) { self.tree = tree; }
+    pub(crate) fn set_type(&mut self, t: u8) { self.addr_type = t; }
+    pub(crate) fn set_keypair(&mut self, kp: u32) { self.keypair = kp; }
+    pub(crate) fn set_chain(&mut self, c: u32) { self.chain = c; }
+    pub(crate) fn set_hash(&mut self, h: u32) { self.hash = h; }
+    pub(crate) fn set_tree_height(&mut self, th: u32) { self.tree_height = th; }
+    pub(crate) fn set_tree_index(&mut self, ti: u32) { self.tree_index = ti; }
 }

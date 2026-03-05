@@ -14,15 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod core;
-mod builtins;
-mod system;
-mod process;
-mod network;
-mod filesystem;
-mod crypto;
-mod apps;
-mod blockchain;
-mod npkg;
+pub mod core;
+pub mod builtins;
+pub mod system;
+pub mod process;
+pub mod network;
+pub mod filesystem;
+pub mod crypto;
+pub mod apps;
+pub mod blockchain;
+pub mod npkg;
 
 pub(crate) use self::core::dispatch;

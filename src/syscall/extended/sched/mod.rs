@@ -14,11 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod affinity;
-mod attr;
-mod param;
-mod prio;
-mod util;
+pub mod affinity;
+pub mod attr;
+pub mod param;
+pub mod prio;
+pub mod util;
 
 pub use util::{PRIO_PROCESS, PRIO_PGRP, PRIO_USER};
 

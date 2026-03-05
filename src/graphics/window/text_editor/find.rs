@@ -18,6 +18,7 @@ pub use super::find_state::{
     open_find, open_replace, close_find, is_active, toggle_case_sensitive,
     get_match_count,
 };
+pub(super) use super::find_state::is_replace_mode;
 
 pub use super::find_search::{find_next, find_prev};
 
@@ -25,4 +26,4 @@ pub use super::find_replace::{replace_one, replace_all};
 
 pub use super::find_input::{set_find_pattern, set_replace_pattern};
 
-pub(super) use super::find_input::handle_find_key;
+pub(super) use super::find_input::{handle_find_key, handle_replace_key};

@@ -41,13 +41,26 @@ pub unsafe fn init_serial() {
         let mut fcr = Port::<u8>::new(COM1 + 2);
         let mut mcr = Port::<u8>::new(COM1 + 4);
 
+        // Disable interrupts
         ier.write(0x00);
+
+        // Enable DLAB (set baud rate divisor)
         lcr.write(0x80);
-        data.write(0x03);
-        ier.write(0x00);
+
+        // Set divisor to 3 (38400 baud)
+        data.write(0x03); // Low byte
+        ier.write(0x00);  // High byte
+
+        // 8 bits, no parity, one stop bit
         lcr.write(0x03);
+
+        // Enable FIFO, clear TX/RX queues, 14-byte threshold
         fcr.write(0xC7);
+
+        // Enable DTR, RTS, and OUT2 (required for interrupts)
         mcr.write(0x0B);
+
+        // Enable receive interrupts
         ier.write(0x01);
     }
 }
@@ -65,10 +78,12 @@ impl SerialWriter {
         let mut port = Port::<u8>::new(COM1);
         let mut lsr = Port::<u8>::new(COM1 + 5);
 
+        // Wait for transmit buffer to be empty with timeout
         let mut wait_count = 0u32;
         while unsafe { lsr.read() } & LSR_TX_EMPTY == 0 {
             wait_count += 1;
             if wait_count >= MAX_TX_WAIT {
+                // Timeout - transmit anyway to avoid deadlock
                 break;
             }
             core::hint::spin_loop();

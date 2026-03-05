@@ -89,7 +89,7 @@ pub(super) fn delete_backward() {
     find_all();
 }
 
-pub(super) fn get_pattern() -> String {
+pub fn get_pattern() -> String {
     let buf = FIND_BUFFER.lock();
     let len = FIND_LEN.load(Ordering::Relaxed);
     if len > 0 {
@@ -101,11 +101,11 @@ pub(super) fn get_pattern() -> String {
     }
 }
 
-pub(super) fn get_pattern_len() -> usize {
+pub(crate) fn get_pattern_len() -> usize {
     FIND_LEN.load(Ordering::Relaxed)
 }
 
-pub(super) fn get_cursor() -> usize {
+pub fn get_cursor() -> usize {
     FIND_CURSOR.load(Ordering::Relaxed)
 }
 
@@ -179,7 +179,7 @@ pub fn get_match_count() -> usize {
     MATCH_COUNT.load(Ordering::Relaxed)
 }
 
-pub(super) fn get_current_match() -> usize {
+pub fn get_current_match() -> usize {
     CURRENT_MATCH.load(Ordering::Relaxed)
 }
 
@@ -236,7 +236,7 @@ pub(super) fn clear_matches() {
     CURRENT_MATCH.store(0, Ordering::Relaxed);
 }
 
-pub(super) fn clear_find() {
+pub fn clear_find() {
     let mut buf = FIND_BUFFER.lock();
     *buf = [0u8; MAX_SEARCH_LEN];
     FIND_LEN.store(0, Ordering::Relaxed);
@@ -244,7 +244,7 @@ pub(super) fn clear_find() {
     clear_matches();
 }
 
-pub(super) fn is_match_position(line: usize, char_pos: usize) -> bool {
+pub(crate) fn is_match_position(line: usize, char_pos: usize) -> bool {
     let matches_vec = MATCHES.lock();
     for (l, start, end) in matches_vec.iter() {
         if *l == line && char_pos >= *start && char_pos < *end {
@@ -254,7 +254,7 @@ pub(super) fn is_match_position(line: usize, char_pos: usize) -> bool {
     false
 }
 
-pub(super) fn is_current_match_position(line: usize, char_pos: usize) -> bool {
+pub(crate) fn is_current_match_position(line: usize, char_pos: usize) -> bool {
     let count = MATCH_COUNT.load(Ordering::Relaxed);
     if count == 0 {
         return false;

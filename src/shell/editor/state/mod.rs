@@ -14,11 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod config;
-mod editor;
-mod editing;
-mod selection;
-mod search;
+pub mod config;
+pub mod editor;
+pub mod editing;
+pub mod selection;
+pub mod search;
 
 pub use self::config::{EditorConfig, VisualSelection, Register};
 pub use self::editor::Editor;

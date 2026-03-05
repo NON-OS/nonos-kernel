@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod hooks;
-mod state;
-mod tick;
+pub mod hooks;
+pub mod state;
+pub mod tick;
 
 pub use hooks::{clear_tick_hook, init, set_tick_hook, TickHook};
 pub use state::{get_ticks as tick_count, reset_ticks, TICK_COUNT};

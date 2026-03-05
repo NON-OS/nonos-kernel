@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+//! Keyboard events.
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub enum KeyEvent {
@@ -28,6 +29,8 @@ pub enum KeyEvent {
     Insert,
     Delete,
     Escape,
+    Backspace,
+    Enter,
     F1,
     F2,
     F3,
@@ -57,6 +60,8 @@ impl KeyEvent {
             KeyEvent::Insert => 9,
             KeyEvent::Delete => 10,
             KeyEvent::Escape => 11,
+            KeyEvent::Backspace => 24,
+            KeyEvent::Enter => 25,
             KeyEvent::F1 => 12,
             KeyEvent::F2 => 13,
             KeyEvent::F3 => 14,
@@ -98,6 +103,8 @@ impl KeyEvent {
             21 => Some(KeyEvent::F10),
             22 => Some(KeyEvent::F11),
             23 => Some(KeyEvent::F12),
+            24 => Some(KeyEvent::Backspace),
+            25 => Some(KeyEvent::Enter),
             _ => None,
         }
     }
@@ -115,6 +122,8 @@ impl KeyEvent {
             KeyEvent::Insert => "Insert",
             KeyEvent::Delete => "Delete",
             KeyEvent::Escape => "Escape",
+            KeyEvent::Backspace => "Backspace",
+            KeyEvent::Enter => "Enter",
             KeyEvent::F1 => "F1",
             KeyEvent::F2 => "F2",
             KeyEvent::F3 => "F3",

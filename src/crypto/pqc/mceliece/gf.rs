@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -16,16 +16,16 @@
 
 use super::MCELIECE_M;
 
-pub struct GF2m;
+pub(super) struct GF2m;
 
 impl GF2m {
     const MODULUS: u16 = 0x1009;
 
-    pub fn add(a: u16, b: u16) -> u16 {
+    pub(super) fn add(a: u16, b: u16) -> u16 {
         a ^ b
     }
 
-    pub fn mul(a: u16, b: u16) -> u16 {
+    pub(super) fn mul(a: u16, b: u16) -> u16 {
         if a == 0 || b == 0 {
             return 0;
         }
@@ -48,7 +48,7 @@ impl GF2m {
         (result & ((1 << MCELIECE_M) - 1)) as u16
     }
 
-    pub fn inv(a: u16) -> u16 {
+    pub(super) fn inv(a: u16) -> u16 {
         if a == 0 {
             return 0;
         }
@@ -61,7 +61,4 @@ impl GF2m {
         Self::mul(result, result)
     }
 
-    pub fn square(a: u16) -> u16 {
-        Self::mul(a, a)
-    }
 }

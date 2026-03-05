@@ -14,18 +14,55 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+//! NONOS Ecosystem Wallet Module.
+
 extern crate alloc;
 
-mod api;
 pub mod keys;
 pub mod rpc;
 pub mod state;
 pub mod stealth;
 pub mod transaction;
 
-pub use api::{init, start, stop, is_running, create_wallet};
 pub use keys::{derive_account, generate_wallet, import_wallet, WalletKeys};
 pub use rpc::{EthRpcClient, RpcEndpoint, RpcNetwork};
 pub use state::{get_wallet, init_wallet, lock_wallet, unlock_wallet, WalletState};
 pub use stealth::{generate_stealth_address, scan_announcements, StealthKeyPair, StealthMetaAddress};
 pub use transaction::{build_transaction, sign_transaction, SignedTransaction, TransactionRequest};
+
+use alloc::string::String;
+use core::sync::atomic::{AtomicBool, Ordering};
+
+static RUNNING: AtomicBool = AtomicBool::new(false);
+
+pub fn init() {
+    // Initialize wallet subsystem
+}
+
+pub fn start() {
+    RUNNING.store(true, Ordering::SeqCst);
+}
+
+pub fn stop() {
+    RUNNING.store(false, Ordering::SeqCst);
+}
+
+pub fn is_running() -> bool {
+    RUNNING.load(Ordering::Relaxed)
+}
+
+pub fn create_wallet() -> Result<String, &'static str> {
+    let mnemonic = crate::crypto::application::bip39::generate_mnemonic(12)
+        .map_err(|_| "Failed to generate mnemonic")?;
+
+    let seed = crate::crypto::application::bip39::mnemonic_to_seed(&mnemonic, "")
+        .map_err(|_| "Failed to derive seed")?;
+
+    let wallet_keys = WalletKeys::from_seed(&seed)
+        .map_err(|_| "Failed to create wallet keys")?;
+
+    let address = wallet_keys.derive_address_hex(0)
+        .map_err(|_| "Failed to derive address")?;
+
+    Ok(address)
+}

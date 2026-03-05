@@ -18,7 +18,7 @@ use core::sync::atomic::Ordering;
 use crate::graphics::framebuffer::{fill_rect, COLOR_TEXT_WHITE};
 use crate::graphics::font::draw_char;
 use super::constants::*;
-use super::state::{get_path, FILE_ENTRIES, FILE_ENTRY_COUNT, FM_SELECTED_ITEM};
+use super::state::{get_path, FILE_ENTRIES, FILE_ENTRY_COUNT, FM_SELECTED_ITEM, FM_RENAMING, get_input_text};
 use super::clipboard::has_clipboard;
 
 fn draw_string(x: u32, y: u32, text: &[u8], color: u32) {
@@ -132,7 +132,22 @@ fn draw_content_area(x: u32, y: u32, w: u32, h: u32) {
             fill_rect(x + 10, ry + 6, 14, 16, icon_color);
         }
 
-        draw_string(x + 35, ry + 7, &entry.name[..entry.name_len as usize], COLOR_TEXT_WHITE);
+        // Show rename input box if this item is being renamed
+        if i == selected && FM_RENAMING.load(Ordering::Relaxed) {
+            // Draw input box background
+            fill_rect(x + 32, ry + 2, 200, ROW_HEIGHT - 4, 0xFF2D333B);
+            fill_rect(x + 33, ry + 3, 198, ROW_HEIGHT - 6, 0xFF0D1117);
+
+            // Draw current input text
+            let input_text = get_input_text();
+            draw_string(x + 38, ry + 7, input_text.as_bytes(), COLOR_TEXT_WHITE);
+
+            // Draw cursor
+            let cursor_x = x + 38 + (input_text.len() as u32) * 8;
+            fill_rect(cursor_x, ry + 5, 2, 14, 0xFF58A6FF);
+        } else {
+            draw_string(x + 35, ry + 7, &entry.name[..entry.name_len as usize], COLOR_TEXT_WHITE);
+        }
 
         if !entry.is_dir {
             let mut size_buf = [0u8; 10];

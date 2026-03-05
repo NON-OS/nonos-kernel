@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -17,17 +17,17 @@
 use crate::crypto::constant_time::{compiler_fence, secure_zero};
 use crate::crypto::symmetric::aes::Aes256;
 
-pub const BLOCK_SIZE: usize = 16;
+pub(super) const BLOCK_SIZE: usize = 16;
 
 const GF128_R: u64 = 0xE100_0000_0000_0000;
 
 #[derive(Clone)]
-pub struct GhashKey {
+pub(super) struct GhashKey {
     h: (u64, u64),
 }
 
 impl GhashKey {
-    pub fn new(aes: &Aes256) -> Self {
+    pub(super) fn new(aes: &Aes256) -> Self {
         let zero = [0u8; BLOCK_SIZE];
         let h_block = aes.encrypt_block(&zero);
         let h = block_to_u128(&h_block);
@@ -35,7 +35,7 @@ impl GhashKey {
     }
 
     #[inline]
-    pub fn mul(&self, x: (u64, u64)) -> (u64, u64) {
+    pub(super) fn mul(&self, x: (u64, u64)) -> (u64, u64) {
         gf128_mul_bitwise(x, self.h)
     }
 }
@@ -52,7 +52,7 @@ impl Drop for GhashKey {
 }
 
 #[inline]
-pub fn block_to_u128(block: &[u8; 16]) -> (u64, u64) {
+pub(super) fn block_to_u128(block: &[u8; 16]) -> (u64, u64) {
     let hi = u64::from_be_bytes([
         block[0], block[1], block[2], block[3],
         block[4], block[5], block[6], block[7],
@@ -65,7 +65,7 @@ pub fn block_to_u128(block: &[u8; 16]) -> (u64, u64) {
 }
 
 #[inline]
-pub fn u128_to_block(val: (u64, u64)) -> [u8; 16] {
+pub(super) fn u128_to_block(val: (u64, u64)) -> [u8; 16] {
     let mut block = [0u8; 16];
     block[0..8].copy_from_slice(&val.0.to_be_bytes());
     block[8..16].copy_from_slice(&val.1.to_be_bytes());
@@ -73,12 +73,12 @@ pub fn u128_to_block(val: (u64, u64)) -> [u8; 16] {
 }
 
 #[inline(always)]
-pub fn gf128_xor(a: (u64, u64), b: (u64, u64)) -> (u64, u64) {
+pub(super) fn gf128_xor(a: (u64, u64), b: (u64, u64)) -> (u64, u64) {
     (a.0 ^ b.0, a.1 ^ b.1)
 }
 
 #[inline(never)]
-pub fn gf128_mul_bitwise(x: (u64, u64), y: (u64, u64)) -> (u64, u64) {
+pub(super) fn gf128_mul_bitwise(x: (u64, u64), y: (u64, u64)) -> (u64, u64) {
     let mut z = (0u64, 0u64);
     let mut v = y;
 
@@ -111,7 +111,7 @@ pub fn gf128_mul_bitwise(x: (u64, u64), y: (u64, u64)) -> (u64, u64) {
     z
 }
 
-pub struct GhashState {
+pub(super) struct GhashState {
     key: GhashKey,
     y: (u64, u64),
     aad_len: u64,
@@ -122,7 +122,7 @@ pub struct GhashState {
 }
 
 impl GhashState {
-    pub fn new(key: GhashKey) -> Self {
+    pub(super) fn new(key: GhashKey) -> Self {
         Self {
             key,
             y: (0, 0),
@@ -134,13 +134,13 @@ impl GhashState {
         }
     }
 
-    pub fn update_aad(&mut self, data: &[u8]) {
+    pub(super) fn update_aad(&mut self, data: &[u8]) {
         debug_assert!(!self.aad_done, "AAD already finalized");
         self.aad_len += data.len() as u64;
         self.update_internal(data);
     }
 
-    pub fn finalize_aad(&mut self) {
+    pub(super) fn finalize_aad(&mut self) {
         if self.aad_done {
             return;
         }
@@ -157,7 +157,7 @@ impl GhashState {
         self.aad_done = true;
     }
 
-    pub fn update_ct(&mut self, data: &[u8]) {
+    pub(super) fn update_ct(&mut self, data: &[u8]) {
         if !self.aad_done {
             self.finalize_aad();
         }
@@ -197,7 +197,7 @@ impl GhashState {
         }
     }
 
-    pub fn finalize(mut self) -> (u64, u64) {
+    pub(super) fn finalize(mut self) -> (u64, u64) {
         if !self.aad_done {
             self.finalize_aad();
         }

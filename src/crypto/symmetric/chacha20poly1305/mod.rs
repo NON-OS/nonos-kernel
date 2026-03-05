@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -29,6 +29,3 @@ pub use aead::{
     KEY_SIZE, NONCE_SIZE, TAG_SIZE,
 };
 
-pub(crate) use chacha20::{chacha20_xor, secure_zero_bytes, secure_zero_u32, CHACHA_CONSTANT};
-pub(crate) use poly1305::Poly1305;
-pub(crate) use aead::compute_tag;

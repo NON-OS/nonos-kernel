@@ -15,14 +15,15 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::crypto::asymmetric::ed25519::field::{fe_cmov, fe_equal, fe_is_zero};
-use super::types::{GeP3, GeP2};
+use super::types::GeP3;
 use super::ops::{ge_identity, ge_to_cached, ge_add, ge_double, ge_p1p1_to_p3};
 use super::pack::ge_basepoint;
 use super::precomp::PRECOMP;
 
 pub(crate) fn ge_scalarmult_base_ct(a: &[u8; 32]) -> GeP3 {
     let _ = PRECOMP.wait();
-    ge_scalarmult_ct(&ge_basepoint(), a)
+    let base = ge_basepoint();
+    ge_scalarmult_ct(&base, a)
 }
 
 pub(crate) fn ge_scalarmult_ct(P: &GeP3, scalar: &[u8; 32]) -> GeP3 {
@@ -40,12 +41,7 @@ pub(crate) fn ge_scalarmult_ct(P: &GeP3, scalar: &[u8; 32]) -> GeP3 {
         let mask = ct_byte_mask(bit);
         result = ge_cmov(&result, &sum_p3, mask);
 
-        let p2 = GeP2 {
-            X: temp.X,
-            Y: temp.Y,
-            Z: temp.Z,
-        };
-        let doubled = ge_double(&p2);
+        let doubled = ge_double(&temp.to_p2());
         temp = ge_p1p1_to_p3(&doubled);
     }
 
@@ -81,38 +77,17 @@ pub(crate) fn ge_scalarmult_vartime(P: &GeP3, scalar: &[u8; 32]) -> GeP3 {
             result = ge_p1p1_to_p3(&sum);
         }
 
-        let p2 = GeP2 {
-            X: temp.X,
-            Y: temp.Y,
-            Z: temp.Z,
-        };
-        let doubled = ge_double(&p2);
+        let doubled = ge_double(&temp.to_p2());
         temp = ge_p1p1_to_p3(&doubled);
     }
 
     result
 }
 
-pub(crate) fn ge_scalarmult_point(P: &GeP3, s: &[u8; 32]) -> GeP3 {
-    ge_scalarmult_vartime(P, s)
-}
-
 pub(crate) fn ge_has_large_order(p: &GeP3) -> bool {
-    let p2 = ge_p1p1_to_p3(&ge_double(&GeP2 {
-        X: p.X,
-        Y: p.Y,
-        Z: p.Z,
-    }));
-    let p4 = ge_p1p1_to_p3(&ge_double(&GeP2 {
-        X: p2.X,
-        Y: p2.Y,
-        Z: p2.Z,
-    }));
-    let p8 = ge_p1p1_to_p3(&ge_double(&GeP2 {
-        X: p4.X,
-        Y: p4.Y,
-        Z: p4.Z,
-    }));
+    let p2 = ge_p1p1_to_p3(&ge_double(&p.to_p2()));
+    let p4 = ge_p1p1_to_p3(&ge_double(&p2.to_p2()));
+    let p8 = ge_p1p1_to_p3(&ge_double(&p4.to_p2()));
 
     let x_is_zero = fe_is_zero(&p8.X);
     let y_eq_z = fe_equal(&p8.Y, &p8.Z);

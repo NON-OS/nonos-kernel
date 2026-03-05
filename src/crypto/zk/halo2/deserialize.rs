@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -76,14 +76,18 @@ pub(crate) fn read_vk(
 pub(crate) fn parse_public_inputs(columns_le: &[&[[u8; 32]]]) -> Result<Vec<Vec<Fr>>, Halo2Error> {
     let mut total = 0usize;
     let mut out: Vec<Vec<Fr>> = Vec::with_capacity(columns_le.len());
+
     for col in columns_le {
         let mut v = Vec::with_capacity(col.len());
+
         for bytes in *col {
             let opt = Fr::from_bytes(bytes);
+
             if bool::from(opt.is_none()) {
                 return Err(Halo2Error::InvalidFieldElement);
             }
-            // # SAFETY: We just verified opt.is_some() above via the is_none() check
+
+            // SAFETY: We just verified opt.is_some() above via the is_none() check
             if let Some(val) = Option::from(opt) {
                 v.push(val);
             } else {

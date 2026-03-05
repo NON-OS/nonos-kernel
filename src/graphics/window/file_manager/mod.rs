@@ -31,4 +31,4 @@ pub use path::open_selected;
 pub use operations::{create_folder, delete_selected};
 pub use clipboard::{copy_selected, cut_selected, paste};
 pub use render::draw_file_manager;
-pub use input::handle_file_manager_click;
+pub use input::{handle_file_manager_click, handle_file_manager_key, handle_file_manager_special_key, cancel_rename};

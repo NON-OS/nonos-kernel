@@ -14,17 +14,37 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+//! Privacy services for the Ecosystem app.
+
 extern crate alloc;
 
-mod api;
 pub mod stats;
 pub mod tracker_blocker;
 pub mod url_cleaner;
 
-pub use api::{init, start, stop, is_running};
 pub use stats::{
     get_stats, reset_stats, PrivacyStats,
     increment_params_stripped, increment_fingerprint_blocked, increment_cookies_blocked,
 };
 pub use tracker_blocker::{is_tracker, should_block, should_block as should_block_request, BLOCKED_DOMAINS, blocked_domain_count};
 pub use url_cleaner::{clean_url, strip_tracking_params, tracking_param_count};
+
+use core::sync::atomic::{AtomicBool, Ordering};
+
+static RUNNING: AtomicBool = AtomicBool::new(false);
+
+pub fn init() {
+    stats::reset_stats();
+}
+
+pub fn start() {
+    RUNNING.store(true, Ordering::SeqCst);
+}
+
+pub fn stop() {
+    RUNNING.store(false, Ordering::SeqCst);
+}
+
+pub fn is_running() -> bool {
+    RUNNING.load(Ordering::Relaxed)
+}

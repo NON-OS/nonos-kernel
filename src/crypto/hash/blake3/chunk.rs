@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -54,6 +54,7 @@ impl ChunkState {
 
     pub(crate) fn update(&mut self, input: &[u8]) {
         let mut offset = 0;
+
         while offset < input.len() {
             if self.block_len == BLOCK_LEN as u8 {
                 let block_words = words_from_le_bytes(&self.block);

@@ -39,13 +39,6 @@ fn validate_user_address(addr: u64, size: u64) -> Result<(), ElfError> {
     Ok(())
 }
 
-fn check_wx(flags: u32) -> Result<(), ElfError> {
-    if (flags & PF_W != 0) && (flags & PF_X != 0) {
-        return Err(ElfError::WXViolation);
-    }
-    Ok(())
-}
-
 pub fn load_elf(data: &[u8], base_addr: u64) -> Result<LoadedElf, ElfError> {
     let header = parse_header(data)?;
 

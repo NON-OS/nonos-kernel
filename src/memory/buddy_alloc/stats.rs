@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -14,20 +14,39 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+//! Buddy Allocator Statistics
+//!
+//! Lock-free statistics tracking for the buddy allocator.
+
 use core::sync::atomic::{AtomicU64, AtomicUsize, Ordering};
+
 use super::types::AllocStats;
+
 // ============================================================================
-// GLOBAL STATS TRACKER + STATISTICS TRACKER
+// GLOBAL STATS TRACKER
 // ============================================================================
+
+/// Global allocation statistics instance.
 pub static ALLOCATION_STATS: AllocationStatistics = AllocationStatistics::new();
+
+// ============================================================================
+// STATISTICS TRACKER
+// ============================================================================
+
+/// Lock-free allocation statistics tracker.
 pub struct AllocationStatistics {
+    /// Total currently allocated bytes
     total_allocated: AtomicU64,
+    /// Peak allocation bytes
     peak_allocated: AtomicU64,
+    /// Total allocation operations
     allocation_count: AtomicUsize,
+    /// Total free operations
     free_count: AtomicUsize,
 }
 
 impl AllocationStatistics {
+    /// Creates new statistics tracker.
     pub const fn new() -> Self {
         Self {
             total_allocated: AtomicU64::new(0),
@@ -36,9 +55,13 @@ impl AllocationStatistics {
             free_count: AtomicUsize::new(0),
         }
     }
+
+    /// Records an allocation.
     pub fn record_allocation(&self, size: u64) {
         let new_total = self.total_allocated.fetch_add(size, Ordering::AcqRel) + size;
         self.allocation_count.fetch_add(1, Ordering::Relaxed);
+
+        // Update peak using CAS loop
         loop {
             let current_peak = self.peak_allocated.load(Ordering::Relaxed);
             if new_total <= current_peak {
@@ -56,32 +79,38 @@ impl AllocationStatistics {
         }
     }
 
+    /// Records a deallocation.
     pub fn record_deallocation(&self, size: u64) {
         self.total_allocated.fetch_sub(size, Ordering::AcqRel);
         self.free_count.fetch_add(1, Ordering::Relaxed);
     }
 
+    /// Returns total currently allocated.
     #[inline]
     pub fn total_allocated(&self) -> u64 {
         self.total_allocated.load(Ordering::Relaxed)
     }
 
+    /// Returns peak allocated.
     #[inline]
     pub fn peak_allocated(&self) -> u64 {
         self.peak_allocated.load(Ordering::Relaxed)
     }
 
+    /// Returns allocation count.
     #[inline]
     pub fn allocation_count(&self) -> usize {
         self.allocation_count.load(Ordering::Relaxed)
     }
 
-  #[inline]
+    /// Returns free count.
+    #[inline]
     pub fn free_count(&self) -> usize {
         self.free_count.load(Ordering::Relaxed)
     }
 
-  pub fn get_stats(&self, active_ranges: usize) -> AllocStats {
+    /// Returns stats snapshot.
+    pub fn get_stats(&self, active_ranges: usize) -> AllocStats {
         AllocStats {
             total_allocated: self.total_allocated(),
             peak_allocated: self.peak_allocated(),

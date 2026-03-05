@@ -60,7 +60,7 @@ pub(super) fn find_delete_backward() {
     find_all();
 }
 
-pub(super) fn replace_insert_char(ch: u8) {
+pub(crate) fn replace_insert_char(ch: u8) {
     let len = REPLACE_LEN.load(Ordering::Relaxed);
     if len >= FIND_BUFFER_SIZE - 1 {
         return;
@@ -72,7 +72,7 @@ pub(super) fn replace_insert_char(ch: u8) {
     REPLACE_LEN.store(len + 1, Ordering::Relaxed);
 }
 
-pub(super) fn replace_delete_backward() {
+pub(crate) fn replace_delete_backward() {
     let len = REPLACE_LEN.load(Ordering::Relaxed);
     if len == 0 {
         return;
@@ -140,7 +140,7 @@ pub(super) fn handle_find_key(ch: u8) {
     }
 }
 
-pub(super) fn handle_replace_key(ch: u8) {
+pub(crate) fn handle_replace_key(ch: u8) {
     match ch {
         27 => {
             close_find();
@@ -158,7 +158,7 @@ pub(super) fn handle_replace_key(ch: u8) {
     }
 }
 
-pub(super) fn clear_find() {
+pub(crate) fn clear_find() {
     unsafe {
         for i in 0..FIND_BUFFER_SIZE {
             FIND_BUFFER[i] = 0;
@@ -169,7 +169,7 @@ pub(super) fn clear_find() {
     clear_highlights();
 }
 
-pub(super) fn clear_replace() {
+pub(crate) fn clear_replace() {
     unsafe {
         for i in 0..FIND_BUFFER_SIZE {
             REPLACE_BUFFER[i] = 0;

@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+//! Circuit performance monitoring
 
 use alloc::collections::BTreeMap;
 use core::sync::atomic::{AtomicU32, Ordering};
@@ -58,5 +59,15 @@ impl PerformanceMonitor {
             active_streams: 0,
             uptime_ms: 0,
         });
+    }
+
+    /// Record data transfer
+    pub(super) fn record_data_transfer(&self, bytes: u32) {
+        self.global.total_data_transferred.fetch_add(bytes, Ordering::Relaxed);
+    }
+
+    /// Get total data transferred across all circuits
+    pub(super) fn total_data_transferred(&self) -> u32 {
+        self.global.total_data_transferred.load(Ordering::Relaxed)
     }
 }

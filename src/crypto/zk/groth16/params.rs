@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -21,12 +21,15 @@ pub const R_HEX: &str = "30644e72e131a029b85045b68181585d2833e84879b9709143e1f59
 pub const SECURITY_BITS: u32 = 100;
 
 pub const PROOF_SIZE_UNCOMPRESSED: usize = 256;
+
 pub const PROOF_SIZE_COMPRESSED: usize = 128;
 
 pub const MIN_VK_SIZE_COMPRESSED: usize = 32 + 64 + 64 + 64 + 32;
 
 pub const G1_COMPRESSED_SIZE: usize = 32;
+
 pub const G2_COMPRESSED_SIZE: usize = 64;
 
 pub const G1_UNCOMPRESSED_SIZE: usize = 64;
+
 pub const G2_UNCOMPRESSED_SIZE: usize = 128;

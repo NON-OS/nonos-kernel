@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -14,7 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+//! Buddy Allocator Unit Tests
+
 use super::*;
+
+// ============================================================================
+// CONSTANTS TESTS
+// ============================================================================
+
 #[test]
 fn test_order_constants() {
     assert_eq!(MIN_ORDER, 12);
@@ -273,14 +280,17 @@ fn test_allocation_statistics_new() {
 #[test]
 fn test_allocation_statistics_record() {
     let stats = AllocationStatistics::new();
+
     stats.record_allocation(1000);
     assert_eq!(stats.total_allocated(), 1000);
     assert_eq!(stats.peak_allocated(), 1000);
     assert_eq!(stats.allocation_count(), 1);
+
     stats.record_allocation(500);
     assert_eq!(stats.total_allocated(), 1500);
     assert_eq!(stats.peak_allocated(), 1500);
     assert_eq!(stats.allocation_count(), 2);
+
     stats.record_deallocation(500);
     assert_eq!(stats.total_allocated(), 1000);
     assert_eq!(stats.peak_allocated(), 1500); // Peak unchanged
@@ -290,9 +300,11 @@ fn test_allocation_statistics_record() {
 #[test]
 fn test_allocation_statistics_peak_tracking() {
     let stats = AllocationStatistics::new();
+
     stats.record_allocation(1000);
     stats.record_deallocation(1000);
     stats.record_allocation(500);
+
     assert_eq!(stats.total_allocated(), 500);
     assert_eq!(stats.peak_allocated(), 1000); // Peak remains at previous high
 }
@@ -303,6 +315,7 @@ fn test_allocation_statistics_get_stats() {
     stats.record_allocation(4096);
     stats.record_allocation(8192);
     stats.record_deallocation(4096);
+
     let snapshot = stats.get_stats(5);
     assert_eq!(snapshot.total_allocated, 8192);
     assert_eq!(snapshot.peak_allocated, 4096 + 8192);
@@ -314,16 +327,21 @@ fn test_allocation_statistics_get_stats() {
 // ============================================================================
 // EDGE CASE TESTS
 // ============================================================================
+
 #[test]
 fn test_order_edge_cases() {
+    // Very small sizes should clamp to MIN_ORDER
     assert_eq!(size_to_order(0), MIN_ORDER);
     assert_eq!(size_to_order(1), MIN_ORDER);
+
+    // Exactly at boundary
     assert_eq!(size_to_order(MIN_BLOCK_SIZE), MIN_ORDER);
     assert_eq!(size_to_order(MIN_BLOCK_SIZE + 1), MIN_ORDER + 1);
 }
 
 #[test]
 fn test_buddy_at_region_boundaries() {
+    // At address 0
     let buddy = buddy_address(0, MIN_ORDER);
     assert_eq!(buddy, MIN_BLOCK_SIZE as u64);
 
@@ -336,8 +354,11 @@ fn test_buddy_at_region_boundaries() {
 
 #[test]
 fn test_flags_are_independent() {
+    // Flags can be combined
     let flags = ALLOC_FLAG_ZERO | ALLOC_FLAG_DMA;
     assert_eq!(flags, 0x0003);
+
+    // Check individual flags
     assert!(flags & ALLOC_FLAG_ZERO != 0);
     assert!(flags & ALLOC_FLAG_DMA != 0);
     assert!(flags & ALLOC_FLAG_UNCACHED == 0);

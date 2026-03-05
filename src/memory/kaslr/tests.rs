@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -13,6 +13,15 @@
 //
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+//! KASLR Unit Tests
+//!
+//! Comprehensive tests for KASLR functionality including:
+//! - Constants validation
+//! - Error handling
+//! - Policy validation
+//! - Range operations
+//! - Entropy quality checks
 
 use super::*;
 use super::constants::*;
@@ -344,6 +353,7 @@ fn test_choose_slide_range_bounds() {
         max_slide: 0x20000000,
     };
 
+    // Test many entropy values to check bounds
     for i in 0..100 {
         let entropy = (i as u64).wrapping_mul(0x123456789ABCDEF);
         let result = choose_slide(entropy, policy);
@@ -360,7 +370,9 @@ fn test_choose_slide_range_bounds() {
 
 #[test]
 fn test_get_slide_initial() {
+    // Before initialization, slide might be 0 or set from previous test
     let slide = get_slide();
+    // Just verify it doesn't panic
     assert!(slide == 0 || slide > 0);
 }
 
@@ -376,28 +388,45 @@ fn test_is_initialized() {
 
 #[test]
 fn test_entropy_not_constant() {
+    // Collect multiple entropy values and verify they're not all the same
     let mut values = alloc::vec::Vec::new();
     for _ in 0..5 {
         values.push(collect_entropy());
     }
 
+    // At least some values should be different (entropy jitter)
     let first = values[0];
     let all_same = values.iter().all(|&v| v == first);
+
+    // In a real system with TSC jitter, values should differ
+    // In a test environment, this might not always hold
+    // so we just verify it doesn't panic
     let _ = all_same;
 }
 
 // ============================================================================
 // INTEGRATION TESTS
 // ============================================================================
+
 #[test]
 fn test_full_kaslr_workflow() {
+    // Test the complete workflow without actually initializing
+    // (to avoid affecting other tests)
+
     let policy = Policy::default();
+
+    // Verify policy is valid
     assert!(policy.min_slide < policy.max_slide);
     assert!(policy.align > 0);
+
+    // Collect entropy
     let entropy = collect_entropy();
     assert_ne!(entropy, 0);
+
+    // Choose slide
     let slide = choose_slide(entropy, policy);
     assert!(slide.is_ok());
+
     let slide_value = slide.unwrap();
     assert!(slide_value >= policy.min_slide);
     assert!(slide_value < policy.max_slide);

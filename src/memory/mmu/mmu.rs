@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -14,26 +14,40 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+//! MMU Core Implementation
+//!
+//! Hardware MMU configuration and page table management.
+
 extern crate alloc;
+
 use alloc::collections::BTreeMap;
 use core::arch::asm;
 use spin::Mutex;
 use x86_64::{PhysAddr, VirtAddr};
+
 use super::constants::*;
 use super::error::{MmuError, MmuResult};
 use super::types::{PagePermissions, PageTableEntry, ProtectionFlags};
 use crate::memory::{frame_alloc, layout};
+
 // ============================================================================
 // MMU STRUCTURE
 // ============================================================================
+
+/// Memory Management Unit controller.
 pub struct MMU {
+    /// Current CR3 value
     current_cr3: Mutex<u64>,
+    /// Cached page table entries
     page_tables: Mutex<BTreeMap<u64, PageTableEntry>>,
+    /// CPU protection feature status
     protection_flags: Mutex<ProtectionFlags>,
+    /// Initialization status
     initialized: Mutex<bool>,
 }
 
 impl MMU {
+    /// Creates a new uninitialized MMU.
     pub const fn new() -> Self {
         Self {
             current_cr3: Mutex::new(0),
@@ -52,6 +66,7 @@ impl MMU {
 
         self.enable_smep_smap()?;
         self.enable_nx_bit()?;
+
         let cr3_guard = self.current_cr3.lock();
         if *cr3_guard == 0 {
             drop(cr3_guard);
@@ -62,14 +77,17 @@ impl MMU {
         Ok(())
     }
 
+    /// Returns whether the MMU is initialized.
     pub fn is_initialized(&self) -> bool {
         *self.initialized.lock()
     }
 
+    /// Returns current CR3 value.
     pub fn get_current_cr3(&self) -> u64 {
         *self.current_cr3.lock()
     }
 
+    /// Returns protection flags.
     pub fn get_protection_flags(&self) -> ProtectionFlags {
         *self.protection_flags.lock()
     }
@@ -83,28 +101,34 @@ impl MMU {
         let (_, ebx, _, _) = Self::cpuid(CPUID_FEATURES_LEAF, 0);
         let has_smep = (ebx & CPUID_EBX_SMEP) != 0;
         let has_smap = (ebx & CPUID_EBX_SMAP) != 0;
+
         // SAFETY: Modifying CR4 to enable security features
         unsafe {
             let mut cr4: u64;
             asm!("mov {}, cr4", out(reg) cr4, options(nostack, preserves_flags));
+
             if has_smep {
                 cr4 |= CR4_SMEP;
             }
             if has_smap {
                 cr4 |= CR4_SMAP;
             }
+
             asm!("mov cr4, {}", in(reg) cr4, options(nostack, preserves_flags));
         }
 
         let mut flags = self.protection_flags.lock();
         flags.smep_enabled = has_smep;
         flags.smap_enabled = has_smap;
+
         Ok(())
     }
 
+    /// Enables NX bit via IA32_EFER MSR.
     fn enable_nx_bit(&self) -> MmuResult<()> {
         let (_, _, _, edx) = Self::cpuid(CPUID_EXTENDED_LEAF, 0);
         let nx_supported = (edx & CPUID_EDX_NX) != 0;
+
         if !nx_supported {
             return Err(MmuError::NxNotSupported);
         }
@@ -123,6 +147,7 @@ impl MMU {
 
             let mut efer = ((edx as u64) << 32) | (eax as u64);
             efer |= EFER_NXE;
+
             let eax2 = (efer & 0xFFFF_FFFF) as u32;
             let edx2 = (efer >> 32) as u32;
             asm!(
@@ -138,17 +163,21 @@ impl MMU {
         Ok(())
     }
 
+    /// Executes CPUID instruction.
     fn cpuid(leaf: u32, subleaf: u32) -> (u32, u32, u32, u32) {
-        // SAFETY: CPUID is always safe to execute
-        let result = unsafe { core::arch::x86_64::__cpuid_count(leaf, subleaf) };
+        let result = core::arch::x86_64::__cpuid_count(leaf, subleaf);
         (result.eax, result.ebx, result.ecx, result.edx)
     }
+
     // ========================================================================
     // PAGE TABLE SETUP
     // ========================================================================
+
+    /// Sets up initial (empty) page tables.
     fn setup_initial_page_tables(&self) -> MmuResult<()> {
         let pml4 = self.allocate_page_table_frame()?;
         let pml4_va = self.frame_to_virt(pml4);
+
         // SAFETY: Zeroing newly allocated page table
         unsafe {
             core::ptr::write_bytes(pml4_va.as_mut_ptr::<u64>(), 0, PAGE_TABLE_ENTRIES);
@@ -158,6 +187,7 @@ impl MMU {
         Ok(())
     }
 
+    /// Loads a page table into CR3.
     fn load_page_table(&self, pml4_frame: PhysAddr) -> MmuResult<()> {
         // SAFETY: Loading valid page table into CR3
         unsafe {
@@ -173,17 +203,22 @@ impl MMU {
         Ok(())
     }
 
+    /// Allocates a frame for page tables.
     fn allocate_page_table_frame(&self) -> MmuResult<PhysAddr> {
         frame_alloc::allocate_frame().ok_or(MmuError::FrameAllocationFailed)
     }
 
+    /// Converts physical frame to virtual address via direct map.
     #[inline]
     fn frame_to_virt(&self, frame: PhysAddr) -> VirtAddr {
         VirtAddr::new(layout::DIRECTMAP_BASE + frame.as_u64())
     }
+
     // ========================================================================
     // PAGE MAPPING
     // ========================================================================
+
+    /// Maps a kernel memory range.
     pub fn map_kernel_range(
         &self,
         virt_start: VirtAddr,
@@ -204,6 +239,7 @@ impl MMU {
         self.map_memory_range(pml4_virt, virt_start, phys_start, size, permissions)
     }
 
+    /// Maps a range of pages.
     fn map_memory_range(
         &self,
         pml4_virt: VirtAddr,
@@ -213,6 +249,7 @@ impl MMU {
         permissions: PagePermissions,
     ) -> MmuResult<()> {
         let pages = (size + PAGE_SIZE - 1) / PAGE_SIZE;
+
         for i in 0..pages {
             let va = VirtAddr::new(virt_start.as_u64() + (i * PAGE_SIZE) as u64);
             let pa = PhysAddr::new(phys_start.as_u64() + (i * PAGE_SIZE) as u64);
@@ -222,6 +259,7 @@ impl MMU {
         Ok(())
     }
 
+    /// Maps a single 4K page.
     fn map_single_page(
         &self,
         pml4_virt: VirtAddr,
@@ -241,6 +279,7 @@ impl MMU {
 
         // SAFETY: Walking page tables with proper validation
         unsafe {
+            // PML4
             let pml4_table = pml4_virt.as_mut_ptr::<u64>();
             let pml4_entry_ptr = pml4_table.add(pml4_idx);
             let pdpt_phys = if !pte_is_present(*pml4_entry_ptr) {
@@ -253,6 +292,7 @@ impl MMU {
                 PhysAddr::new(pte_address(*pml4_entry_ptr))
             };
 
+            // PDPT
             let pdpt_virt = self.frame_to_virt(pdpt_phys);
             let pdpt_entry_ptr = pdpt_virt.as_mut_ptr::<u64>().add(pdpt_idx);
             let pd_phys = if !pte_is_present(*pdpt_entry_ptr) {
@@ -265,6 +305,7 @@ impl MMU {
                 PhysAddr::new(pte_address(*pdpt_entry_ptr))
             };
 
+            // PD
             let pd_virt = self.frame_to_virt(pd_phys);
             let pd_entry_ptr = pd_virt.as_mut_ptr::<u64>().add(pd_idx);
             let pt_phys = if !pte_is_present(*pd_entry_ptr) {
@@ -277,18 +318,22 @@ impl MMU {
                 PhysAddr::new(pte_address(*pd_entry_ptr))
             };
 
+            // PT
             let pt_virt = self.frame_to_virt(pt_phys);
             let pt_entry_ptr = pt_virt.as_mut_ptr::<u64>().add(pt_idx);
+
             let pte = permissions.to_pte(phys_addr.as_u64());
             *pt_entry_ptr = pte.to_raw();
         }
 
+        // Cache the mapping
         let pte = permissions.to_pte(phys_addr.as_u64());
         self.page_tables.lock().insert(virt_addr.as_u64(), pte);
 
         Ok(())
     }
 
+    /// Changes protection on an existing mapping.
     pub fn change_page_protection(
         &self,
         virt_addr: VirtAddr,
@@ -310,6 +355,7 @@ impl MMU {
         Ok(())
     }
 
+    /// Updates a page entry with new permissions.
     fn update_page_entry(
         &self,
         pml4_virt: VirtAddr,
@@ -324,6 +370,7 @@ impl MMU {
         let pdpt_idx = pdpt_index(virt_addr.as_u64());
         let pd_idx = pd_index(virt_addr.as_u64());
         let pt_idx = pt_index(virt_addr.as_u64());
+
         // SAFETY: Walking page tables to update entry
         unsafe {
             let pml4_entry = *pml4_virt.as_ptr::<u64>().add(pml4_idx);
@@ -357,9 +404,12 @@ impl MMU {
 
         Ok(())
     }
+
     // ========================================================================
     // TLB MANAGEMENT
     // ========================================================================
+
+    /// Invalidates entire TLB.
     pub fn invalidate_tlb_all(&self) {
         // SAFETY: Reading and reloading CR3 flushes TLB
         unsafe {
@@ -369,6 +419,7 @@ impl MMU {
         }
     }
 
+    /// Invalidates a single TLB entry.
     pub fn invalidate_tlb_page(&self, virt_addr: VirtAddr) {
         // SAFETY: INVLPG is safe
         unsafe {
@@ -386,14 +437,19 @@ impl Default for MMU {
         Self::new()
     }
 }
+
 // ============================================================================
 // GLOBAL STATE
 // ============================================================================
+
 use spin::Once;
+
 static MMU_INSTANCE: Once<MMU> = Once::new();
+
 // ============================================================================
 // PUBLIC API
 // ============================================================================
+
 pub fn init_mmu() -> MmuResult<()> {
     let mmu = MMU_INSTANCE.call_once(MMU::new);
     mmu.initialize()
@@ -411,6 +467,7 @@ pub fn map_kernel_memory(
     executable: bool,
 ) -> MmuResult<()> {
     let mmu = get_mmu()?;
+
     let permissions = PagePermissions {
         writable,
         user_accessible: false,

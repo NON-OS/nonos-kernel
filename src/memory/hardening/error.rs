@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -14,24 +14,41 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+//! Memory Hardening Error Types
+
 use core::fmt;
+
+/// Memory hardening error types.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum HardeningError {
+    /// Hardening system not initialized.
     NotInitialized,
+    /// W^X policy violation.
     WXViolation,
+    /// Guard page access detected.
     GuardPageViolation,
+    /// Stack overflow detected.
     StackOverflow,
+    /// Heap corruption detected.
     HeapCorruption,
+    /// Double free detected.
     DoubleFree,
+    /// Use after free detected.
     UseAfterFree,
+    /// Stack canary corrupted.
     CanaryCorrupted,
+    /// Guard page not found.
     GuardPageNotFound,
+    /// Stack canary not found.
     CanaryNotFound,
+    /// Memory not mapped.
     MemoryNotMapped,
+    /// Invalid pointer.
     InvalidPointer,
 }
 
 impl HardeningError {
+    /// Returns a human-readable description.
     pub const fn as_str(&self) -> &'static str {
         match self {
             Self::NotInitialized => "Hardening not initialized",
@@ -48,6 +65,8 @@ impl HardeningError {
             Self::InvalidPointer => "Invalid pointer",
         }
     }
+
+    /// Returns true if this error is a security violation.
     pub const fn is_security_violation(&self) -> bool {
         matches!(
             self,
@@ -60,12 +79,16 @@ impl HardeningError {
                 | Self::CanaryCorrupted
         )
     }
+
+    /// Returns true if this error is fatal.
     pub const fn is_fatal(&self) -> bool {
         matches!(
             self,
             Self::StackOverflow | Self::HeapCorruption | Self::CanaryCorrupted
         )
     }
+
+    /// Returns true if this is a memory safety issue.
     pub const fn is_memory_safety_issue(&self) -> bool {
         matches!(
             self,
@@ -79,4 +102,6 @@ impl fmt::Display for HardeningError {
         write!(f, "{}", self.as_str())
     }
 }
+
+/// Result type for hardening operations.
 pub type HardeningResult<T> = Result<T, HardeningError>;

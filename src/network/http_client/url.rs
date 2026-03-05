@@ -17,8 +17,8 @@
 use alloc::string::String;
 use alloc::format;
 
-pub const DEFAULT_HTTP_PORT: u16 = 80;
-pub const DEFAULT_HTTPS_PORT: u16 = 443;
+pub(super) const DEFAULT_HTTP_PORT: u16 = 80;
+pub(super) const DEFAULT_HTTPS_PORT: u16 = 443;
 
 #[derive(Clone, Debug)]
 pub struct ParsedUrl {
@@ -30,7 +30,7 @@ pub struct ParsedUrl {
 }
 
 impl ParsedUrl {
-    pub fn parse(url: &str) -> Result<Self, &'static str> {
+    pub(super) fn parse(url: &str) -> Result<Self, &'static str> {
         let url = url.trim();
 
         let (scheme, rest) = if url.starts_with("https://") {
@@ -74,6 +74,7 @@ impl ParsedUrl {
         })
     }
 
+    /// Convert the parsed URL back to a string representation
     pub fn to_string(&self) -> String {
         if (self.is_https && self.port == DEFAULT_HTTPS_PORT) ||
            (!self.is_https && self.port == DEFAULT_HTTP_PORT) {
@@ -84,7 +85,7 @@ impl ParsedUrl {
     }
 }
 
-pub fn parse_ipv4(s: &str) -> Option<[u8; 4]> {
+pub(super) fn parse_ipv4(s: &str) -> Option<[u8; 4]> {
     let parts: alloc::vec::Vec<&str> = s.split('.').collect();
     if parts.len() != 4 {
         return None;
@@ -97,7 +98,7 @@ pub fn parse_ipv4(s: &str) -> Option<[u8; 4]> {
     Some(ip)
 }
 
-pub fn resolve_host(host: &str) -> Result<[u8; 4], &'static str> {
+pub(super) fn resolve_host(host: &str) -> Result<[u8; 4], &'static str> {
     if let Some(ip) = parse_ipv4(host) {
         return Ok(ip);
     }

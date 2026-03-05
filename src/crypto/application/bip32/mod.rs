@@ -18,9 +18,9 @@
 
 extern crate alloc;
 
-mod derive;
-mod extended_key;
-mod path;
+pub mod derive;
+pub mod extended_key;
+pub mod path;
 
 pub use derive::{derive_master_key, derive_child};
 pub use extended_key::{ExtendedPrivateKey, ExtendedPublicKey};

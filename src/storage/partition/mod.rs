@@ -14,12 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod constants;
-mod gpt;
-mod mbr;
+pub mod constants;
+pub mod gpt;
+pub mod mbr;
 pub mod parser;
 pub mod state;
-mod structures;
+pub mod structures;
 pub mod types;
 pub mod utils;
 

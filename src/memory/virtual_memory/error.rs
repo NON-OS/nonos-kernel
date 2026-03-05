@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -14,24 +14,41 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+//! Virtual Memory Error Types
+
 use core::fmt;
+
+/// Virtual memory error types.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum VmError {
+    /// Virtual memory manager not initialized.
     NotInitialized,
+    /// Address space not found.
     AddressSpaceNotFound,
+    /// VM area not found.
     VmAreaNotFound,
+    /// VM area overlaps with existing area.
     Overlapping,
+    /// Frame allocation failed.
     FrameAllocationFailed,
+    /// Page mapping failed.
     PageMappingFailed,
+    /// Write to read-only memory.
     WriteProtectionFault,
+    /// Execute on non-executable memory.
     ExecuteProtectionFault,
+    /// No VM area for fault address.
     NoVmAreaForAddress,
+    /// Heap expansion failed.
     HeapExpansionFailed,
+    /// Stack expansion failed.
     StackExpansionFailed,
+    /// Invalid address.
     InvalidAddress,
 }
 
 impl VmError {
+    /// Returns a human-readable description.
     pub const fn as_str(&self) -> &'static str {
         match self {
             Self::NotInitialized => "Virtual memory manager not initialized",
@@ -49,6 +66,7 @@ impl VmError {
         }
     }
 
+    /// Returns true if this error is a protection fault.
     pub const fn is_protection_fault(&self) -> bool {
         matches!(
             self,
@@ -56,6 +74,7 @@ impl VmError {
         )
     }
 
+    /// Returns true if this error is recoverable.
     pub const fn is_recoverable(&self) -> bool {
         matches!(
             self,
@@ -63,6 +82,7 @@ impl VmError {
         )
     }
 
+    /// Returns true if this error is fatal.
     pub const fn is_fatal(&self) -> bool {
         matches!(
             self,
@@ -77,4 +97,5 @@ impl fmt::Display for VmError {
     }
 }
 
+/// Result type for virtual memory operations.
 pub type VmResult<T> = Result<T, VmError>;

@@ -21,7 +21,6 @@ use spin::Mutex;
 use crate::network::onion::CircuitId;
 
 pub(super) struct RateLimiter {
-    pub ip: [u8; 4],
     pub cells_this_second: AtomicU32,
     pub last_reset: AtomicU64,
     pub violations: AtomicU32,
@@ -43,7 +42,7 @@ impl TimingAttackDetector {
 
 pub(super) struct MemoryProtector {
     pub allocations: Mutex<BTreeMap<usize, AllocInfo>>,
-    pub canary_seed: u64,
+    canary_seed: u64,
 }
 
 impl MemoryProtector {
@@ -55,23 +54,13 @@ impl MemoryProtector {
     }
 
     pub(super) fn generate_canary(&self) -> u64 {
-        use alloc::vec::Vec;
-        use crate::crypto::hash;
-
-        let mut data = Vec::new();
-        data.extend_from_slice(&self.canary_seed.to_le_bytes());
-        data.extend_from_slice(&crate::crypto::entropy::rand_u64().to_le_bytes());
-        data.extend_from_slice(&super::manager::get_timestamp().to_le_bytes());
-        hash::blake3_hash(&data)[..8].try_into()
-            .map(u64::from_le_bytes)
-            .unwrap_or(0xDEADBEEFCAFEBABE)
+        self.canary_seed ^ crate::crypto::entropy::rand_u64()
     }
 }
 
 pub(super) struct AllocInfo {
     pub size: usize,
     pub canary: u64,
-    pub allocated_at: u64,
 }
 
 pub struct SecurityStats {

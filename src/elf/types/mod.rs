@@ -28,5 +28,6 @@ pub use header::ElfHeader;
 pub use program::ProgramHeader;
 pub use reloc::RelaEntry;
 pub use section::SectionHeader;
-pub use symbol::Symbol;
+pub use symbol::{Symbol, SymbolEntry};
+
 pub type Rela = RelaEntry;

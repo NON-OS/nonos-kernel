@@ -14,11 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+//! xHCI TRB ring management
 
 use core::ptr::addr_of_mut;
 use core::sync::atomic::{AtomicBool, AtomicU8, Ordering};
 use super::xhci::{XHCI_DB, XHCI_RT, XHCI_RT_ERDP, mw32, mw64, spin, TRB_CYCLE};
 
+// =============================================================================
+// Ring Structures
+// =============================================================================
 
 #[repr(C, align(4096))]
 pub(crate) struct Ring256 { pub trbs: [[u32; 4]; 256] }
@@ -37,6 +41,9 @@ pub(crate) static EP0_RING_CYC: AtomicBool = AtomicBool::new(true);
 pub(crate) static HID_RING_IDX: AtomicU8 = AtomicU8::new(0);
 pub(crate) static HID_RING_CYC: AtomicBool = AtomicBool::new(true);
 
+// =============================================================================
+// Ring Operations
+// =============================================================================
 
 pub fn queue_cmd(t0: u32, t1: u32, t2: u32, t3: u32) {
     let i = CMD_RING_IDX.load(Ordering::Relaxed) as usize;
@@ -49,6 +56,7 @@ pub fn queue_cmd(t0: u32, t1: u32, t2: u32, t3: u32) {
     if ni == 0 { CMD_RING_CYC.store(!c, Ordering::SeqCst); }
     CMD_RING_IDX.store(ni as u8, Ordering::SeqCst);
 
+    // Ring doorbell 0
     let db = XHCI_DB.load(Ordering::Relaxed);
     if db != 0 { unsafe { mw32(db, 0); } }
 }

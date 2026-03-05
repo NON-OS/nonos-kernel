@@ -18,6 +18,7 @@ use core::sync::atomic::Ordering;
 use crate::graphics::framebuffer::{fill_rect, COLOR_TEXT_WHITE, COLOR_YELLOW, COLOR_GREEN, COLOR_RED, COLOR_ACCENT};
 use crate::graphics::font::draw_char;
 use super::state::*;
+use super::file::is_modified;
 
 pub(super) fn draw_string(x: u32, y: u32, text: &[u8], color: u32) {
     for (i, &ch) in text.iter().enumerate() {
@@ -104,7 +105,7 @@ pub(super) fn draw_toolbar(x: u32, y: u32, w: u32) {
     }
 
     let status = EDITOR_STATUS.load(Ordering::Relaxed);
-    let modified = EDITOR_MODIFIED.load(Ordering::Relaxed);
+    let modified = is_modified();
 
     let status_x = x + w - 100;
     match status {

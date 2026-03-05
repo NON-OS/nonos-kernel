@@ -14,7 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+//! IP header structures
 
+/// IPv4 header
 #[derive(Debug, Clone)]
 pub struct Ipv4Header {
     pub src: [u8; 4],
@@ -26,11 +28,14 @@ pub struct Ipv4Header {
 }
 
 impl Ipv4Header {
+    /// Minimum header size (no options)
     pub const MIN_SIZE: usize = 20;
 
+    /// Maximum header size (with options)
     pub const MAX_SIZE: usize = 60;
 }
 
+/// IPv6 header
 #[derive(Debug, Clone)]
 pub struct Ipv6Header {
     pub src: [u8; 16],
@@ -41,5 +46,6 @@ pub struct Ipv6Header {
 }
 
 impl Ipv6Header {
+    /// Fixed header size
     pub const SIZE: usize = 40;
 }

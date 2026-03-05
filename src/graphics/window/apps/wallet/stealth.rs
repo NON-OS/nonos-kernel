@@ -55,6 +55,23 @@ impl StealthKeyPair {
             view_pubkey: self.view_public,
         }
     }
+
+    pub(crate) fn derive_stealth_address(&self, ephemeral_secret: &[u8; 32]) -> [u8; 20] {
+        let shared_secret = blake3_hash(&[
+            &self.view_secret[..],
+            ephemeral_secret,
+            b"NONOS:STEALTH:SHARED",
+        ].concat());
+
+        let derived_key = blake3_hash(&[
+            &self.spend_secret[..],
+            &shared_secret[..],
+        ].concat());
+
+        let mut address = [0u8; 20];
+        address.copy_from_slice(&derived_key[..20]);
+        address
+    }
 }
 
 #[derive(Clone)]

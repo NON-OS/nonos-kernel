@@ -48,13 +48,15 @@ pub fn close_find() {
     FIND_ACTIVE.store(false, Ordering::Relaxed);
     REPLACE_MODE.store(false, Ordering::Relaxed);
     super::find_search::clear_highlights();
+    super::find_input::clear_find();
+    super::find_input::clear_replace();
 }
 
 pub fn is_active() -> bool {
     FIND_ACTIVE.load(Ordering::Relaxed)
 }
 
-pub(super) fn _is_replace_mode() -> bool {
+pub(super) fn is_replace_mode() -> bool {
     REPLACE_MODE.load(Ordering::Relaxed)
 }
 

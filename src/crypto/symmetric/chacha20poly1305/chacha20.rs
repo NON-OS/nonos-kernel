@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -26,16 +26,6 @@ pub(crate) fn secure_zero_bytes(buf: &mut [u8]) {
         // SAFETY: We have exclusive mutable access to buf, and volatile write ensures
         // the compiler cannot optimize away this zeroing operation.
         unsafe { core::ptr::write_volatile(b, 0) };
-    }
-    compiler_fence();
-}
-
-#[inline]
-pub(crate) fn secure_zero_u32(buf: &mut [u32]) {
-    for w in buf {
-        // SAFETY: We have exclusive mutable access to buf, and volatile write ensures
-        // the compiler cannot optimize away this zeroing operation.
-        unsafe { core::ptr::write_volatile(w, 0) };
     }
     compiler_fence();
 }
@@ -111,6 +101,7 @@ pub(crate) fn chacha20_xor(key: &[u8; 32], nonce: &[u8; 12], counter: u32, data:
 
         let remaining = data.len() - offset;
         let to_xor = core::cmp::min(64, remaining);
+
         for i in 0..to_xor {
             data[offset + i] ^= block[i];
         }

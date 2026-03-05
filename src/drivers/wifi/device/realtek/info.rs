@@ -117,7 +117,13 @@ impl RealtekWifiDevice {
             scan_timeout_ms: SCAN_TIMEOUT_MS,
             dma_alignment: DMA_ALIGNMENT,
             desc_alignment: DESC_ALIGNMENT,
+            tx_ring_phys: self.tx_ring_phys.as_u64(),
+            rx_ring_phys: self.rx_ring_phys.as_u64(),
         }
+    }
+
+    pub fn get_security_type(&self) -> super::super::super::scan::SecurityType {
+        self.current_security
     }
 
     pub fn upload_firmware_section(&mut self, offset: u32, data: &[u8]) -> Result<(), WifiError> {
@@ -228,4 +234,6 @@ pub struct RealtekDmaConfig {
     pub scan_timeout_ms: u64,
     pub dma_alignment: usize,
     pub desc_alignment: usize,
+    pub tx_ring_phys: u64,
+    pub rx_ring_phys: u64,
 }

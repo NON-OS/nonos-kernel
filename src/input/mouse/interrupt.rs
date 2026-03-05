@@ -23,6 +23,8 @@ use super::state::{
     MOUSE_UPDATED,
 };
 
+/// Handle mouse interrupt - called from the IDT handler
+/// Reads data from PS/2 port and processes packets
 pub fn handle_interrupt() {
     // SAFETY: Reading PS/2 data port in interrupt context
     let data = unsafe { inb(0x60) };
@@ -31,6 +33,7 @@ pub fn handle_interrupt() {
 
     match idx {
         0 => {
+            // First byte must have bit 3 set (always-1 bit in standard PS/2 protocol)
             if data & 0x08 == 0 {
                 return;
             }
@@ -49,12 +52,14 @@ pub fn handle_interrupt() {
             let dx_raw = PACKET_BYTE1.load(Ordering::Relaxed) as i32;
             let dy_raw = PACKET_BYTE2.load(Ordering::Relaxed) as i32;
 
+            // Sign extend based on overflow bits
             let dx = if flags & 0x10 != 0 { dx_raw - 256 } else { dx_raw };
             let dy = if flags & 0x20 != 0 { dy_raw - 256 } else { dy_raw };
 
             let max_x = SCREEN_WIDTH.load(Ordering::Relaxed);
             let max_y = SCREEN_HEIGHT.load(Ordering::Relaxed);
 
+            // Update position (Y is inverted in PS/2)
             let cur_x = MOUSE_X.load(Ordering::Relaxed);
             let cur_y = MOUSE_Y.load(Ordering::Relaxed);
 
@@ -64,8 +69,10 @@ pub fn handle_interrupt() {
             MOUSE_X.store(new_x, Ordering::Relaxed);
             MOUSE_Y.store(new_y, Ordering::Relaxed);
 
+            // Update buttons (bits 0-2 of flags)
             MOUSE_BUTTONS.store(flags & 0x07, Ordering::Relaxed);
 
+            // Signal that mouse state was updated
             MOUSE_UPDATED.store(true, Ordering::Relaxed);
         }
         _ => {

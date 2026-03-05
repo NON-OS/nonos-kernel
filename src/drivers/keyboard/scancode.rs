@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+//! Scancode processing.
+
 use super::constants::*;
 use super::event::KeyEvent;
 use super::io::update_leds;
@@ -31,9 +33,13 @@ static CAPS: AtomicBool = AtomicBool::new(false);
 static EXTENDED: AtomicBool = AtomicBool::new(false);
 
 // SAFETY: SpscU8Ring uses atomic operations for head/tail synchronization.
+// There is exactly ONE producer (keyboard interrupt handler) and ONE consumer
+// (input reading from main context). Push and pop operations are lock-free
+// and wait-free. The interrupt handler is non-reentrant on x86.
 static mut CHAR_RING: SpscU8Ring<{ CHAR_RING_SIZE }> = SpscU8Ring::new();
 
 // SAFETY: Same invariants as CHAR_RING - single producer (interrupt),
+// single consumer (main thread), with atomic synchronization.
 static mut EVT_RING: SpscEvtRing<{ EVT_RING_SIZE }> = SpscEvtRing::new();
 
 pub fn process_scancode(sc: u8) {

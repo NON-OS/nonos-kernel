@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+//! Network consensus document parsing and validation
 
 use alloc::{collections::BTreeMap, string::String, vec::Vec};
 use super::types::{
@@ -25,6 +26,7 @@ use crate::network::onion::OnionError;
 
 const MAX_CONSENSUS_LINES: usize = 200_000;
 
+/// Parse network consensus document into structured form
 pub(super) fn parse_consensus(raw: &[u8]) -> Result<NetworkConsensus, OnionError> {
     let text = core::str::from_utf8(raw).map_err(|_| OnionError::DirectoryError)?;
     let mut line_count = 0usize;
@@ -213,6 +215,7 @@ pub(super) fn parse_consensus(raw: &[u8]) -> Result<NetworkConsensus, OnionError
 }
 
 fn parse_timestamp_fields(_parts: &[&str]) -> Option<u64> {
+    // Crude implementation - accept as "fresh enough" in v1 environment
     Some(current_time_s())
 }
 

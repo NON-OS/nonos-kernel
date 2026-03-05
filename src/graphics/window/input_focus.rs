@@ -57,6 +57,14 @@ pub fn is_ecosystem_focused() -> bool {
     WINDOWS[focused].window_type.load(Ordering::Relaxed) == WindowType::Ecosystem as u32
 }
 
+pub fn is_file_manager_focused() -> bool {
+    let focused = FOCUSED_WINDOW.load(Ordering::Relaxed);
+    if focused >= MAX_WINDOWS {
+        return false;
+    }
+    WINDOWS[focused].window_type.load(Ordering::Relaxed) == WindowType::FileManager as u32
+}
+
 pub fn is_text_input_focused() -> bool {
     is_editor_focused() || is_terminal_focused() || is_browser_focused() || is_wallet_focused() || is_ecosystem_focused()
 }

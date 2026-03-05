@@ -14,13 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod types;
-mod core;
-mod preemption;
-mod selection;
-mod process;
-mod stats;
-mod module_tasks;
+pub mod types;
+pub mod core;
+pub mod preemption;
+pub mod selection;
+pub mod process;
+pub mod stats;
+pub mod module_tasks;
 
 pub use types::{Scheduler, SchedulerStatsSnapshot, ModuleTaskError, ModuleTaskResult};
 pub use core::{init, get, spawn, run, enter};

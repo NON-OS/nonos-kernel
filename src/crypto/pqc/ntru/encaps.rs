@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -19,7 +19,9 @@ use super::poly::{Polynomial, sample_ternary, hash_to_shared_secret};
 
 pub fn ntru_encaps(pk: &NtruPublicKey) -> Result<(NtruCiphertext, [u8; NTRU_SHARED_SECRET_BYTES]), &'static str> {
     let m = sample_ternary(NTRU_WEIGHT / 2, NTRU_WEIGHT / 2);
+
     let r = sample_ternary(NTRU_WEIGHT / 2, NTRU_WEIGHT / 2);
+
     let h = Polynomial::from_coeffs(pk.h.clone());
     let rh = r.multiply(&h);
     let mut c = rh.add(&m);

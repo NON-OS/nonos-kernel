@@ -53,7 +53,9 @@ impl<'a> RelocationContext<'a> {
             let sym_ptr = (symtab.as_u64() + (sym_index as u64) * SymbolEntry::SIZE as u64)
                 as *const SymbolEntry;
             let sym = core::ptr::read(sym_ptr);
+
             let sym_bind = sym.st_info >> 4;
+
             if sym.st_shndx == 0 {
                 if let Some(strtab) = self.string_table {
                     if (sym.st_name as usize) < self.string_table_size {
@@ -82,7 +84,7 @@ impl<'a> RelocationContext<'a> {
     }
 }
 
-pub unsafe fn read_null_terminated_string(ptr: *const u8, max_len: usize) -> String {
+pub unsafe fn read_null_terminated_string(ptr: *const u8, max_len: usize) -> String { unsafe {
     // SAFETY: Caller ensures ptr is valid for up to max_len bytes
     let mut result = String::new();
     for i in 0..max_len {
@@ -93,4 +95,4 @@ pub unsafe fn read_null_terminated_string(ptr: *const u8, max_len: usize) -> Str
         result.push(byte as char);
     }
     result
-}
+}}

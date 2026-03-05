@@ -20,7 +20,6 @@ use spin::Mutex;
 
 use super::flow::FlowControlManager;
 use super::onion_stream::OnionStream;
-use super::protocol::ProtocolHandlerRegistry;
 use super::stats::{StreamMetrics, StreamStatistics};
 use super::types::{
     StreamEndReason, StreamId, StreamProtocol, StreamState, DEFAULT_STREAM_QUANTUM_CELLS,
@@ -35,7 +34,6 @@ pub struct StreamManager {
     pub(super) stream_id_counter: AtomicU16,
     pub(super) stream_stats: StreamStatistics,
     pub(super) flow: FlowControlManager,
-    pub(super) proto: ProtocolHandlerRegistry,
 }
 
 impl StreamManager {
@@ -46,7 +44,6 @@ impl StreamManager {
             stream_id_counter: AtomicU16::new(1),
             stream_stats: StreamStatistics::default(),
             flow: FlowControlManager::new(),
-            proto: ProtocolHandlerRegistry::new(),
         }
     }
 
@@ -222,4 +219,5 @@ impl StreamManager {
             }
         }
     }
+
 }

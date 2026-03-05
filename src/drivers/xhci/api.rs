@@ -120,6 +120,14 @@ pub fn enumerate_all_devices() -> Result<alloc::vec::Vec<u8>, &'static str> {
     ctrl.enumerate_all_devices()
 }
 
+pub fn enumerate_first_device() -> Result<(), &'static str> {
+    let ctrl_mutex = XHCI_CONTROLLER
+        .get()
+        .ok_or("xHCI controller not initialized")?;
+    let mut ctrl = ctrl_mutex.lock();
+    ctrl.enumerate_first_device()
+}
+
 pub fn get_enumerated_slots() -> alloc::vec::Vec<u8> {
     if let Some(ctrl) = get_controller() {
         let mut slots = alloc::vec::Vec::new();

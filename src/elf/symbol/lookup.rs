@@ -97,6 +97,7 @@ impl SymbolLookup {
         let target = addr.as_u64();
         let mut best_match: Option<(String, VirtAddr, u64)> = None;
         let mut best_distance = u64::MAX;
+
         for i in 1..self.sym_count {
             // SAFETY: Caller ensures symtab is valid
             unsafe {
@@ -109,6 +110,7 @@ impl SymbolLookup {
 
                 let sym_addr = self.base_addr.as_u64() + sym.st_value;
                 let sym_end = sym_addr + sym.st_size;
+
                 if target >= sym_addr && target < sym_end {
                     let distance = target - sym_addr;
                     if distance < best_distance {
