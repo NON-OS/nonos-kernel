@@ -14,10 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod device;
-mod error;
-mod queue;
-mod types;
+pub mod device;
+pub mod error;
+pub mod queue;
+pub mod types;
 
 pub use device::{
     device_count, list_devices, poll_all_devices, register_device,
