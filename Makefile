@@ -1,236 +1,277 @@
-# NØNOS Kernel Makefile
+# NONOS Kernel Makefile
+#
+# Dev notes:
+# - Uses nightly Rust (needs rust-src for build-std)
+# - macOS: explicit toolchain paths avoid Homebrew's stable Rust shadowing nightly
+# - ISO creation on non-Linux uses Docker (grub-mkrescue only works on Linux)
+# - KVM enabled automatically on Linux if /dev/kvm exists
+#
+# Quick start:
+#   make nonos-keygen-dev                    # generate dev signing key
+#   export NONOS_SIGNING_KEY=$(pwd)/.keys/dev-signing.seed
+#   make nonos                               # build release kernel
+#   make nonos-run                           # boot in QEMU
 
-# Configuration
+.PHONY: all nonos nonos-debug nonos-run nonos-run-debug nonos-run-uefi nonos-debug-gdb
+.PHONY: nonos-clean nonos-check nonos-clippy nonos-fmt nonos-test nonos-deps nonos-doc nonos-disasm
+.PHONY: create-grub-iso create-uefi-disk iso iso-debug help nonos-help
+.PHONY: nonos-keygen-dev nonos-keygen-prod nonos-key-fingerprint
+.PHONY: build release run run-release debug clean check clippy fmt test deps doc disasm create-disk
+
+# Paths
 KERNEL_DIR := .
+WORKSPACE_ROOT := $(shell cd $(KERNEL_DIR)/.. && pwd)
 TARGET := x86_64-nonos
-BUILD_DIR := $(KERNEL_DIR)/target/$(TARGET)
+BUILD_DIR := $(WORKSPACE_ROOT)/target/$(TARGET)
 RELEASE_DIR := $(BUILD_DIR)/release
 DEBUG_DIR := $(BUILD_DIR)/debug
+KERNEL_DIR_ABS := $(shell cd $(KERNEL_DIR) && pwd)
 
-# Signing key (required for build)
-NONOS_SIGNING_KEY ?= /home/nonos/nonos-kernel/.keys/signing.seed
+# Signing key (default to local dev key)
+NONOS_SIGNING_KEY ?= $(KERNEL_DIR_ABS)/.keys/dev-signing.seed
+export NONOS_SIGNING_KEY
+
+# Host detection
+HOST_OS := $(shell uname -s)
+ifeq ($(HOST_OS),Darwin)
+    IS_MACOS := 1
+    STRIP := strip -x
+    DOCKER := docker
+else ifeq ($(HOST_OS),Linux)
+    IS_LINUX := 1
+    STRIP := strip --strip-all
+else
+    STRIP := strip
+    DOCKER := docker
+endif
+
+# Rust toolchain - explicit paths to avoid Homebrew conflicts
+export RUSTUP_TOOLCHAIN := nightly
+ifdef IS_MACOS
+    ARCH := $(shell uname -m)
+    ifeq ($(ARCH),arm64)
+        NIGHTLY_BIN := $(HOME)/.rustup/toolchains/nightly-aarch64-apple-darwin/bin
+    else
+        NIGHTLY_BIN := $(HOME)/.rustup/toolchains/nightly-x86_64-apple-darwin/bin
+    endif
+else
+    NIGHTLY_BIN := $(HOME)/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/bin
+endif
+
+CARGO := $(NIGHTLY_BIN)/cargo
+export RUSTC := $(NIGHTLY_BIN)/rustc
+export RUSTDOC := $(NIGHTLY_BIN)/rustdoc
 
 # Tools
-CARGO := cargo
 QEMU := qemu-system-x86_64
 GDB := gdb
 OBJDUMP := objdump
-OBJCOPY := objcopy
 
-# QEMU configuration
-QEMU_ARGS := -machine q35 \
-             -m 512M \
-             -smp 2 \
-             -serial stdio \
-             -display gtk
-
-# Check for KVM support
+# QEMU config
+QEMU_ARGS := -machine q35 -m 512M -smp 2 -serial stdio
+ifdef IS_MACOS
+    QEMU_ARGS += -display cocoa
+else
+    QEMU_ARGS += -display gtk
+endif
+ifdef IS_LINUX
 ifneq ($(wildcard /dev/kvm),)
     QEMU_ARGS += -enable-kvm -cpu host
 endif
+endif
 
-# OVMF UEFI firmware
-OVMF_CODE := /usr/share/OVMF/OVMF_CODE.fd
-OVMF_VARS := /usr/share/OVMF/OVMF_VARS.fd
+# OVMF paths
+ifdef IS_MACOS
+    OVMF_CODE := /opt/homebrew/share/qemu/edk2-x86_64-code.fd
+    OVMF_VARS := /opt/homebrew/share/qemu/edk2-i386-vars.fd
+    ifeq ($(wildcard $(OVMF_CODE)),)
+        OVMF_CODE := /usr/local/share/qemu/edk2-x86_64-code.fd
+        OVMF_VARS := /usr/local/share/qemu/edk2-i386-vars.fd
+    endif
+else
+    OVMF_CODE := /usr/share/OVMF/OVMF_CODE.fd
+    OVMF_VARS := /usr/share/OVMF/OVMF_VARS.fd
+endif
 
-# Environment setup
-export NONOS_SIGNING_KEY
+#
+# Build
+#
 
-# Default target
-.PHONY: all
 all: nonos
 
-# NØNOS Build targets
-.PHONY: nonos
 nonos:
-	@echo "Building NØNOS kernel (release)..."
-	@if [ -z "$(NONOS_SIGNING_KEY)" ]; then \
-		echo "Error: NONOS_SIGNING_KEY environment variable is required"; \
-		echo "Usage: export NONOS_SIGNING_KEY=/path/to/signing.seed"; \
-		exit 1; \
-	fi
-	cd $(KERNEL_DIR) && $(CARGO) build --release --target $(TARGET).json -Zbuild-std=core,alloc
-	@strip --strip-all target/$(TARGET)/release/nonos_kernel 2>/dev/null || true
-	@echo "NØNOS kernel build complete!"
+	@echo "Building kernel (release)..."
+	@test -n "$(NONOS_SIGNING_KEY)" || { echo "Set NONOS_SIGNING_KEY"; exit 1; }
+	cd $(WORKSPACE_ROOT) && $(CARGO) build --release --package nonos_kernel \
+		--target $(KERNEL_DIR_ABS)/$(TARGET).json -Zbuild-std=core,alloc -Zjson-target-spec
+	@$(STRIP) $(RELEASE_DIR)/nonos_kernel 2>/dev/null || true
+	@echo "Done: $(RELEASE_DIR)/nonos_kernel"
 
-.PHONY: nonos-debug
 nonos-debug:
-	@echo "Building NØNOS kernel (debug)..."
-	@if [ -z "$(NONOS_SIGNING_KEY)" ]; then \
-		echo "Error: NONOS_SIGNING_KEY environment variable is required"; \
-		echo "Usage: export NONOS_SIGNING_KEY=/path/to/signing.seed"; \
-		exit 1; \
-	fi
-	cd $(KERNEL_DIR) && $(CARGO) build --target $(TARGET).json -Zbuild-std=core,alloc
-	@echo "NØNOS kernel debug build complete!"
+	@echo "Building kernel (debug)..."
+	@test -n "$(NONOS_SIGNING_KEY)" || { echo "Set NONOS_SIGNING_KEY"; exit 1; }
+	cd $(WORKSPACE_ROOT) && $(CARGO) build --package nonos_kernel \
+		--target $(KERNEL_DIR_ABS)/$(TARGET).json -Zbuild-std=core,alloc -Zjson-target-spec
+	@echo "Done: $(DEBUG_DIR)/nonos_kernel"
 
-# Legacy aliases (deprecated)
-.PHONY: build release
+# Aliases
 build: nonos-debug
 release: nonos
 
-# NØNOS Run targets
-.PHONY: nonos-run
+#
+# Run
+#
+
 nonos-run: nonos
-	@echo "Running NØNOS in QEMU (GRUB)..."
 	@$(MAKE) create-grub-iso KERNEL_PATH=$(RELEASE_DIR)/nonos_kernel
 	$(QEMU) $(QEMU_ARGS) -cdrom build/nonos.iso
 
-.PHONY: nonos-run-debug
 nonos-run-debug: nonos-debug
-	@echo "Running NØNOS (debug) in QEMU..."
 	@$(MAKE) create-grub-iso KERNEL_PATH=$(DEBUG_DIR)/nonos_kernel
 	$(QEMU) $(QEMU_ARGS) -cdrom build/nonos.iso
 
-.PHONY: nonos-run-uefi
-nonos-run-uefi: nonos
-	@echo "Running NØNOS in QEMU (UEFI - DISABLED)..."
-	@echo "UEFI boot is disabled - bootloader conflicts with UEFI firmware"
-	@echo "Use 'make nonos-run' for GRUB multiboot instead"
+nonos-run-uefi:
+	@echo "UEFI boot disabled (bootloader conflicts). Use 'make nonos-run' instead."
 
-.PHONY: nonos-debug-gdb
 nonos-debug-gdb: nonos-debug
-	@echo "Starting NØNOS with GDB server..."
+	@echo "GDB server on :1234"
 	@$(MAKE) create-grub-iso KERNEL_PATH=$(DEBUG_DIR)/nonos_kernel
 	$(QEMU) $(QEMU_ARGS) -cdrom build/nonos.iso -s -S &
-	@echo "QEMU started. Connect with GDB using: target remote :1234"
-	$(GDB) $(DEBUG_DIR)/nonos_kernel \
-	       -ex "target remote :1234" \
-	       -ex "break _start" \
-	       -ex "continue"
+	@sleep 1
+	$(GDB) $(DEBUG_DIR)/nonos_kernel -ex "target remote :1234" -ex "break _start" -ex "continue"
 
-# Clean build artifacts
-.PHONY: nonos-clean
-nonos-clean:
-	@echo "Cleaning NØNOS build artifacts..."
-	cd $(KERNEL_DIR) && $(CARGO) clean
-	rm -rf build/
-	@echo "NØNOS clean complete!"
-
-# Legacy aliases (deprecated)
-.PHONY: run run-release debug clean
+# Aliases
 run: nonos-run-debug
 run-release: nonos-run
 debug: nonos-debug-gdb
-clean: nonos-clean
 
-# Create GRUB bootable ISO
-.PHONY: create-grub-iso
+#
+# ISO
+#
+
 create-grub-iso:
-	@echo "Creating GRUB ISO image..."
+	@echo "Creating GRUB ISO..."
 	@mkdir -p build/isofiles/boot/grub
 	@cp $(KERNEL_PATH) build/isofiles/boot/kernel.bin
-	@echo 'menuentry "NONOS Kernel" {' > build/isofiles/boot/grub/grub.cfg
-	@echo '    multiboot /boot/kernel.bin' >> build/isofiles/boot/grub/grub.cfg
-	@echo '    boot' >> build/isofiles/boot/grub/grub.cfg
-	@echo '}' >> build/isofiles/boot/grub/grub.cfg
+	@printf 'set timeout=3\nset default=0\n\nmenuentry "NONOS Kernel" {\n    multiboot /boot/kernel.bin\n    boot\n}\n' \
+		> build/isofiles/boot/grub/grub.cfg
+ifdef IS_LINUX
 	grub-mkrescue -o build/nonos.iso build/isofiles
-	@echo "GRUB ISO created!"
+else
+	@echo "  (using Docker for grub-mkrescue)"
+	$(DOCKER) run --rm -v "$(KERNEL_DIR_ABS)/build:/build" ubuntu:22.04 \
+		sh -c "apt-get update -qq && apt-get install -qq -y grub-pc-bin grub-common xorriso mtools >/dev/null 2>&1 && grub-mkrescue -o /build/nonos.iso /build/isofiles"
+endif
+	@echo "Done: build/nonos.iso"
 
-# Create UEFI disk image (disabled)
-.PHONY: create-uefi-disk
+iso: nonos
+	@$(MAKE) create-grub-iso KERNEL_PATH=$(RELEASE_DIR)/nonos_kernel
+
+iso-debug: nonos-debug
+	@$(MAKE) create-grub-iso KERNEL_PATH=$(DEBUG_DIR)/nonos_kernel
+
 create-uefi-disk:
-	@echo "Creating UEFI disk image (disabled)..."
-	@mkdir -p build
-	@cp $(OVMF_VARS) build/OVMF_VARS.fd
-	@dd if=/dev/zero of=build/nonos.img bs=1M count=64 2>/dev/null
-	@mkfs.vfat build/nonos.img
-	@echo "UEFI disk image created (not functional)!"
+	@echo "UEFI disk creation disabled."
 
-# Legacy disk creation
-.PHONY: create-disk
 create-disk: create-grub-iso
 
-# Disassemble kernel
-.PHONY: disasm
-disasm: build
-	@echo "Disassembling kernel..."
-	$(OBJDUMP) -d $(DEBUG_DIR)/nonos_kernel > build/kernel.asm
-	@echo "Disassembly saved to build/kernel.asm"
+#
+# Development
+#
 
-# NØNOS Development targets
-.PHONY: nonos-check
 nonos-check:
-	@echo "Checking NØNOS code..."
-	cd $(KERNEL_DIR) && $(CARGO) check --target $(TARGET).json -Zbuild-std=core,alloc
+	cd $(WORKSPACE_ROOT) && $(CARGO) check --package nonos_kernel \
+		--target $(KERNEL_DIR_ABS)/$(TARGET).json -Zbuild-std=core,alloc -Zjson-target-spec
 
-.PHONY: nonos-clippy
 nonos-clippy:
-	@echo "Running clippy on NØNOS..."
-	cd $(KERNEL_DIR) && $(CARGO) clippy --target $(TARGET).json -Zbuild-std=core,alloc -- -W clippy::all
+	cd $(WORKSPACE_ROOT) && $(CARGO) clippy --package nonos_kernel \
+		--target $(KERNEL_DIR_ABS)/$(TARGET).json -Zbuild-std=core,alloc -Zjson-target-spec -- -W clippy::all
 
-.PHONY: nonos-fmt
 nonos-fmt:
-	@echo "Formatting NØNOS code..."
-	cd $(KERNEL_DIR) && $(CARGO) fmt
+	cd $(WORKSPACE_ROOT) && $(CARGO) fmt --all
 
-.PHONY: nonos-test
 nonos-test:
-	@echo "Running NØNOS tests..."
-	cd $(KERNEL_DIR) && $(CARGO) test --target $(TARGET).json -Zbuild-std=core,alloc
+	cd $(WORKSPACE_ROOT) && $(CARGO) test --package nonos_kernel \
+		--target $(KERNEL_DIR_ABS)/$(TARGET).json -Zbuild-std=core,alloc -Zjson-target-spec
 
-# Legacy aliases (deprecated)
-.PHONY: check clippy fmt test
+nonos-deps:
+	rustup component add rust-src llvm-tools-preview
+	cargo install bootimage
+
+nonos-doc:
+	cd $(WORKSPACE_ROOT) && $(CARGO) doc --package nonos_kernel \
+		--target $(KERNEL_DIR_ABS)/$(TARGET).json -Zbuild-std=core,alloc -Zjson-target-spec --open
+
+nonos-disasm: nonos-debug
+	@mkdir -p build
+	$(OBJDUMP) -d $(DEBUG_DIR)/nonos_kernel > build/kernel.asm
+	@echo "Done: build/kernel.asm"
+
+# Aliases
 check: nonos-check
 clippy: nonos-clippy
 fmt: nonos-fmt
 test: nonos-test
-
-# NØNOS Setup targets
-.PHONY: nonos-deps
-nonos-deps:
-	@echo "Installing NØNOS dependencies..."
-	rustup component add rust-src
-	rustup component add llvm-tools-preview
-	cargo install bootimage
-	@echo "NØNOS dependencies installed!"
-
-.PHONY: nonos-doc
-nonos-doc:
-	@echo "Building NØNOS documentation..."
-	cd $(KERNEL_DIR) && $(CARGO) doc --target $(TARGET).json --open
-
-.PHONY: nonos-disasm
-nonos-disasm: nonos-debug
-	@echo "Disassembling NØNOS kernel..."
-	$(OBJDUMP) -d $(DEBUG_DIR)/nonos_kernel > build/kernel.asm
-	@echo "Disassembly saved to build/kernel.asm"
-
-# Legacy aliases (deprecated)
-.PHONY: deps doc disasm
 deps: nonos-deps
 doc: nonos-doc
 disasm: nonos-disasm
 
-# Help
-.PHONY: nonos-help
-nonos-help:
-	@echo "NØNOS Kernel Build System"
-	@echo ""
-	@echo "Main NØNOS targets:"
-	@echo "  make nonos             - Build NØNOS kernel (release)"
-	@echo "  make nonos-debug       - Build NØNOS kernel (debug)"
-	@echo "  make nonos-run         - Run NØNOS in QEMU (release)"
-	@echo "  make nonos-run-debug   - Run NØNOS in QEMU (debug)"
-	@echo "  make nonos-debug-gdb   - Run NØNOS with GDB debugger"
-	@echo "  make nonos-clean       - Clean NØNOS build artifacts"
-	@echo ""
-	@echo "Development targets:"
-	@echo "  make nonos-check       - Check NØNOS code for errors"
-	@echo "  make nonos-clippy      - Run clippy linter on NØNOS"
-	@echo "  make nonos-fmt         - Format NØNOS code"
-	@echo "  make nonos-test        - Run NØNOS tests"
-	@echo "  make nonos-doc         - Build and open NØNOS documentation"
-	@echo "  make nonos-disasm      - Disassemble NØNOS kernel"
-	@echo "  make nonos-deps        - Install NØNOS dependencies"
-	@echo ""
-	@echo "Environment:"
-	@echo "  NONOS_SIGNING_KEY      - Path to signing key (required)"
-	@echo ""
-	@echo "Legacy aliases (deprecated):"
-	@echo "  make build, release, run, debug, clean, check, clippy, fmt, test"
+#
+# Cleanup
+#
 
-.PHONY: help
-help: nonos-help
+nonos-clean:
+	cd $(WORKSPACE_ROOT) && $(CARGO) clean 2>/dev/null || true
+	rm -rf build/
+
+clean: nonos-clean
+
+#
+# Key management
+#
+
+nonos-keygen-dev:
+	@mkdir -p .keys
+	@dd if=/dev/urandom of=.keys/dev-signing.seed bs=32 count=1 2>/dev/null
+	@chmod 600 .keys/dev-signing.seed
+	@echo "Created: .keys/dev-signing.seed"
+	@echo "export NONOS_SIGNING_KEY=\$$(pwd)/.keys/dev-signing.seed"
+
+nonos-keygen-prod:
+	@mkdir -p .keys
+	@test ! -f .keys/prod-signing.seed || { echo "Key exists. Delete manually to regenerate."; exit 1; }
+	@dd if=/dev/urandom of=.keys/prod-signing.seed bs=32 count=1 2>/dev/null
+	@chmod 400 .keys/prod-signing.seed
+	@echo "Created: .keys/prod-signing.seed (read-only)"
+	@echo "Back this up. Loss = can't sign future releases."
+
+nonos-key-fingerprint:
+	@echo "Key fingerprints:"
+	@test -f .keys/dev-signing.seed && printf "  dev:  " && shasum -a 256 .keys/dev-signing.seed | cut -c1-16 || true
+	@test -f .keys/prod-signing.seed && printf "  prod: " && shasum -a 256 .keys/prod-signing.seed | cut -c1-16 || true
+
+#
+# Help
+#
 
 .DEFAULT_GOAL := nonos-help
+
+nonos-help:
+	@echo "NONOS Kernel Build"
+	@echo ""
+	@echo "Build:   make nonos, make nonos-debug"
+	@echo "Run:     make nonos-run, make nonos-run-debug, make nonos-debug-gdb"
+	@echo "ISO:     make iso, make iso-debug"
+	@echo "Dev:     make nonos-check, make nonos-clippy, make nonos-fmt, make nonos-test"
+	@echo "Setup:   make nonos-deps, make nonos-keygen-dev, make nonos-keygen-prod"
+	@echo "Other:   make nonos-doc, make nonos-disasm, make nonos-clean"
+	@echo ""
+	@echo "Env: NONOS_SIGNING_KEY (default: .keys/dev-signing.seed)"
+ifdef IS_MACOS
+	@echo "Note: ISO creation uses Docker (grub-mkrescue needs Linux)"
+endif
+ifdef IS_LINUX
+	@echo "Note: KVM enabled if /dev/kvm exists"
+endif
+
+help: nonos-help

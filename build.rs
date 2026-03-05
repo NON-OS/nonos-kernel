@@ -3,7 +3,6 @@
 use std::env;
 use std::fs;
 use std::path::PathBuf;
-use std::process::Command;
 
 fn main() {
     println!("cargo:rerun-if-changed=build.rs");
@@ -27,6 +26,12 @@ fn main() {
 }
 
 fn compile_pqclean_kyber() {
+    // Skip PQClean compilation when building tests on host
+    let target = env::var("TARGET").unwrap_or_default();
+    if target.contains("apple") || target.contains("linux-gnu") || target.contains("windows") {
+        return;
+    }
+
     // Select parameter set
     let (kem_dir, kem_macro) = if cfg!(feature = "mlkem1024") {
         ("mlkem1024", "MLKEM1024")
@@ -76,6 +81,18 @@ fn compile_pqclean_kyber() {
 }
 
 fn configure_kernel_target() {
+    // Skip kernel linker config when building tests on host
+    let target = env::var("TARGET").unwrap_or_default();
+    if target.contains("apple") || target.contains("linux-gnu") || target.contains("windows") {
+        // Running tests on host - don't use kernel linker script
+        return;
+    }
+
+    // Linker script path (relative to CARGO_MANIFEST_DIR for portability)
+    let manifest_dir = env::var("CARGO_MANIFEST_DIR").unwrap();
+    let linker_script = format!("{}/linker.ld", manifest_dir);
+    println!("cargo:rustc-link-arg=--script={}", linker_script);
+
     // Static link for bare-metal kernel
     println!("cargo:rustc-link-arg=-nostdlib");
     println!("cargo:rustc-link-arg=-static");
@@ -97,8 +114,18 @@ fn generate_manifest_and_signature() {
     // - In dev, warn and embed a zeroed signature (for local bring-up only)
     let profile = env::var("PROFILE").unwrap_or_default();
     let sig = match env::var("NONOS_SIGNING_KEY") {
-        Ok(p) => sign_manifest_ed25519(&manifest_content, PathBuf::from(p))
-            .expect("Ed25519 signing failed"),
+        Ok(p) => {
+            let key_path = PathBuf::from(&p);
+            if key_path.exists() {
+                sign_manifest_ed25519(&manifest_content, key_path)
+                    .expect("Ed25519 signing failed")
+            } else if profile == "release" {
+                panic!("NONOS_SIGNING_KEY file not found at {} (required for release builds)", p);
+            } else {
+                eprintln!("warning: NONOS_SIGNING_KEY file not found at {}; embedding zero signature (dev build only)", p);
+                vec![0u8; 64]
+            }
+        }
         Err(_) if profile == "release" => {
             panic!("NONOS_SIGNING_KEY not set (required for release builds to produce a signed manifest)");
         }
@@ -204,55 +231,103 @@ fn embed_kernel_build_info() {
 }
 
 fn generate_manifest_asm(manifest_content: &[u8], signature: &[u8], out_dir: &str) {
-    let c_content = format!(
-        r#"
-__attribute__((section(".nonos.manifest")))
-const unsigned char __nonos_manifest_start[] = {{
-    {}
-}};
+    // Generate assembly file directly - this works better for cross-compilation
+    // than C because we don't need a cross-compiler toolchain
+    let manifest_hex: String = manifest_content.iter().map(|b| format!("0x{:02x}, ", b)).collect();
+    let signature_hex: String = signature.iter().map(|b| format!("0x{:02x}, ", b)).collect();
 
-__attribute__((section(".nonos.manifest")))
-const unsigned char __nonos_manifest_end[] = {{ 0 }};
+    let asm_content = format!(
+        r#".section .nonos.manifest, "a", @progbits
+.global __nonos_manifest_data
+.global __nonos_manifest_size
+__nonos_manifest_data:
+    .byte {manifest_hex}
+__nonos_manifest_size:
+    .quad {manifest_len}
 
-__attribute__((section(".nonos.sig")))
-const unsigned char __nonos_signature_start[] = {{
-    {}
-}};
-
-__attribute__((section(".nonos.sig")))
-const unsigned char __nonos_signature_end[] = {{ 0 }};
+.section .nonos.sig, "a", @progbits
+.global __nonos_signature_data
+.global __nonos_signature_size
+__nonos_signature_data:
+    .byte {signature_hex}
+__nonos_signature_size:
+    .quad {signature_len}
 "#,
-        manifest_content.iter().map(|b| format!("0x{:02x}", b)).collect::<Vec<_>>().join(","),
-        signature.iter().map(|b| format!("0x{:02x}", b)).collect::<Vec<_>>().join(",")
+        manifest_hex = manifest_hex.trim_end_matches(", "),
+        manifest_len = manifest_content.len(),
+        signature_hex = signature_hex.trim_end_matches(", "),
+        signature_len = signature.len()
     );
 
-    let c_path = format!("{}/manifest_data.c", out_dir);
-    fs::write(&c_path, c_content).expect("Failed to write manifest C TU");
+    let asm_path = format!("{}/manifest_data.s", out_dir);
+    fs::write(&asm_path, &asm_content).expect("Failed to write manifest assembly");
 
-    let object_path = format!("{}/manifest_data.o", out_dir);
-    let clang_ok = Command::new("clang")
-        .args(["-target", "x86_64-unknown-none", "-c", "-o", &object_path, &c_path])
-        .status()
-        .map(|s| s.success())
-        .unwrap_or(false);
+    // Generate a Rust file using global_asm! to ensure the data is always linked
+    let manifest_bytes: String = manifest_content.iter().map(|b| format!("0x{:02x}, ", b)).collect();
+    let signature_bytes: String = signature.iter().map(|b| format!("0x{:02x}, ", b)).collect();
 
-    if !clang_ok {
-        let gcc_ok = Command::new("gcc")
-            .args(["-c", "-o", &object_path, &c_path])
-            .status()
-            .map(|s| s.success())
-            .unwrap_or(false);
-        if !gcc_ok {
-            panic!("Failed to compile manifest C TU with both clang and gcc");
-        }
-    }
+    let rs_content = format!(
+        r#"// Auto-generated manifest and signature data
+// DO NOT EDIT - generated by build.rs
 
-    let lib_path = format!("{}/libmanifest.a", out_dir);
-    let ar_ok = Command::new("ar").args(["rcs", &lib_path, &object_path]).status().map(|s| s.success()).unwrap_or(false);
-    if ar_ok {
-        println!("cargo:rustc-link-search=native={}", out_dir);
-        println!("cargo:rustc-link-lib=static=manifest");
-    } else {
-        println!("cargo:rustc-link-arg={}", object_path);
-    }
+use core::arch::global_asm;
+
+// Embed manifest data using global assembly (survives all optimization)
+global_asm!(
+    ".section .nonos.manifest, \"aw\", @progbits",
+    ".global NONOS_MANIFEST_DATA",
+    ".global NONOS_MANIFEST_LEN",
+    "NONOS_MANIFEST_DATA:",
+    ".byte {manifest_bytes}",
+    "NONOS_MANIFEST_LEN:",
+    ".quad {manifest_len}",
+);
+
+// Embed signature data using global assembly
+global_asm!(
+    ".section .nonos.sig, \"aw\", @progbits",
+    ".global NONOS_SIGNATURE_DATA",
+    ".global NONOS_SIGNATURE_LEN",
+    "NONOS_SIGNATURE_DATA:",
+    ".byte {signature_bytes}",
+    "NONOS_SIGNATURE_LEN:",
+    ".quad {signature_len}",
+);
+
+/// Manifest length constant
+pub const MANIFEST_LEN: usize = {manifest_len};
+
+/// Signature length constant
+pub const SIGNATURE_LEN: usize = {signature_len};
+
+extern "C" {{
+    /// Manifest data (defined in assembly)
+    pub static NONOS_MANIFEST_DATA: [u8; {manifest_len}];
+    /// Signature data (defined in assembly)
+    pub static NONOS_SIGNATURE_DATA: [u8; {signature_len}];
+}}
+
+/// Get the kernel manifest
+pub fn get_manifest() -> &'static [u8] {{
+    unsafe {{ &NONOS_MANIFEST_DATA }}
+}}
+
+/// Get the kernel signature
+pub fn get_signature() -> &'static [u8] {{
+    unsafe {{ &NONOS_SIGNATURE_DATA }}
+}}
+"#,
+        manifest_bytes = manifest_bytes.trim_end_matches(", "),
+        manifest_len = manifest_content.len(),
+        signature_bytes = signature_bytes.trim_end_matches(", "),
+        signature_len = signature.len()
+    );
+
+    let rs_path = format!("{}/manifest_data.rs", out_dir);
+    fs::write(&rs_path, &rs_content).expect("Failed to write manifest Rust module");
+
+    // Output info for debugging
+    eprintln!("info: Generated manifest ({} bytes) and signature ({} bytes)",
+              manifest_content.len(), signature.len());
+    eprintln!("info: Signature (first 16 bytes): {:02x?}", &signature[..16.min(signature.len())]);
 }

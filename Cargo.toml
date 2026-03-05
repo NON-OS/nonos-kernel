@@ -21,7 +21,7 @@ crate-type = ["staticlib", "rlib"]
 name = "nonos-kernel"
 path = "src/nonos_main.rs"
 
-# FEATURES 
+# FEATURES
 # Notes:
 # - My default is a hardened, RAM-resident microkernel profile.
 # - additional features are opt-in and grouped by domain.
@@ -168,7 +168,7 @@ mlkem512  = []
 mlkem768  = []
 mlkem1024 = []
 
-# Dilithium parameter sets  
+# Dilithium parameter sets
 mldsa2 = []
 mldsa3 = []
 mldsa5 = []
@@ -275,7 +275,7 @@ glob  = "0.3"
 ed25519-dalek = { version = "1", default-features = false, features = ["u64_backend"] }
 sha2          = { version = "0.10", default-features = false }
 
-# LINTS (Rust >= 1.75) 
+# LINTS (Rust >= 1.75)
 [lints.rust]
 unused_imports = "warn"
 unused_variables = "warn"
