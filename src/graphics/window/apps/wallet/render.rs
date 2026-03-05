@@ -73,6 +73,8 @@ fn draw_locked_view(x: u32, y: u32, w: u32, h: u32) {
     let center_x = x + w / 2;
     let center_y = y + h / 2;
 
+    PASSWORD_FOCUSED.store(true, Ordering::Relaxed);
+
     fill_rect(center_x - 150, center_y - 100, 300, 200, COLOR_CARD);
     fill_rect(center_x - 150, center_y - 100, 300, 2, COLOR_ACCENT);
 
