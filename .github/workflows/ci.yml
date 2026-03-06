@@ -99,15 +99,16 @@ jobs:
           sudo apt-get install -y python3 python3-pip xorriso gdisk mtools
           pip3 install pynacl
 
-      - name: Setup keys
+      - name: Setup signing key
         run: |
           mkdir -p .keys
           echo "${{ secrets.SIGNING_KEY_BASE64 }}" | base64 -d > .keys/dev-signing.seed
           chmod 600 .keys/dev-signing.seed
-          if [ -n "${{ secrets.ZK_PROVING_KEY_BASE64 }}" ]; then
-            mkdir -p nonos-bootloader/tools/nonos-attestation-circuit/generated_keys
-            echo "${{ secrets.ZK_PROVING_KEY_BASE64 }}" | base64 -d > nonos-bootloader/tools/nonos-attestation-circuit/generated_keys/attestation_proving_key.bin
-          fi
+
+      - name: Generate ZK keys
+        run: make generate-zk-keys
+        env:
+          SIGNING_KEY: ${{ github.workspace }}/.keys/dev-signing.seed
 
       - name: Clean build artifacts
         run: |
@@ -115,12 +116,7 @@ jobs:
           find nonos-bootloader/tools -name "target" -type d -exec rm -rf {} + 2>/dev/null || true
 
       - name: Build release
-        run: |
-          if [ -f nonos-bootloader/tools/nonos-attestation-circuit/generated_keys/attestation_proving_key.bin ]; then
-            make ci-release
-          else
-            make bootloader kernel sign-kernel iso usb checksums
-          fi
+        run: make ci-release
         env:
           SIGNING_KEY: ${{ github.workspace }}/.keys/dev-signing.seed
 
