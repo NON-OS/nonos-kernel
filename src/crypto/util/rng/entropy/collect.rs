@@ -18,9 +18,21 @@ use core::sync::atomic::Ordering;
 use super::error::EntropyError;
 use super::state::{ENTROPY_COUNTER, HARDWARE_ENTROPY_VERIFIED, BOOTLOADER_ENTROPY_PROVIDED};
 use super::hardware::{has_rdrand, has_rdseed, try_rdrand64, try_rdseed64, read_tsc};
+use crate::drivers::virtio_rng;
+use crate::drivers::tpm;
 
 pub fn init_entropy() -> Result<(), EntropyError> {
+    if virtio_rng::is_available() {
+        HARDWARE_ENTROPY_VERIFIED.store(true, Ordering::SeqCst);
+        return Ok(());
+    }
+
     if has_rdrand() || has_rdseed() {
+        HARDWARE_ENTROPY_VERIFIED.store(true, Ordering::SeqCst);
+        return Ok(());
+    }
+
+    if tpm::is_tpm_available() {
         HARDWARE_ENTROPY_VERIFIED.store(true, Ordering::SeqCst);
         return Ok(());
     }
@@ -38,11 +50,19 @@ pub fn mark_bootloader_entropy_provided() {
 
 #[inline]
 pub fn has_adequate_entropy() -> bool {
-    has_rdrand() || has_rdseed() || BOOTLOADER_ENTROPY_PROVIDED.load(Ordering::Acquire)
+    virtio_rng::is_available() || has_rdrand() || has_rdseed() || tpm::is_tpm_available() || BOOTLOADER_ENTROPY_PROVIDED.load(Ordering::Acquire)
 }
 
 pub fn verify_entropy_sources() -> Result<(), EntropyError> {
+    if virtio_rng::is_available() {
+        return Ok(());
+    }
+
     if has_rdrand() || has_rdseed() {
+        return Ok(());
+    }
+
+    if tpm::is_tpm_available() {
         return Ok(());
     }
 
@@ -54,12 +74,29 @@ pub fn verify_entropy_sources() -> Result<(), EntropyError> {
 }
 
 pub fn get_entropy64_secure() -> Result<u64, EntropyError> {
+    if virtio_rng::is_available() {
+        let mut buf = [0u8; 8];
+        if virtio_rng::fill_random(&mut buf).is_ok() {
+            return Ok(u64::from_le_bytes(buf));
+        }
+    }
+
     if let Some(v) = try_rdseed64() {
         return Ok(v);
     }
 
     if let Some(v) = try_rdrand64() {
         return Ok(v);
+    }
+
+    if tpm::is_tpm_available() {
+        if let Ok(bytes) = tpm::get_random_bytes(8) {
+            if bytes.len() >= 8 {
+                let mut buf = [0u8; 8];
+                buf.copy_from_slice(&bytes[..8]);
+                return Ok(u64::from_le_bytes(buf));
+            }
+        }
     }
 
     Err(EntropyError::HardwareFailure)
@@ -110,6 +147,13 @@ pub fn get_tsc_entropy() -> u64 {
 
 pub fn collect_seed_entropy_secure() -> Result<[u8; 32], EntropyError> {
     let mut seed = [0u8; 32];
+
+    if virtio_rng::is_available() {
+        if virtio_rng::fill_random(&mut seed).is_ok() {
+            return Ok(seed);
+        }
+    }
+
     let mut offset = 0;
     let mut secure_bytes = 0usize;
 
@@ -137,6 +181,14 @@ pub fn collect_seed_entropy_secure() -> Result<[u8; 32], EntropyError> {
         }
     }
 
+    if secure_bytes < 32 && tpm::is_tpm_available() {
+        if let Ok(bytes) = tpm::get_random_bytes(32) {
+            let copy_len = bytes.len().min(32 - secure_bytes);
+            seed[secure_bytes..secure_bytes + copy_len].copy_from_slice(&bytes[..copy_len]);
+            secure_bytes += copy_len;
+        }
+    }
+
     if secure_bytes < 32 {
         for b in &mut seed {
             *b = 0;
@@ -158,6 +210,15 @@ pub fn collect_seed_entropy() -> [u8; 32] {
         let entropy = get_entropy64();
         let offset = i * 8;
         seed[offset..offset + 8].copy_from_slice(&entropy.to_le_bytes());
+    }
+
+    let stack_addr: u64;
+    unsafe {
+        core::arch::asm!("mov {}, rsp", out(reg) stack_addr, options(nomem, nostack));
+    }
+    let stack_bytes = stack_addr.to_le_bytes();
+    for i in 0..8 {
+        seed[i] ^= stack_bytes[i];
     }
 
     seed
