@@ -37,6 +37,7 @@ pub mod tpm;
 pub mod usb;
 pub mod vga;
 pub mod virtio_net;
+pub mod virtio_rng;
 pub mod wifi;
 pub mod xhci;
 
@@ -119,4 +120,9 @@ pub use i2c::{
     controller_count as i2c_controller_count, get_controller as get_i2c_controller,
     init as init_i2c, read as i2c_read, write as i2c_write, write_read as i2c_write_read,
     DesignWareI2c, I2cAddress, I2cError, I2cSpeed, LpssController,
+};
+
+pub use virtio_rng::{
+    fill_random as virtio_rng_fill, get_random_bytes as virtio_rng_get_bytes,
+    init_virtio_rng, is_available as virtio_rng_available,
 };
