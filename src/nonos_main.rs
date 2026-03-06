@@ -118,6 +118,12 @@ extern "C" fn kernel_entry(handoff_ptr: u64) -> ! {
     bus::pci::init();
     serial::println(b"[NONOS] PCI bus enumerated");
 
+    if let Ok(()) = nonos_kernel::drivers::init_virtio_rng() {
+        serial::println(b"[NONOS] VirtIO-RNG initialized - hardware entropy available");
+    } else {
+        serial::println(b"[NONOS] VirtIO-RNG not found - using software RNG only");
+    }
+
     if handoff_ptr == 0 {
         serial::println(b"[NONOS] CRITICAL: No handoff from bootloader!");
         vga_fallback();
@@ -258,6 +264,16 @@ fn init_network() {
     }
 
     if !network_ready {
+        if let Ok(()) = nonos_kernel::drivers::init_virtio_net() {
+            serial::println(b"[NET] VirtIO-net driver initialized");
+            nonos_kernel::drivers::virtio_net::interface::register_with_smoltcp();
+            serial::println(b"[NET] VirtIO-net registered with stack");
+            network_ready = true;
+            is_qemu = true;
+        }
+    }
+
+    if !network_ready {
         if let Ok(()) = nonos_kernel::drivers::network::e1000::init() {
             serial::println(b"[NET] e1000 Ethernet driver initialized");
             if let Some(dev) = nonos_kernel::drivers::network::e1000::get_driver() {
@@ -354,10 +370,22 @@ fn log_security_status(handoff: &BootHandoffV1) {
     }
 
     let has_entropy = handoff.rng.seed32.iter().any(|&b| b != 0);
+    serial::print(b"[NONOS] Bootloader entropy[0..8]: ");
+    for i in 0..8 {
+        serial::print_hex(handoff.rng.seed32[i] as u64);
+        serial::print(b" ");
+    }
+    serial::println(b"");
+
     if has_entropy {
-        serial::println(b"[NONOS] RNG seed: AVAILABLE");
+        serial::println(b"[NONOS] RNG seed: AVAILABLE - applying...");
+        if let Err(_) = nonos_kernel::crypto::rng::seed_from_bootloader(&handoff.rng.seed32) {
+            serial::println(b"[NONOS] RNG seed: FAILED TO APPLY");
+        } else {
+            serial::println(b"[NONOS] RNG seed: APPLIED SUCCESSFULLY");
+        }
     } else {
-        serial::println(b"[NONOS] RNG seed: MISSING");
+        serial::println(b"[NONOS] RNG seed: ALL ZEROS - bootloader entropy missing!");
     }
 
     serial::println(b"[NONOS] ========================");
