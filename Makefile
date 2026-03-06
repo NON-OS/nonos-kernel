@@ -139,7 +139,7 @@ zk-tools:
 ifeq ($(UNAME_S),Darwin)
 	cd $(ZK_CIRCUIT_DIR) && $(CARGO) build --release --bin generate-keys --bin generate-proof --target x86_64-apple-darwin
 else
-	cd $(ZK_CIRCUIT_DIR) && rm -rf target/x86_64-unknown-linux-gnu && RUSTFLAGS="" $(CARGO) build --release --bin generate-keys --bin generate-proof --target x86_64-unknown-linux-gnu
+	cd $(ZK_CIRCUIT_DIR) && $(CARGO) build --release --bin generate-keys --bin generate-proof --target x86_64-unknown-linux-gnu
 endif
 
 generate-zk-keys: zk-tools
@@ -174,7 +174,7 @@ ifeq ($(UNAME_S),Darwin)
 		--proof $(ZK_PROOF_FILE) --program-hash $(ZK_PROGRAM_HASH) \
 		--public-inputs $(ZK_PUBLIC_INPUTS) --verbose
 else
-	cd $(BOOTLOADER_DIR)/tools/embed-zk-proof && rm -rf target/x86_64-unknown-linux-gnu && RUSTFLAGS="" $(CARGO) build --release --target x86_64-unknown-linux-gnu
+	cd $(BOOTLOADER_DIR)/tools/embed-zk-proof && $(CARGO) build --release --target x86_64-unknown-linux-gnu
 	$(BOOTLOADER_DIR)/tools/embed-zk-proof/target/x86_64-unknown-linux-gnu/release/embed-zk-proof \
 		--input $(TARGET_DIR)/kernel_signed.bin --output $(TARGET_DIR)/kernel_attested.bin \
 		--proof $(ZK_PROOF_FILE) --program-hash $(ZK_PROGRAM_HASH) \

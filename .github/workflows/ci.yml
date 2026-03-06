@@ -33,15 +33,6 @@ jobs:
           sudo apt-get install -y python3 python3-pip xorriso gdisk mtools
           pip3 install pynacl
 
-      - name: Cache cargo
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.cargo/registry
-            ~/.cargo/git
-            target
-          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
-
       - name: Setup signing key
         run: |
           mkdir -p .keys
@@ -108,15 +99,6 @@ jobs:
           sudo apt-get install -y python3 python3-pip xorriso gdisk mtools
           pip3 install pynacl
 
-      - name: Cache cargo
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.cargo/registry
-            ~/.cargo/git
-            target
-          key: ${{ runner.os }}-cargo-release-${{ hashFiles('**/Cargo.lock') }}
-
       - name: Setup keys
         run: |
           mkdir -p .keys
@@ -126,6 +108,11 @@ jobs:
             mkdir -p nonos-bootloader/tools/nonos-attestation-circuit/generated_keys
             echo "${{ secrets.ZK_PROVING_KEY_BASE64 }}" | base64 -d > nonos-bootloader/tools/nonos-attestation-circuit/generated_keys/attestation_proving_key.bin
           fi
+
+      - name: Clean build artifacts
+        run: |
+          rm -rf target nonos-bootloader/target
+          find nonos-bootloader/tools -name "target" -type d -exec rm -rf {} + 2>/dev/null || true
 
       - name: Build release
         run: |
