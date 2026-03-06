@@ -161,3 +161,7 @@ pub const DMA_ALIGNMENT: usize = 256;
 pub const DESC_ALIGNMENT: usize = 256;
 
 pub const RSSI_INVALID: i8 = -100;
+
+pub const FW_MAX_SIZE: usize = 512 * 1024;
+pub const FW_PAGE_SIZE: usize = 4096;
+pub const FW_START_ADDR: u16 = 0x1000;
