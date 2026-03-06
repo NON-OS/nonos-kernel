@@ -57,22 +57,114 @@ pub(super) fn handle_locked_click(x: u32, y: u32, w: u32, h: u32) -> bool {
 }
 
 fn generate_new_wallet() {
-    use crate::crypto::core::api::generate_secure_key_checked;
-    use crate::crypto::util::rng::seed_rng;
+    use crate::crypto::blake3_hash;
+    use crate::crypto::util::rng;
+    use crate::drivers::{virtio_rng, tpm};
+    use core::sync::atomic::{AtomicU64, Ordering as AO};
+
+    static WALLET_CTR: AtomicU64 = AtomicU64::new(0xCAFE_BABE_0000_0001);
 
     lock_wallet();
 
-    if seed_rng().is_err() {
-        set_status(b"RNG seed failed, retrying...", false);
+    let ctr = WALLET_CTR.fetch_add(0x0001_0001_0001_0001, AO::SeqCst);
+
+    let mut e = [0u8; 256];
+
+    if virtio_rng::is_available() {
+        let _ = virtio_rng::fill_random(&mut e);
+    } else if tpm::is_tpm_available() {
+        if let Ok(bytes) = tpm::get_random_bytes(256) {
+            let len = bytes.len().min(256);
+            e[..len].copy_from_slice(&bytes[..len]);
+        }
     }
 
-    let master_key = match generate_secure_key_checked() {
-        Ok(key) => key,
-        Err(e) => {
-            set_status(e.as_bytes(), false);
-            return;
+    e[0..8].iter_mut().zip(ctr.to_le_bytes()).for_each(|(a, b)| *a ^= b);
+
+    let t1: u64;
+    unsafe {
+        let lo: u32;
+        let hi: u32;
+        core::arch::asm!("rdtsc", out("eax") lo, out("edx") hi, options(nomem, nostack));
+        t1 = (lo as u64) | ((hi as u64) << 32);
+    }
+    e[8..16].iter_mut().zip(t1.to_le_bytes()).for_each(|(a, b)| *a ^= b);
+
+    let eptr = &e as *const _ as u64;
+    e[16..24].iter_mut().zip(eptr.to_le_bytes()).for_each(|(a, b)| *a ^= b);
+
+    let gctr = rng::GLOBAL_COUNTER.fetch_add(0x0100_0000_0000_0001, AO::SeqCst);
+    e[24..32].iter_mut().zip(gctr.to_le_bytes()).for_each(|(a, b)| *a ^= b);
+
+    for i in 0..32 {
+        unsafe {
+            core::arch::asm!("out dx, al", in("dx") 0x43u16, in("al") 0x00u8, options(nostack, preserves_flags));
+            let lo: u8;
+            core::arch::asm!("in al, dx", out("al") lo, in("dx") 0x40u16, options(nostack, preserves_flags));
+            let hi: u8;
+            core::arch::asm!("in al, dx", out("al") hi, in("dx") 0x40u16, options(nostack, preserves_flags));
+            e[32 + i * 2] ^= lo;
+            e[33 + i * 2] ^= hi;
         }
-    };
+        let spin = ((e[32 + i * 2] as usize) & 0x3F) + 1;
+        for _ in 0..spin {
+            core::hint::spin_loop();
+        }
+    }
+
+    let t2: u64;
+    unsafe {
+        let lo: u32;
+        let hi: u32;
+        core::arch::asm!("rdtsc", out("eax") lo, out("edx") hi, options(nomem, nostack));
+        t2 = (lo as u64) | ((hi as u64) << 32);
+    }
+    e[96..104].iter_mut().zip(t2.to_le_bytes()).for_each(|(a, b)| *a ^= b);
+    e[104..112].iter_mut().zip(t2.wrapping_sub(t1).to_le_bytes()).for_each(|(a, b)| *a ^= b);
+
+    unsafe {
+        core::arch::asm!("out dx, al", in("dx") 0x70u16, in("al") 0x00u8, options(nostack, preserves_flags));
+        let sec: u8;
+        core::arch::asm!("in al, dx", out("al") sec, in("dx") 0x71u16, options(nostack, preserves_flags));
+        core::arch::asm!("out dx, al", in("dx") 0x70u16, in("al") 0x02u8, options(nostack, preserves_flags));
+        let min: u8;
+        core::arch::asm!("in al, dx", out("al") min, in("dx") 0x71u16, options(nostack, preserves_flags));
+        core::arch::asm!("out dx, al", in("dx") 0x70u16, in("al") 0x04u8, options(nostack, preserves_flags));
+        let hour: u8;
+        core::arch::asm!("in al, dx", out("al") hour, in("dx") 0x71u16, options(nostack, preserves_flags));
+        e[112] ^= sec;
+        e[113] ^= min;
+        e[114] ^= hour;
+    }
+
+    let sp: u64;
+    unsafe {
+        core::arch::asm!("mov {}, rsp", out(reg) sp, options(nomem, nostack));
+    }
+    e[120..128].iter_mut().zip(sp.to_le_bytes()).for_each(|(a, b)| *a ^= b);
+
+    rng::fill_random_bytes(&mut e[128..192]);
+
+    let t3: u64;
+    unsafe {
+        let lo: u32;
+        let hi: u32;
+        core::arch::asm!("rdtsc", out("eax") lo, out("edx") hi, options(nomem, nostack));
+        t3 = (lo as u64) | ((hi as u64) << 32);
+    }
+    e[192..200].iter_mut().zip(t3.to_le_bytes()).for_each(|(a, b)| *a ^= b);
+    e[200..208].iter_mut().zip(t3.wrapping_sub(t2).to_le_bytes()).for_each(|(a, b)| *a ^= b);
+
+    let ctr2 = WALLET_CTR.load(AO::SeqCst);
+    e[208..216].iter_mut().zip(ctr2.to_le_bytes()).for_each(|(a, b)| *a ^= b);
+
+    rng::fill_random_bytes(&mut e[216..256]);
+
+    let master_key = blake3_hash(&e);
+
+    for b in e.iter_mut() {
+        unsafe { core::ptr::write_volatile(b, 0) };
+    }
 
     match init_wallet(master_key) {
         Ok(()) => {
