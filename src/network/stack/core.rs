@@ -32,6 +32,9 @@ use super::device::{SmolDeviceAdapter, DEFAULT_MAC, now_ms};
 use super::types::{ConnectionEntry, NetworkStats, SocketInfo, ArpEntry, Ipv4Address, Ipv6Address};
 
 static STACK: Once<NetworkStack> = Once::new();
+static ARP_CACHE: Mutex<Vec<ArpEntry>> = Mutex::new(Vec::new());
+
+const MAX_ARP_ENTRIES: usize = 64;
 
 pub struct NetworkStack {
     pub(crate) iface: Mutex<Interface>,
@@ -167,7 +170,19 @@ impl NetworkStack {
     }
 
     pub fn get_arp_cache(&self) -> Vec<ArpEntry> {
-        Vec::new()
+        ARP_CACHE.lock().clone()
+    }
+
+    pub fn update_arp_entry(ip: [u8; 4], mac: [u8; 6]) {
+        let mut cache = ARP_CACHE.lock();
+        if let Some(entry) = cache.iter_mut().find(|e| e.ip == ip) {
+            entry.mac = mac;
+        } else {
+            if cache.len() >= MAX_ARP_ENTRIES {
+                cache.remove(0);
+            }
+            cache.push(ArpEntry { ip, mac });
+        }
     }
 
     pub fn get_socket_info(&self) -> Vec<SocketInfo> {
