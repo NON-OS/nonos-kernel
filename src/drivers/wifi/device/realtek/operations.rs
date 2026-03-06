@@ -21,7 +21,7 @@ use alloc::vec::Vec;
 use core::ptr;
 
 use super::super::super::error::WifiError;
-use super::super::super::scan::{ScanResult, ScanConfig};
+use super::super::super::scan::{ScanResult, ScanConfig, SecurityType};
 use super::super::super::api::LinkInfo;
 use super::super::super::firmware::FirmwareInfo;
 use super::super::types::WifiState;
@@ -53,14 +53,97 @@ impl RealtekWifiDevice {
         }
     }
 
-    pub fn load_firmware(&mut self, _fw_data: &[u8]) -> Result<(), WifiError> {
-        crate::log::info!("rtlwifi: Firmware loading not yet implemented for Realtek");
+    pub fn load_firmware(&mut self, fw_data: &[u8]) -> Result<(), WifiError> {
+        if fw_data.len() < 64 {
+            return Err(WifiError::FirmwareInvalid);
+        }
+
+        if fw_data.len() > FW_MAX_SIZE {
+            return Err(WifiError::FirmwareInvalid);
+        }
+
+        crate::log::info!("rtlwifi: Loading firmware ({} bytes)", fw_data.len());
+
+        let mcufwdl = self.read32(regs::MCUFWDL);
+        self.write32(regs::MCUFWDL, mcufwdl | bits::MCUFWDL_EN);
+        self.delay_us(100);
+
+        self.write8(regs::MCUFWDL + 2, 0);
+        self.delay_us(10);
+
+        let mut offset = 0usize;
+        while offset < fw_data.len() {
+            let page_size = core::cmp::min(FW_PAGE_SIZE, fw_data.len() - offset);
+            let page_num = (offset / FW_PAGE_SIZE) as u8;
+
+            self.write8(regs::MCUFWDL + 2, page_num);
+            self.delay_us(10);
+
+            for i in (0..page_size).step_by(4) {
+                let word_offset = offset + i;
+                let val = if word_offset + 4 <= fw_data.len() {
+                    u32::from_le_bytes([
+                        fw_data[word_offset],
+                        fw_data[word_offset + 1],
+                        fw_data[word_offset + 2],
+                        fw_data[word_offset + 3],
+                    ])
+                } else {
+                    let mut bytes = [0u8; 4];
+                    for j in 0..(fw_data.len() - word_offset) {
+                        bytes[j] = fw_data[word_offset + j];
+                    }
+                    u32::from_le_bytes(bytes)
+                };
+
+                self.write32(FW_START_ADDR + i as u16, val);
+            }
+
+            offset += page_size;
+        }
+
+        self.write8(regs::MCUFWDL + 2, 0);
+        let mcufwdl = self.read32(regs::MCUFWDL);
+        self.write32(regs::MCUFWDL, mcufwdl & !bits::MCUFWDL_EN);
+
+        self.write32(regs::MCUFWDL, self.read32(regs::MCUFWDL) | bits::CPRST);
+        self.delay_us(100);
+        self.write32(regs::MCUFWDL, self.read32(regs::MCUFWDL) & !bits::CPRST);
+
+        let mut timeout = 1000u32;
+        loop {
+            let val = self.read32(regs::MCUFWDL);
+            if val & bits::WINTINI_RDY != 0 {
+                break;
+            }
+            if timeout == 0 {
+                crate::log_warn!("rtlwifi: Firmware init timeout");
+                return Err(WifiError::FirmwareTimeout);
+            }
+            timeout -= 1;
+            self.delay_us(1000);
+        }
+
         self.firmware_loaded = true;
         self.state = WifiState::FwLoaded;
+        crate::log::info!("rtlwifi: Firmware loaded and running");
+
+        self.init_rf_bb()?;
+        self.state = WifiState::Ready;
+
         Ok(())
     }
 
-    pub fn scan(&mut self, _config: ScanConfig) -> Result<Vec<ScanResult>, WifiError> {
+    fn init_rf_bb(&mut self) -> Result<(), WifiError> {
+        let sys_func = self.read16(regs::SYS_FUNC_EN);
+        self.write16(regs::SYS_FUNC_EN, sys_func | bits::SYS_FUNC_EN_BB_GLB_RST);
+        self.delay_us(100);
+        self.write16(regs::SYS_FUNC_EN, sys_func | bits::SYS_FUNC_EN_BB_GLB_RST | bits::SYS_FUNC_EN_BBRSTB);
+        self.delay_us(100);
+        Ok(())
+    }
+
+    pub fn scan(&mut self, config: ScanConfig) -> Result<Vec<ScanResult>, WifiError> {
         match self.state {
             WifiState::Ready | WifiState::Connected | WifiState::FwLoaded => {}
             WifiState::HwReady => {
@@ -76,10 +159,162 @@ impl RealtekWifiDevice {
 
         crate::log::info!("rtlwifi: Scanning for networks...");
 
-        self.delay_us(100_000);
+        let channels = if config.channels.is_empty() {
+            &[1u8, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11][..]
+        } else {
+            &config.channels[..]
+        };
 
+        for &channel in channels {
+            self.set_channel(channel);
+            self.delay_us(10_000);
+
+            self.send_probe_request(config.ssid_filter.as_deref());
+
+            let dwell_time = if config.passive_scan { 100_000u64 } else { 30_000u64 };
+            let start = crate::arch::x86_64::time::tsc::elapsed_us();
+
+            while crate::arch::x86_64::time::tsc::elapsed_us() - start < dwell_time {
+                let frames = self.process_rx_ring();
+                for frame in frames {
+                    if let Some(result) = self.parse_beacon_or_probe_resp(&frame, channel) {
+                        let exists = self.scan_results.iter().any(|r| r.bssid == result.bssid);
+                        if !exists {
+                            self.scan_results.push(result);
+                        }
+                    }
+                }
+                self.delay_us(1000);
+            }
+
+            if self.scan_results.len() >= 32 {
+                break;
+            }
+        }
+
+        crate::log::info!("rtlwifi: Scan complete, found {} networks", self.scan_results.len());
         self.state = prev_state;
         Ok(self.scan_results.clone())
+    }
+
+    fn set_channel(&mut self, channel: u8) {
+        if channel < 1 || channel > 14 {
+            return;
+        }
+        self.current_channel = channel;
+        let freq = match channel {
+            1 => 2412u16, 2 => 2417, 3 => 2422, 4 => 2427, 5 => 2432,
+            6 => 2437, 7 => 2442, 8 => 2447, 9 => 2452, 10 => 2457,
+            11 => 2462, 12 => 2467, 13 => 2472, 14 => 2484,
+            _ => 2437,
+        };
+        let _ = freq;
+    }
+
+    fn send_probe_request(&mut self, _ssid: Option<&str>) {
+        let probe_req: [u8; 24] = [
+            0x40, 0x00,
+            0x00, 0x00,
+            0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+            self.mac_address[0], self.mac_address[1], self.mac_address[2],
+            self.mac_address[3], self.mac_address[4], self.mac_address[5],
+            0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+            0x00, 0x00,
+        ];
+        let _ = self.transmit_raw(&probe_req);
+    }
+
+    fn transmit_raw(&mut self, frame: &[u8]) -> Result<(), WifiError> {
+        if frame.len() > TX_BUFFER_SIZE - 48 {
+            return Err(WifiError::BufferTooSmall);
+        }
+
+        let desc_ptr = (self.tx_ring_virt.as_u64() + (self.tx_head * core::mem::size_of::<RtlTxDesc>()) as u64) as *mut RtlTxDesc;
+        let desc = unsafe { &*desc_ptr };
+
+        if desc.is_own() {
+            return Err(WifiError::HardwareError);
+        }
+
+        let buf_addr = self.tx_buffers_virt.as_u64() + (self.tx_head * TX_BUFFER_SIZE) as u64;
+        unsafe {
+            ptr::copy_nonoverlapping(frame.as_ptr(), (buf_addr + 48) as *mut u8, frame.len());
+        }
+
+        let buf_phys = self.tx_buffers_phys.as_u64() + (self.tx_head * TX_BUFFER_SIZE) as u64;
+        desc.configure_tx((frame.len() + 48) as u16, buf_phys);
+
+        self.tx_head = (self.tx_head + 1) % TX_RING_SIZE;
+        Ok(())
+    }
+
+    fn parse_beacon_or_probe_resp(&self, frame: &[u8], channel: u8) -> Option<ScanResult> {
+        if frame.len() < 36 {
+            return None;
+        }
+
+        let frame_type = frame[0] & 0xFC;
+        if frame_type != 0x80 && frame_type != 0x50 {
+            return None;
+        }
+
+        let mut bssid = [0u8; 6];
+        bssid.copy_from_slice(&frame[16..22]);
+
+        if bssid == [0xFF; 6] || bssid == [0; 6] {
+            return None;
+        }
+
+        let mut ssid = String::new();
+        let mut security = SecurityType::Open;
+        let mut ie_offset = 36;
+
+        while ie_offset + 2 <= frame.len() {
+            let ie_type = frame[ie_offset];
+            let ie_len = frame[ie_offset + 1] as usize;
+
+            if ie_offset + 2 + ie_len > frame.len() {
+                break;
+            }
+
+            match ie_type {
+                0 => {
+                    if ie_len > 0 && ie_len <= 32 {
+                        if let Ok(s) = core::str::from_utf8(&frame[ie_offset + 2..ie_offset + 2 + ie_len]) {
+                            ssid = String::from(s);
+                        }
+                    }
+                }
+                48 => {
+                    security = SecurityType::Wpa2Psk;
+                }
+                221 => {
+                    if ie_len >= 4 {
+                        let oui = &frame[ie_offset + 2..ie_offset + 5];
+                        if oui == [0x00, 0x50, 0xF2] && frame[ie_offset + 5] == 1 {
+                            if security == SecurityType::Open {
+                                security = SecurityType::WpaPsk;
+                            }
+                        }
+                    }
+                }
+                _ => {}
+            }
+
+            ie_offset += 2 + ie_len;
+        }
+
+        if ssid.is_empty() {
+            return None;
+        }
+
+        Some(ScanResult {
+            ssid,
+            bssid,
+            channel,
+            rssi: -50,
+            security,
+        })
     }
 
     pub fn connect(&mut self, ssid: &str, _password: &str) -> Result<(), WifiError> {
