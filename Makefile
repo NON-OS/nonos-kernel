@@ -1,328 +1,280 @@
-# NONOS Build System
+# NONOS Kernel Makefile
 #
 # Dev notes:
-# - Pinned to nightly-2026-01-16 because newer nightlies have LLVM regressions
-# - macOS needs explicit SDK paths or cross-compile fails silently
-# - ZK keys live in nonos-bootloader/tools/nonos-attestation-circuit/generated_keys/
+# - Uses nightly Rust (needs rust-src for build-std)
+# - macOS: explicit toolchain paths avoid Homebrew's stable Rust shadowing nightly
+# - ISO creation on non-Linux uses Docker (grub-mkrescue only works on Linux)
+# - KVM enabled automatically on Linux if /dev/kvm exists
 #
-# CI usage:
-#   SIGNING_KEY=/path/to/key make ci-release
-#
-# Local dev:
-#   make            # build everything
-#   make run        # boot in QEMU
-#   make iso        # create nonos.iso
+# Quick start:
+#   make nonos-keygen-dev                    # generate dev signing key
+#   export NONOS_SIGNING_KEY=$(pwd)/.keys/dev-signing.seed
+#   make nonos                               # build release kernel
+#   make nonos-run                           # boot in QEMU
 
-.PHONY: all bootloader kernel esp sign-kernel zk-tools generate-zk-keys generate-zk-proof
-.PHONY: embed-zk-proof run run-serial debug iso usb clean distclean test fmt check help
-.PHONY: check-deps show-vk ci-release checksums verify website-release
+.PHONY: all nonos nonos-debug nonos-run nonos-run-debug nonos-run-uefi nonos-debug-gdb
+.PHONY: nonos-clean nonos-check nonos-clippy nonos-fmt nonos-test nonos-deps nonos-doc nonos-disasm
+.PHONY: create-grub-iso create-uefi-disk iso iso-debug help nonos-help
+.PHONY: nonos-keygen-dev nonos-keygen-prod nonos-key-fingerprint
+.PHONY: build release run run-release debug clean check clippy fmt test deps doc disasm create-disk
 
 # Paths
 KERNEL_DIR := .
-BOOTLOADER_DIR := nonos-bootloader
-TARGET_DIR := target
-ESP_DIR := $(TARGET_DIR)/esp
-RELEASE_DIR := $(TARGET_DIR)/release
+WORKSPACE_ROOT := $(shell cd $(KERNEL_DIR)/.. && pwd)
+TARGET := x86_64-nonos
+BUILD_DIR := $(WORKSPACE_ROOT)/target/$(TARGET)
+RELEASE_DIR := $(BUILD_DIR)/release
+DEBUG_DIR := $(BUILD_DIR)/debug
+KERNEL_DIR_ABS := $(shell cd $(KERNEL_DIR) && pwd)
 
-# Signing key (32-byte Ed25519 seed)
-SIGNING_KEY ?= $(shell pwd)/.keys/dev-signing.seed
+# Signing key (default to local dev key)
+NONOS_SIGNING_KEY ?= $(KERNEL_DIR_ABS)/.keys/dev-signing.seed
+export NONOS_SIGNING_KEY
 
 # Host detection
-UNAME_S := $(shell uname -s)
-UNAME_M := $(shell uname -m)
+HOST_OS := $(shell uname -s)
+ifeq ($(HOST_OS),Darwin)
+    IS_MACOS := 1
+    STRIP := strip -x
+    DOCKER := docker
+else ifeq ($(HOST_OS),Linux)
+    IS_LINUX := 1
+    STRIP := strip --strip-all
+else
+    STRIP := strip
+    DOCKER := docker
+endif
 
-# Rust toolchain
-RUSTUP_HOME ?= $(HOME)/.rustup
-CARGO_HOME ?= $(HOME)/.cargo
-RUSTUP := $(CARGO_HOME)/bin/rustup
-export RUSTUP_TOOLCHAIN := nightly-2026-01-16
-
-ifeq ($(UNAME_S),Darwin)
-    ifeq ($(UNAME_M),arm64)
-        NIGHTLY_BIN := $(RUSTUP_HOME)/toolchains/nightly-2026-01-16-aarch64-apple-darwin/bin
+# Rust toolchain - explicit paths to avoid Homebrew conflicts
+export RUSTUP_TOOLCHAIN := nightly
+ifdef IS_MACOS
+    ARCH := $(shell uname -m)
+    ifeq ($(ARCH),arm64)
+        NIGHTLY_BIN := $(HOME)/.rustup/toolchains/nightly-aarch64-apple-darwin/bin
     else
-        NIGHTLY_BIN := $(RUSTUP_HOME)/toolchains/nightly-2026-01-16-x86_64-apple-darwin/bin
+        NIGHTLY_BIN := $(HOME)/.rustup/toolchains/nightly-x86_64-apple-darwin/bin
     endif
 else
-    NIGHTLY_BIN := $(RUSTUP_HOME)/toolchains/nightly-2026-01-16-x86_64-unknown-linux-gnu/bin
+    NIGHTLY_BIN := $(HOME)/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/bin
 endif
 
-# Use toolchain-specific cargo if available, otherwise rely on RUSTUP_TOOLCHAIN
-ifneq ($(wildcard $(NIGHTLY_BIN)/cargo),)
-    CARGO := $(NIGHTLY_BIN)/cargo
-    export RUSTC := $(NIGHTLY_BIN)/rustc
-    export RUSTDOC := $(NIGHTLY_BIN)/rustdoc
-    export PATH := $(NIGHTLY_BIN):$(CARGO_HOME)/bin:$(PATH)
+CARGO := $(NIGHTLY_BIN)/cargo
+export RUSTC := $(NIGHTLY_BIN)/rustc
+export RUSTDOC := $(NIGHTLY_BIN)/rustdoc
+
+# Tools
+QEMU := qemu-system-x86_64
+GDB := gdb
+OBJDUMP := objdump
+
+# QEMU config
+QEMU_ARGS := -machine q35 -m 512M -smp 2 -serial stdio \
+	-device virtio-rng-pci \
+	-device virtio-net-pci,netdev=net0 \
+	-netdev user,id=net0
+ifdef IS_MACOS
+    QEMU_ARGS += -display cocoa
 else
-    CARGO := cargo
-    export PATH := $(CARGO_HOME)/bin:$(PATH)
+    QEMU_ARGS += -display gtk
+endif
+ifdef IS_LINUX
+ifneq ($(wildcard /dev/kvm),)
+    QEMU_ARGS += -enable-kvm -cpu host
+endif
 endif
 
-# QEMU + OVMF
-ifeq ($(UNAME_S),Darwin)
-    QEMU := qemu-system-x86_64
-    OVMF := $(shell pwd)/firmware/OVMF.fd
-    OVMF_VARS := $(shell pwd)/firmware/OVMF_VARS.fd
-    ifeq ($(wildcard $(OVMF)),)
-        OVMF := $(shell \
-            if [ -f /usr/local/share/qemu/edk2-x86_64-code.fd ]; then echo /usr/local/share/qemu/edk2-x86_64-code.fd; \
-            elif [ -f /opt/homebrew/share/qemu/edk2-x86_64-code.fd ]; then echo /opt/homebrew/share/qemu/edk2-x86_64-code.fd; \
-            fi)
-        OVMF_VARS := $(shell \
-            if [ -f /usr/local/share/qemu/edk2-i386-vars.fd ]; then echo /usr/local/share/qemu/edk2-i386-vars.fd; \
-            elif [ -f /opt/homebrew/share/qemu/edk2-i386-vars.fd ]; then echo /opt/homebrew/share/qemu/edk2-i386-vars.fd; \
-            fi)
+# OVMF paths
+ifdef IS_MACOS
+    OVMF_CODE := /opt/homebrew/share/qemu/edk2-x86_64-code.fd
+    OVMF_VARS := /opt/homebrew/share/qemu/edk2-i386-vars.fd
+    ifeq ($(wildcard $(OVMF_CODE)),)
+        OVMF_CODE := /usr/local/share/qemu/edk2-x86_64-code.fd
+        OVMF_VARS := /usr/local/share/qemu/edk2-i386-vars.fd
     endif
-else ifeq ($(UNAME_S),Linux)
-    QEMU := qemu-system-x86_64
-    OVMF := $(shell test -f /usr/share/OVMF/OVMF_CODE.fd && echo /usr/share/OVMF/OVMF_CODE.fd || echo /usr/share/edk2/ovmf/OVMF_CODE.fd)
-    OVMF_VARS := $(shell test -f /usr/share/OVMF/OVMF_VARS.fd && echo /usr/share/OVMF/OVMF_VARS.fd || echo /usr/share/edk2/ovmf/OVMF_VARS.fd)
+else
+    OVMF_CODE := /usr/share/OVMF/OVMF_CODE.fd
+    OVMF_VARS := /usr/share/OVMF/OVMF_VARS.fd
 endif
-
-# ZK attestation
-ZK_CIRCUIT_DIR := $(BOOTLOADER_DIR)/tools/nonos-attestation-circuit
-ZK_KEYS_DIR := $(ZK_CIRCUIT_DIR)/generated_keys
-ZK_PROVING_KEY := $(ZK_KEYS_DIR)/attestation_proving_key.bin
-ZK_VERIFYING_KEY := $(ZK_KEYS_DIR)/attestation_verifying_key.bin
-ZK_PROOF_FILE := $(TARGET_DIR)/attestation_proof.bin
-ZK_PUBLIC_INPUTS := $(TARGET_DIR)/public_inputs.bin
-ZK_PROGRAM_HASH := fa02d10e8804169a47233e34a6ff3566248958adff55e1248d50304aff4ab230
-ZK_KEY_SEED := nonos-production-attestation-v1-2026
-
-# Build version
-VERSION ?= $(shell git describe --tags --always --dirty 2>/dev/null || echo "dev")
-RELEASE_VERSION ?= 0.8.0-alpha
 
 #
-# Main targets
+# Build
 #
 
-all: bootloader kernel esp
-	@echo "Build complete: $(VERSION)"
-	@echo "  make run   - boot in QEMU"
-	@echo "  make iso   - create bootable ISO"
+all: nonos
 
-check-deps:
-	@test -f $(CARGO) || { echo "Install rustup: https://rustup.rs"; exit 1; }
-	@$(RUSTUP) show | grep -q nightly || $(RUSTUP) install nightly
-	@$(RUSTUP) target list --installed | grep -q x86_64-unknown-uefi || $(RUSTUP) target add x86_64-unknown-uefi --toolchain nightly
-	@$(RUSTUP) component add rust-src --toolchain nightly 2>/dev/null || true
+nonos:
+	@echo "Building kernel (release)..."
+	@test -n "$(NONOS_SIGNING_KEY)" || { echo "Set NONOS_SIGNING_KEY"; exit 1; }
+	cd $(WORKSPACE_ROOT) && $(CARGO) build --release --package nonos_kernel \
+		--target $(KERNEL_DIR_ABS)/$(TARGET).json -Zbuild-std=core,alloc -Zjson-target-spec
+	@$(STRIP) $(RELEASE_DIR)/nonos_kernel 2>/dev/null || true
+	@echo "Done: $(RELEASE_DIR)/nonos_kernel"
 
-bootloader: check-deps
-	@echo "Building bootloader..."
-	cd $(BOOTLOADER_DIR) && NONOS_SIGNING_KEY=$(SIGNING_KEY) $(CARGO) build --target x86_64-unknown-uefi --release --features zk-groth16
+nonos-debug:
+	@echo "Building kernel (debug)..."
+	@test -n "$(NONOS_SIGNING_KEY)" || { echo "Set NONOS_SIGNING_KEY"; exit 1; }
+	cd $(WORKSPACE_ROOT) && $(CARGO) build --package nonos_kernel \
+		--target $(KERNEL_DIR_ABS)/$(TARGET).json -Zbuild-std=core,alloc -Zjson-target-spec
+	@echo "Done: $(DEBUG_DIR)/nonos_kernel"
 
-kernel: check-deps
-	@echo "Building kernel..."
-	@test -f $(SIGNING_KEY) || { echo "Signing key not found: $(SIGNING_KEY)"; exit 1; }
-ifeq ($(UNAME_S),Darwin)
-	SDKROOT=/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk \
-	AR=/Library/Developer/CommandLineTools/usr/bin/ar \
-	CC=/Library/Developer/CommandLineTools/usr/bin/clang \
-	NONOS_SIGNING_KEY=$(SIGNING_KEY) \
-	PATH="/Library/Developer/CommandLineTools/usr/bin:$$PATH" \
-	$(CARGO) build --release --target x86_64-nonos.json -Zbuild-std=core,alloc -Zbuild-std-features=compiler-builtins-mem
-else
-	NONOS_SIGNING_KEY=$(SIGNING_KEY) $(CARGO) build --release --target x86_64-nonos.json -Zbuild-std=core,alloc -Zbuild-std-features=compiler-builtins-mem
-endif
-
-sign-kernel: kernel
-	@echo "Signing kernel..."
-	@mkdir -p $(TARGET_DIR)
-	@python3 scripts/sign_kernel.py \
-		$(TARGET_DIR)/x86_64-nonos/release/nonos-kernel \
-		$(SIGNING_KEY) \
-		$(TARGET_DIR)/kernel_signed.bin
-
-zk-tools:
-	@echo "Building ZK tools..."
-ifeq ($(UNAME_S),Darwin)
-	cd $(ZK_CIRCUIT_DIR) && $(CARGO) build --release --bin generate-keys --bin generate-proof --target x86_64-apple-darwin
-else
-	cd $(ZK_CIRCUIT_DIR) && $(CARGO) build --release --bin generate-keys --bin generate-proof --target x86_64-unknown-linux-gnu
-endif
-
-generate-zk-keys: zk-tools
-	@echo "Generating ZK keys (trusted setup)..."
-ifeq ($(UNAME_S),Darwin)
-	$(ZK_CIRCUIT_DIR)/target/x86_64-apple-darwin/release/generate-keys generate \
-		--output $(ZK_KEYS_DIR) --seed "$(ZK_KEY_SEED)" --allow-unsigned --print-program-hash
-else
-	$(ZK_CIRCUIT_DIR)/target/x86_64-unknown-linux-gnu/release/generate-keys generate \
-		--output $(ZK_KEYS_DIR) --seed "$(ZK_KEY_SEED)" --allow-unsigned --print-program-hash
-endif
-
-generate-zk-proof: zk-tools
-	@echo "Generating ZK proof..."
-	@test -f $(ZK_PROVING_KEY) || { echo "No proving key. Run 'make generate-zk-keys' first."; exit 1; }
-ifeq ($(UNAME_S),Darwin)
-	$(ZK_CIRCUIT_DIR)/target/x86_64-apple-darwin/release/generate-proof \
-		--proving-key $(ZK_PROVING_KEY) --output $(ZK_PROOF_FILE) \
-		--public-inputs-out $(ZK_PUBLIC_INPUTS) --seed "nonos-boot-attestation-v1"
-else
-	$(ZK_CIRCUIT_DIR)/target/x86_64-unknown-linux-gnu/release/generate-proof \
-		--proving-key $(ZK_PROVING_KEY) --output $(ZK_PROOF_FILE) \
-		--public-inputs-out $(ZK_PUBLIC_INPUTS) --seed "nonos-boot-attestation-v1"
-endif
-
-embed-zk-proof: sign-kernel generate-zk-proof
-	@echo "Embedding ZK proof into kernel..."
-ifeq ($(UNAME_S),Darwin)
-	cd $(BOOTLOADER_DIR)/tools/embed-zk-proof && $(CARGO) build --release --target x86_64-apple-darwin
-	$(BOOTLOADER_DIR)/tools/embed-zk-proof/target/x86_64-apple-darwin/release/embed-zk-proof \
-		--input $(TARGET_DIR)/kernel_signed.bin --output $(TARGET_DIR)/kernel_attested.bin \
-		--proof $(ZK_PROOF_FILE) --program-hash $(ZK_PROGRAM_HASH) \
-		--public-inputs $(ZK_PUBLIC_INPUTS) --verbose
-else
-	cd $(BOOTLOADER_DIR)/tools/embed-zk-proof && $(CARGO) build --release --target x86_64-unknown-linux-gnu
-	$(BOOTLOADER_DIR)/tools/embed-zk-proof/target/x86_64-unknown-linux-gnu/release/embed-zk-proof \
-		--input $(TARGET_DIR)/kernel_signed.bin --output $(TARGET_DIR)/kernel_attested.bin \
-		--proof $(ZK_PROOF_FILE) --program-hash $(ZK_PROGRAM_HASH) \
-		--public-inputs $(ZK_PUBLIC_INPUTS) --verbose
-endif
-
-esp: bootloader kernel sign-kernel embed-zk-proof
-	@echo "Building ESP..."
-	@mkdir -p $(ESP_DIR)/EFI/Boot $(ESP_DIR)/EFI/nonos
-	@cp $(BOOTLOADER_DIR)/target/x86_64-unknown-uefi/release/nonos_boot.efi $(ESP_DIR)/EFI/Boot/BOOTX64.EFI
-	@cp $(TARGET_DIR)/kernel_attested.bin $(ESP_DIR)/EFI/nonos/kernel.bin
-	@printf "timeout=0\ndefault=nonos\n" > $(ESP_DIR)/EFI/nonos/boot.cfg
-	@echo 'fs0:\EFI\Boot\BOOTX64.EFI' > $(ESP_DIR)/startup.nsh
-
-show-vk:
-	@python3 -c "vk=open('$(ZK_VERIFYING_KEY)','rb').read(); \
-		print('// VK:', len(vk), 'bytes'); \
-		print('pub const VK_BOOT_AUTHORITY_BLS12_381_GROTH16: &[u8] = &['); \
-		[print('    ' + ', '.join('0x{:02x}'.format(b) for b in vk[i:i+16]) + ',') for i in range(0,len(vk),16)]; \
-		print('];')"
+# Aliases
+build: nonos-debug
+release: nonos
 
 #
-# Run targets
+# Run
 #
 
-run: esp
-	@echo "Booting NONOS... (Ctrl+A X to quit)"
-	$(QEMU) -m 1G -cpu Haswell -machine q35 \
-		-drive "format=raw,file=fat:rw:$(ESP_DIR)" \
-		-drive if=pflash,format=raw,unit=0,readonly=on,file="$(OVMF)" \
-		-drive if=pflash,format=raw,unit=1,readonly=on,file="$(OVMF_VARS)" \
-		-device e1000,netdev=net0 -netdev user,id=net0 \
-		-serial mon:stdio -vga std -no-reboot
+nonos-run: nonos
+	@$(MAKE) create-grub-iso KERNEL_PATH=$(RELEASE_DIR)/nonos_kernel
+	$(QEMU) $(QEMU_ARGS) -cdrom build/nonos.iso
 
-run-serial: esp
-	$(QEMU) -m 512M -cpu qemu64 -machine q35 \
-		-drive "format=raw,file=fat:rw:$(ESP_DIR)" \
-		-drive if=pflash,format=raw,readonly=on,file="$(OVMF)" \
-		-serial mon:stdio -display none -no-reboot
+nonos-run-debug: nonos-debug
+	@$(MAKE) create-grub-iso KERNEL_PATH=$(DEBUG_DIR)/nonos_kernel
+	$(QEMU) $(QEMU_ARGS) -cdrom build/nonos.iso
 
-debug: esp
+nonos-run-uefi:
+	@echo "UEFI boot disabled (bootloader conflicts). Use 'make nonos-run' instead."
+
+nonos-debug-gdb: nonos-debug
 	@echo "GDB server on :1234"
-	$(QEMU) -m 512M -cpu qemu64 -machine q35 \
-		-drive "format=raw,file=fat:rw:$(ESP_DIR)" \
-		-drive if=pflash,format=raw,readonly=on,file="$(OVMF)" \
-		-serial mon:stdio -vga std -s -S -no-reboot
+	@$(MAKE) create-grub-iso KERNEL_PATH=$(DEBUG_DIR)/nonos_kernel
+	$(QEMU) $(QEMU_ARGS) -cdrom build/nonos.iso -s -S &
+	@sleep 1
+	$(GDB) $(DEBUG_DIR)/nonos_kernel -ex "target remote :1234" -ex "break _start" -ex "continue"
+
+# Aliases
+run: nonos-run-debug
+run-release: nonos-run
+debug: nonos-debug-gdb
 
 #
-# Distribution
+# ISO
 #
 
-iso: esp
-	@echo "Creating ISO..."
-	@mkdir -p $(TARGET_DIR)/iso
-	@cp -r $(ESP_DIR)/* $(TARGET_DIR)/iso/
-ifeq ($(UNAME_S),Darwin)
-	@command -v xorriso >/dev/null 2>&1 || brew install xorriso
-	xorriso -as mkisofs -o $(TARGET_DIR)/nonos.iso -R -J -V "NONOS" \
-		-e EFI/Boot/BOOTX64.EFI -no-emul-boot \
-		-append_partition 2 0xef $(TARGET_DIR)/iso/EFI/Boot/BOOTX64.EFI \
-		$(TARGET_DIR)/iso
+create-grub-iso:
+	@echo "Creating GRUB ISO..."
+	@mkdir -p build/isofiles/boot/grub
+	@cp $(KERNEL_PATH) build/isofiles/boot/kernel.bin
+	@printf 'set timeout=3\nset default=0\n\nmenuentry "NONOS Kernel" {\n    multiboot /boot/kernel.bin\n    boot\n}\n' \
+		> build/isofiles/boot/grub/grub.cfg
+ifdef IS_LINUX
+	grub-mkrescue -o build/nonos.iso build/isofiles
 else
-	xorriso -as mkisofs -o $(TARGET_DIR)/nonos.iso -R -J -V "NONOS" \
-		-e EFI/Boot/BOOTX64.EFI -no-emul-boot $(TARGET_DIR)/iso
+	@echo "  (using Docker for grub-mkrescue)"
+	$(DOCKER) run --rm -v "$(KERNEL_DIR_ABS)/build:/build" ubuntu:22.04 \
+		sh -c "apt-get update -qq && apt-get install -qq -y grub-pc-bin grub-common xorriso mtools >/dev/null 2>&1 && grub-mkrescue -o /build/nonos.iso /build/isofiles"
 endif
-	@echo "Created: $(TARGET_DIR)/nonos.iso"
+	@echo "Done: build/nonos.iso"
 
-usb: esp
-	@echo "Creating USB image..."
-	@command -v sgdisk >/dev/null 2>&1 || { brew install gptfdisk 2>/dev/null || apt-get install -y gdisk; }
-	@command -v mformat >/dev/null 2>&1 || { brew install mtools 2>/dev/null || apt-get install -y mtools; }
-	@rm -f $(TARGET_DIR)/nonos.img $(TARGET_DIR)/esp.img
-	$(eval ESP_SIZE_MB := $(shell echo $$(( ($$(du -sm $(ESP_DIR) | cut -f1) + 64 > 260) ? $$(du -sm $(ESP_DIR) | cut -f1) + 64 : 260 ))))
-	$(eval DISK_SIZE_MB := $(shell echo $$(($(ESP_SIZE_MB) + 4))))
-	dd if=/dev/zero of=$(TARGET_DIR)/nonos.img bs=1M count=$(DISK_SIZE_MB) status=none
-	sgdisk --clear --new=1:2048:0 --typecode=1:EF00 --change-name=1:"EFI System Partition" $(TARGET_DIR)/nonos.img >/dev/null
-	dd if=/dev/zero of=$(TARGET_DIR)/esp.img bs=1M count=$(ESP_SIZE_MB) status=none
-	mformat -i $(TARGET_DIR)/esp.img -F -v EFI ::
-	mmd -i $(TARGET_DIR)/esp.img ::/EFI
-	mmd -i $(TARGET_DIR)/esp.img ::/EFI/Boot
-	mmd -i $(TARGET_DIR)/esp.img ::/EFI/nonos
-	mcopy -i $(TARGET_DIR)/esp.img $(ESP_DIR)/EFI/Boot/BOOTX64.EFI ::/EFI/Boot/
-	mcopy -i $(TARGET_DIR)/esp.img $(ESP_DIR)/EFI/nonos/kernel.bin ::/EFI/nonos/
-	mcopy -i $(TARGET_DIR)/esp.img $(ESP_DIR)/EFI/nonos/boot.cfg ::/EFI/nonos/
-	@[ -f $(ESP_DIR)/startup.nsh ] && mcopy -i $(TARGET_DIR)/esp.img $(ESP_DIR)/startup.nsh ::/ || true
-	dd if=$(TARGET_DIR)/esp.img of=$(TARGET_DIR)/nonos.img bs=1M seek=1 conv=notrunc status=none
-	@rm -f $(TARGET_DIR)/esp.img
-	@echo "Created: $(TARGET_DIR)/nonos.img"
+iso: nonos
+	@$(MAKE) create-grub-iso KERNEL_PATH=$(RELEASE_DIR)/nonos_kernel
+
+iso-debug: nonos-debug
+	@$(MAKE) create-grub-iso KERNEL_PATH=$(DEBUG_DIR)/nonos_kernel
+
+create-uefi-disk:
+	@echo "UEFI disk creation disabled."
+
+create-disk: create-grub-iso
 
 #
-# CI / Release
+# Development
 #
 
-checksums:
-	@mkdir -p $(RELEASE_DIR)
-	@cp $(TARGET_DIR)/nonos.iso $(RELEASE_DIR)/nonos-$(VERSION).iso 2>/dev/null || true
-	@cp $(TARGET_DIR)/nonos.img $(RELEASE_DIR)/nonos-$(VERSION).img 2>/dev/null || true
-	@cp $(TARGET_DIR)/kernel_attested.bin $(RELEASE_DIR)/kernel-$(VERSION).bin 2>/dev/null || true
-	@cd $(RELEASE_DIR) && sha256sum *.iso *.img *.bin 2>/dev/null > SHA256SUMS || shasum -a 256 *.iso *.img *.bin > SHA256SUMS
-	@cat $(RELEASE_DIR)/SHA256SUMS
+nonos-check:
+	cd $(WORKSPACE_ROOT) && $(CARGO) check --package nonos_kernel \
+		--target $(KERNEL_DIR_ABS)/$(TARGET).json -Zbuild-std=core,alloc -Zjson-target-spec
 
-verify:
-	@cd $(RELEASE_DIR) && sha256sum -c SHA256SUMS 2>/dev/null || shasum -a 256 -c SHA256SUMS
+nonos-clippy:
+	cd $(WORKSPACE_ROOT) && $(CARGO) clippy --package nonos_kernel \
+		--target $(KERNEL_DIR_ABS)/$(TARGET).json -Zbuild-std=core,alloc -Zjson-target-spec -- -W clippy::all
 
-ci-release: check-deps all iso usb checksums
-	@echo "Release $(VERSION) complete"
-	@ls -lh $(RELEASE_DIR)/
+nonos-fmt:
+	cd $(WORKSPACE_ROOT) && $(CARGO) fmt --all
 
-website-release: check-deps all iso usb
-	@mkdir -p $(RELEASE_DIR)
-	@cp $(TARGET_DIR)/nonos.iso $(RELEASE_DIR)/nonos-$(RELEASE_VERSION).iso
-	@cp $(TARGET_DIR)/nonos.img $(RELEASE_DIR)/nonos-$(RELEASE_VERSION).img
-	@cp $(TARGET_DIR)/kernel_attested.bin $(RELEASE_DIR)/nonos-kernel-$(RELEASE_VERSION).bin
-	@cd $(RELEASE_DIR) && shasum -a 256 nonos-$(RELEASE_VERSION).* > SHA256SUMS.txt 2>/dev/null || sha256sum nonos-$(RELEASE_VERSION).* > SHA256SUMS.txt
-	@cat $(RELEASE_DIR)/SHA256SUMS.txt
+nonos-test:
+	cd $(WORKSPACE_ROOT) && $(CARGO) test --package nonos_kernel \
+		--target $(KERNEL_DIR_ABS)/$(TARGET).json -Zbuild-std=core,alloc -Zjson-target-spec
+
+nonos-deps:
+	rustup component add rust-src llvm-tools-preview
+	cargo install bootimage
+
+nonos-doc:
+	cd $(WORKSPACE_ROOT) && $(CARGO) doc --package nonos_kernel \
+		--target $(KERNEL_DIR_ABS)/$(TARGET).json -Zbuild-std=core,alloc -Zjson-target-spec --open
+
+nonos-disasm: nonos-debug
+	@mkdir -p build
+	$(OBJDUMP) -d $(DEBUG_DIR)/nonos_kernel > build/kernel.asm
+	@echo "Done: build/kernel.asm"
+
+# Aliases
+check: nonos-check
+clippy: nonos-clippy
+fmt: nonos-fmt
+test: nonos-test
+deps: nonos-deps
+doc: nonos-doc
+disasm: nonos-disasm
 
 #
-# Maintenance
+# Cleanup
 #
 
-clean:
-	cd $(BOOTLOADER_DIR) && $(CARGO) clean 2>/dev/null || true
-	$(CARGO) clean 2>/dev/null || true
-	rm -rf $(TARGET_DIR)
+nonos-clean:
+	cd $(WORKSPACE_ROOT) && $(CARGO) clean 2>/dev/null || true
+	rm -rf build/
 
-distclean: clean
-	rm -rf $(BOOTLOADER_DIR)/target target
+clean: nonos-clean
 
-test:
-	$(CARGO) test --features std
-	cd $(BOOTLOADER_DIR) && $(CARGO) test
+#
+# Key management
+#
 
-fmt:
-	$(CARGO) fmt
-	cd $(BOOTLOADER_DIR) && $(CARGO) fmt
+nonos-keygen-dev:
+	@mkdir -p .keys
+	@dd if=/dev/urandom of=.keys/dev-signing.seed bs=32 count=1 2>/dev/null
+	@chmod 600 .keys/dev-signing.seed
+	@echo "Created: .keys/dev-signing.seed"
+	@echo "export NONOS_SIGNING_KEY=\$$(pwd)/.keys/dev-signing.seed"
 
-check:
-	$(CARGO) clippy
-	cd $(BOOTLOADER_DIR) && $(CARGO) clippy --target x86_64-unknown-uefi
+nonos-keygen-prod:
+	@mkdir -p .keys
+	@test ! -f .keys/prod-signing.seed || { echo "Key exists. Delete manually to regenerate."; exit 1; }
+	@dd if=/dev/urandom of=.keys/prod-signing.seed bs=32 count=1 2>/dev/null
+	@chmod 400 .keys/prod-signing.seed
+	@echo "Created: .keys/prod-signing.seed (read-only)"
+	@echo "Back this up. Loss = can't sign future releases."
 
-help:
-	@echo "NONOS Build System"
+nonos-key-fingerprint:
+	@echo "Key fingerprints:"
+	@test -f .keys/dev-signing.seed && printf "  dev:  " && shasum -a 256 .keys/dev-signing.seed | cut -c1-16 || true
+	@test -f .keys/prod-signing.seed && printf "  prod: " && shasum -a 256 .keys/prod-signing.seed | cut -c1-16 || true
+
+#
+# Help
+#
+
+.DEFAULT_GOAL := nonos-help
+
+nonos-help:
+	@echo "NONOS Kernel Build"
 	@echo ""
-	@echo "Build:       make, make bootloader, make kernel, make esp"
-	@echo "Run:         make run, make run-serial, make debug"
-	@echo "Distribute:  make iso, make usb"
-	@echo "Release:     make ci-release, make website-release"
-	@echo "ZK:          make zk-tools, make generate-zk-keys, make generate-zk-proof"
-	@echo "Maintain:    make clean, make test, make fmt, make check"
+	@echo "Build:   make nonos, make nonos-debug"
+	@echo "Run:     make nonos-run, make nonos-run-debug, make nonos-debug-gdb"
+	@echo "ISO:     make iso, make iso-debug"
+	@echo "Dev:     make nonos-check, make nonos-clippy, make nonos-fmt, make nonos-test"
+	@echo "Setup:   make nonos-deps, make nonos-keygen-dev, make nonos-keygen-prod"
+	@echo "Other:   make nonos-doc, make nonos-disasm, make nonos-clean"
 	@echo ""
-	@echo "Env: SIGNING_KEY (default: .keys/dev-signing.seed)"
+	@echo "Env: NONOS_SIGNING_KEY (default: .keys/dev-signing.seed)"
+ifdef IS_MACOS
+	@echo "Note: ISO creation uses Docker (grub-mkrescue needs Linux)"
+endif
+ifdef IS_LINUX
+	@echo "Note: KVM enabled if /dev/kvm exists"
+endif
+
+help: nonos-help
