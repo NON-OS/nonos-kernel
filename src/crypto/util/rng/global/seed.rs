@@ -30,18 +30,44 @@ use super::state::{
 pub fn seed_rng() -> RngResult<()> {
     ensure_initialized()?;
 
-    let seed = collect_seed_entropy_secure()
+    let hw_seed = collect_seed_entropy_secure()
         .map_err(entropy_error_to_rng_error)?;
+
+    let mut combined = [0u8; 32];
+    for i in 0..32 {
+        combined[i] = hw_seed[i];
+    }
+
+    for i in 0..4 {
+        let tsc = get_tsc_entropy();
+        let offset = i * 8;
+        let tsc_bytes = tsc.to_le_bytes();
+        for j in 0..8 {
+            combined[offset + j] ^= tsc_bytes[j];
+        }
+        for _ in 0..((tsc & 0xF) + 1) {
+            core::hint::spin_loop();
+        }
+    }
+
+    let stack_addr: u64;
+    unsafe {
+        core::arch::asm!("mov {}, rsp", out(reg) stack_addr, options(nomem, nostack));
+    }
+    let stack_bytes = stack_addr.to_le_bytes();
+    for i in 0..8 {
+        combined[i] ^= stack_bytes[i];
+        combined[i + 16] ^= stack_bytes[7 - i];
+    }
 
     {
         let mut guard = GLOBAL_RNG.lock();
         if let Some(ref mut rng) = *guard {
-            rng.reseed(seed);
+            rng.reseed(combined);
         }
     }
 
-    let mut seed_erase = seed;
-    for b in &mut seed_erase {
+    for b in &mut combined {
         unsafe { ptr::write_volatile(b, 0) };
     }
     compiler_fence();
