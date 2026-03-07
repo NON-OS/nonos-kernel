@@ -15,15 +15,17 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 #![no_std]
-#![feature(alloc_error_handler)]
+#![cfg_attr(not(feature = "std"), feature(alloc_error_handler))]
 #![feature(abi_x86_interrupt)]
 #![allow(unsafe_op_in_unsafe_fn)]
 
 #[macro_use]
 extern crate alloc;
 
+#[cfg(not(feature = "std"))]
 use core::alloc::Layout;
 
+#[cfg(not(feature = "std"))]
 #[alloc_error_handler]
 fn alloc_error_handler(layout: Layout) -> ! {
     const _COM1: u16 = 0x3F8;
