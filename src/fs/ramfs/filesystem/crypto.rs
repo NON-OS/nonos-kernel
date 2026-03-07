@@ -26,10 +26,9 @@ use super::super::error::{FsError, FsResult};
 use super::super::types::{KEY_SIZE, NONCE_SIZE, TAG_SIZE, FILE_AAD, FsStatistics};
 
 pub(crate) fn generate_nonce(nonce_counter: &AtomicU64) -> [u8; NONCE_SIZE] {
-    let counter = nonce_counter.fetch_add(1, Ordering::SeqCst);
+    nonce_counter.fetch_add(1, Ordering::SeqCst);
     let mut nonce = [0u8; NONCE_SIZE];
-    fill_random_bytes(&mut nonce[0..4]);
-    nonce[4..NONCE_SIZE].copy_from_slice(&counter.to_le_bytes());
+    fill_random_bytes(&mut nonce);
     nonce
 }
 
