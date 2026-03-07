@@ -96,6 +96,12 @@ impl WalletState {
         self.accounts.get(self.active_account)
     }
 
+    pub(crate) fn set_active_account(&mut self, index: usize) {
+        if index < self.accounts.len() {
+            self.active_account = index;
+        }
+    }
+
     pub(crate) fn total_balance(&self) -> u128 {
         self.accounts.iter().map(|a| a.balance).sum()
     }
