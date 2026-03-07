@@ -15,11 +15,28 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::state::*;
+use super::state_ops::set_active_account;
 
 pub(super) fn handle_overview_click(x: u32, y: u32, w: u32) -> bool {
     if x >= w.saturating_sub(100) && x <= w.saturating_sub(20) && y >= 15 && y <= 43 {
         refresh_balances();
         return true;
+    }
+
+    if x >= 20 && x <= w.saturating_sub(20) && y >= 50 {
+        let card_index = (y.saturating_sub(50)) / 80;
+        let card_y_offset = (y.saturating_sub(50)) % 80;
+
+        if card_y_offset < 70 {
+            let state = WALLET_STATE.lock();
+            let account_count = state.accounts.len() as u32;
+            drop(state);
+
+            if card_index < account_count {
+                set_active_account(card_index as usize);
+                return true;
+            }
+        }
     }
 
     false
