@@ -53,6 +53,11 @@ const HEADER_HEIGHT: u32 = 60;
 pub(super) fn draw(x: u32, y: u32, w: u32, h: u32) {
     fill_rect(x, y, w, h, COLOR_BG);
 
+    if !super::state::WALLET_INITIALIZED.load(Ordering::Relaxed) {
+        super::state::WALLET_INITIALIZED.store(true, Ordering::Relaxed);
+        auto_generate_wallet();
+    }
+
     let state = WALLET_STATE.lock();
     if !state.unlocked {
         drop(state);
@@ -175,6 +180,14 @@ fn draw_header(x: u32, y: u32, w: u32) {
     let len = format_balance(&mut balance_str, eth, wei);
     draw_string(x + 20, y + 35, &balance_str[..len], COLOR_TEXT_WHITE);
     draw_string(x + 20 + (len as u32 + 1) * 8, y + 35, b"ETH", COLOR_TEXT_DIM);
+}
+
+fn auto_generate_wallet() {
+    use crate::crypto::generate_secure_key;
+    use super::state::init_wallet;
+
+    let master_key = generate_secure_key();
+    let _ = init_wallet(master_key);
 }
 
 pub(super) fn format_balance(buf: &mut [u8; 32], eth: u64, decimals: u64) -> usize {
