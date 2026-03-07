@@ -117,6 +117,17 @@ pub mod regs {
     pub const BCN_INTERVAL: u16 = 0x0554;
     pub const TSF: u16 = 0x0560;
     pub const BCN_PSR_RPT: u16 = 0x06A8;
+
+    /*
+     * CAM (Content Addressable Memory) registers for security key storage.
+     * Realtek WiFi chipsets use CAM entries to store pairwise and group keys
+     * for WPA/WPA2/WPA3 encryption. Each entry can hold a 128-bit temporal key.
+     */
+    pub const CAMCMD: u16 = 0x0670;       // CAM command register
+    pub const CAMWRITE: u16 = 0x0674;     // CAM write data register
+    pub const CAMREAD: u16 = 0x0678;      // CAM read data register
+    pub const CAMDBG: u16 = 0x067C;       // CAM debug register
+    pub const SECCFG: u16 = 0x0680;       // Security configuration
 }
 
 pub mod bits {
