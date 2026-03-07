@@ -64,7 +64,6 @@ const ENDPOINTS: &[RpcEndpoint] = &[
 #[derive(Debug)]
 pub(crate) enum RpcError {
     NetworkError,
-    DnsError,
     ParseError,
     InvalidResponse,
     RpcResponseError,
