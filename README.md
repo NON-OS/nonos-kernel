@@ -4,9 +4,7 @@
 
 **Zero-State capability-based security Microkernel**
 
-[![Rust](https://img.shields.io/badge/rust-nightly-orange.svg)](https://rustlang.org)  
-[![License](https://img.shields.io/badge/license-AGPL--3.0-blue.svg)](LICENSE)  
-[![Architecture](https://img.shields.io/badge/arch-x86__64-blue.svg)](x86_64-nonos.json)
+[![Rust](https://img.shields.io/badge/rust-nightly-orange.svg)](https://rustlang.org)  [![License](https://img.shields.io/badge/license-AGPL--3.0-blue.svg)](LICENSE)  [![Architecture](https://img.shields.io/badge/arch-x86__64-blue.svg)](x86_64-nonos.json)
 
 Repository: https://github.com/NON-OS/nonos-kernel
 
@@ -84,19 +82,21 @@ Please follow the official documentation.
 
 ### Build Instructions
 
-https://nonos.software/docs/build
+https://nonos.software/docs/development/build-manual/
 
 ### Installation Guide
 
-https://nonos.software/docs/install
+https://nonos.software/docs/getting-started/full-installation-guide/
 
 ### Architecture Documentation
 
-https://nonos.software/docs/architecture
+https://nonos.software/docs/architecture/memory-hardware/
+
+https://nonos.software/docs/architecture/kernel-abi/
 
 ### Development Roadmap
 
-https://nonos.software/docs/roadmap
+https://nonos.software/roadmap/
 
 ---
 
