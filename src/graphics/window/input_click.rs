@@ -150,39 +150,46 @@ fn handle_content_click(idx: usize, x: i32, y: i32, w: i32, h: i32, mx: i32, my:
 
     let content_y = y + TITLE_BAR_HEIGHT as i32;
     let content_h = h - TITLE_BAR_HEIGHT as i32;
-    dispatch_app_click(wtype, x as u32, content_y as u32, w as u32, content_h as u32, mx, my);
-    false
+    let _ = idx;
+    dispatch_app_click(wtype, x as u32, content_y as u32, w as u32, content_h as u32, mx, my)
 }
 
-fn dispatch_app_click(wtype: WindowType, x: u32, y: u32, w: u32, h: u32, mx: i32, my: i32) {
+/*
+ * Issue #6 fix: mouse cursor was disappearing in Settings > Network on Proxmox.
+ *
+ * Users running NONOS in Proxmox VMs reported the cursor vanishing after
+ * clicking anywhere in the Network settings panel. The cursor would only
+ * reappear after moving the mouse significantly. Bare metal and QEMU were
+ * fine, Proxmox was consistently broken.
+ *
+ * Root cause was in the click dispatch chain. The old dispatch_app_click
+ * returned void and handle_content_click always returned false. This meant
+ * that even when Settings or Network handlers successfully processed a click
+ * and changed UI state, the main loop never knew about it.
+ *
+ * The main loop in nonos_main.rs uses the return value from handle_click to
+ * decide whether to set NEEDS_REDRAW. When clicks returned false, no redraw
+ * happened. But the cursor erase/draw cycle still ran on mouse movement,
+ * which caused the cursor to restore stale pixels from before the click
+ * changed the UI state. On Proxmox the timing was just right to make
+ * this visible.
+ *
+ * Fix: dispatch_app_click now returns bool and propagates the result from
+ * each app handler up through handle_content_click. When a click is handled,
+ * the main loop gets true, sets NEEDS_REDRAW, and the full window redraws
+ * before cursor restore. Cursor stays visible.
+ */
+fn dispatch_app_click(wtype: WindowType, x: u32, y: u32, w: u32, h: u32, mx: i32, my: i32) -> bool {
     match wtype {
-        WindowType::Calculator => {
-            handle_calculator_click(x, y, mx, my);
-        }
-        WindowType::Settings => {
-            handle_settings_click(x, y, w, mx, my);
-        }
-        WindowType::FileManager => {
-            handle_file_manager_click(x, y, w, mx, my);
-        }
-        WindowType::TextEditor => {
-            handle_text_editor_click(x, y, w, h, mx, my);
-        }
-        WindowType::ProcessManager => {
-            handle_process_manager_click(x, y, w, h, mx, my);
-        }
-        WindowType::Terminal => {
-            handle_terminal_click(x, y, w, h, mx, my);
-        }
-        WindowType::Browser => {
-            handle_browser_click(x, y, w, h, mx, my);
-        }
-        WindowType::Wallet => {
-            handle_wallet_click(x, y, w, h, mx, my);
-        }
-        WindowType::Ecosystem => {
-            handle_ecosystem_click(x, y, w, h, mx, my);
-        }
-        _ => {}
+        WindowType::Calculator => handle_calculator_click(x, y, mx, my),
+        WindowType::Settings => handle_settings_click(x, y, w, mx, my),
+        WindowType::FileManager => handle_file_manager_click(x, y, w, mx, my),
+        WindowType::TextEditor => handle_text_editor_click(x, y, w, h, mx, my),
+        WindowType::ProcessManager => handle_process_manager_click(x, y, w, h, mx, my),
+        WindowType::Terminal => handle_terminal_click(x, y, w, h, mx, my),
+        WindowType::Browser => handle_browser_click(x, y, w, h, mx, my),
+        WindowType::Wallet => handle_wallet_click(x, y, w, h, mx, my),
+        WindowType::Ecosystem => handle_ecosystem_click(x, y, w, h, mx, my),
+        _ => false,
     }
 }
