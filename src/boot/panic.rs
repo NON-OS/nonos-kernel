@@ -19,7 +19,7 @@ use core::panic::PanicInfo;
 use super::stage1::serial_print;
 use super::vga;
 
-#[cfg(not(test))]
+#[cfg(not(feature = "std"))]
 #[panic_handler]
 fn panic(info: &PanicInfo) -> ! {
     serial_print(format_args!("\n!!! KERNEL PANIC !!!\n"));

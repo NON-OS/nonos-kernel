@@ -40,11 +40,14 @@ export RUSTUP_TOOLCHAIN := nightly-2026-01-16
 ifeq ($(UNAME_S),Darwin)
     ifeq ($(UNAME_M),arm64)
         NIGHTLY_BIN := $(RUSTUP_HOME)/toolchains/nightly-2026-01-16-aarch64-apple-darwin/bin
+        HOST_TARGET := aarch64-apple-darwin
     else
         NIGHTLY_BIN := $(RUSTUP_HOME)/toolchains/nightly-2026-01-16-x86_64-apple-darwin/bin
+        HOST_TARGET := x86_64-apple-darwin
     endif
 else
     NIGHTLY_BIN := $(RUSTUP_HOME)/toolchains/nightly-2026-01-16-x86_64-unknown-linux-gnu/bin
+    HOST_TARGET := x86_64-unknown-linux-gnu
 endif
 
 # Use toolchain-specific cargo if available, otherwise rely on RUSTUP_TOOLCHAIN
@@ -306,7 +309,7 @@ distclean: clean
 	rm -rf $(BOOTLOADER_DIR)/target target
 
 test:
-	$(CARGO) test --features std
+	$(CARGO) test --features std --target $(HOST_TARGET)
 	cd $(BOOTLOADER_DIR) && $(CARGO) test
 
 fmt:
