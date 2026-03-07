@@ -110,13 +110,8 @@ impl CryptoFileSystem {
 
     pub(crate) fn next_nonce(&self) -> CryptoResult<[u8; NONCE_SIZE]> {
         let inner = self.inner.read();
-        let counter = inner.nonce_counter.fetch_add(1, Ordering::SeqCst);
-
-        if counter == u64::MAX {
-            return Err(CryptoFsError::NonceExhausted);
-        }
-
-        Ok(generate_nonce(counter))
+        inner.nonce_counter.fetch_add(1, Ordering::SeqCst);
+        Ok(generate_nonce())
     }
 }
 
