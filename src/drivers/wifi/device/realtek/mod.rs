@@ -14,11 +14,18 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod association;
+mod connect;
 mod constants;
 mod core;
 mod descriptors;
+mod firmware;
 mod info;
+mod init;
+mod io;
 mod operations;
+mod sae;
+mod scan;
 
 pub use constants::*;
 pub use core::RealtekWifiDevice;
