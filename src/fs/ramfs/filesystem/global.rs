@@ -19,7 +19,6 @@ extern crate alloc;
 use alloc::format;
 use alloc::string::{String, ToString};
 use alloc::vec::Vec;
-use spin::Once;
 
 use super::super::error::{FsError, FsResult};
 use super::super::types::{DirEntry, FsStatistics};
@@ -27,15 +26,12 @@ use super::core::NonosFilesystem;
 
 pub static NONOS_FILESYSTEM: NonosFilesystem = NonosFilesystem::new();
 
-static GLOBAL_FS: Once<NonosFilesystem> = Once::new();
-
 pub fn init_nonos_filesystem() -> FsResult<()> {
-    GLOBAL_FS.call_once(|| NonosFilesystem::new());
     Ok(())
 }
 
 pub fn get_filesystem() -> Option<&'static NonosFilesystem> {
-    GLOBAL_FS.get()
+    Some(&NONOS_FILESYSTEM)
 }
 
 pub fn create_file(name: &str, data: &[u8]) -> FsResult<()> {
@@ -72,11 +68,7 @@ pub fn dir_exists(path: &str) -> bool {
 }
 
 pub fn list_dir(path: &str) -> FsResult<Vec<String>> {
-    let entries = if let Some(fs) = GLOBAL_FS.get() {
-        fs.list_dir_entries(path)?
-    } else {
-        NONOS_FILESYSTEM.list_dir_entries(path)?
-    };
+    let entries = NONOS_FILESYSTEM.list_dir_entries(path)?;
     Ok(entries.into_iter().map(|e| {
         if e.is_dir {
             format!("{}/", e.name)
@@ -87,11 +79,7 @@ pub fn list_dir(path: &str) -> FsResult<Vec<String>> {
 }
 
 pub fn list_dir_entries(path: &str) -> FsResult<Vec<DirEntry>> {
-    if let Some(fs) = GLOBAL_FS.get() {
-        fs.list_dir_entries(path)
-    } else {
-        NONOS_FILESYSTEM.list_dir_entries(path)
-    }
+    NONOS_FILESYSTEM.list_dir_entries(path)
 }
 
 pub fn create_dir(path: &str) -> FsResult<()> {
