@@ -97,6 +97,11 @@ jobs:
           git tag -a "${{ steps.version.outputs.tag }}" -m "Release ${{ steps.version.outputs.version }}"
           git push origin "${{ steps.version.outputs.tag }}"
 
+      - name: Generate ZK attestation keys
+        run: |
+          echo "Building ZK tools and generating attestation keys..."
+          make generate-zk-keys
+
       - name: Build release
         run: make ci-release VERSION=${{ steps.version.outputs.version }}
 
