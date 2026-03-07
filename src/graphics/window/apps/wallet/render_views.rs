@@ -14,15 +14,30 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+/*
+ * Main wallet view rendering functions.
+ *
+ * This module handles rendering the primary wallet views:
+ * - Overview: Shows all accounts with balances and a refresh button
+ * - Send: Transaction form with address input, amount, and gas estimate
+ * - Receive: QR code display for the active account's address
+ * - Status bar: Shows operation results and current block number
+ *
+ * For transactions view, see render_transactions.rs.
+ */
+
 use core::sync::atomic::Ordering;
-use crate::graphics::framebuffer::{fill_rect, COLOR_GREEN, COLOR_TEXT_WHITE, COLOR_ACCENT};
+use crate::graphics::framebuffer::{fill_rect, COLOR_ACCENT, COLOR_TEXT_WHITE};
 use crate::graphics::font::draw_char;
 use crate::graphics::window::draw_string;
 
 use super::state::*;
 use super::state_ops::get_block_number;
-use super::types::{TransactionType, format_address, truncate_address};
-use super::render::{COLOR_BG, COLOR_CARD, COLOR_BORDER, COLOR_TEXT_DIM, COLOR_YELLOW, COLOR_RED, COLOR_SIDEBAR, format_balance};
+use super::types::truncate_address;
+use super::render::{
+    format_balance, COLOR_BG, COLOR_BORDER, COLOR_CARD, COLOR_SIDEBAR,
+    COLOR_TEXT_DIM,
+};
 
 pub(super) fn draw_overview(x: u32, y: u32, w: u32, h: u32) {
     draw_string(x + 20, y + 20, b"Accounts", COLOR_TEXT_WHITE);
@@ -40,7 +55,6 @@ pub(super) fn draw_overview(x: u32, y: u32, w: u32, h: u32) {
         fill_rect(x + 20, card_y, w - 40, 70, COLOR_CARD);
         fill_rect(x + 20, card_y, w - 40, 1, COLOR_BORDER);
 
-        // Display account index
         let mut idx_str = [0u8; 4];
         idx_str[0] = b'#';
         let idx_len = format_u32(&mut idx_str[1..], account.index);
@@ -82,7 +96,7 @@ fn format_u32(buf: &mut [u8], n: u32) -> usize {
 pub(super) fn draw_send_view(x: u32, y: u32, w: u32, _h: u32) {
     draw_string(x + 20, y + 20, b"Send", COLOR_TEXT_WHITE);
 
-    fill_rect(x + 20, y + 50, w - 40, 160, COLOR_CARD);
+    fill_rect(x + 20, y + 50, w - 40, 220, COLOR_CARD);
 
     draw_string(x + 36, y + 70, b"To Address", COLOR_TEXT_DIM);
     fill_rect(x + 36, y + 90, w - 72, 28, COLOR_BG);
@@ -123,138 +137,33 @@ pub(super) fn draw_send_view(x: u32, y: u32, w: u32, _h: u32) {
 
     draw_string(x + w - 140, y + 156, b"ETH", COLOR_TEXT_DIM);
 
-    fill_rect(x + w / 2 - 60, y + 230, 120, 36, COLOR_ACCENT);
-    draw_string(x + w / 2 - 24, y + 240, b"Send", COLOR_BG);
-}
+    draw_string(x + 36, y + 190, b"Gas Estimate", COLOR_TEXT_DIM);
+    fill_rect(x + 36, y + 208, w - 72, 24, 0xFF1A1A2E);
 
-pub(super) fn draw_receive_view(x: u32, y: u32, w: u32, _h: u32) {
-    draw_string(x + 20, y + 20, b"Receive", COLOR_TEXT_WHITE);
+    let gas_limit: u64 = 21000;
+    let gas_price_gwei: u64 = 20;
+    let total_gas_wei = gas_limit * gas_price_gwei * 1_000_000_000;
+    let gas_eth = total_gas_wei / 1_000_000_000_000_000_000;
+    let gas_remainder = (total_gas_wei % 1_000_000_000_000_000_000) / 1_000_000_000_000_000;
 
-    let state = WALLET_STATE.lock();
-    if let Some(account) = state.get_active_account() {
-        fill_rect(x + 20, y + 50, w - 40, 120, COLOR_CARD);
+    let mut gas_str = [0u8; 32];
+    let len = format_balance(&mut gas_str, gas_eth, gas_remainder);
+    draw_string(x + 44, y + 212, &gas_str[..len], COLOR_TEXT_WHITE);
+    draw_string(x + 44 + (len as u32 + 1) * 8, y + 212, b"ETH", COLOR_TEXT_DIM);
 
-        draw_string(x + 36, y + 70, b"Your Address", COLOR_TEXT_DIM);
+    let mut gwei_str = [0u8; 16];
+    gwei_str[0] = b'(';
+    let gwei_len = format_u64(&mut gwei_str[1..], gas_price_gwei);
+    gwei_str[1 + gwei_len] = b' ';
+    gwei_str[2 + gwei_len] = b'G';
+    gwei_str[3 + gwei_len] = b'w';
+    gwei_str[4 + gwei_len] = b'e';
+    gwei_str[5 + gwei_len] = b'i';
+    gwei_str[6 + gwei_len] = b')';
+    draw_string(x + w - 120, y + 212, &gwei_str[..7 + gwei_len], COLOR_TEXT_DIM);
 
-        let addr_hex = account.address_hex();
-        draw_string(x + 36, y + 95, &addr_hex, COLOR_TEXT_WHITE);
-
-        draw_string(x + 36, y + 130, b"Share this address to receive funds", COLOR_TEXT_DIM);
-    }
-}
-
-pub(super) fn draw_transactions_view(x: u32, y: u32, w: u32, h: u32) {
-    draw_string(x + 20, y + 20, b"Transactions", COLOR_TEXT_WHITE);
-
-    let state = WALLET_STATE.lock();
-    if let Some(account) = state.get_active_account() {
-        if account.transactions.is_empty() {
-            draw_string(x + 20, y + 60, b"No transactions yet", COLOR_TEXT_DIM);
-        } else {
-            for (i, tx) in account.transactions.iter().enumerate() {
-                let tx_y = y + 50 + (i as u32) * 80;
-                if tx_y + 75 > y + h {
-                    break;
-                }
-
-                fill_rect(x + 20, tx_y, w - 40, 75, COLOR_CARD);
-
-                let (label, color) = match tx.tx_type {
-                    TransactionType::Send => (b"Sent    ", COLOR_RED),
-                    TransactionType::Receive => (b"Received", COLOR_GREEN),
-                    TransactionType::StealthSend => (b"Stealth ", COLOR_YELLOW),
-                    TransactionType::StealthReceive => (b"Private ", COLOR_GREEN),
-                    TransactionType::ContractCall => (b"Contract", COLOR_ACCENT),
-                };
-                draw_string(x + 36, tx_y + 10, label, color);
-
-                let (eth, wei) = tx.value_eth();
-                let mut value_str = [0u8; 32];
-                let len = format_balance(&mut value_str, eth, wei / 1_000_000_000_000_000);
-                draw_string(x + w - 140, tx_y + 10, &value_str[..len], COLOR_TEXT_WHITE);
-
-                // Display from/to addresses
-                let from_hex = format_address(&tx.from);
-                let to_hex = format_address(&tx.to);
-                let from_short = truncate_address(&from_hex);
-                let to_short = truncate_address(&to_hex);
-                draw_string(x + 36, tx_y + 28, b"From:", COLOR_TEXT_DIM);
-                draw_string(x + 80, tx_y + 28, &from_short, COLOR_TEXT_WHITE);
-                draw_string(x + 200, tx_y + 28, b"To:", COLOR_TEXT_DIM);
-                draw_string(x + 230, tx_y + 28, &to_short, COLOR_TEXT_WHITE);
-
-                // Display hash (first 8 bytes) and timestamp
-                let mut hash_str = [0u8; 18];
-                hash_str[0] = b'0';
-                hash_str[1] = b'x';
-                let hex_chars: &[u8; 16] = b"0123456789abcdef";
-                for j in 0..8 {
-                    hash_str[2 + j * 2] = hex_chars[(tx.hash[j] >> 4) as usize];
-                    hash_str[2 + j * 2 + 1] = hex_chars[(tx.hash[j] & 0x0f) as usize];
-                }
-                draw_string(x + 36, tx_y + 46, b"Hash:", COLOR_TEXT_DIM);
-                draw_string(x + 80, tx_y + 46, &hash_str, COLOR_TEXT_DIM);
-
-                // Display timestamp
-                let mut ts_str = [0u8; 16];
-                let ts_len = format_timestamp(&mut ts_str, tx.timestamp);
-                draw_string(x + 200, tx_y + 46, &ts_str[..ts_len], COLOR_TEXT_DIM);
-
-                let status = if tx.confirmed { b"Confirmed" } else { b"Pending  " };
-                let status_color = if tx.confirmed { COLOR_GREEN } else { COLOR_YELLOW };
-                draw_string(x + 36, tx_y + 60, status, status_color);
-            }
-        }
-    }
-}
-
-fn format_timestamp(buf: &mut [u8; 16], timestamp: u64) -> usize {
-    // Simple timestamp display (seconds since epoch)
-    let mut idx = 0;
-    let mut n = timestamp;
-    if n == 0 {
-        buf[0] = b'0';
-        return 1;
-    }
-    let mut digits = [0u8; 16];
-    let mut digit_count = 0;
-    while n > 0 && digit_count < 16 {
-        digits[digit_count] = (n % 10) as u8;
-        n /= 10;
-        digit_count += 1;
-    }
-    for i in (0..digit_count).rev() {
-        buf[idx] = b'0' + digits[i];
-        idx += 1;
-    }
-    idx
-}
-
-pub(super) fn draw_status_bar(x: u32, y: u32, w: u32) {
-    fill_rect(x, y, w, 30, COLOR_SIDEBAR);
-
-    let status = STATUS_MSG.lock();
-    let status_len = STATUS_LEN.load(Ordering::SeqCst);
-    let success = STATUS_SUCCESS.load(Ordering::SeqCst);
-
-    if status_len > 0 {
-        let color = if success { COLOR_GREEN } else { COLOR_RED };
-        draw_string(x + 20, y + 9, &status[..status_len], color);
-    }
-
-    // Display current block number on the right side
-    if let Some(block_num) = get_block_number() {
-        let mut block_str = [0u8; 24];
-        block_str[0] = b'B';
-        block_str[1] = b'l';
-        block_str[2] = b'o';
-        block_str[3] = b'c';
-        block_str[4] = b'k';
-        block_str[5] = b':';
-        block_str[6] = b' ';
-        let len = format_u64(&mut block_str[7..], block_num);
-        draw_string(x + w - 150, y + 9, &block_str[..7 + len], COLOR_TEXT_DIM);
-    }
+    fill_rect(x + w / 2 - 60, y + 290, 120, 36, COLOR_ACCENT);
+    draw_string(x + w / 2 - 24, y + 300, b"Send", COLOR_BG);
 }
 
 fn format_u64(buf: &mut [u8], n: u64) -> usize {
@@ -274,4 +183,53 @@ fn format_u64(buf: &mut [u8], n: u64) -> usize {
         buf[digit_count - 1 - i] = b'0' + digits[i];
     }
     digit_count
+}
+
+pub(super) fn draw_receive_view(x: u32, y: u32, w: u32, _h: u32) {
+    draw_string(x + 20, y + 20, b"Receive", COLOR_TEXT_WHITE);
+
+    let state = WALLET_STATE.lock();
+    if let Some(account) = state.get_active_account() {
+        fill_rect(x + 20, y + 50, w - 40, 220, COLOR_CARD);
+
+        draw_string(x + 36, y + 70, b"Your Address", COLOR_TEXT_DIM);
+
+        let addr_hex = account.address_hex();
+
+        if let Some(qr) = crate::graphics::qrcode::encode_qr(&addr_hex) {
+            crate::graphics::qrcode::draw_qr(&qr, x + w / 2 - 82, y + 95, 5, 0xFF000000, 0xFFFFFFFF);
+        }
+
+        draw_string(x + 36, y + 230, &addr_hex, COLOR_TEXT_WHITE);
+
+        draw_string(x + 36, y + 255, b"Scan QR code or share address", COLOR_TEXT_DIM);
+    }
+}
+
+pub(super) fn draw_status_bar(x: u32, y: u32, w: u32) {
+    use super::render::{COLOR_GREEN, COLOR_RED};
+
+    fill_rect(x, y, w, 30, COLOR_SIDEBAR);
+
+    let status = STATUS_MSG.lock();
+    let status_len = STATUS_LEN.load(Ordering::SeqCst);
+    let success = STATUS_SUCCESS.load(Ordering::SeqCst);
+
+    if status_len > 0 {
+        let color = if success { COLOR_GREEN } else { COLOR_RED };
+        draw_string(x + 20, y + 9, &status[..status_len], color);
+    }
+
+    if let Some(block_num) = get_block_number() {
+        let mut block_str = [0u8; 24];
+        block_str[0] = b'B';
+        block_str[1] = b'l';
+        block_str[2] = b'o';
+        block_str[3] = b'c';
+        block_str[4] = b'k';
+        block_str[5] = b':';
+        block_str[6] = b' ';
+        let len = format_u64(&mut block_str[7..], block_num);
+        draw_string(x + w - 150, y + 9, &block_str[..7 + len], COLOR_TEXT_DIM);
+    }
 }
