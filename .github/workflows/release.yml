@@ -155,7 +155,7 @@ jobs:
             | `nonos-${{ steps.version.outputs.version }}.iso` | Bootable ISO image (QEMU, VMware, bare metal) |
             | `nonos-${{ steps.version.outputs.version }}.img` | Raw disk image for USB installation |
             | `nonos-kernel-${{ steps.version.outputs.version }}.bin` | Signed kernel binary with embedded ZK proof |
-            | `SHA256SUMS` | BLAKE3 checksums for integrity verification |
+            | `SHA256SUMS` | SHA256 checksums for integrity verification |
 
             ### Verify
 
