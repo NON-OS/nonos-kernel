@@ -14,10 +14,33 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+/*
+ * Wallet locked screen click handlers.
+ *
+ * This module handles user interactions on the wallet's locked/login screen:
+ * - Password field focus on click
+ * - Unlock button to derive wallet from password
+ * - New Wallet button to generate fresh cryptographic key material
+ *
+ * The "New Wallet" flow uses aggressive entropy collection from 12+ sources
+ * to ensure unique keys even across VM reboots or shortly after boot when
+ * the system RNG may be in a predictable state. This addresses GitHub #10
+ * where identical wallets were generated due to insufficient entropy.
+ */
+
 use core::sync::atomic::Ordering;
 
 use super::state::*;
 
+/*
+ * Handles clicks on the locked wallet screen. Returns true if the click
+ * was handled, false if it fell outside all interactive regions.
+ *
+ * The layout has three interactive regions stacked vertically:
+ * 1. Password input field (240px wide, centered)
+ * 2. Unlock button (120px wide, centered, below password)
+ * 3. New Wallet button (120px wide, centered, below unlock)
+ */
 pub(super) fn handle_locked_click(x: u32, y: u32, w: u32, h: u32) -> bool {
     let center_x: u32 = w / 2;
     let center_y: u32 = h / 2;
@@ -56,120 +79,28 @@ pub(super) fn handle_locked_click(x: u32, y: u32, w: u32, h: u32) -> bool {
     false
 }
 
+/*
+ * Generates a brand new wallet with fresh cryptographic key material.
+ *
+ * Uses generate_secure_key() which collects 168 bytes of entropy from
+ * 12 different sources (TSC readings, TSC jitter, PIT counter samples,
+ * RTC timestamp, stack pointer, buffer addresses, ChaCha20 RNG pulls,
+ * and a global counter) then mixes through BLAKE3 for a uniform 32-byte
+ * master key. This ensures unique wallets even on deterministic systems.
+ */
 fn generate_new_wallet() {
-    use crate::crypto::blake3_hash;
-    use crate::crypto::util::rng;
-    use crate::drivers::{virtio_rng, tpm};
-    use core::sync::atomic::{AtomicU64, Ordering as AO};
-
-    static WALLET_CTR: AtomicU64 = AtomicU64::new(0xCAFE_BABE_0000_0001);
+    use crate::crypto::generate_secure_key;
 
     lock_wallet();
 
-    let ctr = WALLET_CTR.fetch_add(0x0001_0001_0001_0001, AO::SeqCst);
-
-    let mut e = [0u8; 256];
-
-    if virtio_rng::is_available() {
-        let _ = virtio_rng::fill_random(&mut e);
-    } else if tpm::is_tpm_available() {
-        if let Ok(bytes) = tpm::get_random_bytes(256) {
-            let len = bytes.len().min(256);
-            e[..len].copy_from_slice(&bytes[..len]);
-        }
-    }
-
-    e[0..8].iter_mut().zip(ctr.to_le_bytes()).for_each(|(a, b)| *a ^= b);
-
-    let t1: u64;
-    unsafe {
-        let lo: u32;
-        let hi: u32;
-        core::arch::asm!("rdtsc", out("eax") lo, out("edx") hi, options(nomem, nostack));
-        t1 = (lo as u64) | ((hi as u64) << 32);
-    }
-    e[8..16].iter_mut().zip(t1.to_le_bytes()).for_each(|(a, b)| *a ^= b);
-
-    let eptr = &e as *const _ as u64;
-    e[16..24].iter_mut().zip(eptr.to_le_bytes()).for_each(|(a, b)| *a ^= b);
-
-    let gctr = rng::GLOBAL_COUNTER.fetch_add(0x0100_0000_0000_0001, AO::SeqCst);
-    e[24..32].iter_mut().zip(gctr.to_le_bytes()).for_each(|(a, b)| *a ^= b);
-
-    for i in 0..32 {
-        unsafe {
-            core::arch::asm!("out dx, al", in("dx") 0x43u16, in("al") 0x00u8, options(nostack, preserves_flags));
-            let lo: u8;
-            core::arch::asm!("in al, dx", out("al") lo, in("dx") 0x40u16, options(nostack, preserves_flags));
-            let hi: u8;
-            core::arch::asm!("in al, dx", out("al") hi, in("dx") 0x40u16, options(nostack, preserves_flags));
-            e[32 + i * 2] ^= lo;
-            e[33 + i * 2] ^= hi;
-        }
-        let spin = ((e[32 + i * 2] as usize) & 0x3F) + 1;
-        for _ in 0..spin {
-            core::hint::spin_loop();
-        }
-    }
-
-    let t2: u64;
-    unsafe {
-        let lo: u32;
-        let hi: u32;
-        core::arch::asm!("rdtsc", out("eax") lo, out("edx") hi, options(nomem, nostack));
-        t2 = (lo as u64) | ((hi as u64) << 32);
-    }
-    e[96..104].iter_mut().zip(t2.to_le_bytes()).for_each(|(a, b)| *a ^= b);
-    e[104..112].iter_mut().zip(t2.wrapping_sub(t1).to_le_bytes()).for_each(|(a, b)| *a ^= b);
-
-    unsafe {
-        core::arch::asm!("out dx, al", in("dx") 0x70u16, in("al") 0x00u8, options(nostack, preserves_flags));
-        let sec: u8;
-        core::arch::asm!("in al, dx", out("al") sec, in("dx") 0x71u16, options(nostack, preserves_flags));
-        core::arch::asm!("out dx, al", in("dx") 0x70u16, in("al") 0x02u8, options(nostack, preserves_flags));
-        let min: u8;
-        core::arch::asm!("in al, dx", out("al") min, in("dx") 0x71u16, options(nostack, preserves_flags));
-        core::arch::asm!("out dx, al", in("dx") 0x70u16, in("al") 0x04u8, options(nostack, preserves_flags));
-        let hour: u8;
-        core::arch::asm!("in al, dx", out("al") hour, in("dx") 0x71u16, options(nostack, preserves_flags));
-        e[112] ^= sec;
-        e[113] ^= min;
-        e[114] ^= hour;
-    }
-
-    let sp: u64;
-    unsafe {
-        core::arch::asm!("mov {}, rsp", out(reg) sp, options(nomem, nostack));
-    }
-    e[120..128].iter_mut().zip(sp.to_le_bytes()).for_each(|(a, b)| *a ^= b);
-
-    rng::fill_random_bytes(&mut e[128..192]);
-
-    let t3: u64;
-    unsafe {
-        let lo: u32;
-        let hi: u32;
-        core::arch::asm!("rdtsc", out("eax") lo, out("edx") hi, options(nomem, nostack));
-        t3 = (lo as u64) | ((hi as u64) << 32);
-    }
-    e[192..200].iter_mut().zip(t3.to_le_bytes()).for_each(|(a, b)| *a ^= b);
-    e[200..208].iter_mut().zip(t3.wrapping_sub(t2).to_le_bytes()).for_each(|(a, b)| *a ^= b);
-
-    let ctr2 = WALLET_CTR.load(AO::SeqCst);
-    e[208..216].iter_mut().zip(ctr2.to_le_bytes()).for_each(|(a, b)| *a ^= b);
-
-    rng::fill_random_bytes(&mut e[216..256]);
-
-    let master_key = blake3_hash(&e);
-
-    for b in e.iter_mut() {
-        unsafe { core::ptr::write_volatile(b, 0) };
-    }
+    let master_key = generate_secure_key();
 
     match init_wallet(master_key) {
         Ok(()) => {
             let mut pwd = PASSWORD_INPUT.lock();
-            for b in pwd.iter_mut() { *b = 0; }
+            for b in pwd.iter_mut() {
+                *b = 0;
+            }
             PASSWORD_LEN.store(0, Ordering::SeqCst);
             PASSWORD_FOCUSED.store(false, Ordering::SeqCst);
             set_status(b"New wallet created", true);
@@ -180,6 +111,14 @@ fn generate_new_wallet() {
     }
 }
 
+/*
+ * Attempts to unlock an existing wallet using the entered password.
+ *
+ * The password is hashed with BLAKE3 to derive the master key. This allows
+ * users to restore their wallet on any device by entering the same password.
+ * Unlike generate_new_wallet(), this is deterministic by design since the
+ * same password must produce the same wallet across devices.
+ */
 pub(super) fn try_unlock() {
     use crate::crypto::blake3_hash;
 
@@ -197,7 +136,9 @@ pub(super) fn try_unlock() {
     match init_wallet(master_key) {
         Ok(()) => {
             let mut pwd = PASSWORD_INPUT.lock();
-            for b in pwd.iter_mut() { *b = 0; }
+            for b in pwd.iter_mut() {
+                *b = 0;
+            }
             PASSWORD_LEN.store(0, Ordering::SeqCst);
             PASSWORD_FOCUSED.store(false, Ordering::SeqCst);
         }
