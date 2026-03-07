@@ -48,6 +48,9 @@ pub struct TouchpadDriver {
     last_tap_time: u64,
     tap_count: u8,
     was_touching: bool,
+    sensitivity: i32,
+    acceleration: i32,
+    palm_rejection: bool,
 }
 
 impl TouchpadDriver {
@@ -75,6 +78,9 @@ impl TouchpadDriver {
             last_tap_time: 0,
             tap_count: 0,
             was_touching: false,
+            sensitivity: 100,
+            acceleration: 100,
+            palm_rejection: true,
         }
     }
 
@@ -354,10 +360,38 @@ impl TouchpadDriver {
         self.accumulated_dy = 0;
     }
 
-    // Configuration methods
-    pub fn set_sensitivity(&mut self, _sensitivity: i32) {}
-    pub fn set_acceleration(&mut self, _acceleration: i32) {}
-    pub fn set_palm_rejection(&mut self, _enabled: bool) {}
+    /// Set pointer sensitivity (1-200, default 100).
+    /// Higher values increase cursor movement per touchpad distance.
+    pub fn set_sensitivity(&mut self, sensitivity: i32) {
+        self.sensitivity = sensitivity.clamp(1, 200);
+    }
+
+    /// Set pointer acceleration curve (1-200, default 100).
+    /// Higher values increase acceleration for fast movements.
+    pub fn set_acceleration(&mut self, acceleration: i32) {
+        self.acceleration = acceleration.clamp(1, 200);
+    }
+
+    /// Enable or disable palm rejection filtering.
+    /// When enabled, large contact areas are ignored as accidental touches.
+    pub fn set_palm_rejection(&mut self, enabled: bool) {
+        self.palm_rejection = enabled;
+    }
+
+    /// Get current sensitivity setting.
+    pub fn sensitivity(&self) -> i32 {
+        self.sensitivity
+    }
+
+    /// Get current acceleration setting.
+    pub fn acceleration(&self) -> i32 {
+        self.acceleration
+    }
+
+    /// Check if palm rejection is enabled.
+    pub fn palm_rejection_enabled(&self) -> bool {
+        self.palm_rejection
+    }
 
     /// Enable or disable tap-to-click gesture detection
     pub fn set_tap_to_click(&mut self, enabled: bool) {
