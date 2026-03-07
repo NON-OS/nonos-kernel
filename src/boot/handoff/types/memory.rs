@@ -32,10 +32,16 @@ pub mod memory_type {
     pub const PERSISTENT: u32 = 14;
 }
 
+/*
+ * Memory map entry layout must match bootloader's MemoryMapEntry in exit.rs.
+ * The _pad field aligns physical_start to 8 bytes, matching EFI_MEMORY_DESCRIPTOR.
+ * Without this padding the kernel reads shifted garbage and hangs on real hardware.
+ */
 #[repr(C)]
 #[derive(Debug, Clone, Copy)]
 pub struct MemoryMapEntry {
     pub memory_type: u32,
+    pub _pad: u32,
     pub physical_start: u64,
     pub virtual_start: u64,
     pub page_count: u64,
