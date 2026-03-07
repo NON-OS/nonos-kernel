@@ -127,6 +127,7 @@ pub(crate) static PASSWORD_LEN: AtomicUsize = AtomicUsize::new(0);
 pub(crate) static PASSWORD_FOCUSED: AtomicBool = AtomicBool::new(false);
 
 pub(crate) static SHOW_PRIVATE_KEY: AtomicBool = AtomicBool::new(false);
+pub(crate) static WALLET_INITIALIZED: AtomicBool = AtomicBool::new(false);
 
 pub(crate) fn set_view(view: WalletView) {
     CURRENT_VIEW.store(view as u8, Ordering::SeqCst);
