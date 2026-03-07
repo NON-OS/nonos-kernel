@@ -14,24 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod api;
-mod device;
-mod init;
-mod queue;
-
-use core::sync::atomic::AtomicBool;
-use spin::Mutex;
-use device::VirtioRngDevice;
-
-static VIRTIO_RNG: Mutex<Option<VirtioRngDevice>> = Mutex::new(None);
-static VIRTIO_RNG_AVAILABLE: AtomicBool = AtomicBool::new(false);
-
-pub const VIRTIO_VENDOR_ID: u16 = 0x1AF4;
-pub const VIRTIO_RNG_DEVICE_ID_TRANSITIONAL: u16 = 0x1005;
-pub const VIRTIO_RNG_DEVICE_ID_MODERN: u16 = 0x1044;
-
-pub use api::{fill_random, get_random_bytes, is_available};
-pub use init::init as init_virtio_rng;
-
-#[cfg(test)]
-mod tests;
+//! Queue layout tests live inline in queue.rs (#[cfg(test)]) because they
+//! need access to private structs (VirtqDesc, VirtqUsedElem, etc.).
+//! This file is intentionally empty — see src/drivers/virtio_rng/queue.rs.
