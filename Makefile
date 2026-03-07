@@ -210,17 +210,19 @@ run: esp
 		-serial mon:stdio -vga std -no-reboot
 
 run-serial: esp
-	$(QEMU) -m 512M -cpu qemu64 -machine q35 \
+	$(QEMU) -m 1G -cpu Haswell -machine q35 \
 		-drive "format=raw,file=fat:rw:$(ESP_DIR)" \
 		-drive if=pflash,format=raw,readonly=on,file="$(OVMF)" \
-		-device virtio-rng-pci -serial mon:stdio -display none -no-reboot
+		-device virtio-rng-pci -device e1000,netdev=net0 -netdev user,id=net0 \
+		-serial mon:stdio -display none -no-reboot
 
 debug: esp
 	@echo "GDB server on :1234"
-	$(QEMU) -m 512M -cpu qemu64 -machine q35 \
+	$(QEMU) -m 1G -cpu Haswell -machine q35 \
 		-drive "format=raw,file=fat:rw:$(ESP_DIR)" \
 		-drive if=pflash,format=raw,readonly=on,file="$(OVMF)" \
-		-device virtio-rng-pci -serial mon:stdio -vga std -s -S -no-reboot
+		-device virtio-rng-pci -device e1000,netdev=net0 -netdev user,id=net0 \
+		-serial mon:stdio -vga std -s -S -no-reboot
 
 #
 # Distribution
