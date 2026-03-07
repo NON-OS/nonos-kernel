@@ -138,51 +138,52 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.version.outputs.tag }}
-          name: NONOS ${{ steps.version.outputs.version }}
+          name: NØNOS ${{ steps.version.outputs.version }}
           body: |
-            This release includes the bootable ISO image, USB installation image, and signed kernel binary.
+            ## Sovereignty From Ø
 
-            For documentation and additional downloads, visit [nonos.software](https://nonos.software).
+            Cryptographically verified, RAM-resident, capability-enforced.
 
-            ---
+            Every release is signed with Ed25519 and includes ZK attestation proving kernel integrity before a single instruction executes. When you shut down, your data ceases to exist.
 
-            ### What's included
+            **Documentation:** [nonos.software](https://nonos.software)
+
+            ### Artifacts
 
             | File | Description |
             |------|-------------|
-            | `nonos-${{ steps.version.outputs.version }}.iso` | Bootable ISO for QEMU or burning to CD/DVD |
-            | `nonos-${{ steps.version.outputs.version }}.img` | Raw disk image for USB drives |
-            | `nonos-kernel-${{ steps.version.outputs.version }}.bin` | Signed kernel with ZK attestation |
-            | `SHA256SUMS` | Checksums for verification |
+            | `nonos-${{ steps.version.outputs.version }}.iso` | Bootable ISO image (QEMU, VMware, bare metal) |
+            | `nonos-${{ steps.version.outputs.version }}.img` | Raw disk image for USB installation |
+            | `nonos-kernel-${{ steps.version.outputs.version }}.bin` | Signed kernel binary with embedded ZK proof |
+            | `SHA256SUMS` | BLAKE3 checksums for integrity verification |
 
-            ---
+            ### Verify
 
-            ### Quick start
-
-            **Run in QEMU**
-            ```
-            qemu-system-x86_64 -m 1G -cpu Haswell -cdrom nonos-${{ steps.version.outputs.version }}.iso
-            ```
-
-            **Write to USB** (replace `/dev/sdX` with your device)
-            ```
-            sudo dd if=nonos-${{ steps.version.outputs.version }}.img of=/dev/sdX bs=4M status=progress && sync
-            ```
-
-            **Verify downloads**
-            ```
+            ```bash
             sha256sum -c SHA256SUMS
             ```
 
-            ---
+            ### Run
 
-            ### Changes in this release
+            ```bash
+            qemu-system-x86_64 -m 2G -cpu host -enable-kvm \
+              -device virtio-rng-pci \
+              -cdrom nonos-${{ steps.version.outputs.version }}.iso
+            ```
+
+            ### Install to USB
+
+            ```bash
+            sudo dd if=nonos-${{ steps.version.outputs.version }}.img of=/dev/sdX bs=4M status=progress conv=fsync
+            ```
+
+            ### Changes
 
             ${{ steps.changelog.outputs.commits }}
 
-            ---
+            ### Source
 
-            Full changelog and source code available at [github.com/NON-OS/nonos-kernel](https://github.com/NON-OS/nonos-kernel).
+            [github.com/NON-OS/nonos-kernel](https://github.com/NON-OS/nonos-kernel)
           files: |
             dist/nonos-*.iso
             dist/nonos-*.img
