@@ -46,6 +46,7 @@ pub enum WifiError {
     HandshakeFailed,
     DecryptionFailed,
     FirmwareTimeout,
+    NetworkNotFound,
 }
 
 impl WifiError {
@@ -81,6 +82,7 @@ impl WifiError {
             WifiError::HandshakeFailed => 0x001C,
             WifiError::DecryptionFailed => 0x001D,
             WifiError::FirmwareTimeout => 0x001E,
+            WifiError::NetworkNotFound => 0x001F,
         }
     }
 
@@ -116,6 +118,7 @@ impl WifiError {
             WifiError::HandshakeFailed => "4-way handshake failed",
             WifiError::DecryptionFailed => "Data decryption failed",
             WifiError::FirmwareTimeout => "Firmware init timeout",
+            WifiError::NetworkNotFound => "Network not found",
         }
     }
 }
