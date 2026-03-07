@@ -14,46 +14,48 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+/*
+ * Wallet application for NONOS.
+ *
+ * A privacy-focused Ethereum-compatible wallet with stealth address support.
+ * Features include:
+ * - HD key derivation from master seed
+ * - Multiple account management
+ * - Send/receive with QR code display
+ * - Stealth address generation for private transactions
+ * - RLP transaction encoding and signing
+ * - Zero-knowledge proof integration for enhanced privacy
+ *
+ * Key generation uses aggressive entropy collection from 12+ sources
+ * to ensure unique wallets even in virtualized or deterministic environments.
+ */
+
 extern crate alloc;
 
-mod state;
-mod state_ops;
-mod render;
-mod render_views;
-mod render_stealth;
-mod input;
-mod types;
-mod stealth;
-mod rpc;
-mod zk_types;
-mod zk_circuit;
-mod zk_helpers;
-mod zk_prove;
-mod zk;
-mod rlp;
-mod keyboard;
+mod api;
 mod click_locked;
 mod click_overview;
 mod click_send;
+mod input;
+mod keyboard;
+mod render;
+mod render_stealth;
+mod render_transactions;
+mod render_views;
+mod rlp;
+mod rpc;
+mod state;
+mod state_ops;
+mod stealth;
 mod transaction;
+mod types;
+mod zk;
+mod zk_circuit;
+mod zk_helpers;
+mod zk_prove;
+mod zk_types;
 
-pub(crate) use state::{WALLET_STATE, init_wallet, lock_wallet, derive_account};
+pub use api::{draw, handle_click, handle_key, handle_special_key};
+
+pub(crate) use state::{derive_account, init_wallet, lock_wallet, WALLET_STATE};
 pub(crate) use types::format_address;
-
-use crate::graphics::window::text_editor::SpecialKey;
-
-pub fn draw(x: u32, y: u32, w: u32, h: u32) {
-    render::draw(x, y, w, h);
-}
-
-pub fn handle_click(win_x: u32, win_y: u32, win_w: u32, win_h: u32, click_x: i32, click_y: i32) -> bool {
-    input::handle_click(win_x, win_y, win_w, win_h, click_x, click_y)
-}
-
-pub fn handle_key(ch: u8) {
-    input::handle_key(ch);
-}
-
-pub fn handle_special_key(key: SpecialKey) {
-    input::handle_special_key(key);
-}
