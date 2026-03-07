@@ -14,15 +14,26 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+/*
+ * Main wallet render coordinator.
+ *
+ * Handles the top-level drawing logic: locked/unlocked state detection,
+ * sidebar navigation, header with total balance, and dispatching to the
+ * appropriate view renderer based on current wallet state.
+ *
+ * Color scheme follows GitHub's dark mode palette for consistency.
+ */
+
 extern crate alloc;
 
 use core::sync::atomic::Ordering;
-use crate::graphics::framebuffer::{fill_rect, COLOR_TEXT_WHITE, COLOR_ACCENT};
+use crate::graphics::framebuffer::fill_rect;
 use crate::graphics::window::draw_string;
 
 use super::state::*;
 use super::types::truncate_address;
-use super::render_views::{draw_overview, draw_send_view, draw_receive_view, draw_transactions_view, draw_status_bar};
+use super::render_views::{draw_overview, draw_send_view, draw_receive_view, draw_status_bar};
+use super::render_transactions::draw_transactions_view;
 use super::render_stealth::{draw_stealth_view, draw_settings_view};
 
 pub(super) const COLOR_BG: u32 = 0xFF0D1117;
@@ -30,6 +41,9 @@ pub(super) const COLOR_SIDEBAR: u32 = 0xFF161B22;
 pub(super) const COLOR_CARD: u32 = 0xFF21262D;
 pub(super) const COLOR_BORDER: u32 = 0xFF30363D;
 pub(super) const COLOR_TEXT_DIM: u32 = 0xFF8B949E;
+pub(super) const COLOR_TEXT_WHITE: u32 = 0xFFFFFFFF;
+pub(super) const COLOR_ACCENT: u32 = 0xFF58A6FF;
+pub(super) const COLOR_GREEN: u32 = 0xFF3FB950;
 pub(super) const COLOR_YELLOW: u32 = 0xFFF0C674;
 pub(super) const COLOR_RED: u32 = 0xFFFF6B6B;
 
