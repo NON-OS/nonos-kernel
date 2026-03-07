@@ -14,33 +14,41 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+/*
+CryptoFS cryptographic operations. Key derivation via PBKDF2-SHA256 with 100k
+iterations for brute-force resistance. Encryption uses ChaCha20-Poly1305 AEAD
+with random 96-bit nonces. File paths mixed into KDF salt for per-file keys.
+*/
+
 extern crate alloc;
 
 use alloc::vec::Vec;
 
 use crate::crypto::chacha20poly1305::{aead_encrypt, aead_decrypt};
 use crate::crypto::rng::fill_random_bytes;
-use crate::crypto::hash::sha256;
+use crate::crypto::util::hmac::pbkdf2_hmac_sha256;
 
 use super::error::{CryptoFsError, CryptoResult};
 use super::types::*;
 
+const KDF_ITERATIONS: u32 = 100_000;
+
 pub fn derive_key(path: &str, salt: &[u8; SALT_SIZE]) -> [u8; KEY_SIZE] {
     let path_bytes = path.as_bytes();
-    let total_len = SALT_SIZE + path_bytes.len() + KEY_DERIVATION_CONTEXT.len();
+    let mut kdf_salt = Vec::with_capacity(SALT_SIZE + KEY_DERIVATION_CONTEXT.len());
+    kdf_salt.extend_from_slice(salt);
+    kdf_salt.extend_from_slice(KEY_DERIVATION_CONTEXT);
 
-    let mut input = Vec::with_capacity(total_len);
-    input.extend_from_slice(salt);
-    input.extend_from_slice(path_bytes);
-    input.extend_from_slice(KEY_DERIVATION_CONTEXT);
+    let derived = pbkdf2_hmac_sha256(path_bytes, &kdf_salt, KDF_ITERATIONS, KEY_SIZE);
 
-    sha256(&input)
+    let mut key = [0u8; KEY_SIZE];
+    key.copy_from_slice(&derived);
+    key
 }
 
-pub fn generate_nonce(counter: u64) -> [u8; NONCE_SIZE] {
+pub fn generate_nonce() -> [u8; NONCE_SIZE] {
     let mut nonce = [0u8; NONCE_SIZE];
-    fill_random_bytes(&mut nonce[0..4]);
-    nonce[4..12].copy_from_slice(&counter.to_le_bytes());
+    fill_random_bytes(&mut nonce);
     nonce
 }
 
