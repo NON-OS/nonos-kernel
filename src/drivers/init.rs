@@ -17,6 +17,7 @@
 
 use super::{
     init_e1000, init_rtl8139, init_rtl8168, init_tpm, init_wifi, print_wifi_status, TpmError,
+    init_virtio_rng,
 };
 
 pub fn init_all_drivers() -> Result<(), &'static str> {
@@ -24,6 +25,17 @@ pub fn init_all_drivers() -> Result<(), &'static str> {
         .map_err(|_| "Failed to initialize DMA allocator")?;
     let _ = crate::memory::dma::create_dma_pool(4096, 128, crate::memory::dma::DmaConstraints::default());
     let _ = crate::memory::dma::create_dma_pool(2048, 256, crate::memory::dma::DmaConstraints::default());
+
+    // Initialize VirtIO-RNG early — entropy is needed by other subsystems
+    crate::log_info!("[DRV] Probing for VirtIO-RNG device...");
+    match init_virtio_rng() {
+        Ok(()) => {
+            crate::log::logger::log_critical("✓ VirtIO-RNG hardware entropy source initialized");
+        }
+        Err(e) => {
+            crate::log_info!("[DRV] VirtIO-RNG not available: {} (will use CPU entropy)", e);
+        }
+    }
 
     crate::log::logger::log_critical("Initializing NONOS driver stack via MONSTER orchestrator...");
     super::monster::monster_init()?;
