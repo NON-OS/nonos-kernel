@@ -211,54 +211,6 @@ impl RealtekWifiDevice {
         }
     }
 
-    fn hw_init(&mut self) -> Result<(), WifiError> {
-        self.write32(regs::HIMR, bits::IMR_DISABLED);
-        self.write32(regs::HISR, bits::ISR_CLEAR);
-        self.write32(regs::HIMRE, bits::IMR_DISABLED);
-        self.write32(regs::HISRE, bits::ISR_CLEAR);
-
-        let sys_func = self.read16(regs::SYS_FUNC_EN);
-        self.write16(
-            regs::SYS_FUNC_EN,
-            sys_func | bits::SYS_FUNC_EN_CPUEN | bits::SYS_FUNC_EN_PCIED,
-        );
-
-        self.delay_us(100);
-
-        let cr = self.read32(regs::CR as u16);
-        self.write32(regs::CR as u16, cr | 0xFF);
-
-        self.delay_us(100);
-
-        self.write8(regs::TRXDMA_CTRL as u16, bits::TXDMA_INIT_VALUE);
-        self.delay_us(10);
-
-        Ok(())
-    }
-
-    fn read_mac_address(&mut self) {
-        for i in 0..6 {
-            self.mac_address[i] = self.read8(regs::MAC_ADDR + i as u16);
-        }
-
-        if self.mac_address == [0xFF; 6] || self.mac_address == [0; 6] {
-            self.mac_address = [0x02, 0x00, 0x00, 0x00, 0x00, 0x02];
-        }
-    }
-
-    fn setup_rings(&mut self) {
-        for i in 0..RX_RING_SIZE {
-            let desc_ptr = (self.rx_ring_virt.as_u64() + (i * core::mem::size_of::<RtlRxDesc>()) as u64) as *mut RtlRxDesc;
-            let buf_addr = self.rx_buffers_phys.as_u64() + (i * RX_BUFFER_SIZE) as u64;
-
-            // SAFETY: Writing to allocated DMA memory
-            unsafe {
-                let desc = &*desc_ptr;
-                desc.configure_rx(RX_BUFFER_SIZE as u16, buf_addr);
-            }
-        }
-    }
-
     pub(crate) fn delay_us(&self, us: u64) {
         let start = crate::arch::x86_64::time::tsc::elapsed_us();
         while crate::arch::x86_64::time::tsc::elapsed_us() - start < us {
