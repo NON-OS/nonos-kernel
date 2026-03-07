@@ -14,6 +14,28 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+/*
+ * ExitBootServices and Kernel Handoff
+ *
+ * Issue #8 fix: system was hanging at ExitBootServices on real hardware.
+ *
+ * Users on i5-11400H with GTX 3050 and Acer boards reported freezes right
+ * after the "Calling ExitBootServices..." message. Some saw screen corruption
+ * too. QEMU never had this problem.
+ *
+ * Turned out the UEFI memory map was getting thrown away after ExitBootServices.
+ * Kernel got ptr=0 and entry_count=0 so it had no clue what memory was safe.
+ * Real machines have ACPI regions, PCI MMIO holes, firmware reserved areas
+ * all over the place. Kernel heap init was stomping on those and hanging.
+ *
+ * QEMU memory is basically one big chunk so it worked anyway. Real hardware
+ * is fragmented and needs the map.
+ *
+ * Fix: allocate buffer before ExitBootServices (cant alloc after). Copy the
+ * memory map entries after ExitBootServices returns. Pass it to kernel via
+ * BootHandoffV1.mmap. Done.
+ */
+
 use core::mem::size_of;
 use uefi::prelude::*;
 use uefi::table::boot::{AllocateType, MemoryType};
@@ -28,6 +50,21 @@ use super::types::{
 use crate::loader::KernelImage;
 use crate::log::logger::{log_error, log_info, log_warn};
 
+/* matches EFI_MEMORY_DESCRIPTOR layout for kernel consumption */
+#[repr(C)]
+#[derive(Clone, Copy)]
+pub struct MemoryMapEntry {
+    pub memory_type: u32,
+    pub _pad: u32,
+    pub physical_start: u64,
+    pub virtual_start: u64,
+    pub page_count: u64,
+    pub attribute: u64,
+}
+
+const MAX_MMAP_ENTRIES: usize = 512;
+const MMAP_PAGES: usize = (MAX_MMAP_ENTRIES * size_of::<MemoryMapEntry>() + 0xFFF) / 0x1000;
+
 fn fatal_alloc_error(st: &SystemTable<Boot>, msg: &str) -> ! {
     log_error("handoff", msg);
     st.runtime_services()
@@ -36,27 +73,17 @@ fn fatal_alloc_error(st: &SystemTable<Boot>, msg: &str) -> ! {
 
 fn detect_cpu_security_features() -> (bool, bool, bool) {
     let cpuid_result = core::arch::x86_64::__cpuid_count(7, 0);
-
-    // EBX bit 7: SMEP (Supervisor Mode Execution Prevention)
     let smep = (cpuid_result.ebx & (1 << 7)) != 0;
-
-    // EBX bit 20: SMAP (Supervisor Mode Access Prevention)
     let smap = (cpuid_result.ebx & (1 << 20)) != 0;
-
-    // ECX bit 2: UMIP (User-Mode Instruction Prevention)
     let umip = (cpuid_result.ecx & (1 << 2)) != 0;
-
     (smep, smap, umip)
 }
 
 fn estimate_tsc_frequency(bs: &uefi::table::boot::BootServices) -> u64 {
     let tsc_start = read_tsc();
-    // Stall for 10ms
     let _ = bs.stall(10_000);
     let tsc_end = read_tsc();
-
     if tsc_end > tsc_start {
-        // 10ms = 10,000us, so multiply by 100 to get Hz
         (tsc_end - tsc_start) * 100
     } else {
         0
@@ -88,6 +115,11 @@ pub fn exit_and_jump(
         };
     let stack_top = (stack_addr as usize) + (stack_pages * 0x1000);
 
+    /* mmap buffer for issue #8 fix */
+    let mmap_addr = match bs.allocate_pages(AllocateType::AnyPages, MemoryType::LOADER_DATA, MMAP_PAGES) {
+        Ok(addr) => addr,
+        Err(_) => fatal_alloc_error(&st, "Failed to allocate memory map buffer"),
+    };
 
     let cmdline_addr: u64 = if let Some(s) = cmdline {
         let cmd_bytes = s.as_bytes();
@@ -96,7 +128,6 @@ pub fn exit_and_jump(
         if let Ok(cmd_addr) =
             bs.allocate_pages(AllocateType::AnyPages, MemoryType::LOADER_DATA, cmd_pages)
         {
-            // SAFETY: cmd_addr points to allocated pages
             unsafe {
                 let ptr = cmd_addr as *mut u8;
                 core::ptr::copy_nonoverlapping(cmd_bytes.as_ptr(), ptr, cmd_bytes.len());
@@ -104,10 +135,7 @@ pub fn exit_and_jump(
             }
             cmd_addr
         } else {
-            log_warn(
-                "handoff",
-                "cmdline allocation failed; proceeding without cmdline",
-            );
+            log_warn("handoff", "cmdline allocation failed; proceeding without cmdline");
             0
         }
     } else {
@@ -119,43 +147,22 @@ pub fn exit_and_jump(
     let smbios_entry = get_smbios_entry(&st);
     let unix_epoch_ms = get_uefi_time_epoch(&st);
     let tsc_hz = estimate_tsc_frequency(bs);
-
-    // Detect CPU security features
     let (smep, smap, umip) = detect_cpu_security_features();
 
     let mut handoff_flags: u64 = 0;
-
-    if fb_info.ptr != 0 {
-        handoff_flags |= flags::FB_AVAILABLE;
-    }
-    if acpi_rsdp != 0 {
-        handoff_flags |= flags::ACPI_AVAILABLE;
-    }
-    if crypto.secure_boot {
-        handoff_flags |= flags::SECURE_BOOT;
-    }
-    if crypto.zk_attested {
-        handoff_flags |= flags::ZK_ATTESTED;
-    }
-    if tpm_measured {
-        handoff_flags |= flags::TPM_MEASURED;
-    }
-    if smep {
-        handoff_flags |= flags::SMEP;
-    }
-    if smap {
-        handoff_flags |= flags::SMAP;
-    }
-    if umip {
-        handoff_flags |= flags::UMIP;
-    }
-
+    if fb_info.ptr != 0 { handoff_flags |= flags::FB_AVAILABLE; }
+    if acpi_rsdp != 0 { handoff_flags |= flags::ACPI_AVAILABLE; }
+    if crypto.secure_boot { handoff_flags |= flags::SECURE_BOOT; }
+    if crypto.zk_attested { handoff_flags |= flags::ZK_ATTESTED; }
+    if tpm_measured { handoff_flags |= flags::TPM_MEASURED; }
+    if smep { handoff_flags |= flags::SMEP; }
+    if smap { handoff_flags |= flags::SMAP; }
+    if umip { handoff_flags |= flags::UMIP; }
     handoff_flags |= flags::WX;
     handoff_flags |= flags::NXE;
     handoff_flags |= flags::IDMAP_PRESERVED;
 
     let bh_ptr = bh_addr as *mut BootHandoffV1;
-    // SAFETY: bh_addr points to allocated page
     unsafe {
         core::ptr::write_bytes(bh_ptr as *mut u8, 0, size_of::<BootHandoffV1>());
 
@@ -199,35 +206,45 @@ pub fn exit_and_jump(
 
     log_info("handoff", "Calling ExitBootServices...");
 
-    let (_runtime_st, _final_mmap) = st.exit_boot_services();
+    let (_runtime_st, final_mmap) = st.exit_boot_services();
 
-    // Memory map passed via ACPI - kernel discovers memory that way
+    /* copy mmap so kernel knows what memory is usable */
+    let mmap_buffer = mmap_addr as *mut MemoryMapEntry;
+    let mut entry_count: u32 = 0;
+
     unsafe {
-        (*bh_ptr).mmap.ptr = 0;
-        (*bh_ptr).mmap.entry_size = 0;
-        (*bh_ptr).mmap.entry_count = 0;
-        (*bh_ptr).mmap.desc_version = 0;
+        for desc in final_mmap.entries() {
+            if (entry_count as usize) >= MAX_MMAP_ENTRIES {
+                break;
+            }
+            let entry = mmap_buffer.add(entry_count as usize);
+            (*entry).memory_type = desc.ty.0;
+            (*entry)._pad = 0;
+            (*entry).physical_start = desc.phys_start;
+            (*entry).virtual_start = desc.virt_start;
+            (*entry).page_count = desc.page_count;
+            (*entry).attribute = desc.att.bits();
+            entry_count += 1;
+        }
+
+        (*bh_ptr).mmap.ptr = mmap_addr;
+        (*bh_ptr).mmap.entry_size = size_of::<MemoryMapEntry>() as u32;
+        (*bh_ptr).mmap.entry_count = entry_count;
+        (*bh_ptr).mmap.desc_version = 1;
     }
 
     let boothandoff_ptr = bh_addr;
     let entry_addr = kernel.entry_point as u64;
 
-    // SAFETY: Transferring control to kernel
     unsafe {
-
-        // Use explicit registers to avoid any compiler confusion
-        // RAX = entry address, RCX = stack, RDI = handoff
         core::arch::asm!(
-            // Disable interrupts during transition
             "cli",
-            // Set up registers in safe order
-            "mov rax, {entry}",     // RAX = kernel entry point
-            "mov rcx, {stack}",     // RCX = new stack pointer
-            "mov rdi, {handoff}",   // RDI = handoff pointer (kernel's first arg)
-            // Now set stack and jump
-            "mov rsp, rcx",         // Set new stack
-            "xor rbp, rbp",         // Clear frame pointer
-            "jmp rax",              // Jump to kernel!
+            "mov rax, {entry}",
+            "mov rcx, {stack}",
+            "mov rdi, {handoff}",
+            "mov rsp, rcx",
+            "xor rbp, rbp",
+            "jmp rax",
             entry = in(reg) entry_addr,
             stack = in(reg) stack_top as u64,
             handoff = in(reg) boothandoff_ptr as u64,
