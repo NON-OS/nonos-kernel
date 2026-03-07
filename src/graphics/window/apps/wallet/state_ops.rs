@@ -177,3 +177,10 @@ pub(crate) fn get_block_number() -> Option<u64> {
 
     rpc::fetch_block_number().ok()
 }
+
+pub(crate) fn set_active_account(index: usize) {
+    let mut state = WALLET_STATE.lock();
+    state.set_active_account(index);
+    drop(state);
+    set_status(b"Account selected", true);
+}
