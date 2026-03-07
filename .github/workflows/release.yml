@@ -7,78 +7,176 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'Release version'
+        description: 'Version number (e.g. 0.8.0-alpha)'
         required: true
         default: '0.8.0-alpha'
+      create_tag:
+        description: 'Create git tag'
+        type: boolean
+        default: true
 
 env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  build-release:
-    name: Build Release
+  release:
+    name: Build and Release
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          fetch-depth: 0
 
-      - name: Install Rust
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y xorriso mtools gdisk python3
+
+      - name: Install Rust toolchain
         run: |
           curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain nightly-2026-01-16
           source ~/.cargo/env
+          rustup target add x86_64-unknown-uefi
           rustup component add rust-src llvm-tools-preview
           echo "$HOME/.cargo/bin" >> $GITHUB_PATH
 
-      - name: Cache cargo
+      - name: Cache dependencies
         uses: actions/cache@v4
         with:
           path: |
             ~/.cargo/registry
             ~/.cargo/git
             target
-          key: ${{ runner.os }}-cargo-release-${{ hashFiles('**/Cargo.lock') }}
+            nonos-bootloader/target
+          key: ${{ runner.os }}-release-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: Setup signing key
+        run: |
+          mkdir -p .keys
+          echo "${{ secrets.SIGNING_KEY }}" | base64 -d > .keys/dev-signing.seed
+          chmod 600 .keys/dev-signing.seed
 
       - name: Determine version
         id: version
         run: |
           if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
-            echo "version=${{ github.event.inputs.version }}" >> $GITHUB_OUTPUT
+            VERSION="${{ github.event.inputs.version }}"
           else
-            echo "version=${GITHUB_REF_NAME#v}" >> $GITHUB_OUTPUT
+            VERSION="${GITHUB_REF_NAME#v}"
+          fi
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          echo "tag=v${VERSION}" >> $GITHUB_OUTPUT
+
+          if [[ "$VERSION" == *"alpha"* ]] || [[ "$VERSION" == *"beta"* ]] || [[ "$VERSION" == *"rc"* ]]; then
+            echo "prerelease=true" >> $GITHUB_OUTPUT
+          else
+            echo "prerelease=false" >> $GITHUB_OUTPUT
           fi
 
-      - name: Build kernel (release)
-        run: cargo build --release --target x86_64-nonos.json -Zbuild-std=core,alloc
-
-      - name: Extract binary
+      - name: Create tag
+        if: github.event_name == 'workflow_dispatch' && github.event.inputs.create_tag == 'true'
         run: |
-          rust-objcopy -O binary \
-            target/x86_64-nonos/release/nonos-kernel \
-            target/kernel.bin
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag -a "${{ steps.version.outputs.tag }}" -m "Release ${{ steps.version.outputs.version }}"
+          git push origin "${{ steps.version.outputs.tag }}"
 
-      - name: Package release
+      - name: Build release
+        run: make ci-release VERSION=${{ steps.version.outputs.version }}
+
+      - name: Generate changelog
+        id: changelog
+        run: |
+          PREV_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+          if [ -n "$PREV_TAG" ]; then
+            COMMITS=$(git log ${PREV_TAG}..HEAD --pretty=format:"- %s" --no-merges | head -20)
+          else
+            COMMITS=$(git log --pretty=format:"- %s" --no-merges -20)
+          fi
+          echo "commits<<EOF" >> $GITHUB_OUTPUT
+          echo "$COMMITS" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Prepare artifacts
         run: |
           VERSION="${{ steps.version.outputs.version }}"
-          mkdir -p release
-          cp target/kernel.bin "release/nonos-kernel-${VERSION}-x86_64.bin"
-          cd release
-          sha256sum * > SHA256SUMS
+          mkdir -p dist
+          cp target/nonos.iso "dist/nonos-${VERSION}.iso"
+          cp target/nonos.img "dist/nonos-${VERSION}.img"
+          cp target/kernel_attested.bin "dist/nonos-kernel-${VERSION}.bin"
+          cd dist && sha256sum * > SHA256SUMS
 
-      - name: Upload artifact
+      - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: nonos-kernel-${{ steps.version.outputs.version }}
-          path: release/
+          name: nonos-${{ steps.version.outputs.version }}
+          path: dist/
           retention-days: 90
 
       - name: Create GitHub Release
-        if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v2
         with:
+          tag_name: ${{ steps.version.outputs.tag }}
+          name: NONOS ${{ steps.version.outputs.version }}
+          body: |
+            This release includes the bootable ISO image, USB installation image, and signed kernel binary.
+
+            For documentation and additional downloads, visit [nonos.software](https://nonos.software).
+
+            ---
+
+            ### What's included
+
+            | File | Description |
+            |------|-------------|
+            | `nonos-${{ steps.version.outputs.version }}.iso` | Bootable ISO for QEMU or burning to CD/DVD |
+            | `nonos-${{ steps.version.outputs.version }}.img` | Raw disk image for USB drives |
+            | `nonos-kernel-${{ steps.version.outputs.version }}.bin` | Signed kernel with ZK attestation |
+            | `SHA256SUMS` | Checksums for verification |
+
+            ---
+
+            ### Quick start
+
+            **Run in QEMU**
+            ```
+            qemu-system-x86_64 -m 1G -cpu Haswell -cdrom nonos-${{ steps.version.outputs.version }}.iso
+            ```
+
+            **Write to USB** (replace `/dev/sdX` with your device)
+            ```
+            sudo dd if=nonos-${{ steps.version.outputs.version }}.img of=/dev/sdX bs=4M status=progress && sync
+            ```
+
+            **Verify downloads**
+            ```
+            sha256sum -c SHA256SUMS
+            ```
+
+            ---
+
+            ### Changes in this release
+
+            ${{ steps.changelog.outputs.commits }}
+
+            ---
+
+            Full changelog and source code available at [github.com/NON-OS/nonos-kernel](https://github.com/NON-OS/nonos-kernel).
           files: |
-            release/nonos-kernel-*.bin
-            release/SHA256SUMS
+            dist/nonos-*.iso
+            dist/nonos-*.img
+            dist/nonos-kernel-*.bin
+            dist/SHA256SUMS
           draft: false
-          prerelease: ${{ contains(steps.version.outputs.version, 'alpha') || contains(steps.version.outputs.version, 'beta') }}
+          prerelease: ${{ steps.version.outputs.prerelease }}
+          generate_release_notes: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Cleanup secrets
+        if: always()
+        run: rm -rf .keys/
