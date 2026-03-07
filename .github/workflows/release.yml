@@ -56,9 +56,20 @@ jobs:
 
       - name: Setup signing key
         run: |
+          if [ -z "${{ secrets.SIGNING_KEY_BASE64 }}" ]; then
+            echo "ERROR: SIGNING_KEY secret not configured"
+            echo "Go to repo Settings > Secrets > Actions and add SIGNING_KEY"
+            echo "Generate with: head -c 32 /dev/urandom | base64"
+            exit 1
+          fi
           mkdir -p .keys
-          echo "${{ secrets.SIGNING_KEY }}" | base64 -d > .keys/dev-signing.seed
+          echo "${{ secrets.SIGNING_KEY_BASE64 }}" | base64 -d > .keys/dev-signing.seed
+          if [ $(wc -c < .keys/dev-signing.seed) -lt 32 ]; then
+            echo "ERROR: SIGNING_KEY must be at least 32 bytes"
+            exit 1
+          fi
           chmod 600 .keys/dev-signing.seed
+          echo "Signing key configured"
 
       - name: Determine version
         id: version
