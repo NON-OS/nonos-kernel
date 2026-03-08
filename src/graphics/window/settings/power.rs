@@ -78,7 +78,7 @@ pub(super) fn draw(x: u32, y: u32, w: u32) {
 
 pub(super) fn handle_click(content_x: u32, content_y: u32, _content_w: u32, click_x: i32, click_y: i32) -> bool {
     let shutdown_x = content_x + 15;
-    let shutdown_y = content_y + 75;
+    let shutdown_y = content_y + 30;
     if click_x >= shutdown_x as i32 && click_x < (shutdown_x + BUTTON_WIDTH) as i32 {
         if click_y >= shutdown_y as i32 && click_y < (shutdown_y + BUTTON_HEIGHT) as i32 {
             POWER_ACTION_SHUTDOWN.store(true, Ordering::Relaxed);
@@ -87,7 +87,7 @@ pub(super) fn handle_click(content_x: u32, content_y: u32, _content_w: u32, clic
     }
 
     let reboot_x = content_x + 15 + BUTTON_WIDTH + 15;
-    let reboot_y = content_y + 75;
+    let reboot_y = content_y + 30;
     if click_x >= reboot_x as i32 && click_x < (reboot_x + BUTTON_WIDTH) as i32 {
         if click_y >= reboot_y as i32 && click_y < (reboot_y + BUTTON_HEIGHT) as i32 {
             POWER_ACTION_REBOOT.store(true, Ordering::Relaxed);

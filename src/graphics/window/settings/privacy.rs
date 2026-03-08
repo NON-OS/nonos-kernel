@@ -57,7 +57,7 @@ pub(super) fn draw(x: u32, y: u32, w: u32) {
 pub(super) fn handle_click(content_x: u32, content_y: u32, content_w: u32, click_x: i32, click_y: i32) -> bool {
     let toggle_x = content_x + content_w - 70;
 
-    let btn_y = content_y + 45 + 40;
+    let btn_y = content_y + 40;
     if click_y >= btn_y as i32 && click_y < (btn_y + 28) as i32 {
         let rel_x = click_x - content_x as i32 - 15;
         if rel_x >= 0 {
@@ -69,7 +69,7 @@ pub(super) fn handle_click(content_x: u32, content_y: u32, content_w: u32, click
         }
     }
 
-    let anyone_y = content_y + 45 + 80;
+    let anyone_y = content_y + 80;
     if click_x >= toggle_x as i32 && click_x < (toggle_x + 50) as i32 {
         if click_y >= anyone_y as i32 && click_y < (anyone_y + 26) as i32 {
             let new_val = toggle_setting(&SETTING_ANYONE_ENABLED);
@@ -78,7 +78,7 @@ pub(super) fn handle_click(content_x: u32, content_y: u32, content_w: u32, click
         }
     }
 
-    let mac_y = content_y + 45 + 135;
+    let mac_y = content_y + 135;
     if click_x >= toggle_x as i32 && click_x < (toggle_x + 50) as i32 {
         if click_y >= mac_y as i32 && click_y < (mac_y + 26) as i32 {
             let new_val = toggle_setting(&SETTING_PRIVACY);
@@ -87,7 +87,7 @@ pub(super) fn handle_click(content_x: u32, content_y: u32, content_w: u32, click
         }
     }
 
-    let zs_y = content_y + 45 + 175;
+    let zs_y = content_y + 175;
     if click_x >= toggle_x as i32 && click_x < (toggle_x + 50) as i32 {
         if click_y >= zs_y as i32 && click_y < (zs_y + 26) as i32 {
             let new_val = toggle_setting(&SETTING_ZERO_STATE);
