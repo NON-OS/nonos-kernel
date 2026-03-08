@@ -266,42 +266,7 @@ fn auto_generate_wallet() {
 
     let mut entropy = [0u8; 64];
 
-    let rtc1 = crate::arch::x86_64::time::rtc::read_unix_timestamp();
-    entropy[0..8].copy_from_slice(&rtc1.to_le_bytes());
-
-    for _ in 0..100 {
-        core::hint::spin_loop();
-    }
-
-    let tsc1 = read_tsc_entropy();
-    entropy[8..16].copy_from_slice(&tsc1.to_le_bytes());
-
-    let kernel_ms = crate::time::timestamp_millis();
-    entropy[16..24].copy_from_slice(&kernel_ms.to_le_bytes());
-
-    for _ in 0..50 {
-        core::hint::spin_loop();
-    }
-
-    let tsc2 = read_tsc_entropy();
-    let jitter = tsc2.wrapping_sub(tsc1);
-    entropy[24..32].copy_from_slice(&jitter.to_le_bytes());
-
-    let pit1 = read_pit_entropy();
-    let pit2 = read_pit_entropy();
-    let pit3 = read_pit_entropy();
-    let pit4 = read_pit_entropy();
-    entropy[32..34].copy_from_slice(&pit1.to_le_bytes());
-    entropy[34..36].copy_from_slice(&pit2.to_le_bytes());
-    entropy[36..38].copy_from_slice(&pit3.to_le_bytes());
-    entropy[38..40].copy_from_slice(&pit4.to_le_bytes());
-
-    let rd1 = read_rdrand_or_fallback();
-    let rd2 = read_rdrand_or_fallback();
-    let rd3 = read_rdrand_or_fallback();
-    entropy[40..48].copy_from_slice(&rd1.to_le_bytes());
-    entropy[48..56].copy_from_slice(&rd2.to_le_bytes());
-    entropy[56..64].copy_from_slice(&rd3.to_le_bytes());
+    crate::crypto::random_api::generate_wallet_entropy(&mut entropy);
 
     let master_key = blake3_hash(&entropy);
 
@@ -310,47 +275,6 @@ fn auto_generate_wallet() {
     }
 
     let _ = init_wallet(master_key);
-}
-
-#[inline]
-fn read_tsc_entropy() -> u64 {
-    let lo: u32;
-    let hi: u32;
-    unsafe {
-        core::arch::asm!("rdtsc", out("eax") lo, out("edx") hi, options(nomem, nostack));
-    }
-    (lo as u64) | ((hi as u64) << 32)
-}
-
-#[inline]
-fn read_pit_entropy() -> u16 {
-    const PIT_CHANNEL0: u16 = 0x40;
-    const PIT_COMMAND: u16 = 0x43;
-    unsafe {
-        core::arch::asm!("out dx, al", in("dx") PIT_COMMAND, in("al") 0u8, options(nostack, preserves_flags, nomem));
-        let low: u8;
-        core::arch::asm!("in al, dx", out("al") low, in("dx") PIT_CHANNEL0, options(nostack, preserves_flags, nomem));
-        let high: u8;
-        core::arch::asm!("in al, dx", out("al") high, in("dx") PIT_CHANNEL0, options(nostack, preserves_flags, nomem));
-        ((high as u16) << 8) | (low as u16)
-    }
-}
-
-#[inline]
-fn read_rdrand_or_fallback() -> u64 {
-    for _ in 0..10 {
-        let mut val: u64 = 0;
-        let success: u8;
-        unsafe {
-            core::arch::asm!("rdrand {0}", "setc {1}", out(reg) val, out(reg_byte) success, options(nostack));
-        }
-        if success != 0 && val != 0 {
-            return val;
-        }
-    }
-    let tsc = read_tsc_entropy();
-    let pit = read_pit_entropy() as u64;
-    tsc ^ (pit << 48) ^ (pit << 32) ^ (pit << 16) ^ pit
 }
 
 pub(super) fn format_balance(buf: &mut [u8; 32], eth: u64, decimals: u64) -> usize {
