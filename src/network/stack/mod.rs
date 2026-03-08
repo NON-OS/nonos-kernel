@@ -36,7 +36,7 @@ pub mod tcp;
 pub mod types;
 pub mod util;
 
-pub use api::{is_network_connected, set_network_connected, get_socket_info, get_current_ipv4, get_current_gateway, get_current_dns, get_mac_address, is_network_available};
+pub use api::{is_network_connected, set_network_connected, get_socket_info, get_current_ipv4, get_current_gateway, get_current_dns, get_mac_address, is_network_available, is_link_up};
 pub use device::{register_device, SmolDevice, SmolDeviceAdapter};
 pub use core::{get_network_stack, init_network_stack, NetworkStack};
 pub use types::{
