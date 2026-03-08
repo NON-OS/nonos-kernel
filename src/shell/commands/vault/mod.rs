@@ -19,9 +19,15 @@ mod format;
 mod status;
 mod seal;
 mod keys;
-mod crypto;
+mod sign_cmd;
+mod verify_cmd;
+mod encrypt_cmd;
+mod decrypt_cmd;
 
 pub use self::status::{cmd_vault_status, cmd_vault_policy, cmd_vault_audit};
 pub use self::seal::{cmd_vault_seal, cmd_vault_unseal, cmd_vault_erase};
 pub use self::keys::{cmd_vault_derive, cmd_vault_keys};
-pub use self::crypto::{cmd_vault_sign, cmd_vault_verify, cmd_vault_encrypt, cmd_vault_decrypt};
+pub use self::sign_cmd::cmd_vault_sign;
+pub use self::verify_cmd::cmd_vault_verify;
+pub use self::encrypt_cmd::cmd_vault_encrypt;
+pub use self::decrypt_cmd::cmd_vault_decrypt;
