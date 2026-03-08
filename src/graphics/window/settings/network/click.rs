@@ -141,6 +141,14 @@ pub fn handle_ethernet_click(
             net_settings::update_settings(settings);
             return true;
         }
+        if click_x >= (content_x + 200) as i32 && click_x < (content_x + 290) as i32 {
+            do_ethernet_connect();
+            return true;
+        }
+        if click_x >= (content_x + 300) as i32 && click_x < (content_x + 370) as i32 {
+            do_ethernet_test();
+            return true;
+        }
     }
 
     false
