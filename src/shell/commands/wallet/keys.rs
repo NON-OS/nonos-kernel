@@ -35,7 +35,7 @@ pub fn cmd_wallet_new() {
     }
     drop(state);
 
-    let master_key = crate::crypto::get_random_bytes();
+    let master_key = crate::crypto::generate_secure_key();
 
     print_line(b"", COLOR_TEXT);
     print_line(b"PRIVATE KEY - BACKUP THIS!", COLOR_RED);
