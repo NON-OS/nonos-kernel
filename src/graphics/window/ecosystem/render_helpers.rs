@@ -17,18 +17,18 @@
 use crate::graphics::framebuffer::{fill_rect, put_pixel};
 use crate::graphics::font::draw_char;
 
-pub(super) const COLOR_CARD_BG: u32 = 0xFF161B22;
-pub(super) const COLOR_CARD_BORDER: u32 = 0xFF30363D;
-pub(super) const COLOR_TEXT: u32 = 0xFFC9D1D9;
-pub(super) const COLOR_TEXT_DIM: u32 = 0xFF8B949E;
+pub(super) const COLOR_CARD_BG: u32 = 0xFF1C1C1E;
+pub(super) const COLOR_CARD_BORDER: u32 = 0xFF38383A;
+pub(super) const COLOR_TEXT: u32 = 0xFFFFFFFF;
+pub(super) const COLOR_TEXT_DIM: u32 = 0xFF8E8E93;
 pub(super) const COLOR_TEXT_BRIGHT: u32 = 0xFFFFFFFF;
-pub(super) const COLOR_ACCENT: u32 = 0xFF238636;
-pub(super) const COLOR_WARNING: u32 = 0xFFD29922;
-pub(super) const COLOR_ERROR: u32 = 0xFFF85149;
-pub(super) const COLOR_BUTTON: u32 = 0xFF238636;
+pub(super) const COLOR_ACCENT: u32 = 0xFF34C759;
+pub(super) const COLOR_WARNING: u32 = 0xFFFF9500;
+pub(super) const COLOR_ERROR: u32 = 0xFFFF3B30;
+pub(super) const COLOR_BUTTON: u32 = 0xFF007AFF;
 pub(super) const COLOR_BUTTON_TEXT: u32 = 0xFFFFFFFF;
-pub(super) const COLOR_INPUT_BG: u32 = 0xFF0D1117;
-pub(super) const COLOR_INPUT_BORDER: u32 = 0xFF30363D;
+pub(super) const COLOR_INPUT_BG: u32 = 0xFF1C1C1E;
+pub(super) const COLOR_INPUT_BORDER: u32 = 0xFF48484A;
 
 pub(super) fn draw_card(x: u32, y: u32, w: u32, h: u32) {
     fill_rect(x, y, w, h, COLOR_CARD_BG);
