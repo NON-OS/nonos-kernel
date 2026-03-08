@@ -18,8 +18,8 @@ use crate::graphics::window::text_editor::SpecialKey;
 
 use super::state::*;
 
-const SIDEBAR_WIDTH: u32 = 180;
-const HEADER_HEIGHT: u32 = 60;
+const SIDEBAR_WIDTH: u32 = 200;
+const HEADER_HEIGHT: u32 = 70;
 
 pub(super) fn handle_click(win_x: u32, win_y: u32, win_w: u32, win_h: u32, click_x: i32, click_y: i32) -> bool {
     let rel_x = (click_x - win_x as i32) as u32;
