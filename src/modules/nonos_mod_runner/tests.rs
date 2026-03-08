@@ -19,6 +19,7 @@ use super::*;
 use crate::modules::nonos_manifest::{ModuleManifest, PrivacyPolicy};
 use crate::modules::nonos_sandbox::SandboxConfig;
 use crate::process::capabilities::{Capability, CapabilitySet};
+use crate::security::trusted_keys::TrustedKey;
 
 #[test]
 fn test_fault_policy_default() {
@@ -61,7 +62,10 @@ fn test_run_module_attestation_fail() {
         "Test module".into(),
         vec![],
         PrivacyPolicy::ZeroStateOnly,
-        vec![], // Empty attestation chain will fail verification
+        vec![TrustedKey {
+            name: "untrusted.test".into(),
+            key: alloc::vec![0xAA; 32],
+        }],
         b"test module code",
     );
     let sandbox_cfg = SandboxConfig::default();

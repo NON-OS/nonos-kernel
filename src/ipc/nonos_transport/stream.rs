@@ -196,12 +196,12 @@ mod tests {
 
     #[test]
     fn test_frames_needed() {
-        let stream = IpcStream::new("a", "b").with_mtu(100);
+        let stream = IpcStream::new("a", "b").with_mtu(300);
         assert_eq!(stream.frames_needed(0), 1); // EOF frame
         assert_eq!(stream.frames_needed(50), 1);
-        assert_eq!(stream.frames_needed(100), 1);
-        assert_eq!(stream.frames_needed(101), 2);
-        assert_eq!(stream.frames_needed(250), 3);
+        assert_eq!(stream.frames_needed(300), 1);
+        assert_eq!(stream.frames_needed(301), 2);
+        assert_eq!(stream.frames_needed(750), 3);
     }
 
     #[test]

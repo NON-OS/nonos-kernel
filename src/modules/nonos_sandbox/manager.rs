@@ -16,6 +16,8 @@
 
 
 use alloc::vec::Vec;
+#[cfg(feature = "std")]
+use core::sync::atomic::{AtomicU64, Ordering};
 use spin::Mutex;
 use crate::process::capabilities::{Capability, CapabilitySet};
 use crate::memory::{
@@ -31,6 +33,43 @@ use super::crypto::{generate_quantum_keys, secure_erase_quantum_keys};
 static SANDBOXES: Mutex<Vec<SandboxState>> = Mutex::new(Vec::new());
 
 static MAX_SANDBOX_CAPABILITIES: Mutex<Option<CapabilitySet>> = Mutex::new(None);
+
+#[cfg(feature = "std")]
+static TEST_NEXT_BASE_ADDR: AtomicU64 = AtomicU64::new(0x0001_0000_0000);
+
+#[inline]
+fn alloc_sandbox_region(num_pages: usize) -> SandboxResult<usize> {
+    #[cfg(feature = "std")]
+    {
+        let bytes = (num_pages as u64).saturating_mul(4096);
+        return Ok(TEST_NEXT_BASE_ADDR.fetch_add(bytes.max(4096), Ordering::Relaxed) as usize);
+    }
+
+    #[cfg(not(feature = "std"))]
+    {
+        let base_addr = allocate_pages(num_pages)
+            .map_err(|_| SandboxError::MemoryAllocationFailed)?;
+        Ok(base_addr.as_u64() as usize)
+    }
+}
+
+#[inline]
+fn free_sandbox_region(base_addr: usize, size: usize) -> SandboxResult<()> {
+    #[cfg(feature = "std")]
+    {
+        let _ = (base_addr, size);
+        Ok(())
+    }
+
+    #[cfg(not(feature = "std"))]
+    {
+        zero_memory(VirtAddr::new(base_addr as u64), size)
+            .map_err(|_| SandboxError::SecureEraseFailed)?;
+        free_pages(VirtAddr::new(base_addr as u64), (size + 4095) / 4096)
+            .map_err(|_| SandboxError::MemoryFreeFailed)?;
+        Ok(())
+    }
+}
 
 pub fn init_sandbox_boundary(max_caps: CapabilitySet) {
     *MAX_SANDBOX_CAPABILITIES.lock() = Some(max_caps);
@@ -72,8 +111,7 @@ pub fn setup_sandbox(module_id: u64, config: &SandboxConfig) -> SandboxResult<()
     validate_capability_request(&config.allowed_capabilities)?;
 
     let num_pages = (config.memory_limit + 4095) / 4096;
-    let base_addr = allocate_pages(num_pages)
-        .map_err(|_| SandboxError::MemoryAllocationFailed)?;
+    let base_addr = alloc_sandbox_region(num_pages)?;
 
     let quantum_keys = if config.quantum_isolation {
         Some(generate_quantum_keys()?)
@@ -83,7 +121,7 @@ pub fn setup_sandbox(module_id: u64, config: &SandboxConfig) -> SandboxResult<()
 
     let state = SandboxState {
         module_id,
-        base_addr: base_addr.as_u64() as usize,
+        base_addr,
         size: config.memory_limit,
         capabilities: config.allowed_capabilities,
         quantum_keys,
@@ -115,11 +153,7 @@ pub fn destroy_sandbox(module_id: u64, config: &SandboxConfig) -> SandboxResult<
 
     let mut state = sandboxes.remove(idx);
 
-    zero_memory(VirtAddr::new(state.base_addr as u64), state.size)
-        .map_err(|_| SandboxError::SecureEraseFailed)?;
-
-    free_pages(VirtAddr::new(state.base_addr as u64), (state.size + 4095) / 4096)
-        .map_err(|_| SandboxError::MemoryFreeFailed)?;
+    free_sandbox_region(state.base_addr, state.size)?;
 
     if let Some(ref mut keys) = state.quantum_keys {
         secure_erase_quantum_keys(keys);

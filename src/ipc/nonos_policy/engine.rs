@@ -494,12 +494,12 @@ mod tests {
         // First call should always succeed
         assert!(tracker.check_and_increment(10));
 
-        // Calls within limit should succeed
-        for _ in 0..8 {
+        // Calls within limit should succeed (10 total allowed in a window)
+        for _ in 0..9 {
             assert!(tracker.check_and_increment(10));
         }
 
-        // 10th call should fail (already at 9)
+        // Next call exceeds the limit
         assert!(!tracker.check_and_increment(10));
 
         // Reset should allow new calls

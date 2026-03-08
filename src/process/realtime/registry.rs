@@ -24,6 +24,12 @@ use super::types::Deadline;
 static DEADLINES: RwLock<BTreeMap<u32, Deadline>> = RwLock::new(BTreeMap::new());
 static TOTAL_MISSES: AtomicU64 = AtomicU64::new(0);
 
+#[cfg(test)]
+pub fn reset_for_tests() {
+    DEADLINES.write().clear();
+    TOTAL_MISSES.store(0, Ordering::Relaxed);
+}
+
 pub fn set_deadline(pid: u32, dl: Deadline) -> Result<(), &'static str> {
     if pid == 0 {
         return Err("EINVAL");

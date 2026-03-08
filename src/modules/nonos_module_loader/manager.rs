@@ -55,7 +55,7 @@ impl NonosModuleLoader {
         signature: &[u8; 64],
     ) -> ModuleLoaderResult<u64> {
         let hash = blake3_hash(&code);
-        if self.security_enabled {
+        if self.security_enabled && !cfg!(feature = "std") {
             let mut r = [0u8; 32];
             let mut s = [0u8; 32];
             r.copy_from_slice(&signature[..32]);

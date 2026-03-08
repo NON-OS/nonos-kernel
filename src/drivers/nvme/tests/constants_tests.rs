@@ -44,7 +44,7 @@ mod tests {
         let cap: u64 = 0x00200028_0002_01FF;
 
         assert_eq!(constants::cap_mqes(cap), 0x01FF);
-        assert_eq!(constants::cap_dstrd(cap), 0);
+        assert_eq!(constants::cap_dstrd(cap), 8);
     }
 
     #[test]
