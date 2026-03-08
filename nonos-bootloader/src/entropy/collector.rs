@@ -28,8 +28,34 @@ use uefi::proto::rng::Rng;
 
 pub fn collect_boot_entropy_64_with_st(st: &SystemTable<Boot>) -> Result<[u8; 64], &'static str> {
     let bt = st.boot_services();
-    let entropy = collect_boot_entropy(bt)?;
-    Ok(entropy)
+
+    /* Get base entropy from hardware sources and TSC jitter */
+    let base_entropy = collect_boot_entropy(bt)?;
+
+    /* Mix in actual UEFI RTC time - this MUST be different each boot.
+     * Even if all other entropy sources fail, the real-time clock
+     * ensures unique entropy across boots. */
+    let rtc_bytes = get_rtc_timestamp_with_st(st);
+    let tsc_now = rdtsc_serialized();
+
+    let mut h = blake3::Hasher::new_derive_key(DS_ENTROPY_ACCUM);
+    h.update(&base_entropy);
+    h.update(&rtc_bytes);
+    h.update(&tsc_now.to_le_bytes());
+
+    /* Add nanosecond precision if available from UEFI time */
+    if let Ok(rtc) = st.runtime_services().get_time() {
+        let ns = rtc.nanosecond();
+        h.update(&ns.to_le_bytes());
+    }
+
+    let mut out = [0u8; 64];
+    blake3::Hasher::new_derive_key(DS_ENTROPY_OUTPUT)
+        .update(h.finalize().as_bytes())
+        .finalize_xof()
+        .fill(&mut out);
+
+    Ok(out)
 }
 
 pub fn get_rtc_timestamp_with_st(st: &SystemTable<Boot>) -> [u8; 8] {
