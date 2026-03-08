@@ -204,7 +204,34 @@ pub fn exit_and_jump(
         (*bh_ptr).reserved0 = 0;
     }
 
-    log_info("handoff", "Calling ExitBootServices...");
+    /*
+     * Part of issue #8 fix - nvidia optimus and dual gpu systems
+     *
+     * Turns out calling log_info() here was writing to framebuffer
+     * which touches boot services. On systems with nvidia + intel
+     * (tested on i5-11400H/GTX3050, HP EliteDesk) this causes hang.
+     *
+     * Any boot services call between GetMemoryMap and ExitBootServices
+     * can invalidate the memory map key. UEFI spec says nothing should
+     * happen here but real firmware disagrees.
+     *
+     * shutdown_for_exit() sets FB_INITIALIZED=false so no stray writes.
+     */
+    crate::display::gop::shutdown_for_exit();
+
+    /*
+     * Settle delay before ExitBootServices
+     *
+     * Some firmware has race conditions in their exit handlers.
+     * HP EliteDesk and certain Acer boards hang without this.
+     * ~10ms spin loop gives firmware time to finish pending ops.
+     *
+     * Tried shorter delays, didnt work. This value tested on
+     * 5 different machines from issue #8 reporters.
+     */
+    for _ in 0..1_000_000 {
+        core::hint::spin_loop();
+    }
 
     let (_runtime_st, final_mmap) = st.exit_boot_services();
 
