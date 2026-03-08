@@ -17,35 +17,38 @@
 use crate::graphics::framebuffer::{fill_rect, put_pixel, COLOR_TEXT_WHITE};
 use super::render::draw_string;
 
-const COLOR_BRAND_PRIMARY: u32 = 0xFF66FFFF;
-const COLOR_BRAND_SECONDARY: u32 = 0xFF2E5C5C;
-const COLOR_BG_DARK: u32 = 0xFF0A0E12;
-const COLOR_TEXT_DIM: u32 = 0xFF6B8080;
-const COLOR_TEXT_FEATURE: u32 = 0xFFB0D0D0;
+const COLOR_BRAND_PRIMARY: u32 = 0xFF007AFF;
+const COLOR_BRAND_GLOW: u32 = 0xFF66FFFF;
+const COLOR_BRAND_SECONDARY: u32 = 0xFF2C2C2E;
+const COLOR_BG_DARK: u32 = 0xFF000000;
+const COLOR_TEXT_DIM: u32 = 0xFF8E8E93;
+const COLOR_TEXT_FEATURE: u32 = 0xFFAEAEB2;
+const COLOR_GREEN: u32 = 0xFF34C759;
+const COLOR_PURPLE: u32 = 0xFFBF5AF2;
 
 pub(super) fn draw(x: u32, y: u32, w: u32, h: u32) {
     fill_rect(x, y, w, h, COLOR_BG_DARK);
 
     let cx = x + w / 2;
-    let logo_y = y + 20;
-    let logo_size = 60u32;
+    let logo_y = y + 24;
+    let logo_size = 64u32;
 
     draw_nonos_logo(cx, logo_y, logo_size);
 
-    let text_y = logo_y + logo_size + 12;
+    let text_y = logo_y + logo_size + 16;
     let brand_text = b"N\xd8NOS";
     let brand_x = cx - (brand_text.len() as u32 * 8) / 2;
-    draw_string(brand_x, text_y, brand_text, COLOR_BRAND_PRIMARY);
+    draw_string(brand_x, text_y, brand_text, COLOR_BRAND_GLOW);
 
     let tagline = b"Trustless Operating System";
     let tagline_x = cx - (tagline.len() as u32 * 8) / 2;
-    draw_string(tagline_x, text_y + 16, tagline, COLOR_TEXT_WHITE);
+    draw_string(tagline_x, text_y + 18, tagline, COLOR_TEXT_WHITE);
 
-    let version_y = text_y + 40;
-    fill_rect(cx - 50, version_y, 100, 18, COLOR_BRAND_SECONDARY);
-    draw_string(cx - 40, version_y + 3, b"Version 1.0", COLOR_TEXT_WHITE);
+    let version_y = text_y + 46;
+    draw_rounded_pill(cx - 55, version_y, 110, 24, COLOR_BRAND_SECONDARY);
+    draw_string(cx - 44, version_y + 6, b"Version 1.0", COLOR_TEXT_WHITE);
 
-    let div_y = version_y + 28;
+    let div_y = version_y + 36;
     for dx in 0..(w - 60) {
         let dist_from_center = ((dx as i32) - ((w - 60) as i32 / 2)).abs() as u32;
         let max_dist = (w - 60) / 2;
@@ -56,24 +59,39 @@ pub(super) fn draw(x: u32, y: u32, w: u32, h: u32) {
         put_pixel(x + 30 + dx, div_y, 0xFF000000 | (r << 16) | (g << 8) | b);
     }
 
-    let features: [&[u8]; 4] = [
-        b"Privacy First - Zero tracking, zero telemetry",
-        b"RAM Only - No persistence, clean slate on reboot",
-        b"Anonymous by Default - Tor network integration",
-        b"Post-Quantum Ready - Future-proof cryptography",
+    let features: [(&[u8], u32); 4] = [
+        (b"Privacy First - Zero tracking, zero telemetry", COLOR_BRAND_PRIMARY),
+        (b"RAM Only - No persistence, clean slate on reboot", COLOR_GREEN),
+        (b"Anonymous by Default - Tor network integration", COLOR_PURPLE),
+        (b"Post-Quantum Ready - Future-proof cryptography", 0xFFFF9500),
     ];
 
-    let feat_y = div_y + 16;
-    for (i, feat) in features.iter().enumerate() {
-        let fy = feat_y + (i as u32) * 22;
-        draw_bullet(x + 25, fy + 4, COLOR_BRAND_PRIMARY);
-        draw_string(x + 38, fy, feat, COLOR_TEXT_FEATURE);
+    let feat_y = div_y + 20;
+    for (i, (feat, color)) in features.iter().enumerate() {
+        let fy = feat_y + (i as u32) * 26;
+        draw_bullet(x + 28, fy + 5, *color);
+        draw_string(x + 44, fy, feat, COLOR_TEXT_FEATURE);
     }
 
-    let footer_y = y + h - 35;
-    fill_rect(x + 25, footer_y - 8, w - 50, 1, COLOR_BRAND_SECONDARY);
-    draw_string(x + 25, footer_y + 5, b"(C) 2026 N\xd8NOS Project", COLOR_TEXT_DIM);
-    draw_string(x + w - 135, footer_y + 5, b"nonos.systems", COLOR_BRAND_PRIMARY);
+    let footer_y = y + h - 40;
+    fill_rect(x + 28, footer_y - 10, w - 56, 1, COLOR_BRAND_SECONDARY);
+    draw_string(x + 28, footer_y + 5, b"(C) 2026 N\xd8NOS Project", COLOR_TEXT_DIM);
+    draw_string(x + w - 140, footer_y + 5, b"nonos.systems", COLOR_BRAND_PRIMARY);
+}
+
+fn draw_rounded_pill(x: u32, y: u32, w: u32, h: u32, color: u32) {
+    let r = h / 2;
+    fill_rect(x + r, y, w - 2 * r, h, color);
+    for dy in 0..h {
+        for dx in 0..r {
+            let rel_x = dx as i32 - r as i32 + 1;
+            let rel_y = dy as i32 - r as i32;
+            if rel_x * rel_x + rel_y * rel_y <= (r * r) as i32 {
+                put_pixel(x + dx, y + dy, color);
+                put_pixel(x + w - r + dx, y + dy, color);
+            }
+        }
+    }
 }
 
 fn draw_nonos_logo(cx: u32, y: u32, size: u32) {
@@ -89,9 +107,9 @@ fn draw_nonos_logo(cx: u32, y: u32, size: u32) {
             let dist_sq = (rel_x * rel_x + rel_y * rel_y) as u32;
             let dist = isqrt(dist_sq);
 
-            if dist > outer_r && dist <= outer_r + 5 {
-                let alpha = ((outer_r + 5 - dist) * 35 / 5) as u32;
-                put_pixel(cx - size / 2 + dx, y + dy, (alpha << 24) | 0x66FFFF);
+            if dist > outer_r && dist <= outer_r + 6 {
+                let alpha = ((outer_r + 6 - dist) * 40 / 6) as u32;
+                put_pixel(cx - size / 2 + dx, y + dy, (alpha << 24) | 0x007AFF);
             }
         }
     }
@@ -105,14 +123,14 @@ fn draw_nonos_logo(cx: u32, y: u32, size: u32) {
 
             if dist >= inner_r && dist <= outer_r {
                 let t = (dy * 256 / size) as u32;
-                let r = 0x66 + ((0x99 - 0x66) * (256 - t) / 512).min(0x33);
-                let g = 0xFF - (t / 5).min(0x35);
-                let b = 0xFF - (t / 6).min(0x25);
+                let r = 0x00 + ((t * 0x40) / 256).min(0x40);
+                let g = 0x7A + ((256 - t) * 0x40 / 256).min(0x85);
+                let b = 0xFF - (t / 8).min(0x30);
                 put_pixel(cx - size / 2 + dx, y + dy, 0xFF000000 | (r << 16) | (g << 8) | b);
             } else if dist < inner_r && dist > inner_r / 3 {
-                let shade = ((inner_r - dist) * 12 / inner_r) as u32;
+                let shade = ((inner_r - dist) * 15 / inner_r) as u32;
                 if shade > 3 {
-                    put_pixel(cx - size / 2 + dx, y + dy, (shade << 24) | 0x66FFFF);
+                    put_pixel(cx - size / 2 + dx, y + dy, (shade << 24) | 0x007AFF);
                 }
             }
         }
@@ -121,7 +139,7 @@ fn draw_nonos_logo(cx: u32, y: u32, size: u32) {
     let handle_start_x = glass_cx + (outer_r as i32 * 70 / 100) as u32;
     let handle_start_y = glass_cy + (outer_r as i32 * 70 / 100) as u32;
     let handle_len = size * 40 / 100;
-    let handle_width = 9u32;
+    let handle_width = 10u32;
 
     for i in 0..handle_len {
         let hx = handle_start_x + i;
@@ -132,10 +150,10 @@ fn draw_nonos_logo(cx: u32, y: u32, size: u32) {
             let px = (hx as i32 + offset / 2) as u32;
             let py = (hy as i32 - offset / 2) as u32;
 
-            let shade = (i * 50 / handle_len) as u32;
-            let r = (0x66 - shade.min(0x25)) as u32;
-            let g = (0xFF - shade.min(0x50)) as u32;
-            let b = (0xFF - shade.min(0x40)) as u32;
+            let shade = (i * 60 / handle_len) as u32;
+            let r = 0x00 + (shade.min(0x40)) as u32;
+            let g = (0x7A - shade.min(0x30)) as u32;
+            let b = (0xFF - shade.min(0x50)) as u32;
 
             put_pixel(px, py, 0xFF000000 | (r << 16) | (g << 8) | b);
         }
