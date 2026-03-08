@@ -15,22 +15,46 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use core::sync::atomic::Ordering;
-use crate::graphics::framebuffer::{fill_rect, COLOR_ACCENT};
+use crate::graphics::framebuffer::fill_rect;
 use crate::graphics::font::draw_char;
 use super::constants::*;
 use super::state::*;
 
+const COLOR_BG: u32 = 0xFF000000;
+const COLOR_CURSOR: u32 = 0xFF007AFF;
+const HEADER_HEIGHT: u32 = 28;
+
+fn draw_string(x: u32, y: u32, text: &[u8], color: u32) {
+    for (i, &ch) in text.iter().enumerate() {
+        draw_char(x + (i as u32) * 8, y, ch, color);
+    }
+}
+
 pub fn draw_terminal(x: u32, y: u32, w: u32, h: u32) {
-    fill_rect(x, y, w, h, 0xFF0D1117);
+    for gy in 0..HEADER_HEIGHT {
+        let shade = 44 - (gy / 2) as u8;
+        let color = 0xFF000000 | ((shade as u32) << 16) | ((shade as u32) << 8) | (shade as u32);
+        fill_rect(x, y + gy, w, 1, color);
+    }
+    fill_rect(x, y + HEADER_HEIGHT - 1, w, 1, 0xFF38383A);
+
+    draw_string(x + 12, y + 8, b"N\\xd8NOS Terminal", 0xFF8E8E93);
+
+    let shell_indicator_x = x + w - 80;
+    fill_rect(shell_indicator_x, y + 6, 8, 8, 0xFF34C759);
+    draw_string(shell_indicator_x + 12, y + 4, b"shell", 0xFF8E8E93);
+
+    fill_rect(x, y + HEADER_HEIGHT, w, h - HEADER_HEIGHT, COLOR_BG);
 
     let char_w = 8u32;
     let char_h = 16u32;
-    let padding = 8u32;
+    let padding = 12u32;
+    let content_y = y + HEADER_HEIGHT;
+    let content_h = h - HEADER_HEIGHT;
 
     let visible_cols = ((w - padding * 2) / char_w).min(TERM_COLS as u32) as usize;
-    let visible_rows = ((h - padding * 2) / char_h).min(TERM_ROWS as u32) as usize;
+    let visible_rows = ((content_h - padding * 2) / char_h).min(TERM_ROWS as u32) as usize;
 
-    // SAFETY: Read-only access to terminal buffer for drawing
     unsafe {
         for row in 0..visible_rows {
             for col in 0..visible_cols {
@@ -39,20 +63,23 @@ pub fn draw_terminal(x: u32, y: u32, w: u32, h: u32) {
                     let ch = TERM_BUFFER[idx];
                     let color = TERM_COLORS[idx];
                     let cx = x + padding + (col as u32) * char_w;
-                    let cy = y + padding + (row as u32) * char_h;
+                    let cy = content_y + padding + (row as u32) * char_h;
                     draw_char(cx, cy, ch, color);
                 }
             }
         }
     }
 
-    let cursor_x = TERM_CURSOR_X.load(Ordering::Relaxed);
-    let cursor_y = TERM_CURSOR_Y.load(Ordering::Relaxed);
+    let cursor_x_pos = TERM_CURSOR_X.load(Ordering::Relaxed);
+    let cursor_y_pos = TERM_CURSOR_Y.load(Ordering::Relaxed);
 
-    if TERM_CURSOR_VISIBLE.load(Ordering::Relaxed) && cursor_y < visible_rows {
-        let cx = x + padding + (cursor_x as u32) * char_w;
-        let cy = y + padding + (cursor_y as u32) * char_h;
-        fill_rect(cx, cy + char_h - 2, char_w, 2, COLOR_ACCENT);
+    if TERM_CURSOR_VISIBLE.load(Ordering::Relaxed) && cursor_y_pos < visible_rows {
+        let blink = (crate::time::timestamp_millis() / 530) % 2 == 0;
+        if blink {
+            let cx = x + padding + (cursor_x_pos as u32) * char_w;
+            let cy = content_y + padding + (cursor_y_pos as u32) * char_h;
+            fill_rect(cx, cy, 2, char_h, COLOR_CURSOR);
+        }
     }
 }
 
