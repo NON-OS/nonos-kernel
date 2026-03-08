@@ -58,6 +58,18 @@ fn efi_main(_handle: Handle, mut system_table: SystemTable<Boot>) -> Status {
     // Initialize UEFI services (allocator, panic handler, etc.)
     uefi_services::init(&mut system_table).unwrap();
 
+    /*
+     * Disable UEFI watchdog timer (issue #8)
+     *
+     * UEFI firmware sets a default 5min watchdog. Our boot process
+     * can take a while due to ZK proof verification on slower CPUs.
+     * Without this, some machines randomly reboot during boot.
+     *
+     * Seen on Acer Nitro, HP EliteDesk. Standard practice for
+     * any bootloader that does heavy computation.
+     */
+    let _ = system_table.boot_services().set_watchdog_timer(0, 0x10000, None);
+
     // Initialize graphical display
     let gop_available = init_gop(&mut system_table);
     if gop_available {
