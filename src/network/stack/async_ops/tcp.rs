@@ -190,11 +190,13 @@ pub fn tcp_is_open() -> bool {
 }
 
 pub fn tcp_close() {
-    if let Some(handle) = *TCP_HANDLE.lock() {
+    if let Some(handle) = TCP_HANDLE.lock().take() {
         if let Some(ns) = get_network_stack() {
             let mut sockets = ns.sockets.lock();
             let s: &mut tcp::Socket = sockets.get_mut(handle);
             let _ = s.close();
+            /* Remove socket to free 32KB of buffers (16KB rx + 16KB tx) */
+            sockets.remove(handle);
         }
     }
     tcp_cleanup();
