@@ -17,23 +17,46 @@
 pub const REALTEK_VENDOR_ID: u16 = 0x10EC;
 
 pub const REALTEK_WIFI_DEVICE_IDS: &[u16] = &[
-    0xC821, // RTL8821CE
-    0xC822, // RTL8822CE
-    0xC82F, // RTL8822CE
+    /* RTL8821 series (WiFi 5, common in budget laptops 2015-2022) */
+    0xC821, // RTL8821CE (extremely common)
+    0xB821, // RTL8821AE
+    0x8821, // RTL8821AE variant
+    /* RTL8822 series (WiFi 5 dual-band, 2016-2022) */
+    0xC822, // RTL8822CE (very common)
+    0xC82F, // RTL8822CE variant
     0xB822, // RTL8822BE
-    0xB852, // RTL8852BE
-    0xC852, // RTL8852CE
+    0xC82C, // RTL8822CE variant
+    0xB82B, // RTL8822BE variant
+    /* RTL8852 series (WiFi 6/6E, 2020+) */
+    0xB852, // RTL8852BE (WiFi 6)
+    0xC852, // RTL8852CE (WiFi 6E)
     0x8852, // RTL8852AE
-    0xA852, // RTL8852AE
-    0xC862, // RTL8852BE
+    0xA852, // RTL8852AE variant
+    0xC862, // RTL8852BE variant
+    0xB85A, // RTL8852BE variant
+    0xB85B, // RTL8852BE variant
+    /* RTL8723 series (WiFi 4, budget/older laptops) */
     0xD723, // RTL8723DE
-    0xB723, // RTL8723BE
+    0xB723, // RTL8723BE (very common)
     0x8723, // RTL8723AE
-    0xC82C, // RTL8822CE
-    0xB82B, // RTL8822BE
+    0xC723, // RTL8723CE
+    /* RTL8812 series (WiFi 5 high-performance) */
     0xC812, // RTL8812CE
-    0x8812, // RTL8812AE
+    0x8812, // RTL8812AE (common in USB adapters too)
     0xB812, // RTL8812BE
+    /* RTL8188 series (WiFi 4, very common) */
+    0x8179, // RTL8188EE
+    0x818B, // RTL8188EE variant
+    0xC006, // RTL8192EE
+    0x8178, // RTL8192CE
+    /* RTL8814 series (WiFi 5 tri-band) */
+    0x8813, // RTL8814AE
+    0xB814, // RTL8814BE
+    /* RTL8851 series (WiFi 6, newer) */
+    0xB851, // RTL8851BE
+    0xC851, // RTL8851CE
+    /* RTL8922 series (WiFi 7, 2024+) */
+    0xC922, // RTL8922AE
 ];
 
 pub mod regs {
