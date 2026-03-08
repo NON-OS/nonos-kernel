@@ -18,7 +18,7 @@ extern crate alloc;
 
 use alloc::vec::Vec;
 use core::ptr::{addr_of, addr_of_mut};
-use core::sync::atomic::{AtomicUsize, Ordering};
+use core::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 
 use crate::graphics::image::{decode_png, DecodedImage};
 
@@ -32,6 +32,7 @@ pub use super::wallpaper_data::{
 static CURRENT_WALLPAPER: AtomicUsize = AtomicUsize::new(DEFAULT_WALLPAPER_ID as usize);
 static mut CACHED_WALLPAPER: Option<DecodedImage> = None;
 static CACHED_WALLPAPER_ID: AtomicUsize = AtomicUsize::new(usize::MAX);
+static WALLPAPER_LOADING: AtomicBool = AtomicBool::new(false);
 
 pub fn get_wallpapers_by_category(category: WallpaperCategory) -> Vec<&'static WallpaperInfo> {
     WALLPAPERS.iter().filter(|w| w.category == category).collect()
@@ -47,11 +48,6 @@ pub fn get_current_wallpaper_id() -> usize {
 
 pub fn set_current_wallpaper(id: usize) {
     CURRENT_WALLPAPER.store(id, Ordering::Relaxed);
-    if CACHED_WALLPAPER_ID.load(Ordering::Relaxed) != id {
-        // SAFETY: Single-threaded access during wallpaper change
-        unsafe { *addr_of_mut!(CACHED_WALLPAPER) = None; }
-        CACHED_WALLPAPER_ID.store(usize::MAX, Ordering::Relaxed);
-    }
 }
 
 pub fn is_using_wallpaper() -> bool {
@@ -65,30 +61,69 @@ pub fn load_current_wallpaper() -> Option<&'static DecodedImage> {
         return None;
     }
 
-    if CACHED_WALLPAPER_ID.load(Ordering::Relaxed) == id {
-        // SAFETY: Cache is only modified during load, single-threaded
+    // Already cached - return immediately
+    if CACHED_WALLPAPER_ID.load(Ordering::Acquire) == id {
         unsafe { return (*addr_of!(CACHED_WALLPAPER)).as_ref(); }
     }
 
-    let png_data = get_embedded_wallpaper_data(id as u8)?;
-    let image = decode_png(png_data)?;
+    // Prevent concurrent loads
+    if WALLPAPER_LOADING.swap(true, Ordering::AcqRel) {
+        // Another load in progress - return current cached wallpaper
+        unsafe { return (*addr_of!(CACHED_WALLPAPER)).as_ref(); }
+    }
 
-    // SAFETY: Single-threaded cache update
+    // Double-check after acquiring load flag
+    if CACHED_WALLPAPER_ID.load(Ordering::Acquire) == id {
+        WALLPAPER_LOADING.store(false, Ordering::Release);
+        unsafe { return (*addr_of!(CACHED_WALLPAPER)).as_ref(); }
+    }
+
+    // Decode PNG - keep old wallpaper visible during decode
+    let png_data = match get_embedded_wallpaper_data(id as u8) {
+        Some(data) => data,
+        None => {
+            WALLPAPER_LOADING.store(false, Ordering::Release);
+            return unsafe { (*addr_of!(CACHED_WALLPAPER)).as_ref() };
+        }
+    };
+
+    let image = match decode_png(png_data) {
+        Some(img) => img,
+        None => {
+            WALLPAPER_LOADING.store(false, Ordering::Release);
+            return unsafe { (*addr_of!(CACHED_WALLPAPER)).as_ref() };
+        }
+    };
+
+    // Atomic swap - old image dropped after new one stored
     unsafe {
         *addr_of_mut!(CACHED_WALLPAPER) = Some(image);
-        CACHED_WALLPAPER_ID.store(id, Ordering::Relaxed);
-        (*addr_of!(CACHED_WALLPAPER)).as_ref()
+        CACHED_WALLPAPER_ID.store(id, Ordering::Release);
     }
+
+    WALLPAPER_LOADING.store(false, Ordering::Release);
+
+    unsafe { (*addr_of!(CACHED_WALLPAPER)).as_ref() }
 }
 
 pub fn get_cached_wallpaper() -> Option<&'static DecodedImage> {
+    // Don't access cache during active load
+    if WALLPAPER_LOADING.load(Ordering::Acquire) {
+        return unsafe { (*addr_of!(CACHED_WALLPAPER)).as_ref() };
+    }
+
     let id = get_current_wallpaper_id();
-    if CACHED_WALLPAPER_ID.load(Ordering::Relaxed) == id {
-        // SAFETY: Cache read is safe after store
+    if CACHED_WALLPAPER_ID.load(Ordering::Acquire) == id {
         unsafe { (*addr_of!(CACHED_WALLPAPER)).as_ref() }
     } else {
-        None
+        // Cache miss - trigger lazy load and return whatever we have
+        let _ = load_current_wallpaper();
+        unsafe { (*addr_of!(CACHED_WALLPAPER)).as_ref() }
     }
+}
+
+pub fn is_wallpaper_loading() -> bool {
+    WALLPAPER_LOADING.load(Ordering::Relaxed)
 }
 
 pub fn next_wallpaper() -> usize {
