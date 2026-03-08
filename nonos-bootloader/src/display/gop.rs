@@ -17,6 +17,7 @@
 use core::sync::atomic::{AtomicBool, AtomicU32, AtomicU64, Ordering};
 use uefi::prelude::*;
 use uefi::proto::console::gop::GraphicsOutput;
+use uefi::Identify;
 
 static FB_INITIALIZED: AtomicBool = AtomicBool::new(false);
 static FB_PTR: AtomicU64 = AtomicU64::new(0);
@@ -25,35 +26,72 @@ static FB_HEIGHT: AtomicU32 = AtomicU32::new(0);
 static FB_STRIDE: AtomicU32 = AtomicU32::new(0);
 static FB_FORMAT_BGR: AtomicBool = AtomicBool::new(true);
 
+/*
+ * was getting black screen on gaming laptops with optimus. turns out
+ * the first GOP handle is the nvidia card which has no display attached.
+ * need to try all handles until we find one with valid framebuffer.
+ * tested on acer nitro, asus rog, msi stealth - all working now.
+ */
 pub fn init_gop(st: &mut SystemTable<Boot>) -> bool {
     let bs = st.boot_services();
 
-    if let Ok(gop_handle) = bs.get_handle_for_protocol::<GraphicsOutput>() {
-        if let Ok(mut gop) = bs.open_protocol_exclusive::<GraphicsOutput>(gop_handle) {
-            let mode_info = gop.current_mode_info();
-            let (width, height) = mode_info.resolution();
-            let stride = mode_info.stride();
+    let handles = match bs.locate_handle_buffer(uefi::table::boot::SearchType::ByProtocol(&GraphicsOutput::GUID)) {
+        Ok(h) => h,
+        Err(_) => {
+            if let Ok(gop_handle) = bs.get_handle_for_protocol::<GraphicsOutput>() {
+                return try_init_gop_handle(bs, gop_handle);
+            }
+            return false;
+        }
+    };
 
-            let mut frame_buffer = gop.frame_buffer();
-            let fb_addr = frame_buffer.as_mut_ptr() as u64;
-
-            let is_bgr = matches!(
-                mode_info.pixel_format(),
-                uefi::proto::console::gop::PixelFormat::Bgr
-            );
-
-            FB_PTR.store(fb_addr, Ordering::SeqCst);
-            FB_WIDTH.store(width as u32, Ordering::SeqCst);
-            FB_HEIGHT.store(height as u32, Ordering::SeqCst);
-            FB_STRIDE.store(stride as u32, Ordering::SeqCst);
-            FB_FORMAT_BGR.store(is_bgr, Ordering::SeqCst);
-            FB_INITIALIZED.store(true, Ordering::SeqCst);
-
+    for &handle in handles.iter() {
+        if try_init_gop_handle(bs, handle) {
             return true;
         }
     }
 
     false
+}
+
+fn try_init_gop_handle(bs: &uefi::table::boot::BootServices, gop_handle: Handle) -> bool {
+    let gop = match bs.open_protocol_exclusive::<GraphicsOutput>(gop_handle) {
+        Ok(g) => g,
+        Err(_) => return false,
+    };
+
+    let mode_info = gop.current_mode_info();
+    let (width, height) = mode_info.resolution();
+
+    /* skip bogus modes - discrete gpu returns 0x0 when display not connected */
+    if width == 0 || height == 0 {
+        return false;
+    }
+
+    let stride = mode_info.stride();
+    let mut gop = gop;
+    let mut frame_buffer = gop.frame_buffer();
+    let fb_addr = frame_buffer.as_mut_ptr() as u64;
+
+    /* null fb means this adapter aint driving the panel */
+    if fb_addr == 0 {
+        return false;
+    }
+
+    let is_bgr = matches!(
+        mode_info.pixel_format(),
+        uefi::proto::console::gop::PixelFormat::Bgr
+    );
+
+    // SAFETY: atomic stores, single writer during boot
+    FB_PTR.store(fb_addr, Ordering::SeqCst);
+    FB_WIDTH.store(width as u32, Ordering::SeqCst);
+    FB_HEIGHT.store(height as u32, Ordering::SeqCst);
+    FB_STRIDE.store(stride as u32, Ordering::SeqCst);
+    FB_FORMAT_BGR.store(is_bgr, Ordering::SeqCst);
+    FB_INITIALIZED.store(true, Ordering::SeqCst);
+
+    true
 }
 
 #[inline]
