@@ -15,11 +15,26 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use core::sync::atomic::Ordering;
+use crate::bus::pci;
 use crate::drivers::wifi as wifi_driver;
 
 use super::actions;
 use super::click;
 use super::state::*;
+
+const CLASS_WIRELESS: u8 = 0x0D;
+
+fn has_wifi_hardware() -> bool {
+    let count = pci::device_count();
+    for i in 0..count {
+        if let Some(dev) = pci::get_device(i) {
+            if dev.class == CLASS_WIRELESS || (dev.class == 0x02 && dev.subclass == 0x80) {
+                return true;
+            }
+        }
+    }
+    false
+}
 
 pub(crate) fn handle_click(
     content_x: u32,
@@ -28,10 +43,33 @@ pub(crate) fn handle_click(
     click_x: i32,
     click_y: i32,
 ) -> bool {
-    if wifi_driver::is_available() {
-        return click::handle_wifi_click(content_x, content_y, content_w, click_x, click_y);
+    let wifi_available = wifi_driver::is_available();
+    let wifi_hw = has_wifi_hardware();
+
+    if wifi_available {
+        if click::handle_wifi_click(content_x, content_y, content_w, click_x, click_y) {
+            return true;
+        }
+        let eth_y = content_y + 280 + 15;
+        return click::handle_ethernet_click(content_x, eth_y, content_w, click_x, click_y);
     }
-    click::handle_ethernet_click(content_x, content_y, content_w, click_x, click_y)
+
+    if wifi_hw {
+        let btn_y = content_y + 25 + 52;
+        if click_y >= btn_y as i32 && click_y < (btn_y + 30) as i32 {
+            if click_x >= (content_x + 25) as i32 && click_x < (content_x + 145) as i32 {
+                if !LOADING_FIRMWARE.load(Ordering::Relaxed) {
+                    actions::do_load_firmware();
+                }
+                return true;
+            }
+        }
+        let eth_y = content_y + 110 + 15;
+        return click::handle_ethernet_click(content_x, eth_y, content_w, click_x, click_y);
+    }
+
+    let eth_y = content_y + 80 + 15;
+    click::handle_ethernet_click(content_x, eth_y, content_w, click_x, click_y)
 }
 
 pub(crate) fn handle_key(ch: u8) -> bool {
