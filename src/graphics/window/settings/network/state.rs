@@ -39,4 +39,54 @@ pub static STATIC_IP_LENS: Mutex<[u8; 4]> = Mutex::new([0u8; 4]);
 pub(crate) fn sync_from_system() {
     let settings = net_settings::get_settings();
     SETTING_DHCP_ENABLED.store(settings.dhcp_enabled, Ordering::Relaxed);
+
+    /* sync static IP fields from saved settings */
+    if !settings.dhcp_enabled {
+        let mut buffers = STATIC_IP_BUFFER.lock();
+        let mut lens = STATIC_IP_LENS.lock();
+
+        if settings.static_ip != [0, 0, 0, 0] {
+            let ip_str = format_ipv4(&settings.static_ip);
+            let l = ip_str.len().min(15);
+            buffers[0][..l].copy_from_slice(&ip_str[..l]);
+            lens[0] = l as u8;
+        }
+
+        if settings.gateway != [0, 0, 0, 0] {
+            let gw_str = format_ipv4(&settings.gateway);
+            let l = gw_str.len().min(15);
+            buffers[1][..l].copy_from_slice(&gw_str[..l]);
+            lens[1] = l as u8;
+        }
+
+        if settings.dns_primary != [0, 0, 0, 0] {
+            let dns_str = format_ipv4(&settings.dns_primary);
+            let l = dns_str.len().min(15);
+            buffers[2][..l].copy_from_slice(&dns_str[..l]);
+            lens[2] = l as u8;
+        }
+    }
+}
+
+fn format_ipv4(ip: &[u8; 4]) -> [u8; 16] {
+    let mut buf = [0u8; 16];
+    let mut pos = 0;
+
+    for (i, &octet) in ip.iter().enumerate() {
+        if i > 0 {
+            buf[pos] = b'.';
+            pos += 1;
+        }
+        if octet >= 100 {
+            buf[pos] = b'0' + (octet / 100);
+            pos += 1;
+        }
+        if octet >= 10 {
+            buf[pos] = b'0' + ((octet / 10) % 10);
+            pos += 1;
+        }
+        buf[pos] = b'0' + (octet % 10);
+        pos += 1;
+    }
+    buf
 }
