@@ -121,7 +121,7 @@ mod verifier {
 #[cfg(any(feature = "crypto-ed25519-int", feature = "crypto-ed25519-dalek"))]
 pub use verifier::{get_kernel_public_key, verify_manifest_signature};
 
-#[cfg(test)]
+#[cfg(all(test, not(feature = "std")))]
 mod tests {
     use super::*;
 

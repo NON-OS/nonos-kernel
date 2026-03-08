@@ -22,6 +22,7 @@ mod util;
 mod x25519;
 
 #[cfg(test)]
+#[cfg(not(feature = "std"))]
 mod tests;
 
 pub use ed25519::*;

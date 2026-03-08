@@ -21,6 +21,7 @@ mod point;
 mod scalar;
 
 #[cfg(test)]
+#[cfg(not(feature = "std"))]
 mod tests;
 
 pub use constants::{CompressedPublicKey, PublicKey, SecretKey, Signature};

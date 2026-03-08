@@ -21,6 +21,6 @@ pub mod main;
 mod tests;
 
 pub use panic::boot_panic;
-#[cfg(not(test))]
+#[cfg(not(feature = "std"))]
 pub use main::_arch_start;
 pub use main::boot_main;

@@ -27,7 +27,7 @@ use super::panic::boot_panic;
 
 use crate::arch::x86_64::{cpu, gdt, idt, serial, vga};
 
-#[cfg(not(test))]
+#[cfg(not(feature = "std"))]
 #[no_mangle]
 #[link_section = ".text.boot"]
 pub unsafe extern "C" fn _arch_start() -> ! {

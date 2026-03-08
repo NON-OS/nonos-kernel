@@ -36,7 +36,7 @@ pub mod prelude {
 }
 
 /// Compile-time check for initialization order
-#[cfg(test)]
+#[cfg(all(test, not(feature = "std")))]
 mod tests {
     use super::*;
     #[test]
