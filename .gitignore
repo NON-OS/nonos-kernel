@@ -4,6 +4,7 @@ target/
 *.img
 *.bin
 !firmware/*.fd
+!nonos-bootloader/firmware/**/*.bin
 
 # IDE and editor
 .vscode/
