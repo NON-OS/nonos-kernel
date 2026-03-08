@@ -123,3 +123,47 @@ pub fn do_wifi_connect() {
         CONNECTING.store(false, Ordering::Relaxed);
     }
 }
+
+pub fn do_ethernet_connect() {
+    use crate::network::stack::{get_network_stack, set_network_connected};
+
+    *CONNECTION_ERROR.lock() = None;
+    CONNECTING.store(true, Ordering::Relaxed);
+
+    if let Some(stack) = get_network_stack() {
+        match stack.request_dhcp() {
+            Ok(lease) => {
+                set_network_connected(true);
+                let _ = lease;
+            }
+            Err(e) => {
+                *CONNECTION_ERROR.lock() = Some(e);
+            }
+        }
+    } else {
+        *CONNECTION_ERROR.lock() = Some("Network stack not available");
+    }
+
+    CONNECTING.store(false, Ordering::Relaxed);
+}
+
+pub fn do_ethernet_test() {
+    use crate::network::stack::{get_network_stack, get_current_gateway};
+
+    *CONNECTION_ERROR.lock() = None;
+
+    if let Some(gw) = get_current_gateway() {
+        if let Some(stack) = get_network_stack() {
+            let result = stack.ping(gw, 1, 2000);
+            if result.success {
+                *CONNECTION_ERROR.lock() = Some("Gateway reachable");
+            } else {
+                *CONNECTION_ERROR.lock() = Some("Gateway unreachable");
+            }
+        } else {
+            *CONNECTION_ERROR.lock() = Some("Network stack not available");
+        }
+    } else {
+        *CONNECTION_ERROR.lock() = Some("No gateway configured");
+    }
+}
