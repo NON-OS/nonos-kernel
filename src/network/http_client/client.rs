@@ -101,7 +101,7 @@ impl HttpClient {
         let stack = crate::network::stack::get_network_stack()
             .ok_or("network stack not initialized")?;
 
-        let raw_response = stack.http_request(ip, url.port, &request)?;
+        let raw_response = stack.http_request(ip, url.port, &request, self.options.timeout_ms as u32)?;
         parse_response(&raw_response)
     }
 
