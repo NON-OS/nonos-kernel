@@ -36,19 +36,19 @@ use super::render_views::{draw_overview, draw_send_view, draw_receive_view, draw
 use super::render_transactions::draw_transactions_view;
 use super::render_stealth::{draw_stealth_view, draw_settings_view};
 
-pub(super) const COLOR_BG: u32 = 0xFF0D1117;
-pub(super) const COLOR_SIDEBAR: u32 = 0xFF161B22;
-pub(super) const COLOR_CARD: u32 = 0xFF21262D;
-pub(super) const COLOR_BORDER: u32 = 0xFF30363D;
-pub(super) const COLOR_TEXT_DIM: u32 = 0xFF8B949E;
+pub(super) const COLOR_BG: u32 = 0xFF000000;
+pub(super) const COLOR_SIDEBAR: u32 = 0xFF1C1C1E;
+pub(super) const COLOR_CARD: u32 = 0xFF2C2C2E;
+pub(super) const COLOR_BORDER: u32 = 0xFF38383A;
+pub(super) const COLOR_TEXT_DIM: u32 = 0xFF8E8E93;
 pub(super) const COLOR_TEXT_WHITE: u32 = 0xFFFFFFFF;
-pub(super) const COLOR_ACCENT: u32 = 0xFF58A6FF;
-pub(super) const COLOR_GREEN: u32 = 0xFF3FB950;
-pub(super) const COLOR_YELLOW: u32 = 0xFFF0C674;
-pub(super) const COLOR_RED: u32 = 0xFFFF6B6B;
+pub(super) const COLOR_ACCENT: u32 = 0xFF007AFF;
+pub(super) const COLOR_GREEN: u32 = 0xFF34C759;
+pub(super) const COLOR_YELLOW: u32 = 0xFFFFD60A;
+pub(super) const COLOR_RED: u32 = 0xFFFF3B30;
 
-const SIDEBAR_WIDTH: u32 = 180;
-const HEADER_HEIGHT: u32 = 60;
+const SIDEBAR_WIDTH: u32 = 200;
+const HEADER_HEIGHT: u32 = 70;
 
 pub(super) fn draw(x: u32, y: u32, w: u32, h: u32) {
     fill_rect(x, y, w, h, COLOR_BG);
@@ -92,65 +92,113 @@ fn draw_locked_view(x: u32, y: u32, w: u32, h: u32) {
     let center_x = x + w / 2;
     let center_y = y + h / 2;
 
-    PASSWORD_FOCUSED.store(true, Ordering::Relaxed);
+    for gy in 0..h {
+        let shade = ((gy as f32 / h as f32) * 30.0) as u8;
+        let color = 0xFF000000 | ((shade as u32) << 16) | ((shade as u32) << 8) | (shade as u32);
+        fill_rect(x, y + gy, w, 1, color);
+    }
 
-    fill_rect(center_x - 150, center_y - 100, 300, 200, COLOR_CARD);
-    fill_rect(center_x - 150, center_y - 100, 300, 2, COLOR_ACCENT);
+    draw_rounded_card(center_x - 160, center_y - 120, 320, 260, 0xFF2C2C2E);
 
-    draw_string(center_x - 60, center_y - 70, b"N\xd8NOS Wallet", COLOR_ACCENT);
-    draw_string(center_x - 70, center_y - 40, b"Wallet is locked", COLOR_TEXT_WHITE);
-    draw_string(center_x - 70, center_y - 15, b"Enter master key:", COLOR_TEXT_DIM);
+    draw_lock_icon(center_x - 24, center_y - 100);
+
+    draw_string(center_x - 60, center_y - 55, b"N\xd8NOS Wallet", COLOR_ACCENT);
+    draw_string(center_x - 56, center_y - 30, b"Enter Password", COLOR_TEXT_WHITE);
 
     let focused = PASSWORD_FOCUSED.load(Ordering::Relaxed);
-    let field_color = if focused { COLOR_BORDER } else { COLOR_BG };
-    fill_rect(center_x - 120, center_y + 5, 240, 28, field_color);
-    fill_rect(center_x - 120, center_y + 5, 240, 1, if focused { COLOR_ACCENT } else { COLOR_BORDER });
-    fill_rect(center_x - 120, center_y + 32, 240, 1, if focused { COLOR_ACCENT } else { COLOR_BORDER });
+    draw_password_field(center_x - 130, center_y, 260, focused);
 
     let pwd_len = PASSWORD_LEN.load(Ordering::Relaxed);
-    for i in 0..pwd_len.min(28) {
-        fill_rect(center_x - 110 + (i as u32 * 8), center_y + 14, 4, 4, COLOR_TEXT_WHITE);
+    for i in 0..pwd_len.min(30) {
+        fill_rect(center_x - 118 + (i as u32 * 8), center_y + 13, 6, 6, COLOR_TEXT_WHITE);
     }
 
     if focused {
-        let cursor_x = center_x - 110 + (pwd_len.min(28) as u32 * 8);
-        fill_rect(cursor_x, center_y + 10, 2, 14, COLOR_ACCENT);
+        let cursor_x = center_x - 118 + (pwd_len.min(30) as u32 * 8);
+        fill_rect(cursor_x, center_y + 8, 2, 16, COLOR_ACCENT);
     }
 
-    fill_rect(center_x - 60, center_y + 50, 120, 32, COLOR_ACCENT);
-    draw_string(center_x - 30, center_y + 60, b"Unlock", COLOR_BG);
+    draw_rounded_button(center_x - 130, center_y + 55, 125, 44, COLOR_ACCENT);
+    draw_string(center_x - 108, center_y + 68, b"Unlock", COLOR_BG);
 
-    fill_rect(center_x - 60, center_y + 90, 120, 28, 0xFF238636);
-    draw_string(center_x - 52, center_y + 98, b"New Wallet", 0xFFFFFFFF);
+    draw_rounded_button(center_x + 5, center_y + 55, 125, 44, COLOR_GREEN);
+    draw_string(center_x + 20, center_y + 68, b"New Wallet", COLOR_BG);
+}
+
+fn draw_rounded_card(x: u32, y: u32, w: u32, h: u32, color: u32) {
+    let r = 16u32;
+    for shadow in 0..8u32 {
+        let alpha = 40 - shadow * 4;
+        fill_rect(x + r + shadow, y + shadow + 4, w - 2 * r, h, (alpha << 24) | 0x000000);
+    }
+    fill_rect(x + r, y, w - 2 * r, h, color);
+    fill_rect(x, y + r, w, h - 2 * r, color);
+    for dy in 0..r { for dx in 0..r { if dx * dx + dy * dy <= r * r {
+        crate::graphics::framebuffer::put_pixel(x + r - dx, y + r - dy, color);
+        crate::graphics::framebuffer::put_pixel(x + w - r + dx - 1, y + r - dy, color);
+        crate::graphics::framebuffer::put_pixel(x + r - dx, y + h - r + dy - 1, color);
+        crate::graphics::framebuffer::put_pixel(x + w - r + dx - 1, y + h - r + dy - 1, color);
+    }}}
+}
+
+fn draw_lock_icon(x: u32, y: u32) {
+    fill_rect(x + 8, y, 32, 24, 0xFF3A3A3C);
+    fill_rect(x + 4, y + 20, 40, 28, COLOR_ACCENT);
+    fill_rect(x + 20, y + 28, 8, 12, 0xFF005BBB);
+}
+
+fn draw_password_field(x: u32, y: u32, w: u32, focused: bool) {
+    let r = 10u32;
+    let border = if focused { COLOR_ACCENT } else { COLOR_BORDER };
+    fill_rect(x + r, y - 1, w - 2 * r, 34, border);
+    fill_rect(x - 1, y + r - 1, w + 2, 32 - 2 * r + 2, border);
+    let bg = 0xFF1C1C1E;
+    fill_rect(x + r, y, w - 2 * r, 32, bg);
+    fill_rect(x, y + r, w, 32 - 2 * r, bg);
+}
+
+fn draw_rounded_button(x: u32, y: u32, w: u32, h: u32, color: u32) {
+    let r = 10u32;
+    fill_rect(x + r, y, w - 2 * r, h, color);
+    fill_rect(x, y + r, w, h - 2 * r, color);
+    for dy in 0..r { for dx in 0..r { if dx * dx + dy * dy <= r * r {
+        crate::graphics::framebuffer::put_pixel(x + r - dx, y + r - dy, color);
+        crate::graphics::framebuffer::put_pixel(x + w - r + dx - 1, y + r - dy, color);
+        crate::graphics::framebuffer::put_pixel(x + r - dx, y + h - r + dy - 1, color);
+        crate::graphics::framebuffer::put_pixel(x + w - r + dx - 1, y + h - r + dy - 1, color);
+    }}}
 }
 
 fn draw_sidebar(x: u32, y: u32, h: u32) {
     fill_rect(x, y, SIDEBAR_WIDTH, h, COLOR_SIDEBAR);
     fill_rect(x + SIDEBAR_WIDTH - 1, y, 1, h, COLOR_BORDER);
 
-    draw_string(x + 16, y + 20, b"N\xd8NOS Wallet", COLOR_ACCENT);
+    draw_string(x + 20, y + 24, b"N\xd8NOS", COLOR_ACCENT);
+    draw_string(x + 68, y + 24, b"Wallet", COLOR_TEXT_WHITE);
 
     let current = get_view();
-    let items: &[(&[u8], WalletView)] = &[
-        (b"Overview", WalletView::Overview),
-        (b"Send", WalletView::Send),
-        (b"Receive", WalletView::Receive),
-        (b"Transactions", WalletView::Transactions),
-        (b"Stealth", WalletView::Stealth),
-        (b"Settings", WalletView::Settings),
+    let items: &[(&[u8], WalletView, u32)] = &[
+        (b"Overview", WalletView::Overview, 0xFF007AFF),
+        (b"Send", WalletView::Send, 0xFFFF9500),
+        (b"Receive", WalletView::Receive, 0xFF34C759),
+        (b"History", WalletView::Transactions, 0xFF5856D6),
+        (b"Stealth", WalletView::Stealth, 0xFFBF5AF2),
+        (b"Settings", WalletView::Settings, 0xFF8E8E93),
     ];
 
-    for (i, (label, view)) in items.iter().enumerate() {
-        let item_y = y + 60 + (i as u32) * 36;
+    for (i, (label, view, icon_color)) in items.iter().enumerate() {
+        let item_y = y + 70 + (i as u32) * 48;
         let is_selected = *view == current;
 
         if is_selected {
-            fill_rect(x, item_y, SIDEBAR_WIDTH - 1, 32, 0xFF1F2937);
-            fill_rect(x, item_y, 3, 32, COLOR_ACCENT);
+            draw_rounded_item(x + 12, item_y, SIDEBAR_WIDTH - 24, 40, 0xFF3A3A3C);
         }
 
+        fill_rect(x + 20, item_y + 8, 24, 24, *icon_color);
+        draw_icon_glyph(x + 20, item_y + 8, i);
+
         let color = if is_selected { COLOR_TEXT_WHITE } else { COLOR_TEXT_DIM };
-        draw_string(x + 20, item_y + 10, label, color);
+        draw_string(x + 52, item_y + 14, label, color);
     }
 
     let state = WALLET_STATE.lock();
@@ -158,13 +206,37 @@ fn draw_sidebar(x: u32, y: u32, h: u32) {
         let addr_hex = account.address_hex();
         let addr_short = truncate_address(&addr_hex);
 
-        draw_string(x + 16, y + h - 60, b"Active:", COLOR_TEXT_DIM);
-        draw_string(x + 16, y + h - 40, &addr_short, COLOR_TEXT_WHITE);
+        fill_rect(x + 12, y + h - 80, SIDEBAR_WIDTH - 24, 60, 0xFF2C2C2E);
+        draw_string(x + 20, y + h - 70, b"Active Account", COLOR_TEXT_DIM);
+        draw_string(x + 20, y + h - 50, &addr_short, COLOR_TEXT_WHITE);
+    }
+}
+
+fn draw_rounded_item(x: u32, y: u32, w: u32, h: u32, color: u32) {
+    let r = 8u32;
+    fill_rect(x + r, y, w - 2 * r, h, color);
+    fill_rect(x, y + r, w, h - 2 * r, color);
+    for dy in 0..r { for dx in 0..r { if dx * dx + dy * dy <= r * r {
+        crate::graphics::framebuffer::put_pixel(x + r - dx, y + r - dy, color);
+        crate::graphics::framebuffer::put_pixel(x + w - r + dx - 1, y + r - dy, color);
+        crate::graphics::framebuffer::put_pixel(x + r - dx, y + h - r + dy - 1, color);
+        crate::graphics::framebuffer::put_pixel(x + w - r + dx - 1, y + h - r + dy - 1, color);
+    }}}
+}
+
+fn draw_icon_glyph(x: u32, y: u32, idx: usize) {
+    let glyphs: [&[u8]; 6] = [b"\x7f", b"\x1a", b"\x19", b"\x1d", b"\x0f", b"\x2a"];
+    if idx < 6 {
+        crate::graphics::font::draw_char(x + 8, y + 4, glyphs[idx][0], 0xFFFFFFFF);
     }
 }
 
 fn draw_header(x: u32, y: u32, w: u32) {
-    fill_rect(x, y, w, HEADER_HEIGHT, COLOR_BG);
+    for gy in 0..HEADER_HEIGHT {
+        let shade = (gy / 5) as u8;
+        let color = 0xFF000000 | ((shade as u32) << 16) | ((shade as u32) << 8) | (shade as u32);
+        fill_rect(x, y + gy, w, 1, color);
+    }
     fill_rect(x, y + HEADER_HEIGHT - 1, w, 1, COLOR_BORDER);
 
     let state = WALLET_STATE.lock();
@@ -174,20 +246,111 @@ fn draw_header(x: u32, y: u32, w: u32) {
         ((total / wei_per_eth) as u64, (total % wei_per_eth / 1_000_000_000_000_000) as u64)
     };
 
-    draw_string(x + 20, y + 15, b"Total Balance", COLOR_TEXT_DIM);
+    draw_string(x + 24, y + 16, b"Total Balance", COLOR_TEXT_DIM);
 
     let mut balance_str = [0u8; 32];
     let len = format_balance(&mut balance_str, eth, wei);
-    draw_string(x + 20, y + 35, &balance_str[..len], COLOR_TEXT_WHITE);
-    draw_string(x + 20 + (len as u32 + 1) * 8, y + 35, b"ETH", COLOR_TEXT_DIM);
+
+    for (i, &ch) in balance_str[..len].iter().enumerate() {
+        crate::graphics::font::draw_char_scaled(x + 24 + (i as u32) * 16, y + 34, ch, COLOR_TEXT_WHITE, 2);
+    }
+    draw_string(x + 24 + (len as u32) * 16 + 8, y + 42, b"ETH", COLOR_ACCENT);
+
+    fill_rect(x + w - 110, y + 20, 90, 32, 0xFF2C2C2E);
+    draw_string(x + w - 100, y + 28, b"Refresh", COLOR_ACCENT);
 }
 
 fn auto_generate_wallet() {
-    use crate::crypto::generate_secure_key;
+    use crate::crypto::blake3_hash;
     use super::state::init_wallet;
 
-    let master_key = generate_secure_key();
+    let mut entropy = [0u8; 64];
+
+    let rtc1 = crate::arch::x86_64::time::rtc::read_unix_timestamp();
+    entropy[0..8].copy_from_slice(&rtc1.to_le_bytes());
+
+    for _ in 0..100 {
+        core::hint::spin_loop();
+    }
+
+    let tsc1 = read_tsc_entropy();
+    entropy[8..16].copy_from_slice(&tsc1.to_le_bytes());
+
+    let kernel_ms = crate::time::timestamp_millis();
+    entropy[16..24].copy_from_slice(&kernel_ms.to_le_bytes());
+
+    for _ in 0..50 {
+        core::hint::spin_loop();
+    }
+
+    let tsc2 = read_tsc_entropy();
+    let jitter = tsc2.wrapping_sub(tsc1);
+    entropy[24..32].copy_from_slice(&jitter.to_le_bytes());
+
+    let pit1 = read_pit_entropy();
+    let pit2 = read_pit_entropy();
+    let pit3 = read_pit_entropy();
+    let pit4 = read_pit_entropy();
+    entropy[32..34].copy_from_slice(&pit1.to_le_bytes());
+    entropy[34..36].copy_from_slice(&pit2.to_le_bytes());
+    entropy[36..38].copy_from_slice(&pit3.to_le_bytes());
+    entropy[38..40].copy_from_slice(&pit4.to_le_bytes());
+
+    let rd1 = read_rdrand_or_fallback();
+    let rd2 = read_rdrand_or_fallback();
+    let rd3 = read_rdrand_or_fallback();
+    entropy[40..48].copy_from_slice(&rd1.to_le_bytes());
+    entropy[48..56].copy_from_slice(&rd2.to_le_bytes());
+    entropy[56..64].copy_from_slice(&rd3.to_le_bytes());
+
+    let master_key = blake3_hash(&entropy);
+
+    for b in entropy.iter_mut() {
+        unsafe { core::ptr::write_volatile(b, 0) };
+    }
+
     let _ = init_wallet(master_key);
+}
+
+#[inline]
+fn read_tsc_entropy() -> u64 {
+    let lo: u32;
+    let hi: u32;
+    unsafe {
+        core::arch::asm!("rdtsc", out("eax") lo, out("edx") hi, options(nomem, nostack));
+    }
+    (lo as u64) | ((hi as u64) << 32)
+}
+
+#[inline]
+fn read_pit_entropy() -> u16 {
+    const PIT_CHANNEL0: u16 = 0x40;
+    const PIT_COMMAND: u16 = 0x43;
+    unsafe {
+        core::arch::asm!("out dx, al", in("dx") PIT_COMMAND, in("al") 0u8, options(nostack, preserves_flags, nomem));
+        let low: u8;
+        core::arch::asm!("in al, dx", out("al") low, in("dx") PIT_CHANNEL0, options(nostack, preserves_flags, nomem));
+        let high: u8;
+        core::arch::asm!("in al, dx", out("al") high, in("dx") PIT_CHANNEL0, options(nostack, preserves_flags, nomem));
+        ((high as u16) << 8) | (low as u16)
+    }
+}
+
+#[inline]
+fn read_rdrand_or_fallback() -> u64 {
+    for _ in 0..10 {
+        let mut val: u64 = 0;
+        let success: u8;
+        unsafe {
+            core::arch::asm!("rdrand {0}", "setc {1}", out(reg) val, out(reg_byte) success, options(nostack));
+        }
+        if success != 0 && val != 0 {
+            return val;
+        }
+    }
+    let tsc = read_tsc_entropy();
+    let pit = read_pit_entropy() as u64;
+    tsc ^ (pit << 48) ^ (pit << 32) ^ (pit << 16) ^ pit
 }
 
 pub(super) fn format_balance(buf: &mut [u8; 32], eth: u64, decimals: u64) -> usize {
