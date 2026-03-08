@@ -15,8 +15,28 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use core::sync::atomic::{AtomicBool, AtomicU8, Ordering};
-use crate::graphics::framebuffer::{fill_rect, dimensions, COLOR_ACCENT, COLOR_TEXT_WHITE, COLOR_GREEN, COLOR_RED, COLOR_YELLOW};
+use crate::graphics::framebuffer::{fill_rect, put_pixel, dimensions, COLOR_ACCENT, COLOR_TEXT_WHITE, COLOR_GREEN, COLOR_RED, COLOR_YELLOW};
 use crate::graphics::font::draw_char;
+
+const COLOR_DIALOG_BG: u32 = 0xFF2C2C2E;
+const COLOR_HEADER_BG: u32 = 0xFF3A3A3C;
+const COLOR_BORDER: u32 = 0xFF48484A;
+const COLOR_TEXT_DIM: u32 = 0xFF8E8E93;
+
+fn draw_rounded_rect(x: u32, y: u32, w: u32, h: u32, r: u32, color: u32) {
+    fill_rect(x + r, y, w - 2 * r, h, color);
+    fill_rect(x, y + r, w, h - 2 * r, color);
+    for dy in 0..r {
+        for dx in 0..r {
+            if dx * dx + dy * dy <= r * r {
+                put_pixel(x + r - dx, y + r - dy, color);
+                put_pixel(x + w - r + dx - 1, y + r - dy, color);
+                put_pixel(x + r - dx, y + h - r + dy - 1, color);
+                put_pixel(x + w - r + dx - 1, y + h - r + dy - 1, color);
+            }
+        }
+    }
+}
 
 const MAX_MESSAGE_LEN: usize = 128;
 const MAX_TITLE_LEN: usize = 32;
@@ -104,38 +124,56 @@ pub fn draw() {
     }
 
     let (screen_w, screen_h) = dimensions();
-    let dialog_w = 400u32;
-    let dialog_h = 180u32;
+    let dialog_w = 420u32;
+    let dialog_h = 200u32;
     let x = (screen_w - dialog_w) / 2;
     let y = (screen_h - dialog_h) / 2;
 
     fill_rect(0, 0, screen_w, screen_h, 0x80000000);
 
-    fill_rect(x, y, dialog_w, dialog_h, 0xFF1E2530);
-    fill_rect(x, y, dialog_w, 1, 0xFF3D4550);
-    fill_rect(x, y + dialog_h - 1, dialog_w, 1, 0xFF3D4550);
-    fill_rect(x, y, 1, dialog_h, 0xFF3D4550);
-    fill_rect(x + dialog_w - 1, y, 1, dialog_h, 0xFF3D4550);
+    for shadow in 0..8u32 {
+        let alpha = 30 - shadow * 3;
+        draw_rounded_rect(x + shadow / 2, y + shadow + 4, dialog_w, dialog_h, 16, (alpha << 24) | 0x000000);
+    }
+
+    draw_rounded_rect(x, y, dialog_w, dialog_h, 16, COLOR_DIALOG_BG);
 
     let dtype = DIALOG_TYPE.load(Ordering::Relaxed);
 
-    fill_rect(x, y, dialog_w, 35, 0xFF21262D);
+    for gy in 0..44u32 {
+        let shade = 58 - (gy / 2) as u8;
+        let color = 0xFF000000 | ((shade as u32) << 16) | ((shade as u32) << 8) | (shade as u32);
+        if gy < 16 {
+            fill_rect(x + 16 - gy.min(16), y + gy, dialog_w - 32 + gy.min(16) * 2, 1, color);
+        } else {
+            fill_rect(x, y + gy, dialog_w, 1, color);
+        }
+    }
+    fill_rect(x, y + 43, dialog_w, 1, COLOR_BORDER);
+
     let icon_color = match dtype {
         DIALOG_WARNING => COLOR_YELLOW,
         DIALOG_ERROR => COLOR_RED,
         DIALOG_CONFIRM => COLOR_ACCENT,
         _ => COLOR_GREEN,
     };
-    fill_rect(x + 12, y + 10, 16, 16, icon_color);
 
-    // SAFETY: Read-only access to dialog title
+    draw_rounded_rect(x + 16, y + 10, 24, 24, 6, icon_color);
+
+    let icon_char: u8 = match dtype {
+        DIALOG_WARNING => b'!',
+        DIALOG_ERROR => b'X',
+        DIALOG_CONFIRM => b'?',
+        _ => b'i',
+    };
+    draw_char(x + 24, y + 14, icon_char, 0xFF000000);
+
     unsafe {
         if DIALOG_TITLE_LEN > 0 {
-            draw_string(x + 36, y + 10, &DIALOG_TITLE[..DIALOG_TITLE_LEN], COLOR_TEXT_WHITE);
+            draw_string(x + 48, y + 14, &DIALOG_TITLE[..DIALOG_TITLE_LEN], COLOR_TEXT_WHITE);
         }
     }
 
-    // SAFETY: Read-only access to dialog message
     unsafe {
         if DIALOG_MESSAGE_LEN > 0 {
             let lines = (DIALOG_MESSAGE_LEN + 45) / 46;
@@ -143,25 +181,25 @@ pub fn draw() {
                 let start = line * 46;
                 let end = (start + 46).min(DIALOG_MESSAGE_LEN);
                 if start < DIALOG_MESSAGE_LEN {
-                    draw_string(x + 20, y + 55 + (line as u32) * 18, &DIALOG_MESSAGE[start..end], 0xFFADBBC6);
+                    draw_string(x + 24, y + 60 + (line as u32) * 20, &DIALOG_MESSAGE[start..end], COLOR_TEXT_DIM);
                 }
             }
         }
     }
 
-    let btn_y = y + dialog_h - 45;
+    let btn_y = y + dialog_h - 52;
 
     match dtype {
         DIALOG_CONFIRM => {
-            fill_rect(x + dialog_w / 2 - 90, btn_y, 80, 30, COLOR_GREEN);
-            draw_string(x + dialog_w / 2 - 74, btn_y + 8, b"Yes", 0xFF0D1117);
+            draw_rounded_rect(x + dialog_w / 2 - 100, btn_y, 90, 36, 8, COLOR_GREEN);
+            draw_string(x + dialog_w / 2 - 80, btn_y + 12, b"Yes", 0xFF000000);
 
-            fill_rect(x + dialog_w / 2 + 10, btn_y, 80, 30, 0xFF4A5568);
-            draw_string(x + dialog_w / 2 + 30, btn_y + 8, b"No", COLOR_TEXT_WHITE);
+            draw_rounded_rect(x + dialog_w / 2 + 10, btn_y, 90, 36, 8, COLOR_HEADER_BG);
+            draw_string(x + dialog_w / 2 + 38, btn_y + 12, b"No", COLOR_TEXT_WHITE);
         }
         _ => {
-            fill_rect(x + dialog_w / 2 - 40, btn_y, 80, 30, COLOR_ACCENT);
-            draw_string(x + dialog_w / 2 - 16, btn_y + 8, b"OK", 0xFF0D1117);
+            draw_rounded_rect(x + dialog_w / 2 - 45, btn_y, 90, 36, 8, COLOR_ACCENT);
+            draw_string(x + dialog_w / 2 - 16, btn_y + 12, b"OK", 0xFF000000);
         }
     }
 }

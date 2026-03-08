@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use core::sync::atomic::{AtomicBool, AtomicI32, AtomicU8, Ordering};
-use crate::graphics::framebuffer::fill_rect;
+use crate::graphics::framebuffer::{fill_rect, put_pixel};
 use crate::graphics::font::draw_char;
 
 pub const MAX_MENU_ITEMS: usize = 10;
@@ -23,12 +23,12 @@ pub(super) const MENU_ITEM_HEIGHT: u32 = 28;
 pub(super) const MENU_PADDING: u32 = 4;
 const MENU_MIN_WIDTH: u32 = 150;
 
-const COLOR_MENU_BG: u32 = 0xFF1C2128;
-const COLOR_MENU_BORDER: u32 = 0xFF30363D;
-const COLOR_MENU_HOVER: u32 = 0xFF2D333B;
-const COLOR_MENU_TEXT: u32 = 0xFFE6EDF3;
-const COLOR_MENU_TEXT_DIM: u32 = 0xFF7D8590;
-const COLOR_SEPARATOR: u32 = 0xFF30363D;
+const COLOR_MENU_BG: u32 = 0xF01C1C1E;
+const COLOR_MENU_HOVER: u32 = 0xFF007AFF;
+const COLOR_MENU_TEXT: u32 = 0xFFFFFFFF;
+const COLOR_MENU_TEXT_DIM: u32 = 0xFF8E8E93;
+const COLOR_SEPARATOR: u32 = 0xFF48484A;
+const MENU_CORNER_RADIUS: u32 = 10;
 
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub enum MenuItemType {
@@ -198,6 +198,27 @@ pub fn is_visible() -> bool {
     MENU_VISIBLE.load(Ordering::Relaxed)
 }
 
+fn draw_rounded_rect(x: u32, y: u32, w: u32, h: u32, r: u32, color: u32) {
+    fill_rect(x + r, y, w - 2 * r, h, color);
+    fill_rect(x, y + r, w, h - 2 * r, color);
+    for dy in 0..r {
+        for dx in 0..r {
+            if dx * dx + dy * dy <= r * r {
+                put_pixel(x + r - dx, y + r - dy, color);
+                put_pixel(x + w - r + dx - 1, y + r - dy, color);
+                put_pixel(x + r - dx, y + h - r + dy - 1, color);
+                put_pixel(x + w - r + dx - 1, y + h - r + dy - 1, color);
+            }
+        }
+    }
+}
+
+fn draw_rounded_row(x: u32, y: u32, w: u32, h: u32, r: u32, color: u32) {
+    fill_rect(x + r, y, w - 2 * r, h, color);
+    fill_rect(x, y, r, h, color);
+    fill_rect(x + w - r, y, r, h, color);
+}
+
 pub fn draw() {
     if !is_visible() {
         return;
@@ -219,29 +240,37 @@ pub fn draw() {
 
     let items = get_menu_items(menu_type);
 
-    fill_rect(x, y, w, h, COLOR_MENU_BG);
-    fill_rect(x, y, w, 1, COLOR_MENU_BORDER);
-    fill_rect(x, y + h - 1, w, 1, COLOR_MENU_BORDER);
-    fill_rect(x, y, 1, h, COLOR_MENU_BORDER);
-    fill_rect(x + w - 1, y, 1, h, COLOR_MENU_BORDER);
+    for shadow in 0..6u32 {
+        let alpha = 25 - shadow * 4;
+        draw_rounded_rect(x + shadow / 2, y + shadow + 2, w, h, MENU_CORNER_RADIUS, (alpha << 24) | 0x000000);
+    }
+
+    draw_rounded_rect(x, y, w, h, MENU_CORNER_RADIUS, COLOR_MENU_BG);
+
+    for gy in 0..MENU_CORNER_RADIUS {
+        let alpha = 8 - (gy / 2).min(8);
+        fill_rect(x + MENU_CORNER_RADIUS, y + gy, w - 2 * MENU_CORNER_RADIUS, 1, (alpha << 24) | 0xFFFFFF);
+    }
 
     let mut item_y = y + MENU_PADDING;
     for (i, item) in items.iter().enumerate() {
         if item.item_type == MenuItemType::Separator {
-            fill_rect(x + MENU_PADDING, item_y + 4, w - MENU_PADDING * 2, 1, COLOR_SEPARATOR);
+            fill_rect(x + 12, item_y + 4, w - 24, 1, COLOR_SEPARATOR);
             item_y += 9;
         } else {
             if hover_idx == i as i32 && item.item_type == MenuItemType::Action {
-                fill_rect(x + 2, item_y, w - 4, MENU_ITEM_HEIGHT, COLOR_MENU_HOVER);
+                draw_rounded_row(x + 6, item_y + 2, w - 12, MENU_ITEM_HEIGHT - 4, 6, COLOR_MENU_HOVER);
             }
 
-            let text_color = if item.item_type == MenuItemType::Disabled {
+            let text_color = if hover_idx == i as i32 && item.item_type == MenuItemType::Action {
+                COLOR_MENU_TEXT
+            } else if item.item_type == MenuItemType::Disabled {
                 COLOR_MENU_TEXT_DIM
             } else {
                 COLOR_MENU_TEXT
             };
 
-            let text_x = x + MENU_PADDING * 2;
+            let text_x = x + 16;
             let text_y = item_y + (MENU_ITEM_HEIGHT - 16) / 2;
             for (j, &ch) in item.label.iter().enumerate() {
                 draw_char(text_x + (j as u32) * 8, text_y, ch, text_color);
