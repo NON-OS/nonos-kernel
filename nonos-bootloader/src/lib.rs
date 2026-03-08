@@ -23,6 +23,7 @@ pub mod config;
 pub mod crypto;
 pub mod display;
 pub mod entropy;
+pub mod firmware;
 pub mod handoff;
 pub mod hardware;
 pub mod kernel_verify;
