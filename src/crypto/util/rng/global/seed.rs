@@ -83,14 +83,12 @@ pub fn seed_from_bootloader(bootloader_entropy: &[u8; 32]) -> RngResult<()> {
         Ok(seed) => seed,
         Err(_) => {
             let mut fallback = [0u8; 32];
-            let mut offset = 0;
-            while offset < 32 {
-                let tsc = get_tsc_entropy();
-                let remaining = 32 - offset;
-                let copy_len = core::cmp::min(8, remaining);
-                fallback[offset..offset + copy_len]
-                    .copy_from_slice(&tsc.to_le_bytes()[..copy_len]);
-                offset += copy_len;
+            for i in 0..4 {
+                let t1 = get_tsc_entropy();
+                for _ in 0..((i * 11) + 7) { core::hint::spin_loop(); }
+                let t2 = get_tsc_entropy();
+                let jitter = t2.wrapping_sub(t1).wrapping_mul(0x9E3779B97F4A7C15);
+                fallback[i * 8..(i + 1) * 8].copy_from_slice(&jitter.to_le_bytes());
             }
             fallback
         }
@@ -99,6 +97,21 @@ pub fn seed_from_bootloader(bootloader_entropy: &[u8; 32]) -> RngResult<()> {
     let mut combined = [0u8; 32];
     for i in 0..32 {
         combined[i] = bootloader_entropy[i] ^ local_entropy[i];
+    }
+
+    let rtc = crate::arch::x86_64::time::rtc::read_unix_timestamp();
+    let rtc_bytes = rtc.to_le_bytes();
+    for i in 0..8 {
+        combined[i] ^= rtc_bytes[i];
+        combined[i + 8] ^= rtc_bytes[7 - i];
+        combined[i + 16] ^= rtc_bytes[i].wrapping_add(i as u8);
+        combined[i + 24] ^= rtc_bytes[7 - i].wrapping_sub(i as u8);
+    }
+
+    let kernel_ms = crate::time::timestamp_millis();
+    let ms_bytes = kernel_ms.to_le_bytes();
+    for i in 0..8 {
+        combined[i] ^= ms_bytes[i];
     }
 
     if GLOBAL_STATE.load(Ordering::Acquire) != STATE_INITIALIZED {

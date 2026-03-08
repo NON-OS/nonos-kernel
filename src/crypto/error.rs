@@ -37,6 +37,12 @@ pub enum CryptoError {
     VerificationFailed,
     InvalidState,
     AuthenticationFailed,
+    /*
+     * no hardware entropy available for key generation.
+     * wallet/mnemonic generation must fail rather than
+     * use weak tsc-based fallback that gives same keys.
+     */
+    InsufficientEntropy,
 }
 
 pub type CryptoResult<T> = Result<T, CryptoError>;
