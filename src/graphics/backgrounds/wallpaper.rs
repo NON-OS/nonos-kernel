@@ -78,7 +78,6 @@ pub fn load_current_wallpaper() -> Option<&'static DecodedImage> {
         unsafe { return (*addr_of!(CACHED_WALLPAPER)).as_ref(); }
     }
 
-    // Decode PNG - keep old wallpaper visible during decode
     let png_data = match get_embedded_wallpaper_data(id as u8) {
         Some(data) => data,
         None => {
@@ -87,15 +86,23 @@ pub fn load_current_wallpaper() -> Option<&'static DecodedImage> {
         }
     };
 
+    /*
+     * Free old wallpaper BEFORE decoding new one.
+     * Otherwise we need 2x memory during the swap which causes OOM
+     * on smaller systems. Screen flickers briefly but better than crash.
+     */
+    unsafe {
+        *addr_of_mut!(CACHED_WALLPAPER) = None;
+    }
+
     let image = match decode_png(png_data) {
         Some(img) => img,
         None => {
             WALLPAPER_LOADING.store(false, Ordering::Release);
-            return unsafe { (*addr_of!(CACHED_WALLPAPER)).as_ref() };
+            return None;
         }
     };
 
-    // Atomic swap - old image dropped after new one stored
     unsafe {
         *addr_of_mut!(CACHED_WALLPAPER) = Some(image);
         CACHED_WALLPAPER_ID.store(id, Ordering::Release);
