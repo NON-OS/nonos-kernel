@@ -31,6 +31,11 @@ pub static CONNECTING: AtomicBool = AtomicBool::new(false);
 pub static CONNECTION_ERROR: Mutex<Option<&'static str>> = Mutex::new(None);
 pub static LOADING_FIRMWARE: AtomicBool = AtomicBool::new(false);
 
+pub static STATIC_IP_EDITING: AtomicBool = AtomicBool::new(false);
+pub static STATIC_IP_FIELD: AtomicU8 = AtomicU8::new(0);
+pub static STATIC_IP_BUFFER: Mutex<[[u8; 16]; 4]> = Mutex::new([[0u8; 16]; 4]);
+pub static STATIC_IP_LENS: Mutex<[u8; 4]> = Mutex::new([0u8; 4]);
+
 pub(crate) fn sync_from_system() {
     let settings = net_settings::get_settings();
     SETTING_DHCP_ENABLED.store(settings.dhcp_enabled, Ordering::Relaxed);

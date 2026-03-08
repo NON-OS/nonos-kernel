@@ -126,18 +126,37 @@ pub fn do_wifi_connect() {
 
 pub fn do_ethernet_connect() {
     use crate::network::stack::{get_network_stack, set_network_connected};
+    use crate::sys::settings::network as net_settings;
 
     *CONNECTION_ERROR.lock() = None;
     CONNECTING.store(true, Ordering::Relaxed);
 
+    let settings = net_settings::get_settings();
+
     if let Some(stack) = get_network_stack() {
-        match stack.request_dhcp() {
-            Ok(lease) => {
-                set_network_connected(true);
-                let _ = lease;
+        if settings.dhcp_enabled {
+            match stack.request_dhcp() {
+                Ok(_lease) => {
+                    set_network_connected(true);
+                    *CONNECTION_ERROR.lock() = Some("DHCP: Address acquired");
+                }
+                Err(e) => {
+                    *CONNECTION_ERROR.lock() = Some(e);
+                }
             }
-            Err(e) => {
-                *CONNECTION_ERROR.lock() = Some(e);
+        } else {
+            if settings.static_ip == [0, 0, 0, 0] {
+                *CONNECTION_ERROR.lock() = Some("Static IP not configured");
+            } else {
+                let gateway = if settings.gateway == [0, 0, 0, 0] {
+                    None
+                } else {
+                    Some(settings.gateway)
+                };
+                stack.set_ipv4_config(settings.static_ip, settings.subnet_prefix, gateway);
+                stack.set_default_dns_v4(settings.dns_primary);
+                set_network_connected(true);
+                *CONNECTION_ERROR.lock() = Some("Static IP configured");
             }
         }
     } else {

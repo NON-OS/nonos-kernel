@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use core::sync::atomic::Ordering;
+
 use crate::graphics::framebuffer::{fill_rect, COLOR_ACCENT, COLOR_TEXT_WHITE, COLOR_GREEN};
 use crate::graphics::window::settings::render::draw_string;
 use crate::bus::pci;
@@ -22,6 +24,7 @@ use crate::network::{get_current_ipv4, get_current_gateway, get_current_dns, get
 use crate::network::stack::{is_network_available, is_network_connected, is_link_up};
 
 use super::helpers::{format_mac, format_ip, format_ip_with_prefix};
+use super::state::{CONNECTING, CONNECTION_ERROR, STATIC_IP_EDITING, STATIC_IP_FIELD, STATIC_IP_BUFFER, STATIC_IP_LENS};
 
 pub fn draw(x: u32, y: u32, w: u32) {
     draw_string(x + 15, y, b"Ethernet", COLOR_TEXT_WHITE);
@@ -187,30 +190,79 @@ fn draw_ip_config(x: u32, y: u32, _w: u32) {
         },
     );
 
-    draw_string(x + 15, y + 60, b"Current IP:", 0xFF7D8590);
-    if let Some((ip, prefix)) = get_current_ipv4() {
-        let ip_str = format_ip_with_prefix(&ip, prefix);
-        draw_string(x + 100, y + 60, &ip_str, COLOR_TEXT_WHITE);
+    let settings = net_settings::get_settings();
+    let editing = STATIC_IP_EDITING.load(Ordering::Relaxed);
+    let active_field = STATIC_IP_FIELD.load(Ordering::Relaxed);
+
+    if dhcp_enabled {
+        draw_string(x + 15, y + 60, b"Current IP:", 0xFF7D8590);
+        if let Some((ip, prefix)) = get_current_ipv4() {
+            let ip_str = format_ip_with_prefix(&ip, prefix);
+            draw_string(x + 100, y + 60, &ip_str, COLOR_TEXT_WHITE);
+        } else {
+            draw_string(x + 100, y + 60, b"Not configured", 0xFF7D8590);
+        }
+
+        draw_string(x + 15, y + 78, b"Gateway:", 0xFF7D8590);
+        if let Some(gw) = get_current_gateway() {
+            let gw_str = format_ip(&gw);
+            draw_string(x + 100, y + 78, &gw_str, COLOR_TEXT_WHITE);
+        } else {
+            draw_string(x + 100, y + 78, b"Not set", 0xFF7D8590);
+        }
+
+        draw_string(x + 15, y + 96, b"DNS:", 0xFF7D8590);
+        let dns = get_current_dns();
+        let dns_str = format_ip(&dns);
+        draw_string(x + 100, y + 96, &dns_str, COLOR_TEXT_WHITE);
     } else {
-        draw_string(x + 100, y + 60, b"Not configured", 0xFF7D8590);
+        let fields: [(&[u8], [u8; 4], u8); 4] = [
+            (b"IP Address:", settings.static_ip, 0),
+            (b"Subnet:", [settings.subnet_prefix, 0, 0, 0], 1),
+            (b"Gateway:", settings.gateway, 2),
+            (b"DNS:", settings.dns_primary, 3),
+        ];
+
+        for (i, (label, value, field_idx)) in fields.iter().enumerate() {
+            let fy = y + 60 + (i as u32) * 22;
+            draw_string(x + 15, fy, *label, 0xFF7D8590);
+
+            let is_active = editing && active_field == *field_idx;
+            let field_bg = if is_active { 0xFF2A3A4A } else { 0xFF1A1F26 };
+            fill_rect(x + 100, fy - 2, 140, 18, field_bg);
+
+            if is_active {
+                let buf = STATIC_IP_BUFFER.lock();
+                let lens = STATIC_IP_LENS.lock();
+                let len = lens[*field_idx as usize] as usize;
+                draw_string(x + 104, fy, &buf[*field_idx as usize][..len], COLOR_TEXT_WHITE);
+                fill_rect(x + 104 + (len as u32) * 8, fy, 2, 14, COLOR_ACCENT);
+            } else if *field_idx == 1 {
+                let mut prefix_str = [b'/', b'0', b'0'];
+                prefix_str[1] = b'0' + (value[0] / 10);
+                prefix_str[2] = b'0' + (value[0] % 10);
+                draw_string(x + 104, fy, &prefix_str, COLOR_TEXT_WHITE);
+            } else {
+                let ip_str = format_ip(value);
+                draw_string(x + 104, fy, &ip_str, COLOR_TEXT_WHITE);
+            }
+        }
     }
 
-    draw_string(x + 15, y + 78, b"Gateway:", 0xFF7D8590);
-    if let Some(gw) = get_current_gateway() {
-        let gw_str = format_ip(&gw);
-        draw_string(x + 100, y + 78, &gw_str, COLOR_TEXT_WHITE);
-    } else {
-        draw_string(x + 100, y + 78, b"Not set", 0xFF7D8590);
-    }
-
-    draw_string(x + 15, y + 96, b"DNS:", 0xFF7D8590);
-    let dns = get_current_dns();
-    let dns_str = format_ip(&dns);
-    draw_string(x + 100, y + 96, &dns_str, COLOR_TEXT_WHITE);
-
-    fill_rect(x + 200, y + 22, 90, 28, COLOR_GREEN);
-    draw_string(x + 215, y + 28, b"Connect", 0xFF0D1117);
+    let connecting = CONNECTING.load(Ordering::Relaxed);
+    let connect_color = if connecting { 0xFF2D333B } else { COLOR_GREEN };
+    fill_rect(x + 200, y + 22, 90, 28, connect_color);
+    let connect_text: &[u8] = if connecting { b"Wait..." } else { b"Connect" };
+    draw_string(x + 215, y + 28, connect_text, 0xFF0D1117);
 
     fill_rect(x + 300, y + 22, 70, 28, COLOR_ACCENT);
     draw_string(x + 318, y + 28, b"Test", 0xFF0D1117);
+
+    if let Some(err) = CONNECTION_ERROR.lock().as_ref() {
+        let is_success = err.contains("reachable") || err.contains("Acquired");
+        let bg_color = if is_success { 0xFF153415 } else { 0xFF4A1515 };
+        let text_color = if is_success { 0xFF6BFF6B } else { 0xFFFF6B6B };
+        fill_rect(x + 15, y + 120, 360, 24, bg_color);
+        draw_string(x + 25, y + 125, err.as_bytes(), text_color);
+    }
 }
