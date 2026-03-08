@@ -21,7 +21,7 @@ use core::sync::atomic::Ordering;
 use crate::fs::ramfs;
 use crate::storage::fat32;
 use super::types::{FileSource, FmResult};
-use super::state::{get_path, get_current_source, FILE_ENTRIES, FILE_ENTRY_COUNT, FM_SELECTED_ITEM, FM_CREATING_FOLDER, FM_DELETING};
+use super::state::{get_path, get_current_source, FILE_ENTRIES, FILE_ENTRY_COUNT, FM_SELECTED_ITEM, FM_CREATING_FOLDER, FM_CREATING_FILE, FM_DELETING};
 use super::listing::{refresh_listing, get_fat32_dir_cluster};
 use super::block_io::{block_read, block_write};
 
@@ -56,6 +56,76 @@ fn create_folder_ramfs(name: &str) -> FmResult {
             FmResult::Ok
         }
         Err(_) => FmResult::IoError,
+    }
+}
+
+pub fn create_file(name: &str) -> FmResult {
+    if name.is_empty() || name.len() > 11 {
+        return FmResult::InvalidName;
+    }
+
+    FM_CREATING_FILE.store(true, Ordering::Relaxed);
+    let source = get_current_source();
+
+    let result = match source {
+        FileSource::Ramfs => create_file_ramfs(name),
+        FileSource::Fat32(fs_id) => create_file_fat32(fs_id, name),
+    };
+    FM_CREATING_FILE.store(false, Ordering::Relaxed);
+    result
+}
+
+fn create_file_ramfs(name: &str) -> FmResult {
+    let path = get_path();
+    let mut full_path = String::new();
+    full_path.push_str(path);
+    if !path.ends_with('/') {
+        full_path.push('/');
+    }
+    full_path.push_str(name);
+
+    match ramfs::create_file(&full_path, b"") {
+        Ok(_) => {
+            refresh_listing();
+            FmResult::Ok
+        }
+        Err(_) => FmResult::IoError,
+    }
+}
+
+fn create_file_fat32(fs_id: u8, name: &str) -> FmResult {
+    let fs = match fat32::get_fs(fs_id) {
+        Some(f) => f,
+        None => return FmResult::IoError,
+    };
+
+    let dir_cluster = get_fat32_dir_cluster(&fs, get_path());
+
+    let new_entry = fat32::make_dir_entry(name.as_bytes(), false, 0, 0);
+
+    match fat32::find_free_dir_slot(&fs, dir_cluster, block_read) {
+        Ok(Some((_cluster, slot_sector, slot_offset))) => {
+            let mut sector_buf = [0u8; 512];
+            if block_read(fs.device_id, slot_sector as u64, &mut sector_buf).is_err() {
+                return FmResult::IoError;
+            }
+
+            unsafe {
+                let entry_bytes = core::slice::from_raw_parts(
+                    &new_entry as *const _ as *const u8,
+                    32
+                );
+                sector_buf[slot_offset..slot_offset + 32].copy_from_slice(entry_bytes);
+            }
+
+            if block_write(fs.device_id, slot_sector as u64, &sector_buf).is_err() {
+                return FmResult::IoError;
+            }
+
+            refresh_listing();
+            FmResult::Ok
+        }
+        _ => FmResult::NoSpace,
     }
 }
 

@@ -15,16 +15,42 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use core::sync::atomic::Ordering;
-use crate::graphics::framebuffer::{fill_rect, COLOR_TEXT_WHITE};
+use crate::graphics::framebuffer::{fill_rect, put_pixel, COLOR_TEXT_WHITE};
 use crate::graphics::font::draw_char;
 use super::constants::*;
-use super::state::{get_path, FILE_ENTRIES, FILE_ENTRY_COUNT, FM_SELECTED_ITEM, FM_RENAMING, get_input_text};
+use super::state::{get_path, FILE_ENTRIES, FILE_ENTRY_COUNT, FM_SELECTED_ITEM, FM_RENAMING, FM_CREATING_FOLDER, FM_CREATING_FILE, get_input_text};
 use super::clipboard::has_clipboard;
 
 fn draw_string(x: u32, y: u32, text: &[u8], color: u32) {
     for (i, &ch) in text.iter().enumerate() {
         draw_char(x + (i as u32) * 8, y, ch, color);
     }
+}
+
+fn draw_rounded_rect(x: u32, y: u32, w: u32, h: u32, r: u32, color: u32) {
+    fill_rect(x + r, y, w - 2 * r, h, color);
+    fill_rect(x, y + r, w, h - 2 * r, color);
+    for dy in 0..r {
+        for dx in 0..r {
+            if dx * dx + dy * dy <= r * r {
+                put_pixel(x + r - dx, y + r - dy, color);
+                put_pixel(x + w - r + dx - 1, y + r - dy, color);
+                put_pixel(x + r - dx, y + h - r + dy - 1, color);
+                put_pixel(x + w - r + dx - 1, y + h - r + dy - 1, color);
+            }
+        }
+    }
+}
+
+fn draw_folder_icon(x: u32, y: u32, color: u32) {
+    fill_rect(x, y + 3, 18, 14, color);
+    fill_rect(x, y, 8, 4, color);
+}
+
+fn draw_file_icon(x: u32, y: u32, color: u32) {
+    fill_rect(x + 2, y, 12, 18, color);
+    fill_rect(x + 2, y, 8, 4, 0xFF48484A);
+    fill_rect(x + 10, y + 4, 4, 4, 0xFF48484A);
 }
 
 pub fn draw_file_manager(x: u32, y: u32, w: u32, h: u32) {
@@ -37,124 +63,171 @@ pub fn draw_file_manager(x: u32, y: u32, w: u32, h: u32) {
 
 fn draw_sidebar(x: u32, y: u32, h: u32) {
     fill_rect(x, y, SIDEBAR_WIDTH, h, COLOR_SIDEBAR_BG);
+    fill_rect(x + SIDEBAR_WIDTH - 1, y, 1, h, 0xFF38383A);
 
-    fill_rect(x, y, SIDEBAR_WIDTH, 30, COLOR_SIDEBAR_HEADER);
-    draw_string(x + 10, y + 8, b"Locations", COLOR_TEXT_DIM);
+    draw_string(x + 12, y + 12, b"Locations", COLOR_TEXT_DIM);
 
-    let locations: [(&[u8], &[u8]); 4] = [
-        (b"RAM Files", b"/ram"),
-        (b"Disk 0", b"/disk/0"),
-        (b"Disk 1", b"/disk/1"),
-        (b"Root", b"/"),
+    let locations: [(&[u8], &[u8], u32); 4] = [
+        (b"RAM Files", b"/ram", COLOR_ICON_RAM),
+        (b"Disk 0", b"/disk/0", COLOR_ICON_DISK),
+        (b"Disk 1", b"/disk/1", COLOR_ICON_DISK),
+        (b"Root", b"/", COLOR_ICON_ROOT),
     ];
 
     let path = get_path();
 
-    for (i, (label, loc_path)) in locations.iter().enumerate() {
-        let iy = y + 40 + (i as u32) * 32;
+    for (i, (label, loc_path, icon_color)) in locations.iter().enumerate() {
+        let iy = y + 36 + (i as u32) * 36;
         let is_selected = path.starts_with(unsafe { core::str::from_utf8_unchecked(loc_path) });
 
         if is_selected {
-            fill_rect(x, iy, SIDEBAR_WIDTH, 30, COLOR_SIDEBAR_SELECTED);
+            draw_rounded_rect(x + 8, iy, SIDEBAR_WIDTH - 16, 32, 6, COLOR_SIDEBAR_SELECTED);
         }
 
-        fill_rect(x + 10, iy + 7, 16, 12, if is_selected { COLOR_FOLDER } else { COLOR_TEXT_DIM });
+        fill_rect(x + 16, iy + 8, 20, 16, *icon_color);
+        draw_char(x + 20, iy + 10, 0x1A, 0xFFFFFFFF);
 
-        draw_string(x + 32, iy + 8, label, if is_selected { COLOR_TEXT_WHITE } else { COLOR_TEXT_LIGHT });
+        let text_color = if is_selected { COLOR_TEXT_WHITE } else { COLOR_TEXT_LIGHT };
+        draw_string(x + 44, iy + 10, label, text_color);
     }
 
-    let ops_y = y + 180;
-    fill_rect(x, ops_y, SIDEBAR_WIDTH, 25, COLOR_SIDEBAR_HEADER);
-    draw_string(x + 10, ops_y + 6, b"Operations", COLOR_TEXT_DIM);
+    let ops_y = y + 190;
+    draw_string(x + 12, ops_y, b"Actions", COLOR_TEXT_DIM);
 
-    let ops: [&[u8]; 6] = [b"New Folder", b"Copy", b"Cut", b"Paste", b"Delete", b"Rename"];
+    let ops: [(&[u8], u32); 7] = [
+        (b"New Folder", 0xFF34C759),
+        (b"New File", 0xFF007AFF),
+        (b"Copy", 0xFF5856D6),
+        (b"Cut", 0xFFFF9500),
+        (b"Paste", 0xFF34C759),
+        (b"Delete", 0xFFFF3B30),
+        (b"Rename", 0xFF8E8E93),
+    ];
     let has_selection = FM_SELECTED_ITEM.load(Ordering::Relaxed) != 255;
     let has_clip = has_clipboard();
 
-    for (i, label) in ops.iter().enumerate() {
-        let oy = ops_y + 30 + (i as u32) * 24;
+    for (i, (label, btn_color)) in ops.iter().enumerate() {
+        let oy = ops_y + 24 + (i as u32) * 26;
         let enabled = match i {
-            0 => true,
-            1 | 2 | 4 | 5 => has_selection,
-            3 => has_clip,
+            0 | 1 => true,
+            2 | 3 | 5 | 6 => has_selection,
+            4 => has_clip,
             _ => true,
         };
-        let btn_color = if enabled { COLOR_SIDEBAR_HEADER } else { 0xFF12161B };
-        let text_color = if enabled { COLOR_TEXT_LIGHT } else { COLOR_TEXT_DIM };
-        fill_rect(x + 5, oy, SIDEBAR_WIDTH - 10, 20, btn_color);
-        draw_string(x + 15, oy + 4, label, text_color);
+
+        let bg = if enabled { COLOR_SIDEBAR_HEADER } else { 0xFF1A1A1C };
+        draw_rounded_rect(x + 8, oy, SIDEBAR_WIDTH - 16, 22, 4, bg);
+
+        if enabled {
+            fill_rect(x + 14, oy + 4, 14, 14, *btn_color);
+        }
+
+        let text_color = if enabled { COLOR_TEXT_LIGHT } else { 0xFF48484A };
+        draw_string(x + 34, oy + 5, label, text_color);
     }
 }
 
 fn draw_content_area(x: u32, y: u32, w: u32, h: u32) {
-    fill_rect(x, y, w, HEADER_HEIGHT, COLOR_PATH_BAR);
+    for gy in 0..HEADER_HEIGHT {
+        let shade = 44 - (gy / 3) as u8;
+        let color = 0xFF000000 | ((shade as u32) << 16) | ((shade as u32) << 8) | (shade as u32);
+        fill_rect(x, y + gy, w, 1, color);
+    }
+    fill_rect(x, y + HEADER_HEIGHT - 1, w, 1, 0xFF38383A);
+
     let path = get_path();
-    draw_string(x + 10, y + 10, path.as_bytes(), COLOR_TEXT_WHITE);
+    draw_string(x + 16, y + 14, path.as_bytes(), COLOR_TEXT_WHITE);
 
     if path != "/" && path != "/ram" && path != "/disk" {
-        fill_rect(x + w - 80, y + 5, 70, 25, COLOR_SIDEBAR_HEADER);
-        draw_string(x + w - 70, y + 10, b"<- Back", COLOR_TEXT_WHITE);
+        draw_rounded_rect(x + w - 90, y + 8, 76, 28, 6, 0xFF3A3A3C);
+        draw_string(x + w - 80, y + 14, b"<- Back", COLOR_TEXT_WHITE);
     }
 
     let list_header_y = y + HEADER_HEIGHT;
     fill_rect(x, list_header_y, w, LIST_HEADER_HEIGHT, COLOR_LIST_HEADER);
-    draw_string(x + 10, list_header_y + 6, b"Name", COLOR_TEXT_DIM);
-    draw_string(x + w - 100, list_header_y + 6, b"Size", COLOR_TEXT_DIM);
+    fill_rect(x, list_header_y + LIST_HEADER_HEIGHT - 1, w, 1, 0xFF38383A);
+    draw_string(x + 16, list_header_y + 8, b"Name", COLOR_TEXT_DIM);
+    draw_string(x + w - 100, list_header_y + 8, b"Size", COLOR_TEXT_DIM);
 
-    fill_rect(x, y + h - STATUS_BAR_HEIGHT, w, STATUS_BAR_HEIGHT, COLOR_PATH_BAR);
+    for gy in 0..STATUS_BAR_HEIGHT {
+        let shade = 28 - (gy / 4) as u8;
+        let color = 0xFF000000 | ((shade as u32) << 16) | ((shade as u32) << 8) | (shade as u32);
+        fill_rect(x, y + h - STATUS_BAR_HEIGHT + gy, w, 1, color);
+    }
+    fill_rect(x, y + h - STATUS_BAR_HEIGHT, w, 1, 0xFF38383A);
+
     let count = FILE_ENTRY_COUNT.load(Ordering::Relaxed);
     let mut status_buf = [b' '; 16];
     status_buf[0] = b'0' + (count / 10);
     status_buf[1] = b'0' + (count % 10);
     status_buf[2..9].copy_from_slice(b" items ");
-    draw_string(x + 10, y + h - 18, &status_buf[..9], COLOR_TEXT_DIM);
+    draw_string(x + 16, y + h - 20, &status_buf[..9], COLOR_TEXT_DIM);
 
     let list_y = y + HEADER_HEIGHT + LIST_HEADER_HEIGHT;
     let list_h = h - HEADER_HEIGHT - LIST_HEADER_HEIGHT - STATUS_BAR_HEIGHT;
+    fill_rect(x, list_y, w, list_h, 0xFF000000);
     let max_rows = (list_h / ROW_HEIGHT) as u8;
     let selected = FM_SELECTED_ITEM.load(Ordering::Relaxed);
 
-    for i in 0..count.min(max_rows) {
-        // SAFETY: bounds checked
+    let creating_folder = FM_CREATING_FOLDER.load(Ordering::Relaxed);
+    let creating_file = FM_CREATING_FILE.load(Ordering::Relaxed);
+    let creating = creating_folder || creating_file;
+
+    if creating {
+        let ry = list_y;
+        draw_rounded_rect(x + 4, ry + 2, w - 8, ROW_HEIGHT - 4, 4, 0xFF1A3050);
+
+        if creating_folder {
+            draw_folder_icon(x + 12, ry + 6, COLOR_FOLDER);
+        } else {
+            draw_file_icon(x + 12, ry + 5, COLOR_FILE);
+        }
+
+        draw_rounded_rect(x + 40, ry + 4, 200, ROW_HEIGHT - 8, 4, 0xFF1C1C1E);
+
+        let input_text = get_input_text();
+        draw_string(x + 48, ry + 10, input_text.as_bytes(), COLOR_TEXT_WHITE);
+
+        let cursor_x = x + 48 + (input_text.len() as u32) * 8;
+        fill_rect(cursor_x, ry + 8, 2, 16, 0xFF007AFF);
+    }
+
+    let offset = if creating { 1 } else { 0 };
+
+    for i in 0..count.min(max_rows.saturating_sub(offset)) {
         let entry = unsafe { &FILE_ENTRIES[i as usize] };
-        let ry = list_y + (i as u32) * ROW_HEIGHT;
+        let ry = list_y + ((i + offset) as u32) * ROW_HEIGHT;
 
         if i == selected {
-            fill_rect(x, ry, w, ROW_HEIGHT, COLOR_ROW_SELECTED);
+            draw_rounded_rect(x + 4, ry + 2, w - 8, ROW_HEIGHT - 4, 4, COLOR_ROW_SELECTED);
         } else if i % 2 == 1 {
             fill_rect(x, ry, w, ROW_HEIGHT, COLOR_ROW_ALT);
         }
 
-        let icon_color = if entry.is_dir { COLOR_FOLDER } else { COLOR_FILE };
         if entry.is_dir {
-            fill_rect(x + 10, ry + 8, 16, 12, icon_color);
+            draw_folder_icon(x + 12, ry + 6, COLOR_FOLDER);
         } else {
-            fill_rect(x + 10, ry + 6, 14, 16, icon_color);
+            draw_file_icon(x + 12, ry + 5, COLOR_FILE);
         }
 
-        // Show rename input box if this item is being renamed
         if i == selected && FM_RENAMING.load(Ordering::Relaxed) {
-            // Draw input box background
-            fill_rect(x + 32, ry + 2, 200, ROW_HEIGHT - 4, 0xFF2D333B);
-            fill_rect(x + 33, ry + 3, 198, ROW_HEIGHT - 6, 0xFF0D1117);
+            draw_rounded_rect(x + 40, ry + 4, 200, ROW_HEIGHT - 8, 4, 0xFF1C1C1E);
 
-            // Draw current input text
             let input_text = get_input_text();
-            draw_string(x + 38, ry + 7, input_text.as_bytes(), COLOR_TEXT_WHITE);
+            draw_string(x + 48, ry + 10, input_text.as_bytes(), COLOR_TEXT_WHITE);
 
-            // Draw cursor
-            let cursor_x = x + 38 + (input_text.len() as u32) * 8;
-            fill_rect(cursor_x, ry + 5, 2, 14, 0xFF58A6FF);
+            let cursor_x = x + 48 + (input_text.len() as u32) * 8;
+            fill_rect(cursor_x, ry + 8, 2, 16, 0xFF007AFF);
         } else {
-            draw_string(x + 35, ry + 7, &entry.name[..entry.name_len as usize], COLOR_TEXT_WHITE);
+            draw_string(x + 40, ry + 10, &entry.name[..entry.name_len as usize], COLOR_TEXT_WHITE);
         }
 
         if !entry.is_dir {
             let mut size_buf = [0u8; 10];
             format_size(entry.size, &mut size_buf);
-            draw_string(x + w - 100, ry + 7, &size_buf, COLOR_TEXT_DIM);
+            draw_string(x + w - 100, ry + 10, &size_buf, COLOR_TEXT_DIM);
         } else {
-            draw_string(x + w - 100, ry + 7, b"<DIR>", COLOR_TEXT_DIM);
+            draw_string(x + w - 100, ry + 10, b"Folder", COLOR_TEXT_DIM);
         }
     }
 }
