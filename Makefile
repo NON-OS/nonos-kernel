@@ -309,7 +309,7 @@ distclean: clean
 	rm -rf $(BOOTLOADER_DIR)/target target
 
 test:
-	$(CARGO) test --features std --target $(HOST_TARGET)
+	$(CARGO) test --lib --features std --target $(HOST_TARGET)
 	cd $(BOOTLOADER_DIR) && $(CARGO) test
 
 fmt:

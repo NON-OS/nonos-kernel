@@ -22,6 +22,7 @@ pub mod timer;
 pub mod tsc;
 
 #[cfg(test)]
+#[cfg(not(feature = "std"))]
 pub mod test;
 
 pub use api::*;

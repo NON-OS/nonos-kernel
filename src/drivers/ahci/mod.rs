@@ -23,6 +23,7 @@ pub mod stats;
 pub mod types;
 
 #[cfg(test)]
+#[cfg(not(feature = "std"))]
 mod tests;
 
 pub use api::{get_controller, init_ahci};

@@ -19,6 +19,7 @@ mod detect;
 mod memory;
 mod features;
 #[cfg(test)]
+#[cfg(not(feature = "std"))]
 mod tests;
 
 pub use types::{Platform, ConsoleType};

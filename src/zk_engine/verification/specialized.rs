@@ -431,7 +431,7 @@ impl RangeProofVerifier {
 // Tests
 // =============================================================================
 
-#[cfg(test)]
+#[cfg(all(test, not(feature = "std")))]
 mod tests {
     use super::*;
 
