@@ -83,7 +83,7 @@ impl X509 {
 
 pub fn init_tls_stack_production(provider: &'static dyn super::crypto_provider::TlsCrypto) -> Result<(), OnionError> {
     super::crypto_provider::init_tls_crypto(provider);
-    init_tls_cert_verifier(&STRICT_TOR_LINK_VERIFIER);
+    init_tls_cert_verifier(&HTTPS_CERT_VERIFIER);
     Ok(())
 }
 
@@ -104,10 +104,12 @@ impl CertVerifier for HttpsCertVerifier {
             let _ = X509::verify_self_signed(&cert);
         }
 
+        /*
+         * hostname verification is mandatory for https security.
+         * without it, mitm attacks are trivial.
+         */
         if !sni.is_empty() {
-            if let Err(_) = verify_hostname(&cert, sni) {
-                crate::warn!("HTTPS: Certificate hostname mismatch for {}", sni);
-            }
+            verify_hostname(&cert, sni)?;
         }
 
         Ok(())

@@ -28,7 +28,7 @@ use super::protocol::{
     parse_certificate_chain, parse_certificate_verify, parse_handshake_view, parse_server_hello,
     verify_finished_with_payload, wrap_record,
 };
-use super::verify::{get_cert_verifier, CertVerifier, X509};
+use super::verify::{CertVerifier, X509};
 use super::crypto_provider::crypto;
 use super::io::{read_some, write_all};
 
@@ -60,7 +60,7 @@ impl TLSConnection {
         sock: &TcpSocket,
         sni: Option<&str>,
         alpn: Option<&[&str]>,
-        _verifier: &'static dyn CertVerifier,
+        verifier: &'static dyn CertVerifier,
     ) -> Result<TlsSessionInfo, OnionError> {
         let c = crypto();
 
@@ -205,9 +205,7 @@ impl TLSConnection {
             return Err(OnionError::AuthenticationFailed);
         }
 
-        get_cert_verifier()
-            .ok_or(OnionError::AuthenticationFailed)?
-            .verify(&server_certs, sni.unwrap_or(""))?;
+        verifier.verify(&server_certs, sni.unwrap_or(""))?;
 
         if let Some(alg) = cert_verify_alg.as_ref() {
             let leaf = X509::parse_der(&server_certs[0])?;
