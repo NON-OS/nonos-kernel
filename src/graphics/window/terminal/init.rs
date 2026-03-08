@@ -42,19 +42,14 @@ pub fn init() {
     INPUT_CURSOR.store(0, Ordering::Relaxed);
 
     print_line(b"", COLOR_DIM);
-    print_line(b" +------------------------------------------+", COLOR_TEAL);
-    print_line(b" |  NONOS SECURE TERMINAL v1.0              |", COLOR_TEAL);
-    print_line(b" |  Zero-State | RAM-Only | Anonymous       |", COLOR_TEAL);
-    print_line(b" +------------------------------------------+", COLOR_TEAL);
+    print_line(b" ##    ## ######  ##    ## ######  ######", COLOR_TEAL);
+    print_line(b" ###   ## ##   ## ###   ## ##   ## ##    ", COLOR_TEAL);
+    print_line(b" ## #  ## ##   ## ## #  ## ##   ## ##### ", COLOR_TEAL);
+    print_line(b" ##  # ## ##   ## ##  # ## ##   ##     ##", COLOR_TEAL);
+    print_line(b" ##   ### ##   ## ##   ### ##   ## ##  ##", COLOR_TEAL);
+    print_line(b" ##    ## ######  ##    ## ######  ##### ", COLOR_TEAL);
     print_line(b"", COLOR_DIM);
-    print_line(b" [*] Secure environment initialized", COLOR_GREEN);
-    print_line(b" [*] Entropy pool: 256-bit HEALTHY", COLOR_GREEN);
-    print_line(b" [*] Memory isolation: ACTIVE", COLOR_GREEN);
-    print_line(b" [*] Network anonymization: READY", COLOR_GREEN);
-    print_line(b" [*] Session filesystem: /tmp mounted", COLOR_GREEN);
-    print_line(b"", COLOR_DIM);
-    print_line(b" [!] All data erased on shutdown", COLOR_YELLOW);
-    print_line(b" [!] No persistent storage", COLOR_YELLOW);
+    print_line(b" ZeroState Terminal", COLOR_GREEN);
     print_line(b"", COLOR_DIM);
     print_line(b" Type 'help' for commands", COLOR_DIM);
     print_line(b"", COLOR_DIM);
