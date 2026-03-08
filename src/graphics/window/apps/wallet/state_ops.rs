@@ -51,7 +51,11 @@ pub(crate) fn init_wallet(master_key: [u8; 32]) -> Result<(), &'static str> {
     let account = WalletAccount::with_secret_key(0, address, secret_key);
     state.accounts.push(account);
 
-    let stealth_seed = blake3_hash(&[&master_key[..], b"NONOS:WALLET:STEALTH"].concat());
+    /* Use fixed-size array for stealth key derivation */
+    let mut stealth_path = [0u8; 52]; /* 32 + 20 */
+    stealth_path[0..32].copy_from_slice(&master_key);
+    stealth_path[32..52].copy_from_slice(b"NONOS:WALLET:STEALTH");
+    let stealth_seed = blake3_hash(&stealth_path);
     state.stealth_keypair = Some(StealthKeyPair::from_seed(&stealth_seed));
 
     state.master_key = Some(master_key);
@@ -70,10 +74,12 @@ pub(crate) fn lock_wallet() {
 fn derive_account_seed(master_key: &[u8; 32], index: u32) -> [u8; 32] {
     use crate::crypto::blake3_hash;
 
-    let mut path = alloc::vec::Vec::with_capacity(32 + 21 + 4);
-    path.extend_from_slice(master_key);
-    path.extend_from_slice(b"NONOS:WALLET:ACCOUNT:");
-    path.extend_from_slice(&index.to_le_bytes());
+    /* Use fixed-size array to avoid potential Vec issues in no_std environment.
+     * Path format: master_key (32) + "NONOS:WALLET:ACCOUNT:" (21) + index_le (4) = 57 bytes */
+    let mut path = [0u8; 57];
+    path[0..32].copy_from_slice(master_key);
+    path[32..53].copy_from_slice(b"NONOS:WALLET:ACCOUNT:");
+    path[53..57].copy_from_slice(&index.to_le_bytes());
 
     blake3_hash(&path)
 }
@@ -108,7 +114,7 @@ pub(crate) fn derive_account(index: u32) -> Result<[u8; ADDRESS_LEN], &'static s
         }
     }
 
-    let account = WalletAccount::new(index, address);
+    let account = WalletAccount::with_secret_key(index, address, secret_key);
     state.accounts.push(account);
 
     Ok(address)
