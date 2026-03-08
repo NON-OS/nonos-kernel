@@ -19,8 +19,12 @@
 pub const REALTEK_VENDOR_ID: u16 = 0x10EC;
 
 pub const RTL8139_DEVICE_IDS: &[u16] = &[
-    0x8139,
-    0x8138,
+    0x8139, // RTL8139 original
+    0x8138, // RTL8138 variant
+    0x8129, // RTL8129 (compatible)
+    0x8131, // RTL8131 (Fast Ethernet)
+    0x8136, // RTL8101E/RTL8102E (laptop integrated)
+    0x8100, // RTL8100/RTL8101 variants
 ];
 
 pub mod reg {
