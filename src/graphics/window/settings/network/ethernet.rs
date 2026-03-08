@@ -19,7 +19,7 @@ use crate::graphics::window::settings::render::draw_string;
 use crate::bus::pci;
 use crate::sys::settings::network as net_settings;
 use crate::network::{get_current_ipv4, get_current_gateway, get_current_dns, get_mac_address};
-use crate::network::stack::{is_network_available, is_network_connected};
+use crate::network::stack::{is_network_available, is_network_connected, is_link_up};
 
 use super::helpers::{format_mac, format_ip, format_ip_with_prefix};
 
@@ -71,23 +71,31 @@ fn draw_usb_eth_card(x: u32, y: u32, w: u32) {
     draw_string(x + 25, y + 6, b"usb-eth0", COLOR_TEXT_WHITE);
     draw_string(x + 110, y + 6, b"USB CDC", 0xFF7D8590);
 
-    let connected = is_network_connected();
-    let available = is_network_available();
-
-    if connected {
-        fill_rect(x + w - 100, y + 12, 16, 16, COLOR_GREEN);
-        draw_string(x + w - 80, y + 14, b"ONLINE", COLOR_GREEN);
-    } else if available {
-        fill_rect(x + w - 100, y + 12, 16, 16, 0xFFFFAA00);
-        draw_string(x + w - 80, y + 14, b"NO IP", 0xFFFFAA00);
-    } else {
-        fill_rect(x + w - 100, y + 12, 16, 16, 0xFF7D8590);
-        draw_string(x + w - 80, y + 14, b"DOWN", 0xFF7D8590);
-    }
+    draw_connection_status(x, y, w);
 
     let mac = get_mac_address();
     let mac_str = format_mac(&mac);
     draw_string(x + 25, y + 22, &mac_str, 0xFF7D8590);
+}
+
+fn draw_connection_status(x: u32, y: u32, w: u32) {
+    let has_ip = is_network_connected();
+    let link = is_link_up();
+    let available = is_network_available();
+
+    if has_ip && link {
+        fill_rect(x + w - 100, y + 12, 16, 16, COLOR_GREEN);
+        draw_string(x + w - 80, y + 14, b"READY", COLOR_GREEN);
+    } else if link && available {
+        fill_rect(x + w - 100, y + 12, 16, 16, 0xFFFFAA00);
+        draw_string(x + w - 80, y + 14, b"NO IP", 0xFFFFAA00);
+    } else if available {
+        fill_rect(x + w - 100, y + 12, 16, 16, 0xFF7D8590);
+        draw_string(x + w - 80, y + 14, b"DOWN", 0xFF7D8590);
+    } else {
+        fill_rect(x + w - 100, y + 12, 16, 16, 0xFF555555);
+        draw_string(x + w - 80, y + 14, b"N/A", 0xFF555555);
+    }
 }
 
 fn draw_interface_card(x: u32, y: u32, w: u32, idx: u8, _is_up: bool) {
@@ -97,25 +105,39 @@ fn draw_interface_card(x: u32, y: u32, w: u32, idx: u8, _is_up: bool) {
     name_buf[0..3].copy_from_slice(b"eth");
     name_buf[3] = b'0' + idx;
     draw_string(x + 25, y + 6, &name_buf[..4], COLOR_TEXT_WHITE);
-    draw_string(x + 80, y + 6, b"PCI", 0xFF7D8590);
 
-    let connected = is_network_connected();
-    let available = is_network_available();
+    let vendor_name = get_eth_vendor_name(idx);
+    draw_string(x + 80, y + 6, vendor_name, 0xFF7D8590);
 
-    if connected {
-        fill_rect(x + w - 100, y + 12, 16, 16, COLOR_GREEN);
-        draw_string(x + w - 80, y + 14, b"ONLINE", COLOR_GREEN);
-    } else if available {
-        fill_rect(x + w - 100, y + 12, 16, 16, 0xFFFFAA00);
-        draw_string(x + w - 80, y + 14, b"NO IP", 0xFFFFAA00);
-    } else {
-        fill_rect(x + w - 100, y + 12, 16, 16, 0xFF7D8590);
-        draw_string(x + w - 80, y + 14, b"DOWN", 0xFF7D8590);
-    }
+    draw_connection_status(x, y, w);
 
     let mac = get_mac_address();
     let mac_str = format_mac(&mac);
     draw_string(x + 25, y + 22, &mac_str, 0xFF7D8590);
+}
+
+fn get_eth_vendor_name(idx: u8) -> &'static [u8] {
+    let mut eth_idx = 0u8;
+    let count = pci::device_count();
+    for i in 0..count {
+        if let Some(dev) = pci::get_device(i) {
+            if dev.class == 0x02 && dev.subclass == 0x00 {
+                if eth_idx == idx {
+                    return match dev.vendor_id {
+                        0x8086 => b"Intel",
+                        0x10EC => b"Realtek",
+                        0x14E4 => b"Broadcom",
+                        0x1969 => b"Qualcomm",
+                        0x10DE => b"NVIDIA",
+                        0x1022 => b"AMD",
+                        _ => b"PCI",
+                    };
+                }
+                eth_idx += 1;
+            }
+        }
+    }
+    b"PCI"
 }
 
 fn draw_virtio_card(x: u32, y: u32, w: u32) {
@@ -123,19 +145,7 @@ fn draw_virtio_card(x: u32, y: u32, w: u32) {
     draw_string(x + 25, y + 6, b"virtio-net0", COLOR_TEXT_WHITE);
     draw_string(x + 130, y + 6, b"Virtual", 0xFF7D8590);
 
-    let connected = is_network_connected();
-    let available = is_network_available();
-
-    if connected {
-        fill_rect(x + w - 100, y + 12, 16, 16, COLOR_GREEN);
-        draw_string(x + w - 80, y + 14, b"ONLINE", COLOR_GREEN);
-    } else if available {
-        fill_rect(x + w - 100, y + 12, 16, 16, 0xFFFFAA00);
-        draw_string(x + w - 80, y + 14, b"NO IP", 0xFFFFAA00);
-    } else {
-        fill_rect(x + w - 100, y + 12, 16, 16, 0xFF7D8590);
-        draw_string(x + w - 80, y + 14, b"DOWN", 0xFF7D8590);
-    }
+    draw_connection_status(x, y, w);
 
     let mac = get_mac_address();
     let mac_str = format_mac(&mac);
@@ -197,4 +207,10 @@ fn draw_ip_config(x: u32, y: u32, _w: u32) {
     let dns = get_current_dns();
     let dns_str = format_ip(&dns);
     draw_string(x + 100, y + 96, &dns_str, COLOR_TEXT_WHITE);
+
+    fill_rect(x + 200, y + 22, 90, 28, COLOR_GREEN);
+    draw_string(x + 215, y + 28, b"Connect", 0xFF0D1117);
+
+    fill_rect(x + 300, y + 22, 70, 28, COLOR_ACCENT);
+    draw_string(x + 318, y + 28, b"Test", 0xFF0D1117);
 }
