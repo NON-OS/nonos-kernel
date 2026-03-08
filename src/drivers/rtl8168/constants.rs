@@ -17,14 +17,34 @@
 pub const REALTEK_VENDOR_ID: u16 = 0x10EC;
 
 pub const RTL8168_DEVICE_IDS: &[u16] = &[
-    0x8168, // RTL8168B/8111B/8111C/8111D/8111E/8111F/8111G/8111H
+    /* RTL8168/8111 series (1GbE, extremely common 2007-2024) */
+    0x8168, // RTL8168B/8111B/8111C/8111D/8111E/8111F/8111G/8111H/8111K/8111L
     0x8161, // RTL8168B (older variant)
-    0x8136, // RTL8101E/RTL8102E
     0x8167, // RTL8169SC
     0x8169, // RTL8169 (original)
     0x8162, // RTL8168K
-    0x8125, // RTL8125 (2.5GbE)
     0x3000, // RTL8168L
+    0x816C, // RTL8168C
+    0x816D, // RTL8168D (extremely common in laptops)
+    0x816E, // RTL8168E
+    0x816F, // RTL8168F
+    /* RTL8125 series (2.5GbE, very common 2019+) */
+    0x8125, // RTL8125/RTL8125B (2.5GbE, common on modern desktops)
+    0x8126, // RTL8125BG variant
+    0x3000, // RTL8125B variant
+    0x5000, // RTL8125B variant
+    /* RTL8126 (5GbE, 2024+) */
+    0x8162, // RTL8126
+    0x5162, // RTL8126 variant
+    /* RTL8100/8101/8102 series (100Mbps/1GbE, budget NICs) */
+    0x8136, // RTL8101E/RTL8102E
+    0x8100, // RTL8100/RTL8101
+    0x8129, // RTL8129
+    0x8139, // RTL8139 (compat mode)
+    /* Dragon/Killer variants (same chip, different branding) */
+    0x2600, // Killer E2600 (RTL8125 rebrand)
+    0x2500, // Killer E2500 (RTL8111 rebrand)
+    0x3100, // Killer E3100 (RTL8125 rebrand)
 ];
 
 pub mod reg {
