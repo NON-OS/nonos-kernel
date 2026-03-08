@@ -41,8 +41,8 @@ fn handle_sidebar_click(win_x: u32, content_y: u32, click_x: i32, click_y: i32) 
         return false;
     }
 
-    if click_y >= content_y as i32 + 40 && click_y < content_y as i32 + 40 + 175 {
-        let tab_idx = ((click_y - content_y as i32 - 40) / 35) as u8;
+    if click_y >= content_y as i32 + 50 && click_y < content_y as i32 + 50 + 220 {
+        let tab_idx = ((click_y - content_y as i32 - 50) / 44) as u8;
         if tab_idx < PAGE_COUNT {
             set_page(tab_idx);
             return true;
