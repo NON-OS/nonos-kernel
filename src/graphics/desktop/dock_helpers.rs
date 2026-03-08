@@ -86,10 +86,35 @@ pub(super) fn draw_rounded_rect(x: u32, y: u32, w: u32, h: u32, r: u32, color: u
 }
 
 pub(super) fn draw_icon_plate(x: u32, y: u32, size: u32, color: u32) {
-    let r = 10u32;
+    let r = 12u32;
+
+    for shadow in 0..4u32 {
+        let alpha = 30 - shadow * 6;
+        let sx = x + 1;
+        let sy = y + shadow + 2;
+        draw_rounded_rect(sx, sy, size, size, r, (alpha << 24) | 0x000000);
+    }
+
     draw_rounded_rect(x, y, size, size, r, color);
 
-    for px in x + r..x + size - r {
-        put_pixel(px, y + 1, 0x0AFFFFFF);
+    let cr = ((color >> 16) & 0xFF) as i32;
+    let cg = ((color >> 8) & 0xFF) as i32;
+    let cb = (color & 0xFF) as i32;
+
+    for gy in 0..size / 3 {
+        let alpha = (40 - gy * 3).max(0) as u32;
+        if alpha > 0 {
+            let highlight = (0xFF << 24) | (((cr + 30).min(255) as u32) << 16)
+                | (((cg + 30).min(255) as u32) << 8) | ((cb + 30).min(255) as u32);
+            let blended = blend_colors(color, highlight, (alpha * 2) as u8);
+            fill_rect(x + r, y + 1 + gy, size - r * 2, 1, blended);
+        }
     }
+
+    for px in x + r..x + size - r {
+        put_pixel(px, y + 1, 0x20FFFFFF);
+        put_pixel(px, y + 2, 0x10FFFFFF);
+    }
+
+    fill_rect(x + r, y + size - 2, size - r * 2, 1, 0x15000000);
 }
