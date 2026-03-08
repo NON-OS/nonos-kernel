@@ -18,16 +18,16 @@ use super::state::EcosystemTab;
 use crate::graphics::framebuffer::fill_rect;
 use crate::graphics::font::draw_char;
 
-pub const TAB_HEIGHT: u32 = 36;
+pub const TAB_HEIGHT: u32 = 40;
 pub const TAB_MIN_WIDTH: u32 = 80;
 pub const TAB_PADDING: u32 = 16;
 
-pub const COLOR_TAB_BAR: u32 = 0xFF161B22;
-pub const COLOR_TAB_ACTIVE: u32 = 0xFF238636;
-pub const COLOR_TAB_HOVER: u32 = 0xFF21262D;
-pub const COLOR_TAB_TEXT: u32 = 0xFFC9D1D9;
+pub const COLOR_TAB_BAR: u32 = 0xFF1C1C1E;
+pub const COLOR_TAB_ACTIVE: u32 = 0xFF007AFF;
+pub const COLOR_TAB_HOVER: u32 = 0xFF2C2C2E;
+pub const COLOR_TAB_TEXT: u32 = 0xFF8E8E93;
 pub const COLOR_TAB_TEXT_ACTIVE: u32 = 0xFFFFFFFF;
-pub const COLOR_TAB_BORDER: u32 = 0xFF30363D;
+pub const COLOR_TAB_BORDER: u32 = 0xFF38383A;
 
 pub struct TabLayout {
     pub tabs: [(u32, u32, u32); 6],
@@ -85,16 +85,29 @@ pub fn draw_tab_bar(x: u32, y: u32, w: u32, active: EcosystemTab) {
     }
 }
 
-fn draw_tab(x: u32, y: u32, w: u32, h: u32, tab: EcosystemTab, active: bool) {
-    let bg_color = if active {
-        COLOR_TAB_ACTIVE
-    } else {
-        COLOR_TAB_HOVER
-    };
+fn draw_rounded_rect(x: u32, y: u32, w: u32, h: u32, r: u32, color: u32) {
+    use crate::graphics::framebuffer::put_pixel;
+    fill_rect(x + r, y, w - 2 * r, h, color);
+    fill_rect(x, y + r, w, h - 2 * r, color);
+    for dy in 0..r {
+        for dx in 0..r {
+            if dx * dx + dy * dy <= r * r {
+                put_pixel(x + r - dx, y + r - dy, color);
+                put_pixel(x + w - r + dx - 1, y + r - dy, color);
+                put_pixel(x + r - dx, y + h - r + dy - 1, color);
+                put_pixel(x + w - r + dx - 1, y + h - r + dy - 1, color);
+            }
+        }
+    }
+}
 
+fn draw_tab(x: u32, y: u32, w: u32, h: u32, tab: EcosystemTab, active: bool) {
     if active {
-        fill_rect(x, y, w, h, bg_color);
-        draw_rounded_corners(x, y, w, h, bg_color);
+        draw_rounded_rect(x, y, w, h, 8, COLOR_TAB_ACTIVE);
+        for gy in 0..4u32 {
+            let alpha = 12 - gy * 3;
+            fill_rect(x + 8, y + gy + 1, w - 16, 1, (alpha << 24) | 0xFFFFFF);
+        }
     }
 
     let label = tab.label();
@@ -111,28 +124,6 @@ fn draw_tab(x: u32, y: u32, w: u32, h: u32, tab: EcosystemTab, active: bool) {
     for (i, &ch) in label.iter().enumerate() {
         draw_char(text_x + i as u32 * 8, text_y, ch, text_color);
     }
-}
-
-fn draw_rounded_corners(x: u32, y: u32, w: u32, h: u32, tint: u32) {
-    use crate::graphics::framebuffer::put_pixel;
-
-    let bg = if tint > 0 { tint } else { COLOR_TAB_BAR };
-
-    put_pixel(x, y, bg);
-    put_pixel(x + 1, y, bg);
-    put_pixel(x, y + 1, bg);
-
-    put_pixel(x + w - 1, y, bg);
-    put_pixel(x + w - 2, y, bg);
-    put_pixel(x + w - 1, y + 1, bg);
-
-    put_pixel(x, y + h - 1, bg);
-    put_pixel(x + 1, y + h - 1, bg);
-    put_pixel(x, y + h - 2, bg);
-
-    put_pixel(x + w - 1, y + h - 1, bg);
-    put_pixel(x + w - 2, y + h - 1, bg);
-    put_pixel(x + w - 1, y + h - 2, bg);
 }
 
 pub fn hit_test(x: u32, base_y: u32, w: u32, click_x: i32, click_y: i32) -> Option<EcosystemTab> {

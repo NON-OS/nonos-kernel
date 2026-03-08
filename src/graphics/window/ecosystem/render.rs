@@ -32,9 +32,9 @@ use super::render_tabs::{
 use crate::graphics::framebuffer::fill_rect;
 use crate::graphics::font::draw_char;
 
-const COLOR_BG: u32 = 0xFF0D1117;
-const COLOR_URL_BAR: u32 = 0xFF21262D;
-const COLOR_URL_TEXT: u32 = 0xFFC9D1D9;
+const COLOR_BG: u32 = 0xFF000000;
+const COLOR_URL_BAR: u32 = 0xFF2C2C2E;
+const COLOR_URL_TEXT: u32 = 0xFFFFFFFF;
 
 pub fn draw(x: u32, y: u32, w: u32, h: u32) {
     fill_rect(x, y, w, h, COLOR_BG);
