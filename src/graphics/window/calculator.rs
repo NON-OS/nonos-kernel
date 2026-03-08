@@ -18,12 +18,13 @@ use core::sync::atomic::{AtomicBool, AtomicI64, AtomicU8, Ordering};
 use crate::graphics::framebuffer::{fill_rect, put_pixel, COLOR_TEXT_WHITE};
 use crate::graphics::font::draw_char;
 
-const COLOR_BTN_NUM: u32 = 0xFF1A4D4D;
-const COLOR_BTN_OP: u32 = 0xFF0D3333;
-const COLOR_BTN_FUNC: u32 = 0xFF0D3333;
-const COLOR_BTN_EQUALS: u32 = 0xFF00A0A0;
-const COLOR_DISPLAY_BG: u32 = 0xFF0A1A1A;
-const COLOR_EXPR: u32 = 0xFF7D8590;
+const COLOR_BTN_NUM: u32 = 0xFF505050;
+const COLOR_BTN_OP: u32 = 0xFFFF9500;
+const COLOR_BTN_FUNC: u32 = 0xFFA5A5A5;
+const COLOR_BTN_EQUALS: u32 = 0xFF007AFF;
+const COLOR_DISPLAY_BG: u32 = 0xFF1C1C1E;
+const COLOR_EXPR: u32 = 0xFF8E8E93;
+const COLOR_BTN_TEXT_DARK: u32 = 0xFF000000;
 
 pub(super) static CALC_DISPLAY: AtomicI64 = AtomicI64::new(0);
 pub(super) static CALC_OPERAND: AtomicI64 = AtomicI64::new(0);
@@ -34,16 +35,18 @@ pub(super) static CALC_EXPR_VAL: AtomicI64 = AtomicI64::new(0);
 pub(super) static CALC_DECIMAL_POS: AtomicU8 = AtomicU8::new(0);
 
 pub(super) fn draw_calculator(x: u32, y: u32, w: u32, h: u32) {
+    fill_rect(x, y, w, h, 0xFF000000);
+
     let padding = 12u32;
-    let display_h = 80u32;
+    let display_h = 90u32;
     let btn_rows = 5u32;
     let btn_cols = 4u32;
-    let btn_gap = 8u32;
+    let btn_gap = 10u32;
     let btn_area_h = h - display_h - padding * 2 - 10;
     let btn_h = (btn_area_h - btn_gap * (btn_rows - 1)) / btn_rows;
     let btn_w = (w - padding * 2 - btn_gap * (btn_cols - 1)) / btn_cols;
 
-    fill_rounded_rect(x + padding, y + padding, w - padding * 2, display_h, 8, COLOR_DISPLAY_BG);
+    fill_rounded_rect(x + padding, y + padding, w - padding * 2, display_h, 12, COLOR_DISPLAY_BG);
 
     draw_clock_icon(x + w - padding - 20, y + padding + 8);
 
@@ -77,20 +80,27 @@ pub(super) fn draw_calculator(x: u32, y: u32, w: u32, h: u32) {
 
     let btn_y_start = y + display_h + padding + 10;
 
-    let buttons: [[(&[u8], u32); 4]; 5] = [
-        [(b"AC", COLOR_BTN_FUNC), (b"+/-", COLOR_BTN_FUNC), (b"%", COLOR_BTN_FUNC), (b"\xf7", COLOR_BTN_OP)],
-        [(b"1", COLOR_BTN_NUM), (b"2", COLOR_BTN_NUM), (b"3", COLOR_BTN_NUM), (b"\xd7", COLOR_BTN_OP)],
-        [(b"4", COLOR_BTN_NUM), (b"5", COLOR_BTN_NUM), (b"6", COLOR_BTN_NUM), (b"-", COLOR_BTN_OP)],
-        [(b"7", COLOR_BTN_NUM), (b"8", COLOR_BTN_NUM), (b"9", COLOR_BTN_NUM), (b"+", COLOR_BTN_OP)],
-        [(b".", COLOR_BTN_NUM), (b"0", COLOR_BTN_NUM), (b"00", COLOR_BTN_NUM), (b"=", COLOR_BTN_EQUALS)],
+    let buttons: [[(&[u8], u32, u32); 4]; 5] = [
+        [(b"AC", COLOR_BTN_FUNC, COLOR_BTN_TEXT_DARK), (b"+/-", COLOR_BTN_FUNC, COLOR_BTN_TEXT_DARK), (b"%", COLOR_BTN_FUNC, COLOR_BTN_TEXT_DARK), (b"\xf7", COLOR_BTN_OP, COLOR_TEXT_WHITE)],
+        [(b"1", COLOR_BTN_NUM, COLOR_TEXT_WHITE), (b"2", COLOR_BTN_NUM, COLOR_TEXT_WHITE), (b"3", COLOR_BTN_NUM, COLOR_TEXT_WHITE), (b"\xd7", COLOR_BTN_OP, COLOR_TEXT_WHITE)],
+        [(b"4", COLOR_BTN_NUM, COLOR_TEXT_WHITE), (b"5", COLOR_BTN_NUM, COLOR_TEXT_WHITE), (b"6", COLOR_BTN_NUM, COLOR_TEXT_WHITE), (b"-", COLOR_BTN_OP, COLOR_TEXT_WHITE)],
+        [(b"7", COLOR_BTN_NUM, COLOR_TEXT_WHITE), (b"8", COLOR_BTN_NUM, COLOR_TEXT_WHITE), (b"9", COLOR_BTN_NUM, COLOR_TEXT_WHITE), (b"+", COLOR_BTN_OP, COLOR_TEXT_WHITE)],
+        [(b".", COLOR_BTN_NUM, COLOR_TEXT_WHITE), (b"0", COLOR_BTN_NUM, COLOR_TEXT_WHITE), (b"00", COLOR_BTN_NUM, COLOR_TEXT_WHITE), (b"=", COLOR_BTN_EQUALS, COLOR_TEXT_WHITE)],
     ];
 
     for (row, btns) in buttons.iter().enumerate() {
-        for (col, (label, color)) in btns.iter().enumerate() {
+        for (col, (label, bg_color, text_color)) in btns.iter().enumerate() {
             let bx = x + padding + (col as u32) * (btn_w + btn_gap);
             let by = btn_y_start + (row as u32) * (btn_h + btn_gap);
 
-            fill_rounded_rect(bx, by, btn_w, btn_h, 6, *color);
+            fill_rounded_rect(bx, by, btn_w, btn_h, 12, *bg_color);
+
+            if row == 0 || col == 3 || (row == 4 && col == 3) {
+                for gy in 0..3u32 {
+                    let alpha = 20 - gy * 6;
+                    fill_rect(bx + 12, by + gy + 1, btn_w - 24, 1, (alpha << 24) | 0xFFFFFF);
+                }
+            }
 
             let text_len = label.len() as u32;
             let text_w = text_len * 10;
@@ -98,7 +108,7 @@ pub(super) fn draw_calculator(x: u32, y: u32, w: u32, h: u32) {
             let text_y = by + (btn_h - 16) / 2;
 
             for (i, &ch) in label.iter().enumerate() {
-                draw_char(text_x + (i as u32) * 10, text_y, ch, COLOR_TEXT_WHITE);
+                draw_char(text_x + (i as u32) * 10, text_y, ch, *text_color);
             }
         }
     }
