@@ -37,10 +37,17 @@ fn wrap_tls_record(content_type: u8, data: &[u8]) -> Vec<u8> {
 }
 
 impl NetworkStack {
-    pub fn https_request(&self, addr: [u8; 4], port: u16, host: &str, req: &[u8], _timeout_ms: u32) -> Result<Vec<u8>, &'static str> {
-        use crate::network::onion::tls::{TLSConnection, get_cert_verifier};
+    /*
+     * https_request now actually uses the timeout_ms parameter instead of
+     * hardcoded 10s. wallet rpc calls pass 30s which is needed for slow
+     * ethereum nodes. min 5s, max 120s enforced.
+     */
+    pub fn https_request(&self, addr: [u8; 4], port: u16, host: &str, req: &[u8], timeout_ms: u32) -> Result<Vec<u8>, &'static str> {
+        use crate::network::onion::tls::{TLSConnection, get_cert_verifier, HTTPS_CERT_VERIFIER};
         use crate::network::tcp::TcpSocket as TlsTcpSocket;
         use super::super::types::TcpSocket;
+
+        let timeout = (timeout_ms as u64).clamp(5_000, 120_000);
 
         let stack_sock = TcpSocket::new();
         self.tcp_connect(&stack_sock, addr, port)?;
@@ -48,7 +55,7 @@ impl NetworkStack {
 
         let tls_sock = TlsTcpSocket::from_connection(conn_id);
 
-        let verifier = get_cert_verifier().ok_or("no cert verifier")?;
+        let verifier = get_cert_verifier().unwrap_or(&HTTPS_CERT_VERIFIER);
         let mut tls = TLSConnection::new();
         tls.handshake_full(&tls_sock, Some(host), None, verifier)
             .map_err(|_| "tls handshake failed")?;
@@ -112,7 +119,7 @@ impl NetworkStack {
                 }
             }
 
-            if now_ms().saturating_sub(start) > 10_000 {
+            if now_ms().saturating_sub(start) > timeout {
                 break;
             }
 
@@ -124,7 +131,12 @@ impl NetworkStack {
         Ok(plaintext_buf)
     }
 
-    pub fn http_request(&self, addr: [u8; 4], port: u16, req: &[u8]) -> Result<Vec<u8>, &'static str> {
+    /*
+     * http_request now accepts timeout_ms parameter. was hardcoded to 2s which
+     * caused wallet rpc and browser requests to timeout on slow connections.
+     */
+    pub fn http_request(&self, addr: [u8; 4], port: u16, req: &[u8], timeout_ms: u32) -> Result<Vec<u8>, &'static str> {
+        let timeout = (timeout_ms as u64).clamp(2_000, 120_000);
         let tmp = TcpSocket::new();
         self.tcp_connect(&tmp, addr, port)?;
         let id = tmp.connection_id();
@@ -149,11 +161,10 @@ impl NetworkStack {
                 if let Some(idx) = find_subsequence(&buf, b"\r\n\r\n") {
                     headers_done = true;
                     let headers = &buf[..idx+4];
-                    if !headers.starts_with(b"HTTP/1.1 200") && !headers.starts_with(b"HTTP/1.0 200") &&
-                       !headers.starts_with(b"HTTP/1.1 2") && !headers.starts_with(b"HTTP/1.0 2") {
-                        let _ = self.tcp_close(id);
-                        return Err("http non-2xx");
-                    }
+                    /*
+                     * removed non-2xx early rejection. browser needs error page
+                     * body to display 404/500 etc. caller can check status.
+                     */
                     for line in headers.split(|&b| b == b'\n') {
                         if line.len() >= 18 && starts_no_case(line, b"content-length:") {
                             if let Ok(n) = parse_usize_ascii(&line[15..]) { content_length = Some(n); }
@@ -188,7 +199,7 @@ impl NetworkStack {
                 }
             }
 
-            if now_ms().saturating_sub(start) > 2_000 { break; }
+            if now_ms().saturating_sub(start) > timeout { break; }
 
             iterations += 1;
             if iterations >= MAX_ITERATIONS { break; }

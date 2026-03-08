@@ -38,6 +38,16 @@ pub fn dns_start_query(hostname: &str) -> Result<(), &'static str> {
     }
 
     let ns = get_network_stack().ok_or("no network stack")?;
+    ns.poll();
+
+    let our_ip = ns.get_ipv4_config();
+    if our_ip.is_none() {
+        return Err("no ipv4 address");
+    }
+    let (ip, _) = our_ip.unwrap();
+    if ip[0] == 127 || ip == [0, 0, 0, 0] {
+        return Err("no routable ip");
+    }
 
     let mut sockets = ns.sockets.lock();
     let rx = PacketBuffer::new(vec![PacketMetadata::EMPTY; 4], vec![0; 1024]);
@@ -49,13 +59,14 @@ pub fn dns_start_query(hostname: &str) -> Result<(), &'static str> {
 
     {
         let s: &mut udp::Socket = sockets.get_mut(handle);
-        s.bind(0).map_err(|_| "dns bind failed")?;
-        let endpoint = IpEndpoint::new(
+        let local = IpEndpoint::new(SmolIpAddress::Ipv4(SmolIpv4Address::from_bytes(&ip)), 0);
+        s.bind(local).map_err(|_| "dns bind failed")?;
+        let remote = IpEndpoint::new(
             SmolIpAddress::Ipv4(SmolIpv4Address::new(server[0], server[1], server[2], server[3])),
             53
         );
-        let metadata = smoltcp::socket::udp::UdpMetadata::from(endpoint);
-        s.send_slice(&query, metadata).map_err(|_| "dns send failed")?;
+        s.send_slice(&query, smoltcp::socket::udp::UdpMetadata::from(remote))
+            .map_err(|_| "dns send failed")?;
     }
     drop(sockets);
 

@@ -67,7 +67,7 @@ fn request(method: &str, url: &str, body: Option<&[u8]>, headers: &[(&str, &str)
         stack.https_request(addr, port, &host, &req_bytes, timeout_ms)
             .map_err(|_| HttpError::TlsError)?
     } else {
-        stack.http_request(addr, port, &req_bytes)
+        stack.http_request(addr, port, &req_bytes, timeout_ms)
             .map_err(|_| HttpError::NetworkError)?
     };
 
