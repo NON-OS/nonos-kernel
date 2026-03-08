@@ -39,6 +39,9 @@ impl TrustedSetup {
         // Get circuit matrices
         let (a_matrix, b_matrix, c_matrix) = circuit.get_matrices();
         let m = a_matrix.len(); // number of constraints
+        if m == 0 {
+            return Err(ZKError::InvalidCircuit);
+        }
         let n = a_matrix[0].len(); // number of variables + 1
 
         // Generate powers of tau
@@ -294,9 +297,17 @@ impl TrustedSetup {
             }
         }
 
-        // Fallback: generate new setup with default circuit
+        // Fallback: generate new setup with minimal valid circuit
         crate::log::warn!("No stored trusted setup found, generating new (this may take time)");
-        let dummy_circuit = crate::zk_engine::circuit::Circuit::new();
+        /* create a minimal circuit with one identity constraint: 1 * 1 = 1 */
+        use crate::zk_engine::circuit::{LinearCombination, Constraint, Variable};
+        let one = LinearCombination::from_constant(FieldElement::one());
+        let identity_constraint = Constraint::new(one.clone(), one.clone(), one);
+        let dummy_circuit = crate::zk_engine::circuit::Circuit::with_params(
+            alloc::vec![identity_constraint],
+            1,  /* num_variables */
+            0,  /* num_inputs */
+        );
         let params = TrustedSetup::setup(&dummy_circuit)?;
 
         // Try to persist the generated setup
