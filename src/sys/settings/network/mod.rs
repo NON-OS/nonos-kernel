@@ -31,6 +31,7 @@ pub use api::{
     is_onion_enabled, set_onion_enabled, is_socks_enabled, set_socks_enabled,
     get_socks_port, set_socks_port, is_transparent_proxy_enabled, set_transparent_proxy_enabled,
     is_mac_randomization_enabled, set_mac_randomization_enabled,
+    apply_settings_to_stack, check_network_status, NetworkStatus,
 };
 pub use wifi::{save_wifi_network, get_saved_networks, get_saved_password, remove_saved_network, set_network_priority};
 pub use serialize::{serialize_settings, deserialize_settings};
