@@ -261,13 +261,12 @@ fn init_network() {
             match nonos_kernel::drivers::usb::init_usb() {
                 Ok(_) => {
                     serial::println(b"[NET] USB subsystem initialized");
+                    /* USB ethernet adapters auto-register with stack on detection */
                     if nonos_kernel::drivers::usb::rtl8152::is_connected() {
-                        serial::println(b"[NET] USB Ethernet adapter detected!");
-                        return;
+                        serial::println(b"[NET] RTL8152 USB Ethernet detected and registered");
                     }
                     if nonos_kernel::drivers::usb::cdc_eth::is_connected() {
-                        serial::println(b"[NET] CDC Ethernet adapter detected!");
-                        return;
+                        serial::println(b"[NET] CDC USB Ethernet detected and registered");
                     }
                 }
                 Err(e) => {
@@ -416,6 +415,21 @@ fn log_security_status(handoff: &BootHandoffV1) {
     }
 
     serial::println(b"[NONOS] ========================");
+
+    /* vault init - must be after RNG seed for secure key derivation */
+    match nonos_kernel::vault::nonos_vault::initialize_vault() {
+        Ok(()) => serial::println(b"[NONOS] Vault system initialized"),
+        Err(e) => {
+            serial::print(b"[NONOS] Vault init failed: ");
+            serial::println(e.as_bytes());
+        }
+    }
+
+    /* ZK engine - needed for wallet proofs and attestation */
+    match nonos_kernel::zk_engine::init_zk_engine() {
+        Ok(()) => serial::println(b"[NONOS] ZK engine initialized"),
+        Err(_) => serial::println(b"[NONOS] ZK engine init failed"),
+    }
 }
 
 fn run_desktop() -> ! {
