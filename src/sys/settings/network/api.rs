@@ -141,3 +141,79 @@ pub fn set_mac_randomization_enabled(enabled: bool) {
     NETWORK_SETTINGS.lock().randomize_mac = enabled;
     SETTINGS_MODIFIED.store(true, Ordering::SeqCst);
 }
+
+/// Apply current network settings (IP, gateway, DNS) to the network stack.
+/// Call this after updating settings to make them take effect immediately.
+pub fn apply_settings_to_stack() -> Result<(), &'static str> {
+    use crate::network::stack::get_network_stack;
+
+    let settings = get_settings();
+    let stack = get_network_stack().ok_or("Network stack not available")?;
+
+    if settings.dhcp_enabled {
+        match stack.request_dhcp() {
+            Ok(lease) => {
+                crate::log_info!(
+                    "net: DHCP acquired {}.{}.{}.{}",
+                    lease.ip[0], lease.ip[1], lease.ip[2], lease.ip[3]
+                );
+                crate::network::stack::set_network_connected(true);
+                Ok(())
+            }
+            Err(e) => Err(e)
+        }
+    } else {
+        if settings.static_ip == [0, 0, 0, 0] {
+            return Err("Static IP not configured");
+        }
+
+        let gateway = if settings.gateway == [0, 0, 0, 0] {
+            None
+        } else {
+            Some(settings.gateway)
+        };
+
+        stack.set_ipv4_config(settings.static_ip, settings.subnet_prefix, gateway);
+        stack.set_default_dns_v4(settings.dns_primary);
+        crate::network::stack::set_network_connected(true);
+
+        crate::log_info!(
+            "net: Static IP {}.{}.{}.{}/{} configured",
+            settings.static_ip[0], settings.static_ip[1],
+            settings.static_ip[2], settings.static_ip[3],
+            settings.subnet_prefix
+        );
+
+        Ok(())
+    }
+}
+
+/// Check if network is properly configured and reachable
+pub fn check_network_status() -> NetworkStatus {
+    use crate::network::stack::{get_network_stack, get_current_ipv4, get_current_gateway};
+    use crate::drivers::wifi;
+
+    let stack_available = get_network_stack().is_some();
+    let current_ip = get_current_ipv4().map(|(ip, _)| ip);
+    let has_ip = current_ip.map(|ip| ip != [0, 0, 0, 0]).unwrap_or(false);
+    let gateway = get_current_gateway();
+    let wifi_connected = wifi::is_connected();
+
+    NetworkStatus {
+        stack_available,
+        has_ip,
+        current_ip,
+        gateway,
+        wifi_connected,
+    }
+}
+
+/// Network connection status
+#[derive(Debug, Clone)]
+pub struct NetworkStatus {
+    pub stack_available: bool,
+    pub has_ip: bool,
+    pub current_ip: Option<[u8; 4]>,
+    pub gateway: Option<[u8; 4]>,
+    pub wifi_connected: bool,
+}
