@@ -14,7 +14,7 @@
 #   make iso        # create nonos.iso
 
 .PHONY: all bootloader kernel esp sign-kernel zk-tools generate-zk-keys generate-zk-proof
-.PHONY: embed-zk-proof run run-serial debug iso usb clean distclean test fmt check help
+.PHONY: embed-zk-proof run run-usb run-serial debug iso usb clean distclean test fmt check help
 .PHONY: check-deps show-vk ci-release checksums verify website-release
 
 # Paths
@@ -209,6 +209,16 @@ run: esp
 		-device virtio-rng-pci -device e1000,netdev=net0 -netdev user,id=net0 \
 		-serial mon:stdio -vga std -no-reboot
 
+run-usb: esp
+	@echo "Booting NONOS with USB passthrough... (Ctrl+A X to quit)"
+	sudo $(QEMU) -m 1G -cpu Haswell -machine q35 \
+		-drive "format=raw,file=fat:rw:$(ESP_DIR)" \
+		-drive if=pflash,format=raw,unit=0,readonly=on,file="$(OVMF)" \
+		-drive if=pflash,format=raw,unit=1,readonly=on,file="$(OVMF_VARS)" \
+		-device virtio-rng-pci -device e1000,netdev=net0 -netdev user,id=net0 \
+		-usb -device qemu-xhci -device usb-host,vendorid=0x0bda,productid=0x8153 \
+		-serial mon:stdio -vga std -no-reboot
+
 run-serial: esp
 	$(QEMU) -m 512M -cpu qemu64 -machine q35 \
 		-drive "format=raw,file=fat:rw:$(ESP_DIR)" \
@@ -319,7 +329,7 @@ help:
 	@echo "NONOS Build System"
 	@echo ""
 	@echo "Build:       make, make bootloader, make kernel, make esp"
-	@echo "Run:         make run, make run-serial, make debug"
+	@echo "Run:         make run, make run-usb, make run-serial, make debug"
 	@echo "Distribute:  make iso, make usb"
 	@echo "Release:     make ci-release, make website-release"
 	@echo "ZK:          make zk-tools, make generate-zk-keys, make generate-zk-proof"
