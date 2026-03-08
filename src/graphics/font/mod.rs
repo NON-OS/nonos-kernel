@@ -18,4 +18,4 @@ mod bitmap;
 mod render;
 
 pub use bitmap::{CHAR_WIDTH, CHAR_HEIGHT, get_char_bitmap};
-pub use render::{draw_char, draw_text, draw_text_centered};
+pub use render::{draw_char, draw_char_scaled, draw_text, draw_text_centered};

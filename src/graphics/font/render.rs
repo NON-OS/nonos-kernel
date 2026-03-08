@@ -29,6 +29,22 @@ pub fn draw_char(x: u32, y: u32, ch: u8, color: u32) {
     }
 }
 
+pub fn draw_char_scaled(x: u32, y: u32, ch: u8, color: u32, scale: u32) {
+    let bitmap = get_char_bitmap(ch);
+    for row in 0..CHAR_HEIGHT {
+        let bits = bitmap[row as usize];
+        for col in 0..CHAR_WIDTH {
+            if (bits >> (7 - col)) & 1 == 1 {
+                for sy in 0..scale {
+                    for sx in 0..scale {
+                        put_pixel(x + col * scale + sx, y + row * scale + sy, color);
+                    }
+                }
+            }
+        }
+    }
+}
+
 pub fn draw_text(x: u32, y: u32, text: &[u8], color: u32) {
     let mut cx = x;
     for &ch in text {

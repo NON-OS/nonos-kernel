@@ -14,69 +14,75 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-// NONOS Brand Colors - Based on nonos.systems guidelines
-// Dark mode first, terminal/tech aesthetic, minimalist design
+/*
+ * NONOS Official Brand Colors
+ * Source: nonos.systems/brand-guidelines
+ *
+ * Primary: #66FFFF (vibrant teal - innovation)
+ * Secondary: #2E5C5C (dark teal - stability/credibility)
+ * Typography: Poppins (Light, Regular, Medium, Semi Bold)
+ */
 
-// Primary background - deep dark blue-black
-pub const COLOR_BG: u32 = 0xFF080C12;
-pub const COLOR_BG_GRADIENT_TOP: u32 = 0xFF0A1018;
-pub const COLOR_BG_GRADIENT_BOTTOM: u32 = 0xFF050810;
+/* primary brand accent - official vibrant teal */
+pub const COLOR_ACCENT: u32 = 0xFF66FFFF;
+pub const COLOR_ACCENT_DIM: u32 = 0xFF4DCCCC;
+pub const COLOR_ACCENT_GLOW: u32 = 0x4066FFFF;
 
-// Panel colors - subtle dark panels
-pub const COLOR_PANEL: u32 = 0xFF111820;
-pub const COLOR_PANEL_HOVER: u32 = 0xFF1A2230;
-pub const COLOR_PANEL_ACTIVE: u32 = 0xFF0D1218;
-pub const COLOR_PANEL_BORDER: u32 = 0xFF1E2832;
+/* secondary brand color - official dark teal */
+pub const COLOR_SECONDARY: u32 = 0xFF2E5C5C;
+pub const COLOR_SECONDARY_DIM: u32 = 0xFF1E4040;
 
-// Primary accent - Terminal Blue (brand signature)
-pub const COLOR_ACCENT: u32 = 0xFF00D4FF;
-pub const COLOR_ACCENT_DIM: u32 = 0xFF0099BB;
-pub const COLOR_ACCENT_GLOW: u32 = 0x4000D4FF;
+/* background colors - deep dark with teal undertone */
+pub const COLOR_BG: u32 = 0xFF080C10;
+pub const COLOR_BG_GRADIENT_TOP: u32 = 0xFF0A1014;
+pub const COLOR_BG_GRADIENT_BOTTOM: u32 = 0xFF050808;
 
-// Secondary accent - Warm gold/yellow
-pub const COLOR_SECONDARY: u32 = 0xFFFFB800;
-pub const COLOR_SECONDARY_DIM: u32 = 0xFFCC9400;
+/* panel colors - subtle dark panels with depth */
+pub const COLOR_PANEL: u32 = 0xFF0E1418;
+pub const COLOR_PANEL_HOVER: u32 = 0xFF141C22;
+pub const COLOR_PANEL_ACTIVE: u32 = 0xFF0A0E12;
+pub const COLOR_PANEL_BORDER: u32 = 0xFF1A2428;
 
-// Text colors
-pub const COLOR_TEXT: u32 = 0xFF00D4FF;
+/* text colors - teal accent for primary, white for readable */
+pub const COLOR_TEXT: u32 = 0xFF66FFFF;
 pub const COLOR_TEXT_WHITE: u32 = 0xFFF0F6FC;
-pub const COLOR_TEXT_DIM: u32 = 0xFF6E7A88;
-pub const COLOR_TEXT_MUTED: u32 = 0xFF484F58;
+pub const COLOR_TEXT_DIM: u32 = 0xFF6E8088;
+pub const COLOR_TEXT_MUTED: u32 = 0xFF3A4448;
 
-// Terminal colors
-pub const COLOR_TERMINAL_BG: u32 = 0xFF0D1117;
-pub const COLOR_TERMINAL_BORDER: u32 = 0xFF21262D;
+/* terminal colors - dark immersive terminal */
+pub const COLOR_TERMINAL_BG: u32 = 0xFF0A0E12;
+pub const COLOR_TERMINAL_BORDER: u32 = 0xFF1A2428;
 
-// Semantic colors
-pub const COLOR_GREEN: u32 = 0xFF00FF88;
-pub const COLOR_RED: u32 = 0xFFFF4466;
-pub const COLOR_YELLOW: u32 = 0xFFFFB800;
-pub const COLOR_ORANGE: u32 = 0xFFFF8844;
-pub const COLOR_PURPLE: u32 = 0xFFAA66FF;
+/* semantic colors - consistent with brand */
+pub const COLOR_GREEN: u32 = 0xFF00E676;
+pub const COLOR_RED: u32 = 0xFFFF5252;
+pub const COLOR_YELLOW: u32 = 0xFFFFD740;
+pub const COLOR_ORANGE: u32 = 0xFFFF9100;
+pub const COLOR_PURPLE: u32 = 0xFFBB86FC;
 
-// UI state colors
-pub const COLOR_SUCCESS: u32 = 0xFF00FF88;
-pub const COLOR_ERROR: u32 = 0xFFFF4466;
-pub const COLOR_WARNING: u32 = 0xFFFFB800;
-pub const COLOR_INFO: u32 = 0xFF00D4FF;
+/* ui state colors */
+pub const COLOR_SUCCESS: u32 = 0xFF00E676;
+pub const COLOR_ERROR: u32 = 0xFFFF5252;
+pub const COLOR_WARNING: u32 = 0xFFFFD740;
+pub const COLOR_INFO: u32 = 0xFF66FFFF;
 
-// Cursor and selection
-pub const COLOR_CURSOR: u32 = 0xFF00D4FF;
-pub const COLOR_SELECTION: u32 = 0x4000D4FF;
+/* cursor and selection - brand teal */
+pub const COLOR_CURSOR: u32 = 0xFF66FFFF;
+pub const COLOR_SELECTION: u32 = 0x4066FFFF;
 
-// Grid and subtle elements
-pub const COLOR_GRID: u32 = 0xFF0F151C;
-pub const COLOR_GRID_ACCENT: u32 = 0xFF141C24;
-pub const COLOR_GLOW_SOFT: u32 = 0x1800D4FF;
+/* grid and subtle elements */
+pub const COLOR_GRID: u32 = 0xFF0C1014;
+pub const COLOR_GRID_ACCENT: u32 = 0xFF101820;
+pub const COLOR_GLOW_SOFT: u32 = 0x1866FFFF;
 
-// Legacy/Compatibility color aliases for UI components
+/* legacy/compatibility aliases */
 pub const COLOR_FG: u32 = COLOR_TEXT;
 pub const COLOR_WHITE: u32 = 0xFFFFFFFF;
 pub const COLOR_BLACK: u32 = 0xFF000000;
 pub const COLOR_BLUE: u32 = COLOR_ACCENT;
-pub const COLOR_GRAY: u32 = 0xFF808080;
-pub const COLOR_DARK_GRAY: u32 = 0xFF404040;
-pub const COLOR_LIGHT_GRAY: u32 = 0xFFC0C0C0;
+pub const COLOR_GRAY: u32 = 0xFF707070;
+pub const COLOR_DARK_GRAY: u32 = 0xFF383838;
+pub const COLOR_LIGHT_GRAY: u32 = 0xFFB0B0B0;
 pub const COLOR_MENU_BG: u32 = COLOR_PANEL;
 pub const COLOR_DOCK_BG: u32 = COLOR_PANEL;
 pub const COLOR_WINDOW_BG: u32 = COLOR_PANEL;
