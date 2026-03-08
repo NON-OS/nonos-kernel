@@ -49,96 +49,140 @@ pub fn fill_random(buf: &mut [u8]) {
 
 /*
  * Generates a 32-byte cryptographic key using aggressive entropy collection.
- * Collects ~160 bytes from 12 different sources and mixes through BLAKE3.
- * This approach ensures unique keys even when the system RNG state is
- * predictable (e.g., shortly after boot or in virtualized environments).
+ * Uses RDRAND as primary source (works in QEMU Haswell), with multiple
+ * fallbacks including TSC jitter, PIT sampling, and RTC timestamp.
+ *
+ * v3: RDRAND is now primary source since virtio-rng queue has issues.
+ * Each boot MUST produce a different key due to RTC + TSC jitter.
  */
 pub fn generate_secure_key() -> [u8; 32] {
-    let mut entropy_pool = [0u8; 168];
+    let mut entropy_pool = [0u8; 256];
     let mut offset = 0;
 
-    /* Source 1: First TSC reading */
+    /* Source 1: 64 bytes from RDRAND (Haswell+ has this) */
+    for _ in 0..8 {
+        let val = rdrand64_or_tsc();
+        entropy_pool[offset..offset + 8].copy_from_slice(&val.to_le_bytes());
+        offset += 8;
+    }
+
+    /* Source 2: First TSC reading */
     let tsc1 = read_tsc();
     entropy_pool[offset..offset + 8].copy_from_slice(&tsc1.to_le_bytes());
     offset += 8;
 
-    /* Source 2: Stack pointer address */
+    /* Source 3: Stack pointer XOR with heap address */
     let stack_addr = get_stack_pointer();
-    entropy_pool[offset..offset + 8].copy_from_slice(&stack_addr.to_le_bytes());
+    let heap_entropy = entropy_pool.as_ptr() as u64;
+    let mixed = stack_addr ^ heap_entropy ^ tsc1;
+    entropy_pool[offset..offset + 8].copy_from_slice(&mixed.to_le_bytes());
     offset += 8;
 
-    /* Source 3: 16 PIT counter samples with small delays between each */
-    for _ in 0..16 {
+    /* Source 4: More RDRAND with jitter delays */
+    for i in 0..4 {
+        for _ in 0..(i + 1) * 10 {
+            core::hint::spin_loop();
+        }
+        let val = rdrand64_or_tsc();
+        entropy_pool[offset..offset + 8].copy_from_slice(&val.to_le_bytes());
+        offset += 8;
+    }
+
+    /* Source 5: 8 PIT counter samples with delays */
+    for i in 0..8 {
         let pit_val = read_pit_counter();
         entropy_pool[offset..offset + 2].copy_from_slice(&pit_val.to_le_bytes());
         offset += 2;
-        for _ in 0..3 {
+        for _ in 0..(i + 1) * 5 {
             core::hint::spin_loop();
         }
     }
 
-    /* Source 4: Second TSC reading */
+    /* Source 6: Second TSC - captures timing jitter */
     let tsc2 = read_tsc();
     entropy_pool[offset..offset + 8].copy_from_slice(&tsc2.to_le_bytes());
     offset += 8;
 
-    /* Source 5: Jitter between first and second TSC */
-    let jitter1 = tsc2.wrapping_sub(tsc1);
-    entropy_pool[offset..offset + 8].copy_from_slice(&jitter1.to_le_bytes());
+    /* Source 7: TSC delta (highly variable) */
+    let jitter = tsc2.wrapping_sub(tsc1);
+    entropy_pool[offset..offset + 8].copy_from_slice(&jitter.to_le_bytes());
     offset += 8;
 
-    /* Source 6: RTC wall clock time as unix timestamp */
+    /* Source 8: RTC unix timestamp - DIFFERENT EACH BOOT */
     let rtc_time = read_rtc_timestamp();
     entropy_pool[offset..offset + 8].copy_from_slice(&rtc_time.to_le_bytes());
     offset += 8;
 
-    /* Source 7: First 32-byte pull from ChaCha20 RNG */
-    let mut rng_bytes1 = [0u8; 32];
-    rng::fill_random_bytes(&mut rng_bytes1);
-    entropy_pool[offset..offset + 32].copy_from_slice(&rng_bytes1);
+    /* Source 9: Kernel millisecond timer */
+    let kernel_ms = crate::time::timestamp_millis();
+    entropy_pool[offset..offset + 8].copy_from_slice(&kernel_ms.to_le_bytes());
+    offset += 8;
+
+    /* Source 10: ChaCha20 RNG bytes */
+    let mut rng_bytes = [0u8; 32];
+    rng::fill_random_bytes(&mut rng_bytes);
+    entropy_pool[offset..offset + 32].copy_from_slice(&rng_bytes);
     offset += 32;
 
-    /* Source 8: Third TSC reading */
+    /* Source 11: Third TSC reading */
     let tsc3 = read_tsc();
     entropy_pool[offset..offset + 8].copy_from_slice(&tsc3.to_le_bytes());
     offset += 8;
 
-    /* Source 9: Jitter between second and third TSC */
+    /* Source 12: More jitter */
     let jitter2 = tsc3.wrapping_sub(tsc2);
     entropy_pool[offset..offset + 8].copy_from_slice(&jitter2.to_le_bytes());
     offset += 8;
 
-    /* Source 10: Buffer address (varies with allocator state) */
-    let buf_addr = entropy_pool.as_ptr() as u64;
-    entropy_pool[offset..offset + 8].copy_from_slice(&buf_addr.to_le_bytes());
-    offset += 8;
+    /* Source 13: Final RDRAND burst */
+    for _ in 0..4 {
+        let val = rdrand64_or_tsc();
+        entropy_pool[offset..offset + 8].copy_from_slice(&val.to_le_bytes());
+        offset += 8;
+    }
 
-    /* Source 11: Second 32-byte pull from ChaCha20 RNG */
-    let mut rng_bytes2 = [0u8; 32];
-    rng::fill_random_bytes(&mut rng_bytes2);
-    entropy_pool[offset..offset + 32].copy_from_slice(&rng_bytes2);
-    offset += 32;
-
-    /* Source 12: Global counter with non-zero starting value */
+    /* Source 14: Global counter - ensures uniqueness even within same boot */
     let counter = KEYGEN_COUNTER.fetch_add(0xA3B7_C1D5_E9F2_4680, Ordering::SeqCst);
     entropy_pool[offset..offset + 8].copy_from_slice(&counter.to_le_bytes());
 
-    /* Mix all 168 bytes through BLAKE3 to produce final 32-byte key */
+    /* Mix through BLAKE3 */
     let key = blake3_hash(&entropy_pool);
 
-    /* Securely erase entropy pool from stack */
+    /* Secure erase */
     for byte in entropy_pool.iter_mut() {
         unsafe { core::ptr::write_volatile(byte, 0) };
     }
-    for byte in rng_bytes1.iter_mut() {
-        unsafe { core::ptr::write_volatile(byte, 0) };
-    }
-    for byte in rng_bytes2.iter_mut() {
+    for byte in rng_bytes.iter_mut() {
         unsafe { core::ptr::write_volatile(byte, 0) };
     }
     core::sync::atomic::compiler_fence(Ordering::SeqCst);
 
     key
+}
+
+#[inline]
+fn rdrand64_or_tsc() -> u64 {
+    /* Try RDRAND up to 10 times, fall back to TSC XOR with counter */
+    for _ in 0..10 {
+        let mut val: u64 = 0;
+        let success: u8;
+        unsafe {
+            core::arch::asm!(
+                "rdrand {0}",
+                "setc {1}",
+                out(reg) val,
+                out(reg_byte) success,
+                options(nostack)
+            );
+        }
+        if success != 0 && val != 0 {
+            return val;
+        }
+    }
+    /* Fallback: TSC XOR with incrementing counter for uniqueness */
+    let tsc = read_tsc();
+    let ctr = KEYGEN_COUNTER.fetch_add(1, Ordering::Relaxed);
+    tsc ^ ctr
 }
 
 pub fn generate_secure_key_checked() -> Result<[u8; 32], &'static str> {

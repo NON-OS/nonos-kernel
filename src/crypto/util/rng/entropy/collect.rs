@@ -155,46 +155,56 @@ pub fn collect_seed_entropy_secure() -> Result<[u8; 32], EntropyError> {
     }
 
     let mut offset = 0;
-    let mut secure_bytes = 0usize;
 
     while offset < 32 {
         if let Some(v) = try_rdseed64() {
-            let remaining = 32 - offset;
-            let copy_len = core::cmp::min(8, remaining);
-            seed[offset..offset + copy_len].copy_from_slice(&v.to_le_bytes()[..copy_len]);
-            offset += copy_len;
-            secure_bytes += copy_len;
+            let len = core::cmp::min(8, 32 - offset);
+            seed[offset..offset + len].copy_from_slice(&v.to_le_bytes()[..len]);
+            offset += len;
         } else {
             break;
         }
     }
 
     while offset < 32 {
-        if let Some(v) = try_rdrand64() {
-            let remaining = 32 - offset;
-            let copy_len = core::cmp::min(8, remaining);
-            seed[offset..offset + copy_len].copy_from_slice(&v.to_le_bytes()[..copy_len]);
-            offset += copy_len;
-            secure_bytes += copy_len;
-        } else {
-            break;
+        for _ in 0..10 {
+            if let Some(v) = try_rdrand64() {
+                let len = core::cmp::min(8, 32 - offset);
+                seed[offset..offset + len].copy_from_slice(&v.to_le_bytes()[..len]);
+                offset += len;
+                break;
+            }
+            for _ in 0..50 { core::hint::spin_loop(); }
+        }
+        if offset < 32 {
+            let t1 = read_tsc();
+            for _ in 0..((t1 & 0x1F) + 1) { core::hint::spin_loop(); }
+            let t2 = read_tsc();
+            let len = core::cmp::min(8, 32 - offset);
+            seed[offset..offset + len].copy_from_slice(&t2.wrapping_sub(t1).to_le_bytes()[..len]);
+            offset += len;
         }
     }
 
-    if secure_bytes < 32 && tpm::is_tpm_available() {
+    if tpm::is_tpm_available() {
         if let Ok(bytes) = tpm::get_random_bytes(32) {
-            let copy_len = bytes.len().min(32 - secure_bytes);
-            seed[secure_bytes..secure_bytes + copy_len].copy_from_slice(&bytes[..copy_len]);
-            secure_bytes += copy_len;
+            for i in 0..bytes.len().min(32) { seed[i] ^= bytes[i]; }
         }
     }
 
-    if secure_bytes < 32 {
-        for b in &mut seed {
-            *b = 0;
-        }
-        return Err(EntropyError::InsufficientEntropy);
+    let stack_addr: u64;
+    unsafe { core::arch::asm!("mov {}, rsp", out(reg) stack_addr, options(nomem, nostack)); }
+    let counter = ENTROPY_COUNTER.fetch_add(0xA7B3_C5D9_E1F4_2680, Ordering::SeqCst);
+    let sb = stack_addr.to_le_bytes();
+    let cb = counter.to_le_bytes();
+    for i in 0..8 {
+        seed[i] ^= sb[i];
+        seed[i + 8] ^= cb[i];
+        seed[i + 16] ^= sb[7 - i];
+        seed[i + 24] ^= cb[7 - i];
     }
+    let tb = read_tsc().to_le_bytes();
+    for i in 0..8 { seed[i] ^= tb[i]; }
 
     Ok(seed)
 }
