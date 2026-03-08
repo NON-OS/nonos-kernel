@@ -15,22 +15,46 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use core::sync::atomic::Ordering;
-use crate::graphics::framebuffer::COLOR_TEXT_WHITE;
 use super::constants::MAX_INPUT_LEN;
 use super::state::*;
 use super::buffer::*;
 use super::commands::execute_command;
 
+const COLOR_CYAN: u32 = 0xFF00D4FF;
+const COLOR_GREEN: u32 = 0xFF00FF41;
+const COLOR_WHITE: u32 = 0xFFE6E6E6;
+const COLOR_DIM: u32 = 0xFF5C6370;
+
+/*
+ * hacker-style prompt: anonymous@nønos:~$
+ * cyan user, green host, white path, cyan $
+ */
 pub fn print_prompt() {
+    /* user part */
+    for &ch in b"anonymous" {
+        put_char(ch, COLOR_GREEN);
+    }
+    put_char(b'@', COLOR_DIM);
+
+    /* host part with special ø character */
+    put_char(b'n', COLOR_CYAN);
+    put_char(0xD8, COLOR_CYAN);
+    for &ch in b"nos" {
+        put_char(ch, COLOR_CYAN);
+    }
+    put_char(b':', COLOR_DIM);
+
+    /* cwd part */
     let cwd_len = CWD_LEN.load(Ordering::Relaxed);
-    // SAFETY: Read-only access to CWD
     unsafe {
         for i in 0..cwd_len {
-            put_char(CWD[i], crate::graphics::framebuffer::COLOR_ACCENT);
+            put_char(CWD[i], COLOR_WHITE);
         }
     }
-    put_char(b'>', crate::graphics::framebuffer::COLOR_ACCENT);
-    put_char(b' ', COLOR_TEXT_WHITE);
+
+    /* prompt symbol */
+    put_char(b'$', COLOR_GREEN);
+    put_char(b' ', COLOR_WHITE);
 }
 
 pub fn terminal_key(ch: u8) {
@@ -39,7 +63,6 @@ pub fn terminal_key(ch: u8) {
             let pos = INPUT_CURSOR.load(Ordering::Relaxed);
             if pos > 0 {
                 let len = INPUT_LEN.load(Ordering::Relaxed);
-                // SAFETY: Single-threaded input buffer access
                 unsafe {
                     for i in pos - 1..len - 1 {
                         INPUT_BUFFER[i] = INPUT_BUFFER[i + 1];
@@ -54,14 +77,12 @@ pub fn terminal_key(ch: u8) {
             newline();
             let len = INPUT_LEN.load(Ordering::Relaxed);
             if len > 0 {
-                // SAFETY: Single-threaded input buffer access
                 unsafe {
                     execute_command(&INPUT_BUFFER[..len]);
                 }
             }
             INPUT_LEN.store(0, Ordering::Relaxed);
             INPUT_CURSOR.store(0, Ordering::Relaxed);
-            // SAFETY: Single-threaded input buffer access
             unsafe {
                 INPUT_BUFFER = [0u8; MAX_INPUT_LEN];
             }
@@ -70,7 +91,6 @@ pub fn terminal_key(ch: u8) {
         0x1B => {
             INPUT_LEN.store(0, Ordering::Relaxed);
             INPUT_CURSOR.store(0, Ordering::Relaxed);
-            // SAFETY: Single-threaded input buffer access
             unsafe {
                 INPUT_BUFFER = [0u8; MAX_INPUT_LEN];
             }
@@ -80,7 +100,6 @@ pub fn terminal_key(ch: u8) {
             let pos = INPUT_CURSOR.load(Ordering::Relaxed);
 
             if len < MAX_INPUT_LEN - 1 {
-                // SAFETY: Bounds checked above
                 unsafe {
                     for i in (pos..len).rev() {
                         INPUT_BUFFER[i + 1] = INPUT_BUFFER[i];
@@ -89,7 +108,7 @@ pub fn terminal_key(ch: u8) {
                 }
                 INPUT_LEN.store(len + 1, Ordering::Relaxed);
                 INPUT_CURSOR.store(pos + 1, Ordering::Relaxed);
-                put_char(ch, COLOR_TEXT_WHITE);
+                put_char(ch, COLOR_WHITE);
             }
         }
         _ => {}
