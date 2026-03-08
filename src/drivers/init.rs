@@ -48,32 +48,50 @@ pub fn init_all_drivers() -> Result<(), &'static str> {
     }
 
     crate::log_info!("[NET] Probing for hardware network adapters...");
+    let mut eth_count = 0u8;
 
     match init_e1000() {
         Ok(()) => {
             crate::log::logger::log_critical("✓ Intel E1000 Ethernet initialized");
+            eth_count += 1;
         }
-        Err(_) => {}
+        Err(e) => {
+            crate::log_info!("[E1000] Not found or init failed: {}", e);
+        }
     }
 
     match init_rtl8139() {
         Ok(()) => {
             crate::log::logger::log_critical("✓ Realtek RTL8139 Ethernet initialized");
+            eth_count += 1;
         }
-        Err(_) => {}
+        Err(e) => {
+            crate::log_info!("[RTL8139] Not found or init failed: {}", e);
+        }
     }
 
     match init_rtl8168() {
         Ok(()) => {
             crate::log::logger::log_critical("✓ Realtek RTL8168 Gigabit Ethernet initialized");
+            eth_count += 1;
         }
-        Err(_) => {}
+        Err(e) => {
+            crate::log_info!("[RTL8168] Not found or init failed: {}", e);
+        }
+    }
+
+    if eth_count == 0 {
+        crate::log_warn!("[NET] No Ethernet adapters detected - check PCI/drivers");
+    } else {
+        crate::log_info!("[NET] {} Ethernet adapter(s) ready", eth_count);
     }
 
     let wifi_count = init_wifi();
     if wifi_count > 0 {
         crate::log_info!("[WIFI] Found {} WiFi adapter(s)", wifi_count);
         print_wifi_status();
+    } else {
+        crate::log_info!("[WIFI] No WiFi adapters detected");
     }
 
     Ok(())
