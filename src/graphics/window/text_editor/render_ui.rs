@@ -15,10 +15,14 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use core::sync::atomic::Ordering;
-use crate::graphics::framebuffer::{fill_rect, COLOR_TEXT_WHITE, COLOR_YELLOW, COLOR_GREEN, COLOR_RED, COLOR_ACCENT};
+use crate::graphics::framebuffer::{fill_rect, put_pixel, COLOR_TEXT_WHITE, COLOR_YELLOW, COLOR_GREEN, COLOR_RED, COLOR_ACCENT};
 use crate::graphics::font::draw_char;
 use super::state::*;
 use super::file::is_modified;
+
+const COLOR_BORDER: u32 = 0xFF38383A;
+const COLOR_TEXT_DIM: u32 = 0xFF8E8E93;
+const COLOR_BTN: u32 = 0xFF3A3A3C;
 
 pub(super) fn draw_string(x: u32, y: u32, text: &[u8], color: u32) {
     for (i, &ch) in text.iter().enumerate() {
@@ -26,26 +30,45 @@ pub(super) fn draw_string(x: u32, y: u32, text: &[u8], color: u32) {
     }
 }
 
-pub(super) fn draw_file_picker(x: u32, y: u32, w: u32, h: u32) {
-    fill_rect(x, y, w, h, 0xFF0D1117);
+fn draw_rounded_rect(x: u32, y: u32, w: u32, h: u32, r: u32, color: u32) {
+    fill_rect(x + r, y, w - 2 * r, h, color);
+    fill_rect(x, y + r, w, h - 2 * r, color);
+    for dy in 0..r {
+        for dx in 0..r {
+            if dx * dx + dy * dy <= r * r {
+                put_pixel(x + r - dx, y + r - dy, color);
+                put_pixel(x + w - r + dx - 1, y + r - dy, color);
+                put_pixel(x + r - dx, y + h - r + dy - 1, color);
+                put_pixel(x + w - r + dx - 1, y + h - r + dy - 1, color);
+            }
+        }
+    }
+}
 
-    fill_rect(x, y, w, 35, 0xFF21262D);
-    draw_string(x + 10, y + 10, b"Open File", COLOR_TEXT_WHITE);
+pub(super) fn draw_file_picker(x: u32, y: u32, w: u32, h: u32) {
+    fill_rect(x, y, w, h, 0xFF000000);
+
+    for gy in 0..44u32 {
+        let shade = 44 - (gy / 3) as u8;
+        let color = 0xFF000000 | ((shade as u32) << 16) | ((shade as u32) << 8) | (shade as u32);
+        fill_rect(x, y + gy, w, 1, color);
+    }
+    fill_rect(x, y + 43, w, 1, COLOR_BORDER);
+    draw_string(x + 16, y + 14, b"Open File", COLOR_TEXT_WHITE);
 
     let path_len = PICKER_PATH_LEN.load(Ordering::Relaxed);
     if path_len > 0 {
-        // SAFETY: Single-threaded access during render
         unsafe {
-            let display_len = path_len.min(50);
-            draw_string(x + 100, y + 10, &PICKER_PATH[..display_len], 0xFF7D8590);
+            let display_len = path_len.min(45);
+            draw_string(x + 100, y + 14, &PICKER_PATH[..display_len], COLOR_TEXT_DIM);
         }
     }
 
-    let list_y = y + 40;
-    let list_h = h - 85;
-    let row_height = 24u32;
+    let list_y = y + 48;
+    let list_h = h - 100;
+    let row_height = 28u32;
 
-    fill_rect(x + 10, list_y, w - 20, list_h, 0xFF161B22);
+    fill_rect(x + 12, list_y, w - 24, list_h, 0xFF1C1C1E);
 
     let count = PICKER_COUNT.load(Ordering::Relaxed);
     let selected = PICKER_SELECTED.load(Ordering::Relaxed);
@@ -55,74 +78,91 @@ pub(super) fn draw_file_picker(x: u32, y: u32, w: u32, h: u32) {
         let row_y = list_y + (i as u32) * row_height;
 
         if i == selected {
-            fill_rect(x + 10, row_y, w - 20, row_height, 0xFF2D4A3A);
+            draw_rounded_rect(x + 16, row_y + 2, w - 32, row_height - 4, 4, 0xFF0A4A7A);
         }
 
-        // SAFETY: Single-threaded access during render
         let (name_len, is_dir) = unsafe {
             (PICKER_LENS[i], PICKER_IS_DIR[i])
         };
 
         if name_len > 0 {
-            let icon_color = if is_dir { COLOR_ACCENT } else { 0xFF7D8590 };
+            let icon_color = if is_dir { COLOR_ACCENT } else { COLOR_TEXT_DIM };
             if is_dir {
-                fill_rect(x + 20, row_y + 6, 14, 10, icon_color);
+                fill_rect(x + 24, row_y + 7, 16, 12, icon_color);
             } else {
-                fill_rect(x + 20, row_y + 4, 12, 14, icon_color);
+                fill_rect(x + 26, row_y + 5, 12, 16, icon_color);
             }
 
-            // SAFETY: Single-threaded access during render
             unsafe {
-                draw_string(x + 42, row_y + 5, &PICKER_FILES[i][..name_len], COLOR_TEXT_WHITE);
+                draw_string(x + 48, row_y + 8, &PICKER_FILES[i][..name_len], COLOR_TEXT_WHITE);
             }
         }
     }
 
-    let btn_y = y + h - 40;
+    let btn_y = y + h - 48;
 
-    fill_rect(x + w - 80, btn_y, 60, 25, 0xFF4A5568);
-    draw_string(x + w - 68, btn_y + 6, b"Cancel", COLOR_TEXT_WHITE);
+    draw_rounded_rect(x + w - 90, btn_y, 72, 32, 6, COLOR_BTN);
+    draw_string(x + w - 76, btn_y + 10, b"Cancel", COLOR_TEXT_WHITE);
 
-    fill_rect(x + w - 150, btn_y, 60, 25, COLOR_ACCENT);
-    draw_string(x + w - 142, btn_y + 6, b"Open", 0xFF0D1117);
+    draw_rounded_rect(x + w - 172, btn_y, 72, 32, 6, COLOR_ACCENT);
+    draw_string(x + w - 160, btn_y + 10, b"Open", 0xFF000000);
 }
 
 pub(super) fn draw_toolbar(x: u32, y: u32, w: u32) {
-    fill_rect(x, y, w, TOOLBAR_HEIGHT, 0xFF21262D);
+    for gy in 0..TOOLBAR_HEIGHT {
+        let shade = 44 - (gy / 2) as u8;
+        let color = 0xFF000000 | ((shade as u32) << 16) | ((shade as u32) << 8) | (shade as u32);
+        fill_rect(x, y + gy, w, 1, color);
+    }
+    fill_rect(x, y + TOOLBAR_HEIGHT - 1, w, 1, COLOR_BORDER);
 
     let tools: [(&[u8], u32); 4] = [
-        (b"New", 40),
-        (b"Open", 48),
-        (b"Save", 48),
+        (b"New", 48),
+        (b"Open", 52),
+        (b"Save", 52),
         (b"Close", 56),
     ];
 
-    let mut tx = x + 10;
+    let mut tx = x + 12;
     for (tool, btn_w) in tools.iter() {
-        fill_rect(tx, y + 5, *btn_w, 25, 0xFF2D333B);
-        draw_string(tx + 8, y + 10, tool, COLOR_TEXT_WHITE);
-        tx += btn_w + 8;
+        draw_rounded_rect(tx, y + 6, *btn_w, 26, 6, COLOR_BTN);
+        draw_string(tx + 10, y + 12, tool, COLOR_TEXT_WHITE);
+        tx += btn_w + 10;
     }
 
     let status = EDITOR_STATUS.load(Ordering::Relaxed);
     let modified = is_modified();
 
-    let status_x = x + w - 100;
+    let status_x = x + w - 110;
     match status {
-        STATUS_SAVED => draw_string(status_x, y + 10, b"Saved", COLOR_GREEN),
-        STATUS_OPENED => draw_string(status_x, y + 10, b"Opened", COLOR_ACCENT),
-        STATUS_ERROR => draw_string(status_x, y + 10, b"Error", COLOR_RED),
-        STATUS_NEW => draw_string(status_x, y + 10, b"New", COLOR_ACCENT),
+        STATUS_SAVED => {
+            draw_rounded_rect(status_x, y + 6, 90, 26, 6, 0xFF1A3A1A);
+            draw_string(status_x + 24, y + 12, b"Saved", COLOR_GREEN);
+        }
+        STATUS_OPENED => {
+            draw_rounded_rect(status_x, y + 6, 90, 26, 6, 0xFF1A2A3A);
+            draw_string(status_x + 20, y + 12, b"Opened", COLOR_ACCENT);
+        }
+        STATUS_ERROR => {
+            draw_rounded_rect(status_x, y + 6, 90, 26, 6, 0xFF3A1A1A);
+            draw_string(status_x + 24, y + 12, b"Error", COLOR_RED);
+        }
+        STATUS_NEW => {
+            draw_rounded_rect(status_x, y + 6, 90, 26, 6, 0xFF1A2A3A);
+            draw_string(status_x + 32, y + 12, b"New", COLOR_ACCENT);
+        }
         _ => {
             if modified {
-                draw_string(status_x, y + 10, b"Modified", COLOR_YELLOW);
+                draw_rounded_rect(status_x, y + 6, 90, 26, 6, 0xFF3A3500);
+                draw_string(status_x + 12, y + 12, b"Modified", COLOR_YELLOW);
             }
         }
     }
 }
 
 pub(super) fn draw_line_numbers(x: u32, y: u32, h: u32) {
-    fill_rect(x, y, LINE_NUM_WIDTH, h, 0xFF161B22);
+    fill_rect(x, y, LINE_NUM_WIDTH, h, 0xFF1C1C1E);
+    fill_rect(x + LINE_NUM_WIDTH - 1, y, 1, h, COLOR_BORDER);
 }
 
 pub(super) fn draw_line_number(x: u32, y: u32, num: usize) {
@@ -147,17 +187,22 @@ pub(super) fn draw_status_bar(x: u32, y: u32, w: u32, h: u32) {
     use super::cursor as cur;
 
     let bar_y = y + h - STATUS_BAR_HEIGHT;
-    fill_rect(x, bar_y, w, STATUS_BAR_HEIGHT, 0xFF21262D);
+
+    for gy in 0..STATUS_BAR_HEIGHT {
+        let shade = 28 - (gy / 4) as u8;
+        let color = 0xFF000000 | ((shade as u32) << 16) | ((shade as u32) << 8) | (shade as u32);
+        fill_rect(x, bar_y + gy, w, 1, color);
+    }
+    fill_rect(x, bar_y, w, 1, COLOR_BORDER);
 
     let path_len = EDITOR_PATH_LEN.load(Ordering::Relaxed);
     if path_len > 0 {
         let display_len = path_len.min(30);
-        // SAFETY: Single-threaded access during render
         unsafe {
-            draw_string(x + 10, bar_y + 7, &EDITOR_FILE_PATH[..display_len], 0xFF7D8590);
+            draw_string(x + 12, bar_y + 8, &EDITOR_FILE_PATH[..display_len], COLOR_TEXT_DIM);
         }
     } else {
-        draw_string(x + 10, bar_y + 7, b"untitled", 0xFF7D8590);
+        draw_string(x + 12, bar_y + 8, b"untitled", COLOR_TEXT_DIM);
     }
 
     let (line, col) = cur::get_line_col();
@@ -171,7 +216,7 @@ pub(super) fn draw_status_bar(x: u32, y: u32, w: u32, h: u32) {
     idx += 5;
     idx += format_number(&mut pos_buf[idx..], col);
 
-    draw_string(x + w - 120, bar_y + 7, &pos_buf[..idx], 0xFF7D8590);
+    draw_string(x + w - 130, bar_y + 8, &pos_buf[..idx], COLOR_TEXT_DIM);
 }
 
 pub(super) fn format_number(buf: &mut [u8], num: usize) -> usize {
