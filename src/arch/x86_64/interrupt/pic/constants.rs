@@ -14,8 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-#![allow(dead_code)]
-
 pub(crate) const PIC1_CMD: u16 = 0x20;
 pub(crate) const PIC1_DATA: u16 = 0x21;
 pub(crate) const PIC2_CMD: u16 = 0xA0;
