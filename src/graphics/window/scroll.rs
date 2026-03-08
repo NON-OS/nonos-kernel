@@ -18,9 +18,9 @@ use core::sync::atomic::Ordering;
 use crate::graphics::framebuffer::fill_rect;
 use super::state::{WINDOWS, MAX_WINDOWS, SCROLLBAR_WIDTH, SCROLLBAR_MIN_THUMB, TITLE_BAR_HEIGHT};
 
-const SCROLLBAR_BG: u32 = 0xFF21262D;
-const SCROLLBAR_THUMB: u32 = 0xFF4A5568;
-const SCROLLBAR_THUMB_HOVER: u32 = 0xFF6B7280;
+const SCROLLBAR_BG: u32 = 0xFF1C1C1E;
+const SCROLLBAR_THUMB: u32 = 0xFF636366;
+const SCROLLBAR_THUMB_HOVER: u32 = 0xFF8E8E93;
 
 fn calc_thumb(viewport_size: u32, content_size: u32, scroll_offset: i32) -> (u32, u32) {
     if content_size <= viewport_size {

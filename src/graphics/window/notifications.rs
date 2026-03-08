@@ -15,8 +15,26 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use core::sync::atomic::{AtomicU8, AtomicU64, Ordering};
-use crate::graphics::framebuffer::{fill_rect, dimensions, COLOR_ACCENT, COLOR_TEXT_WHITE, COLOR_GREEN, COLOR_RED, COLOR_YELLOW};
+use crate::graphics::framebuffer::{fill_rect, put_pixel, dimensions, COLOR_ACCENT, COLOR_TEXT_WHITE, COLOR_GREEN, COLOR_RED, COLOR_YELLOW};
 use crate::graphics::font::draw_char;
+
+const COLOR_NOTIF_BG: u32 = 0xF02C2C2E;
+const COLOR_TEXT_DIM: u32 = 0xFF8E8E93;
+
+fn draw_rounded_rect(x: u32, y: u32, w: u32, h: u32, r: u32, color: u32) {
+    fill_rect(x + r, y, w - 2 * r, h, color);
+    fill_rect(x, y + r, w, h - 2 * r, color);
+    for dy in 0..r {
+        for dx in 0..r {
+            if dx * dx + dy * dy <= r * r {
+                put_pixel(x + r - dx, y + r - dy, color);
+                put_pixel(x + w - r + dx - 1, y + r - dy, color);
+                put_pixel(x + r - dx, y + h - r + dy - 1, color);
+                put_pixel(x + w - r + dx - 1, y + h - r + dy - 1, color);
+            }
+        }
+    }
+}
 
 const MAX_NOTIFICATIONS: usize = 5;
 const MAX_MESSAGE_LEN: usize = 64;
@@ -137,39 +155,49 @@ pub fn draw() {
     clear_expired();
 
     let (screen_w, _) = dimensions();
-    let notif_w = 300u32;
-    let notif_h = 50u32;
-    let padding = 10u32;
+    let notif_w = 320u32;
+    let notif_h = 60u32;
+    let padding = 12u32;
     let start_x = screen_w - notif_w - padding;
-    let start_y = 45u32;
+    let start_y = 48u32;
 
     let mut drawn = 0u32;
 
-    // SAFETY: Read-only access to notifications for drawing
     unsafe {
         for i in 0..MAX_NOTIFICATIONS {
             if NOTIFICATIONS[i].active {
                 let y = start_y + drawn * (notif_h + padding);
 
-                let (bg_color, icon_color) = match NOTIFICATIONS[i].ntype {
-                    NOTIFY_SUCCESS => (0xFF1A3A2A, COLOR_GREEN),
-                    NOTIFY_WARNING => (0xFF3A3A1A, COLOR_YELLOW),
-                    NOTIFY_ERROR => (0xFF3A1A1A, COLOR_RED),
-                    _ => (0xFF1E2530, COLOR_ACCENT),
-                };
-
-                fill_rect(start_x, y, notif_w, notif_h, bg_color);
-                fill_rect(start_x, y, 4, notif_h, icon_color);
-
-                fill_rect(start_x + 12, y + 17, 16, 16, icon_color);
-
-                if NOTIFICATIONS[i].message_len > 0 {
-                    let display_len = NOTIFICATIONS[i].message_len.min(32);
-                    draw_string(start_x + 36, y + 17, &NOTIFICATIONS[i].message[..display_len], COLOR_TEXT_WHITE);
+                for shadow in 0..4u32 {
+                    let alpha = 20 - shadow * 4;
+                    draw_rounded_rect(start_x + shadow / 2, y + shadow + 2, notif_w, notif_h, 12, (alpha << 24) | 0x000000);
                 }
 
-                fill_rect(start_x + notif_w - 20, y + 5, 14, 14, 0xFF4A5568);
-                draw_char(start_x + notif_w - 17, y + 6, b'x', 0xFF7D8590);
+                draw_rounded_rect(start_x, y, notif_w, notif_h, 12, COLOR_NOTIF_BG);
+
+                let icon_color = match NOTIFICATIONS[i].ntype {
+                    NOTIFY_SUCCESS => COLOR_GREEN,
+                    NOTIFY_WARNING => COLOR_YELLOW,
+                    NOTIFY_ERROR => COLOR_RED,
+                    _ => COLOR_ACCENT,
+                };
+
+                draw_rounded_rect(start_x + 14, y + 18, 24, 24, 6, icon_color);
+
+                let icon_char: u8 = match NOTIFICATIONS[i].ntype {
+                    NOTIFY_SUCCESS => 0x04,
+                    NOTIFY_WARNING => b'!',
+                    NOTIFY_ERROR => b'X',
+                    _ => b'i',
+                };
+                draw_char(start_x + 22, y + 22, icon_char, 0xFF000000);
+
+                if NOTIFICATIONS[i].message_len > 0 {
+                    let display_len = NOTIFICATIONS[i].message_len.min(30);
+                    draw_string(start_x + 48, y + 22, &NOTIFICATIONS[i].message[..display_len], COLOR_TEXT_WHITE);
+                }
+
+                draw_char(start_x + notif_w - 24, y + 8, b'x', COLOR_TEXT_DIM);
 
                 drawn += 1;
             }
@@ -179,11 +207,11 @@ pub fn draw() {
 
 pub fn handle_click(mx: i32, my: i32) -> bool {
     let (screen_w, _) = dimensions();
-    let notif_w = 300u32;
-    let notif_h = 50u32;
-    let padding = 10u32;
+    let notif_w = 320u32;
+    let notif_h = 60u32;
+    let padding = 12u32;
     let start_x = (screen_w - notif_w - padding) as i32;
-    let start_y = 45i32;
+    let start_y = 48i32;
 
     let mut drawn = 0i32;
 

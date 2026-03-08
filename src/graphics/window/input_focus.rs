@@ -66,5 +66,10 @@ pub fn is_file_manager_focused() -> bool {
 }
 
 pub fn is_text_input_focused() -> bool {
-    is_editor_focused() || is_terminal_focused() || is_browser_focused() || is_wallet_focused() || is_ecosystem_focused()
+    is_editor_focused()
+        || is_terminal_focused()
+        || is_browser_focused()
+        || is_wallet_focused()
+        || is_ecosystem_focused()
+        || (is_file_manager_focused() && super::file_manager::state::is_input_active())
 }
