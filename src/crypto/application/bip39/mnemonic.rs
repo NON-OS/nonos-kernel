@@ -35,11 +35,18 @@ pub struct Mnemonic {
 }
 
 impl Mnemonic {
+    /*
+     * wallet mnemonic generation uses generate_wallet_entropy which
+     * pulls from virtio-rng (qemu), rdrand/rdseed (real hardware),
+     * plus chacha20 rng mixed together. this ensures unique keys
+     * everywhere - qemu vms, real laptops, servers, all get different
+     * wallets now.
+     */
     pub fn generate(strength: MnemonicStrength) -> CryptoResult<Self> {
         let entropy_bytes = strength.entropy_bits() / 8;
         let mut entropy = alloc::vec![0u8; entropy_bytes];
 
-        random::get_bytes(&mut entropy)?;
+        random::generate_wallet_entropy(&mut entropy);
 
         Self::from_entropy(&entropy)
     }
