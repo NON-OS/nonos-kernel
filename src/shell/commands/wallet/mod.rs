@@ -19,9 +19,13 @@ mod format;
 mod status;
 mod keys;
 mod accounts;
-mod transactions;
+mod send;
+mod sign;
+mod stealth;
 
 pub use self::status::{cmd_wallet_status, cmd_wallet_help};
 pub use self::keys::{cmd_wallet_new, cmd_wallet_unlock, cmd_wallet_lock, cmd_wallet_export};
 pub use self::accounts::{cmd_wallet_address, cmd_wallet_balance, cmd_wallet_derive};
-pub use self::transactions::{cmd_wallet_send, cmd_wallet_sign, cmd_wallet_stealth};
+pub use self::send::cmd_wallet_send;
+pub use self::sign::cmd_wallet_sign;
+pub use self::stealth::cmd_wallet_stealth;
