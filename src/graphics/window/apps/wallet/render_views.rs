@@ -50,6 +50,10 @@ fn draw_input_field(x: u32, y: u32, w: u32, h: u32, focused: bool) {
 pub(super) fn draw_overview(x: u32, y: u32, w: u32, h: u32) {
     draw_string(x + 20, y + 20, b"Accounts", COLOR_TEXT_WHITE);
 
+    /* add account button */
+    draw_rounded_rect(x + w - 190, y + 15, 80, 32, 8, 0xFF34C759);
+    draw_string(x + w - 165, y + 23, b"+ New", 0xFF000000);
+
     draw_rounded_rect(x + w - 100, y + 15, 80, 32, 8, COLOR_ACCENT);
     draw_string(x + w - 90, y + 23, b"Refresh", 0xFF000000);
 
