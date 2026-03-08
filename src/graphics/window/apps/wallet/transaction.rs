@@ -89,8 +89,8 @@ pub(super) fn execute_send() {
         }
     };
 
-    let sender_address = match state.get_active_account() {
-        Some(acc) => acc.address,
+    let (sender_address, account_index) = match state.get_active_account() {
+        Some(acc) => (acc.address, acc.index),
         None => {
             drop(state);
             set_status(b"No active account", false);
@@ -115,7 +115,7 @@ pub(super) fn execute_send() {
         }
     };
 
-    let secret_key = derive_signing_key(&master_key, 0);
+    let secret_key = derive_signing_key(&master_key, account_index);
 
     let gas_cost = (gas_price as u128) * 21000;
     let total_required = value_wei.saturating_add(gas_cost);
@@ -235,15 +235,14 @@ fn parse_eth_to_wei(amount: &str) -> Option<u128> {
 fn derive_signing_key(master_key: &[u8; 32], index: u32) -> [u8; 32] {
     use crate::crypto::blake3_hash;
 
-    let mut path = alloc::vec::Vec::with_capacity(32 + 21 + 4);
-    path.extend_from_slice(master_key);
-    path.extend_from_slice(b"NONOS:WALLET:ACCOUNT:");
-    path.extend_from_slice(&index.to_le_bytes());
+    /* Use fixed-size array to avoid potential Vec issues in no_std environment.
+     * Path format: master_key (32) + "NONOS:WALLET:ACCOUNT:" (21) + index_le (4) = 57 bytes */
+    let mut path = [0u8; 57];
+    path[0..32].copy_from_slice(master_key);
+    path[32..53].copy_from_slice(b"NONOS:WALLET:ACCOUNT:");
+    path[53..57].copy_from_slice(&index.to_le_bytes());
 
-    let seed = blake3_hash(&path);
-    let mut key = [0u8; 32];
-    key.copy_from_slice(&seed);
-    key
+    blake3_hash(&path)
 }
 
 fn build_and_sign_tx(
