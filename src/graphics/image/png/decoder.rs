@@ -47,6 +47,10 @@ pub fn decode_png(data: &[u8]) -> Option<DecodedImage> {
                 let bit_depth = chunk_data[8];
                 color_type = chunk_data[9];
 
+                if width > 8192 || height > 8192 || width == 0 || height == 0 {
+                    return None;
+                }
+
                 if bit_depth != 8 || (color_type != 2 && color_type != 6) {
                     return None;
                 }
@@ -87,6 +91,9 @@ pub fn decode_png(data: &[u8]) -> Option<DecodedImage> {
 
     for y in 0..height as usize {
         let row_start = y * (row_bytes + 1);
+        if row_start + 1 + row_bytes > raw_data.len() {
+            return None;
+        }
         let filter = raw_data[row_start];
         let scanline = &raw_data[row_start + 1..row_start + 1 + row_bytes];
 
