@@ -20,9 +20,9 @@ use super::constants::*;
 use super::state::{set_path, FILE_ENTRIES, FILE_ENTRY_COUNT, FM_SELECTED_ITEM};
 use super::path::{go_up, go_into};
 use super::listing::refresh_listing;
-use super::operations::{create_folder, delete_selected, rename_selected};
+use super::operations::{create_folder, create_file, delete_selected, rename_selected};
 use super::clipboard::{copy_selected, cut_selected, paste};
-use super::state::{FM_RENAMING, is_input_active, get_input_text, clear_input, push_input_char, pop_input_char};
+use super::state::{FM_RENAMING, FM_CREATING_FOLDER, FM_CREATING_FILE, is_input_active, get_input_text, clear_input, push_input_char, pop_input_char};
 
 pub fn handle_file_manager_click(win_x: u32, win_y: u32, win_w: u32, click_x: i32, click_y: i32) -> bool {
     let content_y = (win_y + TITLE_BAR_HEIGHT) as i32;
@@ -40,25 +40,30 @@ pub fn handle_file_manager_click(win_x: u32, win_y: u32, win_w: u32, click_x: i3
         }
 
         let ops_y = content_y + 210;
-        if click_y >= ops_y && click_y < ops_y + 144 {
-            let op_row = ((click_y - ops_y) / 24) as usize;
+        if click_y >= ops_y && click_y < ops_y + 176 {
+            let op_row = ((click_y - ops_y) / 22) as usize;
             match op_row {
                 0 => {
-                    let _ = create_folder("NEWFOLDER");
+                    clear_input();
+                    FM_CREATING_FOLDER.store(true, Ordering::Relaxed);
                 }
                 1 => {
-                    let _ = copy_selected();
+                    clear_input();
+                    FM_CREATING_FILE.store(true, Ordering::Relaxed);
                 }
                 2 => {
-                    let _ = cut_selected();
+                    let _ = copy_selected();
                 }
                 3 => {
-                    let _ = paste();
+                    let _ = cut_selected();
                 }
                 4 => {
-                    let _ = delete_selected();
+                    let _ = paste();
                 }
                 5 => {
+                    let _ = delete_selected();
+                }
+                6 => {
                     start_rename();
                 }
                 _ => {}
@@ -142,17 +147,29 @@ pub fn handle_file_manager_special_key(key: u8) -> bool {
             pop_input_char();
             true
         }
-        0x1C => { // Enter - commit rename
+        0x1C => { // Enter - commit operation
+            let name = get_input_text();
             if FM_RENAMING.load(Ordering::Relaxed) {
-                let new_name = get_input_text();
-                let _ = rename_selected(new_name);
+                let _ = rename_selected(name);
                 FM_RENAMING.store(false, Ordering::Relaxed);
-                clear_input();
+            } else if FM_CREATING_FOLDER.load(Ordering::Relaxed) {
+                if !name.is_empty() {
+                    let _ = create_folder(name);
+                }
+                FM_CREATING_FOLDER.store(false, Ordering::Relaxed);
+            } else if FM_CREATING_FILE.load(Ordering::Relaxed) {
+                if !name.is_empty() {
+                    let _ = create_file(name);
+                }
+                FM_CREATING_FILE.store(false, Ordering::Relaxed);
             }
+            clear_input();
             true
         }
         0x01 => { // Escape - cancel
             FM_RENAMING.store(false, Ordering::Relaxed);
+            FM_CREATING_FOLDER.store(false, Ordering::Relaxed);
+            FM_CREATING_FILE.store(false, Ordering::Relaxed);
             clear_input();
             true
         }
@@ -160,9 +177,9 @@ pub fn handle_file_manager_special_key(key: u8) -> bool {
     }
 }
 
-pub fn cancel_rename() {
-    if FM_RENAMING.load(Ordering::Relaxed) {
-        FM_RENAMING.store(false, Ordering::Relaxed);
-        clear_input();
-    }
+pub fn cancel_input() {
+    FM_RENAMING.store(false, Ordering::Relaxed);
+    FM_CREATING_FOLDER.store(false, Ordering::Relaxed);
+    FM_CREATING_FILE.store(false, Ordering::Relaxed);
+    clear_input();
 }

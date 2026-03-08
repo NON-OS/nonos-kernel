@@ -35,6 +35,7 @@ pub static FM_SELECTED_ITEM: AtomicU8 = AtomicU8::new(255);
 pub(crate) static mut CURRENT_SOURCE: FileSource = FileSource::Ramfs;
 
 pub(crate) static FM_CREATING_FOLDER: AtomicBool = AtomicBool::new(false);
+pub(crate) static FM_CREATING_FILE: AtomicBool = AtomicBool::new(false);
 pub(crate) static FM_RENAMING: AtomicBool = AtomicBool::new(false);
 pub(crate) static FM_DELETING: AtomicBool = AtomicBool::new(false);
 
@@ -109,7 +110,9 @@ pub(crate) fn get_current_source() -> FileSource {
 }
 
 pub(crate) fn is_input_active() -> bool {
-    FM_CREATING_FOLDER.load(Ordering::Relaxed) || FM_RENAMING.load(Ordering::Relaxed)
+    FM_CREATING_FOLDER.load(Ordering::Relaxed)
+        || FM_CREATING_FILE.load(Ordering::Relaxed)
+        || FM_RENAMING.load(Ordering::Relaxed)
 }
 
 pub(crate) fn get_input_text() -> &'static str {
