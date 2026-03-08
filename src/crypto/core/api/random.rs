@@ -49,15 +49,39 @@ pub fn fill_random(buf: &mut [u8]) {
 
 /*
  * Generates a 32-byte cryptographic key using aggressive entropy collection.
- * Uses RDRAND as primary source (works in QEMU Haswell), with multiple
- * fallbacks including TSC jitter, PIT sampling, and RTC timestamp.
  *
- * v3: RDRAND is now primary source since virtio-rng queue has issues.
- * Each boot MUST produce a different key due to RTC + TSC jitter.
+ * v5: Added VIRTIO-RNG support for true randomness in QEMU.
+ * In QEMU: Start with `-device virtio-rng-pci` for guaranteed unique keys.
+ * Without virtio-rng, falls back to timing-based entropy which may be
+ * deterministic across VM restarts from the same snapshot.
+ *
+ * Each call MUST produce a different key even if hardware RNG fails.
  */
 pub fn generate_secure_key() -> [u8; 32] {
+    use crate::drivers::virtio_rng;
+
     let mut entropy_pool = [0u8; 256];
     let mut offset = 0;
+    let mut has_true_randomness = false;
+
+    /* CRITICAL: Try virtio-rng FIRST - this gives TRUE randomness in QEMU
+     * from the host's /dev/urandom. This is the ONLY reliable entropy
+     * source in a VM without hardware RNG. */
+    if virtio_rng::is_available() {
+        let mut virt_buf = [0u8; 64];
+        if virtio_rng::fill_random(&mut virt_buf).is_ok() {
+            entropy_pool[offset..offset + 64].copy_from_slice(&virt_buf);
+            offset += 64;
+            has_true_randomness = true;
+            /* Scrub */
+            for b in virt_buf.iter_mut() {
+                unsafe { core::ptr::write_volatile(b, 0) };
+            }
+        }
+    }
+
+    /* Capture initial TSC for timing baseline */
+    let tsc_start = read_tsc();
 
     /* Source 1: 64 bytes from RDRAND (Haswell+ has this) */
     for _ in 0..8 {
@@ -66,21 +90,26 @@ pub fn generate_secure_key() -> [u8; 32] {
         offset += 8;
     }
 
-    /* Source 2: First TSC reading */
+    /* Source 2: First TSC reading after RDRAND work */
     let tsc1 = read_tsc();
     entropy_pool[offset..offset + 8].copy_from_slice(&tsc1.to_le_bytes());
     offset += 8;
 
-    /* Source 3: Stack pointer XOR with heap address */
+    /* Source 3: Stack pointer XOR with heap address and initial delta */
     let stack_addr = get_stack_pointer();
     let heap_entropy = entropy_pool.as_ptr() as u64;
-    let mixed = stack_addr ^ heap_entropy ^ tsc1;
+    let initial_jitter = tsc1.wrapping_sub(tsc_start);
+    let mixed = stack_addr ^ heap_entropy ^ tsc1 ^ initial_jitter.wrapping_mul(0x517cc1b727220a95);
     entropy_pool[offset..offset + 8].copy_from_slice(&mixed.to_le_bytes());
     offset += 8;
 
-    /* Source 4: More RDRAND with jitter delays */
+    /* Source 4: More RDRAND with PIT-based jitter delays.
+     * Use PIT counter as delay source - actual hardware timing varies. */
     for i in 0..4 {
-        for _ in 0..(i + 1) * 10 {
+        /* Read PIT and use low bits for variable delay */
+        let pit_delay = read_pit_counter();
+        let delay_loops = ((pit_delay as u32) & 0xFF).wrapping_add((i as u32 + 1) * 50);
+        for _ in 0..delay_loops {
             core::hint::spin_loop();
         }
         let val = rdrand64_or_tsc();
@@ -88,24 +117,27 @@ pub fn generate_secure_key() -> [u8; 32] {
         offset += 8;
     }
 
-    /* Source 5: 8 PIT counter samples with delays */
+    /* Source 5: 8 PIT counter samples with timing measurements.
+     * PIT decrements at ~1.19MHz, so readings vary based on exact timing. */
     for i in 0..8 {
         let pit_val = read_pit_counter();
         entropy_pool[offset..offset + 2].copy_from_slice(&pit_val.to_le_bytes());
         offset += 2;
-        for _ in 0..(i + 1) * 5 {
+        /* Variable delay based on previous PIT reading */
+        for _ in 0..((pit_val & 0x3F) as u32 + (i as u32 + 1) * 10) {
             core::hint::spin_loop();
         }
     }
 
-    /* Source 6: Second TSC - captures timing jitter */
+    /* Source 6: Second TSC - captures accumulated timing jitter */
     let tsc2 = read_tsc();
     entropy_pool[offset..offset + 8].copy_from_slice(&tsc2.to_le_bytes());
     offset += 8;
 
-    /* Source 7: TSC delta (highly variable) */
+    /* Source 7: TSC delta with nonlinear mixing */
     let jitter = tsc2.wrapping_sub(tsc1);
-    entropy_pool[offset..offset + 8].copy_from_slice(&jitter.to_le_bytes());
+    let mixed_jitter = jitter.wrapping_mul(0x9E3779B97F4A7C15).rotate_right((jitter & 31) as u32);
+    entropy_pool[offset..offset + 8].copy_from_slice(&mixed_jitter.to_le_bytes());
     offset += 8;
 
     /* Source 8: RTC unix timestamp - DIFFERENT EACH BOOT */
@@ -113,9 +145,11 @@ pub fn generate_secure_key() -> [u8; 32] {
     entropy_pool[offset..offset + 8].copy_from_slice(&rtc_time.to_le_bytes());
     offset += 8;
 
-    /* Source 9: Kernel millisecond timer */
+    /* Source 9: Kernel millisecond timer XORed with PIT for sub-ms entropy */
     let kernel_ms = crate::time::timestamp_millis();
-    entropy_pool[offset..offset + 8].copy_from_slice(&kernel_ms.to_le_bytes());
+    let pit_now = read_pit_counter() as u64;
+    let time_entropy = kernel_ms ^ (pit_now << 48) ^ (pit_now << 32) ^ (pit_now << 16);
+    entropy_pool[offset..offset + 8].copy_from_slice(&time_entropy.to_le_bytes());
     offset += 8;
 
     /* Source 10: ChaCha20 RNG bytes */
@@ -124,26 +158,44 @@ pub fn generate_secure_key() -> [u8; 32] {
     entropy_pool[offset..offset + 32].copy_from_slice(&rng_bytes);
     offset += 32;
 
-    /* Source 11: Third TSC reading */
+    /* Source 11: Third TSC reading with another PIT-based delay */
+    let pit_for_delay = read_pit_counter();
+    for _ in 0..(pit_for_delay & 0x7F) as u32 {
+        core::hint::spin_loop();
+    }
     let tsc3 = read_tsc();
     entropy_pool[offset..offset + 8].copy_from_slice(&tsc3.to_le_bytes());
     offset += 8;
 
-    /* Source 12: More jitter */
+    /* Source 12: Combined jitter from all TSC measurements */
     let jitter2 = tsc3.wrapping_sub(tsc2);
-    entropy_pool[offset..offset + 8].copy_from_slice(&jitter2.to_le_bytes());
+    let total_jitter = tsc3.wrapping_sub(tsc_start);
+    let combined = jitter2 ^ total_jitter.rotate_left(17) ^ jitter.rotate_right(23);
+    entropy_pool[offset..offset + 8].copy_from_slice(&combined.to_le_bytes());
+
+    /* Log warning if no true randomness available */
+    if !has_true_randomness {
+        crate::log_warn!("crypto: No virtio-rng! Add -device virtio-rng-pci to QEMU for unique wallets");
+    }
     offset += 8;
 
-    /* Source 13: Final RDRAND burst */
-    for _ in 0..4 {
+    /* Source 13: Final RDRAND burst with variable PIT-based delays */
+    for i in 0..4 {
+        let pit_d = read_pit_counter();
+        for _ in 0..(pit_d & 0x1F) as u32 + i * 8 {
+            core::hint::spin_loop();
+        }
         let val = rdrand64_or_tsc();
         entropy_pool[offset..offset + 8].copy_from_slice(&val.to_le_bytes());
         offset += 8;
     }
 
-    /* Source 14: Global counter - ensures uniqueness even within same boot */
+    /* Source 14: Global counter - ensures uniqueness even within same boot.
+     * XOR with final TSC to add timing dependency. */
     let counter = KEYGEN_COUNTER.fetch_add(0xA3B7_C1D5_E9F2_4680, Ordering::SeqCst);
-    entropy_pool[offset..offset + 8].copy_from_slice(&counter.to_le_bytes());
+    let tsc_final = read_tsc();
+    let counter_mixed = counter ^ tsc_final ^ tsc_final.wrapping_sub(tsc_start);
+    entropy_pool[offset..offset + 8].copy_from_slice(&counter_mixed.to_le_bytes());
 
     /* Mix through BLAKE3 */
     let key = blake3_hash(&entropy_pool);
@@ -179,10 +231,12 @@ fn rdrand64_or_tsc() -> u64 {
             return val;
         }
     }
-    /* Fallback: TSC XOR with incrementing counter for uniqueness */
+    /* Fallback: TSC XOR with incrementing counter AND PIT for more entropy.
+     * QEMU's RDRAND can fail, and TSC alone might not have enough jitter. */
     let tsc = read_tsc();
-    let ctr = KEYGEN_COUNTER.fetch_add(1, Ordering::Relaxed);
-    tsc ^ ctr
+    let pit = read_pit_counter() as u64;
+    let ctr = KEYGEN_COUNTER.fetch_add(0x9E3779B97F4A7C15, Ordering::Relaxed);
+    tsc ^ ctr ^ (pit << 32) ^ (pit << 16)
 }
 
 pub fn generate_secure_key_checked() -> Result<[u8; 32], &'static str> {
