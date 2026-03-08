@@ -205,3 +205,17 @@ pub fn clear_screen(color: u32) {
     let height = FB_HEIGHT.load(Ordering::Relaxed);
     fill_rect(0, 0, width, height, color);
 }
+
+/*
+ * Stop framebuffer access before ExitBootServices (issue #8)
+ *
+ * Some firmware hangs if we touch the framebuffer during the
+ * ExitBootServices transition. Seen on nvidia optimus laptops
+ * and HP EliteDesk machines.
+ *
+ * Setting FB_INITIALIZED=false makes all draw functions no-op.
+ * Called from handoff/exit.rs right before exit_boot_services().
+ */
+pub fn shutdown_for_exit() {
+    FB_INITIALIZED.store(false, Ordering::SeqCst);
+}
