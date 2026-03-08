@@ -93,11 +93,6 @@ pub fn poll_fetch() -> bool {
         }
 
         FetchState::Connecting => {
-            *FETCH_STATE.lock() = FetchState::Fetching;
-            true
-        }
-
-        FetchState::Fetching => {
             match async_ops::http_poll() {
                 AsyncResult::Pending => true,
                 AsyncResult::Ready(response) => {

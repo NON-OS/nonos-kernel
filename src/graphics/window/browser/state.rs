@@ -28,7 +28,6 @@ pub(crate) enum FetchState {
     Idle,
     ResolvingDns,
     Connecting,
-    Fetching,
     Parsing,
     Done,
     Error,
