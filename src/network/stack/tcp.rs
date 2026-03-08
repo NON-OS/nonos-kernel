@@ -281,14 +281,15 @@ impl NetworkStack {
     pub fn tcp_close(&self, conn_id: u32) -> Result<(), &'static str> {
         let handle = {
             let mut conns = self.conns.lock();
-            let c = conns.get_mut(&conn_id).ok_or("no such connection")?;
-            c.closed = true;
+            let c = conns.remove(&conn_id).ok_or("no such connection")?;
             c.tcp
         };
         {
             let mut sockets = self.sockets.lock();
             let s: &mut tcp::Socket = sockets.get_mut(handle);
             let _ = s.close();
+            /* Remove socket to free 32KB of buffers (16KB rx + 16KB tx) */
+            sockets.remove(handle);
         }
         Ok(())
     }
