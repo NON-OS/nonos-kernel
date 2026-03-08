@@ -19,7 +19,6 @@ mod flow;
 mod manager_core;
 mod manager_relay;
 mod onion_stream;
-mod protocol;
 mod stats;
 mod types;
 mod util;

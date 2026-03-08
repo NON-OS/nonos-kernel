@@ -38,6 +38,20 @@ pub fn poll_network() {
         dev.lock().reclaim_tx();
     }
 
+    crate::drivers::network::e1000::poll();
+    crate::drivers::rtl8139::poll();
+    crate::drivers::rtl8168::poll();
+
+    if crate::drivers::wifi::is_connected() {
+        if let Some(dev) = crate::drivers::wifi::get_device() {
+            if let Some(mut guard) = dev.try_lock() {
+                if let Ok(Some(pkt)) = guard.receive() {
+                    let _ = crate::drivers::network::stack::receive_packet(&pkt);
+                }
+            }
+        }
+    }
+
     if let Some(stack) = get_network_stack() {
         stack.poll_interface();
     }
