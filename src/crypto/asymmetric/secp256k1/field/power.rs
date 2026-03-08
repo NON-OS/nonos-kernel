@@ -44,8 +44,9 @@ impl FieldElement {
     }
 
     pub fn sqrt(&self) -> Option<Self> {
+        // (p + 1) / 4 where p = 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFC2F
         let exp = [
-            0xFFFFFFFEFFFFFC30 >> 2, 0xFFFFFFFFFFFFFFFF,
+            0xFFFFFFFFBFFFFF0C, 0xFFFFFFFFFFFFFFFF,
             0xFFFFFFFFFFFFFFFF, 0x3FFFFFFFFFFFFFFF
         ];
         let r = self.pow(&exp);

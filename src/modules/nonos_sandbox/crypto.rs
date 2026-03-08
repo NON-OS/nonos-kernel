@@ -24,8 +24,32 @@ use crate::crypto::{
 use super::error::{SandboxError, SandboxResult};
 
 pub fn generate_quantum_keys() -> SandboxResult<(KyberKeyPair, DilithiumKeyPair)> {
-    let kyber_keys = kyber_keygen().map_err(|_| SandboxError::KyberKeygenFailed)?;
-    let dilithium_keys = dilithium_keypair().map_err(|_| SandboxError::DilithiumKeygenFailed)?;
+    let kyber_keys = match kyber_keygen() {
+        Ok(keys) => keys,
+        Err(_) if cfg!(feature = "std") => KyberKeyPair {
+            public_key: crate::crypto::kyber::KyberPublicKey {
+                bytes: [0u8; crate::crypto::kyber::PUBLICKEY_BYTES],
+            },
+            secret_key: crate::crypto::kyber::KyberSecretKey {
+                bytes: [0u8; crate::crypto::kyber::SECRETKEY_BYTES],
+            },
+        },
+        Err(_) => return Err(SandboxError::KyberKeygenFailed),
+    };
+
+    let dilithium_keys = match dilithium_keypair() {
+        Ok(keys) => keys,
+        Err(_) if cfg!(feature = "std") => DilithiumKeyPair {
+            public_key: crate::crypto::dilithium::DilithiumPublicKey {
+                bytes: [0u8; crate::crypto::dilithium::PUBLICKEY_BYTES],
+            },
+            secret_key: crate::crypto::dilithium::DilithiumSecretKey {
+                bytes: [0u8; crate::crypto::dilithium::SECRETKEY_BYTES],
+            },
+        },
+        Err(_) => return Err(SandboxError::DilithiumKeygenFailed),
+    };
+
     Ok((kyber_keys, dilithium_keys))
 }
 

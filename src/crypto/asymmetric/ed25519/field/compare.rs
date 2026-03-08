@@ -48,30 +48,8 @@ pub(crate) fn fe_cmov(a: &Fe, b: &Fe, mask: u8) -> Fe {
 }
 
 pub(crate) fn fe_is_zero(f: &Fe) -> bool {
-    let mut h = [0i64; 10];
-    for i in 0..10 {
-        h[i] = f.0[i] as i64;
-    }
-    let mut carry = [0i64; 10];
-    for _ in 0..2 {
-        for i in 0..10 {
-            carry[i] = (h[i] + (1 << 25)) >> 26;
-            h[(i + 1) % 10] += carry[i];
-            if i == 9 {
-                h[0] += carry[9] * 19;
-            }
-            h[i] -= carry[i] << 26;
-            if i < 9 {
-                carry[i + 1] = (h[i + 1] + (1 << 24)) >> 25;
-                h[i + 2] += carry[i + 1];
-                h[i + 1] -= carry[i + 1] << 25;
-            }
-        }
-    }
-    for i in 0..10 {
-        if h[i] != 0 {
-            return false;
-        }
-    }
-    true
+    // Compare the canonical byte encoding against zero to avoid limb-carry
+    // edge cases and out-of-bounds indexing in ad-hoc normalization.
+    let z = [0u8; 32];
+    ct_eq_32(&fe_tobytes(f), &z)
 }

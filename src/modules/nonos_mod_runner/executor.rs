@@ -140,12 +140,22 @@ pub fn stop_and_erase_module(
     sandbox_cfg: &SandboxConfig,
     manifest: &mut ModuleManifest,
 ) -> RunnerResult<()> {
-    stop_module(module_id).map_err(|_| RunnerError::StopFailed)?;
+    let mut first_error: Option<RunnerError> = None;
 
-    destroy_sandbox(module_id, sandbox_cfg).map_err(|_| RunnerError::SandboxDestroyFailed)?;
+    if stop_module(module_id).is_err() {
+        first_error = Some(RunnerError::StopFailed);
+    }
+
+    if destroy_sandbox(module_id, sandbox_cfg).is_err() && first_error.is_none() {
+        first_error = Some(RunnerError::SandboxDestroyFailed);
+    }
 
     if let Ok(info) = get_module_info(module_id) {
-        secure_erase_module_runtime(None, info.memory_size)?;
+        if let Err(err) = secure_erase_module_runtime(None, info.memory_size) {
+            if first_error.is_none() {
+                first_error = Some(err);
+            }
+        }
     }
 
     audit_event(
@@ -159,7 +169,11 @@ pub fn stop_and_erase_module(
 
     manifest.secure_erase();
 
-    Ok(())
+    if let Some(err) = first_error {
+        Err(err)
+    } else {
+        Ok(())
+    }
 }
 
 fn secure_erase_module_runtime(memory_base: Option<u64>, memory_size: usize) -> RunnerResult<()> {
