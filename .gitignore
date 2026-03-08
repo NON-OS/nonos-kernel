@@ -40,6 +40,7 @@ zk-artifacts/generated/
 zk-artifacts/*.bin
 zk-artifacts/*.json
 !zk-artifacts/README.md
+generated_keys/
 
 # Logs and temp files
 *.log
