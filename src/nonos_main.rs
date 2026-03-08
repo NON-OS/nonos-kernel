@@ -151,8 +151,35 @@ extern "C" fn kernel_entry(handoff_ptr: u64) -> ! {
         serial::print_dec(handoff.fb.height as u64);
         serial::println(b"");
 
+        /*
+         * issue #8 fix: on real hardware the uefi identity mapping is gone after
+         * ExitBootServices. we need to map the framebuffer physical address into
+         * kernel virtual space with proper page flags (write-combining for perf).
+         *
+         * qemu preserved identity mapping which is why it worked there but not
+         * on acer nitro, asus rog, msi laptops etc.
+         */
+        let fb_phys = nonos_kernel::memory::PhysAddr::new(handoff.fb.ptr);
+        let fb_size = handoff.fb.size as usize;
+
+        let fb_virt = match nonos_kernel::memory::mmio::map_framebuffer(fb_phys, fb_size) {
+            Ok(va) => {
+                serial::print(b"[NONOS] Framebuffer mapped: phys=");
+                serial::print_hex(handoff.fb.ptr);
+                serial::print(b" -> virt=");
+                serial::print_hex(va.as_u64());
+                serial::println(b"");
+                va.as_u64()
+            }
+            Err(_) => {
+                /* fallback to direct physical address if mapping fails (qemu compat) */
+                serial::println(b"[NONOS] Framebuffer mapping failed, using direct phys addr");
+                handoff.fb.ptr
+            }
+        };
+
         framebuffer::init(
-            handoff.fb.ptr,
+            fb_virt,
             handoff.fb.width,
             handoff.fb.height,
             handoff.fb.stride,
