@@ -24,7 +24,7 @@ mod interface;
 
 pub use api::{
     get_link_status, get_mac_address, get_rtl8168_device, get_stats, handle_interrupt,
-    init_rtl8168, is_present,
+    init_rtl8168, is_present, poll,
 };
 pub use constants::*;
 pub use descriptors::{Rtl8168RxDesc, Rtl8168TxDesc};

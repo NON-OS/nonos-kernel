@@ -96,3 +96,9 @@ pub fn get_mac_address() -> Option<[u8; 6]> {
     let guard = dev.lock();
     Some(guard.mac_address)
 }
+
+pub fn poll() {
+    if is_present() {
+        handle_interrupt();
+    }
+}
