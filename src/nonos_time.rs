@@ -2,8 +2,6 @@
 //!
 //! Provides time-related functions for the kernel
 
-#![allow(dead_code)]
-
 pub use crate::arch::x86_64::time::timer;
 
 /// Get current time in nanoseconds since boot
