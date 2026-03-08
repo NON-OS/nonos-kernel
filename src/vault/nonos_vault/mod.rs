@@ -19,7 +19,6 @@
 extern crate alloc;
 use alloc::{collections::BTreeMap, vec::Vec, string::String};
 use spin::{RwLock, Mutex};
-use core::sync::atomic::AtomicU64;
 
 use crate::crypto::hkdf_expand;
 use crate::crypto::hash::blake3_hash;
@@ -41,7 +40,6 @@ pub struct NonosVault {
     pool_index: Mutex<usize>,
     initialized: RwLock<bool>,
     audit_log: Mutex<Vec<VaultAuditEvent>>,
-    key_counter: AtomicU64,
 }
 
 impl NonosVault {
@@ -53,7 +51,6 @@ impl NonosVault {
             pool_index: Mutex::new(0),
             initialized: RwLock::new(false),
             audit_log: Mutex::new(Vec::new()),
-            key_counter: AtomicU64::new(1),
         }
     }
 
@@ -143,13 +140,6 @@ impl NonosVault {
             id = (id << 8) | (b as u64);
         }
         id
-    }
-
-    /// Secure HKDF-Expand (see crypto/hash.rs)
-    fn hkdf_expand(&self, key: &[u8; 64], info: &[u8; 32], length: usize) -> Result<Vec<u8>, &'static str> {
-        let mut okm = vec![0u8; length];
-        hkdf_expand(&blake3_hash(key), info, &mut okm).map_err(|_| "HKDF error")?;
-        Ok(okm)
     }
 
     /// Hardware entropy source (RDSEED/RDRAND/TSC), with fallback
