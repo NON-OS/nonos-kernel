@@ -20,16 +20,29 @@ use core::sync::atomic::Ordering;
 
 #[inline(always)]
 pub fn get_pixel(x: u32, y: u32) -> u32 {
-    let addr = FB_ADDR.load(Ordering::Relaxed);
     let width = FB_WIDTH.load(Ordering::Relaxed);
     let height = FB_HEIGHT.load(Ordering::Relaxed);
-    let pitch = FB_PITCH.load(Ordering::Relaxed);
 
-    if x >= width || y >= height || addr == 0 {
+    if x >= width || y >= height {
         return 0;
     }
 
-    // SAFETY: Address and bounds validated above
+    if double_buffer::is_enabled() {
+        let ptr = double_buffer::get_back_buffer_ptr();
+        if !ptr.is_null() {
+            unsafe {
+                return *ptr.add((y as usize) * (width as usize) + (x as usize));
+            }
+        }
+    }
+
+    let addr = FB_ADDR.load(Ordering::Relaxed);
+    let pitch = FB_PITCH.load(Ordering::Relaxed);
+
+    if addr == 0 {
+        return 0;
+    }
+
     unsafe {
         let ptr = (addr as *const u32).add((y * (pitch / 4) + x) as usize);
         core::ptr::read_volatile(ptr)
