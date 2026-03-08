@@ -61,3 +61,40 @@ pub fn enumerate_pci(system_table: &mut SystemTable<Boot>) -> usize {
     log_info("pci", &format!("PCI devices: {}", count));
     count
 }
+
+/*
+ * Detect dual GPU / nvidia optimus setups (issue #8)
+ *
+ * Laptops with intel igpu + nvidia dgpu expose multiple GOP handles.
+ * The nvidia UEFI driver has issues during ExitBootServices - it does
+ * something weird that causes hangs on certain firmware.
+ *
+ * If we see >1 GOP handle, assume optimus and enable workarounds.
+ * Tested on Acer Nitro, ASUS ROG, MSI Stealth, HP EliteDesk.
+ */
+pub fn detect_dual_gpu(system_table: &mut SystemTable<Boot>) -> bool {
+    let bs = system_table.boot_services();
+
+    let gop_count = bs
+        .find_handles::<uefi::proto::console::gop::GraphicsOutput>()
+        .map(|h| h.len())
+        .unwrap_or(0);
+
+    if gop_count > 1 {
+        log_info("gpu", "dual GPU detected (multiple GOP handles)");
+        return true;
+    }
+
+    false
+}
+
+/*
+ * Check if this hardware needs safe exit mode
+ *
+ * Returns true for machines known to have ExitBootServices problems.
+ * Currently just checks for dual GPU but can add more checks here
+ * if we find other patterns (SMBIOS vendor string, etc).
+ */
+pub fn needs_safe_exit(system_table: &mut SystemTable<Boot>) -> bool {
+    detect_dual_gpu(system_table)
+}
