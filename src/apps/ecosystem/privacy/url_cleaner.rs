@@ -162,9 +162,8 @@ pub fn strip_tracking_params(url: &str) -> String {
 }
 
 pub fn clean_url(url: &str) -> String {
-    let mut cleaned = strip_tracking_params(url);
-
-    cleaned = cleaned.replace("&amp;", "&");
+    let decoded = url.replace("&amp;", "&");
+    let mut cleaned = strip_tracking_params(&decoded);
 
     if cleaned.ends_with('?') {
         cleaned.pop();

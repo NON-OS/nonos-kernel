@@ -27,6 +27,10 @@ pub fn parse_signature_lists(data: &[u8]) -> Result<Vec<SignatureList>, UefiErro
     let mut lists = Vec::new();
     let mut offset = 0;
 
+    if !data.is_empty() && data.len() < SIGNATURE_LIST_HEADER_SIZE {
+        return Err(UefiError::SignatureListParseError { offset: 0 });
+    }
+
     while offset + SIGNATURE_LIST_HEADER_SIZE <= data.len() {
         let sig_type =
             Guid::from_bytes(&data[offset..]).ok_or(UefiError::SignatureListParseError { offset })?;

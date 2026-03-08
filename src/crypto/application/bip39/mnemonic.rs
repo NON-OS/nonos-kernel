@@ -81,7 +81,7 @@ impl Mnemonic {
             }
         }
 
-        for i in (0..checksum_bits).rev() {
+        for i in 0..checksum_bits {
             bits.push((checksum_byte >> (7 - i)) & 1);
         }
 

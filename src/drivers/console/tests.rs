@@ -387,7 +387,7 @@ fn test_parser_unknown_csi() {
     parser.process(0x1B);
     parser.process(b'[');
     parser.process(b'?');
-    assert_eq!(parser.state(), ParserState::Normal);
+    assert_eq!(parser.state(), ParserState::DecPrivate);
 }
 
 #[test]

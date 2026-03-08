@@ -84,7 +84,7 @@ impl ProjectivePoint {
         let mut result = Self::ct_select(self_is_id, other, &add_result);
         result = Self::ct_select(other_is_id, self, &result);
         result = Self::ct_select(u_eq & s_eq, &double_result, &result);
-        let return_identity = u_eq & (1 ^ s_eq);
+        let return_identity = u_eq & (1 ^ s_eq) & (1 ^ self_is_id) & (1 ^ other_is_id);
         result = Self::ct_select(return_identity, &Self::identity(), &result);
 
         result
@@ -112,8 +112,8 @@ impl ProjectivePoint {
             let r0_double = r0.double();
             let r1_double = r1.double();
 
-            r0 = Self::ct_select(bit, &r0_double, &sum);
-            r1 = Self::ct_select(bit, &sum, &r1_double);
+            r0 = Self::ct_select(bit, &sum, &r0_double);
+            r1 = Self::ct_select(bit, &r1_double, &sum);
         }
 
         r0

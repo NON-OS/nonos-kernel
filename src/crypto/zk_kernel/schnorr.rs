@@ -27,7 +27,7 @@ impl SchnorrProof {
     pub fn prove(secret_key: &[u8; 32], public_key: &[u8; 32]) -> Self {
         let keypair = KeyPair::from_seed(*secret_key);
         let mut message = [0u8; 64];
-        message[..32].copy_from_slice(DOM_SCHNORR);
+        message[..DOM_SCHNORR.len()].copy_from_slice(DOM_SCHNORR);
         message[32..].copy_from_slice(public_key);
         let sig = ed25519_sign(&keypair, &message);
         let sig_bytes = sig.to_bytes();
@@ -40,7 +40,7 @@ impl SchnorrProof {
 
     pub fn verify(&self, public_key: &[u8; 32]) -> bool {
         let mut message = [0u8; 64];
-        message[..32].copy_from_slice(DOM_SCHNORR);
+        message[..DOM_SCHNORR.len()].copy_from_slice(DOM_SCHNORR);
         message[32..].copy_from_slice(public_key);
         let mut sig_bytes = [0u8; 64];
         sig_bytes[..32].copy_from_slice(&self.commitment);

@@ -47,7 +47,7 @@ mod tests {
     fn test_error_is_recoverable() {
         assert!(XhciError::Timeout.is_recoverable());
         assert!(XhciError::Stall.is_recoverable());
-        assert!(!XhciError::HostSystemError.is_fatal());
+        assert!(XhciError::HostSystemError.is_fatal());
     }
 
     #[test]

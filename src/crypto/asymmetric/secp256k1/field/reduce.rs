@@ -60,6 +60,16 @@ impl FieldElement {
             acc[i] &= 0xFFFFFFFFFFFFFFFF;
         }
 
+        // Fold carry from acc[4]: 2^256 ≡ c (mod p)
+        let carry = acc[4] * c as u128;
+        acc[0] = (acc[0] & 0xFFFFFFFFFFFFFFFF) + carry;
+        acc[1] = (acc[1] & 0xFFFFFFFFFFFFFFFF) + (acc[0] >> 64);
+        acc[0] &= 0xFFFFFFFFFFFFFFFF;
+        acc[2] = (acc[2] & 0xFFFFFFFFFFFFFFFF) + (acc[1] >> 64);
+        acc[1] &= 0xFFFFFFFFFFFFFFFF;
+        acc[3] = (acc[3] & 0xFFFFFFFFFFFFFFFF) + (acc[2] >> 64);
+        acc[2] &= 0xFFFFFFFFFFFFFFFF;
+
         let mut result = Self([acc[0] as u64, acc[1] as u64, acc[2] as u64, acc[3] as u64]);
         result.reduce();
         result

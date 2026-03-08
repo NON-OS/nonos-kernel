@@ -103,14 +103,12 @@ impl NoxProcessManager {
         let Some(p) = self.table.read().get(&pid).cloned() else {
             return Err("ESRCH");
         };
-        let cur = p.read().state;
+        let mut proc = p.write();
+        let cur = proc.state;
         if !NoxProcess::can_transition(cur, to) {
             return Err("EALREADY");
         }
-        *p.write() = NoxProcess {
-            state: to,
-            ..p.read().clone()
-        };
+        proc.state = to;
         Ok(())
     }
 

@@ -61,7 +61,7 @@ pub fn calculate_apy(total_rewards_per_year: u128, total_staked: u128) -> u64 {
         return 0;
     }
 
-    let apy = (total_rewards_per_year * BASIS_POINTS * 100) / total_staked;
+    let apy = (total_rewards_per_year * BASIS_POINTS) / total_staked;
     apy as u64
 }
 
@@ -83,7 +83,7 @@ pub fn estimate_rewards(staked_amount: u128, apy_basis_points: u64) -> RewardsIn
 }
 
 pub fn calculate_yearly_rewards(staked_amount: u128, apy_basis_points: u64) -> u128 {
-    (staked_amount * apy_basis_points as u128) / (BASIS_POINTS * 100)
+    (staked_amount * apy_basis_points as u128) / BASIS_POINTS
 }
 
 pub fn calculate_rewards_for_period(
@@ -101,7 +101,7 @@ pub fn calculate_compound_rewards(
     compounds_per_year: u32,
     years: u32,
 ) -> u128 {
-    let rate_per_compound = apy_basis_points as u128 / (compounds_per_year as u128 * 100);
+    let rate_per_compound = apy_basis_points as u128 / compounds_per_year as u128;
     let mut amount = initial_stake;
 
     let total_compounds = compounds_per_year * years;

@@ -20,8 +20,12 @@ use alloc::vec::Vec;
 
 // For testing, we simulate a non-zero entry by providing bytes that parser accepts.
 fn fake_exe_with_entry(entry: u64) -> Vec<u8> {
-    let mut v = vec![0u8; 16];
-    v[..8].copy_from_slice(&entry.to_le_bytes());
+    let mut v = vec![0u8; 64];
+    v[0..4].copy_from_slice(b"\x7FELF");
+    v[4] = 2; // ELFCLASS64
+    v[5] = 1; // ELFDATA2LSB
+    v[6] = 1; // EV_CURRENT
+    v[24..32].copy_from_slice(&entry.to_le_bytes());
     v
 }
 

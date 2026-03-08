@@ -83,18 +83,29 @@ impl BigUint {
             let x2_for_halve = Self::ct_select(0u64.wrapping_sub(v_is_odd), &x2_plus_mod, &x2);
             let x2_halved = x2_for_halve.shr_bits(1);
 
-            let u_minus_v = &u - &v;
+            let u_minus_v = u.saturating_sub(&v);
             let x1_ge_x2 = x1.ct_ge(&x2);
-            let x1_minus_x2 = &x1 - &x2;
-            let x2_minus_x1 = &x2 - &x1;
-            let x1_sub_wrap = modulus - &x2_minus_x1;
+            let x1_minus_x2 = x1.saturating_sub(&x2);
+            let x2_minus_x1 = x2.saturating_sub(&x1);
+            let x2_minus_x1_mod = &x2_minus_x1 % modulus;
+            let x1_sub_wrap = if x2_minus_x1_mod.is_zero() {
+                Self::zero()
+            } else {
+                modulus - &x2_minus_x1_mod
+            };
             let x1_subtracted = Self::ct_select(0u64.wrapping_sub(x1_ge_x2), &x1_minus_x2, &x1_sub_wrap);
 
-            let v_minus_u = &v - &u;
+            let v_minus_u = v.saturating_sub(&u);
             let x2_ge_x1 = x2.ct_ge(&x1);
-            let x1_minus_x2_v = &x1 - &x2;
-            let x2_sub_wrap = modulus - &x1_minus_x2_v;
-            let x2_subtracted = Self::ct_select(0u64.wrapping_sub(x2_ge_x1), &(&x2 - &x1), &x2_sub_wrap);
+            let x1_minus_x2_v = x1.saturating_sub(&x2);
+            let x1_minus_x2_v_mod = &x1_minus_x2_v % modulus;
+            let x2_sub_wrap = if x1_minus_x2_v_mod.is_zero() {
+                Self::zero()
+            } else {
+                modulus - &x1_minus_x2_v_mod
+            };
+            let x2_minus_x1_direct = x2.saturating_sub(&x1);
+            let x2_subtracted = Self::ct_select(0u64.wrapping_sub(x2_ge_x1), &x2_minus_x1_direct, &x2_sub_wrap);
 
             let case_u_even = u_even;
             let case_v_even = (1 ^ u_even) & v_even;

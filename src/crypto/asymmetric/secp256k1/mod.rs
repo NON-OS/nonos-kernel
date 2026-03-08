@@ -112,3 +112,4 @@ pub fn decompress_pubkey(compressed: &[u8]) -> CryptoResult<PublicKey> {
 
     Ok(affine.to_uncompressed())
 }
+
