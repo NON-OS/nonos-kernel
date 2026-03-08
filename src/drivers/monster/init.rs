@@ -33,6 +33,12 @@ pub fn init() -> Result<(), &'static str> {
         return Err("MONSTER: PCI initialization failed (required)");
     }
 
+    /* virtio-rng must init early - wallet key generation depends on it */
+    if let Err(e) = crate::drivers::virtio_rng::init_virtio_rng() {
+        crate::log::logger::log_warn!("MONSTER: virtio-rng init skipped/failed: {}", e);
+        record_error();
+    }
+
     if let Err(e) = crate::drivers::nvme::init_nvme() {
         crate::log::logger::log_warn!("MONSTER: NVMe init skipped/failed: {}", e);
         record_error();
