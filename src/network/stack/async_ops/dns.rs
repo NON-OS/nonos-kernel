@@ -94,7 +94,8 @@ pub fn dns_poll() -> AsyncResult<[u8; 4]> {
     }
 
     let elapsed = now_ms().saturating_sub(DNS_QUERY_START.load(Ordering::SeqCst));
-    if elapsed > 2000 {
+    /* 10s timeout - 2s was too aggressive for slow/congested networks */
+    if elapsed > 10_000 {
         dns_cleanup();
         *DNS_ERROR.lock() = Some("dns timeout");
         return AsyncResult::Error("dns timeout");
