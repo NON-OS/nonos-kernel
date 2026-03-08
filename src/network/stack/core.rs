@@ -52,6 +52,12 @@ const DEFAULT_DNS_V6: [u8; 16] = [
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x88, 0x88,
 ];
 
+fn generate_random_seed() -> u64 {
+    let mut seed_bytes = [0u8; 8];
+    crate::crypto::rng::fill_random_bytes(&mut seed_bytes);
+    u64::from_le_bytes(seed_bytes)
+}
+
 pub struct NetworkStack {
     pub(crate) iface: Mutex<Interface>,
     pub(crate) sockets: Mutex<SocketSet<'static>>,
@@ -69,7 +75,7 @@ pub fn init_network_stack() {
     STACK.call_once(|| {
         let mut dev = SmolDeviceAdapter;
         let mut cfg = IfaceConfig::new(HardwareAddress::Ethernet(EthernetAddress(DEFAULT_MAC)));
-        cfg.random_seed = 0xD1E5_7A2C;
+        cfg.random_seed = generate_random_seed();
         let mut iface = Interface::new(cfg, &mut dev, SmolInstant::from_millis(now_ms() as i64));
 
         let _ = iface.update_ip_addrs(|ips| {
