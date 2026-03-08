@@ -15,10 +15,24 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::state::*;
-use super::state_ops::set_active_account;
+use super::state_ops::{set_active_account, derive_account};
 
 pub(super) fn handle_overview_click(x: u32, y: u32, w: u32) -> bool {
-    if x >= w.saturating_sub(100) && x <= w.saturating_sub(20) && y >= 15 && y <= 43 {
+    /* "+ New" button */
+    if x >= w.saturating_sub(190) && x <= w.saturating_sub(110) && y >= 15 && y <= 47 {
+        let state = WALLET_STATE.lock();
+        let next_index = state.accounts.len() as u32;
+        drop(state);
+
+        match derive_account(next_index) {
+            Ok(_) => set_status(b"Account created", true),
+            Err(e) => set_status(e.as_bytes(), false),
+        }
+        return true;
+    }
+
+    /* Refresh button */
+    if x >= w.saturating_sub(100) && x <= w.saturating_sub(20) && y >= 15 && y <= 47 {
         refresh_balances();
         return true;
     }
@@ -43,8 +57,9 @@ pub(super) fn handle_overview_click(x: u32, y: u32, w: u32) -> bool {
 }
 
 pub(super) fn handle_sidebar_click(y: u32) -> bool {
-    let menu_start = 60u32;
-    let item_height = 36u32;
+    /* Menu items start at y=70 in render.rs, each item is 48px apart, 40px tall */
+    let menu_start = 70u32;
+    let item_height = 48u32;
 
     if y < menu_start {
         return false;
