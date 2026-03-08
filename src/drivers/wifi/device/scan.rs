@@ -29,7 +29,7 @@ impl IntelWifiDevice {
             WifiState::Ready | WifiState::Connected | WifiState::FwLoaded => {}
             WifiState::HwReady => {
                 crate::log::info!("iwlwifi: Scan requested but firmware not loaded");
-                return Ok(Vec::new());
+                return Err(WifiError::FirmwareLoadFailed);
             }
             _ => return Err(WifiError::InvalidState),
         }
