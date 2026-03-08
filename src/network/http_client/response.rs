@@ -16,6 +16,7 @@
 
 use alloc::string::{String, ToString};
 use alloc::vec::Vec;
+use miniz_oxide::inflate::{decompress_to_vec_zlib, decompress_to_vec};
 
 #[derive(Clone, Debug)]
 pub struct HttpResponse {
@@ -104,6 +105,7 @@ pub(super) fn parse_response(data: &[u8]) -> Result<HttpResponse, &'static str> 
 
     let mut headers = Vec::new();
     let mut is_chunked = false;
+    let mut content_encoding: Option<String> = None;
     let header_lines = &headers_raw[status_end + 2..];
 
     for line in header_lines.split(|&b| b == b'\n') {
@@ -116,9 +118,12 @@ pub(super) fn parse_response(data: &[u8]) -> Result<HttpResponse, &'static str> 
             let name = String::from_utf8_lossy(&line[..colon_pos]).trim().to_string();
             let value = String::from_utf8_lossy(&line[colon_pos + 1..]).trim().to_string();
 
-            if name.to_ascii_lowercase() == "transfer-encoding" &&
-               value.to_ascii_lowercase().contains("chunked") {
+            let name_lower = name.to_ascii_lowercase();
+            if name_lower == "transfer-encoding" && value.to_ascii_lowercase().contains("chunked") {
                 is_chunked = true;
+            }
+            if name_lower == "content-encoding" {
+                content_encoding = Some(value.to_ascii_lowercase());
             }
 
             headers.push((name, value));
@@ -130,6 +135,12 @@ pub(super) fn parse_response(data: &[u8]) -> Result<HttpResponse, &'static str> 
     } else {
         raw_body.to_vec()
     };
+
+    /*
+     * decompress gzip/deflate content-encoding. most websites use
+     * compression so this is essential for the browser.
+     */
+    let body = decompress_content_encoding(&body, content_encoding.as_deref());
 
     Ok(HttpResponse {
         status_code,
@@ -234,4 +245,86 @@ fn trim_crlf(line: &[u8]) -> &[u8] {
     } else {
         line
     }
+}
+
+/*
+ * decompress gzip or deflate encoded content.
+ * gzip has a 10-byte header we need to skip before deflate data.
+ */
+fn decompress_content_encoding(body: &[u8], encoding: Option<&str>) -> Vec<u8> {
+    match encoding {
+        Some("gzip") | Some("x-gzip") => decompress_gzip(body).unwrap_or_else(|| body.to_vec()),
+        Some("deflate") => decompress_deflate(body).unwrap_or_else(|| body.to_vec()),
+        _ => body.to_vec(),
+    }
+}
+
+fn decompress_gzip(data: &[u8]) -> Option<Vec<u8>> {
+    /*
+     * gzip format: 10-byte header + compressed data + 8-byte trailer
+     * header: 1F 8B 08 [flags] [mtime 4b] [xfl] [os]
+     * we need to skip header (and optional extra fields) to get deflate data.
+     */
+    if data.len() < 18 || data[0] != 0x1F || data[1] != 0x8B {
+        return None;
+    }
+
+    let flags = data[3];
+    let mut offset = 10;
+
+    /* skip optional extra field (FEXTRA flag = 0x04) */
+    if flags & 0x04 != 0 && offset + 2 <= data.len() {
+        let extra_len = u16::from_le_bytes([data[offset], data[offset + 1]]) as usize;
+        offset += 2 + extra_len;
+    }
+
+    /* skip optional filename (FNAME flag = 0x08) */
+    if flags & 0x08 != 0 {
+        while offset < data.len() && data[offset] != 0 {
+            offset += 1;
+        }
+        offset += 1;
+    }
+
+    /* skip optional comment (FCOMMENT flag = 0x10) */
+    if flags & 0x10 != 0 {
+        while offset < data.len() && data[offset] != 0 {
+            offset += 1;
+        }
+        offset += 1;
+    }
+
+    /* skip optional header CRC (FHCRC flag = 0x02) */
+    if flags & 0x02 != 0 {
+        offset += 2;
+    }
+
+    if offset >= data.len().saturating_sub(8) {
+        return None;
+    }
+
+    /* deflate data ends 8 bytes before the end (CRC32 + ISIZE) */
+    let deflate_data = &data[offset..data.len().saturating_sub(8)];
+
+    decompress_to_vec(deflate_data).ok()
+}
+
+fn decompress_deflate(data: &[u8]) -> Option<Vec<u8>> {
+    /*
+     * deflate can be raw deflate or zlib-wrapped.
+     * try zlib first (has header), then raw deflate.
+     */
+    if data.len() >= 2 {
+        let cmf = data[0];
+        let flg = data[1];
+        /* zlib header check: (CMF * 256 + FLG) % 31 == 0 */
+        if (cmf as u16 * 256 + flg as u16) % 31 == 0 {
+            if let Ok(decompressed) = decompress_to_vec_zlib(data) {
+                return Some(decompressed);
+            }
+        }
+    }
+
+    /* try raw deflate */
+    decompress_to_vec(data).ok()
 }
