@@ -40,10 +40,16 @@ pub fn cmd_ifconfig() {
             let mut ip_line = [0u8; 64];
             ip_line[..13].copy_from_slice(b"        inet ");
             let ip_len = write_ip(&mut ip_line[13..], ip);
-            ip_line[13+ip_len..13+ip_len+2].copy_from_slice(b"/");
-            ip_line[14+ip_len] = b'0' + (prefix / 10);
-            ip_line[15+ip_len] = b'0' + (prefix % 10);
-            print_line(&ip_line[..16+ip_len], COLOR_TEXT);
+            ip_line[13 + ip_len] = b'/';
+            let prefix_pos = 14 + ip_len;
+            if prefix >= 10 {
+                ip_line[prefix_pos] = b'0' + (prefix / 10);
+                ip_line[prefix_pos + 1] = b'0' + (prefix % 10);
+                print_line(&ip_line[..prefix_pos + 2], COLOR_TEXT);
+            } else {
+                ip_line[prefix_pos] = b'0' + prefix;
+                print_line(&ip_line[..prefix_pos + 1], COLOR_TEXT);
+            }
         }
 
         if let Some(gw) = stack.get_gateway_v4() {

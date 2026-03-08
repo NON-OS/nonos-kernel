@@ -18,6 +18,8 @@ use crate::shell::output::print_line;
 use crate::graphics::framebuffer::{COLOR_TEXT_WHITE, COLOR_TEXT, COLOR_TEXT_DIM, COLOR_GREEN, COLOR_YELLOW};
 
 pub fn cmd_netstat() {
+    use super::helpers::write_ip;
+
     print_line(b"Network Connections:", COLOR_TEXT_WHITE);
     print_line(b"============================================", COLOR_TEXT_DIM);
     print_line(b"Proto  Local Address      Foreign Address    State", COLOR_TEXT_DIM);
@@ -27,15 +29,64 @@ pub fn cmd_netstat() {
         if sockets.is_empty() {
             print_line(b"(no active connections)", COLOR_TEXT_DIM);
         } else {
-            for _sock in sockets.iter().take(10) {
-                let mut line = [0u8; 64];
-                line[..6].copy_from_slice(b"tcp   ");
-                print_line(&line[..6], COLOR_TEXT);
+            for sock in sockets.iter().take(10) {
+                let mut line = [b' '; 64];
+                line[..3].copy_from_slice(b"tcp");
+
+                /* Local address: *:port */
+                line[7] = b'*';
+                line[8] = b':';
+                let _ = write_port(&mut line[9..], sock.local_port);
+
+                /* Remote address: ip:port */
+                let remote_start = 19;
+                let ip_len = write_ip(&mut line[remote_start..], sock.remote_ip);
+                line[remote_start + ip_len] = b':';
+                let _ = write_port(&mut line[remote_start + ip_len + 1..], sock.remote_port);
+
+                /* State */
+                let state_start = 39;
+                let (state_str, slen): (&[u8], usize) = match sock.state {
+                    0 => (b"CLOSED", 6),
+                    1 => (b"LISTEN", 6),
+                    2 => (b"SYN_SENT", 8),
+                    3 => (b"SYN_RECV", 8),
+                    4 => (b"ESTAB", 5),
+                    5 => (b"FIN_WAIT", 8),
+                    _ => (b"UNKNOWN", 7),
+                };
+                line[state_start..state_start + slen].copy_from_slice(state_str);
+
+                let color = match sock.state {
+                    4 => COLOR_GREEN,
+                    1 => COLOR_YELLOW,
+                    _ => COLOR_TEXT,
+                };
+                print_line(&line[..state_start + slen], color);
             }
         }
     } else {
         print_line(b"(network not initialized)", COLOR_TEXT_DIM);
     }
+}
+
+fn write_port(buf: &mut [u8], port: u16) -> usize {
+    if port == 0 {
+        buf[0] = b'*';
+        return 1;
+    }
+    let mut n = port;
+    let mut digits = [0u8; 5];
+    let mut count = 0;
+    while n > 0 {
+        digits[count] = b'0' + (n % 10) as u8;
+        n /= 10;
+        count += 1;
+    }
+    for i in 0..count {
+        buf[i] = digits[count - 1 - i];
+    }
+    count
 }
 
 pub fn cmd_arp() {
