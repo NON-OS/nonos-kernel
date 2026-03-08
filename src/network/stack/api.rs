@@ -22,14 +22,25 @@ use super::device::DEVICE_SLOT;
 use super::types::SocketInfo;
 use super::util::{build_ipv4_packet, ip_checksum, build_ethernet_frame};
 
-static NETWORK_CONNECTED: AtomicBool = AtomicBool::new(false);
+static LINK_UP: AtomicBool = AtomicBool::new(false);
 
 pub fn is_network_connected() -> bool {
-    NETWORK_CONNECTED.load(Ordering::Relaxed)
+    if !LINK_UP.load(Ordering::Relaxed) {
+        return false;
+    }
+    if let Some((ip, _)) = get_current_ipv4() {
+        ip != [0, 0, 0, 0] && ip != [127, 0, 0, 1]
+    } else {
+        false
+    }
 }
 
-pub fn set_network_connected(connected: bool) {
-    NETWORK_CONNECTED.store(connected, Ordering::Relaxed);
+pub fn set_network_connected(link_up: bool) {
+    LINK_UP.store(link_up, Ordering::Relaxed);
+}
+
+pub fn is_link_up() -> bool {
+    LINK_UP.load(Ordering::Relaxed)
 }
 
 pub fn get_socket_info(socket_id: u32) -> Option<SocketInfo> {
