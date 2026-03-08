@@ -145,17 +145,32 @@ pub fn rdrand64() -> Option<u64> {
 pub fn collect_hw_rng_bytes(buf: &mut [u8; 64], iterations: usize) {
     let mut off = 0usize;
 
-    for _ in 0..iterations {
+    for i in 0..iterations {
         if let Some(x) = rdseed64() {
-            buf[off % 64] ^= x as u8;
-            buf[(off + 7) % 64] ^= (x >> 8) as u8;
-            buf[(off + 13) % 64] ^= (x >> 16) as u8;
-            off = off.wrapping_add(1);
-        } else if let Some(x) = rdrand64() {
-            buf[off % 64] ^= x as u8;
-            buf[(off + 3) % 64] ^= (x >> 24) as u8;
-            buf[(off + 11) % 64] ^= (x >> 40) as u8;
-            off = off.wrapping_add(1);
+            let b = x.to_le_bytes();
+            for j in 0..8 { buf[(off + j) % 64] ^= b[j]; }
+            off += 8;
+        } else {
+            for _ in 0..10 {
+                if let Some(x) = rdrand64() {
+                    let b = x.to_le_bytes();
+                    for j in 0..8 { buf[(off + j) % 64] ^= b[j]; }
+                    off += 8;
+                    break;
+                }
+                for _ in 0..50 { core::hint::spin_loop(); }
+            }
         }
+        let t1 = rdtsc_serialized();
+        for _ in 0..((i % 16) + 1) { core::hint::spin_loop(); }
+        let t2 = rdtsc_serialized();
+        let jb = t2.wrapping_sub(t1).to_le_bytes();
+        for j in 0..8 { buf[(off + j + 32) % 64] ^= jb[j]; }
+    }
+
+    for i in 0..64 {
+        let t = rdtsc_serialized();
+        for _ in 0..((i % 8) + 1) { core::hint::spin_loop(); }
+        buf[i] ^= (t >> ((i % 8) * 8)) as u8;
     }
 }
