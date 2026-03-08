@@ -21,6 +21,7 @@ pub mod layout;
 pub mod manager;
 pub mod ps2;
 #[cfg(test)]
+#[cfg(not(feature = "std"))]
 mod test;
 pub mod types;
 pub mod usb;

@@ -23,6 +23,7 @@ mod subsystem;
 mod types;
 
 #[cfg(test)]
+#[cfg(not(feature = "std"))]
 mod tests;
 
 pub use bss::clear_bss;

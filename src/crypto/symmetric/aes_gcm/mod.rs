@@ -19,6 +19,7 @@ mod gcm;
 mod aead;
 
 #[cfg(test)]
+#[cfg(not(feature = "std"))]
 mod tests;
 
 pub const TAG_SIZE: usize = 16;

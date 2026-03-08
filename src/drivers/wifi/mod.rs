@@ -32,6 +32,7 @@ pub mod tx;
 pub mod wpa;
 
 #[cfg(test)]
+#[cfg(not(feature = "std"))]
 mod tests;
 
 pub use api::{

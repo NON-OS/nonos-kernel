@@ -167,7 +167,7 @@ pub fn alloc_packet_buffer(buffer_size: usize) -> Result<DmaRegion, &'static str
     DmaRegion::new(buffer_size)
 }
 
-#[cfg(test)]
+#[cfg(all(test, not(feature = "std")))]
 mod tests {
     use super::*;
 

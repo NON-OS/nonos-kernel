@@ -19,6 +19,7 @@ mod poly1305;
 mod aead;
 
 #[cfg(test)]
+#[cfg(not(feature = "std"))]
 mod tests;
 
 pub use chacha20::{chacha20_block, CHACHA20_BLOCK_SIZE};

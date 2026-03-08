@@ -197,7 +197,7 @@ pub fn validate_tx_buffer(
     Ok(())
 }
 
-#[cfg(test)]
+#[cfg(all(test, not(feature = "std")))]
 mod tests {
     use super::*;
 

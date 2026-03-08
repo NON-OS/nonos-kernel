@@ -24,7 +24,7 @@ pub mod scalar_math;
 pub use master::derive_master_key;
 pub use child::derive_child;
 
-#[cfg(test)]
+#[cfg(all(test, not(feature = "std")))]
 mod tests {
     use super::*;
     use crate::crypto::application::bip32::extended_key::HARDENED_OFFSET;

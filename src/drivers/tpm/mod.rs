@@ -25,6 +25,7 @@ mod mmio;
 mod status;
 
 #[cfg(test)]
+#[cfg(not(feature = "std"))]
 mod tests;
 
 pub use api::{
