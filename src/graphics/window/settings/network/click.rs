@@ -15,10 +15,12 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use core::sync::atomic::Ordering;
+use crate::bus::pci;
 use crate::drivers::wifi;
 use crate::drivers::wifi::scan::SecurityType;
 use crate::sys::settings::network as net_settings;
 use crate::graphics::window::settings::state::*;
+use crate::network::stack::is_network_available;
 
 use super::state::*;
 use super::actions::*;
@@ -123,7 +125,8 @@ pub fn handle_ethernet_click(
     click_x: i32,
     click_y: i32,
 ) -> bool {
-    let ip_y = content_y + 45 + 30 + 45 + 20;
+    let eth_count = count_ethernet_adapters();
+    let ip_y = content_y + 30 + (eth_count as u32) * 45 + 20;
     let dhcp_btn_y = ip_y + 22;
 
     if click_y >= dhcp_btn_y as i32 && click_y < (dhcp_btn_y + 28) as i32 {
@@ -152,4 +155,125 @@ pub fn handle_ethernet_click(
     }
 
     false
+}
+
+pub fn handle_static_ip_click(
+    content_x: u32,
+    content_y: u32,
+    click_x: i32,
+    click_y: i32,
+) -> bool {
+    use super::state::{STATIC_IP_EDITING, STATIC_IP_FIELD, STATIC_IP_BUFFER, STATIC_IP_LENS};
+    use crate::sys::settings::network as net_settings;
+
+    let settings = net_settings::get_settings();
+    if settings.dhcp_enabled {
+        return false;
+    }
+
+    let eth_count = count_ethernet_adapters();
+    let ip_y = content_y + 30 + (eth_count as u32) * 45 + 20;
+
+    for i in 0..4u8 {
+        let fy = ip_y + 60 + (i as u32) * 22;
+        if click_y >= (fy - 2) as i32 && click_y < (fy + 16) as i32 {
+            if click_x >= (content_x + 100) as i32 && click_x < (content_x + 240) as i32 {
+                STATIC_IP_EDITING.store(true, Ordering::Relaxed);
+                STATIC_IP_FIELD.store(i, Ordering::Relaxed);
+
+                let mut buf = STATIC_IP_BUFFER.lock();
+                let mut lens = STATIC_IP_LENS.lock();
+                let value = match i {
+                    0 => settings.static_ip,
+                    1 => [settings.subnet_prefix, 0, 0, 0],
+                    2 => settings.gateway,
+                    3 => settings.dns_primary,
+                    _ => [0; 4],
+                };
+                let formatted = if i == 1 {
+                    let mut s = [0u8; 16];
+                    let len = format_prefix(&mut s, value[0]);
+                    (s, len)
+                } else {
+                    let mut s = [0u8; 16];
+                    let len = format_ip_to_buf(&mut s, &value);
+                    (s, len)
+                };
+                buf[i as usize] = formatted.0;
+                lens[i as usize] = formatted.1;
+                return true;
+            }
+        }
+    }
+
+    if STATIC_IP_EDITING.load(Ordering::Relaxed) {
+        STATIC_IP_EDITING.store(false, Ordering::Relaxed);
+    }
+
+    false
+}
+
+fn format_ip_to_buf(buf: &mut [u8; 16], ip: &[u8; 4]) -> u8 {
+    let mut idx = 0;
+    for (i, &octet) in ip.iter().enumerate() {
+        if octet >= 100 {
+            buf[idx] = b'0' + (octet / 100);
+            idx += 1;
+        }
+        if octet >= 10 {
+            buf[idx] = b'0' + ((octet / 10) % 10);
+            idx += 1;
+        }
+        buf[idx] = b'0' + (octet % 10);
+        idx += 1;
+        if i < 3 {
+            buf[idx] = b'.';
+            idx += 1;
+        }
+    }
+    idx as u8
+}
+
+fn format_prefix(buf: &mut [u8; 16], prefix: u8) -> u8 {
+    let mut idx = 0;
+    buf[idx] = b'/';
+    idx += 1;
+    if prefix >= 10 {
+        buf[idx] = b'0' + (prefix / 10);
+        idx += 1;
+    }
+    buf[idx] = b'0' + (prefix % 10);
+    idx += 1;
+    idx as u8
+}
+
+fn count_ethernet_adapters() -> u8 {
+    let mut eth_count = 0u8;
+    let mut eth_found = false;
+
+    if crate::drivers::usb::rtl8152::is_connected()
+        || crate::drivers::usb::cdc_eth::is_connected()
+    {
+        eth_found = true;
+        eth_count += 1;
+    }
+
+    let pci_count = pci::device_count();
+    for i in 0..pci_count {
+        if let Some(dev) = pci::get_device(i) {
+            if dev.class == 0x02 && dev.subclass == 0x00 {
+                eth_found = true;
+                eth_count += 1;
+                if eth_count >= 4 {
+                    break;
+                }
+            }
+        }
+    }
+
+    if !eth_found && is_network_available() {
+        eth_count = 1;
+    }
+
+    eth_count.max(1)
 }
