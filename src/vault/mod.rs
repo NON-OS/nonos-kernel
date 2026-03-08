@@ -16,8 +16,6 @@
 
 //! NONOS Vault Subsystem Entry Point
 
-#![allow(dead_code)]
-
 pub mod nonos_vault;
 pub mod nonos_vault_crypto;
 pub mod nonos_vault_seal;
