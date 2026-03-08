@@ -32,43 +32,34 @@ use core::sync::atomic::Ordering;
 
 use super::state::*;
 
-/*
- * Handles clicks on the locked wallet screen. Returns true if the click
- * was handled, false if it fell outside all interactive regions.
- *
- * The layout has three interactive regions stacked vertically:
- * 1. Password input field (240px wide, centered)
- * 2. Unlock button (120px wide, centered, below password)
- * 3. New Wallet button (120px wide, centered, below unlock)
- */
 pub(super) fn handle_locked_click(x: u32, y: u32, w: u32, h: u32) -> bool {
     let center_x: u32 = w / 2;
     let center_y: u32 = h / 2;
 
-    let field_x1 = center_x.saturating_sub(120);
-    let field_x2 = center_x + 120;
-    let field_y1 = center_y + 5;
-    let field_y2 = center_y + 33;
+    let field_x1 = center_x.saturating_sub(130);
+    let field_x2 = center_x + 130;
+    let field_y1 = center_y;
+    let field_y2 = center_y + 32;
 
     if x >= field_x1 && x <= field_x2 && y >= field_y1 && y <= field_y2 {
         PASSWORD_FOCUSED.store(true, Ordering::SeqCst);
         return true;
     }
 
-    let btn_x1 = center_x.saturating_sub(60);
-    let btn_x2 = center_x + 60;
-    let btn_y1 = center_y + 50;
-    let btn_y2 = center_y + 82;
+    let unlock_x1 = center_x.saturating_sub(130);
+    let unlock_x2 = center_x.saturating_sub(5);
+    let unlock_y1 = center_y + 55;
+    let unlock_y2 = center_y + 99;
 
-    if x >= btn_x1 && x <= btn_x2 && y >= btn_y1 && y <= btn_y2 {
+    if x >= unlock_x1 && x <= unlock_x2 && y >= unlock_y1 && y <= unlock_y2 {
         try_unlock();
         return true;
     }
 
-    let new_btn_x1 = center_x.saturating_sub(60);
-    let new_btn_x2 = center_x + 60;
-    let new_btn_y1 = center_y + 90;
-    let new_btn_y2 = center_y + 118;
+    let new_btn_x1 = center_x + 5;
+    let new_btn_x2 = center_x + 130;
+    let new_btn_y1 = center_y + 55;
+    let new_btn_y2 = center_y + 99;
 
     if x >= new_btn_x1 && x <= new_btn_x2 && y >= new_btn_y1 && y <= new_btn_y2 {
         generate_new_wallet();
@@ -79,21 +70,39 @@ pub(super) fn handle_locked_click(x: u32, y: u32, w: u32, h: u32) -> bool {
     false
 }
 
-/*
- * Generates a brand new wallet with fresh cryptographic key material.
- *
- * Uses generate_secure_key() which collects 168 bytes of entropy from
- * 12 different sources (TSC readings, TSC jitter, PIT counter samples,
- * RTC timestamp, stack pointer, buffer addresses, ChaCha20 RNG pulls,
- * and a global counter) then mixes through BLAKE3 for a uniform 32-byte
- * master key. This ensures unique wallets even on deterministic systems.
- */
 fn generate_new_wallet() {
-    use crate::crypto::generate_secure_key;
+    use crate::crypto::{generate_secure_key, blake3_derive_key};
+    use core::sync::atomic::{AtomicU64, Ordering as AtomicOrdering};
+
+    static WALLET_GEN_COUNTER: AtomicU64 = AtomicU64::new(0x4E4F4E4F_57414C54);
 
     lock_wallet();
 
-    let master_key = generate_secure_key();
+    let pwd = PASSWORD_INPUT.lock();
+    let pwd_len = PASSWORD_LEN.load(Ordering::SeqCst);
+
+    let hw_entropy = generate_secure_key();
+    let click_time = crate::time::now_ns();
+    let counter = WALLET_GEN_COUNTER.fetch_add(0xA3B7C1D5E9F24680, AtomicOrdering::SeqCst);
+
+    let mut combined = [0u8; 80];
+    combined[0..32].copy_from_slice(&hw_entropy);
+
+    if pwd_len > 0 {
+        combined[32..32 + pwd_len.min(32)].copy_from_slice(&pwd[..pwd_len.min(32)]);
+    }
+
+    combined[64..72].copy_from_slice(&click_time.to_le_bytes());
+    combined[72..80].copy_from_slice(&counter.to_le_bytes());
+
+    let mut master_key = [0u8; 32];
+    blake3_derive_key("NONOS:WALLET:NEW:v2", &combined, &mut master_key);
+
+    for b in combined.iter_mut() {
+        unsafe { core::ptr::write_volatile(b, 0) };
+    }
+
+    drop(pwd);
 
     match init_wallet(master_key) {
         Ok(()) => {
@@ -103,7 +112,11 @@ fn generate_new_wallet() {
             }
             PASSWORD_LEN.store(0, Ordering::SeqCst);
             PASSWORD_FOCUSED.store(false, Ordering::SeqCst);
-            set_status(b"New wallet created", true);
+            if pwd_len > 0 {
+                set_status(b"Wallet created with password", true);
+            } else {
+                set_status(b"New wallet created", true);
+            }
         }
         Err(e) => {
             set_status(e.as_bytes(), false);
@@ -111,14 +124,6 @@ fn generate_new_wallet() {
     }
 }
 
-/*
- * Attempts to unlock an existing wallet using the entered password.
- *
- * The password is hashed with BLAKE3 to derive the master key. This allows
- * users to restore their wallet on any device by entering the same password.
- * Unlike generate_new_wallet(), this is deterministic by design since the
- * same password must produce the same wallet across devices.
- */
 pub(super) fn try_unlock() {
     use crate::crypto::blake3_hash;
 
