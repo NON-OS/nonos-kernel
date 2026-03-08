@@ -26,45 +26,90 @@ pub(super) fn draw(x: u32, y: u32, w: u32, h: u32) {
 }
 
 fn draw_toolbar(x: u32, y: u32, w: u32) {
-    fill_rect(x, y, w, TOOLBAR_HEIGHT, COLOR_TOOLBAR_BG);
+    for gy in 0..TOOLBAR_HEIGHT {
+        let shade = 44 - (gy / 4) as u8;
+        let color = 0xFF000000 | ((shade as u32) << 16) | ((shade as u32) << 8) | (shade as u32);
+        fill_rect(x, y + gy, w, 1, color);
+    }
+    fill_rect(x, y + TOOLBAR_HEIGHT - 1, w, 1, 0xFF1C1C1E);
 
     let back_enabled = can_go_back();
     let forward_enabled = can_go_forward();
 
-    let back_x = x + 10;
-    let back_color = if back_enabled { COLOR_BUTTON_ACTIVE } else { COLOR_BUTTON_INACTIVE };
-    let back_text_color = if back_enabled { COLOR_TEXT_WHITE } else { COLOR_DISABLED };
-    fill_rect(back_x, y + 8, BUTTON_WIDTH, BUTTON_HEIGHT, back_color);
-    draw_char(back_x + 8, y + 12, b'<', back_text_color);
+    let btn_y = y + 10;
+    let back_x = x + 12;
+    draw_round_button(back_x, btn_y, back_enabled);
+    draw_arrow(back_x + 10, btn_y + 10, true, if back_enabled { COLOR_TEXT_WHITE } else { COLOR_DISABLED });
 
-    let fwd_x = x + 40;
-    let fwd_color = if forward_enabled { COLOR_BUTTON_ACTIVE } else { COLOR_BUTTON_INACTIVE };
-    let fwd_text_color = if forward_enabled { COLOR_TEXT_WHITE } else { COLOR_DISABLED };
-    fill_rect(fwd_x, y + 8, BUTTON_WIDTH, BUTTON_HEIGHT, fwd_color);
-    draw_char(fwd_x + 8, y + 12, b'>', fwd_text_color);
+    let fwd_x = x + 48;
+    draw_round_button(fwd_x, btn_y, forward_enabled);
+    draw_arrow(fwd_x + 12, btn_y + 10, false, if forward_enabled { COLOR_TEXT_WHITE } else { COLOR_DISABLED });
 
-    let refresh_x = x + 70;
-    fill_rect(refresh_x, y + 8, BUTTON_WIDTH, BUTTON_HEIGHT, COLOR_BUTTON_ACTIVE);
-    draw_char(refresh_x + 8, y + 12, b'R', COLOR_TEXT_WHITE);
+    let refresh_x = x + 84;
+    draw_round_button(refresh_x, btn_y, true);
+    draw_refresh_icon(refresh_x + 11, btn_y + 11, COLOR_TEXT_WHITE);
 
-    let url_bar_x = x + 105;
-    let url_bar_w = w.saturating_sub(175);
+    let url_bar_x = x + 130;
+    let url_bar_w = w.saturating_sub(210);
     let url_focused = URL_FOCUSED.load(Ordering::Relaxed);
-    let url_border = if url_focused { COLOR_ACCENT } else { COLOR_URL_BAR_BORDER };
 
-    fill_rect(url_bar_x - 1, y + 7, url_bar_w + 2, BUTTON_HEIGHT + 2, url_border);
-    fill_rect(url_bar_x, y + 8, url_bar_w, BUTTON_HEIGHT, COLOR_URL_BAR_BG);
-
+    draw_url_bar(url_bar_x, btn_y, url_bar_w, url_focused);
     draw_url_text(url_bar_x, y, url_bar_w, url_focused);
 
-    let go_x = x + w - 60;
+    let go_x = x + w - 70;
     let loading = LOADING.load(Ordering::Relaxed);
-    let go_color = if loading { COLOR_BUTTON_INACTIVE } else { COLOR_ACCENT };
-    fill_rect(go_x, y + 8, 50, BUTTON_HEIGHT, go_color);
+    draw_go_button(go_x, btn_y, loading);
+}
 
-    let go_text: &[u8] = if loading { b"..." } else { b"Go" };
-    let text_offset = if loading { 16 } else { 20 };
-    draw_string(go_x + text_offset, y + 12, go_text, 0xFF0D1117);
+fn draw_round_button(x: u32, y: u32, enabled: bool) {
+    let color = if enabled { COLOR_BUTTON_ACTIVE } else { COLOR_BUTTON_INACTIVE };
+    let r = 6u32;
+    fill_rect(x + r, y, BUTTON_WIDTH - 2 * r, BUTTON_HEIGHT, color);
+    fill_rect(x, y + r, BUTTON_WIDTH, BUTTON_HEIGHT - 2 * r, color);
+    for dy in 0..r { for dx in 0..r { if dx * dx + dy * dy <= r * r {
+        crate::graphics::framebuffer::put_pixel(x + r - dx, y + r - dy, color);
+        crate::graphics::framebuffer::put_pixel(x + BUTTON_WIDTH - r + dx - 1, y + r - dy, color);
+        crate::graphics::framebuffer::put_pixel(x + r - dx, y + BUTTON_HEIGHT - r + dy - 1, color);
+        crate::graphics::framebuffer::put_pixel(x + BUTTON_WIDTH - r + dx - 1, y + BUTTON_HEIGHT - r + dy - 1, color);
+    }}}
+}
+
+fn draw_arrow(x: u32, y: u32, left: bool, color: u32) {
+    for i in 0..5u32 {
+        let w = 5 - i;
+        let px = if left { x + i } else { x + 4 - i };
+        fill_rect(px, y - w as u32, 2, w * 2 + 1, color);
+    }
+}
+
+fn draw_refresh_icon(x: u32, y: u32, color: u32) {
+    let offsets: [(i32, i32); 8] = [
+        (5, 0), (3, 3), (0, 5), (-3, 3),
+        (-5, 0), (-3, -3), (0, -5), (3, -3),
+    ];
+    for (ax, ay) in offsets.iter() {
+        crate::graphics::framebuffer::put_pixel((x as i32 + ax) as u32, (y as i32 + ay) as u32, color);
+    }
+}
+
+fn draw_url_bar(x: u32, y: u32, w: u32, focused: bool) {
+    let border_color = if focused { 0xFF007AFF } else { COLOR_URL_BAR_BORDER };
+    let r = 8u32;
+    fill_rect(x + r, y - 1, w - 2 * r, BUTTON_HEIGHT + 2, border_color);
+    fill_rect(x - 1, y + r - 1, w + 2, BUTTON_HEIGHT - 2 * r + 2, border_color);
+    fill_rect(x + r, y, w - 2 * r, BUTTON_HEIGHT, COLOR_URL_BAR_BG);
+    fill_rect(x, y + r, w, BUTTON_HEIGHT - 2 * r, COLOR_URL_BAR_BG);
+}
+
+fn draw_go_button(x: u32, y: u32, loading: bool) {
+    let color = if loading { 0xFF48484A } else { 0xFF007AFF };
+    let r = 8u32;
+    let w = 56u32;
+    fill_rect(x + r, y, w - 2 * r, BUTTON_HEIGHT, color);
+    fill_rect(x, y + r, w, BUTTON_HEIGHT - 2 * r, color);
+    let text: &[u8] = if loading { b"..." } else { b"Go" };
+    let tx = x + w / 2 - (text.len() as u32 * 8) / 2;
+    draw_string(tx, y + 10, text, 0xFFFFFFFF);
 }
 
 fn draw_url_text(url_bar_x: u32, y: u32, url_bar_w: u32, focused: bool) {
