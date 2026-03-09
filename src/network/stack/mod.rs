@@ -14,14 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-/*
- * TCP/IP network stack for NONOS.
- *
- * Built on smoltcp with custom device adapter for WiFi/Ethernet drivers.
- * Supports IPv4/IPv6 dual-stack, TCP sockets, DNS resolution, DHCP,
- * and HTTP/HTTPS clients. See core.rs for the main NetworkStack singleton.
- */
-
 pub mod api;
 pub mod async_ops;
 pub mod config;
@@ -33,13 +25,12 @@ pub mod http;
 pub mod icmp;
 pub mod sockets;
 pub mod tcp;
+mod tcp_methods;
 pub mod types;
 pub mod util;
 
 pub use api::{is_network_connected, set_network_connected, get_socket_info, get_current_ipv4, get_current_gateway, get_current_dns, get_mac_address, is_network_available, is_link_up};
 pub use device::{register_device, SmolDevice, SmolDeviceAdapter};
 pub use core::{get_network_stack, init_network_stack, NetworkStack};
-pub use types::{
-    ArpEntry, DhcpLease, Ipv4Address, Ipv6Address, NetworkStats, SmolHandle, Socket, SocketInfo,
-    TcpSocket,
-};
+pub use types::{ArpEntry, DhcpLease, Ipv4Address, Ipv6Address, NetworkStats, SmolHandle, Socket, SocketInfo, TcpSocket};
+pub use tcp::{TcpConfig, TcpTimeouts, DEFAULT_TCP_CONFIG};

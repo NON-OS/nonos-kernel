@@ -33,6 +33,7 @@ static DNS_ERROR: Mutex<Option<&'static str>> = Mutex::new(None);
 static DNS_HANDLE: Mutex<Option<smoltcp::iface::SocketHandle>> = Mutex::new(None);
 
 pub fn dns_start_query(hostname: &str) -> Result<(), &'static str> {
+    crate::sys::serial::println(b"[DNS] starting query");
     if DNS_QUERY_ACTIVE.load(Ordering::SeqCst) {
         return Err("dns query already in progress");
     }
@@ -59,8 +60,8 @@ pub fn dns_start_query(hostname: &str) -> Result<(), &'static str> {
 
     {
         let s: &mut udp::Socket = sockets.get_mut(handle);
-        let local = IpEndpoint::new(SmolIpAddress::Ipv4(SmolIpv4Address::from_bytes(&ip)), 0);
-        s.bind(local).map_err(|_| "dns bind failed")?;
+        let ephemeral_port = 49152 + ((now_ms() as u16) % 16383);
+        s.bind(ephemeral_port).map_err(|_| "dns bind failed")?;
         let remote = IpEndpoint::new(
             SmolIpAddress::Ipv4(SmolIpv4Address::new(server[0], server[1], server[2], server[3])),
             53
@@ -80,7 +81,13 @@ pub fn dns_start_query(hostname: &str) -> Result<(), &'static str> {
     Ok(())
 }
 
+static DNS_POLL_COUNT: core::sync::atomic::AtomicU32 = core::sync::atomic::AtomicU32::new(0);
+
 pub fn dns_poll() -> AsyncResult<[u8; 4]> {
+    let count = DNS_POLL_COUNT.fetch_add(1, Ordering::Relaxed);
+    if count == 0 || count % 100 == 0 {
+        crate::sys::serial::println(b"[DNS] polling...");
+    }
     if !DNS_QUERY_ACTIVE.load(Ordering::SeqCst) {
         if let Some(addrs) = DNS_RESULT.lock().as_ref() {
             if let Some(ip) = addrs.first() {
@@ -93,9 +100,22 @@ pub fn dns_poll() -> AsyncResult<[u8; 4]> {
         return AsyncResult::Error("no dns query active");
     }
 
-    let elapsed = now_ms().saturating_sub(DNS_QUERY_START.load(Ordering::SeqCst));
+    let current_time = now_ms();
+    let start_time = DNS_QUERY_START.load(Ordering::SeqCst);
+    let elapsed = current_time.saturating_sub(start_time);
+    let count = DNS_POLL_COUNT.load(Ordering::Relaxed);
+    if count % 100 == 1 {
+        crate::sys::serial::print(b"[DNS] now=");
+        crate::sys::serial::print_dec(current_time);
+        crate::sys::serial::print(b" start=");
+        crate::sys::serial::print_dec(start_time);
+        crate::sys::serial::print(b" elapsed=");
+        crate::sys::serial::print_dec(elapsed);
+        crate::sys::serial::println(b"");
+    }
     /* 10s timeout - 2s was too aggressive for slow/congested networks */
     if elapsed > 10_000 {
+        crate::sys::serial::println(b"[DNS] TIMEOUT!");
         dns_cleanup();
         *DNS_ERROR.lock() = Some("dns timeout");
         return AsyncResult::Error("dns timeout");
