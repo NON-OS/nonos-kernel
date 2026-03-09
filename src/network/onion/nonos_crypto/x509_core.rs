@@ -15,12 +15,15 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use alloc::vec::Vec;
-use crate::crypto::rsa;
 use crate::network::onion::OnionError;
-use super::curve::RealEd25519;
-use super::rsa::RSAPublic;
 use super::types::{AlgorithmIdentifier, ObjectIdentifier, PublicKeyInfo, PublicKeyKind, X509Certificate};
 use super::x509_der::DerParser;
+use super::x509_time::parse_validity;
+use super::x509_verify::{
+    verify_self_signed, verify_signature, verify_chain,
+    check_basic_constraints_end_entity,
+};
+pub(crate) use super::x509_time::check_time_validity;
 
 pub struct X509;
 
@@ -37,8 +40,10 @@ impl X509 {
         parser.expect_sequence()?;
         let tbs_start = parser.offset;
 
-        Self::skip_tbs_fields(&mut parser)?;
+        let (not_before_ms, not_after_ms, issuer_der, subject_der, is_ca) = Self::parse_tbs_fields(&mut parser)?;
         let public_key = Self::parse_subject_public_key_info(&mut parser)?;
+
+        Self::skip_extensions(&mut parser)?;
 
         let tbs_end = parser.offset;
         let tbs_certificate = der[tbs_start..tbs_end].to_vec();
@@ -55,18 +60,40 @@ impl X509 {
             signature_algorithm,
             signature,
             public_key,
+            not_before_ms,
+            not_after_ms,
+            is_ca,
+            subject_der,
+            issuer_der,
         })
     }
 
-    fn skip_tbs_fields(parser: &mut DerParser) -> Result<(), OnionError> {
+    fn parse_tbs_fields(parser: &mut DerParser) -> Result<(u64, u64, Vec<u8>, Vec<u8>, bool), OnionError> {
         if parser.peek_tag() == Some(0xA0) {
             parser.skip_structure()?;
         }
         parser.skip_structure()?;
         parser.skip_structure()?;
+
+        let issuer_start = parser.offset;
         parser.skip_structure()?;
+        let issuer_end = parser.offset;
+        let issuer_der = parser.data[issuer_start..issuer_end].to_vec();
+
+        let (not_before_ms, not_after_ms) = parse_validity(parser)?;
+
+        let subject_start = parser.offset;
         parser.skip_structure()?;
-        parser.skip_structure()?;
+        let subject_end = parser.offset;
+        let subject_der = parser.data[subject_start..subject_end].to_vec();
+
+        Ok((not_before_ms, not_after_ms, issuer_der, subject_der, false))
+    }
+
+    fn skip_extensions(parser: &mut DerParser) -> Result<(), OnionError> {
+        while parser.has_more() && parser.peek_tag() == Some(0xA3) {
+            parser.skip_structure()?;
+        }
         Ok(())
     }
 
@@ -130,62 +157,23 @@ impl X509 {
     }
 
     pub fn verify_self_signed(cert: &X509Certificate) -> Result<(), OnionError> {
-        if cert.signature_algorithm.algorithm.is_rsa_encryption() {
-            let public_key = Self::parse_rsa_public_key(&cert.public_key.public_key)?;
-            let rsa_public = RSAPublic { inner: public_key };
-
-            if rsa_public.verify_pkcs1v15_sha256(&cert.tbs_certificate, &cert.signature) {
-                Ok(())
-            } else {
-                Err(OnionError::CryptoError)
-            }
-        } else if cert.signature_algorithm.algorithm.is_ed25519() {
-            if cert.public_key.public_key.len() != 32 || cert.signature.len() != 64 {
-                return Err(OnionError::CryptoError);
-            }
-
-            let mut public_key = [0u8; 32];
-            let mut signature = [0u8; 64];
-            public_key.copy_from_slice(&cert.public_key.public_key);
-            signature.copy_from_slice(&cert.signature);
-
-            if RealEd25519::verify(&cert.tbs_certificate, &signature, &public_key) {
-                Ok(())
-            } else {
-                Err(OnionError::CryptoError)
-            }
-        } else {
-            Err(OnionError::CryptoError)
-        }
+        verify_self_signed(cert)
     }
 
-    fn parse_rsa_public_key(key_bytes: &[u8]) -> Result<rsa::RsaPublicKey, OnionError> {
-        let mut parser = DerParser::new(key_bytes);
-        parser.expect_sequence()?;
+    pub fn verify_signature(cert: &X509Certificate, issuer: &X509Certificate) -> Result<(), OnionError> {
+        verify_signature(cert, issuer)
+    }
 
-        parser.expect_tag(0x02)?;
-        let n_len = parser.read_length()?;
-        let n = parser.read_bytes(n_len)?.to_vec();
-
-        parser.expect_tag(0x02)?;
-        let e_len = parser.read_length()?;
-        let e = parser.read_bytes(e_len)?.to_vec();
-
-        Ok(rsa::create_public_key(n, e))
+    pub fn verify_chain(chain: &[X509Certificate], now_ms: u64) -> Result<(), OnionError> {
+        verify_chain(chain, now_ms)
     }
 
     pub fn check_basic_constraints_end_entity(cert: &X509Certificate) -> Result<(), OnionError> {
-        if cert.tbs_certificate.len() < 500 {
-            return Err(OnionError::CertificateError);
-        }
-        Ok(())
+        check_basic_constraints_end_entity(cert)
     }
 
-    pub fn check_time_validity(cert: &X509Certificate, _now_ms: u64) -> Result<(), OnionError> {
-        if cert.signature.len() < 64 {
-            return Err(OnionError::CertificateError);
-        }
-        Ok(())
+    pub fn check_time_validity(cert: &X509Certificate, now_ms: u64) -> Result<(), OnionError> {
+        check_time_validity(cert, now_ms)
     }
 
     pub fn public_key_info(cert: &X509Certificate) -> Result<(PublicKeyKind, Vec<u8>), OnionError> {
@@ -193,6 +181,8 @@ impl X509 {
             Ok((PublicKeyKind::Rsa, cert.public_key.public_key.clone()))
         } else if cert.public_key.algorithm.algorithm.is_ed25519() {
             Ok((PublicKeyKind::Ed25519, cert.public_key.public_key.clone()))
+        } else if cert.public_key.algorithm.algorithm.is_ec_public_key() {
+            Ok((PublicKeyKind::EcdsaP256, cert.public_key.public_key.clone()))
         } else {
             Err(OnionError::CertificateError)
         }
