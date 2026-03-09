@@ -68,6 +68,13 @@ impl HttpClient {
                     return Err("too many redirects");
                 }
 
+                if self.options.use_cookies {
+                    let mut jar = super::cookies::get_cookie_jar().lock();
+                    for set_cookie in response.get_set_cookie_headers() {
+                        jar.parse_set_cookie(set_cookie, &parsed.host, &parsed.path);
+                    }
+                }
+
                 if let Some(location) = response.location() {
                     current_url = if location.starts_with("http://") || location.starts_with("https://") {
                         location.to_string()
@@ -84,6 +91,13 @@ impl HttpClient {
 
                     redirects += 1;
                     continue;
+                }
+            }
+
+            if self.options.use_cookies {
+                let mut jar = super::cookies::get_cookie_jar().lock();
+                for set_cookie in response.get_set_cookie_headers() {
+                    jar.parse_set_cookie(set_cookie, &parsed.host, &parsed.path);
                 }
             }
 
@@ -177,8 +191,8 @@ impl HttpClient {
             }
 
             if response_data.len() > 4 {
-                if let Some(_) = find_sequence(&response_data, b"\r\n\r\n") {
-                    if response_data.windows(2).any(|w| w == b"0\r") || response_data.len() > MAX_RESPONSE_SIZE {
+                if let Some(header_end) = find_sequence(&response_data, b"\r\n\r\n") {
+                    if is_response_complete(&response_data, header_end) || response_data.len() > MAX_RESPONSE_SIZE {
                         break;
                     }
                 }
@@ -193,4 +207,88 @@ impl HttpClient {
 
         parse_response(&response_data)
     }
+}
+
+/*
+ * check if HTTP response is complete based on Content-Length or chunked encoding.
+ * header_end is the index where "\r\n\r\n" starts (body starts at header_end + 4).
+ */
+fn is_response_complete(data: &[u8], header_end: usize) -> bool {
+    let headers = &data[..header_end];
+    let body_start = header_end + 4;
+    let body = &data[body_start..];
+
+    /* check for Content-Length header */
+    if let Some(content_length) = parse_content_length(headers) {
+        return body.len() >= content_length;
+    }
+
+    /* check for chunked transfer encoding */
+    if has_chunked_encoding(headers) {
+        /* look for "0\r\n\r\n" or "0\r\n" followed by trailers and "\r\n\r\n" */
+        return find_chunked_terminator(body);
+    }
+
+    /* no Content-Length and not chunked - can't determine, keep reading */
+    false
+}
+
+fn parse_content_length(headers: &[u8]) -> Option<usize> {
+    let header_str = core::str::from_utf8(headers).ok()?;
+    for line in header_str.split("\r\n") {
+        let lower = line.to_ascii_lowercase();
+        if lower.starts_with("content-length:") {
+            let value = line[15..].trim();
+            return value.parse().ok();
+        }
+    }
+    None
+}
+
+fn has_chunked_encoding(headers: &[u8]) -> bool {
+    let header_str = match core::str::from_utf8(headers) {
+        Ok(s) => s,
+        Err(_) => return false,
+    };
+    for line in header_str.split("\r\n") {
+        let lower = line.to_ascii_lowercase();
+        if lower.starts_with("transfer-encoding:") && lower.contains("chunked") {
+            return true;
+        }
+    }
+    false
+}
+
+fn find_chunked_terminator(body: &[u8]) -> bool {
+    /*
+     * chunked encoding ends with "0\r\n" (final chunk size) followed by
+     * optional trailers and then "\r\n" (or just "\r\n\r\n" if no trailers).
+     * simplest terminator pattern is "0\r\n\r\n".
+     */
+    if body.len() < 5 {
+        return false;
+    }
+
+    /* search for "0\r\n" followed eventually by "\r\n\r\n" */
+    let mut i = 0;
+    while i + 5 <= body.len() {
+        /* look for "0\r\n" at start of a chunk size line */
+        if body[i] == b'0' && body[i + 1] == b'\r' && body[i + 2] == b'\n' {
+            /* check if followed immediately by "\r\n" (no trailers) */
+            if body[i + 3] == b'\r' && body[i + 4] == b'\n' {
+                return true;
+            }
+            /* could have trailers - look for "\r\n\r\n" after the "0\r\n" */
+            if let Some(_) = find_sequence(&body[i + 3..], b"\r\n\r\n") {
+                return true;
+            }
+        }
+        /* move to next line */
+        if let Some(pos) = find_sequence(&body[i..], b"\r\n") {
+            i += pos + 2;
+        } else {
+            break;
+        }
+    }
+    false
 }

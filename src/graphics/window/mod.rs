@@ -39,7 +39,6 @@ pub mod text_editor;
 pub mod settings;
 pub mod apps;
 pub mod terminal;
-pub mod browser;
 pub mod ecosystem;
 pub mod shortcuts;
 pub mod context_menu;

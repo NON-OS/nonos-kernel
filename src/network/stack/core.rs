@@ -14,20 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-/*
- * Core network stack implementation.
- *
- * Built on smoltcp, a user-space TCP/IP stack. Provides the central
- * NetworkStack singleton that manages:
- * - Interface polling for packet processing
- * - Socket set for TCP connections
- * - Connection tracking for application-level handles
- * - Network statistics collection
- *
- * Initialize with init_network_stack() early in boot, then access
- * via get_network_stack() from anywhere in the kernel.
- */
-
 use alloc::collections::BTreeMap;
 use alloc::vec;
 use core::sync::atomic::AtomicU32;
@@ -87,15 +73,19 @@ pub fn init_network_stack() {
 
         let mut iface = Interface::new(cfg, &mut dev, SmolInstant::from_millis(now_ms() as i64));
 
-        let _ = iface.update_ip_addrs(|ips| {
-            let _ = ips.push(IpCidr::new(
+        iface.update_ip_addrs(|ips| {
+            if let Err(_) = ips.push(IpCidr::new(
                 SmolIpAddress::Ipv4(SmolIpv4Address::new(127, 0, 0, 1)),
                 8,
-            ));
-            let _ = ips.push(IpCidr::new(
+            )) {
+                crate::log::error!("network: failed to configure loopback v4");
+            }
+            if let Err(_) = ips.push(IpCidr::new(
                 SmolIpAddress::Ipv6(SmolIpv6Address::LOOPBACK),
                 128,
-            ));
+            )) {
+                crate::log::error!("network: failed to configure loopback v6");
+            }
         });
 
         NetworkStack {
@@ -105,7 +95,7 @@ pub fn init_network_stack() {
             conns: Mutex::new(BTreeMap::new()),
             next_id: AtomicU32::new(1),
             stats: Mutex::new(NetworkStats::default()),
-            default_dns_v4: Mutex::new([1, 1, 1, 1]),
+            default_dns_v4: Mutex::new([10, 0, 2, 3]),
             gateway_v4: Mutex::new(None),
             gateway_v6: Mutex::new(None),
             default_dns_v6: Mutex::new(DEFAULT_DNS_V6),
@@ -118,17 +108,12 @@ pub fn get_network_stack() -> Option<&'static NetworkStack> {
 }
 
 impl NetworkStack {
-    /*
-     * Drives the smoltcp interface forward. Call this frequently to
-     * process incoming packets and transmit queued data. Should be
-     * invoked from the network polling loop or timer interrupt.
-     */
     #[inline]
     pub fn poll_interface(&self) {
         let ts = SmolInstant::from_millis(now_ms() as i64);
         let mut iface = self.iface.lock();
         let mut sockets = self.sockets.lock();
-        let _ = iface.poll(ts, &mut SmolDeviceAdapter, &mut *sockets);
+        let _activity = iface.poll(ts, &mut SmolDeviceAdapter, &mut *sockets);
     }
 
     #[inline]

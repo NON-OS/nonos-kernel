@@ -30,23 +30,23 @@ pub fn handle_process_manager_click(win_x: u32, win_y: u32, win_w: u32, win_h: u
 }
 
 pub fn draw_browser(x: u32, y: u32, w: u32, h: u32) {
-    crate::graphics::window::browser::draw(x, y, w, h);
+    crate::graphics::window::ecosystem::draw(x, y, w, h);
 }
 
 pub fn handle_browser_click(win_x: u32, win_y: u32, win_w: u32, win_h: u32, click_x: i32, click_y: i32) -> bool {
-    crate::graphics::window::browser::handle_click(win_x, win_y, win_w, win_h, click_x, click_y)
+    crate::graphics::window::ecosystem::handle_click(win_x, win_y, win_w, win_h, click_x, click_y)
 }
 
 pub fn browser_key(ch: u8) {
-    crate::graphics::window::browser::browser_key(ch);
+    crate::graphics::window::ecosystem::handle_key(ch);
 }
 
 pub fn browser_special_key(key: SpecialKey) {
-    crate::graphics::window::browser::browser_special_key(key);
+    crate::graphics::window::ecosystem::handle_special_key(key);
 }
 
 pub fn is_browser_url_focused() -> bool {
-    crate::graphics::window::browser::is_url_focused()
+    crate::graphics::window::ecosystem::is_input_focused()
 }
 
 pub fn draw_wallet(x: u32, y: u32, w: u32, h: u32) {

@@ -14,29 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::graphics::window::text_editor::SpecialKey;
-use super::{render, input, http};
+mod cleanup;
+mod core;
+mod init;
+mod link;
+mod mac;
+mod mmio;
+mod rx;
+mod tx;
 
-pub fn draw(x: u32, y: u32, w: u32, h: u32) {
-    render::draw(x, y, w, h);
-}
-
-pub fn handle_click(win_x: u32, win_y: u32, win_w: u32, win_h: u32, click_x: i32, click_y: i32) -> bool {
-    input::handle_click(win_x, win_y, win_w, win_h, click_x, click_y)
-}
-
-pub fn browser_key(ch: u8) {
-    input::handle_key(ch);
-}
-
-pub fn browser_special_key(key: SpecialKey) {
-    input::handle_special_key(key);
-}
-
-pub fn is_url_focused() -> bool {
-    input::is_url_focused()
-}
-
-pub fn poll_fetch() -> bool {
-    http::poll_fetch()
-}
+pub use core::E1000Device;

@@ -14,27 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod constants;
-pub mod state;
-pub mod html;
-pub mod html_entities;
-pub mod html_tags;
-pub mod http;
-pub mod http_nav;
-pub mod http_poll;
-pub mod input;
-pub mod input_keys;
-pub mod render;
-pub mod find;
-pub mod api;
+mod config;
+mod connect;
+mod lifecycle;
+mod listener;
+mod receive;
+mod send;
 
-pub use constants::*;
-pub use api::{draw, handle_click, browser_key, browser_special_key, is_url_focused, poll_fetch};
-pub use find::{
-    open_find as browser_open_find,
-    close_find as browser_close_find,
-    is_active as browser_find_active,
-    find_next as browser_find_next,
-    find_prev as browser_find_prev,
-    get_match_count as browser_get_match_count,
-};
+pub use config::{TcpConfig, TcpTimeouts, DEFAULT_TCP_CONFIG, get_config, set_timeouts, set_buffer_sizes};
+pub use connect::{connect_v4, connect_v6};
+pub use lifecycle::{close, abort, cleanup_stale_connections, is_connection_active, get_connection_state, get_active_connection_count};
+pub use listener::{bind, accept, unbind, get_pending_connection_count};
+pub use receive::{receive, receive_exact, peek};
+pub use send::send;

@@ -51,9 +51,9 @@ pub fn tcp_start_connect(addr: [u8; 4], port: u16) -> Result<u32, &'static str> 
             SmolIpAddress::Ipv4(SmolIpv4Address::new(addr[0], addr[1], addr[2], addr[3])),
             port
         );
-        let local = (SmolIpAddress::Ipv4(SmolIpv4Address::new(0, 0, 0, 0)), 0);
+        let local_port = 49152 + ((now_ms() as u16) % 16383);
         let mut ctx = iface.context();
-        s.connect(&mut ctx, endpoint, local).map_err(|_| "tcp connect start failed")?;
+        s.connect(&mut ctx, endpoint, local_port).map_err(|_| "tcp connect start failed")?;
     }
     drop(sockets);
 

@@ -85,8 +85,12 @@ impl NetworkStack {
 
                     if ct == 0x17 {
                         if let Ok(decrypted) = tls.decrypt_app(body) {
-                            if plaintext_buf.len() + decrypted.len() <= CAP {
-                                plaintext_buf.extend_from_slice(&decrypted);
+                            /* tls 1.3: last byte is inner content type, strip it */
+                            if !decrypted.is_empty() {
+                                let data = &decrypted[..decrypted.len() - 1];
+                                if plaintext_buf.len() + data.len() <= CAP {
+                                    plaintext_buf.extend_from_slice(data);
+                                }
                             }
                         }
                     }
