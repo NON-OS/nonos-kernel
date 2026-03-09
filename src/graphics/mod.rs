@@ -50,5 +50,5 @@ pub use window::{
     is_dialog_active, get_dialog_result, close_dialog, dialog_result, set_window_content_size,
     get_window_scroll, scroll_window_by, draw_window_scrollbar, editor_key,
     terminal_key, init as window_init,
-    scroll, dialogs, notifications, text_editor, apps, terminal, browser,
+    scroll, dialogs, notifications, text_editor, apps, terminal,
 };
