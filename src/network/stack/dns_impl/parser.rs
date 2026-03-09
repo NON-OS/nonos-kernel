@@ -79,6 +79,11 @@ fn skip_questions(data: &[u8], off: &mut usize, qd_count: usize) -> Result<(), &
 }
 
 pub(crate) fn parse_dns_response_a(data: &[u8]) -> Result<Vec<[u8; 4]>, &'static str> {
+    let (addrs, _, _) = parse_dns_response_a_with_ttl(data)?;
+    Ok(addrs)
+}
+
+pub(crate) fn parse_dns_response_a_with_ttl(data: &[u8]) -> Result<(Vec<[u8; 4]>, u32, Vec<String>), &'static str> {
     if data.len() < 12 { return Err("dns short"); }
     let qd = u16::from_be_bytes([data[4], data[5]]) as usize;
     let an = u16::from_be_bytes([data[6], data[7]]) as usize;
@@ -86,7 +91,10 @@ pub(crate) fn parse_dns_response_a(data: &[u8]) -> Result<Vec<[u8; 4]>, &'static
     let mut off = 12usize;
     skip_questions(data, &mut off, qd)?;
 
-    let mut out = Vec::new();
+    let mut addrs = Vec::new();
+    let mut cnames = Vec::new();
+    let mut min_ttl: u32 = u32::MAX;
+
     for _ in 0..an {
         if off + 10 > data.len() { break; }
         skip_dns_name(data, &mut off)?;
@@ -94,20 +102,33 @@ pub(crate) fn parse_dns_response_a(data: &[u8]) -> Result<Vec<[u8; 4]>, &'static
 
         let typ = u16::from_be_bytes([data[off], data[off+1]]); off += 2;
         off += 2;
-        off += 4;
+        let ttl = u32::from_be_bytes([data[off], data[off+1], data[off+2], data[off+3]]); off += 4;
         let rdlen = u16::from_be_bytes([data[off], data[off+1]]) as usize; off += 2;
 
         if typ == DnsRecordType::A as u16 && rdlen == 4 && off + 4 <= data.len() {
             let mut a = [0u8; 4];
             a.copy_from_slice(&data[off..off+4]);
-            out.push(a);
+            addrs.push(a);
+            if ttl < min_ttl { min_ttl = ttl; }
+        } else if typ == DnsRecordType::CNAME as u16 && off + rdlen <= data.len() {
+            if let Ok(name) = parse_dns_name(data, off) {
+                cnames.push(name);
+                if ttl < min_ttl { min_ttl = ttl; }
+            }
         }
         off += rdlen;
     }
-    Ok(out)
+
+    if min_ttl == u32::MAX { min_ttl = 300; }
+    Ok((addrs, min_ttl, cnames))
 }
 
 pub(crate) fn parse_dns_response_aaaa(data: &[u8]) -> Result<Vec<[u8; 16]>, &'static str> {
+    let (addrs, _) = parse_dns_response_aaaa_with_ttl(data)?;
+    Ok(addrs)
+}
+
+pub(crate) fn parse_dns_response_aaaa_with_ttl(data: &[u8]) -> Result<(Vec<[u8; 16]>, u32), &'static str> {
     if data.len() < 12 { return Err("dns short"); }
     let qd = u16::from_be_bytes([data[4], data[5]]) as usize;
     let an = u16::from_be_bytes([data[6], data[7]]) as usize;
@@ -115,7 +136,9 @@ pub(crate) fn parse_dns_response_aaaa(data: &[u8]) -> Result<Vec<[u8; 16]>, &'st
     let mut off = 12usize;
     skip_questions(data, &mut off, qd)?;
 
-    let mut out = Vec::new();
+    let mut addrs = Vec::new();
+    let mut min_ttl: u32 = u32::MAX;
+
     for _ in 0..an {
         if off + 10 > data.len() { break; }
         skip_dns_name(data, &mut off)?;
@@ -123,17 +146,20 @@ pub(crate) fn parse_dns_response_aaaa(data: &[u8]) -> Result<Vec<[u8; 16]>, &'st
 
         let typ = u16::from_be_bytes([data[off], data[off+1]]); off += 2;
         off += 2;
-        off += 4;
+        let ttl = u32::from_be_bytes([data[off], data[off+1], data[off+2], data[off+3]]); off += 4;
         let rdlen = u16::from_be_bytes([data[off], data[off+1]]) as usize; off += 2;
 
         if typ == DnsRecordType::AAAA as u16 && rdlen == 16 && off + 16 <= data.len() {
             let mut a = [0u8; 16];
             a.copy_from_slice(&data[off..off+16]);
-            out.push(a);
+            addrs.push(a);
+            if ttl < min_ttl { min_ttl = ttl; }
         }
         off += rdlen;
     }
-    Ok(out)
+
+    if min_ttl == u32::MAX { min_ttl = 300; }
+    Ok((addrs, min_ttl))
 }
 
 pub(crate) fn parse_dns_response_cname(data: &[u8]) -> Result<Vec<String>, &'static str> {
