@@ -33,8 +33,8 @@ mod resolver;
 pub use types::{
     DnsCacheEntry, DnsQueryRecord, PendingQuery,
     DnsRecordType, DnsRecord, DnsRecordCacheEntry,
-    MxRecord, SrvRecord,
-    MAX_QUERY_CACHE, DEFAULT_TTL_MS,
+    MxRecord, SrvRecord, DnsResponseA, DnsResponseAAAA,
+    MAX_QUERY_CACHE, DEFAULT_TTL_MS, MAX_CNAME_DEPTH,
 };
 pub use cache::{DNS_CACHE, DNS_STATS, DnsCache, DnsStats};
 pub use resolver::{

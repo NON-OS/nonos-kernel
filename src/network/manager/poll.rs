@@ -30,11 +30,8 @@ pub fn run_network_stack() {
 }
 
 pub fn poll_network() {
+    /* Let smoltcp handle virtio-net packets via SmolDeviceAdapter */
     if let Some(dev) = crate::drivers::virtio_net::get_virtio_net_device() {
-        let packets = dev.lock().receive_packets();
-        for pkt in packets {
-            let _ = crate::drivers::network::stack::receive_packet(&pkt);
-        }
         dev.lock().reclaim_tx();
     }
 
@@ -42,16 +39,7 @@ pub fn poll_network() {
     crate::drivers::rtl8139::poll();
     crate::drivers::rtl8168::poll();
 
-    if crate::drivers::wifi::is_connected() {
-        if let Some(dev) = crate::drivers::wifi::get_device() {
-            if let Some(mut guard) = dev.try_lock() {
-                if let Ok(Some(pkt)) = guard.receive() {
-                    let _ = crate::drivers::network::stack::receive_packet(&pkt);
-                }
-            }
-        }
-    }
-
+    /* smoltcp handles all packet reception via poll_interface */
     if let Some(stack) = get_network_stack() {
         stack.poll_interface();
     }

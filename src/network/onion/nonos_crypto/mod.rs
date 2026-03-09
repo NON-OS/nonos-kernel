@@ -23,6 +23,8 @@ mod curve;
 mod dh;
 mod kdf;
 mod x509_der;
+mod x509_time;
+mod x509_verify;
 mod x509_core;
 mod x509_san;
 mod aead;

@@ -67,7 +67,7 @@ pub fn init() {
                         octet3, octet4
                     );
                     stack.set_ipv4_config([169, 254, octet3, octet4], 16, None);
-                    stack.set_default_dns_v4([1, 1, 1, 1]);
+                    stack.set_default_dns_v4([10, 0, 2, 3]);
                 }
             }
         } else if let Some(stack) = get_network_stack() {

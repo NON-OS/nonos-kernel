@@ -27,9 +27,10 @@ use super::super::core::NetworkStack;
 use super::super::device::now_ms;
 use super::builder::build_dns_query_type;
 use super::parser::{
-    parse_dns_response_a, parse_dns_response_aaaa, parse_dns_response_any,
-    parse_dns_response_cname, parse_dns_response_mx, parse_dns_response_ns,
-    parse_dns_response_txt,
+    parse_dns_response_a, parse_dns_response_a_with_ttl,
+    parse_dns_response_aaaa, parse_dns_response_aaaa_with_ttl,
+    parse_dns_response_any, parse_dns_response_cname, parse_dns_response_mx,
+    parse_dns_response_ns, parse_dns_response_txt,
 };
 use crate::network::dns::{DnsRecord, DnsRecordType, MxRecord};
 
@@ -38,6 +39,18 @@ impl NetworkStack {
         let query = build_dns_query_type(hostname, DnsRecordType::A);
         let response = self.dns_query_raw(&query, timeout_ms)?;
         parse_dns_response_a(&response)
+    }
+
+    pub fn dns_query_a_with_ttl(&self, hostname: &str, timeout_ms: u64) -> Result<(Vec<[u8; 4]>, u32, Vec<String>), &'static str> {
+        let query = build_dns_query_type(hostname, DnsRecordType::A);
+        let response = self.dns_query_raw(&query, timeout_ms)?;
+        parse_dns_response_a_with_ttl(&response)
+    }
+
+    pub fn dns_query_aaaa_with_ttl(&self, hostname: &str, timeout_ms: u64) -> Result<(Vec<[u8; 16]>, u32), &'static str> {
+        let query = build_dns_query_type(hostname, DnsRecordType::AAAA);
+        let response = self.dns_query_raw(&query, timeout_ms)?;
+        parse_dns_response_aaaa_with_ttl(&response)
     }
 
     pub fn dns_query_aaaa(&self, hostname: &str, timeout_ms: u64) -> Result<Vec<[u8; 16]>, &'static str> {
@@ -88,19 +101,22 @@ impl NetworkStack {
         {
             let mut sockets = self.sockets.lock();
             let s: &mut udp::Socket = sockets.get_mut(handle);
-            s.bind(0).map_err(|_| "dns bind")?;
+            let ephemeral_port = 49152 + ((now_ms() as u16) % 16383);
+            s.bind(ephemeral_port).map_err(|_| "dns bind")?;
             let dns_endpoint = smoltcp::wire::IpEndpoint::new(
                 SmolIpAddress::Ipv4(SmolIpv4Address::new(server[0], server[1], server[2], server[3])), 53
             );
             let metadata = smoltcp::socket::udp::UdpMetadata::from(dns_endpoint);
-            let _ = s.send_slice(query, metadata).map_err(|_| "dns send")?;
+            s.send_slice(query, metadata).map_err(|_| "dns send")?;
         }
 
         let start = now_ms();
-        let timeout = timeout_ms.min(200);
+        let timeout = timeout_ms.max(2000);
 
-        for _ in 0..100 {
-            self.poll();
+        for _ in 0..2000 {
+            for _ in 0..5 {
+                self.poll();
+            }
 
             {
                 let mut sockets = self.sockets.lock();
@@ -118,7 +134,7 @@ impl NetworkStack {
                 return Err("dns timeout");
             }
 
-            for _ in 0..50 { core::hint::spin_loop(); }
+            crate::time::yield_now();
         }
 
         let mut sockets = self.sockets.lock();

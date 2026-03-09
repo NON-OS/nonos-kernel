@@ -14,8 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! HTTP request handling for browser.
-
 extern crate alloc;
 
 use alloc::collections::BTreeMap;
@@ -129,7 +127,6 @@ impl FetchResult {
 
 pub fn fetch_page(url: &str, options: FetchOptions) -> Result<FetchResult, FetchError> {
     let settings = get_settings();
-
     let url = strip_tracking_params(url);
 
     if settings.https_only && url.starts_with("http://") {

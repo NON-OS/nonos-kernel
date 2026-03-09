@@ -54,6 +54,8 @@ pub struct HttpRequestOptions {
     pub max_redirects: u8,
     pub timeout_ms: u64,
     pub verbose: bool,
+    pub keep_alive: bool,
+    pub use_cookies: bool,
 }
 
 impl Default for HttpRequestOptions {
@@ -66,6 +68,8 @@ impl Default for HttpRequestOptions {
             max_redirects: MAX_REDIRECTS,
             timeout_ms: HTTP_TIMEOUT_MS,
             verbose: false,
+            keep_alive: false,
+            use_cookies: true,
         }
     }
 }
@@ -90,8 +94,23 @@ pub(super) fn build_request(url: &ParsedUrl, method: HttpMethod, body: Option<&[
     request.extend_from_slice(USER_AGENT);
     request.extend_from_slice(b"\r\n");
 
-    request.extend_from_slice(b"Connection: close\r\n");
+    if options.keep_alive {
+        request.extend_from_slice(b"Connection: keep-alive\r\n");
+    } else {
+        request.extend_from_slice(b"Connection: close\r\n");
+    }
+
     request.extend_from_slice(b"Accept: */*\r\n");
+    request.extend_from_slice(b"Accept-Encoding: gzip, deflate\r\n");
+
+    if options.use_cookies {
+        let jar = super::cookies::get_cookie_jar().lock();
+        if let Some(cookie_header) = jar.build_cookie_header(&url.host, &url.path, url.is_https) {
+            request.extend_from_slice(b"Cookie: ");
+            request.extend_from_slice(cookie_header.as_bytes());
+            request.extend_from_slice(b"\r\n");
+        }
+    }
 
     for (name, value) in &options.headers {
         request.extend_from_slice(name.as_bytes());

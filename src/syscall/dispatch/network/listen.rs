@@ -42,7 +42,7 @@ pub fn handle_listen(sockfd: u64, backlog: u64) -> SyscallResult {
     }
 
     if let Some(stack) = crate::network::get_network_stack() {
-        if stack.listen_tcp(backlog as usize).is_err() {
+        if stack.listen_tcp(entry.local_port, backlog as usize).is_err() {
             return errno(5);
         }
     }
@@ -77,7 +77,7 @@ pub fn handle_accept(sockfd: u64, _addr: u64, _addrlen: u64) -> SyscallResult {
         None => return errno(99),
     };
 
-    match stack.accept_tcp_connection() {
+    match stack.accept_tcp_connection(entry.local_port) {
         Ok(conn_id) => {
             let new_fd = NEXT_SOCKET_FD.fetch_add(1, AtomicOrdering::SeqCst);
 

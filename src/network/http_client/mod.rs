@@ -20,7 +20,10 @@ mod url;
 mod response;
 mod request;
 mod tls_util;
+mod cookies;
 mod client;
+
+pub use cookies::{Cookie, CookieJar, get_cookie_jar, clear_all_cookies};
 
 pub use url::ParsedUrl;
 pub use response::HttpResponse;

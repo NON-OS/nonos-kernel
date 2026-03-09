@@ -77,6 +77,21 @@ impl HttpResponse {
         (200..300).contains(&self.status_code)
     }
 
+    pub fn get_set_cookie_headers(&self) -> Vec<&str> {
+        self.headers.iter()
+            .filter(|(k, _)| k.to_ascii_lowercase() == "set-cookie")
+            .map(|(_, v)| v.as_str())
+            .collect()
+    }
+
+    pub fn is_keep_alive(&self) -> bool {
+        if let Some(conn) = self.header("connection") {
+            conn.to_ascii_lowercase().contains("keep-alive")
+        } else {
+            false
+        }
+    }
+
     pub fn body_text(&self) -> Option<String> {
         String::from_utf8(self.body.clone()).ok()
     }

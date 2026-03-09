@@ -652,11 +652,11 @@ fn run_desktop() -> ! {
 
         nonos_kernel::network::poll_network();
 
-        if nonos_kernel::graphics::window::browser::poll_fetch() {
+        if nonos_kernel::graphics::window::settings::take_background_changed() {
             unsafe { NEEDS_REDRAW = true; }
         }
 
-        if nonos_kernel::graphics::window::settings::take_background_changed() {
+        if nonos_kernel::graphics::window::ecosystem::state::take_content_changed() {
             unsafe { NEEDS_REDRAW = true; }
         }
 

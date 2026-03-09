@@ -14,8 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Intel E1000 Ethernet driver.
-
 extern crate alloc;
 
 use alloc::sync::Arc;

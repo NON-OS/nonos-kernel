@@ -132,3 +132,21 @@ pub struct PendingQuery {
     pub start_ms: u64,
     pub timeout_ms: u64,
 }
+
+/// DNS response with TTL information
+#[derive(Debug, Clone)]
+pub struct DnsResponseA {
+    pub addresses: Vec<[u8; 4]>,
+    pub ttl_seconds: u32,
+    pub cnames: Vec<String>,
+}
+
+/// DNS response with IPv6 addresses and TTL
+#[derive(Debug, Clone)]
+pub struct DnsResponseAAAA {
+    pub addresses: Vec<[u8; 16]>,
+    pub ttl_seconds: u32,
+}
+
+/// Maximum CNAME chain depth to follow
+pub const MAX_CNAME_DEPTH: usize = 8;

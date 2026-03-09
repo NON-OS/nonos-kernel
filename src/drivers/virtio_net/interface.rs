@@ -14,11 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
+use alloc::collections::VecDeque;
 use alloc::vec::Vec;
 use core::sync::atomic::{AtomicU64, Ordering};
+use spin::Mutex;
 
 use super::{get_virtio_net_device, VIRTIO_NET};
+
+static PENDING_RX: Mutex<VecDeque<Vec<u8>>> = Mutex::new(VecDeque::new());
 
 pub struct VirtioNetInterface;
 
@@ -69,12 +72,31 @@ impl crate::network::stack::SmolDevice for VirtioSmolBridge {
     }
 
     fn recv(&self) -> Option<Vec<u8>> {
-        if let Some(dev) = get_virtio_net_device() {
-            let packets = dev.lock().receive_packets();
-            packets.into_iter().next()
-        } else {
-            None
+        {
+            let mut pending = PENDING_RX.lock();
+            if let Some(pkt) = pending.pop_front() {
+                return Some(pkt);
+            }
         }
+
+        let dev = get_virtio_net_device()?;
+        let packets = dev.lock().receive_packets();
+
+        if packets.is_empty() {
+            return None;
+        }
+
+        let mut iter = packets.into_iter();
+        let first = iter.next();
+
+        let mut pending = PENDING_RX.lock();
+        for pkt in iter {
+            if pending.len() < 512 {
+                pending.push_back(pkt);
+            }
+        }
+
+        first
     }
 
     fn transmit(&self, frame: &[u8]) -> Result<(), ()> {

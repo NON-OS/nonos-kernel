@@ -50,7 +50,7 @@ pub struct ProxyConfig {
 impl Default for ProxyConfig {
     fn default() -> Self {
         Self {
-            mode: ProxyMode::Onion,
+            mode: ProxyMode::None,
             host: String::from("127.0.0.1"),
             port: 9050,
             username: None,
