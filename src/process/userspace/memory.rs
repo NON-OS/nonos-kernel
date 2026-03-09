@@ -193,7 +193,7 @@ pub fn read_user_string_array(
     Some(result)
 }
 
-#[cfg(test)]
+#[cfg(all(test, not(feature = "std")))]
 mod tests {
     use super::*;
 

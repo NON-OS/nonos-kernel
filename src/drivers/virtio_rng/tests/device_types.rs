@@ -14,15 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod types;
-mod detect;
-mod memory;
-mod features;
-#[cfg(test)]
-#[cfg(not(feature = "std"))]
-mod tests;
-
-pub use types::{Platform, ConsoleType};
-pub use detect::detect_platform;
-pub use memory::get_safe_memory_regions;
-pub use features::init_platform_features;
+//! Device-level tests live inline in device.rs (#[cfg(test)]) because
+//! VirtioRngDevice and AccessMode are pub(super) / private.
+//! This file is intentionally empty — see src/drivers/virtio_rng/device.rs.

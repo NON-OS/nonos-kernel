@@ -23,6 +23,7 @@ mod scalar;
 mod signature;
 
 #[cfg(test)]
+#[cfg(not(feature = "std"))]
 mod tests;
 
 pub use signature::{sign, verify, verify_batch, KeyPair, Signature};

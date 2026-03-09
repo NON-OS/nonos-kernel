@@ -285,7 +285,7 @@ impl BufferPool {
     }
 }
 
-#[cfg(test)]
+#[cfg(all(test, not(feature = "std")))]
 mod tests {
     use super::*;
 

@@ -15,9 +15,14 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::*;
+use spin::Mutex;
+
+static TEST_LOCK: Mutex<()> = Mutex::new(());
 
 #[test]
 fn set_get_clear() {
+    let _test_guard = TEST_LOCK.lock();
+    reset_for_tests();
     let pid = 42;
     assert!(get_deadline(pid).is_none());
     set_deadline(pid, Deadline { tsc_deadline: 1_000_000, slack_ns: 0 }).unwrap();
@@ -30,6 +35,8 @@ fn set_get_clear() {
 
 #[test]
 fn list_and_check_with_freq() {
+    let _test_guard = TEST_LOCK.lock();
+    reset_for_tests();
     set_deadline(1, Deadline { tsc_deadline: 1_000_000, slack_ns: 0 }).unwrap();
     set_deadline(2, Deadline { tsc_deadline: 9_000_000, slack_ns: 0 }).unwrap();
 
@@ -44,6 +51,8 @@ fn list_and_check_with_freq() {
 
 #[test]
 fn slack_conversion() {
+    let _test_guard = TEST_LOCK.lock();
+    reset_for_tests();
     set_deadline(10, Deadline { tsc_deadline: 1_000_000, slack_ns: 100 }).unwrap();
     let m1 = check_and_mark_deadlines(1_000_050, 1_000_000_000);
     assert!(m1.is_empty());
@@ -53,6 +62,8 @@ fn slack_conversion() {
 
 #[test]
 fn invalid_inputs() {
+    let _test_guard = TEST_LOCK.lock();
+    reset_for_tests();
     assert!(set_deadline(0, Deadline { tsc_deadline: 1, slack_ns: 0 }).is_err());
     assert!(set_deadline(1, Deadline { tsc_deadline: 0, slack_ns: 0 }).is_err());
 }

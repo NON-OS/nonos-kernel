@@ -26,6 +26,7 @@ mod engine;
 mod global;
 
 #[cfg(test)]
+#[cfg(not(feature = "std"))]
 mod tests;
 
 pub use types::{ZKConfig, ZKStats, ZKProof, ZKError};

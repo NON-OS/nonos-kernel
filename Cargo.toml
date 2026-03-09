@@ -20,6 +20,7 @@ crate-type = ["staticlib", "rlib"]
 [[bin]]
 name = "nonos-kernel"
 path = "src/nonos_main.rs"
+harness = false
 
 # FEATURES
 # Notes:

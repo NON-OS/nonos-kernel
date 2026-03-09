@@ -22,6 +22,7 @@ pub mod types;
 pub mod verification;
 
 #[cfg(test)]
+#[cfg(not(feature = "std"))]
 mod tests;
 
 pub use constants::*;

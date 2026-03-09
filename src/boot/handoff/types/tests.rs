@@ -141,6 +141,6 @@ fn test_framebuffer_bytes_per_pixel() {
 #[test]
 fn test_magic_value() {
     assert_eq!(HANDOFF_MAGIC, 0x4E_4F_4E_4F);
-    assert_eq!((HANDOFF_MAGIC >> 24) as u8, b'O');
-    assert_eq!(((HANDOFF_MAGIC >> 16) & 0xFF) as u8, b'N');
+    assert_eq!((HANDOFF_MAGIC >> 24) as u8, b'N');
+    assert_eq!(((HANDOFF_MAGIC >> 16) & 0xFF) as u8, b'O');
 }

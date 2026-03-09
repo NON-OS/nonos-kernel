@@ -34,9 +34,10 @@ fn test_validate_path() {
 
 #[test]
 fn test_nonce_generation() {
-    let nonce1 = generate_nonce(0);
-    let nonce2 = generate_nonce(1);
-    assert_ne!(nonce1[4..12], nonce2[4..12]);
+    let nonce1 = generate_nonce();
+    let nonce2 = generate_nonce();
+    // Nonces should be different (extremely unlikely to match)
+    assert_ne!(nonce1, nonce2);
 }
 
 #[test]
