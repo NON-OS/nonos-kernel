@@ -42,7 +42,7 @@ impl RunQueue {
 
     #[inline]
     pub fn is_empty(&self) -> bool {
-        self.current.load(Ordering::Relaxed) == 0 && self.q.lock().is_empty()
+        self.q.lock().is_empty()
     }
 
     #[inline]

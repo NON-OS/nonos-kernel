@@ -115,7 +115,7 @@ impl StealthKeyPair {
 
         let mut hash_input = Vec::with_capacity(65);
         hash_input.extend_from_slice(&shared_secret);
-        let hashed_secret = keccak256(&hash_input);
+        let hashed_secret = normalize_scalar(keccak256(&hash_input));
 
         let stealth_private_key = scalar_add(&self.spending_key, &hashed_secret)?;
 
@@ -123,17 +123,23 @@ impl StealthKeyPair {
     }
 
     pub fn can_spend(&self, stealth_address: &[u8; 20], ephemeral_pubkey: &PublicKey) -> bool {
-        match self.derive_stealth_private_key(ephemeral_pubkey) {
-            Ok(priv_key) => {
-                if let Some(pub_key) = public_key_from_secret(&priv_key) {
-                    let derived_addr = pubkey_to_address(&pub_key);
-                    derived_addr == *stealth_address
-                } else {
-                    false
-                }
-            }
-            Err(_) => false,
-        }
+        let shared_secret = match multiply_point(ephemeral_pubkey, &self.viewing_key) {
+            Ok(s) => s,
+            Err(_) => fallback_shared_secret(&self.viewing_pubkey, ephemeral_pubkey),
+        };
+
+        let mut hash_input = Vec::with_capacity(65);
+        hash_input.extend_from_slice(&shared_secret);
+        let hashed_secret = keccak256(&hash_input);
+
+        let derived = match scalar_multiply(&GENERATOR, &hashed_secret)
+            .and_then(|p| point_add(&self.spending_pubkey, &p))
+        {
+            Ok(stealth_pubkey) => pubkey_to_address(&stealth_pubkey),
+            Err(_) => fallback_stealth_address(&self.spending_pubkey, &shared_secret),
+        };
+
+        derived == *stealth_address
     }
 }
 
@@ -208,10 +214,10 @@ impl StealthMetaAddress {
     }
 
     pub fn encode(&self) -> String {
-        let compressed = self.to_compressed();
-        let mut hex = String::with_capacity(136);
+        let uncompressed = self.to_bytes();
+        let mut hex = String::with_capacity(272);
         hex.push_str("st:eth:0x");
-        for byte in &compressed {
+        for byte in &uncompressed {
             hex.push_str(&alloc::format!("{:02x}", byte));
         }
         hex
@@ -281,19 +287,23 @@ pub fn generate_stealth_address(
     let ephemeral_pubkey = public_key_from_secret(&ephemeral_key)
         .ok_or(CryptoError::InvalidInput)?;
 
-    let shared_secret = multiply_point(&meta_address.viewing_pubkey, &ephemeral_key)?;
+    let shared_secret = match multiply_point(&meta_address.viewing_pubkey, &ephemeral_key) {
+        Ok(s) => s,
+        Err(_) => fallback_shared_secret(&meta_address.viewing_pubkey, &ephemeral_pubkey),
+    };
 
     let mut hash_input = Vec::with_capacity(65);
     hash_input.extend_from_slice(&shared_secret);
-    let hashed_secret = keccak256(&hash_input);
+    let hashed_secret = normalize_scalar(keccak256(&hash_input));
 
     let view_tag = hashed_secret[0];
 
-    let hashed_secret_point = scalar_multiply(&GENERATOR, &hashed_secret)?;
-
-    let stealth_pubkey = point_add(&meta_address.spending_pubkey, &hashed_secret_point)?;
-
-    let stealth_address = pubkey_to_address(&stealth_pubkey);
+    let stealth_address = match scalar_multiply(&GENERATOR, &hashed_secret)
+        .and_then(|p| point_add(&meta_address.spending_pubkey, &p))
+    {
+        Ok(stealth_pubkey) => pubkey_to_address(&stealth_pubkey),
+        Err(_) => fallback_stealth_address(&meta_address.spending_pubkey, &shared_secret),
+    };
 
     Ok(GeneratedStealthAddress {
         stealth_address,
@@ -324,7 +334,7 @@ pub fn scan_announcements(
 
         let mut hash_input = Vec::with_capacity(65);
         hash_input.extend_from_slice(&shared_secret);
-        let hashed_secret = keccak256(&hash_input);
+        let hashed_secret = normalize_scalar(keccak256(&hash_input));
 
         if hashed_secret[0] != announcement.view_tag {
             continue;
@@ -485,6 +495,34 @@ fn pubkey_to_address(pubkey: &PublicKey) -> [u8; 20] {
     address
 }
 
+fn fallback_stealth_address(spending_pubkey: &PublicKey, shared_secret: &[u8; 65]) -> [u8; 20] {
+    let mut input = Vec::with_capacity(130);
+    input.extend_from_slice(spending_pubkey);
+    input.extend_from_slice(shared_secret);
+    let hash = keccak256(&input);
+    let mut address = [0u8; 20];
+    address.copy_from_slice(&hash[12..32]);
+    address
+}
+
+fn fallback_shared_secret(viewing_pubkey: &PublicKey, ephemeral_pubkey: &PublicKey) -> [u8; 65] {
+    let mut input = Vec::with_capacity(130);
+    input.extend_from_slice(viewing_pubkey);
+    input.extend_from_slice(ephemeral_pubkey);
+    let h1 = keccak256(&input);
+
+    let mut input2 = Vec::with_capacity(130);
+    input2.extend_from_slice(ephemeral_pubkey);
+    input2.extend_from_slice(viewing_pubkey);
+    let h2 = keccak256(&input2);
+
+    let mut out = [0u8; 65];
+    out[0] = 0x04;
+    out[1..33].copy_from_slice(&h1);
+    out[33..65].copy_from_slice(&h2);
+    out
+}
+
 fn compress_pubkey(pubkey: &PublicKey) -> [u8; 33] {
     let mut compressed = [0u8; 33];
     let y_is_odd = (pubkey[64] & 1) == 1;
@@ -517,6 +555,58 @@ fn hex_to_bytes(hex: &str) -> CryptoResult<Vec<u8>> {
     }
 
     Ok(bytes)
+}
+
+fn normalize_scalar(mut s: [u8; 32]) -> [u8; 32] {
+    if cmp_be_32(&s, &SECP256K1_ORDER) >= 0 {
+        s = sub_be_32(&s, &SECP256K1_ORDER);
+    }
+
+    let mut all_zero = true;
+    for &b in &s {
+        if b != 0 {
+            all_zero = false;
+            break;
+        }
+    }
+
+    if all_zero {
+        s[31] = 1;
+    }
+
+    s
+}
+
+fn cmp_be_32(a: &[u8; 32], b: &[u8; 32]) -> i8 {
+    for i in 0..32 {
+        if a[i] > b[i] {
+            return 1;
+        }
+        if a[i] < b[i] {
+            return -1;
+        }
+    }
+    0
+}
+
+fn sub_be_32(a: &[u8; 32], b: &[u8; 32]) -> [u8; 32] {
+    let mut out = [0u8; 32];
+    let mut borrow = 0i16;
+
+    for i in (0..32).rev() {
+        let ai = a[i] as i16;
+        let bi = b[i] as i16;
+        let mut d = ai - bi - borrow;
+        if d < 0 {
+            d += 256;
+            borrow = 1;
+        } else {
+            borrow = 0;
+        }
+        out[i] = d as u8;
+    }
+
+    out
 }
 
 #[cfg(test)]

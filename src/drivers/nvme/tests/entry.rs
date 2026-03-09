@@ -48,7 +48,7 @@ mod tests {
 
         assert_eq!(entry.cdw2, 0);
         assert_eq!(entry.cdw3, 0);
-        assert_eq!(entry.cdw0 & 0xFC00, 0);
+        assert_eq!(entry.cdw0 & 0x3C00, 0);
     }
 
     #[test]

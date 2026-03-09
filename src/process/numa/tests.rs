@@ -19,6 +19,7 @@ use alloc::vec;
 
 #[test]
 fn default_single_node() {
+    reset_for_tests();
     // With default topology, node_count == 1 and all CPUs map to node 0
     assert_eq!(node_count(), 1);
     assert_eq!(current_node(), NumaNode(0));
@@ -27,6 +28,7 @@ fn default_single_node() {
 
 #[test]
 fn init_topology_and_query() {
+    reset_for_tests();
     let topo = NumaTopology::new(2, vec![0, 1, 1, 0]).expect("topo");
     init_numa_topology(topo);
     assert_eq!(node_count(), 2);
@@ -40,6 +42,7 @@ fn init_topology_and_query() {
 
 #[test]
 fn current_cpu_provider() {
+    reset_for_tests();
     let topo = NumaTopology::new(3, vec![2, 1, 0]).expect("topo");
     init_numa_topology(topo);
     set_current_cpu_id(0);
@@ -52,6 +55,7 @@ fn current_cpu_provider() {
 
 #[test]
 fn validate_inputs() {
+    reset_for_tests();
     assert!(NumaTopology::new(0, vec![]).is_err());
     assert!(NumaTopology::new(2, vec![0, 2]).is_err()); // 2 is out of range for node_count=2
     assert!(NumaTopology::new(2, vec![0, 1]).is_ok());

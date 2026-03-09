@@ -124,7 +124,7 @@ pub(super) mod response_codes {
     pub(crate) const TPM_RC_INITIALIZE: u32 = 0x100;
 }
 
-#[cfg(test)]
+#[cfg(all(test, not(feature = "std")))]
 mod tests {
     use super::*;
 

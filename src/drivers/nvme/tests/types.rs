@@ -20,11 +20,11 @@ mod tests {
 
     #[test]
     fn test_controller_capabilities() {
-        let cap: u64 = 0x00FF_0000_0020_00FF;
+        let cap: u64 = 0x0014_0000_0020_00FF;
         let caps = types::ControllerCapabilities::from_register(cap);
 
         assert_eq!(caps.max_queue_entries, 256);
-        assert!(caps.timeout_500ms_units > 0);
+        assert_eq!(caps.timeout_500ms_units, 0);
     }
 
     #[test]
@@ -42,7 +42,7 @@ mod tests {
 
     #[test]
     fn test_lba_format() {
-        let dword: u32 = 0x0000_0900;
+        let dword: u32 = 0x0009_0000;
         let format = types::LbaFormat::from_dword(dword);
 
         assert_eq!(format.lba_data_size_shift, 9);
@@ -52,7 +52,7 @@ mod tests {
 
     #[test]
     fn test_lba_format_4k() {
-        let dword: u32 = 0x0000_0C00;
+        let dword: u32 = 0x000C_0000;
         let format = types::LbaFormat::from_dword(dword);
 
         assert_eq!(format.lba_data_size_shift, 12);

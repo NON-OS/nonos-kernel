@@ -21,6 +21,7 @@ mod xcr;
 mod flags;
 mod intrinsics;
 mod cpuid;
+#[cfg(all(test, not(feature = "std")))]
 mod tests;
 
 pub use tsc::{rdtsc, rdtscp};

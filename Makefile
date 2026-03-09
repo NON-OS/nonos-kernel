@@ -40,11 +40,14 @@ export RUSTUP_TOOLCHAIN := nightly-2026-01-16
 ifeq ($(UNAME_S),Darwin)
     ifeq ($(UNAME_M),arm64)
         NIGHTLY_BIN := $(RUSTUP_HOME)/toolchains/nightly-2026-01-16-aarch64-apple-darwin/bin
+        HOST_TARGET := aarch64-apple-darwin
     else
         NIGHTLY_BIN := $(RUSTUP_HOME)/toolchains/nightly-2026-01-16-x86_64-apple-darwin/bin
+        HOST_TARGET := x86_64-apple-darwin
     endif
 else
     NIGHTLY_BIN := $(RUSTUP_HOME)/toolchains/nightly-2026-01-16-x86_64-unknown-linux-gnu/bin
+    HOST_TARGET := x86_64-unknown-linux-gnu
 endif
 
 # Use toolchain-specific cargo if available, otherwise rely on RUSTUP_TOOLCHAIN
@@ -210,17 +213,19 @@ run: esp
 		-serial mon:stdio -vga std -no-reboot
 
 run-serial: esp
-	$(QEMU) -m 512M -cpu qemu64 -machine q35 \
+	$(QEMU) -m 1G -cpu Haswell -machine q35 \
 		-drive "format=raw,file=fat:rw:$(ESP_DIR)" \
 		-drive if=pflash,format=raw,readonly=on,file="$(OVMF)" \
-		-device virtio-rng-pci -serial mon:stdio -display none -no-reboot
+		-device virtio-rng-pci -device e1000,netdev=net0 -netdev user,id=net0 \
+		-serial mon:stdio -display none -no-reboot
 
 debug: esp
 	@echo "GDB server on :1234"
-	$(QEMU) -m 512M -cpu qemu64 -machine q35 \
+	$(QEMU) -m 1G -cpu Haswell -machine q35 \
 		-drive "format=raw,file=fat:rw:$(ESP_DIR)" \
 		-drive if=pflash,format=raw,readonly=on,file="$(OVMF)" \
-		-device virtio-rng-pci -serial mon:stdio -vga std -s -S -no-reboot
+		-device virtio-rng-pci -device e1000,netdev=net0 -netdev user,id=net0 \
+		-serial mon:stdio -vga std -s -S -no-reboot
 
 #
 # Distribution
@@ -304,7 +309,7 @@ distclean: clean
 	rm -rf $(BOOTLOADER_DIR)/target target
 
 test:
-	$(CARGO) test --features std
+	$(CARGO) test --lib --features std --target $(HOST_TARGET)
 	cd $(BOOTLOADER_DIR) && $(CARGO) test
 
 fmt:

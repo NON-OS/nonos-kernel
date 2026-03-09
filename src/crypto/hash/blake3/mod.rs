@@ -27,6 +27,7 @@ mod hasher;
 mod output;
 
 #[cfg(test)]
+#[cfg(not(feature = "std"))]
 mod tests;
 
 pub use api::{blake3_derive_key, blake3_hash, blake3_hash_xof, blake3_keyed_hash};

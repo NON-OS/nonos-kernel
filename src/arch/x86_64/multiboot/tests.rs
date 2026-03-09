@@ -186,9 +186,15 @@ fn test_acpi_rsdp_is_acpi2() {
 
 #[test]
 fn test_acpi_rsdp_checksum() {
+    let mut sum: u8 = 0;
+    for &b in b"RSD PTR " {
+        sum = sum.wrapping_add(b);
+    }
+    let checksum = (0u8).wrapping_sub(sum);
+
     let rsdp = AcpiRsdp {
         signature: *b"RSD PTR ",
-        checksum: 0x41,
+        checksum,
         oem_id: [0; 6],
         revision: 0,
         rsdt_address: 0,

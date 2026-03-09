@@ -63,14 +63,14 @@ impl FieldElement {
         let mut t = [0u128; 8];
 
         for i in 0..4 {
+            let a = self.0[i] as u128;
+            let mut carry = 0u128;
             for j in 0..4 {
-                t[i + j] += self.0[i] as u128 * other.0[j] as u128;
+                let sum = a * other.0[j] as u128 + t[i + j] + carry;
+                t[i + j] = sum & 0xFFFFFFFFFFFFFFFF;
+                carry = sum >> 64;
             }
-        }
-
-        for i in 0..7 {
-            t[i + 1] += t[i] >> 64;
-            t[i] &= 0xFFFFFFFFFFFFFFFF;
+            t[i + 4] = carry;
         }
 
         let mut result = [0u64; 4];

@@ -29,6 +29,15 @@ static TOPOLOGY: RwLock<NumaTopology> = RwLock::new(NumaTopology {
 // Provider for current CPU id (set by platform/arch init).
 static CURRENT_CPU_ID_PROVIDER: AtomicU32 = AtomicU32::new(u32::MAX);
 
+#[cfg(test)]
+pub fn reset_for_tests() {
+    *TOPOLOGY.write() = NumaTopology {
+        node_count: 1,
+        cpu_to_node: Vec::new(),
+    };
+    CURRENT_CPU_ID_PROVIDER.store(u32::MAX, Ordering::Relaxed);
+}
+
 pub fn init_numa_topology(topo: NumaTopology) {
     *TOPOLOGY.write() = topo;
 }

@@ -15,29 +15,49 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use core::sync::atomic::Ordering;
-use crate::drivers::pci::get_pci_manager;
+use crate::bus::pci;
+use crate::sys::serial;
 use super::device::VirtioRngDevice;
 use super::{VIRTIO_RNG, VIRTIO_RNG_AVAILABLE, VIRTIO_VENDOR_ID};
 use super::{VIRTIO_RNG_DEVICE_ID_TRANSITIONAL, VIRTIO_RNG_DEVICE_ID_MODERN};
 
 pub fn init() -> Result<(), &'static str> {
-    let manager = get_pci_manager().ok_or("PCI manager not available")?;
-    let guard = manager.lock();
-    let devices = guard.devices();
+    if !pci::is_init() {
+        return Err("virtio-rng: PCI not initialized");
+    }
 
-    for dev in devices.iter() {
+    let count = pci::device_count();
+    for i in 0..count {
+        let dev = match pci::get_device(i) {
+            Some(d) => d,
+            None => continue,
+        };
+
         if dev.vendor_id == VIRTIO_VENDOR_ID
             && (dev.device_id == VIRTIO_RNG_DEVICE_ID_TRANSITIONAL
                 || dev.device_id == VIRTIO_RNG_DEVICE_ID_MODERN)
         {
-            match VirtioRngDevice::new(dev) {
+            serial::print(b"[VIRTIO-RNG] Found at PCI ");
+            serial::print_dec(dev.bus as u64);
+            serial::print(b":");
+            serial::print_dec(dev.device as u64);
+            serial::print(b".");
+            serial::print_dec(dev.function as u64);
+            serial::println(b"");
+
+            // Enable bus mastering for DMA and memory/IO space access
+            pci::enable_bus_master(dev.bus, dev.device, dev.function);
+
+            match VirtioRngDevice::from_bar0(dev.bar0) {
                 Ok(rng_dev) => {
                     *VIRTIO_RNG.lock() = Some(rng_dev);
                     VIRTIO_RNG_AVAILABLE.store(true, Ordering::SeqCst);
-                    crate::log::info!("virtio-rng: initialized");
                     return Ok(());
                 }
-                Err(_) => {}
+                Err(e) => {
+                    serial::print(b"[VIRTIO-RNG] Init failed: ");
+                    serial::println(e.as_bytes());
+                }
             }
         }
     }
