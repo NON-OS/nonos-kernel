@@ -23,7 +23,7 @@ use crate::network::ip::IpAddress;
 
 use super::types::{
     DnsCacheEntry, DnsQueryRecord, PendingQuery, MxRecord, DnsRecord,
-    MAX_QUERY_CACHE, DEFAULT_TTL_MS, DEFAULT_TIMEOUT_MS,
+    MAX_QUERY_CACHE, DEFAULT_TIMEOUT_MS, MAX_CNAME_DEPTH,
 };
 use super::cache::{DNS_CACHE, DNS_STATS};
 
@@ -31,7 +31,6 @@ use super::cache::{DNS_CACHE, DNS_STATS};
 pub fn resolve(hostname: &str) -> Result<Vec<IpAddress>, &'static str> {
     DNS_STATS.inc_total();
 
-    // Check cache first
     {
         let cache = DNS_CACHE.lock();
         let now = crate::time::timestamp_millis();
@@ -44,80 +43,96 @@ pub fn resolve(hostname: &str) -> Result<Vec<IpAddress>, &'static str> {
         }
     }
 
-    // Perform DNS query
-    if let Some(ns) = crate::network::get_network_stack() {
-        // Record pending query
-        {
-            let mut cache = DNS_CACHE.lock();
-            cache.pending_queries.push(PendingQuery {
-                hostname: String::from(hostname),
-                start_ms: crate::time::timestamp_millis(),
-                timeout_ms: DEFAULT_TIMEOUT_MS,
-            });
-        }
+    let ns = crate::network::get_network_stack().ok_or("network not initialized")?;
 
-        let result = ns.dns_query_a(hostname, 300);
-
-        // Remove from pending
-        {
-            let mut cache = DNS_CACHE.lock();
-            cache.pending_queries.retain(|q| q.hostname != hostname);
-        }
-
-        match result {
-            Ok(addrs) => {
-                // Cache the result
-                let now = crate::time::timestamp_millis();
-                let mut cache = DNS_CACHE.lock();
-
-                // Add to history
-                cache.query_history.push_back(DnsQueryRecord {
-                    hostname: String::from(hostname),
-                    timestamp_ms: now,
-                    success: true,
-                });
-                if cache.query_history.len() > MAX_QUERY_CACHE {
-                    cache.query_history.pop_front();
-                }
-
-                // Remove old entry if exists
-                cache.entries.retain(|e| e.hostname != hostname);
-
-                // Add new cache entry
-                cache.entries.push_back(DnsCacheEntry {
-                    hostname: String::from(hostname),
-                    addresses: addrs.clone(),
-                    timestamp_ms: now,
-                    ttl_ms: DEFAULT_TTL_MS,
-                });
-
-                if cache.entries.len() > MAX_QUERY_CACHE {
-                    cache.entries.pop_front();
-                }
-
-                Ok(addrs.into_iter().map(IpAddress::V4).collect())
-            }
-            Err(e) => {
-                DNS_STATS.inc_failed();
-
-                // Record failed query
-                let mut cache = DNS_CACHE.lock();
-                cache.query_history.push_back(DnsQueryRecord {
-                    hostname: String::from(hostname),
-                    timestamp_ms: crate::time::timestamp_millis(),
-                    success: false,
-                });
-                if cache.query_history.len() > MAX_QUERY_CACHE {
-                    cache.query_history.pop_front();
-                }
-
-                Err(e)
-            }
-        }
-    } else {
-        DNS_STATS.inc_failed();
-        Err("network not initialized")
+    {
+        let mut cache = DNS_CACHE.lock();
+        cache.pending_queries.push(PendingQuery {
+            hostname: String::from(hostname),
+            start_ms: crate::time::timestamp_millis(),
+            timeout_ms: DEFAULT_TIMEOUT_MS,
+        });
     }
+
+    let result = resolve_with_cname_follow(&ns, hostname);
+
+    {
+        let mut cache = DNS_CACHE.lock();
+        cache.pending_queries.retain(|q| q.hostname != hostname);
+    }
+
+    match result {
+        Ok((addrs, ttl_seconds)) => {
+            let now = crate::time::timestamp_millis();
+            let ttl_ms = (ttl_seconds as u64).saturating_mul(1000);
+            let mut cache = DNS_CACHE.lock();
+
+            cache.query_history.push_back(DnsQueryRecord {
+                hostname: String::from(hostname),
+                timestamp_ms: now,
+                success: true,
+            });
+            if cache.query_history.len() > MAX_QUERY_CACHE {
+                cache.query_history.pop_front();
+            }
+
+            cache.entries.retain(|e| e.hostname != hostname);
+
+            cache.entries.push_back(DnsCacheEntry {
+                hostname: String::from(hostname),
+                addresses: addrs.clone(),
+                timestamp_ms: now,
+                ttl_ms,
+            });
+
+            if cache.entries.len() > MAX_QUERY_CACHE {
+                cache.entries.pop_front();
+            }
+
+            Ok(addrs.into_iter().map(IpAddress::V4).collect())
+        }
+        Err(e) => {
+            DNS_STATS.inc_failed();
+
+            let mut cache = DNS_CACHE.lock();
+            cache.query_history.push_back(DnsQueryRecord {
+                hostname: String::from(hostname),
+                timestamp_ms: crate::time::timestamp_millis(),
+                success: false,
+            });
+            if cache.query_history.len() > MAX_QUERY_CACHE {
+                cache.query_history.pop_front();
+            }
+
+            Err(e)
+        }
+    }
+}
+
+fn resolve_with_cname_follow(
+    ns: &crate::network::stack::NetworkStack,
+    hostname: &str,
+) -> Result<(Vec<[u8; 4]>, u32), &'static str> {
+    let mut current = String::from(hostname);
+    let mut min_ttl = u32::MAX;
+
+    for _ in 0..MAX_CNAME_DEPTH {
+        let (addrs, ttl, cnames) = ns.dns_query_a_with_ttl(&current, 300)?;
+
+        if ttl < min_ttl { min_ttl = ttl; }
+
+        if !addrs.is_empty() {
+            return Ok((addrs, min_ttl));
+        }
+
+        if let Some(cname) = cnames.into_iter().next() {
+            current = cname;
+        } else {
+            break;
+        }
+    }
+
+    Err("no A record found")
 }
 
 /// Resolve hostname to a single IPv4 address
