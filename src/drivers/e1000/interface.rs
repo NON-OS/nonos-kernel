@@ -14,13 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! E1000 network stack interface.
-
 extern crate alloc;
 
+use alloc::collections::VecDeque;
 use alloc::vec::Vec;
+use spin::Mutex;
 
 use super::{get_e1000_device, MAX_MTU};
+
+static PENDING_RX: Mutex<VecDeque<Vec<u8>>> = Mutex::new(VecDeque::new());
 
 pub struct E1000SmolBridge;
 
@@ -30,12 +32,31 @@ impl crate::network::stack::SmolDevice for E1000SmolBridge {
     }
 
     fn recv(&self) -> Option<Vec<u8>> {
-        if let Some(dev) = get_e1000_device() {
-            let packets = dev.lock().receive();
-            packets.into_iter().next()
-        } else {
-            None
+        {
+            let mut pending = PENDING_RX.lock();
+            if let Some(pkt) = pending.pop_front() {
+                return Some(pkt);
+            }
         }
+
+        let dev = get_e1000_device()?;
+        let packets = dev.lock().receive();
+
+        if packets.is_empty() {
+            return None;
+        }
+
+        let mut iter = packets.into_iter();
+        let first = iter.next();
+
+        let mut pending = PENDING_RX.lock();
+        for pkt in iter {
+            if pending.len() < 256 {
+                pending.push_back(pkt);
+            }
+        }
+
+        first
     }
 
     fn transmit(&self, frame: &[u8]) -> Result<(), ()> {
