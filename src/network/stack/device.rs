@@ -103,10 +103,15 @@ impl TxToken for TxT {
     where
         F: FnOnce(&mut [u8]) -> R,
     {
+        crate::sys::serial::print(b"[NET] TxToken consume ");
+        crate::sys::serial::print_dec(len as u64);
+        crate::sys::serial::println(b" bytes");
         let mut out = vec![0u8; len];
         let res = f(&mut out);
         if let Some(dev) = DEVICE_SLOT.get() {
             let _ = dev.transmit(&out);
+        } else {
+            crate::sys::serial::println(b"[NET] TxToken: NO DEVICE!");
         }
         res
     }
