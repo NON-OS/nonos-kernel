@@ -58,11 +58,17 @@ impl E1000 {
     }
 
     pub fn transmit(&self, data: &[u8]) -> Result<(), ()> {
+        crate::sys::serial::print(b"[E1000] TX ");
+        crate::sys::serial::print_dec(data.len() as u64);
+        crate::sys::serial::println(b" bytes");
+
         if !self.initialized.load(Ordering::SeqCst) {
+            crate::sys::serial::println(b"[E1000] TX FAIL: not initialized");
             return Err(());
         }
 
         if data.len() > RX_BUFFER_SIZE {
+            crate::sys::serial::println(b"[E1000] TX FAIL: too large");
             return Err(());
         }
 
