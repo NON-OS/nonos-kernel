@@ -196,7 +196,7 @@ pub(super) fn parse_dhcp_response(data: &[u8]) -> Option<(u8, DhcpLeaseInfo)> {
         lease.gateway = [lease.ip[0], lease.ip[1], lease.ip[2], 1];
     }
     if lease.dns_primary == [0, 0, 0, 0] {
-        lease.dns_primary = [1, 1, 1, 1];
+        lease.dns_primary = [10, 0, 2, 3];
     }
     if lease.t1_time == 0 {
         lease.t1_time = lease.lease_time / 2;
