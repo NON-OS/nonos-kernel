@@ -86,7 +86,7 @@ pub fn init_network_stack() {
             conns: Mutex::new(BTreeMap::new()),
             next_id: AtomicU32::new(1),
             stats: Mutex::new(NetworkStats::default()),
-            default_dns_v4: Mutex::new([1, 1, 1, 1]),
+            default_dns_v4: Mutex::new([10, 0, 2, 3]),
             gateway_v4: Mutex::new(None),
             gateway_v6: Mutex::new(None),
             default_dns_v6: Mutex::new(DEFAULT_DNS_V6),
