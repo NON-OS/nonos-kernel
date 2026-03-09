@@ -45,7 +45,7 @@ impl CertVerifier for StrictTorLinkVerifier {
         let cert = X509::parse_der(&chain_der[0])?;
         X509::verify_self_signed(&cert)?;
         X509::check_basic_constraints_end_entity(&cert)?;
-        let now_ms = crate::time::timestamp_millis();
+        let now_ms = crate::time::unix_timestamp() * 1000;
         X509::check_time_validity(&cert, now_ms)?;
         Ok(())
     }
@@ -75,6 +75,7 @@ impl X509 {
         let tls_kind = match crypto_kind {
             crate::network::onion::nonos_crypto::PublicKeyKind::Rsa => PublicKeyKind::Rsa,
             crate::network::onion::nonos_crypto::PublicKeyKind::Ed25519 => PublicKeyKind::Ed25519,
+            crate::network::onion::nonos_crypto::PublicKeyKind::EcdsaP256 => PublicKeyKind::EcdsaP256,
             crate::network::onion::nonos_crypto::PublicKeyKind::X25519 => PublicKeyKind::X25519,
         };
         Ok((tls_kind, data))
@@ -96,20 +97,25 @@ impl CertVerifier for HttpsCertVerifier {
             return Err(OnionError::AuthenticationFailed);
         }
 
-        let cert = X509::parse_der(&chain_der[0])?;
+        let now_ms = crate::time::unix_timestamp() * 1000;
+        let mut chain = Vec::new();
 
-        X509::check_time_validity(&cert, crate::time::timestamp_millis())?;
-
-        if chain_der.len() == 1 {
-            let _ = X509::verify_self_signed(&cert);
+        for der in chain_der.iter() {
+            chain.push(X509::parse_der(der)?);
         }
 
-        /*
-         * hostname verification is mandatory for https security.
-         * without it, mitm attacks are trivial.
-         */
+        let end_entity = &chain[0];
+
+        X509::check_time_validity(end_entity, now_ms)?;
+
+        if chain.len() > 1 {
+            crate::network::onion::nonos_crypto::X509::verify_chain(&chain, now_ms)?;
+        } else {
+            X509::verify_self_signed(end_entity)?;
+        }
+
         if !sni.is_empty() {
-            verify_hostname(&cert, sni)?;
+            verify_hostname(end_entity, sni)?;
         }
 
         Ok(())
