@@ -81,6 +81,14 @@ pub fn generate_wallet_entropy(buffer: &mut [u8]) {
     use core::sync::atomic::{AtomicU64, Ordering};
     static WALLET_COUNTER: AtomicU64 = AtomicU64::new(0xCAFE_BABE_DEAD_BEEF);
 
+    #[cfg(feature = "std")]
+    {
+        // Host tests run in user mode and cannot access PIT I/O ports.
+        // Reuse kernel RNG API, which is safe in std mode.
+        rng::fill_random_bytes(buffer);
+        return;
+    }
+
     /* Collect 256 bytes of entropy from all sources */
     let mut entropy_pool = [0u8; 256];
     let mut offset = 0;
