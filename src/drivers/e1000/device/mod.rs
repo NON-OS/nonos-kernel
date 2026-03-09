@@ -17,6 +17,10 @@
 mod cleanup;
 mod core;
 mod init;
-mod operations;
+mod link;
+mod mac;
+mod mmio;
+mod rx;
+mod tx;
 
-pub use self::core::Rtl8168Device;
+pub use core::E1000Device;
