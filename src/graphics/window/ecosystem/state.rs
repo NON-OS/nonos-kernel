@@ -99,6 +99,15 @@ pub static ERROR_LEN: AtomicUsize = AtomicUsize::new(0);
 
 pub static PAGE_CONTENT: Mutex<Vec<String>> = Mutex::new(Vec::new());
 pub static PAGE_SCROLL: AtomicUsize = AtomicUsize::new(0);
+pub static CONTENT_CHANGED: AtomicBool = AtomicBool::new(false);
+
+pub fn mark_content_changed() {
+    CONTENT_CHANGED.store(true, Ordering::Relaxed);
+}
+
+pub fn take_content_changed() -> bool {
+    CONTENT_CHANGED.swap(false, Ordering::Relaxed)
+}
 
 pub static WALLET_CONNECTED: AtomicBool = AtomicBool::new(false);
 pub static WALLET_ADDRESS: Mutex<[u8; 42]> = Mutex::new([0u8; 42]);
