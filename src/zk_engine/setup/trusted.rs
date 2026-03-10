@@ -300,7 +300,7 @@ impl TrustedSetup {
         // Fallback: generate new setup with minimal valid circuit
         crate::log::warn!("No stored trusted setup found, generating new (this may take time)");
         /* create a minimal circuit with one identity constraint: 1 * 1 = 1 */
-        use crate::zk_engine::circuit::{LinearCombination, Constraint, Variable};
+        use crate::zk_engine::circuit::{LinearCombination, Constraint};
         let one = LinearCombination::from_constant(FieldElement::one());
         let identity_constraint = Constraint::new(one.clone(), one.clone(), one);
         let dummy_circuit = crate::zk_engine::circuit::Circuit::with_params(
