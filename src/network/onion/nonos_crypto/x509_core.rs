@@ -29,32 +29,49 @@ pub struct X509;
 
 impl X509 {
     pub fn parse_der(der: &[u8]) -> Result<X509Certificate, OnionError> {
+        crate::sys::serial::print(b"[X509] parse_der len=");
+        crate::sys::serial::print_dec(der.len() as u64);
+        crate::sys::serial::println(b"");
+
         let mut parser = DerParser::new(der);
 
+        crate::sys::serial::println(b"[X509] expect outer sequence");
         parser.expect_sequence()?;
+        let _outer_len = parser.read_length()?;
         let cert_start = parser.offset;
         if cert_start >= der.len() {
+            crate::sys::serial::println(b"[X509] ERROR: cert_start >= len");
             return Err(OnionError::CertificateError);
         }
 
-        parser.expect_sequence()?;
+        crate::sys::serial::println(b"[X509] expect tbs sequence");
         let tbs_start = parser.offset;
+        parser.expect_sequence()?;
+        let tbs_len = parser.read_length()?;
+        let tbs_content_end = parser.offset + tbs_len;
 
+        crate::sys::serial::println(b"[X509] parse_tbs_fields");
         let (not_before_ms, not_after_ms, issuer_der, subject_der, is_ca) = Self::parse_tbs_fields(&mut parser)?;
+
+        crate::sys::serial::println(b"[X509] parse_subject_public_key_info");
         let public_key = Self::parse_subject_public_key_info(&mut parser)?;
 
+        crate::sys::serial::println(b"[X509] skip_extensions");
         Self::skip_extensions(&mut parser)?;
 
-        let tbs_end = parser.offset;
-        let tbs_certificate = der[tbs_start..tbs_end].to_vec();
+        parser.offset = tbs_content_end;
+        let tbs_certificate = der[tbs_start..tbs_content_end].to_vec();
 
+        crate::sys::serial::println(b"[X509] parse sig_algorithm");
         let signature_algorithm = Self::parse_algorithm_identifier(&mut parser)?;
 
+        crate::sys::serial::println(b"[X509] reading signature");
         parser.expect_tag(0x03)?;
         let sig_len = parser.read_length()?;
         parser.skip(1)?;
         let signature = parser.read_bytes(sig_len - 1)?.to_vec();
 
+        crate::sys::serial::println(b"[X509] parse OK");
         Ok(X509Certificate {
             tbs_certificate,
             signature_algorithm,
@@ -69,24 +86,39 @@ impl X509 {
     }
 
     fn parse_tbs_fields(parser: &mut DerParser) -> Result<(u64, u64, Vec<u8>, Vec<u8>, bool), OnionError> {
+        crate::sys::serial::print(b"[X509] tbs offset=");
+        crate::sys::serial::print_dec(parser.offset as u64);
+        crate::sys::serial::print(b" tag=0x");
+        if let Some(t) = parser.peek_tag() {
+            crate::sys::serial::print_hex(t as u64);
+        }
+        crate::sys::serial::println(b"");
+
         if parser.peek_tag() == Some(0xA0) {
+            crate::sys::serial::println(b"[X509] skipping version");
             parser.skip_structure()?;
         }
+        crate::sys::serial::println(b"[X509] skipping serialNumber");
         parser.skip_structure()?;
+        crate::sys::serial::println(b"[X509] skipping signature");
         parser.skip_structure()?;
 
+        crate::sys::serial::println(b"[X509] reading issuer");
         let issuer_start = parser.offset;
         parser.skip_structure()?;
         let issuer_end = parser.offset;
         let issuer_der = parser.data[issuer_start..issuer_end].to_vec();
 
+        crate::sys::serial::println(b"[X509] parsing validity");
         let (not_before_ms, not_after_ms) = parse_validity(parser)?;
 
+        crate::sys::serial::println(b"[X509] reading subject");
         let subject_start = parser.offset;
         parser.skip_structure()?;
         let subject_end = parser.offset;
         let subject_der = parser.data[subject_start..subject_end].to_vec();
 
+        crate::sys::serial::println(b"[X509] tbs_fields done");
         Ok((not_before_ms, not_after_ms, issuer_der, subject_der, false))
     }
 
@@ -99,6 +131,8 @@ impl X509 {
 
     fn parse_subject_public_key_info(parser: &mut DerParser) -> Result<PublicKeyInfo, OnionError> {
         parser.expect_sequence()?;
+        let spki_len = parser.read_length()?;
+        let spki_end = parser.offset + spki_len;
         let algorithm = Self::parse_algorithm_identifier(parser)?;
 
         parser.expect_tag(0x03)?;
@@ -106,23 +140,28 @@ impl X509 {
         parser.skip(1)?;
         let public_key = parser.read_bytes(key_len - 1)?.to_vec();
 
+        parser.offset = spki_end;
         Ok(PublicKeyInfo { algorithm, public_key })
     }
 
     fn parse_algorithm_identifier(parser: &mut DerParser) -> Result<AlgorithmIdentifier, OnionError> {
         parser.expect_sequence()?;
+        let alg_len = parser.read_length()?;
+        let alg_end = parser.offset + alg_len;
 
         parser.expect_tag(0x06)?;
         let oid_len = parser.read_length()?;
         let oid_bytes = parser.read_bytes(oid_len)?;
         let algorithm = Self::parse_oid(oid_bytes)?;
 
-        let parameters = if parser.has_more() && parser.peek_tag() != Some(0x05) {
-            Some(parser.read_remaining()?.to_vec())
+        let parameters = if parser.offset < alg_end {
+            let remaining = alg_end - parser.offset;
+            Some(parser.read_bytes(remaining)?.to_vec())
         } else {
             None
         };
 
+        parser.offset = alg_end;
         Ok(AlgorithmIdentifier { algorithm, parameters })
     }
 
