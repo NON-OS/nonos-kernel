@@ -38,7 +38,7 @@ pub fn draw_terminal(x: u32, y: u32, w: u32, h: u32) {
     }
     fill_rect(x, y + HEADER_HEIGHT - 1, w, 1, 0xFF38383A);
 
-    draw_string(x + 12, y + 8, b"N\\xd8NOS Terminal", 0xFF8E8E93);
+    draw_string(x + 12, y + 8, b"N\xd8NOS Terminal", 0xFF8E8E93);
 
     let shell_indicator_x = x + w - 80;
     fill_rect(shell_indicator_x, y + 6, 8, 8, 0xFF34C759);
