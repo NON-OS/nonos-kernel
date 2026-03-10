@@ -24,7 +24,8 @@ mod tsc;
 mod stats;
 
 pub use time::{now_ns, is_initialized, now_ns_checked, now_ms, is_deadline_mode, get_timestamp_ms};
-pub use init::{init, init_with_freq};
+pub use init::{init, init_with_freq, init_boot_time};
+pub use state::BOOT_TIME;
 pub use hpet::{is_valid_hpet_base, get_hpet_counter, hpet_to_ns};
 pub use sleep::{sleep_long_ns, busy_sleep_ns, delay_precise_ns, delay_us, delay_ms};
 pub use hrtimer::{hrtimer_after_ns, cancel_timer, get_active_timer_count, tick};
