@@ -32,8 +32,8 @@ use super::types::*;
 #[global_allocator]
 static KERNEL_HEAP: SecureHeapAllocator = SecureHeapAllocator::new();
 
-pub static HEAP_ZERO_ON_ALLOC: AtomicBool = AtomicBool::new(false); // Disabled for performance
-pub static HEAP_ZERO_ON_FREE: AtomicBool = AtomicBool::new(false); // Disabled for performance
+pub static HEAP_ZERO_ON_ALLOC: AtomicBool = AtomicBool::new(true);
+pub static HEAP_ZERO_ON_FREE: AtomicBool = AtomicBool::new(true);
 pub static HEAP_STATS: HeapStatistics = HeapStatistics::new();
 static USING_BOOTSTRAP: AtomicBool = AtomicBool::new(true);
 
