@@ -28,7 +28,6 @@ pub fn init_boot_time() {
 
 pub fn init() {
     init_boot_time();
-    let boot_tsc = BOOT_TIME.load(Ordering::Relaxed);
     let tsc_freq = calibrate_tsc_frequency();
     TSC_FREQUENCY.store(tsc_freq, Ordering::SeqCst);
     if let Some(hpet_base) = detect_hpet() {
