@@ -62,6 +62,18 @@ pub struct TLSConnection {
     recv_buffer: Vec<u8>,
 }
 
+impl Drop for TLSConnection {
+    fn drop(&mut self) {
+        for byte in self.ephemeral_secret.iter_mut() {
+            unsafe { core::ptr::write_volatile(byte, 0) };
+        }
+        for byte in self.client_random.iter_mut() {
+            unsafe { core::ptr::write_volatile(byte, 0) };
+        }
+        core::sync::atomic::compiler_fence(core::sync::atomic::Ordering::SeqCst);
+    }
+}
+
 impl TLSConnection {
     pub fn new() -> Self {
         Self {
