@@ -25,7 +25,7 @@ pub mod transcript;
 pub mod types;
 pub mod verify;
 
-pub use connection::TLSConnection;
+pub use connection::{TLSConnection, HandshakePhase};
 pub use crypto_provider::{init_tls_crypto, KernelTlsCrypto, TlsCrypto, KERNEL_TLS_CRYPTO};
 pub use types::{CipherSuite, TlsSessionInfo, TLSState, PublicKeyKind};
 pub use verify::{
