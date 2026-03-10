@@ -1,0 +1,5 @@
+# Signing keys - NEVER COMMIT
+keys/*.key
+keys/*.key.*
+keys/signing_key*.bin
+keys/generation_log.json
