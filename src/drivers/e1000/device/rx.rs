@@ -62,24 +62,24 @@ impl E1000Device {
     }
 
     pub fn receive(&mut self) -> Vec<Vec<u8>> {
+        use core::sync::atomic::AtomicU64;
+        static DBG_COUNT: AtomicU64 = AtomicU64::new(0);
+
         let mut packets = Vec::new();
         let rx_descs = self.rx_descs_virt.as_mut_ptr::<E1000RxDesc>();
 
-        static mut DBG_COUNT: u64 = 0;
-        unsafe {
-            DBG_COUNT += 1;
-            if DBG_COUNT % 100 == 1 {
-                let rdh = self.read_reg(reg::RDH);
-                let rdt = self.read_reg(reg::RDT);
-                let status = self.read_reg(reg::STATUS);
-                crate::sys::serial::print(b"[E1000] RDH=");
-                crate::sys::serial::print_dec(rdh as u64);
-                crate::sys::serial::print(b" RDT=");
-                crate::sys::serial::print_dec(rdt as u64);
-                crate::sys::serial::print(b" STATUS=0x");
-                crate::sys::serial::print_hex(status as u64);
-                crate::sys::serial::println(b"");
-            }
+        let count = DBG_COUNT.fetch_add(1, Ordering::Relaxed);
+        if count % 100 == 0 {
+            let rdh = self.read_reg(reg::RDH);
+            let rdt = self.read_reg(reg::RDT);
+            let status = self.read_reg(reg::STATUS);
+            crate::sys::serial::print(b"[E1000] RDH=");
+            crate::sys::serial::print_dec(rdh as u64);
+            crate::sys::serial::print(b" RDT=");
+            crate::sys::serial::print_dec(rdt as u64);
+            crate::sys::serial::print(b" STATUS=0x");
+            crate::sys::serial::print_hex(status as u64);
+            crate::sys::serial::println(b"");
         }
 
         loop {
