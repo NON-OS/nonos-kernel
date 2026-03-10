@@ -14,18 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Setup parameters and key structures.
-
 use crate::zk_engine::groth16::{FieldElement, ProvingKey, VerifyingKey};
 
-/// Complete setup output
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 pub struct SetupParameters {
     pub proving_key: ProvingKey,
     pub verifying_key: VerifyingKey,
     pub toxic_waste: Option<ToxicWaste>,
 }
 
+#[derive(Debug)]
 pub struct ToxicWaste {
     pub tau: FieldElement,
     pub alpha: FieldElement,
