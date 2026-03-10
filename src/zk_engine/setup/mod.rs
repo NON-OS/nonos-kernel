@@ -14,8 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Groth16 trusted setup (CRS generation).
-
 mod powers;
 mod params;
 mod trusted;
@@ -25,6 +23,4 @@ pub use powers::*;
 pub use params::*;
 pub use trusted::*;
 pub use verification::*;
-
-// Re-export from groth16 for backwards compatibility
 pub use crate::zk_engine::groth16::{VerifyingKey, ProvingKey};
