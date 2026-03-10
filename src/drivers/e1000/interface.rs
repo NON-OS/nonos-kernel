@@ -35,6 +35,9 @@ impl crate::network::stack::SmolDevice for E1000SmolBridge {
         {
             let mut pending = PENDING_RX.lock();
             if let Some(pkt) = pending.pop_front() {
+                crate::sys::serial::print(b"[E1000] returning pending pkt len=");
+                crate::sys::serial::print_dec(pkt.len() as u64);
+                crate::sys::serial::println(b"");
                 return Some(pkt);
             }
         }
@@ -45,6 +48,10 @@ impl crate::network::stack::SmolDevice for E1000SmolBridge {
         if packets.is_empty() {
             return None;
         }
+
+        crate::sys::serial::print(b"[E1000] received ");
+        crate::sys::serial::print_dec(packets.len() as u64);
+        crate::sys::serial::println(b" packets");
 
         let mut iter = packets.into_iter();
         let first = iter.next();
