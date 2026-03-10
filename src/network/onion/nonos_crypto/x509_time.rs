@@ -20,6 +20,7 @@ use super::x509_der::DerParser;
 
 pub(super) fn parse_validity(parser: &mut DerParser) -> Result<(u64, u64), OnionError> {
     parser.expect_sequence()?;
+    let _validity_len = parser.read_length()?;
     let not_before = parse_time(parser)?;
     let not_after = parse_time(parser)?;
     Ok((not_before, not_after))
@@ -52,7 +53,17 @@ pub(super) fn parse_time(parser: &mut DerParser) -> Result<u64, OnionError> {
 
     let days_since_epoch = days_since_epoch(year, month, day);
     let seconds = days_since_epoch * 86400 + hour * 3600 + minute * 60 + second;
-    Ok(seconds as u64 * 1000)
+    let ms = seconds as u64 * 1000;
+    crate::sys::serial::print(b"[TIME] parsed: ");
+    crate::sys::serial::print_dec(year as u64);
+    crate::sys::serial::print(b"-");
+    crate::sys::serial::print_dec(month as u64);
+    crate::sys::serial::print(b"-");
+    crate::sys::serial::print_dec(day as u64);
+    crate::sys::serial::print(b" => ms=");
+    crate::sys::serial::print_dec(ms);
+    crate::sys::serial::println(b"");
+    Ok(ms)
 }
 
 fn days_since_epoch(year: u32, month: u32, day: u32) -> u32 {
@@ -63,10 +74,19 @@ fn days_since_epoch(year: u32, month: u32, day: u32) -> u32 {
 }
 
 pub(crate) fn check_time_validity(cert: &X509Certificate, now_ms: u64) -> Result<(), OnionError> {
+    crate::sys::serial::print(b"[TIME] now_ms=");
+    crate::sys::serial::print_dec(now_ms);
+    crate::sys::serial::print(b" not_before=");
+    crate::sys::serial::print_dec(cert.not_before_ms);
+    crate::sys::serial::print(b" not_after=");
+    crate::sys::serial::print_dec(cert.not_after_ms);
+    crate::sys::serial::println(b"");
     if now_ms < cert.not_before_ms {
+        crate::sys::serial::println(b"[TIME] FAIL: now < not_before");
         return Err(OnionError::CertificateError);
     }
     if now_ms > cert.not_after_ms {
+        crate::sys::serial::println(b"[TIME] FAIL: now > not_after");
         return Err(OnionError::CertificateError);
     }
     Ok(())
