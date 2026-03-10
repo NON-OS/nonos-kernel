@@ -23,6 +23,15 @@ pub(super) struct Secret {
     pub secret: [u8; 32],
 }
 
+impl Drop for Secret {
+    fn drop(&mut self) {
+        for byte in self.secret.iter_mut() {
+            unsafe { core::ptr::write_volatile(byte, 0) };
+        }
+        core::sync::atomic::compiler_fence(core::sync::atomic::Ordering::SeqCst);
+    }
+}
+
 pub(super) struct KeySchedule {
     pub early_prk: [u8; 32],
     pub handshake_prk: [u8; 32],
@@ -31,6 +40,21 @@ pub(super) struct KeySchedule {
     pub server_hs: Secret,
     pub client_app: Secret,
     pub server_app: Secret,
+}
+
+impl Drop for KeySchedule {
+    fn drop(&mut self) {
+        for byte in self.early_prk.iter_mut() {
+            unsafe { core::ptr::write_volatile(byte, 0) };
+        }
+        for byte in self.handshake_prk.iter_mut() {
+            unsafe { core::ptr::write_volatile(byte, 0) };
+        }
+        for byte in self.master_prk.iter_mut() {
+            unsafe { core::ptr::write_volatile(byte, 0) };
+        }
+        core::sync::atomic::compiler_fence(core::sync::atomic::Ordering::SeqCst);
+    }
 }
 
 impl KeySchedule {

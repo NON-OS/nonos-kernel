@@ -27,6 +27,18 @@ pub(super) struct AeadState {
     seq: u64,
 }
 
+impl Drop for AeadState {
+    fn drop(&mut self) {
+        for byte in self.key.iter_mut() {
+            unsafe { core::ptr::write_volatile(byte, 0) };
+        }
+        for byte in self.iv.iter_mut() {
+            unsafe { core::ptr::write_volatile(byte, 0) };
+        }
+        core::sync::atomic::compiler_fence(core::sync::atomic::Ordering::SeqCst);
+    }
+}
+
 impl AeadState {
     pub(super) fn empty() -> Self {
         Self {
