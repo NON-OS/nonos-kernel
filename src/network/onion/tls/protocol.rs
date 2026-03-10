@@ -33,8 +33,8 @@ pub(super) fn build_client_hello(
     ch.push(0);
 
     let ciphers: [u16; 2] = [
-        CipherSuite::TlsAes128GcmSha256 as u16,
         CipherSuite::TlsChacha20Poly1305Sha256 as u16,
+        CipherSuite::TlsAes128GcmSha256 as u16,
     ];
     ch.extend_from_slice(&((ciphers.len() * 2) as u16).to_be_bytes());
     for cs in ciphers {
