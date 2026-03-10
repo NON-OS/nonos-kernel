@@ -20,14 +20,11 @@ use super::state::{BOOT_TIME, TSC_FREQUENCY, TIMER_INITIALIZED};
 use super::tsc::rdtsc;
 
 pub fn now_ns() -> u64 {
-    if !TIMER_INITIALIZED.load(Ordering::Relaxed) {
-        return 0;
-    }
     let current_tsc = rdtsc();
     let boot_tsc = BOOT_TIME.load(Ordering::Relaxed);
-    let tsc_freq = TSC_FREQUENCY.load(Ordering::Relaxed);
+    let mut tsc_freq = TSC_FREQUENCY.load(Ordering::Relaxed);
     if tsc_freq == 0 {
-        return 0;
+        tsc_freq = 2_500_000_000;
     }
     let tsc_diff = current_tsc.saturating_sub(boot_tsc);
     (tsc_diff * 1_000_000_000) / tsc_freq
