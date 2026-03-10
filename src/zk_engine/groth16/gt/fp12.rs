@@ -162,6 +162,18 @@ impl GTElement {
         }
         result
     }
+
+    pub fn inverse_unchecked(&self) -> GTElement {
+        self.inverse()
+    }
+
+    pub fn equals(&self, other: &GTElement) -> bool {
+        self.c0 == other.c0 && self.c1 == other.c1
+    }
+
+    pub fn multiply(&self, other: &GTElement) -> GTElement {
+        self.mul(other)
+    }
 }
 
 impl PartialEq for GTElement {
