@@ -78,13 +78,19 @@ pub(super) fn is_response_complete(data: &[u8]) -> bool {
     false
 }
 
+const MAX_CONTENT_LENGTH: usize = 16 * 1024 * 1024;
+
 fn parse_content_length(headers: &[u8]) -> Option<usize> {
     let s = core::str::from_utf8(headers).ok()?;
     for line in s.lines() {
         let lower = line.to_ascii_lowercase();
         if lower.starts_with("content-length:") {
             let val = line[15..].trim();
-            return val.parse().ok();
+            let len: usize = val.parse().ok()?;
+            if len > MAX_CONTENT_LENGTH {
+                return None;
+            }
+            return Some(len);
         }
     }
     None
