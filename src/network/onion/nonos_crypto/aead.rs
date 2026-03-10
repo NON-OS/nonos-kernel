@@ -107,12 +107,10 @@ pub fn tls_aes128_gcm_seal(key: &[u8], nonce: &[u8; 12], aad: &[u8], plaintext: 
         return Err(OnionError::CryptoError);
     }
 
-    let mut key256 = [0u8; 32];
-    key256[..16].copy_from_slice(key);
-    let derived = hash::hmac_sha256(key, b"AES-128-GCM-EXPAND");
-    key256[16..].copy_from_slice(&derived[..16]);
+    let mut key128 = [0u8; 16];
+    key128.copy_from_slice(key);
 
-    crate::crypto::aes_gcm::aes256_gcm_encrypt(&key256, nonce, aad, plaintext)
+    crate::crypto::aes_gcm::aes128_gcm_encrypt(&key128, nonce, aad, plaintext)
         .map_err(|_| OnionError::CryptoError)
 }
 
@@ -121,12 +119,10 @@ pub fn tls_aes128_gcm_open(key: &[u8], nonce: &[u8; 12], aad: &[u8], ciphertext:
         return Err(OnionError::CryptoError);
     }
 
-    let mut key256 = [0u8; 32];
-    key256[..16].copy_from_slice(key);
-    let derived = hash::hmac_sha256(key, b"AES-128-GCM-EXPAND");
-    key256[16..].copy_from_slice(&derived[..16]);
+    let mut key128 = [0u8; 16];
+    key128.copy_from_slice(key);
 
-    crate::crypto::aes_gcm::aes256_gcm_decrypt(&key256, nonce, aad, ciphertext)
+    crate::crypto::aes_gcm::aes128_gcm_decrypt(&key128, nonce, aad, ciphertext)
         .map_err(|_| OnionError::CryptoError)
 }
 
