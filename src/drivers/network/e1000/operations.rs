@@ -32,6 +32,20 @@ impl E1000 {
             return;
         }
 
+        static mut POLL_CNT: u64 = 0;
+        unsafe {
+            POLL_CNT += 1;
+            if POLL_CNT % 500 == 1 {
+                let rdh = self.read_reg(REG_RDH);
+                let rdt = self.read_reg(REG_RDT);
+                crate::sys::serial::print(b"[E1000] poll RDH=");
+                crate::sys::serial::print_dec(rdh as u64);
+                crate::sys::serial::print(b" RDT=");
+                crate::sys::serial::print_dec(rdt as u64);
+                crate::sys::serial::println(b"");
+            }
+        }
+
         let mut cur = self.rx_cur.load(Ordering::SeqCst) as usize;
 
         // SAFETY: Accessing static DMA buffers, single-threaded NIC access via atomic guards
@@ -41,6 +55,10 @@ impl E1000 {
 
             while ((*rx_descs)[cur].status & DESC_DD) != 0 {
                 let length = (*rx_descs)[cur].length as usize;
+
+                crate::sys::serial::print(b"[E1000] RX ");
+                crate::sys::serial::print_dec(length as u64);
+                crate::sys::serial::println(b" bytes");
 
                 if length > 0 && length <= RX_BUFFER_SIZE {
                     let mut packet = Vec::with_capacity(length);
