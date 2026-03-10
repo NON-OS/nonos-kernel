@@ -99,11 +99,21 @@ impl Cookie {
             return true;
         }
 
-        if self.domain.starts_with('.') && domain.ends_with(&self.domain) {
+        let cookie_domain = if self.domain.starts_with('.') {
+            &self.domain[1..]
+        } else {
+            &self.domain
+        };
+
+        if cookie_domain.matches('.').count() < 1 {
+            return false;
+        }
+
+        if domain == cookie_domain {
             return true;
         }
 
-        if domain.ends_with(&alloc::format!(".{}", self.domain)) {
+        if domain.ends_with(&alloc::format!(".{}", cookie_domain)) {
             return true;
         }
 
