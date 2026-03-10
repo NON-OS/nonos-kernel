@@ -242,6 +242,26 @@ extern "C" fn kernel_entry(handoff_ptr: u64) -> ! {
         nonos_kernel::graphics::backgrounds::init_wallpaper_system();
 
         serial::println(b"[NONOS] Starting desktop...");
+
+        /* Draw desktop and cursor first */
+        desktop::draw_all();
+        let (mx, my) = nonos_kernel::input::mouse_position_unified();
+        cursor::draw(mx, my);
+        framebuffer::swap_buffers();
+        serial::println(b"[NONOS] Desktop drawn");
+
+        /* Vault init is fast, do it now */
+        match nonos_kernel::vault::nonos_vault::initialize_vault() {
+            Ok(()) => serial::println(b"[NONOS] Vault system initialized"),
+            Err(e) => {
+                serial::print(b"[NONOS] Vault init failed: ");
+                serial::println(e.as_bytes());
+            }
+        }
+
+        /* ZK engine initializes lazily on first use */
+        serial::println(b"[NONOS] ZK engine ready (lazy init)");
+
         run_desktop();
     } else {
         serial::println(b"[NONOS] No framebuffer - VGA fallback");
@@ -416,27 +436,10 @@ fn log_security_status(handoff: &BootHandoffV1) {
     }
 
     serial::println(b"[NONOS] ========================");
-
-    /* vault init - must be after RNG seed for secure key derivation */
-    match nonos_kernel::vault::nonos_vault::initialize_vault() {
-        Ok(()) => serial::println(b"[NONOS] Vault system initialized"),
-        Err(e) => {
-            serial::print(b"[NONOS] Vault init failed: ");
-            serial::println(e.as_bytes());
-        }
-    }
-
-    /* ZK engine - needed for wallet proofs and attestation */
-    match nonos_kernel::zk_engine::init_zk_engine() {
-        Ok(()) => serial::println(b"[NONOS] ZK engine initialized"),
-        Err(_) => serial::println(b"[NONOS] ZK engine init failed"),
-    }
 }
 
+
 fn run_desktop() -> ! {
-    desktop::draw_all();
-    framebuffer::swap_buffers();
-    serial::println(b"[NONOS] Desktop drawn");
     serial::println(b"[NONOS] Desktop ready");
 
     let (mut old_mx, mut old_my) = nonos_kernel::input::mouse_position_unified();
