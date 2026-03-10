@@ -17,7 +17,7 @@
 extern crate alloc;
 
 use alloc::vec::Vec;
-use core::sync::atomic::Ordering;
+use core::sync::atomic::{fence, Ordering};
 
 use super::core::E1000Device;
 use crate::drivers::e1000::constants::{rctl, reg, BUFFER_SIZE, RX_DESC_COUNT};
@@ -85,7 +85,8 @@ impl E1000Device {
         loop {
             let desc_idx = (self.rx_tail + 1) % RX_DESC_COUNT;
 
-            // SAFETY: rx_descs and rx_buffers_virt point to valid DMA memory
+            fence(Ordering::Acquire);
+
             unsafe {
                 let desc = &mut *rx_descs.add(desc_idx);
 
@@ -116,6 +117,8 @@ impl E1000Device {
                 }
 
                 desc.reset();
+
+                fence(Ordering::Release);
             }
 
             self.rx_tail = desc_idx;
