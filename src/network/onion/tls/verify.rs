@@ -93,31 +93,70 @@ pub static HTTPS_CERT_VERIFIER: HttpsCertVerifier = HttpsCertVerifier;
 
 impl CertVerifier for HttpsCertVerifier {
     fn verify(&self, chain_der: &[Vec<u8>], sni: &str) -> Result<(), OnionError> {
+        crate::sys::serial::println(b"[CERT] HttpsCertVerifier::verify");
+
         if chain_der.is_empty() {
+            crate::sys::serial::println(b"[CERT] ERROR: empty chain");
             return Err(OnionError::AuthenticationFailed);
         }
 
         let now_ms = crate::time::unix_timestamp() * 1000;
+        crate::sys::serial::print(b"[CERT] now_ms=");
+        crate::sys::serial::print_dec(now_ms);
+        crate::sys::serial::println(b"");
+
         let mut chain = Vec::new();
 
-        for der in chain_der.iter() {
-            chain.push(X509::parse_der(der)?);
+        for (i, der) in chain_der.iter().enumerate() {
+            crate::sys::serial::print(b"[CERT] parsing cert ");
+            crate::sys::serial::print_dec(i as u64);
+            crate::sys::serial::print(b" (");
+            crate::sys::serial::print_dec(der.len() as u64);
+            crate::sys::serial::println(b" bytes)");
+            match X509::parse_der(der) {
+                Ok(c) => chain.push(c),
+                Err(e) => {
+                    crate::sys::serial::println(b"[CERT] ERROR: parse failed");
+                    return Err(e);
+                }
+            }
         }
 
         let end_entity = &chain[0];
 
-        X509::check_time_validity(end_entity, now_ms)?;
+        crate::sys::serial::println(b"[CERT] checking time validity");
+        if let Err(e) = X509::check_time_validity(end_entity, now_ms) {
+            crate::sys::serial::println(b"[CERT] ERROR: time validity failed");
+            return Err(e);
+        }
+        crate::sys::serial::println(b"[CERT] time validity OK");
 
         if chain.len() > 1 {
-            crate::network::onion::nonos_crypto::X509::verify_chain(&chain, now_ms)?;
+            crate::sys::serial::println(b"[CERT] verifying chain");
+            if let Err(e) = crate::network::onion::nonos_crypto::X509::verify_chain(&chain, now_ms) {
+                crate::sys::serial::println(b"[CERT] ERROR: chain verify failed");
+                return Err(e);
+            }
+            crate::sys::serial::println(b"[CERT] chain verify OK");
         } else {
-            X509::verify_self_signed(end_entity)?;
+            crate::sys::serial::println(b"[CERT] verifying self-signed");
+            if let Err(e) = X509::verify_self_signed(end_entity) {
+                crate::sys::serial::println(b"[CERT] ERROR: self-signed verify failed");
+                return Err(e);
+            }
+            crate::sys::serial::println(b"[CERT] self-signed OK");
         }
 
         if !sni.is_empty() {
-            verify_hostname(end_entity, sni)?;
+            crate::sys::serial::println(b"[CERT] verifying hostname");
+            if let Err(e) = verify_hostname(end_entity, sni) {
+                crate::sys::serial::println(b"[CERT] ERROR: hostname verify failed");
+                return Err(e);
+            }
+            crate::sys::serial::println(b"[CERT] hostname OK");
         }
 
+        crate::sys::serial::println(b"[CERT] all checks passed");
         Ok(())
     }
 }
