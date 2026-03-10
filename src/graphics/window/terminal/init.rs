@@ -23,7 +23,7 @@ use super::input::print_prompt;
 const COLOR_TEAL: u32 = 0xFF66FFFF;
 const COLOR_GREEN: u32 = 0xFF00E676;
 const COLOR_DIM: u32 = 0xFF5C6370;
-const COLOR_YELLOW: u32 = 0xFFFFD740;
+const _COLOR_YELLOW: u32 = 0xFFFFD740;
 const COLOR_WHITE: u32 = 0xFFF0F6FC;
 
 pub fn init() {
