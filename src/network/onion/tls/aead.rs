@@ -18,7 +18,7 @@
 use alloc::vec::Vec;
 use crate::network::onion::OnionError;
 use super::types::{CipherSuite, ContentType, TLS_1_2};
-use super::keys::{expand_label, Secret};
+use super::keys::{expand_label_len, Secret};
 use super::crypto_provider::crypto;
 
 pub(super) struct AeadState {
@@ -41,10 +41,11 @@ impl AeadState {
             CipherSuite::TlsAes128GcmSha256 => 16,
             CipherSuite::TlsChacha20Poly1305Sha256 => 32,
         };
-        let iv_full = expand_label(&sec.secret, b"iv", &[]);
         let mut iv = [0u8; 12];
-        iv.copy_from_slice(&iv_full[..12]);
-        let key = expand_label(&sec.secret, b"key", &[])[..key_len].to_vec();
+        expand_label_len(&sec.secret, b"iv", &[], &mut iv);
+        let mut key = vec![0u8; key_len];
+        expand_label_len(&sec.secret, b"key", &[], &mut key);
+
         Ok(Self { key, iv, seq: 0 })
     }
 
@@ -84,11 +85,7 @@ impl AeadState {
 
         let nonce = self.nonce();
         let pt = crypto().aead_open(suite, &self.key, &nonce, &header, ciphertext)?;
-        let (&last, data) = pt.split_last().ok_or(OnionError::CryptoError)?;
-        if last != ContentType::Handshake as u8 && last != ContentType::ApplicationData as u8 {
-            return Err(OnionError::CryptoError);
-        }
         self.seq = self.seq.wrapping_add(1);
-        Ok(data.to_vec())
+        Ok(pt)
     }
 }
