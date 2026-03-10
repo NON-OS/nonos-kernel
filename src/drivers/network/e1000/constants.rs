@@ -36,6 +36,8 @@ pub const CTRL_SLU: u32 = 1 << 6;
 pub const CTRL_RST: u32 = 1 << 26;
 
 pub const RCTL_EN: u32 = 1 << 1;
+pub const RCTL_UPE: u32 = 1 << 3;
+pub const RCTL_MPE: u32 = 1 << 4;
 pub const RCTL_BAM: u32 = 1 << 15;
 pub const RCTL_BSIZE_2048: u32 = 0 << 16;
 pub const RCTL_SECRC: u32 = 1 << 26;
