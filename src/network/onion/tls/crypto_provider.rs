@@ -78,7 +78,7 @@ impl TlsCrypto for KernelTlsCrypto {
     }
 
     fn hkdf_expand(&self, prk: &[u8; 32], info: &[u8], out: &mut [u8]) {
-        let _ = crate::network::onion::nonos_crypto::hkdf_expand_sha256(prk, info, 32, out);
+        let _ = crate::network::onion::nonos_crypto::hkdf_expand_sha256(prk, info, out.len(), out);
     }
 
     fn x25519_keypair(&self) -> Result<([u8; 32], [u8; 32]), OnionError> {
