@@ -105,10 +105,4 @@ impl<'a> DerParser<'a> {
     pub(super) fn has_more(&self) -> bool {
         self.offset < self.data.len()
     }
-
-    pub(super) fn read_remaining(&mut self) -> Result<&'a [u8], OnionError> {
-        let result = &self.data[self.offset..];
-        self.offset = self.data.len();
-        Ok(result)
-    }
 }
