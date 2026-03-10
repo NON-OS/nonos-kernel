@@ -39,7 +39,7 @@ pub fn rdtsc() -> u64 {
 pub fn unix_ms() -> u64 {
     let tsc_hz = TSC_HZ.load(Ordering::Relaxed);
     if tsc_hz == 0 {
-        return BOOT_UNIX_MS.load(Ordering::Relaxed);
+        return crate::time::timestamp_millis();
     }
 
     let boot_tsc = BOOT_TSC.load(Ordering::Relaxed);
