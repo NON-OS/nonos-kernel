@@ -73,6 +73,7 @@ fn verify_signature_internal(
 fn parse_rsa_public_key(key_bytes: &[u8]) -> Result<rsa::RsaPublicKey, OnionError> {
     let mut parser = DerParser::new(key_bytes);
     parser.expect_sequence()?;
+    let _seq_len = parser.read_length()?;
 
     parser.expect_tag(0x02)?;
     let n_len = parser.read_length()?;
