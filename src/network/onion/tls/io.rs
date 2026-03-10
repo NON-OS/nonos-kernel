@@ -14,9 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 use core::cmp::min;
-use crate::network::{get_network_stack, tcp::TcpSocket};
+use crate::network::{get_network_stack, poll_network, tcp::TcpSocket};
 use crate::network::onion::OnionError;
 
 pub(super) fn write_all(sock: &TcpSocket, data: &[u8], timeout_ms: u64) -> Result<(), OnionError> {
@@ -27,9 +26,12 @@ pub(super) fn write_all(sock: &TcpSocket, data: &[u8], timeout_ms: u64) -> Resul
             if crate::time::timestamp_millis().saturating_sub(start) > timeout_ms {
                 return Err(OnionError::Timeout);
             }
+            poll_network();
             match net.tcp_send(sock.connection_id(), &data[off..]) {
                 Ok(n) if n > 0 => off += n,
-                Ok(_) => crate::time::yield_now(),
+                Ok(_) => {
+                    for _ in 0..50 { core::hint::spin_loop(); }
+                }
                 Err(_) => return Err(OnionError::NetworkError),
             }
         }
@@ -39,21 +41,17 @@ pub(super) fn write_all(sock: &TcpSocket, data: &[u8], timeout_ms: u64) -> Resul
     }
 }
 
-pub(super) fn read_some(sock: &TcpSocket, dst: &mut [u8], timeout_ms: u64) -> Result<usize, OnionError> {
-    let start = crate::time::timestamp_millis();
+pub(super) fn try_read(sock: &TcpSocket, dst: &mut [u8]) -> Result<usize, OnionError> {
     if let Some(net) = get_network_stack() {
-        loop {
-            if crate::time::timestamp_millis().saturating_sub(start) > timeout_ms {
-                return Err(OnionError::Timeout);
+        poll_network();
+        match net.tcp_receive(sock.connection_id(), dst.len()) {
+            Ok(buf) if !buf.is_empty() => {
+                let n = min(dst.len(), buf.len());
+                dst[..n].copy_from_slice(&buf[..n]);
+                Ok(n)
             }
-            match net.tcp_receive(sock.connection_id(), dst.len()) {
-                Ok(buf) if !buf.is_empty() => {
-                    let n = min(dst.len(), buf.len());
-                    dst[..n].copy_from_slice(&buf[..n]);
-                    return Ok(n);
-                }
-                _ => crate::time::yield_now(),
-            }
+            Ok(_) => Ok(0),
+            Err(_) => Err(OnionError::NetworkError),
         }
     } else {
         Err(OnionError::NetworkError)
