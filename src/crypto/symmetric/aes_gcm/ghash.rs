@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::crypto::constant_time::{compiler_fence, secure_zero};
-use crate::crypto::symmetric::aes::Aes256;
+use crate::crypto::symmetric::aes::{Aes128, Aes256};
 
 pub(super) const BLOCK_SIZE: usize = 16;
 
@@ -28,6 +28,13 @@ pub(super) struct GhashKey {
 
 impl GhashKey {
     pub(super) fn new(aes: &Aes256) -> Self {
+        let zero = [0u8; BLOCK_SIZE];
+        let h_block = aes.encrypt_block(&zero);
+        let h = block_to_u128(&h_block);
+        Self { h }
+    }
+
+    pub(super) fn new_128(aes: &Aes128) -> Self {
         let zero = [0u8; BLOCK_SIZE];
         let h_block = aes.encrypt_block(&zero);
         let h = block_to_u128(&h_block);
