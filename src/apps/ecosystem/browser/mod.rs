@@ -24,7 +24,7 @@ pub mod tabs;
 
 pub use engine::{render_page, render_to_lines, BrowserEngine};
 pub use history::{add_history, clear_history, get_history, HistoryEntry};
-pub use navigate::{is_running, navigate, start, stop};
+pub use navigate::{is_running, is_navigating, navigate, poll_navigation, cancel_navigation, start, stop};
 pub use request::{fetch_page, FetchError, FetchOptions, FetchResult};
 pub use session::{create_session, destroy_session, get_session, BrowserSession};
 pub use state::{get_state, init, BrowserState};
