@@ -29,7 +29,7 @@ use smoltcp::{
 };
 
 use super::device::{now_ms, SmolDeviceAdapter, DEFAULT_MAC};
-use super::types::{ConnectionEntry, NetworkStats, SocketInfo, ArpEntry, Ipv4Address, Ipv6Address};
+use super::types::{ConnectionEntry, NetworkStats, Ipv4Address, Ipv6Address};
 use crate::crypto::util::rng::{get_entropy64, random_u64};
 
 static STACK: Once<NetworkStack> = Once::new();
