@@ -26,8 +26,6 @@ pub struct SetupParameters {
     pub toxic_waste: Option<ToxicWaste>,
 }
 
-/// Toxic waste that must be destroyed after setup
-#[derive(Debug, Clone)]
 pub struct ToxicWaste {
     pub tau: FieldElement,
     pub alpha: FieldElement,
@@ -36,13 +34,20 @@ pub struct ToxicWaste {
     pub delta: FieldElement,
 }
 
-impl ToxicWaste {
-    pub fn destroy(&mut self) {
-        // Securely zero out the toxic waste
-        self.tau = FieldElement::zero();
-        self.alpha = FieldElement::zero();
-        self.beta = FieldElement::zero();
-        self.gamma = FieldElement::zero();
-        self.delta = FieldElement::zero();
+impl Drop for ToxicWaste {
+    fn drop(&mut self) {
+        unsafe {
+            let ptr = &mut self.tau.limbs as *mut [u64; 4];
+            core::ptr::write_volatile(ptr, [0u64; 4]);
+            let ptr = &mut self.alpha.limbs as *mut [u64; 4];
+            core::ptr::write_volatile(ptr, [0u64; 4]);
+            let ptr = &mut self.beta.limbs as *mut [u64; 4];
+            core::ptr::write_volatile(ptr, [0u64; 4]);
+            let ptr = &mut self.gamma.limbs as *mut [u64; 4];
+            core::ptr::write_volatile(ptr, [0u64; 4]);
+            let ptr = &mut self.delta.limbs as *mut [u64; 4];
+            core::ptr::write_volatile(ptr, [0u64; 4]);
+        }
+        core::sync::atomic::compiler_fence(core::sync::atomic::Ordering::SeqCst);
     }
 }
