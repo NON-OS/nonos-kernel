@@ -35,6 +35,14 @@ impl E1000Device {
 
         let ctrl_val = self.read_reg(reg::CTRL);
         self.write_reg(reg::CTRL, ctrl_val | ctrl::SLU | ctrl::ASDE);
+
+        crate::sys::serial::print(b"[E1000] STATUS=0x");
+        crate::sys::serial::print_hex(status_val as u64);
+        crate::sys::serial::print(b" link=");
+        crate::sys::serial::print_dec(self.link_up as u64);
+        crate::sys::serial::print(b" speed=");
+        crate::sys::serial::print_dec(self.link_speed as u64);
+        crate::sys::serial::println(b"");
     }
 
     pub fn handle_interrupt(&mut self) {
