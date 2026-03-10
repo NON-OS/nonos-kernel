@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::crypto::symmetric::aes::Aes256;
+use crate::crypto::symmetric::aes::{Aes128, Aes256};
 
 use super::ghash::{GhashKey, GhashState, u128_to_block};
 
@@ -56,6 +56,44 @@ pub(super) fn aes_ctr_gcm(aes: &Aes256, j0: &[u8; 16], data: &mut [u8]) {
 }
 
 pub(super) fn compute_tag(aes: &Aes256, ghash_key: &GhashKey, j0: &[u8; 16], aad: &[u8], ciphertext: &[u8]) -> [u8; 16] {
+    let mut ghash = GhashState::new(ghash_key.clone());
+    ghash.update_aad(aad);
+    ghash.update_ct(ciphertext);
+    let s = ghash.finalize();
+
+    let ek_j0 = aes.encrypt_block(j0);
+    let s_block = u128_to_block(s);
+    let mut tag = [0u8; 16];
+    for i in 0..16 {
+        tag[i] = ek_j0[i] ^ s_block[i];
+    }
+
+    tag
+}
+
+pub(super) fn aes128_ctr_gcm(aes: &Aes128, j0: &[u8; 16], data: &mut [u8]) {
+    if data.is_empty() {
+        return;
+    }
+
+    let mut counter = *j0;
+    inc32(&mut counter);
+
+    let mut offset = 0;
+    while offset < data.len() {
+        let keystream = aes.encrypt_block(&counter);
+        let block_len = (data.len() - offset).min(16);
+
+        for i in 0..block_len {
+            data[offset + i] ^= keystream[i];
+        }
+
+        offset += block_len;
+        inc32(&mut counter);
+    }
+}
+
+pub(super) fn compute_tag_128(aes: &Aes128, ghash_key: &GhashKey, j0: &[u8; 16], aad: &[u8], ciphertext: &[u8]) -> [u8; 16] {
     let mut ghash = GhashState::new(ghash_key.clone());
     ghash.update_aad(aad);
     ghash.update_ct(ciphertext);
