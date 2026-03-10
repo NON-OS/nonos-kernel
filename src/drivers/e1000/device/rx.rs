@@ -51,13 +51,36 @@ impl E1000Device {
             self.write_reg(reg::MTA + (i * 4), 0);
         }
 
-        let rctl_val = rctl::EN | rctl::BAM | rctl::BSIZE_2048 | rctl::SECRC;
+        let rctl_val = rctl::EN | rctl::UPE | rctl::MPE | rctl::BAM | rctl::BSIZE_2048 | rctl::SECRC;
         self.write_reg(reg::RCTL, rctl_val);
+
+        crate::sys::serial::print(b"[E1000] RX desc phys=0x");
+        crate::sys::serial::print_hex(self.rx_descs_phys.as_u64());
+        crate::sys::serial::print(b" RCTL=0x");
+        crate::sys::serial::print_hex(rctl_val as u64);
+        crate::sys::serial::println(b"");
     }
 
     pub fn receive(&mut self) -> Vec<Vec<u8>> {
         let mut packets = Vec::new();
         let rx_descs = self.rx_descs_virt.as_mut_ptr::<E1000RxDesc>();
+
+        static mut DBG_COUNT: u64 = 0;
+        unsafe {
+            DBG_COUNT += 1;
+            if DBG_COUNT % 100 == 1 {
+                let rdh = self.read_reg(reg::RDH);
+                let rdt = self.read_reg(reg::RDT);
+                let status = self.read_reg(reg::STATUS);
+                crate::sys::serial::print(b"[E1000] RDH=");
+                crate::sys::serial::print_dec(rdh as u64);
+                crate::sys::serial::print(b" RDT=");
+                crate::sys::serial::print_dec(rdt as u64);
+                crate::sys::serial::print(b" STATUS=0x");
+                crate::sys::serial::print_hex(status as u64);
+                crate::sys::serial::println(b"");
+            }
+        }
 
         loop {
             let desc_idx = (self.rx_tail + 1) % RX_DESC_COUNT;
@@ -82,6 +105,10 @@ impl E1000Device {
                         let mut packet = Vec::with_capacity(len);
                         packet.extend_from_slice(core::slice::from_raw_parts(buf_ptr, len));
                         packets.push(packet);
+
+                        crate::sys::serial::print(b"[E1000] RX ");
+                        crate::sys::serial::print_dec(len as u64);
+                        crate::sys::serial::println(b" bytes");
 
                         self.rx_packets.fetch_add(1, Ordering::Relaxed);
                         self.rx_bytes.fetch_add(len as u64, Ordering::Relaxed);
