@@ -23,6 +23,7 @@ use smoltcp::wire::{IpAddress as SmolIpAddress, Ipv4Address as SmolIpv4Address, 
 use super::AsyncResult;
 use super::super::core::get_network_stack;
 use super::super::device::now_ms;
+use super::super::types::ConnectionEntry;
 
 static TCP_CONN_ACTIVE: AtomicBool = AtomicBool::new(false);
 static TCP_CONN_START: AtomicU64 = AtomicU64::new(0);
@@ -57,7 +58,18 @@ pub fn tcp_start_connect(addr: [u8; 4], port: u16) -> Result<u32, &'static str> 
     }
     drop(sockets);
 
-    let conn_id = TCP_CONN_ID.fetch_add(1, Ordering::SeqCst) + 1;
+    let conn_id = ns.next_id.fetch_add(1, Ordering::SeqCst);
+    TCP_CONN_ID.store(conn_id, Ordering::SeqCst);
+
+    {
+        let mut conns = ns.conns.lock();
+        conns.insert(conn_id, ConnectionEntry {
+            id: conn_id,
+            tcp: handle,
+            last_activity_ms: now_ms(),
+            closed: false,
+        });
+    }
 
     *TCP_HANDLE.lock() = Some(handle);
     TCP_CONN_START.store(now_ms(), Ordering::SeqCst);
@@ -190,12 +202,16 @@ pub fn tcp_is_open() -> bool {
 }
 
 pub fn tcp_close() {
+    let conn_id = TCP_CONN_ID.load(Ordering::SeqCst);
     if let Some(handle) = TCP_HANDLE.lock().take() {
         if let Some(ns) = get_network_stack() {
+            {
+                let mut conns = ns.conns.lock();
+                conns.remove(&conn_id);
+            }
             let mut sockets = ns.sockets.lock();
             let s: &mut tcp::Socket = sockets.get_mut(handle);
             let _ = s.close();
-            /* Remove socket to free 32KB of buffers (16KB rx + 16KB tx) */
             sockets.remove(handle);
         }
     }
