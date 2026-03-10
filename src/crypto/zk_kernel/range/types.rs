@@ -30,13 +30,6 @@ impl BitProof {
         Self { e0, e1, z0, z1 }
     }
 
-    pub(crate) fn challenge_sum(&self) -> [u8; 32] {
-        use super::super::field::FieldElement;
-        let e0_fe = FieldElement::from_bytes(&self.e0);
-        let e1_fe = FieldElement::from_bytes(&self.e1);
-        e0_fe.add(&e1_fe).to_bytes()
-    }
-
     pub(crate) fn verify_structure(&self) -> bool {
         let z0_nonzero = self.z0 != [0u8; 32];
         let z1_nonzero = self.z1 != [0u8; 32];
