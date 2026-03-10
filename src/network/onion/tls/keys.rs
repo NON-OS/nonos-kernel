@@ -49,20 +49,26 @@ impl KeySchedule {
     pub(super) fn derive_after_sh(&mut self, shared: &[u8; 32], th_sh: &[u8; 32]) -> Result<(), OnionError> {
         let c = crypto();
         let zeros = [0u8; 32];
+        let mut empty_hash = [0u8; 32];
+        c.sha256(&[], &mut empty_hash);
 
         c.hkdf_extract(&zeros, &zeros, &mut self.early_prk);
-        let derived = expand_label(&self.early_prk, b"derived", &[]);
+        let derived = expand_label(&self.early_prk, b"derived", &empty_hash);
         c.hkdf_extract(&derived, shared, &mut self.handshake_prk);
 
         self.client_hs.secret = expand_label(&self.handshake_prk, b"c hs traffic", th_sh);
         self.server_hs.secret = expand_label(&self.handshake_prk, b"s hs traffic", th_sh);
+
         Ok(())
     }
 
     pub(super) fn derive_application(&mut self, th_finished: &[u8; 32]) -> Result<(), OnionError> {
         let c = crypto();
         let zeros = [0u8; 32];
-        let derived = expand_label(&self.handshake_prk, b"derived", &[]);
+        let mut empty_hash = [0u8; 32];
+        c.sha256(&[], &mut empty_hash);
+
+        let derived = expand_label(&self.handshake_prk, b"derived", &empty_hash);
         c.hkdf_extract(&derived, &zeros, &mut self.master_prk);
         self.client_app.secret = expand_label(&self.master_prk, b"c ap traffic", th_finished);
         self.server_app.secret = expand_label(&self.master_prk, b"s ap traffic", th_finished);
@@ -71,8 +77,14 @@ impl KeySchedule {
 }
 
 pub(super) fn expand_label(prk: &[u8; 32], label: &[u8], context: &[u8]) -> [u8; 32] {
+    let mut out = [0u8; 32];
+    expand_label_len(prk, label, context, &mut out);
+    out
+}
+
+pub(super) fn expand_label_len(prk: &[u8; 32], label: &[u8], context: &[u8], out: &mut [u8]) {
     let mut info = Vec::new();
-    info.extend_from_slice(&(32u16).to_be_bytes());
+    info.extend_from_slice(&(out.len() as u16).to_be_bytes());
     let mut full = Vec::new();
     full.extend_from_slice(b"tls13 ");
     full.extend_from_slice(label);
@@ -80,7 +92,5 @@ pub(super) fn expand_label(prk: &[u8; 32], label: &[u8], context: &[u8]) -> [u8;
     info.extend_from_slice(&full);
     info.push(context.len() as u8);
     info.extend_from_slice(context);
-    let mut out = [0u8; 32];
-    crypto().hkdf_expand(prk, &info, &mut out);
-    out
+    crypto().hkdf_expand(prk, &info, out);
 }
