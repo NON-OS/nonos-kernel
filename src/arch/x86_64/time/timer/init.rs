@@ -20,9 +20,15 @@ use super::state::{ACTIVE_TIMERS, BOOT_TIME, HPET_BASE, TIMER_INITIALIZED, TSC_F
 use super::tsc::rdtsc;
 use super::hpet::{configure_hpet, configure_hpet_for_timing, detect_hpet};
 
+pub fn init_boot_time() {
+    if BOOT_TIME.load(Ordering::Relaxed) == 0 {
+        BOOT_TIME.store(rdtsc(), Ordering::SeqCst);
+    }
+}
+
 pub fn init() {
-    let boot_tsc = rdtsc();
-    BOOT_TIME.store(boot_tsc, Ordering::SeqCst);
+    init_boot_time();
+    let boot_tsc = BOOT_TIME.load(Ordering::Relaxed);
     let tsc_freq = calibrate_tsc_frequency();
     TSC_FREQUENCY.store(tsc_freq, Ordering::SeqCst);
     if let Some(hpet_base) = detect_hpet() {
