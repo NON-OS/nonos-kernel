@@ -25,7 +25,7 @@ ESP_DIR := $(TARGET_DIR)/esp
 RELEASE_DIR := $(TARGET_DIR)/release
 
 # Signing key (32-byte Ed25519 seed)
-SIGNING_KEY ?= $(shell pwd)/.keys/dev-signing.seed
+SIGNING_KEY ?= $(shell pwd)/nonos-bootloader/keys/signing_key_v1.bin
 
 # Host detection
 UNAME_S := $(shell uname -s)
@@ -94,7 +94,7 @@ ZK_KEY_SEED := nonos-production-attestation-v1-2026
 
 # Build version
 VERSION ?= $(shell git describe --tags --always --dirty 2>/dev/null || echo "dev")
-RELEASE_VERSION ?= 0.8.0-alpha
+RELEASE_VERSION ?= 0.8.2
 
 #
 # Main targets
