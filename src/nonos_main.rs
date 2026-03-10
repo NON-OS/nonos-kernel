@@ -88,7 +88,6 @@ extern "C" fn kernel_entry(handoff_ptr: u64) -> ! {
     nonos_kernel::arch::x86_64::time::timer::init_boot_time();
 
     unsafe { gdt::setup(); }
-    unsafe { gdt::enable_iopl(); }
     serial::println(b"[NONOS] GDT configured");
 
     unsafe { idt::setup(); }
