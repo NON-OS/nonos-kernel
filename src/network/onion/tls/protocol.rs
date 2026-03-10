@@ -17,6 +17,7 @@
 
 use alloc::vec::Vec;
 use crate::network::onion::OnionError;
+use crate::network::onion::nonos_crypto::constant_time_eq;
 use super::types::{CipherSuite, HSType, TLS_1_2, TLS_1_3};
 use super::keys::{expand_label, Secret};
 use super::crypto_provider::crypto;
@@ -253,7 +254,7 @@ pub(super) fn verify_finished_with_payload(secret: &Secret, transcript_hash: &[u
     let finished_key = expand_label(&secret.secret, b"finished", &[]);
     let mut mac = [0u8; 32];
     crypto().hmac_sha256(&finished_key, transcript_hash, &mut mac);
-    mac.as_slice() == received_mac
+    constant_time_eq(&mac, received_mac)
 }
 
 pub(super) fn build_cert_verify_context(th: &[u8; 32]) -> Vec<u8> {
