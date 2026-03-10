@@ -85,6 +85,8 @@ extern "C" fn kernel_entry(handoff_ptr: u64) -> ! {
     serial::init();
     serial::println(b"[NONOS] Kernel entry - SSE enabled");
 
+    nonos_kernel::arch::x86_64::time::timer::init_boot_time();
+
     unsafe { gdt::setup(); }
     unsafe { gdt::enable_iopl(); }
     serial::println(b"[NONOS] GDT configured");
@@ -651,6 +653,7 @@ fn run_desktop() -> ! {
         }
 
         nonos_kernel::network::poll_network();
+        nonos_kernel::apps::ecosystem::browser::poll_navigation();
 
         if nonos_kernel::graphics::window::settings::take_background_changed() {
             unsafe { NEEDS_REDRAW = true; }
