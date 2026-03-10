@@ -145,7 +145,7 @@ pub const WALLPAPERS: &[WallpaperInfo] = &[
 ];
 
 pub const WALLPAPER_COUNT: usize = 10;
-pub const DEFAULT_WALLPAPER_ID: u8 = 0; // Network 18 is default
+pub const DEFAULT_WALLPAPER_ID: u8 = 9;
 
 pub(super) fn get_embedded_wallpaper_data(id: u8) -> Option<&'static [u8]> {
     match id {
