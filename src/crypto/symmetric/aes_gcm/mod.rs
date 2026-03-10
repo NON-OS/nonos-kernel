@@ -16,13 +16,14 @@
 
 mod ghash;
 mod gcm;
-mod aead;
+mod aes128;
+mod aes256;
 
 #[cfg(test)]
-#[cfg(not(feature = "std"))]
 mod tests;
 
 pub const TAG_SIZE: usize = 16;
 pub const NONCE_SIZE: usize = 12;
 
-pub use aead::{Aes256Gcm, aes256_gcm_encrypt, aes256_gcm_decrypt};
+pub use aes128::{Aes128Gcm, aes128_gcm_encrypt, aes128_gcm_decrypt};
+pub use aes256::{Aes256Gcm, aes256_gcm_encrypt, aes256_gcm_decrypt};
