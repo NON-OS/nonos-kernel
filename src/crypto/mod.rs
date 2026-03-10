@@ -77,7 +77,7 @@ pub use symmetric::aes::{Aes128, Aes256, BLOCK_SIZE as AES_BLOCK_SIZE};
 pub use symmetric::chacha20poly1305::{
     aead_decrypt as chacha20poly1305_decrypt, aead_encrypt as chacha20poly1305_encrypt,
 };
-pub use symmetric::aes_gcm::{aes256_gcm_decrypt, aes256_gcm_encrypt};
+pub use symmetric::aes_gcm::{aes128_gcm_decrypt, aes128_gcm_encrypt, aes256_gcm_decrypt, aes256_gcm_encrypt};
 
 pub use asymmetric::ed25519::{
     sign, verify, verify as verify_ed25519, KeyPair, Signature,
