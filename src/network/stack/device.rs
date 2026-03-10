@@ -73,6 +73,9 @@ impl Device for SmolDeviceAdapter {
     fn receive(&mut self, _ts: SmolInstant) -> Option<(Self::RxToken<'_>, Self::TxToken<'_>)> {
         if let Some(dev) = DEVICE_SLOT.get() {
             if let Some(frame) = dev.recv() {
+                crate::sys::serial::print(b"[NET] RX frame ");
+                crate::sys::serial::print_dec(frame.len() as u64);
+                crate::sys::serial::println(b" bytes");
                 return Some((RxT(frame), TxT));
             }
         }
