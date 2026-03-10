@@ -18,7 +18,7 @@ use core::sync::atomic::{AtomicU64, AtomicBool};
 use spin::Mutex;
 use alloc::{collections::BTreeMap, boxed::Box};
 
-pub(crate) static BOOT_TIME: AtomicU64 = AtomicU64::new(0);
+pub static BOOT_TIME: AtomicU64 = AtomicU64::new(0);
 pub(crate) static TSC_FREQUENCY: AtomicU64 = AtomicU64::new(0);
 pub(crate) static TIMER_INITIALIZED: AtomicBool = AtomicBool::new(false);
 pub(crate) static HPET_BASE: AtomicU64 = AtomicU64::new(0);
