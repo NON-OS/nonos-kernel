@@ -130,9 +130,12 @@ impl X509 {
     }
 
     fn parse_subject_public_key_info(parser: &mut DerParser) -> Result<PublicKeyInfo, OnionError> {
+        let spki_start = parser.offset;
         parser.expect_sequence()?;
         let spki_len = parser.read_length()?;
         let spki_end = parser.offset + spki_len;
+        let raw_spki = parser.data[spki_start..spki_end].to_vec();
+
         let algorithm = Self::parse_algorithm_identifier(parser)?;
 
         parser.expect_tag(0x03)?;
@@ -141,7 +144,7 @@ impl X509 {
         let public_key = parser.read_bytes(key_len - 1)?.to_vec();
 
         parser.offset = spki_end;
-        Ok(PublicKeyInfo { algorithm, public_key })
+        Ok(PublicKeyInfo { algorithm, public_key, raw_spki })
     }
 
     fn parse_algorithm_identifier(parser: &mut DerParser) -> Result<AlgorithmIdentifier, OnionError> {
