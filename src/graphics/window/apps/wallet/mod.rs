@@ -38,6 +38,7 @@ mod click_overview;
 mod click_send;
 mod input;
 mod keyboard;
+mod network;
 mod render;
 mod render_stealth;
 mod render_transactions;
