@@ -59,7 +59,7 @@ fn verify_signature_internal(
         } else {
             Err(OnionError::CryptoError)
         }
-    } else if sig_alg.algorithm.is_ecdsa_sha256() {
+    } else if sig_alg.algorithm.is_ecdsa() {
         if super::ecdsa_p256_sha256_verify_spki(public_key_bytes, &cert.tbs_certificate, &cert.signature)? {
             Ok(())
         } else {
