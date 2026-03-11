@@ -21,6 +21,7 @@ pub mod crypto_provider;
 pub mod io;
 pub mod keys;
 pub mod protocol;
+pub mod root_certs;
 pub mod transcript;
 pub mod types;
 pub mod verify;
