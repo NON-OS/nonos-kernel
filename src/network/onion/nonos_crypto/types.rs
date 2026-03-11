@@ -37,6 +37,7 @@ pub struct AlgorithmIdentifier {
 pub struct PublicKeyInfo {
     pub algorithm: AlgorithmIdentifier,
     pub public_key: Vec<u8>,
+    pub raw_spki: Vec<u8>,
 }
 
 pub struct ObjectIdentifier {
