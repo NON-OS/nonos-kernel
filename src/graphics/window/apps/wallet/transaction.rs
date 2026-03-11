@@ -20,6 +20,8 @@ use core::sync::atomic::Ordering;
 
 use super::state::*;
 use super::rlp::*;
+use super::types::TokenType;
+use super::network::{chain_id, nox_contract};
 use super::zk::{prove_balance_sufficiency, prove_transaction_auth, verify_wallet_proof};
 
 pub(super) fn execute_send() {
@@ -158,7 +160,7 @@ pub(super) fn execute_send() {
         nonce,
         gas_price,
         21000,
-        1,
+        chain_id(),
         &secret_key,
     ) {
         Ok(tx) => tx,
@@ -184,13 +186,218 @@ pub(super) fn execute_send() {
             });
             drop(state);
 
-            set_status(b"Transaction sent!", true);
+            set_status(b"ETH sent!", true);
             clear_send_fields();
         }
         Err(_) => {
             set_status(b"Broadcast failed", false);
         }
     }
+}
+
+pub(super) fn execute_token_send() {
+    use super::rpc;
+    use super::types::ADDRESS_LEN;
+
+    let token_type = match SEND_TOKEN_TYPE.load(Ordering::SeqCst) {
+        0 => TokenType::Eth,
+        _ => TokenType::Nox,
+    };
+
+    if token_type == TokenType::Eth {
+        execute_send();
+        return;
+    }
+
+    let addr_buf = SEND_ADDRESS.lock();
+    let addr_len = SEND_ADDRESS_LEN.load(Ordering::SeqCst);
+    let amount_buf = SEND_AMOUNT.lock();
+    let amount_len = SEND_AMOUNT_LEN.load(Ordering::SeqCst);
+
+    if addr_len < ADDRESS_LEN {
+        set_status(b"Invalid address", false);
+        return;
+    }
+
+    if amount_len == 0 {
+        set_status(b"Enter amount", false);
+        return;
+    }
+
+    let addr_str = core::str::from_utf8(&addr_buf[..addr_len]).unwrap_or("");
+    let to_address = match parse_eth_address(addr_str) {
+        Some(addr) => addr,
+        None => {
+            drop(addr_buf);
+            drop(amount_buf);
+            set_status(b"Invalid address format", false);
+            return;
+        }
+    };
+
+    let amount_str = core::str::from_utf8(&amount_buf[..amount_len]).unwrap_or("0");
+    let value_wei = match parse_eth_to_wei(amount_str) {
+        Some(wei) => wei,
+        None => {
+            drop(addr_buf);
+            drop(amount_buf);
+            set_status(b"Invalid amount", false);
+            return;
+        }
+    };
+
+    drop(addr_buf);
+    drop(amount_buf);
+
+    if !rpc::is_rpc_available() {
+        set_status(b"No network connection", false);
+        return;
+    }
+
+    set_status(b"Signing token transfer...", true);
+
+    let state = WALLET_STATE.lock();
+    if !state.unlocked {
+        drop(state);
+        set_status(b"Wallet locked", false);
+        return;
+    }
+
+    let master_key = match state.master_key {
+        Some(k) => k,
+        None => {
+            drop(state);
+            set_status(b"No master key", false);
+            return;
+        }
+    };
+
+    let (sender_address, account_index) = match state.get_active_account() {
+        Some(acc) => (acc.address, acc.index),
+        None => {
+            drop(state);
+            set_status(b"No active account", false);
+            return;
+        }
+    };
+    drop(state);
+
+    let nonce = match rpc::fetch_nonce(&sender_address) {
+        Ok(n) => n,
+        Err(_) => {
+            set_status(b"Failed to get nonce", false);
+            return;
+        }
+    };
+
+    let gas_price = match rpc::fetch_gas_price() {
+        Ok(p) => p,
+        Err(_) => {
+            set_status(b"Failed to get gas price", false);
+            return;
+        }
+    };
+
+    let secret_key = derive_signing_key(&master_key, account_index);
+    let transfer_data = build_erc20_transfer_data(&to_address, value_wei);
+    let contract = nox_contract();
+
+    let signed_tx = match build_and_sign_contract_tx(
+        &contract,
+        0,
+        &transfer_data,
+        nonce,
+        gas_price,
+        100000,
+        chain_id(),
+        &secret_key,
+    ) {
+        Ok(tx) => tx,
+        Err(e) => {
+            set_status(e, false);
+            return;
+        }
+    };
+
+    set_status(b"Broadcasting...", true);
+
+    match rpc::send_raw_transaction(&signed_tx) {
+        Ok(tx_hash) => {
+            let mut state = WALLET_STATE.lock();
+            state.pending_transactions.push(super::types::Transaction {
+                hash: tx_hash,
+                tx_type: super::types::TransactionType::ContractCall,
+                from: sender_address,
+                to: to_address,
+                value: value_wei,
+                timestamp: crate::time::timestamp_millis() / 1000,
+                confirmed: false,
+            });
+            drop(state);
+
+            set_status(b"NOX transfer sent!", true);
+            clear_send_fields();
+        }
+        Err(_) => {
+            set_status(b"Broadcast failed", false);
+        }
+    }
+}
+
+fn build_erc20_transfer_data(to: &[u8; 20], amount: u128) -> alloc::vec::Vec<u8> {
+    let mut data = alloc::vec::Vec::with_capacity(68);
+    data.extend_from_slice(&[0xa9, 0x05, 0x9c, 0xbb]);
+    data.extend_from_slice(&[0u8; 12]);
+    data.extend_from_slice(to);
+    let amount_bytes = amount.to_be_bytes();
+    data.extend_from_slice(&[0u8; 16]);
+    data.extend_from_slice(&amount_bytes);
+    data
+}
+
+fn build_and_sign_contract_tx(
+    to: &[u8; 20],
+    value: u128,
+    data: &[u8],
+    nonce: u64,
+    gas_price: u128,
+    gas_limit: u64,
+    chain_id: u64,
+    secret_key: &[u8; 32],
+) -> Result<alloc::vec::Vec<u8>, &'static [u8]> {
+    use crate::crypto::secp256k1::sign_recoverable;
+    use crate::crypto::keccak256;
+
+    let mut items = alloc::vec::Vec::new();
+
+    items.push(rlp_encode_u64(nonce));
+    items.push(rlp_encode_u128(gas_price));
+    items.push(rlp_encode_u64(gas_limit));
+    items.push(rlp_encode_bytes(to));
+    items.push(rlp_encode_u128(value));
+    items.push(rlp_encode_bytes(data));
+    items.push(rlp_encode_u64(chain_id));
+    items.push(rlp_encode_bytes(&[]));
+    items.push(rlp_encode_bytes(&[]));
+
+    let unsigned = rlp_encode_list(&items);
+    let hash = keccak256(&unsigned);
+
+    let sig = sign_recoverable(secret_key, &hash).ok_or(b"Sign failed" as &[u8])?;
+    let v = (sig.recovery_id as u64) + 35 + chain_id * 2;
+
+    let mut signed_items = alloc::vec::Vec::new();
+    signed_items.push(rlp_encode_u64(nonce));
+    signed_items.push(rlp_encode_u128(gas_price));
+    signed_items.push(rlp_encode_u64(gas_limit));
+    signed_items.push(rlp_encode_bytes(to));
+    signed_items.push(rlp_encode_u128(value));
+    signed_items.push(rlp_encode_bytes(data));
+    signed_items.push(rlp_encode_u64(v));
+    signed_items.push(rlp_encode_bytes(&sig.r));
+    signed_items.push(rlp_encode_bytes(&sig.s));
+
+    Ok(rlp_encode_list(&signed_items))
 }
 
 fn parse_eth_address(addr: &str) -> Option<[u8; 20]> {
