@@ -51,12 +51,12 @@ impl NetworkId {
     }
 }
 
-static CURRENT_NETWORK: AtomicU8 = AtomicU8::new(0);
+static CURRENT_NETWORK: AtomicU8 = AtomicU8::new(1);
 
 pub(crate) fn get_network() -> NetworkId {
     match CURRENT_NETWORK.load(Ordering::SeqCst) {
-        0 => NetworkId::Sepolia,
-        _ => NetworkId::Mainnet,
+        1 => NetworkId::Mainnet,
+        _ => NetworkId::Sepolia,
     }
 }
 
