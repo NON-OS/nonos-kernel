@@ -42,7 +42,7 @@ pub(super) fn handle_click(win_x: u32, win_y: u32, win_w: u32, win_h: u32, click
         WalletView::Overview => super::click_overview::handle_overview_click(rel_x - SIDEBAR_WIDTH, rel_y - HEADER_HEIGHT, win_w - SIDEBAR_WIDTH),
         WalletView::Send => super::click_send::handle_send_click(rel_x - SIDEBAR_WIDTH, rel_y - HEADER_HEIGHT, win_w - SIDEBAR_WIDTH),
         WalletView::Stealth => super::click_send::handle_stealth_click(rel_x - SIDEBAR_WIDTH, rel_y - HEADER_HEIGHT, win_w - SIDEBAR_WIDTH, content_h),
-        WalletView::Settings => super::click_send::handle_settings_click(rel_x - SIDEBAR_WIDTH, rel_y - HEADER_HEIGHT, win_w - SIDEBAR_WIDTH),
+        WalletView::Settings => super::click_send::handle_settings_click(rel_x - SIDEBAR_WIDTH, rel_y - HEADER_HEIGHT, win_w - SIDEBAR_WIDTH, content_h),
         _ => false,
     }
 }
