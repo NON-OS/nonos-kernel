@@ -21,6 +21,22 @@ use alloc::vec::Vec;
 pub(super) const ADDRESS_LEN: usize = 20;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub(crate) enum TokenType {
+    Eth,
+    Nox,
+}
+
+impl TokenType {
+    pub(crate) fn symbol(&self) -> &'static [u8] {
+        match self {
+            TokenType::Eth => b"ETH",
+            TokenType::Nox => b"NOX",
+        }
+    }
+
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 #[allow(dead_code)]
 pub(crate) enum TransactionType {
     Send,
@@ -58,6 +74,7 @@ pub(crate) struct WalletAccount {
     pub(crate) address: [u8; ADDRESS_LEN],
     pub(crate) secret_key: [u8; 32],
     pub(crate) balance: u128,
+    pub(crate) nox_balance: u128,
     pub(crate) transactions: Vec<Transaction>,
 }
 
@@ -76,6 +93,7 @@ impl WalletAccount {
             address,
             secret_key: [0u8; 32],
             balance: 0,
+            nox_balance: 0,
             transactions: Vec::new(),
         }
     }
@@ -103,6 +121,13 @@ impl WalletAccount {
         let eth = (self.balance / wei_per_eth) as u64;
         let wei = (self.balance % wei_per_eth) as u64;
         (eth, wei)
+    }
+
+    pub(crate) fn balance_nox(&self) -> (u64, u64) {
+        let wei_per_nox: u128 = 1_000_000_000_000_000_000;
+        let nox = (self.nox_balance / wei_per_nox) as u64;
+        let frac = (self.nox_balance % wei_per_nox) as u64;
+        (nox, frac)
     }
 
     pub(crate) fn address_hex(&self) -> [u8; 42] {
