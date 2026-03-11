@@ -20,8 +20,7 @@ use crate::graphics::font::draw_char;
 use crate::graphics::window::draw_string;
 
 use super::state::*;
-use super::state_ops::get_block_number;
-use super::types::truncate_address;
+use super::types::{truncate_address, TokenType};
 use super::render::{
     format_balance, COLOR_BORDER, COLOR_CARD, COLOR_TEXT_DIM,
 };
@@ -47,18 +46,45 @@ fn draw_input_field(x: u32, y: u32, w: u32, h: u32, focused: bool) {
     draw_rounded_rect(x, y, w, h, 7, 0xFF1C1C1E);
 }
 
+struct AccountDisplay {
+    index: u32,
+    name: [u8; 32],
+    name_len: usize,
+    addr_short: [u8; 13],
+    eth: u64,
+    eth_frac: u64,
+    nox: u64,
+    nox_frac: u64,
+}
+
 pub(super) fn draw_overview(x: u32, y: u32, w: u32, h: u32) {
     draw_string(x + 20, y + 20, b"Accounts", COLOR_TEXT_WHITE);
 
-    /* add account button */
     draw_rounded_rect(x + w - 190, y + 15, 80, 32, 8, 0xFF34C759);
     draw_string(x + w - 165, y + 23, b"+ New", 0xFF000000);
 
     draw_rounded_rect(x + w - 100, y + 15, 80, 32, 8, COLOR_ACCENT);
     draw_string(x + w - 90, y + 23, b"Refresh", 0xFF000000);
 
-    let state = WALLET_STATE.lock();
-    for (i, account) in state.accounts.iter().enumerate() {
+    let accounts: alloc::vec::Vec<AccountDisplay> = {
+        let state = WALLET_STATE.lock();
+        state.accounts.iter().map(|a| {
+            let (eth, wei) = a.balance_eth();
+            let (nox, nox_w) = a.balance_nox();
+            AccountDisplay {
+                index: a.index,
+                name: a.name,
+                name_len: a.name_len,
+                addr_short: truncate_address(&a.address_hex()),
+                eth,
+                eth_frac: wei / 1_000_000_000_000_000,
+                nox,
+                nox_frac: nox_w / 1_000_000_000_000_000,
+            }
+        }).collect()
+    };
+
+    for (i, acc) in accounts.iter().enumerate() {
         let card_y = y + 55 + (i as u32) * 85;
         if card_y + 75 > y + h {
             break;
@@ -74,20 +100,21 @@ pub(super) fn draw_overview(x: u32, y: u32, w: u32, h: u32) {
         fill_rect(x + 32, card_y + 12, 28, 28, 0xFF3A3A3C);
         let mut idx_str = [0u8; 4];
         idx_str[0] = b'#';
-        let idx_len = format_u32(&mut idx_str[1..], account.index);
+        let idx_len = format_u32(&mut idx_str[1..], acc.index);
         draw_string(x + 36, card_y + 18, &idx_str[..1 + idx_len], COLOR_TEXT_WHITE);
 
-        draw_string(x + 68, card_y + 14, &account.name[..account.name_len], COLOR_TEXT_WHITE);
+        draw_string(x + 68, card_y + 14, &acc.name[..acc.name_len], COLOR_TEXT_WHITE);
+        draw_string(x + 68, card_y + 32, &acc.addr_short, COLOR_TEXT_DIM);
 
-        let addr_hex = account.address_hex();
-        let addr_short = truncate_address(&addr_hex);
-        draw_string(x + 68, card_y + 32, &addr_short, COLOR_TEXT_DIM);
-
-        let (eth, wei) = account.balance_eth();
         let mut balance_str = [0u8; 32];
-        let len = format_balance(&mut balance_str, eth, wei / 1_000_000_000_000_000);
-        draw_string(x + w - 140, card_y + 22, &balance_str[..len], COLOR_TEXT_WHITE);
-        draw_string(x + w - 140 + (len as u32 + 1) * 8, card_y + 22, b"ETH", 0xFF34C759);
+        let len = format_balance(&mut balance_str, acc.eth, acc.eth_frac);
+        draw_string(x + w - 140, card_y + 14, &balance_str[..len], COLOR_TEXT_WHITE);
+        draw_string(x + w - 140 + (len as u32 + 1) * 8, card_y + 14, b"ETH", 0xFF34C759);
+
+        let mut nox_str = [0u8; 32];
+        let nox_len = format_balance(&mut nox_str, acc.nox, acc.nox_frac);
+        draw_string(x + w - 140, card_y + 32, &nox_str[..nox_len], COLOR_TEXT_WHITE);
+        draw_string(x + w - 140 + (nox_len as u32 + 1) * 8, card_y + 32, b"NOX", 0xFFBF5AF2);
     }
 }
 
@@ -156,8 +183,16 @@ pub(super) fn draw_send_view(x: u32, y: u32, w: u32, _h: u32) {
     }
     drop(send_amount);
 
-    draw_rounded_rect(x + w - 80, y + 155, 44, 32, 8, 0xFF3A3A3C);
-    draw_string(x + w - 70, y + 163, b"ETH", 0xFF34C759);
+    let token_type = match SEND_TOKEN_TYPE.load(Ordering::SeqCst) {
+        0 => TokenType::Eth,
+        _ => TokenType::Nox,
+    };
+    let token_color = match token_type {
+        TokenType::Eth => 0xFF34C759,
+        TokenType::Nox => 0xFFBF5AF2,
+    };
+    draw_rounded_rect(x + w - 80, y + 155, 44, 32, 8, token_color);
+    draw_string(x + w - 70, y + 163, token_type.symbol(), 0xFF000000);
 
     draw_string(x + 36, y + 200, b"Network Fee", COLOR_TEXT_DIM);
     draw_rounded_rect(x + 36, y + 218, w - 72, 28, 6, 0xFF1A1A2E);
@@ -214,8 +249,12 @@ fn format_u64(buf: &mut [u8], n: u64) -> usize {
 pub(super) fn draw_receive_view(x: u32, y: u32, w: u32, _h: u32) {
     draw_string(x + 20, y + 20, b"Receive Funds", COLOR_TEXT_WHITE);
 
-    let state = WALLET_STATE.lock();
-    if let Some(account) = state.get_active_account() {
+    let addr_hex = {
+        let state = WALLET_STATE.lock();
+        state.get_active_account().map(|a| a.address_hex())
+    };
+
+    if let Some(addr_hex) = addr_hex {
         for shadow in 0..4u32 {
             let alpha = 15 - shadow * 3;
             draw_rounded_rect(x + 20 + shadow / 2, y + 50 + shadow + 2, w - 40, 240, 14, (alpha << 24) | 0x000000);
@@ -223,8 +262,6 @@ pub(super) fn draw_receive_view(x: u32, y: u32, w: u32, _h: u32) {
         draw_rounded_rect(x + 20, y + 50, w - 40, 240, 14, COLOR_CARD);
 
         draw_string(x + 36, y + 70, b"Your Wallet Address", COLOR_TEXT_DIM);
-
-        let addr_hex = account.address_hex();
 
         draw_rounded_rect(x + w / 2 - 87, y + 90, 174, 174, 12, 0xFFFFFFFF);
 
@@ -260,7 +297,8 @@ pub(super) fn draw_status_bar(x: u32, y: u32, w: u32) {
         draw_string(x + 30, y + 9, &status[..status_len], COLOR_TEXT_WHITE);
     }
 
-    if let Some(block_num) = get_block_number() {
+    let block_num = super::state::CACHED_BLOCK.load(Ordering::Relaxed);
+    if block_num > 0 {
         let mut block_str = [0u8; 24];
         block_str[0] = b'B';
         block_str[1] = b'l';
