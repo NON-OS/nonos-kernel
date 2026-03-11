@@ -19,6 +19,7 @@ extern crate alloc;
 use core::sync::atomic::Ordering;
 
 use super::types::{WalletAccount, ADDRESS_LEN};
+use super::network::nox_contract;
 use super::stealth::StealthKeyPair;
 use super::state::{
     WALLET_STATE, SEND_ADDRESS, SEND_ADDRESS_LEN, SEND_AMOUNT, SEND_AMOUNT_LEN,
@@ -145,43 +146,40 @@ pub(crate) fn refresh_balances() {
         return;
     }
 
-    let mut state = WALLET_STATE.lock();
-    if !state.unlocked {
-        return;
-    }
+    set_status(b"Fetching...", true);
 
-    let mut success_count = 0;
-    let total_accounts = state.accounts.len();
+    let (addr, active_idx) = {
+        let state = WALLET_STATE.lock();
+        if !state.unlocked {
+            return;
+        }
+        match state.get_active_account() {
+            Some(acc) => (acc.address, state.active_account),
+            None => return,
+        }
+    };
 
-    for account in state.accounts.iter_mut() {
-        match rpc::fetch_balance(&account.address) {
-            Ok(balance) => {
-                account.balance = balance;
-                success_count += 1;
-            }
-            Err(_) => {}
+    let nox_addr = nox_contract();
+    let eth = rpc::fetch_balance(&addr).unwrap_or(0);
+    let nox = rpc::fetch_token_balance(&nox_addr, &addr).unwrap_or(0);
+
+    {
+        let mut state = WALLET_STATE.lock();
+        if active_idx < state.accounts.len() {
+            state.accounts[active_idx].balance = eth;
+            state.accounts[active_idx].nox_balance = nox;
         }
     }
 
-    drop(state);
+    if let Ok(block) = rpc::fetch_block_number() {
+        super::state::CACHED_BLOCK.store(block, Ordering::Relaxed);
+    }
 
-    if success_count == total_accounts {
-        set_status(b"Balances updated", true);
-    } else if success_count > 0 {
-        set_status(b"Partial update", false);
+    if eth > 0 || nox > 0 {
+        set_status(b"Balance updated", true);
     } else {
-        set_status(b"Update failed", false);
+        set_status(b"Balance: 0", true);
     }
-}
-
-pub(crate) fn get_block_number() -> Option<u64> {
-    use super::rpc;
-
-    if !rpc::is_rpc_available() {
-        return None;
-    }
-
-    rpc::fetch_block_number().ok()
 }
 
 pub(crate) fn set_active_account(index: usize) {
