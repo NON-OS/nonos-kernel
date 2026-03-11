@@ -155,6 +155,11 @@ pub fn process_mouse_report() {
 }
 
 pub fn hid_to_ascii(code: u8, mods: u8) -> Option<u8> {
+    // USB HID usage 0x4C is Forward Delete on many Apple keyboards.
+    if code == 0x4C {
+        return Some(0x7F);
+    }
+
     if code as usize >= HID_ASCII.len() { return None; }
     let shift = (mods & 0x22) != 0; // Left or right shift
     let ch = if shift { HID_ASCII_SHIFT[code as usize] } else { HID_ASCII[code as usize] };

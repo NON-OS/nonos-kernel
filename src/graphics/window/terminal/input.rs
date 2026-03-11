@@ -25,6 +25,38 @@ const COLOR_GREEN: u32 = 0xFF00FF41;
 const COLOR_WHITE: u32 = 0xFFE6E6E6;
 const COLOR_DIM: u32 = 0xFF5C6370;
 
+fn redraw_input_line() {
+    let y = TERM_CURSOR_Y.load(Ordering::Relaxed);
+    let row_base = y.saturating_mul(super::constants::TERM_COLS);
+
+    // SAFETY: Terminal buffer is single-threaded in the UI loop.
+    unsafe {
+        for x in 0..super::constants::TERM_COLS {
+            let idx = row_base + x;
+            if idx < super::constants::TERM_BUFFER_SIZE {
+                TERM_BUFFER[idx] = b' ';
+                TERM_COLORS[idx] = COLOR_WHITE;
+            }
+        }
+    }
+
+    TERM_CURSOR_X.store(0, Ordering::Relaxed);
+    print_prompt();
+
+    let prompt_x = TERM_CURSOR_X.load(Ordering::Relaxed);
+    let len = INPUT_LEN.load(Ordering::Relaxed);
+
+    // SAFETY: INPUT_BUFFER access is confined to the terminal UI thread.
+    unsafe {
+        for i in 0..len {
+            put_char(INPUT_BUFFER[i], COLOR_WHITE);
+        }
+    }
+
+    let cursor = INPUT_CURSOR.load(Ordering::Relaxed);
+    TERM_CURSOR_X.store(prompt_x.saturating_add(cursor), Ordering::Relaxed);
+}
+
 /*
  * hacker-style prompt: anonymous@nønos:~$
  * cyan user, green host, white path, cyan $
@@ -71,6 +103,22 @@ pub fn terminal_key(ch: u8) {
                 }
                 INPUT_LEN.store(len - 1, Ordering::Relaxed);
                 INPUT_CURSOR.store(pos - 1, Ordering::Relaxed);
+                redraw_input_line();
+            }
+        }
+        0x04 => {
+            // Treat EOT/Ctrl-D as forward delete at cursor.
+            let pos = INPUT_CURSOR.load(Ordering::Relaxed);
+            let len = INPUT_LEN.load(Ordering::Relaxed);
+            if pos < len {
+                unsafe {
+                    for i in pos..len - 1 {
+                        INPUT_BUFFER[i] = INPUT_BUFFER[i + 1];
+                    }
+                    INPUT_BUFFER[len - 1] = 0;
+                }
+                INPUT_LEN.store(len - 1, Ordering::Relaxed);
+                redraw_input_line();
             }
         }
         0x0D | 0x0A => {
@@ -108,7 +156,8 @@ pub fn terminal_key(ch: u8) {
                 }
                 INPUT_LEN.store(len + 1, Ordering::Relaxed);
                 INPUT_CURSOR.store(pos + 1, Ordering::Relaxed);
-                put_char(ch, COLOR_WHITE);
+                // Full redraw keeps in-line edit state coherent.
+                redraw_input_line();
             }
         }
         _ => {}

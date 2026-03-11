@@ -108,8 +108,21 @@ pub fn cmd_curl(cmd: &[u8]) {
 }
 
 fn print_response_body(response: &crate::network::http_client::HttpResponse) {
+    const MAX_PRINT_BYTES: usize = 64 * 1024;
+    const YIELD_EVERY_CHUNKS: usize = 32;
+
     if let Some(text) = response.body_text() {
-        for line in text.lines() {
+        let text_bytes = text.as_bytes();
+        let total_len = text_bytes.len();
+        let print_len = total_len.min(MAX_PRINT_BYTES);
+        let mut printed_chunks = 0usize;
+
+        let printable = match core::str::from_utf8(&text_bytes[..print_len]) {
+            Ok(s) => s,
+            Err(_) => "",
+        };
+
+        for line in printable.lines() {
             let line_bytes = line.as_bytes();
             let mut offset = 0;
             while offset < line_bytes.len() {
@@ -118,10 +131,27 @@ fn print_response_body(response: &crate::network::http_client::HttpResponse) {
                 out[..chunk_len].copy_from_slice(&line_bytes[offset..offset + chunk_len]);
                 print_line(&out[..chunk_len], COLOR_TEXT);
                 offset += chunk_len;
+
+                printed_chunks += 1;
+                if printed_chunks % YIELD_EVERY_CHUNKS == 0 {
+                    crate::time::yield_now();
+                }
             }
             if line_bytes.is_empty() {
                 print_line(b"", COLOR_TEXT);
             }
+        }
+
+        if total_len > MAX_PRINT_BYTES {
+            let msg = alloc::format!(
+                "[output truncated: printed {} of {} bytes]",
+                MAX_PRINT_BYTES,
+                total_len
+            );
+            let mut line = [0u8; 96];
+            let msg_len = msg.len().min(96);
+            line[..msg_len].copy_from_slice(&msg.as_bytes()[..msg_len]);
+            print_line(&line[..msg_len], COLOR_YELLOW);
         }
     } else {
         let msg = alloc::format!("[Binary data: {} bytes]", response.body.len());

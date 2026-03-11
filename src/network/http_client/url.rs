@@ -65,6 +65,10 @@ impl ParsedUrl {
             return Err("empty host");
         }
 
+        if !is_valid_host(&host) {
+            return Err("invalid host");
+        }
+
         Ok(ParsedUrl {
             scheme,
             host,
@@ -83,6 +87,39 @@ impl ParsedUrl {
             format!("{}://{}:{}{}", self.scheme, self.host, self.port, self.path)
         }
     }
+}
+
+fn is_valid_host(host: &str) -> bool {
+    // Accept IPv4 literals as-is (already parsed separately later).
+    if parse_ipv4(host).is_some() {
+        return true;
+    }
+
+    // Reject malformed domain forms early so DNS builder does not normalize
+    // invalid input like "fb..com" into "fb.com".
+    if host.starts_with('.') || host.ends_with('.') || host.contains("..") {
+        return false;
+    }
+
+    for label in host.split('.') {
+        if label.is_empty() || label.len() > 63 {
+            return false;
+        }
+
+        let bytes = label.as_bytes();
+        if bytes[0] == b'-' || bytes[bytes.len() - 1] == b'-' {
+            return false;
+        }
+
+        for b in bytes {
+            let is_alnum = b.is_ascii_alphanumeric();
+            if !is_alnum && *b != b'-' {
+                return false;
+            }
+        }
+    }
+
+    true
 }
 
 pub(super) fn parse_ipv4(s: &str) -> Option<[u8; 4]> {
@@ -116,4 +153,25 @@ pub(super) fn resolve_host(host: &str) -> Result<[u8; 4], &'static str> {
     }
 
     Err("failed to resolve hostname")
+}
+
+#[cfg(test)]
+mod tests {
+    use super::ParsedUrl;
+
+    #[test]
+    fn test_rejects_double_dot_host() {
+        assert!(ParsedUrl::parse("https://fb..com").is_err());
+    }
+
+    #[test]
+    fn test_rejects_leading_or_trailing_dot() {
+        assert!(ParsedUrl::parse("https://.example.com").is_err());
+        assert!(ParsedUrl::parse("https://example.com.").is_err());
+    }
+
+    #[test]
+    fn test_accepts_normal_host() {
+        assert!(ParsedUrl::parse("https://example.com").is_ok());
+    }
 }
