@@ -58,15 +58,17 @@ pub(super) fn draw(x: u32, y: u32, w: u32, h: u32) {
         auto_generate_wallet();
     }
 
-    let state = WALLET_STATE.lock();
-    if !state.unlocked {
-        drop(state);
+    let unlocked = {
+        let state = WALLET_STATE.lock();
+        state.unlocked
+    };
+
+    if !unlocked {
         draw_locked_view(x, y, w, h);
         return;
     }
 
     let view = get_view();
-    drop(state);
 
     draw_sidebar(x, y, h);
     draw_header(x + SIDEBAR_WIDTH, y, w - SIDEBAR_WIDTH);
@@ -201,14 +203,15 @@ fn draw_sidebar(x: u32, y: u32, h: u32) {
         draw_string(x + 52, item_y + 14, label, color);
     }
 
-    let state = WALLET_STATE.lock();
-    if let Some(account) = state.get_active_account() {
-        let addr_hex = account.address_hex();
-        let addr_short = truncate_address(&addr_hex);
+    let addr_short = {
+        let state = WALLET_STATE.lock();
+        state.get_active_account().map(|a| truncate_address(&a.address_hex()))
+    };
 
+    if let Some(addr) = addr_short {
         fill_rect(x + 12, y + h - 80, SIDEBAR_WIDTH - 24, 60, 0xFF2C2C2E);
         draw_string(x + 20, y + h - 70, b"Active Account", COLOR_TEXT_DIM);
-        draw_string(x + 20, y + h - 50, &addr_short, COLOR_TEXT_WHITE);
+        draw_string(x + 20, y + h - 50, &addr, COLOR_TEXT_WHITE);
     }
 }
 
@@ -239,11 +242,17 @@ fn draw_header(x: u32, y: u32, w: u32) {
     }
     fill_rect(x, y + HEADER_HEIGHT - 1, w, 1, COLOR_BORDER);
 
-    let state = WALLET_STATE.lock();
-    let total = state.total_balance();
-    let (eth, wei) = {
-        let wei_per_eth: u128 = 1_000_000_000_000_000_000;
-        ((total / wei_per_eth) as u64, (total % wei_per_eth / 1_000_000_000_000_000) as u64)
+    let (eth, wei, nox, nox_frac) = {
+        let state = WALLET_STATE.lock();
+        let total_eth = state.total_balance();
+        let total_nox = state.total_nox_balance();
+        let wei_per: u128 = 1_000_000_000_000_000_000;
+        (
+            (total_eth / wei_per) as u64,
+            (total_eth % wei_per / 1_000_000_000_000_000) as u64,
+            (total_nox / wei_per) as u64,
+            (total_nox % wei_per / 1_000_000_000_000_000) as u64,
+        )
     };
 
     draw_string(x + 24, y + 16, b"Total Balance", COLOR_TEXT_DIM);
@@ -255,6 +264,12 @@ fn draw_header(x: u32, y: u32, w: u32) {
         crate::graphics::font::draw_char_scaled(x + 24 + (i as u32) * 16, y + 34, ch, COLOR_TEXT_WHITE, 2);
     }
     draw_string(x + 24 + (len as u32) * 16 + 8, y + 42, b"ETH", COLOR_ACCENT);
+
+    let mut nox_str = [0u8; 32];
+    let nox_len = format_balance(&mut nox_str, nox, nox_frac);
+    let nox_x = x + 24 + (len as u32) * 16 + 50;
+    draw_string(nox_x, y + 42, &nox_str[..nox_len], COLOR_TEXT_WHITE);
+    draw_string(nox_x + (nox_len as u32) * 8 + 8, y + 42, b"NOX", 0xFFBF5AF2);
 
     fill_rect(x + w - 110, y + 20, 90, 32, 0xFF2C2C2E);
     draw_string(x + w - 100, y + 28, b"Refresh", COLOR_ACCENT);
