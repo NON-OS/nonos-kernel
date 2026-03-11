@@ -106,6 +106,11 @@ pub(crate) fn verify_chain(chain: &[X509Certificate], now_ms: u64) -> Result<(),
         verify_signature(cert, issuer)?;
     }
 
+    let root = &chain[chain.len() - 1];
+    if root.issuer_der == root.subject_der {
+        verify_self_signed(root)?;
+    }
+
     Ok(())
 }
 
