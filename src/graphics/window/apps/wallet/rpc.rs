@@ -14,17 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-/*
-Ethereum JSON-RPC client for wallet balance queries and transactions.
-
-Uses public RPC endpoints with multiple fallbacks for reliability.
-Primary endpoint is BlastAPI, with Cloudflare and Ankr as backups.
-Each endpoint has hardcoded IP fallbacks for when DNS resolution
-fails (common in QEMU user-mode networking or early boot).
-
-All RPC calls use HTTPS with TLS 1.3. Connection timeout is 30s.
-*/
-
 extern crate alloc;
 
 use alloc::format;
@@ -33,6 +22,7 @@ use alloc::vec::Vec;
 use core::sync::atomic::{AtomicU64, AtomicUsize, Ordering};
 
 use super::types::ADDRESS_LEN;
+use super::network::{get_network, NetworkId};
 
 static REQUEST_ID: AtomicU64 = AtomicU64::new(1);
 static CURRENT_ENDPOINT: AtomicUsize = AtomicUsize::new(0);
@@ -43,23 +33,48 @@ struct RpcEndpoint {
     fallback_ips: &'static [[u8; 4]],
 }
 
-const ENDPOINTS: &[RpcEndpoint] = &[
+const MAINNET_ENDPOINTS: &[RpcEndpoint] = &[
     RpcEndpoint {
-        host: "eth-mainnet.public.blastapi.io",
+        host: "ethereum.publicnode.com",
         port: 443,
-        fallback_ips: &[[185, 28, 189, 81], [185, 28, 189, 82]],
+        fallback_ips: &[[65, 109, 115, 36], [65, 109, 115, 37]],
     },
     RpcEndpoint {
-        host: "cloudflare-eth.com",
+        host: "1rpc.io",
         port: 443,
-        fallback_ips: &[[104, 18, 32, 68], [104, 18, 33, 68]],
+        fallback_ips: &[[52, 77, 91, 106]],
     },
     RpcEndpoint {
-        host: "rpc.ankr.com",
+        host: "eth.merkle.io",
         port: 443,
-        fallback_ips: &[[52, 15, 184, 91], [52, 15, 60, 76]],
+        fallback_ips: &[[104, 21, 64, 15]],
     },
 ];
+
+const SEPOLIA_ENDPOINTS: &[RpcEndpoint] = &[
+    RpcEndpoint {
+        host: "ethereum-sepolia-rpc.publicnode.com",
+        port: 443,
+        fallback_ips: &[[65, 109, 115, 38], [65, 109, 115, 39]],
+    },
+    RpcEndpoint {
+        host: "rpc.sepolia.org",
+        port: 443,
+        fallback_ips: &[[65, 108, 79, 140]],
+    },
+    RpcEndpoint {
+        host: "sepolia.drpc.org",
+        port: 443,
+        fallback_ips: &[[172, 67, 182, 156]],
+    },
+];
+
+fn get_endpoints() -> &'static [RpcEndpoint] {
+    match get_network() {
+        NetworkId::Mainnet => MAINNET_ENDPOINTS,
+        NetworkId::Sepolia => SEPOLIA_ENDPOINTS,
+    }
+}
 
 #[derive(Debug)]
 pub(crate) enum RpcError {
@@ -145,11 +160,12 @@ fn send_rpc_request(request: &[u8]) -> Result<Vec<u8>, RpcError> {
     let ns = crate::network::get_network_stack()
         .ok_or(RpcError::NetworkError)?;
 
+    let endpoints = get_endpoints();
     let start_idx = CURRENT_ENDPOINT.load(Ordering::Relaxed);
 
-    for offset in 0..ENDPOINTS.len() {
-        let idx = (start_idx + offset) % ENDPOINTS.len();
-        let endpoint = &ENDPOINTS[idx];
+    for offset in 0..endpoints.len() {
+        let idx = (start_idx + offset) % endpoints.len();
+        let endpoint = &endpoints[idx];
 
         let ip = match crate::network::dns::resolve_v4(endpoint.host) {
             Ok(resolved) => resolved,
@@ -163,14 +179,14 @@ fn send_rpc_request(request: &[u8]) -> Result<Vec<u8>, RpcError> {
 
         let req_with_host = build_rpc_request_for_host(request, endpoint.host);
 
-        match ns.https_request(ip, endpoint.port, endpoint.host, &req_with_host, 30_000) {
+        match ns.https_request(ip, endpoint.port, endpoint.host, &req_with_host, 5_000) {
             Ok(response) => {
                 CURRENT_ENDPOINT.store(idx, Ordering::Relaxed);
                 return Ok(response);
             }
             Err(_) => {
                 for &fallback_ip in endpoint.fallback_ips {
-                    if let Ok(response) = ns.https_request(fallback_ip, endpoint.port, endpoint.host, &req_with_host, 30_000) {
+                    if let Ok(response) = ns.https_request(fallback_ip, endpoint.port, endpoint.host, &req_with_host, 5_000) {
                         CURRENT_ENDPOINT.store(idx, Ordering::Relaxed);
                         return Ok(response);
                     }
@@ -269,4 +285,27 @@ pub(crate) fn fetch_block_number() -> Result<u64, RpcError> {
 
 pub(crate) fn is_rpc_available() -> bool {
     crate::network::is_network_available()
+}
+
+pub(crate) fn fetch_token_balance(
+    token_contract: &[u8; ADDRESS_LEN],
+    owner: &[u8; ADDRESS_LEN],
+) -> Result<u128, RpcError> {
+    let contract_hex = format_address_hex(token_contract);
+    let owner_hex = format_address_hex(owner);
+    let owner_padded = &owner_hex[2..];
+
+    let data = format!(
+        "0x70a08231000000000000000000000000{}",
+        owner_padded
+    );
+
+    let params = format!(
+        r#"[{{"to":"{}","data":"{}"}},"latest"]"#,
+        contract_hex, data
+    );
+    let request = build_rpc_request("eth_call", &params);
+
+    let response = send_rpc_request(&request)?;
+    parse_hex_balance(&response)
 }
