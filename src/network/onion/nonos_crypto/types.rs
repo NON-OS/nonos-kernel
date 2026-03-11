@@ -47,12 +47,18 @@ pub struct ObjectIdentifier {
 impl ObjectIdentifier {
     const RSA_ENCRYPTION: [u32; 7] = [1, 2, 840, 113549, 1, 1, 1];
     const RSA_SHA256: [u32; 7] = [1, 2, 840, 113549, 1, 1, 11];
+    const RSA_SHA384: [u32; 7] = [1, 2, 840, 113549, 1, 1, 12];
+    const RSA_SHA512: [u32; 7] = [1, 2, 840, 113549, 1, 1, 13];
     const ED25519: [u32; 4] = [1, 3, 101, 112];
     const EC_PUBLIC_KEY: [u32; 6] = [1, 2, 840, 10045, 2, 1];
     const ECDSA_SHA256: [u32; 7] = [1, 2, 840, 10045, 4, 3, 2];
+    const ECDSA_SHA384: [u32; 7] = [1, 2, 840, 10045, 4, 3, 3];
 
     pub fn is_rsa_encryption(&self) -> bool {
-        self.components == Self::RSA_ENCRYPTION || self.components == Self::RSA_SHA256
+        self.components == Self::RSA_ENCRYPTION ||
+        self.components == Self::RSA_SHA256 ||
+        self.components == Self::RSA_SHA384 ||
+        self.components == Self::RSA_SHA512
     }
 
     pub fn is_ed25519(&self) -> bool {
@@ -61,6 +67,10 @@ impl ObjectIdentifier {
 
     pub fn is_ec_public_key(&self) -> bool {
         self.components == Self::EC_PUBLIC_KEY
+    }
+
+    pub fn is_ecdsa(&self) -> bool {
+        self.components == Self::ECDSA_SHA256 || self.components == Self::ECDSA_SHA384
     }
 
     pub fn is_ecdsa_sha256(&self) -> bool {
