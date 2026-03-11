@@ -105,6 +105,10 @@ impl WalletState {
     pub(crate) fn total_balance(&self) -> u128 {
         self.accounts.iter().map(|a| a.balance).sum()
     }
+
+    pub(crate) fn total_nox_balance(&self) -> u128 {
+        self.accounts.iter().map(|a| a.nox_balance).sum()
+    }
 }
 
 pub(crate) static WALLET_STATE: Mutex<WalletState> = Mutex::new(WalletState::new());
@@ -117,6 +121,7 @@ pub(crate) static SEND_ADDRESS_LEN: AtomicUsize = AtomicUsize::new(0);
 pub(crate) static SEND_AMOUNT: Mutex<[u8; 32]> = Mutex::new([0u8; 32]);
 pub(crate) static SEND_AMOUNT_LEN: AtomicUsize = AtomicUsize::new(0);
 pub(crate) static SEND_FIELD: AtomicU8 = AtomicU8::new(0);
+pub(crate) static SEND_TOKEN_TYPE: AtomicU8 = AtomicU8::new(0);
 
 pub(crate) static STATUS_MSG: Mutex<[u8; 64]> = Mutex::new([0u8; 64]);
 pub(crate) static STATUS_LEN: AtomicUsize = AtomicUsize::new(0);
@@ -128,6 +133,7 @@ pub(crate) static PASSWORD_FOCUSED: AtomicBool = AtomicBool::new(false);
 
 pub(crate) static SHOW_PRIVATE_KEY: AtomicBool = AtomicBool::new(false);
 pub(crate) static WALLET_INITIALIZED: AtomicBool = AtomicBool::new(false);
+pub(crate) static CACHED_BLOCK: core::sync::atomic::AtomicU64 = core::sync::atomic::AtomicU64::new(0);
 
 pub(crate) fn set_view(view: WalletView) {
     CURRENT_VIEW.store(view as u8, Ordering::SeqCst);
