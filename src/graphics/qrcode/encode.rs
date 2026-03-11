@@ -52,7 +52,7 @@ pub fn encode_qr(data: &[u8]) -> Option<QrCode> {
     let encoded = encode_alphanumeric(data)?;
     let with_ec = add_error_correction(&encoded);
     place_data(&mut qr, &with_ec);
-    apply_mask(&mut qr, 0);
+    apply_mask(&mut qr, 2);
     place_format_info(&mut qr);
 
     Some(qr)
@@ -317,23 +317,23 @@ fn is_reserved(x: usize, y: usize) -> bool {
 }
 
 fn place_format_info(qr: &mut QrCode) {
-    let format_bits: u16 = 0b111011111000100;
+    let format_bits: u16 = 0b111110110101010;
 
     for i in 0..6 {
-        qr.modules[8][i] = (format_bits >> (14 - i)) & 1 == 1;
+        qr.modules[8][i] = (format_bits >> i) & 1 == 1;
     }
-    qr.modules[8][7] = (format_bits >> 8) & 1 == 1;
+    qr.modules[8][7] = (format_bits >> 6) & 1 == 1;
     qr.modules[8][8] = (format_bits >> 7) & 1 == 1;
-    qr.modules[7][8] = (format_bits >> 6) & 1 == 1;
+    qr.modules[7][8] = (format_bits >> 8) & 1 == 1;
     for i in 0..6 {
-        qr.modules[5 - i][8] = (format_bits >> i) & 1 == 1;
+        qr.modules[5 - i][8] = (format_bits >> (9 + i)) & 1 == 1;
     }
 
-    for i in 0..8 {
+    for i in 0..7 {
         qr.modules[QR_SIZE - 1 - i][8] = (format_bits >> i) & 1 == 1;
     }
     qr.modules[QR_SIZE - 8][8] = true;
-    for i in 0..7 {
-        qr.modules[8][QR_SIZE - 7 + i] = (format_bits >> (8 + i)) & 1 == 1;
+    for i in 0..8 {
+        qr.modules[8][QR_SIZE - 8 + i] = (format_bits >> (7 + i)) & 1 == 1;
     }
 }
