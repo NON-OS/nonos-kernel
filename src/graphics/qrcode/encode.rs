@@ -317,7 +317,7 @@ fn is_reserved(x: usize, y: usize) -> bool {
 }
 
 fn place_format_info(qr: &mut QrCode) {
-    let format_bits: u16 = 0b011010101011111;
+    let format_bits: u16 = 0b111011111000100;
 
     for i in 0..6 {
         qr.modules[8][i] = (format_bits >> (14 - i)) & 1 == 1;
