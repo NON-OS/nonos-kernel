@@ -138,6 +138,13 @@ impl CertVerifier for HttpsCertVerifier {
                 return Err(e);
             }
             crate::sys::serial::println(b"[CERT] chain verify OK");
+
+            crate::sys::serial::println(b"[CERT] verifying trusted root");
+            if let Err(e) = super::root_certs::verify_trusted_root(&chain) {
+                crate::sys::serial::println(b"[CERT] ERROR: root not trusted");
+                return Err(e);
+            }
+            crate::sys::serial::println(b"[CERT] trusted root OK");
         } else {
             crate::sys::serial::println(b"[CERT] verifying self-signed");
             if let Err(e) = X509::verify_self_signed(end_entity) {
