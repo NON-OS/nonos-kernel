@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+extern crate alloc;
+
 /*
  * Transaction history view rendering.
  *
@@ -37,45 +39,27 @@ use super::render::{
     COLOR_TEXT_DIM, COLOR_TEXT_WHITE, COLOR_YELLOW,
 };
 
+struct TxDisplay {
+    tx_type: TransactionType,
+    eth: u64,
+    wei_frac: u64,
+    from_short: [u8; 13],
+    to_short: [u8; 13],
+    hash_short: [u8; 18],
+    timestamp: u64,
+    confirmed: bool,
+}
+
 pub(super) fn draw_transactions_view(x: u32, y: u32, w: u32, h: u32) {
     draw_string(x + 20, y + 20, b"Transactions", COLOR_TEXT_WHITE);
 
-    let state = WALLET_STATE.lock();
-    if let Some(account) = state.get_active_account() {
-        if account.transactions.is_empty() {
-            draw_string(x + 20, y + 60, b"No transactions yet", COLOR_TEXT_DIM);
-        } else {
-            for (i, tx) in account.transactions.iter().enumerate() {
-                let tx_y = y + 50 + (i as u32) * 80;
-                if tx_y + 75 > y + h {
-                    break;
-                }
-
-                fill_rect(x + 20, tx_y, w - 40, 75, COLOR_CARD);
-
-                let (label, color) = match tx.tx_type {
-                    TransactionType::Send => (b"Sent    ", COLOR_RED),
-                    TransactionType::Receive => (b"Received", COLOR_GREEN),
-                    TransactionType::StealthSend => (b"Stealth ", COLOR_YELLOW),
-                    TransactionType::StealthReceive => (b"Private ", COLOR_GREEN),
-                    TransactionType::ContractCall => (b"Contract", COLOR_ACCENT),
-                };
-                draw_string(x + 36, tx_y + 10, label, color);
-
+    let txs: alloc::vec::Vec<TxDisplay> = {
+        let state = WALLET_STATE.lock();
+        match state.get_active_account() {
+            Some(account) => account.transactions.iter().map(|tx| {
                 let (eth, wei) = tx.value_eth();
-                let mut value_str = [0u8; 32];
-                let len = format_balance(&mut value_str, eth, wei / 1_000_000_000_000_000);
-                draw_string(x + w - 140, tx_y + 10, &value_str[..len], COLOR_TEXT_WHITE);
-
                 let from_hex = format_address(&tx.from);
                 let to_hex = format_address(&tx.to);
-                let from_short = truncate_address(&from_hex);
-                let to_short = truncate_address(&to_hex);
-                draw_string(x + 36, tx_y + 28, b"From:", COLOR_TEXT_DIM);
-                draw_string(x + 80, tx_y + 28, &from_short, COLOR_TEXT_WHITE);
-                draw_string(x + 200, tx_y + 28, b"To:", COLOR_TEXT_DIM);
-                draw_string(x + 230, tx_y + 28, &to_short, COLOR_TEXT_WHITE);
-
                 let mut hash_str = [0u8; 18];
                 hash_str[0] = b'0';
                 hash_str[1] = b'x';
@@ -84,18 +68,62 @@ pub(super) fn draw_transactions_view(x: u32, y: u32, w: u32, h: u32) {
                     hash_str[2 + j * 2] = hex_chars[(tx.hash[j] >> 4) as usize];
                     hash_str[2 + j * 2 + 1] = hex_chars[(tx.hash[j] & 0x0f) as usize];
                 }
-                draw_string(x + 36, tx_y + 46, b"Hash:", COLOR_TEXT_DIM);
-                draw_string(x + 80, tx_y + 46, &hash_str, COLOR_TEXT_DIM);
-
-                let mut ts_str = [0u8; 16];
-                let ts_len = format_timestamp(&mut ts_str, tx.timestamp);
-                draw_string(x + 200, tx_y + 46, &ts_str[..ts_len], COLOR_TEXT_DIM);
-
-                let status = if tx.confirmed { b"Confirmed" } else { b"Pending  " };
-                let status_color = if tx.confirmed { COLOR_GREEN } else { COLOR_YELLOW };
-                draw_string(x + 36, tx_y + 60, status, status_color);
-            }
+                TxDisplay {
+                    tx_type: tx.tx_type,
+                    eth,
+                    wei_frac: wei / 1_000_000_000_000_000,
+                    from_short: truncate_address(&from_hex),
+                    to_short: truncate_address(&to_hex),
+                    hash_short: hash_str,
+                    timestamp: tx.timestamp,
+                    confirmed: tx.confirmed,
+                }
+            }).collect(),
+            None => alloc::vec::Vec::new(),
         }
+    };
+
+    if txs.is_empty() {
+        draw_string(x + 20, y + 60, b"No transactions yet", COLOR_TEXT_DIM);
+        return;
+    }
+
+    for (i, tx) in txs.iter().enumerate() {
+        let tx_y = y + 50 + (i as u32) * 80;
+        if tx_y + 75 > y + h {
+            break;
+        }
+
+        fill_rect(x + 20, tx_y, w - 40, 75, COLOR_CARD);
+
+        let (label, color) = match tx.tx_type {
+            TransactionType::Send => (b"Sent    ", COLOR_RED),
+            TransactionType::Receive => (b"Received", COLOR_GREEN),
+            TransactionType::StealthSend => (b"Stealth ", COLOR_YELLOW),
+            TransactionType::StealthReceive => (b"Private ", COLOR_GREEN),
+            TransactionType::ContractCall => (b"Contract", COLOR_ACCENT),
+        };
+        draw_string(x + 36, tx_y + 10, label, color);
+
+        let mut value_str = [0u8; 32];
+        let len = format_balance(&mut value_str, tx.eth, tx.wei_frac);
+        draw_string(x + w - 140, tx_y + 10, &value_str[..len], COLOR_TEXT_WHITE);
+
+        draw_string(x + 36, tx_y + 28, b"From:", COLOR_TEXT_DIM);
+        draw_string(x + 80, tx_y + 28, &tx.from_short, COLOR_TEXT_WHITE);
+        draw_string(x + 200, tx_y + 28, b"To:", COLOR_TEXT_DIM);
+        draw_string(x + 230, tx_y + 28, &tx.to_short, COLOR_TEXT_WHITE);
+
+        draw_string(x + 36, tx_y + 46, b"Hash:", COLOR_TEXT_DIM);
+        draw_string(x + 80, tx_y + 46, &tx.hash_short, COLOR_TEXT_DIM);
+
+        let mut ts_str = [0u8; 16];
+        let ts_len = format_timestamp(&mut ts_str, tx.timestamp);
+        draw_string(x + 200, tx_y + 46, &ts_str[..ts_len], COLOR_TEXT_DIM);
+
+        let status = if tx.confirmed { b"Confirmed" } else { b"Pending  " };
+        let status_color = if tx.confirmed { COLOR_GREEN } else { COLOR_YELLOW };
+        draw_string(x + 36, tx_y + 60, status, status_color);
     }
 }
 
