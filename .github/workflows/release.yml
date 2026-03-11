@@ -140,50 +140,76 @@ jobs:
           tag_name: ${{ steps.version.outputs.tag }}
           name: NØNOS ${{ steps.version.outputs.version }}
           body: |
-            ## Sovereignty From Ø
+            ## NØNOS Alpha ${{ steps.version.outputs.version }}
 
-            Cryptographically verified, RAM-resident, capability-enforced.
+            **Status:** Experimental Alpha — Do not use for significant funds
 
-            Every release is signed with Ed25519 and includes ZK attestation proving kernel integrity before a single instruction executes. When you shut down, your data ceases to exist.
+            First release with functional Ethereum wallet running natively in the kernel.
 
             **Documentation:** [nonos.software](https://nonos.software)
+
+            ### Native Ethereum Wallet
+
+            - Key derivation from master seed using BLAKE3 with deterministic paths
+            - Multiple account generation within a single wallet
+            - Balance display for ETH and ERC-20 tokens (NOX supported)
+            - QR code generation for receive addresses
+            - Network switching between Ethereum mainnet and Sepolia testnet
+            - Transaction signing with secp256k1 ECDSA
+            - RPC communication with public Ethereum endpoints
+
+            ### Network Stack
+
+            - TLS 1.3 with X.509 certificate chain verification
+            - RSA-SHA256/384/512 and ECDSA-P256-SHA256/384 signature support
+            - Reduced RPC timeouts for faster feedback
+            - IPv4 with TCP congestion control
+
+            ### Security
+
+            - Ed25519 kernel signature verification
+            - Groth16 zero-knowledge boot attestation
+            - Constant-time secp256k1 operations
+            - Private keys exist only in kernel memory
+
+            ### Known Limitations
+
+            - UI blocks briefly during network requests
+            - No persistent storage (wallet state lost on reboot)
+            - No hardware wallet integration
+            - No EIP-1559 transaction support
+            - Only x86_64 architecture supported
 
             ### Artifacts
 
             | File | Description |
             |------|-------------|
-            | `nonos-${{ steps.version.outputs.version }}.iso` | Bootable ISO image (QEMU, VMware, bare metal) |
-            | `nonos-${{ steps.version.outputs.version }}.img` | Raw disk image for USB installation |
-            | `nonos-kernel-${{ steps.version.outputs.version }}.bin` | Signed kernel binary with embedded ZK proof |
-            | `SHA256SUMS` | SHA256 checksums for integrity verification |
+            | `nonos-${{ steps.version.outputs.version }}.iso` | Bootable ISO image |
+            | `nonos-${{ steps.version.outputs.version }}.img` | Raw disk image for USB |
+            | `nonos-kernel-${{ steps.version.outputs.version }}.bin` | Signed kernel with ZK proof |
+            | `SHA256SUMS` | Integrity checksums |
 
-            ### Verify
+            ### Quick Start
 
             ```bash
+            # Verify
             sha256sum -c SHA256SUMS
-            ```
 
-            ### Run
-
-            ```bash
+            # Run in QEMU
             qemu-system-x86_64 -m 2G -cpu host -enable-kvm \
               -device virtio-rng-pci \
               -cdrom nonos-${{ steps.version.outputs.version }}.iso
-            ```
 
-            ### Install to USB
-
-            ```bash
-            sudo dd if=nonos-${{ steps.version.outputs.version }}.img of=/dev/sdX bs=4M status=progress conv=fsync
+            # Install to USB
+            sudo dd if=nonos-${{ steps.version.outputs.version }}.img of=/dev/sdX bs=4M status=progress
             ```
 
             ### Changes
 
             ${{ steps.changelog.outputs.commits }}
 
-            ### Source
-
-            [github.com/NON-OS/nonos-kernel](https://github.com/NON-OS/nonos-kernel)
+            ---
+            **This is experimental software. Bugs expected. Use at your own risk.**
           files: |
             dist/nonos-*.iso
             dist/nonos-*.img
