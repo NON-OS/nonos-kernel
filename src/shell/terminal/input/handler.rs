@@ -61,6 +61,28 @@ pub fn handle_key(scancode: u8, ch: u8, ctrl: bool, alt: bool) -> Option<&'stati
         return None;
     }
 
+    // USB HID paths often deliver control chars without legacy PS/2 scancodes.
+    // Accept both for reliable macOS keyboard behavior.
+    if ch == 0x08 || ch == 0x7F {
+        editor.backspace();
+        return None;
+    }
+
+    // Ctrl-D (EOT) and DEL as forward delete when available as a char.
+    if ch == 0x04 {
+        editor.delete_char();
+        return None;
+    }
+
+    // USB HID Enter: CR (0x0D) or LF (0x0A) arrives without PS/2 scancode 0x1C.
+    if ch == 0x0D || ch == 0x0A {
+        let content = editor.get_content();
+        if !content.is_empty() {
+            crate::shell::terminal::history::add_command(content);
+        }
+        return Some(content);
+    }
+
     match scancode {
         0x48 => {
             editor.history_prev();
