@@ -179,14 +179,14 @@ fn send_rpc_request(request: &[u8]) -> Result<Vec<u8>, RpcError> {
 
         let req_with_host = build_rpc_request_for_host(request, endpoint.host);
 
-        match ns.https_request(ip, endpoint.port, endpoint.host, &req_with_host, 5_000) {
+        match ns.https_request(ip, endpoint.port, endpoint.host, &req_with_host, 2_000) {
             Ok(response) => {
                 CURRENT_ENDPOINT.store(idx, Ordering::Relaxed);
                 return Ok(response);
             }
             Err(_) => {
                 for &fallback_ip in endpoint.fallback_ips {
-                    if let Ok(response) = ns.https_request(fallback_ip, endpoint.port, endpoint.host, &req_with_host, 5_000) {
+                    if let Ok(response) = ns.https_request(fallback_ip, endpoint.port, endpoint.host, &req_with_host, 2_000) {
                         CURRENT_ENDPOINT.store(idx, Ordering::Relaxed);
                         return Ok(response);
                     }
