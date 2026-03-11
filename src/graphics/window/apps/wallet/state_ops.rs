@@ -140,8 +140,14 @@ pub(crate) fn clear_send_fields() {
 
 pub(crate) fn refresh_balances() {
     use super::rpc;
+    use super::state::REFRESH_IN_PROGRESS;
+
+    if REFRESH_IN_PROGRESS.swap(true, Ordering::SeqCst) {
+        return;
+    }
 
     if !rpc::is_rpc_available() {
+        REFRESH_IN_PROGRESS.store(false, Ordering::SeqCst);
         set_status(b"No network connection", false);
         return;
     }
@@ -151,16 +157,21 @@ pub(crate) fn refresh_balances() {
     let (addr, active_idx) = {
         let state = WALLET_STATE.lock();
         if !state.unlocked {
+            REFRESH_IN_PROGRESS.store(false, Ordering::SeqCst);
             return;
         }
         match state.get_active_account() {
             Some(acc) => (acc.address, state.active_account),
-            None => return,
+            None => {
+                REFRESH_IN_PROGRESS.store(false, Ordering::SeqCst);
+                return;
+            }
         }
     };
 
-    let nox_addr = nox_contract();
     let eth = rpc::fetch_balance(&addr).unwrap_or(0);
+
+    let nox_addr = nox_contract();
     let nox = rpc::fetch_token_balance(&nox_addr, &addr).unwrap_or(0);
 
     {
@@ -171,9 +182,7 @@ pub(crate) fn refresh_balances() {
         }
     }
 
-    if let Ok(block) = rpc::fetch_block_number() {
-        super::state::CACHED_BLOCK.store(block, Ordering::Relaxed);
-    }
+    REFRESH_IN_PROGRESS.store(false, Ordering::SeqCst);
 
     if eth > 0 || nox > 0 {
         set_status(b"Balance updated", true);
