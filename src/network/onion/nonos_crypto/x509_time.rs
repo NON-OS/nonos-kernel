@@ -51,42 +51,34 @@ pub(super) fn parse_time(parser: &mut DerParser) -> Result<u64, OnionError> {
     let minute: u32 = rest[6..8].parse().map_err(|_| OnionError::CertificateError)?;
     let second: u32 = rest[8..10].parse().map_err(|_| OnionError::CertificateError)?;
 
-    let days_since_epoch = days_since_epoch(year, month, day);
-    let seconds = days_since_epoch * 86400 + hour * 3600 + minute * 60 + second;
-    let ms = seconds as u64 * 1000;
-    crate::sys::serial::print(b"[TIME] parsed: ");
-    crate::sys::serial::print_dec(year as u64);
-    crate::sys::serial::print(b"-");
-    crate::sys::serial::print_dec(month as u64);
-    crate::sys::serial::print(b"-");
-    crate::sys::serial::print_dec(day as u64);
-    crate::sys::serial::print(b" => ms=");
-    crate::sys::serial::print_dec(ms);
-    crate::sys::serial::println(b"");
-    Ok(ms)
+    let days = days_since_epoch(year, month, day);
+    let seconds = days * 86400 + (hour as u64) * 3600 + (minute as u64) * 60 + (second as u64);
+    Ok(seconds * 1000)
 }
 
-fn days_since_epoch(year: u32, month: u32, day: u32) -> u32 {
-    let mut y = year;
-    let mut m = month;
-    if m <= 2 { y -= 1; m += 12; }
-    365 * y + y / 4 - y / 100 + y / 400 + (153 * (m - 3) + 2) / 5 + day - 719528
+fn days_since_epoch(year: u32, month: u32, day: u32) -> u64 {
+    let y = year as u64;
+    let m = month as u64;
+    let d = day as u64;
+
+    let days = (y - 1970) * 365 + (y - 1969) / 4 - (y - 1901) / 100 + (y - 1601) / 400
+        + (367 * m - 362) / 12
+        + d
+        - 1;
+
+    let leap_adjust = if m <= 2 {
+        0
+    } else if (y % 4 == 0 && y % 100 != 0) || (y % 400 == 0) {
+        2
+    } else {
+        1
+    };
+
+    days - leap_adjust
 }
 
 pub(crate) fn check_time_validity(cert: &X509Certificate, now_ms: u64) -> Result<(), OnionError> {
-    crate::sys::serial::print(b"[TIME] now_ms=");
-    crate::sys::serial::print_dec(now_ms);
-    crate::sys::serial::print(b" not_before=");
-    crate::sys::serial::print_dec(cert.not_before_ms);
-    crate::sys::serial::print(b" not_after=");
-    crate::sys::serial::print_dec(cert.not_after_ms);
-    crate::sys::serial::println(b"");
-    if now_ms < cert.not_before_ms {
-        crate::sys::serial::println(b"[TIME] FAIL: now < not_before");
-        return Err(OnionError::CertificateError);
-    }
-    if now_ms > cert.not_after_ms {
-        crate::sys::serial::println(b"[TIME] FAIL: now > not_after");
+    if now_ms < cert.not_before_ms || now_ms > cert.not_after_ms {
         return Err(OnionError::CertificateError);
     }
     Ok(())
