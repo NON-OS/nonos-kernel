@@ -33,8 +33,15 @@ pub(super) fn handle_send_click(x: u32, y: u32, w: u32) -> bool {
         return true;
     }
 
+    if y >= 105 && y <= 137 && x >= w - 100 && x <= w - 56 {
+        let current = SEND_TOKEN_TYPE.load(Ordering::SeqCst);
+        let next = if current == 0 { 1 } else { 0 };
+        SEND_TOKEN_TYPE.store(next, Ordering::SeqCst);
+        return true;
+    }
+
     if y >= 180 && y <= 216 && x >= w / 2 - 60 && x <= w / 2 + 60 {
-        super::transaction::execute_send();
+        super::transaction::execute_token_send();
         return true;
     }
 
@@ -182,10 +189,14 @@ fn generate_stealth_receive_address() {
     }
 }
 
-pub(super) fn handle_settings_click(x: u32, y: u32, w: u32) -> bool {
-    let h = 400;
+pub(super) fn handle_settings_click(x: u32, y: u32, w: u32, h: u32) -> bool {
+    if x >= 20 && x <= w - 20 && y <= 100 {
+        super::network::toggle_network();
+        set_status(b"Network switched - refresh balances", true);
+        return true;
+    }
 
-    let export_y = 50 + 3 * 60;
+    let export_y = 185;
     if x >= 20 && x <= w - 20 && y >= export_y && y <= export_y + 70 {
         let current = SHOW_PRIVATE_KEY.load(Ordering::Relaxed);
         SHOW_PRIVATE_KEY.store(!current, Ordering::Relaxed);
