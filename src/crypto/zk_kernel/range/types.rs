@@ -31,9 +31,11 @@ impl BitProof {
     }
 
     pub(crate) fn verify_structure(&self) -> bool {
+        let e0_nonzero = self.e0 != [0u8; 32];
+        let e1_nonzero = self.e1 != [0u8; 32];
         let z0_nonzero = self.z0 != [0u8; 32];
         let z1_nonzero = self.z1 != [0u8; 32];
-        z0_nonzero || z1_nonzero
+        (e0_nonzero || e1_nonzero) && (z0_nonzero || z1_nonzero)
     }
 }
 
