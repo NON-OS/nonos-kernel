@@ -8,8 +8,10 @@ fn main() {
     println!("cargo:rerun-if-changed=src/");
     println!("cargo:rerun-if-changed=Cargo.toml");
     println!("cargo:rerun-if-env-changed=NONOS_SIGNING_KEY");
+    println!("cargo:rerun-if-changed=../assets/wallpapers/special-variant-9.png");
 
     generate_keys();
+    generate_background_image();
     configure_uefi();
     configure_optimization();
     configure_crypto();
@@ -262,4 +264,152 @@ fn embed_build_info() {
     println!("cargo:rustc-env=NONOS_RUSTC_VERSION={rustc_version}");
     println!("cargo:rustc-env=NONOS_BOOTLOADER_NAME=NONOS Bootloader");
     println!("cargo:rustc-env=NONOS_BOOTLOADER_VERSION=1.0.0");
+}
+
+fn generate_background_image() {
+    use std::io::Write as IoWrite;
+
+    let out_dir = env::var("OUT_DIR").expect("OUT_DIR not set");
+    let dest_path = Path::new(&out_dir).join("background_generated.rs");
+
+    let wallpaper_path = Path::new("../assets/wallpapers/special-variant-9.png");
+
+    if !wallpaper_path.exists() {
+        eprintln!("NOTE: Wallpaper not found at {:?}, generating gradient fallback", wallpaper_path);
+        generate_gradient_fallback(&dest_path);
+        return;
+    }
+
+    let img = match image::open(wallpaper_path) {
+        Ok(i) => i,
+        Err(e) => {
+            eprintln!("NOTE: Cannot load wallpaper: {}, generating gradient fallback", e);
+            generate_gradient_fallback(&dest_path);
+            return;
+        }
+    };
+
+    /*
+     * Scale to 640x360 for bootloader - keeps binary small (~900KB raw)
+     * Runtime will scale to screen resolution
+     */
+    let target_w = 640u32;
+    let target_h = 360u32;
+
+    let scaled = img.resize_exact(target_w, target_h, image::imageops::FilterType::Lanczos3);
+    let rgba = scaled.to_rgba8();
+
+    /* RLE compression for repeated pixels */
+    let mut compressed: Vec<u8> = Vec::new();
+    let pixels = rgba.as_raw();
+
+    let mut i = 0;
+    while i < pixels.len() {
+        let r = pixels[i];
+        let g = pixels[i + 1];
+        let b = pixels[i + 2];
+        let a = pixels[i + 3];
+
+        let mut run = 1u8;
+        while run < 255 && i + (run as usize * 4) < pixels.len() {
+            let ni = i + (run as usize * 4);
+            if pixels[ni] == r && pixels[ni + 1] == g && pixels[ni + 2] == b && pixels[ni + 3] == a {
+                run += 1;
+            } else {
+                break;
+            }
+        }
+
+        compressed.push(run);
+        compressed.push(b);  /* BGR order for framebuffer */
+        compressed.push(g);
+        compressed.push(r);
+        compressed.push(a);
+
+        i += run as usize * 4;
+    }
+
+    eprintln!("Background: {}x{}, raw {}KB, compressed {}KB ({:.1}% ratio)",
+        target_w, target_h,
+        (target_w * target_h * 4) / 1024,
+        compressed.len() / 1024,
+        (compressed.len() as f64 / (target_w * target_h * 4) as f64) * 100.0
+    );
+
+    let mut file = fs::File::create(&dest_path).expect("Cannot create background_generated.rs");
+
+    writeln!(file, "pub const BG_WIDTH: u32 = {};", target_w).unwrap();
+    writeln!(file, "pub const BG_HEIGHT: u32 = {};", target_h).unwrap();
+    writeln!(file, "pub const BG_COMPRESSED_LEN: usize = {};", compressed.len()).unwrap();
+    writeln!(file, "").unwrap();
+    writeln!(file, "#[allow(clippy::all)]").unwrap();
+    writeln!(file, "pub static BG_COMPRESSED: [u8; {}] = [", compressed.len()).unwrap();
+
+    for (idx, chunk) in compressed.chunks(16).enumerate() {
+        write!(file, "    ").unwrap();
+        for (i, byte) in chunk.iter().enumerate() {
+            write!(file, "0x{:02x}", byte).unwrap();
+            if idx * 16 + i < compressed.len() - 1 {
+                write!(file, ",").unwrap();
+            }
+            if i < chunk.len() - 1 {
+                write!(file, " ").unwrap();
+            }
+        }
+        writeln!(file, "").unwrap();
+    }
+    writeln!(file, "];").unwrap();
+}
+
+fn generate_gradient_fallback(dest_path: &Path) {
+    use std::io::Write as IoWrite;
+
+    /*
+     * Generate a nature-inspired gradient as fallback
+     * Deep green to soft cyan, like early morning meadow
+     */
+    let w = 64u32;
+    let h = 36u32;
+
+    let mut compressed: Vec<u8> = Vec::new();
+
+    for y in 0..h {
+        for x in 0..w {
+            let fx = x as f32 / w as f32;
+            let fy = y as f32 / h as f32;
+
+            /* Diagonal gradient: deep forest green to soft teal */
+            let t = (fx + fy) / 2.0;
+            let r = (10.0 + t * 30.0) as u8;
+            let g = (30.0 + t * 60.0) as u8;
+            let b = (20.0 + t * 50.0) as u8;
+
+            compressed.push(1);  /* run length 1 */
+            compressed.push(b);
+            compressed.push(g);
+            compressed.push(r);
+            compressed.push(255);
+        }
+    }
+
+    let mut file = fs::File::create(dest_path).expect("Cannot create background_generated.rs");
+
+    writeln!(file, "pub const BG_WIDTH: u32 = {};", w).unwrap();
+    writeln!(file, "pub const BG_HEIGHT: u32 = {};", h).unwrap();
+    writeln!(file, "pub const BG_COMPRESSED_LEN: usize = {};", compressed.len()).unwrap();
+    writeln!(file, "").unwrap();
+    writeln!(file, "#[allow(clippy::all)]").unwrap();
+    writeln!(file, "pub static BG_COMPRESSED: [u8; {}] = [", compressed.len()).unwrap();
+
+    for (idx, chunk) in compressed.chunks(16).enumerate() {
+        write!(file, "    ").unwrap();
+        for (i, byte) in chunk.iter().enumerate() {
+            write!(file, "0x{:02x}", byte).unwrap();
+            if idx * 16 + i < compressed.len() - 1 {
+                write!(file, ",").unwrap();
+            }
+        }
+        writeln!(file, "").unwrap();
+    }
+    writeln!(file, "];").unwrap();
 }
