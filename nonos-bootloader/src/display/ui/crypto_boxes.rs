@@ -31,7 +31,6 @@ pub fn draw_zk_box(
     program_hash: Option<&[u8; 32]>,
     verified: Option<bool>,
 ) {
-    fill_rect(x, y, HASH_BOX_WIDTH, ZK_BOX_HEIGHT, COLOR_GLASS_BG);
     fill_rect(x, y, 3, ZK_BOX_HEIGHT, COLOR_ZK_PURPLE);
 
     draw_string(x + 12, y + 6, label, COLOR_ZK_PURPLE);
@@ -61,7 +60,6 @@ pub fn draw_zk_box(
 }
 
 pub fn draw_signature_box(x: u32, y: u32, sig_r: &[u8], sig_s: &[u8], verified: Option<bool>) {
-    fill_rect(x, y, HASH_BOX_WIDTH, SIG_BOX_HEIGHT, COLOR_GLASS_BG);
     fill_rect(x, y, 3, SIG_BOX_HEIGHT, COLOR_ACCENT);
 
     draw_string(x + 12, y + 6, b"Ed25519 Signature", COLOR_ACCENT);
