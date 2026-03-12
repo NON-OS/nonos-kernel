@@ -19,6 +19,7 @@
 extern crate alloc;
 
 // Core boot modules
+pub mod boot;
 pub mod config;
 pub mod crypto;
 pub mod display;
@@ -29,6 +30,7 @@ pub mod hardware;
 pub mod kernel_verify;
 pub mod loader;
 pub mod log;
+pub mod safety;
 pub mod security;
 pub mod verify;
 pub mod zk;
