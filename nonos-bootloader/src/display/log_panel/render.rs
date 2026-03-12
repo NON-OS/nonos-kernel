@@ -15,16 +15,24 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 /*
- * Log panel rendering - transparent, no boxes.
+ * Log panel rendering - transparent with line clearing.
  */
 
 use crate::display::constants::{
     COLOR_ACCENT, COLOR_ERROR, COLOR_SUCCESS, COLOR_TEXT_DIM, COLOR_WARNING,
 };
-use crate::display::font::draw_string;
+use crate::display::font::{draw_string, CHAR_HEIGHT};
+use crate::display::gop::fill_rect;
 
 use super::buffer::{get_count, get_entry};
-use super::types::{LogLevel, LINE_HEIGHT, LOG_X, LOG_Y_START, MAX_LOG_LINES};
+use super::types::{LogLevel, LINE_HEIGHT, LOG_LINE_LEN, LOG_X, LOG_Y_START, MAX_LOG_LINES};
+
+const LINE_CLEAR_COLOR: u32 = 0xC0101018;
+const LINE_WIDTH: u32 = (LOG_LINE_LEN as u32 + 6) * 8;
+
+fn clear_line(y: u32) {
+    fill_rect(LOG_X - 4, y, LINE_WIDTH, CHAR_HEIGHT + 2, LINE_CLEAR_COLOR);
+}
 
 pub fn redraw_visible(total: usize) {
     if total == 0 {
@@ -37,6 +45,8 @@ pub fn redraw_visible(total: usize) {
     for line in 0..visible_count {
         let entry_idx = (start_entry + line) % MAX_LOG_LINES;
         let y = LOG_Y_START + (line as u32) * LINE_HEIGHT;
+
+        clear_line(y);
 
         if let Some(entry) = get_entry(entry_idx) {
             if entry.len == 0 {
