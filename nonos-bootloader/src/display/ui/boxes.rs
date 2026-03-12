@@ -33,8 +33,6 @@ pub fn draw_stage_box(x: u32, y: u32, label: &[u8], status: StageStatus) {
         StageStatus::Failed => (COLOR_ERROR, b" FAIL  "),
     };
 
-    fill_rect(x, y, STATUS_BOX_WIDTH, STATUS_BOX_HEIGHT, COLOR_GLASS_BG);
-
     let indicator_color = match status {
         StageStatus::Pending => COLOR_TEXT_DIM,
         StageStatus::Running => COLOR_ACCENT,
@@ -48,7 +46,6 @@ pub fn draw_stage_box(x: u32, y: u32, label: &[u8], status: StageStatus) {
 }
 
 pub fn draw_hash_box(x: u32, y: u32, label: &[u8], hash: &[u8; 32], revealed: usize) {
-    fill_rect(x, y, HASH_BOX_WIDTH, HASH_BOX_HEIGHT, COLOR_GLASS_BG);
     fill_rect(x, y, 3, HASH_BOX_HEIGHT, COLOR_CRYPTO_CYAN);
 
     draw_string(x + 12, y + 6, label, COLOR_CRYPTO_CYAN);
