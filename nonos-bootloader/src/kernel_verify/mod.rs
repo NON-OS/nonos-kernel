@@ -15,11 +15,11 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod display;
+mod elf;
+mod helpers;
 mod types;
 mod verify;
 
-pub use types::{CryptoVerifyResult, MIN_KERNEL_SIZE, SIGNATURE_SIZE};
-
-pub use verify::verify_kernel_crypto;
-
 pub use display::{byte_to_hex, mini_delay, print, print_hex_bytes, print_hex_char};
+pub use types::{CryptoVerifyResult, MIN_KERNEL_SIZE, SIGNATURE_SIZE};
+pub use verify::verify_kernel_crypto;
