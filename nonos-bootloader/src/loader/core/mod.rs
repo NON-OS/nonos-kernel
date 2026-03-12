@@ -16,6 +16,8 @@
 
 mod alloc;
 mod constants;
+mod dynamic;
+mod exec;
 mod load;
 mod validate;
 
