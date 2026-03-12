@@ -20,20 +20,16 @@ use super::detect::has_zk_proof;
 use super::parse::parse_zk_proof;
 use super::types::BootAttestationResult;
 
-/// Verify boot attestation from kernel data
 pub fn verify_boot_attestation(kernel_data: &[u8]) -> BootAttestationResult {
-    // Check if proof exists
     if !has_zk_proof(kernel_data) {
         return BootAttestationResult::no_proof();
     }
 
-    // Parse the proof block
     let (proof_block, _offset) = match parse_zk_proof(kernel_data) {
         Ok(pb) => pb,
         Err(e) => return BootAttestationResult::parse_error(e),
     };
 
-    // Convert to ZkProof for verification
     let mut zk_proof = ZkProof {
         program_hash: proof_block.program_hash,
         capsule_commitment: proof_block.capsule_commitment,
@@ -42,10 +38,8 @@ pub fn verify_boot_attestation(kernel_data: &[u8]) -> BootAttestationResult {
         manifest: None,
     };
 
-    // Verify the proof
     let result = verify_proof(&mut zk_proof);
 
-    // Build result
     let (verified, message) = match &result {
         ZkVerifyResult::Valid => (true, "ZK attestation verified"),
         ZkVerifyResult::Invalid(s) => (false, *s),
@@ -62,7 +56,6 @@ pub fn verify_boot_attestation(kernel_data: &[u8]) -> BootAttestationResult {
     }
 }
 
-/// Verify boot attestation with custom manifest
 pub fn verify_boot_attestation_with_manifest(
     kernel_data: &[u8],
     manifest: &[u8],
