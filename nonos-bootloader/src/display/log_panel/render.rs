@@ -15,62 +15,63 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 /*
- * Log panel rendering - transparent with line clearing.
+ * Log panel rendering - draws only newest entry with line clear.
  */
 
 use crate::display::constants::{
     COLOR_ACCENT, COLOR_ERROR, COLOR_SUCCESS, COLOR_TEXT_DIM, COLOR_WARNING,
 };
-use crate::display::font::draw_string;
+use crate::display::font::{draw_string, CHAR_HEIGHT};
+use crate::display::gop::fill_rect;
 
-use super::buffer::{get_count, get_entry};
-use super::types::{LogLevel, LINE_HEIGHT, LOG_X, LOG_Y_START, MAX_LOG_LINES};
+use super::buffer::get_entry;
+use super::types::{LogLevel, LINE_HEIGHT, LOG_LINE_LEN, LOG_X, LOG_Y_START, MAX_LOG_LINES};
 
-pub fn redraw_visible(total: usize) {
-    if total == 0 {
-        return;
-    }
+const LINE_WIDTH: u32 = (LOG_LINE_LEN as u32 + 5) * 8;
 
-    let visible_count = total.min(MAX_LOG_LINES);
-    let start_entry = if total > MAX_LOG_LINES { total - MAX_LOG_LINES } else { 0 };
+fn clear_line(y: u32) {
+    fill_rect(LOG_X, y, LINE_WIDTH, CHAR_HEIGHT, 0xFF0A0A0A);
+}
 
-    for line in 0..visible_count {
-        let entry_idx = (start_entry + line) % MAX_LOG_LINES;
-        let y = LOG_Y_START + (line as u32) * LINE_HEIGHT;
+fn draw_entry(line_num: usize, entry_idx: usize) {
+    let y = LOG_Y_START + (line_num as u32) * LINE_HEIGHT;
+    clear_line(y);
 
-        if let Some(entry) = get_entry(entry_idx) {
-            if entry.len == 0 {
-                continue;
-            }
-
-            let (prefix, color) = match entry.level {
-                LogLevel::Info => (b"    " as &[u8], COLOR_TEXT_DIM),
-                LogLevel::Ok => (b"[+] " as &[u8], COLOR_SUCCESS),
-                LogLevel::Warn => (b"[!] " as &[u8], COLOR_WARNING),
-                LogLevel::Error => (b"[X] " as &[u8], COLOR_ERROR),
-                LogLevel::Security => (b"[S] " as &[u8], COLOR_ACCENT),
-            };
-
-            draw_string(LOG_X, y, prefix, color);
-            draw_string(LOG_X + 32, y, &entry.text[..entry.len], color);
+    if let Some(entry) = get_entry(entry_idx) {
+        if entry.len == 0 {
+            return;
         }
+
+        let (prefix, color) = match entry.level {
+            LogLevel::Info => (b"    " as &[u8], COLOR_TEXT_DIM),
+            LogLevel::Ok => (b"[+] " as &[u8], COLOR_SUCCESS),
+            LogLevel::Warn => (b"[!] " as &[u8], COLOR_WARNING),
+            LogLevel::Error => (b"[X] " as &[u8], COLOR_ERROR),
+            LogLevel::Security => (b"[S] " as &[u8], COLOR_ACCENT),
+        };
+
+        draw_string(LOG_X, y, prefix, color);
+        draw_string(LOG_X + 32, y, &entry.text[..entry.len], color);
     }
 }
 
-pub fn redraw_all() {
-    let count = get_count();
-    redraw_visible(count);
-}
+pub fn redraw_all() {}
 
 pub fn clear_display() {}
 
 fn log_delay() {
-    for _ in 0..800_000 {
+    for _ in 0..500_000 {
         core::hint::spin_loop();
     }
 }
 
 pub fn render_after_log(count: usize) {
-    redraw_visible(count);
+    if count == 0 {
+        return;
+    }
+
+    let line_num = (count - 1) % MAX_LOG_LINES;
+    let entry_idx = line_num;
+    draw_entry(line_num, entry_idx);
     log_delay();
 }
