@@ -16,10 +16,14 @@
 
 pub mod anti_rollback;
 pub mod attestation;
+pub mod audit;
 mod check;
 mod crypto;
 mod enforce;
 mod init;
+pub mod integrity;
+pub mod memory;
+pub mod timing;
 mod tpm;
 mod types;
 mod verify;
