@@ -14,30 +14,36 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub const COLOR_PRIMARY: u32 = 0xFF66FFFF;
-pub const COLOR_SECONDARY: u32 = 0xFF1A3333;
+/* Cyan neon theme - transparent panels with glowing cyan accents */
 
-pub const COLOR_BACKGROUND: u32 = 0xFF000000;
-pub const COLOR_BOX_BG: u32 = 0xFF0A0A0A;
-pub const COLOR_PROGRESS_BG: u32 = 0xFF111111;
+pub const COLOR_PRIMARY: u32 = 0xFF00FFFF;
+pub const COLOR_SECONDARY: u32 = 0xFF008888;
 
-pub const COLOR_BORDER: u32 = 0xFF1A3333;
-pub const COLOR_ACCENT: u32 = 0xFF00FF66;
+pub const COLOR_BACKGROUND: u32 = 0x00000000;
+pub const COLOR_BOX_BG: u32 = 0x00000000;
+pub const COLOR_PROGRESS_BG: u32 = 0x40004040;
 
-pub const COLOR_SUCCESS: u32 = 0xFF00FF00;
-pub const COLOR_ERROR: u32 = 0xFFFF0000;
-pub const COLOR_WARNING: u32 = 0xFFFF8800;
+pub const COLOR_BORDER: u32 = 0xFF00CCCC;
+pub const COLOR_ACCENT: u32 = 0xFF00FFFF;
 
-pub const COLOR_TEXT_PRIMARY: u32 = 0xFF00FF66;
+pub const COLOR_SUCCESS: u32 = 0xFF00FFCC;
+pub const COLOR_ERROR: u32 = 0xFFFF4444;
+pub const COLOR_WARNING: u32 = 0xFFFFAA00;
+
+pub const COLOR_TEXT_PRIMARY: u32 = 0xFF00FFFF;
 pub const COLOR_TEXT_WHITE: u32 = 0xFFFFFFFF;
-pub const COLOR_TEXT_DIM: u32 = 0xFF336633;
+pub const COLOR_TEXT_DIM: u32 = 0xFF008888;
 
-pub const COLOR_HASH_BYTE: u32 = 0xFF00FFAA;
-pub const COLOR_CRYPTO_CYAN: u32 = 0xFF00CCCC;
-pub const COLOR_ZK_PURPLE: u32 = 0xFFAA00FF;
+pub const COLOR_HASH_BYTE: u32 = 0xFF00FFDD;
+pub const COLOR_CRYPTO_CYAN: u32 = 0xFF00FFFF;
+pub const COLOR_ZK_PURPLE: u32 = 0xFFCC88FF;
 
-pub const COLOR_LOGO_PRIMARY: u32 = 0xFF66FFFF;
-pub const COLOR_LOGO_SECONDARY: u32 = 0xFF1A3333;
+pub const COLOR_LOGO_PRIMARY: u32 = 0xFF00FFFF;
+pub const COLOR_LOGO_SECONDARY: u32 = 0xFF00AAAA;
+
+pub const COLOR_GLASS_BG: u32 = 0x00000000;
+pub const COLOR_GLASS_BORDER: u32 = 0xCC00DDDD;
+pub const COLOR_ERROR_BG: u32 = 0x60200000;
 
 pub const LOGO_SIZE: u32 = 64;
 pub const PROGRESS_BAR_WIDTH: u32 = 300;
