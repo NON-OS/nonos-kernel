@@ -16,7 +16,7 @@
 
 extern crate alloc;
 
-pub use super::keys::{
+pub use super::keyring::{
     add_key, add_key_versioned, derive_keyid, get_build_timestamp, get_key_fingerprint,
     get_minimum_version, get_nonos_key, get_nonos_key_id, init_nonos_keys, init_production_keys,
     is_initialized, key_count, revoke_key_by_pubkey, set_minimum_version, validate_key, KeyId,

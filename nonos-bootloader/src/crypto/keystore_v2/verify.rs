@@ -24,7 +24,7 @@ extern crate alloc;
 use alloc::vec::Vec;
 use ed25519_dalek::{Signature, Verifier, VerifyingKey};
 
-use crate::crypto::keys::KeyId;
+use crate::crypto::keyring::KeyId;
 
 use super::store::KeystoreV2;
 use super::types::{KeyType, KeyValidationResult, MAX_TRUSTED_KEYS};

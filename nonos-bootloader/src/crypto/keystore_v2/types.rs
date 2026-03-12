@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::crypto::keys::{derive_keyid, KeyId, PK_LEN};
+use crate::crypto::keyring::{derive_keyid, KeyId, PK_LEN};
 
 pub const MAX_TRUSTED_KEYS: usize = 8;
 pub const DS_KEY_ROTATION: &str = "NONOS:KEY:ROTATION:v1";
