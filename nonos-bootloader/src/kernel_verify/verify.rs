@@ -14,94 +14,30 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use uefi::cstr16;
+/*
+ * Kernel cryptographic verification.
+ *
+ * Kernel binary format: [kernel_code][64-byte Ed25519 signature][optional ZK proof]
+ *
+ * Verification steps:
+ * 1. Parse ELF header to find kernel code boundaries
+ * 2. Extract signature from bytes after ELF
+ * 3. Compute BLAKE3 hash of kernel code
+ * 4. Verify Ed25519 signature against trusted keys
+ */
+
 use uefi::prelude::*;
 
-use crate::crypto::sig::{
-    init_production_keys, is_initialized, verify_signature_bytes, VerifyError,
-};
 use crate::log::logger::{log_debug, log_error, log_info};
-use crate::zk::attest::{GROTH16_PROOF_SIZE, ZK_PROOF_HEADER_SIZE, ZK_PROOF_MAGIC};
 
-use super::display::{
-    mini_delay, print, print_hex_bytes, print_kernel_size, print_verification_failure,
-    print_verification_success,
+use super::display::{mini_delay, print_kernel_size, print_verification_failure, print_verification_success};
+use super::elf::{compute_elf_size, find_zk_block_offset};
+use super::helpers::{
+    compute_and_display_hash, initialize_crypto_if_needed, validate_kernel_size,
+    verify_and_display_signature,
 };
-use super::types::{CryptoVerifyResult, MIN_KERNEL_SIZE, SIGNATURE_SIZE};
+use super::types::{CryptoVerifyResult, SIGNATURE_SIZE};
 
-/// Compute the actual ELF file size from its header.
-/// This is more robust than searching for magic bytes.
-/// Returns the offset where the ELF ends (section header table end).
-fn compute_elf_size(data: &[u8]) -> Option<usize> {
-    // Need at least 64 bytes for ELF64 header
-    if data.len() < 64 {
-        return None;
-    }
-
-    // Check ELF magic
-    if &data[0..4] != b"\x7fELF" {
-        return None;
-    }
-
-    // Check it's 64-bit (class = 2)
-    if data[4] != 2 {
-        return None;
-    }
-
-    // Check endianness (1 = little endian)
-    let little_endian = data[5] == 1;
-    if !little_endian {
-        return None; // We only support little endian
-    }
-
-    // Read e_shoff (section header offset) at offset 40 (8 bytes)
-    let e_shoff = u64::from_le_bytes([
-        data[40], data[41], data[42], data[43],
-        data[44], data[45], data[46], data[47],
-    ]) as usize;
-
-    // Read e_shentsize (section header entry size) at offset 58 (2 bytes)
-    let e_shentsize = u16::from_le_bytes([data[58], data[59]]) as usize;
-
-    // Read e_shnum (number of section headers) at offset 60 (2 bytes)
-    let e_shnum = u16::from_le_bytes([data[60], data[61]]) as usize;
-
-    // ELF ends at section header table end
-    let elf_end = e_shoff.checked_add(e_shentsize.checked_mul(e_shnum)?)?;
-
-    // Sanity check
-    if elf_end > data.len() || elf_end < 64 {
-        return None;
-    }
-
-    Some(elf_end)
-}
-
-/// Find the ZK proof block offset if present.
-/// Returns the offset where the ZK block starts, or None if not present.
-fn find_zk_block_offset(kernel_data: &[u8]) -> Option<usize> {
-    // ZK block must be at least header + proof size
-    let min_zk_size = ZK_PROOF_HEADER_SIZE + GROTH16_PROOF_SIZE;
-
-    // Search backwards from the end for ZK magic
-    // The ZK block is appended after [kernel_code][signature]
-    if kernel_data.len() < 64 + min_zk_size {
-        return None;
-    }
-
-    // Search in the last 4KB for ZK magic
-    let search_start = kernel_data.len().saturating_sub(4096);
-    for i in (search_start..kernel_data.len().saturating_sub(min_zk_size)).rev() {
-        if kernel_data.len() - i >= 4 && &kernel_data[i..i + 4] == &ZK_PROOF_MAGIC {
-            return Some(i);
-        }
-    }
-
-    None
-}
-
-/// Verify kernel cryptography with proper handling of ZK proof blocks.
-/// Kernel structure: [kernel_code][64-byte Ed25519 signature][optional ZK proof block]
 pub fn verify_kernel_crypto(kernel_data: &[u8], st: &mut SystemTable<Boot>) -> CryptoVerifyResult {
     log_info("kernel_verify", "Starting cryptographic verification");
 
@@ -115,23 +51,13 @@ pub fn verify_kernel_crypto(kernel_data: &[u8], st: &mut SystemTable<Boot>) -> C
         return result;
     }
 
-    // PRIMARY: Compute ELF size from header (most robust method)
-    // FALLBACK: Search for ZK magic, then assume signature-only
-    let kernel_code_end = if let Some(elf_size) = compute_elf_size(kernel_data) {
-        log_debug("kernel_verify", "ELF size computed from header");
-        elf_size
-    } else if let Some(zk_offset) = find_zk_block_offset(kernel_data) {
-        log_debug("kernel_verify", "ZK block detected, computing kernel end");
-        zk_offset - SIGNATURE_SIZE
-    } else if kernel_data.len() > SIGNATURE_SIZE {
-        log_debug("kernel_verify", "Using fallback: total - signature");
-        kernel_data.len() - SIGNATURE_SIZE
-    } else {
+    let kernel_code_end = determine_kernel_boundary(kernel_data);
+    if kernel_code_end.is_none() {
         log_error("kernel_verify", "Cannot determine kernel code size");
         return result;
-    };
+    }
 
-    // Signature is right after kernel code
+    let kernel_code_end = kernel_code_end.unwrap();
     let sig_offset = kernel_code_end;
     let sig_end = sig_offset + SIGNATURE_SIZE;
 
@@ -150,7 +76,6 @@ pub fn verify_kernel_crypto(kernel_data: &[u8], st: &mut SystemTable<Boot>) -> C
     mini_delay();
 
     compute_and_display_hash(kernel_code, &mut result, st);
-
     verify_and_display_signature(kernel_code, signature, &mut result, st);
 
     if result.signature_valid {
@@ -162,178 +87,24 @@ pub fn verify_kernel_crypto(kernel_data: &[u8], st: &mut SystemTable<Boot>) -> C
     result
 }
 
-fn initialize_crypto_if_needed(st: &mut SystemTable<Boot>) -> bool {
-    if is_initialized() {
-        return true;
+fn determine_kernel_boundary(kernel_data: &[u8]) -> Option<usize> {
+    /* primary: compute from ELF header */
+    if let Some(elf_size) = compute_elf_size(kernel_data) {
+        log_debug("kernel_verify", "ELF size computed from header");
+        return Some(elf_size);
     }
 
-    print(st, cstr16!("  [CRYPTO] Initializing keystore...\r\n"));
-
-    if let Err(_) = init_production_keys() {
-        log_error("crypto_real", "Failed to initialize production keys");
-        print(
-            st,
-            cstr16!("  [CRYPTO] Keystore init ........................ [FAIL]\r\n"),
-        );
-        return false;
+    /* fallback: search for ZK block */
+    if let Some(zk_offset) = find_zk_block_offset(kernel_data) {
+        log_debug("kernel_verify", "ZK block detected, computing kernel end");
+        return Some(zk_offset - SIGNATURE_SIZE);
     }
 
-    print(
-        st,
-        cstr16!("  [CRYPTO] Keystore initialized ................ [  OK  ]\r\n"),
-    );
-    true
-}
-
-fn validate_kernel_size(kernel_data: &[u8], st: &mut SystemTable<Boot>) -> bool {
-    if kernel_data.len() < MIN_KERNEL_SIZE {
-        log_error("crypto_real", "Kernel too small - no room for signature");
-        print(
-            st,
-            cstr16!("  [CRYPTO] Kernel size check .................... [FAIL]\r\n"),
-        );
-        print(
-            st,
-            cstr16!("  [CRYPTO] ERROR: Kernel too small for signature\r\n"),
-        );
-        return false;
-    }
-    true
-}
-
-fn compute_and_display_hash(
-    kernel_code: &[u8],
-    result: &mut CryptoVerifyResult,
-    st: &mut SystemTable<Boot>,
-) {
-    print(st, cstr16!("  [CRYPTO] Computing BLAKE3 hash...\r\n"));
-    mini_delay();
-
-    let hash = blake3::hash(kernel_code);
-    let hash_bytes = hash.as_bytes();
-
-    result.kernel_hash_full.copy_from_slice(hash_bytes);
-    result.kernel_hash_preview.copy_from_slice(&hash_bytes[..8]);
-
-    log_debug("kernel_verify", "BLAKE3 hash computed");
-
-    print(st, cstr16!("  [CRYPTO] BLAKE3: "));
-    print_hex_bytes(st, &hash_bytes[..8]);
-    print(st, cstr16!("...\r\n"));
-    mini_delay();
-}
-
-fn verify_and_display_signature(
-    kernel_code: &[u8],
-    signature: &[u8],
-    result: &mut CryptoVerifyResult,
-    st: &mut SystemTable<Boot>,
-) {
-    print(
-        st,
-        cstr16!("  [CRYPTO] Extracting Ed25519 signature...\r\n"),
-    );
-    mini_delay();
-
-    if signature.iter().all(|&b| b == 0) {
-        log_error("crypto_real", "Signature is all zeros - kernel unsigned");
-        print(
-            st,
-            cstr16!("  [CRYPTO] Signature: ALL ZEROS (UNSIGNED!)\r\n"),
-        );
-        print(
-            st,
-            cstr16!("  [CRYPTO] Ed25519 verify ....................... [FAIL]\r\n"),
-        );
-        return;
+    /* last resort: assume signature at end */
+    if kernel_data.len() > SIGNATURE_SIZE {
+        log_debug("kernel_verify", "Using fallback: total - signature");
+        return Some(kernel_data.len() - SIGNATURE_SIZE);
     }
 
-    display_signature_components(signature, st);
-
-    print(st, cstr16!("  [CRYPTO] Verifying Ed25519 signature...\r\n"));
-
-    match verify_signature_bytes(kernel_code, signature) {
-        Ok(key_id) => {
-            result.signature_valid = true;
-            log_info(
-                "kernel_verify",
-                "Ed25519 signature VERIFIED against trusted key",
-            );
-            print(
-                st,
-                cstr16!("  [CRYPTO] Ed25519 verify ....................... [PASS]\r\n"),
-            );
-            mini_delay();
-
-            print(st, cstr16!("  [CRYPTO] Signer key ID: "));
-            print_hex_bytes(st, &key_id[0..8]);
-            print(st, cstr16!("...\r\n"));
-        }
-        Err(e) => {
-            result.signature_valid = false;
-            log_error("kernel_verify", "Ed25519 signature verification FAILED");
-            print(
-                st,
-                cstr16!("  [CRYPTO] Ed25519 verify ....................... [FAIL]\r\n"),
-            );
-            display_verification_error(e, st);
-        }
-    }
-
-    mini_delay();
-}
-
-fn display_signature_components(signature: &[u8], st: &mut SystemTable<Boot>) {
-    print(st, cstr16!("  [CRYPTO] Sig R: "));
-    print_hex_bytes(st, &signature[0..8]);
-    print(st, cstr16!("...\r\n"));
-
-    print(st, cstr16!("  [CRYPTO] Sig S: "));
-    print_hex_bytes(st, &signature[32..40]);
-    print(st, cstr16!("...\r\n"));
-    mini_delay();
-}
-
-fn display_verification_error(e: VerifyError, st: &mut SystemTable<Boot>) {
-    match e {
-        VerifyError::InvalidSignature => {
-            print(
-                st,
-                cstr16!("  [CRYPTO] ERROR: Signature does not match any trusted key\r\n"),
-            );
-        }
-        VerifyError::KeyNotFound => {
-            print(
-                st,
-                cstr16!("  [CRYPTO] ERROR: Signing key not in trusted keystore\r\n"),
-            );
-        }
-        VerifyError::NotInitialized => {
-            print(
-                st,
-                cstr16!("  [CRYPTO] ERROR: Keystore not initialized\r\n"),
-            );
-        }
-        VerifyError::MalformedSignature => {
-            print(
-                st,
-                cstr16!("  [CRYPTO] ERROR: Malformed signature data\r\n"),
-            );
-        }
-        VerifyError::Bounds => {
-            print(st, cstr16!("  [CRYPTO] ERROR: Signature bounds error\r\n"));
-        }
-        VerifyError::KeyRevoked => {
-            print(
-                st,
-                cstr16!("  [CRYPTO] ERROR: Signing key has been revoked\r\n"),
-            );
-        }
-        VerifyError::KeyVersionTooOld => {
-            print(
-                st,
-                cstr16!("  [CRYPTO] ERROR: Key version below minimum required\r\n"),
-            );
-        }
-    }
+    None
 }
