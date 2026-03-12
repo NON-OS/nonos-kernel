@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::crypto::keys::{KeyId, PK_LEN};
+use crate::crypto::keyring::{KeyId, PK_LEN};
 
 use super::types::{KeyType, KeyValidationResult, TrustedKey, MAX_TRUSTED_KEYS};
 use super::util::constant_time_eq;

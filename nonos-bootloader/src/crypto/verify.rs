@@ -17,7 +17,7 @@
 use crate::log::logger::{log_info, log_warn};
 use core::convert::TryInto;
 
-use super::keys::{
+use super::keyring::{
     derive_keyid, init_production_keys, is_initialized, KeyId, KeyStatus, KEYSTORE,
     NONOS_SIGNING_KEY,
 };
