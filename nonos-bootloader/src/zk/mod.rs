@@ -32,6 +32,13 @@ pub use binding::{
     verify_commitment, BindingInput, DS_COMMITMENT, MAX_MANIFEST_SIZE,
 };
 
+// Re-export replay protection (production hardening)
+pub use binding::replay::{
+    build_public_inputs, derive_machine_id, get_boot_nonce, get_machine_id,
+    init_boot_nonce, init_machine_id, is_machine_id_initialized, is_nonce_initialized,
+    verify_machine_id, verify_nonce_freshness, ZkPublicInputs,
+};
+
 // Re-export verify types and functions
 pub use verify::{ct_eq32, derive_program_hash, verify_proof, ZkProof, ZkVerifyResult};
 #[cfg(feature = "zk-groth16")]
