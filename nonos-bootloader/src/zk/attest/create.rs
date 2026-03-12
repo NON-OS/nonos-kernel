@@ -21,35 +21,29 @@ use alloc::vec::Vec;
 
 use super::types::{GROTH16_PROOF_SIZE, ZK_PROOF_HEADER_SIZE, ZK_PROOF_MAGIC, ZK_PROOF_VERSION};
 
-/// Compute capsule commitment from kernel code
 pub fn compute_capsule_commitment(kernel_code: &[u8]) -> [u8; 32] {
     let mut hasher = blake3::Hasher::new_derive_key(DS_COMMITMENT);
     hasher.update(kernel_code);
     *hasher.finalize().as_bytes()
 }
 
-/// Create a ZK proof block for embedding in capsule
 pub fn create_zk_proof_block(
     program_hash: &[u8; 32],
     capsule_commitment: &[u8; 32],
     public_inputs: &[u8],
     proof_blob: &[u8],
 ) -> Result<Vec<u8>, &'static str> {
-    // Validate proof blob size
     if proof_blob.len() != GROTH16_PROOF_SIZE {
         return Err("proof blob must be 192 bytes");
     }
 
-    // Validate public inputs alignment
     if public_inputs.len() % 32 != 0 {
         return Err("public inputs must be 32-byte aligned");
     }
 
-    // Build block
     let mut block =
         Vec::with_capacity(ZK_PROOF_HEADER_SIZE + public_inputs.len() + proof_blob.len());
 
-    // Header: magic (4) + version (4) + program_hash (32) + commitment (32) + lengths (8) = 80
     block.extend_from_slice(&ZK_PROOF_MAGIC);
     block.extend_from_slice(&ZK_PROOF_VERSION.to_le_bytes());
     block.extend_from_slice(program_hash);
@@ -57,14 +51,12 @@ pub fn create_zk_proof_block(
     block.extend_from_slice(&(public_inputs.len() as u32).to_le_bytes());
     block.extend_from_slice(&(proof_blob.len() as u32).to_le_bytes());
 
-    // Data
     block.extend_from_slice(public_inputs);
     block.extend_from_slice(proof_blob);
 
     Ok(block)
 }
 
-/// Calculate total size of ZK proof block
 pub fn calculate_proof_block_size(public_inputs_len: usize) -> usize {
     ZK_PROOF_HEADER_SIZE + public_inputs_len + GROTH16_PROOF_SIZE
 }
@@ -92,7 +84,7 @@ mod tests {
         let block = create_zk_proof_block(&program_hash, &commitment, &inputs, &proof).unwrap();
 
         let mut kernel = alloc::vec![0u8; 1024];
-        kernel.extend_from_slice(&[0u8; 64]); // signature placeholder
+        kernel.extend_from_slice(&[0u8; 64]);
         kernel.extend_from_slice(&block);
 
         use super::super::detect::has_zk_proof;
