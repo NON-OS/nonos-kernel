@@ -21,6 +21,8 @@ use crate::log::logger::{log_error, log_info, log_warn};
 
 use super::policy::{SecurityCheckResult, SecurityPolicy};
 
+pub use super::hash::{compute_kernel_hash, verify_kernel_hash};
+
 pub fn check_wx_policy(
     segments: &[Option<LoadedSegment>],
     policy: &SecurityPolicy,
@@ -160,18 +162,3 @@ pub fn validate_security(
     Ok(result)
 }
 
-pub fn compute_kernel_hash(data: &[u8]) -> [u8; 32] {
-    *blake3::hash(data).as_bytes()
-}
-
-pub fn verify_kernel_hash(data: &[u8], expected: &[u8; 32]) -> LoaderResult<()> {
-    let computed = compute_kernel_hash(data);
-
-    if &computed != expected {
-        log_error("security", "SECURITY: Kernel hash mismatch");
-        return Err(LoaderError::HashMismatch);
-    }
-
-    log_info("security", "Kernel hash verified");
-    Ok(())
-}
