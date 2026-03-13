@@ -14,10 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod keyring;
+mod keys;
 pub mod keystore_v2;
 pub mod sig;
-mod verify;
+mod verifier;
+mod verify_sig;
+mod verify_types;
 
 pub use sig::{
     get_key_fingerprint, get_minimum_version, get_nonos_key, get_nonos_key_id, init_nonos_keys,
