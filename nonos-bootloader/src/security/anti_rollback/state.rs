@@ -14,10 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::hardware::tpm::{nv_read, nv_write, NvIndex};
-
-use super::types::{RollbackError, VersionState, NVRAM_VERSION_INDEX};
-use super::util::constant_time_eq_32;
+use super::nvram::{read_from_nvram, write_to_nvram};
+use super::types::{RollbackError, VersionState};
 
 pub struct AntiRollbackState {
     pub(crate) state: VersionState,
@@ -38,7 +36,7 @@ impl AntiRollbackState {
         self.tpm_available = tpm_available;
 
         if tpm_available {
-            match self.read_from_nvram() {
+            match read_from_nvram() {
                 Ok(state) => {
                     self.state = state;
                 }
@@ -110,7 +108,7 @@ impl AntiRollbackState {
         self.state.boot_count += 1;
 
         if self.tpm_available {
-            self.write_to_nvram()?;
+            write_to_nvram(&self.state)?;
         }
 
         Ok(())
@@ -120,7 +118,7 @@ impl AntiRollbackState {
         if version > self.state.minimum_kernel {
             self.state.minimum_kernel = version;
             if self.tpm_available {
-                self.write_to_nvram()?;
+                write_to_nvram(&self.state)?;
             }
         }
         Ok(())
@@ -128,49 +126,5 @@ impl AntiRollbackState {
 
     pub fn get_state(&self) -> &VersionState {
         &self.state
-    }
-
-    fn read_from_nvram(&self) -> Result<VersionState, RollbackError> {
-        let index = NvIndex::new(NVRAM_VERSION_INDEX);
-        let mut buf = [0u8; 48];
-
-        match nv_read(&index, &mut buf) {
-            Ok(48) => {
-                let state = VersionState::from_bytes(&buf);
-                let stored_hash = self.read_nvram_hash()?;
-                let computed_hash = state.compute_hash();
-
-                if !constant_time_eq_32(&stored_hash, &computed_hash) {
-                    return Err(RollbackError::NvramReadFailed);
-                }
-
-                Ok(state)
-            }
-            Ok(_) => Err(RollbackError::NvramReadFailed),
-            Err(_) => Err(RollbackError::NvramReadFailed),
-        }
-    }
-
-    fn write_to_nvram(&self) -> Result<(), RollbackError> {
-        let index = NvIndex::new(NVRAM_VERSION_INDEX);
-        let data = self.state.to_bytes();
-
-        nv_write(&index, &data).map_err(|_| RollbackError::NvramWriteFailed)?;
-
-        let hash = self.state.compute_hash();
-        let hash_index = NvIndex::new(NVRAM_VERSION_INDEX + 1);
-        nv_write(&hash_index, &hash).map_err(|_| RollbackError::NvramWriteFailed)?;
-
-        Ok(())
-    }
-
-    fn read_nvram_hash(&self) -> Result<[u8; 32], RollbackError> {
-        let index = NvIndex::new(NVRAM_VERSION_INDEX + 1);
-        let mut buf = [0u8; 32];
-
-        match nv_read(&index, &mut buf) {
-            Ok(32) => Ok(buf),
-            _ => Err(RollbackError::NvramReadFailed),
-        }
     }
 }
