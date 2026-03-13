@@ -66,7 +66,12 @@ pub fn init_boot_nonce(entropy: &[u8; 64]) {
 
 pub fn get_boot_nonce() -> [u8; 32] {
     let guard = BOOT_NONCE.lock();
-    guard.expect("boot nonce not initialized")
+    guard.unwrap_or([0u8; 32])
+}
+
+pub fn get_boot_nonce_checked() -> Option<[u8; 32]> {
+    let guard = BOOT_NONCE.lock();
+    *guard
 }
 
 pub fn is_nonce_initialized() -> bool {
@@ -89,6 +94,11 @@ pub fn init_machine_id(tpm_ek_public: &[u8]) {
 pub fn get_machine_id() -> [u8; 32] {
     let guard = MACHINE_ID.lock();
     guard.unwrap_or([0u8; 32])
+}
+
+pub fn get_machine_id_checked() -> Option<[u8; 32]> {
+    let guard = MACHINE_ID.lock();
+    *guard
 }
 
 pub fn is_machine_id_initialized() -> bool {
@@ -129,6 +139,6 @@ pub fn verify_machine_id(claimed_id: &[u8; 32]) -> bool {
             }
             x == 0
         }
-        None => true,
+        None => false,
     }
 }
