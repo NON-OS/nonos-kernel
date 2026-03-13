@@ -35,7 +35,12 @@ fn efi_main(_handle: Handle, mut system_table: SystemTable<Boot>) -> Status {
         .stdout()
         .output_string(uefi::cstr16!("[BOOT] NONOS Bootloader v1.0\r\n"));
 
-    uefi_services::init(&mut system_table).unwrap();
+    if uefi_services::init(&mut system_table).is_err() {
+        let _ = system_table
+            .stdout()
+            .output_string(uefi::cstr16!("[FATAL] UEFI services init failed\r\n"));
+        loop { core::hint::spin_loop(); }
+    }
 
     /*
      * Disable UEFI watchdog timer (issue #8)
