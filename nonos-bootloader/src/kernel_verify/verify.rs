@@ -51,15 +51,22 @@ pub fn verify_kernel_crypto(kernel_data: &[u8], st: &mut SystemTable<Boot>) -> C
         return result;
     }
 
-    let kernel_code_end = determine_kernel_boundary(kernel_data);
-    if kernel_code_end.is_none() {
-        log_error("kernel_verify", "Cannot determine kernel code size");
-        return result;
-    }
+    let kernel_code_end = match determine_kernel_boundary(kernel_data) {
+        Some(end) => end,
+        None => {
+            log_error("kernel_verify", "Cannot determine kernel code size");
+            return result;
+        }
+    };
 
-    let kernel_code_end = kernel_code_end.unwrap();
     let sig_offset = kernel_code_end;
-    let sig_end = sig_offset + SIGNATURE_SIZE;
+    let sig_end = match sig_offset.checked_add(SIGNATURE_SIZE) {
+        Some(end) => end,
+        None => {
+            log_error("kernel_verify", "Signature offset overflow");
+            return result;
+        }
+    };
 
     if sig_end > kernel_data.len() {
         log_error("kernel_verify", "Signature offset out of bounds");
@@ -96,8 +103,10 @@ fn determine_kernel_boundary(kernel_data: &[u8]) -> Option<usize> {
 
     /* fallback: search for ZK block */
     if let Some(zk_offset) = find_zk_block_offset(kernel_data) {
-        log_debug("kernel_verify", "ZK block detected, computing kernel end");
-        return Some(zk_offset - SIGNATURE_SIZE);
+        if zk_offset >= SIGNATURE_SIZE {
+            log_debug("kernel_verify", "ZK block detected, computing kernel end");
+            return Some(zk_offset - SIGNATURE_SIZE);
+        }
     }
 
     /* last resort: assume signature at end */
