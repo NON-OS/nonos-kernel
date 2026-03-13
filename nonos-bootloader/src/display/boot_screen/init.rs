@@ -15,7 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 /*
- * Boot Screen Initialization - Cyan neon theme.
+ * Boot Screen Initialization.
+ *
+ * Sets up the boot display with background image and branding.
  */
 
 use crate::display::background::render_background;
@@ -42,11 +44,11 @@ pub fn init_boot_screen() {
         return;
     }
 
-    draw_title_banner(width);
+    draw_title_banner(width, height);
     draw_status_panel(width, height);
 }
 
-fn draw_title_banner(width: u32) {
+fn draw_title_banner(width: u32, _height: u32) {
     let banner_x = 40u32;
     let mut banner_y = 40u32;
 
@@ -56,10 +58,15 @@ fn draw_title_banner(width: u32) {
     }
 
     draw_string(banner_x + 4, banner_y + 8, b"ZeroState Bootloader v1.0", COLOR_ACCENT);
-    draw_string(banner_x + 4, banner_y + 28, b"Cryptographic Boot Verification", COLOR_TEXT_DIM);
+    draw_string(
+        banner_x + 4,
+        banner_y + 28,
+        b"Cryptographic Boot Verification",
+        COLOR_TEXT_DIM,
+    );
 
     let sep_y = banner_y + 52;
-    fill_rect(banner_x, sep_y, width / 2 - 80, 1, COLOR_ACCENT);
+    fill_rect(banner_x, sep_y, width / 2 - 80, 1, COLOR_TEXT_DIM);
 }
 
 fn draw_status_panel(width: u32, height: u32) {
@@ -68,11 +75,12 @@ fn draw_status_panel(width: u32, height: u32) {
     let panel_x = width - panel_w - 40;
     let panel_y = (height - panel_h) / 2;
 
-    fill_rect(panel_x, panel_y, panel_w, 1, COLOR_GLASS_BORDER);
-    fill_rect(panel_x, panel_y + panel_h - 1, panel_w, 1, COLOR_GLASS_BORDER);
-    fill_rect(panel_x, panel_y, 1, panel_h, COLOR_GLASS_BORDER);
-    fill_rect(panel_x + panel_w - 1, panel_y, 1, panel_h, COLOR_GLASS_BORDER);
+    fill_rect(panel_x, panel_y, panel_w, panel_h, COLOR_GLASS_BG);
+    fill_rect(panel_x, panel_y, panel_w, 2, COLOR_GLASS_BORDER);
+    fill_rect(panel_x, panel_y + panel_h - 2, panel_w, 2, COLOR_GLASS_BORDER);
+    fill_rect(panel_x, panel_y, 2, panel_h, COLOR_GLASS_BORDER);
+    fill_rect(panel_x + panel_w - 2, panel_y, 2, panel_h, COLOR_GLASS_BORDER);
 
     draw_string(panel_x + 20, panel_y + 20, b"Boot Verification", COLOR_ACCENT);
-    fill_rect(panel_x + 20, panel_y + 40, 180, 1, COLOR_GLASS_BORDER);
+    fill_rect(panel_x + 20, panel_y + 40, 140, 1, COLOR_GLASS_BORDER);
 }
