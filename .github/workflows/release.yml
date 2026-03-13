@@ -103,8 +103,8 @@ jobs:
           make generate-zk-keys
 
       - name: Build release
-        run: make ci-release VERSION=${{ steps.version.outputs.version }}
-
+        run: make ci-release VERSION=${{ steps.version.outputs.version }} SIGNING_KEY=${{ github.workspace }}/.keys/dev-signing.seed 
+      
       - name: Generate changelog
         id: changelog
         run: |
