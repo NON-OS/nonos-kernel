@@ -15,7 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 /*
- * Boot Progress Display - Cyan neon theme.
+ * Boot Progress Display.
+ *
+ * Progress bar, handoff message, error screen.
  */
 
 use crate::display::constants::*;
@@ -35,12 +37,11 @@ pub fn draw_boot_progress(progress: u32, total: u32) {
     let bar_x = 40;
     let bar_y = height - 32;
 
-    fill_rect(bar_x, bar_y, bar_w, 1, COLOR_GLASS_BORDER);
-    fill_rect(bar_x, bar_y + 7, bar_w, 1, COLOR_GLASS_BORDER);
+    fill_rect(bar_x, bar_y, bar_w, 8, COLOR_PROGRESS_BG);
 
     if total > 0 && progress > 0 {
         let fill = (bar_w * progress.min(total)) / total;
-        fill_rect(bar_x, bar_y + 1, fill, 6, COLOR_ACCENT);
+        fill_rect(bar_x, bar_y, fill, 8, COLOR_ACCENT);
     }
 }
 
@@ -50,6 +51,7 @@ pub fn show_handoff_message() {
         return;
     }
 
+    fill_rect(40, height - 60, 280, 24, COLOR_GLASS_BG);
     draw_string(48, height - 56, b"Transferring to kernel...", COLOR_SUCCESS);
 }
 
@@ -65,7 +67,7 @@ pub fn show_error_screen(error: &[u8]) {
     let panel_y = (height - panel_h) / 2;
 
     fill_rect(panel_x, panel_y, panel_w, panel_h, COLOR_ERROR_BG);
-    fill_rect(panel_x, panel_y, panel_w, 2, COLOR_ERROR);
+    fill_rect(panel_x, panel_y, panel_w, 4, COLOR_ERROR);
     draw_string(panel_x + 20, panel_y + 24, b"BOOT FAILED", COLOR_TEXT_WHITE);
     draw_string(panel_x + 20, panel_y + 50, error, COLOR_TEXT_WHITE);
 }
