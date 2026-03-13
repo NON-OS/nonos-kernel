@@ -17,8 +17,12 @@
 mod alloc;
 mod constants;
 mod dynamic;
+mod elf_validate;
 mod exec;
 mod load;
-mod validate;
+mod segment_check;
+mod types;
 
+pub use elf_validate::validate_elf;
 pub use load::load_kernel;
+pub use types::{ValidatedSegment, ValidationResult};
