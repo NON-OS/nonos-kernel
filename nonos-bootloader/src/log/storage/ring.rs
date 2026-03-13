@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use super::iter::LogRingIterator;
 use crate::log::types::{CompactLogEntry, LogEntry, LogLevel};
 
 /// Default ring buffer capacity (entries)
@@ -54,7 +55,6 @@ impl<const N: usize> LogRingBuffer<N> {
         if self.count < N {
             self.count += 1;
         } else {
-            // Overflow - oldest entry is lost
             self.tail = (self.tail + 1) % N;
             self.overflow_count += 1;
         }
@@ -123,7 +123,6 @@ impl<const N: usize> LogRingBuffer<N> {
         self.head = 0;
         self.tail = 0;
         self.count = 0;
-        // Note: we don't reset overflow_count to preserve history
     }
 
     /// Iterate over entries from oldest to newest
@@ -147,68 +146,5 @@ impl<const N: usize> Default for LogRingBuffer<N> {
     }
 }
 
-/// Iterator over ring buffer entries
-pub struct LogRingIterator<'a, const N: usize> {
-    buffer: &'a LogRingBuffer<N>,
-    current: usize,
-}
-
-impl<'a, const N: usize> Iterator for LogRingIterator<'a, N> {
-    type Item = &'a CompactLogEntry;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        if self.current >= self.buffer.count {
-            return None;
-        }
-        let entry = self.buffer.get(self.current);
-        self.current += 1;
-        entry
-    }
-
-    fn size_hint(&self) -> (usize, Option<usize>) {
-        let remaining = self.buffer.count - self.current;
-        (remaining, Some(remaining))
-    }
-}
-
-impl<'a, const N: usize> ExactSizeIterator for LogRingIterator<'a, N> {}
-
 #[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_ring_buffer_push() {
-        let mut buf: LogRingBuffer<4> = LogRingBuffer::new();
-        assert!(buf.is_empty());
-
-        buf.push_message(1, LogLevel::Info, 0, "test1");
-        assert_eq!(buf.len(), 1);
-
-        buf.push_message(2, LogLevel::Info, 0, "test2");
-        buf.push_message(3, LogLevel::Info, 0, "test3");
-        buf.push_message(4, LogLevel::Info, 0, "test4");
-        assert!(buf.is_full());
-        assert_eq!(buf.overflow_count(), 0);
-
-        // Push one more - should overflow
-        buf.push_message(5, LogLevel::Info, 0, "test5");
-        assert_eq!(buf.len(), 4);
-        assert_eq!(buf.overflow_count(), 1);
-
-        // First entry should now be test2
-        let first = buf.get(0).unwrap();
-        assert_eq!(first.tick, 2);
-    }
-
-    #[test]
-    fn test_ring_buffer_iter() {
-        let mut buf: LogRingBuffer<4> = LogRingBuffer::new();
-        buf.push_message(1, LogLevel::Info, 0, "a");
-        buf.push_message(2, LogLevel::Warn, 0, "b");
-        buf.push_message(3, LogLevel::Error, 0, "c");
-
-        let ticks: Vec<u64> = buf.iter().map(|e| e.tick).collect();
-        assert_eq!(ticks, vec![1, 2, 3]);
-    }
-}
+mod tests;
