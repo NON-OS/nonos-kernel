@@ -16,6 +16,7 @@
 
 mod format;
 mod utf16;
+mod utf16_helpers;
 
 pub use format::{
     format_boot_progress, format_fail, format_hash_short, format_hex_bytes, format_log_message,
