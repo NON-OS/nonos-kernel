@@ -25,62 +25,10 @@
 
 use spin::Mutex;
 
+pub use super::types::{AuditEntry, AuditEvent, AUDIT_MSG_LEN};
+
 const DS_AUDIT: &str = "NONOS:AUDIT:LOG:v1";
 const MAX_AUDIT_ENTRIES: usize = 64;
-const AUDIT_MSG_LEN: usize = 48;
-
-#[derive(Clone, Copy, PartialEq, Eq)]
-#[repr(u8)]
-pub enum AuditEvent {
-    BootStart = 0x01,
-    UefiInit = 0x02,
-    SecureBootCheck = 0x03,
-    TpmInit = 0x04,
-    EntropyCollect = 0x05,
-    KeysLoaded = 0x06,
-    KernelLoaded = 0x07,
-    HashComputed = 0x08,
-    SignatureVerified = 0x09,
-    SignatureFailed = 0x0A,
-    ZkProofVerified = 0x0B,
-    ZkProofFailed = 0x0C,
-    PolicyEnforced = 0x0D,
-    PolicyViolation = 0x0E,
-    ExitBootServices = 0x0F,
-    KernelHandoff = 0x10,
-    SecurityAlert = 0xFF,
-}
-
-#[derive(Clone, Copy)]
-pub struct AuditEntry {
-    pub event: AuditEvent,
-    pub timestamp: u64,
-    pub message: [u8; AUDIT_MSG_LEN],
-    pub msg_len: usize,
-    pub chain_hash: [u8; 32],
-}
-
-impl AuditEntry {
-    const fn empty() -> Self {
-        Self {
-            event: AuditEvent::BootStart,
-            timestamp: 0,
-            message: [0u8; AUDIT_MSG_LEN],
-            msg_len: 0,
-            chain_hash: [0u8; 32],
-        }
-    }
-
-    fn to_bytes(&self) -> [u8; 64] {
-        let mut buf = [0u8; 64];
-        buf[0] = self.event as u8;
-        buf[1..9].copy_from_slice(&self.timestamp.to_le_bytes());
-        buf[9] = self.msg_len as u8;
-        let copy_len = self.msg_len.min(AUDIT_MSG_LEN).min(54);
-        buf[10..10 + copy_len].copy_from_slice(&self.message[..copy_len]);
-        buf
-    }
-}
 
 pub struct AuditLog {
     entries: [AuditEntry; MAX_AUDIT_ENTRIES],
