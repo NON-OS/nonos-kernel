@@ -14,11 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub const MAX_LOG_LINES: usize = 18;
-pub const LOG_LINE_LEN: usize = 48;
-pub const LOG_X: u32 = 50;
-pub const LOG_Y_START: u32 = 290;
-pub const LINE_HEIGHT: u32 = 18;
+pub const MAX_LOG_LINES: usize = 30;
+pub const LOG_LINE_LEN: usize = 58;
+pub const LOG_X: u32 = 12;
+pub const LOG_Y_START: u32 = 218;
+pub const LINE_HEIGHT: u32 = 13;
 
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub enum LogLevel {
