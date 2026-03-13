@@ -16,6 +16,7 @@
 
 mod display;
 mod theme;
+mod widgets;
 
 pub use display::Ui;
 
