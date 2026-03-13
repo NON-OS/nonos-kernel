@@ -14,24 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-#![no_std]
+#[derive(Debug, Clone, Default)]
+pub struct NetworkBootContext {
+    pub pxe_available: bool,
+    pub http_client_available: bool,
+    pub tftp_available: bool,
+}
 
-extern crate alloc;
-
-// Core boot modules
-pub mod boot;
-pub mod config;
-pub mod crypto;
-pub mod display;
-pub mod entropy;
-pub mod firmware;
-pub mod handoff;
-pub mod hardware;
-pub mod kernel_verify;
-pub mod loader;
-pub mod log;
-pub mod network;
-pub mod safety;
-pub mod security;
-pub mod verify;
-pub mod zk;
+impl NetworkBootContext {
+    pub fn new() -> Self {
+        Self::default()
+    }
+}

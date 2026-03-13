@@ -33,7 +33,7 @@ use crate::log::logger::{log_error, log_info, log_warn};
 
 use super::alloc::record_alloc;
 use super::constants::{MAX_ALLOCS, PAGE_SIZE};
-use super::validate::ValidationResult;
+use super::types::ValidationResult;
 
 pub fn load_dyn_kernel(
     bs: &uefi::table::boot::BootServices,
