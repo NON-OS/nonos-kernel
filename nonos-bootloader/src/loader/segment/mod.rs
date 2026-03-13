@@ -14,10 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod segment;
+mod bounds;
+mod load;
+mod types;
 
-pub use segment::{
-    calculate_memory_bounds, check_segment_overlaps, count_wx_violations, load_all_segments,
-    load_segment, total_file_size, total_memory_size, validate_segment_addresses, SegmentLoadInfo,
-    SegmentPermissions,
+pub use bounds::{
+    calculate_memory_bounds, check_segment_overlaps, count_wx_violations, total_file_size,
+    total_memory_size, validate_segment_addresses,
 };
+pub use load::{load_all_segments, load_segment};
+pub use types::{SegmentLoadInfo, SegmentPermissions};
