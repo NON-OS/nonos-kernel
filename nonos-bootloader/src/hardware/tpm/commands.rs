@@ -16,7 +16,7 @@
 
 use super::constants::*;
 use super::state::TpmState;
-use super::types::{NvIndex, TpmError};
+use super::types::TpmError;
 
 impl TpmState {
     pub fn send_command(&self, cmd: &[u8]) -> Result<(), TpmError> {
@@ -56,84 +56,6 @@ impl TpmState {
         Ok(received)
     }
 
-    pub fn nv_read(&self, index: &NvIndex, buf: &mut [u8]) -> Result<usize, TpmError> {
-        if !self.initialized {
-            return Err(TpmError::NotPresent);
-        }
-
-        self.request_locality()?;
-
-        let mut cmd = [0u8; 22];
-        cmd[0..2].copy_from_slice(&0x8001u16.to_be_bytes());
-        cmd[2..6].copy_from_slice(&22u32.to_be_bytes());
-        cmd[6..10].copy_from_slice(&0x0000_014Eu32.to_be_bytes());
-        cmd[10..14].copy_from_slice(&index.raw().to_be_bytes());
-        cmd[14..18].copy_from_slice(&index.raw().to_be_bytes());
-        cmd[18..20].copy_from_slice(&(buf.len() as u16).to_be_bytes());
-        cmd[20..22].copy_from_slice(&0u16.to_be_bytes());
-
-        self.send_command(&cmd)?;
-
-        let mut response = [0u8; 256];
-        let len = self.receive_response(&mut response)?;
-
-        self.release_locality();
-
-        if len < 10 {
-            return Err(TpmError::InvalidResponse);
-        }
-
-        let rc = u32::from_be_bytes(response[6..10].try_into().unwrap());
-        if rc != 0 {
-            return Err(TpmError::CommandFailed(rc));
-        }
-
-        let data_len = u16::from_be_bytes(response[10..12].try_into().unwrap()) as usize;
-        if data_len > buf.len() || 12 + data_len > len {
-            return Err(TpmError::NvSizeMismatch);
-        }
-
-        buf[..data_len].copy_from_slice(&response[12..12 + data_len]);
-        Ok(data_len)
-    }
-
-    pub fn nv_write(&self, index: &NvIndex, data: &[u8]) -> Result<(), TpmError> {
-        if !self.initialized {
-            return Err(TpmError::NotPresent);
-        }
-
-        self.request_locality()?;
-
-        let cmd_len = 22 + data.len();
-        let mut cmd = [0u8; 256];
-        cmd[0..2].copy_from_slice(&0x8001u16.to_be_bytes());
-        cmd[2..6].copy_from_slice(&(cmd_len as u32).to_be_bytes());
-        cmd[6..10].copy_from_slice(&0x0000_0137u32.to_be_bytes());
-        cmd[10..14].copy_from_slice(&index.raw().to_be_bytes());
-        cmd[14..18].copy_from_slice(&index.raw().to_be_bytes());
-        cmd[18..20].copy_from_slice(&0u16.to_be_bytes());
-        cmd[20..22].copy_from_slice(&(data.len() as u16).to_be_bytes());
-        cmd[22..22 + data.len()].copy_from_slice(data);
-
-        self.send_command(&cmd[..cmd_len])?;
-
-        let mut response = [0u8; 32];
-        let len = self.receive_response(&mut response)?;
-
-        self.release_locality();
-
-        if len < 10 {
-            return Err(TpmError::InvalidResponse);
-        }
-
-        let rc = u32::from_be_bytes(response[6..10].try_into().unwrap());
-        if rc != 0 {
-            return Err(TpmError::CommandFailed(rc));
-        }
-
-        Ok(())
-    }
-
     pub fn pcr_extend(&self, pcr_index: u32, digest: &[u8; 32]) -> Result<(), TpmError> {
         if !self.initialized {
             return Err(TpmError::NotPresent);
@@ -161,7 +83,7 @@ impl TpmState {
             return Err(TpmError::InvalidResponse);
         }
 
-        let rc = u32::from_be_bytes(response[6..10].try_into().unwrap());
+        let rc = u32::from_be_bytes([response[6], response[7], response[8], response[9]]);
         if rc != 0 {
             return Err(TpmError::CommandFailed(rc));
         }
