@@ -14,8 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+pub use super::boot_method::PreferredBootMethod;
 pub use super::config::BootloaderConfig;
-pub use super::enums::{
-    FallbackBehavior, GraphicsMode, MemoryManagementMode, NetworkPolicy, PreferredBootMethod,
-    SecurityPolicy, VerificationLevel,
-};
+pub use super::fallback::FallbackBehavior;
+pub use super::graphics_mode::GraphicsMode;
+pub use super::memory_mode::MemoryManagementMode;
+pub use super::network_policy::NetworkPolicy;
+pub use super::security_policy::SecurityPolicy;
+pub use super::verification_level::VerificationLevel;
