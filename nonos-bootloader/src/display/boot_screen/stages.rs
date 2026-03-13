@@ -22,7 +22,7 @@
 
 use crate::display::constants::*;
 use crate::display::font::{draw_string, CHAR_HEIGHT};
-use crate::display::gop::{fill_rect, get_dimensions};
+use crate::display::gop::get_dimensions;
 use crate::display::ui::StageStatus;
 use core::sync::atomic::{AtomicU8, Ordering};
 
@@ -63,7 +63,6 @@ pub fn update_stage(stage: u8, status: StageStatus) {
         StageStatus::Failed => (b" X ", COLOR_ERROR),
     };
 
-    fill_rect(panel_x - 4, y - 2, 380, CHAR_HEIGHT + 4, COLOR_GLASS_BG);
     draw_string(panel_x, y, indicator, color);
     draw_string(panel_x + 24, y, label, color);
 }
