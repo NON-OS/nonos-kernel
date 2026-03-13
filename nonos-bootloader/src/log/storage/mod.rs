@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod boot_log;
+mod iter;
 mod ring;
 
 pub use boot_log::{
@@ -23,4 +24,5 @@ pub use boot_log::{
     has_critical_errors, has_errors, is_boot_log_enabled, store_boot_log, store_boot_message,
     warn_count, BootLogStats, BOOT_LOG_CAPACITY,
 };
-pub use ring::{LogRingBuffer, LogRingIterator, DEFAULT_RING_CAPACITY};
+pub use iter::LogRingIterator;
+pub use ring::{LogRingBuffer, DEFAULT_RING_CAPACITY};
