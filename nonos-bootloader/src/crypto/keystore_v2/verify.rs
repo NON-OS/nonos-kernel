@@ -24,7 +24,7 @@ extern crate alloc;
 use alloc::vec::Vec;
 use ed25519_dalek::{Signature, Verifier, VerifyingKey};
 
-use crate::crypto::keyring::KeyId;
+use crate::crypto::keys::KeyId;
 
 use super::store::KeystoreV2;
 use super::types::{KeyType, KeyValidationResult, MAX_TRUSTED_KEYS};
@@ -39,15 +39,17 @@ impl KeystoreV2 {
     ) -> Result<KeyId, KeyValidationResult> {
         let sig = Signature::from_bytes(signature);
 
-        for key in self.keys() {
-            let validation = key.is_valid_at(timestamp, self.minimum_version());
+        for i in 0..self.key_count {
+            let key = &self.keys[i];
+
+            let validation = key.is_valid_at(timestamp, self.minimum_version);
             if validation != KeyValidationResult::Valid {
                 continue;
             }
 
             if let Ok(vk) = VerifyingKey::from_bytes(&key.public_key) {
                 if vk.verify(data, &sig).is_ok() {
-                    if self.require_cosign() && key.key_type == KeyType::Secondary {
+                    if self.require_cosign && key.key_type == KeyType::Secondary {
                         return Err(KeyValidationResult::RequiresCoSignature);
                     }
                     return Ok(key.key_id);
@@ -79,7 +81,7 @@ impl KeystoreV2 {
                 None => continue,
             };
 
-            let validation = key.is_valid_at(timestamp, self.minimum_version());
+            let validation = key.is_valid_at(timestamp, self.minimum_version);
             if validation != KeyValidationResult::Valid {
                 continue;
             }
