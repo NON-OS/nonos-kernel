@@ -20,7 +20,7 @@ mod types;
 mod util;
 mod verify;
 
-pub use api::{get_build_timestamp, get_key_fingerprint, get_key_id, init_production_keystore, KEYSTORE_V2};
+pub use api::{init_production_keystore, KEYSTORE_V2};
 pub use store::KeystoreV2;
 pub use types::{KeyType, KeyValidationResult, TrustedKey, DS_KEY_ROTATION, MAX_TRUSTED_KEYS};
 pub use util::constant_time_eq;
