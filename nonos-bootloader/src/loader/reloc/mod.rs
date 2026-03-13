@@ -14,9 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod reloc;
+mod process;
+mod types;
 
-pub use reloc::{
-    dyn_tag, process_elf_relocations, process_relocations, reloc_type, Dyn64, Rela64,
-    RelocationContext,
-};
+pub use process::{process_elf_relocations, process_relocations};
+pub use types::{dyn_tag, reloc_type, Dyn64, Rela64, RelocationContext};
