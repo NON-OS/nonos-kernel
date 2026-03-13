@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+pub use super::rdrand::{rdrand64, rdseed64};
+
 #[inline(always)]
 pub fn rdtsc_serialized() -> u64 {
     #[cfg(target_arch = "x86_64")]
@@ -37,108 +39,6 @@ pub fn rdtsc_serialized() -> u64 {
     #[cfg(not(target_arch = "x86_64"))]
     {
         0
-    }
-}
-
-#[inline]
-fn has_rdseed() -> bool {
-    #[cfg(target_arch = "x86_64")]
-    unsafe {
-        let ebx: u32;
-        core::arch::asm!(
-            "push rbx",
-            "mov eax, 7",
-            "xor ecx, ecx",
-            "cpuid",
-            "mov {ebx:e}, ebx",
-            "pop rbx",
-            ebx = out(reg) ebx,
-            out("eax") _,
-            out("ecx") _,
-            out("edx") _,
-            options(nostack)
-        );
-        (ebx & (1 << 18)) != 0 // RDSEED bit
-    }
-    #[cfg(not(target_arch = "x86_64"))]
-    false
-}
-
-#[inline(always)]
-pub fn rdseed64() -> Option<u64> {
-    #[cfg(target_arch = "x86_64")]
-    {
-        if !has_rdseed() {
-            return None;
-        }
-        unsafe {
-            let mut x: u64 = 0;
-            let ok = core::arch::x86_64::_rdseed64_step(&mut x);
-            if ok == 1 {
-                Some(x)
-            } else {
-                None
-            }
-        }
-    }
-
-    #[cfg(not(target_arch = "x86_64"))]
-    {
-        None
-    }
-}
-
-#[inline]
-fn has_rdrand() -> bool {
-    #[cfg(target_arch = "x86_64")]
-    unsafe {
-        let ecx: u32;
-        core::arch::asm!(
-            "push rbx",
-            "mov eax, 1",
-            "cpuid",
-            "mov {ecx:e}, ecx",
-            "pop rbx",
-            ecx = out(reg) ecx,
-            out("eax") _,
-            out("ecx") _,
-            out("edx") _,
-            options(nostack)
-        );
-        (ecx & (1 << 30)) != 0 // RDRAND bit
-    }
-    #[cfg(not(target_arch = "x86_64"))]
-    false
-}
-
-#[inline(always)]
-pub fn rdrand64() -> Option<u64> {
-    #[cfg(target_arch = "x86_64")]
-    {
-        if !has_rdrand() {
-            return None;
-        }
-        unsafe {
-            let mut x: u64;
-            let ok: u8;
-            core::arch::asm!(
-                "rdrand {x}",
-                "setc {ok}",
-                x = out(reg) x,
-                ok = out(reg_byte) ok,
-                options(nostack, nomem)
-            );
-            if ok != 0 {
-                Some(x)
-            } else {
-                None
-            }
-        }
-    }
-
-    #[cfg(not(target_arch = "x86_64"))]
-    {
-        None
     }
 }
 
