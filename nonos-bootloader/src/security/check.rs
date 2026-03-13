@@ -137,34 +137,4 @@ pub fn check_measured_boot(system_table: &mut SystemTable<Boot>) -> bool {
 }
 
 #[cfg(target_arch = "x86_64")]
-fn cpu_rng_supported() -> bool {
-    unsafe {
-        let (_, _, ecx, _) = cpuid(1);
-        let rdrand = (ecx & (1 << 30)) != 0;
-        let (_, ebx, _, _) = cpuid(7);
-        let rdseed = (ebx & (1 << 18)) != 0;
-        rdrand || rdseed
-    }
-}
-
-#[cfg(target_arch = "x86_64")]
-unsafe fn cpuid(leaf: u32) -> (u32, u32, u32, u32) {
-    let eax: u32;
-    let ebx: u32;
-    let ecx: u32;
-    let edx: u32;
-
-    core::arch::asm!(
-        "push rbx",
-        "cpuid",
-        "mov {ebx_out:e}, ebx",
-        "pop rbx",
-        inout("eax") leaf => eax,
-        ebx_out = out(reg) ebx,
-        out("ecx") ecx,
-        out("edx") edx,
-        options(nostack, preserves_flags)
-    );
-
-    (eax, ebx, ecx, edx)
-}
+use super::cpuid::cpu_rng_supported;
