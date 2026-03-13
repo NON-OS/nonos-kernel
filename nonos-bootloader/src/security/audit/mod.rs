@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod log;
+mod types;
 
 pub use log::{
     audit, audit_alert, get_audit_hash, seal_audit_log, verify_audit_integrity,
