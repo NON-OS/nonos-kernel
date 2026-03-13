@@ -121,6 +121,5 @@ impl StageGuard {
 
 impl Drop for StageGuard {
     fn drop(&mut self) {
-        /* stage completed, log duration if needed */
     }
 }
