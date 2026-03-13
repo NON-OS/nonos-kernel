@@ -21,6 +21,7 @@
  */
 
 use super::api::log;
+use super::helpers::{copy_prefix, format_decimal};
 use super::types::LogLevel;
 
 const HEX: &[u8] = b"0123456789abcdef";
@@ -141,37 +142,3 @@ pub fn log_u32(prefix: &[u8], value: u32) {
     log(LogLevel::Info, &buf[..pos]);
 }
 
-fn copy_prefix(buf: &mut [u8], prefix: &[u8]) -> usize {
-    let len = prefix.len().min(buf.len());
-    buf[..len].copy_from_slice(&prefix[..len]);
-    len
-}
-
-fn format_decimal(buf: &mut [u8], value: usize) -> usize {
-    if value == 0 {
-        if !buf.is_empty() {
-            buf[0] = b'0';
-            return 1;
-        }
-        return 0;
-    }
-
-    let mut num_buf = [0u8; 12];
-    let mut num_pos = 0;
-    let mut n = value;
-
-    while n > 0 && num_pos < 12 {
-        num_buf[num_pos] = b'0' + (n % 10) as u8;
-        n /= 10;
-        num_pos += 1;
-    }
-
-    let mut written = 0;
-    for i in (0..num_pos).rev() {
-        if written < buf.len() {
-            buf[written] = num_buf[i];
-            written += 1;
-        }
-    }
-    written
-}
