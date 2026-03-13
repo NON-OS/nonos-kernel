@@ -23,18 +23,6 @@ pub static KEYSTORE_V2: Mutex<KeystoreV2> = Mutex::new(KeystoreV2::new());
 
 include!(concat!(env!("OUT_DIR"), "/keys_generated.rs"));
 
-pub fn get_key_fingerprint() -> &'static str {
-    KEY_FINGERPRINT
-}
-
-pub fn get_key_id() -> &'static [u8; 32] {
-    &NONOS_KEY_ID
-}
-
-pub fn get_build_timestamp() -> u64 {
-    BUILD_TIMESTAMP
-}
-
 pub fn init_production_keystore() -> Result<usize, &'static str> {
     let mut store = KEYSTORE_V2.lock();
 
@@ -42,5 +30,5 @@ pub fn init_production_keystore() -> Result<usize, &'static str> {
 
     store.add_key(primary_key)?;
 
-    Ok(store.key_count())
+    Ok(store.key_count)
 }
