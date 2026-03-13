@@ -14,18 +14,18 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::crypto::keyring::{KeyId, PK_LEN};
+use crate::crypto::keys::{KeyId, PK_LEN};
 
 use super::types::{KeyType, KeyValidationResult, TrustedKey, MAX_TRUSTED_KEYS};
 use super::util::constant_time_eq;
 
 pub struct KeystoreV2 {
-    keys: [TrustedKey; MAX_TRUSTED_KEYS],
-    key_count: usize,
-    minimum_version: u32,
-    revocations: [[u8; 32]; 16],
-    revocation_count: usize,
-    require_cosign: bool,
+    pub(super) keys: [TrustedKey; MAX_TRUSTED_KEYS],
+    pub(super) key_count: usize,
+    pub(super) minimum_version: u32,
+    pub(super) revocations: [[u8; 32]; 16],
+    pub(super) revocation_count: usize,
+    pub(super) require_cosign: bool,
 }
 
 impl KeystoreV2 {
@@ -115,21 +115,5 @@ impl KeystoreV2 {
     pub fn get_primary_key(&self, timestamp: u64) -> Option<&TrustedKey> {
         self.get_active_keys(timestamp)
             .find(|k| k.key_type == KeyType::Primary)
-    }
-
-    pub fn key_count(&self) -> usize {
-        self.key_count
-    }
-
-    pub fn keys(&self) -> &[TrustedKey] {
-        &self.keys[..self.key_count]
-    }
-
-    pub fn minimum_version(&self) -> u32 {
-        self.minimum_version
-    }
-
-    pub fn require_cosign(&self) -> bool {
-        self.require_cosign
     }
 }
