@@ -16,6 +16,7 @@
 
 mod audit;
 mod checks;
+mod hash;
 mod policy;
 pub mod security;
 
