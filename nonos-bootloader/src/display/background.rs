@@ -17,7 +17,9 @@
 /*
  * Background Image Renderer.
  *
- * Decodes RLE row-by-row for fast rendering without stack overflow.
+ * Decodes RLE-compressed background image generated at build time.
+ * Scales to screen resolution using nearest-neighbor for speed.
+ * The field-focus-8.png provides that calm nature aesthetic.
  */
 
 use super::gop::{get_dimensions, is_initialized, put_pixel};
@@ -38,96 +40,84 @@ pub fn render_background() {
 }
 
 fn render_scaled(screen_w: u32, screen_h: u32) {
+
+    /* Decode compressed data into temporary buffer */
+    let total_pixels = (BG_WIDTH * BG_HEIGHT) as usize;
+    let mut decoded: [u32; 640 * 360] = [0; 640 * 360];
+
+    let mut src_idx = 0;
+    let mut dst_idx = 0;
+
+    while src_idx + 4 < BG_COMPRESSED_LEN && dst_idx < total_pixels {
+        let run = BG_COMPRESSED[src_idx] as usize;
+        let b = BG_COMPRESSED[src_idx + 1] as u32;
+        let g = BG_COMPRESSED[src_idx + 2] as u32;
+        let r = BG_COMPRESSED[src_idx + 3] as u32;
+        let a = BG_COMPRESSED[src_idx + 4] as u32;
+
+        let color = (a << 24) | (r << 16) | (g << 8) | b;
+
+        for _ in 0..run {
+            if dst_idx < total_pixels {
+                decoded[dst_idx] = color;
+                dst_idx += 1;
+            }
+        }
+
+        src_idx += 5;
+    }
+
+    /* Scale to screen using nearest-neighbor */
     let scale_x = (BG_WIDTH << 16) / screen_w;
     let scale_y = (BG_HEIGHT << 16) / screen_h;
-
-    let mut decoder = RleDecoder::new();
-    let mut cached_src_y: u32 = 0xFFFFFFFF;
-    let mut row_buf: [u32; 640] = [0; 640];
 
     for screen_y in 0..screen_h {
         let src_y = ((screen_y * scale_y) >> 16).min(BG_HEIGHT - 1);
 
-        if src_y != cached_src_y {
-            decoder.decode_row(src_y, &mut row_buf);
-            cached_src_y = src_y;
-        }
-
         for screen_x in 0..screen_w {
             let src_x = ((screen_x * scale_x) >> 16).min(BG_WIDTH - 1);
-            put_pixel(screen_x, screen_y, row_buf[src_x as usize]);
-        }
-    }
-}
+            let src_idx = (src_y * BG_WIDTH + src_x) as usize;
 
-struct RleDecoder {
-    src_idx: usize,
-    pixel_idx: usize,
-    current_run: u8,
-    run_remaining: u8,
-    current_color: u32,
-}
-
-impl RleDecoder {
-    const fn new() -> Self {
-        Self {
-            src_idx: 0,
-            pixel_idx: 0,
-            current_run: 0,
-            run_remaining: 0,
-            current_color: 0xFF000000,
-        }
-    }
-
-    fn decode_row(&mut self, row: u32, buf: &mut [u32; 640]) {
-        let row_start = (row * BG_WIDTH) as usize;
-        let row_end = row_start + BG_WIDTH as usize;
-
-        if row_start < self.pixel_idx {
-            self.reset();
-        }
-
-        while self.pixel_idx < row_start {
-            self.advance_pixel();
-        }
-
-        for i in 0..BG_WIDTH as usize {
-            if self.pixel_idx < row_end {
-                buf[i] = self.current_color;
-                self.advance_pixel();
-            } else {
-                buf[i] = 0xFF000000;
+            if src_idx < total_pixels {
+                put_pixel(screen_x, screen_y, decoded[src_idx]);
             }
         }
     }
+}
 
-    fn advance_pixel(&mut self) {
-        if self.run_remaining > 0 {
-            self.run_remaining -= 1;
-            self.pixel_idx += 1;
-            return;
-        }
-
-        if self.src_idx + 4 < BG_COMPRESSED_LEN {
-            let run = BG_COMPRESSED[self.src_idx];
-            let b = BG_COMPRESSED[self.src_idx + 1] as u32;
-            let g = BG_COMPRESSED[self.src_idx + 2] as u32;
-            let r = BG_COMPRESSED[self.src_idx + 3] as u32;
-            let a = BG_COMPRESSED[self.src_idx + 4] as u32;
-
-            self.current_color = (a << 24) | (r << 16) | (g << 8) | b;
-            self.current_run = run;
-            self.run_remaining = run.saturating_sub(1);
-            self.src_idx += 5;
-            self.pixel_idx += 1;
-        }
+pub fn render_background_with_overlay(overlay_alpha: u8) {
+    if !is_initialized() {
+        return;
     }
 
-    fn reset(&mut self) {
-        self.src_idx = 0;
-        self.pixel_idx = 0;
-        self.current_run = 0;
-        self.run_remaining = 0;
-        self.current_color = 0xFF000000;
+    let (screen_w, screen_h) = get_dimensions();
+    if screen_w == 0 || screen_h == 0 {
+        return;
     }
+
+    render_background();
+
+    /* Apply dark overlay for text readability */
+    if overlay_alpha > 0 {
+        apply_dark_overlay(screen_w, screen_h, overlay_alpha);
+    }
+}
+
+fn apply_dark_overlay(screen_w: u32, screen_h: u32, alpha: u8) {
+    let overlay_color = blend_color(0xFF000000, alpha);
+
+    for y in 0..screen_h {
+        for x in 0..screen_w {
+            put_pixel(x, y, overlay_color);
+        }
+    }
+}
+
+fn blend_color(color: u32, alpha: u8) -> u32 {
+    let a = alpha as u32;
+    let r = ((color >> 16) & 0xFF) * a / 255;
+    let g = ((color >> 8) & 0xFF) * a / 255;
+    let b = (color & 0xFF) * a / 255;
+
+    (a << 24) | (r << 16) | (g << 8) | b
 }
