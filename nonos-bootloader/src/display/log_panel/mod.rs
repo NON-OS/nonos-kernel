@@ -17,6 +17,7 @@
 mod api;
 mod buffer;
 mod format;
+mod helpers;
 mod render;
 mod types;
 
