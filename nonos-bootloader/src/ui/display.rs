@@ -21,8 +21,8 @@ use uefi::CStr16;
 use super::theme::Theme;
 
 pub struct Ui<'a> {
-    system_table: &'a mut SystemTable<uefi::table::Boot>,
-    theme: Theme,
+    pub(super) system_table: &'a mut SystemTable<uefi::table::Boot>,
+    pub(super) theme: Theme,
 }
 
 impl<'a> Ui<'a> {
@@ -41,97 +41,8 @@ impl<'a> Ui<'a> {
         &self.theme
     }
 
-    pub fn banner(&mut self) -> Result<(), Status> {
-        self.color(self.theme.title, self.theme.bg)?;
-        match self.system_table.stdout().clear() {
-            Ok(()) => {}
-            Err(_) => return Err(Status::DEVICE_ERROR),
-        }
-        self.line("")?;
-        self.raw("              ╔═════════════════════════════════════════════════════════════╗")?;
-        self.raw("              ║                 NØNOS :: ZERO-STATE LAUNCHPAD               ║")?;
-        self.raw("              ║         Privacy-Native / Identity-Free / Capsule-First      ║")?;
-        self.raw("              ║        UEFI Boot  →  Verified Capsule  →  Kernel Jump       ║")?;
-        self.raw("              ╚═════════════════════════════════════════════════════════════╝")?;
-        self.line("")?;
-        self.color(self.theme.text, self.theme.bg)
-    }
-
-    pub fn section(&mut self, title: &str) -> Result<(), Status> {
-        self.color(self.theme.title, self.theme.bg)?;
-        self.raw("── ")?;
-        self.raw(title)?;
-        self.raw(" ")?;
-        self.rule(60)?;
-        self.color(self.theme.text, self.theme.bg)
-    }
-
-    pub fn kv(&mut self, key: &str, val: &str) -> Result<(), Status> {
-        self.color(self.theme.info, self.theme.bg)?;
-        self.raw("• ")?;
-        self.raw(key)?;
-        self.raw(": ")?;
-        self.color(self.theme.text, self.theme.bg)?;
-        self.line(val)
-    }
-
-    pub fn info(&mut self, msg: &str) -> Result<(), Status> {
-        self.level(self.theme.info, "[info] ", msg)
-    }
-
-    pub fn ok(&mut self, msg: &str) -> Result<(), Status> {
-        self.level(self.theme.ok, "[ ok ] ", msg)
-    }
-
-    pub fn warn(&mut self, msg: &str) -> Result<(), Status> {
-        self.level(self.theme.warn, "[warn] ", msg)
-    }
-
-    pub fn fail(&mut self, msg: &str) -> Result<(), Status> {
-        self.level(self.theme.err, "[FAIL] ", msg)
-    }
-
-    pub fn panic_block(&mut self, msg: &str) -> Result<(), Status> {
-        self.color(self.theme.err, self.theme.bg)?;
-        self.line("")?;
-        self.raw("──────────────────── SYSTEM FAULT DETECTED ────────────────────")?;
-        self.line("")?;
-        self.raw("[!] ")?;
-        self.line(msg)?;
-        self.raw("───────────────────────────────────────────────────────────────")?;
-        self.line("")?;
-        self.color(self.theme.text, self.theme.bg)
-    }
-
-    pub fn progress(&mut self, current: usize, total: usize, label: &str) -> Result<(), Status> {
-        let total = total.max(1);
-        let width = 32usize;
-        let filled = ((current.min(total) * width) / total).min(width);
-        let mut bar = [b' '; 32];
-        for item in bar.iter_mut().take(filled) {
-            *item = b'=';
-        }
-        self.color(self.theme.info, self.theme.bg)?;
-        self.raw("[")?;
-        self.raw(core::str::from_utf8(&bar).unwrap_or("                                "))?;
-        self.raw("] ")?;
-        self.color(self.theme.text, self.theme.bg)?;
-        self.line(label)
-    }
-
-    pub fn spinner(&mut self, i: usize, label: &str) -> Result<(), Status> {
-        const FR: &[u8] = b"|/-\\";
-        let ch = FR[i % FR.len()];
-        self.color(self.theme.info, self.theme.bg)?;
-        self.raw("[")?;
-        self.raw_char(ch as char)?;
-        self.raw("] ")?;
-        self.color(self.theme.text, self.theme.bg)?;
-        self.line(label)
-    }
-
     #[inline]
-    fn color(&mut self, fg: Color, bg: Color) -> Result<(), Status> {
+    pub(super) fn color_internal(&mut self, fg: Color, bg: Color) -> Result<(), Status> {
         match self.system_table.stdout().set_color(fg, bg) {
             Ok(()) => Ok(()),
             Err(_) => Err(Status::DEVICE_ERROR),
@@ -139,7 +50,7 @@ impl<'a> Ui<'a> {
     }
 
     #[inline]
-    fn raw(&mut self, s: &str) -> Result<(), Status> {
+    pub(super) fn raw(&mut self, s: &str) -> Result<(), Status> {
         let mut buffer = [0u16; 256];
         match CStr16::from_str_with_buf(s, &mut buffer) {
             Ok(uefi_str) => match self.system_table.stdout().output_string(uefi_str) {
@@ -151,26 +62,26 @@ impl<'a> Ui<'a> {
     }
 
     #[inline]
-    fn raw_char(&mut self, c: char) -> Result<(), Status> {
+    pub(super) fn raw_char(&mut self, c: char) -> Result<(), Status> {
         let mut buf = [0u8; 4];
         let s = c.encode_utf8(&mut buf);
         self.raw(s)
     }
 
     #[inline]
-    fn line(&mut self, s: &str) -> Result<(), Status> {
+    pub(super) fn line(&mut self, s: &str) -> Result<(), Status> {
         self.raw(s)?;
         self.raw("\r\n")
     }
 
-    fn level(&mut self, fg: Color, tag: &str, msg: &str) -> Result<(), Status> {
-        self.color(fg, self.theme.bg)?;
+    pub(super) fn level(&mut self, fg: Color, tag: &str, msg: &str) -> Result<(), Status> {
+        self.color_internal(fg, self.theme.bg)?;
         self.raw(tag)?;
-        self.color(self.theme.text, self.theme.bg)?;
+        self.color_internal(self.theme.text, self.theme.bg)?;
         self.line(msg)
     }
 
-    fn rule(&mut self, n: usize) -> Result<(), Status> {
+    pub(super) fn rule(&mut self, n: usize) -> Result<(), Status> {
         const DASH: &str = "─";
         for _ in 0..n {
             self.raw(DASH)?;
