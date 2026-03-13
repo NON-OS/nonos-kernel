@@ -14,28 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-extern crate alloc;
-
-use alloc::format;
-use core::sync::atomic::{AtomicPtr, Ordering};
 use uefi::prelude::*;
-use uefi::table::boot::BootServices;
-use uefi::Identify;
 
-/// Global pointer to UEFI Boot Services for logging.
-/// This is set once during initialization and remains valid until ExitBootServices.
-static BOOT_SERVICES: AtomicPtr<BootServices> = AtomicPtr::new(core::ptr::null_mut());
+use super::output::{write_log, write_log_global};
 
-/// Initialize the global logger with a reference to Boot Services.
-/// Must be called early in boot before any logging functions are used.
-///
-/// # Safety
-/// The SystemTable must remain valid for the lifetime of logging operations
-/// (until ExitBootServices is called).
-pub fn init_logger(st: &mut SystemTable<Boot>) {
-    let bs_ptr = st.boot_services() as *const BootServices as *mut BootServices;
-    BOOT_SERVICES.store(bs_ptr, Ordering::Release);
-}
+pub use super::output::init_logger;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 pub enum LogLevel {
@@ -44,86 +27,6 @@ pub enum LogLevel {
     Warn,
     Error,
     Critical,
-}
-
-/// Internal logging implementation using global Boot Services.
-fn write_log_global(level: LogLevel, category: &str, message: &str) {
-    let bs_ptr = BOOT_SERVICES.load(Ordering::Acquire);
-    if bs_ptr.is_null() {
-        return; // Logger not initialized yet
-    }
-
-    let level_str = match level {
-        LogLevel::Debug => "DEBUG",
-        LogLevel::Info => "INFO",
-        LogLevel::Warn => "WARN",
-        LogLevel::Error => "ERROR",
-        LogLevel::Critical => "CRIT",
-    };
-
-    let log_line = format!("[{}] {}: {}\r\n", level_str, category, message);
-
-    // SAFETY: We need to output to console. Boot Services provides ConOut.
-    // This is safe because:
-    // 1. BOOT_SERVICES is set during init and cleared before ExitBootServices
-    // 2. All logging happens while Boot Services is valid
-    // 3. We're using the UEFI Simple Text Output Protocol
-    unsafe {
-        let bs = &*bs_ptr;
-        // Get ConOut from system table - we stored BootServices but need SystemTable for stdout
-        // Use BootServices to locate the Simple Text Output Protocol
-        if let Ok(handles) = bs.locate_handle_buffer(
-            uefi::table::boot::SearchType::ByProtocol(
-                &uefi::proto::console::text::Output::GUID
-            )
-        ) {
-            if let Some(&handle) = handles.first() {
-                if let Ok(mut output) = bs.open_protocol_exclusive::<uefi::proto::console::text::Output>(handle) {
-                    let mut buf = [0u16; 512];
-                    let mut idx = 0;
-                    for c in log_line.chars() {
-                        if idx >= buf.len() - 1 {
-                            break;
-                        }
-                        buf[idx] = c as u16;
-                        idx += 1;
-                    }
-                    buf[idx] = 0;
-
-                    if let Ok(s) = uefi::CStr16::from_u16_with_nul(&buf[..=idx]) {
-                        let _ = output.output_string(s);
-                    }
-                }
-            }
-        }
-    }
-}
-
-fn write_log(st: &mut SystemTable<Boot>, level: LogLevel, category: &str, message: &str) {
-    let level_str = match level {
-        LogLevel::Debug => "DEBUG",
-        LogLevel::Info => "INFO",
-        LogLevel::Warn => "WARN",
-        LogLevel::Error => "ERROR",
-        LogLevel::Critical => "CRIT",
-    };
-
-    let log_line = format!("[{}] {}: {}\r\n", level_str, category, message);
-
-    let mut buf = [0u16; 512];
-    let mut idx = 0;
-    for c in log_line.chars() {
-        if idx >= buf.len() - 1 {
-            break;
-        }
-        buf[idx] = c as u16;
-        idx += 1;
-    }
-    buf[idx] = 0; // null terminate
-
-    if let Ok(s) = uefi::CStr16::from_u16_with_nul(&buf[..=idx]) {
-        let _ = st.stdout().output_string(s);
-    }
 }
 
 #[inline]
