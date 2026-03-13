@@ -17,6 +17,7 @@
 mod api;
 mod commands;
 mod constants;
+mod nv;
 mod state;
 mod types;
 
