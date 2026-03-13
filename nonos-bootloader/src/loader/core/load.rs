@@ -28,7 +28,7 @@ use uefi::prelude::*;
 
 use super::dynamic::load_dyn_kernel;
 use super::exec::load_exec_kernel;
-use super::validate::validate_elf;
+use super::elf_validate::validate_elf;
 
 pub fn load_kernel(
     system_table: &mut SystemTable<Boot>,

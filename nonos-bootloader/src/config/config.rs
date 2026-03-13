@@ -18,7 +18,7 @@ extern crate alloc;
 
 use alloc::string::String;
 
-use super::enums::{
+use super::types::{
     FallbackBehavior, GraphicsMode, MemoryManagementMode, NetworkPolicy, PreferredBootMethod,
     SecurityPolicy, VerificationLevel,
 };

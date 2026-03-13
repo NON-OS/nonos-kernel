@@ -27,7 +27,7 @@ use uefi::cstr16;
 use uefi::prelude::*;
 
 use crate::log::logger::{log_error, log_info, log_warn};
-use crate::security::tpm::{extend_pcr_measurement, pcr};
+use crate::security::{extend_pcr_measurement, pcr};
 use crate::security::types::SecurityContext;
 
 pub fn extend_boot_measurements(

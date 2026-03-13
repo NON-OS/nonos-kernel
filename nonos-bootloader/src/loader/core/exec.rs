@@ -32,7 +32,7 @@ use crate::log::logger::{log_error, log_info, log_warn};
 
 use super::alloc::{free_all, record_alloc};
 use super::constants::{elf_flags, MAX_ALLOCS, PAGE_SIZE};
-use super::validate::ValidationResult;
+use super::types::ValidationResult;
 
 pub fn load_exec_kernel(
     bs: &uefi::table::boot::BootServices,

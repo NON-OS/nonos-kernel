@@ -123,7 +123,7 @@ pub fn check_hardware_rng(system_table: &mut SystemTable<Boot>) -> bool {
 }
 
 pub fn check_measured_boot(system_table: &mut SystemTable<Boot>) -> bool {
-    use super::tpm::{extend_pcr_measurement, pcr};
+    use super::{extend_pcr_measurement, pcr};
 
     let test_data = b"NONOS:TPM:PROBE:v1";
 
