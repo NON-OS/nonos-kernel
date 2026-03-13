@@ -18,19 +18,23 @@ pub mod anti_rollback;
 pub mod attestation;
 pub mod audit;
 mod check;
+#[cfg(target_arch = "x86_64")]
+mod cpuid;
 mod crypto;
 mod enforce;
 mod init;
 pub mod integrity;
 pub mod memory;
 pub mod timing;
-mod tpm;
+mod tpm_extend;
+mod tpm_types;
 mod types;
 mod verify;
 
 pub use crypto::{blake3_selftest, ed25519_selftest, run_all_selftests};
 pub use init::{assess_security_posture, initialize_security_subsystem};
-pub use tpm::{extend_pcr_measurement, measure_boot_components, pcr};
+pub use tpm_extend::{extend_pcr_measurement, measure_boot_components};
+pub use tpm_types::pcr;
 pub use types::SecurityContext;
 pub use verify::{verify_kernel_signature_advanced, verify_signature};
 
