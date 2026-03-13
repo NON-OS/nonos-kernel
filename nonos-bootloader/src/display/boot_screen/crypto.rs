@@ -60,7 +60,6 @@ pub fn show_crypto_verification(crypto: &BootCryptoState) {
     let panel_x = 40u32;
     let crypto_y = height - 140;
 
-    fill_rect(panel_x - 16, crypto_y - 16, 500, 120, COLOR_GLASS_BG);
     fill_rect(panel_x - 16, crypto_y - 16, 500, 2, COLOR_GLASS_BORDER);
 
     draw_string(panel_x, crypto_y, b"Cryptographic Verification", COLOR_ACCENT);
