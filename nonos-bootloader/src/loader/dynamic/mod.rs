@@ -14,9 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod dynamic;
+mod parse;
+mod util;
 
-pub use dynamic::{
-    estimate_symbol_count, needs_relocations, parse_dynamic_at_address, parse_dynamic_section,
-    relocation_count,
-};
+pub use parse::{parse_dynamic_at_address, parse_dynamic_section};
+pub use util::{estimate_symbol_count, needs_relocations, relocation_count};
