@@ -30,43 +30,10 @@
 
 use spin::Mutex;
 
+pub use super::types::{BootStage, ChainLink};
+
 const DS_CHAIN: &str = "NONOS:INTEGRITY:CHAIN:v1";
 const MAX_CHAIN_LINKS: usize = 16;
-
-#[derive(Clone, Copy)]
-pub struct ChainLink {
-    pub stage: BootStage,
-    pub measurement: [u8; 32],
-    pub cumulative: [u8; 32],
-    pub timestamp: u64,
-}
-
-#[derive(Clone, Copy, PartialEq, Eq)]
-#[repr(u8)]
-pub enum BootStage {
-    Init = 0,
-    UefiServices = 1,
-    SecurityPolicy = 2,
-    HardwareDiscovery = 3,
-    KernelLoad = 4,
-    CryptoVerify = 5,
-    ZkAttestation = 6,
-    ElfParse = 7,
-    HandoffPrepare = 8,
-    ExitBootServices = 9,
-    KernelEntry = 10,
-}
-
-impl ChainLink {
-    const fn empty() -> Self {
-        Self {
-            stage: BootStage::Init,
-            measurement: [0u8; 32],
-            cumulative: [0u8; 32],
-            timestamp: 0,
-        }
-    }
-}
 
 pub struct IntegrityChain {
     links: [ChainLink; MAX_CHAIN_LINKS],
