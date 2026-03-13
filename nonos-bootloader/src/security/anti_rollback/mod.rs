@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod api;
+mod nvram;
 mod state;
 mod types;
 mod util;
