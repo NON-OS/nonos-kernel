@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod chain;
+mod types;
 
 pub use chain::{
     get_boot_integrity_hash, record_stage, seal_chain, verify_integrity,
