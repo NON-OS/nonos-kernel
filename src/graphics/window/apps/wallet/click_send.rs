@@ -203,7 +203,7 @@ pub(super) fn handle_settings_click(x: u32, y: u32, w: u32, h: u32) -> bool {
         return true;
     }
 
-    if y >= h - 130 && y <= h - 90 && x >= 20 && x <= w - 20 {
+    if y >= h - 80 && y <= h - 40 && x >= 20 && x <= w - 20 {
         SHOW_PRIVATE_KEY.store(false, Ordering::Relaxed);
         lock_wallet();
         set_view(WalletView::Overview);
