@@ -16,6 +16,7 @@
 
 use crate::syscall::SyscallResult;
 use crate::syscall::extended::errno;
+use crate::usercopy::{copy_to_user, write_user_value};
 
 pub fn handle_prctl(option: i32, arg2: u64, arg3: u64, arg4: u64, arg5: u64) -> SyscallResult {
     const PR_SET_NAME: i32 = 15;
@@ -45,9 +46,10 @@ pub fn handle_prctl(option: i32, arg2: u64, arg3: u64, arg4: u64, arg5: u64) -> 
                 let name = proc.name();
                 let bytes = name.as_bytes();
                 let copy_len = bytes.len().min(15);
-                unsafe {
-                    core::ptr::copy_nonoverlapping(bytes.as_ptr(), arg2 as *mut u8, copy_len);
-                    core::ptr::write((arg2 + copy_len as u64) as *mut u8, 0);
+                let mut buf = [0u8; 16];
+                buf[..copy_len].copy_from_slice(&bytes[..copy_len]);
+                if copy_to_user(arg2, &buf).is_err() {
+                    return errno(14);
                 }
             }
             SyscallResult { value: 0, capability_consumed: false, audit_required: false }
@@ -74,28 +76,24 @@ pub fn handle_arch_prctl(code: i32, addr: u64) -> SyscallResult {
 
     match code {
         ARCH_SET_FS => {
-            // SAFETY: Setting FS base for thread-local storage
             unsafe { crate::arch::x86_64::gdt::set_fs_base(addr); }
             SyscallResult { value: 0, capability_consumed: false, audit_required: false }
         }
         ARCH_GET_FS => {
-            // SAFETY: Reading FS base register
             let fs = unsafe { crate::arch::x86_64::gdt::get_fs_base() };
-            unsafe {
-                core::ptr::write(addr as *mut u64, fs);
+            if write_user_value(addr, &fs).is_err() {
+                return errno(14);
             }
             SyscallResult { value: 0, capability_consumed: false, audit_required: false }
         }
         ARCH_SET_GS => {
-            // SAFETY: Setting GS base for thread-local storage
             unsafe { crate::arch::x86_64::gdt::set_gs_base(addr); }
             SyscallResult { value: 0, capability_consumed: false, audit_required: false }
         }
         ARCH_GET_GS => {
-            // SAFETY: Reading GS base register
             let gs = unsafe { crate::arch::x86_64::gdt::get_gs_base() };
-            unsafe {
-                core::ptr::write(addr as *mut u64, gs);
+            if write_user_value(addr, &gs).is_err() {
+                return errno(14);
             }
             SyscallResult { value: 0, capability_consumed: false, audit_required: false }
         }
@@ -125,8 +123,12 @@ pub fn handle_getrandom(buf: u64, buflen: u64, flags: u32) -> SyscallResult {
     let _ = flags;
     let len = buflen.min(256) as usize;
 
-    let slice = unsafe { core::slice::from_raw_parts_mut(buf as *mut u8, len) };
-    crate::crypto::fill_random(slice);
+    let mut random_buf = [0u8; 256];
+    crate::crypto::fill_random(&mut random_buf[..len]);
+
+    if copy_to_user(buf, &random_buf[..len]).is_err() {
+        return errno(14);
+    }
 
     SyscallResult { value: len as i64, capability_consumed: false, audit_required: false }
 }
