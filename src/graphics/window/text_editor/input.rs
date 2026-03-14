@@ -115,6 +115,7 @@ pub(super) fn handle_special_key(key: SpecialKey) {
         SpecialKey::CtrlV => { buffer::paste(); }
         SpecialKey::CtrlZ => { buffer::undo(); }
         SpecialKey::CtrlY => { buffer::redo(); }
+        SpecialKey::Tab => {}
     }
 }
 
@@ -130,6 +131,7 @@ pub enum SpecialKey {
     PageDown,
     Delete,
     Escape,
+    Tab,
     CtrlA,
     CtrlS,
     CtrlN,
