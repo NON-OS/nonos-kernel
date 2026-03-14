@@ -60,11 +60,26 @@ pub(super) fn navigate_to_url() {
     }
 }
 
-pub(super) fn handle_link_click(line: usize, _x: u32) {
+pub(super) fn handle_link_click(line: usize, x: u32) {
+    let scroll = state::PAGE_SCROLL.load(Ordering::Relaxed);
+    let actual_line = scroll + line;
+
+    if let Some(url) = state::find_link_at(actual_line, x) {
+        let resolved = if url.starts_with("http://") || url.starts_with("https://") {
+            url
+        } else if let Some(base) = state::get_base_url() {
+            state::resolve_relative_url(&url, &base)
+        } else {
+            url
+        };
+
+        state::set_url(&resolved);
+        crate::apps::ecosystem::browser::navigate(&resolved);
+        return;
+    }
+
     let url_to_navigate: Option<String> = {
         let content = state::PAGE_CONTENT.lock();
-        let scroll = state::PAGE_SCROLL.load(Ordering::Relaxed);
-        let actual_line = scroll + line;
 
         if actual_line < content.len() {
             let line_text = &content[actual_line];
@@ -92,8 +107,16 @@ pub(super) fn handle_link_click(line: usize, _x: u32) {
     };
 
     if let Some(url) = url_to_navigate {
-        state::set_url(&url);
-        crate::apps::ecosystem::browser::navigate(&url);
+        let resolved = if url.starts_with("http://") || url.starts_with("https://") {
+            url
+        } else if let Some(base) = state::get_base_url() {
+            state::resolve_relative_url(&url, &base)
+        } else {
+            url
+        };
+
+        state::set_url(&resolved);
+        crate::apps::ecosystem::browser::navigate(&resolved);
     }
 }
 
@@ -176,4 +199,24 @@ pub(super) fn disconnect_node() {
 }
 
 pub(super) fn open_node_settings() {
+}
+
+pub(super) fn page_up() {
+    state::scroll_up(10);
+    state::mark_content_changed();
+}
+
+pub(super) fn page_down() {
+    state::scroll_down(10);
+    state::mark_content_changed();
+}
+
+pub(super) fn scroll_up_line() {
+    state::scroll_up(1);
+    state::mark_content_changed();
+}
+
+pub(super) fn scroll_down_line() {
+    state::scroll_down(1);
+    state::mark_content_changed();
 }
