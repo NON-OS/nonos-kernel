@@ -33,32 +33,35 @@ pub fn copy_selected() -> FmResult {
         return FmResult::NotFound;
     }
 
-    // SAFETY: bounds checked, single-threaded
     let entry = unsafe { &FILE_ENTRIES[selected as usize] };
     let name = unsafe { core::str::from_utf8_unchecked(&entry.name[..entry.name_len as usize]) };
 
     let path = get_path();
+    let path_bytes = path.as_bytes();
+    let name_bytes = name.as_bytes();
 
-    // SAFETY: Single-threaded access
-    let full_path_len = unsafe {
-        let path_bytes = path.as_bytes();
-        let path_len = path_bytes.len();
+    let path_len = path_bytes.len();
+    let needs_slash = !path.ends_with('/');
+    let separator_len = if needs_slash { 1 } else { 0 };
+
+    let total_len = match path_len.checked_add(separator_len).and_then(|v| v.checked_add(name_bytes.len())) {
+        Some(len) if len <= MAX_PATH_LEN => len,
+        _ => return FmResult::InvalidName,
+    };
+
+    unsafe {
         CLIPBOARD_PATH[..path_len].copy_from_slice(path_bytes);
         let mut len = path_len;
 
-        if !path.ends_with('/') {
+        if needs_slash {
             CLIPBOARD_PATH[len] = b'/';
             len += 1;
         }
 
-        let name_bytes = name.as_bytes();
-        let name_len = name_bytes.len().min(MAX_PATH_LEN - len - 1);
-        CLIPBOARD_PATH[len..len + name_len].copy_from_slice(&name_bytes[..name_len]);
-        len += name_len;
-        len
-    };
+        CLIPBOARD_PATH[len..len + name_bytes.len()].copy_from_slice(name_bytes);
+    }
 
-    CLIPBOARD_LEN.store(full_path_len as u8, Ordering::Relaxed);
+    CLIPBOARD_LEN.store(total_len as u8, Ordering::Relaxed);
     CLIPBOARD_IS_CUT.store(false, Ordering::Relaxed);
     CLIPBOARD_IS_DIR.store(entry.is_dir, Ordering::Relaxed);
 
@@ -79,7 +82,6 @@ pub fn paste() -> FmResult {
         return FmResult::NotFound;
     }
 
-    // SAFETY: Single-threaded access
     let source_path = unsafe {
         core::str::from_utf8_unchecked(&CLIPBOARD_PATH[..clip_len])
     };
@@ -139,7 +141,7 @@ fn paste_ramfs(source: &str, dest: &str, is_dir: bool, is_cut: bool) -> FmResult
         } else {
             match ramfs::read_file(source) {
                 Ok(data) => {
-                    match ramfs::write_file(dest, &data) {
+                    match ramfs::write_or_create(dest, &data) {
                         Ok(_) => {
                             refresh_listing();
                             FmResult::Ok
