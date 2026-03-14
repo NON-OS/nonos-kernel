@@ -26,13 +26,20 @@ use super::listing::{refresh_listing, get_fat32_dir_cluster};
 use super::block_io::{block_read, block_write};
 
 pub fn create_folder(name: &str) -> FmResult {
-    if name.is_empty() || name.len() > 11 {
+    if name.is_empty() {
+        return FmResult::InvalidName;
+    }
+
+    let source = get_current_source();
+    let max_len = match source {
+        FileSource::Ramfs => 63,
+        FileSource::Fat32(_) => 11,
+    };
+    if name.len() > max_len {
         return FmResult::InvalidName;
     }
 
     FM_CREATING_FOLDER.store(true, Ordering::Relaxed);
-    let source = get_current_source();
-
     let result = match source {
         FileSource::Ramfs => create_folder_ramfs(name),
         FileSource::Fat32(fs_id) => create_folder_fat32(fs_id, name),
@@ -60,13 +67,20 @@ fn create_folder_ramfs(name: &str) -> FmResult {
 }
 
 pub fn create_file(name: &str) -> FmResult {
-    if name.is_empty() || name.len() > 11 {
+    if name.is_empty() {
+        return FmResult::InvalidName;
+    }
+
+    let source = get_current_source();
+    let max_len = match source {
+        FileSource::Ramfs => 63,
+        FileSource::Fat32(_) => 11,
+    };
+    if name.len() > max_len {
         return FmResult::InvalidName;
     }
 
     FM_CREATING_FILE.store(true, Ordering::Relaxed);
-    let source = get_current_source();
-
     let result = match source {
         FileSource::Ramfs => create_file_ramfs(name),
         FileSource::Fat32(fs_id) => create_file_fat32(fs_id, name),
@@ -252,7 +266,16 @@ fn delete_fat32(fs_id: u8, name: &str) -> FmResult {
 }
 
 pub fn rename_selected(new_name: &str) -> FmResult {
-    if new_name.is_empty() || new_name.len() > 11 {
+    if new_name.is_empty() {
+        return FmResult::InvalidName;
+    }
+
+    let source = get_current_source();
+    let max_len = match source {
+        FileSource::Ramfs => 63,
+        FileSource::Fat32(_) => 11,
+    };
+    if new_name.len() > max_len {
         return FmResult::InvalidName;
     }
 
