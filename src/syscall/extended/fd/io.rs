@@ -20,6 +20,7 @@ use alloc::vec::Vec;
 
 use crate::syscall::SyscallResult;
 use crate::syscall::extended::errno;
+use crate::usercopy::{read_user_value, write_user_value};
 
 pub fn handle_sendfile(out_fd: i32, in_fd: i32, offset: u64, count: u64) -> SyscallResult {
     if !crate::fs::fd::fd_is_valid(in_fd) || !crate::fs::fd::fd_is_valid(out_fd) {
@@ -33,7 +34,10 @@ pub fn handle_sendfile(out_fd: i32, in_fd: i32, offset: u64, count: u64) -> Sysc
     let transfer_size = count.min(64 * 1024) as usize;
 
     let read_offset = if offset != 0 {
-        let off = unsafe { core::ptr::read(offset as *const i64) };
+        let off: i64 = match read_user_value(offset) {
+            Ok(v) => v,
+            Err(_) => return errno(14),
+        };
         Some(off as u64)
     } else {
         None
@@ -64,7 +68,7 @@ pub fn handle_sendfile(out_fd: i32, in_fd: i32, offset: u64, count: u64) -> Sysc
 
     if offset != 0 {
         let new_offset = (read_offset.unwrap_or(0) + bytes_written as u64) as i64;
-        unsafe { core::ptr::write(offset as *mut i64, new_offset) };
+        let _ = write_user_value(offset, &new_offset);
     }
 
     SyscallResult { value: bytes_written as i64, capability_consumed: false, audit_required: false }
@@ -125,8 +129,14 @@ pub fn handle_readv(fd: i32, iov: u64, iovcnt: i32) -> SyscallResult {
 
     for i in 0..iovcnt {
         let iov_ptr = iov + (i as u64 * 16);
-        let base = unsafe { core::ptr::read(iov_ptr as *const u64) };
-        let len = unsafe { core::ptr::read((iov_ptr + 8) as *const u64) };
+        let base: u64 = match read_user_value(iov_ptr) {
+            Ok(v) => v,
+            Err(_) => break,
+        };
+        let len: u64 = match read_user_value(iov_ptr + 8) {
+            Ok(v) => v,
+            Err(_) => break,
+        };
 
         if base == 0 || len == 0 {
             continue;
@@ -154,8 +164,14 @@ pub fn handle_writev(fd: i32, iov: u64, iovcnt: i32) -> SyscallResult {
 
     for i in 0..iovcnt {
         let iov_ptr = iov + (i as u64 * 16);
-        let base = unsafe { core::ptr::read(iov_ptr as *const u64) };
-        let len = unsafe { core::ptr::read((iov_ptr + 8) as *const u64) };
+        let base: u64 = match read_user_value(iov_ptr) {
+            Ok(v) => v,
+            Err(_) => break,
+        };
+        let len: u64 = match read_user_value(iov_ptr + 8) {
+            Ok(v) => v,
+            Err(_) => break,
+        };
 
         if base == 0 || len == 0 {
             continue;
