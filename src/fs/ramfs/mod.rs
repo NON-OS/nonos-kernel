@@ -27,6 +27,6 @@ pub use types::{
 pub use filesystem::{
     create_dir, create_file, delete, delete_file, dir_exists, exists, file_exists,
     get_filesystem, init_nonos_fs, init_nonos_filesystem, list_dir, list_dir_entries,
-    list_files, normalize_path, read_file, rename, stats, write_file,
+    list_files, normalize_path, read_file, rename, stats, write_file, write_or_create,
     NonosFilesystem, NONOS_FILESYSTEM,
 };
