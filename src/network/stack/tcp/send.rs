@@ -21,14 +21,25 @@ use crate::network::stack::core::NetworkStack;
 use crate::network::stack::device::now_ms;
 
 pub fn send(stack: &NetworkStack, conn_id: u32, data: &[u8]) -> Result<usize, &'static str> {
+    use crate::sys::serial;
+
     if data.is_empty() {
         return Ok(0);
     }
 
     let handle = {
         let mut conns = stack.conns.lock();
-        let conn = conns.get_mut(&conn_id).ok_or("connection not found")?;
+        let conn = match conns.get_mut(&conn_id) {
+            Some(c) => c,
+            None => {
+                serial::print(b"[TCP] send: conn not found id=");
+                serial::print_dec(conn_id as u64);
+                serial::println(b"");
+                return Err("connection not found");
+            }
+        };
         if conn.closed {
+            serial::println(b"[TCP] send: connection closed");
             return Err("connection closed");
         }
         conn.last_activity_ms = now_ms();
@@ -45,6 +56,9 @@ pub fn send(stack: &NetworkStack, conn_id: u32, data: &[u8]) -> Result<usize, &'
     while total_sent < data.len() {
         let elapsed = now_ms().saturating_sub(start);
         if elapsed >= timeout_ms {
+            serial::print(b"[TCP] send timeout after ");
+            serial::print_dec(elapsed);
+            serial::println(b"ms");
             if total_sent > 0 {
                 return Ok(total_sent);
             }
@@ -58,6 +72,7 @@ pub fn send(stack: &NetworkStack, conn_id: u32, data: &[u8]) -> Result<usize, &'
             let socket: &mut tcp::Socket = sockets.get_mut(handle);
 
             if !socket.is_active() {
+                serial::println(b"[TCP] send: socket not active");
                 if total_sent > 0 {
                     return Ok(total_sent);
                 }
@@ -65,6 +80,7 @@ pub fn send(stack: &NetworkStack, conn_id: u32, data: &[u8]) -> Result<usize, &'
             }
 
             if !socket.may_send() {
+                serial::println(b"[TCP] send: socket may_send=false");
                 0
             } else {
                 match socket.send_slice(&data[total_sent..]) {
