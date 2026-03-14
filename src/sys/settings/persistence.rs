@@ -10,6 +10,7 @@
 
 use core::sync::atomic::Ordering;
 use crate::storage::block::{BlockDeviceType, BlockError, BlockResult, get_device};
+use crate::persistence::{check_persistence_allowed, ConsentScope};
 use super::types::Settings;
 use super::state::{CURRENT_SETTINGS, SETTINGS_LOADED, SETTINGS_MODIFIED};
 use super::serialize::{serialize, deserialize};
@@ -46,8 +47,15 @@ fn block_write(device_id: u8, sector: u64, buffer: &[u8]) -> BlockResult<()> {
     }
 }
 
+/// # Safety
+/// Saves settings to disk. Requires explicit user consent for persistence.
+/// Returns false if persistence policy denies the write.
 pub fn save_to_disk() -> bool {
     use crate::storage::fat32;
+
+    if !check_persistence_allowed(ConsentScope::SystemData) {
+        return false;
+    }
 
     if fat32::fs_count() == 0 {
         return false;
