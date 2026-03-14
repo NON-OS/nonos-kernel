@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::syscall::SyscallResult;
+use crate::usercopy::copy_to_user;
 use super::super::errno;
 use super::constants::*;
 use super::types::Timespec;
@@ -27,9 +28,9 @@ pub fn handle_clock_gettime(clockid: i32, tp: u64) -> SyscallResult {
     let nanos = get_clock_time(clockid);
 
     let spec = Timespec::from_nanos(nanos);
-    // SAFETY: tp is user-provided pointer for timespec struct.
-    unsafe {
-        *(tp as *mut Timespec) = spec;
+    let bytes: [u8; 16] = unsafe { core::mem::transmute(spec) };
+    if copy_to_user(tp, &bytes).is_err() {
+        return errno(EFAULT);
     }
 
     SyscallResult::success(0)
@@ -55,9 +56,9 @@ pub fn handle_clock_getres(clockid: i32, res: u64) -> SyscallResult {
     };
 
     let spec = Timespec::from_nanos(nanos);
-    // SAFETY: res is user-provided pointer for timespec struct.
-    unsafe {
-        *(res as *mut Timespec) = spec;
+    let bytes: [u8; 16] = unsafe { core::mem::transmute(spec) };
+    if copy_to_user(res, &bytes).is_err() {
+        return errno(EFAULT);
     }
 
     SyscallResult::success(0)
