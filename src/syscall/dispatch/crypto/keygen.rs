@@ -17,26 +17,16 @@
 use crate::capabilities::Capability;
 use crate::syscall::SyscallResult;
 use crate::syscall::dispatch::{errno, require_capability};
+use crate::usercopy::copy_to_user;
 
 pub fn handle_crypto_keygen(algo: u64, public_key_ptr: u64, private_key_ptr: u64) -> SyscallResult {
-    if let Err(e) = require_capability(Capability::Crypto) {
-        return e;
-    }
-
-    if public_key_ptr == 0 || private_key_ptr == 0 {
-        return errno(22);
-    }
-
+    if let Err(e) = require_capability(Capability::Crypto) { return e; }
+    if public_key_ptr == 0 || private_key_ptr == 0 { return errno(22); }
     match algo {
         0 => {
             let keypair = crate::crypto::ed25519::KeyPair::generate();
-
-            let public_key = unsafe { core::slice::from_raw_parts_mut(public_key_ptr as *mut u8, 32) };
-            let private_key = unsafe { core::slice::from_raw_parts_mut(private_key_ptr as *mut u8, 32) };
-
-            public_key.copy_from_slice(&keypair.public);
-            private_key.copy_from_slice(&keypair.private);
-
+            if copy_to_user(public_key_ptr, &keypair.public).is_err() { return errno(14); }
+            if copy_to_user(private_key_ptr, &keypair.private).is_err() { return errno(14); }
             SyscallResult { value: 0, capability_consumed: false, audit_required: true }
         }
         _ => errno(22),
