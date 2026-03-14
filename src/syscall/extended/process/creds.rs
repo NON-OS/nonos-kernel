@@ -16,6 +16,7 @@
 
 use crate::syscall::SyscallResult;
 use crate::syscall::extended::errno;
+use crate::usercopy::{copy_to_user, write_user_value};
 
 pub fn handle_setuid(uid: u32) -> SyscallResult {
     let _ = uid;
@@ -42,11 +43,10 @@ pub fn handle_getresuid(ruid: u64, euid: u64, suid: u64) -> SyscallResult {
         return errno(14);
     }
 
-    unsafe {
-        core::ptr::write(ruid as *mut u32, 0);
-        core::ptr::write(euid as *mut u32, 0);
-        core::ptr::write(suid as *mut u32, 0);
-    }
+    let zero: u32 = 0;
+    let _ = write_user_value(ruid, &zero);
+    let _ = write_user_value(euid, &zero);
+    let _ = write_user_value(suid, &zero);
 
     SyscallResult { value: 0, capability_consumed: false, audit_required: false }
 }
@@ -61,11 +61,10 @@ pub fn handle_getresgid(rgid: u64, egid: u64, sgid: u64) -> SyscallResult {
         return errno(14);
     }
 
-    unsafe {
-        core::ptr::write(rgid as *mut u32, 0);
-        core::ptr::write(egid as *mut u32, 0);
-        core::ptr::write(sgid as *mut u32, 0);
-    }
+    let zero: u32 = 0;
+    let _ = write_user_value(rgid, &zero);
+    let _ = write_user_value(egid, &zero);
+    let _ = write_user_value(sgid, &zero);
 
     SyscallResult { value: 0, capability_consumed: false, audit_required: false }
 }
@@ -108,9 +107,8 @@ pub fn handle_capget(hdrp: u64, datap: u64) -> SyscallResult {
     }
 
     if datap != 0 {
-        unsafe {
-            core::ptr::write_bytes(datap as *mut u8, 0, 24);
-        }
+        let zero_caps = [0u8; 24];
+        let _ = copy_to_user(datap, &zero_caps);
     }
 
     SyscallResult { value: 0, capability_consumed: false, audit_required: false }
