@@ -16,6 +16,7 @@
 
 use crate::capabilities::Capability;
 use crate::syscall::SyscallResult;
+use crate::usercopy::{copy_to_user, read_user_value, write_user_value};
 use super::super::{errno, require_capability};
 use super::constants::{SOCK_STREAM, SOCK_DGRAM};
 use super::types::SocketType;
@@ -50,28 +51,39 @@ pub fn handle_getsockopt(sockfd: u64, level: u64, optname: u64, optval: u64, opt
     };
 
     if level == 1 && optname == 4 {
-        // SAFETY: Caller guarantees optval and optlen point to valid writable memory.
-        unsafe {
-            core::ptr::write(optval as *mut i32, 0);
-            core::ptr::write(optlen as *mut u32, 4);
+        let zero: i32 = 0;
+        if write_user_value(optval, &zero).is_err() {
+            return errno(14);
+        }
+        let len: u32 = 4;
+        if write_user_value(optlen, &len).is_err() {
+            return errno(14);
         }
         return SyscallResult { value: 0, capability_consumed: false, audit_required: false };
     }
 
     if level == 1 && optname == 3 {
-        let type_val = if entry.socket_type == SocketType::Tcp { SOCK_STREAM } else { SOCK_DGRAM };
-        // SAFETY: Caller guarantees optval and optlen point to valid writable memory.
-        unsafe {
-            core::ptr::write(optval as *mut u64, type_val);
-            core::ptr::write(optlen as *mut u32, 4);
+        let type_val: u64 = if entry.socket_type == SocketType::Tcp { SOCK_STREAM } else { SOCK_DGRAM };
+        if write_user_value(optval, &type_val).is_err() {
+            return errno(14);
+        }
+        let len: u32 = 4;
+        if write_user_value(optlen, &len).is_err() {
+            return errno(14);
         }
         return SyscallResult { value: 0, capability_consumed: false, audit_required: false };
     }
 
-    // SAFETY: Caller guarantees optlen points to valid u32 and optval points to at least that many bytes.
-    let len = unsafe { core::ptr::read(optlen as *const u32) } as usize;
-    let buf = unsafe { core::slice::from_raw_parts_mut(optval as *mut u8, len.min(64)) };
-    buf.fill(0);
+    let len: u32 = match read_user_value(optlen) {
+        Ok(v) => v,
+        Err(_) => return errno(14),
+    };
+    let buf_len = (len as usize).min(64);
+    let zeros = [0u8; 64];
+
+    if copy_to_user(optval, &zeros[..buf_len]).is_err() {
+        return errno(14);
+    }
 
     SyscallResult { value: 0, capability_consumed: false, audit_required: false }
 }
