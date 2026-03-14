@@ -16,8 +16,10 @@
 
 extern crate alloc;
 
+use alloc::vec::Vec;
 use crate::capabilities::Capability;
 use crate::syscall::SyscallResult;
+use crate::usercopy::{read_user_value, write_user_value, copy_from_user, copy_to_user};
 use super::{errno, require_capability, parse_string_from_user};
 
 pub fn handle_exit(status: u64) -> SyscallResult {
@@ -72,50 +74,35 @@ pub fn handle_execve(pathname: u64, argv: u64, envp: u64) -> SyscallResult {
         Err(_) => return errno(14),
     };
 
-    let mut args = alloc::vec::Vec::new();
-    if argv != 0 {
-        let mut i = 0usize;
-        loop {
-            let ptr_addr = argv + (i * 8) as u64;
-            let ptr = unsafe { core::ptr::read(ptr_addr as *const u64) };
-            if ptr == 0 {
-                break;
-            }
-            if let Ok(arg) = parse_string_from_user(ptr, 4096) {
-                args.push(arg);
-            }
-            i += 1;
-            if i > 256 {
-                break;
-            }
-        }
-    }
-
-    let mut env = alloc::vec::Vec::new();
-    if envp != 0 {
-        let mut i = 0usize;
-        loop {
-            let ptr_addr = envp + (i * 8) as u64;
-            let ptr = unsafe { core::ptr::read(ptr_addr as *const u64) };
-            if ptr == 0 {
-                break;
-            }
-            if let Ok(e) = parse_string_from_user(ptr, 4096) {
-                env.push(e);
-            }
-            i += 1;
-            if i > 256 {
-                break;
-            }
-        }
-    }
+    let args = read_string_array(argv);
+    let env = read_string_array(envp);
 
     match crate::process::exec_process(&path, &args, &env) {
-        Ok(()) => {
-            errno(5)
-        }
+        Ok(()) => errno(5),
         Err(_) => errno(2),
     }
+}
+
+fn read_string_array(ptr: u64) -> Vec<alloc::string::String> {
+    let mut result = Vec::new();
+    if ptr == 0 {
+        return result;
+    }
+
+    for i in 0..256usize {
+        let ptr_addr = ptr + (i * 8) as u64;
+        let string_ptr: u64 = match read_user_value(ptr_addr) {
+            Ok(v) => v,
+            Err(_) => break,
+        };
+        if string_ptr == 0 {
+            break;
+        }
+        if let Ok(s) = parse_string_from_user(string_ptr, 4096) {
+            result.push(s);
+        }
+    }
+    result
 }
 
 pub fn handle_nanosleep(req_ptr: u64, rem_ptr: u64) -> SyscallResult {
@@ -123,10 +110,13 @@ pub fn handle_nanosleep(req_ptr: u64, rem_ptr: u64) -> SyscallResult {
         return errno(22);
     }
 
-    let (tv_sec, tv_nsec) = unsafe {
-        let sec = core::ptr::read(req_ptr as *const i64);
-        let nsec = core::ptr::read((req_ptr + 8) as *const i64);
-        (sec, nsec)
+    let tv_sec: i64 = match read_user_value(req_ptr) {
+        Ok(v) => v,
+        Err(_) => return errno(14),
+    };
+    let tv_nsec: i64 = match read_user_value(req_ptr + 8) {
+        Ok(v) => v,
+        Err(_) => return errno(14),
     };
 
     if tv_sec < 0 || tv_nsec < 0 || tv_nsec >= 1_000_000_000 {
@@ -143,7 +133,6 @@ pub fn handle_nanosleep(req_ptr: u64, rem_ptr: u64) -> SyscallResult {
     let wake_time_ms = now_ms + sleep_ms;
 
     crate::sched::sleep_until(proc.pid, wake_time_ms);
-
     crate::sched::yield_cpu();
 
     let actual_wake_time = crate::time::timestamp_millis();
@@ -154,12 +143,10 @@ pub fn handle_nanosleep(req_ptr: u64, rem_ptr: u64) -> SyscallResult {
     };
 
     if rem_ptr != 0 && remaining_ms > 0 {
-        unsafe {
-            let rem_sec = (remaining_ms / 1000) as i64;
-            let rem_nsec = ((remaining_ms % 1000) * 1_000_000) as i64;
-            core::ptr::write(rem_ptr as *mut i64, rem_sec);
-            core::ptr::write((rem_ptr + 8) as *mut i64, rem_nsec);
-        }
+        let rem_sec = (remaining_ms / 1000) as i64;
+        let rem_nsec = ((remaining_ms % 1000) * 1_000_000) as i64;
+        let _ = write_user_value(rem_ptr, &rem_sec);
+        let _ = write_user_value(rem_ptr + 8, &rem_nsec);
         return errno(4);
     }
 
@@ -168,7 +155,6 @@ pub fn handle_nanosleep(req_ptr: u64, rem_ptr: u64) -> SyscallResult {
 
 pub fn handle_yield() -> SyscallResult {
     crate::sched::yield_cpu();
-
     SyscallResult { value: 0, capability_consumed: false, audit_required: false }
 }
 
@@ -177,11 +163,12 @@ pub fn handle_ipc_send(channel: u64, buf: u64, len: u64) -> SyscallResult {
         return errno(22);
     }
 
-    let data = unsafe {
-        core::slice::from_raw_parts(buf as *const u8, len as usize)
-    };
+    let mut data = alloc::vec![0u8; len as usize];
+    if copy_from_user(buf, &mut data).is_err() {
+        return errno(14);
+    }
 
-    match crate::ipc::send_message(channel as u32, data) {
+    match crate::ipc::send_message(channel as u32, &data) {
         Ok(()) => SyscallResult { value: 0, capability_consumed: false, audit_required: true },
         Err(crate::ipc::IpcError::ChannelNotFound) => errno(2),
         Err(crate::ipc::IpcError::BufferFull) => errno(11),
@@ -195,12 +182,14 @@ pub fn handle_ipc_recv(channel: u64, buf: u64, max_len: u64) -> SyscallResult {
         return errno(22);
     }
 
-    let buffer = unsafe {
-        core::slice::from_raw_parts_mut(buf as *mut u8, max_len as usize)
-    };
-
-    match crate::ipc::recv_message(channel as u32, buffer) {
-        Ok(received_len) => SyscallResult { value: received_len as i64, capability_consumed: false, audit_required: false },
+    let mut buffer = alloc::vec![0u8; max_len as usize];
+    match crate::ipc::recv_message(channel as u32, &mut buffer) {
+        Ok(received_len) => {
+            if copy_to_user(buf, &buffer[..received_len]).is_err() {
+                return errno(14);
+            }
+            SyscallResult { value: received_len as i64, capability_consumed: false, audit_required: false }
+        }
         Err(crate::ipc::IpcError::ChannelNotFound) => errno(2),
         Err(crate::ipc::IpcError::WouldBlock) => errno(11),
         Err(crate::ipc::IpcError::PermissionDenied) => errno(1),
