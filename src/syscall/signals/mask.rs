@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::syscall::SyscallResult;
+use crate::usercopy::{read_user_value, write_user_value};
 use super::constants::*;
 use super::types::*;
 use super::state::*;
@@ -33,13 +34,16 @@ pub fn handle_rt_sigprocmask(how: u64, set: u64, oldset: u64, sigsetsize: u64) -
     let mut state = get_signal_state(pid);
 
     if oldset != 0 {
-        unsafe {
-            core::ptr::write(oldset as *mut u64, state.blocked.0);
+        if write_user_value(oldset, &state.blocked.0).is_err() {
+            return errno(14);
         }
     }
 
     if set != 0 {
-        let new_set = unsafe { core::ptr::read(set as *const u64) };
+        let new_set: u64 = match read_user_value(set) {
+            Ok(v) => v,
+            Err(_) => return errno(14),
+        };
         let new_sigset = SigSet(new_set);
 
         match how as u32 {
@@ -76,8 +80,8 @@ pub fn handle_rt_sigpending(set: u64, sigsetsize: u64) -> SyscallResult {
     let pid = crate::process::current_pid().unwrap_or(0);
     let state = get_signal_state(pid);
 
-    unsafe {
-        core::ptr::write(set as *mut u64, state.pending.0);
+    if write_user_value(set, &state.pending.0).is_err() {
+        return errno(14);
     }
 
     SyscallResult { value: 0, capability_consumed: false, audit_required: false }
