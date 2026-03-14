@@ -79,7 +79,7 @@ fn generate_new_wallet() {
     lock_wallet();
 
     let pwd = PASSWORD_INPUT.lock();
-    let pwd_len = PASSWORD_LEN.load(Ordering::SeqCst);
+    let pwd_len = PASSWORD_LEN.load(Ordering::SeqCst).min(63);
 
     let hw_entropy = generate_secure_key();
     let click_time = crate::time::now_ns();
@@ -88,8 +88,9 @@ fn generate_new_wallet() {
     let mut combined = [0u8; 80];
     combined[0..32].copy_from_slice(&hw_entropy);
 
-    if pwd_len > 0 {
-        combined[32..32 + pwd_len.min(32)].copy_from_slice(&pwd[..pwd_len.min(32)]);
+    let copy_len = pwd_len.min(32);
+    if copy_len > 0 {
+        combined[32..32 + copy_len].copy_from_slice(&pwd[..copy_len]);
     }
 
     combined[64..72].copy_from_slice(&click_time.to_le_bytes());
@@ -128,7 +129,7 @@ pub(super) fn try_unlock() {
     use crate::crypto::blake3_hash;
 
     let pwd = PASSWORD_INPUT.lock();
-    let pwd_len = PASSWORD_LEN.load(Ordering::SeqCst);
+    let pwd_len = PASSWORD_LEN.load(Ordering::SeqCst).min(63);
 
     if pwd_len == 0 {
         set_status(b"Enter a master key", false);
