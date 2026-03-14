@@ -17,6 +17,7 @@
 use core::sync::atomic::Ordering;
 
 use crate::syscall::SyscallResult;
+use crate::usercopy::{copy_to_user, read_user_value, write_user_value};
 use super::errno;
 
 pub fn handle_getrusage(_who: u64, usage: u64) -> SyscallResult {
@@ -24,17 +25,16 @@ pub fn handle_getrusage(_who: u64, usage: u64) -> SyscallResult {
         return errno(14);
     }
 
-    unsafe {
-        core::ptr::write_bytes(usage as *mut u8, 0, 144);
-    }
-
+    let mut rusage_buf = [0u8; 144];
     if let Some(proc) = crate::process::current_process() {
         let mem = proc.memory.lock();
         let resident_pages = mem.resident_pages.load(Ordering::Relaxed);
+        let maxrss = (resident_pages * 4) as i64;
+        rusage_buf[16..24].copy_from_slice(&maxrss.to_ne_bytes());
+    }
 
-        unsafe {
-            core::ptr::write((usage + 16) as *mut i64, (resident_pages * 4) as i64);
-        }
+    if copy_to_user(usage, &rusage_buf).is_err() {
+        return errno(14);
     }
 
     SyscallResult { value: 0, capability_consumed: false, audit_required: false }
@@ -45,28 +45,25 @@ pub fn handle_uname(buf: u64) -> SyscallResult {
         return errno(14);
     }
 
-    fn write_field(base: u64, offset: usize, s: &str) {
-        let ptr = (base + offset as u64) as *mut u8;
-        let bytes = s.as_bytes();
-        let len = bytes.len().min(64);
-        unsafe {
-            core::ptr::copy_nonoverlapping(bytes.as_ptr(), ptr, len);
-            core::ptr::write(ptr.add(len), 0);
-        }
-    }
+    let mut utsname_buf = [0u8; 390];
+    write_uname_field(&mut utsname_buf, 0, "NONOS");
+    write_uname_field(&mut utsname_buf, 65, "zerostate");
+    write_uname_field(&mut utsname_buf, 130, "0.1.0");
+    write_uname_field(&mut utsname_buf, 195, "NONOS ZeroState Kernel");
+    write_uname_field(&mut utsname_buf, 260, "x86_64");
+    write_uname_field(&mut utsname_buf, 325, "(none)");
 
-    unsafe {
-        core::ptr::write_bytes(buf as *mut u8, 0, 390);
+    if copy_to_user(buf, &utsname_buf).is_err() {
+        return errno(14);
     }
-
-    write_field(buf, 0, "NONOS");
-    write_field(buf, 65, "zerostate");
-    write_field(buf, 130, "0.1.0");
-    write_field(buf, 195, "NONOS ZeroState Kernel");
-    write_field(buf, 260, "x86_64");
-    write_field(buf, 325, "(none)");
 
     SyscallResult { value: 0, capability_consumed: false, audit_required: false }
+}
+
+fn write_uname_field(buf: &mut [u8], offset: usize, s: &str) {
+    let bytes = s.as_bytes();
+    let len = bytes.len().min(64);
+    buf[offset..offset + len].copy_from_slice(&bytes[..len]);
 }
 
 pub fn handle_ioctl(fd: i32, request: u64, arg: u64) -> SyscallResult {
@@ -84,84 +81,91 @@ pub fn handle_ioctl(fd: i32, request: u64, arg: u64) -> SyscallResult {
     const TIOCSPGRP: u64 = 0x5410;
 
     match request {
-        TCGETS => {
-            if arg == 0 {
-                return errno(14);
-            }
-            unsafe {
-                let termios = arg as *mut u8;
-                core::ptr::write_bytes(termios, 0, 60);
-                core::ptr::write(termios as *mut u32, 0x100);
-                core::ptr::write((termios.add(4)) as *mut u32, 0x05);
-                core::ptr::write((termios.add(8)) as *mut u32, 0xBF);
-                core::ptr::write((termios.add(12)) as *mut u32, 0x8A3B);
-            }
-            SyscallResult { value: 0, capability_consumed: false, audit_required: false }
-        }
-        TCSETS => {
-            SyscallResult { value: 0, capability_consumed: false, audit_required: false }
-        }
-        TIOCGWINSZ => {
-            if arg == 0 {
-                return errno(14);
-            }
-            unsafe {
-                let winsize = arg as *mut u16;
-                core::ptr::write(winsize, 25);
-                core::ptr::write(winsize.add(1), 80);
-                core::ptr::write(winsize.add(2), 0);
-                core::ptr::write(winsize.add(3), 0);
-            }
-            SyscallResult { value: 0, capability_consumed: false, audit_required: false }
-        }
-        TIOCSWINSZ => {
-            SyscallResult { value: 0, capability_consumed: false, audit_required: false }
-        }
-        FIONREAD => {
-            if arg == 0 {
-                return errno(14);
-            }
-            let available = match crate::fs::fd::fd_bytes_available(fd) {
-                Ok(n) => n,
-                Err(_) => return errno(9),
-            };
-            unsafe {
-                core::ptr::write(arg as *mut i32, available as i32);
-            }
-            SyscallResult { value: 0, capability_consumed: false, audit_required: false }
-        }
-        FIONBIO => {
-            if arg == 0 {
-                return errno(14);
-            }
-            let nonblock = unsafe { core::ptr::read(arg as *const i32) } != 0;
-            match crate::fs::fd::fd_set_nonblocking(fd, nonblock) {
-                Ok(()) => SyscallResult { value: 0, capability_consumed: false, audit_required: false },
-                Err(_) => errno(9),
-            }
-        }
-        TIOCGPGRP => {
-            if arg == 0 {
-                return errno(14);
-            }
-            let pgrp = crate::process::current_pid().unwrap_or(1);
-            unsafe {
-                core::ptr::write(arg as *mut i32, pgrp as i32);
-            }
-            SyscallResult { value: 0, capability_consumed: false, audit_required: false }
-        }
-        TIOCSPGRP => {
-            SyscallResult { value: 0, capability_consumed: false, audit_required: false }
-        }
+        TCGETS => handle_tcgets(arg),
+        TCSETS => SyscallResult { value: 0, capability_consumed: false, audit_required: false },
+        TIOCGWINSZ => handle_tiocgwinsz(arg),
+        TIOCSWINSZ => SyscallResult { value: 0, capability_consumed: false, audit_required: false },
+        FIONREAD => handle_fionread(fd, arg),
+        FIONBIO => handle_fionbio(fd, arg),
+        TIOCGPGRP => handle_tiocgpgrp(arg),
+        TIOCSPGRP => SyscallResult { value: 0, capability_consumed: false, audit_required: false },
         _ => errno(25),
     }
+}
+
+fn handle_tcgets(arg: u64) -> SyscallResult {
+    if arg == 0 {
+        return errno(14);
+    }
+    let mut termios = [0u8; 60];
+    termios[0..4].copy_from_slice(&0x100u32.to_ne_bytes());
+    termios[4..8].copy_from_slice(&0x05u32.to_ne_bytes());
+    termios[8..12].copy_from_slice(&0xBFu32.to_ne_bytes());
+    termios[12..16].copy_from_slice(&0x8A3Bu32.to_ne_bytes());
+    if copy_to_user(arg, &termios).is_err() {
+        return errno(14);
+    }
+    SyscallResult { value: 0, capability_consumed: false, audit_required: false }
+}
+
+fn handle_tiocgwinsz(arg: u64) -> SyscallResult {
+    if arg == 0 {
+        return errno(14);
+    }
+    let winsize: [u16; 4] = [25, 80, 0, 0];
+    let mut buf = [0u8; 8];
+    for (i, &v) in winsize.iter().enumerate() {
+        buf[i * 2..i * 2 + 2].copy_from_slice(&v.to_ne_bytes());
+    }
+    if copy_to_user(arg, &buf).is_err() {
+        return errno(14);
+    }
+    SyscallResult { value: 0, capability_consumed: false, audit_required: false }
+}
+
+fn handle_fionread(fd: i32, arg: u64) -> SyscallResult {
+    if arg == 0 {
+        return errno(14);
+    }
+    let available = match crate::fs::fd::fd_bytes_available(fd) {
+        Ok(n) => n as i32,
+        Err(_) => return errno(9),
+    };
+    if write_user_value(arg, &available).is_err() {
+        return errno(14);
+    }
+    SyscallResult { value: 0, capability_consumed: false, audit_required: false }
+}
+
+fn handle_fionbio(fd: i32, arg: u64) -> SyscallResult {
+    if arg == 0 {
+        return errno(14);
+    }
+    let nonblock_val: i32 = match read_user_value(arg) {
+        Ok(v) => v,
+        Err(_) => return errno(14),
+    };
+    match crate::fs::fd::fd_set_nonblocking(fd, nonblock_val != 0) {
+        Ok(()) => SyscallResult { value: 0, capability_consumed: false, audit_required: false },
+        Err(_) => errno(9),
+    }
+}
+
+fn handle_tiocgpgrp(arg: u64) -> SyscallResult {
+    if arg == 0 {
+        return errno(14);
+    }
+    let pgrp = crate::process::current_pid().unwrap_or(1) as i32;
+    if write_user_value(arg, &pgrp).is_err() {
+        return errno(14);
+    }
+    SyscallResult { value: 0, capability_consumed: false, audit_required: false }
 }
 
 pub fn handle_iopl(level: i32) -> SyscallResult {
     if level < 0 || level > 3 {
         return errno(22);
     }
-
     SyscallResult { value: 0, capability_consumed: true, audit_required: true }
 }
 
@@ -169,22 +173,12 @@ pub fn handle_ioperm(from: u64, num: u64, turn_on: i32) -> SyscallResult {
     if from > 0xFFFF || num == 0 || from.saturating_add(num) > 0x10000 {
         return errno(22);
     }
-
     let _ = turn_on;
     SyscallResult { value: 0, capability_consumed: true, audit_required: true }
 }
 
 pub fn handle_ptrace(request: i64, pid: i64, addr: u64, data: u64) -> SyscallResult {
     const PTRACE_TRACEME: i64 = 0;
-    const PTRACE_PEEKTEXT: i64 = 1;
-    const PTRACE_PEEKDATA: i64 = 2;
-    const PTRACE_PEEKUSER: i64 = 3;
-    const PTRACE_POKETEXT: i64 = 4;
-    const PTRACE_POKEDATA: i64 = 5;
-    const PTRACE_POKEUSER: i64 = 6;
-    const PTRACE_CONT: i64 = 7;
-    const PTRACE_KILL: i64 = 8;
-    const PTRACE_SINGLESTEP: i64 = 9;
     const PTRACE_ATTACH: i64 = 16;
     const PTRACE_DETACH: i64 = 17;
 
@@ -196,12 +190,9 @@ pub fn handle_ptrace(request: i64, pid: i64, addr: u64, data: u64) -> SyscallRes
             let _ = (pid, addr, data);
             errno(1)
         }
-        PTRACE_PEEKTEXT | PTRACE_PEEKDATA | PTRACE_PEEKUSER |
-        PTRACE_POKETEXT | PTRACE_POKEDATA | PTRACE_POKEUSER |
-        PTRACE_CONT | PTRACE_KILL | PTRACE_SINGLESTEP => {
+        _ => {
             let _ = (pid, addr, data);
             errno(1)
         }
-        _ => errno(22),
     }
 }
