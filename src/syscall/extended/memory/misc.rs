@@ -18,6 +18,7 @@ extern crate alloc;
 
 use crate::syscall::SyscallResult;
 use crate::syscall::extended::errno;
+use crate::usercopy::copy_to_user;
 
 pub fn handle_msync(addr: u64, length: u64, flags: i32) -> SyscallResult {
     if addr & 0xFFF != 0 {
@@ -41,12 +42,14 @@ pub fn handle_mincore(addr: u64, length: u64, vec: u64) -> SyscallResult {
         return errno(14);
     }
 
-    let num_pages = (length + 4095) / 4096;
+    let num_pages = ((length + 4095) / 4096) as usize;
+    if num_pages > 1024 * 1024 {
+        return errno(22);
+    }
 
-    unsafe {
-        for i in 0..num_pages {
-            core::ptr::write((vec + i) as *mut u8, 1);
-        }
+    let page_flags = alloc::vec![1u8; num_pages];
+    if copy_to_user(vec, &page_flags).is_err() {
+        return errno(14);
     }
 
     SyscallResult { value: 0, capability_consumed: false, audit_required: false }
