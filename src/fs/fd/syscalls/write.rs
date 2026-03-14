@@ -49,7 +49,10 @@ pub(crate) fn write_file_impl(entry: &mut OpenFile, buf: *const u8, count: usize
         existing.resize(write_offset, 0);
     }
 
-    let end_offset = write_offset + count;
+    let end_offset = match write_offset.checked_add(count) {
+        Some(v) if v <= ramfs::MAX_FILE_SIZE => v,
+        _ => return Err(FdError::BufferTooLarge),
+    };
     if end_offset > existing.len() {
         existing.resize(end_offset, 0);
     }
@@ -120,7 +123,10 @@ pub fn fd_write_at(fd: i32, buf: *const u8, count: usize, offset: usize) -> FdRe
         existing.resize(offset, 0);
     }
 
-    let end_offset = offset + count;
+    let end_offset = match offset.checked_add(count) {
+        Some(v) if v <= ramfs::MAX_FILE_SIZE => v,
+        _ => return Err(FdError::BufferTooLarge),
+    };
     if end_offset > existing.len() {
         existing.resize(end_offset, 0);
     }
