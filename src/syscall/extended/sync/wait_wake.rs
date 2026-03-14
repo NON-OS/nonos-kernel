@@ -22,6 +22,7 @@ use core::sync::atomic::Ordering;
 use super::helpers::wake_futex;
 use super::types::{ok, FutexWaiter, FUTEX_WAITER_MAP, FUTEX_WAITS, FUTEX_TIMEOUTS};
 use crate::syscall::SyscallResult;
+use crate::usercopy::read_user_value;
 use super::super::errno;
 
 pub(super) fn handle_futex_wait(uaddr: u64, val: u64, timeout: u64, bitset: u32, is_pi: bool) -> SyscallResult {
@@ -29,16 +30,23 @@ pub(super) fn handle_futex_wait(uaddr: u64, val: u64, timeout: u64, bitset: u32,
         return errno(22);
     }
 
-    // SAFETY: Reading current futex value
-    let current = unsafe { core::ptr::read_volatile(uaddr as *const u32) };
+    let current: u32 = match read_user_value(uaddr) {
+        Ok(v) => v,
+        Err(_) => return errno(14),
+    };
     if current != val as u32 {
         return errno(11);
     }
 
     let deadline = if timeout != 0 {
-        // SAFETY: Reading timeout structure from user
-        let ts_sec = unsafe { core::ptr::read(timeout as *const i64) };
-        let ts_nsec = unsafe { core::ptr::read((timeout + 8) as *const i64) };
+        let ts_sec: i64 = match read_user_value(timeout) {
+            Ok(v) => v,
+            Err(_) => return errno(14),
+        };
+        let ts_nsec: i64 = match read_user_value(timeout + 8) {
+            Ok(v) => v,
+            Err(_) => return errno(14),
+        };
         if ts_sec < 0 || ts_nsec < 0 || ts_nsec >= 1_000_000_000 {
             return errno(22);
         }
@@ -75,8 +83,15 @@ pub(super) fn handle_futex_wait(uaddr: u64, val: u64, timeout: u64, bitset: u32,
             return errno(110);
         }
 
-        // SAFETY: Re-checking futex value
-        let current = unsafe { core::ptr::read_volatile(uaddr as *const u32) };
+        let current: u32 = match read_user_value(uaddr) {
+            Ok(v) => v,
+            Err(_) => {
+                if let Some(waiters) = FUTEX_WAITER_MAP.lock().get_mut(&uaddr) {
+                    waiters.retain(|w| w.pid != pid);
+                }
+                return errno(14);
+            }
+        };
         if current != val as u32 {
             if let Some(waiters) = FUTEX_WAITER_MAP.lock().get_mut(&uaddr) {
                 waiters.retain(|w| w.pid != pid);
