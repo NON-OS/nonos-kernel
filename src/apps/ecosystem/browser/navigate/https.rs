@@ -84,8 +84,11 @@ fn start_tls_handshake() {
 }
 
 pub(super) fn poll_tls_handshake() {
+    use crate::sys::serial;
+
     let deadline = HTTPS_DEADLINE.load(Ordering::Relaxed);
     if crate::time::timestamp_millis() > deadline {
+        serial::println(b"[BROWSER] TLS handshake timeout");
         cleanup_https();
         finish_with_error("TLS handshake timeout");
         return;
@@ -99,6 +102,7 @@ pub(super) fn poll_tls_handshake() {
     let host = match PENDING_HOST.lock().clone() {
         Some(h) => h,
         None => {
+            serial::println(b"[BROWSER] no host in TLS handshake");
             cleanup_https();
             finish_with_error("no host");
             return;
@@ -112,6 +116,7 @@ pub(super) fn poll_tls_handshake() {
     let tls = match tls_guard.as_mut() {
         Some(t) => t,
         None => {
+            serial::println(b"[BROWSER] no TLS context");
             drop(tls_guard);
             cleanup_https();
             finish_with_error("no TLS context");
@@ -120,12 +125,23 @@ pub(super) fn poll_tls_handshake() {
     };
 
     match tls.poll_handshake(&socket, Some(&host), verifier) {
-        Ok(Some(_)) => {
+        Ok(Some(_info)) => {
+            serial::println(b"[BROWSER] TLS handshake complete!");
             drop(tls_guard);
             set_state(NavState::SendingRequest);
         }
         Ok(None) => {}
-        Err(_) => {
+        Err(e) => {
+            serial::print(b"[BROWSER] TLS handshake failed: ");
+            match e {
+                crate::network::onion::OnionError::CryptoError => serial::println(b"CryptoError"),
+                crate::network::onion::OnionError::NetworkError => serial::println(b"NetworkError"),
+                crate::network::onion::OnionError::InvalidState => serial::println(b"InvalidState"),
+                crate::network::onion::OnionError::AuthenticationFailed => serial::println(b"AuthenticationFailed"),
+                crate::network::onion::OnionError::CertificateError => serial::println(b"CertificateError"),
+                crate::network::onion::OnionError::Timeout => serial::println(b"Timeout"),
+                _ => serial::println(b"other"),
+            }
             drop(tls_guard);
             cleanup_https();
             finish_with_error("TLS handshake failed");
@@ -134,14 +150,22 @@ pub(super) fn poll_tls_handshake() {
 }
 
 pub(super) fn poll_send_request() {
+    use crate::sys::serial;
+    serial::println(b"[HTTPS] poll_send_request called");
+
     let host = match PENDING_HOST.lock().clone() {
         Some(h) => h,
         None => {
+            serial::println(b"[HTTPS] no host!");
             cleanup_https();
             finish_with_error("no host");
             return;
         }
     };
+
+    serial::print(b"[HTTPS] host=");
+    serial::print(host.as_bytes());
+    serial::println(b"");
 
     let path = PENDING_PATH.lock().clone().unwrap_or_else(|| String::from("/"));
 
@@ -173,10 +197,26 @@ pub(super) fn poll_send_request() {
     drop(tls_guard);
 
     let wrapped = wrap_tls_record(0x17, &encrypted);
+    serial::print(b"[HTTPS] sending ");
+    serial::print_dec(wrapped.len() as u64);
+    serial::println(b" bytes");
+
     if tcp_send(&wrapped).is_err() {
+        serial::println(b"[HTTPS] TCP send failed!");
         cleanup_https();
         finish_with_error("TCP send failed");
         return;
+    }
+
+    serial::println(b"[HTTPS] request sent, waiting for response");
+
+    // Poll network multiple times to flush and receive initial response
+    for _ in 0..100 {
+        crate::network::poll_network();
+        if let Some(ns) = crate::network::get_network_stack() {
+            ns.poll();
+        }
+        for _ in 0..1000 { core::hint::spin_loop(); }
     }
 
     HTTPS_DEADLINE.store(crate::time::timestamp_millis() + 15000, Ordering::Relaxed);
@@ -184,14 +224,32 @@ pub(super) fn poll_send_request() {
 }
 
 pub(super) fn poll_receive_response() {
+    use crate::sys::serial;
+
+    // Poll the network drivers to receive packets from hardware
+    crate::network::poll_network();
+
+    // Check socket state
+    static POLL_COUNT: core::sync::atomic::AtomicU32 = core::sync::atomic::AtomicU32::new(0);
+    let count = POLL_COUNT.fetch_add(1, core::sync::atomic::Ordering::Relaxed);
+    if count < 20 || count % 100 == 0 {
+        if let Some(ns) = crate::network::get_network_stack() {
+            ns.poll();
+        }
+    }
+
     let deadline = HTTPS_DEADLINE.load(Ordering::Relaxed);
     if crate::time::timestamp_millis() > deadline {
         let response_data = RESPONSE_DATA.lock().clone();
         if !response_data.is_empty() {
+            serial::print(b"[HTTPS] timeout with ");
+            serial::print_dec(response_data.len() as u64);
+            serial::println(b" bytes");
             cleanup_https();
             set_state(NavState::ProcessingResponse);
             return;
         }
+        serial::println(b"[HTTPS] timeout with no data!");
         cleanup_https();
         finish_with_error("http timeout");
         return;
@@ -199,9 +257,23 @@ pub(super) fn poll_receive_response() {
 
     match tcp_poll_receive(8192) {
         AsyncResult::Ready(received) => {
+            serial::print(b"[HTTPS] received ");
+            serial::print_dec(received.len() as u64);
+            serial::print(b" bytes");
+            if !received.is_empty() {
+                serial::print(b" first=0x");
+                serial::print_hex(received[0] as u64);
+                if received.len() > 1 {
+                    serial::print(b" 0x");
+                    serial::print_hex(received[1] as u64);
+                }
+            }
+            serial::println(b"");
+
             if received.is_empty() {
                 let response_data = RESPONSE_DATA.lock();
                 if !response_data.is_empty() {
+                    serial::println(b"[HTTPS] empty recv, processing response");
                     drop(response_data);
                     cleanup_https();
                     set_state(NavState::ProcessingResponse);
@@ -217,6 +289,7 @@ pub(super) fn poll_receive_response() {
                 let tls = match tls_guard.as_mut() {
                     Some(t) => t,
                     None => {
+                        serial::println(b"[HTTPS] no TLS session!");
                         drop(tls_guard);
                         cleanup_https();
                         finish_with_error("no TLS session");
@@ -229,19 +302,35 @@ pub(super) fn poll_receive_response() {
                     let content_type = received[offset];
                     let record_len = u16::from_be_bytes([received[offset + 3], received[offset + 4]]) as usize;
 
+                    serial::print(b"[HTTPS] record type=");
+                    serial::print_hex(content_type as u64);
+                    serial::print(b" len=");
+                    serial::print_dec(record_len as u64);
+                    serial::println(b"");
+
                     if offset + 5 + record_len > received.len() {
+                        serial::println(b"[HTTPS] incomplete record");
                         break;
                     }
 
                     let record_data = &received[offset + 5..offset + 5 + record_len];
 
                     if content_type == 0x17 {
-                        if let Ok(plaintext) = tls.decrypt_app(record_data) {
-                            if !plaintext.is_empty() {
-                                collected_plaintext.extend_from_slice(&plaintext[..plaintext.len().saturating_sub(1)]);
+                        match tls.decrypt_app(record_data) {
+                            Ok(plaintext) => {
+                                serial::print(b"[HTTPS] decrypted ");
+                                serial::print_dec(plaintext.len() as u64);
+                                serial::println(b" bytes");
+                                if !plaintext.is_empty() {
+                                    collected_plaintext.extend_from_slice(&plaintext[..plaintext.len().saturating_sub(1)]);
+                                }
+                            }
+                            Err(_) => {
+                                serial::println(b"[HTTPS] decrypt failed!");
                             }
                         }
                     } else if content_type == 0x15 {
+                        serial::println(b"[HTTPS] got alert");
                         got_alert = true;
                         break;
                     }
