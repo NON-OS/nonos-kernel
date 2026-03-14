@@ -16,6 +16,7 @@
 
 use crate::capabilities::Capability;
 use crate::syscall::SyscallResult;
+use crate::usercopy::{copy_to_user, write_user_value};
 use super::super::{errno, require_capability};
 use super::types::{SocketType, SocketState};
 use super::state::SOCKET_TABLE;
@@ -63,19 +64,19 @@ pub fn handle_getsockname(sockfd: u64, addr: u64, addrlen: u64) -> SyscallResult
         None => return errno(9),
     };
 
-    // SAFETY: Caller guarantees addr points to valid writable memory of at least 16 bytes.
-    let sockaddr = unsafe {
-        core::slice::from_raw_parts_mut(addr as *mut u8, 16)
-    };
+    let mut sockaddr = [0u8; 16];
     sockaddr[0] = 2;
-    sockaddr[1] = 0;
     sockaddr[2] = (entry.local_port >> 8) as u8;
     sockaddr[3] = (entry.local_port & 0xFF) as u8;
-    sockaddr[4..8].fill(0);
-    sockaddr[8..16].fill(0);
 
-    // SAFETY: Caller guarantees addrlen points to valid writable u32.
-    unsafe { core::ptr::write(addrlen as *mut u32, 16) };
+    if copy_to_user(addr, &sockaddr).is_err() {
+        return errno(14);
+    }
+
+    let len: u32 = 16;
+    if write_user_value(addrlen, &len).is_err() {
+        return errno(14);
+    }
 
     SyscallResult { value: 0, capability_consumed: false, audit_required: false }
 }
@@ -101,19 +102,20 @@ pub fn handle_getpeername(sockfd: u64, addr: u64, addrlen: u64) -> SyscallResult
 
     let remote_addr = entry.remote_addr.unwrap_or([0, 0, 0, 0]);
 
-    // SAFETY: Caller guarantees addr points to valid writable memory of at least 16 bytes.
-    let sockaddr = unsafe {
-        core::slice::from_raw_parts_mut(addr as *mut u8, 16)
-    };
+    let mut sockaddr = [0u8; 16];
     sockaddr[0] = 2;
-    sockaddr[1] = 0;
     sockaddr[2] = (entry.remote_port >> 8) as u8;
     sockaddr[3] = (entry.remote_port & 0xFF) as u8;
     sockaddr[4..8].copy_from_slice(&remote_addr);
-    sockaddr[8..16].fill(0);
 
-    // SAFETY: Caller guarantees addrlen points to valid writable u32.
-    unsafe { core::ptr::write(addrlen as *mut u32, 16) };
+    if copy_to_user(addr, &sockaddr).is_err() {
+        return errno(14);
+    }
+
+    let len: u32 = 16;
+    if write_user_value(addrlen, &len).is_err() {
+        return errno(14);
+    }
 
     SyscallResult { value: 0, capability_consumed: false, audit_required: false }
 }
