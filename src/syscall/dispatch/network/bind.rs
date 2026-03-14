@@ -16,54 +16,30 @@
 
 use crate::capabilities::Capability;
 use crate::syscall::SyscallResult;
+use crate::usercopy::copy_from_user;
 use super::super::{errno, require_capability};
 use super::types::{SocketType, SocketState};
 use super::state::SOCKET_TABLE;
 
 pub fn handle_bind(sockfd: u64, addr: u64, addrlen: u64) -> SyscallResult {
-    if let Err(e) = require_capability(Capability::Network) {
-        return e;
-    }
-
-    if addr == 0 || addrlen < 8 {
-        return errno(22);
-    }
-
-    // SAFETY: Caller guarantees addr points to valid sockaddr_in structure of at least addrlen bytes.
-    let sockaddr = unsafe {
-        core::slice::from_raw_parts(addr as *const u8, addrlen as usize)
-    };
-
+    if let Err(e) = require_capability(Capability::Network) { return e; }
+    if addr == 0 || addrlen < 8 { return errno(22); }
+    let len = (addrlen as usize).min(128);
+    let mut sockaddr = [0u8; 128];
+    if copy_from_user(addr, &mut sockaddr[..len]).is_err() { return errno(14); }
     let port = u16::from_be_bytes([sockaddr[2], sockaddr[3]]);
-
     let mut table = SOCKET_TABLE.lock();
-    let entry = match table.get_mut(&(sockfd as u32)) {
-        Some(e) => e,
-        None => return errno(9),
-    };
-
-    if entry.state != SocketState::Created {
-        return errno(22);
-    }
-
+    let entry = match table.get_mut(&(sockfd as u32)) { Some(e) => e, None => return errno(9) };
+    if entry.state != SocketState::Created { return errno(22); }
     entry.local_port = port;
     entry.state = SocketState::Bound;
-
     if entry.socket_type == SocketType::Tcp {
         if let Some(stack) = crate::network::get_network_stack() {
-            if stack.bind_tcp_port(port).is_err() {
-                return errno(98);
-            }
-        } else {
-            return errno(99);
-        }
+            if stack.bind_tcp_port(port).is_err() { return errno(98); }
+        } else { return errno(99); }
     }
-
     if let Some(udp_id) = entry.udp_socket_id {
-        if crate::network::udp::bind(udp_id, port).is_err() {
-            return errno(98);
-        }
+        if crate::network::udp::bind(udp_id, port).is_err() { return errno(98); }
     }
-
     SyscallResult { value: 0, capability_consumed: false, audit_required: true }
 }
