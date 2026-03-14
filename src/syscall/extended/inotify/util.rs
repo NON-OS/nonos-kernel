@@ -18,6 +18,7 @@ extern crate alloc;
 
 use alloc::vec::Vec;
 use core::sync::atomic::Ordering;
+use crate::usercopy::copy_to_user;
 
 use super::types::{
     InotifyStats, IN_ISDIR, IN_MOVED_FROM, IN_MOVED_TO, EBADF,
@@ -26,24 +27,16 @@ use super::instance::{
     INOTIFY_INSTANCES, FD_TO_INOTIFY, NEXT_FD,
 };
 
-pub fn allocate_fd() -> i32 {
-    NEXT_FD.fetch_add(1, Ordering::SeqCst) as i32
-}
+pub fn allocate_fd() -> i32 { NEXT_FD.fetch_add(1, Ordering::SeqCst) as i32 }
 
-pub fn inotify_read(fd: i32, buf: *mut u8, count: usize) -> Result<usize, i32> {
-    let inotify_id = match FD_TO_INOTIFY.lock().get(&fd) {
-        Some(&id) => id,
-        None => return Err(EBADF),
-    };
-
+pub fn inotify_read(fd: i32, buf: u64, count: usize) -> Result<usize, i32> {
+    let inotify_id = match FD_TO_INOTIFY.lock().get(&fd) { Some(&id) => id, None => return Err(EBADF) };
     let mut instances = INOTIFY_INSTANCES.lock();
-    let instance = match instances.get_mut(&inotify_id) {
-        Some(inst) => inst,
-        None => return Err(EBADF),
-    };
-
-    let buffer = unsafe { core::slice::from_raw_parts_mut(buf, count) };
-    instance.read_events(buffer)
+    let instance = match instances.get_mut(&inotify_id) { Some(inst) => inst, None => return Err(EBADF) };
+    let mut buffer = alloc::vec![0u8; count];
+    let bytes_read = instance.read_events(&mut buffer)?;
+    if bytes_read > 0 { if copy_to_user(buf, &buffer[..bytes_read]).is_err() { return Err(14); } }
+    Ok(bytes_read)
 }
 
 pub fn inotify_close(fd: i32) -> Result<(), i32> {
