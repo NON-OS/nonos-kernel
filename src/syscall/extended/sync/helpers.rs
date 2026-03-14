@@ -16,60 +16,48 @@
 
 use core::sync::atomic::Ordering;
 
+use crate::usercopy::{read_user_value, write_user_value, UsercopyError};
 use super::constants::*;
 use super::types::{FUTEX_WAITER_MAP, FUTEX_WAKES};
 
 pub(super) fn wake_futex(uaddr: u64, max_wake: usize, bitset: u32) -> usize {
     let mut woken = 0;
-
     if let Some(waiters) = FUTEX_WAITER_MAP.lock().get_mut(&uaddr) {
         let mut i = 0;
         while woken < max_wake && i < waiters.len() {
             if (waiters[i].bitset & bitset) != 0 {
                 waiters.remove(i);
                 woken += 1;
-            } else {
-                i += 1;
-            }
+            } else { i += 1; }
         }
     }
-
     FUTEX_WAKES.fetch_add(woken as u64, Ordering::Relaxed);
     woken
 }
 
 pub(super) fn decode_wake_op(val3: u64) -> (u32, u32, u32, u32, u32) {
     let val3 = val3 as u32;
-
     let oparg = val3 & 0xFFF;
     let cmparg = (val3 >> 12) & 0xFFF;
     let op = (val3 >> 24) & 0x7;
     let cmp = (val3 >> 28) & 0x7;
     let shift = if (val3 >> 27) & 1 != 0 { 1 } else { 0 };
-
     let final_oparg = if shift != 0 { 1u32 << oparg } else { oparg };
-
     (op, final_oparg, cmp, cmparg, shift)
 }
 
-pub(super) fn apply_wake_op(uaddr2: u64, op: u32, oparg: u32) -> u32 {
-    // SAFETY: Applying atomic operation to futex memory
-    unsafe {
-        let ptr = uaddr2 as *mut u32;
-        let old_val = core::ptr::read_volatile(ptr);
-
-        let new_val = match op {
-            FUTEX_OP_SET => oparg,
-            FUTEX_OP_ADD => old_val.wrapping_add(oparg),
-            FUTEX_OP_OR => old_val | oparg,
-            FUTEX_OP_ANDN => old_val & !oparg,
-            FUTEX_OP_XOR => old_val ^ oparg,
-            _ => old_val,
-        };
-
-        core::ptr::write_volatile(ptr, new_val);
-        old_val
-    }
+pub(super) fn apply_wake_op(uaddr2: u64, op: u32, oparg: u32) -> Result<u32, UsercopyError> {
+    let old_val: u32 = read_user_value(uaddr2)?;
+    let new_val = match op {
+        FUTEX_OP_SET => oparg,
+        FUTEX_OP_ADD => old_val.wrapping_add(oparg),
+        FUTEX_OP_OR => old_val | oparg,
+        FUTEX_OP_ANDN => old_val & !oparg,
+        FUTEX_OP_XOR => old_val ^ oparg,
+        _ => old_val,
+    };
+    write_user_value(uaddr2, &new_val)?;
+    Ok(old_val)
 }
 
 pub(super) fn eval_wake_op_cmp(cmp: u32, old_val: u32, cmparg: u32) -> bool {
