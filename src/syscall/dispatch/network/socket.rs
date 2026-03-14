@@ -18,6 +18,7 @@ use core::sync::atomic::Ordering as AtomicOrdering;
 
 use crate::capabilities::Capability;
 use crate::syscall::SyscallResult;
+use crate::usercopy::write_user_value;
 use super::super::{errno, require_capability};
 use super::constants::{AF_INET, AF_UNIX, SOCK_STREAM, SOCK_DGRAM};
 use super::types::{SocketType, SocketState, SocketEntry};
@@ -94,10 +95,13 @@ pub fn handle_socketpair(domain: u64, socket_type: u64, _protocol: u64, sv: u64)
     table.insert(fd1, entry1);
     table.insert(fd2, entry2);
 
-    // SAFETY: Caller guarantees sv points to valid memory for two i32 values.
-    unsafe {
-        core::ptr::write(sv as *mut i32, fd1 as i32);
-        core::ptr::write((sv + 4) as *mut i32, fd2 as i32);
+    let fd1_i32 = fd1 as i32;
+    let fd2_i32 = fd2 as i32;
+    if write_user_value(sv, &fd1_i32).is_err() {
+        return errno(14);
+    }
+    if write_user_value(sv + 4, &fd2_i32).is_err() {
+        return errno(14);
     }
 
     SyscallResult { value: 0, capability_consumed: false, audit_required: true }
