@@ -70,6 +70,8 @@ pub struct BrowserSettings {
     pub referrer_policy: ReferrerPolicy,
     pub user_agent: String,
     pub proxy: ProxyConfig,
+    pub allow_insecure_certs: bool,
+    pub debug_mode: bool,
 }
 
 impl Default for BrowserSettings {
@@ -84,6 +86,8 @@ impl Default for BrowserSettings {
             referrer_policy: ReferrerPolicy::NoReferrer,
             user_agent: String::from("NONOS/1.0"),
             proxy: ProxyConfig::default(),
+            allow_insecure_certs: true,
+            debug_mode: true,
         }
     }
 }
