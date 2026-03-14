@@ -20,6 +20,7 @@ use alloc::collections::BTreeMap;
 use spin::Mutex;
 
 use crate::syscall::SyscallResult;
+use crate::usercopy::{read_user_value, write_user_value};
 use super::super::errno;
 use super::constants::*;
 use super::types::{Itimerval, Timeval};
@@ -39,93 +40,48 @@ pub struct IntervalTimer {
 pub static INTERVAL_TIMERS: Mutex<BTreeMap<u32, IntervalTimers>> = Mutex::new(BTreeMap::new());
 
 pub fn handle_getitimer(which: i32, curr_value: u64) -> SyscallResult {
-    if which != ITIMER_REAL && which != ITIMER_VIRTUAL && which != ITIMER_PROF {
-        return errno(EINVAL);
-    }
-
-    if curr_value == 0 {
-        return errno(EFAULT);
-    }
-
+    if which != ITIMER_REAL && which != ITIMER_VIRTUAL && which != ITIMER_PROF { return errno(EINVAL); }
+    if curr_value == 0 { return errno(EFAULT); }
     let pid = crate::process::current_pid().unwrap_or(0);
     let timers = INTERVAL_TIMERS.lock();
-
     let itimer = timers.get(&pid).and_then(|t| match which {
         ITIMER_REAL => t.real.as_ref(),
         ITIMER_VIRTUAL => t.virtual_.as_ref(),
         ITIMER_PROF => t.prof.as_ref(),
         _ => None,
     });
-
     let result = if let Some(timer) = itimer {
         let now = crate::time::timestamp_micros();
         let remaining = timer.expire_time.saturating_sub(now - timer.start_time);
         Itimerval {
-            it_value: Timeval {
-                tv_sec: (remaining / 1_000_000) as i64,
-                tv_usec: (remaining % 1_000_000) as i64,
-            },
-            it_interval: Timeval {
-                tv_sec: (timer.interval / 1_000_000) as i64,
-                tv_usec: (timer.interval % 1_000_000) as i64,
-            },
+            it_value: Timeval { tv_sec: (remaining / 1_000_000) as i64, tv_usec: (remaining % 1_000_000) as i64 },
+            it_interval: Timeval { tv_sec: (timer.interval / 1_000_000) as i64, tv_usec: (timer.interval % 1_000_000) as i64 },
         }
-    } else {
-        Itimerval::default()
-    };
-
-    // SAFETY: curr_value is user-provided pointer for itimerval struct.
-    unsafe {
-        *(curr_value as *mut Itimerval) = result;
-    }
-
+    } else { Itimerval::default() };
+    if write_user_value(curr_value, &result).is_err() { return errno(EFAULT); }
     SyscallResult::success(0)
 }
 
 pub fn handle_setitimer(which: i32, new_value: u64, old_value: u64) -> SyscallResult {
-    if which != ITIMER_REAL && which != ITIMER_VIRTUAL && which != ITIMER_PROF {
-        return errno(EINVAL);
-    }
-
+    if which != ITIMER_REAL && which != ITIMER_VIRTUAL && which != ITIMER_PROF { return errno(EINVAL); }
     let pid = crate::process::current_pid().unwrap_or(0);
-
-    if old_value != 0 {
-        let _ = handle_getitimer(which, old_value);
-    }
-
-    if new_value == 0 {
-        return errno(EFAULT);
-    }
-
-    // SAFETY: new_value is user-provided pointer to itimerval struct.
-    let new_val = unsafe { *(new_value as *const Itimerval) };
+    if old_value != 0 { let _ = handle_getitimer(which, old_value); }
+    if new_value == 0 { return errno(EFAULT); }
+    let new_val: Itimerval = match read_user_value(new_value) { Ok(v) => v, Err(_) => return errno(EFAULT) };
     let value_usec = new_val.it_value.to_micros();
     let interval_usec = new_val.it_interval.to_micros();
-
     let mut timers = INTERVAL_TIMERS.lock();
-    let proc_timers = timers.entry(pid).or_insert_with(|| IntervalTimers {
-        real: None,
-        virtual_: None,
-        prof: None,
-    });
-
+    let proc_timers = timers.entry(pid).or_insert_with(|| IntervalTimers { real: None, virtual_: None, prof: None });
     let timer_slot = match which {
         ITIMER_REAL => &mut proc_timers.real,
         ITIMER_VIRTUAL => &mut proc_timers.virtual_,
         ITIMER_PROF => &mut proc_timers.prof,
         _ => return errno(EINVAL),
     };
-
-    if value_usec == 0 {
-        *timer_slot = None;
-    } else {
+    if value_usec == 0 { *timer_slot = None; }
+    else {
         let now = crate::time::timestamp_micros();
-        *timer_slot = Some(IntervalTimer {
-            expire_time: value_usec,
-            interval: interval_usec,
-            start_time: now,
-        });
+        *timer_slot = Some(IntervalTimer { expire_time: value_usec, interval: interval_usec, start_time: now });
     }
-
     SyscallResult::success(0)
 }
