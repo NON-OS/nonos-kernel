@@ -23,7 +23,7 @@ use super::network::nox_contract;
 use super::stealth::StealthKeyPair;
 use super::state::{
     WALLET_STATE, SEND_ADDRESS, SEND_ADDRESS_LEN, SEND_AMOUNT, SEND_AMOUNT_LEN,
-    SEND_FIELD, INPUT_CURSOR, set_status,
+    SEND_FIELD, INPUT_CURSOR, CACHED_BLOCK, set_status,
 };
 
 pub(crate) fn init_wallet(master_key: [u8; 32]) -> Result<(), &'static str> {
@@ -173,6 +173,10 @@ pub(crate) fn refresh_balances() {
 
     let nox_addr = nox_contract();
     let nox = rpc::fetch_token_balance(&nox_addr, &addr).unwrap_or(0);
+
+    if let Ok(block) = rpc::fetch_block_number() {
+        CACHED_BLOCK.store(block, Ordering::SeqCst);
+    }
 
     {
         let mut state = WALLET_STATE.lock();
