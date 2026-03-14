@@ -20,7 +20,7 @@ use crate::display::constants::{
 };
 use crate::display::font::draw_string;
 
-use super::buffer::get_entry;
+use super::buffer::{get_entry, get_count};
 use super::types::{LogLevel, LINE_HEIGHT, LOG_LINE_LEN, LOG_X, LOG_Y_START, MAX_LOG_LINES};
 
 const LOG_AREA_WIDTH: u32 = (LOG_LINE_LEN as u32 + 5) * 8;
@@ -65,7 +65,13 @@ fn redraw_all_visible(total: usize) {
     }
 }
 
-pub fn redraw_all() {}
+pub fn redraw_all() {
+    let count = get_count();
+    if count > 0 {
+        clear_log_area();
+        redraw_all_visible(count);
+    }
+}
 
 pub fn clear_display() {}
 
