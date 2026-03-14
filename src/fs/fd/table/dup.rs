@@ -21,7 +21,9 @@ use alloc::string::ToString;
 use crate::fs::fd::error::{FdError, FdResult};
 use crate::fs::fd::types::{OpenFile, MAX_FD, RESERVED_FDS, O_RDONLY, O_WRONLY};
 
-use super::core::{FD_TABLE, validate_fd_range, is_stdio, fd_is_valid, fd_close};
+use super::core::{FD_TABLE, validate_fd_range, is_stdio};
+use super::open::fd_close;
+use super::query::fd_is_valid;
 
 pub fn fd_dup_min(old_fd: i32, min_fd: i32) -> FdResult<i32> {
     validate_fd_range(old_fd)?;
