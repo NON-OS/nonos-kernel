@@ -17,6 +17,7 @@
 use alloc::vec::Vec;
 use crate::crypto::hash::sha256;
 use crate::crypto::util::bigint::BigUint;
+use crate::crypto::util::misc::constant_time_eq;
 use crate::crypto::{CryptoError, CryptoResult};
 use super::keys::{RsaPrivateKey, RsaPublicKey, rsa_private_operation, rsa_public_operation};
 
@@ -30,18 +31,27 @@ pub fn sign_pkcs1v15(private_key: &RsaPrivateKey, message: &[u8]) -> CryptoResul
     Ok(signature.to_bytes_be())
 }
 
+/// # Safety
+/// PKCS#1 v1.5 signature verification with constant-time comparison.
+/// All operations execute regardless of intermediate results to prevent
+/// timing side-channels that could leak signature validity information.
 pub fn verify_pkcs1v15(public_key: &RsaPublicKey, message: &[u8], signature: &[u8]) -> bool {
     let hash = sha256(message);
     let expected_digest_info = pkcs1_digest_info_sha256(&hash);
 
-    if let Ok(decrypted) = rsa_public_operation(&BigUint::from_bytes_be(signature), public_key) {
-        let decrypted_bytes = decrypted.to_bytes_be();
-        if let Ok(unpadded) = pkcs1_unpad_type1(&decrypted_bytes) {
-            return unpadded == expected_digest_info;
-        }
-    }
+    let decrypted_result = rsa_public_operation(&BigUint::from_bytes_be(signature), public_key);
 
-    false
+    let decrypted_bytes = match decrypted_result {
+        Ok(d) => d.to_bytes_be(),
+        Err(_) => return false,
+    };
+
+    let unpadded = match pkcs1_unpad_type1(&decrypted_bytes) {
+        Ok(u) => u,
+        Err(_) => return false,
+    };
+
+    constant_time_eq(&unpadded, &expected_digest_info)
 }
 
 fn pkcs1_pad_type1(data: &[u8], em_len: usize) -> CryptoResult<Vec<u8>> {
