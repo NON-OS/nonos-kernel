@@ -18,7 +18,7 @@ use core::sync::atomic::Ordering;
 use crate::graphics::font::draw_char;
 use super::state;
 use super::render_helpers::{
-    draw_card, draw_button, draw_string, draw_number, draw_checkbox,
+    draw_card, draw_button, draw_string, draw_string_clipped, draw_number, draw_checkbox,
     draw_status_indicator, draw_progress_bar,
     COLOR_TEXT, COLOR_TEXT_DIM, COLOR_TEXT_BRIGHT, COLOR_ACCENT, COLOR_WARNING, COLOR_ERROR,
 };
@@ -44,11 +44,7 @@ pub(super) fn draw_wallet_tab(x: u32, y: u32, w: u32, h: u32) {
         draw_string(card_x + 20, y + 40, b"Wallet Address", COLOR_TEXT_DIM);
 
         if let Some(addr) = state::get_wallet_address() {
-            let addr_bytes = addr.as_bytes();
-            let display_len = addr_bytes.len().min(42);
-            for (i, &ch) in addr_bytes[..display_len].iter().enumerate() {
-                draw_char(card_x + 20 + i as u32 * 8, y + 60, ch, COLOR_TEXT);
-            }
+            draw_string_clipped(card_x + 20, y + 60, addr.as_bytes(), COLOR_TEXT, card_w - 40);
         }
 
         draw_string(card_x + 20, y + 90, b"Balance", COLOR_TEXT_DIM);
