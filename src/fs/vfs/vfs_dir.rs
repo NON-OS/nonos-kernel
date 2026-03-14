@@ -101,11 +101,8 @@ impl VirtualFileSystem {
             return Err(VfsError::DirectoryNotEmpty);
         }
 
-        let marker_path = if path.ends_with('/') {
-            format!("{}.dir", path.trim_end_matches('/'))
-        } else {
-            format!("{}/.dir", path)
-        };
+        let normalized = path.trim_end_matches('/');
+        let marker_path = format!("{}/.dir", normalized);
 
         let _ = crate::fs::ramfs::NONOS_FILESYSTEM.delete_file(&marker_path);
 
