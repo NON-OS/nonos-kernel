@@ -18,6 +18,7 @@ extern crate alloc;
 
 use alloc::string::String;
 use crate::syscall::SyscallResult;
+use crate::usercopy::copy_to_user;
 use super::super::errno;
 use super::helpers::{read_user_string, resolve_path_at};
 
@@ -57,18 +58,9 @@ pub fn handle_statfs(path: u64, buf: u64) -> SyscallResult {
         return errno(2);
     }
 
-    // SAFETY: buf is user-provided pointer for statfs output.
-    unsafe {
-        let ptr = buf as *mut u8;
-        core::ptr::write_bytes(ptr, 0, 120);
-        core::ptr::write((ptr.add(0)) as *mut u64, 0x4e4f4e4f53);
-        core::ptr::write((ptr.add(8)) as *mut u64, 4096);
-        core::ptr::write((ptr.add(16)) as *mut u64, 1024 * 1024);
-        core::ptr::write((ptr.add(24)) as *mut u64, 512 * 1024);
-        core::ptr::write((ptr.add(32)) as *mut u64, 512 * 1024);
-        core::ptr::write((ptr.add(40)) as *mut u64, 1000000);
-        core::ptr::write((ptr.add(48)) as *mut u64, 999000);
-        core::ptr::write((ptr.add(88)) as *mut u64, 255);
+    let statfs_buf = build_statfs_buf();
+    if copy_to_user(buf, &statfs_buf).is_err() {
+        return errno(14);
     }
 
     SyscallResult { value: 0, capability_consumed: false, audit_required: false }
@@ -83,21 +75,25 @@ pub fn handle_fstatfs(fd: i32, buf: u64) -> SyscallResult {
         return errno(14);
     }
 
-    // SAFETY: buf is user-provided pointer for statfs output.
-    unsafe {
-        let ptr = buf as *mut u8;
-        core::ptr::write_bytes(ptr, 0, 120);
-        core::ptr::write((ptr.add(0)) as *mut u64, 0x4e4f4e4f53);
-        core::ptr::write((ptr.add(8)) as *mut u64, 4096);
-        core::ptr::write((ptr.add(16)) as *mut u64, 1024 * 1024);
-        core::ptr::write((ptr.add(24)) as *mut u64, 512 * 1024);
-        core::ptr::write((ptr.add(32)) as *mut u64, 512 * 1024);
-        core::ptr::write((ptr.add(40)) as *mut u64, 1000000);
-        core::ptr::write((ptr.add(48)) as *mut u64, 999000);
-        core::ptr::write((ptr.add(88)) as *mut u64, 255);
+    let statfs_buf = build_statfs_buf();
+    if copy_to_user(buf, &statfs_buf).is_err() {
+        return errno(14);
     }
 
     SyscallResult { value: 0, capability_consumed: false, audit_required: false }
+}
+
+fn build_statfs_buf() -> [u8; 120] {
+    let mut buf = [0u8; 120];
+    buf[0..8].copy_from_slice(&0x4e4f4e4f53u64.to_ne_bytes());
+    buf[8..16].copy_from_slice(&4096u64.to_ne_bytes());
+    buf[16..24].copy_from_slice(&(1024u64 * 1024).to_ne_bytes());
+    buf[24..32].copy_from_slice(&(512u64 * 1024).to_ne_bytes());
+    buf[32..40].copy_from_slice(&(512u64 * 1024).to_ne_bytes());
+    buf[40..48].copy_from_slice(&1000000u64.to_ne_bytes());
+    buf[48..56].copy_from_slice(&999000u64.to_ne_bytes());
+    buf[88..96].copy_from_slice(&255u64.to_ne_bytes());
+    buf
 }
 
 pub fn handle_statx(dirfd: i32, pathname: u64, flags: i32, mask: u32, statxbuf: u64) -> SyscallResult {
@@ -134,22 +130,23 @@ pub fn handle_statx(dirfd: i32, pathname: u64, flags: i32, mask: u32, statxbuf: 
     };
 
     let _ = mask;
+    let statx_buf = build_statx_buf(&metadata);
 
-    // SAFETY: statxbuf is user-provided pointer for statx output.
-    unsafe {
-        let buf = statxbuf as *mut u8;
-        core::ptr::write_bytes(buf, 0, 256);
-        core::ptr::write((buf.add(0)) as *mut u32, 0x7FF);
-        core::ptr::write((buf.add(4)) as *mut u32, 4096);
-        core::ptr::write((buf.add(8)) as *mut u64, 0);
-        core::ptr::write((buf.add(16)) as *mut u32, 1);
-        core::ptr::write((buf.add(20)) as *mut u32, 0);
-        core::ptr::write((buf.add(24)) as *mut u32, 0);
-        core::ptr::write((buf.add(28)) as *mut u16, (metadata.mode & 0xFFFF) as u16);
-        core::ptr::write((buf.add(32)) as *mut u64, metadata.inode);
-        core::ptr::write((buf.add(40)) as *mut u64, metadata.size);
-        core::ptr::write((buf.add(48)) as *mut u64, (metadata.size + 511) / 512);
+    if copy_to_user(statxbuf, &statx_buf).is_err() {
+        return errno(14);
     }
 
     SyscallResult { value: 0, capability_consumed: false, audit_required: false }
+}
+
+fn build_statx_buf(metadata: &crate::fs::FileMetadata) -> [u8; 256] {
+    let mut buf = [0u8; 256];
+    buf[0..4].copy_from_slice(&0x7FFu32.to_ne_bytes());
+    buf[4..8].copy_from_slice(&4096u32.to_ne_bytes());
+    buf[16..20].copy_from_slice(&1u32.to_ne_bytes());
+    buf[28..30].copy_from_slice(&((metadata.mode & 0xFFFF) as u16).to_ne_bytes());
+    buf[32..40].copy_from_slice(&metadata.inode.to_ne_bytes());
+    buf[40..48].copy_from_slice(&metadata.size.to_ne_bytes());
+    buf[48..56].copy_from_slice(&((metadata.size + 511) / 512).to_ne_bytes());
+    buf
 }
