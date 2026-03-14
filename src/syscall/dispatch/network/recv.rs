@@ -14,161 +14,88 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+extern crate alloc;
+
 use crate::capabilities::Capability;
 use crate::syscall::SyscallResult;
+use crate::usercopy::{copy_from_user, copy_to_user, read_user_value, write_user_value};
 use super::super::{errno, require_capability};
 use super::constants::MMSGHDR_SIZE;
 use super::types::SocketType;
 use super::state::SOCKET_TABLE;
 
 pub fn handle_recvfrom(sockfd: u64, buf: u64, len: u64, _flags: u64) -> SyscallResult {
-    if let Err(e) = require_capability(Capability::Network) {
-        return e;
-    }
-
-    if buf == 0 || len == 0 {
-        return errno(22);
-    }
-
-    // SAFETY: Caller guarantees buf points to valid writable memory of at least len bytes.
-    let buffer = unsafe {
-        core::slice::from_raw_parts_mut(buf as *mut u8, len as usize)
-    };
-
+    if let Err(e) = require_capability(Capability::Network) { return e; }
+    if buf == 0 || len == 0 { return errno(22); }
     let table = SOCKET_TABLE.lock();
-    let entry = match table.get(&(sockfd as u32)) {
-        Some(e) => e.clone(),
-        None => return errno(9),
-    };
+    let entry = match table.get(&(sockfd as u32)) { Some(e) => e.clone(), None => return errno(9) };
     drop(table);
-
     if entry.socket_type == SocketType::Tcp {
-        let conn_id = match entry.tcp_conn_id {
-            Some(id) => id,
-            None => return errno(107),
-        };
-
-        let stack = match crate::network::get_network_stack() {
-            Some(s) => s,
-            None => return errno(99),
-        };
-
+        let conn_id = match entry.tcp_conn_id { Some(id) => id, None => return errno(107) };
+        let stack = match crate::network::get_network_stack() { Some(s) => s, None => return errno(99) };
         match stack.tcp_receive(conn_id, len as usize) {
             Ok(data) => {
-                let recv_len = data.len().min(buffer.len());
-                buffer[..recv_len].copy_from_slice(&data[..recv_len]);
+                let recv_len = data.len().min(len as usize);
+                if copy_to_user(buf, &data[..recv_len]).is_err() { return errno(14); }
                 SyscallResult { value: recv_len as i64, capability_consumed: false, audit_required: false }
             }
             Err(_) => errno(11),
         }
     } else {
-        let udp_id = match entry.udp_socket_id {
-            Some(id) => id,
-            None => return errno(9),
-        };
-
-        match crate::network::udp::recv(udp_id, buffer) {
-            Ok(recv_len) => SyscallResult { value: recv_len as i64, capability_consumed: false, audit_required: false },
+        let udp_id = match entry.udp_socket_id { Some(id) => id, None => return errno(9) };
+        let mut buffer = alloc::vec![0u8; len as usize];
+        match crate::network::udp::recv(udp_id, &mut buffer) {
+            Ok(recv_len) => {
+                if copy_to_user(buf, &buffer[..recv_len]).is_err() { return errno(14); }
+                SyscallResult { value: recv_len as i64, capability_consumed: false, audit_required: false }
+            }
             Err(_) => errno(11),
         }
     }
 }
 
 pub fn handle_recvmsg(sockfd: u64, msg: u64, flags: u64) -> SyscallResult {
-    if let Err(e) = require_capability(Capability::Network) {
-        return e;
-    }
-
-    if msg == 0 {
-        return errno(22);
-    }
-
-    // SAFETY: Caller guarantees msg points to valid msghdr structure.
-    let msghdr = unsafe { core::slice::from_raw_parts(msg as *const u64, 7) };
-    let iov_ptr = msghdr[2];
-    let iovlen = msghdr[3];
-
-    if iov_ptr == 0 || iovlen == 0 {
-        return errno(22);
-    }
-
-    // SAFETY: Caller guarantees iov_ptr points to valid iovec structure.
-    let iov = unsafe { core::slice::from_raw_parts(iov_ptr as *const u64, 2) };
-    let buf = iov[0];
-    let len = iov[1];
-
-    handle_recvfrom(sockfd, buf, len, flags)
+    if let Err(e) = require_capability(Capability::Network) { return e; }
+    if msg == 0 { return errno(22); }
+    let mut msghdr_bytes = [0u8; 56];
+    if copy_from_user(msg, &mut msghdr_bytes).is_err() { return errno(14); }
+    let iov_ptr = u64::from_ne_bytes(msghdr_bytes[16..24].try_into().unwrap());
+    let iovlen = u64::from_ne_bytes(msghdr_bytes[24..32].try_into().unwrap());
+    if iov_ptr == 0 || iovlen == 0 { return errno(22); }
+    let mut iov_bytes = [0u8; 16];
+    if copy_from_user(iov_ptr, &mut iov_bytes).is_err() { return errno(14); }
+    let iov_base = u64::from_ne_bytes(iov_bytes[0..8].try_into().unwrap());
+    let iov_len = u64::from_ne_bytes(iov_bytes[8..16].try_into().unwrap());
+    handle_recvfrom(sockfd, iov_base, iov_len, flags)
 }
 
 pub fn handle_recvmmsg(sockfd: u64, msgvec: u64, vlen: u64, flags: u64, timeout: u64) -> SyscallResult {
-    if let Err(e) = require_capability(Capability::Network) {
-        return e;
-    }
-
-    if msgvec == 0 || vlen == 0 {
-        return errno(22);
-    }
-
+    if let Err(e) = require_capability(Capability::Network) { return e; }
+    if msgvec == 0 || vlen == 0 { return errno(22); }
     let vlen = vlen.min(1024) as usize;
-
     let timeout_ms: Option<u64> = if timeout != 0 {
-        // SAFETY: Caller guarantees timeout points to valid timespec structure.
-        let timespec = unsafe { core::slice::from_raw_parts(timeout as *const i64, 2) };
-        let tv_sec = timespec[0] as u64;
-        let tv_nsec = timespec[1] as u64;
-        Some(tv_sec * 1000 + tv_nsec / 1_000_000)
-    } else {
-        None
-    };
-
+        let tv_sec: i64 = match read_user_value(timeout) { Ok(v) => v, Err(_) => return errno(14) };
+        let tv_nsec: i64 = match read_user_value(timeout + 8) { Ok(v) => v, Err(_) => return errno(14) };
+        Some((tv_sec as u64) * 1000 + (tv_nsec as u64) / 1_000_000)
+    } else { None };
     let start_time = crate::time::timestamp_millis();
-
     let mut recv_count = 0u64;
-
     for i in 0..vlen {
         if let Some(timeout_ms) = timeout_ms {
-            let elapsed = crate::time::timestamp_millis() - start_time;
-            if elapsed >= timeout_ms {
-                break;
-            }
+            if crate::time::timestamp_millis() - start_time >= timeout_ms { break; }
         }
-
         let mmsghdr_ptr = msgvec + (i * MMSGHDR_SIZE) as u64;
-
-        let msg_flags = if recv_count > 0 && (flags & 0x40) == 0 {
-            flags | 0x40
-        } else {
-            flags
-        };
-
+        let msg_flags = if recv_count > 0 && (flags & 0x40) == 0 { flags | 0x40 } else { flags };
         let result = handle_recvmsg(sockfd, mmsghdr_ptr, msg_flags);
-
         if result.value < 0 {
-            if result.value == -11 && recv_count > 0 {
-                break;
-            }
-            if recv_count == 0 {
-                return result;
-            }
+            if result.value == -11 && recv_count > 0 { break; }
+            if recv_count == 0 { return result; }
             break;
         }
-
-        if result.value == 0 {
-            break;
-        }
-
-        // SAFETY: Caller guarantees mmsghdr_ptr + 56 points to valid msg_len field.
-        let msg_len_ptr = (mmsghdr_ptr + 56) as *mut u32;
-        unsafe {
-            *msg_len_ptr = result.value as u32;
-        }
-
+        if result.value == 0 { break; }
+        let msg_len = result.value as u32;
+        if write_user_value(mmsghdr_ptr + 56, &msg_len).is_err() { break; }
         recv_count += 1;
     }
-
-    SyscallResult {
-        value: recv_count as i64,
-        capability_consumed: false,
-        audit_required: false,
-    }
+    SyscallResult { value: recv_count as i64, capability_consumed: false, audit_required: false }
 }
