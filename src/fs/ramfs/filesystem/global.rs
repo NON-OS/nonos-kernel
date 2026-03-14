@@ -17,11 +17,11 @@
 extern crate alloc;
 
 use alloc::format;
-use alloc::string::{String, ToString};
+use alloc::string::String;
 use alloc::vec::Vec;
 
 use super::super::error::{FsError, FsResult};
-use super::super::types::{DirEntry, FsStatistics};
+use super::super::types::FsStatistics;
 use super::core::NonosFilesystem;
 
 pub static NONOS_FILESYSTEM: NonosFilesystem = NonosFilesystem::new();
@@ -46,6 +46,12 @@ pub fn write_file(name: &str, data: &[u8]) -> FsResult<()> {
     NONOS_FILESYSTEM.write_file(name, data)
 }
 
+/// # Safety
+/// Atomic write-or-create. Prevents TOCTOU by combining exists check with write.
+pub fn write_or_create(name: &str, data: &[u8]) -> FsResult<()> {
+    NONOS_FILESYSTEM.write_or_create(name, data)
+}
+
 pub fn delete_file(name: &str) -> FsResult<()> {
     NONOS_FILESYSTEM.delete_file(name)
 }
@@ -62,85 +68,12 @@ pub fn file_exists(name: &str) -> bool {
     exists(name)
 }
 
-pub fn dir_exists(path: &str) -> bool {
-    let dir_path = if path.ends_with('/') { path.to_string() } else { format!("{}/", path) };
-    NONOS_FILESYSTEM.list_files().iter().any(|k| k.starts_with(&dir_path))
-}
-
-pub fn list_dir(path: &str) -> FsResult<Vec<String>> {
-    let entries = NONOS_FILESYSTEM.list_dir_entries(path)?;
-    Ok(entries.into_iter().map(|e| {
-        if e.is_dir {
-            format!("{}/", e.name)
-        } else {
-            e.name
-        }
-    }).collect())
-}
-
-pub fn list_dir_entries(path: &str) -> FsResult<Vec<DirEntry>> {
-    NONOS_FILESYSTEM.list_dir_entries(path)
-}
-
-pub fn create_dir(path: &str) -> FsResult<()> {
-    let normalized = path.trim_end_matches('/');
-    if normalized.is_empty() {
-        return Ok(());
-    }
-
-    if let Some(parent_end) = normalized.rfind('/') {
-        if parent_end > 0 {
-            let parent = &normalized[..parent_end];
-            let parent_marker = format!("{}/.dir", parent);
-            if !exists(&parent_marker) {
-                return Err(FsError::NotFound);
-            }
-        }
-    }
-
-    let marker_path = format!("{}/.dir", normalized);
-    if exists(&marker_path) {
-        return Err(FsError::AlreadyExists);
-    }
-
-    create_file(&marker_path, b"")
-}
-
-pub fn mkdir_all(path: &str) -> FsResult<()> {
-    let normalized = path.trim_end_matches('/');
-    if normalized.is_empty() {
-        return Ok(());
-    }
-
-    let components: Vec<&str> = normalized.split('/').filter(|s| !s.is_empty()).collect();
-    let mut current_path = String::new();
-
-    for component in components {
-        if current_path.is_empty() {
-            current_path = format!("/{}", component);
-        } else {
-            current_path = format!("{}/{}", current_path, component);
-        }
-
-        let marker_path = format!("{}/.dir", current_path);
-
-        if !exists(&marker_path) {
-            create_file(&marker_path, b"")?;
-        }
-    }
-
-    Ok(())
-}
-
 pub fn delete(path: &str) -> FsResult<()> {
     if exists(path) {
         return delete_file(path);
     }
-    let marker_path = if path.ends_with('/') {
-        format!("{}.dir", path)
-    } else {
-        format!("{}/.dir", path)
-    };
+    let normalized = path.trim_end_matches('/');
+    let marker_path = format!("{}/.dir", normalized);
     if exists(&marker_path) {
         return delete_file(&marker_path);
     }
@@ -160,6 +93,13 @@ pub fn stats() -> FsStatistics {
 
 pub fn init_nonos_fs() -> FsResult<()> {
     crate::log_info!("Initializing NONOS RAM-only filesystem");
+
+    let _ = create_file("/ram/.dir", b"");
+    let _ = create_file("/disk/.dir", b"");
+    let _ = create_file("/disk/0/.dir", b"");
+    let _ = create_file("/disk/1/.dir", b"");
+    let _ = create_file("/home/.dir", b"");
+    let _ = create_file("/tmp/.dir", b"");
 
     match create_file("zero_state_init", b"ZeroState FS initialized (RAM-only)") {
         Ok(_) => {
