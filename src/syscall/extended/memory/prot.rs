@@ -54,7 +54,10 @@ pub fn handle_mprotect(addr: u64, len: u64, prot: u64) -> SyscallResult {
         return errno(1);
     }
 
-    let num_pages = (len + 4095) / 4096;
+    let num_pages = match len.checked_add(4095) {
+        Some(v) => v / 4096,
+        None => return errno(22),
+    };
 
     for i in 0..num_pages {
         let page_addr = VirtAddr::new(addr + i * 4096);
