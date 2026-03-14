@@ -21,10 +21,16 @@ use x86_64::VirtAddr;
 use super::context::{log_page_fault, ExceptionContext, PageFaultContext, PageFaultErrorCode};
 use crate::interrupts::idt::halt_loop;
 use crate::interrupts::stats;
+use crate::interrupts::safety::set_interrupt_context;
 use crate::memory::hardening;
 use crate::memory::paging::manager::api as paging;
+use crate::usercopy::try_recover_fault;
 
+/// # Safety
+/// Page fault handler. Sets interrupt context for safe nesting detection.
 pub fn handle(frame: InterruptStackFrame, error_code: u64) {
+    let _ctx = set_interrupt_context();
+
     let accessed_address = Cr2::read().as_u64();
     let exception = ExceptionContext::from_frame(&frame);
     let error = PageFaultErrorCode::from_bits(error_code);
@@ -58,6 +64,14 @@ fn try_handle_fault(ctx: &PageFaultContext, error_code: u64) -> bool {
             ctx.accessed_address
         ));
         return false;
+    }
+
+    if let Some(_recovery_rip) = try_recover_fault() {
+        crate::log::logger::log_debug!(
+            "Usercopy fault recovered at {:#x}",
+            ctx.accessed_address
+        );
+        return true;
     }
 
     if let Ok(()) = paging::handle_page_fault(virt_addr, error_code) {
