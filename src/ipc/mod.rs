@@ -25,7 +25,8 @@ pub mod nonos_transport;
 pub mod pipe;
 
 pub mod eventfd {
-    pub use crate::syscall::extended::eventfd::*;
+    pub use crate::syscall::extended::eventfd_types::*;
+    pub use crate::syscall::extended::eventfd_ops::*;
 }
 
 pub mod signalfd {
