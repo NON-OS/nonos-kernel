@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::syscall::SyscallResult;
+use crate::usercopy::read_user_value;
 use super::super::errno;
 use super::constants::EFAULT;
 
@@ -28,13 +29,16 @@ pub fn handle_utime(filename: u64, times: u64) -> SyscallResult {
         Err(_) => return errno(EFAULT),
     };
 
-    // SAFETY: times is user-provided pointer to utimbuf struct.
     let times_arr = if times != 0 {
-        unsafe {
-            let atime = core::ptr::read(times as *const u64);
-            let mtime = core::ptr::read((times + 16) as *const u64);
-            [atime, mtime]
-        }
+        let atime: u64 = match read_user_value(times) {
+            Ok(v) => v,
+            Err(_) => return errno(EFAULT),
+        };
+        let mtime: u64 = match read_user_value(times + 16) {
+            Ok(v) => v,
+            Err(_) => return errno(EFAULT),
+        };
+        [atime, mtime]
     } else {
         let now = crate::time::timestamp_millis() / 1000;
         [now, now]
@@ -56,13 +60,16 @@ pub fn handle_utimes(filename: u64, times: u64) -> SyscallResult {
         Err(_) => return errno(EFAULT),
     };
 
-    // SAFETY: times is user-provided pointer to timeval array.
     let times_arr = if times != 0 {
-        unsafe {
-            let atime = core::ptr::read(times as *const u64);
-            let mtime = core::ptr::read((times + 16) as *const u64);
-            [atime, mtime]
-        }
+        let atime: u64 = match read_user_value(times) {
+            Ok(v) => v,
+            Err(_) => return errno(EFAULT),
+        };
+        let mtime: u64 = match read_user_value(times + 16) {
+            Ok(v) => v,
+            Err(_) => return errno(EFAULT),
+        };
+        [atime, mtime]
     } else {
         let now = crate::time::timestamp_millis() / 1000;
         [now, now]
@@ -84,13 +91,16 @@ pub fn handle_utimensat(dirfd: i32, pathname: u64, times: u64, _flags: i32) -> S
         return errno(EFAULT);
     };
 
-    // SAFETY: times is user-provided pointer to timespec array.
     let times_arr = if times != 0 {
-        unsafe {
-            let atime = core::ptr::read(times as *const u64);
-            let mtime = core::ptr::read((times + 16) as *const u64);
-            [atime, mtime]
-        }
+        let atime: u64 = match read_user_value(times) {
+            Ok(v) => v,
+            Err(_) => return errno(EFAULT),
+        };
+        let mtime: u64 = match read_user_value(times + 16) {
+            Ok(v) => v,
+            Err(_) => return errno(EFAULT),
+        };
+        [atime, mtime]
     } else {
         let now = crate::time::timestamp_millis() / 1000;
         [now, now]
@@ -112,13 +122,16 @@ pub fn handle_futimesat(dirfd: i32, pathname: u64, times: u64) -> SyscallResult 
         Err(_) => return errno(EFAULT),
     };
 
-    // SAFETY: times is user-provided pointer to timeval array.
     let times_arr = if times != 0 {
-        unsafe {
-            let atime = core::ptr::read(times as *const u64);
-            let mtime = core::ptr::read((times + 16) as *const u64);
-            [atime, mtime]
-        }
+        let atime: u64 = match read_user_value(times) {
+            Ok(v) => v,
+            Err(_) => return errno(EFAULT),
+        };
+        let mtime: u64 = match read_user_value(times + 16) {
+            Ok(v) => v,
+            Err(_) => return errno(EFAULT),
+        };
+        [atime, mtime]
     } else {
         let now = crate::time::timestamp_millis() / 1000;
         [now, now]
