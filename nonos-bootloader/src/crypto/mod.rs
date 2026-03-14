@@ -27,3 +27,4 @@ pub use sig::{
     revoke_key_by_pubkey, set_minimum_version, validate_key, verify_signature, CertificateStatus,
     KeyStatus, RevocationReason, SignatureStatus, SignatureVerifier, NONOS_SIGNING_KEY,
 };
+pub use keystore_v2::get_keystore_fingerprint;
