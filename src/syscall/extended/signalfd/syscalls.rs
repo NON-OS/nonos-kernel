@@ -40,18 +40,17 @@ pub fn handle_signalfd4(fd: i32, mask: u64, _sizemask: u64, flags: i32) -> Sysca
     let sig_mask = SigSet(mask);
 
     if fd == -1 {
-        let instances = SIGNALFD_INSTANCES.lock();
+        let mut instances = SIGNALFD_INSTANCES.lock();
         if instances.len() >= MAX_SIGNALFD_INSTANCES {
-            drop(instances);
             return errno(ENOMEM);
         }
-        drop(instances);
 
         let sfd_id = NEXT_SIGNALFD_ID.fetch_add(1, Ordering::SeqCst);
         let pid = current_pid();
         let instance = SignalfdInstance::new(sfd_id, sig_mask, flags, pid);
 
-        SIGNALFD_INSTANCES.lock().insert(sfd_id, instance);
+        instances.insert(sfd_id, instance);
+        drop(instances);
 
         let new_fd = allocate_signalfd_fd();
         FD_TO_SIGNALFD.lock().insert(new_fd, sfd_id);
