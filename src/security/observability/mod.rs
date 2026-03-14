@@ -1,0 +1,26 @@
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+mod policy;
+mod redact;
+mod serial;
+
+pub use policy::{
+    ObservabilityPolicy, OutputMode, is_production_mode, set_production_mode,
+    should_log_debug, should_emit_serial,
+};
+pub use redact::{redact_pointer, redact_address, redact_panic_message};
+pub use serial::{serial_log, serial_log_redacted};
