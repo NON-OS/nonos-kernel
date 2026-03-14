@@ -19,8 +19,10 @@ pub mod key;
 pub mod crypto;
 pub mod core;
 pub mod ops;
+pub mod ops_write;
 pub mod list;
 pub mod global;
+pub mod global_dir;
 pub mod legacy;
 
 pub use path::normalize_path;
@@ -32,18 +34,22 @@ pub use global::{
     create_file,
     read_file,
     write_file,
+    write_or_create,
     delete_file,
     list_files,
     exists,
     file_exists,
-    dir_exists,
-    list_dir,
-    list_dir_entries,
-    create_dir,
     delete,
     rename,
     stats,
     init_nonos_fs,
+};
+pub use global_dir::{
+    dir_exists,
+    list_dir,
+    list_dir_entries,
+    create_dir,
+    mkdir_all,
 };
 pub use legacy::{
     create_file_legacy,
