@@ -26,9 +26,17 @@ include!(concat!(env!("OUT_DIR"), "/keys_generated.rs"));
 pub fn init_production_keystore() -> Result<usize, &'static str> {
     let mut store = KEYSTORE_V2.lock();
 
-    let primary_key = TrustedKey::new(NONOS_PUBLIC_KEY, KEY_VERSION, 0, 0, KeyType::Primary);
+    let primary_key = TrustedKey::new(NONOS_PUBLIC_KEY, KEY_VERSION, BUILD_TIMESTAMP, 0, KeyType::Primary);
+
+    if primary_key.key_id != NONOS_KEY_ID {
+        return Err("key ID mismatch");
+    }
 
     store.add_key(primary_key)?;
 
     Ok(store.key_count)
+}
+
+pub fn get_keystore_fingerprint() -> &'static str {
+    KEY_FINGERPRINT
 }
