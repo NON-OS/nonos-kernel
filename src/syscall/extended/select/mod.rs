@@ -16,11 +16,13 @@
 
 mod types;
 mod check;
-mod syscalls;
+mod select;
+mod poll;
 
 pub use types::{
     FD_SETSIZE, POLLIN, POLLPRI, POLLOUT, POLLERR, POLLHUP, POLLNVAL,
     POLLRDNORM, POLLRDBAND, POLLWRNORM, POLLWRBAND, PollFd,
 };
 
-pub use syscalls::{handle_select, handle_pselect6, handle_ppoll, handle_poll};
+pub use select::{handle_select, handle_pselect6};
+pub use poll::{handle_ppoll, handle_poll};
