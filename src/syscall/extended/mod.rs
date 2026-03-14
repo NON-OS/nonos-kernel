@@ -16,7 +16,8 @@
 
 pub mod admin;
 pub mod epoll;
-pub mod eventfd;
+pub mod eventfd_types;
+pub mod eventfd_ops;
 pub mod fd;
 pub mod filesystem;
 pub mod inotify;
@@ -24,15 +25,18 @@ pub mod ipc;
 pub mod memory;
 pub mod misc;
 pub mod process;
+pub mod rlimit;
 pub mod sched;
 pub mod select;
 pub mod signalfd;
 pub mod sync;
+pub mod sysinfo;
 pub mod time;
 pub mod timer;
 
 pub use admin::*;
-pub use eventfd::*;
+pub use eventfd_types::*;
+pub use eventfd_ops::*;
 pub use fd::*;
 pub use filesystem::*;
 pub use memory::*;
@@ -40,6 +44,8 @@ pub use misc::*;
 pub use process::*;
 pub use sync::*;
 pub use time::*;
+pub use rlimit::*;
+pub use sysinfo::*;
 
 pub use inotify::{
     IN_CLOEXEC, IN_NONBLOCK,
