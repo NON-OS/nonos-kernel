@@ -18,6 +18,7 @@ extern crate alloc;
 
 use alloc::string::String;
 use crate::syscall::SyscallResult;
+use crate::usercopy::copy_to_user;
 use super::super::errno;
 use super::helpers::{read_user_string, resolve_path_at};
 
@@ -106,15 +107,19 @@ pub fn handle_newfstatat(dirfd: i32, pathname: u64, statbuf: u64, flags: i32) ->
         Err(_) => return errno(2),
     };
 
-    // SAFETY: statbuf is user-provided pointer for stat output.
-    unsafe {
-        let buf = statbuf as *mut u8;
-        core::ptr::write_bytes(buf, 0, 128);
-        core::ptr::write((buf.add(0)) as *mut u64, 1);
-        core::ptr::write((buf.add(8)) as *mut u64, metadata.inode);
-        core::ptr::write((buf.add(24)) as *mut u32, metadata.mode);
-        core::ptr::write((buf.add(48)) as *mut i64, metadata.size as i64);
+    let stat_buf = build_stat_buf(&metadata);
+    if copy_to_user(statbuf, &stat_buf).is_err() {
+        return errno(14);
     }
 
     SyscallResult { value: 0, capability_consumed: false, audit_required: false }
+}
+
+fn build_stat_buf(metadata: &crate::fs::FileMetadata) -> [u8; 128] {
+    let mut buf = [0u8; 128];
+    buf[0..8].copy_from_slice(&1u64.to_ne_bytes());
+    buf[8..16].copy_from_slice(&metadata.inode.to_ne_bytes());
+    buf[24..28].copy_from_slice(&metadata.mode.to_ne_bytes());
+    buf[48..56].copy_from_slice(&(metadata.size as i64).to_ne_bytes());
+    buf
 }
