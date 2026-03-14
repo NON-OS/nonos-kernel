@@ -21,6 +21,7 @@ pub mod delivery;
 mod action;
 mod mask;
 mod wait;
+mod timedwait;
 mod send;
 mod stack;
 
@@ -31,6 +32,7 @@ pub use delivery::*;
 
 pub use action::{handle_rt_sigaction, read_sigaction, write_sigaction};
 pub use mask::{handle_rt_sigprocmask, handle_rt_sigpending};
-pub use wait::{handle_rt_sigreturn, handle_rt_sigsuspend, handle_rt_sigtimedwait, handle_pause};
+pub use wait::{handle_rt_sigreturn, handle_rt_sigsuspend, handle_pause};
+pub use timedwait::handle_rt_sigtimedwait;
 pub use send::{handle_kill, handle_tgkill, handle_tkill, handle_rt_sigqueueinfo, handle_rt_tgsigqueueinfo};
 pub use stack::{handle_sigaltstack, write_siginfo};
