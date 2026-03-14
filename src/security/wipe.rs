@@ -15,8 +15,13 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use core::sync::atomic::{compiler_fence, Ordering};
+use crate::persistence::revoke_all_consent;
 
+/// # Safety
+/// Performs complete secure wipe of all sensitive memory and revokes
+/// all persistence consent to ensure no data leaks post-wipe.
 pub fn secure_wipe_all_memory() {
+    revoke_all_consent();
     wipe_heap_region();
     wipe_process_memory();
     wipe_crypto_keys();
