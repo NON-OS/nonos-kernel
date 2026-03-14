@@ -94,12 +94,17 @@ pub static INPUT_LEN: AtomicUsize = AtomicUsize::new(0);
 pub static INPUT_CURSOR: AtomicUsize = AtomicUsize::new(0);
 
 pub static LOADING: AtomicBool = AtomicBool::new(false);
+pub static IS_HTTPS: AtomicBool = AtomicBool::new(false);
+pub static CERT_VERIFIED: AtomicBool = AtomicBool::new(false);
 pub static ERROR_MSG: Mutex<[u8; 128]> = Mutex::new([0u8; 128]);
 pub static ERROR_LEN: AtomicUsize = AtomicUsize::new(0);
 
 pub static PAGE_CONTENT: Mutex<Vec<String>> = Mutex::new(Vec::new());
 pub static PAGE_SCROLL: AtomicUsize = AtomicUsize::new(0);
+pub static PAGE_TITLE: Mutex<[u8; 128]> = Mutex::new([0u8; 128]);
+pub static PAGE_TITLE_LEN: AtomicUsize = AtomicUsize::new(0);
 pub static CONTENT_CHANGED: AtomicBool = AtomicBool::new(false);
+pub static PAGE_TOTAL_LINES: AtomicUsize = AtomicUsize::new(0);
 
 pub fn mark_content_changed() {
     CONTENT_CHANGED.store(true, Ordering::Relaxed);
@@ -253,4 +258,110 @@ pub fn increment_ads_blocked() {
 
 pub fn increment_urls_cleaned() {
     PRIVACY_URLS_CLEANED.fetch_add(1, Ordering::Relaxed);
+}
+
+pub fn set_page_title(title: &str) {
+    let mut buf = PAGE_TITLE.lock();
+    let len = title.len().min(127);
+    buf[..len].copy_from_slice(&title.as_bytes()[..len]);
+    PAGE_TITLE_LEN.store(len, Ordering::Relaxed);
+}
+
+pub fn get_page_title() -> Option<String> {
+    let len = PAGE_TITLE_LEN.load(Ordering::Relaxed);
+    if len > 0 {
+        let buf = PAGE_TITLE.lock();
+        core::str::from_utf8(&buf[..len]).ok().map(String::from)
+    } else {
+        None
+    }
+}
+
+pub fn scroll_up(lines: usize) {
+    let current = PAGE_SCROLL.load(Ordering::Relaxed);
+    PAGE_SCROLL.store(current.saturating_sub(lines), Ordering::Relaxed);
+}
+
+pub fn scroll_down(lines: usize) {
+    let current = PAGE_SCROLL.load(Ordering::Relaxed);
+    let total = PAGE_TOTAL_LINES.load(Ordering::Relaxed);
+    let new_scroll = (current + lines).min(total.saturating_sub(1));
+    PAGE_SCROLL.store(new_scroll, Ordering::Relaxed);
+}
+
+#[derive(Clone)]
+pub struct PageLink {
+    pub line: usize,
+    pub start_x: u32,
+    pub end_x: u32,
+    pub url: String,
+}
+
+pub static PAGE_LINKS: Mutex<Vec<PageLink>> = Mutex::new(Vec::new());
+pub static CURRENT_BASE_URL: Mutex<Option<String>> = Mutex::new(None);
+
+pub fn set_base_url(url: &str) {
+    *CURRENT_BASE_URL.lock() = Some(String::from(url));
+}
+
+pub fn get_base_url() -> Option<String> {
+    CURRENT_BASE_URL.lock().clone()
+}
+
+pub fn clear_page_links() {
+    PAGE_LINKS.lock().clear();
+}
+
+pub fn add_page_link(line: usize, start_x: u32, end_x: u32, url: &str) {
+    PAGE_LINKS.lock().push(PageLink {
+        line,
+        start_x,
+        end_x,
+        url: String::from(url),
+    });
+}
+
+pub fn find_link_at(line: usize, x: u32) -> Option<String> {
+    let links = PAGE_LINKS.lock();
+    for link in links.iter() {
+        if link.line == line && x >= link.start_x && x < link.end_x {
+            return Some(link.url.clone());
+        }
+    }
+    None
+}
+
+pub fn resolve_relative_url(relative: &str, base: &str) -> String {
+    if relative.starts_with("http://") || relative.starts_with("https://") {
+        return String::from(relative);
+    }
+
+    if relative.starts_with("//") {
+        if base.starts_with("https://") {
+            return alloc::format!("https:{}", relative);
+        } else {
+            return alloc::format!("http:{}", relative);
+        }
+    }
+
+    if let Some(scheme_end) = base.find("://") {
+        let after_scheme = &base[scheme_end + 3..];
+        let host_end = after_scheme.find('/').unwrap_or(after_scheme.len());
+        let host = &after_scheme[..host_end];
+        let scheme = &base[..scheme_end];
+
+        if relative.starts_with('/') {
+            return alloc::format!("{}://{}{}", scheme, host, relative);
+        } else {
+            let path = &after_scheme[host_end..];
+            let dir = if let Some(last_slash) = path.rfind('/') {
+                &path[..last_slash + 1]
+            } else {
+                "/"
+            };
+            return alloc::format!("{}://{}{}{}", scheme, host, dir, relative);
+        }
+    }
+
+    String::from(relative)
 }
