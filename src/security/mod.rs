@@ -20,6 +20,7 @@ pub mod boot;
 pub mod crypto;
 pub mod hardening;
 pub mod monitoring;
+pub mod observability;
 pub mod policy;
 pub mod network;
 pub mod quantum;
@@ -135,3 +136,11 @@ pub use init::init_all_security;
 pub use periodic::run_periodic_checks;
 pub use stats::{SecurityStats, get_security_stats};
 pub use wipe::secure_wipe_all_memory;
+
+pub use crate::usercopy;
+
+pub use observability::{
+    ObservabilityPolicy, OutputMode, is_production_mode, set_production_mode,
+    should_log_debug, should_emit_serial, redact_pointer, redact_address,
+    redact_panic_message, serial_log, serial_log_redacted,
+};
