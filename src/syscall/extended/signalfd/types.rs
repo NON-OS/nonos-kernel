@@ -85,8 +85,48 @@ impl SignalfdSiginfo {
         info
     }
 
+    /// # Safety
+    /// Serializes struct to bytes field-by-field. Avoids transmute which
+    /// could leak uninitialized padding bytes to userspace.
     pub fn to_bytes(&self) -> [u8; SIGNALFD_SIGINFO_SIZE] {
-        unsafe { core::mem::transmute(*self) }
+        let mut buf = [0u8; SIGNALFD_SIGINFO_SIZE];
+        let mut offset = 0;
+
+        buf[offset..offset + 4].copy_from_slice(&self.ssi_signo.to_ne_bytes());
+        offset += 4;
+        buf[offset..offset + 4].copy_from_slice(&self.ssi_errno.to_ne_bytes());
+        offset += 4;
+        buf[offset..offset + 4].copy_from_slice(&self.ssi_code.to_ne_bytes());
+        offset += 4;
+        buf[offset..offset + 4].copy_from_slice(&self.ssi_pid.to_ne_bytes());
+        offset += 4;
+        buf[offset..offset + 4].copy_from_slice(&self.ssi_uid.to_ne_bytes());
+        offset += 4;
+        buf[offset..offset + 4].copy_from_slice(&self.ssi_fd.to_ne_bytes());
+        offset += 4;
+        buf[offset..offset + 4].copy_from_slice(&self.ssi_tid.to_ne_bytes());
+        offset += 4;
+        buf[offset..offset + 4].copy_from_slice(&self.ssi_band.to_ne_bytes());
+        offset += 4;
+        buf[offset..offset + 4].copy_from_slice(&self.ssi_overrun.to_ne_bytes());
+        offset += 4;
+        buf[offset..offset + 4].copy_from_slice(&self.ssi_trapno.to_ne_bytes());
+        offset += 4;
+        buf[offset..offset + 4].copy_from_slice(&self.ssi_status.to_ne_bytes());
+        offset += 4;
+        buf[offset..offset + 4].copy_from_slice(&self.ssi_int.to_ne_bytes());
+        offset += 4;
+        buf[offset..offset + 8].copy_from_slice(&self.ssi_ptr.to_ne_bytes());
+        offset += 8;
+        buf[offset..offset + 8].copy_from_slice(&self.ssi_utime.to_ne_bytes());
+        offset += 8;
+        buf[offset..offset + 8].copy_from_slice(&self.ssi_stime.to_ne_bytes());
+        offset += 8;
+        buf[offset..offset + 8].copy_from_slice(&self.ssi_addr.to_ne_bytes());
+        offset += 8;
+        buf[offset..offset + 2].copy_from_slice(&self.ssi_addr_lsb.to_ne_bytes());
+
+        buf
     }
 }
 
