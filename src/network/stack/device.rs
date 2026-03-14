@@ -76,6 +76,46 @@ impl Device for SmolDeviceAdapter {
                 crate::sys::serial::print(b"[NET] RX frame ");
                 crate::sys::serial::print_dec(frame.len() as u64);
                 crate::sys::serial::println(b" bytes");
+
+                // Debug: Print TCP details for packets larger than ACKs
+                if frame.len() > 60 && frame.len() >= 34 {
+                    // Check if it's an IP packet (ethertype 0x0800)
+                    if frame[12] == 0x08 && frame[13] == 0x00 {
+                        let ip_header_len = ((frame[14] & 0x0F) as usize) * 4;
+                        let protocol = frame[23]; // IP protocol
+                        if protocol == 6 && frame.len() >= 14 + ip_header_len + 20 {
+                            // TCP packet
+                            let tcp_start = 14 + ip_header_len;
+                            let tcp_header_len = ((frame[tcp_start + 12] >> 4) as usize) * 4;
+                            let tcp_flags = frame[tcp_start + 13];
+                            let payload_start = tcp_start + tcp_header_len;
+                            let payload_len = frame.len().saturating_sub(payload_start);
+
+                            crate::sys::serial::print(b"[NET] TCP flags=0x");
+                            crate::sys::serial::print_hex(tcp_flags as u64);
+                            crate::sys::serial::print(b" (");
+                            if tcp_flags & 0x01 != 0 { crate::sys::serial::print(b"FIN "); }
+                            if tcp_flags & 0x02 != 0 { crate::sys::serial::print(b"SYN "); }
+                            if tcp_flags & 0x04 != 0 { crate::sys::serial::print(b"RST "); }
+                            if tcp_flags & 0x08 != 0 { crate::sys::serial::print(b"PSH "); }
+                            if tcp_flags & 0x10 != 0 { crate::sys::serial::print(b"ACK "); }
+                            crate::sys::serial::print(b") payload=");
+                            crate::sys::serial::print_dec(payload_len as u64);
+                            crate::sys::serial::println(b"");
+
+                            // Print first few bytes of TCP payload
+                            if payload_len > 0 && payload_start < frame.len() {
+                                crate::sys::serial::print(b"[NET] payload=");
+                                for i in 0..8.min(payload_len) {
+                                    crate::sys::serial::print_hex(frame[payload_start + i] as u64);
+                                    crate::sys::serial::print(b" ");
+                                }
+                                crate::sys::serial::println(b"");
+                            }
+                        }
+                    }
+                }
+
                 return Some((RxT(frame), TxT));
             }
         }
