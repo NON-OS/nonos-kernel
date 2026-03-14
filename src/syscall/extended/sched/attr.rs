@@ -15,9 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::syscall::SyscallResult;
+use crate::usercopy::{read_user_value, write_user_value};
 use crate::process::scheduler::{
-    self as policy,
-    LinuxSchedAttr,
+    self as policy, LinuxSchedAttr,
     SCHED_NORMAL, SCHED_FIFO, SCHED_RR, SCHED_BATCH, SCHED_IDLE, SCHED_DEADLINE,
     SCHED_PRIORITY_MIN, SCHED_PRIORITY_MAX, NICE_MIN, NICE_MAX,
 };
@@ -25,61 +25,34 @@ use crate::syscall::extended::errno;
 use super::util::{resolve_pid, can_modify_process, ok};
 
 pub fn handle_sched_setattr(pid: i32, attr_ptr: u64, flags: u32) -> SyscallResult {
-    if attr_ptr == 0 {
-        return errno(14);
-    }
-
-    if flags != 0 {
-        return errno(22);
-    }
-
-    let target_pid = match resolve_pid(pid) {
-        Some(p) => p,
-        None => return errno(3),
+    if attr_ptr == 0 { return errno(14); }
+    if flags != 0 { return errno(22); }
+    let target_pid = match resolve_pid(pid) { Some(p) => p, None => return errno(3) };
+    if !can_modify_process(target_pid) { return errno(1); }
+    let linux_attr: LinuxSchedAttr = match read_user_value(attr_ptr) {
+        Ok(v) => v, Err(_) => return errno(14)
     };
-
-    if !can_modify_process(target_pid) {
-        return errno(1);
-    }
-
-    let linux_attr = unsafe {
-        core::ptr::read(attr_ptr as *const LinuxSchedAttr)
-    };
-
-    if (linux_attr.size as usize) < core::mem::size_of::<LinuxSchedAttr>() {
-        return errno(22);
-    }
-
+    if (linux_attr.size as usize) < core::mem::size_of::<LinuxSchedAttr>() { return errno(22); }
     let sched_policy = linux_attr.sched_policy as i32;
     match sched_policy {
         SCHED_NORMAL | SCHED_BATCH | SCHED_IDLE => {
-            if linux_attr.sched_priority != 0 {
-                return errno(22);
-            }
+            if linux_attr.sched_priority != 0 { return errno(22); }
             if linux_attr.sched_nice < NICE_MIN || linux_attr.sched_nice > NICE_MAX {
                 return errno(22);
             }
         }
         SCHED_FIFO | SCHED_RR => {
             if linux_attr.sched_priority < SCHED_PRIORITY_MIN ||
-               linux_attr.sched_priority > SCHED_PRIORITY_MAX {
-                return errno(22);
-            }
+               linux_attr.sched_priority > SCHED_PRIORITY_MAX { return errno(22); }
         }
         SCHED_DEADLINE => {
-            if linux_attr.sched_runtime == 0 ||
-               linux_attr.sched_deadline == 0 ||
-               linux_attr.sched_period == 0 {
-                return errno(22);
-            }
+            if linux_attr.sched_runtime == 0 || linux_attr.sched_deadline == 0 ||
+               linux_attr.sched_period == 0 { return errno(22); }
             if linux_attr.sched_runtime > linux_attr.sched_deadline ||
-               linux_attr.sched_deadline > linux_attr.sched_period {
-                return errno(22);
-            }
+               linux_attr.sched_deadline > linux_attr.sched_period { return errno(22); }
         }
         _ => return errno(22),
     }
-
     let mut internal_attr = policy::get_sched_attr(target_pid);
     internal_attr.policy = sched_policy;
     internal_attr.rt_priority = linux_attr.sched_priority;
@@ -88,32 +61,16 @@ pub fn handle_sched_setattr(pid: i32, attr_ptr: u64, flags: u32) -> SyscallResul
     internal_attr.runtime = linux_attr.sched_runtime;
     internal_attr.deadline = linux_attr.sched_deadline;
     internal_attr.period = linux_attr.sched_period;
-
     policy::set_sched_attr(target_pid, internal_attr);
-
     ok(0)
 }
 
 pub fn handle_sched_getattr(pid: i32, attr_ptr: u64, size: u32, flags: u32) -> SyscallResult {
-    if attr_ptr == 0 {
-        return errno(14);
-    }
-
-    if flags != 0 {
-        return errno(22);
-    }
-
-    if (size as usize) < core::mem::size_of::<LinuxSchedAttr>() {
-        return errno(22);
-    }
-
-    let target_pid = match resolve_pid(pid) {
-        Some(p) => p,
-        None => return errno(3),
-    };
-
+    if attr_ptr == 0 { return errno(14); }
+    if flags != 0 { return errno(22); }
+    if (size as usize) < core::mem::size_of::<LinuxSchedAttr>() { return errno(22); }
+    let target_pid = match resolve_pid(pid) { Some(p) => p, None => return errno(3) };
     let internal_attr = policy::get_sched_attr(target_pid);
-
     let linux_attr = LinuxSchedAttr {
         size: core::mem::size_of::<LinuxSchedAttr>() as u32,
         sched_policy: internal_attr.policy as u32,
@@ -126,10 +83,6 @@ pub fn handle_sched_getattr(pid: i32, attr_ptr: u64, size: u32, flags: u32) -> S
         sched_util_min: 0,
         sched_util_max: 1024,
     };
-
-    unsafe {
-        core::ptr::write(attr_ptr as *mut LinuxSchedAttr, linux_attr);
-    }
-
+    if write_user_value(attr_ptr, &linux_attr).is_err() { return errno(14); }
     ok(0)
 }
