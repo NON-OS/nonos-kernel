@@ -17,10 +17,15 @@
 use crate::interrupts::apic;
 use crate::interrupts::pic;
 use crate::interrupts::stats;
+use crate::interrupts::safety::set_interrupt_context;
 
 const KEYBOARD_IRQ_LINE: u8 = 1;
 
+/// # Safety
+/// Keyboard interrupt handler. Sets interrupt context for safe nesting detection.
 pub fn handle() {
+    let _ctx = set_interrupt_context();
+
     crate::drivers::keyboard::handle_keyboard_interrupt();
 
     stats::increment_keyboard();
