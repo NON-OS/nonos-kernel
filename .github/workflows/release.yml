@@ -142,43 +142,51 @@ jobs:
           body: |
             ## NØNOS Alpha ${{ steps.version.outputs.version }}
 
-            **Status:** Experimental Alpha — Do not use for significant funds
-
-            First release with functional Ethereum wallet running natively in the kernel.
+            **Phase:** Alpha - Kernel stabilization and security hardening
 
             **Documentation:** [nonos.software](https://nonos.software)
 
-            ### Native Ethereum Wallet
+            ---
 
-            - Key derivation from master seed using BLAKE3 with deterministic paths
-            - Multiple account generation within a single wallet
-            - Balance display for ETH and ERC-20 tokens (NOX supported)
-            - QR code generation for receive addresses
-            - Network switching between Ethereum mainnet and Sepolia testnet
-            - Transaction signing with secp256k1 ECDSA
-            - RPC communication with public Ethereum endpoints
+            ### IPC and Timer Infrastructure
 
-            ### Network Stack
+            - Replaced direct pointer operations with validated usercopy interface
+            - All kernel-userspace data transfers now pass through controlled API
+            - Reorganized select and eventfd subsystems into focused modules
 
-            - TLS 1.3 with X.509 certificate chain verification
-            - RSA-SHA256/384/512 and ECDSA-P256-SHA256/384 signature support
-            - Reduced RPC timeouts for faster feedback
-            - IPv4 with TCP congestion control
+            ### Filesystem Hardening
 
-            ### Security
+            - Canonical directory marker path generation (normalized before .dir suffix)
+            - Explicit root directory marker creation during filesystem init
+            - Atomic filesystem operations with write_or_create primitive
+            - Eliminated TOCTOU race conditions in file operations
 
-            - Ed25519 kernel signature verification
-            - Groth16 zero-knowledge boot attestation
-            - Constant-time secp256k1 operations
-            - Private keys exist only in kernel memory
+            ### Syscall Handler Security
 
-            ### Known Limitations
+            - All syscall handlers now use usercopy API for memory access
+            - Integer overflow protection with checked_add arithmetic
+            - Fixed signalfd race condition in instance allocation
+            - Consistent error propagation throughout syscall layer
 
-            - UI blocks briefly during network requests
-            - No persistent storage (wallet state lost on reboot)
-            - No hardware wallet integration
-            - No EIP-1559 transaction support
-            - Only x86_64 architecture supported
+            ### GUI Application Fixes
+
+            - Clipboard path length validation prevents silent truncation
+            - Filesystem-aware name validation (ramfs: 63 chars, FAT32: 8.3)
+            - Paste operations now handle both existing and new files
+
+            ### Security Audit Results
+
+            - Buffer bounds checks added to wallet and clipboard operations
+            - Overflow-safe calculations in getdents syscall
+            - Standardized error handling across all subsystems
+
+            ### Code Quality
+
+            - Large files split into focused single-responsibility modules
+            - mod.rs pattern used purely for exports
+            - Consistent path normalization and error naming conventions
+
+            ---
 
             ### Artifacts
 
@@ -204,12 +212,12 @@ jobs:
             sudo dd if=nonos-${{ steps.version.outputs.version }}.img of=/dev/sdX bs=4M status=progress
             ```
 
-            ### Changes
+            ### Commits
 
             ${{ steps.changelog.outputs.commits }}
 
             ---
-            **This is experimental software. Bugs expected. Use at your own risk.**
+            **Experimental software. Use at your own risk.**
           files: |
             dist/nonos-*.iso
             dist/nonos-*.img
