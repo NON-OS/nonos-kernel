@@ -51,7 +51,10 @@ pub fn fd_allocate(fd: i32, offset: usize, len: usize) -> FdResult<()> {
 
     let mut data = crate::fs::read_file(&path).unwrap_or_default();
 
-    let required_size = offset.saturating_add(len);
+    let required_size = match offset.checked_add(len) {
+        Some(v) if v <= ramfs::MAX_FILE_SIZE => v,
+        _ => return Err(FdError::BufferTooLarge),
+    };
     if required_size > data.len() {
         data.resize(required_size, 0);
         ramfs::write_file(&path, &data).map_err(FdError::from)?;
