@@ -365,40 +365,77 @@ pub fn render_page(html: &str, viewport_width: u32) -> RenderOutput {
 }
 
 pub fn render_to_lines(html: &str) -> Vec<String> {
+    let (lines, _) = render_to_lines_with_links(html);
+    lines
+}
+
+pub fn render_to_lines_with_links(html: &str) -> (Vec<String>, Vec<(usize, u32, u32, String)>) {
     let output = render_page(html, 800);
     let mut result: Vec<String> = Vec::new();
+    let mut links: Vec<(usize, u32, u32, String)> = Vec::new();
 
     for line in output.lines {
         let mut line_text = String::new();
+        let mut current_char_pos: u32 = 0;
+
         for element in line.elements {
             match element.content {
-                RenderContent::Text { text, .. } => {
-                    line_text.push_str(&text);
+                RenderContent::Text { ref text, style } => {
+                    if style.heading_level > 0 {
+                        line_text.push_str("## ");
+                        current_char_pos += 3;
+                    }
+                    if style.bold {
+                        line_text.push_str("**");
+                        current_char_pos += 2;
+                    }
+                    line_text.push_str(text);
+                    current_char_pos += text.len() as u32;
+                    if style.bold {
+                        line_text.push_str("**");
+                        current_char_pos += 2;
+                    }
                 }
-                RenderContent::Link { text, href } => {
-                    line_text.push_str(&text);
-                    line_text.push_str(" [");
-                    line_text.push_str(&href);
-                    line_text.push(']');
+                RenderContent::Link { ref text, ref href } => {
+                    let link_start = current_char_pos;
+                    line_text.push_str(text);
+                    current_char_pos += text.len() as u32;
+                    if !href.is_empty() {
+                        line_text.push_str(" [");
+                        line_text.push_str(href);
+                        line_text.push(']');
+                        current_char_pos += 3 + href.len() as u32;
+                        let link_end = current_char_pos;
+                        let line_idx = result.len();
+                        links.push((line_idx, link_start * 8 + 16, link_end * 8 + 16, href.clone()));
+                    }
                 }
-                RenderContent::Image { alt, .. } => {
+                RenderContent::Image { ref alt, .. } => {
                     line_text.push_str("[IMG: ");
-                    line_text.push_str(&alt);
+                    if !alt.is_empty() {
+                        line_text.push_str(alt);
+                    } else {
+                        line_text.push_str("image");
+                    }
                     line_text.push(']');
+                    current_char_pos += if alt.is_empty() { 12 } else { 7 + alt.len() as u32 };
                 }
-                RenderContent::Input { name, .. } => {
+                RenderContent::Input { ref name, .. } => {
                     line_text.push_str("[INPUT: ");
-                    line_text.push_str(&name);
+                    line_text.push_str(name);
                     line_text.push(']');
+                    current_char_pos += 9 + name.len() as u32;
                 }
-                RenderContent::Button { text } => {
+                RenderContent::Button { ref text } => {
                     line_text.push_str("[BTN: ");
-                    line_text.push_str(&text);
+                    line_text.push_str(text);
                     line_text.push(']');
+                    current_char_pos += 7 + text.len() as u32;
                 }
                 RenderContent::LineBreak => {}
                 RenderContent::HorizontalRule => {
-                    line_text.push_str("────────────────────────────────");
+                    line_text.push_str("----------------------------------------");
+                    current_char_pos += 40;
                 }
             }
         }
@@ -420,5 +457,5 @@ pub fn render_to_lines(html: &str) -> Vec<String> {
         }
     }
 
-    result
+    (result, links)
 }
