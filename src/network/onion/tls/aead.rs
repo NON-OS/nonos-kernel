@@ -49,6 +49,8 @@ impl AeadState {
     }
 
     pub(super) fn from_secret(sec: &Secret, suite: CipherSuite) -> Result<Self, OnionError> {
+        use crate::sys::serial;
+
         let key_len = match suite {
             CipherSuite::TlsAes128GcmSha256 => 16,
             CipherSuite::TlsChacha20Poly1305Sha256 => 32,
@@ -57,6 +59,27 @@ impl AeadState {
         expand_label_len(&sec.secret, b"iv", &[], &mut iv);
         let mut key = vec![0u8; key_len];
         expand_label_len(&sec.secret, b"key", &[], &mut key);
+
+        serial::print(b"[AEAD] from_secret: secret=");
+        for i in 0..8.min(sec.secret.len()) {
+            serial::print_hex(sec.secret[i] as u64);
+            serial::print(b" ");
+        }
+        serial::println(b"");
+
+        serial::print(b"[AEAD] from_secret: key=");
+        for i in 0..8.min(key.len()) {
+            serial::print_hex(key[i] as u64);
+            serial::print(b" ");
+        }
+        serial::println(b"");
+
+        serial::print(b"[AEAD] from_secret: iv=");
+        for i in 0..12 {
+            serial::print_hex(iv[i] as u64);
+            serial::print(b" ");
+        }
+        serial::println(b"");
 
         Ok(Self { key, iv, seq: 0 })
     }
@@ -72,6 +95,8 @@ impl AeadState {
     }
 
     pub(super) fn seal(&mut self, suite: CipherSuite, inner_type: ContentType, plaintext: &[u8]) -> Result<Vec<u8>, OnionError> {
+        use crate::sys::serial;
+
         let mut inner = Vec::with_capacity(plaintext.len() + 1);
         inner.extend_from_slice(plaintext);
         inner.push(inner_type as u8);
@@ -83,7 +108,71 @@ impl AeadState {
         header[3..5].copy_from_slice(&total_len.to_be_bytes());
 
         let nonce = self.nonce();
+
+        serial::print(b"[AEAD] seal suite=");
+        serial::print_dec(match suite {
+            CipherSuite::TlsAes128GcmSha256 => 0x1301,
+            CipherSuite::TlsChacha20Poly1305Sha256 => 0x1303,
+        });
+        serial::print(b" seq=");
+        serial::print_dec(self.seq);
+        serial::print(b" inner_type=");
+        serial::print_hex(inner_type as u64);
+        serial::print(b" inner_len=");
+        serial::print_dec(inner.len() as u64);
+        serial::println(b"");
+
+        serial::print(b"[AEAD] key=");
+        for i in 0..self.key.len().min(8) {
+            serial::print_hex(self.key[i] as u64);
+            serial::print(b" ");
+        }
+        serial::println(b"");
+
+        serial::print(b"[AEAD] iv=");
+        for i in 0..12 {
+            serial::print_hex(self.iv[i] as u64);
+            serial::print(b" ");
+        }
+        serial::println(b"");
+
+        serial::print(b"[AEAD] nonce=");
+        for i in 0..12 {
+            serial::print_hex(nonce[i] as u64);
+            serial::print(b" ");
+        }
+        serial::println(b"");
+
+        serial::print(b"[AEAD] aad=");
+        for i in 0..5 {
+            serial::print_hex(header[i] as u64);
+            serial::print(b" ");
+        }
+        serial::println(b"");
+
         let ciphertext = crypto().aead_seal(suite, &self.key, &nonce, &header, &inner)?;
+
+        serial::print(b"[AEAD] ct_len=");
+        serial::print_dec(ciphertext.len() as u64);
+        serial::print(b" tag=");
+        // Print last 16 bytes (the auth tag)
+        let tag_start = if ciphertext.len() >= 16 { ciphertext.len() - 16 } else { 0 };
+        for i in tag_start..ciphertext.len().min(tag_start + 4) {
+            serial::print_hex(ciphertext[i] as u64);
+            serial::print(b" ");
+        }
+        serial::println(b"");
+
+        // For application data, print the plaintext HTTP request first bytes
+        if inner_type == ContentType::ApplicationData && plaintext.len() > 0 {
+            serial::print(b"[AEAD] plaintext=");
+            for i in 0..20.min(plaintext.len()) {
+                serial::print_hex(plaintext[i] as u64);
+                serial::print(b" ");
+            }
+            serial::println(b"...");
+        }
+
         self.seq = self.seq.wrapping_add(1);
         Ok(ciphertext)
     }
