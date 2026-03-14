@@ -20,6 +20,7 @@ pub mod handoff;
 mod init;
 pub mod multiboot;
 mod panic;
+pub mod validation;
 pub mod vga;
 
 pub use stage1::{serial_print, BootInfo, FramebufferInfo, MemoryDescriptor, EFI_CONVENTIONAL_MEMORY};
@@ -32,6 +33,7 @@ pub use panic::{
     disable_interrupts, enable_interrupts, halt, halt_loop, interrupts_enabled, without_interrupts,
 };
 pub use vga::{clear_screen, show_boot_splash, show_panic, write_string};
+pub use validation::{validate_boot_params, validate_memory_map, BootParams, BootParamsError, MemoryMapError};
 
 #[macro_export]
 macro_rules! serial_print {
