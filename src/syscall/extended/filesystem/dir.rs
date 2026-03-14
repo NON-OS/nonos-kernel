@@ -17,7 +17,9 @@
 extern crate alloc;
 
 use alloc::string::String;
+use alloc::vec::Vec;
 use crate::syscall::SyscallResult;
+use crate::usercopy::copy_to_user;
 use super::super::errno;
 use super::helpers::PROCESS_CWD;
 
@@ -37,39 +39,52 @@ pub fn handle_getdents64(_fd: u64, dirp: u64, count: u64) -> SyscallResult {
         Err(_) => return errno(2),
     };
 
-    let mut offset = 0u64;
-    let mut entry_offset = 0i64;
+    let dirent_buf = build_dirent_buffer(&entries, count as usize);
+    let buf_len = dirent_buf.len();
+
+    if buf_len > 0 {
+        if copy_to_user(dirp, &dirent_buf).is_err() {
+            return errno(14);
+        }
+    }
+
+    SyscallResult { value: buf_len as i64, capability_consumed: false, audit_required: false }
+}
+
+fn build_dirent_buffer(entries: &[String], max_size: usize) -> Vec<u8> {
+    let mut buf = Vec::new();
+    let mut entry_offset: i64 = 0;
 
     for entry in entries {
         let name_bytes = entry.as_bytes();
-        let reclen = 19 + name_bytes.len() + 1;
+        if name_bytes.len() > 255 {
+            continue;
+        }
+        let reclen = match 20usize.checked_add(name_bytes.len()) {
+            Some(v) => v,
+            None => continue,
+        };
         let reclen_aligned = (reclen + 7) & !7;
 
-        if offset + reclen_aligned as u64 > count {
+        if buf.len().saturating_add(reclen_aligned) > max_size {
             break;
         }
 
         entry_offset += 1;
 
-        // SAFETY: dirp is user-provided pointer for directory entries output.
-        unsafe {
-            let ptr = dirp + offset;
-            core::ptr::write(ptr as *mut u64, entry_offset as u64);
-            core::ptr::write((ptr + 8) as *mut i64, entry_offset);
-            core::ptr::write((ptr + 16) as *mut u16, reclen_aligned as u16);
-            core::ptr::write((ptr + 18) as *mut u8, 8);
-            core::ptr::copy_nonoverlapping(
-                name_bytes.as_ptr(),
-                (ptr + 19) as *mut u8,
-                name_bytes.len(),
-            );
-            core::ptr::write((ptr + 19 + name_bytes.len() as u64) as *mut u8, 0);
-        }
+        buf.extend_from_slice(&(entry_offset as u64).to_ne_bytes());
+        buf.extend_from_slice(&entry_offset.to_ne_bytes());
+        buf.extend_from_slice(&(reclen_aligned as u16).to_ne_bytes());
+        buf.push(8);
+        buf.extend_from_slice(name_bytes);
+        buf.push(0);
 
-        offset += reclen_aligned as u64;
+        while buf.len() % 8 != 0 {
+            buf.push(0);
+        }
     }
 
-    SyscallResult { value: offset as i64, capability_consumed: false, audit_required: false }
+    buf
 }
 
 pub fn handle_getdents(fd: i32, dirp: u64, count: u64) -> SyscallResult {
