@@ -33,6 +33,7 @@ pub enum FdError {
     FsError(&'static str),
     FilesystemError(crate::fs::ramfs::FsError),
     InvalidArgument,
+    InvalidPath,
     BufferTooLarge,
     WouldBlock,
 }
@@ -57,6 +58,7 @@ impl FdError {
             FdError::FsError(_) => -5,
             FdError::FilesystemError(e) => e.to_errno(),
             FdError::InvalidArgument => -22,
+            FdError::InvalidPath => -22,
             FdError::BufferTooLarge => -22,
             FdError::WouldBlock => -11,
         }
@@ -81,6 +83,7 @@ impl FdError {
             FdError::FsError(msg) => msg,
             FdError::FilesystemError(e) => e.as_str(),
             FdError::InvalidArgument => "Invalid argument",
+            FdError::InvalidPath => "Invalid path",
             FdError::BufferTooLarge => "Buffer too large",
             FdError::WouldBlock => "Operation would block",
         }
