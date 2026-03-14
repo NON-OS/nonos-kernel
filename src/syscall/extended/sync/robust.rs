@@ -18,6 +18,7 @@ use super::constants::*;
 use super::helpers::wake_futex;
 use super::types::{ok, RobustListHead, ROBUST_LISTS, PI_OWNERS};
 use crate::syscall::SyscallResult;
+use crate::usercopy::{read_user_value, write_user_value};
 use super::super::errno;
 
 pub fn handle_set_robust_list(head: u64, len: u64) -> SyscallResult {
@@ -32,14 +33,23 @@ pub fn handle_set_robust_list(head: u64, len: u64) -> SyscallResult {
         lists.remove(&pid);
         return ok(0);
     } else {
-        // SAFETY: Reading user-provided robust list header
-        unsafe {
-            RobustListHead {
-                list_head: core::ptr::read(head as *const u64),
-                len,
-                futex_offset: core::ptr::read((head + 8) as *const i64),
-                list_op_pending: core::ptr::read((head + 16) as *const u64),
-            }
+        let list_head: u64 = match read_user_value(head) {
+            Ok(v) => v,
+            Err(_) => return errno(14),
+        };
+        let futex_offset: i64 = match read_user_value(head + 8) {
+            Ok(v) => v,
+            Err(_) => return errno(14),
+        };
+        let list_op_pending: u64 = match read_user_value(head + 16) {
+            Ok(v) => v,
+            Err(_) => return errno(14),
+        };
+        RobustListHead {
+            list_head,
+            len,
+            futex_offset,
+            list_op_pending,
         }
     };
 
@@ -62,16 +72,19 @@ pub fn handle_get_robust_list(pid: i32, head_ptr: u64, len_ptr: u64) -> SyscallR
 
     let lists = ROBUST_LISTS.lock();
     if let Some(robust_head) = lists.get(&target_pid) {
-        // SAFETY: Writing to user-provided pointers
-        unsafe {
-            core::ptr::write(head_ptr as *mut u64, robust_head.list_head);
-            core::ptr::write(len_ptr as *mut u64, robust_head.len);
+        if write_user_value(head_ptr, &robust_head.list_head).is_err() {
+            return errno(14);
+        }
+        if write_user_value(len_ptr, &robust_head.len).is_err() {
+            return errno(14);
         }
     } else {
-        // SAFETY: Writing to user-provided pointers
-        unsafe {
-            core::ptr::write(head_ptr as *mut u64, 0);
-            core::ptr::write(len_ptr as *mut u64, 0);
+        let zero: u64 = 0;
+        if write_user_value(head_ptr, &zero).is_err() {
+            return errno(14);
+        }
+        if write_user_value(len_ptr, &zero).is_err() {
+            return errno(14);
         }
     }
 
@@ -85,58 +98,52 @@ pub fn cleanup_robust_list(pid: u32) {
     };
 
     if let Some(head) = robust_head {
-        let mut entry = head.list_head;
-        let mut count = 0;
-        const MAX_ENTRIES: usize = 512;
-
-        while entry != 0 && entry != head.list_head && count < MAX_ENTRIES {
-            count += 1;
-
-            let futex_addr = if head.futex_offset >= 0 {
-                entry.wrapping_add(head.futex_offset as u64)
-            } else {
-                entry.wrapping_sub((-head.futex_offset) as u64)
-            };
-
-            if futex_addr != 0 && (futex_addr & 3) == 0 {
-                // SAFETY: Accessing futex memory during cleanup
-                unsafe {
-                    let current = core::ptr::read_volatile(futex_addr as *const u32);
-                    let owner_tid = current & FUTEX_TID_MASK;
-                    if owner_tid == pid {
-                        let new_val = (current & !FUTEX_TID_MASK) | FUTEX_OWNER_DIED;
-                        core::ptr::write_volatile(futex_addr as *mut u32, new_val);
-                        wake_futex(futex_addr, 1, FUTEX_BITSET_MATCH_ANY);
-                    }
-                }
-            }
-
-            // SAFETY: Reading next entry pointer
-            entry = unsafe { core::ptr::read(entry as *const u64) };
-        }
-
-        if head.list_op_pending != 0 {
-            let futex_addr = if head.futex_offset >= 0 {
-                head.list_op_pending.wrapping_add(head.futex_offset as u64)
-            } else {
-                head.list_op_pending.wrapping_sub((-head.futex_offset) as u64)
-            };
-
-            if futex_addr != 0 && (futex_addr & 3) == 0 {
-                // SAFETY: Accessing pending futex during cleanup
-                unsafe {
-                    let current = core::ptr::read_volatile(futex_addr as *const u32);
-                    let owner_tid = current & FUTEX_TID_MASK;
-                    if owner_tid == pid {
-                        let new_val = (current & !FUTEX_TID_MASK) | FUTEX_OWNER_DIED;
-                        core::ptr::write_volatile(futex_addr as *mut u32, new_val);
-                        wake_futex(futex_addr, 1, FUTEX_BITSET_MATCH_ANY);
-                    }
-                }
-            }
-        }
+        process_robust_entries(pid, &head);
     }
 
     let mut pi_owners = PI_OWNERS.lock();
     pi_owners.retain(|_, owner| *owner != pid);
+}
+
+fn process_robust_entries(pid: u32, head: &RobustListHead) {
+    let mut entry = head.list_head;
+    let mut count = 0;
+    const MAX_ENTRIES: usize = 512;
+
+    while entry != 0 && entry != head.list_head && count < MAX_ENTRIES {
+        count += 1;
+        let futex_addr = compute_futex_addr(entry, head.futex_offset);
+        if futex_addr != 0 && (futex_addr & 3) == 0 {
+            mark_futex_owner_died(futex_addr, pid);
+        }
+        entry = read_user_value(entry).unwrap_or(0);
+    }
+
+    if head.list_op_pending != 0 {
+        let futex_addr = compute_futex_addr(head.list_op_pending, head.futex_offset);
+        if futex_addr != 0 && (futex_addr & 3) == 0 {
+            mark_futex_owner_died(futex_addr, pid);
+        }
+    }
+}
+
+fn compute_futex_addr(entry: u64, offset: i64) -> u64 {
+    if offset >= 0 {
+        entry.wrapping_add(offset as u64)
+    } else {
+        entry.wrapping_sub((-offset) as u64)
+    }
+}
+
+fn mark_futex_owner_died(futex_addr: u64, pid: u32) {
+    let current: u32 = match read_user_value(futex_addr) {
+        Ok(v) => v,
+        Err(_) => return,
+    };
+    let owner_tid = current & FUTEX_TID_MASK;
+    if owner_tid == pid {
+        let new_val = (current & !FUTEX_TID_MASK) | FUTEX_OWNER_DIED;
+        let _ = write_user_value(futex_addr, &new_val);
+        wake_futex(futex_addr, 1, FUTEX_BITSET_MATCH_ANY);
+    }
 }
