@@ -174,12 +174,9 @@ pub fn readlink(path: &str) -> Result<alloc::string::String, &'static str> {
 }
 
 pub fn link(old_path: &str, new_path: &str) -> Result<(), &'static str> {
-    let data = ramfs::NONOS_FILESYSTEM
-        .read_file(old_path)
-        .map_err(|e| e.as_str())?;
-
-    ramfs::NONOS_FILESYSTEM
-        .create_file(new_path, &data)
+    vfs::get_vfs()
+        .ok_or("VFS not initialized")?
+        .copy(old_path, new_path)
         .map_err(|e| e.as_str())
 }
 
