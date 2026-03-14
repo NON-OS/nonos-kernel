@@ -14,10 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+extern crate alloc;
+
 use uefi::cstr16;
 use uefi::prelude::*;
 
-use crate::crypto::sig::init_production_keys;
+use crate::crypto::sig::{init_production_keys, get_key_fingerprint, get_build_timestamp, get_nonos_key_id};
+use crate::crypto::get_keystore_fingerprint;
 use crate::log::logger::{log_error, log_info, log_warn};
 
 use super::check::{
@@ -43,6 +46,15 @@ pub fn initialize_security_subsystem(system_table: &mut SystemTable<Boot>) -> Se
             ctx.production_keys_loaded = true;
             ctx.key_count = count;
             log_info("security", "Production keys loaded successfully");
+            let fingerprint = get_key_fingerprint();
+            let timestamp = get_build_timestamp();
+            let key_id = get_nonos_key_id();
+            log_info("security", &alloc::format!("Key fingerprint: {}", fingerprint));
+            log_info("security", &alloc::format!("Build timestamp: {}", timestamp));
+            log_info("security", &alloc::format!("Key ID prefix: {:02x}{:02x}{:02x}{:02x}",
+                key_id[0], key_id[1], key_id[2], key_id[3]));
+            let ks_fingerprint = get_keystore_fingerprint();
+            log_info("security", &alloc::format!("Keystore fingerprint: {}", ks_fingerprint));
         }
         Err(_) => {
             ctx.production_keys_loaded = false;
