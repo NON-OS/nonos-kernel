@@ -112,7 +112,7 @@ fn check_pipe_events(pipe_id: usize, is_read_end: bool) -> Option<PipeEvents> {
 }
 
 fn check_eventfd_events(efd_id: usize) -> Option<EventFdEvents> {
-    if let Some(efd_info) = crate::syscall::extended::eventfd::get_eventfd_info(efd_id) {
+    if let Some(efd_info) = crate::syscall::extended::eventfd_ops::get_eventfd_info(efd_id) {
         Some(EventFdEvents {
             readable: efd_info.counter > 0,
             writable: efd_info.counter < (u64::MAX - 1),
