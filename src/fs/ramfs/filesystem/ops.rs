@@ -26,6 +26,9 @@ use super::crypto::{encrypt_file_data, decrypt_file_data};
 use super::path::validate_path;
 
 impl NonosFilesystem {
+    /// # Safety
+    /// Creates a new file with given data. Validates path, size limits,
+    /// and max file count before creation.
     pub fn create_file(&self, name: &str, data: &[u8]) -> FsResult<()> {
         validate_path(name)?;
 
@@ -35,6 +38,9 @@ impl NonosFilesystem {
 
         {
             let files = self.files.read();
+            if files.contains_key(name) {
+                return Err(FsError::AlreadyExists);
+            }
             if files.len() >= MAX_FILES {
                 return Err(FsError::TooManyFiles);
             }
@@ -59,9 +65,9 @@ impl NonosFilesystem {
             quantum_protected: matches!(self.filesystem_type, NonosFileSystemType::QuantumSafe),
         };
 
-        self.files.write().insert(name.to_string(), file);
+        let was_new = self.files.write().insert(name.to_string(), file).is_none();
 
-        {
+        if was_new {
             let mut stats = self.stats.write();
             stats.files += 1;
             stats.bytes_stored += data.len() as u64;
@@ -71,6 +77,8 @@ impl NonosFilesystem {
         Ok(())
     }
 
+    /// # Safety
+    /// Reads file data, decrypting if necessary. Validates path before access.
     pub fn read_file(&self, name: &str) -> FsResult<Vec<u8>> {
         validate_path(name)?;
 
@@ -92,38 +100,8 @@ impl NonosFilesystem {
         Ok(result)
     }
 
-    pub fn write_file(&self, name: &str, data: &[u8]) -> FsResult<()> {
-        validate_path(name)?;
-
-        if data.len() > MAX_FILE_SIZE {
-            return Err(FsError::FileTooLarge);
-        }
-
-        let mut files = self.files.write();
-        let file = files.get_mut(name).ok_or(FsError::NotFound)?;
-
-        secure_zeroize(&mut file.data);
-
-        let stored = if self.encryption_enabled {
-            let key = self.get_key(name)?;
-            encrypt_file_data(data, &key, &self.nonce_counter, &self.stats)?
-        } else {
-            data.to_vec()
-        };
-
-        file.data = stored;
-        file.size = data.len();
-        file.modified = self.get_timestamp();
-
-        {
-            let mut stats = self.stats.write();
-            stats.bytes_stored += data.len() as u64;
-            stats.writes += 1;
-        }
-
-        Ok(())
-    }
-
+    /// # Safety
+    /// Deletes file and securely clears its data and encryption key.
     pub fn delete_file(&self, name: &str) -> FsResult<()> {
         validate_path(name)?;
 
