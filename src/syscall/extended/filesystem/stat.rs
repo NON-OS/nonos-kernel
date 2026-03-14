@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::syscall::SyscallResult;
+use crate::usercopy::copy_to_user;
 use super::super::errno;
 use super::helpers::read_user_string;
 
@@ -66,13 +67,8 @@ pub fn handle_readlink(pathname: u64, buf: u64, bufsiz: u64) -> SyscallResult {
     let target_bytes = target.as_bytes();
     let copy_len = core::cmp::min(target_bytes.len(), bufsiz as usize);
 
-    // SAFETY: buf is user-provided pointer for readlink output.
-    unsafe {
-        core::ptr::copy_nonoverlapping(
-            target_bytes.as_ptr(),
-            buf as *mut u8,
-            copy_len,
-        );
+    if copy_to_user(buf, &target_bytes[..copy_len]).is_err() {
+        return errno(14);
     }
 
     SyscallResult { value: copy_len as i64, capability_consumed: false, audit_required: false }
@@ -98,23 +94,25 @@ pub fn handle_lstat(pathname: u64, statbuf: u64) -> SyscallResult {
         Err(_) => return errno(2),
     };
 
-    // SAFETY: statbuf is user-provided pointer for stat output.
-    unsafe {
-        let buf = statbuf as *mut u8;
-        core::ptr::write_bytes(buf, 0, 128);
+    let mut stat_buf = [0u8; 128];
+    let dev: u64 = 1;
+    let nlink: u64 = 1;
+    let blksize: i64 = 4096;
+    let blocks: i64 = (metadata.size + 511) as i64 / 512;
 
-        core::ptr::write((buf.add(0)) as *mut u64, 1);
-        core::ptr::write((buf.add(8)) as *mut u64, metadata.inode);
-        core::ptr::write((buf.add(16)) as *mut u64, 1);
-        core::ptr::write((buf.add(24)) as *mut u32, metadata.mode);
-        core::ptr::write((buf.add(28)) as *mut u32, 0);
-        core::ptr::write((buf.add(32)) as *mut u32, 0);
-        core::ptr::write((buf.add(48)) as *mut i64, metadata.size as i64);
-        core::ptr::write((buf.add(56)) as *mut i64, 4096);
-        core::ptr::write((buf.add(64)) as *mut i64, (metadata.size + 511) as i64 / 512);
-        core::ptr::write((buf.add(72)) as *mut i64, metadata.atime as i64);
-        core::ptr::write((buf.add(88)) as *mut i64, metadata.mtime as i64);
-        core::ptr::write((buf.add(104)) as *mut i64, metadata.ctime as i64);
+    stat_buf[0..8].copy_from_slice(&dev.to_ne_bytes());
+    stat_buf[8..16].copy_from_slice(&metadata.inode.to_ne_bytes());
+    stat_buf[16..24].copy_from_slice(&nlink.to_ne_bytes());
+    stat_buf[24..28].copy_from_slice(&metadata.mode.to_ne_bytes());
+    stat_buf[48..56].copy_from_slice(&(metadata.size as i64).to_ne_bytes());
+    stat_buf[56..64].copy_from_slice(&blksize.to_ne_bytes());
+    stat_buf[64..72].copy_from_slice(&blocks.to_ne_bytes());
+    stat_buf[72..80].copy_from_slice(&(metadata.atime as i64).to_ne_bytes());
+    stat_buf[88..96].copy_from_slice(&(metadata.mtime as i64).to_ne_bytes());
+    stat_buf[104..112].copy_from_slice(&(metadata.ctime as i64).to_ne_bytes());
+
+    if copy_to_user(statbuf, &stat_buf).is_err() {
+        return errno(14);
     }
 
     SyscallResult { value: 0, capability_consumed: false, audit_required: false }
