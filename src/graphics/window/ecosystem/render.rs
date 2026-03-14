@@ -22,9 +22,9 @@ use core::sync::atomic::Ordering;
 use super::state::{self, EcosystemTab};
 use super::tabs;
 use super::render_helpers::{
-    draw_border, draw_string, draw_string_clipped, draw_spinner, draw_error_toast,
+    draw_border, draw_string, draw_spinner, draw_error_toast,
     COLOR_CARD_BG, COLOR_CARD_BORDER, COLOR_TEXT, COLOR_TEXT_DIM, COLOR_TEXT_BRIGHT,
-    COLOR_ACCENT, COLOR_INPUT_BG, COLOR_INPUT_BORDER,
+    COLOR_ACCENT, COLOR_WARNING, COLOR_INPUT_BG, COLOR_INPUT_BORDER,
 };
 use super::render_tabs::{
     draw_wallet_tab, draw_staking_tab, draw_lp_tab, draw_node_tab, draw_privacy_tab,
@@ -59,6 +59,11 @@ pub fn draw(x: u32, y: u32, w: u32, h: u32) {
     }
 }
 
+const COLOR_LINK: u32 = 0xFF00BFFF;
+const COLOR_HEADING: u32 = 0xFF00FFCC;
+const COLOR_SCROLLBAR: u32 = 0xFF48484A;
+const COLOR_SCROLLBAR_THUMB: u32 = 0xFF00FFCC;
+
 fn draw_browser_tab(x: u32, y: u32, w: u32, h: u32) {
     draw_url_bar(x + 8, y + 8, w - 16, 36);
 
@@ -75,6 +80,7 @@ fn draw_browser_tab(x: u32, y: u32, w: u32, h: u32) {
     } else {
         let content = state::PAGE_CONTENT.lock();
         let scroll = state::PAGE_SCROLL.load(Ordering::Relaxed);
+        let total_lines = state::PAGE_TOTAL_LINES.load(Ordering::Relaxed);
         let visible_lines = (content_h.saturating_sub(16) / 18) as usize;
 
         if content.is_empty() {
@@ -83,16 +89,144 @@ fn draw_browser_tab(x: u32, y: u32, w: u32, h: u32) {
             draw_string(x + 20, content_y + 68, b"  - Tracker blocking", COLOR_ACCENT);
             draw_string(x + 20, content_y + 92, b"  - URL parameter stripping", COLOR_ACCENT);
             draw_string(x + 20, content_y + 116, b"  - JavaScript disabled by default", COLOR_ACCENT);
+            draw_string(x + 20, content_y + 156, b"Keyboard shortcuts:", COLOR_TEXT);
+            draw_string(x + 20, content_y + 180, b"  Page Up/Down - Scroll page", COLOR_TEXT_DIM);
+            draw_string(x + 20, content_y + 204, b"  Enter - Navigate to URL", COLOR_TEXT_DIM);
         } else {
             for (i, line) in content.iter().skip(scroll).take(visible_lines).enumerate() {
-                draw_string_clipped(
-                    x + 16,
-                    content_y + 8 + i as u32 * 18,
-                    line.as_bytes(),
-                    COLOR_TEXT,
-                    w - 32,
-                );
+                let line_y = content_y + 8 + i as u32 * 18;
+                draw_styled_line(x + 16, line_y, line.as_bytes(), w - 48);
             }
+
+            if total_lines > visible_lines {
+                draw_scrollbar(x + w - 24, content_y + 4, 8, content_h - 8, scroll, total_lines, visible_lines);
+            }
+
+            if let Some(title) = state::get_page_title() {
+                let title_bytes = title.as_bytes();
+                let max_title = ((w - 100) / 8) as usize;
+                let display_len = title_bytes.len().min(max_title);
+                draw_string(x + 16, content_y + content_h - 20, &title_bytes[..display_len], COLOR_TEXT_DIM);
+            }
+        }
+    }
+}
+
+fn draw_scrollbar(x: u32, y: u32, w: u32, h: u32, scroll: usize, total: usize, visible: usize) {
+    fill_rect(x, y, w, h, COLOR_SCROLLBAR);
+
+    if total > 0 {
+        let thumb_h = ((visible as u32 * h) / total as u32).max(20).min(h);
+        let thumb_y = if total > visible {
+            y + ((scroll as u32 * (h - thumb_h)) / (total - visible) as u32)
+        } else {
+            y
+        };
+        fill_rect(x, thumb_y, w, thumb_h, COLOR_SCROLLBAR_THUMB);
+    }
+}
+
+fn draw_styled_line(x: u32, y: u32, text: &[u8], max_width: u32) {
+    let max_chars = (max_width / 8) as usize;
+    let mut current_x = x;
+    let mut i = 0;
+    let mut char_count = 0;
+    let mut is_heading = false;
+    let mut is_bold = false;
+
+    if text.len() >= 3 && &text[0..3] == b"## " {
+        is_heading = true;
+        i = 3;
+    }
+
+    while i < text.len() && char_count < max_chars {
+        if i + 2 <= text.len() && &text[i..i+2] == b"**" {
+            is_bold = !is_bold;
+            i += 2;
+            continue;
+        }
+
+        if i + 5 < text.len() && &text[i..i+5] == b"[http" {
+            let start = i;
+            while i < text.len() && text[i] != b']' {
+                i += 1;
+            }
+            if i < text.len() {
+                i += 1;
+            }
+            for &ch in &text[start..i] {
+                if char_count >= max_chars {
+                    break;
+                }
+                draw_char(current_x, y, ch, COLOR_LINK);
+                current_x += 8;
+                char_count += 1;
+            }
+        } else if i + 4 < text.len() && &text[i..i+4] == b"[IMG" {
+            let start = i;
+            while i < text.len() && text[i] != b']' {
+                i += 1;
+            }
+            if i < text.len() {
+                i += 1;
+            }
+            for &ch in &text[start..i] {
+                if char_count >= max_chars {
+                    break;
+                }
+                draw_char(current_x, y, ch, COLOR_TEXT_DIM);
+                current_x += 8;
+                char_count += 1;
+            }
+        } else if i + 4 < text.len() && &text[i..i+4] == b"[BTN" {
+            let start = i;
+            while i < text.len() && text[i] != b']' {
+                i += 1;
+            }
+            if i < text.len() {
+                i += 1;
+            }
+            for &ch in &text[start..i] {
+                if char_count >= max_chars {
+                    break;
+                }
+                draw_char(current_x, y, ch, COLOR_ACCENT);
+                current_x += 8;
+                char_count += 1;
+            }
+        } else if i + 6 < text.len() && &text[i..i+6] == b"[INPUT" {
+            let start = i;
+            while i < text.len() && text[i] != b']' {
+                i += 1;
+            }
+            if i < text.len() {
+                i += 1;
+            }
+            for &ch in &text[start..i] {
+                if char_count >= max_chars {
+                    break;
+                }
+                draw_char(current_x, y, ch, COLOR_WARNING);
+                current_x += 8;
+                char_count += 1;
+            }
+        } else if text[i] == 0xE2 && i + 2 < text.len() {
+            draw_char(current_x, y, b'-', COLOR_TEXT_DIM);
+            current_x += 8;
+            char_count += 1;
+            i += 3;
+        } else {
+            let color = if is_heading {
+                COLOR_HEADING
+            } else if is_bold {
+                COLOR_TEXT_BRIGHT
+            } else {
+                COLOR_TEXT
+            };
+            draw_char(current_x, y, text[i], color);
+            current_x += 8;
+            char_count += 1;
+            i += 1;
         }
     }
 }
@@ -110,27 +244,37 @@ fn draw_url_bar(x: u32, y: u32, w: u32, h: u32) {
     let url_w = w - (url_x - x) - 8;
 
     let url_focused = state::URL_FOCUSED.load(Ordering::Relaxed);
+    let is_https = state::IS_HTTPS.load(Ordering::Relaxed);
     let border_color = if url_focused { COLOR_ACCENT } else { COLOR_INPUT_BORDER };
 
     fill_rect(url_x, y + 4, url_w, h - 8, COLOR_INPUT_BG);
     draw_border(url_x, y + 4, url_w, h - 8, border_color);
 
+    let lock_x = url_x + 6;
+    let text_start = if is_https { url_x + 22 } else { url_x + 8 };
+
+    if is_https {
+        draw_char(lock_x, y + 12, 0xE2, COLOR_ACCENT);
+        draw_char(lock_x + 8, y + 12, b'S', COLOR_ACCENT);
+    }
+
     let url_buf = state::URL_BUFFER.lock();
     let url_len = state::URL_LEN.load(Ordering::Relaxed);
     let url_cursor = state::URL_CURSOR.load(Ordering::Relaxed);
 
+    let available_w = url_w - (text_start - url_x) - 8;
     if url_len > 0 {
-        let max_chars = ((url_w - 16) / 8) as usize;
+        let max_chars = (available_w / 8) as usize;
         let display_len = url_len.min(max_chars);
         for (i, &ch) in url_buf[..display_len].iter().enumerate() {
-            draw_char(url_x + 8 + i as u32 * 8, y + 12, ch, COLOR_URL_TEXT);
+            draw_char(text_start + i as u32 * 8, y + 12, ch, COLOR_URL_TEXT);
         }
     } else {
-        draw_string(url_x + 8, y + 12, b"Enter URL...", COLOR_TEXT_DIM);
+        draw_string(text_start, y + 12, b"Enter URL...", COLOR_TEXT_DIM);
     }
 
     if url_focused {
-        let cursor_x = url_x + 8 + (url_cursor as u32) * 8;
+        let cursor_x = text_start + (url_cursor as u32) * 8;
         fill_rect(cursor_x, y + 8, 2, h - 16, COLOR_TEXT_BRIGHT);
     }
 }
