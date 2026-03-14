@@ -30,17 +30,59 @@ pub fn rsa_pss_sha256_verify_spki(spki_der: &[u8], message: &[u8], signature: &[
 }
 
 pub fn ecdsa_p256_sha256_verify_spki(public_key: &[u8], message: &[u8], signature: &[u8]) -> Result<bool, OnionError> {
+    use crate::sys::serial;
+
+    serial::print(b"[ECDSA] pk_len=");
+    serial::print_dec(public_key.len() as u64);
+    serial::print(b" msg_len=");
+    serial::print_dec(message.len() as u64);
+    serial::print(b" sig_len=");
+    serial::print_dec(signature.len() as u64);
+    serial::println(b"");
+
     if public_key.is_empty() || message.is_empty() || signature.is_empty() {
+        serial::println(b"[ECDSA] empty input");
         return Ok(false);
     }
-    let point_bytes = extract_ec_point(public_key)?;
+
+    let point_bytes = match extract_ec_point(public_key) {
+        Ok(p) => p,
+        Err(e) => {
+            serial::println(b"[ECDSA] extract_ec_point failed");
+            return Err(e);
+        }
+    };
+
+    serial::print(b"[ECDSA] point_len=");
+    serial::print_dec(point_bytes.len() as u64);
+    if !point_bytes.is_empty() {
+        serial::print(b" first_byte=0x");
+        serial::print_hex(point_bytes[0] as u64);
+    }
+    serial::println(b"");
+
     if point_bytes.len() != 65 || point_bytes[0] != 0x04 {
+        serial::println(b"[ECDSA] invalid point format");
         return Ok(false);
     }
-    let sig_fixed = parse_ecdsa_signature_der(signature)?;
+
+    let sig_fixed = match parse_ecdsa_signature_der(signature) {
+        Ok(s) => s,
+        Err(e) => {
+            serial::println(b"[ECDSA] parse_sig failed");
+            return Err(e);
+        }
+    };
+    serial::println(b"[ECDSA] sig parsed OK");
+
     let hash = sha256(message);
     let pk: [u8; 65] = point_bytes.as_slice().try_into().map_err(|_| OnionError::CryptoError)?;
-    Ok(p256::verify(&pk, &hash, &sig_fixed))
+
+    let result = p256::verify(&pk, &hash, &sig_fixed);
+    serial::print(b"[ECDSA] verify result=");
+    serial::println(if result { b"true" } else { b"false" });
+
+    Ok(result)
 }
 
 fn parse_rsa_spki(spki_der: &[u8]) -> Result<RsaPublicKey, OnionError> {
@@ -102,6 +144,8 @@ fn extract_ec_point(data: &[u8]) -> Result<Vec<u8>, OnionError> {
 }
 
 fn parse_ecdsa_signature_der(sig: &[u8]) -> Result<[u8; 64], OnionError> {
+    use crate::sys::serial;
+
     if sig.len() == 64 {
         let mut result = [0u8; 64];
         result.copy_from_slice(sig);
@@ -116,19 +160,42 @@ fn parse_ecdsa_signature_der(sig: &[u8]) -> Result<[u8; 64], OnionError> {
     parser.expect_tag(0x02)?;
     let s_len = parser.read_length()?;
     let s_bytes = parser.read_bytes(s_len)?;
+
+    serial::print(b"[ECDSA] r_len=");
+    serial::print_dec(r_len as u64);
+    serial::print(b" s_len=");
+    serial::print_dec(s_len as u64);
+    serial::println(b"");
+
     let mut result = [0u8; 64];
     let r_stripped = strip_leading_zeros(r_bytes);
     if r_stripped.len() > 32 {
+        serial::println(b"[ECDSA] r too long");
         return Err(OnionError::CryptoError);
     }
     let r_offset = 32 - r_stripped.len();
     result[r_offset..32].copy_from_slice(r_stripped);
     let s_stripped = strip_leading_zeros(s_bytes);
     if s_stripped.len() > 32 {
+        serial::println(b"[ECDSA] s too long");
         return Err(OnionError::CryptoError);
     }
     let s_offset = 32 - s_stripped.len();
     result[32 + s_offset..64].copy_from_slice(s_stripped);
+
+    serial::print(b"[ECDSA] r[0..4]=");
+    for i in 0..4.min(32) {
+        serial::print_hex(result[i] as u64);
+        serial::print(b" ");
+    }
+    serial::println(b"");
+    serial::print(b"[ECDSA] s[0..4]=");
+    for i in 0..4.min(32) {
+        serial::print_hex(result[32+i] as u64);
+        serial::print(b" ");
+    }
+    serial::println(b"");
+
     Ok(result)
 }
 
