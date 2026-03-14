@@ -26,26 +26,57 @@ use super::super::tabs::active_tab;
 use super::state::*;
 
 pub(super) fn process_response() {
+    use crate::sys::serial;
+
     let response_data = RESPONSE_DATA.lock().clone();
     let url = PENDING_URL.lock().clone().unwrap_or_default();
 
+    serial::print(b"[BROWSER] processing response: ");
+    serial::print_dec(response_data.len() as u64);
+    serial::println(b" bytes");
+
     let body = extract_body(&response_data);
+    serial::print(b"[BROWSER] body size: ");
+    serial::print_dec(body.len() as u64);
+    serial::println(b" bytes");
+
+    window_state::set_base_url(&url);
+    window_state::clear_page_links();
 
     if let Some(tab) = active_tab() {
         let mut tab = tab;
         tab.url = url.clone();
         tab.content = body.clone();
         let title = extract_title(&body).unwrap_or_else(|| String::from("Untitled"));
+        serial::print(b"[BROWSER] title: ");
+        let title_bytes = title.as_bytes();
+        let display_len = title_bytes.len().min(50);
+        serial::print(&title_bytes[..display_len]);
+        serial::println(b"");
         tab.title = title.clone();
         add_history(&url, &title);
     }
 
     let content_str = core::str::from_utf8(&body).unwrap_or("");
-    let lines: Vec<String> = engine::render_to_lines(content_str);
+    let (lines, links) = engine::render_to_lines_with_links(content_str);
+
+    serial::print(b"[BROWSER] rendered ");
+    serial::print_dec(lines.len() as u64);
+    serial::print(b" lines, ");
+    serial::print_dec(links.len() as u64);
+    serial::println(b" links");
+
+    for (line_idx, start_x, end_x, href) in links {
+        window_state::add_page_link(line_idx, start_x, end_x, &href);
+    }
+
+    let title = extract_title(&body).unwrap_or_else(|| String::from("Untitled"));
+    window_state::set_page_title(&title);
 
     {
         let mut page_content = window_state::PAGE_CONTENT.lock();
         page_content.clear();
+        window_state::PAGE_TOTAL_LINES.store(lines.len(), core::sync::atomic::Ordering::Relaxed);
         page_content.extend(lines);
     }
     window_state::PAGE_SCROLL.store(0, Ordering::Relaxed);
@@ -54,6 +85,7 @@ pub(super) fn process_response() {
 
     cleanup_navigation();
     set_state(NavState::Done);
+    serial::println(b"[BROWSER] page loaded successfully");
 }
 
 pub(super) fn find_header_end(data: &[u8]) -> Option<usize> {
