@@ -1,0 +1,97 @@
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+use super::error::UsercopyError;
+use super::validate::{validate_user_read, validate_user_write};
+use super::fault::did_fault;
+
+/// # Safety
+/// Copies data from user space to kernel buffer with full validation.
+/// Validates page mappings before access. Returns error on any fault.
+/// User pointer must be in canonical user address range.
+pub fn copy_from_user(user_ptr: u64, dst: &mut [u8]) -> Result<(), UsercopyError> {
+    validate_user_read(user_ptr, dst.len())?;
+    unsafe { do_copy_from_user(user_ptr, dst) }
+}
+
+/// # Safety
+/// Copies data from kernel buffer to user space with full validation.
+/// Validates page mappings and writability before access.
+/// User pointer must be in canonical user address range.
+pub fn copy_to_user(user_ptr: u64, src: &[u8]) -> Result<(), UsercopyError> {
+    validate_user_write(user_ptr, src.len())?;
+    unsafe { do_copy_to_user(user_ptr, src) }
+}
+
+/// # Safety
+/// Reads a typed value from user space with validation. Type must be Copy
+/// and have stable representation. User pointer must be properly aligned.
+pub fn read_user_value<T: Copy>(user_ptr: u64) -> Result<T, UsercopyError> {
+    let size = core::mem::size_of::<T>();
+    validate_user_read(user_ptr, size)?;
+
+    let mut value: T = unsafe { core::mem::zeroed() };
+    let dst = unsafe {
+        core::slice::from_raw_parts_mut(&mut value as *mut T as *mut u8, size)
+    };
+
+    unsafe { do_copy_from_user(user_ptr, dst)?; }
+    Ok(value)
+}
+
+/// # Safety
+/// Writes a typed value to user space with validation. Type must be Copy
+/// and have stable representation. User pointer must be properly aligned.
+pub fn write_user_value<T: Copy>(user_ptr: u64, value: &T) -> Result<(), UsercopyError> {
+    let size = core::mem::size_of::<T>();
+    validate_user_write(user_ptr, size)?;
+
+    let src = unsafe {
+        core::slice::from_raw_parts(value as *const T as *const u8, size)
+    };
+
+    unsafe { do_copy_to_user(user_ptr, src) }
+}
+
+/// # Safety
+/// Internal copy from user using volatile reads. Checks fault flag after
+/// each byte to detect page faults during access. Caller must have
+/// validated the address range before calling.
+unsafe fn do_copy_from_user(src: u64, dst: &mut [u8]) -> Result<(), UsercopyError> {
+    let src_ptr = src as *const u8;
+    for (i, byte) in dst.iter_mut().enumerate() {
+        *byte = core::ptr::read_volatile(src_ptr.add(i));
+        if did_fault() {
+            return Err(UsercopyError::PageFault);
+        }
+    }
+    Ok(())
+}
+
+/// # Safety
+/// Internal copy to user using volatile writes. Checks fault flag after
+/// each byte to detect page faults during access. Caller must have
+/// validated the address range before calling.
+unsafe fn do_copy_to_user(dst: u64, src: &[u8]) -> Result<(), UsercopyError> {
+    let dst_ptr = dst as *mut u8;
+    for (i, byte) in src.iter().enumerate() {
+        core::ptr::write_volatile(dst_ptr.add(i), *byte);
+        if did_fault() {
+            return Err(UsercopyError::PageFault);
+        }
+    }
+    Ok(())
+}
