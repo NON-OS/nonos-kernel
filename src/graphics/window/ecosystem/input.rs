@@ -20,7 +20,7 @@ use core::sync::atomic::Ordering;
 
 use super::state::{self, EcosystemTab};
 use super::tabs;
-use super::input_actions::navigate_to_url;
+use super::input_actions::{navigate_to_url, page_up, page_down, scroll_up_line, scroll_down_line};
 use super::input_click::{
     handle_browser_click, handle_wallet_click, handle_staking_click,
     handle_lp_click, handle_node_click, handle_privacy_click,
@@ -127,11 +127,19 @@ pub fn handle_special_key(key: SpecialKey) {
 fn handle_browser_special_key(key: SpecialKey) {
     if !state::URL_FOCUSED.load(Ordering::Relaxed) {
         match key {
-            SpecialKey::Up => scroll_page(-1),
-            SpecialKey::Down => scroll_page(1),
-            SpecialKey::PageUp => scroll_page(-10),
-            SpecialKey::PageDown => scroll_page(10),
+            SpecialKey::Up => scroll_up_line(),
+            SpecialKey::Down => scroll_down_line(),
+            SpecialKey::PageUp => page_up(),
+            SpecialKey::PageDown => page_down(),
             SpecialKey::Home => state::PAGE_SCROLL.store(0, Ordering::Relaxed),
+            SpecialKey::End => {
+                let total = state::PAGE_TOTAL_LINES.load(Ordering::Relaxed);
+                state::PAGE_SCROLL.store(total.saturating_sub(20), Ordering::Relaxed);
+            }
+            SpecialKey::Tab => {
+                state::URL_FOCUSED.store(true, Ordering::Relaxed);
+                state::set_input_focused(true);
+            }
             _ => {}
         }
         return;
@@ -166,16 +174,11 @@ fn handle_browser_special_key(key: SpecialKey) {
                 state::URL_LEN.store(url_len - 1, Ordering::Relaxed);
             }
         }
+        SpecialKey::Tab => {
+            state::URL_FOCUSED.store(false, Ordering::Relaxed);
+            state::set_input_focused(false);
+        }
         _ => {}
     }
 }
 
-fn scroll_page(delta: i32) {
-    let current = state::PAGE_SCROLL.load(Ordering::Relaxed) as i32;
-    let content = state::PAGE_CONTENT.lock();
-    let max_scroll = content.len().saturating_sub(20);
-    drop(content);
-
-    let new_scroll = (current + delta).max(0).min(max_scroll as i32) as usize;
-    state::PAGE_SCROLL.store(new_scroll, Ordering::Relaxed);
-}
