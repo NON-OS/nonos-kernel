@@ -33,8 +33,8 @@ pub(super) fn build_client_hello(
     ch.extend_from_slice(client_random);
     ch.push(0);
 
-    let ciphers: [u16; 2] = [
-        CipherSuite::TlsChacha20Poly1305Sha256 as u16,
+    // Force AES-128-GCM only to debug TLS issue
+    let ciphers: [u16; 1] = [
         CipherSuite::TlsAes128GcmSha256 as u16,
     ];
     ch.extend_from_slice(&((ciphers.len() * 2) as u16).to_be_bytes());
