@@ -62,8 +62,8 @@ pub fn get_fd(fd: u32) -> Option<FdEntry> {
         return Some(entry.clone());
     }
 
-    if crate::syscall::extended::eventfd::is_eventfd(fd) {
-        if let Some(efd_id) = crate::syscall::extended::eventfd::fd_to_eventfd_id(fd) {
+    if crate::syscall::extended::eventfd_ops::is_eventfd(fd) {
+        if let Some(efd_id) = crate::syscall::extended::eventfd_ops::fd_to_eventfd_id(fd) {
             let mut entry = FdEntry::new(FdType::EventFd, efd_id as usize);
             entry.fd = fd;
             return Some(entry);
