@@ -22,6 +22,7 @@ use spin::Mutex;
 
 use crate::syscall::SyscallResult;
 use crate::syscall::extended::errno;
+use crate::usercopy::write_user_value;
 
 static NEXT_FD: AtomicU32 = AtomicU32::new(1000);
 static FD_DUP_TABLE: Mutex<BTreeMap<u32, u32>> = Mutex::new(BTreeMap::new());
@@ -95,9 +96,11 @@ pub fn handle_pipe(pipefd: u64) -> SyscallResult {
     let read_fd = allocate_fd();
     let write_fd = allocate_fd();
 
-    unsafe {
-        core::ptr::write(pipefd as *mut u32, read_fd);
-        core::ptr::write((pipefd + 4) as *mut u32, write_fd);
+    if write_user_value(pipefd, &read_fd).is_err() {
+        return errno(14);
+    }
+    if write_user_value(pipefd + 4, &write_fd).is_err() {
+        return errno(14);
     }
 
     SyscallResult { value: 0, capability_consumed: false, audit_required: false }
