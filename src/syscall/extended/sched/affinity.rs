@@ -17,6 +17,7 @@
 use crate::syscall::SyscallResult;
 use crate::process::scheduler as policy;
 use crate::syscall::extended::errno;
+use crate::usercopy::{copy_from_user, copy_to_user, read_user_value, write_user_value};
 use super::util::{resolve_pid, can_modify_process, ok};
 
 pub fn handle_sched_setaffinity(pid: i32, cpusetsize: u64, mask: u64) -> SyscallResult {
@@ -37,17 +38,18 @@ pub fn handle_sched_setaffinity(pid: i32, cpusetsize: u64, mask: u64) -> Syscall
         return errno(1);
     }
 
-    let cpu_mask = unsafe {
-        if cpusetsize >= 8 {
-            core::ptr::read(mask as *const u64)
-        } else {
-            let mut m = 0u64;
-            let bytes = core::slice::from_raw_parts(mask as *const u8, cpusetsize as usize);
-            for (i, &b) in bytes.iter().enumerate() {
-                m |= (b as u64) << (i * 8);
-            }
-            m
+    let cpu_mask = if cpusetsize >= 8 {
+        match read_user_value::<u64>(mask) {
+            Ok(v) => v,
+            Err(_) => return errno(14),
         }
+    } else {
+        let mut bytes = [0u8; 8];
+        let copy_len = (cpusetsize as usize).min(8);
+        if copy_from_user(mask, &mut bytes[..copy_len]).is_err() {
+            return errno(14);
+        }
+        u64::from_ne_bytes(bytes)
     };
 
     if let Err(_) = policy::set_affinity(target_pid, cpu_mask) {
@@ -69,14 +71,15 @@ pub fn handle_sched_getaffinity(pid: i32, cpusetsize: u64, mask: u64) -> Syscall
 
     let cpu_mask = policy::get_affinity(target_pid);
 
-    unsafe {
-        if cpusetsize >= 8 {
-            core::ptr::write(mask as *mut u64, cpu_mask);
-        } else {
-            let bytes = core::slice::from_raw_parts_mut(mask as *mut u8, cpusetsize as usize);
-            for (i, b) in bytes.iter_mut().enumerate() {
-                *b = ((cpu_mask >> (i * 8)) & 0xFF) as u8;
-            }
+    if cpusetsize >= 8 {
+        if write_user_value(mask, &cpu_mask).is_err() {
+            return errno(14);
+        }
+    } else {
+        let bytes = cpu_mask.to_ne_bytes();
+        let copy_len = (cpusetsize as usize).min(8);
+        if copy_to_user(mask, &bytes[..copy_len]).is_err() {
+            return errno(14);
         }
     }
 
