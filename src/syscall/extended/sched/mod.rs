@@ -16,6 +16,7 @@
 
 pub mod affinity;
 pub mod attr;
+pub mod interval;
 pub mod param;
 pub mod prio;
 pub mod util;
@@ -26,8 +27,9 @@ pub use param::{
     handle_sched_setparam, handle_sched_getparam,
     handle_sched_setscheduler, handle_sched_getscheduler,
     handle_sched_get_priority_max, handle_sched_get_priority_min,
-    handle_sched_rr_get_interval,
 };
+
+pub use interval::handle_sched_rr_get_interval;
 
 pub use affinity::{handle_sched_setaffinity, handle_sched_getaffinity};
 
