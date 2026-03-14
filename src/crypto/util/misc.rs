@@ -37,15 +37,29 @@ pub fn secure_random_bytes(buffer: &mut [u8]) {
     buffer.copy_from_slice(&entropy[..buffer.len()]);
 }
 
+/// # Safety
+/// Constant-time byte slice comparison. Compares all bytes regardless of
+/// length mismatch. Returns true only if lengths match AND all bytes match.
+/// Timing is independent of where differences occur.
 pub fn constant_time_eq(a: &[u8], b: &[u8]) -> bool {
-    if a.len() != b.len() {
-        return false;
-    }
+    let len_a = a.len();
+    let len_b = b.len();
 
-    let mut diff = 0u8;
-    for i in 0..a.len() {
+    let mut diff = (len_a ^ len_b) as u8;
+
+    let min_len = if len_a < len_b { len_a } else { len_b };
+    let max_len = if len_a > len_b { len_a } else { len_b };
+
+    for i in 0..min_len {
         diff |= a[i] ^ b[i];
     }
+
+    for i in min_len..max_len {
+        let byte_a = if i < len_a { a[i] } else { 0 };
+        let byte_b = if i < len_b { b[i] } else { 0 };
+        diff |= byte_a ^ byte_b ^ 0xFF;
+    }
+
     diff == 0
 }
 
