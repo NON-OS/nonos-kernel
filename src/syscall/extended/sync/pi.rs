@@ -24,18 +24,20 @@ use super::helpers::wake_futex;
 use super::wait_wake::handle_futex_wait;
 use super::types::{ok, FUTEX_WAITER_MAP, PI_OWNERS, FUTEX_WAKES};
 use crate::syscall::SyscallResult;
+use crate::usercopy::{read_user_value, write_user_value};
 use super::super::errno;
 
 pub(super) fn handle_futex_lock_pi(uaddr: u64, timeout: u64) -> SyscallResult {
     let pid = crate::process::current_pid().unwrap_or(0);
 
-    // SAFETY: Reading current futex value
-    let current = unsafe { core::ptr::read_volatile(uaddr as *const u32) };
+    let current: u32 = match read_user_value(uaddr) {
+        Ok(v) => v,
+        Err(_) => return errno(14),
+    };
 
     if current == 0 {
-        // SAFETY: Acquiring uncontended lock
-        unsafe {
-            core::ptr::write_volatile(uaddr as *mut u32, pid);
+        if write_user_value(uaddr, &pid).is_err() {
+            return errno(14);
         }
         PI_OWNERS.lock().insert(uaddr, pid);
         return ok(0);
@@ -43,9 +45,8 @@ pub(super) fn handle_futex_lock_pi(uaddr: u64, timeout: u64) -> SyscallResult {
 
     if (current & FUTEX_OWNER_DIED) != 0 {
         let new_val = pid | (current & FUTEX_WAITERS);
-        // SAFETY: Taking over dead owner's lock
-        unsafe {
-            core::ptr::write_volatile(uaddr as *mut u32, new_val);
+        if write_user_value(uaddr, &new_val).is_err() {
+            return errno(14);
         }
         PI_OWNERS.lock().insert(uaddr, pid);
         return ok(0);
@@ -57,9 +58,8 @@ pub(super) fn handle_futex_lock_pi(uaddr: u64, timeout: u64) -> SyscallResult {
     }
 
     let with_waiters = current | FUTEX_WAITERS;
-    // SAFETY: Setting waiters flag
-    unsafe {
-        core::ptr::write_volatile(uaddr as *mut u32, with_waiters);
+    if write_user_value(uaddr, &with_waiters).is_err() {
+        return errno(14);
     }
 
     handle_futex_wait(uaddr, with_waiters as u64, timeout, FUTEX_BITSET_MATCH_ANY, true)
@@ -68,8 +68,10 @@ pub(super) fn handle_futex_lock_pi(uaddr: u64, timeout: u64) -> SyscallResult {
 pub(super) fn handle_futex_unlock_pi(uaddr: u64) -> SyscallResult {
     let pid = crate::process::current_pid().unwrap_or(0);
 
-    // SAFETY: Reading current futex value
-    let current = unsafe { core::ptr::read_volatile(uaddr as *const u32) };
+    let current: u32 = match read_user_value(uaddr) {
+        Ok(v) => v,
+        Err(_) => return errno(14),
+    };
     let owner_tid = current & FUTEX_TID_MASK;
 
     if owner_tid != pid {
@@ -80,9 +82,9 @@ pub(super) fn handle_futex_unlock_pi(uaddr: u64) -> SyscallResult {
         wake_futex(uaddr, 1, FUTEX_BITSET_MATCH_ANY);
     }
 
-    // SAFETY: Releasing lock
-    unsafe {
-        core::ptr::write_volatile(uaddr as *mut u32, 0);
+    let zero: u32 = 0;
+    if write_user_value(uaddr, &zero).is_err() {
+        return errno(14);
     }
     PI_OWNERS.lock().remove(&uaddr);
 
@@ -92,13 +94,14 @@ pub(super) fn handle_futex_unlock_pi(uaddr: u64) -> SyscallResult {
 pub(super) fn handle_futex_trylock_pi(uaddr: u64) -> SyscallResult {
     let pid = crate::process::current_pid().unwrap_or(0);
 
-    // SAFETY: Reading current futex value
-    let current = unsafe { core::ptr::read_volatile(uaddr as *const u32) };
+    let current: u32 = match read_user_value(uaddr) {
+        Ok(v) => v,
+        Err(_) => return errno(14),
+    };
 
     if current == 0 {
-        // SAFETY: Acquiring uncontended lock
-        unsafe {
-            core::ptr::write_volatile(uaddr as *mut u32, pid);
+        if write_user_value(uaddr, &pid).is_err() {
+            return errno(14);
         }
         PI_OWNERS.lock().insert(uaddr, pid);
         return ok(0);
@@ -106,9 +109,8 @@ pub(super) fn handle_futex_trylock_pi(uaddr: u64) -> SyscallResult {
 
     if (current & FUTEX_OWNER_DIED) != 0 {
         let new_val = pid | (current & FUTEX_WAITERS);
-        // SAFETY: Taking over dead owner's lock
-        unsafe {
-            core::ptr::write_volatile(uaddr as *mut u32, new_val);
+        if write_user_value(uaddr, &new_val).is_err() {
+            return errno(14);
         }
         PI_OWNERS.lock().insert(uaddr, pid);
         return ok(0);
@@ -122,8 +124,10 @@ pub(super) fn handle_futex_wait_requeue_pi(uaddr: u64, val: u64, timeout: u64, u
         return errno(14);
     }
 
-    // SAFETY: Reading current value
-    let current = unsafe { core::ptr::read_volatile(uaddr as *const u32) };
+    let current: u32 = match read_user_value(uaddr) {
+        Ok(v) => v,
+        Err(_) => return errno(14),
+    };
     if current != val as u32 {
         return errno(11);
     }
@@ -136,20 +140,28 @@ pub(super) fn handle_futex_cmp_requeue_pi(uaddr: u64, val: u64, val2: u64, uaddr
         return errno(14);
     }
 
-    // SAFETY: Reading current value for comparison
-    let current = unsafe { core::ptr::read_volatile(uaddr as *const u32) };
+    let current: u32 = match read_user_value(uaddr) {
+        Ok(v) => v,
+        Err(_) => return errno(14),
+    };
     if current != val3 as u32 {
         return errno(11);
     }
 
-    let max_wake = val as usize;
-    let max_requeue = val2 as usize;
+    let (woken, requeued) = requeue_waiters(uaddr, uaddr2, val as usize, val2 as usize);
 
+    if requeued > 0 {
+        set_waiters_flag_if_needed(uaddr2);
+    }
+
+    FUTEX_WAKES.fetch_add(woken as u64, Ordering::Relaxed);
+    ok(woken as i64)
+}
+
+fn requeue_waiters(uaddr: u64, uaddr2: u64, max_wake: usize, max_requeue: usize) -> (usize, usize) {
     let mut woken = 0;
     let mut requeued = 0;
-
     let mut waiters_guard = FUTEX_WAITER_MAP.lock();
-
     let mut waiters_to_requeue = Vec::new();
 
     if let Some(waiters) = waiters_guard.get_mut(&uaddr) {
@@ -157,7 +169,6 @@ pub(super) fn handle_futex_cmp_requeue_pi(uaddr: u64, val: u64, val2: u64, uaddr
             waiters.remove(0);
             woken += 1;
         }
-
         while requeued < max_requeue && !waiters.is_empty() {
             let mut waiter = waiters.remove(0);
             waiter.is_pi = true;
@@ -170,16 +181,16 @@ pub(super) fn handle_futex_cmp_requeue_pi(uaddr: u64, val: u64, val2: u64, uaddr
         waiters_guard.entry(uaddr2).or_insert_with(Vec::new).push(waiter);
     }
 
-    if requeued > 0 {
-        // SAFETY: Setting waiters flag on PI futex
-        let current = unsafe { core::ptr::read_volatile(uaddr2 as *const u32) };
-        if (current & FUTEX_WAITERS) == 0 && current != 0 {
-            unsafe {
-                core::ptr::write_volatile(uaddr2 as *mut u32, current | FUTEX_WAITERS);
-            }
-        }
-    }
+    (woken, requeued)
+}
 
-    FUTEX_WAKES.fetch_add(woken as u64, Ordering::Relaxed);
-    ok(woken as i64)
+fn set_waiters_flag_if_needed(uaddr2: u64) {
+    let current: u32 = match read_user_value(uaddr2) {
+        Ok(v) => v,
+        Err(_) => return,
+    };
+    if (current & FUTEX_WAITERS) == 0 && current != 0 {
+        let new_val = current | FUTEX_WAITERS;
+        let _ = write_user_value(uaddr2, &new_val);
+    }
 }
