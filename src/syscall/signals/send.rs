@@ -15,10 +15,13 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::syscall::SyscallResult;
+use crate::usercopy::copy_from_user;
 use super::constants::*;
 use super::types::*;
 use super::state::SIGNAL_STATE;
 use super::delivery::*;
+
+const SIGINFO_MIN_SIZE: usize = 24;
 
 #[inline]
 fn errno(e: i32) -> SyscallResult {
@@ -65,6 +68,8 @@ pub fn handle_tkill(tid: u64, sig: u64) -> SyscallResult {
     send_signal(tid as u32, sig as u32)
 }
 
+/// # Safety
+/// Handles rt_sigqueueinfo with validated user pointer access.
 pub fn handle_rt_sigqueueinfo(pid: u64, sig: u64, info: u64) -> SyscallResult {
     if sig < 1 || sig > SIGRTMAX as u64 {
         return errno(22);
@@ -74,10 +79,14 @@ pub fn handle_rt_sigqueueinfo(pid: u64, sig: u64, info: u64) -> SyscallResult {
         return errno(14);
     }
 
-    let sender_pid = crate::process::current_pid().unwrap_or(0);
+    let mut buf = [0u8; SIGINFO_MIN_SIZE];
+    if copy_from_user(info, &mut buf).is_err() {
+        return errno(14);
+    }
 
-    let si_code = unsafe { core::ptr::read((info + 8) as *const i32) };
-    let si_value = unsafe { core::ptr::read((info + 16) as *const u64) };
+    let sender_pid = crate::process::current_pid().unwrap_or(0);
+    let si_code = i32::from_ne_bytes(buf[8..12].try_into().unwrap_or([0; 4]));
+    let si_value = u64::from_ne_bytes(buf[16..24].try_into().unwrap_or([0; 8]));
 
     let pending = PendingSignal {
         signo: sig as u32,
@@ -91,6 +100,8 @@ pub fn handle_rt_sigqueueinfo(pid: u64, sig: u64, info: u64) -> SyscallResult {
     queue_signal(pid as u32, pending)
 }
 
+/// # Safety
+/// Handles rt_tgsigqueueinfo with validated user pointer access.
 pub fn handle_rt_tgsigqueueinfo(tgid: u64, tid: u64, sig: u64, info: u64) -> SyscallResult {
     if sig < 1 || sig > SIGRTMAX as u64 {
         return errno(22);
@@ -104,10 +115,14 @@ pub fn handle_rt_tgsigqueueinfo(tgid: u64, tid: u64, sig: u64, info: u64) -> Sys
         return errno(3);
     }
 
-    let sender_pid = crate::process::current_pid().unwrap_or(0);
+    let mut buf = [0u8; SIGINFO_MIN_SIZE];
+    if copy_from_user(info, &mut buf).is_err() {
+        return errno(14);
+    }
 
-    let si_code = unsafe { core::ptr::read((info + 8) as *const i32) };
-    let si_value = unsafe { core::ptr::read((info + 16) as *const u64) };
+    let sender_pid = crate::process::current_pid().unwrap_or(0);
+    let si_code = i32::from_ne_bytes(buf[8..12].try_into().unwrap_or([0; 4]));
+    let si_value = u64::from_ne_bytes(buf[16..24].try_into().unwrap_or([0; 8]));
 
     let pending = PendingSignal {
         signo: sig as u32,
