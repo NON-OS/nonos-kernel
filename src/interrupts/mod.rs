@@ -20,6 +20,7 @@ pub mod handlers;
 pub mod idt;
 pub mod isr;
 pub mod pic;
+pub mod safety;
 pub mod stats;
 pub mod timer;
 
@@ -68,4 +69,9 @@ pub use stats::{
 pub use timer::{
     clear_tick_hook, init as init_timer, on_timer_interrupt, reset_ticks, set_tick_hook, tick,
     tick_count, TickHook, TICK_COUNT,
+};
+
+pub use safety::{
+    disable_interrupts_guard, in_interrupt_context, set_interrupt_context, InterruptContext,
+    InterruptGuard,
 };
