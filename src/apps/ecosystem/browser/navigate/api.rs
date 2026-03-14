@@ -52,6 +52,8 @@ pub fn navigate(url: &str) {
 
     window_state::LOADING.store(true, Ordering::Relaxed);
     window_state::clear_error();
+    window_state::IS_HTTPS.store(false, Ordering::Relaxed);
+    window_state::CERT_VERIFIED.store(false, Ordering::Relaxed);
 
     let parts = match parse_url(url) {
         Some(p) => p,
@@ -62,6 +64,8 @@ pub fn navigate(url: &str) {
             return;
         }
     };
+
+    window_state::IS_HTTPS.store(parts.is_https, Ordering::Relaxed);
 
     *PENDING_URL.lock() = Some(String::from(url));
     *PENDING_HOST.lock() = Some(parts.host.clone());
@@ -87,6 +91,7 @@ pub fn navigate(url: &str) {
 }
 
 pub fn poll_navigation() {
+    use crate::sys::serial;
     let state = get_state();
 
     match state {
@@ -118,14 +123,17 @@ pub fn poll_navigation() {
         }
 
         NavState::SendingRequest => {
+            serial::println(b"[NAV] SendingRequest");
             poll_send_request();
         }
 
         NavState::ReceivingResponse => {
+            serial::println(b"[NAV] ReceivingResponse");
             poll_receive_response();
         }
 
         NavState::ProcessingResponse => {
+            serial::println(b"[NAV] ProcessingResponse");
             process_response();
         }
 
