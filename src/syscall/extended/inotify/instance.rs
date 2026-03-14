@@ -46,28 +46,18 @@ impl QueuedEvent {
 
     pub fn write_to(&self, buf: &mut [u8]) -> Option<usize> {
         let total_size = self.event.total_size();
-        if buf.len() < total_size {
-            return None;
-        }
-
-        let event_bytes = unsafe {
-            core::slice::from_raw_parts(
-                &self.event as *const InotifyEvent as *const u8,
-                core::mem::size_of::<InotifyEvent>(),
-            )
-        };
-        buf[..core::mem::size_of::<InotifyEvent>()].copy_from_slice(event_bytes);
-
+        if buf.len() < total_size { return None; }
+        let event_size = core::mem::size_of::<InotifyEvent>();
+        buf[0..4].copy_from_slice(&self.event.wd.to_ne_bytes());
+        buf[4..8].copy_from_slice(&self.event.mask.to_ne_bytes());
+        buf[8..12].copy_from_slice(&self.event.cookie.to_ne_bytes());
+        buf[12..16].copy_from_slice(&self.event.len.to_ne_bytes());
         if let Some(ref name) = self.name {
             let name_bytes = name.as_bytes();
-            let offset = core::mem::size_of::<InotifyEvent>();
+            let offset = event_size;
             buf[offset..offset + name_bytes.len()].copy_from_slice(name_bytes);
-            buf[offset + name_bytes.len()] = 0;
-            for i in (name_bytes.len() + 1)..(self.event.len as usize) {
-                buf[offset + i] = 0;
-            }
+            for i in name_bytes.len()..(self.event.len as usize) { buf[offset + i] = 0; }
         }
-
         Some(total_size)
     }
 }
