@@ -14,23 +14,18 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+extern crate alloc;
+
 use crate::capabilities::Capability;
 use crate::syscall::SyscallResult;
 use crate::syscall::dispatch::{errno, require_capability};
+use crate::usercopy::copy_to_user;
 
 pub fn handle_crypto_random(buf: u64, len: u64) -> SyscallResult {
-    if let Err(e) = require_capability(Capability::Crypto) {
-        return e;
-    }
-
-    if buf == 0 || len == 0 || len > 4096 {
-        return errno(22);
-    }
-
-    let buffer = unsafe {
-        core::slice::from_raw_parts_mut(buf as *mut u8, len as usize)
-    };
-
-    crate::crypto::fill_random(buffer);
+    if let Err(e) = require_capability(Capability::Crypto) { return e; }
+    if buf == 0 || len == 0 || len > 4096 { return errno(22); }
+    let mut buffer = alloc::vec![0u8; len as usize];
+    crate::crypto::fill_random(&mut buffer);
+    if copy_to_user(buf, &buffer).is_err() { return errno(14); }
     SyscallResult { value: len as i64, capability_consumed: false, audit_required: false }
 }
