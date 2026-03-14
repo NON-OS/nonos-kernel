@@ -21,6 +21,7 @@ use spin::RwLock;
 
 use crate::syscall::SyscallResult;
 use crate::syscall::extended::errno;
+use crate::usercopy::{copy_to_user, write_user_value};
 
 static CHILD_EXIT_STATUS: RwLock<BTreeMap<u32, (u32, i32)>> = RwLock::new(BTreeMap::new());
 
@@ -77,15 +78,12 @@ pub fn handle_wait4(pid: i64, wstatus: u64, options: u64, rusage: u64) -> Syscal
                 } else {
                     status & 0x7F
                 };
-                unsafe {
-                    core::ptr::write(wstatus as *mut i32, encoded_status);
-                }
+                let _ = write_user_value(wstatus, &encoded_status);
             }
 
             if rusage != 0 {
-                unsafe {
-                    core::ptr::write_bytes(rusage as *mut u8, 0, 144);
-                }
+                let zero_rusage = [0u8; 144];
+                let _ = copy_to_user(rusage, &zero_rusage);
             }
 
             return SyscallResult {
@@ -162,20 +160,24 @@ pub fn handle_waitid(idtype: u64, id: u64, infop: u64, options: u64, rusage: u64
         }
 
         if let Some((pid, state, exit_status)) = found_child {
-            unsafe {
-                let info = infop as *mut u8;
-                core::ptr::write_bytes(info, 0, 128);
+            let mut siginfo_buf = [0u8; 128];
+            let si_signo: i32 = 17;
+            let si_code: i32 = match state {
+                crate::process::nonos_core::ProcessState::Zombie(_) => 1,
+                crate::process::nonos_core::ProcessState::Stopped => 5,
+                _ => 6,
+            };
+            let si_pid: i32 = pid as i32;
+            let si_uid: i32 = 0;
+            let si_status: i32 = exit_status;
 
-                core::ptr::write((info) as *mut i32, 17);
-                core::ptr::write((info.add(8)) as *mut i32, match state {
-                    crate::process::nonos_core::ProcessState::Zombie(_) => 1,
-                    crate::process::nonos_core::ProcessState::Stopped => 5,
-                    _ => 6,
-                });
-                core::ptr::write((info.add(12)) as *mut i32, pid as i32);
-                core::ptr::write((info.add(16)) as *mut i32, 0);
-                core::ptr::write((info.add(20)) as *mut i32, exit_status);
-            }
+            siginfo_buf[0..4].copy_from_slice(&si_signo.to_ne_bytes());
+            siginfo_buf[8..12].copy_from_slice(&si_code.to_ne_bytes());
+            siginfo_buf[12..16].copy_from_slice(&si_pid.to_ne_bytes());
+            siginfo_buf[16..20].copy_from_slice(&si_uid.to_ne_bytes());
+            siginfo_buf[20..24].copy_from_slice(&si_status.to_ne_bytes());
+
+            let _ = copy_to_user(infop, &siginfo_buf);
 
             if (options & WNOWAIT) == 0 {
                 if matches!(state, crate::process::nonos_core::ProcessState::Zombie(_)) {
@@ -184,18 +186,16 @@ pub fn handle_waitid(idtype: u64, id: u64, infop: u64, options: u64, rusage: u64
             }
 
             if rusage != 0 {
-                unsafe {
-                    core::ptr::write_bytes(rusage as *mut u8, 0, 144);
-                }
+                let zero_rusage = [0u8; 144];
+                let _ = copy_to_user(rusage, &zero_rusage);
             }
 
             return SyscallResult { value: 0, capability_consumed: false, audit_required: false };
         }
 
         if (options & WNOHANG) != 0 {
-            unsafe {
-                core::ptr::write_bytes(infop as *mut u8, 0, 128);
-            }
+            let zero_siginfo = [0u8; 128];
+            let _ = copy_to_user(infop, &zero_siginfo);
             return SyscallResult { value: 0, capability_consumed: false, audit_required: false };
         }
 
