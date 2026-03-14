@@ -14,126 +14,61 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+extern crate alloc;
+
 use crate::capabilities::Capability;
 use crate::syscall::SyscallResult;
 use crate::syscall::dispatch::{errno, require_capability};
+use crate::usercopy::{copy_from_user, copy_to_user};
 
 pub fn handle_crypto_encrypt(
-    algo: u64,
-    key_ptr: u64,
-    nonce_ptr: u64,
-    plaintext_ptr: u64,
-    plaintext_len: u64,
-    ciphertext_ptr: u64,
+    algo: u64, key_ptr: u64, nonce_ptr: u64, plaintext_ptr: u64, plaintext_len: u64, ciphertext_ptr: u64,
 ) -> SyscallResult {
-    if let Err(e) = require_capability(Capability::Crypto) {
-        return e;
-    }
-
-    if key_ptr == 0 || nonce_ptr == 0 || plaintext_ptr == 0 || ciphertext_ptr == 0 {
-        return errno(22);
-    }
-    if plaintext_len == 0 || plaintext_len > 1024 * 1024 {
-        return errno(22);
-    }
-
-    let key = unsafe { core::slice::from_raw_parts(key_ptr as *const u8, 32) };
-    let nonce = unsafe { core::slice::from_raw_parts(nonce_ptr as *const u8, 12) };
-    let plaintext = unsafe { core::slice::from_raw_parts(plaintext_ptr as *const u8, plaintext_len as usize) };
-    let ciphertext = unsafe { core::slice::from_raw_parts_mut(ciphertext_ptr as *mut u8, plaintext_len as usize + 16) };
-
+    if let Err(e) = require_capability(Capability::Crypto) { return e; }
+    if key_ptr == 0 || nonce_ptr == 0 || plaintext_ptr == 0 || ciphertext_ptr == 0 { return errno(22); }
+    if plaintext_len == 0 || plaintext_len > 1024 * 1024 { return errno(22); }
     let mut key_arr = [0u8; 32];
     let mut nonce_arr = [0u8; 12];
-    key_arr.copy_from_slice(key);
-    nonce_arr.copy_from_slice(nonce);
-
-    match algo {
-        0 => {
-            match crate::crypto::chacha20poly1305_encrypt(&key_arr, &nonce_arr, plaintext, &[]) {
-                Ok(ct) => {
-                    if ct.len() <= ciphertext.len() {
-                        ciphertext[..ct.len()].copy_from_slice(&ct);
-                        SyscallResult { value: ct.len() as i64, capability_consumed: false, audit_required: true }
-                    } else {
-                        errno(34)
-                    }
-                }
-                Err(_) => errno(5),
-            }
+    let mut plaintext = alloc::vec![0u8; plaintext_len as usize];
+    if copy_from_user(key_ptr, &mut key_arr).is_err() { return errno(14); }
+    if copy_from_user(nonce_ptr, &mut nonce_arr).is_err() { return errno(14); }
+    if copy_from_user(plaintext_ptr, &mut plaintext).is_err() { return errno(14); }
+    let result = match algo {
+        0 => crate::crypto::chacha20poly1305_encrypt(&key_arr, &nonce_arr, &plaintext, &[]),
+        1 => crate::crypto::aes256_gcm_encrypt(&key_arr, &nonce_arr, &plaintext, &[]),
+        _ => return errno(22),
+    };
+    match result {
+        Ok(ct) => {
+            if copy_to_user(ciphertext_ptr, &ct).is_err() { return errno(14); }
+            SyscallResult { value: ct.len() as i64, capability_consumed: false, audit_required: true }
         }
-        1 => {
-            match crate::crypto::aes256_gcm_encrypt(&key_arr, &nonce_arr, plaintext, &[]) {
-                Ok(ct) => {
-                    if ct.len() <= ciphertext.len() {
-                        ciphertext[..ct.len()].copy_from_slice(&ct);
-                        SyscallResult { value: ct.len() as i64, capability_consumed: false, audit_required: true }
-                    } else {
-                        errno(34)
-                    }
-                }
-                Err(_) => errno(5),
-            }
-        }
-        _ => errno(22),
+        Err(_) => errno(5),
     }
 }
 
 pub fn handle_crypto_decrypt(
-    algo: u64,
-    key_ptr: u64,
-    nonce_ptr: u64,
-    ciphertext_ptr: u64,
-    ciphertext_len: u64,
-    plaintext_ptr: u64,
+    algo: u64, key_ptr: u64, nonce_ptr: u64, ciphertext_ptr: u64, ciphertext_len: u64, plaintext_ptr: u64,
 ) -> SyscallResult {
-    if let Err(e) = require_capability(Capability::Crypto) {
-        return e;
-    }
-
-    if key_ptr == 0 || nonce_ptr == 0 || ciphertext_ptr == 0 || plaintext_ptr == 0 {
-        return errno(22);
-    }
-    if ciphertext_len < 16 || ciphertext_len > 1024 * 1024 + 16 {
-        return errno(22);
-    }
-
-    let key = unsafe { core::slice::from_raw_parts(key_ptr as *const u8, 32) };
-    let nonce = unsafe { core::slice::from_raw_parts(nonce_ptr as *const u8, 12) };
-    let ciphertext = unsafe { core::slice::from_raw_parts(ciphertext_ptr as *const u8, ciphertext_len as usize) };
-    let plaintext = unsafe { core::slice::from_raw_parts_mut(plaintext_ptr as *mut u8, ciphertext_len as usize - 16) };
-
+    if let Err(e) = require_capability(Capability::Crypto) { return e; }
+    if key_ptr == 0 || nonce_ptr == 0 || ciphertext_ptr == 0 || plaintext_ptr == 0 { return errno(22); }
+    if ciphertext_len < 16 || ciphertext_len > 1024 * 1024 + 16 { return errno(22); }
     let mut key_arr = [0u8; 32];
     let mut nonce_arr = [0u8; 12];
-    key_arr.copy_from_slice(key);
-    nonce_arr.copy_from_slice(nonce);
-
-    match algo {
-        0 => {
-            match crate::crypto::chacha20poly1305_decrypt(&key_arr, &nonce_arr, ciphertext, &[]) {
-                Ok(pt) => {
-                    if pt.len() <= plaintext.len() {
-                        plaintext[..pt.len()].copy_from_slice(&pt);
-                        SyscallResult { value: pt.len() as i64, capability_consumed: false, audit_required: true }
-                    } else {
-                        errno(34)
-                    }
-                }
-                Err(_) => errno(74),
-            }
+    let mut ciphertext = alloc::vec![0u8; ciphertext_len as usize];
+    if copy_from_user(key_ptr, &mut key_arr).is_err() { return errno(14); }
+    if copy_from_user(nonce_ptr, &mut nonce_arr).is_err() { return errno(14); }
+    if copy_from_user(ciphertext_ptr, &mut ciphertext).is_err() { return errno(14); }
+    let result = match algo {
+        0 => crate::crypto::chacha20poly1305_decrypt(&key_arr, &nonce_arr, &ciphertext, &[]),
+        1 => crate::crypto::aes256_gcm_decrypt(&key_arr, &nonce_arr, &ciphertext, &[]),
+        _ => return errno(22),
+    };
+    match result {
+        Ok(pt) => {
+            if copy_to_user(plaintext_ptr, &pt).is_err() { return errno(14); }
+            SyscallResult { value: pt.len() as i64, capability_consumed: false, audit_required: true }
         }
-        1 => {
-            match crate::crypto::aes256_gcm_decrypt(&key_arr, &nonce_arr, ciphertext, &[]) {
-                Ok(pt) => {
-                    if pt.len() <= plaintext.len() {
-                        plaintext[..pt.len()].copy_from_slice(&pt);
-                        SyscallResult { value: pt.len() as i64, capability_consumed: false, audit_required: true }
-                    } else {
-                        errno(34)
-                    }
-                }
-                Err(_) => errno(74),
-            }
-        }
-        _ => errno(22),
+        Err(_) => errno(74),
     }
 }
