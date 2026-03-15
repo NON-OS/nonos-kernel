@@ -65,8 +65,8 @@ impl fmt::Display for UefiError {
             UefiError::InvalidParameter { param } => {
                 write!(f, "Invalid parameter: {}", param)
             }
-            UefiError::SignatureListParseError { offset } => {
-                write!(f, "Signature list parse error at offset 0x{:x}", offset)
+            UefiError::SignatureListParseError { offset: _ } => {
+                write!(f, "Signature list parse error")
             }
             UefiError::AllocationFailed { size } => {
                 write!(f, "Memory allocation failed for {} bytes", size)
