@@ -73,7 +73,7 @@ pub fn load_elf(data: &[u8], base_addr: u64) -> Result<LoadedElf, ElfError> {
         validate_user_address(vaddr, phdr.p_memsz)?;
 
         if phdr.p_flags & PF_W != 0 && phdr.p_flags & PF_X != 0 {
-            crate::log::log_warning!("[ELF] W+X segment at 0x{:016X}", vaddr);
+            crate::log::log_warning!("[ELF] W+X segment detected (policy violation)");
         }
 
         if phdr.p_align > 1 && phdr.p_vaddr % phdr.p_align != phdr.p_offset % phdr.p_align {
@@ -214,11 +214,9 @@ pub fn load_elf(data: &[u8], base_addr: u64) -> Result<LoadedElf, ElfError> {
     }
 
     crate::log::info!(
-        "[ELF] Loaded binary: entry=0x{:016X}, segments={}, range=0x{:X}-0x{:X}",
-        loaded.entry,
+        "[ELF] Loaded binary: segments={}, size={}KB",
         loaded.segments.len(),
-        loaded.min_addr,
-        loaded.max_addr
+        (loaded.max_addr.saturating_sub(loaded.min_addr)) / 1024
     );
 
     Ok(loaded)
