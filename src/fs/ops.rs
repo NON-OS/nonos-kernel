@@ -142,10 +142,7 @@ pub fn unlink(path: &str) -> Result<(), &'static str> {
 }
 
 pub fn rename(old_path: &str, new_path: &str) -> Result<(), &'static str> {
-    vfs::get_vfs()
-        .ok_or("VFS not initialized")?
-        .rename(old_path, new_path)
-        .map_err(|e| e.as_str())
+    ramfs::NONOS_FILESYSTEM.atomic_rename(old_path, new_path).map_err(|e| e.as_str())
 }
 
 pub fn symlink(target: &str, linkpath: &str) -> Result<(), &'static str> {
@@ -198,18 +195,7 @@ pub fn chown(path: &str, _owner: u32, _group: u32) -> Result<(), &'static str> {
 }
 
 pub fn truncate(path: &str, length: u64) -> Result<(), &'static str> {
-    let mut data = ramfs::NONOS_FILESYSTEM
-        .read_file(path)
-        .map_err(|e| e.as_str())?;
-
-    let len = length as usize;
-    if len < data.len() {
-        data.truncate(len);
-    } else if len > data.len() {
-        data.resize(len, 0);
-    }
-
-    ramfs::write_file(path, &data).map_err(|e| e.as_str())
+    ramfs::NONOS_FILESYSTEM.atomic_truncate(path, length as usize).map_err(|e| e.as_str())
 }
 
 pub fn mount(source: Option<&str>, target: &str, fstype: Option<&str>) -> Result<(), &'static str> {
