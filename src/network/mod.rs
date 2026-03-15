@@ -24,6 +24,7 @@ pub mod firewall;
 pub mod http_client;
 pub mod ip;
 pub mod manager;
+pub mod nym;
 pub mod onion;
 pub mod socks;
 pub mod stack;
@@ -58,4 +59,9 @@ pub use boot_config::{
     print_status as print_network_status,
     serialize_config as serialize_network_config,
     DnsMode, FirewallConfig, Ipv4Config, NetworkBootConfig, OnionConfig, PrivacyMode,
+};
+
+pub use nym::{
+    NymClient, NymAddress, NymError, NymRoute, MixNode, Gateway, MixNodeId, GatewayId, ClientId,
+    init_nym_client, get_nym_client,
 };
