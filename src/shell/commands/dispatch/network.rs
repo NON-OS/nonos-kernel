@@ -23,8 +23,8 @@ pub fn try_dispatch_network(cmd: &[u8]) -> bool {
         cmd_net();
     } else if cmd == b"anon" || cmd == b"anonymous" {
         cmd_anon();
-    } else if cmd == b"anyone" || cmd == b"anyone.io" {
-        cmd_anyone();
+    } else if cmd == b"nym" || cmd == b"mixnet" {
+        cmd_nym();
     } else if cmd == b"wifi" || starts_with(cmd, b"wifi ") {
         cmd_wifi(cmd);
     } else if cmd == b"ifconfig" {
