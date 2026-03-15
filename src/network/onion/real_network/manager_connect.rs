@@ -16,15 +16,15 @@
 
 use core::sync::atomic::{AtomicU64, Ordering};
 
-use super::connection::AnyoneConnection;
+use super::connection::NymConnection;
 use super::limiter::{DirectionLimiters, TokenBucket};
-use super::manager_core::{timestamp_ms, AnyoneNetworkManager};
+use super::manager_core::{timestamp_ms, NymNetworkManager};
 use super::types::{ConnectionState, ConnectionStats, DialOptions, TlsConnectionState};
 use crate::network::ip::IpAddress;
 use crate::network::onion::OnionError;
 use crate::network::stack::TcpSocket;
 
-impl AnyoneNetworkManager {
+impl NymNetworkManager {
     pub fn connect_to_relay(&self, addr: IpAddress, port: u16) -> Result<u32, OnionError> {
         self.connect_to_relay_ex(addr, port, DialOptions::default())
     }
@@ -55,7 +55,7 @@ impl AnyoneNetworkManager {
 
         let (sock, local_port) = self.direct_connect(addr, port, opts.connect_timeout_ms)?;
 
-        let mut conn = AnyoneConnection {
+        let mut conn = NymConnection {
             id: self.next_id.fetch_add(1, Ordering::SeqCst),
             socket: sock,
             remote_addr: addr,
@@ -189,7 +189,7 @@ impl AnyoneNetworkManager {
         }
     }
 
-    pub(super) fn can_pool(&self, c: &AnyoneConnection) -> bool {
+    pub(super) fn can_pool(&self, c: &NymConnection) -> bool {
         matches!(c.state, ConnectionState::Authenticated)
             && c.tls.as_ref().map_or(false, |t| t.handshake_complete)
     }
