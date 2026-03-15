@@ -84,11 +84,14 @@ pub fn handle_epoll_pwait(
         };
         if !ready_events.is_empty() {
             let count = ready_events.len().min(maxevents as usize);
-            let mut buf = alloc::vec![0u8; count * 12];
+            let buf_size = match count.checked_mul(12) { Some(v) => v, None => return errno(EINVAL) };
+            let mut buf = alloc::vec![0u8; buf_size];
             for (i, ev) in ready_events.iter().take(count).enumerate() {
-                let off = i * 12;
-                buf[off..off+4].copy_from_slice(&ev.events.to_ne_bytes());
-                buf[off+4..off+12].copy_from_slice(&ev.data.to_ne_bytes());
+                let off = match i.checked_mul(12) { Some(v) => v, None => break };
+                if let Some(dst) = buf.get_mut(off..off+12) {
+                    dst[0..4].copy_from_slice(&ev.events.to_ne_bytes());
+                    dst[4..12].copy_from_slice(&ev.data.to_ne_bytes());
+                }
             }
             if copy_to_user(events_ptr, &buf).is_err() { return errno(EFAULT); }
             return SyscallResult::success(count as i64);
