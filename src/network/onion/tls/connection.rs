@@ -378,10 +378,8 @@ impl TLSConnection {
                 _ => false,
             };
             if !ok {
-                crate::sys::serial::println(b"[TLS] WARNING: sig verify failed, allowing for debug");
-                crate::sys::serial::println(b"[TLS] INSECURE: bypassing CertificateVerify check");
-            } else {
-                crate::sys::serial::println(b"[TLS] sig verify OK");
+                self.phase = HandshakePhase::Failed;
+                return Err(OnionError::AuthenticationFailed);
             }
         } else {
             crate::sys::serial::println(b"[TLS] ERROR: no cert_verify_alg");
