@@ -39,6 +39,7 @@ pub mod asymmetric;
 pub mod core;
 pub mod error;
 pub mod hash;
+pub mod kernel_keys;
 pub mod pqc;
 pub mod random_api;
 pub mod symmetric;
