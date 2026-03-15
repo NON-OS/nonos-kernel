@@ -57,11 +57,11 @@ pub fn parse_cmdline(cmdline: &str) {
                     config.onion.enabled = false;
                     crate::log::info!("net: privacy=STANDARD");
                 }
-                "anonymous" | "tor" | "anyone" => {
+                "anonymous" | "nym" | "mixnet" => {
                     config.privacy_mode = PrivacyMode::TorOnly;
                     config.onion.enabled = true;
                     config.dns_mode = DnsMode::TorDns;
-                    crate::log::info!("net: privacy=ANONYMOUS (Anyone.io)");
+                    crate::log::info!("net: privacy=ANONYMOUS (NYM Mixnet)");
                 }
                 "maximum" | "paranoid" => {
                     config.privacy_mode = PrivacyMode::Maximum;
@@ -135,9 +135,9 @@ pub fn parse_cmdline(cmdline: &str) {
                     config.dns_mode = DnsMode::Dhcp;
                     crate::log::info!("net: DNS mode=DHCP");
                 }
-                "anyone" | "tor" => {
+                "nym" | "mixnet" => {
                     config.dns_mode = DnsMode::TorDns;
-                    crate::log::info!("net: DNS mode=Anyone.io (anonymized)");
+                    crate::log::info!("net: DNS mode=NYM (anonymized)");
                 }
                 "doh" | "https" => {
                     config.dns_mode = DnsMode::DoH;
@@ -150,24 +150,24 @@ pub fn parse_cmdline(cmdline: &str) {
                 _ => crate::log_warn!("net: unknown DNS mode: {}", value),
             },
 
-            "nonos.anyone" | "nonos.tor" => match value {
+            "nonos.nym" | "nonos.mixnet" => match value {
                 "on" | "yes" | "1" | "true" => {
                     config.onion.enabled = true;
                     config.onion.auto_connect = true;
-                    crate::log::info!("net: Anyone.io=ENABLED");
+                    crate::log::info!("net: NYM Mixnet=ENABLED");
                 }
                 "off" | "no" | "0" | "false" => {
                     config.onion.enabled = false;
                     config.onion.auto_connect = false;
-                    crate::log::info!("net: Anyone.io=DISABLED");
+                    crate::log::info!("net: NYM Mixnet=DISABLED");
                 }
-                _ => crate::log_warn!("net: invalid anyone value: {}", value),
+                _ => crate::log_warn!("net: invalid nym value: {}", value),
             },
 
-            "nonos.anyone_circuits" | "nonos.tor_circuits" => {
+            "nonos.nym_gateways" => {
                 if let Ok(n) = value.parse::<u8>() {
                     config.onion.prebuild_circuits = n.min(10);
-                    crate::log::info!("net: Anyone circuits={}", config.onion.prebuild_circuits);
+                    crate::log::info!("net: NYM gateways={}", config.onion.prebuild_circuits);
                 }
             }
 
@@ -293,20 +293,20 @@ pub fn export_as_cmdline() -> String {
         let dns_mode = match config.dns_mode {
             DnsMode::Dhcp => "dhcp",
             DnsMode::Custom(_) => "custom",
-            DnsMode::TorDns => "tor",
+            DnsMode::TorDns => "nym",
             DnsMode::DoH => "doh",
             DnsMode::None => "none",
         };
         cmd.push_str(&alloc::format!("nonos.dns_mode={} ", dns_mode));
 
         if config.onion.enabled {
-            cmd.push_str("nonos.anyone=on ");
+            cmd.push_str("nonos.nym=on ");
             cmd.push_str(&alloc::format!(
-                "nonos.anyone_circuits={} ",
+                "nonos.nym_gateways={} ",
                 config.onion.prebuild_circuits
             ));
         } else {
-            cmd.push_str("nonos.anyone=off ");
+            cmd.push_str("nonos.nym=off ");
         }
 
         if config.randomize_mac {
