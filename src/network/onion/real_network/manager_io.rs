@@ -18,12 +18,12 @@ use alloc::vec::Vec;
 use core::cmp::min;
 use core::sync::atomic::Ordering;
 
-use super::manager_core::{timestamp_ms, AnyoneNetworkManager};
+use super::manager_core::{timestamp_ms, NymNetworkManager};
 use super::types::ConnectionState;
 use crate::network::onion::OnionError;
 use crate::network::stack::TcpSocket;
 
-impl AnyoneNetworkManager {
+impl NymNetworkManager {
     pub fn send_data(&self, id: u32, buf: &[u8]) -> Result<usize, OnionError> {
         if buf.is_empty() {
             return Ok(0);
