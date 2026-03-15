@@ -33,7 +33,7 @@ impl Rtl8139Device {
             _ => return Err("RTL8139: BAR0 is not I/O"),
         };
 
-        crate::log::info!("rtl8139: I/O base at {:#x}", io_base);
+        crate::log::info!("rtl8139: I/O region configured successfully");
 
         let cmd_reg = pci_read_config32(
             pci_device.bus,
