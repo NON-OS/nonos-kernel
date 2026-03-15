@@ -19,5 +19,5 @@ mod wifi;
 mod scan;
 mod connect;
 
-pub use self::status::{cmd_net, cmd_anon, cmd_anyone};
+pub use self::status::{cmd_net, cmd_anon, cmd_nym};
 pub use self::wifi::cmd_wifi;
