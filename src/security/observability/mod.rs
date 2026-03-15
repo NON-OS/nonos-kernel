@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod policy;
-mod redact;
+pub mod redact;
 mod serial;
 
 pub use policy::{
