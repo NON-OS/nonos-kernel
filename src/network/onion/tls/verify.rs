@@ -173,9 +173,17 @@ impl CertVerifier for HttpsCertVerifier {
             }
         }
 
-        if !chain_verified || !root_trusted || !hostname_ok {
-            serial::println(b"[CERT] INSECURE: allowing connection despite verification failure");
-            serial::println(b"[CERT] This is temporary for debugging - fix cert verification!");
+        if !chain_verified {
+            serial::println(b"[CERT] ERROR: chain verification failed");
+            return Err(OnionError::CertificateVerificationFailed);
+        }
+        if !root_trusted {
+            serial::println(b"[CERT] ERROR: no trusted root found");
+            return Err(OnionError::CertificateVerificationFailed);
+        }
+        if !hostname_ok {
+            serial::println(b"[CERT] ERROR: hostname mismatch");
+            return Err(OnionError::CertificateVerificationFailed);
         }
 
         serial::println(b"[CERT] connection allowed");
