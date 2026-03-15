@@ -39,6 +39,7 @@ pub fn select_gateway() -> Result<Gateway, NymError> {
     Ok(candidates[idx].clone())
 }
 
+
 fn parse_gateways_response(data: &[u8]) -> Result<Vec<Gateway>, NymError> {
     let json = core::str::from_utf8(data).map_err(|_| NymError::DirectoryFetchFailed)?;
     let mut gateways = Vec::new();

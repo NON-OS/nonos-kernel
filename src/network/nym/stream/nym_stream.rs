@@ -14,13 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-extern crate alloc;
-
-use alloc::vec::Vec;
-use alloc::collections::VecDeque;
 use crate::network::nym::types::{NymAddress, NymRoute, NYM_FRAGMENT_SIZE};
 use crate::network::nym::route::build_route;
 use crate::network::nym::sphinx::build_packet;
+use crate::network::nym::gateway::{get_gateway_pool, GatewayMessage, send_message, recv_message};
 use crate::network::nym::error::NymError;
 use super::state::StreamState;
 use super::flow::FlowControl;
@@ -31,8 +28,6 @@ pub struct NymStream {
     pub state: StreamState,
     pub route: NymRoute,
     pub flow: FlowControl,
-    send_buffer: VecDeque<Vec<u8>>,
-    recv_buffer: VecDeque<Vec<u8>>,
     seq_send: u64,
     seq_recv: u64,
 }
@@ -48,34 +43,44 @@ impl NymStream {
         let route = build_route(&destination)?;
         Ok(Self {
             id, destination, state: StreamState::Open, route,
-            flow: FlowControl::new(),
-            send_buffer: VecDeque::new(), recv_buffer: VecDeque::new(),
-            seq_send: 0, seq_recv: 0,
+            flow: FlowControl::new(), seq_send: 0, seq_recv: 0,
         })
     }
 
     pub fn send(&mut self, data: &[u8]) -> Result<usize, NymError> {
         if self.state != StreamState::Open { return Err(NymError::StreamClosed); }
+        let client_id = crate::network::nym::get_nym_client()?.lock().client_id().clone();
+        let mut pool = get_gateway_pool().lock();
+        let conn = pool.get_or_connect(&self.route.gateway, &client_id)?;
+        let mut total_sent = 0;
         for chunk in data.chunks(NYM_FRAGMENT_SIZE) {
-            if !self.flow.can_send() { return Err(NymError::BufferFull); }
+            if !self.flow.can_send() { return Ok(total_sent); }
             let packet = build_packet(&self.route.mixnodes, &self.destination, chunk)?;
-            self.send_buffer.push_back(packet.to_bytes());
+            let msg = GatewayMessage::SphinxPacket(packet.to_bytes());
+            send_message(conn, &msg)?;
             self.flow.on_packet_sent();
             self.seq_send = self.seq_send.wrapping_add(1);
+            total_sent += chunk.len();
         }
-        Ok(data.len())
+        Ok(total_sent)
     }
 
     pub fn recv(&mut self, buf: &mut [u8]) -> Result<usize, NymError> {
         if self.state != StreamState::Open { return Err(NymError::StreamClosed); }
-        if let Some(data) = self.recv_buffer.pop_front() {
-            let len = data.len().min(buf.len());
-            buf[..len].copy_from_slice(&data[..len]);
-            self.flow.on_packet_received();
-            self.seq_recv = self.seq_recv.wrapping_add(1);
-            return Ok(len);
+        let client_id = crate::network::nym::get_nym_client()?.lock().client_id().clone();
+        let mut pool = get_gateway_pool().lock();
+        let conn = pool.get_or_connect(&self.route.gateway, &client_id)?;
+        match recv_message(conn) {
+            Ok(GatewayMessage::SphinxPacket(data)) => {
+                let len = data.len().min(buf.len());
+                buf[..len].copy_from_slice(&data[..len]);
+                self.flow.on_packet_received();
+                self.seq_recv = self.seq_recv.wrapping_add(1);
+                Ok(len)
+            }
+            Ok(_) => Ok(0),
+            Err(e) => Err(e),
         }
-        Ok(0)
     }
 
     pub fn close(&mut self) { self.state = StreamState::Closed; }
@@ -86,9 +91,7 @@ impl Clone for NymStream {
     fn clone(&self) -> Self {
         Self {
             id: self.id, destination: self.destination.clone(), state: self.state,
-            route: self.route.clone(), flow: FlowControl::new(),
-            send_buffer: VecDeque::new(), recv_buffer: VecDeque::new(),
-            seq_send: 0, seq_recv: 0,
+            route: self.route.clone(), flow: FlowControl::new(), seq_send: 0, seq_recv: 0,
         }
     }
 }
