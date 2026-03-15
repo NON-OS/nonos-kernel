@@ -114,10 +114,9 @@ impl SmmManager {
         let smm_locked = (smm_mask & amd_msr::LOCK_BIT) != 0;
 
         crate::log::info!(
-            "AMD SMM: enabled={}, locked={}, base=0x{:x}",
+            "AMD SMM: enabled={}, locked={}",
             smm_enabled,
-            smm_locked,
-            smm_base
+            smm_locked
         );
 
         if smm_enabled && smm_base > 0 {
