@@ -107,8 +107,8 @@ impl RemoteAttestationClient {
         let is_onion = target_address.ends_with(".onion");
 
         if is_onion {
-            // Route through Tor network for privacy
-            self.send_via_tor(target_address, request)
+            // Route through NYM Mixnet for privacy
+            self.send_via_nym(target_address, request)
         } else {
             // Direct TCP connection
             self.send_via_tcp(target_address, request)
@@ -190,43 +190,41 @@ impl RemoteAttestationClient {
         Ok(response)
     }
 
-    fn send_via_tor(&self, target_address: &str, request: &[u8]) -> Result<Vec<u8>, ZKError> {
-        // Route attestation request through onion network for privacy
-        use crate::network::onion;
-        use alloc::string::String;
+    fn send_via_nym(&self, target_address: &str, request: &[u8]) -> Result<Vec<u8>, ZKError> {
+        use crate::network::nym;
 
-        // Parse onion address (format: "hostname.onion:port")
         let parts: Vec<&str> = target_address.split(':').collect();
         if parts.len() != 2 {
-            return Err(ZKError::AttestationError("Invalid onion address format".into()));
+            return Err(ZKError::AttestationError("Invalid address format".into()));
         }
 
-        let hostname = parts[0];
-        let port: u16 = parts[1].parse()
-            .map_err(|_| ZKError::AttestationError("Invalid port".into()))?;
+        let client = nym::get_nym_client()
+            .map_err(|_| ZKError::NetworkError)?;
+        let mut client = client.lock();
 
-        // Create onion circuit to exit toward the hidden service
-        let circuit_id = onion::create_circuit(Some(String::from(hostname)))
+        let dest_str = parts[0];
+        let dest_bytes = dest_str.as_bytes();
+        let mut dest_arr = [0u8; 64];
+        let len = dest_bytes.len().min(64);
+        dest_arr[..len].copy_from_slice(&dest_bytes[..len]);
+
+        let dest = nym::NymAddress::from_bytes(&dest_arr)
+            .ok_or(ZKError::NetworkError)?;
+        let mut stream = client.create_stream(dest)
             .map_err(|_| ZKError::NetworkError)?;
 
-        // Create stream to the target hidden service
-        let stream_id = onion::create_stream(circuit_id, String::from(hostname), port)
+        client.send(&mut stream, request)
             .map_err(|_| ZKError::NetworkError)?;
 
-        // Send request through stream
-        onion::send_onion_data(stream_id, request.to_vec())
-            .map_err(|_| ZKError::NetworkError)?;
-
-        // Receive response with timeout
         let mut response = Vec::new();
-        let timeout_ms = 10000; // 10 second timeout for Tor (slower)
+        let timeout_ms = 15000;
         let start = crate::time::timestamp_millis();
+        let mut buf = [0u8; 4096];
 
         loop {
-            match onion::recv_onion_data(stream_id) {
-                Ok(data) if !data.is_empty() => {
-                    response.extend_from_slice(&data);
-                    // Check if we have a complete response (starts with magic + length)
+            match client.recv(&mut stream, &mut buf) {
+                Ok(n) if n > 0 => {
+                    response.extend_from_slice(&buf[..n]);
                     if response.len() >= 12 {
                         let expected_len = u32::from_le_bytes([
                             response[8], response[9], response[10], response[11]
@@ -240,10 +238,9 @@ impl RemoteAttestationClient {
             }
 
             if crate::time::timestamp_millis() - start > timeout_ms {
-                return Err(ZKError::AttestationError("Tor request timeout".into()));
+                return Err(ZKError::AttestationError("NYM request timeout".into()));
             }
 
-            // Brief pause to avoid spinning
             core::hint::spin_loop();
         }
 
