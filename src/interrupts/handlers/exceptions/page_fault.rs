@@ -25,6 +25,7 @@ use crate::interrupts::safety::set_interrupt_context;
 use crate::memory::hardening;
 use crate::memory::paging::manager::api as paging;
 use crate::usercopy::try_recover_fault;
+use crate::security::observability::redact::redact_address;
 
 /// # Safety
 /// Page fault handler. Sets interrupt context for safe nesting detection.
@@ -59,26 +60,17 @@ fn try_handle_fault(ctx: &PageFaultContext, error_code: u64) -> bool {
     let virt_addr = VirtAddr::new(ctx.accessed_address);
 
     if hardening::check_guard_page_access(virt_addr) {
-        crate::log::logger::log_critical(&alloc::format!(
-            "Guard page violation at address {:#x}",
-            ctx.accessed_address
-        ));
+        crate::log::logger::log_critical("Guard page violation detected");
         return false;
     }
 
     if let Some(_recovery_rip) = try_recover_fault() {
-        crate::log::logger::log_debug!(
-            "Usercopy fault recovered at {:#x}",
-            ctx.accessed_address
-        );
+        crate::log::logger::log_debug!("Usercopy fault recovered");
         return true;
     }
 
     if let Ok(()) = paging::handle_page_fault(virt_addr, error_code) {
-        crate::log::logger::log_debug!(
-            "Page fault handled for address {:#x}",
-            ctx.accessed_address
-        );
+        crate::log::logger::log_debug!("Page fault handled successfully");
         return true;
     }
 
@@ -87,8 +79,8 @@ fn try_handle_fault(ctx: &PageFaultContext, error_code: u64) -> bool {
 
 fn terminate_user_process(ctx: &PageFaultContext) {
     crate::log::logger::log_error!(
-        "Segmentation fault: user process accessed invalid address {:#x}",
-        ctx.accessed_address
+        "Segmentation fault: user process accessed invalid address {}",
+        redact_address(ctx.accessed_address)
     );
 
     if let Some(pcb) = crate::process::current_process() {
@@ -100,8 +92,8 @@ fn terminate_user_process(ctx: &PageFaultContext) {
 
 fn kernel_panic(ctx: &PageFaultContext) {
     crate::log::logger::log_critical(&alloc::format!(
-        "KERNEL PANIC: Page fault at address {:#x}",
-        ctx.accessed_address
+        "KERNEL PANIC: Page fault at address {}",
+        redact_address(ctx.accessed_address)
     ));
 
     if ctx.error_code.is_instruction_fetch() {
