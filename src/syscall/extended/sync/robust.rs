@@ -37,11 +37,13 @@ pub fn handle_set_robust_list(head: u64, len: u64) -> SyscallResult {
             Ok(v) => v,
             Err(_) => return errno(14),
         };
-        let futex_offset: i64 = match read_user_value(head + 8) {
+        let head_off8 = match head.checked_add(8) { Some(v) => v, None => return errno(14) };
+        let futex_offset: i64 = match read_user_value(head_off8) {
             Ok(v) => v,
             Err(_) => return errno(14),
         };
-        let list_op_pending: u64 = match read_user_value(head + 16) {
+        let head_off16 = match head.checked_add(16) { Some(v) => v, None => return errno(14) };
+        let list_op_pending: u64 = match read_user_value(head_off16) {
             Ok(v) => v,
             Err(_) => return errno(14),
         };
@@ -129,9 +131,9 @@ fn process_robust_entries(pid: u32, head: &RobustListHead) {
 
 fn compute_futex_addr(entry: u64, offset: i64) -> u64 {
     if offset >= 0 {
-        entry.wrapping_add(offset as u64)
+        entry.checked_add(offset as u64).unwrap_or(0)
     } else {
-        entry.wrapping_sub((-offset) as u64)
+        entry.checked_sub((-offset) as u64).unwrap_or(0)
     }
 }
 
