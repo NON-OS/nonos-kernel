@@ -48,36 +48,28 @@ pub fn handle_brk(addr: u64) -> SyscallResult {
         };
     }
 
-    let page_aligned_addr = (addr + 4095) & !4095;
-
+    let page_aligned_addr = match addr.checked_add(4095) {
+        Some(v) => v & !4095, None => return errno(12),
+    };
     const MIN_BRK: u64 = 0x0000_1000_0000_0000;
     const MAX_BRK: u64 = 0x0000_7F00_0000_0000;
-
-    if page_aligned_addr < MIN_BRK || page_aligned_addr > MAX_BRK {
-        return errno(12);
-    }
-
-    let current_page = (current_brk + 4095) & !4095;
+    if page_aligned_addr < MIN_BRK || page_aligned_addr > MAX_BRK { return errno(12); }
+    let current_page = match current_brk.checked_add(4095) {
+        Some(v) => v & !4095, None => return errno(12),
+    };
     let new_page = page_aligned_addr;
 
     if new_page > current_page {
         let pages_to_allocate = (new_page - current_page) / 4096;
 
         for i in 0..pages_to_allocate {
-            let page_va = VirtAddr::new(current_page + i * 4096);
-
+            let page_off = match i.checked_mul(4096) { Some(v) => v, None => break };
+            let page_addr = match current_page.checked_add(page_off) { Some(v) => v, None => break };
+            let page_va = VirtAddr::new(page_addr);
             let phys = match crate::memory::phys::allocate_frame(AllocFlags::ZERO) {
-                Some(p) => p,
-                None => return errno(12),
+                Some(p) => p, None => return errno(12),
             };
-
-            if let Err(_) = crate::memory::virt::map_page_4k(
-                page_va,
-                PhysAddr::new(phys.0),
-                true,
-                true,
-                false,
-            ) {
+            if crate::memory::virt::map_page_4k(page_va, PhysAddr::new(phys.0), true, true, false).is_err() {
                 return errno(12);
             }
         }
@@ -90,8 +82,9 @@ pub fn handle_brk(addr: u64) -> SyscallResult {
         let pages_to_free = (current_page - new_page) / 4096;
 
         for i in 0..pages_to_free {
-            let page_va = VirtAddr::new(new_page + i * 4096);
-            let _ = crate::memory::virt::unmap_page(page_va);
+            let page_off = match i.checked_mul(4096) { Some(v) => v, None => break };
+            let page_addr = match new_page.checked_add(page_off) { Some(v) => v, None => break };
+            let _ = crate::memory::virt::unmap_page(VirtAddr::new(page_addr));
         }
 
         {
