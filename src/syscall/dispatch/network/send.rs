@@ -76,14 +76,20 @@ pub fn handle_sendmmsg(sockfd: u64, msgvec: u64, vlen: u64, flags: u64) -> Sysca
     let vlen = vlen.min(1024) as usize;
     let mut sent_count = 0u64;
     for i in 0..vlen {
-        let mmsghdr_ptr = msgvec + (i * MMSGHDR_SIZE) as u64;
+        let mmsghdr_offset = match (i as u64).checked_mul(MMSGHDR_SIZE as u64) {
+            Some(v) => v, None => break,
+        };
+        let mmsghdr_ptr = match msgvec.checked_add(mmsghdr_offset) {
+            Some(v) => v, None => break,
+        };
         let result = handle_sendmsg(sockfd, mmsghdr_ptr, flags);
         if result.value < 0 {
             if sent_count == 0 { return result; }
             break;
         }
         let msg_len = result.value as u32;
-        if write_user_value(mmsghdr_ptr + 56, &msg_len).is_err() { break; }
+        let len_ptr = match mmsghdr_ptr.checked_add(56) { Some(v) => v, None => break };
+        if write_user_value(len_ptr, &msg_len).is_err() { break; }
         sent_count += 1;
     }
     SyscallResult { value: sent_count as i64, capability_consumed: false, audit_required: false }
