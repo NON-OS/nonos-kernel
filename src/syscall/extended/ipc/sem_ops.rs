@@ -31,9 +31,11 @@ pub fn handle_semtimedop(semid: i32, sops: u64, nsops: u64, timeout: u64) -> Sys
     if sops == 0 || nsops == 0 || nsops as usize > SEMOPM { return errno(22); }
     let deadline = if timeout != 0 {
         let ts_sec: i64 = match read_user_value(timeout) { Ok(v) => v, Err(_) => return errno(14) };
-        let ts_nsec: i64 = match read_user_value(timeout + 8) { Ok(v) => v, Err(_) => return errno(14) };
+        let timeout_off = match timeout.checked_add(8) { Some(v) => v, None => return errno(14) };
+        let ts_nsec: i64 = match read_user_value(timeout_off) { Ok(v) => v, Err(_) => return errno(14) };
         let now = crate::time::timestamp_millis();
-        now.saturating_add((ts_sec as u64) * 1000).saturating_add((ts_nsec as u64) / 1_000_000)
+        let sec_ms = (ts_sec as u64).saturating_mul(1000);
+        now.saturating_add(sec_ms).saturating_add((ts_nsec as u64) / 1_000_000)
     } else { u64::MAX };
     let pid = crate::process::current_pid().unwrap_or(0);
     let ops = match read_sembuf_array(sops, nsops as usize) { Ok(o) => o, Err(e) => return e };
@@ -53,15 +55,16 @@ pub fn handle_semtimedop(semid: i32, sops: u64, nsops: u64, timeout: u64) -> Sys
 }
 
 fn read_sembuf_array(sops: u64, nsops: usize) -> Result<Vec<Sembuf>, SyscallResult> {
-    let mut buf = alloc::vec![0u8; nsops * 6];
+    let buf_size = match nsops.checked_mul(6) { Some(v) => v, None => return Err(errno(22)) };
+    let mut buf = alloc::vec![0u8; buf_size];
     if copy_from_user(sops, &mut buf).is_err() { return Err(errno(14)); }
-    let ops: Vec<Sembuf> = (0..nsops).map(|i| {
-        let offset = i * 6;
-        Sembuf {
-            sem_num: u16::from_ne_bytes([buf[offset], buf[offset + 1]]),
-            sem_op: i16::from_ne_bytes([buf[offset + 2], buf[offset + 3]]),
-            sem_flg: i16::from_ne_bytes([buf[offset + 4], buf[offset + 5]]),
-        }
+    let ops: Vec<Sembuf> = (0..nsops).filter_map(|i| {
+        let offset = i.checked_mul(6)?;
+        Some(Sembuf {
+            sem_num: u16::from_ne_bytes([*buf.get(offset)?, *buf.get(offset + 1)?]),
+            sem_op: i16::from_ne_bytes([*buf.get(offset + 2)?, *buf.get(offset + 3)?]),
+            sem_flg: i16::from_ne_bytes([*buf.get(offset + 4)?, *buf.get(offset + 5)?]),
+        })
     }).collect();
     Ok(ops)
 }
