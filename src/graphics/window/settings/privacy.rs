@@ -37,11 +37,11 @@ pub(super) fn draw(x: u32, y: u32, w: u32) {
         draw_string(bx + 4, by + 6, name, if is_sel { 0xFF0D1117 } else { COLOR_TEXT_WHITE });
     }
 
-    draw_string(x + 15, y + 85, b"Anyone Network", COLOR_TEXT_WHITE);
+    draw_string(x + 15, y + 85, b"NYM Mixnet", COLOR_TEXT_WHITE);
     draw_toggle(x + w - 70, y + 80, is_anyone_enabled());
 
     if is_anyone_enabled() {
-        draw_string(x + 15, y + 108, b"All traffic via anyone.io", COLOR_GREEN);
+        draw_string(x + 15, y + 108, b"All traffic via NYM Mixnet", COLOR_GREEN);
     } else {
         draw_string(x + 15, y + 108, b"Direct connections (no anonymity)", 0xFFFF6B6B);
     }
