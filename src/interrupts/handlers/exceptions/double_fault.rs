@@ -19,6 +19,7 @@ use x86_64::structures::idt::InterruptStackFrame;
 use super::context::{log_exception, ExceptionContext};
 use crate::interrupts::idt::halt_loop;
 use crate::interrupts::stats;
+use crate::security::observability::redact::redact_address;
 
 pub fn handle(frame: InterruptStackFrame, error_code: u64) -> ! {
     let ctx = ExceptionContext::from_frame(&frame);
@@ -38,12 +39,12 @@ pub fn handle(frame: InterruptStackFrame, error_code: u64) -> ! {
 
 fn dump_stack_info(ctx: &ExceptionContext) {
     crate::log::logger::log_critical(&alloc::format!(
-        "Stack pointer: {:#x}",
-        ctx.stack_pointer
+        "Stack pointer: {}",
+        redact_address(ctx.stack_pointer)
     ));
     crate::log::logger::log_critical(&alloc::format!(
-        "Instruction pointer: {:#x}",
-        ctx.instruction_pointer
+        "Instruction pointer: {}",
+        redact_address(ctx.instruction_pointer)
     ));
     crate::log::logger::log_critical(&alloc::format!(
         "Code segment: {:#x}",
