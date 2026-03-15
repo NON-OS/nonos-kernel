@@ -95,7 +95,7 @@ pub fn cmd_arp() {
     print_line(b"Address           HWtype  HWaddress", COLOR_TEXT_DIM);
     print_line(b"127.0.0.1         loop    00:00:00:00:00:00", COLOR_TEXT);
     print_line(b"", COLOR_TEXT);
-    print_line(b"Note: ARP disabled on Tor interface", COLOR_YELLOW);
+    print_line(b"Note: ARP disabled on NYM interface", COLOR_YELLOW);
     print_line(b"Physical network access blocked", COLOR_TEXT_DIM);
 }
 
@@ -104,10 +104,10 @@ pub fn cmd_ss() {
     print_line(b"============================================", COLOR_TEXT_DIM);
     print_line(b"Netid  State   Local Address:Port", COLOR_TEXT_DIM);
 
-    print_line(b"tcp    LISTEN  127.0.0.1:9050  (tor)", COLOR_GREEN);
-    print_line(b"tcp    LISTEN  127.0.0.1:9051  (tor-ctrl)", COLOR_GREEN);
-    print_line(b"tcp    LISTEN  127.0.0.1:9053  (tor-dns)", COLOR_TEXT);
-    print_line(b"unix   STREAM  /tmp/.tor/socket", COLOR_TEXT_DIM);
+    print_line(b"tcp    LISTEN  127.0.0.1:1977  (nym)", COLOR_GREEN);
+    print_line(b"tcp    LISTEN  127.0.0.1:1978  (nym-ctrl)", COLOR_GREEN);
+    print_line(b"tcp    LISTEN  127.0.0.1:1979  (nym-dns)", COLOR_TEXT);
+    print_line(b"unix   STREAM  /tmp/.nym/socket", COLOR_TEXT_DIM);
 
     print_line(b"", COLOR_TEXT);
     print_line(b"Total: 4 sockets", COLOR_TEXT_DIM);
