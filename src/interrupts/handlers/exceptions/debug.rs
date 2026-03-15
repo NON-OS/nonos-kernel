@@ -71,7 +71,7 @@ pub fn handle(frame: InterruptStackFrame) {
 }
 
 fn handle_single_step(_ctx: &ExceptionContext) {
-    crate::log::logger::log_debug!("Single step at rip={:#x}", _ctx.instruction_pointer);
+    crate::log::logger::log_debug!("Single step triggered");
 }
 
 fn handle_hardware_breakpoint(_ctx: &ExceptionContext, info: &DebugInfo) {
