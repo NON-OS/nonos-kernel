@@ -33,19 +33,11 @@ pub struct KernelStat {
 }
 
 fn write_stat(ptr: *mut u8, st: &KernelStat) -> bool {
-    if ptr.is_null() {
-        return false;
-    }
-
-    // SAFETY: We're writing a known-sized struct to a user-provided buffer
-    unsafe {
-        let bytes: &[u8] = core::slice::from_raw_parts(
-            (st as *const KernelStat) as *const u8,
-            size_of::<KernelStat>(),
-        );
-        core::ptr::copy_nonoverlapping(bytes.as_ptr(), ptr, bytes.len());
-    }
-    true
+    if ptr.is_null() { return false; }
+    let bytes: &[u8] = unsafe {
+        core::slice::from_raw_parts((st as *const KernelStat) as *const u8, size_of::<KernelStat>())
+    };
+    crate::usercopy::copy_to_user(ptr as u64, bytes).is_ok()
 }
 
 pub fn stat_file_syscall(pathname: *const u8, statbuf: *mut u8) -> bool {
