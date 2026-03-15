@@ -23,31 +23,25 @@ use crate::syscall::SyscallResult;
 use super::{errno, require_capability, parse_string_from_user};
 
 pub fn handle_read(fd: i32, buf: u64, count: u64) -> SyscallResult {
-    if let Err(e) = require_capability(Capability::IO) {
-        return e;
-    }
-
-    if buf == 0 || count == 0 || count > 0x7FFF_FFFF {
-        return errno(22);    }
+    if let Err(e) = require_capability(Capability::IO) { return e; }
+    if buf == 0 || count == 0 || count > 0x7FFF_FFFF { return errno(22); }
     let ptr = buf as *mut u8;
     let n = crate::fs::read_file_descriptor(fd, ptr, count as usize);
     match n {
         Some(bytes) => SyscallResult { value: bytes as i64, capability_consumed: false, audit_required: false },
-        None => errno(5),    }
+        None => errno(5),
+    }
 }
 
 pub fn handle_write(fd: i32, buf: u64, count: u64) -> SyscallResult {
-    if let Err(e) = require_capability(Capability::IO) {
-        return e;
-    }
-
-    if buf == 0 || count == 0 || count > 0x7FFF_FFFF {
-        return errno(22);    }
+    if let Err(e) = require_capability(Capability::IO) { return e; }
+    if buf == 0 || count == 0 || count > 0x7FFF_FFFF { return errno(22); }
     let ptr = buf as *const u8;
     let n = crate::fs::write_file_descriptor(fd, ptr, count as usize);
     match n {
         Some(bytes) => SyscallResult { value: bytes as i64, capability_consumed: false, audit_required: false },
-        None => errno(5),    }
+        None => errno(5),
+    }
 }
 
 pub fn handle_open(pathname: u64, flags: u64, mode: u64) -> SyscallResult {
