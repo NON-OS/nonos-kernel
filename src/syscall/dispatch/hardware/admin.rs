@@ -75,7 +75,7 @@ pub fn handle_admin_cap_grant(target_pid: u32, caps_bits: u64, _ttl_ms: u64) -> 
     let old_caps = pcb.caps_bits.load(Ordering::SeqCst);
     let new_caps = old_caps | caps_bits;
     pcb.caps_bits.store(new_caps, Ordering::SeqCst);
-    crate::log_info!("ADMIN: Granted caps 0x{:x} to pid {} by pid {} (now 0x{:x})", caps_bits, target_pid, proc.pid, new_caps);
+    crate::log_info!("ADMIN: Granted capabilities to pid {} by pid {}", target_pid, proc.pid);
     SyscallResult { value: 0, capability_consumed: false, audit_required: true }
 }
 
@@ -87,11 +87,11 @@ pub fn handle_admin_cap_revoke(target_pid: u32, caps_bits: u64) -> SyscallResult
     let old_caps = pcb.caps_bits.load(Ordering::SeqCst);
     if caps_bits == 0 {
         pcb.caps_bits.store(0, Ordering::SeqCst);
-        crate::log_info!("ADMIN: Revoked ALL caps from pid {} by pid {} (was 0x{:x})", target_pid, proc.pid, old_caps);
+        crate::log_info!("ADMIN: Revoked ALL caps from pid {} by pid {}", target_pid, proc.pid);
     } else {
         let new_caps = old_caps & !caps_bits;
         pcb.caps_bits.store(new_caps, Ordering::SeqCst);
-        crate::log_info!("ADMIN: Revoked caps 0x{:x} from pid {} by pid {} (now 0x{:x})", caps_bits, target_pid, proc.pid, new_caps);
+        crate::log_info!("ADMIN: Revoked capabilities from pid {} by pid {}", target_pid, proc.pid);
     }
     SyscallResult { value: 0, capability_consumed: false, audit_required: true }
 }
