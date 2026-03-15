@@ -28,7 +28,7 @@ pub fn add_demo_capsules() {
     let lock = CAPSULE_STORE.lock();
     if let Some(store) = lock.as_ref() {
         let demos = [
-            ("tor-browser", "11.0.0", "Anonymous web browsing via Tor", CapsuleCategory::Privacy, MICRO_FEE_NOX),
+            ("nym-browser", "11.0.0", "Anonymous web browsing via NYM", CapsuleCategory::Privacy, MICRO_FEE_NOX),
             ("signal", "6.0.0", "End-to-end encrypted messaging", CapsuleCategory::Communication, MICRO_FEE_NOX),
             ("bitcoin-wallet", "0.21.0", "Bitcoin wallet with hardware key support", CapsuleCategory::Finance, MICRO_FEE_NOX * 2),
             ("file-vault", "1.0.0", "Encrypted file storage", CapsuleCategory::Security, MICRO_FEE_NOX),
