@@ -64,8 +64,7 @@ impl DesignWareI2c {
         self.initialized.store(true, Ordering::SeqCst);
 
         crate::log::info!(
-            "i2c: DesignWare controller at 0x{:x}, TX FIFO {}, RX FIFO {}",
-            self.base,
+            "i2c: DesignWare controller initialized, TX FIFO {}, RX FIFO {}",
             self.tx_fifo_depth,
             self.rx_fifo_depth
         );
