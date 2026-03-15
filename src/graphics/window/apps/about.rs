@@ -62,7 +62,7 @@ pub(super) fn draw(x: u32, y: u32, w: u32, h: u32) {
     let features: [(&[u8], u32); 4] = [
         (b"Privacy First - Zero tracking, zero telemetry", COLOR_BRAND_PRIMARY),
         (b"RAM Only - No persistence, clean slate on reboot", COLOR_GREEN),
-        (b"Anonymous by Default - Tor network integration", COLOR_PURPLE),
+        (b"Anonymous by Default - NYM Mixnet integration", COLOR_PURPLE),
         (b"Post-Quantum Ready - Future-proof cryptography", 0xFFFF9500),
     ];
 
