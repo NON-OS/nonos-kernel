@@ -35,7 +35,7 @@ pub fn apply_boot_config() -> Result<(), &'static str> {
             crate::log::info!("net: STANDARD mode - direct connections");
         }
         PrivacyMode::TorOnly => {
-            crate::log::info!("net: ANONYMOUS mode - all traffic through Anyone.io");
+            crate::log::info!("net: ANONYMOUS mode - all traffic through NYM Mixnet");
         }
         PrivacyMode::Maximum => {
             crate::log::info!("net: MAXIMUM privacy mode");
@@ -70,7 +70,7 @@ pub fn apply_boot_config() -> Result<(), &'static str> {
             }
         }
         super::types::DnsMode::TorDns => {
-            crate::log::info!("net: DNS over Anyone.io (anonymized)");
+            crate::log::info!("net: DNS over NYM Mixnet (anonymized)");
         }
         super::types::DnsMode::DoH => {
             crate::log::info!("net: DNS over HTTPS");
@@ -162,34 +162,35 @@ fn apply_firewall_config(fw_config: &FirewallConfig) -> Result<(), &'static str>
 }
 
 fn apply_onion_config(onion_config: &OnionConfig) -> Result<(), &'static str> {
-    crate::log::info!("net: configuring Anyone.io onion routing...");
+    crate::log::info!("net: configuring NYM Mixnet routing...");
 
-    if crate::network::onion::get_onion_router().lock().is_none() {
-        if let Err(e) = crate::network::onion::init_onion_router() {
-            crate::log::error!("net: failed to init onion router: {:?}", e);
-            return Err("Onion router initialization failed");
-        }
+    if let Err(e) = crate::network::nym::init_nym_client() {
+        crate::log::error!("net: failed to init NYM client: {:?}", e);
+        return Err("NYM client initialization failed");
     }
 
     if onion_config.auto_connect {
-        crate::log::info!("net: auto-connecting to Anyone.io network...");
+        crate::log::info!("net: auto-connecting to NYM Mixnet...");
 
-        for i in 0..onion_config.prebuild_circuits {
-            match crate::network::onion::create_circuit(None) {
-                Ok(circuit_id) => {
-                    crate::log::info!("net: pre-built circuit {} (id={})", i + 1, circuit_id);
-                }
-                Err(e) => {
-                    crate::log::error!("net: circuit {} build failed: {:?}", i + 1, e);
+        if let Ok(client) = crate::network::nym::get_nym_client() {
+            let mut client = client.lock();
+            let cache = crate::network::nym::directory::get_directory_cache().lock();
+            if let Some(gateway) = cache.gateways.first() {
+                let gw = gateway.clone();
+                drop(cache);
+                if let Err(e) = client.connect(&gw) {
+                    crate::log::error!("net: gateway connect failed: {:?}", e);
+                } else {
+                    crate::log::info!("net: connected to NYM gateway");
                 }
             }
         }
     }
 
     if onion_config.relay_mode {
-        crate::log::info!("net: Anyone relay mode requested (not yet implemented in kernel)");
+        crate::log::info!("net: NYM relay mode not supported in kernel");
     }
 
-    crate::log::info!("net: Anyone.io onion configuration complete");
+    crate::log::info!("net: NYM Mixnet configuration complete");
     Ok(())
 }
