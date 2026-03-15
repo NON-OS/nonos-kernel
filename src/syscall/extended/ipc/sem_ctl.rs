@@ -106,11 +106,15 @@ fn handle_setall(sets: &mut alloc::collections::BTreeMap<i32, super::sem_types::
     if arg == 0 { return errno(14); }
     if let Some(set) = sets.get_mut(&semid) {
         let pid = crate::process::current_pid().unwrap_or(0);
-        let mut buf = alloc::vec![0u8; set.nsems * 2];
+        let buf_size = match set.nsems.checked_mul(2) { Some(v) => v, None => return errno(22) };
+        let mut buf = alloc::vec![0u8; buf_size];
         if copy_from_user(arg, &mut buf).is_err() { return errno(14); }
         for (i, sem) in set.sems.iter_mut().enumerate() {
-            sem.value = u16::from_ne_bytes([buf[i * 2], buf[i * 2 + 1]]) as i16;
-            sem.sempid = pid;
+            let off = match i.checked_mul(2) { Some(v) => v, None => break };
+            if let (Some(&b0), Some(&b1)) = (buf.get(off), buf.get(off + 1)) {
+                sem.value = u16::from_ne_bytes([b0, b1]) as i16;
+                sem.sempid = pid;
+            }
         }
         set.ctime = crate::time::timestamp_millis();
         ok(0)
