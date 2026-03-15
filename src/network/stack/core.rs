@@ -63,13 +63,13 @@ pub fn init_network_stack() {
         // Verify seed is not trivially zero or the old hardcoded value (0xD1E5_7A2C)
         let seed = if seed == 0 || seed == 0xD1E5_7A2C {
             let fallback = get_entropy64();
-            crate::log_warn!("[NET] Primary RNG returned weak seed, using entropy fallback: 0x{:016X}", fallback);
+            crate::log_warn!("[NET] Primary RNG returned weak seed, using entropy fallback");
             fallback
         } else {
             seed
         };
         cfg.random_seed = seed;
-        crate::log_info!("[NET] smoltcp seeded with hardware entropy: 0x{:016X}", seed);
+        crate::log_info!("[NET] smoltcp seeded with hardware entropy");
 
         let mut iface = Interface::new(cfg, &mut dev, SmolInstant::from_millis(now_ms() as i64));
 
