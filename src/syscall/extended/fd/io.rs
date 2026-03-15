@@ -67,8 +67,9 @@ pub fn handle_sendfile(out_fd: i32, in_fd: i32, offset: u64, count: u64) -> Sysc
     };
 
     if offset != 0 {
-        let new_offset = (read_offset.unwrap_or(0) + bytes_written as u64) as i64;
-        let _ = write_user_value(offset, &new_offset);
+        if let Some(new_off) = read_offset.unwrap_or(0).checked_add(bytes_written as u64) {
+            let _ = write_user_value(offset, &(new_off as i64));
+        }
     }
 
     SyscallResult { value: bytes_written as i64, capability_consumed: false, audit_required: false }
@@ -128,60 +129,65 @@ pub fn handle_readv(fd: i32, iov: u64, iovcnt: i32) -> SyscallResult {
     let mut total = 0i64;
 
     for i in 0..iovcnt {
-        let iov_ptr = iov + (i as u64 * 16);
+        let iov_offset = match (i as u64).checked_mul(16) {
+            Some(v) => v,
+            None => break,
+        };
+        let iov_ptr = match iov.checked_add(iov_offset) {
+            Some(v) => v,
+            None => break,
+        };
         let base: u64 = match read_user_value(iov_ptr) {
             Ok(v) => v,
             Err(_) => break,
         };
-        let len: u64 = match read_user_value(iov_ptr + 8) {
+        let len_ptr = match iov_ptr.checked_add(8) {
+            Some(v) => v,
+            None => break,
+        };
+        let len: u64 = match read_user_value(len_ptr) {
             Ok(v) => v,
             Err(_) => break,
         };
-
-        if base == 0 || len == 0 {
-            continue;
-        }
-
+        if base == 0 || len == 0 { continue; }
         match crate::fs::fd::fd_read(fd, base as *mut u8, len as usize) {
-            Ok(n) => total += n as i64,
+            Ok(n) => total = total.saturating_add(n as i64),
             Err(_) => break,
         }
     }
-
     SyscallResult { value: total, capability_consumed: false, audit_required: false }
 }
 
 pub fn handle_writev(fd: i32, iov: u64, iovcnt: i32) -> SyscallResult {
-    if !crate::fs::fd::fd_is_valid(fd) {
-        return errno(9);
-    }
-
-    if iov == 0 || iovcnt <= 0 {
-        return errno(22);
-    }
-
+    if !crate::fs::fd::fd_is_valid(fd) { return errno(9); }
+    if iov == 0 || iovcnt <= 0 { return errno(22); }
     let mut total = 0i64;
-
     for i in 0..iovcnt {
-        let iov_ptr = iov + (i as u64 * 16);
+        let iov_offset = match (i as u64).checked_mul(16) {
+            Some(v) => v,
+            None => break,
+        };
+        let iov_ptr = match iov.checked_add(iov_offset) {
+            Some(v) => v,
+            None => break,
+        };
         let base: u64 = match read_user_value(iov_ptr) {
             Ok(v) => v,
             Err(_) => break,
         };
-        let len: u64 = match read_user_value(iov_ptr + 8) {
+        let len_ptr = match iov_ptr.checked_add(8) {
+            Some(v) => v,
+            None => break,
+        };
+        let len: u64 = match read_user_value(len_ptr) {
             Ok(v) => v,
             Err(_) => break,
         };
-
-        if base == 0 || len == 0 {
-            continue;
-        }
-
+        if base == 0 || len == 0 { continue; }
         match crate::fs::fd::fd_write(fd, base as *const u8, len as usize) {
-            Ok(n) => total += n as i64,
+            Ok(n) => total = total.saturating_add(n as i64),
             Err(_) => break,
         }
     }
-
     SyscallResult { value: total, capability_consumed: false, audit_required: false }
 }
