@@ -61,7 +61,7 @@ pub fn cmd_net() {
     }
 
     print_line(b"", COLOR_TEXT);
-    print_line(b"Tor:        Not connected", COLOR_YELLOW);
+    print_line(b"NYM Mixnet: Not connected", COLOR_YELLOW);
 }
 
 fn show_network_device(bus: u8, device: u8, vendor: u16, device_id: u16, is_wifi: bool) {
@@ -118,16 +118,16 @@ pub fn cmd_anon() {
     print_line(b"  * IP address hidden", COLOR_GREEN);
     print_line(b"  * No browser fingerprint", COLOR_GREEN);
     print_line(b"  * No cookies/tracking", COLOR_GREEN);
-    print_line(b"  * Anyone routing active", COLOR_GREEN);
+    print_line(b"  * NYM Mixnet routing active", COLOR_GREEN);
     print_line(b"  * Zero data persistence", COLOR_GREEN);
 }
 
-pub fn cmd_anyone() {
-    print_line(b"Anyone Network Status:", COLOR_TEXT_WHITE);
+pub fn cmd_nym() {
+    print_line(b"NYM Mixnet Status:", COLOR_TEXT_WHITE);
     print_line(b"================================", COLOR_TEXT_DIM);
-    print_line(b"Circuit:    Established", COLOR_GREEN);
-    print_line(b"Hops:       3 relays", COLOR_TEXT);
+    print_line(b"Gateway:    Connected", COLOR_GREEN);
+    print_line(b"Mixnodes:   3 layers", COLOR_TEXT);
     print_line(b"Bandwidth:  Available", COLOR_TEXT);
-    print_line(b"Exit node:  Randomized", COLOR_TEXT);
-    print_line(b"Protocol:   anyone.io", COLOR_ACCENT);
+    print_line(b"Cover:      Active", COLOR_TEXT);
+    print_line(b"Protocol:   nymtech.net", COLOR_ACCENT);
 }
