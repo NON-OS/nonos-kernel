@@ -15,14 +15,17 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::crypto::util::rng;
+use crate::crypto::kernel_keys;
 
 pub fn init_crypto_subsystem() -> Result<(), &'static str> {
     let _ = rng::init_rng();
+    kernel_keys::init();
     Ok(())
 }
 
 pub fn init() {
     let _ = rng::init_rng();
+    kernel_keys::init();
 }
 
 pub fn feature_summary() -> &'static str {
