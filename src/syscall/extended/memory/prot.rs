@@ -50,7 +50,7 @@ pub fn handle_mprotect(addr: u64, len: u64, prot: u64) -> SyscallResult {
     }
 
     if (prot & PROT_WRITE) != 0 && (prot & PROT_EXEC) != 0 {
-        crate::log::log_warning!("mprotect: W^X violation denied for addr 0x{:x}", addr);
+        crate::log::log_warning!("mprotect: W^X violation denied");
         return errno(1);
     }
 
@@ -60,23 +60,18 @@ pub fn handle_mprotect(addr: u64, len: u64, prot: u64) -> SyscallResult {
     };
 
     for i in 0..num_pages {
-        let page_addr = VirtAddr::new(addr + i * 4096);
-
+        let page_off = match i.checked_mul(4096) { Some(v) => v, None => break };
+        let page_va = match addr.checked_add(page_off) { Some(v) => v, None => break };
+        let page_addr = VirtAddr::new(page_va);
         {
             let mem = proc.memory.lock();
             let mut found = false;
             for vma in &mem.vmas {
-                if page_addr >= vma.start && page_addr < vma.end {
-                    found = true;
-                    break;
-                }
+                if page_addr >= vma.start && page_addr < vma.end { found = true; break; }
             }
-            if !found {
-                return errno(12);
-            }
+            if !found { return errno(12); }
         }
-
-        if let Err(_) = crate::memory::paging::update_page_protection(page_addr, page_flags) {
+        if crate::memory::paging::update_page_protection(page_addr, page_flags).is_err() {
             return errno(14);
         }
     }
