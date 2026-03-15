@@ -22,6 +22,7 @@ use core::sync::atomic::Ordering;
 use super::core::{current_process, allocate_tid, ProcessControlBlock, PROCESS_TABLE};
 use super::clone_flags::*;
 use super::clone_pcb::{create_thread_pcb, create_process_pcb};
+use crate::usercopy::write_user_value;
 
 pub fn clone_process(
     flags: u64,
@@ -66,24 +67,14 @@ pub fn clone_process(
     };
 
     if (flags & CLONE_PARENT_SETTID) != 0 && parent_tid != 0 {
-        // SAFETY: Parent provided pointer, responsible for validity.
-        unsafe {
-            let ptr = parent_tid as *mut u32;
-            if ptr.is_aligned() {
-                core::ptr::write_volatile(ptr, child_tid_val);
-            }
+        if write_user_value::<u32>(parent_tid, &child_tid_val).is_err() {
+            return Err(-14);
         }
     }
 
     if (flags & CLONE_CHILD_SETTID) != 0 && child_tid != 0 {
         child_pcb.set_child_tid.store(child_tid, Ordering::Release);
-        // SAFETY: Child TID pointer in shared memory space.
-        unsafe {
-            let ptr = child_tid as *mut u32;
-            if ptr.is_aligned() {
-                core::ptr::write_volatile(ptr, child_tid_val);
-            }
-        }
+        let _ = write_user_value::<u32>(child_tid, &child_tid_val);
     }
 
     if (flags & CLONE_CHILD_CLEARTID) != 0 && child_tid != 0 {
