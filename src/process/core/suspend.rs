@@ -185,10 +185,9 @@ pub fn resume_process(pid: Pid) -> Result<(), &'static str> {
 
     let suspend_duration = crate::time::current_ticks() - context.suspended_at;
     crate::log_info!(
-        "Process {} resumed after {} ticks (rip=0x{:x})",
+        "Process {} resumed after {} ticks",
         pid,
-        suspend_duration,
-        context.rip
+        suspend_duration
     );
     Ok(())
 }
