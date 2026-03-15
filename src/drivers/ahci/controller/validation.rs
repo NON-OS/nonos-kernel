@@ -66,10 +66,9 @@ pub(super) fn validate_dma_buffer(
 
     if is_kernel_text || is_mmio {
         validation_failures.fetch_add(1, Ordering::Relaxed);
-        crate::log::logger::log_critical(&format!(
-            "AHCI: DMA buffer validation failed - buffer 0x{:x} overlaps kernel critical region",
-            buffer
-        ));
+        crate::log::logger::log_critical(
+            "AHCI: DMA buffer validation failed - buffer overlaps kernel critical region"
+        );
         return Err(AhciError::BufferInCriticalRegion);
     }
 
