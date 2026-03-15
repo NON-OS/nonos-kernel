@@ -21,7 +21,7 @@ use crate::network::ip::IpAddress;
 use super::types::{ConnectionState, TlsConnectionState};
 use super::limiter::DirectionLimiters;
 
-pub struct AnyoneConnection {
+pub struct NymConnection {
     pub id: u32,
     pub socket: TcpSocket,
     pub remote_addr: IpAddress,
