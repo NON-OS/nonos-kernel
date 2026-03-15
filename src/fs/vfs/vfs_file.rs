@@ -40,14 +40,9 @@ impl VirtualFileSystem {
         Ok(())
     }
 
-    /// # Safety
-    /// Atomic rename operation. Holds VFS lock to prevent TOCTOU between
-    /// read, create, and delete operations.
     pub fn rename(&self, old_path: &str, new_path: &str) -> VfsResult<()> {
         let _lock = VFS_OP_LOCK.lock();
-        let data = crate::fs::ramfs::NONOS_FILESYSTEM.read_file(old_path)?;
-        crate::fs::ramfs::NONOS_FILESYSTEM.create_file(new_path, &data)?;
-        crate::fs::ramfs::NONOS_FILESYSTEM.delete_file(old_path)?;
+        crate::fs::ramfs::NONOS_FILESYSTEM.atomic_rename(old_path, new_path)?;
         self.inner.lock().vfs_stats.rename_ops += 1;
         Ok(())
     }
