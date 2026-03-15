@@ -16,6 +16,7 @@
 
 use crate::network::nym::types::{Gateway, GatewayId, ClientId};
 use crate::network::nym::error::NymError;
+use crate::network::tcp::{connect_to, send_socket, recv_socket, close_socket};
 use super::state::GatewayState;
 
 pub struct GatewayConnection {
@@ -23,27 +24,54 @@ pub struct GatewayConnection {
     pub client_id: ClientId,
     pub state: GatewayState,
     pub shared_key: [u8; 32],
+    tcp_handle: u32,
 }
 
 pub fn connect_to_gateway(gateway: &Gateway, client_id: &ClientId) -> Result<GatewayConnection, NymError> {
-    let shared_key = perform_handshake(&gateway.sphinx_key, client_id)?;
+    let tcp_handle = connect_to(&gateway.host, gateway.clients_port, 10000)
+        .map_err(|_| NymError::ConnectionFailed)?;
+    let shared_key = perform_handshake(tcp_handle, &gateway.sphinx_key, client_id)?;
     Ok(GatewayConnection {
         gateway_id: gateway.id,
         client_id: *client_id,
         state: GatewayState::Connected,
         shared_key,
+        tcp_handle,
     })
 }
 
-fn perform_handshake(gateway_key: &[u8; 32], client_id: &ClientId) -> Result<[u8; 32], NymError> {
-    let (secret, _public) = crate::network::nym::crypto::generate_keypair();
+fn perform_handshake(handle: u32, gateway_key: &[u8; 32], client_id: &ClientId) -> Result<[u8; 32], NymError> {
+    let (secret, public) = crate::network::nym::crypto::generate_keypair();
+    let mut handshake_msg = [0u8; 64];
+    handshake_msg[..32].copy_from_slice(&public);
+    handshake_msg[32..].copy_from_slice(&client_id.0);
+    send_socket(handle, &handshake_msg).map_err(|_| NymError::ConnectionFailed)?;
+    let mut response = [0u8; 32];
+    let n = recv_socket(handle, &mut response, 5000).map_err(|_| NymError::ConnectionFailed)?;
+    if n != 32 { return Err(NymError::HandshakeFailed); }
     let shared = crate::network::nym::crypto::x25519_scalar_mult(&secret, gateway_key);
-    let _ = client_id;
     Ok(shared)
 }
 
 impl GatewayConnection {
-    pub fn send(&self, _data: &[u8]) -> Result<(), NymError> { Ok(()) }
-    pub fn recv(&self, _buf: &mut [u8]) -> Result<usize, NymError> { Ok(0) }
-    pub fn close(&mut self) { self.state = GatewayState::Disconnected; }
+    pub fn send(&self, data: &[u8]) -> Result<(), NymError> {
+        if self.state != GatewayState::Connected { return Err(NymError::NotConnected); }
+        send_socket(self.tcp_handle, data).map_err(|_| NymError::SendFailed)
+    }
+
+    pub fn recv(&self, buf: &mut [u8]) -> Result<usize, NymError> {
+        if self.state != GatewayState::Connected { return Err(NymError::NotConnected); }
+        recv_socket(self.tcp_handle, buf, 5000).map_err(|_| NymError::ReceiveFailed)
+    }
+
+    pub fn close(&mut self) {
+        close_socket(self.tcp_handle);
+        self.state = GatewayState::Disconnected;
+    }
+}
+
+impl Drop for GatewayConnection {
+    fn drop(&mut self) {
+        if self.state == GatewayState::Connected { close_socket(self.tcp_handle); }
+    }
 }
