@@ -44,10 +44,10 @@ pub fn cmd_firewall(cmd: &[u8]) {
         print_line(b"  [2] ACCEPT established connections", COLOR_GREEN);
         print_line(b"  [3] ACCEPT DNS outbound (53/udp)", COLOR_GREEN);
         print_line(b"  [4] ACCEPT HTTP/S outbound (80-443)", COLOR_GREEN);
-        print_line(b"  [5] ACCEPT Tor relay ports (9001-9050)", COLOR_GREEN);
+        print_line(b"  [5] ACCEPT NYM ports (1789, 9000)", COLOR_GREEN);
 
         print_line(b"", COLOR_TEXT_DIM);
-        print_line(b"Tor-only mode: ENFORCED", COLOR_ACCENT);
+        print_line(b"NYM Mixnet mode: ENFORCED", COLOR_ACCENT);
     } else {
         print_line(b"Usage: firewall [status]", COLOR_TEXT_DIM);
     }
