@@ -49,7 +49,7 @@ pub enum NonosFileSystemType {
     Ephemeral = 2,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct NonosFile {
     pub name: String,
     pub data: Vec<u8>,
