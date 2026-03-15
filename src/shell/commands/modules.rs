@@ -27,8 +27,8 @@ pub fn cmd_lsmod() {
     print_line(b"crypto_core         64K     vault, tls", COLOR_GREEN);
     print_line(b"crypto_pqc          128K    crypto_core", COLOR_ACCENT);
     print_line(b"crypto_zk           96K     attestation", COLOR_ACCENT);
-    print_line(b"network_stack       256K    tor, dns", COLOR_GREEN);
-    print_line(b"tor_onion           192K    network_stack", COLOR_ACCENT);
+    print_line(b"network_stack       256K    nym, dns", COLOR_GREEN);
+    print_line(b"nym_mixnet          192K    network_stack", COLOR_ACCENT);
     print_line(b"fs_ramfs            32K     vfs", COLOR_GREEN);
     print_line(b"fs_cryptofs         48K     ramfs, vault", COLOR_GREEN);
     print_line(b"graphics_fb         64K     desktop", COLOR_GREEN);
@@ -48,7 +48,7 @@ pub fn cmd_modinfo(cmd: &[u8]) {
         print_line(b"", COLOR_TEXT);
         print_line(b"Available modules:", COLOR_TEXT_WHITE);
         print_line(b"  crypto_core, crypto_pqc, crypto_zk", COLOR_TEXT_DIM);
-        print_line(b"  network_stack, tor_onion", COLOR_TEXT_DIM);
+        print_line(b"  network_stack, nym_mixnet", COLOR_TEXT_DIM);
         print_line(b"  fs_ramfs, fs_cryptofs", COLOR_TEXT_DIM);
         print_line(b"  graphics_fb, input_hid, usb_xhci", COLOR_TEXT_DIM);
         print_line(b"  security_hardening", COLOR_TEXT_DIM);
@@ -98,17 +98,17 @@ pub fn cmd_modinfo(cmd: &[u8]) {
             print_line(b"  - Circuit compilation", COLOR_TEXT_DIM);
             print_line(b"  - Proof verification", COLOR_TEXT_DIM);
         }
-        b"tor_onion" => {
-            print_line(b"Module: tor_onion", COLOR_TEXT_WHITE);
+        b"nym_mixnet" => {
+            print_line(b"Module: nym_mixnet", COLOR_TEXT_WHITE);
             print_line(b"============================================", COLOR_TEXT_DIM);
-            print_line(b"Description: Tor Onion Routing", COLOR_ACCENT);
+            print_line(b"Description: NYM Mixnet Routing", COLOR_ACCENT);
             print_line(b"Version:     1.0.0", COLOR_TEXT);
             print_line(b"", COLOR_TEXT);
             print_line(b"Provides:", COLOR_TEXT_WHITE);
-            print_line(b"  - Circuit establishment", COLOR_TEXT_DIM);
-            print_line(b"  - Onion encryption layers", COLOR_TEXT_DIM);
-            print_line(b"  - Guard/Relay/Exit selection", COLOR_TEXT_DIM);
-            print_line(b"  - Hidden service support", COLOR_TEXT_DIM);
+            print_line(b"  - Sphinx packet encryption", COLOR_TEXT_DIM);
+            print_line(b"  - 3-layer mixnode routing", COLOR_TEXT_DIM);
+            print_line(b"  - Gateway connections", COLOR_TEXT_DIM);
+            print_line(b"  - Cover traffic generation", COLOR_TEXT_DIM);
             print_line(b"", COLOR_TEXT);
             print_line(b"Status: Anonymous networking ACTIVE", COLOR_GREEN);
         }
@@ -171,7 +171,7 @@ pub fn cmd_depmod() {
     print_line(b"============================================", COLOR_TEXT_DIM);
     print_line(b"crypto_pqc -> crypto_core", COLOR_TEXT);
     print_line(b"crypto_zk -> crypto_core", COLOR_TEXT);
-    print_line(b"tor_onion -> network_stack, crypto_core", COLOR_TEXT);
+    print_line(b"nym_mixnet -> network_stack, crypto_core", COLOR_TEXT);
     print_line(b"fs_cryptofs -> fs_ramfs, crypto_core", COLOR_TEXT);
     print_line(b"graphics_fb -> (none)", COLOR_TEXT);
     print_line(b"input_hid -> usb_xhci", COLOR_TEXT);
@@ -199,8 +199,8 @@ pub fn cmd_sysctl(cmd: &[u8]) {
         print_line(b"vm.zerofill = 1", COLOR_GREEN);
         print_line(b"", COLOR_TEXT);
         print_line(b"net.ipv4.ip_forward = 0", COLOR_TEXT);
-        print_line(b"net.tor.enabled = 1", COLOR_GREEN);
-        print_line(b"net.tor.enforce = 1", COLOR_GREEN);
+        print_line(b"net.nym.enabled = 1", COLOR_GREEN);
+        print_line(b"net.nym.enforce = 1", COLOR_GREEN);
         print_line(b"", COLOR_TEXT);
         print_line(b"security.kaslr = 1", COLOR_GREEN);
         print_line(b"security.canary = 1", COLOR_GREEN);
