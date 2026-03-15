@@ -28,7 +28,7 @@ impl E1000Device {
         let bar0 = pci_device.get_bar(0).ok_or("E1000: BAR0 not present")?;
         let (mmio_base, _) = bar0.mmio_region().ok_or("E1000: BAR0 is not MMIO")?;
 
-        crate::log::info!("e1000: MMIO base at {:#x}", mmio_base.as_u64());
+        crate::log::info!("e1000: MMIO region mapped successfully");
 
         let cmd = pci_read_config32(
             pci_device.bus,
