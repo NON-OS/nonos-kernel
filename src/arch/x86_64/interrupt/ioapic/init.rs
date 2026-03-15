@@ -62,8 +62,8 @@ pub unsafe fn init(ioapics: &[MadtIoApic], iso: &[MadtIso], nmis: &[MadtNmi]) ->
             );
 
             crate::log::logger::log_info!(
-                "[IOAPIC] phys=0x{:x} gsi_base={} redirs={}",
-                desc.phys_base, desc.gsi_base, maxredir
+                "[IOAPIC] gsi_base={} redirs={}",
+                desc.gsi_base, maxredir
             );
         }
 
