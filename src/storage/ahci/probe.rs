@@ -66,7 +66,7 @@ pub fn probe_ahci_controller(
     let bar5_virt = match map_mmio_region(bar5_phys, 0x1100) {
         Some(v) => v,
         None => {
-            crate::log::info!("ahci: Failed to map HBA at {:x}", bar5_phys);
+            crate::log::info!("ahci: Failed to map HBA MMIO region");
             return None;
         }
     };
