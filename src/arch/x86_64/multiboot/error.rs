@@ -82,8 +82,8 @@ impl core::fmt::Display for MultibootError {
             Self::AlignmentError { expected, found } => {
                 write!(f, "Pointer alignment error: expected {}-byte alignment, found {} offset", expected, found)
             }
-            Self::AddressOutOfRange { address } => {
-                write!(f, "Address 0x{:016X} is out of valid range", address)
+            Self::AddressOutOfRange { address: _ } => {
+                write!(f, "Address is out of valid range")
             }
         }
     }
