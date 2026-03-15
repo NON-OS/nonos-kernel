@@ -75,16 +75,23 @@ pub fn handle_recvmmsg(sockfd: u64, msgvec: u64, vlen: u64, flags: u64, timeout:
     let vlen = vlen.min(1024) as usize;
     let timeout_ms: Option<u64> = if timeout != 0 {
         let tv_sec: i64 = match read_user_value(timeout) { Ok(v) => v, Err(_) => return errno(14) };
-        let tv_nsec: i64 = match read_user_value(timeout + 8) { Ok(v) => v, Err(_) => return errno(14) };
-        Some((tv_sec as u64) * 1000 + (tv_nsec as u64) / 1_000_000)
+        let timeout_nsec = match timeout.checked_add(8) { Some(v) => v, None => return errno(14) };
+        let tv_nsec: i64 = match read_user_value(timeout_nsec) { Ok(v) => v, Err(_) => return errno(14) };
+        let sec_ms = (tv_sec as u64).saturating_mul(1000);
+        Some(sec_ms.saturating_add((tv_nsec as u64) / 1_000_000))
     } else { None };
     let start_time = crate::time::timestamp_millis();
     let mut recv_count = 0u64;
     for i in 0..vlen {
         if let Some(timeout_ms) = timeout_ms {
-            if crate::time::timestamp_millis() - start_time >= timeout_ms { break; }
+            if crate::time::timestamp_millis().saturating_sub(start_time) >= timeout_ms { break; }
         }
-        let mmsghdr_ptr = msgvec + (i * MMSGHDR_SIZE) as u64;
+        let mmsghdr_offset = match (i as u64).checked_mul(MMSGHDR_SIZE as u64) {
+            Some(v) => v, None => break,
+        };
+        let mmsghdr_ptr = match msgvec.checked_add(mmsghdr_offset) {
+            Some(v) => v, None => break,
+        };
         let msg_flags = if recv_count > 0 && (flags & 0x40) == 0 { flags | 0x40 } else { flags };
         let result = handle_recvmsg(sockfd, mmsghdr_ptr, msg_flags);
         if result.value < 0 {
