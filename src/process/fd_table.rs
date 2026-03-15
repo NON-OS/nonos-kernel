@@ -16,235 +16,104 @@
 
 extern crate alloc;
 
-use alloc::collections::BTreeMap;
-use core::sync::atomic::{AtomicU32, Ordering};
-use spin::Mutex;
-
 pub use super::fd_types::*;
+pub use super::process_fd_table::ProcessFdTable;
+use crate::process::core::table::{CURRENT_PID, PROCESS_TABLE};
+use core::sync::atomic::Ordering;
 
-static FD_TABLE: Mutex<BTreeMap<i32, FdEntry>> = Mutex::new(BTreeMap::new());
-static NEXT_FD: AtomicU32 = AtomicU32::new(100);
-
-pub fn allocate_fd(mut entry: FdEntry) -> Option<i32> {
-    let fd = NEXT_FD.fetch_add(1, Ordering::SeqCst) as i32;
-    entry.fd = fd;
-    FD_TABLE.lock().insert(fd, entry);
-    Some(fd)
+fn with_current<F, T>(f: F) -> Option<T> where F: FnOnce(&ProcessFdTable) -> T {
+    let pid = CURRENT_PID.load(Ordering::Acquire);
+    if pid == 0 { return None; }
+    PROCESS_TABLE.find_by_pid(pid).map(|pcb| f(&pcb.fd_table))
 }
 
-pub fn allocate_fd_min(mut entry: FdEntry, min_fd: i32) -> Option<i32> {
-    let table = FD_TABLE.lock();
+pub fn allocate_fd(entry: FdEntry) -> Option<i32> { with_current(|t| t.allocate(entry))? }
+pub fn allocate_fd_min(entry: FdEntry, min_fd: i32) -> Option<i32> { with_current(|t| t.allocate_min(entry, min_fd))? }
+pub fn register_fd(fd: i32, entry: FdEntry) { with_current(|t| { t.allocate_at(fd, entry); }); }
+pub fn unregister_fd(fd: i32) { with_current(|t| { t.remove(fd); }); }
+pub fn is_valid(fd: i32) -> bool { get_fd(fd as u32).is_some() }
+pub fn get_fd_type(fd: i32) -> Option<FdType> { get_fd(fd as u32).map(|e| e.fd_type) }
+pub fn dup_fd(old_fd: i32) -> Option<i32> { with_current(|t| t.dup(old_fd))? }
+pub fn dup2_fd(old_fd: i32, new_fd: i32) -> Option<i32> { with_current(|t| t.dup2(old_fd, new_fd))? }
+pub fn close_cloexec_fds() { with_current(|t| t.close_cloexec()); }
+pub fn close_all_fds() { with_current(|t| t.close_all()); }
 
-    let mut fd = min_fd;
-    while table.contains_key(&fd) {
-        fd += 1;
-        if fd > 65535 {
-            return None;
-        }
-    }
-    drop(table);
+pub fn set_cloexec(fd: i32, cloexec: bool) -> Result<(), ()> {
+    match with_current(|t| t.set_cloexec(fd, cloexec)) { Some(true) => Ok(()), _ => Err(()) }
+}
 
-    entry.fd = fd;
-    FD_TABLE.lock().insert(fd, entry);
+pub fn get_cloexec(fd: i32) -> Result<bool, ()> { with_current(|t| t.get_cloexec(fd)).flatten().ok_or(()) }
 
-    let current = NEXT_FD.load(Ordering::SeqCst);
-    if (fd + 1) as u32 > current {
-        NEXT_FD.store((fd + 1) as u32, Ordering::SeqCst);
-    }
+pub fn set_status_flags(fd: i32, flags: u32) -> Result<(), ()> {
+    match with_current(|t| t.set_status_flags(fd, flags)) { Some(true) => Ok(()), _ => Err(()) }
+}
 
-    Some(fd)
+pub fn get_status_flags(fd: i32) -> Result<u32, ()> { with_current(|t| t.get_status_flags(fd)).flatten().ok_or(()) }
+
+pub fn get_stats() -> FdTableStats {
+    with_current(|t| t.stats()).unwrap_or(FdTableStats {
+        total_fds: 0, file_count: 0, socket_count: 0, pipe_count: 0,
+        eventfd_count: 0, timerfd_count: 0, signalfd_count: 0, epoll_count: 0,
+    })
 }
 
 pub fn get_fd(fd: u32) -> Option<FdEntry> {
     let fd = fd as i32;
-
-    if let Some(entry) = FD_TABLE.lock().get(&fd) {
-        return Some(entry.clone());
-    }
-
+    if let Some(entry) = with_current(|t| t.get(fd))? { return Some(entry); }
     if crate::syscall::extended::eventfd_ops::is_eventfd(fd) {
-        if let Some(efd_id) = crate::syscall::extended::eventfd_ops::fd_to_eventfd_id(fd) {
-            let mut entry = FdEntry::new(FdType::EventFd, efd_id as usize);
-            entry.fd = fd;
-            return Some(entry);
+        if let Some(id) = crate::syscall::extended::eventfd_ops::fd_to_eventfd_id(fd) {
+            let mut e = FdEntry::new(FdType::EventFd, id as usize); e.fd = fd; return Some(e);
         }
     }
-
     if crate::syscall::extended::signalfd::is_signalfd(fd) {
-        if let Some(sfd_id) = crate::syscall::extended::signalfd::fd_to_signalfd_id(fd) {
-            let mut entry = FdEntry::new(FdType::SignalFd, sfd_id as usize);
-            entry.fd = fd;
-            return Some(entry);
+        if let Some(id) = crate::syscall::extended::signalfd::fd_to_signalfd_id(fd) {
+            let mut e = FdEntry::new(FdType::SignalFd, id as usize); e.fd = fd; return Some(e);
         }
     }
-
     if crate::ipc::pipe::is_pipe(fd) {
-        if let Some((pipe_id, is_read)) = crate::ipc::pipe::fd_to_pipe_id(fd) {
-            let mut entry = FdEntry::with_pipe(pipe_id as usize, is_read);
-            entry.fd = fd;
-            return Some(entry);
+        if let Some((id, is_read)) = crate::ipc::pipe::fd_to_pipe_id(fd) {
+            let mut e = FdEntry::with_pipe(id as usize, is_read); e.fd = fd; return Some(e);
         }
     }
-
     if crate::syscall::extended::timer::is_timerfd(fd) {
-        if let Some(tfd_id) = crate::syscall::extended::timer::fd_to_timerfd_id(fd) {
-            let mut entry = FdEntry::new(FdType::TimerFd, tfd_id as usize);
-            entry.fd = fd;
-            return Some(entry);
+        if let Some(id) = crate::syscall::extended::timer::fd_to_timerfd_id(fd) {
+            let mut e = FdEntry::new(FdType::TimerFd, id as usize); e.fd = fd; return Some(e);
         }
     }
-
     if crate::syscall::extended::epoll::is_epoll_fd(fd) {
-        if let Some(epoll_id) = crate::syscall::extended::epoll::fd_to_epoll_id(fd) {
-            let mut entry = FdEntry::new(FdType::Epoll, epoll_id as usize);
-            entry.fd = fd;
-            return Some(entry);
+        if let Some(id) = crate::syscall::extended::epoll::fd_to_epoll_id(fd) {
+            let mut e = FdEntry::new(FdType::Epoll, id as usize); e.fd = fd; return Some(e);
         }
     }
-
     if crate::fs::nonos_vfs::vfs_fd_exists(fd as u32) {
-        let mut entry = FdEntry::new(FdType::File, fd as usize);
-        entry.fd = fd;
-        return Some(entry);
+        let mut e = FdEntry::new(FdType::File, fd as usize); e.fd = fd; return Some(e);
     }
-
     None
 }
 
-pub fn register_fd(fd: i32, mut entry: FdEntry) {
-    entry.fd = fd;
-    FD_TABLE.lock().insert(fd, entry);
+pub fn allocate_fd_for_pid(pid: u32, entry: FdEntry) -> Option<i32> {
+    PROCESS_TABLE.find_by_pid(pid).and_then(|pcb| pcb.fd_table.allocate(entry))
 }
 
-pub fn unregister_fd(fd: i32) {
-    FD_TABLE.lock().remove(&fd);
+pub fn get_fd_for_pid(pid: u32, fd: i32) -> Option<FdEntry> {
+    PROCESS_TABLE.find_by_pid(pid).and_then(|pcb| pcb.fd_table.get(fd))
 }
 
-pub fn set_cloexec(fd: i32, cloexec: bool) -> Result<(), ()> {
-    if let Some(entry) = FD_TABLE.lock().get_mut(&fd) {
-        if cloexec {
-            entry.flags |= FD_CLOEXEC;
-        } else {
-            entry.flags &= !FD_CLOEXEC;
+pub fn register_fd_for_pid(pid: u32, fd: i32, entry: FdEntry) {
+    if let Some(pcb) = PROCESS_TABLE.find_by_pid(pid) { pcb.fd_table.allocate_at(fd, entry); }
+}
+
+pub fn unregister_fd_for_pid(pid: u32, fd: i32) {
+    if let Some(pcb) = PROCESS_TABLE.find_by_pid(pid) { pcb.fd_table.remove(fd); }
+}
+
+pub fn fork_fd_table(parent_pid: u32, child_pid: u32) {
+    if let Some(parent) = PROCESS_TABLE.find_by_pid(parent_pid) {
+        if let Some(child) = PROCESS_TABLE.find_by_pid(child_pid) {
+            let forked = parent.fd_table.fork();
+            for fd in 0..MAX_PROCESS_FDS {
+                if let Some(entry) = forked.get(fd) { child.fd_table.allocate_at(fd, entry); }
+            }
         }
-        return Ok(());
-    }
-    Err(())
-}
-
-pub fn get_cloexec(fd: i32) -> Result<bool, ()> {
-    if let Some(entry) = FD_TABLE.lock().get(&fd) {
-        return Ok(entry.is_cloexec());
-    }
-    Err(())
-}
-
-pub fn set_status_flags(fd: i32, flags: u32) -> Result<(), ()> {
-    if let Some(entry) = FD_TABLE.lock().get_mut(&fd) {
-        entry.status_flags = flags;
-        return Ok(());
-    }
-    Err(())
-}
-
-pub fn get_status_flags(fd: i32) -> Result<u32, ()> {
-    if let Some(entry) = FD_TABLE.lock().get(&fd) {
-        return Ok(entry.status_flags);
-    }
-    Err(())
-}
-
-pub fn is_valid(fd: i32) -> bool {
-    get_fd(fd as u32).is_some()
-}
-
-pub fn get_fd_type(fd: i32) -> Option<FdType> {
-    get_fd(fd as u32).map(|e| e.fd_type)
-}
-
-pub fn dup_fd(old_fd: i32) -> Option<i32> {
-    let entry = get_fd(old_fd as u32)?;
-    allocate_fd(FdEntry {
-        fd: -1,
-        fd_type: entry.fd_type,
-        internal_id: entry.internal_id,
-        is_read_end: entry.is_read_end,
-        is_write_end: entry.is_write_end,
-        flags: 0,
-        status_flags: entry.status_flags,
-    })
-}
-
-pub fn dup2_fd(old_fd: i32, new_fd: i32) -> Option<i32> {
-    if old_fd == new_fd {
-        return Some(new_fd);
-    }
-
-    let entry = get_fd(old_fd as u32)?;
-
-    unregister_fd(new_fd);
-
-    register_fd(new_fd, FdEntry {
-        fd: new_fd,
-        fd_type: entry.fd_type,
-        internal_id: entry.internal_id,
-        is_read_end: entry.is_read_end,
-        is_write_end: entry.is_write_end,
-        flags: 0,
-        status_flags: entry.status_flags,
-    });
-
-    Some(new_fd)
-}
-
-pub fn close_cloexec_fds() {
-    let to_close: alloc::vec::Vec<i32> = FD_TABLE
-        .lock()
-        .iter()
-        .filter(|(_, entry)| entry.is_cloexec())
-        .map(|(&fd, _)| fd)
-        .collect();
-
-    for fd in to_close {
-        unregister_fd(fd);
-    }
-}
-
-pub fn close_all_fds() {
-    FD_TABLE.lock().clear();
-}
-
-pub fn get_stats() -> FdTableStats {
-    let table = FD_TABLE.lock();
-    let mut file_count = 0;
-    let mut socket_count = 0;
-    let mut pipe_count = 0;
-    let mut eventfd_count = 0;
-    let mut timerfd_count = 0;
-    let mut signalfd_count = 0;
-    let mut epoll_count = 0;
-
-    for entry in table.values() {
-        match entry.fd_type {
-            FdType::File => file_count += 1,
-            FdType::Socket => socket_count += 1,
-            FdType::Pipe => pipe_count += 1,
-            FdType::EventFd => eventfd_count += 1,
-            FdType::TimerFd => timerfd_count += 1,
-            FdType::SignalFd => signalfd_count += 1,
-            FdType::Epoll => epoll_count += 1,
-            _ => {}
-        }
-    }
-
-    FdTableStats {
-        total_fds: table.len(),
-        file_count,
-        socket_count,
-        pipe_count,
-        eventfd_count,
-        timerfd_count,
-        signalfd_count,
-        epoll_count,
     }
 }
