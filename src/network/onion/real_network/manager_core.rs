@@ -18,14 +18,14 @@ use alloc::collections::BTreeMap;
 use core::sync::atomic::{AtomicU32, AtomicU64, Ordering};
 use spin::{Mutex, Once};
 
-use super::connection::AnyoneConnection;
+use super::connection::NymConnection;
 use super::limiter::TokenBucket;
 use super::pool::ConnectionPool;
 use super::types::{NetworkStats, TlsProvider};
 use crate::network::onion::OnionError;
 
-pub struct AnyoneNetworkManager {
-    pub(super) active: Mutex<BTreeMap<u32, AnyoneConnection>>,
+pub struct NymNetworkManager {
+    pub(super) active: Mutex<BTreeMap<u32, NymConnection>>,
     pub(super) next_id: AtomicU32,
     pub(super) stats: NetworkStats,
     pub(super) pool: ConnectionPool,
@@ -34,11 +34,11 @@ pub struct AnyoneNetworkManager {
     pub(super) limiter: Mutex<TokenBucket>,
 }
 
-static ANYONE_NETWORK_MANAGER: Once<AnyoneNetworkManager> = Once::new();
+static NYM_NETWORK_MANAGER: Once<NymNetworkManager> = Once::new();
 
-pub fn init_anyone_network(tls: &'static dyn TlsProvider, bandwidth_limit_bps: u64) {
+pub fn init_nym_network(tls: &'static dyn TlsProvider, bandwidth_limit_bps: u64) {
     let now = timestamp_ms();
-    ANYONE_NETWORK_MANAGER.call_once(|| AnyoneNetworkManager {
+    NYM_NETWORK_MANAGER.call_once(|| NymNetworkManager {
         active: Mutex::new(BTreeMap::new()),
         next_id: AtomicU32::new(1),
         stats: NetworkStats {
@@ -61,15 +61,15 @@ pub fn init_anyone_network(tls: &'static dyn TlsProvider, bandwidth_limit_bps: u
     });
 }
 
-pub fn get_anyone_network() -> Option<&'static AnyoneNetworkManager> {
-    ANYONE_NETWORK_MANAGER.get()
+pub fn get_nym_network() -> Option<&'static NymNetworkManager> {
+    NYM_NETWORK_MANAGER.get()
 }
 
-pub fn anyone_network() -> Result<&'static AnyoneNetworkManager, OnionError> {
-    ANYONE_NETWORK_MANAGER.get().ok_or(OnionError::NotInitialized)
+pub fn nym_network() -> Result<&'static NymNetworkManager, OnionError> {
+    NYM_NETWORK_MANAGER.get().ok_or(OnionError::NotInitialized)
 }
 
-impl AnyoneNetworkManager {
+impl NymNetworkManager {
     pub fn get_network_stats(&self) -> &NetworkStats {
         &self.stats
     }
