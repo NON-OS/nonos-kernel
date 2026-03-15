@@ -185,10 +185,6 @@ pub unsafe extern "C" fn boot_main() -> ! {
         Ok(()) => {
             log_stage(BootStage::MemoryValidation, true);
 
-            use super::super::cpu_ops::read_cr3;
-            log("  CR3: 0x");
-            log_hex(read_cr3());
-            log("\n");
             log("  Paging: enabled\n");
             log("  PAE: enabled\n");
             log("  Long mode: active\n");
