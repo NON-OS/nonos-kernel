@@ -99,7 +99,7 @@ pub fn init() -> Result<(), &'static str> {
 
     crate::log::info!("[SECURITY] Memory sanitization initialized");
     crate::log::info!("  Level: {:?}", SanitizationLevel::Standard);
-    crate::log::info!("  Stack canary: 0x{:016X}", get_stack_canary());
+    crate::log::info!("  Stack canary: [initialized]");
 
     Ok(())
 }
