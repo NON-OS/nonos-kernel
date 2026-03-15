@@ -55,7 +55,7 @@ pub fn cmd_curl(cmd: &[u8]) {
         let url_len = url.len().min(50);
         line[14..14 + url_len].copy_from_slice(&url.as_bytes()[..url_len]);
         print_line(&line[..14 + url_len], COLOR_TEXT_DIM);
-        print_line(b"> Routing through Tor...", COLOR_TEXT_DIM);
+        print_line(b"> Routing through NYM Mixnet...", COLOR_TEXT_DIM);
     }
 
     let mut options = crate::network::http_client::HttpRequestOptions::default();
