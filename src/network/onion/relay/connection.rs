@@ -14,8 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! OR link connection implementation
-
 use alloc::{vec, vec::Vec};
 use core::sync::atomic::{AtomicU64, Ordering};
 
@@ -27,7 +25,6 @@ use crate::network::onion::OnionError;
 
 use super::types::IO_WRITE_TIMEOUT_MS;
 
-/// OR link connection (client mode)
 pub struct ORConnection {
     sock: TcpSocket,
     tls: TLSConnection,
@@ -39,7 +36,6 @@ pub struct ORConnection {
 }
 
 impl ORConnection {
-    /// Create new connection wrapper
     pub fn new(sock: TcpSocket, peer: RelayDescriptor) -> Self {
         Self {
             sock,
@@ -52,10 +48,9 @@ impl ORConnection {
         }
     }
 
-    /// Perform full TLS handshake (client) on an already-connected TCP socket.
     pub fn handshake(&mut self) -> Result<(), OnionError> {
         crate::network::onion::tls::init_tls_stack_production(&KERNEL_TLS_CRYPTO)?;
-        let alpn: [&str; 1] = ["tor"];
+        let alpn: [&str; 1] = ["nym"];
         let _session = self.tls.handshake_full(
             &self.sock,
             None,
@@ -66,12 +61,10 @@ impl ORConnection {
         Ok(())
     }
 
-    /// Check if connection is established
     pub fn is_connected(&self) -> bool {
         self.connected
     }
 
-    /// Send one Tor cell (exact CELL_SIZE).
     pub fn send_cell(&mut self, cell: &Cell) -> Result<(), OnionError> {
         let buf = cell.serialize();
         if buf.len() != CELL_SIZE {
@@ -84,11 +77,9 @@ impl ORConnection {
         Ok(())
     }
 
-    /// Poll for inbound TLS records, decrypt, assemble full cells and return count processed.
     pub fn poll_read<F: FnMut(Cell)>(&mut self, mut on_cell: F) -> Result<usize, OnionError> {
         let io_timeout = super::types::IO_READ_TIMEOUT_MS;
 
-        // Read TLS record header
         let mut hdr = [0u8; 5];
         match self.read_exact(&mut hdr, io_timeout) {
             Ok(_) => {}
@@ -96,7 +87,6 @@ impl ORConnection {
             Err(e) => return Err(e),
         }
 
-        // Validate TLS application data record
         if hdr[0] != 23 || u16::from_be_bytes([hdr[1], hdr[2]]) != 0x0303 {
             return Err(OnionError::NetworkError);
         }
@@ -105,11 +95,9 @@ impl ORConnection {
             return Err(OnionError::NetworkError);
         }
 
-        // Read TLS record body
         let mut body = vec![0u8; len];
         self.read_exact(&mut body, io_timeout)?;
 
-        // Decrypt and strip inner content type
         let mut plaintext = self.tls.decrypt_app(&body)?;
         if plaintext.is_empty() {
             return Ok(0);
@@ -119,7 +107,6 @@ impl ORConnection {
             return Ok(0);
         }
 
-        // Accumulate and extract complete cells
         self.rx_accum.extend_from_slice(&plaintext);
         let mut processed = 0usize;
         while self.rx_accum.len() >= CELL_SIZE {
@@ -129,13 +116,12 @@ impl ORConnection {
                 processed += 1;
                 self.rx_counter.fetch_add(1, Ordering::Relaxed);
             } else {
-                crate::log_warn!("relay: invalid cell received, dropping 1 cell to resync");
+                crate::log_warn!("relay: invalid cell received");
             }
         }
         Ok(processed)
     }
 
-    /// Write all data with timeout
     fn write_all(&self, data: &[u8], timeout_ms: u64) -> Result<(), OnionError> {
         let start = crate::time::timestamp_millis();
         if let Some(net) = get_network_stack() {
@@ -156,7 +142,6 @@ impl ORConnection {
         }
     }
 
-    /// Read exact number of bytes with timeout
     fn read_exact(&self, dst: &mut [u8], timeout_ms: u64) -> Result<(), OnionError> {
         let start = crate::time::timestamp_millis();
         let mut filled = 0usize;
@@ -182,23 +167,19 @@ impl ORConnection {
         }
     }
 
-    /// Get peer descriptor
     pub fn peer(&self) -> &RelayDescriptor {
         &self.peer
     }
 
-    /// Get transmit cell count
     pub fn tx_count(&self) -> u64 {
         self.tx_counter.load(Ordering::Relaxed)
     }
 
-    /// Get receive cell count
     pub fn rx_count(&self) -> u64 {
         self.rx_counter.load(Ordering::Relaxed)
     }
 }
 
-/// Wrap ciphertext in a TLS application data record
 #[inline]
 pub fn wrap_tls_app_record(ciphertext: &[u8]) -> Vec<u8> {
     let mut rec = Vec::with_capacity(5 + ciphertext.len());
