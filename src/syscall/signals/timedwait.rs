@@ -42,12 +42,17 @@ pub fn handle_rt_sigtimedwait(set: u64, info: u64, timeout: u64, sigsetsize: u64
             Ok(v) => v,
             Err(_) => return errno(14),
         };
-        let tv_nsec: i64 = match read_user_value(timeout + 8) {
+        let timeout_nsec = match timeout.checked_add(8) {
+            Some(v) => v,
+            None => return errno(14),
+        };
+        let tv_nsec: i64 = match read_user_value(timeout_nsec) {
             Ok(v) => v,
             Err(_) => return errno(14),
         };
-        let timeout_ms = (tv_sec as u64) * 1000 + (tv_nsec as u64) / 1_000_000;
-        Some(crate::time::timestamp_millis() + timeout_ms)
+        let sec_ms = (tv_sec as u64).saturating_mul(1000);
+        let timeout_ms = sec_ms.saturating_add((tv_nsec as u64) / 1_000_000);
+        Some(crate::time::timestamp_millis().saturating_add(timeout_ms))
     } else {
         None
     };
