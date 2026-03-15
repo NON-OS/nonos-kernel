@@ -67,7 +67,7 @@ impl RealtekWifiDevice {
         let (mmio_phys, _) = bar0.mmio_region().ok_or(WifiError::DeviceNotFound)?;
         let mmio_base = VirtAddr::new(mmio_phys.as_u64());
 
-        crate::log::info!("rtlwifi: MMIO base at {:#x}", mmio_base.as_u64());
+        crate::log::info!("rtlwifi: MMIO region mapped successfully");
 
         let cmd = pci_read_config32(
             pci_device.bus,
