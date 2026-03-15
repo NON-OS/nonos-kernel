@@ -87,8 +87,6 @@ impl KeySchedule {
     }
 
     pub(super) fn derive_application(&mut self, th_finished: &[u8; 32]) -> Result<(), OnionError> {
-        use crate::sys::serial;
-
         let c = crypto();
         let zeros = [0u8; 32];
         let mut empty_hash = [0u8; 32];
@@ -98,34 +96,6 @@ impl KeySchedule {
         c.hkdf_extract(&derived, &zeros, &mut self.master_prk);
         self.client_app.secret = expand_label(&self.master_prk, b"c ap traffic", th_finished);
         self.server_app.secret = expand_label(&self.master_prk, b"s ap traffic", th_finished);
-
-        serial::print(b"[KEYS] th_finished=");
-        for i in 0..8 {
-            serial::print_hex(th_finished[i] as u64);
-            serial::print(b" ");
-        }
-        serial::println(b"");
-
-        serial::print(b"[KEYS] master_prk=");
-        for i in 0..8 {
-            serial::print_hex(self.master_prk[i] as u64);
-            serial::print(b" ");
-        }
-        serial::println(b"");
-
-        serial::print(b"[KEYS] client_app=");
-        for i in 0..8 {
-            serial::print_hex(self.client_app.secret[i] as u64);
-            serial::print(b" ");
-        }
-        serial::println(b"");
-
-        serial::print(b"[KEYS] server_app=");
-        for i in 0..8 {
-            serial::print_hex(self.server_app.secret[i] as u64);
-            serial::print(b" ");
-        }
-        serial::println(b"");
 
         Ok(())
     }
