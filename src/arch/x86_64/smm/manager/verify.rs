@@ -45,10 +45,7 @@ impl SmmManager {
 
             if !matches {
                 self.stats.integrity_failures.fetch_add(1, Ordering::SeqCst);
-                crate::log::info!(
-                    "SMM integrity FAILED: handler at 0x{:x}",
-                    handler.entry_point
-                );
+                crate::log::info!("SMM integrity FAILED: handler hash mismatch");
                 return Ok(false);
             }
 
@@ -63,10 +60,7 @@ impl SmmManager {
 
                 if !in_legacy {
                     self.stats.integrity_failures.fetch_add(1, Ordering::SeqCst);
-                    crate::log::info!(
-                        "SMM integrity FAILED: handler at 0x{:x} outside valid region",
-                        handler.entry_point
-                    );
+                    crate::log::info!("SMM integrity FAILED: handler outside valid region");
                     return Ok(false);
                 }
             }
@@ -74,10 +68,7 @@ impl SmmManager {
 
         for region in regions.iter() {
             if !region.protected {
-                crate::log::info!(
-                    "SMM integrity FAILED: region at 0x{:x} not protected",
-                    region.base
-                );
+                crate::log::info!("SMM integrity FAILED: unprotected region detected");
                 return Ok(false);
             }
         }
