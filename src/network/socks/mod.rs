@@ -17,7 +17,6 @@
 //! SOCKS5 Proxy Implementation
 //!
 //! Provides both SOCKS5 client and server functionality.
-//! Server routes traffic through the onion network (port 9050, Anyone.io compatible).
 
 extern crate alloc;
 
