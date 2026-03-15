@@ -123,7 +123,7 @@ pub fn probe_nvme_controller(
     let bar0_virt = match map_mmio_region(bar0_phys, 0x2000) {
         Some(v) => v,
         None => {
-            crate::log::info!("nvme: Failed to map controller at {:x}", bar0_phys);
+            crate::log::info!("nvme: Failed to map controller MMIO region");
             return None;
         }
     };
