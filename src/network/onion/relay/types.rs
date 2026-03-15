@@ -14,28 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Relay types and configuration for Anyone network
-
 use alloc::string::String;
 use alloc::vec::Vec;
 use super::connection::ORConnection;
 
-/// Timeout defaults (milliseconds)
 pub const CONNECT_TIMEOUT_MS: u64 = 15_000;
 pub const TLS_HANDSHAKE_TIMEOUT_MS: u64 = 30_000;
 pub const IO_READ_TIMEOUT_MS: u64 = 5_000;
 pub const IO_WRITE_TIMEOUT_MS: u64 = 10_000;
-
-/// Default Anyone OR port
 pub const DEFAULT_OR_PORT: u16 = 9201;
-
-/// Default Anyone directory port
 pub const DEFAULT_DIR_PORT: u16 = 9230;
-
-/// Default SOCKS port
 pub const DEFAULT_SOCKS_PORT: u16 = 9050;
-
-/// Maximum bandwidth (bytes per second), 0 = unlimited
 pub const DEFAULT_BANDWIDTH_RATE: u64 = 0;
 
 /// Link identifier type

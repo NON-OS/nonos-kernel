@@ -133,9 +133,6 @@ impl RelayManager {
     }
 
     /// Configure the relay with the given settings
-    ///
-    /// This sets up the relay manager to operate as an Anyone relay,
-    /// accepting incoming connections and forwarding traffic.
     pub fn configure(&mut self, config: RelayConfig) -> Result<(), OnionError> {
         // Validate the configuration
         if config.nickname.is_empty() {

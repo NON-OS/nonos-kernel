@@ -19,10 +19,10 @@ use alloc::{collections::BTreeMap, vec::Vec};
 use spin::Mutex;
 use crate::network::ip::IpAddress;
 use super::types::ConnectionState;
-use super::connection::AnyoneConnection;
+use super::connection::NymConnection;
 
 pub(super) struct ConnectionPool {
-    buckets: Mutex<BTreeMap<(IpAddress, u16), Vec<AnyoneConnection>>>,
+    buckets: Mutex<BTreeMap<(IpAddress, u16), Vec<NymConnection>>>,
     max_pool_size: usize,
     max_idle_ms: u64,
 }
@@ -36,7 +36,7 @@ impl ConnectionPool {
         }
     }
 
-    pub(super) fn take(&self, addr: &IpAddress, port: u16, now_ms: u64) -> Option<AnyoneConnection> {
+    pub(super) fn take(&self, addr: &IpAddress, port: u16, now_ms: u64) -> Option<NymConnection> {
         let mut buckets = self.buckets.lock();
         if let Some(vec) = buckets.get_mut(&(*addr, port)) {
             while let Some(c) = vec.pop() {
@@ -51,7 +51,7 @@ impl ConnectionPool {
         None
     }
 
-    pub(super) fn put(&self, conn: AnyoneConnection) {
+    pub(super) fn put(&self, conn: NymConnection) {
         if !matches!(conn.state, ConnectionState::Authenticated) {
             return;
         }
