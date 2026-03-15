@@ -37,8 +37,8 @@ pub fn cmd_ip(cmd: &[u8]) {
         print_line(b"============================================", COLOR_TEXT_DIM);
         print_line(b"1: lo: <LOOPBACK,UP> mtu 65536", COLOR_GREEN);
         print_line(b"    link/loopback 00:00:00:00:00:00", COLOR_TEXT_DIM);
-        print_line(b"2: tor0: <TOR,UP> mtu 1500", COLOR_ACCENT);
-        print_line(b"    link/tor [ANONYMOUS]", COLOR_YELLOW);
+        print_line(b"2: nym0: <NYM,UP> mtu 1500", COLOR_ACCENT);
+        print_line(b"    link/nym [ANONYMOUS]", COLOR_YELLOW);
     } else if args.starts_with(b"neigh") {
         cmd_arp();
     } else {
