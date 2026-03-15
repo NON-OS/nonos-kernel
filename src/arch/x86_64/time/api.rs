@@ -85,7 +85,7 @@ pub fn init_with_hpet(hpet_base: u64) {
 
     if hpet_base != 0 {
         if let Some(base) = hpet::detect_hpet() {
-            crate::log::info!("HPET detected at {:#x}", base);
+            crate::log::info!("HPET detected and initialized");
         }
     }
 
