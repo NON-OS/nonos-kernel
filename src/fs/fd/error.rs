@@ -36,6 +36,7 @@ pub enum FdError {
     InvalidPath,
     BufferTooLarge,
     WouldBlock,
+    CopyFailed,
 }
 
 impl FdError {
@@ -61,6 +62,7 @@ impl FdError {
             FdError::InvalidPath => -22,
             FdError::BufferTooLarge => -22,
             FdError::WouldBlock => -11,
+            FdError::CopyFailed => -14,
         }
     }
 
@@ -86,6 +88,7 @@ impl FdError {
             FdError::InvalidPath => "Invalid path",
             FdError::BufferTooLarge => "Buffer too large",
             FdError::WouldBlock => "Operation would block",
+            FdError::CopyFailed => "User memory copy failed",
         }
     }
 }
