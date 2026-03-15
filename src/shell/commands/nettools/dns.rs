@@ -104,8 +104,8 @@ pub fn cmd_nslookup(cmd: &[u8]) {
         return;
     }
 
-    print_line(b"Server:  127.0.0.1 (Tor DNS)", COLOR_TEXT_DIM);
-    print_line(b"Address: 127.0.0.1#9053", COLOR_TEXT_DIM);
+    print_line(b"Server:  127.0.0.1 (NYM DNS)", COLOR_TEXT_DIM);
+    print_line(b"Address: 127.0.0.1#1979", COLOR_TEXT_DIM);
     print_line(b"", COLOR_TEXT);
 
     if host == b"localhost" {
@@ -118,7 +118,7 @@ pub fn cmd_nslookup(cmd: &[u8]) {
         line[6..6+host_len].copy_from_slice(&host[..host_len]);
         print_line(&line[..6+host_len], COLOR_TEXT);
 
-        print_line(b"Address: [RESOLVED VIA TOR]", COLOR_YELLOW);
-        print_line(b"(Query sent through anonymous circuit)", COLOR_TEXT_DIM);
+        print_line(b"Address: [RESOLVED VIA NYM]", COLOR_YELLOW);
+        print_line(b"(Query sent through mixnet)", COLOR_TEXT_DIM);
     }
 }
