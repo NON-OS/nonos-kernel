@@ -27,7 +27,8 @@ pub fn handle_select(
     let timeout_ms = if timeout_ptr != 0 {
         let timeout: Timeval = match read_user_value(timeout_ptr) { Ok(v) => v, Err(_) => return errno(14) };
         if timeout.tv_sec < 0 || timeout.tv_usec < 0 { return errno(EINVAL); }
-        Some((timeout.tv_sec as u64) * 1000 + (timeout.tv_usec as u64) / 1000)
+        let sec_ms = (timeout.tv_sec as u64).saturating_mul(1000);
+        Some(sec_ms.saturating_add((timeout.tv_usec as u64) / 1000))
     } else { None };
     let mut readfds = read_fdset_opt(readfds_ptr);
     let mut writefds = read_fdset_opt(writefds_ptr);
@@ -46,7 +47,8 @@ pub fn handle_pselect6(
     let timeout_ms = if timeout_ptr != 0 {
         let timeout: Timespec = match read_user_value(timeout_ptr) { Ok(v) => v, Err(_) => return errno(14) };
         if timeout.tv_sec < 0 || timeout.tv_nsec < 0 || timeout.tv_nsec >= 1_000_000_000 { return errno(EINVAL); }
-        Some((timeout.tv_sec as u64) * 1000 + (timeout.tv_nsec as u64) / 1_000_000)
+        let sec_ms = (timeout.tv_sec as u64).saturating_mul(1000);
+        Some(sec_ms.saturating_add((timeout.tv_nsec as u64) / 1_000_000))
     } else { None };
     let mut readfds = read_fdset_opt(readfds_ptr);
     let mut writefds = read_fdset_opt(writefds_ptr);
