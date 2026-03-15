@@ -58,7 +58,7 @@ pub fn find_lpss_controllers() -> Vec<LpssController> {
             let mut dw = match DesignWareI2c::new(base, *clock) {
                 Some(d) => d,
                 None => {
-                    crate::log_warn!("i2c: Failed to map MMIO at 0x{:x}", base);
+                    crate::log_warn!("i2c: Failed to map MMIO for LPSS controller");
                     continue;
                 }
             };
@@ -76,12 +76,11 @@ pub fn find_lpss_controllers() -> Vec<LpssController> {
                 });
 
                 crate::log::info!(
-                    "i2c: Found {} at {:02x}:{:02x}.{} (BAR 0x{:x})",
+                    "i2c: Found {} at {:02x}:{:02x}.{}",
                     name,
                     pci_dev.bus(),
                     pci_dev.device(),
-                    pci_dev.function(),
-                    base
+                    pci_dev.function()
                 );
             }
         }
