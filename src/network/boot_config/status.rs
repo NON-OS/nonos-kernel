@@ -45,14 +45,14 @@ pub fn get_status() -> String {
         status.push_str(&alloc::format!("DNS Mode: {:?}\n", config.dns_mode));
 
         if config.onion.enabled {
-            status.push_str("Anyone.io: ENABLED\n");
+            status.push_str("NYM Mixnet: ENABLED\n");
             status.push_str(&alloc::format!(
                 "  Auto-connect: {}\n",
                 config.onion.auto_connect
             ));
             status.push_str(&alloc::format!("  Relay mode: {}\n", config.onion.relay_mode));
         } else {
-            status.push_str("Anyone.io: DISABLED\n");
+            status.push_str("NYM Mixnet: DISABLED\n");
         }
 
         status.push_str(&alloc::format!(
