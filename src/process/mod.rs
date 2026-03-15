@@ -20,6 +20,7 @@ pub mod core;
 pub mod types;
 pub mod manager;
 pub mod fd_types;
+pub mod process_fd_table;
 pub mod fd_table;
 pub mod clone_flags;
 mod clone_pcb;
