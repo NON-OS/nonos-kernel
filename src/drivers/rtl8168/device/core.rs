@@ -59,7 +59,7 @@ impl Rtl8168Device {
         let bar0 = pci_device.get_bar(0).ok_or("RTL8168: BAR0 not present")?;
         let (mmio_base, _) = bar0.mmio_region().ok_or("RTL8168: BAR0 is not MMIO")?;
 
-        crate::log::info!("rtl8168: MMIO base at {:#x}", mmio_base.as_u64());
+        crate::log::info!("rtl8168: MMIO region mapped successfully");
 
         let cmd_reg = pci_read_config32(
             pci_device.bus,
