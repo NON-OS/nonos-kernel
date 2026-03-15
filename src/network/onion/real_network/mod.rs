@@ -22,6 +22,6 @@ mod manager_io;
 mod pool;
 mod types;
 
-pub use connection::AnyoneConnection;
-pub use manager_core::{anyone_network, get_anyone_network, init_anyone_network, AnyoneNetworkManager};
+pub use connection::NymConnection;
+pub use manager_core::{nym_network, get_nym_network, init_nym_network, NymNetworkManager};
 pub use types::{ConnectionState, ConnectionStats, DialOptions, NetworkStats, TlsConnectionState, TlsProvider, TlsSessionInfo};
