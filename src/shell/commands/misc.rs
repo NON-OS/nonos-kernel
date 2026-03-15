@@ -29,7 +29,7 @@ pub fn cmd_help() {
     print_line(b"Hardware: lspci lscpu lsblk lsusb dmesg", COLOR_TEXT_DIM);
     print_line(b"Process:  kill pgrep pkill nice pidof top", COLOR_TEXT_DIM);
     print_line(b"Network:  net ifconfig ip route ping dns", COLOR_TEXT_DIM);
-    print_line(b"          netstat arp ss nslookup tor anon", COLOR_TEXT_DIM);
+    print_line(b"          netstat arp ss nslookup nym anon", COLOR_TEXT_DIM);
     print_line(b"Files:    ls pwd cat mkdir rm touch cp mv", COLOR_TEXT_DIM);
     print_line(b"          chmod ln stat file find grep du", COLOR_TEXT_DIM);
     print_line(b"Crypto:   hash random genkey crypto hmac", COLOR_TEXT_DIM);
