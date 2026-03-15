@@ -34,11 +34,11 @@ pub fn cmd_audit() {
     print_status(b"SMAP", features.smap);
     print_status(b"NX bit", features.nx);
 
-    let tor_ready = crate::network::onion::get_anyone_network().is_some();
-    if tor_ready {
-        print_line(b"[INFO]  Tor integration: READY", COLOR_ACCENT);
+    let nym_ready = crate::network::nym::get_nym_client().is_ok();
+    if nym_ready {
+        print_line(b"[INFO]  NYM Mixnet: READY", COLOR_ACCENT);
     } else {
-        print_line(b"[INFO]  Tor integration: STANDBY", COLOR_YELLOW);
+        print_line(b"[INFO]  NYM Mixnet: STANDBY", COLOR_YELLOW);
     }
 
     print_line(b"", COLOR_TEXT);
