@@ -60,8 +60,8 @@ default = [
 
   # Advanced hooks
   "nonos-zk",
+  "nonos-nym",
   "nonos-onion",
-  "sha1-legacy",
 
   # Runtime toggles
   "cli",
@@ -139,12 +139,13 @@ nonos-crypto-ed25519 = ["crypto-ed25519-int"]
 
 # Advanced hooks (kept OFF by default at early releases)
 nonos-zk     = []
-nonos-onion  = ["sha1-legacy"]  # Onion routing requires legacy SHA-1 for TAP protocol
+nonos-nym    = []  # NYM Mixnet anonymous routing via Sphinx packets
+nonos-onion  = []  # Legacy compatibility layer (redirects to NYM)
 nonos-cet    = []
 nonos-fallback-entry = []
 
 # Legacy/deprecated crypto (OFF by default, use only for protocol compatibility)
-sha1-legacy = []  # SHA-1 is cryptographically broken and only for Git/TAP/TOTP compat
+sha1-legacy = []  # SHA-1 is cryptographically broken and only for Git/TOTP compat
 
 # Runtime toggles referenced in code (satisfy unexpected_cfgs = "deny")
 cli   = []
