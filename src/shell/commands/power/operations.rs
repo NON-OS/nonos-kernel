@@ -65,7 +65,7 @@ pub fn cmd_shutdown() {
     save_all_settings();
     print_line(b"[2/7] Terminating all processes...", COLOR_TEXT);
     print_line(b"[3/7] Closing network connections...", COLOR_TEXT);
-    print_line(b"[4/7] Destroying Tor circuits...", COLOR_TEXT);
+    print_line(b"[4/7] Closing NYM connections...", COLOR_TEXT);
     print_line(b"[5/7] Erasing vault and keys...", COLOR_TEXT);
     print_line(b"[6/7] Zeroing all RAM (ZeroState)...", COLOR_YELLOW);
     print_line(b"[7/7] ACPI power off...", COLOR_TEXT);
