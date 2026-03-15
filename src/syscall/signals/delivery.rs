@@ -177,16 +177,13 @@ fn handle_user_signal(
         state.blocked.add(sig);
     }
 
-    crate::log::debug!("Signal {} delivered to pid {} (handler at 0x{:x})",
-                       sig, pid, action.handler);
+    crate::log::debug!("Signal {} delivered to pid {} (user handler)", sig, pid);
 }
 
 fn terminate_process(pid: u32, sig: u32) {
     if let Some(pcb) = crate::process::get_process_table().find_by_pid(pid) {
-        let exit_status = 128 + sig as i32;
-
+        let exit_status = 128i32.saturating_add(sig as i32);
         crate::process::accounting::record_exit_from_pcb(&pcb, exit_status, true);
-
         pcb.terminate(exit_status);
         crate::log::info!("Process {} terminated by signal {}", pid, sig);
     }
