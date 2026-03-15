@@ -43,11 +43,11 @@ pub fn cmd_secstatus() {
     print_line(b"Privacy:", COLOR_TEXT_WHITE);
     print_line(b"  Anonymous Mode    ACTIVE", COLOR_GREEN);
 
-    let tor = crate::network::onion::get_anyone_network().is_some();
-    if tor {
-        print_line(b"  Tor Routing       ACTIVE", COLOR_GREEN);
+    let nym = crate::network::nym::get_nym_client().is_ok();
+    if nym {
+        print_line(b"  NYM Mixnet        ACTIVE", COLOR_GREEN);
     } else {
-        print_line(b"  Tor Routing       STANDBY", COLOR_YELLOW);
+        print_line(b"  NYM Mixnet        STANDBY", COLOR_YELLOW);
     }
 
     print_line(b"  Data Persistence  DISABLED", COLOR_GREEN);
