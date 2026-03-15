@@ -15,6 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub const FD_CLOEXEC: u32 = 1;
+pub const MAX_PROCESS_FDS: i32 = 1024;
+pub const STDIO_FDS: i32 = 3;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum FdType {
@@ -42,32 +44,15 @@ pub struct FdEntry {
 
 impl FdEntry {
     pub fn new(fd_type: FdType, internal_id: usize) -> Self {
-        Self {
-            fd: -1,
-            fd_type,
-            internal_id,
-            is_read_end: false,
-            is_write_end: false,
-            flags: 0,
-            status_flags: 0,
-        }
+        Self { fd: -1, fd_type, internal_id, is_read_end: false, is_write_end: false, flags: 0, status_flags: 0 }
     }
 
     pub fn with_pipe(pipe_id: usize, is_read: bool) -> Self {
-        Self {
-            fd: -1,
-            fd_type: FdType::Pipe,
-            internal_id: pipe_id,
-            is_read_end: is_read,
-            is_write_end: !is_read,
-            flags: 0,
-            status_flags: 0,
-        }
+        Self { fd: -1, fd_type: FdType::Pipe, internal_id: pipe_id, is_read_end: is_read, is_write_end: !is_read, flags: 0, status_flags: 0 }
     }
 
-    pub fn is_cloexec(&self) -> bool {
-        (self.flags & FD_CLOEXEC) != 0
-    }
+    #[inline]
+    pub fn is_cloexec(&self) -> bool { (self.flags & FD_CLOEXEC) != 0 }
 }
 
 pub struct FdTableStats {
