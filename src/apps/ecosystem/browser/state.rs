@@ -86,8 +86,8 @@ impl Default for BrowserSettings {
             referrer_policy: ReferrerPolicy::NoReferrer,
             user_agent: String::from("NONOS/1.0"),
             proxy: ProxyConfig::default(),
-            allow_insecure_certs: true,
-            debug_mode: true,
+            allow_insecure_certs: false,
+            debug_mode: false,
         }
     }
 }
