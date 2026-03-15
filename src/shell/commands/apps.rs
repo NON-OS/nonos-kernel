@@ -23,7 +23,7 @@ pub fn cmd_apps() {
     print_line(b"===================================", COLOR_TEXT_DIM);
     print_line(b"", COLOR_TEXT);
     print_line(b"  [1] browser       Web Browser", COLOR_ACCENT);
-    print_line(b"      Tor-routed browsing", COLOR_TEXT_DIM);
+    print_line(b"      NYM Mixnet browsing", COLOR_TEXT_DIM);
     print_line(b"", COLOR_TEXT);
     print_line(b"  [2] files         File Manager", COLOR_ACCENT);
     print_line(b"      RAM filesystem browser", COLOR_TEXT_DIM);
