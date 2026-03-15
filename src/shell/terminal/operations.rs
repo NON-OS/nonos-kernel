@@ -26,7 +26,6 @@ static mut CURSOR_VISIBLE: bool = true;
 static mut BLINK_COUNTER: u32 = 0;
 
 pub fn init_state() {
-    // SAFETY: Static variables only accessed from main thread during terminal init.
     unsafe {
         CURRENT_ROW = 0;
         CURSOR_VISIBLE = true;
@@ -44,7 +43,7 @@ pub fn print_boot_sequence() {
     print_line(b"", COLOR_TEXT);
     print_line(b"[OK] Memory isolation: ACTIVE", COLOR_SUCCESS);
     print_line(b"[OK] Anonymous mode: ENABLED", COLOR_SUCCESS);
-    print_line(b"[OK] Anyone routing: READY", COLOR_SUCCESS);
+    print_line(b"[OK] NYM routing: READY", COLOR_SUCCESS);
     print_line(b"[OK] Crypto vault: INITIALIZED", COLOR_SUCCESS);
     print_line(b"", COLOR_TEXT);
 

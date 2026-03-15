@@ -55,7 +55,7 @@ pub fn cmd_wallet_status() {
     print_line(b"Security:", COLOR_ACCENT);
     print_line(b"  Keys: RAM only (ZeroState)", COLOR_GREEN);
     print_line(b"  Stealth: Enabled", COLOR_GREEN);
-    print_line(b"  Network: Anyone", COLOR_GREEN);
+    print_line(b"  Network: NYM", COLOR_GREEN);
 }
 
 pub fn cmd_wallet_help() {
