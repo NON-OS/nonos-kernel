@@ -50,7 +50,7 @@ pub fn cmd_wget(cmd: &[u8]) {
     line[14..14 + url_len].copy_from_slice(&actual_url.as_bytes()[..url_len]);
     print_line(&line[..14 + url_len], COLOR_TEXT);
 
-    print_line(b"Routing through Tor...", COLOR_ACCENT);
+    print_line(b"Routing through NYM Mixnet...", COLOR_ACCENT);
 
     match crate::network::http_client::fetch_response(actual_url) {
         Ok(response) => {
