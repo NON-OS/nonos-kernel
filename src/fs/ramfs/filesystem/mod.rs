@@ -20,6 +20,7 @@ pub mod crypto;
 pub mod core;
 pub mod ops;
 pub mod ops_write;
+pub mod atomic;
 pub mod list;
 pub mod global;
 pub mod global_dir;
