@@ -78,33 +78,23 @@ impl OpenFile {
     }
 }
 
-// SAFETY: Caller must ensure `src` points to valid memory of at least `len` bytes.
 #[inline]
-pub unsafe fn copy_from_user_ptr(src: *const u8, dst: &mut [u8]) -> FdResult<usize> { unsafe {
-    if src.is_null() {
-        return Err(FdError::NullPointer);
-    }
+pub unsafe fn copy_from_user_ptr(src: *const u8, dst: &mut [u8]) -> FdResult<usize> {
+    if src.is_null() { return Err(FdError::NullPointer); }
     let len = dst.len();
-    if len > MAX_COPY_SIZE {
-        return Err(FdError::BufferTooLarge);
-    }
-    core::ptr::copy_nonoverlapping(src, dst.as_mut_ptr(), len);
+    if len > MAX_COPY_SIZE { return Err(FdError::BufferTooLarge); }
+    crate::usercopy::copy_from_user(src as u64, dst).map_err(|_| FdError::CopyFailed)?;
     Ok(len)
-}}
+}
 
-// SAFETY: Caller must ensure `dst` points to valid writable memory of at least `src.len()` bytes.
 #[inline]
-pub unsafe fn copy_to_user_ptr(src: &[u8], dst: *mut u8) -> FdResult<usize> { unsafe {
-    if dst.is_null() {
-        return Err(FdError::NullPointer);
-    }
+pub unsafe fn copy_to_user_ptr(src: &[u8], dst: *mut u8) -> FdResult<usize> {
+    if dst.is_null() { return Err(FdError::NullPointer); }
     let len = src.len();
-    if len > MAX_COPY_SIZE {
-        return Err(FdError::BufferTooLarge);
-    }
-    core::ptr::copy_nonoverlapping(src.as_ptr(), dst, len);
+    if len > MAX_COPY_SIZE { return Err(FdError::BufferTooLarge); }
+    crate::usercopy::copy_to_user(dst as u64, src).map_err(|_| FdError::CopyFailed)?;
     Ok(len)
-}}
+}
 
 // SAFETY: Caller must ensure `ptr` points to valid readable memory.
 #[inline]
