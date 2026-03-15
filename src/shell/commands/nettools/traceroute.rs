@@ -33,6 +33,6 @@ pub fn cmd_traceroute(cmd: &[u8]) {
 
     print_line(b"traceroute: Disabled for privacy", COLOR_YELLOW);
     print_line(b"", COLOR_TEXT);
-    print_line(b"Tor hides your network path", COLOR_ACCENT);
-    print_line(b"Use 'tor circuit' to view Tor hops", COLOR_TEXT_DIM);
+    print_line(b"NYM Mixnet hides your network path", COLOR_ACCENT);
+    print_line(b"Use 'nym route' to view mixnode hops", COLOR_TEXT_DIM);
 }
