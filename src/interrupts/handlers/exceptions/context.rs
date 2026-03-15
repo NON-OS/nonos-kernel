@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use x86_64::structures::idt::InterruptStackFrame;
+use crate::security::observability::redact::redact_address;
 
 #[derive(Debug, Clone, Copy)]
 pub struct ExceptionContext {
@@ -101,35 +102,32 @@ impl PageFaultErrorCode {
 
 pub(super) fn log_exception(name: &str, ctx: &ExceptionContext) {
     crate::log::logger::log_critical(&alloc::format!(
-        "{}: rip={:#x} cs={:#x} rsp={:#x} ss={:#x} rflags={:#x}",
+        "{}: rip={} cs={:#x} rsp={} ss={:#x}",
         name,
-        ctx.instruction_pointer,
+        redact_address(ctx.instruction_pointer),
         ctx.code_segment,
-        ctx.stack_pointer,
-        ctx.stack_segment,
-        ctx.cpu_flags
+        redact_address(ctx.stack_pointer),
+        ctx.stack_segment
     ));
 }
 
 pub(super) fn log_exception_with_code(name: &str, ctx: &ExceptionContext, code: u64) {
     crate::log::logger::log_critical(&alloc::format!(
-        "{}: err={:#x} rip={:#x} cs={:#x} rsp={:#x} rflags={:#x}",
+        "{}: err={:#x} rip={} cs={:#x} rsp={}",
         name,
         code,
-        ctx.instruction_pointer,
+        redact_address(ctx.instruction_pointer),
         ctx.code_segment,
-        ctx.stack_pointer,
-        ctx.cpu_flags
+        redact_address(ctx.stack_pointer)
     ));
 }
 
 pub(super) fn log_page_fault(ctx: &PageFaultContext) {
     crate::log::logger::log_critical(&alloc::format!(
-        "PAGE FAULT: addr={:#x} err={:#x} rip={:#x} rsp={:#x} rflags={:#x}",
-        ctx.accessed_address,
+        "PAGE FAULT: addr={} err={:#x} rip={} rsp={}",
+        redact_address(ctx.accessed_address),
         ctx.error_code.bits(),
-        ctx.exception.instruction_pointer,
-        ctx.exception.stack_pointer,
-        ctx.exception.cpu_flags
+        redact_address(ctx.exception.instruction_pointer),
+        redact_address(ctx.exception.stack_pointer)
     ));
 }
