@@ -29,7 +29,7 @@ pub fn handle_getrusage(_who: u64, usage: u64) -> SyscallResult {
     if let Some(proc) = crate::process::current_process() {
         let mem = proc.memory.lock();
         let resident_pages = mem.resident_pages.load(Ordering::Relaxed);
-        let maxrss = (resident_pages * 4) as i64;
+        let maxrss = (resident_pages as u64).saturating_mul(4) as i64;
         rusage_buf[16..24].copy_from_slice(&maxrss.to_ne_bytes());
     }
 
