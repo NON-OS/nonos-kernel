@@ -156,12 +156,12 @@ impl fmt::Display for PciError {
             }
             PciError::SecurityViolation(v) => write!(f, "Security violation: {:?}", v),
             PciError::InvalidBarIndex(idx) => write!(f, "Invalid BAR index: {} (max 5)", idx),
-            PciError::InvalidBarAddress(addr) => write!(f, "Invalid BAR address: 0x{:016x}", addr),
+            PciError::InvalidBarAddress(_addr) => write!(f, "Invalid BAR address"),
             PciError::BarTooLarge { size, max } => {
                 write!(f, "BAR size {} exceeds maximum {} bytes", size, max)
             }
-            PciError::BarOverlapsProtected { address, region } => {
-                write!(f, "BAR at 0x{:016x} overlaps protected region: {:?}", address, region)
+            PciError::BarOverlapsProtected { address: _, region } => {
+                write!(f, "BAR overlaps protected region: {:?}", region)
             }
             PciError::BarNotPresent(idx) => write!(f, "BAR {} not present", idx),
             PciError::BarTypeMismatch { index, expected, found } => {
