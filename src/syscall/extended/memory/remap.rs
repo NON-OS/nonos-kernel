@@ -28,36 +28,41 @@ pub fn handle_mremap(old_addr: u64, old_size: u64, new_size: u64, flags: u64) ->
     if old_addr & 0xFFF != 0 { return errno(22); }
     if old_size == 0 || new_size == 0 { return errno(22); }
     let proc = match crate::process::current_process() { Some(p) => p, None => return errno(1) };
-    let old_pages = (old_size + 4095) / 4096;
-    let new_pages = (new_size + 4095) / 4096;
+    let old_pages = match old_size.checked_add(4095) { Some(v) => v / 4096, None => return errno(22) };
+    let new_pages = match new_size.checked_add(4095) { Some(v) => v / 4096, None => return errno(22) };
     if new_size <= old_size {
-        let pages_to_free = old_pages - new_pages;
+        let pages_to_free = old_pages.saturating_sub(new_pages);
         for i in 0..pages_to_free {
-            let page_va = VirtAddr::new(old_addr + (new_pages + i) * 4096);
-            let _ = crate::memory::virt::unmap_page(page_va);
+            let page_idx = match new_pages.checked_add(i) { Some(v) => v, None => break };
+            let page_off = match page_idx.checked_mul(4096) { Some(v) => v, None => break };
+            let page_addr = match old_addr.checked_add(page_off) { Some(v) => v, None => break };
+            let _ = crate::memory::virt::unmap_page(VirtAddr::new(page_addr));
         }
         return SyscallResult { value: old_addr as i64, capability_consumed: false, audit_required: true };
     }
     let can_grow_in_place = {
         let mem = proc.memory.lock();
-        let end_addr = old_addr + new_size as u64;
+        let end_addr = match old_addr.checked_add(new_size) { Some(v) => v, None => return errno(12) };
+        let old_end = match old_addr.checked_add(old_size) { Some(v) => v, None => return errno(12) };
         let mut can_grow = true;
         for vma in &mem.vmas {
             let vma_start = vma.start.as_u64();
             let vma_end = vma.end.as_u64();
             if vma_start == old_addr { continue; }
-            if old_addr + old_size < vma_end && end_addr > vma_start { can_grow = false; break; }
+            if old_end < vma_end && end_addr > vma_start { can_grow = false; break; }
         }
         can_grow
     };
     if can_grow_in_place {
-        let extra_pages = new_pages - old_pages;
+        let extra_pages = new_pages.saturating_sub(old_pages);
         for i in 0..extra_pages {
-            let page_va = VirtAddr::new(old_addr + (old_pages + i) * 4096);
+            let page_idx = match old_pages.checked_add(i) { Some(v) => v, None => break };
+            let page_off = match page_idx.checked_mul(4096) { Some(v) => v, None => break };
+            let page_addr = match old_addr.checked_add(page_off) { Some(v) => v, None => break };
             let phys = match crate::memory::phys::allocate_frame(AllocFlags::ZERO) {
                 Some(p) => p, None => return errno(12)
             };
-            if crate::memory::virt::map_page_4k(page_va, PhysAddr::new(phys.0), true, true, false).is_err() {
+            if crate::memory::virt::map_page_4k(VirtAddr::new(page_addr), PhysAddr::new(phys.0), true, true, false).is_err() {
                 return errno(12);
             }
         }
