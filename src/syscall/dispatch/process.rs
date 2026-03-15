@@ -88,19 +88,15 @@ fn read_string_array(ptr: u64) -> Vec<alloc::string::String> {
     if ptr == 0 {
         return result;
     }
-
     for i in 0..256usize {
-        let ptr_addr = ptr + (i * 8) as u64;
+        let offset = match (i as u64).checked_mul(8) { Some(v) => v, None => break };
+        let ptr_addr = match ptr.checked_add(offset) { Some(v) => v, None => break };
         let string_ptr: u64 = match read_user_value(ptr_addr) {
             Ok(v) => v,
             Err(_) => break,
         };
-        if string_ptr == 0 {
-            break;
-        }
-        if let Ok(s) = parse_string_from_user(string_ptr, 4096) {
-            result.push(s);
-        }
+        if string_ptr == 0 { break; }
+        if let Ok(s) = parse_string_from_user(string_ptr, 4096) { result.push(s); }
     }
     result
 }
@@ -114,23 +110,17 @@ pub fn handle_nanosleep(req_ptr: u64, rem_ptr: u64) -> SyscallResult {
         Ok(v) => v,
         Err(_) => return errno(14),
     };
-    let tv_nsec: i64 = match read_user_value(req_ptr + 8) {
+    let req_nsec_ptr = match req_ptr.checked_add(8) { Some(v) => v, None => return errno(14) };
+    let tv_nsec: i64 = match read_user_value(req_nsec_ptr) {
         Ok(v) => v,
         Err(_) => return errno(14),
     };
-
-    if tv_sec < 0 || tv_nsec < 0 || tv_nsec >= 1_000_000_000 {
-        return errno(22);
-    }
-
-    let sleep_ms = (tv_sec as u64) * 1000 + (tv_nsec as u64) / 1_000_000;
-
-    let Some(proc) = crate::process::current_process() else {
-        return errno(1);
-    };
-
+    if tv_sec < 0 || tv_nsec < 0 || tv_nsec >= 1_000_000_000 { return errno(22); }
+    let sec_ms = (tv_sec as u64).saturating_mul(1000);
+    let sleep_ms = sec_ms.saturating_add((tv_nsec as u64) / 1_000_000);
+    let Some(proc) = crate::process::current_process() else { return errno(1); };
     let now_ms = crate::time::timestamp_millis();
-    let wake_time_ms = now_ms + sleep_ms;
+    let wake_time_ms = now_ms.saturating_add(sleep_ms);
 
     crate::sched::sleep_until(proc.pid, wake_time_ms);
     crate::sched::yield_cpu();
@@ -144,9 +134,11 @@ pub fn handle_nanosleep(req_ptr: u64, rem_ptr: u64) -> SyscallResult {
 
     if rem_ptr != 0 && remaining_ms > 0 {
         let rem_sec = (remaining_ms / 1000) as i64;
-        let rem_nsec = ((remaining_ms % 1000) * 1_000_000) as i64;
+        let rem_nsec = (remaining_ms % 1000).saturating_mul(1_000_000) as i64;
         let _ = write_user_value(rem_ptr, &rem_sec);
-        let _ = write_user_value(rem_ptr + 8, &rem_nsec);
+        if let Some(rem_nsec_ptr) = rem_ptr.checked_add(8) {
+            let _ = write_user_value(rem_nsec_ptr, &rem_nsec);
+        }
         return errno(4);
     }
 
