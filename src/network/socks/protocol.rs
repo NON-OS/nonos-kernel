@@ -16,7 +16,6 @@
 
 //! SOCKS5 Protocol Implementation (RFC 1928)
 
-/// Default SOCKS5 port (Anyone.io compatible)
 pub(super) const SOCKS5_DEFAULT_PORT: u16 = 9050;
 
 /// SOCKS5 Error types
