@@ -41,7 +41,7 @@ impl PathSelector {
 
     pub fn select(&self) -> Result<[MixNode; NYM_MIX_LAYERS], NymError> {
         let cache = get_directory_cache().lock();
-        let mut path: [Option<MixNode>; NYM_MIX_LAYERS] = [None, None, None];
+        let mut path: [Option<MixNode>; NYM_MIX_LAYERS] = [None, None, None, None, None];
         for layer in 1..=NYM_MIX_LAYERS as u8 {
             let candidates: Vec<_> = cache.mixnodes.iter()
                 .filter(|n| n.layer == layer && n.is_healthy())
@@ -57,6 +57,8 @@ impl PathSelector {
             path[0].clone().ok_or(NymError::NoAvailableMixNodes)?,
             path[1].clone().ok_or(NymError::NoAvailableMixNodes)?,
             path[2].clone().ok_or(NymError::NoAvailableMixNodes)?,
+            path[3].clone().ok_or(NymError::NoAvailableMixNodes)?,
+            path[4].clone().ok_or(NymError::NoAvailableMixNodes)?,
         ])
     }
 }
