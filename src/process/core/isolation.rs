@@ -57,7 +57,7 @@ pub fn isolate_process(pid: Pid) -> Result<(), &'static str> {
         }
     }
 
-    crate::log_info!("Process {} isolated: caps 0x{:016x} -> 0x{:016x}", pid, old_caps, new_caps);
+    crate::log_info!("Process {} isolated: capabilities reduced", pid);
     Ok(())
 }
 
