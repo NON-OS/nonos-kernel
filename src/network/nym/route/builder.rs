@@ -42,9 +42,11 @@ impl RouteBuilder {
         let layer1 = select_mixnode_by_layer(1)?;
         let layer2 = select_mixnode_by_layer(2)?;
         let layer3 = select_mixnode_by_layer(3)?;
+        let layer4 = select_mixnode_by_layer(4)?;
+        let layer5 = select_mixnode_by_layer(5)?;
         Ok(NymRoute {
             gateway,
-            mixnodes: [layer1, layer2, layer3],
+            mixnodes: [layer1, layer2, layer3, layer4, layer5],
             destination,
         })
     }
