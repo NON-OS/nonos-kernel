@@ -100,7 +100,6 @@ pub fn init() -> Result<(), &'static str> {
         stats: RuleStats::default(),
     });
 
-    // Allow Anyone.io directory/relay ports
     FIREWALL.add_rule(Rule {
         id: 0,
         name: String::from("allow-anyone-out"),
