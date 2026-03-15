@@ -81,10 +81,7 @@ pub fn delete(path: &str) -> FsResult<()> {
 }
 
 pub fn rename(old_path: &str, new_path: &str) -> FsResult<()> {
-    let data = read_file(old_path)?;
-    create_file(new_path, &data)?;
-    delete_file(old_path)?;
-    Ok(())
+    NONOS_FILESYSTEM.atomic_rename(old_path, new_path)
 }
 
 pub fn stats() -> FsStatistics {
