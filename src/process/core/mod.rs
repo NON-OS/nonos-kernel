@@ -16,6 +16,7 @@
 
 pub mod types;
 pub mod pcb;
+mod pcb_ops;
 mod pcb_memory;
 pub mod thread_group;
 pub mod table;
