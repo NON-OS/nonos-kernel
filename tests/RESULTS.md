@@ -63,7 +63,13 @@ process::nox::tests::state_transitions
 
 ## Not Compiled (414)
 
-Tests gated by `#[cfg(target_os = "nonos")]` or similar - require kernel execution environment.
+These tests have dependencies that differ between std and no_std modes. They run during kernel boot via `kernel_selftest::run()`.
+
+**Kernel boot tests include:**
+- Driver verification (PCI, AHCI, NVMe, xHCI, GPU, Audio)
+- Crypto engine (BLAKE3, SHA3, Ed25519, ChaCha20-Poly1305)
+- Post-quantum crypto (SPHINCS+, NTRU)
+- RNG verification (RDRAND/RDSEED + ChaCha20 DRBG)
 
 ## All Tests by Category
 
