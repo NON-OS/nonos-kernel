@@ -18,7 +18,7 @@ use core::sync::atomic::Ordering;
 use super::types::{SanitizationLevel, SanitizationStats};
 use super::state::{INITIALIZED, SANITIZATION_LEVEL, BYTES_SANITIZED, SANITIZATION_CALLS};
 use super::erase::{sanitize, dod_5220_erase};
-use super::canary::{init_stack_canary, get_stack_canary};
+use super::canary::init_stack_canary;
 
 pub fn on_free(ptr: *mut u8, size: usize) {
     if INITIALIZED.load(Ordering::Relaxed) {
