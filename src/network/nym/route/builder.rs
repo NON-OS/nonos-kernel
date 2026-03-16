@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::network::nym::types::{NymRoute, NymAddress, NYM_MIX_LAYERS};
+use crate::network::nym::types::{NymRoute, NymAddress};
 use crate::network::nym::directory::{select_gateway, select_mixnode_by_layer};
 use crate::network::nym::error::NymError;
 

@@ -30,6 +30,14 @@ pub fn generate_cover_packet(self_address: &NymAddress) -> Result<SphinxPacket, 
     CoverGenerator::new(self_address.clone()).generate()
 }
 
+pub fn generate_drop_cover(destination: &NymAddress) -> Result<SphinxPacket, NymError> {
+    let route = build_route(destination)?;
+    let mut payload = vec![0u8; NYM_PAYLOAD_SIZE];
+    let _ = crate::crypto::random::fill_bytes(&mut payload);
+    payload[0] = 0x02;
+    build_packet(&route.mixnodes, destination, &payload)
+}
+
 impl CoverGenerator {
     pub fn new(self_address: NymAddress) -> Self {
         Self { self_address }
@@ -38,20 +46,8 @@ impl CoverGenerator {
     pub fn generate(&self) -> Result<SphinxPacket, NymError> {
         let route = build_route(&self.self_address)?;
         let mut cover_payload = vec![0u8; NYM_PAYLOAD_SIZE];
-        crate::crypto::random::fill_bytes(&mut cover_payload);
+        let _ = crate::crypto::random::fill_bytes(&mut cover_payload);
         cover_payload[0] = 0x01;
         build_packet(&route.mixnodes, &self.self_address, &cover_payload)
     }
-}
-
-pub fn generate_loop_cover(self_address: &NymAddress) -> Result<SphinxPacket, NymError> {
-    generate_cover_packet(self_address)
-}
-
-pub fn generate_drop_cover(destination: &NymAddress) -> Result<SphinxPacket, NymError> {
-    let route = build_route(destination)?;
-    let mut payload = vec![0u8; NYM_PAYLOAD_SIZE];
-    crate::crypto::random::fill_bytes(&mut payload);
-    payload[0] = 0x02;
-    build_packet(&route.mixnodes, destination, &payload)
 }
