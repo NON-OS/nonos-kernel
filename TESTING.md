@@ -3,7 +3,11 @@
 ## Quick Start
 
 ```bash
+# Host tests (std mode)
 make test
+
+# Kernel tests (boot-time)
+make run   # watch console output for SELFTEST results
 ```
 
 ## Test Results
