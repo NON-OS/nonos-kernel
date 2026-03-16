@@ -109,6 +109,6 @@ fn decrypt_frame(key: &[u8; 32], data: &[u8]) -> Result<Vec<u8>, NymError> {
 
 fn generate_nonce() -> [u8; 12] {
     let mut nonce = [0u8; 12];
-    crate::crypto::random::fill_bytes(&mut nonce);
+    let _ = crate::crypto::random::fill_bytes(&mut nonce);
     nonce
 }

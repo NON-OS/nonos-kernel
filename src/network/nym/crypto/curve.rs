@@ -26,7 +26,7 @@ pub fn x25519_base_point_mult(scalar: &[u8; 32]) -> [u8; 32] {
 
 pub fn generate_keypair() -> ([u8; 32], [u8; 32]) {
     let mut secret = [0u8; 32];
-    crate::crypto::random::fill_bytes(&mut secret);
+    let _ = crate::crypto::random::fill_bytes(&mut secret);
     secret[0] &= 248;
     secret[31] &= 127;
     secret[31] |= 64;

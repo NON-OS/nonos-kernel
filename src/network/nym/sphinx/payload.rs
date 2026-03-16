@@ -53,7 +53,7 @@ pub fn decrypt_payload(
     Ok(())
 }
 
-pub fn unpad_payload(data: &[u8]) -> &[u8] {
+pub(crate) fn unpad_payload(data: &[u8]) -> &[u8] {
     for i in (0..data.len()).rev() {
         if data[i] == 0x80 {
             return &data[..i];

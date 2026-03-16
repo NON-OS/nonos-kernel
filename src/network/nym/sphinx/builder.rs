@@ -20,7 +20,7 @@ use alloc::vec::Vec;
 use super::header::build_header;
 use super::payload::encrypt_payload;
 use super::packet::{SphinxPacket, PacketMode};
-use crate::network::nym::types::{MixNode, NymAddress, Surb, SurbId};
+use crate::network::nym::types::{MixNode, NymAddress, Surb};
 use crate::network::nym::crypto::{generate_keypair, derive_sphinx_keys};
 use crate::network::nym::error::NymError;
 
