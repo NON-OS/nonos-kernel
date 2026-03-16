@@ -17,13 +17,15 @@
 use crate::network::onion::OnionError;
 use crate::network::onion::nonos_crypto::X509Certificate;
 use crate::crypto::hash::unified::sha256;
-use super::store::TRUSTED_ROOTS;
+use super::store::TRUSTED_ROOT_GROUPS;
 
 pub fn is_trusted_root(cert: &X509Certificate) -> bool {
     let spki_hash = sha256(&cert.public_key.raw_spki);
-    for root in TRUSTED_ROOTS {
-        if root.spki_sha256 == spki_hash {
-            return true;
+    for group in TRUSTED_ROOT_GROUPS {
+        for root in *group {
+            if root.spki_sha256 == spki_hash {
+                return true;
+            }
         }
     }
     false
@@ -44,5 +46,5 @@ pub fn verify_trusted_root(chain: &[X509Certificate]) -> Result<(), OnionError> 
 }
 
 pub fn trusted_root_count() -> usize {
-    TRUSTED_ROOTS.len()
+    TRUSTED_ROOT_GROUPS.iter().map(|g| g.len()).sum()
 }

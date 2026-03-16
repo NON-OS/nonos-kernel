@@ -14,10 +14,29 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod store;
-mod types;
-mod verify;
+mod amazon;
+mod digicert;
+mod entrust;
+mod globalsign;
+mod google;
+mod isrg;
+mod others;
 
-pub use store::TRUSTED_ROOT_GROUPS;
-pub use types::RootCaFingerprint;
-pub use verify::{is_trusted_root, verify_trusted_root, trusted_root_count};
+use super::types::RootCaFingerprint;
+use amazon::AMAZON_ROOTS;
+use digicert::DIGICERT_ROOTS;
+use entrust::ENTRUST_ROOTS;
+use globalsign::GLOBALSIGN_ROOTS;
+use google::GOOGLE_ROOTS;
+use isrg::ISRG_ROOTS;
+use others::OTHER_ROOTS;
+
+pub static TRUSTED_ROOT_GROUPS: &[&[RootCaFingerprint]] = &[
+    ISRG_ROOTS,
+    DIGICERT_ROOTS,
+    GLOBALSIGN_ROOTS,
+    OTHER_ROOTS,
+    AMAZON_ROOTS,
+    GOOGLE_ROOTS,
+    ENTRUST_ROOTS,
+];
