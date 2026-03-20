@@ -22,6 +22,17 @@ use alloc::vec::Vec;
 use super::types::{Node, NodeType, RenderLine, RenderElement, RenderContent, TextStyle, RenderOutput};
 use super::parser::{parse_html, get_attribute, extract_text};
 
+/// Returns true for HTML elements that are block-level (force line break before/after).
+fn is_block_element(tag: &str) -> bool {
+    matches!(tag,
+        "p" | "div" | "h1" | "h2" | "h3" | "h4" | "h5" | "h6"
+        | "ul" | "ol" | "li" | "table" | "tr" | "blockquote"
+        | "pre" | "form" | "fieldset" | "address" | "dl" | "dt" | "dd"
+        | "nav" | "header" | "footer" | "section" | "article" | "aside" | "main"
+        | "figure" | "figcaption" | "details" | "summary"
+    )
+}
+
 pub fn render_page(html: &str, viewport_width: u32) -> RenderOutput {
     let document = parse_html(html);
 
@@ -181,6 +192,28 @@ pub fn render_page(html: &str, viewport_width: u32) -> RenderOutput {
                     continue;
                 }
 
+                // --- CSS class-based display:none ---
+                if !document.hidden_classes.is_empty() {
+                    if let Some(cls_attr) = get_attribute(node, "class") {
+                        let dominated = cls_attr.split_whitespace().any(|cls| {
+                            document.hidden_classes.iter().any(|h| h == cls)
+                        });
+                        if dominated {
+                            continue;
+                        }
+                    }
+                }
+
+                // --- Block-level flush: line break before block elements ---
+                if is_block_element(tag) && !current_line_elements.is_empty() {
+                    lines.push(RenderLine {
+                        y: current_y,
+                        elements: core::mem::take(&mut current_line_elements),
+                    });
+                    current_y += line_height;
+                    current_x = 0;
+                }
+
                 match tag.as_str() {
                     "br" => {
                         if !current_line_elements.is_empty() {
@@ -229,42 +262,21 @@ pub fn render_page(html: &str, viewport_width: u32) -> RenderOutput {
                     }
 
                     "h1" => {
-                        if !current_line_elements.is_empty() {
-                            lines.push(RenderLine {
-                                y: current_y,
-                                elements: core::mem::take(&mut current_line_elements),
-                            });
-                            current_y += line_height;
-                            current_x = 0;
-                        }
+                        // Block flush already done by is_block_element() above
                         style_stack.push(current_style);
                         current_style.heading_level = 1;
                         current_style.bold = true;
                     }
 
                     "h2" => {
-                        if !current_line_elements.is_empty() {
-                            lines.push(RenderLine {
-                                y: current_y,
-                                elements: core::mem::take(&mut current_line_elements),
-                            });
-                            current_y += line_height;
-                            current_x = 0;
-                        }
+                        // Block flush already done by is_block_element() above
                         style_stack.push(current_style);
                         current_style.heading_level = 2;
                         current_style.bold = true;
                     }
 
                     "h3" | "h4" | "h5" | "h6" => {
-                        if !current_line_elements.is_empty() {
-                            lines.push(RenderLine {
-                                y: current_y,
-                                elements: core::mem::take(&mut current_line_elements),
-                            });
-                            current_y += line_height;
-                            current_x = 0;
-                        }
+                        // Block flush already done by is_block_element() above
                         style_stack.push(current_style);
                         current_style.heading_level = tag.as_bytes()[1] - b'0';
                         current_style.bold = true;
@@ -315,10 +327,10 @@ pub fn render_page(html: &str, viewport_width: u32) -> RenderOutput {
                         let alt = get_attribute(node, "alt").unwrap_or_default();
                         let width: u32 = get_attribute(node, "width")
                             .and_then(|w| w.parse().ok())
-                            .unwrap_or(100);
+                            .unwrap_or(200);
                         let height: u32 = get_attribute(node, "height")
                             .and_then(|h| h.parse().ok())
-                            .unwrap_or(100);
+                            .unwrap_or(20);
 
                         if current_x > 0 {
                             lines.push(RenderLine {
@@ -329,12 +341,21 @@ pub fn render_page(html: &str, viewport_width: u32) -> RenderOutput {
                             current_x = 0;
                         }
 
+                        // Render bordered placeholder with dimensions and alt text
+                        let label = if alt.is_empty() {
+                            alloc::format!("[IMG {}x{}]", width, height)
+                        } else {
+                            alloc::format!("[IMG {}x{}: {}]", width, height, alt)
+                        };
+                        let label_width = (label.len() as u32) * char_width;
+                        let display_width = label_width.max(width).min(usable_width);
+
                         lines.push(RenderLine {
                             y: current_y,
                             elements: alloc::vec![RenderElement {
                                 x: margin,
-                                width,
-                                content: RenderContent::Image { alt, width, height },
+                                width: display_width,
+                                content: RenderContent::Image { alt: label, width: display_width, height },
                             }],
                         });
                         current_y += height;
@@ -368,26 +389,11 @@ pub fn render_page(html: &str, viewport_width: u32) -> RenderOutput {
                     }
 
                     "p" | "div" => {
-                        if !current_line_elements.is_empty() {
-                            lines.push(RenderLine {
-                                y: current_y,
-                                elements: core::mem::take(&mut current_line_elements),
-                            });
-                            current_y += line_height;
-                            current_x = 0;
-                        }
+                        // Block flush already handled by is_block_element() above
                     }
 
                     "li" => {
-                        // Flush line before the list item
-                        if !current_line_elements.is_empty() {
-                            lines.push(RenderLine {
-                                y: current_y,
-                                elements: core::mem::take(&mut current_line_elements),
-                            });
-                            current_y += line_height;
-                            current_x = 0;
-                        }
+                        // Block flush already done by is_block_element() above
                         // Prepend bullet / number
                         let prefix = match list_stack.last_mut() {
                             Some(ListCtx::Unordered) => alloc::format!("\u{2022} "),
@@ -411,39 +417,18 @@ pub fn render_page(html: &str, viewport_width: u32) -> RenderOutput {
                     }
 
                     "ul" => {
-                        if !current_line_elements.is_empty() {
-                            lines.push(RenderLine {
-                                y: current_y,
-                                elements: core::mem::take(&mut current_line_elements),
-                            });
-                            current_y += line_height;
-                            current_x = 0;
-                        }
+                        // Block flush already done by is_block_element() above
                         list_stack.push(ListCtx::Unordered);
                     }
 
                     "ol" => {
-                        if !current_line_elements.is_empty() {
-                            lines.push(RenderLine {
-                                y: current_y,
-                                elements: core::mem::take(&mut current_line_elements),
-                            });
-                            current_y += line_height;
-                            current_x = 0;
-                        }
+                        // Block flush already done by is_block_element() above
                         list_stack.push(ListCtx::Ordered(1));
                     }
 
                     // Blockquote: increase indent
                     "blockquote" => {
-                        if !current_line_elements.is_empty() {
-                            lines.push(RenderLine {
-                                y: current_y,
-                                elements: core::mem::take(&mut current_line_elements),
-                            });
-                            current_y += line_height;
-                            current_x = 0;
-                        }
+                        // Block flush already done by is_block_element() above
                         indent_level += 1;
                     }
 
@@ -485,28 +470,14 @@ pub fn render_page(html: &str, viewport_width: u32) -> RenderOutput {
                         continue;
                     }
 
-                    // Table: block element, line break before
+                    // Table: block element (flush done above)
                     "table" => {
-                        if !current_line_elements.is_empty() {
-                            lines.push(RenderLine {
-                                y: current_y,
-                                elements: core::mem::take(&mut current_line_elements),
-                            });
-                            current_y += line_height;
-                            current_x = 0;
-                        }
+                        // Block flush already done by is_block_element() above
                     }
 
-                    // Table row: start a new line per row
+                    // Table row: new line per row (flush done above)
                     "tr" => {
-                        if !current_line_elements.is_empty() {
-                            lines.push(RenderLine {
-                                y: current_y,
-                                elements: core::mem::take(&mut current_line_elements),
-                            });
-                            current_y += line_height;
-                            current_x = 0;
-                        }
+                        // Block flush already done by is_block_element() above
                     }
 
                     // Table header cell: tab separator + bold text

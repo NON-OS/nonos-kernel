@@ -66,20 +66,20 @@
 
 ### Tier 3 — Layout Engine Foundations
 
-- [ ] **3.1** Block vs. inline layout model
-  - [ ] Classify each HTML element as block or inline
-  - [ ] Block elements: force line break before/after
-  - [ ] Inline elements: flow with text on same line
-  - [ ] Refactor `render_page` to use layout classification instead of per-tag matching
-- [ ] **3.2** CSS class-based `display:none`
-  - [ ] Parse `<style>` blocks in `<head>` for class→property mappings
-  - [ ] Build simple class→display map
-  - [ ] Match element `class` attribute against map
-  - [ ] Skip node + children if `display: none`
-- [ ] **3.3** Basic `<img>` rendering
-  - [ ] Fetch image URL via HTTP/HTTPS
-  - [ ] Decode BMP/PNG dimensions at minimum
-  - [ ] Render placeholder rectangle with alt text and dimensions
+- [x] **3.1** Block vs. inline layout model
+  - [x] Classify each HTML element as block or inline
+  - [x] Block elements: force line break before/after
+  - [x] Inline elements: flow with text on same line
+  - [x] Refactor `render_page` to use layout classification instead of per-tag matching
+- [x] **3.2** CSS class-based `display:none`
+  - [x] Parse `<style>` blocks in `<head>` for class→property mappings
+  - [x] Build simple class→display map
+  - [x] Match element `class` attribute against map
+  - [x] Skip node + children if `display: none`
+- [x] **3.3** Basic `<img>` rendering
+  - [x] Fetch image URL via HTTP/HTTPS
+  - [x] Decode BMP/PNG dimensions at minimum
+  - [x] Render placeholder rectangle with alt text and dimensions
   - [ ] Stretch goal: decode and blit actual pixels for BMP
 
 ### Tier 4 — Out of Scope (Not Planned)

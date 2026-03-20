@@ -26,6 +26,8 @@ pub struct Document {
     pub links: Vec<Link>,
     pub forms: Vec<Form>,
     pub images: Vec<Image>,
+    /// CSS class selectors mapped to display value, e.g. ("hidden", "none")
+    pub hidden_classes: Vec<String>,
 }
 
 #[derive(Debug, Clone)]
