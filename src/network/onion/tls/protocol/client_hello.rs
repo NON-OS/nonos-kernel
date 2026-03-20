@@ -28,7 +28,17 @@ pub fn build_client_hello(cr: &[u8; 32], sni: Option<&str>, alpn: Option<&[&str]
     ch.push(1); ch.push(0);
     let mut ext = Vec::with_capacity(256);
     ext_push(&mut ext, 0x002b, &[2, (TLS_1_3 >> 8) as u8, TLS_1_3 as u8]);
-    if let Some(h) = sni { let hb = h.as_bytes(); let mut b = vec![0, 0, (hb.len() >> 8) as u8, hb.len() as u8]; b.push(0); b.extend_from_slice(&(hb.len() as u16).to_be_bytes()); b.extend_from_slice(hb); ext_push(&mut ext, 0x0000, &b[4..]); }
+    // SNI extension (RFC 6066 §3): ServerNameList { name_type(1) + name_len(2) + name }
+    if let Some(h) = sni {
+        let hb = h.as_bytes();
+        let entry_len = (1 + 2 + hb.len()) as u16;
+        let mut body = Vec::with_capacity(2 + entry_len as usize);
+        body.extend_from_slice(&entry_len.to_be_bytes()); // ServerNameList length
+        body.push(0); // name_type = host_name
+        body.extend_from_slice(&(hb.len() as u16).to_be_bytes());
+        body.extend_from_slice(hb);
+        ext_push(&mut ext, 0x0000, &body);
+    }
     let sigs: [u16; 4] = [0x0403, 0x0503, 0x0804, 0x0807];
     let mut sb = Vec::new(); sb.extend_from_slice(&8u16.to_be_bytes()); for s in sigs { sb.extend_from_slice(&s.to_be_bytes()); } ext_push(&mut ext, 0x000d, &sb);
     let mut gb = Vec::new(); gb.extend_from_slice(&2u16.to_be_bytes()); gb.extend_from_slice(&0x001d_u16.to_be_bytes()); ext_push(&mut ext, 0x000a, &gb);
