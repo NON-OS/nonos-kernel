@@ -271,11 +271,18 @@ pub(super) fn poll_receive_response() {
             let mut got_alert = false;
 
             {
+                // Append new data to the persistent reassembly buffer so that
+                // partial TLS records left over from a previous TCP read are
+                // completed by bytes arriving in this read.
+                let mut reasm = HTTPS_REASSEMBLY_BUF.lock();
+                reasm.extend_from_slice(&received);
+
                 let mut tls_guard = HTTPS_TLS.lock();
                 let tls = match tls_guard.as_mut() {
                     Some(t) => t,
                     None => {
                         drop(tls_guard);
+                        drop(reasm);
                         cleanup_https();
                         finish_with_error("no TLS session");
                         return;
@@ -283,15 +290,16 @@ pub(super) fn poll_receive_response() {
                 };
 
                 let mut offset = 0;
-                while offset + 5 <= received.len() {
-                    let content_type = received[offset];
-                    let record_len = u16::from_be_bytes([received[offset + 3], received[offset + 4]]) as usize;
+                while offset + 5 <= reasm.len() {
+                    let content_type = reasm[offset];
+                    let record_len = u16::from_be_bytes([reasm[offset + 3], reasm[offset + 4]]) as usize;
 
-                    if offset + 5 + record_len > received.len() {
+                    if offset + 5 + record_len > reasm.len() {
+                        // Incomplete record — wait for more TCP data.
                         break;
                     }
 
-                    let record_data = &received[offset + 5..offset + 5 + record_len];
+                    let record_data = &reasm[offset + 5..offset + 5 + record_len];
 
                     if content_type == 0x17 {
                         match tls.decrypt_app(record_data) {
@@ -319,6 +327,12 @@ pub(super) fn poll_receive_response() {
                     }
 
                     offset += 5 + record_len;
+                }
+
+                // Drain only the bytes we fully consumed, keeping any
+                // incomplete trailing record for the next poll call.
+                if offset > 0 {
+                    reasm.drain(..offset);
                 }
             }
 

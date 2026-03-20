@@ -64,6 +64,7 @@ pub(super) static RESPONSE_DATA: Mutex<Vec<u8>> = Mutex::new(Vec::new());
 pub(super) static HTTPS_CONN_ID: AtomicU32 = AtomicU32::new(0);
 pub(super) static HTTPS_TLS: Mutex<Option<crate::network::onion::tls::TLSConnection>> = Mutex::new(None);
 pub(super) static HTTPS_DEADLINE: AtomicU64 = AtomicU64::new(0);
+pub(super) static HTTPS_REASSEMBLY_BUF: Mutex<Vec<u8>> = Mutex::new(Vec::new());
 pub(super) static REDIRECT_COUNT: AtomicU8 = AtomicU8::new(0);
 pub(super) const MAX_REDIRECTS: u8 = 5;
 
@@ -92,4 +93,5 @@ pub(super) fn cleanup_https() {
     crate::network::stack::async_ops::tcp_close();
     HTTPS_CONN_ID.store(0, Ordering::Relaxed);
     *HTTPS_TLS.lock() = None;
+    HTTPS_REASSEMBLY_BUF.lock().clear();
 }

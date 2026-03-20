@@ -32,6 +32,7 @@ pub fn parse_html(html: &str) -> Document {
     let mut forms: Vec<Form> = Vec::new();
     let mut images: Vec<Image> = Vec::new();
     let mut current_form: Option<Form> = None;
+    let mut hidden_classes: Vec<String> = Vec::new();
 
     let mut stack: Vec<Node> = Vec::new();
     let mut current = Node {
@@ -42,6 +43,7 @@ pub fn parse_html(html: &str) -> Document {
 
     let mut chars = html.chars().peekable();
     let mut text_buffer = String::new();
+    let mut in_head = false;
 
     while let Some(c) = chars.next() {
         if c == '<' {
@@ -71,6 +73,11 @@ pub fn parse_html(html: &str) -> Document {
 
             if tag_content.starts_with('/') {
                 let close_tag = tag_content[1..].trim().to_ascii_lowercase();
+
+                if close_tag == "head" {
+                    in_head = false;
+                    continue;
+                }
 
                 if close_tag == "form" {
                     if let Some(form) = current_form.take() {
@@ -119,6 +126,11 @@ pub fn parse_html(html: &str) -> Document {
             };
 
             match tag_name.as_str() {
+                "head" => {
+                    in_head = true;
+                    continue;
+                }
+
                 "title" => {
                     while let Some(&tc) = chars.peek() {
                         if tc == '<' {
@@ -135,6 +147,55 @@ pub fn parse_html(html: &str) -> Document {
                         chars.next();
                     }
                     chars.next();
+                }
+
+                // Raw-text elements: skip to closing tag, discard content.
+                // These must never produce Text nodes in the DOM.
+                "script" | "noscript" => {
+                    let close_pattern = alloc::format!("</{}>", tag_name);
+                    let mut scan_buf = String::new();
+                    let mut found = false;
+                    while let Some(ch) = chars.next() {
+                        scan_buf.push(ch);
+                        if scan_buf.len() >= close_pattern.len() {
+                            let tail_start = scan_buf.len() - close_pattern.len();
+                            if scan_buf[tail_start..].eq_ignore_ascii_case(&close_pattern) {
+                                found = true;
+                                break;
+                            }
+                        }
+                    }
+                    if !found {
+                        // Malformed HTML — no closing tag. Content already consumed, nothing to push.
+                    }
+                }
+
+                // <style>: extract CSS content, parse for .class { display: none }, then discard.
+                "style" => {
+                    let close_pattern = alloc::format!("</{}>", tag_name);
+                    let mut css_buf = String::new();
+                    let mut found = false;
+                    while let Some(ch) = chars.next() {
+                        css_buf.push(ch);
+                        if css_buf.len() >= close_pattern.len() {
+                            let tail_start = css_buf.len() - close_pattern.len();
+                            if css_buf[tail_start..].eq_ignore_ascii_case(&close_pattern) {
+                                // Trim off the closing tag from the CSS source
+                                css_buf.truncate(tail_start);
+                                found = true;
+                                break;
+                            }
+                        }
+                    }
+                    if found {
+                        parse_hidden_classes(&css_buf, &mut hidden_classes);
+                    }
+                }
+
+                // Inside <head>, skip everything except title/script/style
+                // which are handled above.
+                _ if in_head => {
+                    continue;
                 }
 
                 "a" => {
@@ -254,7 +315,7 @@ pub fn parse_html(html: &str) -> Document {
                     }
                 }
             }
-        } else {
+        } else if !in_head {
             text_buffer.push(c);
         }
     }
@@ -281,6 +342,7 @@ pub fn parse_html(html: &str) -> Document {
         links,
         forms,
         images,
+        hidden_classes,
     }
 }
 
@@ -305,4 +367,49 @@ pub fn extract_text(node: &Node) -> String {
     }
 
     text
+}
+
+/// Parse CSS text for simple `.class { display: none }` rules.
+/// Populates `hidden` with class names that should be hidden.
+fn parse_hidden_classes(css: &str, hidden: &mut Vec<String>) {
+    let css_lower = css.to_ascii_lowercase();
+    let bytes = css_lower.as_bytes();
+    let mut i = 0;
+    while i < bytes.len() {
+        // Look for '.' indicating a class selector
+        if bytes[i] == b'.' {
+            i += 1;
+            let start = i;
+            while i < bytes.len() && (bytes[i].is_ascii_alphanumeric() || bytes[i] == b'-' || bytes[i] == b'_') {
+                i += 1;
+            }
+            if i > start {
+                let class_name = &css_lower[start..i];
+                // Skip whitespace, look for '{'
+                while i < bytes.len() && bytes[i].is_ascii_whitespace() {
+                    i += 1;
+                }
+                if i < bytes.len() && bytes[i] == b'{' {
+                    i += 1;
+                    // Collect the block content up to '}'
+                    let block_start = i;
+                    while i < bytes.len() && bytes[i] != b'}' {
+                        i += 1;
+                    }
+                    let block = &css_lower[block_start..i];
+                    // Check if block contains "display" + "none"
+                    if (block.contains("display") && block.contains("none"))
+                        || (block.contains("visibility") && block.contains("hidden"))
+                    {
+                        hidden.push(String::from(class_name));
+                    }
+                    if i < bytes.len() {
+                        i += 1; // skip '}'
+                    }
+                }
+            }
+        } else {
+            i += 1;
+        }
+    }
 }
