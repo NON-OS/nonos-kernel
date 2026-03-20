@@ -31,7 +31,9 @@ impl TLSConnection {
         let ok = match alg {
             0x0807 => pk_kind == PublicKeyKind::Ed25519 && c.verify_ed25519(&pk_bytes, &to_be_signed, &self.cert_verify_sig),
             0x0804 => pk_kind == PublicKeyKind::Rsa && c.verify_rsa_pss_sha256(&pk_bytes, &to_be_signed, &self.cert_verify_sig),
-            0x0403 => pk_kind == PublicKeyKind::EcdsaP256 && c.verify_ecdsa_p256_sha256(&pk_bytes, &to_be_signed, &self.cert_verify_sig),              0x0503 => pk_kind == PublicKeyKind::EcdsaP384 && c.verify_ecdsa_p384_sha384(&pk_bytes, &to_be_signed, &self.cert_verify_sig),            _ => false,
+            0x0403 => pk_kind == PublicKeyKind::EcdsaP256 && c.verify_ecdsa_p256_sha256(&pk_bytes, &to_be_signed, &self.cert_verify_sig),
+            0x0503 => pk_kind == PublicKeyKind::EcdsaP384 && c.verify_ecdsa_p384_sha384(&pk_bytes, &to_be_signed, &self.cert_verify_sig),
+            _ => false,
         };
         if !ok { self.phase = HandshakePhase::Failed; return Err(OnionError::AuthenticationFailed); }
         Ok(())

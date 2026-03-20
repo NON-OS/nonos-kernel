@@ -30,10 +30,15 @@ pub fn sign_pkcs1v15(private_key: &RsaPrivateKey, message: &[u8]) -> CryptoResul
     Ok(signature.to_bytes_be())
 }
 
-/// # Safety
-/// PKCS#1 v1.5 signature verification with constant-time comparison.
-/// All operations execute regardless of intermediate results to prevent
-/// timing side-channels that could leak signature validity information.
+/// PKCS#1 v1.5 signature verification (RFC 3447 §8.2.2).
+///
+/// Accepts DigestInfo with or without NULL AlgorithmIdentifier parameter,
+/// plus an OID-based fallback for non-standard CA encodings.
+///
+/// NOTE: This is **not** constant-time — early returns on malformed input
+/// reveal whether decryption/unpadding succeeded. Acceptable here because
+/// the public-key operation itself is on public data; the hash comparison
+/// does not branch on secret material.
 pub fn verify_pkcs1v15(public_key: &RsaPublicKey, message: &[u8], signature: &[u8]) -> bool {
     let hash = sha256(message);
 
@@ -77,15 +82,6 @@ pub fn verify_pkcs1v15(public_key: &RsaPublicKey, message: &[u8], signature: &[u
             }
         }
     }
-
-    crate::sys::serial::print(b"[PKCS1] mismatch, unpadded_len=");
-    crate::sys::serial::print_dec(unpadded.len() as u64);
-    crate::sys::serial::print(b" bytes:");
-    for i in 0..unpadded.len().min(20) {
-        crate::sys::serial::print(b" ");
-        crate::sys::serial::print_hex(unpadded[i] as u64);
-    }
-    crate::sys::serial::println(b"");
 
     false
 }
