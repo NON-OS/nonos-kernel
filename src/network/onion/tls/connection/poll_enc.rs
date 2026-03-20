@@ -60,10 +60,16 @@ impl TLSConnection {
                 if !verify_finished_with_payload(&self.ks.server_hs, self.transcript.hash(), hbody) { self.phase = HandshakePhase::Failed; return Err(OnionError::CryptoError); }
                 self.transcript.add_raw(&hp[..adv]);
                 self.got_finished = true;
+            } else if typ == HSType::CertificateVerify as u8 {
+                // RFC 8446 §4.4.3: signature covers transcript hash EXCLUDING CertificateVerify
+                self.cert_verify_hash = *self.transcript.hash();
+                self.transcript.add_raw(&hp[..adv]);
+                let (a, s) = parse_certificate_verify(hbody)?;
+                self.cert_verify_alg = Some(a);
+                self.cert_verify_sig = s;
             } else {
                 self.transcript.add_raw(&hp[..adv]);
                 if typ == HSType::Certificate as u8 { self.server_certs = parse_certificate_chain(hbody)?; }
-                else if typ == HSType::CertificateVerify as u8 { let (a, s) = parse_certificate_verify(hbody)?; self.cert_verify_alg = Some(a); self.cert_verify_sig = s; }
             }
             hp = &hp[adv..];
         }
