@@ -22,6 +22,9 @@ pub(super) fn extract_ec_point(data: &[u8]) -> Result<Vec<u8>, OnionError> {
     if data.len() == 65 && data[0] == 0x04 {
         return Ok(data.to_vec());
     }
+    if data.len() == 97 && data[0] == 0x04 {
+        return Ok(data.to_vec());
+    }
     if data.len() == 64 {
         let mut point = Vec::with_capacity(65);
         point.push(0x04);

@@ -64,6 +64,14 @@ impl NetworkStack {
         tcp::receive(self, conn_id, max_len)
     }
 
+    pub fn tcp_try_receive(&self, conn_id: u32, max_len: usize) -> Result<Vec<u8>, &'static str> {
+        tcp::try_receive(self, conn_id, max_len)
+    }
+
+    pub fn tcp_receive_with_timeout(&self, conn_id: u32, max_len: usize, timeout_ms: u64) -> Result<Vec<u8>, &'static str> {
+        tcp::receive_with_timeout(self, conn_id, max_len, timeout_ms)
+    }
+
     pub fn tcp_close(&self, conn_id: u32) -> Result<(), &'static str> {
         tcp::close(self, conn_id)
     }

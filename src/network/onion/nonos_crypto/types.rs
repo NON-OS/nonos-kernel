@@ -53,6 +53,9 @@ impl ObjectIdentifier {
     const EC_PUBLIC_KEY: [u32; 6] = [1, 2, 840, 10045, 2, 1];
     const ECDSA_SHA256: [u32; 7] = [1, 2, 840, 10045, 4, 3, 2];
     const ECDSA_SHA384: [u32; 7] = [1, 2, 840, 10045, 4, 3, 3];
+    #[allow(dead_code)]
+    const SECP256R1: [u32; 7] = [1, 2, 840, 10045, 3, 1, 7];
+    pub(crate) const SECP384R1: [u32; 5] = [1, 3, 132, 0, 34];
 
     pub fn is_rsa_encryption(&self) -> bool {
         self.components == Self::RSA_ENCRYPTION ||
@@ -83,5 +86,6 @@ pub enum PublicKeyKind {
     Rsa,
     Ed25519,
     EcdsaP256,
+    EcdsaP384,
     X25519,
 }

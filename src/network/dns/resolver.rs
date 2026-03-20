@@ -117,7 +117,28 @@ fn resolve_with_cname_follow(
     let mut min_ttl = u32::MAX;
 
     for _ in 0..MAX_CNAME_DEPTH {
-        let (addrs, ttl, cnames) = ns.dns_query_a_with_ttl(&current, 300)?;
+        let query_result = ns.dns_query_a_with_ttl(&current, DEFAULT_TIMEOUT_MS);
+
+        let (addrs, ttl, mut cnames) = match query_result {
+            Ok(v) => v,
+            Err(_) => {
+                let direct = ns.dns_query_a(&current, DEFAULT_TIMEOUT_MS).unwrap_or_default();
+                if !direct.is_empty() {
+                    if min_ttl == u32::MAX {
+                        min_ttl = 300;
+                    }
+                    return Ok((direct, min_ttl));
+                }
+
+                let cname_fallback = ns.dns_query_cname(&current, DEFAULT_TIMEOUT_MS).unwrap_or_default();
+                if let Some(next) = cname_fallback.into_iter().next() {
+                    current = next;
+                    continue;
+                }
+
+                return Err("dns query failed");
+            }
+        };
 
         if ttl < min_ttl { min_ttl = ttl; }
 
@@ -125,9 +146,20 @@ fn resolve_with_cname_follow(
             return Ok((addrs, min_ttl));
         }
 
+        if cnames.is_empty() {
+            cnames = ns.dns_query_cname(&current, DEFAULT_TIMEOUT_MS).unwrap_or_default();
+        }
+
         if let Some(cname) = cnames.into_iter().next() {
             current = cname;
         } else {
+            let direct = ns.dns_query_a(&current, DEFAULT_TIMEOUT_MS).unwrap_or_default();
+            if !direct.is_empty() {
+                if min_ttl == u32::MAX {
+                    min_ttl = 300;
+                }
+                return Ok((direct, min_ttl));
+            }
             break;
         }
     }

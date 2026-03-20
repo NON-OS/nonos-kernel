@@ -20,6 +20,7 @@ use crate::shell::commands::utils::trim_bytes;
 use super::helpers::write_ip;
 
 pub fn cmd_dns(cmd: &[u8]) {
+    crate::sys::serial::println(b"[DNSCMD] enter");
     let args = if cmd.len() > 4 {
         trim_bytes(&cmd[4..])
     } else {
@@ -40,9 +41,11 @@ pub fn cmd_dns(cmd: &[u8]) {
             print_line(b"DNS Server:     not configured", COLOR_YELLOW);
         }
     } else if args.starts_with(b"lookup ") {
+        crate::sys::serial::println(b"[DNSCMD] lookup branch");
         let host = trim_bytes(&args[7..]);
         if host.is_empty() {
             print_line(b"Usage: dns lookup <hostname>", COLOR_TEXT_DIM);
+            crate::sys::serial::println(b"[DNSCMD] empty host");
             return;
         }
 
@@ -50,6 +53,7 @@ pub fn cmd_dns(cmd: &[u8]) {
             Ok(s) => s,
             Err(_) => {
                 print_line(b"dns: invalid hostname", COLOR_RED);
+                crate::sys::serial::println(b"[DNSCMD] invalid hostname utf8");
                 return;
             }
         };
@@ -61,8 +65,12 @@ pub fn cmd_dns(cmd: &[u8]) {
         print_line(&line[..11+host_len], COLOR_TEXT);
 
         if let Some(stack) = crate::network::stack::get_network_stack() {
+            crate::sys::serial::println(b"[DNSCMD] querying dns_query_a");
             match stack.dns_query_a(host_str, 5000) {
                 Ok(results) => {
+                    crate::sys::serial::print(b"[DNSCMD] query ok results=");
+                    crate::sys::serial::print_dec(results.len() as u64);
+                    crate::sys::serial::println(b"");
                     if results.is_empty() {
                         print_line(b"No results found", COLOR_YELLOW);
                     } else {
@@ -71,10 +79,14 @@ pub fn cmd_dns(cmd: &[u8]) {
                             result_line[..4].copy_from_slice(b"  > ");
                             let ip_len = write_ip(&mut result_line[4..], *ip);
                             print_line(&result_line[..4+ip_len], COLOR_GREEN);
+                            crate::time::yield_now();
                         }
                     }
+                    crate::sys::serial::println(b"[DNSCMD] lookup print complete");
                 }
                 Err(e) => {
+                    crate::sys::serial::print(b"[DNSCMD] query err=");
+                    crate::sys::serial::println(e.as_bytes());
                     let mut err_line = [0u8; 64];
                     err_line[..12].copy_from_slice(b"DNS failed: ");
                     let err_bytes = e.as_bytes();
@@ -85,10 +97,13 @@ pub fn cmd_dns(cmd: &[u8]) {
             }
         } else {
             print_line(b"dns: network not initialized", COLOR_RED);
+            crate::sys::serial::println(b"[DNSCMD] no network stack");
         }
     } else {
         print_line(b"Usage: dns [status|lookup <host>]", COLOR_TEXT_DIM);
     }
+
+    crate::sys::serial::println(b"[DNSCMD] exit");
 }
 
 pub fn cmd_nslookup(cmd: &[u8]) {
@@ -104,8 +119,8 @@ pub fn cmd_nslookup(cmd: &[u8]) {
         return;
     }
 
-    print_line(b"Server:  127.0.0.1 (NYM DNS)", COLOR_TEXT_DIM);
-    print_line(b"Address: 127.0.0.1#1979", COLOR_TEXT_DIM);
+    print_line(b"Server:  127.0.0.1 (Tor DNS)", COLOR_TEXT_DIM);
+    print_line(b"Address: 127.0.0.1#9053", COLOR_TEXT_DIM);
     print_line(b"", COLOR_TEXT);
 
     if host == b"localhost" {
@@ -118,7 +133,7 @@ pub fn cmd_nslookup(cmd: &[u8]) {
         line[6..6+host_len].copy_from_slice(&host[..host_len]);
         print_line(&line[..6+host_len], COLOR_TEXT);
 
-        print_line(b"Address: [RESOLVED VIA NYM]", COLOR_YELLOW);
-        print_line(b"(Query sent through mixnet)", COLOR_TEXT_DIM);
+        print_line(b"Address: [RESOLVED VIA TOR]", COLOR_YELLOW);
+        print_line(b"(Query sent through anonymous circuit)", COLOR_TEXT_DIM);
     }
 }

@@ -46,7 +46,7 @@ fn verify_signature_internal(
     } else if sig_alg.algorithm.is_ed25519() {
         verify_ed25519(cert, public_key_bytes)
     } else if sig_alg.algorithm.is_ecdsa() {
-        verify_ecdsa(cert, public_key_bytes)
+        verify_ecdsa(cert, public_key_bytes, sig_alg.algorithm.is_ecdsa_sha256())
     } else {
         serial::print(b"[X509] unknown sig alg, oid len=");
         serial::print_dec(sig_alg.algorithm.components.len() as u64);

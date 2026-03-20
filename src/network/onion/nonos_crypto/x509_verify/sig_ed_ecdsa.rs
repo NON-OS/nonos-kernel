@@ -38,20 +38,39 @@ pub(super) fn verify_ed25519(cert: &X509Certificate, public_key_bytes: &[u8]) ->
     }
 }
 
-pub(super) fn verify_ecdsa(cert: &X509Certificate, public_key_bytes: &[u8]) -> Result<(), OnionError> {
+pub(super) fn verify_ecdsa(cert: &X509Certificate, public_key_bytes: &[u8], is_sha256: bool) -> Result<(), OnionError> {
     serial::println(b"[X509] using ECDSA verification");
-    match super::super::ecdsa_p256_sha256_verify_spki(public_key_bytes, &cert.tbs_certificate, &cert.signature) {
-        Ok(true) => {
-            serial::println(b"[X509] ECDSA verify OK");
-            Ok(())
+    if is_sha256 {
+        serial::println(b"[X509] ECDSA-P256-SHA256");
+        match super::super::ecdsa_p256_sha256_verify_spki(public_key_bytes, &cert.tbs_certificate, &cert.signature) {
+            Ok(true) => {
+                serial::println(b"[X509] ECDSA verify OK");
+                Ok(())
+            }
+            Ok(false) => {
+                serial::println(b"[X509] ECDSA verify FAILED");
+                Err(OnionError::CryptoError)
+            }
+            Err(e) => {
+                serial::println(b"[X509] ECDSA verify ERROR");
+                Err(e)
+            }
         }
-        Ok(false) => {
-            serial::println(b"[X509] ECDSA verify FAILED");
-            Err(OnionError::CryptoError)
-        }
-        Err(e) => {
-            serial::println(b"[X509] ECDSA verify ERROR");
-            Err(e)
+    } else {
+        serial::println(b"[X509] ECDSA-P384-SHA384");
+        match super::super::ecdsa_p384_sha384_verify_spki(public_key_bytes, &cert.tbs_certificate, &cert.signature) {
+            Ok(true) => {
+                serial::println(b"[X509] ECDSA P384 verify OK");
+                Ok(())
+            }
+            Ok(false) => {
+                serial::println(b"[X509] ECDSA P384 verify FAILED");
+                Err(OnionError::CryptoError)
+            }
+            Err(e) => {
+                serial::println(b"[X509] ECDSA P384 verify ERROR");
+                Err(e)
+            }
         }
     }
 }

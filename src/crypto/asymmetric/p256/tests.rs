@@ -18,7 +18,7 @@ use super::*;
 
 fn scalar_pow(base: &Scalar, exp: &[u64; 4]) -> Scalar {
     let mut result = Scalar::ONE;
-    let mut b = *base;
+    let mut b = base.clone();
 
     for &limb in exp.iter() {
         for bit in 0..64 {
@@ -46,7 +46,7 @@ fn test_sign_verify() {
         0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18,
         0x19, 0x1a, 0x1b, 0x1c, 0x1d, 0x1e, 0x1f, 0x20,
     ];
-    let pk = public_key_from_secret(&sk);
+    let pk = public_key_from_secret(&sk).expect("pk gen failed");
     let message = b"test message";
     let sig = sign_message(&sk, message).expect("signing failed");
     assert!(verify_message(&pk, message, &sig), "Verification failed");

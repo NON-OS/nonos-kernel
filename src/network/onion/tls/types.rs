@@ -66,5 +66,6 @@ pub enum PublicKeyKind {
     Rsa,
     Ed25519,
     EcdsaP256,
+    EcdsaP384,
     X25519,
 }
