@@ -42,7 +42,9 @@ impl X509 {
         let tls_kind = match crypto_kind {
             crate::network::onion::nonos_crypto::PublicKeyKind::Rsa => PublicKeyKind::Rsa,
             crate::network::onion::nonos_crypto::PublicKeyKind::Ed25519 => PublicKeyKind::Ed25519,
-            crate::network::onion::nonos_crypto::PublicKeyKind::EcdsaP256 => PublicKeyKind::EcdsaP256,              crate::network::onion::nonos_crypto::PublicKeyKind::EcdsaP384 => PublicKeyKind::EcdsaP384,            crate::network::onion::nonos_crypto::PublicKeyKind::X25519 => PublicKeyKind::X25519,
+            crate::network::onion::nonos_crypto::PublicKeyKind::EcdsaP256 => PublicKeyKind::EcdsaP256,
+            crate::network::onion::nonos_crypto::PublicKeyKind::EcdsaP384 => PublicKeyKind::EcdsaP384,
+            crate::network::onion::nonos_crypto::PublicKeyKind::X25519 => PublicKeyKind::X25519,
         };
         Ok((tls_kind, data))
     }
