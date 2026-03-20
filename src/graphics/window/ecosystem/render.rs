@@ -212,6 +212,38 @@ fn draw_styled_line(x: u32, y: u32, text: &[u8], max_width: u32) {
                 current_x += 8;
                 char_count += 1;
             }
+        } else if i + 7 < text.len() && &text[i..i+7] == b"[CANVAS" {
+            let start = i;
+            while i < text.len() && text[i] != b']' {
+                i += 1;
+            }
+            if i < text.len() {
+                i += 1;
+            }
+            for &ch in &text[start..i] {
+                if char_count >= max_chars {
+                    break;
+                }
+                draw_char(current_x, y, ch, COLOR_ACCENT);
+                current_x += 8;
+                char_count += 1;
+            }
+        } else if i + 4 < text.len() && &text[i..i+4] == b"[SVG" {
+            let start = i;
+            while i < text.len() && text[i] != b']' {
+                i += 1;
+            }
+            if i < text.len() {
+                i += 1;
+            }
+            for &ch in &text[start..i] {
+                if char_count >= max_chars {
+                    break;
+                }
+                draw_char(current_x, y, ch, COLOR_ACCENT);
+                current_x += 8;
+                char_count += 1;
+            }
         } else if text[i] == 0xE2 && i + 2 < text.len() {
             draw_char(current_x, y, b'-', COLOR_TEXT_DIM);
             current_x += 8;
