@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::aes256::{Aes256Gcm, aes256_gcm_encrypt, aes256_gcm_decrypt};
-extern crate alloc;
 use alloc::vec::Vec;
+
+use super::{Aes256Gcm, aes256_gcm_encrypt, aes256_gcm_decrypt};
 use super::ghash::gf128_mul_bitwise;
 
 #[test]

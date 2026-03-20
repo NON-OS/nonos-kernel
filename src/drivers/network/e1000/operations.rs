@@ -32,20 +32,6 @@ impl E1000 {
             return;
         }
 
-        static mut POLL_CNT: u64 = 0;
-        unsafe {
-            POLL_CNT += 1;
-            if POLL_CNT % 500 == 1 {
-                let rdh = self.read_reg(REG_RDH);
-                let rdt = self.read_reg(REG_RDT);
-                crate::sys::serial::print(b"[E1000] poll RDH=");
-                crate::sys::serial::print_dec(rdh as u64);
-                crate::sys::serial::print(b" RDT=");
-                crate::sys::serial::print_dec(rdt as u64);
-                crate::sys::serial::println(b"");
-            }
-        }
-
         let mut cur = self.rx_cur.load(Ordering::SeqCst) as usize;
 
         // SAFETY: Accessing static DMA buffers, single-threaded NIC access via atomic guards
@@ -56,10 +42,6 @@ impl E1000 {
             while ((*rx_descs)[cur].status & DESC_DD) != 0 {
                 let length = (*rx_descs)[cur].length as usize;
 
-                crate::sys::serial::print(b"[E1000] RX ");
-                crate::sys::serial::print_dec(length as u64);
-                crate::sys::serial::println(b" bytes");
-
                 if length > 0 && length <= RX_BUFFER_SIZE {
                     let mut packet = Vec::with_capacity(length);
                     packet.extend_from_slice(&(&(*rx_bufs)[cur])[..length]);
@@ -67,8 +49,9 @@ impl E1000 {
                 }
 
                 (*rx_descs)[cur].status = 0;
-                self.write_reg(REG_RDT, cur as u32);
+                let reclaimed = cur;
                 cur = (cur + 1) % NUM_RX_DESC;
+                self.write_reg(REG_RDT, reclaimed as u32);
             }
         }
 
@@ -76,17 +59,11 @@ impl E1000 {
     }
 
     pub fn transmit(&self, data: &[u8]) -> Result<(), ()> {
-        crate::sys::serial::print(b"[E1000] TX ");
-        crate::sys::serial::print_dec(data.len() as u64);
-        crate::sys::serial::println(b" bytes");
-
         if !self.initialized.load(Ordering::SeqCst) {
-            crate::sys::serial::println(b"[E1000] TX FAIL: not initialized");
             return Err(());
         }
 
         if data.len() > RX_BUFFER_SIZE {
-            crate::sys::serial::println(b"[E1000] TX FAIL: too large");
             return Err(());
         }
 
@@ -97,7 +74,14 @@ impl E1000 {
             let tx_descs = addr_of_mut!(STATIC_TX_DESCS) as *mut [TxDesc; NUM_TX_DESC];
             let tx_bufs = addr_of_mut!(STATIC_TX_BUFS) as *mut [[u8; RX_BUFFER_SIZE]; NUM_TX_DESC];
 
+            // Bounded wait for TX descriptor availability to prevent infinite hang.
+            let mut tx_wait: u32 = 0;
             while ((*tx_descs)[cur].status & DESC_DD) == 0 {
+                tx_wait += 1;
+                if tx_wait > 1_000_000 {
+                    crate::sys::serial::println(b"[E1000] TX timeout waiting for DESC_DD");
+                    return Err(());
+                }
                 core::hint::spin_loop();
             }
 

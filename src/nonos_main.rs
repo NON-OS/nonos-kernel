@@ -451,28 +451,12 @@ fn run_desktop() -> ! {
 
     serial::println(b"[NONOS] Entering main loop");
 
-    let mut loop_counter: u64 = 0;
     loop {
-        loop_counter += 1;
-
-        if loop_counter % 1_000_000 == 0 {
-            serial::print(b".");
-        }
 
         if let Some(ch) = nonos_kernel::input::poll_keyboard_unified() {
-            serial::print(b"[KEY] ch=");
-            serial::print_dec(ch as u64);
-            serial::print(b" focused=");
-            serial::print_dec(if window::is_text_input_focused() { 1 } else { 0 });
-            serial::println(b"");
-
             if window::handle_shortcut(ch) {
-                serial::println(b"[KEY] Shortcut handled");
                 unsafe { NEEDS_REDRAW = true; }
             } else if window::is_text_input_focused() {
-                serial::print(b"[KEY->WIN] ");
-                serial::print(&[ch]);
-                serial::println(b"");
                 window::handle_key(ch);
                 unsafe { NEEDS_REDRAW = true; }
             }
@@ -683,6 +667,7 @@ fn run_desktop() -> ! {
         if now_ms >= last_clock_update + 1000 {
             last_clock_update = now_ms;
             desktop::update_clock();
+            serial::print(b".");
         }
 
         for _ in 0..100 {

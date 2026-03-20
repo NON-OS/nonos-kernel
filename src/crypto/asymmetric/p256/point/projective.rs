@@ -53,7 +53,7 @@ impl ProjectivePoint {
 
         let result = Self { x: x3, y: y3, z: z3 };
 
-        let is_id = self.z.ct_is_zero();
+        let is_id = 0u64.wrapping_sub(self.z.ct_is_zero());
         Self::ct_select(is_id, self, &result)
     }
 
@@ -90,16 +90,22 @@ impl ProjectivePoint {
 
         let double_result = self.double();
 
-        let self_is_id = self.z.ct_is_zero();
-        let other_is_id = other.z.ct_is_zero();
+        let self_is_id = 0u64.wrapping_sub(self.z.ct_is_zero());
+        let other_is_id = 0u64.wrapping_sub(other.z.ct_is_zero());
         let h_is_zero = h.ct_is_zero();
         let s_diff_is_zero = s_diff.ct_is_zero();
 
-        let mut result = Self::ct_select(self_is_id, other, &add_result);
+        // Apply selects in reverse priority order (later overwrites earlier):
+        // Lowest priority: P + (-P) = identity
+        let return_identity = 0u64.wrapping_sub(h_is_zero & (1 ^ s_diff_is_zero));
+        let mut result = Self::ct_select(return_identity, &Self::identity(), &add_result);
+        // Next: P + P = double(P)
+        let both_zero = 0u64.wrapping_sub(h_is_zero & s_diff_is_zero);
+        result = Self::ct_select(both_zero, &double_result, &result);
+        // Next: other is identity → return self
         result = Self::ct_select(other_is_id, self, &result);
-        result = Self::ct_select(h_is_zero & s_diff_is_zero, &double_result, &result);
-        let return_identity = h_is_zero & (1 ^ s_diff_is_zero);
-        result = Self::ct_select(return_identity, &Self::identity(), &result);
+        // Highest priority: self is identity → return other
+        result = Self::ct_select(self_is_id, other, &result);
 
         result
     }
@@ -120,13 +126,14 @@ impl ProjectivePoint {
             let limb_idx = i / 64;
             let bit_idx = i % 64;
             let bit = (scalar.0[limb_idx] >> bit_idx) & 1;
+            let mask = 0u64.wrapping_sub(bit);
 
             let sum = r0.add(&r1);
             let r0_double = r0.double();
             let r1_double = r1.double();
 
-            r0 = Self::ct_select(bit, &r0_double, &sum);
-            r1 = Self::ct_select(bit, &sum, &r1_double);
+            r0 = Self::ct_select(mask, &sum, &r0_double);
+            r1 = Self::ct_select(mask, &r1_double, &sum);
         }
 
         r0

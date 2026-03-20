@@ -29,9 +29,9 @@ pub fn build_client_hello(cr: &[u8; 32], sni: Option<&str>, alpn: Option<&[&str]
     let mut ext = Vec::with_capacity(256);
     ext_push(&mut ext, 0x002b, &[2, (TLS_1_3 >> 8) as u8, TLS_1_3 as u8]);
     if let Some(h) = sni { let hb = h.as_bytes(); let mut b = vec![0, 0, (hb.len() >> 8) as u8, hb.len() as u8]; b.push(0); b.extend_from_slice(&(hb.len() as u16).to_be_bytes()); b.extend_from_slice(hb); ext_push(&mut ext, 0x0000, &b[4..]); }
-    let sigs: [u16; 5] = [0x0403, 0x0804, 0x0805, 0x0806, 0x0807];
-    let mut sb = Vec::new(); sb.extend_from_slice(&10u16.to_be_bytes()); for s in sigs { sb.extend_from_slice(&s.to_be_bytes()); } ext_push(&mut ext, 0x000d, &sb);
-    let mut gb = Vec::new(); gb.extend_from_slice(&4u16.to_be_bytes()); gb.extend_from_slice(&0x001d_u16.to_be_bytes()); gb.extend_from_slice(&0x0017_u16.to_be_bytes()); ext_push(&mut ext, 0x000a, &gb);
+    let sigs: [u16; 4] = [0x0403, 0x0503, 0x0804, 0x0807];
+    let mut sb = Vec::new(); sb.extend_from_slice(&8u16.to_be_bytes()); for s in sigs { sb.extend_from_slice(&s.to_be_bytes()); } ext_push(&mut ext, 0x000d, &sb);
+    let mut gb = Vec::new(); gb.extend_from_slice(&2u16.to_be_bytes()); gb.extend_from_slice(&0x001d_u16.to_be_bytes()); ext_push(&mut ext, 0x000a, &gb);
     let mut ks = Vec::new(); ks.extend_from_slice(&0x001d_u16.to_be_bytes()); ks.extend_from_slice(&32u16.to_be_bytes()); ks.extend_from_slice(epk); let mut kb = Vec::new(); kb.extend_from_slice(&(ks.len() as u16).to_be_bytes()); kb.extend_from_slice(&ks); ext_push(&mut ext, 0x0033, &kb);
     if let Some(ps) = alpn { let mut l = Vec::new(); for p in ps { let pb = p.as_bytes(); if pb.len() < 256 { l.push(pb.len() as u8); l.extend_from_slice(pb); } } let mut ab = Vec::new(); ab.extend_from_slice(&(l.len() as u16).to_be_bytes()); ab.extend_from_slice(&l); ext_push(&mut ext, 0x0010, &ab); }
     ch.extend_from_slice(&(ext.len() as u16).to_be_bytes());

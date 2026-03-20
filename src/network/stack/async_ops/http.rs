@@ -40,6 +40,7 @@ static HTTP_REQUEST: Mutex<Vec<u8>> = Mutex::new(Vec::new());
 static HTTP_SENT: AtomicBool = AtomicBool::new(false);
 static HTTP_CONTENT_LENGTH: Mutex<Option<usize>> = Mutex::new(None);
 static HTTP_HEADERS_DONE: AtomicBool = AtomicBool::new(false);
+static HTTP_CHUNKED: AtomicBool = AtomicBool::new(false);
 
 pub fn http_start_request(addr: [u8; 4], port: u16, request: Vec<u8>) -> Result<(), &'static str> {
     let state = *HTTP_STATE.lock();
@@ -53,6 +54,7 @@ pub fn http_start_request(addr: [u8; 4], port: u16, request: Vec<u8>) -> Result<
     *HTTP_CONTENT_LENGTH.lock() = None;
     HTTP_SENT.store(false, Ordering::SeqCst);
     HTTP_HEADERS_DONE.store(false, Ordering::SeqCst);
+    HTTP_CHUNKED.store(false, Ordering::SeqCst);
     HTTP_START.store(now_ms(), Ordering::SeqCst);
 
     tcp_start_connect(addr, port)?;
@@ -127,10 +129,12 @@ pub fn http_poll() -> AsyncResult<Vec<u8>> {
                         if let Some(idx) = find_header_end(&response) {
                             let headers = &response[..idx];
                             let cl = parse_content_length(headers);
+                            let chunked = is_chunked_transfer(headers);
                             drop(response);
                             if let Some(c) = cl {
                                 *HTTP_CONTENT_LENGTH.lock() = Some(c);
                             }
+                            HTTP_CHUNKED.store(chunked, Ordering::SeqCst);
                             HTTP_HEADERS_DONE.store(true, Ordering::SeqCst);
                             *HTTP_STATE.lock() = HttpState::ReceivingBody;
                         }
@@ -142,6 +146,17 @@ pub fn http_poll() -> AsyncResult<Vec<u8>> {
                             let body_len = response.len() - (idx + 4);
                             if let Some(cl) = *HTTP_CONTENT_LENGTH.lock() {
                                 if body_len >= cl {
+                                    let result = response.clone();
+                                    drop(response);
+                                    http_cleanup();
+                                    *HTTP_STATE.lock() = HttpState::Done;
+                                    return AsyncResult::Ready(result);
+                                }
+                            } else if HTTP_CHUNKED.load(Ordering::SeqCst) {
+                                // Chunked transfer — stream ends with "0\r\n\r\n"
+                                if response.len() >= 5
+                                    && response[response.len() - 5..] == *b"0\r\n\r\n"
+                                {
                                     let result = response.clone();
                                     drop(response);
                                     http_cleanup();
@@ -207,6 +222,20 @@ fn parse_content_length(headers: &[u8]) -> Option<usize> {
         }
     }
     None
+}
+
+fn is_chunked_transfer(headers: &[u8]) -> bool {
+    let s = match core::str::from_utf8(headers) {
+        Ok(s) => s,
+        Err(_) => return false,
+    };
+    for line in s.lines() {
+        let lower = line.to_ascii_lowercase();
+        if lower.starts_with("transfer-encoding:") {
+            return lower[18..].trim().contains("chunked");
+        }
+    }
+    false
 }
 
 pub fn http_cancel() {

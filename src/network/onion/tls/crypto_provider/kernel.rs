@@ -82,4 +82,8 @@ impl TlsCrypto for KernelTlsCrypto {
     fn verify_ecdsa_p256_sha256(&self, spki_der: &[u8], msg: &[u8], sig: &[u8]) -> bool {
         crate::network::onion::nonos_crypto::ecdsa_p256_sha256_verify_spki(spki_der, msg, sig).unwrap_or(false)
     }
+
+    fn verify_ecdsa_p384_sha384(&self, spki_der: &[u8], msg: &[u8], sig: &[u8]) -> bool {
+        crate::network::onion::nonos_crypto::ecdsa_p384_sha384_verify_spki(spki_der, msg, sig).unwrap_or(false)
+    }
 }

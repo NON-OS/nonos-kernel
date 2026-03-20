@@ -1,0 +1,33 @@
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+mod constants;
+mod ecdsa;
+mod field;
+mod point;
+mod scalar;
+
+pub use constants::{PublicKey, SecretKey, Signature, CompressedPublicKey};
+
+pub use ecdsa::verify;
+
+pub use field::FieldElement;
+
+pub use point::{AffinePoint, ProjectivePoint};
+
+pub use scalar::Scalar;
+
+pub(crate) use constants::{P384_A, P384_B, P384_GX, P384_GY, P384_N, P384_P};

@@ -139,10 +139,16 @@ pub fn extract_public_key(private: &RsaPrivateKey) -> RsaPublicKey {
 }
 
 pub fn create_public_key(n_bytes: Vec<u8>, e_bytes: Vec<u8>) -> RsaPublicKey {
+    // DER integers have a leading 0x00 when the MSB is set; strip it
+    // so that `bits` reflects the true modulus size (e.g. 2048 not 2056).
+    let n_trimmed = match n_bytes.first() {
+        Some(0) if n_bytes.len() > 1 => &n_bytes[1..],
+        _ => &n_bytes,
+    };
     RsaPublicKey {
         n: BigUint::from_bytes_be(&n_bytes),
         e: BigUint::from_bytes_be(&e_bytes),
-        bits: n_bytes.len() * 8,
+        bits: n_trimmed.len() * 8,
     }
 }
 
