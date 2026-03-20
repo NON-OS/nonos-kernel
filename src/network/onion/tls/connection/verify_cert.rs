@@ -26,7 +26,7 @@ impl TLSConnection {
         let alg = self.cert_verify_alg.ok_or_else(|| { self.phase = HandshakePhase::Failed; OnionError::AuthenticationFailed })?;
         let leaf = X509::parse_der(&self.server_certs[0])?;
         let (pk_kind, pk_bytes) = X509::public_key_info(&leaf)?;
-        let to_be_signed = build_cert_verify_context(self.transcript.hash());
+        let to_be_signed = build_cert_verify_context(&self.cert_verify_hash);
         let c = crypto();
         let ok = match alg {
             0x0807 => pk_kind == PublicKeyKind::Ed25519 && c.verify_ed25519(&pk_bytes, &to_be_signed, &self.cert_verify_sig),

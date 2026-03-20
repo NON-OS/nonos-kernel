@@ -47,6 +47,7 @@ pub struct TLSConnection {
     pub(super) server_certs: Vec<Vec<u8>>,
     pub(super) cert_verify_alg: Option<u16>,
     pub(super) cert_verify_sig: Vec<u8>,
+    pub(super) cert_verify_hash: [u8; 32],
     pub(super) got_finished: bool,
     pub(super) recv_buffer: Vec<u8>,
 }
@@ -57,6 +58,10 @@ impl Drop for TLSConnection {
             unsafe { core::ptr::write_volatile(byte, 0) };
         }
         for byte in self.client_random.iter_mut() {
+            unsafe { core::ptr::write_volatile(byte, 0) };
+        }
+        for byte in self.cert_verify_hash.iter_mut() {
+            // SAFETY: volatile write prevents compiler from optimizing away the zeroization
             unsafe { core::ptr::write_volatile(byte, 0) };
         }
         core::sync::atomic::compiler_fence(core::sync::atomic::Ordering::SeqCst);
