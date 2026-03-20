@@ -48,6 +48,7 @@ impl NetworkStack {
         use super::super::types::TcpSocket;
 
         let timeout = (timeout_ms as u64).clamp(5_000, 120_000);
+        let recv_slice_timeout_ms = 250u64;
 
         let stack_sock = TcpSocket::new();
         self.tcp_connect(&stack_sock, addr, port)?;
@@ -72,7 +73,7 @@ impl NetworkStack {
         let start = now_ms();
 
         for _ in 0..5000 {
-            let chunk = self.tcp_receive(conn_id, 4096)?;
+            let chunk = self.tcp_receive_with_timeout(conn_id, 4096, recv_slice_timeout_ms)?;
             if !chunk.is_empty() {
                 let mut cur = chunk.as_slice();
                 while cur.len() >= 5 {
@@ -141,6 +142,7 @@ impl NetworkStack {
      */
     pub fn http_request(&self, addr: [u8; 4], port: u16, req: &[u8], timeout_ms: u32) -> Result<Vec<u8>, &'static str> {
         let timeout = (timeout_ms as u64).clamp(2_000, 120_000);
+        let recv_slice_timeout_ms = 250u64;
         let tmp = TcpSocket::new();
         self.tcp_connect(&tmp, addr, port)?;
         let id = tmp.connection_id();
@@ -156,7 +158,7 @@ impl NetworkStack {
         let mut iterations = 0u32;
 
         loop {
-            let chunk = self.tcp_receive(id, 4096)?;
+            let chunk = self.tcp_receive_with_timeout(id, 4096, recv_slice_timeout_ms)?;
             if !chunk.is_empty() {
                 if buf.len() + chunk.len() > CAP { let _ = self.tcp_close(id); return Err("http cap exceeded"); }
                 buf.extend_from_slice(&chunk);

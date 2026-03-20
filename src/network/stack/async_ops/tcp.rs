@@ -42,7 +42,7 @@ pub fn tcp_start_connect(addr: [u8; 4], port: u16) -> Result<u32, &'static str> 
     let rx = tcp::SocketBuffer::new(vec![0; 8192]);
     let tx = tcp::SocketBuffer::new(vec![0; 8192]);
     let mut socket = tcp::Socket::new(rx, tx);
-    socket.set_timeout(Some(smoltcp::time::Duration::from_millis(5000)));
+    socket.set_timeout(Some(smoltcp::time::Duration::from_millis(15_000)));
     let handle = sockets.add(socket);
 
     {
@@ -91,7 +91,9 @@ pub fn tcp_poll_connect() -> AsyncResult<()> {
     }
 
     let elapsed = now_ms().saturating_sub(TCP_CONN_START.load(Ordering::SeqCst));
-    if elapsed > 3000 {
+    // 10s matches the DNS timeout — 3s was too aggressive for a poll-driven
+    // stack where the main-loop polling interval is not guaranteed.
+    if elapsed > 10_000 {
         tcp_cleanup();
         return AsyncResult::Error("tcp connect timeout");
     }
@@ -147,7 +149,13 @@ pub fn tcp_send(data: &[u8]) -> Result<usize, &'static str> {
     }
 
     match s.send_slice(data) {
-        Ok(n) => Ok(n),
+        Ok(n) => {
+            // Drop the sockets lock before polling so poll_interface can
+            // re-acquire it to actually transmit the buffered data.
+            drop(sockets);
+            ns.poll();
+            Ok(n)
+        }
         Err(_) => Err("send failed"),
     }
 }

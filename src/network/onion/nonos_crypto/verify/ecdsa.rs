@@ -15,11 +15,14 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::crypto::asymmetric::p256;
+use crate::crypto::asymmetric::p384;
 use crate::crypto::hash::sha256;
+use crate::crypto::hash::sha384::sha384;
 use crate::network::onion::OnionError;
 use crate::sys::serial;
 use super::ec_point::extract_ec_point;
 use super::sig_der::parse_ecdsa_signature_der;
+use super::sig_der::parse_ecdsa_signature_der_p384;
 
 pub fn ecdsa_p256_sha256_verify_spki(public_key: &[u8], message: &[u8], signature: &[u8]) -> Result<bool, OnionError> {
     serial::print(b"[ECDSA] pk_len=");
@@ -63,6 +66,37 @@ pub fn ecdsa_p256_sha256_verify_spki(public_key: &[u8], message: &[u8], signatur
     let pk: [u8; 65] = point_bytes.as_slice().try_into().map_err(|_| OnionError::CryptoError)?;
     let result = p256::verify(&pk, &hash, &sig_fixed);
     serial::print(b"[ECDSA] verify result=");
+    serial::println(if result { b"true" } else { b"false" });
+    Ok(result)
+}
+
+pub fn ecdsa_p384_sha384_verify_spki(public_key: &[u8], message: &[u8], signature: &[u8]) -> Result<bool, OnionError> {
+    if public_key.is_empty() || message.is_empty() || signature.is_empty() {
+        serial::println(b"[ECDSA384] empty input");
+        return Ok(false);
+    }
+    let point_bytes = extract_ec_point(public_key)?;
+    serial::print(b"[ECDSA384] point_len=");
+    serial::print_dec(point_bytes.len() as u64);
+    serial::println(b"");
+    if point_bytes.len() != 97 || point_bytes[0] != 0x04 {
+        serial::println(b"[ECDSA384] point not P-384 uncompressed, reject");
+        return Ok(false);
+    }
+    let sig_fixed = match parse_ecdsa_signature_der_p384(signature) {
+        Ok(s) => s,
+        Err(e) => {
+            serial::print(b"[ECDSA384] sig parse failed, sig_len=");
+            serial::print_dec(signature.len() as u64);
+            serial::println(b"");
+            return Err(e);
+        }
+    };
+    serial::println(b"[ECDSA384] sig parsed ok");
+    let hash = sha384(message);
+    let pk: [u8; 97] = point_bytes.as_slice().try_into().map_err(|_| OnionError::CryptoError)?;
+    let result = p384::verify(&pk, &hash, &sig_fixed);
+    serial::print(b"[ECDSA384] p384_verify=");
     serial::println(if result { b"true" } else { b"false" });
     Ok(result)
 }

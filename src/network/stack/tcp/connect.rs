@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use alloc::vec;
+use core::sync::atomic::{AtomicU64, Ordering as AtomicOrdering};
 use core::sync::atomic::Ordering;
 
 use smoltcp::iface::SocketHandle;
@@ -26,6 +27,26 @@ use super::config::get_config;
 use crate::network::stack::core::NetworkStack;
 use crate::network::stack::device::now_ms;
 use crate::network::stack::types::ConnectionEntry;
+
+static TCP_CONNECT_WAIT_LOGS: AtomicU64 = AtomicU64::new(0);
+static TCP_CONNECT_TIMEOUT_LOGS: AtomicU64 = AtomicU64::new(0);
+
+#[inline]
+fn tcp_state_code(state: tcp::State) -> u64 {
+    match state {
+        tcp::State::Closed => 0,
+        tcp::State::Listen => 1,
+        tcp::State::SynSent => 2,
+        tcp::State::SynReceived => 3,
+        tcp::State::Established => 4,
+        tcp::State::FinWait1 => 5,
+        tcp::State::FinWait2 => 6,
+        tcp::State::CloseWait => 7,
+        tcp::State::Closing => 8,
+        tcp::State::LastAck => 9,
+        tcp::State::TimeWait => 10,
+    }
+}
 
 pub fn connect_v4(stack: &NetworkStack, addr_v4: [u8; 4], port: u16) -> Result<u32, &'static str> {
     let cfg = get_config();
@@ -89,10 +110,42 @@ fn initiate_connection_v4(stack: &NetworkStack, handle: SocketHandle, addr: [u8;
         SmolIpAddress::Ipv4(SmolIpv4Address::new(addr[0], addr[1], addr[2], addr[3])),
         port,
     );
-    let local = (SmolIpAddress::Ipv4(SmolIpv4Address::UNSPECIFIED), 0);
+    let local_unspec = (SmolIpAddress::Ipv4(SmolIpv4Address::UNSPECIFIED), 0);
     let mut ctx = iface.context();
 
-    socket.connect(&mut ctx, remote, local).map_err(|_| "tcp connect initiation failed")
+    match socket.connect(&mut ctx, remote, local_unspec) {
+        Ok(()) => Ok(()),
+        Err(tcp::ConnectError::Unaddressable) => {
+            if let Some((local_ip, _prefix)) = stack.get_ipv4_config() {
+                let local = (
+                    SmolIpAddress::Ipv4(SmolIpv4Address::new(local_ip[0], local_ip[1], local_ip[2], local_ip[3])),
+                    0,
+                );
+                let mut retry_ctx = iface.context();
+                match socket.connect(&mut retry_ctx, remote, local) {
+                    Ok(()) => {
+                        crate::sys::serial::println(b"[TCP] connect_v4 retry with explicit local ip succeeded");
+                        Ok(())
+                    }
+                    Err(tcp::ConnectError::InvalidState) => {
+                        crate::sys::serial::println(b"[TCP] connect_v4 initiate failed reason=invalid_state");
+                        Err("tcp connect invalid state")
+                    }
+                    Err(tcp::ConnectError::Unaddressable) => {
+                        crate::sys::serial::println(b"[TCP] connect_v4 initiate failed reason=unaddressable");
+                        Err("tcp connect unaddressable")
+                    }
+                }
+            } else {
+                crate::sys::serial::println(b"[TCP] connect_v4 initiate failed reason=unaddressable_no_local_ip");
+                Err("tcp connect unaddressable")
+            }
+        }
+        Err(tcp::ConnectError::InvalidState) => {
+            crate::sys::serial::println(b"[TCP] connect_v4 initiate failed reason=invalid_state");
+            Err("tcp connect invalid state")
+        }
+    }
 }
 
 fn initiate_connection_v6(stack: &NetworkStack, handle: SocketHandle, addr: [u8; 16], port: u16) -> Result<(), &'static str> {
@@ -107,7 +160,21 @@ fn initiate_connection_v6(stack: &NetworkStack, handle: SocketHandle, addr: [u8;
     let local = (SmolIpAddress::Ipv6(SmolIpv6Address::UNSPECIFIED), 0);
     let mut ctx = iface.context();
 
-    socket.connect(&mut ctx, remote, local).map_err(|_| "tcp connect initiation failed")
+    socket.connect(&mut ctx, remote, local).map_err(|e| {
+        crate::sys::serial::print(b"[TCP] connect_v6 initiate failed port=");
+        crate::sys::serial::print_dec(port as u64);
+        crate::sys::serial::print(b" reason=");
+        match e {
+            tcp::ConnectError::InvalidState => {
+                crate::sys::serial::println(b"invalid_state");
+                "tcp connect invalid state"
+            }
+            tcp::ConnectError::Unaddressable => {
+                crate::sys::serial::println(b"unaddressable");
+                "tcp connect unaddressable"
+            }
+        }
+    })
 }
 
 fn register_connection(stack: &NetworkStack, conn_id: u32, handle: SocketHandle) {
@@ -124,6 +191,8 @@ fn wait_for_established(stack: &NetworkStack, handle: SocketHandle, timeout_ms: 
     let start = now_ms();
     let poll_interval_us = 1_000u64;
     let mut backoff_multiplier = 1u64;
+    let mut wait_logged = false;
+    let mut last_state_code = u64::MAX;
 
     loop {
         stack.poll();
@@ -131,18 +200,47 @@ fn wait_for_established(stack: &NetworkStack, handle: SocketHandle, timeout_ms: 
         {
             let sockets = stack.sockets.lock();
             let socket: &tcp::Socket = sockets.get(handle);
+            let state = socket.state();
+            let state_code = tcp_state_code(state);
+
+            if state_code != last_state_code {
+                crate::sys::serial::print(b"[TCP] connect state=");
+                crate::sys::serial::print_dec(state_code);
+                crate::sys::serial::println(b"");
+                last_state_code = state_code;
+            }
 
             if socket.is_active() && socket.may_send() {
                 return Ok(());
             }
 
-            if socket.state() == tcp::State::Closed {
+            if state == tcp::State::Closed {
                 return Err("connection refused");
             }
         }
 
         let elapsed = now_ms().saturating_sub(start);
+        if !wait_logged && elapsed >= 250 {
+            let idx = TCP_CONNECT_WAIT_LOGS.fetch_add(1, AtomicOrdering::Relaxed);
+            if idx < 128 {
+                crate::sys::serial::print(b"[TCP] connect waiting elapsed_ms=");
+                crate::sys::serial::print_dec(elapsed);
+                crate::sys::serial::print(b" state=");
+                crate::sys::serial::print_dec(last_state_code);
+                crate::sys::serial::println(b"");
+            }
+            wait_logged = true;
+        }
+
         if elapsed >= timeout_ms {
+            let idx = TCP_CONNECT_TIMEOUT_LOGS.fetch_add(1, AtomicOrdering::Relaxed);
+            if idx < 64 {
+                crate::sys::serial::print(b"[TCP] connect timeout elapsed_ms=");
+                crate::sys::serial::print_dec(elapsed);
+                crate::sys::serial::print(b" state=");
+                crate::sys::serial::print_dec(last_state_code);
+                crate::sys::serial::println(b"");
+            }
             return Err("tcp connect timeout");
         }
 

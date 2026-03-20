@@ -19,6 +19,7 @@ extern crate alloc;
 
 use alloc::vec;
 use alloc::vec::Vec;
+use core::sync::atomic::{AtomicU32, Ordering};
 use spin::Once;
 use smoltcp::{
     phy::{ChecksumCapabilities, DeviceCapabilities, Medium, RxToken, TxToken, Device},
@@ -37,6 +38,14 @@ pub trait SmolDevice: Send + Sync + 'static {
     fn mac(&self) -> [u8; 6];
     fn link_mtu(&self) -> usize { 1500 }
 }
+
+/// Counter for receive() calls within a single iface.poll() invocation.
+/// Reset by poll_interface() before calling iface.poll().
+pub(super) static RECV_CALL_COUNT: AtomicU32 = AtomicU32::new(0);
+
+/// Maximum frames processed per single iface.poll() invocation.
+/// Twice the RX ring size (32) is generous for normal traffic.
+pub(super) const MAX_RECV_PER_POLL: u32 = 64;
 
 pub(super) static DEVICE_SLOT: Once<&'static dyn SmolDevice> = Once::new();
 
@@ -71,6 +80,11 @@ impl Device for SmolDeviceAdapter {
     }
 
     fn receive(&mut self, _ts: SmolInstant) -> Option<(Self::RxToken<'_>, Self::TxToken<'_>)> {
+        // Cap frames per iface.poll() to prevent infinite packet-bounce loops.
+        let count = RECV_CALL_COUNT.fetch_add(1, Ordering::Relaxed);
+        if count >= MAX_RECV_PER_POLL {
+            return None;
+        }
         if let Some(dev) = DEVICE_SLOT.get() {
             if let Some(frame) = dev.recv() {
                 crate::sys::serial::print(b"[NET] RX frame ");

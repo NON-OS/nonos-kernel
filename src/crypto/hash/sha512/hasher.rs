@@ -38,6 +38,12 @@ impl Sha512 {
         }
     }
 
+    /// Override initial hash state (used by SHA-384 which shares the
+    /// SHA-512 compression function but starts with a different IV).
+    pub fn set_state(&mut self, iv: [u64; 8]) {
+        self.state = iv;
+    }
+
     pub fn reset(&mut self) {
         for v in &mut self.state {
             // SAFETY: volatile write ensures zeroization isn't optimized out

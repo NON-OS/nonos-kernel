@@ -27,7 +27,7 @@ pub fn now_ns() -> u64 {
         tsc_freq = 2_500_000_000;
     }
     let tsc_diff = current_tsc.saturating_sub(boot_tsc);
-    (tsc_diff * 1_000_000_000) / tsc_freq
+    ((tsc_diff as u128 * 1_000_000_000u128) / tsc_freq as u128) as u64
 }
 
 pub fn is_initialized() -> bool {

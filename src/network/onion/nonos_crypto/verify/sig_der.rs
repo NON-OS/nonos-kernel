@@ -68,3 +68,34 @@ pub(super) fn parse_ecdsa_signature_der(sig: &[u8]) -> Result<[u8; 64], OnionErr
     serial::println(b"");
     Ok(result)
 }
+
+pub(super) fn parse_ecdsa_signature_der_p384(sig: &[u8]) -> Result<[u8; 96], OnionError> {
+    if sig.len() == 96 {
+        let mut result = [0u8; 96];
+        result.copy_from_slice(sig);
+        return Ok(result);
+    }
+    let mut parser = DerParser::new(sig);
+    parser.expect_sequence()?;
+    let _seq_len = parser.read_length()?;
+    parser.expect_tag(0x02)?;
+    let r_len = parser.read_length()?;
+    let r_bytes = parser.read_bytes(r_len)?;
+    parser.expect_tag(0x02)?;
+    let s_len = parser.read_length()?;
+    let s_bytes = parser.read_bytes(s_len)?;
+    let mut result = [0u8; 96];
+    let r_stripped = strip_leading_zeros(r_bytes);
+    if r_stripped.len() > 48 {
+        return Err(OnionError::CryptoError);
+    }
+    let r_offset = 48 - r_stripped.len();
+    result[r_offset..48].copy_from_slice(r_stripped);
+    let s_stripped = strip_leading_zeros(s_bytes);
+    if s_stripped.len() > 48 {
+        return Err(OnionError::CryptoError);
+    }
+    let s_offset = 48 - s_stripped.len();
+    result[48 + s_offset..96].copy_from_slice(s_stripped);
+    Ok(result)
+}

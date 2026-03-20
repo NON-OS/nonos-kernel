@@ -55,7 +55,7 @@ pub fn cmd_curl(cmd: &[u8]) {
         let url_len = url.len().min(50);
         line[14..14 + url_len].copy_from_slice(&url.as_bytes()[..url_len]);
         print_line(&line[..14 + url_len], COLOR_TEXT_DIM);
-        print_line(b"> Routing through NYM Mixnet...", COLOR_TEXT_DIM);
+        print_line(b"> Routing through Tor...", COLOR_TEXT_DIM);
     }
 
     let mut options = crate::network::http_client::HttpRequestOptions::default();
@@ -98,11 +98,11 @@ pub fn cmd_curl(cmd: &[u8]) {
         }
         Err(e) => {
             let mut err_line = [0u8; 64];
-            err_line[..7].copy_from_slice(b"curl: ");
+            err_line[..6].copy_from_slice(b"curl: ");
             let e_bytes = e.as_bytes();
             let e_len = e_bytes.len().min(50);
-            err_line[7..7 + e_len].copy_from_slice(&e_bytes[..e_len]);
-            print_line(&err_line[..7 + e_len], COLOR_RED);
+            err_line[6..6 + e_len].copy_from_slice(&e_bytes[..e_len]);
+            print_line(&err_line[..6 + e_len], COLOR_RED);
         }
     }
 }

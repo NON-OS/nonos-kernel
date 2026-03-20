@@ -108,12 +108,27 @@ pub fn get_network_stack() -> Option<&'static NetworkStack> {
 }
 
 impl NetworkStack {
+    /// Maximum rounds of re-polling when a burst saturates `MAX_RECV_PER_POLL`.
+    const MAX_POLL_ROUNDS: u32 = 3;
+
     #[inline]
     pub fn poll_interface(&self) {
-        let ts = SmolInstant::from_millis(now_ms() as i64);
         let mut iface = self.iface.lock();
         let mut sockets = self.sockets.lock();
-        let _activity = iface.poll(ts, &mut SmolDeviceAdapter, &mut *sockets);
+
+        for _ in 0..Self::MAX_POLL_ROUNDS {
+            let ts = SmolInstant::from_millis(now_ms() as i64);
+            super::device::RECV_CALL_COUNT.store(0, core::sync::atomic::Ordering::Relaxed);
+            let _activity = iface.poll(ts, &mut SmolDeviceAdapter, &mut *sockets);
+
+            let consumed = super::device::RECV_CALL_COUNT.load(core::sync::atomic::Ordering::Relaxed);
+            if consumed < super::device::MAX_RECV_PER_POLL {
+                break;
+            }
+        }
+
+        drop(sockets);
+        drop(iface);
     }
 
     #[inline]
