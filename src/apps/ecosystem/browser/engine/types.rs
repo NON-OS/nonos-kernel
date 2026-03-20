@@ -103,6 +103,7 @@ pub struct TextStyle {
     pub underline: bool,
     pub heading_level: u8,
     pub monospace: bool,
+    pub bg_color: Option<u32>,
 }
 
 #[derive(Debug, Clone)]

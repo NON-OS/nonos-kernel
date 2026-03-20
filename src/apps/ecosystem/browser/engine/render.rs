@@ -43,6 +43,10 @@ pub fn render_page(html: &str, viewport_width: u32) -> RenderOutput {
     enum ListCtx { Unordered, Ordered(u32) }
     let mut list_stack: Vec<ListCtx> = Vec::new();
 
+    // Blockquote indentation level
+    let mut indent_level: u32 = 0;
+    let indent_px: u32 = 30;
+
     let mut node_queue: VecDeque<(&Node, bool)> = VecDeque::new();
     node_queue.push_back((&document.root, false));
 
@@ -89,6 +93,19 @@ pub fn render_page(html: &str, viewport_width: u32) -> RenderOutput {
                             current_style = s;
                         }
                     }
+                    "blockquote" => {
+                        if !current_line_elements.is_empty() {
+                            lines.push(RenderLine {
+                                y: current_y,
+                                elements: core::mem::take(&mut current_line_elements),
+                            });
+                            current_y += line_height;
+                            current_x = 0;
+                        }
+                        if indent_level > 0 {
+                            indent_level -= 1;
+                        }
+                    }
                     "p" | "div" | "li" | "tr" | "table" | "nav" | "header"
                     | "footer" | "section" | "article" | "aside" | "main"
                     | "figure" | "details" => {
@@ -125,11 +142,12 @@ pub fn render_page(html: &str, viewport_width: u32) -> RenderOutput {
                     continue;
                 }
 
+                let extra_margin = indent_level * indent_px;
                 let words: Vec<&str> = text.split_whitespace().collect();
                 for word in words {
                     let word_width = (word.len() as u32) * char_width;
 
-                    if current_x + word_width > usable_width && current_x > 0 {
+                    if current_x + word_width > usable_width.saturating_sub(extra_margin) && current_x > 0 {
                         lines.push(RenderLine {
                             y: current_y,
                             elements: core::mem::take(&mut current_line_elements),
@@ -139,7 +157,7 @@ pub fn render_page(html: &str, viewport_width: u32) -> RenderOutput {
                     }
 
                     current_line_elements.push(RenderElement {
-                        x: margin + current_x,
+                        x: margin + extra_margin + current_x,
                         width: word_width + char_width,
                         content: RenderContent::Text {
                             text: alloc::format!("{} ", word),
@@ -255,6 +273,7 @@ pub fn render_page(html: &str, viewport_width: u32) -> RenderOutput {
                     "code" | "pre" => {
                         style_stack.push(current_style);
                         current_style.monospace = true;
+                        current_style.bg_color = Some(0xFF2C2C2E);
                     }
 
                     "a" => {
@@ -415,6 +434,57 @@ pub fn render_page(html: &str, viewport_width: u32) -> RenderOutput {
                         list_stack.push(ListCtx::Ordered(1));
                     }
 
+                    // Blockquote: increase indent
+                    "blockquote" => {
+                        if !current_line_elements.is_empty() {
+                            lines.push(RenderLine {
+                                y: current_y,
+                                elements: core::mem::take(&mut current_line_elements),
+                            });
+                            current_y += line_height;
+                            current_x = 0;
+                        }
+                        indent_level += 1;
+                    }
+
+                    // Select: render first option as placeholder
+                    "select" => {
+                        let first_option = node.children.iter()
+                            .find(|c| matches!(&c.node_type, NodeType::Element(t) if t == "option"))
+                            .map(|c| extract_text(c))
+                            .unwrap_or_else(|| String::from("..."));
+                        let label = alloc::format!("[v {}] ", first_option);
+                        let lw = (label.len() as u32) * char_width;
+                        current_line_elements.push(RenderElement {
+                            x: margin + current_x,
+                            width: lw,
+                            content: RenderContent::Input {
+                                name: get_attribute(node, "name").unwrap_or_default(),
+                                width: lw,
+                            },
+                        });
+                        current_x += lw + char_width;
+                        continue;
+                    }
+
+                    // Textarea: render as multi-line input placeholder
+                    "textarea" => {
+                        let placeholder = get_attribute(node, "placeholder")
+                            .unwrap_or_else(|| String::from("..."));
+                        let label = alloc::format!("[TEXTAREA: {}] ", placeholder);
+                        let lw = (label.len() as u32) * char_width;
+                        current_line_elements.push(RenderElement {
+                            x: margin + current_x,
+                            width: lw,
+                            content: RenderContent::Input {
+                                name: get_attribute(node, "name").unwrap_or_default(),
+                                width: lw,
+                            },
+                        });
+                        current_x += lw + char_width;
+                        continue;
+                    }
+
                     // Table: block element, line break before
                     "table" => {
                         if !current_line_elements.is_empty() {
@@ -532,8 +602,16 @@ pub fn render_to_lines_with_links(html: &str) -> (Vec<String>, Vec<(usize, u32, 
                         line_text.push_str("**");
                         current_char_pos += 2;
                     }
+                    if style.monospace {
+                        line_text.push('`');
+                        current_char_pos += 1;
+                    }
                     line_text.push_str(text);
                     current_char_pos += text.len() as u32;
+                    if style.monospace {
+                        line_text.push('`');
+                        current_char_pos += 1;
+                    }
                     if style.bold {
                         line_text.push_str("**");
                         current_char_pos += 2;

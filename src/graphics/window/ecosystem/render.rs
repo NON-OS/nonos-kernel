@@ -35,6 +35,8 @@ use crate::graphics::font::draw_char;
 const COLOR_BG: u32 = 0xFF000000;
 const COLOR_URL_BAR: u32 = 0xFF2C2C2E;
 const COLOR_URL_TEXT: u32 = 0xFFFFFFFF;
+const COLOR_CODE_BG: u32 = 0xFF2C2C2E;
+const COLOR_CODE_FG: u32 = 0xFFFF8C00;
 
 pub fn draw(x: u32, y: u32, w: u32, h: u32) {
     fill_rect(x, y, w, h, COLOR_BG);
@@ -215,6 +217,31 @@ fn draw_styled_line(x: u32, y: u32, text: &[u8], max_width: u32) {
             current_x += 8;
             char_count += 1;
             i += 3;
+        } else if text[i] == b'`' {
+            // Code span: draw with dark background
+            i += 1;
+            let code_start_x = current_x;
+            while i < text.len() && text[i] != b'`' && char_count < max_chars {
+                draw_char(current_x, y, text[i], COLOR_CODE_FG);
+                current_x += 8;
+                char_count += 1;
+                i += 1;
+            }
+            // Fill background behind code chars
+            let code_w = current_x.saturating_sub(code_start_x);
+            if code_w > 0 {
+                fill_rect(code_start_x, y, code_w, 16, COLOR_CODE_BG);
+                // Re-draw chars on top of background
+                let mut rx = code_start_x;
+                let re_start = i.saturating_sub((code_w / 8) as usize);
+                for &ch in &text[re_start..i] {
+                    draw_char(rx, y, ch, COLOR_CODE_FG);
+                    rx += 8;
+                }
+            }
+            if i < text.len() && text[i] == b'`' {
+                i += 1;
+            }
         } else {
             let color = if is_heading {
                 COLOR_HEADING

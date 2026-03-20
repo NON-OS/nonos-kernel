@@ -47,22 +47,22 @@
   - [x] In renderer: parse `style` attribute on elements
   - [x] If `display:none` found, skip node and all children
   - [x] If `visibility:hidden` found, skip node and all children
-- [ ] **2.3** `<blockquote>` indentation
-  - [ ] Push indentation level onto a stack when entering `<blockquote>`
-  - [ ] Add extra left margin (e.g. `+30px`) per nesting level
-  - [ ] Pop on `</blockquote>`
+- [x] **2.3** `<blockquote>` indentation
+  - [x] Push indentation level onto a stack when entering `<blockquote>`
+  - [x] Add extra left margin (e.g. `+30px`) per nesting level
+  - [x] Pop on `</blockquote>`
 - [x] **2.4** List item bullet points
   - [x] Track list context: `<ul>` vs `<ol>` with counter
   - [x] `<li>` inside `<ul>` → prepend "• "
   - [x] `<li>` inside `<ol>` → prepend "N. " with incrementing counter
   - [x] Reset counter on `</ol>`
-- [ ] **2.5** Background colors for `<code>` and headings
-  - [ ] Add `bg_color: Option<u32>` field to `TextStyle`
-  - [ ] Set dark-grey background on `<code>` / `<pre>` blocks
-  - [ ] Render filled rect behind text in the UI draw layer
-- [ ] **2.6** `<select>` / `<textarea>` basic rendering
-  - [ ] `<select>` → render as dropdown placeholder showing first `<option>` text
-  - [ ] `<textarea>` → render as multi-line input box with placeholder
+- [x] **2.5** Background colors for `<code>` and headings
+  - [x] Add `bg_color: Option<u32>` field to `TextStyle`
+  - [x] Set dark-grey background on `<code>` / `<pre>` blocks
+  - [x] Render filled rect behind text in the UI draw layer
+- [x] **2.6** `<select>` / `<textarea>` basic rendering
+  - [x] `<select>` → render as dropdown placeholder showing first `<option>` text
+  - [x] `<textarea>` → render as multi-line input box with placeholder
 
 ### Tier 3 — Layout Engine Foundations
 
