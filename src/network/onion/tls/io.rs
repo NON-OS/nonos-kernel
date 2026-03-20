@@ -44,7 +44,7 @@ pub(super) fn write_all(sock: &TcpSocket, data: &[u8], timeout_ms: u64) -> Resul
 pub(super) fn try_read(sock: &TcpSocket, dst: &mut [u8]) -> Result<usize, OnionError> {
     if let Some(net) = get_network_stack() {
         poll_network();
-        match net.tcp_receive(sock.connection_id(), dst.len()) {
+        match net.tcp_try_receive(sock.connection_id(), dst.len()) {
             Ok(buf) if !buf.is_empty() => {
                 let n = min(dst.len(), buf.len());
                 dst[..n].copy_from_slice(&buf[..n]);

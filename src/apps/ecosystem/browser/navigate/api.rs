@@ -49,12 +49,24 @@ pub fn navigate(url: &str) {
     }
 
     cancel_navigation();
+    REDIRECT_COUNT.store(0, Ordering::Relaxed);
 
     window_state::LOADING.store(true, Ordering::Relaxed);
     window_state::clear_error();
     window_state::IS_HTTPS.store(false, Ordering::Relaxed);
     window_state::CERT_VERIFIED.store(false, Ordering::Relaxed);
 
+    navigate_core(url);
+}
+
+/// Called by redirect logic — skips the is_navigating guard and preserves
+/// the redirect counter so the chain can continue.
+pub(super) fn navigate_internal(url: &str) {
+    window_state::set_url(url);
+    navigate_core(url);
+}
+
+fn navigate_core(url: &str) {
     let parts = match parse_url(url) {
         Some(p) => p,
         None => {
@@ -90,9 +102,20 @@ pub fn navigate(url: &str) {
     set_state(NavState::ResolvingDns);
 }
 
+static POLL_DBG_CTR: core::sync::atomic::AtomicU32 = core::sync::atomic::AtomicU32::new(0);
+
 pub fn poll_navigation() {
-    use crate::sys::serial;
     let state = get_state();
+
+    // Print state once per ~5000 polls to avoid serial flood
+    let ctr = POLL_DBG_CTR.fetch_add(1, core::sync::atomic::Ordering::Relaxed);
+    if ctr % 5000 == 0 && state != NavState::Idle && state != NavState::Done {
+        crate::sys::serial::print(b"[NAV] state=");
+        crate::sys::serial::print_dec(state as u8 as u64);
+        crate::sys::serial::print(b" t=");
+        crate::sys::serial::print_dec(crate::time::timestamp_millis());
+        crate::sys::serial::println(b"");
+    }
 
     match state {
         NavState::Idle | NavState::Done => {}
@@ -123,22 +146,21 @@ pub fn poll_navigation() {
         }
 
         NavState::SendingRequest => {
-            serial::println(b"[NAV] SendingRequest");
             poll_send_request();
         }
 
         NavState::ReceivingResponse => {
-            serial::println(b"[NAV] ReceivingResponse");
             poll_receive_response();
         }
 
         NavState::ProcessingResponse => {
-            serial::println(b"[NAV] ProcessingResponse");
             process_response();
         }
 
         NavState::Error => {
             if let Some(e) = *NAV_ERROR.lock() {
+                crate::sys::serial::print(b"[NAV] ERROR: ");
+                crate::sys::serial::println(e.as_bytes());
                 let error_msg = match e {
                     "dns timeout" => "DNS resolution timed out",
                     "no dns records" => "Domain not found",
@@ -186,6 +208,19 @@ pub fn cancel_navigation() {
 fn start_connection(ip: [u8; 4]) {
     let port = *PENDING_PORT.lock();
     let is_https = PENDING_HTTPS.load(Ordering::Relaxed);
+
+    crate::sys::serial::print(b"[NAV] start_connection ip=");
+    crate::sys::serial::print_dec(ip[0] as u64);
+    crate::sys::serial::print(b".");
+    crate::sys::serial::print_dec(ip[1] as u64);
+    crate::sys::serial::print(b".");
+    crate::sys::serial::print_dec(ip[2] as u64);
+    crate::sys::serial::print(b".");
+    crate::sys::serial::print_dec(ip[3] as u64);
+    crate::sys::serial::print(b" port=");
+    crate::sys::serial::print_dec(port as u64);
+    crate::sys::serial::print(b" https=");
+    crate::sys::serial::println(if is_https { b"true" } else { b"false" });
 
     if is_https {
         start_https_connection(ip, port);

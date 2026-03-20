@@ -19,3 +19,4 @@ pub mod ed25519;
 pub mod curve25519;
 pub mod p256;
 pub mod secp256k1;
+pub mod p384;

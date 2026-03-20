@@ -51,8 +51,8 @@ pub fn dns_start_query(hostname: &str) -> Result<(), &'static str> {
     }
 
     let mut sockets = ns.sockets.lock();
-    let rx = PacketBuffer::new(vec![PacketMetadata::EMPTY; 4], vec![0; 1024]);
-    let tx = PacketBuffer::new(vec![PacketMetadata::EMPTY; 4], vec![0; 1024]);
+    let rx = PacketBuffer::new(vec![PacketMetadata::EMPTY; 8], vec![0; 1536]);
+    let tx = PacketBuffer::new(vec![PacketMetadata::EMPTY; 8], vec![0; 1536]);
     let handle = sockets.add(udp::Socket::new(rx, tx));
 
     let server = *ns.default_dns_v4.lock();
@@ -77,6 +77,13 @@ pub fn dns_start_query(hostname: &str) -> Result<(), &'static str> {
     DNS_QUERY_START.store(now_ms(), Ordering::SeqCst);
     DNS_QUERY_SENT.store(true, Ordering::SeqCst);
     DNS_QUERY_ACTIVE.store(true, Ordering::SeqCst);
+
+    // Reset poll counter for clean per-query logging
+    DNS_POLL_COUNT.store(0, Ordering::Relaxed);
+
+    // Flush the DNS query immediately — mirrors the sync path which calls
+    // self.poll() in a tight loop right after enqueuing the query.
+    ns.poll();
 
     Ok(())
 }
@@ -142,26 +149,54 @@ pub fn dns_poll() -> AsyncResult<[u8; 4]> {
     let mut sockets = ns.sockets.lock();
     let s: &mut udp::Socket = sockets.get_mut(handle);
 
-    if let Ok((data, _ep)) = s.recv() {
-        match parse_dns_response_a(data) {
-            Ok(addrs) => {
-                drop(sockets);
-                if let Some(ip) = addrs.first() {
-                    let ip = *ip;
-                    *DNS_RESULT.lock() = Some(addrs);
+    match s.recv() {
+        Ok((data, _ep)) => {
+            crate::sys::serial::print(b"[DNS] recv OK len=");
+            crate::sys::serial::print_dec(data.len() as u64);
+            crate::sys::serial::println(b"");
+            match parse_dns_response_a(data) {
+                Ok(addrs) => {
+                    drop(sockets);
+                    if let Some(ip) = addrs.first() {
+                        let ip = *ip;
+                        crate::sys::serial::print(b"[DNS] resolved ");
+                        crate::sys::serial::print_dec(ip[0] as u64);
+                        crate::sys::serial::print(b".");
+                        crate::sys::serial::print_dec(ip[1] as u64);
+                        crate::sys::serial::print(b".");
+                        crate::sys::serial::print_dec(ip[2] as u64);
+                        crate::sys::serial::print(b".");
+                        crate::sys::serial::print_dec(ip[3] as u64);
+                        crate::sys::serial::println(b"");
+                        *DNS_RESULT.lock() = Some(addrs);
+                        dns_cleanup();
+                        return AsyncResult::Ready(ip);
+                    } else {
+                        dns_cleanup();
+                        *DNS_ERROR.lock() = Some("no dns records");
+                        return AsyncResult::Error("no dns records");
+                    }
+                }
+                Err(e) => {
+                    crate::sys::serial::println(b"[DNS] parse error");
+                    drop(sockets);
                     dns_cleanup();
-                    return AsyncResult::Ready(ip);
-                } else {
-                    dns_cleanup();
-                    *DNS_ERROR.lock() = Some("no dns records");
-                    return AsyncResult::Error("no dns records");
+                    *DNS_ERROR.lock() = Some(e);
+                    return AsyncResult::Error(e);
                 }
             }
-            Err(e) => {
-                drop(sockets);
-                dns_cleanup();
-                *DNS_ERROR.lock() = Some(e);
-                return AsyncResult::Error(e);
+        }
+        Err(_) => {
+            // No data yet — check if socket can still receive
+            if count == 1 || count % 500 == 0 {
+                crate::sys::serial::print(b"[DNS] no recv yet, polls=");
+                crate::sys::serial::print_dec(count as u64);
+                crate::sys::serial::print(b" can_recv=");
+                if s.can_recv() {
+                    crate::sys::serial::println(b"true");
+                } else {
+                    crate::sys::serial::println(b"false");
+                }
             }
         }
     }

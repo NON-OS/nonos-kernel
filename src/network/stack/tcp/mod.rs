@@ -25,5 +25,5 @@ pub use config::{TcpConfig, TcpTimeouts, DEFAULT_TCP_CONFIG, get_config, set_tim
 pub use connect::{connect_v4, connect_v6};
 pub use lifecycle::{close, abort, cleanup_stale_connections, is_connection_active, get_connection_state, get_active_connection_count};
 pub use listener::{bind, accept, unbind, get_pending_connection_count};
-pub use receive::{receive, receive_exact, peek};
+pub use receive::{receive, receive_exact, receive_with_timeout, try_receive, peek};
 pub use send::send;

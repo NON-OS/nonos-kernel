@@ -39,22 +39,33 @@ pub(super) fn start_http_connection(ip: [u8; 4], port: u16) {
 
     match http_start_request(ip, port, request.into_bytes()) {
         Ok(()) => {
+            crate::sys::serial::println(b"[HTTP] request started, state=Connecting");
             set_state(NavState::Connecting);
         }
         Err(e) => {
+            crate::sys::serial::print(b"[HTTP] start failed: ");
+            crate::sys::serial::println(e.as_bytes());
             finish_with_error(e);
         }
     }
 }
 
 pub(super) fn poll_http_connection() {
+    // Drive the network stack so TCP handshake / data frames are processed.
+    crate::network::poll_network();
+
     match http_poll() {
         AsyncResult::Ready(data) => {
+            crate::sys::serial::print(b"[HTTP] response ready, len=");
+            crate::sys::serial::print_dec(data.len() as u64);
+            crate::sys::serial::println(b"");
             *RESPONSE_DATA.lock() = data;
             set_state(NavState::ProcessingResponse);
         }
         AsyncResult::Pending => {}
         AsyncResult::Error(e) => {
+            crate::sys::serial::print(b"[HTTP] poll error: ");
+            crate::sys::serial::println(e.as_bytes());
             finish_with_error(e);
         }
     }

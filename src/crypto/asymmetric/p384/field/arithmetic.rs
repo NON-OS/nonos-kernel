@@ -1,0 +1,221 @@
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+use super::types::FieldElement;
+
+const LIMBS: usize = 6;
+
+impl FieldElement {
+    pub fn add(&self, other: &Self) -> Self {
+        let mut result = [0u64; LIMBS];
+        let mut carry = 0u128;
+
+        for i in 0..LIMBS {
+            carry += self.0[i] as u128 + other.0[i] as u128;
+            result[i] = carry as u64;
+            carry >>= 64;
+        }
+
+        let mut res = Self(result);
+
+        if carry != 0 {
+            // result >= 2^384, subtract p.
+            // C = 2^384 − p = 2^128 + 2^96 − 2^32 + 1
+            const C: [u64; LIMBS] = [
+                0xFFFFFFFF00000001, // limb 0
+                0x00000000FFFFFFFF, // limb 1
+                0x0000000000000001, // limb 2
+                0x0000000000000000,
+                0x0000000000000000,
+                0x0000000000000000,
+            ];
+            let mut add_carry = 0u128;
+            for i in 0..LIMBS {
+                add_carry += res.0[i] as u128 + C[i] as u128;
+                res.0[i] = add_carry as u64;
+                add_carry >>= 64;
+            }
+        }
+
+        res.reduce();
+        res
+    }
+
+    pub fn sub(&self, other: &Self) -> Self {
+        let mut result = [0u64; LIMBS];
+        let mut borrow = 0i128;
+
+        for i in 0..LIMBS {
+            borrow += self.0[i] as i128 - other.0[i] as i128;
+            if borrow < 0 {
+                result[i] = (borrow + (1i128 << 64)) as u64;
+                borrow = -1;
+            } else {
+                result[i] = borrow as u64;
+                borrow = 0;
+            }
+        }
+
+        let mut res = Self(result);
+        if borrow < 0 {
+            let mut carry = 0u128;
+            for i in 0..LIMBS {
+                carry += res.0[i] as u128 + Self::P[i] as u128;
+                res.0[i] = carry as u64;
+                carry >>= 64;
+            }
+        }
+        res
+    }
+
+    pub fn mul(&self, other: &Self) -> Self {
+        let mut result = [0u64; LIMBS * 2];
+
+        for i in 0..LIMBS {
+            let mut carry = 0u128;
+            for j in 0..LIMBS {
+                let product = (self.0[i] as u128) * (other.0[j] as u128);
+                let sum = (result[i + j] as u128) + product + carry;
+                result[i + j] = sum as u64;
+                carry = sum >> 64;
+            }
+            let mut k = i + LIMBS;
+            while carry != 0 && k < LIMBS * 2 {
+                let sum = (result[k] as u128) + carry;
+                result[k] = sum as u64;
+                carry = sum >> 64;
+                k += 1;
+            }
+        }
+
+        let wide: [u128; 12] = [
+            result[0] as u128, result[1] as u128, result[2] as u128,
+            result[3] as u128, result[4] as u128, result[5] as u128,
+            result[6] as u128, result[7] as u128, result[8] as u128,
+            result[9] as u128, result[10] as u128, result[11] as u128,
+        ];
+
+        self.reduce_wide(&wide)
+    }
+
+    pub(crate) fn reduce_wide(&self, wide: &[u128; 12]) -> Self {
+        // C = 2^384 − p = 2^128 + 2^96 − 2^32 + 1
+        const C: [u64; LIMBS] = [
+            0xFFFFFFFF00000001, // limb 0
+            0x00000000FFFFFFFF, // limb 1
+            0x0000000000000001, // limb 2
+            0x0000000000000000,
+            0x0000000000000000,
+            0x0000000000000000,
+        ];
+
+        let mut val = [0u64; 13];
+        for i in 0..12 {
+            val[i] = wide[i] as u64;
+        }
+
+        // Iterative reduction: high limbs * C folded back into low limbs
+        for _ in 0..10 {
+            let low: [u64; LIMBS] = [val[0], val[1], val[2], val[3], val[4], val[5]];
+            let high: [u64; 7] = [val[6], val[7], val[8], val[9], val[10], val[11], val[12]];
+
+            let mut hc = [0u64; 13];
+            for i in 0..7 {
+                let mut carry = 0u128;
+                for j in 0..LIMBS {
+                    let idx = i + j;
+                    if idx < 13 {
+                        let product = (high[i] as u128) * (C[j] as u128);
+                        let sum = (hc[idx] as u128) + product + carry;
+                        hc[idx] = sum as u64;
+                        carry = sum >> 64;
+                    }
+                }
+                for k in (i + LIMBS)..(i + LIMBS + 2) {
+                    if k < 13 {
+                        let sum = (hc[k] as u128) + carry;
+                        hc[k] = sum as u64;
+                        carry = sum >> 64;
+                    }
+                }
+            }
+
+            let mut carry = 0u128;
+            for i in 0..LIMBS {
+                carry += (low[i] as u128) + (hc[i] as u128);
+                val[i] = carry as u64;
+                carry >>= 64;
+            }
+            for i in LIMBS..13 {
+                carry += hc[i] as u128;
+                val[i] = carry as u64;
+                carry >>= 64;
+            }
+        }
+
+        let mut result = Self([val[0], val[1], val[2], val[3], val[4], val[5]]);
+
+        for _ in 0..3 {
+            let mut temp = [0u64; LIMBS];
+            let mut borrow = 0i128;
+
+            for i in 0..LIMBS {
+                borrow += result.0[i] as i128 - Self::P[i] as i128;
+                if borrow < 0 {
+                    temp[i] = ((1i128 << 64) + borrow) as u64;
+                    borrow = -1;
+                } else {
+                    temp[i] = borrow as u64;
+                    borrow = 0;
+                }
+            }
+
+            let no_borrow = ((borrow >> 127) & 1) as u64;
+            let mask = no_borrow.wrapping_sub(1);
+            for i in 0..LIMBS {
+                result.0[i] = (temp[i] & mask) | (result.0[i] & !mask);
+            }
+        }
+
+        result
+    }
+
+    pub(crate) fn reduce(&mut self) {
+        let mut borrow = 0i128;
+        let mut temp = [0u64; LIMBS];
+
+        for i in 0..LIMBS {
+            borrow += self.0[i] as i128 - Self::P[i] as i128;
+            if borrow < 0 {
+                temp[i] = (borrow + (1i128 << 64)) as u64;
+                borrow = -1;
+            } else {
+                temp[i] = borrow as u64;
+                borrow = 0;
+            }
+        }
+
+        let no_borrow = ((borrow >> 127) & 1) as u64;
+        let mask = no_borrow.wrapping_sub(1);
+        for i in 0..LIMBS {
+            self.0[i] = (temp[i] & mask) | (self.0[i] & !mask);
+        }
+    }
+
+    pub fn square(&self) -> Self {
+        self.mul(self)
+    }
+}

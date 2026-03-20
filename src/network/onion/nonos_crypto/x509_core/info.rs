@@ -16,8 +16,9 @@
 
 use alloc::vec::Vec;
 use crate::network::onion::OnionError;
-use super::super::types::{PublicKeyKind, X509Certificate};
+use super::super::types::{ObjectIdentifier, PublicKeyKind, X509Certificate};
 use super::x509::X509;
+use super::oid::parse_oid;
 
 impl X509 {
     pub fn public_key_info(cert: &X509Certificate) -> Result<(PublicKeyKind, Vec<u8>), OnionError> {
@@ -26,9 +27,26 @@ impl X509 {
         } else if cert.public_key.algorithm.algorithm.is_ed25519() {
             Ok((PublicKeyKind::Ed25519, cert.public_key.public_key.clone()))
         } else if cert.public_key.algorithm.algorithm.is_ec_public_key() {
-            Ok((PublicKeyKind::EcdsaP256, cert.public_key.public_key.clone()))
+            let kind = ec_curve_kind(&cert.public_key.algorithm.parameters);
+            Ok((kind, cert.public_key.public_key.clone()))
         } else {
             Err(OnionError::CertificateError)
         }
     }
+}
+
+fn ec_curve_kind(params: &Option<Vec<u8>>) -> PublicKeyKind {
+    if let Some(p) = params {
+        if p.len() >= 2 && p[0] == 0x06 {
+            let oid_len = p[1] as usize;
+            if p.len() >= 2 + oid_len {
+                if let Ok(oid) = parse_oid(&p[2..2 + oid_len]) {
+                    if oid.components == ObjectIdentifier::SECP384R1 {
+                        return PublicKeyKind::EcdsaP384;
+                    }
+                }
+            }
+        }
+    }
+    PublicKeyKind::EcdsaP256
 }

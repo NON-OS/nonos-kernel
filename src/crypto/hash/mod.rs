@@ -18,6 +18,7 @@ pub mod sha512;
 pub mod sha3;
 pub mod blake3;
 pub mod unified;
+pub mod sha384;
 
 pub use sha512::{sha512, sha512_hash, Hash512};
 pub use sha3::{sha3_256, sha3_512, shake128, shake256, keccak256};
