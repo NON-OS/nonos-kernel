@@ -42,6 +42,7 @@ pub fn parse_html(html: &str) -> Document {
 
     let mut chars = html.chars().peekable();
     let mut text_buffer = String::new();
+    let mut in_head = false;
 
     while let Some(c) = chars.next() {
         if c == '<' {
@@ -71,6 +72,11 @@ pub fn parse_html(html: &str) -> Document {
 
             if tag_content.starts_with('/') {
                 let close_tag = tag_content[1..].trim().to_ascii_lowercase();
+
+                if close_tag == "head" {
+                    in_head = false;
+                    continue;
+                }
 
                 if close_tag == "form" {
                     if let Some(form) = current_form.take() {
@@ -119,6 +125,11 @@ pub fn parse_html(html: &str) -> Document {
             };
 
             match tag_name.as_str() {
+                "head" => {
+                    in_head = true;
+                    continue;
+                }
+
                 "title" => {
                     while let Some(&tc) = chars.peek() {
                         if tc == '<' {
@@ -135,6 +146,33 @@ pub fn parse_html(html: &str) -> Document {
                         chars.next();
                     }
                     chars.next();
+                }
+
+                // Raw-text elements: skip to closing tag, discard content.
+                // These must never produce Text nodes in the DOM.
+                "script" | "style" | "noscript" => {
+                    let close_pattern = alloc::format!("</{}>", tag_name);
+                    let mut scan_buf = String::new();
+                    let mut found = false;
+                    while let Some(ch) = chars.next() {
+                        scan_buf.push(ch);
+                        if scan_buf.len() >= close_pattern.len() {
+                            let tail_start = scan_buf.len() - close_pattern.len();
+                            if scan_buf[tail_start..].eq_ignore_ascii_case(&close_pattern) {
+                                found = true;
+                                break;
+                            }
+                        }
+                    }
+                    if !found {
+                        // Malformed HTML — no closing tag. Content already consumed, nothing to push.
+                    }
+                }
+
+                // Inside <head>, skip everything except title/script/style
+                // which are handled above.
+                _ if in_head => {
+                    continue;
                 }
 
                 "a" => {
@@ -254,7 +292,7 @@ pub fn parse_html(html: &str) -> Document {
                     }
                 }
             }
-        } else {
+        } else if !in_head {
             text_buffer.push(c);
         }
     }

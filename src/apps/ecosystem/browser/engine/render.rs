@@ -39,6 +39,10 @@ pub fn render_page(html: &str, viewport_width: u32) -> RenderOutput {
     let mut style_stack: Vec<TextStyle> = Vec::new();
     let mut current_style = TextStyle::default();
 
+    // List context for bullet / numbering
+    enum ListCtx { Unordered, Ordered(u32) }
+    let mut list_stack: Vec<ListCtx> = Vec::new();
+
     let mut node_queue: VecDeque<(&Node, bool)> = VecDeque::new();
     node_queue.push_back((&document.root, false));
 
@@ -79,7 +83,15 @@ pub fn render_page(html: &str, viewport_width: u32) -> RenderOutput {
                             current_style = s;
                         }
                     }
-                    "p" | "div" | "li" | "tr" => {
+                    // <th> pushes bold on open — pop it on close
+                    "th" => {
+                        if let Some(s) = style_stack.pop() {
+                            current_style = s;
+                        }
+                    }
+                    "p" | "div" | "li" | "tr" | "table" | "nav" | "header"
+                    | "footer" | "section" | "article" | "aside" | "main"
+                    | "figure" | "details" => {
                         if !current_line_elements.is_empty() {
                             lines.push(RenderLine {
                                 y: current_y,
@@ -88,6 +100,17 @@ pub fn render_page(html: &str, viewport_width: u32) -> RenderOutput {
                             current_y += line_height;
                             current_x = 0;
                         }
+                    }
+                    "ul" | "ol" => {
+                        if !current_line_elements.is_empty() {
+                            lines.push(RenderLine {
+                                y: current_y,
+                                elements: core::mem::take(&mut current_line_elements),
+                            });
+                            current_y += line_height;
+                            current_x = 0;
+                        }
+                        if let Some(_) = list_stack.pop() {}
                     }
                     _ => {}
                 }
@@ -128,6 +151,18 @@ pub fn render_page(html: &str, viewport_width: u32) -> RenderOutput {
             }
 
             NodeType::Element(tag) => {
+                // --- Inline style="display:none" check ---
+                // Skip this element and all its children if hidden.
+                if node.attributes.iter().any(|(n, v)| {
+                    n == "style" && {
+                        let low = v.to_ascii_lowercase();
+                        low.contains("display:none") || low.contains("display: none")
+                            || low.contains("visibility:hidden") || low.contains("visibility: hidden")
+                    }
+                }) {
+                    continue;
+                }
+
                 match tag.as_str() {
                     "br" => {
                         if !current_line_elements.is_empty() {
@@ -313,7 +348,7 @@ pub fn render_page(html: &str, viewport_width: u32) -> RenderOutput {
                         continue;
                     }
 
-                    "p" | "div" | "li" => {
+                    "p" | "div" => {
                         if !current_line_elements.is_empty() {
                             lines.push(RenderLine {
                                 y: current_y,
@@ -324,7 +359,64 @@ pub fn render_page(html: &str, viewport_width: u32) -> RenderOutput {
                         }
                     }
 
-                    "ul" | "ol" => {
+                    "li" => {
+                        // Flush line before the list item
+                        if !current_line_elements.is_empty() {
+                            lines.push(RenderLine {
+                                y: current_y,
+                                elements: core::mem::take(&mut current_line_elements),
+                            });
+                            current_y += line_height;
+                            current_x = 0;
+                        }
+                        // Prepend bullet / number
+                        let prefix = match list_stack.last_mut() {
+                            Some(ListCtx::Unordered) => alloc::format!("\u{2022} "),
+                            Some(ListCtx::Ordered(n)) => {
+                                let s = alloc::format!("{}. ", *n);
+                                *n += 1;
+                                s
+                            }
+                            None => alloc::format!("\u{2022} "),
+                        };
+                        let pw = (prefix.len() as u32) * char_width;
+                        current_line_elements.push(RenderElement {
+                            x: margin + current_x,
+                            width: pw,
+                            content: RenderContent::Text {
+                                text: prefix,
+                                style: current_style,
+                            },
+                        });
+                        current_x += pw;
+                    }
+
+                    "ul" => {
+                        if !current_line_elements.is_empty() {
+                            lines.push(RenderLine {
+                                y: current_y,
+                                elements: core::mem::take(&mut current_line_elements),
+                            });
+                            current_y += line_height;
+                            current_x = 0;
+                        }
+                        list_stack.push(ListCtx::Unordered);
+                    }
+
+                    "ol" => {
+                        if !current_line_elements.is_empty() {
+                            lines.push(RenderLine {
+                                y: current_y,
+                                elements: core::mem::take(&mut current_line_elements),
+                            });
+                            current_y += line_height;
+                            current_x = 0;
+                        }
+                        list_stack.push(ListCtx::Ordered(1));
+                    }
+
+                    // Table: block element, line break before
+                    "table" => {
                         if !current_line_elements.is_empty() {
                             lines.push(RenderLine {
                                 y: current_y,
@@ -334,6 +426,57 @@ pub fn render_page(html: &str, viewport_width: u32) -> RenderOutput {
                             current_x = 0;
                         }
                     }
+
+                    // Table row: start a new line per row
+                    "tr" => {
+                        if !current_line_elements.is_empty() {
+                            lines.push(RenderLine {
+                                y: current_y,
+                                elements: core::mem::take(&mut current_line_elements),
+                            });
+                            current_y += line_height;
+                            current_x = 0;
+                        }
+                    }
+
+                    // Table header cell: tab separator + bold text
+                    "th" => {
+                        if current_x > 0 {
+                            let sep_width = char_width * 4;
+                            current_line_elements.push(RenderElement {
+                                x: margin + current_x,
+                                width: sep_width,
+                                content: RenderContent::Text {
+                                    text: String::from("    "),
+                                    style: TextStyle::default(),
+                                },
+                            });
+                            current_x += sep_width;
+                        }
+                        style_stack.push(current_style);
+                        current_style.bold = true;
+                    }
+
+                    // Table cell: insert tab separator between cells
+                    "td" => {
+                        if current_x > 0 {
+                            let sep_width = char_width * 4;
+                            current_line_elements.push(RenderElement {
+                                x: margin + current_x,
+                                width: sep_width,
+                                content: RenderContent::Text {
+                                    text: String::from("    "),
+                                    style: TextStyle::default(),
+                                },
+                            });
+                            current_x += sep_width;
+                        }
+                    }
+
+                    // Passthrough containers
+                    "thead" | "tbody" | "tfoot" | "nav" | "header"
+                    | "footer" | "section" | "article" | "aside" | "main"
+                    | "span" | "figure" | "figcaption" | "details" | "summary" => {}
 
                     _ => {}
                 }

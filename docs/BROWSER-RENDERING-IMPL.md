@@ -10,52 +10,52 @@
 
 ### Tier 1 — Critical / Immediate Wins
 
-- [ ] **1.1** Fix TLS record reassembly in `https.rs`
-  - [ ] Add persistent `Vec<u8>` reassembly buffer (`REASSEMBLY_BUF`) behind `spin::Mutex`
-  - [ ] Prepend leftover bytes from previous poll before parsing
-  - [ ] Only extract records where `offset + 5 + record_len <= buf.len()`
-  - [ ] Carry incomplete trailing bytes to next `poll_receive_response` call
-  - [ ] On connection cleanup, clear the reassembly buffer
-  - [ ] Verify AEAD nonce stays in sync after buffering (no skip on partial)
+- [x] **1.1** Fix TLS record reassembly in `https.rs`
+  - [x] Add persistent `Vec<u8>` reassembly buffer (`REASSEMBLY_BUF`) behind `spin::Mutex`
+  - [x] Prepend leftover bytes from previous poll before parsing
+  - [x] Only extract records where `offset + 5 + record_len <= buf.len()`
+  - [x] Carry incomplete trailing bytes to next `poll_receive_response` call
+  - [x] On connection cleanup, clear the reassembly buffer
+  - [x] Verify AEAD nonce stays in sync after buffering (no skip on partial)
   - [ ] Test: multi-chunk TLS records decrypt correctly in sequence
-- [ ] **1.2** Strip `<script>`, `<style>`, `<noscript>` in parser
-  - [ ] Add raw-text skip logic in `parse_html()` tag dispatch
-  - [ ] On encountering opening tag, scan forward to matching `</tag>`
-  - [ ] Discard all text content between open and close
-  - [ ] Do not push children to the DOM for these elements
+- [x] **1.2** Strip `<script>`, `<style>`, `<noscript>` in parser
+  - [x] Add raw-text skip logic in `parse_html()` tag dispatch
+  - [x] On encountering opening tag, scan forward to matching `</tag>`
+  - [x] Discard all text content between open and close
+  - [x] Do not push children to the DOM for these elements
   - [ ] Test: HTML with inline JS/CSS produces no visible text from those blocks
-- [ ] **1.3** Strip `<head>` content — only render `<body>` children
-  - [ ] Add `in_head` boolean flag to parser state
-  - [ ] Set `true` on `<head>`, `false` on `</head>`
-  - [ ] Skip all node creation while `in_head == true`
-  - [ ] Preserve `<title>` extraction (already reads raw text to `doc.title`)
+- [x] **1.3** Strip `<head>` content — only render `<body>` children
+  - [x] Add `in_head` boolean flag to parser state
+  - [x] Set `true` on `<head>`, `false` on `</head>`
+  - [x] Skip all node creation while `in_head == true`
+  - [x] Preserve `<title>` extraction (already reads raw text to `doc.title`)
   - [ ] Test: `<meta>`, `<link>` tags no longer produce visible text
-- [ ] **1.4** Handle `<table>/<tr>/<td>/<th>` rendering
-  - [ ] In `render.rs`: treat `<table>` as block element (line break before/after)
-  - [ ] Treat `<tr>` as block element (new line per row)
-  - [ ] Render `<td>`/`<th>` cells separated by tab character (or fixed-width column)
-  - [ ] `<th>` text rendered bold
-  - [ ] `<thead>`/`<tbody>`/`<tfoot>` treated as passthrough containers
+- [x] **1.4** Handle `<table>/<tr>/<td>/<th>` rendering
+  - [x] In `render.rs`: treat `<table>` as block element (line break before/after)
+  - [x] Treat `<tr>` as block element (new line per row)
+  - [x] Render `<td>`/`<th>` cells separated by tab character (or fixed-width column)
+  - [x] `<th>` text rendered bold
+  - [x] `<thead>`/`<tbody>`/`<tfoot>` treated as passthrough containers
   - [ ] Test: simple 3×3 table renders as aligned rows
 
 ### Tier 2 — Basic Visual Polish
 
-- [ ] **2.1** Handle semantic block elements as passthrough
-  - [ ] `<nav>`, `<header>`, `<footer>`, `<section>`, `<article>`, `<aside>`, `<main>` — treat as `<div>` (block, line break before/after)
-  - [ ] `<span>` — treat as inline passthrough (no break)
-- [ ] **2.2** Inline `style="display:none"` support
-  - [ ] In renderer: parse `style` attribute on elements
-  - [ ] If `display:none` found, skip node and all children
-  - [ ] If `visibility:hidden` found, skip node and all children
+- [x] **2.1** Handle semantic block elements as passthrough
+  - [x] `<nav>`, `<header>`, `<footer>`, `<section>`, `<article>`, `<aside>`, `<main>` — treat as `<div>` (block, line break before/after)
+  - [x] `<span>` — treat as inline passthrough (no break)
+- [x] **2.2** Inline `style="display:none"` support
+  - [x] In renderer: parse `style` attribute on elements
+  - [x] If `display:none` found, skip node and all children
+  - [x] If `visibility:hidden` found, skip node and all children
 - [ ] **2.3** `<blockquote>` indentation
   - [ ] Push indentation level onto a stack when entering `<blockquote>`
   - [ ] Add extra left margin (e.g. `+30px`) per nesting level
   - [ ] Pop on `</blockquote>`
-- [ ] **2.4** List item bullet points
-  - [ ] Track list context: `<ul>` vs `<ol>` with counter
-  - [ ] `<li>` inside `<ul>` → prepend "• "
-  - [ ] `<li>` inside `<ol>` → prepend "N. " with incrementing counter
-  - [ ] Reset counter on `</ol>`
+- [x] **2.4** List item bullet points
+  - [x] Track list context: `<ul>` vs `<ol>` with counter
+  - [x] `<li>` inside `<ul>` → prepend "• "
+  - [x] `<li>` inside `<ol>` → prepend "N. " with incrementing counter
+  - [x] Reset counter on `</ol>`
 - [ ] **2.5** Background colors for `<code>` and headings
   - [ ] Add `bg_color: Option<u32>` field to `TextStyle`
   - [ ] Set dark-grey background on `<code>` / `<pre>` blocks
