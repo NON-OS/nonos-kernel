@@ -36,9 +36,10 @@ pub fn verify_trusted_root(chain: &[X509Certificate]) -> Result<(), OnionError> 
         return Err(OnionError::CertificateError);
     }
     let root = &chain[chain.len() - 1];
-    if root.issuer_der != root.subject_der {
-        return Err(OnionError::CertificateError);
-    }
+    // Check the topmost cert's SPKI against our trust store.
+    // Do NOT require issuer == subject: the server may send a cross-signed
+    // version of the root (e.g. GTS Root R1 cross-signed by GlobalSign)
+    // whose issuer differs from its subject but whose key is trusted.
     if is_trusted_root(root) {
         return Ok(());
     }
