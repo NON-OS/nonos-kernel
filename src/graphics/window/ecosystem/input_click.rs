@@ -62,8 +62,8 @@ pub(super) fn handle_browser_click(x: u32, y: u32, w: u32, h: u32) -> bool {
 
     let content_y = 52;
     if y >= content_y {
-        let content_rel_y = y - content_y;
-        let line_height = 18;
+        let content_rel_y = (y - content_y).saturating_sub(8); // 8px top padding in content card
+        let line_height = 20; // Must match engine render line_height
         let clicked_line = (content_rel_y / line_height) as usize;
         let scroll = state::PAGE_SCROLL.load(Ordering::Relaxed);
         let actual_line = scroll + clicked_line;

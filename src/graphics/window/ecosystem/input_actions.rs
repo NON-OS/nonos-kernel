@@ -61,8 +61,8 @@ pub(super) fn navigate_to_url() {
 }
 
 pub(super) fn handle_link_click(line: usize, x: u32) {
-    let scroll = state::PAGE_SCROLL.load(Ordering::Relaxed);
-    let actual_line = scroll + line;
+    // `line` is already scroll-adjusted by the caller.
+    let actual_line = line;
 
     if let Some(url) = state::find_link_at(actual_line, x) {
         let resolved = if url.starts_with("http://") || url.starts_with("https://") {
