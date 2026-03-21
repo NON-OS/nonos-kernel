@@ -66,18 +66,38 @@ fn days_since_epoch(year: u32, month: u32, day: u32) -> u64 {
         + d
         - 1;
 
+    // For months > February, adjust for the (367*m-362)/12 formula overcount:
+    // leap year Feb has 29 days → subtract 1; non-leap Feb has 28 → subtract 2
     let leap_adjust = if m <= 2 {
         0
     } else if (y % 4 == 0 && y % 100 != 0) || (y % 400 == 0) {
-        2
-    } else {
         1
+    } else {
+        2
     };
 
     days - leap_adjust
 }
 
+/// Minimum plausible system time (2020-01-01 00:00 UTC) in milliseconds.
+/// If the kernel clock is below this threshold, it is clearly unset or wrong
+/// and certificate time validation cannot be meaningfully enforced.
+const MIN_PLAUSIBLE_TIME_MS: u64 = 1_577_836_800_000;
+
 pub(crate) fn check_time_validity(cert: &X509Certificate, now_ms: u64) -> Result<(), OnionError> {
+    crate::sys::serial::print(b"[CERT] not_before_ms=");
+    crate::sys::serial::print_dec(cert.not_before_ms);
+    crate::sys::serial::print(b" not_after_ms=");
+    crate::sys::serial::print_dec(cert.not_after_ms);
+    crate::sys::serial::print(b" now_ms=");
+    crate::sys::serial::print_dec(now_ms);
+    crate::sys::serial::println(b"");
+
+    if now_ms < MIN_PLAUSIBLE_TIME_MS {
+        crate::sys::serial::println(b"[CERT] system clock not set, skipping time check");
+        return Ok(());
+    }
+
     if now_ms < cert.not_before_ms || now_ms > cert.not_after_ms {
         return Err(OnionError::CertificateError);
     }
