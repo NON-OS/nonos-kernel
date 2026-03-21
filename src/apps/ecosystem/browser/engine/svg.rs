@@ -21,7 +21,6 @@
 
 extern crate alloc;
 
-use alloc::string::String;
 use alloc::vec::Vec;
 use super::types::{ImageData, Node, NodeType};
 use super::parser::get_attribute;
@@ -195,7 +194,7 @@ fn parse_points(s: &str) -> Vec<(i32, i32)> {
 }
 
 /// Parse a CSS/SVG color value. Supports `#RRGGBB`, `#RGB`, and named colors.
-pub fn parse_svg_color(s: &str) -> Option<u32> {
+pub(super) fn parse_svg_color(s: &str) -> Option<u32> {
     let s = s.trim();
     if s.is_empty() || s == "none" {
         return None;
@@ -204,7 +203,7 @@ pub fn parse_svg_color(s: &str) -> Option<u32> {
 }
 
 /// Parse a CSS color: `#RRGGBB`, `#RGB`, or named keyword.
-pub fn parse_css_color(s: &str) -> Option<u32> {
+pub(super) fn parse_css_color(s: &str) -> Option<u32> {
     let s = s.trim();
     if s.starts_with('#') {
         let hex = &s[1..];
@@ -267,7 +266,7 @@ fn parse_i32(s: &str) -> Option<i32> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use alloc::string::ToString;
+    use alloc::string::{String, ToString};
 
     fn make_svg_node(width: u32, height: u32, children: Vec<Node>) -> Node {
         Node {
