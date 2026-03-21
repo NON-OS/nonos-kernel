@@ -44,7 +44,6 @@ pub fn decode_png(data: &[u8]) -> Option<ImageData> {
     let mut pos = 8;
     let mut width: u32 = 0;
     let mut height: u32 = 0;
-    let mut bit_depth: u8 = 0;
     let mut color_type: u8 = 0;
     let mut idat_data: Vec<u8> = Vec::new();
 
@@ -66,7 +65,7 @@ pub fn decode_png(data: &[u8]) -> Option<ImageData> {
                 let d = &data[chunk_data_start..chunk_data_end];
                 width = u32::from_be_bytes([d[0], d[1], d[2], d[3]]);
                 height = u32::from_be_bytes([d[4], d[5], d[6], d[7]]);
-                bit_depth = d[8];
+                let bit_depth = d[8];
                 color_type = d[9];
                 let _compression = d[10];
                 let _filter = d[11];

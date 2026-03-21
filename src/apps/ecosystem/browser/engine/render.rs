@@ -19,7 +19,7 @@ extern crate alloc;
 use alloc::collections::VecDeque;
 use alloc::string::String;
 use alloc::vec::Vec;
-use super::types::{Node, NodeType, RenderLine, RenderElement, RenderContent, TextStyle, TextAlign, RenderOutput, ImageData, CanvasContext2D};
+use super::types::{Node, NodeType, RenderLine, RenderElement, RenderContent, TextStyle, TextAlign, RenderOutput, CanvasContext2D};
 use super::parser::{parse_html, get_attribute, extract_text};
 use super::svg::{render_svg, parse_css_color};
 

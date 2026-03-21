@@ -21,6 +21,8 @@ use alloc::vec::Vec;
 use core::sync::atomic::{AtomicBool, AtomicU8, AtomicUsize, Ordering};
 use spin::Mutex;
 
+use crate::apps::ecosystem::browser::engine::RenderOutput;
+
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 #[repr(u8)]
 pub enum EcosystemTab {
@@ -100,6 +102,7 @@ pub static ERROR_MSG: Mutex<[u8; 128]> = Mutex::new([0u8; 128]);
 pub static ERROR_LEN: AtomicUsize = AtomicUsize::new(0);
 
 pub static PAGE_CONTENT: Mutex<Vec<String>> = Mutex::new(Vec::new());
+pub static PAGE_RENDER: Mutex<Option<RenderOutput>> = Mutex::new(None);
 pub static PAGE_SCROLL: AtomicUsize = AtomicUsize::new(0);
 pub static PAGE_TITLE: Mutex<[u8; 128]> = Mutex::new([0u8; 128]);
 pub static PAGE_TITLE_LEN: AtomicUsize = AtomicUsize::new(0);

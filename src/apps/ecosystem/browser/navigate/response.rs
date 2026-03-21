@@ -70,6 +70,9 @@ pub(super) fn process_response() {
     let content_str = core::str::from_utf8(&body).unwrap_or("");
     let (lines, links) = engine::render_to_lines_with_links(content_str);
 
+    // Also produce the rich RenderOutput for the graphics layer
+    let render_output = engine::render_page(content_str, 800);
+
     crate::sys::serial::print(b"[NAV] rendered lines=");
     crate::sys::serial::print_dec(lines.len() as u64);
     crate::sys::serial::print(b", links=");
@@ -86,8 +89,11 @@ pub(super) fn process_response() {
     {
         let mut page_content = window_state::PAGE_CONTENT.lock();
         page_content.clear();
-        window_state::PAGE_TOTAL_LINES.store(lines.len(), Ordering::Relaxed);
+        window_state::PAGE_TOTAL_LINES.store(render_output.lines.len(), Ordering::Relaxed);
         page_content.extend(lines);
+    }
+    {
+        *window_state::PAGE_RENDER.lock() = Some(render_output);
     }
     window_state::PAGE_SCROLL.store(0, Ordering::Relaxed);
     window_state::LOADING.store(false, Ordering::Relaxed);
