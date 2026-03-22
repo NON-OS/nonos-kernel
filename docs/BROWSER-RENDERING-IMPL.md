@@ -82,13 +82,41 @@
   - [x] Render placeholder rectangle with alt text and dimensions
   - [ ] Stretch goal: decode and blit actual pixels for BMP
 
-### Tier 4 — Out of Scope (Not Planned)
+### Tier 4 — Graphics & Media
+
+- [x] **4.1** PNG image decoding + blitting
+  - [x] Implement minimal PNG decoder (signature, IHDR, IDAT via `miniz_oxide`, row filters)
+  - [x] Add `ImageData` type (width, height, `Vec<u32>` ARGB pixels)
+  - [x] Add `RenderContent::DecodedImage` variant with pixel data
+  - [x] Blit decoded pixels to framebuffer in graphics layer
+- [x] **4.2** Expanded inline CSS properties
+  - [x] Parse `color`, `background-color`, `font-size`, `text-align` from `style=` attribute
+  - [x] Add `color: Option<u32>`, `font_scale: u8`, `text_align: TextAlign` to `TextStyle`
+  - [x] Apply parsed CSS colors and alignment during text rendering
+  - [x] Parse CSS color keywords (red, blue, green, white, black, etc.) and `#RRGGBB` hex
+- [x] **4.3** Basic Canvas 2D context
+  - [x] Add `<canvas>` element handling in parser and renderer
+  - [x] Implement `CanvasContext2D` struct with `fill_rect`, `stroke_rect`, `clear_rect`, `fill_text`
+  - [x] Render canvas content as `RenderContent::Canvas` with pixel buffer
+  - [x] Wire canvas draw commands through render pipeline
+- [x] **4.4** SVG subset rendering
+  - [x] Parse `<svg>` element with `width`/`height` attributes
+  - [x] Handle `<rect>`, `<circle>`, `<line>`, `<polyline>` SVG elements
+  - [x] Rasterize SVG primitives to pixel buffer using framebuffer drawing ops
+  - [x] Add `RenderContent::Svg` variant with rasterized pixel data
+- [x] **4.5** Tick-based animation loop
+  - [x] Add `AnimationState` struct with `start_ms`, `duration_ms`, `progress`
+  - [x] Implement `request_animation_frame`-like polling via `timestamp_millis()`
+  - [x] Support animated CSS transitions (opacity, position) on render elements
+  - [x] Integrate animation tick into browser tab redraw cycle
+
+### Out of Scope (Deferred)
 
 - [ ] JavaScript execution
-- [ ] CSS cascade / specificity / inheritance
-- [ ] Web fonts / font loading
+- [ ] Full CSS cascade / specificity / inheritance
+- [ ] Web fonts / TTF parsing
 - [ ] Shadow DOM / Web Components
-- [ ] Canvas / WebGL / SVG rendering
+- [ ] WebGL / GPU-accelerated rendering
 - [ ] Flexbox / CSS Grid
 - [ ] iframe embedding
 - [ ] Video / Audio playback
