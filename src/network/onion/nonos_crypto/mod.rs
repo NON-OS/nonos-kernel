@@ -40,6 +40,7 @@ pub use kdf::{hmac_sha256, hkdf_extract_expand, hkdf_extract_sha256, hkdf_expand
 pub use kdf::tap_derive_keys;
 pub use x509_core::X509;
 pub(crate) use x509_verify::verify_signature_with_spki_der;
+pub(crate) use x509_verify::{check_eku_server_auth, check_leaf_key_usage};
 pub use aead::{
     aes128_gcm_seal, aes128_gcm_open, chacha20poly1305_seal, chacha20poly1305_open,
     tls_aes128_gcm_seal, tls_aes128_gcm_open, tls_chacha20poly1305_seal, tls_chacha20poly1305_open,

@@ -18,6 +18,7 @@ use crate::network::onion::OnionError;
 use crate::sys::serial;
 use super::super::types::X509Certificate;
 use super::super::x509_time::check_time_validity;
+use super::constraints::{check_ca_constraints, check_path_len_constraints};
 use super::signature::{verify_self_signed, verify_signature};
 
 /// Maximum certificate chain depth (including leaf and all intermediates).
@@ -75,6 +76,14 @@ pub(crate) fn verify_chain(chain: &[X509Certificate], now_ms: u64) -> Result<(),
         }
         serial::println(b"[X509] signature OK");
     }
+    // Verify CA constraints on intermediate certs (not the leaf at [0])
+    for i in 1..chain.len() {
+        if let Err(e) = check_ca_constraints(&chain[i], i) {
+            return Err(e);
+        }
+    }
+    // Enforce pathLenConstraint across the chain
+    check_path_len_constraints(chain)?;
     verify_root(chain)
 }
 

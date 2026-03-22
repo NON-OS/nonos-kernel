@@ -145,20 +145,20 @@ public key via issuer DN matching, instead of SPKI hash lookup.
 
 ### Checklist
 
-- [ ] **Basic Constraints enforcement** in chain walk:
-  - [ ] All non-leaf certs must have `is_ca == true`
-  - [ ] `pathLenConstraint` enforced (certs-below-CA ≤ pathLen)
-- [ ] **EKU enforcement** on leaf cert:
-  - [ ] If EKU present, must contain `ServerAuth` for HTTPS connections
-  - [ ] If EKU absent, allow (RFC 5280 §4.2.1.12)
-- [ ] **Key Usage enforcement**:
-  - [ ] CA certs must have `keyCertSign` bit
-  - [ ] Leaf certs should have `digitalSignature` bit
-  - [ ] If KU absent, allow (RFC 5280 §4.2.1.3)
-- [ ] **Chain depth hard limit**: reject chains > 10 certs
-- [ ] Tests: craft invalid chains (wrong EKU, missing BC, pathLen exceeded)
-- [ ] Tests: valid chains still pass
-- [ ] `cargo test --features std` passes
+- [x] **Basic Constraints enforcement** in chain walk:
+  - [x] All non-leaf certs must have `is_ca == true`
+  - [x] `pathLenConstraint` enforced (certs-below-CA ≤ pathLen)
+- [x] **EKU enforcement** on leaf cert:
+  - [x] If EKU present, must contain `ServerAuth` for HTTPS connections
+  - [x] If EKU absent, allow (RFC 5280 §4.2.1.12)
+- [x] **Key Usage enforcement**:
+  - [x] CA certs must have `keyCertSign` bit
+  - [x] Leaf certs should have `digitalSignature` bit
+  - [x] If KU absent, allow (RFC 5280 §4.2.1.3)
+- [x] **Chain depth hard limit**: reject chains > 10 certs
+- [x] Tests: craft invalid chains (wrong EKU, missing BC, pathLen exceeded)
+- [x] Tests: valid chains still pass
+- [x] `cargo test --features std` passes (1724 tests, +20 from Phase 4)
 - [ ] `cargo clippy` clean
 
 ---

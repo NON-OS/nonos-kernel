@@ -17,6 +17,7 @@
 use alloc::vec::Vec;
 use crate::network::onion::OnionError;
 use crate::sys::serial;
+use crate::network::onion::nonos_crypto::{check_eku_server_auth, check_leaf_key_usage};
 use super::traits::CertVerifier;
 use super::x509_wrap::X509;
 use super::https_check::{verify_hostname_if_needed, check_final_result};
@@ -57,6 +58,17 @@ impl CertVerifier for HttpsCertVerifier {
             return Err(e);
         }
         serial::println(b"[CERT] time validity OK");
+        // Policy enforcement: EKU must include ServerAuth (if present)
+        if let Err(e) = check_eku_server_auth(end_entity) {
+            serial::println(b"[CERT] ERROR: EKU check failed (no ServerAuth)");
+            return Err(e);
+        }
+        // Policy enforcement: KU must include digitalSignature (if present)
+        if let Err(e) = check_leaf_key_usage(end_entity) {
+            serial::println(b"[CERT] ERROR: KU check failed (no digitalSignature)");
+            return Err(e);
+        }
+        serial::println(b"[CERT] leaf policy checks OK");
         let (chain_verified, root_trusted) = verify_chain_and_root(&chain, now_ms);
         let hostname_ok = verify_hostname_if_needed(end_entity, sni);
         check_final_result(chain_verified, root_trusted, hostname_ok)
