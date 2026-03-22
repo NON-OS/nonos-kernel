@@ -178,19 +178,21 @@ public key via issuer DN matching, instead of SPKI hash lookup.
 
 ### Checklist
 
-- [ ] Delete `store/intermediates.rs`
-- [ ] Remove intermediate groups from `TRUSTED_ROOT_GROUPS`:
-  - [ ] `LETSENCRYPT_INTERMEDIATES`
-  - [ ] `DIGICERT_INTERMEDIATES`
-  - [ ] `SECTIGO_INTERMEDIATES`
-  - [ ] `MICROSOFT_INTERMEDIATES`
-- [ ] Remove `RootCaFingerprint` type (replaced by `TrustedRootCa`)
-- [ ] Remove `is_trusted_root()` SPKI-hash function (replaced by DN+sig verify)
+- [x] Delete `store/intermediates.rs`
+- [x] Remove intermediate groups from `TRUSTED_ROOT_GROUPS`:
+  - [x] `LETSENCRYPT_INTERMEDIATES`
+  - [x] `DIGICERT_INTERMEDIATES`
+  - [x] `SECTIGO_INTERMEDIATES`
+  - [x] `MICROSOFT_INTERMEDIATES`
+- [x] Remove `RootCaFingerprint` type (replaced by `TrustedRootCa`)
+- [x] Remove `is_trusted_root()` SPKI-hash function (replaced by DN+sig verify)
+- [x] Remove `verify_trusted_root()` legacy function
+- [x] Remove SPKI-hash fallback from `verify_chain_to_root()`
 - [ ] Optional: migrate SAN parsing from raw byte scan to extension parser
 - [ ] Optional: DN normalization (case-insensitive PrintableString per RFC 5280 §7.1)
 - [ ] Optional: tighten time validity (warn instead of silent skip when clock < 2020)
 - [ ] Verify TLS connections to top 20 sites still work under QEMU
-- [ ] `cargo test --features std` passes
+- [x] `cargo test --features std` passes (1723 tests, -1 removed SPKI fallback test)
 - [ ] `cargo clippy` clean
 - [ ] `make run-serial` boots without new errors
 

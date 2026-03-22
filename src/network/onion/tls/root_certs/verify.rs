@@ -17,46 +17,10 @@
 use crate::network::onion::OnionError;
 use crate::network::onion::nonos_crypto::X509Certificate;
 use crate::network::onion::nonos_crypto::verify_signature_with_spki_der;
-use crate::crypto::hash::unified::sha256;
 use crate::sys::serial;
 use super::store::TRUSTED_ROOT_GROUPS;
 use super::types::TrustedRootCa;
 use alloc::vec::Vec;
-
-pub fn is_trusted_root(cert: &X509Certificate) -> bool {
-    let spki_hash = sha256(&cert.public_key.raw_spki);
-    for group in TRUSTED_ROOT_GROUPS {
-        for root in *group {
-            if root.spki_sha256 == spki_hash {
-                return true;
-            }
-        }
-    }
-    false
-}
-
-pub fn verify_trusted_root(chain: &[X509Certificate]) -> Result<(), OnionError> {
-    if chain.is_empty() {
-        return Err(OnionError::CertificateError);
-    }
-    let root = &chain[chain.len() - 1];
-    // Check the topmost cert's SPKI against our trust store.
-    // Do NOT require issuer == subject: the server may send a cross-signed
-    // version of the root (e.g. GTS Root R1 cross-signed by GlobalSign)
-    // whose issuer differs from its subject but whose key is trusted.
-    if is_trusted_root(root) {
-        return Ok(());
-    }
-    // Log the unmatched SPKI hash for debugging (first 8 bytes)
-    let hash = sha256(&root.public_key.raw_spki);
-    serial::print(b"[CERT] untrusted topmost SPKI(first8): ");
-    for &b in hash.iter().take(8) {
-        serial::print_hex(b as u64);
-        serial::print(b" ");
-    }
-    serial::println(b"");
-    Err(OnionError::CertificateError)
-}
 
 /// Browser-grade chain-to-root verification (Phase 3).
 ///
@@ -139,22 +103,6 @@ pub fn verify_chain_to_root(chain: &[X509Certificate]) -> Result<&'static Truste
         serial::println(b"[CERT] DN candidates found but signature verification failed");
     }
 
-    // Fallback: SPKI-hash lookup (backward compatibility during migration)
-    serial::println(b"[CERT] falling back to SPKI-hash trust check");
-    let spki_hash = sha256(&verify_cert.public_key.raw_spki);
-    for group in TRUSTED_ROOT_GROUPS {
-        for root in *group {
-            if root.spki_sha256 == spki_hash {
-                serial::print(b"[CERT] SPKI-hash fallback matched: ");
-                let name_bytes = root.name.as_bytes();
-                let print_len = if name_bytes.len() > 40 { 40 } else { name_bytes.len() };
-                serial::print(&name_bytes[..print_len]);
-                serial::println(b"");
-                return Ok(root);
-            }
-        }
-    }
-
     serial::println(b"[CERT] chain-to-root: no trusted root found");
     Err(OnionError::CertificateError)
 }
@@ -230,8 +178,8 @@ mod tests {
     ];
 
     #[test]
-    fn test_trusted_root_count_is_42() {
-        assert_eq!(trusted_root_count(), 42);
+    fn test_trusted_root_count_is_28() {
+        assert_eq!(trusted_root_count(), 28);
     }
 
     #[test]
@@ -438,28 +386,6 @@ mod tests {
             Some(&[0xFF, 0xFF, 0xFF, 0xFF]),
         );
         assert!(verify_chain_to_root(&[cert]).is_err());
-    }
-
-    #[test]
-    fn test_verify_chain_to_root_spki_hash_fallback() {
-        // A cert with unknown issuer_der but whose raw_spki SHA-256 matches
-        // a known root. This exercises the SPKI-hash fallback path.
-        let isrg_x1 = find_roots_by_subject_dn(ISRG_X1_SUBJECT_DER);
-        assert_eq!(isrg_x1.len(), 1);
-        let root = isrg_x1[0];
-
-        // Build a cert with raw_spki that hashes to the root's spki_sha256
-        // by using the root's actual spki_der
-        let cert = make_test_cert(
-            &[0x01],
-            &[0xDE, 0xAD], // unknown issuer — DN matching will find nothing
-            root.spki_der,  // but SPKI hash will match
-            None,
-        );
-        // The SPKI-hash fallback should find the root
-        let result = verify_chain_to_root(&[cert]);
-        assert!(result.is_ok(), "SPKI-hash fallback should find ISRG Root X1");
-        assert_eq!(result.unwrap().name, "ISRG Root X1");
     }
 
     #[test]

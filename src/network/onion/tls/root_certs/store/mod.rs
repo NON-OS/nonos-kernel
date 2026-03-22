@@ -19,7 +19,6 @@ mod digicert;
 mod entrust;
 mod globalsign;
 mod google;
-mod intermediates;
 mod isrg;
 mod others;
 
@@ -29,7 +28,6 @@ use digicert::DIGICERT_ROOTS;
 use entrust::ENTRUST_ROOTS;
 use globalsign::GLOBALSIGN_ROOTS;
 use google::GOOGLE_ROOTS;
-use intermediates::{LETSENCRYPT_INTERMEDIATES, DIGICERT_INTERMEDIATES, SECTIGO_INTERMEDIATES, MICROSOFT_INTERMEDIATES};
 use isrg::ISRG_ROOTS;
 use others::OTHER_ROOTS;
 
@@ -41,8 +39,4 @@ pub static TRUSTED_ROOT_GROUPS: &[&[TrustedRootCa]] = &[
     AMAZON_ROOTS,
     GOOGLE_ROOTS,
     ENTRUST_ROOTS,
-    LETSENCRYPT_INTERMEDIATES,
-    DIGICERT_INTERMEDIATES,
-    SECTIGO_INTERMEDIATES,
-    MICROSOFT_INTERMEDIATES,
 ];

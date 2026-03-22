@@ -19,7 +19,6 @@ mod types;
 mod verify;
 
 pub use store::TRUSTED_ROOT_GROUPS;
-pub use types::RootCaFingerprint;
 pub use types::TrustedRootCa;
-pub use verify::{is_trusted_root, verify_trusted_root, verify_chain_to_root, trusted_root_count};
+pub use verify::{verify_chain_to_root, trusted_root_count};
 pub use verify::{find_roots_by_subject_dn, find_roots_by_ski};

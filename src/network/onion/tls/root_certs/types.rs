@@ -14,12 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-#[derive(Clone, Copy)]
-pub struct RootCaFingerprint {
-    pub spki_sha256: [u8; 32],
-    pub name: &'static str,
-}
-
 /// Full root CA trust anchor with DER-encoded fields for browser-grade
 /// chain building (issuer DN matching + signature verification).
 #[derive(Clone, Copy)]
