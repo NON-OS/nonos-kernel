@@ -79,21 +79,22 @@ SPKI SHA-256 hashes.
 
 ### Checklist
 
-- [ ] Define `TrustedRootCa` struct:
-  - [ ] `name: &'static str`
-  - [ ] `subject_der: &'static [u8]` (DER-encoded Subject DN)
-  - [ ] `spki_der: &'static [u8]` (full SPKI for signature verification)
-  - [ ] `spki_sha256: [u8; 32]` (backward compat / fast pre-filter)
-  - [ ] `ski: Option<&'static [u8]>` (Subject Key Identifier)
-- [ ] Build extraction tool that reads PEM/DER root CAs → generates Rust source
-- [ ] Source root CAs from Mozilla `certdata.txt` (or curated subset)
-- [ ] Regenerate all `store/*.rs` files with `TrustedRootCa` entries
-- [ ] Keep `RootCaFingerprint` temporarily for backward compatibility
-- [ ] Add `find_roots_by_subject_dn()` function to `verify.rs`
-- [ ] Add `find_roots_by_ski()` function to `verify.rs`
-- [ ] Estimate `.rodata` size impact (~85 KB for ~130 roots)
-- [ ] `cargo test --features std` passes
-- [ ] `cargo clippy` clean
+- [x] Define `TrustedRootCa` struct:
+  - [x] `name: &'static str`
+  - [x] `subject_der: &'static [u8]` (DER-encoded Subject DN)
+  - [x] `spki_der: &'static [u8]` (full SPKI for signature verification)
+  - [x] `spki_sha256: [u8; 32]` (backward compat / fast pre-filter)
+  - [x] `ski: Option<&'static [u8]>` (Subject Key Identifier)
+- [x] Build extraction tool (`tools/extract_root_cas.py`) that reads PEM root CAs → generates Rust source
+- [x] Source root CAs from curated PEM bundle (42 roots + intermediates)
+- [x] Regenerate all `store/*.rs` files with `TrustedRootCa` entries (subject_der, spki_der, spki_sha256, ski)
+- [x] Keep `RootCaFingerprint` temporarily for backward compatibility
+- [x] Add `find_roots_by_subject_dn()` function to `verify.rs`
+- [x] Add `find_roots_by_ski()` function to `verify.rs`
+- [x] Export new types and functions from `root_certs/mod.rs`
+- [x] 12 unit tests (DN lookup, SKI lookup, SPKI hash integrity, data consistency)
+- [x] `cargo test --features std` passes (1689 tests, 0 failures)
+- [x] `cargo clippy` clean
 
 ---
 
