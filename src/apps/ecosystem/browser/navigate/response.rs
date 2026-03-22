@@ -68,17 +68,36 @@ pub(super) fn process_response() {
     }
 
     let content_str = core::str::from_utf8(&body).unwrap_or("");
-    let (lines, links) = engine::render_to_lines_with_links(content_str);
+
+    // Produce the rich RenderOutput for the graphics layer
+    let render_output = engine::render_page(content_str, 800);
+
+    // Extract links from the RenderOutput line/element structure so that
+    // link coordinates are consistent with the pixel rendering.
+    // PageLink.line   = index into render_output.lines
+    // PageLink.start_x / end_x = pixel x including the 8px content card padding
+    let mut link_count: u64 = 0;
+    for (line_idx, render_line) in render_output.lines.iter().enumerate() {
+        for elem in &render_line.elements {
+            if let engine::RenderContent::Link { href, .. } = &elem.content {
+                if !href.is_empty() {
+                    // +8 accounts for the content-card left padding in the
+                    // graphics render (draw_render_element base_x = x + 8).
+                    window_state::add_page_link(line_idx, 8 + elem.x, 8 + elem.x + elem.width, href);
+                    link_count += 1;
+                }
+            }
+        }
+    }
+
+    // Also build flat text lines for backward compat (fallback link parsing)
+    let (lines, _flat_links) = engine::render_to_lines_with_links(content_str);
 
     crate::sys::serial::print(b"[NAV] rendered lines=");
-    crate::sys::serial::print_dec(lines.len() as u64);
+    crate::sys::serial::print_dec(render_output.lines.len() as u64);
     crate::sys::serial::print(b", links=");
-    crate::sys::serial::print_dec(links.len() as u64);
+    crate::sys::serial::print_dec(link_count);
     crate::sys::serial::println(b"");
-
-    for (line_idx, start_x, end_x, href) in links {
-        window_state::add_page_link(line_idx, start_x, end_x, &href);
-    }
 
     let title = extract_title(&body).unwrap_or_else(|| String::from("Untitled"));
     window_state::set_page_title(&title);
@@ -86,8 +105,11 @@ pub(super) fn process_response() {
     {
         let mut page_content = window_state::PAGE_CONTENT.lock();
         page_content.clear();
-        window_state::PAGE_TOTAL_LINES.store(lines.len(), Ordering::Relaxed);
+        window_state::PAGE_TOTAL_LINES.store(render_output.lines.len(), Ordering::Relaxed);
         page_content.extend(lines);
+    }
+    {
+        *window_state::PAGE_RENDER.lock() = Some(render_output);
     }
     window_state::PAGE_SCROLL.store(0, Ordering::Relaxed);
     window_state::LOADING.store(false, Ordering::Relaxed);

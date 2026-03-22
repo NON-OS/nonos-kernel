@@ -305,7 +305,12 @@ pub(super) fn poll_receive_response() {
                         match tls.decrypt_app(record_data) {
                             Ok(plaintext) => {
                                 if !plaintext.is_empty() {
-                                    collected_plaintext.extend_from_slice(&plaintext[..plaintext.len().saturating_sub(1)]);
+                                    // TLS 1.3 inner plaintext: data || content_type(1) || padding(0+ zeros)
+                                    // Strip trailing zero-padding, then remove the content type byte.
+                                    let mut end = plaintext.len();
+                                    while end > 0 && plaintext[end - 1] == 0 { end -= 1; }
+                                    if end > 0 { end -= 1; } // content type byte
+                                    collected_plaintext.extend_from_slice(&plaintext[..end]);
                                 }
                             }
                             Err(_e) => {

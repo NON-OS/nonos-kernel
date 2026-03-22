@@ -17,6 +17,7 @@
 use crate::network::onion::OnionError;
 use crate::network::onion::nonos_crypto::X509Certificate;
 use crate::crypto::hash::unified::sha256;
+use crate::sys::serial;
 use super::store::TRUSTED_ROOT_GROUPS;
 
 pub fn is_trusted_root(cert: &X509Certificate) -> bool {
@@ -43,6 +44,14 @@ pub fn verify_trusted_root(chain: &[X509Certificate]) -> Result<(), OnionError> 
     if is_trusted_root(root) {
         return Ok(());
     }
+    // Log the unmatched SPKI hash for debugging (first 8 bytes)
+    let hash = sha256(&root.public_key.raw_spki);
+    serial::print(b"[CERT] untrusted topmost SPKI(first8): ");
+    for &b in hash.iter().take(8) {
+        serial::print_hex(b as u64);
+        serial::print(b" ");
+    }
+    serial::println(b"");
     Err(OnionError::CertificateError)
 }
 

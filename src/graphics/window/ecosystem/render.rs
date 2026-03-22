@@ -29,14 +29,13 @@ use super::render_helpers::{
 use super::render_tabs::{
     draw_wallet_tab, draw_staking_tab, draw_lp_tab, draw_node_tab, draw_privacy_tab,
 };
-use crate::graphics::framebuffer::fill_rect;
+use crate::graphics::framebuffer::{fill_rect, put_pixel};
 use crate::graphics::font::draw_char;
+use crate::apps::ecosystem::browser::engine::RenderContent;
 
 const COLOR_BG: u32 = 0xFF000000;
 const COLOR_URL_BAR: u32 = 0xFF2C2C2E;
 const COLOR_URL_TEXT: u32 = 0xFFFFFFFF;
-const COLOR_CODE_BG: u32 = 0xFF2C2C2E;
-const COLOR_CODE_FG: u32 = 0xFFFF8C00;
 
 pub fn draw(x: u32, y: u32, w: u32, h: u32) {
     fill_rect(x, y, w, h, COLOR_BG);
@@ -80,38 +79,225 @@ fn draw_browser_tab(x: u32, y: u32, w: u32, h: u32) {
         draw_string(x + 20, content_y + 20, b"Loading...", COLOR_TEXT_DIM);
         draw_spinner(x + w / 2 - 16, content_y + content_h / 2 - 16);
     } else {
-        let content = state::PAGE_CONTENT.lock();
+        let render = state::PAGE_RENDER.lock();
         let scroll = state::PAGE_SCROLL.load(Ordering::Relaxed);
         let total_lines = state::PAGE_TOTAL_LINES.load(Ordering::Relaxed);
-        let visible_lines = (content_h.saturating_sub(16) / 18) as usize;
+        let visible_lines = (content_h.saturating_sub(16) / 20) as usize;
 
-        if content.is_empty() {
-            draw_string(x + 20, content_y + 20, b"Enter a URL to browse the web", COLOR_TEXT_DIM);
-            draw_string(x + 20, content_y + 44, b"Privacy features enabled:", COLOR_TEXT);
-            draw_string(x + 20, content_y + 68, b"  - Tracker blocking", COLOR_ACCENT);
-            draw_string(x + 20, content_y + 92, b"  - URL parameter stripping", COLOR_ACCENT);
-            draw_string(x + 20, content_y + 116, b"  - JavaScript disabled by default", COLOR_ACCENT);
-            draw_string(x + 20, content_y + 156, b"Keyboard shortcuts:", COLOR_TEXT);
-            draw_string(x + 20, content_y + 180, b"  Page Up/Down - Scroll page", COLOR_TEXT_DIM);
-            draw_string(x + 20, content_y + 204, b"  Enter - Navigate to URL", COLOR_TEXT_DIM);
+        if let Some(ref output) = *render {
+            if output.lines.is_empty() {
+                draw_empty_browser_help(x, content_y);
+            } else {
+                let clip_bottom = content_y + content_h - 4;
+                for render_line in output.lines.iter().skip(scroll).take(visible_lines) {
+                    let line_y = content_y + 8 + render_line.y.saturating_sub(
+                        output.lines.get(scroll).map(|l| l.y).unwrap_or(0)
+                    );
+                    if line_y >= clip_bottom {
+                        break;
+                    }
+                    for elem in &render_line.elements {
+                        draw_render_element(x + 8, line_y, elem, w - 32, clip_bottom);
+                    }
+                }
+
+                if total_lines > visible_lines {
+                    draw_scrollbar(x + w - 24, content_y + 4, 8, content_h - 8, scroll, total_lines, visible_lines);
+                }
+
+                if let Some(title) = state::get_page_title() {
+                    let title_bytes = title.as_bytes();
+                    let max_title = ((w - 100) / 8) as usize;
+                    let display_len = title_bytes.len().min(max_title);
+                    draw_string(x + 16, content_y + content_h - 20, &title_bytes[..display_len], COLOR_TEXT_DIM);
+                }
+            }
         } else {
-            for (i, line) in content.iter().skip(scroll).take(visible_lines).enumerate() {
-                let line_y = content_y + 8 + i as u32 * 18;
-                draw_styled_line(x + 16, line_y, line.as_bytes(), w - 48);
+            draw_empty_browser_help(x, content_y);
+        }
+    }
+}
+
+fn draw_empty_browser_help(x: u32, content_y: u32) {
+    draw_string(x + 20, content_y + 20, b"Enter a URL to browse the web", COLOR_TEXT_DIM);
+    draw_string(x + 20, content_y + 44, b"Privacy features enabled:", COLOR_TEXT);
+    draw_string(x + 20, content_y + 68, b"  - Tracker blocking", COLOR_ACCENT);
+    draw_string(x + 20, content_y + 92, b"  - URL parameter stripping", COLOR_ACCENT);
+    draw_string(x + 20, content_y + 116, b"  - JavaScript disabled by default", COLOR_ACCENT);
+    draw_string(x + 20, content_y + 156, b"Keyboard shortcuts:", COLOR_TEXT);
+    draw_string(x + 20, content_y + 180, b"  Page Up/Down - Scroll page", COLOR_TEXT_DIM);
+    draw_string(x + 20, content_y + 204, b"  Enter - Navigate to URL", COLOR_TEXT_DIM);
+}
+
+fn draw_render_element(
+    base_x: u32,
+    line_y: u32,
+    elem: &crate::apps::ecosystem::browser::engine::RenderElement,
+    max_width: u32,
+    clip_bottom: u32,
+) {
+    let ex = base_x + elem.x;
+    if ex >= base_x + max_width {
+        return;
+    }
+
+    match &elem.content {
+        RenderContent::Text { ref text, style } => {
+            let fg = style.color.unwrap_or(
+                if style.heading_level > 0 {
+                    COLOR_HEADING
+                } else if style.bold {
+                    COLOR_TEXT_BRIGHT
+                } else {
+                    COLOR_TEXT
+                }
+            );
+
+            // Background color for code blocks or styled elements
+            if let Some(bg) = style.bg_color {
+                let text_w = (text.len() as u32) * 8;
+                fill_rect(ex, line_y, text_w.min(max_width), 16, bg);
             }
 
-            if total_lines > visible_lines {
-                draw_scrollbar(x + w - 24, content_y + 4, 8, content_h - 8, scroll, total_lines, visible_lines);
+            // Draw italic indicator (slight x offset for visual cue)
+            let italic_offset: u32 = if style.italic { 1 } else { 0 };
+
+            let mut cx = ex;
+            for &ch in text.as_bytes() {
+                if cx + 8 > base_x + max_width {
+                    break;
+                }
+                draw_char(cx + italic_offset, line_y, ch, fg);
+                cx += 8;
             }
 
-            if let Some(title) = state::get_page_title() {
-                let title_bytes = title.as_bytes();
-                let max_title = ((w - 100) / 8) as usize;
-                let display_len = title_bytes.len().min(max_title);
-                draw_string(x + 16, content_y + content_h - 20, &title_bytes[..display_len], COLOR_TEXT_DIM);
+            // Underline
+            if style.underline && cx > ex {
+                let uy = line_y + 15;
+                if uy < clip_bottom {
+                    fill_rect(ex, uy, cx - ex, 1, fg);
+                }
+            }
+        }
+
+        RenderContent::Link { ref text, ref href } => {
+            let _ = href;
+            let mut cx = ex;
+            for &ch in text.as_bytes() {
+                if cx + 8 > base_x + max_width {
+                    break;
+                }
+                draw_char(cx, line_y, ch, COLOR_LINK);
+                cx += 8;
+            }
+            // Underline for links
+            if cx > ex {
+                let uy = line_y + 15;
+                if uy < clip_bottom {
+                    fill_rect(ex, uy, cx - ex, 1, COLOR_LINK);
+                }
+            }
+        }
+
+        RenderContent::Image { ref alt, width, height } => {
+            let iw = (*width).min(max_width);
+            let ih = *height;
+            // Draw placeholder box
+            fill_rect(ex, line_y, iw, ih.min(200), 0xFF1C1C1E);
+            draw_border_thin(ex, line_y, iw, ih.min(200), COLOR_TEXT_DIM);
+            // Draw alt text inside
+            let mut cx = ex + 4;
+            for &ch in alt.as_bytes() {
+                if cx + 8 > ex + iw {
+                    break;
+                }
+                draw_char(cx, line_y + 2, ch, COLOR_TEXT_DIM);
+                cx += 8;
+            }
+        }
+
+        RenderContent::DecodedImage { ref data } => {
+            blit_image_data(ex, line_y, data, max_width, clip_bottom);
+        }
+
+        RenderContent::Canvas { ref data } => {
+            blit_image_data(ex, line_y, data, max_width, clip_bottom);
+        }
+
+        RenderContent::Svg { ref data } => {
+            blit_image_data(ex, line_y, data, max_width, clip_bottom);
+        }
+
+        RenderContent::Input { ref name, width } => {
+            let iw = (*width).min(max_width);
+            fill_rect(ex, line_y, iw, 20, COLOR_INPUT_BG);
+            draw_border_thin(ex, line_y, iw, 20, COLOR_INPUT_BORDER);
+            let mut cx = ex + 4;
+            for &ch in name.as_bytes() {
+                if cx + 8 > ex + iw {
+                    break;
+                }
+                draw_char(cx, line_y + 2, ch, COLOR_WARNING);
+                cx += 8;
+            }
+        }
+
+        RenderContent::Button { ref text } => {
+            let bw = (text.len() as u32 * 8 + 16).min(max_width);
+            fill_rect(ex, line_y, bw, 20, 0xFF2C2C4E);
+            draw_border_thin(ex, line_y, bw, 20, COLOR_ACCENT);
+            let mut cx = ex + 8;
+            for &ch in text.as_bytes() {
+                if cx + 8 > ex + bw {
+                    break;
+                }
+                draw_char(cx, line_y + 2, ch, COLOR_ACCENT);
+                cx += 8;
+            }
+        }
+
+        RenderContent::HorizontalRule => {
+            let rule_w = max_width.saturating_sub(20);
+            fill_rect(ex, line_y + 8, rule_w, 1, COLOR_TEXT_DIM);
+        }
+
+        RenderContent::LineBreak => {}
+    }
+}
+
+/// Blit ARGB8888 pixel data from an ImageData to the framebuffer.
+fn blit_image_data(
+    x: u32,
+    y: u32,
+    data: &crate::apps::ecosystem::browser::engine::ImageData,
+    max_width: u32,
+    clip_bottom: u32,
+) {
+    let draw_w = data.width.min(max_width);
+    for py in 0..data.height {
+        let screen_y = y + py;
+        if screen_y >= clip_bottom {
+            break;
+        }
+        for px in 0..draw_w {
+            let idx = (py * data.width + px) as usize;
+            if idx < data.pixels.len() {
+                let color = data.pixels[idx];
+                // Skip transparent pixels (alpha == 0)
+                if color & 0xFF000000 != 0 {
+                    put_pixel(x + px, screen_y, color);
+                }
             }
         }
     }
+}
+
+/// Thin 1px border helper.
+fn draw_border_thin(x: u32, y: u32, w: u32, h: u32, color: u32) {
+    fill_rect(x, y, w, 1, color);
+    fill_rect(x, y + h - 1, w, 1, color);
+    fill_rect(x, y, 1, h, color);
+    fill_rect(x + w - 1, y, 1, h, color);
 }
 
 fn draw_scrollbar(x: u32, y: u32, w: u32, h: u32, scroll: usize, total: usize, visible: usize) {
@@ -125,136 +311,6 @@ fn draw_scrollbar(x: u32, y: u32, w: u32, h: u32, scroll: usize, total: usize, v
             y
         };
         fill_rect(x, thumb_y, w, thumb_h, COLOR_SCROLLBAR_THUMB);
-    }
-}
-
-fn draw_styled_line(x: u32, y: u32, text: &[u8], max_width: u32) {
-    let max_chars = (max_width / 8) as usize;
-    let mut current_x = x;
-    let mut i = 0;
-    let mut char_count = 0;
-    let mut is_heading = false;
-    let mut is_bold = false;
-
-    if text.len() >= 3 && &text[0..3] == b"## " {
-        is_heading = true;
-        i = 3;
-    }
-
-    while i < text.len() && char_count < max_chars {
-        if i + 2 <= text.len() && &text[i..i+2] == b"**" {
-            is_bold = !is_bold;
-            i += 2;
-            continue;
-        }
-
-        if i + 5 < text.len() && &text[i..i+5] == b"[http" {
-            let start = i;
-            while i < text.len() && text[i] != b']' {
-                i += 1;
-            }
-            if i < text.len() {
-                i += 1;
-            }
-            for &ch in &text[start..i] {
-                if char_count >= max_chars {
-                    break;
-                }
-                draw_char(current_x, y, ch, COLOR_LINK);
-                current_x += 8;
-                char_count += 1;
-            }
-        } else if i + 4 < text.len() && &text[i..i+4] == b"[IMG" {
-            let start = i;
-            while i < text.len() && text[i] != b']' {
-                i += 1;
-            }
-            if i < text.len() {
-                i += 1;
-            }
-            for &ch in &text[start..i] {
-                if char_count >= max_chars {
-                    break;
-                }
-                draw_char(current_x, y, ch, COLOR_TEXT_DIM);
-                current_x += 8;
-                char_count += 1;
-            }
-        } else if i + 4 < text.len() && &text[i..i+4] == b"[BTN" {
-            let start = i;
-            while i < text.len() && text[i] != b']' {
-                i += 1;
-            }
-            if i < text.len() {
-                i += 1;
-            }
-            for &ch in &text[start..i] {
-                if char_count >= max_chars {
-                    break;
-                }
-                draw_char(current_x, y, ch, COLOR_ACCENT);
-                current_x += 8;
-                char_count += 1;
-            }
-        } else if i + 6 < text.len() && &text[i..i+6] == b"[INPUT" {
-            let start = i;
-            while i < text.len() && text[i] != b']' {
-                i += 1;
-            }
-            if i < text.len() {
-                i += 1;
-            }
-            for &ch in &text[start..i] {
-                if char_count >= max_chars {
-                    break;
-                }
-                draw_char(current_x, y, ch, COLOR_WARNING);
-                current_x += 8;
-                char_count += 1;
-            }
-        } else if text[i] == 0xE2 && i + 2 < text.len() {
-            draw_char(current_x, y, b'-', COLOR_TEXT_DIM);
-            current_x += 8;
-            char_count += 1;
-            i += 3;
-        } else if text[i] == b'`' {
-            // Code span: draw with dark background
-            i += 1;
-            let code_start_x = current_x;
-            while i < text.len() && text[i] != b'`' && char_count < max_chars {
-                draw_char(current_x, y, text[i], COLOR_CODE_FG);
-                current_x += 8;
-                char_count += 1;
-                i += 1;
-            }
-            // Fill background behind code chars
-            let code_w = current_x.saturating_sub(code_start_x);
-            if code_w > 0 {
-                fill_rect(code_start_x, y, code_w, 16, COLOR_CODE_BG);
-                // Re-draw chars on top of background
-                let mut rx = code_start_x;
-                let re_start = i.saturating_sub((code_w / 8) as usize);
-                for &ch in &text[re_start..i] {
-                    draw_char(rx, y, ch, COLOR_CODE_FG);
-                    rx += 8;
-                }
-            }
-            if i < text.len() && text[i] == b'`' {
-                i += 1;
-            }
-        } else {
-            let color = if is_heading {
-                COLOR_HEADING
-            } else if is_bold {
-                COLOR_TEXT_BRIGHT
-            } else {
-                COLOR_TEXT
-            };
-            draw_char(current_x, y, text[i], color);
-            current_x += 8;
-            char_count += 1;
-            i += 1;
-        }
     }
 }
 

@@ -19,8 +19,9 @@ extern crate alloc;
 use alloc::collections::VecDeque;
 use alloc::string::String;
 use alloc::vec::Vec;
-use super::types::{Node, NodeType, RenderLine, RenderElement, RenderContent, TextStyle, RenderOutput};
+use super::types::{Node, NodeType, RenderLine, RenderElement, RenderContent, TextStyle, TextAlign, RenderOutput, CanvasContext2D};
 use super::parser::{parse_html, get_attribute, extract_text};
+use super::svg::{render_svg, parse_css_color};
 
 /// Returns true for HTML elements that are block-level (force line break before/after).
 fn is_block_element(tag: &str) -> bool {
@@ -212,6 +213,12 @@ pub fn render_page(html: &str, viewport_width: u32) -> RenderOutput {
                     });
                     current_y += line_height;
                     current_x = 0;
+                }
+
+                // --- Inline style property parsing (4.2) ---
+                // Apply color, background-color, font-size, text-align from style="" attribute
+                if let Some(style_str) = get_attribute(node, "style") {
+                    apply_inline_css(&style_str, &mut current_style);
                 }
 
                 match tag.as_str() {
@@ -519,6 +526,75 @@ pub fn render_page(html: &str, viewport_width: u32) -> RenderOutput {
                     | "footer" | "section" | "article" | "aside" | "main"
                     | "span" | "figure" | "figcaption" | "details" | "summary" => {}
 
+                    // Canvas 2D element (4.3)
+                    "canvas" => {
+                        let cw = get_attribute(node, "width")
+                            .and_then(|v| v.parse::<u32>().ok())
+                            .unwrap_or(300);
+                        let ch = get_attribute(node, "height")
+                            .and_then(|v| v.parse::<u32>().ok())
+                            .unwrap_or(150);
+                        let cw = cw.min(usable_width);
+                        let ch = ch.min(2048);
+
+                        // Create a canvas with a default gray background placeholder
+                        let mut ctx = CanvasContext2D::new(cw, ch);
+                        ctx.set_fill_color(0xFF1C1C1E);
+                        ctx.fill_rect(0, 0, cw, ch);
+                        ctx.set_stroke_color(0xFF48484A);
+                        ctx.stroke_rect(0, 0, cw, ch);
+                        // Draw "Canvas WxH" label
+                        ctx.set_fill_color(0xFF808080);
+                        ctx.fill_text(&alloc::format!("Canvas {}x{}", cw, ch), 4, 4);
+
+                        if current_x > 0 {
+                            lines.push(RenderLine {
+                                y: current_y,
+                                elements: core::mem::take(&mut current_line_elements),
+                            });
+                            current_y += line_height;
+                            current_x = 0;
+                        }
+
+                        lines.push(RenderLine {
+                            y: current_y,
+                            elements: alloc::vec![RenderElement {
+                                x: margin,
+                                width: cw,
+                                content: RenderContent::Canvas { data: ctx.to_image_data() },
+                            }],
+                        });
+                        current_y += ch;
+                        continue;
+                    }
+
+                    // SVG element (4.4)
+                    "svg" => {
+                        if let Some(img_data) = render_svg(node, usable_width.min(200), 150) {
+                            if current_x > 0 {
+                                lines.push(RenderLine {
+                                    y: current_y,
+                                    elements: core::mem::take(&mut current_line_elements),
+                                });
+                                current_y += line_height;
+                                current_x = 0;
+                            }
+
+                            let svg_w = img_data.width;
+                            let svg_h = img_data.height;
+                            lines.push(RenderLine {
+                                y: current_y,
+                                elements: alloc::vec![RenderElement {
+                                    x: margin,
+                                    width: svg_w,
+                                    content: RenderContent::Svg { data: img_data },
+                                }],
+                            });
+                            current_y += svg_h;
+                        }
+                        continue;
+                    }
+
                     _ => {}
                 }
 
@@ -545,6 +621,48 @@ pub fn render_page(html: &str, viewport_width: u32) -> RenderOutput {
         lines,
         total_height: current_y,
         links,
+    }
+}
+
+/// Parse inline `style="..."` attribute and apply recognised CSS properties.
+fn apply_inline_css(style_str: &str, style: &mut TextStyle) {
+    for part in style_str.split(';') {
+        let part = part.trim();
+        if part.is_empty() {
+            continue;
+        }
+        if let Some((prop, val)) = part.split_once(':') {
+            let prop = prop.trim().to_ascii_lowercase();
+            let val = val.trim();
+            match prop.as_str() {
+                "color" => {
+                    if let Some(c) = parse_css_color(val) {
+                        style.color = Some(c);
+                    }
+                }
+                "background-color" | "background" => {
+                    if let Some(c) = parse_css_color(val) {
+                        style.bg_color = Some(c);
+                    }
+                }
+                "font-size" => {
+                    // Accept pixel values like "24px", "12px"
+                    let num_str = val.trim_end_matches("px").trim_end_matches("pt").trim();
+                    if let Ok(n) = num_str.parse::<u8>() {
+                        style.font_scale = n;
+                    }
+                }
+                "text-align" => {
+                    let v = val.to_ascii_lowercase();
+                    match v.as_str() {
+                        "center" => style.text_align = TextAlign::Center,
+                        "right" => style.text_align = TextAlign::Right,
+                        _ => style.text_align = TextAlign::Left,
+                    }
+                }
+                _ => {}
+            }
+        }
     }
 }
 
@@ -623,6 +741,21 @@ pub fn render_to_lines_with_links(html: &str) -> (Vec<String>, Vec<(usize, u32, 
                     line_text.push_str(text);
                     line_text.push(']');
                     current_char_pos += 7 + text.len() as u32;
+                }
+                RenderContent::DecodedImage { ref data } => {
+                    let label = alloc::format!("[IMG decoded {}x{}]", data.width, data.height);
+                    line_text.push_str(&label);
+                    current_char_pos += label.len() as u32;
+                }
+                RenderContent::Canvas { ref data } => {
+                    let label = alloc::format!("[CANVAS {}x{}]", data.width, data.height);
+                    line_text.push_str(&label);
+                    current_char_pos += label.len() as u32;
+                }
+                RenderContent::Svg { ref data } => {
+                    let label = alloc::format!("[SVG {}x{}]", data.width, data.height);
+                    line_text.push_str(&label);
+                    current_char_pos += label.len() as u32;
                 }
                 RenderContent::LineBreak => {}
                 RenderContent::HorizontalRule => {
