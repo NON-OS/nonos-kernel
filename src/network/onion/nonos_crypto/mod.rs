@@ -31,7 +31,7 @@ mod aead;
 mod util;
 mod verify;
 
-pub use types::{X509Certificate, AlgorithmIdentifier, PublicKeyInfo, ObjectIdentifier, PublicKeyKind};
+pub use types::{X509Certificate, AlgorithmIdentifier, PublicKeyInfo, ObjectIdentifier, PublicKeyKind, X509Extensions, BasicConstraints, ExtKeyUsage};
 pub use rsa::{RSAKeyPair, RSAPublic, RealRSA};
 pub use curve::{RealCurve25519, RealEd25519, scalar_mult_x25519, ed25519_verify, x25519_keypair, x25519};
 pub use dh::RealDH;

@@ -19,7 +19,7 @@ use crate::network::onion::OnionError;
 use super::super::x509_der::DerParser;
 use super::super::x509_time::parse_validity;
 
-pub(super) fn parse_tbs_fields(parser: &mut DerParser) -> Result<(u64, u64, Vec<u8>, Vec<u8>, bool), OnionError> {
+pub(super) fn parse_tbs_fields(parser: &mut DerParser) -> Result<(u64, u64, Vec<u8>, Vec<u8>), OnionError> {
     crate::sys::serial::print(b"[X509] tbs offset=");
     crate::sys::serial::print_dec(parser.offset as u64);
     crate::sys::serial::print(b" tag=0x");
@@ -48,12 +48,6 @@ pub(super) fn parse_tbs_fields(parser: &mut DerParser) -> Result<(u64, u64, Vec<
     let subject_end = parser.offset;
     let subject_der = parser.data[subject_start..subject_end].to_vec();
     crate::sys::serial::println(b"[X509] tbs_fields done");
-    Ok((not_before_ms, not_after_ms, issuer_der, subject_der, false))
+    Ok((not_before_ms, not_after_ms, issuer_der, subject_der))
 }
 
-pub(super) fn skip_extensions(parser: &mut DerParser) -> Result<(), OnionError> {
-    while parser.has_more() && parser.peek_tag() == Some(0xA3) {
-        parser.skip_structure()?;
-    }
-    Ok(())
-}

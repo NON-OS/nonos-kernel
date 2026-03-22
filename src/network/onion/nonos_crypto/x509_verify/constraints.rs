@@ -18,7 +18,7 @@ use crate::network::onion::OnionError;
 use super::super::types::X509Certificate;
 
 pub(crate) fn check_basic_constraints_end_entity(cert: &X509Certificate) -> Result<(), OnionError> {
-    if cert.is_ca {
+    if cert.extensions.basic_constraints.ca {
         return Err(OnionError::CertificateError);
     }
     Ok(())
