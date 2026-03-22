@@ -22,4 +22,4 @@ mod signature;
 
 pub(crate) use chain::verify_chain;
 pub(crate) use constraints::check_basic_constraints_end_entity;
-pub(crate) use signature::{verify_self_signed, verify_signature};
+pub(crate) use signature::{verify_self_signed, verify_signature, verify_signature_with_spki_der};

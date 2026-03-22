@@ -74,12 +74,19 @@ fn verify_chain_and_root(chain: &[crate::network::onion::nonos_crypto::X509Certi
         } else {
             serial::println(b"[CERT] chain verify OK");
         }
-        serial::println(b"[CERT] verifying trusted root");
-        if super::super::root_certs::verify_trusted_root(chain).is_err() {
-            serial::println(b"[CERT] WARNING: root not trusted");
-            root_trusted = false;
-        } else {
-            serial::println(b"[CERT] trusted root OK");
+        serial::println(b"[CERT] verifying chain-to-root (browser-grade)");
+        match super::super::root_certs::verify_chain_to_root(chain) {
+            Ok(root) => {
+                serial::print(b"[CERT] trusted root: ");
+                let name_bytes = root.name.as_bytes();
+                let print_len = if name_bytes.len() > 40 { 40 } else { name_bytes.len() };
+                serial::print(&name_bytes[..print_len]);
+                serial::println(b"");
+            }
+            Err(_) => {
+                serial::println(b"[CERT] WARNING: root not trusted");
+                root_trusted = false;
+            }
         }
     } else {
         serial::println(b"[CERT] verifying self-signed");

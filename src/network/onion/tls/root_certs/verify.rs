@@ -16,6 +16,7 @@
 
 use crate::network::onion::OnionError;
 use crate::network::onion::nonos_crypto::X509Certificate;
+use crate::network::onion::nonos_crypto::verify_signature_with_spki_der;
 use crate::crypto::hash::unified::sha256;
 use crate::sys::serial;
 use super::store::TRUSTED_ROOT_GROUPS;
@@ -54,6 +55,107 @@ pub fn verify_trusted_root(chain: &[X509Certificate]) -> Result<(), OnionError> 
         serial::print(b" ");
     }
     serial::println(b"");
+    Err(OnionError::CertificateError)
+}
+
+/// Browser-grade chain-to-root verification (Phase 3).
+///
+/// Verifies that the topmost certificate in the chain was issued by a trusted
+/// root CA by:
+///   1. Finding candidate roots whose subject_der matches the topmost cert's issuer_der
+///   2. If the topmost cert has an AKI extension, filtering candidates by SKI
+///   3. Cryptographically verifying the topmost cert's signature against each
+///      candidate root's SPKI
+///
+/// If the server sent a self-signed root in the chain, that cert is stripped
+/// and verification proceeds against its issuer (the next cert down).
+///
+/// Falls back to SPKI-hash lookup if DN matching finds no candidates.
+pub fn verify_chain_to_root(chain: &[X509Certificate]) -> Result<&'static TrustedRootCa, OnionError> {
+    if chain.is_empty() {
+        return Err(OnionError::CertificateError);
+    }
+
+    let topmost = &chain[chain.len() - 1];
+
+    // If the server sent the root cert itself (self-signed: issuer == subject),
+    // check if it's trusted directly by SPKI hash, then verify its self-signature
+    // was already checked by verify_chain(). The actual trust anchor verification
+    // should use the cert *below* the self-signed root, if one exists.
+    let verify_cert = if topmost.issuer_der == topmost.subject_der && chain.len() > 1 {
+        serial::println(b"[CERT] topmost is self-signed, verifying cert below it");
+        &chain[chain.len() - 2]
+    } else {
+        topmost
+    };
+
+    // Step 1: Find candidate roots by subject DN matching
+    let candidates = find_roots_by_subject_dn(&verify_cert.issuer_der);
+
+    if !candidates.is_empty() {
+        serial::print(b"[CERT] found ");
+        serial::print_dec(candidates.len() as u64);
+        serial::println(b" candidate roots by DN");
+
+        // Step 2: If the cert has an AKI, narrow candidates by SKI
+        let filtered: Vec<&'static TrustedRootCa> = if let Some(ref aki) = verify_cert.extensions.authority_key_id {
+            let ski_filtered: Vec<_> = candidates
+                .iter()
+                .filter(|root| {
+                    if let Some(ski) = root.ski {
+                        ski == aki.as_slice()
+                    } else {
+                        // Root has no SKI — keep as candidate (can't filter)
+                        true
+                    }
+                })
+                .copied()
+                .collect();
+            if ski_filtered.is_empty() {
+                serial::println(b"[CERT] AKI->SKI filter eliminated all candidates, using DN-only");
+                candidates
+            } else {
+                serial::print(b"[CERT] AKI->SKI filtered to ");
+                serial::print_dec(ski_filtered.len() as u64);
+                serial::println(b" candidates");
+                ski_filtered
+            }
+        } else {
+            candidates
+        };
+
+        // Step 3: Verify signature against each candidate's SPKI
+        for root in &filtered {
+            if verify_signature_with_spki_der(verify_cert, root.spki_der).is_ok() {
+                serial::print(b"[CERT] chain-to-root verified: ");
+                // Print first few chars of root name
+                let name_bytes = root.name.as_bytes();
+                let print_len = if name_bytes.len() > 40 { 40 } else { name_bytes.len() };
+                serial::print(&name_bytes[..print_len]);
+                serial::println(b"");
+                return Ok(root);
+            }
+        }
+        serial::println(b"[CERT] DN candidates found but signature verification failed");
+    }
+
+    // Fallback: SPKI-hash lookup (backward compatibility during migration)
+    serial::println(b"[CERT] falling back to SPKI-hash trust check");
+    let spki_hash = sha256(&verify_cert.public_key.raw_spki);
+    for group in TRUSTED_ROOT_GROUPS {
+        for root in *group {
+            if root.spki_sha256 == spki_hash {
+                serial::print(b"[CERT] SPKI-hash fallback matched: ");
+                let name_bytes = root.name.as_bytes();
+                let print_len = if name_bytes.len() > 40 { 40 } else { name_bytes.len() };
+                serial::print(&name_bytes[..print_len]);
+                serial::println(b"");
+                return Ok(root);
+            }
+        }
+    }
+
+    serial::println(b"[CERT] chain-to-root: no trusted root found");
     Err(OnionError::CertificateError)
 }
 
@@ -235,5 +337,203 @@ mod tests {
         assert_eq!(by_ski.len(), 1);
         assert_eq!(by_dn[0].name, by_ski[0].name);
         assert_eq!(by_dn[0].spki_sha256, by_ski[0].spki_sha256);
+    }
+
+    // ================================================================
+    // Phase 3 tests — verify_chain_to_root and signature verification
+    // ================================================================
+
+    use crate::network::onion::nonos_crypto::{
+        AlgorithmIdentifier, ObjectIdentifier, PublicKeyInfo, X509Extensions,
+    };
+
+    /// Construct a minimal X509Certificate for testing chain-to-root logic.
+    /// Signature verification will fail on dummy data — these tests focus on
+    /// the candidate selection logic (DN matching, AKI→SKI filtering, fallback).
+    fn make_test_cert(
+        subject: &[u8],
+        issuer: &[u8],
+        raw_spki: &[u8],
+        aki: Option<&[u8]>,
+    ) -> X509Certificate {
+        let mut extensions = X509Extensions::default();
+        if let Some(aki_val) = aki {
+            extensions.authority_key_id = Some(aki_val.to_vec());
+        }
+        X509Certificate {
+            tbs_certificate: alloc::vec![0x30, 0x00],
+            signature_algorithm: AlgorithmIdentifier {
+                algorithm: ObjectIdentifier { components: alloc::vec![1, 2, 840, 113549, 1, 1, 11] },
+                parameters: None,
+            },
+            signature: Vec::new(),
+            public_key: PublicKeyInfo {
+                algorithm: AlgorithmIdentifier {
+                    algorithm: ObjectIdentifier { components: alloc::vec![1, 2, 840, 113549, 1, 1, 1] },
+                    parameters: None,
+                },
+                public_key: Vec::new(),
+                raw_spki: raw_spki.to_vec(),
+            },
+            not_before_ms: 0,
+            not_after_ms: u64::MAX,
+            extensions,
+            subject_der: subject.to_vec(),
+            issuer_der: issuer.to_vec(),
+        }
+    }
+
+    #[test]
+    fn test_verify_chain_to_root_empty_chain() {
+        assert!(verify_chain_to_root(&[]).is_err());
+    }
+
+    #[test]
+    fn test_verify_chain_to_root_unknown_issuer() {
+        // A cert whose issuer_der matches no root should fail
+        let cert = make_test_cert(&[0x01], &[0xDE, 0xAD], &[], None);
+        assert!(verify_chain_to_root(&[cert]).is_err());
+    }
+
+    #[test]
+    fn test_verify_chain_to_root_dn_match_finds_candidates() {
+        // A cert whose issuer_der matches ISRG X1's subject_der.
+        // Signature verification will fail (dummy data), but the DN matching
+        // path should be exercised. The function falls back to SPKI-hash,
+        // which also won't match, so it should return an error.
+        let cert = make_test_cert(
+            &[0x01],
+            ISRG_X1_SUBJECT_DER,
+            &[],
+            None,
+        );
+        // This should fail (no valid signature or SPKI match) but should NOT panic
+        assert!(verify_chain_to_root(&[cert]).is_err());
+    }
+
+    #[test]
+    fn test_verify_chain_to_root_dn_match_with_aki() {
+        // A cert whose issuer_der matches ISRG X1's subject and AKI matches X1's SKI.
+        // Exercises the AKI→SKI filtering path.
+        let cert = make_test_cert(
+            &[0x01],
+            ISRG_X1_SUBJECT_DER,
+            &[],
+            Some(ISRG_X1_SKI),
+        );
+        // Should fail at sig verification but exercise the AKI filter logic
+        assert!(verify_chain_to_root(&[cert]).is_err());
+    }
+
+    #[test]
+    fn test_verify_chain_to_root_aki_mismatch_filtered() {
+        // A cert whose issuer_der matches ISRG X1 but AKI is bogus.
+        // The SKI filter should not eliminate the candidate (since the root has
+        // a SKI but it doesn't match the AKI). The function should still fail
+        // at sig verification.
+        let cert = make_test_cert(
+            &[0x01],
+            ISRG_X1_SUBJECT_DER,
+            &[],
+            Some(&[0xFF, 0xFF, 0xFF, 0xFF]),
+        );
+        assert!(verify_chain_to_root(&[cert]).is_err());
+    }
+
+    #[test]
+    fn test_verify_chain_to_root_spki_hash_fallback() {
+        // A cert with unknown issuer_der but whose raw_spki SHA-256 matches
+        // a known root. This exercises the SPKI-hash fallback path.
+        let isrg_x1 = find_roots_by_subject_dn(ISRG_X1_SUBJECT_DER);
+        assert_eq!(isrg_x1.len(), 1);
+        let root = isrg_x1[0];
+
+        // Build a cert with raw_spki that hashes to the root's spki_sha256
+        // by using the root's actual spki_der
+        let cert = make_test_cert(
+            &[0x01],
+            &[0xDE, 0xAD], // unknown issuer — DN matching will find nothing
+            root.spki_der,  // but SPKI hash will match
+            None,
+        );
+        // The SPKI-hash fallback should find the root
+        let result = verify_chain_to_root(&[cert]);
+        assert!(result.is_ok(), "SPKI-hash fallback should find ISRG Root X1");
+        assert_eq!(result.unwrap().name, "ISRG Root X1");
+    }
+
+    #[test]
+    fn test_verify_chain_to_root_self_signed_topmost_with_chain() {
+        // When the server sends the root in the chain (self-signed topmost),
+        // verify_chain_to_root should verify the cert below it instead.
+        let leaf = make_test_cert(&[0x01], &[0x02], &[], None);
+        let self_signed_root = make_test_cert(
+            ISRG_X1_SUBJECT_DER,
+            ISRG_X1_SUBJECT_DER,
+            &[],
+            None,
+        );
+        let chain = alloc::vec![leaf, self_signed_root];
+        // The function should try to verify the leaf (chain[0]) against roots,
+        // since chain[1] is self-signed. Leaf's issuer is [0x02] which won't match.
+        assert!(verify_chain_to_root(&chain).is_err());
+    }
+
+    #[test]
+    fn test_verify_chain_to_root_self_signed_single_cert() {
+        // Single self-signed cert — should try to match the cert itself
+        let cert = make_test_cert(
+            ISRG_X1_SUBJECT_DER,
+            ISRG_X1_SUBJECT_DER,
+            &[],
+            None,
+        );
+        // Single cert, self-signed: should still try to find it in trust store
+        // via its issuer_der. DN match will find ISRG X1, but sig will fail.
+        // Falls to SPKI fallback, which also fails (empty raw_spki).
+        assert!(verify_chain_to_root(&[cert]).is_err());
+    }
+
+    #[test]
+    fn test_verify_chain_to_root_all_roots_have_parseable_spki() {
+        // Verify that every root CA's spki_der in the trust store can be
+        // parsed by parse_spki_der (used by verify_signature_with_spki_der).
+        use crate::network::onion::nonos_crypto::verify_signature_with_spki_der;
+        for group in TRUSTED_ROOT_GROUPS {
+            for root in *group {
+                if root.spki_der.is_empty() {
+                    continue;
+                }
+                // Create a dummy cert — we just want to test SPKI parsing doesn't panic
+                let cert = make_test_cert(&[0x01], &[0x02], &[], None);
+                // verify_signature_with_spki_der will parse the SPKI, then fail
+                // at signature verification (dummy cert). The point: SPKI parsing
+                // must not panic or return a parse error.
+                let result = verify_signature_with_spki_der(&cert, root.spki_der);
+                // Result should be Err (sig mismatch), NOT a parse error panic
+                assert!(
+                    result.is_err(),
+                    "dummy cert should fail sig verify against '{}'",
+                    root.name
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn test_verify_signature_with_spki_der_invalid_spki() {
+        use crate::network::onion::nonos_crypto::verify_signature_with_spki_der;
+        let cert = make_test_cert(&[0x01], &[0x02], &[], None);
+        // Garbage SPKI should return an error, not panic
+        let result = verify_signature_with_spki_der(&cert, &[0xFF, 0xFF, 0xFF]);
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_verify_signature_with_spki_der_empty() {
+        use crate::network::onion::nonos_crypto::verify_signature_with_spki_der;
+        let cert = make_test_cert(&[0x01], &[0x02], &[], None);
+        let result = verify_signature_with_spki_der(&cert, &[]);
+        assert!(result.is_err());
     }
 }

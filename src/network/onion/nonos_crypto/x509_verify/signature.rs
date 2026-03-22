@@ -18,6 +18,7 @@ use crate::network::onion::OnionError;
 use crate::sys::serial;
 use super::super::rsa::RSAPublic;
 use super::super::types::{AlgorithmIdentifier, X509Certificate};
+use super::super::x509_core::parse_spki_der;
 use super::rsa_parse::parse_rsa_public_key;
 use super::sig_ed_ecdsa::{verify_ed25519, verify_ecdsa};
 
@@ -74,4 +75,17 @@ fn verify_rsa(cert: &X509Certificate, public_key_bytes: &[u8]) -> Result<(), Oni
         serial::println(b"[X509] RSA verify FAILED");
         Err(OnionError::CryptoError)
     }
+}
+
+/// Verify a certificate's signature using a raw SPKI DER blob (from a trusted root CA).
+/// Parses the SPKI to extract the algorithm and public key bytes, then dispatches
+/// to the appropriate signature verification routine.
+pub(crate) fn verify_signature_with_spki_der(
+    cert: &X509Certificate,
+    spki_der: &[u8],
+) -> Result<(), OnionError> {
+    let pki = parse_spki_der(spki_der)?;
+    // The cert's signature_algorithm specifies the hash (SHA-256, SHA-384, etc.).
+    // The SPKI contains the key type. Use both for correct dispatch.
+    verify_signature_internal(cert, &pki.public_key, &cert.signature_algorithm)
 }

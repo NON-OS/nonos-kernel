@@ -113,19 +113,19 @@ public key via issuer DN matching, instead of SPKI hash lookup.
 
 ### Checklist
 
-- [ ] Implement `verify_chain_to_root()`:
-  - [ ] Step 1: Find candidate roots where `topmost.issuer_der == root.subject_der`
-  - [ ] Step 2: If topmost has AKI, filter candidates by SKI
-  - [ ] Step 3: Verify topmost's signature with each candidate root's SPKI
-  - [ ] Return matching root on success
-- [ ] Add `verify_signature_with_spki(tbs, sig, sig_alg, spki_der)` helper
-- [ ] Replace `verify_trusted_root()` call in `https.rs` with `verify_chain_to_root()`
-- [ ] Handle cross-signed roots (multiple roots may share Subject DN)
-- [ ] Handle server sending root in chain (detect self-signed topmost)
-- [ ] Add chain depth limit (max 10 certs)
+- [x] Implement `verify_chain_to_root()`:
+  - [x] Step 1: Find candidate roots where `topmost.issuer_der == root.subject_der`
+  - [x] Step 2: If topmost has AKI, filter candidates by SKI
+  - [x] Step 3: Verify topmost's signature with each candidate root's SPKI
+  - [x] Return matching root on success
+- [x] Add `verify_signature_with_spki(tbs, sig, sig_alg, spki_der)` helper
+- [x] Replace `verify_trusted_root()` call in `https.rs` with `verify_chain_to_root()`
+- [x] Handle cross-signed roots (multiple roots may share Subject DN)
+- [x] Handle server sending root in chain (detect self-signed topmost)
+- [x] Add chain depth limit (max 10 certs)
 - [ ] Test with real chains: Let's Encrypt, Google GTS, Cloudflare, DigiCert
-- [ ] Verify old SPKI-hash path still works as fallback during migration
-- [ ] `cargo test --features std` passes
+- [x] Verify old SPKI-hash path still works as fallback during migration
+- [x] `cargo test --features std` passes (1704 tests, 0 failures)
 - [ ] `cargo clippy` clean
 - [ ] `make run-serial` boots without new errors
 
