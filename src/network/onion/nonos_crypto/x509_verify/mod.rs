@@ -16,6 +16,7 @@
 
 mod chain;
 mod constraints;
+mod dn;
 mod rsa_parse;
 mod sig_ed_ecdsa;
 mod signature;
@@ -23,4 +24,5 @@ mod signature;
 pub(crate) use chain::verify_chain;
 pub(crate) use constraints::check_basic_constraints_end_entity;
 pub(crate) use constraints::{check_eku_server_auth, check_leaf_key_usage};
+pub(crate) use dn::dn_equal;
 pub(crate) use signature::{verify_self_signed, verify_signature, verify_signature_with_spki_der};

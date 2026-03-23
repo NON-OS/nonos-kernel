@@ -19,6 +19,7 @@ use super::super::x509_der::DerParser;
 use super::super::types::{
     X509Extensions, BasicConstraints, ExtKeyUsage,
 };
+use alloc::string::String;
 
 // Well-known extension OIDs (encoded as DER OID content bytes)
 // 2.5.29.19 — Basic Constraints
@@ -31,6 +32,8 @@ const OID_EXT_KEY_USAGE: &[u8] = &[0x55, 0x1D, 0x25];
 const OID_SUBJECT_KEY_ID: &[u8] = &[0x55, 0x1D, 0x0E];
 // 2.5.29.35 — Authority Key Identifier
 const OID_AUTHORITY_KEY_ID: &[u8] = &[0x55, 0x1D, 0x23];
+// 2.5.29.17 — Subject Alternative Name
+const OID_SUBJECT_ALT_NAME: &[u8] = &[0x55, 0x1D, 0x11];
 
 // EKU OID values (DER-encoded OID content bytes)
 // 1.3.6.1.5.5.7.3.1 — id-kp-serverAuth
@@ -102,6 +105,8 @@ fn parse_single_extension(parser: &mut DerParser, exts: &mut X509Extensions) -> 
         exts.subject_key_id = Some(parse_octet_string_value(&parser.data[val_start..val_end])?);
     } else if oid_bytes == OID_AUTHORITY_KEY_ID {
         exts.authority_key_id = parse_authority_key_id(&parser.data[val_start..val_end])?;
+    } else if oid_bytes == OID_SUBJECT_ALT_NAME {
+        parse_san(&parser.data[val_start..val_end], &mut exts.san_dns_names)?;
     }
     // Unknown extensions: silently skip (non-critical ones are safe to ignore)
 
@@ -225,6 +230,33 @@ fn parse_authority_key_id(data: &[u8]) -> Result<Option<alloc::vec::Vec<u8>>, On
     }
 
     Ok(None)
+}
+
+/// SubjectAltName ::= GeneralNames ::= SEQUENCE OF GeneralName
+/// GeneralName ::= CHOICE { dNSName [2] IA5String, ... }
+fn parse_san(data: &[u8], dns_names: &mut alloc::vec::Vec<String>) -> Result<(), OnionError> {
+    let mut p = DerParser::new(data);
+    p.expect_sequence()?;
+    let seq_len = p.read_length()?;
+    let seq_end = p.offset + seq_len;
+
+    while p.offset < seq_end {
+        let tag = p.peek_tag().ok_or(OnionError::CertificateError)?;
+        p.offset += 1;
+        let len = p.read_length()?;
+        if tag == 0x82 {
+            // dNSName [2] IMPLICIT IA5String
+            let bytes = p.read_bytes(len)?;
+            if let Ok(name) = core::str::from_utf8(bytes) {
+                dns_names.push(String::from(name));
+            }
+        } else {
+            // Skip other GeneralName types (rfc822Name, iPAddress, etc.)
+            p.skip(len)?;
+        }
+    }
+
+    Ok(())
 }
 
 #[cfg(test)]

@@ -188,11 +188,11 @@ public key via issuer DN matching, instead of SPKI hash lookup.
 - [x] Remove `is_trusted_root()` SPKI-hash function (replaced by DN+sig verify)
 - [x] Remove `verify_trusted_root()` legacy function
 - [x] Remove SPKI-hash fallback from `verify_chain_to_root()`
-- [ ] Optional: migrate SAN parsing from raw byte scan to extension parser
-- [ ] Optional: DN normalization (case-insensitive PrintableString per RFC 5280 §7.1)
-- [ ] Optional: tighten time validity (warn instead of silent skip when clock < 2020)
+- [x] Optional: migrate SAN parsing from raw byte scan to extension parser
+- [x] Optional: DN normalization (case-insensitive PrintableString per RFC 5280 §7.1)
+- [x] Optional: tighten time validity (warn instead of silent skip when clock < 2020)
 - [ ] Verify TLS connections to top 20 sites still work under QEMU
-- [x] `cargo test --features std` passes (1723 tests, -1 removed SPKI fallback test)
+- [x] `cargo test --features std` passes (1729 tests, +6 from optional items)
 - [ ] `cargo clippy` clean
 - [ ] `make run-serial` boots without new errors
 

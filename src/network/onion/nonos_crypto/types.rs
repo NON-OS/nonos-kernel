@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 
+use alloc::string::String;
 use alloc::vec::Vec;
 
 /// Key Usage bit flags (RFC 5280 §4.2.1.3)
@@ -51,6 +52,8 @@ pub struct X509Extensions {
     pub ext_key_usage: Vec<ExtKeyUsage>,
     pub subject_key_id: Option<Vec<u8>>,
     pub authority_key_id: Option<Vec<u8>>,
+    /// DNS names from the Subject Alternative Name extension (RFC 5280 §4.2.1.6)
+    pub san_dns_names: Vec<String>,
 }
 
 impl Default for X509Extensions {
@@ -61,6 +64,7 @@ impl Default for X509Extensions {
             ext_key_usage: Vec::new(),
             subject_key_id: None,
             authority_key_id: None,
+            san_dns_names: Vec::new(),
         }
     }
 }

@@ -19,6 +19,7 @@ use crate::sys::serial;
 use super::super::types::X509Certificate;
 use super::super::x509_time::check_time_validity;
 use super::constraints::{check_ca_constraints, check_path_len_constraints};
+use super::dn::dn_equal;
 use super::signature::{verify_self_signed, verify_signature};
 
 /// Maximum certificate chain depth (including leaf and all intermediates).
@@ -57,7 +58,7 @@ pub(crate) fn verify_chain(chain: &[X509Certificate], now_ms: u64) -> Result<(),
         serial::print(b" -> issuer ");
         serial::print_dec((i + 1) as u64);
         serial::println(b"");
-        if cert.issuer_der != issuer.subject_der {
+        if !dn_equal(&cert.issuer_der, &issuer.subject_der) {
             serial::println(b"[X509] ERROR: issuer/subject mismatch");
             serial::print(b"[X509] cert issuer len=");
             serial::print_dec(cert.issuer_der.len() as u64);
@@ -89,7 +90,7 @@ pub(crate) fn verify_chain(chain: &[X509Certificate], now_ms: u64) -> Result<(),
 
 fn verify_root(chain: &[X509Certificate]) -> Result<(), OnionError> {
     let root = &chain[chain.len() - 1];
-    if root.issuer_der == root.subject_der {
+    if dn_equal(&root.issuer_der, &root.subject_der) {
         serial::println(b"[X509] verifying self-signed root");
         if let Err(e) = verify_self_signed(root) {
             serial::println(b"[X509] ERROR: root self-sign failed");
