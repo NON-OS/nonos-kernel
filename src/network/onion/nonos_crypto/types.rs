@@ -19,10 +19,11 @@ use alloc::string::String;
 use alloc::vec::Vec;
 
 /// Key Usage bit flags (RFC 5280 §4.2.1.3)
-pub const KU_DIGITAL_SIGNATURE: u16 = 1 << 0;
-pub const KU_KEY_ENCIPHERMENT: u16 = 1 << 2;
-pub const KU_KEY_CERT_SIGN: u16 = 1 << 5;
-pub const KU_CRL_SIGN: u16 = 1 << 6;
+/// ASN.1 BIT STRING is MSB-first: bit 0 = 0x80 of byte 0, bit 7 = 0x01.
+pub const KU_DIGITAL_SIGNATURE: u16 = 0x80; // bit 0
+pub const KU_KEY_ENCIPHERMENT: u16 = 0x20;  // bit 2
+pub const KU_KEY_CERT_SIGN: u16 = 0x04;     // bit 5
+pub const KU_CRL_SIGN: u16 = 0x02;          // bit 6
 
 /// Extended Key Usage purposes (RFC 5280 §4.2.1.12)
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

@@ -16,7 +16,7 @@
 
 use crate::network::onion::OnionError;
 use crate::sys::serial;
-use super::super::types::{X509Certificate, ExtKeyUsage, KU_KEY_CERT_SIGN, KU_DIGITAL_SIGNATURE};
+use super::super::types::{X509Certificate, ExtKeyUsage, KU_KEY_CERT_SIGN, KU_KEY_ENCIPHERMENT, KU_DIGITAL_SIGNATURE, KU_CRL_SIGN};
 
 pub(crate) fn check_basic_constraints_end_entity(cert: &X509Certificate) -> Result<(), OnionError> {
     if cert.extensions.basic_constraints.ca {
@@ -93,16 +93,17 @@ pub(crate) fn check_eku_server_auth(cert: &X509Certificate) -> Result<(), OnionE
 
 /// Check Key Usage on the leaf certificate.
 /// RFC 5280 §4.2.1.3: if KU extension is present, digitalSignature should be set
-/// for TLS leaf certs. If KU is absent (zero), allow.
+/// for TLS leaf certs. Also accept keyEncipherment for RSA key transport certs
+/// (browsers accept both). If KU is absent (zero), allow.
 pub(crate) fn check_leaf_key_usage(cert: &X509Certificate) -> Result<(), OnionError> {
     if cert.extensions.key_usage == 0 {
         // KU absent — allowed per RFC 5280
         return Ok(());
     }
-    if (cert.extensions.key_usage & KU_DIGITAL_SIGNATURE) != 0 {
+    if (cert.extensions.key_usage & (KU_DIGITAL_SIGNATURE | KU_KEY_ENCIPHERMENT)) != 0 {
         return Ok(());
     }
-    serial::println(b"[X509] leaf cert KU present but missing digitalSignature");
+    serial::println(b"[X509] leaf cert KU present but missing digitalSignature/keyEncipherment");
     Err(OnionError::CertificateError)
 }
 
@@ -111,7 +112,7 @@ mod tests {
     use super::*;
     use super::super::super::types::{
         AlgorithmIdentifier, ObjectIdentifier, PublicKeyInfo, X509Extensions,
-        BasicConstraints, KU_KEY_ENCIPHERMENT,
+        BasicConstraints,
     };
     use alloc::vec;
     use alloc::vec::Vec;
@@ -322,5 +323,23 @@ mod tests {
         ext.key_usage = KU_DIGITAL_SIGNATURE | KU_KEY_ENCIPHERMENT;
         let cert = make_cert_with_ext(ext);
         assert!(check_leaf_key_usage(&cert).is_ok());
+    }
+
+    #[test]
+    fn test_leaf_ku_key_encipherment_only_ok() {
+        // RSA key transport certs may only have keyEncipherment — browsers accept this
+        let mut ext = X509Extensions::default();
+        ext.key_usage = KU_KEY_ENCIPHERMENT;
+        let cert = make_cert_with_ext(ext);
+        assert!(check_leaf_key_usage(&cert).is_ok());
+    }
+
+    #[test]
+    fn test_leaf_ku_crl_sign_only_rejected() {
+        // cRLSign alone is not valid for a TLS leaf cert
+        let mut ext = X509Extensions::default();
+        ext.key_usage = KU_CRL_SIGN;
+        let cert = make_cert_with_ext(ext);
+        assert!(check_leaf_key_usage(&cert).is_err());
     }
 }
