@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod constants;
+pub mod ecdh;
 mod ecdsa;
 mod field;
 mod point;
@@ -24,6 +25,8 @@ mod scalar;
 mod tests;
 
 pub use constants::{CompressedPublicKey, PublicKey, SecretKey, Signature};
+
+pub use ecdh::{p256_ecdh, p256_ecdh_keypair};
 
 pub use ecdsa::{
     generate_keypair, public_key_from_secret, sign, sign_message, verify, verify_message,

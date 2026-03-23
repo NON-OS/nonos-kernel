@@ -32,4 +32,6 @@ pub trait TlsCrypto: Sync + Send {
     fn verify_rsa_pss_sha256(&self, spki_der: &[u8], msg: &[u8], sig: &[u8]) -> bool;
     fn verify_ecdsa_p256_sha256(&self, spki_der: &[u8], msg: &[u8], sig: &[u8]) -> bool;
     fn verify_ecdsa_p384_sha384(&self, spki_der: &[u8], msg: &[u8], sig: &[u8]) -> bool;
+    fn p256_keypair(&self) -> Result<([u8; 32], [u8; 65]), OnionError>;
+    fn p256_ecdh(&self, sk: &[u8; 32], peer_pub: &[u8; 65]) -> Result<[u8; 32], OnionError>;
 }

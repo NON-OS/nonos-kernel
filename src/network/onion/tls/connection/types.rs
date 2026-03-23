@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use alloc::string::String;
 use alloc::vec::Vec;
 use super::super::types::CipherSuite;
 use super::super::transcript::Transcript;
@@ -43,21 +44,28 @@ pub struct TLSConnection {
     pub(super) client_random: [u8; 32],
     pub(super) ephemeral_secret: Vec<u8>,
     pub(super) server_random: [u8; 32],
-    pub(super) server_pub: [u8; 32],
+    pub(super) server_pub: Vec<u8>,
+    pub(super) server_group: u16,
     pub(super) server_certs: Vec<Vec<u8>>,
     pub(super) cert_verify_alg: Option<u16>,
     pub(super) cert_verify_sig: Vec<u8>,
     pub(super) cert_verify_hash: [u8; 32],
     pub(super) got_finished: bool,
     pub(super) recv_buffer: Vec<u8>,
+    // HRR support fields
+    pub(super) hrr_count: u8,
+    pub(super) sni_cache: Option<String>,
+    pub(super) alpn_cache: Option<Vec<String>>,
 }
 
 impl Drop for TLSConnection {
     fn drop(&mut self) {
         for byte in self.ephemeral_secret.iter_mut() {
+            // SAFETY: volatile write prevents compiler from optimizing away the zeroization
             unsafe { core::ptr::write_volatile(byte, 0) };
         }
         for byte in self.client_random.iter_mut() {
+            // SAFETY: volatile write prevents compiler from optimizing away the zeroization
             unsafe { core::ptr::write_volatile(byte, 0) };
         }
         for byte in self.cert_verify_hash.iter_mut() {

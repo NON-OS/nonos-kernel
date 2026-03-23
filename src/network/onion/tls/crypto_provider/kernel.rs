@@ -86,4 +86,16 @@ impl TlsCrypto for KernelTlsCrypto {
     fn verify_ecdsa_p384_sha384(&self, spki_der: &[u8], msg: &[u8], sig: &[u8]) -> bool {
         crate::network::onion::nonos_crypto::ecdsa_p384_sha384_verify_spki(spki_der, msg, sig).unwrap_or(false)
     }
+
+    fn p256_keypair(&self) -> Result<([u8; 32], [u8; 65]), OnionError> {
+        let (sk, pk) = crate::crypto::asymmetric::p256::ecdh::p256_ecdh_keypair();
+        let mut pk65 = [0u8; 65];
+        pk65.copy_from_slice(&pk);
+        Ok((sk, pk65))
+    }
+
+    fn p256_ecdh(&self, sk: &[u8; 32], peer_pub: &[u8; 65]) -> Result<[u8; 32], OnionError> {
+        crate::crypto::asymmetric::p256::ecdh::p256_ecdh(sk, peer_pub)
+            .ok_or(OnionError::CryptoError)
+    }
 }

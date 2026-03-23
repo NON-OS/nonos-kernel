@@ -48,4 +48,21 @@ impl Transcript {
     pub(super) fn hash(&self) -> &[u8; 32] {
         &self.state
     }
+
+    /// RFC 8446 §4.4.1: Replace transcript with synthetic message_hash construct.
+    /// Called after receiving HelloRetryRequest, before adding HRR to transcript.
+    ///
+    /// The current hash (Hash(CH1)) is wrapped in a synthetic handshake message:
+    ///   message_hash(254) || 00 00 hash_len || Hash(CH1)
+    /// Then the transcript buffer is replaced and re-hashed.
+    pub(super) fn replace_with_message_hash(&mut self) {
+        let hash = self.state;
+        self.buffer.clear();
+        self.buffer.push(254); // message_hash handshake type
+        self.buffer.push(0);
+        self.buffer.push(0);
+        self.buffer.push(32); // SHA-256 hash length
+        self.buffer.extend_from_slice(&hash);
+        self.update();
+    }
 }

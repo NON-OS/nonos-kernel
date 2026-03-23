@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use alloc::string::ToString;
 use crate::network::tcp::TcpSocket;
 use crate::network::onion::OnionError;
 use super::types::{TLSConnection, HandshakePhase};
@@ -32,6 +33,10 @@ impl TLSConnection {
         if self.phase != HandshakePhase::Idle {
             return Err(OnionError::CryptoError);
         }
+        // Cache SNI and ALPN for potential HRR ClientHello2 rebuild
+        self.sni_cache = sni.map(|s| s.to_string());
+        self.alpn_cache = alpn.map(|a| a.iter().map(|s| s.to_string()).collect());
+
         let c = crypto();
         c.random(&mut self.client_random)?;
         let (epk, esk) = c.x25519_keypair()?;
