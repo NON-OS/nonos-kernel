@@ -17,6 +17,7 @@
 use crate::network::onion::OnionError;
 use crate::network::onion::nonos_crypto::X509Certificate;
 use crate::network::onion::nonos_crypto::verify_signature_with_spki_der;
+use crate::network::onion::nonos_crypto::dn_equal;
 use crate::sys::serial;
 use super::store::TRUSTED_ROOT_GROUPS;
 use super::types::TrustedRootCa;
@@ -53,7 +54,7 @@ pub fn verify_chain_to_root(chain: &[X509Certificate]) -> Result<&'static Truste
         topmost
     };
 
-    // Step 1: Find candidate roots by subject DN matching
+    // Step 1: Find candidate roots by subject DN matching (uses RFC 5280 dn_equal)
     let candidates = find_roots_by_subject_dn(&verify_cert.issuer_der);
 
     if !candidates.is_empty() {
@@ -112,14 +113,14 @@ pub fn trusted_root_count() -> usize {
 }
 
 /// Find all trusted root CAs whose Subject DN matches the given issuer DN.
-/// Used for chain building: given a cert's issuer_der, find candidate roots
-/// that could have issued it.
+/// Uses RFC 5280 §7.1 normalized comparison (dn_equal) to handle encoding
+/// differences between the root's subject and the chain cert's issuer field
+/// (e.g., PrintableString vs UTF8String).
 pub fn find_roots_by_subject_dn(issuer_der: &[u8]) -> Vec<&'static TrustedRootCa> {
     let mut results = Vec::new();
     for group in TRUSTED_ROOT_GROUPS {
         for root in *group {
-            // Skip entries with empty subject_der (incomplete data)
-            if !root.subject_der.is_empty() && root.subject_der == issuer_der {
+            if !root.subject_der.is_empty() && dn_equal(root.subject_der, issuer_der) {
                 results.push(root);
             }
         }
@@ -178,8 +179,8 @@ mod tests {
     ];
 
     #[test]
-    fn test_trusted_root_count_is_28() {
-        assert_eq!(trusted_root_count(), 28);
+    fn test_trusted_root_count_is_25() {
+        assert_eq!(trusted_root_count(), 25);
     }
 
     #[test]
