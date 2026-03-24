@@ -40,7 +40,8 @@ pub(super) fn draw_rounded_rect(x: u32, y: u32, w: u32, h: u32, r: u32, color: u
     }}}
 }
 
-pub(super) fn draw_overview(x: u32, y: u32, w: u32, _h: u32) {
+pub(super) fn draw_overview(x: u32, y: u32, w: u32, h: u32) {
+    fill_rect(x, y, w, h, COLOR_BG);
     draw_section_header(x + 24, y + 20, b"Your Accounts");
     draw_premium_button(x + w - 200, y + 14, 85, 36, b"+ New", COLOR_GREEN, COLOR_GREEN_GLOW);
     draw_premium_button(x + w - 105, y + 14, 85, 36, b"Refresh", COLOR_ACCENT, COLOR_ACCENT_GLOW);
