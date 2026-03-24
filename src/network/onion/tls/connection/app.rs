@@ -22,6 +22,9 @@ use super::super::types::{ContentType, TlsSessionInfo};
 use super::super::verify::CertVerifier;
 
 impl TLSConnection {
+    /// Timeout in milliseconds for the full handshake (15 seconds).
+    const HANDSHAKE_TIMEOUT_MS: u64 = 15_000;
+
     pub fn handshake_full(
         &mut self,
         sock: &TcpSocket,
@@ -30,13 +33,18 @@ impl TLSConnection {
         verifier: &'static dyn CertVerifier,
     ) -> Result<TlsSessionInfo, OnionError> {
         self.start_handshake(sock, sni, alpn)?;
-        for _ in 0..100 {
+        let deadline = crate::time::timestamp_millis() + Self::HANDSHAKE_TIMEOUT_MS;
+        loop {
+            if crate::time::timestamp_millis() > deadline {
+                crate::sys::serial::println(b"[TLS] handshake_full: timeout");
+                return Err(OnionError::Timeout);
+            }
+            crate::network::poll_network();
             match self.poll_handshake(sock, sni, verifier)? {
                 Some(info) => return Ok(info),
-                None => { for _ in 0..1000 { core::hint::spin_loop(); } }
+                None => { for _ in 0..200 { core::hint::spin_loop(); } }
             }
         }
-        Err(OnionError::Timeout)
     }
 
     pub fn phase(&self) -> HandshakePhase { self.phase }

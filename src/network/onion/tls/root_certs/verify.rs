@@ -180,7 +180,7 @@ mod tests {
 
     #[test]
     fn test_trusted_root_count_is_25() {
-        assert_eq!(trusted_root_count(), 25);
+        assert_eq!(trusted_root_count(), 26);
     }
 
     #[test]

@@ -68,7 +68,20 @@ fn verify_rsa(cert: &X509Certificate, public_key_bytes: &[u8]) -> Result<(), Oni
     serial::println(b"[X509] using RSA verification");
     let public_key = parse_rsa_public_key(public_key_bytes)?;
     let rsa_public = RSAPublic { inner: public_key };
-    if rsa_public.verify_pkcs1v15_sha256(&cert.tbs_certificate, &cert.signature) {
+
+    let ok = if cert.signature_algorithm.algorithm.is_rsa_sha384() {
+        serial::println(b"[X509] RSA-SHA384 dispatch");
+        rsa_public.verify_pkcs1v15_sha384(&cert.tbs_certificate, &cert.signature)
+    } else if cert.signature_algorithm.algorithm.is_rsa_sha512() {
+        serial::println(b"[X509] RSA-SHA512 dispatch");
+        rsa_public.verify_pkcs1v15_sha512(&cert.tbs_certificate, &cert.signature)
+    } else {
+        // RSA_ENCRYPTION (1.1.1) and RSA_SHA256 (1.1.11) both use SHA-256
+        serial::println(b"[X509] RSA-SHA256 dispatch");
+        rsa_public.verify_pkcs1v15_sha256(&cert.tbs_certificate, &cert.signature)
+    };
+
+    if ok {
         serial::println(b"[X509] RSA verify OK");
         Ok(())
     } else {

@@ -132,6 +132,14 @@ impl ObjectIdentifier {
     pub fn is_ecdsa_sha256(&self) -> bool {
         self.components == Self::ECDSA_SHA256
     }
+
+    pub fn is_rsa_sha384(&self) -> bool {
+        self.components == Self::RSA_SHA384
+    }
+
+    pub fn is_rsa_sha512(&self) -> bool {
+        self.components == Self::RSA_SHA512
+    }
 }
 
 #[derive(Debug, Clone, PartialEq)]
