@@ -16,6 +16,7 @@
 
 use core::sync::atomic::Ordering;
 use crate::graphics::font::draw_char;
+use crate::graphics::window::apps::wallet::WALLET_STATE;
 use super::state;
 use super::render_helpers::{
     draw_card, draw_button, draw_string, draw_string_clipped, draw_number, draw_checkbox,
@@ -27,43 +28,87 @@ pub(super) fn draw_wallet_tab(x: u32, y: u32, w: u32, h: u32) {
     let card_w = w.saturating_sub(32).min(600);
     let card_x = x + (w - card_w) / 2;
     let max_y = y + h;
-
-    let connected = state::WALLET_CONNECTED.load(Ordering::Relaxed);
     if max_y < y + 300 { return; }
 
-    if !connected {
-        draw_card(card_x, y + 20, card_w, 200);
-        draw_string(card_x + 20, y + 40, b"Connect Wallet", COLOR_TEXT_BRIGHT);
-        draw_string(card_x + 20, y + 70, b"Create or import a wallet to access", COLOR_TEXT_DIM);
-        draw_string(card_x + 20, y + 90, b"DeFi features.", COLOR_TEXT_DIM);
-
-        draw_button(card_x + 20, y + 130, 140, 36, b"Create New");
-        draw_button(card_x + 180, y + 130, 140, 36, b"Import");
-    } else {
-        draw_card(card_x, y + 20, card_w, 140);
-        draw_string(card_x + 20, y + 40, b"Wallet Address", COLOR_TEXT_DIM);
-
-        if let Some(addr) = state::get_wallet_address() {
-            draw_string_clipped(card_x + 20, y + 60, addr.as_bytes(), COLOR_TEXT, card_w - 40);
-        }
-
-        draw_string(card_x + 20, y + 90, b"Balance", COLOR_TEXT_DIM);
-        if let Some(balance) = state::get_wallet_balance() {
-            let balance_bytes = balance.as_bytes();
-            for (i, &ch) in balance_bytes.iter().enumerate() {
-                draw_char(card_x + 20 + i as u32 * 8, y + 110, ch, COLOR_TEXT_BRIGHT);
-            }
-            draw_string(card_x + 20 + balance_bytes.len() as u32 * 8 + 8, y + 110, b"ETH", COLOR_TEXT_DIM);
+    let (unlocked, addr_hex, eth_balance, nox_balance) = {
+        let state = WALLET_STATE.lock();
+        if !state.unlocked {
+            (false, [0u8; 42], 0u128, 0u128)
+        } else if let Some(acc) = state.get_active_account() {
+            (true, acc.address_hex(), acc.balance, acc.nox_balance)
         } else {
-            draw_string(card_x + 20, y + 110, b"0.00 ETH", COLOR_TEXT_BRIGHT);
+            (false, [0u8; 42], 0u128, 0u128)
         }
+    };
 
-        draw_card(card_x, y + 180, card_w, 100);
-        draw_string(card_x + 20, y + 200, b"Actions", COLOR_TEXT_BRIGHT);
-        draw_button(card_x + 20, y + 230, 100, 32, b"Send");
-        draw_button(card_x + 140, y + 230, 100, 32, b"Receive");
-        draw_button(card_x + 260, y + 230, 100, 32, b"Swap");
+    if !unlocked {
+        draw_card(card_x, y + 20, card_w, 200);
+        draw_string(card_x + 20, y + 40, b"N\\xd8NOS Wallet", COLOR_TEXT_BRIGHT);
+        draw_string(card_x + 20, y + 70, b"Open the Wallet app to unlock", COLOR_TEXT_DIM);
+        draw_string(card_x + 20, y + 90, b"and manage your accounts.", COLOR_TEXT_DIM);
+
+        draw_button(card_x + 20, y + 130, 160, 36, b"Open Wallet App");
+    } else {
+        draw_card(card_x, y + 20, card_w, 160);
+        draw_string(card_x + 20, y + 40, b"Active Wallet", COLOR_TEXT_DIM);
+        draw_string_clipped(card_x + 20, y + 60, &addr_hex, COLOR_TEXT, card_w - 40);
+
+        draw_string(card_x + 20, y + 95, b"ETH Balance", COLOR_TEXT_DIM);
+        let wei_per: u128 = 1_000_000_000_000_000_000;
+        let eth = (eth_balance / wei_per) as u64;
+        let wei_frac = (eth_balance % wei_per / 1_000_000_000_000_000) as u64;
+        let mut balance_str = [0u8; 32];
+        let len = format_balance_simple(&mut balance_str, eth, wei_frac);
+        for (i, &ch) in balance_str[..len].iter().enumerate() {
+            draw_char(card_x + 20 + i as u32 * 8, y + 115, ch, COLOR_TEXT_BRIGHT);
+        }
+        draw_string(card_x + 20 + len as u32 * 8 + 8, y + 115, b"ETH", 0xFF34C759);
+
+        draw_string(card_x + 20, y + 140, b"NOX Balance", COLOR_TEXT_DIM);
+        let nox = (nox_balance / wei_per) as u64;
+        let nox_frac = (nox_balance % wei_per / 1_000_000_000_000_000) as u64;
+        let mut nox_str = [0u8; 32];
+        let nox_len = format_balance_simple(&mut nox_str, nox, nox_frac);
+        for (i, &ch) in nox_str[..nox_len].iter().enumerate() {
+            draw_char(card_x + 20 + i as u32 * 8, y + 160, ch, COLOR_TEXT_BRIGHT);
+        }
+        draw_string(card_x + 20 + nox_len as u32 * 8 + 8, y + 160, b"NOX", 0xFFBF5AF2);
+
+        draw_card(card_x, y + 200, card_w, 80);
+        draw_string(card_x + 20, y + 220, b"Quick Actions", COLOR_TEXT_BRIGHT);
+        draw_button(card_x + 20, y + 245, 120, 28, b"Open Wallet");
+        draw_button(card_x + 160, y + 245, 100, 28, b"Refresh");
     }
+}
+
+fn format_balance_simple(buf: &mut [u8; 32], whole: u64, frac: u64) -> usize {
+    let mut idx = 0;
+    if whole == 0 {
+        buf[idx] = b'0';
+        idx += 1;
+    } else {
+        let mut n = whole;
+        let mut digits = [0u8; 20];
+        let mut dc = 0;
+        while n > 0 {
+            digits[dc] = (n % 10) as u8;
+            n /= 10;
+            dc += 1;
+        }
+        for i in (0..dc).rev() {
+            buf[idx] = b'0' + digits[i];
+            idx += 1;
+        }
+    }
+    buf[idx] = b'.';
+    idx += 1;
+    buf[idx] = b'0' + ((frac / 100) % 10) as u8;
+    idx += 1;
+    buf[idx] = b'0' + ((frac / 10) % 10) as u8;
+    idx += 1;
+    buf[idx] = b'0' + (frac % 10) as u8;
+    idx += 1;
+    idx
 }
 
 pub(super) fn draw_staking_tab(x: u32, y: u32, w: u32, h: u32) {
