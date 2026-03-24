@@ -216,12 +216,18 @@ fn extract_body(data: &[u8]) -> Vec<u8> {
     if let Some(header_end) = find_header_end(data) {
         let headers = &data[..header_end];
         let raw_body = &data[header_end + 4..];
-
-        if is_chunked_transfer(headers) {
-            return decode_chunked(raw_body);
-        }
-
-        Vec::from(raw_body)
+        let body = if is_chunked_transfer(headers) { decode_chunked(raw_body) } else { Vec::from(raw_body) };
+        let enc = super::decompress::get_content_encoding(headers);
+        crate::sys::serial::print(b"[NAV] encoding=");
+        crate::sys::serial::println(enc.as_deref().unwrap_or("none").as_bytes());
+        crate::sys::serial::print(b"[NAV] raw_body_len=");
+        crate::sys::serial::print_dec(body.len() as u64);
+        crate::sys::serial::println(b"");
+        let result = super::decompress::decompress_body(&body, enc.as_deref());
+        crate::sys::serial::print(b"[NAV] decompressed_len=");
+        crate::sys::serial::print_dec(result.len() as u64);
+        crate::sys::serial::println(b"");
+        result
     } else {
         Vec::from(data)
     }
