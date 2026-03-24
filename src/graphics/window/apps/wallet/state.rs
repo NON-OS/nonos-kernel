@@ -23,8 +23,8 @@ use super::stealth::StealthKeyPair;
 pub(crate) use super::state_ops::{init_wallet, lock_wallet, derive_account, clear_send_fields, refresh_balances};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)] #[repr(u8)]
-pub(crate) enum WalletView { Overview = 0, Send = 1, Receive = 2, Transactions = 3, Settings = 4, Stealth = 5, ZkSync = 6 }
-impl From<u8> for WalletView { fn from(v: u8) -> Self { match v { 0 => Self::Overview, 1 => Self::Send, 2 => Self::Receive, 3 => Self::Transactions, 4 => Self::Settings, 5 => Self::Stealth, 6 => Self::ZkSync, _ => Self::Overview } } }
+pub(crate) enum WalletView { Overview = 0, Send = 1, Receive = 2, Transactions = 3, Settings = 4, Stealth = 5, ZkSync = 6, Staking = 7 }
+impl From<u8> for WalletView { fn from(v: u8) -> Self { match v { 0 => Self::Overview, 1 => Self::Send, 2 => Self::Receive, 3 => Self::Transactions, 4 => Self::Settings, 5 => Self::Stealth, 6 => Self::ZkSync, 7 => Self::Staking, _ => Self::Overview } } }
 
 pub(crate) struct WalletState {
     pub unlocked: bool, pub master_key: Option<[u8; 32]>, pub accounts: Vec<WalletAccount>,
