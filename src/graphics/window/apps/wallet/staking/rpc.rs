@@ -24,11 +24,11 @@ pub fn fetch_staking_state() -> Result<(), &'static str> {
     if !rpc::is_rpc_available() { return Err("No network"); }
     let addr = { let s = WALLET_STATE.lock(); s.get_active_account().map(|a| a.address) }.ok_or("No account")?;
     let mut call_data = [0u8; 36]; call_data[0..4].copy_from_slice(&SIG_GET_STAKER_INFO); call_data[16..36].copy_from_slice(&addr);
-    if let Ok(result) = rpc::eth_call(&STAKING_SEPOLIA, &call_data) {
+    if let Ok(result) = rpc::eth_call(&STAKING_MAINNET, &call_data) {
         if result.len() >= 192 { let mut s = STAKING_STATE.lock(); s.staked_amount = parse_u256_to_u128(&result[0..32]); s.weighted_amount = parse_u256_to_u128(&result[32..64]); s.boost = parse_u256_to_u32(&result[64..96]); s.pending_rewards = parse_u256_to_u128(&result[128..160]); }
     }
     let mut pool_data = [0u8; 4]; pool_data.copy_from_slice(&SIG_GET_POOL_STATS);
-    if let Ok(result) = rpc::eth_call(&STAKING_SEPOLIA, &pool_data) {
+    if let Ok(result) = rpc::eth_call(&STAKING_MAINNET, &pool_data) {
         if result.len() >= 192 { let mut s = STAKING_STATE.lock(); s.total_pool_staked = parse_u256_to_u128(&result[0..32]); s.total_weighted = parse_u256_to_u128(&result[32..64]); s.current_apy = parse_u256_to_u32(&result[128..160]); s.genesis_started = true; }
     }
     Ok(())
@@ -58,14 +58,11 @@ pub fn claim_rewards() -> Result<[u8; 32], &'static str> {
     drop(s);
     let pending = { STAKING_STATE.lock().pending_rewards };
     if pending == 0 { return Err("No rewards"); }
-    let mut data = [0u8; 100]; data[0..4].copy_from_slice(&SIG_CLAIM);
-    encode_u256(&mut data[4..36], pending);
-    encode_u256(&mut data[36..68], pending);
-    data[68..100].copy_from_slice(&[0u8; 32]);
+    let mut data = [0u8; 4]; data.copy_from_slice(&SIG_CLAIM);
     let nonce = rpc::fetch_nonce(&from).unwrap_or(0);
     let gp = rpc::fetch_gas_price().unwrap_or(20_000_000_000);
     let sk = derive_signing_key(&mk, idx);
-    let tx = build_and_sign_contract_tx(&REWARDS_MAINNET, 0, &data, nonce, gp, 200000, 1, &sk).map_err(|_| "Build tx failed")?;
+    let tx = build_and_sign_contract_tx(&STAKING_MAINNET, 0, &data, nonce, gp, 150000, 1, &sk).map_err(|_| "Build tx failed")?;
     rpc::send_raw_transaction(&tx).map_err(|_| "Tx broadcast failed")
 }
 
@@ -88,7 +85,6 @@ pub fn request_faucet() -> Result<[u8; 32], &'static str> {
 fn send_staking_tx(data: &[u8]) -> Result<[u8; 32], &'static str> {
     use crate::graphics::window::apps::wallet::transaction_parse::derive_signing_key;
     use crate::graphics::window::apps::wallet::transaction_sign::build_and_sign_contract_tx;
-    use crate::graphics::window::apps::wallet::network::chain_id;
     let s = WALLET_STATE.lock();
     if !s.unlocked { return Err("Wallet locked"); }
     let mk = s.master_key.ok_or("No master key")?;
@@ -97,7 +93,7 @@ fn send_staking_tx(data: &[u8]) -> Result<[u8; 32], &'static str> {
     let nonce = rpc::fetch_nonce(&from).unwrap_or(0);
     let gp = rpc::fetch_gas_price().unwrap_or(20_000_000_000);
     let sk = derive_signing_key(&mk, idx);
-    let tx = build_and_sign_contract_tx(&STAKING_SEPOLIA, 0, data, nonce, gp, 150000, chain_id(), &sk).map_err(|_| "Build tx failed")?;
+    let tx = build_and_sign_contract_tx(&STAKING_MAINNET, 0, data, nonce, gp, 150000, 1, &sk).map_err(|_| "Build tx failed")?;
     rpc::send_raw_transaction(&tx).map_err(|_| "Tx broadcast failed")
 }
 
