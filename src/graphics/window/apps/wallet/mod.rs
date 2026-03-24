@@ -53,6 +53,7 @@ mod zk_helpers;
 mod zk_prove;
 mod zk_prove_adv;
 mod zk_types;
+mod staking;
 
 pub use api::{draw, handle_click, handle_key, handle_special_key};
 pub(crate) use state::{derive_account, init_wallet, lock_wallet, WALLET_STATE};
