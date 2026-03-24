@@ -38,6 +38,10 @@ pub const SIG_GET_POOL_STATS: [u8; 4] = [0xd4, 0xca, 0xdf, 0x68];
 pub const SIG_CLAIM: [u8; 4] = [0x37, 0x93, 0x07, 0xf1];
 pub const SIG_APPROVE: [u8; 4] = [0x09, 0x5e, 0xa7, 0xb3];
 pub const SIG_BALANCE_OF: [u8; 4] = [0x70, 0xa0, 0x82, 0x31];
+pub const SIG_ALLOWANCE: [u8; 4] = [0xdd, 0x62, 0xed, 0x3e];
+pub const SIG_REFRESH_BOOST: [u8; 4] = [0x8d, 0x93, 0x02, 0x08];
+pub const SIG_PENDING_REWARDS: [u8; 4] = [0x31, 0xa7, 0xbc, 0x41];
+pub const SIG_GET_EMISSION_RATE: [u8; 4] = [0x67, 0x96, 0x8f, 0xc5];
 
 const fn hex_addr(s: &str) -> [u8; 20] {
     let b = s.as_bytes(); let mut r = [0u8; 20]; let mut i = 0;
