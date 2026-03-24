@@ -87,6 +87,8 @@ zk-bind-manifest = []
 zk-testvectors = []
 host-tests = []
 zk-zeroize = ["zeroize"]
+mock-proof = []
+zk-snark = ["zk-groth16"]
 
 [build-dependencies]
 cc = "1.0"
