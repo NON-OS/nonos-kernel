@@ -22,18 +22,31 @@ use super::render_views::{draw_overview, draw_send_view, draw_receive_view, draw
 use super::render_transactions::draw_transactions_view;
 use super::render_stealth::{draw_stealth_view, draw_settings_view};
 
-pub(super) const COLOR_BG: u32 = 0xFF000000;
-pub(super) const COLOR_SIDEBAR: u32 = 0xFF1C1C1E;
-pub(super) const COLOR_CARD: u32 = 0xFF2C2C2E;
-pub(super) const COLOR_BORDER: u32 = 0xFF38383A;
-pub(super) const COLOR_TEXT_DIM: u32 = 0xFF8E8E93;
-pub(super) const COLOR_TEXT_WHITE: u32 = 0xFFFFFFFF;
-pub(super) const COLOR_ACCENT: u32 = 0xFF007AFF;
-pub(super) const COLOR_GREEN: u32 = 0xFF34C759;
-pub(super) const COLOR_YELLOW: u32 = 0xFFFFD60A;
-pub(super) const COLOR_RED: u32 = 0xFFFF3B30;
-pub(super) const SIDEBAR_WIDTH: u32 = 200;
-pub(super) const HEADER_HEIGHT: u32 = 70;
+pub(super) const COLOR_BG: u32 = 0xFF0A0A0F;
+pub(super) const COLOR_BG_DARK: u32 = 0xFF050508;
+pub(super) const COLOR_SIDEBAR: u32 = 0xFF12121A;
+pub(super) const COLOR_SIDEBAR_HOVER: u32 = 0xFF1A1A24;
+pub(super) const COLOR_CARD: u32 = 0xFF18181F;
+pub(super) const COLOR_CARD_ELEVATED: u32 = 0xFF1E1E28;
+pub(super) const COLOR_BORDER: u32 = 0xFF2A2A35;
+pub(super) const COLOR_BORDER_GLOW: u32 = 0xFF3A3A4A;
+pub(super) const COLOR_TEXT_DIM: u32 = 0xFF6B6B7A;
+pub(super) const COLOR_TEXT_SECONDARY: u32 = 0xFF9999AA;
+pub(super) const COLOR_TEXT_WHITE: u32 = 0xFFF5F5F7;
+pub(super) const COLOR_ACCENT: u32 = 0xFF6366F1;
+pub(super) const COLOR_ACCENT_GLOW: u32 = 0xFF818CF8;
+pub(super) const COLOR_GREEN: u32 = 0xFF10B981;
+pub(super) const COLOR_GREEN_GLOW: u32 = 0xFF34D399;
+pub(super) const COLOR_YELLOW: u32 = 0xFFF59E0B;
+pub(super) const COLOR_YELLOW_GLOW: u32 = 0xFFFBBF24;
+pub(super) const COLOR_RED: u32 = 0xFFEF4444;
+pub(super) const COLOR_PURPLE: u32 = 0xFFA855F7;
+pub(super) const COLOR_PURPLE_GLOW: u32 = 0xFFC084FC;
+pub(super) const COLOR_CYAN: u32 = 0xFF06B6D4;
+pub(super) const COLOR_GRADIENT_START: u32 = 0xFF6366F1;
+pub(super) const COLOR_GRADIENT_END: u32 = 0xFFA855F7;
+pub(super) const SIDEBAR_WIDTH: u32 = 220;
+pub(super) const HEADER_HEIGHT: u32 = 80;
 
 pub(super) fn draw(x: u32, y: u32, w: u32, h: u32) {
     fill_rect(x, y, w, h, COLOR_BG);
