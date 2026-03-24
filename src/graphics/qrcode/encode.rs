@@ -313,6 +313,8 @@ fn is_reserved(x: usize, y: usize) -> bool {
     if x < 9 && y >= 16 { return true; }
     if x == 6 || y == 6 { return true; }
     if x >= 16 && x <= 20 && y >= 16 && y <= 20 { return true; }
+    if x == 8 && y >= 17 { return true; }
+    if y == 8 && x >= 17 { return true; }
     false
 }
 
