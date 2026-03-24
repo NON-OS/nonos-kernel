@@ -19,9 +19,10 @@ use crate::graphics::framebuffer::fill_rect;
 use crate::graphics::window::draw_string;
 use super::state::{WALLET_STATE, SHOW_PRIVATE_KEY};
 use super::network::get_network;
-use super::render::{COLOR_CARD, COLOR_TEXT_DIM, COLOR_TEXT_WHITE, COLOR_YELLOW, COLOR_RED, COLOR_ACCENT, COLOR_GREEN};
+use super::render::{COLOR_BG, COLOR_CARD, COLOR_TEXT_DIM, COLOR_TEXT_WHITE, COLOR_YELLOW, COLOR_RED, COLOR_ACCENT, COLOR_GREEN};
 
 pub(super) fn draw_stealth_view(x: u32, y: u32, w: u32, h: u32) {
+    fill_rect(x, y, w, h, COLOR_BG);
     draw_string(x + 20, y + 20, b"Stealth & ZK Privacy", COLOR_TEXT_WHITE);
     fill_rect(x + 20, y + 50, w - 40, 90, COLOR_CARD);
     draw_string(x + 36, y + 65, b"Stealth Addresses (EIP-5564)", COLOR_GREEN);
@@ -50,6 +51,7 @@ pub(super) fn draw_stealth_view(x: u32, y: u32, w: u32, h: u32) {
 }
 
 pub(super) fn draw_settings_view(x: u32, y: u32, w: u32, h: u32) {
+    fill_rect(x, y, w, h, COLOR_BG);
     draw_string(x + 20, y + 20, b"Settings", COLOR_TEXT_WHITE);
     let network = get_network(); let network_name = network.name();
     fill_rect(x + 20, y + 50, w - 40, 50, COLOR_CARD);
