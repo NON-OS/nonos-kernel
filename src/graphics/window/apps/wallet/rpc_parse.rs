@@ -66,3 +66,19 @@ pub(super) fn format_address_hex(a: &[u8; ADDRESS_LEN]) -> String {
     for b in a { h.push_str(&format!("{:02x}", b)); }
     h
 }
+
+pub(super) fn parse_call_result(r: &[u8]) -> Result<alloc::vec::Vec<u8>, RpcError> {
+    let pat = b"\"result\":\"0x";
+    for i in 0..r.len().saturating_sub(pat.len()) {
+        if &r[i..i + pat.len()] == pat {
+            let s = i + pat.len();
+            let mut e = s;
+            while e < r.len() && r[e] != b'"' { e += 1; }
+            let hex = &r[s..e];
+            let mut data = alloc::vec::Vec::with_capacity(hex.len() / 2);
+            for j in (0..hex.len()).step_by(2) { data.push((hex_digit(hex[j])? << 4) | hex_digit(hex[j + 1])?); }
+            return Ok(data);
+        }
+    }
+    Err(RpcError::ParseError)
+}
