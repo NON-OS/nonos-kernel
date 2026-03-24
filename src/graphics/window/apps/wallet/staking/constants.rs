@@ -14,11 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub const NOX_SEPOLIA: [u8; 20] = hex_addr("C87799c4517Dcdfc65bfefa3Be64Beb89668c66c");
 pub const NOX_MAINNET: [u8; 20] = hex_addr("0a26c80Be4E060e688d7C23aDdB92cBb5D2C9eCA");
 pub const ZSP_MAINNET: [u8; 20] = hex_addr("7b575DD8e8b111c52Ab1e872924d4Efd4DF403df");
-pub const STAKING_SEPOLIA: [u8; 20] = hex_addr("169ed008aEdA3e547bD711EdD79dD0A988e0bD1a");
-pub const REWARDS_MAINNET: [u8; 20] = hex_addr("a76cd221a30a100213f51b315cacd69daeab72be");
+pub const STAKING_MAINNET: [u8; 20] = hex_addr("a94d6009790ba13597a1e1b7cf4e1531ea513613");
 pub const FAUCET_SEPOLIA: [u8; 20] = hex_addr("a7a19e50246D191Eeaf5A6A70e3CAf06fB4Df9d7");
 
 pub const YEAR_1_EMISSION: u128 = 28_000_000 * 1_000_000_000_000_000_000;
