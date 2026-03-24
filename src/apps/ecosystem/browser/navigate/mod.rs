@@ -19,6 +19,7 @@ mod url;
 mod http;
 mod https;
 mod response;
+mod decompress;
 mod api;
 
 pub use api::{start, stop, is_running, is_navigating, navigate, poll_navigation, cancel_navigation};
