@@ -21,7 +21,8 @@ use super::state::{STAKING_STATE, STAKE_INPUT, STAKE_INPUT_LEN, STAKE_MODE};
 use crate::graphics::window::apps::wallet::render::*;
 use crate::graphics::window::apps::wallet::render_views::draw_rounded_rect;
 
-pub fn draw_staking_view(x: u32, y: u32, w: u32, _h: u32) {
+pub fn draw_staking_view(x: u32, y: u32, w: u32, h: u32) {
+    fill_rect(x, y, w, h, COLOR_BG);
     draw_string(x + 24, y + 16, b"NOX Staking", COLOR_TEXT_WHITE);
     fill_rect(x + 24, y + 34, 80, 2, COLOR_PURPLE);
     draw_rounded_rect(x + w - 100, y + 12, 76, 28, 8, COLOR_ACCENT);
