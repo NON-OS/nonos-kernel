@@ -15,49 +15,24 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use core::sync::atomic::Ordering;
-
 use crate::zk_engine::ZKError;
 use crate::zk_engine::groth16::Groth16Prover;
-
 pub(crate) use super::zk_types::*;
-pub(crate) use super::zk_prove::{
-    prove_balance_ownership,
-    prove_transaction_auth,
-    prove_stealth_spend_key,
-    prove_balance_sufficiency,
-    verify_wallet_proof,
-};
+pub(crate) use super::zk_prove::{prove_balance_ownership, prove_transaction_auth, prove_stealth_spend_key, prove_balance_sufficiency, verify_wallet_proof};
 use super::zk_circuit::*;
 
 pub(crate) fn init_wallet_zk() -> Result<(), ZKError> {
-    if ZK_INITIALIZED.load(Ordering::SeqCst) {
-        return Ok(());
-    }
-
-    let mut keys = ZK_KEYS.lock();
-
-    let balance_circuit = build_balance_ownership_circuit()?;
-    let (balance_pk, balance_vk) = Groth16Prover::generate_keys(&balance_circuit)?;
-    keys.balance_ownership_pk = Some(balance_pk);
-    keys.balance_ownership_vk = Some(balance_vk);
-
-    let tx_circuit = build_transaction_auth_circuit()?;
-    let (tx_pk, tx_vk) = Groth16Prover::generate_keys(&tx_circuit)?;
-    keys.tx_auth_pk = Some(tx_pk);
-    keys.tx_auth_vk = Some(tx_vk);
-
-    let stealth_circuit = build_stealth_spend_circuit()?;
-    let (stealth_pk, stealth_vk) = Groth16Prover::generate_keys(&stealth_circuit)?;
-    keys.stealth_pk = Some(stealth_pk);
-    keys.stealth_vk = Some(stealth_vk);
-
-    let sufficiency_circuit = build_balance_sufficiency_circuit()?;
-    let (suff_pk, suff_vk) = Groth16Prover::generate_keys(&sufficiency_circuit)?;
-    keys.sufficiency_pk = Some(suff_pk);
-    keys.sufficiency_vk = Some(suff_vk);
-
-    drop(keys);
+    if ZK_INITIALIZED.load(Ordering::SeqCst) { return Ok(()); }
+    let mut k = ZK_KEYS.lock();
+    let (pk, vk) = Groth16Prover::generate_keys(&build_balance_ownership_circuit()?)?;
+    k.balance_ownership_pk = Some(pk); k.balance_ownership_vk = Some(vk);
+    let (pk, vk) = Groth16Prover::generate_keys(&build_transaction_auth_circuit()?)?;
+    k.tx_auth_pk = Some(pk); k.tx_auth_vk = Some(vk);
+    let (pk, vk) = Groth16Prover::generate_keys(&build_stealth_spend_circuit()?)?;
+    k.stealth_pk = Some(pk); k.stealth_vk = Some(vk);
+    let (pk, vk) = Groth16Prover::generate_keys(&build_balance_sufficiency_circuit()?)?;
+    k.sufficiency_pk = Some(pk); k.sufficiency_vk = Some(vk);
+    drop(k);
     ZK_INITIALIZED.store(true, Ordering::SeqCst);
-
     Ok(())
 }
