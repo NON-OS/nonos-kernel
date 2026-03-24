@@ -19,6 +19,12 @@ use super::state::{STAKE_MODE, STAKE_INPUT, STAKE_INPUT_LEN, clear_stake_input};
 use crate::graphics::window::apps::wallet::state::set_status;
 
 pub fn handle_staking_click(x: u32, y: u32, w: u32) -> bool {
+    if y >= 12 && y <= 40 && x >= w - 100 && x <= w - 24 {
+        set_status(b"Refreshing...", true);
+        super::state::refresh_staking_data();
+        set_status(b"Staking data updated", true);
+        return true;
+    }
     if y >= 168 && y <= 198 {
         if x >= 40 && x <= 120 { STAKE_MODE.store(0, Ordering::SeqCst); clear_stake_input(); return true; }
         if x >= 130 && x <= 210 { STAKE_MODE.store(1, Ordering::SeqCst); clear_stake_input(); return true; }
