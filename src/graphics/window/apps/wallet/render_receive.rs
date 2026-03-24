@@ -14,12 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use crate::graphics::framebuffer::fill_rect;
 use crate::graphics::window::draw_string;
 use super::state::WALLET_STATE;
-use super::render::{COLOR_CARD, COLOR_TEXT_DIM, COLOR_TEXT_WHITE};
+use super::render::{COLOR_BG, COLOR_CARD, COLOR_TEXT_DIM, COLOR_TEXT_WHITE};
 use super::render_views::draw_rounded_rect;
 
-pub(super) fn draw_receive_view(x: u32, y: u32, w: u32, _h: u32) {
+pub(super) fn draw_receive_view(x: u32, y: u32, w: u32, h: u32) {
+    fill_rect(x, y, w, h, COLOR_BG);
     draw_string(x + 20, y + 20, b"Receive Funds", COLOR_TEXT_WHITE);
     let addr_hex = { let state = WALLET_STATE.lock(); state.get_active_account().map(|a| a.address_hex()) };
     if let Some(addr_hex) = addr_hex {
