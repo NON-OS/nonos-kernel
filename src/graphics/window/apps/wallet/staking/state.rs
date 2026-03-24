@@ -28,11 +28,13 @@ pub struct StakingState {
     pub current_epoch: u32,
     pub nft_count: u8,
     pub genesis_started: bool,
+    pub emission_rate: u128,
+    pub allowance: u128,
 }
 
 impl StakingState {
     pub const fn new() -> Self {
-        Self { staked_amount: 0, weighted_amount: 0, boost: 10000, pending_rewards: 0, total_pool_staked: 0, total_weighted: 0, current_apy: 0, current_epoch: 0, nft_count: 0, genesis_started: false }
+        Self { staked_amount: 0, weighted_amount: 0, boost: 10000, pending_rewards: 0, total_pool_staked: 0, total_weighted: 0, current_apy: 0, current_epoch: 0, nft_count: 0, genesis_started: false, emission_rate: 0, allowance: 0 }
     }
     pub fn boost_display(&self) -> &'static [u8] { match self.nft_count { 0 => b"1.0x", 1 => b"1.5x", 2 => b"2.0x", _ => b"2.5x" } }
 }
