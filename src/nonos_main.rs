@@ -45,23 +45,38 @@ static mut PREV_RIGHT_BUTTON: bool = false;
 pub static mut NEEDS_REDRAW: bool = false;
 static mut WAS_DRAGGING: bool = false;
 
+/*
+ * Kernel entry point - issue #8 hardened for real hardware
+ *
+ * CPU state after ExitBootServices varies by firmware. Some leave:
+ * - Interrupts enabled (must cli immediately)
+ * - FPU in undefined state (must finit)
+ * - Caches in weird modes (wbinvd helps)
+ * - Direction flag set (must cld)
+ *
+ * We output 'K' early to serial for debug. If user sees 'K' but no 'S',
+ * SSE setup failed. If no 'K', jump itself failed.
+ */
 #[unsafe(naked)]
 #[no_mangle]
 #[link_section = ".text._start"]
 pub extern "C" fn _start() -> ! {
     naked_asm!(
+        "cli",
+        "cld",
         "push rdi",
         "mov dx, 0x3F8",
         "mov al, 'K'",
         "out dx, al",
         "mov al, 10",
         "out dx, al",
+        "finit",
         "mov rax, cr0",
-        "and ax, 0xFFFB",
-        "or ax, 0x2",
+        "and eax, 0xFFFFFFFB",
+        "or eax, 0x00000022",
         "mov cr0, rax",
         "mov rax, cr4",
-        "or ax, 0x600",
+        "or eax, 0x00000600",
         "mov cr4, rax",
         "mov dx, 0x3F8",
         "mov al, 'S'",
@@ -71,6 +86,7 @@ pub extern "C" fn _start() -> ! {
         "pop rdi",
         "call {rust_entry}",
         "2:",
+        "cli",
         "hlt",
         "jmp 2b",
         rust_entry = sym kernel_entry,
@@ -667,7 +683,6 @@ fn run_desktop() -> ! {
         if now_ms >= last_clock_update + 1000 {
             last_clock_update = now_ms;
             desktop::update_clock();
-            serial::print(b".");
         }
 
         for _ in 0..100 {
