@@ -20,11 +20,12 @@ use crate::graphics::framebuffer::fill_rect;
 use crate::graphics::window::draw_string;
 use super::state::WALLET_STATE;
 use super::types::{format_address, truncate_address, TransactionType};
-use super::render::{format_balance, COLOR_ACCENT, COLOR_CARD, COLOR_GREEN, COLOR_RED, COLOR_TEXT_DIM, COLOR_TEXT_WHITE, COLOR_YELLOW};
+use super::render::{format_balance, COLOR_BG, COLOR_ACCENT, COLOR_CARD, COLOR_GREEN, COLOR_RED, COLOR_TEXT_DIM, COLOR_TEXT_WHITE, COLOR_YELLOW};
 
 struct TxDisplay { tx_type: TransactionType, eth: u64, wei_frac: u64, from_short: [u8; 13], to_short: [u8; 13], hash_short: [u8; 18], timestamp: u64, confirmed: bool }
 
 pub(super) fn draw_transactions_view(x: u32, y: u32, w: u32, h: u32) {
+    fill_rect(x, y, w, h, COLOR_BG);
     draw_string(x + 20, y + 20, b"Transactions", COLOR_TEXT_WHITE);
     let txs: Vec<TxDisplay> = {
         let state = WALLET_STATE.lock();
