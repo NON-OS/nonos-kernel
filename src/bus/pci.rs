@@ -276,7 +276,17 @@ pub fn init() {
     }
 }
 
-/// Find a device by class/subclass/prog_if
+pub fn find_device_by_id(vendor: u16, device_id: u16) -> Option<PciDevice> {
+    let count = DEVICE_COUNT.load(Ordering::Relaxed) as usize;
+    for i in 0..count {
+        let dev = unsafe { DEVICES[i] };
+        if dev.vendor_id == vendor && dev.device_id == device_id {
+            return Some(dev);
+        }
+    }
+    None
+}
+
 pub fn find_device(class: u8, subclass: u8, prog_if: Option<u8>) -> Option<PciDevice> {
     let count = DEVICE_COUNT.load(Ordering::Relaxed) as usize;
     for i in 0..count {
