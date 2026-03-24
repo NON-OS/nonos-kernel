@@ -33,6 +33,8 @@ pub fn handle_staking_click(x: u32, y: u32, w: u32) -> bool {
         if mode == 0 { execute_stake(amount_str); } else { execute_unstake(amount_str); }
         return true;
     }
+    if y >= 335 && y <= 367 && x >= w - 140 && x <= w - 50 { execute_claim(); return true; }
+    if y >= 432 && y <= 464 && x >= w - 140 && x <= w - 50 { execute_faucet(); return true; }
     false
 }
 
@@ -46,6 +48,18 @@ fn execute_unstake(amount: &str) {
     set_status(b"Unstaking...", true);
     if super::rpc::unstake_nox(amount).is_ok() { set_status(b"Unstake submitted!", true); clear_stake_input(); super::state::refresh_staking_data(); }
     else { set_status(b"Unstake failed", false); }
+}
+
+fn execute_claim() {
+    set_status(b"Claiming rewards...", true);
+    if super::rpc::claim_rewards().is_ok() { set_status(b"Claim submitted!", true); super::state::refresh_staking_data(); }
+    else { set_status(b"Claim failed", false); }
+}
+
+fn execute_faucet() {
+    set_status(b"Requesting faucet...", true);
+    if super::rpc::request_faucet().is_ok() { set_status(b"Faucet sent!", true); }
+    else { set_status(b"Faucet failed", false); }
 }
 
 pub fn handle_staking_key(ch: u8) {
