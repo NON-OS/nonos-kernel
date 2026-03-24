@@ -237,6 +237,7 @@ xmas-elf = { version = "0.9", default-features = false, optional = true }
 # Misc utils
 bitflags = { version = "2.4", default-features = false }
 cfg-if   = { version = "1.0", default-features = false }
+libm     = { version = "0.2", default-features = false }
 volatile = { version = "0.4", default-features = false }
 heapless = { version = "0.8", default-features = false }
 blake3   = { version = "1.0", default-features = false }
