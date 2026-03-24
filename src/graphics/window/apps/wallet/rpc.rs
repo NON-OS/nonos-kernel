@@ -19,7 +19,7 @@ use alloc::{format, vec::Vec};
 use core::sync::atomic::{AtomicU64, AtomicUsize, Ordering};
 use super::types::ADDRESS_LEN;
 use super::rpc_endpoints::get_endpoints;
-use super::rpc_parse::{parse_hex_balance, parse_tx_hash, format_address_hex};
+use super::rpc_parse::{parse_hex_balance, parse_tx_hash, parse_call_result, format_address_hex};
 
 static REQ_ID: AtomicU64 = AtomicU64::new(1);
 static CUR_EP: AtomicUsize = AtomicUsize::new(0);
@@ -60,4 +60,10 @@ pub(crate) fn send_raw_transaction(tx: &[u8]) -> Result<[u8; 32], RpcError> {
 pub(crate) fn fetch_token_balance(c: &[u8; ADDRESS_LEN], o: &[u8; ADDRESS_LEN]) -> Result<u128, RpcError> {
     let d = format!("0x70a08231000000000000000000000000{}", &format_address_hex(o)[2..]);
     parse_hex_balance(&send_req(&build_req("eth_call", &format!(r#"[{{"to":"{}","data":"{}"}},"latest"]"#, format_address_hex(c), d)))?)
+}
+
+pub(crate) fn eth_call(contract: &[u8; ADDRESS_LEN], data: &[u8]) -> Result<Vec<u8>, RpcError> {
+    let mut d = alloc::string::String::from("0x"); for b in data { d.push_str(&format!("{:02x}", b)); }
+    let res = send_req(&build_req("eth_call", &format!(r#"[{{"to":"{}","data":"{}"}},"latest"]"#, format_address_hex(contract), d)))?;
+    parse_call_result(&res)
 }
