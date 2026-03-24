@@ -179,6 +179,7 @@ pub fn draw_window(idx: usize) {
 
     let content_y = y + TITLE_BAR_HEIGHT;
     let content_h = h - TITLE_BAR_HEIGHT;
+    fill_rect(x, content_y, w, content_h, bg);
     draw_window_content(x, content_y, w, content_h, wtype);
 
     if scroll::needs_vertical(idx, content_h) {
