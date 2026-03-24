@@ -16,6 +16,7 @@
 
 pub mod engine;
 pub mod history;
+pub mod js;
 pub mod navigate;
 pub mod request;
 pub mod session;
@@ -23,6 +24,7 @@ pub mod state;
 pub mod tabs;
 
 pub use engine::{render_page, render_to_lines, BrowserEngine};
+pub use js::{JsRuntime, JsValue};
 pub use history::{add_history, clear_history, get_history, HistoryEntry};
 pub use navigate::{is_running, is_navigating, navigate, poll_navigation, cancel_navigation, start, stop};
 pub use request::{fetch_page, FetchError, FetchOptions, FetchResult};
