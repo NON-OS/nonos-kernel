@@ -48,6 +48,43 @@ pub fn unstake_nox(amount: &str) -> Result<[u8; 32], &'static str> {
     send_staking_tx(&data)
 }
 
+pub fn claim_rewards() -> Result<[u8; 32], &'static str> {
+    use crate::graphics::window::apps::wallet::transaction_parse::derive_signing_key;
+    use crate::graphics::window::apps::wallet::transaction_sign::build_and_sign_contract_tx;
+    let s = WALLET_STATE.lock();
+    if !s.unlocked { return Err("Wallet locked"); }
+    let mk = s.master_key.ok_or("No master key")?;
+    let (from, idx) = s.get_active_account().map(|a| (a.address, a.index)).ok_or("No account")?;
+    drop(s);
+    let pending = { STAKING_STATE.lock().pending_rewards };
+    if pending == 0 { return Err("No rewards"); }
+    let mut data = [0u8; 100]; data[0..4].copy_from_slice(&SIG_CLAIM);
+    encode_u256(&mut data[4..36], pending);
+    encode_u256(&mut data[36..68], pending);
+    data[68..100].copy_from_slice(&[0u8; 32]);
+    let nonce = rpc::fetch_nonce(&from).unwrap_or(0);
+    let gp = rpc::fetch_gas_price().unwrap_or(20_000_000_000);
+    let sk = derive_signing_key(&mk, idx);
+    let tx = build_and_sign_contract_tx(&REWARDS_MAINNET, 0, &data, nonce, gp, 200000, 1, &sk).map_err(|_| "Build tx failed")?;
+    rpc::send_raw_transaction(&tx).map_err(|_| "Tx broadcast failed")
+}
+
+pub fn request_faucet() -> Result<[u8; 32], &'static str> {
+    use crate::graphics::window::apps::wallet::transaction_parse::derive_signing_key;
+    use crate::graphics::window::apps::wallet::transaction_sign::build_and_sign_contract_tx;
+    let s = WALLET_STATE.lock();
+    if !s.unlocked { return Err("Wallet locked"); }
+    let mk = s.master_key.ok_or("No master key")?;
+    let (from, idx) = s.get_active_account().map(|a| (a.address, a.index)).ok_or("No account")?;
+    drop(s);
+    let mut data = [0u8; 4]; data.copy_from_slice(&[0x0c, 0x02, 0x05, 0x19]);
+    let nonce = rpc::fetch_nonce(&from).unwrap_or(0);
+    let gp = rpc::fetch_gas_price().unwrap_or(20_000_000_000);
+    let sk = derive_signing_key(&mk, idx);
+    let tx = build_and_sign_contract_tx(&FAUCET_SEPOLIA, 0, &data, nonce, gp, 100000, 11155111, &sk).map_err(|_| "Build tx failed")?;
+    rpc::send_raw_transaction(&tx).map_err(|_| "Tx broadcast failed")
+}
+
 fn send_staking_tx(data: &[u8]) -> Result<[u8; 32], &'static str> {
     use crate::graphics::window::apps::wallet::transaction_parse::derive_signing_key;
     use crate::graphics::window::apps::wallet::transaction_sign::build_and_sign_contract_tx;
