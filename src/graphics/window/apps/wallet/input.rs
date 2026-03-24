@@ -33,6 +33,7 @@ pub(super) fn handle_click(wx: u32, wy: u32, ww: u32, wh: u32, cx: i32, cy: i32)
         WalletView::Stealth => super::click_send::handle_stealth_click(rx - SIDEBAR_W, ry - HEADER_H, cw, ch),
         WalletView::Settings => super::click_send::handle_settings_click(rx - SIDEBAR_W, ry - HEADER_H, cw, ch),
         WalletView::ZkSync => super::click_zksync::handle_zksync_click(rx - SIDEBAR_W, ry - HEADER_H, cw),
+        WalletView::Staking => super::staking::handle_staking_click(rx - SIDEBAR_W, ry - HEADER_H, cw),
         _ => false,
     }
 }
