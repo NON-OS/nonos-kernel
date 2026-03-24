@@ -24,5 +24,6 @@ pub mod crypto;
 pub mod apps;
 pub mod blockchain;
 pub mod npkg;
+pub mod nox;
 
 pub(crate) use self::core::dispatch;
