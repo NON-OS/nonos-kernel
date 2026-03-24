@@ -26,7 +26,7 @@ pub(super) fn draw_sidebar(x: u32, y: u32, h: u32) {
     draw_string(x + 20, y + 24, b"N\xd8NOS", COLOR_ACCENT);
     draw_string(x + 68, y + 24, b"Wallet", COLOR_TEXT_WHITE);
     let current = get_view();
-    let items: &[(&[u8], WalletView, u32)] = &[(b"Overview", WalletView::Overview, 0xFF007AFF), (b"Send", WalletView::Send, 0xFFFF9500), (b"Receive", WalletView::Receive, 0xFF34C759), (b"ZkSync L2", WalletView::ZkSync, 0xFF8B5CF6), (b"History", WalletView::Transactions, 0xFF5856D6), (b"Stealth", WalletView::Stealth, 0xFFBF5AF2), (b"Settings", WalletView::Settings, 0xFF8E8E93)];
+    let items: &[(&[u8], WalletView, u32)] = &[(b"Overview", WalletView::Overview, 0xFF007AFF), (b"Send", WalletView::Send, 0xFFFF9500), (b"Receive", WalletView::Receive, 0xFF34C759), (b"Staking", WalletView::Staking, 0xFFFFD60A), (b"ZkSync L2", WalletView::ZkSync, 0xFF8B5CF6), (b"History", WalletView::Transactions, 0xFF5856D6), (b"Stealth", WalletView::Stealth, 0xFFBF5AF2), (b"Settings", WalletView::Settings, 0xFF8E8E93)];
     for (i, (label, view, icon_color)) in items.iter().enumerate() {
         let item_y = y + 70 + (i as u32) * 48;
         if *view == current { draw_rounded_item(x + 12, item_y, SIDEBAR_WIDTH - 24, 40, 0xFF3A3A3C); }
@@ -49,6 +49,6 @@ fn draw_rounded_item(x: u32, y: u32, w: u32, h: u32, color: u32) {
 }
 
 fn draw_icon_glyph(x: u32, y: u32, idx: usize) {
-    let glyphs: [&[u8]; 6] = [b"\x7f", b"\x1a", b"\x19", b"\x1d", b"\x0f", b"\x2a"];
-    if idx < 6 { crate::graphics::font::draw_char(x + 8, y + 4, glyphs[idx][0], 0xFFFFFFFF); }
+    let glyphs: [&[u8]; 8] = [b"\x7f", b"\x1a", b"\x19", b"\x24", b"\x1d", b"\x0f", b"\x2a", b"\x2e"];
+    if idx < 8 { crate::graphics::font::draw_char(x + 8, y + 4, glyphs[idx][0], 0xFFFFFFFF); }
 }
