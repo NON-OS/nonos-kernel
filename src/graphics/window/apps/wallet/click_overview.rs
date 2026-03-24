@@ -18,67 +18,31 @@ use super::state::*;
 use super::state_ops::{set_active_account, derive_account};
 
 pub(super) fn handle_overview_click(x: u32, y: u32, w: u32) -> bool {
-    /* "+ New" button */
     if x >= w.saturating_sub(190) && x <= w.saturating_sub(110) && y >= 15 && y <= 47 {
-        let state = WALLET_STATE.lock();
-        let next_index = state.accounts.len() as u32;
-        drop(state);
-
-        match derive_account(next_index) {
-            Ok(_) => set_status(b"Account created", true),
-            Err(e) => set_status(e.as_bytes(), false),
-        }
+        let s = WALLET_STATE.lock();
+        let idx = s.accounts.len() as u32;
+        drop(s);
+        match derive_account(idx) { Ok(_) => set_status(b"Account created", true), Err(e) => set_status(e.as_bytes(), false) }
         return true;
     }
-
-    /* Refresh button */
-    if x >= w.saturating_sub(100) && x <= w.saturating_sub(20) && y >= 15 && y <= 47 {
-        refresh_balances();
-        return true;
-    }
-
+    if x >= w.saturating_sub(100) && x <= w.saturating_sub(20) && y >= 15 && y <= 47 { refresh_balances(); return true; }
     if x >= 20 && x <= w.saturating_sub(20) && y >= 50 {
-        let card_index = (y.saturating_sub(50)) / 80;
-        let card_y_offset = (y.saturating_sub(50)) % 80;
-
-        if card_y_offset < 70 {
-            let state = WALLET_STATE.lock();
-            let account_count = state.accounts.len() as u32;
-            drop(state);
-
-            if card_index < account_count {
-                set_active_account(card_index as usize);
-                return true;
-            }
+        let ci = (y.saturating_sub(50)) / 80;
+        if (y.saturating_sub(50)) % 80 < 70 {
+            let s = WALLET_STATE.lock();
+            let cnt = s.accounts.len() as u32;
+            drop(s);
+            if ci < cnt { set_active_account(ci as usize); return true; }
         }
     }
-
     false
 }
 
 pub(super) fn handle_sidebar_click(y: u32) -> bool {
-    /* Menu items start at y=70 in render.rs, each item is 48px apart, 40px tall */
-    let menu_start = 70u32;
-    let item_height = 48u32;
-
-    if y < menu_start {
-        return false;
-    }
-
-    let item_index = (y - menu_start) / item_height;
-    let view = match item_index {
-        0 => WalletView::Overview,
-        1 => WalletView::Send,
-        2 => WalletView::Receive,
-        3 => WalletView::Transactions,
-        4 => WalletView::Stealth,
-        5 => WalletView::Settings,
-        _ => return false,
-    };
-
-    set_view(view);
-    if view == WalletView::Send {
-        clear_send_fields();
-    }
+    if y < 70 { return false; }
+    let i = (y - 70) / 48;
+    let v = match i { 0 => WalletView::Overview, 1 => WalletView::Send, 2 => WalletView::Receive, 3 => WalletView::ZkSync, 4 => WalletView::Transactions, 5 => WalletView::Stealth, 6 => WalletView::Settings, _ => return false };
+    set_view(v);
+    if v == WalletView::Send { clear_send_fields(); }
     true
 }
