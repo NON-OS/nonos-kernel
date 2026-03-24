@@ -14,11 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use crate::graphics::framebuffer::fill_rect;
 use crate::graphics::window::draw_string;
-use super::render::{COLOR_CARD, COLOR_TEXT_DIM, COLOR_TEXT_WHITE, COLOR_ACCENT};
+use super::render::{COLOR_BG, COLOR_CARD, COLOR_TEXT_DIM, COLOR_TEXT_WHITE, COLOR_ACCENT};
 use super::render_views::draw_rounded_rect;
 
-pub(super) fn draw_zksync_view(x: u32, y: u32, w: u32, _h: u32) {
+pub(super) fn draw_zksync_view(x: u32, y: u32, w: u32, h: u32) {
+    fill_rect(x, y, w, h, COLOR_BG);
     draw_string(x + 20, y + 20, b"ZkSync Era (Layer 2)", COLOR_TEXT_WHITE);
     for shadow in 0..4u32 { draw_rounded_rect(x + 20 + shadow / 2, y + 50 + shadow + 2, w - 40, 120, 14, ((15 - shadow * 3) << 24) | 0x000000); }
     draw_rounded_rect(x + 20, y + 50, w - 40, 120, 14, COLOR_CARD);
