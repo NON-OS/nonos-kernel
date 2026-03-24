@@ -41,8 +41,9 @@ pub(super) fn handle_overview_click(x: u32, y: u32, w: u32) -> bool {
 pub(super) fn handle_sidebar_click(y: u32) -> bool {
     if y < 70 { return false; }
     let i = (y - 70) / 48;
-    let v = match i { 0 => WalletView::Overview, 1 => WalletView::Send, 2 => WalletView::Receive, 3 => WalletView::ZkSync, 4 => WalletView::Transactions, 5 => WalletView::Stealth, 6 => WalletView::Settings, _ => return false };
+    let v = match i { 0 => WalletView::Overview, 1 => WalletView::Send, 2 => WalletView::Receive, 3 => WalletView::Staking, 4 => WalletView::ZkSync, 5 => WalletView::Transactions, 6 => WalletView::Stealth, 7 => WalletView::Settings, _ => return false };
     set_view(v);
     if v == WalletView::Send { clear_send_fields(); }
+    if v == WalletView::Staking { super::staking::refresh_staking_data(); }
     true
 }
