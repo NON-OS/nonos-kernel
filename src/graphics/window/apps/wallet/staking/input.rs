@@ -19,11 +19,11 @@ use super::state::{STAKE_MODE, STAKE_INPUT, STAKE_INPUT_LEN, clear_stake_input};
 use crate::graphics::window::apps::wallet::state::set_status;
 
 pub fn handle_staking_click(x: u32, y: u32, w: u32) -> bool {
-    if y >= 185 && y <= 215 {
-        if x >= 36 && x <= 116 { STAKE_MODE.store(0, Ordering::SeqCst); clear_stake_input(); return true; }
-        if x >= 126 && x <= 206 { STAKE_MODE.store(1, Ordering::SeqCst); clear_stake_input(); return true; }
+    if y >= 201 && y <= 235 {
+        if x >= 44 && x <= 134 { STAKE_MODE.store(0, Ordering::SeqCst); clear_stake_input(); return true; }
+        if x >= 144 && x <= 234 { STAKE_MODE.store(1, Ordering::SeqCst); clear_stake_input(); return true; }
     }
-    if y >= 260 && y <= 296 && x >= w / 2 - 50 && x <= w / 2 + 50 {
+    if y >= 275 && y <= 315 && x >= w / 2 - 60 && x <= w / 2 + 60 {
         let mode = STAKE_MODE.load(Ordering::SeqCst);
         let len = STAKE_INPUT_LEN.load(Ordering::SeqCst) as usize;
         if len == 0 { set_status(b"Enter amount", false); return true; }
@@ -33,8 +33,8 @@ pub fn handle_staking_click(x: u32, y: u32, w: u32) -> bool {
         if mode == 0 { execute_stake(amount_str); } else { execute_unstake(amount_str); }
         return true;
     }
-    if y >= 335 && y <= 367 && x >= w - 140 && x <= w - 50 { execute_claim(); return true; }
-    if y >= 432 && y <= 464 && x >= w - 140 && x <= w - 50 { execute_faucet(); return true; }
+    if y >= 375 && y <= 413 && x >= w - 120 && x <= w - 20 { execute_claim(); return true; }
+    if y >= 480 && y <= 518 && x >= w - 120 && x <= w - 20 { execute_faucet(); return true; }
     false
 }
 
