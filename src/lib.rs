@@ -124,6 +124,8 @@ pub mod usercopy;
 pub mod vault;
 pub mod daemon;
 pub mod zk_engine;
+pub mod zksync;
+pub mod nox;
 pub mod test;
 pub mod npkg;
 
