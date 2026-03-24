@@ -17,8 +17,8 @@
 use crate::graphics::window::text_editor::SpecialKey;
 use super::state::*;
 
-const SIDEBAR_W: u32 = 200;
-const HEADER_H: u32 = 70;
+const SIDEBAR_W: u32 = 220;
+const HEADER_H: u32 = 80;
 
 pub(super) fn handle_click(wx: u32, wy: u32, ww: u32, wh: u32, cx: i32, cy: i32) -> bool {
     let (rx, ry) = ((cx - wx as i32) as u32, (cy - wy as i32) as u32);
