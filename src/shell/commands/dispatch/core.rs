@@ -26,6 +26,7 @@ use super::crypto::try_dispatch_crypto;
 use super::apps::try_dispatch_apps;
 use super::blockchain::try_dispatch_blockchain;
 use super::npkg::try_dispatch_npkg;
+use super::nox::try_dispatch_nox;
 
 pub(crate) fn dispatch(cmd: &[u8]) {
     if try_dispatch_builtins(cmd) {
@@ -53,6 +54,9 @@ pub(crate) fn dispatch(cmd: &[u8]) {
         return;
     }
     if try_dispatch_npkg(cmd) {
+        return;
+    }
+    if try_dispatch_nox(cmd) {
         return;
     }
     print_line(b"Command not found. Type 'help'", COLOR_RED);
