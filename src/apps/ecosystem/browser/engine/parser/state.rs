@@ -1,0 +1,62 @@
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+extern crate alloc;
+
+use alloc::string::String;
+use alloc::vec::Vec;
+use crate::apps::ecosystem::browser::engine::types::{Node, NodeType, Link, Form, Image};
+
+pub struct ParserState {
+    pub title: String,
+    pub links: Vec<Link>,
+    pub forms: Vec<Form>,
+    pub images: Vec<Image>,
+    pub current_form: Option<Form>,
+    pub hidden_classes: Vec<String>,
+    pub stack: Vec<Node>,
+    pub current: Node,
+    pub text_buffer: String,
+    pub in_head: bool,
+}
+
+impl ParserState {
+    pub fn new() -> Self {
+        Self {
+            title: String::new(),
+            links: Vec::new(),
+            forms: Vec::new(),
+            images: Vec::new(),
+            current_form: None,
+            hidden_classes: Vec::new(),
+            stack: Vec::new(),
+            current: Node { node_type: NodeType::Element(String::from("body")), children: Vec::new(), attributes: Vec::new() },
+            text_buffer: String::new(),
+            in_head: false,
+        }
+    }
+
+    pub fn flush_text(&mut self) {
+        if !self.text_buffer.trim().is_empty() {
+            self.current.children.push(Node {
+                node_type: NodeType::Text(core::mem::take(&mut self.text_buffer)),
+                children: Vec::new(),
+                attributes: Vec::new(),
+            });
+        }
+        self.text_buffer.clear();
+    }
+}
