@@ -30,7 +30,7 @@ use super::timing::read_tsc;
 use super::types::{flags, CryptoHandoff};
 use crate::log::logger::{log_error, log_warn};
 
-pub const MAX_MMAP_ENTRIES: usize = 512;
+pub const MAX_MMAP_ENTRIES: usize = 1024;
 
 pub const MMAP_PAGES: usize =
     (MAX_MMAP_ENTRIES * size_of::<super::jump::MemoryMapEntry>() + 0xFFF) / 0x1000;
@@ -79,13 +79,13 @@ pub fn allocate_handoff_resources(
         Err(_) => fatal_alloc_error(st, "Failed to allocate BootHandoff page"),
     };
 
-    let stack_pages: usize = 8;
+    let stack_pages: usize = 16;
     let stack_addr =
         match bs.allocate_pages(AllocateType::AnyPages, MemoryType::LOADER_DATA, stack_pages) {
             Ok(addr) => addr,
             Err(_) => fatal_alloc_error(st, "Failed to allocate kernel stack"),
         };
-    let stack_top = (stack_addr as usize) + (stack_pages * 0x1000);
+    let stack_top = (stack_addr as usize) + (stack_pages * 0x1000) - 8;
 
     let mmap_addr =
         match bs.allocate_pages(AllocateType::AnyPages, MemoryType::LOADER_DATA, MMAP_PAGES) {
