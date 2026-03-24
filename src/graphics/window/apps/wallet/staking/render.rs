@@ -24,6 +24,8 @@ use crate::graphics::window::apps::wallet::render_views::draw_rounded_rect;
 pub fn draw_staking_view(x: u32, y: u32, w: u32, _h: u32) {
     draw_string(x + 24, y + 16, b"NOX Staking", COLOR_TEXT_WHITE);
     fill_rect(x + 24, y + 34, 80, 2, COLOR_PURPLE);
+    draw_rounded_rect(x + w - 100, y + 12, 76, 28, 8, COLOR_ACCENT);
+    draw_string(x + w - 88, y + 20, b"Refresh", 0xFF000000);
     let state = STAKING_STATE.lock();
     draw_rounded_rect(x + 24, y + 50, w - 48, 90, 12, COLOR_CARD);
     fill_rect(x + 24, y + 66, 3, 58, COLOR_PURPLE);
@@ -35,9 +37,19 @@ pub fn draw_staking_view(x: u32, y: u32, w: u32, _h: u32) {
     draw_string(x + 40 + (len as u32 + 1) * 8, y + 82, b"NOX", COLOR_PURPLE);
     draw_string(x + 40, y + 104, b"Boost:", COLOR_TEXT_DIM);
     draw_string(x + 96, y + 104, state.boost_display(), COLOR_GREEN);
-    draw_string(x + 150, y + 104, b"APY:", COLOR_TEXT_DIM);
-    draw_string(x + 190, y + 104, &format_apy(state.current_apy), COLOR_YELLOW);
+    draw_string(x + 150, y + 104, b"NFTs:", COLOR_TEXT_DIM);
+    draw_string(x + 196, y + 104, &format_nft_count(state.nft_count), COLOR_CYAN);
+    let share = if state.total_weighted > 0 { ((state.weighted_amount as u64 * 10000) / state.total_weighted as u64) as u32 } else { 0 };
+    let nft_count = state.nft_count;
     drop(state);
+    if nft_count > 0 {
+        draw_rounded_rect(x + w - 140, y + 58, 96, 74, 10, 0xFF2D1B4E);
+        fill_rect(x + w - 138, y + 60, 92, 2, COLOR_PURPLE);
+        draw_string(x + w - 130, y + 68, b"ZeroState", 0xFFE0B0FF);
+        draw_string(x + w - 130, y + 82, b"Pass NFT", COLOR_PURPLE);
+        draw_rounded_rect(x + w - 120, y + 100, 56, 24, 6, COLOR_PURPLE);
+        draw_string(x + w - 110, y + 106, &format_nft_badge(nft_count), 0xFF000000);
+    }
     draw_rounded_rect(x + 24, y + 155, w - 48, 110, 12, COLOR_CARD);
     fill_rect(x + 24, y + 171, 3, 78, COLOR_ACCENT);
     let mode = STAKE_MODE.load(Ordering::SeqCst);
@@ -79,5 +91,23 @@ fn format_apy(apy_bps: u32) -> [u8; 5] {
     if pct >= 100 { buf[0] = b'0' + ((pct / 100) % 10) as u8; }
     if pct >= 10 { buf[1] = b'0' + ((pct / 10) % 10) as u8; }
     buf[2] = b'0' + (pct % 10) as u8;
+    buf
+}
+
+fn format_nft_count(count: u8) -> [u8; 1] { [b'0' + count.min(9)] }
+
+fn format_nft_badge(count: u8) -> [u8; 4] {
+    let mut buf = [b'x', b' ', b' ', b' '];
+    buf[1] = b'0' + count.min(9);
+    buf
+}
+
+fn format_share(share_bps: u32) -> [u8; 6] {
+    let pct = share_bps / 100;
+    let dec = (share_bps % 100) / 10;
+    let mut buf = [b' ', b' ', b'.', b'0', b'%', b' '];
+    if pct >= 10 { buf[0] = b'0' + ((pct / 10) % 10) as u8; }
+    buf[1] = b'0' + (pct % 10) as u8;
+    buf[3] = b'0' + dec as u8;
     buf
 }
