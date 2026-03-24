@@ -16,158 +16,51 @@
 
 use core::sync::atomic::Ordering;
 use crate::graphics::window::text_editor::SpecialKey;
-
 use super::state::*;
 
 pub(super) fn handle_key(ch: u8) {
-    let state = WALLET_STATE.lock();
-    let is_locked = !state.unlocked;
-    drop(state);
-
-    if is_locked {
-        handle_locked_key(ch);
-        return;
-    }
-
-    if !INPUT_FOCUSED.load(Ordering::SeqCst) {
-        return;
-    }
-
-    let field = SEND_FIELD.load(Ordering::SeqCst);
-
-    if field == 0 {
-        handle_address_key(ch);
-    } else {
-        handle_amount_key(ch);
-    }
+    let s = WALLET_STATE.lock();
+    let locked = !s.unlocked;
+    drop(s);
+    if locked { handle_locked_key(ch); return; }
+    if !INPUT_FOCUSED.load(Ordering::SeqCst) { return; }
+    if SEND_FIELD.load(Ordering::SeqCst) == 0 { handle_addr_key(ch); } else { handle_amt_key(ch); }
 }
 
 pub(super) fn handle_locked_key(ch: u8) {
-    if !PASSWORD_FOCUSED.load(Ordering::SeqCst) {
-        return;
-    }
-
-    let mut pwd = PASSWORD_INPUT.lock();
+    if !PASSWORD_FOCUSED.load(Ordering::SeqCst) { return; }
+    let mut p = PASSWORD_INPUT.lock();
     let len = PASSWORD_LEN.load(Ordering::SeqCst);
-
-    if ch == 0x08 || ch == 0x7F {
-        if len > 0 {
-            pwd[len - 1] = 0;
-            PASSWORD_LEN.store(len - 1, Ordering::SeqCst);
-        }
-        return;
-    }
-
-    if ch == 0x0D || ch == 0x0A {
-        drop(pwd);
-        super::click_locked::try_unlock();
-        return;
-    }
-
-    if ch >= 0x20 && ch < 0x7F && len < 63 {
-        pwd[len] = ch;
-        PASSWORD_LEN.store(len + 1, Ordering::SeqCst);
-    }
+    if ch == 0x08 || ch == 0x7F { if len > 0 { p[len-1] = 0; PASSWORD_LEN.store(len-1, Ordering::SeqCst); } return; }
+    if ch == 0x0D || ch == 0x0A { drop(p); super::click_locked::try_unlock(); return; }
+    if ch >= 0x20 && ch < 0x7F && len < 63 { p[len] = ch; PASSWORD_LEN.store(len+1, Ordering::SeqCst); }
 }
 
-fn handle_address_key(ch: u8) {
-    let mut buf = SEND_ADDRESS.lock();
-    let len = SEND_ADDRESS_LEN.load(Ordering::SeqCst);
-    let cursor = INPUT_CURSOR.load(Ordering::SeqCst).min(len);
-
-    if ch == 0x08 || ch == 0x7F {
-        if cursor > 0 {
-            for i in cursor - 1..len.saturating_sub(1) {
-                buf[i] = buf[i + 1];
-            }
-            SEND_ADDRESS_LEN.store(len.saturating_sub(1), Ordering::SeqCst);
-            INPUT_CURSOR.store(cursor - 1, Ordering::SeqCst);
-        }
-        return;
-    }
-
-    let valid = (ch >= b'0' && ch <= b'9')
-        || (ch >= b'a' && ch <= b'f')
-        || (ch >= b'A' && ch <= b'F')
-        || ch == b'x'
-        || ch == b'X';
-
-    if valid && len < 63 {
-        for i in (cursor..len).rev() {
-            buf[i + 1] = buf[i];
-        }
-        buf[cursor] = if ch >= b'A' && ch <= b'F' { ch + 32 } else { ch };
-        SEND_ADDRESS_LEN.store(len + 1, Ordering::SeqCst);
-        INPUT_CURSOR.store(cursor + 1, Ordering::SeqCst);
-    }
+fn handle_addr_key(ch: u8) {
+    let mut b = SEND_ADDRESS.lock();
+    let (len, cur) = (SEND_ADDRESS_LEN.load(Ordering::SeqCst), INPUT_CURSOR.load(Ordering::SeqCst).min(SEND_ADDRESS_LEN.load(Ordering::SeqCst)));
+    if ch == 0x08 || ch == 0x7F { if cur > 0 { for i in cur-1..len.saturating_sub(1) { b[i] = b[i+1]; } SEND_ADDRESS_LEN.store(len.saturating_sub(1), Ordering::SeqCst); INPUT_CURSOR.store(cur-1, Ordering::SeqCst); } return; }
+    let v = (ch >= b'0' && ch <= b'9') || (ch >= b'a' && ch <= b'f') || (ch >= b'A' && ch <= b'F') || ch == b'x' || ch == b'X';
+    if v && len < 63 { for i in (cur..len).rev() { b[i+1] = b[i]; } b[cur] = if ch >= b'A' && ch <= b'F' { ch + 32 } else { ch }; SEND_ADDRESS_LEN.store(len+1, Ordering::SeqCst); INPUT_CURSOR.store(cur+1, Ordering::SeqCst); }
 }
 
-fn handle_amount_key(ch: u8) {
-    let mut buf = SEND_AMOUNT.lock();
-    let len = SEND_AMOUNT_LEN.load(Ordering::SeqCst);
-    let cursor = INPUT_CURSOR.load(Ordering::SeqCst).min(len);
-
-    if ch == 0x08 || ch == 0x7F {
-        if cursor > 0 {
-            for i in cursor - 1..len.saturating_sub(1) {
-                buf[i] = buf[i + 1];
-            }
-            SEND_AMOUNT_LEN.store(len.saturating_sub(1), Ordering::SeqCst);
-            INPUT_CURSOR.store(cursor - 1, Ordering::SeqCst);
-        }
-        return;
-    }
-
-    let valid = (ch >= b'0' && ch <= b'9') || ch == b'.';
-
-    if valid && len < 31 {
-        if ch == b'.' {
-            for i in 0..len {
-                if buf[i] == b'.' {
-                    return;
-                }
-            }
-        }
-
-        for i in (cursor..len).rev() {
-            buf[i + 1] = buf[i];
-        }
-        buf[cursor] = ch;
-        SEND_AMOUNT_LEN.store(len + 1, Ordering::SeqCst);
-        INPUT_CURSOR.store(cursor + 1, Ordering::SeqCst);
-    }
+fn handle_amt_key(ch: u8) {
+    let mut b = SEND_AMOUNT.lock();
+    let (len, cur) = (SEND_AMOUNT_LEN.load(Ordering::SeqCst), INPUT_CURSOR.load(Ordering::SeqCst).min(SEND_AMOUNT_LEN.load(Ordering::SeqCst)));
+    if ch == 0x08 || ch == 0x7F { if cur > 0 { for i in cur-1..len.saturating_sub(1) { b[i] = b[i+1]; } SEND_AMOUNT_LEN.store(len.saturating_sub(1), Ordering::SeqCst); INPUT_CURSOR.store(cur-1, Ordering::SeqCst); } return; }
+    let v = (ch >= b'0' && ch <= b'9') || ch == b'.';
+    if v && len < 31 { if ch == b'.' { for i in 0..len { if b[i] == b'.' { return; } } } for i in (cur..len).rev() { b[i+1] = b[i]; } b[cur] = ch; SEND_AMOUNT_LEN.store(len+1, Ordering::SeqCst); INPUT_CURSOR.store(cur+1, Ordering::SeqCst); }
 }
 
 pub(super) fn handle_special_key(key: SpecialKey) {
-    if !INPUT_FOCUSED.load(Ordering::SeqCst) {
-        return;
-    }
-
-    let field = SEND_FIELD.load(Ordering::SeqCst);
-    let len = if field == 0 {
-        SEND_ADDRESS_LEN.load(Ordering::SeqCst)
-    } else {
-        SEND_AMOUNT_LEN.load(Ordering::SeqCst)
-    };
-    let cursor = INPUT_CURSOR.load(Ordering::SeqCst);
-
+    if !INPUT_FOCUSED.load(Ordering::SeqCst) { return; }
+    let len = if SEND_FIELD.load(Ordering::SeqCst) == 0 { SEND_ADDRESS_LEN.load(Ordering::SeqCst) } else { SEND_AMOUNT_LEN.load(Ordering::SeqCst) };
+    let cur = INPUT_CURSOR.load(Ordering::SeqCst);
     match key {
-        SpecialKey::Left => {
-            if cursor > 0 {
-                INPUT_CURSOR.store(cursor - 1, Ordering::SeqCst);
-            }
-        }
-        SpecialKey::Right => {
-            if cursor < len {
-                INPUT_CURSOR.store(cursor + 1, Ordering::SeqCst);
-            }
-        }
-        SpecialKey::Home => {
-            INPUT_CURSOR.store(0, Ordering::SeqCst);
-        }
-        SpecialKey::End => {
-            INPUT_CURSOR.store(len, Ordering::SeqCst);
-        }
+        SpecialKey::Left => { if cur > 0 { INPUT_CURSOR.store(cur-1, Ordering::SeqCst); } }
+        SpecialKey::Right => { if cur < len { INPUT_CURSOR.store(cur+1, Ordering::SeqCst); } }
+        SpecialKey::Home => { INPUT_CURSOR.store(0, Ordering::SeqCst); }
+        SpecialKey::End => { INPUT_CURSOR.store(len, Ordering::SeqCst); }
         _ => {}
     }
 }
