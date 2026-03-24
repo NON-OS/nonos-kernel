@@ -26,9 +26,9 @@ pub(super) fn handle_overview_click(x: u32, y: u32, w: u32) -> bool {
         return true;
     }
     if x >= w.saturating_sub(100) && x <= w.saturating_sub(20) && y >= 15 && y <= 47 { refresh_balances(); return true; }
-    if x >= 20 && x <= w.saturating_sub(20) && y >= 50 {
-        let ci = (y.saturating_sub(50)) / 80;
-        if (y.saturating_sub(50)) % 80 < 70 {
+    if x >= 24 && x <= w.saturating_sub(24) && y >= 65 {
+        let ci = (y.saturating_sub(65)) / 100;
+        if (y.saturating_sub(65)) % 100 < 90 {
             let s = WALLET_STATE.lock();
             let cnt = s.accounts.len() as u32;
             drop(s);
@@ -39,11 +39,10 @@ pub(super) fn handle_overview_click(x: u32, y: u32, w: u32) -> bool {
 }
 
 pub(super) fn handle_sidebar_click(y: u32) -> bool {
-    if y < 70 { return false; }
-    let i = (y - 70) / 48;
+    if y < 90 { return false; }
+    let i = (y - 90) / 52;
     let v = match i { 0 => WalletView::Overview, 1 => WalletView::Send, 2 => WalletView::Receive, 3 => WalletView::Staking, 4 => WalletView::ZkSync, 5 => WalletView::Transactions, 6 => WalletView::Stealth, 7 => WalletView::Settings, _ => return false };
     set_view(v);
     if v == WalletView::Send { clear_send_fields(); }
-    if v == WalletView::Staking { super::staking::refresh_staking_data(); }
     true
 }
