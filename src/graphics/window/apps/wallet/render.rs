@@ -58,6 +58,7 @@ pub(super) fn draw(x: u32, y: u32, w: u32, h: u32) {
         WalletView::Settings => draw_settings_view(content_x, content_y, content_w, content_h),
         WalletView::Stealth => draw_stealth_view(content_x, content_y, content_w, content_h),
         WalletView::ZkSync => draw_zksync_view(content_x, content_y, content_w, content_h),
+        WalletView::Staking => super::staking::draw_staking_view(content_x, content_y, content_w, content_h),
     }
     draw_status_bar(x + SIDEBAR_WIDTH, y + h - 30, w - SIDEBAR_WIDTH);
 }
