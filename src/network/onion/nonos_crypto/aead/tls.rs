@@ -56,3 +56,23 @@ pub fn tls_chacha20poly1305_open(key: &[u8], nonce: &[u8; 12], aad: &[u8], ciphe
     crate::crypto::chacha20poly1305::aead_decrypt(&key_bytes, nonce, aad, ciphertext)
         .map_err(|_| OnionError::CryptoError)
 }
+
+pub fn tls_aes256_gcm_seal(key: &[u8], nonce: &[u8; 12], aad: &[u8], plaintext: &[u8]) -> Result<Vec<u8>, OnionError> {
+    if key.len() != 32 {
+        return Err(OnionError::CryptoError);
+    }
+    let mut key256 = [0u8; 32];
+    key256.copy_from_slice(key);
+    crate::crypto::aes_gcm::aes256_gcm_encrypt(&key256, nonce, aad, plaintext)
+        .map_err(|_| OnionError::CryptoError)
+}
+
+pub fn tls_aes256_gcm_open(key: &[u8], nonce: &[u8; 12], aad: &[u8], ciphertext: &[u8]) -> Result<Vec<u8>, OnionError> {
+    if key.len() != 32 {
+        return Err(OnionError::CryptoError);
+    }
+    let mut key256 = [0u8; 32];
+    key256.copy_from_slice(key);
+    crate::crypto::aes_gcm::aes256_gcm_decrypt(&key256, nonce, aad, ciphertext)
+        .map_err(|_| OnionError::CryptoError)
+}

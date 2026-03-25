@@ -20,8 +20,8 @@ mod parse;
 mod finish;
 mod wrap;
 
-pub use client_hello::build_client_hello;
-pub use server_hello::{parse_server_hello, has_tls12_downgrade_sentinel};
+pub use client_hello::{build_client_hello, build_client_hello_retry};
+pub use server_hello::{parse_server_hello, has_tls12_downgrade_sentinel, is_hello_retry_request, ServerHelloResult};
 pub use parse::{parse_handshake_view, parse_certificate_chain, parse_certificate_verify};
 pub(super) use finish::{build_finished, verify_finished_with_payload, build_cert_verify_context};
 pub use wrap::{wrap_handshake, wrap_record};

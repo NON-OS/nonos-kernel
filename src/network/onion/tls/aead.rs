@@ -30,9 +30,11 @@ pub(super) struct AeadState {
 impl Drop for AeadState {
     fn drop(&mut self) {
         for byte in self.key.iter_mut() {
+            // SAFETY: volatile write prevents compiler from eliding zeroization
             unsafe { core::ptr::write_volatile(byte, 0) };
         }
         for byte in self.iv.iter_mut() {
+            // SAFETY: volatile write prevents compiler from eliding zeroization
             unsafe { core::ptr::write_volatile(byte, 0) };
         }
         core::sync::atomic::compiler_fence(core::sync::atomic::Ordering::SeqCst);
@@ -51,12 +53,14 @@ impl AeadState {
     pub(super) fn from_secret(sec: &Secret, suite: CipherSuite) -> Result<Self, OnionError> {
         let key_len = match suite {
             CipherSuite::TlsAes128GcmSha256 => 16,
+            CipherSuite::TlsAes256GcmSha384 => 32,
             CipherSuite::TlsChacha20Poly1305Sha256 => 32,
         };
+        let hash_len = sec.len;
         let mut iv = [0u8; 12];
-        expand_label_len(&sec.secret, b"iv", &[], &mut iv);
+        expand_label_len(sec.as_slice(), b"iv", &[], &mut iv, hash_len);
         let mut key = vec![0u8; key_len];
-        expand_label_len(&sec.secret, b"key", &[], &mut key);
+        expand_label_len(sec.as_slice(), b"key", &[], &mut key, hash_len);
 
         Ok(Self { key, iv, seq: 0 })
     }

@@ -16,6 +16,8 @@
 
 use alloc::vec::Vec;
 use crate::crypto::hash::sha256;
+use crate::crypto::hash::sha384::sha384;
+use crate::crypto::hash::sha512::sha512;
 use crate::crypto::util::bigint::BigUint;
 use crate::crypto::{CryptoError, CryptoResult};
 use super::keys::{RsaPrivateKey, RsaPublicKey, rsa_private_operation, rsa_public_operation};
@@ -210,6 +212,107 @@ fn pkcs1_digest_info_sha256_no_null(hash: &[u8]) -> Vec<u8> {
     digest_info.extend_from_slice(hash);
 
     digest_info
+}
+
+/// PKCS#1 v1.5 SHA-384 signature verification.
+pub fn verify_pkcs1v15_sha384(public_key: &RsaPublicKey, message: &[u8], signature: &[u8]) -> bool {
+    let hash = sha384(message);
+    verify_pkcs1v15_with_digest(public_key, &hash, signature, &pkcs1_digest_info_sha384(&hash), &pkcs1_digest_info_sha384_no_null(&hash))
+}
+
+/// PKCS#1 v1.5 SHA-512 signature verification.
+pub fn verify_pkcs1v15_sha512(public_key: &RsaPublicKey, message: &[u8], signature: &[u8]) -> bool {
+    let hash = sha512(message);
+    verify_pkcs1v15_with_digest(public_key, &hash, signature, &pkcs1_digest_info_sha512(&hash), &pkcs1_digest_info_sha512_no_null(&hash))
+}
+
+/// Core PKCS#1 v1.5 verify: RSA-decrypt, unpad, compare DigestInfo (with and without NULL).
+fn verify_pkcs1v15_with_digest(
+    public_key: &RsaPublicKey,
+    hash: &[u8],
+    signature: &[u8],
+    expected_with_null: &[u8],
+    expected_no_null: &[u8],
+) -> bool {
+    let em_len = public_key.bits / 8;
+    let decrypted = match rsa_public_operation(&BigUint::from_bytes_be(signature), public_key) {
+        Ok(d) => d,
+        Err(_) => return false,
+    };
+    let raw = decrypted.to_bytes_be();
+    let mut decrypted_bytes = raw;
+    if decrypted_bytes.len() < em_len {
+        let mut padded = alloc::vec![0u8; em_len];
+        padded[em_len - decrypted_bytes.len()..].copy_from_slice(&decrypted_bytes);
+        decrypted_bytes = padded;
+    }
+
+    let unpadded = match pkcs1_unpad_type1(&decrypted_bytes) {
+        Ok(u) => u,
+        Err(_) => return false,
+    };
+
+    if unpadded == expected_with_null || unpadded == expected_no_null {
+        return true;
+    }
+
+    // Fallback: extract the trailing hash bytes and compare directly.
+    if unpadded.len() >= hash.len() {
+        let sig_hash = &unpadded[unpadded.len() - hash.len()..];
+        if sig_hash == hash {
+            return true;
+        }
+    }
+
+    false
+}
+
+fn pkcs1_digest_info_sha384(hash: &[u8]) -> Vec<u8> {
+    // SHA-384 DigestInfo WITH NULL: 30 41 30 0D 06 09 <OID> 05 00 04 30 <hash>
+    let prefix = [
+        0x30, 0x41, 0x30, 0x0D, 0x06, 0x09, 0x60, 0x86, 0x48, 0x01, 0x65, 0x03, 0x04, 0x02, 0x02,
+        0x05, 0x00, 0x04, 0x30,
+    ];
+    let mut di = Vec::with_capacity(prefix.len() + hash.len());
+    di.extend_from_slice(&prefix);
+    di.extend_from_slice(hash);
+    di
+}
+
+fn pkcs1_digest_info_sha384_no_null(hash: &[u8]) -> Vec<u8> {
+    // SHA-384 DigestInfo WITHOUT NULL: 30 3F 30 0B 06 09 <OID> 04 30 <hash>
+    let prefix = [
+        0x30, 0x3F, 0x30, 0x0B, 0x06, 0x09, 0x60, 0x86, 0x48, 0x01, 0x65, 0x03, 0x04, 0x02, 0x02,
+        0x04, 0x30,
+    ];
+    let mut di = Vec::with_capacity(prefix.len() + hash.len());
+    di.extend_from_slice(&prefix);
+    di.extend_from_slice(hash);
+    di
+}
+
+fn pkcs1_digest_info_sha512(hash: &[u8]) -> Vec<u8> {
+    // SHA-512 DigestInfo WITH NULL: 30 51 30 0D 06 09 <OID> 05 00 04 40 <hash>
+    let prefix = [
+        0x30, 0x51, 0x30, 0x0D, 0x06, 0x09, 0x60, 0x86, 0x48, 0x01, 0x65, 0x03, 0x04, 0x02, 0x03,
+        0x05, 0x00, 0x04, 0x40,
+    ];
+    let mut di = Vec::with_capacity(prefix.len() + hash.len());
+    di.extend_from_slice(&prefix);
+    di.extend_from_slice(hash);
+    di
+}
+
+fn pkcs1_digest_info_sha512_no_null(hash: &[u8]) -> Vec<u8> {
+    // SHA-512 DigestInfo WITHOUT NULL: 30 4F 30 0B 06 09 <OID> 04 40 <hash>
+    let prefix = [
+        0x30, 0x4F, 0x30, 0x0B, 0x06, 0x09, 0x60, 0x86, 0x48, 0x01, 0x65, 0x03, 0x04, 0x02, 0x03,
+        0x04, 0x40,
+    ];
+    let mut di = Vec::with_capacity(prefix.len() + hash.len());
+    di.extend_from_slice(&prefix);
+    di.extend_from_slice(hash);
+    di
 }
 
 pub fn sign_message(msg: &[u8], key: &RsaPrivateKey) -> Result<Vec<u8>, &'static str> {

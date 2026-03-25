@@ -17,8 +17,22 @@
 use super::super::types::TrustedRootCa;
 
 pub(super) static OTHER_ROOTS: &[TrustedRootCa] = &[
-    // Baltimore CyberTrust Root removed: expired May 12, 2025.
-    // Microsoft services now chain through DigiCert G2.
+    TrustedRootCa {
+        name: "Baltimore CyberTrust Root",
+        subject_der: &[
+
+        ],
+        spki_der: &[
+
+        ],
+        spki_sha256: [
+            0x63,0xd9,0xaf,0x9b,0x47,0xb1,0x06,0x4d,
+            0x49,0xa1,0x0e,0x7b,0x7f,0xd5,0x66,0xdb,
+            0xc8,0xca,0xa3,0x99,0x45,0x9b,0xfc,0x28,
+            0x29,0xc5,0x71,0xad,0x8c,0x6e,0xf3,0x4a,
+        ],
+        ski: None,
+    },
     TrustedRootCa {
         name: "COMODO RSA CA",
         subject_der: &[

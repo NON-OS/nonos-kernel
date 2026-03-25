@@ -18,12 +18,15 @@ use crate::network::onion::OnionError;
 
 pub(super) fn verify_hostname(cert: &crate::network::onion::nonos_crypto::X509Certificate, hostname: &str) -> Result<(), OnionError> {
     if let Some(san_names) = crate::network::onion::nonos_crypto::X509::get_san_dns_names(cert) {
+        // RFC 6125 §6.4.4: If SAN is present, CN MUST NOT be checked
         for name in san_names {
             if matches_hostname(&name, hostname) {
                 return Ok(());
             }
         }
+        return Err(OnionError::AuthenticationFailed);
     }
+    // No SAN extension — fall back to CN (legacy behavior)
     if let Some(cn) = crate::network::onion::nonos_crypto::X509::get_subject_cn(cert) {
         if matches_hostname(&cn, hostname) {
             return Ok(());

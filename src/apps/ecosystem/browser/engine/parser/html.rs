@@ -77,18 +77,18 @@ fn process_open_tag(state: &mut ParserState, tag_content: &str, chars: &mut core
 fn skip_to_close(chars: &mut core::iter::Peekable<core::str::Chars>) { while let Some(&c) = chars.peek() { if c == '>' { break; } chars.next(); } chars.next(); }
 
 fn skip_raw_text(chars: &mut core::iter::Peekable<core::str::Chars>, tag: &str) {
-    let pattern = alloc::format!("</{}>", tag); let mut buf = String::new();
-    while let Some(ch) = chars.next() { buf.push(ch); if buf.len() >= pattern.len() && buf[buf.len() - pattern.len()..].eq_ignore_ascii_case(&pattern) { break; } }
+    let pattern = alloc::format!("</{}>" , tag); let pat_bytes = pattern.as_bytes(); let mut buf = String::new();
+    while let Some(ch) = chars.next() { buf.push(ch); let bb = buf.as_bytes(); if bb.len() >= pat_bytes.len() && bb[bb.len() - pat_bytes.len()..].eq_ignore_ascii_case(pat_bytes) { break; } }
 }
 
 fn process_style(state: &mut ParserState, chars: &mut core::iter::Peekable<core::str::Chars>, tag: &str) {
-    let pattern = alloc::format!("</{}>", tag); let mut buf = String::new();
-    while let Some(ch) = chars.next() { buf.push(ch); if buf.len() >= pattern.len() && buf[buf.len() - pattern.len()..].eq_ignore_ascii_case(&pattern) { buf.truncate(buf.len() - pattern.len()); parse_hidden_classes(&buf, &mut state.hidden_classes); return; } }
+    let pattern = alloc::format!("</{}>" , tag); let pat_bytes = pattern.as_bytes(); let mut buf = String::new();
+    while let Some(ch) = chars.next() { buf.push(ch); let bb = buf.as_bytes(); if bb.len() >= pat_bytes.len() && bb[bb.len() - pat_bytes.len()..].eq_ignore_ascii_case(pat_bytes) { buf.truncate(buf.len() - pat_bytes.len()); parse_hidden_classes(&buf, &mut state.hidden_classes); return; } }
 }
 
 fn process_noscript(state: &mut ParserState, chars: &mut core::iter::Peekable<core::str::Chars>) {
-    let pattern = "</noscript>"; let mut buf = String::new();
-    while let Some(ch) = chars.next() { buf.push(ch); if buf.len() >= pattern.len() && buf[buf.len() - pattern.len()..].eq_ignore_ascii_case(pattern) { buf.truncate(buf.len() - pattern.len()); break; } }
+    let pattern: &[u8] = b"</noscript>"; let mut buf = String::new();
+    while let Some(ch) = chars.next() { buf.push(ch); let bb = buf.as_bytes(); if bb.len() >= pattern.len() && bb[bb.len() - pattern.len()..].eq_ignore_ascii_case(pattern) { buf.truncate(buf.len() - pattern.len()); break; } }
     let inner = buf.trim();
     if !inner.is_empty() {
         let mut inner_chars = inner.chars().peekable();

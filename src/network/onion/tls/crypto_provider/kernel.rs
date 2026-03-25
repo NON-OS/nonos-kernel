@@ -31,6 +31,11 @@ impl TlsCrypto for KernelTlsCrypto {
         let _ = crate::network::onion::nonos_crypto::sha256(data, out32);
     }
 
+    fn sha384(&self, data: &[u8], out48: &mut [u8; 48]) {
+        let h = crate::crypto::hash::sha384::sha384(data);
+        out48.copy_from_slice(&h);
+    }
+
     fn hmac_sha256(&self, key: &[u8], data: &[u8], out32: &mut [u8; 32]) {
         match crate::network::onion::nonos_crypto::hmac_sha256(key, data) {
             Ok(result) => {
@@ -41,12 +46,27 @@ impl TlsCrypto for KernelTlsCrypto {
         }
     }
 
+    fn hmac_sha384(&self, key: &[u8], data: &[u8], out48: &mut [u8; 48]) {
+        match crate::network::onion::nonos_crypto::hmac_sha384(key, data) {
+            Ok(result) => out48.copy_from_slice(&result),
+            Err(_) => out48.fill(0),
+        }
+    }
+
     fn hkdf_extract(&self, salt: &[u8; 32], ikm: &[u8; 32], out32: &mut [u8; 32]) {
         let _ = crate::network::onion::nonos_crypto::hkdf_extract_sha256(salt, ikm, out32);
     }
 
+    fn hkdf_extract_384(&self, salt: &[u8], ikm: &[u8], out48: &mut [u8; 48]) {
+        let _ = crate::network::onion::nonos_crypto::hkdf_extract_sha384(salt, ikm, out48);
+    }
+
     fn hkdf_expand(&self, prk: &[u8; 32], info: &[u8], out: &mut [u8]) {
         let _ = crate::network::onion::nonos_crypto::hkdf_expand_sha256(prk, info, out.len(), out);
+    }
+
+    fn hkdf_expand_384(&self, prk: &[u8], info: &[u8], out: &mut [u8]) {
+        let _ = crate::network::onion::nonos_crypto::hkdf_expand_sha384(prk, info, out);
     }
 
     fn x25519_keypair(&self) -> Result<([u8; 32], [u8; 32]), OnionError> {
@@ -60,6 +80,7 @@ impl TlsCrypto for KernelTlsCrypto {
     fn aead_seal(&self, suite: CipherSuite, key: &[u8], nonce: &[u8; 12], aad: &[u8], plaintext: &[u8]) -> Result<Vec<u8>, OnionError> {
         match suite {
             CipherSuite::TlsAes128GcmSha256 => crate::network::onion::nonos_crypto::tls_aes128_gcm_seal(key, nonce, aad, plaintext),
+            CipherSuite::TlsAes256GcmSha384 => crate::network::onion::nonos_crypto::tls_aes256_gcm_seal(key, nonce, aad, plaintext),
             CipherSuite::TlsChacha20Poly1305Sha256 => crate::network::onion::nonos_crypto::tls_chacha20poly1305_seal(key, nonce, aad, plaintext),
         }.map_err(|_| OnionError::CryptoError)
     }
@@ -67,6 +88,7 @@ impl TlsCrypto for KernelTlsCrypto {
     fn aead_open(&self, suite: CipherSuite, key: &[u8], nonce: &[u8; 12], aad: &[u8], ciphertext: &[u8]) -> Result<Vec<u8>, OnionError> {
         match suite {
             CipherSuite::TlsAes128GcmSha256 => crate::network::onion::nonos_crypto::tls_aes128_gcm_open(key, nonce, aad, ciphertext),
+            CipherSuite::TlsAes256GcmSha384 => crate::network::onion::nonos_crypto::tls_aes256_gcm_open(key, nonce, aad, ciphertext),
             CipherSuite::TlsChacha20Poly1305Sha256 => crate::network::onion::nonos_crypto::tls_chacha20poly1305_open(key, nonce, aad, ciphertext),
         }.map_err(|_| OnionError::CryptoError)
     }
@@ -79,11 +101,35 @@ impl TlsCrypto for KernelTlsCrypto {
         crate::network::onion::nonos_crypto::rsa_pss_sha256_verify_spki(spki_der, msg, sig).unwrap_or(false)
     }
 
+    fn verify_rsa_pss_sha384(&self, spki_der: &[u8], msg: &[u8], sig: &[u8]) -> bool {
+        crate::network::onion::nonos_crypto::rsa_pss_sha384_verify_spki(spki_der, msg, sig).unwrap_or(false)
+    }
+
+    fn verify_rsa_pkcs1v15_sha256(&self, spki_der: &[u8], msg: &[u8], sig: &[u8]) -> bool {
+        crate::network::onion::nonos_crypto::rsa_pkcs1v15_sha256_verify_spki(spki_der, msg, sig).unwrap_or(false)
+    }
+
+    fn verify_rsa_pkcs1v15_sha384(&self, spki_der: &[u8], msg: &[u8], sig: &[u8]) -> bool {
+        crate::network::onion::nonos_crypto::rsa_pkcs1v15_sha384_verify_spki(spki_der, msg, sig).unwrap_or(false)
+    }
+
     fn verify_ecdsa_p256_sha256(&self, spki_der: &[u8], msg: &[u8], sig: &[u8]) -> bool {
         crate::network::onion::nonos_crypto::ecdsa_p256_sha256_verify_spki(spki_der, msg, sig).unwrap_or(false)
     }
 
     fn verify_ecdsa_p384_sha384(&self, spki_der: &[u8], msg: &[u8], sig: &[u8]) -> bool {
         crate::network::onion::nonos_crypto::ecdsa_p384_sha384_verify_spki(spki_der, msg, sig).unwrap_or(false)
+    }
+
+    fn p256_keypair(&self) -> Result<([u8; 32], [u8; 65]), OnionError> {
+        let (sk, pk) = crate::crypto::asymmetric::p256::ecdh::p256_ecdh_keypair();
+        let mut pk65 = [0u8; 65];
+        pk65.copy_from_slice(&pk);
+        Ok((sk, pk65))
+    }
+
+    fn p256_ecdh(&self, sk: &[u8; 32], peer_pub: &[u8; 65]) -> Result<[u8; 32], OnionError> {
+        crate::crypto::asymmetric::p256::ecdh::p256_ecdh(sk, peer_pub)
+            .ok_or(OnionError::CryptoError)
     }
 }

@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use alloc::string::ToString;
 use crate::network::tcp::TcpSocket;
 use crate::network::onion::OnionError;
 use super::types::{TLSConnection, HandshakePhase};
@@ -32,11 +33,18 @@ impl TLSConnection {
         if self.phase != HandshakePhase::Idle {
             return Err(OnionError::CryptoError);
         }
+        // Cache SNI and ALPN for potential HRR ClientHello2 rebuild
+        self.sni_cache = sni.map(|s| s.to_string());
+        self.alpn_cache = alpn.map(|a| a.iter().map(|s| s.to_string()).collect());
+
         let c = crypto();
         c.random(&mut self.client_random)?;
-        let (epk, esk) = c.x25519_keypair()?;
-        self.ephemeral_secret = esk.to_vec();
-        let ch = build_client_hello(&self.client_random, sni, alpn, &epk);
+        let (epk_x25519, esk_x25519) = c.x25519_keypair()?;
+        let (esk_p256, epk_p256) = c.p256_keypair()?;
+        self.ephemeral_x25519 = esk_x25519;
+        self.ephemeral_p256 = esk_p256;
+        let key_shares: &[(u16, &[u8])] = &[(0x001d, &epk_x25519), (0x0017, &epk_p256)];
+        let ch = build_client_hello(&self.client_random, sni, alpn, key_shares);
         self.transcript.add_handshake(&ch);
         write_all(sock, &wrap_record(ContentType::Handshake as u8, TLS_1_2, &ch), 10_000)?;
         self.phase = HandshakePhase::SentClientHello;

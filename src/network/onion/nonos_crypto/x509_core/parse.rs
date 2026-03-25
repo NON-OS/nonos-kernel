@@ -20,7 +20,8 @@ use super::super::x509_der::DerParser;
 use super::x509::X509;
 use super::oid::parse_algorithm_identifier;
 use super::spki::parse_subject_public_key_info;
-use super::tbs::{parse_tbs_fields, skip_extensions};
+use super::tbs::parse_tbs_fields;
+use super::extensions::parse_extensions;
 
 impl X509 {
     pub fn parse_der(der: &[u8]) -> Result<X509Certificate, OnionError> {
@@ -42,12 +43,12 @@ impl X509 {
         let tbs_len = parser.read_length()?;
         let tbs_content_end = parser.offset + tbs_len;
         crate::sys::serial::println(b"[X509] parse_tbs_fields");
-        let (not_before_ms, not_after_ms, issuer_der, subject_der, is_ca) =
+        let (not_before_ms, not_after_ms, issuer_der, subject_der) =
             parse_tbs_fields(&mut parser)?;
         crate::sys::serial::println(b"[X509] parse_subject_public_key_info");
         let public_key = parse_subject_public_key_info(&mut parser)?;
-        crate::sys::serial::println(b"[X509] skip_extensions");
-        skip_extensions(&mut parser)?;
+        crate::sys::serial::println(b"[X509] parse_extensions");
+        let extensions = parse_extensions(&mut parser, tbs_content_end)?;
         parser.offset = tbs_content_end;
         let tbs_certificate = der[tbs_start..tbs_content_end].to_vec();
         crate::sys::serial::println(b"[X509] parse sig_algorithm");
@@ -60,7 +61,7 @@ impl X509 {
         crate::sys::serial::println(b"[X509] parse OK");
         Ok(X509Certificate {
             tbs_certificate, signature_algorithm, signature, public_key,
-            not_before_ms, not_after_ms, is_ca, subject_der, issuer_der,
+            not_before_ms, not_after_ms, extensions, subject_der, issuer_der,
         })
     }
 }

@@ -31,8 +31,8 @@ impl TLSConnection {
             HandshakePhase::Idle => Err(OnionError::CryptoError),
             HandshakePhase::Complete => Ok(Some(TlsSessionInfo {
                 cipher_suite: self.suite as u16,
-                client_app_traffic_secret: self.ks.client_app.secret.to_vec(),
-                server_app_traffic_secret: self.ks.server_app.secret.to_vec(),
+                client_app_traffic_secret: self.ks.client_app.as_slice().to_vec(),
+                server_app_traffic_secret: self.ks.server_app.as_slice().to_vec(),
             })),
             HandshakePhase::Failed => Err(OnionError::CryptoError),
             HandshakePhase::SentClientHello => {
@@ -51,8 +51,8 @@ impl TLSConnection {
                 self.phase = HandshakePhase::Complete;
                 Ok(Some(TlsSessionInfo {
                     cipher_suite: self.suite as u16,
-                    client_app_traffic_secret: self.ks.client_app.secret.to_vec(),
-                    server_app_traffic_secret: self.ks.server_app.secret.to_vec(),
+                    client_app_traffic_secret: self.ks.client_app.as_slice().to_vec(),
+                    server_app_traffic_secret: self.ks.server_app.as_slice().to_vec(),
                 }))
             }
         }

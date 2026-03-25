@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod extensions;
 mod info;
 mod oid;
 mod parse;
@@ -23,3 +24,4 @@ mod verify_fwd;
 mod x509;
 
 pub use x509::X509;
+pub(super) use spki::parse_spki_der;

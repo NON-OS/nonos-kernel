@@ -20,68 +20,18 @@ use super::super::types::X509Certificate;
 use super::super::x509_core::X509;
 
 impl X509 {
+    /// Returns DNS names from the parsed SAN extension, or None if absent.
     pub fn get_san_dns_names(cert: &X509Certificate) -> Option<Vec<String>> {
-        let tbs = &cert.tbs_certificate;
-        let mut names = Vec::new();
-        let san_oid = [0x55, 0x1D, 0x11];
-        let mut i = 0;
-        while i + 3 < tbs.len() {
-            if tbs[i..].starts_with(&san_oid) {
-                i += 3;
-                while i < tbs.len() && tbs[i] != 0x04 {
-                    i += 1;
-                }
-                if i >= tbs.len() {
-                    break;
-                }
-                i += 1;
-                if i >= tbs.len() {
-                    break;
-                }
-                let (len, new_i) = parse_length(tbs, i);
-                i = new_i;
-                let end = (i + len).min(tbs.len());
-                while i < end {
-                    if tbs[i] == 0x82 {
-                        i += 1;
-                        if i >= end {
-                            break;
-                        }
-                        let name_len = tbs[i] as usize;
-                        i += 1;
-                        if i + name_len <= end {
-                            if let Ok(name) = core::str::from_utf8(&tbs[i..i + name_len]) {
-                                names.push(String::from(name));
-                            }
-                        }
-                        i += name_len;
-                    } else {
-                        i += 1;
-                    }
-                }
-                break;
-            }
-            i += 1;
+        if cert.extensions.san_dns_names.is_empty() {
+            None
+        } else {
+            Some(cert.extensions.san_dns_names.clone())
         }
-        if names.is_empty() { None } else { Some(names) }
     }
-}
 
-fn parse_length(tbs: &[u8], mut i: usize) -> (usize, usize) {
-    if tbs[i] & 0x80 == 0 {
-        let l = tbs[i] as usize;
-        (l, i + 1)
-    } else {
-        let len_bytes = (tbs[i] & 0x7F) as usize;
-        i += 1;
-        let mut l = 0usize;
-        for _ in 0..len_bytes {
-            if i >= tbs.len() {
-                break;
-            }
-            l = (l << 8) | tbs[i] as usize;
-            i += 1;
-        }
-        (l, i)
+    /// Returns true if the certificate has a SAN extension (even if empty).
+    /// Used to implement RFC 6125: when SAN is present, CN must not be checked.
+    pub fn has_san_extension(cert: &X509Certificate) -> bool {
+        !cert.extensions.san_dns_names.is_empty()
     }
 }
