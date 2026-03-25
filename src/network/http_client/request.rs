@@ -68,7 +68,7 @@ impl Default for HttpRequestOptions {
             max_redirects: MAX_REDIRECTS,
             timeout_ms: HTTP_TIMEOUT_MS,
             verbose: false,
-            keep_alive: false,
+            keep_alive: true,
             use_cookies: true,
         }
     }

@@ -21,6 +21,7 @@ mod response;
 mod request;
 mod tls_util;
 mod cookies;
+mod pool;
 mod client;
 
 pub use cookies::{Cookie, CookieJar, get_cookie_jar, clear_all_cookies};

@@ -230,22 +230,25 @@ eliminating repeated handshake overhead for page sub-resources.
 
 ### Checklist
 
-- [ ] Define `PooledConnection` struct
-- [ ] Implement `ConnectionPool` with `spin::Mutex<BTreeMap>`
-- [ ] Implement `acquire()` with health check
-- [ ] Implement `release()` with capacity enforcement
-- [ ] Implement `evict_stale()` with idle timeout
-- [ ] Add `TcpSocket::is_connected()` health check
-- [ ] Default `keep_alive: true` in `HttpRequestOptions`
-- [ ] Send `Connection: keep-alive` header by default
-- [ ] Wire pool into `HttpClient.do_request()`
-- [ ] Wire pool into `HttpClient.do_https_request()`
-- [ ] Handle `Connection: close` response → don't return to pool
-- [ ] Integrate `SessionCache` for new TLS connections
-- [ ] Tests: acquire → release → re-acquire returns same connection
-- [ ] Tests: stale connection eviction
-- [ ] Tests: max connections per host enforcement
-- [ ] Tests: Connection: close prevents reuse
+- [x] Define `PooledConnection` struct
+- [x] Implement `ConnectionPool` with `spin::Mutex<BTreeMap>`
+- [x] Implement `acquire()` with health check
+- [x] Implement `release()` with capacity enforcement
+- [x] Implement `evict_stale()` with idle timeout
+- [x] Health check via `tcp_is_closed()` in acquire
+- [x] Default `keep_alive: true` in `HttpRequestOptions`
+- [x] Send `Connection: keep-alive` header by default
+- [x] Wire pool into `HttpClient.do_https_request()`
+- [x] Handle `Connection: close` response - don't return to pool
+- [x] Integrate `SessionCache` for new TLS connections
+- [x] Tests: pool key format (TLS vs plain separation)
+- [x] Tests: stale connection eviction (evict_stale + evict_stale_vec)
+- [x] Tests: max connections per host enforcement (per-host limit)
+- [x] Tests: Connection: close prevents reuse (release_no_keep_alive_drops)
+- [x] Tests: max requests per connection drops
+- [x] Tests: total pool capacity limit
+- [x] Tests: clear empties pool
+- [x] Tests: different hosts stored separately
 
 ---
 
