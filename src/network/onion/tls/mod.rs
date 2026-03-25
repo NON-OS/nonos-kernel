@@ -22,11 +22,13 @@ pub mod io;
 pub mod keys;
 pub mod protocol;
 pub mod root_certs;
+pub mod session;
 pub mod transcript;
 pub mod types;
 pub mod verify;
 
 pub use connection::{TLSConnection, HandshakePhase};
+pub use session::SessionCache;
 pub use crypto_provider::{init_tls_crypto, KernelTlsCrypto, TlsCrypto, KERNEL_TLS_CRYPTO};
 pub use types::{CipherSuite, TlsSessionInfo, TLSState, PublicKeyKind};
 pub use verify::{

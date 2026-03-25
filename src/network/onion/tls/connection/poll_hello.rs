@@ -88,8 +88,8 @@ impl TLSConnection {
             ServerHelloResult::HelloRetryRequest { suite, selected_group, cookie } => {
                 self.handle_hrr(sock, suite, selected_group, cookie, sh_raw.as_deref())
             }
-            ServerHelloResult::Normal { suite, server_pub, server_group, random } => {
-                self.handle_normal_sh(suite, server_pub, server_group, random, sh_raw.as_deref())
+            ServerHelloResult::Normal { suite, server_pub, server_group, random, psk_selected } => {
+                self.handle_normal_sh(suite, server_pub, server_group, random, sh_raw.as_deref(), psk_selected)
             }
         }
     }
@@ -186,6 +186,7 @@ impl TLSConnection {
         server_group: u16,
         random: [u8; 32],
         sh_raw: Option<&[u8]>,
+        psk_selected: Option<u16>,
     ) -> Result<Option<TlsSessionInfo>, OnionError> {
         self.server_random = random;
 
@@ -248,9 +249,36 @@ impl TLSConnection {
             }
         };
 
-        self.ks.derive_after_sh(&shared, self.transcript.hash())?;
+        // If server accepted our PSK (pre_shared_key extension present with index 0),
+        // use PSK-based key derivation; otherwise standard derivation.
+        if let Some(0) = psk_selected {
+            if self.using_psk {
+                if let Some(ref psk) = self.psk_value {
+                    crate::sys::serial::println(b"[TLS] server accepted PSK resumption");
+                    self.ks.derive_after_sh_with_psk(&shared, psk, self.transcript.hash())?;
+                } else {
+                    // PSK value missing — should not happen
+                    self.phase = HandshakePhase::Failed;
+                    return Err(OnionError::CryptoError);
+                }
+            } else {
+                // Server selected PSK but we didn't offer one — protocol violation
+                self.phase = HandshakePhase::Failed;
+                return Err(OnionError::CryptoError);
+            }
+        } else if psk_selected.is_some() {
+            // Server selected a PSK index > 0 — we only ever offer one identity (index 0)
+            self.phase = HandshakePhase::Failed;
+            return Err(OnionError::CryptoError);
+        } else {
+            // No PSK selected — this is a full handshake
+            self.using_psk = false;
+            self.ks.derive_after_sh(&shared, self.transcript.hash())?;
+        }
+
         self.rx_hs = AeadState::from_secret(&self.ks.server_hs, self.suite)?;
         self.tx_hs = AeadState::from_secret(&self.ks.client_hs, self.suite)?;
+
         self.phase = HandshakePhase::ReceivedServerHello;
         Ok(None)
     }

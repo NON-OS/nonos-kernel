@@ -33,21 +33,33 @@ impl TLSConnection {
         crate::sys::serial::print(b"[TLS] finish_handshake: ");
         crate::sys::serial::print_dec(self.server_certs.len() as u64);
         crate::sys::serial::println(b" certs");
-        if self.server_certs.is_empty() {
-            crate::sys::serial::println(b"[TLS] ERROR: no server certs");
-            self.phase = HandshakePhase::Failed;
-            return Err(OnionError::AuthenticationFailed);
+
+        // PSK resumption skips certificate verification
+        if !self.using_psk {
+            if self.server_certs.is_empty() {
+                crate::sys::serial::println(b"[TLS] ERROR: no server certs");
+                self.phase = HandshakePhase::Failed;
+                return Err(OnionError::AuthenticationFailed);
+            }
+            crate::sys::serial::println(b"[TLS] calling verifier.verify()");
+            if let Err(e) = verifier.verify(&self.server_certs, sni.unwrap_or("")) {
+                crate::sys::serial::println(b"[TLS] ERROR: verifier.verify() FAILED");
+                return Err(e);
+            }
+            crate::sys::serial::println(b"[TLS] verifier.verify() OK, checking CertVerify sig");
+            self.verify_certificate_signature()?;
+        } else {
+            crate::sys::serial::println(b"[TLS] PSK resumption - skipping cert verification");
         }
-        crate::sys::serial::println(b"[TLS] calling verifier.verify()");
-        if let Err(e) = verifier.verify(&self.server_certs, sni.unwrap_or("")) {
-            crate::sys::serial::println(b"[TLS] ERROR: verifier.verify() FAILED");
-            return Err(e);
-        }
-        crate::sys::serial::println(b"[TLS] verifier.verify() OK, checking CertVerify sig");
-        self.verify_certificate_signature()?;
+
         let my_finished = build_finished(&self.ks.client_hs, self.transcript.hash());
         self.ks.derive_application(self.transcript.hash())?;
         self.transcript.add_handshake(&my_finished);
+
+        // Derive resumption master secret after client Finished is in transcript
+        let res_secret = self.ks.derive_resumption_master_secret(self.transcript.hash());
+        self.resumption_secret = Some(res_secret);
+
         let ccs = [0x01u8];
         write_all(sock, &wrap_record(ContentType::ChangeCipherSpec as u8, TLS_1_2, &ccs), 10_000)?;
         let enc = self.tx_hs.seal(self.suite, ContentType::Handshake, &my_finished)?;

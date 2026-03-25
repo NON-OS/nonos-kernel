@@ -20,6 +20,7 @@ use super::super::types::CipherSuite;
 use super::super::transcript::Transcript;
 use super::super::keys::KeySchedule;
 use super::super::aead::AeadState;
+use super::super::session::SessionCache;
 
 impl TLSConnection {
     pub fn new() -> Self {
@@ -47,6 +48,17 @@ impl TLSConnection {
             hrr_count: 0,
             sni_cache: None,
             alpn_cache: None,
+            resumption_secret: None,
+            session_cache: None,
+            using_psk: false,
+            psk_suite: None,
+            psk_value: None,
         }
+    }
+
+    pub fn with_session_cache(cache: &'static SessionCache) -> Self {
+        let mut conn = Self::new();
+        conn.session_cache = Some(cache);
+        conn
     }
 }

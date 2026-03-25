@@ -34,6 +34,8 @@ pub enum ServerHelloResult {
         server_pub: Vec<u8>,
         server_group: u16,
         random: [u8; 32],
+        /// If the server accepted our PSK, this is the selected identity index (0x0029 ext).
+        psk_selected: Option<u16>,
     },
     /// HelloRetryRequest — server wants a different key share group
     HelloRetryRequest {
@@ -70,6 +72,7 @@ pub fn parse_server_hello(body: &[u8]) -> Result<ServerHelloResult, OnionError> 
     let mut server_pub = Vec::new();
     let mut server_group: u16 = 0;
     let mut cookie: Option<Vec<u8>> = None;
+    let mut psk_selected: Option<u16> = None;
 
     while exts.len() >= 4 {
         let ety = u16::from_be_bytes([exts[0], exts[1]]);
@@ -109,6 +112,12 @@ pub fn parse_server_hello(body: &[u8]) -> Result<ServerHelloResult, OnionError> 
                     }
                 }
             }
+            // pre_shared_key (RFC 8446 §4.2.11) — selected identity index
+            0x0029 => {
+                if !is_hrr && el == 2 {
+                    psk_selected = Some(u16::from_be_bytes([eb[0], eb[1]]));
+                }
+            }
             _ => {}
         }
         exts = &exts[4 + el..];
@@ -119,7 +128,7 @@ pub fn parse_server_hello(body: &[u8]) -> Result<ServerHelloResult, OnionError> 
     if is_hrr {
         Ok(ServerHelloResult::HelloRetryRequest { suite, selected_group: server_group, cookie })
     } else {
-        Ok(ServerHelloResult::Normal { suite, server_pub, server_group, random })
+        Ok(ServerHelloResult::Normal { suite, server_pub, server_group, random, psk_selected })
     }
 }
 
