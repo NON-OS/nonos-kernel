@@ -185,6 +185,79 @@ impl KeySchedule {
 
         Ok(())
     }
+
+    /// Derive the resumption master secret (RFC 8446 §7.1):
+    ///   res_master = HKDF-Expand-Label(master_prk, "res master", transcript_hash, hash_len)
+    ///
+    /// Must be called after `derive_application()` with the transcript hash that
+    /// includes the client Finished message.
+    pub(super) fn derive_resumption_master_secret(&self, th_with_client_finished: &[u8]) -> Secret {
+        let hl = self.hash_len;
+        let mut secret = Secret::new(hl);
+        expand_label_len(
+            &self.master_prk[..hl],
+            b"res master",
+            th_with_client_finished,
+            &mut secret.secret[..hl],
+            hl,
+        );
+        secret
+    }
+
+    /// Derive handshake secrets using a PSK as the early secret input.
+    /// RFC 8446 §7.1: Early Secret = HKDF-Extract(0, PSK)
+    pub(super) fn derive_after_sh_with_psk(&mut self, shared: &[u8], psk: &[u8], th_sh: &[u8]) -> Result<(), OnionError> {
+        let c = crypto();
+        let hl = self.hash_len;
+
+        if hl == 48 {
+            let mut empty_hash = [0u8; 48];
+            c.sha384(&[], &mut empty_hash);
+
+            let zeros = [0u8; 48];
+            let mut ep = [0u8; 48];
+            c.hkdf_extract_384(&zeros[..hl], psk, &mut ep);
+            self.early_prk = ep;
+
+            let derived = expand_label_384(&self.early_prk[..hl], b"derived", &empty_hash[..hl], hl);
+
+            let mut hp = [0u8; 48];
+            c.hkdf_extract_384(&derived[..hl], shared, &mut hp);
+            self.handshake_prk = hp;
+
+            expand_label_into_384(&self.handshake_prk[..hl], b"c hs traffic", th_sh, &mut self.client_hs.secret[..hl]);
+            expand_label_into_384(&self.handshake_prk[..hl], b"s hs traffic", th_sh, &mut self.server_hs.secret[..hl]);
+        } else {
+            let mut eh32 = [0u8; 32];
+            c.sha256(&[], &mut eh32);
+
+            let z32 = [0u8; 32];
+            let mut psk32 = [0u8; 32];
+            let copy_len = psk.len().min(32);
+            psk32[..copy_len].copy_from_slice(&psk[..copy_len]);
+            let mut ep32 = [0u8; 32];
+            c.hkdf_extract(&z32, &psk32, &mut ep32);
+            self.early_prk[..32].copy_from_slice(&ep32);
+
+            let derived32 = expand_label_256(&ep32, b"derived", &eh32);
+            let mut shared32 = [0u8; 32];
+            let sc = shared.len().min(32);
+            shared32[..sc].copy_from_slice(&shared[..sc]);
+            let mut hp32 = [0u8; 32];
+            c.hkdf_extract(&derived32, &shared32, &mut hp32);
+            self.handshake_prk[..32].copy_from_slice(&hp32);
+
+            let th_len = th_sh.len().min(32);
+            let mut th32 = [0u8; 32];
+            th32[..th_len].copy_from_slice(&th_sh[..th_len]);
+            let chs = expand_label_256(&hp32, b"c hs traffic", &th32);
+            let shs = expand_label_256(&hp32, b"s hs traffic", &th32);
+            self.client_hs.secret[..32].copy_from_slice(&chs);
+            self.server_hs.secret[..32].copy_from_slice(&shs);
+        }
+
+        Ok(())
+    }
 }
 
 // --- SHA-256 expand_label (original paths) ---

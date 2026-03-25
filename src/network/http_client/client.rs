@@ -21,7 +21,10 @@ use super::url::{ParsedUrl, resolve_host};
 use super::response::{HttpResponse, parse_response, find_sequence};
 use super::request::{HttpMethod, HttpRequestOptions, build_request, MAX_RESPONSE_SIZE};
 use super::tls_util::wrap_tls_record;
-use crate::network::onion::tls::TLSConnection;
+use crate::network::onion::tls::{TLSConnection, SessionCache};
+
+/// Global TLS session cache for HTTP(S) connections.
+static HTTPS_SESSION_CACHE: SessionCache = SessionCache::new();
 
 pub struct HttpClient {
     options: HttpRequestOptions,
@@ -130,7 +133,7 @@ impl HttpClient {
         stack.tcp_connect(&stack_socket, ip, url.port).map_err(|_| "TCP connect failed")?;
         let socket = crate::network::tcp::TcpSocket::from_connection(conn_id);
 
-        let mut tls = TLSConnection::new();
+        let mut tls = TLSConnection::with_session_cache(&HTTPS_SESSION_CACHE);
 
         let verifier = crate::network::onion::tls::get_cert_verifier()
             .unwrap_or(&crate::network::onion::tls::HTTPS_CERT_VERIFIER);

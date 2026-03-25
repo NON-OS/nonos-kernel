@@ -15,11 +15,13 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use alloc::string::ToString;
+use alloc::vec::Vec;
 use crate::network::tcp::TcpSocket;
 use crate::network::onion::OnionError;
 use super::types::{TLSConnection, HandshakePhase};
 use super::super::types::{ContentType, TLS_1_2};
-use super::super::protocol::{build_client_hello, wrap_record};
+use super::super::protocol::{build_client_hello, build_client_hello_with_psk, PskParams, wrap_record};
+use super::super::session::compute_psk_binder;
 use super::super::crypto_provider::crypto;
 use super::super::io::write_all;
 
@@ -44,10 +46,55 @@ impl TLSConnection {
         self.ephemeral_x25519 = esk_x25519;
         self.ephemeral_p256 = esk_p256;
         let key_shares: &[(u16, &[u8])] = &[(0x001d, &epk_x25519), (0x0017, &epk_p256)];
-        let ch = build_client_hello(&self.client_random, sni, alpn, key_shares);
+
+        // Try PSK resumption if we have a cached session ticket
+        let ch = if let Some(ticket) = self.try_get_session_ticket(sni) {
+            let psk = ticket.derive_psk();
+            let hash_len = ticket.hash_len;
+            let obfuscated_age = ticket.obfuscated_age(crate::time::timestamp_millis());
+
+            let psk_params = PskParams {
+                ticket: &ticket.ticket,
+                obfuscated_age,
+                binder_len: hash_len,
+            };
+
+            let (mut ch_msg, binder_offset) = build_client_hello_with_psk(
+                &self.client_random, sni, alpn, key_shares, &psk_params,
+            );
+
+            // Compute the binder over the truncated ClientHello.
+            // Use a temporary transcript with the ticket's suite for hashing.
+            let truncated = &ch_msg[..binder_offset];
+            let mut tmp_transcript = super::super::transcript::Transcript::new();
+            tmp_transcript.set_suite(ticket.suite);
+            tmp_transcript.add_handshake(truncated);
+            let th_truncated = tmp_transcript.hash();
+
+            let binder = compute_psk_binder(&psk, ticket.suite, th_truncated);
+
+            // Patch the binder into the ClientHello
+            ch_msg[binder_offset..binder_offset + hash_len].copy_from_slice(&binder);
+
+            self.using_psk = true;
+            self.psk_suite = Some(ticket.suite);
+            self.psk_value = Some(psk);
+
+            ch_msg
+        } else {
+            build_client_hello(&self.client_random, sni, alpn, key_shares)
+        };
+
         self.transcript.add_handshake(&ch);
         write_all(sock, &wrap_record(ContentType::Handshake as u8, TLS_1_2, &ch), 10_000)?;
         self.phase = HandshakePhase::SentClientHello;
         Ok(())
+    }
+
+    /// Try to retrieve a session ticket from the cache for the given host.
+    fn try_get_session_ticket(&self, sni: Option<&str>) -> Option<super::super::session::SessionTicket> {
+        let cache = self.session_cache?;
+        let host = sni?;
+        cache.get(host, 443)
     }
 }

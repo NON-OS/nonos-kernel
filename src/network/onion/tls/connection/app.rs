@@ -18,7 +18,9 @@ use alloc::vec::Vec;
 use crate::network::tcp::TcpSocket;
 use crate::network::onion::OnionError;
 use super::types::{TLSConnection, HandshakePhase};
-use super::super::types::{ContentType, TlsSessionInfo};
+use super::super::types::{ContentType, HSType, TlsSessionInfo};
+use super::super::protocol::parse_handshake_view;
+use super::super::session::{parse_new_session_ticket, SessionTicket};
 use super::super::verify::CertVerifier;
 
 impl TLSConnection {
@@ -77,11 +79,11 @@ impl TLSConnection {
     fn process_post_handshake(&mut self, data: &[u8]) {
         let mut hp = data;
         while hp.len() >= 4 {
-            let (typ, hbody, adv) = match super::super::protocol::parse_handshake_view(hp) {
+            let (typ, hbody, adv) = match parse_handshake_view(hp) {
                 Ok(v) => v,
                 Err(_) => break,
             };
-            if typ == super::super::types::HSType::NewSessionTicket as u8 {
+            if typ == HSType::NewSessionTicket as u8 {
                 self.handle_new_session_ticket(hbody);
             }
             hp = &hp[adv..];
@@ -99,12 +101,12 @@ impl TLSConnection {
         };
 
         let (lifetime, age_add, nonce, ticket_data, max_early_data) =
-            match super::super::session::parse_new_session_ticket(body) {
+            match parse_new_session_ticket(body) {
                 Ok(v) => v,
                 Err(_) => return,
             };
 
-        let ticket = super::super::session::SessionTicket {
+        let ticket = SessionTicket {
             ticket: ticket_data,
             lifetime_secs: lifetime,
             age_add,

@@ -18,8 +18,9 @@ use alloc::string::String;
 use alloc::vec::Vec;
 use super::super::types::CipherSuite;
 use super::super::transcript::Transcript;
-use super::super::keys::KeySchedule;
+use super::super::keys::{KeySchedule, Secret};
 use super::super::aead::AeadState;
+use super::super::session::SessionCache;
 
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub enum HandshakePhase {
@@ -57,6 +58,12 @@ pub struct TLSConnection {
     pub(super) hrr_count: u8,
     pub(super) sni_cache: Option<String>,
     pub(super) alpn_cache: Option<Vec<String>>,
+    // Session resumption fields
+    pub(super) resumption_secret: Option<Secret>,
+    pub(super) session_cache: Option<&'static SessionCache>,
+    pub(super) using_psk: bool,
+    pub(super) psk_suite: Option<CipherSuite>,
+    pub(super) psk_value: Option<Vec<u8>>,
 }
 
 impl Drop for TLSConnection {
@@ -76,6 +83,14 @@ impl Drop for TLSConnection {
         for byte in self.cert_verify_hash.iter_mut() {
             // SAFETY: volatile write prevents compiler from optimizing away the zeroization
             unsafe { core::ptr::write_volatile(byte, 0) };
+        }
+        // resumption_secret is zeroized by Secret's own Drop
+        // psk_value is zeroized here
+        if let Some(ref mut psk) = self.psk_value {
+            for byte in psk.iter_mut() {
+                // SAFETY: volatile write prevents compiler from eliding zeroization
+                unsafe { core::ptr::write_volatile(byte, 0) };
+            }
         }
         core::sync::atomic::compiler_fence(core::sync::atomic::Ordering::SeqCst);
     }
