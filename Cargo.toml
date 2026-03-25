@@ -89,6 +89,9 @@ default = [
   "drivers-virtio-blk",
   "drivers-virtio-net",
 
+  # Content decoding
+  "nonos-brotli",
+
   # Networking
   "net-core",
   "net-sockets",
@@ -205,8 +208,11 @@ net-ipv6    = []
 mem-slab       = []  # optional slab allocator
 mem-pagecache  = []  # FS page cache (RAM-backed)
 
+# Brotli decompression
+nonos-brotli = ["brotli-decompressor"]
+
 # Host-only: enable std for tools/tests when not building the kernel image
-std = ["rand"]
+std = ["rand", "nonos-brotli"]
 
 # DEPENDENCIES — no_std-compatible by default
 [dependencies]
@@ -247,6 +253,9 @@ miniz_oxide = { version = "0.7", default-features = false, features = ["with-all
 
 # Network stack
 smoltcp = { version = "0.11", default-features = false, features = ["alloc", "socket-raw", "socket-udp", "socket-tcp", "proto-ipv4", "proto-ipv6", "medium-ethernet"] }
+
+# Content decompression
+brotli-decompressor = { version = "4", default-features = false, optional = true }
 
 # Host-only tooling/tests when `--features std`
 rand = { version = "0.8", default-features = true, optional = true }

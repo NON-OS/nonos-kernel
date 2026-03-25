@@ -322,14 +322,14 @@ binary size increase) rather than implementing from scratch. Brotli's format is 
 
 ### Checklist
 
-- [ ] Add `brotli-decompressor` to `Cargo.toml` under `nonos-brotli` feature
-- [ ] Add `nonos-brotli` to the `std` feature for test builds
-- [ ] Implement `decompress_brotli()` in `decompress.rs`
-- [ ] Wire into `decompress_body()` match arm
-- [ ] Add `br` to `Accept-Encoding` header (feature-gated)
-- [ ] Tests: decompress known brotli payload
-- [ ] Tests: graceful fallback on corrupt brotli data
-- [ ] Tests: feature-gate disabling returns raw bytes
+- [x] Add `brotli-decompressor` to `Cargo.toml` under `nonos-brotli` feature
+- [x] Add `nonos-brotli` to the `std` feature for test builds
+- [x] Implement `decompress_brotli()` in `decompress.rs`
+- [x] Wire into `decompress_body()` match arm
+- [x] Add `br` to `Accept-Encoding` header (feature-gated)
+- [x] Tests: decompress known brotli payload
+- [x] Tests: graceful fallback on corrupt brotli data
+- [x] Tests: feature-gate disabling returns raw bytes
 
 ---
 
