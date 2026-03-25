@@ -31,13 +31,27 @@ pub(super) fn start_http_connection(ip: [u8; 4], port: u16) {
     };
 
     let path = PENDING_PATH.lock().clone().unwrap_or_else(|| String::from("/"));
+    let method = PENDING_METHOD.lock().clone().unwrap_or_else(|| String::from("GET"));
+    let body = PENDING_BODY.lock().clone();
+    let content_type = PENDING_CONTENT_TYPE.lock().clone();
 
-    let request = format!(
-        "GET {} HTTP/1.1\r\nHost: {}\r\nUser-Agent: NONOS/1.0\r\nAccept: text/html,*/*\r\nConnection: close\r\n\r\n",
-        path, host
+    let mut request = format!(
+        "{} {} HTTP/1.1\r\nHost: {}\r\nUser-Agent: NONOS/1.0\r\nAccept: text/html,*/*\r\nConnection: close\r\n",
+        method, path, host
     );
+    if let Some(ref ct) = content_type {
+        request.push_str(&format!("Content-Type: {}\r\n", ct));
+    }
+    if let Some(ref b) = body {
+        request.push_str(&format!("Content-Length: {}\r\n", b.len()));
+    }
+    request.push_str("\r\n");
+    let mut bytes = request.into_bytes();
+    if let Some(b) = body {
+        bytes.extend_from_slice(&b);
+    }
 
-    match http_start_request(ip, port, request.into_bytes()) {
+    match http_start_request(ip, port, bytes) {
         Ok(()) => {
             crate::sys::serial::println(b"[HTTP] request started, state=Connecting");
             set_state(NavState::Connecting);

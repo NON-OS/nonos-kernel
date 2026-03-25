@@ -445,19 +445,19 @@ that login forms, search boxes, and other form interactions work.
 
 ### Checklist
 
-- [ ] Implement `url_encode()` (RFC 3986 percent-encoding)
-- [ ] Implement `build_form_urlencoded()` for name=value pairs
-- [ ] Implement `collect_form_data()` from `Form` struct
-- [ ] Implement `resolve_url()` for relative action URLs
-- [ ] Implement `submit_form()` dispatch (GET query string / POST body)
-- [ ] Add `navigate_with_post()` to navigate API
-- [ ] Wire POST body into `HttpClient::request()` with Content-Type
-- [ ] Add form index/id to `Form` struct for lookup from render
-- [ ] Tests: URL encoding of special characters
-- [ ] Tests: form data collection filters submit/button inputs
-- [ ] Tests: GET form appends query string
-- [ ] Tests: POST form sends urlencoded body
-- [ ] Tests: relative action URL resolution
+- [x] Implement `url_encode()` (RFC 3986 percent-encoding)
+- [x] Implement `build_form_urlencoded()` for name=value pairs
+- [x] Implement `collect_form_data()` from `Form` struct
+- [x] Implement `resolve_url()` for relative action URLs
+- [x] Implement `submit_form()` dispatch (GET query string / POST body)
+- [x] Add `navigate_with_post()` to navigate API
+- [x] Wire POST body into `HttpClient::request()` with Content-Type
+- [x] Add form index/id to `Form` struct for lookup from render
+- [x] Tests: URL encoding of special characters
+- [x] Tests: form data collection filters submit/button inputs
+- [x] Tests: GET form appends query string
+- [x] Tests: POST form sends urlencoded body
+- [x] Tests: relative action URL resolution
 
 ---
 

@@ -164,11 +164,24 @@ pub(super) fn poll_send_request() {
     };
 
     let path = PENDING_PATH.lock().clone().unwrap_or_else(|| String::from("/"));
+    let method = PENDING_METHOD.lock().clone().unwrap_or_else(|| String::from("GET"));
+    let body = PENDING_BODY.lock().clone();
+    let content_type = PENDING_CONTENT_TYPE.lock().clone();
 
-    let request = format!(
-        "GET {} HTTP/1.1\r\nHost: {}\r\nUser-Agent: NONOS/1.0\r\nAccept: text/html,*/*\r\nConnection: close\r\n\r\n",
-        path, host
+    let mut request = format!(
+        "{} {} HTTP/1.1\r\nHost: {}\r\nUser-Agent: NONOS/1.0\r\nAccept: text/html,*/*\r\nConnection: close\r\n",
+        method, path, host
     );
+    if let Some(ref ct) = content_type {
+        request.push_str(&format!("Content-Type: {}\r\n", ct));
+    }
+    if let Some(ref b) = body {
+        request.push_str(&format!("Content-Length: {}\r\n", b.len()));
+    }
+    request.push_str("\r\n");
+    if let Some(ref b) = body {
+        request.push_str(core::str::from_utf8(b).unwrap_or(""));
+    }
 
     let mut tls_guard = HTTPS_TLS.lock();
     let tls = match tls_guard.as_mut() {

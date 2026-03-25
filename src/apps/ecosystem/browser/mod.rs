@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub mod engine;
+pub mod form;
 pub mod history;
 pub mod js;
 pub mod navigate;
@@ -26,7 +27,8 @@ pub mod tabs;
 pub use engine::{render_page, render_to_lines, BrowserEngine};
 pub use js::{JsRuntime, JsValue};
 pub use history::{add_history, clear_history, get_history, HistoryEntry};
-pub use navigate::{is_running, is_navigating, navigate, poll_navigation, cancel_navigation, start, stop};
+pub use form::{url_encode, build_form_urlencoded, resolve_url, collect_form_data, prepare_form_submission, FormAction};
+pub use navigate::{is_running, is_navigating, navigate, navigate_with_post, poll_navigation, cancel_navigation, start, stop};
 pub use request::{fetch_page, FetchError, FetchOptions, FetchResult};
 pub use session::{create_session, destroy_session, get_session, BrowserSession};
 pub use state::{get_state, init, BrowserState};

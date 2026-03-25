@@ -59,6 +59,9 @@ pub(super) static PENDING_HOST: Mutex<Option<String>> = Mutex::new(None);
 pub(super) static PENDING_PORT: Mutex<u16> = Mutex::new(443);
 pub(super) static PENDING_PATH: Mutex<Option<String>> = Mutex::new(None);
 pub(super) static PENDING_HTTPS: AtomicBool = AtomicBool::new(true);
+pub(super) static PENDING_METHOD: Mutex<Option<String>> = Mutex::new(None);
+pub(super) static PENDING_BODY: Mutex<Option<Vec<u8>>> = Mutex::new(None);
+pub(super) static PENDING_CONTENT_TYPE: Mutex<Option<String>> = Mutex::new(None);
 pub(super) static NAV_ERROR: Mutex<Option<&'static str>> = Mutex::new(None);
 pub(super) static RESPONSE_DATA: Mutex<Vec<u8>> = Mutex::new(Vec::new());
 pub(super) static HTTPS_CONN_ID: AtomicU32 = AtomicU32::new(0);
@@ -85,6 +88,9 @@ pub(super) fn cleanup_navigation() {
     *PENDING_URL.lock() = None;
     *PENDING_HOST.lock() = None;
     *PENDING_PATH.lock() = None;
+    *PENDING_METHOD.lock() = None;
+    *PENDING_BODY.lock() = None;
+    *PENDING_CONTENT_TYPE.lock() = None;
     *RESOLVED_IP.lock() = None;
     *NAV_ERROR.lock() = None;
 }
