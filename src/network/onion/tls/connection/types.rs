@@ -42,7 +42,8 @@ pub struct TLSConnection {
     pub(super) tx_app: Option<AeadState>,
     pub(super) phase: HandshakePhase,
     pub(super) client_random: [u8; 32],
-    pub(super) ephemeral_secret: Vec<u8>,
+    pub(super) ephemeral_x25519: [u8; 32],
+    pub(super) ephemeral_p256: [u8; 32],
     pub(super) server_random: [u8; 32],
     pub(super) server_pub: Vec<u8>,
     pub(super) server_group: u16,
@@ -60,7 +61,11 @@ pub struct TLSConnection {
 
 impl Drop for TLSConnection {
     fn drop(&mut self) {
-        for byte in self.ephemeral_secret.iter_mut() {
+        for byte in self.ephemeral_x25519.iter_mut() {
+            // SAFETY: volatile write prevents compiler from optimizing away the zeroization
+            unsafe { core::ptr::write_volatile(byte, 0) };
+        }
+        for byte in self.ephemeral_p256.iter_mut() {
             // SAFETY: volatile write prevents compiler from optimizing away the zeroization
             unsafe { core::ptr::write_volatile(byte, 0) };
         }

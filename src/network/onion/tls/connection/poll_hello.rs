@@ -125,23 +125,24 @@ impl TLSConnection {
 
         // Step 3: Generate new keypair for the server's selected group
         let c = crypto();
-        let (group_id, pub_key, secret) = match selected_group {
+        let (group_id, pub_key) = match selected_group {
             // X25519
             0x001d => {
                 let (pk, sk) = c.x25519_keypair()?;
-                (0x001du16, pk.to_vec(), sk.to_vec())
+                self.ephemeral_x25519 = sk;
+                (0x001du16, pk.to_vec())
             }
             // P-256 (secp256r1)
             0x0017 => {
                 let (sk, pk) = c.p256_keypair()?;
-                (0x0017u16, pk.to_vec(), sk.to_vec())
+                self.ephemeral_p256 = sk;
+                (0x0017u16, pk.to_vec())
             }
             _ => {
                 self.phase = HandshakePhase::Failed;
                 return Err(OnionError::CryptoError);
             }
         };
-        self.ephemeral_secret = secret;
         self.server_group = selected_group;
 
         // Step 4: Build ClientHello2 with the new key share (and cookie if present)
@@ -213,38 +214,24 @@ impl TLSConnection {
         let shared = match server_group {
             // X25519
             0x001d => {
-                if self.server_pub.len() != 32 || self.ephemeral_secret.len() != 32 {
+                if self.server_pub.len() != 32 {
                     self.phase = HandshakePhase::Failed;
                     return Err(OnionError::CryptoError);
                 }
-                let mut esk = [0u8; 32];
-                esk.copy_from_slice(&self.ephemeral_secret);
                 let mut spub = [0u8; 32];
                 spub.copy_from_slice(&self.server_pub);
-                let result = c.x25519(&esk, &spub);
-                // Zero local copies
-                for b in esk.iter_mut() {
-                    // SAFETY: volatile write prevents compiler from eliding zeroization
-                    unsafe { core::ptr::write_volatile(b, 0) };
-                }
+                let result = c.x25519(&self.ephemeral_x25519, &spub);
                 result?
             }
             // P-256 (secp256r1)
             0x0017 => {
-                if self.server_pub.len() != 65 || self.ephemeral_secret.len() != 32 {
+                if self.server_pub.len() != 65 {
                     self.phase = HandshakePhase::Failed;
                     return Err(OnionError::CryptoError);
                 }
-                let mut esk = [0u8; 32];
-                esk.copy_from_slice(&self.ephemeral_secret);
                 let mut spub = [0u8; 65];
                 spub.copy_from_slice(&self.server_pub);
-                let result = c.p256_ecdh(&esk, &spub);
-                // Zero local copies
-                for b in esk.iter_mut() {
-                    // SAFETY: volatile write prevents compiler from eliding zeroization
-                    unsafe { core::ptr::write_volatile(b, 0) };
-                }
+                let result = c.p256_ecdh(&self.ephemeral_p256, &spub);
                 result?
             }
             _ => {

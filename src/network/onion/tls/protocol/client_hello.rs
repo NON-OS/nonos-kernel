@@ -18,10 +18,9 @@ use alloc::vec::Vec;
 use super::super::types::{CipherSuite, HSType, TLS_1_2, TLS_1_3};
 use super::wrap::wrap_handshake;
 
-/// Build the initial ClientHello with an X25519-only key share.
-/// P-256 is advertised in supported_groups so the server can request it via HRR.
-pub fn build_client_hello(cr: &[u8; 32], sni: Option<&str>, alpn: Option<&[&str]>, epk: &[u8; 32]) -> Vec<u8> {
-    let key_shares: &[(u16, &[u8])] = &[(0x001d, epk)];
+/// Build the initial ClientHello with X25519 + P-256 dual key shares.
+/// Sending both eliminates the HelloRetryRequest round trip for P-256 servers.
+pub fn build_client_hello(cr: &[u8; 32], sni: Option<&str>, alpn: Option<&[&str]>, key_shares: &[(u16, &[u8])]) -> Vec<u8> {
     build_client_hello_inner(cr, sni, alpn, key_shares, None)
 }
 
