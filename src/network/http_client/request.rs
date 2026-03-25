@@ -101,6 +101,9 @@ pub(super) fn build_request(url: &ParsedUrl, method: HttpMethod, body: Option<&[
     }
 
     request.extend_from_slice(b"Accept: */*\r\n");
+    #[cfg(feature = "nonos-brotli")]
+    request.extend_from_slice(b"Accept-Encoding: gzip, deflate, br\r\n");
+    #[cfg(not(feature = "nonos-brotli"))]
     request.extend_from_slice(b"Accept-Encoding: gzip, deflate\r\n");
 
     if options.use_cookies {
