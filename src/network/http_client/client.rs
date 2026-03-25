@@ -21,10 +21,14 @@ use super::url::{ParsedUrl, resolve_host};
 use super::response::{HttpResponse, parse_response, find_sequence};
 use super::request::{HttpMethod, HttpRequestOptions, build_request, MAX_RESPONSE_SIZE};
 use super::tls_util::wrap_tls_record;
+use super::pool::{ConnectionPool, PooledConnection};
 use crate::network::onion::tls::{TLSConnection, SessionCache};
 
 /// Global TLS session cache for HTTP(S) connections.
 static HTTPS_SESSION_CACHE: SessionCache = SessionCache::new();
+
+/// Global connection pool shared by all HttpClient instances.
+static CONNECTION_POOL: ConnectionPool = ConnectionPool::new();
 
 pub struct HttpClient {
     options: HttpRequestOptions,
@@ -128,38 +132,64 @@ impl HttpClient {
 
         let stack = crate::network::stack::get_network_stack()
             .ok_or("network stack not initialized")?;
-        let stack_socket = crate::network::stack::TcpSocket::new();
-        let conn_id = stack_socket.connection_id();
-        stack.tcp_connect(&stack_socket, ip, url.port).map_err(|_| "TCP connect failed")?;
-        let socket = crate::network::tcp::TcpSocket::from_connection(conn_id);
 
-        let mut tls = TLSConnection::with_session_cache(&HTTPS_SESSION_CACHE);
+        // Try to reuse a pooled connection
+        let (conn_id, mut tls) = if let Some(pooled) = CONNECTION_POOL.acquire(&url.host, url.port, true) {
+            match pooled.tls {
+                Some(tls_conn) => (pooled.conn_id, tls_conn),
+                None => {
+                    // TLS connection missing from pooled entry — fall through to new
+                    let _ = stack.tcp_close(pooled.conn_id);
+                    create_new_tls_connection(stack, ip, url)?
+                }
+            }
+        } else {
+            create_new_tls_connection(stack, ip, url)?
+        };
 
-        let verifier = crate::network::onion::tls::get_cert_verifier()
-            .unwrap_or(&crate::network::onion::tls::HTTPS_CERT_VERIFIER);
-
-        let _session_info = tls.handshake_full(
-            &socket,
-            Some(&url.host),
-            Some(&["http/1.1"]),
-            verifier,
-        ).map_err(|_| "TLS handshake failed")?;
-
+        // Send request over the (reused or new) TLS connection
         let encrypted_request = tls.encrypt_app(&request)
             .map_err(|_| "TLS encrypt failed")?;
         let wrapped = wrap_tls_record(0x17, &encrypted_request);
-        stack.tcp_send(conn_id, &wrapped).map_err(|_| "TCP send failed")?;
+        if stack.tcp_send(conn_id, &wrapped).is_err() {
+            // Send failed — connection is dead. Try once with a fresh connection.
+            let _ = stack.tcp_close(conn_id);
+            let (new_conn_id, mut new_tls) = create_new_tls_connection(stack, ip, url)?;
+            let encrypted = new_tls.encrypt_app(&request)
+                .map_err(|_| "TLS encrypt failed")?;
+            let wrapped = wrap_tls_record(0x17, &encrypted);
+            stack.tcp_send(new_conn_id, &wrapped).map_err(|_| "TCP send failed")?;
+            return self.receive_https_response(stack, new_conn_id, new_tls, url);
+        }
 
+        self.receive_https_response(stack, conn_id, tls, url)
+    }
+
+    /// Receive response, parse it, and return connection to pool if eligible.
+    fn receive_https_response(
+        &self,
+        stack: &crate::network::stack::NetworkStack,
+        conn_id: u32,
+        mut tls: TLSConnection,
+        url: &ParsedUrl,
+    ) -> Result<HttpResponse, &'static str> {
         let mut response_data = Vec::new();
         let deadline_ms = crate::time::timestamp_millis() + self.options.timeout_ms;
 
         loop {
             if crate::time::timestamp_millis() > deadline_ms {
+                let _ = stack.tcp_close(conn_id);
                 return Err("timeout");
             }
             crate::time::yield_now();
 
-            let received = stack.tcp_receive(conn_id, 8192).map_err(|_| "TCP recv failed")?;
+            let received = match stack.tcp_receive(conn_id, 8192) {
+                Ok(r) => r,
+                Err(_) => {
+                    let _ = stack.tcp_close(conn_id);
+                    return Err("TCP recv failed");
+                }
+            };
             if received.is_empty() {
                 break;
             }
@@ -185,7 +215,10 @@ impl HttpClient {
                                 response_data.extend_from_slice(data);
                             }
                         }
-                        Err(_) => return Err("TLS decrypt failed"),
+                        Err(_) => {
+                            let _ = stack.tcp_close(conn_id);
+                            return Err("TLS decrypt failed");
+                        }
                     }
                 } else if content_type == 0x15 {
                     break;
@@ -203,14 +236,54 @@ impl HttpClient {
             }
         }
 
-        let _ = stack.tcp_close(conn_id);
-
         if response_data.is_empty() {
+            let _ = stack.tcp_close(conn_id);
             return Err("empty response");
         }
 
-        parse_response(&response_data)
+        let response = parse_response(&response_data)?;
+
+        // Return connection to pool if server supports keep-alive
+        if self.options.keep_alive && response.is_keep_alive() {
+            let pooled = PooledConnection {
+                conn_id,
+                tls: Some(tls),
+                last_used_ms: crate::time::timestamp_millis(),
+                request_count: 1, // Will be incremented on next acquire
+                is_tls: true,
+            };
+            CONNECTION_POOL.release(&url.host, url.port, pooled, true);
+        } else {
+            let _ = stack.tcp_close(conn_id);
+        }
+
+        Ok(response)
     }
+}
+
+/// Create a fresh TCP + TLS connection to the given host.
+fn create_new_tls_connection(
+    stack: &crate::network::stack::NetworkStack,
+    ip: [u8; 4],
+    url: &ParsedUrl,
+) -> Result<(u32, TLSConnection), &'static str> {
+    let stack_socket = crate::network::stack::TcpSocket::new();
+    let conn_id = stack_socket.connection_id();
+    stack.tcp_connect(&stack_socket, ip, url.port).map_err(|_| "TCP connect failed")?;
+    let socket = crate::network::tcp::TcpSocket::from_connection(conn_id);
+
+    let mut tls = TLSConnection::with_session_cache(&HTTPS_SESSION_CACHE);
+    let verifier = crate::network::onion::tls::get_cert_verifier()
+        .unwrap_or(&crate::network::onion::tls::HTTPS_CERT_VERIFIER);
+
+    let _session_info = tls.handshake_full(
+        &socket,
+        Some(&url.host),
+        Some(&["http/1.1"]),
+        verifier,
+    ).map_err(|_| "TLS handshake failed")?;
+
+    Ok((conn_id, tls))
 }
 
 /*
