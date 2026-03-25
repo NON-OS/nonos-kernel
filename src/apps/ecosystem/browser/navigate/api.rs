@@ -51,6 +51,32 @@ pub fn navigate(url: &str) {
     cancel_navigation();
     REDIRECT_COUNT.store(0, Ordering::Relaxed);
 
+    // Clear any previous POST state
+    *PENDING_METHOD.lock() = None;
+    *PENDING_BODY.lock() = None;
+    *PENDING_CONTENT_TYPE.lock() = None;
+
+    window_state::LOADING.store(true, Ordering::Relaxed);
+    window_state::clear_error();
+    window_state::IS_HTTPS.store(false, Ordering::Relaxed);
+    window_state::CERT_VERIFIED.store(false, Ordering::Relaxed);
+
+    navigate_core(url);
+}
+
+/// Navigate to a URL with a POST body and content type.
+pub fn navigate_with_post(url: &str, body: &[u8], content_type: &str) {
+    if is_navigating() {
+        return;
+    }
+
+    cancel_navigation();
+    REDIRECT_COUNT.store(0, Ordering::Relaxed);
+
+    *PENDING_METHOD.lock() = Some(String::from("POST"));
+    *PENDING_BODY.lock() = Some(body.to_vec());
+    *PENDING_CONTENT_TYPE.lock() = Some(String::from(content_type));
+
     window_state::LOADING.store(true, Ordering::Relaxed);
     window_state::clear_error();
     window_state::IS_HTTPS.store(false, Ordering::Relaxed);

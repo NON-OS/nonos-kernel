@@ -14,12 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod state;
-mod url;
-mod http;
-mod https;
-mod response;
-mod decompress;
-mod api;
+pub mod encode;
+pub mod submit;
 
-pub use api::{start, stop, is_running, is_navigating, navigate, navigate_with_post, poll_navigation, cancel_navigation};
+pub use encode::{url_encode, build_form_urlencoded, resolve_url};
+pub use submit::{collect_form_data, prepare_form_submission, FormAction};
