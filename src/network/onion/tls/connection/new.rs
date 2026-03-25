@@ -40,7 +40,7 @@ impl TLSConnection {
             server_certs: Vec::new(),
             cert_verify_alg: None,
             cert_verify_sig: Vec::new(),
-            cert_verify_hash: [0u8; 32],
+            cert_verify_hash: [0u8; 48],
             got_finished: false,
             recv_buffer: Vec::new(),
             hrr_count: 0,

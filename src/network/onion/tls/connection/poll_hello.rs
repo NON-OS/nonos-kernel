@@ -77,8 +77,8 @@ impl TLSConnection {
         self.recv_buffer.drain(..consumed);
 
         match result {
-            ServerHelloResult::HelloRetryRequest { suite: _, selected_group, cookie } => {
-                self.handle_hrr(sock, selected_group, cookie, sh_raw.as_deref())
+            ServerHelloResult::HelloRetryRequest { suite, selected_group, cookie } => {
+                self.handle_hrr(sock, suite, selected_group, cookie, sh_raw.as_deref())
             }
             ServerHelloResult::Normal { suite, server_pub, server_group, random } => {
                 self.handle_normal_sh(suite, server_pub, server_group, random, sh_raw.as_deref())
@@ -90,6 +90,7 @@ impl TLSConnection {
     fn handle_hrr(
         &mut self,
         sock: &TcpSocket,
+        suite: u16,
         selected_group: u16,
         cookie: Option<alloc::vec::Vec<u8>>,
         sh_raw: Option<&[u8]>,
@@ -100,6 +101,19 @@ impl TLSConnection {
             return Err(OnionError::CryptoError);
         }
         self.hrr_count += 1;
+
+        // Set cipher suite from HRR so transcript uses the correct hash
+        self.suite = match suite {
+            0x1301 => CipherSuite::TlsAes128GcmSha256,
+            0x1302 => CipherSuite::TlsAes256GcmSha384,
+            0x1303 => CipherSuite::TlsChacha20Poly1305Sha256,
+            _ => {
+                self.phase = HandshakePhase::Failed;
+                return Err(OnionError::CryptoError);
+            }
+        };
+        self.transcript.set_suite(self.suite);
+        self.ks.set_suite(self.suite);
 
         // Step 1: Transcript rewrite — replace CH1 hash with synthetic message_hash
         self.transcript.replace_with_message_hash();
@@ -171,19 +185,25 @@ impl TLSConnection {
             return Err(OnionError::CryptoError);
         }
 
-        // Add ServerHello to transcript
-        if let Some(raw) = sh_raw {
-            self.transcript.add_raw(raw);
-        }
-
         self.suite = match suite {
             0x1301 => CipherSuite::TlsAes128GcmSha256,
+            0x1302 => CipherSuite::TlsAes256GcmSha384,
             0x1303 => CipherSuite::TlsChacha20Poly1305Sha256,
             _ => {
                 self.phase = HandshakePhase::Failed;
                 return Err(OnionError::CryptoError);
             }
         };
+
+        // Configure transcript and key schedule for the negotiated hash
+        // MUST be before adding ServerHello to transcript so the hash is correct
+        self.transcript.set_suite(self.suite);
+        self.ks.set_suite(self.suite);
+
+        // Add ServerHello to transcript (now hashed with the correct algorithm)
+        if let Some(raw) = sh_raw {
+            self.transcript.add_raw(raw);
+        }
 
         self.server_pub = server_pub;
         self.server_group = server_group;

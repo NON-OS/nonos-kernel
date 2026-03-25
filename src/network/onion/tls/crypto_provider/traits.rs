@@ -21,9 +21,13 @@ use super::super::types::CipherSuite;
 pub trait TlsCrypto: Sync + Send {
     fn random(&self, out32: &mut [u8; 32]) -> Result<(), OnionError>;
     fn sha256(&self, data: &[u8], out32: &mut [u8; 32]);
+    fn sha384(&self, data: &[u8], out48: &mut [u8; 48]);
     fn hmac_sha256(&self, key: &[u8], data: &[u8], out32: &mut [u8; 32]);
+    fn hmac_sha384(&self, key: &[u8], data: &[u8], out48: &mut [u8; 48]);
     fn hkdf_extract(&self, salt: &[u8; 32], ikm: &[u8; 32], out32: &mut [u8; 32]);
+    fn hkdf_extract_384(&self, salt: &[u8], ikm: &[u8], out48: &mut [u8; 48]);
     fn hkdf_expand(&self, prk: &[u8; 32], info: &[u8], out: &mut [u8]);
+    fn hkdf_expand_384(&self, prk: &[u8], info: &[u8], out: &mut [u8]);
     fn x25519_keypair(&self) -> Result<([u8; 32], [u8; 32]), OnionError>;
     fn x25519(&self, sk: &[u8; 32], pk: &[u8; 32]) -> Result<[u8; 32], OnionError>;
     fn aead_seal(&self, suite: CipherSuite, key: &[u8], nonce: &[u8; 12], aad: &[u8], plaintext: &[u8]) -> Result<Vec<u8>, OnionError>;

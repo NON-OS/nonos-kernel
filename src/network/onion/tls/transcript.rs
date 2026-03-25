@@ -17,18 +17,26 @@
 
 use alloc::vec::Vec;
 use super::crypto_provider::crypto;
+use super::types::CipherSuite;
 
 pub(super) struct Transcript {
-    state: [u8; 32],
+    state: [u8; 48],
+    hash_len: usize,
     buffer: Vec<u8>,
 }
 
 impl Transcript {
     pub(super) fn new() -> Self {
         Self {
-            state: [0u8; 32],
+            state: [0u8; 48],
+            hash_len: 32, // default SHA-256
             buffer: Vec::new(),
         }
+    }
+
+    /// Set the hash algorithm based on the negotiated cipher suite.
+    pub(super) fn set_suite(&mut self, suite: CipherSuite) {
+        self.hash_len = suite.hash_len();
     }
 
     pub(super) fn add_handshake(&mut self, hs: &[u8]) {
@@ -42,11 +50,22 @@ impl Transcript {
     }
 
     fn update(&mut self) {
-        crypto().sha256(&self.buffer, &mut self.state);
+        let c = crypto();
+        if self.hash_len == 48 {
+            let mut h = [0u8; 48];
+            c.sha384(&self.buffer, &mut h);
+            self.state = h;
+        } else {
+            let mut h = [0u8; 32];
+            c.sha256(&self.buffer, &mut h);
+            self.state[..32].copy_from_slice(&h);
+            self.state[32..].fill(0);
+        }
     }
 
-    pub(super) fn hash(&self) -> &[u8; 32] {
-        &self.state
+    /// Returns the transcript hash, length determined by `hash_len`.
+    pub(super) fn hash(&self) -> &[u8] {
+        &self.state[..self.hash_len]
     }
 
     /// RFC 8446 §4.4.1: Replace transcript with synthetic message_hash construct.
@@ -56,13 +75,14 @@ impl Transcript {
     ///   message_hash(254) || 00 00 hash_len || Hash(CH1)
     /// Then the transcript buffer is replaced and re-hashed.
     pub(super) fn replace_with_message_hash(&mut self) {
-        let hash = self.state;
+        let hl = self.hash_len;
+        let hash: [u8; 48] = self.state;
         self.buffer.clear();
         self.buffer.push(254); // message_hash handshake type
         self.buffer.push(0);
         self.buffer.push(0);
-        self.buffer.push(32); // SHA-256 hash length
-        self.buffer.extend_from_slice(&hash);
+        self.buffer.push(hl as u8);
+        self.buffer.extend_from_slice(&hash[..hl]);
         self.update();
     }
 }

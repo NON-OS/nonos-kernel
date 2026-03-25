@@ -62,7 +62,8 @@ impl TLSConnection {
                 self.got_finished = true;
             } else if typ == HSType::CertificateVerify as u8 {
                 // RFC 8446 §4.4.3: signature covers transcript hash EXCLUDING CertificateVerify
-                self.cert_verify_hash = *self.transcript.hash();
+                let th = self.transcript.hash();
+                self.cert_verify_hash[..th.len()].copy_from_slice(th);
                 self.transcript.add_raw(&hp[..adv]);
                 let (a, s) = parse_certificate_verify(hbody)?;
                 self.cert_verify_alg = Some(a);

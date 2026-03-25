@@ -48,8 +48,9 @@ fn build_client_hello_inner(
     ch.extend_from_slice(&TLS_1_2.to_be_bytes());
     ch.extend_from_slice(cr);
     ch.push(0);
-    ch.extend_from_slice(&4u16.to_be_bytes());
+    ch.extend_from_slice(&6u16.to_be_bytes());
     ch.extend_from_slice(&(CipherSuite::TlsAes128GcmSha256 as u16).to_be_bytes());
+    ch.extend_from_slice(&(CipherSuite::TlsAes256GcmSha384 as u16).to_be_bytes());
     ch.extend_from_slice(&(CipherSuite::TlsChacha20Poly1305Sha256 as u16).to_be_bytes());
     ch.push(1); ch.push(0);
     let mut ext = Vec::with_capacity(256);

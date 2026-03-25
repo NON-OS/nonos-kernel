@@ -49,7 +49,7 @@ pub struct TLSConnection {
     pub(super) server_certs: Vec<Vec<u8>>,
     pub(super) cert_verify_alg: Option<u16>,
     pub(super) cert_verify_sig: Vec<u8>,
-    pub(super) cert_verify_hash: [u8; 32],
+    pub(super) cert_verify_hash: [u8; 48],
     pub(super) got_finished: bool,
     pub(super) recv_buffer: Vec<u8>,
     // HRR support fields

@@ -43,7 +43,18 @@ pub(super) enum HSType {
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum CipherSuite {
     TlsAes128GcmSha256 = 0x1301,
+    TlsAes256GcmSha384 = 0x1302,
     TlsChacha20Poly1305Sha256 = 0x1303,
+}
+
+impl CipherSuite {
+    /// Hash output length in bytes for this cipher suite's PRF.
+    pub fn hash_len(self) -> usize {
+        match self {
+            CipherSuite::TlsAes128GcmSha256 | CipherSuite::TlsChacha20Poly1305Sha256 => 32,
+            CipherSuite::TlsAes256GcmSha384 => 48,
+        }
+    }
 }
 
 #[derive(Debug, Clone)]
