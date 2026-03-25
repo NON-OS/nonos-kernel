@@ -66,7 +66,7 @@ fn build_client_hello_inner(
         body.extend_from_slice(hb);
         ext_push(&mut ext, 0x0000, &body);
     }
-    let sigs: [u16; 4] = [0x0403, 0x0503, 0x0804, 0x0807];
+    let sigs: [u16; 7] = [0x0403, 0x0503, 0x0804, 0x0805, 0x0807, 0x0401, 0x0501];
     let mut sb = Vec::new();
     sb.extend_from_slice(&((sigs.len() * 2) as u16).to_be_bytes());
     for s in sigs { sb.extend_from_slice(&s.to_be_bytes()); }

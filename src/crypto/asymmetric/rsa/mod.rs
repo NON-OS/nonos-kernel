@@ -36,6 +36,6 @@ pub use oaep::{decrypt, encrypt, oaep_decrypt, oaep_encrypt};
 
 pub use pkcs1::{sign_message, sign_pkcs1v15, verify_pkcs1v15, verify_pkcs1v15_sha384, verify_pkcs1v15_sha512, verify_signature};
 
-pub use pss::{sign_pss, verify_pss};
+pub use pss::{sign_pss, verify_pss, verify_pss_sha384};
 
 pub(crate) use mgf::mgf1;

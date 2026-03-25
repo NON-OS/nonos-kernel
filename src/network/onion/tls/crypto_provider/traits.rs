@@ -34,6 +34,9 @@ pub trait TlsCrypto: Sync + Send {
     fn aead_open(&self, suite: CipherSuite, key: &[u8], nonce: &[u8; 12], aad: &[u8], ciphertext: &[u8]) -> Result<Vec<u8>, OnionError>;
     fn verify_ed25519(&self, pubkey: &[u8], msg: &[u8], sig: &[u8]) -> bool;
     fn verify_rsa_pss_sha256(&self, spki_der: &[u8], msg: &[u8], sig: &[u8]) -> bool;
+    fn verify_rsa_pss_sha384(&self, spki_der: &[u8], msg: &[u8], sig: &[u8]) -> bool;
+    fn verify_rsa_pkcs1v15_sha256(&self, spki_der: &[u8], msg: &[u8], sig: &[u8]) -> bool;
+    fn verify_rsa_pkcs1v15_sha384(&self, spki_der: &[u8], msg: &[u8], sig: &[u8]) -> bool;
     fn verify_ecdsa_p256_sha256(&self, spki_der: &[u8], msg: &[u8], sig: &[u8]) -> bool;
     fn verify_ecdsa_p384_sha384(&self, spki_der: &[u8], msg: &[u8], sig: &[u8]) -> bool;
     fn p256_keypair(&self) -> Result<([u8; 32], [u8; 65]), OnionError>;
