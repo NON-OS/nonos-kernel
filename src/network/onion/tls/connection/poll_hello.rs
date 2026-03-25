@@ -58,6 +58,14 @@ impl TLSConnection {
                     }
                 }
                 x if x == ContentType::Alert as u8 => {
+                    crate::sys::serial::print(b"[TLS] ERROR: server Alert during ServerHello");
+                    if payload.len() >= 2 {
+                        crate::sys::serial::print(b" level=");
+                        crate::sys::serial::print_dec(payload[0] as u64);
+                        crate::sys::serial::print(b" desc=");
+                        crate::sys::serial::print_dec(payload[1] as u64);
+                    }
+                    crate::sys::serial::println(b"");
                     self.phase = HandshakePhase::Failed;
                     return Err(OnionError::NetworkError);
                 }

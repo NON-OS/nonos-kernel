@@ -38,11 +38,29 @@ impl TLSConnection {
             let body = self.recv_buffer[offset + 5..offset + 5 + len].to_vec();
             match ct {
                 x if x == ContentType::ApplicationData as u8 => {
-                    let plaintext = self.rx_hs.open(self.suite, ContentType::ApplicationData, &body)?;
+                    let plaintext = match self.rx_hs.open(self.suite, ContentType::ApplicationData, &body) {
+                        Ok(p) => p,
+                        Err(e) => {
+                            crate::sys::serial::println(b"[TLS] ERROR: encrypted HS record AEAD decrypt failed");
+                            return Err(e);
+                        }
+                    };
                     let (&inner_type, data) = plaintext.split_last().ok_or(OnionError::CryptoError)?;
                     if inner_type == ContentType::Handshake as u8 { self.process_hs(data)?; }
                 }
-                x if x == ContentType::Alert as u8 => { self.phase = HandshakePhase::Failed; return Err(OnionError::NetworkError); }
+                x if x == ContentType::Alert as u8 => {
+                    crate::sys::serial::print(b"[TLS] ERROR: server sent Alert record len=");
+                    crate::sys::serial::print_dec(body.len() as u64);
+                    if body.len() >= 2 {
+                        crate::sys::serial::print(b" level=");
+                        crate::sys::serial::print_dec(body[0] as u64);
+                        crate::sys::serial::print(b" desc=");
+                        crate::sys::serial::print_dec(body[1] as u64);
+                    }
+                    crate::sys::serial::println(b"");
+                    self.phase = HandshakePhase::Failed;
+                    return Err(OnionError::NetworkError);
+                }
                 _ => {}
             }
             offset += 5 + len;
@@ -57,7 +75,12 @@ impl TLSConnection {
         while hp.len() >= 4 {
             let (typ, hbody, adv) = parse_handshake_view(hp)?;
             if typ == HSType::Finished as u8 {
-                if !verify_finished_with_payload(&self.ks.server_hs, self.transcript.hash(), hbody) { self.phase = HandshakePhase::Failed; return Err(OnionError::CryptoError); }
+                if !verify_finished_with_payload(&self.ks.server_hs, self.transcript.hash(), hbody) {
+                    crate::sys::serial::println(b"[TLS] ERROR: Finished HMAC verification FAILED");
+                    self.phase = HandshakePhase::Failed;
+                    return Err(OnionError::CryptoError);
+                }
+                crate::sys::serial::println(b"[TLS] Finished HMAC OK");
                 self.transcript.add_raw(&hp[..adv]);
                 self.got_finished = true;
             } else if typ == HSType::CertificateVerify as u8 {
