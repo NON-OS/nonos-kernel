@@ -25,6 +25,7 @@ pub use sha3::{sha3_256, sha3_512, shake128, shake256, keccak256};
 pub use sha3::{Sha3_256, Sha3_512, Shake128, Shake256, Keccak256};
 pub use blake3::{blake3_hash, blake3_keyed_hash, blake3_derive_key, blake3_hash_xof};
 pub use unified::{sha256, hmac_sha256, hmac_verify, hkdf_expand, ripemd160, Hash256};
+pub use unified::{hmac_sha384, hkdf_extract_sha384, hkdf_expand_sha384};
 
 // SHA-1 is needed for WPA authentication (legacy but required for compatibility)
 #[allow(deprecated)]

@@ -21,3 +21,4 @@ mod tls;
 pub use aes128::{aes128_gcm_seal, aes128_gcm_open};
 pub use chacha::{chacha20poly1305_seal, chacha20poly1305_open};
 pub use tls::{tls_aes128_gcm_seal, tls_aes128_gcm_open, tls_chacha20poly1305_seal, tls_chacha20poly1305_open};
+pub use tls::{tls_aes256_gcm_seal, tls_aes256_gcm_open};

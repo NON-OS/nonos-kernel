@@ -38,6 +38,20 @@ pub fn hkdf_expand_sha256(prk: &[u8; 32], info: &[u8], _length: usize, out: &mut
     hash::hkdf_expand(prk, info, out).map_err(|_| OnionError::CryptoError)
 }
 
+pub fn hmac_sha384(key: &[u8], data: &[u8]) -> Result<[u8; 48], OnionError> {
+    Ok(hash::hmac_sha384(key, data))
+}
+
+pub fn hkdf_extract_sha384(salt: &[u8], ikm: &[u8], out: &mut [u8; 48]) -> Result<(), OnionError> {
+    let result = hash::hmac_sha384(salt, ikm);
+    out.copy_from_slice(&result);
+    Ok(())
+}
+
+pub fn hkdf_expand_sha384(prk: &[u8], info: &[u8], out: &mut [u8]) -> Result<(), OnionError> {
+    hash::hkdf_expand_sha384(prk, info, out).map_err(|_| OnionError::CryptoError)
+}
+
 pub fn derive_layer_keys(shared_secret: &[u8], layer_info: &[u8]) -> Result<([u8; 32], [u8; 32]), OnionError> {
     let forward_info = format!(
         "tor-forward-{}",

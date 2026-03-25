@@ -62,6 +62,14 @@ impl RSAPublic {
         rsa::verify_signature(msg, sig, &self.inner)
     }
 
+    pub fn verify_pkcs1v15_sha384(&self, msg: &[u8], sig: &[u8]) -> bool {
+        rsa::verify_pkcs1v15_sha384(&self.inner, msg, sig)
+    }
+
+    pub fn verify_pkcs1v15_sha512(&self, msg: &[u8], sig: &[u8]) -> bool {
+        rsa::verify_pkcs1v15_sha512(&self.inner, msg, sig)
+    }
+
     pub fn encrypt_oaep_sha256(&self, plaintext: &[u8], _label: Option<&[u8]>) -> Result<Vec<u8>, OnionError> {
         rsa::encrypt(plaintext, &self.inner).map_err(|_| OnionError::CryptoError)
     }

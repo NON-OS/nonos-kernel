@@ -30,8 +30,20 @@ impl TLSConnection {
         sni: Option<&str>,
         verifier: &'static dyn CertVerifier,
     ) -> Result<Option<TlsSessionInfo>, OnionError> {
-        if self.server_certs.is_empty() { self.phase = HandshakePhase::Failed; return Err(OnionError::AuthenticationFailed); }
-        if let Err(e) = verifier.verify(&self.server_certs, sni.unwrap_or("")) { return Err(e); }
+        crate::sys::serial::print(b"[TLS] finish_handshake: ");
+        crate::sys::serial::print_dec(self.server_certs.len() as u64);
+        crate::sys::serial::println(b" certs");
+        if self.server_certs.is_empty() {
+            crate::sys::serial::println(b"[TLS] ERROR: no server certs");
+            self.phase = HandshakePhase::Failed;
+            return Err(OnionError::AuthenticationFailed);
+        }
+        crate::sys::serial::println(b"[TLS] calling verifier.verify()");
+        if let Err(e) = verifier.verify(&self.server_certs, sni.unwrap_or("")) {
+            crate::sys::serial::println(b"[TLS] ERROR: verifier.verify() FAILED");
+            return Err(e);
+        }
+        crate::sys::serial::println(b"[TLS] verifier.verify() OK, checking CertVerify sig");
         self.verify_certificate_signature()?;
         let my_finished = build_finished(&self.ks.client_hs, self.transcript.hash());
         self.ks.derive_application(self.transcript.hash())?;

@@ -23,19 +23,55 @@ use super::super::crypto_provider::crypto;
 
 impl TLSConnection {
     pub(super) fn verify_certificate_signature(&mut self) -> Result<(), OnionError> {
-        let alg = self.cert_verify_alg.ok_or_else(|| { self.phase = HandshakePhase::Failed; OnionError::AuthenticationFailed })?;
+        crate::sys::serial::println(b"[TLS] verify_certificate_signature");
+        let alg = match self.cert_verify_alg {
+            Some(a) => a,
+            None => {
+                crate::sys::serial::println(b"[TLS] ERROR: no cert_verify_alg");
+                self.phase = HandshakePhase::Failed;
+                return Err(OnionError::AuthenticationFailed);
+            }
+        };
+        crate::sys::serial::print(b"[TLS] CertVerify alg=0x");
+        crate::sys::serial::print_hex(alg as u64);
+        crate::sys::serial::println(b"");
         let leaf = X509::parse_der(&self.server_certs[0])?;
         let (pk_kind, pk_bytes) = X509::public_key_info(&leaf)?;
-        let to_be_signed = build_cert_verify_context(&self.cert_verify_hash);
+        // RSA verify functions (parse_rsa_spki) expect full SPKI DER, not raw key bytes.
+        // ECDSA/Ed25519 verify functions handle both raw bytes and SPKI DER.
+        let spki_der = &leaf.public_key.raw_spki;
+        crate::sys::serial::print(b"[TLS] leaf pk_kind=");
+        match pk_kind {
+            PublicKeyKind::Rsa => crate::sys::serial::println(b"RSA"),
+            PublicKeyKind::EcdsaP256 => crate::sys::serial::println(b"EcdsaP256"),
+            PublicKeyKind::EcdsaP384 => crate::sys::serial::println(b"EcdsaP384"),
+            PublicKeyKind::Ed25519 => crate::sys::serial::println(b"Ed25519"),
+            _ => crate::sys::serial::println(b"Unknown"),
+        }
+        let hl = self.suite.hash_len();
+        let to_be_signed = build_cert_verify_context(&self.cert_verify_hash[..hl]);
         let c = crypto();
         let ok = match alg {
             0x0807 => pk_kind == PublicKeyKind::Ed25519 && c.verify_ed25519(&pk_bytes, &to_be_signed, &self.cert_verify_sig),
-            0x0804 => pk_kind == PublicKeyKind::Rsa && c.verify_rsa_pss_sha256(&pk_bytes, &to_be_signed, &self.cert_verify_sig),
+            0x0804 => pk_kind == PublicKeyKind::Rsa && c.verify_rsa_pss_sha256(spki_der, &to_be_signed, &self.cert_verify_sig),
+            0x0805 => pk_kind == PublicKeyKind::Rsa && c.verify_rsa_pss_sha384(spki_der, &to_be_signed, &self.cert_verify_sig),
+            0x0401 => pk_kind == PublicKeyKind::Rsa && c.verify_rsa_pkcs1v15_sha256(spki_der, &to_be_signed, &self.cert_verify_sig),
+            0x0501 => pk_kind == PublicKeyKind::Rsa && c.verify_rsa_pkcs1v15_sha384(spki_der, &to_be_signed, &self.cert_verify_sig),
             0x0403 => pk_kind == PublicKeyKind::EcdsaP256 && c.verify_ecdsa_p256_sha256(&pk_bytes, &to_be_signed, &self.cert_verify_sig),
             0x0503 => pk_kind == PublicKeyKind::EcdsaP384 && c.verify_ecdsa_p384_sha384(&pk_bytes, &to_be_signed, &self.cert_verify_sig),
-            _ => false,
+            _ => {
+                crate::sys::serial::print(b"[TLS] ERROR: unsupported CertVerify alg 0x");
+                crate::sys::serial::print_hex(alg as u64);
+                crate::sys::serial::println(b"");
+                false
+            }
         };
-        if !ok { self.phase = HandshakePhase::Failed; return Err(OnionError::AuthenticationFailed); }
+        if !ok {
+            crate::sys::serial::println(b"[TLS] ERROR: CertVerify signature verification FAILED");
+            self.phase = HandshakePhase::Failed;
+            return Err(OnionError::AuthenticationFailed);
+        }
+        crate::sys::serial::println(b"[TLS] CertVerify signature OK");
         Ok(())
     }
 }

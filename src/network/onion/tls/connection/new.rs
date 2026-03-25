@@ -33,15 +33,20 @@ impl TLSConnection {
             tx_app: None,
             phase: HandshakePhase::Idle,
             client_random: [0u8; 32],
-            ephemeral_secret: Vec::new(),
+            ephemeral_x25519: [0u8; 32],
+            ephemeral_p256: [0u8; 32],
             server_random: [0u8; 32],
-            server_pub: [0u8; 32],
+            server_pub: Vec::new(),
+            server_group: 0,
             server_certs: Vec::new(),
             cert_verify_alg: None,
             cert_verify_sig: Vec::new(),
-            cert_verify_hash: [0u8; 32],
+            cert_verify_hash: [0u8; 48],
             got_finished: false,
             recv_buffer: Vec::new(),
+            hrr_count: 0,
+            sni_cache: None,
+            alpn_cache: None,
         }
     }
 }

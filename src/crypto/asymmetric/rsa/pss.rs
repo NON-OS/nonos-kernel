@@ -18,6 +18,7 @@ use alloc::vec;
 use alloc::vec::Vec;
 use crate::crypto::entropy::get_entropy;
 use crate::crypto::hash::sha256;
+use crate::crypto::hash::sha384::sha384;
 use crate::crypto::util::bigint::BigUint;
 use super::keys::{RsaPrivateKey, RsaPublicKey, rsa_private_operation, rsa_public_operation};
 use super::mgf1;
@@ -167,4 +168,100 @@ fn ct_eq_u8(a: u8, b: u8) -> u8 {
     let diff = a ^ b;
     let is_zero = (diff as u16 | (diff as u16).wrapping_neg()) >> 8;
     (1 ^ is_zero) as u8
+}
+
+/// MGF1 using SHA-384 as the underlying hash function.
+fn mgf1_sha384(seed: &[u8], mask_len: usize) -> Vec<u8> {
+    let mut mask = Vec::with_capacity(mask_len);
+    let mut counter = 0u32;
+    while mask.len() < mask_len {
+        let mut input = seed.to_vec();
+        input.extend_from_slice(&counter.to_be_bytes());
+        let hash = sha384(&input);
+        mask.extend_from_slice(&hash);
+        counter += 1;
+    }
+    mask.truncate(mask_len);
+    mask
+}
+
+// SECURITY: Constant-time PSS-SHA384 verification - uses error accumulation pattern
+// to prevent timing side-channels per RFC 8017 requirements
+pub fn verify_pss_sha384(msg: &[u8], sig: &[u8], key: &RsaPublicKey) -> bool {
+    let hash = sha384(msg);
+
+    let em_bits = key.bits - 1;
+    let em_len = (em_bits + 7) / 8;
+    let hash_len = 48;
+    let salt_len = 48;
+
+    let mut valid: u8 = 1;
+
+    if sig.len() != key.bits / 8 {
+        return false;
+    }
+
+    let signature = BigUint::from_bytes_be(sig);
+    let em_big = match rsa_public_operation(&signature, key) {
+        Ok(v) => v,
+        Err(_) => {
+            valid = 0;
+            BigUint::from_u64(0)
+        }
+    };
+
+    let mut em = em_big.to_bytes_be();
+    while em.len() < em_len {
+        em.insert(0, 0);
+    }
+
+    if em.len() != em_len {
+        valid = 0;
+        em.resize(em_len, 0);
+    }
+
+    valid &= ct_eq_u8(em[em_len - 1], 0xbc);
+
+    let masked_db_len = em_len - hash_len - 1;
+    let masked_db = &em[..masked_db_len];
+    let h = &em[masked_db_len..em_len - 1];
+
+    let top_bits = 8 * em_len - em_bits;
+    if top_bits > 0 {
+        let mask = 0xFFu8 >> (8 - top_bits);
+        let top_ok = ct_eq_u8(masked_db[0] & mask, 0);
+        valid &= top_ok;
+    }
+
+    let db_mask = mgf1_sha384(h, masked_db_len);
+    let mut db: Vec<u8> = masked_db.iter().zip(db_mask.iter()).map(|(a, b)| a ^ b).collect();
+
+    if top_bits > 0 {
+        db[0] &= 0xFFu8 >> top_bits;
+    }
+
+    let ps_len = em_len - hash_len - salt_len - 2;
+    let mut padding_ok: u8 = 1;
+    for i in 0..ps_len {
+        padding_ok &= ct_eq_u8(db[i], 0x00);
+    }
+    valid &= padding_ok;
+
+    valid &= ct_eq_u8(db[ps_len], 0x01);
+
+    let salt = &db[ps_len + 1..];
+
+    let mut m_prime = vec![0u8; 8];
+    m_prime.extend_from_slice(&hash);
+    m_prime.extend_from_slice(salt);
+
+    let h_computed = sha384(&m_prime);
+
+    let mut hash_match: u8 = 1;
+    for i in 0..hash_len {
+        hash_match &= ct_eq_u8(h[i], h_computed[i]);
+    }
+    valid &= hash_match;
+
+    valid == 1
 }

@@ -14,8 +14,18 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+/// Full root CA trust anchor with DER-encoded fields for browser-grade
+/// chain building (issuer DN matching + signature verification).
 #[derive(Clone, Copy)]
-pub struct RootCaFingerprint {
-    pub spki_sha256: [u8; 32],
+pub struct TrustedRootCa {
+    /// Human-readable CA name (e.g. "ISRG Root X1")
     pub name: &'static str,
+    /// DER-encoded Subject Distinguished Name (for issuer DN matching)
+    pub subject_der: &'static [u8],
+    /// DER-encoded SubjectPublicKeyInfo (for signature verification)
+    pub spki_der: &'static [u8],
+    /// SHA-256 hash of spki_der (backward compat / fast pre-filter)
+    pub spki_sha256: [u8; 32],
+    /// Subject Key Identifier extension value (for AKI→SKI matching)
+    pub ski: Option<&'static [u8]>,
 }

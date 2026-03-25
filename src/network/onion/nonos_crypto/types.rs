@@ -15,7 +15,60 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 
+use alloc::string::String;
 use alloc::vec::Vec;
+
+/// Key Usage bit flags (RFC 5280 §4.2.1.3)
+/// ASN.1 BIT STRING is MSB-first: bit 0 = 0x80 of byte 0, bit 7 = 0x01.
+pub const KU_DIGITAL_SIGNATURE: u16 = 0x80; // bit 0
+pub const KU_KEY_ENCIPHERMENT: u16 = 0x20;  // bit 2
+pub const KU_KEY_CERT_SIGN: u16 = 0x04;     // bit 5
+pub const KU_CRL_SIGN: u16 = 0x02;          // bit 6
+
+/// Extended Key Usage purposes (RFC 5280 §4.2.1.12)
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum ExtKeyUsage {
+    ServerAuth,
+    ClientAuth,
+    OcspSigning,
+}
+
+/// Basic Constraints (RFC 5280 §4.2.1.9)
+#[derive(Debug, Clone, Copy)]
+pub struct BasicConstraints {
+    pub ca: bool,
+    pub path_len_constraint: Option<u8>,
+}
+
+impl Default for BasicConstraints {
+    fn default() -> Self {
+        Self { ca: false, path_len_constraint: None }
+    }
+}
+
+/// Parsed X.509v3 extensions
+pub struct X509Extensions {
+    pub basic_constraints: BasicConstraints,
+    pub key_usage: u16,
+    pub ext_key_usage: Vec<ExtKeyUsage>,
+    pub subject_key_id: Option<Vec<u8>>,
+    pub authority_key_id: Option<Vec<u8>>,
+    /// DNS names from the Subject Alternative Name extension (RFC 5280 §4.2.1.6)
+    pub san_dns_names: Vec<String>,
+}
+
+impl Default for X509Extensions {
+    fn default() -> Self {
+        Self {
+            basic_constraints: BasicConstraints::default(),
+            key_usage: 0,
+            ext_key_usage: Vec::new(),
+            subject_key_id: None,
+            authority_key_id: None,
+            san_dns_names: Vec::new(),
+        }
+    }
+}
 
 pub struct X509Certificate {
     pub tbs_certificate: Vec<u8>,
@@ -24,7 +77,7 @@ pub struct X509Certificate {
     pub public_key: PublicKeyInfo,
     pub not_before_ms: u64,
     pub not_after_ms: u64,
-    pub is_ca: bool,
+    pub extensions: X509Extensions,
     pub subject_der: Vec<u8>,
     pub issuer_der: Vec<u8>,
 }
@@ -78,6 +131,14 @@ impl ObjectIdentifier {
 
     pub fn is_ecdsa_sha256(&self) -> bool {
         self.components == Self::ECDSA_SHA256
+    }
+
+    pub fn is_rsa_sha384(&self) -> bool {
+        self.components == Self::RSA_SHA384
+    }
+
+    pub fn is_rsa_sha512(&self) -> bool {
+        self.components == Self::RSA_SHA512
     }
 }
 
