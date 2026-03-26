@@ -36,6 +36,9 @@ pub enum WindowType {
     Terminal = 8,
     Wallet = 9,
     Ecosystem = 10,
+    Marketplace = 11,
+    Developer = 12,
+    Agents = 13,
 }
 
 pub(crate) const RESIZE_BORDER: i32 = 6;
@@ -202,6 +205,9 @@ pub fn window_type_from_u32(val: u32) -> WindowType {
         8 => WindowType::Terminal,
         9 => WindowType::Wallet,
         10 => WindowType::Ecosystem,
+        11 => WindowType::Marketplace,
+        12 => WindowType::Developer,
+        13 => WindowType::Agents,
         _ => WindowType::None,
     }
 }
@@ -218,6 +224,9 @@ pub(crate) fn get_window_title(wtype: WindowType) -> &'static [u8] {
         WindowType::Terminal => b"Terminal",
         WindowType::Wallet => b"Wallet",
         WindowType::Ecosystem => b"N\xd8NOS Ecosystem",
+        WindowType::Marketplace => b"Marketplace",
+        WindowType::Developer => b"Developer",
+        WindowType::Agents => b"Agents",
         WindowType::None => b"",
     }
 }

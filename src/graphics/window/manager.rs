@@ -36,6 +36,9 @@ fn get_window_dimensions(wtype: WindowType) -> (u32, u32) {
         WindowType::Terminal => (650, 450),
         WindowType::Wallet => (650, 500),
         WindowType::Ecosystem => (850, 600),
+        WindowType::Marketplace => (750, 550),
+        WindowType::Developer => (700, 500),
+        WindowType::Agents => (700, 550),
         WindowType::None => (0, 0),
     }
 }
