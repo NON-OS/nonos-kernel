@@ -731,27 +731,27 @@ graphics layer blits actual pixels instead of the `[IMG WxH]` placeholder.
 
 ### Checklist
 
-- [ ] Create `engine/image_loader.rs` with `load_image()`, `resolve_url()`, `detect_image_format()`
-- [ ] Add `ImageFormat` enum (Jpeg, Png, Unknown)
-- [ ] Implement URL resolution (absolute, protocol-relative, path-relative)
-- [ ] Implement format detection via magic bytes
-- [ ] Implement `fetch_image_bytes()` using existing HTTP client
-- [ ] Wire `load_image()` into `render_image()` in `elements.rs`
-- [ ] Add `base_url` to `RenderContext`
-- [ ] Pass page URL through `render_page()` → `RenderContext`
-- [ ] Update `response.rs` to pass URL to `render_page()`
-- [ ] Emit `RenderContent::DecodedImage` on successful decode
-- [ ] Fall back to placeholder on decode failure
-- [ ] Enforce 2 MiB fetch limit and 4096×4096 decode limit
-- [ ] Limit concurrent image fetches (max 8 per page)
-- [ ] Tests: resolve absolute URL
-- [ ] Tests: resolve relative URL
-- [ ] Tests: resolve protocol-relative URL
-- [ ] Tests: detect JPEG magic bytes
-- [ ] Tests: detect PNG magic bytes
-- [ ] Tests: unknown format returns None
-- [ ] Tests: load_image with valid JPEG bytes → ImageData
-- [ ] Tests: load_image with invalid data → None
+- [x] Create `engine/image_loader.rs` with `load_image()`, `resolve_url()`, `detect_image_format()`
+- [x] Add `ImageFormat` enum (Jpeg, Png, Unknown)
+- [x] Implement URL resolution (absolute, protocol-relative, path-relative)
+- [x] Implement format detection via magic bytes
+- [x] Implement `fetch_image_bytes()` using existing HTTP client
+- [x] Wire `load_image()` into `render_image()` in `elements.rs`
+- [x] Add `base_url` to `RenderContext`
+- [x] Pass page URL through `render_page()` → `RenderContext`
+- [x] Update `response.rs` to pass URL to `render_page()`
+- [x] Emit `RenderContent::DecodedImage` on successful decode
+- [x] Fall back to placeholder on decode failure
+- [x] Enforce 2 MiB fetch limit and 4096×4096 decode limit
+- [x] Limit concurrent image fetches (max 8 per page)
+- [x] Tests: resolve absolute URL
+- [x] Tests: resolve relative URL
+- [x] Tests: resolve protocol-relative URL
+- [x] Tests: detect JPEG magic bytes
+- [x] Tests: detect PNG magic bytes
+- [x] Tests: unknown format returns None
+- [x] Tests: load_image with valid JPEG bytes → ImageData
+- [x] Tests: load_image with invalid data → None
 
 ---
 

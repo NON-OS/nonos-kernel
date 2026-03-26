@@ -38,9 +38,31 @@ pub(super) fn render_link(ctx: &mut RenderContext, node: &Node) {
 
 pub(super) fn render_image(ctx: &mut RenderContext, node: &Node) {
     let alt = get_attribute(node, "alt").unwrap_or_default();
-    let width: u32 = get_attribute(node, "width").and_then(|w| w.parse().ok()).unwrap_or(200);
-    let height: u32 = get_attribute(node, "height").and_then(|h| h.parse().ok()).unwrap_or(20);
+    let src = get_attribute(node, "src").unwrap_or_default();
+    let attr_width: u32 = get_attribute(node, "width").and_then(|w| w.parse().ok()).unwrap_or(0);
+    let attr_height: u32 = get_attribute(node, "height").and_then(|h| h.parse().ok()).unwrap_or(0);
     if ctx.current_x > 0 { ctx.flush_line(); }
+
+    // Try to load and decode the image
+    if !src.is_empty() && !ctx.base_url.is_empty() {
+        if let Some(data) = crate::apps::ecosystem::browser::engine::image_loader::load_image(&src, &ctx.base_url) {
+            let img_w = if attr_width > 0 { attr_width } else { data.width }.min(ctx.usable_width);
+            let img_h = if attr_height > 0 { attr_height } else { data.height };
+            ctx.lines.push(RenderLine {
+                y: ctx.current_y,
+                elements: alloc::vec![RenderElement {
+                    x: ctx.margin, width: img_w,
+                    content: RenderContent::DecodedImage { data },
+                }],
+            });
+            ctx.current_y += img_h;
+            return;
+        }
+    }
+
+    // Fallback: placeholder
+    let width = if attr_width > 0 { attr_width } else { 200 };
+    let height = if attr_height > 0 { attr_height } else { 20 };
     let label = if alt.is_empty() { alloc::format!("[IMG {}x{}]", width, height) }
                 else { alloc::format!("[IMG {}x{}: {}]", width, height, alt) };
     let label_width = (label.len() as u32) * ctx.char_width;
