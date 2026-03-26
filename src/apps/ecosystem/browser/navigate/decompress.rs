@@ -19,7 +19,7 @@ extern crate alloc;
 use alloc::string::String;
 use alloc::vec::Vec;
 
-pub fn get_content_encoding(headers: &[u8]) -> Option<String> {
+pub(super) fn get_content_encoding(headers: &[u8]) -> Option<String> {
     let s = core::str::from_utf8(headers).ok()?;
     for line in s.lines() {
         let lower = line.to_ascii_lowercase();
@@ -30,7 +30,7 @@ pub fn get_content_encoding(headers: &[u8]) -> Option<String> {
     None
 }
 
-pub fn decompress_body(body: &[u8], encoding: Option<&str>) -> Vec<u8> {
+pub(super) fn decompress_body(body: &[u8], encoding: Option<&str>) -> Vec<u8> {
     match encoding {
         Some("gzip") | Some("x-gzip") => decompress_gzip(body).unwrap_or_else(|| body.to_vec()),
         Some("deflate") => decompress_deflate(body).unwrap_or_else(|| body.to_vec()),
