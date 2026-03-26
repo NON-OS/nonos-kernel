@@ -37,25 +37,4 @@ pub(super) fn build_balance_ownership_circuit() -> Result<Circuit, ZKError> {
     b.build(5)
 }
 
-pub(super) fn build_transaction_auth_circuit() -> Result<Circuit, ZKError> {
-    let mut b = CircuitBuilder::new();
-    let tx_hash = b.alloc_input(Some("tx_hash"));
-    let sender = b.alloc_input(Some("sender_address"));
-    let recip = b.alloc_input(Some("recipient_address"));
-    let amt_com = b.alloc_input(Some("amount_commitment"));
-    let sk = b.alloc_variable(Some("secret_key"));
-    let amt = b.alloc_variable(Some("amount"));
-    let nonce = b.alloc_variable(Some("nonce"));
-    let tx_int = b.alloc_variable(Some("tx_intermediate"));
-    b.enforce_multiplication(sender, recip, tx_int);
-    b.enforce_equal(LinearCombination::from_variable(tx_int), LinearCombination::from_variable(tx_hash));
-    let derived = b.alloc_variable(Some("derived_sender"));
-    b.enforce_multiplication(sk, sk, derived);
-    let amt_int = b.alloc_variable(Some("amount_commit_intermediate"));
-    b.enforce_multiplication(amt, nonce, amt_int);
-    b.enforce_equal(LinearCombination::from_variable(amt_int), LinearCombination::from_variable(amt_com));
-    b.add_range_constraint(amt, 64);
-    b.build(7)
-}
-
-pub(super) use super::zk_circuit_adv::{build_stealth_spend_circuit, build_balance_sufficiency_circuit};
+pub(super) use super::zk_circuit_adv::build_stealth_spend_circuit;

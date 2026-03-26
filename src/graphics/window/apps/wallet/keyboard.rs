@@ -23,6 +23,12 @@ pub(super) fn handle_key(ch: u8) {
     let locked = !s.unlocked;
     drop(s);
     if locked { handle_locked_key(ch); return; }
+    let view = get_view();
+    if view == WalletView::Staking {
+        if ch == 0x08 || ch == 0x7F { super::staking::handle_staking_backspace(); }
+        else { super::staking::handle_staking_key(ch); }
+        return;
+    }
     if !INPUT_FOCUSED.load(Ordering::SeqCst) { return; }
     if SEND_FIELD.load(Ordering::SeqCst) == 0 { handle_addr_key(ch); } else { handle_amt_key(ch); }
 }

@@ -15,9 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 extern crate alloc;
-use alloc::vec::Vec;
 use crate::crypto::blake3_hash;
-use super::types::ADDRESS_LEN;
 
 pub(super) fn generate_blinding_factor() -> [u8; 32] {
     use crate::interrupts::timer::tick_count;
@@ -29,16 +27,6 @@ pub(super) fn generate_blinding_factor() -> [u8; 32] {
 
 pub(super) fn compute_balance_commitment(bal: u128, blind: &[u8; 32]) -> [u8; 32] {
     let mut i = [0u8; 48]; i[..16].copy_from_slice(&bal.to_le_bytes()); i[16..48].copy_from_slice(blind); blake3_hash(&i)
-}
-
-pub(super) fn compute_amount_commitment(amt: u128, nonce: &[u8; 32]) -> [u8; 32] {
-    let mut i = [0u8; 48]; i[..16].copy_from_slice(&amt.to_le_bytes()); i[16..48].copy_from_slice(nonce); blake3_hash(&i)
-}
-
-pub(super) fn compute_tx_hash(sender: &[u8; ADDRESS_LEN], recip: &[u8; ADDRESS_LEN], amt_com: &[u8; 32], nonce: &[u8; 32]) -> [u8; 32] {
-    let mut i = Vec::with_capacity(104);
-    i.extend_from_slice(sender); i.extend_from_slice(recip); i.extend_from_slice(amt_com); i.extend_from_slice(nonce);
-    blake3_hash(&i)
 }
 
 pub(super) fn compute_spend_pubkey_commitment(ss: &[u8; 32]) -> [u8; 32] {

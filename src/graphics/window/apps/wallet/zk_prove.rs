@@ -37,18 +37,4 @@ pub(crate) fn prove_balance_ownership(balance: u128, secret_key: &[u8; 32], addr
     Ok(WalletZKProof { proof_type: WalletProofType::BalanceOwnership, proof, public_inputs: public_inputs.iter().map(|f| f.to_bytes()).collect(), commitment })
 }
 
-pub(crate) fn prove_transaction_auth(secret_key: &[u8; 32], sender: &[u8; ADDRESS_LEN], recipient: &[u8; ADDRESS_LEN], amount: u128) -> Result<WalletZKProof, ZKError> {
-    if !ZK_INITIALIZED.load(Ordering::SeqCst) { super::zk::init_wallet_zk()?; }
-    let keys = ZK_KEYS.lock();
-    let pk = keys.tx_auth_pk.as_ref().ok_or(ZKError::NotInitialized)?;
-    let nonce = generate_blinding_factor();
-    let amount_commitment = compute_amount_commitment(amount, &nonce);
-    let tx_hash = compute_tx_hash(sender, recipient, &amount_commitment, &nonce);
-    let witness = vec![FieldElement::from_bytes_array(&tx_hash), FieldElement::from_bytes_array(&bytes_to_field_input(sender)), FieldElement::from_bytes_array(&bytes_to_field_input(recipient)), FieldElement::from_bytes_array(&amount_commitment), FieldElement::from_bytes_array(secret_key), FieldElement::from_u128(amount), FieldElement::from_bytes_array(&nonce)];
-    let public_inputs = vec![FieldElement::from_bytes_array(&tx_hash), FieldElement::from_bytes_array(&bytes_to_field_input(sender)), FieldElement::from_bytes_array(&bytes_to_field_input(recipient)), FieldElement::from_bytes_array(&amount_commitment)];
-    let circuit = build_transaction_auth_circuit()?;
-    let proof = Groth16Prover::prove(pk, &circuit, &witness, &public_inputs, 1)?;
-    Ok(WalletZKProof { proof_type: WalletProofType::TransactionAuth, proof, public_inputs: public_inputs.iter().map(|f| f.to_bytes()).collect(), commitment: amount_commitment })
-}
-
-pub(crate) use super::zk_prove_adv::{prove_stealth_spend_key, prove_balance_sufficiency, verify_wallet_proof};
+pub(crate) use super::zk_prove_adv::{prove_stealth_spend_key, verify_wallet_proof};

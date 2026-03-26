@@ -18,7 +18,7 @@ use core::sync::atomic::Ordering;
 use crate::zk_engine::ZKError;
 use crate::zk_engine::groth16::Groth16Prover;
 pub(crate) use super::zk_types::*;
-pub(crate) use super::zk_prove::{prove_balance_ownership, prove_transaction_auth, prove_stealth_spend_key, prove_balance_sufficiency, verify_wallet_proof};
+pub(crate) use super::zk_prove::{prove_balance_ownership, prove_stealth_spend_key, verify_wallet_proof};
 use super::zk_circuit::*;
 
 pub(crate) fn init_wallet_zk() -> Result<(), ZKError> {
@@ -26,12 +26,8 @@ pub(crate) fn init_wallet_zk() -> Result<(), ZKError> {
     let mut k = ZK_KEYS.lock();
     let (pk, vk) = Groth16Prover::generate_keys(&build_balance_ownership_circuit()?)?;
     k.balance_ownership_pk = Some(pk); k.balance_ownership_vk = Some(vk);
-    let (pk, vk) = Groth16Prover::generate_keys(&build_transaction_auth_circuit()?)?;
-    k.tx_auth_pk = Some(pk); k.tx_auth_vk = Some(vk);
     let (pk, vk) = Groth16Prover::generate_keys(&build_stealth_spend_circuit()?)?;
     k.stealth_pk = Some(pk); k.stealth_vk = Some(vk);
-    let (pk, vk) = Groth16Prover::generate_keys(&build_balance_sufficiency_circuit()?)?;
-    k.sufficiency_pk = Some(pk); k.sufficiency_vk = Some(vk);
     drop(k);
     ZK_INITIALIZED.store(true, Ordering::SeqCst);
     Ok(())
