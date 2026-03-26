@@ -38,15 +38,13 @@ impl Rtl8169 {
 
         self.write16(REG_RMS as u32, BUFFER_SIZE as u16);
 
-        unsafe {
-            let rx_addr = addr_of_mut!(RX_RING) as u64;
-            self.write32(REG_RXDESC_ADDR_LO, rx_addr as u32);
-            self.write32(REG_RXDESC_ADDR_HI, (rx_addr >> 32) as u32);
+        let rx_addr = addr_of_mut!(RX_RING) as u64;
+        self.write32(REG_RXDESC_ADDR_LO, rx_addr as u32);
+        self.write32(REG_RXDESC_ADDR_HI, (rx_addr >> 32) as u32);
 
-            let tx_addr = addr_of_mut!(TX_RING) as u64;
-            self.write32(REG_TXDESC_ADDR_LO, tx_addr as u32);
-            self.write32(REG_TXDESC_ADDR_HI, (tx_addr >> 32) as u32);
-        }
+        let tx_addr = addr_of_mut!(TX_RING) as u64;
+        self.write32(REG_TXDESC_ADDR_LO, tx_addr as u32);
+        self.write32(REG_TXDESC_ADDR_HI, (tx_addr >> 32) as u32);
 
         self.write32(REG_RX_CONFIG, RX_CONFIG_ACCEPT_ALL | RX_CONFIG_DMA | RX_CONFIG_MAXDMA);
         self.write32(REG_TX_CONFIG, TX_CONFIG_IFG | TX_CONFIG_DMA);

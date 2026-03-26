@@ -21,7 +21,7 @@ use super::constants::*;
 use super::core::VirtioNet;
 use super::descriptors::*;
 use crate::sys::serial;
-use crate::sys::io::{inb, inw, inl, outb, outw, outl};
+use crate::sys::io::{inb, inl, outb, outw, outl};
 
 impl VirtioNet {
     pub fn init(&mut self) -> Result<(), &'static str> {
@@ -50,10 +50,8 @@ impl VirtioNet {
 
     pub(super) fn read_features(&self) -> u32 { unsafe { inl(self.io_base + REG_DEVICE_FEATURES as u16) } }
     pub(super) fn write_features(&self, f: u32) { unsafe { outl(self.io_base + REG_DRIVER_FEATURES as u16, f) } }
-    pub(super) fn read_status(&self) -> u8 { unsafe { inb(self.io_base + REG_DEVICE_STATUS as u16) } }
     pub(super) fn write_status(&self, s: u8) { unsafe { outb(self.io_base + REG_DEVICE_STATUS as u16, s) } }
     pub(super) fn select_queue(&self, q: u16) { unsafe { outw(self.io_base + REG_QUEUE_SELECT as u16, q) } }
-    pub(super) fn read_queue_size(&self) -> u16 { unsafe { inw(self.io_base + REG_QUEUE_SIZE as u16) } }
     pub(super) fn write_queue_addr(&self, a: u32) { unsafe { outl(self.io_base + REG_QUEUE_ADDRESS as u16, a) } }
     pub(super) fn notify_queue(&self, q: u16) { unsafe { outw(self.io_base + REG_QUEUE_NOTIFY as u16, q) } }
 
@@ -85,7 +83,7 @@ impl VirtioNet {
     fn init_tx_queue(&mut self) -> Result<(), &'static str> {
         self.select_queue(VIRTQ_TX);
         unsafe { self.tx_queue.lock().setup_free_list(); }
-        self.write_queue_addr(unsafe { addr_of_mut!(TX_DESCS) as u64 as u32 / 4096 });
+        self.write_queue_addr(addr_of_mut!(TX_DESCS) as u64 as u32 / 4096);
         serial::println(b"[VIRTIO-NET] TX queue initialized");
         Ok(())
     }
