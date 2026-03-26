@@ -17,7 +17,7 @@
 use crate::syscall::SyscallResult;
 use crate::syscall::dispatch::errno;
 use crate::usercopy::{copy_from_user, copy_to_user};
-use crate::zksync::types::{Address, U256, Nonce, TxHash, TransactionStatus};
+use crate::zksync::types::U256;
 
 const ENOSYS: i32 = 38;
 const EPERM: i32 = 1;

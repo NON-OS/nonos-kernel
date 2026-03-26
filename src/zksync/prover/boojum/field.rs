@@ -16,7 +16,7 @@
 
 use core::ops::{Add, Sub, Mul, Neg};
 
-pub const GOLDILOCKS_MODULUS: u64 = 0xFFFF_FFFF_0000_0001;
+pub(super) const GOLDILOCKS_MODULUS: u64 = 0xFFFF_FFFF_0000_0001;
 const EPSILON: u64 = 0xFFFF_FFFF;
 
 #[derive(Clone, Copy, PartialEq, Eq, Default, Debug)]

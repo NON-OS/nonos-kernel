@@ -20,7 +20,7 @@ use crate::zksync::state::StateManager;
 use crate::zksync::error::ZkSyncError;
 
 #[derive(Clone, Debug)]
-pub struct Withdrawal {
+pub(super) struct Withdrawal {
     pub sender: Address,
     pub l1_recipient: Address,
     pub amount: U256,
