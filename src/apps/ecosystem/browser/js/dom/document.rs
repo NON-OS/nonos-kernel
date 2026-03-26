@@ -21,7 +21,7 @@ use alloc::rc::Rc;
 use core::cell::RefCell;
 use alloc::collections::BTreeMap;
 use crate::apps::ecosystem::browser::js::runtime::JsValue;
-use crate::apps::ecosystem::browser::engine::{Document, Node, NodeType};
+use crate::apps::ecosystem::browser::engine::Document;
 
 pub struct JsDocument { pub doc: Rc<RefCell<Document>> }
 

@@ -15,16 +15,16 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 extern crate alloc;
-use alloc::string::{String, ToString};
+use alloc::string::String;
 use alloc::vec::Vec;
 use alloc::rc::Rc;
 use core::cell::RefCell;
 use alloc::collections::BTreeMap;
 use crate::apps::ecosystem::browser::js::parser::Stmt;
 
-pub type JsObject = Rc<RefCell<BTreeMap<String, JsValue>>>;
-pub type JsArray = Rc<RefCell<Vec<JsValue>>>;
-pub type JsFunc = Rc<JsFuncInner>;
+pub(super) type JsObject = Rc<RefCell<BTreeMap<String, JsValue>>>;
+pub(super) type JsArray = Rc<RefCell<Vec<JsValue>>>;
+pub(super) type JsFunc = Rc<JsFuncInner>;
 
 #[derive(Clone)]
 pub struct JsFuncInner { pub name: Option<String>, pub params: Vec<String>, pub body: alloc::boxed::Box<Stmt> }

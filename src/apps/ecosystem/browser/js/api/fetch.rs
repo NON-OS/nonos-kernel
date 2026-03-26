@@ -26,10 +26,10 @@ pub fn create_fetch_api() -> JsValue { JsValue::NativeFunc(native_fetch) }
 fn native_fetch(args: &[JsValue]) -> JsValue {
     let _url = args.get(0).map(|v| v.to_string()).unwrap_or_default();
     let _options = args.get(1);
-    create_promise(JsValue::Undefined)
+    create_promise(create_response(200, "", &[]))
 }
 
-pub fn create_promise(value: JsValue) -> JsValue {
+pub(super) fn create_promise(value: JsValue) -> JsValue {
     let mut obj = BTreeMap::new();
     obj.insert(String::from("_value"), value);
     obj.insert(String::from("_state"), JsValue::String(String::from("pending")));
@@ -39,7 +39,7 @@ pub fn create_promise(value: JsValue) -> JsValue {
     JsValue::Object(Rc::new(RefCell::new(obj)))
 }
 
-pub fn create_response(status: u16, body: &str, headers: &[(String, String)]) -> JsValue {
+pub(super) fn create_response(status: u16, body: &str, headers: &[(String, String)]) -> JsValue {
     let mut obj = BTreeMap::new();
     obj.insert(String::from("ok"), JsValue::Bool(status >= 200 && status < 300));
     obj.insert(String::from("status"), JsValue::Number(status as f64));

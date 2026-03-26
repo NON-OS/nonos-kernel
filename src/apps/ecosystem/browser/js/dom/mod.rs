@@ -22,4 +22,3 @@ mod events;
 pub use document::JsDocument;
 pub use element::JsElement;
 pub use window::JsWindow;
-pub use events::JsEvent;

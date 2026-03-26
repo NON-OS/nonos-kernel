@@ -72,5 +72,5 @@ fn object_get_own_property_names(args: &[JsValue]) -> JsValue { object_keys(args
 fn object_get_own_property_descriptor(_args: &[JsValue]) -> JsValue { JsValue::Undefined }
 fn object_get_prototype_of(_args: &[JsValue]) -> JsValue { JsValue::Null }
 fn object_set_prototype_of(args: &[JsValue]) -> JsValue { args.get(0).cloned().unwrap_or(JsValue::Undefined) }
-fn object_is(args: &[JsValue]) -> JsValue { JsValue::Bool(false) }
+fn object_is(_args: &[JsValue]) -> JsValue { JsValue::Bool(false) }
 fn object_from_entries(_args: &[JsValue]) -> JsValue { JsValue::Object(Rc::new(RefCell::new(BTreeMap::new()))) }

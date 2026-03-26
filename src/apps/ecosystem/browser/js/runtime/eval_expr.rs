@@ -59,7 +59,7 @@ impl JsRuntime {
         match func {
             JsValue::NativeFunc(f) => f(&arg_vals),
             JsValue::Function(f) => { self.scope.push(); for (i, p) in f.params.iter().enumerate() { self.scope.declare(p.clone(), arg_vals.get(i).cloned().unwrap_or(JsValue::Undefined)); } self.eval_stmt(&f.body); self.scope.pop(); self.return_val.take().unwrap_or(JsValue::Undefined) }
-            JsValue::Object(o) => { if let Expr::Member { obj, prop, computed } = callee { let key = if *computed { self.eval_expr(prop).to_string() } else { if let Expr::Literal(Literal::String(s)) = prop.as_ref() { s.clone() } else { String::new() } }; if let Some(JsValue::NativeFunc(f)) = o.borrow().get(&key) { return f(&arg_vals); } } JsValue::Undefined }
+            JsValue::Object(o) => { if let Expr::Member { obj: _, prop, computed } = callee { let key = if *computed { self.eval_expr(prop).to_string() } else { if let Expr::Literal(Literal::String(s)) = prop.as_ref() { s.clone() } else { String::new() } }; if let Some(JsValue::NativeFunc(f)) = o.borrow().get(&key) { return f(&arg_vals); } } JsValue::Undefined }
             _ => JsValue::Undefined,
         }
     }

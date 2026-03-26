@@ -21,20 +21,7 @@ use core::cell::RefCell;
 use alloc::collections::BTreeMap;
 use crate::apps::ecosystem::browser::js::runtime::JsValue;
 
-pub struct Storage { data: BTreeMap<String, String> }
-
-impl Storage {
-    pub fn new() -> Self { Self { data: BTreeMap::new() } }
-    pub fn get_item(&self, key: &str) -> Option<String> { self.data.get(key).cloned() }
-    pub fn set_item(&mut self, key: &str, value: &str) { self.data.insert(String::from(key), String::from(value)); }
-    pub fn remove_item(&mut self, key: &str) { self.data.remove(key); }
-    pub fn clear(&mut self) { self.data.clear(); }
-    pub fn key(&self, index: usize) -> Option<String> { self.data.keys().nth(index).cloned() }
-    pub fn len(&self) -> usize { self.data.len() }
-}
-
 pub fn create_storage() -> JsValue {
-    let storage = Rc::new(RefCell::new(Storage::new()));
     let mut obj = BTreeMap::new();
     obj.insert(String::from("length"), JsValue::Number(0.0));
     obj.insert(String::from("getItem"), JsValue::NativeFunc(storage_get_item));

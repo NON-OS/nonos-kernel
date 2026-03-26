@@ -51,23 +51,3 @@ fn websocket_send(_args: &[JsValue]) -> JsValue { JsValue::Undefined }
 fn websocket_close(_args: &[JsValue]) -> JsValue { JsValue::Undefined }
 fn websocket_add_event_listener(_args: &[JsValue]) -> JsValue { JsValue::Undefined }
 fn websocket_remove_event_listener(_args: &[JsValue]) -> JsValue { JsValue::Undefined }
-
-pub fn create_message_event(data: JsValue) -> JsValue {
-    let mut obj = BTreeMap::new();
-    obj.insert(String::from("type"), JsValue::String(String::from("message")));
-    obj.insert(String::from("data"), data);
-    obj.insert(String::from("origin"), JsValue::String(String::new()));
-    obj.insert(String::from("lastEventId"), JsValue::String(String::new()));
-    obj.insert(String::from("source"), JsValue::Null);
-    obj.insert(String::from("ports"), JsValue::Array(Rc::new(RefCell::new(alloc::vec::Vec::new()))));
-    JsValue::Object(Rc::new(RefCell::new(obj)))
-}
-
-pub fn create_close_event(code: u16, reason: &str, was_clean: bool) -> JsValue {
-    let mut obj = BTreeMap::new();
-    obj.insert(String::from("type"), JsValue::String(String::from("close")));
-    obj.insert(String::from("code"), JsValue::Number(code as f64));
-    obj.insert(String::from("reason"), JsValue::String(String::from(reason)));
-    obj.insert(String::from("wasClean"), JsValue::Bool(was_clean));
-    JsValue::Object(Rc::new(RefCell::new(obj)))
-}
