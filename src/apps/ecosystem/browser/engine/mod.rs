@@ -21,14 +21,16 @@ mod browser;
 mod png;
 mod svg;
 mod jpeg;
+pub mod image_loader;
 
 pub use types::{
     Document, Node, NodeType, Link, Form, FormInput, Image, ImageData,
     RenderLine, RenderElement, RenderContent, TextStyle, TextAlign, RenderOutput,
     CanvasContext2D, AnimationState, AnimatedProperty,
 };
-pub use parser::parse_html;
-pub use render::{render_page, render_to_lines, render_to_lines_with_links};
+// Merge both sides: keep parse_html, get_attribute, extract_text if still used
+pub use parser::{parse_html, get_attribute, extract_text};
+pub use render::{render_page, render_page_with_url, render_to_lines, render_to_lines_with_links};
 pub use browser::BrowserEngine;
 pub use png::decode_png;
 pub use jpeg::decode_jpeg;

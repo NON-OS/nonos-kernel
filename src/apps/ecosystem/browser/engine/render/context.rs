@@ -34,10 +34,13 @@ pub(super) struct RenderContext {
     pub margin: u32,
     pub usable_width: u32,
     pub indent_px: u32,
+    pub base_url: String,
+    pub form_action: Option<String>,
+    pub form_method: Option<String>,
 }
 
 impl RenderContext {
-    pub(super) fn new(viewport_width: u32) -> Self {
+    pub(super) fn new(viewport_width: u32, base_url: String) -> Self {
         let margin = 10u32;
         Self {
             lines: Vec::new(),
@@ -53,6 +56,9 @@ impl RenderContext {
             margin,
             usable_width: viewport_width.saturating_sub(margin * 2),
             indent_px: 30,
+            base_url,
+            form_action: None,
+            form_method: None,
         }
     }
 

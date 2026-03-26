@@ -24,5 +24,6 @@ mod output;
 mod page;
 
 pub use page::render_page;
+pub use page::render_page_with_url;
 pub use output::render_to_lines;
 pub use output::render_to_lines_with_links;

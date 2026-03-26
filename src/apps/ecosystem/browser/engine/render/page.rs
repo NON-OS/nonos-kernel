@@ -17,6 +17,7 @@
 extern crate alloc;
 
 use alloc::collections::VecDeque;
+use alloc::string::String;
 use crate::apps::ecosystem::browser::engine::types::{NodeType, RenderOutput};
 use crate::apps::ecosystem::browser::engine::parser::{parse_html, get_attribute};
 use super::context::RenderContext;
@@ -27,8 +28,13 @@ use super::css::apply_inline_css;
 use super::elements::{render_link, render_image, render_input, render_button};
 
 pub fn render_page(html: &str, viewport_width: u32) -> RenderOutput {
+    render_page_with_url(html, viewport_width, "")
+}
+
+pub fn render_page_with_url(html: &str, viewport_width: u32, base_url: &str) -> RenderOutput {
+    crate::apps::ecosystem::browser::engine::image_loader::reset_image_count();
     let document = parse_html(html);
-    let mut ctx = RenderContext::new(viewport_width);
+    let mut ctx = RenderContext::new(viewport_width, String::from(base_url));
     let mut node_queue: VecDeque<(&crate::apps::ecosystem::browser::engine::types::Node, bool)> = VecDeque::new();
     node_queue.push_back((&document.root, false));
 

@@ -70,7 +70,7 @@ pub(super) fn process_response() {
     let content_str = core::str::from_utf8(&body).unwrap_or("");
 
     // Produce the rich RenderOutput for the graphics layer
-    let render_output = engine::render_page(content_str, 800);
+    let render_output = engine::render_page_with_url(content_str, 800, &url);
 
     // Extract links from the RenderOutput line/element structure so that
     // link coordinates are consistent with the pixel rendering.
