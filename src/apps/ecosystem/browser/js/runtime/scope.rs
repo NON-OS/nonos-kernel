@@ -23,15 +23,15 @@ use super::value::JsValue;
 pub struct Scope { frames: Vec<BTreeMap<String, JsValue>> }
 
 impl Scope {
-    pub fn new() -> Self { Self { frames: alloc::vec![BTreeMap::new()] } }
-    pub fn push(&mut self) { self.frames.push(BTreeMap::new()); }
-    pub fn pop(&mut self) { if self.frames.len() > 1 { self.frames.pop(); } }
-    pub fn declare(&mut self, name: String, val: JsValue) { if let Some(frame) = self.frames.last_mut() { frame.insert(name, val); } }
-    pub fn get(&self, name: &str) -> JsValue {
+    pub(super) fn new() -> Self { Self { frames: alloc::vec![BTreeMap::new()] } }
+    pub(super) fn push(&mut self) { self.frames.push(BTreeMap::new()); }
+    pub(super) fn pop(&mut self) { if self.frames.len() > 1 { self.frames.pop(); } }
+    pub(super) fn declare(&mut self, name: String, val: JsValue) { if let Some(frame) = self.frames.last_mut() { frame.insert(name, val); } }
+    pub(super) fn get(&self, name: &str) -> JsValue {
         for frame in self.frames.iter().rev() { if let Some(v) = frame.get(name) { return v.clone(); } }
         JsValue::Undefined
     }
-    pub fn set(&mut self, name: &str, val: JsValue) -> bool {
+    pub(super) fn set(&mut self, name: &str, val: JsValue) -> bool {
         for frame in self.frames.iter_mut().rev() { if frame.contains_key(name) { frame.insert(String::from(name), val); return true; } }
         if let Some(frame) = self.frames.last_mut() { frame.insert(String::from(name), val); }
         true

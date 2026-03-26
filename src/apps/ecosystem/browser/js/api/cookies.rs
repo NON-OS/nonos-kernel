@@ -17,21 +17,22 @@
 extern crate alloc;
 use alloc::string::String;
 use alloc::vec::Vec;
-use alloc::collections::BTreeMap;
 
-pub struct Cookie {
+pub(super) struct Cookie {
     pub name: String,
     pub value: String,
     pub domain: String,
     pub path: String,
+    #[allow(dead_code)] // TODO: implement cookie expiration checking
     pub expires: Option<u64>,
     pub secure: bool,
+    #[allow(dead_code)] // TODO: implement HTTP-only cookie handling
     pub http_only: bool,
     pub same_site: SameSite,
 }
 
 #[derive(Clone, Copy, PartialEq)]
-pub enum SameSite { Strict, Lax, None }
+pub(super) enum SameSite { Strict, Lax, None }
 
 pub struct CookieJar { cookies: Vec<Cookie> }
 

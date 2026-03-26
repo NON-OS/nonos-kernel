@@ -22,25 +22,17 @@ use alloc::collections::BTreeMap;
 use crate::apps::ecosystem::browser::js::runtime::JsValue;
 
 pub fn create_regexp_constructor() -> JsValue {
-    let obj: BTreeMap<String, JsValue> = BTreeMap::new();
+    let mut obj = BTreeMap::new();
+    obj.insert(String::from("prototype"), create_regexp_prototype());
     JsValue::Object(Rc::new(RefCell::new(obj)))
 }
 
-pub fn create_regexp_instance(pattern: &str, flags: &str) -> JsValue {
-    let mut obj = BTreeMap::new();
-    obj.insert(String::from("source"), JsValue::String(String::from(pattern)));
-    obj.insert(String::from("flags"), JsValue::String(String::from(flags)));
-    obj.insert(String::from("global"), JsValue::Bool(flags.contains('g')));
-    obj.insert(String::from("ignoreCase"), JsValue::Bool(flags.contains('i')));
-    obj.insert(String::from("multiline"), JsValue::Bool(flags.contains('m')));
-    obj.insert(String::from("sticky"), JsValue::Bool(flags.contains('y')));
-    obj.insert(String::from("unicode"), JsValue::Bool(flags.contains('u')));
-    obj.insert(String::from("dotAll"), JsValue::Bool(flags.contains('s')));
-    obj.insert(String::from("lastIndex"), JsValue::Number(0.0));
-    obj.insert(String::from("test"), JsValue::NativeFunc(regexp_test));
-    obj.insert(String::from("exec"), JsValue::NativeFunc(regexp_exec));
-    obj.insert(String::from("toString"), JsValue::NativeFunc(regexp_to_string));
-    JsValue::Object(Rc::new(RefCell::new(obj)))
+fn create_regexp_prototype() -> JsValue {
+    let mut proto = BTreeMap::new();
+    proto.insert(String::from("test"), JsValue::NativeFunc(regexp_test));
+    proto.insert(String::from("exec"), JsValue::NativeFunc(regexp_exec));
+    proto.insert(String::from("toString"), JsValue::NativeFunc(regexp_to_string));
+    JsValue::Object(Rc::new(RefCell::new(proto)))
 }
 
 fn regexp_test(_args: &[JsValue]) -> JsValue { JsValue::Bool(false) }

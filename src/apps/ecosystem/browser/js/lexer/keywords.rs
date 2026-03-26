@@ -16,7 +16,7 @@
 
 use super::token::TokenKind;
 
-pub fn lookup_keyword(s: &str) -> Option<TokenKind> {
+pub(super) fn lookup_keyword(s: &str) -> Option<TokenKind> {
     match s {
         "var" => Some(TokenKind::Var), "let" => Some(TokenKind::Let), "const" => Some(TokenKind::Const),
         "function" => Some(TokenKind::Function), "return" => Some(TokenKind::Return),
