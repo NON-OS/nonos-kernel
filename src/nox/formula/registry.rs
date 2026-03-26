@@ -18,7 +18,6 @@ use alloc::collections::BTreeMap;
 use alloc::string::String;
 use alloc::vec::Vec;
 use super::spec::Formula;
-use crate::nox::{NoxResult, NoxError};
 
 pub struct FormulaRegistry {
     formulas: BTreeMap<String, Formula>,

@@ -21,16 +21,16 @@ use super::NoxResult;
 static INITIALIZED: AtomicBool = AtomicBool::new(false);
 static mut CONFIG: Option<NoxConfig> = None;
 
-pub fn init_nox(config: NoxConfig) -> NoxResult<()> {
+pub(crate) fn init_nox(config: NoxConfig) -> NoxResult<()> {
     if INITIALIZED.load(Ordering::Acquire) { return Ok(()); }
     unsafe { CONFIG = Some(config); }
     INITIALIZED.store(true, Ordering::Release);
     Ok(())
 }
 
-pub fn is_initialized() -> bool { INITIALIZED.load(Ordering::Acquire) }
+pub(crate) fn is_initialized() -> bool { INITIALIZED.load(Ordering::Acquire) }
 
-pub fn nox_config() -> Option<&'static NoxConfig> {
+pub(crate) fn nox_config() -> Option<&'static NoxConfig> {
     if !is_initialized() { return None; }
-    unsafe { CONFIG.as_ref() }
+    unsafe { (*core::ptr::addr_of!(CONFIG)).as_ref() }
 }

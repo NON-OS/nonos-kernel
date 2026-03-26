@@ -14,8 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::nox::{NoxResult, NoxError};
-use alloc::string::String;
+use crate::nox::NoxResult;
 
 pub fn cmd_pin(name: &str) -> NoxResult<()> {
     let _ = name;

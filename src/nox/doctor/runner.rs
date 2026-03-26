@@ -15,7 +15,6 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use alloc::vec::Vec;
-use alloc::string::String;
 use super::check::{CheckResult, CheckSeverity};
 
 pub struct DoctorRunner {

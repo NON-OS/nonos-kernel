@@ -16,7 +16,7 @@
 
 use alloc::string::String;
 use alloc::vec::Vec;
-use crate::nox::{NoxResult, NoxError};
+use crate::nox::NoxResult;
 use crate::nox::output::Output;
 
 pub fn cmd_upgrade(formulas: &[&str]) -> NoxResult<Vec<String>> {
