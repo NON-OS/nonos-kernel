@@ -16,7 +16,7 @@
 
 use alloc::string::String;
 use alloc::vec::Vec;
-use crate::nox::{NoxResult, NoxError};
+use crate::nox::NoxResult;
 use crate::nox::output::Output;
 
 pub struct RemoveOptions {
@@ -29,7 +29,7 @@ impl Default for RemoveOptions {
     fn default() -> Self { Self { force: false, ignore_dependencies: false, zap: false } }
 }
 
-pub fn cmd_remove(formulas: &[&str], opts: &RemoveOptions) -> NoxResult<Vec<String>> {
+pub fn cmd_remove(formulas: &[&str], _opts: &RemoveOptions) -> NoxResult<Vec<String>> {
     let mut removed = Vec::new();
     for name in formulas {
         let msg = Output::arrow_green(&alloc::format!("Removing {}", name));

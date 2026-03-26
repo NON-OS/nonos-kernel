@@ -18,7 +18,7 @@ use alloc::string::String;
 use alloc::vec::Vec;
 use crate::nox::NoxResult;
 
-pub struct DepsTree {
+pub(super) struct DepsTree {
     pub name: String,
     pub deps: Vec<DepsTree>,
 }

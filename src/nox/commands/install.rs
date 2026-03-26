@@ -16,7 +16,7 @@
 
 use alloc::string::String;
 use alloc::vec::Vec;
-use crate::nox::{NoxResult, NoxError};
+use crate::nox::NoxResult;
 use crate::nox::formula::FormulaSpec;
 use crate::nox::output::Output;
 
@@ -38,7 +38,7 @@ impl Default for InstallOptions {
     }
 }
 
-pub fn cmd_install(formulas: &[&str], opts: &InstallOptions) -> NoxResult<Vec<String>> {
+pub fn cmd_install(formulas: &[&str], _opts: &InstallOptions) -> NoxResult<Vec<String>> {
     let mut installed = Vec::new();
     for name in formulas {
         let spec = FormulaSpec::parse(name);

@@ -16,7 +16,7 @@
 
 use alloc::string::String;
 use alloc::vec::Vec;
-use super::spec::{Formula, Bottle, Resource, Patch, Dependency};
+use super::spec::{Formula, Dependency};
 use crate::nox::{NoxResult, NoxError};
 
 pub struct FormulaParser;

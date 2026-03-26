@@ -57,7 +57,7 @@ impl FormulaSpec {
         if let Some(idx) = spec.find('@') {
             name = String::from(&spec[..idx]);
             version = Some(String::from(&spec[idx + 1..]));
-        } else if let Some(idx) = spec.find('/') {
+        } else if let Some(_idx) = spec.find('/') {
             let parts: Vec<&str> = spec.splitn(3, '/').collect();
             if parts.len() >= 2 {
                 tap = Some(alloc::format!("{}/{}", parts[0], parts[1]));

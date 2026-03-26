@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use alloc::string::String;
-use crate::nox::{NoxResult, NoxError};
+use crate::nox::NoxResult;
 use crate::nox::formula::FormulaSpec;
 use crate::nox::output::Output;
 

@@ -36,7 +36,6 @@ pub use github::GitHubSource;
 pub use tap::{Tap, TapRegistry};
 pub use doctor::DoctorCheck;
 pub use output::Output;
-pub use global::{init_nox, nox_config, is_initialized};
 
 pub const NOX_VERSION: &str = "1.0.0";
 pub const NOX_PREFIX: &str = "/nox";
