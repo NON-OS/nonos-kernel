@@ -16,7 +16,6 @@
 
 use crate::zk_engine::ZKError;
 use crate::zk_engine::circuit::{Circuit, CircuitBuilder, LinearCombination};
-use crate::zk_engine::groth16::FieldElement;
 
 pub(super) fn build_stealth_spend_circuit() -> Result<Circuit, ZKError> {
     let mut b = CircuitBuilder::new();
@@ -34,21 +33,4 @@ pub(super) fn build_stealth_spend_circuit() -> Result<Circuit, ZKError> {
     b.enforce_multiplication(spend_sec, spend_sec, com_int);
     b.enforce_equal(LinearCombination::from_variable(com_int), LinearCombination::from_variable(spend_com));
     b.build(6)
-}
-
-pub(super) fn build_balance_sufficiency_circuit() -> Result<Circuit, ZKError> {
-    let mut b = CircuitBuilder::new();
-    let min_req = b.alloc_input(Some("minimum_required"));
-    let bal_com = b.alloc_input(Some("balance_commitment"));
-    let actual = b.alloc_variable(Some("actual_balance"));
-    let blind = b.alloc_variable(Some("blinding_factor"));
-    let diff = b.alloc_variable(Some("difference"));
-    let com_int = b.alloc_variable(Some("commit_intermediate"));
-    b.enforce_multiplication(actual, blind, com_int);
-    b.enforce_equal(LinearCombination::from_variable(com_int), LinearCombination::from_variable(bal_com));
-    let mut diff_lc = LinearCombination::from_variable(actual);
-    diff_lc.add_term(min_req, FieldElement::zero().sub(&FieldElement::one()));
-    b.enforce_equal(LinearCombination::from_variable(diff), diff_lc);
-    b.add_range_constraint(diff, 64);
-    b.build(5)
 }

@@ -20,7 +20,7 @@ use crate::graphics::window::apps::wallet::rpc;
 use crate::graphics::window::apps::wallet::state::WALLET_STATE;
 use crate::graphics::window::apps::wallet::transaction_parse::parse_eth_to_wei;
 
-pub fn fetch_staking_state() -> Result<(), &'static str> {
+pub(super) fn fetch_staking_state() -> Result<(), &'static str> {
     if !rpc::is_rpc_available() { return Err("No network"); }
     let addr = { let s = WALLET_STATE.lock(); s.get_active_account().map(|a| a.address) }.ok_or("No account")?;
     let mut nft_data = [0u8; 36]; nft_data[0..4].copy_from_slice(&SIG_BALANCE_OF); nft_data[16..36].copy_from_slice(&addr);
@@ -42,7 +42,7 @@ pub fn fetch_staking_state() -> Result<(), &'static str> {
     Ok(())
 }
 
-pub fn stake_nox(amount: &str) -> Result<[u8; 32], &'static str> {
+pub(super) fn stake_nox(amount: &str) -> Result<[u8; 32], &'static str> {
     let wei = parse_eth_to_wei(amount).ok_or("Invalid amount")?;
     let allowance = { STAKING_STATE.lock().allowance };
     if allowance < wei { approve_nox()?; }
@@ -51,7 +51,7 @@ pub fn stake_nox(amount: &str) -> Result<[u8; 32], &'static str> {
     send_staking_tx(&data)
 }
 
-pub fn approve_nox() -> Result<[u8; 32], &'static str> {
+pub(super) fn approve_nox() -> Result<[u8; 32], &'static str> {
     use crate::graphics::window::apps::wallet::transaction_parse::derive_signing_key;
     use crate::graphics::window::apps::wallet::transaction_sign::build_and_sign_contract_tx;
     let s = WALLET_STATE.lock();
@@ -70,20 +70,14 @@ pub fn approve_nox() -> Result<[u8; 32], &'static str> {
     Ok([0u8; 32])
 }
 
-pub fn refresh_boost() -> Result<[u8; 32], &'static str> {
-    let addr = { let s = WALLET_STATE.lock(); s.get_active_account().map(|a| a.address) }.ok_or("No account")?;
-    let mut data = [0u8; 36]; data[0..4].copy_from_slice(&SIG_REFRESH_BOOST); data[16..36].copy_from_slice(&addr);
-    send_staking_tx(&data)
-}
-
-pub fn unstake_nox(amount: &str) -> Result<[u8; 32], &'static str> {
+pub(super) fn unstake_nox(amount: &str) -> Result<[u8; 32], &'static str> {
     let wei = parse_eth_to_wei(amount).ok_or("Invalid amount")?;
     let mut data = [0u8; 36]; data[0..4].copy_from_slice(&SIG_UNSTAKE);
     encode_u256(&mut data[4..36], wei);
     send_staking_tx(&data)
 }
 
-pub fn claim_rewards() -> Result<[u8; 32], &'static str> {
+pub(super) fn claim_rewards() -> Result<[u8; 32], &'static str> {
     use crate::graphics::window::apps::wallet::transaction_parse::derive_signing_key;
     use crate::graphics::window::apps::wallet::transaction_sign::build_and_sign_contract_tx;
     let s = WALLET_STATE.lock();
@@ -101,7 +95,7 @@ pub fn claim_rewards() -> Result<[u8; 32], &'static str> {
     rpc::send_raw_transaction(&tx).map_err(|_| "Tx broadcast failed")
 }
 
-pub fn request_faucet() -> Result<[u8; 32], &'static str> {
+pub(super) fn request_faucet() -> Result<[u8; 32], &'static str> {
     use crate::graphics::window::apps::wallet::transaction_parse::derive_signing_key;
     use crate::graphics::window::apps::wallet::transaction_sign::build_and_sign_contract_tx;
     let s = WALLET_STATE.lock();

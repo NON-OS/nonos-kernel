@@ -18,7 +18,7 @@ use core::sync::atomic::Ordering;
 use super::state::{STAKE_MODE, STAKE_INPUT, STAKE_INPUT_LEN, clear_stake_input};
 use crate::graphics::window::apps::wallet::state::set_status;
 
-pub fn handle_staking_click(x: u32, y: u32, w: u32) -> bool {
+pub(crate) fn handle_staking_click(x: u32, y: u32, w: u32) -> bool {
     if y >= 12 && y <= 40 && x >= w - 100 && x <= w - 24 {
         set_status(b"Refreshing...", true);
         super::state::refresh_staking_data();
@@ -68,7 +68,7 @@ fn execute_faucet() {
     else { set_status(b"Faucet failed", false); }
 }
 
-pub fn handle_staking_key(ch: u8) {
+pub(crate) fn handle_staking_key(ch: u8) {
     if ch == b'.' || (ch >= b'0' && ch <= b'9') {
         let mut input = STAKE_INPUT.lock();
         let len = STAKE_INPUT_LEN.load(Ordering::SeqCst) as usize;
@@ -76,7 +76,7 @@ pub fn handle_staking_key(ch: u8) {
     }
 }
 
-pub fn handle_staking_backspace() {
+pub(crate) fn handle_staking_backspace() {
     let len = STAKE_INPUT_LEN.load(Ordering::SeqCst) as usize;
     if len > 0 { STAKE_INPUT_LEN.store((len - 1) as u8, Ordering::SeqCst); STAKE_INPUT.lock()[len - 1] = 0; }
 }

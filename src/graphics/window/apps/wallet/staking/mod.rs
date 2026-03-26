@@ -21,5 +21,4 @@ mod input;
 mod rpc;
 
 pub(super) use render::draw_staking_view;
-pub(super) use input::handle_staking_click;
-pub(crate) use state::{refresh_staking_data, STAKING_STATE};
+pub(super) use input::{handle_staking_click, handle_staking_key, handle_staking_backspace};
