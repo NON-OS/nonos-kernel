@@ -69,6 +69,14 @@ pub(super) fn process_response() {
 
     let content_str = core::str::from_utf8(&body).unwrap_or("");
 
+    // Disable network image fetching during the synchronous render pass.
+    // The nav poll loop (which drives iface.poll) is blocked while we are
+    // inside process_response(), so any new TCP/TLS connection would
+    // deadlock waiting for packets that never get processed.
+    engine::image_loader::disable_fetch();
+
+    crate::sys::serial::println(b"[NAV] rendering page...");
+
     // Produce the rich RenderOutput for the graphics layer
     let render_output = engine::render_page_with_url(content_str, 800, &url);
 
@@ -92,6 +100,9 @@ pub(super) fn process_response() {
 
     // Also build flat text lines for backward compat (fallback link parsing)
     let (lines, _flat_links) = engine::render_to_lines_with_links(content_str);
+
+    // Re-enable network image fetching now that the render pass is done.
+    engine::image_loader::enable_fetch();
 
     crate::sys::serial::print(b"[NAV] rendered lines=");
     crate::sys::serial::print_dec(render_output.lines.len() as u64);

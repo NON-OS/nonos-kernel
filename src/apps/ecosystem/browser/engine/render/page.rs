@@ -38,7 +38,15 @@ pub fn render_page_with_url(html: &str, viewport_width: u32, base_url: &str) -> 
     let mut node_queue: VecDeque<(&crate::apps::ecosystem::browser::engine::types::Node, bool)> = VecDeque::new();
     node_queue.push_back((&document.root, false));
 
+    // Safety limit: cap the number of nodes processed to prevent runaway
+    // rendering on pathological or very large DOM trees.
+    const MAX_RENDER_NODES: u32 = 50_000;
+    let mut nodes_processed: u32 = 0;
+
     while let Some((node, is_closing)) = node_queue.pop_front() {
+        nodes_processed += 1;
+        if nodes_processed > MAX_RENDER_NODES { break; }
+
         if is_closing {
             if let NodeType::Element(tag) = &node.node_type {
                 handle_closing_tag(&mut ctx, tag);

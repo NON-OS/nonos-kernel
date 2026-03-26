@@ -23,11 +23,18 @@ use super::state::ParserState;
 use super::tags::{parse_attributes, handle_link, handle_image, handle_form, handle_input};
 use super::css::parse_hidden_classes;
 
+/// Maximum number of tags the parser will process before stopping.
+/// Prevents runaway parsing on pathological inputs.
+const MAX_TAGS: u32 = 20_000;
+
 pub fn parse_html(html: &str) -> Document {
     let mut state = ParserState::new();
     let mut chars = html.chars().peekable();
+    let mut tag_count: u32 = 0;
     while let Some(c) = chars.next() {
         if c == '<' {
+            tag_count += 1;
+            if tag_count > MAX_TAGS { break; }
             state.flush_text();
             let mut tag_content = String::new();
             while let Some(&tc) = chars.peek() { if tc == '>' { chars.next(); break; } if let Some(ch) = chars.next() { tag_content.push(ch); } }
