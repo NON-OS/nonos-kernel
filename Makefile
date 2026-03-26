@@ -94,7 +94,7 @@ ZK_KEY_SEED := nonos-production-attestation-v1-2026
 
 # Build version
 VERSION ?= $(shell git describe --tags --always --dirty 2>/dev/null || echo "dev")
-RELEASE_VERSION ?= 0.8.2
+RELEASE_VERSION ?= 0.8.3
 
 #
 # Main targets
