@@ -27,7 +27,7 @@ use super::calculator_input::handle_calculator_click;
 use super::file_manager::handle_file_manager_click;
 use super::text_editor::handle_text_editor_click;
 use super::settings::handle_settings_click;
-use super::apps::{handle_process_manager_click, handle_browser_click, handle_wallet_click, handle_ecosystem_click};
+use super::apps::{handle_process_manager_click, handle_browser_click, handle_wallet_click, handle_ecosystem_click, handle_marketplace_click, handle_developer_click, handle_agents_click};
 use super::terminal::handle_terminal_click;
 use super::input_snap::apply_snap;
 use super::input_resize::detect_resize_edge;
@@ -190,6 +190,9 @@ fn dispatch_app_click(wtype: WindowType, x: u32, y: u32, w: u32, h: u32, mx: i32
         WindowType::Browser => handle_browser_click(x, y, w, h, mx, my),
         WindowType::Wallet => handle_wallet_click(x, y, w, h, mx, my),
         WindowType::Ecosystem => handle_ecosystem_click(x, y, w, h, mx, my),
+        WindowType::Marketplace => handle_marketplace_click(x, y, w, h, mx, my),
+        WindowType::Developer => handle_developer_click(x, y, w, h, mx, my),
+        WindowType::Agents => handle_agents_click(x, y, w, h, mx, my),
         _ => false,
     }
 }
