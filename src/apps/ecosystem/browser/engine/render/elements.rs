@@ -79,12 +79,29 @@ pub(super) fn render_image(ctx: &mut RenderContext, node: &Node) {
 
 pub(super) fn render_input(ctx: &mut RenderContext, node: &Node) {
     let name = get_attribute(node, "name").unwrap_or_default();
-    let input_width = 200u32;
-    ctx.current_line_elements.push(RenderElement {
-        x: ctx.margin + ctx.current_x, width: input_width,
-        content: RenderContent::Input { name, width: input_width },
-    });
-    ctx.current_x += input_width + ctx.char_width;
+    let input_type = get_attribute(node, "type").unwrap_or_default().to_ascii_lowercase();
+    let value = get_attribute(node, "value").unwrap_or_default();
+
+    match input_type.as_str() {
+        "hidden" => { return; }
+        "submit" => {
+            let label = if value.is_empty() { String::from("Submit") } else { value };
+            let button_width = (label.len() as u32) * ctx.char_width + 20;
+            ctx.current_line_elements.push(RenderElement {
+                x: ctx.margin + ctx.current_x, width: button_width,
+                content: RenderContent::Button { text: label },
+            });
+            ctx.current_x += button_width + ctx.char_width;
+        }
+        _ => {
+            let input_width = 200u32;
+            ctx.current_line_elements.push(RenderElement {
+                x: ctx.margin + ctx.current_x, width: input_width,
+                content: RenderContent::Input { name, width: input_width },
+            });
+            ctx.current_x += input_width + ctx.char_width;
+        }
+    }
 }
 
 pub(super) fn render_button(ctx: &mut RenderContext, node: &Node) {
@@ -95,4 +112,54 @@ pub(super) fn render_button(ctx: &mut RenderContext, node: &Node) {
         content: RenderContent::Button { text },
     });
     ctx.current_x += button_width + ctx.char_width;
+}
+
+pub fn render_select(ctx: &mut RenderContext, node: &Node) {
+    let name = get_attribute(node, "name").unwrap_or_default();
+    let selected = find_selected_option(node);
+    let display_width = ((selected.len() + 4) as u32) * ctx.char_width;
+    ctx.current_line_elements.push(RenderElement {
+        x: ctx.margin + ctx.current_x, width: display_width,
+        content: RenderContent::Select { name, value: selected },
+    });
+    ctx.current_x += display_width + ctx.char_width;
+}
+
+pub fn render_textarea(ctx: &mut RenderContext, node: &Node) {
+    let name = get_attribute(node, "name").unwrap_or_default();
+    let cols: u32 = get_attribute(node, "cols").and_then(|c| c.parse().ok()).unwrap_or(40);
+    let rows: u32 = get_attribute(node, "rows").and_then(|r| r.parse().ok()).unwrap_or(4);
+    let width = cols * ctx.char_width;
+    let height = rows * ctx.line_height;
+    ctx.flush_line();
+    ctx.lines.push(RenderLine {
+        y: ctx.current_y,
+        elements: alloc::vec![RenderElement {
+            x: ctx.margin, width,
+            content: RenderContent::Textarea { name, width, height },
+        }],
+    });
+    ctx.current_y += height;
+}
+
+fn find_selected_option(node: &Node) -> String {
+    // First look for an <option> with selected attribute
+    for child in &node.children {
+        if let crate::apps::ecosystem::browser::engine::types::NodeType::Element(ref tag) = child.node_type {
+            if tag == "option" {
+                if child.attributes.iter().any(|(n, _)| n == "selected") {
+                    return extract_text(child);
+                }
+            }
+        }
+    }
+    // Fall back to first <option>'s text
+    for child in &node.children {
+        if let crate::apps::ecosystem::browser::engine::types::NodeType::Element(ref tag) = child.node_type {
+            if tag == "option" {
+                return extract_text(child);
+            }
+        }
+    }
+    String::new()
 }

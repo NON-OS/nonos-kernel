@@ -838,27 +838,27 @@ skips `<noscript>` content, so the form never renders.
 
 ### Checklist
 
-- [ ] Treat `<noscript>` as visible content in HTML parser
-- [ ] Don't skip/consume `<noscript>` children in `process_element()`
-- [ ] Add `form_action`, `form_method` to `RenderContext`
-- [ ] Handle `<form>` open/close in `process_element()` and `handle_closing_tag()`
-- [ ] Add `render_select()` with name and selected option display
-- [ ] Add `render_textarea()` with multiline input box
-- [ ] Add `RenderContent::Select { name, value }` variant
-- [ ] Add `RenderContent::Textarea { name, width, height }` variant
-- [ ] Handle `<input type="submit">` as a submit button
-- [ ] Handle `<input type="hidden">` (store value, don't render)
-- [ ] Handle `<input type="text">` (existing, verify rendering)
-- [ ] Draw `Select` variant in graphics renderer
-- [ ] Draw `Textarea` variant in graphics renderer
-- [ ] Wire form submit action to navigation (POST/GET to form.action)
-- [ ] Tests: `<noscript>` content renders as visible
-- [ ] Tests: `<form>` with inputs renders all fields
-- [ ] Tests: `<select>` shows selected option
-- [ ] Tests: `<textarea>` renders with correct dimensions
-- [ ] Tests: hidden inputs are not displayed
-- [ ] Tests: form action/method passed to submission
-- [ ] Tests: Google-style noscript search form renders
+- [x] Treat `<noscript>` as visible content in HTML parser
+- [x] Don't skip/consume `<noscript>` children in `process_element()`
+- [x] Add `form_action`, `form_method` to `RenderContext`
+- [x] Handle `<form>` open/close in `process_element()` and `handle_closing_tag()`
+- [x] Add `render_select()` with name and selected option display
+- [x] Add `render_textarea()` with multiline input box
+- [x] Add `RenderContent::Select { name, value }` variant
+- [x] Add `RenderContent::Textarea { name, width, height }` variant
+- [x] Handle `<input type="submit">` as a submit button
+- [x] Handle `<input type="hidden">` (store value, don't render)
+- [x] Handle `<input type="text">` (existing, verify rendering)
+- [x] Draw `Select` variant in graphics renderer
+- [x] Draw `Textarea` variant in graphics renderer
+- [x] Wire form submit action to navigation (POST/GET to form.action)
+- [x] Tests: `<noscript>` content renders as visible
+- [x] Tests: `<form>` with inputs renders all fields
+- [x] Tests: `<select>` shows selected option
+- [x] Tests: `<textarea>` renders with correct dimensions
+- [x] Tests: hidden inputs are not displayed
+- [x] Tests: form action/method passed to submission
+- [x] Tests: Google-style noscript search form renders
 
 ---
 

@@ -25,7 +25,7 @@ use super::block::is_block_element;
 use super::text::render_text;
 use super::closing::handle_closing_tag;
 use super::css::apply_inline_css;
-use super::elements::{render_link, render_image, render_input, render_button};
+use super::elements::{render_link, render_image, render_input, render_button, render_select, render_textarea};
 
 pub fn render_page(html: &str, viewport_width: u32) -> RenderOutput {
     render_page_with_url(html, viewport_width, "")
@@ -90,6 +90,14 @@ fn process_element(ctx: &mut RenderContext, node: &crate::apps::ecosystem::brows
         "img" => { render_image(ctx, node); true }
         "input" => { render_input(ctx, node); true }
         "button" => { render_button(ctx, node); true }
+        "select" => { render_select(ctx, node); true }
+        "textarea" => { render_textarea(ctx, node); true }
+        "form" => {
+            ctx.form_action = crate::apps::ecosystem::browser::engine::parser::get_attribute(node, "action");
+            ctx.form_method = Some(crate::apps::ecosystem::browser::engine::parser::get_attribute(node, "method")
+                .unwrap_or_else(|| alloc::string::String::from("GET")));
+            false
+        }
         _ => false
     }
 }
