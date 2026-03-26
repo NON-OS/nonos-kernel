@@ -17,7 +17,7 @@
 use core::sync::atomic::Ordering;
 use super::state::{WINDOWS, FOCUSED_WINDOW, MAX_WINDOWS, WindowType, window_type_from_u32};
 use super::text_editor::editor_key_impl;
-use super::apps::{browser_key, wallet_key, ecosystem_key};
+use super::apps::{browser_key, wallet_key, ecosystem_key, marketplace_key, developer_key, agents_key};
 use super::file_manager::{handle_file_manager_key, handle_file_manager_special_key};
 
 pub(super) fn handle_key(ch: u8) {
@@ -28,27 +28,16 @@ pub(super) fn handle_key(ch: u8) {
 
     let wtype = window_type_from_u32(WINDOWS[focused].window_type.load(Ordering::Relaxed));
     match wtype {
-        WindowType::TextEditor => {
-            editor_key_impl(ch);
-        }
-        WindowType::Terminal => {
-            super::terminal::terminal_key(ch);
-        }
-        WindowType::Browser => {
-            browser_key(ch);
-        }
-        WindowType::Wallet => {
-            wallet_key(ch);
-        }
-        WindowType::Ecosystem => {
-            ecosystem_key(ch);
-        }
-        WindowType::FileManager => {
-            handle_file_manager_key(ch);
-        }
-        WindowType::Settings => {
-            super::settings::input::handle_key(ch);
-        }
+        WindowType::TextEditor => editor_key_impl(ch),
+        WindowType::Terminal => super::terminal::terminal_key(ch),
+        WindowType::Browser => browser_key(ch),
+        WindowType::Wallet => wallet_key(ch),
+        WindowType::Ecosystem => ecosystem_key(ch),
+        WindowType::FileManager => { let _ = handle_file_manager_key(ch); },
+        WindowType::Settings => { let _ = super::settings::input::handle_key(ch); },
+        WindowType::Marketplace => marketplace_key(ch),
+        WindowType::Developer => developer_key(ch),
+        WindowType::Agents => agents_key(ch),
         _ => {}
     }
 }
