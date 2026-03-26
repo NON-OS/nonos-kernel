@@ -20,6 +20,7 @@ mod render;
 mod browser;
 mod png;
 mod svg;
+mod jpeg;
 
 pub use types::{
     Document, Node, NodeType, Link, Form, FormInput, Image, ImageData,
@@ -30,4 +31,5 @@ pub use parser::parse_html;
 pub use render::{render_page, render_to_lines, render_to_lines_with_links};
 pub use browser::BrowserEngine;
 pub use png::decode_png;
+pub use jpeg::decode_jpeg;
 pub use svg::render_svg;

@@ -574,27 +574,27 @@ NOT implementing initially:
 
 ### Checklist
 
-- [ ] Implement JFIF marker parser (SOI, SOF0, DHT, DQT, SOS, EOI)
-- [ ] Parse component info and sampling factors
-- [ ] Build Huffman tables from DHT data
-- [ ] Implement bit-stream reader
-- [ ] Decode DC coefficients (differential)
-- [ ] Decode AC coefficients (run-length)
-- [ ] Implement zigzag reorder table
-- [ ] Implement integer 8×8 IDCT (AAN algorithm)
-- [ ] Implement dequantization
-- [ ] Implement YCbCr → RGB (fixed-point, no floats)
-- [ ] Implement chroma upsampling (4:2:0, 4:2:2)
-- [ ] Handle restart markers
-- [ ] Top-level `decode_jpeg()` → `ImageData`
-- [ ] Wire into image render path (Content-Type / magic bytes detection)
-- [ ] Declare `jpeg` module in `engine/mod.rs`
-- [ ] Tests: decode 1×1 MCU baseline JPEG
-- [ ] Tests: decode multi-MCU image with 4:2:0 subsampling
-- [ ] Tests: reject progressive JPEG gracefully (return None)
-- [ ] Tests: reject truncated/corrupt JPEG gracefully
-- [ ] Tests: verify RGB output against known reference values
-- [ ] Size limit: reject images > 4096×4096 (consistent with PNG decoder)
+- [x] Implement JFIF marker parser (SOI, SOF0, DHT, DQT, SOS, EOI)
+- [x] Parse component info and sampling factors
+- [x] Build Huffman tables from DHT data
+- [x] Implement bit-stream reader
+- [x] Decode DC coefficients (differential)
+- [x] Decode AC coefficients (run-length)
+- [x] Implement zigzag reorder table
+- [x] Implement integer 8×8 IDCT (AAN algorithm)
+- [x] Implement dequantization
+- [x] Implement YCbCr → RGB (fixed-point, no floats)
+- [x] Implement chroma upsampling (4:2:0, 4:2:2)
+- [x] Handle restart markers
+- [x] Top-level `decode_jpeg()` → `ImageData`
+- [x] Wire into image render path (Content-Type / magic bytes detection)
+- [x] Declare `jpeg` module in `engine/mod.rs`
+- [x] Tests: decode 1×1 MCU baseline JPEG
+- [x] Tests: decode multi-MCU image with 4:2:0 subsampling
+- [x] Tests: reject progressive JPEG gracefully (return None)
+- [x] Tests: reject truncated/corrupt JPEG gracefully
+- [x] Tests: verify RGB output against known reference values
+- [x] Size limit: reject images > 4096×4096 (consistent with PNG decoder)
 
 ---
 
