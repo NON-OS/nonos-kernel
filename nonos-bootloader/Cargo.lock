@@ -1850,7 +1850,7 @@ dependencies = [
 
 [[package]]
 name = "nonos_boot"
-version = "1.0.3"
+version = "1.0.4"
 dependencies = [
  "ark-bls12-381",
  "ark-ff",
