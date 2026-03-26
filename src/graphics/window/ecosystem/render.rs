@@ -256,6 +256,35 @@ fn draw_render_element(
             }
         }
 
+        RenderContent::Select { ref name, ref value } => {
+            let label = if value.is_empty() { name } else { value };
+            let sw = ((label.len() as u32 + 4) * 8).min(max_width);
+            fill_rect(ex, line_y, sw, 20, COLOR_INPUT_BG);
+            draw_border_thin(ex, line_y, sw, 20, COLOR_INPUT_BORDER);
+            let mut cx = ex + 4;
+            for &ch in label.as_bytes() {
+                if cx + 8 > ex + sw - 16 { break; }
+                draw_char(cx, line_y + 2, ch, COLOR_TEXT);
+                cx += 8;
+            }
+            // Draw dropdown arrow
+            let arrow_x = ex + sw - 12;
+            draw_char(arrow_x, line_y + 2, b'v', COLOR_TEXT_DIM);
+        }
+
+        RenderContent::Textarea { ref name, width, height } => {
+            let tw = (*width).min(max_width);
+            let th = (*height).min(200);
+            fill_rect(ex, line_y, tw, th, COLOR_INPUT_BG);
+            draw_border_thin(ex, line_y, tw, th, COLOR_INPUT_BORDER);
+            let mut cx = ex + 4;
+            for &ch in name.as_bytes() {
+                if cx + 8 > ex + tw { break; }
+                draw_char(cx, line_y + 2, ch, COLOR_TEXT_DIM);
+                cx += 8;
+            }
+        }
+
         RenderContent::HorizontalRule => {
             let rule_w = max_width.saturating_sub(20);
             fill_rect(ex, line_y + 8, rule_w, 1, COLOR_TEXT_DIM);

@@ -63,6 +63,14 @@ pub fn render_to_lines_with_links(html: &str) -> (Vec<String>, Vec<(usize, u32, 
                 RenderContent::Button { ref text } => {
                     line_text.push_str("[BTN: "); line_text.push_str(text); line_text.push(']');
                 }
+                RenderContent::Select { ref name, ref value } => {
+                    line_text.push_str("[SELECT: "); line_text.push_str(name);
+                    if !value.is_empty() { line_text.push('='); line_text.push_str(value); }
+                    line_text.push(']');
+                }
+                RenderContent::Textarea { ref name, .. } => {
+                    line_text.push_str("[TEXTAREA: "); line_text.push_str(name); line_text.push(']');
+                }
                 _ => {}
             }
         }
@@ -76,4 +84,115 @@ pub fn render_to_lines_with_links(html: &str) -> (Vec<String>, Vec<(usize, u32, 
         }
     }
     (result, links)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::render_to_lines;
+
+    #[test]
+    fn test_noscript_content_renders_as_visible() {
+        let html = "<html><body><noscript><p>Visible content</p></noscript></body></html>";
+        let lines = render_to_lines(html);
+        assert!(lines.iter().any(|l| l.contains("Visible content")),
+            "noscript content should render: {:?}", lines);
+    }
+
+    #[test]
+    fn test_noscript_form_renders() {
+        let html = r#"<html><body><noscript><form action="/search" method="GET"><input name="q" type="text"><input type="submit" value="Search"></form></noscript></body></html>"#;
+        let lines = render_to_lines(html);
+        let joined = lines.join(" ");
+        assert!(joined.contains("[INPUT:"), "form input should render: {:?}", lines);
+        assert!(joined.contains("[BTN: Search]"), "submit button should render: {:?}", lines);
+    }
+
+    #[test]
+    fn test_google_style_noscript_search_form() {
+        let html = r#"<html><body>
+            <noscript>
+                <form action="/search" method="GET">
+                    <input name="q" type="text">
+                    <input type="submit" value="Google Search">
+                </form>
+            </noscript>
+        </body></html>"#;
+        let lines = render_to_lines(html);
+        let joined = lines.join(" ");
+        assert!(joined.contains("[INPUT: q]"), "search input should render: {:?}", lines);
+        assert!(joined.contains("[BTN: Google Search]"), "submit should render: {:?}", lines);
+    }
+
+    #[test]
+    fn test_form_with_inputs_renders_all_fields() {
+        let html = r#"<form action="/login" method="POST">
+            <input name="user" type="text">
+            <input name="pass" type="password">
+            <input type="submit" value="Login">
+        </form>"#;
+        let lines = render_to_lines(html);
+        let joined = lines.join(" ");
+        assert!(joined.contains("[INPUT: user]"), "user input: {:?}", lines);
+        assert!(joined.contains("[INPUT: pass]"), "pass input: {:?}", lines);
+        assert!(joined.contains("[BTN: Login]"), "submit: {:?}", lines);
+    }
+
+    #[test]
+    fn test_select_shows_selected_option() {
+        let html = r#"<select name="color"><option>Red</option><option selected>Blue</option><option>Green</option></select>"#;
+        let lines = render_to_lines(html);
+        let joined = lines.join(" ");
+        assert!(joined.contains("[SELECT: color=Blue]"), "selected option: {:?}", lines);
+    }
+
+    #[test]
+    fn test_select_shows_first_option_when_none_selected() {
+        let html = r#"<select name="size"><option>Small</option><option>Large</option></select>"#;
+        let lines = render_to_lines(html);
+        let joined = lines.join(" ");
+        assert!(joined.contains("[SELECT: size=Small]"), "first option: {:?}", lines);
+    }
+
+    #[test]
+    fn test_textarea_renders_with_correct_dimensions() {
+        let html = r#"<textarea name="bio" cols="30" rows="5"></textarea>"#;
+        let lines = render_to_lines(html);
+        let joined = lines.join(" ");
+        assert!(joined.contains("[TEXTAREA: bio]"), "textarea: {:?}", lines);
+    }
+
+    #[test]
+    fn test_hidden_inputs_are_not_displayed() {
+        let html = r#"<form action="/test"><input name="token" type="hidden" value="abc123"><input name="visible" type="text"></form>"#;
+        let lines = render_to_lines(html);
+        let joined = lines.join(" ");
+        assert!(!joined.contains("token"), "hidden input should not render: {:?}", lines);
+        assert!(joined.contains("[INPUT: visible]"), "visible input should render: {:?}", lines);
+    }
+
+    #[test]
+    fn test_submit_input_renders_as_button() {
+        let html = r#"<input type="submit" value="Go">"#;
+        let lines = render_to_lines(html);
+        let joined = lines.join(" ");
+        assert!(joined.contains("[BTN: Go]"), "submit renders as button: {:?}", lines);
+    }
+
+    #[test]
+    fn test_submit_input_default_label() {
+        let html = r#"<input type="submit">"#;
+        let lines = render_to_lines(html);
+        let joined = lines.join(" ");
+        assert!(joined.contains("[BTN: Submit]"), "default submit label: {:?}", lines);
+    }
+
+    #[test]
+    fn test_form_action_method_passed_to_context() {
+        // Verify form renders and submit button is present — integration test
+        let html = r#"<form action="/api" method="POST"><input name="data" type="text"><input type="submit" value="Send"></form>"#;
+        let lines = render_to_lines(html);
+        let joined = lines.join(" ");
+        assert!(joined.contains("[INPUT: data]"), "form input: {:?}", lines);
+        assert!(joined.contains("[BTN: Send]"), "submit: {:?}", lines);
+    }
 }

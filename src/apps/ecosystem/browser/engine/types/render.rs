@@ -42,6 +42,8 @@ pub enum RenderContent {
     DecodedImage { data: ImageData },
     Input { name: String, width: u32 },
     Button { text: String },
+    Select { name: String, value: String },
+    Textarea { name: String, width: u32, height: u32 },
     Canvas { data: ImageData },
     Svg { data: ImageData },
     LineBreak,

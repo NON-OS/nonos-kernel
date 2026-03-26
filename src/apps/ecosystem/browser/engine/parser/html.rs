@@ -97,7 +97,8 @@ fn process_noscript(state: &mut ParserState, chars: &mut core::iter::Peekable<co
                 state.flush_text();
                 let mut tag_content = String::new();
                 while let Some(&tc) = inner_chars.peek() { if tc == '>' { inner_chars.next(); break; } if let Some(ch) = inner_chars.next() { tag_content.push(ch); } }
-                if tag_content.starts_with("!--") || tag_content.starts_with('/') { continue; }
+                if tag_content.starts_with("!--") { continue; }
+                if tag_content.starts_with('/') { handle_close_tag(state, &tag_content[1..].trim().to_ascii_lowercase()); continue; }
                 process_open_tag(state, &tag_content, &mut inner_chars);
             } else { state.text_buffer.push(c); }
         }

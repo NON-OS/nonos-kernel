@@ -23,12 +23,43 @@ use super::state::ParserState;
 
 pub(super) fn parse_attributes(parts: &[&str]) -> Vec<(String, String)> {
     let mut attributes = Vec::new();
-    for part in parts.iter().skip(1) {
+    let mut i = 1; // skip tag name
+    while i < parts.len() {
+        let part = parts[i];
         if let Some(eq_pos) = part.find('=') {
             let name = &part[..eq_pos];
-            let value = part[eq_pos + 1..].trim_matches(|c| c == '"' || c == '\'');
-            attributes.push((String::from(name), String::from(value)));
+            let raw_value = &part[eq_pos + 1..];
+            // Check if value starts with a quote but doesn't end with one (split mid-quote)
+            let starts_quote = raw_value.starts_with('"') || raw_value.starts_with('\'');
+            let quote_char = if starts_quote { raw_value.as_bytes()[0] } else { 0 };
+            let ends_quote = raw_value.len() > 1 && raw_value.as_bytes()[raw_value.len() - 1] == quote_char;
+            if starts_quote && !ends_quote {
+                // Rejoin space-split quoted value
+                let mut joined = String::from(&raw_value[1..]); // strip opening quote
+                i += 1;
+                while i < parts.len() {
+                    let next = parts[i];
+                    joined.push(' ');
+                    if next.ends_with(quote_char as char) {
+                        joined.push_str(&next[..next.len() - 1]); // strip closing quote
+                        break;
+                    }
+                    joined.push_str(next);
+                    i += 1;
+                }
+                attributes.push((String::from(name), joined));
+            } else {
+                let value = raw_value.trim_matches(|c| c == '"' || c == '\'');
+                attributes.push((String::from(name), String::from(value)));
+            }
+        } else {
+            // Boolean attribute (e.g., "selected", "disabled", "checked")
+            let name = part.trim_matches(|c: char| c == '"' || c == '\'' || c == '/');
+            if !name.is_empty() {
+                attributes.push((String::from(name), String::new()));
+            }
         }
+        i += 1;
     }
     attributes
 }

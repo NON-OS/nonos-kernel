@@ -39,6 +39,11 @@ pub(super) fn handle_closing_tag(ctx: &mut RenderContext, tag: &str) {
         "ul" | "ol" => {
             ctx.flush_line();
         }
+        "form" => {
+            ctx.flush_line();
+            ctx.form_action = None;
+            ctx.form_method = None;
+        }
         _ => {}
     }
 }
