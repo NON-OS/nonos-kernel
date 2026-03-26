@@ -647,3 +647,243 @@ subsequent sprints, roughly prioritized:
 6. **TLS 1.2 Fallback** — for legacy/enterprise servers
 7. **Progressive JPEG** — multi-pass rendering for large images
 8. **WebP/GIF** — additional image formats
+
+---
+
+## Sprint 2 — Image Loading & No-JS Form Rendering
+
+Two phases that close the gap between having decoders and actually displaying content.
+
+### Phase 6 — Image Loading Pipeline
+
+**Goal:** When the render engine encounters `<img src="...">`, fetch the image bytes,
+detect format, decode to `ImageData`, and emit `RenderContent::DecodedImage` so the
+graphics layer blits actual pixels instead of the `[IMG WxH]` placeholder.
+
+**Files to create/modify:**
+
+| File | Purpose |
+|------|---------|
+| `engine/image_loader.rs` (new) | `load_image(src, base_url) -> Option<ImageData>` — resolve relative URL, HTTP GET, detect format, decode |
+| `engine/render/elements.rs` (mod) | `render_image()` calls `load_image()`, emits `DecodedImage` on success, falls back to placeholder |
+| `engine/render/page.rs` (mod) | Pass base URL into render context so relative `src` can be resolved |
+| `engine/render/context.rs` (mod) | Add `base_url: String` field to `RenderContext` |
+| `navigate/response.rs` (mod) | Pass page URL to `render_page()` |
+
+**Implementation details:**
+
+1. **URL resolution:**
+   ```rust
+   fn resolve_url(src: &str, base_url: &str) -> Option<String> {
+       if src.starts_with("http://") || src.starts_with("https://") {
+           Some(String::from(src))
+       } else if src.starts_with("//") {
+           // protocol-relative
+           let scheme = if base_url.starts_with("https") { "https:" } else { "http:" };
+           Some(alloc::format!("{}{}", scheme, src))
+       } else if src.starts_with('/') {
+           // absolute path — extract origin from base_url
+           extract_origin(base_url).map(|o| alloc::format!("{}{}", o, src))
+       } else {
+           // relative path
+           extract_base_path(base_url).map(|b| alloc::format!("{}{}", b, src))
+       }
+   }
+   ```
+
+2. **Format detection (magic bytes):**
+   ```rust
+   fn detect_image_format(data: &[u8]) -> ImageFormat {
+       if data.len() >= 2 && data[0] == 0xFF && data[1] == 0xD8 {
+           ImageFormat::Jpeg
+       } else if data.len() >= 8 && &data[0..8] == b"\x89PNG\r\n\x1a\n" {
+           ImageFormat::Png
+       } else {
+           ImageFormat::Unknown
+       }
+   }
+   ```
+
+3. **Decode dispatch:**
+   ```rust
+   pub fn load_image(src: &str, base_url: &str) -> Option<ImageData> {
+       let url = resolve_url(src, base_url)?;
+       let data = fetch_image_bytes(&url)?;
+       match detect_image_format(&data) {
+           ImageFormat::Jpeg => decode_jpeg(&data),
+           ImageFormat::Png  => decode_png(&data),
+           ImageFormat::Unknown => None,
+       }
+   }
+   ```
+
+4. **Render integration:**
+   - `render_image()` attempts `load_image(src, ctx.base_url)`
+   - On success: emit `RenderContent::DecodedImage { data }`
+   - On failure: fall back to current placeholder `RenderContent::Image { alt, ... }`
+   - Limit: skip fetch for images > 2 MiB response, > 4096×4096 decoded
+
+5. **HTTP fetch for images:**
+   - Reuse existing HTTP client / connection pool from Phase 2
+   - Accept header: `image/jpeg, image/png, */*`
+   - Follow redirects (existing redirect logic)
+   - Timeout: 10s per image, max 8 images per page load
+
+### Checklist
+
+- [ ] Create `engine/image_loader.rs` with `load_image()`, `resolve_url()`, `detect_image_format()`
+- [ ] Add `ImageFormat` enum (Jpeg, Png, Unknown)
+- [ ] Implement URL resolution (absolute, protocol-relative, path-relative)
+- [ ] Implement format detection via magic bytes
+- [ ] Implement `fetch_image_bytes()` using existing HTTP client
+- [ ] Wire `load_image()` into `render_image()` in `elements.rs`
+- [ ] Add `base_url` to `RenderContext`
+- [ ] Pass page URL through `render_page()` → `RenderContext`
+- [ ] Update `response.rs` to pass URL to `render_page()`
+- [ ] Emit `RenderContent::DecodedImage` on successful decode
+- [ ] Fall back to placeholder on decode failure
+- [ ] Enforce 2 MiB fetch limit and 4096×4096 decode limit
+- [ ] Limit concurrent image fetches (max 8 per page)
+- [ ] Tests: resolve absolute URL
+- [ ] Tests: resolve relative URL
+- [ ] Tests: resolve protocol-relative URL
+- [ ] Tests: detect JPEG magic bytes
+- [ ] Tests: detect PNG magic bytes
+- [ ] Tests: unknown format returns None
+- [ ] Tests: load_image with valid JPEG bytes → ImageData
+- [ ] Tests: load_image with invalid data → None
+
+---
+
+### Phase 7 — No-JS Form Rendering & `<noscript>` Support
+
+**Goal:** Render HTML `<form>` elements with their `<input>`, `<select>`, `<textarea>`,
+and submit buttons so that sites like Google Search work without JavaScript. Parse
+`<noscript>` blocks as visible content (since we have no JS engine).
+
+**Why Google doesn't work today:** Google wraps its search form in `<noscript>` tags
+(fallback for no-JS browsers) and hides the JS-dependent version. Our parser currently
+skips `<noscript>` content, so the form never renders.
+
+**Files to create/modify:**
+
+| File | Purpose |
+|------|---------|
+| `engine/parser/noscript.rs` (new) | Parse `<noscript>` blocks as visible content |
+| `engine/parser/mod.rs` (mod) | Register noscript handling |
+| `engine/render/elements.rs` (mod) | Add `render_select()`, `render_textarea()`, `render_form()` |
+| `engine/render/page.rs` (mod) | Handle `<form>`, `<select>`, `<option>`, `<textarea>`, `<noscript>` in `process_element()` |
+| `engine/render/context.rs` (mod) | Add `form_action: Option<String>`, `form_method: Option<String>` to `RenderContext` |
+| `engine/form/mod.rs` (mod) | Wire form submission for rendered forms (existing Phase 4 infra) |
+
+**Implementation details:**
+
+1. **`<noscript>` as visible content:**
+   - In the HTML parser, treat `<noscript>` like a `<div>` — parse its children normally
+   - This is correct behavior for a no-JS browser: `<noscript>` content is shown when JS is disabled
+   - In `process_element()`, don't consume `<noscript>` — let children render
+
+2. **`<form>` tracking:**
+   ```rust
+   // In process_element:
+   "form" => {
+       ctx.form_action = get_attribute(node, "action");
+       ctx.form_method = Some(get_attribute(node, "method").unwrap_or_else(|| String::from("GET")));
+       false // don't consume — let children render
+   }
+   ```
+
+3. **`<select>` rendering:**
+   ```rust
+   pub fn render_select(ctx: &mut RenderContext, node: &Node) {
+       let name = get_attribute(node, "name").unwrap_or_default();
+       // Find first <option> or selected option
+       let selected = find_selected_option(node)
+           .or_else(|| find_first_option(node))
+           .unwrap_or_default();
+       let width = ((selected.len() + 4) as u32) * ctx.char_width;
+       ctx.current_line_elements.push(RenderElement {
+           x: ctx.margin + ctx.current_x, width,
+           content: RenderContent::Select { name, value: selected },
+       });
+       ctx.current_x += width + ctx.char_width;
+   }
+   ```
+
+4. **`<textarea>` rendering:**
+   ```rust
+   pub fn render_textarea(ctx: &mut RenderContext, node: &Node) {
+       let name = get_attribute(node, "name").unwrap_or_default();
+       let cols: u32 = get_attribute(node, "cols").and_then(|c| c.parse().ok()).unwrap_or(40);
+       let rows: u32 = get_attribute(node, "rows").and_then(|r| r.parse().ok()).unwrap_or(4);
+       let width = cols * ctx.char_width;
+       let height = rows * ctx.line_height;
+       // Render as multi-line input box
+       ctx.flush_line();
+       ctx.lines.push(RenderLine {
+           y: ctx.current_y,
+           elements: alloc::vec![RenderElement {
+               x: ctx.margin, width,
+               content: RenderContent::Textarea { name, width, height },
+           }],
+       });
+       ctx.current_y += height;
+   }
+   ```
+
+5. **Submit via form action:**
+   - `<input type="submit">` and `<button type="submit">` trigger navigation to `form.action`
+   - Collect all `<input>` values in the current form context
+   - Use Phase 4's form encoding (url-encode for GET, multipart for POST)
+
+### Checklist
+
+- [ ] Treat `<noscript>` as visible content in HTML parser
+- [ ] Don't skip/consume `<noscript>` children in `process_element()`
+- [ ] Add `form_action`, `form_method` to `RenderContext`
+- [ ] Handle `<form>` open/close in `process_element()` and `handle_closing_tag()`
+- [ ] Add `render_select()` with name and selected option display
+- [ ] Add `render_textarea()` with multiline input box
+- [ ] Add `RenderContent::Select { name, value }` variant
+- [ ] Add `RenderContent::Textarea { name, width, height }` variant
+- [ ] Handle `<input type="submit">` as a submit button
+- [ ] Handle `<input type="hidden">` (store value, don't render)
+- [ ] Handle `<input type="text">` (existing, verify rendering)
+- [ ] Draw `Select` variant in graphics renderer
+- [ ] Draw `Textarea` variant in graphics renderer
+- [ ] Wire form submit action to navigation (POST/GET to form.action)
+- [ ] Tests: `<noscript>` content renders as visible
+- [ ] Tests: `<form>` with inputs renders all fields
+- [ ] Tests: `<select>` shows selected option
+- [ ] Tests: `<textarea>` renders with correct dimensions
+- [ ] Tests: hidden inputs are not displayed
+- [ ] Tests: form action/method passed to submission
+- [ ] Tests: Google-style noscript search form renders
+
+---
+
+### Sprint 2 Dependency Graph
+
+```
+Phase 6: Image Loading Pipeline
+    │
+    │   Uses: Phase 2 (HTTP pool), Phase 5 (JPEG decoder), existing PNG decoder
+    │   Independent of Phase 7
+    │
+Phase 7: No-JS Forms & <noscript>
+    │
+    │   Uses: Phase 4 (form submission), existing HTML parser
+    │   Independent of Phase 6
+    │
+ Both phases can proceed in parallel
+```
+
+### Sprint 2 Success Criteria
+
+| Metric | Before | After |
+|--------|--------|-------|
+| Image display | `[IMG WxH]` placeholder | Actual decoded JPEG/PNG pixels |
+| Google search form | Not visible | Renders via `<noscript>` fallback |
+| `<select>` dropdowns | Ignored | Displayed with selected value |
+| `<textarea>` fields | Ignored | Rendered as multiline input |
+| Form submission from rendered page | Not possible | Works via form action URL |
