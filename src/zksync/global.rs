@@ -33,7 +33,7 @@ pub fn is_initialized() -> bool {
     INITIALIZED.load(Ordering::Acquire)
 }
 
-pub fn get_config() -> Option<&'static ZkSyncConfig> {
+pub(crate) fn get_config() -> Option<&'static ZkSyncConfig> {
     if !is_initialized() { return None; }
-    unsafe { CONFIG.as_ref() }
+    unsafe { (*core::ptr::addr_of!(CONFIG)).as_ref() }
 }
