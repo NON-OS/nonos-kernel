@@ -20,7 +20,7 @@ use core::sync::atomic::Ordering;
 use super::buffers::{RX_BUFFER, TX_BUFFERS};
 use super::constants::*;
 use super::core::Rtl8139;
-use crate::sys::io::{inb, inl, outb, outl, outw};
+use crate::sys::io::{inb, outb, outl, outw};
 use crate::sys::serial;
 
 impl Rtl8139 {
@@ -37,7 +37,7 @@ impl Rtl8139 {
 
         self.read_mac();
 
-        let rx_addr = unsafe { addr_of!(RX_BUFFER) as u64 };
+        let rx_addr = addr_of!(RX_BUFFER) as u64;
         unsafe { outl(self.io_base + REG_RXBUF, rx_addr as u32) };
 
         for i in 0..NUM_TX_BUFFERS {

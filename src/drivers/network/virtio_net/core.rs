@@ -17,10 +17,8 @@
 extern crate alloc;
 
 use alloc::vec::Vec;
-use core::sync::atomic::{AtomicBool, Ordering};
+use core::sync::atomic::AtomicBool;
 use spin::Mutex;
-
-use super::constants::REG_MAC_BASE;
 use super::global::find_virtio_net_device;
 use super::virtqueue::Virtqueue;
 use crate::bus::pci::{enable_bus_master, enable_memory_space};
@@ -65,15 +63,13 @@ impl VirtioNet {
         use super::descriptors::*;
         use core::ptr::addr_of_mut;
 
-        unsafe {
-            Self {
-                io_base,
-                mac: [0; 6],
-                initialized: AtomicBool::new(false),
-                rx_queue: Mutex::new(Virtqueue::new(addr_of_mut!(RX_DESCS), addr_of_mut!(RX_AVAIL), addr_of_mut!(RX_USED))),
-                tx_queue: Mutex::new(Virtqueue::new(addr_of_mut!(TX_DESCS), addr_of_mut!(TX_AVAIL), addr_of_mut!(TX_USED))),
-                rx_packets: Mutex::new(Vec::new()),
-            }
+        Self {
+            io_base,
+            mac: [0; 6],
+            initialized: AtomicBool::new(false),
+            rx_queue: Mutex::new(Virtqueue::new(addr_of_mut!(RX_DESCS), addr_of_mut!(RX_AVAIL), addr_of_mut!(RX_USED))),
+            tx_queue: Mutex::new(Virtqueue::new(addr_of_mut!(TX_DESCS), addr_of_mut!(TX_AVAIL), addr_of_mut!(TX_USED))),
+            rx_packets: Mutex::new(Vec::new()),
         }
     }
 }

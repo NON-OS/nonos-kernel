@@ -17,7 +17,7 @@
 extern crate alloc;
 
 use alloc::vec::Vec;
-use core::sync::atomic::{AtomicBool, AtomicU32, Ordering};
+use core::sync::atomic::{AtomicBool, AtomicU32};
 use spin::Mutex;
 
 use super::global::find_rtl8139_device;
