@@ -141,7 +141,7 @@ fn nox_info(args: &[&str]) {
     let _ = crate::nox::commands::cmd_info(args[0]);
 }
 
-fn nox_list(args: &[&str]) {
+fn nox_list(_args: &[&str]) {
     let _ = crate::nox::commands::cmd_list();
 }
 

@@ -128,6 +128,8 @@ pub mod zksync;
 pub mod nox;
 pub mod test;
 pub mod npkg;
+pub mod sdk;
+pub mod agents;
 
 pub use arch::x86_64::time as time;
 pub use fs as filesystem;

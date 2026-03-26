@@ -24,3 +24,9 @@ pub use terminal::*;
 pub use commands::*;
 pub use output::{print_line as unified_print, enable_gui_output, disable_gui_output};
 pub use init::init;
+
+pub fn execute_and_capture(cmd: &[u8]) -> alloc::vec::Vec<u8> {
+    commands::pipeline::start_capture();
+    commands::execute_for_gui(cmd);
+    commands::pipeline::stop_capture()
+}
