@@ -80,6 +80,25 @@ pub(super) fn process_response() {
     // Produce the rich RenderOutput for the graphics layer
     let render_output = engine::render_page_with_url(content_str, 800, &url);
 
+    // Re-enable network image fetching now that the render pass is done.
+    engine::image_loader::enable_fetch();
+
+    // If the page has a <noscript> meta-refresh redirect (e.g. Google's no-JS
+    // fallback), follow it instead of displaying the JS-heavy version.
+    if let Some(ref redirect) = render_output.noscript_redirect {
+        let target = resolve_noscript_redirect(&url, redirect);
+        let count = REDIRECT_COUNT.load(Ordering::Relaxed);
+        if count < MAX_REDIRECTS {
+            crate::sys::serial::print(b"[NAV] noscript redirect -> ");
+            crate::sys::serial::println(target.as_bytes());
+            REDIRECT_COUNT.fetch_add(1, Ordering::Relaxed);
+            cleanup_navigation();
+            set_state(NavState::Done);
+            super::api::navigate_internal(&target);
+            return;
+        }
+    }
+
     // Extract links from the RenderOutput line/element structure so that
     // link coordinates are consistent with the pixel rendering.
     // PageLink.line   = index into render_output.lines
@@ -101,9 +120,6 @@ pub(super) fn process_response() {
     // Also build flat text lines for backward compat (fallback link parsing)
     let (lines, _flat_links) = engine::render_to_lines_with_links(content_str);
 
-    // Re-enable network image fetching now that the render pass is done.
-    engine::image_loader::enable_fetch();
-
     crate::sys::serial::print(b"[NAV] rendered lines=");
     crate::sys::serial::print_dec(render_output.lines.len() as u64);
     crate::sys::serial::print(b", links=");
@@ -119,6 +135,29 @@ pub(super) fn process_response() {
         window_state::PAGE_TOTAL_LINES.store(render_output.lines.len(), Ordering::Relaxed);
         page_content.extend(lines);
     }
+    // Collect placeholder images that have fetchable URLs for async loading.
+    let mut pending = PENDING_IMAGES.lock();
+    pending.clear();
+    for (line_idx, render_line) in render_output.lines.iter().enumerate() {
+        for (elem_idx, elem) in render_line.elements.iter().enumerate() {
+            if let engine::RenderContent::Image { ref src, .. } = elem.content {
+                if !src.is_empty()
+                    && (src.starts_with("https://") || src.starts_with("http://"))
+                {
+                    pending.push((line_idx, elem_idx, src.clone()));
+                }
+            }
+        }
+    }
+    let img_count = pending.len();
+    drop(pending);
+
+    if img_count > 0 {
+        crate::sys::serial::print(b"[NAV] queued async images: ");
+        crate::sys::serial::print_dec(img_count as u64);
+        crate::sys::serial::println(b"");
+    }
+
     {
         *window_state::PAGE_RENDER.lock() = Some(render_output);
     }
@@ -126,8 +165,20 @@ pub(super) fn process_response() {
     window_state::LOADING.store(false, Ordering::Relaxed);
     window_state::mark_content_changed();
 
+    // Save navigation context for same-host image optimisation before cleanup
+    // clears PENDING_HOST / RESOLVED_IP.
+    let nav_host = PENDING_HOST.lock().clone().unwrap_or_default();
+    let nav_ip = *RESOLVED_IP.lock();
+    super::image_fetch::set_nav_context(&nav_host, nav_ip);
+
     cleanup_navigation();
-    set_state(NavState::Done);
+
+    if img_count > 0 {
+        super::image_fetch::reset();
+        set_state(NavState::LoadingImages);
+    } else {
+        set_state(NavState::Done);
+    }
 }
 
 /// Check if the HTTP response is a redirect (301/302/303/307/308) and extract
@@ -174,6 +225,25 @@ fn resolve_relative_url(base: &str, relative: &str) -> String {
     }
     // Fallback: treat as absolute
     String::from(relative)
+}
+
+/// Resolve a noscript meta-refresh URL against the current page URL.
+/// Handles: absolute URLs, absolute paths, and query-only redirects like `?gbv=1`.
+fn resolve_noscript_redirect(base: &str, redirect: &str) -> String {
+    if redirect.starts_with("http://") || redirect.starts_with("https://") {
+        return String::from(redirect);
+    }
+    if redirect.starts_with('/') {
+        return resolve_relative_url(base, redirect);
+    }
+    if redirect.starts_with('?') {
+        // Query-only: append to base URL's path (strip old query)
+        let base_no_query = base.split('?').next().unwrap_or(base);
+        let mut result = String::from(base_no_query);
+        result.push_str(redirect);
+        return result;
+    }
+    resolve_relative_url(base, redirect)
 }
 
 pub(super) fn find_header_end(data: &[u8]) -> Option<usize> {

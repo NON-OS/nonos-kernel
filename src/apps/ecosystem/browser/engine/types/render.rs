@@ -38,7 +38,7 @@ pub struct RenderElement {
 pub enum RenderContent {
     Text { text: String, style: TextStyle },
     Link { text: String, href: String },
-    Image { alt: String, width: u32, height: u32 },
+    Image { alt: String, width: u32, height: u32, src: String },
     DecodedImage { data: ImageData },
     Input { name: String, width: u32 },
     Button { text: String },
@@ -68,4 +68,6 @@ pub struct RenderOutput {
     pub lines: Vec<RenderLine>,
     pub total_height: u32,
     pub links: Vec<(u32, u32, u32, u32, String)>,
+    /// URL from `<meta http-equiv="refresh">` inside `<noscript>`, if any.
+    pub noscript_redirect: Option<String>,
 }

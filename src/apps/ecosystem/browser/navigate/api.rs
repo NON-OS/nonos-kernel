@@ -146,6 +146,10 @@ pub fn poll_navigation() {
     match state {
         NavState::Idle | NavState::Done => {}
 
+        NavState::LoadingImages => {
+            super::image_fetch::poll_image_fetch();
+        }
+
         NavState::ResolvingDns => {
             match dns_poll() {
                 AsyncResult::Ready(ip) => {
@@ -222,6 +226,10 @@ pub fn cancel_navigation() {
         NavState::TlsHandshake | NavState::SendingRequest | NavState::ReceivingResponse => {
             cleanup_https();
         }
+        NavState::LoadingImages => {
+            super::image_fetch::abort();
+            PENDING_IMAGES.lock().clear();
+        }
         _ => {}
     }
 
@@ -252,5 +260,48 @@ fn start_connection(ip: [u8; 4]) {
         start_https_connection(ip, port);
     } else {
         start_http_connection(ip, port);
+    }
+}
+
+/// Fetch one pending image per poll tick, then replace its placeholder in
+/// `PAGE_RENDER` with decoded pixel data. Transitions to `Done` when the
+/// queue is empty or after too many failures.
+///
+/// DEPRECATED: replaced by `image_fetch::poll_image_fetch()` which uses
+/// non-blocking TCP/TLS instead of the synchronous HTTP client.
+#[allow(dead_code)]
+fn poll_load_images() {
+    use crate::apps::ecosystem::browser::engine;
+
+    let entry = PENDING_IMAGES.lock().pop();
+    let (line_idx, elem_idx, url) = match entry {
+        Some(e) => e,
+        None => {
+            set_state(NavState::Done);
+            return;
+        }
+    };
+
+    crate::sys::serial::print(b"[NAV] async img fetch: ");
+    crate::sys::serial::println(url.as_bytes());
+
+    // Attempt to load and decode
+    if let Some(data) = engine::image_loader::load_image(&url, "") {
+        let mut page = window_state::PAGE_RENDER.lock();
+        if let Some(ref mut ro) = *page {
+            if let Some(line) = ro.lines.get_mut(line_idx) {
+                if let Some(elem) = line.elements.get_mut(elem_idx) {
+                    elem.content = engine::RenderContent::DecodedImage { data };
+                }
+            }
+        }
+        drop(page);
+        window_state::mark_content_changed();
+    }
+
+    // Check if more images remain
+    if PENDING_IMAGES.lock().is_empty() {
+        crate::sys::serial::println(b"[NAV] async image loading done");
+        set_state(NavState::Done);
     }
 }

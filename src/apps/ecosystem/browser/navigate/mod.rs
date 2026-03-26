@@ -20,6 +20,7 @@ mod http;
 mod https;
 mod response;
 mod decompress;
+mod image_fetch;
 mod api;
 
 pub use api::{start, stop, is_running, is_navigating, navigate, navigate_with_post, poll_navigation, cancel_navigation};
