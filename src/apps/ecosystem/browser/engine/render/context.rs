@@ -20,9 +20,7 @@ use alloc::string::String;
 use alloc::vec::Vec;
 use crate::apps::ecosystem::browser::engine::types::{RenderLine, RenderElement, TextStyle};
 
-pub enum ListCtx { Unordered, Ordered(u32) }
-
-pub struct RenderContext {
+pub(super) struct RenderContext {
     pub lines: Vec<RenderLine>,
     pub links: Vec<(u32, u32, u32, u32, String)>,
     pub current_y: u32,
@@ -30,7 +28,6 @@ pub struct RenderContext {
     pub current_line_elements: Vec<RenderElement>,
     pub style_stack: Vec<TextStyle>,
     pub current_style: TextStyle,
-    pub list_stack: Vec<ListCtx>,
     pub indent_level: u32,
     pub line_height: u32,
     pub char_width: u32,
@@ -40,7 +37,7 @@ pub struct RenderContext {
 }
 
 impl RenderContext {
-    pub fn new(viewport_width: u32) -> Self {
+    pub(super) fn new(viewport_width: u32) -> Self {
         let margin = 10u32;
         Self {
             lines: Vec::new(),
@@ -50,7 +47,6 @@ impl RenderContext {
             current_line_elements: Vec::new(),
             style_stack: Vec::new(),
             current_style: TextStyle::default(),
-            list_stack: Vec::new(),
             indent_level: 0,
             line_height: 20,
             char_width: 8,
@@ -60,7 +56,7 @@ impl RenderContext {
         }
     }
 
-    pub fn flush_line(&mut self) {
+    pub(super) fn flush_line(&mut self) {
         if !self.current_line_elements.is_empty() {
             self.lines.push(RenderLine {
                 y: self.current_y,

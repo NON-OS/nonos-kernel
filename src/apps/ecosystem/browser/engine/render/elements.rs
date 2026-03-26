@@ -16,12 +16,11 @@
 
 extern crate alloc;
 
-use alloc::string::String;
 use crate::apps::ecosystem::browser::engine::types::{Node, RenderElement, RenderContent, RenderLine};
 use crate::apps::ecosystem::browser::engine::parser::{get_attribute, extract_text};
-use super::context::{RenderContext, ListCtx};
+use super::context::RenderContext;
 
-pub fn render_link(ctx: &mut RenderContext, node: &Node) {
+pub(super) fn render_link(ctx: &mut RenderContext, node: &Node) {
     let href = get_attribute(node, "href").unwrap_or_default();
     let link_text = extract_text(node);
     let link_width = (link_text.len() as u32) * ctx.char_width;
@@ -37,7 +36,7 @@ pub fn render_link(ctx: &mut RenderContext, node: &Node) {
     ctx.current_x += link_width + ctx.char_width;
 }
 
-pub fn render_image(ctx: &mut RenderContext, node: &Node) {
+pub(super) fn render_image(ctx: &mut RenderContext, node: &Node) {
     let alt = get_attribute(node, "alt").unwrap_or_default();
     let width: u32 = get_attribute(node, "width").and_then(|w| w.parse().ok()).unwrap_or(200);
     let height: u32 = get_attribute(node, "height").and_then(|h| h.parse().ok()).unwrap_or(20);
@@ -56,7 +55,7 @@ pub fn render_image(ctx: &mut RenderContext, node: &Node) {
     ctx.current_y += height;
 }
 
-pub fn render_input(ctx: &mut RenderContext, node: &Node) {
+pub(super) fn render_input(ctx: &mut RenderContext, node: &Node) {
     let name = get_attribute(node, "name").unwrap_or_default();
     let input_width = 200u32;
     ctx.current_line_elements.push(RenderElement {
@@ -66,7 +65,7 @@ pub fn render_input(ctx: &mut RenderContext, node: &Node) {
     ctx.current_x += input_width + ctx.char_width;
 }
 
-pub fn render_button(ctx: &mut RenderContext, node: &Node) {
+pub(super) fn render_button(ctx: &mut RenderContext, node: &Node) {
     let text = extract_text(node);
     let button_width = (text.len() as u32) * ctx.char_width + 20;
     ctx.current_line_elements.push(RenderElement {

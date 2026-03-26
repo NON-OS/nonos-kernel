@@ -20,7 +20,7 @@ use alloc::vec::Vec;
 use crate::apps::ecosystem::browser::engine::types::{RenderElement, RenderContent};
 use super::context::RenderContext;
 
-pub fn render_text(ctx: &mut RenderContext, text: &str) {
+pub(super) fn render_text(ctx: &mut RenderContext, text: &str) {
     let text = text.trim();
     if text.is_empty() { return; }
 

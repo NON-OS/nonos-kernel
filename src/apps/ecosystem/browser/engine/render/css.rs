@@ -17,7 +17,7 @@
 use crate::apps::ecosystem::browser::engine::types::{TextStyle, TextAlign};
 use crate::apps::ecosystem::browser::engine::svg::parse_css_color;
 
-pub fn apply_inline_css(style_str: &str, style: &mut TextStyle) {
+pub(super) fn apply_inline_css(style_str: &str, style: &mut TextStyle) {
     for part in style_str.split(';') {
         let part = part.trim();
         if part.is_empty() { continue; }

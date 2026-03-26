@@ -16,7 +16,7 @@
 
 use super::context::RenderContext;
 
-pub fn handle_closing_tag(ctx: &mut RenderContext, tag: &str) {
+pub(super) fn handle_closing_tag(ctx: &mut RenderContext, tag: &str) {
     match tag {
         "b" | "strong" | "i" | "em" | "u" | "code" | "pre" | "th" => {
             if let Some(s) = ctx.style_stack.pop() { ctx.current_style = s; }
@@ -38,7 +38,6 @@ pub fn handle_closing_tag(ctx: &mut RenderContext, tag: &str) {
         }
         "ul" | "ol" => {
             ctx.flush_line();
-            ctx.list_stack.pop();
         }
         _ => {}
     }

@@ -18,10 +18,10 @@ extern crate alloc;
 
 use alloc::string::{String, ToString};
 use alloc::vec::Vec;
-use crate::apps::ecosystem::browser::engine::types::{Node, NodeType, Link, Form, FormInput, Image};
+use crate::apps::ecosystem::browser::engine::types::{Node, Link, Form, FormInput, Image};
 use super::state::ParserState;
 
-pub fn parse_attributes(parts: &[&str]) -> Vec<(String, String)> {
+pub(super) fn parse_attributes(parts: &[&str]) -> Vec<(String, String)> {
     let mut attributes = Vec::new();
     for part in parts.iter().skip(1) {
         if let Some(eq_pos) = part.find('=') {
@@ -33,14 +33,14 @@ pub fn parse_attributes(parts: &[&str]) -> Vec<(String, String)> {
     attributes
 }
 
-pub fn handle_link(state: &mut ParserState, attrs: &[(String, String)], node: Node) {
+pub(super) fn handle_link(state: &mut ParserState, attrs: &[(String, String)], node: Node) {
     let href = attrs.iter().find(|(n, _)| n == "href").map(|(_, v)| v.clone()).unwrap_or_default();
     let rel = attrs.iter().find(|(n, _)| n == "rel").map(|(_, v)| v.clone());
     state.links.push(Link { href, text: String::new(), rel });
     state.stack.push(core::mem::replace(&mut state.current, node));
 }
 
-pub fn handle_image(state: &mut ParserState, attrs: &[(String, String)], node: Node) {
+pub(super) fn handle_image(state: &mut ParserState, attrs: &[(String, String)], node: Node) {
     let src = attrs.iter().find(|(n, _)| n == "src").map(|(_, v)| v.clone()).unwrap_or_default();
     let alt = attrs.iter().find(|(n, _)| n == "alt").map(|(_, v)| v.clone()).unwrap_or_default();
     let width = attrs.iter().find(|(n, _)| n == "width").and_then(|(_, v)| v.parse().ok());
@@ -49,14 +49,14 @@ pub fn handle_image(state: &mut ParserState, attrs: &[(String, String)], node: N
     state.current.children.push(node);
 }
 
-pub fn handle_form(state: &mut ParserState, attrs: &[(String, String)], node: Node) {
+pub(super) fn handle_form(state: &mut ParserState, attrs: &[(String, String)], node: Node) {
     let action = attrs.iter().find(|(n, _)| n == "action").map(|(_, v)| v.clone()).unwrap_or_default();
     let method = attrs.iter().find(|(n, _)| n == "method").map(|(_, v)| v.to_string()).unwrap_or_else(|| "GET".to_string());
     state.current_form = Some(Form { action, method, inputs: Vec::new() });
     state.stack.push(core::mem::replace(&mut state.current, node));
 }
 
-pub fn handle_input(state: &mut ParserState, attrs: &[(String, String)], node: Node) {
+pub(super) fn handle_input(state: &mut ParserState, attrs: &[(String, String)], node: Node) {
     let name = attrs.iter().find(|(n, _)| n == "name").map(|(_, v)| v.clone()).unwrap_or_default();
     let input_type = attrs.iter().find(|(n, _)| n == "type").map(|(_, v)| v.clone()).unwrap_or_else(|| "text".to_string());
     let value = attrs.iter().find(|(n, _)| n == "value").map(|(_, v)| v.clone()).unwrap_or_default();

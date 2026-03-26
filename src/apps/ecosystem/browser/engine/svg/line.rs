@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub fn bresenham_line(x0: i32, y0: i32, x1: i32, y1: i32, color: u32, pixels: &mut [u32], w: u32, h: u32) {
+pub(super) fn bresenham_line(x0: i32, y0: i32, x1: i32, y1: i32, color: u32, pixels: &mut [u32], w: u32, h: u32) {
     let mut x = x0;
     let mut y = y0;
     let dx = (x1 - x0).abs();

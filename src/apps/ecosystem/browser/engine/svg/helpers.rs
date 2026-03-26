@@ -20,23 +20,23 @@ use alloc::vec::Vec;
 use crate::apps::ecosystem::browser::engine::types::Node;
 use crate::apps::ecosystem::browser::engine::parser::get_attribute;
 
-pub fn attr_u32(node: &Node, name: &str) -> Option<u32> {
+pub(super) fn attr_u32(node: &Node, name: &str) -> Option<u32> {
     get_attribute(node, name).and_then(|v| parse_dimension(&v))
 }
 
-pub fn attr_i32(node: &Node, name: &str) -> Option<i32> {
+pub(super) fn attr_i32(node: &Node, name: &str) -> Option<i32> {
     get_attribute(node, name).and_then(|v| parse_i32(&v))
 }
 
-pub fn parse_dimension(s: &str) -> Option<u32> {
+pub(super) fn parse_dimension(s: &str) -> Option<u32> {
     s.trim().trim_end_matches("px").parse::<u32>().ok()
 }
 
-pub fn parse_i32(s: &str) -> Option<i32> {
+pub(super) fn parse_i32(s: &str) -> Option<i32> {
     s.trim().trim_end_matches("px").parse::<i32>().ok()
 }
 
-pub fn parse_points(s: &str) -> Vec<(i32, i32)> {
+pub(super) fn parse_points(s: &str) -> Vec<(i32, i32)> {
     let mut result = Vec::new();
     for pair in s.split_whitespace() {
         let parts: Vec<&str> = pair.split(',').collect();

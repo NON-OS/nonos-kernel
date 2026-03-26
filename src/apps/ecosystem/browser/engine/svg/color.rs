@@ -14,13 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub fn parse_svg_color(s: &str) -> Option<u32> {
+pub(super) fn parse_svg_color(s: &str) -> Option<u32> {
     let s = s.trim();
     if s.is_empty() || s == "none" { return None; }
     parse_css_color(s)
 }
 
-pub fn parse_css_color(s: &str) -> Option<u32> {
+pub(crate) fn parse_css_color(s: &str) -> Option<u32> {
     let s = s.trim();
     if s.starts_with('#') {
         let hex = &s[1..];
