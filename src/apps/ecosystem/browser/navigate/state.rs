@@ -33,6 +33,7 @@ pub(super) enum NavState {
     ProcessingResponse = 6,
     Done = 7,
     Error = 8,
+    LoadingImages = 9,
 }
 
 impl NavState {
@@ -46,6 +47,7 @@ impl NavState {
             6 => Self::ProcessingResponse,
             7 => Self::Done,
             8 => Self::Error,
+            9 => Self::LoadingImages,
             _ => Self::Idle,
         }
     }
@@ -70,6 +72,10 @@ pub(super) static HTTPS_DEADLINE: AtomicU64 = AtomicU64::new(0);
 pub(super) static HTTPS_REASSEMBLY_BUF: Mutex<Vec<u8>> = Mutex::new(Vec::new());
 pub(super) static REDIRECT_COUNT: AtomicU8 = AtomicU8::new(0);
 pub(super) const MAX_REDIRECTS: u8 = 5;
+
+/// Queue of pending image fetches: (line_idx, elem_idx, absolute_url).
+/// Populated after render completes; drained one-per-poll-tick in LoadingImages.
+pub(super) static PENDING_IMAGES: Mutex<Vec<(usize, usize, String)>> = Mutex::new(Vec::new());
 
 pub(super) fn get_state() -> NavState {
     NavState::from_u8(NAV_STATE.load(Ordering::Relaxed))

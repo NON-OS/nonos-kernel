@@ -78,12 +78,12 @@ pub fn render_page_with_url(html: &str, viewport_width: u32, base_url: &str) -> 
         if !fallback.is_empty() { render_text(&mut ctx, &fallback); ctx.flush_line(); }
     }
 
-    RenderOutput { lines: ctx.lines, total_height: ctx.current_y, links: ctx.links }
+    RenderOutput { lines: ctx.lines, total_height: ctx.current_y, links: ctx.links, noscript_redirect: document.noscript_redirect }
 }
 
 fn should_skip_element(node: &crate::apps::ecosystem::browser::engine::types::Node, hidden: &[alloc::string::String]) -> bool {
     if node.attributes.iter().any(|(n, v)| n == "style" && {
-        let low = v.to_ascii_lowercase();
+        let low = v.to_ascii_lowercase().replace(' ', "");
         low.contains("display:none") || low.contains("visibility:hidden")
     }) { return true; }
     if let Some(cls) = get_attribute(node, "class") {
@@ -107,5 +107,51 @@ fn process_element(ctx: &mut RenderContext, node: &crate::apps::ecosystem::brows
             false
         }
         _ => false
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::apps::ecosystem::browser::engine::RenderContent;
+
+    #[test]
+    fn test_display_none_no_space() {
+        let html = r#"<div style="display:none">Hidden</div><p>Visible</p>"#;
+        let output = render_page(html, 800);
+        let text: String = output.lines.iter().flat_map(|l| l.elements.iter()).filter_map(|e| {
+            if let RenderContent::Text { ref text, .. } = e.content { Some(text.as_str()) } else { None }
+        }).collect();
+        assert!(!text.contains("Hidden"));
+        assert!(text.contains("Visible"));
+    }
+
+    #[test]
+    fn test_display_none_with_space() {
+        let html = r#"<div style="display: none">Hidden</div><p>Visible</p>"#;
+        let output = render_page(html, 800);
+        let text: String = output.lines.iter().flat_map(|l| l.elements.iter()).filter_map(|e| {
+            if let RenderContent::Text { ref text, .. } = e.content { Some(text.as_str()) } else { None }
+        }).collect();
+        assert!(!text.contains("Hidden"));
+        assert!(text.contains("Visible"));
+    }
+
+    #[test]
+    fn test_display_none_extra_spaces() {
+        let html = r#"<div style="display : none ;">Hidden</div><p>OK</p>"#;
+        let output = render_page(html, 800);
+        let text: String = output.lines.iter().flat_map(|l| l.elements.iter()).filter_map(|e| {
+            if let RenderContent::Text { ref text, .. } = e.content { Some(text.as_str()) } else { None }
+        }).collect();
+        assert!(!text.contains("Hidden"));
+        assert!(text.contains("OK"));
+    }
+
+    #[test]
+    fn test_noscript_redirect_in_render_output() {
+        let html = r#"<html><body><noscript><meta http-equiv="refresh" content="0;url=?gbv=1"></noscript><p>Hi</p></body></html>"#;
+        let output = render_page(html, 800);
+        assert_eq!(output.noscript_redirect, Some(alloc::string::String::from("?gbv=1")));
     }
 }

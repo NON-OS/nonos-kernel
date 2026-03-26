@@ -98,6 +98,9 @@ fn process_noscript(state: &mut ParserState, chars: &mut core::iter::Peekable<co
     while let Some(ch) = chars.next() { buf.push(ch); let bb = buf.as_bytes(); if bb.len() >= pattern.len() && bb[bb.len() - pattern.len()..].eq_ignore_ascii_case(pattern) { buf.truncate(buf.len() - pattern.len()); break; } }
     let inner = buf.trim();
     if !inner.is_empty() {
+        if let Some(url) = extract_meta_refresh(inner) {
+            state.noscript_redirect = Some(url);
+        }
         let mut inner_chars = inner.chars().peekable();
         while let Some(c) = inner_chars.next() {
             if c == '<' {
@@ -113,8 +116,94 @@ fn process_noscript(state: &mut ParserState, chars: &mut core::iter::Peekable<co
     }
 }
 
+/// Extracts URL from `<meta http-equiv="refresh" content="N;url=...">` inside noscript.
+fn extract_meta_refresh(html: &str) -> Option<String> {
+    let low = html.to_ascii_lowercase();
+    let meta_pos = low.find("<meta")?;
+    let end_pos = low[meta_pos..].find('>')? + meta_pos;
+    let tag = &low[meta_pos..=end_pos];
+    if !tag.contains("http-equiv") || !tag.contains("refresh") { return None; }
+    // Extract content attribute value from original (preserve URL case)
+    let orig_tag = &html[meta_pos..=end_pos];
+    let content_start = {
+        let ct = orig_tag.to_ascii_lowercase();
+        let ci = ct.find("content")?;
+        let eq = ct[ci..].find('=')? + ci + 1;
+        eq
+    };
+    let rest = orig_tag[content_start..].trim_start();
+    let (val_start, quote) = if rest.starts_with('"') { (1, Some('"')) }
+        else if rest.starts_with('\'') { (1, Some('\'')) }
+        else { (0, None) };
+    let val = &rest[val_start..];
+    let val_end = match quote {
+        Some(q) => val.find(q).unwrap_or(val.len()),
+        None => val.find(|c: char| c == '>' || c.is_whitespace()).unwrap_or(val.len()),
+    };
+    let content_val = &val[..val_end];
+    // Parse "N;url=..." format
+    let lower_val = content_val.to_ascii_lowercase();
+    if let Some(url_idx) = lower_val.find("url=") {
+        let url = content_val[url_idx + 4..].trim();
+        if !url.is_empty() { return Some(url.to_string()); }
+    }
+    None
+}
+
 fn finalize_document(mut state: ParserState) -> Document {
     while let Some(mut parent) = state.stack.pop() { parent.children.push(state.current); state.current = parent; }
     let root = Node { node_type: NodeType::Element("html".to_string()), children: alloc::vec![state.current], attributes: Vec::new() };
-    Document { title: state.title, root, links: state.links, forms: state.forms, images: state.images, hidden_classes: state.hidden_classes }
+    Document { title: state.title, root, links: state.links, forms: state.forms, images: state.images, hidden_classes: state.hidden_classes, noscript_redirect: state.noscript_redirect }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_extract_meta_refresh_google_noscript() {
+        let html = r#"<meta http-equiv="refresh" content="0;url=?gbv=1">"#;
+        let result = extract_meta_refresh(html);
+        assert_eq!(result, Some(String::from("?gbv=1")));
+    }
+
+    #[test]
+    fn test_extract_meta_refresh_absolute_url() {
+        let html = r#"<meta http-equiv="refresh" content="5;url=https://example.com/page">"#;
+        let result = extract_meta_refresh(html);
+        assert_eq!(result, Some(String::from("https://example.com/page")));
+    }
+
+    #[test]
+    fn test_extract_meta_refresh_no_meta() {
+        let html = "<p>Just some text</p>";
+        assert!(extract_meta_refresh(html).is_none());
+    }
+
+    #[test]
+    fn test_extract_meta_refresh_no_refresh() {
+        let html = r#"<meta charset="utf-8">"#;
+        assert!(extract_meta_refresh(html).is_none());
+    }
+
+    #[test]
+    fn test_extract_meta_refresh_single_quotes() {
+        let html = r#"<meta http-equiv='refresh' content='0;url=/fallback'>"#;
+        let result = extract_meta_refresh(html);
+        assert_eq!(result, Some(String::from("/fallback")));
+    }
+
+    #[test]
+    fn test_noscript_redirect_in_document() {
+        let html = r#"<html><body><noscript><meta http-equiv="refresh" content="0;url=?gbv=1"></noscript><p>Hello</p></body></html>"#;
+        let doc = parse_html(html);
+        assert_eq!(doc.noscript_redirect, Some(String::from("?gbv=1")));
+    }
+
+    #[test]
+    fn test_noscript_no_redirect() {
+        let html = "<html><body><noscript><p>Enable JS</p></noscript></body></html>";
+        let doc = parse_html(html);
+        assert!(doc.noscript_redirect.is_none());
+    }
 }

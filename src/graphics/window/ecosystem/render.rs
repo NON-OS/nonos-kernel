@@ -199,7 +199,7 @@ fn draw_render_element(
             }
         }
 
-        RenderContent::Image { ref alt, width, height } => {
+        RenderContent::Image { ref alt, width, height, .. } => {
             let iw = (*width).min(max_width);
             let ih = *height;
             // Draw placeholder box

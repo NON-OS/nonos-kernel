@@ -16,6 +16,7 @@
 
 extern crate alloc;
 
+use alloc::string::String;
 use crate::apps::ecosystem::browser::engine::types::{Node, RenderElement, RenderContent, RenderLine};
 use crate::apps::ecosystem::browser::engine::parser::{get_attribute, extract_text};
 use super::context::RenderContext;
@@ -67,11 +68,14 @@ pub(super) fn render_image(ctx: &mut RenderContext, node: &Node) {
                 else { alloc::format!("[IMG {}x{}: {}]", width, height, alt) };
     let label_width = (label.len() as u32) * ctx.char_width;
     let display_width = label_width.max(width).min(ctx.usable_width);
+    let resolved_src = if !src.is_empty() && !ctx.base_url.is_empty() {
+        crate::apps::ecosystem::browser::engine::image_loader::resolve_url(&src, &ctx.base_url).unwrap_or_default()
+    } else { String::new() };
     ctx.lines.push(RenderLine {
         y: ctx.current_y,
         elements: alloc::vec![RenderElement {
             x: ctx.margin, width: display_width,
-            content: RenderContent::Image { alt: label, width: display_width, height },
+            content: RenderContent::Image { alt: label, width: display_width, height, src: resolved_src },
         }],
     });
     ctx.current_y += height;
