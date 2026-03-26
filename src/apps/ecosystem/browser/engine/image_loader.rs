@@ -31,14 +31,29 @@ const MAX_DIMENSION: u32 = 4096;
 /// Maximum number of images to load per page render.
 const MAX_IMAGES_PER_PAGE: u32 = 8;
 
-use core::sync::atomic::{AtomicU32, Ordering};
+use core::sync::atomic::{AtomicBool, AtomicU32, Ordering};
 
 /// Counter for images loaded during the current render pass.
 static IMAGE_LOAD_COUNT: AtomicU32 = AtomicU32::new(0);
 
+/// When true, network fetching is suppressed (returns `None` immediately).
+/// Set during synchronous navigation render to avoid deadlocking the
+/// network stack, which requires the outer poll loop to process packets.
+static FETCH_DISABLED: AtomicBool = AtomicBool::new(false);
+
 /// Reset the per-page image counter. Call at the start of each render pass.
 pub fn reset_image_count() {
     IMAGE_LOAD_COUNT.store(0, Ordering::Relaxed);
+}
+
+/// Disable network image fetching (call before synchronous render passes).
+pub fn disable_fetch() {
+    FETCH_DISABLED.store(true, Ordering::Release);
+}
+
+/// Re-enable network image fetching (call after render completes).
+pub fn enable_fetch() {
+    FETCH_DISABLED.store(false, Ordering::Release);
 }
 
 /// Detected image format based on magic bytes.
@@ -152,6 +167,12 @@ fn fetch_image_bytes(url: &str) -> Option<Vec<u8>> {
 /// Resolves the URL against `base_url`, fetches the bytes, detects the format
 /// via magic bytes, and decodes to `ImageData`. Returns `None` on any failure.
 pub fn load_image(src: &str, base_url: &str) -> Option<ImageData> {
+    // Skip network I/O when rendering synchronously inside the nav loop;
+    // the network stack needs the outer poll to process incoming packets.
+    if FETCH_DISABLED.load(Ordering::Acquire) {
+        return None;
+    }
+
     // Enforce per-page image limit
     let count = IMAGE_LOAD_COUNT.fetch_add(1, Ordering::Relaxed);
     if count >= MAX_IMAGES_PER_PAGE {
