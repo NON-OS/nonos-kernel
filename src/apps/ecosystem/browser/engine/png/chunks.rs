@@ -14,13 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub struct PngHeader {
+pub(super) struct PngHeader {
     pub width: u32,
     pub height: u32,
     pub color_type: u8,
 }
 
-pub fn parse_ihdr(data: &[u8]) -> Option<PngHeader> {
+pub(super) fn parse_ihdr(data: &[u8]) -> Option<PngHeader> {
     if data.len() < 13 { return None; }
     let width = u32::from_be_bytes([data[0], data[1], data[2], data[3]]);
     let height = u32::from_be_bytes([data[4], data[5], data[6], data[7]]);
@@ -32,7 +32,7 @@ pub fn parse_ihdr(data: &[u8]) -> Option<PngHeader> {
     Some(PngHeader { width, height, color_type })
 }
 
-pub fn read_chunk(data: &[u8], pos: usize) -> Option<(usize, &[u8], &[u8])> {
+pub(super) fn read_chunk(data: &[u8], pos: usize) -> Option<(usize, &[u8], &[u8])> {
     if pos + 8 > data.len() { return None; }
     let chunk_len = u32::from_be_bytes([data[pos], data[pos + 1], data[pos + 2], data[pos + 3]]) as usize;
     let chunk_type = &data[pos + 4..pos + 8];

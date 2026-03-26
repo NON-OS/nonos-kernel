@@ -20,5 +20,5 @@ mod line;
 mod shapes;
 mod render;
 
-pub use color::parse_css_color;
+pub(super) use color::parse_css_color;
 pub use render::render_svg;

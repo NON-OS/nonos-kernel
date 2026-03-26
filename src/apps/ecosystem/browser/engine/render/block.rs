@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub fn is_block_element(tag: &str) -> bool {
+pub(super) fn is_block_element(tag: &str) -> bool {
     matches!(tag,
         "p" | "div" | "h1" | "h2" | "h3" | "h4" | "h5" | "h6"
         | "ul" | "ol" | "li" | "table" | "tr" | "blockquote"

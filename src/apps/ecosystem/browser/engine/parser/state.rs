@@ -20,7 +20,7 @@ use alloc::string::String;
 use alloc::vec::Vec;
 use crate::apps::ecosystem::browser::engine::types::{Node, NodeType, Link, Form, Image};
 
-pub struct ParserState {
+pub(super) struct ParserState {
     pub title: String,
     pub links: Vec<Link>,
     pub forms: Vec<Form>,
@@ -34,7 +34,7 @@ pub struct ParserState {
 }
 
 impl ParserState {
-    pub fn new() -> Self {
+    pub(super) fn new() -> Self {
         Self {
             title: String::new(),
             links: Vec::new(),
@@ -49,7 +49,7 @@ impl ParserState {
         }
     }
 
-    pub fn flush_text(&mut self) {
+    pub(super) fn flush_text(&mut self) {
         if !self.text_buffer.trim().is_empty() {
             self.current.children.push(Node {
                 node_type: NodeType::Text(core::mem::take(&mut self.text_buffer)),

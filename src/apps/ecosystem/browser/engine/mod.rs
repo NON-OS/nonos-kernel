@@ -26,7 +26,7 @@ pub use types::{
     RenderLine, RenderElement, RenderContent, TextStyle, TextAlign, RenderOutput,
     CanvasContext2D, AnimationState, AnimatedProperty,
 };
-pub use parser::{parse_html, get_attribute, extract_text};
+pub use parser::parse_html;
 pub use render::{render_page, render_to_lines, render_to_lines_with_links};
 pub use browser::BrowserEngine;
 pub use png::decode_png;

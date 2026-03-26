@@ -20,5 +20,5 @@ mod state;
 mod tags;
 mod html;
 
-pub use helpers::{get_attribute, extract_text, strip_tags};
+pub(super) use helpers::{get_attribute, extract_text, strip_tags};
 pub use html::parse_html;

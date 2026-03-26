@@ -20,7 +20,7 @@ use super::color::parse_svg_color;
 use super::helpers::{attr_u32, attr_i32, parse_points};
 use super::line::bresenham_line;
 
-pub fn draw_svg_rect(node: &Node, pixels: &mut [u32], canvas_w: u32, canvas_h: u32) {
+pub(super) fn draw_svg_rect(node: &Node, pixels: &mut [u32], canvas_w: u32, canvas_h: u32) {
     let (x, y) = (attr_u32(node, "x").unwrap_or(0), attr_u32(node, "y").unwrap_or(0));
     let (w, h) = (attr_u32(node, "width").unwrap_or(0), attr_u32(node, "height").unwrap_or(0));
     let fill = parse_svg_color(&get_attribute(node, "fill").unwrap_or_default()).unwrap_or(0xFF000000);
@@ -34,7 +34,7 @@ pub fn draw_svg_rect(node: &Node, pixels: &mut [u32], canvas_w: u32, canvas_h: u
     }
 }
 
-pub fn draw_svg_circle(node: &Node, pixels: &mut [u32], canvas_w: u32, canvas_h: u32) {
+pub(super) fn draw_svg_circle(node: &Node, pixels: &mut [u32], canvas_w: u32, canvas_h: u32) {
     let (cx, cy, r) = (attr_i32(node, "cx").unwrap_or(0), attr_i32(node, "cy").unwrap_or(0), attr_i32(node, "r").unwrap_or(0));
     let fill = parse_svg_color(&get_attribute(node, "fill").unwrap_or_default()).unwrap_or(0xFF000000);
     if r <= 0 { return; }
@@ -44,13 +44,13 @@ pub fn draw_svg_circle(node: &Node, pixels: &mut [u32], canvas_w: u32, canvas_h:
     for py in y0..y1 { for px in x0..x1 { let (dx, dy) = (px as i32 - cx, py as i32 - cy); if (dx as i64 * dx as i64 + dy as i64 * dy as i64) <= r_sq { pixels[(py * canvas_w + px) as usize] = fill; } } }
 }
 
-pub fn draw_svg_line(node: &Node, pixels: &mut [u32], canvas_w: u32, canvas_h: u32) {
+pub(super) fn draw_svg_line(node: &Node, pixels: &mut [u32], canvas_w: u32, canvas_h: u32) {
     let (x1, y1, x2, y2) = (attr_i32(node, "x1").unwrap_or(0), attr_i32(node, "y1").unwrap_or(0), attr_i32(node, "x2").unwrap_or(0), attr_i32(node, "y2").unwrap_or(0));
     let color = parse_svg_color(&get_attribute(node, "stroke").unwrap_or_default()).unwrap_or(0xFF000000);
     bresenham_line(x1, y1, x2, y2, color, pixels, canvas_w, canvas_h);
 }
 
-pub fn draw_svg_polyline(node: &Node, pixels: &mut [u32], canvas_w: u32, canvas_h: u32) {
+pub(super) fn draw_svg_polyline(node: &Node, pixels: &mut [u32], canvas_w: u32, canvas_h: u32) {
     let points_str = match get_attribute(node, "points") { Some(s) => s, None => return };
     let color = parse_svg_color(&get_attribute(node, "stroke").unwrap_or_default()).unwrap_or(0xFF000000);
     let coords = parse_points(&points_str);

@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub fn paeth_predictor(a: u8, b: u8, c: u8) -> u8 {
+pub(super) fn paeth_predictor(a: u8, b: u8, c: u8) -> u8 {
     let p = a as i32 + b as i32 - c as i32;
     let pa = (p - a as i32).abs();
     let pb = (p - b as i32).abs();
@@ -22,7 +22,7 @@ pub fn paeth_predictor(a: u8, b: u8, c: u8) -> u8 {
     if pa <= pb && pa <= pc { a } else if pb <= pc { b } else { c }
 }
 
-pub fn unfilter_row(filter_type: u8, raw: &[u8], prev_row: &[u8], channels: usize) -> Option<alloc::vec::Vec<u8>> {
+pub(super) fn unfilter_row(filter_type: u8, raw: &[u8], prev_row: &[u8], channels: usize) -> Option<alloc::vec::Vec<u8>> {
     extern crate alloc;
     use alloc::vec::Vec;
     let mut current_row = Vec::with_capacity(raw.len());

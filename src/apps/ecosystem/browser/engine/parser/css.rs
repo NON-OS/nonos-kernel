@@ -19,7 +19,7 @@ extern crate alloc;
 use alloc::string::String;
 use alloc::vec::Vec;
 
-pub fn parse_hidden_classes(css: &str, hidden: &mut Vec<String>) {
+pub(super) fn parse_hidden_classes(css: &str, hidden: &mut Vec<String>) {
     let css_lower = css.to_ascii_lowercase();
     let bytes = css_lower.as_bytes();
     let mut i = 0;

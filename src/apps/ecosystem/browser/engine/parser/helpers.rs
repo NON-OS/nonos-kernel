@@ -19,11 +19,11 @@ extern crate alloc;
 use alloc::string::String;
 use crate::apps::ecosystem::browser::engine::types::{Node, NodeType};
 
-pub fn get_attribute(node: &Node, name: &str) -> Option<String> {
+pub(crate) fn get_attribute(node: &Node, name: &str) -> Option<String> {
     node.attributes.iter().find(|(n, _)| n == name).map(|(_, v)| v.clone())
 }
 
-pub fn extract_text(node: &Node) -> String {
+pub(crate) fn extract_text(node: &Node) -> String {
     let mut text = String::new();
     match &node.node_type {
         NodeType::Text(t) => text.push_str(t),
@@ -33,7 +33,7 @@ pub fn extract_text(node: &Node) -> String {
     text
 }
 
-pub fn strip_tags(html: &str) -> String {
+pub(crate) fn strip_tags(html: &str) -> String {
     let mut out = String::new();
     let mut in_tag = false;
     let mut in_script = false;
