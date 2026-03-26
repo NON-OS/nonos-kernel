@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod state;
-mod colors;
+pub mod colors;
 mod primitives;
 pub mod double_buffer;
 

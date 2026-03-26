@@ -23,6 +23,8 @@ pub mod backgrounds;
 pub mod image;
 pub mod themes;
 pub mod qrcode;
+pub mod design_system;
+pub mod components;
 
 pub use framebuffer::init as framebuffer_init;
 pub use framebuffer::{
