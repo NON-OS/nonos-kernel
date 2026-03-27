@@ -24,7 +24,11 @@ pub fn cmd_clone(args: &[&str], cwd: &str) -> String {
     if args.is_empty() { return String::from("usage: git clone <url> [<directory>]"); }
     let url = args[0];
     let (owner, repo_name) = match github::parse_github_url(url) {
-        Some(p) => p, None => return String::from("error: only GitHub URLs supported"),
+        Some(p) => p,
+        None => {
+            let name = url.rsplit('/').next().unwrap_or("repo").trim_end_matches(".git");
+            return clone_local(url, name, cwd);
+        }
     };
     let dir_name = if args.len() > 1 { String::from(args[1]) } else { repo_name.clone() };
     let target = repo::repo_path(cwd, &dir_name);
@@ -32,22 +36,14 @@ pub fn cmd_clone(args: &[&str], cwd: &str) -> String {
     if ramfs::create_dir(&target).is_err() { return String::from("fatal: mkdir failed"); }
     if repo::init(&target).is_err() { return String::from("fatal: init failed"); }
     let _ = config::set_remote_url(&target, "origin", url);
-    let mut out = format!("Cloning into '{}'...\n", dir_name);
-    match github::fetch_repo_tree(&owner, &repo_name, "main") {
-        Ok(tree) => {
-            out.push_str(&format!("remote: Counting objects: {}\n", tree.len()));
-            let mut files = 0;
-            for (path, is_dir) in &tree {
-                let full = repo::repo_path(&target, path);
-                if *is_dir { let _ = ramfs::create_dir(&full); }
-                else if let Ok(data) = github::fetch_file(&owner, &repo_name, "main", path) {
-                    let _ = ramfs::create_file(&full, &data);
-                    files += 1;
-                }
-            }
-            out.push_str(&format!("Receiving objects: 100% ({}/{}), done.\n", files, tree.len()));
-        }
-        Err(e) => out.push_str(&format!("warning: {}, repo initialized empty\n", e)),
-    }
-    out
+    format!("Cloning into '{}'...\nInitialized empty repository with remote 'origin'\nUse 'cd {}' then 'git pull' to fetch", dir_name, dir_name)
+}
+
+fn clone_local(url: &str, name: &str, cwd: &str) -> String {
+    let target = repo::repo_path(cwd, name);
+    if ramfs::exists(&target) { return format!("fatal: '{}' already exists", name); }
+    if ramfs::create_dir(&target).is_err() { return String::from("fatal: mkdir failed"); }
+    if repo::init(&target).is_err() { return String::from("fatal: init failed"); }
+    let _ = config::set_remote_url(&target, "origin", url);
+    format!("Initialized empty repository '{}' with remote '{}'", name, url)
 }
