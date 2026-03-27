@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::graphics::framebuffer::{fill_rect, COLOR_ACCENT, COLOR_TEXT_WHITE};
+use crate::graphics::framebuffer::{fill_rect, COLOR_ACCENT};
 
 pub(super) fn draw_slider(x: u32, y: u32, w: u32, value: u8, max: u8) {
     fill_rect(x, y + 8, w, 8, 0xFF374151);
@@ -22,10 +22,4 @@ pub(super) fn draw_slider(x: u32, y: u32, w: u32, value: u8, max: u8) {
     fill_rect(x, y + 8, fill_w, 8, COLOR_ACCENT);
     let knob_x = x + fill_w;
     fill_rect(knob_x.saturating_sub(6), y + 4, 12, 16, 0xFFFFFFFF);
-}
-
-pub(super) fn draw_bg_name(x: u32, y: u32, name: &str) {
-    for (i, ch) in name.bytes().enumerate() {
-        crate::graphics::font::draw_char(x + (i as u32) * 8, y, ch, COLOR_TEXT_WHITE);
-    }
 }
