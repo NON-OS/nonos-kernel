@@ -20,6 +20,12 @@ use super::{buffer, cursor, file, find};
 use super::input_click;
 
 pub(super) fn handle_key(ch: u8) {
+    use super::state::{picker_is_active, picker_is_save_mode, save_filename_input};
+    if picker_is_active() && picker_is_save_mode() {
+        save_filename_input(ch);
+        return;
+    }
+
     if find::is_active() {
         if find::is_replace_mode() {
             find::handle_replace_key(ch);
@@ -62,6 +68,24 @@ pub(super) fn handle_key(ch: u8) {
 }
 
 pub(super) fn handle_special_key(key: SpecialKey) {
+    use super::state::{picker_is_active, picker_is_save_mode, picker_close, get_save_path};
+
+    if picker_is_active() {
+        match key {
+            SpecialKey::Escape => picker_close(),
+            SpecialKey::Tab => {
+                if picker_is_save_mode() {
+                    if let Some(path) = get_save_path() {
+                        picker_close();
+                        file::save_file_as(&path);
+                    }
+                }
+            }
+            _ => {}
+        }
+        return;
+    }
+
     if find::is_active() {
         match key {
             SpecialKey::Escape => find::close_find(),
