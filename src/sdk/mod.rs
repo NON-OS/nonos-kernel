@@ -18,6 +18,10 @@ pub mod app;
 pub mod manifest;
 pub mod ui;
 pub mod api;
+mod api_net;
+mod api_net_request;
+mod api_storage;
+mod api_wallet;
 pub mod storage;
 pub mod registry;
 pub mod runtime;
@@ -28,7 +32,11 @@ pub(crate) mod events_sub;
 pub mod events;
 pub mod permissions;
 pub mod samples;
+mod demos;
+pub mod store;
 
 pub use loader::{unpack_app, AppPackage};
 pub use registry::list_apps;
 pub use runtime::run_app;
+
+pub fn init() { demos::init_demo_apps(); }
