@@ -502,6 +502,10 @@ fn run_desktop() -> ! {
                                 serial::println(b"[DLG] creating file");
                                 nonos_kernel::graphics::desktop::create_desktop_file(text);
                             }
+                            cb if cb == window::dialog_callback::INPUT_CB_FM_NEW_FOLDER => {
+                                serial::println(b"[DLG] creating folder in file manager");
+                                let _ = window::fm_create_folder(text);
+                            }
                             _ => {
                                 serial::println(b"[DLG] unknown callback");
                             }
@@ -843,7 +847,8 @@ fn handle_context_menu_action(action: u8) {
             let _ = window::fm_delete_selected();
         }
         FM_NEW_FOLDER => {
-            let _ = window::fm_create_folder("NewFolder");
+            window::show_input_dialog(b"New Folder", b"Enter folder name:", window::dialog_callback::INPUT_CB_FM_NEW_FOLDER);
+            unsafe { NEEDS_REDRAW = true; }
         }
         EDIT_CUT => {
             window::text_editor::editor_cut();
