@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::{AtomicU8, Ordering};
+use core::sync::atomic::{AtomicU8, AtomicI32, AtomicBool, Ordering};
 use crate::graphics::framebuffer::fill_rect;
 use crate::graphics::window::draw_string;
 use crate::fs::ramfs;
@@ -29,6 +29,11 @@ const NAME_LEN: usize = 16;
 
 static ICON_COUNT: AtomicU8 = AtomicU8::new(0);
 static mut ICONS: [DesktopIcon; MAX_ICONS] = [DesktopIcon::empty(); MAX_ICONS];
+static mut ICON_POSITIONS: [(i32, i32); MAX_ICONS] = [(-1, -1); MAX_ICONS];
+static DRAGGING_ICON: AtomicU8 = AtomicU8::new(255);
+static DRAG_OFFSET_X: AtomicI32 = AtomicI32::new(0);
+static DRAG_OFFSET_Y: AtomicI32 = AtomicI32::new(0);
+static IS_DRAGGING: AtomicBool = AtomicBool::new(false);
 
 #[derive(Clone, Copy)]
 pub(super) struct DesktopIcon { pub name: [u8; NAME_LEN], pub name_len: u8, pub is_dir: bool }
@@ -54,18 +59,35 @@ pub(super) fn refresh() {
     ICON_COUNT.store(count as u8, Ordering::SeqCst);
 }
 
+fn get_icon_position(i: usize, w: u32) -> (u32, u32) {
+    unsafe {
+        let (px, py) = ICON_POSITIONS[i];
+        if px >= 0 && py >= 0 {
+            return (px as u32, py as u32);
+        }
+    }
+    let cols = ((w - ICON_START_X - 20) / ICON_SPACING).max(1) as usize;
+    let col = i % cols;
+    let row = i / cols;
+    let x = ICON_START_X + (col as u32) * ICON_SPACING;
+    let y = MENU_BAR_HEIGHT + ICON_START_Y + (row as u32) * ICON_SPACING;
+    (x, y)
+}
+
 pub(super) fn draw(w: u32, h: u32) {
     let cnt = ICON_COUNT.load(Ordering::SeqCst) as usize;
     let sel = SELECTED_ICON.load(Ordering::SeqCst) as usize;
-    let cols = ((w - ICON_START_X - 20) / ICON_SPACING).max(1) as usize;
+    let dragging_idx = DRAGGING_ICON.load(Ordering::SeqCst) as usize;
     for i in 0..cnt {
-        let col = i % cols;
-        let row = i / cols;
-        let x = ICON_START_X + (col as u32) * ICON_SPACING;
-        let y = MENU_BAR_HEIGHT + ICON_START_Y + (row as u32) * ICON_SPACING;
-        if y + ICON_SIZE > h - DOCK_HEIGHT { break; }
+        if i == dragging_idx && IS_DRAGGING.load(Ordering::SeqCst) { continue; }
+        let (x, y) = get_icon_position(i, w);
+        if y + ICON_SIZE > h - DOCK_HEIGHT { continue; }
         let selected = i == sel;
         unsafe { draw_icon(x, y, &ICONS[i], selected); }
+    }
+    if IS_DRAGGING.load(Ordering::SeqCst) && dragging_idx < cnt {
+        let (x, y) = get_icon_position(dragging_idx, w);
+        unsafe { draw_icon(x, y, &ICONS[dragging_idx], true); }
     }
 }
 
@@ -87,17 +109,17 @@ fn draw_icon(x: u32, y: u32, icon: &DesktopIcon, selected: bool) {
 
 pub(super) fn handle_click(mx: i32, my: i32, w: u32) -> Option<(&'static str, bool, bool)> {
     let cnt = ICON_COUNT.load(Ordering::SeqCst) as usize;
-    let cols = ((w - ICON_START_X - 20) / ICON_SPACING).max(1) as usize;
     let currently_selected = SELECTED_ICON.load(Ordering::SeqCst) as usize;
 
     for i in 0..cnt {
-        let col = i % cols;
-        let row = i / cols;
-        let x = ICON_START_X + (col as u32) * ICON_SPACING;
-        let y = MENU_BAR_HEIGHT + ICON_START_Y + (row as u32) * ICON_SPACING;
+        let (x, y) = get_icon_position(i, w);
         if mx >= x as i32 && mx < (x + ICON_SIZE) as i32 && my >= y as i32 && my < (y + ICON_SIZE + 16) as i32 {
             let should_open = currently_selected == i;
             SELECTED_ICON.store(i as u8, Ordering::SeqCst);
+            DRAGGING_ICON.store(i as u8, Ordering::SeqCst);
+            DRAG_OFFSET_X.store(mx - x as i32, Ordering::SeqCst);
+            DRAG_OFFSET_Y.store(my - y as i32, Ordering::SeqCst);
+            IS_DRAGGING.store(true, Ordering::SeqCst);
             unsafe {
                 static mut PATH_BUF: [u8; 64] = [0; 64];
                 PATH_BUF[..5].copy_from_slice(b"/ram/");
@@ -112,6 +134,27 @@ pub(super) fn handle_click(mx: i32, my: i32, w: u32) -> Option<(&'static str, bo
     }
     SELECTED_ICON.store(255, Ordering::SeqCst);
     None
+}
+
+pub(super) fn handle_drag(mx: i32, my: i32) -> bool {
+    if !IS_DRAGGING.load(Ordering::SeqCst) { return false; }
+    let idx = DRAGGING_ICON.load(Ordering::SeqCst) as usize;
+    if idx >= MAX_ICONS { return false; }
+    let offset_x = DRAG_OFFSET_X.load(Ordering::SeqCst);
+    let offset_y = DRAG_OFFSET_Y.load(Ordering::SeqCst);
+    let new_x = (mx - offset_x).max(ICON_START_X as i32);
+    let new_y = (my - offset_y).max(MENU_BAR_HEIGHT as i32 + 20);
+    unsafe { ICON_POSITIONS[idx] = (new_x, new_y); }
+    true
+}
+
+pub(super) fn handle_drag_end() {
+    IS_DRAGGING.store(false, Ordering::SeqCst);
+    DRAGGING_ICON.store(255, Ordering::SeqCst);
+}
+
+pub(super) fn is_dragging() -> bool {
+    IS_DRAGGING.load(Ordering::SeqCst)
 }
 
 static SELECTED_ICON: AtomicU8 = AtomicU8::new(255);
