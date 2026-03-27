@@ -6,15 +6,10 @@
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 
-//! Settings serialization/deserialization
-
 use super::types::Settings;
 
-/// Serialize settings to a buffer
-/// Format: key=value\n for each setting
 pub fn serialize(settings: &Settings, buf: &mut [u8]) -> usize {
     let mut pos = 0;
-
     write_u8(buf, &mut pos, b"brightness", settings.brightness);
     write_u8(buf, &mut pos, b"mouse_sens", settings.mouse_sensitivity);
     write_bool(buf, &mut pos, b"sound", settings.sound_enabled);
@@ -23,7 +18,8 @@ pub fn serialize(settings: &Settings, buf: &mut [u8]) -> usize {
     write_u8(buf, &mut pos, b"theme", settings.theme);
     write_u8(buf, &mut pos, b"kb_layout", settings.keyboard_layout);
     write_bool(buf, &mut pos, b"auto_wipe", settings.auto_wipe);
-
+    write_i8(buf, &mut pos, b"timezone", settings.timezone);
+    write_u8(buf, &mut pos, b"scr_timeout", settings.screen_timeout);
     pos
 }
 
@@ -77,6 +73,12 @@ fn write_bool(buf: &mut [u8], pos: &mut usize, key: &[u8], val: bool) {
     write_line(buf, pos, key, if val { b"1" } else { b"0" });
 }
 
+fn write_i8(buf: &mut [u8], pos: &mut usize, key: &[u8], val: i8) {
+    let mut num_buf = [0u8; 5];
+    let len = format_i8(&mut num_buf, val);
+    write_line(buf, pos, key, &num_buf[..len]);
+}
+
 fn parse_line(line: &[u8], settings: &mut Settings) {
     let eq_pos = match line.iter().position(|&ch| ch == b'=') {
         Some(p) => p,
@@ -110,6 +112,14 @@ fn parse_line(line: &[u8], settings: &mut Settings) {
         }
     } else if key == b"auto_wipe" {
         settings.auto_wipe = parse_bool(val);
+    } else if key == b"timezone" {
+        if let Some(v) = parse_i8(val) {
+            settings.timezone = v.clamp(-12, 14);
+        }
+    } else if key == b"scr_timeout" {
+        if let Some(v) = parse_u8(val) {
+            settings.screen_timeout = v.min(60);
+        }
     }
 }
 
@@ -133,22 +143,28 @@ fn parse_bool(s: &[u8]) -> bool {
     !s.is_empty() && (s[0] == b'1' || s[0] == b't' || s[0] == b'T' || s[0] == b'y' || s[0] == b'Y')
 }
 
-fn format_u8(buf: &mut [u8], mut val: u8) -> usize {
-    if val == 0 {
-        buf[0] = b'0';
-        return 1;
+fn parse_i8(s: &[u8]) -> Option<i8> {
+    if s.is_empty() { return None; }
+    let (neg, start) = if s[0] == b'-' { (true, 1) } else { (false, 0) };
+    let mut result: i8 = 0;
+    for &ch in &s[start..] {
+        if ch >= b'0' && ch <= b'9' {
+            result = result.saturating_mul(10).saturating_add((ch - b'0') as i8);
+        } else { break; }
     }
+    Some(if neg { -result } else { result })
+}
 
+fn format_u8(buf: &mut [u8], mut val: u8) -> usize {
+    if val == 0 { buf[0] = b'0'; return 1; }
     let mut digits = [0u8; 4];
     let mut pos = 0;
-    while val > 0 {
-        digits[pos] = b'0' + (val % 10);
-        val /= 10;
-        pos += 1;
-    }
-
-    for i in 0..pos {
-        buf[i] = digits[pos - 1 - i];
-    }
+    while val > 0 { digits[pos] = b'0' + (val % 10); val /= 10; pos += 1; }
+    for i in 0..pos { buf[i] = digits[pos - 1 - i]; }
     pos
+}
+
+fn format_i8(buf: &mut [u8], val: i8) -> usize {
+    if val < 0 { buf[0] = b'-'; return 1 + format_u8(&mut buf[1..], (-val) as u8); }
+    format_u8(buf, val as u8)
 }
