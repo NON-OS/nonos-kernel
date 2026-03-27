@@ -27,37 +27,23 @@ use super::apps::try_dispatch_apps;
 use super::blockchain::try_dispatch_blockchain;
 use super::npkg::try_dispatch_npkg;
 use super::nox::try_dispatch_nox;
+use super::devtools::try_dispatch_dev;
+use super::agents::try_dispatch_agents;
+use super::script::try_dispatch_script;
 
 pub(crate) fn dispatch(cmd: &[u8]) {
-    if try_dispatch_builtins(cmd) {
-        return;
-    }
-    if try_dispatch_system(cmd) {
-        return;
-    }
-    if try_dispatch_process(cmd) {
-        return;
-    }
-    if try_dispatch_network(cmd) {
-        return;
-    }
-    if try_dispatch_filesystem(cmd) {
-        return;
-    }
-    if try_dispatch_crypto(cmd) {
-        return;
-    }
-    if try_dispatch_apps(cmd) {
-        return;
-    }
-    if try_dispatch_blockchain(cmd) {
-        return;
-    }
-    if try_dispatch_npkg(cmd) {
-        return;
-    }
-    if try_dispatch_nox(cmd) {
-        return;
-    }
+    if try_dispatch_builtins(cmd) { return; }
+    if try_dispatch_system(cmd) { return; }
+    if try_dispatch_process(cmd) { return; }
+    if try_dispatch_network(cmd) { return; }
+    if try_dispatch_filesystem(cmd) { return; }
+    if try_dispatch_crypto(cmd) { return; }
+    if try_dispatch_apps(cmd) { return; }
+    if try_dispatch_blockchain(cmd) { return; }
+    if try_dispatch_npkg(cmd) { return; }
+    if try_dispatch_nox(cmd) { return; }
+    if try_dispatch_dev(cmd) { return; }
+    if try_dispatch_agents(cmd) { return; }
+    if try_dispatch_script(cmd) { return; }
     print_line(b"Command not found. Type 'help'", COLOR_RED);
 }
