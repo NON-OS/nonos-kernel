@@ -40,10 +40,14 @@ static REGISTRY: Mutex<alloc::vec::Vec<AppInfo>> = Mutex::new(alloc::vec::Vec::n
 static NEXT_ID: AtomicU32 = AtomicU32::new(1);
 
 pub fn register_app(manifest: AppManifest) -> Option<u32> {
+    register_app_with_stats(manifest, 0)
+}
+
+pub fn register_app_with_stats(manifest: AppManifest, initial_installs: u32) -> Option<u32> {
     let mut reg = REGISTRY.lock();
     if reg.len() >= MAX_REGISTERED { return None; }
     let id = NEXT_ID.fetch_add(1, Ordering::Relaxed);
-    reg.push(AppInfo { id, manifest, installed: true, install_time: crate::time::timestamp_millis() / 1000, last_run: 0, run_count: 0 });
+    reg.push(AppInfo { id, manifest, installed: true, install_time: crate::time::timestamp_millis() / 1000, last_run: 0, run_count: initial_installs });
     Some(id)
 }
 
