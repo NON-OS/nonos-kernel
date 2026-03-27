@@ -26,9 +26,12 @@ const ICON_START_X: u32 = 140;
 const ICON_START_Y: u32 = 60;
 const MAX_ICONS: usize = 24;
 const NAME_LEN: usize = 16;
+const MAX_PATH: usize = 128;
 
 static ICON_COUNT: AtomicU8 = AtomicU8::new(0);
 static mut ICONS: [DesktopIcon; MAX_ICONS] = [DesktopIcon::empty(); MAX_ICONS];
+static mut CURRENT_PATH: [u8; MAX_PATH] = [0; MAX_PATH];
+static CURRENT_PATH_LEN: AtomicU8 = AtomicU8::new(4);
 static mut ICON_POSITIONS: [(i32, i32); MAX_ICONS] = [(-1, -1); MAX_ICONS];
 static DRAGGING_ICON: AtomicU8 = AtomicU8::new(255);
 static DRAG_OFFSET_X: AtomicI32 = AtomicI32::new(0);
@@ -42,9 +45,61 @@ impl DesktopIcon {
     const fn empty() -> Self { Self { name: [0; NAME_LEN], name_len: 0, is_dir: false } }
 }
 
+fn init_path() {
+    unsafe {
+        if CURRENT_PATH[0] == 0 {
+            CURRENT_PATH[..4].copy_from_slice(b"/ram");
+            CURRENT_PATH_LEN.store(4, Ordering::SeqCst);
+        }
+    }
+}
+
+pub(super) fn get_current_path() -> &'static str {
+    init_path();
+    let len = CURRENT_PATH_LEN.load(Ordering::SeqCst) as usize;
+    unsafe { core::str::from_utf8_unchecked(&CURRENT_PATH[..len]) }
+}
+
+pub(super) fn is_in_subfolder() -> bool {
+    CURRENT_PATH_LEN.load(Ordering::SeqCst) > 4
+}
+
+pub(super) fn navigate_into(name: &str) -> bool {
+    init_path();
+    let cur_len = CURRENT_PATH_LEN.load(Ordering::SeqCst) as usize;
+    let name_len = name.len();
+    if cur_len + 1 + name_len >= MAX_PATH { return false; }
+    unsafe {
+        CURRENT_PATH[cur_len] = b'/';
+        CURRENT_PATH[cur_len + 1..cur_len + 1 + name_len].copy_from_slice(name.as_bytes());
+        CURRENT_PATH_LEN.store((cur_len + 1 + name_len) as u8, Ordering::SeqCst);
+    }
+    refresh();
+    true
+}
+
+pub(super) fn navigate_back() -> bool {
+    init_path();
+    let len = CURRENT_PATH_LEN.load(Ordering::SeqCst) as usize;
+    if len <= 4 { return false; }
+    unsafe {
+        for i in (4..len).rev() {
+            if CURRENT_PATH[i] == b'/' {
+                CURRENT_PATH_LEN.store(i as u8, Ordering::SeqCst);
+                for j in i..MAX_PATH { CURRENT_PATH[j] = 0; }
+                break;
+            }
+        }
+    }
+    refresh();
+    true
+}
+
 pub(super) fn refresh() {
+    init_path();
+    let path = get_current_path();
     let mut count = 0usize;
-    if let Ok(entries) = ramfs::list_dir_entries("/ram") {
+    if let Ok(entries) = ramfs::list_dir_entries(path) {
         for e in entries.iter().take(MAX_ICONS) {
             if e.name.starts_with('.') { continue; }
             unsafe {
@@ -121,12 +176,15 @@ pub(super) fn handle_click(mx: i32, my: i32, w: u32) -> Option<(&'static str, bo
             DRAG_OFFSET_Y.store(my - y as i32, Ordering::SeqCst);
             IS_DRAGGING.store(true, Ordering::SeqCst);
             unsafe {
-                static mut PATH_BUF: [u8; 64] = [0; 64];
-                PATH_BUF[..5].copy_from_slice(b"/ram/");
-                let len = ICONS[i].name_len as usize;
-                PATH_BUF[5..5 + len].copy_from_slice(&ICONS[i].name[..len]);
+                init_path();
+                static mut PATH_BUF: [u8; MAX_PATH] = [0; MAX_PATH];
+                let cur_len = CURRENT_PATH_LEN.load(Ordering::SeqCst) as usize;
+                PATH_BUF[..cur_len].copy_from_slice(&CURRENT_PATH[..cur_len]);
+                PATH_BUF[cur_len] = b'/';
+                let name_len = ICONS[i].name_len as usize;
+                PATH_BUF[cur_len + 1..cur_len + 1 + name_len].copy_from_slice(&ICONS[i].name[..name_len]);
                 let is_dir = ICONS[i].is_dir;
-                if let Ok(path) = core::str::from_utf8(&PATH_BUF[..5 + len]) {
+                if let Ok(path) = core::str::from_utf8(&PATH_BUF[..cur_len + 1 + name_len]) {
                     return Some((path, is_dir, should_open));
                 }
             }
@@ -161,30 +219,30 @@ static SELECTED_ICON: AtomicU8 = AtomicU8::new(255);
 
 pub(super) fn create_folder(name: &str) -> bool {
     if name.is_empty() || name.len() >= NAME_LEN { return false; }
-    let mut path = [0u8; 80];
-    path[..5].copy_from_slice(b"/ram/");
-    let len = name.len().min(NAME_LEN - 1);
-    path[5..5 + len].copy_from_slice(name.as_bytes());
-    if let Ok(path_str) = core::str::from_utf8(&path[..5 + len]) {
-        if ramfs::create_dir(path_str).is_ok() {
-            refresh();
-            return true;
-        }
+    init_path();
+    let cur_len = CURRENT_PATH_LEN.load(Ordering::SeqCst) as usize;
+    let name_len = name.len().min(NAME_LEN - 1);
+    let mut path = [0u8; MAX_PATH];
+    unsafe { path[..cur_len].copy_from_slice(&CURRENT_PATH[..cur_len]); }
+    path[cur_len] = b'/';
+    path[cur_len + 1..cur_len + 1 + name_len].copy_from_slice(name.as_bytes());
+    if let Ok(path_str) = core::str::from_utf8(&path[..cur_len + 1 + name_len]) {
+        if ramfs::create_dir(path_str).is_ok() { refresh(); return true; }
     }
     false
 }
 
 pub(super) fn create_file(name: &str) -> bool {
     if name.is_empty() || name.len() >= NAME_LEN { return false; }
-    let mut path = [0u8; 80];
-    path[..5].copy_from_slice(b"/ram/");
-    let len = name.len().min(NAME_LEN - 1);
-    path[5..5 + len].copy_from_slice(name.as_bytes());
-    if let Ok(path_str) = core::str::from_utf8(&path[..5 + len]) {
-        if ramfs::create_file(path_str, b"").is_ok() {
-            refresh();
-            return true;
-        }
+    init_path();
+    let cur_len = CURRENT_PATH_LEN.load(Ordering::SeqCst) as usize;
+    let name_len = name.len().min(NAME_LEN - 1);
+    let mut path = [0u8; MAX_PATH];
+    unsafe { path[..cur_len].copy_from_slice(&CURRENT_PATH[..cur_len]); }
+    path[cur_len] = b'/';
+    path[cur_len + 1..cur_len + 1 + name_len].copy_from_slice(name.as_bytes());
+    if let Ok(path_str) = core::str::from_utf8(&path[..cur_len + 1 + name_len]) {
+        if ramfs::create_file(path_str, b"").is_ok() { refresh(); return true; }
     }
     false
 }
@@ -192,12 +250,15 @@ pub(super) fn create_file(name: &str) -> bool {
 pub(super) fn delete_selected() -> bool {
     let sel = SELECTED_ICON.load(Ordering::SeqCst);
     if sel == 255 || sel as usize >= ICON_COUNT.load(Ordering::SeqCst) as usize { return false; }
+    init_path();
     let icon = unsafe { &ICONS[sel as usize] };
-    let mut path = [0u8; 80];
-    path[..5].copy_from_slice(b"/ram/");
-    let len = icon.name_len as usize;
-    path[5..5 + len].copy_from_slice(&icon.name[..len]);
-    if let Ok(path_str) = core::str::from_utf8(&path[..5 + len]) {
+    let cur_len = CURRENT_PATH_LEN.load(Ordering::SeqCst) as usize;
+    let name_len = icon.name_len as usize;
+    let mut path = [0u8; MAX_PATH];
+    unsafe { path[..cur_len].copy_from_slice(&CURRENT_PATH[..cur_len]); }
+    path[cur_len] = b'/';
+    path[cur_len + 1..cur_len + 1 + name_len].copy_from_slice(&icon.name[..name_len]);
+    if let Ok(path_str) = core::str::from_utf8(&path[..cur_len + 1 + name_len]) {
         if ramfs::delete(path_str).is_ok() {
             SELECTED_ICON.store(255, Ordering::SeqCst);
             refresh();
