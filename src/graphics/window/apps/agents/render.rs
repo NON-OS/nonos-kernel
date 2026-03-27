@@ -35,6 +35,7 @@ pub(crate) fn draw(x: u32, y: u32, w: u32, h: u32) {
         VIEW_LIST => super::list::draw(x, cy, w, ch),
         VIEW_CHAT => super::chat::draw(x, cy, w, ch),
         VIEW_CREATE => super::create::draw(x, cy, w, ch),
+        VIEW_DASHBOARD => super::dashboard::draw(x, cy, w, ch),
         _ => {}
     }
 }
@@ -42,13 +43,13 @@ pub(crate) fn draw(x: u32, y: u32, w: u32, h: u32) {
 fn draw_header(x: u32, y: u32, w: u32) {
     txt(x + 20, y + 16, b"AI Agents", ACCENT);
     fill_rect(x + 20, y + 38, 72, 2, ACCENT);
-    let tabs = [(b"Agents" as &[u8], VIEW_LIST), (b"Create", VIEW_CREATE)];
-    let mut tx = x + w - 180;
+    let tabs = [(b"Dashboard" as &[u8], VIEW_DASHBOARD), (b"Agents", VIEW_LIST), (b"Create", VIEW_CREATE)];
+    let mut tx = x + w - 260;
     for (name, v) in tabs {
         let sel = view() == v;
         let c = if sel { ACCENT } else { DIM };
         txt(tx, y + 16, name, c);
         if sel { fill_rect(tx, y + 38, name.len() as u32 * 8, 2, ACCENT); }
-        tx += name.len() as u32 * 8 + 20;
+        tx += name.len() as u32 * 8 + 16;
     }
 }
