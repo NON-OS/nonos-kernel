@@ -21,7 +21,7 @@ pub mod wallpaper;
 
 pub use images::Background as BackgroundType;
 pub(crate) use images::{BG_HEIGHT, BG_WIDTH, Background};
-pub(crate) use state::{get_background, next_background, prev_background};
+pub(crate) use state::get_background;
 
 pub fn background_count() -> u8 {
     Background::count()
