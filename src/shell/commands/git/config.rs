@@ -21,7 +21,7 @@ use alloc::format;
 use crate::fs::ramfs;
 use super::repo::{repo_path, CONFIG_FILE};
 
-pub fn read_config(repo: &str) -> Vec<(String, String)> {
+pub(super) fn read_config(repo: &str) -> Vec<(String, String)> {
     let data = match ramfs::read_file(&repo_path(repo, CONFIG_FILE)) {
         Ok(d) => d, Err(_) => return Vec::new(),
     };
@@ -37,11 +37,11 @@ pub fn read_config(repo: &str) -> Vec<(String, String)> {
     }).collect()
 }
 
-pub fn get_config(repo: &str, key: &str) -> Option<String> {
+pub(super) fn get_config(repo: &str, key: &str) -> Option<String> {
     read_config(repo).into_iter().find(|(k, _)| k == key).map(|(_, v)| v)
 }
 
-pub fn set_config(repo: &str, key: &str, value: &str) -> Result<(), &'static str> {
+pub(super) fn set_config(repo: &str, key: &str, value: &str) -> Result<(), &'static str> {
     let mut entries = read_config(repo);
     entries.retain(|(k, _)| k != key);
     entries.push((String::from(key), String::from(value)));
@@ -50,10 +50,10 @@ pub fn set_config(repo: &str, key: &str, value: &str) -> Result<(), &'static str
         .map_err(|_| "write config")
 }
 
-pub fn get_remote_url(repo: &str, name: &str) -> Option<String> {
+pub(super) fn get_remote_url(repo: &str, name: &str) -> Option<String> {
     get_config(repo, &format!("remote.{}.url", name))
 }
 
-pub fn set_remote_url(repo: &str, name: &str, url: &str) -> Result<(), &'static str> {
+pub(super) fn set_remote_url(repo: &str, name: &str, url: &str) -> Result<(), &'static str> {
     set_config(repo, &format!("remote.{}.url", name), url)
 }
