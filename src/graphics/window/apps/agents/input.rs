@@ -29,9 +29,10 @@ pub(crate) fn handle_click(x: u32, y: u32, w: u32, _h: u32, mx: i32, my: i32) ->
 }
 
 fn handle_header_click(rx: u32, w: u32) -> bool {
-    let tabs_start = w - 180;
-    if rx >= tabs_start && rx < tabs_start + 50 { set_view(VIEW_LIST); return true; }
-    if rx >= tabs_start + 70 && rx < tabs_start + 120 { set_view(VIEW_CREATE); return true; }
+    let ts = w - 260;
+    if rx >= ts && rx < ts + 72 { set_view(VIEW_DASHBOARD); return true; }
+    if rx >= ts + 88 && rx < ts + 136 { set_view(VIEW_LIST); return true; }
+    if rx >= ts + 152 && rx < ts + 200 { set_view(VIEW_CREATE); return true; }
     false
 }
 
