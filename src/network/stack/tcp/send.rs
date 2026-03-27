@@ -113,6 +113,7 @@ pub fn send(stack: &NetworkStack, conn_id: u32, data: &[u8]) -> Result<usize, &'
                 return Err("send buffer full");
             }
 
+            crate::time::yield_now();
             crate::time::sleep_us(backoff_us);
             backoff_us = backoff_us.saturating_mul(2).min(10_000);
         }
