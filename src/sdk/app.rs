@@ -21,9 +21,13 @@ pub enum AppError {
     InitFailed,
     RenderFailed,
     StorageError,
+    StorageFull,
     NetworkError,
     PermissionDenied,
     InvalidState,
+    InvalidInput,
+    WalletLocked,
+    InsufficientFunds,
 }
 
 #[derive(Clone, Copy, PartialEq)]
