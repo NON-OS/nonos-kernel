@@ -62,20 +62,44 @@ pub fn show_confirm_dialog(title: &[u8], message: &[u8]) {
     dialogs::show_confirm(title, message);
 }
 
+pub fn show_input_dialog(title: &[u8], message: &[u8], callback_id: u8) {
+    dialogs::show_input_dialog(title, message, callback_id);
+}
+
 pub fn is_dialog_active() -> bool {
     dialogs::is_active()
+}
+
+pub fn is_input_dialog_active() -> bool {
+    dialogs::is_input_dialog()
 }
 
 pub fn get_dialog_result() -> u8 {
     dialogs::get_result()
 }
 
+pub fn get_dialog_input_text() -> &'static str {
+    dialogs::get_input_text()
+}
+
+pub fn get_dialog_input_callback() -> u8 {
+    dialogs::get_input_callback()
+}
+
 pub fn close_dialog() {
     dialogs::close();
 }
 
+pub fn handle_dialog_key(ch: u8) -> bool {
+    dialogs::handle_key(ch)
+}
+
 pub mod dialog_result {
     pub use super::dialogs::{RESULT_NONE, RESULT_OK, RESULT_CANCEL, RESULT_YES, RESULT_NO};
+}
+
+pub mod dialog_callback {
+    pub use super::dialogs::{INPUT_CB_NONE, INPUT_CB_DESKTOP_NEW_FOLDER, INPUT_CB_DESKTOP_NEW_FILE};
 }
 
 pub fn set_window_content_size(idx: usize, width: u32, height: u32) {
