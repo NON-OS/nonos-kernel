@@ -20,6 +20,7 @@ use crate::graphics::window::settings::render::{draw_string, draw_toggle};
 use crate::graphics::window::settings::state::is_dark_theme;
 use super::slider::draw_slider;
 use super::info::{draw_background_selector, draw_system_info};
+use super::timezone::{draw_timezone, draw_screen_timeout};
 
 pub(crate) fn draw(x: u32, y: u32, w: u32) {
     draw_brightness(x, y, w);
@@ -29,6 +30,8 @@ pub(crate) fn draw(x: u32, y: u32, w: u32) {
     draw_dark_theme(x, y, w);
     draw_background_selector(x, y, w);
     draw_system_info(x, y, w);
+    draw_timezone(x, y, w);
+    draw_screen_timeout(x, y, w);
 }
 
 fn draw_brightness(x: u32, y: u32, w: u32) {
