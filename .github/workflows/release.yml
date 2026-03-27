@@ -134,90 +134,55 @@ jobs:
           path: dist/
           retention-days: 90
 
+      - name: Read release notes
+        id: release_notes
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          NOTES_FILE="docs/releases/v${VERSION}.md"
+          if [ -f "$NOTES_FILE" ]; then
+            echo "Found release notes: $NOTES_FILE"
+            BODY=$(cat "$NOTES_FILE")
+          else
+            echo "No release notes found at $NOTES_FILE, using default"
+            BODY="## NØNOS $VERSION
+
+            Release $VERSION of the NØNOS operating system.
+
+            See the commit history for details on changes in this release."
+          fi
+
+          BODY="${BODY}
+
+          ---
+
+          ## Download and Verify
+
+          Download the ISO or IMG file below and verify the checksum before use.
+
+          To run in QEMU:
+          \`\`\`
+          qemu-system-x86_64 -m 2G -cpu host -enable-kvm -device virtio-rng-pci -cdrom nonos-${VERSION}.iso
+          \`\`\`
+
+          To write to USB:
+          \`\`\`
+          sudo dd if=nonos-${VERSION}.img of=/dev/sdX bs=4M status=progress
+          \`\`\`
+
+          ---
+
+          **Experimental software. Use at your own risk.**"
+
+          echo "body<<RELEASE_EOF" >> $GITHUB_OUTPUT
+          echo "$BODY" >> $GITHUB_OUTPUT
+          echo "RELEASE_EOF" >> $GITHUB_OUTPUT
+
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.version.outputs.tag }}
           name: NØNOS ${{ steps.version.outputs.version }}
-          body: |
-            ## NØNOS Alpha ${{ steps.version.outputs.version }}
-
-            **Phase:** Alpha - Kernel stabilization and security hardening
-
-            **Documentation:** [nonos.software](https://nonos.software)
-
-            ---
-
-            ### IPC and Timer Infrastructure
-
-            - Replaced direct pointer operations with validated usercopy interface
-            - All kernel-userspace data transfers now pass through controlled API
-            - Reorganized select and eventfd subsystems into focused modules
-
-            ### Filesystem Hardening
-
-            - Canonical directory marker path generation (normalized before .dir suffix)
-            - Explicit root directory marker creation during filesystem init
-            - Atomic filesystem operations with write_or_create primitive
-            - Eliminated TOCTOU race conditions in file operations
-
-            ### Syscall Handler Security
-
-            - All syscall handlers now use usercopy API for memory access
-            - Integer overflow protection with checked_add arithmetic
-            - Fixed signalfd race condition in instance allocation
-            - Consistent error propagation throughout syscall layer
-
-            ### GUI Application Fixes
-
-            - Clipboard path length validation prevents silent truncation
-            - Filesystem-aware name validation (ramfs: 63 chars, FAT32: 8.3)
-            - Paste operations now handle both existing and new files
-
-            ### Security Audit Results
-
-            - Buffer bounds checks added to wallet and clipboard operations
-            - Overflow-safe calculations in getdents syscall
-            - Standardized error handling across all subsystems
-
-            ### Code Quality
-
-            - Large files split into focused single-responsibility modules
-            - mod.rs pattern used purely for exports
-            - Consistent path normalization and error naming conventions
-
-            ---
-
-            ### Artifacts
-
-            | File | Description |
-            |------|-------------|
-            | `nonos-${{ steps.version.outputs.version }}.iso` | Bootable ISO image |
-            | `nonos-${{ steps.version.outputs.version }}.img` | Raw disk image for USB |
-            | `nonos-kernel-${{ steps.version.outputs.version }}.bin` | Signed kernel with ZK proof |
-            | `SHA256SUMS` | Integrity checksums |
-
-            ### Quick Start
-
-            ```bash
-            # Verify
-            sha256sum -c SHA256SUMS
-
-            # Run in QEMU
-            qemu-system-x86_64 -m 2G -cpu host -enable-kvm \
-              -device virtio-rng-pci \
-              -cdrom nonos-${{ steps.version.outputs.version }}.iso
-
-            # Install to USB
-            sudo dd if=nonos-${{ steps.version.outputs.version }}.img of=/dev/sdX bs=4M status=progress
-            ```
-
-            ### Commits
-
-            ${{ steps.changelog.outputs.commits }}
-
-            ---
-            **Experimental software. Use at your own risk.**
+          body: ${{ steps.release_notes.outputs.body }}
           files: |
             dist/nonos-*.iso
             dist/nonos-*.img
