@@ -22,7 +22,8 @@ use super::types::{ContextMenuType, MenuItemType};
 use super::state::*;
 use super::menus::get_items;
 
-const MENU_CORNER_RADIUS: u32 = 10;
+const MENU_CORNER_RADIUS: u32 = 8;
+const MENU_BG: u32 = 0xF0202028;
 
 pub fn draw() {
     if !is_visible() { return; }
@@ -42,22 +43,15 @@ pub fn draw() {
     };
 
     draw_shadow(x, y, w, h);
-    primitives::rounded_rect(x, y, w, h, MENU_CORNER_RADIUS, 0xF01C1C1E);
-    draw_highlight(x, y, w);
+    primitives::rounded_rect(x, y, w, h, MENU_CORNER_RADIUS, MENU_BG);
+    fill_rect(x + MENU_CORNER_RADIUS, y, w - 2 * MENU_CORNER_RADIUS, 1, 0x0AFFFFFF);
     draw_items(x, y, w, hover_idx, get_items(menu_type));
 }
 
 fn draw_shadow(x: u32, y: u32, w: u32, h: u32) {
-    for shadow in 0..6u32 {
-        let alpha = 25 - shadow * 4;
-        primitives::rounded_rect(x + shadow / 2, y + shadow + 2, w, h, MENU_CORNER_RADIUS, alpha << 24);
-    }
-}
-
-fn draw_highlight(x: u32, y: u32, w: u32) {
-    for gy in 0..MENU_CORNER_RADIUS {
-        let alpha = 8 - (gy / 2).min(8);
-        fill_rect(x + MENU_CORNER_RADIUS, y + gy, w - 2 * MENU_CORNER_RADIUS, 1, (alpha << 24) | 0xFFFFFF);
+    for shadow in 0..4u32 {
+        let alpha = 18 - shadow * 4;
+        primitives::rounded_rect(x + 1, y + shadow + 2, w, h, MENU_CORNER_RADIUS, alpha << 24);
     }
 }
 
