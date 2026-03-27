@@ -32,3 +32,9 @@ pub use operations::{create_folder, create_file, delete_selected};
 pub use clipboard::{copy_selected, cut_selected, paste};
 pub use render::draw_file_manager;
 pub use input::{handle_file_manager_click, handle_file_manager_key, handle_file_manager_special_key, cancel_input};
+
+/// Navigate file manager to a specific path
+pub fn navigate_to(path: &str) {
+    state::set_path(path);
+    listing::refresh_listing();
+}
