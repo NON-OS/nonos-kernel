@@ -24,11 +24,13 @@ pub enum Layout {
     Qwertz = 4,
     UkQwerty = 5,
     Spanish = 6,
+    Italian = 7,
+    Portuguese = 8,
     Custom = 255,
 }
 
 impl Layout {
-    pub const COUNT: usize = 7;
+    pub const COUNT: usize = 9;
 
     pub const fn from_u8(v: u8) -> Option<Self> {
         match v {
@@ -39,6 +41,8 @@ impl Layout {
             4 => Some(Self::Qwertz),
             5 => Some(Self::UkQwerty),
             6 => Some(Self::Spanish),
+            7 => Some(Self::Italian),
+            8 => Some(Self::Portuguese),
             255 => Some(Self::Custom),
             _ => None,
         }
@@ -53,6 +57,8 @@ impl Layout {
             Self::Qwertz => "QWERTZ (German)",
             Self::UkQwerty => "UK QWERTY",
             Self::Spanish => "Spanish QWERTY",
+            Self::Italian => "Italian QWERTY",
+            Self::Portuguese => "Portuguese QWERTY",
             Self::Custom => "Custom",
         }
     }
@@ -63,6 +69,8 @@ impl Layout {
             Self::Azerty => "fr",
             Self::Qwertz => "de",
             Self::Spanish => "es",
+            Self::Italian => "it",
+            Self::Portuguese => "pt",
             Self::Custom => "xx",
         }
     }
@@ -74,16 +82,18 @@ impl Layout {
             Self::Azerty => "FR",
             Self::Qwertz => "DE",
             Self::Spanish => "ES",
+            Self::Italian => "IT",
+            Self::Portuguese => "PT",
             Self::Custom => "XX",
         }
     }
 
     pub const fn has_altgr(self) -> bool {
-        matches!(self, Self::Azerty | Self::Qwertz | Self::Spanish | Self::UkQwerty)
+        matches!(self, Self::Azerty | Self::Qwertz | Self::Spanish | Self::UkQwerty | Self::Italian | Self::Portuguese)
     }
 
     pub const fn has_dead_keys(self) -> bool {
-        matches!(self, Self::Azerty | Self::Qwertz | Self::Spanish)
+        matches!(self, Self::Azerty | Self::Qwertz | Self::Spanish | Self::Italian | Self::Portuguese)
     }
 
     pub const fn all() -> [Layout; Self::COUNT] {
@@ -95,6 +105,8 @@ impl Layout {
             Self::Qwertz,
             Self::UkQwerty,
             Self::Spanish,
+            Self::Italian,
+            Self::Portuguese,
         ]
     }
 }
