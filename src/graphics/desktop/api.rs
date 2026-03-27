@@ -104,3 +104,15 @@ pub fn desktop_has_selection() -> bool {
 pub fn desktop_clear_selection() {
     desktop_icons::clear_selection();
 }
+
+pub fn handle_desktop_icon_drag(mx: i32, my: i32) -> bool {
+    desktop_icons::handle_drag(mx, my)
+}
+
+pub fn handle_desktop_icon_drag_end() {
+    desktop_icons::handle_drag_end();
+}
+
+pub fn is_desktop_icon_dragging() -> bool {
+    desktop_icons::is_dragging()
+}
