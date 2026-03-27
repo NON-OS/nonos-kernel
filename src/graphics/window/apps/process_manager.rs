@@ -20,11 +20,11 @@ use crate::process::get_all_processes;
 use crate::process::core::types::ProcessState;
 use crate::graphics::window::state::TITLE_BAR_HEIGHT;
 
-const COLOR_BG: u32 = 0xFF000000;
-const COLOR_HEADER: u32 = 0xFF2C2C2E;
-const COLOR_ROW_ALT: u32 = 0xFF1C1C1E;
-const COLOR_TEXT_DIM: u32 = 0xFF8E8E93;
-const COLOR_BORDER: u32 = 0xFF38383A;
+const COLOR_BG: u32 = 0xFF141418;
+const COLOR_HEADER: u32 = 0xFF1E1E24;
+const COLOR_ROW_ALT: u32 = 0xFF1A1A1E;
+const COLOR_TEXT_DIM: u32 = 0xFF6B7280;
+const COLOR_BORDER: u32 = 0xFF2C2C30;
 
 fn draw_string(x: u32, y: u32, text: &[u8], color: u32) {
     for (i, &ch) in text.iter().enumerate() {
@@ -78,16 +78,12 @@ fn draw_number(x: u32, y: u32, num: u32, color: u32) -> u32 {
 pub(super) fn draw(x: u32, y: u32, w: u32, h: u32) {
     fill_rect(x, y, w, h, COLOR_BG);
 
-    for gy in 0..44u32 {
-        let shade = 44 - (gy / 3) as u8;
-        let color = 0xFF000000 | ((shade as u32) << 16) | ((shade as u32) << 8) | (shade as u32);
-        fill_rect(x, y + gy, w, 1, color);
-    }
+    fill_rect(x, y, w, 44, 0xFF1A1A1E);
     fill_rect(x, y + 43, w, 1, COLOR_BORDER);
 
     draw_string(x + 16, y + 14, b"System Processes", COLOR_ACCENT);
 
-    draw_rounded_rect(x + w - 90, y + 8, 76, 28, 6, 0xFF3A3A3C);
+    draw_rounded_rect(x + w - 90, y + 8, 76, 28, 6, 0xFF2A2A32);
     draw_string(x + w - 76, y + 14, b"Refresh", COLOR_TEXT_WHITE);
 
     fill_rect(x, y + 44, w, 28, COLOR_HEADER);
@@ -118,13 +114,13 @@ pub(super) fn draw(x: u32, y: u32, w: u32, h: u32) {
         draw_string(x + 60, py + 10, &name_bytes[..name_len], COLOR_TEXT_WHITE);
 
         let (state_str, state_bg, state_text, is_running): (&[u8], u32, u32, bool) = match proc.state() {
-            ProcessState::New => (b"new", 0xFF3A3A3C, COLOR_TEXT_DIM, false),
-            ProcessState::Ready => (b"ready", 0xFF3A3500, COLOR_YELLOW, false),
-            ProcessState::Running => (b"run", 0xFF1A3A1A, COLOR_GREEN, true),
-            ProcessState::Sleeping => (b"sleep", 0xFF2A2A3C, 0xFF8E8EAA, false),
-            ProcessState::Stopped => (b"stop", 0xFF3A1A1A, COLOR_RED, false),
-            ProcessState::Zombie(_) => (b"zombie", 0xFF3A1A1A, COLOR_RED, false),
-            ProcessState::Terminated(_) => (b"exit", 0xFF2C2C2E, COLOR_TEXT_DIM, false),
+            ProcessState::New => (b"new", 0xFF2A2A32, COLOR_TEXT_DIM, false),
+            ProcessState::Ready => (b"ready", 0xFF332D00, COLOR_YELLOW, false),
+            ProcessState::Running => (b"run", 0xFF103520, COLOR_GREEN, true),
+            ProcessState::Sleeping => (b"sleep", 0xFF222230, 0xFF8B8BAF, false),
+            ProcessState::Stopped => (b"stop", 0xFF351818, COLOR_RED, false),
+            ProcessState::Zombie(_) => (b"zombie", 0xFF351818, COLOR_RED, false),
+            ProcessState::Terminated(_) => (b"exit", 0xFF2A2A32, COLOR_TEXT_DIM, false),
         };
 
         draw_status_pill(x + 200, py + 7, state_str, state_bg, state_text);
@@ -155,17 +151,13 @@ pub(super) fn draw(x: u32, y: u32, w: u32, h: u32) {
 
         let can_kill = proc.pid > 1 && !matches!(proc.name.as_str(), "kernel" | "init");
         if can_kill {
-            draw_rounded_rect(x + w - 70, py + 6, 55, 22, 4, 0xFF5A2020);
+            draw_rounded_rect(x + w - 70, py + 6, 55, 22, 4, 0xFF4A1818);
             draw_string(x + w - 58, py + 10, b"Kill", COLOR_RED);
         }
     }
 
-    for gy in 0..32u32 {
-        let shade = 28 - (gy / 4) as u8;
-        let color = 0xFF000000 | ((shade as u32) << 16) | ((shade as u32) << 8) | (shade as u32);
-        fill_rect(x, y + h - 32 + gy, w, 1, color);
-    }
     fill_rect(x, y + h - 32, w, 1, COLOR_BORDER);
+    fill_rect(x, y + h - 31, w, 31, 0xFF16161A);
 
     let proc_count = processes.len() as u32;
     let width1 = draw_number(x + 16, y + h - 22, proc_count, COLOR_TEXT_DIM);
