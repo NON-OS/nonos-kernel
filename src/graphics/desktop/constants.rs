@@ -19,9 +19,9 @@ use crate::graphics::window::WindowType;
 pub(crate) const MENU_BAR_HEIGHT: u32 = 34;
 pub(crate) const DOCK_HEIGHT: u32 = 64;
 pub(crate) const SIDEBAR_WIDTH: u32 = 60;
-pub(super) const DOCK_WIDTH: u32 = 520;
+pub(super) const DOCK_WIDTH: u32 = 632;
 pub(super) const DOCK_INNER_HEIGHT: u32 = 52;
-pub(super) const DOCK_ICON_COUNT: usize = 9;
+pub(super) const DOCK_ICON_COUNT: usize = 11;
 
 pub(super) const DOCK_ICONS: [WindowType; DOCK_ICON_COUNT] = [
     WindowType::Terminal,
@@ -29,6 +29,8 @@ pub(super) const DOCK_ICONS: [WindowType; DOCK_ICON_COUNT] = [
     WindowType::TextEditor,
     WindowType::Calculator,
     WindowType::Wallet,
+    WindowType::Marketplace,
+    WindowType::Agents,
     WindowType::ProcessManager,
     WindowType::Settings,
     WindowType::Browser,
