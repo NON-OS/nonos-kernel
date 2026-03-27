@@ -21,9 +21,9 @@ use alloc::format;
 use crate::fs::ramfs;
 use super::repo::{repo_path, INDEX_FILE};
 
-pub struct IndexEntry { pub path: String, pub hash: String }
+pub(super) struct IndexEntry { pub path: String, pub hash: String }
 
-pub fn read_index(repo: &str) -> Vec<IndexEntry> {
+pub(super) fn read_index(repo: &str) -> Vec<IndexEntry> {
     let data = match ramfs::read_file(&repo_path(repo, INDEX_FILE)) {
         Ok(d) => d, Err(_) => return Vec::new(),
     };
@@ -38,16 +38,16 @@ pub fn read_index(repo: &str) -> Vec<IndexEntry> {
     }).collect()
 }
 
-pub fn write_index(repo: &str, entries: &[IndexEntry]) -> Result<(), &'static str> {
+pub(super) fn write_index(repo: &str, entries: &[IndexEntry]) -> Result<(), &'static str> {
     let content: String = entries.iter().map(|e| format!("{} {}\n", e.hash, e.path)).collect();
     ramfs::write_file(&repo_path(repo, INDEX_FILE), content.as_bytes()).map_err(|_| "write index")
 }
 
-pub fn add_to_index(repo: &str, path: &str, hash: &str) -> Result<(), &'static str> {
+pub(super) fn add_to_index(repo: &str, path: &str, hash: &str) -> Result<(), &'static str> {
     let mut entries = read_index(repo);
     entries.retain(|e| e.path != path);
     entries.push(IndexEntry { path: String::from(path), hash: String::from(hash) });
     write_index(repo, &entries)
 }
 
-pub fn clear_index(repo: &str) -> Result<(), &'static str> { write_index(repo, &[]) }
+pub(super) fn clear_index(repo: &str) -> Result<(), &'static str> { write_index(repo, &[]) }
