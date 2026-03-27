@@ -16,43 +16,12 @@
 
 use core::sync::atomic::{AtomicU8, Ordering};
 use super::images::Background;
-use super::wallpaper::{
-    is_using_wallpaper, get_cached_wallpaper, next_wallpaper, prev_wallpaper, set_current_wallpaper,
-};
+use super::wallpaper::{is_using_wallpaper, get_cached_wallpaper};
 
 static CURRENT_BACKGROUND: AtomicU8 = AtomicU8::new(1);
 
 pub(crate) fn get_background() -> Background {
     Background::from_u8(CURRENT_BACKGROUND.load(Ordering::Relaxed))
-}
-
-pub(crate) fn set_background(bg: Background) {
-    CURRENT_BACKGROUND.store(bg as u8, Ordering::Relaxed);
-    set_current_wallpaper(255);
-}
-
-pub(crate) fn next_background() -> Background {
-    if is_using_wallpaper() {
-        next_wallpaper();
-        return get_background();
-    }
-
-    let current = get_background();
-    let next = current.next();
-    set_background(next);
-    next
-}
-
-pub(crate) fn prev_background() -> Background {
-    if is_using_wallpaper() {
-        prev_wallpaper();
-        return get_background();
-    }
-
-    let current = get_background();
-    let prev = current.prev();
-    set_background(prev);
-    prev
 }
 
 pub fn get_background_pixels() -> Option<&'static [u32]> {
