@@ -32,6 +32,7 @@ pub static DIALOG_INPUT_CALLBACK: AtomicU8 = AtomicU8::new(0);
 pub const INPUT_CB_NONE: u8 = 0;
 pub const INPUT_CB_DESKTOP_NEW_FOLDER: u8 = 1;
 pub const INPUT_CB_DESKTOP_NEW_FILE: u8 = 2;
+pub const INPUT_CB_FM_NEW_FOLDER: u8 = 3;
 
 pub const DIALOG_INFO: u8 = 0;
 pub const DIALOG_WARNING: u8 = 1;
