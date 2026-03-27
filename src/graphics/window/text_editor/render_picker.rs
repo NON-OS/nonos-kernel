@@ -19,66 +19,51 @@ use crate::graphics::framebuffer::fill_rect;
 use crate::graphics::design_system::colors::*;
 use crate::graphics::components::{primitives, text};
 use super::state::*;
+use super::render_picker_list::draw_file_list;
 
-pub fn draw(x: u32, y: u32, w: u32, h: u32) {
+pub(super) fn draw(x: u32, y: u32, w: u32, h: u32) {
     fill_rect(x, y, w, h, BG_APP);
-    draw_header(x, y, w);
+    let is_save = picker_is_save_mode();
+    draw_header(x, y, w, is_save);
+    if is_save { draw_filename_input(x, y, w); }
     draw_file_list(x, y, w, h);
-    draw_buttons(x, y, w, h);
+    draw_buttons(x, y, w, h, is_save);
 }
 
-fn draw_header(x: u32, y: u32, w: u32) {
+fn draw_header(x: u32, y: u32, w: u32, is_save: bool) {
     for gy in 0..44u32 {
         let shade = 44 - (gy / 3) as u8;
         let color = 0xFF000000 | ((shade as u32) << 16) | ((shade as u32) << 8) | (shade as u32);
         fill_rect(x, y + gy, w, 1, color);
     }
     fill_rect(x, y + 43, w, 1, BORDER_DEFAULT);
-    text::draw(x + 16, y + 14, b"Open File", TEXT_PRIMARY);
-
+    let title = if is_save { b"Save File As" as &[u8] } else { b"Open File" as &[u8] };
+    text::draw(x + 16, y + 14, title, TEXT_PRIMARY);
     let path_len = PICKER_PATH_LEN.load(Ordering::Relaxed);
     if path_len > 0 {
         unsafe {
-            let display_len = path_len.min(45);
-            text::draw(x + 100, y + 14, &PICKER_PATH[..display_len], TEXT_SECONDARY);
+            let display_len = path_len.min(40);
+            text::draw(x + 120, y + 14, &PICKER_PATH[..display_len], TEXT_SECONDARY);
         }
     }
 }
 
-fn draw_file_list(x: u32, y: u32, w: u32, h: u32) {
-    let list_y = y + 48;
-    let list_h = h - 100;
-    let row_height = 28u32;
-
-    fill_rect(x + 12, list_y, w - 24, list_h, BG_SURFACE);
-
-    let count = PICKER_COUNT.load(Ordering::Relaxed);
-    let selected = PICKER_SELECTED.load(Ordering::Relaxed);
-    let max_rows = (list_h / row_height) as usize;
-
-    for i in 0..count.min(max_rows) {
-        let row_y = list_y + (i as u32) * row_height;
-        if i == selected {
-            primitives::rounded_rect(x + 16, row_y + 2, w - 32, row_height - 4, 4, BG_SELECTED);
-        }
-
-        let (name_len, is_dir) = unsafe { (PICKER_LENS[i], PICKER_IS_DIR[i]) };
-        if name_len > 0 {
-            let icon_color = if is_dir { ACCENT } else { TEXT_SECONDARY };
-            if is_dir {
-                fill_rect(x + 24, row_y + 7, 16, 12, icon_color);
-            } else {
-                fill_rect(x + 26, row_y + 5, 12, 16, icon_color);
-            }
-            unsafe { text::draw(x + 48, row_y + 8, &PICKER_FILES[i][..name_len], TEXT_PRIMARY); }
-        }
-    }
+fn draw_filename_input(x: u32, y: u32, w: u32) {
+    let input_y = y + 48;
+    text::draw(x + 16, input_y + 4, b"Filename:", TEXT_SECONDARY);
+    primitives::rounded_rect(x + 90, input_y, w - 110, 28, 4, BG_INPUT);
+    let filename = get_save_filename();
+    text::draw(x + 98, input_y + 8, filename, TEXT_PRIMARY);
+    let cursor_x = x + 98 + (filename.len() as u32 * 8);
+    fill_rect(cursor_x, input_y + 6, 2, 16, ACCENT);
 }
 
-fn draw_buttons(x: u32, y: u32, w: u32, h: u32) {
+fn draw_buttons(x: u32, y: u32, w: u32, h: u32, is_save: bool) {
     let btn_y = y + h - 48;
     primitives::rounded_rect(x + w - 90, btn_y, 72, 32, 6, BG_HOVER);
     text::draw(x + w - 76, btn_y + 10, b"Cancel", TEXT_PRIMARY);
+    let action_text = if is_save { b"Save" as &[u8] } else { b"Open" as &[u8] };
+    let action_x = if is_save { x + w - 160 } else { x + w - 160 };
     primitives::rounded_rect(x + w - 172, btn_y, 72, 32, 6, ACCENT);
-    text::draw(x + w - 160, btn_y + 10, b"Open", TEXT_INVERSE);
+    text::draw(action_x, btn_y + 10, action_text, TEXT_INVERSE);
 }
