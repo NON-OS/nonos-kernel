@@ -244,7 +244,8 @@ fn wait_for_established(stack: &NetworkStack, handle: SocketHandle, timeout_ms: 
             return Err("tcp connect timeout");
         }
 
-        let sleep_us = poll_interval_us.saturating_mul(backoff_multiplier).min(50_000);
+        if backoff_multiplier % 5 == 0 { crate::time::yield_now(); }
+        let sleep_us = poll_interval_us.saturating_mul(backoff_multiplier).min(5_000);
         crate::time::sleep_us(sleep_us);
 
         if backoff_multiplier < 50 {
