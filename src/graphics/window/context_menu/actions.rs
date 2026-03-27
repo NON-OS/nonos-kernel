@@ -20,6 +20,7 @@ pub const DESKTOP_ABOUT: u8 = 3;
 pub const DESKTOP_NEW_FOLDER: u8 = 4;
 pub const DESKTOP_NEW_FILE: u8 = 5;
 pub const DESKTOP_DELETE: u8 = 6;
+pub const DESKTOP_GO_BACK: u8 = 7;
 pub const FM_OPEN: u8 = 10;
 pub const FM_COPY: u8 = 11;
 pub const FM_CUT: u8 = 12;
