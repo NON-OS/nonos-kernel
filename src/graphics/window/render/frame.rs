@@ -19,23 +19,15 @@ pub(super) fn draw_window_frame(x: u32, y: u32, w: u32, h: u32, focused: bool) {
     let bg = if focused { WIN_BG_FOCUSED } else { WIN_BG_UNFOCUSED };
     draw_rounded_rect(x, y, w, h, CORNER_RADIUS, bg);
     if focused {
-        draw_border_glow(x, y, w, h);
+        draw_border_subtle(x, y, w, h);
     }
 }
 
-fn draw_border_glow(x: u32, y: u32, w: u32, h: u32) {
-    for i in 0..2u32 {
-        let alpha = 12 - i * 5;
-        let top_w = w.saturating_sub(CORNER_RADIUS * 2);
-        let side_h = h.saturating_sub(CORNER_RADIUS * 2);
-        fill_rect(x + CORNER_RADIUS, y + i, top_w, 1, (alpha << 24) | 0xFFFFFF);
-        fill_rect(x + i, y + CORNER_RADIUS, 1, side_h, (alpha << 24) | 0xFFFFFF);
-    }
-    for i in 0..2u32 {
-        let alpha = 8 - i * 3;
-        let bot_w = w.saturating_sub(CORNER_RADIUS * 2);
-        let side_h = h.saturating_sub(CORNER_RADIUS * 2);
-        fill_rect(x + CORNER_RADIUS, y + h - 1 - i, bot_w, 1, (alpha << 24) | 0x000000);
-        fill_rect(x + w - 1 - i, y + CORNER_RADIUS, 1, side_h, (alpha << 24) | 0x000000);
-    }
+fn draw_border_subtle(x: u32, y: u32, w: u32, h: u32) {
+    let top_w = w.saturating_sub(CORNER_RADIUS * 2);
+    let side_h = h.saturating_sub(CORNER_RADIUS * 2);
+    fill_rect(x + CORNER_RADIUS, y, top_w, 1, 0x08FFFFFF);
+    fill_rect(x, y + CORNER_RADIUS, 1, side_h, 0x06FFFFFF);
+    fill_rect(x + CORNER_RADIUS, y + h - 1, top_w, 1, 0x0C000000);
+    fill_rect(x + w - 1, y + CORNER_RADIUS, 1, side_h, 0x08000000);
 }
