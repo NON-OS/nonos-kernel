@@ -30,6 +30,7 @@ use super::nox::try_dispatch_nox;
 use super::devtools::try_dispatch_dev;
 use super::agents::try_dispatch_agents;
 use super::script::try_dispatch_script;
+use super::git::try_dispatch_git;
 
 pub(crate) fn dispatch(cmd: &[u8]) {
     if try_dispatch_builtins(cmd) { return; }
@@ -45,5 +46,6 @@ pub(crate) fn dispatch(cmd: &[u8]) {
     if try_dispatch_dev(cmd) { return; }
     if try_dispatch_agents(cmd) { return; }
     if try_dispatch_script(cmd) { return; }
+    if try_dispatch_git(cmd) { return; }
     print_line(b"Command not found. Type 'help'", COLOR_RED);
 }
