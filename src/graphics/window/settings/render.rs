@@ -35,9 +35,9 @@ pub(super) fn draw_string(x: u32, y: u32, text: &[u8], color: u32) {
 }
 
 pub(super) fn draw_toggle(x: u32, y: u32, enabled: bool) {
-    let track_color = if enabled { 0xFF34C759 } else { 0xFF39393D };
-    let h = 31u32;
-    let w = 51u32;
+    let track_color = if enabled { 0xFF34D399 } else { 0xFF374151 };
+    let h = 28u32;
+    let w = 48u32;
     let r = h / 2;
     fill_rect(x + r, y, w - h, h, track_color);
     draw_toggle_cap(x, y, r, track_color, true);
@@ -105,27 +105,27 @@ pub fn draw(x: u32, y: u32, w: u32, h: u32) {
 }
 
 fn draw_sidebar(x: u32, y: u32, h: u32, current_page: u8) {
-    fill_rect(x, y, SIDEBAR_WIDTH, h, 0xFF1C1C1E);
-    fill_rect(x + SIDEBAR_WIDTH - 1, y, 1, h, 0xFF38383A);
+    fill_rect(x, y, SIDEBAR_WIDTH, h, 0xFF1A1A1E);
+    fill_rect(x + SIDEBAR_WIDTH - 1, y, 1, h, 0xFF2C2C30);
 
-    draw_string(x + 16, y + 16, b"Settings", 0xFF8E8E93);
+    draw_string(x + 16, y + 16, b"Settings", 0xFF6E6E72);
 
     let icons: [u8; 5] = [0x1F, 0x57, 0x40, 0x2A, 0x26];
     let categories: [&[u8]; 5] = [b"Privacy", b"Network", b"Wallpapers", b"System", b"Power"];
-    let colors: [u32; 5] = [0xFF5856D6, 0xFF007AFF, 0xFFFF9500, 0xFF8E8E93, 0xFFFF3B30];
+    let colors: [u32; 5] = [0xFF8B5CF6, 0xFF3B82F6, 0xFFF59E0B, 0xFF6B7280, 0xFFEF4444];
 
     for (i, cat) in categories.iter().enumerate() {
         let ty = y + 50 + (i as u32) * 44;
         let is_sel = current_page == i as u8;
 
         if is_sel {
-            draw_rounded_selection(x + 8, ty, SIDEBAR_WIDTH - 16, 36, 0xFF3A3A3C);
+            draw_rounded_selection(x + 8, ty, SIDEBAR_WIDTH - 16, 36, 0xFF2A2A32);
         }
 
         fill_rect(x + 16, ty + 6, 24, 24, colors[i]);
         draw_string(x + 16 + 7, ty + 12, &[icons[i]], 0xFFFFFFFF);
 
-        let text_color = if is_sel { COLOR_TEXT_WHITE } else { 0xFFAEAEB2 };
+        let text_color = if is_sel { COLOR_TEXT_WHITE } else { 0xFF9CA3AF };
         draw_string(x + 48, ty + 12, cat, text_color);
     }
 }
@@ -159,12 +159,7 @@ fn draw_rounded_selection(x: u32, y: u32, w: u32, h: u32, color: u32) {
 }
 
 fn draw_header(x: u32, y: u32, w: u32, page: u8) {
-    for gy in 0..50u32 {
-        let alpha = 255 - (gy * 3).min(80);
-        let shade = 28 + (gy / 3) as u8;
-        let color = (alpha << 24) | ((shade as u32) << 16) | ((shade as u32) << 8) | (shade as u32);
-        fill_rect(x, y + gy, w, 1, color);
-    }
+    fill_rect(x, y, w, 50, 0xFF1E1E24);
     let header: &[u8] = match page {
         PAGE_PRIVACY => b"Privacy",
         PAGE_NETWORK => b"Network",
@@ -173,18 +168,14 @@ fn draw_header(x: u32, y: u32, w: u32, page: u8) {
         PAGE_POWER => b"Power",
         _ => b"System",
     };
-    draw_string(x + 20, y + 16, header, COLOR_TEXT_WHITE);
-    fill_rect(x, y + 49, w, 1, 0xFF38383A);
+    draw_string(x + 20, y + 18, header, COLOR_TEXT_WHITE);
+    fill_rect(x, y + 49, w, 1, 0xFF2C2C30);
 }
 
 fn draw_footer(x: u32, y: u32, w: u32, h: u32) {
-    fill_rect(x, y + h - 40, w, 1, 0xFF38383A);
-    for gy in 0..39u32 {
-        let shade = 28 - (gy / 4) as u8;
-        let color = 0xFF000000 | ((shade as u32) << 16) | ((shade as u32) << 8) | (shade as u32);
-        fill_rect(x, y + h - 39 + gy, w, 1, color);
-    }
-    draw_string(x + 20, y + h - 26, b"N\xd8NOS", 0xFF007AFF);
-    draw_string(x + 68, y + h - 26, b"v1.0.0", 0xFF48484A);
-    draw_string(x + w - 140, y + h - 26, b"ZeroState Mode", 0xFF34C759);
+    fill_rect(x, y + h - 40, w, 1, 0xFF2C2C30);
+    fill_rect(x, y + h - 39, w, 39, 0xFF16161A);
+    draw_string(x + 20, y + h - 26, b"N\xd8NOS", 0xFF3B82F6);
+    draw_string(x + 68, y + h - 26, b"v1.0.0", 0xFF4B5563);
+    draw_string(x + w - 140, y + h - 26, b"ZeroState Mode", 0xFF34D399);
 }
