@@ -20,24 +20,32 @@ use super::state::*;
 
 const DIALOG_W: u32 = 420;
 const DIALOG_H: u32 = 200;
+const INPUT_DIALOG_H: u32 = 240;
 
 pub(crate) fn draw() {
     if !is_active() { return; }
     let (sw, sh) = dimensions();
+    let dtype = DIALOG_TYPE.load(Ordering::Relaxed);
+    let h = if dtype == DIALOG_INPUT { INPUT_DIALOG_H } else { DIALOG_H };
     let x = (sw - DIALOG_W) / 2;
-    let y = (sh - DIALOG_H) / 2;
+    let y = (sh - h) / 2;
 
     fill_rect(0, 0, sw, sh, 0x80000000);
     for shadow in 0..8u32 {
-        primitives::rounded_rect(x + shadow / 2, y + shadow + 4, DIALOG_W, DIALOG_H, 16, (30 - shadow * 3) << 24);
+        primitives::rounded_rect(x + shadow / 2, y + shadow + 4, DIALOG_W, h, 16, (30 - shadow * 3) << 24);
     }
-    primitives::rounded_rect(x, y, DIALOG_W, DIALOG_H, 16, BG_ELEVATED);
+    primitives::rounded_rect(x, y, DIALOG_W, h, 16, BG_ELEVATED);
 
-    let dtype = DIALOG_TYPE.load(Ordering::Relaxed);
     draw_header(x, y, DIALOG_W);
     draw_icon(x, y, dtype);
     draw_title_and_message(x, y);
-    draw_buttons(x, y, dtype);
+
+    if dtype == DIALOG_INPUT {
+        draw_input_field(x, y);
+        draw_input_buttons(x, y);
+    } else {
+        draw_buttons(x, y, dtype);
+    }
 }
 
 fn draw_header(x: u32, y: u32, w: u32) {
@@ -87,4 +95,34 @@ fn draw_buttons(x: u32, y: u32, dtype: u8) {
             text::draw(x + DIALOG_W / 2 - 16, btn_y + 12, b"OK", TEXT_INVERSE);
         }
     }
+}
+
+fn draw_input_field(x: u32, y: u32) {
+    let input_x = x + 24;
+    let input_y = y + 120;
+    let input_w = DIALOG_W - 48;
+    let input_h = 40u32;
+
+    primitives::rounded_rect(input_x, input_y, input_w, input_h, 8, BG_INPUT);
+    primitives::rounded_rect(input_x, input_y, input_w, input_h, 8, BORDER_FOCUS);
+
+    let input_len = DIALOG_INPUT_LEN.load(Ordering::Relaxed);
+    unsafe {
+        if input_len > 0 {
+            text::draw(input_x + 12, input_y + 14, &DIALOG_INPUT_BUF[..input_len], TEXT_PRIMARY);
+        }
+    }
+
+    let cursor_x = input_x + 12 + (input_len as u32) * 8;
+    fill_rect(cursor_x, input_y + 10, 2, 20, ACCENT);
+}
+
+fn draw_input_buttons(x: u32, y: u32) {
+    let btn_y = y + INPUT_DIALOG_H - 52;
+
+    primitives::rounded_rect(x + DIALOG_W / 2 - 100, btn_y, 90, 36, 8, SUCCESS);
+    text::draw(x + DIALOG_W / 2 - 85, btn_y + 12, b"Create", TEXT_INVERSE);
+
+    primitives::rounded_rect(x + DIALOG_W / 2 + 10, btn_y, 90, 36, 8, BG_SURFACE);
+    text::draw(x + DIALOG_W / 2 + 25, btn_y + 12, b"Cancel", TEXT_PRIMARY);
 }
