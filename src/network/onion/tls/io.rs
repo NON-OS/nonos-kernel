@@ -22,14 +22,13 @@ pub(super) fn write_all(sock: &TcpSocket, data: &[u8], timeout_ms: u64) -> Resul
     let start = crate::time::timestamp_millis();
     if let Some(net) = get_network_stack() {
         let mut off = 0usize;
-        let mut retries = 0u32;
         while off < data.len() {
             if crate::time::timestamp_millis().saturating_sub(start) > timeout_ms {
                 return Err(OnionError::Timeout);
             }
             poll_network();
             match net.tcp_send(sock.connection_id(), &data[off..]) {
-                Ok(n) if n > 0 => { off += n; retries = 0; }
+                Ok(n) if n > 0 => off += n,
                 Ok(_) => {
                     crate::time::yield_now();
                 }
