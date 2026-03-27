@@ -21,60 +21,59 @@ use crate::sys::{serial, clock};
 use super::constants::MENU_BAR_HEIGHT;
 use super::menubar_icons::*;
 
-const COLOR_CYAN: u32 = 0xFF00D4FF;
-const COLOR_TEXT_DIM: u32 = 0xFF8B949E;
+const COLOR_ACCENT: u32 = 0xFF00D4FF;
+const COLOR_TEXT_SECONDARY: u32 = 0xFFAAAAAA;
+const MENUBAR_BG: u32 = 0xF0181820;
 
 pub(super) fn draw(w: u32) {
-    fill_rect(0, 0, w, MENU_BAR_HEIGHT, GLASS_BG);
+    // Solid dark background with slight transparency
+    fill_rect(0, 0, w, MENU_BAR_HEIGHT, MENUBAR_BG);
 
-    for y in 0..3u32 {
-        let alpha = (6 - y * 2) as u32;
-        fill_rect(0, y, w, 1, (alpha << 24) | 0xFFFFFF);
-    }
+    // Subtle top highlight for depth
+    fill_rect(0, 0, w, 1, 0x0CFFFFFF);
 
-    fill_rect(0, MENU_BAR_HEIGHT - 1, w, 1, 0x20000000);
+    // Bottom border - clean single pixel
+    fill_rect(0, MENU_BAR_HEIGHT - 1, w, 1, 0x30000000);
 
-    let mut x = 14u32;
+    // Left section: Settings button
+    let mut x = 16u32;
 
     draw_gear_icon(x, 10);
-    x += 20;
+    x += 18;
 
     draw_text(x, 11, b"Settings", COLOR_TEXT_WHITE);
-    x += 72;
 
-    draw_divider(x, 8, 18);
-
+    // Center section: Time | Brand | Date
     let center_x = w / 2;
 
     let mut time_buf = [0u8; 8];
     clock::format_time_full(&mut time_buf);
-    draw_text(center_x - 120, 11, &time_buf[..8], COLOR_TEXT_WHITE);
+    draw_text(center_x - 100, 11, &time_buf[..8], COLOR_TEXT_WHITE);
 
+    // Brand centered
     let brand = b"N\xd8NOS";
     let brand_width = brand.len() as u32 * 8;
     let brand_x = center_x - (brand_width / 2);
-    draw_text(brand_x, 11, brand, COLOR_CYAN);
+    draw_text(brand_x, 11, brand, COLOR_ACCENT);
 
     let mut date_buf = [0u8; 20];
     let date_len = clock::format_date_short(&mut date_buf);
-    draw_text(center_x + 50, 11, &date_buf[..date_len], COLOR_TEXT_DIM);
+    draw_text(center_x + 40, 11, &date_buf[..date_len], COLOR_TEXT_SECONDARY);
 
-    let mut rx = w - 24;
+    // Right section: Status icons
+    let mut rx = w - 20;
 
     draw_avatar(rx - 10, 7);
-    rx -= 40;
-
-    draw_divider(rx, 8, 18);
-    rx -= 14;
+    rx -= 36;
 
     draw_battery(rx - 24, 10);
-    rx -= 46;
+    rx -= 40;
 
     draw_network_icon(rx - 16, 9);
-    rx -= 32;
+    rx -= 28;
 
     draw_bell_icon(rx - 14, 9);
-    rx -= 30;
+    rx -= 26;
 
     draw_search_icon(rx - 14, 9);
 }
@@ -99,8 +98,8 @@ pub(super) fn update_clock() {
 
     let mut time_buf = [0u8; 8];
     clock::format_time_full(&mut time_buf);
-    let time_x = center_x - 120;
+    let time_x = center_x - 100;
 
-    fill_rect(time_x, 9, 70, 16, GLASS_BG);
+    fill_rect(time_x, 9, 70, 16, MENUBAR_BG);
     draw_text(time_x, 11, &time_buf[..8], COLOR_TEXT_WHITE);
 }
