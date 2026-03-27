@@ -20,7 +20,7 @@ use super::state::WALLET_STATE;
 use super::render::{format_balance, COLOR_BORDER, COLOR_TEXT_DIM, COLOR_TEXT_WHITE, COLOR_ACCENT, HEADER_HEIGHT};
 
 pub(super) fn draw_header(x: u32, y: u32, w: u32) {
-    for gy in 0..HEADER_HEIGHT { let s = (gy / 5) as u8; fill_rect(x, y + gy, w, 1, 0xFF000000 | ((s as u32) << 16) | ((s as u32) << 8) | (s as u32)); }
+    fill_rect(x, y, w, HEADER_HEIGHT, 0xFF0D0D12);
     fill_rect(x, y + HEADER_HEIGHT - 1, w, 1, COLOR_BORDER);
     let (eth, wei, nox, nox_frac) = {
         let state = WALLET_STATE.lock();
@@ -39,8 +39,8 @@ pub(super) fn draw_header(x: u32, y: u32, w: u32) {
     let nox_x = x + 24 + (len as u32) * 16 + 50;
     draw_string(nox_x, y + 42, &nox_str[..nox_len], COLOR_TEXT_WHITE);
     draw_string(nox_x + (nox_len as u32) * 8 + 8, y + 42, b"NOX", 0xFFBF5AF2);
-    fill_rect(x + w - 110, y + 20, 90, 32, 0xFF2C2C2E);
-    draw_string(x + w - 100, y + 28, b"Refresh", COLOR_ACCENT);
+    fill_rect(x + w - 100, y + 24, 80, 28, 0xFF1E1E28);
+    draw_string(x + w - 88, y + 32, b"Refresh", COLOR_ACCENT);
 }
 
 pub(super) fn auto_generate_wallet() {
