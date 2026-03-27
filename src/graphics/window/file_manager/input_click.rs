@@ -14,13 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::graphics::window::state::TITLE_BAR_HEIGHT;
 use super::constants::*;
 use super::input_sidebar::handle_sidebar_click;
 use super::input_content::handle_content_click;
 
 pub fn handle_click(win_x: u32, win_y: u32, win_w: u32, click_x: i32, click_y: i32) -> bool {
-    let content_y = (win_y + TITLE_BAR_HEIGHT) as i32;
+    let content_y = win_y as i32;
     let sidebar_w = SIDEBAR_WIDTH as i32;
 
     if click_x >= win_x as i32 && click_x < win_x as i32 + sidebar_w {
