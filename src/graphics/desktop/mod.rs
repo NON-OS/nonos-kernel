@@ -48,4 +48,8 @@ pub use api::{
     update_clock,
     redraw_background,
     DesktopAction,
+    desktop_navigate_into,
+    desktop_navigate_back,
+    desktop_is_in_subfolder,
+    desktop_get_current_path,
 };
