@@ -31,9 +31,7 @@ pub(super) fn write_all(sock: &TcpSocket, data: &[u8], timeout_ms: u64) -> Resul
             match net.tcp_send(sock.connection_id(), &data[off..]) {
                 Ok(n) if n > 0 => { off += n; retries = 0; }
                 Ok(_) => {
-                    retries += 1;
-                    if retries % 20 == 0 { crate::time::yield_now(); }
-                    else { for _ in 0..50 { core::hint::spin_loop(); } }
+                    crate::time::yield_now();
                 }
                 Err(_) => return Err(OnionError::NetworkError),
             }
