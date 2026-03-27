@@ -27,7 +27,7 @@ use super::core::NonosFilesystem;
 pub static NONOS_FILESYSTEM: NonosFilesystem = NonosFilesystem::new();
 
 pub fn init_nonos_filesystem() -> FsResult<()> {
-    Ok(())
+    init_nonos_fs()
 }
 
 pub fn get_filesystem() -> Option<&'static NonosFilesystem> {
