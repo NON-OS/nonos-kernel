@@ -11,14 +11,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub(super) const CORNER_RADIUS: u32 = 12;
+pub(super) const CORNER_RADIUS: u32 = 10;
 pub(super) const SHADOW_BLUR: u32 = 16;
 
-pub(super) const WIN_BG_FOCUSED: u32 = 0xFF16161A;
-pub(super) const WIN_BG_UNFOCUSED: u32 = 0xFF1E1E22;
-pub(super) const TITLEBAR_FOCUSED: u32 = 0xFF222228;
-pub(super) const TITLEBAR_UNFOCUSED: u32 = 0xFF1A1A1E;
+pub(super) const WIN_BG_FOCUSED: u32 = 0xFF1C1C22;
+pub(super) const WIN_BG_UNFOCUSED: u32 = 0xFF24242A;
+pub(super) const TITLEBAR_FOCUSED: u32 = 0xFF2A2A32;
+pub(super) const TITLEBAR_UNFOCUSED: u32 = 0xFF222228;
 
-pub(super) const BTN_CLOSE: u32 = 0xFFFF5F57;
-pub(super) const BTN_MIN: u32 = 0xFFFEBC2E;
-pub(super) const BTN_MAX: u32 = 0xFF28C840;
+pub(super) const BTN_CLOSE: u32 = 0xFFFF5F56;
+pub(super) const BTN_MIN: u32 = 0xFFFFBD2E;
+pub(super) const BTN_MAX: u32 = 0xFF27C93F;
