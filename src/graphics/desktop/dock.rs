@@ -22,9 +22,9 @@ use super::dock_helpers::{draw_icon_plate, draw_rounded_rect};
 use super::dock_icons_apps::*;
 use super::dock_icons_system::*;
 
-const GLASS_BG: u32 = 0xE8101418;
-const COLOR_CYAN: u32 = 0xFF00D4FF;
-const PLATE_DARK: u32 = 0xFF12161C;
+const DOCK_BG: u32 = 0xE0181820;
+const PLATE_DARK: u32 = 0xFF1A1E26;
+const COLOR_CYAN: u32 = 0xFF22D3EE;
 
 pub(super) fn draw(w: u32, h: u32) {
     let dock_x = (w / 2) - (DOCK_WIDTH / 2);
@@ -43,7 +43,7 @@ pub(super) fn draw(w: u32, h: u32) {
         draw_app_icon(ix, iy, wtype, icon_size);
 
         if is_app_running(wtype) {
-            draw_active_dot(ix + icon_size / 2, dock_y + DOCK_INNER_HEIGHT - 5);
+            draw_active_dot(ix + icon_size / 2, dock_y + DOCK_INNER_HEIGHT - 4);
         }
     }
 }
@@ -53,16 +53,13 @@ fn is_app_running(wtype: WindowType) -> bool {
 }
 
 fn draw_active_dot(cx: u32, y: u32) {
-    for dy in 0..5u32 {
-        for dx in 0..5u32 {
+    for dy in 0..4u32 {
+        for dx in 0..4u32 {
             let rel_x = dx as i32 - 2;
             let rel_y = dy as i32 - 2;
             let dist_sq = rel_x * rel_x + rel_y * rel_y;
-            if dist_sq <= 4 {
-                let alpha = if dist_sq <= 1 { 255u32 } else { 180 };
-                put_pixel(cx - 2 + dx, y + dy, (alpha << 24) | 0xFFFFFF);
-            } else if dist_sq <= 9 {
-                put_pixel(cx - 2 + dx, y + dy, 0x30FFFFFF);
+            if dist_sq <= 3 {
+                put_pixel(cx - 2 + dx, y + dy, 0xFFFFFFFF);
             }
         }
     }
@@ -71,27 +68,17 @@ fn draw_active_dot(cx: u32, y: u32) {
 fn draw_dock_background(x: u32, y: u32) {
     let w = DOCK_WIDTH;
     let h = DOCK_INNER_HEIGHT;
-    let radius = 14u32;
+    let radius = 16u32;
 
-    for layer in 0..3u32 {
-        let alpha = (20 - layer * 6) as u32;
+    for layer in 0..4u32 {
+        let alpha = (16 - layer * 4) as u32;
         let offset = layer + 2;
-        draw_rounded_rect_shadow(x, y + offset, w, h, radius, alpha << 24);
+        draw_rounded_rect_shadow(x + 1, y + offset, w, h, radius, alpha << 24);
     }
 
-    draw_rounded_rect(x, y, w, h, radius, GLASS_BG);
-
-    for gy in 0..4u32 {
-        let alpha = (8 - gy * 2) as u32;
-        if alpha > 0 {
-            fill_rect(x + radius, y + gy, w - radius * 2, 1, (alpha << 24) | 0xFFFFFF);
-        }
-    }
-
-    for gy in radius..h - radius {
-        put_pixel(x, y + gy, 0x06FFFFFF);
-        put_pixel(x + w - 1, y + gy, 0x04000000);
-    }
+    draw_rounded_rect(x, y, w, h, radius, DOCK_BG);
+    fill_rect(x + radius, y, w - radius * 2, 1, 0x0AFFFFFF);
+    fill_rect(x + radius, y + h - 1, w - radius * 2, 1, 0x10000000);
 }
 
 fn draw_rounded_rect_shadow(x: u32, y: u32, w: u32, h: u32, r: u32, color: u32) {
@@ -106,6 +93,8 @@ fn draw_app_icon(x: u32, y: u32, app: WindowType, size: u32) {
         WindowType::TextEditor => draw_document_icon(x, y, size),
         WindowType::Calculator => draw_calculator_icon(x, y, size),
         WindowType::Wallet => draw_wallet_icon(x, y, size),
+        WindowType::Marketplace => draw_marketplace_icon(x, y, size),
+        WindowType::Agents => draw_agents_icon(x, y, size),
         WindowType::ProcessManager => draw_monitor_icon(x, y, size),
         WindowType::Settings => draw_gear_icon(x, y, size),
         WindowType::Browser => draw_globe_icon(x, y, size),
