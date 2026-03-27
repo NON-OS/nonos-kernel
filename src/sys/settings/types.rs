@@ -20,6 +20,10 @@ pub struct Settings {
     pub theme: u8,
     pub keyboard_layout: u8,
     pub auto_wipe: bool,
+    /// Timezone offset from UTC (-12 to +14)
+    pub timezone: i8,
+    /// Screen timeout in minutes (0=never, 1-60)
+    pub screen_timeout: u8,
 }
 
 impl Settings {
@@ -33,6 +37,8 @@ impl Settings {
             theme: 0,
             keyboard_layout: 0,
             auto_wipe: true,
+            timezone: 0,
+            screen_timeout: 0,
         }
     }
 }
