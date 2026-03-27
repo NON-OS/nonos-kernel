@@ -11,39 +11,37 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::graphics::framebuffer::colors as brand;
+pub const CALC_DISPLAY_BG: u32 = 0xFF1A1A1E;
+pub const CALC_BTN_NUMBER: u32 = 0xFF404048;
+pub const CALC_BTN_NUMBER_HOVER: u32 = 0xFF505058;
+pub const CALC_BTN_OPERATOR: u32 = 0xFFF59E0B;
+pub const CALC_BTN_OPERATOR_HOVER: u32 = 0xFFFBBF24;
+pub const CALC_BTN_EQUALS: u32 = 0xFF3B82F6;
+pub const CALC_BTN_FUNCTION: u32 = 0xFF2A2A32;
 
-pub const CALC_DISPLAY_BG: u32 = 0xFF1C1C1E;
-pub const CALC_BTN_NUMBER: u32 = 0xFF505050;
-pub const CALC_BTN_NUMBER_HOVER: u32 = 0xFF606060;
-pub const CALC_BTN_OPERATOR: u32 = 0xFFFF9500;
-pub const CALC_BTN_OPERATOR_HOVER: u32 = 0xFFFFAA33;
-pub const CALC_BTN_EQUALS: u32 = 0xFF007AFF;
-pub const CALC_BTN_FUNCTION: u32 = 0xFF3A3A3C;
+pub const EDITOR_GUTTER_BG: u32 = 0xFF0F1014;
+pub const EDITOR_GUTTER_TEXT: u32 = 0xFF4B5563;
+pub const EDITOR_LINE_HIGHLIGHT: u32 = 0xFF1A1D24;
+pub const EDITOR_SELECTION: u32 = 0xFF1E3A5F;
+pub const EDITOR_BG: u32 = 0xFF0F1117;
+pub const EDITOR_MATCH: u32 = 0xFF2D4A3A;
+pub const EDITOR_COMMENT: u32 = 0xFF6B7280;
+pub const EDITOR_STRING: u32 = 0xFF34D399;
+pub const EDITOR_NUMBER: u32 = 0xFFF59E0B;
 
-pub const EDITOR_GUTTER_BG: u32 = 0xFF0A0E12;
-pub const EDITOR_GUTTER_TEXT: u32 = 0xFF4A5458;
-pub const EDITOR_LINE_HIGHLIGHT: u32 = 0xFF141820;
-pub const EDITOR_SELECTION: u32 = 0xFF264F78;
-pub const EDITOR_BG: u32 = 0xFF0D1117;
-pub const EDITOR_MATCH: u32 = 0xFF3D4A3A;
-pub const EDITOR_COMMENT: u32 = 0xFF5C6370;
-pub const EDITOR_STRING: u32 = 0xFF98C379;
-pub const EDITOR_NUMBER: u32 = 0xFFD19A66;
-
-pub const SYNTAX_KEYWORD: u32 = 0xFFCF8DFB;
+pub const SYNTAX_KEYWORD: u32 = 0xFFC084FC;
 pub const SYNTAX_STRING: u32 = EDITOR_STRING;
 pub const SYNTAX_NUMBER: u32 = EDITOR_NUMBER;
 pub const SYNTAX_COMMENT: u32 = EDITOR_COMMENT;
-pub const SYNTAX_FUNCTION: u32 = 0xFF61AFEF;
-pub const SYNTAX_OPERATOR: u32 = 0xFFABB2BF;
+pub const SYNTAX_FUNCTION: u32 = 0xFF60A5FA;
+pub const SYNTAX_OPERATOR: u32 = 0xFF9CA3AF;
 
-pub const TERMINAL_BG: u32 = brand::COLOR_TERMINAL_BG;
-pub const TERMINAL_TEXT: u32 = brand::COLOR_TEXT_WHITE;
-pub const TERMINAL_PROMPT: u32 = brand::COLOR_ACCENT;
+pub const TERMINAL_BG: u32 = 0xFF0F0F14;
+pub const TERMINAL_TEXT: u32 = 0xFFF0F0F4;
+pub const TERMINAL_PROMPT: u32 = 0xFF34D399;
 
 pub const WALLET_ACCENT: u32 = 0xFF6366F1;
-pub const WALLET_PURPLE: u32 = 0xFFA855F7;
-pub const WALLET_CYAN: u32 = 0xFF06B6D4;
-pub const WALLET_CARD: u32 = 0xFF18181F;
-pub const WALLET_SIDEBAR: u32 = 0xFF12121A;
+pub const WALLET_PURPLE: u32 = 0xFFA78BFA;
+pub const WALLET_CYAN: u32 = 0xFF22D3EE;
+pub const WALLET_CARD: u32 = 0xFF1A1A22;
+pub const WALLET_SIDEBAR: u32 = 0xFF141418;
