@@ -18,6 +18,7 @@ pub mod system;
 pub mod network;
 pub mod files;
 pub mod apps;
+pub mod apps_open;
 pub mod misc;
 pub mod hardware;
 pub mod processes;
