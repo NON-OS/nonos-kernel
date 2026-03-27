@@ -18,15 +18,20 @@ use crate::sdk::app::{App, AppContext, AppEvent, AppResult};
 use crate::graphics::framebuffer::{fill_rect, fill_rounded_rect};
 use crate::graphics::font::draw_char;
 
-pub struct CounterApp {
-    count: i32,
-}
+pub struct CounterApp { count: i32 }
 
 impl CounterApp {
     pub fn new() -> Self { Self { count: 0 } }
-
-    fn draw_text(&self, x: u32, y: u32, text: &[u8], color: u32) {
-        for (i, &c) in text.iter().enumerate() { draw_char(x + i as u32 * 8, y, c, color); }
+    fn txt(&self, x: u32, y: u32, t: &[u8], c: u32) {
+        for (i, &ch) in t.iter().enumerate() { draw_char(x + i as u32 * 8, y, ch, c); }
+    }
+    fn fmt(&self, buf: &mut [u8; 12]) -> usize {
+        let (neg, mut v) = if self.count < 0 { (true, (-self.count) as u32) } else { (false, self.count as u32) };
+        if v == 0 { buf[0] = b'0'; return 1; }
+        let mut i = 0;
+        while v > 0 { buf[11 - i] = b'0' + (v % 10) as u8; v /= 10; i += 1; }
+        if neg { buf[11 - i] = b'-'; i += 1; }
+        buf.copy_within(12 - i.., 0); i
     }
 }
 
@@ -34,22 +39,18 @@ impl App for CounterApp {
     fn id(&self) -> &str { "counter" }
     fn name(&self) -> &str { "Counter" }
     fn version(&self) -> &str { "1.0.0" }
-
-    fn init(&mut self, _ctx: &AppContext) -> AppResult<()> {
-        self.count = 0;
-        Ok(())
-    }
+    fn init(&mut self, _ctx: &AppContext) -> AppResult<()> { self.count = 0; Ok(()) }
 
     fn render(&self, ctx: &AppContext) {
         fill_rect(ctx.x, ctx.y, ctx.width, ctx.height, 0xFF14141C);
-        self.draw_text(ctx.x + 20, ctx.y + 20, b"Counter App", 0xFFFFFFFF);
+        self.txt(ctx.x + 20, ctx.y + 20, b"Counter App", 0xFFFFFFFF);
         let mut buf = [0u8; 12];
-        let len = format_i32(self.count, &mut buf);
-        self.draw_text(ctx.x + ctx.width / 2 - len as u32 * 4, ctx.y + ctx.height / 2, &buf[..len], 0xFF00D4FF);
+        let len = self.fmt(&mut buf);
+        self.txt(ctx.x + ctx.width / 2 - len as u32 * 4, ctx.y + ctx.height / 2, &buf[..len], 0xFF00D4FF);
         fill_rounded_rect(ctx.x + 20, ctx.y + ctx.height - 60, 80, 40, 8, 0xFF00E676);
-        self.draw_text(ctx.x + 40, ctx.y + ctx.height - 48, b"+", 0xFF000000);
+        self.txt(ctx.x + 40, ctx.y + ctx.height - 48, b"+", 0xFF000000);
         fill_rounded_rect(ctx.x + 120, ctx.y + ctx.height - 60, 80, 40, 8, 0xFFEF5350);
-        self.draw_text(ctx.x + 140, ctx.y + ctx.height - 48, b"-", 0xFF000000);
+        self.txt(ctx.x + 140, ctx.y + ctx.height - 48, b"-", 0xFF000000);
     }
 
     fn handle_event(&mut self, ctx: &AppContext, event: AppEvent) -> AppResult<bool> {
@@ -65,15 +66,4 @@ impl App for CounterApp {
     }
 
     fn cleanup(&mut self) {}
-}
-
-fn format_i32(n: i32, buf: &mut [u8; 12]) -> usize {
-    let neg = n < 0;
-    let mut v = if neg { (-n) as u32 } else { n as u32 };
-    if v == 0 { buf[0] = b'0'; return 1; }
-    let mut i = 0;
-    while v > 0 { buf[11 - i] = b'0' + (v % 10) as u8; v /= 10; i += 1; }
-    if neg { buf[11 - i] = b'-'; i += 1; }
-    buf.copy_within(12 - i.., 0);
-    i
 }
