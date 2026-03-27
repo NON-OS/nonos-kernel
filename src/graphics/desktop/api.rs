@@ -15,13 +15,14 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::graphics::framebuffer::{fill_rect, dimensions, COLOR_BG};
-use super::{grid, menubar, sidebar, dock};
+use super::{grid, menubar, sidebar, dock, desktop_icons};
 
 pub fn draw_all() {
     let (w, h) = dimensions();
 
     fill_rect(0, 0, w, h, COLOR_BG);
     grid::draw(w, h);
+    desktop_icons::draw(w, h);
     menubar::draw(w);
     sidebar::draw(h);
     dock::draw(w, h);
@@ -39,6 +40,23 @@ pub fn handle_sidebar_click(mx: i32, my: i32) -> bool {
     sidebar::handle_click(mx, my)
 }
 
+pub fn handle_desktop_icon_click(mx: i32, my: i32) -> Option<(&'static str, bool, bool)> {
+    let (w, _) = dimensions();
+    desktop_icons::handle_click(mx, my, w)
+}
+
+pub fn handle_desktop_right_click(mx: i32, my: i32) -> DesktopAction {
+    let (w, _) = dimensions();
+    if let Some((path, _is_dir, _)) = desktop_icons::handle_click(mx, my, w) {
+        return DesktopAction::SelectItem(path);
+    }
+    DesktopAction::ShowMenu
+}
+
+pub fn refresh_desktop_icons() {
+    desktop_icons::refresh();
+}
+
 pub fn update_clock() {
     menubar::update_clock();
 }
@@ -48,7 +66,41 @@ pub fn redraw_background() {
 
     fill_rect(0, 0, w, h, COLOR_BG);
     grid::draw(w, h);
+    desktop_icons::draw(w, h);
     menubar::draw(w);
     sidebar::draw(h);
     dock::draw(w, h);
+}
+
+#[derive(Clone, Copy)]
+pub enum DesktopAction {
+    None,
+    ShowMenu,
+    SelectItem(&'static str),
+}
+
+pub fn create_desktop_folder(name: &str) -> bool {
+    let result = desktop_icons::create_folder(name);
+    if result { desktop_icons::refresh(); }
+    result
+}
+
+pub fn create_desktop_file(name: &str) -> bool {
+    let result = desktop_icons::create_file(name);
+    if result { desktop_icons::refresh(); }
+    result
+}
+
+pub fn delete_desktop_selected() -> bool {
+    let result = desktop_icons::delete_selected();
+    if result { desktop_icons::refresh(); }
+    result
+}
+
+pub fn desktop_has_selection() -> bool {
+    desktop_icons::has_selection()
+}
+
+pub fn desktop_clear_selection() {
+    desktop_icons::clear_selection();
 }
