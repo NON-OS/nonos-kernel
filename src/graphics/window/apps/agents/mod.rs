@@ -23,6 +23,7 @@ mod chat;
 mod create_state;
 mod create_input;
 mod create;
+mod dashboard;
 
 pub(crate) use render::draw;
 pub(crate) use input::{handle_click, handle_key};
