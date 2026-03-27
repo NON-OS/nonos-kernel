@@ -17,7 +17,8 @@
 use super::types::{MenuItem, ContextMenuType};
 use super::actions;
 
-static MENU_DESKTOP: [MenuItem; 8] = [
+static MENU_DESKTOP: [MenuItem; 9] = [
+    MenuItem::action(b"Go Back", actions::DESKTOP_GO_BACK),
     MenuItem::action(b"New Folder", actions::DESKTOP_NEW_FOLDER),
     MenuItem::action(b"New File", actions::DESKTOP_NEW_FILE),
     MenuItem::separator(),
