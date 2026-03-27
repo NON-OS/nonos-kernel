@@ -37,7 +37,6 @@ pub(super) const COLOR_GREEN_GLOW: u32 = 0xFF34D399;
 pub(super) const COLOR_YELLOW: u32 = 0xFFF59E0B;
 pub(super) const COLOR_RED: u32 = 0xFFEF4444;
 pub(super) const COLOR_PURPLE: u32 = 0xFFA855F7;
-pub(super) const COLOR_PURPLE_GLOW: u32 = 0xFFC084FC;
 pub(super) const COLOR_CYAN: u32 = 0xFF06B6D4;
 pub(super) const SIDEBAR_WIDTH: u32 = 220;
 pub(super) const HEADER_HEIGHT: u32 = 80;
