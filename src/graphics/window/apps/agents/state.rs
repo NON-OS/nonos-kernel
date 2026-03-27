@@ -19,8 +19,9 @@ use core::sync::atomic::{AtomicU8, AtomicU32, AtomicUsize, Ordering};
 pub(super) const VIEW_LIST: u8 = 0;
 pub(super) const VIEW_CHAT: u8 = 1;
 pub(super) const VIEW_CREATE: u8 = 2;
+pub(super) const VIEW_DASHBOARD: u8 = 3;
 
-static CURRENT_VIEW: AtomicU8 = AtomicU8::new(0);
+static CURRENT_VIEW: AtomicU8 = AtomicU8::new(VIEW_DASHBOARD);
 static SELECTED_AGENT: AtomicU32 = AtomicU32::new(0);
 static INPUT_FOCUSED: AtomicU8 = AtomicU8::new(0);
 
