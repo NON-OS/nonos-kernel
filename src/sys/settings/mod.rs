@@ -31,6 +31,8 @@ pub use api::{
     anyone_enabled, set_anyone_enabled,
     theme, set_theme,
     auto_wipe, set_auto_wipe,
+    sound_enabled, set_sound_enabled,
+    keyboard_layout, set_keyboard_layout,
 };
 
 pub use persistence::{save_to_disk, load_from_disk, SETTINGS_FILENAME};
