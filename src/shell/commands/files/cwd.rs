@@ -23,10 +23,10 @@ pub fn get_cwd() -> &'static str {
     // SAFETY: Single-threaded shell access
     unsafe {
         if CURRENT_DIR_LEN == 0 {
-            CURRENT_DIR[..16].copy_from_slice(b"/home/anonymous\0");
-            CURRENT_DIR_LEN = 15;
+            CURRENT_DIR[..4].copy_from_slice(b"/ram");
+            CURRENT_DIR_LEN = 4;
         }
-        str::from_utf8(&CURRENT_DIR[..CURRENT_DIR_LEN]).unwrap_or("/home/anonymous")
+        str::from_utf8(&CURRENT_DIR[..CURRENT_DIR_LEN]).unwrap_or("/ram")
     }
 }
 
