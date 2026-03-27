@@ -76,3 +76,25 @@ pub fn set_auto_wipe(enabled: bool) {
     }
     mark_modified();
 }
+
+pub fn sound_enabled() -> bool {
+    unsafe { CURRENT_SETTINGS.sound_enabled }
+}
+
+pub fn set_sound_enabled(enabled: bool) {
+    unsafe {
+        CURRENT_SETTINGS.sound_enabled = enabled;
+    }
+    mark_modified();
+}
+
+pub fn keyboard_layout() -> u8 {
+    unsafe { CURRENT_SETTINGS.keyboard_layout }
+}
+
+pub fn set_keyboard_layout(layout: u8) {
+    unsafe {
+        CURRENT_SETTINGS.keyboard_layout = layout.min(5);
+    }
+    mark_modified();
+}
