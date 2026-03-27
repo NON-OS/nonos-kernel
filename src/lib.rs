@@ -130,6 +130,7 @@ pub mod test;
 pub mod npkg;
 pub mod sdk;
 pub mod agents;
+pub mod lang;
 
 pub use arch::x86_64::time as time;
 pub use fs as filesystem;
