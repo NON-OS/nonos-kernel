@@ -26,6 +26,7 @@ mod sidebar_icons;
 mod sidebar_utils;
 mod grid;
 mod grid_wallpaper;
+mod desktop_icons;
 mod api;
 
 pub use api::{
@@ -33,6 +34,15 @@ pub use api::{
     handle_menu_bar_click,
     handle_dock_click,
     handle_sidebar_click,
+    handle_desktop_icon_click,
+    handle_desktop_right_click,
+    refresh_desktop_icons,
+    create_desktop_folder,
+    create_desktop_file,
+    delete_desktop_selected,
+    desktop_has_selection,
+    desktop_clear_selection,
     update_clock,
     redraw_background,
+    DesktopAction,
 };
