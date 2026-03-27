@@ -18,7 +18,7 @@ use crate::shell::output::print_line;
 use crate::graphics::framebuffer::{COLOR_WHITE, COLOR_GREEN, COLOR_RED};
 use crate::agents::{registry, presets, core::AgentConfig};
 
-pub fn list_agents() {
+pub(super) fn list_agents() {
     let agents = registry::list_agents();
     if agents.is_empty() { print_line(b"No agents. Use 'agent create' or 'agent preset'", COLOR_WHITE); return; }
     for (id, name) in agents {
@@ -40,7 +40,7 @@ fn fmt_u32(mut n: u32, buf: &mut [u8]) -> usize {
     for j in 0..i { buf[j] = tmp[i - 1 - j]; } i
 }
 
-pub fn create_agent(name: &str) {
+pub(super) fn create_agent(name: &str) {
     let mut cfg = AgentConfig::default();
     let len = name.len().min(32); cfg.name[..len].copy_from_slice(name.as_bytes());
     let id = registry::create_agent(cfg);
@@ -48,12 +48,12 @@ pub fn create_agent(name: &str) {
     print_line(b"Created agent", COLOR_GREEN); print_line(&buf[..i], COLOR_WHITE);
 }
 
-pub fn list_presets() {
+pub(super) fn list_presets() {
     print_line(b"Available presets:", COLOR_WHITE);
     for (name, _) in presets::list_presets() { print_line(name, COLOR_WHITE); }
 }
 
-pub fn create_preset(name: &str) {
+pub(super) fn create_preset(name: &str) {
     for (pname, factory) in presets::list_presets() {
         if ci_contains(pname, name.as_bytes()) {
             let id = registry::create_agent(factory());
@@ -77,13 +77,13 @@ fn ci_contains(hay: &[u8], needle: &[u8]) -> bool {
     false
 }
 
-pub fn run_agent(id_str: &str, prompt: &str) {
+pub(super) fn run_agent(id_str: &str, prompt: &str) {
     let id: u32 = id_str.parse().unwrap_or(0);
     if crate::agents::executor::run_agent(id, prompt.as_bytes()) { print_line(b"Agent running", COLOR_GREEN); }
     else { print_line(b"Failed to run agent", COLOR_RED); }
 }
 
-pub fn delete_agent(id_str: &str) {
+pub(super) fn delete_agent(id_str: &str) {
     if registry::delete_agent(id_str.parse().unwrap_or(0)) { print_line(b"Agent deleted", COLOR_GREEN); }
     else { print_line(b"Agent not found", COLOR_RED); }
 }
