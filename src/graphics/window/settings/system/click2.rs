@@ -20,13 +20,22 @@ use crate::graphics::window::settings::state::{toggle_setting, SETTING_DARK_THEM
 use super::state::set_background_changed;
 
 pub(super) fn handle_keyboard(cx: u32, cy: u32, mx: i32, my: i32) -> bool {
-    let layout_y = cy + 170;
-    if my >= layout_y as i32 && my < (layout_y + 26) as i32 {
-        let rel_x = mx - cx as i32 - 15;
-        if rel_x >= 0 {
-            let btn_idx = (rel_x / 58) as u8;
-            if btn_idx < 4 {
+    let row1_y = cy + 170;
+    let row2_y = cy + 198;
+    let btn_w = 57i32;
+    let rel_x = mx - cx as i32 - 15;
+    if rel_x >= 0 {
+        if my >= row1_y as i32 && my < (row1_y + 24) as i32 {
+            let btn_idx = (rel_x / btn_w) as u8;
+            if btn_idx < 5 {
                 sys_settings::set_keyboard_layout(btn_idx);
+                return true;
+            }
+        }
+        if my >= row2_y as i32 && my < (row2_y + 24) as i32 {
+            let btn_idx = (rel_x / btn_w) as u8;
+            if btn_idx < 4 {
+                sys_settings::set_keyboard_layout(btn_idx + 5);
                 return true;
             }
         }
@@ -36,7 +45,7 @@ pub(super) fn handle_keyboard(cx: u32, cy: u32, mx: i32, my: i32) -> bool {
 
 pub(super) fn handle_dark_theme(cx: u32, cy: u32, cw: u32, mx: i32, my: i32) -> bool {
     let toggle_x = cx + cw - 70;
-    let dark_y = cy + 205;
+    let dark_y = cy + 230;
     if mx >= toggle_x as i32 && mx < (toggle_x + 50) as i32 {
         if my >= dark_y as i32 && my < (dark_y + 26) as i32 {
             toggle_setting(&SETTING_DARK_THEME);
@@ -47,7 +56,7 @@ pub(super) fn handle_dark_theme(cx: u32, cy: u32, cw: u32, mx: i32, my: i32) -> 
 }
 
 pub(super) fn handle_background(cx: u32, cy: u32, cw: u32, mx: i32, my: i32) -> bool {
-    let bg_button_y = cy + 275;
+    let bg_button_y = cy + 300;
     let prev_x = cx + 20;
     if mx >= prev_x as i32 && mx < (prev_x + 26) as i32 {
         if my >= bg_button_y as i32 && my < (bg_button_y + 26) as i32 {
