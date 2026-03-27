@@ -37,6 +37,7 @@ pub mod expand;
 pub mod utils;
 pub mod builtins;
 pub mod power;
+pub mod git;
 
 pub use system::*;
 pub use network::*;
