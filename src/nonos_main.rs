@@ -665,6 +665,7 @@ fn run_desktop() -> ! {
                     }
                 } else if !left_btn && PREV_LEFT_BUTTON {
                     window::handle_click(mx, my, false);
+                    desktop::handle_desktop_icon_drag_end();
                 }
                 PREV_LEFT_BUTTON = left_btn;
 
@@ -680,11 +681,18 @@ fn run_desktop() -> ! {
                 PREV_RIGHT_BUTTON = right_btn;
             }
 
-            let is_dragging = window::is_dragging();
-            if is_dragging {
+            let is_window_dragging = window::is_dragging();
+            let is_icon_dragging = desktop::is_desktop_icon_dragging();
+            let is_dragging = is_window_dragging || is_icon_dragging;
+            if is_window_dragging {
                 window::handle_drag(mx, my);
                 unsafe { WAS_DRAGGING = true; }
-            } else if unsafe { WAS_DRAGGING } {
+            }
+            if is_icon_dragging {
+                desktop::handle_desktop_icon_drag(mx, my);
+                unsafe { WAS_DRAGGING = true; }
+            }
+            if !is_dragging && unsafe { WAS_DRAGGING } {
                 unsafe {
                     NEEDS_REDRAW = true;
                     WAS_DRAGGING = false;
