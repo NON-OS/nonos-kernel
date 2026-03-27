@@ -63,4 +63,9 @@ impl AppStorage {
         s.retain(|e| !(e.app_id == self.app_id && e.key == k));
         s.len() < before
     }
+
+    pub fn list_keys(&self) -> Vec<Vec<u8>> {
+        let s = STORAGE.lock();
+        s.iter().filter(|e| e.app_id == self.app_id).map(|e| e.key.iter().take_while(|&&b| b != 0).cloned().collect()).collect()
+    }
 }
