@@ -16,11 +16,26 @@
 
 pub mod state;
 pub mod state_picker;
+mod state_undo;
+mod state_path;
 pub mod buffer;
+mod buffer_insert;
+mod buffer_delete;
+mod buffer_load;
+mod buffer_indent;
 pub mod buffer_undo;
+mod undo_stack;
+mod undo_apply;
+mod redo_apply;
 pub mod buffer_clipboard;
 pub mod cursor;
+mod cursor_line;
+mod cursor_word;
+mod cursor_util;
 pub mod file;
+mod file_util;
+mod file_ramfs;
+mod file_fat32;
 pub mod render;
 pub mod render_ui;
 pub mod input;
@@ -31,44 +46,28 @@ pub mod find_replace;
 pub mod find_input;
 pub mod find;
 pub mod api;
+pub mod syntax;
+mod syntax_rust;
+mod syntax_js;
+mod syntax_py;
+mod syntax_c;
+mod syntax_nox;
+mod render_text;
+mod render_text_draw;
+mod render_toolbar;
+pub mod tabs_state;
+mod tabs_sync;
+mod tabs_ops;
+mod tabs_render;
+mod render_picker;
+mod render_picker_list;
+mod render_status;
+mod render_linenum;
+pub mod bracket_match;
+pub mod comment_toggle;
+mod comment_apply;
+pub mod goto_line;
+pub mod find_counter;
 
-pub(crate) use state::{
-    EDITOR_BUFFER, EDITOR_LEN, EDITOR_CURSOR, EDITOR_MODIFIED, BUFFER_SIZE,
-};
-pub use api::{
-    SpecialKey,
-    draw_text_editor,
-    handle_text_editor_click,
-    editor_key_impl,
-    editor_special_key,
-    editor_new,
-    editor_open,
-    editor_save,
-    editor_save_as,
-    editor_close,
-    editor_cursor_left,
-    editor_cursor_right,
-    editor_cursor_up,
-    editor_cursor_down,
-    editor_home,
-    editor_end,
-    editor_delete,
-    editor_copy,
-    editor_cut,
-    editor_paste,
-    editor_select_all,
-};
-pub use find::{
-    open_find as editor_open_find,
-    open_replace as editor_open_replace,
-    close_find as editor_close_find,
-    is_active as editor_find_active,
-    find_next as editor_find_next,
-    find_prev as editor_find_prev,
-    replace_one as editor_replace_one,
-    replace_all as editor_replace_all,
-    set_find_pattern as editor_set_find_pattern,
-    set_replace_pattern as editor_set_replace_pattern,
-    get_match_count as editor_get_match_count,
-    toggle_case_sensitive as editor_toggle_case,
-};
+pub(crate) use state::{EDITOR_BUFFER, EDITOR_LEN, EDITOR_CURSOR, EDITOR_MODIFIED, BUFFER_SIZE};
+pub use api::{SpecialKey, draw_text_editor, handle_text_editor_click, editor_key_impl, editor_special_key, editor_cut, editor_copy, editor_paste, editor_select_all, editor_open};
