@@ -32,5 +32,6 @@ mod devtools_publish;
 pub mod agents;
 mod agents_actions;
 pub mod script;
+pub mod git;
 
 pub(crate) use self::core::dispatch;
