@@ -16,12 +16,8 @@
 
 use core::sync::atomic::{AtomicBool, Ordering};
 
-pub(super) static BACKGROUND_CHANGED: AtomicBool = AtomicBool::new(false);
+static BACKGROUND_CHANGED: AtomicBool = AtomicBool::new(false);
 
 pub fn take_background_changed() -> bool {
     BACKGROUND_CHANGED.swap(false, Ordering::Relaxed)
-}
-
-pub(super) fn set_background_changed() {
-    BACKGROUND_CHANGED.store(true, Ordering::Relaxed);
 }
