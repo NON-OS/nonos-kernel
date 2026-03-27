@@ -253,11 +253,20 @@ extern "C" fn kernel_entry(handoff_ptr: u64) -> ! {
         }
         nonos_kernel::sys::settings::network::init();
 
+        nonos_kernel::agents::init();
+        serial::println(b"[NONOS] AI Agents initialized");
+
+        nonos_kernel::sdk::init();
+        serial::println(b"[NONOS] SDK and Marketplace initialized");
+
         init_network();
 
         nonos_kernel::graphics::backgrounds::init_wallpaper_system();
 
         serial::println(b"[NONOS] Starting desktop...");
+
+        /* Load desktop icons from /ram before drawing */
+        desktop::refresh_desktop_icons();
 
         /* Draw desktop and cursor first */
         desktop::draw_all();
@@ -469,8 +478,49 @@ fn run_desktop() -> ! {
 
     loop {
 
+        if window::is_dialog_active() {
+            let result = window::get_dialog_result();
+            if result != window::dialog_result::RESULT_NONE {
+                let callback = window::get_dialog_input_callback();
+                serial::print(b"[DLG] result=");
+                serial::print_dec(result as u64);
+                serial::print(b" cb=");
+                serial::print_dec(callback as u64);
+                serial::println(b"");
+                if result == window::dialog_result::RESULT_OK {
+                    let text = window::get_dialog_input_text();
+                    serial::print(b"[DLG] text='");
+                    serial::print(text.as_bytes());
+                    serial::println(b"'");
+                    if !text.is_empty() {
+                        match callback {
+                            cb if cb == window::dialog_callback::INPUT_CB_DESKTOP_NEW_FOLDER => {
+                                serial::println(b"[DLG] creating folder");
+                                nonos_kernel::graphics::desktop::create_desktop_folder(text);
+                            }
+                            cb if cb == window::dialog_callback::INPUT_CB_DESKTOP_NEW_FILE => {
+                                serial::println(b"[DLG] creating file");
+                                nonos_kernel::graphics::desktop::create_desktop_file(text);
+                            }
+                            _ => {
+                                serial::println(b"[DLG] unknown callback");
+                            }
+                        }
+                    }
+                }
+                window::close_dialog();
+                unsafe { NEEDS_REDRAW = true; }
+            }
+        }
+
         if let Some(ch) = nonos_kernel::input::poll_keyboard_unified() {
-            if window::handle_shortcut(ch) {
+            if window::is_input_dialog_active() {
+                serial::print(b"[DLG] key=");
+                serial::print_dec(ch as u64);
+                serial::println(b"");
+                window::handle_dialog_key(ch);
+                unsafe { NEEDS_REDRAW = true; }
+            } else if window::handle_shortcut(ch) {
                 unsafe { NEEDS_REDRAW = true; }
             } else if window::is_text_input_focused() {
                 window::handle_key(ch);
@@ -597,6 +647,17 @@ fn run_desktop() -> ! {
                         } else if desktop::handle_sidebar_click(mx, my) {
                             NEEDS_REDRAW = true;
                         } else if desktop::handle_dock_click(mx, my) {
+                            NEEDS_REDRAW = true;
+                        } else if let Some((path, is_dir, should_open)) = desktop::handle_desktop_icon_click(mx, my) {
+                            if should_open {
+                                if is_dir {
+                                    window::open(window::WindowType::FileManager);
+                                    window::fm_navigate_to(path);
+                                } else {
+                                    window::open(window::WindowType::TextEditor);
+                                    window::text_editor_open_file(path);
+                                }
+                            }
                             NEEDS_REDRAW = true;
                         }
                     } else {
@@ -735,6 +796,7 @@ fn handle_context_menu_action(action: u8) {
 
     match action {
         DESKTOP_REFRESH => {
+            nonos_kernel::graphics::desktop::refresh_desktop_icons();
             unsafe { NEEDS_REDRAW = true; }
         }
         DESKTOP_SETTINGS => {
@@ -742,6 +804,20 @@ fn handle_context_menu_action(action: u8) {
         }
         DESKTOP_ABOUT => {
             window::open(WindowType::About);
+        }
+        DESKTOP_NEW_FOLDER => {
+            serial::println(b"[DLG] showing new folder dialog");
+            window::show_input_dialog(b"New Folder", b"Enter folder name:", window::dialog_callback::INPUT_CB_DESKTOP_NEW_FOLDER);
+            unsafe { NEEDS_REDRAW = true; }
+        }
+        DESKTOP_NEW_FILE => {
+            serial::println(b"[DLG] showing new file dialog");
+            window::show_input_dialog(b"New File", b"Enter file name:", window::dialog_callback::INPUT_CB_DESKTOP_NEW_FILE);
+            unsafe { NEEDS_REDRAW = true; }
+        }
+        DESKTOP_DELETE => {
+            nonos_kernel::graphics::desktop::delete_desktop_selected();
+            unsafe { NEEDS_REDRAW = true; }
         }
         FM_OPEN => {
             window::fm_open_selected();
