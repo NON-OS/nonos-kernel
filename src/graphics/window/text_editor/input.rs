@@ -45,7 +45,7 @@ pub(super) fn handle_key(ch: u8) {
                 buffer::delete_backward();
             }
         }
-        13 => {
+        10 | 13 => {
             if EDITOR_HAS_SELECTION.load(Ordering::Relaxed) {
                 buffer::delete_selection();
             }
