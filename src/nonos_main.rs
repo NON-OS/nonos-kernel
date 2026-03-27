@@ -655,8 +655,9 @@ fn run_desktop() -> ! {
                         } else if let Some((path, is_dir, should_open)) = desktop::handle_desktop_icon_click(mx, my) {
                             if should_open {
                                 if is_dir {
-                                    window::open(window::WindowType::FileManager);
-                                    window::fm_navigate_to(path);
+                                    if let Some(name) = path.rsplit('/').next() {
+                                        desktop::desktop_navigate_into(name);
+                                    }
                                 } else {
                                     window::open(window::WindowType::TextEditor);
                                     window::text_editor_open_file(path);
@@ -829,6 +830,10 @@ fn handle_context_menu_action(action: u8) {
         }
         DESKTOP_DELETE => {
             nonos_kernel::graphics::desktop::delete_desktop_selected();
+            unsafe { NEEDS_REDRAW = true; }
+        }
+        DESKTOP_GO_BACK => {
+            nonos_kernel::graphics::desktop::desktop_navigate_back();
             unsafe { NEEDS_REDRAW = true; }
         }
         FM_OPEN => {
