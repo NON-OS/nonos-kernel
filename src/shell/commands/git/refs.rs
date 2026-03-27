@@ -21,36 +21,36 @@ use alloc::format;
 use crate::fs::ramfs;
 use super::repo::{repo_path, HEAD_FILE, REFS_HEADS, REFS_REMOTES};
 
-pub fn read_head(repo: &str) -> Option<String> {
+pub(super) fn read_head(repo: &str) -> Option<String> {
     let data = ramfs::read_file(&repo_path(repo, HEAD_FILE)).ok()?;
     let s = core::str::from_utf8(&data).ok()?.trim();
     if s.starts_with("ref: ") { Some(String::from(&s[5..])) } else { Some(String::from(s)) }
 }
 
-pub fn write_head(repo: &str, reference: &str) -> Result<(), &'static str> {
+pub(super) fn write_head(repo: &str, reference: &str) -> Result<(), &'static str> {
     ramfs::write_file(&repo_path(repo, HEAD_FILE), format!("ref: {}\n", reference).as_bytes())
         .map_err(|_| "write HEAD")
 }
 
-pub fn read_ref(repo: &str, ref_name: &str) -> Option<String> {
+pub(super) fn read_ref(repo: &str, ref_name: &str) -> Option<String> {
     let data = ramfs::read_file(&repo_path(repo, ref_name)).ok()?;
     Some(String::from(core::str::from_utf8(&data).ok()?.trim()))
 }
 
-pub fn write_ref(repo: &str, ref_name: &str, hash: &str) -> Result<(), &'static str> {
+pub(super) fn write_ref(repo: &str, ref_name: &str, hash: &str) -> Result<(), &'static str> {
     ramfs::write_file(&repo_path(repo, ref_name), format!("{}\n", hash).as_bytes())
         .map_err(|_| "write ref")
 }
 
-pub fn list_branches(repo: &str) -> Vec<String> {
+pub(super) fn list_branches(repo: &str) -> Vec<String> {
     ramfs::list_dir(&repo_path(repo, REFS_HEADS)).unwrap_or_default()
 }
 
-pub fn list_remotes(repo: &str) -> Vec<String> {
+fn _list_remotes(repo: &str) -> Vec<String> {
     ramfs::list_dir(&repo_path(repo, REFS_REMOTES)).unwrap_or_default()
 }
 
-pub fn resolve_ref(repo: &str, name: &str) -> Option<String> {
+fn _resolve_ref(repo: &str, name: &str) -> Option<String> {
     if name.starts_with("refs/") { return read_ref(repo, name); }
     let branch_ref = format!("{}/{}", REFS_HEADS, name);
     if let Some(h) = read_ref(repo, &branch_ref) { return Some(h); }
@@ -58,7 +58,7 @@ pub fn resolve_ref(repo: &str, name: &str) -> Option<String> {
     if head.starts_with("refs/") { read_ref(repo, &head) } else { Some(head) }
 }
 
-pub fn head_commit(repo: &str) -> Option<String> {
+pub(super) fn head_commit(repo: &str) -> Option<String> {
     let head = read_head(repo)?;
     if head.starts_with("refs/") { read_ref(repo, &head) } else { Some(head) }
 }
