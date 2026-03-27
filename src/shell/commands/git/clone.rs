@@ -23,7 +23,7 @@ use super::{repo, config, github};
 pub fn cmd_clone(args: &[&str], cwd: &str) -> String {
     if args.is_empty() { return String::from("usage: git clone <url> [<directory>]"); }
     let url = args[0];
-    let (owner, repo_name) = match github::parse_github_url(url) {
+    let (_owner, repo_name) = match github::parse_github_url(url) {
         Some(p) => p,
         None => {
             let name = url.rsplit('/').next().unwrap_or("repo").trim_end_matches(".git");
