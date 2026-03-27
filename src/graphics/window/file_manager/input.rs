@@ -15,7 +15,6 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use core::sync::atomic::Ordering;
-use crate::graphics::window::state::TITLE_BAR_HEIGHT;
 use super::constants::*;
 use super::state::{set_path, FILE_ENTRIES, FILE_ENTRY_COUNT, FM_SELECTED_ITEM};
 use super::path::{go_up, go_into};
@@ -25,12 +24,12 @@ use super::clipboard::{copy_selected, cut_selected, paste};
 use super::state::{FM_RENAMING, FM_CREATING_FOLDER, FM_CREATING_FILE, is_input_active, get_input_text, clear_input, push_input_char, pop_input_char};
 
 pub fn handle_file_manager_click(win_x: u32, win_y: u32, win_w: u32, click_x: i32, click_y: i32) -> bool {
-    let content_y = (win_y + TITLE_BAR_HEIGHT) as i32;
+    let content_y = win_y as i32;
     let sidebar_w = SIDEBAR_WIDTH as i32;
 
     if click_x >= win_x as i32 && click_x < win_x as i32 + sidebar_w {
-        if click_y >= content_y + 40 && click_y < content_y + 40 + 128 {
-            let row = ((click_y - content_y - 40) / 32) as usize;
+        if click_y >= content_y + 36 && click_y < content_y + 36 + 144 {
+            let row = ((click_y - content_y - 36) / 36) as usize;
             let paths = ["/ram", "/disk/0", "/disk/1", "/"];
             if row < paths.len() {
                 set_path(paths[row]);
@@ -39,9 +38,9 @@ pub fn handle_file_manager_click(win_x: u32, win_y: u32, win_w: u32, click_x: i3
             }
         }
 
-        let ops_y = content_y + 210;
-        if click_y >= ops_y && click_y < ops_y + 176 {
-            let op_row = ((click_y - ops_y) / 22) as usize;
+        let ops_y = content_y + 190 + 24;
+        if click_y >= ops_y && click_y < ops_y + 182 {
+            let op_row = ((click_y - ops_y) / 26) as usize;
             match op_row {
                 0 => {
                     clear_input();
@@ -114,7 +113,6 @@ fn start_rename() {
         return;
     }
 
-    // Copy current name into input buffer
     let entry = unsafe { &FILE_ENTRIES[selected as usize] };
     clear_input();
     for &ch in entry.name[..entry.name_len as usize].iter() {
@@ -143,11 +141,11 @@ pub fn handle_file_manager_special_key(key: u8) -> bool {
     }
 
     match key {
-        0x0E => { // Backspace
+        0x0E => {
             pop_input_char();
             true
         }
-        0x1C => { // Enter - commit operation
+        0x1C => {
             let name = get_input_text();
             if FM_RENAMING.load(Ordering::Relaxed) {
                 let _ = rename_selected(name);
@@ -166,7 +164,7 @@ pub fn handle_file_manager_special_key(key: u8) -> bool {
             clear_input();
             true
         }
-        0x01 => { // Escape - cancel
+        0x01 => {
             FM_RENAMING.store(false, Ordering::Relaxed);
             FM_CREATING_FOLDER.store(false, Ordering::Relaxed);
             FM_CREATING_FILE.store(false, Ordering::Relaxed);
