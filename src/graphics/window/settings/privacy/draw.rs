@@ -51,4 +51,10 @@ pub(crate) fn draw(x: u32, y: u32, w: u32) {
     draw_string(x + 15, y + 180, b"ZeroState Mode", COLOR_TEXT_WHITE);
     draw_string(x + 15, y + 198, b"RAM-only, no disk persistence", 0xFF7D8590);
     draw_toggle(x + w - 70, y + 175, is_zero_state_enabled());
+
+    draw_string(x + 15, y + 230, b"Data Management", COLOR_ACCENT);
+    fill_rect(x + 15, y + 250, 140, 32, 0xFFCC3333);
+    draw_string(x + 28, y + 258, b"Clear Cookies", COLOR_TEXT_WHITE);
+    fill_rect(x + 165, y + 250, 140, 32, 0xFFCC3333);
+    draw_string(x + 178, y + 258, b"Clear History", COLOR_TEXT_WHITE);
 }
