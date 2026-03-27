@@ -95,81 +95,33 @@ fn draw_button_highlight(x: u32, y: u32, w: u32, _h: u32, r: u32, glow: u32) {
 }
 
 fn draw_premium_account_card(x: u32, y: u32, w: u32, h: u32, acc: &AccountDisplay) {
-    for i in 0..6 { draw_rounded_rect(x + i / 2, y + 4 + i, w, h, 14, blend_alpha(0x000000, 25 - i * 4)); }
+    for i in 0..4 { draw_rounded_rect(x + i / 2, y + 2 + i, w, h, 12, blend_alpha(0x000000, 15 - i * 3)); }
     let card_color = if acc.active { COLOR_CARD_ELEVATED } else { COLOR_CARD };
-    draw_rounded_rect(x, y, w, h, 14, card_color);
+    draw_rounded_rect(x, y, w, h, 12, card_color);
     if acc.active {
-        draw_card_glow(x, y, w, h, 14, COLOR_ACCENT);
-        fill_rect(x, y + 20, 4, h - 40, COLOR_ACCENT);
+        fill_rect(x, y + 16, 3, h - 32, COLOR_ACCENT);
     }
-    draw_card_top_gradient(x, y, w, h, 14);
     let avatar_color = account_color(acc.index);
-    draw_rounded_rect(x + 20, y + 18, 44, 44, 12, avatar_color);
-    draw_avatar_gradient(x + 20, y + 18, 44, 44, 12);
-    let mut idx_str = [0u8; 4];
-    idx_str[0] = b'#';
-    let idx_len = format_u32(&mut idx_str[1..], acc.index);
-    draw_string(x + 30, y + 32, &idx_str[..1 + idx_len], COLOR_TEXT_WHITE);
-    draw_string(x + 76, y + 22, &acc.name[..acc.name_len], COLOR_TEXT_WHITE);
-    draw_string(x + 76, y + 42, &acc.addr_short, COLOR_TEXT_DIM);
-    if acc.active {
-        draw_rounded_rect(x + 76 + acc.name_len as u32 * 8 + 12, y + 20, 50, 20, 6, blend_alpha(COLOR_GREEN, 30));
-        draw_string(x + 76 + acc.name_len as u32 * 8 + 18, y + 24, b"Active", COLOR_GREEN);
-    }
+    draw_rounded_rect(x + 16, y + 23, 36, 36, 10, avatar_color);
+    draw_string(x + 28, y + 34, b"Ac", 0xFF000000);
+    draw_string(x + 64, y + 24, &acc.name[..acc.name_len], COLOR_TEXT_WHITE);
+    draw_string(x + 64, y + 44, &acc.addr_short, COLOR_TEXT_DIM);
     let mut eth_str = [0u8; 32];
     let eth_len = format_balance(&mut eth_str, acc.eth, acc.eth_frac);
-    draw_string(x + w - 150, y + 22, &eth_str[..eth_len], COLOR_TEXT_WHITE);
-    draw_string(x + w - 150 + (eth_len as u32 + 1) * 8, y + 22, b"ETH", COLOR_GREEN);
+    draw_string(x + w - 140, y + 24, &eth_str[..eth_len], COLOR_TEXT_WHITE);
+    draw_string(x + w - 140 + (eth_len as u32 + 1) * 8, y + 24, b"ETH", COLOR_GREEN);
     let mut nox_str = [0u8; 32];
     let nox_len = format_balance(&mut nox_str, acc.nox, acc.nox_frac);
-    draw_string(x + w - 150, y + 44, &nox_str[..nox_len], COLOR_TEXT_WHITE);
-    draw_string(x + w - 150 + (nox_len as u32 + 1) * 8, y + 44, b"NOX", COLOR_PURPLE);
+    draw_string(x + w - 140, y + 44, &nox_str[..nox_len], COLOR_TEXT_WHITE);
+    draw_string(x + w - 140 + (nox_len as u32 + 1) * 8, y + 44, b"NOX", COLOR_PURPLE);
 }
 
-fn draw_card_glow(x: u32, y: u32, w: u32, h: u32, _r: u32, color: u32) {
-    for i in 1..4 {
-        fill_rect(x.saturating_sub(i), y, i, h, blend_alpha(color, 15 - i * 4));
-        fill_rect(x + w, y, i, h, blend_alpha(color, 15 - i * 4));
-        fill_rect(x, y.saturating_sub(i), w, i, blend_alpha(color, 15 - i * 4));
-        fill_rect(x, y + h, w, i, blend_alpha(color, 15 - i * 4));
-    }
-}
-
-fn draw_card_top_gradient(x: u32, y: u32, w: u32, _h: u32, r: u32) {
-    for row in 0..core::cmp::min(20, r + 10) {
-        let alpha = 12 - (row as u32 * 12 / 20);
-        if alpha == 0 { break; }
-        let in_radius = row < r;
-        let start_x = if in_radius { x + r - isqrt(r * r - (r - row) * (r - row)) } else { x };
-        let end_x = if in_radius { x + w - r + isqrt(r * r - (r - row) * (r - row)) } else { x + w };
-        if end_x > start_x { fill_rect(start_x, y + row, end_x - start_x, 1, blend_alpha(0xFFFFFF, alpha)); }
-    }
-}
-
-fn draw_avatar_gradient(x: u32, y: u32, w: u32, _h: u32, r: u32) {
-    for row in 0..core::cmp::min(15, r + 5) {
-        let alpha = 30 - row * 2;
-        let in_radius = row < r;
-        let start_x = if in_radius { x + r - isqrt(r * r - (r - row) * (r - row)) } else { x };
-        let end_x = if in_radius { x + w - r + isqrt(r * r - (r - row) * (r - row)) } else { x + w };
-        if end_x > start_x { fill_rect(start_x, y + row, end_x - start_x, 1, blend_alpha(0xFFFFFF, alpha)); }
-    }
-}
 
 fn account_color(index: u32) -> u32 {
     let colors = [COLOR_ACCENT, COLOR_PURPLE, COLOR_GREEN, COLOR_YELLOW, COLOR_CYAN, COLOR_RED];
     colors[(index as usize) % colors.len()]
 }
 
-pub(super) fn format_u32(buf: &mut [u8], n: u32) -> usize {
-    if n == 0 { buf[0] = b'0'; return 1; }
-    let mut val = n;
-    let mut digits = [0u8; 10];
-    let mut dc = 0;
-    while val > 0 { digits[dc] = (val % 10) as u8; val /= 10; dc += 1; }
-    for i in (0..dc).rev() { buf[dc - 1 - i] = b'0' + digits[i]; }
-    dc
-}
 
 fn blend_alpha(color: u32, alpha: u32) -> u32 {
     let a = (alpha * 255 / 100).min(255);
