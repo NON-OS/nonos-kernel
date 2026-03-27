@@ -25,5 +25,12 @@ pub mod apps;
 pub mod blockchain;
 pub mod npkg;
 pub mod nox;
+pub mod devtools;
+mod devtools_project;
+mod devtools_build;
+mod devtools_publish;
+pub mod agents;
+mod agents_actions;
+pub mod script;
 
 pub(crate) use self::core::dispatch;
