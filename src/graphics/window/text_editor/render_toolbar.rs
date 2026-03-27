@@ -21,7 +21,7 @@ use crate::graphics::components::{primitives, text};
 use super::state::*;
 use super::file::is_modified;
 
-pub fn draw(x: u32, y: u32, w: u32) {
+pub(super) fn draw(x: u32, y: u32, w: u32) {
     for gy in 0..TOOLBAR_HEIGHT {
         let shade = 44 - (gy / 2) as u8;
         let color = 0xFF000000 | ((shade as u32) << 16) | ((shade as u32) << 8) | (shade as u32);
@@ -29,12 +29,12 @@ pub fn draw(x: u32, y: u32, w: u32) {
     }
     fill_rect(x, y + TOOLBAR_HEIGHT - 1, w, 1, BORDER_DEFAULT);
 
-    let tools: [(&[u8], u32); 4] = [(b"New", 48), (b"Open", 52), (b"Save", 52), (b"Close", 56)];
-    let mut tx = x + 12;
+    let tools: [(&[u8], u32); 5] = [(b"New", 40), (b"Open", 48), (b"Save", 48), (b"SaveAs", 60), (b"Close", 52)];
+    let mut tx = x + 8;
     for (tool, btn_w) in tools.iter() {
         primitives::rounded_rect(tx, y + 6, *btn_w, 26, 6, BG_HOVER);
-        text::draw(tx + 10, y + 12, tool, TEXT_PRIMARY);
-        tx += btn_w + 10;
+        text::draw(tx + 8, y + 12, tool, TEXT_PRIMARY);
+        tx += btn_w + 6;
     }
 
     draw_status_indicator(x, y, w);
