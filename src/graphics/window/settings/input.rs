@@ -27,11 +27,11 @@ pub fn handle_click(win_x: u32, content_y: u32, win_w: u32, click_x: i32, click_
     let page = get_page();
 
     match page {
-        PAGE_PRIVACY => privacy::handle_click(content_x, content_y, content_w, click_x, click_y),
-        PAGE_NETWORK => network::handle_click(content_x, content_y, content_w, click_x, click_y),
+        PAGE_PRIVACY => privacy::handle_click(content_x, content_y + 45, content_w, click_x, click_y),
+        PAGE_NETWORK => network::handle_click(content_x, content_y + 45, content_w, click_x, click_y),
         PAGE_APPEARANCE => appearance::handle_click(content_x, content_y + 45, content_w, click_x, click_y),
-        PAGE_SYSTEM => system::handle_click(content_x, content_y, content_w, click_x, click_y),
-        PAGE_POWER => power::handle_click(content_x, content_y, content_w, click_x, click_y),
+        PAGE_SYSTEM => system::handle_click(content_x, content_y + 45, content_w, click_x, click_y),
+        PAGE_POWER => power::handle_click(content_x, content_y + 45, content_w, click_x, click_y),
         _ => false,
     }
 }
