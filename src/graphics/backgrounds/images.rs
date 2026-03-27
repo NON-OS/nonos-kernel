@@ -47,19 +47,6 @@ impl Background {
         }
     }
 
-    pub(crate) fn name(&self) -> &'static str {
-        match self {
-            Self::Default => "Dark Gradient",
-            Self::DeepBlue => "Deep Blue",
-            Self::Twilight => "Twilight",
-            Self::Forest => "Forest",
-            Self::Sunset => "Sunset",
-            Self::Midnight => "Midnight",
-            Self::Ocean => "Ocean",
-            Self::CyberGrid => "Cyber Grid",
-        }
-    }
-
     pub(crate) fn gradient_colors(&self) -> (u32, u32) {
         match self {
             Self::Default => (0xFF0D1117, 0xFF1A1F27),
@@ -83,15 +70,5 @@ impl Background {
 
     pub(crate) fn count() -> u8 {
         BG_COUNT
-    }
-
-    pub(crate) fn next(&self) -> Self {
-        let next = (*self as u8 + 1) % BG_COUNT;
-        Self::from_u8(next)
-    }
-
-    pub(crate) fn prev(&self) -> Self {
-        let prev = if *self as u8 == 0 { BG_COUNT - 1 } else { *self as u8 - 1 };
-        Self::from_u8(prev)
     }
 }
