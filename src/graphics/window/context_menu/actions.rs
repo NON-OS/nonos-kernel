@@ -17,6 +17,9 @@
 pub const DESKTOP_REFRESH: u8 = 1;
 pub const DESKTOP_SETTINGS: u8 = 2;
 pub const DESKTOP_ABOUT: u8 = 3;
+pub const DESKTOP_NEW_FOLDER: u8 = 4;
+pub const DESKTOP_NEW_FILE: u8 = 5;
+pub const DESKTOP_DELETE: u8 = 6;
 pub const FM_OPEN: u8 = 10;
 pub const FM_COPY: u8 = 11;
 pub const FM_CUT: u8 = 12;
