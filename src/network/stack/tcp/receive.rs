@@ -191,6 +191,7 @@ pub fn receive_with_timeout(
             wait_logged = true;
         }
 
+        if backoff_us >= 2000 { crate::time::yield_now(); }
         crate::time::sleep_us(backoff_us);
         backoff_us = next_backoff_us(backoff_us);
     }
