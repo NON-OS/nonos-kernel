@@ -149,14 +149,12 @@ impl HttpClient {
 
         let mut response_data = Vec::new();
         let deadline_ms = crate::time::timestamp_millis() + self.options.timeout_ms;
-        let mut iter = 0u32;
 
         loop {
             if crate::time::timestamp_millis() > deadline_ms {
                 return Err("timeout");
             }
-            iter += 1;
-            if iter % 5 == 0 { crate::time::yield_now(); }
+            crate::time::yield_now();
 
             let received = stack.tcp_receive(conn_id, 8192).map_err(|_| "TCP recv failed")?;
             if received.is_empty() {
