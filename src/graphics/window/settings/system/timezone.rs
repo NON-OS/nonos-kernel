@@ -19,23 +19,23 @@ use crate::graphics::window::settings::render::draw_string;
 use crate::sys::settings as sys_settings;
 
 pub(super) fn draw_timezone(x: u32, y: u32, w: u32) {
-    draw_string(x + 15, y + 455, b"Timezone", COLOR_TEXT_WHITE);
-    fill_rect(x + 15, y + 475, w - 30, 36, 0xFF1A1F26);
-    fill_rect(x + 20, y + 480, 26, 26, 0xFF2D333B);
-    draw_string(x + 28, y + 485, b"<", COLOR_TEXT_WHITE);
-    draw_tz_name(x + 60, y + 486, sys_settings::timezone());
-    fill_rect(x + w - 46, y + 480, 26, 26, 0xFF2D333B);
-    draw_string(x + w - 38, y + 485, b">", COLOR_TEXT_WHITE);
+    draw_string(x + 15, y + 335, b"Timezone", COLOR_TEXT_WHITE);
+    fill_rect(x + 15, y + 355, w - 30, 36, 0xFF1A1F26);
+    fill_rect(x + 20, y + 360, 26, 26, 0xFF2D333B);
+    draw_string(x + 28, y + 365, b"<", COLOR_TEXT_WHITE);
+    draw_tz_name(x + 60, y + 366, sys_settings::timezone());
+    fill_rect(x + w - 46, y + 360, 26, 26, 0xFF2D333B);
+    draw_string(x + w - 38, y + 365, b">", COLOR_TEXT_WHITE);
 }
 
 pub(super) fn draw_screen_timeout(x: u32, y: u32, _w: u32) {
-    draw_string(x + 15, y + 525, b"Screen Timeout", COLOR_TEXT_WHITE);
+    draw_string(x + 15, y + 405, b"Screen Timeout", COLOR_TEXT_WHITE);
     let timeouts: [&[u8]; 5] = [b"Never", b"5min", b"10min", b"30min", b"60min"];
     let current = timeout_to_idx(sys_settings::screen_timeout());
     let btn_w = 55u32;
     for (i, name) in timeouts.iter().enumerate() {
         let bx = x + 15 + (i as u32) * (btn_w + 6);
-        let by = y + 545;
+        let by = y + 425;
         let is_sel = current == i;
         let color = if is_sel { COLOR_ACCENT } else { 0xFF2D333B };
         fill_rect(bx, by, btn_w, 26, color);
