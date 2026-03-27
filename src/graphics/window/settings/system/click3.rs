@@ -18,7 +18,7 @@ use crate::sys::settings as sys_settings;
 use super::timezone::idx_to_timeout;
 
 pub(super) fn handle_timezone(cx: u32, cy: u32, cw: u32, mx: i32, my: i32) -> bool {
-    let tz_y = cy + 480;
+    let tz_y = cy + 360;
     let prev_x = cx + 20;
     if mx >= prev_x as i32 && mx < (prev_x + 26) as i32 {
         if my >= tz_y as i32 && my < (tz_y + 26) as i32 {
@@ -39,7 +39,7 @@ pub(super) fn handle_timezone(cx: u32, cy: u32, cw: u32, mx: i32, my: i32) -> bo
 }
 
 pub(super) fn handle_screen_timeout(cx: u32, cy: u32, mx: i32, my: i32) -> bool {
-    let timeout_y = cy + 545;
+    let timeout_y = cy + 425;
     if my >= timeout_y as i32 && my < (timeout_y + 26) as i32 {
         let rel_x = mx - cx as i32 - 15;
         if rel_x >= 0 {
