@@ -20,8 +20,8 @@ use crate::graphics::font::draw_char;
 use super::constants::*;
 use super::state::*;
 
-const COLOR_BG: u32 = 0xFF000000;
-const COLOR_CURSOR: u32 = 0xFF007AFF;
+const COLOR_BG: u32 = 0xFF0F0F14;
+const COLOR_CURSOR: u32 = 0xFF3B82F6;
 const HEADER_HEIGHT: u32 = 28;
 
 fn draw_string(x: u32, y: u32, text: &[u8], color: u32) {
@@ -31,18 +31,14 @@ fn draw_string(x: u32, y: u32, text: &[u8], color: u32) {
 }
 
 pub fn draw_terminal(x: u32, y: u32, w: u32, h: u32) {
-    for gy in 0..HEADER_HEIGHT {
-        let shade = 44 - (gy / 2) as u8;
-        let color = 0xFF000000 | ((shade as u32) << 16) | ((shade as u32) << 8) | (shade as u32);
-        fill_rect(x, y + gy, w, 1, color);
-    }
-    fill_rect(x, y + HEADER_HEIGHT - 1, w, 1, 0xFF38383A);
+    fill_rect(x, y, w, HEADER_HEIGHT, 0xFF1A1A1E);
+    fill_rect(x, y + HEADER_HEIGHT - 1, w, 1, 0xFF2C2C30);
 
-    draw_string(x + 12, y + 8, b"N\xd8NOS Terminal", 0xFF8E8E93);
+    draw_string(x + 12, y + 8, b"N\xd8NOS Terminal", 0xFF6B7280);
 
     let shell_indicator_x = x + w - 80;
-    fill_rect(shell_indicator_x, y + 6, 8, 8, 0xFF34C759);
-    draw_string(shell_indicator_x + 12, y + 4, b"shell", 0xFF8E8E93);
+    fill_rect(shell_indicator_x, y + 6, 8, 8, 0xFF34D399);
+    draw_string(shell_indicator_x + 12, y + 4, b"shell", 0xFF6B7280);
 
     fill_rect(x, y + HEADER_HEIGHT, w, h - HEADER_HEIGHT, COLOR_BG);
 
