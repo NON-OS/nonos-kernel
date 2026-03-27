@@ -53,21 +53,29 @@ fn draw_sound_toggle(x: u32, y: u32, w: u32) {
 
 fn draw_keyboard_layout(x: u32, y: u32, _w: u32) {
     draw_string(x + 15, y + 150, b"Keyboard Layout", COLOR_TEXT_WHITE);
-    let layouts: [&[u8]; 4] = [b"US", b"UK", b"DE", b"FR"];
+    let row1: [&[u8]; 5] = [b"US", b"DVK", b"FR", b"COL", b"DE"];
+    let row2: [&[u8]; 4] = [b"UK", b"ES", b"IT", b"PT"];
     let current_layout = sys_settings::keyboard_layout() as usize;
-    let btn_w = 50u32;
-    for (i, name) in layouts.iter().enumerate() {
-        let bx = x + 15 + (i as u32) * (btn_w + 8);
-        let by = y + 170;
+    let btn_w = 52u32;
+    for (i, name) in row1.iter().enumerate() {
+        let bx = x + 15 + (i as u32) * (btn_w + 5);
         let is_sel = current_layout == i;
         let color = if is_sel { COLOR_ACCENT } else { 0xFF2D333B };
-        fill_rect(bx, by, btn_w, 26, color);
-        let txt_color = if is_sel { 0xFF0D1117 } else { COLOR_TEXT_WHITE };
-        draw_string(bx + 16, by + 7, name, txt_color);
+        fill_rect(bx, y + 170, btn_w, 24, color);
+        let txt = if is_sel { 0xFF0D1117 } else { COLOR_TEXT_WHITE };
+        draw_string(bx + 12, y + 175, name, txt);
+    }
+    for (i, name) in row2.iter().enumerate() {
+        let bx = x + 15 + (i as u32) * (btn_w + 5);
+        let is_sel = current_layout == (i + 5);
+        let color = if is_sel { COLOR_ACCENT } else { 0xFF2D333B };
+        fill_rect(bx, y + 198, btn_w, 24, color);
+        let txt = if is_sel { 0xFF0D1117 } else { COLOR_TEXT_WHITE };
+        draw_string(bx + 12, y + 203, name, txt);
     }
 }
 
 fn draw_dark_theme(x: u32, y: u32, w: u32) {
-    draw_string(x + 15, y + 210, b"Dark Theme", COLOR_TEXT_WHITE);
-    draw_toggle(x + w - 70, y + 205, is_dark_theme());
+    draw_string(x + 15, y + 235, b"Dark Theme", COLOR_TEXT_WHITE);
+    draw_toggle(x + w - 70, y + 230, is_dark_theme());
 }
