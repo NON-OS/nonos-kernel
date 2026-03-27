@@ -14,14 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-extern crate alloc;
-
 use core::sync::atomic::{AtomicBool, AtomicUsize, AtomicU8, Ordering};
 
-pub(crate) use super::state_picker::{
-    picker_open, picker_close, picker_is_active,
-    picker_select, picker_get_selected_path, picker_is_selected_dir, picker_navigate_into,
-};
+pub(crate) use super::state_picker::{picker_open, picker_open_save, picker_close, picker_is_active, picker_is_save_mode, picker_select, picker_get_selected_path, picker_is_selected_dir, picker_navigate_into, save_filename_input, get_save_path, get_save_filename};
+pub(crate) use super::state_undo::{UNDO_STACK_SIZE, UNDO_DATA_SIZE, UndoOpType, UndoEntry, UNDO_STACK, UNDO_TOP, REDO_STACK, REDO_TOP};
+pub(crate) use super::state_path::{set_path, get_path, get_buffer_slice};
 
 pub(crate) const BUFFER_SIZE: usize = 16384;
 pub(crate) const PATH_SIZE: usize = 256;
@@ -29,7 +26,6 @@ pub(crate) const LINE_HEIGHT: u32 = 18;
 pub(crate) const LINE_NUM_WIDTH: u32 = 45;
 pub(crate) const TOOLBAR_HEIGHT: u32 = 35;
 pub(crate) const STATUS_BAR_HEIGHT: u32 = 25;
-
 pub(crate) const STATUS_NONE: u8 = 0;
 pub(crate) const STATUS_SAVED: u8 = 1;
 pub(crate) const STATUS_OPENED: u8 = 2;
@@ -48,40 +44,6 @@ pub(crate) static EDITOR_SELECTION_START: AtomicUsize = AtomicUsize::new(0);
 pub(crate) static EDITOR_SELECTION_END: AtomicUsize = AtomicUsize::new(0);
 pub(crate) static EDITOR_HAS_SELECTION: AtomicBool = AtomicBool::new(false);
 
-pub(crate) const UNDO_STACK_SIZE: usize = 64;
-pub(crate) const UNDO_DATA_SIZE: usize = 256;
-
-#[derive(Clone, Copy, PartialEq)]
-pub(crate) enum UndoOpType {
-    None,
-    Insert,
-    Delete,
-}
-
-#[derive(Clone, Copy)]
-pub(crate) struct UndoEntry {
-    pub op_type: UndoOpType,
-    pub cursor_pos: usize,
-    pub data_len: usize,
-    pub data: [u8; UNDO_DATA_SIZE],
-}
-
-impl UndoEntry {
-    pub(crate) const fn empty() -> Self {
-        Self {
-            op_type: UndoOpType::None,
-            cursor_pos: 0,
-            data_len: 0,
-            data: [0u8; UNDO_DATA_SIZE],
-        }
-    }
-}
-
-pub(crate) static mut UNDO_STACK: [UndoEntry; UNDO_STACK_SIZE] = [UndoEntry::empty(); UNDO_STACK_SIZE];
-pub(crate) static UNDO_TOP: AtomicUsize = AtomicUsize::new(0);
-pub(crate) static mut REDO_STACK: [UndoEntry; UNDO_STACK_SIZE] = [UndoEntry::empty(); UNDO_STACK_SIZE];
-pub(crate) static REDO_TOP: AtomicUsize = AtomicUsize::new(0);
-
 pub(crate) const MAX_PICKER_FILES: usize = 32;
 pub(crate) const MAX_PICKER_NAME: usize = 64;
 pub(crate) static PICKER_ACTIVE: AtomicBool = AtomicBool::new(false);
@@ -93,15 +55,13 @@ pub(crate) static mut PICKER_IS_DIR: [bool; MAX_PICKER_FILES] = [false; MAX_PICK
 pub(crate) static mut PICKER_PATH: [u8; PATH_SIZE] = [0u8; PATH_SIZE];
 pub(crate) static PICKER_PATH_LEN: AtomicUsize = AtomicUsize::new(0);
 
+pub(crate) static PICKER_SAVE_MODE: AtomicBool = AtomicBool::new(false);
+pub(crate) const MAX_FILENAME_LEN: usize = 64;
+pub(crate) static mut SAVE_FILENAME: [u8; MAX_FILENAME_LEN] = [0u8; MAX_FILENAME_LEN];
+pub(crate) static SAVE_FILENAME_LEN: AtomicUsize = AtomicUsize::new(0);
+
 pub(crate) fn reset_state() {
-    unsafe {
-        for i in 0..BUFFER_SIZE {
-            EDITOR_BUFFER[i] = 0;
-        }
-        for i in 0..PATH_SIZE {
-            EDITOR_FILE_PATH[i] = 0;
-        }
-    }
+    unsafe { for i in 0..BUFFER_SIZE { EDITOR_BUFFER[i] = 0; } for i in 0..PATH_SIZE { EDITOR_FILE_PATH[i] = 0; } }
     EDITOR_LEN.store(0, Ordering::Relaxed);
     EDITOR_CURSOR.store(0, Ordering::Relaxed);
     EDITOR_MODIFIED.store(false, Ordering::Relaxed);
@@ -111,33 +71,4 @@ pub(crate) fn reset_state() {
     EDITOR_HAS_SELECTION.store(false, Ordering::Relaxed);
     UNDO_TOP.store(0, Ordering::Relaxed);
     REDO_TOP.store(0, Ordering::Relaxed);
-}
-
-pub(crate) fn set_path(path: &str) {
-    let path_bytes = path.as_bytes();
-    let path_len = path_bytes.len().min(PATH_SIZE - 1);
-    unsafe {
-        for i in 0..path_len {
-            EDITOR_FILE_PATH[i] = path_bytes[i];
-        }
-        for i in path_len..PATH_SIZE {
-            EDITOR_FILE_PATH[i] = 0;
-        }
-    }
-    EDITOR_PATH_LEN.store(path_len, Ordering::Relaxed);
-}
-
-pub(crate) fn get_path() -> Option<&'static str> {
-    let len = EDITOR_PATH_LEN.load(Ordering::Relaxed);
-    if len == 0 {
-        return None;
-    }
-    unsafe {
-        core::str::from_utf8(&EDITOR_FILE_PATH[..len]).ok()
-    }
-}
-
-pub(crate) fn get_buffer_slice() -> &'static [u8] {
-    let len = EDITOR_LEN.load(Ordering::Relaxed);
-    unsafe { &EDITOR_BUFFER[..len] }
 }
