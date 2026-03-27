@@ -116,3 +116,19 @@ pub fn handle_desktop_icon_drag_end() {
 pub fn is_desktop_icon_dragging() -> bool {
     desktop_icons::is_dragging()
 }
+
+pub fn desktop_navigate_into(name: &str) -> bool {
+    desktop_icons::navigate_into(name)
+}
+
+pub fn desktop_navigate_back() -> bool {
+    desktop_icons::navigate_back()
+}
+
+pub fn desktop_is_in_subfolder() -> bool {
+    desktop_icons::is_in_subfolder()
+}
+
+pub fn desktop_get_current_path() -> &'static str {
+    desktop_icons::get_current_path()
+}
