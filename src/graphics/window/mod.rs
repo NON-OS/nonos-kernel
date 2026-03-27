@@ -86,10 +86,16 @@ pub use api::{
     show_warning_dialog,
     show_error_dialog,
     show_confirm_dialog,
+    show_input_dialog,
     is_dialog_active,
+    is_input_dialog_active,
     get_dialog_result,
+    get_dialog_input_text,
+    get_dialog_input_callback,
     close_dialog,
+    handle_dialog_key,
     dialog_result,
+    dialog_callback,
     set_window_content_size,
     get_window_scroll,
     scroll_window_by,
@@ -111,4 +117,7 @@ pub use file_manager::{
     paste as fm_paste,
     delete_selected as fm_delete_selected,
     create_folder as fm_create_folder,
+    navigate_to as fm_navigate_to,
 };
+
+pub use text_editor::editor_open as text_editor_open_file;
