@@ -18,6 +18,8 @@ extern crate alloc;
 use alloc::string::String;
 use alloc::format;
 use crate::fs::ramfs;
+use crate::shell::output::print_line;
+use crate::graphics::framebuffer::{COLOR_WHITE, COLOR_TEXT_DIM};
 use super::{repo, config, github};
 
 pub fn cmd_pull(args: &[&str], cwd: &str) -> String {
@@ -29,24 +31,32 @@ pub fn cmd_pull(args: &[&str], cwd: &str) -> String {
     let (owner, repo_name) = match github::parse_github_url(&url) {
         Some(p) => p, None => return String::from("error: only GitHub remotes supported for pull"),
     };
-    let mut out = format!("From {}\n", url);
+    print_line(format!("From {}", url).as_bytes(), COLOR_WHITE);
     let current = repo::current_branch(cwd);
     let branch = current.as_deref().unwrap_or("main");
-    out.push_str(&format!(" * branch            {} -> FETCH_HEAD\n", branch));
+    print_line(format!(" * branch            {} -> FETCH_HEAD", branch).as_bytes(), COLOR_WHITE);
+    print_line(b"Fetching tree...", COLOR_TEXT_DIM);
+    crate::time::yield_now();
     match github::fetch_repo_tree(&owner, &repo_name, branch) {
         Ok(tree) => {
+            print_line(format!("Found {} entries", tree.len()).as_bytes(), COLOR_TEXT_DIM);
             let mut files = 0;
-            for (path, is_dir) in &tree {
+            for (i, (path, is_dir)) in tree.iter().enumerate() {
                 let full = repo::repo_path(cwd, path);
                 if *is_dir { let _ = ramfs::create_dir(&full); }
-                else if let Ok(data) = github::fetch_file(&owner, &repo_name, branch, path) {
-                    let _ = ramfs::create_file(&full, &data);
-                    files += 1;
+                else {
+                    if i % 5 == 0 { crate::time::yield_now(); }
+                    if let Ok(data) = github::fetch_file(&owner, &repo_name, branch, path) {
+                        let _ = ramfs::create_file(&full, &data);
+                        files += 1;
+                        if files % 10 == 0 {
+                            print_line(format!("  {} files...", files).as_bytes(), COLOR_TEXT_DIM);
+                        }
+                    }
                 }
             }
-            out.push_str(&format!("Updating... {} files received\n", files));
+            format!("Updating complete: {} files received", files)
         }
-        Err(e) => out.push_str(&format!("error: {}\n", e)),
+        Err(e) => format!("error: {}", e),
     }
-    out
 }
