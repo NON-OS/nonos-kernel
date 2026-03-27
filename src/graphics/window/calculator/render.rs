@@ -20,7 +20,7 @@ use super::numbers::{draw_number_large, draw_number_small};
 use super::buttons::{draw_buttons, draw_clock_icon, PADDING, DISPLAY_H};
 
 pub(crate) fn draw_calculator(x: u32, y: u32, w: u32, h: u32) {
-    fill_rect(x, y, w, h, 0xFF000000);
+    fill_rect(x, y, w, h, 0xFF141418);
     rounded_rect(x + PADDING, y + PADDING, w - PADDING * 2, DISPLAY_H, 12, CALC_DISPLAY_BG);
     draw_clock_icon(x + w - PADDING - 20, y + PADDING + 8);
     draw_expression(x, y, w);
