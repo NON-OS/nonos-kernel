@@ -15,20 +15,27 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use core::sync::atomic::Ordering;
-use crate::graphics::window::state::TITLE_BAR_HEIGHT;
 use super::state::*;
 use super::{cursor, file};
 
 pub(super) fn handle_click(win_x: u32, win_y: u32, win_w: u32, win_h: u32, click_x: i32, click_y: i32) -> bool {
     use super::state::picker_is_active;
+    use super::tabs_state::tabs_enabled;
+    use super::tabs_render::{handle_tab_click, TAB_BAR_HEIGHT};
 
-    let content_y = win_y + TITLE_BAR_HEIGHT;
+    let content_y = win_y;
 
     if picker_is_active() {
         return handle_picker_click(win_x, content_y, win_w, win_h, click_x, click_y);
     }
 
-    if handle_toolbar_click(win_x, content_y, click_x, click_y) {
+    let tab_offset = if tabs_enabled() { TAB_BAR_HEIGHT } else { 0 };
+    if tabs_enabled() && click_y >= content_y as i32 && click_y < (content_y + tab_offset) as i32 {
+        return handle_tab_click(win_x, content_y, click_x as u32);
+    }
+
+    let toolbar_y = content_y + tab_offset;
+    if handle_toolbar_click(win_x, toolbar_y, click_x, click_y) {
         return true;
     }
 
@@ -40,25 +47,31 @@ pub(super) fn handle_click(win_x: u32, win_y: u32, win_w: u32, win_h: u32, click
 }
 
 pub(super) fn handle_picker_click(win_x: u32, content_y: u32, win_w: u32, win_h: u32, click_x: i32, click_y: i32) -> bool {
-    use super::state::{picker_select, picker_is_selected_dir, picker_navigate_into, picker_get_selected_path, picker_close, PICKER_COUNT, PICKER_SELECTED};
+    use super::state::{picker_select, picker_is_selected_dir, picker_navigate_into, picker_get_selected_path, picker_close, picker_is_save_mode, get_save_path, PICKER_COUNT, PICKER_SELECTED};
 
+    let is_save = picker_is_save_mode();
     let picker_x = win_x + 20;
-    let picker_y = content_y + 40;
+    let picker_y = content_y + if is_save { 80 } else { 40 };
     let picker_w = win_w - 40;
-    let row_height = 24u32;
+    let row_height = 28u32;
 
     let cancel_x = win_x + win_w - 80;
-    let cancel_y = content_y + win_h - TITLE_BAR_HEIGHT - 40;
+    let cancel_y = content_y + win_h - 48;
     if click_x >= cancel_x as i32 && click_x < (cancel_x + 60) as i32 &&
        click_y >= cancel_y as i32 && click_y < (cancel_y + 25) as i32 {
         picker_close();
         return true;
     }
 
-    let open_x = win_x + win_w - 150;
-    if click_x >= open_x as i32 && click_x < (open_x + 60) as i32 &&
+    let action_x = win_x + win_w - 150;
+    if click_x >= action_x as i32 && click_x < (action_x + 60) as i32 &&
        click_y >= cancel_y as i32 && click_y < (cancel_y + 25) as i32 {
-        if picker_is_selected_dir() {
+        if is_save {
+            if let Some(path) = get_save_path() {
+                picker_close();
+                file::save_file_as(&path);
+            }
+        } else if picker_is_selected_dir() {
             picker_navigate_into();
         } else if let Some(path) = picker_get_selected_path() {
             picker_close();
@@ -77,9 +90,11 @@ pub(super) fn handle_picker_click(win_x: u32, content_y: u32, win_w: u32, win_h:
                 if row == current {
                     if picker_is_selected_dir() {
                         picker_navigate_into();
-                    } else if let Some(path) = picker_get_selected_path() {
-                        picker_close();
-                        file::open_file(&path);
+                    } else if !is_save {
+                        if let Some(path) = picker_get_selected_path() {
+                            picker_close();
+                            file::open_file(&path);
+                        }
                     }
                 } else {
                     picker_select(row);
@@ -93,29 +108,31 @@ pub(super) fn handle_picker_click(win_x: u32, content_y: u32, win_w: u32, win_h:
 }
 
 pub(super) fn handle_toolbar_click(win_x: u32, content_y: u32, click_x: i32, click_y: i32) -> bool {
+    use super::state::picker_open_save;
+
     if click_y < content_y as i32 + 5 || click_y > content_y as i32 + 30 {
         return false;
     }
 
-    let rel_x = click_x - win_x as i32 - 10;
+    let rel_x = click_x - win_x as i32 - 8;
 
     if rel_x >= 0 && rel_x < 40 {
         file::new_file();
         return true;
     }
-    if rel_x >= 48 && rel_x < 96 {
+    if rel_x >= 46 && rel_x < 94 {
         super::state::picker_open("/ram");
         return true;
     }
-    if rel_x >= 104 && rel_x < 152 {
-        if file::has_file() {
-            file::save_file();
-        } else {
-            file::save_file_as("/ram/untitled.txt");
-        }
+    if rel_x >= 100 && rel_x < 148 {
+        file::save_file();
         return true;
     }
-    if rel_x >= 160 && rel_x < 216 {
+    if rel_x >= 154 && rel_x < 214 {
+        picker_open_save("/ram");
+        return true;
+    }
+    if rel_x >= 220 && rel_x < 272 {
         file::close_file();
         return true;
     }
@@ -126,7 +143,7 @@ pub(super) fn handle_toolbar_click(win_x: u32, content_y: u32, click_x: i32, cli
 pub(super) fn handle_text_area_click(win_x: u32, content_y: u32, win_w: u32, win_h: u32, click_x: i32, click_y: i32) -> bool {
     let text_area_x = win_x + LINE_NUM_WIDTH + 10;
     let text_area_y = content_y + TOOLBAR_HEIGHT + 10;
-    let text_area_end_y = content_y + win_h - TITLE_BAR_HEIGHT - STATUS_BAR_HEIGHT;
+    let text_area_end_y = content_y + win_h - STATUS_BAR_HEIGHT;
     let chars_per_line = ((win_w - LINE_NUM_WIDTH - 20) / 8) as usize;
 
     if click_x < text_area_x as i32 || click_y < text_area_y as i32 || click_y >= text_area_end_y as i32 {
