@@ -20,7 +20,7 @@ use alloc::vec::Vec;
 use alloc::format;
 use crate::network::http_client::HttpClient;
 
-pub fn parse_github_url(url: &str) -> Option<(String, String)> {
+pub(super) fn parse_github_url(url: &str) -> Option<(String, String)> {
     let url = url.trim_end_matches(".git");
     if url.starts_with("https://github.com/") {
         let rest = &url[19..];
@@ -39,19 +39,19 @@ pub fn parse_github_url(url: &str) -> Option<(String, String)> {
     None
 }
 
-pub fn fetch_repo_tree(owner: &str, repo: &str, branch: &str) -> Result<Vec<(String, bool)>, &'static str> {
+pub(super) fn fetch_repo_tree(owner: &str, repo: &str, branch: &str) -> Result<Vec<(String, bool)>, &'static str> {
     let url = format!("https://api.github.com/repos/{}/{}/git/trees/{}?recursive=1", owner, repo, branch);
     let client = HttpClient::new();
     let resp = client.get(&url)?;
-    if resp.status != 200 { return Err("GitHub API error"); }
+    if resp.status_code != 200 { return Err("GitHub API error"); }
     parse_tree_response(&resp.body)
 }
 
-pub fn fetch_file(owner: &str, repo: &str, branch: &str, path: &str) -> Result<Vec<u8>, &'static str> {
+pub(super) fn fetch_file(owner: &str, repo: &str, branch: &str, path: &str) -> Result<Vec<u8>, &'static str> {
     let url = format!("https://raw.githubusercontent.com/{}/{}/{}/{}", owner, repo, branch, path);
     let client = HttpClient::new();
     let resp = client.get(&url)?;
-    if resp.status != 200 { return Err("file not found"); }
+    if resp.status_code != 200 { return Err("file not found"); }
     Ok(resp.body)
 }
 
