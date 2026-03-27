@@ -17,6 +17,8 @@
 mod azerty;
 mod colemak;
 mod dvorak;
+mod italian;
+mod portuguese;
 mod qwertz;
 mod spanish;
 pub mod types;
@@ -53,6 +55,8 @@ pub fn get_layout_info_for(layout: Layout) -> &'static LayoutInfo {
         Layout::Qwertz => &qwertz::LAYOUT_INFO,
         Layout::UkQwerty => &uk_qwerty::LAYOUT_INFO,
         Layout::Spanish => &spanish::LAYOUT_INFO,
+        Layout::Italian => &italian::LAYOUT_INFO,
+        Layout::Portuguese => &portuguese::LAYOUT_INFO,
         Layout::Custom => &us_qwerty::LAYOUT_INFO,
     }
 }
