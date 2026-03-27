@@ -30,10 +30,13 @@ impl TLSConnection {
         verifier: &'static dyn CertVerifier,
     ) -> Result<TlsSessionInfo, OnionError> {
         self.start_handshake(sock, sni, alpn)?;
-        for _ in 0..100 {
+        for i in 0..500 {
             match self.poll_handshake(sock, sni, verifier)? {
                 Some(info) => return Ok(info),
-                None => { for _ in 0..1000 { core::hint::spin_loop(); } }
+                None => {
+                    if i % 10 == 0 { crate::time::yield_now(); }
+                    else { for _ in 0..100 { core::hint::spin_loop(); } }
+                }
             }
         }
         Err(OnionError::Timeout)
