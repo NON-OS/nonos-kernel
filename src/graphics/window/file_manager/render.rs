@@ -63,7 +63,7 @@ pub fn draw_file_manager(x: u32, y: u32, w: u32, h: u32) {
 
 fn draw_sidebar(x: u32, y: u32, h: u32) {
     fill_rect(x, y, SIDEBAR_WIDTH, h, COLOR_SIDEBAR_BG);
-    fill_rect(x + SIDEBAR_WIDTH - 1, y, 1, h, 0xFF38383A);
+    fill_rect(x + SIDEBAR_WIDTH - 1, y, 1, h, 0xFF2C2C30);
 
     draw_string(x + 12, y + 12, b"Locations", COLOR_TEXT_DIM);
 
@@ -95,13 +95,13 @@ fn draw_sidebar(x: u32, y: u32, h: u32) {
     draw_string(x + 12, ops_y, b"Actions", COLOR_TEXT_DIM);
 
     let ops: [(&[u8], u32); 7] = [
-        (b"New Folder", 0xFF34C759),
-        (b"New File", 0xFF007AFF),
-        (b"Copy", 0xFF5856D6),
-        (b"Cut", 0xFFFF9500),
-        (b"Paste", 0xFF34C759),
-        (b"Delete", 0xFFFF3B30),
-        (b"Rename", 0xFF8E8E93),
+        (b"New Folder", 0xFF34D399),
+        (b"New File", 0xFF3B82F6),
+        (b"Copy", 0xFF8B5CF6),
+        (b"Cut", 0xFFF59E0B),
+        (b"Paste", 0xFF34D399),
+        (b"Delete", 0xFFEF4444),
+        (b"Rename", 0xFF6B7280),
     ];
     let has_selection = FM_SELECTED_ITEM.load(Ordering::Relaxed) != 255;
     let has_clip = has_clipboard();
@@ -115,46 +115,38 @@ fn draw_sidebar(x: u32, y: u32, h: u32) {
             _ => true,
         };
 
-        let bg = if enabled { COLOR_SIDEBAR_HEADER } else { 0xFF1A1A1C };
+        let bg = if enabled { COLOR_SIDEBAR_HEADER } else { 0xFF141418 };
         draw_rounded_rect(x + 8, oy, SIDEBAR_WIDTH - 16, 22, 4, bg);
 
         if enabled {
             fill_rect(x + 14, oy + 4, 14, 14, *btn_color);
         }
 
-        let text_color = if enabled { COLOR_TEXT_LIGHT } else { 0xFF48484A };
+        let text_color = if enabled { COLOR_TEXT_LIGHT } else { 0xFF404048 };
         draw_string(x + 34, oy + 5, label, text_color);
     }
 }
 
 fn draw_content_area(x: u32, y: u32, w: u32, h: u32) {
-    for gy in 0..HEADER_HEIGHT {
-        let shade = 44 - (gy / 3) as u8;
-        let color = 0xFF000000 | ((shade as u32) << 16) | ((shade as u32) << 8) | (shade as u32);
-        fill_rect(x, y + gy, w, 1, color);
-    }
-    fill_rect(x, y + HEADER_HEIGHT - 1, w, 1, 0xFF38383A);
+    fill_rect(x, y, w, HEADER_HEIGHT, 0xFF1E1E24);
+    fill_rect(x, y + HEADER_HEIGHT - 1, w, 1, 0xFF2C2C30);
 
     let path = get_path();
-    draw_string(x + 16, y + 14, path.as_bytes(), COLOR_TEXT_WHITE);
+    draw_string(x + 16, y + 16, path.as_bytes(), COLOR_TEXT_WHITE);
 
     if path != "/" && path != "/ram" && path != "/disk" {
-        draw_rounded_rect(x + w - 90, y + 8, 76, 28, 6, 0xFF3A3A3C);
+        draw_rounded_rect(x + w - 90, y + 8, 76, 28, 6, 0xFF2A2A32);
         draw_string(x + w - 80, y + 14, b"<- Back", COLOR_TEXT_WHITE);
     }
 
     let list_header_y = y + HEADER_HEIGHT;
     fill_rect(x, list_header_y, w, LIST_HEADER_HEIGHT, COLOR_LIST_HEADER);
-    fill_rect(x, list_header_y + LIST_HEADER_HEIGHT - 1, w, 1, 0xFF38383A);
+    fill_rect(x, list_header_y + LIST_HEADER_HEIGHT - 1, w, 1, 0xFF2C2C30);
     draw_string(x + 16, list_header_y + 8, b"Name", COLOR_TEXT_DIM);
     draw_string(x + w - 100, list_header_y + 8, b"Size", COLOR_TEXT_DIM);
 
-    for gy in 0..STATUS_BAR_HEIGHT {
-        let shade = 28 - (gy / 4) as u8;
-        let color = 0xFF000000 | ((shade as u32) << 16) | ((shade as u32) << 8) | (shade as u32);
-        fill_rect(x, y + h - STATUS_BAR_HEIGHT + gy, w, 1, color);
-    }
-    fill_rect(x, y + h - STATUS_BAR_HEIGHT, w, 1, 0xFF38383A);
+    fill_rect(x, y + h - STATUS_BAR_HEIGHT, w, 1, 0xFF2C2C30);
+    fill_rect(x, y + h - STATUS_BAR_HEIGHT + 1, w, STATUS_BAR_HEIGHT - 1, 0xFF16161A);
 
     let count = FILE_ENTRY_COUNT.load(Ordering::Relaxed);
     let mut status_buf = [b' '; 16];
@@ -175,7 +167,7 @@ fn draw_content_area(x: u32, y: u32, w: u32, h: u32) {
 
     if creating {
         let ry = list_y;
-        draw_rounded_rect(x + 4, ry + 2, w - 8, ROW_HEIGHT - 4, 4, 0xFF1A3050);
+        draw_rounded_rect(x + 4, ry + 2, w - 8, ROW_HEIGHT - 4, 4, 0xFF1E3A5F);
 
         if creating_folder {
             draw_folder_icon(x + 12, ry + 6, COLOR_FOLDER);
@@ -183,13 +175,13 @@ fn draw_content_area(x: u32, y: u32, w: u32, h: u32) {
             draw_file_icon(x + 12, ry + 5, COLOR_FILE);
         }
 
-        draw_rounded_rect(x + 40, ry + 4, 200, ROW_HEIGHT - 8, 4, 0xFF1C1C1E);
+        draw_rounded_rect(x + 40, ry + 4, 200, ROW_HEIGHT - 8, 4, 0xFF1A1A1E);
 
         let input_text = get_input_text();
         draw_string(x + 48, ry + 10, input_text.as_bytes(), COLOR_TEXT_WHITE);
 
         let cursor_x = x + 48 + (input_text.len() as u32) * 8;
-        fill_rect(cursor_x, ry + 8, 2, 16, 0xFF007AFF);
+        fill_rect(cursor_x, ry + 8, 2, 16, 0xFF3B82F6);
     }
 
     let offset = if creating { 1 } else { 0 };
@@ -211,13 +203,13 @@ fn draw_content_area(x: u32, y: u32, w: u32, h: u32) {
         }
 
         if i == selected && FM_RENAMING.load(Ordering::Relaxed) {
-            draw_rounded_rect(x + 40, ry + 4, 200, ROW_HEIGHT - 8, 4, 0xFF1C1C1E);
+            draw_rounded_rect(x + 40, ry + 4, 200, ROW_HEIGHT - 8, 4, 0xFF1A1A1E);
 
             let input_text = get_input_text();
             draw_string(x + 48, ry + 10, input_text.as_bytes(), COLOR_TEXT_WHITE);
 
             let cursor_x = x + 48 + (input_text.len() as u32) * 8;
-            fill_rect(cursor_x, ry + 8, 2, 16, 0xFF007AFF);
+            fill_rect(cursor_x, ry + 8, 2, 16, 0xFF3B82F6);
         } else {
             draw_string(x + 40, ry + 10, &entry.name[..entry.name_len as usize], COLOR_TEXT_WHITE);
         }
