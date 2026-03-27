@@ -18,6 +18,7 @@ mod state;
 mod apps;
 mod capsule;
 mod payment;
+mod cards;
 mod render;
 mod input;
 
