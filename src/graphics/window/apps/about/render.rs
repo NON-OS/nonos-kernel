@@ -17,14 +17,14 @@ use crate::graphics::components::text;
 use super::logo::draw_nonos_logo;
 use super::utils::{draw_rounded_pill, draw_bullet};
 
-const COLOR_BRAND_GLOW: u32 = 0xFF66FFFF;
-const COLOR_BRAND_SECONDARY: u32 = 0xFF2C2C2E;
-const COLOR_BRAND_PRIMARY: u32 = 0xFF007AFF;
-const COLOR_PURPLE: u32 = 0xFFBF5AF2;
-const COLOR_ORANGE: u32 = 0xFFFF9500;
+const COLOR_BRAND_GLOW: u32 = 0xFF22D3EE;
+const COLOR_BRAND_SECONDARY: u32 = 0xFF2A2A32;
+const COLOR_BRAND_PRIMARY: u32 = 0xFF3B82F6;
+const COLOR_PURPLE: u32 = 0xFFA78BFA;
+const COLOR_ORANGE: u32 = 0xFFF59E0B;
 
 pub(crate) fn draw(x: u32, y: u32, w: u32, h: u32) {
-    fill_rect(x, y, w, h, 0xFF000000);
+    fill_rect(x, y, w, h, 0xFF141418);
     let cx = x + w / 2;
     let logo_y = y + 24;
     draw_nonos_logo(cx, logo_y, 64);
