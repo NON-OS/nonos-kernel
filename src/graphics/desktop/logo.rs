@@ -26,6 +26,7 @@ pub const COLOR_PRIMARY: u32 = 0xFF66FFFF;
 pub const COLOR_SECONDARY: u32 = 0xFF2E5C5C;
 const COLOR_LOGO_STROKE: u32 = 0xFF0A1420;
 
+#[allow(dead_code)]
 pub(super) fn draw(w: u32, h: u32) {
     let logo_size = 120u32;
     let cx = SIDEBAR_WIDTH + ((w - SIDEBAR_WIDTH) / 2);
@@ -188,9 +189,9 @@ fn draw_rounded_rect_border(x: u32, y: u32, w: u32, h: u32, r: u32, color: u32) 
 
     /* corners */
     for angle in 0..90u32 {
-        let rad_x = ((angle as f32 * 3.14159 / 180.0).cos() * (r - 1) as f32) as i32;
-        let rad_y = ((angle as f32 * 3.14159 / 180.0).sin() * (r - 1) as f32) as i32;
-
+        let rad = angle as f32 * 3.14159 / 180.0;
+        let rad_x = (libm::cosf(rad) * (r - 1) as f32) as i32;
+        let rad_y = (libm::sinf(rad) * (r - 1) as f32) as i32;
         put_pixel((x + r - 1) as u32 - rad_x as u32, (y + r - 1) as u32 - rad_y as u32, color);
         put_pixel((x + w - r) as u32 + rad_x as u32, (y + r - 1) as u32 - rad_y as u32, color);
         put_pixel((x + r - 1) as u32 - rad_x as u32, (y + h - r) as u32 + rad_y as u32, color);
