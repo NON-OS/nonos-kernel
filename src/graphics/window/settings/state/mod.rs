@@ -24,8 +24,8 @@ pub use page::{
 
 pub use settings::{
     SETTING_PRIVACY, SETTING_ANON_NET, SETTING_ZERO_STATE, SETTING_AUTO_WIPE, SETTING_DARK_THEME,
-    SETTING_ANYONE_ENABLED, SETTING_PRIVACY_MODE, SETTING_DHCP_ENABLED,
-    toggle_setting, is_anyone_enabled, is_privacy_enabled, is_zero_state_enabled, is_dark_theme,
+    SETTING_NYM_ENABLED, SETTING_PRIVACY_MODE, SETTING_DHCP_ENABLED,
+    toggle_setting, is_nym_enabled, is_privacy_enabled, is_zero_state_enabled, is_dark_theme,
     is_dhcp_enabled, get_privacy_mode, set_privacy_mode, set_dhcp_enabled,
 };
 
