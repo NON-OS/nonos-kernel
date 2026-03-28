@@ -26,7 +26,7 @@ use alloc::format;
 use spin::Mutex;
 
 use super::types::CipherSuite;
-use super::keys::{expand_label_len, Secret};
+use super::keys::expand_label_len;
 use super::crypto_provider::crypto;
 
 /// Maximum number of cached sessions.
