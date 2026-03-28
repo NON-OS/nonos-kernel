@@ -131,11 +131,10 @@ pub mod npkg;
 pub mod sdk;
 pub mod agents;
 pub mod lang;
+pub mod entry;
 
 pub use arch::x86_64::time as time;
 pub use fs as filesystem;
-
-pub static mut NEEDS_REDRAW: bool = false;
 
 #[no_mangle]
 pub extern "C" fn kernel_main() -> ! {
