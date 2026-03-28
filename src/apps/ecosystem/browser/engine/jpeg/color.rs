@@ -31,7 +31,7 @@ use alloc::vec::Vec;
 ///   0.714136 * 65536 = 46802
 ///   1.772    * 65536 = 116130
 #[inline]
-pub fn ycbcr_to_rgb(y: u8, cb: u8, cr: u8) -> (u8, u8, u8) {
+fn ycbcr_to_rgb(y: u8, cb: u8, cr: u8) -> (u8, u8, u8) {
     let y = y as i32;
     let cb = cb as i32 - 128;
     let cr = cr as i32 - 128;
@@ -49,7 +49,7 @@ pub fn ycbcr_to_rgb(y: u8, cb: u8, cr: u8) -> (u8, u8, u8) {
 /// native resolution. `width`/`height` are the output image dimensions.
 /// `h_max`/`v_max` are the maximum sampling factors across all components.
 /// Component sampling factors determine upsampling ratios.
-pub fn ycbcr_to_argb(
+pub(super) fn ycbcr_to_argb(
     y_plane: &[u8],
     cb_plane: &[u8],
     cr_plane: &[u8],
@@ -94,7 +94,7 @@ pub fn ycbcr_to_argb(
 }
 
 /// Convert grayscale Y data to ARGB u32 pixels.
-pub fn gray_to_argb(y_plane: &[u8], width: u32, height: u32) -> Vec<u32> {
+pub(super) fn gray_to_argb(y_plane: &[u8], width: u32, height: u32) -> Vec<u32> {
     let count = (width * height) as usize;
     let mut pixels = Vec::with_capacity(count);
     for i in 0..count {
