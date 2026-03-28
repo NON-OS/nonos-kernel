@@ -29,7 +29,7 @@ pub use api::{
     brightness, set_brightness, screen_timeout, set_screen_timeout,
     mouse_sensitivity, set_mouse_sensitivity, keyboard_layout, set_keyboard_layout,
     sound_enabled, set_sound_enabled,
-    anonymous_mode, set_anonymous_mode, anyone_enabled, set_anyone_enabled,
+    anonymous_mode, set_anonymous_mode, nym_enabled, set_nym_enabled,
     auto_wipe, set_auto_wipe,
     theme, set_theme, timezone, set_timezone,
 };
