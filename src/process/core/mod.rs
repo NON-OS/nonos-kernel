@@ -23,6 +23,7 @@ pub mod table;
 pub mod isolation;
 pub mod suspend;
 pub mod api;
+mod init;
 
 pub use types::*;
 pub use pcb::ProcessControlBlock;
