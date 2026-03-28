@@ -17,6 +17,7 @@
 use crate::shell::output::print_line;
 use crate::graphics::framebuffer::COLOR_GREEN;
 use crate::graphics::window::{self, WindowType};
+use crate::entry::desktop_loop::set_needs_redraw;
 
 fn open_app(wtype: WindowType, name: &[u8]) {
     window::open(wtype);
@@ -25,7 +26,7 @@ fn open_app(wtype: WindowType, name: &[u8]) {
     let len = name.len().min(32);
     buf[8..8+len].copy_from_slice(&name[..len]);
     print_line(&buf[..8+len], COLOR_GREEN);
-    unsafe { crate::NEEDS_REDRAW = true; }
+    set_needs_redraw();
 }
 
 pub fn cmd_open_browser() { open_app(WindowType::Browser, b"Browser"); }
