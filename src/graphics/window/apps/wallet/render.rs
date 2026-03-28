@@ -23,7 +23,6 @@ use super::render_transactions::draw_transactions_view;
 use super::render_stealth::{draw_stealth_view, draw_settings_view};
 
 pub(super) const COLOR_BG: u32 = 0xFF0A0A0F;
-pub(super) const COLOR_SIDEBAR_HOVER: u32 = 0xFF1A1A24;
 pub(super) const COLOR_CARD: u32 = 0xFF18181F;
 pub(super) const COLOR_CARD_ELEVATED: u32 = 0xFF1E1E28;
 pub(super) const COLOR_BORDER: u32 = 0xFF2A2A35;
