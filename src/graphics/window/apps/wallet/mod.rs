@@ -33,6 +33,7 @@ mod render_sidebar;
 mod render_status;
 mod render_stealth;
 mod render_transactions;
+mod render_utils;
 mod render_views;
 mod render_zksync;
 mod rlp;
