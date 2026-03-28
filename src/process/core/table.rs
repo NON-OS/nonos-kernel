@@ -60,9 +60,14 @@ static NEXT_PID: AtomicU32 = AtomicU32::new(1);
 pub fn allocate_tid() -> Pid { NEXT_PID.fetch_add(1, Ordering::Relaxed) }
 
 pub fn create_process(name: &str, state: ProcessState, prio: Priority) -> Result<Pid, &'static str> {
+    create_process_with_mem(name, state, prio, 0)
+}
+
+pub fn create_process_with_mem(name: &str, state: ProcessState, prio: Priority, mem_kb: u64) -> Result<Pid, &'static str> {
     if name.is_empty() { return Err("empty name"); }
     let pid = NEXT_PID.fetch_add(1, Ordering::Relaxed);
     let parent_pid = CURRENT_PID.load(Ordering::Relaxed);
+    let pages = mem_kb / 4;
     let pcb = Arc::new(ProcessControlBlock {
         pid, tgid: AtomicU32::new(pid), ppid: AtomicU32::new(parent_pid),
         pgid: AtomicU32::new(pid), sid: AtomicU32::new(pid),
@@ -70,7 +75,7 @@ pub fn create_process(name: &str, state: ProcessState, prio: Priority) -> Result
         state: spin::Mutex::new(state), priority: spin::Mutex::new(prio),
         memory: spin::Mutex::new(MemoryState {
             code_start: VirtAddr::new(0), code_end: VirtAddr::new(0),
-            vmas: Vec::new(), resident_pages: AtomicU64::new(0), next_va: 0x0000_4000_0000,
+            vmas: Vec::new(), resident_pages: AtomicU64::new(pages), next_va: 0x0000_4000_0000,
         }),
         thread_group: None, argv: spin::Mutex::new(Vec::new()), envp: spin::Mutex::new(Vec::new()),
         caps_bits: AtomicU64::new(u64::MAX), exit_code: core::sync::atomic::AtomicI32::new(0),
