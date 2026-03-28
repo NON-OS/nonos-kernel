@@ -25,6 +25,7 @@ pub mod themes;
 pub mod qrcode;
 pub mod design_system;
 pub mod components;
+pub mod animation;
 
 pub use framebuffer::init as framebuffer_init;
 pub use framebuffer::{
