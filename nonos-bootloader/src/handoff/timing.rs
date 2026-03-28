@@ -29,23 +29,16 @@ pub fn get_uefi_time_epoch(st: &SystemTable<Boot>) -> u64 {
         let hour = time.hour() as u64;
         let minute = time.minute() as u64;
         let second = time.second() as u64;
-
-        let days_since_epoch = (year - 1970) * 365 + (year - 1969) / 4 - (year - 1901) / 100
-            + (year - 1601) / 400
-            + (367 * month - 362) / 12
-            + day
-            - 1;
-
-        let leap_adjust = if month <= 2 {
-            0
-        } else if (year % 4 == 0 && year % 100 != 0) || (year % 400 == 0) {
-            2
-        } else {
-            1
-        };
-
-        let total_days = days_since_epoch - leap_adjust;
-        (total_days * 86400 + hour * 3600 + minute * 60 + second) * 1000
+        let is_leap = (year % 4 == 0 && year % 100 != 0) || (year % 400 == 0);
+        const DAYS_BEFORE: [u64; 12] = [0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334];
+        let mut days = 0u64;
+        for y in 1970..year {
+            days += if (y % 4 == 0 && y % 100 != 0) || (y % 400 == 0) { 366 } else { 365 };
+        }
+        days += DAYS_BEFORE[(month - 1) as usize];
+        if is_leap && month > 2 { days += 1; }
+        days += day - 1;
+        (days * 86400 + hour * 3600 + minute * 60 + second) * 1000
     } else {
         0
     }
