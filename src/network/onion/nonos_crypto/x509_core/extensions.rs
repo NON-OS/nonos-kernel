@@ -144,7 +144,6 @@ fn parse_basic_constraints(data: &[u8], bc: &mut BasicConstraints) -> Result<(),
         let len = p.read_length()?;
         if len == 1 && p.offset < p.data.len() {
             bc.path_len_constraint = Some(p.data[p.offset]);
-            p.offset += 1;
         } else {
             p.skip(len)?;
         }
