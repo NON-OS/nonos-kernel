@@ -65,7 +65,7 @@ pub use settings::init as settings_init;
 pub use settings::{
     Settings, get, get_mut, mark_modified, needs_save, brightness, set_brightness,
     mouse_sensitivity, set_mouse_sensitivity, anonymous_mode, set_anonymous_mode,
-    anyone_enabled, set_anyone_enabled, theme, set_theme, auto_wipe, set_auto_wipe,
+    nym_enabled, set_nym_enabled, theme, set_theme, auto_wipe, set_auto_wipe,
     SETTINGS_FILENAME, serialize, deserialize, save_to_disk, load_from_disk,
     reset_to_defaults, init_hostname, get_hostname, set_hostname, get_domainname,
     set_domainname,
