@@ -53,6 +53,7 @@ pub use repository::{
     add_repository, remove_repository, list_repositories,
     sync_repository, sync_all_repositories,
     get_repository_manager, init_repository_manager,
+    find_package, find_package_version, search_packages, get_package_url,
 };
 
 pub use resolver::{
