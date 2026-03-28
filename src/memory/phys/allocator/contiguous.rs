@@ -1,0 +1,47 @@
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+use super::super::bitmap;
+use super::super::constants::PAGE_SIZE_U64;
+use super::super::error::{PhysAllocError, PhysAllocResult};
+use super::super::types::{AllocFlags, AllocatorState, Frame};
+use super::zeroing::zero_frame;
+
+pub fn allocate_contiguous(state: &mut AllocatorState, frame_count: usize, flags: AllocFlags) -> Option<u64> {
+    if frame_count == 0 || !state.is_initialized() { return None; }
+    let total = state.frame_count;
+    if frame_count > total { return None; }
+    let (bptr, start) = (state.bitmap_ptr, state.frame_start);
+    let run_start = unsafe { bitmap::find_contiguous_free(bptr, total, frame_count)? };
+    unsafe { bitmap::set_bit_range(bptr, run_start, frame_count) };
+    let phys_addr = start.wrapping_add((run_start as u64).wrapping_mul(PAGE_SIZE_U64));
+    if flags.contains(AllocFlags::ZERO) {
+        for j in 0..frame_count { zero_frame(Frame::new(phys_addr + (j as u64 * PAGE_SIZE_U64))); }
+    }
+    Some(phys_addr)
+}
+
+pub fn free_contiguous(state: &mut AllocatorState, phys_addr: u64, frame_count: usize) -> PhysAllocResult<()> {
+    if frame_count == 0 { return Ok(()); }
+    if !state.is_initialized() { return Err(PhysAllocError::NotInitialized); }
+    let (start, total) = (state.frame_start, state.frame_count);
+    if phys_addr < start { return Err(PhysAllocError::AddressBelowRange); }
+    let offset = phys_addr.saturating_sub(start);
+    if offset % PAGE_SIZE_U64 != 0 { return Err(PhysAllocError::AddressNotAligned); }
+    let start_idx = (offset / PAGE_SIZE_U64) as usize;
+    if start_idx + frame_count > total { return Err(PhysAllocError::RangeBeyondManaged); }
+    let bptr = state.bitmap_ptr;
+    if !unsafe { bitmap::is_range_allocated(bptr, start_idx, frame_count) } { return Err(PhysAllocError::DoubleFree); }
+    unsafe { bitmap::clear_bit_range(bptr, start_idx, frame_count) };
+    Ok(())
+}
