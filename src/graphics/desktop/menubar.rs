@@ -1,20 +1,17 @@
 // NONOS Operating System
 // Copyright (C) 2026 NONOS Contributors
-//
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
-//
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU Affero General Public License for more details.
-//
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::graphics::framebuffer::{fill_rect, dimensions, COLOR_TEXT_WHITE};
+use crate::graphics::framebuffer::{fill_rect, dimensions, rounded_rect_blend};
 use crate::graphics::font::draw_text;
 use crate::graphics::window::{self, WindowType};
 use crate::sys::{serial, clock};
@@ -22,84 +19,70 @@ use super::constants::MENU_BAR_HEIGHT;
 use super::menubar_icons::*;
 
 const COLOR_ACCENT: u32 = 0xFF00D4FF;
-const COLOR_TEXT_SECONDARY: u32 = 0xFFAAAAAA;
-const MENUBAR_BG: u32 = 0xF0181820;
+const COLOR_TEXT: u32 = 0xFFE5E5E5;
+const COLOR_TEXT_DIM: u32 = 0xFF9CA3AF;
+const MENUBAR_BG: u32 = 0xE8101018;
+const PILL_BG: u32 = 0x30FFFFFF;
 
 pub(super) fn draw(w: u32) {
-    // Solid dark background with slight transparency
     fill_rect(0, 0, w, MENU_BAR_HEIGHT, MENUBAR_BG);
+    fill_rect(0, MENU_BAR_HEIGHT - 1, w, 1, 0x20FFFFFF);
+    draw_left_section();
+    draw_center_brand(w);
+    draw_right_section(w);
+}
 
-    // Subtle top highlight for depth
-    fill_rect(0, 0, w, 1, 0x0CFFFFFF);
+fn draw_left_section() {
+    rounded_rect_blend(12, 6, 80, 22, 6, PILL_BG);
+    draw_gear_icon(18, 10);
+    draw_text(36, 10, b"Settings", COLOR_TEXT);
+}
 
-    // Bottom border - clean single pixel
-    fill_rect(0, MENU_BAR_HEIGHT - 1, w, 1, 0x30000000);
+fn draw_center_brand(w: u32) {
+    let brand = b"N\xd8NOS";
+    let brand_x = w / 2 - 20;
+    draw_text(brand_x, 10, brand, COLOR_ACCENT);
+}
 
-    // Left section: Settings button
-    let mut x = 16u32;
-
-    draw_gear_icon(x, 10);
-    x += 18;
-
-    draw_text(x, 11, b"Settings", COLOR_TEXT_WHITE);
-
-    // Center section: Time | Brand | Date
-    let center_x = w / 2;
-
+fn draw_right_section(w: u32) {
+    let mut x = w - 16;
+    rounded_rect_blend(x - 28, 6, 32, 22, 11, COLOR_ACCENT);
+    draw_text(x - 22, 10, b"U", 0xFF101018);
+    x -= 44;
+    draw_battery(x - 20, 10);
+    x -= 32;
+    draw_network_icon(x - 14, 9);
+    x -= 26;
+    draw_bell_icon(x - 12, 9);
+    x -= 24;
     let mut time_buf = [0u8; 8];
     clock::format_time_full(&mut time_buf);
-    draw_text(center_x - 100, 11, &time_buf[..8], COLOR_TEXT_WHITE);
-
-    // Brand centered
-    let brand = b"N\xd8NOS";
-    let brand_width = brand.len() as u32 * 8;
-    let brand_x = center_x - (brand_width / 2);
-    draw_text(brand_x, 11, brand, COLOR_ACCENT);
-
-    let mut date_buf = [0u8; 20];
-    let date_len = clock::format_date_short(&mut date_buf);
-    draw_text(center_x + 40, 11, &date_buf[..date_len], COLOR_TEXT_SECONDARY);
-
-    // Right section: Status icons
-    let mut rx = w - 20;
-
-    draw_avatar(rx - 10, 7);
-    rx -= 36;
-
-    draw_battery(rx - 24, 10);
-    rx -= 40;
-
-    draw_network_icon(rx - 16, 9);
-    rx -= 28;
-
-    draw_bell_icon(rx - 14, 9);
-    rx -= 26;
-
-    draw_search_icon(rx - 14, 9);
+    draw_text(x - 72, 10, &time_buf, COLOR_TEXT);
+    x -= 84;
+    let mut date_buf = [0u8; 12];
+    let date_len = clock::format_date_only(&mut date_buf);
+    draw_text(x - (date_len as u32 * 8), 10, &date_buf[..date_len], COLOR_TEXT_DIM);
 }
 
 pub(super) fn handle_click(mx: i32, my: i32) -> bool {
-    if my < 0 || my >= MENU_BAR_HEIGHT as i32 {
-        return false;
-    }
-
-    if mx >= 8 && mx < 120 {
+    if my < 0 || my >= MENU_BAR_HEIGHT as i32 { return false; }
+    if mx >= 12 && mx < 92 {
         window::open(WindowType::Settings);
         serial::println(b"[UI] Settings clicked");
         return true;
     }
-
     true
 }
 
 pub(super) fn update_clock() {
+    super::status::battery::update_battery_status();
+    super::status::network::update_network_status();
     let (w, _) = dimensions();
-    let center_x = w / 2;
-
+    let x = w - 16 - 44 - 32 - 26 - 24;
+    fill_rect(x - 72, 8, 66, 18, MENUBAR_BG);
     let mut time_buf = [0u8; 8];
     clock::format_time_full(&mut time_buf);
-    let time_x = center_x - 100;
-
-    fill_rect(time_x, 9, 70, 16, MENUBAR_BG);
-    draw_text(time_x, 11, &time_buf[..8], COLOR_TEXT_WHITE);
+    draw_text(x - 72, 10, &time_buf, COLOR_TEXT);
+    draw_battery(x - 44 - 32 - 20, 10);
+    draw_network_icon(x - 44 - 32 - 26 - 14, 9);
 }
