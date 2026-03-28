@@ -19,7 +19,7 @@ extern crate alloc;
 use alloc::string::String;
 use alloc::vec::Vec;
 use alloc::format;
-use crate::apps::ecosystem::browser::engine::{Form, FormInput};
+use crate::apps::ecosystem::browser::engine::Form;
 use super::encode::{build_form_urlencoded, resolve_url};
 
 /// Collect name=value pairs from a Form, filtering out submit/button inputs.
