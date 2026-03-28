@@ -28,6 +28,8 @@ mod grid;
 mod grid_wallpaper;
 mod desktop_icons;
 mod api;
+pub mod status;
+pub mod logo;
 
 pub use api::{
     draw_all,
