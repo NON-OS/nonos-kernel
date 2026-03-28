@@ -20,7 +20,7 @@ use crate::graphics::window::settings::state::*;
 
 pub fn sync_from_system() {
     let settings = sys_settings::get();
-    SETTING_ANYONE_ENABLED.store(settings.anyone_enabled, Ordering::Relaxed);
+    SETTING_NYM_ENABLED.store(settings.nym_enabled, Ordering::Relaxed);
     SETTING_PRIVACY.store(settings.anonymous_mode, Ordering::Relaxed);
     SETTING_ZERO_STATE.store(settings.auto_wipe, Ordering::Relaxed);
     SETTING_DARK_THEME.store(settings.theme == 0, Ordering::Relaxed);
