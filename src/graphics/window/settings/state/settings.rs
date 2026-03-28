@@ -21,7 +21,7 @@ pub static SETTING_ANON_NET: AtomicBool = AtomicBool::new(true);
 pub static SETTING_ZERO_STATE: AtomicBool = AtomicBool::new(true);
 pub static SETTING_AUTO_WIPE: AtomicBool = AtomicBool::new(false);
 pub static SETTING_DARK_THEME: AtomicBool = AtomicBool::new(true);
-pub static SETTING_ANYONE_ENABLED: AtomicBool = AtomicBool::new(true);
+pub static SETTING_NYM_ENABLED: AtomicBool = AtomicBool::new(true);
 pub static SETTING_PRIVACY_MODE: AtomicU8 = AtomicU8::new(1);
 pub static SETTING_DHCP_ENABLED: AtomicBool = AtomicBool::new(true);
 
@@ -31,7 +31,7 @@ pub fn toggle_setting(setting: &AtomicBool) -> bool {
     !current
 }
 
-pub fn is_anyone_enabled() -> bool { SETTING_ANYONE_ENABLED.load(Ordering::Relaxed) }
+pub fn is_nym_enabled() -> bool { SETTING_NYM_ENABLED.load(Ordering::Relaxed) }
 pub fn is_privacy_enabled() -> bool { SETTING_PRIVACY.load(Ordering::Relaxed) }
 pub fn is_zero_state_enabled() -> bool { SETTING_ZERO_STATE.load(Ordering::Relaxed) }
 pub fn is_dark_theme() -> bool { SETTING_DARK_THEME.load(Ordering::Relaxed) }
