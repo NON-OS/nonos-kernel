@@ -22,6 +22,6 @@ mod system;
 pub use display::{brightness, set_brightness, screen_timeout, set_screen_timeout};
 pub use input::{mouse_sensitivity, set_mouse_sensitivity, keyboard_layout, set_keyboard_layout};
 pub use input::{sound_enabled, set_sound_enabled};
-pub use privacy::{anonymous_mode, set_anonymous_mode, anyone_enabled, set_anyone_enabled};
+pub use privacy::{anonymous_mode, set_anonymous_mode, nym_enabled, set_nym_enabled};
 pub use privacy::{auto_wipe, set_auto_wipe};
 pub use system::{theme, set_theme, timezone, set_timezone};
