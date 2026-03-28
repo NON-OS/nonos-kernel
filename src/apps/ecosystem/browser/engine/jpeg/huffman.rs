@@ -26,20 +26,20 @@ const MAX_CODE_LEN: usize = 16;
 /// Uses a flat array: for each (code_length, code_value) pair, store the symbol.
 /// We use the standard JPEG Huffman table generation algorithm.
 #[derive(Debug, Clone)]
-pub struct HuffmanTable {
+pub(super) struct HuffmanTable {
     /// min_code[i] = minimum code value at code length (i+1)
-    pub min_code: [i32; MAX_CODE_LEN],
+    min_code: [i32; MAX_CODE_LEN],
     /// max_code[i] = maximum code value at code length (i+1), or -1 if no codes
-    pub max_code: [i32; MAX_CODE_LEN],
+    max_code: [i32; MAX_CODE_LEN],
     /// val_ptr[i] = index into `symbols` where codes of length (i+1) start
-    pub val_ptr: [usize; MAX_CODE_LEN],
+    val_ptr: [usize; MAX_CODE_LEN],
     /// Symbol values in order of increasing code length then code value
-    pub symbols: Vec<u8>,
+    symbols: Vec<u8>,
 }
 
 impl HuffmanTable {
     /// Build a Huffman table from DHT marker data.
-    pub fn from_dht(dht: &HuffmanTableData) -> Option<Self> {
+    pub(super) fn from_dht(dht: &HuffmanTableData) -> Option<Self> {
         let mut symbols = Vec::with_capacity(dht.symbols.len());
         symbols.extend_from_slice(&dht.symbols);
 
@@ -69,7 +69,7 @@ impl HuffmanTable {
 
 /// Bit-stream reader for entropy-coded JPEG data.
 /// Handles byte-stuffing (0xFF 0x00 → 0xFF) and restart markers.
-pub struct BitReader<'a> {
+pub(super) struct BitReader<'a> {
     data: &'a [u8],
     pos: usize,
     bit_buffer: u32,
@@ -77,7 +77,7 @@ pub struct BitReader<'a> {
 }
 
 impl<'a> BitReader<'a> {
-    pub fn new(data: &'a [u8], start: usize) -> Self {
+    pub(super) fn new(data: &'a [u8], start: usize) -> Self {
         BitReader {
             data,
             pos: start,
@@ -134,7 +134,7 @@ impl<'a> BitReader<'a> {
     }
 
     /// Read exactly `n` bits (1-16) from the stream as an unsigned value.
-    pub fn read_bits(&mut self, n: u8) -> Option<u16> {
+    fn read_bits(&mut self, n: u8) -> Option<u16> {
         if n == 0 { return Some(0); }
         if n > 16 { return None; }
         self.fill_bits(n)?;
@@ -144,7 +144,7 @@ impl<'a> BitReader<'a> {
     }
 
     /// Decode one Huffman-coded symbol using the given table.
-    pub fn decode_huffman(&mut self, table: &HuffmanTable) -> Option<u8> {
+    fn decode_huffman(&mut self, table: &HuffmanTable) -> Option<u8> {
         let mut code: i32 = 0;
         for i in 0..MAX_CODE_LEN {
             let bit = self.read_bits(1)? as i32;
@@ -159,7 +159,7 @@ impl<'a> BitReader<'a> {
 
     /// Decode a DC coefficient value.
     /// `category` is the Huffman-decoded symbol (number of additional bits).
-    pub fn decode_dc_value(&mut self, category: u8) -> Option<i32> {
+    fn decode_dc_value(&mut self, category: u8) -> Option<i32> {
         if category == 0 { return Some(0); }
         if category > 15 { return None; }
         let bits = self.read_bits(category)? as i32;
@@ -175,7 +175,7 @@ impl<'a> BitReader<'a> {
     /// Decode one 8×8 block's worth of DCT coefficients.
     /// Returns 64 coefficients in zigzag order.
     /// `prev_dc` is updated with the new DC value (differential coding).
-    pub fn decode_block(
+    pub(super) fn decode_block(
         &mut self,
         dc_table: &HuffmanTable,
         ac_table: &HuffmanTable,
@@ -217,12 +217,6 @@ impl<'a> BitReader<'a> {
         }
 
         Some(coeffs)
-    }
-
-    /// Reset bit alignment (called at restart marker boundaries).
-    pub fn reset_bits(&mut self) {
-        self.bit_buffer = 0;
-        self.bits_left = 0;
     }
 }
 
