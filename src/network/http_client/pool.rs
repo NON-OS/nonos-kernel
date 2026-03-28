@@ -58,7 +58,7 @@ pub(super) struct ConnectionPool {
 }
 
 impl ConnectionPool {
-    pub const fn new() -> Self {
+    pub(super) const fn new() -> Self {
         Self {
             entries: Mutex::new(BTreeMap::new()),
         }
@@ -67,7 +67,7 @@ impl ConnectionPool {
     /// Attempt to acquire an idle connection for the given host and port.
     /// Returns `None` if no healthy idle connection is available.
     /// The returned connection is removed from the pool (single-use checkout).
-    pub fn acquire(&self, host: &str, port: u16, is_tls: bool) -> Option<PooledConnection> {
+    pub(super) fn acquire(&self, host: &str, port: u16, is_tls: bool) -> Option<PooledConnection> {
         let key = pool_key(host, port, is_tls);
         let now_ms = crate::time::timestamp_millis();
         let mut map = self.entries.lock();
@@ -121,7 +121,7 @@ impl ConnectionPool {
     /// - `keep_alive` is false (server sent `Connection: close`)
     /// - `request_count` exceeds `MAX_REQUESTS_PER_CONN`
     /// - The pool is at capacity
-    pub fn release(&self, host: &str, port: u16, mut conn: PooledConnection, keep_alive: bool) {
+    pub(super) fn release(&self, host: &str, port: u16, mut conn: PooledConnection, keep_alive: bool) {
         if !keep_alive || conn.request_count >= MAX_REQUESTS_PER_CONN {
             self.close_connection(conn);
             return;
@@ -164,7 +164,8 @@ impl ConnectionPool {
 
     /// Remove all idle connections older than `IDLE_TIMEOUT_MS`.
     /// Called opportunistically from `acquire()` and can be called from a timer.
-    pub fn evict_stale(&self) {
+    #[cfg(test)]
+    fn evict_stale(&self) {
         let now_ms = crate::time::timestamp_millis();
         let mut map = self.entries.lock();
         let mut empty_keys = Vec::new();
@@ -182,7 +183,8 @@ impl ConnectionPool {
     }
 
     /// Close all pooled connections and clear the pool.
-    pub fn clear(&self) {
+    #[cfg(test)]
+    fn clear(&self) {
         let mut map = self.entries.lock();
         if let Some(stack) = crate::network::stack::get_network_stack() {
             for conns in map.values() {
@@ -195,7 +197,8 @@ impl ConnectionPool {
     }
 
     /// Number of idle connections currently in the pool.
-    pub fn len(&self) -> usize {
+    #[cfg(test)]
+    fn len(&self) -> usize {
         let map = self.entries.lock();
         map.values().map(|v| v.len()).sum()
     }
