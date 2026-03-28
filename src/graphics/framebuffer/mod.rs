@@ -18,12 +18,14 @@ mod state;
 pub mod colors;
 mod primitives;
 pub mod double_buffer;
+pub mod blend;
 
 pub use state::init;
 pub(crate) use state::dimensions;
 pub use colors::*;
 pub use primitives::{get_pixel, put_pixel, fill_rect, clear, hline, vline, draw_rect, fill_rounded_rect};
 pub use double_buffer::{init_double_buffer, swap_buffers};
+pub use blend::{blend_colors, put_pixel_blend, fill_rect_blend, rounded_rect_blend};
 
 pub fn is_double_buffer_enabled() -> bool {
     double_buffer::is_enabled()
