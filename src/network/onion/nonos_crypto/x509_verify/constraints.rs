@@ -16,7 +16,7 @@
 
 use crate::network::onion::OnionError;
 use crate::sys::serial;
-use super::super::types::{X509Certificate, ExtKeyUsage, KU_KEY_CERT_SIGN, KU_KEY_ENCIPHERMENT, KU_DIGITAL_SIGNATURE, KU_CRL_SIGN};
+use super::super::types::{X509Certificate, ExtKeyUsage, KU_KEY_CERT_SIGN, KU_KEY_ENCIPHERMENT, KU_DIGITAL_SIGNATURE};
 
 pub(crate) fn check_basic_constraints_end_entity(cert: &X509Certificate) -> Result<(), OnionError> {
     if cert.extensions.basic_constraints.ca {
