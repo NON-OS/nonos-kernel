@@ -14,7 +14,7 @@ pub fn serialize(settings: &Settings, buf: &mut [u8]) -> usize {
     write_u8(buf, &mut pos, b"mouse_sens", settings.mouse_sensitivity);
     write_bool(buf, &mut pos, b"sound", settings.sound_enabled);
     write_bool(buf, &mut pos, b"anon_mode", settings.anonymous_mode);
-    write_bool(buf, &mut pos, b"tor", settings.anyone_enabled);
+    write_bool(buf, &mut pos, b"tor", settings.nym_enabled);
     write_u8(buf, &mut pos, b"theme", settings.theme);
     write_u8(buf, &mut pos, b"kb_layout", settings.keyboard_layout);
     write_bool(buf, &mut pos, b"auto_wipe", settings.auto_wipe);
@@ -101,7 +101,7 @@ fn parse_line(line: &[u8], settings: &mut Settings) {
     } else if key == b"anon_mode" {
         settings.anonymous_mode = parse_bool(val);
     } else if key == b"tor" {
-        settings.anyone_enabled = parse_bool(val);
+        settings.nym_enabled = parse_bool(val);
     } else if key == b"theme" {
         if let Some(v) = parse_u8(val) {
             settings.theme = v;
