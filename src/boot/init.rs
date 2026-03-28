@@ -22,7 +22,9 @@ pub fn init_vga_output() {
 }
 
 #[inline]
-pub fn init_early() {}
+pub fn init_early() {
+    crate::process::init_process_management();
+}
 
 #[inline]
 pub fn init_panic_handler() {}
