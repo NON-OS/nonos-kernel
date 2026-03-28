@@ -35,8 +35,8 @@ pub(crate) fn handle_click(cx: u32, cy: u32, cw: u32, mx: i32, my: i32) -> bool 
     let anyone_y = cy + 80;
     if mx >= toggle_x as i32 && mx < (toggle_x + 50) as i32 {
         if my >= anyone_y as i32 && my < (anyone_y + 26) as i32 {
-            let new_val = toggle_setting(&SETTING_ANYONE_ENABLED);
-            sys_settings::set_anyone_enabled(new_val);
+            let new_val = toggle_setting(&SETTING_NYM_ENABLED);
+            sys_settings::set_nym_enabled(new_val);
             return true;
         }
     }
