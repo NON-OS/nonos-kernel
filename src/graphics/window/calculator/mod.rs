@@ -15,6 +15,15 @@ mod state;
 mod render;
 mod numbers;
 mod buttons;
+pub mod scientific;
+pub mod memory;
+pub mod history;
+pub mod operations;
+mod render_scientific;
+mod render_history;
 
 pub(crate) use state::*;
 pub(crate) use render::draw_calculator;
+pub use scientific::{is_scientific_mode, toggle_scientific_mode};
+pub use memory::{memory_clear, memory_recall, memory_store, memory_add, memory_subtract};
+pub use history::{is_visible as is_history_visible, toggle_visible as toggle_history};
