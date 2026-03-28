@@ -16,7 +16,7 @@
 
 /// Standard JPEG zigzag scan order for an 8×8 block.
 /// Maps zigzag position → row-major position.
-pub const ZIGZAG_ORDER: [usize; 64] = [
+const ZIGZAG_ORDER: [usize; 64] = [
      0,  1,  8, 16,  9,  2,  3, 10,
     17, 24, 32, 25, 18, 11,  4,  5,
     12, 19, 26, 33, 40, 48, 41, 34,
@@ -29,7 +29,7 @@ pub const ZIGZAG_ORDER: [usize; 64] = [
 
 /// Dequantize and reorder zigzag coefficients into an 8×8 row-major block.
 /// `coeffs` are in zigzag order, `quant_table` has 64 values also in zigzag order.
-pub fn dequantize_and_dezigzag(coeffs: &[i32; 64], quant_table: &[u16; 64]) -> [i32; 64] {
+pub(super) fn dequantize_and_dezigzag(coeffs: &[i32; 64], quant_table: &[u16; 64]) -> [i32; 64] {
     let mut block = [0i32; 64];
     for i in 0..64 {
         block[ZIGZAG_ORDER[i]] = coeffs[i] * (quant_table[i] as i32);
@@ -42,7 +42,7 @@ pub fn dequantize_and_dezigzag(coeffs: &[i32; 64], quant_table: &[u16; 64]) -> [
 ///
 /// Input: dequantized 8×8 block in row-major order.
 /// Output: pixel values in [0, 255] (level-shifted by +128).
-pub fn idct_8x8(block: &mut [i32; 64]) {
+pub(super) fn idct_8x8(block: &mut [i32; 64]) {
     // Fixed-point scale factors (scaled by 2^12 = 4096)
     // These are the cosine values for the AAN algorithm:
     // c[k] = cos(k * pi / 16) * sqrt(2), except c[0] = 1
