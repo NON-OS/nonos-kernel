@@ -24,7 +24,8 @@ use super::pcb::ProcessControlBlock;
 use super::table::{PROCESS_TABLE, CURRENT_PID, ProcessTable};
 
 pub fn init_process_management() {
-    crate::log::info!("[PROCESS] Process management initialized (table ready, PID allocator active)");
+    super::init::init_system_processes();
+    crate::log::info!("[PROCESS] Process management initialized");
 }
 
 #[inline]
