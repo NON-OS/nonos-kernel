@@ -33,7 +33,7 @@ pub fn draw_panel_with_radius(x: u32, y: u32, w: u32, h: u32, variant: PanelVari
     primitives::rounded_rect(x, y, w, h, radius, bg);
 }
 
-pub fn draw_card(x: u32, y: u32, w: u32, h: u32) {
+pub fn draw_simple_card(x: u32, y: u32, w: u32, h: u32) {
     draw_panel(x, y, w, h, PanelVariant::Elevated)
 }
 
