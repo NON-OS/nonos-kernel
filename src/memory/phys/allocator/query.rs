@@ -1,0 +1,32 @@
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+use super::super::bitmap;
+use super::super::constants::{PAGE_SIZE, PAGE_SIZE_U64};
+use super::super::types::{AllocatorState, ZoneStats};
+
+pub fn get_zone_stats(state: &AllocatorState) -> ZoneStats {
+    if !state.is_initialized() { return ZoneStats::new(0, 0); }
+    let free = unsafe { bitmap::count_free_bits(state.bitmap_ptr, state.frame_count) };
+    ZoneStats::new(state.frame_count, free)
+}
+
+pub fn managed_range(state: &AllocatorState) -> (u64, u64) {
+    let start = state.frame_start;
+    let end = start + ((state.frame_count as u64) * PAGE_SIZE_U64);
+    (start, end)
+}
+
+pub fn total_memory(state: &AllocatorState) -> u64 {
+    (state.frame_count * PAGE_SIZE) as u64
+}
