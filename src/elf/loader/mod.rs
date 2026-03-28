@@ -18,6 +18,6 @@ mod core;
 mod global;
 mod image;
 
-pub use self::core::ElfLoader;
+pub use self::core::{ElfLoader, ParsedSection};
 pub use self::global::{get_elf_loader, init_elf_loader, is_initialized, load_elf_executable};
 pub use self::image::{DynamicInfo, ElfImage, LoadedSegment};
