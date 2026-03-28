@@ -1,70 +1,57 @@
 // NONOS Operating System
 // Copyright (C) 2026 NONOS Contributors
-//
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
-//
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU Affero General Public License for more details.
-//
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::graphics::framebuffer::{
-    fill_rect, COLOR_TEXT_WHITE, COLOR_RED, COLOR_GREEN, COLOR_YELLOW, COLOR_ACCENT,
-};
+use crate::graphics::framebuffer::fill_rounded_rect;
 use crate::graphics::window::settings::render::draw_string;
-use super::state::{BUTTON_WIDTH, BUTTON_HEIGHT};
+
+const BG_CARD: u32 = 0xFF161B22;
+const BG_DANGER: u32 = 0xFFDC2626;
+const BG_PRIMARY: u32 = 0xFF1F6FEB;
+const BG_STATE: u32 = 0xFF21262D;
+const TEXT: u32 = 0xFFE6EDF3;
+const TEXT_DIM: u32 = 0xFF7D8590;
+const SUCCESS: u32 = 0xFF10B981;
+const WARNING: u32 = 0xFFF59E0B;
+const ERROR: u32 = 0xFFEF4444;
 
 pub(crate) fn draw(x: u32, y: u32, w: u32) {
-    draw_buttons(x, y);
-    draw_acpi_states(x, y, w);
-    draw_security_info(x, y, w);
+    fill_rounded_rect(x + 16, y, w - 32, 80, 8, BG_CARD);
+    draw_string(x + 28, y + 12, b"Power Actions", TEXT);
+    draw_string(x + 28, y + 28, b"All data will be lost on power action", WARNING);
+    fill_rounded_rect(x + 28, y + 48, 120, 24, 4, BG_DANGER);
+    draw_string(x + 48, y + 53, b"Shutdown", TEXT);
+    fill_rounded_rect(x + 156, y + 48, 100, 24, 4, BG_PRIMARY);
+    draw_string(x + 180, y + 53, b"Reboot", TEXT);
+    fill_rounded_rect(x + 16, y + 90, w - 32, 130, 8, BG_CARD);
+    draw_string(x + 28, y + 102, b"Power States (ACPI)", TEXT);
+    draw_state(x + 28, y + 124, w - 56, b"S0 Working", b"ACTIVE", SUCCESS);
+    draw_state(x + 28, y + 146, w - 56, b"S1 Standby", b"BLOCKED", ERROR);
+    draw_state(x + 28, y + 168, w - 56, b"S3 Suspend", b"BLOCKED", ERROR);
+    draw_state(x + 28, y + 190, w - 56, b"S5 Soft Off", b"AVAILABLE", SUCCESS);
+    fill_rounded_rect(x + 16, y + 230, w - 32, 100, 8, BG_CARD);
+    draw_string(x + 28, y + 242, b"ZeroState Security", TEXT);
+    draw_info(x + 28, y + 264, b"RAM erased on shutdown", SUCCESS);
+    draw_info(x + 28, y + 284, b"No data persists to disk", SUCCESS);
+    draw_info(x + 28, y + 304, b"Sleep/hibernate disabled", WARNING);
 }
 
-fn draw_buttons(x: u32, y: u32) {
-    draw_string(x + 15, y, b"Power Actions", COLOR_ACCENT);
-    let shutdown_x = x + 15;
-    let shutdown_y = y + 30;
-    fill_rect(shutdown_x, shutdown_y, BUTTON_WIDTH, BUTTON_HEIGHT, COLOR_RED);
-    draw_string(shutdown_x + 24, shutdown_y + 10, b"Shutdown", COLOR_TEXT_WHITE);
-    let reboot_x = x + 15 + BUTTON_WIDTH + 15;
-    let reboot_y = y + 30;
-    fill_rect(reboot_x, reboot_y, BUTTON_WIDTH, BUTTON_HEIGHT, 0xFF3D6EE3);
-    draw_string(reboot_x + 32, reboot_y + 10, b"Reboot", COLOR_TEXT_WHITE);
+fn draw_state(x: u32, y: u32, w: u32, name: &[u8], status: &[u8], color: u32) {
+    draw_string(x, y, name, TEXT_DIM);
+    fill_rounded_rect(x + w - 80, y - 2, 70, 18, 3, BG_STATE);
+    let sx = x + w - 78 + (66 - status.len() as u32 * 8) / 2;
+    draw_string(sx, y + 1, status, color);
 }
 
-fn draw_acpi_states(x: u32, y: u32, w: u32) {
-    draw_string(x + 15, y + 85, b"Power States (ACPI)", COLOR_ACCENT);
-    let state_x = x + 15;
-    let state_y = y + 105;
-    fill_rect(state_x, state_y, w - 30, 120, 0xFF1A1F26);
-    draw_string(state_x + 10, state_y + 10, b"S0 Working", COLOR_TEXT_WHITE);
-    draw_string(state_x + 150, state_y + 10, b"[ACTIVE]", COLOR_GREEN);
-    draw_string(state_x + 10, state_y + 30, b"S1 Standby", COLOR_TEXT_WHITE);
-    draw_string(state_x + 150, state_y + 30, b"[BLOCKED]", COLOR_RED);
-    draw_string(state_x + 230, state_y + 30, b"ZeroState", 0xFF7D8590);
-    draw_string(state_x + 10, state_y + 50, b"S3 Suspend", COLOR_TEXT_WHITE);
-    draw_string(state_x + 150, state_y + 50, b"[BLOCKED]", COLOR_RED);
-    draw_string(state_x + 230, state_y + 50, b"ZeroState", 0xFF7D8590);
-    draw_string(state_x + 10, state_y + 70, b"S4 Hibernate", COLOR_TEXT_WHITE);
-    draw_string(state_x + 150, state_y + 70, b"[BLOCKED]", COLOR_RED);
-    draw_string(state_x + 230, state_y + 70, b"No disk", 0xFF7D8590);
-    draw_string(state_x + 10, state_y + 90, b"S5 Soft Off", COLOR_TEXT_WHITE);
-    draw_string(state_x + 150, state_y + 90, b"[AVAILABLE]", COLOR_GREEN);
-}
-
-fn draw_security_info(x: u32, y: u32, w: u32) {
-    draw_string(x + 15, y + 240, b"ZeroState Security", COLOR_ACCENT);
-    let info_x = x + 15;
-    let info_y = y + 260;
-    fill_rect(info_x, info_y, w - 30, 80, 0xFF1A1F26);
-    draw_string(info_x + 10, info_y + 10, b"RAM erased on shutdown", COLOR_GREEN);
-    draw_string(info_x + 10, info_y + 30, b"No data persists to disk", COLOR_GREEN);
-    draw_string(info_x + 10, info_y + 50, b"Sleep/hibernate disabled", COLOR_YELLOW);
-    draw_string(x + 15, y + 355, b"All data will be lost on power action!", COLOR_YELLOW);
+fn draw_info(x: u32, y: u32, text: &[u8], color: u32) {
+    draw_string(x, y, text, color);
 }
