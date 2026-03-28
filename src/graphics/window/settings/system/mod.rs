@@ -20,7 +20,6 @@ mod click2;
 mod click3;
 mod slider;
 mod state;
-mod info;
 mod timezone;
 
 pub(super) use draw::draw;
