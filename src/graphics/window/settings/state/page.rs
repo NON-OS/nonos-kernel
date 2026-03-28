@@ -16,7 +16,7 @@
 
 use core::sync::atomic::{AtomicU8, Ordering};
 
-pub const SIDEBAR_WIDTH: u32 = 120;
+pub const SIDEBAR_WIDTH: u32 = 180;
 pub const PAGE_PRIVACY: u8 = 0;
 pub const PAGE_NETWORK: u8 = 1;
 pub const PAGE_APPEARANCE: u8 = 2;
