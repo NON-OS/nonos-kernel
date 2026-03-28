@@ -32,61 +32,61 @@ const MARKER_EOI: u8 = 0xD9;
 
 /// Frame component info from SOF marker.
 #[derive(Debug, Clone, Copy)]
-pub struct ComponentInfo {
-    pub id: u8,
-    pub h_sampling: u8,
-    pub v_sampling: u8,
-    pub quant_table_id: u8,
+pub(super) struct ComponentInfo {
+    pub(super) id: u8,
+    pub(super) h_sampling: u8,
+    pub(super) v_sampling: u8,
+    pub(super) quant_table_id: u8,
 }
 
 /// Start of Frame data.
 #[derive(Debug, Clone)]
-pub struct SofData {
-    pub is_baseline: bool,
-    pub precision: u8,
-    pub width: u32,
-    pub height: u32,
-    pub components: Vec<ComponentInfo>,
+pub(super) struct SofData {
+    pub(super) is_baseline: bool,
+    pub(super) _precision: u8,
+    pub(super) width: u32,
+    pub(super) height: u32,
+    pub(super) components: Vec<ComponentInfo>,
 }
 
 /// A single Huffman table extracted from DHT.
 #[derive(Debug, Clone)]
-pub struct HuffmanTableData {
-    pub class: u8, // 0 = DC, 1 = AC
-    pub id: u8,    // table destination (0-3)
-    pub counts: [u8; 16],
-    pub symbols: Vec<u8>,
+pub(super) struct HuffmanTableData {
+    pub(super) class: u8, // 0 = DC, 1 = AC
+    pub(super) id: u8,    // table destination (0-3)
+    pub(super) counts: [u8; 16],
+    pub(super) symbols: Vec<u8>,
 }
 
 /// A single quantization table extracted from DQT.
 #[derive(Debug, Clone)]
-pub struct QuantTable {
-    pub id: u8,
-    pub values: [u16; 64],
+pub(super) struct QuantTable {
+    pub(super) id: u8,
+    pub(super) values: [u16; 64],
 }
 
 /// Scan header component reference.
 #[derive(Debug, Clone, Copy)]
-pub struct ScanComponent {
-    pub component_id: u8,
-    pub dc_table_id: u8,
-    pub ac_table_id: u8,
+pub(super) struct ScanComponent {
+    pub(super) component_id: u8,
+    pub(super) dc_table_id: u8,
+    pub(super) ac_table_id: u8,
 }
 
 /// Start of Scan data.
 #[derive(Debug, Clone)]
-pub struct SosData {
-    pub components: Vec<ScanComponent>,
-    pub entropy_data_offset: usize,
+pub(super) struct SosData {
+    pub(super) components: Vec<ScanComponent>,
+    pub(super) entropy_data_offset: usize,
 }
 
 /// All parsed marker data from a JPEG file.
 #[derive(Debug, Clone)]
-pub struct JpegMarkers {
-    pub sof: SofData,
-    pub quant_tables: Vec<QuantTable>,
-    pub huffman_tables: Vec<HuffmanTableData>,
-    pub sos: SosData,
+pub(super) struct JpegMarkers {
+    pub(super) sof: SofData,
+    pub(super) quant_tables: Vec<QuantTable>,
+    pub(super) huffman_tables: Vec<HuffmanTableData>,
+    pub(super) sos: SosData,
 }
 
 fn read_u16_be(data: &[u8], offset: usize) -> Option<u16> {
@@ -96,7 +96,7 @@ fn read_u16_be(data: &[u8], offset: usize) -> Option<u16> {
 
 /// Parse all JPEG markers from raw data. Returns `None` for unsupported or
 /// corrupt files.
-pub fn parse_markers(data: &[u8]) -> Option<JpegMarkers> {
+pub(super) fn parse_markers(data: &[u8]) -> Option<JpegMarkers> {
     if data.len() < 4 { return None; }
     // Verify SOI
     if data[0] != 0xFF || data[1] != MARKER_SOI { return None; }
@@ -194,7 +194,7 @@ fn parse_sof(data: &[u8], pos: usize, is_baseline: bool) -> Option<SofData> {
         components.push(ComponentInfo { id, h_sampling, v_sampling, quant_table_id });
     }
 
-    Some(SofData { is_baseline, precision, width, height, components })
+    Some(SofData { is_baseline, _precision: precision, width, height, components })
 }
 
 fn parse_dht(
