@@ -14,33 +14,48 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::graphics::framebuffer::fill_rect;
+use crate::graphics::framebuffer::{fill_rect, rounded_rect_blend};
 use crate::graphics::window::draw_string;
 use super::state::WALLET_STATE;
-use super::render::{format_balance, COLOR_BORDER, COLOR_TEXT_DIM, COLOR_TEXT_WHITE, COLOR_ACCENT, HEADER_HEIGHT};
+use super::render::{format_balance, COLOR_BORDER, COLOR_TEXT_DIM, COLOR_TEXT_WHITE, COLOR_ACCENT, HEADER_HEIGHT, COLOR_GREEN};
 
 pub(super) fn draw_header(x: u32, y: u32, w: u32) {
     fill_rect(x, y, w, HEADER_HEIGHT, 0xFF0D0D12);
     fill_rect(x, y + HEADER_HEIGHT - 1, w, 1, COLOR_BORDER);
-    let (eth, wei, nox, nox_frac) = {
-        let state = WALLET_STATE.lock();
-        let total_eth = state.total_balance();
-        let total_nox = state.total_nox_balance();
-        let wei_per: u128 = 1_000_000_000_000_000_000;
-        ((total_eth / wei_per) as u64, (total_eth % wei_per / 1_000_000_000_000_000) as u64, (total_nox / wei_per) as u64, (total_nox % wei_per / 1_000_000_000_000_000) as u64)
-    };
-    draw_string(x + 24, y + 16, b"Total Balance", COLOR_TEXT_DIM);
-    let mut balance_str = [0u8; 32];
-    let len = format_balance(&mut balance_str, eth, wei);
-    for (i, &ch) in balance_str[..len].iter().enumerate() { crate::graphics::font::draw_char_scaled(x + 24 + (i as u32) * 16, y + 34, ch, COLOR_TEXT_WHITE, 2); }
-    draw_string(x + 24 + (len as u32) * 16 + 8, y + 42, b"ETH", COLOR_ACCENT);
-    let mut nox_str = [0u8; 32];
-    let nox_len = format_balance(&mut nox_str, nox, nox_frac);
-    let nox_x = x + 24 + (len as u32) * 16 + 50;
-    draw_string(nox_x, y + 42, &nox_str[..nox_len], COLOR_TEXT_WHITE);
-    draw_string(nox_x + (nox_len as u32) * 8 + 8, y + 42, b"NOX", 0xFFBF5AF2);
-    fill_rect(x + w - 100, y + 24, 80, 28, 0xFF1E1E28);
-    draw_string(x + w - 88, y + 32, b"Refresh", COLOR_ACCENT);
+    draw_balance_section(x, y);
+    draw_action_buttons(x, y, w);
+}
+
+fn draw_balance_section(x: u32, y: u32) {
+    let (eth, wei, nox, nox_frac) = get_balances();
+    draw_string(x + 24, y + 12, b"Total Balance", COLOR_TEXT_DIM);
+    let mut buf = [0u8; 32];
+    let len = format_balance(&mut buf, eth, wei);
+    for (i, &ch) in buf[..len].iter().enumerate() {
+        crate::graphics::font::draw_char_scaled(x + 24 + (i as u32) * 16, y + 28, ch, COLOR_TEXT_WHITE, 2);
+    }
+    draw_string(x + 24 + (len as u32) * 16 + 8, y + 36, b"ETH", COLOR_ACCENT);
+    let mut nox_buf = [0u8; 32];
+    let nox_len = format_balance(&mut nox_buf, nox, nox_frac);
+    let nox_x = x + 24 + (len as u32) * 16 + 60;
+    draw_string(nox_x, y + 36, &nox_buf[..nox_len], COLOR_TEXT_WHITE);
+    draw_string(nox_x + (nox_len as u32) * 8 + 8, y + 36, b"NOX", 0xFFBF5AF2);
+}
+
+fn get_balances() -> (u64, u64, u64, u64) {
+    let state = WALLET_STATE.lock();
+    let total_eth = state.total_balance();
+    let total_nox = state.total_nox_balance();
+    let wei_per: u128 = 1_000_000_000_000_000_000;
+    ((total_eth / wei_per) as u64, (total_eth % wei_per / 1_000_000_000_000_000) as u64,
+     (total_nox / wei_per) as u64, (total_nox % wei_per / 1_000_000_000_000_000) as u64)
+}
+
+fn draw_action_buttons(x: u32, y: u32, w: u32) {
+    rounded_rect_blend(x + w - 180, y + 20, 70, 32, 8, 0x20FFFFFF);
+    draw_string(x + w - 168, y + 28, b"Refresh", COLOR_ACCENT);
+    rounded_rect_blend(x + w - 100, y + 20, 80, 32, 8, COLOR_GREEN);
+    draw_string(x + w - 88, y + 28, b"Connect", 0xFF0A0A0F);
 }
 
 pub(super) fn auto_generate_wallet() {
