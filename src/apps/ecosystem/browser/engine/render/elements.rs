@@ -118,7 +118,7 @@ pub(super) fn render_button(ctx: &mut RenderContext, node: &Node) {
     ctx.current_x += button_width + ctx.char_width;
 }
 
-pub fn render_select(ctx: &mut RenderContext, node: &Node) {
+pub(super) fn render_select(ctx: &mut RenderContext, node: &Node) {
     let name = get_attribute(node, "name").unwrap_or_default();
     let selected = find_selected_option(node);
     let display_width = ((selected.len() + 4) as u32) * ctx.char_width;
@@ -129,7 +129,7 @@ pub fn render_select(ctx: &mut RenderContext, node: &Node) {
     ctx.current_x += display_width + ctx.char_width;
 }
 
-pub fn render_textarea(ctx: &mut RenderContext, node: &Node) {
+pub(super) fn render_textarea(ctx: &mut RenderContext, node: &Node) {
     let name = get_attribute(node, "name").unwrap_or_default();
     let cols: u32 = get_attribute(node, "cols").and_then(|c| c.parse().ok()).unwrap_or(40);
     let rows: u32 = get_attribute(node, "rows").and_then(|r| r.parse().ok()).unwrap_or(4);
