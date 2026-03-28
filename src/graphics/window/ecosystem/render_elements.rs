@@ -16,7 +16,7 @@ use crate::graphics::font::draw_char;
 use crate::apps::ecosystem::browser::engine::{RenderElement, RenderContent};
 use super::render_helpers::{COLOR_TEXT, COLOR_TEXT_DIM, COLOR_TEXT_BRIGHT};
 use super::render_utils::draw_border_thin;
-use super::render_elements_input::{draw_input_element, draw_button_element, blit_image_data};
+use super::render_elements_input::{draw_input_element, draw_button_element, draw_select_element, draw_textarea_element, blit_image_data};
 
 const COLOR_LINK: u32 = 0xFF00BFFF;
 const COLOR_HEADING: u32 = 0xFF00FFCC;
@@ -33,6 +33,8 @@ pub fn draw_render_element(base_x: u32, line_y: u32, elem: &RenderElement, max_w
         RenderContent::Svg { ref data } => blit_image_data(ex, line_y, data, max_width, clip_bottom),
         RenderContent::Input { ref name, width } => draw_input_element(ex, line_y, name, *width, max_width),
         RenderContent::Button { ref text } => draw_button_element(ex, line_y, text, max_width),
+        RenderContent::Select { ref name, ref value } => draw_select_element(ex, line_y, name, value, max_width),
+        RenderContent::Textarea { ref name, width, height } => draw_textarea_element(ex, line_y, name, *width, *height, max_width),
         RenderContent::HorizontalRule => fill_rect(ex, line_y + 8, max_width.saturating_sub(20), 1, COLOR_TEXT_DIM),
         RenderContent::LineBreak => {}
     }

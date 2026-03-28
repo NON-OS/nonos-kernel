@@ -41,6 +41,33 @@ pub fn draw_button_element(ex: u32, line_y: u32, text: &str, max_width: u32) {
     }
 }
 
+pub fn draw_select_element(ex: u32, line_y: u32, name: &str, value: &str, max_width: u32) {
+    let label = if value.is_empty() { name } else { value };
+    let sw = ((label.len() as u32 + 4) * 8).min(max_width);
+    fill_rect(ex, line_y, sw, 20, COLOR_INPUT_BG);
+    draw_border_thin(ex, line_y, sw, 20, COLOR_INPUT_BORDER);
+    let mut cx = ex + 4;
+    for &ch in label.as_bytes() {
+        if cx + 8 > ex + sw - 16 { break; }
+        draw_char(cx, line_y + 2, ch, 0xFFE0E0E0);
+        cx += 8;
+    }
+    draw_char(ex + sw - 12, line_y + 2, b'v', 0xFF888888);
+}
+
+pub fn draw_textarea_element(ex: u32, line_y: u32, name: &str, width: u32, height: u32, max_width: u32) {
+    let tw = width.min(max_width);
+    let th = height.min(200);
+    fill_rect(ex, line_y, tw, th, COLOR_INPUT_BG);
+    draw_border_thin(ex, line_y, tw, th, COLOR_INPUT_BORDER);
+    let mut cx = ex + 4;
+    for &ch in name.as_bytes() {
+        if cx + 8 > ex + tw { break; }
+        draw_char(cx, line_y + 2, ch, 0xFF888888);
+        cx += 8;
+    }
+}
+
 pub fn blit_image_data(x: u32, y: u32, data: &ImageData, max_width: u32, clip_bottom: u32) {
     let draw_w = data.width.min(max_width);
     for py in 0..data.height {
