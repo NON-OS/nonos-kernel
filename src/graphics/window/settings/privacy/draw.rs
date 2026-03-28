@@ -1,60 +1,57 @@
 // NONOS Operating System
 // Copyright (C) 2026 NONOS Contributors
-//
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
-//
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU Affero General Public License for more details.
-//
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::graphics::framebuffer::{fill_rect, COLOR_ACCENT, COLOR_TEXT_WHITE, COLOR_GREEN};
+use crate::graphics::framebuffer::fill_rounded_rect;
 use crate::graphics::window::settings::render::{draw_string, draw_toggle};
 use crate::graphics::window::settings::state::*;
 
+const BG_CARD: u32 = 0xFF161B22;
+const BG_BTN: u32 = 0xFF21262D;
+const BG_BTN_SEL: u32 = 0xFF1F6FEB;
+const BG_DANGER: u32 = 0xFF7F1D1D;
+const TEXT: u32 = 0xFFE6EDF3;
+const TEXT_DIM: u32 = 0xFF7D8590;
+
 pub(crate) fn draw(x: u32, y: u32, w: u32) {
-    draw_string(x + 15, y, b"Privacy Mode", COLOR_TEXT_WHITE);
-    draw_string(x + 15, y + 18, b"Controls network privacy level", 0xFF7D8590);
-
-    let modes: [&[u8]; 4] = [b"Standard", b"Anonymous", b"Maximum", b"Isolated"];
-    let current_mode = get_privacy_mode();
-    let btn_w = 75u32;
-
+    let cw = w - 32;
+    fill_rounded_rect(x + 16, y, cw, 90, 8, BG_CARD);
+    draw_string(x + 28, y + 12, b"Privacy Mode", TEXT);
+    draw_string(x + 28, y + 28, b"Select privacy level", TEXT_DIM);
+    let modes: [&[u8]; 4] = [b"Std", b"Anon", b"Max", b"Iso"];
+    let current = get_privacy_mode();
+    let bw = (cw - 48) / 4;
     for (i, name) in modes.iter().enumerate() {
-        let bx = x + 15 + (i as u32) * (btn_w + 8);
-        let by = y + 40;
-        let is_sel = current_mode == i as u8;
-        let color = if is_sel { COLOR_ACCENT } else { 0xFF2D333B };
-        fill_rect(bx, by, btn_w, 28, color);
-        let txt = if is_sel { 0xFF0D1117 } else { COLOR_TEXT_WHITE };
-        draw_string(bx + 4, by + 6, name, txt);
+        let bx = x + 28 + (i as u32) * (bw + 4);
+        let sel = current == i as u8;
+        fill_rounded_rect(bx, y + 52, bw, 26, 4, if sel { BG_BTN_SEL } else { BG_BTN });
+        let tc = if sel { TEXT } else { TEXT_DIM };
+        let tx = bx + (bw - (name.len() as u32 * 8)) / 2;
+        draw_string(tx, y + 58, name, tc);
     }
+    fill_rounded_rect(x + 16, y + 100, cw, 110, 8, BG_CARD);
+    draw_row(x + 28, y + 112, cw - 24, b"NYM Mixnet", is_nym_enabled());
+    draw_row(x + 28, y + 148, cw - 24, b"MAC Random", is_privacy_enabled());
+    draw_row(x + 28, y + 184, cw - 24, b"ZeroState", is_zero_state_enabled());
+    fill_rounded_rect(x + 16, y + 220, cw, 60, 8, BG_CARD);
+    draw_string(x + 28, y + 232, b"Data", TEXT);
+    let btn_w = (cw - 36) / 2;
+    fill_rounded_rect(x + 28, y + 250, btn_w, 24, 4, BG_DANGER);
+    draw_string(x + 36, y + 255, b"Clear", TEXT);
+    fill_rounded_rect(x + 36 + btn_w, y + 250, btn_w, 24, 4, BG_BTN);
+    draw_string(x + 44 + btn_w, y + 255, b"History", TEXT_DIM);
+}
 
-    draw_string(x + 15, y + 85, b"NYM Mixnet", COLOR_TEXT_WHITE);
-    draw_toggle(x + w - 70, y + 80, is_anyone_enabled());
-
-    if is_anyone_enabled() {
-        draw_string(x + 15, y + 108, b"All traffic via NYM Mixnet", COLOR_GREEN);
-    } else {
-        draw_string(x + 15, y + 108, b"Direct connections (no anonymity)", 0xFFFF6B6B);
-    }
-
-    draw_string(x + 15, y + 140, b"MAC Randomization", COLOR_TEXT_WHITE);
-    draw_toggle(x + w - 70, y + 135, is_privacy_enabled());
-
-    draw_string(x + 15, y + 180, b"ZeroState Mode", COLOR_TEXT_WHITE);
-    draw_string(x + 15, y + 198, b"RAM-only, no disk persistence", 0xFF7D8590);
-    draw_toggle(x + w - 70, y + 175, is_zero_state_enabled());
-
-    draw_string(x + 15, y + 230, b"Data Management", COLOR_ACCENT);
-    fill_rect(x + 15, y + 250, 140, 32, 0xFFCC3333);
-    draw_string(x + 28, y + 258, b"Clear Cookies", COLOR_TEXT_WHITE);
-    fill_rect(x + 165, y + 250, 140, 32, 0xFFCC3333);
-    draw_string(x + 178, y + 258, b"Clear History", COLOR_TEXT_WHITE);
+fn draw_row(x: u32, y: u32, w: u32, title: &[u8], enabled: bool) {
+    draw_string(x, y + 6, title, TEXT);
+    draw_toggle(x + w - 48, y, enabled);
 }
