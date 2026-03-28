@@ -27,7 +27,7 @@ pub fn draw_render_element(base_x: u32, line_y: u32, elem: &RenderElement, max_w
     match &elem.content {
         RenderContent::Text { ref text, style } => draw_text(ex, line_y, text, style, max_width, base_x, clip_bottom),
         RenderContent::Link { ref text, .. } => draw_link(ex, line_y, text, max_width, base_x, clip_bottom),
-        RenderContent::Image { ref alt, width, height } => draw_image(ex, line_y, alt, *width, *height, max_width),
+        RenderContent::Image { ref alt, width, height, .. } => draw_image(ex, line_y, alt, *width, *height, max_width),
         RenderContent::DecodedImage { ref data } => blit_image_data(ex, line_y, data, max_width, clip_bottom),
         RenderContent::Canvas { ref data } => blit_image_data(ex, line_y, data, max_width, clip_bottom),
         RenderContent::Svg { ref data } => blit_image_data(ex, line_y, data, max_width, clip_bottom),
