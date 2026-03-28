@@ -25,12 +25,12 @@ pub fn set_anonymous_mode(enabled: bool) {
     mark_modified();
 }
 
-pub fn anyone_enabled() -> bool {
-    unsafe { CURRENT_SETTINGS.anyone_enabled }
+pub fn nym_enabled() -> bool {
+    unsafe { CURRENT_SETTINGS.nym_enabled }
 }
 
-pub fn set_anyone_enabled(enabled: bool) {
-    unsafe { CURRENT_SETTINGS.anyone_enabled = enabled; }
+pub fn set_nym_enabled(enabled: bool) {
+    unsafe { CURRENT_SETTINGS.nym_enabled = enabled; }
     mark_modified();
 }
 
