@@ -19,6 +19,7 @@ pub mod buttons;
 pub mod chrome;
 pub mod apps;
 pub mod utils;
+pub mod glass;
 
 pub use backgrounds::*;
 pub use text::*;
@@ -28,4 +29,5 @@ pub use buttons::*;
 pub use chrome::*;
 pub use apps::*;
 pub use utils::*;
+pub use glass::*;
 
