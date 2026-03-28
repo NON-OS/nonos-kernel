@@ -15,7 +15,6 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use alloc::string::ToString;
-use alloc::vec::Vec;
 use crate::network::tcp::TcpSocket;
 use crate::network::onion::OnionError;
 use super::types::{TLSConnection, HandshakePhase};
