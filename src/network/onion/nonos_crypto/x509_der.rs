@@ -101,8 +101,4 @@ impl<'a> DerParser<'a> {
             None
         }
     }
-
-    pub(super) fn has_more(&self) -> bool {
-        self.offset < self.data.len()
-    }
 }
