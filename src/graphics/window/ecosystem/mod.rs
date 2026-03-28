@@ -15,10 +15,21 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub mod state;
+pub mod state_browser;
+pub mod state_wallet;
+pub mod state_page;
+pub mod state_links;
+pub mod state_privacy;
 pub mod tabs;
 pub mod render;
 pub mod render_helpers;
 pub mod render_tabs;
+pub mod render_utils;
+pub mod render_url_bar;
+pub mod render_elements;
+pub mod render_elements_input;
+pub mod render_browser;
+pub mod render_browser_help;
 pub mod input;
 pub mod input_click;
 pub mod input_actions;
