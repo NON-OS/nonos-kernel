@@ -40,12 +40,17 @@ pub fn enforce_zk_binding(
         }
     };
 
-    if let Err(e) = verify_kernel_in_proof(result, actual_kernel_hash, &proof_block.public_inputs) {
+    if let Err(e) = verify_kernel_in_proof(result, actual_kernel_hash, &proof_block) {
         log_error("zk_bind", e);
         binding_failure(st, gop_available, e);
     }
 
-    let expected = compute_capsule_commitment(kernel_bytes);
+    let expected = compute_capsule_commitment(
+        actual_kernel_hash,
+        &proof_block.boot_nonce,
+        &proof_block.machine_id,
+        &proof_block.program_hash,
+    );
     if let Err(e) = verify_commitment_binding(&result.capsule_commitment, &expected) {
         log_error("zk_bind", e);
         binding_failure(st, gop_available, e);
