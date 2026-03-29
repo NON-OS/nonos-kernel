@@ -60,6 +60,7 @@ pub fn select_next_process() -> Option<u32> {
 
 pub fn switch_to_process(pid: u32) {
     use crate::process::nonos_core::{PROCESS_TABLE, ProcessState, CURRENT_PID};
+    use crate::memory::paging::manager::api::switch_to_process_address_space;
 
     if let Some(pcb) = PROCESS_TABLE.find_by_pid(pid) {
         *pcb.state.lock() = ProcessState::Running;
@@ -68,8 +69,13 @@ pub fn switch_to_process(pid: u32) {
     CURRENT_PID.store(pid, Ordering::SeqCst);
     CURRENT_TIME_SLICE.store(DEFAULT_TIME_SLICE, Ordering::Relaxed);
 
+    if let Err(_) = switch_to_process_address_space(pid) {
+        crate::sys::serial::print(b"[SCHED] No address space for pid ");
+        crate::sys::serial::print_dec(pid as u64);
+        crate::sys::serial::println(b"");
+    }
+
     if let Some(ctx) = crate::process::nonos_core::INTERRUPT_SAVED_CONTEXTS.write().remove(&pid) {
-        crate::process::nonos_core::clear_interrupt_context(pid);
         ctx.restore();
     }
 }
