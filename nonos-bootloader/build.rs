@@ -8,7 +8,7 @@ fn main() {
     println!("cargo:rerun-if-changed=src/");
     println!("cargo:rerun-if-changed=Cargo.toml");
     println!("cargo:rerun-if-env-changed=NONOS_SIGNING_KEY");
-    println!("cargo:rerun-if-changed=../assets/wallpapers/special-variant-9.png");
+    println!("cargo:rerun-if-changed=../assets/wallpapers/hardware-aesthetic-9.png");
 
     generate_keys();
     generate_background_image();
@@ -272,7 +272,7 @@ fn generate_background_image() {
     let out_dir = env::var("OUT_DIR").expect("OUT_DIR not set");
     let dest_path = Path::new(&out_dir).join("background_generated.rs");
 
-    let wallpaper_path = Path::new("../assets/wallpapers/special-variant-9.png");
+    let wallpaper_path = Path::new("../assets/wallpapers/hardware-aesthetic-9.png");
 
     if !wallpaper_path.exists() {
         eprintln!("NOTE: Wallpaper not found at {:?}, generating gradient fallback", wallpaper_path);
@@ -289,12 +289,8 @@ fn generate_background_image() {
         }
     };
 
-    /*
-     * Scale to 640x360 for bootloader - keeps binary small (~900KB raw)
-     * Runtime will scale to screen resolution
-     */
-    let target_w = 640u32;
-    let target_h = 360u32;
+    let target_w = 1920u32;
+    let target_h = 1080u32;
 
     let scaled = img.resize_exact(target_w, target_h, image::imageops::FilterType::Lanczos3);
     let rgba = scaled.to_rgba8();
