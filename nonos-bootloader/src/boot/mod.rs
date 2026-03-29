@@ -32,6 +32,6 @@ pub use hardware::run_hardware_discovery;
 pub use kernel::run_kernel_load;
 pub use prepare::run_handoff_prepare;
 pub use security::run_security_checks;
-pub use uefi::run_uefi_init;
+pub use uefi::{run_boot_screen_init, run_uefi_init};
 pub use util::{fatal_reset, micro_delay, mini_delay};
 pub use zk_init::initialize_zk_replay_protection;
