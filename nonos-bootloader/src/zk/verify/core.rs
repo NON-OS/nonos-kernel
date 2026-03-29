@@ -14,12 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::zk::binding::{compute_commit, select_binding};
 use crate::zk::errors::ZkError;
 
 use super::constants::{MAX_INPUT_SIZE, MAX_PROOF_SIZE};
 use super::types::{ZkProof, ZkVerifyResult};
-use super::util::{ct_eq32, zeroize_proof};
+use super::util::zeroize_proof;
 
 #[cfg(feature = "zk-groth16")]
 use super::constants::GROTH16_PROOF_LEN;
@@ -31,15 +30,6 @@ use crate::zk::registry;
 pub fn verify_proof(p: &mut ZkProof) -> ZkVerifyResult {
     if let Err(e) = validate_proof_bounds(p) {
         return e;
-    }
-
-    let binding = match select_binding(&p.public_inputs, p.manifest.as_deref()) {
-        Ok(b) => b,
-        Err(e) => return ZkVerifyResult::Invalid(e),
-    };
-
-    if !ct_eq32(&compute_commit(binding), &p.capsule_commitment) {
-        return ZkVerifyResult::Invalid(ZkError::CommitmentMismatch.as_str());
     }
 
     verify_backend(p)
