@@ -33,7 +33,7 @@ pub fn render_region(x: u32, y: u32, w: u32, h: u32) {
 
     let mut decoder = RleDecoder::new();
     let mut cached_src_y: u32 = 0xFFFFFFFF;
-    let mut row_buf: [u32; 640] = [0; 640];
+    let mut row_buf: [u32; 1920] = [0; 1920];
 
     let end_y = (y + h).min(screen_h);
     let end_x = (x + w).min(screen_w);
@@ -72,7 +72,7 @@ fn render_scaled(screen_w: u32, screen_h: u32) {
 
     let mut decoder = RleDecoder::new();
     let mut cached_src_y: u32 = 0xFFFFFFFF;
-    let mut row_buf: [u32; 640] = [0; 640];
+    let mut row_buf: [u32; 1920] = [0; 1920];
 
     for screen_y in 0..screen_h {
         let src_y = ((screen_y * scale_y) >> 16).min(BG_HEIGHT - 1);
@@ -108,7 +108,7 @@ impl RleDecoder {
         }
     }
 
-    fn decode_row(&mut self, row: u32, buf: &mut [u32; 640]) {
+    fn decode_row(&mut self, row: u32, buf: &mut [u32; 1920]) {
         let row_start = (row * BG_WIDTH) as usize;
         let row_end = row_start + BG_WIDTH as usize;
 
