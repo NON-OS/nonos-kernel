@@ -27,7 +27,7 @@ use nonos_boot::boot::{
     run_security_checks, run_uefi_init, run_zk_attestation,
 };
 use nonos_boot::boot::prepare::HandoffParams;
-use nonos_boot::menu::{run_boot_menu, MenuAction, MenuState, SecurityMode};
+use nonos_boot::menu::{check_dev_key_held, run_boot_menu, MenuAction, MenuState, SecurityMode};
 
 #[entry]
 fn efi_main(_handle: Handle, mut system_table: SystemTable<Boot>) -> Status {
@@ -50,14 +50,24 @@ fn efi_main(_handle: Handle, mut system_table: SystemTable<Boot>) -> Status {
     let uefi_result = run_uefi_init(&mut system_table);
     let gop = uefi_result.gop_available;
 
+    let dev_override = check_dev_key_held(system_table.boot_services());
+
     let mut menu_state = MenuState::default();
     let menu_action = run_boot_menu(system_table.boot_services(), &mut menu_state);
 
-    let security_mode = match menu_action {
-        MenuAction::Boot(mode) => mode,
-        MenuAction::Timeout | MenuAction::Continue => SecurityMode::Development,
-        MenuAction::Diagnostics | MenuAction::Recovery | MenuAction::Shutdown => {
-            SecurityMode::Development
+    let security_mode = if dev_override {
+        let _ = system_table
+            .stdout()
+            .output_string(uefi::cstr16!("[WARN] F12 held - DEVELOPMENT MODE\r\n"));
+        SecurityMode::Development
+    } else {
+        match menu_action {
+            MenuAction::Boot(mode) => mode,
+            MenuAction::Timeout | MenuAction::Continue => SecurityMode::Standard,
+            MenuAction::Diagnostics
+            | MenuAction::Recovery
+            | MenuAction::Shutdown
+            | MenuAction::SecurityStatus => SecurityMode::Standard,
         }
     };
 
