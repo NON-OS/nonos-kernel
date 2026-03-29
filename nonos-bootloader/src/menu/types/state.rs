@@ -70,9 +70,9 @@ impl Default for MenuState {
 const DEFAULT_TIMEOUT_MS: u64 = 3000;
 
 static DEFAULT_ENTRIES: [MenuAction; 5] = [
-    MenuAction::Boot(SecurityMode::Development),
     MenuAction::Boot(SecurityMode::Standard),
     MenuAction::Boot(SecurityMode::Hardened),
-    MenuAction::Diagnostics,
     MenuAction::Recovery,
+    MenuAction::Diagnostics,
+    MenuAction::Boot(SecurityMode::Development),
 ];

@@ -30,7 +30,7 @@ pub enum MenuAction {
 impl MenuAction {
     pub const fn label(&self) -> &'static str {
         match self {
-            Self::Boot(SecurityMode::Development) => "Boot (Development Mode)",
+            Self::Boot(SecurityMode::Development) => "Boot (Dev - INSECURE)",
             Self::Boot(SecurityMode::Standard) => "Boot (Standard Mode)",
             Self::Boot(SecurityMode::Hardened) => "Boot (Hardened Mode)",
             Self::Recovery => "Recovery Mode",
