@@ -21,6 +21,12 @@ use anyhow::{bail, Context, Result};
 use clap::Parser;
 use ed25519_dalek::{Signer, SigningKey, VerifyingKey};
 
+const FOOTER_MAGIC: [u8; 8] = *b"NONOSIMG";
+const FOOTER_VERSION: u16 = 1;
+const FOOTER_SIZE: usize = 64;
+const HASH_ALG_BLAKE3: u8 = 1;
+const SIG_ALG_ED25519: u8 = 1;
+
 mod vault;
 use vault::{sign_kernel_with_vault, VaultClient};
 
@@ -53,6 +59,25 @@ struct Args {
 
     #[arg(short, long, action = clap::ArgAction::SetTrue)]
     verbose: bool,
+}
+
+fn create_image_footer(kernel_size: u32, total_image_size: u64) -> [u8; FOOTER_SIZE] {
+    let mut footer = [0u8; FOOTER_SIZE];
+    footer[0..8].copy_from_slice(&FOOTER_MAGIC);
+    footer[8..10].copy_from_slice(&FOOTER_VERSION.to_le_bytes());
+    footer[10..12].copy_from_slice(&0u16.to_le_bytes());
+    footer[12] = HASH_ALG_BLAKE3;
+    footer[13] = SIG_ALG_ED25519;
+    footer[14..16].copy_from_slice(&0u16.to_le_bytes());
+    footer[16..24].copy_from_slice(&total_image_size.to_le_bytes());
+    footer[24..28].copy_from_slice(&0u32.to_le_bytes());
+    footer[28..32].copy_from_slice(&kernel_size.to_le_bytes());
+    footer[32..36].copy_from_slice(&kernel_size.to_le_bytes());
+    footer[36..40].copy_from_slice(&64u32.to_le_bytes());
+    footer[40..44].copy_from_slice(&0u32.to_le_bytes());
+    footer[44..48].copy_from_slice(&0u32.to_le_bytes());
+    footer[48..52].copy_from_slice(&1u32.to_le_bytes());
+    footer
 }
 
 fn main() -> Result<()> {
@@ -143,8 +168,13 @@ fn main() -> Result<()> {
     println!("Signature (S): {}", hex::encode(&sig_bytes[32..]));
     println!();
 
+    let kernel_size = kernel_data.len() as u32;
+    let total_size = (kernel_data.len() + 64 + FOOTER_SIZE) as u64;
+    let footer = create_image_footer(kernel_size, total_size);
+
     let mut output_data = kernel_data.clone();
     output_data.extend_from_slice(&sig_bytes);
+    output_data.extend_from_slice(&footer);
 
     fs::write(&args.output, &output_data)
         .with_context(|| format!("Failed to write output: {}", args.output.display()))?;
@@ -154,19 +184,30 @@ fn main() -> Result<()> {
         args.output.display(),
         output_data.len()
     );
+    println!("  Kernel:    {} bytes", kernel_size);
+    println!("  Signature: 64 bytes");
+    println!("  Footer:    {} bytes", FOOTER_SIZE);
 
     if args.verify {
         println!();
         println!("=== Verification ===");
 
         let signed_data = fs::read(&args.output)?;
-        if signed_data.len() < 64 {
+        if signed_data.len() < 64 + FOOTER_SIZE {
             bail!("Signed file too small");
         }
 
-        let sig_offset = signed_data.len() - 64;
+        if &signed_data[signed_data.len() - FOOTER_SIZE..signed_data.len() - FOOTER_SIZE + 8]
+            == &FOOTER_MAGIC
+        {
+            println!("NONOSIMG footer: PRESENT");
+        } else {
+            println!("NONOSIMG footer: MISSING");
+        }
+
+        let sig_offset = signed_data.len() - FOOTER_SIZE - 64;
         let payload = &signed_data[..sig_offset];
-        let sig_bytes_read = &signed_data[sig_offset..];
+        let sig_bytes_read = &signed_data[sig_offset..sig_offset + 64];
 
         let mut sig_arr = [0u8; 64];
         sig_arr.copy_from_slice(sig_bytes_read);
