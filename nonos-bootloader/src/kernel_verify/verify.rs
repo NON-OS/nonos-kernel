@@ -33,7 +33,10 @@ pub fn verify_kernel_crypto(kernel_data: &[u8], st: &mut SystemTable<Boot>) -> C
     }
 
     if !has_production_footer(kernel_data) {
-        log_error("kernel_verify", "Image missing production footer - refusing to verify");
+        log_info("kernel_verify", "No production footer - computing raw hash");
+        result.kernel_code_size = kernel_data.len();
+        result.signature_present = false;
+        compute_and_display_hash(kernel_data, &mut result, st);
         return result;
     }
 
@@ -42,6 +45,7 @@ pub fn verify_kernel_crypto(kernel_data: &[u8], st: &mut SystemTable<Boot>) -> C
         Err(e) => {
             log_error("kernel_verify", "Image validation failed");
             log_error("kernel_verify", e.as_str());
+            compute_and_display_hash(kernel_data, &mut result, st);
             return result;
         }
     };
