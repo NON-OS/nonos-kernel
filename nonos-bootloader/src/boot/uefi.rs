@@ -18,7 +18,7 @@ use uefi::prelude::*;
 
 use crate::config::load_bootloader_config;
 use crate::display::{
-    draw_boot_progress, init_boot_screen, init_gop, log_hex, log_ok, log_u32,
+    draw_boot_progress, init_boot_screen, init_gop, init_main_screen, log_hex, log_ok, log_u32,
     update_stage, StageStatus, STAGE_UEFI,
 };
 use crate::log::logger::{init_logger, log_info};
@@ -31,42 +31,29 @@ pub struct UefiInitResult {
 
 pub fn run_uefi_init(system_table: &mut SystemTable<Boot>) -> UefiInitResult {
     let gop_available = init_gop(system_table);
-    if gop_available {
-        init_boot_screen();
-        draw_boot_progress(1, TOTAL_BOOT_STAGES);
-        log_ok(b"GOP framebuffer initialized");
-    }
-
     init_logger(system_table);
     log_info("boot", "UEFI services initialized");
-
-    update_stage(STAGE_UEFI, StageStatus::Success);
-    draw_boot_progress(1, TOTAL_BOOT_STAGES);
-
-    if gop_available {
-        log_hex(b"SystemTable     ", system_table as *const _ as u64);
-        log_hex(
-            b"BootServices    ",
-            system_table.boot_services() as *const _ as u64,
-        );
-        log_hex(
-            b"RuntimeServices ",
-            system_table.runtime_services() as *const _ as u64,
-        );
-        log_hex(
-            b"ConfigTable     ",
-            system_table.config_table().as_ptr() as u64,
-        );
-        log_u32(
-            b"ConfigTableCount ",
-            system_table.config_table().len() as u32,
-        );
-    }
-
     let _config = load_bootloader_config(system_table);
+
     if gop_available {
-        log_ok(b"boot.toml loaded");
+        init_main_screen();
     }
 
     UefiInitResult { gop_available }
+}
+
+pub fn run_boot_screen_init(system_table: &mut SystemTable<Boot>, gop_available: bool) {
+    if !gop_available {
+        return;
+    }
+    init_boot_screen();
+    draw_boot_progress(1, TOTAL_BOOT_STAGES);
+    log_ok(b"GOP framebuffer initialized");
+    update_stage(STAGE_UEFI, StageStatus::Success);
+    log_hex(b"SystemTable     ", system_table as *const _ as u64);
+    log_hex(b"BootServices    ", system_table.boot_services() as *const _ as u64);
+    log_hex(b"RuntimeServices ", system_table.runtime_services() as *const _ as u64);
+    log_hex(b"ConfigTable     ", system_table.config_table().as_ptr() as u64);
+    log_u32(b"ConfigTableCount ", system_table.config_table().len() as u32);
+    log_ok(b"boot.toml loaded");
 }
