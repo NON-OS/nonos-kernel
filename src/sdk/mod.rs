@@ -34,6 +34,9 @@ pub mod permissions;
 pub mod samples;
 mod demos;
 pub mod store;
+pub mod ipc_client;
+
+pub use ipc_client::{VfsClient, NetClient, CryptoClient, DisplayClient, InputClient, ZkClient};
 
 pub use loader::{unpack_app, AppPackage};
 pub use registry::list_apps;
