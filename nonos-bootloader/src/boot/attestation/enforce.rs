@@ -24,6 +24,13 @@ use crate::zk::{parse_zk_proof, BootAttestationResult};
 
 use super::super::util::fatal_reset;
 
+fn log_hex(tag: &str, data: &[u8]) {
+    use crate::log::logger::log_info;
+    use alloc::format;
+    let hex: alloc::string::String = data.iter().map(|b| format!("{:02x}", b)).collect();
+    log_info("zk_dbg", &format!("{}: {}", tag, hex));
+}
+
 pub fn enforce_zk_binding(
     st: &mut SystemTable<Boot>,
     result: &BootAttestationResult,
@@ -51,6 +58,14 @@ pub fn enforce_zk_binding(
         &proof_block.machine_id,
         &proof_block.program_hash,
     );
+
+    use crate::log::logger::log_info;
+    log_info("zk_bind", "comparing commitments");
+    log_hex("stored", &result.capsule_commitment[..8]);
+    log_hex("expect", &expected[..8]);
+    log_hex("kh_act", &actual_kernel_hash[..8]);
+    log_hex("kh_blk", &proof_block.kernel_hash[..8]);
+
     if let Err(e) = verify_commitment_binding(&result.capsule_commitment, &expected) {
         log_error("zk_bind", e);
         binding_failure(st, gop_available, e);
