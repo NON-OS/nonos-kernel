@@ -37,7 +37,12 @@ pub fn init() -> FrameResult<()> {
 }
 
 pub fn alloc_frame() -> Option<PhysFrame<Size4KiB>> {
-    GLOBAL_ALLOCATOR.lock().alloc()
+    crate::sys::serial::println(b"[FRAME] Acquiring lock");
+    let mut guard = GLOBAL_ALLOCATOR.lock();
+    crate::sys::serial::println(b"[FRAME] Lock acquired, calling alloc");
+    let result = guard.alloc();
+    crate::sys::serial::println(b"[FRAME] alloc returned");
+    result
 }
 
 pub fn allocate_frame() -> Option<PhysAddr> {
