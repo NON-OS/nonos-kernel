@@ -168,20 +168,19 @@ else
 		--public-inputs-out $(ZK_PUBLIC_INPUTS) --seed "nonos-boot-attestation-v1"
 endif
 
-embed-zk-proof: sign-kernel generate-zk-proof
-	@echo "Embedding ZK proof into kernel..."
+embed-zk-proof: sign-kernel
+	@echo "Generating ZK attestation and embedding into kernel..."
+	@test -f $(ZK_PROVING_KEY) || { echo "No proving key. Run 'make generate-zk-keys' first."; exit 1; }
 ifeq ($(UNAME_S),Darwin)
 	cd $(BOOTLOADER_DIR)/tools/embed-zk-proof && $(CARGO) build --release --target x86_64-apple-darwin
 	$(BOOTLOADER_DIR)/tools/embed-zk-proof/target/x86_64-apple-darwin/release/embed-zk-proof \
 		--input $(TARGET_DIR)/kernel_signed.bin --output $(TARGET_DIR)/kernel_attested.bin \
-		--proof $(ZK_PROOF_FILE) --program-hash $(ZK_PROGRAM_HASH) \
-		--public-inputs $(ZK_PUBLIC_INPUTS) --verbose
+		--proving-key $(ZK_PROVING_KEY) --seed "$(ZK_KEY_SEED)" --verbose
 else
 	cd $(BOOTLOADER_DIR)/tools/embed-zk-proof && rm -rf target && RUSTFLAGS="" CARGO_UNSTABLE_BUILD_STD= $(CARGO) build --release --target x86_64-unknown-linux-gnu
 	$(BOOTLOADER_DIR)/tools/embed-zk-proof/target/x86_64-unknown-linux-gnu/release/embed-zk-proof \
 		--input $(TARGET_DIR)/kernel_signed.bin --output $(TARGET_DIR)/kernel_attested.bin \
-		--proof $(ZK_PROOF_FILE) --program-hash $(ZK_PROGRAM_HASH) \
-		--public-inputs $(ZK_PUBLIC_INPUTS) --verbose
+		--proving-key $(ZK_PROVING_KEY) --seed "$(ZK_KEY_SEED)" --verbose
 endif
 
 esp: bootloader kernel sign-kernel embed-zk-proof
