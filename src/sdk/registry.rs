@@ -69,7 +69,7 @@ pub fn uninstall_app(id: u32) -> bool {
 
 pub fn app_count() -> u32 { REGISTRY.lock().len() as u32 }
 
-pub(super) fn update_app_stats(id: u32, timestamp: u64) {
-    let mut reg = REGISTRY.lock();
-    for a in reg.iter_mut() { if a.id == id { a.run_count += 1; a.last_run = timestamp; return; } }
+pub(super) fn update_app_stats(id: u32, ts: u64) {
+    let mut r = REGISTRY.lock();
+    for a in r.iter_mut() { if a.id == id { a.run_count += 1; a.last_run = ts; return; } }
 }
