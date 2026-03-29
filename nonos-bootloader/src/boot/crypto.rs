@@ -73,7 +73,22 @@ pub fn run_crypto_verification(
         show_crypto_verification(&crypto_state);
     }
 
-    if !crypto_result.signature_valid {
+    if !crypto_result.signature_present {
+        if security_mode.requires_signature() {
+            log_error("crypto", "kernel has no signature - refusing to boot");
+            update_stage(STAGE_ED25519_VERIFY, StageStatus::Failed);
+            if gop_available {
+                crate::display::log_error(b"Kernel UNSIGNED");
+                show_error_screen(b"Kernel not signed - refusing to boot");
+            }
+            fatal_reset(system_table, "kernel not signed");
+        } else {
+            if gop_available {
+                log_warn(b"Ed25519 signature SKIPPED (dev mode)");
+            }
+            update_stage(STAGE_ED25519_VERIFY, StageStatus::Success);
+        }
+    } else if !crypto_result.signature_valid {
         if security_mode.requires_signature() {
             log_error("crypto", "kernel signature verification FAILED");
             update_stage(STAGE_ED25519_VERIFY, StageStatus::Failed);
@@ -84,7 +99,7 @@ pub fn run_crypto_verification(
             fatal_reset(system_table, "kernel signature invalid");
         } else {
             if gop_available {
-                log_warn(b"Ed25519 signature SKIPPED (dev mode)");
+                log_warn(b"Ed25519 signature INVALID (dev mode - continuing)");
             }
             update_stage(STAGE_ED25519_VERIFY, StageStatus::Success);
         }
