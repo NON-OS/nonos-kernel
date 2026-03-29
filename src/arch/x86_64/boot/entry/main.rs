@@ -216,5 +216,5 @@ pub unsafe extern "C" fn boot_main() -> ! {
         vga::set_color(vga::Color::LightGray, vga::Color::Black);
     }
 
-    crate::kernel_main();
+    crate::entry::kernel_main();
 }
