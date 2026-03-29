@@ -24,6 +24,7 @@ pub enum MenuAction {
     SecurityStatus,
     Continue,
     Timeout,
+    Shutdown,
 }
 
 impl MenuAction {
@@ -37,6 +38,7 @@ impl MenuAction {
             Self::SecurityStatus => "Security Status",
             Self::Continue => "Continue Boot",
             Self::Timeout => "Boot (Default)",
+            Self::Shutdown => "Shutdown",
         }
     }
 
