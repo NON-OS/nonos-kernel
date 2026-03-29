@@ -15,8 +15,10 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod constants;
+mod core;
+mod hash;
 mod types;
-mod verify;
+mod util;
 
 #[cfg(feature = "zk-groth16")]
 mod groth16;
@@ -24,9 +26,10 @@ mod groth16;
 #[cfg(feature = "zk-groth16")]
 pub use constants::GROTH16_PROOF_LEN;
 pub use constants::{DS_PROGRAM_HASH, MAX_INPUT_SIZE, MAX_PROOF_SIZE};
-
+pub use core::verify_proof;
+pub use hash::derive_program_hash;
 pub use types::{ZkProof, ZkVerifyResult};
-pub use verify::{ct_eq32, derive_program_hash, verify_proof};
+pub use util::ct_eq32;
 
 #[cfg(feature = "zk-groth16")]
 pub use groth16::{groth16_verify, GrothErr};
