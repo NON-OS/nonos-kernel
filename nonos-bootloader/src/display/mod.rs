@@ -20,6 +20,7 @@ pub mod constants;
 pub mod font;
 pub mod gop;
 pub mod log_panel;
+pub mod security;
 pub mod ui;
 
 pub use boot_screen::{
@@ -33,4 +34,5 @@ pub use log_panel::{
     log_error, log_hash, log_hash_full, log_hex, log_info, log_mem, log_ok, log_size, log_u32,
     log_warn,
 };
+pub use security::display_enforcement_result;
 pub use ui::StageStatus;
