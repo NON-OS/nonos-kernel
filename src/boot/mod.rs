@@ -18,6 +18,7 @@ pub mod early;
 pub mod stage1;
 pub mod handoff;
 mod init;
+pub mod main;
 pub mod multiboot;
 mod panic;
 pub mod validation;
