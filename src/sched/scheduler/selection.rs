@@ -14,9 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
+use core::sync::atomic::{AtomicU32, Ordering};
 use super::process::get_runnable_pids;
 use super::preemption::{CURRENT_TIME_SLICE, DEFAULT_TIME_SLICE};
+
+static LAST_SCHEDULED_PID: AtomicU32 = AtomicU32::new(0);
 
 pub fn select_next_process() -> Option<u32> {
     use crate::process::nonos_core::{PROCESS_TABLE, ProcessState, Priority};
@@ -26,32 +28,59 @@ pub fn select_next_process() -> Option<u32> {
         return None;
     }
 
-    for &pid in &runnable {
-        if let Some(pcb) = PROCESS_TABLE.find_by_pid(pid) {
-            let prio = *pcb.priority.lock();
-            let state = *pcb.state.lock();
-            if state == ProcessState::Ready && prio == Priority::High {
-                return Some(pid);
-            }
+    let last = LAST_SCHEDULED_PID.load(Ordering::Relaxed);
+
+    // High priority always takes precedence (still round-robin within high)
+    if let Some(pid) = select_round_robin(&runnable, last, |pid| {
+        PROCESS_TABLE.find_by_pid(pid).map_or(false, |pcb| {
+            *pcb.state.lock() == ProcessState::Ready && *pcb.priority.lock() == Priority::High
+        })
+    }) {
+        LAST_SCHEDULED_PID.store(pid, Ordering::Relaxed);
+        return Some(pid);
+    }
+
+    // Normal priority round-robin
+    if let Some(pid) = select_round_robin(&runnable, last, |pid| {
+        PROCESS_TABLE.find_by_pid(pid).map_or(false, |pcb| {
+            *pcb.state.lock() == ProcessState::Ready && *pcb.priority.lock() == Priority::Normal
+        })
+    }) {
+        LAST_SCHEDULED_PID.store(pid, Ordering::Relaxed);
+        return Some(pid);
+    }
+
+    // Any ready process (low priority)
+    if let Some(pid) = select_round_robin(&runnable, last, |pid| {
+        PROCESS_TABLE.find_by_pid(pid).map_or(false, |pcb| {
+            *pcb.state.lock() == ProcessState::Ready
+        })
+    }) {
+        LAST_SCHEDULED_PID.store(pid, Ordering::Relaxed);
+        return Some(pid);
+    }
+
+    None
+}
+
+fn select_round_robin<F>(pids: &[u32], last: u32, predicate: F) -> Option<u32>
+where
+    F: Fn(u32) -> bool,
+{
+    // Find position after last scheduled PID
+    let start_idx = pids.iter().position(|&p| p > last).unwrap_or(0);
+
+    // Check from start_idx to end
+    for &pid in &pids[start_idx..] {
+        if predicate(pid) {
+            return Some(pid);
         }
     }
 
-    for &pid in &runnable {
-        if let Some(pcb) = PROCESS_TABLE.find_by_pid(pid) {
-            let prio = *pcb.priority.lock();
-            let state = *pcb.state.lock();
-            if state == ProcessState::Ready && prio == Priority::Normal {
-                return Some(pid);
-            }
-        }
-    }
-
-    for &pid in &runnable {
-        if let Some(pcb) = PROCESS_TABLE.find_by_pid(pid) {
-            let state = *pcb.state.lock();
-            if state == ProcessState::Ready {
-                return Some(pid);
-            }
+    // Wrap around: check from beginning to start_idx
+    for &pid in &pids[..start_idx] {
+        if predicate(pid) {
+            return Some(pid);
         }
     }
 
@@ -69,11 +98,8 @@ pub fn switch_to_process(pid: u32) {
     CURRENT_PID.store(pid, Ordering::SeqCst);
     CURRENT_TIME_SLICE.store(DEFAULT_TIME_SLICE, Ordering::Relaxed);
 
-    if let Err(_) = switch_to_process_address_space(pid) {
-        crate::sys::serial::print(b"[SCHED] No address space for pid ");
-        crate::sys::serial::print_dec(pid as u64);
-        crate::sys::serial::println(b"");
-    }
+    // Switch to the process's address space (if it has one)
+    let _ = switch_to_process_address_space(pid);
 
     if let Some(ctx) = crate::process::nonos_core::INTERRUPT_SAVED_CONTEXTS.write().remove(&pid) {
         ctx.restore();
