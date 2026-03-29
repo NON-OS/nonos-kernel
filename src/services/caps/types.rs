@@ -1,0 +1,52 @@
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+pub const CAP_VFS: u64 = 1 << 0;
+pub const CAP_NET: u64 = 1 << 1;
+pub const CAP_DISPLAY: u64 = 1 << 2;
+pub const CAP_DRIVER: u64 = 1 << 3;
+pub const CAP_CRYPTO: u64 = 1 << 4;
+pub const CAP_PROCESS: u64 = 1 << 5;
+pub const CAP_MEMORY: u64 = 1 << 6;
+pub const CAP_INPUT: u64 = 1 << 7;
+pub const CAP_AUDIO: u64 = 1 << 8;
+pub const CAP_ZK: u64 = 1 << 9;
+pub const CAP_ADMIN: u64 = 1 << 63;
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct ServiceCap {
+    pub bits: u64,
+    pub owner_pid: u32,
+    pub expires_ms: u64,
+}
+
+impl ServiceCap {
+    pub fn new(bits: u64, owner: u32) -> Self {
+        Self { bits, owner_pid: owner, expires_ms: 0 }
+    }
+
+    pub fn with_expiry(bits: u64, owner: u32, expires_ms: u64) -> Self {
+        Self { bits, owner_pid: owner, expires_ms }
+    }
+
+    pub fn has(&self, cap: u64) -> bool {
+        (self.bits & cap) == cap
+    }
+
+    pub fn is_expired(&self, now_ms: u64) -> bool {
+        self.expires_ms != 0 && now_ms > self.expires_ms
+    }
+}

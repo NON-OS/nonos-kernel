@@ -1,0 +1,61 @@
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+extern crate alloc;
+
+use alloc::string::String;
+use super::core::ServiceServer;
+use super::parsing::{parse_request, encode_response, extract_pid};
+use crate::services::protocol::{ServiceRequest, ServiceResponse};
+use crate::services::caps::verify_caller_cap;
+use crate::ipc::nonos_channel::{IpcMessage, IPC_BUS};
+use crate::ipc::nonos_inbox;
+
+const ERR_CAPABILITY: i32 = -403;
+
+impl ServiceServer {
+    pub fn poll_once<F>(&self, handler: &mut F) -> bool
+    where F: FnMut(ServiceRequest) -> ServiceResponse {
+        if let Some((req, from, caller_pid)) = self.recv_request() {
+            let resp = match verify_caller_cap(caller_pid, self.caps_required) {
+                Ok(_) => handler(req),
+                Err(_) => ServiceResponse::err(req.seq, ERR_CAPABILITY),
+            };
+            self.send_response(&from, resp);
+            true
+        } else {
+            false
+        }
+    }
+
+    pub(super) fn recv_request(&self) -> Option<(ServiceRequest, String, u32)> {
+        let msg = nonos_inbox::try_dequeue(&self.name)?;
+        let req = parse_request(&msg.data)?;
+        let caller_pid = extract_pid(&msg.from);
+        Some((req, msg.from, caller_pid))
+    }
+
+    pub(super) fn send_response(&self, to: &str, resp: ServiceResponse) {
+        let data = encode_response(&resp);
+        if let Ok(msg) = IpcMessage::new(&self.name, to, &data) {
+            if let Some(ch) = IPC_BUS.find_channel(&self.name, to) {
+                let _ = ch.send(msg);
+            } else {
+                let _ = nonos_inbox::try_enqueue(to, msg);
+            }
+        }
+    }
+}
