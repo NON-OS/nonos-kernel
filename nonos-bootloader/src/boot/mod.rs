@@ -23,6 +23,7 @@ pub mod prepare;
 pub mod security;
 pub mod uefi;
 pub mod util;
+pub mod zk_init;
 
 pub use attestation::run_zk_attestation;
 pub use crypto::run_crypto_verification;
@@ -33,3 +34,4 @@ pub use prepare::run_handoff_prepare;
 pub use security::run_security_checks;
 pub use uefi::run_uefi_init;
 pub use util::{fatal_reset, micro_delay, mini_delay};
+pub use zk_init::initialize_zk_replay_protection;
