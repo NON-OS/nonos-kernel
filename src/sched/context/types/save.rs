@@ -33,7 +33,7 @@ impl Context {
             core::arch::asm!("mov {}, rsi", out(reg) ctx.rsi, options(preserves_flags, nostack));
             core::arch::asm!("mov {}, rdi", out(reg) ctx.rdi, options(preserves_flags, nostack));
             core::arch::asm!("mov {}, rbp", out(reg) ctx.rbp, options(preserves_flags, nostack));
-            core::arch::asm!("mov {}, rsp", out(reg) ctx.rsp, options(preserves_flags, nostack));
+            core::arch::asm!("lea {}, [rsp + 8]", out(reg) ctx.rsp, options(preserves_flags, nostack));
             core::arch::asm!("mov {}, r8", out(reg) ctx.r8, options(preserves_flags, nostack));
             core::arch::asm!("mov {}, r9", out(reg) ctx.r9, options(preserves_flags, nostack));
             core::arch::asm!("mov {}, r10", out(reg) ctx.r10, options(preserves_flags, nostack));
@@ -42,7 +42,7 @@ impl Context {
             core::arch::asm!("mov {}, r13", out(reg) ctx.r13, options(preserves_flags, nostack));
             core::arch::asm!("mov {}, r14", out(reg) ctx.r14, options(preserves_flags, nostack));
             core::arch::asm!("mov {}, r15", out(reg) ctx.r15, options(preserves_flags, nostack));
-            core::arch::asm!("lea {}, [rip]", out(reg) ctx.rip, options(preserves_flags, nostack));
+            core::arch::asm!("mov {}, [rsp]", out(reg) ctx.rip, options(preserves_flags, nostack));
             core::arch::asm!("pushfq", "pop {}", out(reg) ctx.rflags, options(nostack));
         }
         ctx
