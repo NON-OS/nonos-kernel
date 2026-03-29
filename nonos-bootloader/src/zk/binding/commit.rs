@@ -34,10 +34,17 @@ pub fn compute_commit(binding: BindingInput<'_>) -> [u8; 32] {
     }
 }
 
-/// Compute capsule commitment directly from code bytes
-pub fn compute_capsule_commitment(kernel_code: &[u8]) -> [u8; 32] {
+pub fn compute_capsule_commitment(
+    kernel_hash: &[u8; 32],
+    boot_nonce: &[u8; 32],
+    machine_id: &[u8; 32],
+    program_hash: &[u8; 32],
+) -> [u8; 32] {
     let mut hasher = blake3::Hasher::new_derive_key(DS_COMMITMENT);
-    hasher.update(kernel_code);
+    hasher.update(kernel_hash);
+    hasher.update(boot_nonce);
+    hasher.update(machine_id);
+    hasher.update(program_hash);
     *hasher.finalize().as_bytes()
 }
 
