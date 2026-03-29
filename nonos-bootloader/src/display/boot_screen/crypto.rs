@@ -14,18 +14,23 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-/*
- * Cryptographic Verification Display.
- *
- * Shows hash, signature, and ZK verification status.
- */
-
 use crate::display::constants::*;
 use crate::display::font::draw_string;
-use crate::display::gop::{fill_rect, get_dimensions};
+use crate::display::gop::get_dimensions;
 use core::sync::atomic::{AtomicU32, Ordering};
 
 static HASH_REVEAL: AtomicU32 = AtomicU32::new(0);
+
+const MARGIN: u32 = 30;
+const PAD: u32 = 16;
+const CRYPTO_Y_START: u32 = 320;
+
+fn get_crypto_area() -> (u32, u32) {
+    let (screen_w, _) = get_dimensions();
+    let x = (screen_w / 2) + (MARGIN / 2) + PAD;
+    let y = CRYPTO_Y_START;
+    (x, y)
+}
 
 pub struct BootCryptoState {
     pub kernel_hash: [u8; 32],
@@ -52,37 +57,29 @@ impl BootCryptoState {
 }
 
 pub fn show_crypto_verification(crypto: &BootCryptoState) {
-    let (width, height) = get_dimensions();
-    if width == 0 {
-        return;
-    }
+    let (cx, cy) = get_crypto_area();
 
-    let panel_x = 40u32;
-    let crypto_y = height - 140;
-
-    fill_rect(panel_x - 16, crypto_y - 16, 500, 2, COLOR_GLASS_BORDER);
-
-    draw_string(panel_x, crypto_y, b"Cryptographic Verification", COLOR_ACCENT);
+    draw_string(cx, cy, b"Cryptographic Verification", COLOR_ACCENT);
 
     let mut hash_line = [0u8; 48];
     hash_line[..7].copy_from_slice(b"BLAKE3 ");
     format_hash_short(&crypto.kernel_hash, &mut hash_line[7..]);
-    draw_string(panel_x, crypto_y + 22, &hash_line, COLOR_SUCCESS);
+    draw_string(cx, cy + 22, &hash_line, COLOR_SUCCESS);
 
-    let sig_status = match crypto.signature_valid {
-        Some(true) => (b"Ed25519 VALID              ", COLOR_SUCCESS),
-        Some(false) => (b"Ed25519 INVALID            ", COLOR_ERROR),
-        None => (b"Ed25519 verifying...       ", COLOR_TEXT_DIM),
+    let sig_status: (&[u8], u32) = match crypto.signature_valid {
+        Some(true) => (b"Ed25519 VALID", COLOR_SUCCESS),
+        Some(false) => (b"Ed25519 INVALID", COLOR_ERROR),
+        None => (b"Ed25519 verifying...", COLOR_TEXT_DIM),
     };
-    draw_string(panel_x, crypto_y + 44, sig_status.0, sig_status.1);
+    draw_string(cx, cy + 44, sig_status.0, sig_status.1);
 
-    let zk_status = match (crypto.zk_present, crypto.zk_verified) {
-        (true, Some(true)) => (b"ZK-SNARK VERIFIED          ", COLOR_SUCCESS),
-        (true, Some(false)) => (b"ZK-SNARK FAILED            ", COLOR_ERROR),
-        (true, None) => (b"ZK-SNARK verifying...      ", COLOR_WARNING),
-        (false, _) => (b"ZK-SNARK not present       ", COLOR_TEXT_DIM),
+    let zk_status: (&[u8], u32) = match (crypto.zk_present, crypto.zk_verified) {
+        (true, Some(true)) => (b"ZK-SNARK VERIFIED", COLOR_SUCCESS),
+        (true, Some(false)) => (b"ZK-SNARK FAILED", COLOR_ERROR),
+        (true, None) => (b"ZK-SNARK verifying...", COLOR_WARNING),
+        (false, _) => (b"ZK-SNARK not present", COLOR_TEXT_DIM),
     };
-    draw_string(panel_x, crypto_y + 66, zk_status.0, zk_status.1);
+    draw_string(cx, cy + 66, zk_status.0, zk_status.1);
 }
 
 fn format_hash_short(hash: &[u8], out: &mut [u8]) {
