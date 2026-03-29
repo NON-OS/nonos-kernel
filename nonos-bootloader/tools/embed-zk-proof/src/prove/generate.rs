@@ -30,7 +30,7 @@ pub fn generate_proof(pk: &ProvingKey<Bls12_381>, params: &CircuitParams) -> Res
     let seed_u64 = u64::from_le_bytes(seed_hash.as_bytes()[..8].try_into().unwrap());
     let mut rng = StdRng::seed_from_u64(seed_u64);
 
-    let proof: Proof<Bls12_381> = Groth16::prove(pk, circuit, &mut rng)
+    let proof: Proof<Bls12_381> = Groth16::<Bls12_381>::prove(pk, circuit, &mut rng)
         .with_context(|| "Groth16 proof generation failed")?;
 
     let mut proof_bytes = Vec::new();
