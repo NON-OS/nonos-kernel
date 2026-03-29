@@ -26,7 +26,7 @@ impl Scheduler {
     }
 }
 
-pub(super) struct SchedulerStats {
+pub(crate) struct SchedulerStats {
     pub context_switches: AtomicU64,
     pub preemptions: AtomicU64,
     pub voluntary_yields: AtomicU64,
@@ -36,7 +36,7 @@ pub(super) struct SchedulerStats {
 }
 
 impl SchedulerStats {
-    pub(super) const fn new() -> Self {
+    pub(crate) const fn new() -> Self {
         Self {
             context_switches: AtomicU64::new(0),
             preemptions: AtomicU64::new(0),
