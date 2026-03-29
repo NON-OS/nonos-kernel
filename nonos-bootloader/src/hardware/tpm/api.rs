@@ -45,3 +45,13 @@ pub fn pcr_extend(pcr_index: u32, digest: &[u8; 32]) -> Result<(), TpmError> {
     let tpm = TPM.lock();
     tpm.pcr_extend(pcr_index, digest)
 }
+
+pub fn get_tpm_ek_public(
+    _st: &uefi::prelude::SystemTable<uefi::prelude::Boot>,
+) -> Result<alloc::vec::Vec<u8>, &'static str> {
+    let tpm = TPM.lock();
+    if !tpm.initialized {
+        return Err("TPM not initialized");
+    }
+    tpm.get_ek_public()
+}

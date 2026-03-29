@@ -17,11 +17,13 @@
 mod api;
 mod commands;
 mod constants;
+mod ek;
 mod nv;
+mod nv_write;
 mod state;
 mod types;
 
-pub use api::{init_tpm, is_tpm_available, nv_read, nv_write, pcr_extend, TPM};
+pub use api::{get_tpm_ek_public, init_tpm, is_tpm_available, nv_read, nv_write, pcr_extend, TPM};
 pub use constants::*;
 pub use state::TpmState;
 pub use types::{NvIndex, TpmError};
