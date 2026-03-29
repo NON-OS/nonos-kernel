@@ -20,6 +20,8 @@ use std::path::Path;
 use anyhow::{bail, Context, Result};
 
 pub const ED25519_SIG_SIZE: usize = 64;
+pub const FOOTER_SIZE: usize = 64;
+pub const FOOTER_MAGIC: [u8; 8] = *b"NONOSIMG";
 
 pub struct SignedKernel {
     pub raw_bytes: Vec<u8>,
@@ -31,15 +33,30 @@ pub fn load_signed_kernel(path: &Path) -> Result<SignedKernel> {
     let raw_bytes = fs::read(path)
         .with_context(|| format!("Failed to read signed kernel: {}", path.display()))?;
 
-    if raw_bytes.len() < 128 {
-        bail!("Signed kernel too small (must be at least 128 bytes)");
+    if raw_bytes.len() < FOOTER_SIZE + ED25519_SIG_SIZE + 64 {
+        bail!("Signed kernel too small");
     }
 
-    let sig_offset = raw_bytes.len() - ED25519_SIG_SIZE;
-    let kernel_bytes = raw_bytes[..sig_offset].to_vec();
+    let footer_start = raw_bytes.len() - FOOTER_SIZE;
+    if &raw_bytes[footer_start..footer_start + 8] != &FOOTER_MAGIC {
+        bail!("Missing NONOSIMG footer in signed kernel");
+    }
 
+    let kernel_size = u32::from_le_bytes([
+        raw_bytes[footer_start + 28],
+        raw_bytes[footer_start + 29],
+        raw_bytes[footer_start + 30],
+        raw_bytes[footer_start + 31],
+    ]) as usize;
+
+    if kernel_size > footer_start - ED25519_SIG_SIZE {
+        bail!("Invalid kernel size in footer");
+    }
+
+    let kernel_bytes = raw_bytes[..kernel_size].to_vec();
+    let sig_start = kernel_size;
     let mut signature = [0u8; ED25519_SIG_SIZE];
-    signature.copy_from_slice(&raw_bytes[sig_offset..]);
+    signature.copy_from_slice(&raw_bytes[sig_start..sig_start + ED25519_SIG_SIZE]);
 
     Ok(SignedKernel { raw_bytes, kernel_bytes, signature })
 }
