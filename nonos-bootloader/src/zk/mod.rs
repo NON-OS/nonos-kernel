@@ -43,9 +43,9 @@ pub use verify::{DS_PROGRAM_HASH, MAX_INPUT_SIZE, MAX_PROOF_SIZE};
 
 pub use attest::{
     calculate_proof_block_size, create_zk_proof_block, find_zk_proof_offset, has_zk_proof,
-    parse_zk_proof, parse_zk_proof_header, verify_boot_attestation,
-    verify_boot_attestation_with_manifest, BootAttestationResult, ZkProofBlock, GROTH16_PROOF_SIZE,
-    ZK_PROOF_HEADER_SIZE, ZK_PROOF_MAGIC, ZK_PROOF_VERSION,
+    parse_zk_proof, verify_boot_attestation, verify_boot_attestation_with_manifest,
+    BootAttestationResult, ZkProofBlock, GROTH16_PROOF_SIZE, ZK_PROOF_HEADER_SIZE, ZK_PROOF_MAGIC,
+    ZK_PROOF_VERSION,
 };
 
 pub use transcript::{Transcript, TRANSCRIPT_DOMAIN_BOOT, TRANSCRIPT_DOMAIN_CIRCUIT};
