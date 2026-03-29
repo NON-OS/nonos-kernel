@@ -34,14 +34,3 @@ pub fn validate_signature_size(
     Ok(())
 }
 
-pub fn validate_signature_bytes(sig_bytes: &[u8]) -> Result<(), ImageValidationError> {
-    if sig_bytes.len() < 64 {
-        return Err(ImageValidationError::SignatureSizeMismatch);
-    }
-
-    if sig_bytes.iter().all(|&b| b == 0) {
-        return Err(ImageValidationError::SignatureAllZeros);
-    }
-
-    Ok(())
-}
