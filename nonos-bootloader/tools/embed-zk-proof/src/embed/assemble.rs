@@ -29,11 +29,12 @@ pub fn assemble_attested_image(kernel: &SignedKernel, zk_block: Vec<u8>) -> Atte
     let signature_size = ED25519_SIG_SIZE as u32;
     let proof_size = zk_block.len() as u32;
 
-    let total_size = kernel.raw_bytes.len() + zk_block.len() + FOOTER_SIZE;
+    let total_size = kernel.kernel_bytes.len() + ED25519_SIG_SIZE + zk_block.len() + FOOTER_SIZE;
     let footer = create_image_footer(kernel_size, signature_size, proof_size, total_size as u64);
 
     let mut data = Vec::with_capacity(total_size);
-    data.extend_from_slice(&kernel.raw_bytes);
+    data.extend_from_slice(&kernel.kernel_bytes);
+    data.extend_from_slice(&kernel.signature);
     data.extend_from_slice(&zk_block);
     data.extend_from_slice(&footer);
 
