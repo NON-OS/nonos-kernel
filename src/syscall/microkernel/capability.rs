@@ -1,0 +1,91 @@
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+extern crate alloc;
+
+use alloc::vec::Vec;
+use spin::Mutex;
+use crate::process::current_pid;
+
+const E_PERM: i64 = -1;
+
+struct CapEntry {
+    pid: u32,
+    caps: u64,
+}
+
+static CAP_TABLE: Mutex<Vec<CapEntry>> = Mutex::new(Vec::new());
+
+pub fn sys_cap_grant(target_pid: u32, caps: u64) -> i64 {
+    let caller = match current_pid() {
+        Some(p) => p,
+        None => return E_PERM,
+    };
+    if !has_admin_cap(caller) { return E_PERM; }
+    let mut table = CAP_TABLE.lock();
+    if let Some(entry) = table.iter_mut().find(|e| e.pid == target_pid) {
+        entry.caps |= caps;
+    } else {
+        table.push(CapEntry { pid: target_pid, caps });
+    }
+    0
+}
+
+pub fn sys_cap_revoke(target_pid: u32, caps: u64) -> i64 {
+    let caller = match current_pid() {
+        Some(p) => p,
+        None => return E_PERM,
+    };
+    if !has_admin_cap(caller) { return E_PERM; }
+    let mut table = CAP_TABLE.lock();
+    if let Some(entry) = table.iter_mut().find(|e| e.pid == target_pid) {
+        entry.caps &= !caps;
+    }
+    0
+}
+
+pub fn sys_cap_check(target_pid: u32, caps: u64) -> i64 {
+    let table = CAP_TABLE.lock();
+    if let Some(entry) = table.iter().find(|e| e.pid == target_pid) {
+        if (entry.caps & caps) == caps { 1 } else { 0 }
+    } else {
+        0
+    }
+}
+
+fn has_admin_cap(pid: u32) -> bool {
+    let table = CAP_TABLE.lock();
+    table.iter().find(|e| e.pid == pid).map(|e| e.caps & (1 << 63) != 0).unwrap_or(pid == 1)
+}
+
+pub fn init_cap_for_init() {
+    let mut table = CAP_TABLE.lock();
+    table.push(CapEntry { pid: 1, caps: u64::MAX });
+}
+
+pub fn grant_caps_internal(pid: u32, caps: u64) {
+    let mut table = CAP_TABLE.lock();
+    if let Some(entry) = table.iter_mut().find(|e| e.pid == pid) {
+        entry.caps |= caps;
+    } else {
+        table.push(CapEntry { pid, caps });
+    }
+}
+
+pub fn check_caps_internal(pid: u32, required: u64) -> bool {
+    let table = CAP_TABLE.lock();
+    table.iter().find(|e| e.pid == pid).map(|e| (e.caps & required) == required).unwrap_or(false)
+}

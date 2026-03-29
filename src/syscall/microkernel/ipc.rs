@@ -1,0 +1,57 @@
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+use crate::ipc::kernel_ipc::kernel_route_ipc;
+use crate::ipc::nonos_inbox;
+use crate::process::current_pid;
+
+const E_INVAL: i64 = -22;
+const E_TIMEDOUT: i64 = -110;
+
+pub fn sys_ipc_send(endpoint: u64, buf: *const u8, len: usize) -> i64 {
+    if buf.is_null() || len == 0 { return E_INVAL; }
+    let data = unsafe { core::slice::from_raw_parts(buf, len) };
+    let pid = current_pid().unwrap_or(0);
+    let target = alloc::format!("endpoint.{}", endpoint);
+    match kernel_route_ipc(pid, &target, data) {
+        Ok(()) => 0,
+        Err(e) => e as i64,
+    }
+}
+
+pub fn sys_ipc_recv(_endpoint: u64, buf: *mut u8, len: usize, timeout_ms: u64) -> i64 {
+    if buf.is_null() || len == 0 { return E_INVAL; }
+    let pid = current_pid().unwrap_or(0);
+    let inbox_name = alloc::format!("proc.{}", pid);
+    nonos_inbox::register_inbox(&inbox_name);
+    let start = crate::time::timestamp_millis();
+    loop {
+        if let Some(msg) = nonos_inbox::try_dequeue(&inbox_name) {
+            let copy_len = msg.data.len().min(len);
+            unsafe { core::ptr::copy_nonoverlapping(msg.data.as_ptr(), buf, copy_len); }
+            return copy_len as i64;
+        }
+        let elapsed = crate::time::timestamp_millis().saturating_sub(start);
+        if timeout_ms > 0 && elapsed >= timeout_ms { return E_TIMEDOUT; }
+        crate::sched::yield_now();
+    }
+}
+
+pub fn sys_ipc_call(ep: u64, req: *const u8, req_len: usize, resp: *mut u8, resp_len: usize) -> i64 {
+    let send_result = sys_ipc_send(ep, req, req_len);
+    if send_result < 0 { return send_result; }
+    sys_ipc_recv(ep, resp, resp_len, 5000)
+}
