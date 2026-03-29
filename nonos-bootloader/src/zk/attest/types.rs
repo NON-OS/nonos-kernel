@@ -19,16 +19,12 @@ extern crate alloc;
 use crate::zk::verify::ZkVerifyResult;
 use alloc::vec::Vec;
 
-/// ZK proof block magic bytes: 'N' 0xC3 'Z' 'P'
 pub const ZK_PROOF_MAGIC: [u8; 4] = [0x4E, 0xC3, 0x5A, 0x50];
 
-/// Current ZK proof format version
-pub const ZK_PROOF_VERSION: u32 = 1;
+pub const ZK_PROOF_VERSION: u32 = 2;
 
-/// ZK proof header size (80 bytes)
-pub const ZK_PROOF_HEADER_SIZE: usize = 80;
+pub const ZK_PROOF_HEADER_SIZE: usize = 176;
 
-/// Groth16 proof size (192 bytes)
 pub const GROTH16_PROOF_SIZE: usize = 192;
 
 #[derive(Debug, Clone)]
@@ -102,22 +98,32 @@ impl BootAttestationResult {
     }
 }
 
-/// Parsed ZK proof block from capsule
 #[derive(Debug, Clone)]
 pub struct ZkProofBlock {
-    /// Program hash identifying the circuit
     pub program_hash: [u8; 32],
-    /// Capsule commitment
     pub capsule_commitment: [u8; 32],
-    /// Public inputs (32-byte aligned)
+    pub kernel_hash: [u8; 32],
+    pub boot_nonce: [u8; 32],
+    pub machine_id: [u8; 32],
     pub public_inputs: Vec<u8>,
-    /// Proof blob (192 bytes for Groth16)
     pub proof_blob: Vec<u8>,
 }
 
 impl ZkProofBlock {
-    /// Check if proof block has valid structure
     pub fn is_valid(&self) -> bool {
         self.public_inputs.len() % 32 == 0 && self.proof_blob.len() == GROTH16_PROOF_SIZE
     }
+
+    pub fn kernel_hash_matches(&self, actual: &[u8; 32]) -> bool {
+        ct_eq32(&self.kernel_hash, actual)
+    }
+}
+
+#[inline]
+fn ct_eq32(a: &[u8; 32], b: &[u8; 32]) -> bool {
+    let mut x = 0u8;
+    for i in 0..32 {
+        x |= a[i] ^ b[i];
+    }
+    x == 0
 }
