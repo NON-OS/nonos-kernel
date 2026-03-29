@@ -19,8 +19,6 @@ use uefi::table::runtime::ResetType;
 
 use crate::log::logger::log_error;
 
-pub const ZK_PROOF_MAGIC: [u8; 4] = [0x4E, 0xC3, 0x5A, 0x50];
-
 pub fn mini_delay() {
     for _ in 0..8_000_000 {
         core::hint::spin_loop();
@@ -31,29 +29,6 @@ pub fn micro_delay() {
     for _ in 0..1_500_000 {
         core::hint::spin_loop();
     }
-}
-
-/*
- * Find signature end in kernel binary
- *
- * Kernel layout: [elf_code][64-byte Ed25519 sig][optional ZK block]
- * Returns offset where signature ends (start of ZK block or EOF)
- */
-pub fn find_signature_end(kernel_data: &[u8]) -> usize {
-    const MIN_ZK_SIZE: usize = 272;
-
-    if kernel_data.len() < 64 + MIN_ZK_SIZE {
-        return kernel_data.len();
-    }
-
-    let search_start = kernel_data.len().saturating_sub(4096);
-    for i in (search_start..kernel_data.len().saturating_sub(MIN_ZK_SIZE)).rev() {
-        if kernel_data.len() - i >= 4 && &kernel_data[i..i + 4] == &ZK_PROOF_MAGIC {
-            return i;
-        }
-    }
-
-    kernel_data.len()
 }
 
 pub fn fatal_reset(st: &mut SystemTable<Boot>, reason: &str) -> ! {
