@@ -16,8 +16,10 @@
 
 // Embedded WiFi firmware handoff for kernel boot
 
-mod types;
 mod loader;
+pub mod quirks;
+mod types;
 
-pub use types::{FirmwareEntry, FirmwareType, FirmwareHandoff, MAX_FIRMWARE_ENTRIES};
-pub use loader::{get_firmware_handoff, get_firmware, has_embedded_firmware, firmware_count};
+pub use loader::{firmware_count, get_firmware, get_firmware_handoff, has_embedded_firmware};
+pub use quirks::{apply_mmap_quirks, detect_firmware_quirks, FirmwareQuirk, QuirkFlags};
+pub use types::{FirmwareEntry, FirmwareHandoff, FirmwareType, MAX_FIRMWARE_ENTRIES};
