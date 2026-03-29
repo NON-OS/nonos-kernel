@@ -14,12 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-/*
- * Boot Stage Display.
- *
- * Updates the visual state of each boot stage.
- */
-
 use crate::display::constants::*;
 use crate::display::font::{draw_string, CHAR_HEIGHT};
 use crate::display::gop::get_dimensions;
@@ -28,33 +22,42 @@ use core::sync::atomic::{AtomicU8, Ordering};
 
 static CURRENT_STAGE: AtomicU8 = AtomicU8::new(STAGE_INIT);
 
+const MARGIN: u32 = 30;
+const HEADER_H: u32 = 32;
+const PAD: u32 = 16;
+
+fn get_stages_area() -> (u32, u32) {
+    let (screen_w, _) = get_dimensions();
+    let x = (screen_w / 2) + (MARGIN / 2) + PAD;
+    let y = MARGIN + HEADER_H + PAD;
+    (x, y)
+}
+
 pub fn update_stage(stage: u8, status: StageStatus) {
-    let (width, height) = get_dimensions();
+    let (width, _) = get_dimensions();
     if width == 0 {
         return;
     }
 
     CURRENT_STAGE.store(stage, Ordering::Release);
 
-    let panel_x = width - 420 - 40 + 20;
-    let panel_y = (height - 320) / 2;
-    let base_y = panel_y + 60;
+    let (panel_x, base_y) = get_stages_area();
 
-    let (offset, label) = match stage {
-        STAGE_UEFI => (0, b"UEFI Services    "),
-        STAGE_SECURITY => (1, b"Security Policy  "),
-        STAGE_HARDWARE => (2, b"Hardware Init    "),
-        STAGE_KERNEL_LOAD => (3, b"Kernel Load      "),
-        STAGE_BLAKE3_HASH => (4, b"BLAKE3 Hash      "),
-        STAGE_ED25519_VERIFY => (5, b"Ed25519 Verify   "),
-        STAGE_ZK_VERIFY => (6, b"ZK Attestation   "),
-        STAGE_ELF_PARSE => (7, b"ELF Parse        "),
-        STAGE_HANDOFF => (8, b"Kernel Handoff   "),
-        STAGE_COMPLETE => (9, b"Boot Complete    "),
+    let (offset, label): (u32, &[u8]) = match stage {
+        STAGE_UEFI => (0, b"UEFI Services"),
+        STAGE_SECURITY => (1, b"Security Policy"),
+        STAGE_HARDWARE => (2, b"Hardware Init"),
+        STAGE_KERNEL_LOAD => (3, b"Kernel Load"),
+        STAGE_BLAKE3_HASH => (4, b"BLAKE3 Hash"),
+        STAGE_ED25519_VERIFY => (5, b"Ed25519 Verify"),
+        STAGE_ZK_VERIFY => (6, b"ZK Attestation"),
+        STAGE_ELF_PARSE => (7, b"ELF Parse"),
+        STAGE_HANDOFF => (8, b"Kernel Handoff"),
+        STAGE_COMPLETE => (9, b"Boot Complete"),
         _ => return,
     };
 
-    let y = base_y + offset * (CHAR_HEIGHT + 6);
+    let y = base_y + offset * (CHAR_HEIGHT + 4);
 
     let (indicator, color) = match status {
         StageStatus::Pending => (b"   ", COLOR_TEXT_DIM),
