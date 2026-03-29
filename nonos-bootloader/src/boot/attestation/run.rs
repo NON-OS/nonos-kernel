@@ -18,10 +18,11 @@ use uefi::prelude::*;
 
 use super::enforce::enforce_zk_binding;
 use crate::display::{
-    draw_boot_progress, log_error as panel_error, log_hash, log_ok, show_error_screen,
-    update_stage, BootCryptoState, StageStatus, STAGE_ZK_VERIFY,
+    draw_boot_progress, log_error as panel_error, log_hash, log_ok, log_warn,
+    show_error_screen, update_stage, BootCryptoState, StageStatus, STAGE_ZK_VERIFY,
 };
 use crate::log::logger::{log_error, log_info};
+use crate::menu::SecurityMode;
 use crate::security::extend_boot_measurements;
 use crate::zk::{has_zk_proof, verify_boot_attestation, BootAttestationResult};
 
@@ -35,15 +36,20 @@ pub fn run_zk_attestation(
     crypto_state: &mut BootCryptoState,
     gop_available: bool,
     tpm_measured: bool,
+    security_mode: SecurityMode,
 ) -> BootAttestationResult {
     update_stage(STAGE_ZK_VERIFY, StageStatus::Running);
     draw_boot_progress(7, TOTAL_BOOT_STAGES);
 
-    enforce_proof_presence(st, kernel_data, gop_available);
+    if !has_zk_proof(kernel_data) {
+        return handle_no_proof(st, gop_available, security_mode);
+    }
 
     let zk_result = verify_boot_attestation(kernel_data);
 
-    enforce_verification_success(st, &zk_result, gop_available);
+    if !zk_result.zk_verified {
+        return handle_verification_failed(st, &zk_result, gop_available, security_mode);
+    }
 
     enforce_zk_binding(st, &zk_result, kernel_data, kernel_hash, gop_available);
 
@@ -57,29 +63,54 @@ pub fn run_zk_attestation(
     zk_result
 }
 
-fn enforce_proof_presence(st: &mut SystemTable<Boot>, data: &[u8], gop: bool) {
-    if !has_zk_proof(data) {
-        log_error("zk", "ZK attestation REQUIRED - no proof found");
-        update_stage(STAGE_ZK_VERIFY, StageStatus::Failed);
+fn handle_no_proof(
+    st: &mut SystemTable<Boot>,
+    gop: bool,
+    mode: SecurityMode,
+) -> BootAttestationResult {
+    if mode == SecurityMode::Development {
+        log_info("zk", "ZK proof not present - skipping in dev mode");
         if gop {
-            panel_error(b"ZK proof MISSING");
-            show_error_screen(b"ZK attestation required");
+            log_warn(b"ZK-SNARK SKIPPED (dev mode)");
         }
-        fatal_reset(st, "ZK proof missing");
+        update_stage(STAGE_ZK_VERIFY, StageStatus::Success);
+        draw_boot_progress(8, TOTAL_BOOT_STAGES);
+        return BootAttestationResult::default();
     }
+
+    log_error("zk", "ZK attestation REQUIRED - no proof found");
+    update_stage(STAGE_ZK_VERIFY, StageStatus::Failed);
+    if gop {
+        panel_error(b"ZK proof MISSING");
+        show_error_screen(b"ZK attestation required");
+    }
+    fatal_reset(st, "ZK proof missing");
 }
 
-fn enforce_verification_success(st: &mut SystemTable<Boot>, r: &BootAttestationResult, gop: bool) {
-    if !r.zk_verified {
-        log_error("zk", "ZK verification FAILED");
-        log_error("zk", r.status_message);
-        update_stage(STAGE_ZK_VERIFY, StageStatus::Failed);
+fn handle_verification_failed(
+    st: &mut SystemTable<Boot>,
+    r: &BootAttestationResult,
+    gop: bool,
+    mode: SecurityMode,
+) -> BootAttestationResult {
+    if mode == SecurityMode::Development {
+        log_info("zk", "ZK verification failed - continuing in dev mode");
         if gop {
-            panel_error(b"ZK verification FAILED");
-            show_error_screen(r.status_message.as_bytes());
+            log_warn(b"ZK verify FAILED (dev mode continues)");
         }
-        fatal_reset(st, r.status_message);
+        update_stage(STAGE_ZK_VERIFY, StageStatus::Success);
+        draw_boot_progress(8, TOTAL_BOOT_STAGES);
+        return r.clone();
     }
+
+    log_error("zk", "ZK verification FAILED");
+    log_error("zk", r.status_message);
+    update_stage(STAGE_ZK_VERIFY, StageStatus::Failed);
+    if gop {
+        panel_error(b"ZK verification FAILED");
+        show_error_screen(r.status_message.as_bytes());
+    }
+    fatal_reset(st, r.status_message);
 }
 
 fn update_crypto_state(state: &mut BootCryptoState, result: &BootAttestationResult) {
