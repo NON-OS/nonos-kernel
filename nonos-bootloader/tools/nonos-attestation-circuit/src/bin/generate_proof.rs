@@ -26,7 +26,7 @@ use ark_std::rand::{rngs::StdRng, SeedableRng};
 use clap::Parser;
 
 use nonos_attestation_circuit::{
-    compute_capsule_commitment, expected_program_hash_bytes, BuildProvenance,
+    compute_capsule_commitment, expected_program_hash_bytes,
     NonosAttestationCircuit, MIN_HW_LEVEL, PCR_PREIMAGE_LEN,
 };
 
@@ -45,8 +45,17 @@ struct Args {
     #[arg(long, value_name = "FILE")]
     public_inputs_out: Option<PathBuf>,
 
+    #[arg(long, value_name = "HEX")]
+    kernel_hash: Option<String>,
+
     #[arg(long, value_name = "FILE")]
-    provenance: Option<PathBuf>,
+    kernel: Option<PathBuf>,
+
+    #[arg(long, value_name = "HEX")]
+    boot_nonce: Option<String>,
+
+    #[arg(long, value_name = "HEX")]
+    machine_id: Option<String>,
 
     #[arg(long, default_value = "nonos-boot-attestation")]
     seed: String,
@@ -75,6 +84,63 @@ fn main() -> Result<(), String> {
     println!("  Proving key loaded ({} bytes)", pk_bytes.len());
     println!();
 
+    let kernel_hash: [u8; 32] = if let Some(ref hash_hex) = args.kernel_hash {
+        let bytes = hex::decode(hash_hex).map_err(|e| format!("Invalid kernel hash hex: {e}"))?;
+        if bytes.len() != 32 {
+            return Err("kernel-hash must be 32 bytes (64 hex chars)".into());
+        }
+        let mut arr = [0u8; 32];
+        arr.copy_from_slice(&bytes);
+        println!("Kernel hash (provided): {}", hex::encode(arr));
+        arr
+    } else if let Some(ref kernel_path) = args.kernel {
+        let kernel_data = fs::read(kernel_path)
+            .map_err(|e| format!("Failed to read kernel: {e}"))?;
+        let hash = blake3::hash(&kernel_data);
+        println!("Kernel hash (computed): {}", hash.to_hex());
+        *hash.as_bytes()
+    } else {
+        return Err("Must provide either --kernel-hash or --kernel".into());
+    };
+
+    let boot_nonce: [u8; 32] = if let Some(ref nonce_hex) = args.boot_nonce {
+        let bytes = hex::decode(nonce_hex).map_err(|e| format!("Invalid boot nonce hex: {e}"))?;
+        if bytes.len() != 32 {
+            return Err("boot-nonce must be 32 bytes (64 hex chars)".into());
+        }
+        let mut arr = [0u8; 32];
+        arr.copy_from_slice(&bytes);
+        arr
+    } else {
+        let mut nonce = [0u8; 32];
+        let mut hasher = blake3::Hasher::new();
+        hasher.update(args.seed.as_bytes());
+        hasher.update(b"boot_nonce");
+        hasher.update(&kernel_hash);
+        nonce.copy_from_slice(hasher.finalize().as_bytes());
+        nonce
+    };
+    println!("Boot nonce: {}", hex::encode(boot_nonce));
+
+    let machine_id: [u8; 32] = if let Some(ref mid_hex) = args.machine_id {
+        let bytes = hex::decode(mid_hex).map_err(|e| format!("Invalid machine ID hex: {e}"))?;
+        if bytes.len() != 32 {
+            return Err("machine-id must be 32 bytes (64 hex chars)".into());
+        }
+        let mut arr = [0u8; 32];
+        arr.copy_from_slice(&bytes);
+        arr
+    } else {
+        let mut mid = [0u8; 32];
+        let mut hasher = blake3::Hasher::new();
+        hasher.update(args.seed.as_bytes());
+        hasher.update(b"machine_id");
+        mid.copy_from_slice(hasher.finalize().as_bytes());
+        mid
+    };
+    println!("Machine ID: {}", hex::encode(machine_id));
+    println!();
+
     let program_hash = expected_program_hash_bytes();
     println!("Program hash: {}", hex::encode(program_hash));
 
@@ -82,6 +148,7 @@ fn main() -> Result<(), String> {
     let mut hasher = blake3::Hasher::new();
     hasher.update(args.seed.as_bytes());
     hasher.update(b"pcr_preimage");
+    hasher.update(&kernel_hash);
     let hash = hasher.finalize();
     pcr_preimage[..32].copy_from_slice(hash.as_bytes());
     pcr_preimage[32..].copy_from_slice(hash.as_bytes());
@@ -89,63 +156,25 @@ fn main() -> Result<(), String> {
     let hardware_attestation = MIN_HW_LEVEL + 0x1000;
 
     let mut public_input_seed = Vec::new();
+    public_input_seed.extend_from_slice(&kernel_hash);
+    public_input_seed.extend_from_slice(&boot_nonce);
+    public_input_seed.extend_from_slice(&machine_id);
     public_input_seed.extend_from_slice(&program_hash);
-    public_input_seed.extend_from_slice(&pcr_preimage);
     let capsule_commitment = compute_capsule_commitment(&public_input_seed);
 
     println!("Capsule commitment: {}", hex::encode(capsule_commitment));
     println!("Hardware attestation level: 0x{:X}", hardware_attestation);
     println!();
 
-    let circuit = if let Some(ref provenance_path) = args.provenance {
-        println!(
-            "Loading build provenance from: {}",
-            provenance_path.display()
-        );
-        let provenance_bytes = fs::read(provenance_path)
-            .map_err(|e| format!("Failed to read provenance file: {e}"))?;
-
-        if provenance_bytes.len() != 160 {
-            return Err(format!(
-                "Invalid provenance file size: {} (expected 160)",
-                provenance_bytes.len()
-            ));
-        }
-
-        let mut prov_data = [0u8; 128];
-        prov_data.copy_from_slice(&provenance_bytes[..128]);
-        let provenance = BuildProvenance::from_bytes(&prov_data);
-
-        let mut expected_hash = [0u8; 32];
-        expected_hash.copy_from_slice(&provenance_bytes[128..160]);
-
-        let computed_hash = provenance.compute_composite_hash();
-        if computed_hash != expected_hash {
-            return Err("provenance hash mismatch - file may be corrupted".into());
-        }
-
-        println!(
-            "  provenance composite hash: {}",
-            hex::encode(expected_hash)
-        );
-        println!();
-
-        NonosAttestationCircuit::<Fr>::with_build_provenance(
-            capsule_commitment,
-            program_hash,
-            pcr_preimage,
-            hardware_attestation,
-            provenance,
-            expected_hash,
-        )
-    } else {
-        NonosAttestationCircuit::<Fr>::new(
-            capsule_commitment,
-            program_hash,
-            pcr_preimage,
-            hardware_attestation,
-        )
-    };
+    let circuit = NonosAttestationCircuit::<Fr>::new(
+        kernel_hash,
+        boot_nonce,
+        machine_id,
+        capsule_commitment,
+        program_hash,
+        pcr_preimage,
+        hardware_attestation,
+    );
 
     let seed_hash = blake3::hash(args.seed.as_bytes());
     let seed_u64 = u64::from_le_bytes(seed_hash.as_bytes()[..8].try_into().unwrap());
@@ -172,33 +201,15 @@ fn main() -> Result<(), String> {
     fs::write(&args.output, &proof_bytes).map_err(|e| format!("Failed to write proof: {e}"))?;
     println!("  Proof written to: {}", args.output.display());
 
-    let circuit_for_inputs = if let Some(ref provenance_path) = args.provenance {
-        let provenance_bytes = fs::read(provenance_path)
-            .map_err(|e| format!("Failed to read provenance file: {e}"))?;
-
-        let mut prov_data = [0u8; 128];
-        prov_data.copy_from_slice(&provenance_bytes[..128]);
-        let provenance = BuildProvenance::from_bytes(&prov_data);
-
-        let mut expected_hash = [0u8; 32];
-        expected_hash.copy_from_slice(&provenance_bytes[128..160]);
-
-        NonosAttestationCircuit::<Fr>::with_build_provenance(
-            capsule_commitment,
-            program_hash,
-            pcr_preimage,
-            hardware_attestation,
-            provenance,
-            expected_hash,
-        )
-    } else {
-        NonosAttestationCircuit::<Fr>::new(
-            capsule_commitment,
-            program_hash,
-            pcr_preimage,
-            hardware_attestation,
-        )
-    };
+    let circuit_for_inputs = NonosAttestationCircuit::<Fr>::new(
+        kernel_hash,
+        boot_nonce,
+        machine_id,
+        capsule_commitment,
+        program_hash,
+        pcr_preimage,
+        hardware_attestation,
+    );
 
     let cs = ConstraintSystem::<Fr>::new_ref();
     circuit_for_inputs
