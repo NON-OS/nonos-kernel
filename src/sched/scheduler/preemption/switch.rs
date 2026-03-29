@@ -1,0 +1,41 @@
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+use core::sync::atomic::Ordering;
+use super::state::SCHEDULER_STATS;
+use super::super::selection::{select_next_process, switch_to_process};
+
+pub(crate) fn preempt_current_process() {
+    use crate::process::nonos_core::{current_pid, PROCESS_TABLE, ProcessState};
+
+    let current = current_pid();
+    if let Some(curr_pid) = current {
+        let ctx = crate::sched::Context::save();
+        crate::process::nonos_core::save_interrupt_context(curr_pid, ctx);
+        if let Some(pcb) = PROCESS_TABLE.find_by_pid(curr_pid) {
+            let mut state = pcb.state.lock();
+            if *state == ProcessState::Running { *state = ProcessState::Ready; }
+        }
+        crate::sched::add_to_run_queue(curr_pid);
+    }
+
+    let next_pid = select_next_process();
+    if let Some(next) = next_pid {
+        SCHEDULER_STATS.context_switches.fetch_add(1, Ordering::Relaxed);
+        SCHEDULER_STATS.preemptions.fetch_add(1, Ordering::Relaxed);
+        switch_to_process(next);
+    }
+}
