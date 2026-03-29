@@ -17,7 +17,7 @@
 #[repr(C)]
 #[derive(Debug, Clone, Copy)]
 pub struct Measurements {
-    pub kernel_sha256: [u8; 32],
+    pub kernel_blake3: [u8; 32],
     pub kernel_sig_ok: u8,
     pub secure_boot: u8,
     pub zk_attestation_ok: u8,
@@ -27,7 +27,7 @@ pub struct Measurements {
 impl Default for Measurements {
     fn default() -> Self {
         Self {
-            kernel_sha256: [0; 32],
+            kernel_blake3: [0; 32],
             kernel_sig_ok: 0,
             secure_boot: 0,
             zk_attestation_ok: 0,
