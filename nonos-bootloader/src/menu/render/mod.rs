@@ -17,5 +17,5 @@
 mod draw;
 mod timer;
 
-pub use draw::render_menu;
+pub use draw::{clear_menu_area, render_menu};
 pub use timer::render_timeout_bar;
