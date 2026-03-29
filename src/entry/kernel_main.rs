@@ -1,0 +1,43 @@
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+use super::vga_error::{early_vga_error, halt_loop};
+
+#[no_mangle]
+pub extern "C" fn kernel_main() -> ! {
+    crate::boot::init_vga_output();
+    crate::boot::init_panic_handler();
+    crate::boot::init_early();
+
+    if let Err(err) = crate::drivers::init_all_drivers() {
+        early_vga_error(format_args!("DRIVERS INIT FAILED: {:#?}", err));
+        halt_loop();
+    }
+
+    crate::drivers::console::write_message("kernel online");
+
+    let ok = crate::kernel_selftest::run();
+    if !ok { crate::drivers::console::write_message("selftest degraded"); }
+
+    #[cfg(feature = "cli")]
+    { crate::ui::cli::spawn(); }
+
+    #[cfg(feature = "sched")]
+    { crate::sched::enter(); }
+
+    #[cfg(not(feature = "sched"))]
+    halt_loop();
+}
