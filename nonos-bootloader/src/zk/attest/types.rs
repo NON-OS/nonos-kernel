@@ -31,19 +31,25 @@ pub const ZK_PROOF_HEADER_SIZE: usize = 80;
 /// Groth16 proof size (192 bytes)
 pub const GROTH16_PROOF_SIZE: usize = 192;
 
-/// Result of boot attestation verification
 #[derive(Debug, Clone)]
 pub struct BootAttestationResult {
-    /// Whether ZK verification succeeded
     pub zk_verified: bool,
-    /// Program hash from the proof
     pub program_hash: [u8; 32],
-    /// Capsule commitment from the proof
     pub capsule_commitment: [u8; 32],
-    /// Detailed verification result
     pub detail: ZkVerifyResult,
-    /// Human-readable status message
     pub status_message: &'static str,
+}
+
+impl Default for BootAttestationResult {
+    fn default() -> Self {
+        Self {
+            zk_verified: false,
+            program_hash: [0u8; 32],
+            capsule_commitment: [0u8; 32],
+            detail: ZkVerifyResult::Unsupported("not verified"),
+            status_message: "not verified",
+        }
+    }
 }
 
 impl BootAttestationResult {
