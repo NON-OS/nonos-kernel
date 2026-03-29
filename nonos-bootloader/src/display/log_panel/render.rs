@@ -15,23 +15,26 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::display::background::render_region;
-use crate::display::constants::{
-    COLOR_ACCENT, COLOR_ERROR, COLOR_SUCCESS, COLOR_TEXT_DIM, COLOR_WARNING,
-};
+use crate::display::constants::{COLOR_ACCENT, COLOR_ERROR, COLOR_SUCCESS, COLOR_WARNING};
 use crate::display::font::draw_string;
 
-use super::buffer::{get_entry, get_count};
-use super::types::{LogLevel, LINE_HEIGHT, LOG_LINE_LEN, LOG_X, LOG_Y_START, MAX_LOG_LINES};
+use super::buffer::{get_count, get_entry};
+use super::types::{get_log_area, LogLevel, LINE_HEIGHT, LOG_LINE_LEN, MAX_LOG_LINES};
 
-const LOG_AREA_WIDTH: u32 = (LOG_LINE_LEN as u32 + 5) * 8;
-const LOG_AREA_HEIGHT: u32 = (MAX_LOG_LINES as u32) * LINE_HEIGHT + 4;
+const COLOR_INFO: u32 = 0x808090;
+const LOG_LINE_WIDTH: u32 = (LOG_LINE_LEN as u32 + 4) * 8;
 
-fn clear_log_area() {
-    render_region(LOG_X - 2, LOG_Y_START - 2, LOG_AREA_WIDTH, LOG_AREA_HEIGHT);
+fn clear_line(line_num: usize) {
+    let (log_x, log_y) = get_log_area();
+    let y = log_y + (line_num as u32) * LINE_HEIGHT;
+    render_region(log_x, y, LOG_LINE_WIDTH, LINE_HEIGHT);
 }
 
 fn draw_entry_at(line_num: usize, entry_idx: usize) {
-    let y = LOG_Y_START + (line_num as u32) * LINE_HEIGHT;
+    let (log_x, log_y) = get_log_area();
+    let y = log_y + (line_num as u32) * LINE_HEIGHT;
+
+    clear_line(line_num);
 
     if let Some(entry) = get_entry(entry_idx) {
         if entry.len == 0 {
@@ -39,15 +42,15 @@ fn draw_entry_at(line_num: usize, entry_idx: usize) {
         }
 
         let (prefix, color) = match entry.level {
-            LogLevel::Info => (b"    " as &[u8], COLOR_TEXT_DIM),
+            LogLevel::Info => (b"    " as &[u8], COLOR_INFO),
             LogLevel::Ok => (b"[+] " as &[u8], COLOR_SUCCESS),
             LogLevel::Warn => (b"[!] " as &[u8], COLOR_WARNING),
             LogLevel::Error => (b"[X] " as &[u8], COLOR_ERROR),
             LogLevel::Security => (b"[S] " as &[u8], COLOR_ACCENT),
         };
 
-        draw_string(LOG_X, y, prefix, color);
-        draw_string(LOG_X + 32, y, &entry.text[..entry.len], color);
+        draw_string(log_x, y, prefix, color);
+        draw_string(log_x + 32, y, &entry.text[..entry.len], color);
     }
 }
 
@@ -57,7 +60,11 @@ fn redraw_all_visible(total: usize) {
     }
 
     let visible_count = total.min(MAX_LOG_LINES);
-    let start_entry = if total > MAX_LOG_LINES { total - MAX_LOG_LINES } else { 0 };
+    let start_entry = if total > MAX_LOG_LINES {
+        total - MAX_LOG_LINES
+    } else {
+        0
+    };
 
     for line in 0..visible_count {
         let entry_idx = (start_entry + line) % MAX_LOG_LINES;
@@ -68,15 +75,18 @@ fn redraw_all_visible(total: usize) {
 pub fn redraw_all() {
     let count = get_count();
     if count > 0 {
-        clear_log_area();
         redraw_all_visible(count);
     }
 }
 
-pub fn clear_display() {}
+pub fn clear_display() {
+    let (log_x, log_y) = get_log_area();
+    let height = (MAX_LOG_LINES as u32) * LINE_HEIGHT;
+    render_region(log_x, log_y, LOG_LINE_WIDTH, height);
+}
 
 fn log_delay() {
-    for _ in 0..500_000 {
+    for _ in 0..300_000 {
         core::hint::spin_loop();
     }
 }
@@ -87,7 +97,6 @@ pub fn render_after_log(count: usize) {
     }
 
     if count > MAX_LOG_LINES {
-        clear_log_area();
         redraw_all_visible(count);
     } else {
         let line_num = count - 1;
