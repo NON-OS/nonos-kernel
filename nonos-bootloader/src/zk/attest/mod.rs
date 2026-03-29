@@ -17,12 +17,12 @@
 mod create;
 mod detect;
 mod parse;
-mod types;
+pub mod types;
 mod verify;
 
 pub use create::{calculate_proof_block_size, compute_capsule_commitment, create_zk_proof_block};
 pub use detect::{find_zk_proof_offset, has_zk_proof};
-pub use parse::{parse_zk_proof, parse_zk_proof_header};
+pub use parse::parse_zk_proof;
 pub use types::{
     BootAttestationResult, ZkProofBlock, GROTH16_PROOF_SIZE, ZK_PROOF_HEADER_SIZE, ZK_PROOF_MAGIC,
     ZK_PROOF_VERSION,
