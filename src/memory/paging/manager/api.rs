@@ -114,6 +114,16 @@ pub fn cleanup_address_space(asid: u32) -> PagingResult<()> {
     PAGING_MANAGER.lock().cleanup_address_space(asid)
 }
 
+pub fn lookup_asid_for_process(process_id: u32) -> Option<u32> {
+    PAGING_MANAGER.lock().lookup_asid_for_process(process_id)
+}
+
+pub fn switch_to_process_address_space(process_id: u32) -> PagingResult<()> {
+    let asid = lookup_asid_for_process(process_id)
+        .ok_or(crate::memory::paging::error::PagingError::AddressSpaceNotFound)?;
+    switch_address_space(asid)
+}
+
 pub fn handle_page_fault(virtual_addr: VirtAddr, error_code: u64) -> PagingResult<()> {
     PAGING_MANAGER.lock().handle_page_fault(virtual_addr, error_code, &PAGING_STATS)
 }

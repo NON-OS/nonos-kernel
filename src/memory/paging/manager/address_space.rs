@@ -22,6 +22,10 @@ use crate::memory::paging::error::{PagingError, PagingResult};
 use crate::memory::paging::types::AddressSpace;
 use crate::memory::{frame_alloc, layout};
 
+fn phys_to_virt(phys: u64) -> u64 {
+    if phys < 0x4000_0000 { phys } else { layout::DIRECTMAP_BASE + phys }
+}
+
 impl PagingManager {
     pub(crate) fn create_kernel_address_space(&mut self) -> PagingResult<()> {
         let cr3_value = self.active_page_table.ok_or(PagingError::NoActivePageTable)?;
@@ -33,70 +37,40 @@ impl PagingManager {
     pub fn create_address_space(&mut self, process_id: u32) -> PagingResult<u32> {
         let asid = self.next_asid;
         self.next_asid = self.next_asid.wrapping_add(1);
-
         let page_table_frame =
             frame_alloc::allocate_frame().ok_or(PagingError::FrameAllocationFailed)?;
-
         let address_space = AddressSpace::new(asid, page_table_frame, process_id);
         self.address_spaces.insert(asid, address_space);
-
         self.initialize_address_space(page_table_frame)?;
-
         Ok(asid)
     }
 
     fn initialize_address_space(&self, page_table_pa: PhysAddr) -> PagingResult<()> {
-        let page_table_va = layout::DIRECTMAP_BASE + page_table_pa.as_u64();
-
-        // SAFETY: We just allocated this frame and will initialize it
+        let page_table_va = phys_to_virt(page_table_pa.as_u64());
         let page_table = unsafe { &mut *(page_table_va as *mut [u64; PAGE_TABLE_ENTRIES]) };
-
-        for entry in page_table.iter_mut() {
-            *entry = 0;
-        }
-
+        for entry in page_table.iter_mut() { *entry = 0; }
         if let Some(kernel_cr3) = self.active_page_table {
-            let kernel_table_va = layout::DIRECTMAP_BASE + kernel_cr3.as_u64();
-            // SAFETY: Reading from valid kernel page table
-            let kernel_table =
-                unsafe { &*(kernel_table_va as *const [u64; PAGE_TABLE_ENTRIES]) };
-
-            for i in KERNEL_PML4_START..PAGE_TABLE_ENTRIES {
-                page_table[i] = kernel_table[i];
-            }
+            let kernel_table_va = phys_to_virt(kernel_cr3.as_u64());
+            let kernel_table = unsafe { &*(kernel_table_va as *const [u64; PAGE_TABLE_ENTRIES]) };
+            for i in KERNEL_PML4_START..PAGE_TABLE_ENTRIES { page_table[i] = kernel_table[i]; }
         }
-
         Ok(())
     }
 
     pub fn switch_address_space(&mut self, asid: u32) -> PagingResult<()> {
-        let address_space = self
-            .address_spaces
-            .get(&asid)
-            .ok_or(PagingError::AddressSpaceNotFound)?;
-
-        // SAFETY: Loading valid page table into CR3
+        let address_space = self.address_spaces.get(&asid).ok_or(PagingError::AddressSpaceNotFound)?;
         unsafe {
-            core::arch::asm!(
-                "mov cr3, {}",
-                in(reg) address_space.cr3_value.as_u64(),
-                options(nostack, preserves_flags)
-            );
+            core::arch::asm!("mov cr3, {}", in(reg) address_space.cr3_value.as_u64(), options(nostack, preserves_flags));
         }
-
         self.active_page_table = Some(address_space.cr3_value);
         Ok(())
     }
 
     pub fn cleanup_address_space(&mut self, asid: u32) -> PagingResult<()> {
         if let Some(address_space) = self.address_spaces.remove(&asid) {
-            for mapping_addr in &address_space.mappings {
-                let _ = self.unmap_page(*mapping_addr);
-            }
-
+            for mapping_addr in &address_space.mappings { let _ = self.unmap_page(*mapping_addr); }
             let _ = frame_alloc::deallocate_frame(address_space.cr3_value);
         }
-
         Ok(())
     }
 }
