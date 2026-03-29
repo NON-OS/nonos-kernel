@@ -14,12 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-/*
- * Boot Progress Display.
- *
- * Progress bar, handoff message, error screen.
- */
-
 use crate::display::constants::*;
 use crate::display::font::draw_string;
 use crate::display::gop::{fill_rect, get_dimensions};
@@ -27,49 +21,43 @@ use core::sync::atomic::{AtomicU32, Ordering};
 
 static ANIMATION_FRAME: AtomicU32 = AtomicU32::new(0);
 
+const MARGIN: u32 = 30;
+const PAD: u32 = 16;
+
+fn get_right_panel_bounds() -> (u32, u32, u32, u32) {
+    let (screen_w, screen_h) = get_dimensions();
+    let x = (screen_w / 2) + (MARGIN / 2);
+    let width = (screen_w / 2) - MARGIN - (MARGIN / 2);
+    (x + PAD, MARGIN + PAD, width - PAD * 2, screen_h - MARGIN * 2 - PAD * 2)
+}
+
 pub fn draw_boot_progress(progress: u32, total: u32) {
-    let (width, height) = get_dimensions();
-    if width == 0 {
-        return;
-    }
+    let (cx, _cy, cw, ch) = get_right_panel_bounds();
+    let bar_y = MARGIN + ch - 16;
 
-    let bar_w = width - 80;
-    let bar_x = 40;
-    let bar_y = height - 32;
-
-    fill_rect(bar_x, bar_y, bar_w, 8, COLOR_PROGRESS_BG);
+    fill_rect(cx, bar_y, cw, 8, COLOR_PROGRESS_BG);
 
     if total > 0 && progress > 0 {
-        let fill = (bar_w * progress.min(total)) / total;
-        fill_rect(bar_x, bar_y, fill, 8, COLOR_ACCENT);
+        let fill = (cw * progress.min(total)) / total;
+        fill_rect(cx, bar_y, fill, 8, COLOR_ACCENT);
     }
 }
 
 pub fn show_handoff_message() {
-    let (_, height) = get_dimensions();
-    if height == 0 {
-        return;
-    }
-
-    fill_rect(40, height - 60, 280, 24, COLOR_GLASS_BG);
-    draw_string(48, height - 56, b"Transferring to kernel...", COLOR_SUCCESS);
+    let (cx, _cy, _cw, ch) = get_right_panel_bounds();
+    let y = MARGIN + ch - 50;
+    fill_rect(cx, y, 280, 24, COLOR_GLASS_BG);
+    draw_string(cx + 8, y + 4, b"Transferring to kernel...", COLOR_SUCCESS);
 }
 
 pub fn show_error_screen(error: &[u8]) {
-    let (width, height) = get_dimensions();
-    if width == 0 {
-        return;
-    }
-
-    let panel_w = 600;
-    let panel_h = 100;
-    let panel_x = (width - panel_w) / 2;
-    let panel_y = (height - panel_h) / 2;
-
-    fill_rect(panel_x, panel_y, panel_w, panel_h, COLOR_ERROR_BG);
-    fill_rect(panel_x, panel_y, panel_w, 4, COLOR_ERROR);
-    draw_string(panel_x + 20, panel_y + 24, b"BOOT FAILED", COLOR_TEXT_WHITE);
-    draw_string(panel_x + 20, panel_y + 50, error, COLOR_TEXT_WHITE);
+    let (cx, cy, cw, _ch) = get_right_panel_bounds();
+    let panel_h = 80;
+    let panel_y = cy + 100;
+    fill_rect(cx, panel_y, cw, panel_h, COLOR_ERROR_BG);
+    fill_rect(cx, panel_y, cw, 3, COLOR_ERROR);
+    draw_string(cx + 16, panel_y + 20, b"BOOT FAILED", COLOR_TEXT_WHITE);
+    draw_string(cx + 16, panel_y + 44, error, COLOR_TEXT_WHITE);
 }
 
 pub fn tick_animation() {
