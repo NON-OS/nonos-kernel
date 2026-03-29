@@ -22,6 +22,7 @@ pub mod ramfs;
 pub mod storage;
 pub mod utils;
 pub mod vfs;
+pub mod vfs_redirect;
 
 mod errors;
 mod internal;
