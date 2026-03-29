@@ -14,13 +14,28 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod input;
-pub mod render;
-pub mod types;
+use uefi::prelude::*;
+use uefi::proto::console::text::{Input, Key, ScanCode};
 
-mod dev_check;
-mod run;
+pub fn check_dev_key_held(bs: &BootServices) -> bool {
+    let handle = match bs.get_handle_for_protocol::<Input>() {
+        Ok(h) => h,
+        Err(_) => return false,
+    };
 
-pub use dev_check::check_dev_key_held;
-pub use run::run_boot_menu;
-pub use types::{MenuAction, MenuState, SecurityMode};
+    let mut input = match bs.open_protocol_exclusive::<Input>(handle) {
+        Ok(i) => i,
+        Err(_) => return false,
+    };
+
+    for _ in 0..3 {
+        bs.stall(50_000);
+        if let Ok(Some(key)) = input.read_key() {
+            if matches!(key, Key::Special(ScanCode::FUNCTION_12)) {
+                return true;
+            }
+        }
+    }
+
+    false
+}
