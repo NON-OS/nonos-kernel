@@ -52,7 +52,11 @@ impl PagingManager {
         if let Some(kernel_cr3) = self.active_page_table {
             let kernel_table_va = phys_to_virt(kernel_cr3.as_u64());
             let kernel_table = unsafe { &*(kernel_table_va as *const [u64; PAGE_TABLE_ENTRIES]) };
-            for i in KERNEL_PML4_START..PAGE_TABLE_ENTRIES { page_table[i] = kernel_table[i]; }
+            // Copy ALL kernel entries (both identity-mapped lower half from UEFI
+            // and upper half kernel space) to ensure kernel code remains accessible
+            // when switching address spaces. Services run in kernel mode with
+            // capability-based isolation rather than pure address space isolation.
+            for i in 0..PAGE_TABLE_ENTRIES { page_table[i] = kernel_table[i]; }
         }
         Ok(())
     }
