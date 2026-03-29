@@ -14,21 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::zk::binding::verify::extract_kernel_hash_from_inputs;
 use crate::zk::BootAttestationResult;
+use crate::zk::attest::types::ZkProofBlock;
 
 pub fn verify_kernel_in_proof(
     _result: &BootAttestationResult,
     actual_kernel_hash: &[u8; 32],
-    public_inputs: &[u8],
+    proof_block: &ZkProofBlock,
 ) -> Result<(), &'static str> {
-    let proof_kernel_hash = extract_kernel_hash_from_inputs(public_inputs)
-        .map_err(|_| "ZK binding: cannot extract kernel hash from inputs")?;
-
-    if !ct_eq32(&proof_kernel_hash, actual_kernel_hash) {
+    if !proof_block.kernel_hash_matches(actual_kernel_hash) {
         return Err("ZK binding: kernel hash in proof does not match loaded kernel");
     }
-
     Ok(())
 }
 
