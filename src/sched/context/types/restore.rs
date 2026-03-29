@@ -26,13 +26,6 @@ impl Context {
 #[unsafe(naked)]
 extern "C" fn context_restore_asm(ctx: *const Context) -> ! {
     core::arch::naked_asm!(
-        "mov r11, [rdi + 128]",
-        "mov r10, [rdi + 136]",
-        "mov r9, [rdi + 40]",
-        "mov rsp, [rdi + 56]",
-        "push r11",
-        "push r9",
-        "push r10",
         "mov rax, [rdi + 0]",
         "mov rbx, [rdi + 8]",
         "mov rcx, [rdi + 16]",
@@ -47,8 +40,12 @@ extern "C" fn context_restore_asm(ctx: *const Context) -> ! {
         "mov r13, [rdi + 104]",
         "mov r14, [rdi + 112]",
         "mov r15, [rdi + 120]",
-        "popfq",
+        "mov rsp, [rdi + 56]",
+        "push qword ptr [rdi + 128]",
+        "push qword ptr [rdi + 136]",
+        "push qword ptr [rdi + 40]",
         "pop rdi",
+        "popfq",
         "ret",
     );
 }
