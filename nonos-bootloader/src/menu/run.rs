@@ -17,7 +17,7 @@
 use uefi::prelude::*;
 
 use super::input::{poll_input, KeyAction};
-use super::render::{render_menu, render_timeout_bar};
+use super::render::{clear_menu_area, render_menu, render_timeout_bar};
 use super::types::{MenuAction, MenuState};
 
 const POLL_INTERVAL_MS: u64 = 50;
@@ -42,10 +42,12 @@ pub fn run_boot_menu(bs: &BootServices, state: &mut MenuState) -> MenuAction {
             }
             KeyAction::Select => {
                 state.visible = false;
+                clear_menu_area();
                 return state.current_action();
             }
             KeyAction::Cancel => {
                 state.visible = false;
+                clear_menu_area();
                 return MenuAction::Continue;
             }
             KeyAction::None => {}
@@ -59,6 +61,7 @@ pub fn run_boot_menu(bs: &BootServices, state: &mut MenuState) -> MenuAction {
 
         if state.is_timed_out() {
             state.visible = false;
+            clear_menu_area();
             return MenuAction::Timeout;
         }
     }
