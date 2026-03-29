@@ -1,0 +1,51 @@
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+use crate::process::core::{create_process, ProcessState, Priority, PROCESS_TABLE};
+use crate::process::current_pid;
+
+const E_INVAL: i64 = -22;
+const E_FAULT: i64 = -14;
+const E_NOMEM: i64 = -12;
+const MAX_NAME_LEN: usize = 256;
+
+pub fn sys_spawn(name_ptr: *const u8, name_len: usize) -> i64 {
+    if name_ptr.is_null() || name_len == 0 || name_len > MAX_NAME_LEN { return E_INVAL; }
+    let name_bytes = unsafe { core::slice::from_raw_parts(name_ptr, name_len) };
+    let name = match core::str::from_utf8(name_bytes) {
+        Ok(s) => s,
+        Err(_) => return E_FAULT,
+    };
+    match create_process(name, ProcessState::Ready, Priority::Normal) {
+        Ok(pid) => pid as i64,
+        Err(_) => E_NOMEM,
+    }
+}
+
+pub fn sys_exit(_code: i32) -> i64 {
+    let pid = match current_pid() {
+        Some(p) => p,
+        None => return E_INVAL,
+    };
+    let _ = PROCESS_TABLE.terminate_process(pid);
+    crate::sched::yield_now();
+    0
+}
+
+pub fn sys_yield() -> i64 {
+    crate::sched::yield_now();
+    0
+}
