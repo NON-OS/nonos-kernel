@@ -71,6 +71,15 @@ impl PagingManager {
     pub fn address_spaces_count(&self) -> usize {
         self.address_spaces.len()
     }
+
+    pub fn lookup_asid_for_process(&self, process_id: u32) -> Option<u32> {
+        for (asid, addr_space) in &self.address_spaces {
+            if addr_space.process_id == process_id {
+                return Some(*asid);
+            }
+        }
+        None
+    }
 }
 
 impl Default for PagingManager {
