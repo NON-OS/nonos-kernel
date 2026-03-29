@@ -22,9 +22,8 @@ extern crate alloc;
 use uefi::prelude::*;
 
 use nonos_boot::boot::{
-    initialize_zk_replay_protection, run_crypto_verification, run_elf_parse,
-    run_handoff_prepare, run_hardware_discovery, run_kernel_load,
-    run_security_checks, run_uefi_init, run_zk_attestation,
+    initialize_zk_replay_protection, run_crypto_verification, run_elf_parse, run_handoff_prepare,
+    run_hardware_discovery, run_kernel_load, run_security_checks, run_uefi_init, run_zk_attestation,
 };
 use nonos_boot::boot::prepare::HandoffParams;
 use nonos_boot::menu::{check_dev_key_held, run_boot_menu, MenuAction, MenuState, SecurityMode};
