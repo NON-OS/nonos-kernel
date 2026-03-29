@@ -19,7 +19,6 @@ use core::marker::PhantomData;
 use ark_ff::PrimeField;
 use ark_r1cs_std::{
     alloc::AllocVar,
-    boolean::Boolean,
     eq::EqGadget,
     fields::{fp::FpVar, FieldVar},
     uint8::UInt8,
@@ -150,13 +149,15 @@ fn enforce_hash_nonzero<F: PrimeField>(
     cs: ConstraintSystemRef<F>,
     bytes: &[UInt8<F>],
 ) -> Result<(), SynthesisError> {
-    let mut any_nonzero = Boolean::FALSE;
+    let mut sum = FpVar::<F>::zero();
+    let one = FpVar::<F>::one();
+    let fp_zero = FpVar::<F>::zero();
     for byte in bytes {
         let zero = UInt8::<F>::new_constant(cs.clone(), 0u8)?;
         let is_nonzero = byte.is_neq(&zero)?;
-        any_nonzero = any_nonzero.or(&is_nonzero)?;
+        sum += is_nonzero.select(&one, &fp_zero)?;
     }
-    any_nonzero.enforce_equal(&Boolean::TRUE)?;
+    sum.enforce_not_equal(&FpVar::zero())?;
     Ok(())
 }
 
