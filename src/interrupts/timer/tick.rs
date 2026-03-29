@@ -19,6 +19,7 @@ use super::state;
 
 pub fn on_timer_interrupt() {
     state::increment_ticks();
+    crate::sched::tick();
     crate::network::network_tick();
 
     if state::get_ticks() % 10 == 0 {
