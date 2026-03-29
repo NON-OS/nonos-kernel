@@ -16,7 +16,9 @@
 
 mod checks;
 mod core;
+mod modes;
 mod policy;
+mod requirements;
 
 pub use checks::{
     detect_secure_boot_bypass, extend_boot_measurements, verify_kernel_version,
