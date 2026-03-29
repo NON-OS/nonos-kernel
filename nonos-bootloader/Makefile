@@ -277,6 +277,60 @@ doc docs:
 	@echo -e "$(BLUE)Building documentation...$(NC)"
 	$(CARGO) doc $(CARGO_FLAGS) --features "$(FEATURES)" --open
 
+# Signing and attestation pipeline
+KEYS_DIR := target/keys
+SIGNED_DIR := target/signed
+KERNEL_BIN ?= $(ESP_DIR)/EFI/nonos/kernel.bin
+
+.PHONY: keys
+keys: tools-keygen tools-circuit
+	@echo -e "$(BLUE)Generating cryptographic keys...$(NC)"
+	@mkdir -p $(KEYS_DIR)
+	@cd $(TOOL_KEYGEN) && ./target/release/keygen -o $(CURDIR)/$(KEYS_DIR)/signing.key
+	@cd $(TOOL_CIRCUIT) && ./target/release/generate-keys \
+		-o $(CURDIR)/$(KEYS_DIR)/proving.key \
+		--vk-out $(CURDIR)/$(KEYS_DIR)/verifying.key
+	@echo -e "$(GREEN)✓ Keys generated in $(KEYS_DIR)$(NC)"
+
+.PHONY: sign-kernel
+sign-kernel: tools-sign
+	@echo -e "$(BLUE)Signing kernel...$(NC)"
+	@mkdir -p $(SIGNED_DIR)
+	@if [ ! -f "$(KERNEL_BIN)" ]; then \
+		echo -e "$(RED)Error: Kernel not found at $(KERNEL_BIN)$(NC)"; \
+		echo "Set KERNEL_BIN=/path/to/kernel.bin"; \
+		exit 1; \
+	fi
+	@cd $(TOOL_SIGN) && ./target/release/nonos-sign-kernel \
+		-k $(CURDIR)/$(KEYS_DIR)/signing.key \
+		-i $(CURDIR)/$(KERNEL_BIN) \
+		-o $(CURDIR)/$(SIGNED_DIR)/kernel.signed \
+		--verify
+	@echo -e "$(GREEN)✓ Kernel signed$(NC)"
+
+.PHONY: attest-kernel
+attest-kernel: tools-embed-zk sign-kernel
+	@echo -e "$(BLUE)Generating ZK attestation...$(NC)"
+	@cd $(TOOL_EMBED_ZK) && ./target/release/embed-zk-proof \
+		-i $(CURDIR)/$(SIGNED_DIR)/kernel.signed \
+		-o $(CURDIR)/$(SIGNED_DIR)/kernel.attested \
+		-k $(CURDIR)/$(KEYS_DIR)/proving.key \
+		--seed "$(shell date +%s)-$(shell hostname)"
+	@echo -e "$(GREEN)✓ Kernel attested with ZK proof$(NC)"
+
+.PHONY: deploy-kernel
+deploy-kernel: attest-kernel
+	@echo -e "$(BLUE)Deploying attested kernel...$(NC)"
+	@mkdir -p $(ESP_DIR)/EFI/nonos
+	@cp $(SIGNED_DIR)/kernel.attested $(ESP_DIR)/EFI/nonos/kernel.bin
+	@echo -e "$(GREEN)✓ Deployed to $(ESP_DIR)/EFI/nonos/kernel.bin$(NC)"
+
+.PHONY: full-build
+full-build: release tools deploy-kernel
+	@echo -e "$(GREEN)✓ Full production build complete$(NC)"
+	@echo "  Bootloader: $(ESP_DIR)/EFI/BOOT/$(BOOTLOADER_NAME)"
+	@echo "  Kernel:     $(ESP_DIR)/EFI/nonos/kernel.bin"
+
 # Help
 .PHONY: help
 help:
@@ -312,6 +366,13 @@ help:
 	@echo "  make clean      - Clean build artifacts"
 	@echo "  make distclean  - Deep clean including caches"
 	@echo ""
+	@echo "Signing & Attestation:"
+	@echo "  make keys         - Generate signing and ZK proving keys"
+	@echo "  make sign-kernel  - Sign kernel with Ed25519"
+	@echo "  make attest-kernel - Generate ZK attestation proof"
+	@echo "  make deploy-kernel - Deploy attested kernel to ESP"
+	@echo "  make full-build   - Complete production build pipeline"
+	@echo ""
 	@echo "Distribution:"
 	@echo "  make dist       - Create distribution package"
 	@echo "  make install    - Install to ESP (requires ESP_MOUNT=/path)"
@@ -322,6 +383,7 @@ help:
 	@echo ""
 	@echo "Environment variables:"
 	@echo "  ESP_MOUNT       - ESP mount point for installation"
+	@echo "  KERNEL_BIN      - Path to kernel binary to sign"
 	@echo "  FEATURES        - Cargo features to enable"
 
 .DEFAULT_GOAL := help
