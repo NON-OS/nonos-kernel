@@ -21,12 +21,10 @@ static PID_RUN_QUEUE: spin::RwLock<BTreeSet<u32>> = spin::RwLock::new(BTreeSet::
 
 pub fn add_to_run_queue(pid: u32) {
     PID_RUN_QUEUE.write().insert(pid);
-    crate::log_debug!("Process {} added to run queue", pid);
 }
 
 pub fn remove_from_run_queue(pid: u32) {
     PID_RUN_QUEUE.write().remove(&pid);
-    crate::log_debug!("Process {} removed from run queue", pid);
 }
 
 pub fn is_in_run_queue(pid: u32) -> bool {

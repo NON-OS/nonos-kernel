@@ -27,16 +27,8 @@ pub fn switch_to_process(pid: u32) {
     CURRENT_TIME_SLICE.store(DEFAULT_TIME_SLICE, Ordering::Relaxed);
     let _ = switch_to_process_address_space(pid);
     let ctx_opt = crate::process::nonos_core::INTERRUPT_SAVED_CONTEXTS.write().remove(&pid);
-    match ctx_opt {
-        Some(ctx) => ctx.restore(),
-        None => handle_missing_context(pid),
+    if let Some(ctx) = ctx_opt {
+        ctx.restore();
     }
-}
-
-fn handle_missing_context(pid: u32) -> ! {
-    crate::sys::serial::print(b"[SCHED] FATAL: No context for PID ");
-    crate::sys::serial::print_u64(pid as u64);
-    crate::sys::serial::println(b"");
-    crate::sys::boot_log::error("SCHED:NO_CTX");
     loop { core::hint::spin_loop(); }
 }

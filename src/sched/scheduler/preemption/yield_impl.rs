@@ -33,16 +33,6 @@ pub fn yield_now() {
     }
     CURRENT_TIME_SLICE.store(0, Ordering::Relaxed);
     if let Some(next) = select_next_process() {
-        if curr != Some(next) { log_switch(curr, next); }
         switch_to_process(next);
     }
-}
-
-fn log_switch(from: Option<u32>, to: u32) {
-    crate::sys::serial::print(b"[SCHED] ");
-    if let Some(f) = from { crate::sys::serial::print_dec(f as u64); }
-    else { crate::sys::serial::print(b"?"); }
-    crate::sys::serial::print(b"->");
-    crate::sys::serial::print_dec(to as u64);
-    crate::sys::serial::println(b"");
 }
