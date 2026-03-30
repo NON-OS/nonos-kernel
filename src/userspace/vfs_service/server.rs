@@ -33,6 +33,13 @@ fn init_vfs_subsystem() {
     let _ = crate::fs::cryptofs::init_cryptofs(1024 * 1024, 4096);
     let _ = crate::fs::ramfs::init_nonos_filesystem();
     crate::fs::cache::init_all_caches();
+    load_persistent_settings();
+}
+
+fn load_persistent_settings() {
+    if crate::storage::fat32::fs_count() > 0 {
+        let _ = crate::sys::settings::load_from_disk();
+    }
 }
 
 fn handle_vfs_requests() {

@@ -28,6 +28,8 @@ pub fn run_net_service() -> ! {
 }
 
 fn init_network_subsystem() {
+    let _ = crate::sys::settings::network::load_from_disk();
+    crate::sys::settings::network::init();
     crate::network::stack::init_network_stack();
     crate::network::manager::init();
     crate::entry::network::init_network();

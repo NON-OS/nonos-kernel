@@ -16,7 +16,8 @@
 
 use super::{
     run_vfs_service, run_net_service, run_display_service, run_driver_manager,
-    run_crypto_service, run_zk_service, run_input_service,
+    run_crypto_service, run_zk_service, run_input_service, run_audio_service,
+    run_gpu_service, run_apps_service, run_agents_service, run_shell_service,
 };
 
 pub fn run_service_by_name(name: &str) -> ! {
@@ -28,13 +29,20 @@ pub fn run_service_by_name(name: &str) -> ! {
         "crypto" => run_crypto_service(),
         "zk" => run_zk_service(),
         "input" => run_input_service(),
-        "desktop" => {
-            if crate::boot::main::graphics_init::init_graphics_for_microkernel() {
-                crate::boot::main::desktop_run::run_desktop();
-            }
-            loop { crate::sched::yield_now(); }
-        }
+        "audio" => run_audio_service(),
+        "gpu" => run_gpu_service(),
+        "apps" => run_apps_service(),
+        "agents" => run_agents_service(),
+        "shell" => run_shell_service(),
+        "desktop" => run_desktop_service(),
         _ => loop { crate::sched::yield_now(); }
     }
+}
+
+fn run_desktop_service() -> ! {
+    if crate::boot::main::graphics_init::init_graphics_for_microkernel() {
+        crate::boot::main::desktop_run::run_desktop();
+    }
+    loop { crate::sched::yield_now(); }
 }
 
