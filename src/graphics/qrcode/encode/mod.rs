@@ -22,7 +22,7 @@ mod data;
 mod format;
 mod mask;
 
-pub use types::QrCode;
+pub(super) use types::QrCode;
 use patterns::{place_finder_patterns, place_timing_patterns, place_alignment_pattern};
 use alphanumeric::encode_alphanumeric;
 use error_correction::add_error_correction;
