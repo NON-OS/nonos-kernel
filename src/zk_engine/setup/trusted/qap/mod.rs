@@ -14,14 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod merkle;
-mod merkle_domain;
-mod merkle_root;
-mod range_types;
-mod range_verify;
-mod range_parse;
-mod range_check;
+mod evaluate;
+mod polynomials;
 
-pub use merkle::MerkleVerifier;
-pub use range_types::RangeProof;
-pub use range_verify::RangeProofVerifier;
+pub(crate) use evaluate::{compute_target_polynomial_at_tau, evaluate_polynomials_at_tau};
+pub(crate) use polynomials::compute_qap_polynomials;

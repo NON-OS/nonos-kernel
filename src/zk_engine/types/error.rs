@@ -14,14 +14,24 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod merkle;
-mod merkle_domain;
-mod merkle_root;
-mod range_types;
-mod range_verify;
-mod range_parse;
-mod range_check;
+use alloc::string::String;
 
-pub use merkle::MerkleVerifier;
-pub use range_types::RangeProof;
-pub use range_verify::RangeProofVerifier;
+#[derive(Debug, Clone)]
+pub enum ZKError {
+    InvalidCircuit,
+    InvalidWitness,
+    ProvingFailed,
+    VerificationFailed,
+    CircuitNotFound,
+    InvalidProof,
+    SetupError,
+    OutOfMemory,
+    InvalidParameters,
+    TrustedSetupNotFound,
+    InvalidFormat,
+    CryptoError,
+    InvalidInput,
+    NetworkError,
+    AttestationError(String),
+    NotInitialized,
+}

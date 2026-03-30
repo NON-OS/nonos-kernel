@@ -14,11 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::{vec::Vec, string::String};
 use crate::zk_engine::ZKError;
 use crate::zk_engine::attestation::types::KernelAttestation;
 use crate::zk_engine::attestation::manager::AttestationManager;
 use super::types::AttestationPolicy;
+use super::custom::verify_custom;
 
 impl AttestationPolicy {
     pub fn verify(&self, attestation: &KernelAttestation) -> Result<bool, ZKError> {
@@ -51,33 +51,4 @@ fn verify_signature_only(attestation: &KernelAttestation) -> Result<bool, ZKErro
     pub_key_array.copy_from_slice(&attestation.public_key);
     let message_hash = crate::crypto::hash::blake3_hash(&message);
     Ok(crate::crypto::ed25519::verify(&pub_key_array, &message_hash, &attestation.signature))
-}
-
-fn verify_custom(
-    attestation: &KernelAttestation,
-    require_zk_proof: bool,
-    max_age_seconds: u64,
-    required_modules: &[String],
-) -> Result<bool, ZKError> {
-    if require_zk_proof && attestation.zk_proof.is_none() {
-        return Ok(false);
-    }
-
-    let current_time = crate::time::timestamp_millis();
-    if current_time - attestation.timestamp > (max_age_seconds * 1000) {
-        return Ok(false);
-    }
-
-    let module_names: Vec<String> = attestation.measurement.module_hashes
-        .iter()
-        .map(|m| m.name.clone())
-        .collect();
-
-    for required in required_modules {
-        if !module_names.contains(required) {
-            return Ok(false);
-        }
-    }
-
-    AttestationManager::verify_attestation(attestation)
 }

@@ -55,30 +55,4 @@ impl MerkleVerifier {
         }
         current == *root
     }
-
-    pub fn compute_root(leaves: &[[u8; 32]]) -> Option<[u8; 32]> {
-        if leaves.is_empty() {
-            return None;
-        }
-        if leaves.len() == 1 {
-            return Some(leaves[0]);
-        }
-        let n = leaves.len().next_power_of_two();
-        let mut level: Vec<[u8; 32]> = Vec::with_capacity(n);
-        level.extend_from_slice(leaves);
-        while level.len() < n {
-            level.push([0u8; 32]);
-        }
-        while level.len() > 1 {
-            let mut next_level = Vec::with_capacity(level.len() / 2);
-            for chunk in level.chunks(2) {
-                let mut combined = [0u8; 64];
-                combined[..32].copy_from_slice(&chunk[0]);
-                combined[32..].copy_from_slice(&chunk[1]);
-                next_level.push(crate::crypto::hash::blake3::blake3_hash(&combined));
-            }
-            level = next_level;
-        }
-        Some(level[0])
-    }
 }

@@ -14,14 +14,19 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod merkle;
-mod merkle_domain;
-mod merkle_root;
-mod range_types;
-mod range_verify;
-mod range_parse;
-mod range_check;
+use crate::zk_engine::groth16::Pairing;
+use crate::zk_engine::ZKError;
+use super::types::Powers;
 
-pub use merkle::MerkleVerifier;
-pub use range_types::RangeProof;
-pub use range_verify::RangeProofVerifier;
+impl Powers {
+    pub fn verify_powers(&self) -> Result<bool, ZKError> {
+        if self.tau_g1.len() < 2 || self.tau_g2.len() < 2 {
+            return Ok(false);
+        }
+
+        let pairing1 = Pairing::compute(&self.tau_g1[0], &self.tau_g2[1]);
+        let pairing2 = Pairing::compute(&self.tau_g1[1], &self.tau_g2[0]);
+
+        Ok(pairing1.equals(&pairing2))
+    }
+}

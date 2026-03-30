@@ -14,14 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod merkle;
-mod merkle_domain;
-mod merkle_root;
-mod range_types;
-mod range_verify;
-mod range_parse;
-mod range_check;
+use alloc::vec::Vec;
+use crate::zk_engine::groth16::{G1Point, G2Point};
 
-pub use merkle::MerkleVerifier;
-pub use range_types::RangeProof;
-pub use range_verify::RangeProofVerifier;
+#[derive(Debug, Clone)]
+pub struct Powers {
+    pub tau_g1: Vec<G1Point>,
+    pub tau_g2: Vec<G2Point>,
+    pub alpha_tau_g1: Vec<G1Point>,
+    pub beta_tau_g1: Vec<G1Point>,
+    pub beta_g2: G2Point,
+}
