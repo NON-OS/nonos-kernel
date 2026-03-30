@@ -15,9 +15,12 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use core::sync::atomic::Ordering;
-use super::state::DISPLAY_ENABLED;
+use super::state::{DISPLAY_ENABLED, LOG_Y, MIN_LOG_Y};
 
-pub fn init_after_fb(_cursor_y: u32) {
+pub fn init_after_fb(cursor_y: u32) {
+    LOG_Y.store(cursor_y, Ordering::SeqCst);
+    MIN_LOG_Y.store(cursor_y, Ordering::SeqCst);
+    DISPLAY_ENABLED.store(true, Ordering::Release);
 }
 
 pub fn disable_display() {
