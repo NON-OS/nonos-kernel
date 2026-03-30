@@ -29,9 +29,9 @@ pub(super) const IWL_UCODE_TLV_IML: u32 = 52;
 #[derive(Debug, Clone)]
 pub struct FirmwareInfo { pub major: u16, pub minor: u16, pub api: u16, pub build: u32, pub human_readable: [u8; 64] }
 
-pub(crate) struct FirmwareSection { pub data: Vec<u8>, pub offset: u32 }
+pub struct FirmwareSection { pub data: Vec<u8>, pub offset: u32 }
 
-pub(crate) struct Firmware {
+pub struct Firmware {
     pub info: FirmwareInfo,
     pub init_sections: Vec<FirmwareSection>,
     pub runtime_sections: Vec<FirmwareSection>,
