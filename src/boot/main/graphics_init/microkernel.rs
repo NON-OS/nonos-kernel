@@ -17,19 +17,11 @@
 use crate::input;
 use super::components::init_desktop;
 
-/// Initialize graphics for microkernel desktop service.
-/// Note: Storage, network, and other services are initialized by their
-/// respective service processes - desktop only needs framebuffer and GUI.
 pub fn init_graphics_for_microkernel() -> bool {
-    crate::sys::serial::println(b"[DESK] get_framebuffer...");
     let Ok(info) = crate::display::get_framebuffer() else {
-        crate::sys::serial::println(b"[DESK] FAIL: no framebuffer");
         return false;
     };
-    crate::sys::serial::println(b"[DESK] FB OK, init input bounds...");
     input::set_screen_bounds_unified(info.width, info.height);
-    crate::sys::serial::println(b"[DESK] init desktop GUI...");
     init_desktop();
-    crate::sys::serial::println(b"[DESK] ALL DONE!");
     true
 }

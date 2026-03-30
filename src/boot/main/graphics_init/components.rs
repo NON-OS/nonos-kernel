@@ -39,16 +39,10 @@ pub(super) fn init_services() {
 }
 
 pub(super) fn init_desktop() {
-    crate::sys::serial::println(b"[GUI] wallpaper init...");
     crate::graphics::backgrounds::init_wallpaper_system();
-    crate::sys::serial::println(b"[GUI] refresh icons...");
     desktop::refresh_desktop_icons();
-    crate::sys::serial::println(b"[GUI] draw desktop...");
     desktop::draw_all();
-    crate::sys::serial::println(b"[GUI] draw cursor...");
     let (mx, my) = input::mouse_position_unified();
     cursor::draw(mx, my);
-    crate::sys::serial::println(b"[GUI] swap buffers...");
     framebuffer::swap_buffers();
-    crate::sys::serial::println(b"[GUI] DESKTOP VISIBLE!");
 }
