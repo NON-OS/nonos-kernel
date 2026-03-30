@@ -38,4 +38,12 @@ pub static PROCESS_TABLE: ProcessTable = ProcessTable { inner: RwLock::new(Vec::
 pub static CURRENT_PID: AtomicU32 = AtomicU32::new(0);
 pub(super) static NEXT_PID: AtomicU32 = AtomicU32::new(1);
 
-pub fn allocate_tid() -> Pid { NEXT_PID.fetch_add(1, Ordering::Relaxed) }
+pub fn allocate_tid() -> Pid {
+    loop {
+        let current = NEXT_PID.load(Ordering::SeqCst);
+        let next = if current >= u32::MAX - 1 { 1 } else { current + 1 };
+        if NEXT_PID.compare_exchange(current, next, Ordering::SeqCst, Ordering::SeqCst).is_ok() {
+            return if current == 0 { 1 } else { current };
+        }
+    }
+}
