@@ -21,7 +21,7 @@ extern crate alloc;
 extern crate nonos_kernel;
 
 use core::arch::naked_asm;
-use core::sync::atomic::{AtomicU64, AtomicBool, Ordering};
+use core::sync::atomic::{AtomicU64, Ordering};
 
 mod manifest_embed { include!(concat!(env!("OUT_DIR"), "/manifest_data.rs")); }
 pub use manifest_embed::*;
@@ -32,7 +32,6 @@ use nonos_kernel::sys::serial;
 use nonos_kernel::entry::{security, fallback};
 
 static HANDOFF_PTR: AtomicU64 = AtomicU64::new(0);
-static SSE_ENABLED: AtomicBool = AtomicBool::new(false);
 
 #[unsafe(naked)]
 #[no_mangle]
@@ -52,7 +51,6 @@ pub extern "C" fn _start() -> ! {
 #[no_mangle]
 extern "C" fn kernel_entry(handoff_ptr: u64) -> ! {
     HANDOFF_PTR.store(handoff_ptr, Ordering::SeqCst);
-    SSE_ENABLED.store(true, Ordering::SeqCst);
     init_core_systems();
     if handoff_ptr == 0 {
         serial::println(b"[NONOS] CRITICAL: No handoff!");
