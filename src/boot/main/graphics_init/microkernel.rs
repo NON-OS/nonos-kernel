@@ -18,10 +18,13 @@ use crate::input;
 use super::components::init_desktop;
 
 pub fn init_graphics_for_microkernel() -> bool {
-    let Ok(info) = crate::display::get_framebuffer() else {
+    let (width, height) = crate::graphics::framebuffer::dimensions();
+    if width == 0 || height == 0 {
+        crate::sys::serial::println(b"[DESKTOP] No framebuffer dimensions");
         return false;
-    };
-    input::set_screen_bounds_unified(info.width, info.height);
+    }
+    crate::sys::serial::println(b"[DESKTOP] Graphics init OK");
+    input::set_screen_bounds_unified(width, height);
     init_desktop();
     true
 }
