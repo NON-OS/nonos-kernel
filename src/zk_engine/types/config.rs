@@ -14,14 +14,25 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod merkle;
-mod merkle_domain;
-mod merkle_root;
-mod range_types;
-mod range_verify;
-mod range_parse;
-mod range_check;
+use alloc::string::String;
 
-pub use merkle::MerkleVerifier;
-pub use range_types::RangeProof;
-pub use range_verify::RangeProofVerifier;
+#[derive(Debug, Clone)]
+pub struct ZKConfig {
+    pub max_constraints: usize,
+    pub max_witnesses: usize,
+    pub enable_preprocessing: bool,
+    pub enable_verification_cache: bool,
+    pub trusted_setup_path: Option<String>,
+}
+
+impl Default for ZKConfig {
+    fn default() -> Self {
+        Self {
+            max_constraints: 1_000_000,
+            max_witnesses: 100_000,
+            enable_preprocessing: true,
+            enable_verification_cache: true,
+            trusted_setup_path: None,
+        }
+    }
+}

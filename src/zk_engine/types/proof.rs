@@ -14,14 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod merkle;
-mod merkle_domain;
-mod merkle_root;
-mod range_types;
-mod range_verify;
-mod range_parse;
-mod range_check;
+use alloc::vec::Vec;
+use crate::zk_engine::groth16::Proof;
 
-pub use merkle::MerkleVerifier;
-pub use range_types::RangeProof;
-pub use range_verify::RangeProofVerifier;
+#[derive(Debug, Clone)]
+pub struct ZKProof {
+    pub circuit_id: u32,
+    pub proof_data: Proof,
+    pub public_inputs: Vec<Vec<u8>>,
+    pub proof_hash: [u8; 32],
+    pub created_at: u64,
+}

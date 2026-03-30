@@ -14,14 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod merkle;
-mod merkle_domain;
-mod merkle_root;
-mod range_types;
-mod range_verify;
-mod range_parse;
-mod range_check;
+use core::sync::atomic::{AtomicU32, AtomicU64};
 
-pub use merkle::MerkleVerifier;
-pub use range_types::RangeProof;
-pub use range_verify::RangeProofVerifier;
+#[derive(Debug)]
+pub struct ZKStats {
+    pub proofs_generated: AtomicU64,
+    pub proofs_verified: AtomicU64,
+    pub verification_failures: AtomicU64,
+    pub circuits_compiled: AtomicU32,
+    pub total_proving_time_ms: AtomicU64,
+    pub total_verification_time_ms: AtomicU64,
+}
