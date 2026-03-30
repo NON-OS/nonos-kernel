@@ -26,7 +26,7 @@ pub fn microkernel_init(handoff: &BootHandoffV1) {
     init_memory(handoff);
     let _ = crate::memory::paging::manager::api::init();
     init_framebuffer(handoff);
-    boot_log::init_after_fb();
+    boot_log::init_after_fb(handoff.fb.cursor_y);
     boot_log::ok("NONOS", "Microkernel init");
     crate::ipc::init();
     crate::syscall::microkernel::capability::init_cap_for_init();
