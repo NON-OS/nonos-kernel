@@ -16,7 +16,7 @@
 
 use super::parse_context::ParseContext;
 
-pub fn handle_global_item(ctx: &mut ParseContext, tag: u8, value: u32, actual_size: usize) {
+pub(super) fn handle_global_item(ctx: &mut ParseContext, tag: u8, value: u32, actual_size: usize) {
     match tag {
         0x00 => ctx.usage_page = value,
         0x01 => {

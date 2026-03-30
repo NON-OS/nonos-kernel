@@ -22,7 +22,7 @@ use crate::input::i2c_hid::protocol::{
 use super::report_types::ReportDescriptor;
 use super::parse_context::ParseContext;
 
-pub fn handle_local_item(desc: &mut ReportDescriptor, ctx: &mut ParseContext, tag: u8, value: u32) {
+pub(super) fn handle_local_item(desc: &mut ReportDescriptor, ctx: &mut ParseContext, tag: u8, value: u32) {
     if tag != 0x00 { return; }
     ctx.usage = value;
     ctx.pending_usage = Some((value, ctx.usage_page));

@@ -23,7 +23,7 @@ use super::report_types::ReportDescriptor;
 use super::parse_context::ParseContext;
 use super::field_location::FieldLocation;
 
-pub fn record_field(desc: &mut ReportDescriptor, ctx: &ParseContext, usage: u32, usage_page: u32, bit_offset: u16, bit_size: u16) {
+pub(super) fn record_field(desc: &mut ReportDescriptor, ctx: &ParseContext, usage: u32, usage_page: u32, bit_offset: u16, bit_size: u16) {
     let loc = FieldLocation { bit_offset, bit_size };
     if usage_page == HID_USAGE_PAGE_DIGITIZER as u32 {
         match usage as u8 {
