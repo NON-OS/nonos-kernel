@@ -19,7 +19,7 @@ use crate::network::onion::nonos_crypto::x509_der::DerParser;
 use crate::network::onion::nonos_crypto::types::ExtKeyUsage;
 use super::oids::*;
 
-pub fn parse_key_usage(data: &[u8]) -> Result<u16, OnionError> {
+pub(super) fn parse_key_usage(data: &[u8]) -> Result<u16, OnionError> {
     let mut p = DerParser::new(data);
     p.expect_tag(0x03)?;
     let len = p.read_length()?;
@@ -35,7 +35,7 @@ pub fn parse_key_usage(data: &[u8]) -> Result<u16, OnionError> {
     Ok(bits)
 }
 
-pub fn parse_ext_key_usage(data: &[u8], ekus: &mut alloc::vec::Vec<ExtKeyUsage>) -> Result<(), OnionError> {
+pub(super) fn parse_ext_key_usage(data: &[u8], ekus: &mut alloc::vec::Vec<ExtKeyUsage>) -> Result<(), OnionError> {
     let mut p = DerParser::new(data);
     p.expect_sequence()?;
     let seq_len = p.read_length()?;

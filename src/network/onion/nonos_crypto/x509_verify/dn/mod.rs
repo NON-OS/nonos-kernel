@@ -19,4 +19,4 @@ mod rdn;
 mod normalize;
 mod tlv;
 
-pub use compare::dn_equal;
+pub(crate) use compare::dn_equal;

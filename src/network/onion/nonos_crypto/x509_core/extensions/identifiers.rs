@@ -17,7 +17,7 @@
 use crate::network::onion::OnionError;
 use crate::network::onion::nonos_crypto::x509_der::DerParser;
 
-pub fn parse_octet_string_value(data: &[u8]) -> Result<alloc::vec::Vec<u8>, OnionError> {
+pub(super) fn parse_octet_string_value(data: &[u8]) -> Result<alloc::vec::Vec<u8>, OnionError> {
     let mut p = DerParser::new(data);
     p.expect_tag(0x04)?;
     let len = p.read_length()?;
@@ -25,7 +25,7 @@ pub fn parse_octet_string_value(data: &[u8]) -> Result<alloc::vec::Vec<u8>, Onio
     Ok(bytes.to_vec())
 }
 
-pub fn parse_authority_key_id(data: &[u8]) -> Result<Option<alloc::vec::Vec<u8>>, OnionError> {
+pub(super) fn parse_authority_key_id(data: &[u8]) -> Result<Option<alloc::vec::Vec<u8>>, OnionError> {
     let mut p = DerParser::new(data);
     p.expect_sequence()?;
     let seq_len = p.read_length()?;

@@ -27,7 +27,7 @@ pub(super) const MAX_TOTAL: usize = 32;
 pub(super) const IDLE_TIMEOUT_MS: u64 = 60_000;
 pub(super) const MAX_REQUESTS_PER_CONN: u32 = 100;
 
-pub struct PooledConnection {
+pub(crate) struct PooledConnection {
     pub conn_id: u32,
     pub tls: Option<TLSConnection>,
     pub last_used_ms: u64,
@@ -35,7 +35,7 @@ pub struct PooledConnection {
     pub is_tls: bool,
 }
 
-pub struct ConnectionPool {
+pub(crate) struct ConnectionPool {
     pub(super) entries: Mutex<BTreeMap<String, Vec<PooledConnection>>>,
 }
 

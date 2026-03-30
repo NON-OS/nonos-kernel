@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use core::sync::atomic::Ordering;
-use crate::network::firewall::types::{Action, ConnState, ConnTrack, Direction, Protocol, format_ip};
+use crate::network::firewall::types::{Action, ConnState, ConnTrack, Direction, Protocol};
 use super::firewall::Firewall;
 
 impl Firewall {

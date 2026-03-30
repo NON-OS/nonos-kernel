@@ -23,7 +23,7 @@ use super::key_usage::{parse_key_usage, parse_ext_key_usage};
 use super::identifiers::{parse_octet_string_value, parse_authority_key_id};
 use super::san::parse_san;
 
-pub fn parse_extensions(parser: &mut DerParser, tbs_end: usize) -> Result<X509Extensions, OnionError> {
+pub(crate) fn parse_extensions(parser: &mut DerParser, tbs_end: usize) -> Result<X509Extensions, OnionError> {
     let mut exts = X509Extensions::default();
     if parser.offset >= tbs_end || parser.peek_tag() != Some(0xA3) { return Ok(exts); }
     parser.expect_tag(0xA3)?;
