@@ -21,12 +21,6 @@ use crate::sched::Context;
 const INITIAL_RFLAGS: u64 = 0x202;
 
 pub(crate) fn setup_initial_context(pid: Pid, entry_point: u64, stack_top: u64) {
-    crate::sys::serial::print(b"[CTX] Entry=");
-    crate::sys::serial::print_hex(entry_point);
-    crate::sys::serial::print(b" Stack=");
-    crate::sys::serial::print_hex(stack_top);
-    crate::sys::serial::println(b"");
-
     let ctx = Context {
         rax: 0, rbx: 0, rcx: 0, rdx: 0,
         rsi: 0, rdi: 0, rbp: stack_top, rsp: stack_top,
@@ -35,6 +29,5 @@ pub(crate) fn setup_initial_context(pid: Pid, entry_point: u64, stack_top: u64) 
         rip: entry_point,
         rflags: INITIAL_RFLAGS,
     };
-
     save_interrupt_context(pid, ctx);
 }
