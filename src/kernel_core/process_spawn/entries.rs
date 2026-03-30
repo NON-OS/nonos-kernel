@@ -23,12 +23,14 @@ pub(crate) fn get_service_entry(name: &str) -> Option<fn()> {
         "crypto" => Some(svc_crypto),
         "zk" => Some(svc_zk),
         "input" => Some(svc_input),
+        "desktop" => Some(svc_desktop),
         _ => None,
     }
 }
 
 fn svc_vfs() {
     crate::sys::serial::println(b"[SVC] VFS entry!");
+    crate::sys::serial::println(b"[SVC] calling run_vfs_service");
     crate::userspace::run_vfs_service();
 }
 
@@ -60,4 +62,10 @@ fn svc_zk() {
 fn svc_input() {
     crate::sys::serial::println(b"[SVC] INPUT entry!");
     crate::userspace::run_input_service();
+}
+
+fn svc_desktop() {
+    crate::sys::serial::println(b"[SVC] DESKTOP entry!");
+    crate::boot::main::graphics_init::init_graphics_for_microkernel();
+    crate::boot::main::desktop_run::run_desktop();
 }
