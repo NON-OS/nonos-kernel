@@ -21,17 +21,18 @@ use super::preemption::{CURRENT_TIME_SLICE, DEFAULT_TIME_SLICE};
 static LAST_SCHEDULED_PID: AtomicU32 = AtomicU32::new(0);
 
 pub fn select_next_process() -> Option<u32> {
-    use crate::process::nonos_core::{PROCESS_TABLE, ProcessState, Priority};
+    use crate::process::nonos_core::{PROCESS_TABLE, ProcessState, Priority, CURRENT_PID};
 
+    let current = CURRENT_PID.load(Ordering::Relaxed);
     let runnable = get_runnable_pids();
+
     if runnable.is_empty() {
         return None;
     }
 
     let last = LAST_SCHEDULED_PID.load(Ordering::Relaxed);
 
-    // High priority always takes precedence (still round-robin within high)
-    if let Some(pid) = select_round_robin(&runnable, last, |pid| {
+    if let Some(pid) = select_round_robin(&runnable, last, current, |pid| {
         PROCESS_TABLE.find_by_pid(pid).map_or(false, |pcb| {
             *pcb.state.lock() == ProcessState::Ready && *pcb.priority.lock() == Priority::High
         })
@@ -40,8 +41,7 @@ pub fn select_next_process() -> Option<u32> {
         return Some(pid);
     }
 
-    // Normal priority round-robin
-    if let Some(pid) = select_round_robin(&runnable, last, |pid| {
+    if let Some(pid) = select_round_robin(&runnable, last, current, |pid| {
         PROCESS_TABLE.find_by_pid(pid).map_or(false, |pcb| {
             *pcb.state.lock() == ProcessState::Ready && *pcb.priority.lock() == Priority::Normal
         })
@@ -50,8 +50,7 @@ pub fn select_next_process() -> Option<u32> {
         return Some(pid);
     }
 
-    // Any ready process (low priority)
-    if let Some(pid) = select_round_robin(&runnable, last, |pid| {
+    if let Some(pid) = select_round_robin(&runnable, last, current, |pid| {
         PROCESS_TABLE.find_by_pid(pid).map_or(false, |pcb| {
             *pcb.state.lock() == ProcessState::Ready
         })
@@ -63,28 +62,34 @@ pub fn select_next_process() -> Option<u32> {
     None
 }
 
-fn select_round_robin<F>(pids: &[u32], last: u32, predicate: F) -> Option<u32>
+fn select_round_robin<F>(pids: &[u32], last: u32, current: u32, predicate: F) -> Option<u32>
 where
     F: Fn(u32) -> bool,
 {
-    // Find position after last scheduled PID
     let start_idx = pids.iter().position(|&p| p > last).unwrap_or(0);
+    let mut fallback: Option<u32> = None;
 
-    // Check from start_idx to end
     for &pid in &pids[start_idx..] {
         if predicate(pid) {
-            return Some(pid);
+            if pid != current {
+                return Some(pid);
+            } else if fallback.is_none() {
+                fallback = Some(pid);
+            }
         }
     }
 
-    // Wrap around: check from beginning to start_idx
     for &pid in &pids[..start_idx] {
         if predicate(pid) {
-            return Some(pid);
+            if pid != current {
+                return Some(pid);
+            } else if fallback.is_none() {
+                fallback = Some(pid);
+            }
         }
     }
 
-    None
+    fallback
 }
 
 pub fn switch_to_process(pid: u32) {
@@ -97,8 +102,6 @@ pub fn switch_to_process(pid: u32) {
 
     CURRENT_PID.store(pid, Ordering::SeqCst);
     CURRENT_TIME_SLICE.store(DEFAULT_TIME_SLICE, Ordering::Relaxed);
-
-    // Switch to the process's address space (if it has one)
     let _ = switch_to_process_address_space(pid);
 
     if let Some(ctx) = crate::process::nonos_core::INTERRUPT_SAVED_CONTEXTS.write().remove(&pid) {
