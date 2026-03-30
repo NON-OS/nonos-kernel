@@ -25,6 +25,8 @@ pub struct FramebufferInfo {
     pub height: u32,
     pub stride: u32,
     pub pixel_format: u32,
+    pub cursor_y: u32,
+    pub reserved: u32,
 }
 
 impl FramebufferInfo {
