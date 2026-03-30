@@ -15,13 +15,13 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::graphics::{framebuffer, desktop, cursor, window};
-use crate::sys::{serial, clock};
+use crate::sys::clock;
 use crate::entry::desktop_loop;
 use crate::input;
 use core::arch::asm;
+use super::dialogs::handle_dialogs;
 
 pub fn run_desktop() -> ! {
-    serial::println(b"[NONOS] Desktop loop starting");
     let (mut old_mx, mut old_my) = input::mouse_position_unified();
     framebuffer::double_buffer::disable();
     cursor::draw(old_mx, old_my);
@@ -64,27 +64,5 @@ fn update_clock(last: &mut u64) {
         *last = now;
         desktop::update_clock();
         desktop_loop::set_needs_redraw();
-    }
-}
-
-pub fn handle_dialogs() {
-    if !window::is_dialog_active() { return; }
-    let result = window::get_dialog_result();
-    if result == window::dialog_result::RESULT_NONE { return; }
-    if result == window::dialog_result::RESULT_OK {
-        let text = window::get_dialog_input_text();
-        if !text.is_empty() { process_dialog_input(text); }
-    }
-    window::close_dialog();
-    desktop_loop::set_needs_redraw();
-}
-
-fn process_dialog_input(text: &str) {
-    let cb = window::get_dialog_input_callback();
-    match cb {
-        x if x == window::dialog_callback::INPUT_CB_DESKTOP_NEW_FOLDER => { desktop::create_desktop_folder(text); }
-        x if x == window::dialog_callback::INPUT_CB_DESKTOP_NEW_FILE => { desktop::create_desktop_file(text); }
-        x if x == window::dialog_callback::INPUT_CB_FM_NEW_FOLDER => { let _ = window::fm_create_folder(text); }
-        _ => {}
     }
 }
