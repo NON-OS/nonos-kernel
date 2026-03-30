@@ -36,8 +36,8 @@ pub use boot_screen::{
 pub use constants::*;
 pub use gop::init_gop;
 pub use log_panel::{
-    log_error, log_hash, log_hash_full, log_hex, log_info, log_mem, log_ok, log_size, log_u32,
-    log_warn,
+    get_cursor_y, log_error, log_hash, log_hash_full, log_hex, log_info, log_mem, log_ok,
+    log_size, log_u32, log_warn,
 };
 pub use screen::{init_main_screen, refresh_panels, ScreenState, update_screen_state};
 pub use security::display_enforcement_result;

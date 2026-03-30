@@ -24,6 +24,7 @@ use uefi::table::cfg::{ACPI2_GUID, ACPI_GUID, SMBIOS3_GUID, SMBIOS_GUID};
 use uefi::Identify;
 
 use super::types::FramebufferInfo;
+use crate::display::get_cursor_y;
 use crate::log::logger::{log_info, log_warn};
 
 pub fn get_acpi_rsdp(st: &SystemTable<Boot>) -> u64 {
@@ -157,7 +158,7 @@ fn try_gop_handle(bs: &BootServices, handle: Handle, idx: usize) -> Option<Frame
         height: height as u32,
         stride: stride as u32,
         pixel_format,
-        cursor_y: 0,
+        cursor_y: get_cursor_y(),
         reserved: 0,
     })
 }
