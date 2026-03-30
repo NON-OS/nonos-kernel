@@ -14,12 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod error;
-mod framebuffer;
-pub mod text;
-pub mod font;
+mod state;
+mod ops;
 
-pub use error::DisplayError;
-pub use framebuffer::{Framebuffer, FramebufferInfo, register_framebuffer, get_framebuffer};
-pub use framebuffer::{write_pixel, fill_rect, clear};
-pub use text::{write_char, write_string, clear_screen};
+pub use state::{FramebufferInfo, Framebuffer, register_framebuffer, get_framebuffer};
+pub use ops::{write_pixel, fill_rect, clear};
