@@ -24,40 +24,40 @@ use crate::network::onion::tls::TLSConnection;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[repr(u8)]
-pub enum ImgFetchState {
+pub(super) enum ImgFetchState {
     Idle = 0, DnsResolve = 1, Connecting = 2, TlsHandshake = 3, Sending = 4, Receiving = 5, Decoding = 6,
 }
 
 impl ImgFetchState {
-    pub fn from_u8(v: u8) -> Self {
+    pub(super) fn from_u8(v: u8) -> Self {
         match v { 1 => Self::DnsResolve, 2 => Self::Connecting, 3 => Self::TlsHandshake,
             4 => Self::Sending, 5 => Self::Receiving, 6 => Self::Decoding, _ => Self::Idle }
     }
 }
 
-pub static IMG_STATE: AtomicU8 = AtomicU8::new(0);
-pub static IMG_DEADLINE: AtomicU64 = AtomicU64::new(0);
-pub static IMG_CONN_ID: AtomicU32 = AtomicU32::new(0);
-pub static IMG_TLS: Mutex<Option<TLSConnection>> = Mutex::new(None);
-pub static IMG_REASSEMBLY: Mutex<Vec<u8>> = Mutex::new(Vec::new());
-pub static IMG_RESPONSE: Mutex<Vec<u8>> = Mutex::new(Vec::new());
-pub static IMG_HOST: Mutex<Option<String>> = Mutex::new(None);
-pub static IMG_PATH: Mutex<Option<String>> = Mutex::new(None);
-pub static IMG_PORT: Mutex<u16> = Mutex::new(443);
-pub static IMG_IP: Mutex<Option<[u8; 4]>> = Mutex::new(None);
-pub static IMG_IS_HTTPS: AtomicBool = AtomicBool::new(true);
-pub static IMG_TARGETS: Mutex<Vec<(usize, usize)>> = Mutex::new(Vec::new());
-pub static IMG_FAIL_COUNT: AtomicU32 = AtomicU32::new(0);
-pub static IMG_NAV_HOST: Mutex<Option<String>> = Mutex::new(None);
-pub static IMG_NAV_IP: Mutex<Option<[u8; 4]>> = Mutex::new(None);
+pub(super) static IMG_STATE: AtomicU8 = AtomicU8::new(0);
+pub(super) static IMG_DEADLINE: AtomicU64 = AtomicU64::new(0);
+pub(super) static IMG_CONN_ID: AtomicU32 = AtomicU32::new(0);
+pub(super) static IMG_TLS: Mutex<Option<TLSConnection>> = Mutex::new(None);
+pub(super) static IMG_REASSEMBLY: Mutex<Vec<u8>> = Mutex::new(Vec::new());
+pub(super) static IMG_RESPONSE: Mutex<Vec<u8>> = Mutex::new(Vec::new());
+pub(super) static IMG_HOST: Mutex<Option<String>> = Mutex::new(None);
+pub(super) static IMG_PATH: Mutex<Option<String>> = Mutex::new(None);
+pub(super) static IMG_PORT: Mutex<u16> = Mutex::new(443);
+pub(super) static IMG_IP: Mutex<Option<[u8; 4]>> = Mutex::new(None);
+pub(super) static IMG_IS_HTTPS: AtomicBool = AtomicBool::new(true);
+pub(super) static IMG_TARGETS: Mutex<Vec<(usize, usize)>> = Mutex::new(Vec::new());
+pub(super) static IMG_FAIL_COUNT: AtomicU32 = AtomicU32::new(0);
+pub(super) static IMG_NAV_HOST: Mutex<Option<String>> = Mutex::new(None);
+pub(super) static IMG_NAV_IP: Mutex<Option<[u8; 4]>> = Mutex::new(None);
 
-pub const MAX_IMG_FAILURES: u32 = 3;
-pub const IMG_TIMEOUT_MS: u64 = 10_000;
-pub const MAX_IMG_RESPONSE: usize = 2 * 1024 * 1024;
+pub(super) const MAX_IMG_FAILURES: u32 = 3;
+pub(super) const IMG_TIMEOUT_MS: u64 = 10_000;
+pub(super) const MAX_IMG_RESPONSE: usize = 2 * 1024 * 1024;
 
-pub fn get_img_state() -> ImgFetchState { ImgFetchState::from_u8(IMG_STATE.load(Ordering::Relaxed)) }
-pub fn set_img_state(state: ImgFetchState) { IMG_STATE.store(state as u8, Ordering::SeqCst); }
-pub fn is_timed_out() -> bool {
+pub(super) fn get_img_state() -> ImgFetchState { ImgFetchState::from_u8(IMG_STATE.load(Ordering::Relaxed)) }
+pub(super) fn set_img_state(state: ImgFetchState) { IMG_STATE.store(state as u8, Ordering::SeqCst); }
+pub(super) fn is_timed_out() -> bool {
     let deadline = IMG_DEADLINE.load(Ordering::Relaxed);
     deadline > 0 && crate::time::timestamp_millis() > deadline
 }

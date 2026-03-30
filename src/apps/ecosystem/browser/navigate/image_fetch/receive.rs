@@ -24,7 +24,7 @@ use super::types::*;
 use super::queue::skip_current_image;
 use super::connect::img_cleanup;
 
-pub fn poll_img_receive() {
+pub(super) fn poll_img_receive() {
     crate::network::poll_network();
     if is_timed_out() {
         let has_data = !IMG_RESPONSE.lock().is_empty();

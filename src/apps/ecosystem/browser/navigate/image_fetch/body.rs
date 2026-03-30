@@ -19,7 +19,7 @@ extern crate alloc;
 use alloc::vec::Vec;
 use crate::apps::ecosystem::browser::navigate::response::find_header_end;
 
-pub fn extract_img_body(data: &[u8]) -> Vec<u8> {
+pub(super) fn extract_img_body(data: &[u8]) -> Vec<u8> {
     if let Some(header_end) = find_header_end(data) {
         let headers = &data[..header_end];
         let raw_body = &data[header_end + 4..];
@@ -54,7 +54,7 @@ fn decode_chunked_img(mut data: &[u8]) -> Vec<u8> {
     output
 }
 
-pub fn wrap_tls_record(content_type: u8, data: &[u8]) -> Vec<u8> {
+pub(super) fn wrap_tls_record(content_type: u8, data: &[u8]) -> Vec<u8> {
     let mut record = Vec::with_capacity(5 + data.len());
     record.push(content_type);
     record.push(0x03);

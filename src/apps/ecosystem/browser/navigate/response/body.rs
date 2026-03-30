@@ -20,7 +20,7 @@ use alloc::string::String;
 use alloc::vec::Vec;
 use super::parse::{find_header_end, is_chunked_transfer};
 
-pub fn extract_body(data: &[u8]) -> Vec<u8> {
+pub(super) fn extract_body(data: &[u8]) -> Vec<u8> {
     if let Some(header_end) = find_header_end(data) {
         let headers = &data[..header_end];
         let raw_body = &data[header_end + 4..];
@@ -57,7 +57,7 @@ fn decode_chunked(mut data: &[u8]) -> Vec<u8> {
     output
 }
 
-pub fn extract_title(body: &[u8]) -> Option<String> {
+pub(super) fn extract_title(body: &[u8]) -> Option<String> {
     let html = core::str::from_utf8(body).ok()?;
     let lower = html.to_ascii_lowercase();
     let start = lower.find("<title>")?;

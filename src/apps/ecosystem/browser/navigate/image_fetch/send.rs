@@ -25,7 +25,7 @@ use super::queue::skip_current_image;
 use super::connect::img_cleanup;
 use super::body::wrap_tls_record;
 
-pub fn poll_img_send() {
+pub(super) fn poll_img_send() {
     crate::network::poll_network();
     let host = match IMG_HOST.lock().clone() {
         Some(h) => h, None => { img_cleanup(); skip_current_image(); return; }

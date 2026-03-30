@@ -28,12 +28,12 @@ use super::send::poll_img_send;
 use super::receive::poll_img_receive;
 use super::decode::poll_img_decode;
 
-pub fn set_nav_context(host: &str, ip: Option<[u8; 4]>) {
+pub(crate) fn set_nav_context(host: &str, ip: Option<[u8; 4]>) {
     *IMG_NAV_HOST.lock() = if host.is_empty() { None } else { Some(String::from(host)) };
     *IMG_NAV_IP.lock() = ip;
 }
 
-pub fn reset() {
+pub(crate) fn reset() {
     set_img_state(ImgFetchState::Idle);
     IMG_DEADLINE.store(0, Ordering::Relaxed);
     IMG_CONN_ID.store(0, Ordering::Relaxed);
@@ -49,7 +49,7 @@ pub fn reset() {
     IMG_FAIL_COUNT.store(0, Ordering::Relaxed);
 }
 
-pub fn abort() {
+pub(crate) fn abort() {
     let state = get_img_state();
     match state {
         ImgFetchState::DnsResolve => { dns_cancel(); }
@@ -60,7 +60,7 @@ pub fn abort() {
     reset();
 }
 
-pub fn poll_image_fetch() {
+pub(crate) fn poll_image_fetch() {
     crate::network::poll_network();
     match get_img_state() {
         ImgFetchState::Idle => start_next_image(),

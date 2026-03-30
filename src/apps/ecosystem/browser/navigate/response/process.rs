@@ -27,7 +27,7 @@ use super::redirect::extract_redirect;
 use super::body::{extract_body, extract_title};
 use super::render::render_page;
 
-pub fn process_response() {
+pub(crate) fn process_response() {
     let response_data = RESPONSE_DATA.lock().clone();
     crate::sys::serial::print(b"[NAV] process_response len=");
     crate::sys::serial::print_dec(response_data.len() as u64);

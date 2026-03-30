@@ -20,14 +20,14 @@ use super::types::*;
 use super::queue::skip_current_image;
 use super::tls::start_img_tls;
 
-pub fn img_cleanup() {
+pub(super) fn img_cleanup() {
     tcp_close();
     IMG_CONN_ID.store(0, Ordering::Relaxed);
     *IMG_TLS.lock() = None;
     IMG_REASSEMBLY.lock().clear();
 }
 
-pub fn poll_img_connect() {
+pub(super) fn poll_img_connect() {
     if is_timed_out() {
         crate::sys::serial::println(b"[IMG-FETCH] connect timeout");
         img_cleanup();
