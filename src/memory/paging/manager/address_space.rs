@@ -17,7 +17,7 @@
 use x86_64::PhysAddr;
 
 use super::core::PagingManager;
-use crate::memory::paging::constants::{KERNEL_ASID, KERNEL_PML4_START, PAGE_TABLE_ENTRIES};
+use crate::memory::paging::constants::{KERNEL_ASID, PAGE_TABLE_ENTRIES};
 use crate::memory::paging::error::{PagingError, PagingResult};
 use crate::memory::paging::types::AddressSpace;
 use crate::memory::{frame_alloc, layout};
