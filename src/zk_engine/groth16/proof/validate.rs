@@ -14,12 +14,30 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod manager;
-mod policy;
-mod remote;
-mod types;
+use super::core::Proof;
 
-pub use manager::*;
-pub use types::*;
-pub use remote::*;
-pub use policy::*;
+impl Proof {
+    pub fn is_valid_structure(&self) -> bool {
+        if self.a.is_identity() {
+            return false;
+        }
+        if self.b.is_identity() {
+            return false;
+        }
+        if self.c.is_identity() {
+            return false;
+        }
+
+        if !self.a.is_on_curve() {
+            return false;
+        }
+        if !self.b.is_on_curve() {
+            return false;
+        }
+        if !self.c.is_on_curve() {
+            return false;
+        }
+
+        true
+    }
+}

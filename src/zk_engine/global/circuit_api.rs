@@ -14,12 +14,19 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod manager;
-mod policy;
-mod remote;
-mod types;
+use alloc::vec::Vec;
+use crate::zk_engine::types::{ZKProof, ZKError};
+use crate::zk_engine::circuit::Constraint;
+use super::state::get_zk_engine;
 
-pub use manager::*;
-pub use types::*;
-pub use remote::*;
-pub use policy::*;
+pub fn compile_circuit(constraints: Vec<Constraint>, num_witnesses: usize) -> Result<u32, ZKError> {
+    get_zk_engine()?.compile_circuit(constraints, num_witnesses)
+}
+
+pub fn generate_proof(circuit_id: u32, witness: Vec<Vec<u8>>, public_inputs: Vec<Vec<u8>>) -> Result<ZKProof, ZKError> {
+    get_zk_engine()?.generate_proof(circuit_id, witness, public_inputs)
+}
+
+pub fn verify_proof(proof: &ZKProof) -> Result<bool, ZKError> {
+    get_zk_engine()?.verify_proof(proof)
+}

@@ -14,12 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod manager;
-mod policy;
-mod remote;
-mod types;
+use crate::process::core::ProcessControlBlock;
 
-pub use manager::*;
-pub use types::*;
-pub use remote::*;
-pub use policy::*;
+pub fn check_zk_permissions(process: &ProcessControlBlock) -> bool {
+    process.pid > 0
+}
+
+pub fn check_circuit_compilation_permissions(process: &ProcessControlBlock) -> bool {
+    check_zk_permissions(process)
+}

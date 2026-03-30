@@ -14,12 +14,29 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod manager;
-mod policy;
-mod remote;
-mod types;
+extern crate alloc;
+use alloc::vec::Vec;
 
-pub use manager::*;
-pub use types::*;
-pub use remote::*;
-pub use policy::*;
+use crate::zk_engine::ZKError;
+use crate::zk_engine::groth16::field::FieldElement;
+use crate::zk_engine::groth16::keys::VerifyingKey;
+use crate::zk_engine::groth16::proof::Proof;
+use super::verifier::Groth16Verifier;
+
+pub(super) fn batch_verify_proofs(
+    verifying_key: &VerifyingKey,
+    proofs: &[Proof],
+    public_inputs: &[Vec<FieldElement>],
+) -> Result<bool, ZKError> {
+    if proofs.len() != public_inputs.len() {
+        return Err(ZKError::VerificationFailed);
+    }
+
+    for (proof, inputs) in proofs.iter().zip(public_inputs.iter()) {
+        if !Groth16Verifier::verify(verifying_key, proof, inputs)? {
+            return Ok(false);
+        }
+    }
+
+    Ok(true)
+}

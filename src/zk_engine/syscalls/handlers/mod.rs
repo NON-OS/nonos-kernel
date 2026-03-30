@@ -14,12 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod manager;
-mod policy;
-mod remote;
-mod types;
+mod compile;
+mod dispatcher;
+mod prove;
+mod stats;
+mod verify;
 
-pub use manager::*;
-pub use types::*;
-pub use remote::*;
-pub use policy::*;
+pub use compile::sys_zk_compile_circuit;
+pub use dispatcher::handle_zk_syscall;
+pub use prove::sys_zk_prove;
+pub use stats::sys_zk_get_stats;
+pub use verify::sys_zk_verify;

@@ -14,12 +14,20 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod manager;
-mod policy;
-mod remote;
-mod types;
+use crate::zk_engine::circuit::Circuit;
+use crate::zk_engine::ZKError;
+use crate::zk_engine::setup::powers::Powers;
+use crate::zk_engine::setup::params::SetupParameters;
+use super::setup::TrustedSetup;
 
-pub use manager::*;
-pub use types::*;
-pub use remote::*;
-pub use policy::*;
+pub struct UniversalSetup;
+
+impl UniversalSetup {
+    pub fn phase1_setup(max_constraints: usize) -> Result<Powers, ZKError> {
+        Powers::new(max_constraints)
+    }
+
+    pub fn phase2_setup(circuit: &Circuit, _powers: &Powers) -> Result<SetupParameters, ZKError> {
+        TrustedSetup::setup(circuit)
+    }
+}

@@ -14,12 +14,27 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod manager;
-mod policy;
-mod remote;
-mod types;
+use crate::zk_engine::groth16::FieldElement;
+use crate::zk_engine::ZKError;
+use super::linear_combination::LinearCombination;
 
-pub use manager::*;
-pub use types::*;
-pub use remote::*;
-pub use policy::*;
+impl LinearCombination {
+    pub fn evaluate(&self, assignment: &[FieldElement]) -> Result<FieldElement, ZKError> {
+        let mut result = FieldElement::zero();
+
+        for (var, coeff) in &self.terms {
+            let value = if var.index() == 0 {
+                FieldElement::one()
+            } else if var.index() - 1 < assignment.len() {
+                assignment[var.index() - 1]
+            } else {
+                return Err(ZKError::InvalidWitness);
+            };
+
+            let term = coeff.mul(&value);
+            result = result.add(&term);
+        }
+
+        Ok(result)
+    }
+}

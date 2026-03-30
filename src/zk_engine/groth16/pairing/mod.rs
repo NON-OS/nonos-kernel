@@ -14,12 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod manager;
-mod policy;
-mod remote;
-mod types;
+mod compute;
+mod final_exp;
+mod frobenius;
+mod line;
+mod line_eval;
+mod miller;
 
-pub use manager::*;
-pub use types::*;
-pub use remote::*;
-pub use policy::*;
+const BN254_X: u64 = 4965661367192848881;
+
+pub use compute::Pairing;

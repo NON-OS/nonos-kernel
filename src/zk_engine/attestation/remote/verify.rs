@@ -14,12 +14,26 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod manager;
-mod policy;
-mod remote;
-mod types;
+use crate::zk_engine::ZKError;
+use crate::zk_engine::attestation::types::KernelAttestation;
+use crate::zk_engine::attestation::manager::AttestationManager;
+use super::state::RemoteAttestationClient;
 
-pub use manager::*;
-pub use types::*;
-pub use remote::*;
-pub use policy::*;
+impl RemoteAttestationClient {
+    pub fn verify_remote_attestation(
+        &self,
+        attestation: &KernelAttestation,
+    ) -> Result<bool, ZKError> {
+        if !self.trusted_keys.contains(&attestation.public_key) {
+            return Ok(false);
+        }
+
+        let current_time = crate::time::timestamp_millis();
+        let max_age_ms = 300_000;
+        if current_time > attestation.timestamp + max_age_ms {
+            return Ok(false);
+        }
+
+        AttestationManager::verify_attestation(attestation)
+    }
+}

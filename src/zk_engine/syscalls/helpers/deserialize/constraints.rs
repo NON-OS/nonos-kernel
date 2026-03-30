@@ -14,12 +14,22 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod manager;
-mod policy;
-mod remote;
-mod types;
+use alloc::vec::Vec;
 
-pub use manager::*;
-pub use types::*;
-pub use remote::*;
-pub use policy::*;
+pub fn deserialize_constraints(
+    data: &[u8],
+) -> Result<Vec<crate::zk_engine::circuit::Constraint>, &'static str> {
+    if data.len() % 64 != 0 {
+        return Err("Invalid constraints format");
+    }
+
+    let num_constraints = data.len() / 64;
+    let mut constraints = Vec::with_capacity(num_constraints);
+
+    for i in 0..num_constraints {
+        let constraint = crate::zk_engine::circuit::Constraint::default_multiplication(i);
+        constraints.push(constraint);
+    }
+
+    Ok(constraints)
+}

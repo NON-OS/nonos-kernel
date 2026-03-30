@@ -14,12 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod batch;
+mod detailed;
+mod equation;
 mod manager;
-mod policy;
-mod remote;
-mod types;
+mod result;
+mod state;
+mod stats;
+mod validate;
+mod verify;
 
-pub use manager::*;
-pub use types::*;
-pub use remote::*;
-pub use policy::*;
+pub use manager::VerificationKeyManager;
+pub use result::VerificationResult;
+pub use state::Groth16Verifier;
+pub use stats::VerificationStats;

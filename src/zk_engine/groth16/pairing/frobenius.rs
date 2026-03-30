@@ -14,12 +14,18 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod manager;
-mod policy;
-mod remote;
-mod types;
+use crate::zk_engine::groth16::g2::{G2Affine, G2FieldElement};
 
-pub use manager::*;
-pub use types::*;
-pub use remote::*;
-pub use policy::*;
+pub(super) fn frobenius_map(p: &G2Affine) -> G2Affine {
+    G2Affine {
+        x: p.x.conjugate().mul(&G2FieldElement::frobenius_coeff_x_1()),
+        y: p.y.conjugate().mul(&G2FieldElement::frobenius_coeff_y_1()),
+    }
+}
+
+pub(super) fn frobenius_map_neg(p: &G2Affine) -> G2Affine {
+    G2Affine {
+        x: p.x.conjugate().mul(&G2FieldElement::frobenius_coeff_x_2()),
+        y: p.y.conjugate().neg().mul(&G2FieldElement::frobenius_coeff_y_2()),
+    }
+}

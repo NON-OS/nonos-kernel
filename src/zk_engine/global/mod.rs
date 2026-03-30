@@ -14,12 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod manager;
-mod policy;
-mod remote;
-mod types;
+mod circuit_api;
+mod groth16;
+mod plonk;
+mod stark;
+mod state;
 
-pub use manager::*;
-pub use types::*;
-pub use remote::*;
-pub use policy::*;
+pub use circuit_api::{compile_circuit, generate_proof, verify_proof};
+pub use groth16::{generate_groth16_proof, verify_groth16_proof};
+pub use plonk::{generate_plonk_proof, verify_plonk_proof};
+pub use stark::{generate_stark_proof, verify_stark_proof};
+pub use state::{get_zk_engine, get_zk_engine_static, init_zk_engine, is_zk_engine_initialized};

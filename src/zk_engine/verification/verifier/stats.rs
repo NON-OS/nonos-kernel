@@ -14,12 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod manager;
-mod policy;
-mod remote;
-mod types;
-
-pub use manager::*;
-pub use types::*;
-pub use remote::*;
-pub use policy::*;
+#[derive(Debug, Default)]
+pub struct VerificationStats {
+    pub total_verifications: u64,
+    pub successful_verifications: u64,
+    pub failed_verifications: u64,
+    pub avg_verification_time_ms: u64,
+}

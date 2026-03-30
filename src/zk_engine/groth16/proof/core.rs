@@ -14,12 +14,19 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod manager;
-mod policy;
-mod remote;
-mod types;
+use crate::zk_engine::groth16::g1::G1Point;
+use crate::zk_engine::groth16::g2::G2Point;
 
-pub use manager::*;
-pub use types::*;
-pub use remote::*;
-pub use policy::*;
+#[derive(Debug, Clone)]
+pub struct Proof {
+    pub a: G1Point,
+    pub b: G2Point,
+    pub c: G1Point,
+    pub circuit_id: u32,
+}
+
+impl Proof {
+    pub fn new(a: G1Point, b: G2Point, c: G1Point, circuit_id: u32) -> Self {
+        Proof { a, b, c, circuit_id }
+    }
+}

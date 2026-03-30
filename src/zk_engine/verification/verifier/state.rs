@@ -14,12 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod manager;
-mod policy;
-mod remote;
-mod types;
+use crate::zk_engine::setup::VerifyingKey;
 
-pub use manager::*;
-pub use types::*;
-pub use remote::*;
-pub use policy::*;
+pub struct Groth16Verifier {
+    pub(super) verifying_key: VerifyingKey,
+}
+
+impl Groth16Verifier {
+    pub fn new(verifying_key: VerifyingKey) -> Self {
+        Self { verifying_key }
+    }
+}

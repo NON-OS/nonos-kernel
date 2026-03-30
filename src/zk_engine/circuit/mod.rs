@@ -14,12 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! R1CS circuit representation for Groth16.
-
-mod core;
 mod builder;
-mod optimizer;
+mod core;
 pub mod examples;
+mod optimizer;
 
 pub use self::core::*;
 pub use builder::*;

@@ -14,12 +14,28 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod manager;
-mod policy;
-mod remote;
-mod types;
+use super::state::RemoteAttestationClient;
 
-pub use manager::*;
-pub use types::*;
-pub use remote::*;
-pub use policy::*;
+impl RemoteAttestationClient {
+    pub fn add_trusted_key(&mut self, public_key: [u8; 32]) {
+        if !self.trusted_keys.contains(&public_key) {
+            self.trusted_keys.push(public_key);
+        }
+    }
+
+    pub fn remove_trusted_key(&mut self, public_key: &[u8; 32]) {
+        self.trusted_keys.retain(|k| k != public_key);
+    }
+
+    pub fn is_key_trusted(&self, public_key: &[u8; 32]) -> bool {
+        self.trusted_keys.contains(public_key)
+    }
+
+    pub fn trusted_key_count(&self) -> usize {
+        self.trusted_keys.len()
+    }
+
+    pub fn get_current_nonce(&self) -> [u8; 32] {
+        self.current_nonce
+    }
+}

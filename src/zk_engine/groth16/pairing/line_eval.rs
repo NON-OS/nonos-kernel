@@ -14,12 +14,21 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod manager;
-mod policy;
-mod remote;
-mod types;
+use crate::zk_engine::groth16::gt::{GTElement, Fp6Element};
+use super::line::LineFunctionCoeffs;
 
-pub use manager::*;
-pub use types::*;
-pub use remote::*;
-pub use policy::*;
+pub(super) fn mul_by_line_evaluation(f: &GTElement, line: &LineFunctionCoeffs) -> GTElement {
+    let c0 = Fp6Element {
+        c0: f.c0.c0.mul(&line.l0),
+        c1: f.c0.c1.mul(&line.l1),
+        c2: f.c0.c2.mul(&line.l2),
+    };
+
+    let c1 = Fp6Element {
+        c0: f.c1.c0.mul(&line.l0),
+        c1: f.c1.c1.mul(&line.l1),
+        c2: f.c1.c2.mul(&line.l2),
+    };
+
+    GTElement { c0, c1 }
+}

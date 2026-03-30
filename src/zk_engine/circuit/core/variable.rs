@@ -14,12 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod manager;
-mod policy;
-mod remote;
-mod types;
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+pub struct Variable(pub usize);
 
-pub use manager::*;
-pub use types::*;
-pub use remote::*;
-pub use policy::*;
+impl Variable {
+    pub const ONE: Variable = Variable(0);
+
+    pub fn new(index: usize) -> Self {
+        Variable(index + 1)
+    }
+
+    pub fn index(&self) -> usize {
+        self.0
+    }
+}

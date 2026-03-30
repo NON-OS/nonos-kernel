@@ -14,15 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Production Groth16 zk-SNARK Implementation for NONOS
-//!
-//! Real implementation of Groth16 proving system with:
-//! - Proper BN254 elliptic curve arithmetic
-//! - Optimized field operations using Montgomery form
-//! - Efficient pairing computation
-//! - Constant-time operations for security
-//! - Production-grade random number generation
-
 mod field;
 mod g1;
 mod g2;
