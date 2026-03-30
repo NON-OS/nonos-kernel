@@ -18,6 +18,7 @@ use core::sync::atomic::{AtomicBool, AtomicU32};
 
 pub(super) static DISPLAY_ENABLED: AtomicBool = AtomicBool::new(false);
 pub(super) static LOG_Y: AtomicU32 = AtomicU32::new(192);
+pub(super) static MIN_LOG_Y: AtomicU32 = AtomicU32::new(192);
 
 pub(super) const CHAR_HEIGHT: u32 = 18;
 pub(super) const LEFT_MARGIN: u32 = 46;

@@ -15,14 +15,15 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use core::sync::atomic::Ordering;
-use super::state::{DISPLAY_ENABLED, LOG_Y};
+use super::state::{DISPLAY_ENABLED, LOG_Y, MIN_LOG_Y};
 
-pub fn init_after_fb() {
+pub fn init_after_fb(cursor_y: u32) {
     if let Ok(info) = crate::display::get_framebuffer() {
-        let boot_log_end = 700;
+        let start_y = if cursor_y > 0 { cursor_y } else { 192 };
         let max_y = info.height.saturating_sub(100);
-        let start_y = boot_log_end.min(max_y);
-        LOG_Y.store(start_y, Ordering::Relaxed);
+        let final_y = start_y.min(max_y);
+        LOG_Y.store(final_y, Ordering::Relaxed);
+        MIN_LOG_Y.store(final_y, Ordering::Relaxed);
         DISPLAY_ENABLED.store(true, Ordering::Release);
     }
 }
