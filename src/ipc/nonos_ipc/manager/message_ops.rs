@@ -32,10 +32,12 @@ impl NonosIPCManager {
         if !channel.has_participant(sender_id) { return Err(IpcManagerError::SenderNotAuthorized { sender_id, channel_id }); }
         if !channel.has_participant(recipient_id) { return Err(IpcManagerError::RecipientNotAuthorized { recipient_id, channel_id }); }
         let msg = NonosIPCMessage { message_id: msg_id, sender_id, recipient_id, message_type, payload, timestamp_ms: now, priority: message_type.priority() };
-        match channel.queue.lock().push(msg) {
+        let result = match channel.queue.lock().push(msg) {
             Ok(()) => { self.stats.messages_sent.fetch_add(1, Ordering::Relaxed); Ok(msg_id) }
             Err(capacity) => { self.stats.messages_dropped.fetch_add(1, Ordering::Relaxed); Err(IpcManagerError::QueueFull { channel_id, capacity }) }
-        }
+        };
+        drop(ch_map);
+        result
     }
 
     pub fn receive_message(&self, receiver_id: u64, channel_id: u64) -> Result<Option<NonosIPCMessage>, IpcManagerError> {
@@ -51,6 +53,8 @@ impl NonosIPCManager {
         let ch_map = self.channels.read();
         let channel = ch_map.get(&channel_id).ok_or(IpcManagerError::ChannelNotFound { channel_id })?;
         if !channel.has_participant(receiver_id) { return Err(IpcManagerError::ReceiverNotAuthorized { receiver_id, channel_id }); }
-        Ok(channel.queue.lock().peek_for(receiver_id).cloned())
+        let result = channel.queue.lock().peek_for(receiver_id).cloned();
+        drop(ch_map);
+        Ok(result)
     }
 }
