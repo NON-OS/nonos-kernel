@@ -18,7 +18,7 @@ use alloc::string::String;
 use crate::network::onion::OnionError;
 use crate::network::onion::nonos_crypto::x509_der::DerParser;
 
-pub fn parse_san(data: &[u8], dns_names: &mut alloc::vec::Vec<String>) -> Result<(), OnionError> {
+pub(super) fn parse_san(data: &[u8], dns_names: &mut alloc::vec::Vec<String>) -> Result<(), OnionError> {
     let mut p = DerParser::new(data);
     p.expect_sequence()?;
     let seq_len = p.read_length()?;

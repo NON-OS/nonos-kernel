@@ -18,7 +18,7 @@ use crate::network::onion::OnionError;
 use crate::network::onion::nonos_crypto::x509_der::DerParser;
 use crate::network::onion::nonos_crypto::types::BasicConstraints;
 
-pub fn parse_basic_constraints(data: &[u8], bc: &mut BasicConstraints) -> Result<(), OnionError> {
+pub(super) fn parse_basic_constraints(data: &[u8], bc: &mut BasicConstraints) -> Result<(), OnionError> {
     let mut p = DerParser::new(data);
     p.expect_sequence()?;
     let seq_len = p.read_length()?;
