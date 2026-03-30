@@ -28,6 +28,7 @@ pub mod components;
 pub mod animation;
 
 pub use framebuffer::init as framebuffer_init;
+pub use framebuffer::dimensions as framebuffer_dimensions;
 pub use framebuffer::{
     get_pixel, put_pixel, fill_rect, clear, hline, vline, draw_rect, fill_rounded_rect,
     COLOR_BG, COLOR_FG, COLOR_ACCENT, COLOR_MENU_BG, COLOR_DOCK_BG, COLOR_WINDOW_BG,
