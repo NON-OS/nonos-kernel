@@ -41,7 +41,6 @@ impl FrameAllocator {
 
     pub fn init(&mut self) -> FrameResult<()> {
         if self.initialized { return Err(FrameAllocError::AlreadyInitialized); }
-        if !crate::memory::phys::is_initialized() { return Err(FrameAllocError::PhysAllocatorNotReady); }
         self.initialized = true;
         Ok(())
     }
