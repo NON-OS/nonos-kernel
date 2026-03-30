@@ -40,7 +40,7 @@ pub struct ConnectionPool {
 }
 
 impl ConnectionPool {
-    pub(super) const fn new() -> Self {
+    pub(crate) const fn new() -> Self {
         Self { entries: Mutex::new(BTreeMap::new()) }
     }
 }
