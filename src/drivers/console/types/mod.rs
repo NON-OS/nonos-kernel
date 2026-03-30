@@ -21,7 +21,7 @@ mod log_level;
 mod stats;
 
 pub use color::Color;
-pub use helpers::{make_color, fg_from_attr, bg_from_attr, set_fg, set_bg};
+pub(crate) use helpers::{make_color, fg_from_attr, bg_from_attr, set_fg, set_bg};
 pub use vga_cell::VgaCell;
 pub use log_level::LogLevel;
 pub use stats::{ConsoleStats, ConsoleStatsSnapshot};
