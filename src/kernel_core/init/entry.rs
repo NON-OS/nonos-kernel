@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use core::sync::atomic::Ordering;
-use crate::sys::serial;
+use crate::sys::{serial, clock};
 use crate::boot::handoff::BootHandoffV1;
 use crate::process::core::{create_process, ProcessState, Priority, CURRENT_PID};
 use crate::memory::paging::manager::api::create_address_space;
@@ -36,6 +36,8 @@ pub fn microkernel_init(handoff: &BootHandoffV1) {
     serial::println(b"[UKERNEL] Capabilities initialized");
     crate::sched::init();
     serial::println(b"[UKERNEL] Scheduler initialized");
+    clock::init(handoff.timing.tsc_hz, handoff.timing.unix_epoch_ms);
+    serial::println(b"[UKERNEL] Clock initialized");
     init_framebuffer(handoff);
     serial::println(b"[UKERNEL] Framebuffer initialized");
 }
