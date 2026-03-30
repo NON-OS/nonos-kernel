@@ -18,7 +18,6 @@ use super::verification::verify_services;
 use super::supervision::supervise_services;
 
 pub(crate) fn init_loop() -> ! {
-    crate::sys::serial::println(b"[INIT] Init entering supervision loop");
     let mut verify_count = 0u32;
     loop {
         if verify_count < 3 {

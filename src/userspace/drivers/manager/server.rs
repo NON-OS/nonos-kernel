@@ -14,24 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::services::ServiceServer;
-use crate::services::caps::CAP_DRIVER;
 use super::super::framework::DriverService;
 use super::state::{DRIVERS, DriverState};
 use super::dispatch::handle_request;
 
 pub fn run_driver_manager() -> ! {
-    crate::sys::serial::println(b"[DRV] Driver manager starting");
     init_drivers();
-    let server = match ServiceServer::new("drivers", CAP_DRIVER) {
-        Ok(s) => s,
-        Err(_) => {
-            crate::sys::serial::println(b"[DRV] Failed to create server");
-            loop { crate::sched::yield_now(); }
-        }
-    };
-    crate::sys::serial::println(b"[DRV] Driver manager ready");
-    server_loop(&server)
+    crate::sys::boot_log::ok("DRIVERS", "Service ready");
+    crate::services::registry::register_endpoint_simple("drivers", 1006, 11);
+    server_loop()
 }
 
 fn init_drivers() {
@@ -42,9 +33,21 @@ fn init_drivers() {
     *DRIVERS.lock() = Some(state);
 }
 
-fn server_loop(server: &ServiceServer) -> ! {
+fn server_loop() -> ! {
     loop {
-        server.poll_once(&mut |req| handle_request(req));
+        handle_drv_requests();
         crate::sched::yield_now();
+    }
+}
+
+fn handle_drv_requests() {
+    if let Some(msg) = crate::ipc::nonos_inbox::try_dequeue("drivers") {
+        if let Some(req) = crate::services::server::parsing::parse_request(&msg.data) {
+            let resp = handle_request(req);
+            let data = crate::services::server::parsing::encode_response(&resp);
+            if let Ok(reply) = crate::ipc::nonos_channel::IpcMessage::new("drivers", &msg.from, &data) {
+                let _ = crate::ipc::nonos_inbox::try_enqueue(&msg.from, reply);
+            }
+        }
     }
 }

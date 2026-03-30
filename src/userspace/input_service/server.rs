@@ -14,24 +14,26 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::services::{ServiceServer, CAP_INPUT};
 use super::dispatch::handle_request;
 
 pub fn run_input_service() -> ! {
-    crate::sys::serial::println(b"[INPUT] Input service starting");
-
-    let server = match ServiceServer::new("input", CAP_INPUT) {
-        Ok(s) => s,
-        Err(_) => {
-            crate::sys::serial::println(b"[INPUT] Failed to create server");
-            loop { crate::sched::yield_now(); }
-        }
-    };
-
-    crate::sys::serial::println(b"[INPUT] Input server ready");
+    crate::sys::boot_log::ok("INPUT", "Service ready");
+    crate::services::registry::register_endpoint_simple("input", 1002, 4);
 
     loop {
-        server.poll_once(&mut handle_request);
+        handle_input_requests();
         crate::sched::yield_now();
+    }
+}
+
+fn handle_input_requests() {
+    if let Some(msg) = crate::ipc::nonos_inbox::try_dequeue("input") {
+        if let Some(req) = crate::services::server::parsing::parse_request(&msg.data) {
+            let resp = handle_request(req);
+            let data = crate::services::server::parsing::encode_response(&resp);
+            if let Ok(reply) = crate::ipc::nonos_channel::IpcMessage::new("input", &msg.from, &data) {
+                let _ = crate::ipc::nonos_inbox::try_enqueue(&msg.from, reply);
+            }
+        }
     }
 }

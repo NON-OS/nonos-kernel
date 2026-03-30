@@ -14,28 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::services::ServiceServer;
 use super::dispatch::handle_request;
 
-const NET_CAP: u64 = 0x0002;
-
 pub fn run_net_service() -> ! {
-    crate::sys::serial::println(b"[NET] Network service starting");
     init_network_subsystem();
-    crate::sys::serial::println(b"[NET] Network subsystem initialized");
-
-    let server = match ServiceServer::new("network", NET_CAP) {
-        Ok(s) => s,
-        Err(_) => {
-            crate::sys::serial::println(b"[NET] Failed to create server");
-            loop { crate::sched::yield_now(); }
-        }
-    };
-
-    crate::sys::serial::println(b"[NET] Network server ready");
+    crate::sys::boot_log::ok("NETWORK", "Service ready");
+    crate::services::registry::register_endpoint_simple("network", 1003, 5);
 
     loop {
-        server.poll_once(&mut handle_request);
+        handle_net_requests();
         crate::sched::yield_now();
     }
 }
@@ -43,4 +30,16 @@ pub fn run_net_service() -> ! {
 fn init_network_subsystem() {
     crate::network::stack::init_network_stack();
     crate::network::manager::init();
+}
+
+fn handle_net_requests() {
+    if let Some(msg) = crate::ipc::nonos_inbox::try_dequeue("network") {
+        if let Some(req) = crate::services::server::parsing::parse_request(&msg.data) {
+            let resp = handle_request(req);
+            let data = crate::services::server::parsing::encode_response(&resp);
+            if let Ok(reply) = crate::ipc::nonos_channel::IpcMessage::new("network", &msg.from, &data) {
+                let _ = crate::ipc::nonos_inbox::try_enqueue(&msg.from, reply);
+            }
+        }
+    }
 }

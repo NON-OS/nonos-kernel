@@ -18,7 +18,7 @@ extern crate alloc;
 
 use alloc::vec::Vec;
 use crate::services::ServiceResponse;
-use crate::display::Framebuffer;
+use crate::display::{write_pixel, fill_rect, clear};
 
 const ERR_INVAL: i32 = -22;
 const ERR_NOT_INIT: i32 = -6;
@@ -30,7 +30,7 @@ pub(super) fn draw_pixel(seq: u32, data: &[u8]) -> ServiceResponse {
     let x = u32::from_le_bytes([data[0], data[1], data[2], data[3]]);
     let y = u32::from_le_bytes([data[4], data[5], data[6], data[7]]);
     let c = u32::from_le_bytes([data[8], data[9], data[10], data[11]]);
-    match Framebuffer::write_pixel(x, y, c) {
+    match write_pixel(x, y, c) {
         Ok(()) => ServiceResponse::ok(seq, Vec::new()),
         Err(_) => ServiceResponse::err(seq, ERR_NOT_INIT),
     }
@@ -45,7 +45,7 @@ pub(super) fn draw_rect(seq: u32, data: &[u8]) -> ServiceResponse {
     let w = u32::from_le_bytes([data[8], data[9], data[10], data[11]]);
     let h = u32::from_le_bytes([data[12], data[13], data[14], data[15]]);
     let c = u32::from_le_bytes([data[16], data[17], data[18], data[19]]);
-    match Framebuffer::fill_rect(x, y, w, h, c) {
+    match fill_rect(x, y, w, h, c) {
         Ok(()) => ServiceResponse::ok(seq, Vec::new()),
         Err(_) => ServiceResponse::err(seq, ERR_NOT_INIT),
     }
@@ -57,7 +57,7 @@ pub(super) fn draw_clear(seq: u32, data: &[u8]) -> ServiceResponse {
     } else {
         0
     };
-    match Framebuffer::clear(c) {
+    match clear(c) {
         Ok(()) => ServiceResponse::ok(seq, Vec::new()),
         Err(_) => ServiceResponse::err(seq, ERR_NOT_INIT),
     }
