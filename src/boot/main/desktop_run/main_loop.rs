@@ -36,7 +36,8 @@ pub fn run_desktop() -> ! {
         check_redraws();
         do_redraw(&mut old_mx, &mut old_my);
         update_clock(&mut last_clock);
-        for _ in 0..100 { unsafe { asm!("pause", options(nomem, nostack)); } }
+        for _ in 0..50 { unsafe { asm!("pause", options(nomem, nostack)); } }
+        crate::sched::yield_now();
     }
 }
 
