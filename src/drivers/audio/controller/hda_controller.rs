@@ -283,7 +283,6 @@ impl HdAudioController {
 
     #[inline] pub fn is_ready(&self) -> bool { self.caps.output_streams > 0 && self.codec_mask != 0 }
     #[inline] pub fn is_playing(&self) -> bool { stream::is_stream_running(self, self.out_stream) }
-    #[inline] pub fn capabilities(&self) -> Capabilities { self.caps }
     pub fn version(&self) -> (u8, u8) { init::read_version(self) }
     #[inline] pub fn codec_count(&self) -> u32 { self.codec_mask.count_ones() }
 
@@ -299,6 +298,8 @@ impl HdAudioController {
         if self.is_playing() {
             stream::stop_stream(self, self.out_stream);
         }
+        super::corb_rirb::stop_corb(self);
+        super::corb_rirb::stop_rirb(self);
         init::shutdown_controller(self)
     }
 }

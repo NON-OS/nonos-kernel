@@ -27,7 +27,7 @@ pub(crate) fn init_controller<T: RegisterAccess>(ctrl: &T, corb: &DmaRegion, rir
     reset_controller(ctrl)?;
     clear_codec_status(ctrl);
     let caps = read_capabilities(ctrl);
-    crate::log::logger::log_critical(&alloc::format!("HDA: {} output, {} input, {} bidi streams", caps.output_streams, caps.input_streams, caps.bidi_streams));
+    crate::log::logger::log_critical(&alloc::format!("HDA: {} out, {} in, {} bidi, 64bit={}, sdo={}", caps.output_streams, caps.input_streams, caps.bidi_streams, caps.addr64, caps.nsdo));
     init_command_buffers(ctrl, corb, rirb);
     let codec_mask = read_codec_mask(ctrl);
     let primary_codec = find_primary_codec(codec_mask);
