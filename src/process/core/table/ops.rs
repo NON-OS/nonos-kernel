@@ -20,6 +20,7 @@ use super::super::types::{Pid, ProcessState};
 
 impl ProcessTable {
     pub fn terminate_process(&self, pid: Pid) -> Result<(), &'static str> {
+        crate::sched::remove_from_run_queue(pid);
         let mut inner = self.inner.write();
         if let Some(pos) = inner.iter().position(|p| p.pid == pid) {
             *inner[pos].state.lock() = ProcessState::Terminated(0);

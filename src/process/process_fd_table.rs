@@ -110,14 +110,16 @@ impl ProcessFdTable {
     }
 
     pub fn dup2(&self, old_fd: i32, new_fd: i32) -> Option<i32> {
-        if old_fd == new_fd { return if self.get(old_fd).is_some() { Some(new_fd) } else { None }; }
         if new_fd < 0 || new_fd >= MAX_PROCESS_FDS { return None; }
-        let entry = self.get(old_fd)?;
-        self.remove(new_fd);
-        let mut new_entry = entry.clone();
+        let mut table = self.entries.write();
+        if old_fd == new_fd { return if table.contains_key(&old_fd) { Some(new_fd) } else { None }; }
+        let entry = table.get(&old_fd)?.clone();
+        table.remove(&new_fd);
+        let mut new_entry = entry;
         new_entry.fd = new_fd;
         new_entry.flags = 0;
-        self.allocate_at(new_fd, new_entry)
+        table.insert(new_fd, new_entry);
+        Some(new_fd)
     }
 
     pub fn close_cloexec(&self) {

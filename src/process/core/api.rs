@@ -35,7 +35,7 @@ pub fn get_process_table() -> &'static ProcessTable {
 
 #[inline]
 pub fn current_pid() -> Option<Pid> {
-    match CURRENT_PID.load(Ordering::Relaxed) {
+    match CURRENT_PID.load(Ordering::SeqCst) {
         0 => None,
         v => Some(v),
     }
@@ -51,7 +51,7 @@ pub fn context_switch(to: Pid) -> Result<(), &'static str> {
     if PROCESS_TABLE.find_by_pid(to).is_none() {
         return Err("not found");
     }
-    CURRENT_PID.store(to, Ordering::Relaxed);
+    CURRENT_PID.store(to, Ordering::SeqCst);
     Ok(())
 }
 

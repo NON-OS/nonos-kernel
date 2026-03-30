@@ -56,8 +56,9 @@ impl ThreadGroup {
         let mut threads = self.threads.write();
         if let Some(pos) = threads.iter().position(|&t| t == tid) {
             threads.remove(pos);
+            drop(threads);
+            self.active_threads.fetch_sub(1, Ordering::AcqRel);
         }
-        self.active_threads.fetch_sub(1, Ordering::AcqRel);
     }
 
     pub fn thread_count(&self) -> u32 {
