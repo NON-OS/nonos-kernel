@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::{protocol, state, init, poll, HidDeviceType};
+use super::{protocol, state, HidDeviceType};
 
 pub fn get_supported_commands() -> &'static [protocol::HidCommand] { protocol::SUPPORTED_COMMANDS }
 pub fn get_register_address(reg: protocol::HidRegister) -> u16 { protocol::register_address(reg) }
@@ -45,7 +45,7 @@ pub fn hid_usage_pages() -> (u16, u16, u16) {
     (protocol::HID_USAGE_PAGE_DIGITIZER, protocol::HID_USAGE_PAGE_GENERIC_DESKTOP, protocol::HID_USAGE_PAGE_BUTTON)
 }
 
-pub fn init() -> usize { init::init() }
+pub fn init() -> usize { super::init::init() }
 pub fn set_screen_bounds(width: u32, height: u32) { state::set_screen_size(width, height); }
 pub fn is_available() -> bool { state::is_available() }
 pub fn touchpad_available() -> bool { state::is_available() }
@@ -53,7 +53,7 @@ pub fn touchpad_working() -> bool { state::is_available() && state::get_update_c
 #[inline] pub fn touchpad_position() -> (i32, i32) { state::get_cursor() }
 pub fn left_pressed() -> bool { false }
 pub fn right_pressed() -> bool { false }
-pub fn poll() -> bool { poll::poll() }
+pub fn poll() -> bool { super::poll::poll() }
 pub fn device_count() -> usize { state::device_count() }
 
 pub fn get_device_info(index: usize) -> Option<(HidDeviceType, u16, u16)> {
