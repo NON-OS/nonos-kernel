@@ -14,8 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod core;
-pub mod print;
+mod state;
+mod init;
+mod output;
+mod render;
 
-pub use core::init;
-pub use print::{print, print_str, println, print_hex, print_dec, print_dec as print_u64};
+pub use init::init_after_fb;
+pub use output::{info, ok, warn, error, stage};

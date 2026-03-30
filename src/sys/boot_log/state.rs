@@ -14,8 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod core;
-pub mod print;
+use core::sync::atomic::{AtomicBool, AtomicU32};
 
-pub use core::init;
-pub use print::{print, print_str, println, print_hex, print_dec, print_dec as print_u64};
+pub(super) static DISPLAY_ENABLED: AtomicBool = AtomicBool::new(false);
+pub(super) static LOG_Y: AtomicU32 = AtomicU32::new(192);
+
+pub(super) const CHAR_HEIGHT: u32 = 18;
+pub(super) const LEFT_MARGIN: u32 = 46;
+pub(super) const BG_COLOR: u32 = 0x00101820;
