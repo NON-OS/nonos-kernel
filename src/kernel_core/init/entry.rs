@@ -28,10 +28,13 @@ pub fn microkernel_init(handoff: &BootHandoffV1) {
     init_framebuffer(handoff);
     boot_log::init_after_fb(handoff.fb.cursor_y);
     boot_log::ok("NONOS", "Microkernel init");
+    crate::sys::settings::init();
+    crate::sys::settings::init_hostname();
     crate::ipc::init();
     crate::syscall::microkernel::capability::init_cap_for_init();
     crate::sched::init();
     clock::init(handoff.timing.tsc_hz, handoff.timing.unix_epoch_ms);
+    crate::process::init_process_management();
     boot_log::ok("NONOS", "Core ready");
 }
 
