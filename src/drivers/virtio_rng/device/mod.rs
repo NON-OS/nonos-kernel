@@ -20,5 +20,4 @@ mod init;
 mod io;
 mod random;
 
-pub(super) use types::AccessMode;
 pub(super) use core::VirtioRngDevice;

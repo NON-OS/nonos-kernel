@@ -19,13 +19,13 @@ use super::super::super::types::DmaRegion;
 use super::super::super::constants::*;
 use super::super::helpers::{RegisterAccess, spin_while};
 use super::super::corb_rirb::{stop_corb, stop_rirb};
-use super::super::codec::{self, CodecInfo, CodecPaths};
+use super::super::codec::{self, CodecPaths};
 use super::types::Capabilities;
 use super::reset::reset_controller;
 use super::capabilities::{read_capabilities, read_codec_mask, find_primary_codec};
 use super::discover::{init_command_buffers, discover_codecs};
 
-pub fn init_controller<T: RegisterAccess>(ctrl: &T, corb: &DmaRegion, rirb: &DmaRegion) -> Result<(Capabilities, u16, Option<u8>, Option<CodecPaths>), AudioError> {
+pub(crate) fn init_controller<T: RegisterAccess>(ctrl: &T, corb: &DmaRegion, rirb: &DmaRegion) -> Result<(Capabilities, u16, Option<u8>, Option<CodecPaths>), AudioError> {
     reset_controller(ctrl)?;
     clear_codec_status(ctrl);
     let caps = read_capabilities(ctrl);
