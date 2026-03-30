@@ -92,10 +92,8 @@ pub fn register_inbox(module: &str) {
     if module.is_empty() {
         return;
     }
-
     let cap = DEFAULT_CAP.load(Ordering::Relaxed);
     let mut reg = REGISTRY.write();
-
     if !reg.map.contains_key(module) {
         reg.map.insert(module.into(), Arc::new(Inbox::new(cap)));
         GLOBAL_STATS.total_inboxes_created.fetch_add(1, Ordering::Relaxed);
