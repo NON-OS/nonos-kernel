@@ -18,12 +18,20 @@ use core::sync::atomic::Ordering;
 use super::state::{DISPLAY_ENABLED, LOG_Y, MIN_LOG_Y};
 
 pub fn init_after_fb(cursor_y: u32) {
+    crate::sys::serial::print(b"[BOOTLOG] cursor_y=");
+    crate::sys::serial::print_dec(cursor_y as u64);
+    crate::sys::serial::println(b"");
     if let Ok(info) = crate::display::get_framebuffer() {
         let start_y = if cursor_y > 0 { cursor_y } else { 192 };
         let max_y = info.height.saturating_sub(100);
         let final_y = start_y.min(max_y);
+        crate::sys::serial::print(b"[BOOTLOG] final_y=");
+        crate::sys::serial::print_dec(final_y as u64);
+        crate::sys::serial::println(b"");
         LOG_Y.store(final_y, Ordering::Relaxed);
         MIN_LOG_Y.store(final_y, Ordering::Relaxed);
         DISPLAY_ENABLED.store(true, Ordering::Release);
+    } else {
+        crate::sys::serial::println(b"[BOOTLOG] ERROR: no framebuffer!");
     }
 }
