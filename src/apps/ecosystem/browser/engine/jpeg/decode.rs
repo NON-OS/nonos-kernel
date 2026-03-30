@@ -14,14 +14,22 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod markers;
-mod huffman;
-mod dct;
-mod color;
-mod decode;
-mod grayscale;
-mod ycbcr;
-mod lookup;
-mod crop;
+use crate::apps::ecosystem::browser::engine::ImageData;
+use super::markers::parse_markers;
+use super::grayscale::decode_grayscale;
+use super::ycbcr::decode_ycbcr;
 
-pub use decode::decode_jpeg;
+pub fn decode_jpeg(data: &[u8]) -> Option<ImageData> {
+    let markers = parse_markers(data)?;
+    if !markers.sof.is_baseline { return None; }
+    let width = markers.sof.width;
+    let height = markers.sof.height;
+    let num_components = markers.sof.components.len();
+    if num_components == 1 {
+        decode_grayscale(data, &markers, width, height)
+    } else if num_components == 3 {
+        decode_ycbcr(data, &markers, width, height)
+    } else {
+        None
+    }
+}

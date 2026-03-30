@@ -14,14 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod markers;
-mod huffman;
-mod dct;
-mod color;
-mod decode;
-mod grayscale;
-mod ycbcr;
-mod lookup;
-mod crop;
+pub(super) const MAX_DIMENSION: u32 = 4096;
+pub(super) const MARKER_SOI: u8 = 0xD8;
+pub(super) const MARKER_SOF0: u8 = 0xC0;
+pub(super) const MARKER_SOF2: u8 = 0xC2;
+pub(super) const MARKER_DHT: u8 = 0xC4;
+pub(super) const MARKER_DQT: u8 = 0xDB;
+pub(super) const MARKER_SOS: u8 = 0xDA;
+pub(super) const MARKER_EOI: u8 = 0xD9;
 
-pub use decode::decode_jpeg;
+pub(super) fn read_u16_be(data: &[u8], offset: usize) -> Option<u16> {
+    if offset + 2 > data.len() { return None; }
+    Some(((data[offset] as u16) << 8) | (data[offset + 1] as u16))
+}

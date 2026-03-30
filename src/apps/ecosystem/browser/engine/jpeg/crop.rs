@@ -14,14 +14,23 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod markers;
-mod huffman;
-mod dct;
-mod color;
-mod decode;
-mod grayscale;
-mod ycbcr;
-mod lookup;
-mod crop;
+extern crate alloc;
 
-pub use decode::decode_jpeg;
+use alloc::vec::Vec;
+
+pub(super) fn crop_plane(plane: &[u8], plane_width: usize, target_w: usize, target_h: usize) -> Vec<u8> {
+    let mut out = Vec::with_capacity(target_w * target_h);
+    for row in 0..target_h {
+        let start = row * plane_width;
+        let end = start + target_w;
+        if end <= plane.len() {
+            out.extend_from_slice(&plane[start..end]);
+        } else if start < plane.len() {
+            out.extend_from_slice(&plane[start..]);
+            for _ in 0..(end - plane.len()) { out.push(128); }
+        } else {
+            for _ in 0..target_w { out.push(128); }
+        }
+    }
+    out
+}
