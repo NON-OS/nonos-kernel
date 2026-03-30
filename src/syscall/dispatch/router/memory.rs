@@ -16,7 +16,7 @@
 
 use crate::syscall::numbers::SyscallNumber;
 use crate::syscall::SyscallResult;
-use crate::syscall::dispatch::process::*;
+use crate::syscall::dispatch::file_io::{handle_mmap, handle_munmap};
 use crate::syscall::dispatch::util::errno;
 
 pub(super) fn dispatch_memory(syscall: SyscallNumber, a0: u64, a1: u64, a2: u64, a3: u64, _a4: u64, _a5: u64) -> SyscallResult {
