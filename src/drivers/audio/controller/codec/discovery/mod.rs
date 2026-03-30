@@ -21,4 +21,3 @@ mod trace;
 
 pub(crate) use codec::discover_codec;
 pub(crate) use paths::discover_paths;
-pub(super) use widget::discover_widget;
