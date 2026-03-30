@@ -29,6 +29,7 @@ pub fn run_apps_service() -> ! {
 
 fn init_apps_subsystem() {
     let _ = crate::apps::ecosystem::init();
+    crate::sdk::init();
 }
 
 fn handle_apps_requests() {

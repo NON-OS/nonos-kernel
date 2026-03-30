@@ -17,6 +17,7 @@
 use super::dispatch::handle_request;
 
 pub fn run_crypto_service() -> ! {
+    init_crypto_subsystem();
     crate::sys::boot_log::ok("CRYPTO", "Service ready");
     crate::services::registry::register_endpoint_simple("crypto", 1004, 6);
 
@@ -24,6 +25,10 @@ pub fn run_crypto_service() -> ! {
         handle_crypto_requests();
         crate::sched::yield_now();
     }
+}
+
+fn init_crypto_subsystem() {
+    let _ = crate::vault::nonos_vault::initialize_vault();
 }
 
 fn handle_crypto_requests() {
