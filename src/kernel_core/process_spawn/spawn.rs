@@ -22,31 +22,14 @@ use super::stack::allocate_service_stack;
 use super::types::{ServiceProcess, IsolationError};
 
 pub fn spawn_isolated_service(name: &str, caps: u64) -> Result<ServiceProcess, IsolationError> {
-    crate::sys::serial::println(b"[SPAWN] Getting entry point");
     let entry = get_service_entry(name).ok_or(IsolationError::ProcessCreation)?;
-
-    crate::sys::serial::println(b"[SPAWN] Creating process");
     let pid = create_process(name, ProcessState::Ready, Priority::Normal)
         .map_err(|_| IsolationError::ProcessCreation)?;
-
-    crate::sys::serial::println(b"[SPAWN] Creating address space");
-    let asid = create_address_space(pid).map_err(|e| {
-        crate::sys::serial::print(b"[SPAWN] ASID failed: ");
-        crate::sys::serial::println(e.as_str().as_bytes());
-        IsolationError::AddressSpace
-    })?;
-
-    crate::sys::serial::println(b"[SPAWN] Granting caps");
+    let asid = create_address_space(pid).map_err(|_| IsolationError::AddressSpace)?;
     crate::syscall::microkernel::capability::grant_caps_internal(pid, caps);
-
-    crate::sys::serial::println(b"[SPAWN] Setting up context");
     let stack_top = allocate_service_stack(pid);
     setup_initial_context(pid, entry as usize as u64, stack_top);
-
-    crate::sys::serial::println(b"[SPAWN] Adding to run queue");
     crate::sched::add_to_run_queue(pid);
-
-    crate::sys::serial::println(b"[SPAWN] Done");
     Ok(ServiceProcess { pid, asid, caps })
 }
 
