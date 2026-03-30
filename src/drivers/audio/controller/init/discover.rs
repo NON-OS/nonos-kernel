@@ -19,11 +19,11 @@ use super::super::helpers::RegisterAccess;
 use super::super::corb_rirb::{init_corb, init_rirb};
 use super::super::codec::{discover_codec, init_codec_path, apply_codec_quirks, CodecInfo};
 
-pub fn init_command_buffers<T: RegisterAccess>(ctrl: &T, corb: &DmaRegion, rirb: &DmaRegion) {
+pub(super) fn init_command_buffers<T: RegisterAccess>(ctrl: &T, corb: &DmaRegion, rirb: &DmaRegion) {
     init_corb(ctrl, corb); init_rirb(ctrl, rirb);
 }
 
-pub fn discover_codecs<T: RegisterAccess>(ctrl: &T, corb: &DmaRegion, rirb: &DmaRegion,
+pub(super) fn discover_codecs<T: RegisterAccess>(ctrl: &T, corb: &DmaRegion, rirb: &DmaRegion,
     corb_entries: usize, rirb_entries: usize, codec_mask: u16) -> alloc::vec::Vec<CodecInfo> {
     let mut codecs = alloc::vec::Vec::new();
     for cad in 0..=15u8 {

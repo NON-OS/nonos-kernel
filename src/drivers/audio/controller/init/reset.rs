@@ -18,7 +18,7 @@ use super::super::super::error::AudioError;
 use super::super::super::constants::*;
 use super::super::helpers::{RegisterAccess, spin_until, spin_while};
 
-pub fn reset_controller<T: RegisterAccess>(ctrl: &T) -> Result<(), AudioError> {
+pub(super) fn reset_controller<T: RegisterAccess>(ctrl: &T) -> Result<(), AudioError> {
     let mut gctl = ctrl.read_reg32(GCTL);
     gctl &= !GCTL_CRST;
     ctrl.write_reg32(GCTL, gctl);
