@@ -19,7 +19,6 @@ use alloc::string::String;
 use core::sync::atomic::Ordering;
 
 use crate::syscall::capabilities::CapabilityToken;
-use crate::ipc::nonos_message::{IpcEnvelope, SecurityLevel};
 use crate::ipc::nonos_policy::capability::IpcCapability;
 use crate::ipc::nonos_policy::module_policy::ModulePolicy;
 use crate::ipc::nonos_policy::violation::PolicyViolation;

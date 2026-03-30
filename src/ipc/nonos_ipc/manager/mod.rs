@@ -21,6 +21,6 @@ mod message_ops;
 mod helpers;
 mod global;
 
-pub use types::{ManagerStatsSnapshot, DEFAULT_QUEUE_CAPACITY, MAX_QUEUE_CAPACITY, MAX_PAYLOAD_SIZE, MAX_PARTICIPANTS};
+pub use types::ManagerStatsSnapshot;
 pub use core::NonosIPCManager;
 pub use global::{NONOS_IPC_MANAGER, get_ipc_manager};

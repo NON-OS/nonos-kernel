@@ -24,14 +24,14 @@ pub(super) struct RateLimitTracker {
 }
 
 impl RateLimitTracker {
-    pub const fn new() -> Self {
+    pub(super) const fn new() -> Self {
         Self {
             count: AtomicU64::new(0),
             window_start_ms: AtomicU64::new(0),
         }
     }
 
-    pub fn check_and_increment(&self, limit_per_sec: u32) -> bool {
+    pub(super) fn check_and_increment(&self, limit_per_sec: u32) -> bool {
         if limit_per_sec == 0 { return true; }
         let now_ms = crate::time::timestamp_millis();
         let window_start = self.window_start_ms.load(Ordering::Relaxed);
@@ -44,7 +44,7 @@ impl RateLimitTracker {
         current < limit_per_sec as u64
     }
 
-    pub fn reset(&self) {
+    pub(super) fn reset(&self) {
         self.count.store(0, Ordering::Relaxed);
         self.window_start_ms.store(0, Ordering::Relaxed);
     }
@@ -59,7 +59,7 @@ pub(super) struct PolicyStats {
 }
 
 impl PolicyStats {
-    pub const fn new() -> Self {
+    pub(super) const fn new() -> Self {
         Self {
             messages_allowed: AtomicU64::new(0),
             messages_denied: AtomicU64::new(0),
