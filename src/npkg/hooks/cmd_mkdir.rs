@@ -18,7 +18,7 @@ use alloc::string::String;
 use alloc::vec::Vec;
 use super::helpers::create_parents;
 
-pub fn cmd_mkdir(args: &[&str]) -> Result<(), String> {
+pub(super) fn cmd_mkdir(args: &[&str]) -> Result<(), String> {
     let mut parents = false;
     let mut mode = 0o755u32;
     let mut paths = Vec::new();

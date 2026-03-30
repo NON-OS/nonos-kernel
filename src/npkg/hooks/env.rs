@@ -17,19 +17,19 @@
 use alloc::collections::BTreeMap;
 use alloc::string::String;
 
-pub struct ScriptEnv {
+pub(super) struct ScriptEnv {
     pub variables: BTreeMap<String, String>,
 }
 
 impl ScriptEnv {
-    pub fn new(package: &str) -> Self {
+    pub(super) fn new(package: &str) -> Self {
         let mut variables = BTreeMap::new();
         variables.insert(String::from("PKG_NAME"), String::from(package));
         variables.insert(String::from("PKG_ROOT"), String::from("/"));
         Self { variables }
     }
 
-    pub fn expand_variables(&self, s: &str) -> String {
+    pub(super) fn expand_variables(&self, s: &str) -> String {
         let mut result = String::from(s);
         for (key, value) in &self.variables {
             let pattern = alloc::format!("${{{}}}", key);

@@ -17,13 +17,13 @@
 use alloc::string::String;
 use alloc::vec::Vec;
 
-pub fn path_exists(path: &str) -> bool {
+pub(super) fn path_exists(path: &str) -> bool {
     crate::fs::vfs::get_vfs()
         .map(|vfs| vfs.exists(path))
         .unwrap_or(false)
 }
 
-pub fn create_parents(path: &str, mode: u32) -> Result<(), String> {
+pub(super) fn create_parents(path: &str, mode: u32) -> Result<(), String> {
     let components: Vec<&str> = path.split('/').filter(|s| !s.is_empty()).collect();
     let mut current = String::new();
     for component in components {
@@ -37,7 +37,7 @@ pub fn create_parents(path: &str, mode: u32) -> Result<(), String> {
     Ok(())
 }
 
-pub fn remove_recursive(path: &str) -> Result<(), String> {
+pub(super) fn remove_recursive(path: &str) -> Result<(), String> {
     if crate::fs::is_directory(path) {
         if let Some(entries) = crate::fs::vfs::get_vfs().and_then(|v| v.list_dir(path).ok()) {
             for entry in entries {
@@ -52,7 +52,7 @@ pub fn remove_recursive(path: &str) -> Result<(), String> {
     Ok(())
 }
 
-pub fn parse_owner(s: &str) -> Result<(u32, u32), String> {
+pub(super) fn parse_owner(s: &str) -> Result<(u32, u32), String> {
     if let Some((user, group)) = s.split_once(':') {
         let uid = user.parse().unwrap_or(0);
         let gid = group.parse().unwrap_or(0);
