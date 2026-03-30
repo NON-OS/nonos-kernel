@@ -23,49 +23,32 @@ pub(crate) fn get_service_entry(name: &str) -> Option<fn()> {
         "crypto" => Some(svc_crypto),
         "zk" => Some(svc_zk),
         "input" => Some(svc_input),
+        "audio" => Some(svc_audio),
+        "gpu" => Some(svc_gpu),
+        "apps" => Some(svc_apps),
+        "agents" => Some(svc_agents),
+        "shell" => Some(svc_shell),
         "desktop" => Some(svc_desktop),
         _ => None,
     }
 }
 
-fn svc_vfs() {
-    crate::sys::serial::println(b"[SVC] VFS entry!");
-    crate::sys::serial::println(b"[SVC] calling run_vfs_service");
-    crate::userspace::run_vfs_service();
-}
-
-fn svc_net() {
-    crate::sys::serial::println(b"[SVC] NET entry!");
-    crate::userspace::run_net_service();
-}
-
-fn svc_display() {
-    crate::sys::serial::println(b"[SVC] DISP entry!");
-    crate::userspace::run_display_service();
-}
-
-fn svc_drivers() {
-    crate::sys::serial::println(b"[SVC] DRV entry!");
-    crate::userspace::run_driver_manager();
-}
-
-fn svc_crypto() {
-    crate::sys::serial::println(b"[SVC] CRYPTO entry!");
-    crate::userspace::run_crypto_service();
-}
-
-fn svc_zk() {
-    crate::sys::serial::println(b"[SVC] ZK entry!");
-    crate::userspace::run_zk_service();
-}
-
-fn svc_input() {
-    crate::sys::serial::println(b"[SVC] INPUT entry!");
-    crate::userspace::run_input_service();
-}
+fn svc_vfs() { crate::userspace::run_vfs_service(); }
+fn svc_net() { crate::userspace::run_net_service(); }
+fn svc_display() { crate::userspace::run_display_service(); }
+fn svc_drivers() { crate::userspace::run_driver_manager(); }
+fn svc_crypto() { crate::userspace::run_crypto_service(); }
+fn svc_zk() { crate::userspace::run_zk_service(); }
+fn svc_input() { crate::userspace::run_input_service(); }
+fn svc_audio() { crate::userspace::run_audio_service(); }
+fn svc_gpu() { crate::userspace::run_gpu_service(); }
+fn svc_apps() { crate::userspace::run_apps_service(); }
+fn svc_agents() { crate::userspace::run_agents_service(); }
+fn svc_shell() { crate::userspace::run_shell_service(); }
 
 fn svc_desktop() {
-    crate::sys::serial::println(b"[SVC] DESKTOP entry!");
-    crate::boot::main::graphics_init::init_graphics_for_microkernel();
-    crate::boot::main::desktop_run::run_desktop();
+    if crate::boot::main::graphics_init::init_graphics_for_microkernel() {
+        crate::boot::main::desktop_run::run_desktop();
+    }
+    loop { crate::sched::yield_now(); }
 }

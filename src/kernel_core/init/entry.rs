@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use core::sync::atomic::Ordering;
-use crate::sys::{serial, clock};
+use crate::sys::{clock, boot_log};
 use crate::boot::handoff::BootHandoffV1;
 use crate::process::core::{create_process, ProcessState, Priority, CURRENT_PID};
 use crate::memory::paging::manager::api::create_address_space;
@@ -23,39 +23,24 @@ use super::memory::init_memory;
 use super::framebuffer::init_framebuffer;
 
 pub fn microkernel_init(handoff: &BootHandoffV1) {
-    serial::println(b"[UKERNEL] Microkernel core init");
     init_memory(handoff);
-    serial::println(b"[UKERNEL] Memory initialized");
-    if crate::memory::paging::manager::api::init().is_err() {
-        serial::println(b"[UKERNEL] Paging init failed");
-    }
-    serial::println(b"[UKERNEL] Paging initialized");
-    crate::ipc::init();
-    serial::println(b"[UKERNEL] IPC ready");
-    crate::syscall::microkernel::capability::init_cap_for_init();
-    serial::println(b"[UKERNEL] Capabilities initialized");
-    crate::sched::init();
-    serial::println(b"[UKERNEL] Scheduler initialized");
-    clock::init(handoff.timing.tsc_hz, handoff.timing.unix_epoch_ms);
-    serial::println(b"[UKERNEL] Clock initialized");
+    let _ = crate::memory::paging::manager::api::init();
     init_framebuffer(handoff);
-    serial::println(b"[UKERNEL] Framebuffer initialized");
+    boot_log::init_after_fb();
+    boot_log::ok("NONOS", "Microkernel init");
+    crate::ipc::init();
+    crate::syscall::microkernel::capability::init_cap_for_init();
+    crate::sched::init();
+    clock::init(handoff.timing.tsc_hz, handoff.timing.unix_epoch_ms);
+    boot_log::ok("NONOS", "Core ready");
 }
 
 pub fn microkernel_main() -> ! {
-    serial::println(b"[UKERNEL] Creating init process");
-    let init_pid = match create_process("init", ProcessState::Running, Priority::High) {
-        Ok(pid) => pid,
-        Err(_) => {
-            serial::println(b"[UKERNEL] Failed to create init process");
-            loop { core::hint::spin_loop(); }
-        }
-    };
-    serial::print(b"[UKERNEL] Init PID: ");
-    serial::print_dec(init_pid as u64);
-    serial::println(b"");
+    boot_log::ok("UKERNEL", "Creating init");
+    let init_pid = create_process("init", ProcessState::Running, Priority::High)
+        .unwrap_or_else(|_| loop { core::hint::spin_loop(); });
     let _ = create_address_space(init_pid);
     CURRENT_PID.store(init_pid, Ordering::SeqCst);
-    serial::println(b"[UKERNEL] Entering userspace init");
+    boot_log::ok("UKERNEL", "Entering userspace");
     crate::userspace::run_init()
 }

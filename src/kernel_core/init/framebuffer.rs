@@ -16,16 +16,23 @@
 
 use crate::boot::handoff::BootHandoffV1;
 use crate::display::{register_framebuffer, FramebufferInfo};
+use crate::memory::{PhysAddr, mmio};
 
 pub(crate) fn init_framebuffer(handoff: &BootHandoffV1) {
-    if handoff.fb.ptr != 0 {
-        let info = FramebufferInfo {
-            addr: handoff.fb.ptr,
-            width: handoff.fb.width,
-            height: handoff.fb.height,
-            stride: handoff.fb.stride,
-            bpp: 32,
-        };
-        let _ = register_framebuffer(info);
-    }
+    if handoff.fb.ptr == 0 { return; }
+    let size = (handoff.fb.stride as usize) * (handoff.fb.height as usize);
+    let fb_phys = PhysAddr::new(handoff.fb.ptr);
+    let fb_addr = mmio::map_framebuffer(fb_phys, size)
+        .map(|va| va.as_u64())
+        .unwrap_or(handoff.fb.ptr);
+    let info = FramebufferInfo {
+        addr: fb_addr,
+        width: handoff.fb.width,
+        height: handoff.fb.height,
+        stride: handoff.fb.stride,
+        bpp: 32,
+    };
+    let _ = register_framebuffer(info);
+    crate::graphics::framebuffer::init(fb_addr, handoff.fb.width, handoff.fb.height, handoff.fb.stride);
+    let _ = crate::graphics::framebuffer::init_double_buffer();
 }
