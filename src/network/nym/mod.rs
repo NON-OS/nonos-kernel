@@ -28,3 +28,4 @@ pub mod client;
 pub use types::{MixNodeId, GatewayId, ClientId, NymAddress, MixNode, Gateway, NymRoute, Surb};
 pub use error::NymError;
 pub use client::{NymClient, init_nym_client, get_nym_client};
+pub use stream::NymStream;
