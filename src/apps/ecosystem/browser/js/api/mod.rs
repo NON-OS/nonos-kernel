@@ -19,6 +19,7 @@ mod xhr;
 mod websocket;
 mod storage;
 mod cookies;
+mod cookie_parse;
 
 pub use fetch::create_fetch_api;
 pub use xhr::create_xhr_constructor;

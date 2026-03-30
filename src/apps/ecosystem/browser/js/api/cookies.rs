@@ -19,16 +19,8 @@ use alloc::string::String;
 use alloc::vec::Vec;
 
 pub(super) struct Cookie {
-    pub name: String,
-    pub value: String,
-    pub domain: String,
-    pub path: String,
-    #[allow(dead_code)] // TODO: implement cookie expiration checking
-    pub expires: Option<u64>,
-    pub secure: bool,
-    #[allow(dead_code)] // TODO: implement HTTP-only cookie handling
-    pub http_only: bool,
-    pub same_site: SameSite,
+    pub name: String, pub value: String, pub domain: String, pub path: String,
+    pub expires: Option<u64>, pub secure: bool, pub http_only: bool, pub same_site: SameSite,
 }
 
 #[derive(Clone, Copy, PartialEq)]
@@ -40,16 +32,18 @@ impl CookieJar {
     pub fn new() -> Self { Self { cookies: Vec::new() } }
 
     pub fn set_cookie(&mut self, cookie_str: &str, url_domain: &str, url_path: &str) {
-        if let Some(cookie) = parse_set_cookie(cookie_str, url_domain, url_path) {
+        if let Some(cookie) = super::cookie_parse::parse_set_cookie(cookie_str, url_domain, url_path) {
             self.cookies.retain(|c| !(c.name == cookie.name && c.domain == cookie.domain && c.path == cookie.path));
             self.cookies.push(cookie);
         }
     }
 
     pub fn get_cookies(&self, domain: &str, path: &str, is_secure: bool) -> String {
+        let now = crate::time::timestamp_millis() / 1000;
         let mut result = Vec::new();
         for c in &self.cookies {
-            if !domain_matches(domain, &c.domain) { continue; }
+            if let Some(exp) = c.expires { if now > exp { continue; } }
+            if !super::cookie_parse::domain_matches(domain, &c.domain) { continue; }
             if !path.starts_with(&c.path) { continue; }
             if c.secure && !is_secure { continue; }
             result.push(alloc::format!("{}={}", c.name, c.value));
@@ -57,33 +51,28 @@ impl CookieJar {
         result.join("; ")
     }
 
-    pub fn clear(&mut self) { self.cookies.clear(); }
-    pub fn remove(&mut self, name: &str, domain: &str, path: &str) { self.cookies.retain(|c| !(c.name == name && c.domain == domain && c.path == path)); }
-}
-
-fn parse_set_cookie(s: &str, default_domain: &str, default_path: &str) -> Option<Cookie> {
-    let parts: Vec<&str> = s.split(';').collect();
-    let name_value = parts.get(0)?;
-    let (name, value) = name_value.split_once('=')?;
-    let mut cookie = Cookie { name: String::from(name.trim()), value: String::from(value.trim()), domain: String::from(default_domain), path: String::from(default_path), expires: None, secure: false, http_only: false, same_site: SameSite::Lax };
-    for part in parts.iter().skip(1) {
-        let part = part.trim().to_lowercase();
-        if part == "secure" { cookie.secure = true; }
-        else if part == "httponly" { cookie.http_only = true; }
-        else if let Some((attr, val)) = part.split_once('=') {
-            match attr.trim() {
-                "domain" => cookie.domain = String::from(val.trim().trim_start_matches('.')),
-                "path" => cookie.path = String::from(val.trim()),
-                "samesite" => cookie.same_site = match val.trim() { "strict" => SameSite::Strict, "none" => SameSite::None, _ => SameSite::Lax },
-                _ => {}
-            }
+    pub fn get_cookies_for_script(&self, domain: &str, path: &str, is_secure: bool) -> String {
+        let now = crate::time::timestamp_millis() / 1000;
+        let mut result = Vec::new();
+        for c in &self.cookies {
+            if c.http_only { continue; }
+            if let Some(exp) = c.expires { if now > exp { continue; } }
+            if !super::cookie_parse::domain_matches(domain, &c.domain) { continue; }
+            if !path.starts_with(&c.path) { continue; }
+            if c.secure && !is_secure { continue; }
+            result.push(alloc::format!("{}={}", c.name, c.value));
         }
+        result.join("; ")
     }
-    Some(cookie)
-}
 
-fn domain_matches(request_domain: &str, cookie_domain: &str) -> bool {
-    if request_domain == cookie_domain { return true; }
-    if request_domain.ends_with(&alloc::format!(".{}", cookie_domain)) { return true; }
-    false
+    pub fn cleanup_expired(&mut self) {
+        let now = crate::time::timestamp_millis() / 1000;
+        self.cookies.retain(|c| c.expires.map_or(true, |exp| now <= exp));
+    }
+
+    pub fn clear(&mut self) { self.cookies.clear(); }
+
+    pub fn remove(&mut self, name: &str, domain: &str, path: &str) {
+        self.cookies.retain(|c| !(c.name == name && c.domain == domain && c.path == path));
+    }
 }
