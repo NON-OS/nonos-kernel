@@ -46,7 +46,7 @@ fn draw_priority_and_mem(x: u32, py: u32, w: u32, proc: &Process) -> u64 {
     if let Some(prio) = proc.priority() {
         let ps: &[u8] = match prio {
             Priority::Idle => b"idle", Priority::Low => b"low", Priority::Normal => b"norm",
-            Priority::High => b"high", Priority::RealTime | Priority::Realtime => b"rt",
+            Priority::High => b"high", Priority::RealTime => b"rt",
         };
         draw_string(x + 290, py + 10, ps, COLOR_TEXT_DIM);
         let mem = proc.resident_memory_kb();
