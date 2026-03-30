@@ -25,9 +25,21 @@ pub fn run_init() -> ! {
     spawn_core_services();
     crate::sys::serial::println(b"[INIT] Spawning driver services...");
     spawn_driver_services();
-    crate::sys::serial::println(b"[INIT] All services started, yielding for registration");
-    for _ in 0..10 { crate::sched::yield_now(); }
+    crate::sys::serial::println(b"[INIT] All services started, lowering init priority");
+    lower_init_priority();
+    crate::sys::serial::println(b"[INIT] Yielding to let services start");
+    for _ in 0..20 { crate::sched::yield_now(); }
+    crate::sys::serial::println(b"[INIT] Entering supervisor loop");
     init_loop()
+}
+
+fn lower_init_priority() {
+    use crate::process::core::{Priority, PROCESS_TABLE, CURRENT_PID};
+    use core::sync::atomic::Ordering;
+    let pid = CURRENT_PID.load(Ordering::Relaxed);
+    if let Some(pcb) = PROCESS_TABLE.find_by_pid(pid) {
+        *pcb.priority.lock() = Priority::Low;
+    }
 }
 
 fn spawn_core_services() {
@@ -50,6 +62,7 @@ fn cap_for_service(name: &str) -> u64 {
         "input" => CAP_INPUT,
         "crypto" => CAP_CRYPTO,
         "zk" => CAP_ZK,
+        "desktop" => CAP_DISPLAY | CAP_INPUT,
         _ => 0,
     }
 }
