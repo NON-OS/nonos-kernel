@@ -27,7 +27,6 @@ use core::sync::atomic::Ordering;
 use crate::syscall::numbers::SyscallNumber;
 use crate::syscall::SyscallResult;
 use super::audit::{audit_syscall, SYSCALL_STATS};
-use super::util::errno;
 
 pub fn handle_syscall_dispatch(syscall: SyscallNumber, a0: u64, a1: u64, a2: u64, a3: u64, a4: u64, a5: u64) -> SyscallResult {
     SYSCALL_STATS.total_calls.fetch_add(1, Ordering::Relaxed);
@@ -39,14 +38,69 @@ pub fn handle_syscall_dispatch(syscall: SyscallNumber, a0: u64, a1: u64, a2: u64
 }
 
 fn dispatch_syscall(syscall: SyscallNumber, a0: u64, a1: u64, a2: u64, a3: u64, a4: u64, a5: u64) -> SyscallResult {
-    let num = syscall as u64;
-    if num <= 130 { return file_fs::dispatch_file_fs(syscall, a0, a1, a2, a3, a4, a5); }
-    if num <= 145 { return memory::dispatch_memory(syscall, a0, a1, a2, a3, a4, a5); }
-    if num <= 178 { return process::dispatch_process(syscall, a0, a1, a2, a3, a4, a5); }
-    if num <= 161 { return signal::dispatch_signal(syscall, a0, a1, a2, a3, a4, a5); }
-    if num <= 275 { return network::dispatch_network(syscall, a0, a1, a2, a3, a4, a5); }
-    if num <= 239 { return time::dispatch_time(syscall, a0, a1, a2, a3, a4, a5); }
-    if num <= 909 { return ipc_crypto::dispatch_ipc_crypto(syscall, a0, a1, a2, a3, a4, a5); }
-    if num <= 1204 { return admin::dispatch_admin(syscall, a0, a1, a2, a3, a4, a5); }
-    errno(38)
+    match syscall {
+        SyscallNumber::Exit | SyscallNumber::ExitGroup | SyscallNumber::Fork |
+        SyscallNumber::Vfork | SyscallNumber::Clone | SyscallNumber::Execve |
+        SyscallNumber::Execveat | SyscallNumber::Wait4 | SyscallNumber::Waitid |
+        SyscallNumber::Nanosleep | SyscallNumber::ClockNanosleep | SyscallNumber::Yield |
+        SyscallNumber::Futex | SyscallNumber::Prctl | SyscallNumber::ArchPrctl |
+        SyscallNumber::SetTidAddress | SyscallNumber::Seccomp | SyscallNumber::Getpid |
+        SyscallNumber::Getppid | SyscallNumber::Gettid | SyscallNumber::Getpgrp |
+        SyscallNumber::Getpgid | SyscallNumber::Setpgid | SyscallNumber::Getsid |
+        SyscallNumber::Setsid | SyscallNumber::Getuid | SyscallNumber::Geteuid |
+        SyscallNumber::Getgid | SyscallNumber::Getegid | SyscallNumber::Setuid |
+        SyscallNumber::Setgid | SyscallNumber::Setreuid | SyscallNumber::Setregid |
+        SyscallNumber::Getresuid | SyscallNumber::Setresuid | SyscallNumber::Getresgid |
+        SyscallNumber::Setresgid | SyscallNumber::Setfsuid | SyscallNumber::Setfsgid |
+        SyscallNumber::Getgroups | SyscallNumber::Setgroups | SyscallNumber::Capget |
+        SyscallNumber::Capset => process::dispatch_process(syscall, a0, a1, a2, a3, a4, a5),
+
+        SyscallNumber::RtSigaction | SyscallNumber::RtSigprocmask |
+        SyscallNumber::RtSigreturn | SyscallNumber::RtSigsuspend |
+        SyscallNumber::RtSigpending | SyscallNumber::RtSigtimedwait |
+        SyscallNumber::RtSigqueueinfo | SyscallNumber::RtTgsigqueueinfo |
+        SyscallNumber::Sigaltstack | SyscallNumber::Kill | SyscallNumber::Tkill |
+        SyscallNumber::Tgkill | SyscallNumber::Pause | SyscallNumber::Signalfd |
+        SyscallNumber::Signalfd4 => signal::dispatch_signal(syscall, a0, a1, a2, a3, a4, a5),
+
+        SyscallNumber::Uname | SyscallNumber::Gettimeofday | SyscallNumber::Settimeofday |
+        SyscallNumber::ClockGettime | SyscallNumber::ClockSettime | SyscallNumber::ClockGetres |
+        SyscallNumber::Getrusage | SyscallNumber::Times | SyscallNumber::Getrlimit |
+        SyscallNumber::Setrlimit | SyscallNumber::Prlimit64 | SyscallNumber::Sysinfo |
+        SyscallNumber::Alarm | SyscallNumber::Getitimer | SyscallNumber::Setitimer |
+        SyscallNumber::TimerCreate | SyscallNumber::TimerSettime | SyscallNumber::TimerGettime |
+        SyscallNumber::TimerGetoverrun | SyscallNumber::TimerDelete |
+        SyscallNumber::TimerfdCreate | SyscallNumber::TimerfdSettime |
+        SyscallNumber::TimerfdGettime | SyscallNumber::Utime | SyscallNumber::Utimes |
+        SyscallNumber::Utimensat | SyscallNumber::Futimesat => time::dispatch_time(syscall, a0, a1, a2, a3, a4, a5),
+
+        SyscallNumber::Mmap | SyscallNumber::Mprotect | SyscallNumber::Munmap |
+        SyscallNumber::Brk | SyscallNumber::Mremap | SyscallNumber::Msync |
+        SyscallNumber::Mincore | SyscallNumber::Madvise | SyscallNumber::Mlock |
+        SyscallNumber::Munlock | SyscallNumber::Mlockall | SyscallNumber::Munlockall |
+        SyscallNumber::Mlock2 | SyscallNumber::Mbind | SyscallNumber::SetMempolicy |
+        SyscallNumber::GetMempolicy | SyscallNumber::MigratePages |
+        SyscallNumber::MovePages => memory::dispatch_memory(syscall, a0, a1, a2, a3, a4, a5),
+
+        SyscallNumber::Socket | SyscallNumber::Connect | SyscallNumber::Accept |
+        SyscallNumber::Accept4 | SyscallNumber::Sendto | SyscallNumber::Recvfrom |
+        SyscallNumber::Sendmsg | SyscallNumber::Recvmsg | SyscallNumber::Recvmmsg |
+        SyscallNumber::Sendmmsg | SyscallNumber::Shutdown | SyscallNumber::Bind |
+        SyscallNumber::Listen | SyscallNumber::Getsockname | SyscallNumber::Getpeername |
+        SyscallNumber::Socketpair | SyscallNumber::Setsockopt |
+        SyscallNumber::Getsockopt => network::dispatch_network(syscall, a0, a1, a2, a3, a4, a5),
+
+        SyscallNumber::IpcSend | SyscallNumber::IpcRecv | SyscallNumber::IpcCreate |
+        SyscallNumber::IpcDestroy | SyscallNumber::CryptoRandom | SyscallNumber::CryptoHash |
+        SyscallNumber::CryptoSign | SyscallNumber::CryptoVerify | SyscallNumber::CryptoEncrypt |
+        SyscallNumber::CryptoDecrypt | SyscallNumber::CryptoKeyGen |
+        SyscallNumber::CryptoZkProve | SyscallNumber::CryptoZkVerify => ipc_crypto::dispatch_ipc_crypto(syscall, a0, a1, a2, a3, a4, a5),
+
+        SyscallNumber::IoPortRead | SyscallNumber::IoPortWrite | SyscallNumber::MmioMap |
+        SyscallNumber::DebugLog | SyscallNumber::DebugTrace | SyscallNumber::AdminReboot |
+        SyscallNumber::AdminShutdown | SyscallNumber::AdminModLoad |
+        SyscallNumber::AdminCapGrant | SyscallNumber::AdminCapRevoke => admin::dispatch_admin(syscall, a0, a1, a2, a3, a4, a5),
+
+        _ => file_fs::dispatch_file_fs(syscall, a0, a1, a2, a3, a4, a5),
+    }
 }
