@@ -14,21 +14,19 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod pci;
-mod xhci;
-pub(crate) mod ring;
-pub(crate) mod transfer;
-pub(crate) mod hid;
+mod consts;
+mod structures;
 mod state;
-mod poll;
-mod entry;
+mod low_level;
+mod init;
+mod ports;
+mod enumerate;
+mod address;
+mod configure;
+mod result;
 
-pub(crate) use state::{USB_INIT, KBD_AVAIL, MOUSE_AVAIL, MOUSE_X, MOUSE_Y, MOUSE_BTN, SCR_W, SCR_H};
-pub use state::{set_screen_bounds, is_available, keyboard_available, mouse_available};
-pub use state::{mouse_position, left_pressed, right_pressed};
-pub use poll::{poll_keyboard, poll_mouse};
-pub use entry::init;
-pub use pci::find_xhci;
-pub use xhci::init_xhci;
-pub use ring::{queue_cmd, queue_ep0, queue_hid, ring_db, wait_event};
-pub use hid::{process_keyboard_report, process_mouse_report, hid_to_ascii, start_hid_poll};
+pub use consts::*;
+pub use structures::*;
+pub use state::*;
+pub use low_level::*;
+pub use init::init_xhci;
