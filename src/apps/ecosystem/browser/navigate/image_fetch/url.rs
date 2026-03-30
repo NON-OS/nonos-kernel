@@ -18,7 +18,7 @@ extern crate alloc;
 
 use alloc::string::String;
 
-pub fn parse_image_url(url: &str) -> Option<(String, u16, String, bool)> {
+pub(super) fn parse_image_url(url: &str) -> Option<(String, u16, String, bool)> {
     let (is_https, rest) = if url.starts_with("https://") { (true, &url[8..]) }
     else if url.starts_with("http://") { (false, &url[7..]) }
     else { return None; };

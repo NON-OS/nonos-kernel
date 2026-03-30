@@ -22,20 +22,20 @@ use crate::network::stack::async_ops::{tcp_start_connect, dns_start_query};
 use super::types::*;
 use super::url::parse_image_url;
 
-pub fn skip_current_image() {
+pub(super) fn skip_current_image() {
     IMG_FAIL_COUNT.fetch_add(1, Ordering::Relaxed);
     IMG_RESPONSE.lock().clear();
     IMG_TARGETS.lock().clear();
     set_img_state(ImgFetchState::Idle);
 }
 
-pub fn finish_all_images() {
+pub(super) fn finish_all_images() {
     crate::sys::serial::println(b"[IMG-FETCH] all done");
     crate::apps::ecosystem::browser::navigate::state::set_state(
         crate::apps::ecosystem::browser::navigate::state::NavState::Done);
 }
 
-pub fn start_next_image() {
+pub(super) fn start_next_image() {
     if IMG_FAIL_COUNT.load(Ordering::Relaxed) >= MAX_IMG_FAILURES {
         crate::sys::serial::println(b"[IMG-FETCH] too many failures, bailing");
         finish_all_images();

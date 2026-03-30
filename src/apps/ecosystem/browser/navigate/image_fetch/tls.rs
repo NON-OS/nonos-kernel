@@ -21,7 +21,7 @@ use super::types::*;
 use super::queue::skip_current_image;
 use super::connect::img_cleanup;
 
-pub fn start_img_tls() {
+pub(super) fn start_img_tls() {
     let conn_id = IMG_CONN_ID.load(Ordering::Relaxed);
     let host = match IMG_HOST.lock().clone() {
         Some(h) => h, None => { img_cleanup(); skip_current_image(); return; }
@@ -38,7 +38,7 @@ pub fn start_img_tls() {
     set_img_state(ImgFetchState::TlsHandshake);
 }
 
-pub fn poll_img_tls() {
+pub(super) fn poll_img_tls() {
     if is_timed_out() {
         crate::sys::serial::println(b"[IMG-FETCH] TLS timeout");
         img_cleanup();

@@ -21,7 +21,7 @@ use super::types::*;
 use super::queue::skip_current_image;
 use super::body::extract_img_body;
 
-pub fn poll_img_decode() {
+pub(super) fn poll_img_decode() {
     let response_data = IMG_RESPONSE.lock().clone();
     if response_data.is_empty() { skip_current_image(); return; }
     let body = extract_img_body(&response_data);

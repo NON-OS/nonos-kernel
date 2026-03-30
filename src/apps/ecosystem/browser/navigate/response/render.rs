@@ -24,7 +24,7 @@ use crate::apps::ecosystem::browser::engine;
 use super::redirect::resolve_noscript_redirect;
 use super::body::extract_title;
 
-pub fn render_page(content_str: &str, url: &str, body: &[u8]) {
+pub(super) fn render_page(content_str: &str, url: &str, body: &[u8]) {
     let render_output = engine::render_page_with_url(content_str, 800, url);
     engine::image_loader::enable_fetch();
     if let Some(ref redirect) = render_output.noscript_redirect {

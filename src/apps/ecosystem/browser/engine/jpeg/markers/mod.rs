@@ -22,5 +22,5 @@ mod dht;
 mod dqt;
 mod sos;
 
-pub(super) use types::{ComponentInfo, SofData, HuffmanTableData, QuantTable, ScanComponent, SosData, JpegMarkers};
+pub(super) use types::{ComponentInfo, HuffmanTableData, QuantTable, JpegMarkers};
 pub(super) use parse::parse_markers;

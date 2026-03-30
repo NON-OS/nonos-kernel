@@ -16,14 +16,14 @@
 
 const MAX_CONTENT_LENGTH: usize = 16 * 1024 * 1024;
 
-pub fn find_header_end(data: &[u8]) -> Option<usize> {
+pub(crate) fn find_header_end(data: &[u8]) -> Option<usize> {
     for i in 0..data.len().saturating_sub(3) {
         if &data[i..i + 4] == b"\r\n\r\n" { return Some(i); }
     }
     None
 }
 
-pub fn is_response_complete(data: &[u8]) -> bool {
+pub(crate) fn is_response_complete(data: &[u8]) -> bool {
     if let Some(header_end) = find_header_end(data) {
         let headers = &data[..header_end];
         let body_start = header_end + 4;
@@ -34,7 +34,7 @@ pub fn is_response_complete(data: &[u8]) -> bool {
     false
 }
 
-pub fn parse_content_length(headers: &[u8]) -> Option<usize> {
+pub(super) fn parse_content_length(headers: &[u8]) -> Option<usize> {
     let s = core::str::from_utf8(headers).ok()?;
     for line in s.lines() {
         let lower = line.to_ascii_lowercase();
@@ -48,7 +48,7 @@ pub fn parse_content_length(headers: &[u8]) -> Option<usize> {
     None
 }
 
-pub fn is_chunked_transfer(headers: &[u8]) -> bool {
+pub(super) fn is_chunked_transfer(headers: &[u8]) -> bool {
     let s = match core::str::from_utf8(headers) { Ok(s) => s, Err(_) => return false };
     for line in s.lines() {
         let lower = line.to_ascii_lowercase();

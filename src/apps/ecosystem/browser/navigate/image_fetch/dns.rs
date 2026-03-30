@@ -19,7 +19,7 @@ use crate::network::stack::async_ops::{tcp_start_connect, dns_poll, dns_cancel, 
 use super::types::*;
 use super::queue::skip_current_image;
 
-pub fn poll_img_dns() {
+pub(super) fn poll_img_dns() {
     if is_timed_out() {
         crate::sys::serial::println(b"[IMG-FETCH] DNS timeout");
         dns_cancel();

@@ -19,7 +19,7 @@ extern crate alloc;
 use alloc::string::String;
 use super::parse::find_header_end;
 
-pub fn extract_redirect(data: &[u8], base_url: &str) -> Option<String> {
+pub(super) fn extract_redirect(data: &[u8], base_url: &str) -> Option<String> {
     let header_end = find_header_end(data)?;
     let headers = core::str::from_utf8(&data[..header_end]).ok()?;
     let status_line = headers.lines().next()?;
@@ -37,7 +37,7 @@ pub fn extract_redirect(data: &[u8], base_url: &str) -> Option<String> {
     None
 }
 
-pub fn resolve_relative_url(base: &str, relative: &str) -> String {
+pub(super) fn resolve_relative_url(base: &str, relative: &str) -> String {
     if relative.starts_with('/') {
         let scheme_end = base.find("://").map(|i| i + 3).unwrap_or(0);
         let host_end = base[scheme_end..].find('/').map(|i| i + scheme_end).unwrap_or(base.len());
@@ -48,7 +48,7 @@ pub fn resolve_relative_url(base: &str, relative: &str) -> String {
     String::from(relative)
 }
 
-pub fn resolve_noscript_redirect(base: &str, redirect: &str) -> String {
+pub(super) fn resolve_noscript_redirect(base: &str, redirect: &str) -> String {
     if redirect.starts_with("http://") || redirect.starts_with("https://") { return String::from(redirect); }
     if redirect.starts_with('/') { return resolve_relative_url(base, redirect); }
     if redirect.starts_with('?') {
