@@ -53,15 +53,15 @@ pub(crate) const USB_CLASS_HID: u8 = 0x03;
 // Endpoint Info
 // =============================================================================
 
-pub(super) struct EndpointInfo {
-    pub(super) address: u8,
-    pub(super) attributes: u8,
-    pub(super) max_packet: u16,
-    pub(super) interval: u8,
+pub(crate) struct EpInfo {
+    pub(crate) address: u8,
+    pub(crate) attributes: u8,
+    pub(crate) max_packet: u16,
+    pub(crate) interval: u8,
 }
 
-impl EndpointInfo {
-    pub(super) fn is_interrupt(&self) -> bool {
+impl EpInfo {
+    pub(crate) fn is_interrupt(&self) -> bool {
         (self.attributes & 0x03) == 0x03
     }
 }
@@ -148,7 +148,7 @@ pub(crate) fn set_idle(slot: u8, interface: u8) -> bool {
 // Descriptor Parsing
 // =============================================================================
 
-pub(super) fn parse_config_descriptor() -> Option<(u8, u8, EndpointInfo)> {
+pub(crate) fn parse_config_descriptor() -> Option<(u8, u8, EpInfo)> {
     // Returns (config_value, interface_number, interrupt_in_endpoint)
     // SAFETY: Single-threaded descriptor parsing, no concurrent access to USB_BUF
     unsafe {
@@ -195,7 +195,7 @@ pub(super) fn parse_config_descriptor() -> Option<(u8, u8, EndpointInfo)> {
                         let ep_interval = data[pos + 6];
 
                         // Interrupt IN endpoint (bit 7 = direction IN, bits 1:0 = 11 = interrupt)
-                        let ep_info = EndpointInfo {
+                        let ep_info = EpInfo {
                             address: ep_addr,
                             attributes: ep_attr,
                             max_packet: ep_max,

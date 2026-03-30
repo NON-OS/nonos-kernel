@@ -14,21 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod pci;
-mod xhci;
-pub(crate) mod ring;
-pub(crate) mod transfer;
-pub(crate) mod hid;
-mod state;
-mod poll;
-mod entry;
+#[inline]
+pub(crate) unsafe fn mr32(a: u64) -> u32 { unsafe { core::ptr::read_volatile(a as *const u32) } }
 
-pub(crate) use state::{USB_INIT, KBD_AVAIL, MOUSE_AVAIL, MOUSE_X, MOUSE_Y, MOUSE_BTN, SCR_W, SCR_H};
-pub use state::{set_screen_bounds, is_available, keyboard_available, mouse_available};
-pub use state::{mouse_position, left_pressed, right_pressed};
-pub use poll::{poll_keyboard, poll_mouse};
-pub use entry::init;
-pub use pci::find_xhci;
-pub use xhci::init_xhci;
-pub use ring::{queue_cmd, queue_ep0, queue_hid, ring_db, wait_event};
-pub use hid::{process_keyboard_report, process_mouse_report, hid_to_ascii, start_hid_poll};
+#[inline]
+pub(crate) unsafe fn mw32(a: u64, v: u32) { unsafe { core::ptr::write_volatile(a as *mut u32, v); } }
+
+#[inline]
+pub(crate) unsafe fn mw64(a: u64, v: u64) { unsafe { core::ptr::write_volatile(a as *mut u64, v); } }
+
+pub(crate) fn spin(n: u32) { for _ in 0..n { core::hint::spin_loop(); } }
