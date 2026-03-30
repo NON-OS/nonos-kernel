@@ -52,7 +52,7 @@ pub fn poll_img_decode() {
     set_img_state(ImgFetchState::Idle);
 }
 
-fn patch_render_output(data: &engine::image_loader::ImageData) {
+fn patch_render_output(data: &engine::ImageData) {
     let targets = IMG_TARGETS.lock().clone();
     let mut page = window_state::PAGE_RENDER.lock();
     if let Some(ref mut ro) = *page {
