@@ -107,6 +107,8 @@ pub fn get_framebuffer_info(bs: &BootServices) -> FramebufferInfo {
         height: 0,
         stride: 0,
         pixel_format: 0,
+        cursor_y: 0,
+        reserved: 0,
     }
 }
 
@@ -155,5 +157,7 @@ fn try_gop_handle(bs: &BootServices, handle: Handle, idx: usize) -> Option<Frame
         height: height as u32,
         stride: stride as u32,
         pixel_format,
+        cursor_y: 0,
+        reserved: 0,
     })
 }
