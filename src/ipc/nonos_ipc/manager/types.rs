@@ -14,12 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::{AtomicU64, Ordering};
+use core::sync::atomic::AtomicU64;
 
-pub const DEFAULT_QUEUE_CAPACITY: usize = 1024;
-pub const MAX_QUEUE_CAPACITY: usize = 65536;
-pub const MAX_PAYLOAD_SIZE: usize = 1024 * 1024;
-pub const MAX_PARTICIPANTS: usize = 256;
+pub(super) const DEFAULT_QUEUE_CAPACITY: usize = 1024;
+pub(super) const MAX_QUEUE_CAPACITY: usize = 65536;
+pub(super) const MAX_PAYLOAD_SIZE: usize = 1024 * 1024;
+pub(super) const MAX_PARTICIPANTS: usize = 256;
 
 pub(super) struct ManagerStats {
     pub messages_sent: AtomicU64, pub messages_received: AtomicU64, pub messages_dropped: AtomicU64,

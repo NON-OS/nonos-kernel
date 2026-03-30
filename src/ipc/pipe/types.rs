@@ -37,7 +37,7 @@ pub(super) struct Pipe {
 }
 
 impl Pipe {
-    pub fn new(id: u32, capacity: usize) -> Self {
+    pub(super) fn new(id: u32, capacity: usize) -> Self {
         Self {
             id,
             buffer: vec![0u8; capacity],
@@ -52,15 +52,15 @@ impl Pipe {
         }
     }
 
-    pub fn pipe_id(&self) -> u32 {
+    pub(super) fn pipe_id(&self) -> u32 {
         self.id
     }
 
-    pub fn is_broken(&self) -> bool {
+    pub(super) fn is_broken(&self) -> bool {
         self.write_closed && self.bytes_available == 0
     }
 
-    pub fn space_available(&self) -> usize {
+    pub(super) fn space_available(&self) -> usize {
         self.capacity - self.bytes_available
     }
 }
