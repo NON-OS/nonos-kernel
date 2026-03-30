@@ -22,7 +22,7 @@ use super::parse_context::ParseContext;
 use super::layout_types::ReportInfo;
 use super::record_field::record_field;
 
-pub fn handle_main_item(desc: &mut ReportDescriptor, ctx: &mut ParseContext, tag: u8, value: u32) {
+pub(super) fn handle_main_item(desc: &mut ReportDescriptor, ctx: &mut ParseContext, tag: u8, value: u32) {
     match tag {
         0x08 => {
             let bits = (ctx.report_size * ctx.report_count) as u16;

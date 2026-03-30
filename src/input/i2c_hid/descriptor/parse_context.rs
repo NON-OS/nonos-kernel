@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub struct ParseContext {
+pub(super) struct ParseContext {
     pub usage_page: u32,
     pub usage: u32,
     pub report_size: u32,

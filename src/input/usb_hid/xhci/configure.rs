@@ -20,9 +20,9 @@ use crate::sys::serial;
 use super::consts::TRB_TYPE_CONFIGURE_ENDPOINT;
 use super::structures::{DEV_CTX, INPUT_CTX, USB_BUF};
 use super::state::{HID_EP_ADDR, HID_EP_DCI, HID_INTERVAL};
-use crate::input::usb_hid::ring::{HID_EP_RING, queue_cmd, wait_event};
+use crate::input::usb_hid::ring::{HID_EP_RING, queue_cmd};
 use crate::input::usb_hid::transfer::{get_descriptor, set_configuration, set_protocol, set_idle};
-use crate::input::usb_hid::transfer::{parse_config_descriptor, USB_DESC_CONFIGURATION, USB_DESC_INTERFACE};
+use crate::input::usb_hid::transfer::{parse_config_descriptor, USB_DESC_CONFIGURATION};
 use super::result::process_configure_result;
 
 pub(super) fn get_descriptors_and_configure(slot: u8) -> bool {
@@ -66,7 +66,7 @@ fn configure_endpoint(slot: u8, cfg_val: u8, iface: u8, ep_info: crate::input::u
     process_configure_result(slot, &ep_info)
 }
 
-unsafe fn setup_input_ctx_configure(slot: u8, ep_dci: u8, ep_info: &crate::input::usb_hid::transfer::EpInfo) {
+unsafe fn setup_input_ctx_configure(_slot: u8, ep_dci: u8, ep_info: &crate::input::usb_hid::transfer::EpInfo) {
     let input_ctx_ptr = addr_of_mut!(INPUT_CTX);
     for i in 0..8 { (*input_ctx_ptr).ctrl[i] = 0; (*input_ctx_ptr).slot[i] = 0; }
     for i in 0..31 { for j in 0..8 { (*input_ctx_ptr).ep[i][j] = 0; } }

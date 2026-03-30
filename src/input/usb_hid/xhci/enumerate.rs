@@ -18,12 +18,9 @@ use core::ptr::addr_of_mut;
 use core::sync::atomic::Ordering;
 use crate::sys::serial;
 use super::consts::*;
-use super::structures::{DCBAA, DEV_CTX, INPUT_CTX, USB_BUF};
-use super::state::{SLOT_ID, MAX_PACKET, HID_EP_ADDR, HID_EP_DCI, HID_INTERVAL};
-use crate::input::usb_hid::ring::{EP0_RING, HID_EP_RING, EVENT_RING, EVT_RING_IDX, queue_cmd, wait_event};
-use crate::input::usb_hid::transfer::{get_descriptor, set_configuration, set_protocol, set_idle};
-use crate::input::usb_hid::transfer::{parse_config_descriptor, USB_DESC_DEVICE, USB_DESC_CONFIGURATION};
-use crate::input::usb_hid::transfer::USB_DESC_INTERFACE;
+use super::structures::INPUT_CTX;
+use super::state::{SLOT_ID, MAX_PACKET};
+use crate::input::usb_hid::ring::{EVENT_RING, EVT_RING_IDX, queue_cmd, wait_event};
 use super::address::setup_input_ctx_address;
 use super::configure::get_descriptors_and_configure;
 

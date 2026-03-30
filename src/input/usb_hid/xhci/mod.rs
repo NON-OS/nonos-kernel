@@ -25,8 +25,8 @@ mod address;
 mod configure;
 mod result;
 
-pub use consts::*;
-pub use structures::*;
-pub use state::*;
-pub use low_level::*;
+pub(crate) use consts::*;
+pub(crate) use structures::*;
+pub(crate) use state::*;
+pub(crate) use low_level::*;
 pub use init::init_xhci;
