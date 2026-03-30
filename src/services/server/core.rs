@@ -32,20 +32,15 @@ pub struct ServiceServer {
 
 impl ServiceServer {
     pub fn new(name: &str, caps: u64) -> Result<Self, ServerError> {
-        crate::sys::serial::println(b"[SRVR] new enter");
         if name.len() > MAX_SERVICE_NAME {
             return Err(ServerError::RegistrationFailed);
         }
         let port = PORT_COUNTER.fetch_add(1, Ordering::Relaxed);
-        crate::sys::serial::println(b"[SRVR] got port");
         let pid = crate::process::current_pid().unwrap_or(1);
-        crate::sys::serial::println(b"[SRVR] got pid");
         register_endpoint(name, port, pid, caps)
             .map_err(|_| ServerError::RegistrationFailed)?;
-        crate::sys::serial::println(b"[SRVR] registered");
         let mut name_buf = [0u8; MAX_SERVICE_NAME];
         name_buf[..name.len()].copy_from_slice(name.as_bytes());
-        crate::sys::serial::println(b"[SRVR] returning");
         Ok(Self {
             name: name_buf,
             name_len: name.len(),
