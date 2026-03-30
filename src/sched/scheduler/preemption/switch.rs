@@ -18,6 +18,7 @@ use core::sync::atomic::Ordering;
 use super::state::SCHEDULER_STATS;
 use super::super::selection::{select_next_process, switch_to_process};
 
+#[allow(dead_code)]
 pub(crate) fn preempt_current_process() {
     use crate::process::nonos_core::{current_pid, PROCESS_TABLE, ProcessState};
 
