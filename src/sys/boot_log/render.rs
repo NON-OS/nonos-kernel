@@ -16,7 +16,7 @@
 
 use core::sync::atomic::Ordering;
 use crate::display::{Framebuffer, font, fill_rect, write_pixel};
-use super::state::{DISPLAY_ENABLED, LOG_Y, CHAR_HEIGHT, LEFT_MARGIN, BG_COLOR};
+use super::state::{DISPLAY_ENABLED, LOG_Y, MIN_LOG_Y, CHAR_HEIGHT, LEFT_MARGIN, BG_COLOR};
 
 pub(super) fn write_line(_tag: &str, msg: &str, color: u32) {
     if !DISPLAY_ENABLED.load(Ordering::Acquire) {
@@ -33,8 +33,9 @@ fn advance_line() -> u32 {
     let y = LOG_Y.fetch_add(CHAR_HEIGHT, Ordering::Relaxed);
     if let Ok(info) = Framebuffer::info() {
         if y + CHAR_HEIGHT >= info.height - 40 {
-            LOG_Y.store(24, Ordering::Relaxed);
-            return 24;
+            let min_y = MIN_LOG_Y.load(Ordering::Relaxed);
+            LOG_Y.store(min_y, Ordering::Relaxed);
+            return min_y;
         }
     }
     y
