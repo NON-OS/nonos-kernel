@@ -28,6 +28,35 @@ pub fn init_graphics(handoff: &BootHandoffV1) {
     init_desktop();
 }
 
+pub fn init_graphics_for_microkernel() {
+    serial::println(b"[DESKTOP] Initializing graphics for microkernel");
+    if let Ok(info) = crate::display::get_framebuffer() {
+        serial::print(b"[DESKTOP] Display: ");
+        serial::print_dec(info.width as u64);
+        serial::print(b"x");
+        serial::print_dec(info.height as u64);
+        serial::println(b"");
+        let fb_phys = crate::memory::PhysAddr::new(info.addr);
+        let size = (info.stride as usize) * (info.height as usize);
+        let fb_virt = crate::memory::mmio::map_framebuffer(fb_phys, size)
+            .map(|va| va.as_u64())
+            .unwrap_or(info.addr);
+        framebuffer::init(fb_virt, info.width, info.height, info.stride);
+        let _ = framebuffer::init_double_buffer();
+        serial::println(b"[DESKTOP] Framebuffer ready");
+        input::set_screen_bounds_unified(info.width, info.height);
+    } else {
+        serial::println(b"[DESKTOP] No framebuffer info available");
+        return;
+    }
+    let _ = input::i2c_hid::init();
+    input::usb_hid::init();
+    serial::println(b"[DESKTOP] Input ready");
+    init_storage_and_fs();
+    init_services();
+    init_desktop();
+}
+
 fn init_framebuffer(handoff: &BootHandoffV1) {
     serial::print(b"[NONOS] Display: ");
     serial::print_dec(handoff.fb.width as u64);
