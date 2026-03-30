@@ -20,4 +20,5 @@ mod http;
 mod https;
 mod helpers;
 
-pub(super) use http_client::{HttpClient, HTTPS_SESSION_CACHE, CONNECTION_POOL};
+pub use http_client::HttpClient;
+pub(super) use http_client::{HTTPS_SESSION_CACHE, CONNECTION_POOL};
