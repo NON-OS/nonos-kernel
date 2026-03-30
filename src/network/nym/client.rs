@@ -95,4 +95,10 @@ impl NymClient {
     pub fn client_id(&self) -> &ClientId { &self.client_id }
     pub fn stats(&self) -> &NymStats { &self.stats }
     pub fn is_connected(&self) -> bool { self.gateway_id.is_some() }
+
+    pub fn process_pending(&mut self) {
+        if let Some(addr) = &self.self_address {
+            super::cover::tick_cover_traffic(addr);
+        }
+    }
 }
