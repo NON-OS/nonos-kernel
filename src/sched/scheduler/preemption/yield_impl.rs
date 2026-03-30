@@ -32,7 +32,8 @@ pub fn yield_now() {
         crate::sched::add_to_run_queue(pid);
     }
     CURRENT_TIME_SLICE.store(0, Ordering::Relaxed);
-    if let Some(next) = select_next_process() {
-        switch_to_process(next);
+    match select_next_process() {
+        Some(next) => switch_to_process(next),
+        None => {}
     }
 }
