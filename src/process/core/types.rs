@@ -40,7 +40,6 @@ pub enum Priority {
     Normal,
     High,
     RealTime,
-    Realtime,  // Alias for RealTime
 }
 
 #[derive(Debug, Clone)]
