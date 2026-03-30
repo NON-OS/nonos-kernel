@@ -20,6 +20,6 @@ pub mod desktop_run;
 pub mod mode;
 
 pub use core_init::init_core_systems;
-pub use graphics_init::init_graphics;
+pub use graphics_init::{init_graphics, init_graphics_for_microkernel};
 pub use desktop_run::{run_desktop, handle_dialogs};
 pub use mode::{BootMode, get_boot_mode, is_microkernel};
