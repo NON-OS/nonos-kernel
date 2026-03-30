@@ -26,7 +26,8 @@ impl I2cHidDevice {
         let mut hid_desc_buf = [0u8; 30];
         crate::drivers::i2c::write_read(controller, address, &HidRegister::HID_DESC.to_le_bytes(), &mut hid_desc_buf)?;
         let hid_desc = HidDescriptor::parse(&hid_desc_buf).ok_or(I2cHidError::InvalidDescriptor)?;
-        Ok(Self { controller, address, hid_desc, report_desc: ReportDescriptor::default(), device_type: HidDeviceType::Unknown, initialized: false, touchpad_driver: None, input_buffer: vec![0u8; (hid_desc.max_input_length as usize).max(64)] })
+        let buf_size = (hid_desc.max_input_length as usize).max(64);
+        Ok(Self { controller, address, hid_desc, report_desc: ReportDescriptor::default(), device_type: HidDeviceType::Unknown, initialized: false, touchpad_driver: None, input_buffer: vec![0u8; buf_size] })
     }
 
     pub fn init(&mut self) -> Result<(), I2cHidError> {
