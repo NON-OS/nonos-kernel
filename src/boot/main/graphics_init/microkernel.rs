@@ -15,22 +15,19 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::input;
-use super::components::{init_storage_and_fs, init_services, init_desktop};
+use super::components::init_desktop;
 
+/// Initialize graphics for microkernel desktop service.
+/// Note: Storage, network, and other services are initialized by their
+/// respective service processes - desktop only needs framebuffer and GUI.
 pub fn init_graphics_for_microkernel() -> bool {
     crate::sys::serial::println(b"[DESK] get_framebuffer...");
     let Ok(info) = crate::display::get_framebuffer() else {
         crate::sys::serial::println(b"[DESK] FAIL: no framebuffer");
         return false;
     };
-    crate::sys::serial::println(b"[DESK] FB OK, init input...");
+    crate::sys::serial::println(b"[DESK] FB OK, init input bounds...");
     input::set_screen_bounds_unified(info.width, info.height);
-    let _ = input::i2c_hid::init();
-    input::usb_hid::init();
-    crate::sys::serial::println(b"[DESK] init storage...");
-    init_storage_and_fs();
-    crate::sys::serial::println(b"[DESK] init services...");
-    init_services();
     crate::sys::serial::println(b"[DESK] init desktop GUI...");
     init_desktop();
     crate::sys::serial::println(b"[DESK] ALL DONE!");
