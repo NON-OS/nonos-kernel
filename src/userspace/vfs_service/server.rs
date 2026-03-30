@@ -18,16 +18,22 @@ use crate::services::{ServiceServer, CAP_VFS};
 use super::dispatch::handle_request;
 
 pub fn run_vfs_service() -> ! {
+    crate::sys::serial::println(b"[VFS] run_vfs_service entered");
     crate::sys::serial::println(b"[VFS] VFS service starting");
 
+    crate::sys::serial::println(b"[VFS] calling new()");
     let server = match ServiceServer::new("vfs", CAP_VFS) {
-        Ok(s) => s,
+        Ok(s) => {
+            crate::sys::serial::println(b"[VFS] new() ok");
+            s
+        }
         Err(_) => {
             crate::sys::serial::println(b"[VFS] Failed to create server");
             loop { crate::sched::yield_now(); }
         }
     };
 
+    crate::sys::serial::println(b"[VFS] after match");
     crate::sys::serial::println(b"[VFS] VFS server ready");
 
     loop {
