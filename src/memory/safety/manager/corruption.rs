@@ -1,0 +1,43 @@
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+use core::sync::atomic::Ordering;
+use super::super::constants::CANARY_MIX_CONSTANT;
+use super::super::error::{MemoryError, SafetyResult};
+use super::state::MemorySafety;
+
+impl MemorySafety {
+    pub(super) fn check_corruption(&self, addr: u64, size: usize) -> SafetyResult<()> {
+        self.corruption_detector.record_check();
+        let canary = self.generate_canary(addr);
+        unsafe {
+            let ptr = addr as *const u64;
+            for i in 0..(size / 8) {
+                let value = ptr.add(i).read_volatile();
+                if value == canary || value == !canary {
+                    self.corruption_detector.violations.fetch_add(1, Ordering::Relaxed);
+                    return Err(MemoryError::CorruptionDetected);
+                }
+            }
+        }
+        Ok(())
+    }
+
+    pub(super) fn generate_canary(&self, addr: u64) -> u64 {
+        let base = self.corruption_detector.canary_base;
+        base.wrapping_mul(addr).wrapping_add(CANARY_MIX_CONSTANT)
+    }
+}

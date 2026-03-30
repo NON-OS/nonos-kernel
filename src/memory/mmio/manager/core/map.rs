@@ -1,0 +1,64 @@
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+use x86_64::{PhysAddr, VirtAddr};
+use crate::memory::layout;
+use super::super::super::constants::{align_up, VM_FLAG_WRITABLE, VM_FLAG_USER, VM_FLAG_NX};
+use super::super::super::error::{MmioError, MmioResult};
+use super::super::super::stats::MMIO_STATS;
+use super::super::super::types::{MmioFlags, MmioRegion};
+use super::types::MmioManager;
+
+impl MmioManager {
+    pub fn map_region(&mut self, pa: PhysAddr, size: usize, flags: MmioFlags) -> MmioResult<VirtAddr> {
+        if size == 0 { return Err(MmioError::InvalidSize); }
+        if pa.as_u64() % layout::PAGE_SIZE as u64 != 0 { return Err(MmioError::NotPageAligned); }
+        let va = self.allocate_virtual_range(size)?;
+        let aligned_size = align_up(size, layout::PAGE_SIZE);
+        let page_count = aligned_size / layout::PAGE_SIZE;
+        let vm_flags = flags.to_vm_flags();
+        for i in 0..page_count {
+            let page_va = VirtAddr::new(va.as_u64() + (i * layout::PAGE_SIZE) as u64);
+            let page_pa = PhysAddr::new(pa.as_u64() + (i * layout::PAGE_SIZE) as u64);
+            self.map_page(page_va, page_pa, vm_flags)?;
+        }
+        let region = MmioRegion::new(va, pa, aligned_size, flags, MMIO_STATS.next_id());
+        self.regions.insert(va, region);
+        MMIO_STATS.record_mapping(aligned_size);
+        Ok(va)
+    }
+
+    pub fn unmap_region(&mut self, va: VirtAddr) -> MmioResult<()> {
+        let region = self.regions.remove(&va).ok_or(MmioError::RegionNotFound)?;
+        for i in 0..(region.size / layout::PAGE_SIZE) {
+            self.unmap_page(VirtAddr::new(va.as_u64() + (i * layout::PAGE_SIZE) as u64))?;
+        }
+        MMIO_STATS.record_unmapping(region.size);
+        Ok(())
+    }
+
+    fn map_page(&self, va: VirtAddr, pa: PhysAddr, vm_flags: u32) -> MmioResult<()> {
+        use crate::memory::virt;
+        let writable = (vm_flags & VM_FLAG_WRITABLE) != 0;
+        let user = (vm_flags & VM_FLAG_USER) != 0;
+        let exec = (vm_flags & VM_FLAG_NX) == 0;
+        virt::map_page_4k(va, pa, writable, user, exec).map_err(|_| MmioError::MappingFailed)
+    }
+
+    fn unmap_page(&self, va: VirtAddr) -> MmioResult<()> {
+        crate::memory::virt::unmap_page(va).map_err(|_| MmioError::UnmapFailed)
+    }
+}
