@@ -21,7 +21,6 @@ use core::sync::atomic::{AtomicU32, AtomicBool, Ordering};
 use super::types::ServerError;
 use crate::services::protocol::ServiceResponse;
 use crate::services::registry::{register_endpoint, unregister_endpoint};
-use crate::ipc::nonos_inbox;
 
 static PORT_COUNTER: AtomicU32 = AtomicU32::new(1000);
 
@@ -34,12 +33,19 @@ pub struct ServiceServer {
 
 impl ServiceServer {
     pub fn new(name: &str, caps: u64) -> Result<Self, ServerError> {
+        crate::sys::serial::println(b"[SRVR] new() enter");
         let port = PORT_COUNTER.fetch_add(1, Ordering::Relaxed);
+        crate::sys::serial::println(b"[SRVR] got port");
         let pid = crate::process::current_pid().unwrap_or(1);
+        crate::sys::serial::println(b"[SRVR] got pid");
         register_endpoint(String::from(name), port, pid, caps)
             .map_err(|_| ServerError::RegistrationFailed)?;
-        nonos_inbox::register_inbox(name);
-        Ok(Self { name: String::from(name), port, caps_required: caps, running: AtomicBool::new(false) })
+        crate::sys::serial::println(b"[SRVR] registered");
+        let name_str = String::from(name);
+        crate::sys::serial::println(b"[SRVR] name alloc");
+        let server = Self { name: name_str, port, caps_required: caps, running: AtomicBool::new(false) };
+        crate::sys::serial::println(b"[SRVR] returning");
+        Ok(server)
     }
 
     pub fn port(&self) -> u32 { self.port }
