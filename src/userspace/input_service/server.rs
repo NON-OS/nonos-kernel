@@ -17,6 +17,7 @@
 use super::dispatch::handle_request;
 
 pub fn run_input_service() -> ! {
+    init_input_subsystem();
     crate::sys::boot_log::ok("INPUT", "Service ready");
     crate::services::registry::register_endpoint_simple("input", 1002, 4);
 
@@ -24,6 +25,11 @@ pub fn run_input_service() -> ! {
         handle_input_requests();
         crate::sched::yield_now();
     }
+}
+
+fn init_input_subsystem() {
+    let _ = crate::input::i2c_hid::init();
+    crate::input::usb_hid::init();
 }
 
 fn handle_input_requests() {
