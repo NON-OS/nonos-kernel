@@ -44,4 +44,9 @@ pub fn recv_data(buf: &mut [u8]) -> Result<usize, OnionError> {
     client.recv(&mut stream, buf).map_err(|_| OnionError::NetworkError)
 }
 
-pub fn process_circuit_maintenance() {}
+pub fn process_circuit_maintenance() {
+    if let Ok(client) = crate::network::nym::get_nym_client() {
+        let mut client = client.lock();
+        client.process_pending();
+    }
+}

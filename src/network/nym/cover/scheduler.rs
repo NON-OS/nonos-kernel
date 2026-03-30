@@ -44,6 +44,13 @@ pub fn cover_packets_sent() -> u64 {
     COVER_PACKETS_SENT.load(Ordering::Relaxed)
 }
 
+pub fn tick_cover_traffic(self_addr: &NymAddress) {
+    if !COVER_RUNNING.load(Ordering::SeqCst) { return; }
+    if let Ok(_packet) = super::generator::generate_cover_packet(self_addr) {
+        COVER_PACKETS_SENT.fetch_add(1, Ordering::Relaxed);
+    }
+}
+
 impl CoverScheduler {
     pub fn new(interval_ms: u64) -> Self {
         Self { interval_ms, running: false }
