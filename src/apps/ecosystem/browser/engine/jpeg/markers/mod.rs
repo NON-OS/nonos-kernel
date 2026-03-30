@@ -14,14 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod markers;
-mod huffman;
-mod dct;
-mod color;
-mod decode;
-mod grayscale;
-mod ycbcr;
-mod lookup;
-mod crop;
+mod types;
+mod util;
+mod parse;
+mod sof;
+mod dht;
+mod dqt;
+mod sos;
 
-pub use decode::decode_jpeg;
+pub(super) use types::{ComponentInfo, SofData, HuffmanTableData, QuantTable, ScanComponent, SosData, JpegMarkers};
+pub(super) use parse::parse_markers;
