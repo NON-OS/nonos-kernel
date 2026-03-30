@@ -18,7 +18,7 @@ use super::range_types::RangeProof;
 
 const MIN_PROOF_SIZE: usize = 32 * 7 + 4;
 
-pub fn parse_proof(proof: &[u8]) -> Option<RangeProof> {
+pub(super) fn parse_proof(proof: &[u8]) -> Option<RangeProof> {
     if proof.len() < MIN_PROOF_SIZE {
         return None;
     }
