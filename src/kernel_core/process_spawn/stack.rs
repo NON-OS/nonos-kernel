@@ -17,7 +17,7 @@
 use crate::process::core::Pid;
 
 pub(crate) const SERVICE_STACK_SIZE: usize = 64 * 1024;
-const MAX_SERVICE_STACKS: usize = 8;
+const MAX_SERVICE_STACKS: usize = 16;
 
 static mut SERVICE_STACKS: [[u8; SERVICE_STACK_SIZE]; MAX_SERVICE_STACKS] =
     [[0u8; SERVICE_STACK_SIZE]; MAX_SERVICE_STACKS];
