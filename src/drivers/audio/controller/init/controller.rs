@@ -14,11 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::super::super::error::AudioError;
 use super::super::super::types::DmaRegion;
 use super::super::super::constants::*;
-use super::super::helpers::{RegisterAccess, spin_while};
-use super::super::corb_rirb::{stop_corb, stop_rirb};
+use super::super::helpers::RegisterAccess;
 use super::super::codec::{self, CodecPaths};
 use super::types::Capabilities;
 use super::reset::reset_controller;
@@ -49,22 +47,19 @@ pub(crate) fn init_controller<T: RegisterAccess>(ctrl: &T, corb: &DmaRegion, rir
     Ok((caps, codec_mask, primary_codec, codec_paths))
 }
 
-pub fn disable_interrupts<T: RegisterAccess>(ctrl: &T) { let intctl = ctrl.read_reg32(INTCTL); ctrl.write_reg32(INTCTL, intctl & !((1 << 31) | (1 << 30))); }
+use super::super::super::error::AudioError;
 
-pub fn shutdown_controller<T: RegisterAccess>(ctrl: &T) -> Result<(), AudioError> {
-    disable_interrupts(ctrl); stop_corb(ctrl); stop_rirb(ctrl);
-    let mut gctl = ctrl.read_reg32(GCTL); gctl &= !GCTL_CRST; ctrl.write_reg32(GCTL, gctl);
-    if !spin_while(|| (ctrl.read_reg32(GCTL) & GCTL_CRST) != 0, SPIN_TIMEOUT_DEFAULT) { return Err(AudioError::CrstClearTimeout); }
-    Ok(())
+fn clear_codec_status<T: RegisterAccess>(ctrl: &T) { ctrl.write_reg16(STATESTS, 0xFFFF); }
+
+pub(crate) fn read_version<T: RegisterAccess>(ctrl: &T) -> (u8, u8) {
+    let vmaj = ctrl.read_reg8(VMAJ);
+    let vmin = ctrl.read_reg8(VMIN);
+    (vmaj, vmin)
 }
 
-pub fn clear_codec_status<T: RegisterAccess>(ctrl: &T) { ctrl.write_reg16(STATESTS, 0xFFFF); }
-pub fn is_in_reset<T: RegisterAccess>(ctrl: &T) -> bool { (ctrl.read_reg32(GCTL) & GCTL_CRST) == 0 }
-pub fn is_running<T: RegisterAccess>(ctrl: &T) -> bool { (ctrl.read_reg32(GCTL) & GCTL_CRST) != 0 }
-pub fn read_version<T: RegisterAccess>(ctrl: &T) -> (u8, u8) { let vmin = ctrl.read_reg8(VMIN); let vmaj = ctrl.read_reg8(VMAJ); (vmaj, vmin) }
-pub fn validate_controller<T: RegisterAccess>(ctrl: &T) -> Result<(), AudioError> {
-    if is_in_reset(ctrl) { return Err(AudioError::CrstClearTimeout); }
-    let caps = read_capabilities(ctrl);
-    if caps.output_streams == 0 { return Err(AudioError::NoCodecPresent); }
+pub(crate) fn shutdown_controller<T: RegisterAccess>(ctrl: &T) -> Result<(), AudioError> {
+    let mut gctl = ctrl.read_reg32(GCTL);
+    gctl &= !GCTL_CRST;
+    ctrl.write_reg32(GCTL, gctl);
     Ok(())
 }

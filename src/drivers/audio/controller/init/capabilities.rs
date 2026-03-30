@@ -18,13 +18,13 @@ use super::super::super::constants::*;
 use super::super::helpers::RegisterAccess;
 use super::types::Capabilities;
 
-pub fn read_capabilities<T: RegisterAccess>(ctrl: &T) -> Capabilities {
+pub(super) fn read_capabilities<T: RegisterAccess>(ctrl: &T) -> Capabilities {
     let gcap = ctrl.read_reg16(GCAP);
     Capabilities::from_gcap(gcap)
 }
 
-pub fn read_codec_mask<T: RegisterAccess>(ctrl: &T) -> u16 { ctrl.read_reg16(STATESTS) }
+pub(super) fn read_codec_mask<T: RegisterAccess>(ctrl: &T) -> u16 { ctrl.read_reg16(STATESTS) }
 
-pub fn find_primary_codec(codec_mask: u16) -> Option<u8> {
+pub(super) fn find_primary_codec(codec_mask: u16) -> Option<u8> {
     (0..=15).find(|c| (codec_mask & (1 << c)) != 0).map(|c| c as u8)
 }
