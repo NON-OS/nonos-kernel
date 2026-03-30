@@ -17,7 +17,7 @@
 use alloc::string::String;
 use alloc::vec::Vec;
 
-pub fn cmd_ln(args: &[&str]) -> Result<(), String> {
+pub(super) fn cmd_ln(args: &[&str]) -> Result<(), String> {
     let mut symbolic = false;
     let mut force = false;
     let mut targets = Vec::new();

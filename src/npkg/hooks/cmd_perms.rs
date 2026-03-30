@@ -17,7 +17,7 @@
 use alloc::string::String;
 use super::helpers::parse_owner;
 
-pub fn cmd_chmod(args: &[&str]) -> Result<(), String> {
+pub(super) fn cmd_chmod(args: &[&str]) -> Result<(), String> {
     if args.len() < 2 {
         return Err(String::from("chmod: missing arguments"));
     }
@@ -29,7 +29,7 @@ pub fn cmd_chmod(args: &[&str]) -> Result<(), String> {
     Ok(())
 }
 
-pub fn cmd_chown(args: &[&str]) -> Result<(), String> {
+pub(super) fn cmd_chown(args: &[&str]) -> Result<(), String> {
     if args.len() < 2 {
         return Err(String::from("chown: missing arguments"));
     }

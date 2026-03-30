@@ -17,7 +17,7 @@
 use alloc::string::String;
 use super::helpers::path_exists;
 
-pub fn cmd_cp(args: &[&str]) -> Result<(), String> {
+pub(super) fn cmd_cp(args: &[&str]) -> Result<(), String> {
     if args.len() < 2 {
         return Err(String::from("cp: missing arguments"));
     }
@@ -30,7 +30,7 @@ pub fn cmd_cp(args: &[&str]) -> Result<(), String> {
     Ok(())
 }
 
-pub fn cmd_mv(args: &[&str]) -> Result<(), String> {
+pub(super) fn cmd_mv(args: &[&str]) -> Result<(), String> {
     if args.len() < 2 {
         return Err(String::from("mv: missing arguments"));
     }
@@ -41,7 +41,7 @@ pub fn cmd_mv(args: &[&str]) -> Result<(), String> {
     Ok(())
 }
 
-pub fn cmd_touch(args: &[&str]) -> Result<(), String> {
+pub(super) fn cmd_touch(args: &[&str]) -> Result<(), String> {
     for path in args {
         if path.starts_with('-') {
             continue;

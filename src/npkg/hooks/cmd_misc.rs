@@ -17,13 +17,13 @@
 use alloc::string::String;
 use super::env::ScriptEnv;
 
-pub fn cmd_echo(args: &[&str]) -> Result<(), String> {
+pub(super) fn cmd_echo(args: &[&str]) -> Result<(), String> {
     let msg = args.join(" ");
     crate::info!("npkg: {}", msg);
     Ok(())
 }
 
-pub fn cmd_set(env: &mut ScriptEnv, args: &[&str]) -> Result<(), String> {
+pub(super) fn cmd_set(env: &mut ScriptEnv, args: &[&str]) -> Result<(), String> {
     if args.len() < 2 {
         return Ok(());
     }
@@ -33,27 +33,27 @@ pub fn cmd_set(env: &mut ScriptEnv, args: &[&str]) -> Result<(), String> {
     Ok(())
 }
 
-pub fn cmd_ldconfig() -> Result<(), String> {
+pub(super) fn cmd_ldconfig() -> Result<(), String> {
     crate::info!("npkg: updating library cache");
     Ok(())
 }
 
-pub fn cmd_update_desktop() -> Result<(), String> {
+pub(super) fn cmd_update_desktop() -> Result<(), String> {
     crate::info!("npkg: updating desktop database");
     Ok(())
 }
 
-pub fn cmd_update_mime() -> Result<(), String> {
+pub(super) fn cmd_update_mime() -> Result<(), String> {
     crate::info!("npkg: updating MIME database");
     Ok(())
 }
 
-pub fn cmd_fc_cache() -> Result<(), String> {
+pub(super) fn cmd_fc_cache() -> Result<(), String> {
     crate::info!("npkg: updating font cache");
     Ok(())
 }
 
-pub fn cmd_systemctl(args: &[&str]) -> Result<(), String> {
+pub(super) fn cmd_systemctl(args: &[&str]) -> Result<(), String> {
     if args.len() < 2 {
         return Ok(());
     }

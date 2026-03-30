@@ -20,7 +20,7 @@ use crate::npkg::error::{NpkgError, NpkgResult};
 use super::env::ScriptEnv;
 use super::{cmd_mkdir, cmd_rm, cmd_file, cmd_link, cmd_perms, cmd_misc};
 
-pub fn execute_script(package: &str, script: &str, hook_type: &str) -> NpkgResult<()> {
+pub(super) fn execute_script(package: &str, script: &str, hook_type: &str) -> NpkgResult<()> {
     let mut env = ScriptEnv::new(package);
     for line in script.lines() {
         let line = line.trim();
@@ -35,7 +35,7 @@ pub fn execute_script(package: &str, script: &str, hook_type: &str) -> NpkgResul
     Ok(())
 }
 
-pub fn execute_line(env: &mut ScriptEnv, line: &str) -> Result<(), String> {
+pub(super) fn execute_line(env: &mut ScriptEnv, line: &str) -> Result<(), String> {
     let line = env.expand_variables(line);
     let parts: Vec<&str> = line.split_whitespace().collect();
     if parts.is_empty() {

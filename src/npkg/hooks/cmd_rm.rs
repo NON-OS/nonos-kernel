@@ -17,7 +17,7 @@
 use alloc::string::String;
 use super::helpers::remove_recursive;
 
-pub fn cmd_rmdir(args: &[&str]) -> Result<(), String> {
+pub(super) fn cmd_rmdir(args: &[&str]) -> Result<(), String> {
     for path in args {
         if path.starts_with('-') {
             continue;
@@ -27,7 +27,7 @@ pub fn cmd_rmdir(args: &[&str]) -> Result<(), String> {
     Ok(())
 }
 
-pub fn cmd_rm(args: &[&str]) -> Result<(), String> {
+pub(super) fn cmd_rm(args: &[&str]) -> Result<(), String> {
     let mut recursive = false;
     let mut force = false;
     for arg in args {
