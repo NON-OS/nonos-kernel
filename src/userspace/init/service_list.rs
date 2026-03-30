@@ -14,5 +14,5 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub const CORE_SERVICES: &[&str] = &["vfs", "display", "input", "network", "crypto", "zk"];
+pub const CORE_SERVICES: &[&str] = &["vfs", "display", "input", "network", "crypto", "zk", "desktop"];
 pub const DRIVER_SERVICES: &[&str] = &["drivers"];
