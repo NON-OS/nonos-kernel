@@ -20,13 +20,20 @@ use super::super::preemption::{CURRENT_TIME_SLICE, DEFAULT_TIME_SLICE};
 pub fn switch_to_process(pid: u32) {
     use crate::process::nonos_core::{PROCESS_TABLE, ProcessState, CURRENT_PID};
     use crate::memory::paging::manager::api::switch_to_process_address_space;
+    let ctx_opt = crate::process::nonos_core::INTERRUPT_SAVED_CONTEXTS.write().remove(&pid);
+    if ctx_opt.is_none() {
+        if let Some(pcb) = PROCESS_TABLE.find_by_pid(pid) {
+            *pcb.state.lock() = ProcessState::Ready;
+        }
+        crate::sched::yield_now();
+        return;
+    }
     if let Some(pcb) = PROCESS_TABLE.find_by_pid(pid) {
         *pcb.state.lock() = ProcessState::Running;
     }
     CURRENT_PID.store(pid, Ordering::SeqCst);
-    CURRENT_TIME_SLICE.store(DEFAULT_TIME_SLICE, Ordering::Relaxed);
+    CURRENT_TIME_SLICE.store(DEFAULT_TIME_SLICE, Ordering::SeqCst);
     let _ = switch_to_process_address_space(pid);
-    let ctx_opt = crate::process::nonos_core::INTERRUPT_SAVED_CONTEXTS.write().remove(&pid);
     if let Some(ctx) = ctx_opt {
         ctx.restore();
     }

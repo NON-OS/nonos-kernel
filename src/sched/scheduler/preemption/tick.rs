@@ -19,11 +19,12 @@ use crate::sched::realtime;
 use super::state::{CURRENT_TIME_SLICE, SCHEDULER_STATS};
 
 pub fn tick() {
-    SCHEDULER_STATS.tick_count.fetch_add(1, Ordering::Relaxed);
-    let remaining = CURRENT_TIME_SLICE.load(Ordering::Relaxed);
-    if remaining > 0 { CURRENT_TIME_SLICE.store(remaining - 1, Ordering::Relaxed); }
-    if remaining == 1 {
-        SCHEDULER_STATS.time_slice_exhaustions.fetch_add(1, Ordering::Relaxed);
+    SCHEDULER_STATS.tick_count.fetch_add(1, Ordering::SeqCst);
+    let remaining = CURRENT_TIME_SLICE.fetch_update(Ordering::SeqCst, Ordering::SeqCst, |v| {
+        if v > 0 { Some(v - 1) } else { None }
+    });
+    if remaining == Ok(1) {
+        SCHEDULER_STATS.time_slice_exhaustions.fetch_add(1, Ordering::SeqCst);
     }
 }
 
