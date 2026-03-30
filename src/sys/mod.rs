@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-
 pub mod io;
 pub mod gdt;
 pub mod idt;
@@ -24,20 +23,13 @@ pub mod apic;
 pub mod timer;
 pub mod settings;
 pub mod process;
-
+pub mod boot_log;
 
 pub use io::{outb, inb, outw, inw, outl, inl, io_wait};
-
-pub use gdt::setup as gdt_setup;
-pub use gdt::enable_iopl;
-
+pub use gdt::{setup as gdt_setup, enable_iopl};
 pub use idt::setup as idt_setup;
-
-pub use serial::init as serial_init;
-pub use serial::{print, print_str, println, print_hex, print_dec};
-
-pub use clock::init as clock_init;
-pub use clock::{unix_ms, Time, get_time, format_time, format_time_full};
+pub use serial::{init as serial_init, print, print_str, println, print_hex, print_dec};
+pub use clock::{init as clock_init, unix_ms, Time, get_time, format_time, format_time_full};
 
 pub use apic::init as apic_init;
 pub use apic::is_init as apic_is_init;
@@ -78,3 +70,4 @@ pub use process::{
     spawn, exit, yield_now, sleep_ms, schedule, current_id, task_count,
     get_task_info, for_each_task,
 };
+

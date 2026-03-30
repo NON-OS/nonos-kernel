@@ -25,7 +25,7 @@ pub mod tasks;
 pub mod context;
 pub mod scheduler;
 
-pub use core::Agent;
+pub use core::{Agent, AgentConfig};
 pub use executor::{run_agent, stop_agent, agent_output, is_running, current_agent};
 pub use registry::{create_agent, delete_agent, get_agent, list_agents};
 pub use tools::{register_tool, execute_tool, list_tools};

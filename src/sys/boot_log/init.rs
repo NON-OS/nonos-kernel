@@ -14,8 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod core;
-pub mod print;
+use core::sync::atomic::Ordering;
+use super::state::{DISPLAY_ENABLED, LOG_Y};
 
-pub use core::init;
-pub use print::{print, print_str, println, print_hex, print_dec, print_dec as print_u64};
+pub fn init_after_fb() {
+    if let Ok(info) = crate::display::get_framebuffer() {
+        let boot_log_end = 700;
+        let max_y = info.height.saturating_sub(100);
+        let start_y = boot_log_end.min(max_y);
+        LOG_Y.store(start_y, Ordering::Relaxed);
+        DISPLAY_ENABLED.store(true, Ordering::Release);
+    }
+}
