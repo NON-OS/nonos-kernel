@@ -24,6 +24,10 @@ pub const CAP_MEMORY: u64 = 1 << 6;
 pub const CAP_INPUT: u64 = 1 << 7;
 pub const CAP_AUDIO: u64 = 1 << 8;
 pub const CAP_ZK: u64 = 1 << 9;
+pub const CAP_GPU: u64 = 1 << 10;
+pub const CAP_APPS: u64 = 1 << 11;
+pub const CAP_AGENTS: u64 = 1 << 12;
+pub const CAP_SHELL: u64 = 1 << 13;
 pub const CAP_ADMIN: u64 = 1 << 63;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

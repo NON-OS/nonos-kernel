@@ -16,7 +16,7 @@
 
 mod core;
 mod handler;
-mod parsing;
+pub mod parsing;
 mod types;
 
 pub use core::ServiceServer;

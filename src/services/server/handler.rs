@@ -42,16 +42,18 @@ impl ServiceServer {
     }
 
     pub(super) fn recv_request(&self) -> Option<(ServiceRequest, String, u32)> {
-        let msg = nonos_inbox::try_dequeue(&self.name)?;
+        let name = self.name_str();
+        let msg = nonos_inbox::try_dequeue(name)?;
         let req = parse_request(&msg.data)?;
         let caller_pid = extract_pid(&msg.from);
         Some((req, msg.from, caller_pid))
     }
 
     pub(super) fn send_response(&self, to: &str, resp: ServiceResponse) {
+        let name = self.name_str();
         let data = encode_response(&resp);
-        if let Ok(msg) = IpcMessage::new(&self.name, to, &data) {
-            if let Some(ch) = IPC_BUS.find_channel(&self.name, to) {
+        if let Ok(msg) = IpcMessage::new(name, to, &data) {
+            if let Some(ch) = IPC_BUS.find_channel(name, to) {
                 let _ = ch.send(msg);
             } else {
                 let _ = nonos_inbox::try_enqueue(to, msg);

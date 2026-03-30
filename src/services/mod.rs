@@ -21,7 +21,10 @@ pub mod client;
 pub mod server;
 
 pub use caps::{ServiceCap, check_service_cap, verify_caller_cap, has_capability, CapError};
-pub use caps::{CAP_VFS, CAP_NET, CAP_DISPLAY, CAP_DRIVER, CAP_CRYPTO, CAP_INPUT, CAP_AUDIO, CAP_ZK, CAP_ADMIN};
+pub use caps::{
+    CAP_VFS, CAP_NET, CAP_DISPLAY, CAP_DRIVER, CAP_CRYPTO, CAP_INPUT,
+    CAP_AUDIO, CAP_ZK, CAP_GPU, CAP_APPS, CAP_AGENTS, CAP_SHELL, CAP_ADMIN,
+};
 pub use protocol::{ServiceRequest, ServiceResponse, ServiceMessage};
 pub use registry::{lookup_service, register_endpoint, ServiceEndpoint};
 pub use client::ServiceClient;
