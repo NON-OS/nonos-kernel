@@ -28,6 +28,6 @@ pub fn init(addr: u64, width: u32, height: u32, stride: u32) {
     FB_PITCH.store(stride * 4, Ordering::SeqCst);
 }
 
-pub(crate) fn dimensions() -> (u32, u32) {
+pub fn dimensions() -> (u32, u32) {
     (FB_WIDTH.load(Ordering::Relaxed), FB_HEIGHT.load(Ordering::Relaxed))
 }
