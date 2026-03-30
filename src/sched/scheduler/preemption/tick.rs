@@ -17,21 +17,17 @@
 use core::sync::atomic::Ordering;
 use crate::sched::realtime;
 use super::state::{CURRENT_TIME_SLICE, SCHEDULER_STATS};
-use super::switch::preempt_current_process;
 
 pub fn tick() {
     SCHEDULER_STATS.tick_count.fetch_add(1, Ordering::Relaxed);
     let remaining = CURRENT_TIME_SLICE.load(Ordering::Relaxed);
     if remaining > 0 { CURRENT_TIME_SLICE.store(remaining - 1, Ordering::Relaxed); }
-    // NOTE: Timer-based preemption is disabled because Context::save() within
-    // the interrupt handler captures the handler's context, not the interrupted
-    // process's context. Services use cooperative yield_now() instead.
-    // To enable true preemption, implement register save at interrupt entry.
     if remaining == 1 {
         SCHEDULER_STATS.time_slice_exhaustions.fetch_add(1, Ordering::Relaxed);
     }
 }
 
+#[allow(dead_code)]
 fn preempt_for_realtime() {
     use crate::process::nonos_core::current_pid;
     if let Some(current) = current_pid() {

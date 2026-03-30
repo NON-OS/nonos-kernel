@@ -14,30 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
-pub enum Priority {
-    Idle = 0,
-    Low = 1,
-    Normal = 2,
-    High = 3,
-    Critical = 4,
-    RealTime = 5,
-}
-
-#[derive(Debug, Clone)]
-pub struct CpuAffinity {
-    pub allowed_cpus: alloc::vec::Vec<u32>,
-}
-
-impl CpuAffinity {
-    pub fn any() -> Self {
-        Self { allowed_cpus: (0..16).collect() }
-    }
-
-    pub fn new(cpus: alloc::vec::Vec<u32>) -> Self {
-        Self { allowed_cpus: cpus }
-    }
-}
+use super::priority::Priority;
+use super::affinity::CpuAffinity;
 
 pub struct Task {
     pub id: u64,
@@ -56,7 +34,6 @@ impl Task {
         if let Some(func) = self.func {
             func();
         } else if self.entry_point != 0 {
-            // SAFETY: Module entry point is validated during module loading.
             unsafe {
                 let entry: extern "C" fn() = core::mem::transmute(self.entry_point as usize);
                 entry();
@@ -65,31 +42,16 @@ impl Task {
         self.complete = true;
     }
 
-    pub fn is_complete(&self) -> bool {
-        self.complete
-    }
+    pub fn is_complete(&self) -> bool { self.complete }
 
     pub fn spawn(name: &'static str, func: fn(), priority: Priority, affinity: CpuAffinity) -> Self {
         Self {
-            id: 0,
-            name,
-            func: Some(func),
-            priority,
-            affinity,
-            complete: false,
-            module_id: None,
-            entry_point: 0,
-            stack_pointer: 0,
+            id: 0, name, func: Some(func), priority, affinity, complete: false,
+            module_id: None, entry_point: 0, stack_pointer: 0,
         }
     }
 
-    pub fn new_module_task(
-        task_id: u64,
-        module_id: u64,
-        entry_point: u64,
-        stack_pointer: u64,
-        priority: u8,
-    ) -> Self {
+    pub fn new_module_task(task_id: u64, module_id: u64, entry_point: u64, stack_pointer: u64, priority: u8) -> Self {
         let prio = match priority {
             0..=50 => Priority::Low,
             51..=100 => Priority::Normal,
@@ -97,17 +59,10 @@ impl Task {
             151..=200 => Priority::Critical,
             _ => Priority::RealTime,
         };
-
         Self {
-            id: task_id,
-            name: "module_task",
-            func: None,
-            priority: prio,
-            affinity: CpuAffinity::any(),
-            complete: false,
-            module_id: Some(module_id),
-            entry_point,
-            stack_pointer,
+            id: task_id, name: "module_task", func: None, priority: prio,
+            affinity: CpuAffinity::any(), complete: false, module_id: Some(module_id),
+            entry_point, stack_pointer,
         }
     }
 }
