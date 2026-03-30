@@ -14,16 +14,32 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use core::sync::atomic::{AtomicU32, Ordering};
 use crate::process::core::Pid;
 
 pub(crate) const SERVICE_STACK_SIZE: usize = 64 * 1024;
-const MAX_SERVICE_STACKS: usize = 16;
+const MAX_SERVICE_STACKS: usize = 32;
 
 static mut SERVICE_STACKS: [[u8; SERVICE_STACK_SIZE]; MAX_SERVICE_STACKS] =
     [[0u8; SERVICE_STACK_SIZE]; MAX_SERVICE_STACKS];
 
+static NEXT_STACK_IDX: AtomicU32 = AtomicU32::new(0);
+static STACK_IN_USE: [AtomicU32; MAX_SERVICE_STACKS] = {
+    const INIT: AtomicU32 = AtomicU32::new(0);
+    [INIT; MAX_SERVICE_STACKS]
+};
+
 pub(crate) fn allocate_service_stack(pid: Pid) -> u64 {
-    let idx = (pid as usize).saturating_sub(1) % MAX_SERVICE_STACKS;
+    let idx = NEXT_STACK_IDX.fetch_add(1, Ordering::SeqCst) as usize % MAX_SERVICE_STACKS;
+    STACK_IN_USE[idx].store(pid, Ordering::SeqCst);
     let stack_ptr = unsafe { SERVICE_STACKS[idx].as_mut_ptr() };
     (stack_ptr as u64) + SERVICE_STACK_SIZE as u64 - 16
+}
+
+pub(crate) fn deallocate_service_stack(pid: Pid) {
+    for i in 0..MAX_SERVICE_STACKS {
+        if STACK_IN_USE[i].compare_exchange(pid, 0, Ordering::SeqCst, Ordering::SeqCst).is_ok() {
+            return;
+        }
+    }
 }
