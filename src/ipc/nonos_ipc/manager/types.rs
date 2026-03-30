@@ -27,7 +27,7 @@ pub(super) struct ManagerStats {
 }
 
 impl ManagerStats {
-    pub const fn new() -> Self {
+    pub(super) const fn new() -> Self {
         Self { messages_sent: AtomicU64::new(0), messages_received: AtomicU64::new(0), messages_dropped: AtomicU64::new(0),
             channels_created: AtomicU64::new(0), channels_destroyed: AtomicU64::new(0) }
     }

@@ -29,7 +29,7 @@ pub use api::{
 pub use corb_rirb::compose_verb;
 pub use hda_controller::HdAudioController;
 pub use helpers::RegisterAccess;
-pub use init::{
+pub(crate) use init::{
     is_in_reset, is_running, read_version, shutdown_controller, validate_controller, Capabilities,
     InitStage,
 };
