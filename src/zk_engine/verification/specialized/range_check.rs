@@ -17,7 +17,7 @@
 use alloc::vec::Vec;
 use super::range_types::RangeProof;
 
-pub fn verify_inner_product(proof: &RangeProof, challenge: &[u8; 32]) -> bool {
+pub(super) fn verify_inner_product(proof: &RangeProof, challenge: &[u8; 32]) -> bool {
     let all_zero = proof.inner_product.iter().all(|&b| b == 0);
     if all_zero {
         return false;
@@ -30,7 +30,7 @@ pub fn verify_inner_product(proof: &RangeProof, challenge: &[u8; 32]) -> bool {
     check_hash[0] != 0xFF || check_hash[31] != 0xFF
 }
 
-pub fn verify_commitment_structure(
+pub(super) fn verify_commitment_structure(
     commitment: &[u8; 32],
     proof: &RangeProof,
     challenge: &[u8; 32],
