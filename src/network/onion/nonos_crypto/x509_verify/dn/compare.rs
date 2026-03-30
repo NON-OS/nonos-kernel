@@ -17,7 +17,7 @@
 use super::tlv::{unwrap_sequence, read_tlv};
 use super::rdn::rdn_equal;
 
-pub(crate) fn dn_equal(a: &[u8], b: &[u8]) -> bool {
+pub fn dn_equal(a: &[u8], b: &[u8]) -> bool {
     if a.is_empty() || b.is_empty() { return false; }
     if a == b { return true; }
     dn_equal_normalized(a, b)
