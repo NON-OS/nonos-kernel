@@ -24,7 +24,6 @@ use super::framebuffer::init_framebuffer;
 
 pub fn microkernel_init(handoff: &BootHandoffV1) {
     init_memory(handoff);
-    let _ = crate::memory::paging::manager::api::init();
     init_framebuffer(handoff);
     boot_log::init_after_fb(handoff.fb.cursor_y);
     boot_log::ok("NONOS", "Microkernel init");
@@ -40,9 +39,20 @@ pub fn microkernel_init(handoff: &BootHandoffV1) {
 
 pub fn microkernel_main() -> ! {
     boot_log::ok("UKERNEL", "Creating init");
-    let init_pid = create_process("init", ProcessState::Running, Priority::High)
-        .unwrap_or_else(|_| loop { core::hint::spin_loop(); });
-    let _ = create_address_space(init_pid);
+    let init_pid = match create_process("init", ProcessState::Running, Priority::High) {
+        Ok(pid) => pid,
+        Err(e) => {
+            boot_log::error("Failed to create init process");
+            crate::sys::serial::println(b"[FATAL] Init process creation failed");
+            crate::sys::serial::println(e.as_bytes());
+            loop { core::hint::spin_loop(); }
+        }
+    };
+    if let Err(_) = create_address_space(init_pid) {
+        boot_log::error("Failed to create init address space");
+        crate::sys::serial::println(b"[FATAL] Init address space creation failed");
+        loop { core::hint::spin_loop(); }
+    }
     CURRENT_PID.store(init_pid, Ordering::SeqCst);
     boot_log::ok("UKERNEL", "Entering userspace");
     crate::userspace::run_init()

@@ -47,12 +47,8 @@ fn svc_agents() { crate::userspace::run_agents_service(); }
 fn svc_shell() { crate::userspace::run_shell_service(); }
 
 fn svc_desktop() {
-    crate::sys::serial::println(b"[DESKTOP] svc_desktop starting...");
     if crate::boot::main::graphics_init::init_graphics_for_microkernel() {
-        crate::sys::serial::println(b"[DESKTOP] graphics init OK, running desktop");
         crate::boot::main::desktop_run::run_desktop();
-    } else {
-        crate::sys::serial::println(b"[DESKTOP] ERROR: graphics init failed!");
     }
     loop { crate::sched::yield_now(); }
 }

@@ -23,7 +23,8 @@ use super::types::{ServiceProcess, IsolationError};
 
 pub fn spawn_isolated_service(name: &str, caps: u64) -> Result<ServiceProcess, IsolationError> {
     let entry = get_service_entry(name).ok_or(IsolationError::ProcessCreation)?;
-    let pid = create_process(name, ProcessState::Ready, Priority::Normal)
+    let priority = if name == "desktop" { Priority::High } else { Priority::Normal };
+    let pid = create_process(name, ProcessState::Ready, priority)
         .map_err(|_| IsolationError::ProcessCreation)?;
     let asid = create_address_space(pid).map_err(|_| IsolationError::AddressSpace)?;
     crate::syscall::microkernel::capability::grant_caps_internal(pid, caps);
