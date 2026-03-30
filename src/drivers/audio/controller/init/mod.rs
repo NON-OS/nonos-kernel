@@ -20,9 +20,9 @@ mod capabilities;
 mod discover;
 mod controller;
 
-pub use types::{InitStage, Capabilities};
-pub use reset::reset_controller;
-pub use capabilities::{read_capabilities, read_codec_mask, find_primary_codec};
-pub use discover::{init_command_buffers, discover_codecs};
-pub use controller::{init_controller, shutdown_controller, disable_interrupts, clear_codec_status,
+pub(crate) use types::{InitStage, Capabilities};
+pub(crate) use reset::reset_controller;
+pub(crate) use capabilities::{read_capabilities, read_codec_mask, find_primary_codec};
+pub(crate) use discover::{init_command_buffers, discover_codecs};
+pub(crate) use controller::{init_controller, shutdown_controller, disable_interrupts, clear_codec_status,
     is_in_reset, is_running, read_version, validate_controller};

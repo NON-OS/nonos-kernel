@@ -16,10 +16,9 @@
 
 use crate::drivers::audio::error::AudioError;
 use crate::drivers::audio::types::DmaRegion;
-use crate::drivers::audio::constants::*;
+use crate::drivers::audio::constants::{PARAM_VENDOR_ID, PARAM_REVISION_ID, PARAM_SUB_NODE_COUNT};
 use super::super::super::helpers::RegisterAccess;
 use super::super::super::corb_rirb::get_parameter;
-use super::super::constants::*;
 use super::super::quirks::get_codec_quirks;
 use super::super::types::CodecInfo;
 use super::super::stats::{increment_codecs_discovered, increment_quirks_applied};

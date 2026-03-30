@@ -27,7 +27,7 @@ pub(super) const LEG_QUEUE_SEL: u16 = 0x0E;
 pub(super) const LEG_NOTIFY: u16 = 0x10;
 pub(super) const LEG_STATUS: u16 = 0x12;
 
-pub enum AccessMode {
+pub(super) enum AccessMode {
     Io(u16),
     Mmio(u64),
 }
