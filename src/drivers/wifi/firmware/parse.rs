@@ -20,7 +20,7 @@ use super::super::error::WifiError;
 use super::types::*;
 
 impl Firmware {
-    pub(super) fn parse(data: &[u8]) -> Result<Self, WifiError> {
+    pub(crate) fn parse(data: &[u8]) -> Result<Self, WifiError> {
         if data.len() < core::mem::size_of::<UcodeHeader>() { return Err(WifiError::FirmwareInvalid); }
         let header: UcodeHeader = unsafe { core::ptr::read_unaligned(data.as_ptr() as *const UcodeHeader) };
         if header.zero != 0 || header.magic != IWL_FW_MAGIC { return Err(WifiError::FirmwareInvalid); }
@@ -45,7 +45,8 @@ impl Firmware {
             offset += (tlv_len + 3) & !3;
         }
         if fw.runtime_sections.is_empty() { return Err(WifiError::FirmwareInvalid); }
-        crate::log::info!("iwlwifi: Parsed firmware v{}.{}.{} build {}", major, minor, api, header.build);
+        let build = header.build;
+        crate::log::info!("iwlwifi: Parsed firmware v{}.{}.{} build {}", major, minor, api, build);
         Ok(fw)
     }
 }
