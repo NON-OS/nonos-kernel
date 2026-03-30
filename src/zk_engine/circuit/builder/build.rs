@@ -14,12 +14,19 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod manager;
-mod policy;
-mod remote;
-mod types;
+use crate::zk_engine::ZKError;
+use crate::zk_engine::circuit::core::Circuit;
+use super::state::CircuitBuilder;
 
-pub use manager::*;
-pub use types::*;
-pub use remote::*;
-pub use policy::*;
+impl CircuitBuilder {
+    pub fn build(mut self, num_witnesses: usize) -> Result<Circuit, ZKError> {
+        self.num_variables = self.num_inputs + num_witnesses;
+
+        Ok(Circuit {
+            constraints: self.constraints,
+            num_variables: self.num_variables,
+            num_inputs: self.num_inputs,
+            variable_names: self.variable_names,
+        })
+    }
+}

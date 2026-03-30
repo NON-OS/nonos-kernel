@@ -14,18 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! System Calls for Zero-Knowledge Engine
-//!
-//! Production syscalls sys_zk_prove and sys_zk_verify for NONOS:
-//! - Kernel-level ZK operations
-//! - Memory safety and validation
-//! - Performance optimizations
-//! - Error handling and logging
-
 mod handlers;
-mod params;
 mod helpers;
+mod params;
 
 pub use handlers::*;
-pub use params::*;
 pub use helpers::*;
+pub use params::*;

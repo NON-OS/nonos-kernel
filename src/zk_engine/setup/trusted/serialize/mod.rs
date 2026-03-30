@@ -14,12 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod manager;
-mod policy;
-mod remote;
-mod types;
+mod g1;
+mod g2;
+mod g2_vec;
+mod limbs;
+mod params_deserialize;
+mod params_serialize;
+mod storage;
 
-pub use manager::*;
-pub use types::*;
-pub use remote::*;
-pub use policy::*;
+pub(super) use storage::{load_from_storage, save_to_storage};

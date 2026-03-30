@@ -14,12 +14,31 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod manager;
-mod policy;
-mod remote;
-mod types;
+use alloc::collections::BTreeMap;
+use crate::zk_engine::groth16::FieldElement;
+use super::Variable;
 
-pub use manager::*;
-pub use types::*;
-pub use remote::*;
-pub use policy::*;
+#[derive(Debug, Clone)]
+pub struct LinearCombination {
+    pub terms: BTreeMap<Variable, FieldElement>,
+}
+
+impl LinearCombination {
+    pub fn new() -> Self {
+        Self { terms: BTreeMap::new() }
+    }
+
+    pub fn from_variable(var: Variable) -> Self {
+        let mut lc = Self::new();
+        lc.terms.insert(var, FieldElement::one());
+        lc
+    }
+
+    pub fn from_constant(value: FieldElement) -> Self {
+        let mut lc = Self::new();
+        if !value.is_zero() {
+            lc.terms.insert(Variable::ONE, value);
+        }
+        lc
+    }
+}

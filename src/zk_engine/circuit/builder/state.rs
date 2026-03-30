@@ -14,12 +14,24 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod manager;
-mod policy;
-mod remote;
-mod types;
+use alloc::collections::BTreeMap;
+use alloc::vec::Vec;
+use crate::zk_engine::circuit::core::{Constraint, Variable};
 
-pub use manager::*;
-pub use types::*;
-pub use remote::*;
-pub use policy::*;
+pub struct CircuitBuilder {
+    pub constraints: Vec<Constraint>,
+    pub num_variables: usize,
+    pub num_inputs: usize,
+    pub variable_names: BTreeMap<Variable, alloc::string::String>,
+}
+
+impl CircuitBuilder {
+    pub fn new() -> Self {
+        Self {
+            constraints: Vec::new(),
+            num_variables: 0,
+            num_inputs: 0,
+            variable_names: BTreeMap::new(),
+        }
+    }
+}

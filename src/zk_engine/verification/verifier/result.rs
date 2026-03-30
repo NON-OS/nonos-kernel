@@ -14,12 +14,32 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod manager;
-mod policy;
-mod remote;
-mod types;
+use crate::zk_engine::ZKError;
 
-pub use manager::*;
-pub use types::*;
-pub use remote::*;
-pub use policy::*;
+#[derive(Debug)]
+pub struct VerificationResult {
+    pub valid: bool,
+    pub error: Option<ZKError>,
+    pub timing_ms: u64,
+    pub pairing_checks: u32,
+}
+
+impl VerificationResult {
+    pub fn success(timing_ms: u64) -> Self {
+        Self {
+            valid: true,
+            error: None,
+            timing_ms,
+            pairing_checks: 4,
+        }
+    }
+
+    pub fn failure(error: ZKError, timing_ms: u64) -> Self {
+        Self {
+            valid: false,
+            error: Some(error),
+            timing_ms,
+            pairing_checks: 0,
+        }
+    }
+}

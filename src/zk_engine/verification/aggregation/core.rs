@@ -14,12 +14,24 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod manager;
-mod policy;
-mod remote;
-mod types;
+pub struct ProofAggregator {
+    pub(super) challenge_seed: [u8; 32],
+}
 
-pub use manager::*;
-pub use types::*;
-pub use remote::*;
-pub use policy::*;
+impl ProofAggregator {
+    pub fn new() -> Self {
+        Self {
+            challenge_seed: [0u8; 32],
+        }
+    }
+
+    pub fn set_challenge_seed(&mut self, seed: [u8; 32]) {
+        self.challenge_seed = seed;
+    }
+}
+
+impl Default for ProofAggregator {
+    fn default() -> Self {
+        Self::new()
+    }
+}

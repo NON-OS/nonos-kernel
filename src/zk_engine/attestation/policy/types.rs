@@ -14,12 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod manager;
-mod policy;
-mod remote;
-mod types;
+use alloc::{vec::Vec, string::String};
 
-pub use manager::*;
-pub use types::*;
-pub use remote::*;
-pub use policy::*;
+#[derive(Debug, Clone)]
+pub enum AttestationPolicy {
+    SignatureOnly,
+    Standard,
+    HighSecurity,
+    Custom {
+        require_zk_proof: bool,
+        max_age_seconds: u64,
+        required_modules: Vec<String>,
+    },
+}

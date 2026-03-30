@@ -14,12 +14,24 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod manager;
-mod policy;
-mod remote;
-mod types;
+use alloc::vec::Vec;
+use super::attestation::KernelAttestation;
 
-pub use manager::*;
-pub use types::*;
-pub use remote::*;
-pub use policy::*;
+impl KernelAttestation {
+    pub fn serialize(&self) -> Vec<u8> {
+        let mut data = Vec::new();
+        data.extend_from_slice(&self.measurement.to_bytes());
+        data.extend_from_slice(&self.signature.to_bytes());
+        data.extend_from_slice(&self.public_key);
+        data.extend_from_slice(&self.timestamp.to_le_bytes());
+
+        if let Some(ref proof) = self.zk_proof {
+            data.push(1);
+            data.extend_from_slice(&proof.serialize());
+        } else {
+            data.push(0);
+        }
+
+        data
+    }
+}

@@ -14,12 +14,19 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod manager;
-mod policy;
-mod remote;
-mod types;
+use crate::process::core::ProcessControlBlock;
 
-pub use manager::*;
-pub use types::*;
-pub use remote::*;
-pub use policy::*;
+pub fn is_valid_user_ptr(ptr: usize, size: usize, _process: &ProcessControlBlock) -> bool {
+    if ptr == 0 || size == 0 {
+        return false;
+    }
+
+    if ptr.checked_add(size).is_none() {
+        return false;
+    }
+
+    let user_space_start = 0x1000;
+    let user_space_end = 0x7FFFFFFFFFFF;
+
+    ptr >= user_space_start && ptr + size <= user_space_end
+}

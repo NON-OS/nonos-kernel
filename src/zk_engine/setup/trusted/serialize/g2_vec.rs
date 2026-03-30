@@ -14,12 +14,27 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod manager;
-mod policy;
-mod remote;
-mod types;
+use alloc::vec::Vec;
+use crate::zk_engine::groth16::G2Point;
+use crate::zk_engine::ZKError;
+use super::g2::deserialize_g2;
 
-pub use manager::*;
-pub use types::*;
-pub use remote::*;
-pub use policy::*;
+pub(super) fn deserialize_g2_vec(data: &[u8], offset: usize) -> Result<(Vec<G2Point>, usize), ZKError> {
+    if offset + 4 > data.len() {
+        return Err(ZKError::InvalidFormat);
+    }
+
+    let count =
+        u32::from_le_bytes([data[offset], data[offset + 1], data[offset + 2], data[offset + 3]])
+            as usize;
+    let mut current = offset + 4;
+
+    let mut points = Vec::with_capacity(count);
+    for _ in 0..count {
+        let (pt, new_offset) = deserialize_g2(data, current)?;
+        points.push(pt);
+        current = new_offset;
+    }
+
+    Ok((points, current))
+}

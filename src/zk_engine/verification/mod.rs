@@ -14,14 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Groth16 proof verification.
-
-mod verifier;
 mod aggregation;
 mod cache;
 mod specialized;
+mod verifier;
 
-pub use verifier::*;
 pub use aggregation::*;
 pub use cache::*;
 pub use specialized::*;
+pub use verifier::*;

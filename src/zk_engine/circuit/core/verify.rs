@@ -14,12 +14,22 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod manager;
-mod policy;
-mod remote;
-mod types;
+use crate::zk_engine::groth16::FieldElement;
+use crate::zk_engine::ZKError;
+use super::circuit::Circuit;
 
-pub use manager::*;
-pub use types::*;
-pub use remote::*;
-pub use policy::*;
+impl Circuit {
+    pub fn verify_assignment(&self, assignment: &[FieldElement]) -> Result<bool, ZKError> {
+        if assignment.len() != self.num_variables {
+            return Err(ZKError::InvalidWitness);
+        }
+
+        for constraint in &self.constraints {
+            if !constraint.verify(assignment)? {
+                return Ok(false);
+            }
+        }
+
+        Ok(true)
+    }
+}

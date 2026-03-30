@@ -14,12 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod manager;
-mod policy;
-mod remote;
-mod types;
+mod circuit;
+mod constraint;
+mod evaluate;
+mod lc_ops;
+mod linear_combination;
+mod matrices;
+mod variable;
+mod verify;
+mod witness;
 
-pub use manager::*;
-pub use types::*;
-pub use remote::*;
-pub use policy::*;
+pub use circuit::Circuit;
+pub use constraint::Constraint;
+pub use linear_combination::LinearCombination;
+pub use variable::Variable;

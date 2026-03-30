@@ -14,12 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod manager;
-mod policy;
-mod remote;
-mod types;
+use alloc::string::String;
+use crate::memory::VirtAddr;
 
-pub use manager::*;
-pub use types::*;
-pub use remote::*;
-pub use policy::*;
+#[derive(Debug, Clone)]
+pub struct ModuleHash {
+    pub name: String,
+    pub hash: [u8; 32],
+    pub address: VirtAddr,
+    pub size: usize,
+}

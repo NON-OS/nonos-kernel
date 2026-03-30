@@ -14,12 +14,15 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod manager;
-mod policy;
-mod remote;
-mod types;
+use crate::zk_engine::groth16::Proof;
+use crate::crypto::ed25519::Signature as Ed25519Signature;
+use super::measurement::KernelMeasurement;
 
-pub use manager::*;
-pub use types::*;
-pub use remote::*;
-pub use policy::*;
+#[derive(Debug, Clone)]
+pub struct KernelAttestation {
+    pub measurement: KernelMeasurement,
+    pub signature: Ed25519Signature,
+    pub zk_proof: Option<Proof>,
+    pub public_key: [u8; 32],
+    pub timestamp: u64,
+}

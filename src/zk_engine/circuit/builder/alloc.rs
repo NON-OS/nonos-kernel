@@ -14,12 +14,24 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod manager;
-mod policy;
-mod remote;
-mod types;
+use crate::zk_engine::circuit::core::Variable;
+use super::state::CircuitBuilder;
 
-pub use manager::*;
-pub use types::*;
-pub use remote::*;
-pub use policy::*;
+impl CircuitBuilder {
+    pub fn alloc_variable(&mut self, name: Option<&str>) -> Variable {
+        let var = Variable::new(self.num_variables);
+        self.num_variables += 1;
+
+        if let Some(name) = name {
+            self.variable_names.insert(var, alloc::string::String::from(name));
+        }
+
+        var
+    }
+
+    pub fn alloc_input(&mut self, name: Option<&str>) -> Variable {
+        let var = self.alloc_variable(name);
+        self.num_inputs += 1;
+        var
+    }
+}

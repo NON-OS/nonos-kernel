@@ -14,12 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod manager;
-mod policy;
-mod remote;
-mod types;
+mod keys;
+mod nym;
+mod parse;
+mod request;
+mod state;
+mod tcp;
+mod tcp_recv;
+mod verify;
 
-pub use manager::*;
-pub use types::*;
-pub use remote::*;
-pub use policy::*;
+pub use state::RemoteAttestationClient;

@@ -14,12 +14,25 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod manager;
-mod policy;
-mod remote;
-mod types;
+use alloc::vec::Vec;
 
-pub use manager::*;
-pub use types::*;
-pub use remote::*;
-pub use policy::*;
+pub struct RemoteAttestationClient {
+    pub(super) trusted_keys: Vec<[u8; 32]>,
+    pub(super) current_nonce: [u8; 32],
+    pub(super) last_attestation_time: u64,
+    pub(super) min_attestation_interval_ms: u64,
+}
+
+impl RemoteAttestationClient {
+    pub fn new() -> Self {
+        let entropy = crate::crypto::entropy::get_entropy(32);
+        let mut nonce = [0u8; 32];
+        nonce.copy_from_slice(&entropy[..32]);
+        Self {
+            trusted_keys: Vec::new(),
+            current_nonce: nonce,
+            last_attestation_time: 0,
+            min_attestation_interval_ms: 1000,
+        }
+    }
+}
