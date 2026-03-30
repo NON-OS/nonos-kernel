@@ -40,14 +40,8 @@ pub(super) struct Inbox {
 }
 
 impl Inbox {
-    /// Create a new inbox with specified capacity
     pub(super) fn new(capacity: usize) -> Self {
-        crate::sys::serial::print(b"[INBOX] new: cap=");
-        crate::sys::serial::print_dec(capacity as u64);
-        crate::sys::serial::println(b"");
-        crate::sys::serial::println(b"[INBOX] new: creating VecDeque");
         let queue = alloc::collections::VecDeque::with_capacity(capacity);
-        crate::sys::serial::println(b"[INBOX] new: VecDeque done");
         Self {
             queue: Mutex::new(queue),
             capacity,
