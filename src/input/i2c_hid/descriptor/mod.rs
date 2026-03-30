@@ -14,21 +14,18 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-extern crate alloc;
+mod hid_descriptor;
+mod field_location;
+mod layout_types;
+mod report_types;
+mod parse_context;
+mod parse;
+mod parse_main;
+mod parse_global;
+mod parse_local;
+mod record_field;
 
-pub mod descriptor;
-pub mod device;
-pub mod init;
-pub mod poll;
-pub mod protocol;
-pub mod state;
-pub mod touchpad;
-mod api;
-mod debug;
-
-pub use descriptor::{ContactFields, FieldLocation, HidDescriptor, ReportDescriptor, TouchpadLayout};
-pub use device::{HidDeviceType, I2cHidDevice};
-pub use touchpad::{TouchPoint, TouchpadDriver, TouchpadState};
-pub use protocol::{HidCommand, HidRegister};
-pub use api::*;
-pub use debug::{TouchpadDebugInfo, get_touchpad_debug_info};
+pub use hid_descriptor::HidDescriptor;
+pub use field_location::FieldLocation;
+pub use layout_types::{ContactFields, TouchpadLayout, ReportInfo};
+pub use report_types::ReportDescriptor;
