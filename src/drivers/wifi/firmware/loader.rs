@@ -24,9 +24,9 @@ use crate::memory::dma::{alloc_dma_coherent, DmaConstraints, DmaRegion};
 pub(crate) struct FirmwareLoader { fw_regions: Vec<DmaRegion> }
 
 impl FirmwareLoader {
-    pub(super) fn new() -> Self { Self { fw_regions: Vec::new() } }
+    pub(crate) fn new() -> Self { Self { fw_regions: Vec::new() } }
 
-    pub(super) fn load(&mut self, trans: &mut PcieTransport, fw: &Firmware) -> Result<(), WifiError> {
+    pub(crate) fn load(&mut self, trans: &mut PcieTransport, fw: &Firmware) -> Result<(), WifiError> {
         crate::log::info!("iwlwifi: Loading firmware sections...");
         for section in &fw.runtime_sections { self.load_section(trans, section)?; }
         trans.grab_nic_access()?;
