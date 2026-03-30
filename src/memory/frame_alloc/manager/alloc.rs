@@ -1,0 +1,44 @@
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+use x86_64::{PhysAddr, structures::paging::{PhysFrame, Size4KiB}};
+use super::super::constants::*;
+use super::super::error::FrameResult;
+use super::global::get_allocator;
+
+pub fn alloc_frame() -> Option<PhysFrame<Size4KiB>> {
+    let mut allocator = get_allocator().lock();
+    if !allocator.is_initialized() {
+        let _ = allocator.init();
+        if allocator.usable.is_empty() {
+            let start = PhysAddr::new(DEFAULT_REGION_START);
+            let end = PhysAddr::new(DEFAULT_REGION_END);
+            let _ = allocator.add_region(start, end);
+        }
+    }
+    allocator.alloc()
+}
+
+pub fn allocate_frame() -> Option<PhysAddr> { alloc_frame().map(|f| f.start_address()) }
+
+pub fn deallocate_frame(addr: PhysAddr) -> FrameResult<()> {
+    let frame = PhysFrame::containing_address(addr);
+    get_allocator().lock().dealloc(frame)
+}
+
+pub fn add_memory_region(start: PhysAddr, end: PhysAddr) -> FrameResult<()> {
+    get_allocator().lock().add_region(start, end)
+}

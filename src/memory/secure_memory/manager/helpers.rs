@@ -1,0 +1,64 @@
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+use core::sync::atomic::Ordering;
+use x86_64::{VirtAddr, PhysAddr};
+
+use crate::memory::layout;
+use crate::memory::buddy_alloc as mem_alloc;
+use crate::memory::virt;
+
+use super::super::constants::SECURE_SCRUB_PATTERN;
+use super::super::error::{SecureMemoryError, SecureMemoryResult};
+use super::super::types::SecurityLevel;
+
+pub(super) fn allocate_virtual_memory(size: usize) -> SecureMemoryResult<VirtAddr> {
+    let page_count = (size + layout::PAGE_SIZE - 1) / layout::PAGE_SIZE;
+    mem_alloc::allocate_pages(page_count).map_err(|_| SecureMemoryError::AllocationFailed)
+}
+
+pub(super) fn free_virtual_memory(va: VirtAddr, size: usize) -> SecureMemoryResult<()> {
+    let page_count = (size + layout::PAGE_SIZE - 1) / layout::PAGE_SIZE;
+    mem_alloc::free_pages(va, page_count).map_err(|_| SecureMemoryError::AllocationFailed)
+}
+
+pub(super) fn get_physical_address(va: VirtAddr) -> SecureMemoryResult<PhysAddr> {
+    virt::translate_addr(va).map_err(|_| SecureMemoryError::TranslationFailed)
+}
+
+pub(super) fn get_timestamp() -> u64 {
+    unsafe { core::arch::x86_64::_rdtsc() }
+}
+
+pub(super) fn secure_zero_memory(
+    va: VirtAddr,
+    size: usize,
+    security_level: SecurityLevel,
+) -> SecureMemoryResult<()> {
+    let passes = security_level.scrub_passes();
+    if passes == 0 {
+        unsafe { core::ptr::write_bytes(va.as_mut_ptr::<u8>(), 0, size); }
+    } else {
+        for pass in 0..passes {
+            let pattern = if pass % 2 == 0 { SECURE_SCRUB_PATTERN } else { !SECURE_SCRUB_PATTERN };
+            unsafe { core::ptr::write_bytes(va.as_mut_ptr::<u8>(), pattern, size); }
+            core::sync::atomic::compiler_fence(Ordering::SeqCst);
+        }
+        unsafe { core::ptr::write_bytes(va.as_mut_ptr::<u8>(), 0, size); }
+        core::sync::atomic::compiler_fence(Ordering::SeqCst);
+    }
+    Ok(())
+}

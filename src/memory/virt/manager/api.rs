@@ -22,7 +22,14 @@ use super::core::VirtualMemoryManager;
 static VIRTUAL_MEMORY_MANAGER: Mutex<VirtualMemoryManager> = Mutex::new(VirtualMemoryManager::new());
 
 pub fn init(cr3_frame: PhysAddr) -> VmResult<()> { VIRTUAL_MEMORY_MANAGER.lock().init(cr3_frame) }
-pub fn map_page_4k(va: VirtAddr, pa: PhysAddr, writable: bool, user: bool, executable: bool) -> VmResult<()> { VIRTUAL_MEMORY_MANAGER.lock().map_page_4k(va, pa, build_flags(writable, user, executable)) }
+pub fn map_page_4k(va: VirtAddr, pa: PhysAddr, writable: bool, user: bool, executable: bool) -> VmResult<()> {
+    let mut mgr = VIRTUAL_MEMORY_MANAGER.lock();
+    if !mgr.is_initialized() {
+        let cr3 = crate::memory::paging::tlb::get_cr3();
+        mgr.init(cr3)?;
+    }
+    mgr.map_page_4k(va, pa, build_flags(writable, user, executable))
+}
 pub fn map_page_2m(va: VirtAddr, pa: PhysAddr, writable: bool, user: bool, executable: bool) -> VmResult<()> { VIRTUAL_MEMORY_MANAGER.lock().map_page_2m(va, pa, build_flags(writable, user, executable)) }
 pub fn unmap_page(va: VirtAddr) -> VmResult<()> { VIRTUAL_MEMORY_MANAGER.lock().unmap_page(va, PageSize::Size4K) }
 pub fn unmap_page_2m(va: VirtAddr) -> VmResult<()> { VIRTUAL_MEMORY_MANAGER.lock().unmap_page(va, PageSize::Size2M) }
