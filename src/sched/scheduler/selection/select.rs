@@ -15,12 +15,13 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use core::sync::atomic::{AtomicU32, Ordering};
+use crate::process::nonos_core::Priority;
 use super::super::process::get_runnable_pids;
 
 pub static LAST_SCHEDULED_PID: AtomicU32 = AtomicU32::new(0);
 
 pub fn select_next_process() -> Option<u32> {
-    use crate::process::nonos_core::{PROCESS_TABLE, ProcessState, Priority, CURRENT_PID};
+    use crate::process::nonos_core::CURRENT_PID;
     let current = CURRENT_PID.load(Ordering::Relaxed);
     let runnable = get_runnable_pids();
     if runnable.is_empty() { return None; }
