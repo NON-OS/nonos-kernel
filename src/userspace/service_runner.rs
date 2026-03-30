@@ -28,15 +28,13 @@ pub fn run_service_by_name(name: &str) -> ! {
         "crypto" => run_crypto_service(),
         "zk" => run_zk_service(),
         "input" => run_input_service(),
-        _ => {
-            crate::sys::serial::print(b"[SVC] Unknown service: ");
-            crate::sys::serial::println(name.as_bytes());
+        "desktop" => {
+            if crate::boot::main::graphics_init::init_graphics_for_microkernel() {
+                crate::boot::main::desktop_run::run_desktop();
+            }
             loop { crate::sched::yield_now(); }
         }
+        _ => loop { crate::sched::yield_now(); }
     }
 }
 
-pub fn start_service_process(name: &str) {
-    crate::sys::serial::print(b"[SVC] Starting service process: ");
-    crate::sys::serial::println(name.as_bytes());
-}

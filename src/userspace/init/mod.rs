@@ -16,6 +16,7 @@
 
 mod entry;
 mod spawn;
+mod spawner;
 mod service_list;
 mod supervisor;
 

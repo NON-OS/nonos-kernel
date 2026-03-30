@@ -14,24 +14,26 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::services::{ServiceServer, CAP_CRYPTO};
 use super::dispatch::handle_request;
 
 pub fn run_crypto_service() -> ! {
-    crate::sys::serial::println(b"[CRYPTO] Crypto service starting");
-
-    let server = match ServiceServer::new("crypto", CAP_CRYPTO) {
-        Ok(s) => s,
-        Err(_) => {
-            crate::sys::serial::println(b"[CRYPTO] Failed to create server");
-            loop { crate::sched::yield_now(); }
-        }
-    };
-
-    crate::sys::serial::println(b"[CRYPTO] Crypto server ready");
+    crate::sys::boot_log::ok("CRYPTO", "Service ready");
+    crate::services::registry::register_endpoint_simple("crypto", 1004, 6);
 
     loop {
-        server.poll_once(&mut handle_request);
+        handle_crypto_requests();
         crate::sched::yield_now();
+    }
+}
+
+fn handle_crypto_requests() {
+    if let Some(msg) = crate::ipc::nonos_inbox::try_dequeue("crypto") {
+        if let Some(req) = crate::services::server::parsing::parse_request(&msg.data) {
+            let resp = handle_request(req);
+            let data = crate::services::server::parsing::encode_response(&resp);
+            if let Ok(reply) = crate::ipc::nonos_channel::IpcMessage::new("crypto", &msg.from, &data) {
+                let _ = crate::ipc::nonos_inbox::try_enqueue(&msg.from, reply);
+            }
+        }
     }
 }
