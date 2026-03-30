@@ -78,3 +78,13 @@ pub fn get_entry(idx: usize) -> Option<LogEntry> {
 pub fn clear_buffer() {
     LOG_COUNT.store(0, Ordering::Release);
 }
+
+/// Returns the current cursor Y position for kernel handoff.
+/// Calculates based on log area base + lines rendered.
+pub fn get_cursor_y() -> u32 {
+    use super::types::{get_log_area, LINE_HEIGHT, MAX_LOG_LINES};
+    let (_, base_y) = get_log_area();
+    let count = LOG_COUNT.load(Ordering::Relaxed);
+    let visible_lines = count.min(MAX_LOG_LINES);
+    base_y + (visible_lines as u32) * LINE_HEIGHT
+}
