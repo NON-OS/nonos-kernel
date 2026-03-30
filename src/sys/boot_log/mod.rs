@@ -19,5 +19,5 @@ mod init;
 mod output;
 mod render;
 
-pub use init::init_after_fb;
+pub use init::{init_after_fb, disable_display};
 pub use output::{info, ok, warn, error, stage};
