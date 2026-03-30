@@ -32,19 +32,23 @@ pub struct ServiceEndpoint {
 
 static ENDPOINTS: Mutex<Vec<ServiceEndpoint>> = Mutex::new(Vec::new());
 
-pub fn register_endpoint(name: String, port: u32, pid: u32, caps: u64) -> Result<(), RegError> {
-    crate::sys::serial::println(b"[REG] lock");
+pub fn register_endpoint(name: &str, port: u32, pid: u32, caps: u64) -> Result<(), RegError> {
     let mut eps = ENDPOINTS.lock();
-    crate::sys::serial::println(b"[REG] got lock");
     if eps.len() >= MAX_SERVICES {
         return Err(RegError::Full);
     }
     if eps.iter().any(|e| e.name == name) {
         return Err(RegError::Exists);
     }
-    eps.push(ServiceEndpoint { name, port, pid, caps_required: caps });
-    crate::sys::serial::println(b"[REG] pushed");
+    eps.push(ServiceEndpoint { name: String::from(name), port, pid, caps_required: caps });
     Ok(())
+}
+
+pub fn register_endpoint_simple(name: &'static str, port: u32, pid: u32) {
+    let mut eps = ENDPOINTS.lock();
+    if eps.len() < MAX_SERVICES && !eps.iter().any(|e| e.name == name) {
+        eps.push(ServiceEndpoint { name: String::from(name), port, pid, caps_required: 0 });
+    }
 }
 
 pub fn lookup_service(name: &str) -> Option<ServiceEndpoint> {

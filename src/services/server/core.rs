@@ -14,18 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-extern crate alloc;
-
-use alloc::string::String;
 use core::sync::atomic::{AtomicU32, AtomicBool, Ordering};
 use super::types::ServerError;
 use crate::services::protocol::ServiceResponse;
 use crate::services::registry::{register_endpoint, unregister_endpoint};
 
+const MAX_SERVICE_NAME: usize = 32;
 static PORT_COUNTER: AtomicU32 = AtomicU32::new(1000);
 
 pub struct ServiceServer {
-    pub(super) name: String,
+    pub(super) name: [u8; MAX_SERVICE_NAME],
+    pub(super) name_len: usize,
     pub(super) port: u32,
     pub(super) caps_required: u64,
     pub(super) running: AtomicBool,
@@ -33,19 +32,31 @@ pub struct ServiceServer {
 
 impl ServiceServer {
     pub fn new(name: &str, caps: u64) -> Result<Self, ServerError> {
-        crate::sys::serial::println(b"[SRVR] new() enter");
+        crate::sys::serial::println(b"[SRVR] new enter");
+        if name.len() > MAX_SERVICE_NAME {
+            return Err(ServerError::RegistrationFailed);
+        }
         let port = PORT_COUNTER.fetch_add(1, Ordering::Relaxed);
         crate::sys::serial::println(b"[SRVR] got port");
         let pid = crate::process::current_pid().unwrap_or(1);
         crate::sys::serial::println(b"[SRVR] got pid");
-        register_endpoint(String::from(name), port, pid, caps)
+        register_endpoint(name, port, pid, caps)
             .map_err(|_| ServerError::RegistrationFailed)?;
         crate::sys::serial::println(b"[SRVR] registered");
-        let name_str = String::from(name);
-        crate::sys::serial::println(b"[SRVR] name alloc");
-        let server = Self { name: name_str, port, caps_required: caps, running: AtomicBool::new(false) };
+        let mut name_buf = [0u8; MAX_SERVICE_NAME];
+        name_buf[..name.len()].copy_from_slice(name.as_bytes());
         crate::sys::serial::println(b"[SRVR] returning");
-        Ok(server)
+        Ok(Self {
+            name: name_buf,
+            name_len: name.len(),
+            port,
+            caps_required: caps,
+            running: AtomicBool::new(false),
+        })
+    }
+
+    pub fn name_str(&self) -> &str {
+        core::str::from_utf8(&self.name[..self.name_len]).unwrap_or("")
     }
 
     pub fn port(&self) -> u32 { self.port }
@@ -63,5 +74,9 @@ impl ServiceServer {
 }
 
 impl Drop for ServiceServer {
-    fn drop(&mut self) { unregister_endpoint(&self.name); }
+    fn drop(&mut self) {
+        if let Ok(name) = core::str::from_utf8(&self.name[..self.name_len]) {
+            unregister_endpoint(name);
+        }
+    }
 }
