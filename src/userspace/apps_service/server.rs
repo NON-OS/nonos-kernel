@@ -17,6 +17,7 @@
 use super::dispatch::handle_request;
 
 pub fn run_apps_service() -> ! {
+    init_apps_subsystem();
     crate::sys::boot_log::ok("APPS", "Service ready");
     crate::services::registry::register_endpoint_simple("apps", 1009, 10);
 
@@ -24,6 +25,10 @@ pub fn run_apps_service() -> ! {
         handle_apps_requests();
         crate::sched::yield_now();
     }
+}
+
+fn init_apps_subsystem() {
+    let _ = crate::apps::ecosystem::init();
 }
 
 fn handle_apps_requests() {

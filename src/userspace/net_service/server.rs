@@ -30,6 +30,7 @@ pub fn run_net_service() -> ! {
 fn init_network_subsystem() {
     crate::network::stack::init_network_stack();
     crate::network::manager::init();
+    crate::entry::network::init_network();
 }
 
 fn handle_net_requests() {

@@ -17,6 +17,7 @@
 use super::dispatch::handle_request;
 
 pub fn run_audio_service() -> ! {
+    init_audio_subsystem();
     crate::sys::boot_log::ok("AUDIO", "Service ready");
     crate::services::registry::register_endpoint_simple("audio", 1007, 8);
 
@@ -24,6 +25,10 @@ pub fn run_audio_service() -> ! {
         handle_audio_requests();
         crate::sched::yield_now();
     }
+}
+
+fn init_audio_subsystem() {
+    let _ = crate::drivers::init_hd_audio();
 }
 
 fn handle_audio_requests() {
