@@ -40,6 +40,10 @@ pub fn handle_context_menu_action(action: u8) {
         FM_CUT => { let _ = window::fm_cut_selected(); }
         FM_PASTE => { let _ = window::fm_paste(); }
         FM_DELETE => { let _ = window::fm_delete_selected(); }
+        FM_RENAME => {
+            window::show_input_dialog(b"Rename", b"Enter new name:", window::dialog_callback::INPUT_CB_FM_RENAME);
+            set_needs_redraw();
+        }
         FM_NEW_FOLDER => {
             window::show_input_dialog(b"New Folder", b"Enter folder name:", window::dialog_callback::INPUT_CB_FM_NEW_FOLDER);
             set_needs_redraw();
