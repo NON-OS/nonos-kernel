@@ -19,6 +19,7 @@ extern crate alloc;
 use alloc::string::String;
 use alloc::format;
 use crate::network::stack::async_ops::{http_start_request, http_poll, AsyncResult};
+use crate::apps::ecosystem::browser::session;
 use super::state::*;
 
 pub(super) fn start_http_connection(ip: [u8; 4], port: u16) {
@@ -41,6 +42,13 @@ pub(super) fn start_http_connection(ip: [u8; 4], port: u16) {
     );
     if let Some(ref ct) = content_type {
         request.push_str(&format!("Content-Type: {}\r\n", ct));
+    }
+    if let Some(sess) = session::get_active_session() {
+        let cookies = sess.get_cookies(&host, &path);
+        if !cookies.is_empty() {
+            let cookie_str: String = cookies.iter().map(|c| c.to_header_value()).collect::<alloc::vec::Vec<_>>().join("; ");
+            request.push_str(&format!("Cookie: {}\r\n", cookie_str));
+        }
     }
     if let Some(ref b) = body {
         request.push_str(&format!("Content-Length: {}\r\n", b.len()));

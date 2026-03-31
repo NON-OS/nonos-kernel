@@ -21,6 +21,7 @@ use alloc::vec::Vec;
 use alloc::format;
 use core::sync::atomic::Ordering;
 use crate::network::stack::async_ops::tcp_send;
+use crate::apps::ecosystem::browser::session;
 use super::super::state::*;
 
 pub(in crate::apps::ecosystem::browser::navigate) fn poll_send_request() {
@@ -32,6 +33,13 @@ pub(in crate::apps::ecosystem::browser::navigate) fn poll_send_request() {
     let content_type = PENDING_CONTENT_TYPE.lock().clone();
     let mut request = format!("{} {} HTTP/1.1\r\nHost: {}\r\nUser-Agent: NONOS/1.0\r\nAccept: text/html,*/*\r\nConnection: close\r\n", method, path, host);
     if let Some(ref ct) = content_type { request.push_str(&format!("Content-Type: {}\r\n", ct)); }
+    if let Some(sess) = session::get_active_session() {
+        let cookies = sess.get_cookies(&host, &path);
+        if !cookies.is_empty() {
+            let cookie_str: String = cookies.iter().map(|c| c.to_header_value()).collect::<alloc::vec::Vec<_>>().join("; ");
+            request.push_str(&format!("Cookie: {}\r\n", cookie_str));
+        }
+    }
     if let Some(ref b) = body { request.push_str(&format!("Content-Length: {}\r\n", b.len())); }
     request.push_str("\r\n");
     if let Some(ref b) = body { request.push_str(core::str::from_utf8(b).unwrap_or("")); }
