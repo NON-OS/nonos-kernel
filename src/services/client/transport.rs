@@ -37,6 +37,7 @@ pub(crate) fn wait_response(client: &ServiceClient, seq: u32, timeout_ms: u64) -
     loop {
         if let Some(msg) = nonos_inbox::try_dequeue(&client.client_id) {
             if let Some(resp) = parse_response(&msg.data, seq) { return Ok(resp); }
+            let _ = nonos_inbox::try_enqueue(&client.client_id, msg);
         }
         let elapsed = crate::time::timestamp_millis().saturating_sub(start);
         if elapsed >= timeout_ms { return Err(ClientError::Timeout); }
