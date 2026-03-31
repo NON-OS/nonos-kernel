@@ -36,6 +36,9 @@ fn handle_dialog_input() {
 
 fn handle_alt_shortcuts() {
     if keyboard::is_alt_pressed() {
+        if let Some(ch) = crate::input::poll_keyboard_unified() {
+            if ch == 0x09 { window::cycle_window(); set_needs_redraw(); return; }
+        }
         if let Some(evt) = crate::input::poll_special_key() {
             match evt {
                 KeyEvent::Left => { window::snap_left(); set_needs_redraw(); }
