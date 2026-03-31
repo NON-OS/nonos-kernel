@@ -225,3 +225,52 @@ pub fn is_window_open(wtype: WindowType) -> bool {
     }
     false
 }
+
+pub fn is_window_minimized(wtype: WindowType) -> bool {
+    if matches!(wtype, WindowType::None) {
+        return false;
+    }
+
+    for i in 0..MAX_WINDOWS {
+        if WINDOWS[i].active.load(Ordering::Relaxed)
+            && WINDOWS[i].window_type.load(Ordering::Relaxed) == wtype as u32
+            && WINDOWS[i].minimized.load(Ordering::Relaxed)
+        {
+            return true;
+        }
+    }
+    false
+}
+
+pub fn restore(wtype: WindowType) -> bool {
+    if matches!(wtype, WindowType::None) {
+        return false;
+    }
+
+    for i in 0..MAX_WINDOWS {
+        if WINDOWS[i].active.load(Ordering::Relaxed)
+            && WINDOWS[i].window_type.load(Ordering::Relaxed) == wtype as u32
+            && WINDOWS[i].minimized.load(Ordering::Relaxed)
+        {
+            WINDOWS[i].minimized.store(false, Ordering::Relaxed);
+            FOCUSED_WINDOW.store(i, Ordering::Relaxed);
+            return true;
+        }
+    }
+    false
+}
+
+pub fn cycle_window() -> bool {
+    let current = FOCUSED_WINDOW.load(Ordering::Relaxed);
+    let start = if current < MAX_WINDOWS { current + 1 } else { 0 };
+    for offset in 0..MAX_WINDOWS {
+        let i = (start + offset) % MAX_WINDOWS;
+        if WINDOWS[i].active.load(Ordering::Relaxed) && !WINDOWS[i].minimized.load(Ordering::Relaxed) {
+            if i != current {
+                FOCUSED_WINDOW.store(i, Ordering::Relaxed);
+                return true;
+            }
+        }
+    }
+    false
+}

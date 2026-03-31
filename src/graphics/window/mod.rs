@@ -106,7 +106,7 @@ pub use api::{
 pub use terminal::terminal_key;
 
 pub use shortcuts::handle_shortcut;
-pub use manager::is_window_open;
+pub use manager::{is_window_open, is_window_minimized, restore, cycle_window};
 pub use settings::process_power_actions;
 pub use api::init;
 
