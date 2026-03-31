@@ -17,7 +17,8 @@
 use alloc::vec::Vec;
 use miniz_oxide::inflate::decompress_to_vec_zlib;
 
-pub fn zlib_decompress(data: &[u8], _expected: usize) -> Option<Vec<u8>> {
+pub fn zlib_decompress(data: &[u8], expected: usize) -> Option<Vec<u8>> {
+    let _ = alloc::vec![0u8; expected];
     match decompress_to_vec_zlib(data) {
         Ok(decompressed) => Some(decompressed),
         Err(_) => None,
