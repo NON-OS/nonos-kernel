@@ -57,7 +57,10 @@ pub fn parse_server_hello(body: &[u8]) -> Result<ServerHelloResult, OnionError> 
     let mut random = [0u8; 32];
     random.copy_from_slice(&body[off..off + 32]);
     off += 32;
-    off += 1 + body[off] as usize;
+    let session_id_len = body[off] as usize;
+    off += 1;
+    if body.len() < off + session_id_len + 5 { return Err(OnionError::InvalidCell); }
+    off += session_id_len;
     let suite = u16::from_be_bytes([body[off], body[off + 1]]);
     off += 3;
     let ext_len = u16::from_be_bytes([body[off], body[off + 1]]) as usize;
