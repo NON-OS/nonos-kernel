@@ -160,10 +160,7 @@ pub fn prev_wallpaper() -> usize {
 }
 
 pub fn init_wallpaper_system() {
-    if load_current_wallpaper().is_none() {
-        set_current_wallpaper(0);
-        let _ = load_current_wallpaper();
-    }
+    set_current_wallpaper(0);
 }
 
 pub fn has_embedded_wallpaper() -> bool {
