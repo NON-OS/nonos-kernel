@@ -18,6 +18,7 @@ use crate::graphics::{framebuffer, desktop, cursor};
 use crate::input;
 use crate::storage;
 use crate::entry::network;
+use crate::services::registry::lookup_service;
 
 pub(super) fn init_storage_and_fs() {
     storage::usb_msc::init();
@@ -38,9 +39,20 @@ pub(super) fn init_services() {
     let _ = crate::vault::nonos_vault::initialize_vault();
 }
 
+fn wait_for_vfs() {
+    for _ in 0..500 {
+        if lookup_service("vfs").is_some() {
+            return;
+        }
+        crate::sched::yield_now();
+    }
+}
+
 pub(super) fn init_desktop() {
     crate::sys::serial::println(b"[DESKTOP] wallpaper");
     crate::graphics::backgrounds::init_wallpaper_system();
+    crate::sys::serial::println(b"[DESKTOP] vfs wait");
+    wait_for_vfs();
     crate::sys::serial::println(b"[DESKTOP] icons");
     desktop::refresh_desktop_icons();
     crate::sys::serial::println(b"[DESKTOP] draw");
