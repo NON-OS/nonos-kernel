@@ -36,6 +36,7 @@ pub(crate) fn allocate_service_stack(pid: Pid) -> u64 {
     (stack_ptr as u64) + SERVICE_STACK_SIZE as u64 - 16
 }
 
+#[allow(dead_code)]
 pub(crate) fn deallocate_service_stack(pid: Pid) {
     for i in 0..MAX_SERVICE_STACKS {
         if STACK_IN_USE[i].compare_exchange(pid, 0, Ordering::SeqCst, Ordering::SeqCst).is_ok() {
