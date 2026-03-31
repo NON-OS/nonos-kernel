@@ -113,9 +113,10 @@ impl Completer {
             return Some(&self.matches[0][..len]);
         }
 
-        let len = self.match_lens[self.current_match];
-        self.current_match = (self.current_match + 1) % self.match_count;
-        Some(&self.matches[self.current_match.wrapping_sub(1) % self.match_count][..len])
+        let idx = self.current_match;
+        let len = self.match_lens[idx];
+        self.current_match = (idx + 1) % self.match_count;
+        Some(&self.matches[idx][..len])
     }
 
     pub fn show_all(&self, row: u32) {
