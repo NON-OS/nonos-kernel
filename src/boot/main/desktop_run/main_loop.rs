@@ -19,7 +19,11 @@ use crate::sys::clock;
 use crate::entry::desktop_loop;
 use crate::input;
 use core::arch::asm;
+use core::sync::atomic::{AtomicBool, AtomicU64, Ordering};
 use super::dialogs::handle_dialogs;
+
+static ICONS_REFRESHED: AtomicBool = AtomicBool::new(false);
+static BOOT_TIME: AtomicU64 = AtomicU64::new(0);
 
 pub fn run_desktop() -> ! {
     let (mut old_mx, mut old_my) = input::mouse_position_unified();
@@ -27,6 +31,7 @@ pub fn run_desktop() -> ! {
     cursor::draw(old_mx, old_my);
     framebuffer::double_buffer::enable();
     let mut last_clock = clock::unix_ms();
+    BOOT_TIME.store(last_clock, Ordering::SeqCst);
     loop {
         handle_dialogs();
         desktop_loop::handle_keyboard_input();
@@ -34,6 +39,7 @@ pub fn run_desktop() -> ! {
         crate::network::poll_network();
         crate::apps::ecosystem::browser::poll_navigation();
         check_redraws();
+        deferred_icon_refresh();
         do_redraw(&mut old_mx, &mut old_my);
         update_clock(&mut last_clock);
         for _ in 0..50 { unsafe { asm!("pause", options(nomem, nostack)); } }
@@ -44,6 +50,17 @@ pub fn run_desktop() -> ! {
 fn check_redraws() {
     if window::settings::take_background_changed() { desktop_loop::set_needs_redraw(); }
     if window::ecosystem::state::take_content_changed() { desktop_loop::set_needs_redraw(); }
+}
+
+fn deferred_icon_refresh() {
+    if ICONS_REFRESHED.load(Ordering::Relaxed) { return; }
+    let now = clock::unix_ms();
+    let boot = BOOT_TIME.load(Ordering::Relaxed);
+    if now > boot + 500 {
+        desktop::refresh_desktop_icons();
+        ICONS_REFRESHED.store(true, Ordering::SeqCst);
+        desktop_loop::set_needs_redraw();
+    }
 }
 
 fn do_redraw(mx: &mut i32, my: &mut i32) {
