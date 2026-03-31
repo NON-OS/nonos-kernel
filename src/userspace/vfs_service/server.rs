@@ -17,22 +17,29 @@
 use super::dispatch::handle_request;
 
 pub fn run_vfs_service() -> ! {
-    init_vfs_subsystem();
-    crate::sys::boot_log::ok("VFS", "Service ready");
+    init_ramfs_first();
     crate::services::registry::register_endpoint_simple("vfs", 1000, 2);
+    crate::sys::boot_log::ok("VFS", "Service ready");
+    init_storage_deferred();
     loop {
         handle_vfs_requests();
         crate::sched::yield_now();
     }
 }
 
-fn init_vfs_subsystem() {
-    crate::storage::usb_msc::init();
-    crate::storage::fat32::init();
+fn init_ramfs_first() {
     crate::fs::vfs::init_vfs();
-    let _ = crate::fs::cryptofs::init_cryptofs(1024 * 1024, 4096);
     let _ = crate::fs::ramfs::init_nonos_filesystem();
     crate::fs::cache::init_all_caches();
+}
+
+fn init_storage_deferred() {
+    crate::sched::yield_now();
+    crate::storage::usb_msc::init();
+    crate::sched::yield_now();
+    crate::storage::fat32::init();
+    crate::sched::yield_now();
+    let _ = crate::fs::cryptofs::init_cryptofs(1024 * 1024, 4096);
     load_persistent_settings();
 }
 
