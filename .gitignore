@@ -24,9 +24,10 @@ __pycache__/
 # Node
 node_modules/
 
-# Secrets and keys { NEVER COMMITED } 
-keys/
+# Secrets and keys { NEVER COMMITED }
+/keys/
 .keys/
+!src/**/keys/
 *.key
 *.pem
 *_key.bin
