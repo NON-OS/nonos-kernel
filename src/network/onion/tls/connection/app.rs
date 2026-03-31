@@ -20,7 +20,8 @@ use crate::network::onion::OnionError;
 use super::types::{TLSConnection, HandshakePhase};
 use super::super::types::{ContentType, HSType, TlsSessionInfo};
 use super::super::protocol::parse_handshake_view;
-use super::super::session::{parse_new_session_ticket, SessionTicket};
+use super::super::session::{parse_new_session_ticket, SessionTicket, SessionCache};
+use super::super::keys::Secret;
 use super::super::verify::CertVerifier;
 
 impl TLSConnection {
@@ -91,13 +92,13 @@ impl TLSConnection {
     }
 
     fn handle_new_session_ticket(&mut self, body: &[u8]) {
-        let (cache, res_secret, sni) = match (
+        let (cache, res_secret, sni): (&SessionCache, &Secret, &str) = match (
             self.session_cache,
             self.resumption_secret.as_ref(),
             self.sni_cache.as_deref(),
         ) {
             (Some(c), Some(s), Some(h)) => (c, s, h),
-            _ => return, // No cache or no resumption secret — ignore
+            _ => return,
         };
 
         let (lifetime, age_add, nonce, ticket_data, max_early_data) =
