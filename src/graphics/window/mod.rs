@@ -116,6 +116,7 @@ pub use file_manager::{
     cut_selected as fm_cut_selected,
     paste as fm_paste,
     delete_selected as fm_delete_selected,
+    rename_selected as fm_rename_selected,
     create_folder as fm_create_folder,
     navigate_to as fm_navigate_to,
 };

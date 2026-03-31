@@ -126,8 +126,16 @@ fn process_calc_input(ch: u8) {
                 CALC_DISPLAY.store(0, Ordering::Relaxed);
                 CALC_NEW_INPUT.store(false, Ordering::Relaxed);
                 CALC_DECIMAL_POS.store(0, Ordering::Relaxed);
-            } else if decimal_pos == 0 && current.abs() < 999999999900 {
-                CALC_DISPLAY.store(current * 100, Ordering::Relaxed);
+            } else if decimal_pos == 0 {
+                CALC_DISPLAY.store(current / 10 / 100 * 100, Ordering::Relaxed);
+            } else if decimal_pos == 2 {
+                let int_part = current / 100 * 100;
+                CALC_DISPLAY.store(int_part, Ordering::Relaxed);
+                CALC_DECIMAL_POS.store(1, Ordering::Relaxed);
+            } else if decimal_pos == 3 {
+                let without_last = current / 10 * 10;
+                CALC_DISPLAY.store(without_last, Ordering::Relaxed);
+                CALC_DECIMAL_POS.store(2, Ordering::Relaxed);
             }
         }
         b'C' => {

@@ -184,7 +184,8 @@ pub fn handle_vertical_click(idx: usize, bar_x: u32, bar_y: u32, bar_h: u32, mx:
             if thumb_range > 0 {
                 let scroll_range = content_h - bar_h;
                 let new_scroll = ((target_pos as f32 / thumb_range as f32) * scroll_range as f32) as i32;
-                set_scroll(idx, 0, new_scroll);
+                let current_x = WINDOWS[idx].scroll_x.load(Ordering::Relaxed);
+                set_scroll(idx, current_x, new_scroll);
             }
         }
     } else {
@@ -219,7 +220,8 @@ pub fn handle_drag(idx: usize, bar_y: u32, bar_h: u32, my: i32) {
     if thumb_range > 0 {
         let scroll_range = content_h - bar_h;
         let new_scroll = ((new_thumb_pos.min(thumb_range) as f32 / thumb_range as f32) * scroll_range as f32) as i32;
-        set_scroll(idx, 0, new_scroll);
+        let current_x = WINDOWS[idx].scroll_x.load(Ordering::Relaxed);
+        set_scroll(idx, current_x, new_scroll);
     }
 }
 

@@ -48,6 +48,8 @@ pub(super) fn handle_dark_theme(cx: u32, cy: u32, cw: u32, mx: i32, my: i32) -> 
     if mx >= toggle_x as i32 && mx < (toggle_x + 50) as i32 {
         if my >= dark_y as i32 && my < (dark_y + 26) as i32 {
             toggle_setting(&SETTING_DARK_THEME);
+            let is_dark = SETTING_DARK_THEME.load(core::sync::atomic::Ordering::Relaxed);
+            sys_settings::set_theme(if is_dark { 0 } else { 1 });
             return true;
         }
     }
