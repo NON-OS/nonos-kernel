@@ -18,16 +18,25 @@ use core::sync::atomic::Ordering;
 use super::state::*;
 
 pub(super) fn push_undo(op_type: UndoOpType, cursor_pos: usize, data: &[u8]) {
-    let data_len = data.len().min(UNDO_DATA_SIZE);
-    let mut entry = UndoEntry::empty();
-    entry.op_type = op_type;
-    entry.cursor_pos = cursor_pos;
-    entry.data_len = data_len;
-    for i in 0..data_len { entry.data[i] = data[i]; }
-    let top = UNDO_TOP.load(Ordering::Relaxed);
-    let new_top = if top >= UNDO_STACK_SIZE { 0 } else { top };
-    unsafe { UNDO_STACK[new_top] = entry; }
-    UNDO_TOP.store(new_top + 1, Ordering::Relaxed);
+    let total_len = data.len();
+    if total_len == 0 { return; }
+    let chunks = (total_len + UNDO_DATA_SIZE - 1) / UNDO_DATA_SIZE;
+    let mut offset = 0usize;
+    let mut pos = cursor_pos;
+    for _ in 0..chunks {
+        let chunk_len = (total_len - offset).min(UNDO_DATA_SIZE);
+        let mut entry = UndoEntry::empty();
+        entry.op_type = op_type;
+        entry.cursor_pos = pos;
+        entry.data_len = chunk_len;
+        for i in 0..chunk_len { entry.data[i] = data[offset + i]; }
+        let top = UNDO_TOP.load(Ordering::Relaxed);
+        let new_top = if top >= UNDO_STACK_SIZE { 0 } else { top };
+        unsafe { UNDO_STACK[new_top] = entry; }
+        UNDO_TOP.store(new_top + 1, Ordering::Relaxed);
+        offset += chunk_len;
+        pos += chunk_len;
+    }
     REDO_TOP.store(0, Ordering::Relaxed);
 }
 

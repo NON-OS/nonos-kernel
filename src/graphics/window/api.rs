@@ -99,7 +99,7 @@ pub mod dialog_result {
 }
 
 pub mod dialog_callback {
-    pub use super::dialogs::{INPUT_CB_NONE, INPUT_CB_DESKTOP_NEW_FOLDER, INPUT_CB_DESKTOP_NEW_FILE, INPUT_CB_FM_NEW_FOLDER};
+    pub use super::dialogs::{INPUT_CB_NONE, INPUT_CB_DESKTOP_NEW_FOLDER, INPUT_CB_DESKTOP_NEW_FILE, INPUT_CB_FM_NEW_FOLDER, INPUT_CB_FM_RENAME};
 }
 
 pub fn set_window_content_size(idx: usize, width: u32, height: u32) {

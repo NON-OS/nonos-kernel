@@ -20,9 +20,10 @@ use super::state::{WINDOWS, SnapZone, SNAP_THRESHOLD};
 pub(super) fn detect_snap_zone(mx: i32, my: i32, screen_w: u32, screen_h: u32) -> SnapZone {
     let sw = screen_w as i32;
     let sh = screen_h as i32;
+    let dock_width = 60i32;
     let taskbar_height = 40i32;
 
-    let near_left = mx <= SNAP_THRESHOLD;
+    let near_left = mx <= dock_width + SNAP_THRESHOLD;
     let near_right = mx >= sw - SNAP_THRESHOLD;
     let near_top = my <= 32 + SNAP_THRESHOLD;
     let near_bottom = my >= sh - taskbar_height - SNAP_THRESHOLD;
@@ -54,10 +55,12 @@ pub(super) fn detect_snap_zone(mx: i32, my: i32, screen_w: u32, screen_h: u32) -
 }
 
 pub(super) fn apply_snap(idx: usize, zone: SnapZone, screen_w: u32, screen_h: u32) {
+    let dock_width = 60u32;
     let taskbar_height = 40u32;
     let menu_bar_height = 32u32;
+    let usable_width = screen_w - dock_width;
     let usable_height = screen_h - taskbar_height - menu_bar_height;
-    let half_width = screen_w / 2;
+    let half_width = usable_width / 2;
     let half_height = usable_height / 2;
 
     if !WINDOWS[idx].snapped.load(Ordering::Relaxed) {
@@ -68,13 +71,13 @@ pub(super) fn apply_snap(idx: usize, zone: SnapZone, screen_w: u32, screen_h: u3
     }
 
     let (x, y, w, h) = match zone {
-        SnapZone::Left => (0, menu_bar_height as i32, half_width, usable_height),
-        SnapZone::Right => (half_width as i32, menu_bar_height as i32, half_width, usable_height),
-        SnapZone::Top => (0, menu_bar_height as i32, screen_w, usable_height),
-        SnapZone::TopLeft => (0, menu_bar_height as i32, half_width, half_height),
-        SnapZone::TopRight => (half_width as i32, menu_bar_height as i32, half_width, half_height),
-        SnapZone::BottomLeft => (0, (menu_bar_height + half_height) as i32, half_width, half_height),
-        SnapZone::BottomRight => (half_width as i32, (menu_bar_height + half_height) as i32, half_width, half_height),
+        SnapZone::Left => (dock_width as i32, menu_bar_height as i32, half_width, usable_height),
+        SnapZone::Right => ((dock_width + half_width) as i32, menu_bar_height as i32, half_width, usable_height),
+        SnapZone::Top => (dock_width as i32, menu_bar_height as i32, usable_width, usable_height),
+        SnapZone::TopLeft => (dock_width as i32, menu_bar_height as i32, half_width, half_height),
+        SnapZone::TopRight => ((dock_width + half_width) as i32, menu_bar_height as i32, half_width, half_height),
+        SnapZone::BottomLeft => (dock_width as i32, (menu_bar_height + half_height) as i32, half_width, half_height),
+        SnapZone::BottomRight => ((dock_width + half_width) as i32, (menu_bar_height + half_height) as i32, half_width, half_height),
         SnapZone::None => return,
     };
 
