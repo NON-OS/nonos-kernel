@@ -114,7 +114,6 @@ pub fn load_current_wallpaper() -> Option<&'static DecodedImage> {
 }
 
 pub fn get_cached_wallpaper() -> Option<&'static DecodedImage> {
-    // Don't access cache during active load
     if WALLPAPER_LOADING.load(Ordering::Acquire) {
         return unsafe { (*addr_of!(CACHED_WALLPAPER)).as_ref() };
     }
@@ -123,7 +122,6 @@ pub fn get_cached_wallpaper() -> Option<&'static DecodedImage> {
     if CACHED_WALLPAPER_ID.load(Ordering::Acquire) == id {
         unsafe { (*addr_of!(CACHED_WALLPAPER)).as_ref() }
     } else {
-        // Cache miss - trigger lazy load and return whatever we have
         let _ = load_current_wallpaper();
         unsafe { (*addr_of!(CACHED_WALLPAPER)).as_ref() }
     }
@@ -160,7 +158,10 @@ pub fn prev_wallpaper() -> usize {
 }
 
 pub fn init_wallpaper_system() {
-    set_current_wallpaper(0);
+    if load_current_wallpaper().is_none() {
+        set_current_wallpaper(0);
+        let _ = load_current_wallpaper();
+    }
 }
 
 pub fn has_embedded_wallpaper() -> bool {
