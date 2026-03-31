@@ -77,14 +77,14 @@ fn boot_microkernel(handoff: &nonos_kernel::boot::handoff::BootHandoffV1) -> ! {
 #[no_mangle]
 pub unsafe extern "C" fn memcpy(d: *mut u8, s: *const u8, n: usize) -> *mut u8 {
     let mut i = 0;
-    while i < n { *d.add(i) = *s.add(i); i += 1; }
+    while i < n { unsafe { *d.add(i) = *s.add(i); } i += 1; }
     d
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn memset(d: *mut u8, c: i32, n: usize) -> *mut u8 {
     let mut i = 0;
-    while i < n { *d.add(i) = c as u8; i += 1; }
+    while i < n { unsafe { *d.add(i) = c as u8; } i += 1; }
     d
 }
 
@@ -92,7 +92,8 @@ pub unsafe extern "C" fn memset(d: *mut u8, c: i32, n: usize) -> *mut u8 {
 pub unsafe extern "C" fn memcmp(a: *const u8, b: *const u8, n: usize) -> i32 {
     let mut i = 0;
     while i < n {
-        if *a.add(i) != *b.add(i) { return (*a.add(i) as i32) - (*b.add(i) as i32); }
+        let (av, bv) = unsafe { (*a.add(i), *b.add(i)) };
+        if av != bv { return (av as i32) - (bv as i32); }
         i += 1;
     }
     0
@@ -101,10 +102,10 @@ pub unsafe extern "C" fn memcmp(a: *const u8, b: *const u8, n: usize) -> i32 {
 #[no_mangle]
 pub unsafe extern "C" fn memmove(d: *mut u8, s: *const u8, n: usize) -> *mut u8 {
     if (d as usize) < (s as usize) {
-        memcpy(d, s, n)
+        unsafe { memcpy(d, s, n) }
     } else {
         let mut i = n;
-        while i > 0 { i -= 1; *d.add(i) = *s.add(i); }
+        while i > 0 { i -= 1; unsafe { *d.add(i) = *s.add(i); } }
         d
     }
 }
