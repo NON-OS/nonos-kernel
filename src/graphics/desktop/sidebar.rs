@@ -80,13 +80,13 @@ pub(super) fn handle_click(mx: i32, my: i32) -> bool {
         let icon_y = icons_start + icon_spacing * i;
         if rel_y >= icon_y - icon_size / 2 && rel_y < icon_y + icon_size / 2 {
             let wtype = match i { 0 => WindowType::Terminal, 1 => WindowType::FileManager, 2 => WindowType::Browser, 3 => WindowType::Wallet, _ => return false };
-            window::open(wtype);
+            if window::is_window_minimized(wtype) { window::restore(wtype); } else { window::open(wtype); }
             return true;
         }
     }
     let bottom_y = MENU_BAR_HEIGHT + sidebar_h - 70;
     if rel_y >= bottom_y + 18 && rel_y < bottom_y + 62 {
-        window::open(WindowType::About);
+        if window::is_window_minimized(WindowType::About) { window::restore(WindowType::About); } else { window::open(WindowType::About); }
         return true;
     }
     false

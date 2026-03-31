@@ -43,7 +43,8 @@ pub(super) fn draw(w: u32, h: u32) {
         draw_app_icon(ix, iy, wtype, icon_size);
 
         if is_app_running(wtype) {
-            draw_active_dot(ix + icon_size / 2, dock_y + DOCK_INNER_HEIGHT - 4);
+            let is_min = window::is_window_minimized(wtype);
+            draw_active_dot(ix + icon_size / 2, dock_y + DOCK_INNER_HEIGHT - 4, is_min);
         }
     }
 }
@@ -52,14 +53,15 @@ fn is_app_running(wtype: WindowType) -> bool {
     window::is_window_open(wtype)
 }
 
-fn draw_active_dot(cx: u32, y: u32) {
+fn draw_active_dot(cx: u32, y: u32, minimized: bool) {
+    let color = if minimized { 0xFF888888 } else { 0xFFFFFFFF };
     for dy in 0..4u32 {
         for dx in 0..4u32 {
             let rel_x = dx as i32 - 2;
             let rel_y = dy as i32 - 2;
             let dist_sq = rel_x * rel_x + rel_y * rel_y;
             if dist_sq <= 3 {
-                put_pixel(cx - 2 + dx, y + dy, 0xFFFFFFFF);
+                put_pixel(cx - 2 + dx, y + dy, color);
             }
         }
     }
@@ -128,8 +130,13 @@ pub(super) fn handle_click(mx: i32, my: i32) -> bool {
         if rel_x >= icon_x && rel_x < icon_x + icon_size {
             let wtype = DOCK_ICONS[i as usize];
             if wtype != WindowType::None {
-                window::open(wtype);
-                serial::println(b"[UI] Opened app from dock");
+                if window::is_window_minimized(wtype) {
+                    window::restore(wtype);
+                    serial::println(b"[UI] Restored app from dock");
+                } else {
+                    window::open(wtype);
+                    serial::println(b"[UI] Opened app from dock");
+                }
                 return true;
             }
         }
