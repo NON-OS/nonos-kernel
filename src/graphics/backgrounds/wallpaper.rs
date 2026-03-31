@@ -86,14 +86,7 @@ pub fn load_current_wallpaper() -> Option<&'static DecodedImage> {
         }
     };
 
-    /*
-     * Free old wallpaper BEFORE decoding new one.
-     * Otherwise we need 2x memory during the swap which causes OOM
-     * on smaller systems. Screen flickers briefly but better than crash.
-     */
-    unsafe {
-        *addr_of_mut!(CACHED_WALLPAPER) = None;
-    }
+    unsafe { *addr_of_mut!(CACHED_WALLPAPER) = None; }
 
     let image = match decode_png(png_data) {
         Some(img) => img,
@@ -117,7 +110,6 @@ pub fn get_cached_wallpaper() -> Option<&'static DecodedImage> {
     if WALLPAPER_LOADING.load(Ordering::Acquire) {
         return unsafe { (*addr_of!(CACHED_WALLPAPER)).as_ref() };
     }
-
     let id = get_current_wallpaper_id();
     if CACHED_WALLPAPER_ID.load(Ordering::Acquire) == id {
         unsafe { (*addr_of!(CACHED_WALLPAPER)).as_ref() }
