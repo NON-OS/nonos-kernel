@@ -20,7 +20,7 @@ use alloc::vec::Vec;
 use crate::services::{ServiceRequest, ServiceResponse};
 use crate::services::protocol::ServiceOp;
 use super::handlers::{handle_read, handle_write, handle_stat};
-use super::handle_ops::{handle_open_req, handle_read_req, handle_write_req, handle_close_req};
+use super::handle_ops::{handle_open_req, handle_read_req, handle_write_req, handle_close_req, handle_seek_req};
 
 const ERR_INVAL: i32 = -22;
 
@@ -32,6 +32,7 @@ pub(super) fn handle_request(req: ServiceRequest) -> ServiceResponse {
         ServiceOp::Read => dispatch_read(req),
         ServiceOp::Write => dispatch_write(req),
         ServiceOp::Query => handle_stat(req),
+        ServiceOp::Ioctl => handle_seek_req(req),
         _ => ServiceResponse::err(req.seq, ERR_INVAL),
     }
 }

@@ -34,13 +34,25 @@ fn init_ramfs_first() {
 }
 
 fn init_storage_deferred() {
-    crate::sched::yield_now();
+    // Yield a few times to let other services start
+    for _ in 0..10 { crate::sched::yield_now(); }
+
+    // Initialize USB mass storage devices
     crate::storage::usb_msc::init();
     crate::sched::yield_now();
+
+    // Initialize FAT32 filesystem support
     crate::storage::fat32::init();
     crate::sched::yield_now();
+
+    // Initialize encrypted filesystem (1MB, 4KB blocks)
     let _ = crate::fs::cryptofs::init_cryptofs(1024 * 1024, 4096);
+    crate::sched::yield_now();
+
+    // Load settings from persistent storage if available
     load_persistent_settings();
+
+    crate::sys::boot_log::ok("VFS", "Storage initialized");
 }
 
 fn load_persistent_settings() {
