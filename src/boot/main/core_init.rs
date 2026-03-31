@@ -33,8 +33,7 @@ pub fn init_core_systems() {
     interrupts::init_idt();
     serial::println(b"[NONOS] Full IDT loaded");
     apic::init();
-    apic::setup_timer(100);
-    serial::println(b"[NONOS] APIC initialized with timer");
+    serial::println(b"[NONOS] APIC initialized");
     input::keyboard::init();
     input::mouse::init();
     serial::println(b"[NONOS] Input initialized");

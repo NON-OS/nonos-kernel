@@ -41,6 +41,9 @@ fn process_dialog_input(text: &str) {
         x if x == window::dialog_callback::INPUT_CB_FM_NEW_FOLDER => {
             let _ = window::fm_create_folder(text);
         }
+        x if x == window::dialog_callback::INPUT_CB_FM_RENAME => {
+            let _ = window::fm_rename_selected(text);
+        }
         _ => {}
     }
 }

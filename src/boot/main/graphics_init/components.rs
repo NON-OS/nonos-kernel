@@ -41,6 +41,7 @@ pub(super) fn init_services() {
 pub(super) fn init_desktop() {
     crate::sys::serial::println(b"[DESKTOP] wallpaper");
     crate::graphics::backgrounds::init_wallpaper_system();
+    crate::sys::apic::setup_timer(100);
     crate::sys::serial::println(b"[DESKTOP] draw");
     desktop::draw_all();
     crate::sys::serial::println(b"[DESKTOP] cursor");
