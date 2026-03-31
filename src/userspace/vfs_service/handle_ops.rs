@@ -18,7 +18,7 @@ extern crate alloc;
 
 use alloc::vec::Vec;
 use crate::services::{ServiceRequest, ServiceResponse};
-use super::handles::{open_handle, read_handle, write_handle, close_handle};
+use super::handles::{open_handle, read_handle, write_handle, close_handle, seek_handle};
 
 const ERR_INVAL: i32 = -22;
 const ERR_NOENT: i32 = -2;
@@ -65,4 +65,15 @@ pub(super) fn handle_close_req(req: ServiceRequest) -> ServiceResponse {
     let handle = u64::from_le_bytes(req.payload[1..9].try_into().unwrap_or([0; 8]));
     close_handle(handle);
     ServiceResponse::ok(req.seq, Vec::new())
+}
+
+pub(super) fn handle_seek_req(req: ServiceRequest) -> ServiceResponse {
+    if req.payload.len() < 18 { return ServiceResponse::err(req.seq, ERR_INVAL); }
+    let handle = u64::from_le_bytes(req.payload[1..9].try_into().unwrap_or([0; 8]));
+    let offset = i64::from_le_bytes(req.payload[9..17].try_into().unwrap_or([0; 8]));
+    let whence = req.payload[17];
+    match seek_handle(handle, offset, whence) {
+        Some(new_pos) => ServiceResponse::ok(req.seq, (new_pos as u64).to_le_bytes().to_vec()),
+        None => ServiceResponse::err(req.seq, ERR_INVAL),
+    }
 }
