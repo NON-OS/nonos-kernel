@@ -17,12 +17,11 @@
 mod chain;
 mod constants;
 mod error;
-mod verify;
+mod verify_caps;
+mod verify_chain;
 
 pub use chain::CapabilityChain;
 pub use constants::{max_chain_depth, MAX_CHAIN_DEPTH};
 pub use error::ChainError;
-pub use verify::{
-    effective_capabilities, first_invalid_index, is_chain_valid, verify_all_capabilities,
-    verify_chain, verify_chain_capability,
-};
+pub use verify_caps::{effective_capabilities, verify_all_capabilities, verify_chain_capability};
+pub use verify_chain::{first_invalid_index, is_chain_valid, verify_chain};
