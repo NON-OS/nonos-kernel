@@ -32,19 +32,28 @@ pub struct ServiceEndpoint {
 
 static ENDPOINTS: Mutex<Vec<ServiceEndpoint>> = Mutex::new(Vec::new());
 
+fn caller_can_register() -> bool {
+    match crate::process::current_pid() {
+        None => true,
+        Some(1) => true,
+        Some(_) => {
+            let token = crate::syscall::capabilities::current_caps_or_default();
+            token.can_register_service() || token.is_admin()
+        }
+    }
+}
+
 pub fn register_endpoint(name: &str, port: u32, pid: u32, caps: u64) -> Result<(), RegError> {
+    if !caller_can_register() { return Err(RegError::PermissionDenied); }
     let mut eps = ENDPOINTS.lock();
-    if eps.len() >= MAX_SERVICES {
-        return Err(RegError::Full);
-    }
-    if eps.iter().any(|e| e.name == name) {
-        return Err(RegError::Exists);
-    }
+    if eps.len() >= MAX_SERVICES { return Err(RegError::Full); }
+    if eps.iter().any(|e| e.name == name) { return Err(RegError::Exists); }
     eps.push(ServiceEndpoint { name: String::from(name), port, pid, caps_required: caps });
     Ok(())
 }
 
 pub fn register_endpoint_simple(name: &'static str, port: u32, pid: u32) {
+    if !caller_can_register() { return; }
     let mut eps = ENDPOINTS.lock();
     if eps.len() < MAX_SERVICES && !eps.iter().any(|e| e.name == name) {
         eps.push(ServiceEndpoint { name: String::from(name), port, pid, caps_required: 0 });
@@ -52,27 +61,25 @@ pub fn register_endpoint_simple(name: &'static str, port: u32, pid: u32) {
 }
 
 pub fn lookup_service(name: &str) -> Option<ServiceEndpoint> {
-    let eps = ENDPOINTS.lock();
-    eps.iter().find(|e| e.name == name).cloned()
+    ENDPOINTS.lock().iter().find(|e| e.name == name).cloned()
 }
 
-pub fn unregister_endpoint(name: &str) -> bool {
+pub fn unregister_endpoint(name: &str) -> Result<(), RegError> {
+    let caller_pid = crate::process::current_pid();
     let mut eps = ENDPOINTS.lock();
     if let Some(idx) = eps.iter().position(|e| e.name == name) {
+        let is_kernel = caller_pid.is_none();
+        let is_owner = caller_pid == Some(eps[idx].pid);
+        let is_admin = crate::syscall::capabilities::current_caps_or_default().is_admin();
+        if !is_kernel && !is_owner && !is_admin { return Err(RegError::PermissionDenied); }
         eps.remove(idx);
-        true
+        Ok(())
     } else {
-        false
+        Err(RegError::NotFound)
     }
 }
 
-pub fn list_endpoints() -> Vec<ServiceEndpoint> {
-    ENDPOINTS.lock().clone()
-}
+pub fn list_endpoints() -> Vec<ServiceEndpoint> { ENDPOINTS.lock().clone() }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum RegError {
-    Full,
-    Exists,
-    NotFound,
-}
+pub enum RegError { Full, Exists, NotFound, PermissionDenied }
