@@ -16,9 +16,39 @@
 
 use super::definition::Context;
 
+const USER_SPACE_MAX: u64 = 0x0000_7FFF_FFFF_FFFF;
+const KERNEL_SPACE_MIN: u64 = 0xFFFF_8000_0000_0000;
+const RFLAGS_RESERVED_MASK: u64 = 0x0000_0000_0020_0002;
+
 impl Context {
+    #[inline]
+    fn is_user_space_addr(addr: u64) -> bool {
+        addr <= USER_SPACE_MAX
+    }
+
+    #[inline]
+    fn validate_rflags(rflags: u64) -> u64 {
+        (rflags & !RFLAGS_RESERVED_MASK) | 0x0000_0000_0000_0002
+    }
+
+    pub fn validate(&self) -> Result<(), &'static str> {
+        if self.rip > USER_SPACE_MAX && self.rip < KERNEL_SPACE_MIN {
+            return Err("RIP in non-canonical address range");
+        }
+        if self.rip >= KERNEL_SPACE_MIN { return Err("RIP points to kernel space"); }
+        if self.rsp > USER_SPACE_MAX && self.rsp < KERNEL_SPACE_MIN {
+            return Err("RSP in non-canonical address range");
+        }
+        if self.rsp >= KERNEL_SPACE_MIN { return Err("RSP points to kernel space"); }
+        if self.rsp == 0 { return Err("RSP is null"); }
+        Ok(())
+    }
+
     pub fn restore(&self) -> ! {
-        let ctx_ptr = self as *const Context;
+        if self.validate().is_err() { crate::process::exit_current_process(-1); }
+        let mut safe_ctx = *self;
+        safe_ctx.rflags = Self::validate_rflags(safe_ctx.rflags);
+        let ctx_ptr = &safe_ctx as *const Context;
         context_restore_asm(ctx_ptr)
     }
 }
@@ -26,26 +56,11 @@ impl Context {
 #[unsafe(naked)]
 extern "C" fn context_restore_asm(ctx: *const Context) -> ! {
     core::arch::naked_asm!(
-        "mov rax, [rdi + 0]",
-        "mov rbx, [rdi + 8]",
-        "mov rcx, [rdi + 16]",
-        "mov rdx, [rdi + 24]",
-        "mov rsi, [rdi + 32]",
-        "mov rbp, [rdi + 48]",
-        "mov r8, [rdi + 64]",
-        "mov r9, [rdi + 72]",
-        "mov r10, [rdi + 80]",
-        "mov r11, [rdi + 88]",
-        "mov r12, [rdi + 96]",
-        "mov r13, [rdi + 104]",
-        "mov r14, [rdi + 112]",
-        "mov r15, [rdi + 120]",
-        "mov rsp, [rdi + 56]",
-        "push qword ptr [rdi + 128]",
-        "push qword ptr [rdi + 136]",
-        "push qword ptr [rdi + 40]",
-        "pop rdi",
-        "popfq",
-        "ret",
+        "mov rax, [rdi + 0]", "mov rbx, [rdi + 8]", "mov rcx, [rdi + 16]", "mov rdx, [rdi + 24]",
+        "mov rsi, [rdi + 32]", "mov rbp, [rdi + 48]", "mov r8, [rdi + 64]", "mov r9, [rdi + 72]",
+        "mov r10, [rdi + 80]", "mov r11, [rdi + 88]", "mov r12, [rdi + 96]", "mov r13, [rdi + 104]",
+        "mov r14, [rdi + 112]", "mov r15, [rdi + 120]", "mov rsp, [rdi + 56]",
+        "push qword ptr [rdi + 128]", "push qword ptr [rdi + 136]", "push qword ptr [rdi + 40]",
+        "pop rdi", "popfq", "ret",
     );
 }
