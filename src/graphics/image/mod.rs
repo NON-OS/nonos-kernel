@@ -15,11 +15,13 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub mod bmp;
+pub mod lz4_raw;
 pub mod png;
 pub mod types;
 pub mod format;
 
 pub use bmp::decode_bmp;
+pub use lz4_raw::decode_lz4_raw;
 pub use png::decode_png;
 pub use types::DecodedImage;
 pub use format::{ImageFormat, detect_format, decode};

@@ -15,11 +15,10 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use alloc::vec::Vec;
-use miniz_oxide::inflate::decompress_to_vec_zlib;
+use miniz_oxide::inflate::decompress_to_vec_zlib_with_limit;
 
 pub fn zlib_decompress(data: &[u8], expected: usize) -> Option<Vec<u8>> {
-    let _ = alloc::vec![0u8; expected];
-    match decompress_to_vec_zlib(data) {
+    match decompress_to_vec_zlib_with_limit(data, expected) {
         Ok(decompressed) => Some(decompressed),
         Err(_) => None,
     }
