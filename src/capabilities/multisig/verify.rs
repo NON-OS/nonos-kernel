@@ -16,86 +16,39 @@
 
 use super::error::MultiSigError;
 use super::material::{compute_signature, signature_material};
-use super::token::MultiSigToken;
+use super::token_type::MultiSigToken;
 
-pub fn verify_multisig(
-    token: &MultiSigToken,
-    keys: &[(&u64, &[u8; 32])],
-) -> Result<bool, MultiSigError> {
-    if token.is_expired() {
-        return Err(MultiSigError::TokenExpired);
-    }
-
-    let mut valid_count = 0;
-
+fn count_valid_sigs(token: &MultiSigToken, keys: &[(&u64, &[u8; 32])]) -> (usize, Option<u64>) {
+    let mut valid = 0;
     for (signer_id, sig) in &token.signatures {
-        let key = keys.iter().find(|(id, _)| **id == *signer_id);
-
-        if let Some((_, key)) = key {
-            let mat = signature_material(token, *signer_id);
-            let expected = compute_signature(key, &mat);
-
-            if *sig == expected {
-                valid_count += 1;
-            }
+        if let Some((_, key)) = keys.iter().find(|(id, _)| **id == *signer_id) {
+            let expected = compute_signature(key, &signature_material(token, *signer_id));
+            if *sig == expected { valid += 1; } else { return (valid, Some(*signer_id)); }
         }
     }
-
-    Ok(valid_count >= token.threshold)
+    (valid, None)
 }
 
-pub fn verify_multisig_strict(
-    token: &MultiSigToken,
-    keys: &[(&u64, &[u8; 32])],
-) -> Result<(), MultiSigError> {
-    if token.is_expired() {
-        return Err(MultiSigError::TokenExpired);
-    }
+pub fn verify_multisig(token: &MultiSigToken, keys: &[(&u64, &[u8; 32])]) -> Result<bool, MultiSigError> {
+    if token.is_expired() { return Err(MultiSigError::TokenExpired); }
+    Ok(count_valid_sigs(token, keys).0 >= token.threshold)
+}
 
-    let mut valid_count = 0;
-
-    for (signer_id, sig) in &token.signatures {
-        let key = keys.iter().find(|(id, _)| **id == *signer_id);
-
-        if let Some((_, key)) = key {
-            let mat = signature_material(token, *signer_id);
-            let expected = compute_signature(key, &mat);
-
-            if *sig == expected {
-                valid_count += 1;
-            } else {
-                return Err(MultiSigError::InvalidSignature {
-                    signer_id: *signer_id,
-                });
-            }
-        }
-    }
-
-    if valid_count < token.threshold {
-        return Err(MultiSigError::ThresholdNotMet {
-            have: valid_count,
-            need: token.threshold,
-        });
-    }
-
+pub fn verify_multisig_strict(token: &MultiSigToken, keys: &[(&u64, &[u8; 32])]) -> Result<(), MultiSigError> {
+    if token.is_expired() { return Err(MultiSigError::TokenExpired); }
+    let (valid, bad_sig) = count_valid_sigs(token, keys);
+    if let Some(signer_id) = bad_sig { return Err(MultiSigError::InvalidSignature { signer_id }); }
+    if valid < token.threshold { return Err(MultiSigError::ThresholdNotMet { have: valid, need: token.threshold }); }
     Ok(())
 }
 
 pub fn count_valid_signatures(token: &MultiSigToken, keys: &[(&u64, &[u8; 32])]) -> usize {
-    let mut valid_count = 0;
-
+    let mut valid = 0;
     for (signer_id, sig) in &token.signatures {
-        let key = keys.iter().find(|(id, _)| **id == *signer_id);
-
-        if let Some((_, key)) = key {
-            let mat = signature_material(token, *signer_id);
-            let expected = compute_signature(key, &mat);
-
-            if *sig == expected {
-                valid_count += 1;
-            }
+        if let Some((_, key)) = keys.iter().find(|(id, _)| **id == *signer_id) {
+            let expected = compute_signature(key, &signature_material(token, *signer_id));
+            if *sig == expected { valid += 1; }
         }
     }
-
-    valid_count
+    valid
 }

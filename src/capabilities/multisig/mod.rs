@@ -19,7 +19,7 @@ mod create;
 mod error;
 mod material;
 mod sign;
-mod token;
+mod token_type;
 mod verify;
 
 pub use constants::{max_signers, max_threshold, MAX_SIGNERS, MAX_THRESHOLD, SIGNATURE_SIZE};
@@ -27,5 +27,5 @@ pub use create::{create_multisig_token, create_multisig_token_with_nonce};
 pub use error::MultiSigError;
 pub use material::{compute_signature, signature_material};
 pub use sign::{add_signature, clear_signatures, remove_signature};
-pub use token::MultiSigToken;
+pub use token_type::MultiSigToken;
 pub use verify::{count_valid_signatures, verify_multisig, verify_multisig_strict};
