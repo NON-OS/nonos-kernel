@@ -172,21 +172,8 @@ pub fn verify(pk: &PublicKey, message_hash: &[u8; 32], sig: &Signature) -> bool 
     // Always compute r from x-coordinate
     let computed_r = Scalar::from_bytes_reduce(&r_prime.x.to_bytes());
 
-    // Constant-time comparison
     let r_matches = if computed_r.ct_eq(&r) { 1u64 } else { 0u64 };
     valid &= r_matches;
-
-    crate::sys::serial::print(b"[P256] r_valid=");
-    crate::sys::serial::print_dec(r_valid);
-    crate::sys::serial::print(b" s_valid=");
-    crate::sys::serial::print_dec(s_valid);
-    crate::sys::serial::print(b" inv_valid=");
-    crate::sys::serial::print_dec(inv_valid);
-    crate::sys::serial::print(b" not_inf=");
-    crate::sys::serial::print_dec(not_infinity);
-    crate::sys::serial::print(b" r_matches=");
-    crate::sys::serial::print_dec(r_matches);
-    crate::sys::serial::println(b"");
 
     valid == 1
 }
