@@ -16,7 +16,7 @@
 
 use crate::capabilities::types::Capability;
 
-use super::nonce::default_nonce;
+use super::nonce::{default_nonce, secure_nonce_128};
 use super::sign::sign_token;
 use super::types::CapabilityToken;
 
@@ -53,4 +53,15 @@ pub fn create_token_with_nonce(
     };
     sign_token(&mut tok)?;
     Ok(tok)
+}
+
+pub fn create_secure_token(
+    owner: u64,
+    caps: &[Capability],
+    ttl_ms: Option<u64>,
+) -> Result<CapabilityToken, &'static str> {
+    let nonce_bytes = secure_nonce_128();
+    let nonce = u64::from_le_bytes([nonce_bytes[0], nonce_bytes[1], nonce_bytes[2], nonce_bytes[3],
+                                    nonce_bytes[4], nonce_bytes[5], nonce_bytes[6], nonce_bytes[7]]);
+    create_token_with_nonce(owner, caps, ttl_ms, nonce)
 }
