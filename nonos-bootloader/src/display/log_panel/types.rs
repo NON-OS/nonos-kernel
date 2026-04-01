@@ -19,7 +19,7 @@ pub const LOG_LINE_LEN: usize = 120;
 pub const LINE_HEIGHT: u32 = 16;
 
 pub const TERM_MARGIN: u32 = 40;
-pub const TERM_HEADER: u32 = 100;
+pub const TERM_HEADER: u32 = 120;
 pub const TERM_PAD: u32 = 20;
 
 pub fn get_log_area() -> (u32, u32) {
