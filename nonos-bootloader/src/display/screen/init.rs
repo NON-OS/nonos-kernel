@@ -14,10 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::display::background::render_background;
-use crate::display::gop::get_dimensions;
+use crate::display::gop::{clear_screen, get_dimensions};
 use crate::display::right_panel::RightPanelLayout;
 use crate::display::terminal::{draw_ascii_banner, TerminalLayout};
+
+const BG_COLOR: u32 = 0xFF000000;
 
 pub fn init_main_screen() {
     let (width, height) = get_dimensions();
@@ -25,7 +26,7 @@ pub fn init_main_screen() {
         return;
     }
 
-    render_background();
+    clear_screen(BG_COLOR);
 
     let term_layout = TerminalLayout::compute();
     draw_ascii_banner(&term_layout);

@@ -19,11 +19,11 @@ use crate::display::log_panel::LogLevel;
 use super::frame::TerminalLayout;
 
 const LINE_HEIGHT: u32 = 18;
-const COLOR_INFO: u32 = 0x808090;
-const COLOR_OK: u32 = 0x66FFAA;
-const COLOR_WARN: u32 = 0xFFCC66;
-const COLOR_ERROR: u32 = 0xFF6666;
-const COLOR_SECURITY: u32 = 0x66FFFF;
+const COLOR_INFO: u32 = 0xFF6B7280;
+const COLOR_OK: u32 = 0xFF00FF88;
+const COLOR_WARN: u32 = 0xFFFFAA00;
+const COLOR_ERROR: u32 = 0xFFFF4444;
+const COLOR_SECURITY: u32 = 0xFF66FFFF;
 
 pub fn render_terminal_content(layout: &TerminalLayout, entries: &[TerminalEntry]) {
     let max_lines = layout.max_visible_lines();

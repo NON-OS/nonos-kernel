@@ -16,8 +16,8 @@
 
 use crate::display::gop::get_dimensions;
 
-const MARGIN: u32 = 30;
-const HEADER_HEIGHT: u32 = 32;
+const MARGIN: u32 = 40;
+const HEADER_HEIGHT: u32 = 100;
 
 pub struct TerminalLayout {
     pub x: u32,
@@ -33,7 +33,7 @@ pub struct TerminalLayout {
 impl TerminalLayout {
     pub fn compute() -> Self {
         let (screen_w, screen_h) = get_dimensions();
-        let width = (screen_w / 2) - MARGIN - (MARGIN / 2);
+        let width = screen_w - (MARGIN * 2);
         let height = screen_h - (MARGIN * 2);
         let x = MARGIN;
         let y = MARGIN;
@@ -43,15 +43,15 @@ impl TerminalLayout {
             y,
             width,
             height,
-            content_x: x + 16,
-            content_y: y + HEADER_HEIGHT + 8,
-            content_width: width - 32,
-            content_height: height - HEADER_HEIGHT - 24,
+            content_x: x + 20,
+            content_y: y + HEADER_HEIGHT,
+            content_width: width - 40,
+            content_height: height - HEADER_HEIGHT - 20,
         }
     }
 
     pub fn max_visible_lines(&self) -> usize {
-        (self.content_height / 18) as usize
+        (self.content_height / 16) as usize
     }
 }
 
