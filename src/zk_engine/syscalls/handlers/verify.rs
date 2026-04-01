@@ -46,7 +46,6 @@ pub fn sys_zk_verify(params_ptr: usize, process: &ProcessControlBlock) -> Result
     };
     let verification_time = crate::time::timestamp_millis() - start_time;
     unsafe { *(params.result_ptr) = is_valid; }
-    crate::log::info!("Process {} verified ZK proof for circuit {} in {}ms (result: {})", process.pid, proof.circuit_id, verification_time, is_valid);
     process.zk_proofs_verified.fetch_add(1, core::sync::atomic::Ordering::Relaxed);
     process.zk_verification_time_ms.fetch_add(verification_time, core::sync::atomic::Ordering::Relaxed);
     Ok(0)
