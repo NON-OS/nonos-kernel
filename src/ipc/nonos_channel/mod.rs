@@ -58,6 +58,6 @@ mod stats;
 pub use bus::{IpcBus, IPC_BUS, DEFAULT_MAX_QUEUE, DEFAULT_MSG_TIMEOUT_MS};
 pub use channel::IpcChannel;
 pub use error::ChannelError;
-pub use hash::{compute_channel_key, compute_checksum};
+pub use hash::{compute_channel_key, compute_checksum, init_ipc_secret};
 pub use message::{IpcMessage, MAX_MESSAGE_SIZE};
 pub use stats::BusStatsSnapshot;

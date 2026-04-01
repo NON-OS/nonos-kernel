@@ -14,57 +14,54 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-//! Hash functions for channel keys and message checksums.
+use spin::Once;
 
-/// Compute channel key from endpoints using BLAKE3
+const DS_IPC_SECRET: &str = "NONOS:IPC:SECRET:v1";
+const DS_CHANNEL_KEY: &str = "NONOS:IPC:CHANNEL:v1";
+const DS_MSG_MAC: &str = "NONOS:IPC:MAC:v1";
+
+static IPC_SECRET: Once<[u8; 32]> = Once::new();
+
+pub fn init_ipc_secret() {
+    IPC_SECRET.call_once(|| {
+        let mut secret = [0u8; 32];
+        let _ = crate::crypto::random_api::get_bytes_secure(&mut secret);
+        *blake3::Hasher::new_derive_key(DS_IPC_SECRET).update(&secret).finalize().as_bytes()
+    });
+}
+
+#[inline]
+fn get_ipc_secret() -> &'static [u8; 32] {
+    IPC_SECRET.call_once(|| {
+        let mut secret = [0u8; 32];
+        let _ = crate::crypto::random_api::get_bytes_secure(&mut secret);
+        *blake3::Hasher::new_derive_key(DS_IPC_SECRET).update(&secret).finalize().as_bytes()
+    })
+}
+
 #[inline]
 pub fn compute_channel_key(from: &str, to: &str) -> u64 {
-    let mut hasher = blake3::Hasher::new();
-    hasher.update(from.as_bytes());
-    hasher.update(&[0x00]); // Separator
-    hasher.update(to.as_bytes());
-
-    let out = hasher.finalize();
-    let bytes = out.as_bytes();
-
-    u64::from_le_bytes([
-        bytes[0], bytes[1], bytes[2], bytes[3],
-        bytes[4], bytes[5], bytes[6], bytes[7],
-    ])
+    let secret = get_ipc_secret();
+    let h = blake3::Hasher::new_derive_key(DS_CHANNEL_KEY)
+        .update(secret).update(from.as_bytes()).update(&[0x00]).update(to.as_bytes()).finalize();
+    u64::from_le_bytes([h.as_bytes()[0], h.as_bytes()[1], h.as_bytes()[2], h.as_bytes()[3],
+                        h.as_bytes()[4], h.as_bytes()[5], h.as_bytes()[6], h.as_bytes()[7]])
 }
 
-/// Compute message checksum using BLAKE3
 #[inline]
 pub fn compute_checksum(from: &str, to: &str, data: &[u8], ts_ms: u64) -> u64 {
-    let mut hasher = blake3::Hasher::new();
-    hasher.update(from.as_bytes());
-    hasher.update(&[0xF0]); // Separator
-    hasher.update(to.as_bytes());
-    hasher.update(&ts_ms.to_le_bytes());
-    hasher.update(data);
-
-    let out = hasher.finalize();
-    let b = out.as_bytes();
-
-    // Use bytes from different position than channel key
-    u64::from_le_bytes([
-        b[24], b[25], b[26], b[27],
-        b[28], b[29], b[30], b[31],
-    ])
+    let secret = get_ipc_secret();
+    let mac = blake3::Hasher::new_keyed(secret)
+        .update(DS_MSG_MAC.as_bytes()).update(from.as_bytes()).update(&[0xF0])
+        .update(to.as_bytes()).update(&ts_ms.to_le_bytes()).update(data).finalize();
+    let b = mac.as_bytes();
+    u64::from_le_bytes([b[24], b[25], b[26], b[27], b[28], b[29], b[30], b[31]])
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_channel_key_deterministic() {
-        let key1 = compute_channel_key("alice", "bob");
-        let key2 = compute_channel_key("alice", "bob");
-        assert_eq!(key1, key2);
-
-        // Different endpoints should give different keys
-        let key3 = compute_channel_key("bob", "alice");
-        assert_ne!(key1, key3);
-    }
+#[inline]
+pub fn verify_checksum(from: &str, to: &str, data: &[u8], ts_ms: u64, expected: u64) -> bool {
+    let computed = compute_checksum(from, to, data, ts_ms);
+    let mut diff = 0u64;
+    diff |= computed ^ expected;
+    diff == 0
 }

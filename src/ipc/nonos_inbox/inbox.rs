@@ -125,11 +125,9 @@ impl Inbox {
     /// Dequeue next message
     #[inline]
     pub(super) fn dequeue(&self) -> Option<IpcMessage> {
-        let msg = self.queue.lock().pop_front();
-        if msg.is_some() {
-            self.stats.record_dequeue();
-        }
-        msg
+        let msg = self.queue.lock().pop_front()?;
+        self.stats.record_dequeue();
+        Some(msg)
     }
 
     /// Peek at next message without removing
