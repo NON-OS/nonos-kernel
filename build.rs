@@ -186,28 +186,26 @@ fn serialize_manifest(manifest: std::collections::HashMap<String, Vec<u8>>) -> V
 }
 
 fn sign_manifest_ed25519(data: &[u8], key_path: PathBuf) -> Result<Vec<u8>, String> {
-    use ed25519_dalek::{Keypair, SecretKey, Signature, Signer};
+    use ed25519_dalek::{Signature, Signer, SigningKey};
     use sha2::{Digest, Sha512};
 
     let key_bytes = fs::read(&key_path).map_err(|e| format!("read key: {e}"))?;
-    let kp = if key_bytes.len() == 32 {
-        // 32-byte seed (secret scalar)
-        let sk = SecretKey::from_bytes(&key_bytes).map_err(|e| format!("secret key: {e}"))?;
-        let pk = ed25519_dalek::PublicKey::from(&sk);
-        Keypair { secret: sk, public: pk }
+    let signing_key = if key_bytes.len() == 32 {
+        let seed: [u8; 32] = key_bytes.try_into().map_err(|_| "invalid seed length")?;
+        SigningKey::from_bytes(&seed)
     } else if key_bytes.len() == 64 {
-        Keypair::from_bytes(&key_bytes).map_err(|e| format!("keypair: {e}"))?
+        let keypair: [u8; 64] = key_bytes.try_into().map_err(|_| "invalid keypair length")?;
+        SigningKey::from_keypair_bytes(&keypair).map_err(|e| format!("keypair: {e}"))?
     } else {
         return Err("NONOS_SIGNING_KEY must be 32-byte seed or 64-byte keypair".into());
     };
 
-    // Contextualize via SHA-512(domain||manifest)
     let mut h = Sha512::new();
     h.update(b"NONOS_CAPSULE_V1");
     h.update(data);
     let digest = h.finalize();
 
-    let sig: Signature = kp.sign(&digest);
+    let sig: Signature = signing_key.sign(&digest);
     Ok(sig.to_bytes().to_vec())
 }
 
