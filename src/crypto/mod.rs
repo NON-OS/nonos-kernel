@@ -23,6 +23,7 @@ pub mod asymmetric;
 pub mod core;
 pub mod error;
 mod exports;
+pub mod hardware_accel;
 pub mod hash;
 pub mod kernel_keys;
 pub mod pqc;
