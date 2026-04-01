@@ -48,6 +48,7 @@ pub fn system_capabilities() -> CapabilitySet {
     caps.grant(Capability::RawIO);
     caps.grant(Capability::ModifyDirs);
     caps.grant(Capability::Unlink);
+    caps.grant(Capability::RegisterService);
     caps
 }
 

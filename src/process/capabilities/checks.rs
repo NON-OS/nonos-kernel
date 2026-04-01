@@ -136,4 +136,24 @@ impl CapabilitySet {
     pub fn can_signal(&self) -> bool {
         self.has(Capability::Signal)
     }
+
+    #[inline]
+    pub fn can_ipc(&self) -> bool {
+        self.has(Capability::SendIpc) || self.has(Capability::ReceiveIpc)
+    }
+
+    #[inline]
+    pub fn can_register_service(&self) -> bool {
+        self.has(Capability::RegisterService) || self.is_admin()
+    }
+
+    #[inline]
+    pub fn can_mmap_kernel(&self) -> bool {
+        self.has(Capability::MmapKernel)
+    }
+
+    #[inline]
+    pub fn can_debug(&self) -> bool {
+        self.has(Capability::Debug) || self.is_admin()
+    }
 }
