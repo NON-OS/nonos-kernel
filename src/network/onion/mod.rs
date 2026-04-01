@@ -34,6 +34,8 @@ pub enum OnionError {
     InvalidState,
     AuthenticationFailed,
     CertificateError,
+    CertificateExpired,
+    SystemClockNotSet,
     InvalidCell,
     ProtocolError,
     BufferTooSmall,
