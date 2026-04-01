@@ -14,18 +14,28 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod create_checked;
-mod create_unchecked;
-mod error;
-mod material;
-mod sign;
-mod types;
-mod verify;
+use crate::capabilities::types::Capability;
 
-pub use create_checked::create_delegation;
-pub use create_unchecked::create_delegation_unchecked;
-pub use error::DelegationError;
-pub use material::{compute_delegation_signature, delegation_material};
-pub use sign::sign_delegation;
-pub use types::Delegation;
-pub use verify::{verify_delegation, verify_delegation_standalone, verify_delegation_strict};
+use super::error::DelegationError;
+use super::sign::sign_delegation;
+use super::types::Delegation;
+
+pub fn create_delegation_unchecked(
+    delegator: u64,
+    delegatee: u64,
+    caps: &[Capability],
+    expires_at_ms: Option<u64>,
+    parent_nonce: u64,
+) -> Result<Delegation, DelegationError> {
+    if caps.is_empty() { return Err(DelegationError::NoCapabilities); }
+    let mut delegation = Delegation {
+        delegator,
+        delegatee,
+        capabilities: caps.to_vec(),
+        expires_at_ms,
+        parent_nonce,
+        signature: [0u8; 64],
+    };
+    sign_delegation(&mut delegation)?;
+    Ok(delegation)
+}

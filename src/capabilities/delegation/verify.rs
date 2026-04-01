@@ -21,65 +21,24 @@ use super::material::{compute_delegation_signature, delegation_material};
 use super::types::Delegation;
 
 pub fn verify_delegation(d: &Delegation, parent: &CapabilityToken) -> bool {
-    if d.is_expired() {
-        return false;
-    }
-
-    if d.parent_nonce != parent.nonce {
-        return false;
-    }
-
-    if d.delegator != parent.owner_module {
-        return false;
-    }
-
-    let Some(key) = signing_key() else {
-        return false;
-    };
-
-    let mat = delegation_material(d, parent.nonce);
-    let expected = compute_delegation_signature(key, &mat);
-
-    d.signature == expected
+    if d.is_expired() || d.parent_nonce != parent.nonce || d.delegator != parent.owner_module { return false; }
+    let Some(key) = signing_key() else { return false; };
+    d.signature == compute_delegation_signature(key, &delegation_material(d, parent.nonce))
 }
 
-pub fn verify_delegation_strict(
-    d: &Delegation,
-    parent: &CapabilityToken,
-) -> Result<(), DelegationError> {
-    if d.is_expired() {
-        return Err(DelegationError::DelegationExpired);
-    }
-
+pub fn verify_delegation_strict(d: &Delegation, parent: &CapabilityToken) -> Result<(), DelegationError> {
+    if d.is_expired() { return Err(DelegationError::DelegationExpired); }
     if d.parent_nonce != parent.nonce || d.delegator != parent.owner_module {
         return Err(DelegationError::InvalidParentToken);
     }
-
-    let Some(key) = signing_key() else {
-        return Err(DelegationError::MissingSigningKey);
-    };
-
-    let mat = delegation_material(d, parent.nonce);
-    let expected = compute_delegation_signature(key, &mat);
-
-    if d.signature != expected {
-        return Err(DelegationError::InvalidSignature);
-    }
-
+    let Some(key) = signing_key() else { return Err(DelegationError::MissingSigningKey); };
+    let expected = compute_delegation_signature(key, &delegation_material(d, parent.nonce));
+    if d.signature != expected { return Err(DelegationError::InvalidSignature); }
     Ok(())
 }
 
 pub fn verify_delegation_standalone(d: &Delegation) -> bool {
-    if d.is_expired() {
-        return false;
-    }
-
-    let Some(key) = signing_key() else {
-        return false;
-    };
-
-    let mat = delegation_material(d, d.parent_nonce);
-    let expected = compute_delegation_signature(key, &mat);
-
-    d.signature == expected
+    if d.is_expired() { return false; }
+    let Some(key) = signing_key() else { return false; };
+    d.signature == compute_delegation_signature(key, &delegation_material(d, d.parent_nonce))
 }
