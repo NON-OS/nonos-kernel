@@ -18,7 +18,6 @@ extern crate alloc;
 
 use alloc::vec::Vec;
 use spin::Mutex;
-
 use super::constants::MAX_LOG_ENTRIES;
 use super::entry::AuditEntry;
 
@@ -29,13 +28,7 @@ pub struct AuditBuffer {
 }
 
 impl AuditBuffer {
-    pub const fn new() -> Self {
-        Self {
-            entries: Vec::new(),
-            write_pos: 0,
-            wrapped: false,
-        }
-    }
+    pub const fn new() -> Self { Self { entries: Vec::new(), write_pos: 0, wrapped: false } }
 
     pub fn push(&mut self, entry: AuditEntry) {
         if self.entries.len() < MAX_LOG_ENTRIES {
@@ -49,40 +42,23 @@ impl AuditBuffer {
         }
     }
 
-    pub fn len(&self) -> usize {
-        self.entries.len()
-    }
-
-    pub fn is_empty(&self) -> bool {
-        self.entries.is_empty()
-    }
+    #[inline] pub fn len(&self) -> usize { self.entries.len() }
+    #[inline] pub fn is_empty(&self) -> bool { self.entries.is_empty() }
+    #[inline] pub fn has_wrapped(&self) -> bool { self.wrapped }
+    pub fn clear(&mut self) { self.entries.clear(); self.write_pos = 0; self.wrapped = false; }
 
     pub fn get_chronological(&self) -> Vec<AuditEntry> {
-        if !self.wrapped {
-            self.entries.clone()
-        } else {
-            let pos = self.write_pos % MAX_LOG_ENTRIES;
-            let mut result = Vec::with_capacity(self.entries.len());
-            result.extend_from_slice(&self.entries[pos..]);
-            result.extend_from_slice(&self.entries[..pos]);
-            result
-        }
+        if !self.wrapped { return self.entries.clone(); }
+        let pos = self.write_pos % MAX_LOG_ENTRIES;
+        let mut result = Vec::with_capacity(self.entries.len());
+        result.extend_from_slice(&self.entries[pos..]);
+        result.extend_from_slice(&self.entries[..pos]);
+        result
     }
 
     pub fn get_recent(&self, count: usize) -> Vec<AuditEntry> {
         let all = self.get_chronological();
-        let start = all.len().saturating_sub(count);
-        all[start..].to_vec()
-    }
-
-    pub fn clear(&mut self) {
-        self.entries.clear();
-        self.write_pos = 0;
-        self.wrapped = false;
-    }
-
-    pub fn has_wrapped(&self) -> bool {
-        self.wrapped
+        all[all.len().saturating_sub(count)..].to_vec()
     }
 }
 

@@ -19,12 +19,11 @@ extern crate alloc;
 use alloc::vec::Vec;
 use core::sync::atomic::Ordering;
 
-use crate::capabilities::types::Capability;
-
 use super::buffer::BUFFER;
 use super::constants::MAX_LOG_ENTRIES;
 use super::entry::AuditEntry;
-use super::stats::{AuditStatsSnapshot, STATS};
+use super::counters::STATS;
+use super::snapshot::AuditStatsSnapshot;
 
 pub fn get_log() -> Vec<AuditEntry> {
     BUFFER.lock().get_chronological()
@@ -32,60 +31,6 @@ pub fn get_log() -> Vec<AuditEntry> {
 
 pub fn get_recent(count: usize) -> Vec<AuditEntry> {
     BUFFER.lock().get_recent(count)
-}
-
-pub fn get_by_module(module_id: u64) -> Vec<AuditEntry> {
-    BUFFER
-        .lock()
-        .get_chronological()
-        .into_iter()
-        .filter(|e| e.matches_module(module_id))
-        .collect()
-}
-
-pub fn get_by_action(action: &str) -> Vec<AuditEntry> {
-    BUFFER
-        .lock()
-        .get_chronological()
-        .into_iter()
-        .filter(|e| e.matches_action(action))
-        .collect()
-}
-
-pub fn get_by_time_range(start_ms: u64, end_ms: u64) -> Vec<AuditEntry> {
-    BUFFER
-        .lock()
-        .get_chronological()
-        .into_iter()
-        .filter(|e| e.in_time_range(start_ms, end_ms))
-        .collect()
-}
-
-pub fn get_failures() -> Vec<AuditEntry> {
-    BUFFER
-        .lock()
-        .get_chronological()
-        .into_iter()
-        .filter(|e| !e.success)
-        .collect()
-}
-
-pub fn get_successes() -> Vec<AuditEntry> {
-    BUFFER
-        .lock()
-        .get_chronological()
-        .into_iter()
-        .filter(|e| e.success)
-        .collect()
-}
-
-pub fn get_by_capability(cap: Capability) -> Vec<AuditEntry> {
-    BUFFER
-        .lock()
-        .get_chronological()
-        .into_iter()
-        .filter(|e| e.matches_capability(cap))
-        .collect()
 }
 
 pub fn get_stats() -> AuditStatsSnapshot {
