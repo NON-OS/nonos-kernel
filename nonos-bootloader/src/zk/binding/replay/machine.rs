@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -32,8 +32,8 @@ pub fn init_machine_id(tpm_ek_public: &[u8]) {
     *guard = Some(id);
 }
 
-pub fn get_machine_id() -> [u8; 32] {
-    MACHINE_ID.lock().unwrap_or([0u8; 32])
+pub fn get_machine_id() -> Result<[u8; 32], &'static str> {
+    MACHINE_ID.lock().ok_or("Machine ID not initialized - TPM binding required")
 }
 
 pub fn get_machine_id_checked() -> Option<[u8; 32]> {
@@ -54,8 +54,6 @@ pub fn verify_machine_id(claimed: &[u8; 32]) -> bool {
 #[inline]
 fn ct_eq32(a: &[u8; 32], b: &[u8; 32]) -> bool {
     let mut x = 0u8;
-    for i in 0..32 {
-        x |= a[i] ^ b[i];
-    }
+    for i in 0..32 { x |= a[i] ^ b[i]; }
     x == 0
 }
