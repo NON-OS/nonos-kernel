@@ -59,7 +59,7 @@ pub fn compute_checksum(from: &str, to: &str, data: &[u8], ts_ms: u64) -> u64 {
 }
 
 #[inline]
-pub fn verify_checksum(from: &str, to: &str, data: &[u8], ts_ms: u64, expected: u64) -> bool {
+pub(super) fn verify_checksum(from: &str, to: &str, data: &[u8], ts_ms: u64, expected: u64) -> bool {
     let computed = compute_checksum(from, to, data, ts_ms);
     let mut diff = 0u64;
     diff |= computed ^ expected;
