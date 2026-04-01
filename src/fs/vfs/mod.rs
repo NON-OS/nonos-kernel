@@ -19,6 +19,7 @@ pub mod types;
 pub mod open_file;
 pub mod table;
 pub mod fd_ops;
+pub mod path_validate;
 pub mod vfs_core;
 pub mod vfs_dir;
 pub mod vfs_file;
