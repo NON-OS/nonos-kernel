@@ -20,7 +20,7 @@ extern crate alloc;
 
 use alloc::{string::String, vec::Vec};
 
-use super::hash::compute_checksum;
+use super::hash::{compute_checksum, verify_checksum};
 
 /// Maximum message payload size (1 MB)
 pub const MAX_MESSAGE_SIZE: usize = 1024 * 1024;
@@ -75,10 +75,10 @@ impl IpcMessage {
         }
     }
 
-    /// Validate message integrity
+    /// Validate message integrity using constant-time comparison
     #[inline]
     pub fn validate_integrity(&self) -> bool {
-        self.checksum64 == compute_checksum(&self.from, &self.to, &self.data, self.timestamp_ms)
+        verify_checksum(&self.from, &self.to, &self.data, self.timestamp_ms, self.checksum64)
     }
 
     /// Get message age in milliseconds
