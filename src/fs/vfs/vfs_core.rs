@@ -18,13 +18,10 @@ extern crate alloc;
 
 use alloc::{string::String, vec::Vec};
 use core::sync::atomic::{Ordering, compiler_fence};
-
 use super::error::VfsResult;
-use super::open_file::{secure_zeroize_string};
-use super::types::{
-    FileSystemType, IoStatistics, MountPoint,
-    VfsStatistics, MAX_MOUNTS,
-};
+use super::open_file::secure_zeroize_string;
+use super::path_validate::validate_path;
+use super::types::{FileSystemType, IoStatistics, MountPoint, VfsStatistics, MAX_MOUNTS};
 
 #[derive(Debug)]
 pub(super) struct VirtualFileSystemInner {
@@ -51,8 +48,7 @@ impl VirtualFileSystem {
         }
     }
 
-    pub fn sync_metadata(&self) {
-    }
+    pub fn sync_metadata(&self) {}
 
     pub fn process_pending_operations(&self, max_ops: usize) -> usize {
         let mut g = self.inner.lock();
@@ -62,44 +58,34 @@ impl VirtualFileSystem {
     }
 
     pub fn mount(&self, mount_path: &str, fs_type: FileSystemType) {
+        if validate_path(mount_path).is_err() { return; }
         let mut g = self.inner.lock();
         if g.mounts.len() < MAX_MOUNTS {
-            g.mounts.push(MountPoint {
-                mount_path: String::from(mount_path),
-                filesystem: fs_type,
-            });
+            g.mounts.push(MountPoint { mount_path: String::from(mount_path), filesystem: fs_type });
             g.vfs_stats.mounts += 1;
         }
     }
 
-    pub fn mounts(&self) -> Vec<MountPoint> {
-        self.inner.lock().mounts.clone()
-    }
+    pub fn mounts(&self) -> Vec<MountPoint> { self.inner.lock().mounts.clone() }
 
     pub fn exists(&self, path: &str) -> bool {
-        crate::fs::ramfs::NONOS_FILESYSTEM.exists(path)
+        validate_path(path).is_ok() && crate::fs::ramfs::NONOS_FILESYSTEM.exists(path)
     }
 
     pub fn read_file(&self, path: &str) -> VfsResult<Vec<u8>> {
-        crate::fs::ramfs::NONOS_FILESYSTEM.read_file(path)
-            .map_err(super::error::VfsError::from)
+        validate_path(path)?;
+        crate::fs::ramfs::NONOS_FILESYSTEM.read_file(path).map_err(super::error::VfsError::from)
     }
 
-    pub fn stats(&self) -> VfsStatistics {
-        self.inner.lock().vfs_stats.clone()
-    }
+    pub fn stats(&self) -> VfsStatistics { self.inner.lock().vfs_stats.clone() }
 
     pub fn clear_all(&self) {
         let mut inner = self.inner.lock();
-
-        for mount in inner.mounts.iter_mut() {
-            secure_zeroize_string(&mut mount.mount_path);
-        }
+        for mount in inner.mounts.iter_mut() { secure_zeroize_string(&mut mount.mount_path); }
         inner.mounts.clear();
         inner.pending_ops = 0;
         inner.io_stats = IoStatistics::default();
         inner.vfs_stats = VfsStatistics::default();
-
         compiler_fence(Ordering::SeqCst);
     }
 }

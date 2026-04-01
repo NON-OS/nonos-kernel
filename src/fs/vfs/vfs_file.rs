@@ -18,21 +18,17 @@ extern crate alloc;
 
 use alloc::vec::Vec;
 use spin::Mutex;
-
 use super::error::{VfsError, VfsResult};
+use super::path_validate::validate_path;
 use super::types::{FileMetadata, FileType};
 use super::vfs_core::VirtualFileSystem;
 
-/// # Safety
-/// Global VFS operation lock prevents TOCTOU races in multi-step operations.
-/// All compound operations must hold this lock for their entire duration.
 static VFS_OP_LOCK: Mutex<()> = Mutex::new(());
 
 impl VirtualFileSystem {
-    /// # Safety
-    /// Atomic copy operation. Holds VFS lock to prevent TOCTOU between
-    /// read and create operations.
     pub fn copy(&self, src: &str, dst: &str) -> VfsResult<()> {
+        validate_path(src)?;
+        validate_path(dst)?;
         let _lock = VFS_OP_LOCK.lock();
         let data: Vec<u8> = crate::fs::ramfs::NONOS_FILESYSTEM.read_file(src)?;
         crate::fs::ramfs::NONOS_FILESYSTEM.create_file(dst, &data)?;
@@ -41,6 +37,8 @@ impl VirtualFileSystem {
     }
 
     pub fn rename(&self, old_path: &str, new_path: &str) -> VfsResult<()> {
+        validate_path(old_path)?;
+        validate_path(new_path)?;
         let _lock = VFS_OP_LOCK.lock();
         crate::fs::ramfs::NONOS_FILESYSTEM.atomic_rename(old_path, new_path)?;
         self.inner.lock().vfs_stats.rename_ops += 1;
@@ -48,29 +46,24 @@ impl VirtualFileSystem {
     }
 
     pub fn unlink(&self, path: &str) -> VfsResult<()> {
+        validate_path(path)?;
         crate::fs::ramfs::NONOS_FILESYSTEM.delete_file(path)?;
         self.inner.lock().vfs_stats.unlink_ops += 1;
         Ok(())
     }
 
-    /// # Safety
-    /// Atomic write operation. Uses write_or_create to avoid exists() check
-    /// that could race with concurrent operations.
     pub fn write_file(&self, path: &str, data: &[u8]) -> VfsResult<()> {
+        validate_path(path)?;
         let _lock = VFS_OP_LOCK.lock();
         self.ensure_parent_dirs(path)?;
         crate::fs::ramfs::NONOS_FILESYSTEM.write_or_create(path, data)?;
         Ok(())
     }
 
-    /// # Safety
-    /// Atomic stat operation. Reads file data atomically to avoid TOCTOU
-    /// between exists check and size read.
     pub fn stat(&self, path: &str) -> VfsResult<FileMetadata> {
+        validate_path(path)?;
         let _lock = VFS_OP_LOCK.lock();
-
         let is_dir = path.ends_with('/') || path.ends_with("/.dir");
-
         let size = if is_dir {
             0
         } else {
@@ -79,23 +72,11 @@ impl VirtualFileSystem {
                 Err(_) => return Err(VfsError::NotFound),
             }
         };
-
         let mut inode = 1u64;
-        for byte in path.bytes() {
-            inode = inode.wrapping_mul(31).wrapping_add(byte as u64);
-        }
-
+        for byte in path.bytes() { inode = inode.wrapping_mul(31).wrapping_add(byte as u64); }
         let mode = if is_dir { 0o040755 } else { 0o100644 };
         let now = crate::time::timestamp_secs();
-
-        Ok(FileMetadata {
-            size,
-            atime: now,
-            mtime: now,
-            ctime: now,
-            file_type: if is_dir { FileType::Directory } else { FileType::File },
-            mode,
-            inode,
-        })
+        Ok(FileMetadata { size, atime: now, mtime: now, ctime: now,
+            file_type: if is_dir { FileType::Directory } else { FileType::File }, mode, inode })
     }
 }

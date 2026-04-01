@@ -14,13 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::{Ordering, compiler_fence};
-
 use super::error::VfsResult;
+use super::path_validate::validate_path;
 use super::table::FD_TABLE;
 use super::types::{IoStatistics, OpenFlags};
 
 pub fn vfs_open(path: &str, flags: OpenFlags) -> VfsResult<u32> {
+    validate_path(path)?;
     FD_TABLE.write().open(path, flags)
 }
 
@@ -50,7 +50,6 @@ pub fn vfs_io_stats() -> IoStatistics {
 
 pub fn clear_fd_table() {
     FD_TABLE.write().clear_all();
-    compiler_fence(Ordering::SeqCst);
 }
 
 pub fn vfs_open_legacy(path: &str, flags: OpenFlags) -> Result<u32, &'static str> {
@@ -78,5 +77,5 @@ pub fn vfs_read_secure(fd: u32, buffer: &mut [u8]) -> VfsResult<usize> {
 }
 
 pub fn vfs_secure_clear_buffer(buffer: &mut [u8]) {
-    FD_TABLE.read().secure_clear_buffer(buffer)
+    FD_TABLE.read().secure_clear_buffer(buffer);
 }
