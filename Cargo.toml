@@ -231,14 +231,14 @@ smallvec  = { version = "1.15", default-features = false }
 bitvec    = { version = "1.0",  default-features = false, features = ["alloc"] }
 
 # Crypto (optional externals retained for compatibility)
-ed25519-dalek = { version = "1", default-features = false, features = ["u64_backend"], optional = true }
+ed25519-dalek = { version = "2.1", default-features = false, features = ["alloc", "zeroize"], optional = true }
 curve25519-dalek = { version = "4", default-features = false, features = ["alloc"], optional = true }
 x25519-dalek = { version = "2", default-features = false, features = ["static_secrets"], optional = true }
 sha3           = { version = "0.10", default-features = false, optional = true }
 subtle         = { version = "2.5",  default-features = false, optional = true }
 
 # ELF capsule loader (optional)
-xmas-elf = { version = "0.9", default-features = false, optional = true }
+xmas-elf = { version = "0.10", default-features = false, optional = true }
 
 # Misc utils
 bitflags = { version = "2.4", default-features = false }
@@ -285,7 +285,7 @@ blake3 = { version = "1.5", default-features = false }
 cc    = "1.1"
 glob  = "0.3"
 # Required by build.rs for Ed25519 signing and SHA-512 digest
-ed25519-dalek = { version = "1", default-features = false, features = ["u64_backend"] }
+ed25519-dalek = { version = "2.1", default-features = false, features = ["alloc", "zeroize"] }
 sha2          = { version = "0.10", default-features = false }
 
 # LINTS (Rust >= 1.75)
