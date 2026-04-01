@@ -31,21 +31,23 @@ impl Context {
         (rflags & !RFLAGS_RESERVED_MASK) | 0x0000_0000_0000_0002
     }
 
+    fn is_canonical(addr: u64) -> bool {
+        addr <= USER_SPACE_MAX || addr >= KERNEL_SPACE_MIN
+    }
+
     pub fn validate(&self) -> Result<(), &'static str> {
-        if self.rip > USER_SPACE_MAX && self.rip < KERNEL_SPACE_MIN {
+        if !Self::is_canonical(self.rip) {
             return Err("RIP in non-canonical address range");
         }
-        if self.rip >= KERNEL_SPACE_MIN { return Err("RIP points to kernel space"); }
-        if self.rsp > USER_SPACE_MAX && self.rsp < KERNEL_SPACE_MIN {
+        if !Self::is_canonical(self.rsp) {
             return Err("RSP in non-canonical address range");
         }
-        if self.rsp >= KERNEL_SPACE_MIN { return Err("RSP points to kernel space"); }
         if self.rsp == 0 { return Err("RSP is null"); }
         Ok(())
     }
 
     pub fn restore(&self) -> ! {
-        if self.validate().is_err() { crate::process::exit_current_process(-1); }
+        if self.validate().is_err() { loop { core::hint::spin_loop(); } }
         let mut safe_ctx = *self;
         safe_ctx.rflags = Self::validate_rflags(safe_ctx.rflags);
         let ctx_ptr = &safe_ctx as *const Context;
