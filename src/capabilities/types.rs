@@ -16,72 +16,36 @@
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum Capability {
-    CoreExec,
-    IO,
-    Network,
-    IPC,
-    Memory,
-    Crypto,
-    FileSystem,
-    Hardware,
-    Debug,
-    Admin,
+    CoreExec, IO, Network, IPC, Memory, Crypto, FileSystem, Hardware, Debug, Admin, RegisterService,
 }
 
 impl Capability {
     #[inline]
     pub(crate) const fn bit(self) -> u64 {
         match self {
-            Self::CoreExec => 1 << 0,
-            Self::IO => 1 << 1,
-            Self::Network => 1 << 2,
-            Self::IPC => 1 << 3,
-            Self::Memory => 1 << 4,
-            Self::Crypto => 1 << 5,
-            Self::FileSystem => 1 << 6,
-            Self::Hardware => 1 << 7,
-            Self::Debug => 1 << 8,
-            Self::Admin => 1 << 9,
+            Self::CoreExec => 1, Self::IO => 2, Self::Network => 4, Self::IPC => 8, Self::Memory => 16,
+            Self::Crypto => 32, Self::FileSystem => 64, Self::Hardware => 128, Self::Debug => 256,
+            Self::Admin => 512, Self::RegisterService => 1024,
         }
     }
 
-    pub const fn all() -> [Capability; 10] {
-        [
-            Self::CoreExec,
-            Self::IO,
-            Self::Network,
-            Self::IPC,
-            Self::Memory,
-            Self::Crypto,
-            Self::FileSystem,
-            Self::Hardware,
-            Self::Debug,
-            Self::Admin,
-        ]
+    pub const fn all() -> [Capability; 11] {
+        [Self::CoreExec, Self::IO, Self::Network, Self::IPC, Self::Memory, Self::Crypto,
+         Self::FileSystem, Self::Hardware, Self::Debug, Self::Admin, Self::RegisterService]
     }
 
     pub const fn as_str(&self) -> &'static str {
         match self {
-            Self::CoreExec => "CoreExec",
-            Self::IO => "IO",
-            Self::Network => "Network",
-            Self::IPC => "IPC",
-            Self::Memory => "Memory",
-            Self::Crypto => "Crypto",
-            Self::FileSystem => "FileSystem",
-            Self::Hardware => "Hardware",
-            Self::Debug => "Debug",
-            Self::Admin => "Admin",
+            Self::CoreExec => "CoreExec", Self::IO => "IO", Self::Network => "Network", Self::IPC => "IPC",
+            Self::Memory => "Memory", Self::Crypto => "Crypto", Self::FileSystem => "FileSystem",
+            Self::Hardware => "Hardware", Self::Debug => "Debug", Self::Admin => "Admin",
+            Self::RegisterService => "RegisterService",
         }
     }
 
-    pub const fn count() -> usize {
-        10
-    }
+    pub const fn count() -> usize { 11 }
 }
 
 impl core::fmt::Display for Capability {
-    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        write!(f, "{}", self.as_str())
-    }
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result { write!(f, "{}", self.as_str()) }
 }
