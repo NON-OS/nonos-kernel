@@ -19,11 +19,11 @@ use crate::display::crypto_screen::state::{CryptoScreenState, VerifyState};
 use crate::display::font::draw_string;
 use crate::display::gop::fill_rect;
 
-const COL_TEAL: u32 = 0x66FFFF;
-const COL_GREEN: u32 = 0x40FF80;
-const COL_RED: u32 = 0xFF4040;
-const COL_DIM: u32 = 0x606070;
-const COL_WHITE: u32 = 0xE0E0F0;
+const COL_TEAL: u32 = 0xFF66FFFF;
+const COL_GREEN: u32 = 0xFF00FF88;
+const COL_RED: u32 = 0xFFFF4444;
+const COL_DIM: u32 = 0xFF6B7280;
+const COL_WHITE: u32 = 0xFFE6EDF3;
 
 pub fn render_blake3(state: &CryptoScreenState) {
     let y = 150;

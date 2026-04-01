@@ -18,10 +18,10 @@ use crate::display::font::draw_string;
 use super::frame::RightPanelLayout;
 
 const LINE_HEIGHT: u32 = 20;
-const COLOR_LABEL: u32 = 0x808090;
-const COLOR_HASH: u32 = 0x66FFFF;
-const COLOR_OK: u32 = 0x66FFAA;
-const COLOR_PENDING: u32 = 0xFFCC66;
+const COLOR_LABEL: u32 = 0xFF6B7280;
+const COLOR_HASH: u32 = 0xFF66FFFF;
+const COLOR_OK: u32 = 0xFF00FF88;
+const COLOR_PENDING: u32 = 0xFFFFAA00;
 
 pub struct CryptoDisplay<'a> {
     pub kernel_hash: Option<&'a [u8; 32]>,
@@ -75,7 +75,7 @@ fn render_hash(layout: &RightPanelLayout, y: u32, hash: Option<&[u8; 32]>) {
 fn render_status(x: u32, y: u32, valid: Option<bool>) {
     let (text, color) = match valid {
         Some(true) => (b"VERIFIED" as &[u8], COLOR_OK),
-        Some(false) => (b"FAILED" as &[u8], 0xFF6666),
+        Some(false) => (b"FAILED" as &[u8], 0xFFFF4444),
         None => (b"PENDING" as &[u8], COLOR_PENDING),
     };
     draw_string(x + 8, y, text, color);

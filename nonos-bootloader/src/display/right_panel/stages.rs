@@ -18,11 +18,11 @@ use crate::display::font::draw_string;
 use crate::display::gop::fill_rect;
 use super::frame::RightPanelLayout;
 
-const COLOR_ACTIVE: u32 = 0x66FFFF;
-const COLOR_DONE: u32 = 0x66FFAA;
-const COLOR_PENDING: u32 = 0x404050;
-const COLOR_BAR_BG: u32 = 0x1A2020;
-const COLOR_BAR_FG: u32 = 0x66FFFF;
+const COLOR_ACTIVE: u32 = 0xFF66FFFF;
+const COLOR_DONE: u32 = 0xFF00FF88;
+const COLOR_PENDING: u32 = 0xFF6B7280;
+const COLOR_BAR_BG: u32 = 0xFF1A1A1A;
+const COLOR_BAR_FG: u32 = 0xFF66FFFF;
 
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub enum StageState {
@@ -43,7 +43,7 @@ pub fn render_stage(layout: &RightPanelLayout, y_offset: u32, stage: &StageInfo)
         StageState::Pending => (b"[ ]" as &[u8], COLOR_PENDING),
         StageState::Active => (b"[>]" as &[u8], COLOR_ACTIVE),
         StageState::Done => (b"[+]" as &[u8], COLOR_DONE),
-        StageState::Failed => (b"[X]" as &[u8], 0xFF6666),
+        StageState::Failed => (b"[X]" as &[u8], 0xFFFF4444),
     };
 
     draw_string(layout.content_x, y, prefix, color);

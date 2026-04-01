@@ -14,19 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub const MAX_LOG_LINES: usize = 28;
-pub const LOG_LINE_LEN: usize = 52;
-pub const LINE_HEIGHT: u32 = 18;
+pub const MAX_LOG_LINES: usize = 40;
+pub const LOG_LINE_LEN: usize = 120;
+pub const LINE_HEIGHT: u32 = 16;
 
-pub const TERM_MARGIN: u32 = 30;
-pub const TERM_HEADER: u32 = 32;
-pub const TERM_PAD: u32 = 16;
-
-const BANNER_HEIGHT: u32 = 130;
+pub const TERM_MARGIN: u32 = 40;
+pub const TERM_HEADER: u32 = 100;
+pub const TERM_PAD: u32 = 20;
 
 pub fn get_log_area() -> (u32, u32) {
     let x = TERM_MARGIN + TERM_PAD;
-    let y = TERM_MARGIN + TERM_HEADER + BANNER_HEIGHT;
+    let y = TERM_MARGIN + TERM_HEADER;
     (x, y)
 }
 

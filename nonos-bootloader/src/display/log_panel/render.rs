@@ -14,20 +14,21 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::display::background::render_region;
 use crate::display::constants::{COLOR_ACCENT, COLOR_ERROR, COLOR_SUCCESS, COLOR_WARNING};
 use crate::display::font::draw_string;
+use crate::display::gop::fill_rect;
 
 use super::buffer::{get_count, get_entry};
 use super::types::{get_log_area, LogLevel, LINE_HEIGHT, LOG_LINE_LEN, MAX_LOG_LINES};
 
-const COLOR_INFO: u32 = 0x808090;
+const COLOR_INFO: u32 = 0xFF6B7280;
+const BG_COLOR: u32 = 0xFF000000;
 const LOG_LINE_WIDTH: u32 = (LOG_LINE_LEN as u32 + 4) * 8;
 
 fn clear_line(line_num: usize) {
     let (log_x, log_y) = get_log_area();
     let y = log_y + (line_num as u32) * LINE_HEIGHT;
-    render_region(log_x, y, LOG_LINE_WIDTH, LINE_HEIGHT);
+    fill_rect(log_x, y, LOG_LINE_WIDTH, LINE_HEIGHT, BG_COLOR);
 }
 
 fn draw_entry_at(line_num: usize, entry_idx: usize) {
@@ -82,7 +83,7 @@ pub fn redraw_all() {
 pub fn clear_display() {
     let (log_x, log_y) = get_log_area();
     let height = (MAX_LOG_LINES as u32) * LINE_HEIGHT;
-    render_region(log_x, log_y, LOG_LINE_WIDTH, height);
+    fill_rect(log_x, log_y, LOG_LINE_WIDTH, height, BG_COLOR);
 }
 
 fn log_delay() {

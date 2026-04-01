@@ -17,8 +17,8 @@
 pub const LOGO_WIDTH: u32 = 120;
 pub const LOGO_HEIGHT: u32 = 24;
 
-pub const COLOR_TEAL: u32 = 0x66FFFF;
-pub const COLOR_DARK_TEAL: u32 = 0x2E5C5C;
+pub const COLOR_TEAL: u32 = 0xFF66FFFF;
+pub const COLOR_DARK_TEAL: u32 = 0xFF2E5C5C;
 
 #[rustfmt::skip]
 pub const LOGO_BITMAP: &[u8] = &[

@@ -15,65 +15,49 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::display::font::draw_string;
+use crate::display::gop::fill_rect;
 use super::frame::TerminalLayout;
 
-const TITLE: &[u8] = b"NONOS BOOT CONSOLE";
-const COLOR_TITLE: u32 = 0x66FFFF;
-const COLOR_LOGO: u32 = 0x66FFFF;
+const COLOR_CYAN: u32 = 0xFF66FFFF;
+const COLOR_DIM: u32 = 0xFF2E5C5C;
+const COLOR_TEXT: u32 = 0xFF6B7280;
 
-const ASCII_BANNER: &[&[u8]] = &[
-    b" ##    ## ######  ##    ## ######  ######",
-    b" ###   ## ##   ## ###   ## ##   ## ##    ",
-    b" ## #  ## ##   ## ## #  ## ##   ## ##### ",
-    b" ##  # ## ##   ## ##  # ## ##   ##     ##",
-    b" ##   ### ##   ## ##   ### ##   ## ##  ##",
-    b" ##    ## ######  ##    ## ######  ##### ",
+const ASCII_LOGO: &[&[u8]] = &[
+    b" ##    ##  #####  ##    ##  #####   ##### ",
+    b" ###   ## ##   ## ###   ## ##   ## ##     ",
+    b" ## #  ## ##   ## ## #  ## ##   ##  ##### ",
+    b" ##  # ## ##   ## ##  # ## ##   ##      ##",
+    b" ##   ### ##   ## ##   ### ##   ## ##   ##",
+    b" ##    ##  #####  ##    ##  #####   ##### ",
 ];
 
-pub fn draw_terminal_header(layout: &TerminalLayout) {
-    draw_string(layout.x + 16, layout.y + 10, TITLE, COLOR_TITLE);
+pub fn draw_terminal_header(_layout: &TerminalLayout) {}
+
+pub fn draw_ascii_banner(layout: &TerminalLayout) {
+    let x = layout.x + 20;
+    let mut y = layout.y + 10;
+    for line in ASCII_LOGO {
+        draw_string(x, y, line, COLOR_CYAN);
+        y += 12;
+    }
+    fill_rect(x, y + 4, 340, 1, COLOR_DIM);
+    draw_string(x, y + 10, b"SOVEREIGNTY FROM ZERO", COLOR_TEXT);
     draw_dots(layout);
 }
 
-pub fn draw_ascii_banner(layout: &TerminalLayout) {
-    let banner_x = layout.content_x;
-    let mut y = layout.content_y;
-
-    for line in ASCII_BANNER {
-        draw_string(banner_x, y, line, COLOR_LOGO);
-        y += 12;
-    }
-
-    let sub_y = y + 8;
-    draw_string(banner_x, sub_y, b"ZeroState Bootloader v1.0", 0x66FFFF);
-    draw_string(banner_x, sub_y + 18, b"Cryptographic Boot Verification", 0x707080);
-}
-
 fn draw_dots(layout: &TerminalLayout) {
-    let dot_y = layout.y + 12;
-    let base_x = layout.x + layout.width - 60;
-
-    draw_dot(base_x, dot_y, 0x66FFFF);
-    draw_dot(base_x + 16, dot_y, 0x33CCCC);
-    draw_dot(base_x + 32, dot_y, 0x2E5C5C);
+    let y = layout.y + 35;
+    let x = layout.x + layout.width - 80;
+    draw_dot(x, y, COLOR_CYAN);
+    draw_dot(x + 20, y, COLOR_DIM);
+    draw_dot(x + 40, y, 0xFF1A3030);
 }
 
 fn draw_dot(cx: u32, cy: u32, color: u32) {
-    let r = 4u32;
-    for dy in 0..=r {
-        for dx in 0..=r {
-            let dist_sq = dx * dx + dy * dy;
-            if dist_sq <= r * r {
+    for dy in 0..6u32 {
+        for dx in 0..6u32 {
+            if (dx as i32 - 3).pow(2) + (dy as i32 - 3).pow(2) <= 9 {
                 crate::display::gop::put_pixel(cx + dx, cy + dy, color);
-                if dx > 0 {
-                    crate::display::gop::put_pixel(cx - dx, cy + dy, color);
-                }
-                if dy > 0 {
-                    crate::display::gop::put_pixel(cx + dx, cy - dy, color);
-                }
-                if dx > 0 && dy > 0 {
-                    crate::display::gop::put_pixel(cx - dx, cy - dy, color);
-                }
             }
         }
     }
