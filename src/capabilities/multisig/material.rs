@@ -17,7 +17,7 @@
 use crate::capabilities::bits::caps_to_bits;
 use crate::crypto::blake3_keyed_hash;
 
-use super::token::MultiSigToken;
+use super::token_type::MultiSigToken;
 
 pub fn signature_material(token: &MultiSigToken, signer_id: u64) -> [u8; 40] {
     let mut mat = [0u8; 40];
