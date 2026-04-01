@@ -46,6 +46,17 @@ impl Context {
         Ok(())
     }
 
+    pub fn validate_userspace(&self) -> Result<(), &'static str> {
+        self.validate()?;
+        if !Self::is_user_space_addr(self.rip) {
+            return Err("RIP not in user space");
+        }
+        if !Self::is_user_space_addr(self.rsp) {
+            return Err("RSP not in user space");
+        }
+        Ok(())
+    }
+
     pub fn restore(&self) -> ! {
         if self.validate().is_err() { loop { core::hint::spin_loop(); } }
         let mut safe_ctx = *self;
