@@ -16,6 +16,7 @@
 
 use crate::capabilities::types::Capability;
 
+use super::nonce::default_nonce;
 use super::sign::sign_token;
 use super::types::CapabilityToken;
 
@@ -29,7 +30,7 @@ pub fn create_token(
         owner_module: owner,
         permissions: caps.to_vec(),
         expires_at_ms: exp,
-        nonce: 0,
+        nonce: default_nonce(),
         signature: [0u8; 64],
     };
     sign_token(&mut tok)?;

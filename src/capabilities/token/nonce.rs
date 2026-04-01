@@ -20,17 +20,29 @@ static NONCE_COUNTER: AtomicU64 = AtomicU64::new(1);
 
 #[inline]
 pub fn default_nonce() -> u64 {
-    let timestamp = crate::time::timestamp_millis();
-    let counter = NONCE_COUNTER.fetch_add(1, Ordering::Relaxed) & 0xFFFF_FFFF;
-    (timestamp << 32) ^ counter
+    let mut buf = [0u8; 8];
+    if crate::crypto::random_api::get_bytes_secure(&mut buf).is_ok() {
+        u64::from_le_bytes(buf)
+    } else {
+        let timestamp = crate::time::timestamp_millis();
+        let counter = NONCE_COUNTER.fetch_add(1, Ordering::SeqCst);
+        timestamp.wrapping_mul(0x9E3779B97F4A7C15) ^ counter
+    }
+}
+
+#[inline]
+pub fn secure_nonce_128() -> [u8; 16] {
+    let mut buf = [0u8; 16];
+    let _ = crate::crypto::random_api::get_bytes_secure(&mut buf);
+    buf
 }
 
 #[inline]
 pub fn reset_nonce_counter() {
-    NONCE_COUNTER.store(1, Ordering::Relaxed);
+    NONCE_COUNTER.store(1, Ordering::SeqCst);
 }
 
 #[inline]
 pub fn current_nonce_counter() -> u64 {
-    NONCE_COUNTER.load(Ordering::Relaxed)
+    NONCE_COUNTER.load(Ordering::SeqCst)
 }
