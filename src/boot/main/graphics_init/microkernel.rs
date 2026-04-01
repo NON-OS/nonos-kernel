@@ -16,6 +16,7 @@
 
 use crate::input;
 use super::components::init_desktop;
+use super::super::setup_menu;
 
 pub fn init_graphics_for_microkernel() -> bool {
     let (width, height) = crate::graphics::framebuffer::dimensions();
@@ -25,6 +26,13 @@ pub fn init_graphics_for_microkernel() -> bool {
     }
     crate::sys::serial::println(b"[DESKTOP] Graphics init OK");
     input::set_screen_bounds_unified(width, height);
+    if setup_menu::needs_setup() {
+        crate::sys::serial::println(b"[NONOS] Running first-time setup");
+        let config = setup_menu::run_setup_menu();
+        crate::sys::serial::println(b"[NONOS] Setup returned, applying config");
+        setup_menu::apply_config(&config);
+        crate::sys::serial::println(b"[NONOS] Config applied, starting desktop");
+    }
     init_desktop();
     true
 }

@@ -19,12 +19,21 @@ use crate::graphics::framebuffer;
 use crate::sys::clock;
 use crate::input;
 use super::components::{init_storage_and_fs, init_services, init_desktop};
+use super::super::setup_menu;
 
 pub fn init_graphics(handoff: &BootHandoffV1) {
     init_framebuffer(handoff);
     init_input_devices(handoff);
     init_storage_and_fs();
     init_services();
+
+    // Run setup menu on first boot
+    if setup_menu::needs_setup() {
+        crate::sys::serial::println(b"[NONOS] Running first-time setup");
+        let config = setup_menu::run_setup_menu();
+        setup_menu::apply_config(&config);
+    }
+
     init_desktop();
 }
 
