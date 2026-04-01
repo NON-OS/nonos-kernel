@@ -22,15 +22,15 @@ pub fn yield_now() {
     use crate::process::nonos_core::{current_pid, PROCESS_TABLE, ProcessState};
     SCHEDULER_STATS.voluntary_yields.fetch_add(1, Ordering::Relaxed);
     let curr = current_pid();
-    if let Some(pid) = curr {
-        let ctx = crate::sched::Context::save();
-        crate::process::nonos_core::save_interrupt_context(pid, ctx);
-        if let Some(pcb) = PROCESS_TABLE.find_by_pid(pid) {
-            let mut state = pcb.state.lock();
-            if *state == ProcessState::Running { *state = ProcessState::Ready; }
-        }
-        crate::sched::add_to_run_queue(pid);
+    if curr.is_none() { return; }
+    let pid = curr.unwrap();
+    let ctx = crate::sched::Context::save();
+    crate::process::nonos_core::save_interrupt_context(pid, ctx);
+    if let Some(pcb) = PROCESS_TABLE.find_by_pid(pid) {
+        let mut state = pcb.state.lock();
+        if *state == ProcessState::Running { *state = ProcessState::Ready; }
     }
+    crate::sched::add_to_run_queue(pid);
     CURRENT_TIME_SLICE.store(0, Ordering::Relaxed);
     match select_next_process() {
         Some(next) => switch_to_process(next),
