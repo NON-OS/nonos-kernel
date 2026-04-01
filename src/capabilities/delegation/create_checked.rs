@@ -27,33 +27,19 @@ pub fn create_delegation(
     caps: &[Capability],
     ttl_ms: Option<u64>,
 ) -> Result<Delegation, DelegationError> {
-    if caps.is_empty() {
-        return Err(DelegationError::NoCapabilities);
-    }
-
+    if caps.is_empty() { return Err(DelegationError::NoCapabilities); }
     if !is_token_valid(parent) {
-        if !parent.not_expired() {
-            return Err(DelegationError::ParentExpired);
-        }
+        if !parent.not_expired() { return Err(DelegationError::ParentExpired); }
         return Err(DelegationError::InvalidParentToken);
     }
-
     for cap in caps {
-        if !parent.grants(*cap) {
-            return Err(DelegationError::CapabilityNotHeld);
-        }
+        if !parent.grants(*cap) { return Err(DelegationError::CapabilityNotHeld); }
     }
-
     let now = crate::time::timestamp_millis();
     let mut expiry = ttl_ms.map(|t| now.saturating_add(t));
-
     if let Some(parent_exp) = parent.expires_at_ms {
-        expiry = Some(match expiry {
-            Some(e) => e.min(parent_exp),
-            None => parent_exp,
-        });
+        expiry = Some(expiry.map_or(parent_exp, |e| e.min(parent_exp)));
     }
-
     let mut delegation = Delegation {
         delegator: parent.owner_module,
         delegatee,
@@ -62,31 +48,6 @@ pub fn create_delegation(
         parent_nonce: parent.nonce,
         signature: [0u8; 64],
     };
-
-    sign_delegation(&mut delegation)?;
-    Ok(delegation)
-}
-
-pub fn create_delegation_unchecked(
-    delegator: u64,
-    delegatee: u64,
-    caps: &[Capability],
-    expires_at_ms: Option<u64>,
-    parent_nonce: u64,
-) -> Result<Delegation, DelegationError> {
-    if caps.is_empty() {
-        return Err(DelegationError::NoCapabilities);
-    }
-
-    let mut delegation = Delegation {
-        delegator,
-        delegatee,
-        capabilities: caps.to_vec(),
-        expires_at_ms,
-        parent_nonce,
-        signature: [0u8; 64],
-    };
-
     sign_delegation(&mut delegation)?;
     Ok(delegation)
 }
