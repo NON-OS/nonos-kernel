@@ -11,7 +11,6 @@
 /// System settings (runtime copy in RAM)
 #[derive(Clone, Copy)]
 pub struct Settings {
-    /// Display brightness (0-100)
     pub brightness: u8,
     pub mouse_sensitivity: u8,
     pub sound_enabled: bool,
@@ -20,10 +19,13 @@ pub struct Settings {
     pub theme: u8,
     pub keyboard_layout: u8,
     pub auto_wipe: bool,
-    /// Timezone offset from UTC (-12 to +14)
     pub timezone: i8,
-    /// Screen timeout in minutes (0=never, 1-60)
     pub screen_timeout: u8,
+    pub language: u8,
+    pub developer_mode: bool,
+    pub hardware_crypto: bool,
+    pub zk_attestation: bool,
+    pub system_keys_generated: bool,
 }
 
 impl Settings {
@@ -39,6 +41,11 @@ impl Settings {
             auto_wipe: true,
             timezone: 0,
             screen_timeout: 0,
+            language: 0,
+            developer_mode: false,
+            hardware_crypto: true,
+            zk_attestation: true,
+            system_keys_generated: false,
         }
     }
 }

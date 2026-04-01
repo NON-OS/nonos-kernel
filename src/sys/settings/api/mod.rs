@@ -25,3 +25,6 @@ pub use input::{sound_enabled, set_sound_enabled};
 pub use privacy::{anonymous_mode, set_anonymous_mode, nym_enabled, set_nym_enabled};
 pub use privacy::{auto_wipe, set_auto_wipe};
 pub use system::{theme, set_theme, timezone, set_timezone};
+pub use system::{language, set_language, developer_mode, set_developer_mode};
+pub use system::{hardware_crypto, set_hardware_crypto, zk_attestation, set_zk_attestation};
+pub use system::{system_keys_generated, set_system_keys_generated};
