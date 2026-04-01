@@ -18,34 +18,18 @@ use crate::capabilities::token::signing_key;
 
 use super::error::ResourceError;
 use super::material::{compute_signature, token_material};
-use super::token::ResourceToken;
+use super::token_type::ResourceToken;
 
 pub fn verify_resource_token(tok: &ResourceToken) -> bool {
-    let Some(key) = signing_key() else {
-        return false;
-    };
-
-    let mat = token_material(tok.owner_module, &tok.original_quota, tok.nonce);
-    let expected = compute_signature(key, &mat);
-
-    tok.signature == expected
+    let Some(key) = signing_key() else { return false; };
+    let mat = token_material(tok.owner_module, tok.original_quota(), tok.nonce);
+    tok.signature == compute_signature(key, &mat)
 }
 
 pub fn verify_resource_token_strict(tok: &ResourceToken) -> Result<(), ResourceError> {
-    if tok.is_expired() {
-        return Err(ResourceError::TokenExpired);
-    }
-
-    let Some(key) = signing_key() else {
-        return Err(ResourceError::MissingSigningKey);
-    };
-
-    let mat = token_material(tok.owner_module, &tok.original_quota, tok.nonce);
-    let expected = compute_signature(key, &mat);
-
-    if tok.signature != expected {
-        return Err(ResourceError::InvalidSignature);
-    }
-
+    if tok.is_expired() { return Err(ResourceError::TokenExpired); }
+    let Some(key) = signing_key() else { return Err(ResourceError::MissingSigningKey); };
+    let mat = token_material(tok.owner_module, tok.original_quota(), tok.nonce);
+    if tok.signature != compute_signature(key, &mat) { return Err(ResourceError::InvalidSignature); }
     Ok(())
 }

@@ -14,23 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod consume;
-mod create;
-mod error;
-mod material;
-mod nonce;
-mod quota;
-mod sign;
-mod token_type;
-mod token_usage;
-mod verify;
+use super::token_type::ResourceToken;
 
-pub use consume::{refund_bytes, refund_ops, reset_token, try_consume, try_consume_bytes, try_consume_ops};
-pub use create::{create_resource_token, create_resource_token_with_nonce};
-pub use error::ResourceError;
-pub use material::{compute_signature, token_material};
-pub use nonce::{next_nonce, reset_nonce_counter};
-pub use quota::ResourceQuota;
-pub use sign::sign_resource_token;
-pub use token_type::ResourceToken;
-pub use verify::{verify_resource_token, verify_resource_token_strict};
+impl ResourceToken {
+    pub fn bytes_usage_percent(&self) -> f64 {
+        if self.original_quota.bytes == 0 { return 0.0; }
+        (self.bytes_used() as f64 / self.original_quota.bytes as f64) * 100.0
+    }
+
+    pub fn ops_usage_percent(&self) -> f64 {
+        if self.original_quota.ops == 0 { return 0.0; }
+        (self.ops_used() as f64 / self.original_quota.ops as f64) * 100.0
+    }
+}
