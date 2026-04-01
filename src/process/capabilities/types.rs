@@ -115,6 +115,9 @@ pub enum Capability {
     Signal = 23,
     CoreExec = 24,
     IO = 25,
+    RegisterService = 26,
+    MmapKernel = 27,
+    Debug = 28,
 }
 
 impl Capability {
@@ -151,6 +154,9 @@ impl Capability {
             Capability::Signal => "signal",
             Capability::CoreExec => "core_exec",
             Capability::IO => "io",
+            Capability::RegisterService => "register_service",
+            Capability::MmapKernel => "mmap_kernel",
+            Capability::Debug => "debug",
         }
     }
 }
