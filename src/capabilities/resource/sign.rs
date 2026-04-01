@@ -18,13 +18,11 @@ use crate::capabilities::token::signing_key;
 
 use super::error::ResourceError;
 use super::material::{compute_signature, token_material};
-use super::token::ResourceToken;
+use super::token_type::ResourceToken;
 
 pub fn sign_resource_token(tok: &mut ResourceToken) -> Result<(), ResourceError> {
     let key = signing_key().ok_or(ResourceError::MissingSigningKey)?;
-
-    let mat = token_material(tok.owner_module, &tok.original_quota, tok.nonce);
+    let mat = token_material(tok.owner_module, tok.original_quota(), tok.nonce);
     tok.signature = compute_signature(key, &mat);
-
     Ok(())
 }

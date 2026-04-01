@@ -17,64 +17,44 @@
 use super::error::ResourceError;
 use super::nonce::next_nonce;
 use super::sign::sign_resource_token;
-use super::token::ResourceToken;
+use super::token_type::ResourceToken;
 
 pub fn try_consume(token: &mut ResourceToken, bytes: u64, ops: u64) -> Result<(), ResourceError> {
-    if token.is_expired() {
-        return Err(ResourceError::TokenExpired);
-    }
-
+    if token.is_expired() { return Err(ResourceError::TokenExpired); }
     if !token.has_bytes(bytes) {
-        return Err(ResourceError::InsufficientBytes {
-            requested: bytes,
-            available: token.remaining_bytes(),
-        });
+        return Err(ResourceError::InsufficientBytes { requested: bytes, available: token.remaining_bytes() });
     }
-
     if !token.has_ops(ops) {
-        return Err(ResourceError::InsufficientOps {
-            requested: ops,
-            available: token.remaining_ops(),
-        });
+        return Err(ResourceError::InsufficientOps { requested: ops, available: token.remaining_ops() });
     }
-
     token.consume_bytes(bytes)?;
     token.consume_ops(ops)?;
-
     Ok(())
 }
 
 pub fn try_consume_bytes(token: &mut ResourceToken, bytes: u64) -> Result<(), ResourceError> {
-    if token.is_expired() {
-        return Err(ResourceError::TokenExpired);
-    }
-
+    if token.is_expired() { return Err(ResourceError::TokenExpired); }
     token.consume_bytes(bytes)
 }
 
 pub fn try_consume_ops(token: &mut ResourceToken, ops: u64) -> Result<(), ResourceError> {
-    if token.is_expired() {
-        return Err(ResourceError::TokenExpired);
-    }
-
+    if token.is_expired() { return Err(ResourceError::TokenExpired); }
     token.consume_ops(ops)
 }
 
 pub fn reset_token(token: &mut ResourceToken) -> Result<(), ResourceError> {
-    token.remaining_bytes = token.original_quota.bytes;
-    token.remaining_ops = token.original_quota.ops;
+    token.remaining_bytes = token.original_quota().bytes;
+    token.remaining_ops = token.original_quota().ops;
     token.nonce = next_nonce();
     sign_resource_token(token)
 }
 
 pub fn refund_bytes(token: &mut ResourceToken, bytes: u64) {
     let max_refund = token.bytes_used();
-    let actual_refund = bytes.min(max_refund);
-    token.remaining_bytes += actual_refund;
+    token.remaining_bytes += bytes.min(max_refund);
 }
 
 pub fn refund_ops(token: &mut ResourceToken, ops: u64) {
     let max_refund = token.ops_used();
-    let actual_refund = ops.min(max_refund);
-    token.remaining_ops += actual_refund;
+    token.remaining_ops += ops.min(max_refund);
 }
