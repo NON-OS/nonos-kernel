@@ -23,13 +23,13 @@ const HEADER_H: u32 = 32;
 const ENTRY_H: u32 = 28;
 const PAD: u32 = 16;
 
-const BG_ENTRY: u32 = 0x101820;
-const BG_SELECT: u32 = 0x1A3040;
-const BORDER_DIM: u32 = 0x2E5C5C;
-const COL_TITLE: u32 = 0x66FFFF;
-const COL_TEXT: u32 = 0xE8E8F0;
-const COL_DIM: u32 = 0x707080;
-const COL_ACCENT: u32 = 0x66FFFF;
+const BG_ENTRY: u32 = 0xFF0A0A0A;
+const BG_SELECT: u32 = 0xFF1A1A1A;
+const BORDER_DIM: u32 = 0xFF2E5C5C;
+const COL_TITLE: u32 = 0xFF66FFFF;
+const COL_TEXT: u32 = 0xFFE6EDF3;
+const COL_DIM: u32 = 0xFF6B7280;
+const COL_ACCENT: u32 = 0xFF66FFFF;
 
 fn get_right_panel_bounds() -> (u32, u32, u32, u32) {
     let (screen_w, screen_h) = get_dimensions();
@@ -111,5 +111,5 @@ fn draw_timer(x: u32, y: u32, w: u32, secs: u32, total_ms: u64, remaining_ms: u6
 
 pub fn clear_menu_area() {
     let (cx, cy, cw, ch) = get_right_panel_bounds();
-    crate::display::background::render_region(cx, cy, cw, ch);
+    crate::display::gop::fill_rect(cx, cy, cw, ch, 0xFF000000);
 }
