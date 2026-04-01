@@ -19,8 +19,11 @@ use crate::memory::paging::{PagePermissions, map_page, unmap_page};
 
 const E_INVAL: i64 = -22;
 const E_NOMEM: i64 = -12;
+const E_PERM: i64 = -1;
 const PAGE_SIZE: usize = 4096;
 const USER_MMAP_BASE: u64 = 0x0000_4000_0000;
+const USER_SPACE_MAX: u64 = 0x0000_7FFF_FFFF_FFFF;
+const MAX_MMAP_SIZE: usize = 1 << 30;
 
 pub const PROT_READ: u32 = 0x1;
 pub const PROT_WRITE: u32 = 0x2;
@@ -30,8 +33,14 @@ pub const MAP_ANONYMOUS: u32 = 0x20;
 
 static NEXT_USER_VA: core::sync::atomic::AtomicU64 = core::sync::atomic::AtomicU64::new(USER_MMAP_BASE);
 
+#[inline]
+fn is_user_space(addr: u64, len: usize) -> bool {
+    addr <= USER_SPACE_MAX && len <= (USER_SPACE_MAX - addr) as usize
+}
+
 pub fn sys_mmap(addr: u64, length: usize, prot: u32, _flags: u32) -> i64 {
-    if length == 0 { return E_INVAL; }
+    if length == 0 || length > MAX_MMAP_SIZE { return E_INVAL; }
+    if addr != 0 && !is_user_space(addr, length) { return E_PERM; }
     let pages = (length + PAGE_SIZE - 1) / PAGE_SIZE;
     let mut perms = PagePermissions::READ | PagePermissions::USER;
     if prot & PROT_WRITE != 0 { perms = perms | PagePermissions::WRITE; }
@@ -40,6 +49,7 @@ pub fn sys_mmap(addr: u64, length: usize, prot: u32, _flags: u32) -> i64 {
         VirtAddr::new(addr)
     } else {
         let va = NEXT_USER_VA.fetch_add((pages * PAGE_SIZE) as u64, core::sync::atomic::Ordering::Relaxed);
+        if va > USER_SPACE_MAX { return E_NOMEM; }
         VirtAddr::new(va)
     };
     for i in 0..pages {
