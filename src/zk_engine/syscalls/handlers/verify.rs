@@ -21,6 +21,9 @@ use crate::zk_engine::syscalls::helpers::is_valid_user_ptr;
 use crate::zk_engine::syscalls::params::*;
 
 pub fn sys_zk_verify(params_ptr: usize, process: &ProcessControlBlock) -> Result<usize, &'static str> {
+    if !crate::sys::settings::zk_attestation() {
+        return Err("ZK attestation disabled in settings");
+    }
     if !is_valid_user_ptr(params_ptr, core::mem::size_of::<ZKVerifyParams>(), process) {
         return Err("Invalid parameters pointer");
     }
