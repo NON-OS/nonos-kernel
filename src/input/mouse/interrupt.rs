@@ -17,26 +17,49 @@
 use core::sync::atomic::Ordering;
 use crate::sys::io::inb;
 use super::state::{
-    MOUSE_X, MOUSE_Y, MOUSE_BUTTONS,
-    SCREEN_WIDTH, SCREEN_HEIGHT,
-    PACKET_BYTE0, PACKET_BYTE1, PACKET_BYTE2, PACKET_INDEX,
+    MOUSE_X, MOUSE_Y, MOUSE_BUTTONS, SCROLL_DELTA,
+    SCREEN_WIDTH, SCREEN_HEIGHT, SCROLL_WHEEL_AVAILABLE,
+    PACKET_BYTE0, PACKET_BYTE1, PACKET_BYTE2, PACKET_BYTE3, PACKET_INDEX,
     MOUSE_UPDATED,
 };
 
-/// Handle mouse interrupt - called from the IDT handler
-/// Reads data from PS/2 port and processes packets
-pub fn handle_interrupt() {
-    // SAFETY: Reading PS/2 data port in interrupt context
-    let data = unsafe { inb(0x60) };
+fn process_packet(has_scroll: bool) {
+    let flags = PACKET_BYTE0.load(Ordering::Relaxed);
+    let dx_raw = PACKET_BYTE1.load(Ordering::Relaxed) as i32;
+    let dy_raw = PACKET_BYTE2.load(Ordering::Relaxed) as i32;
 
+    let dx = if flags & 0x10 != 0 { dx_raw - 256 } else { dx_raw };
+    let dy = if flags & 0x20 != 0 { dy_raw - 256 } else { dy_raw };
+
+    let max_x = SCREEN_WIDTH.load(Ordering::Relaxed).max(1);
+    let max_y = SCREEN_HEIGHT.load(Ordering::Relaxed).max(1);
+
+    let cur_x = MOUSE_X.load(Ordering::Relaxed);
+    let cur_y = MOUSE_Y.load(Ordering::Relaxed);
+
+    let new_x = (cur_x + dx).clamp(0, max_x - 1);
+    let new_y = (cur_y - dy).clamp(0, max_y - 1);
+
+    MOUSE_X.store(new_x, Ordering::Relaxed);
+    MOUSE_Y.store(new_y, Ordering::Relaxed);
+    MOUSE_BUTTONS.store(flags & 0x07, Ordering::Relaxed);
+
+    if has_scroll {
+        let scroll_raw = PACKET_BYTE3.load(Ordering::Relaxed) as i8;
+        let current = SCROLL_DELTA.load(Ordering::Relaxed);
+        SCROLL_DELTA.store(current + scroll_raw as i32, Ordering::Relaxed);
+    }
+
+    MOUSE_UPDATED.store(true, Ordering::Relaxed);
+}
+
+pub fn handle_interrupt() {
+    let data = unsafe { inb(0x60) };
     let idx = PACKET_INDEX.load(Ordering::Relaxed);
 
     match idx {
         0 => {
-            // First byte must have bit 3 set (always-1 bit in standard PS/2 protocol)
-            if data & 0x08 == 0 {
-                return;
-            }
+            if data & 0x08 == 0 { return; }
             PACKET_BYTE0.store(data, Ordering::Relaxed);
             PACKET_INDEX.store(1, Ordering::Relaxed);
         }
@@ -46,34 +69,17 @@ pub fn handle_interrupt() {
         }
         2 => {
             PACKET_BYTE2.store(data, Ordering::Relaxed);
+            if SCROLL_WHEEL_AVAILABLE.load(Ordering::Relaxed) {
+                PACKET_INDEX.store(3, Ordering::Relaxed);
+            } else {
+                PACKET_INDEX.store(0, Ordering::Relaxed);
+                process_packet(false);
+            }
+        }
+        3 => {
+            PACKET_BYTE3.store(data, Ordering::Relaxed);
             PACKET_INDEX.store(0, Ordering::Relaxed);
-
-            let flags = PACKET_BYTE0.load(Ordering::Relaxed);
-            let dx_raw = PACKET_BYTE1.load(Ordering::Relaxed) as i32;
-            let dy_raw = PACKET_BYTE2.load(Ordering::Relaxed) as i32;
-
-            // Sign extend based on overflow bits
-            let dx = if flags & 0x10 != 0 { dx_raw - 256 } else { dx_raw };
-            let dy = if flags & 0x20 != 0 { dy_raw - 256 } else { dy_raw };
-
-            let max_x = SCREEN_WIDTH.load(Ordering::Relaxed);
-            let max_y = SCREEN_HEIGHT.load(Ordering::Relaxed);
-
-            // Update position (Y is inverted in PS/2)
-            let cur_x = MOUSE_X.load(Ordering::Relaxed);
-            let cur_y = MOUSE_Y.load(Ordering::Relaxed);
-
-            let new_x = (cur_x + dx).clamp(0, max_x - 1);
-            let new_y = (cur_y - dy).clamp(0, max_y - 1);
-
-            MOUSE_X.store(new_x, Ordering::Relaxed);
-            MOUSE_Y.store(new_y, Ordering::Relaxed);
-
-            // Update buttons (bits 0-2 of flags)
-            MOUSE_BUTTONS.store(flags & 0x07, Ordering::Relaxed);
-
-            // Signal that mouse state was updated
-            MOUSE_UPDATED.store(true, Ordering::Relaxed);
+            process_packet(true);
         }
         _ => {
             PACKET_INDEX.store(0, Ordering::Relaxed);
