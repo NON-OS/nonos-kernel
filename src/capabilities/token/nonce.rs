@@ -31,7 +31,7 @@ pub fn default_nonce() -> u64 {
 }
 
 #[inline]
-pub fn secure_nonce_128() -> [u8; 16] {
+pub(crate) fn secure_nonce_128() -> [u8; 16] {
     let mut buf = [0u8; 16];
     let _ = crate::crypto::random_api::get_bytes_secure(&mut buf);
     buf

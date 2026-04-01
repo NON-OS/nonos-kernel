@@ -27,7 +27,7 @@ mod verify;
 
 pub use create::{create_token, create_token_with_nonce};
 pub use material::{mac64, token_material};
-pub use nonce::{current_nonce_counter, default_nonce, reset_nonce_counter};
+pub use nonce::{current_nonce_counter, default_nonce, reset_nonce_counter, secure_nonce_128};
 pub use revocation::{
     clear_revocations, is_revoked, revoke_all_for_owner, revoke_token, revoked_count,
 };
