@@ -30,6 +30,7 @@ pub fn microkernel_init(handoff: &BootHandoffV1) {
     crate::sys::settings::init();
     crate::sys::settings::init_hostname();
     crate::ipc::init();
+    crate::ipc::nonos_channel::init_ipc_secret();
     crate::syscall::microkernel::capability::init_cap_for_init();
     crate::sched::init();
     clock::init(handoff.timing.tsc_hz, handoff.timing.unix_epoch_ms);
