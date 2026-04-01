@@ -20,7 +20,7 @@ use alloc::vec::Vec;
 use core::ptr::{addr_of, addr_of_mut};
 use core::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 
-use crate::graphics::image::{decode_png, DecodedImage};
+use crate::graphics::image::{decode_lz4_raw, decode_png, DecodedImage};
 
 use super::wallpaper_data::get_embedded_wallpaper_data;
 
@@ -88,7 +88,12 @@ pub fn load_current_wallpaper() -> Option<&'static DecodedImage> {
 
     unsafe { *addr_of_mut!(CACHED_WALLPAPER) = None; }
 
-    let image = match decode_png(png_data) {
+    let image = if png_data.len() >= 4 && &png_data[0..4] == b"NLZ4" {
+        decode_lz4_raw(png_data)
+    } else {
+        decode_png(png_data)
+    };
+    let image = match image {
         Some(img) => img,
         None => {
             WALLPAPER_LOADING.store(false, Ordering::Release);

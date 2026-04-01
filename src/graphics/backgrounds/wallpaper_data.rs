@@ -15,16 +15,16 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 // Active wallpapers
-pub(super) static WALLPAPER_NETWORK_13: &[u8] = include_bytes!("../../../assets/wallpapers/network-topology-13.png");
-pub(super) static WALLPAPER_NETWORK_18: &[u8] = include_bytes!("../../../assets/wallpapers/network-topology-18.png");
-pub(super) static WALLPAPER_FIELD_6: &[u8] = include_bytes!("../../../assets/wallpapers/field-focus-6.png");
-pub(super) static WALLPAPER_FIELD_7: &[u8] = include_bytes!("../../../assets/wallpapers/field-focus-7.png");
-pub(super) static WALLPAPER_HARDWARE_7: &[u8] = include_bytes!("../../../assets/wallpapers/hardware-aesthetic-7.png");
-pub(super) static WALLPAPER_SPECIAL_2B: &[u8] = include_bytes!("../../../assets/wallpapers/special-variant-2b.png");
-pub(super) static WALLPAPER_SPECIAL_7: &[u8] = include_bytes!("../../../assets/wallpapers/special-variant-7.png");
-pub(super) static WALLPAPER_SPECIAL_10: &[u8] = include_bytes!("../../../assets/wallpapers/special-variant-10.png");
-pub(super) static WALLPAPER_SPECIAL_11: &[u8] = include_bytes!("../../../assets/wallpapers/special-variant-11.png");
-pub(super) static WALLPAPER_SPECIAL_14: &[u8] = include_bytes!("../../../assets/wallpapers/special-variant-14.png");
+pub(super) static WALLPAPER_NETWORK_13: &[u8] = include_bytes!("../../../assets/wallpapers/network-topology-13.lz4raw");
+pub(super) static WALLPAPER_NETWORK_18: &[u8] = include_bytes!("../../../assets/wallpapers/network-topology-18.lz4raw");
+pub(super) static WALLPAPER_FIELD_6: &[u8] = include_bytes!("../../../assets/wallpapers/field-focus-6.lz4raw");
+pub(super) static WALLPAPER_FIELD_7: &[u8] = include_bytes!("../../../assets/wallpapers/field-focus-7.lz4raw");
+pub(super) static WALLPAPER_HARDWARE_7: &[u8] = include_bytes!("../../../assets/wallpapers/hardware-aesthetic-7.lz4raw");
+pub(super) static WALLPAPER_SPECIAL_2B: &[u8] = include_bytes!("../../../assets/wallpapers/special-variant-2b.lz4raw");
+pub(super) static WALLPAPER_SPECIAL_7: &[u8] = include_bytes!("../../../assets/wallpapers/special-variant-7.lz4raw");
+pub(super) static WALLPAPER_SPECIAL_10: &[u8] = include_bytes!("../../../assets/wallpapers/special-variant-10.lz4raw");
+pub(super) static WALLPAPER_SPECIAL_11: &[u8] = include_bytes!("../../../assets/wallpapers/special-variant-11.lz4raw");
+pub(super) static WALLPAPER_SPECIAL_14: &[u8] = include_bytes!("../../../assets/wallpapers/special-variant-14.lz4raw");
 
 // Inactive wallpapers (commented out to reduce binary size)
 // pub(super) static WALLPAPER_NETWORK_1: &[u8] = include_bytes!("../../../assets/wallpapers/network-topology-1.png");
