@@ -82,8 +82,7 @@ mod verifier {
 #[cfg(all(feature = "crypto-ed25519-dalek", not(feature = "crypto-ed25519-int")))]
 mod verifier {
     use super::*;
-    use core::convert::TryFrom;
-    use ed25519_dalek::{PublicKey, Signature, Verifier};
+    use ed25519_dalek::{Signature, Verifier, VerifyingKey};
 
     pub fn verify_manifest_signature(manifest: &[u8], signature: &[u8]) -> VerificationResult {
         if signature.len() != SIGNATURE_SIZE {
@@ -91,21 +90,16 @@ mod verifier {
         }
 
         let pk_bytes: [u8; ED25519_PUBLIC_KEY_LEN] = NONOS_KERNEL_PUBLIC_KEY;
-        let public_key = match PublicKey::from_bytes(&pk_bytes) {
+        let public_key = match VerifyingKey::from_bytes(&pk_bytes) {
             Ok(pk) => pk,
-            Err(_) => {
-                return VerificationResult::InvalidFormat;
-            }
+            Err(_) => return VerificationResult::InvalidFormat,
         };
 
         let sig_bytes: [u8; SIGNATURE_SIZE] = match signature.try_into() {
             Ok(s) => s,
             Err(_) => return VerificationResult::InvalidFormat,
         };
-        let sig = match Signature::try_from(&sig_bytes[..]) {
-            Ok(s) => s,
-            Err(_) => return VerificationResult::InvalidFormat,
-        };
+        let sig = Signature::from_bytes(&sig_bytes);
 
         match public_key.verify(manifest, &sig) {
             Ok(()) => VerificationResult::Valid,
@@ -128,7 +122,7 @@ mod tests {
     #[cfg(any(feature = "crypto-ed25519-int", feature = "crypto-ed25519-dalek"))]
     #[test]
     fn test_valid_signature_roundtrip() {
-        use ed25519_dalek::{Keypair, Signer};
+        use ed25519_dalek::{Signature, Signer, SigningKey, Verifier};
         use rand_chacha::ChaCha20Rng;
         use rand_core::{RngCore, SeedableRng};
 
@@ -140,18 +134,18 @@ mod tests {
 
         let mut secret = [0u8; 32];
         rng.fill_bytes(&mut secret);
-        let keypair = Keypair::generate(&mut rng);
+        let signing_key = SigningKey::generate(&mut rng);
 
         let manifest = b"test-manifest-bytes";
-        let sig = keypair.sign(manifest);
+        let sig = signing_key.sign(manifest);
         let sig_bytes = sig.to_bytes();
 
-        let pk = keypair.public.to_bytes();
+        let pk = signing_key.verifying_key().to_bytes();
 
         let verification_result = {
-            match ed25519_dalek::PublicKey::from_bytes(&pk) {
+            match ed25519_dalek::VerifyingKey::from_bytes(&pk) {
                 Ok(public_key) => {
-                    match public_key.verify(manifest, &Signature::try_from(&sig_bytes[..]).unwrap()) {
+                    match public_key.verify(manifest, &Signature::from_bytes(&sig_bytes)) {
                         Ok(()) => VerificationResult::Valid,
                         Err(_) => VerificationResult::InvalidSignature,
                     }
