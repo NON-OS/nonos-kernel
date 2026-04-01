@@ -32,6 +32,9 @@ pub use api::{
     anonymous_mode, set_anonymous_mode, nym_enabled, set_nym_enabled,
     auto_wipe, set_auto_wipe,
     theme, set_theme, timezone, set_timezone,
+    language, set_language, developer_mode, set_developer_mode,
+    hardware_crypto, set_hardware_crypto, zk_attestation, set_zk_attestation,
+    system_keys_generated, set_system_keys_generated,
 };
 
 pub use persistence::{save_to_disk, load_from_disk, SETTINGS_FILENAME};
