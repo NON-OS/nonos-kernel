@@ -17,7 +17,7 @@
 use crate::display::gop::get_dimensions;
 
 const MARGIN: u32 = 40;
-const HEADER_HEIGHT: u32 = 100;
+const HEADER_HEIGHT: u32 = 120;
 
 pub struct TerminalLayout {
     pub x: u32,
