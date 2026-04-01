@@ -71,7 +71,7 @@ impl ServiceServer {
 impl Drop for ServiceServer {
     fn drop(&mut self) {
         if let Ok(name) = core::str::from_utf8(&self.name[..self.name_len]) {
-            unregister_endpoint(name);
+            let _ = unregister_endpoint(name);
         }
     }
 }
