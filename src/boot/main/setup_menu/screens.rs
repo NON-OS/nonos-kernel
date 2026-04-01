@@ -20,15 +20,15 @@ use super::{brand, render, input::*, state::*};
 use core::sync::atomic::{AtomicUsize, Ordering};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum Screen { Welcome, Language, Wallpaper, Crypto, Complete }
+pub(super) enum Screen { Welcome, Language, Wallpaper, Crypto, Complete }
 static SEL: AtomicUsize = AtomicUsize::new(0);
 
-pub fn render_and_handle(cfg: &mut SetupConfig, scr: Screen) -> Screen {
+pub(super) fn render_and_handle(cfg: &mut SetupConfig, scr: Screen) -> Screen {
     render::clear();
     let (_, h) = framebuffer::dimensions();
     let s = SEL.load(Ordering::Relaxed);
     match scr {
-        Screen::Welcome => { render::logo(h/6); render::text_centered(brand::TAGLINE, (h/6+100) as i32, brand::TEXT_SECONDARY); render::text_centered("Welcome to NONOS", (h/2) as i32, brand::TEXT_PRIMARY); render::text_centered("Press ENTER to begin", (h/2+30) as i32, brand::TEXT_SECONDARY); render::progress_dots(h-80, 0, 4); render::footer("[Enter] Continue", "[N] Skip"); }
+        Screen::Welcome => { render::logo(h/6); render::text_centered(brand::TAGLINE, (h/6+100) as i32, brand::TEXT_SECONDARY); render::text_centered("Welcome to NONOS", (h/2) as i32, brand::TEXT_PRIMARY); render::text_centered("Press ENTER to begin", (h/2+30) as i32, brand::TEXT_SECONDARY); render::progress_dots(h-80, 0, 4); render::footer("[Enter] Continue", brand::VERSION); }
         Screen::Language => list("Select Language", &LANGUAGES.iter().map(|x| x.1).collect::<alloc::vec::Vec<_>>(), s, cfg.language_index, h, 1),
         Screen::Wallpaper => list("Choose Wallpaper", &WALLPAPERS.to_vec(), s, cfg.wallpaper_index.unwrap_or(99), h, 2),
         Screen::Crypto => { render::text_centered("Security Configuration", 50, brand::TEXT_PRIMARY); render::checkbox(200, 120, "Generate Keys (Ed25519/X25519)", cfg.generate_keys, s==0); render::checkbox(200, 155, "Hardware Crypto (AES-NI)", cfg.hardware_crypto, s==1); render::checkbox(200, 190, "ZK Attestation (Groth16)", cfg.zk_attestation, s==2); render::checkbox(200, 225, "Developer Mode", cfg.developer_mode, s==3); render::menu_item(200, h-100, 400, ">> Finish Setup", s==4); render::progress_dots(h-80, 3, 4); render::footer("[Space] Toggle", "[Q] Back"); }
