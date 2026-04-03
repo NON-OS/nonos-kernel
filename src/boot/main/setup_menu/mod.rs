@@ -45,7 +45,11 @@ pub fn needs_setup() -> bool { !state::is_setup_complete() }
 
 pub fn apply_config(config: &SetupConfig) {
     crate::sys::serial::println(b"[SETUP] Applying config");
-    settings::set_language(config.language_index as u8);
+    let lang_id = match config.language_index {
+        0 => 0, 1 => 3, 2 => 2, 3 => 1, 6 => 4, 7 => 5, _ => 0,
+    };
+    settings::set_language(lang_id);
+    crate::locale::set_lang(crate::locale::Language::from(lang_id));
     if let Some(idx) = config.wallpaper_index {
         crate::graphics::backgrounds::set_current_wallpaper(idx);
     }
