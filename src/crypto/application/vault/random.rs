@@ -32,27 +32,37 @@ fn generate_secure_u64() -> CryptoResult<u64> {
             return Ok(value);
         }
     }
-
-    let mut entropy = 0u64;
-
-    unsafe {
-        core::arch::asm!("rdtsc", out("rax") entropy, out("rdx") _);
+    if let Some(value) = try_rdseed_u64() {
+        return Ok(value);
     }
+    if let Ok(buf) = try_virtio_rng() {
+        return Ok(u64::from_le_bytes(buf));
+    }
+    Err(crate::crypto::CryptoError::InsufficientEntropy)
+}
 
-    let stack_addr = &entropy as *const u64 as u64;
-    entropy ^= stack_addr;
+fn try_rdseed_u64() -> Option<u64> {
+    for _ in 0..10 {
+        let mut result: u64;
+        let success: u8;
+        unsafe {
+            core::arch::asm!(
+                "rdseed {result}",
+                "setc {success}",
+                result = out(reg) result,
+                success = out(reg_byte) success,
+                options(nomem, nostack)
+            );
+        }
+        if success != 0 { return Some(result); }
+    }
+    None
+}
 
-    let cpuid_result = core::arch::x86_64::__cpuid(1);
-    entropy ^= (cpuid_result.ecx as u64) << 32;
-
-    let input_bytes = entropy.to_le_bytes();
-    let hash = crate::crypto::blake3::blake3_hash(&input_bytes);
-    let result = u64::from_le_bytes([
-        hash[0], hash[1], hash[2], hash[3],
-        hash[4], hash[5], hash[6], hash[7],
-    ]);
-
-    Ok(result)
+fn try_virtio_rng() -> Result<[u8; 8], ()> {
+    let mut buf = [0u8; 8];
+    crate::drivers::virtio_rng::fill_random(&mut buf).map_err(|_| ())?;
+    Ok(buf)
 }
 
 fn rdrand_u64() -> Option<u64> {
