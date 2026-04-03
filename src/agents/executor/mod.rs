@@ -19,17 +19,23 @@ mod runner;
 use core::sync::atomic::{AtomicU32, AtomicBool, Ordering};
 use alloc::vec::Vec;
 use super::core::{AgentState, MessageRole};
-use super::registry::get_agent_mut;
+use super::registry::{update_agent, with_agent_mut};
 
 pub(super) static RUNNING_AGENT: AtomicU32 = AtomicU32::new(0);
 pub(super) static EXECUTION_FLAG: AtomicBool = AtomicBool::new(false);
 
 pub fn run_agent(agent_id: u32, input: &[u8]) -> bool {
-    if EXECUTION_FLAG.load(Ordering::Relaxed) { return false; }
-    let agent = match get_agent_mut(agent_id) { Some(a) => a, None => return false };
-    agent.state = AgentState::Running;
-    agent.last_run = crate::time::timestamp_millis();
-    agent.add_message(MessageRole::User, input);
+    if EXECUTION_FLAG.load(Ordering::Relaxed) {
+        return false;
+    }
+    let setup_ok = with_agent_mut(agent_id, |agent| {
+        agent.state = AgentState::Running;
+        agent.last_run = crate::time::timestamp_millis();
+        agent.add_message(MessageRole::User, input);
+    });
+    if setup_ok.is_none() {
+        return false;
+    }
     RUNNING_AGENT.store(agent_id, Ordering::Relaxed);
     EXECUTION_FLAG.store(true, Ordering::Relaxed);
     runner::execute_loop(agent_id);
@@ -37,7 +43,7 @@ pub fn run_agent(agent_id: u32, input: &[u8]) -> bool {
 }
 
 pub fn stop_agent(agent_id: u32) {
-    if let Some(a) = get_agent_mut(agent_id) { a.state = AgentState::Idle; }
+    update_agent(agent_id, |a| a.state = AgentState::Idle);
     EXECUTION_FLAG.store(false, Ordering::Relaxed);
 }
 
@@ -45,5 +51,10 @@ pub fn agent_output(agent_id: u32) -> Vec<u8> {
     super::registry::get_agent(agent_id).map(|a| a.output.clone()).unwrap_or_default()
 }
 
-pub fn is_running() -> bool { EXECUTION_FLAG.load(Ordering::Relaxed) }
-pub fn current_agent() -> u32 { RUNNING_AGENT.load(Ordering::Relaxed) }
+pub fn is_running() -> bool {
+    EXECUTION_FLAG.load(Ordering::Relaxed)
+}
+
+pub fn current_agent() -> u32 {
+    RUNNING_AGENT.load(Ordering::Relaxed)
+}
