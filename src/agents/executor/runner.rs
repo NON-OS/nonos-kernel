@@ -17,29 +17,30 @@
 use core::sync::atomic::Ordering;
 use alloc::vec::Vec;
 use crate::agents::core::{AgentState, MessageRole};
-use crate::agents::registry::get_agent_mut;
+use crate::agents::registry::{get_agent, with_agent_mut};
 
 pub(super) fn execute_loop(agent_id: u32) {
     const MAX_ITERATIONS: u8 = 8;
     for _ in 0..MAX_ITERATIONS {
-        let response = {
-            let agent = match get_agent_mut(agent_id) { Some(a) => a, None => break };
-            crate::agents::llm::generate(&agent.messages, &agent.config)
+        let agent_data = match get_agent(agent_id) {
+            Some(a) => a,
+            None => break,
         };
-        if let Some(agent) = get_agent_mut(agent_id) {
+        let response = crate::agents::llm::generate(&agent_data.messages, &agent_data.config);
+        with_agent_mut(agent_id, |agent| {
             agent.add_message(MessageRole::Assistant, &response);
-        }
+        });
         if let Some((name, args)) = parse_tool_call(&response) {
             let result = crate::agents::tools::execute_tool(&name, &args);
-            if let Some(agent) = get_agent_mut(agent_id) {
+            with_agent_mut(agent_id, |agent| {
                 agent.add_message(MessageRole::Tool, &result);
-            }
+            });
             continue;
         }
-        if let Some(agent) = get_agent_mut(agent_id) {
+        with_agent_mut(agent_id, |agent| {
             agent.output = response;
             agent.state = AgentState::Complete;
-        }
+        });
         break;
     }
     super::EXECUTION_FLAG.store(false, Ordering::Relaxed);
