@@ -19,9 +19,6 @@ use core::sync::atomic::{AtomicBool, Ordering};
 pub(super) static POWER_ACTION_REBOOT: AtomicBool = AtomicBool::new(false);
 pub(super) static POWER_ACTION_SHUTDOWN: AtomicBool = AtomicBool::new(false);
 
-pub(super) const BUTTON_WIDTH: u32 = 120;
-pub(super) const BUTTON_HEIGHT: u32 = 32;
-
 pub(super) fn take_reboot_action() -> bool {
     POWER_ACTION_REBOOT.swap(false, Ordering::Relaxed)
 }
