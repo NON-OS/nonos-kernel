@@ -19,19 +19,22 @@ use crate::interrupts::pic;
 use crate::interrupts::stats;
 use crate::interrupts::timer;
 use crate::interrupts::safety::set_interrupt_context;
+use crate::sched::{need_reschedule, clear_reschedule};
+use crate::sched::scheduler::preemption::preempt_current_process;
 
 const TIMER_IRQ_LINE: u8 = 0;
 
-/// # Safety
-/// Timer interrupt handler. Sets interrupt context for safe nesting detection.
 pub fn handle() {
     let _ctx = set_interrupt_context();
 
     stats::increment_timer();
-
     timer::on_timer_interrupt();
-
     send_eoi();
+
+    if need_reschedule() {
+        clear_reschedule();
+        preempt_current_process();
+    }
 }
 
 fn send_eoi() {
