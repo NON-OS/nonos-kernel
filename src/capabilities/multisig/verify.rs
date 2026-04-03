@@ -14,19 +14,26 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use crate::crypto::util::constant_time::ct_eq_32;
+
 use super::error::MultiSigError;
 use super::material::{compute_signature, signature_material};
 use super::token_type::MultiSigToken;
 
 fn count_valid_sigs(token: &MultiSigToken, keys: &[(&u64, &[u8; 32])]) -> (usize, Option<u64>) {
     let mut valid = 0;
+    let mut bad_signer: Option<u64> = None;
     for (signer_id, sig) in &token.signatures {
         if let Some((_, key)) = keys.iter().find(|(id, _)| **id == *signer_id) {
             let expected = compute_signature(key, &signature_material(token, *signer_id));
-            if *sig == expected { valid += 1; } else { return (valid, Some(*signer_id)); }
+            if ct_eq_32(sig, &expected) {
+                valid += 1;
+            } else if bad_signer.is_none() {
+                bad_signer = Some(*signer_id);
+            }
         }
     }
-    (valid, None)
+    (valid, bad_signer)
 }
 
 pub fn verify_multisig(token: &MultiSigToken, keys: &[(&u64, &[u8; 32])]) -> Result<bool, MultiSigError> {
@@ -47,7 +54,7 @@ pub fn count_valid_signatures(token: &MultiSigToken, keys: &[(&u64, &[u8; 32])])
     for (signer_id, sig) in &token.signatures {
         if let Some((_, key)) = keys.iter().find(|(id, _)| **id == *signer_id) {
             let expected = compute_signature(key, &signature_material(token, *signer_id));
-            if *sig == expected { valid += 1; }
+            if ct_eq_32(sig, &expected) { valid += 1; }
         }
     }
     valid
