@@ -18,13 +18,17 @@ use core::sync::atomic::Ordering;
 use super::state::SCHEDULER_STATS;
 use super::super::selection::{select_next_process, switch_to_process};
 
-#[allow(dead_code)]
-pub(crate) fn preempt_current_process() {
-    use crate::process::nonos_core::{current_pid, PROCESS_TABLE, ProcessState};
+pub fn preempt_current_process() {
+    use crate::process::nonos_core::{current_pid, PROCESS_TABLE, ProcessState, save_fpu_state};
 
     let current = current_pid();
     if let Some(curr_pid) = current {
+        save_fpu_state(curr_pid);
+        crate::sched::Context::clear_restored_flag();
         let ctx = crate::sched::Context::save();
+        if crate::sched::Context::was_just_restored() {
+            return;
+        }
         crate::process::nonos_core::save_interrupt_context(curr_pid, ctx);
         if let Some(pcb) = PROCESS_TABLE.find_by_pid(curr_pid) {
             let mut state = pcb.state.lock();
