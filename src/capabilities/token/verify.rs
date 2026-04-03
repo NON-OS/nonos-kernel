@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::capabilities::bits::caps_to_bits;
+use crate::crypto::util::constant_time::ct_eq_64;
 
 use super::material::{mac64, token_material};
 use super::signing_key::signing_key;
@@ -31,5 +32,6 @@ pub fn verify_token(tok: &CapabilityToken) -> bool {
         tok.expires_at_ms.unwrap_or(0),
         tok.nonce,
     );
-    mac64(key, &mat) == tok.signature
+    let computed = mac64(key, &mat);
+    ct_eq_64(&computed, &tok.signature)
 }
