@@ -21,7 +21,7 @@ use core::sync::atomic::{compiler_fence, AtomicBool, AtomicU8, Ordering};
 use spin::RwLock;
 use super::types::{Network, WalletState};
 use super::account::AccountInfo;
-use super::super::keys::WalletKeys;
+use super::super::keys::{WalletKeys, SecureSecretKey};
 use super::super::stealth::StealthKeyPair;
 use crate::crypto::CryptoError;
 
@@ -88,11 +88,11 @@ pub fn get_all_accounts() -> Vec<AccountInfo> { let guard = WALLET_STATE.read();
 pub fn update_account_balance(index: u32, balance_wei: u128) { let mut guard = WALLET_STATE.write(); if let Some(inner) = guard.as_mut() { if let Some(account) = inner.accounts.get_mut(index as usize) { account.balance_wei = balance_wei; } } }
 pub fn update_account_nonce(index: u32, nonce: u64) { let mut guard = WALLET_STATE.write(); if let Some(inner) = guard.as_mut() { if let Some(account) = inner.accounts.get_mut(index as usize) { account.nonce = nonce; } } }
 
-pub fn get_secret_key(index: u32) -> Result<[u8; 32], CryptoError> {
+pub fn get_secret_key(index: u32) -> Result<SecureSecretKey, CryptoError> {
     if WALLET_LOCKED.load(Ordering::SeqCst) { return Err(CryptoError::InvalidState); }
     let guard = WALLET_STATE.read();
     let inner = guard.as_ref().ok_or(CryptoError::InvalidState)?;
-    inner.keys.derive_secret_key(index)
+    Ok(SecureSecretKey::new(inner.keys.derive_secret_key(index)?))
 }
 
 pub fn set_stealth_keys(stealth_keys: StealthKeyPair) { let mut guard = WALLET_STATE.write(); if let Some(inner) = guard.as_mut() { inner.stealth_keys = Some(stealth_keys); } }
