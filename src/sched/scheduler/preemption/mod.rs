@@ -22,5 +22,6 @@ mod yield_impl;
 pub use state::{CURRENT_TIME_SLICE, DEFAULT_TIME_SLICE, NEED_RESCHEDULE};
 pub(crate) use state::SCHEDULER_STATS;
 pub use state::{need_reschedule, clear_reschedule};
+pub use switch::preempt_current_process;
 pub use tick::tick;
 pub use yield_impl::yield_now;
