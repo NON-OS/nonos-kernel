@@ -14,14 +14,24 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod accessors;
 mod commands;
-mod core;
+mod constructor;
 mod encryption;
+mod erase_methods;
 mod helpers;
 mod init;
+mod init_ctrl;
 mod io;
+mod io_methods;
+mod ncq;
+mod ncq_fis;
+mod ncq_read;
+mod ncq_wait;
+mod ncq_write;
 mod secure_erase;
+mod structure;
 mod validation;
 
-pub use self::core::AhciController;
+pub use structure::AhciController;
 pub use helpers::{hdr_flags_for, RegisterAccess};
