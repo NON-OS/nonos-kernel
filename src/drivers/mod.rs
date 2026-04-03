@@ -17,8 +17,8 @@
 pub mod ahci; pub mod audio; pub mod console; mod critical; mod device_info; pub mod e1000;
 mod exports; pub mod gpu; pub mod i2c; mod init; pub mod keyboard; pub mod keyboard_buffer;
 pub mod monster; pub mod network; pub mod nvme; pub mod pci; pub mod rtl8139; pub mod rtl8168;
-pub mod security; mod stats; pub mod tpm; pub mod usb; pub mod vga; pub mod virtio_net;
-pub mod virtio_rng; pub mod wifi; pub mod xhci;
+pub mod security; mod stats; pub mod tpm; pub mod usb; pub mod vga; pub mod virtio_blk;
+pub mod virtio_net; pub mod virtio_rng; pub mod wifi; pub mod xhci;
 
 pub use security::{is_config_write_allowed, safe_mmio_read32, safe_mmio_write32, validate_dma_buffer, validate_lba_range, validate_mmio_region, validate_pci_access, validate_prp_list, DriverError, DriverOpType, RateLimiter};
 pub use pci::{get_pci_manager, init_pci, PciBar, PciCapability, PciDevice, PciManager, PciStats};
