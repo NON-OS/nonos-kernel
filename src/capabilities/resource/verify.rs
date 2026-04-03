@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::capabilities::token::signing_key;
+use crate::crypto::util::constant_time::ct_eq_64;
 
 use super::error::ResourceError;
 use super::material::{compute_signature, token_material};
@@ -23,13 +24,15 @@ use super::token_type::ResourceToken;
 pub fn verify_resource_token(tok: &ResourceToken) -> bool {
     let Some(key) = signing_key() else { return false; };
     let mat = token_material(tok.owner_module, tok.original_quota(), tok.nonce);
-    tok.signature == compute_signature(key, &mat)
+    let expected = compute_signature(key, &mat);
+    ct_eq_64(&tok.signature, &expected)
 }
 
 pub fn verify_resource_token_strict(tok: &ResourceToken) -> Result<(), ResourceError> {
     if tok.is_expired() { return Err(ResourceError::TokenExpired); }
     let Some(key) = signing_key() else { return Err(ResourceError::MissingSigningKey); };
     let mat = token_material(tok.owner_module, tok.original_quota(), tok.nonce);
-    if tok.signature != compute_signature(key, &mat) { return Err(ResourceError::InvalidSignature); }
+    let expected = compute_signature(key, &mat);
+    if !ct_eq_64(&tok.signature, &expected) { return Err(ResourceError::InvalidSignature); }
     Ok(())
 }
