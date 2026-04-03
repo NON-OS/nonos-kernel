@@ -20,7 +20,7 @@ mod wallet;
 mod address;
 mod path;
 
-pub use types::WalletKeys;
+pub use types::{WalletKeys, SecureSecretKey};
 pub use wallet::{generate_wallet, import_wallet, derive_account};
 pub use address::{address_to_hex, address_from_hex, checksum_address, validate_address, validate_checksum_address};
 pub use path::{derive_from_path, derive_eth_account, eth_derivation_path};
