@@ -31,6 +31,25 @@ pub fn micro_delay() {
     }
 }
 
+pub fn print_u64(st: &mut SystemTable<Boot>, mut n: u64) {
+    if n == 0 {
+        let _ = st.stdout().output_string(cstr16!("0"));
+        return;
+    }
+    let mut buf = [0u16; 20];
+    let mut i = 19;
+    while n > 0 && i > 0 {
+        buf[i] = b'0' as u16 + (n % 10) as u16;
+        n /= 10;
+        i -= 1;
+    }
+    for c in &buf[i + 1..20] {
+        let s = [*c, 0];
+        let cs = unsafe { uefi::CStr16::from_u16_with_nul_unchecked(&s) };
+        let _ = st.stdout().output_string(cs);
+    }
+}
+
 pub fn fatal_reset(st: &mut SystemTable<Boot>, reason: &str) -> ! {
     log_error("fatal", reason);
     let _ = st.stdout().reset(false);
