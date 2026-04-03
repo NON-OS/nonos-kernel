@@ -28,7 +28,9 @@ pub fn create_agent(config: AgentConfig) -> u32 {
     let id = NEXT_ID.fetch_add(1, Ordering::Relaxed);
     let agent = Agent::new(id, config);
     let mut agents = AGENTS.lock();
-    if agents.len() < MAX_AGENTS { agents.push(agent); }
+    if agents.len() < MAX_AGENTS {
+        agents.push(agent);
+    }
     id
 }
 
@@ -37,14 +39,24 @@ pub fn get_agent(id: u32) -> Option<Agent> {
     agents.iter().find(|a| a.id == id).cloned()
 }
 
-pub fn get_agent_mut(id: u32) -> Option<&'static mut Agent> {
-    unsafe {
-        let agents = AGENTS.lock();
-        let ptr = agents.as_ptr() as *mut Agent;
-        let len = agents.len();
-        drop(agents);
-        for i in 0..len { if (*ptr.add(i)).id == id { return Some(&mut *ptr.add(i)); } }
-        None
+pub fn with_agent_mut<F, R>(id: u32, f: F) -> Option<R>
+where
+    F: FnOnce(&mut Agent) -> R,
+{
+    let mut agents = AGENTS.lock();
+    agents.iter_mut().find(|a| a.id == id).map(f)
+}
+
+pub fn update_agent<F>(id: u32, f: F) -> bool
+where
+    F: FnOnce(&mut Agent),
+{
+    let mut agents = AGENTS.lock();
+    if let Some(agent) = agents.iter_mut().find(|a| a.id == id) {
+        f(agent);
+        true
+    } else {
+        false
     }
 }
 
@@ -60,4 +72,6 @@ pub fn delete_agent(id: u32) -> bool {
     agents.len() < before
 }
 
-pub fn agent_count() -> usize { AGENTS.lock().len() }
+pub fn agent_count() -> usize {
+    AGENTS.lock().len()
+}
