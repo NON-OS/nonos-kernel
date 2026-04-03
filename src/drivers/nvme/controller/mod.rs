@@ -15,9 +15,14 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub mod admin;
-mod core;
+mod structure;
+mod constructor;
+mod initialize;
+mod multiqueue;
+mod io_ops;
+mod accessors;
 pub mod init;
 pub mod io;
 
-pub use self::core::NvmeController;
+pub use structure::NvmeController;
 pub use admin::SmartLog;
