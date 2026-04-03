@@ -33,6 +33,7 @@ pub mod syscall;
 pub mod time;
 pub mod uefi;
 pub mod vga;
+pub mod watchdog;
 
 pub use api::{get_stats, init, init_with_acpi, is_initialized, ArchStats};
 
