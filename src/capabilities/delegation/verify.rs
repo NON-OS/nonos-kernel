@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::capabilities::token::{signing_key, CapabilityToken};
+use crate::crypto::util::constant_time::ct_eq_64;
 
 use super::error::DelegationError;
 use super::material::{compute_delegation_signature, delegation_material};
@@ -23,7 +24,8 @@ use super::types::Delegation;
 pub fn verify_delegation(d: &Delegation, parent: &CapabilityToken) -> bool {
     if d.is_expired() || d.parent_nonce != parent.nonce || d.delegator != parent.owner_module { return false; }
     let Some(key) = signing_key() else { return false; };
-    d.signature == compute_delegation_signature(key, &delegation_material(d, parent.nonce))
+    let expected = compute_delegation_signature(key, &delegation_material(d, parent.nonce));
+    ct_eq_64(&d.signature, &expected)
 }
 
 pub fn verify_delegation_strict(d: &Delegation, parent: &CapabilityToken) -> Result<(), DelegationError> {
@@ -33,12 +35,13 @@ pub fn verify_delegation_strict(d: &Delegation, parent: &CapabilityToken) -> Res
     }
     let Some(key) = signing_key() else { return Err(DelegationError::MissingSigningKey); };
     let expected = compute_delegation_signature(key, &delegation_material(d, parent.nonce));
-    if d.signature != expected { return Err(DelegationError::InvalidSignature); }
+    if !ct_eq_64(&d.signature, &expected) { return Err(DelegationError::InvalidSignature); }
     Ok(())
 }
 
 pub fn verify_delegation_standalone(d: &Delegation) -> bool {
     if d.is_expired() { return false; }
     let Some(key) = signing_key() else { return false; };
-    d.signature == compute_delegation_signature(key, &delegation_material(d, d.parent_nonce))
+    let expected = compute_delegation_signature(key, &delegation_material(d, d.parent_nonce));
+    ct_eq_64(&d.signature, &expected)
 }
