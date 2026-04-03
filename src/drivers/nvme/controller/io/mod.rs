@@ -14,8 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod async_io;
+mod async_handle;
+mod async_submit;
+mod async_wait;
 mod sync;
 
-pub use async_io::{submit_read_async, submit_write_async, wait_for_completion, AsyncIoHandle};
+pub use async_handle::AsyncIoHandle;
+pub use async_submit::{submit_read_async, submit_write_async};
+pub use async_wait::{wait_for_completion, wait_for_completion_interrupt};
 pub use sync::{compare, flush, read_blocks, trim, write_blocks, write_zeroes};
