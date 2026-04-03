@@ -14,15 +14,36 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::{AtomicU64, Ordering};
+use core::sync::atomic::AtomicU64;
 
 pub(super) static KEYGEN_COUNTER: AtomicU64 = AtomicU64::new(0xB5A1_9E37_C4D2_8F6B);
 
 #[inline]
 pub(super) fn rdrand64_or_tsc() -> u64 {
-    for _ in 0..10 { let mut val: u64 = 0; let success: u8; unsafe { core::arch::asm!("rdrand {0}", "setc {1}", out(reg) val, out(reg_byte) success, options(nostack)); } if success != 0 && val != 0 { return val; } }
-    let tsc = read_tsc(); let pit = read_pit_counter() as u64; let ctr = KEYGEN_COUNTER.fetch_add(0x9E3779B97F4A7C15, Ordering::Relaxed);
-    tsc ^ ctr ^ (pit << 32) ^ (pit << 16)
+    secure_random64().unwrap_or_else(|| panic!("CRITICAL: No hardware entropy available"))
+}
+
+pub(super) fn secure_random64() -> Option<u64> {
+    if let Some(val) = try_rdrand64() { return Some(val); }
+    if let Some(val) = try_rdseed64() { return Some(val); }
+    if let Some(val) = try_virtio_rng64() { return Some(val); }
+    None
+}
+
+fn try_rdrand64() -> Option<u64> {
+    for _ in 0..10 { let mut val: u64 = 0; let success: u8; unsafe { core::arch::asm!("rdrand {0}", "setc {1}", out(reg) val, out(reg_byte) success, options(nostack)); } if success != 0 && val != 0 { return Some(val); } }
+    None
+}
+
+fn try_rdseed64() -> Option<u64> {
+    for _ in 0..10 { let mut val: u64; let success: u8; unsafe { core::arch::asm!("rdseed {0}", "setc {1}", out(reg) val, out(reg_byte) success, options(nostack)); } if success != 0 { return Some(val); } }
+    None
+}
+
+fn try_virtio_rng64() -> Option<u64> {
+    let mut buf = [0u8; 8];
+    crate::drivers::virtio_rng::fill_random(&mut buf).ok()?;
+    Some(u64::from_le_bytes(buf))
 }
 
 #[cfg(target_arch = "x86_64")]
