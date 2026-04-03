@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::super::entropy::{get_entropy64, get_entropy64_secure};
+use super::super::entropy::get_entropy64_secure;
 use super::super::error::{RngError, RngResult};
 use super::init::ensure_initialized;
 use super::state::GLOBAL_RNG;
@@ -74,7 +74,7 @@ pub fn random_u64() -> u64 {
         }
     }
 
-    get_entropy64_secure().unwrap_or_else(|_| get_entropy64())
+    get_entropy64_secure().expect("FATAL: No hardware entropy available")
 }
 
 pub fn random_u64_secure() -> RngResult<u64> {
@@ -135,7 +135,7 @@ pub fn random_range_secure(n: u32) -> RngResult<u32> {
 
 fn fill_with_fallback_secure(buf: &mut [u8]) {
     for chunk in buf.chunks_mut(8) {
-        let v = get_entropy64_secure().unwrap_or_else(|_| get_entropy64());
+        let v = get_entropy64_secure().expect("FATAL: No hardware entropy available for cryptographic operation");
         let bytes = v.to_le_bytes();
         for (i, b) in chunk.iter_mut().enumerate() {
             *b = bytes[i];
