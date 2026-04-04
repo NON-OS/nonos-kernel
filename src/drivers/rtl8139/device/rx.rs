@@ -72,13 +72,13 @@ impl Rtl8139Device {
                     break;
                 }
 
-                let data_offset = (header_offset + 4) % (RX_BUFFER_SIZE - 16);
+                let data_offset = (header_offset + 4) % RX_BUFFER_SIZE;
                 let data_len = (length - 4) as usize;
 
                 let mut packet = Vec::with_capacity(data_len);
                 packet.set_len(data_len);
 
-                let first_part = (RX_BUFFER_SIZE - 16 - data_offset).min(data_len);
+                let first_part = (RX_BUFFER_SIZE - data_offset).min(data_len);
                 core::ptr::copy_nonoverlapping(
                     rx_buf.add(data_offset),
                     packet.as_mut_ptr(),
@@ -99,7 +99,7 @@ impl Rtl8139Device {
                 self.rx_bytes.fetch_add(data_len as u64, Ordering::Relaxed);
 
                 self.rx_offset =
-                    ((self.rx_offset + length + 4 + 3) & !3) % (RX_BUFFER_SIZE as u16 - 16);
+                    ((self.rx_offset + length + 4 + 3) & !3) % (RX_BUFFER_SIZE as u16);
 
                 outw(self.io_base + reg::CAPR, self.rx_offset.wrapping_sub(0x10));
             }
