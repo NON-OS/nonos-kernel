@@ -18,7 +18,9 @@ use super::definition::Context;
 
 const USER_SPACE_MAX: u64 = 0x0000_7FFF_FFFF_FFFF;
 const KERNEL_SPACE_MIN: u64 = 0xFFFF_8000_0000_0000;
-const RFLAGS_RESERVED_MASK: u64 = 0x0000_0000_0020_0002;
+const RFLAGS_PRIVILEGED_MASK: u64 = 0x0000_0000_001B_3000;
+const RFLAGS_RESERVED_SET: u64 = 0x0000_0000_0000_0002;
+const RFLAGS_IF: u64 = 0x0000_0000_0000_0200;
 
 impl Context {
     #[inline]
@@ -28,7 +30,7 @@ impl Context {
 
     #[inline]
     fn validate_rflags(rflags: u64) -> u64 {
-        (rflags & !RFLAGS_RESERVED_MASK) | 0x0000_0000_0000_0002
+        (rflags & !RFLAGS_PRIVILEGED_MASK) | RFLAGS_RESERVED_SET | RFLAGS_IF
     }
 
     fn is_canonical(addr: u64) -> bool {
@@ -58,9 +60,19 @@ impl Context {
     }
 
     pub fn restore(&self) -> ! {
-        if self.validate().is_err() { loop { core::hint::spin_loop(); } }
+        if let Err(e) = self.validate() {
+            crate::sys::serial::println(b"[FATAL] Context validation failed:");
+            crate::sys::serial::println(e.as_bytes());
+            crate::sys::serial::print(b"rip=0x");
+            crate::sys::serial::print_hex(self.rip);
+            crate::sys::serial::print(b" rsp=0x");
+            crate::sys::serial::print_hex(self.rsp);
+            crate::sys::serial::println(b"");
+            loop { core::hint::spin_loop(); }
+        }
         let mut safe_ctx = *self;
         safe_ctx.rflags = Self::validate_rflags(safe_ctx.rflags);
+        super::save::CONTEXT_JUST_RESTORED.store(true, core::sync::atomic::Ordering::SeqCst);
         let ctx_ptr = &safe_ctx as *const Context;
         context_restore_asm(ctx_ptr)
     }
