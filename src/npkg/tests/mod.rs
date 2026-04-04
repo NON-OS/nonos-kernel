@@ -1,0 +1,13 @@
+mod types_tests;
+mod version_tests;
+mod dependency_tests;
+mod manifest_tests;
+mod error_tests;
+mod resolver_tests;
+mod hooks_tests;
+mod sandbox_tests;
+mod cache_tests;
+mod signature_tests;
+mod repository_tests;
+mod installer_tests;
+mod extract_tests;
