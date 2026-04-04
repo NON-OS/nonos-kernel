@@ -156,7 +156,8 @@ pub fn save_fpu_state(pid: Pid) {
 }
 
 pub fn restore_fpu_state(pid: Pid) {
-    if let Some(fpu) = INTERRUPT_SAVED_FPU_STATES.read().get(&pid) {
+    let fpu_copy = INTERRUPT_SAVED_FPU_STATES.read().get(&pid).cloned();
+    if let Some(fpu) = fpu_copy {
         fpu.restore();
     }
 }
