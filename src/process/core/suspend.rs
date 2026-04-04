@@ -21,11 +21,15 @@ use spin::RwLock;
 use super::types::{Pid, ProcessState, SuspendedContext};
 use super::table::{PROCESS_TABLE, CURRENT_PID};
 use super::{current_pid, context_switch};
+use crate::process::userspace::types::FpuState;
 
 static SUSPENDED_CONTEXTS: RwLock<BTreeMap<Pid, SuspendedContext>> =
     RwLock::new(BTreeMap::new());
 
 pub static INTERRUPT_SAVED_CONTEXTS: RwLock<BTreeMap<Pid, crate::sched::Context>> =
+    RwLock::new(BTreeMap::new());
+
+pub static INTERRUPT_SAVED_FPU_STATES: RwLock<BTreeMap<Pid, FpuState>> =
     RwLock::new(BTreeMap::new());
 
 pub fn suspend_process(pid: Pid) -> Result<(), &'static str> {
@@ -143,6 +147,31 @@ pub fn save_interrupt_context(pid: Pid, ctx: crate::sched::Context) {
 
 pub fn clear_interrupt_context(pid: Pid) {
     INTERRUPT_SAVED_CONTEXTS.write().remove(&pid);
+}
+
+pub fn save_fpu_state(pid: Pid) {
+    let mut fpu = FpuState::default();
+    fpu.save();
+    INTERRUPT_SAVED_FPU_STATES.write().insert(pid, fpu);
+}
+
+pub fn restore_fpu_state(pid: Pid) {
+    if let Some(fpu) = INTERRUPT_SAVED_FPU_STATES.read().get(&pid) {
+        fpu.restore();
+    }
+}
+
+pub fn clear_fpu_state(pid: Pid) {
+    INTERRUPT_SAVED_FPU_STATES.write().remove(&pid);
+}
+
+pub fn has_saved_fpu_state(pid: Pid) -> bool {
+    INTERRUPT_SAVED_FPU_STATES.read().contains_key(&pid)
+}
+
+pub fn init_fpu() {
+    let fpu = FpuState::default();
+    fpu.restore();
 }
 
 pub fn resume_process(pid: Pid) -> Result<(), &'static str> {
