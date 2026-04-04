@@ -30,6 +30,9 @@ pub mod types;
 pub mod validation;
 pub mod vdso;
 
+#[cfg(test)]
+mod tests;
+
 pub use caps::current_caps;
 pub use caps as capabilities;
 pub use dispatch::handle_syscall_dispatch;
