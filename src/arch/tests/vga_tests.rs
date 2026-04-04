@@ -1,323 +1,326 @@
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
+
 use crate::arch::x86_64::vga::constants::*;
 use crate::arch::x86_64::vga::console::Console;
+use crate::test::framework::TestResult;
 
-#[test]
-fn test_vga_buffer_addr() {
-    assert_eq!(VGA_BUFFER_ADDR, 0xB8000);
+pub fn test_vga_buffer_addr() -> TestResult {
+    if VGA_BUFFER_ADDR != 0xB8000 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_screen_width() {
-    assert_eq!(SCREEN_WIDTH, 80);
+pub fn test_screen_width() -> TestResult {
+    if SCREEN_WIDTH != 80 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_screen_height() {
-    assert_eq!(SCREEN_HEIGHT, 25);
+pub fn test_screen_height() -> TestResult {
+    if SCREEN_HEIGHT != 25 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_screen_size() {
-    assert_eq!(SCREEN_SIZE, SCREEN_WIDTH * SCREEN_HEIGHT);
-    assert_eq!(SCREEN_SIZE, 2000);
+pub fn test_screen_size() -> TestResult {
+    if SCREEN_SIZE != SCREEN_WIDTH * SCREEN_HEIGHT { return TestResult::Fail; }
+    if SCREEN_SIZE != 2000 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_bytes_per_char() {
-    assert_eq!(BYTES_PER_CHAR, 2);
+pub fn test_bytes_per_char() -> TestResult {
+    if BYTES_PER_CHAR != 2 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_vga_buffer_size() {
-    assert_eq!(VGA_BUFFER_SIZE, SCREEN_SIZE * BYTES_PER_CHAR);
-    assert_eq!(VGA_BUFFER_SIZE, 4000);
+pub fn test_vga_buffer_size() -> TestResult {
+    if VGA_BUFFER_SIZE != SCREEN_SIZE * BYTES_PER_CHAR { return TestResult::Fail; }
+    if VGA_BUFFER_SIZE != 4000 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_max_consoles() {
-    assert_eq!(MAX_CONSOLES, 4);
+pub fn test_max_consoles() -> TestResult {
+    if MAX_CONSOLES != 4 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_scrollback_lines() {
-    assert_eq!(SCROLLBACK_LINES, 200);
+pub fn test_scrollback_lines() -> TestResult {
+    if SCROLLBACK_LINES != 200 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_color_values() {
-    assert_eq!(Color::Black as u8, 0);
-    assert_eq!(Color::Blue as u8, 1);
-    assert_eq!(Color::Green as u8, 2);
-    assert_eq!(Color::Cyan as u8, 3);
-    assert_eq!(Color::Red as u8, 4);
-    assert_eq!(Color::Magenta as u8, 5);
-    assert_eq!(Color::Brown as u8, 6);
-    assert_eq!(Color::LightGray as u8, 7);
-    assert_eq!(Color::DarkGray as u8, 8);
-    assert_eq!(Color::LightBlue as u8, 9);
-    assert_eq!(Color::LightGreen as u8, 10);
-    assert_eq!(Color::LightCyan as u8, 11);
-    assert_eq!(Color::LightRed as u8, 12);
-    assert_eq!(Color::Pink as u8, 13);
-    assert_eq!(Color::Yellow as u8, 14);
-    assert_eq!(Color::White as u8, 15);
+pub fn test_color_values() -> TestResult {
+    if Color::Black as u8 != 0 { return TestResult::Fail; }
+    if Color::Blue as u8 != 1 { return TestResult::Fail; }
+    if Color::Green as u8 != 2 { return TestResult::Fail; }
+    if Color::Cyan as u8 != 3 { return TestResult::Fail; }
+    if Color::Red as u8 != 4 { return TestResult::Fail; }
+    if Color::Magenta as u8 != 5 { return TestResult::Fail; }
+    if Color::Brown as u8 != 6 { return TestResult::Fail; }
+    if Color::LightGray as u8 != 7 { return TestResult::Fail; }
+    if Color::DarkGray as u8 != 8 { return TestResult::Fail; }
+    if Color::LightBlue as u8 != 9 { return TestResult::Fail; }
+    if Color::LightGreen as u8 != 10 { return TestResult::Fail; }
+    if Color::LightCyan as u8 != 11 { return TestResult::Fail; }
+    if Color::LightRed as u8 != 12 { return TestResult::Fail; }
+    if Color::Pink as u8 != 13 { return TestResult::Fail; }
+    if Color::Yellow as u8 != 14 { return TestResult::Fail; }
+    if Color::White as u8 != 15 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_color_name() {
-    assert_eq!(Color::Black.name(), "Black");
-    assert_eq!(Color::Blue.name(), "Blue");
-    assert_eq!(Color::Green.name(), "Green");
-    assert_eq!(Color::Cyan.name(), "Cyan");
-    assert_eq!(Color::Red.name(), "Red");
-    assert_eq!(Color::Magenta.name(), "Magenta");
-    assert_eq!(Color::Brown.name(), "Brown");
-    assert_eq!(Color::LightGray.name(), "LightGray");
-    assert_eq!(Color::DarkGray.name(), "DarkGray");
-    assert_eq!(Color::LightBlue.name(), "LightBlue");
-    assert_eq!(Color::LightGreen.name(), "LightGreen");
-    assert_eq!(Color::LightCyan.name(), "LightCyan");
-    assert_eq!(Color::LightRed.name(), "LightRed");
-    assert_eq!(Color::Pink.name(), "Pink");
-    assert_eq!(Color::Yellow.name(), "Yellow");
-    assert_eq!(Color::White.name(), "White");
+pub fn test_color_name() -> TestResult {
+    if Color::Black.name() != "Black" { return TestResult::Fail; }
+    if Color::Blue.name() != "Blue" { return TestResult::Fail; }
+    if Color::Green.name() != "Green" { return TestResult::Fail; }
+    if Color::Cyan.name() != "Cyan" { return TestResult::Fail; }
+    if Color::Red.name() != "Red" { return TestResult::Fail; }
+    if Color::Magenta.name() != "Magenta" { return TestResult::Fail; }
+    if Color::Brown.name() != "Brown" { return TestResult::Fail; }
+    if Color::LightGray.name() != "LightGray" { return TestResult::Fail; }
+    if Color::DarkGray.name() != "DarkGray" { return TestResult::Fail; }
+    if Color::LightBlue.name() != "LightBlue" { return TestResult::Fail; }
+    if Color::LightGreen.name() != "LightGreen" { return TestResult::Fail; }
+    if Color::LightCyan.name() != "LightCyan" { return TestResult::Fail; }
+    if Color::LightRed.name() != "LightRed" { return TestResult::Fail; }
+    if Color::Pink.name() != "Pink" { return TestResult::Fail; }
+    if Color::Yellow.name() != "Yellow" { return TestResult::Fail; }
+    if Color::White.name() != "White" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_color_code_new() {
+pub fn test_color_code_new() -> TestResult {
     let cc = ColorCode::new(Color::White, Color::Black);
-    assert_eq!(cc.foreground(), Color::White as u8);
-    assert_eq!(cc.background(), Color::Black as u8);
+    if cc.foreground() != Color::White as u8 { return TestResult::Fail; }
+    if cc.background() != Color::Black as u8 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_color_code_with_blink() {
+pub fn test_color_code_with_blink() -> TestResult {
     let cc = ColorCode::with_blink(Color::White, Color::Black);
-    assert!(cc.is_blinking());
-    assert_eq!(cc.foreground(), Color::White as u8);
-    assert_eq!(cc.background(), Color::Black as u8);
+    if !cc.is_blinking() { return TestResult::Fail; }
+    if cc.foreground() != Color::White as u8 { return TestResult::Fail; }
+    if cc.background() != Color::Black as u8 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_color_code_foreground() {
+pub fn test_color_code_foreground() -> TestResult {
     let cc = ColorCode::new(Color::Yellow, Color::Blue);
-    assert_eq!(cc.foreground(), 14);
+    if cc.foreground() != 14 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_color_code_background() {
+pub fn test_color_code_background() -> TestResult {
     let cc = ColorCode::new(Color::Yellow, Color::Blue);
-    assert_eq!(cc.background(), 1);
+    if cc.background() != 1 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_color_code_is_blinking() {
+pub fn test_color_code_is_blinking() -> TestResult {
     let blink = ColorCode::with_blink(Color::White, Color::Black);
     let no_blink = ColorCode::new(Color::White, Color::Black);
-    assert!(blink.is_blinking());
-    assert!(!no_blink.is_blinking());
+    if !blink.is_blinking() { return TestResult::Fail; }
+    if no_blink.is_blinking() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_color_code_value() {
+pub fn test_color_code_value() -> TestResult {
     let cc = ColorCode::new(Color::LightGray, Color::Black);
-    assert_eq!(cc.value(), 0x07);
-
+    if cc.value() != 0x07 { return TestResult::Fail; }
     let cc2 = ColorCode::new(Color::White, Color::Blue);
-    assert_eq!(cc2.value(), 0x1F);
+    if cc2.value() != 0x1F { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_color_code_default() {
+pub fn test_color_code_default() -> TestResult {
     let cc = ColorCode::default();
-    assert_eq!(cc.foreground(), Color::LightGray as u8);
-    assert_eq!(cc.background(), Color::Black as u8);
+    if cc.foreground() != Color::LightGray as u8 { return TestResult::Fail; }
+    if cc.background() != Color::Black as u8 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_color_code_copy() {
+pub fn test_color_code_copy() -> TestResult {
     let cc1 = ColorCode::new(Color::Red, Color::White);
     let cc2 = cc1;
-    assert_eq!(cc1, cc2);
+    if cc1 != cc2 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_color_code_eq() {
+pub fn test_color_code_eq() -> TestResult {
     let cc1 = ColorCode::new(Color::Green, Color::Black);
     let cc2 = ColorCode::new(Color::Green, Color::Black);
     let cc3 = ColorCode::new(Color::Red, Color::Black);
-    assert_eq!(cc1, cc2);
-    assert_ne!(cc1, cc3);
+    if cc1 != cc2 { return TestResult::Fail; }
+    if cc1 == cc3 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_screen_char_new() {
+pub fn test_screen_char_new() -> TestResult {
     let sc = ScreenChar::new(b'A', ColorCode::default());
-    assert_eq!(sc.character, b'A');
+    if sc.character != b'A' { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_screen_char_blank() {
+pub fn test_screen_char_blank() -> TestResult {
     let sc = ScreenChar::blank(ColorCode::default());
-    assert_eq!(sc.character, b' ');
+    if sc.character != b' ' { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_screen_char_as_u16() {
+pub fn test_screen_char_as_u16() -> TestResult {
     let cc = ColorCode::new(Color::LightGray, Color::Black);
     let sc = ScreenChar::new(b'A', cc);
     let value = sc.as_u16();
-    assert_eq!(value & 0xFF, b'A' as u16);
-    assert_eq!((value >> 8) as u8, cc.value());
+    if value & 0xFF != b'A' as u16 { return TestResult::Fail; }
+    if (value >> 8) as u8 != cc.value() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_screen_char_default() {
+pub fn test_screen_char_default() -> TestResult {
     let sc = ScreenChar::default();
-    assert_eq!(sc.character, b' ');
+    if sc.character != b' ' { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_screen_char_copy() {
+pub fn test_screen_char_copy() -> TestResult {
     let sc1 = ScreenChar::new(b'X', ColorCode::default());
     let sc2 = sc1;
-    assert_eq!(sc1, sc2);
+    if sc1 != sc2 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_screen_char_eq() {
+pub fn test_screen_char_eq() -> TestResult {
     let sc1 = ScreenChar::new(b'Y', ColorCode::default());
     let sc2 = ScreenChar::new(b'Y', ColorCode::default());
     let sc3 = ScreenChar::new(b'Z', ColorCode::default());
-    assert_eq!(sc1, sc2);
-    assert_ne!(sc1, sc3);
+    if sc1 != sc2 { return TestResult::Fail; }
+    if sc1 == sc3 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_console_new() {
+pub fn test_console_new() -> TestResult {
     let console = Console::new();
-    assert_eq!(console.row, 0);
-    assert_eq!(console.col, 0);
+    if console.row != 0 { return TestResult::Fail; }
+    if console.col != 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_console_clear() {
+pub fn test_console_clear() -> TestResult {
     let mut console = Console::new();
     console.row = 10;
     console.col = 20;
     console.clear();
-    assert_eq!(console.row, 0);
-    assert_eq!(console.col, 0);
+    if console.row != 0 { return TestResult::Fail; }
+    if console.col != 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_console_write_byte() {
+pub fn test_console_write_byte() -> TestResult {
     let mut console = Console::new();
     console.write_byte(b'H');
-    assert_eq!(console.col, 1);
+    if console.col != 1 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_console_write_byte_newline() {
+pub fn test_console_write_byte_newline() -> TestResult {
     let mut console = Console::new();
     console.write_byte(b'\n');
-    assert_eq!(console.row, 1);
-    assert_eq!(console.col, 0);
+    if console.row != 1 { return TestResult::Fail; }
+    if console.col != 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_console_write_byte_carriage_return() {
+pub fn test_console_write_byte_carriage_return() -> TestResult {
     let mut console = Console::new();
     console.col = 10;
     console.write_byte(b'\r');
-    assert_eq!(console.col, 0);
+    if console.col != 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_console_write_byte_tab() {
+pub fn test_console_write_byte_tab() -> TestResult {
     let mut console = Console::new();
     console.write_byte(b'\t');
-    assert_eq!(console.col, 4);
+    if console.col != 4 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_console_write_byte_backspace() {
+pub fn test_console_write_byte_backspace() -> TestResult {
     let mut console = Console::new();
     console.write_byte(b'A');
     console.write_byte(0x08);
-    assert_eq!(console.col, 0);
+    if console.col != 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_console_write_multiple_bytes() {
+pub fn test_console_write_multiple_bytes() -> TestResult {
     let mut console = Console::new();
     for c in b"Hello" {
         console.write_byte(*c);
     }
-    assert_eq!(console.col, 5);
+    if console.col != 5 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_console_set_color() {
+pub fn test_console_set_color() -> TestResult {
     let mut console = Console::new();
     console.set_color(Color::Red, Color::White);
     console.write_byte(b'X');
-    assert_eq!(console.col, 1);
+    if console.col != 1 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_console_wrap_line() {
+pub fn test_console_wrap_line() -> TestResult {
     let mut console = Console::new();
     for _ in 0..SCREEN_WIDTH {
         console.write_byte(b'A');
     }
     console.write_byte(b'B');
-    assert_eq!(console.row, 1);
-    assert_eq!(console.col, 1);
+    if console.row != 1 { return TestResult::Fail; }
+    if console.col != 1 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_console_scroll() {
+pub fn test_console_scroll() -> TestResult {
     let mut console = Console::new();
     for _ in 0..SCREEN_HEIGHT + 1 {
         console.write_byte(b'\n');
     }
-    assert_eq!(console.row, SCREEN_HEIGHT - 1);
+    if console.row != SCREEN_HEIGHT - 1 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_color_clone() {
+pub fn test_color_clone() -> TestResult {
     let c1 = Color::Red;
     let c2 = c1.clone();
-    assert_eq!(c1, c2);
+    if c1 != c2 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_screen_char_clone() {
+pub fn test_screen_char_clone() -> TestResult {
     let sc1 = ScreenChar::new(b'Z', ColorCode::default());
     let sc2 = sc1.clone();
-    assert_eq!(sc1, sc2);
+    if sc1 != sc2 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_color_code_background_max() {
+pub fn test_color_code_background_max() -> TestResult {
     let cc = ColorCode::new(Color::White, Color::LightGray);
-    assert_eq!(cc.background(), 7);
+    if cc.background() != 7 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_screen_position_calculation() {
+pub fn test_screen_position_calculation() -> TestResult {
     let row = 10;
     let col = 40;
     let pos = row * SCREEN_WIDTH + col;
-    assert_eq!(pos, 840);
+    if pos != 840 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_vga_address_calculation() {
+pub fn test_vga_address_calculation() -> TestResult {
     let row = 5;
     let col = 10;
     let offset = (row * SCREEN_WIDTH + col) * BYTES_PER_CHAR;
     let addr = VGA_BUFFER_ADDR + offset;
-    assert_eq!(addr, 0xB8000 + 820);
+    if addr != 0xB8000 + 820 { return TestResult::Fail; }
+    TestResult::Pass
 }

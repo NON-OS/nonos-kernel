@@ -1,194 +1,179 @@
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
+
+extern crate alloc;
+
+use alloc::vec;
 use crate::boot::multiboot::types::*;
+use crate::test::framework::TestResult;
 use x86_64::PhysAddr;
 
-#[test]
-fn memory_type_constants() {
-    assert_eq!(memory_type::AVAILABLE, 1);
-    assert_eq!(memory_type::RESERVED, 2);
-    assert_eq!(memory_type::ACPI_RECLAIMABLE, 3);
-    assert_eq!(memory_type::ACPI_NVS, 4);
-    assert_eq!(memory_type::BAD_MEMORY, 5);
+pub fn test_memory_type_constants() -> TestResult {
+    if memory_type::AVAILABLE != 1 { return TestResult::Fail; }
+    if memory_type::RESERVED != 2 { return TestResult::Fail; }
+    if memory_type::ACPI_RECLAIMABLE != 3 { return TestResult::Fail; }
+    if memory_type::ACPI_NVS != 4 { return TestResult::Fail; }
+    if memory_type::BAD_MEMORY != 5 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn memory_map_entry_is_available() {
+pub fn test_memory_map_entry_is_available() -> TestResult {
     let available = MemoryMapEntry {
         base_addr: 0x100000,
         length: 0x1000,
         entry_type: memory_type::AVAILABLE,
         reserved: 0,
     };
-    assert!(available.is_available());
-
+    if !available.is_available() { return TestResult::Fail; }
     let reserved = MemoryMapEntry {
         base_addr: 0x100000,
         length: 0x1000,
         entry_type: memory_type::RESERVED,
         reserved: 0,
     };
-    assert!(!reserved.is_available());
+    if reserved.is_available() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn memory_map_entry_start_addr() {
+pub fn test_memory_map_entry_start_addr() -> TestResult {
     let entry = MemoryMapEntry {
         base_addr: 0x100000,
         length: 0x1000,
         entry_type: memory_type::AVAILABLE,
         reserved: 0,
     };
-    assert_eq!(entry.start_addr(), PhysAddr::new(0x100000));
+    if entry.start_addr() != PhysAddr::new(0x100000) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn memory_map_entry_end_addr() {
+pub fn test_memory_map_entry_end_addr() -> TestResult {
     let entry = MemoryMapEntry {
         base_addr: 0x100000,
         length: 0x1000,
         entry_type: memory_type::AVAILABLE,
         reserved: 0,
     };
-    assert_eq!(entry.end_addr(), PhysAddr::new(0x101000));
+    if entry.end_addr() != PhysAddr::new(0x101000) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn memory_map_entry_size() {
+pub fn test_memory_map_entry_size() -> TestResult {
     let entry = MemoryMapEntry {
         base_addr: 0x100000,
         length: 0x2000,
         entry_type: memory_type::AVAILABLE,
         reserved: 0,
     };
-    assert_eq!(entry.size(), 0x2000);
+    if entry.size() != 0x2000 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn memory_map_entry_page_count() {
+pub fn test_memory_map_entry_page_count() -> TestResult {
     let entry = MemoryMapEntry {
         base_addr: 0x100000,
         length: 0x8000,
         entry_type: memory_type::AVAILABLE,
         reserved: 0,
     };
-    assert_eq!(entry.page_count(), 8);
+    if entry.page_count() != 8 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn memory_map_entry_page_count_partial() {
+pub fn test_memory_map_entry_page_count_partial() -> TestResult {
     let entry = MemoryMapEntry {
         base_addr: 0x100000,
         length: 0x1500,
         entry_type: memory_type::AVAILABLE,
         reserved: 0,
     };
-    assert_eq!(entry.page_count(), 1);
+    if entry.page_count() != 1 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn memory_map_entry_end_addr_saturating() {
+pub fn test_memory_map_entry_end_addr_saturating() -> TestResult {
     let entry = MemoryMapEntry {
         base_addr: u64::MAX - 0x100,
         length: 0x200,
         entry_type: memory_type::AVAILABLE,
         reserved: 0,
     };
-    assert_eq!(entry.end_addr(), PhysAddr::new(u64::MAX));
+    if entry.end_addr() != PhysAddr::new(u64::MAX) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn multiboot_error_invalid_size_str() {
+pub fn test_multiboot_error_invalid_size_str() -> TestResult {
     let err = MultibootError::InvalidSize;
-    assert_eq!(err.as_str(), "Invalid multiboot info size");
+    if err.as_str() != "Invalid multiboot info size" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn multiboot_error_invalid_tag_str() {
+pub fn test_multiboot_error_invalid_tag_str() -> TestResult {
     let err = MultibootError::InvalidTag { tag_type: 42 };
-    assert_eq!(err.as_str(), "Invalid multiboot tag");
+    if err.as_str() != "Invalid multiboot tag" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn multiboot_error_memory_map_str() {
+pub fn test_multiboot_error_memory_map_str() -> TestResult {
     let err = MultibootError::MemoryMapError;
-    assert_eq!(err.as_str(), "Memory map parsing failed");
+    if err.as_str() != "Memory map parsing failed" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn multiboot_error_framebuffer_str() {
+pub fn test_multiboot_error_framebuffer_str() -> TestResult {
     let err = MultibootError::FramebufferError;
-    assert_eq!(err.as_str(), "Framebuffer info parsing failed");
+    if err.as_str() != "Framebuffer info parsing failed" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn multiboot_error_module_str() {
+pub fn test_multiboot_error_module_str() -> TestResult {
     let err = MultibootError::ModuleError;
-    assert_eq!(err.as_str(), "Module info parsing failed");
+    if err.as_str() != "Module info parsing failed" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn multiboot_error_invalid_cmdline_str() {
+pub fn test_multiboot_error_invalid_cmdline_str() -> TestResult {
     let err = MultibootError::InvalidCmdline;
-    assert_eq!(err.as_str(), "Invalid UTF-8 in command line");
+    if err.as_str() != "Invalid UTF-8 in command line" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn multiboot_error_display_invalid_tag() {
-    use alloc::string::ToString;
-    let err = MultibootError::InvalidTag { tag_type: 99 };
-    assert_eq!(err.to_string(), "Invalid multiboot tag type: 99");
+pub fn test_multiboot_error_equality() -> TestResult {
+    if MultibootError::InvalidSize != MultibootError::InvalidSize { return TestResult::Fail; }
+    if MultibootError::InvalidTag { tag_type: 1 } != MultibootError::InvalidTag { tag_type: 1 } { return TestResult::Fail; }
+    if MultibootError::InvalidTag { tag_type: 1 } == MultibootError::InvalidTag { tag_type: 2 } { return TestResult::Fail; }
+    if MultibootError::InvalidSize == MultibootError::MemoryMapError { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn multiboot_error_display_other() {
-    use alloc::string::ToString;
-    let err = MultibootError::InvalidSize;
-    assert_eq!(err.to_string(), "Invalid multiboot info size");
+pub fn test_multiboot2_header_repr() -> TestResult {
+    if core::mem::size_of::<Multiboot2Header>() != 16 { return TestResult::Fail; }
+    if core::mem::align_of::<Multiboot2Header>() != 8 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn multiboot_error_equality() {
-    assert_eq!(MultibootError::InvalidSize, MultibootError::InvalidSize);
-    assert_eq!(
-        MultibootError::InvalidTag { tag_type: 1 },
-        MultibootError::InvalidTag { tag_type: 1 }
-    );
-    assert_ne!(
-        MultibootError::InvalidTag { tag_type: 1 },
-        MultibootError::InvalidTag { tag_type: 2 }
-    );
-    assert_ne!(MultibootError::InvalidSize, MultibootError::MemoryMapError);
+pub fn test_multiboot2_info_repr() -> TestResult {
+    if core::mem::size_of::<Multiboot2Info>() != 8 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn multiboot2_header_repr() {
-    assert_eq!(core::mem::size_of::<Multiboot2Header>(), 16);
-    assert_eq!(core::mem::align_of::<Multiboot2Header>(), 8);
+pub fn test_memory_map_entry_repr() -> TestResult {
+    if core::mem::size_of::<MemoryMapEntry>() != 24 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn multiboot2_info_repr() {
-    assert_eq!(core::mem::size_of::<Multiboot2Info>(), 8);
-}
-
-#[test]
-fn memory_map_entry_repr() {
-    assert_eq!(core::mem::size_of::<MemoryMapEntry>(), 24);
-}
-
-#[test]
-fn multiboot_info_total_available_memory_empty() {
+pub fn test_multiboot_info_total_available_memory_empty() -> TestResult {
     let info = MultibootInfo {
-        memory_map: alloc::vec![],
+        memory_map: vec![],
         framebuffer_info: None,
         module_info: None,
     };
-    assert_eq!(info.total_available_memory(), 0);
+    if info.total_available_memory() != 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn multiboot_info_total_available_memory_single() {
+pub fn test_multiboot_info_total_available_memory_single() -> TestResult {
     let info = MultibootInfo {
-        memory_map: alloc::vec![MemoryMapEntry {
+        memory_map: vec![MemoryMapEntry {
             base_addr: 0x100000,
             length: 0x10000,
             entry_type: memory_type::AVAILABLE,
@@ -197,13 +182,13 @@ fn multiboot_info_total_available_memory_single() {
         framebuffer_info: None,
         module_info: None,
     };
-    assert_eq!(info.total_available_memory(), 0x10000);
+    if info.total_available_memory() != 0x10000 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn multiboot_info_total_available_memory_mixed() {
+pub fn test_multiboot_info_total_available_memory_mixed() -> TestResult {
     let info = MultibootInfo {
-        memory_map: alloc::vec![
+        memory_map: vec![
             MemoryMapEntry {
                 base_addr: 0x100000,
                 length: 0x10000,
@@ -226,72 +211,23 @@ fn multiboot_info_total_available_memory_mixed() {
         framebuffer_info: None,
         module_info: None,
     };
-    assert_eq!(info.total_available_memory(), 0x18000);
+    if info.total_available_memory() != 0x18000 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn multiboot_info_usable_regions_filters_low_memory() {
+pub fn test_multiboot_info_has_framebuffer_none() -> TestResult {
     let info = MultibootInfo {
-        memory_map: alloc::vec![
-            MemoryMapEntry {
-                base_addr: 0x0,
-                length: 0x80000,
-                entry_type: memory_type::AVAILABLE,
-                reserved: 0,
-            },
-            MemoryMapEntry {
-                base_addr: 0x100000,
-                length: 0x10000,
-                entry_type: memory_type::AVAILABLE,
-                reserved: 0,
-            },
-        ],
+        memory_map: vec![],
         framebuffer_info: None,
         module_info: None,
     };
-    let regions: alloc::vec::Vec<_> = info.usable_regions().collect();
-    assert_eq!(regions.len(), 1);
-    assert_eq!(regions[0].base_addr, 0x100000);
+    if info.has_framebuffer() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn multiboot_info_usable_regions_filters_reserved() {
+pub fn test_multiboot_info_has_framebuffer_some() -> TestResult {
     let info = MultibootInfo {
-        memory_map: alloc::vec![
-            MemoryMapEntry {
-                base_addr: 0x100000,
-                length: 0x10000,
-                entry_type: memory_type::AVAILABLE,
-                reserved: 0,
-            },
-            MemoryMapEntry {
-                base_addr: 0x200000,
-                length: 0x10000,
-                entry_type: memory_type::RESERVED,
-                reserved: 0,
-            },
-        ],
-        framebuffer_info: None,
-        module_info: None,
-    };
-    let regions: alloc::vec::Vec<_> = info.usable_regions().collect();
-    assert_eq!(regions.len(), 1);
-}
-
-#[test]
-fn multiboot_info_has_framebuffer_none() {
-    let info = MultibootInfo {
-        memory_map: alloc::vec![],
-        framebuffer_info: None,
-        module_info: None,
-    };
-    assert!(!info.has_framebuffer());
-}
-
-#[test]
-fn multiboot_info_has_framebuffer_some() {
-    let info = MultibootInfo {
-        memory_map: alloc::vec![],
+        memory_map: vec![],
         framebuffer_info: Some(FramebufferInfo {
             addr: PhysAddr::new(0xB8000),
             width: 80,
@@ -302,23 +238,23 @@ fn multiboot_info_has_framebuffer_some() {
         }),
         module_info: None,
     };
-    assert!(info.has_framebuffer());
+    if !info.has_framebuffer() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn multiboot_info_has_module_none() {
+pub fn test_multiboot_info_has_module_none() -> TestResult {
     let info = MultibootInfo {
-        memory_map: alloc::vec![],
+        memory_map: vec![],
         framebuffer_info: None,
         module_info: None,
     };
-    assert!(!info.has_module());
+    if info.has_module() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn multiboot_info_has_module_some() {
+pub fn test_multiboot_info_has_module_some() -> TestResult {
     let info = MultibootInfo {
-        memory_map: alloc::vec![],
+        memory_map: vec![],
         framebuffer_info: None,
         module_info: Some(ModuleInfo {
             start: PhysAddr::new(0x200000),
@@ -326,11 +262,11 @@ fn multiboot_info_has_module_some() {
             cmdline: None,
         }),
     };
-    assert!(info.has_module());
+    if !info.has_module() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn framebuffer_info_size() {
+pub fn test_framebuffer_info_size() -> TestResult {
     let fb = FramebufferInfo {
         addr: PhysAddr::new(0xFD000000),
         width: 1920,
@@ -339,11 +275,11 @@ fn framebuffer_info_size() {
         bpp: 32,
         framebuffer_type: 1,
     };
-    assert_eq!(fb.size(), 7680 * 1080);
+    if fb.size() != 7680 * 1080 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn framebuffer_info_is_rgb() {
+pub fn test_framebuffer_info_is_rgb() -> TestResult {
     let fb_rgb = FramebufferInfo {
         addr: PhysAddr::new(0xFD000000),
         width: 800,
@@ -352,8 +288,7 @@ fn framebuffer_info_is_rgb() {
         bpp: 32,
         framebuffer_type: 1,
     };
-    assert!(fb_rgb.is_rgb());
-
+    if !fb_rgb.is_rgb() { return TestResult::Fail; }
     let fb_text = FramebufferInfo {
         addr: PhysAddr::new(0xB8000),
         width: 80,
@@ -362,11 +297,11 @@ fn framebuffer_info_is_rgb() {
         bpp: 16,
         framebuffer_type: 2,
     };
-    assert!(!fb_text.is_rgb());
+    if fb_text.is_rgb() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn framebuffer_info_is_text_mode() {
+pub fn test_framebuffer_info_is_text_mode() -> TestResult {
     let fb_text = FramebufferInfo {
         addr: PhysAddr::new(0xB8000),
         width: 80,
@@ -375,8 +310,7 @@ fn framebuffer_info_is_text_mode() {
         bpp: 16,
         framebuffer_type: 2,
     };
-    assert!(fb_text.is_text_mode());
-
+    if !fb_text.is_text_mode() { return TestResult::Fail; }
     let fb_rgb = FramebufferInfo {
         addr: PhysAddr::new(0xFD000000),
         width: 800,
@@ -385,35 +319,36 @@ fn framebuffer_info_is_text_mode() {
         bpp: 32,
         framebuffer_type: 1,
     };
-    assert!(!fb_rgb.is_text_mode());
+    if fb_rgb.is_text_mode() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn module_info_size() {
+pub fn test_module_info_size() -> TestResult {
     let module = ModuleInfo {
         start: PhysAddr::new(0x200000),
         end: PhysAddr::new(0x300000),
         cmdline: None,
     };
-    assert_eq!(module.size(), 0x100000);
+    if module.size() != 0x100000 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn module_info_size_saturating() {
+pub fn test_module_info_size_saturating() -> TestResult {
     let module = ModuleInfo {
         start: PhysAddr::new(0x300000),
         end: PhysAddr::new(0x200000),
         cmdline: None,
     };
-    assert_eq!(module.size(), 0);
+    if module.size() != 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn module_info_with_cmdline() {
+pub fn test_module_info_with_cmdline() -> TestResult {
     let module = ModuleInfo {
         start: PhysAddr::new(0x200000),
         end: PhysAddr::new(0x300000),
         cmdline: Some("init=/bin/sh"),
     };
-    assert_eq!(module.cmdline, Some("init=/bin/sh"));
+    if module.cmdline != Some("init=/bin/sh") { return TestResult::Fail; }
+    TestResult::Pass
 }

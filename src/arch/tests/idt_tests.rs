@@ -1,7 +1,5 @@
 // NONOS Operating System
 // Copyright (C) 2026 NONOS Contributors
-//
-// Tests for arch/x86_64/idt
 
 use crate::arch::x86_64::idt::{
     IDT_ENTRIES, KERNEL_CS, GATE_INTERRUPT, GATE_TRAP, DPL_KERNEL, DPL_USER, PRESENT,
@@ -12,113 +10,113 @@ use crate::arch::x86_64::idt::{
     VEC_VIRTUALIZATION, VEC_CONTROL_PROTECTION, IRQ_BASE,
     IST_DOUBLE_FAULT, IST_NMI, IST_MACHINE_CHECK, IST_DEBUG, IST_PAGE_FAULT, IST_GP,
 };
+use crate::test::framework::TestResult;
 
-#[test_case]
-fn test_idt_entries_count() {
-    assert_eq!(IDT_ENTRIES, 256);
+pub fn test_idt_entries_count() -> TestResult {
+    if IDT_ENTRIES != 256 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test_case]
-fn test_kernel_cs() {
-    assert_eq!(KERNEL_CS, 0x08);
+pub fn test_kernel_cs() -> TestResult {
+    if KERNEL_CS != 0x08 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test_case]
-fn test_gate_types() {
-    assert_eq!(GATE_INTERRUPT, 0x0E);
-    assert_eq!(GATE_TRAP, 0x0F);
+pub fn test_gate_types() -> TestResult {
+    if GATE_INTERRUPT != 0x0E { return TestResult::Fail; }
+    if GATE_TRAP != 0x0F { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test_case]
-fn test_privilege_levels() {
-    assert_eq!(DPL_KERNEL, 0);
-    assert_eq!(DPL_USER, 3);
+pub fn test_privilege_levels() -> TestResult {
+    if DPL_KERNEL != 0 { return TestResult::Fail; }
+    if DPL_USER != 3 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test_case]
-fn test_present_flag() {
-    assert_eq!(PRESENT, 0x80);
+pub fn test_present_flag() -> TestResult {
+    if PRESENT != 0x80 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test_case]
-fn test_exception_vectors_order() {
-    assert_eq!(VEC_DIVIDE_ERROR, 0);
-    assert_eq!(VEC_DEBUG, 1);
-    assert_eq!(VEC_NMI, 2);
-    assert_eq!(VEC_BREAKPOINT, 3);
-    assert_eq!(VEC_OVERFLOW, 4);
-    assert_eq!(VEC_BOUND_RANGE, 5);
-    assert_eq!(VEC_INVALID_OPCODE, 6);
-    assert_eq!(VEC_DEVICE_NOT_AVAILABLE, 7);
-    assert_eq!(VEC_DOUBLE_FAULT, 8);
+pub fn test_exception_vectors_order() -> TestResult {
+    if VEC_DIVIDE_ERROR != 0 { return TestResult::Fail; }
+    if VEC_DEBUG != 1 { return TestResult::Fail; }
+    if VEC_NMI != 2 { return TestResult::Fail; }
+    if VEC_BREAKPOINT != 3 { return TestResult::Fail; }
+    if VEC_OVERFLOW != 4 { return TestResult::Fail; }
+    if VEC_BOUND_RANGE != 5 { return TestResult::Fail; }
+    if VEC_INVALID_OPCODE != 6 { return TestResult::Fail; }
+    if VEC_DEVICE_NOT_AVAILABLE != 7 { return TestResult::Fail; }
+    if VEC_DOUBLE_FAULT != 8 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test_case]
-fn test_exception_vectors_high() {
-    assert_eq!(VEC_COPROCESSOR_SEGMENT, 9);
-    assert_eq!(VEC_INVALID_TSS, 10);
-    assert_eq!(VEC_SEGMENT_NOT_PRESENT, 11);
-    assert_eq!(VEC_STACK_SEGMENT, 12);
-    assert_eq!(VEC_GENERAL_PROTECTION, 13);
-    assert_eq!(VEC_PAGE_FAULT, 14);
-    assert_eq!(VEC_X87_FP, 16);
-    assert_eq!(VEC_ALIGNMENT_CHECK, 17);
-    assert_eq!(VEC_MACHINE_CHECK, 18);
-    assert_eq!(VEC_SIMD_FP, 19);
-    assert_eq!(VEC_VIRTUALIZATION, 20);
-    assert_eq!(VEC_CONTROL_PROTECTION, 21);
+pub fn test_exception_vectors_high() -> TestResult {
+    if VEC_COPROCESSOR_SEGMENT != 9 { return TestResult::Fail; }
+    if VEC_INVALID_TSS != 10 { return TestResult::Fail; }
+    if VEC_SEGMENT_NOT_PRESENT != 11 { return TestResult::Fail; }
+    if VEC_STACK_SEGMENT != 12 { return TestResult::Fail; }
+    if VEC_GENERAL_PROTECTION != 13 { return TestResult::Fail; }
+    if VEC_PAGE_FAULT != 14 { return TestResult::Fail; }
+    if VEC_X87_FP != 16 { return TestResult::Fail; }
+    if VEC_ALIGNMENT_CHECK != 17 { return TestResult::Fail; }
+    if VEC_MACHINE_CHECK != 18 { return TestResult::Fail; }
+    if VEC_SIMD_FP != 19 { return TestResult::Fail; }
+    if VEC_VIRTUALIZATION != 20 { return TestResult::Fail; }
+    if VEC_CONTROL_PROTECTION != 21 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test_case]
-fn test_irq_base() {
-    assert_eq!(IRQ_BASE, 32);
+pub fn test_irq_base() -> TestResult {
+    if IRQ_BASE != 32 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test_case]
-fn test_irq_base_after_exceptions() {
-    assert!(IRQ_BASE as usize > VEC_CONTROL_PROTECTION as usize);
+pub fn test_irq_base_after_exceptions() -> TestResult {
+    if (IRQ_BASE as usize) <= (VEC_CONTROL_PROTECTION as usize) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test_case]
-fn test_ist_indices() {
-    assert_eq!(IST_DOUBLE_FAULT, 1);
-    assert_eq!(IST_NMI, 2);
-    assert_eq!(IST_MACHINE_CHECK, 3);
-    assert_eq!(IST_DEBUG, 4);
-    assert_eq!(IST_PAGE_FAULT, 5);
-    assert_eq!(IST_GP, 6);
+pub fn test_ist_indices() -> TestResult {
+    if IST_DOUBLE_FAULT != 1 { return TestResult::Fail; }
+    if IST_NMI != 2 { return TestResult::Fail; }
+    if IST_MACHINE_CHECK != 3 { return TestResult::Fail; }
+    if IST_DEBUG != 4 { return TestResult::Fail; }
+    if IST_PAGE_FAULT != 5 { return TestResult::Fail; }
+    if IST_GP != 6 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test_case]
-fn test_ist_indices_valid_range() {
-    assert!(IST_DOUBLE_FAULT <= 7);
-    assert!(IST_NMI <= 7);
-    assert!(IST_MACHINE_CHECK <= 7);
-    assert!(IST_DEBUG <= 7);
-    assert!(IST_PAGE_FAULT <= 7);
-    assert!(IST_GP <= 7);
+pub fn test_ist_indices_valid_range() -> TestResult {
+    if IST_DOUBLE_FAULT > 7 { return TestResult::Fail; }
+    if IST_NMI > 7 { return TestResult::Fail; }
+    if IST_MACHINE_CHECK > 7 { return TestResult::Fail; }
+    if IST_DEBUG > 7 { return TestResult::Fail; }
+    if IST_PAGE_FAULT > 7 { return TestResult::Fail; }
+    if IST_GP > 7 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test_case]
-fn test_ist_indices_nonzero() {
-    assert!(IST_DOUBLE_FAULT > 0);
-    assert!(IST_NMI > 0);
-    assert!(IST_MACHINE_CHECK > 0);
-    assert!(IST_DEBUG > 0);
-    assert!(IST_PAGE_FAULT > 0);
-    assert!(IST_GP > 0);
+pub fn test_ist_indices_nonzero() -> TestResult {
+    if IST_DOUBLE_FAULT == 0 { return TestResult::Fail; }
+    if IST_NMI == 0 { return TestResult::Fail; }
+    if IST_MACHINE_CHECK == 0 { return TestResult::Fail; }
+    if IST_DEBUG == 0 { return TestResult::Fail; }
+    if IST_PAGE_FAULT == 0 { return TestResult::Fail; }
+    if IST_GP == 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test_case]
-fn test_exceptions_below_irq_base() {
-    assert!(VEC_DIVIDE_ERROR < IRQ_BASE);
-    assert!(VEC_DOUBLE_FAULT < IRQ_BASE);
-    assert!(VEC_PAGE_FAULT < IRQ_BASE);
-    assert!(VEC_GENERAL_PROTECTION < IRQ_BASE);
+pub fn test_exceptions_below_irq_base() -> TestResult {
+    if VEC_DIVIDE_ERROR >= IRQ_BASE { return TestResult::Fail; }
+    if VEC_DOUBLE_FAULT >= IRQ_BASE { return TestResult::Fail; }
+    if VEC_PAGE_FAULT >= IRQ_BASE { return TestResult::Fail; }
+    if VEC_GENERAL_PROTECTION >= IRQ_BASE { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test_case]
-fn test_all_exceptions_unique() {
+pub fn test_all_exceptions_unique() -> TestResult {
     let exceptions = [
         VEC_DIVIDE_ERROR, VEC_DEBUG, VEC_NMI, VEC_BREAKPOINT, VEC_OVERFLOW,
         VEC_BOUND_RANGE, VEC_INVALID_OPCODE, VEC_DEVICE_NOT_AVAILABLE,
@@ -127,15 +125,15 @@ fn test_all_exceptions_unique() {
         VEC_PAGE_FAULT, VEC_X87_FP, VEC_ALIGNMENT_CHECK, VEC_MACHINE_CHECK,
         VEC_SIMD_FP, VEC_VIRTUALIZATION, VEC_CONTROL_PROTECTION,
     ];
-
     for i in 0..exceptions.len() {
         for j in (i + 1)..exceptions.len() {
-            assert_ne!(exceptions[i], exceptions[j]);
+            if exceptions[i] == exceptions[j] { return TestResult::Fail; }
         }
     }
+    TestResult::Pass
 }
 
-#[test_case]
-fn test_idt_size_fits_256_entries() {
-    assert!(IDT_ENTRIES <= 256);
+pub fn test_idt_size_fits_256_entries() -> TestResult {
+    if IDT_ENTRIES > 256 { return TestResult::Fail; }
+    TestResult::Pass
 }

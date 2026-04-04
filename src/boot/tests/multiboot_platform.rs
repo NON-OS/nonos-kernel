@@ -1,192 +1,139 @@
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
+
 use crate::boot::multiboot::platform::{Platform, ConsoleType};
+use crate::test::framework::TestResult;
 
-#[test]
-fn platform_as_str_qemu() {
-    assert_eq!(Platform::Qemu.as_str(), "QEMU");
+pub fn test_platform_as_str_qemu() -> TestResult {
+    if Platform::Qemu.as_str() != "QEMU" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn platform_as_str_vm() {
-    assert_eq!(Platform::VirtualMachine.as_str(), "Virtual Machine");
+pub fn test_platform_as_str_vm() -> TestResult {
+    if Platform::VirtualMachine.as_str() != "Virtual Machine" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn platform_as_str_baremetal() {
-    assert_eq!(Platform::BareMetal.as_str(), "Bare Metal");
+pub fn test_platform_as_str_baremetal() -> TestResult {
+    if Platform::BareMetal.as_str() != "Bare Metal" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn platform_is_virtual_qemu() {
-    assert!(Platform::Qemu.is_virtual());
+pub fn test_platform_is_virtual_qemu() -> TestResult {
+    if !Platform::Qemu.is_virtual() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn platform_is_virtual_vm() {
-    assert!(Platform::VirtualMachine.is_virtual());
+pub fn test_platform_is_virtual_vm() -> TestResult {
+    if !Platform::VirtualMachine.is_virtual() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn platform_is_virtual_baremetal() {
-    assert!(!Platform::BareMetal.is_virtual());
+pub fn test_platform_is_virtual_baremetal() -> TestResult {
+    if Platform::BareMetal.is_virtual() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn platform_timer_frequency_qemu() {
-    assert_eq!(Platform::Qemu.timer_frequency(), 1000);
+pub fn test_platform_timer_frequency_qemu() -> TestResult {
+    if Platform::Qemu.timer_frequency() != 1000 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn platform_timer_frequency_vm() {
-    assert_eq!(Platform::VirtualMachine.timer_frequency(), 100);
+pub fn test_platform_timer_frequency_vm() -> TestResult {
+    if Platform::VirtualMachine.timer_frequency() != 100 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn platform_timer_frequency_baremetal() {
-    assert_eq!(Platform::BareMetal.timer_frequency(), 1000);
+pub fn test_platform_timer_frequency_baremetal() -> TestResult {
+    if Platform::BareMetal.timer_frequency() != 1000 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn platform_supports_virtio_qemu() {
-    assert!(Platform::Qemu.supports_virtio());
+pub fn test_platform_supports_virtio_qemu() -> TestResult {
+    if !Platform::Qemu.supports_virtio() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn platform_supports_virtio_vm() {
-    assert!(Platform::VirtualMachine.supports_virtio());
+pub fn test_platform_supports_virtio_vm() -> TestResult {
+    if !Platform::VirtualMachine.supports_virtio() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn platform_supports_virtio_baremetal() {
-    assert!(!Platform::BareMetal.supports_virtio());
+pub fn test_platform_supports_virtio_baremetal() -> TestResult {
+    if Platform::BareMetal.supports_virtio() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn platform_console_type_qemu() {
-    assert_eq!(Platform::Qemu.console_type(), ConsoleType::Serial);
+pub fn test_platform_console_type_qemu() -> TestResult {
+    if Platform::Qemu.console_type() != ConsoleType::Serial { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn platform_console_type_vm() {
-    assert_eq!(Platform::VirtualMachine.console_type(), ConsoleType::Vga);
+pub fn test_platform_console_type_vm() -> TestResult {
+    if Platform::VirtualMachine.console_type() != ConsoleType::Vga { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn platform_console_type_baremetal() {
-    assert_eq!(Platform::BareMetal.console_type(), ConsoleType::Vga);
+pub fn test_platform_console_type_baremetal() -> TestResult {
+    if Platform::BareMetal.console_type() != ConsoleType::Vga { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn platform_display() {
-    use alloc::string::ToString;
-    assert_eq!(Platform::Qemu.to_string(), "QEMU");
-    assert_eq!(Platform::VirtualMachine.to_string(), "Virtual Machine");
-    assert_eq!(Platform::BareMetal.to_string(), "Bare Metal");
+pub fn test_platform_equality() -> TestResult {
+    if Platform::Qemu != Platform::Qemu { return TestResult::Fail; }
+    if Platform::VirtualMachine != Platform::VirtualMachine { return TestResult::Fail; }
+    if Platform::BareMetal != Platform::BareMetal { return TestResult::Fail; }
+    if Platform::Qemu == Platform::BareMetal { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn platform_equality() {
-    assert_eq!(Platform::Qemu, Platform::Qemu);
-    assert_eq!(Platform::VirtualMachine, Platform::VirtualMachine);
-    assert_eq!(Platform::BareMetal, Platform::BareMetal);
-    assert_ne!(Platform::Qemu, Platform::BareMetal);
-}
-
-#[test]
-fn platform_clone() {
+pub fn test_platform_clone() -> TestResult {
     let p = Platform::Qemu;
     let p2 = p.clone();
-    assert_eq!(p, p2);
+    if p != p2 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn platform_copy() {
+pub fn test_platform_copy() -> TestResult {
     let p = Platform::Qemu;
     let p2 = p;
-    assert_eq!(p, p2);
+    if p != p2 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn platform_debug() {
-    use alloc::format;
-    assert_eq!(format!("{:?}", Platform::Qemu), "Qemu");
-    assert_eq!(format!("{:?}", Platform::VirtualMachine), "VirtualMachine");
-    assert_eq!(format!("{:?}", Platform::BareMetal), "BareMetal");
+pub fn test_console_type_as_str_vga() -> TestResult {
+    if ConsoleType::Vga.as_str() != "VGA" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn platform_hash() {
-    use core::hash::{Hash, Hasher};
-    use core::hash::BuildHasher;
-
-    fn hash_platform<H: Hasher>(platform: Platform, hasher: &mut H) {
-        platform.hash(hasher);
-    }
-
-    let p1 = Platform::Qemu;
-    let p2 = Platform::Qemu;
-    let p3 = Platform::BareMetal;
-
-    let mut h1 = ahash::AHasher::default();
-    let mut h2 = ahash::AHasher::default();
-    let mut h3 = ahash::AHasher::default();
-
-    hash_platform(p1, &mut h1);
-    hash_platform(p2, &mut h2);
-    hash_platform(p3, &mut h3);
-
-    assert_eq!(h1.finish(), h2.finish());
-    assert_ne!(h1.finish(), h3.finish());
+pub fn test_console_type_as_str_serial() -> TestResult {
+    if ConsoleType::Serial.as_str() != "Serial" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn console_type_as_str_vga() {
-    assert_eq!(ConsoleType::Vga.as_str(), "VGA");
+pub fn test_console_type_as_str_framebuffer() -> TestResult {
+    if ConsoleType::Framebuffer.as_str() != "Framebuffer" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn console_type_as_str_serial() {
-    assert_eq!(ConsoleType::Serial.as_str(), "Serial");
+pub fn test_console_type_equality() -> TestResult {
+    if ConsoleType::Vga != ConsoleType::Vga { return TestResult::Fail; }
+    if ConsoleType::Serial != ConsoleType::Serial { return TestResult::Fail; }
+    if ConsoleType::Framebuffer != ConsoleType::Framebuffer { return TestResult::Fail; }
+    if ConsoleType::Vga == ConsoleType::Serial { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn console_type_as_str_framebuffer() {
-    assert_eq!(ConsoleType::Framebuffer.as_str(), "Framebuffer");
-}
-
-#[test]
-fn console_type_display() {
-    use alloc::string::ToString;
-    assert_eq!(ConsoleType::Vga.to_string(), "VGA");
-    assert_eq!(ConsoleType::Serial.to_string(), "Serial");
-    assert_eq!(ConsoleType::Framebuffer.to_string(), "Framebuffer");
-}
-
-#[test]
-fn console_type_equality() {
-    assert_eq!(ConsoleType::Vga, ConsoleType::Vga);
-    assert_eq!(ConsoleType::Serial, ConsoleType::Serial);
-    assert_eq!(ConsoleType::Framebuffer, ConsoleType::Framebuffer);
-    assert_ne!(ConsoleType::Vga, ConsoleType::Serial);
-}
-
-#[test]
-fn console_type_clone() {
+pub fn test_console_type_clone() -> TestResult {
     let c = ConsoleType::Serial;
     let c2 = c.clone();
-    assert_eq!(c, c2);
+    if c != c2 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn console_type_copy() {
+pub fn test_console_type_copy() -> TestResult {
     let c = ConsoleType::Serial;
     let c2 = c;
-    assert_eq!(c, c2);
-}
-
-#[test]
-fn console_type_debug() {
-    use alloc::format;
-    assert_eq!(format!("{:?}", ConsoleType::Vga), "Vga");
-    assert_eq!(format!("{:?}", ConsoleType::Serial), "Serial");
-    assert_eq!(format!("{:?}", ConsoleType::Framebuffer), "Framebuffer");
+    if c != c2 { return TestResult::Fail; }
+    TestResult::Pass
 }

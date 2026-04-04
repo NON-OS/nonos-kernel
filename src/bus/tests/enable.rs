@@ -1,223 +1,206 @@
 // NONOS Operating System
 // Copyright (C) 2026 NONOS Contributors
-//
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU Affero General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-//
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-// GNU Affero General Public License for more details.
-//
-// You should have received a copy of the GNU Affero General Public License
-// along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::bus::*;
+use crate::test::framework::TestResult;
 
-#[test]
-fn test_get_bar_address_zero_returns_none() {
+pub fn test_get_bar_address_zero_returns_none() -> TestResult {
     let result = get_bar_address(0);
-    assert!(result.is_none());
+    if result.is_some() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_get_bar_address_io_space_bit() {
+pub fn test_get_bar_address_io_space_bit() -> TestResult {
     let bar = 0x1001;
     let result = get_bar_address(bar);
-    assert!(result.is_some());
-    assert_eq!(result.unwrap(), 0x1000);
+    if result.is_none() { return TestResult::Fail; }
+    if result.unwrap() != 0x1000 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_get_bar_address_io_space_mask() {
+pub fn test_get_bar_address_io_space_mask() -> TestResult {
     let bar = 0xFFFF_FFFD;
     let result = get_bar_address(bar);
-    assert!(result.is_some());
-    assert_eq!(result.unwrap(), 0xFFFF_FFFC);
+    if result.is_none() { return TestResult::Fail; }
+    if result.unwrap() != 0xFFFF_FFFC { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_get_bar_address_memory_32bit_type0() {
+pub fn test_get_bar_address_memory_32bit_type0() -> TestResult {
     let bar = 0xF000_0000;
     let result = get_bar_address(bar);
-    assert!(result.is_some());
-    assert_eq!(result.unwrap(), 0xF000_0000);
+    if result.is_none() { return TestResult::Fail; }
+    if result.unwrap() != 0xF000_0000 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_get_bar_address_memory_32bit_mask() {
+pub fn test_get_bar_address_memory_32bit_mask() -> TestResult {
     let bar: u32 = 0xF000_0008;
     let result = get_bar_address(bar);
-    assert!(result.is_some());
-    assert_eq!(result.unwrap(), 0xF000_0000);
+    if result.is_none() { return TestResult::Fail; }
+    if result.unwrap() != 0xF000_0000 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_get_bar_address_memory_type2_below_4g() {
+pub fn test_get_bar_address_memory_type2_below_4g() -> TestResult {
     let bar = 0xF000_0004;
     let result = get_bar_address(bar);
-    assert!(result.is_some());
-    assert_eq!(result.unwrap(), 0xF000_0000);
+    if result.is_none() { return TestResult::Fail; }
+    if result.unwrap() != 0xF000_0000 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_get_bar_address_memory_type1_reserved() {
+pub fn test_get_bar_address_memory_type1_reserved() -> TestResult {
     let bar = 0xF000_0002;
     let result = get_bar_address(bar);
-    assert!(result.is_none());
+    if result.is_some() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_get_bar_address_memory_type3_reserved() {
+pub fn test_get_bar_address_memory_type3_reserved() -> TestResult {
     let bar = 0xF000_0006;
     let result = get_bar_address(bar);
-    assert!(result.is_none());
+    if result.is_some() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_get_bar_address_io_space_typical() {
+pub fn test_get_bar_address_io_space_typical() -> TestResult {
     let bar = 0x0000_C001;
     let result = get_bar_address(bar);
-    assert!(result.is_some());
-    assert_eq!(result.unwrap(), 0xC000);
+    if result.is_none() { return TestResult::Fail; }
+    if result.unwrap() != 0xC000 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_get_bar_address_io_space_low_port() {
+pub fn test_get_bar_address_io_space_low_port() -> TestResult {
     let bar = 0x0000_0101;
     let result = get_bar_address(bar);
-    assert!(result.is_some());
-    assert_eq!(result.unwrap(), 0x0100);
+    if result.is_none() { return TestResult::Fail; }
+    if result.unwrap() != 0x0100 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_get_bar_address_memory_prefetchable() {
+pub fn test_get_bar_address_memory_prefetchable() -> TestResult {
     let bar = 0xF000_0008;
     let result = get_bar_address(bar);
-    assert!(result.is_some());
-    assert_eq!(result.unwrap(), 0xF000_0000);
+    if result.is_none() { return TestResult::Fail; }
+    if result.unwrap() != 0xF000_0000 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_get_bar_address_memory_non_prefetchable() {
+pub fn test_get_bar_address_memory_non_prefetchable() -> TestResult {
     let bar = 0xF000_0000;
     let result = get_bar_address(bar);
-    assert!(result.is_some());
-    assert_eq!(result.unwrap(), 0xF000_0000);
+    if result.is_none() { return TestResult::Fail; }
+    if result.unwrap() != 0xF000_0000 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_get_bar_address_all_ones_io() {
+pub fn test_get_bar_address_all_ones_io() -> TestResult {
     let bar = 0xFFFF_FFFF;
     let result = get_bar_address(bar);
-    assert!(result.is_some());
-    assert_eq!(result.unwrap(), 0xFFFF_FFFC);
+    if result.is_none() { return TestResult::Fail; }
+    if result.unwrap() != 0xFFFF_FFFC { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_get_bar_address_typical_mmio() {
+pub fn test_get_bar_address_typical_mmio() -> TestResult {
     let bar = 0xFEB0_0000;
     let result = get_bar_address(bar);
-    assert!(result.is_some());
-    assert_eq!(result.unwrap(), 0xFEB0_0000);
+    if result.is_none() { return TestResult::Fail; }
+    if result.unwrap() != 0xFEB0_0000 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_get_bar_address_typical_vga() {
+pub fn test_get_bar_address_typical_vga() -> TestResult {
     let bar = 0xE000_0008;
     let result = get_bar_address(bar);
-    assert!(result.is_some());
-    assert_eq!(result.unwrap(), 0xE000_0000);
+    if result.is_none() { return TestResult::Fail; }
+    if result.unwrap() != 0xE000_0000 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_bar_io_bit_extraction() {
+pub fn test_bar_io_bit_extraction() -> TestResult {
     let io_bar = 0x1001;
-    assert_eq!(io_bar & 0x01, 1);
-
+    if io_bar & 0x01 != 1 { return TestResult::Fail; }
     let mem_bar = 0x1000;
-    assert_eq!(mem_bar & 0x01, 0);
+    if mem_bar & 0x01 != 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_bar_type_extraction() {
+pub fn test_bar_type_extraction() -> TestResult {
     let type0: u32 = 0xF000_0000;
-    assert_eq!((type0 >> 1) & 0x03, 0);
-
+    if (type0 >> 1) & 0x03 != 0 { return TestResult::Fail; }
     let type1: u32 = 0xF000_0002;
-    assert_eq!((type1 >> 1) & 0x03, 1);
-
+    if (type1 >> 1) & 0x03 != 1 { return TestResult::Fail; }
     let type2: u32 = 0xF000_0004;
-    assert_eq!((type2 >> 1) & 0x03, 2);
-
+    if (type2 >> 1) & 0x03 != 2 { return TestResult::Fail; }
     let type3: u32 = 0xF000_0006;
-    assert_eq!((type3 >> 1) & 0x03, 3);
+    if (type3 >> 1) & 0x03 != 3 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_bar_prefetchable_extraction() {
+pub fn test_bar_prefetchable_extraction() -> TestResult {
     let prefetchable: u32 = 0xF000_0008;
-    assert_eq!((prefetchable >> 3) & 0x01, 1);
-
+    if (prefetchable >> 3) & 0x01 != 1 { return TestResult::Fail; }
     let non_prefetchable: u32 = 0xF000_0000;
-    assert_eq!((non_prefetchable >> 3) & 0x01, 0);
+    if (non_prefetchable >> 3) & 0x01 != 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_command_register_bus_master_bit() {
+pub fn test_command_register_bus_master_bit() -> TestResult {
     let bus_master_bit = 0x04;
-    assert_eq!(bus_master_bit, 1 << 2);
+    if bus_master_bit != 1 << 2 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_command_register_memory_space_bit() {
+pub fn test_command_register_memory_space_bit() -> TestResult {
     let memory_space_bit = 0x02;
-    assert_eq!(memory_space_bit, 1 << 1);
+    if memory_space_bit != 1 << 1 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_command_register_io_space_bit() {
+pub fn test_command_register_io_space_bit() -> TestResult {
     let io_space_bit = 0x01;
-    assert_eq!(io_space_bit, 1 << 0);
+    if io_space_bit != 1 << 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_get_bar_address_edge_case_one() {
+pub fn test_get_bar_address_edge_case_one() -> TestResult {
     let bar = 0x0000_0001;
     let result = get_bar_address(bar);
-    assert!(result.is_some());
-    assert_eq!(result.unwrap(), 0);
+    if result.is_none() { return TestResult::Fail; }
+    if result.unwrap() != 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_get_bar_address_edge_case_two() {
+pub fn test_get_bar_address_edge_case_two() -> TestResult {
     let bar = 0x0000_0002;
     let result = get_bar_address(bar);
-    assert!(result.is_none());
+    if result.is_some() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_get_bar_address_small_memory() {
+pub fn test_get_bar_address_small_memory() -> TestResult {
     let bar = 0x0001_0000;
     let result = get_bar_address(bar);
-    assert!(result.is_some());
-    assert_eq!(result.unwrap(), 0x0001_0000);
+    if result.is_none() { return TestResult::Fail; }
+    if result.unwrap() != 0x0001_0000 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_get_bar_address_page_aligned() {
+pub fn test_get_bar_address_page_aligned() -> TestResult {
     let bar = 0x0010_0000;
     let result = get_bar_address(bar);
-    assert!(result.is_some());
-    assert_eq!(result.unwrap(), 0x0010_0000);
+    if result.is_none() { return TestResult::Fail; }
+    if result.unwrap() != 0x0010_0000 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_get_bar_address_megabyte_aligned() {
+pub fn test_get_bar_address_megabyte_aligned() -> TestResult {
     let bar = 0x0100_0000;
     let result = get_bar_address(bar);
-    assert!(result.is_some());
-    assert_eq!(result.unwrap(), 0x0100_0000);
+    if result.is_none() { return TestResult::Fail; }
+    if result.unwrap() != 0x0100_0000 { return TestResult::Fail; }
+    TestResult::Pass
 }

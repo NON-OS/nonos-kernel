@@ -1,25 +1,24 @@
 // NONOS Operating System
 // Copyright (C) 2026 NONOS Contributors
-//
-// Tests for arch/cpu.rs
 
 use crate::arch::cpu::get_cpu_id;
+use crate::test::framework::TestResult;
 
-#[test_case]
-fn test_get_cpu_id_returns_valid() {
+pub fn test_get_cpu_id_returns_valid() -> TestResult {
     let id = get_cpu_id();
-    assert!(id < 256);
+    if id >= 256 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test_case]
-fn test_get_cpu_id_consistent() {
+pub fn test_get_cpu_id_consistent() -> TestResult {
     let id1 = get_cpu_id();
     let id2 = get_cpu_id();
-    assert_eq!(id1, id2);
+    if id1 != id2 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test_case]
-fn test_cpu_id_is_zero_on_bsp() {
+pub fn test_cpu_id_is_zero_on_bsp() -> TestResult {
     let id = get_cpu_id();
-    assert_eq!(id, 0);
+    if id != 0 { return TestResult::Fail; }
+    TestResult::Pass
 }

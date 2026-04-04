@@ -1,67 +1,66 @@
 // NONOS Operating System
 // Copyright (C) 2026 NONOS Contributors
-//
-// Tests for arch/x86_64/time
 
 use crate::arch::x86_64::time::{PIT_FREQUENCY, RtcRegister};
+use crate::test::framework::TestResult;
 
-#[test_case]
-fn test_pit_frequency() {
-    assert_eq!(PIT_FREQUENCY, 1193182);
+pub fn test_pit_frequency() -> TestResult {
+    if PIT_FREQUENCY != 1193182 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test_case]
-fn test_pit_frequency_approximately_1mhz() {
-    assert!(PIT_FREQUENCY > 1_000_000);
-    assert!(PIT_FREQUENCY < 2_000_000);
+pub fn test_pit_frequency_approximately_1mhz() -> TestResult {
+    if PIT_FREQUENCY <= 1_000_000 { return TestResult::Fail; }
+    if PIT_FREQUENCY >= 2_000_000 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test_case]
-fn test_rtc_register_seconds() {
-    assert_eq!(RtcRegister::Seconds as u8, 0x00);
+pub fn test_rtc_register_seconds() -> TestResult {
+    if RtcRegister::Seconds as u8 != 0x00 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test_case]
-fn test_rtc_register_minutes() {
-    assert_eq!(RtcRegister::Minutes as u8, 0x02);
+pub fn test_rtc_register_minutes() -> TestResult {
+    if RtcRegister::Minutes as u8 != 0x02 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test_case]
-fn test_rtc_register_hours() {
-    assert_eq!(RtcRegister::Hours as u8, 0x04);
+pub fn test_rtc_register_hours() -> TestResult {
+    if RtcRegister::Hours as u8 != 0x04 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test_case]
-fn test_rtc_register_day_of_week() {
-    assert_eq!(RtcRegister::DayOfWeek as u8, 0x06);
+pub fn test_rtc_register_day_of_week() -> TestResult {
+    if RtcRegister::DayOfWeek as u8 != 0x06 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test_case]
-fn test_rtc_register_day() {
-    assert_eq!(RtcRegister::Day as u8, 0x07);
+pub fn test_rtc_register_day() -> TestResult {
+    if RtcRegister::Day as u8 != 0x07 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test_case]
-fn test_rtc_register_month() {
-    assert_eq!(RtcRegister::Month as u8, 0x08);
+pub fn test_rtc_register_month() -> TestResult {
+    if RtcRegister::Month as u8 != 0x08 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test_case]
-fn test_rtc_register_year() {
-    assert_eq!(RtcRegister::Year as u8, 0x09);
+pub fn test_rtc_register_year() -> TestResult {
+    if RtcRegister::Year as u8 != 0x09 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test_case]
-fn test_rtc_register_status_a() {
-    assert_eq!(RtcRegister::StatusA as u8, 0x0A);
+pub fn test_rtc_register_status_a() -> TestResult {
+    if RtcRegister::StatusA as u8 != 0x0A { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test_case]
-fn test_rtc_register_status_b() {
-    assert_eq!(RtcRegister::StatusB as u8, 0x0B);
+pub fn test_rtc_register_status_b() -> TestResult {
+    if RtcRegister::StatusB as u8 != 0x0B { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test_case]
-fn test_rtc_register_century() {
-    assert_eq!(RtcRegister::Century as u8, 0x32);
+pub fn test_rtc_register_century() -> TestResult {
+    if RtcRegister::Century as u8 != 0x32 { return TestResult::Fail; }
+    TestResult::Pass
 }
