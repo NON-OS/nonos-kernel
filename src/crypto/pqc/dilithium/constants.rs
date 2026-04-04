@@ -16,7 +16,7 @@
 
 #[cfg(feature = "mldsa2")]
 pub const D_PARAM_NAME: &str = "ML-DSA-44 (Dilithium2)";
-#[cfg(feature = "mldsa3")]
+#[cfg(any(feature = "mldsa3", all(not(feature = "mldsa2"), not(feature = "mldsa5"))))]
 pub const D_PARAM_NAME: &str = "ML-DSA-65 (Dilithium3)";
 #[cfg(feature = "mldsa5")]
 pub const D_PARAM_NAME: &str = "ML-DSA-87 (Dilithium5)";
@@ -28,11 +28,11 @@ pub const SECRETKEY_BYTES: usize = 2528;
 #[cfg(feature = "mldsa2")]
 pub const SIGNATURE_BYTES: usize = 2420;
 
-#[cfg(feature = "mldsa3")]
+#[cfg(any(feature = "mldsa3", all(not(feature = "mldsa2"), not(feature = "mldsa5"))))]
 pub const PUBLICKEY_BYTES: usize = 1952;
-#[cfg(feature = "mldsa3")]
+#[cfg(any(feature = "mldsa3", all(not(feature = "mldsa2"), not(feature = "mldsa5"))))]
 pub const SECRETKEY_BYTES: usize = 4000;
-#[cfg(feature = "mldsa3")]
+#[cfg(any(feature = "mldsa3", all(not(feature = "mldsa2"), not(feature = "mldsa5"))))]
 pub const SIGNATURE_BYTES: usize = 3293;
 
 #[cfg(feature = "mldsa5")]
