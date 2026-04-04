@@ -20,7 +20,7 @@ use super::super::constants::*;
 use super::super::error::{SecureMemoryError, SecureMemoryResult};
 use super::super::types::*;
 use super::state::MemoryManager;
-use super::helpers::{allocate_virtual_memory, get_physical_address, get_timestamp};
+use super::helpers::{allocate_virtual_memory, get_physical_address, get_timestamp, zero_on_alloc};
 use super::stats_internal::MEMORY_STATS;
 
 impl MemoryManager {
@@ -40,6 +40,7 @@ impl MemoryManager {
         }
 
         let va = allocate_virtual_memory(size)?;
+        zero_on_alloc(va, size);
         let pa = get_physical_address(va)?;
 
         let region_id = self.next_region_id;
