@@ -1,0 +1,11 @@
+mod types_tests;
+mod lifecycle_tests;
+mod registry_tests;
+mod context_tests;
+mod browser_engine_tests;
+mod privacy_tests;
+mod staking_tests;
+mod tabs_tests;
+mod form_tests;
+mod node_tests;
+mod lp_tests;
