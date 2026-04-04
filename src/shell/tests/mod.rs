@@ -1,0 +1,11 @@
+mod history;
+mod completion;
+mod buffer;
+mod input;
+mod pipeline;
+mod expand;
+mod utils;
+mod alias;
+mod env;
+mod script;
+mod editor;
