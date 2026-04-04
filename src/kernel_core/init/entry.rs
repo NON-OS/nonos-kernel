@@ -28,6 +28,7 @@ pub fn microkernel_init(handoff: &BootHandoffV1) {
     boot_log::init_after_fb(handoff.fb.cursor_y);
     boot_log::ok("NONOS", "Microkernel init");
     crate::sys::settings::init();
+    crate::locale::init_from_settings();
     crate::sys::settings::init_hostname();
     crate::ipc::init();
     crate::ipc::nonos_channel::init_ipc_secret();
@@ -35,6 +36,8 @@ pub fn microkernel_init(handoff: &BootHandoffV1) {
     crate::sched::init();
     clock::init(handoff.timing.tsc_hz, handoff.timing.unix_epoch_ms);
     crate::process::init_process_management();
+    let _ = crate::crypto::util::rng::init_rng();
+    crate::crypto::kernel_keys::init();
     boot_log::ok("NONOS", "Core ready");
 }
 

@@ -29,6 +29,26 @@ pub(crate) fn get_service_entry(name: &str) -> Option<fn()> {
         "agents" => Some(svc_agents),
         "shell" => Some(svc_shell),
         "desktop" => Some(svc_desktop),
+        "kworker" => Some(svc_kworker),
+        "softirq" => Some(svc_softirq),
+        "entropy" => Some(svc_entropy),
+        "keyring" => Some(svc_keyring),
+        "aes" => Some(svc_aes),
+        "chacha" => Some(svc_chacha),
+        "sha3" => Some(svc_sha3),
+        "blake3" => Some(svc_blake3),
+        "ed25519" => Some(svc_ed25519),
+        "secp256k1" => Some(svc_secp256k1),
+        "zkprover" => Some(svc_zkprover),
+        "groth16" => Some(svc_groth16),
+        "plonk" => Some(svc_plonk),
+        "kyber" => Some(svc_kyber),
+        "dilithium" => Some(svc_dilithium),
+        "netmgr" => Some(svc_netmgr),
+        "tls" => Some(svc_tls),
+        "wallet" => Some(svc_wallet),
+        "storage" => Some(svc_storage),
+        "udev" => Some(svc_udev),
         _ => None,
     }
 }
@@ -45,6 +65,26 @@ fn svc_gpu() { crate::userspace::run_gpu_service(); }
 fn svc_apps() { crate::userspace::run_apps_service(); }
 fn svc_agents() { crate::userspace::run_agents_service(); }
 fn svc_shell() { crate::userspace::run_shell_service(); }
+fn svc_kworker() { crate::userspace::run_kworker_service(); }
+fn svc_softirq() { crate::userspace::run_softirq_service(); }
+fn svc_entropy() { crate::userspace::run_entropy_service(); }
+fn svc_keyring() { crate::userspace::run_keyring_service(); }
+fn svc_aes() { crate::userspace::run_aes_service(); }
+fn svc_chacha() { crate::userspace::run_chacha_service(); }
+fn svc_sha3() { crate::userspace::run_sha3_service(); }
+fn svc_blake3() { crate::userspace::run_blake3_service(); }
+fn svc_ed25519() { crate::userspace::run_ed25519_service(); }
+fn svc_secp256k1() { crate::userspace::run_secp256k1_service(); }
+fn svc_zkprover() { crate::userspace::run_zkprover_service(); }
+fn svc_groth16() { crate::userspace::run_groth16_service(); }
+fn svc_plonk() { crate::userspace::run_plonk_service(); }
+fn svc_kyber() { crate::userspace::run_kyber_service(); }
+fn svc_dilithium() { crate::userspace::run_dilithium_service(); }
+fn svc_netmgr() { crate::userspace::run_netmgr_service(); }
+fn svc_tls() { crate::userspace::run_tls_service(); }
+fn svc_wallet() { crate::userspace::run_wallet_service(); }
+fn svc_storage() { crate::userspace::run_storage_service(); }
+fn svc_udev() { crate::userspace::run_udev_service(); }
 
 fn svc_desktop() {
     crate::sys::serial::println(b"[DESKTOP] Service started");
