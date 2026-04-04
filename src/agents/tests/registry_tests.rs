@@ -9,14 +9,14 @@ use crate::agents::registry::{
     list_agents, delete_agent, agent_count, MAX_AGENTS
 };
 
-#[test_case]
+#[test]
 fn test_create_agent() {
     let config = AgentConfig::default();
     let id = create_agent(config);
     assert!(id > 0);
 }
 
-#[test_case]
+#[test]
 fn test_create_agent_unique_ids() {
     let id1 = create_agent(AgentConfig::default());
     let id2 = create_agent(AgentConfig::default());
@@ -27,7 +27,7 @@ fn test_create_agent_unique_ids() {
     assert_ne!(id1, id3);
 }
 
-#[test_case]
+#[test]
 fn test_get_agent() {
     let mut config = AgentConfig::default();
     config.name[..4].copy_from_slice(b"Test");
@@ -41,13 +41,13 @@ fn test_get_agent() {
     assert_eq!(&agent.config.name[..4], b"Test");
 }
 
-#[test_case]
+#[test]
 fn test_get_agent_nonexistent() {
     let agent = get_agent(999999);
     assert!(agent.is_none());
 }
 
-#[test_case]
+#[test]
 fn test_with_agent_mut() {
     let config = AgentConfig::default();
     let id = create_agent(config);
@@ -63,13 +63,13 @@ fn test_with_agent_mut() {
     assert_eq!(agent.output.as_slice(), b"modified");
 }
 
-#[test_case]
+#[test]
 fn test_with_agent_mut_nonexistent() {
     let result = with_agent_mut(999999, |_| 42);
     assert!(result.is_none());
 }
 
-#[test_case]
+#[test]
 fn test_update_agent() {
     let config = AgentConfig::default();
     let id = create_agent(config);
@@ -84,13 +84,13 @@ fn test_update_agent() {
     assert_eq!(agent.output.as_slice(), b"updated");
 }
 
-#[test_case]
+#[test]
 fn test_update_agent_nonexistent() {
     let success = update_agent(999999, |_| {});
     assert!(!success);
 }
 
-#[test_case]
+#[test]
 fn test_list_agents() {
     let mut config1 = AgentConfig::default();
     config1.name[..6].copy_from_slice(b"Agent1");
@@ -104,7 +104,7 @@ fn test_list_agents() {
     assert!(agents.len() >= 2);
 }
 
-#[test_case]
+#[test]
 fn test_delete_agent() {
     let config = AgentConfig::default();
     let id = create_agent(config);
@@ -117,13 +117,13 @@ fn test_delete_agent() {
     assert!(get_agent(id).is_none());
 }
 
-#[test_case]
+#[test]
 fn test_delete_agent_nonexistent() {
     let result = delete_agent(999999);
     assert!(!result);
 }
 
-#[test_case]
+#[test]
 fn test_delete_agent_twice() {
     let config = AgentConfig::default();
     let id = create_agent(config);
@@ -132,7 +132,7 @@ fn test_delete_agent_twice() {
     assert!(!delete_agent(id));
 }
 
-#[test_case]
+#[test]
 fn test_agent_count() {
     let before = agent_count();
     create_agent(AgentConfig::default());
@@ -140,12 +140,12 @@ fn test_agent_count() {
     assert!(after >= before);
 }
 
-#[test_case]
+#[test]
 fn test_max_agents_constant() {
     assert_eq!(MAX_AGENTS, 32);
 }
 
-#[test_case]
+#[test]
 fn test_agent_config_preserved() {
     let mut config = AgentConfig::default();
     config.name[..8].copy_from_slice(b"MyAgent!");
@@ -167,7 +167,7 @@ fn test_agent_config_preserved() {
     assert_eq!(agent.config.system_prompt.as_slice(), b"Custom prompt");
 }
 
-#[test_case]
+#[test]
 fn test_list_agents_returns_id_and_name() {
     let mut config = AgentConfig::default();
     config.name[..7].copy_from_slice(b"ListBot");
@@ -182,7 +182,7 @@ fn test_list_agents_returns_id_and_name() {
     assert_eq!(&name[..7], b"ListBot");
 }
 
-#[test_case]
+#[test]
 fn test_agent_isolation() {
     let config1 = AgentConfig::default();
     let config2 = AgentConfig::default();
@@ -197,7 +197,7 @@ fn test_agent_isolation() {
     assert_eq!(get_agent(id2).unwrap().output.as_slice(), b"output2");
 }
 
-#[test_case]
+#[test]
 fn test_multiple_operations() {
     let config = AgentConfig::default();
     let id = create_agent(config);

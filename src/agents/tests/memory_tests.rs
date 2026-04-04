@@ -5,13 +5,13 @@
 
 use crate::agents::memory::{AgentMemory, MemoryEntry, MAX_ENTRIES};
 
-#[test_case]
+#[test]
 fn test_memory_new() {
     let mem = AgentMemory::new(1);
     assert_eq!(mem.agent_id, 1);
 }
 
-#[test_case]
+#[test]
 fn test_memory_store_and_recall() {
     let mem = AgentMemory::new(100);
 
@@ -22,7 +22,7 @@ fn test_memory_store_and_recall() {
     assert_eq!(recalled.unwrap().as_slice(), b"test_value");
 }
 
-#[test_case]
+#[test]
 fn test_memory_recall_nonexistent() {
     let mem = AgentMemory::new(100);
 
@@ -30,7 +30,7 @@ fn test_memory_recall_nonexistent() {
     assert!(recalled.is_none());
 }
 
-#[test_case]
+#[test]
 fn test_memory_store_update_existing() {
     let mem = AgentMemory::new(100);
 
@@ -42,7 +42,7 @@ fn test_memory_store_update_existing() {
     assert_eq!(recalled.unwrap().as_slice(), b"value2");
 }
 
-#[test_case]
+#[test]
 fn test_memory_multiple_keys() {
     let mem = AgentMemory::new(100);
 
@@ -55,7 +55,7 @@ fn test_memory_multiple_keys() {
     assert_eq!(mem.recall(b"key3").unwrap().as_slice(), b"value3");
 }
 
-#[test_case]
+#[test]
 fn test_memory_isolation_between_agents() {
     let mem1 = AgentMemory::new(200);
     let mem2 = AgentMemory::new(201);
@@ -68,7 +68,7 @@ fn test_memory_isolation_between_agents() {
     assert_eq!(mem2.recall(b"shared_key").unwrap().as_slice(), b"agent2_value");
 }
 
-#[test_case]
+#[test]
 fn test_memory_search_basic() {
     let mem = AgentMemory::new(300);
 
@@ -80,7 +80,7 @@ fn test_memory_search_basic() {
     assert_eq!(results.len(), 2);
 }
 
-#[test_case]
+#[test]
 fn test_memory_search_no_results() {
     let mem = AgentMemory::new(300);
 
@@ -91,7 +91,7 @@ fn test_memory_search_no_results() {
     assert!(results.is_empty());
 }
 
-#[test_case]
+#[test]
 fn test_memory_search_empty_query() {
     let mem = AgentMemory::new(300);
 
@@ -103,7 +103,7 @@ fn test_memory_search_empty_query() {
     assert_eq!(results.len(), 2);
 }
 
-#[test_case]
+#[test]
 fn test_memory_search_isolation() {
     let mem1 = AgentMemory::new(400);
     let mem2 = AgentMemory::new(401);
@@ -121,7 +121,7 @@ fn test_memory_search_isolation() {
     assert_eq!(results2[0].agent_id, 401);
 }
 
-#[test_case]
+#[test]
 fn test_memory_recent() {
     let mem = AgentMemory::new(500);
 
@@ -136,7 +136,7 @@ fn test_memory_recent() {
     assert_eq!(recent[1].value.as_slice(), b"value2");
 }
 
-#[test_case]
+#[test]
 fn test_memory_recent_more_than_available() {
     let mem = AgentMemory::new(500);
 
@@ -146,7 +146,7 @@ fn test_memory_recent_more_than_available() {
     assert_eq!(recent.len(), 1);
 }
 
-#[test_case]
+#[test]
 fn test_memory_recent_zero() {
     let mem = AgentMemory::new(500);
 
@@ -157,7 +157,7 @@ fn test_memory_recent_zero() {
     assert!(recent.is_empty());
 }
 
-#[test_case]
+#[test]
 fn test_memory_recent_isolation() {
     let mem1 = AgentMemory::new(600);
     let mem2 = AgentMemory::new(601);
@@ -174,7 +174,7 @@ fn test_memory_recent_isolation() {
     assert_eq!(recent2[0].agent_id, 601);
 }
 
-#[test_case]
+#[test]
 fn test_memory_importance_stored() {
     let mem = AgentMemory::new(700);
 
@@ -190,7 +190,7 @@ fn test_memory_importance_stored() {
     assert_eq!(high_entry.importance, 10);
 }
 
-#[test_case]
+#[test]
 fn test_memory_key_truncation() {
     let mem = AgentMemory::new(800);
 
@@ -205,7 +205,7 @@ fn test_memory_key_truncation() {
     assert_eq!(recalled.unwrap().as_slice(), b"value");
 }
 
-#[test_case]
+#[test]
 fn test_memory_entry_timestamp() {
     let mem = AgentMemory::new(900);
 
@@ -216,7 +216,7 @@ fn test_memory_entry_timestamp() {
     assert!(recent[0].timestamp > 0);
 }
 
-#[test_case]
+#[test]
 fn test_memory_entry_clone() {
     let entry = MemoryEntry {
         key: [b'k'; 64],
@@ -234,7 +234,7 @@ fn test_memory_entry_clone() {
     assert_eq!(cloned.importance, entry.importance);
 }
 
-#[test_case]
+#[test]
 fn test_memory_empty_value() {
     let mem = AgentMemory::new(1000);
 
@@ -245,7 +245,7 @@ fn test_memory_empty_value() {
     assert!(recalled.unwrap().is_empty());
 }
 
-#[test_case]
+#[test]
 fn test_memory_large_value() {
     let mem = AgentMemory::new(1001);
 
@@ -257,12 +257,12 @@ fn test_memory_large_value() {
     assert_eq!(recalled.unwrap().len(), 10000);
 }
 
-#[test_case]
+#[test]
 fn test_memory_max_entries_constant() {
     assert_eq!(MAX_ENTRIES, 1024);
 }
 
-#[test_case]
+#[test]
 fn test_memory_binary_key() {
     let mem = AgentMemory::new(1100);
 
@@ -274,7 +274,7 @@ fn test_memory_binary_key() {
     assert_eq!(recalled.unwrap().as_slice(), b"value");
 }
 
-#[test_case]
+#[test]
 fn test_memory_binary_value() {
     let mem = AgentMemory::new(1100);
 
@@ -286,7 +286,7 @@ fn test_memory_binary_value() {
     assert_eq!(recalled.unwrap().as_slice(), binary_value);
 }
 
-#[test_case]
+#[test]
 fn test_memory_search_partial_match() {
     let mem = AgentMemory::new(1200);
 
