@@ -17,7 +17,7 @@
 
 use alloc::{vec::Vec, format, string::String, collections::BTreeMap};
 use spin::{Mutex, RwLock};
-use core::sync::atomic::{AtomicU64, AtomicBool, Ordering};
+use core::sync::atomic::{fence, AtomicU64, AtomicBool, Ordering};
 
 use crate::memory::dma::{alloc_dma_coherent, DmaConstraints};
 use crate::crypto::hash::sha256;
@@ -104,9 +104,11 @@ pub(super) fn init_port<T: RegisterAccess>(
     ctrl.write_port_reg(port, PORT_CLBU, (pdma.cl_dma_pa.as_u64() >> 32) as u32);
     ctrl.write_port_reg(port, PORT_FB, (pdma.fis_dma_pa.as_u64() & 0xFFFF_FFFF) as u32);
     ctrl.write_port_reg(port, PORT_FBU, (pdma.fis_dma_pa.as_u64() >> 32) as u32);
+    fence(Ordering::SeqCst);
 
     ctrl.write_port_reg(port, PORT_IS, 0xFFFF_FFFF);
     ctrl.write_port_reg(port, PORT_SERR, 0xFFFF_FFFF);
+    fence(Ordering::SeqCst);
 
     let mut cmd = ctrl.read_port_reg(port, PORT_CMD) | CMD_FRE;
     ctrl.write_port_reg(port, PORT_CMD, cmd);
