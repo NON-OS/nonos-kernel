@@ -25,24 +25,49 @@ const WARNING: u32 = 0xFFF59E0B;
 const ERROR: u32 = 0xFFEF4444;
 
 pub(crate) fn draw(x: u32, y: u32, w: u32) {
+    draw_battery_card(x, y, w);
+    fill_rounded_rect(x + 16, y + 90, w - 32, 80, 8, BG_CARD);
+    draw_string(x + 28, y + 102, b"Power Actions", TEXT);
+    draw_string(x + 28, y + 118, b"All data lost on power action", WARNING);
+    fill_rounded_rect(x + 28, y + 138, 120, 24, 4, BG_DANGER);
+    draw_string(x + 48, y + 143, b"Shutdown", TEXT);
+    fill_rounded_rect(x + 156, y + 138, 100, 24, 4, BG_PRIMARY);
+    draw_string(x + 180, y + 143, b"Reboot", TEXT);
+    fill_rounded_rect(x + 16, y + 180, w - 32, 130, 8, BG_CARD);
+    draw_string(x + 28, y + 192, b"Power States (ACPI)", TEXT);
+    draw_state(x + 28, y + 214, w - 56, b"S0 Working", b"ACTIVE", SUCCESS);
+    draw_state(x + 28, y + 236, w - 56, b"S1 Standby", b"BLOCKED", ERROR);
+    draw_state(x + 28, y + 258, w - 56, b"S3 Suspend", b"BLOCKED", ERROR);
+    draw_state(x + 28, y + 280, w - 56, b"S5 Soft Off", b"AVAILABLE", SUCCESS);
+    fill_rounded_rect(x + 16, y + 320, w - 32, 100, 8, BG_CARD);
+    draw_string(x + 28, y + 332, b"ZeroState Security", TEXT);
+    draw_info(x + 28, y + 354, b"RAM erased on shutdown", SUCCESS);
+    draw_info(x + 28, y + 374, b"No data persists to disk", SUCCESS);
+    draw_info(x + 28, y + 394, b"Sleep/hibernate disabled", WARNING);
+}
+
+fn draw_battery_card(x: u32, y: u32, w: u32) {
+    use crate::graphics::desktop::status::battery;
     fill_rounded_rect(x + 16, y, w - 32, 80, 8, BG_CARD);
-    draw_string(x + 28, y + 12, b"Power Actions", TEXT);
-    draw_string(x + 28, y + 28, b"All data will be lost on power action", WARNING);
-    fill_rounded_rect(x + 28, y + 48, 120, 24, 4, BG_DANGER);
-    draw_string(x + 48, y + 53, b"Shutdown", TEXT);
-    fill_rounded_rect(x + 156, y + 48, 100, 24, 4, BG_PRIMARY);
-    draw_string(x + 180, y + 53, b"Reboot", TEXT);
-    fill_rounded_rect(x + 16, y + 90, w - 32, 130, 8, BG_CARD);
-    draw_string(x + 28, y + 102, b"Power States (ACPI)", TEXT);
-    draw_state(x + 28, y + 124, w - 56, b"S0 Working", b"ACTIVE", SUCCESS);
-    draw_state(x + 28, y + 146, w - 56, b"S1 Standby", b"BLOCKED", ERROR);
-    draw_state(x + 28, y + 168, w - 56, b"S3 Suspend", b"BLOCKED", ERROR);
-    draw_state(x + 28, y + 190, w - 56, b"S5 Soft Off", b"AVAILABLE", SUCCESS);
-    fill_rounded_rect(x + 16, y + 230, w - 32, 100, 8, BG_CARD);
-    draw_string(x + 28, y + 242, b"ZeroState Security", TEXT);
-    draw_info(x + 28, y + 264, b"RAM erased on shutdown", SUCCESS);
-    draw_info(x + 28, y + 284, b"No data persists to disk", SUCCESS);
-    draw_info(x + 28, y + 304, b"Sleep/hibernate disabled", WARNING);
+    draw_string(x + 28, y + 12, b"Battery Status", TEXT);
+    let pct = battery::get_battery_percent();
+    let ac = battery::is_ac_connected();
+    let charging = battery::is_charging();
+    let (status, color) = if charging { (b"Charging" as &[u8], SUCCESS) }
+        else if ac { (b"Plugged In" as &[u8], SUCCESS) }
+        else { (b"On Battery" as &[u8], WARNING) };
+    draw_string(x + 28, y + 32, status, color);
+    let mut pct_buf = [0u8; 4];
+    pct_buf[0] = b'0' + (pct / 100) % 10;
+    pct_buf[1] = b'0' + (pct / 10) % 10;
+    pct_buf[2] = b'0' + pct % 10;
+    pct_buf[3] = b'%';
+    let start = if pct >= 100 { 0 } else if pct >= 10 { 1 } else { 2 };
+    draw_string(x + 28, y + 52, &pct_buf[start..], TEXT);
+    fill_rounded_rect(x + 80, y + 50, 180, 18, 4, BG_STATE);
+    let bar_w = ((pct as u32) * 176) / 100;
+    let bar_c = if pct > 20 { SUCCESS } else { ERROR };
+    fill_rounded_rect(x + 82, y + 52, bar_w, 14, 3, bar_c);
 }
 
 fn draw_state(x: u32, y: u32, w: u32, name: &[u8], status: &[u8], color: u32) {
