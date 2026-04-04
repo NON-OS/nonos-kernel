@@ -19,6 +19,8 @@ extern crate alloc;
 pub mod boot_memory;
 pub mod buddy_alloc;
 pub mod dma;
+pub mod stats;
+pub mod encryption;
 pub mod frame_alloc;
 pub mod hardening;
 pub mod heap;
@@ -37,6 +39,9 @@ pub mod secure_memory;
 pub mod unified;
 pub mod virt;
 pub mod virtual_memory;
+
+#[cfg(test)]
+mod tests;
 
 pub use x86_64::{PhysAddr, VirtAddr};
 
