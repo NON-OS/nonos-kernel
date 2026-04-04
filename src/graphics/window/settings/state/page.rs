@@ -22,7 +22,8 @@ pub const PAGE_NETWORK: u8 = 1;
 pub const PAGE_APPEARANCE: u8 = 2;
 pub const PAGE_SYSTEM: u8 = 3;
 pub const PAGE_POWER: u8 = 4;
-pub const PAGE_COUNT: u8 = 5;
+pub const PAGE_KERNEL: u8 = 5;
+pub const PAGE_COUNT: u8 = 6;
 
 static SETTINGS_PAGE: AtomicU8 = AtomicU8::new(0);
 
@@ -31,7 +32,7 @@ pub fn get_page() -> u8 {
 }
 
 pub fn set_page(page: u8) {
-    if page <= PAGE_POWER {
+    if page <= PAGE_KERNEL {
         SETTINGS_PAGE.store(page, Ordering::Relaxed);
     }
 }
