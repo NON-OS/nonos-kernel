@@ -43,7 +43,12 @@ pub fn current_pid() -> Option<Pid> {
 
 #[inline]
 pub fn current_process() -> Option<Arc<ProcessControlBlock>> {
-    current_pid().and_then(|pid| PROCESS_TABLE.find_by_pid(pid))
+    crate::sys::serial::println(b"[PROC] current_process: getting pid");
+    let pid = current_pid()?;
+    crate::sys::serial::println(b"[PROC] current_process: finding in table");
+    let result = PROCESS_TABLE.find_by_pid(pid);
+    crate::sys::serial::println(b"[PROC] current_process: done");
+    result
 }
 
 #[inline]

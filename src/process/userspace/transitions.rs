@@ -89,19 +89,23 @@ pub unsafe extern "C" fn jump_to_usermode(entry: u64, stack: u64, arg: u64) -> !
     );
 }
 
-#[unsafe(naked)]
-#[no_mangle]
-pub unsafe extern "C" fn return_to_usermode(frame: *const InterruptFrame) -> ! {
-    core::arch::naked_asm!(
-        // Load the interrupt frame address
-        "mov rsp, rdi",
+pub unsafe fn return_to_usermode(frame: *const InterruptFrame) -> ! {
+    let f = unsafe { &*frame };
+    const USER_SPACE_MAX: u64 = 0x0000_7FFF_FFFF_FFFF;
+    if f.rip > USER_SPACE_MAX || f.rsp > USER_SPACE_MAX || f.rsp == 0 {
+        crate::sys::serial::println(b"[FATAL] Invalid user frame");
+        loop { core::hint::spin_loop(); }
+    }
+    unsafe { return_to_usermode_asm(frame) }
+}
 
-        // Set up data segments
+#[unsafe(naked)]
+unsafe extern "C" fn return_to_usermode_asm(frame: *const InterruptFrame) -> ! {
+    core::arch::naked_asm!(
+        "mov rsp, rdi",
         "mov ax, 0x23",
         "mov ds, ax",
         "mov es, ax",
-
-        // IRET pops: RIP, CS, RFLAGS, RSP, SS
         "iretq",
     );
 }
