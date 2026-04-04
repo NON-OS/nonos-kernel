@@ -14,20 +14,22 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::capabilities::*;
+extern crate alloc;
 
-#[test]
-fn test_capability_token_empty() {
+use crate::capabilities::*;
+use crate::test::framework::TestResult;
+
+pub fn test_capability_token_empty() -> TestResult {
     let tok = CapabilityToken::empty();
-    assert_eq!(tok.owner_module, 0);
-    assert!(tok.permissions.is_empty());
-    assert_eq!(tok.expires_at_ms, Some(0));
-    assert_eq!(tok.nonce, 0);
-    assert_eq!(tok.signature, [0u8; 64]);
+    if tok.owner_module != 0 { return TestResult::Fail; }
+    if !tok.permissions.is_empty() { return TestResult::Fail; }
+    if tok.expires_at_ms != Some(0) { return TestResult::Fail; }
+    if tok.nonce != 0 { return TestResult::Fail; }
+    if tok.signature != [0u8; 64] { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_capability_token_grants_true() {
+pub fn test_capability_token_grants_true() -> TestResult {
     let tok = CapabilityToken {
         owner_module: 1,
         permissions: alloc::vec![Capability::Admin, Capability::Debug],
@@ -35,12 +37,12 @@ fn test_capability_token_grants_true() {
         nonce: 12345,
         signature: [0u8; 64],
     };
-    assert!(tok.grants(Capability::Admin));
-    assert!(tok.grants(Capability::Debug));
+    if !tok.grants(Capability::Admin) { return TestResult::Fail; }
+    if !tok.grants(Capability::Debug) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_capability_token_grants_false() {
+pub fn test_capability_token_grants_false() -> TestResult {
     let tok = CapabilityToken {
         owner_module: 1,
         permissions: alloc::vec![Capability::Admin],
@@ -48,18 +50,18 @@ fn test_capability_token_grants_false() {
         nonce: 12345,
         signature: [0u8; 64],
     };
-    assert!(!tok.grants(Capability::Debug));
-    assert!(!tok.grants(Capability::Network));
+    if tok.grants(Capability::Debug) { return TestResult::Fail; }
+    if tok.grants(Capability::Network) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_capability_token_grants_empty() {
+pub fn test_capability_token_grants_empty() -> TestResult {
     let tok = CapabilityToken::empty();
-    assert!(!tok.grants(Capability::Admin));
+    if tok.grants(Capability::Admin) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_capability_token_permission_count() {
+pub fn test_capability_token_permission_count() -> TestResult {
     let tok = CapabilityToken {
         owner_module: 1,
         permissions: alloc::vec![Capability::Admin, Capability::Debug, Capability::Crypto],
@@ -67,11 +69,11 @@ fn test_capability_token_permission_count() {
         nonce: 12345,
         signature: [0u8; 64],
     };
-    assert_eq!(tok.permission_count(), 3);
+    if tok.permission_count() != 3 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_capability_token_has_any_permission_true() {
+pub fn test_capability_token_has_any_permission_true() -> TestResult {
     let tok = CapabilityToken {
         owner_module: 1,
         permissions: alloc::vec![Capability::Admin],
@@ -79,17 +81,17 @@ fn test_capability_token_has_any_permission_true() {
         nonce: 12345,
         signature: [0u8; 64],
     };
-    assert!(tok.has_any_permission());
+    if !tok.has_any_permission() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_capability_token_has_any_permission_false() {
+pub fn test_capability_token_has_any_permission_false() -> TestResult {
     let tok = CapabilityToken::empty();
-    assert!(!tok.has_any_permission());
+    if tok.has_any_permission() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_capability_token_grants_all_true() {
+pub fn test_capability_token_grants_all_true() -> TestResult {
     let tok = CapabilityToken {
         owner_module: 1,
         permissions: alloc::vec![Capability::Admin, Capability::Debug, Capability::Crypto],
@@ -97,11 +99,11 @@ fn test_capability_token_grants_all_true() {
         nonce: 12345,
         signature: [0u8; 64],
     };
-    assert!(tok.grants_all(&[Capability::Admin, Capability::Debug]));
+    if !tok.grants_all(&[Capability::Admin, Capability::Debug]) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_capability_token_grants_all_false() {
+pub fn test_capability_token_grants_all_false() -> TestResult {
     let tok = CapabilityToken {
         owner_module: 1,
         permissions: alloc::vec![Capability::Admin],
@@ -109,17 +111,17 @@ fn test_capability_token_grants_all_false() {
         nonce: 12345,
         signature: [0u8; 64],
     };
-    assert!(!tok.grants_all(&[Capability::Admin, Capability::Debug]));
+    if tok.grants_all(&[Capability::Admin, Capability::Debug]) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_capability_token_grants_all_empty() {
+pub fn test_capability_token_grants_all_empty() -> TestResult {
     let tok = CapabilityToken::empty();
-    assert!(tok.grants_all(&[]));
+    if !tok.grants_all(&[]) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_capability_token_grants_any_true() {
+pub fn test_capability_token_grants_any_true() -> TestResult {
     let tok = CapabilityToken {
         owner_module: 1,
         permissions: alloc::vec![Capability::Admin],
@@ -127,11 +129,11 @@ fn test_capability_token_grants_any_true() {
         nonce: 12345,
         signature: [0u8; 64],
     };
-    assert!(tok.grants_any(&[Capability::Admin, Capability::Debug]));
+    if !tok.grants_any(&[Capability::Admin, Capability::Debug]) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_capability_token_grants_any_false() {
+pub fn test_capability_token_grants_any_false() -> TestResult {
     let tok = CapabilityToken {
         owner_module: 1,
         permissions: alloc::vec![Capability::Admin],
@@ -139,11 +141,11 @@ fn test_capability_token_grants_any_false() {
         nonce: 12345,
         signature: [0u8; 64],
     };
-    assert!(!tok.grants_any(&[Capability::Debug, Capability::Network]));
+    if tok.grants_any(&[Capability::Debug, Capability::Network]) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_capability_token_grants_any_empty_caps() {
+pub fn test_capability_token_grants_any_empty_caps() -> TestResult {
     let tok = CapabilityToken {
         owner_module: 1,
         permissions: alloc::vec![Capability::Admin],
@@ -151,11 +153,11 @@ fn test_capability_token_grants_any_empty_caps() {
         nonce: 12345,
         signature: [0u8; 64],
     };
-    assert!(!tok.grants_any(&[]));
+    if tok.grants_any(&[]) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_capability_token_is_admin_true() {
+pub fn test_capability_token_is_admin_true() -> TestResult {
     let tok = CapabilityToken {
         owner_module: 1,
         permissions: alloc::vec![Capability::Admin],
@@ -163,11 +165,11 @@ fn test_capability_token_is_admin_true() {
         nonce: 12345,
         signature: [0u8; 64],
     };
-    assert!(tok.is_admin());
+    if !tok.is_admin() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_capability_token_is_admin_false() {
+pub fn test_capability_token_is_admin_false() -> TestResult {
     let tok = CapabilityToken {
         owner_module: 1,
         permissions: alloc::vec![Capability::Debug],
@@ -175,11 +177,11 @@ fn test_capability_token_is_admin_false() {
         nonce: 12345,
         signature: [0u8; 64],
     };
-    assert!(!tok.is_admin());
+    if tok.is_admin() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_capability_token_can_register_service_true() {
+pub fn test_capability_token_can_register_service_true() -> TestResult {
     let tok = CapabilityToken {
         owner_module: 1,
         permissions: alloc::vec![Capability::RegisterService],
@@ -187,11 +189,11 @@ fn test_capability_token_can_register_service_true() {
         nonce: 12345,
         signature: [0u8; 64],
     };
-    assert!(tok.can_register_service());
+    if !tok.can_register_service() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_capability_token_can_register_service_false() {
+pub fn test_capability_token_can_register_service_false() -> TestResult {
     let tok = CapabilityToken {
         owner_module: 1,
         permissions: alloc::vec![Capability::Admin],
@@ -199,11 +201,11 @@ fn test_capability_token_can_register_service_false() {
         nonce: 12345,
         signature: [0u8; 64],
     };
-    assert!(!tok.can_register_service());
+    if tok.can_register_service() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_capability_token_display() {
+pub fn test_capability_token_display() -> TestResult {
     let tok = CapabilityToken {
         owner_module: 42,
         permissions: alloc::vec![Capability::Admin, Capability::Debug],
@@ -212,23 +214,23 @@ fn test_capability_token_display() {
         signature: [0u8; 64],
     };
     let display = alloc::format!("{}", tok);
-    assert!(display.contains("owner:42"));
-    assert!(display.contains("caps:2"));
-    assert!(display.contains("1234567890abcdef"));
+    if !display.contains("owner:42") { return TestResult::Fail; }
+    if !display.contains("caps:2") { return TestResult::Fail; }
+    if !display.contains("1234567890abcdef") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_token_binary_size() {
-    assert_eq!(TOKEN_BINARY_SIZE, 97);
+pub fn test_token_binary_size() -> TestResult {
+    if TOKEN_BINARY_SIZE != 97 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_token_version() {
-    assert_eq!(TOKEN_VERSION, 1);
+pub fn test_token_version() -> TestResult {
+    if TOKEN_VERSION != 1 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_to_bytes_from_bytes_roundtrip() {
+pub fn test_to_bytes_from_bytes_roundtrip() -> TestResult {
     let tok = CapabilityToken {
         owner_module: 0x123456789ABCDEF0,
         permissions: alloc::vec![Capability::Admin, Capability::Debug],
@@ -238,102 +240,102 @@ fn test_to_bytes_from_bytes_roundtrip() {
     };
     let bytes = to_bytes(&tok);
     let recovered = from_bytes(&bytes).unwrap();
-    assert_eq!(recovered.owner_module, tok.owner_module);
-    assert_eq!(recovered.permissions.len(), tok.permissions.len());
-    assert_eq!(recovered.expires_at_ms, tok.expires_at_ms);
-    assert_eq!(recovered.nonce, tok.nonce);
-    assert_eq!(recovered.signature, tok.signature);
+    if recovered.owner_module != tok.owner_module { return TestResult::Fail; }
+    if recovered.permissions.len() != tok.permissions.len() { return TestResult::Fail; }
+    if recovered.expires_at_ms != tok.expires_at_ms { return TestResult::Fail; }
+    if recovered.nonce != tok.nonce { return TestResult::Fail; }
+    if recovered.signature != tok.signature { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_to_bytes_version_byte() {
+pub fn test_to_bytes_version_byte() -> TestResult {
     let tok = CapabilityToken::empty();
     let bytes = to_bytes(&tok);
-    assert_eq!(bytes[0], TOKEN_VERSION);
+    if bytes[0] != TOKEN_VERSION { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_from_bytes_invalid_size() {
+pub fn test_from_bytes_invalid_size() -> TestResult {
     let short = [0u8; 50];
-    assert!(from_bytes(&short).is_err());
+    if from_bytes(&short).is_ok() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_from_bytes_invalid_version() {
+pub fn test_from_bytes_invalid_version() -> TestResult {
     let mut bytes = [0u8; TOKEN_BINARY_SIZE];
     bytes[0] = 99;
-    assert!(from_bytes(&bytes).is_err());
+    if from_bytes(&bytes).is_ok() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_from_bytes_zero_expiry_becomes_none() {
+pub fn test_from_bytes_zero_expiry_becomes_none() -> TestResult {
     let mut bytes = [0u8; TOKEN_BINARY_SIZE];
     bytes[0] = TOKEN_VERSION;
     let tok = from_bytes(&bytes).unwrap();
-    assert_eq!(tok.expires_at_ms, None);
+    if tok.expires_at_ms != None { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_default_nonce_nonzero() {
+pub fn test_default_nonce_nonzero() -> TestResult {
     let n1 = default_nonce();
-    assert_ne!(n1, 0);
+    if n1 == 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_default_nonce_different_values() {
+pub fn test_default_nonce_different_values() -> TestResult {
     let n1 = default_nonce();
     let n2 = default_nonce();
-    assert_ne!(n1, n2);
+    if n1 == n2 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_nonce_counter_increment() {
+pub fn test_nonce_counter_increment() -> TestResult {
     reset_nonce_counter();
     let c1 = current_nonce_counter();
     let _ = default_nonce();
     let c2 = current_nonce_counter();
-    assert!(c2 >= c1);
+    if c2 < c1 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_reset_nonce_counter() {
+pub fn test_reset_nonce_counter() -> TestResult {
     let _ = default_nonce();
     reset_nonce_counter();
-    assert_eq!(current_nonce_counter(), 1);
+    if current_nonce_counter() != 1 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_revoke_token() {
+pub fn test_revoke_token() -> TestResult {
     clear_revocations();
     revoke_token(100, 200);
-    assert!(is_revoked(100, 200));
+    if !is_revoked(100, 200) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_is_revoked_false() {
+pub fn test_is_revoked_false() -> TestResult {
     clear_revocations();
-    assert!(!is_revoked(999, 888));
+    if is_revoked(999, 888) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_revoked_count() {
+pub fn test_revoked_count() -> TestResult {
     clear_revocations();
-    assert_eq!(revoked_count(), 0);
+    if revoked_count() != 0 { return TestResult::Fail; }
     revoke_token(1, 1);
     revoke_token(2, 2);
-    assert_eq!(revoked_count(), 2);
+    if revoked_count() != 2 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_clear_revocations() {
+pub fn test_clear_revocations() -> TestResult {
     revoke_token(1, 1);
     clear_revocations();
-    assert_eq!(revoked_count(), 0);
-    assert!(!is_revoked(1, 1));
+    if revoked_count() != 0 { return TestResult::Fail; }
+    if is_revoked(1, 1) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_revoke_all_for_owner() {
+pub fn test_revoke_all_for_owner() -> TestResult {
     let owner_a = 0xDEAD_BEEF_CAFE_1001;
     let owner_b = 0xDEAD_BEEF_CAFE_1002;
     let nonce_1 = 0xAAAA_0001;
@@ -345,58 +347,59 @@ fn test_revoke_all_for_owner() {
     let before_count = revoked_count();
     revoke_all_for_owner(owner_a);
     let after_count = revoked_count();
-    assert!(after_count < before_count || before_count == 0);
+    if after_count >= before_count && before_count > 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_mac64_produces_64_bytes() {
+pub fn test_mac64_produces_64_bytes() -> TestResult {
     let key = [0u8; 32];
     let material = [1u8; 32];
     let mac = mac64(&key, &material);
-    assert_eq!(mac.len(), 64);
+    if mac.len() != 64 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_mac64_deterministic() {
+pub fn test_mac64_deterministic() -> TestResult {
     let key = [1u8; 32];
     let material = [2u8; 32];
     let mac1 = mac64(&key, &material);
     let mac2 = mac64(&key, &material);
-    assert_eq!(mac1, mac2);
+    if mac1 != mac2 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_mac64_different_keys_different_output() {
+pub fn test_mac64_different_keys_different_output() -> TestResult {
     let material = [1u8; 32];
     let mac1 = mac64(&[0u8; 32], &material);
     let mac2 = mac64(&[1u8; 32], &material);
-    assert_ne!(mac1, mac2);
+    if mac1 == mac2 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_mac64_different_material_different_output() {
+pub fn test_mac64_different_material_different_output() -> TestResult {
     let key = [0u8; 32];
     let mac1 = mac64(&key, &[0u8; 32]);
     let mac2 = mac64(&key, &[1u8; 32]);
-    assert_ne!(mac1, mac2);
+    if mac1 == mac2 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_token_material_produces_32_bytes() {
+pub fn test_token_material_produces_32_bytes() -> TestResult {
     let mat = token_material(1, 2, 3, 4);
-    assert_eq!(mat.len(), 32);
+    if mat.len() != 32 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_token_material_deterministic() {
+pub fn test_token_material_deterministic() -> TestResult {
     let mat1 = token_material(100, 200, 300, 400);
     let mat2 = token_material(100, 200, 300, 400);
-    assert_eq!(mat1, mat2);
+    if mat1 != mat2 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_token_material_different_inputs() {
+pub fn test_token_material_different_inputs() -> TestResult {
     let mat1 = token_material(1, 2, 3, 4);
     let mat2 = token_material(1, 2, 3, 5);
-    assert_ne!(mat1, mat2);
+    if mat1 == mat2 { return TestResult::Fail; }
+    TestResult::Pass
 }

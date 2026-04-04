@@ -14,7 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+extern crate alloc;
+
 use crate::capabilities::*;
+use crate::test::framework::TestResult;
 
 fn make_delegation(delegator: u64, delegatee: u64, caps: &[Capability]) -> Delegation {
     Delegation {
@@ -27,82 +30,81 @@ fn make_delegation(delegator: u64, delegatee: u64, caps: &[Capability]) -> Deleg
     }
 }
 
-#[test]
-fn test_delegation_grants_true() {
+pub fn test_delegation_grants_true() -> TestResult {
     let del = make_delegation(1, 2, &[Capability::Admin, Capability::Debug]);
-    assert!(del.grants(Capability::Admin));
-    assert!(del.grants(Capability::Debug));
+    if !del.grants(Capability::Admin) { return TestResult::Fail; }
+    if !del.grants(Capability::Debug) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_delegation_grants_false() {
+pub fn test_delegation_grants_false() -> TestResult {
     let del = make_delegation(1, 2, &[Capability::Admin]);
-    assert!(!del.grants(Capability::Debug));
-    assert!(!del.grants(Capability::Network));
+    if del.grants(Capability::Debug) { return TestResult::Fail; }
+    if del.grants(Capability::Network) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_delegation_capability_count() {
+pub fn test_delegation_capability_count() -> TestResult {
     let del = make_delegation(1, 2, &[Capability::Admin, Capability::Debug, Capability::Crypto]);
-    assert_eq!(del.capability_count(), 3);
+    if del.capability_count() != 3 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_delegation_capability_count_empty() {
+pub fn test_delegation_capability_count_empty() -> TestResult {
     let del = make_delegation(1, 2, &[]);
-    assert_eq!(del.capability_count(), 0);
+    if del.capability_count() != 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_delegation_grants_all_true() {
+pub fn test_delegation_grants_all_true() -> TestResult {
     let del = make_delegation(1, 2, &[Capability::Admin, Capability::Debug, Capability::Crypto]);
-    assert!(del.grants_all(&[Capability::Admin, Capability::Debug]));
+    if !del.grants_all(&[Capability::Admin, Capability::Debug]) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_delegation_grants_all_false() {
+pub fn test_delegation_grants_all_false() -> TestResult {
     let del = make_delegation(1, 2, &[Capability::Admin]);
-    assert!(!del.grants_all(&[Capability::Admin, Capability::Debug]));
+    if del.grants_all(&[Capability::Admin, Capability::Debug]) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_delegation_grants_all_empty() {
+pub fn test_delegation_grants_all_empty() -> TestResult {
     let del = make_delegation(1, 2, &[Capability::Admin]);
-    assert!(del.grants_all(&[]));
+    if !del.grants_all(&[]) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_delegation_grants_any_true() {
+pub fn test_delegation_grants_any_true() -> TestResult {
     let del = make_delegation(1, 2, &[Capability::Admin]);
-    assert!(del.grants_any(&[Capability::Admin, Capability::Debug]));
+    if !del.grants_any(&[Capability::Admin, Capability::Debug]) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_delegation_grants_any_false() {
+pub fn test_delegation_grants_any_false() -> TestResult {
     let del = make_delegation(1, 2, &[Capability::Admin]);
-    assert!(!del.grants_any(&[Capability::Debug, Capability::Network]));
+    if del.grants_any(&[Capability::Debug, Capability::Network]) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_delegation_grants_any_empty() {
+pub fn test_delegation_grants_any_empty() -> TestResult {
     let del = make_delegation(1, 2, &[Capability::Admin]);
-    assert!(!del.grants_any(&[]));
+    if del.grants_any(&[]) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_delegation_is_valid_no_expiry() {
+pub fn test_delegation_is_valid_no_expiry() -> TestResult {
     let del = make_delegation(1, 2, &[Capability::Admin]);
-    assert!(del.is_valid());
+    if !del.is_valid() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_delegation_is_expired_no_expiry() {
+pub fn test_delegation_is_expired_no_expiry() -> TestResult {
     let del = make_delegation(1, 2, &[Capability::Admin]);
-    assert!(!del.is_expired());
+    if del.is_expired() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_delegation_is_expired_future() {
+pub fn test_delegation_is_expired_future() -> TestResult {
     let del = Delegation {
         delegator: 1,
         delegatee: 2,
@@ -111,12 +113,12 @@ fn test_delegation_is_expired_future() {
         parent_nonce: 12345,
         signature: [0u8; 64],
     };
-    assert!(!del.is_expired());
-    assert!(del.is_valid());
+    if del.is_expired() { return TestResult::Fail; }
+    if !del.is_valid() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_delegation_is_expired_past() {
+pub fn test_delegation_is_expired_past() -> TestResult {
     let del = Delegation {
         delegator: 1,
         delegatee: 2,
@@ -125,18 +127,18 @@ fn test_delegation_is_expired_past() {
         parent_nonce: 12345,
         signature: [0u8; 64],
     };
-    assert!(del.is_expired());
-    assert!(!del.is_valid());
+    if !del.is_expired() { return TestResult::Fail; }
+    if del.is_valid() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_delegation_remaining_ms_none() {
+pub fn test_delegation_remaining_ms_none() -> TestResult {
     let del = make_delegation(1, 2, &[Capability::Admin]);
-    assert!(del.remaining_ms().is_none());
+    if del.remaining_ms().is_some() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_delegation_remaining_ms_future() {
+pub fn test_delegation_remaining_ms_future() -> TestResult {
     let del = Delegation {
         delegator: 1,
         delegatee: 2,
@@ -146,12 +148,12 @@ fn test_delegation_remaining_ms_future() {
         signature: [0u8; 64],
     };
     let remaining = del.remaining_ms();
-    assert!(remaining.is_some());
-    assert!(remaining.unwrap() > 0);
+    if remaining.is_none() { return TestResult::Fail; }
+    if remaining.unwrap() == 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_delegation_remaining_ms_past() {
+pub fn test_delegation_remaining_ms_past() -> TestResult {
     let del = Delegation {
         delegator: 1,
         delegatee: 2,
@@ -161,21 +163,21 @@ fn test_delegation_remaining_ms_past() {
         signature: [0u8; 64],
     };
     let remaining = del.remaining_ms();
-    assert!(remaining.is_some());
-    assert_eq!(remaining.unwrap(), 0);
+    if remaining.is_none() { return TestResult::Fail; }
+    if remaining.unwrap() != 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_delegation_display() {
+pub fn test_delegation_display() -> TestResult {
     let del = make_delegation(10, 20, &[Capability::Admin, Capability::Debug]);
     let display = alloc::format!("{}", del);
-    assert!(display.contains("10"));
-    assert!(display.contains("20"));
-    assert!(display.contains("caps:2"));
+    if !display.contains("10") { return TestResult::Fail; }
+    if !display.contains("20") { return TestResult::Fail; }
+    if !display.contains("caps:2") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_delegation_display_with_expiry() {
+pub fn test_delegation_display_with_expiry() -> TestResult {
     let del = Delegation {
         delegator: 10,
         delegatee: 20,
@@ -185,169 +187,169 @@ fn test_delegation_display_with_expiry() {
         signature: [0u8; 64],
     };
     let display = alloc::format!("{}", del);
-    assert!(display.contains("1000000ms"));
+    if !display.contains("1000000ms") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_delegation_display_no_expiry() {
+pub fn test_delegation_display_no_expiry() -> TestResult {
     let del = make_delegation(10, 20, &[Capability::Admin]);
     let display = alloc::format!("{}", del);
-    assert!(display.contains("never"));
+    if !display.contains("never") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_delegation_error_missing_signing_key_as_str() {
+pub fn test_delegation_error_missing_signing_key_as_str() -> TestResult {
     let err = DelegationError::MissingSigningKey;
-    assert_eq!(err.as_str(), "Signing key not available");
+    if err.as_str() != "Signing key not available" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_delegation_error_invalid_parent_token_as_str() {
+pub fn test_delegation_error_invalid_parent_token_as_str() -> TestResult {
     let err = DelegationError::InvalidParentToken;
-    assert_eq!(err.as_str(), "Parent token is invalid");
+    if err.as_str() != "Parent token is invalid" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_delegation_error_parent_expired_as_str() {
+pub fn test_delegation_error_parent_expired_as_str() -> TestResult {
     let err = DelegationError::ParentExpired;
-    assert_eq!(err.as_str(), "Parent token has expired");
+    if err.as_str() != "Parent token has expired" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_delegation_error_capability_not_held_as_str() {
+pub fn test_delegation_error_capability_not_held_as_str() -> TestResult {
     let err = DelegationError::CapabilityNotHeld;
-    assert_eq!(err.as_str(), "Cannot delegate capability not held");
+    if err.as_str() != "Cannot delegate capability not held" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_delegation_error_delegation_expired_as_str() {
+pub fn test_delegation_error_delegation_expired_as_str() -> TestResult {
     let err = DelegationError::DelegationExpired;
-    assert_eq!(err.as_str(), "Delegation has expired");
+    if err.as_str() != "Delegation has expired" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_delegation_error_invalid_signature_as_str() {
+pub fn test_delegation_error_invalid_signature_as_str() -> TestResult {
     let err = DelegationError::InvalidSignature;
-    assert_eq!(err.as_str(), "Signature verification failed");
+    if err.as_str() != "Signature verification failed" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_delegation_error_no_capabilities_as_str() {
+pub fn test_delegation_error_no_capabilities_as_str() -> TestResult {
     let err = DelegationError::NoCapabilities;
-    assert_eq!(err.as_str(), "No capabilities specified");
+    if err.as_str() != "No capabilities specified" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_delegation_error_is_recoverable_delegation_expired() {
+pub fn test_delegation_error_is_recoverable_delegation_expired() -> TestResult {
     let err = DelegationError::DelegationExpired;
-    assert!(err.is_recoverable());
+    if !err.is_recoverable() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_delegation_error_is_recoverable_parent_expired() {
+pub fn test_delegation_error_is_recoverable_parent_expired() -> TestResult {
     let err = DelegationError::ParentExpired;
-    assert!(err.is_recoverable());
+    if !err.is_recoverable() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_delegation_error_is_recoverable_invalid_signature() {
+pub fn test_delegation_error_is_recoverable_invalid_signature() -> TestResult {
     let err = DelegationError::InvalidSignature;
-    assert!(!err.is_recoverable());
+    if err.is_recoverable() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_delegation_error_is_recoverable_missing_key() {
+pub fn test_delegation_error_is_recoverable_missing_key() -> TestResult {
     let err = DelegationError::MissingSigningKey;
-    assert!(!err.is_recoverable());
+    if err.is_recoverable() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_delegation_error_display() {
+pub fn test_delegation_error_display() -> TestResult {
     let err = DelegationError::NoCapabilities;
     let display = alloc::format!("{}", err);
-    assert_eq!(display, "No capabilities specified");
+    if display != "No capabilities specified" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_delegation_error_equality() {
-    assert_eq!(DelegationError::NoCapabilities, DelegationError::NoCapabilities);
-    assert_ne!(DelegationError::NoCapabilities, DelegationError::ParentExpired);
+pub fn test_delegation_error_equality() -> TestResult {
+    if DelegationError::NoCapabilities != DelegationError::NoCapabilities { return TestResult::Fail; }
+    if DelegationError::NoCapabilities == DelegationError::ParentExpired { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_delegation_material_produces_48_bytes() {
+pub fn test_delegation_material_produces_48_bytes() -> TestResult {
     let del = make_delegation(1, 2, &[Capability::Admin]);
     let mat = delegation_material(&del, del.parent_nonce);
-    assert_eq!(mat.len(), 48);
+    if mat.len() != 48 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_delegation_material_deterministic() {
+pub fn test_delegation_material_deterministic() -> TestResult {
     let del = make_delegation(100, 200, &[Capability::Admin, Capability::Debug]);
     let mat1 = delegation_material(&del, del.parent_nonce);
     let mat2 = delegation_material(&del, del.parent_nonce);
-    assert_eq!(mat1, mat2);
+    if mat1 != mat2 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_delegation_material_different_for_different_delegators() {
+pub fn test_delegation_material_different_for_different_delegators() -> TestResult {
     let del1 = make_delegation(1, 2, &[Capability::Admin]);
     let del2 = make_delegation(99, 2, &[Capability::Admin]);
     let mat1 = delegation_material(&del1, del1.parent_nonce);
     let mat2 = delegation_material(&del2, del2.parent_nonce);
-    assert_ne!(mat1, mat2);
+    if mat1 == mat2 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_delegation_material_different_for_different_delegatees() {
+pub fn test_delegation_material_different_for_different_delegatees() -> TestResult {
     let del1 = make_delegation(1, 2, &[Capability::Admin]);
     let del2 = make_delegation(1, 99, &[Capability::Admin]);
     let mat1 = delegation_material(&del1, del1.parent_nonce);
     let mat2 = delegation_material(&del2, del2.parent_nonce);
-    assert_ne!(mat1, mat2);
+    if mat1 == mat2 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_compute_delegation_signature_produces_64_bytes() {
+pub fn test_compute_delegation_signature_produces_64_bytes() -> TestResult {
     let key = [0u8; 32];
     let material = [1u8; 48];
     let sig = compute_delegation_signature(&key, &material);
-    assert_eq!(sig.len(), 64);
+    if sig.len() != 64 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_compute_delegation_signature_deterministic() {
+pub fn test_compute_delegation_signature_deterministic() -> TestResult {
     let key = [1u8; 32];
     let material = [2u8; 48];
     let sig1 = compute_delegation_signature(&key, &material);
     let sig2 = compute_delegation_signature(&key, &material);
-    assert_eq!(sig1, sig2);
+    if sig1 != sig2 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_compute_delegation_signature_different_keys() {
+pub fn test_compute_delegation_signature_different_keys() -> TestResult {
     let material = [1u8; 48];
     let sig1 = compute_delegation_signature(&[0u8; 32], &material);
     let sig2 = compute_delegation_signature(&[1u8; 32], &material);
-    assert_ne!(sig1, sig2);
+    if sig1 == sig2 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_compute_delegation_signature_different_material() {
+pub fn test_compute_delegation_signature_different_material() -> TestResult {
     let key = [0u8; 32];
     let sig1 = compute_delegation_signature(&key, &[0u8; 48]);
     let sig2 = compute_delegation_signature(&key, &[1u8; 48]);
-    assert_ne!(sig1, sig2);
+    if sig1 == sig2 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_create_delegation_unchecked_empty_caps() {
+pub fn test_create_delegation_unchecked_empty_caps() -> TestResult {
     let result = create_delegation_unchecked(1, 2, &[], None, 12345);
-    assert!(matches!(result, Err(DelegationError::NoCapabilities)));
+    if !matches!(result, Err(DelegationError::NoCapabilities)) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_verify_delegation_standalone_expired() {
+pub fn test_verify_delegation_standalone_expired() -> TestResult {
     let del = Delegation {
         delegator: 1,
         delegatee: 2,
@@ -356,5 +358,6 @@ fn test_verify_delegation_standalone_expired() {
         parent_nonce: 12345,
         signature: [0u8; 64],
     };
-    assert!(!verify_delegation_standalone(&del));
+    if verify_delegation_standalone(&del) { return TestResult::Fail; }
+    TestResult::Pass
 }

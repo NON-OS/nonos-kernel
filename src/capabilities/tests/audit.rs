@@ -14,10 +14,12 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+extern crate alloc;
+
 use crate::capabilities::*;
+use crate::test::framework::TestResult;
 
-#[test]
-fn test_audit_entry_in_time_range_true() {
+pub fn test_audit_entry_in_time_range_true() -> TestResult {
     let entry = AuditEntry {
         timestamp_ms: 500,
         owner_module: 1,
@@ -26,12 +28,12 @@ fn test_audit_entry_in_time_range_true() {
         nonce: 0,
         success: true,
     };
-    assert!(entry.in_time_range(0, 1000));
-    assert!(entry.in_time_range(500, 500));
+    if !entry.in_time_range(0, 1000) { return TestResult::Fail; }
+    if !entry.in_time_range(500, 500) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_audit_entry_in_time_range_false() {
+pub fn test_audit_entry_in_time_range_false() -> TestResult {
     let entry = AuditEntry {
         timestamp_ms: 500,
         owner_module: 1,
@@ -40,12 +42,12 @@ fn test_audit_entry_in_time_range_false() {
         nonce: 0,
         success: true,
     };
-    assert!(!entry.in_time_range(0, 100));
-    assert!(!entry.in_time_range(600, 1000));
+    if entry.in_time_range(0, 100) { return TestResult::Fail; }
+    if entry.in_time_range(600, 1000) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_audit_entry_matches_module_true() {
+pub fn test_audit_entry_matches_module_true() -> TestResult {
     let entry = AuditEntry {
         timestamp_ms: 0,
         owner_module: 42,
@@ -54,11 +56,11 @@ fn test_audit_entry_matches_module_true() {
         nonce: 0,
         success: true,
     };
-    assert!(entry.matches_module(42));
+    if !entry.matches_module(42) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_audit_entry_matches_module_false() {
+pub fn test_audit_entry_matches_module_false() -> TestResult {
     let entry = AuditEntry {
         timestamp_ms: 0,
         owner_module: 42,
@@ -67,11 +69,11 @@ fn test_audit_entry_matches_module_false() {
         nonce: 0,
         success: true,
     };
-    assert!(!entry.matches_module(99));
+    if entry.matches_module(99) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_audit_entry_matches_action_true() {
+pub fn test_audit_entry_matches_action_true() -> TestResult {
     let entry = AuditEntry {
         timestamp_ms: 0,
         owner_module: 1,
@@ -80,11 +82,11 @@ fn test_audit_entry_matches_action_true() {
         nonce: 0,
         success: true,
     };
-    assert!(entry.matches_action("read_file"));
+    if !entry.matches_action("read_file") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_audit_entry_matches_action_false() {
+pub fn test_audit_entry_matches_action_false() -> TestResult {
     let entry = AuditEntry {
         timestamp_ms: 0,
         owner_module: 1,
@@ -93,11 +95,11 @@ fn test_audit_entry_matches_action_false() {
         nonce: 0,
         success: true,
     };
-    assert!(!entry.matches_action("write_file"));
+    if entry.matches_action("write_file") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_audit_entry_matches_capability_true() {
+pub fn test_audit_entry_matches_capability_true() -> TestResult {
     let entry = AuditEntry {
         timestamp_ms: 0,
         owner_module: 1,
@@ -106,11 +108,11 @@ fn test_audit_entry_matches_capability_true() {
         nonce: 0,
         success: true,
     };
-    assert!(entry.matches_capability(Capability::Admin));
+    if !entry.matches_capability(Capability::Admin) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_audit_entry_matches_capability_false() {
+pub fn test_audit_entry_matches_capability_false() -> TestResult {
     let entry = AuditEntry {
         timestamp_ms: 0,
         owner_module: 1,
@@ -119,11 +121,11 @@ fn test_audit_entry_matches_capability_false() {
         nonce: 0,
         success: true,
     };
-    assert!(!entry.matches_capability(Capability::Debug));
+    if entry.matches_capability(Capability::Debug) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_audit_entry_matches_capability_none() {
+pub fn test_audit_entry_matches_capability_none() -> TestResult {
     let entry = AuditEntry {
         timestamp_ms: 0,
         owner_module: 1,
@@ -132,11 +134,11 @@ fn test_audit_entry_matches_capability_none() {
         nonce: 0,
         success: true,
     };
-    assert!(!entry.matches_capability(Capability::Admin));
+    if entry.matches_capability(Capability::Admin) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_audit_entry_display_success() {
+pub fn test_audit_entry_display_success() -> TestResult {
     let entry = AuditEntry {
         timestamp_ms: 1000,
         owner_module: 42,
@@ -146,14 +148,14 @@ fn test_audit_entry_display_success() {
         success: true,
     };
     let display = alloc::format!("{}", entry);
-    assert!(display.contains("1000ms"));
-    assert!(display.contains("mod:42"));
-    assert!(display.contains("test_action"));
-    assert!(display.contains("OK"));
+    if !display.contains("1000ms") { return TestResult::Fail; }
+    if !display.contains("mod:42") { return TestResult::Fail; }
+    if !display.contains("test_action") { return TestResult::Fail; }
+    if !display.contains("OK") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_audit_entry_display_failure() {
+pub fn test_audit_entry_display_failure() -> TestResult {
     let entry = AuditEntry {
         timestamp_ms: 1000,
         owner_module: 42,
@@ -163,11 +165,11 @@ fn test_audit_entry_display_failure() {
         success: false,
     };
     let display = alloc::format!("{}", entry);
-    assert!(display.contains("FAIL"));
+    if !display.contains("FAIL") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_audit_stats_snapshot_success_rate_all_success() {
+pub fn test_audit_stats_snapshot_success_rate_all_success() -> TestResult {
     let snap = AuditStatsSnapshot {
         total_logged: 10,
         success_count: 10,
@@ -176,11 +178,11 @@ fn test_audit_stats_snapshot_success_rate_all_success() {
         capacity: 100,
         has_wrapped: false,
     };
-    assert_eq!(snap.success_rate(), 100.0);
+    if snap.success_rate() != 100.0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_audit_stats_snapshot_success_rate_half() {
+pub fn test_audit_stats_snapshot_success_rate_half() -> TestResult {
     let snap = AuditStatsSnapshot {
         total_logged: 10,
         success_count: 5,
@@ -189,11 +191,11 @@ fn test_audit_stats_snapshot_success_rate_half() {
         capacity: 100,
         has_wrapped: false,
     };
-    assert_eq!(snap.success_rate(), 50.0);
+    if snap.success_rate() != 50.0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_audit_stats_snapshot_success_rate_zero_logged() {
+pub fn test_audit_stats_snapshot_success_rate_zero_logged() -> TestResult {
     let snap = AuditStatsSnapshot {
         total_logged: 0,
         success_count: 0,
@@ -202,11 +204,11 @@ fn test_audit_stats_snapshot_success_rate_zero_logged() {
         capacity: 100,
         has_wrapped: false,
     };
-    assert_eq!(snap.success_rate(), 100.0);
+    if snap.success_rate() != 100.0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_audit_stats_snapshot_failure_rate() {
+pub fn test_audit_stats_snapshot_failure_rate() -> TestResult {
     let snap = AuditStatsSnapshot {
         total_logged: 10,
         success_count: 3,
@@ -215,11 +217,11 @@ fn test_audit_stats_snapshot_failure_rate() {
         capacity: 100,
         has_wrapped: false,
     };
-    assert_eq!(snap.failure_rate(), 70.0);
+    if snap.failure_rate() != 70.0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_audit_stats_snapshot_failure_rate_zero_logged() {
+pub fn test_audit_stats_snapshot_failure_rate_zero_logged() -> TestResult {
     let snap = AuditStatsSnapshot {
         total_logged: 0,
         success_count: 0,
@@ -228,11 +230,11 @@ fn test_audit_stats_snapshot_failure_rate_zero_logged() {
         capacity: 100,
         has_wrapped: false,
     };
-    assert_eq!(snap.failure_rate(), 0.0);
+    if snap.failure_rate() != 0.0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_audit_stats_snapshot_buffer_usage_percent() {
+pub fn test_audit_stats_snapshot_buffer_usage_percent() -> TestResult {
     let snap = AuditStatsSnapshot {
         total_logged: 0,
         success_count: 0,
@@ -241,11 +243,11 @@ fn test_audit_stats_snapshot_buffer_usage_percent() {
         capacity: 100,
         has_wrapped: false,
     };
-    assert_eq!(snap.buffer_usage_percent(), 50.0);
+    if snap.buffer_usage_percent() != 50.0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_audit_stats_snapshot_buffer_usage_percent_zero_capacity() {
+pub fn test_audit_stats_snapshot_buffer_usage_percent_zero_capacity() -> TestResult {
     let snap = AuditStatsSnapshot {
         total_logged: 0,
         success_count: 0,
@@ -254,11 +256,11 @@ fn test_audit_stats_snapshot_buffer_usage_percent_zero_capacity() {
         capacity: 0,
         has_wrapped: false,
     };
-    assert_eq!(snap.buffer_usage_percent(), 0.0);
+    if snap.buffer_usage_percent() != 0.0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_audit_stats_snapshot_display() {
+pub fn test_audit_stats_snapshot_display() -> TestResult {
     let snap = AuditStatsSnapshot {
         total_logged: 100,
         success_count: 80,
@@ -268,48 +270,48 @@ fn test_audit_stats_snapshot_display() {
         has_wrapped: false,
     };
     let display = alloc::format!("{}", snap);
-    assert!(display.contains("total:100"));
-    assert!(display.contains("ok:80"));
-    assert!(display.contains("fail:20"));
+    if !display.contains("total:100") { return TestResult::Fail; }
+    if !display.contains("ok:80") { return TestResult::Fail; }
+    if !display.contains("fail:20") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_audit_stats_snapshot_default() {
+pub fn test_audit_stats_snapshot_default() -> TestResult {
     let snap = AuditStatsSnapshot::default();
-    assert_eq!(snap.total_logged, 0);
-    assert_eq!(snap.success_count, 0);
-    assert_eq!(snap.failure_count, 0);
+    if snap.total_logged != 0 { return TestResult::Fail; }
+    if snap.success_count != 0 { return TestResult::Fail; }
+    if snap.failure_count != 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_audit_capacity() {
-    assert!(audit_capacity() > 0);
-    assert_eq!(audit_capacity(), MAX_LOG_ENTRIES);
+pub fn test_audit_capacity() -> TestResult {
+    if audit_capacity() == 0 { return TestResult::Fail; }
+    if audit_capacity() != MAX_LOG_ENTRIES { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_max_log_entries_constant() {
-    assert!(MAX_LOG_ENTRIES > 0);
+pub fn test_max_log_entries_constant() -> TestResult {
+    if MAX_LOG_ENTRIES == 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_clear_log() {
+pub fn test_clear_log() -> TestResult {
     clear_log();
-    assert!(is_empty());
-    assert_eq!(log_count(), 0);
+    if !is_empty() { return TestResult::Fail; }
+    if log_count() != 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_log_raw() {
+pub fn test_log_raw() -> TestResult {
     clear_log();
     reset_stats();
     log_raw(100, "test_action", Some(Capability::Admin), 12345, true);
-    assert_eq!(log_count(), 1);
-    assert!(!is_empty());
+    if log_count() != 1 { return TestResult::Fail; }
+    if is_empty() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_log_use_with_token() {
+pub fn test_log_use_with_token() -> TestResult {
     clear_log();
     reset_stats();
     let tok = CapabilityToken {
@@ -320,11 +322,11 @@ fn test_log_use_with_token() {
         signature: [0u8; 64],
     };
     log_use(&tok, "token_test", Some(Capability::Admin), true);
-    assert_eq!(log_count(), 1);
+    if log_count() != 1 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_log_success() {
+pub fn test_log_success() -> TestResult {
     clear_log();
     reset_stats();
     let tok = CapabilityToken {
@@ -336,11 +338,11 @@ fn test_log_success() {
     };
     log_success(&tok, "success_action", Some(Capability::Debug));
     let entries = get_successes();
-    assert!(!entries.is_empty());
+    if entries.is_empty() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_log_failure() {
+pub fn test_log_failure() -> TestResult {
     clear_log();
     reset_stats();
     let tok = CapabilityToken {
@@ -352,105 +354,106 @@ fn test_log_failure() {
     };
     log_failure(&tok, "failure_action", Some(Capability::Debug));
     let entries = get_failures();
-    assert!(!entries.is_empty());
+    if entries.is_empty() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_get_log_returns_entries() {
+pub fn test_get_log_returns_entries() -> TestResult {
     clear_log();
     log_raw(1, "action1", None, 1, true);
     log_raw(2, "action2", None, 2, false);
     let log = get_log();
-    assert_eq!(log.len(), 2);
+    if log.len() != 2 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_get_recent() {
+pub fn test_get_recent() -> TestResult {
     clear_log();
     for i in 0..10 {
         log_raw(i, "action", None, i, true);
     }
     let recent = get_recent(3);
-    assert_eq!(recent.len(), 3);
+    if recent.len() != 3 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_get_recent_more_than_available() {
+pub fn test_get_recent_more_than_available() -> TestResult {
     clear_log();
     log_raw(1, "action", None, 1, true);
     let recent = get_recent(100);
-    assert_eq!(recent.len(), 1);
+    if recent.len() != 1 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_get_stats() {
+pub fn test_get_stats() -> TestResult {
     clear_log();
     reset_stats();
     log_raw(1, "action", None, 1, true);
     log_raw(2, "action", None, 2, false);
     let stats = get_stats();
-    assert_eq!(stats.total_logged, 2);
-    assert_eq!(stats.success_count, 1);
-    assert_eq!(stats.failure_count, 1);
-    assert_eq!(stats.current_entries, 2);
+    if stats.total_logged != 2 { return TestResult::Fail; }
+    if stats.success_count != 1 { return TestResult::Fail; }
+    if stats.failure_count != 1 { return TestResult::Fail; }
+    if stats.current_entries != 2 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_reset_stats() {
+pub fn test_reset_stats() -> TestResult {
     log_raw(1, "action", None, 1, true);
     reset_stats();
     let stats = get_stats();
-    assert_eq!(stats.total_logged, 0);
-    assert_eq!(stats.success_count, 0);
-    assert_eq!(stats.failure_count, 0);
+    if stats.total_logged != 0 { return TestResult::Fail; }
+    if stats.success_count != 0 { return TestResult::Fail; }
+    if stats.failure_count != 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_get_by_module() {
+pub fn test_get_by_module() -> TestResult {
     clear_log();
     log_raw(100, "action", None, 1, true);
     log_raw(200, "action", None, 2, true);
     log_raw(100, "action2", None, 3, false);
     let entries = get_by_module(100);
-    assert_eq!(entries.len(), 2);
+    if entries.len() != 2 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_get_by_action() {
+pub fn test_get_by_action() -> TestResult {
     clear_log();
     log_raw(1, "read", None, 1, true);
     log_raw(2, "write", None, 2, true);
     log_raw(3, "read", None, 3, true);
     let entries = get_by_action("read");
-    assert_eq!(entries.len(), 2);
+    if entries.len() != 2 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_get_by_capability() {
+pub fn test_get_by_capability() -> TestResult {
     clear_log();
     log_raw(1, "action", Some(Capability::Admin), 1, true);
     log_raw(2, "action", Some(Capability::Debug), 2, true);
     log_raw(3, "action", Some(Capability::Admin), 3, true);
     let entries = get_by_capability(Capability::Admin);
-    assert_eq!(entries.len(), 2);
+    if entries.len() != 2 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_get_successes() {
+pub fn test_get_successes() -> TestResult {
     clear_log();
     log_raw(1, "action", None, 1, true);
     log_raw(2, "action", None, 2, false);
     log_raw(3, "action", None, 3, true);
     let entries = get_successes();
-    assert_eq!(entries.len(), 2);
+    if entries.len() != 2 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_get_failures() {
+pub fn test_get_failures() -> TestResult {
     clear_log();
     log_raw(1, "action", None, 1, true);
     log_raw(2, "action", None, 2, false);
     log_raw(3, "action", None, 3, false);
     let entries = get_failures();
-    assert_eq!(entries.len(), 2);
+    if entries.len() != 2 { return TestResult::Fail; }
+    TestResult::Pass
 }

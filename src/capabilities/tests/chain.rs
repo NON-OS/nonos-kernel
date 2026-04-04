@@ -14,7 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+extern crate alloc;
+
 use crate::capabilities::*;
+use crate::test::framework::TestResult;
 
 fn make_token(owner: u64, caps: &[Capability]) -> CapabilityToken {
     CapabilityToken {
@@ -26,335 +29,329 @@ fn make_token(owner: u64, caps: &[Capability]) -> CapabilityToken {
     }
 }
 
-#[test]
-fn test_capability_chain_new() {
+pub fn test_capability_chain_new() -> TestResult {
     let tokens = alloc::vec![make_token(1, &[Capability::Admin])];
     let chain = CapabilityChain::new(tokens);
-    assert_eq!(chain.len(), 1);
+    if chain.len() != 1 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_capability_chain_empty() {
+pub fn test_capability_chain_empty() -> TestResult {
     let chain = CapabilityChain::empty();
-    assert!(chain.is_empty());
-    assert_eq!(chain.len(), 0);
+    if !chain.is_empty() { return TestResult::Fail; }
+    if chain.len() != 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_capability_chain_single() {
+pub fn test_capability_chain_single() -> TestResult {
     let tok = make_token(42, &[Capability::Admin]);
     let chain = CapabilityChain::single(tok);
-    assert_eq!(chain.len(), 1);
-    assert!(!chain.is_empty());
+    if chain.len() != 1 { return TestResult::Fail; }
+    if chain.is_empty() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_capability_chain_push() {
+pub fn test_capability_chain_push() -> TestResult {
     let mut chain = CapabilityChain::empty();
     chain.push(make_token(1, &[Capability::Admin]));
     chain.push(make_token(2, &[Capability::Debug]));
-    assert_eq!(chain.len(), 2);
+    if chain.len() != 2 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_capability_chain_pop() {
+pub fn test_capability_chain_pop() -> TestResult {
     let mut chain = CapabilityChain::empty();
     chain.push(make_token(1, &[Capability::Admin]));
     chain.push(make_token(2, &[Capability::Debug]));
     let popped = chain.pop();
-    assert!(popped.is_some());
-    assert_eq!(popped.unwrap().owner_module, 2);
-    assert_eq!(chain.len(), 1);
+    if popped.is_none() { return TestResult::Fail; }
+    if popped.unwrap().owner_module != 2 { return TestResult::Fail; }
+    if chain.len() != 1 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_capability_chain_pop_empty() {
+pub fn test_capability_chain_pop_empty() -> TestResult {
     let mut chain = CapabilityChain::empty();
-    assert!(chain.pop().is_none());
+    if chain.pop().is_some() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_capability_chain_root() {
+pub fn test_capability_chain_root() -> TestResult {
     let mut chain = CapabilityChain::empty();
     chain.push(make_token(1, &[Capability::Admin]));
     chain.push(make_token(2, &[Capability::Debug]));
     let root = chain.root().unwrap();
-    assert_eq!(root.owner_module, 1);
+    if root.owner_module != 1 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_capability_chain_root_empty() {
+pub fn test_capability_chain_root_empty() -> TestResult {
     let chain = CapabilityChain::empty();
-    assert!(chain.root().is_none());
+    if chain.root().is_some() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_capability_chain_leaf() {
+pub fn test_capability_chain_leaf() -> TestResult {
     let mut chain = CapabilityChain::empty();
     chain.push(make_token(1, &[Capability::Admin]));
     chain.push(make_token(2, &[Capability::Debug]));
     let leaf = chain.leaf().unwrap();
-    assert_eq!(leaf.owner_module, 2);
+    if leaf.owner_module != 2 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_capability_chain_leaf_empty() {
+pub fn test_capability_chain_leaf_empty() -> TestResult {
     let chain = CapabilityChain::empty();
-    assert!(chain.leaf().is_none());
+    if chain.leaf().is_some() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_capability_chain_get() {
+pub fn test_capability_chain_get() -> TestResult {
     let mut chain = CapabilityChain::empty();
     chain.push(make_token(1, &[Capability::Admin]));
     chain.push(make_token(2, &[Capability::Debug]));
-    assert_eq!(chain.get(0).unwrap().owner_module, 1);
-    assert_eq!(chain.get(1).unwrap().owner_module, 2);
-    assert!(chain.get(2).is_none());
+    if chain.get(0).unwrap().owner_module != 1 { return TestResult::Fail; }
+    if chain.get(1).unwrap().owner_module != 2 { return TestResult::Fail; }
+    if chain.get(2).is_some() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_capability_chain_tokens() {
+pub fn test_capability_chain_tokens() -> TestResult {
     let mut chain = CapabilityChain::empty();
     chain.push(make_token(1, &[Capability::Admin]));
     chain.push(make_token(2, &[Capability::Debug]));
     let tokens = chain.tokens();
-    assert_eq!(tokens.len(), 2);
+    if tokens.len() != 2 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_capability_chain_final_owner() {
+pub fn test_capability_chain_final_owner() -> TestResult {
     let mut chain = CapabilityChain::empty();
     chain.push(make_token(1, &[Capability::Admin]));
     chain.push(make_token(99, &[Capability::Debug]));
-    assert_eq!(chain.final_owner(), Some(99));
+    if chain.final_owner() != Some(99) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_capability_chain_final_owner_empty() {
+pub fn test_capability_chain_final_owner_empty() -> TestResult {
     let chain = CapabilityChain::empty();
-    assert!(chain.final_owner().is_none());
+    if chain.final_owner().is_some() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_capability_chain_root_owner() {
+pub fn test_capability_chain_root_owner() -> TestResult {
     let mut chain = CapabilityChain::empty();
     chain.push(make_token(42, &[Capability::Admin]));
     chain.push(make_token(99, &[Capability::Debug]));
-    assert_eq!(chain.root_owner(), Some(42));
+    if chain.root_owner() != Some(42) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_capability_chain_root_owner_empty() {
+pub fn test_capability_chain_root_owner_empty() -> TestResult {
     let chain = CapabilityChain::empty();
-    assert!(chain.root_owner().is_none());
+    if chain.root_owner().is_some() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_capability_chain_max_depth() {
-    assert_eq!(CapabilityChain::max_depth(), MAX_CHAIN_DEPTH);
+pub fn test_capability_chain_max_depth() -> TestResult {
+    if CapabilityChain::max_depth() != MAX_CHAIN_DEPTH { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_capability_chain_default() {
+pub fn test_capability_chain_default() -> TestResult {
     let chain = CapabilityChain::default();
-    assert!(chain.is_empty());
+    if !chain.is_empty() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_capability_chain_display() {
+pub fn test_capability_chain_display() -> TestResult {
     let mut chain = CapabilityChain::empty();
     chain.push(make_token(10, &[Capability::Admin]));
     chain.push(make_token(20, &[Capability::Debug]));
     let display = alloc::format!("{}", chain);
-    assert!(display.contains("len:2"));
-    assert!(display.contains("root:10"));
-    assert!(display.contains("leaf:20"));
+    if !display.contains("len:2") { return TestResult::Fail; }
+    if !display.contains("root:10") { return TestResult::Fail; }
+    if !display.contains("leaf:20") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_max_chain_depth_constant() {
-    assert_eq!(MAX_CHAIN_DEPTH, 16);
+pub fn test_max_chain_depth_constant() -> TestResult {
+    if MAX_CHAIN_DEPTH != 16 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_max_chain_depth_function() {
-    assert_eq!(max_chain_depth(), 16);
+pub fn test_max_chain_depth_function() -> TestResult {
+    if max_chain_depth() != 16 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_chain_error_empty_chain_as_str() {
+pub fn test_chain_error_empty_chain_as_str() -> TestResult {
     let err = ChainError::EmptyChain;
-    assert_eq!(err.as_str(), "Chain is empty");
+    if err.as_str() != "Chain is empty" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_chain_error_too_deep_as_str() {
+pub fn test_chain_error_too_deep_as_str() -> TestResult {
     let err = ChainError::TooDeep { depth: 20, max: 16 };
-    assert_eq!(err.as_str(), "Chain exceeds maximum depth");
+    if err.as_str() != "Chain exceeds maximum depth" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_chain_error_invalid_token_as_str() {
+pub fn test_chain_error_invalid_token_as_str() -> TestResult {
     let err = ChainError::InvalidToken { index: 5 };
-    assert_eq!(err.as_str(), "Token signature invalid");
+    if err.as_str() != "Token signature invalid" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_chain_error_expired_token_as_str() {
+pub fn test_chain_error_expired_token_as_str() -> TestResult {
     let err = ChainError::ExpiredToken { index: 3 };
-    assert_eq!(err.as_str(), "Token has expired");
+    if err.as_str() != "Token has expired" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_chain_error_broken_link_as_str() {
+pub fn test_chain_error_broken_link_as_str() -> TestResult {
     let err = ChainError::BrokenLink { index: 2 };
-    assert_eq!(err.as_str(), "Chain link broken");
+    if err.as_str() != "Chain link broken" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_chain_error_capability_not_found_as_str() {
+pub fn test_chain_error_capability_not_found_as_str() -> TestResult {
     let err = ChainError::CapabilityNotFound;
-    assert_eq!(err.as_str(), "Capability not in chain");
+    if err.as_str() != "Capability not in chain" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_chain_error_is_recoverable_expired() {
+pub fn test_chain_error_is_recoverable_expired() -> TestResult {
     let err = ChainError::ExpiredToken { index: 0 };
-    assert!(err.is_recoverable());
+    if !err.is_recoverable() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_chain_error_is_recoverable_cap_not_found() {
+pub fn test_chain_error_is_recoverable_cap_not_found() -> TestResult {
     let err = ChainError::CapabilityNotFound;
-    assert!(err.is_recoverable());
+    if !err.is_recoverable() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_chain_error_is_recoverable_empty() {
+pub fn test_chain_error_is_recoverable_empty() -> TestResult {
     let err = ChainError::EmptyChain;
-    assert!(!err.is_recoverable());
+    if err.is_recoverable() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_chain_error_is_recoverable_invalid() {
+pub fn test_chain_error_is_recoverable_invalid() -> TestResult {
     let err = ChainError::InvalidToken { index: 0 };
-    assert!(!err.is_recoverable());
+    if err.is_recoverable() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_chain_error_failed_index_invalid_token() {
+pub fn test_chain_error_failed_index_invalid_token() -> TestResult {
     let err = ChainError::InvalidToken { index: 5 };
-    assert_eq!(err.failed_index(), Some(5));
+    if err.failed_index() != Some(5) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_chain_error_failed_index_expired_token() {
+pub fn test_chain_error_failed_index_expired_token() -> TestResult {
     let err = ChainError::ExpiredToken { index: 3 };
-    assert_eq!(err.failed_index(), Some(3));
+    if err.failed_index() != Some(3) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_chain_error_failed_index_broken_link() {
+pub fn test_chain_error_failed_index_broken_link() -> TestResult {
     let err = ChainError::BrokenLink { index: 7 };
-    assert_eq!(err.failed_index(), Some(7));
+    if err.failed_index() != Some(7) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_chain_error_failed_index_empty_chain() {
+pub fn test_chain_error_failed_index_empty_chain() -> TestResult {
     let err = ChainError::EmptyChain;
-    assert!(err.failed_index().is_none());
+    if err.failed_index().is_some() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_chain_error_failed_index_cap_not_found() {
+pub fn test_chain_error_failed_index_cap_not_found() -> TestResult {
     let err = ChainError::CapabilityNotFound;
-    assert!(err.failed_index().is_none());
+    if err.failed_index().is_some() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_chain_error_display_empty_chain() {
+pub fn test_chain_error_display_empty_chain() -> TestResult {
     let err = ChainError::EmptyChain;
     let display = alloc::format!("{}", err);
-    assert!(display.contains("empty"));
+    if !display.contains("empty") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_chain_error_display_too_deep() {
+pub fn test_chain_error_display_too_deep() -> TestResult {
     let err = ChainError::TooDeep { depth: 20, max: 16 };
     let display = alloc::format!("{}", err);
-    assert!(display.contains("20"));
-    assert!(display.contains("16"));
+    if !display.contains("20") { return TestResult::Fail; }
+    if !display.contains("16") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_chain_error_display_invalid_token() {
+pub fn test_chain_error_display_invalid_token() -> TestResult {
     let err = ChainError::InvalidToken { index: 5 };
     let display = alloc::format!("{}", err);
-    assert!(display.contains("5"));
-    assert!(display.contains("invalid"));
+    if !display.contains("5") { return TestResult::Fail; }
+    if !display.contains("invalid") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_chain_error_equality() {
-    assert_eq!(ChainError::EmptyChain, ChainError::EmptyChain);
-    assert_ne!(ChainError::EmptyChain, ChainError::CapabilityNotFound);
-    assert_eq!(
-        ChainError::InvalidToken { index: 5 },
-        ChainError::InvalidToken { index: 5 }
-    );
-    assert_ne!(
-        ChainError::InvalidToken { index: 5 },
-        ChainError::InvalidToken { index: 6 }
-    );
+pub fn test_chain_error_equality() -> TestResult {
+    if ChainError::EmptyChain != ChainError::EmptyChain { return TestResult::Fail; }
+    if ChainError::EmptyChain == ChainError::CapabilityNotFound { return TestResult::Fail; }
+    if ChainError::InvalidToken { index: 5 } != ChainError::InvalidToken { index: 5 } { return TestResult::Fail; }
+    if ChainError::InvalidToken { index: 5 } == ChainError::InvalidToken { index: 6 } { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_verify_chain_empty() {
+pub fn test_verify_chain_empty() -> TestResult {
     let chain = CapabilityChain::empty();
     let result = verify_chain(&chain);
-    assert!(matches!(result, Err(ChainError::EmptyChain)));
+    if !matches!(result, Err(ChainError::EmptyChain)) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_is_chain_valid_empty() {
+pub fn test_is_chain_valid_empty() -> TestResult {
     let chain = CapabilityChain::empty();
-    assert!(!is_chain_valid(&chain));
+    if is_chain_valid(&chain) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_effective_capabilities_empty_chain() {
+pub fn test_effective_capabilities_empty_chain() -> TestResult {
     let chain = CapabilityChain::empty();
     let caps = effective_capabilities(&chain);
-    assert!(caps.is_empty());
+    if !caps.is_empty() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_effective_capabilities_single_token() {
+pub fn test_effective_capabilities_single_token() -> TestResult {
     let tok = make_token(1, &[Capability::Admin, Capability::Debug]);
     let chain = CapabilityChain::single(tok);
     let caps = effective_capabilities(&chain);
-    assert_eq!(caps.len(), 2);
-    assert!(caps.contains(&Capability::Admin));
-    assert!(caps.contains(&Capability::Debug));
+    if caps.len() != 2 { return TestResult::Fail; }
+    if !caps.contains(&Capability::Admin) { return TestResult::Fail; }
+    if !caps.contains(&Capability::Debug) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_effective_capabilities_intersection() {
+pub fn test_effective_capabilities_intersection() -> TestResult {
     let tok1 = make_token(1, &[Capability::Admin, Capability::Debug, Capability::Network]);
     let tok2 = make_token(2, &[Capability::Admin, Capability::Debug]);
     let mut chain = CapabilityChain::empty();
     chain.push(tok1);
     chain.push(tok2);
     let caps = effective_capabilities(&chain);
-    assert_eq!(caps.len(), 2);
-    assert!(caps.contains(&Capability::Admin));
-    assert!(caps.contains(&Capability::Debug));
-    assert!(!caps.contains(&Capability::Network));
+    if caps.len() != 2 { return TestResult::Fail; }
+    if !caps.contains(&Capability::Admin) { return TestResult::Fail; }
+    if !caps.contains(&Capability::Debug) { return TestResult::Fail; }
+    if caps.contains(&Capability::Network) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_first_invalid_index_empty_chain() {
+pub fn test_first_invalid_index_empty_chain() -> TestResult {
     let chain = CapabilityChain::empty();
-    assert!(first_invalid_index(&chain).is_none());
+    if first_invalid_index(&chain).is_some() { return TestResult::Fail; }
+    TestResult::Pass
 }
