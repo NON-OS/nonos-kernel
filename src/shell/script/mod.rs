@@ -20,7 +20,6 @@ pub mod parser;
 pub mod eval;
 pub mod builtins;
 
-pub(crate) use types::*;
 pub(crate) use lexer::tokenize;
 pub(crate) use parser::parse;
 pub(crate) use eval::execute;

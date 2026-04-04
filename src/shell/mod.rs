@@ -19,6 +19,10 @@ pub mod editor;
 pub mod output;
 pub mod terminal;
 mod init;
+pub mod script;
+
+#[cfg(test)]
+mod tests;
 
 pub use terminal::*;
 pub use commands::*;
