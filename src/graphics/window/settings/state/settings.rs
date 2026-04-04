@@ -44,3 +44,5 @@ pub fn set_privacy_mode(mode: u8) {
 }
 
 pub fn set_dhcp_enabled(enabled: bool) { SETTING_DHCP_ENABLED.store(enabled, Ordering::Relaxed); }
+
+pub fn is_wifi_autoconnect() -> bool { crate::sys::settings::wifi_autoconnect() }
