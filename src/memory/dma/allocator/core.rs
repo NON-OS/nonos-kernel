@@ -13,6 +13,7 @@
 
 extern crate alloc;
 use alloc::collections::BTreeMap;
+use alloc::vec::Vec;
 use x86_64::VirtAddr;
 use super::super::constants::DMA_VADDR_BASE;
 use super::super::error::DmaResult;
@@ -24,11 +25,12 @@ pub struct DmaAllocator {
     pub(super) next_vaddr: u64,
     pub(super) next_mapping_id: u64,
     pub(super) initialized: bool,
+    pub(super) free_ranges: Vec<(u64, usize)>,
 }
 
 impl DmaAllocator {
     pub const fn new() -> Self {
-        Self { coherent_regions: BTreeMap::new(), streaming_mappings: BTreeMap::new(), next_vaddr: DMA_VADDR_BASE, next_mapping_id: 1, initialized: false }
+        Self { coherent_regions: BTreeMap::new(), streaming_mappings: BTreeMap::new(), next_vaddr: DMA_VADDR_BASE, next_mapping_id: 1, initialized: false, free_ranges: Vec::new() }
     }
 
     pub fn init(&mut self) -> DmaResult<()> {
@@ -37,8 +39,28 @@ impl DmaAllocator {
         self.coherent_regions.clear();
         self.streaming_mappings.clear();
         self.next_mapping_id = 1;
+        self.free_ranges.clear();
         self.initialized = true;
         Ok(())
+    }
+
+    pub(super) fn reclaim_virtual_range(&mut self, addr: u64, size: usize) {
+        self.free_ranges.push((addr, size));
+    }
+
+    pub(super) fn try_reuse_virtual_range(&mut self, size: usize) -> Option<u64> {
+        for i in 0..self.free_ranges.len() {
+            if self.free_ranges[i].1 >= size {
+                let (addr, range_size) = self.free_ranges[i];
+                if range_size == size {
+                    self.free_ranges.swap_remove(i);
+                } else {
+                    self.free_ranges[i] = (addr + size as u64, range_size - size);
+                }
+                return Some(addr);
+            }
+        }
+        None
     }
 
     pub const fn is_initialized(&self) -> bool { self.initialized }
