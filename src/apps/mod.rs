@@ -28,3 +28,6 @@ pub use context::{AppContext, AppPermissions, PermissionLevel};
 pub use lifecycle::{start_app, stop_app, suspend_app, resume_app, AppEvent, LifecycleState};
 pub use registry::{get_app, list_apps, register_app, unregister_app, AppEntry, AppInfo};
 pub use types::{AppError, AppId, AppResult, AppType};
+
+#[cfg(test)]
+mod tests;
