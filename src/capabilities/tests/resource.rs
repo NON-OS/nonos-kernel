@@ -14,341 +14,338 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+extern crate alloc;
+
 use crate::capabilities::*;
+use crate::test::framework::TestResult;
 
-#[test]
-fn test_resource_quota_new() {
+pub fn test_resource_quota_new() -> TestResult {
     let q = ResourceQuota::new(1000, 100, Some(5000));
-    assert_eq!(q.bytes, 1000);
-    assert_eq!(q.ops, 100);
-    assert_eq!(q.expires_at_ms, Some(5000));
+    if q.bytes != 1000 { return TestResult::Fail; }
+    if q.ops != 100 { return TestResult::Fail; }
+    if q.expires_at_ms != Some(5000) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_resource_quota_unlimited() {
+pub fn test_resource_quota_unlimited() -> TestResult {
     let q = ResourceQuota::unlimited();
-    assert_eq!(q.bytes, u64::MAX);
-    assert_eq!(q.ops, u64::MAX);
-    assert!(q.expires_at_ms.is_none());
+    if q.bytes != u64::MAX { return TestResult::Fail; }
+    if q.ops != u64::MAX { return TestResult::Fail; }
+    if q.expires_at_ms.is_some() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_resource_quota_bytes_only() {
+pub fn test_resource_quota_bytes_only() -> TestResult {
     let q = ResourceQuota::bytes_only(5000);
-    assert_eq!(q.bytes, 5000);
-    assert_eq!(q.ops, u64::MAX);
-    assert!(q.expires_at_ms.is_none());
+    if q.bytes != 5000 { return TestResult::Fail; }
+    if q.ops != u64::MAX { return TestResult::Fail; }
+    if q.expires_at_ms.is_some() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_resource_quota_ops_only() {
+pub fn test_resource_quota_ops_only() -> TestResult {
     let q = ResourceQuota::ops_only(500);
-    assert_eq!(q.bytes, u64::MAX);
-    assert_eq!(q.ops, 500);
-    assert!(q.expires_at_ms.is_none());
+    if q.bytes != u64::MAX { return TestResult::Fail; }
+    if q.ops != 500 { return TestResult::Fail; }
+    if q.expires_at_ms.is_some() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_resource_quota_is_expired_no_expiry() {
+pub fn test_resource_quota_is_expired_no_expiry() -> TestResult {
     let q = ResourceQuota::new(100, 100, None);
-    assert!(!q.is_expired());
+    if q.is_expired() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_resource_quota_is_expired_future() {
+pub fn test_resource_quota_is_expired_future() -> TestResult {
     let q = ResourceQuota::new(100, 100, Some(u64::MAX));
-    assert!(!q.is_expired());
+    if q.is_expired() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_resource_quota_is_expired_past() {
+pub fn test_resource_quota_is_expired_past() -> TestResult {
     let q = ResourceQuota::new(100, 100, Some(0));
-    assert!(q.is_expired());
+    if !q.is_expired() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_resource_quota_is_empty_true() {
+pub fn test_resource_quota_is_empty_true() -> TestResult {
     let q = ResourceQuota::new(0, 0, None);
-    assert!(q.is_empty());
+    if !q.is_empty() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_resource_quota_is_empty_false_bytes() {
+pub fn test_resource_quota_is_empty_false_bytes() -> TestResult {
     let q = ResourceQuota::new(1, 0, None);
-    assert!(!q.is_empty());
+    if q.is_empty() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_resource_quota_is_empty_false_ops() {
+pub fn test_resource_quota_is_empty_false_ops() -> TestResult {
     let q = ResourceQuota::new(0, 1, None);
-    assert!(!q.is_empty());
+    if q.is_empty() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_resource_quota_is_unlimited_true() {
+pub fn test_resource_quota_is_unlimited_true() -> TestResult {
     let q = ResourceQuota::unlimited();
-    assert!(q.is_unlimited());
+    if !q.is_unlimited() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_resource_quota_is_unlimited_false_bytes() {
+pub fn test_resource_quota_is_unlimited_false_bytes() -> TestResult {
     let q = ResourceQuota::new(100, u64::MAX, None);
-    assert!(!q.is_unlimited());
+    if q.is_unlimited() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_resource_quota_is_unlimited_false_ops() {
+pub fn test_resource_quota_is_unlimited_false_ops() -> TestResult {
     let q = ResourceQuota::new(u64::MAX, 100, None);
-    assert!(!q.is_unlimited());
+    if q.is_unlimited() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_resource_quota_is_unlimited_false_expiry() {
+pub fn test_resource_quota_is_unlimited_false_expiry() -> TestResult {
     let q = ResourceQuota::new(u64::MAX, u64::MAX, Some(1000));
-    assert!(!q.is_unlimited());
+    if q.is_unlimited() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_resource_quota_remaining_ms_none() {
+pub fn test_resource_quota_remaining_ms_none() -> TestResult {
     let q = ResourceQuota::new(100, 100, None);
-    assert!(q.remaining_ms().is_none());
+    if q.remaining_ms().is_some() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_resource_quota_remaining_ms_future() {
+pub fn test_resource_quota_remaining_ms_future() -> TestResult {
     let q = ResourceQuota::new(100, 100, Some(u64::MAX));
     let remaining = q.remaining_ms();
-    assert!(remaining.is_some());
-    assert!(remaining.unwrap() > 0);
+    if remaining.is_none() { return TestResult::Fail; }
+    if remaining.unwrap() == 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_resource_quota_remaining_ms_past() {
+pub fn test_resource_quota_remaining_ms_past() -> TestResult {
     let q = ResourceQuota::new(100, 100, Some(0));
     let remaining = q.remaining_ms();
-    assert!(remaining.is_some());
-    assert_eq!(remaining.unwrap(), 0);
+    if remaining.is_none() { return TestResult::Fail; }
+    if remaining.unwrap() != 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_resource_quota_display() {
+pub fn test_resource_quota_display() -> TestResult {
     let q = ResourceQuota::new(1000, 50, None);
     let display = alloc::format!("{}", q);
-    assert!(display.contains("1000B"));
-    assert!(display.contains("50ops"));
+    if !display.contains("1000B") { return TestResult::Fail; }
+    if !display.contains("50ops") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_resource_quota_display_with_expiry() {
+pub fn test_resource_quota_display_with_expiry() -> TestResult {
     let q = ResourceQuota::new(1000, 50, Some(5000));
     let display = alloc::format!("{}", q);
-    assert!(display.contains("exp:5000ms"));
+    if !display.contains("exp:5000ms") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_resource_quota_default() {
+pub fn test_resource_quota_default() -> TestResult {
     let q = ResourceQuota::default();
-    assert_eq!(q.bytes, 0);
-    assert_eq!(q.ops, 0);
-    assert!(q.expires_at_ms.is_none());
+    if q.bytes != 0 { return TestResult::Fail; }
+    if q.ops != 0 { return TestResult::Fail; }
+    if q.expires_at_ms.is_some() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_resource_error_missing_signing_key_as_str() {
+pub fn test_resource_error_missing_signing_key_as_str() -> TestResult {
     let err = ResourceError::MissingSigningKey;
-    assert_eq!(err.as_str(), "Signing key not available");
+    if err.as_str() != "Signing key not available" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_resource_error_token_expired_as_str() {
+pub fn test_resource_error_token_expired_as_str() -> TestResult {
     let err = ResourceError::TokenExpired;
-    assert_eq!(err.as_str(), "Token has expired");
+    if err.as_str() != "Token has expired" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_resource_error_invalid_signature_as_str() {
+pub fn test_resource_error_invalid_signature_as_str() -> TestResult {
     let err = ResourceError::InvalidSignature;
-    assert_eq!(err.as_str(), "Signature verification failed");
+    if err.as_str() != "Signature verification failed" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_resource_error_insufficient_bytes_as_str() {
+pub fn test_resource_error_insufficient_bytes_as_str() -> TestResult {
     let err = ResourceError::InsufficientBytes { requested: 100, available: 50 };
-    assert_eq!(err.as_str(), "Insufficient bytes");
+    if err.as_str() != "Insufficient bytes" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_resource_error_insufficient_ops_as_str() {
+pub fn test_resource_error_insufficient_ops_as_str() -> TestResult {
     let err = ResourceError::InsufficientOps { requested: 10, available: 5 };
-    assert_eq!(err.as_str(), "Insufficient operations");
+    if err.as_str() != "Insufficient operations" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_resource_error_zero_quota_as_str() {
+pub fn test_resource_error_zero_quota_as_str() -> TestResult {
     let err = ResourceError::ZeroQuota;
-    assert_eq!(err.as_str(), "Zero quota not allowed");
+    if err.as_str() != "Zero quota not allowed" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_resource_error_is_quota_error_bytes() {
+pub fn test_resource_error_is_quota_error_bytes() -> TestResult {
     let err = ResourceError::InsufficientBytes { requested: 100, available: 50 };
-    assert!(err.is_quota_error());
+    if !err.is_quota_error() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_resource_error_is_quota_error_ops() {
+pub fn test_resource_error_is_quota_error_ops() -> TestResult {
     let err = ResourceError::InsufficientOps { requested: 10, available: 5 };
-    assert!(err.is_quota_error());
+    if !err.is_quota_error() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_resource_error_is_quota_error_false() {
-    assert!(!ResourceError::TokenExpired.is_quota_error());
-    assert!(!ResourceError::ZeroQuota.is_quota_error());
-    assert!(!ResourceError::InvalidSignature.is_quota_error());
+pub fn test_resource_error_is_quota_error_false() -> TestResult {
+    if ResourceError::TokenExpired.is_quota_error() { return TestResult::Fail; }
+    if ResourceError::ZeroQuota.is_quota_error() { return TestResult::Fail; }
+    if ResourceError::InvalidSignature.is_quota_error() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_resource_error_display_missing_key() {
+pub fn test_resource_error_display_missing_key() -> TestResult {
     let err = ResourceError::MissingSigningKey;
     let display = alloc::format!("{}", err);
-    assert!(display.contains("Signing key"));
+    if !display.contains("Signing key") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_resource_error_display_insufficient_bytes() {
+pub fn test_resource_error_display_insufficient_bytes() -> TestResult {
     let err = ResourceError::InsufficientBytes { requested: 100, available: 50 };
     let display = alloc::format!("{}", err);
-    assert!(display.contains("100"));
-    assert!(display.contains("50"));
+    if !display.contains("100") { return TestResult::Fail; }
+    if !display.contains("50") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_resource_error_display_insufficient_ops() {
+pub fn test_resource_error_display_insufficient_ops() -> TestResult {
     let err = ResourceError::InsufficientOps { requested: 10, available: 5 };
     let display = alloc::format!("{}", err);
-    assert!(display.contains("10"));
-    assert!(display.contains("5"));
+    if !display.contains("10") { return TestResult::Fail; }
+    if !display.contains("5") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_resource_error_equality() {
-    assert_eq!(ResourceError::ZeroQuota, ResourceError::ZeroQuota);
-    assert_ne!(ResourceError::ZeroQuota, ResourceError::TokenExpired);
-    assert_eq!(
-        ResourceError::InsufficientBytes { requested: 100, available: 50 },
-        ResourceError::InsufficientBytes { requested: 100, available: 50 }
-    );
-    assert_ne!(
-        ResourceError::InsufficientBytes { requested: 100, available: 50 },
-        ResourceError::InsufficientBytes { requested: 200, available: 50 }
-    );
+pub fn test_resource_error_equality() -> TestResult {
+    if ResourceError::ZeroQuota != ResourceError::ZeroQuota { return TestResult::Fail; }
+    if ResourceError::ZeroQuota == ResourceError::TokenExpired { return TestResult::Fail; }
+    if ResourceError::InsufficientBytes { requested: 100, available: 50 } != ResourceError::InsufficientBytes { requested: 100, available: 50 } { return TestResult::Fail; }
+    if ResourceError::InsufficientBytes { requested: 100, available: 50 } == ResourceError::InsufficientBytes { requested: 200, available: 50 } { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_create_resource_token_zero_quota() {
+pub fn test_create_resource_token_zero_quota() -> TestResult {
     let q = ResourceQuota::default();
     let result = create_resource_token(1, q);
-    assert!(matches!(result, Err(ResourceError::ZeroQuota)));
+    if !matches!(result, Err(ResourceError::ZeroQuota)) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_create_resource_token_with_nonce_zero_quota() {
+pub fn test_create_resource_token_with_nonce_zero_quota() -> TestResult {
     let q = ResourceQuota::default();
     let result = create_resource_token_with_nonce(1, q, 12345);
-    assert!(matches!(result, Err(ResourceError::ZeroQuota)));
+    if !matches!(result, Err(ResourceError::ZeroQuota)) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_resource_next_nonce_nonzero() {
+pub fn test_resource_next_nonce_nonzero() -> TestResult {
     let n = resource_next_nonce();
-    assert!(n > 0);
+    if n == 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_resource_next_nonce_different() {
+pub fn test_resource_next_nonce_different() -> TestResult {
     let n1 = resource_next_nonce();
     let n2 = resource_next_nonce();
-    assert_ne!(n1, n2);
+    if n1 == n2 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_resource_reset_nonce_counter() {
+pub fn test_resource_reset_nonce_counter() -> TestResult {
     let _ = resource_next_nonce();
     resource_reset_nonce_counter();
     let n = resource_next_nonce();
-    assert!(n > 0);
+    if n == 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_resource_token_material_produces_40_bytes() {
+pub fn test_resource_token_material_produces_40_bytes() -> TestResult {
     let q = ResourceQuota::new(1000, 100, None);
     let mat = resource_token_material(1, &q, 12345);
-    assert_eq!(mat.len(), 40);
+    if mat.len() != 40 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_resource_token_material_deterministic() {
+pub fn test_resource_token_material_deterministic() -> TestResult {
     let q = ResourceQuota::new(1000, 100, None);
     let mat1 = resource_token_material(1, &q, 12345);
     let mat2 = resource_token_material(1, &q, 12345);
-    assert_eq!(mat1, mat2);
+    if mat1 != mat2 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_resource_token_material_different_owners() {
+pub fn test_resource_token_material_different_owners() -> TestResult {
     let q = ResourceQuota::new(1000, 100, None);
     let mat1 = resource_token_material(1, &q, 12345);
     let mat2 = resource_token_material(2, &q, 12345);
-    assert_ne!(mat1, mat2);
+    if mat1 == mat2 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_resource_token_material_different_quotas() {
+pub fn test_resource_token_material_different_quotas() -> TestResult {
     let q1 = ResourceQuota::new(1000, 100, None);
     let q2 = ResourceQuota::new(2000, 100, None);
     let mat1 = resource_token_material(1, &q1, 12345);
     let mat2 = resource_token_material(1, &q2, 12345);
-    assert_ne!(mat1, mat2);
+    if mat1 == mat2 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_resource_token_material_different_nonces() {
+pub fn test_resource_token_material_different_nonces() -> TestResult {
     let q = ResourceQuota::new(1000, 100, None);
     let mat1 = resource_token_material(1, &q, 12345);
     let mat2 = resource_token_material(1, &q, 67890);
-    assert_ne!(mat1, mat2);
+    if mat1 == mat2 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_resource_compute_signature_produces_64_bytes() {
+pub fn test_resource_compute_signature_produces_64_bytes() -> TestResult {
     let key = [0u8; 32];
     let material = [1u8; 40];
     let sig = resource_compute_signature(&key, &material);
-    assert_eq!(sig.len(), 64);
+    if sig.len() != 64 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_resource_compute_signature_deterministic() {
+pub fn test_resource_compute_signature_deterministic() -> TestResult {
     let key = [1u8; 32];
     let material = [2u8; 40];
     let sig1 = resource_compute_signature(&key, &material);
     let sig2 = resource_compute_signature(&key, &material);
-    assert_eq!(sig1, sig2);
+    if sig1 != sig2 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_resource_compute_signature_different_keys() {
+pub fn test_resource_compute_signature_different_keys() -> TestResult {
     let material = [1u8; 40];
     let sig1 = resource_compute_signature(&[0u8; 32], &material);
     let sig2 = resource_compute_signature(&[1u8; 32], &material);
-    assert_ne!(sig1, sig2);
+    if sig1 == sig2 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_resource_compute_signature_different_material() {
+pub fn test_resource_compute_signature_different_material() -> TestResult {
     let key = [0u8; 32];
     let sig1 = resource_compute_signature(&key, &[0u8; 40]);
     let sig2 = resource_compute_signature(&key, &[1u8; 40]);
-    assert_ne!(sig1, sig2);
+    if sig1 == sig2 { return TestResult::Fail; }
+    TestResult::Pass
 }

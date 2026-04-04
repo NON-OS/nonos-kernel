@@ -14,137 +14,140 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::capabilities::*;
+extern crate alloc;
+use alloc::string::ToString;
 
-#[test]
-fn test_capability_bit_values() {
-    assert_eq!(Capability::CoreExec.bit(), 1);
-    assert_eq!(Capability::IO.bit(), 2);
-    assert_eq!(Capability::Network.bit(), 4);
-    assert_eq!(Capability::IPC.bit(), 8);
-    assert_eq!(Capability::Memory.bit(), 16);
-    assert_eq!(Capability::Crypto.bit(), 32);
-    assert_eq!(Capability::FileSystem.bit(), 64);
-    assert_eq!(Capability::Hardware.bit(), 128);
-    assert_eq!(Capability::Debug.bit(), 256);
-    assert_eq!(Capability::Admin.bit(), 512);
-    assert_eq!(Capability::RegisterService.bit(), 1024);
+use crate::capabilities::*;
+use crate::test::framework::TestResult;
+
+pub fn test_capability_bit_values() -> TestResult {
+    if Capability::CoreExec.bit() != 1 { return TestResult::Fail; }
+    if Capability::IO.bit() != 2 { return TestResult::Fail; }
+    if Capability::Network.bit() != 4 { return TestResult::Fail; }
+    if Capability::IPC.bit() != 8 { return TestResult::Fail; }
+    if Capability::Memory.bit() != 16 { return TestResult::Fail; }
+    if Capability::Crypto.bit() != 32 { return TestResult::Fail; }
+    if Capability::FileSystem.bit() != 64 { return TestResult::Fail; }
+    if Capability::Hardware.bit() != 128 { return TestResult::Fail; }
+    if Capability::Debug.bit() != 256 { return TestResult::Fail; }
+    if Capability::Admin.bit() != 512 { return TestResult::Fail; }
+    if Capability::RegisterService.bit() != 1024 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_capability_bits_are_powers_of_two() {
+pub fn test_capability_bits_are_powers_of_two() -> TestResult {
     for cap in Capability::all() {
         let bit = cap.bit();
-        assert!(bit.is_power_of_two());
+        if !bit.is_power_of_two() { return TestResult::Fail; }
     }
+    TestResult::Pass
 }
 
-#[test]
-fn test_capability_bits_are_unique() {
+pub fn test_capability_bits_are_unique() -> TestResult {
     let all = Capability::all();
     for i in 0..all.len() {
         for j in (i + 1)..all.len() {
-            assert_ne!(all[i].bit(), all[j].bit());
+            if all[i].bit() == all[j].bit() { return TestResult::Fail; }
         }
     }
+    TestResult::Pass
 }
 
-#[test]
-fn test_capability_all_returns_11_items() {
-    assert_eq!(Capability::all().len(), 11);
+pub fn test_capability_all_returns_11_items() -> TestResult {
+    if Capability::all().len() != 11 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_capability_count_matches_all_len() {
-    assert_eq!(Capability::count(), Capability::all().len());
+pub fn test_capability_count_matches_all_len() -> TestResult {
+    if Capability::count() != Capability::all().len() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_capability_as_str_core_exec() {
-    assert_eq!(Capability::CoreExec.as_str(), "CoreExec");
+pub fn test_capability_as_str_core_exec() -> TestResult {
+    if Capability::CoreExec.as_str() != "CoreExec" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_capability_as_str_io() {
-    assert_eq!(Capability::IO.as_str(), "IO");
+pub fn test_capability_as_str_io() -> TestResult {
+    if Capability::IO.as_str() != "IO" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_capability_as_str_network() {
-    assert_eq!(Capability::Network.as_str(), "Network");
+pub fn test_capability_as_str_network() -> TestResult {
+    if Capability::Network.as_str() != "Network" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_capability_as_str_ipc() {
-    assert_eq!(Capability::IPC.as_str(), "IPC");
+pub fn test_capability_as_str_ipc() -> TestResult {
+    if Capability::IPC.as_str() != "IPC" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_capability_as_str_memory() {
-    assert_eq!(Capability::Memory.as_str(), "Memory");
+pub fn test_capability_as_str_memory() -> TestResult {
+    if Capability::Memory.as_str() != "Memory" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_capability_as_str_crypto() {
-    assert_eq!(Capability::Crypto.as_str(), "Crypto");
+pub fn test_capability_as_str_crypto() -> TestResult {
+    if Capability::Crypto.as_str() != "Crypto" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_capability_as_str_filesystem() {
-    assert_eq!(Capability::FileSystem.as_str(), "FileSystem");
+pub fn test_capability_as_str_filesystem() -> TestResult {
+    if Capability::FileSystem.as_str() != "FileSystem" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_capability_as_str_hardware() {
-    assert_eq!(Capability::Hardware.as_str(), "Hardware");
+pub fn test_capability_as_str_hardware() -> TestResult {
+    if Capability::Hardware.as_str() != "Hardware" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_capability_as_str_debug() {
-    assert_eq!(Capability::Debug.as_str(), "Debug");
+pub fn test_capability_as_str_debug() -> TestResult {
+    if Capability::Debug.as_str() != "Debug" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_capability_as_str_admin() {
-    assert_eq!(Capability::Admin.as_str(), "Admin");
+pub fn test_capability_as_str_admin() -> TestResult {
+    if Capability::Admin.as_str() != "Admin" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_capability_as_str_register_service() {
-    assert_eq!(Capability::RegisterService.as_str(), "RegisterService");
+pub fn test_capability_as_str_register_service() -> TestResult {
+    if Capability::RegisterService.as_str() != "RegisterService" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_capability_display_matches_as_str() {
-    use alloc::string::ToString;
+pub fn test_capability_display_matches_as_str() -> TestResult {
     for cap in Capability::all() {
-        assert_eq!(cap.to_string(), cap.as_str());
+        if cap.to_string() != cap.as_str() { return TestResult::Fail; }
     }
+    TestResult::Pass
 }
 
-#[test]
-fn test_capability_clone() {
+pub fn test_capability_clone() -> TestResult {
     let cap = Capability::Admin;
     let cloned = cap.clone();
-    assert_eq!(cap, cloned);
+    if cap != cloned { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_capability_copy() {
+pub fn test_capability_copy() -> TestResult {
     let cap = Capability::Network;
     let copied: Capability = cap;
-    assert_eq!(cap, copied);
+    if cap != copied { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_capability_equality() {
-    assert_eq!(Capability::Admin, Capability::Admin);
-    assert_ne!(Capability::Admin, Capability::Debug);
+pub fn test_capability_equality() -> TestResult {
+    if Capability::Admin != Capability::Admin { return TestResult::Fail; }
+    if Capability::Admin == Capability::Debug { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_capability_debug_format() {
+pub fn test_capability_debug_format() -> TestResult {
     let cap = Capability::Memory;
     let debug_str = alloc::format!("{:?}", cap);
-    assert!(debug_str.contains("Memory"));
+    if !debug_str.contains("Memory") { return TestResult::Fail; }
+    TestResult::Pass
 }

@@ -14,434 +14,431 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+extern crate alloc;
+
 use crate::capabilities::*;
+use crate::test::framework::TestResult;
 
 fn make_multisig_token(owner: u64, caps: &[Capability], threshold: usize, signers: &[u64]) -> MultiSigToken {
     create_multisig_token_with_nonce(owner, caps, threshold, signers, None, 12345).unwrap()
 }
 
-#[test]
-fn test_max_signers_constant() {
-    assert_eq!(MAX_SIGNERS, 16);
+pub fn test_max_signers_constant() -> TestResult {
+    if MAX_SIGNERS != 16 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_max_threshold_constant() {
-    assert_eq!(MAX_THRESHOLD, 16);
+pub fn test_max_threshold_constant() -> TestResult {
+    if MAX_THRESHOLD != 16 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_signature_size_constant() {
-    assert_eq!(SIGNATURE_SIZE, 32);
+pub fn test_signature_size_constant() -> TestResult {
+    if SIGNATURE_SIZE != 32 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_max_signers_function() {
-    assert_eq!(max_signers(), 16);
+pub fn test_max_signers_function() -> TestResult {
+    if max_signers() != 16 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_max_threshold_function() {
-    assert_eq!(max_threshold(), 16);
+pub fn test_max_threshold_function() -> TestResult {
+    if max_threshold() != 16 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_multisig_token_grants_true() {
+pub fn test_multisig_token_grants_true() -> TestResult {
     let tok = make_multisig_token(1, &[Capability::Admin, Capability::Debug], 2, &[10, 20]);
-    assert!(tok.grants(Capability::Admin));
-    assert!(tok.grants(Capability::Debug));
+    if !tok.grants(Capability::Admin) { return TestResult::Fail; }
+    if !tok.grants(Capability::Debug) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_multisig_token_grants_false() {
+pub fn test_multisig_token_grants_false() -> TestResult {
     let tok = make_multisig_token(1, &[Capability::Admin], 1, &[10]);
-    assert!(!tok.grants(Capability::Debug));
+    if tok.grants(Capability::Debug) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_multisig_token_signature_count_initial() {
+pub fn test_multisig_token_signature_count_initial() -> TestResult {
     let tok = make_multisig_token(1, &[Capability::Admin], 2, &[10, 20]);
-    assert_eq!(tok.signature_count(), 0);
+    if tok.signature_count() != 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_multisig_token_threshold_met_false() {
+pub fn test_multisig_token_threshold_met_false() -> TestResult {
     let tok = make_multisig_token(1, &[Capability::Admin], 2, &[10, 20]);
-    assert!(!tok.threshold_met());
+    if tok.threshold_met() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_multisig_token_signatures_needed() {
+pub fn test_multisig_token_signatures_needed() -> TestResult {
     let tok = make_multisig_token(1, &[Capability::Admin], 3, &[10, 20, 30]);
-    assert_eq!(tok.signatures_needed(), 3);
+    if tok.signatures_needed() != 3 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_multisig_token_has_signed_false() {
+pub fn test_multisig_token_has_signed_false() -> TestResult {
     let tok = make_multisig_token(1, &[Capability::Admin], 2, &[10, 20]);
-    assert!(!tok.has_signed(10));
+    if tok.has_signed(10) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_multisig_token_is_authorized_true() {
+pub fn test_multisig_token_is_authorized_true() -> TestResult {
     let tok = make_multisig_token(1, &[Capability::Admin], 2, &[10, 20, 30]);
-    assert!(tok.is_authorized(10));
-    assert!(tok.is_authorized(20));
-    assert!(tok.is_authorized(30));
+    if !tok.is_authorized(10) { return TestResult::Fail; }
+    if !tok.is_authorized(20) { return TestResult::Fail; }
+    if !tok.is_authorized(30) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_multisig_token_is_authorized_false() {
+pub fn test_multisig_token_is_authorized_false() -> TestResult {
     let tok = make_multisig_token(1, &[Capability::Admin], 2, &[10, 20]);
-    assert!(!tok.is_authorized(99));
+    if tok.is_authorized(99) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_multisig_token_signed_by_empty() {
+pub fn test_multisig_token_signed_by_empty() -> TestResult {
     let tok = make_multisig_token(1, &[Capability::Admin], 2, &[10, 20]);
-    assert!(tok.signed_by().is_empty());
+    if !tok.signed_by().is_empty() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_multisig_token_pending_signers_all() {
+pub fn test_multisig_token_pending_signers_all() -> TestResult {
     let tok = make_multisig_token(1, &[Capability::Admin], 2, &[10, 20, 30]);
     let pending = tok.pending_signers();
-    assert_eq!(pending.len(), 3);
-    assert!(pending.contains(&10));
-    assert!(pending.contains(&20));
-    assert!(pending.contains(&30));
+    if pending.len() != 3 { return TestResult::Fail; }
+    if !pending.contains(&10) { return TestResult::Fail; }
+    if !pending.contains(&20) { return TestResult::Fail; }
+    if !pending.contains(&30) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_multisig_token_is_expired_false() {
+pub fn test_multisig_token_is_expired_false() -> TestResult {
     let tok = make_multisig_token(1, &[Capability::Admin], 1, &[10]);
-    assert!(!tok.is_expired());
+    if tok.is_expired() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_multisig_token_remaining_ms_none() {
+pub fn test_multisig_token_remaining_ms_none() -> TestResult {
     let tok = make_multisig_token(1, &[Capability::Admin], 1, &[10]);
-    assert!(tok.remaining_ms().is_none());
+    if tok.remaining_ms().is_some() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_multisig_token_permission_count() {
+pub fn test_multisig_token_permission_count() -> TestResult {
     let tok = make_multisig_token(1, &[Capability::Admin, Capability::Debug, Capability::Crypto], 1, &[10]);
-    assert_eq!(tok.permission_count(), 3);
+    if tok.permission_count() != 3 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_multisig_token_signer_count() {
+pub fn test_multisig_token_signer_count() -> TestResult {
     let tok = make_multisig_token(1, &[Capability::Admin], 2, &[10, 20, 30, 40]);
-    assert_eq!(tok.signer_count(), 4);
+    if tok.signer_count() != 4 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_multisig_token_display() {
+pub fn test_multisig_token_display() -> TestResult {
     let tok = make_multisig_token(42, &[Capability::Admin, Capability::Debug], 2, &[10, 20, 30]);
     let display = alloc::format!("{}", tok);
-    assert!(display.contains("owner:42"));
-    assert!(display.contains("caps:2"));
-    assert!(display.contains("sigs:0/2"));
-    assert!(display.contains("auth:3"));
+    if !display.contains("owner:42") { return TestResult::Fail; }
+    if !display.contains("caps:2") { return TestResult::Fail; }
+    if !display.contains("sigs:0/2") { return TestResult::Fail; }
+    if !display.contains("auth:3") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_multisig_error_no_signers_as_str() {
+pub fn test_multisig_error_no_signers_as_str() -> TestResult {
     let err = MultiSigError::NoSigners;
-    assert_eq!(err.as_str(), "No signers specified");
+    if err.as_str() != "No signers specified" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_multisig_error_too_many_signers_as_str() {
+pub fn test_multisig_error_too_many_signers_as_str() -> TestResult {
     let err = MultiSigError::TooManySigners { count: 20, max: 16 };
-    assert_eq!(err.as_str(), "Too many signers");
+    if err.as_str() != "Too many signers" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_multisig_error_threshold_exceeds_signers_as_str() {
+pub fn test_multisig_error_threshold_exceeds_signers_as_str() -> TestResult {
     let err = MultiSigError::ThresholdExceedsSigners { threshold: 5, signers: 3 };
-    assert_eq!(err.as_str(), "Threshold exceeds signer count");
+    if err.as_str() != "Threshold exceeds signer count" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_multisig_error_zero_threshold_as_str() {
+pub fn test_multisig_error_zero_threshold_as_str() -> TestResult {
     let err = MultiSigError::ZeroThreshold;
-    assert_eq!(err.as_str(), "Threshold cannot be zero");
+    if err.as_str() != "Threshold cannot be zero" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_multisig_error_duplicate_signer_as_str() {
+pub fn test_multisig_error_duplicate_signer_as_str() -> TestResult {
     let err = MultiSigError::DuplicateSigner { signer_id: 10 };
-    assert_eq!(err.as_str(), "Signer already signed");
+    if err.as_str() != "Signer already signed" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_multisig_error_unauthorized_signer_as_str() {
+pub fn test_multisig_error_unauthorized_signer_as_str() -> TestResult {
     let err = MultiSigError::UnauthorizedSigner { signer_id: 99 };
-    assert_eq!(err.as_str(), "Signer not authorized");
+    if err.as_str() != "Signer not authorized" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_multisig_error_threshold_not_met_as_str() {
+pub fn test_multisig_error_threshold_not_met_as_str() -> TestResult {
     let err = MultiSigError::ThresholdNotMet { have: 1, need: 3 };
-    assert_eq!(err.as_str(), "Insufficient signatures");
+    if err.as_str() != "Insufficient signatures" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_multisig_error_token_expired_as_str() {
+pub fn test_multisig_error_token_expired_as_str() -> TestResult {
     let err = MultiSigError::TokenExpired;
-    assert_eq!(err.as_str(), "Token has expired");
+    if err.as_str() != "Token has expired" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_multisig_error_invalid_signature_as_str() {
+pub fn test_multisig_error_invalid_signature_as_str() -> TestResult {
     let err = MultiSigError::InvalidSignature { signer_id: 10 };
-    assert_eq!(err.as_str(), "Invalid signature");
+    if err.as_str() != "Invalid signature" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_multisig_error_is_recoverable_duplicate() {
+pub fn test_multisig_error_is_recoverable_duplicate() -> TestResult {
     let err = MultiSigError::DuplicateSigner { signer_id: 10 };
-    assert!(err.is_recoverable());
+    if !err.is_recoverable() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_multisig_error_is_recoverable_threshold_not_met() {
+pub fn test_multisig_error_is_recoverable_threshold_not_met() -> TestResult {
     let err = MultiSigError::ThresholdNotMet { have: 1, need: 3 };
-    assert!(err.is_recoverable());
+    if !err.is_recoverable() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_multisig_error_is_recoverable_no_signers() {
+pub fn test_multisig_error_is_recoverable_no_signers() -> TestResult {
     let err = MultiSigError::NoSigners;
-    assert!(!err.is_recoverable());
+    if err.is_recoverable() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_multisig_error_display_no_signers() {
+pub fn test_multisig_error_display_no_signers() -> TestResult {
     let err = MultiSigError::NoSigners;
     let display = alloc::format!("{}", err);
-    assert!(display.contains("No signers"));
+    if !display.contains("No signers") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_multisig_error_display_too_many_signers() {
+pub fn test_multisig_error_display_too_many_signers() -> TestResult {
     let err = MultiSigError::TooManySigners { count: 20, max: 16 };
     let display = alloc::format!("{}", err);
-    assert!(display.contains("20"));
-    assert!(display.contains("16"));
+    if !display.contains("20") { return TestResult::Fail; }
+    if !display.contains("16") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_multisig_error_display_threshold_exceeds() {
+pub fn test_multisig_error_display_threshold_exceeds() -> TestResult {
     let err = MultiSigError::ThresholdExceedsSigners { threshold: 5, signers: 3 };
     let display = alloc::format!("{}", err);
-    assert!(display.contains("5"));
-    assert!(display.contains("3"));
+    if !display.contains("5") { return TestResult::Fail; }
+    if !display.contains("3") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_multisig_error_display_duplicate_signer() {
+pub fn test_multisig_error_display_duplicate_signer() -> TestResult {
     let err = MultiSigError::DuplicateSigner { signer_id: 42 };
     let display = alloc::format!("{}", err);
-    assert!(display.contains("42"));
+    if !display.contains("42") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_multisig_error_display_unauthorized() {
+pub fn test_multisig_error_display_unauthorized() -> TestResult {
     let err = MultiSigError::UnauthorizedSigner { signer_id: 99 };
     let display = alloc::format!("{}", err);
-    assert!(display.contains("99"));
+    if !display.contains("99") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_multisig_error_display_threshold_not_met() {
+pub fn test_multisig_error_display_threshold_not_met() -> TestResult {
     let err = MultiSigError::ThresholdNotMet { have: 2, need: 5 };
     let display = alloc::format!("{}", err);
-    assert!(display.contains("2"));
-    assert!(display.contains("5"));
+    if !display.contains("2") { return TestResult::Fail; }
+    if !display.contains("5") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_multisig_error_display_invalid_signature() {
+pub fn test_multisig_error_display_invalid_signature() -> TestResult {
     let err = MultiSigError::InvalidSignature { signer_id: 77 };
     let display = alloc::format!("{}", err);
-    assert!(display.contains("77"));
+    if !display.contains("77") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_multisig_error_equality() {
-    assert_eq!(MultiSigError::NoSigners, MultiSigError::NoSigners);
-    assert_ne!(MultiSigError::NoSigners, MultiSigError::ZeroThreshold);
-    assert_eq!(
-        MultiSigError::DuplicateSigner { signer_id: 10 },
-        MultiSigError::DuplicateSigner { signer_id: 10 }
-    );
-    assert_ne!(
-        MultiSigError::DuplicateSigner { signer_id: 10 },
-        MultiSigError::DuplicateSigner { signer_id: 20 }
-    );
+pub fn test_multisig_error_equality() -> TestResult {
+    if MultiSigError::NoSigners != MultiSigError::NoSigners { return TestResult::Fail; }
+    if MultiSigError::NoSigners == MultiSigError::ZeroThreshold { return TestResult::Fail; }
+    if MultiSigError::DuplicateSigner { signer_id: 10 } != MultiSigError::DuplicateSigner { signer_id: 10 } { return TestResult::Fail; }
+    if MultiSigError::DuplicateSigner { signer_id: 10 } == MultiSigError::DuplicateSigner { signer_id: 20 } { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_create_multisig_token_zero_threshold() {
+pub fn test_create_multisig_token_zero_threshold() -> TestResult {
     let result = create_multisig_token(1, &[Capability::Admin], 0, &[10, 20], None);
-    assert!(matches!(result, Err(MultiSigError::ZeroThreshold)));
+    if !matches!(result, Err(MultiSigError::ZeroThreshold)) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_create_multisig_token_no_signers() {
+pub fn test_create_multisig_token_no_signers() -> TestResult {
     let result = create_multisig_token(1, &[Capability::Admin], 1, &[], None);
-    assert!(matches!(result, Err(MultiSigError::NoSigners)));
+    if !matches!(result, Err(MultiSigError::NoSigners)) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_create_multisig_token_threshold_exceeds_signers() {
+pub fn test_create_multisig_token_threshold_exceeds_signers() -> TestResult {
     let result = create_multisig_token(1, &[Capability::Admin], 5, &[10, 20], None);
-    assert!(matches!(result, Err(MultiSigError::ThresholdExceedsSigners { .. })));
+    if !matches!(result, Err(MultiSigError::ThresholdExceedsSigners { .. })) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_create_multisig_token_too_many_signers() {
+pub fn test_create_multisig_token_too_many_signers() -> TestResult {
     let signers: alloc::vec::Vec<u64> = (0..20).collect();
     let result = create_multisig_token(1, &[Capability::Admin], 1, &signers, None);
-    assert!(matches!(result, Err(MultiSigError::TooManySigners { .. })));
+    if !matches!(result, Err(MultiSigError::TooManySigners { .. })) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_create_multisig_token_success() {
+pub fn test_create_multisig_token_success() -> TestResult {
     let result = create_multisig_token(1, &[Capability::Admin], 2, &[10, 20, 30], None);
-    assert!(result.is_ok());
+    if result.is_err() { return TestResult::Fail; }
     let tok = result.unwrap();
-    assert_eq!(tok.owner_module, 1);
-    assert_eq!(tok.threshold, 2);
-    assert_eq!(tok.signer_count(), 3);
+    if tok.owner_module != 1 { return TestResult::Fail; }
+    if tok.threshold != 2 { return TestResult::Fail; }
+    if tok.signer_count() != 3 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_create_multisig_token_with_nonce() {
+pub fn test_create_multisig_token_with_nonce() -> TestResult {
     let result = create_multisig_token_with_nonce(1, &[Capability::Admin], 1, &[10], None, 99999);
-    assert!(result.is_ok());
+    if result.is_err() { return TestResult::Fail; }
     let tok = result.unwrap();
-    assert_eq!(tok.nonce, 99999);
+    if tok.nonce != 99999 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_add_signature_unauthorized() {
+pub fn test_add_signature_unauthorized() -> TestResult {
     let mut tok = make_multisig_token(1, &[Capability::Admin], 2, &[10, 20]);
     let key = [1u8; 32];
     let result = add_signature(&mut tok, 99, &key);
-    assert!(matches!(result, Err(MultiSigError::UnauthorizedSigner { signer_id: 99 })));
+    if !matches!(result, Err(MultiSigError::UnauthorizedSigner { signer_id: 99 })) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_add_signature_success() {
+pub fn test_add_signature_success() -> TestResult {
     let mut tok = make_multisig_token(1, &[Capability::Admin], 2, &[10, 20]);
     let key = [1u8; 32];
     let result = add_signature(&mut tok, 10, &key);
-    assert!(result.is_ok());
-    assert!(tok.has_signed(10));
-    assert_eq!(tok.signature_count(), 1);
+    if result.is_err() { return TestResult::Fail; }
+    if !tok.has_signed(10) { return TestResult::Fail; }
+    if tok.signature_count() != 1 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_add_signature_duplicate() {
+pub fn test_add_signature_duplicate() -> TestResult {
     let mut tok = make_multisig_token(1, &[Capability::Admin], 2, &[10, 20]);
     let key = [1u8; 32];
     add_signature(&mut tok, 10, &key).unwrap();
     let result = add_signature(&mut tok, 10, &key);
-    assert!(matches!(result, Err(MultiSigError::DuplicateSigner { signer_id: 10 })));
+    if !matches!(result, Err(MultiSigError::DuplicateSigner { signer_id: 10 })) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_remove_signature_present() {
+pub fn test_remove_signature_present() -> TestResult {
     let mut tok = make_multisig_token(1, &[Capability::Admin], 2, &[10, 20]);
     let key = [1u8; 32];
     add_signature(&mut tok, 10, &key).unwrap();
-    assert!(remove_signature(&mut tok, 10));
-    assert!(!tok.has_signed(10));
-    assert_eq!(tok.signature_count(), 0);
+    if !remove_signature(&mut tok, 10) { return TestResult::Fail; }
+    if tok.has_signed(10) { return TestResult::Fail; }
+    if tok.signature_count() != 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_remove_signature_not_present() {
+pub fn test_remove_signature_not_present() -> TestResult {
     let mut tok = make_multisig_token(1, &[Capability::Admin], 2, &[10, 20]);
-    assert!(!remove_signature(&mut tok, 99));
+    if remove_signature(&mut tok, 99) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_clear_signatures() {
+pub fn test_clear_signatures() -> TestResult {
     let mut tok = make_multisig_token(1, &[Capability::Admin], 2, &[10, 20]);
     let key = [1u8; 32];
     add_signature(&mut tok, 10, &key).unwrap();
     add_signature(&mut tok, 20, &key).unwrap();
     clear_signatures(&mut tok);
-    assert_eq!(tok.signature_count(), 0);
-    assert!(tok.signed_by().is_empty());
+    if tok.signature_count() != 0 { return TestResult::Fail; }
+    if !tok.signed_by().is_empty() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_signature_material_produces_40_bytes() {
+pub fn test_signature_material_produces_40_bytes() -> TestResult {
     let tok = make_multisig_token(1, &[Capability::Admin], 1, &[10]);
     let mat = signature_material(&tok, 10);
-    assert_eq!(mat.len(), 40);
+    if mat.len() != 40 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_signature_material_deterministic() {
+pub fn test_signature_material_deterministic() -> TestResult {
     let tok = make_multisig_token(100, &[Capability::Admin, Capability::Debug], 1, &[10]);
     let mat1 = signature_material(&tok, 10);
     let mat2 = signature_material(&tok, 10);
-    assert_eq!(mat1, mat2);
+    if mat1 != mat2 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_signature_material_different_signers() {
+pub fn test_signature_material_different_signers() -> TestResult {
     let tok = make_multisig_token(1, &[Capability::Admin], 2, &[10, 20]);
     let mat1 = signature_material(&tok, 10);
     let mat2 = signature_material(&tok, 20);
-    assert_ne!(mat1, mat2);
+    if mat1 == mat2 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_compute_signature_produces_32_bytes() {
+pub fn test_compute_signature_produces_32_bytes() -> TestResult {
     let key = [0u8; 32];
     let material = [1u8; 40];
     let sig = multisig_compute_signature(&key, &material);
-    assert_eq!(sig.len(), 32);
+    if sig.len() != 32 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_compute_signature_deterministic() {
+pub fn test_compute_signature_deterministic() -> TestResult {
     let key = [1u8; 32];
     let material = [2u8; 40];
     let sig1 = multisig_compute_signature(&key, &material);
     let sig2 = multisig_compute_signature(&key, &material);
-    assert_eq!(sig1, sig2);
+    if sig1 != sig2 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_compute_signature_different_keys() {
+pub fn test_compute_signature_different_keys() -> TestResult {
     let material = [1u8; 40];
     let sig1 = multisig_compute_signature(&[0u8; 32], &material);
     let sig2 = multisig_compute_signature(&[1u8; 32], &material);
-    assert_ne!(sig1, sig2);
+    if sig1 == sig2 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_count_valid_signatures_empty() {
+pub fn test_count_valid_signatures_empty() -> TestResult {
     let tok = make_multisig_token(1, &[Capability::Admin], 2, &[10, 20]);
     let keys: alloc::vec::Vec<(&u64, &[u8; 32])> = alloc::vec![];
-    assert_eq!(count_valid_signatures(&tok, &keys), 0);
+    if count_valid_signatures(&tok, &keys) != 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_verify_multisig_threshold_not_met() {
+pub fn test_verify_multisig_threshold_not_met() -> TestResult {
     let tok = make_multisig_token(1, &[Capability::Admin], 2, &[10, 20]);
     let key10 = [1u8; 32];
     let keys: alloc::vec::Vec<(&u64, &[u8; 32])> = alloc::vec![(&10u64, &key10)];
     let result = verify_multisig(&tok, &keys);
-    assert!(result.is_ok());
-    assert!(!result.unwrap());
+    if result.is_err() { return TestResult::Fail; }
+    if result.unwrap() { return TestResult::Fail; }
+    TestResult::Pass
 }
