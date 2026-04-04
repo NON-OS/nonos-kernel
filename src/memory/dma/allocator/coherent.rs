@@ -13,7 +13,7 @@
 
 extern crate alloc;
 use alloc::vec::Vec;
-use x86_64::{PhysAddr, VirtAddr};
+use x86_64::VirtAddr;
 use super::super::constants::{align_up, is_dma32_compatible, pages_needed, MAX_DMA_SIZE};
 use super::super::error::{DmaError, DmaResult};
 use super::super::stats::DmaStats;
@@ -54,10 +54,11 @@ impl DmaAllocator {
         let page_count = pages_needed(region.size);
         for i in 0..page_count {
             let page_vaddr = VirtAddr::new(virt_addr.as_u64() + (i * layout::PAGE_SIZE) as u64);
-            let phys_addr = PhysAddr::new(region.phys_addr.as_u64() + (i * layout::PAGE_SIZE) as u64);
+            let phys_addr = self.translate_to_physical(page_vaddr)?;
             self.unmap_dma_page(page_vaddr)?;
             let _ = frame_alloc::deallocate_frame(phys_addr);
         }
+        self.reclaim_virtual_range(virt_addr.as_u64(), region.size);
         stats.record_coherent_free(region.size);
         Ok(())
     }

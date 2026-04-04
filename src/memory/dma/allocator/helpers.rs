@@ -22,6 +22,9 @@ use crate::memory::{layout, virt};
 impl DmaAllocator {
     pub(super) fn allocate_virtual_range(&mut self, size: usize) -> DmaResult<VirtAddr> {
         let aligned_size = align_up(size, layout::PAGE_SIZE);
+        if let Some(addr) = self.try_reuse_virtual_range(aligned_size) {
+            return Ok(VirtAddr::new(addr));
+        }
         let aligned_addr = align_up(self.next_vaddr as usize, layout::PAGE_SIZE) as u64;
         if aligned_addr + aligned_size as u64 > DMA_VADDR_END { return Err(DmaError::AddressSpaceExhausted); }
         self.next_vaddr = aligned_addr + aligned_size as u64;
