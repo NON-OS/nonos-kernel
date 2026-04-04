@@ -136,5 +136,8 @@ pub fn parse_server_hello(body: &[u8]) -> Result<ServerHelloResult, OnionError> 
 }
 
 pub fn has_tls12_downgrade_sentinel(random: &[u8; 32]) -> bool {
-    &random[24..32] == &[0x44, 0x4F, 0x57, 0x4E, 0x47, 0x52, 0x44, 0x01]
+    let suffix = &random[24..32];
+    let tls12_sentinel = [0x44, 0x4F, 0x57, 0x4E, 0x47, 0x52, 0x44, 0x01];
+    let tls11_sentinel = [0x44, 0x4F, 0x57, 0x4E, 0x47, 0x52, 0x44, 0x00];
+    suffix == &tls12_sentinel || suffix == &tls11_sentinel
 }
