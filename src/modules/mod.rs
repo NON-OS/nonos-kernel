@@ -40,3 +40,6 @@ pub use registry::{ModuleInfo, ModuleState, RegistryError, RegistryResult, ACTIV
 pub use runner::{ExecutionContext, ExecutionState, FaultInfo, FaultPolicy, FaultType, RunnerConfig, RunnerError, RunnerResult, init_executor, is_executor_ready, start_module, start_module_with_config, stop_module, pause_module, resume_module, handle_module_fault, restart_module, get_module_state, get_running_count, heartbeat, check_watchdogs, terminate_all_modules};
 pub use sandbox::{SandboxConfig, SandboxState, SandboxError, SandboxResult, setup_sandbox, destroy_sandbox};
 pub use api::register_active_module;
+
+#[cfg(test)]
+mod tests;
