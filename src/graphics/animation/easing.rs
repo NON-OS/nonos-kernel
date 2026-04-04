@@ -11,7 +11,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-#[derive(Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub enum Easing { Linear, EaseIn, EaseOut, EaseInOut, Spring }
 
 pub fn apply_easing(t: f32, easing: Easing) -> f32 {

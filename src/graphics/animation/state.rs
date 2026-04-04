@@ -13,7 +13,7 @@
 
 use super::easing::Easing;
 
-#[derive(Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub enum AnimationStatus { Idle, Running, Completed, Paused }
 
 #[derive(Clone, Copy)]
