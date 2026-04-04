@@ -144,3 +144,6 @@ pub use observability::{
     should_log_debug, should_emit_serial, redact_pointer, redact_address,
     redact_panic_message, serial_log, serial_log_redacted,
 };
+
+#[cfg(test)]
+mod tests;
