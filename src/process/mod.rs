@@ -41,9 +41,13 @@ pub mod accounting;
 pub mod acct_record;
 pub mod signal;
 
+#[cfg(test)]
+mod tests;
+
 pub use core::{ProcessControlBlock, ProcessTable, ProcessState, Priority, Pid, ThreadGroup, PROCESS_TABLE, CURRENT_PID};
 pub use core::{init_process_management, current_process, current_pid, create_process, context_switch, get_process_table};
 pub use core::{get_process_stats, isolate_process, suspend_process, is_process_active, is_process_active_by_id, ProcessManagementStats, allocate_tid};
+pub use core::{save_fpu_state, restore_fpu_state, clear_fpu_state, has_saved_fpu_state, init_fpu, save_interrupt_context, clear_interrupt_context, INTERRUPT_SAVED_CONTEXTS, INTERRUPT_SAVED_FPU_STATES};
 pub use types::Process;
 pub use manager::{ProcessManager, init_process_manager, get_process_manager, is_manager_initialized};
 pub use clone_flags::{CloneArgs, CLONE_VM, CLONE_FS, CLONE_FILES, CLONE_SIGHAND, CLONE_THREAD, CLONE_PARENT_SETTID, CLONE_CHILD_CLEARTID};
