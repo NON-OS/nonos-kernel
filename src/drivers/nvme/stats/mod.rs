@@ -14,10 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod core;
+mod structure;
+mod constructor;
+mod record;
+mod snapshot;
 mod io;
 mod security;
 
-pub use self::core::{NvmeStats, NvmeStatsSnapshot};
+pub use structure::NvmeStats;
+pub use snapshot::NvmeStatsSnapshot;
 pub use io::IoStats;
 pub use security::{SecurityStats, SecurityStatsSnapshot};

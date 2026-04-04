@@ -47,6 +47,8 @@ pub enum NvmeError {
     QueueFull,
     InvalidPrpAlignment,
     MsixConfigurationFailed,
+    InterruptAllocationFailed,
+    InterruptTimeout,
     ControllerNotInitialized,
     SubmissionQueueError,
     CompletionQueueError,

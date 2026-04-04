@@ -80,7 +80,7 @@ impl PrpList {
 }
 
 pub fn validate_prp_alignment(phys_addr: u64) -> Result<(), NvmeError> {
-    if (phys_addr as usize) & 0x3 != 0 {
+    if phys_addr & 0x7 != 0 {
         return Err(NvmeError::InvalidPrpAlignment);
     }
     Ok(())
