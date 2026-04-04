@@ -7,106 +7,106 @@ use crate::agents::tasks::{
     create_task, update_task_status, get_task, list_agent_tasks,
     pending_tasks, cancel_task, TaskStatus, MAX_TASKS
 };
+use crate::test::framework::TestResult;
 
-#[test]
-fn test_create_task() {
+pub fn test_create_task() -> TestResult {
     let id = create_task(1, b"Test task");
-    assert!(id > 0);
+    if id == 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_create_task_unique_ids() {
+pub fn test_create_task_unique_ids() -> TestResult {
     let id1 = create_task(1, b"Task 1");
     let id2 = create_task(1, b"Task 2");
     let id3 = create_task(2, b"Task 3");
 
-    assert_ne!(id1, id2);
-    assert_ne!(id2, id3);
-    assert_ne!(id1, id3);
+    if id1 == id2 { return TestResult::Fail; }
+    if id2 == id3 { return TestResult::Fail; }
+    if id1 == id3 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_get_task() {
+pub fn test_get_task() -> TestResult {
     let id = create_task(1, b"Get task test");
     let task = get_task(id);
 
-    assert!(task.is_some());
+    if task.is_none() { return TestResult::Fail; }
     let task = task.unwrap();
-    assert_eq!(task.id, id);
-    assert_eq!(task.agent_id, 1);
-    assert_eq!(task.description.as_slice(), b"Get task test");
-    assert_eq!(task.status, TaskStatus::Pending);
+    if task.id != id { return TestResult::Fail; }
+    if task.agent_id != 1 { return TestResult::Fail; }
+    if task.description.as_slice() != b"Get task test" { return TestResult::Fail; }
+    if task.status != TaskStatus::Pending { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_get_task_nonexistent() {
+pub fn test_get_task_nonexistent() -> TestResult {
     let task = get_task(999999);
-    assert!(task.is_none());
+    if task.is_some() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_task_status_variants() {
-    assert_eq!(TaskStatus::Pending, TaskStatus::Pending);
-    assert_eq!(TaskStatus::Running, TaskStatus::Running);
-    assert_eq!(TaskStatus::Complete, TaskStatus::Complete);
-    assert_eq!(TaskStatus::Failed, TaskStatus::Failed);
-    assert_eq!(TaskStatus::Cancelled, TaskStatus::Cancelled);
-    assert_ne!(TaskStatus::Pending, TaskStatus::Complete);
+pub fn test_task_status_variants() -> TestResult {
+    if TaskStatus::Pending != TaskStatus::Pending { return TestResult::Fail; }
+    if TaskStatus::Running != TaskStatus::Running { return TestResult::Fail; }
+    if TaskStatus::Complete != TaskStatus::Complete { return TestResult::Fail; }
+    if TaskStatus::Failed != TaskStatus::Failed { return TestResult::Fail; }
+    if TaskStatus::Cancelled != TaskStatus::Cancelled { return TestResult::Fail; }
+    if TaskStatus::Pending == TaskStatus::Complete { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_update_task_status_running() {
+pub fn test_update_task_status_running() -> TestResult {
     let id = create_task(1, b"Status test");
     update_task_status(id, TaskStatus::Running, None);
 
     let task = get_task(id).unwrap();
-    assert_eq!(task.status, TaskStatus::Running);
+    if task.status != TaskStatus::Running { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_update_task_status_complete() {
+pub fn test_update_task_status_complete() -> TestResult {
     let id = create_task(1, b"Complete test");
     update_task_status(id, TaskStatus::Complete, Some(b"Result data"));
 
     let task = get_task(id).unwrap();
-    assert_eq!(task.status, TaskStatus::Complete);
-    assert_eq!(task.result.as_slice(), b"Result data");
-    assert!(task.completed_at > 0);
+    if task.status != TaskStatus::Complete { return TestResult::Fail; }
+    if task.result.as_slice() != b"Result data" { return TestResult::Fail; }
+    if task.completed_at == 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_update_task_status_failed() {
+pub fn test_update_task_status_failed() -> TestResult {
     let id = create_task(1, b"Fail test");
     update_task_status(id, TaskStatus::Failed, Some(b"Error message"));
 
     let task = get_task(id).unwrap();
-    assert_eq!(task.status, TaskStatus::Failed);
-    assert_eq!(task.result.as_slice(), b"Error message");
-    assert!(task.completed_at > 0);
+    if task.status != TaskStatus::Failed { return TestResult::Fail; }
+    if task.result.as_slice() != b"Error message" { return TestResult::Fail; }
+    if task.completed_at == 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_list_agent_tasks() {
+pub fn test_list_agent_tasks() -> TestResult {
     let agent_id = 5000;
     create_task(agent_id, b"Task A");
     create_task(agent_id, b"Task B");
     create_task(agent_id + 1, b"Other agent task");
 
     let tasks = list_agent_tasks(agent_id);
-    assert!(tasks.len() >= 2);
+    if tasks.len() < 2 { return TestResult::Fail; }
     for task in &tasks {
-        assert_eq!(task.agent_id, agent_id);
+        if task.agent_id != agent_id { return TestResult::Fail; }
     }
+    TestResult::Pass
 }
 
-#[test]
-fn test_list_agent_tasks_empty() {
+pub fn test_list_agent_tasks_empty() -> TestResult {
     let tasks = list_agent_tasks(99999);
-    assert!(tasks.is_empty());
+    if !tasks.is_empty() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_pending_tasks() {
+pub fn test_pending_tasks() -> TestResult {
     let agent_id = 6000;
     let id1 = create_task(agent_id, b"Pending 1");
     let id2 = create_task(agent_id, b"Pending 2");
@@ -117,102 +117,103 @@ fn test_pending_tasks() {
 
     let pending = pending_tasks(agent_id);
     for task in &pending {
-        assert_eq!(task.status, TaskStatus::Pending);
+        if task.status != TaskStatus::Pending { return TestResult::Fail; }
     }
+    TestResult::Pass
 }
 
-#[test]
-fn test_cancel_task_pending() {
+pub fn test_cancel_task_pending() -> TestResult {
     let id = create_task(1, b"Cancel test");
     let result = cancel_task(id);
 
-    assert!(result);
+    if !result { return TestResult::Fail; }
     let task = get_task(id).unwrap();
-    assert_eq!(task.status, TaskStatus::Cancelled);
+    if task.status != TaskStatus::Cancelled { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_cancel_task_already_running() {
+pub fn test_cancel_task_already_running() -> TestResult {
     let id = create_task(1, b"Running task");
     update_task_status(id, TaskStatus::Running, None);
 
     let result = cancel_task(id);
-    assert!(!result);
+    if result { return TestResult::Fail; }
 
     let task = get_task(id).unwrap();
-    assert_eq!(task.status, TaskStatus::Running);
+    if task.status != TaskStatus::Running { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_cancel_task_nonexistent() {
+pub fn test_cancel_task_nonexistent() -> TestResult {
     let result = cancel_task(999999);
-    assert!(!result);
+    if result { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_task_timestamps() {
+pub fn test_task_timestamps() -> TestResult {
     let id = create_task(1, b"Timestamp test");
     let task = get_task(id).unwrap();
 
-    assert!(task.created_at > 0);
-    assert_eq!(task.completed_at, 0);
+    if task.created_at == 0 { return TestResult::Fail; }
+    if task.completed_at != 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_task_clone() {
+pub fn test_task_clone() -> TestResult {
     let id = create_task(1, b"Clone test");
     let task = get_task(id).unwrap();
     let cloned = task.clone();
 
-    assert_eq!(cloned.id, task.id);
-    assert_eq!(cloned.agent_id, task.agent_id);
-    assert_eq!(cloned.description, task.description);
-    assert_eq!(cloned.status, task.status);
+    if cloned.id != task.id { return TestResult::Fail; }
+    if cloned.agent_id != task.agent_id { return TestResult::Fail; }
+    if cloned.description != task.description { return TestResult::Fail; }
+    if cloned.status != task.status { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_max_tasks_constant() {
-    assert_eq!(MAX_TASKS, 64);
+pub fn test_max_tasks_constant() -> TestResult {
+    if MAX_TASKS != 64 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_task_empty_description() {
+pub fn test_task_empty_description() -> TestResult {
     let id = create_task(1, b"");
     let task = get_task(id).unwrap();
-    assert!(task.description.is_empty());
+    if !task.description.is_empty() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_task_large_description() {
+pub fn test_task_large_description() -> TestResult {
     let large_desc = [b'x'; 1000];
     let id = create_task(1, &large_desc);
     let task = get_task(id).unwrap();
-    assert_eq!(task.description.len(), 1000);
+    if task.description.len() != 1000 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_update_nonexistent_task() {
+pub fn test_update_nonexistent_task() -> TestResult {
     update_task_status(999999, TaskStatus::Complete, Some(b"data"));
+    TestResult::Pass
 }
 
-#[test]
-fn test_task_result_empty() {
+pub fn test_task_result_empty() -> TestResult {
     let id = create_task(1, b"No result");
     update_task_status(id, TaskStatus::Complete, None);
 
     let task = get_task(id).unwrap();
-    assert!(task.result.is_empty());
+    if !task.result.is_empty() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_task_multiple_status_updates() {
+pub fn test_task_multiple_status_updates() -> TestResult {
     let id = create_task(1, b"Multi update");
 
     update_task_status(id, TaskStatus::Running, None);
-    assert_eq!(get_task(id).unwrap().status, TaskStatus::Running);
+    if get_task(id).unwrap().status != TaskStatus::Running { return TestResult::Fail; }
 
     update_task_status(id, TaskStatus::Complete, Some(b"Done"));
     let task = get_task(id).unwrap();
-    assert_eq!(task.status, TaskStatus::Complete);
-    assert_eq!(task.result.as_slice(), b"Done");
+    if task.status != TaskStatus::Complete { return TestResult::Fail; }
+    if task.result.as_slice() != b"Done" { return TestResult::Fail; }
+    TestResult::Pass
 }
