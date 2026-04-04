@@ -1,5 +1,7 @@
 // NONOS Operating System
 // Copyright (C) 2026 NONOS Contributors
+//
+// Memory type and layout tests
 
 use crate::memory::unified::{MemoryProtection, MemoryType};
 use crate::memory::layout::{
@@ -8,403 +10,403 @@ use crate::memory::layout::{
     DIRECTMAP_BASE, DIRECTMAP_SIZE, KHEAP_BASE, KHEAP_SIZE, KVM_BASE, KVM_SIZE,
     MAX_PHYS_ADDR, MAX_CPUS,
 };
+use crate::test::framework::TestResult;
 
-#[test]
-fn test_memory_protection_none() {
+pub fn test_memory_protection_none() -> TestResult {
     let prot = MemoryProtection::None;
-    assert_eq!(prot, MemoryProtection::None);
+    if prot != MemoryProtection::None { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_memory_protection_read() {
+pub fn test_memory_protection_read() -> TestResult {
     let prot = MemoryProtection::Read;
-    assert_eq!(prot, MemoryProtection::Read);
+    if prot != MemoryProtection::Read { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_memory_protection_read_write() {
+pub fn test_memory_protection_read_write() -> TestResult {
     let prot = MemoryProtection::ReadWrite;
-    assert_eq!(prot, MemoryProtection::ReadWrite);
+    if prot != MemoryProtection::ReadWrite { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_memory_protection_read_execute() {
+pub fn test_memory_protection_read_execute() -> TestResult {
     let prot = MemoryProtection::ReadExecute;
-    assert_eq!(prot, MemoryProtection::ReadExecute);
+    if prot != MemoryProtection::ReadExecute { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_memory_protection_equality() {
-    assert_eq!(MemoryProtection::None, MemoryProtection::None);
-    assert_eq!(MemoryProtection::Read, MemoryProtection::Read);
-    assert_ne!(MemoryProtection::Read, MemoryProtection::ReadWrite);
-    assert_ne!(MemoryProtection::ReadWrite, MemoryProtection::ReadExecute);
+pub fn test_memory_protection_equality() -> TestResult {
+    if MemoryProtection::None != MemoryProtection::None { return TestResult::Fail; }
+    if MemoryProtection::Read != MemoryProtection::Read { return TestResult::Fail; }
+    if MemoryProtection::Read == MemoryProtection::ReadWrite { return TestResult::Fail; }
+    if MemoryProtection::ReadWrite == MemoryProtection::ReadExecute { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_memory_protection_clone() {
+pub fn test_memory_protection_clone() -> TestResult {
     let prot = MemoryProtection::ReadWrite;
     let cloned = prot.clone();
-    assert_eq!(prot, cloned);
+    if prot != cloned { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_memory_protection_copy() {
+pub fn test_memory_protection_copy() -> TestResult {
     let prot1 = MemoryProtection::Read;
     let prot2 = prot1;
-    assert_eq!(prot1, prot2);
+    if prot1 != prot2 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_memory_type_anonymous() {
+pub fn test_memory_type_anonymous() -> TestResult {
     let mt = MemoryType::Anonymous;
-    assert_eq!(mt, MemoryType::Anonymous);
+    if mt != MemoryType::Anonymous { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_memory_type_kernel_code() {
+pub fn test_memory_type_kernel_code() -> TestResult {
     let mt = MemoryType::KernelCode;
-    assert_eq!(mt, MemoryType::KernelCode);
+    if mt != MemoryType::KernelCode { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_memory_type_kernel_data() {
+pub fn test_memory_type_kernel_data() -> TestResult {
     let mt = MemoryType::KernelData;
-    assert_eq!(mt, MemoryType::KernelData);
+    if mt != MemoryType::KernelData { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_memory_type_user_code() {
+pub fn test_memory_type_user_code() -> TestResult {
     let mt = MemoryType::UserCode;
-    assert_eq!(mt, MemoryType::UserCode);
+    if mt != MemoryType::UserCode { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_memory_type_user_data() {
+pub fn test_memory_type_user_data() -> TestResult {
     let mt = MemoryType::UserData;
-    assert_eq!(mt, MemoryType::UserData);
+    if mt != MemoryType::UserData { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_memory_type_user_heap() {
+pub fn test_memory_type_user_heap() -> TestResult {
     let mt = MemoryType::UserHeap;
-    assert_eq!(mt, MemoryType::UserHeap);
+    if mt != MemoryType::UserHeap { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_memory_type_user_stack() {
+pub fn test_memory_type_user_stack() -> TestResult {
     let mt = MemoryType::UserStack;
-    assert_eq!(mt, MemoryType::UserStack);
+    if mt != MemoryType::UserStack { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_memory_type_device() {
+pub fn test_memory_type_device() -> TestResult {
     let mt = MemoryType::Device;
-    assert_eq!(mt, MemoryType::Device);
+    if mt != MemoryType::Device { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_memory_type_secure_capsule() {
+pub fn test_memory_type_secure_capsule() -> TestResult {
     let mt = MemoryType::SecureCapsule;
-    assert_eq!(mt, MemoryType::SecureCapsule);
+    if mt != MemoryType::SecureCapsule { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_memory_type_shared() {
+pub fn test_memory_type_shared() -> TestResult {
     let mt = MemoryType::Shared;
-    assert_eq!(mt, MemoryType::Shared);
+    if mt != MemoryType::Shared { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_memory_type_equality() {
-    assert_eq!(MemoryType::Anonymous, MemoryType::Anonymous);
-    assert_eq!(MemoryType::KernelCode, MemoryType::KernelCode);
-    assert_ne!(MemoryType::KernelCode, MemoryType::KernelData);
-    assert_ne!(MemoryType::UserCode, MemoryType::UserData);
+pub fn test_memory_type_equality() -> TestResult {
+    if MemoryType::Anonymous != MemoryType::Anonymous { return TestResult::Fail; }
+    if MemoryType::KernelCode != MemoryType::KernelCode { return TestResult::Fail; }
+    if MemoryType::KernelCode == MemoryType::KernelData { return TestResult::Fail; }
+    if MemoryType::UserCode == MemoryType::UserData { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_memory_type_clone() {
+pub fn test_memory_type_clone() -> TestResult {
     let mt = MemoryType::SecureCapsule;
     let cloned = mt.clone();
-    assert_eq!(mt, cloned);
+    if mt != cloned { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_memory_type_copy() {
+pub fn test_memory_type_copy() -> TestResult {
     let mt1 = MemoryType::Device;
     let mt2 = mt1;
-    assert_eq!(mt1, mt2);
+    if mt1 != mt2 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_region_kind_available() {
+pub fn test_region_kind_available() -> TestResult {
     let rk = RegionKind::Available;
-    assert_eq!(rk.as_str(), "Available");
-    assert!(rk.is_usable());
+    if rk.as_str() != "Available" { return TestResult::Fail; }
+    if !rk.is_usable() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_region_kind_usable() {
+pub fn test_region_kind_usable() -> TestResult {
     let rk = RegionKind::Usable;
-    assert_eq!(rk.as_str(), "Usable");
-    assert!(rk.is_usable());
+    if rk.as_str() != "Usable" { return TestResult::Fail; }
+    if !rk.is_usable() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_region_kind_reserved() {
+pub fn test_region_kind_reserved() -> TestResult {
     let rk = RegionKind::Reserved;
-    assert_eq!(rk.as_str(), "Reserved");
-    assert!(!rk.is_usable());
+    if rk.as_str() != "Reserved" { return TestResult::Fail; }
+    if rk.is_usable() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_region_kind_acpi() {
+pub fn test_region_kind_acpi() -> TestResult {
     let rk = RegionKind::Acpi;
-    assert_eq!(rk.as_str(), "ACPI");
-    assert!(!rk.is_usable());
+    if rk.as_str() != "ACPI" { return TestResult::Fail; }
+    if rk.is_usable() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_region_kind_mmio() {
+pub fn test_region_kind_mmio() -> TestResult {
     let rk = RegionKind::Mmio;
-    assert_eq!(rk.as_str(), "MMIO");
-    assert!(!rk.is_usable());
+    if rk.as_str() != "MMIO" { return TestResult::Fail; }
+    if rk.is_usable() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_region_kind_kernel() {
+pub fn test_region_kind_kernel() -> TestResult {
     let rk = RegionKind::Kernel;
-    assert_eq!(rk.as_str(), "Kernel");
-    assert!(!rk.is_usable());
+    if rk.as_str() != "Kernel" { return TestResult::Fail; }
+    if rk.is_usable() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_region_kind_boot() {
+pub fn test_region_kind_boot() -> TestResult {
     let rk = RegionKind::Boot;
-    assert_eq!(rk.as_str(), "Boot");
-    assert!(!rk.is_usable());
+    if rk.as_str() != "Boot" { return TestResult::Fail; }
+    if rk.is_usable() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_region_kind_unknown() {
+pub fn test_region_kind_unknown() -> TestResult {
     let rk = RegionKind::Unknown;
-    assert_eq!(rk.as_str(), "Unknown");
-    assert!(!rk.is_usable());
+    if rk.as_str() != "Unknown" { return TestResult::Fail; }
+    if rk.is_usable() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_region_kind_equality() {
-    assert_eq!(RegionKind::Available, RegionKind::Available);
-    assert_ne!(RegionKind::Available, RegionKind::Reserved);
+pub fn test_region_kind_equality() -> TestResult {
+    if RegionKind::Available != RegionKind::Available { return TestResult::Fail; }
+    if RegionKind::Available == RegionKind::Reserved { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_region_kind_clone() {
+pub fn test_region_kind_clone() -> TestResult {
     let rk = RegionKind::Kernel;
     let cloned = rk.clone();
-    assert_eq!(rk, cloned);
+    if rk != cloned { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_region_kind_copy() {
+pub fn test_region_kind_copy() -> TestResult {
     let rk1 = RegionKind::Mmio;
     let rk2 = rk1;
-    assert_eq!(rk1, rk2);
+    if rk1 != rk2 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_layout_error_slide_not_aligned() {
+pub fn test_layout_error_slide_not_aligned() -> TestResult {
     let err = LayoutError::SlideNotAligned;
-    assert_eq!(err, LayoutError::SlideNotAligned);
+    if err != LayoutError::SlideNotAligned { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_layout_error_kernel_base_too_low() {
+pub fn test_layout_error_kernel_base_too_low() -> TestResult {
     let err = LayoutError::KernelBaseTooLow;
-    assert_eq!(err, LayoutError::KernelBaseTooLow);
+    if err != LayoutError::KernelBaseTooLow { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_layout_error_percpu_stride_misaligned() {
+pub fn test_layout_error_percpu_stride_misaligned() -> TestResult {
     let err = LayoutError::PercpuStrideMisaligned;
-    assert_eq!(err, LayoutError::PercpuStrideMisaligned);
+    if err != LayoutError::PercpuStrideMisaligned { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_layout_error_window_overlap() {
+pub fn test_layout_error_window_overlap() -> TestResult {
     let err = LayoutError::WindowOverlap;
-    assert_eq!(err, LayoutError::WindowOverlap);
+    if err != LayoutError::WindowOverlap { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_layout_error_order_violation() {
+pub fn test_layout_error_order_violation() -> TestResult {
     let err = LayoutError::OrderViolation;
-    assert_eq!(err, LayoutError::OrderViolation);
+    if err != LayoutError::OrderViolation { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_layout_error_size_exceeds_capacity() {
+pub fn test_layout_error_size_exceeds_capacity() -> TestResult {
     let err = LayoutError::SizeExceedsCapacity;
-    assert_eq!(err, LayoutError::SizeExceedsCapacity);
+    if err != LayoutError::SizeExceedsCapacity { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_layout_error_not_in_kernel_space() {
+pub fn test_layout_error_not_in_kernel_space() -> TestResult {
     let err = LayoutError::NotInKernelSpace;
-    assert_eq!(err, LayoutError::NotInKernelSpace);
+    if err != LayoutError::NotInKernelSpace { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_layout_error_not_in_user_space() {
+pub fn test_layout_error_not_in_user_space() -> TestResult {
     let err = LayoutError::NotInUserSpace;
-    assert_eq!(err, LayoutError::NotInUserSpace);
+    if err != LayoutError::NotInUserSpace { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_layout_error_invalid_alignment() {
+pub fn test_layout_error_invalid_alignment() -> TestResult {
     let err = LayoutError::InvalidAlignment;
-    assert_eq!(err, LayoutError::InvalidAlignment);
+    if err != LayoutError::InvalidAlignment { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_layout_error_not_initialized() {
+pub fn test_layout_error_not_initialized() -> TestResult {
     let err = LayoutError::NotInitialized;
-    assert_eq!(err, LayoutError::NotInitialized);
+    if err != LayoutError::NotInitialized { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_layout_error_config_locked() {
+pub fn test_layout_error_config_locked() -> TestResult {
     let err = LayoutError::ConfigLocked;
-    assert_eq!(err, LayoutError::ConfigLocked);
+    if err != LayoutError::ConfigLocked { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_layout_error_invalid_region_bounds() {
+pub fn test_layout_error_invalid_region_bounds() -> TestResult {
     let err = LayoutError::InvalidRegionBounds;
-    assert_eq!(err, LayoutError::InvalidRegionBounds);
+    if err != LayoutError::InvalidRegionBounds { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_layout_error_equality() {
-    assert_eq!(LayoutError::SlideNotAligned, LayoutError::SlideNotAligned);
-    assert_ne!(LayoutError::SlideNotAligned, LayoutError::WindowOverlap);
+pub fn test_layout_error_equality() -> TestResult {
+    if LayoutError::SlideNotAligned != LayoutError::SlideNotAligned { return TestResult::Fail; }
+    if LayoutError::SlideNotAligned == LayoutError::WindowOverlap { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_layout_error_clone() {
+pub fn test_layout_error_clone() -> TestResult {
     let err = LayoutError::OrderViolation;
     let cloned = err.clone();
-    assert_eq!(err, cloned);
+    if err != cloned { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_layout_error_copy() {
+pub fn test_layout_error_copy() -> TestResult {
     let err1 = LayoutError::NotInitialized;
     let err2 = err1;
-    assert_eq!(err1, err2);
+    if err1 != err2 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_page_size_constant() {
-    assert_eq!(PAGE_SIZE, 4096);
-    assert!(PAGE_SIZE.is_power_of_two());
+pub fn test_page_size_constant() -> TestResult {
+    if PAGE_SIZE != 4096 { return TestResult::Fail; }
+    if !PAGE_SIZE.is_power_of_two() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_page_size_u64_constant() {
-    assert_eq!(PAGE_SIZE_U64, 4096);
-    assert_eq!(PAGE_SIZE_U64, PAGE_SIZE as u64);
+pub fn test_page_size_u64_constant() -> TestResult {
+    if PAGE_SIZE_U64 != 4096 { return TestResult::Fail; }
+    if PAGE_SIZE_U64 != PAGE_SIZE as u64 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_page_mask_constant() {
-    assert_eq!(PAGE_MASK, !0xFFF);
-    assert_eq!(0x12345678u64 & PAGE_MASK, 0x12345000u64);
+pub fn test_page_mask_constant() -> TestResult {
+    if PAGE_MASK != !0xFFF { return TestResult::Fail; }
+    if 0x12345678u64 & PAGE_MASK != 0x12345000u64 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_huge_page_2m_constant() {
-    assert_eq!(HUGE_PAGE_2M, 2 * 1024 * 1024);
-    assert!(HUGE_PAGE_2M.is_power_of_two());
+pub fn test_huge_page_2m_constant() -> TestResult {
+    if HUGE_PAGE_2M != 2 * 1024 * 1024 { return TestResult::Fail; }
+    if !HUGE_PAGE_2M.is_power_of_two() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_huge_page_1g_constant() {
-    assert_eq!(HUGE_PAGE_1G, 1024 * 1024 * 1024);
-    assert!(HUGE_PAGE_1G.is_power_of_two());
+pub fn test_huge_page_1g_constant() -> TestResult {
+    if HUGE_PAGE_1G != 1024 * 1024 * 1024 { return TestResult::Fail; }
+    if !HUGE_PAGE_1G.is_power_of_two() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_directmap_base_constant() {
-    assert_eq!(DIRECTMAP_BASE, 0xFFFF_FFFF_B000_0000);
+pub fn test_directmap_base_constant() -> TestResult {
+    if DIRECTMAP_BASE != 0xFFFF_FFFF_B000_0000 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_directmap_size_constant() {
-    assert_eq!(DIRECTMAP_SIZE, 0x0000_0000_1000_0000);
+pub fn test_directmap_size_constant() -> TestResult {
+    if DIRECTMAP_SIZE != 0x0000_0000_1000_0000 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_kheap_base_constant() {
-    assert_eq!(KHEAP_BASE, 0xFFFF_FF00_0000_0000);
+pub fn test_kheap_base_constant() -> TestResult {
+    if KHEAP_BASE != 0xFFFF_FF00_0000_0000 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_kheap_size_constant() {
-    assert_eq!(KHEAP_SIZE, 0x0000_0000_1000_0000);
+pub fn test_kheap_size_constant() -> TestResult {
+    if KHEAP_SIZE != 0x0000_0000_1000_0000 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_kvm_base_constant() {
-    assert_eq!(KVM_BASE, 0xFFFF_FF10_0000_0000);
+pub fn test_kvm_base_constant() -> TestResult {
+    if KVM_BASE != 0xFFFF_FF10_0000_0000 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_kvm_size_constant() {
-    assert_eq!(KVM_SIZE, 0x0000_0000_2000_0000);
+pub fn test_kvm_size_constant() -> TestResult {
+    if KVM_SIZE != 0x0000_0000_2000_0000 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_max_phys_addr_constant() {
-    assert_eq!(MAX_PHYS_ADDR, 0x0000_FFFF_FFFF_FFFF);
+pub fn test_max_phys_addr_constant() -> TestResult {
+    if MAX_PHYS_ADDR != 0x0000_FFFF_FFFF_FFFF { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_max_cpus_constant() {
-    assert_eq!(MAX_CPUS, 64);
+pub fn test_max_cpus_constant() -> TestResult {
+    if MAX_CPUS != 64 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_page_alignment() {
+pub fn test_page_alignment() -> TestResult {
     let aligned = 0x1000u64;
     let unaligned = 0x1001u64;
-    assert_eq!(aligned & PAGE_MASK, aligned);
-    assert_ne!(unaligned & PAGE_MASK, unaligned);
+    if aligned & PAGE_MASK != aligned { return TestResult::Fail; }
+    if unaligned & PAGE_MASK == unaligned { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_page_offset() {
+pub fn test_page_offset() -> TestResult {
     let addr = 0x12345678u64;
     let offset = addr & !PAGE_MASK;
-    assert_eq!(offset, 0x678);
+    if offset != 0x678 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_huge_page_sizes_ordering() {
-    assert!(PAGE_SIZE < HUGE_PAGE_2M);
-    assert!(HUGE_PAGE_2M < HUGE_PAGE_1G);
+pub fn test_huge_page_sizes_ordering() -> TestResult {
+    if PAGE_SIZE >= HUGE_PAGE_2M { return TestResult::Fail; }
+    if HUGE_PAGE_2M >= HUGE_PAGE_1G { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_region_sizes_valid() {
-    assert!(DIRECTMAP_SIZE > 0);
-    assert!(KHEAP_SIZE > 0);
-    assert!(KVM_SIZE > 0);
+pub fn test_region_sizes_valid() -> TestResult {
+    if DIRECTMAP_SIZE == 0 { return TestResult::Fail; }
+    if KHEAP_SIZE == 0 { return TestResult::Fail; }
+    if KVM_SIZE == 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_memory_type_all_variants() {
+pub fn test_memory_type_all_variants() -> TestResult {
     let types = [
         MemoryType::Anonymous,
         MemoryType::KernelCode,
@@ -419,12 +421,12 @@ fn test_memory_type_all_variants() {
     ];
     for mt in types {
         let cloned = mt.clone();
-        assert_eq!(mt, cloned);
+        if mt != cloned { return TestResult::Fail; }
     }
+    TestResult::Pass
 }
 
-#[test]
-fn test_memory_protection_all_variants() {
+pub fn test_memory_protection_all_variants() -> TestResult {
     let prots = [
         MemoryProtection::None,
         MemoryProtection::Read,
@@ -433,12 +435,12 @@ fn test_memory_protection_all_variants() {
     ];
     for prot in prots {
         let cloned = prot.clone();
-        assert_eq!(prot, cloned);
+        if prot != cloned { return TestResult::Fail; }
     }
+    TestResult::Pass
 }
 
-#[test]
-fn test_region_kind_all_have_str() {
+pub fn test_region_kind_all_have_str() -> TestResult {
     let kinds = [
         RegionKind::Available,
         RegionKind::Usable,
@@ -450,12 +452,12 @@ fn test_region_kind_all_have_str() {
         RegionKind::Unknown,
     ];
     for kind in kinds {
-        assert!(!kind.as_str().is_empty());
+        if kind.as_str().is_empty() { return TestResult::Fail; }
     }
+    TestResult::Pass
 }
 
-#[test]
-fn test_layout_error_all_variants() {
+pub fn test_layout_error_all_variants() -> TestResult {
     let errors = [
         LayoutError::SlideNotAligned,
         LayoutError::KernelBaseTooLow,
@@ -472,7 +474,7 @@ fn test_layout_error_all_variants() {
     ];
     for err in errors {
         let cloned = err.clone();
-        assert_eq!(err, cloned);
+        if err != cloned { return TestResult::Fail; }
     }
+    TestResult::Pass
 }
-
