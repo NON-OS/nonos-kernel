@@ -32,7 +32,12 @@ pub fn init() {
 pub fn is_initialized() -> bool { INITIALIZED.load(Ordering::Acquire) }
 
 pub fn sign_with_kernel_key(data: &[u8]) -> Option<Signature> {
-    KERNEL_KEYPAIR.get().map(|kp| sign(kp, data))
+    crate::sys::serial::println(b"[SIGN] sign_with_kernel_key: getting keypair");
+    let kp = KERNEL_KEYPAIR.get()?;
+    crate::sys::serial::println(b"[SIGN] sign_with_kernel_key: calling sign");
+    let sig = sign(kp, data);
+    crate::sys::serial::println(b"[SIGN] sign_with_kernel_key: done");
+    Some(sig)
 }
 
 pub fn kernel_public_key() -> Option<[u8; 32]> {
