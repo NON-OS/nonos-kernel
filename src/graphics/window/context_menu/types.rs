@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-#[derive(Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum MenuItemType { Action, Separator, Disabled }
 
 #[derive(Clone, Copy)]
@@ -36,6 +36,6 @@ impl MenuItem {
     }
 }
 
-#[derive(Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[repr(u8)]
 pub enum ContextMenuType { None = 0, Desktop = 1, FileManager = 2, TextEditor = 3, Window = 4 }
