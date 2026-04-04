@@ -15,13 +15,10 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::kernel_core::spawn_isolated_service;
-use crate::services::caps::{
-    CAP_VFS, CAP_NET, CAP_DISPLAY, CAP_DRIVER, CAP_CRYPTO, CAP_INPUT,
-    CAP_ZK, CAP_AUDIO, CAP_GPU, CAP_APPS, CAP_AGENTS, CAP_SHELL,
-};
+use crate::services::caps::*;
 use crate::sys::boot_log;
 
-pub(super) fn spawn_core_services(services: &[&str]) {
+pub(super) fn spawn_services(services: &[&str]) {
     for &name in services {
         boot_log::stage("SPAWN", name);
         spawn_svc(name, cap_for_service(name));
@@ -32,7 +29,11 @@ pub(super) fn spawn_driver_services(services: &[&str]) {
     for &name in services { spawn_svc(name, CAP_DRIVER); }
 }
 
-fn cap_for_service(name: &str) -> u64 {
+pub(super) fn spawn_core_services(services: &[&str]) {
+    spawn_services(services);
+}
+
+pub(crate) fn cap_for_service(name: &str) -> u64 {
     match name {
         "vfs" => CAP_VFS,
         "network" => CAP_NET,
@@ -46,6 +47,18 @@ fn cap_for_service(name: &str) -> u64 {
         "agents" => CAP_AGENTS,
         "shell" => CAP_SHELL,
         "desktop" => CAP_DISPLAY | CAP_INPUT,
+        "kworker" | "softirq" => CAP_KERNEL | CAP_MEMORY | CAP_PROCESS,
+        "entropy" => CAP_ENTROPY | CAP_CRYPTO,
+        "keyring" => CAP_KEYRING | CAP_CRYPTO,
+        "aes" | "chacha" | "sha3" | "blake3" => CAP_CRYPTO,
+        "ed25519" | "secp256k1" => CAP_CRYPTO,
+        "zkprover" | "groth16" | "plonk" => CAP_ZK | CAP_CRYPTO,
+        "kyber" | "dilithium" => CAP_CRYPTO,
+        "netmgr" => CAP_NET,
+        "tls" => CAP_TLS | CAP_CRYPTO | CAP_NET,
+        "wallet" => CAP_WALLET | CAP_CRYPTO,
+        "storage" => CAP_STORAGE | CAP_VFS,
+        "udev" => CAP_UDEV | CAP_DRIVER,
         _ => 0,
     }
 }

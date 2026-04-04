@@ -14,8 +14,23 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub const CORE_SERVICES: &[&str] = &[
+pub(crate) const DRIVER_SERVICES: &[&str] = &["drivers"];
+
+pub(crate) const KERNEL_SERVICES: &[&str] = &["kworker", "softirq"];
+
+pub(crate) const CRYPTO_ENGINE_SERVICES: &[&str] = &[
+    "entropy", "keyring", "aes", "chacha", "sha3", "blake3",
+];
+
+pub(crate) const SIGNATURE_SERVICES: &[&str] = &["ed25519", "secp256k1"];
+
+pub(crate) const ZK_SERVICES: &[&str] = &["zkprover", "groth16", "plonk"];
+
+pub(crate) const PQ_CRYPTO_SERVICES: &[&str] = &["kyber", "dilithium"];
+
+pub(crate) const SYSTEM_SERVICES: &[&str] = &["netmgr", "tls", "wallet", "storage", "udev"];
+
+pub(crate) const CORE_SERVICES: &[&str] = &[
     "vfs", "display", "input", "network", "crypto", "zk",
     "audio", "gpu", "apps", "agents", "shell", "desktop",
 ];
-pub const DRIVER_SERVICES: &[&str] = &["drivers"];

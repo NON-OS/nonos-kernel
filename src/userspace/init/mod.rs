@@ -15,11 +15,12 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod entry;
-mod spawn;
-mod spawner;
+pub mod spawn;
+pub mod spawner;
 mod service_list;
 mod supervisor;
 
 pub use entry::run_init;
 pub use spawn::spawn_service;
-pub use service_list::{CORE_SERVICES, DRIVER_SERVICES};
+#[cfg(test)]
+pub(crate) use service_list::{CORE_SERVICES, DRIVER_SERVICES};
