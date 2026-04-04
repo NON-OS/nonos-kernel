@@ -17,7 +17,7 @@
 pub mod network;
 mod types;
 pub(crate) mod state;
-mod api;
+pub mod api;
 mod serialize;
 mod persistence;
 mod hostname;
@@ -35,6 +35,16 @@ pub use api::{
     language, set_language, developer_mode, set_developer_mode,
     hardware_crypto, set_hardware_crypto, zk_attestation, set_zk_attestation,
     system_keys_generated, set_system_keys_generated,
+    notifications_enabled, set_notifications_enabled, animations_enabled, set_animations_enabled,
+    cursor_size, set_cursor_size, high_contrast, set_high_contrast, font_size, set_font_size,
+    auto_lock_timeout, set_auto_lock_timeout, wifi_autoconnect, set_wifi_autoconnect,
+    // Kernel settings
+    kernel_aslr, set_kernel_aslr, kernel_stack_guard, set_kernel_stack_guard,
+    kernel_nx_bit, set_kernel_nx_bit, kernel_smep, set_kernel_smep, kernel_smap, set_kernel_smap,
+    kernel_debug, set_kernel_debug, kernel_serial, set_kernel_serial,
+    kernel_watchdog, set_kernel_watchdog, kernel_preempt, set_kernel_preempt,
+    kernel_hugepages, set_kernel_hugepages, kernel_iommu, set_kernel_iommu,
+    kernel_seccomp, set_kernel_seccomp,
 };
 
 pub use persistence::{save_to_disk, load_from_disk, SETTINGS_FILENAME};

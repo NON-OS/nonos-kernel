@@ -42,3 +42,12 @@ pub fn set_sound_enabled(enabled: bool) {
     unsafe { CURRENT_SETTINGS.sound_enabled = enabled; }
     mark_modified();
 }
+
+pub fn cursor_size() -> u8 { unsafe { CURRENT_SETTINGS.cursor_size } }
+pub fn set_cursor_size(v: u8) { unsafe { CURRENT_SETTINGS.cursor_size = v.clamp(0, 2); } mark_modified(); }
+
+pub fn high_contrast() -> bool { unsafe { CURRENT_SETTINGS.high_contrast } }
+pub fn set_high_contrast(v: bool) { unsafe { CURRENT_SETTINGS.high_contrast = v; } mark_modified(); }
+
+pub fn font_size() -> u8 { unsafe { CURRENT_SETTINGS.font_size } }
+pub fn set_font_size(v: u8) { unsafe { CURRENT_SETTINGS.font_size = v.clamp(0, 2); } mark_modified(); }

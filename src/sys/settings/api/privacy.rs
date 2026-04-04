@@ -42,3 +42,9 @@ pub fn set_auto_wipe(enabled: bool) {
     unsafe { CURRENT_SETTINGS.auto_wipe = enabled; }
     mark_modified();
 }
+
+pub fn auto_lock_timeout() -> u8 { unsafe { CURRENT_SETTINGS.auto_lock_timeout } }
+pub fn set_auto_lock_timeout(v: u8) { unsafe { CURRENT_SETTINGS.auto_lock_timeout = v.min(30); } mark_modified(); }
+
+pub fn wifi_autoconnect() -> bool { unsafe { CURRENT_SETTINGS.wifi_autoconnect } }
+pub fn set_wifi_autoconnect(v: bool) { unsafe { CURRENT_SETTINGS.wifi_autoconnect = v; } mark_modified(); }
