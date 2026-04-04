@@ -17,16 +17,18 @@
 use super::bit_ops::{bit_set, bit_clear, bit_test};
 
 pub(in crate::memory::phys) unsafe fn set_bit_range(ptr: *mut u8, start: usize, count: usize) {
+    let end = start.saturating_add(count);
     unsafe {
-        for i in start..start + count {
+        for i in start..end {
             bit_set(ptr, i);
         }
     }
 }
 
 pub(in crate::memory::phys) unsafe fn clear_bit_range(ptr: *mut u8, start: usize, count: usize) {
+    let end = start.saturating_add(count);
     unsafe {
-        for i in start..start + count {
+        for i in start..end {
             bit_clear(ptr, i);
         }
     }
@@ -37,8 +39,9 @@ pub(in crate::memory::phys) unsafe fn is_range_allocated(
     start: usize,
     count: usize,
 ) -> bool {
+    let end = start.saturating_add(count);
     unsafe {
-        for i in start..start + count {
+        for i in start..end {
             if !bit_test(ptr, i) {
                 return false;
             }
