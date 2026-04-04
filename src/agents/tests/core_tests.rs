@@ -5,7 +5,7 @@
 
 use crate::agents::core::{Agent, AgentConfig, AgentState, AgentMessage, MessageRole};
 
-#[test_case]
+#[test]
 fn test_agent_state_variants() {
     assert_eq!(AgentState::Idle, AgentState::Idle);
     assert_eq!(AgentState::Running, AgentState::Running);
@@ -15,7 +15,7 @@ fn test_agent_state_variants() {
     assert_ne!(AgentState::Idle, AgentState::Running);
 }
 
-#[test_case]
+#[test]
 fn test_message_role_variants() {
     assert_eq!(MessageRole::System, MessageRole::System);
     assert_eq!(MessageRole::User, MessageRole::User);
@@ -24,7 +24,7 @@ fn test_message_role_variants() {
     assert_ne!(MessageRole::User, MessageRole::Assistant);
 }
 
-#[test_case]
+#[test]
 fn test_agent_config_default() {
     let config = AgentConfig::default();
     assert_eq!(config.name, [0u8; 32]);
@@ -34,7 +34,7 @@ fn test_agent_config_default() {
     assert_eq!(config.tools_enabled, [false; 16]);
 }
 
-#[test_case]
+#[test]
 fn test_agent_config_custom() {
     let mut config = AgentConfig::default();
     config.name[..4].copy_from_slice(b"Test");
@@ -53,7 +53,7 @@ fn test_agent_config_custom() {
     assert!(!config.tools_enabled[1]);
 }
 
-#[test_case]
+#[test]
 fn test_agent_new() {
     let config = AgentConfig::default();
     let agent = Agent::new(1, config);
@@ -66,7 +66,7 @@ fn test_agent_new() {
     assert_eq!(agent.last_run, 0);
 }
 
-#[test_case]
+#[test]
 fn test_agent_with_custom_config() {
     let mut config = AgentConfig::default();
     config.name[..11].copy_from_slice(b"TestAgent01");
@@ -79,7 +79,7 @@ fn test_agent_with_custom_config() {
     assert_eq!(agent.config.max_tokens, 2048);
 }
 
-#[test_case]
+#[test]
 fn test_agent_add_message() {
     let config = AgentConfig::default();
     let mut agent = Agent::new(1, config);
@@ -97,7 +97,7 @@ fn test_agent_add_message() {
     assert_eq!(agent.messages[1].content.as_slice(), b"Hi there!");
 }
 
-#[test_case]
+#[test]
 fn test_agent_add_multiple_messages() {
     let config = AgentConfig::default();
     let mut agent = Agent::new(1, config);
@@ -114,7 +114,7 @@ fn test_agent_add_multiple_messages() {
     assert_eq!(agent.messages[4].role, MessageRole::Tool);
 }
 
-#[test_case]
+#[test]
 fn test_agent_clear_messages() {
     let config = AgentConfig::default();
     let mut agent = Agent::new(1, config);
@@ -128,7 +128,7 @@ fn test_agent_clear_messages() {
     assert!(agent.messages.is_empty());
 }
 
-#[test_case]
+#[test]
 fn test_agent_name_extraction() {
     let mut config = AgentConfig::default();
     config.name[..7].copy_from_slice(b"TestBot");
@@ -137,7 +137,7 @@ fn test_agent_name_extraction() {
     assert_eq!(agent.name(), b"TestBot");
 }
 
-#[test_case]
+#[test]
 fn test_agent_name_with_null_terminator() {
     let mut config = AgentConfig::default();
     config.name[..5].copy_from_slice(b"Agent");
@@ -147,7 +147,7 @@ fn test_agent_name_with_null_terminator() {
     assert_eq!(agent.name(), b"Agent");
 }
 
-#[test_case]
+#[test]
 fn test_agent_name_full_length() {
     let mut config = AgentConfig::default();
     config.name = *b"12345678901234567890123456789012"; // 32 bytes, no null
@@ -156,7 +156,7 @@ fn test_agent_name_full_length() {
     assert_eq!(agent.name().len(), 32);
 }
 
-#[test_case]
+#[test]
 fn test_agent_message_clone() {
     let msg = AgentMessage {
         role: MessageRole::User,
@@ -168,7 +168,7 @@ fn test_agent_message_clone() {
     assert_eq!(cloned.content, b"Test content".to_vec());
 }
 
-#[test_case]
+#[test]
 fn test_agent_clone() {
     let mut config = AgentConfig::default();
     config.name[..4].copy_from_slice(b"Test");
@@ -184,7 +184,7 @@ fn test_agent_clone() {
     assert_eq!(cloned.output, agent.output);
 }
 
-#[test_case]
+#[test]
 fn test_agent_state_transitions() {
     let config = AgentConfig::default();
     let mut agent = Agent::new(1, config);
@@ -204,7 +204,7 @@ fn test_agent_state_transitions() {
     assert_eq!(agent.state, AgentState::Error);
 }
 
-#[test_case]
+#[test]
 fn test_agent_config_tools_enabled() {
     let mut config = AgentConfig::default();
 
@@ -224,7 +224,7 @@ fn test_agent_config_tools_enabled() {
     assert_eq!(enabled_count, 3);
 }
 
-#[test_case]
+#[test]
 fn test_agent_empty_message_content() {
     let config = AgentConfig::default();
     let mut agent = Agent::new(1, config);
@@ -234,7 +234,7 @@ fn test_agent_empty_message_content() {
     assert!(agent.messages[0].content.is_empty());
 }
 
-#[test_case]
+#[test]
 fn test_agent_large_message_content() {
     let config = AgentConfig::default();
     let mut agent = Agent::new(1, config);

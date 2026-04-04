@@ -8,7 +8,7 @@ use crate::agents::presets::{
     web_researcher, task_automator, list_presets
 };
 
-#[test_case]
+#[test]
 fn test_coding_assistant_preset() {
     let config = coding_assistant();
 
@@ -20,7 +20,7 @@ fn test_coding_assistant_preset() {
     assert!(!config.tools_enabled[3]);
 }
 
-#[test_case]
+#[test]
 fn test_file_manager_preset() {
     let config = file_manager_agent();
 
@@ -32,7 +32,7 @@ fn test_file_manager_preset() {
     assert!(config.tools_enabled[3]);
 }
 
-#[test_case]
+#[test]
 fn test_system_monitor_preset() {
     let config = system_monitor();
 
@@ -42,7 +42,7 @@ fn test_system_monitor_preset() {
     assert!(!config.tools_enabled[1]);
 }
 
-#[test_case]
+#[test]
 fn test_web_researcher_preset() {
     let config = web_researcher();
 
@@ -51,7 +51,7 @@ fn test_web_researcher_preset() {
     assert_eq!(config.max_tokens, 8192);
 }
 
-#[test_case]
+#[test]
 fn test_task_automator_preset() {
     let config = task_automator();
 
@@ -62,14 +62,14 @@ fn test_task_automator_preset() {
     assert!(config.tools_enabled[2]);
 }
 
-#[test_case]
+#[test]
 fn test_list_presets() {
     let presets = list_presets();
 
     assert_eq!(presets.len(), 5);
 }
 
-#[test_case]
+#[test]
 fn test_list_presets_names() {
     let presets = list_presets();
 
@@ -80,7 +80,7 @@ fn test_list_presets_names() {
     assert_eq!(presets[4].0, b"Task Automator");
 }
 
-#[test_case]
+#[test]
 fn test_list_presets_callable() {
     let presets = list_presets();
 
@@ -90,7 +90,7 @@ fn test_list_presets_callable() {
     }
 }
 
-#[test_case]
+#[test]
 fn test_preset_default_max_tokens() {
     let coding = coding_assistant();
     let file_mgr = file_manager_agent();
@@ -103,13 +103,13 @@ fn test_preset_default_max_tokens() {
     assert_eq!(automator.max_tokens, 4096);
 }
 
-#[test_case]
+#[test]
 fn test_preset_default_temperature() {
     let config = coding_assistant();
     assert_eq!(config.temperature, 70);
 }
 
-#[test_case]
+#[test]
 fn test_presets_are_independent() {
     let config1 = coding_assistant();
     let config2 = coding_assistant();
@@ -118,7 +118,7 @@ fn test_presets_are_independent() {
     assert_eq!(config1.max_tokens, config2.max_tokens);
 }
 
-#[test_case]
+#[test]
 fn test_preset_system_prompts_not_empty() {
     assert!(!coding_assistant().system_prompt.is_empty());
     assert!(!file_manager_agent().system_prompt.is_empty());
@@ -127,7 +127,7 @@ fn test_preset_system_prompts_not_empty() {
     assert!(!task_automator().system_prompt.is_empty());
 }
 
-#[test_case]
+#[test]
 fn test_preset_tool_configurations() {
     let coding = coding_assistant();
     let enabled_count = coding.tools_enabled.iter().filter(|&&x| x).count();

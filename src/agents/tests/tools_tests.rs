@@ -18,13 +18,13 @@ fn upper_tool(args: &[u8]) -> Vec<u8> {
     args.iter().map(|&c| c.to_ascii_uppercase()).collect()
 }
 
-#[test_case]
+#[test]
 fn test_register_tool() {
     let result = register_tool(b"test_tool_1", b"A test tool", dummy_tool);
     assert!(result);
 }
 
-#[test_case]
+#[test]
 fn test_register_tool_with_description() {
     let result = register_tool(
         b"test_tool_2",
@@ -34,7 +34,7 @@ fn test_register_tool_with_description() {
     assert!(result);
 }
 
-#[test_case]
+#[test]
 fn test_execute_tool() {
     register_tool(b"exec_test_tool", b"Exec test", dummy_tool);
 
@@ -42,7 +42,7 @@ fn test_execute_tool() {
     assert_eq!(result.as_slice(), b"dummy result");
 }
 
-#[test_case]
+#[test]
 fn test_execute_tool_with_args() {
     register_tool(b"echo_tool", b"Echoes input", echo_tool);
 
@@ -50,13 +50,13 @@ fn test_execute_tool_with_args() {
     assert_eq!(result.as_slice(), b"hello world");
 }
 
-#[test_case]
+#[test]
 fn test_execute_tool_not_found() {
     let result = execute_tool(b"nonexistent_tool_xyz", b"");
     assert!(result.len() > 0);
 }
 
-#[test_case]
+#[test]
 fn test_execute_tool_transformation() {
     register_tool(b"upper_tool", b"Converts to uppercase", upper_tool);
 
@@ -64,7 +64,7 @@ fn test_execute_tool_transformation() {
     assert_eq!(result.as_slice(), b"HELLO");
 }
 
-#[test_case]
+#[test]
 fn test_list_tools() {
     register_tool(b"list_test_tool", b"For listing test", dummy_tool);
 
@@ -72,7 +72,7 @@ fn test_list_tools() {
     assert!(!tools.is_empty());
 }
 
-#[test_case]
+#[test]
 fn test_list_tools_contains_registered() {
     register_tool(b"findme_tool", b"Find me desc", dummy_tool);
 
@@ -84,26 +84,26 @@ fn test_list_tools_contains_registered() {
     assert!(found);
 }
 
-#[test_case]
+#[test]
 fn test_max_tools_constant() {
     assert_eq!(MAX_TOOLS, 32);
 }
 
-#[test_case]
+#[test]
 fn test_tool_name_truncation() {
     let long_name = [b'x'; 64];
     let result = register_tool(&long_name, b"Long name tool", dummy_tool);
     assert!(result);
 }
 
-#[test_case]
+#[test]
 fn test_tool_description_truncation() {
     let long_desc = [b'y'; 256];
     let result = register_tool(b"long_desc_tool", &long_desc, dummy_tool);
     assert!(result);
 }
 
-#[test_case]
+#[test]
 fn test_execute_empty_args() {
     register_tool(b"empty_args_tool", b"Empty args", echo_tool);
 
@@ -111,7 +111,7 @@ fn test_execute_empty_args() {
     assert!(result.is_empty());
 }
 
-#[test_case]
+#[test]
 fn test_execute_large_args() {
     register_tool(b"large_args_tool", b"Large args", echo_tool);
 
@@ -120,7 +120,7 @@ fn test_execute_large_args() {
     assert_eq!(result.len(), 10000);
 }
 
-#[test_case]
+#[test]
 fn test_tool_binary_args() {
     register_tool(b"binary_tool", b"Binary", echo_tool);
 
@@ -129,7 +129,7 @@ fn test_tool_binary_args() {
     assert_eq!(result.as_slice(), binary_args);
 }
 
-#[test_case]
+#[test]
 fn test_multiple_tools() {
     fn tool_a(_: &[u8]) -> Vec<u8> { b"A".to_vec() }
     fn tool_b(_: &[u8]) -> Vec<u8> { b"B".to_vec() }
@@ -144,7 +144,7 @@ fn test_multiple_tools() {
     assert_eq!(execute_tool(b"multi_c", b"").as_slice(), b"C");
 }
 
-#[test_case]
+#[test]
 fn test_tool_returns_empty() {
     fn empty_tool(_: &[u8]) -> Vec<u8> { Vec::new() }
 
@@ -154,7 +154,7 @@ fn test_tool_returns_empty() {
     assert!(result.is_empty());
 }
 
-#[test_case]
+#[test]
 fn test_list_tools_name_and_description() {
     register_tool(b"info_tool", b"Info description", dummy_tool);
 

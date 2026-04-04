@@ -8,13 +8,13 @@ use crate::agents::scheduler::{
     active_count, MAX_SCHEDULED
 };
 
-#[test_case]
+#[test]
 fn test_schedule_once() {
     let id = schedule_once(1, b"test prompt", 1000);
     assert!(id > 0);
 }
 
-#[test_case]
+#[test]
 fn test_schedule_once_unique_ids() {
     let id1 = schedule_once(1, b"prompt1", 1000);
     let id2 = schedule_once(1, b"prompt2", 2000);
@@ -22,13 +22,13 @@ fn test_schedule_once_unique_ids() {
     assert_ne!(id1, id2);
 }
 
-#[test_case]
+#[test]
 fn test_schedule_repeat() {
     let id = schedule_repeat(1, b"repeat prompt", 5000);
     assert!(id > 0);
 }
 
-#[test_case]
+#[test]
 fn test_schedule_repeat_unique_ids() {
     let id1 = schedule_repeat(1, b"prompt1", 1000);
     let id2 = schedule_repeat(1, b"prompt2", 2000);
@@ -36,20 +36,20 @@ fn test_schedule_repeat_unique_ids() {
     assert_ne!(id1, id2);
 }
 
-#[test_case]
+#[test]
 fn test_cancel_schedule() {
     let id = schedule_once(1, b"cancel test", 100000);
     let result = cancel_schedule(id);
     assert!(result);
 }
 
-#[test_case]
+#[test]
 fn test_cancel_schedule_nonexistent() {
     let result = cancel_schedule(999999);
     assert!(!result);
 }
 
-#[test_case]
+#[test]
 fn test_cancel_schedule_already_cancelled() {
     let id = schedule_once(1, b"double cancel", 100000);
     cancel_schedule(id);
@@ -57,7 +57,7 @@ fn test_cancel_schedule_already_cancelled() {
     assert!(!result);
 }
 
-#[test_case]
+#[test]
 fn test_list_scheduled() {
     let agent_id = 7000;
     schedule_once(agent_id, b"list test 1", 100000);
@@ -71,13 +71,13 @@ fn test_list_scheduled() {
     }
 }
 
-#[test_case]
+#[test]
 fn test_list_scheduled_empty() {
     let scheduled = list_scheduled(99999);
     assert!(scheduled.is_empty());
 }
 
-#[test_case]
+#[test]
 fn test_list_scheduled_excludes_cancelled() {
     let agent_id = 8000;
     let id1 = schedule_once(agent_id, b"active", 100000);
@@ -92,7 +92,7 @@ fn test_list_scheduled_excludes_cancelled() {
     assert!(scheduled.iter().any(|s| s.id == id1));
 }
 
-#[test_case]
+#[test]
 fn test_active_count() {
     let before = active_count();
     schedule_once(1, b"count test", 100000);
@@ -100,12 +100,12 @@ fn test_active_count() {
     assert!(after >= before);
 }
 
-#[test_case]
+#[test]
 fn test_max_scheduled_constant() {
     assert_eq!(MAX_SCHEDULED, 32);
 }
 
-#[test_case]
+#[test]
 fn test_scheduled_run_fields() {
     let agent_id = 9000;
     let run_at = 50000;
@@ -121,7 +121,7 @@ fn test_scheduled_run_fields() {
     assert_eq!(s.repeat_interval, 0);
 }
 
-#[test_case]
+#[test]
 fn test_scheduled_repeat_fields() {
     let agent_id = 9001;
     let interval = 5000;
@@ -136,7 +136,7 @@ fn test_scheduled_repeat_fields() {
     assert!(s.active);
 }
 
-#[test_case]
+#[test]
 fn test_scheduled_clone() {
     let agent_id = 9002;
     schedule_once(agent_id, b"clone test", 100000);
@@ -153,32 +153,32 @@ fn test_scheduled_clone() {
     assert_eq!(cloned.active, original.active);
 }
 
-#[test_case]
+#[test]
 fn test_schedule_empty_prompt() {
     let id = schedule_once(1, b"", 100000);
     assert!(id > 0);
 }
 
-#[test_case]
+#[test]
 fn test_schedule_large_prompt() {
     let large_prompt = [b'x'; 1000];
     let id = schedule_once(1, &large_prompt, 100000);
     assert!(id > 0);
 }
 
-#[test_case]
+#[test]
 fn test_schedule_zero_interval() {
     let id = schedule_repeat(1, b"zero interval", 0);
     assert!(id > 0);
 }
 
-#[test_case]
+#[test]
 fn test_schedule_large_interval() {
     let id = schedule_repeat(1, b"large interval", u64::MAX / 2);
     assert!(id > 0);
 }
 
-#[test_case]
+#[test]
 fn test_mixed_scheduling() {
     let agent_id = 9500;
     schedule_once(agent_id, b"once1", 100000);

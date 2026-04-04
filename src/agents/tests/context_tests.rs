@@ -5,7 +5,7 @@
 
 use crate::agents::context::AgentContext;
 
-#[test_case]
+#[test]
 fn test_context_new() {
     let ctx = AgentContext::new(1);
 
@@ -16,7 +16,7 @@ fn test_context_new() {
     assert_eq!(ctx.active_tools, [false; 16]);
 }
 
-#[test_case]
+#[test]
 fn test_context_new_different_ids() {
     let ctx1 = AgentContext::new(1);
     let ctx2 = AgentContext::new(42);
@@ -27,7 +27,7 @@ fn test_context_new_different_ids() {
     assert_eq!(ctx3.agent_id, 999);
 }
 
-#[test_case]
+#[test]
 fn test_context_set_env_new_key() {
     let mut ctx = AgentContext::new(1);
 
@@ -38,7 +38,7 @@ fn test_context_set_env_new_key() {
     assert_eq!(ctx.env_vars[0].1.as_slice(), b"/bin:/usr/bin");
 }
 
-#[test_case]
+#[test]
 fn test_context_set_env_update_existing() {
     let mut ctx = AgentContext::new(1);
 
@@ -50,7 +50,7 @@ fn test_context_set_env_update_existing() {
     assert_eq!(ctx.env_vars[0].1.as_slice(), b"/usr/bin");
 }
 
-#[test_case]
+#[test]
 fn test_context_set_env_multiple_keys() {
     let mut ctx = AgentContext::new(1);
 
@@ -61,7 +61,7 @@ fn test_context_set_env_multiple_keys() {
     assert_eq!(ctx.env_vars.len(), 3);
 }
 
-#[test_case]
+#[test]
 fn test_context_get_env_existing() {
     let mut ctx = AgentContext::new(1);
     ctx.set_env(b"TEST_VAR", b"test_value");
@@ -71,7 +71,7 @@ fn test_context_get_env_existing() {
     assert_eq!(value.unwrap(), b"test_value");
 }
 
-#[test_case]
+#[test]
 fn test_context_get_env_nonexistent() {
     let ctx = AgentContext::new(1);
 
@@ -79,7 +79,7 @@ fn test_context_get_env_nonexistent() {
     assert!(value.is_none());
 }
 
-#[test_case]
+#[test]
 fn test_context_get_env_empty_value() {
     let mut ctx = AgentContext::new(1);
     ctx.set_env(b"EMPTY", b"");
@@ -89,7 +89,7 @@ fn test_context_get_env_empty_value() {
     assert!(value.unwrap().is_empty());
 }
 
-#[test_case]
+#[test]
 fn test_context_add_history() {
     let mut ctx = AgentContext::new(1);
 
@@ -103,7 +103,7 @@ fn test_context_add_history() {
     assert_eq!(ctx.history[2].as_slice(), b"command3");
 }
 
-#[test_case]
+#[test]
 fn test_context_history_limit() {
     let mut ctx = AgentContext::new(1);
 
@@ -120,7 +120,7 @@ fn test_context_history_limit() {
     assert_eq!(ctx.history[99].as_slice(), &[100u8]);
 }
 
-#[test_case]
+#[test]
 fn test_context_history_fifo_eviction() {
     let mut ctx = AgentContext::new(1);
 
@@ -138,7 +138,7 @@ fn test_context_history_fifo_eviction() {
     assert_eq!(ctx.history[99].as_slice(), b"new");
 }
 
-#[test_case]
+#[test]
 fn test_context_enable_tool() {
     let mut ctx = AgentContext::new(1);
 
@@ -153,7 +153,7 @@ fn test_context_enable_tool() {
     assert!(ctx.active_tools[15]);
 }
 
-#[test_case]
+#[test]
 fn test_context_enable_tool_out_of_bounds() {
     let mut ctx = AgentContext::new(1);
 
@@ -168,7 +168,7 @@ fn test_context_enable_tool_out_of_bounds() {
     }
 }
 
-#[test_case]
+#[test]
 fn test_context_disable_tool() {
     let mut ctx = AgentContext::new(1);
 
@@ -179,7 +179,7 @@ fn test_context_disable_tool() {
     assert!(!ctx.active_tools[5]);
 }
 
-#[test_case]
+#[test]
 fn test_context_disable_tool_out_of_bounds() {
     let mut ctx = AgentContext::new(1);
     ctx.enable_tool(0);
@@ -192,7 +192,7 @@ fn test_context_disable_tool_out_of_bounds() {
     assert!(ctx.active_tools[0]);
 }
 
-#[test_case]
+#[test]
 fn test_context_is_tool_enabled() {
     let mut ctx = AgentContext::new(1);
 
@@ -204,7 +204,7 @@ fn test_context_is_tool_enabled() {
     assert!(!ctx.is_tool_enabled(0));
 }
 
-#[test_case]
+#[test]
 fn test_context_is_tool_enabled_out_of_bounds() {
     let ctx = AgentContext::new(1);
 
@@ -214,7 +214,7 @@ fn test_context_is_tool_enabled_out_of_bounds() {
     assert!(!ctx.is_tool_enabled(usize::MAX));
 }
 
-#[test_case]
+#[test]
 fn test_context_multiple_tools() {
     let mut ctx = AgentContext::new(1);
 
@@ -235,7 +235,7 @@ fn test_context_multiple_tools() {
     assert_eq!(enabled_count, 4);
 }
 
-#[test_case]
+#[test]
 fn test_context_clone() {
     let mut ctx = AgentContext::new(1);
     ctx.set_env(b"KEY", b"VALUE");
@@ -249,20 +249,20 @@ fn test_context_clone() {
     assert!(cloned.is_tool_enabled(5));
 }
 
-#[test_case]
+#[test]
 fn test_context_working_dir_default() {
     let ctx = AgentContext::new(1);
     assert_eq!(ctx.working_dir.as_slice(), b"/ram");
 }
 
-#[test_case]
+#[test]
 fn test_context_working_dir_modification() {
     let mut ctx = AgentContext::new(1);
     ctx.working_dir = b"/home/user".to_vec();
     assert_eq!(ctx.working_dir.as_slice(), b"/home/user");
 }
 
-#[test_case]
+#[test]
 fn test_context_env_binary_values() {
     let mut ctx = AgentContext::new(1);
 
