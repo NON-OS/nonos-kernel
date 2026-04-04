@@ -22,7 +22,7 @@ pub const WINDOW_PADDING: u32 = 2;
 pub(crate) const SCROLLBAR_WIDTH: u32 = 12;
 pub(crate) const SCROLLBAR_MIN_THUMB: u32 = 20;
 
-#[derive(Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[repr(u8)]
 pub enum WindowType {
     None = 0,
@@ -60,7 +60,7 @@ pub(crate) enum ResizeEdge {
     BottomRight = 8,
 }
 
-#[derive(Clone, Copy, PartialEq, Eq, Default)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 #[repr(u8)]
 pub enum SnapZone {
     #[default]
