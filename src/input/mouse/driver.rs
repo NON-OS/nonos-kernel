@@ -145,13 +145,11 @@ pub fn init() {
 
         // Enable data reporting
         if mouse_write(0xF4) {
-            if let Some(ack) = mouse_read() {
-                if ack == 0xFA {
-                    serial::println(b"[MOUSE] Mouse enabled");
-                    MOUSE_AVAILABLE.store(true, Ordering::SeqCst);
-                }
-            }
+            let _ = mouse_read();
         }
+
+        MOUSE_AVAILABLE.store(true, Ordering::SeqCst);
+        serial::println(b"[MOUSE] Mouse enabled");
     }
 
     serial::println(b"[MOUSE] Init complete");

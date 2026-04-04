@@ -21,6 +21,9 @@ pub mod keyboard;
 pub mod mouse;
 pub mod usb_hid;
 
+#[cfg(test)]
+mod tests;
+
 // Re-export PS/2 keyboard functions for backward compatibility
 pub use keyboard::{
     init as keyboard_init, poll as keyboard_poll, scancode_to_ascii, poll_char,
@@ -89,25 +92,22 @@ pub fn poll_special_key() -> Option<KeyEvent> {
 /// Always returns true to allow the main loop to check for cursor
 /// position changes. The actual position check happens in the main loop.
 pub fn poll_mouse_unified() -> bool {
-    // Poll I2C HID - this updates cursor position if touchpad data available
     i2c_hid::poll();
-
-    // Poll USB HID if available
     if usb_hid::mouse_available() {
         usb_hid::poll_mouse();
     }
-
-    // Always return true - let main loop handle position change detection
+    mouse::poll();
     true
 }
 
 /// Get current mouse position from the best available source
 pub fn mouse_position_unified() -> (i32, i32) {
-    // Use PS/2 mouse position when available (most laptops use PS/2 emulation)
     if mouse::is_available() {
         return mouse::position();
     }
-    // Fall back to I2C HID
+    if usb_hid::mouse_available() {
+        return usb_hid::mouse_position();
+    }
     i2c_hid::touchpad_position()
 }
 
