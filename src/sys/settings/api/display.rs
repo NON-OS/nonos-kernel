@@ -33,3 +33,9 @@ pub fn set_screen_timeout(val: u8) {
     unsafe { CURRENT_SETTINGS.screen_timeout = val.min(60); }
     mark_modified();
 }
+
+pub fn notifications_enabled() -> bool { unsafe { CURRENT_SETTINGS.notifications_enabled } }
+pub fn set_notifications_enabled(v: bool) { unsafe { CURRENT_SETTINGS.notifications_enabled = v; } mark_modified(); }
+
+pub fn animations_enabled() -> bool { unsafe { CURRENT_SETTINGS.animations_enabled } }
+pub fn set_animations_enabled(v: bool) { unsafe { CURRENT_SETTINGS.animations_enabled = v; } mark_modified(); }
