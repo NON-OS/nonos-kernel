@@ -24,11 +24,12 @@ use super::ipi_handler::{handle_panic_ipi, handle_stop_ipi};
 pub unsafe extern "C" fn ap_entry(cpu_id: u32) {
     let _ = unsafe { crate::arch::x86_64::interrupt::apic::init() };
 
+    crate::sched::init_ap_scheduler(cpu_id as usize);
+
     CPU_DESCRIPTORS[cpu_id as usize].set_state(CpuState::Online);
 
     AP_STARTUP_BARRIER.fetch_add(1, Ordering::Release);
 
-    // SAFETY: Enable interrupts on AP
     unsafe { core::arch::asm!("sti", options(nostack, nomem)); }
 
     ap_idle_loop(cpu_id);
