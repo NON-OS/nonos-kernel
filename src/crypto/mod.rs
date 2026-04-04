@@ -33,6 +33,9 @@ pub mod util;
 pub mod zk;
 pub mod zk_kernel;
 
+#[cfg(test)]
+mod tests;
+
 pub use error::{CryptoError, CryptoResult};
 pub use random_api as random;
 pub use util::bigint; pub use util::constant_time; pub use util::entropy; pub use util::hmac; pub use util::rng;
