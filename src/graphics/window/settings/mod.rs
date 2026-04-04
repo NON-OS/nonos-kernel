@@ -22,6 +22,7 @@ pub mod network;
 pub mod appearance;
 pub mod system;
 pub mod power;
+pub mod kernel;
 
 pub(super) use render::draw as draw_settings;
 pub(super) use input::handle_click as handle_settings_click;
