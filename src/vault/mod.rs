@@ -35,12 +35,5 @@ pub mod prelude {
     pub use super::nonos_vault_diag::*;
 }
 
-/// Compile-time check for initialization order
-#[cfg(all(test, not(feature = "std")))]
-mod tests {
-    use super::*;
-    #[test]
-    fn vault_modules_load() {
-        assert!(true, "Vault module tree loads");
-    }
-}
+#[cfg(test)]
+mod tests;
