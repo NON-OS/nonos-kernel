@@ -1,4 +1,18 @@
-// build.rs - NØNOS Kernel Build Script with Cryptographic Signing and PQClean (Kyber) integration
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use std::env;
 use std::fs;
@@ -10,90 +24,156 @@ fn main() {
     println!("cargo:rerun-if-changed=Cargo.toml");
     println!("cargo:rerun-if-changed=abi/manifest.toml");
     println!("cargo:rerun-if-changed=third_party/pqclean");
-    println!("cargo:rerun-if-changed=src/crypto/pqclean_support/randombytes.c");
+    println!("cargo:rerun-if-changed=src/crypto/pqclean_support");
 
-    // Compile PQClean ML-KEM (Kyber) if vendor is present
-    compile_pqclean_kyber();
-
-    // Kernel static link flags
+    compile_pqclean_mlkem();
+    compile_pqclean_mldsa();
     configure_kernel_target();
-
-    // Generate manifest + signature and embed them into dedicated sections
     generate_manifest_and_signature();
-
-    // Build metadata
     embed_kernel_build_info();
 }
 
-fn compile_pqclean_kyber() {
-    // Skip PQClean compilation when building tests on host
+fn compile_pqclean_mlkem() {
     let target = env::var("TARGET").unwrap_or_default();
     if target.contains("apple") || target.contains("linux-gnu") || target.contains("windows") {
         return;
     }
 
-    // Select parameter set
-    let (kem_dir, kem_macro) = if cfg!(feature = "mlkem1024") {
-        ("mlkem1024", "MLKEM1024")
-    } else if cfg!(feature = "mlkem512") {
-        ("mlkem512", "MLKEM512")
+    let (kem_dir, kem_macro) = if env::var("CARGO_FEATURE_MLKEM1024").is_ok() {
+        ("ml-kem-1024", "MLKEM1024")
+    } else if env::var("CARGO_FEATURE_MLKEM512").is_ok() {
+        ("ml-kem-512", "MLKEM512")
     } else {
-        ("mlkem768", "MLKEM768")
+        ("ml-kem-768", "MLKEM768")
     };
 
     let base = PathBuf::from(format!("third_party/pqclean/crypto_kem/{}/clean", kem_dir));
+    let common = PathBuf::from("third_party/pqclean/common");
     if !base.exists() {
-        eprintln!(
-            "warning: PQClean directory not found at {} — skipping Kyber C build",
-            base.display()
-        );
         return;
     }
 
-    // Collect all clean C sources
     let pattern = base.join("*.c").to_string_lossy().to_string();
     let mut files: Vec<_> = glob::glob(&pattern)
         .expect("glob failed")
         .filter_map(Result::ok)
+        .filter(|p| p.exists())
         .collect();
 
-    // RNG glue for PQClean
-    files.push(PathBuf::from("src/crypto/pqclean_support/randombytes.c"));
+    let fips = common.join("fips202.c");
+    let randombytes = PathBuf::from("src/crypto/pqclean_support/randombytes.c");
+    let libc_glue = PathBuf::from("src/crypto/pqclean_support/libc_glue.c");
+
+    if fips.exists() { files.push(fips); }
+    if randombytes.exists() { files.push(randombytes); }
+    if libc_glue.exists() { files.push(libc_glue); }
+
+    if files.is_empty() {
+        return;
+    }
 
     let mut build = cc::Build::new();
     build
+        .compiler("clang")
         .files(files)
-        .include(&base)
         .include("src/crypto/pqclean_support")
-        // Hardened flags suitable for constant-time C
-        .flag_if_supported("-O2")
-        .flag_if_supported("-fPIC")
-        .flag_if_supported("-fno-builtin")
-        .flag_if_supported("-fno-strict-aliasing")
-        .flag_if_supported("-fwrapv")
-        .flag_if_supported("-fno-omit-frame-pointer")
-        .flag_if_supported("-fno-tree-vectorize")
-        .flag_if_supported("-fno-tree-slp-vectorize")
+        .include(&base)
+        .include(&common)
+        .opt_level(2)
+        .pic(false)
+        .flag("-target")
+        .flag("x86_64-unknown-none-elf")
+        .flag("-ffreestanding")
+        .flag("-fno-builtin")
+        .flag("-fno-strict-aliasing")
+        .flag("-fwrapv")
+        .flag("-fno-omit-frame-pointer")
+        .flag("-fno-tree-vectorize")
+        .flag("-fno-stack-protector")
+        .flag("-mno-red-zone")
+        .flag("-mcmodel=kernel")
+        .flag("-w")
         .define(kem_macro, None)
         .warnings(false);
 
     build.compile("pqclean_mlkem_clean");
 }
 
-fn configure_kernel_target() {
-    // Skip kernel linker config when building tests on host
+fn compile_pqclean_mldsa() {
     let target = env::var("TARGET").unwrap_or_default();
     if target.contains("apple") || target.contains("linux-gnu") || target.contains("windows") {
-        // Running tests on host - don't use kernel linker script
         return;
     }
 
-    // Linker script path (relative to CARGO_MANIFEST_DIR for portability)
+    let (sign_dir, sign_macro) = if env::var("CARGO_FEATURE_MLDSA5").is_ok() {
+        ("ml-dsa-87", "MLDSA87")
+    } else if env::var("CARGO_FEATURE_MLDSA2").is_ok() {
+        ("ml-dsa-44", "MLDSA44")
+    } else {
+        ("ml-dsa-65", "MLDSA65")
+    };
+
+    let base = PathBuf::from(format!("third_party/pqclean/crypto_sign/{}/clean", sign_dir));
+    let common = PathBuf::from("third_party/pqclean/common");
+    if !base.exists() {
+        return;
+    }
+
+    let pattern = base.join("*.c").to_string_lossy().to_string();
+    let mut files: Vec<_> = glob::glob(&pattern)
+        .expect("glob failed")
+        .filter_map(Result::ok)
+        .filter(|p| p.exists())
+        .collect();
+
+    let fips = common.join("fips202.c");
+    let randombytes = PathBuf::from("src/crypto/pqclean_support/randombytes.c");
+    let libc_glue = PathBuf::from("src/crypto/pqclean_support/libc_glue.c");
+
+    if fips.exists() { files.push(fips); }
+    if randombytes.exists() { files.push(randombytes); }
+    if libc_glue.exists() { files.push(libc_glue); }
+
+    if files.is_empty() {
+        return;
+    }
+
+    let mut build = cc::Build::new();
+    build
+        .compiler("clang")
+        .files(files)
+        .include("src/crypto/pqclean_support")
+        .include(&base)
+        .include(&common)
+        .opt_level(2)
+        .pic(false)
+        .flag("-target")
+        .flag("x86_64-unknown-none-elf")
+        .flag("-ffreestanding")
+        .flag("-fno-builtin")
+        .flag("-fno-strict-aliasing")
+        .flag("-fwrapv")
+        .flag("-fno-omit-frame-pointer")
+        .flag("-fno-tree-vectorize")
+        .flag("-fno-stack-protector")
+        .flag("-mno-red-zone")
+        .flag("-mcmodel=kernel")
+        .flag("-w")
+        .define(sign_macro, None)
+        .warnings(false);
+
+    build.compile("pqclean_mldsa_clean");
+}
+
+fn configure_kernel_target() {
+    let target = env::var("TARGET").unwrap_or_default();
+    if target.contains("apple") || target.contains("linux-gnu") || target.contains("windows") {
+        return;
+    }
+
     let manifest_dir = env::var("CARGO_MANIFEST_DIR").unwrap();
     let linker_script = format!("{}/linker.ld", manifest_dir);
     println!("cargo:rustc-link-arg=--script={}", linker_script);
-
-    // Static link for bare-metal kernel
     println!("cargo:rustc-link-arg=-nostdlib");
     println!("cargo:rustc-link-arg=-static");
     println!("cargo:rustc-link-arg=--gc-sections");
@@ -104,14 +184,10 @@ fn configure_kernel_target() {
 fn generate_manifest_and_signature() {
     let out_dir = env::var("OUT_DIR").unwrap();
 
-    // Generate manifest content
     let manifest_content = generate_manifest_content();
     let manifest_data_path = format!("{}/manifest.bin", out_dir);
     fs::write(&manifest_data_path, &manifest_content).expect("Failed to write manifest");
 
-    // Production signing: Ed25519 via NONOS_SIGNING_KEY
-    // - If PROFILE=release and key missing/invalid => fail build
-    // - In dev, warn and embed a zeroed signature (for local bring-up only)
     let profile = env::var("PROFILE").unwrap_or_default();
     let sig = match env::var("NONOS_SIGNING_KEY") {
         Ok(p) => {
@@ -122,15 +198,13 @@ fn generate_manifest_and_signature() {
             } else if profile == "release" {
                 panic!("NONOS_SIGNING_KEY file not found at {} (required for release builds)", p);
             } else {
-                eprintln!("warning: NONOS_SIGNING_KEY file not found at {}; embedding zero signature (dev build only)", p);
                 vec![0u8; 64]
             }
         }
         Err(_) if profile == "release" => {
-            panic!("NONOS_SIGNING_KEY not set (required for release builds to produce a signed manifest)");
+            panic!("NONOS_SIGNING_KEY not set (required for release builds)");
         }
         Err(_) => {
-            eprintln!("warning: NONOS_SIGNING_KEY not set; embedding zero signature (dev build only)");
             vec![0u8; 64]
         }
     };
@@ -138,7 +212,6 @@ fn generate_manifest_and_signature() {
     let signature_data_path = format!("{}/signature.bin", out_dir);
     fs::write(&signature_data_path, &sig).expect("Failed to write signature");
 
-    // Emit a C TU that embeds both blobs in dedicated sections and link it in
     generate_manifest_asm(&manifest_content, &sig, &out_dir);
 }
 
@@ -147,25 +220,17 @@ fn generate_manifest_content() -> Vec<u8> {
 
     let mut manifest = HashMap::new();
 
-    // Module ID — Blake3("nonos_kernel")
     let module_id = blake3::hash(b"nonos_kernel").as_bytes().to_vec();
     manifest.insert("module_id".to_string(), module_id);
-
-    // Entry symbol
     manifest.insert("entry_symbol".to_string(), b"_start".to_vec());
-
-    // Required capabilities
     manifest.insert("required_caps".to_string(), b"memory,interrupts,syscalls".to_vec());
 
-    // Minimum heap size (16MB)
     let heap_size: u64 = 16 * 1024 * 1024;
     manifest.insert("min_heap_bytes".to_string(), heap_size.to_le_bytes().to_vec());
 
-    // Version
     let version: u32 = 1;
     manifest.insert("version".to_string(), version.to_le_bytes().to_vec());
 
-    // Build epoch (ns)
     use std::time::{SystemTime, UNIX_EPOCH};
     let epoch = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_nanos() as u64;
     manifest.insert("build_epoch_ns".to_string(), epoch.to_le_bytes().to_vec());
@@ -224,13 +289,11 @@ fn embed_kernel_build_info() {
         println!("cargo:rustc-env=NONOS_KERNEL_GIT_COMMIT=unknown");
     }
 
-    println!("cargo:rustc-env=NONOS_KERNEL_NAME=NØN-OS Kernel");
-    println!("cargo:rustc-env=NONOS_KERNEL_VERSION=0.1.0");
+    println!("cargo:rustc-env=NONOS_KERNEL_NAME=NONOS Kernel");
+    println!("cargo:rustc-env=NONOS_KERNEL_VERSION=0.8.3");
 }
 
 fn generate_manifest_asm(manifest_content: &[u8], signature: &[u8], out_dir: &str) {
-    // Generate assembly file directly - this works better for cross-compilation
-    // than C because we don't need a cross-compiler toolchain
     let manifest_hex: String = manifest_content.iter().map(|b| format!("0x{:02x}, ", b)).collect();
     let signature_hex: String = signature.iter().map(|b| format!("0x{:02x}, ", b)).collect();
 
@@ -260,25 +323,17 @@ __nonos_signature_size:
     let asm_path = format!("{}/manifest_data.s", out_dir);
     fs::write(&asm_path, &asm_content).expect("Failed to write manifest assembly");
 
-    // Generate a Rust file using global_asm! to ensure the data is always linked
     let manifest_bytes: String = manifest_content.iter().map(|b| format!("0x{:02x}, ", b)).collect();
     let signature_bytes: String = signature.iter().map(|b| format!("0x{:02x}, ", b)).collect();
 
     let rs_content = format!(
-        r#"// Auto-generated manifest and signature data
-// DO NOT EDIT - generated by build.rs
-
-/// Manifest length constant
-pub const MANIFEST_LEN: usize = {manifest_len};
-
-/// Signature length constant
+        r#"pub const MANIFEST_LEN: usize = {manifest_len};
 pub const SIGNATURE_LEN: usize = {signature_len};
 
 #[cfg(not(feature = "std"))]
 mod _embed {{
     use core::arch::global_asm;
 
-    // Embed manifest data using global assembly (survives all optimization)
     global_asm!(
         ".section .nonos.manifest, \"aw\", @progbits",
         ".global NONOS_MANIFEST_DATA",
@@ -289,7 +344,6 @@ mod _embed {{
         ".quad {manifest_len}",
     );
 
-    // Embed signature data using global assembly
     global_asm!(
         ".section .nonos.sig, \"aw\", @progbits",
         ".global NONOS_SIGNATURE_DATA",
@@ -303,19 +357,15 @@ mod _embed {{
 
 #[cfg(not(feature = "std"))]
 extern "C" {{
-    /// Manifest data (defined in assembly)
     pub static NONOS_MANIFEST_DATA: [u8; {manifest_len}];
-    /// Signature data (defined in assembly)
     pub static NONOS_SIGNATURE_DATA: [u8; {signature_len}];
 }}
 
-/// Get the kernel manifest
 #[cfg(not(feature = "std"))]
 pub fn get_manifest() -> &'static [u8] {{
     unsafe {{ &NONOS_MANIFEST_DATA }}
 }}
 
-/// Get the kernel signature
 #[cfg(not(feature = "std"))]
 pub fn get_signature() -> &'static [u8] {{
     unsafe {{ &NONOS_SIGNATURE_DATA }}
@@ -329,9 +379,4 @@ pub fn get_signature() -> &'static [u8] {{
 
     let rs_path = format!("{}/manifest_data.rs", out_dir);
     fs::write(&rs_path, &rs_content).expect("Failed to write manifest Rust module");
-
-    // Output info for debugging
-    eprintln!("info: Generated manifest ({} bytes) and signature ({} bytes)",
-              manifest_content.len(), signature.len());
-    eprintln!("info: Signature (first 16 bytes): {:02x?}", &signature[..16.min(signature.len())]);
 }
