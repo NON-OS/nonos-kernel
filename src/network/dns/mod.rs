@@ -29,6 +29,7 @@
 mod types;
 mod cache;
 mod resolver;
+pub mod dnssec;
 
 pub use types::{
     DnsCacheEntry, DnsQueryRecord, PendingQuery,

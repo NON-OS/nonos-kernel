@@ -65,3 +65,6 @@ pub use nym::{
     NymClient, NymAddress, NymError, NymRoute, MixNode, Gateway, MixNodeId, GatewayId, ClientId,
     init_nym_client, get_nym_client,
 };
+
+#[cfg(test)]
+mod tests;
