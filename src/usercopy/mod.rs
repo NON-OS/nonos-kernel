@@ -19,6 +19,9 @@ mod validate;
 mod copy;
 mod fault;
 
+#[cfg(test)]
+mod tests;
+
 pub use error::UsercopyError;
 pub use validate::{validate_user_read, validate_user_write};
 pub use copy::{copy_from_user, copy_to_user, read_user_value, write_user_value};
