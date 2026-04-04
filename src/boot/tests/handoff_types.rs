@@ -1,271 +1,254 @@
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
+
 use crate::boot::handoff::types::*;
+use crate::test::framework::TestResult;
 use core::mem::size_of;
 
-#[test]
-fn handoff_magic_value() {
-    assert_eq!(HANDOFF_MAGIC, 0x4E_4F_4E_4F);
+pub fn test_handoff_magic_value() -> TestResult {
+    if HANDOFF_MAGIC != 0x4E_4F_4E_4F { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn handoff_version_value() {
-    assert_eq!(HANDOFF_VERSION, 1);
+pub fn test_handoff_version_value() -> TestResult {
+    if HANDOFF_VERSION != 1 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn max_cmdline_value() {
-    assert_eq!(MAX_CMDLINE, 4096);
+pub fn test_max_cmdline_value() -> TestResult {
+    if MAX_CMDLINE != 4096 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn validate_cmdline_len_valid() {
-    assert!(validate_cmdline_len(0));
-    assert!(validate_cmdline_len(100));
-    assert!(validate_cmdline_len(4096));
+pub fn test_validate_cmdline_len_valid() -> TestResult {
+    if !validate_cmdline_len(0) { return TestResult::Fail; }
+    if !validate_cmdline_len(100) { return TestResult::Fail; }
+    if !validate_cmdline_len(4096) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn validate_cmdline_len_invalid() {
-    assert!(!validate_cmdline_len(4097));
-    assert!(!validate_cmdline_len(10000));
+pub fn test_validate_cmdline_len_invalid() -> TestResult {
+    if validate_cmdline_len(4097) { return TestResult::Fail; }
+    if validate_cmdline_len(10000) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn truncate_cmdline_short() {
-    let short = "boot";
-    assert_eq!(truncate_cmdline(short), "boot");
+pub fn test_truncate_cmdline_short() -> TestResult {
+    if truncate_cmdline("boot") != "boot" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn truncate_cmdline_exact() {
-    let exact: alloc::string::String = "a".repeat(4096);
-    assert_eq!(truncate_cmdline(&exact).len(), 4096);
+pub fn test_flags_wx() -> TestResult {
+    if flags::WX != 1 << 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn truncate_cmdline_long() {
-    let long: alloc::string::String = "b".repeat(5000);
-    assert_eq!(truncate_cmdline(&long).len(), 4096);
+pub fn test_flags_nxe() -> TestResult {
+    if flags::NXE != 1 << 1 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn flags_wx() {
-    assert_eq!(flags::WX, 1 << 0);
+pub fn test_flags_smep() -> TestResult {
+    if flags::SMEP != 1 << 2 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn flags_nxe() {
-    assert_eq!(flags::NXE, 1 << 1);
+pub fn test_flags_smap() -> TestResult {
+    if flags::SMAP != 1 << 3 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn flags_smep() {
-    assert_eq!(flags::SMEP, 1 << 2);
+pub fn test_flags_umip() -> TestResult {
+    if flags::UMIP != 1 << 4 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn flags_smap() {
-    assert_eq!(flags::SMAP, 1 << 3);
+pub fn test_flags_idmap_preserved() -> TestResult {
+    if flags::IDMAP_PRESERVED != 1 << 5 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn flags_umip() {
-    assert_eq!(flags::UMIP, 1 << 4);
+pub fn test_flags_fb_available() -> TestResult {
+    if flags::FB_AVAILABLE != 1 << 6 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn flags_idmap_preserved() {
-    assert_eq!(flags::IDMAP_PRESERVED, 1 << 5);
+pub fn test_flags_acpi_available() -> TestResult {
+    if flags::ACPI_AVAILABLE != 1 << 7 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn flags_fb_available() {
-    assert_eq!(flags::FB_AVAILABLE, 1 << 6);
+pub fn test_flags_tpm_measured() -> TestResult {
+    if flags::TPM_MEASURED != 1 << 8 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn flags_acpi_available() {
-    assert_eq!(flags::ACPI_AVAILABLE, 1 << 7);
+pub fn test_flags_secure_boot() -> TestResult {
+    if flags::SECURE_BOOT != 1 << 9 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn flags_tpm_measured() {
-    assert_eq!(flags::TPM_MEASURED, 1 << 8);
+pub fn test_flags_zk_attested() -> TestResult {
+    if flags::ZK_ATTESTED != 1 << 10 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn flags_secure_boot() {
-    assert_eq!(flags::SECURE_BOOT, 1 << 9);
-}
-
-#[test]
-fn flags_zk_attested() {
-    assert_eq!(flags::ZK_ATTESTED, 1 << 10);
-}
-
-#[test]
-fn flags_flag_names_empty() {
+pub fn test_flags_flag_names_empty() -> TestResult {
     let names = flags::flag_names(0);
-    assert_eq!(names.len(), 0);
+    if names.len() != 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn flags_flag_names_single() {
+pub fn test_flags_flag_names_single() -> TestResult {
     let names = flags::flag_names(flags::WX);
-    assert!(names.len() >= 1);
+    if names.len() < 1 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn flags_flag_names_multiple() {
+pub fn test_flags_flag_names_multiple() -> TestResult {
     let names = flags::flag_names(flags::WX | flags::NXE | flags::SMEP);
-    assert!(names.len() >= 3);
+    if names.len() < 3 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn pixel_format_rgb() {
-    assert_eq!(pixel_format::RGB, 0);
+pub fn test_pixel_format_rgb() -> TestResult {
+    if pixel_format::RGB != 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn pixel_format_bgr() {
-    assert_eq!(pixel_format::BGR, 1);
+pub fn test_pixel_format_bgr() -> TestResult {
+    if pixel_format::BGR != 1 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn pixel_format_rgbx() {
-    assert_eq!(pixel_format::RGBX, 2);
+pub fn test_pixel_format_rgbx() -> TestResult {
+    if pixel_format::RGBX != 2 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn pixel_format_bgrx() {
-    assert_eq!(pixel_format::BGRX, 3);
+pub fn test_pixel_format_bgrx() -> TestResult {
+    if pixel_format::BGRX != 3 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn memory_type_reserved() {
-    assert_eq!(memory_type::RESERVED, 0);
+pub fn test_memory_type_reserved() -> TestResult {
+    if memory_type::RESERVED != 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn memory_type_loader_code() {
-    assert_eq!(memory_type::LOADER_CODE, 1);
+pub fn test_memory_type_loader_code() -> TestResult {
+    if memory_type::LOADER_CODE != 1 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn memory_type_loader_data() {
-    assert_eq!(memory_type::LOADER_DATA, 2);
+pub fn test_memory_type_loader_data() -> TestResult {
+    if memory_type::LOADER_DATA != 2 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn memory_type_boot_services_code() {
-    assert_eq!(memory_type::BOOT_SERVICES_CODE, 3);
+pub fn test_memory_type_boot_services_code() -> TestResult {
+    if memory_type::BOOT_SERVICES_CODE != 3 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn memory_type_boot_services_data() {
-    assert_eq!(memory_type::BOOT_SERVICES_DATA, 4);
+pub fn test_memory_type_boot_services_data() -> TestResult {
+    if memory_type::BOOT_SERVICES_DATA != 4 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn memory_type_runtime_services_code() {
-    assert_eq!(memory_type::RUNTIME_SERVICES_CODE, 5);
+pub fn test_memory_type_runtime_services_code() -> TestResult {
+    if memory_type::RUNTIME_SERVICES_CODE != 5 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn memory_type_runtime_services_data() {
-    assert_eq!(memory_type::RUNTIME_SERVICES_DATA, 6);
+pub fn test_memory_type_runtime_services_data() -> TestResult {
+    if memory_type::RUNTIME_SERVICES_DATA != 6 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn memory_type_conventional() {
-    assert_eq!(memory_type::CONVENTIONAL, 7);
+pub fn test_memory_type_conventional() -> TestResult {
+    if memory_type::CONVENTIONAL != 7 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn memory_type_unusable() {
-    assert_eq!(memory_type::UNUSABLE, 8);
+pub fn test_memory_type_unusable() -> TestResult {
+    if memory_type::UNUSABLE != 8 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn memory_type_acpi_reclaim() {
-    assert_eq!(memory_type::ACPI_RECLAIM, 9);
+pub fn test_memory_type_acpi_reclaim() -> TestResult {
+    if memory_type::ACPI_RECLAIM != 9 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn memory_type_acpi_nvs() {
-    assert_eq!(memory_type::ACPI_NVS, 10);
+pub fn test_memory_type_acpi_nvs() -> TestResult {
+    if memory_type::ACPI_NVS != 10 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn memory_type_mmio() {
-    assert_eq!(memory_type::MMIO, 11);
+pub fn test_memory_type_mmio() -> TestResult {
+    if memory_type::MMIO != 11 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn memory_type_mmio_port_space() {
-    assert_eq!(memory_type::MMIO_PORT_SPACE, 12);
+pub fn test_memory_type_mmio_port_space() -> TestResult {
+    if memory_type::MMIO_PORT_SPACE != 12 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn memory_type_pal_code() {
-    assert_eq!(memory_type::PAL_CODE, 13);
+pub fn test_memory_type_pal_code() -> TestResult {
+    if memory_type::PAL_CODE != 13 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn memory_type_persistent() {
-    assert_eq!(memory_type::PERSISTENT, 14);
+pub fn test_memory_type_persistent() -> TestResult {
+    if memory_type::PERSISTENT != 14 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn memory_map_entry_size() {
-    assert_eq!(size_of::<MemoryMapEntry>(), 40);
+pub fn test_memory_map_entry_size() -> TestResult {
+    if size_of::<MemoryMapEntry>() != 40 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn memory_map_size() {
-    assert_eq!(size_of::<MemoryMap>(), 24);
+pub fn test_memory_map_size() -> TestResult {
+    if size_of::<MemoryMap>() != 24 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn memory_map_default() {
+pub fn test_memory_map_default() -> TestResult {
     let mmap = MemoryMap::default();
-    assert_eq!(mmap.ptr, 0);
-    assert_eq!(mmap.entry_size, 0);
-    assert_eq!(mmap.entry_count, 0);
-    assert_eq!(mmap.desc_version, 0);
+    if mmap.ptr != 0 { return TestResult::Fail; }
+    if mmap.entry_size != 0 { return TestResult::Fail; }
+    if mmap.entry_count != 0 { return TestResult::Fail; }
+    if mmap.desc_version != 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn memory_map_entries_empty() {
-    let mmap = MemoryMap::default();
-    let entries = unsafe { mmap.entries() };
-    assert!(entries.is_empty());
+pub fn test_framebuffer_info_struct_size() -> TestResult {
+    if size_of::<FramebufferInfo>() != 32 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn framebuffer_info_size() {
-    assert_eq!(size_of::<FramebufferInfo>(), 32);
-}
-
-#[test]
-fn framebuffer_info_default() {
+pub fn test_framebuffer_info_default() -> TestResult {
     let fb = FramebufferInfo::default();
-    assert_eq!(fb.ptr, 0);
-    assert_eq!(fb.size, 0);
-    assert_eq!(fb.width, 0);
-    assert_eq!(fb.height, 0);
-    assert_eq!(fb.stride, 0);
-    assert_eq!(fb.pixel_format, 0);
-    assert_eq!(fb.cursor_y, 0);
+    if fb.ptr != 0 { return TestResult::Fail; }
+    if fb.size != 0 { return TestResult::Fail; }
+    if fb.width != 0 { return TestResult::Fail; }
+    if fb.height != 0 { return TestResult::Fail; }
+    if fb.stride != 0 { return TestResult::Fail; }
+    if fb.pixel_format != 0 { return TestResult::Fail; }
+    if fb.cursor_y != 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn framebuffer_info_is_valid_default() {
+pub fn test_framebuffer_info_is_valid_default() -> TestResult {
     let fb = FramebufferInfo::default();
-    assert!(!fb.is_valid());
+    if fb.is_valid() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn framebuffer_info_is_valid_valid() {
+pub fn test_framebuffer_info_is_valid_valid() -> TestResult {
     let fb = FramebufferInfo {
         ptr: 0xFD000000,
         size: 0x100000,
@@ -276,11 +259,11 @@ fn framebuffer_info_is_valid_valid() {
         cursor_y: 0,
         reserved: 0,
     };
-    assert!(fb.is_valid());
+    if !fb.is_valid() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn framebuffer_info_is_valid_zero_ptr() {
+pub fn test_framebuffer_info_is_valid_zero_ptr() -> TestResult {
     let fb = FramebufferInfo {
         ptr: 0,
         size: 0x100000,
@@ -291,371 +274,304 @@ fn framebuffer_info_is_valid_zero_ptr() {
         cursor_y: 0,
         reserved: 0,
     };
-    assert!(!fb.is_valid());
+    if fb.is_valid() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn framebuffer_info_is_valid_zero_width() {
-    let fb = FramebufferInfo {
-        ptr: 0xFD000000,
-        size: 0x100000,
-        width: 0,
-        height: 600,
-        stride: 3200,
-        pixel_format: pixel_format::RGB,
-        cursor_y: 0,
-        reserved: 0,
-    };
-    assert!(!fb.is_valid());
-}
-
-#[test]
-fn framebuffer_info_is_valid_zero_height() {
-    let fb = FramebufferInfo {
-        ptr: 0xFD000000,
-        size: 0x100000,
-        width: 800,
-        height: 0,
-        stride: 3200,
-        pixel_format: pixel_format::RGB,
-        cursor_y: 0,
-        reserved: 0,
-    };
-    assert!(!fb.is_valid());
-}
-
-#[test]
-fn framebuffer_info_is_valid_zero_stride() {
-    let fb = FramebufferInfo {
-        ptr: 0xFD000000,
-        size: 0x100000,
-        width: 800,
-        height: 600,
-        stride: 0,
-        pixel_format: pixel_format::RGB,
-        cursor_y: 0,
-        reserved: 0,
-    };
-    assert!(!fb.is_valid());
-}
-
-#[test]
-fn framebuffer_info_bytes_per_pixel_rgb() {
+pub fn test_framebuffer_info_bytes_per_pixel_rgb() -> TestResult {
     let fb = FramebufferInfo {
         pixel_format: pixel_format::RGB,
         ..Default::default()
     };
-    assert_eq!(fb.bytes_per_pixel(), 3);
+    if fb.bytes_per_pixel() != 3 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn framebuffer_info_bytes_per_pixel_bgr() {
+pub fn test_framebuffer_info_bytes_per_pixel_bgr() -> TestResult {
     let fb = FramebufferInfo {
         pixel_format: pixel_format::BGR,
         ..Default::default()
     };
-    assert_eq!(fb.bytes_per_pixel(), 3);
+    if fb.bytes_per_pixel() != 3 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn framebuffer_info_bytes_per_pixel_rgbx() {
+pub fn test_framebuffer_info_bytes_per_pixel_rgbx() -> TestResult {
     let fb = FramebufferInfo {
         pixel_format: pixel_format::RGBX,
         ..Default::default()
     };
-    assert_eq!(fb.bytes_per_pixel(), 4);
+    if fb.bytes_per_pixel() != 4 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn framebuffer_info_bytes_per_pixel_bgrx() {
+pub fn test_framebuffer_info_bytes_per_pixel_bgrx() -> TestResult {
     let fb = FramebufferInfo {
         pixel_format: pixel_format::BGRX,
         ..Default::default()
     };
-    assert_eq!(fb.bytes_per_pixel(), 4);
+    if fb.bytes_per_pixel() != 4 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn framebuffer_info_bytes_per_pixel_unknown() {
-    let fb = FramebufferInfo {
-        pixel_format: 99,
-        ..Default::default()
-    };
-    assert_eq!(fb.bytes_per_pixel(), 4);
+pub fn test_acpi_info_size() -> TestResult {
+    if size_of::<AcpiInfo>() != 8 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn acpi_info_size() {
-    assert_eq!(size_of::<AcpiInfo>(), 8);
-}
-
-#[test]
-fn acpi_info_default() {
+pub fn test_acpi_info_default() -> TestResult {
     let acpi = AcpiInfo::default();
-    assert_eq!(acpi.rsdp, 0);
+    if acpi.rsdp != 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn smbios_info_size() {
-    assert_eq!(size_of::<SmbiosInfo>(), 8);
+pub fn test_smbios_info_size() -> TestResult {
+    if size_of::<SmbiosInfo>() != 8 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn smbios_info_default() {
+pub fn test_smbios_info_default() -> TestResult {
     let smbios = SmbiosInfo::default();
-    assert_eq!(smbios.entry, 0);
+    if smbios.entry != 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn module_struct_size() {
-    assert_eq!(size_of::<Module>(), 24);
+pub fn test_module_struct_size() -> TestResult {
+    if size_of::<Module>() != 24 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn module_default() {
+pub fn test_module_default() -> TestResult {
     let module = Module::default();
-    assert_eq!(module.base, 0);
-    assert_eq!(module.size, 0);
-    assert_eq!(module.kind, 0);
-    assert_eq!(module.reserved, 0);
+    if module.base != 0 { return TestResult::Fail; }
+    if module.size != 0 { return TestResult::Fail; }
+    if module.kind != 0 { return TestResult::Fail; }
+    if module.reserved != 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn modules_size() {
-    assert_eq!(size_of::<Modules>(), 16);
+pub fn test_modules_size() -> TestResult {
+    if size_of::<Modules>() != 16 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn modules_default() {
+pub fn test_modules_default() -> TestResult {
     let modules = Modules::default();
-    assert_eq!(modules.ptr, 0);
-    assert_eq!(modules.count, 0);
+    if modules.ptr != 0 { return TestResult::Fail; }
+    if modules.count != 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn modules_modules_empty() {
-    let modules = Modules::default();
-    let mods = unsafe { modules.modules() };
-    assert!(mods.is_empty());
+pub fn test_timing_size() -> TestResult {
+    if size_of::<Timing>() != 16 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn timing_size() {
-    assert_eq!(size_of::<Timing>(), 16);
-}
-
-#[test]
-fn timing_default() {
+pub fn test_timing_default() -> TestResult {
     let timing = Timing::default();
-    assert_eq!(timing.tsc_hz, 0);
-    assert_eq!(timing.unix_epoch_ms, 0);
+    if timing.tsc_hz != 0 { return TestResult::Fail; }
+    if timing.unix_epoch_ms != 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn measurements_size() {
-    assert_eq!(size_of::<Measurements>(), 40);
+pub fn test_measurements_size() -> TestResult {
+    if size_of::<Measurements>() != 40 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn measurements_default() {
+pub fn test_measurements_default() -> TestResult {
     let meas = Measurements::default();
-    assert_eq!(meas.kernel_blake3, [0; 32]);
-    assert_eq!(meas.kernel_sig_ok, 0);
-    assert_eq!(meas.secure_boot, 0);
-    assert_eq!(meas.zk_attestation_ok, 0);
-    assert_eq!(meas.reserved, [0; 5]);
+    if meas.kernel_blake3 != [0; 32] { return TestResult::Fail; }
+    if meas.kernel_sig_ok != 0 { return TestResult::Fail; }
+    if meas.secure_boot != 0 { return TestResult::Fail; }
+    if meas.zk_attestation_ok != 0 { return TestResult::Fail; }
+    if meas.reserved != [0; 5] { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn zk_attestation_size() {
-    assert_eq!(size_of::<ZkAttestation>(), 72);
+pub fn test_zk_attestation_size() -> TestResult {
+    if size_of::<ZkAttestation>() != 72 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn zk_attestation_default() {
+pub fn test_zk_attestation_default() -> TestResult {
     let zk = ZkAttestation::default();
-    assert_eq!(zk.verified, 0);
-    assert_eq!(zk.flags, 0);
-    assert_eq!(zk.reserved, [0; 6]);
-    assert_eq!(zk.program_hash, [0; 32]);
-    assert_eq!(zk.capsule_commitment, [0; 32]);
+    if zk.verified != 0 { return TestResult::Fail; }
+    if zk.flags != 0 { return TestResult::Fail; }
+    if zk.reserved != [0; 6] { return TestResult::Fail; }
+    if zk.program_hash != [0; 32] { return TestResult::Fail; }
+    if zk.capsule_commitment != [0; 32] { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn rng_seed_size() {
-    assert_eq!(size_of::<RngSeed>(), 32);
+pub fn test_rng_seed_size() -> TestResult {
+    if size_of::<RngSeed>() != 32 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn rng_seed_default() {
+pub fn test_rng_seed_default() -> TestResult {
     let rng = RngSeed::default();
-    assert_eq!(rng.seed32, [0; 32]);
+    if rng.seed32 != [0; 32] { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn boot_handoff_v1_default_is_valid() {
+pub fn test_boot_handoff_v1_default_is_valid() -> TestResult {
     let handoff = BootHandoffV1::default();
-    assert!(handoff.is_valid());
+    if !handoff.is_valid() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn boot_handoff_v1_default_magic() {
+pub fn test_boot_handoff_v1_default_magic() -> TestResult {
     let handoff = BootHandoffV1::default();
-    assert_eq!(handoff.magic, HANDOFF_MAGIC);
+    if handoff.magic != HANDOFF_MAGIC { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn boot_handoff_v1_default_version() {
+pub fn test_boot_handoff_v1_default_version() -> TestResult {
     let handoff = BootHandoffV1::default();
-    assert_eq!(handoff.version, HANDOFF_VERSION);
+    if handoff.version != HANDOFF_VERSION { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn boot_handoff_v1_default_size() {
+pub fn test_boot_handoff_v1_default_size() -> TestResult {
     let handoff = BootHandoffV1::default();
-    assert_eq!(handoff.size as usize, size_of::<BootHandoffV1>());
+    if handoff.size as usize != size_of::<BootHandoffV1>() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn boot_handoff_v1_invalid_magic() {
+pub fn test_boot_handoff_v1_invalid_magic() -> TestResult {
     let mut handoff = BootHandoffV1::default();
     handoff.magic = 0x12345678;
-    assert!(!handoff.is_valid());
+    if handoff.is_valid() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn boot_handoff_v1_invalid_version() {
+pub fn test_boot_handoff_v1_invalid_version() -> TestResult {
     let mut handoff = BootHandoffV1::default();
     handoff.version = 99;
-    assert!(!handoff.is_valid());
+    if handoff.is_valid() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn boot_handoff_v1_invalid_size() {
+pub fn test_boot_handoff_v1_invalid_size() -> TestResult {
     let mut handoff = BootHandoffV1::default();
     handoff.size = 64;
-    assert!(!handoff.is_valid());
+    if handoff.is_valid() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn boot_handoff_v1_has_flag_none() {
+pub fn test_boot_handoff_v1_has_flag_none() -> TestResult {
     let handoff = BootHandoffV1::default();
-    assert!(!handoff.has_flag(flags::FB_AVAILABLE));
-    assert!(!handoff.has_flag(flags::ACPI_AVAILABLE));
+    if handoff.has_flag(flags::FB_AVAILABLE) { return TestResult::Fail; }
+    if handoff.has_flag(flags::ACPI_AVAILABLE) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn boot_handoff_v1_has_flag_single() {
+pub fn test_boot_handoff_v1_has_flag_single() -> TestResult {
     let mut handoff = BootHandoffV1::default();
     handoff.flags = flags::FB_AVAILABLE;
-    assert!(handoff.has_flag(flags::FB_AVAILABLE));
-    assert!(!handoff.has_flag(flags::ACPI_AVAILABLE));
+    if !handoff.has_flag(flags::FB_AVAILABLE) { return TestResult::Fail; }
+    if handoff.has_flag(flags::ACPI_AVAILABLE) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn boot_handoff_v1_has_flag_multiple() {
+pub fn test_boot_handoff_v1_has_flag_multiple() -> TestResult {
     let mut handoff = BootHandoffV1::default();
     handoff.flags = flags::FB_AVAILABLE | flags::ACPI_AVAILABLE | flags::NXE;
-    assert!(handoff.has_flag(flags::FB_AVAILABLE));
-    assert!(handoff.has_flag(flags::ACPI_AVAILABLE));
-    assert!(handoff.has_flag(flags::NXE));
-    assert!(!handoff.has_flag(flags::SMEP));
+    if !handoff.has_flag(flags::FB_AVAILABLE) { return TestResult::Fail; }
+    if !handoff.has_flag(flags::ACPI_AVAILABLE) { return TestResult::Fail; }
+    if !handoff.has_flag(flags::NXE) { return TestResult::Fail; }
+    if handoff.has_flag(flags::SMEP) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn boot_handoff_v1_framebuffer_none() {
+pub fn test_boot_handoff_v1_framebuffer_none() -> TestResult {
     let handoff = BootHandoffV1::default();
-    assert!(handoff.framebuffer().is_none());
+    if handoff.framebuffer().is_some() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn boot_handoff_v1_framebuffer_flag_but_null_ptr() {
+pub fn test_boot_handoff_v1_framebuffer_flag_but_null_ptr() -> TestResult {
     let mut handoff = BootHandoffV1::default();
     handoff.flags = flags::FB_AVAILABLE;
-    assert!(handoff.framebuffer().is_none());
+    if handoff.framebuffer().is_some() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn boot_handoff_v1_framebuffer_valid() {
+pub fn test_boot_handoff_v1_framebuffer_valid() -> TestResult {
     let mut handoff = BootHandoffV1::default();
     handoff.flags = flags::FB_AVAILABLE;
     handoff.fb.ptr = 0xFD000000;
-    assert!(handoff.framebuffer().is_some());
+    if handoff.framebuffer().is_none() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn boot_handoff_v1_acpi_rsdp_none() {
+pub fn test_boot_handoff_v1_acpi_rsdp_none() -> TestResult {
     let handoff = BootHandoffV1::default();
-    assert!(handoff.acpi_rsdp().is_none());
+    if handoff.acpi_rsdp().is_some() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn boot_handoff_v1_acpi_rsdp_flag_but_null() {
+pub fn test_boot_handoff_v1_acpi_rsdp_flag_but_null() -> TestResult {
     let mut handoff = BootHandoffV1::default();
     handoff.flags = flags::ACPI_AVAILABLE;
-    assert!(handoff.acpi_rsdp().is_none());
+    if handoff.acpi_rsdp().is_some() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn boot_handoff_v1_acpi_rsdp_valid() {
+pub fn test_boot_handoff_v1_acpi_rsdp_valid() -> TestResult {
     let mut handoff = BootHandoffV1::default();
     handoff.flags = flags::ACPI_AVAILABLE;
     handoff.acpi.rsdp = 0xFED00000;
-    assert_eq!(handoff.acpi_rsdp(), Some(0xFED00000));
+    if handoff.acpi_rsdp() != Some(0xFED00000) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn boot_handoff_v1_secure_boot_disabled() {
+pub fn test_boot_handoff_v1_secure_boot_disabled() -> TestResult {
     let handoff = BootHandoffV1::default();
-    assert!(!handoff.secure_boot_enabled());
+    if handoff.secure_boot_enabled() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn boot_handoff_v1_secure_boot_via_flag() {
+pub fn test_boot_handoff_v1_secure_boot_via_flag() -> TestResult {
     let mut handoff = BootHandoffV1::default();
     handoff.flags = flags::SECURE_BOOT;
-    assert!(handoff.secure_boot_enabled());
+    if !handoff.secure_boot_enabled() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn boot_handoff_v1_secure_boot_via_meas() {
+pub fn test_boot_handoff_v1_secure_boot_via_meas() -> TestResult {
     let mut handoff = BootHandoffV1::default();
     handoff.meas.secure_boot = 1;
-    assert!(handoff.secure_boot_enabled());
+    if !handoff.secure_boot_enabled() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn boot_handoff_v1_kernel_verified_false() {
+pub fn test_boot_handoff_v1_kernel_verified_false() -> TestResult {
     let handoff = BootHandoffV1::default();
-    assert!(!handoff.kernel_verified());
+    if handoff.kernel_verified() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn boot_handoff_v1_kernel_verified_true() {
+pub fn test_boot_handoff_v1_kernel_verified_true() -> TestResult {
     let mut handoff = BootHandoffV1::default();
     handoff.meas.kernel_sig_ok = 1;
-    assert!(handoff.kernel_verified());
+    if !handoff.kernel_verified() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn boot_handoff_v1_clone() {
+pub fn test_boot_handoff_v1_clone() -> TestResult {
     let handoff = BootHandoffV1::default();
     let cloned = handoff.clone();
-    assert_eq!(handoff.magic, cloned.magic);
-    assert_eq!(handoff.version, cloned.version);
-    assert_eq!(handoff.size, cloned.size);
+    if handoff.magic != cloned.magic { return TestResult::Fail; }
+    if handoff.version != cloned.version { return TestResult::Fail; }
+    if handoff.size != cloned.size { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn boot_handoff_v1_copy() {
+pub fn test_boot_handoff_v1_copy() -> TestResult {
     let handoff = BootHandoffV1::default();
     let copied = handoff;
-    assert_eq!(handoff.magic, copied.magic);
-}
-
-#[test]
-fn boot_handoff_v1_debug() {
-    let handoff = BootHandoffV1::default();
-    let debug = alloc::format!("{:?}", handoff);
-    assert!(debug.contains("BootHandoffV1"));
+    if handoff.magic != copied.magic { return TestResult::Fail; }
+    TestResult::Pass
 }

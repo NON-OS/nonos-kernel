@@ -1,59 +1,62 @@
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
+
 use crate::boot::multiboot::parser::tags::{tag_type, TagHeader, MemoryMapTag, FramebufferTag, ModuleTag};
+use crate::test::framework::TestResult;
 
-#[test]
-fn tag_type_constants() {
-    assert_eq!(tag_type::END, 0);
-    assert_eq!(tag_type::MODULE, 3);
-    assert_eq!(tag_type::MMAP, 6);
-    assert_eq!(tag_type::FRAMEBUFFER, 8);
+pub fn test_tag_type_constants() -> TestResult {
+    if tag_type::END != 0 { return TestResult::Fail; }
+    if tag_type::MODULE != 3 { return TestResult::Fail; }
+    if tag_type::MMAP != 6 { return TestResult::Fail; }
+    if tag_type::FRAMEBUFFER != 8 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn tag_header_size() {
-    assert_eq!(core::mem::size_of::<TagHeader>(), 8);
+pub fn test_tag_header_size() -> TestResult {
+    if core::mem::size_of::<TagHeader>() != 8 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn memory_map_tag_size() {
-    assert_eq!(core::mem::size_of::<MemoryMapTag>(), 16);
+pub fn test_memory_map_tag_size() -> TestResult {
+    if core::mem::size_of::<MemoryMapTag>() != 16 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn framebuffer_tag_size() {
-    assert!(core::mem::size_of::<FramebufferTag>() >= 31);
+pub fn test_framebuffer_tag_size() -> TestResult {
+    if core::mem::size_of::<FramebufferTag>() < 31 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn module_tag_size() {
-    assert_eq!(core::mem::size_of::<ModuleTag>(), 16);
+pub fn test_module_tag_size() -> TestResult {
+    if core::mem::size_of::<ModuleTag>() != 16 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn tag_header_layout() {
+pub fn test_tag_header_layout() -> TestResult {
     let header = TagHeader {
         tag_type: tag_type::MMAP,
         size: 64,
     };
-    assert_eq!(header.tag_type, 6);
-    assert_eq!(header.size, 64);
+    if header.tag_type != 6 { return TestResult::Fail; }
+    if header.size != 64 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn memory_map_tag_layout() {
+pub fn test_memory_map_tag_layout() -> TestResult {
     let tag = MemoryMapTag {
         tag_type: tag_type::MMAP,
         size: 64,
         entry_size: 24,
         entry_version: 0,
     };
-    assert_eq!(tag.tag_type, tag_type::MMAP);
-    assert_eq!(tag.size, 64);
-    assert_eq!(tag.entry_size, 24);
-    assert_eq!(tag.entry_version, 0);
+    if tag.tag_type != tag_type::MMAP { return TestResult::Fail; }
+    if tag.size != 64 { return TestResult::Fail; }
+    if tag.entry_size != 24 { return TestResult::Fail; }
+    if tag.entry_version != 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn framebuffer_tag_layout() {
+pub fn test_framebuffer_tag_layout() -> TestResult {
     let tag = FramebufferTag {
         tag_type: tag_type::FRAMEBUFFER,
         size: 31,
@@ -65,23 +68,24 @@ fn framebuffer_tag_layout() {
         framebuffer_type: 1,
         reserved: 0,
     };
-    assert_eq!(tag.tag_type, tag_type::FRAMEBUFFER);
-    assert_eq!(tag.framebuffer_addr, 0xFD000000);
-    assert_eq!(tag.framebuffer_width, 800);
-    assert_eq!(tag.framebuffer_height, 600);
-    assert_eq!(tag.framebuffer_bpp, 32);
-    assert_eq!(tag.framebuffer_type, 1);
+    if tag.tag_type != tag_type::FRAMEBUFFER { return TestResult::Fail; }
+    if tag.framebuffer_addr != 0xFD000000 { return TestResult::Fail; }
+    if tag.framebuffer_width != 800 { return TestResult::Fail; }
+    if tag.framebuffer_height != 600 { return TestResult::Fail; }
+    if tag.framebuffer_bpp != 32 { return TestResult::Fail; }
+    if tag.framebuffer_type != 1 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn module_tag_layout() {
+pub fn test_module_tag_layout() -> TestResult {
     let tag = ModuleTag {
         tag_type: tag_type::MODULE,
         size: 24,
         mod_start: 0x200000,
         mod_end: 0x300000,
     };
-    assert_eq!(tag.tag_type, tag_type::MODULE);
-    assert_eq!(tag.mod_start, 0x200000);
-    assert_eq!(tag.mod_end, 0x300000);
+    if tag.tag_type != tag_type::MODULE { return TestResult::Fail; }
+    if tag.mod_start != 0x200000 { return TestResult::Fail; }
+    if tag.mod_end != 0x300000 { return TestResult::Fail; }
+    TestResult::Pass
 }

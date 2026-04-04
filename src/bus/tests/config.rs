@@ -1,281 +1,269 @@
 // NONOS Operating System
 // Copyright (C) 2026 NONOS Contributors
-//
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU Affero General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-//
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-// GNU Affero General Public License for more details.
-//
-// You should have received a copy of the GNU Affero General Public License
-// along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 #[allow(unused_imports)]
 use crate::bus::*;
+use crate::test::framework::TestResult;
 
 fn test_pci_address(bus: u8, device: u8, function: u8, offset: u8) -> u32 {
     (1u32 << 31) | ((bus as u32) << 16) | ((device as u32) << 11)
         | ((function as u32) << 8) | ((offset as u32) & 0xFC)
 }
 
-#[test]
-fn test_pci_address_enable_bit() {
+pub fn test_pci_address_enable_bit() -> TestResult {
     let addr = test_pci_address(0, 0, 0, 0);
-    assert_eq!(addr & (1 << 31), 1 << 31);
+    if addr & (1 << 31) != 1 << 31 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_pci_address_bus_zero() {
+pub fn test_pci_address_bus_zero() -> TestResult {
     let addr = test_pci_address(0, 0, 0, 0);
     let bus = (addr >> 16) & 0xFF;
-    assert_eq!(bus, 0);
+    if bus != 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_pci_address_bus_max() {
+pub fn test_pci_address_bus_max() -> TestResult {
     let addr = test_pci_address(255, 0, 0, 0);
     let bus = (addr >> 16) & 0xFF;
-    assert_eq!(bus, 255);
+    if bus != 255 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_pci_address_device_zero() {
+pub fn test_pci_address_device_zero() -> TestResult {
     let addr = test_pci_address(0, 0, 0, 0);
     let device = (addr >> 11) & 0x1F;
-    assert_eq!(device, 0);
+    if device != 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_pci_address_device_max() {
+pub fn test_pci_address_device_max() -> TestResult {
     let addr = test_pci_address(0, 31, 0, 0);
     let device = (addr >> 11) & 0x1F;
-    assert_eq!(device, 31);
+    if device != 31 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_pci_address_function_zero() {
+pub fn test_pci_address_function_zero() -> TestResult {
     let addr = test_pci_address(0, 0, 0, 0);
     let function = (addr >> 8) & 0x07;
-    assert_eq!(function, 0);
+    if function != 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_pci_address_function_max() {
+pub fn test_pci_address_function_max() -> TestResult {
     let addr = test_pci_address(0, 0, 7, 0);
     let function = (addr >> 8) & 0x07;
-    assert_eq!(function, 7);
+    if function != 7 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_pci_address_offset_aligned() {
+pub fn test_pci_address_offset_aligned() -> TestResult {
     let addr = test_pci_address(0, 0, 0, 0x10);
     let offset = addr & 0xFC;
-    assert_eq!(offset, 0x10);
+    if offset != 0x10 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_pci_address_offset_alignment_mask() {
+pub fn test_pci_address_offset_alignment_mask() -> TestResult {
     let addr = test_pci_address(0, 0, 0, 0x11);
     let offset = addr & 0xFC;
-    assert_eq!(offset, 0x10);
+    if offset != 0x10 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_pci_address_offset_alignment_mask2() {
+pub fn test_pci_address_offset_alignment_mask2() -> TestResult {
     let addr = test_pci_address(0, 0, 0, 0x13);
     let offset = addr & 0xFC;
-    assert_eq!(offset, 0x10);
+    if offset != 0x10 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_pci_address_full_calculation() {
+pub fn test_pci_address_full_calculation() -> TestResult {
     let addr = test_pci_address(5, 10, 3, 0x10);
     let expected = (1u32 << 31) | (5u32 << 16) | (10u32 << 11) | (3u32 << 8) | 0x10;
-    assert_eq!(addr, expected);
+    if addr != expected { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_pci_address_root_complex() {
+pub fn test_pci_address_root_complex() -> TestResult {
     let addr = test_pci_address(0, 0, 0, 0);
     let expected = 1u32 << 31;
-    assert_eq!(addr, expected);
+    if addr != expected { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_pci_address_typical_device() {
+pub fn test_pci_address_typical_device() -> TestResult {
     let addr = test_pci_address(0, 2, 0, 0);
     let expected = (1u32 << 31) | (2u32 << 11);
-    assert_eq!(addr, expected);
+    if addr != expected { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_pci_address_vendor_id_offset() {
+pub fn test_pci_address_vendor_id_offset() -> TestResult {
     let addr = test_pci_address(0, 1, 0, 0x00);
     let offset = addr & 0xFC;
-    assert_eq!(offset, 0x00);
+    if offset != 0x00 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_pci_address_device_id_offset() {
+pub fn test_pci_address_device_id_offset() -> TestResult {
     let addr = test_pci_address(0, 1, 0, 0x02);
     let offset = addr & 0xFC;
-    assert_eq!(offset, 0x00);
+    if offset != 0x00 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_pci_address_command_offset() {
+pub fn test_pci_address_command_offset() -> TestResult {
     let addr = test_pci_address(0, 1, 0, 0x04);
     let offset = addr & 0xFC;
-    assert_eq!(offset, 0x04);
+    if offset != 0x04 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_pci_address_status_offset() {
+pub fn test_pci_address_status_offset() -> TestResult {
     let addr = test_pci_address(0, 1, 0, 0x06);
     let offset = addr & 0xFC;
-    assert_eq!(offset, 0x04);
+    if offset != 0x04 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_pci_address_class_offset() {
+pub fn test_pci_address_class_offset() -> TestResult {
     let addr = test_pci_address(0, 1, 0, 0x0B);
     let offset = addr & 0xFC;
-    assert_eq!(offset, 0x08);
+    if offset != 0x08 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_pci_address_header_type_offset() {
+pub fn test_pci_address_header_type_offset() -> TestResult {
     let addr = test_pci_address(0, 1, 0, 0x0E);
     let offset = addr & 0xFC;
-    assert_eq!(offset, 0x0C);
+    if offset != 0x0C { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_pci_address_bar0_offset() {
+pub fn test_pci_address_bar0_offset() -> TestResult {
     let addr = test_pci_address(0, 1, 0, 0x10);
     let offset = addr & 0xFC;
-    assert_eq!(offset, 0x10);
+    if offset != 0x10 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_pci_address_bar1_offset() {
+pub fn test_pci_address_bar1_offset() -> TestResult {
     let addr = test_pci_address(0, 1, 0, 0x14);
     let offset = addr & 0xFC;
-    assert_eq!(offset, 0x14);
+    if offset != 0x14 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_pci_address_bar2_offset() {
+pub fn test_pci_address_bar2_offset() -> TestResult {
     let addr = test_pci_address(0, 1, 0, 0x18);
     let offset = addr & 0xFC;
-    assert_eq!(offset, 0x18);
+    if offset != 0x18 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_pci_address_bar3_offset() {
+pub fn test_pci_address_bar3_offset() -> TestResult {
     let addr = test_pci_address(0, 1, 0, 0x1C);
     let offset = addr & 0xFC;
-    assert_eq!(offset, 0x1C);
+    if offset != 0x1C { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_pci_address_bar4_offset() {
+pub fn test_pci_address_bar4_offset() -> TestResult {
     let addr = test_pci_address(0, 1, 0, 0x20);
     let offset = addr & 0xFC;
-    assert_eq!(offset, 0x20);
+    if offset != 0x20 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_pci_address_bar5_offset() {
+pub fn test_pci_address_bar5_offset() -> TestResult {
     let addr = test_pci_address(0, 1, 0, 0x24);
     let offset = addr & 0xFC;
-    assert_eq!(offset, 0x24);
+    if offset != 0x24 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_pci_address_interrupt_line_offset() {
+pub fn test_pci_address_interrupt_line_offset() -> TestResult {
     let addr = test_pci_address(0, 1, 0, 0x3C);
     let offset = addr & 0xFC;
-    assert_eq!(offset, 0x3C);
+    if offset != 0x3C { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_pci_address_interrupt_pin_offset() {
+pub fn test_pci_address_interrupt_pin_offset() -> TestResult {
     let addr = test_pci_address(0, 1, 0, 0x3D);
     let offset = addr & 0xFC;
-    assert_eq!(offset, 0x3C);
+    if offset != 0x3C { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_pci_address_multiple_buses() {
+pub fn test_pci_address_multiple_buses() -> TestResult {
     for bus in [0u8, 1, 127, 255] {
         let addr = test_pci_address(bus, 0, 0, 0);
         let extracted = (addr >> 16) & 0xFF;
-        assert_eq!(extracted, bus as u32);
+        if extracted != bus as u32 { return TestResult::Fail; }
     }
+    TestResult::Pass
 }
 
-#[test]
-fn test_pci_address_multiple_devices() {
+pub fn test_pci_address_multiple_devices() -> TestResult {
     for device in [0u8, 1, 15, 31] {
         let addr = test_pci_address(0, device, 0, 0);
         let extracted = (addr >> 11) & 0x1F;
-        assert_eq!(extracted, device as u32);
+        if extracted != device as u32 { return TestResult::Fail; }
     }
+    TestResult::Pass
 }
 
-#[test]
-fn test_pci_address_multiple_functions() {
+pub fn test_pci_address_multiple_functions() -> TestResult {
     for function in 0u8..8 {
         let addr = test_pci_address(0, 0, function, 0);
         let extracted = (addr >> 8) & 0x07;
-        assert_eq!(extracted, function as u32);
+        if extracted != function as u32 { return TestResult::Fail; }
     }
+    TestResult::Pass
 }
 
-#[test]
-fn test_pci_config_address_port() {
-    assert_eq!(0x0CF8u16, 0x0CF8);
+pub fn test_pci_config_address_port() -> TestResult {
+    if 0x0CF8u16 != 0x0CF8 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_pci_config_data_port() {
-    assert_eq!(0x0CFCu16, 0x0CFC);
+pub fn test_pci_config_data_port() -> TestResult {
+    if 0x0CFCu16 != 0x0CFC { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_pci_address_bus_field_mask() {
+pub fn test_pci_address_bus_field_mask() -> TestResult {
     let addr = test_pci_address(0xFF, 0, 0, 0);
-    assert_eq!((addr >> 16) & 0xFF, 0xFF);
+    if (addr >> 16) & 0xFF != 0xFF { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_pci_address_device_field_mask() {
+pub fn test_pci_address_device_field_mask() -> TestResult {
     let addr = test_pci_address(0, 0x1F, 0, 0);
-    assert_eq!((addr >> 11) & 0x1F, 0x1F);
+    if (addr >> 11) & 0x1F != 0x1F { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_pci_address_function_field_mask() {
+pub fn test_pci_address_function_field_mask() -> TestResult {
     let addr = test_pci_address(0, 0, 0x07, 0);
-    assert_eq!((addr >> 8) & 0x07, 0x07);
+    if (addr >> 8) & 0x07 != 0x07 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_pci_address_offset_field_mask() {
+pub fn test_pci_address_offset_field_mask() -> TestResult {
     let addr = test_pci_address(0, 0, 0, 0xFC);
-    assert_eq!(addr & 0xFC, 0xFC);
+    if addr & 0xFC != 0xFC { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_pci_address_all_fields_combined() {
+pub fn test_pci_address_all_fields_combined() -> TestResult {
     let addr = test_pci_address(0x12, 0x0A, 0x03, 0x40);
-    assert_eq!((addr >> 16) & 0xFF, 0x12);
-    assert_eq!((addr >> 11) & 0x1F, 0x0A);
-    assert_eq!((addr >> 8) & 0x07, 0x03);
-    assert_eq!(addr & 0xFC, 0x40);
+    if (addr >> 16) & 0xFF != 0x12 { return TestResult::Fail; }
+    if (addr >> 11) & 0x1F != 0x0A { return TestResult::Fail; }
+    if (addr >> 8) & 0x07 != 0x03 { return TestResult::Fail; }
+    if addr & 0xFC != 0x40 { return TestResult::Fail; }
+    TestResult::Pass
 }

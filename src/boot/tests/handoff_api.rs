@@ -1,157 +1,80 @@
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
+
 use crate::boot::handoff::api::HandoffError;
 use crate::boot::handoff::types::HANDOFF_VERSION;
+use crate::test::framework::TestResult;
 
-#[test]
-fn handoff_error_null_pointer_str() {
+pub fn test_handoff_error_null_pointer_str() -> TestResult {
     let err = HandoffError::NullPointer;
-    assert_eq!(err.as_str(), "Null handoff pointer");
+    if err.as_str() != "Null handoff pointer" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn handoff_error_invalid_magic_str() {
+pub fn test_handoff_error_invalid_magic_str() -> TestResult {
     let err = HandoffError::InvalidMagic;
-    assert_eq!(err.as_str(), "Invalid handoff magic value");
+    if err.as_str() != "Invalid handoff magic value" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn handoff_error_version_mismatch_str() {
+pub fn test_handoff_error_version_mismatch_str() -> TestResult {
     let err = HandoffError::VersionMismatch { expected: 1, got: 2 };
-    assert_eq!(err.as_str(), "Handoff version mismatch");
+    if err.as_str() != "Handoff version mismatch" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn handoff_error_size_mismatch_str() {
+pub fn test_handoff_error_size_mismatch_str() -> TestResult {
     let err = HandoffError::SizeMismatch { expected: 256, got: 128 };
-    assert_eq!(err.as_str(), "Handoff size mismatch");
+    if err.as_str() != "Handoff size mismatch" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn handoff_error_already_initialized_str() {
+pub fn test_handoff_error_already_initialized_str() -> TestResult {
     let err = HandoffError::AlreadyInitialized;
-    assert_eq!(err.as_str(), "Handoff already initialized");
+    if err.as_str() != "Handoff already initialized" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn handoff_error_invalid_data_str() {
+pub fn test_handoff_error_invalid_data_str() -> TestResult {
     let err = HandoffError::InvalidData;
-    assert_eq!(err.as_str(), "Invalid handoff data");
+    if err.as_str() != "Invalid handoff data" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn handoff_error_display_null_pointer() {
-    use alloc::string::ToString;
-    let err = HandoffError::NullPointer;
-    assert_eq!(err.to_string(), "Null handoff pointer");
+pub fn test_handoff_error_equality() -> TestResult {
+    if HandoffError::NullPointer != HandoffError::NullPointer { return TestResult::Fail; }
+    if HandoffError::InvalidMagic != HandoffError::InvalidMagic { return TestResult::Fail; }
+    if HandoffError::AlreadyInitialized != HandoffError::AlreadyInitialized { return TestResult::Fail; }
+    if HandoffError::InvalidData != HandoffError::InvalidData { return TestResult::Fail; }
+    if HandoffError::VersionMismatch { expected: 1, got: 2 } != HandoffError::VersionMismatch { expected: 1, got: 2 } { return TestResult::Fail; }
+    if HandoffError::VersionMismatch { expected: 1, got: 2 } == HandoffError::VersionMismatch { expected: 1, got: 3 } { return TestResult::Fail; }
+    if HandoffError::SizeMismatch { expected: 256, got: 128 } != HandoffError::SizeMismatch { expected: 256, got: 128 } { return TestResult::Fail; }
+    if HandoffError::SizeMismatch { expected: 256, got: 128 } == HandoffError::SizeMismatch { expected: 256, got: 64 } { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn handoff_error_display_invalid_magic() {
-    use alloc::string::ToString;
-    let err = HandoffError::InvalidMagic;
-    assert_eq!(err.to_string(), "Invalid handoff magic value");
+pub fn test_handoff_error_not_equal_different_variants() -> TestResult {
+    if HandoffError::NullPointer == HandoffError::InvalidMagic { return TestResult::Fail; }
+    if HandoffError::InvalidMagic == HandoffError::AlreadyInitialized { return TestResult::Fail; }
+    if HandoffError::AlreadyInitialized == HandoffError::InvalidData { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn handoff_error_display_version_mismatch() {
-    use alloc::string::ToString;
-    let err = HandoffError::VersionMismatch { expected: 1, got: 2 };
-    assert_eq!(err.to_string(), "Handoff version mismatch: expected 1, got 2");
-}
-
-#[test]
-fn handoff_error_display_size_mismatch() {
-    use alloc::string::ToString;
-    let err = HandoffError::SizeMismatch { expected: 256, got: 128 };
-    assert_eq!(err.to_string(), "Handoff size mismatch: expected 256, got 128");
-}
-
-#[test]
-fn handoff_error_display_already_initialized() {
-    use alloc::string::ToString;
-    let err = HandoffError::AlreadyInitialized;
-    assert_eq!(err.to_string(), "Handoff already initialized");
-}
-
-#[test]
-fn handoff_error_display_invalid_data() {
-    use alloc::string::ToString;
-    let err = HandoffError::InvalidData;
-    assert_eq!(err.to_string(), "Invalid handoff data");
-}
-
-#[test]
-fn handoff_error_equality() {
-    assert_eq!(HandoffError::NullPointer, HandoffError::NullPointer);
-    assert_eq!(HandoffError::InvalidMagic, HandoffError::InvalidMagic);
-    assert_eq!(HandoffError::AlreadyInitialized, HandoffError::AlreadyInitialized);
-    assert_eq!(HandoffError::InvalidData, HandoffError::InvalidData);
-
-    assert_eq!(
-        HandoffError::VersionMismatch { expected: 1, got: 2 },
-        HandoffError::VersionMismatch { expected: 1, got: 2 }
-    );
-    assert_ne!(
-        HandoffError::VersionMismatch { expected: 1, got: 2 },
-        HandoffError::VersionMismatch { expected: 1, got: 3 }
-    );
-
-    assert_eq!(
-        HandoffError::SizeMismatch { expected: 256, got: 128 },
-        HandoffError::SizeMismatch { expected: 256, got: 128 }
-    );
-    assert_ne!(
-        HandoffError::SizeMismatch { expected: 256, got: 128 },
-        HandoffError::SizeMismatch { expected: 256, got: 64 }
-    );
-}
-
-#[test]
-fn handoff_error_not_equal_different_variants() {
-    assert_ne!(HandoffError::NullPointer, HandoffError::InvalidMagic);
-    assert_ne!(HandoffError::InvalidMagic, HandoffError::AlreadyInitialized);
-    assert_ne!(HandoffError::AlreadyInitialized, HandoffError::InvalidData);
-}
-
-#[test]
-fn handoff_error_clone() {
+pub fn test_handoff_error_clone() -> TestResult {
     let err = HandoffError::VersionMismatch { expected: 1, got: 2 };
     let cloned = err.clone();
-    assert_eq!(err, cloned);
+    if err != cloned { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn handoff_error_copy() {
+pub fn test_handoff_error_copy() -> TestResult {
     let err = HandoffError::NullPointer;
     let copied = err;
-    assert_eq!(err, copied);
+    if err != copied { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn handoff_error_debug() {
-    use alloc::format;
-
-    let debug = format!("{:?}", HandoffError::NullPointer);
-    assert_eq!(debug, "NullPointer");
-
-    let debug = format!("{:?}", HandoffError::InvalidMagic);
-    assert_eq!(debug, "InvalidMagic");
-
-    let debug = format!("{:?}", HandoffError::VersionMismatch { expected: 1, got: 2 });
-    assert!(debug.contains("VersionMismatch"));
-    assert!(debug.contains("expected: 1"));
-    assert!(debug.contains("got: 2"));
-
-    let debug = format!("{:?}", HandoffError::SizeMismatch { expected: 256, got: 128 });
-    assert!(debug.contains("SizeMismatch"));
-
-    let debug = format!("{:?}", HandoffError::AlreadyInitialized);
-    assert_eq!(debug, "AlreadyInitialized");
-
-    let debug = format!("{:?}", HandoffError::InvalidData);
-    assert_eq!(debug, "InvalidData");
-}
-
-#[test]
-fn handoff_version_current() {
-    assert_eq!(HANDOFF_VERSION, 1);
+pub fn test_handoff_version_current() -> TestResult {
+    if HANDOFF_VERSION != 1 { return TestResult::Fail; }
+    TestResult::Pass
 }

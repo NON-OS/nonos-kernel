@@ -1,108 +1,107 @@
 // NONOS Operating System
 // Copyright (C) 2026 NONOS Contributors
-//
-// Tests for arch/x86_64/uefi
 
 use crate::arch::x86_64::uefi::{ResetType, MemoryType, VariableAttributes, Crc32};
+use crate::test::framework::TestResult;
 
-#[test_case]
-fn test_reset_type_variants() {
-    assert_eq!(ResetType::Cold as u32, 0);
-    assert_eq!(ResetType::Warm as u32, 1);
-    assert_eq!(ResetType::Shutdown as u32, 2);
-    assert_eq!(ResetType::PlatformSpecific as u32, 3);
+pub fn test_reset_type_variants() -> TestResult {
+    if ResetType::Cold as u32 != 0 { return TestResult::Fail; }
+    if ResetType::Warm as u32 != 1 { return TestResult::Fail; }
+    if ResetType::Shutdown as u32 != 2 { return TestResult::Fail; }
+    if ResetType::PlatformSpecific as u32 != 3 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test_case]
-fn test_memory_type_conventional() {
-    assert_eq!(MemoryType::Conventional as u32, 7);
+pub fn test_memory_type_conventional() -> TestResult {
+    if MemoryType::Conventional as u32 != 7 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test_case]
-fn test_memory_type_loader_code() {
-    assert_eq!(MemoryType::LoaderCode as u32, 1);
+pub fn test_memory_type_loader_code() -> TestResult {
+    if MemoryType::LoaderCode as u32 != 1 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test_case]
-fn test_memory_type_loader_data() {
-    assert_eq!(MemoryType::LoaderData as u32, 2);
+pub fn test_memory_type_loader_data() -> TestResult {
+    if MemoryType::LoaderData as u32 != 2 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test_case]
-fn test_memory_type_boot_services_code() {
-    assert_eq!(MemoryType::BootServicesCode as u32, 3);
+pub fn test_memory_type_boot_services_code() -> TestResult {
+    if MemoryType::BootServicesCode as u32 != 3 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test_case]
-fn test_memory_type_boot_services_data() {
-    assert_eq!(MemoryType::BootServicesData as u32, 4);
+pub fn test_memory_type_boot_services_data() -> TestResult {
+    if MemoryType::BootServicesData as u32 != 4 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test_case]
-fn test_memory_type_runtime_services_code() {
-    assert_eq!(MemoryType::RuntimeServicesCode as u32, 5);
+pub fn test_memory_type_runtime_services_code() -> TestResult {
+    if MemoryType::RuntimeServicesCode as u32 != 5 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test_case]
-fn test_memory_type_runtime_services_data() {
-    assert_eq!(MemoryType::RuntimeServicesData as u32, 6);
+pub fn test_memory_type_runtime_services_data() -> TestResult {
+    if MemoryType::RuntimeServicesData as u32 != 6 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test_case]
-fn test_memory_type_acpi_reclaim() {
-    assert_eq!(MemoryType::AcpiReclaim as u32, 9);
+pub fn test_memory_type_acpi_reclaim() -> TestResult {
+    if MemoryType::AcpiReclaim as u32 != 9 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test_case]
-fn test_memory_type_acpi_nvs() {
-    assert_eq!(MemoryType::AcpiNvs as u32, 10);
+pub fn test_memory_type_acpi_nvs() -> TestResult {
+    if MemoryType::AcpiNvs as u32 != 10 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test_case]
-fn test_variable_attributes_nv() {
+pub fn test_variable_attributes_nv() -> TestResult {
     let attrs = VariableAttributes::NON_VOLATILE;
-    assert!(attrs.contains(VariableAttributes::NON_VOLATILE));
+    if !attrs.contains(VariableAttributes::NON_VOLATILE) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test_case]
-fn test_variable_attributes_bs() {
+pub fn test_variable_attributes_bs() -> TestResult {
     let attrs = VariableAttributes::BOOTSERVICE_ACCESS;
-    assert!(attrs.contains(VariableAttributes::BOOTSERVICE_ACCESS));
+    if !attrs.contains(VariableAttributes::BOOTSERVICE_ACCESS) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test_case]
-fn test_variable_attributes_rt() {
+pub fn test_variable_attributes_rt() -> TestResult {
     let attrs = VariableAttributes::RUNTIME_ACCESS;
-    assert!(attrs.contains(VariableAttributes::RUNTIME_ACCESS));
+    if !attrs.contains(VariableAttributes::RUNTIME_ACCESS) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test_case]
-fn test_variable_attributes_combined() {
+pub fn test_variable_attributes_combined() -> TestResult {
     let attrs = VariableAttributes::NON_VOLATILE
         | VariableAttributes::BOOTSERVICE_ACCESS
         | VariableAttributes::RUNTIME_ACCESS;
-    assert!(attrs.contains(VariableAttributes::NON_VOLATILE));
-    assert!(attrs.contains(VariableAttributes::BOOTSERVICE_ACCESS));
-    assert!(attrs.contains(VariableAttributes::RUNTIME_ACCESS));
+    if !attrs.contains(VariableAttributes::NON_VOLATILE) { return TestResult::Fail; }
+    if !attrs.contains(VariableAttributes::BOOTSERVICE_ACCESS) { return TestResult::Fail; }
+    if !attrs.contains(VariableAttributes::RUNTIME_ACCESS) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test_case]
-fn test_crc32_new() {
+pub fn test_crc32_new() -> TestResult {
     let crc = Crc32::new();
-    assert_eq!(crc.value(), 0xFFFFFFFF);
+    if crc.value() != 0xFFFFFFFF { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test_case]
-fn test_crc32_finalize_empty() {
+pub fn test_crc32_finalize_empty() -> TestResult {
     let crc = Crc32::new();
     let result = crc.finalize();
-    assert_eq!(result, 0x00000000);
+    if result != 0x00000000 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test_case]
-fn test_crc32_update() {
+pub fn test_crc32_update() -> TestResult {
     let mut crc = Crc32::new();
     crc.update(&[0x00]);
     let result = crc.finalize();
-    assert_ne!(result, 0);
+    if result == 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
