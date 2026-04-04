@@ -74,6 +74,7 @@ pub fn prepare_form_submission(form: &Form, base_url: &str) -> FormAction {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::apps::ecosystem::browser::engine::FormInput;
 
     fn make_form(method: &str, action: &str, inputs: Vec<FormInput>) -> Form {
         Form {
