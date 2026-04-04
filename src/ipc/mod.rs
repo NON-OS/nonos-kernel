@@ -57,3 +57,6 @@ pub use nonos_policy::{get_policy, IpcCapability, ModulePolicy, PolicyViolation,
 pub use nonos_transport::{
     get_assembler, parse_frame, FrameHeader, IpcStream, StreamAssembler, TransportError,
 };
+
+#[cfg(test)]
+mod tests;
