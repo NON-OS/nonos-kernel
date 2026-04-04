@@ -21,5 +21,6 @@ pub use check::{check_service_cap, verify_caller_cap, has_capability, CapError};
 pub use types::{
     ServiceCap, CAP_VFS, CAP_NET, CAP_DISPLAY, CAP_DRIVER, CAP_CRYPTO,
     CAP_PROCESS, CAP_MEMORY, CAP_INPUT, CAP_AUDIO, CAP_ZK, CAP_GPU,
-    CAP_APPS, CAP_AGENTS, CAP_SHELL, CAP_ADMIN,
+    CAP_APPS, CAP_AGENTS, CAP_SHELL, CAP_ADMIN, CAP_KERNEL, CAP_ENTROPY,
+    CAP_KEYRING, CAP_STORAGE, CAP_UDEV, CAP_WALLET, CAP_TLS,
 };

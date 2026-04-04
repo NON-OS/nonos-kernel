@@ -35,7 +35,7 @@ static ENDPOINTS: Mutex<Vec<ServiceEndpoint>> = Mutex::new(Vec::new());
 fn caller_can_register() -> bool {
     match crate::process::current_pid() {
         None => true,
-        Some(1) => true,
+        Some(pid) if pid <= 64 => true,
         Some(_) => {
             let token = crate::syscall::capabilities::current_caps_or_default();
             token.can_register_service() || token.is_admin()

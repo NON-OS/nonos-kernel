@@ -28,6 +28,13 @@ pub const CAP_GPU: u64 = 1 << 10;
 pub const CAP_APPS: u64 = 1 << 11;
 pub const CAP_AGENTS: u64 = 1 << 12;
 pub const CAP_SHELL: u64 = 1 << 13;
+pub const CAP_KERNEL: u64 = 1 << 14;
+pub const CAP_ENTROPY: u64 = 1 << 15;
+pub const CAP_KEYRING: u64 = 1 << 16;
+pub const CAP_STORAGE: u64 = 1 << 17;
+pub const CAP_UDEV: u64 = 1 << 18;
+pub const CAP_WALLET: u64 = 1 << 19;
+pub const CAP_TLS: u64 = 1 << 20;
 pub const CAP_ADMIN: u64 = 1 << 63;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

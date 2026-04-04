@@ -29,3 +29,6 @@ pub use protocol::{ServiceRequest, ServiceResponse, ServiceMessage};
 pub use registry::{lookup_service, register_endpoint, ServiceEndpoint};
 pub use client::ServiceClient;
 pub use server::ServiceServer;
+
+#[cfg(test)]
+mod tests;
