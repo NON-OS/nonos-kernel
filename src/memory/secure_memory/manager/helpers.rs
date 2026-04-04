@@ -50,15 +50,28 @@ pub(super) fn secure_zero_memory(
 ) -> SecureMemoryResult<()> {
     let passes = security_level.scrub_passes();
     if passes == 0 {
-        unsafe { core::ptr::write_bytes(va.as_mut_ptr::<u8>(), 0, size); }
+        volatile_memset(va, 0, size);
     } else {
         for pass in 0..passes {
             let pattern = if pass % 2 == 0 { SECURE_SCRUB_PATTERN } else { !SECURE_SCRUB_PATTERN };
-            unsafe { core::ptr::write_bytes(va.as_mut_ptr::<u8>(), pattern, size); }
+            volatile_memset(va, pattern, size);
             core::sync::atomic::compiler_fence(Ordering::SeqCst);
         }
-        unsafe { core::ptr::write_bytes(va.as_mut_ptr::<u8>(), 0, size); }
+        volatile_memset(va, 0, size);
         core::sync::atomic::compiler_fence(Ordering::SeqCst);
     }
     Ok(())
+}
+
+#[inline(never)]
+fn volatile_memset(va: VirtAddr, value: u8, size: usize) {
+    let ptr = va.as_mut_ptr::<u8>();
+    for i in 0..size {
+        unsafe { core::ptr::write_volatile(ptr.add(i), value); }
+    }
+    core::sync::atomic::compiler_fence(Ordering::SeqCst);
+}
+
+pub(super) fn zero_on_alloc(va: VirtAddr, size: usize) {
+    volatile_memset(va, 0, size);
 }
