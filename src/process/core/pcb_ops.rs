@@ -19,10 +19,13 @@ use super::pcb::ProcessControlBlock;
 
 impl ProcessControlBlock {
     pub fn capability_token(&self) -> crate::syscall::capabilities::CapabilityToken {
+        crate::sys::serial::println(b"[PCB] capability_token: start");
         let bits = self.caps_bits.load(Ordering::Acquire);
         let mut token_data = [0u8; 72];
         token_data[..8].copy_from_slice(&bits.to_le_bytes());
+        crate::sys::serial::println(b"[PCB] capability_token: signing");
         let signature = crate::crypto::kernel_keys::sign_capability_token(&token_data[..8]);
+        crate::sys::serial::println(b"[PCB] capability_token: done");
         crate::syscall::capabilities::CapabilityToken {
             owner_module: self.pid as u64,
             permissions: crate::capabilities::bits_to_caps(bits),

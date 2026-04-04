@@ -39,11 +39,23 @@ pub static CURRENT_PID: AtomicU32 = AtomicU32::new(0);
 pub(super) static NEXT_PID: AtomicU32 = AtomicU32::new(1);
 
 pub fn allocate_tid() -> Pid {
+    const MAX_ATTEMPTS: u32 = 65536;
+    let mut attempts = 0;
     loop {
         let current = NEXT_PID.load(Ordering::SeqCst);
         let next = if current >= u32::MAX - 1 { 1 } else { current + 1 };
         if NEXT_PID.compare_exchange(current, next, Ordering::SeqCst, Ordering::SeqCst).is_ok() {
-            return if current == 0 { 1 } else { current };
+            let pid = if current == 0 { 1 } else { current };
+            // Check if this PID is already in use (wrap-around protection)
+            if !PROCESS_TABLE.is_active_pid(pid as u64) {
+                return pid;
+            }
+            // PID is in use, try next one
+            attempts += 1;
+            if attempts >= MAX_ATTEMPTS {
+                panic!("PID space exhausted: no available PIDs");
+            }
+            continue;
         }
     }
 }
