@@ -19,4 +19,7 @@
 
 pub mod pci;
 
+#[cfg(test)]
+mod tests;
+
 pub use pci::*;
