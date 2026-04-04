@@ -15,6 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::definition::Context;
+use core::sync::atomic::{AtomicBool, Ordering};
+
+pub(crate) static CONTEXT_JUST_RESTORED: AtomicBool = AtomicBool::new(false);
 
 impl Context {
     pub fn save() -> Self {
@@ -46,5 +49,13 @@ impl Context {
             core::arch::asm!("pushfq", "pop {}", out(reg) ctx.rflags, options(nostack));
         }
         ctx
+    }
+
+    pub fn was_just_restored() -> bool {
+        CONTEXT_JUST_RESTORED.swap(false, Ordering::SeqCst)
+    }
+
+    pub fn clear_restored_flag() {
+        CONTEXT_JUST_RESTORED.store(false, Ordering::SeqCst);
     }
 }
