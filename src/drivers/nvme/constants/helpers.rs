@@ -45,12 +45,16 @@ pub const MAX_CID_MISMATCHES: u32 = 10;
 
 #[inline]
 pub const fn doorbell_sq_offset(dstrd: u32, qid: u16) -> usize {
-    REG_DBS + (2 * qid as usize) * (4 << dstrd)
+    let stride = 4usize << (dstrd & 0xF);
+    let qid_offset = (qid as usize).saturating_mul(2).saturating_mul(stride);
+    REG_DBS.saturating_add(qid_offset)
 }
 
 #[inline]
 pub const fn doorbell_cq_offset(dstrd: u32, qid: u16) -> usize {
-    REG_DBS + (2 * qid as usize + 1) * (4 << dstrd)
+    let stride = 4usize << (dstrd & 0xF);
+    let qid_offset = ((qid as usize).saturating_mul(2).saturating_add(1)).saturating_mul(stride);
+    REG_DBS.saturating_add(qid_offset)
 }
 
 #[inline]

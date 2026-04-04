@@ -51,6 +51,8 @@ impl NvmeError {
             Self::QueueFull => "Queue is full",
             Self::InvalidPrpAlignment => "PRP address not properly aligned",
             Self::MsixConfigurationFailed => "MSI-X configuration failed",
+            Self::InterruptAllocationFailed => "Interrupt allocation failed",
+            Self::InterruptTimeout => "Interrupt wait timeout",
             Self::ControllerNotInitialized => "NVMe controller not initialized",
             Self::SubmissionQueueError => "Submission queue error",
             Self::CompletionQueueError => "Completion queue error",

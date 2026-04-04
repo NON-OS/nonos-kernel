@@ -19,6 +19,7 @@ pub mod controller;
 pub mod dma;
 mod driver;
 pub mod error;
+pub mod interrupt;
 pub mod namespace;
 pub mod queue;
 pub mod security;
