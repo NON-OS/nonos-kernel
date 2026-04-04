@@ -30,10 +30,10 @@ pub(super) fn get_queue() -> &'static Mutex<RunQueue> {
 static mut GLOBAL_SCHEDULER: Option<Scheduler> = None;
 
 pub fn init() {
-    // SAFETY: Single-threaded initialization during kernel boot.
     unsafe { GLOBAL_SCHEDULER = Some(Scheduler { running_tasks: 0 }); }
     get_queue().lock().clear();
     realtime::init();
+    super::smp::init_smp_scheduler();
 }
 
 pub fn get() -> Option<&'static Scheduler> {

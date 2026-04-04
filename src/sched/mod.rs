@@ -22,12 +22,15 @@ pub mod realtime;
 pub mod scheduler;
 mod api;
 
+#[cfg(test)]
+mod tests;
+
 pub use scheduler::{
     init, get, spawn, run, tick, wakeup, enter,
     add_to_run_queue, remove_from_run_queue, is_in_run_queue,
     runnable_process_count, get_runnable_pids, get_scheduler_stats,
     SchedulerStatsSnapshot, sleep_until, wake_process, is_sleeping,
-    get_remaining_sleep, yield_now,
+    get_remaining_sleep, yield_now, need_reschedule, clear_reschedule,
 };
 
 pub use api::{current_scheduler, yield_cpu, schedule, current_cpu_id};
@@ -38,4 +41,8 @@ pub use executor::{spawn_async, poll_async_tasks, pending_async_tasks};
 pub use realtime::{
     init as realtime_init, spawn_realtime, run_realtime_tasks,
     pending_realtime_tasks, has_realtime_tasks,
+};
+pub use scheduler::{
+    init_smp_scheduler, init_ap_scheduler, smp_enabled, smp_cpu_count,
+    local_queue_len, total_runnable, force_balance, get_smp_stats, SmpSchedStats,
 };
