@@ -31,6 +31,9 @@ pub mod cache;
 pub mod hooks;
 pub mod sandbox;
 
+#[cfg(test)]
+mod tests;
+
 pub use types::{
     Package, PackageId, PackageVersion, PackageMeta, PackageState,
     Dependency, DependencyKind, Architecture, PackageKind,
