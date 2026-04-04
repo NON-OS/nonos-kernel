@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::state::*;
-use super::{privacy, network, appearance, system, power};
+use super::{privacy, network, appearance, system, power, kernel};
 
 pub fn handle_click(win_x: u32, content_y: u32, win_w: u32, click_x: i32, click_y: i32) -> bool {
     if handle_sidebar_click(win_x, content_y, click_x, click_y) {
@@ -32,6 +32,7 @@ pub fn handle_click(win_x: u32, content_y: u32, win_w: u32, click_x: i32, click_
         PAGE_APPEARANCE => appearance::handle_click(content_x, content_y + 45, content_w, click_x, click_y),
         PAGE_SYSTEM => system::handle_click(content_x, content_y + 45, content_w, click_x, click_y),
         PAGE_POWER => power::handle_click(content_x, content_y + 45, content_w, click_x, click_y),
+        PAGE_KERNEL => kernel::handle_click(content_x, content_y + 45, content_w, click_x, click_y),
         _ => false,
     }
 }
@@ -41,8 +42,8 @@ fn handle_sidebar_click(win_x: u32, content_y: u32, click_x: i32, click_y: i32) 
         return false;
     }
 
-    if click_y >= content_y as i32 + 50 && click_y < content_y as i32 + 50 + 220 {
-        let tab_idx = ((click_y - content_y as i32 - 50) / 44) as u8;
+    if click_y >= content_y as i32 + 50 && click_y < content_y as i32 + 50 + 240 {
+        let tab_idx = ((click_y - content_y as i32 - 50) / 40) as u8;
         if tab_idx < PAGE_COUNT {
             set_page(tab_idx);
             return true;
