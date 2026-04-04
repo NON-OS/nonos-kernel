@@ -20,33 +20,36 @@ use core::sync::atomic::{AtomicBool, Ordering};
 pub(crate) static CONTEXT_JUST_RESTORED: AtomicBool = AtomicBool::new(false);
 
 impl Context {
+    #[inline(always)]
     pub fn save() -> Self {
-        let mut ctx = Context {
-            rax: 0, rbx: 0, rcx: 0, rdx: 0,
-            rsi: 0, rdi: 0, rbp: 0, rsp: 0,
-            r8: 0, r9: 0, r10: 0, r11: 0,
-            r12: 0, r13: 0, r14: 0, r15: 0,
-            rip: 0, rflags: 0,
-        };
+        let mut ctx: Context = unsafe { core::mem::zeroed() };
         unsafe {
-            core::arch::asm!("mov {}, rax", out(reg) ctx.rax, options(preserves_flags, nostack));
-            core::arch::asm!("mov {}, rbx", out(reg) ctx.rbx, options(preserves_flags, nostack));
-            core::arch::asm!("mov {}, rcx", out(reg) ctx.rcx, options(preserves_flags, nostack));
-            core::arch::asm!("mov {}, rdx", out(reg) ctx.rdx, options(preserves_flags, nostack));
-            core::arch::asm!("mov {}, rsi", out(reg) ctx.rsi, options(preserves_flags, nostack));
-            core::arch::asm!("mov {}, rdi", out(reg) ctx.rdi, options(preserves_flags, nostack));
-            core::arch::asm!("mov {}, rbp", out(reg) ctx.rbp, options(preserves_flags, nostack));
-            core::arch::asm!("lea {}, [rsp + 8]", out(reg) ctx.rsp, options(preserves_flags, nostack));
-            core::arch::asm!("mov {}, r8", out(reg) ctx.r8, options(preserves_flags, nostack));
-            core::arch::asm!("mov {}, r9", out(reg) ctx.r9, options(preserves_flags, nostack));
-            core::arch::asm!("mov {}, r10", out(reg) ctx.r10, options(preserves_flags, nostack));
-            core::arch::asm!("mov {}, r11", out(reg) ctx.r11, options(preserves_flags, nostack));
-            core::arch::asm!("mov {}, r12", out(reg) ctx.r12, options(preserves_flags, nostack));
-            core::arch::asm!("mov {}, r13", out(reg) ctx.r13, options(preserves_flags, nostack));
-            core::arch::asm!("mov {}, r14", out(reg) ctx.r14, options(preserves_flags, nostack));
-            core::arch::asm!("mov {}, r15", out(reg) ctx.r15, options(preserves_flags, nostack));
-            core::arch::asm!("mov {}, [rsp]", out(reg) ctx.rip, options(preserves_flags, nostack));
-            core::arch::asm!("pushfq", "pop {}", out(reg) ctx.rflags, options(nostack));
+            core::arch::asm!(
+                "mov [{0}], rax",
+                "mov [{0} + 8], rbx",
+                "mov [{0} + 16], rcx",
+                "mov [{0} + 24], rdx",
+                "mov [{0} + 32], rsi",
+                "mov [{0} + 40], rdi",
+                "mov [{0} + 48], rbp",
+                "mov [{0} + 56], rsp",
+                "mov [{0} + 64], r8",
+                "mov [{0} + 72], r9",
+                "mov [{0} + 80], r10",
+                "mov [{0} + 88], r11",
+                "mov [{0} + 96], r12",
+                "mov [{0} + 104], r13",
+                "mov [{0} + 112], r14",
+                "mov [{0} + 120], r15",
+                "pushfq",
+                "pop rax",
+                "mov [{0} + 136], rax",
+                "lea rax, [rip + 2f]",
+                "mov [{0} + 128], rax",
+                "2:",
+                in(reg) &mut ctx as *mut Context,
+                out("rax") _,
+            );
         }
         ctx
     }
