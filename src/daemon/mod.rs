@@ -81,3 +81,6 @@ pub fn stop_daemon() {
     let mut state = DAEMON_STATE.lock();
     state.running = false;
 }
+
+#[cfg(test)]
+mod tests;
