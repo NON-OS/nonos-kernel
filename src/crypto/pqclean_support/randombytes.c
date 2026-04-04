@@ -1,5 +1,5 @@
-// NØNOS Operating System
-// Copyright (C) 2026 NØNOS Contributors
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -14,14 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-// PQClean expects: void randombytes(uint8_t *buf, size_t n);
-// We route to the kernel's RNG via a Rust-exported symbol.
-
-#include <stdint.h>
-#include <stddef.h>
+#include "randombytes.h"
 
 extern void nonos_randombytes(uint8_t *buf, size_t n);
 
-void randombytes(uint8_t *buf, size_t n) {
-    nonos_randombytes(buf, n);
+int randombytes(uint8_t *output, size_t n) {
+    nonos_randombytes(output, n);
+    return 0;
 }
