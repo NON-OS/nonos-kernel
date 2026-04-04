@@ -7,145 +7,146 @@ use crate::agents::presets::{
     coding_assistant, file_manager_agent, system_monitor,
     web_researcher, task_automator, list_presets
 };
+use crate::test::framework::TestResult;
 
-#[test]
-fn test_coding_assistant_preset() {
+pub fn test_coding_assistant_preset() -> TestResult {
     let config = coding_assistant();
 
-    assert_eq!(&config.name[..15], b"Code Assistant\0");
-    assert!(!config.system_prompt.is_empty());
-    assert!(config.tools_enabled[0]);
-    assert!(config.tools_enabled[1]);
-    assert!(config.tools_enabled[2]);
-    assert!(!config.tools_enabled[3]);
+    if &config.name[..15] != b"Code Assistant\0" { return TestResult::Fail; }
+    if config.system_prompt.is_empty() { return TestResult::Fail; }
+    if !config.tools_enabled[0] { return TestResult::Fail; }
+    if !config.tools_enabled[1] { return TestResult::Fail; }
+    if !config.tools_enabled[2] { return TestResult::Fail; }
+    if config.tools_enabled[3] { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_file_manager_preset() {
+pub fn test_file_manager_preset() -> TestResult {
     let config = file_manager_agent();
 
-    assert_eq!(&config.name[..12], b"File Manager");
-    assert!(!config.system_prompt.is_empty());
-    assert!(!config.tools_enabled[0]);
-    assert!(config.tools_enabled[1]);
-    assert!(config.tools_enabled[2]);
-    assert!(config.tools_enabled[3]);
+    if &config.name[..12] != b"File Manager" { return TestResult::Fail; }
+    if config.system_prompt.is_empty() { return TestResult::Fail; }
+    if config.tools_enabled[0] { return TestResult::Fail; }
+    if !config.tools_enabled[1] { return TestResult::Fail; }
+    if !config.tools_enabled[2] { return TestResult::Fail; }
+    if !config.tools_enabled[3] { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_system_monitor_preset() {
+pub fn test_system_monitor_preset() -> TestResult {
     let config = system_monitor();
 
-    assert_eq!(&config.name[..14], b"System Monitor");
-    assert!(!config.system_prompt.is_empty());
-    assert!(config.tools_enabled[0]);
-    assert!(!config.tools_enabled[1]);
+    if &config.name[..14] != b"System Monitor" { return TestResult::Fail; }
+    if config.system_prompt.is_empty() { return TestResult::Fail; }
+    if !config.tools_enabled[0] { return TestResult::Fail; }
+    if config.tools_enabled[1] { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_web_researcher_preset() {
+pub fn test_web_researcher_preset() -> TestResult {
     let config = web_researcher();
 
-    assert_eq!(&config.name[..14], b"Web Researcher");
-    assert!(!config.system_prompt.is_empty());
-    assert_eq!(config.max_tokens, 8192);
+    if &config.name[..14] != b"Web Researcher" { return TestResult::Fail; }
+    if config.system_prompt.is_empty() { return TestResult::Fail; }
+    if config.max_tokens != 8192 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_task_automator_preset() {
+pub fn test_task_automator_preset() -> TestResult {
     let config = task_automator();
 
-    assert_eq!(&config.name[..14], b"Task Automator");
-    assert!(!config.system_prompt.is_empty());
-    assert!(config.tools_enabled[0]);
-    assert!(config.tools_enabled[1]);
-    assert!(config.tools_enabled[2]);
+    if &config.name[..14] != b"Task Automator" { return TestResult::Fail; }
+    if config.system_prompt.is_empty() { return TestResult::Fail; }
+    if !config.tools_enabled[0] { return TestResult::Fail; }
+    if !config.tools_enabled[1] { return TestResult::Fail; }
+    if !config.tools_enabled[2] { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_list_presets() {
+pub fn test_list_presets() -> TestResult {
     let presets = list_presets();
 
-    assert_eq!(presets.len(), 5);
+    if presets.len() != 5 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_list_presets_names() {
+pub fn test_list_presets_names() -> TestResult {
     let presets = list_presets();
 
-    assert_eq!(presets[0].0, b"Code Assistant");
-    assert_eq!(presets[1].0, b"File Manager");
-    assert_eq!(presets[2].0, b"System Monitor");
-    assert_eq!(presets[3].0, b"Web Researcher");
-    assert_eq!(presets[4].0, b"Task Automator");
+    if presets[0].0 != b"Code Assistant" { return TestResult::Fail; }
+    if presets[1].0 != b"File Manager" { return TestResult::Fail; }
+    if presets[2].0 != b"System Monitor" { return TestResult::Fail; }
+    if presets[3].0 != b"Web Researcher" { return TestResult::Fail; }
+    if presets[4].0 != b"Task Automator" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_list_presets_callable() {
+pub fn test_list_presets_callable() -> TestResult {
     let presets = list_presets();
 
     for (_, factory) in presets {
         let config = factory();
-        assert!(config.name[0] != 0 || config.system_prompt.is_empty() == false);
+        if config.name[0] == 0 && config.system_prompt.is_empty() { return TestResult::Fail; }
     }
+    TestResult::Pass
 }
 
-#[test]
-fn test_preset_default_max_tokens() {
+pub fn test_preset_default_max_tokens() -> TestResult {
     let coding = coding_assistant();
     let file_mgr = file_manager_agent();
     let monitor = system_monitor();
     let automator = task_automator();
 
-    assert_eq!(coding.max_tokens, 4096);
-    assert_eq!(file_mgr.max_tokens, 4096);
-    assert_eq!(monitor.max_tokens, 4096);
-    assert_eq!(automator.max_tokens, 4096);
+    if coding.max_tokens != 4096 { return TestResult::Fail; }
+    if file_mgr.max_tokens != 4096 { return TestResult::Fail; }
+    if monitor.max_tokens != 4096 { return TestResult::Fail; }
+    if automator.max_tokens != 4096 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_preset_default_temperature() {
+pub fn test_preset_default_temperature() -> TestResult {
     let config = coding_assistant();
-    assert_eq!(config.temperature, 70);
+    if config.temperature != 70 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_presets_are_independent() {
+pub fn test_presets_are_independent() -> TestResult {
     let config1 = coding_assistant();
     let config2 = coding_assistant();
 
-    assert_eq!(config1.name, config2.name);
-    assert_eq!(config1.max_tokens, config2.max_tokens);
+    if config1.name != config2.name { return TestResult::Fail; }
+    if config1.max_tokens != config2.max_tokens { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_preset_system_prompts_not_empty() {
-    assert!(!coding_assistant().system_prompt.is_empty());
-    assert!(!file_manager_agent().system_prompt.is_empty());
-    assert!(!system_monitor().system_prompt.is_empty());
-    assert!(!web_researcher().system_prompt.is_empty());
-    assert!(!task_automator().system_prompt.is_empty());
+pub fn test_preset_system_prompts_not_empty() -> TestResult {
+    if coding_assistant().system_prompt.is_empty() { return TestResult::Fail; }
+    if file_manager_agent().system_prompt.is_empty() { return TestResult::Fail; }
+    if system_monitor().system_prompt.is_empty() { return TestResult::Fail; }
+    if web_researcher().system_prompt.is_empty() { return TestResult::Fail; }
+    if task_automator().system_prompt.is_empty() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_preset_tool_configurations() {
+pub fn test_preset_tool_configurations() -> TestResult {
     let coding = coding_assistant();
     let enabled_count = coding.tools_enabled.iter().filter(|&&x| x).count();
-    assert_eq!(enabled_count, 3);
+    if enabled_count != 3 { return TestResult::Fail; }
 
     let file_mgr = file_manager_agent();
     let enabled_count = file_mgr.tools_enabled.iter().filter(|&&x| x).count();
-    assert_eq!(enabled_count, 3);
+    if enabled_count != 3 { return TestResult::Fail; }
 
     let monitor = system_monitor();
     let enabled_count = monitor.tools_enabled.iter().filter(|&&x| x).count();
-    assert_eq!(enabled_count, 1);
+    if enabled_count != 1 { return TestResult::Fail; }
 
     let web = web_researcher();
     let enabled_count = web.tools_enabled.iter().filter(|&&x| x).count();
-    assert_eq!(enabled_count, 0);
+    if enabled_count != 0 { return TestResult::Fail; }
 
     let automator = task_automator();
     let enabled_count = automator.tools_enabled.iter().filter(|&&x| x).count();
-    assert_eq!(enabled_count, 3);
+    if enabled_count != 3 { return TestResult::Fail; }
+    TestResult::Pass
 }

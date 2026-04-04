@@ -1,12 +1,11 @@
 // NONOS Operating System
 // Copyright (C) 2026 NONOS Contributors
-//
-// Tests for apps/registry
 
 use crate::apps::registry::{AppEntry, AppInfo};
 use crate::apps::context::AppPermissions;
 use crate::apps::lifecycle::LifecycleState;
 use crate::apps::types::AppType;
+use crate::test::framework::TestResult;
 
 fn make_test_info(name: &'static str) -> AppInfo {
     AppInfo::new(
@@ -19,8 +18,7 @@ fn make_test_info(name: &'static str) -> AppInfo {
     )
 }
 
-#[test_case]
-fn test_app_info_new() {
+pub fn test_app_info_new() -> TestResult {
     let info = AppInfo::new(
         "TestApp",
         "2.0.0",
@@ -29,28 +27,26 @@ fn test_app_info_new() {
         AppType::Browser,
         AppPermissions::BROWSER,
     );
-
-    assert_eq!(info.name, "TestApp");
-    assert_eq!(info.version, "2.0.0");
-    assert_eq!(info.description, "A test app");
-    assert_eq!(info.author, "Developer");
-    assert_eq!(info.app_type, AppType::Browser);
-    assert!(info.permissions.contains(AppPermissions::NETWORK));
+    if info.name != "TestApp" { return TestResult::Fail; }
+    if info.version != "2.0.0" { return TestResult::Fail; }
+    if info.description != "A test app" { return TestResult::Fail; }
+    if info.author != "Developer" { return TestResult::Fail; }
+    if info.app_type != AppType::Browser { return TestResult::Fail; }
+    if !info.permissions.contains(AppPermissions::NETWORK) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test_case]
-fn test_app_entry_new() {
+pub fn test_app_entry_new() -> TestResult {
     let info = make_test_info("EntryTest");
     let entry = AppEntry::new(info);
-
-    assert_eq!(entry.name(), "EntryTest");
-    assert_eq!(entry.version(), "1.0.0");
-    assert_eq!(entry.state(), LifecycleState::Stopped);
-    assert!(entry.context().is_none());
+    if entry.name() != "EntryTest" { return TestResult::Fail; }
+    if entry.version() != "1.0.0" { return TestResult::Fail; }
+    if entry.state() != LifecycleState::Stopped { return TestResult::Fail; }
+    if entry.context().is_some() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test_case]
-fn test_app_entry_info_accessors() {
+pub fn test_app_entry_info_accessors() -> TestResult {
     let info = AppInfo::new(
         "Wallet",
         "3.5.1",
@@ -60,61 +56,50 @@ fn test_app_entry_info_accessors() {
         AppPermissions::WALLET_APP,
     );
     let entry = AppEntry::new(info);
-
-    assert_eq!(entry.name(), "Wallet");
-    assert_eq!(entry.version(), "3.5.1");
-    assert_eq!(entry.description(), "Crypto wallet");
-    assert_eq!(entry.app_type(), AppType::Wallet);
-    assert!(entry.permissions().contains(AppPermissions::CRYPTO));
+    if entry.name() != "Wallet" { return TestResult::Fail; }
+    if entry.version() != "3.5.1" { return TestResult::Fail; }
+    if entry.description() != "Crypto wallet" { return TestResult::Fail; }
+    if entry.app_type() != AppType::Wallet { return TestResult::Fail; }
+    if !entry.permissions().contains(AppPermissions::CRYPTO) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test_case]
-fn test_app_entry_state() {
+pub fn test_app_entry_state() -> TestResult {
     let info = make_test_info("StateTest");
     let mut entry = AppEntry::new(info);
-
-    assert_eq!(entry.state(), LifecycleState::Stopped);
-
+    if entry.state() != LifecycleState::Stopped { return TestResult::Fail; }
     entry.set_state(LifecycleState::Running);
-    assert_eq!(entry.state(), LifecycleState::Running);
-
+    if entry.state() != LifecycleState::Running { return TestResult::Fail; }
     entry.set_state(LifecycleState::Suspended);
-    assert_eq!(entry.state(), LifecycleState::Suspended);
+    if entry.state() != LifecycleState::Suspended { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test_case]
-fn test_app_entry_is_running() {
+pub fn test_app_entry_is_running() -> TestResult {
     let info = make_test_info("RunningTest");
     let mut entry = AppEntry::new(info);
-
-    assert!(!entry.is_running());
-
+    if entry.is_running() { return TestResult::Fail; }
     entry.set_state(LifecycleState::Running);
-    assert!(entry.is_running());
-
+    if !entry.is_running() { return TestResult::Fail; }
     entry.set_state(LifecycleState::Suspended);
-    assert!(entry.is_running());
-
+    if !entry.is_running() { return TestResult::Fail; }
     entry.set_state(LifecycleState::Stopped);
-    assert!(!entry.is_running());
+    if entry.is_running() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test_case]
-fn test_app_entry_create_context() {
+pub fn test_app_entry_create_context() -> TestResult {
     let info = make_test_info("ContextTest");
     let mut entry = AppEntry::new(info);
-
-    assert!(entry.context().is_none());
-    assert!(entry.id().is_none());
-
+    if entry.context().is_some() { return TestResult::Fail; }
+    if entry.id().is_some() { return TestResult::Fail; }
     entry.create_context();
-
-    assert!(entry.context().is_some());
-    assert!(entry.id().is_some());
+    if entry.context().is_none() { return TestResult::Fail; }
+    if entry.id().is_none() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test_case]
-fn test_app_entry_context_properties() {
+pub fn test_app_entry_context_properties() -> TestResult {
     let info = AppInfo::new(
         "PropTest",
         "1.0.0",
@@ -125,69 +110,60 @@ fn test_app_entry_context_properties() {
     );
     let mut entry = AppEntry::new(info);
     entry.create_context();
-
     let ctx = entry.context().unwrap();
-    assert_eq!(ctx.name(), "PropTest");
-    assert_eq!(ctx.app_type(), AppType::Browser);
-    assert!(ctx.has_permission(AppPermissions::NETWORK));
+    if ctx.name() != "PropTest" { return TestResult::Fail; }
+    if ctx.app_type() != AppType::Browser { return TestResult::Fail; }
+    if !ctx.has_permission(AppPermissions::NETWORK) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test_case]
-fn test_app_entry_destroy_context() {
+pub fn test_app_entry_destroy_context() -> TestResult {
     let info = make_test_info("DestroyTest");
     let mut entry = AppEntry::new(info);
-
     entry.create_context();
-    assert!(entry.context().is_some());
-
+    if entry.context().is_none() { return TestResult::Fail; }
     entry.destroy_context();
-    assert!(entry.context().is_none());
-    assert!(entry.id().is_none());
+    if entry.context().is_some() { return TestResult::Fail; }
+    if entry.id().is_some() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test_case]
-fn test_app_entry_context_mut() {
+pub fn test_app_entry_context_mut() -> TestResult {
     let info = make_test_info("MutTest");
     let mut entry = AppEntry::new(info);
     entry.create_context();
-
     let ctx_mut = entry.context_mut().unwrap();
     ctx_mut.mark_started();
-
     let ctx = entry.context().unwrap();
-    assert!(ctx.started_at() > 0);
+    if ctx.started_at() == 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test_case]
-fn test_app_entry_registered_at() {
+pub fn test_app_entry_registered_at() -> TestResult {
     let info = make_test_info("TimeTest");
     let entry = AppEntry::new(info);
-
-    assert!(entry.registered_at() > 0);
+    if entry.registered_at() == 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test_case]
-fn test_app_entry_uptime_no_context() {
+pub fn test_app_entry_uptime_no_context() -> TestResult {
     let info = make_test_info("UptimeTest");
     let entry = AppEntry::new(info);
-
-    assert_eq!(entry.uptime_ms(), 0);
+    if entry.uptime_ms() != 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test_case]
-fn test_app_entry_uptime_with_context() {
+pub fn test_app_entry_uptime_with_context() -> TestResult {
     let info = make_test_info("UptimeTest2");
     let mut entry = AppEntry::new(info);
     entry.create_context();
-
     let ctx_mut = entry.context_mut().unwrap();
     ctx_mut.mark_started();
-
-    assert!(entry.uptime_ms() >= 0);
+    if entry.uptime_ms() < 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test_case]
-fn test_app_info_fields() {
+pub fn test_app_info_fields() -> TestResult {
     let info = AppInfo::new(
         "FieldsTest",
         "0.1.0",
@@ -196,35 +172,30 @@ fn test_app_info_fields() {
         AppType::Privacy,
         AppPermissions::CRYPTO | AppPermissions::FILESYSTEM,
     );
-
-    assert_eq!(info.name, "FieldsTest");
-    assert_eq!(info.version, "0.1.0");
-    assert_eq!(info.description, "Description here");
-    assert_eq!(info.author, "AuthorName");
-    assert_eq!(info.app_type, AppType::Privacy);
+    if info.name != "FieldsTest" { return TestResult::Fail; }
+    if info.version != "0.1.0" { return TestResult::Fail; }
+    if info.description != "Description here" { return TestResult::Fail; }
+    if info.author != "AuthorName" { return TestResult::Fail; }
+    if info.app_type != AppType::Privacy { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test_case]
-fn test_multiple_entries() {
+pub fn test_multiple_entries() -> TestResult {
     let info1 = make_test_info("App1");
     let info2 = make_test_info("App2");
-
     let mut entry1 = AppEntry::new(info1);
     let mut entry2 = AppEntry::new(info2);
-
     entry1.create_context();
     entry2.create_context();
-
-    assert_ne!(entry1.id(), entry2.id());
-    assert_eq!(entry1.name(), "App1");
-    assert_eq!(entry2.name(), "App2");
+    if entry1.id() == entry2.id() { return TestResult::Fail; }
+    if entry1.name() != "App1" { return TestResult::Fail; }
+    if entry2.name() != "App2" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test_case]
-fn test_lifecycle_state_transitions() {
+pub fn test_lifecycle_state_transitions() -> TestResult {
     let info = make_test_info("TransitionTest");
     let mut entry = AppEntry::new(info);
-
     let states = [
         LifecycleState::Starting,
         LifecycleState::Running,
@@ -233,19 +204,18 @@ fn test_lifecycle_state_transitions() {
         LifecycleState::Stopped,
         LifecycleState::Failed,
     ];
-
     for state in states {
         entry.set_state(state);
-        assert_eq!(entry.state(), state);
+        if entry.state() != state { return TestResult::Fail; }
     }
+    TestResult::Pass
 }
 
-#[test_case]
-fn test_app_entry_info_reference() {
+pub fn test_app_entry_info_reference() -> TestResult {
     let info = make_test_info("RefTest");
     let entry = AppEntry::new(info);
-
     let info_ref = entry.info();
-    assert_eq!(info_ref.name, "RefTest");
-    assert_eq!(info_ref.version, "1.0.0");
+    if info_ref.name != "RefTest" { return TestResult::Fail; }
+    if info_ref.version != "1.0.0" { return TestResult::Fail; }
+    TestResult::Pass
 }

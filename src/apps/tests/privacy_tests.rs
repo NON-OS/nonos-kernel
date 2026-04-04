@@ -1,39 +1,41 @@
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
+
 extern crate alloc;
 
-use alloc::string::String;
 use crate::apps::ecosystem::privacy;
 use crate::apps::ecosystem::privacy::stats::{PrivacyStats, get_stats, reset_stats, increment_blocked, increment_params_stripped, increment_fingerprint_blocked, increment_cookies_blocked};
 use crate::apps::ecosystem::privacy::tracker_blocker::{is_tracker, should_block, BLOCKED_DOMAINS, blocked_domain_count};
 use crate::apps::ecosystem::privacy::url_cleaner::{clean_url, strip_tracking_params, tracking_param_count};
+use crate::test::framework::TestResult;
 
-#[test]
-fn test_privacy_init() {
+pub fn test_privacy_init() -> TestResult {
     privacy::init();
     let stats = get_stats();
-    assert_eq!(stats.requests_blocked, 0);
-    assert_eq!(stats.requests_allowed, 0);
+    if stats.requests_blocked != 0 { return TestResult::Fail; }
+    if stats.requests_allowed != 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_privacy_start_stop() {
+pub fn test_privacy_start_stop() -> TestResult {
     privacy::start();
-    assert!(privacy::is_running());
+    if !privacy::is_running() { return TestResult::Fail; }
     privacy::stop();
-    assert!(!privacy::is_running());
+    if privacy::is_running() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_privacy_stats_default() {
+pub fn test_privacy_stats_default() -> TestResult {
     let stats: PrivacyStats = Default::default();
-    assert_eq!(stats.requests_blocked, 0);
-    assert_eq!(stats.requests_allowed, 0);
-    assert_eq!(stats.params_stripped, 0);
-    assert_eq!(stats.fingerprint_blocked, 0);
-    assert_eq!(stats.cookies_blocked, 0);
+    if stats.requests_blocked != 0 { return TestResult::Fail; }
+    if stats.requests_allowed != 0 { return TestResult::Fail; }
+    if stats.params_stripped != 0 { return TestResult::Fail; }
+    if stats.fingerprint_blocked != 0 { return TestResult::Fail; }
+    if stats.cookies_blocked != 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_privacy_stats_total_requests() {
+pub fn test_privacy_stats_total_requests() -> TestResult {
     let stats = PrivacyStats {
         requests_blocked: 10,
         requests_allowed: 90,
@@ -41,11 +43,11 @@ fn test_privacy_stats_total_requests() {
         fingerprint_blocked: 0,
         cookies_blocked: 0,
     };
-    assert_eq!(stats.total_requests(), 100);
+    if stats.total_requests() != 100 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_privacy_stats_block_rate_zero() {
+pub fn test_privacy_stats_block_rate_zero() -> TestResult {
     let stats = PrivacyStats {
         requests_blocked: 0,
         requests_allowed: 0,
@@ -53,11 +55,11 @@ fn test_privacy_stats_block_rate_zero() {
         fingerprint_blocked: 0,
         cookies_blocked: 0,
     };
-    assert_eq!(stats.block_rate(), 0.0);
+    if stats.block_rate() != 0.0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_privacy_stats_block_rate_50_percent() {
+pub fn test_privacy_stats_block_rate_50_percent() -> TestResult {
     let stats = PrivacyStats {
         requests_blocked: 50,
         requests_allowed: 50,
@@ -65,11 +67,11 @@ fn test_privacy_stats_block_rate_50_percent() {
         fingerprint_blocked: 0,
         cookies_blocked: 0,
     };
-    assert!((stats.block_rate() - 50.0).abs() < 0.01);
+    if (stats.block_rate() - 50.0).abs() >= 0.01 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_privacy_stats_block_rate_100_percent() {
+pub fn test_privacy_stats_block_rate_100_percent() -> TestResult {
     let stats = PrivacyStats {
         requests_blocked: 100,
         requests_allowed: 0,
@@ -77,197 +79,197 @@ fn test_privacy_stats_block_rate_100_percent() {
         fingerprint_blocked: 0,
         cookies_blocked: 0,
     };
-    assert!((stats.block_rate() - 100.0).abs() < 0.01);
+    if (stats.block_rate() - 100.0).abs() >= 0.01 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_reset_stats() {
+pub fn test_reset_stats() -> TestResult {
     reset_stats();
     increment_blocked();
     increment_blocked();
     let stats1 = get_stats();
-    assert!(stats1.requests_blocked > 0);
+    if stats1.requests_blocked == 0 { return TestResult::Fail; }
     reset_stats();
     let stats2 = get_stats();
-    assert_eq!(stats2.requests_blocked, 0);
+    if stats2.requests_blocked != 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_increment_params_stripped() {
+pub fn test_increment_params_stripped() -> TestResult {
     reset_stats();
     increment_params_stripped();
     increment_params_stripped();
     let stats = get_stats();
-    assert_eq!(stats.params_stripped, 2);
+    if stats.params_stripped != 2 { return TestResult::Fail; }
     reset_stats();
+    TestResult::Pass
 }
 
-#[test]
-fn test_increment_fingerprint_blocked() {
+pub fn test_increment_fingerprint_blocked() -> TestResult {
     reset_stats();
     increment_fingerprint_blocked();
     let stats = get_stats();
-    assert_eq!(stats.fingerprint_blocked, 1);
+    if stats.fingerprint_blocked != 1 { return TestResult::Fail; }
     reset_stats();
+    TestResult::Pass
 }
 
-#[test]
-fn test_increment_cookies_blocked() {
+pub fn test_increment_cookies_blocked() -> TestResult {
     reset_stats();
     increment_cookies_blocked();
     increment_cookies_blocked();
     increment_cookies_blocked();
     let stats = get_stats();
-    assert_eq!(stats.cookies_blocked, 3);
+    if stats.cookies_blocked != 3 { return TestResult::Fail; }
     reset_stats();
+    TestResult::Pass
 }
 
-#[test]
-fn test_is_tracker_exact_match() {
-    assert!(is_tracker("google-analytics.com"));
-    assert!(is_tracker("doubleclick.net"));
-    assert!(is_tracker("facebook.net"));
+pub fn test_is_tracker_exact_match() -> TestResult {
+    if !is_tracker("google-analytics.com") { return TestResult::Fail; }
+    if !is_tracker("doubleclick.net") { return TestResult::Fail; }
+    if !is_tracker("facebook.net") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_is_tracker_subdomain() {
-    assert!(is_tracker("www.google-analytics.com"));
-    assert!(is_tracker("sub.doubleclick.net"));
-    assert!(is_tracker("cdn.facebook.net"));
+pub fn test_is_tracker_subdomain() -> TestResult {
+    if !is_tracker("www.google-analytics.com") { return TestResult::Fail; }
+    if !is_tracker("sub.doubleclick.net") { return TestResult::Fail; }
+    if !is_tracker("cdn.facebook.net") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_is_tracker_case_insensitive() {
-    assert!(is_tracker("GOOGLE-ANALYTICS.COM"));
-    assert!(is_tracker("Google-Analytics.Com"));
+pub fn test_is_tracker_case_insensitive() -> TestResult {
+    if !is_tracker("GOOGLE-ANALYTICS.COM") { return TestResult::Fail; }
+    if !is_tracker("Google-Analytics.Com") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_is_tracker_not_tracker() {
-    assert!(!is_tracker("example.com"));
-    assert!(!is_tracker("google.com"));
-    assert!(!is_tracker("legitimate-site.org"));
+pub fn test_is_tracker_not_tracker() -> TestResult {
+    if is_tracker("example.com") { return TestResult::Fail; }
+    if is_tracker("google.com") { return TestResult::Fail; }
+    if is_tracker("legitimate-site.org") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_is_tracker_partial_match_not_blocked() {
-    assert!(!is_tracker("notgoogle-analytics.com"));
-    assert!(!is_tracker("google-analytics.com.example.org"));
+pub fn test_is_tracker_partial_match_not_blocked() -> TestResult {
+    if is_tracker("notgoogle-analytics.com") { return TestResult::Fail; }
+    if is_tracker("google-analytics.com.example.org") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_blocked_domains_not_empty() {
-    assert!(!BLOCKED_DOMAINS.is_empty());
+pub fn test_blocked_domains_not_empty() -> TestResult {
+    if BLOCKED_DOMAINS.is_empty() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_blocked_domain_count() {
-    assert!(blocked_domain_count() > 50);
+pub fn test_blocked_domain_count() -> TestResult {
+    if blocked_domain_count() <= 50 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_should_block_tracker_url() {
+pub fn test_should_block_tracker_url() -> TestResult {
     reset_stats();
     let (blocked, domain) = should_block("https://google-analytics.com/collect");
-    assert!(blocked);
-    assert_eq!(domain, Some(String::from("google-analytics.com")));
+    if !blocked { return TestResult::Fail; }
+    if domain != Some(alloc::string::String::from("google-analytics.com")) { return TestResult::Fail; }
     reset_stats();
+    TestResult::Pass
 }
 
-#[test]
-fn test_should_block_safe_url() {
+pub fn test_should_block_safe_url() -> TestResult {
     reset_stats();
     let (blocked, domain) = should_block("https://example.com/page");
-    assert!(!blocked);
-    assert_eq!(domain, Some(String::from("example.com")));
+    if blocked { return TestResult::Fail; }
+    if domain != Some(alloc::string::String::from("example.com")) { return TestResult::Fail; }
     reset_stats();
+    TestResult::Pass
 }
 
-#[test]
-fn test_should_block_subdomain_tracker() {
+pub fn test_should_block_subdomain_tracker() -> TestResult {
     reset_stats();
     let (blocked, _) = should_block("https://www.doubleclick.net/ad");
-    assert!(blocked);
+    if !blocked { return TestResult::Fail; }
     reset_stats();
+    TestResult::Pass
 }
 
-#[test]
-fn test_strip_tracking_params_utm() {
+pub fn test_strip_tracking_params_utm() -> TestResult {
     let url = "https://example.com?utm_source=test&page=1";
     let cleaned = strip_tracking_params(url);
-    assert_eq!(cleaned, "https://example.com?page=1");
+    if cleaned != "https://example.com?page=1" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_strip_tracking_params_fbclid() {
+pub fn test_strip_tracking_params_fbclid() -> TestResult {
     let url = "https://example.com?fbclid=abc123";
     let cleaned = strip_tracking_params(url);
-    assert_eq!(cleaned, "https://example.com");
+    if cleaned != "https://example.com" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_strip_tracking_params_gclid() {
+pub fn test_strip_tracking_params_gclid() -> TestResult {
     let url = "https://example.com?gclid=xyz&product=shoes";
     let cleaned = strip_tracking_params(url);
-    assert_eq!(cleaned, "https://example.com?product=shoes");
+    if cleaned != "https://example.com?product=shoes" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_strip_tracking_params_multiple() {
+pub fn test_strip_tracking_params_multiple() -> TestResult {
     let url = "https://example.com?utm_source=a&utm_medium=b&id=123";
     let cleaned = strip_tracking_params(url);
-    assert_eq!(cleaned, "https://example.com?id=123");
+    if cleaned != "https://example.com?id=123" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_strip_tracking_params_preserves_fragment() {
+pub fn test_strip_tracking_params_preserves_fragment() -> TestResult {
     let url = "https://example.com?utm_source=test#section";
     let cleaned = strip_tracking_params(url);
-    assert!(cleaned.ends_with("#section"));
+    if !cleaned.ends_with("#section") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_strip_tracking_params_no_query() {
+pub fn test_strip_tracking_params_no_query() -> TestResult {
     let url = "https://example.com/page";
     let cleaned = strip_tracking_params(url);
-    assert_eq!(cleaned, "https://example.com/page");
+    if cleaned != "https://example.com/page" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_strip_tracking_params_empty_after_strip() {
+pub fn test_strip_tracking_params_empty_after_strip() -> TestResult {
     let url = "https://example.com?utm_campaign=x";
     let cleaned = strip_tracking_params(url);
-    assert_eq!(cleaned, "https://example.com");
+    if cleaned != "https://example.com" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_strip_tracking_params_preserves_legit_params() {
+pub fn test_strip_tracking_params_preserves_legit_params() -> TestResult {
     let url = "https://example.com?page=1&sort=asc&filter=new";
     let cleaned = strip_tracking_params(url);
-    assert_eq!(cleaned, "https://example.com?page=1&sort=asc&filter=new");
+    if cleaned != "https://example.com?page=1&sort=asc&filter=new" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_clean_url_decodes_amp() {
+pub fn test_clean_url_decodes_amp() -> TestResult {
     let url = "https://example.com?utm_source=test&amp;page=1";
     let cleaned = clean_url(url);
-    assert_eq!(cleaned, "https://example.com?page=1");
+    if cleaned != "https://example.com?page=1" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_clean_url_removes_trailing_question_mark() {
+pub fn test_clean_url_removes_trailing_question_mark() -> TestResult {
     let url = "https://example.com?utm_source=only";
     let cleaned = clean_url(url);
-    assert!(!cleaned.ends_with('?'));
+    if cleaned.ends_with('?') { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_tracking_param_count_positive() {
-    assert!(tracking_param_count() > 50);
+pub fn test_tracking_param_count_positive() -> TestResult {
+    if tracking_param_count() <= 50 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_strip_all_utm_variants() {
+pub fn test_strip_all_utm_variants() -> TestResult {
     let variants = [
         "utm_source", "utm_medium", "utm_campaign", "utm_term", "utm_content",
         "utm_id", "utm_cid", "utm_reader", "utm_name", "utm_social",
@@ -275,33 +277,33 @@ fn test_strip_all_utm_variants() {
     for param in variants {
         let url = alloc::format!("https://example.com?{}=value&keep=this", param);
         let cleaned = strip_tracking_params(&url);
-        assert!(!cleaned.contains(param));
-        assert!(cleaned.contains("keep=this"));
+        if cleaned.contains(param) { return TestResult::Fail; }
+        if !cleaned.contains("keep=this") { return TestResult::Fail; }
     }
+    TestResult::Pass
 }
 
-#[test]
-fn test_strip_social_trackers() {
+pub fn test_strip_social_trackers() -> TestResult {
     let trackers = ["fbclid", "gclid", "twclid", "igshid", "msclkid"];
     for param in trackers {
         let url = alloc::format!("https://example.com?{}=abc123", param);
         let cleaned = strip_tracking_params(&url);
-        assert!(!cleaned.contains(param));
+        if cleaned.contains(param) { return TestResult::Fail; }
     }
+    TestResult::Pass
 }
 
-#[test]
-fn test_strip_analytics_params() {
+pub fn test_strip_analytics_params() -> TestResult {
     let params = ["_ga", "_gl", "__hssc", "__hstc"];
     for param in params {
         let url = alloc::format!("https://example.com?{}=value&valid=true", param);
         let cleaned = strip_tracking_params(&url);
-        assert!(!cleaned.contains(param));
+        if cleaned.contains(param) { return TestResult::Fail; }
     }
+    TestResult::Pass
 }
 
-#[test]
-fn test_blocked_domains_contains_major_trackers() {
+pub fn test_blocked_domains_contains_major_trackers() -> TestResult {
     let major_trackers = [
         "google-analytics.com",
         "doubleclick.net",
@@ -310,20 +312,21 @@ fn test_blocked_domains_contains_major_trackers() {
         "mixpanel.com",
     ];
     for tracker in major_trackers {
-        assert!(BLOCKED_DOMAINS.contains(&tracker), "Missing: {}", tracker);
+        if !BLOCKED_DOMAINS.contains(&tracker) { return TestResult::Fail; }
     }
+    TestResult::Pass
 }
 
-#[test]
-fn test_url_with_only_tracking_params() {
+pub fn test_url_with_only_tracking_params() -> TestResult {
     let url = "https://example.com?utm_source=email&utm_medium=cpc&fbclid=123";
     let cleaned = clean_url(url);
-    assert_eq!(cleaned, "https://example.com");
+    if cleaned != "https://example.com" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_mixed_case_tracking_params() {
+pub fn test_mixed_case_tracking_params() -> TestResult {
     let url = "https://example.com?UTM_SOURCE=test&page=1";
     let cleaned = strip_tracking_params(url);
-    assert!(!cleaned.to_lowercase().contains("utm_source"));
+    if cleaned.to_lowercase().contains("utm_source") { return TestResult::Fail; }
+    TestResult::Pass
 }

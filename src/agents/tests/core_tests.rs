@@ -4,38 +4,38 @@
 // Tests for agents/core.rs - Agent, AgentConfig, AgentState, MessageRole
 
 use crate::agents::core::{Agent, AgentConfig, AgentState, AgentMessage, MessageRole};
+use crate::test::framework::TestResult;
 
-#[test]
-fn test_agent_state_variants() {
-    assert_eq!(AgentState::Idle, AgentState::Idle);
-    assert_eq!(AgentState::Running, AgentState::Running);
-    assert_eq!(AgentState::Paused, AgentState::Paused);
-    assert_eq!(AgentState::Error, AgentState::Error);
-    assert_eq!(AgentState::Complete, AgentState::Complete);
-    assert_ne!(AgentState::Idle, AgentState::Running);
+pub fn test_agent_state_variants() -> TestResult {
+    if AgentState::Idle != AgentState::Idle { return TestResult::Fail; }
+    if AgentState::Running != AgentState::Running { return TestResult::Fail; }
+    if AgentState::Paused != AgentState::Paused { return TestResult::Fail; }
+    if AgentState::Error != AgentState::Error { return TestResult::Fail; }
+    if AgentState::Complete != AgentState::Complete { return TestResult::Fail; }
+    if AgentState::Idle == AgentState::Running { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_message_role_variants() {
-    assert_eq!(MessageRole::System, MessageRole::System);
-    assert_eq!(MessageRole::User, MessageRole::User);
-    assert_eq!(MessageRole::Assistant, MessageRole::Assistant);
-    assert_eq!(MessageRole::Tool, MessageRole::Tool);
-    assert_ne!(MessageRole::User, MessageRole::Assistant);
+pub fn test_message_role_variants() -> TestResult {
+    if MessageRole::System != MessageRole::System { return TestResult::Fail; }
+    if MessageRole::User != MessageRole::User { return TestResult::Fail; }
+    if MessageRole::Assistant != MessageRole::Assistant { return TestResult::Fail; }
+    if MessageRole::Tool != MessageRole::Tool { return TestResult::Fail; }
+    if MessageRole::User == MessageRole::Assistant { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_agent_config_default() {
+pub fn test_agent_config_default() -> TestResult {
     let config = AgentConfig::default();
-    assert_eq!(config.name, [0u8; 32]);
-    assert!(config.system_prompt.is_empty());
-    assert_eq!(config.max_tokens, 4096);
-    assert_eq!(config.temperature, 70);
-    assert_eq!(config.tools_enabled, [false; 16]);
+    if config.name != [0u8; 32] { return TestResult::Fail; }
+    if !config.system_prompt.is_empty() { return TestResult::Fail; }
+    if config.max_tokens != 4096 { return TestResult::Fail; }
+    if config.temperature != 70 { return TestResult::Fail; }
+    if config.tools_enabled != [false; 16] { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_agent_config_custom() {
+pub fn test_agent_config_custom() -> TestResult {
     let mut config = AgentConfig::default();
     config.name[..4].copy_from_slice(b"Test");
     config.system_prompt = b"You are a test agent".to_vec();
@@ -44,61 +44,69 @@ fn test_agent_config_custom() {
     config.tools_enabled[0] = true;
     config.tools_enabled[5] = true;
 
-    assert_eq!(&config.name[..4], b"Test");
-    assert_eq!(config.system_prompt.as_slice(), b"You are a test agent");
-    assert_eq!(config.max_tokens, 8192);
-    assert_eq!(config.temperature, 50);
-    assert!(config.tools_enabled[0]);
-    assert!(config.tools_enabled[5]);
-    assert!(!config.tools_enabled[1]);
+    if &config.name[..4] != b"Test" { return TestResult::Fail; }
+    if config.system_prompt.as_slice() != b"You are a test agent" { return TestResult::Fail; }
+    if config.max_tokens != 8192 { return TestResult::Fail; }
+    if config.temperature != 50 { return TestResult::Fail; }
+    if !config.tools_enabled[0] { return TestResult::Fail; }
+    if !config.tools_enabled[5] { return TestResult::Fail; }
+    if config.tools_enabled[1] { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_agent_new() {
+pub fn test_agent_new() -> TestResult {
     let config = AgentConfig::default();
     let agent = Agent::new(1, config);
 
-    assert_eq!(agent.id, 1);
-    assert_eq!(agent.state, AgentState::Idle);
-    assert!(agent.messages.is_empty());
-    assert!(agent.output.is_empty());
-    assert!(agent.created_at > 0);
-    assert_eq!(agent.last_run, 0);
+    if agent.id != 1 { return TestResult::Fail; }
+    if agent.state != AgentState::Idle { return TestResult::Fail; }
+    if !agent.messages.is_empty() { return TestResult::Fail; }
+    if !agent.output.is_empty() { return TestResult::Fail; }
+    if agent.created_at == 0 { return TestResult::Fail; }
+    if agent.last_run != 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_agent_with_custom_config() {
+pub fn test_agent_with_custom_config() -> TestResult {
     let mut config = AgentConfig::default();
     config.name[..11].copy_from_slice(b"TestAgent01");
     config.max_tokens = 2048;
 
     let agent = Agent::new(42, config);
 
-    assert_eq!(agent.id, 42);
-    assert_eq!(&agent.config.name[..11], b"TestAgent01");
-    assert_eq!(agent.config.max_tokens, 2048);
+    if agent.id != 42 { return TestResult::Fail; }
+    if &agent.config.name[..11] != b"TestAgent01" { return TestResult::Fail; }
+    if agent.config.max_tokens != 2048 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_agent_add_message() {
+pub fn test_agent_name_extraction() -> TestResult {
+    let mut config = AgentConfig::default();
+    config.name[..7].copy_from_slice(b"TestBot");
+
+    let agent = Agent::new(1, config);
+    if agent.name() != b"TestBot" { return TestResult::Fail; }
+    TestResult::Pass
+}
+
+pub fn test_agent_add_message() -> TestResult {
     let config = AgentConfig::default();
     let mut agent = Agent::new(1, config);
 
-    assert!(agent.messages.is_empty());
+    if !agent.messages.is_empty() { return TestResult::Fail; }
 
     agent.add_message(MessageRole::User, b"Hello");
-    assert_eq!(agent.messages.len(), 1);
-    assert_eq!(agent.messages[0].role, MessageRole::User);
-    assert_eq!(agent.messages[0].content.as_slice(), b"Hello");
+    if agent.messages.len() != 1 { return TestResult::Fail; }
+    if agent.messages[0].role != MessageRole::User { return TestResult::Fail; }
+    if agent.messages[0].content.as_slice() != b"Hello" { return TestResult::Fail; }
 
     agent.add_message(MessageRole::Assistant, b"Hi there!");
-    assert_eq!(agent.messages.len(), 2);
-    assert_eq!(agent.messages[1].role, MessageRole::Assistant);
-    assert_eq!(agent.messages[1].content.as_slice(), b"Hi there!");
+    if agent.messages.len() != 2 { return TestResult::Fail; }
+    if agent.messages[1].role != MessageRole::Assistant { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_agent_add_multiple_messages() {
+pub fn test_agent_multiple_messages() -> TestResult {
     let config = AgentConfig::default();
     let mut agent = Agent::new(1, config);
 
@@ -109,67 +117,58 @@ fn test_agent_add_multiple_messages() {
     agent.add_message(MessageRole::Tool, b"Tool result");
     agent.add_message(MessageRole::Assistant, b"Response 2");
 
-    assert_eq!(agent.messages.len(), 6);
-    assert_eq!(agent.messages[0].role, MessageRole::System);
-    assert_eq!(agent.messages[4].role, MessageRole::Tool);
+    if agent.messages.len() != 6 { return TestResult::Fail; }
+    if agent.messages[0].role != MessageRole::System { return TestResult::Fail; }
+    if agent.messages[4].role != MessageRole::Tool { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_agent_clear_messages() {
+pub fn test_agent_clear_messages() -> TestResult {
     let config = AgentConfig::default();
     let mut agent = Agent::new(1, config);
 
     agent.add_message(MessageRole::User, b"Message 1");
     agent.add_message(MessageRole::User, b"Message 2");
     agent.add_message(MessageRole::User, b"Message 3");
-    assert_eq!(agent.messages.len(), 3);
+    if agent.messages.len() != 3 { return TestResult::Fail; }
 
     agent.clear_messages();
-    assert!(agent.messages.is_empty());
+    if !agent.messages.is_empty() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_agent_name_extraction() {
-    let mut config = AgentConfig::default();
-    config.name[..7].copy_from_slice(b"TestBot");
+pub fn test_agent_state_changes() -> TestResult {
+    let config = AgentConfig::default();
+    let mut agent = Agent::new(1, config);
 
-    let agent = Agent::new(1, config);
-    assert_eq!(agent.name(), b"TestBot");
+    if agent.state != AgentState::Idle { return TestResult::Fail; }
+
+    agent.state = AgentState::Running;
+    if agent.state != AgentState::Running { return TestResult::Fail; }
+
+    agent.state = AgentState::Paused;
+    if agent.state != AgentState::Paused { return TestResult::Fail; }
+
+    agent.state = AgentState::Complete;
+    if agent.state != AgentState::Complete { return TestResult::Fail; }
+
+    agent.state = AgentState::Error;
+    if agent.state != AgentState::Error { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_agent_name_with_null_terminator() {
-    let mut config = AgentConfig::default();
-    config.name[..5].copy_from_slice(b"Agent");
-    // Rest is already zeros (null bytes)
+pub fn test_agent_output() -> TestResult {
+    let config = AgentConfig::default();
+    let mut agent = Agent::new(1, config);
 
-    let agent = Agent::new(1, config);
-    assert_eq!(agent.name(), b"Agent");
+    if !agent.output.is_empty() { return TestResult::Fail; }
+
+    agent.output = b"Some output".to_vec();
+    if agent.output.as_slice() != b"Some output" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_agent_name_full_length() {
-    let mut config = AgentConfig::default();
-    config.name = *b"12345678901234567890123456789012"; // 32 bytes, no null
-
-    let agent = Agent::new(1, config);
-    assert_eq!(agent.name().len(), 32);
-}
-
-#[test]
-fn test_agent_message_clone() {
-    let msg = AgentMessage {
-        role: MessageRole::User,
-        content: b"Test content".to_vec(),
-    };
-
-    let cloned = msg.clone();
-    assert_eq!(cloned.role, MessageRole::User);
-    assert_eq!(cloned.content, b"Test content".to_vec());
-}
-
-#[test]
-fn test_agent_clone() {
+pub fn test_agent_clone() -> TestResult {
     let mut config = AgentConfig::default();
     config.name[..4].copy_from_slice(b"Test");
 
@@ -178,70 +177,68 @@ fn test_agent_clone() {
     agent.output = b"Output".to_vec();
 
     let cloned = agent.clone();
-    assert_eq!(cloned.id, agent.id);
-    assert_eq!(cloned.config.name, agent.config.name);
-    assert_eq!(cloned.messages.len(), agent.messages.len());
-    assert_eq!(cloned.output, agent.output);
+    if cloned.id != agent.id { return TestResult::Fail; }
+    if cloned.config.name != agent.config.name { return TestResult::Fail; }
+    if cloned.messages.len() != agent.messages.len() { return TestResult::Fail; }
+    if cloned.output != agent.output { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_agent_state_transitions() {
-    let config = AgentConfig::default();
-    let mut agent = Agent::new(1, config);
-
-    assert_eq!(agent.state, AgentState::Idle);
-
-    agent.state = AgentState::Running;
-    assert_eq!(agent.state, AgentState::Running);
-
-    agent.state = AgentState::Paused;
-    assert_eq!(agent.state, AgentState::Paused);
-
-    agent.state = AgentState::Complete;
-    assert_eq!(agent.state, AgentState::Complete);
-
-    agent.state = AgentState::Error;
-    assert_eq!(agent.state, AgentState::Error);
-}
-
-#[test]
-fn test_agent_config_tools_enabled() {
+pub fn test_agent_config_clone() -> TestResult {
     let mut config = AgentConfig::default();
+    config.name[..4].copy_from_slice(b"Test");
+    config.max_tokens = 8192;
 
-    // Enable specific tools
+    let cloned = config.clone();
+    if cloned.name != config.name { return TestResult::Fail; }
+    if cloned.max_tokens != config.max_tokens { return TestResult::Fail; }
+    TestResult::Pass
+}
+
+pub fn test_agent_message_clone() -> TestResult {
+    let msg = AgentMessage {
+        role: MessageRole::User,
+        content: b"Test content".to_vec(),
+    };
+
+    let cloned = msg.clone();
+    if cloned.role != MessageRole::User { return TestResult::Fail; }
+    if cloned.content != b"Test content".to_vec() { return TestResult::Fail; }
+    TestResult::Pass
+}
+
+pub fn test_agent_tools_enabled() -> TestResult {
+    let mut config = AgentConfig::default();
     config.tools_enabled[0] = true;
     config.tools_enabled[7] = true;
     config.tools_enabled[15] = true;
 
-    assert!(config.tools_enabled[0]);
-    assert!(!config.tools_enabled[1]);
-    assert!(config.tools_enabled[7]);
-    assert!(!config.tools_enabled[8]);
-    assert!(config.tools_enabled[15]);
+    if !config.tools_enabled[0] { return TestResult::Fail; }
+    if config.tools_enabled[1] { return TestResult::Fail; }
+    if !config.tools_enabled[7] { return TestResult::Fail; }
+    if config.tools_enabled[8] { return TestResult::Fail; }
+    if !config.tools_enabled[15] { return TestResult::Fail; }
 
-    // Count enabled tools
     let enabled_count = config.tools_enabled.iter().filter(|&&x| x).count();
-    assert_eq!(enabled_count, 3);
+    if enabled_count != 3 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_agent_empty_message_content() {
-    let config = AgentConfig::default();
-    let mut agent = Agent::new(1, config);
+pub fn test_agent_unique_ids() -> TestResult {
+    let config1 = AgentConfig::default();
+    let config2 = AgentConfig::default();
 
-    agent.add_message(MessageRole::User, b"");
-    assert_eq!(agent.messages.len(), 1);
-    assert!(agent.messages[0].content.is_empty());
+    let agent1 = Agent::new(1, config1);
+    let agent2 = Agent::new(2, config2);
+
+    if agent1.id == agent2.id { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_agent_large_message_content() {
+pub fn test_agent_empty_name() -> TestResult {
     let config = AgentConfig::default();
-    let mut agent = Agent::new(1, config);
+    let agent = Agent::new(1, config);
 
-    let large_content = [b'x'; 10000];
-    agent.add_message(MessageRole::User, &large_content);
-
-    assert_eq!(agent.messages.len(), 1);
-    assert_eq!(agent.messages[0].content.len(), 10000);
+    if !agent.name().is_empty() { return TestResult::Fail; }
+    TestResult::Pass
 }

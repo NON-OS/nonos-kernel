@@ -8,47 +8,47 @@ use crate::agents::registry::{
     create_agent, get_agent, with_agent_mut, update_agent,
     list_agents, delete_agent, agent_count, MAX_AGENTS
 };
+use crate::test::framework::TestResult;
 
-#[test]
-fn test_create_agent() {
+pub fn test_create_agent() -> TestResult {
     let config = AgentConfig::default();
     let id = create_agent(config);
-    assert!(id > 0);
+    if id == 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_create_agent_unique_ids() {
+pub fn test_create_agent_unique_ids() -> TestResult {
     let id1 = create_agent(AgentConfig::default());
     let id2 = create_agent(AgentConfig::default());
     let id3 = create_agent(AgentConfig::default());
 
-    assert_ne!(id1, id2);
-    assert_ne!(id2, id3);
-    assert_ne!(id1, id3);
+    if id1 == id2 { return TestResult::Fail; }
+    if id2 == id3 { return TestResult::Fail; }
+    if id1 == id3 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_get_agent() {
+pub fn test_get_agent() -> TestResult {
     let mut config = AgentConfig::default();
     config.name[..4].copy_from_slice(b"Test");
 
     let id = create_agent(config);
     let agent = get_agent(id);
 
-    assert!(agent.is_some());
+    if agent.is_none() { return TestResult::Fail; }
     let agent = agent.unwrap();
-    assert_eq!(agent.id, id);
-    assert_eq!(&agent.config.name[..4], b"Test");
+    if agent.id != id { return TestResult::Fail; }
+    if &agent.config.name[..4] != b"Test" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_get_agent_nonexistent() {
+pub fn test_get_agent_nonexistent() -> TestResult {
     let agent = get_agent(999999);
-    assert!(agent.is_none());
+    if agent.is_some() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_with_agent_mut() {
+pub fn test_with_agent_mut() -> TestResult {
     let config = AgentConfig::default();
     let id = create_agent(config);
 
@@ -57,20 +57,20 @@ fn test_with_agent_mut() {
         42
     });
 
-    assert_eq!(result, Some(42));
+    if result != Some(42) { return TestResult::Fail; }
 
     let agent = get_agent(id).unwrap();
-    assert_eq!(agent.output.as_slice(), b"modified");
+    if agent.output.as_slice() != b"modified" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_with_agent_mut_nonexistent() {
+pub fn test_with_agent_mut_nonexistent() -> TestResult {
     let result = with_agent_mut(999999, |_| 42);
-    assert!(result.is_none());
+    if result.is_some() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_update_agent() {
+pub fn test_update_agent() -> TestResult {
     let config = AgentConfig::default();
     let id = create_agent(config);
 
@@ -78,20 +78,20 @@ fn test_update_agent() {
         agent.output = b"updated".to_vec();
     });
 
-    assert!(success);
+    if !success { return TestResult::Fail; }
 
     let agent = get_agent(id).unwrap();
-    assert_eq!(agent.output.as_slice(), b"updated");
+    if agent.output.as_slice() != b"updated" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_update_agent_nonexistent() {
+pub fn test_update_agent_nonexistent() -> TestResult {
     let success = update_agent(999999, |_| {});
-    assert!(!success);
+    if success { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_list_agents() {
+pub fn test_list_agents() -> TestResult {
     let mut config1 = AgentConfig::default();
     config1.name[..6].copy_from_slice(b"Agent1");
     let mut config2 = AgentConfig::default();
@@ -101,52 +101,52 @@ fn test_list_agents() {
     create_agent(config2);
 
     let agents = list_agents();
-    assert!(agents.len() >= 2);
+    if agents.len() < 2 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_delete_agent() {
+pub fn test_delete_agent() -> TestResult {
     let config = AgentConfig::default();
     let id = create_agent(config);
 
-    assert!(get_agent(id).is_some());
+    if get_agent(id).is_none() { return TestResult::Fail; }
 
     let result = delete_agent(id);
-    assert!(result);
+    if !result { return TestResult::Fail; }
 
-    assert!(get_agent(id).is_none());
+    if get_agent(id).is_some() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_delete_agent_nonexistent() {
+pub fn test_delete_agent_nonexistent() -> TestResult {
     let result = delete_agent(999999);
-    assert!(!result);
+    if result { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_delete_agent_twice() {
+pub fn test_delete_agent_twice() -> TestResult {
     let config = AgentConfig::default();
     let id = create_agent(config);
 
-    assert!(delete_agent(id));
-    assert!(!delete_agent(id));
+    if !delete_agent(id) { return TestResult::Fail; }
+    if delete_agent(id) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_agent_count() {
+pub fn test_agent_count() -> TestResult {
     let before = agent_count();
     create_agent(AgentConfig::default());
     let after = agent_count();
-    assert!(after >= before);
+    if after < before { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_max_agents_constant() {
-    assert_eq!(MAX_AGENTS, 32);
+pub fn test_max_agents_constant() -> TestResult {
+    if MAX_AGENTS != 32 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_agent_config_preserved() {
+pub fn test_agent_config_preserved() -> TestResult {
     let mut config = AgentConfig::default();
     config.name[..8].copy_from_slice(b"MyAgent!");
     config.max_tokens = 2048;
@@ -158,17 +158,17 @@ fn test_agent_config_preserved() {
     let id = create_agent(config);
     let agent = get_agent(id).unwrap();
 
-    assert_eq!(&agent.config.name[..8], b"MyAgent!");
-    assert_eq!(agent.config.max_tokens, 2048);
-    assert_eq!(agent.config.temperature, 80);
-    assert!(agent.config.tools_enabled[0]);
-    assert!(agent.config.tools_enabled[5]);
-    assert!(!agent.config.tools_enabled[1]);
-    assert_eq!(agent.config.system_prompt.as_slice(), b"Custom prompt");
+    if &agent.config.name[..8] != b"MyAgent!" { return TestResult::Fail; }
+    if agent.config.max_tokens != 2048 { return TestResult::Fail; }
+    if agent.config.temperature != 80 { return TestResult::Fail; }
+    if !agent.config.tools_enabled[0] { return TestResult::Fail; }
+    if !agent.config.tools_enabled[5] { return TestResult::Fail; }
+    if agent.config.tools_enabled[1] { return TestResult::Fail; }
+    if agent.config.system_prompt.as_slice() != b"Custom prompt" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_list_agents_returns_id_and_name() {
+pub fn test_list_agents_returns_id_and_name() -> TestResult {
     let mut config = AgentConfig::default();
     config.name[..7].copy_from_slice(b"ListBot");
 
@@ -176,14 +176,14 @@ fn test_list_agents_returns_id_and_name() {
     let agents = list_agents();
 
     let found = agents.iter().find(|(aid, _)| *aid == id);
-    assert!(found.is_some());
+    if found.is_none() { return TestResult::Fail; }
 
     let (_, name) = found.unwrap();
-    assert_eq!(&name[..7], b"ListBot");
+    if &name[..7] != b"ListBot" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_agent_isolation() {
+pub fn test_agent_isolation() -> TestResult {
     let config1 = AgentConfig::default();
     let config2 = AgentConfig::default();
 
@@ -193,12 +193,12 @@ fn test_agent_isolation() {
     update_agent(id1, |a| a.output = b"output1".to_vec());
     update_agent(id2, |a| a.output = b"output2".to_vec());
 
-    assert_eq!(get_agent(id1).unwrap().output.as_slice(), b"output1");
-    assert_eq!(get_agent(id2).unwrap().output.as_slice(), b"output2");
+    if get_agent(id1).unwrap().output.as_slice() != b"output1" { return TestResult::Fail; }
+    if get_agent(id2).unwrap().output.as_slice() != b"output2" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_multiple_operations() {
+pub fn test_multiple_operations() -> TestResult {
     let config = AgentConfig::default();
     let id = create_agent(config);
 
@@ -206,5 +206,6 @@ fn test_multiple_operations() {
     with_agent_mut(id, |a| a.output.extend_from_slice(b"_step2"));
 
     let agent = get_agent(id).unwrap();
-    assert_eq!(agent.output.as_slice(), b"step1_step2");
+    if agent.output.as_slice() != b"step1_step2" { return TestResult::Fail; }
+    TestResult::Pass
 }

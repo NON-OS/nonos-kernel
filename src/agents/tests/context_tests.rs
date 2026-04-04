@@ -4,218 +4,206 @@
 // Tests for agents/context.rs - AgentContext
 
 use crate::agents::context::AgentContext;
+use crate::test::framework::TestResult;
 
-#[test]
-fn test_context_new() {
+pub fn test_context_new() -> TestResult {
     let ctx = AgentContext::new(1);
 
-    assert_eq!(ctx.agent_id, 1);
-    assert_eq!(ctx.working_dir.as_slice(), b"/ram");
-    assert!(ctx.env_vars.is_empty());
-    assert!(ctx.history.is_empty());
-    assert_eq!(ctx.active_tools, [false; 16]);
+    if ctx.agent_id != 1 { return TestResult::Fail; }
+    if ctx.working_dir.as_slice() != b"/ram" { return TestResult::Fail; }
+    if !ctx.env_vars.is_empty() { return TestResult::Fail; }
+    if !ctx.history.is_empty() { return TestResult::Fail; }
+    if ctx.active_tools != [false; 16] { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_context_new_different_ids() {
+pub fn test_context_new_different_ids() -> TestResult {
     let ctx1 = AgentContext::new(1);
     let ctx2 = AgentContext::new(42);
     let ctx3 = AgentContext::new(999);
 
-    assert_eq!(ctx1.agent_id, 1);
-    assert_eq!(ctx2.agent_id, 42);
-    assert_eq!(ctx3.agent_id, 999);
+    if ctx1.agent_id != 1 { return TestResult::Fail; }
+    if ctx2.agent_id != 42 { return TestResult::Fail; }
+    if ctx3.agent_id != 999 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_context_set_env_new_key() {
+pub fn test_context_set_env_new_key() -> TestResult {
     let mut ctx = AgentContext::new(1);
 
     ctx.set_env(b"PATH", b"/bin:/usr/bin");
 
-    assert_eq!(ctx.env_vars.len(), 1);
-    assert_eq!(ctx.env_vars[0].0.as_slice(), b"PATH");
-    assert_eq!(ctx.env_vars[0].1.as_slice(), b"/bin:/usr/bin");
+    if ctx.env_vars.len() != 1 { return TestResult::Fail; }
+    if ctx.env_vars[0].0.as_slice() != b"PATH" { return TestResult::Fail; }
+    if ctx.env_vars[0].1.as_slice() != b"/bin:/usr/bin" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_context_set_env_update_existing() {
+pub fn test_context_set_env_update_existing() -> TestResult {
     let mut ctx = AgentContext::new(1);
 
     ctx.set_env(b"PATH", b"/bin");
     ctx.set_env(b"PATH", b"/usr/bin");
 
-    // Should update, not add new
-    assert_eq!(ctx.env_vars.len(), 1);
-    assert_eq!(ctx.env_vars[0].1.as_slice(), b"/usr/bin");
+    if ctx.env_vars.len() != 1 { return TestResult::Fail; }
+    if ctx.env_vars[0].1.as_slice() != b"/usr/bin" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_context_set_env_multiple_keys() {
+pub fn test_context_set_env_multiple_keys() -> TestResult {
     let mut ctx = AgentContext::new(1);
 
     ctx.set_env(b"PATH", b"/bin");
     ctx.set_env(b"HOME", b"/home/user");
     ctx.set_env(b"SHELL", b"/bin/bash");
 
-    assert_eq!(ctx.env_vars.len(), 3);
+    if ctx.env_vars.len() != 3 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_context_get_env_existing() {
+pub fn test_context_get_env_existing() -> TestResult {
     let mut ctx = AgentContext::new(1);
     ctx.set_env(b"TEST_VAR", b"test_value");
 
     let value = ctx.get_env(b"TEST_VAR");
-    assert!(value.is_some());
-    assert_eq!(value.unwrap(), b"test_value");
+    if value.is_none() { return TestResult::Fail; }
+    if value.unwrap() != b"test_value" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_context_get_env_nonexistent() {
+pub fn test_context_get_env_nonexistent() -> TestResult {
     let ctx = AgentContext::new(1);
 
     let value = ctx.get_env(b"NONEXISTENT");
-    assert!(value.is_none());
+    if value.is_some() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_context_get_env_empty_value() {
+pub fn test_context_get_env_empty_value() -> TestResult {
     let mut ctx = AgentContext::new(1);
     ctx.set_env(b"EMPTY", b"");
 
     let value = ctx.get_env(b"EMPTY");
-    assert!(value.is_some());
-    assert!(value.unwrap().is_empty());
+    if value.is_none() { return TestResult::Fail; }
+    if !value.unwrap().is_empty() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_context_add_history() {
+pub fn test_context_add_history() -> TestResult {
     let mut ctx = AgentContext::new(1);
 
     ctx.add_history(b"command1");
     ctx.add_history(b"command2");
     ctx.add_history(b"command3");
 
-    assert_eq!(ctx.history.len(), 3);
-    assert_eq!(ctx.history[0].as_slice(), b"command1");
-    assert_eq!(ctx.history[1].as_slice(), b"command2");
-    assert_eq!(ctx.history[2].as_slice(), b"command3");
+    if ctx.history.len() != 3 { return TestResult::Fail; }
+    if ctx.history[0].as_slice() != b"command1" { return TestResult::Fail; }
+    if ctx.history[1].as_slice() != b"command2" { return TestResult::Fail; }
+    if ctx.history[2].as_slice() != b"command3" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_context_history_limit() {
+pub fn test_context_history_limit() -> TestResult {
     let mut ctx = AgentContext::new(1);
 
-    // Add 101 entries (limit is 100)
     for i in 0..101 {
         ctx.add_history(&[i as u8]);
     }
 
-    // Should only keep 100 entries
-    assert_eq!(ctx.history.len(), 100);
-    // First entry should be removed
-    assert_eq!(ctx.history[0].as_slice(), &[1u8]);
-    // Last entry should be the newest
-    assert_eq!(ctx.history[99].as_slice(), &[100u8]);
+    if ctx.history.len() != 100 { return TestResult::Fail; }
+    if ctx.history[0].as_slice() != &[1u8] { return TestResult::Fail; }
+    if ctx.history[99].as_slice() != &[100u8] { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_context_history_fifo_eviction() {
+pub fn test_context_history_fifo_eviction() -> TestResult {
     let mut ctx = AgentContext::new(1);
 
-    // Fill to capacity
     for i in 0..100 {
         ctx.add_history(&[i as u8]);
     }
-    assert_eq!(ctx.history.len(), 100);
-    assert_eq!(ctx.history[0].as_slice(), &[0u8]);
+    if ctx.history.len() != 100 { return TestResult::Fail; }
+    if ctx.history[0].as_slice() != &[0u8] { return TestResult::Fail; }
 
-    // Add one more
     ctx.add_history(b"new");
-    assert_eq!(ctx.history.len(), 100);
-    assert_eq!(ctx.history[0].as_slice(), &[1u8]); // 0 was evicted
-    assert_eq!(ctx.history[99].as_slice(), b"new");
+    if ctx.history.len() != 100 { return TestResult::Fail; }
+    if ctx.history[0].as_slice() != &[1u8] { return TestResult::Fail; }
+    if ctx.history[99].as_slice() != b"new" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_context_enable_tool() {
+pub fn test_context_enable_tool() -> TestResult {
     let mut ctx = AgentContext::new(1);
 
-    assert!(!ctx.active_tools[0]);
+    if ctx.active_tools[0] { return TestResult::Fail; }
     ctx.enable_tool(0);
-    assert!(ctx.active_tools[0]);
+    if !ctx.active_tools[0] { return TestResult::Fail; }
 
     ctx.enable_tool(5);
-    assert!(ctx.active_tools[5]);
+    if !ctx.active_tools[5] { return TestResult::Fail; }
 
     ctx.enable_tool(15);
-    assert!(ctx.active_tools[15]);
+    if !ctx.active_tools[15] { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_context_enable_tool_out_of_bounds() {
+pub fn test_context_enable_tool_out_of_bounds() -> TestResult {
     let mut ctx = AgentContext::new(1);
 
-    // Should not panic for out-of-bounds index
     ctx.enable_tool(16);
     ctx.enable_tool(100);
     ctx.enable_tool(usize::MAX);
 
-    // All tools should still be disabled
     for i in 0..16 {
-        assert!(!ctx.active_tools[i]);
+        if ctx.active_tools[i] { return TestResult::Fail; }
     }
+    TestResult::Pass
 }
 
-#[test]
-fn test_context_disable_tool() {
+pub fn test_context_disable_tool() -> TestResult {
     let mut ctx = AgentContext::new(1);
 
     ctx.enable_tool(5);
-    assert!(ctx.active_tools[5]);
+    if !ctx.active_tools[5] { return TestResult::Fail; }
 
     ctx.disable_tool(5);
-    assert!(!ctx.active_tools[5]);
+    if ctx.active_tools[5] { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_context_disable_tool_out_of_bounds() {
+pub fn test_context_disable_tool_out_of_bounds() -> TestResult {
     let mut ctx = AgentContext::new(1);
     ctx.enable_tool(0);
 
-    // Should not panic for out-of-bounds index
     ctx.disable_tool(16);
     ctx.disable_tool(100);
 
-    // Tool 0 should still be enabled
-    assert!(ctx.active_tools[0]);
+    if !ctx.active_tools[0] { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_context_is_tool_enabled() {
+pub fn test_context_is_tool_enabled() -> TestResult {
     let mut ctx = AgentContext::new(1);
 
-    assert!(!ctx.is_tool_enabled(0));
+    if ctx.is_tool_enabled(0) { return TestResult::Fail; }
     ctx.enable_tool(0);
-    assert!(ctx.is_tool_enabled(0));
+    if !ctx.is_tool_enabled(0) { return TestResult::Fail; }
 
     ctx.disable_tool(0);
-    assert!(!ctx.is_tool_enabled(0));
+    if ctx.is_tool_enabled(0) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_context_is_tool_enabled_out_of_bounds() {
+pub fn test_context_is_tool_enabled_out_of_bounds() -> TestResult {
     let ctx = AgentContext::new(1);
 
-    // Out of bounds should return false
-    assert!(!ctx.is_tool_enabled(16));
-    assert!(!ctx.is_tool_enabled(100));
-    assert!(!ctx.is_tool_enabled(usize::MAX));
+    if ctx.is_tool_enabled(16) { return TestResult::Fail; }
+    if ctx.is_tool_enabled(100) { return TestResult::Fail; }
+    if ctx.is_tool_enabled(usize::MAX) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_context_multiple_tools() {
+pub fn test_context_multiple_tools() -> TestResult {
     let mut ctx = AgentContext::new(1);
 
     ctx.enable_tool(0);
@@ -223,55 +211,55 @@ fn test_context_multiple_tools() {
     ctx.enable_tool(7);
     ctx.enable_tool(15);
 
-    assert!(ctx.is_tool_enabled(0));
-    assert!(!ctx.is_tool_enabled(1));
-    assert!(!ctx.is_tool_enabled(2));
-    assert!(ctx.is_tool_enabled(3));
-    assert!(!ctx.is_tool_enabled(4));
-    assert!(ctx.is_tool_enabled(7));
-    assert!(ctx.is_tool_enabled(15));
+    if !ctx.is_tool_enabled(0) { return TestResult::Fail; }
+    if ctx.is_tool_enabled(1) { return TestResult::Fail; }
+    if ctx.is_tool_enabled(2) { return TestResult::Fail; }
+    if !ctx.is_tool_enabled(3) { return TestResult::Fail; }
+    if ctx.is_tool_enabled(4) { return TestResult::Fail; }
+    if !ctx.is_tool_enabled(7) { return TestResult::Fail; }
+    if !ctx.is_tool_enabled(15) { return TestResult::Fail; }
 
     let enabled_count = ctx.active_tools.iter().filter(|&&x| x).count();
-    assert_eq!(enabled_count, 4);
+    if enabled_count != 4 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_context_clone() {
+pub fn test_context_clone() -> TestResult {
     let mut ctx = AgentContext::new(1);
     ctx.set_env(b"KEY", b"VALUE");
     ctx.add_history(b"cmd");
     ctx.enable_tool(5);
 
     let cloned = ctx.clone();
-    assert_eq!(cloned.agent_id, 1);
-    assert_eq!(cloned.env_vars.len(), 1);
-    assert_eq!(cloned.history.len(), 1);
-    assert!(cloned.is_tool_enabled(5));
+    if cloned.agent_id != 1 { return TestResult::Fail; }
+    if cloned.env_vars.len() != 1 { return TestResult::Fail; }
+    if cloned.history.len() != 1 { return TestResult::Fail; }
+    if !cloned.is_tool_enabled(5) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_context_working_dir_default() {
+pub fn test_context_working_dir_default() -> TestResult {
     let ctx = AgentContext::new(1);
-    assert_eq!(ctx.working_dir.as_slice(), b"/ram");
+    if ctx.working_dir.as_slice() != b"/ram" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_context_working_dir_modification() {
+pub fn test_context_working_dir_modification() -> TestResult {
     let mut ctx = AgentContext::new(1);
     ctx.working_dir = b"/home/user".to_vec();
-    assert_eq!(ctx.working_dir.as_slice(), b"/home/user");
+    if ctx.working_dir.as_slice() != b"/home/user" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_context_env_binary_values() {
+pub fn test_context_env_binary_values() -> TestResult {
     let mut ctx = AgentContext::new(1);
 
-    // Test with binary data containing null bytes
     let binary_key = b"BIN_KEY\0TEST";
     let binary_value = b"\x00\x01\x02\x03";
 
     ctx.set_env(binary_key, binary_value);
     let retrieved = ctx.get_env(binary_key);
-    assert!(retrieved.is_some());
-    assert_eq!(retrieved.unwrap(), binary_value);
+    if retrieved.is_none() { return TestResult::Fail; }
+    if retrieved.unwrap() != binary_value { return TestResult::Fail; }
+    TestResult::Pass
 }
