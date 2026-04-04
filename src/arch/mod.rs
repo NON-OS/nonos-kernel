@@ -18,6 +18,9 @@ pub mod cpu;
 pub mod nonos_boot;
 pub mod x86_64;
 
+#[cfg(test)]
+mod tests;
+
 pub use cpu::{cpu_yield, disable_interrupts, enable_interrupts, get_cpu_id, idle_cpu, init_cpu_features};
 pub use nonos_boot as boot;
 pub use x86_64::*;
