@@ -17,14 +17,22 @@
 use super::verification::verify_services;
 use super::supervision::supervise_services;
 
+const VERIFY_INTERVAL_MS: u64 = 5000;
+const SUPERVISE_INTERVAL_MS: u64 = 1000;
+
 pub(crate) fn init_loop() -> ! {
-    let mut verify_count = 0u32;
+    let mut last_verify = 0u64;
+    let mut last_supervise = 0u64;
     loop {
-        if verify_count < 3 {
+        let now = crate::time::timestamp_millis();
+        if now >= last_verify + VERIFY_INTERVAL_MS {
             verify_services();
-            verify_count += 1;
+            last_verify = now;
         }
-        supervise_services();
+        if now >= last_supervise + SUPERVISE_INTERVAL_MS {
+            supervise_services();
+            last_supervise = now;
+        }
         crate::sched::yield_now();
     }
 }
