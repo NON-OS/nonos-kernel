@@ -20,8 +20,13 @@ use crate::process::core::Pid;
 pub(crate) const SERVICE_STACK_SIZE: usize = 64 * 1024;
 const MAX_SERVICE_STACKS: usize = 32;
 
-static mut SERVICE_STACKS: [[u8; SERVICE_STACK_SIZE]; MAX_SERVICE_STACKS] =
-    [[0u8; SERVICE_STACK_SIZE]; MAX_SERVICE_STACKS];
+#[repr(C, align(16))]
+struct AlignedStack([u8; SERVICE_STACK_SIZE]);
+
+static mut SERVICE_STACKS: [AlignedStack; MAX_SERVICE_STACKS] = {
+    const INIT: AlignedStack = AlignedStack([0u8; SERVICE_STACK_SIZE]);
+    [INIT; MAX_SERVICE_STACKS]
+};
 
 static NEXT_STACK_IDX: AtomicU32 = AtomicU32::new(0);
 static STACK_IN_USE: [AtomicU32; MAX_SERVICE_STACKS] = {
@@ -32,7 +37,7 @@ static STACK_IN_USE: [AtomicU32; MAX_SERVICE_STACKS] = {
 pub(crate) fn allocate_service_stack(pid: Pid) -> u64 {
     let idx = NEXT_STACK_IDX.fetch_add(1, Ordering::SeqCst) as usize % MAX_SERVICE_STACKS;
     STACK_IN_USE[idx].store(pid, Ordering::SeqCst);
-    let stack_ptr = unsafe { SERVICE_STACKS[idx].as_mut_ptr() };
+    let stack_ptr = unsafe { SERVICE_STACKS[idx].0.as_mut_ptr() };
     (stack_ptr as u64) + SERVICE_STACK_SIZE as u64 - 16
 }
 
