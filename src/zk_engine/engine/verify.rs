@@ -19,45 +19,51 @@ use core::sync::atomic::Ordering;
 use super::core::ZKEngine;
 use super::super::types::{ZKProof, ZKError};
 use super::super::groth16::{Groth16Verifier, FieldElement};
+use super::super::verification::compute_cache_key;
 
 impl ZKEngine {
     pub fn verify_proof(&self, proof: &ZKProof) -> Result<bool, ZKError> {
         let start_time = crate::time::timestamp_millis();
-        if self.config.enable_verification_cache { let cache = self.verification_cache.lock(); if let Some(&cached_result) = cache.get(&proof.proof_hash) { return Ok(cached_result); } }
-        let verifying_key = { let verifying_keys = self.verifying_keys.read(); verifying_keys.get(&proof.circuit_id).ok_or(ZKError::CircuitNotFound)?.clone() };
-        let public_inputs_fe: Vec<FieldElement> = proof.public_inputs.iter().map(|bytes| FieldElement::from_bytes(bytes.as_slice()).unwrap_or(FieldElement::zero())).collect();
-        let is_valid = Groth16Verifier::verify(&verifying_key, &proof.proof_data, &public_inputs_fe)?;
+        let cache_key = compute_cache_key(proof.circuit_id, &proof.proof_hash, &proof.public_inputs);
         if self.config.enable_verification_cache {
-            let mut cache = self.verification_cache.lock();
-            cache.insert(proof.proof_hash, is_valid);
-            if cache.len() > 10000 { let oldest_keys: Vec<_> = cache.keys().take(1000).cloned().collect(); for key in oldest_keys { cache.remove(&key); } }
+            if let Some(cached) = self.verification_cache.get(&cache_key) { return Ok(cached); }
         }
-        let verification_time = crate::time::timestamp_millis() - start_time;
+        let verifying_key = {
+            let keys = self.verifying_keys.read();
+            keys.get(&proof.circuit_id).ok_or(ZKError::CircuitNotFound)?.clone()
+        };
+        let inputs: Vec<FieldElement> = proof.public_inputs.iter()
+            .map(|b| FieldElement::from_bytes(b.as_slice()).unwrap_or(FieldElement::zero())).collect();
+        let is_valid = Groth16Verifier::verify(&verifying_key, &proof.proof_data, &inputs)?;
+        if self.config.enable_verification_cache {
+            self.verification_cache.insert(cache_key, is_valid);
+            if self.verification_cache.len() > 10000 { self.verification_cache.evict_oldest(1000); }
+        }
+        let elapsed = crate::time::timestamp_millis() - start_time;
         self.stats.proofs_verified.fetch_add(1, Ordering::SeqCst);
-        self.stats.total_verification_time_ms.fetch_add(verification_time, Ordering::SeqCst);
+        self.stats.total_verification_time_ms.fetch_add(elapsed, Ordering::SeqCst);
         if !is_valid { self.stats.verification_failures.fetch_add(1, Ordering::SeqCst); }
-        crate::log::info!("Verified proof for circuit {} in {}ms (result: {})", proof.circuit_id, verification_time, is_valid);
         Ok(is_valid)
     }
 
     pub fn batch_verify_proofs(&self, proofs: &[ZKProof]) -> Result<Vec<bool>, ZKError> {
         let start_time = crate::time::timestamp_millis();
         let mut results = Vec::with_capacity(proofs.len());
-        let mut proofs_by_circuit: BTreeMap<u32, Vec<&ZKProof>> = BTreeMap::new();
-        for proof in proofs { proofs_by_circuit.entry(proof.circuit_id).or_insert_with(Vec::new).push(proof); }
-        for (circuit_id, circuit_proofs) in proofs_by_circuit {
-            let verifying_key = { let verifying_keys = self.verifying_keys.read(); verifying_keys.get(&circuit_id).ok_or(ZKError::CircuitNotFound)?.clone() };
-            for proof in circuit_proofs {
-                let public_inputs_fe: Vec<FieldElement> = proof.public_inputs.iter().map(|bytes| FieldElement::from_bytes(bytes.as_slice()).unwrap_or(FieldElement::zero())).collect();
-                let is_valid = Groth16Verifier::verify(&verifying_key, &proof.proof_data, &public_inputs_fe)?;
-                results.push(is_valid);
-                if !is_valid { self.stats.verification_failures.fetch_add(1, Ordering::SeqCst); }
+        let mut by_circuit: BTreeMap<u32, Vec<&ZKProof>> = BTreeMap::new();
+        for p in proofs { by_circuit.entry(p.circuit_id).or_default().push(p); }
+        for (cid, cproofs) in by_circuit {
+            let vk = { self.verifying_keys.read().get(&cid).ok_or(ZKError::CircuitNotFound)?.clone() };
+            for proof in cproofs {
+                let inputs: Vec<FieldElement> = proof.public_inputs.iter()
+                    .map(|b| FieldElement::from_bytes(b.as_slice()).unwrap_or(FieldElement::zero())).collect();
+                let valid = Groth16Verifier::verify(&vk, &proof.proof_data, &inputs)?;
+                results.push(valid);
+                if !valid { self.stats.verification_failures.fetch_add(1, Ordering::SeqCst); }
             }
         }
-        let batch_time = crate::time::timestamp_millis() - start_time;
+        let elapsed = crate::time::timestamp_millis() - start_time;
         self.stats.proofs_verified.fetch_add(proofs.len() as u64, Ordering::SeqCst);
-        self.stats.total_verification_time_ms.fetch_add(batch_time, Ordering::SeqCst);
-        crate::log::info!("Batch verified {} proofs in {}ms", proofs.len(), batch_time);
+        self.stats.total_verification_time_ms.fetch_add(elapsed, Ordering::SeqCst);
         Ok(results)
     }
 }
