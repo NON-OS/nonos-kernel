@@ -70,6 +70,7 @@ impl Default for KernelStack {
     }
 }
 
+#[derive(Clone)]
 #[repr(C, align(64))]
 pub struct FpuState {
     pub data: [u8; 1024],
