@@ -17,9 +17,9 @@
 use core::sync::atomic::{AtomicBool, Ordering};
 use crate::graphics::font::draw_char;
 use crate::graphics::window::settings::state::{
-    get_page, SIDEBAR_WIDTH, PAGE_PRIVACY, PAGE_NETWORK, PAGE_APPEARANCE, PAGE_SYSTEM, PAGE_POWER,
+    get_page, SIDEBAR_WIDTH, PAGE_PRIVACY, PAGE_NETWORK, PAGE_APPEARANCE, PAGE_SYSTEM, PAGE_POWER, PAGE_KERNEL,
 };
-use crate::graphics::window::settings::{privacy, network, appearance, system, power};
+use crate::graphics::window::settings::{privacy, network, appearance, system, power, kernel};
 use super::sidebar::draw_sidebar;
 use super::header::{draw_header, draw_footer};
 
@@ -55,6 +55,7 @@ pub fn draw(x: u32, y: u32, w: u32, h: u32) {
         PAGE_APPEARANCE => appearance::draw(content_x, y + 45, content_w),
         PAGE_SYSTEM => system::draw(content_x, y + 45, content_w),
         PAGE_POWER => power::draw(content_x, y + 45, content_w),
+        PAGE_KERNEL => kernel::draw(content_x, y + 45, content_w),
         _ => system::draw(content_x, y + 45, content_w),
     }
 
