@@ -32,6 +32,13 @@ impl CapabilityToken {
     pub fn empty() -> Self {
         Self { owner_module: 0, permissions: Vec::new(), expires_at_ms: Some(0), nonce: 0, signature: [0u8; 64] }
     }
+    pub fn with_caps(caps: &[Capability]) -> Self {
+        Self { owner_module: 0, permissions: caps.to_vec(), expires_at_ms: None, nonce: 0, signature: [0u8; 64] }
+    }
+    pub fn system() -> Self {
+        use crate::capabilities::types::Capability::*;
+        Self::with_caps(&[CoreExec, IO, FileSystem, Memory, Network, IPC, Crypto, Hardware, Debug, Admin, RegisterService])
+    }
     #[inline] pub fn grants(&self, cap: Capability) -> bool { self.permissions.iter().any(|c| *c == cap) }
     #[inline] pub fn not_expired(&self) -> bool {
         self.expires_at_ms.map_or(true, |exp| crate::time::timestamp_millis() < exp)
