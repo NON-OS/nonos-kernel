@@ -1,103 +1,108 @@
 // NONOS Operating System
 // Copyright (C) 2026 NONOS Contributors
+//
+// Crypto error handling tests
+
+extern crate alloc;
+use alloc::format;
 
 use crate::crypto::error::{CryptoError, CryptoResult};
+use crate::test::framework::TestResult;
 
-#[test]
-fn test_crypto_error_aead_tag_mismatch() {
+pub fn test_crypto_error_aead_tag_mismatch() -> TestResult {
     let err = CryptoError::AeadTagMismatch;
-    assert_eq!(err, CryptoError::AeadTagMismatch);
+    if err != CryptoError::AeadTagMismatch { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_crypto_error_invalid_length() {
+pub fn test_crypto_error_invalid_length() -> TestResult {
     let err = CryptoError::InvalidLength;
-    assert_eq!(err, CryptoError::InvalidLength);
+    if err != CryptoError::InvalidLength { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_crypto_error_kem_error() {
+pub fn test_crypto_error_kem_error() -> TestResult {
     let err = CryptoError::KemError;
-    assert_eq!(err, CryptoError::KemError);
+    if err != CryptoError::KemError { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_crypto_error_sig_error() {
+pub fn test_crypto_error_sig_error() -> TestResult {
     let err = CryptoError::SigError;
-    assert_eq!(err, CryptoError::SigError);
+    if err != CryptoError::SigError { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_crypto_error_invalid_input() {
+pub fn test_crypto_error_invalid_input() -> TestResult {
     let err = CryptoError::InvalidInput;
-    assert_eq!(err, CryptoError::InvalidInput);
+    if err != CryptoError::InvalidInput { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_crypto_error_invalid_key() {
+pub fn test_crypto_error_invalid_key() -> TestResult {
     let err = CryptoError::InvalidKey;
-    assert_eq!(err, CryptoError::InvalidKey);
+    if err != CryptoError::InvalidKey { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_crypto_error_key_not_found() {
+pub fn test_crypto_error_key_not_found() -> TestResult {
     let err = CryptoError::KeyNotFound;
-    assert_eq!(err, CryptoError::KeyNotFound);
+    if err != CryptoError::KeyNotFound { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_crypto_error_buffer_too_small() {
+pub fn test_crypto_error_buffer_too_small() -> TestResult {
     let err = CryptoError::BufferTooSmall;
-    assert_eq!(err, CryptoError::BufferTooSmall);
+    if err != CryptoError::BufferTooSmall { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_crypto_error_verification_failed() {
+pub fn test_crypto_error_verification_failed() -> TestResult {
     let err = CryptoError::VerificationFailed;
-    assert_eq!(err, CryptoError::VerificationFailed);
+    if err != CryptoError::VerificationFailed { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_crypto_error_invalid_state() {
+pub fn test_crypto_error_invalid_state() -> TestResult {
     let err = CryptoError::InvalidState;
-    assert_eq!(err, CryptoError::InvalidState);
+    if err != CryptoError::InvalidState { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_crypto_error_authentication_failed() {
+pub fn test_crypto_error_authentication_failed() -> TestResult {
     let err = CryptoError::AuthenticationFailed;
-    assert_eq!(err, CryptoError::AuthenticationFailed);
+    if err != CryptoError::AuthenticationFailed { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_crypto_error_insufficient_entropy() {
+pub fn test_crypto_error_insufficient_entropy() -> TestResult {
     let err = CryptoError::InsufficientEntropy;
-    assert_eq!(err, CryptoError::InsufficientEntropy);
+    if err != CryptoError::InsufficientEntropy { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_crypto_error_clone() {
+pub fn test_crypto_error_clone() -> TestResult {
     let err1 = CryptoError::InvalidKey;
     let err2 = err1.clone();
-    assert_eq!(err1, err2);
+    if err1 != err2 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_crypto_error_copy() {
+pub fn test_crypto_error_copy() -> TestResult {
     let err1 = CryptoError::InvalidKey;
     let err2 = err1;
-    assert_eq!(err1, err2);
+    if err1 != err2 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_crypto_error_debug() {
+pub fn test_crypto_error_debug() -> TestResult {
     let err = CryptoError::InvalidKey;
     let debug_str = format!("{:?}", err);
-    assert!(debug_str.contains("InvalidKey"));
+    if !debug_str.contains("InvalidKey") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_crypto_error_all_variants_distinct() {
+pub fn test_crypto_error_all_variants_distinct() -> TestResult {
     let variants = [
         CryptoError::AeadTagMismatch,
         CryptoError::InvalidLength,
@@ -115,68 +120,69 @@ fn test_crypto_error_all_variants_distinct() {
 
     for i in 0..variants.len() {
         for j in (i + 1)..variants.len() {
-            assert_ne!(variants[i], variants[j]);
+            if variants[i] == variants[j] { return TestResult::Fail; }
         }
     }
+    TestResult::Pass
 }
 
-#[test]
-fn test_crypto_result_ok() {
+pub fn test_crypto_result_ok() -> TestResult {
     let result: CryptoResult<u32> = Ok(42);
-    assert!(result.is_ok());
-    assert_eq!(result.unwrap(), 42);
+    if !result.is_ok() { return TestResult::Fail; }
+    if result.unwrap() != 42 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_crypto_result_err() {
+pub fn test_crypto_result_err() -> TestResult {
     let result: CryptoResult<u32> = Err(CryptoError::InvalidKey);
-    assert!(result.is_err());
-    assert_eq!(result.unwrap_err(), CryptoError::InvalidKey);
+    if !result.is_err() { return TestResult::Fail; }
+    if result.unwrap_err() != CryptoError::InvalidKey { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_crypto_result_map() {
+pub fn test_crypto_result_map() -> TestResult {
     let result: CryptoResult<u32> = Ok(10);
     let mapped = result.map(|x| x * 2);
-    assert_eq!(mapped.unwrap(), 20);
+    if mapped.unwrap() != 20 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_crypto_result_map_err() {
+pub fn test_crypto_result_map_err() -> TestResult {
     let result: CryptoResult<u32> = Err(CryptoError::InvalidKey);
     let mapped = result.map_err(|_| CryptoError::InvalidInput);
-    assert_eq!(mapped.unwrap_err(), CryptoError::InvalidInput);
+    if mapped.unwrap_err() != CryptoError::InvalidInput { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_crypto_result_and_then() {
+pub fn test_crypto_result_and_then() -> TestResult {
     let result: CryptoResult<u32> = Ok(10);
     let chained = result.and_then(|x| Ok(x + 5));
-    assert_eq!(chained.unwrap(), 15);
+    if chained.unwrap() != 15 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_crypto_result_or_else() {
+pub fn test_crypto_result_or_else() -> TestResult {
     let result: CryptoResult<u32> = Err(CryptoError::InvalidKey);
     let recovered = result.or_else(|_| Ok(0));
-    assert_eq!(recovered.unwrap(), 0);
+    if recovered.unwrap() != 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_crypto_result_unwrap_or() {
+pub fn test_crypto_result_unwrap_or() -> TestResult {
     let result: CryptoResult<u32> = Err(CryptoError::InvalidKey);
-    assert_eq!(result.unwrap_or(99), 99);
+    if result.unwrap_or(99) != 99 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_crypto_result_unwrap_or_else() {
+pub fn test_crypto_result_unwrap_or_else() -> TestResult {
     let result: CryptoResult<u32> = Err(CryptoError::InvalidKey);
-    assert_eq!(result.unwrap_or_else(|_| 100), 100);
+    if result.unwrap_or_else(|_| 100) != 100 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_crypto_error_not_equal_to_different() {
-    assert_ne!(CryptoError::InvalidKey, CryptoError::KeyNotFound);
-    assert_ne!(CryptoError::AeadTagMismatch, CryptoError::AuthenticationFailed);
-    assert_ne!(CryptoError::BufferTooSmall, CryptoError::InvalidLength);
+pub fn test_crypto_error_not_equal_to_different() -> TestResult {
+    if CryptoError::InvalidKey == CryptoError::KeyNotFound { return TestResult::Fail; }
+    if CryptoError::AeadTagMismatch == CryptoError::AuthenticationFailed { return TestResult::Fail; }
+    if CryptoError::BufferTooSmall == CryptoError::InvalidLength { return TestResult::Fail; }
+    TestResult::Pass
 }
