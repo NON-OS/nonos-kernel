@@ -23,3 +23,6 @@ pub use error::DisplayError;
 pub use framebuffer::{Framebuffer, FramebufferInfo, register_framebuffer, get_framebuffer};
 pub use framebuffer::{write_pixel, fill_rect, clear};
 pub use text::{write_char, write_string, clear_screen};
+
+#[cfg(test)]
+mod tests;
