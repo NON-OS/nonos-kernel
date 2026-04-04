@@ -26,52 +26,45 @@ pub fn select_next_process() -> Option<u32> {
     let runnable = get_runnable_pids();
     if runnable.is_empty() { return None; }
     let last = LAST_SCHEDULED_PID.load(Ordering::Relaxed);
-    if let Some(pid) = select_by_priority(&runnable, last, current, Priority::High) {
-        LAST_SCHEDULED_PID.store(pid, Ordering::Relaxed);
-        return Some(pid);
+    for prio in [Priority::RealTime, Priority::High, Priority::Normal, Priority::Low, Priority::Idle] {
+        if let Some(pid) = select_by_priority_excluding_current(&runnable, last, current, prio) {
+            LAST_SCHEDULED_PID.store(pid, Ordering::Relaxed);
+            return Some(pid);
+        }
     }
-    if let Some(pid) = select_by_priority(&runnable, last, current, Priority::Normal) {
-        LAST_SCHEDULED_PID.store(pid, Ordering::Relaxed);
-        return Some(pid);
-    }
-    if let Some(pid) = select_any_ready(&runnable, last, current) {
+    if let Some(pid) = select_current_if_ready(&runnable, current) {
         LAST_SCHEDULED_PID.store(pid, Ordering::Relaxed);
         return Some(pid);
     }
     None
 }
 
-fn select_by_priority(pids: &[u32], last: u32, current: u32, prio: crate::process::nonos_core::Priority) -> Option<u32> {
+fn select_by_priority_excluding_current(pids: &[u32], last: u32, current: u32, prio: Priority) -> Option<u32> {
     use crate::process::nonos_core::{PROCESS_TABLE, ProcessState};
-    select_round_robin(pids, last, current, |pid| {
-        PROCESS_TABLE.find_by_pid(pid).map_or(false, |pcb| {
-            *pcb.state.lock() == ProcessState::Ready && *pcb.priority.lock() == prio
-        })
-    })
-}
-
-fn select_any_ready(pids: &[u32], last: u32, current: u32) -> Option<u32> {
-    use crate::process::nonos_core::{PROCESS_TABLE, ProcessState};
-    select_round_robin(pids, last, current, |pid| {
-        PROCESS_TABLE.find_by_pid(pid).map_or(false, |pcb| *pcb.state.lock() == ProcessState::Ready)
-    })
-}
-
-fn select_round_robin<F>(pids: &[u32], last: u32, current: u32, predicate: F) -> Option<u32>
-where F: Fn(u32) -> bool {
     let start_idx = pids.iter().position(|&p| p > last).unwrap_or(0);
-    let mut fallback: Option<u32> = None;
     for &pid in &pids[start_idx..] {
-        if predicate(pid) {
-            if pid != current { return Some(pid); }
-            else if fallback.is_none() { fallback = Some(pid); }
+        if pid == current { continue; }
+        if let Some(pcb) = PROCESS_TABLE.find_by_pid(pid) {
+            if *pcb.state.lock() == ProcessState::Ready && *pcb.priority.lock() == prio {
+                return Some(pid);
+            }
         }
     }
     for &pid in &pids[..start_idx] {
-        if predicate(pid) {
-            if pid != current { return Some(pid); }
-            else if fallback.is_none() { fallback = Some(pid); }
+        if pid == current { continue; }
+        if let Some(pcb) = PROCESS_TABLE.find_by_pid(pid) {
+            if *pcb.state.lock() == ProcessState::Ready && *pcb.priority.lock() == prio {
+                return Some(pid);
+            }
         }
     }
-    fallback
+    None
+}
+
+fn select_current_if_ready(pids: &[u32], current: u32) -> Option<u32> {
+    use crate::process::nonos_core::{PROCESS_TABLE, ProcessState};
+    if !pids.contains(&current) { return None; }
+    PROCESS_TABLE.find_by_pid(current).and_then(|pcb| {
+        if *pcb.state.lock() == ProcessState::Ready { Some(current) } else { None }
+    })
 }

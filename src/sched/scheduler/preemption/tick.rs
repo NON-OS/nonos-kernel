@@ -16,7 +16,7 @@
 
 use core::sync::atomic::Ordering;
 use crate::sched::realtime;
-use super::state::{CURRENT_TIME_SLICE, SCHEDULER_STATS};
+use super::state::{CURRENT_TIME_SLICE, SCHEDULER_STATS, NEED_RESCHEDULE};
 
 pub fn tick() {
     SCHEDULER_STATS.tick_count.fetch_add(1, Ordering::SeqCst);
@@ -25,16 +25,11 @@ pub fn tick() {
     });
     if remaining == Ok(1) {
         SCHEDULER_STATS.time_slice_exhaustions.fetch_add(1, Ordering::SeqCst);
+        if crate::sys::settings::kernel_preempt() {
+            NEED_RESCHEDULE.store(true, Ordering::Release);
+        }
     }
-}
-
-#[allow(dead_code)]
-fn preempt_for_realtime() {
-    use crate::process::nonos_core::current_pid;
-    if let Some(current) = current_pid() {
-        let ctx = crate::sched::Context::save();
-        crate::process::nonos_core::save_interrupt_context(current, ctx);
+    if realtime::has_realtime_tasks() {
+        NEED_RESCHEDULE.store(true, Ordering::Release);
     }
-    realtime::run_realtime_tasks();
-    SCHEDULER_STATS.preemptions.fetch_add(1, Ordering::Relaxed);
 }
