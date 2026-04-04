@@ -22,9 +22,14 @@ pub use hasher::Sha512;
 pub type Hash512 = [u8; 64];
 
 pub fn sha512(data: &[u8]) -> Hash512 {
+    crate::sys::serial::println(b"[SHA] sha512: new");
     let mut hasher = Sha512::new();
+    crate::sys::serial::println(b"[SHA] sha512: update");
     hasher.update(data);
-    hasher.finalize()
+    crate::sys::serial::println(b"[SHA] sha512: finalize");
+    let result = hasher.finalize();
+    crate::sys::serial::println(b"[SHA] sha512: done");
+    result
 }
 
 #[inline]
