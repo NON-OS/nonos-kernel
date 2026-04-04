@@ -24,16 +24,35 @@ pub fn yield_now() {
     let curr = current_pid();
     if curr.is_none() { return; }
     let pid = curr.unwrap();
+    crate::sched::Context::clear_restored_flag();
     let ctx = crate::sched::Context::save();
+    if crate::sched::Context::was_just_restored() {
+        crate::sys::serial::print(b"[YIELD] PID ");
+        crate::sys::serial::print_dec(pid as u64);
+        crate::sys::serial::println(b" restored, returning");
+        return;
+    }
+    crate::sys::serial::print(b"[YIELD] PID ");
+    crate::sys::serial::print_dec(pid as u64);
+    crate::sys::serial::println(b" saving context");
     crate::process::nonos_core::save_interrupt_context(pid, ctx);
+    crate::process::nonos_core::save_fpu_state(pid);
     if let Some(pcb) = PROCESS_TABLE.find_by_pid(pid) {
         let mut state = pcb.state.lock();
         if *state == ProcessState::Running { *state = ProcessState::Ready; }
     }
     crate::sched::add_to_run_queue(pid);
     CURRENT_TIME_SLICE.store(0, Ordering::Relaxed);
-    match select_next_process() {
-        Some(next) => switch_to_process(next),
-        None => {}
+    if let Some(next) = select_next_process() {
+        crate::sys::serial::print(b"[YIELD] next=");
+        crate::sys::serial::print_dec(next as u64);
+        crate::sys::serial::print(b" pid=");
+        crate::sys::serial::print_dec(pid as u64);
+        crate::sys::serial::println(b"");
+        if next != pid {
+            switch_to_process(next);
+        }
+    } else {
+        crate::sys::serial::println(b"[YIELD] No next process!");
     }
 }
