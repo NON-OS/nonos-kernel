@@ -1,0 +1,9 @@
+mod clone_flags_tests;
+mod fd_types_tests;
+mod acct_record_tests;
+mod core_types_tests;
+mod scheduler_types_tests;
+mod userspace_types_tests;
+mod elf_loader_types_tests;
+mod address_space_types_tests;
+mod thread_group_tests;
