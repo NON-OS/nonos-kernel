@@ -14,26 +14,24 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::state::{BUTTON_WIDTH, BUTTON_HEIGHT, set_shutdown, set_reboot};
+use super::state::{set_shutdown, set_reboot};
 
 pub(crate) fn handle_click(cx: u32, cy: u32, _cw: u32, mx: i32, my: i32) -> bool {
-    let shutdown_x = cx + 15;
-    let shutdown_y = cy + 30;
-    if mx >= shutdown_x as i32 && mx < (shutdown_x + BUTTON_WIDTH) as i32 {
-        if my >= shutdown_y as i32 && my < (shutdown_y + BUTTON_HEIGHT) as i32 {
+    let shutdown_x = cx + 28;
+    let shutdown_y = cy + 138;
+    if mx >= shutdown_x as i32 && mx < (shutdown_x + 120) as i32 {
+        if my >= shutdown_y as i32 && my < (shutdown_y + 24) as i32 {
             set_shutdown();
             return true;
         }
     }
-
-    let reboot_x = cx + 15 + BUTTON_WIDTH + 15;
-    let reboot_y = cy + 30;
-    if mx >= reboot_x as i32 && mx < (reboot_x + BUTTON_WIDTH) as i32 {
-        if my >= reboot_y as i32 && my < (reboot_y + BUTTON_HEIGHT) as i32 {
+    let reboot_x = cx + 156;
+    let reboot_y = cy + 138;
+    if mx >= reboot_x as i32 && mx < (reboot_x + 100) as i32 {
+        if my >= reboot_y as i32 && my < (reboot_y + 24) as i32 {
             set_reboot();
             return true;
         }
     }
-
     false
 }
