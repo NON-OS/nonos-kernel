@@ -25,10 +25,11 @@ pub fn handle_click(x: u32, y: u32, w: u32, click_x: i32, click_y: i32) -> bool 
     if handle_theme_click(x, y, w, click_x, click_y) {
         return true;
     }
-
+    if super::access::handle_click(x, y, w, click_x, click_y) {
+        return true;
+    }
     let bg_start_y = y + 80;
     let content_y = bg_start_y + 25;
-
     handle_wallpapers_click(x, content_y, w, click_x, click_y)
 }
 
