@@ -21,6 +21,7 @@ pub mod selection;
 pub mod process;
 pub mod stats;
 pub mod module_tasks;
+pub mod smp;
 
 pub use types::{Scheduler, SchedulerStatsSnapshot, ModuleTaskError, ModuleTaskResult};
 pub use core::{init, get, spawn, run, enter};
@@ -34,4 +35,9 @@ pub use stats::get_scheduler_stats;
 pub use module_tasks::{
     spawn_module_task, terminate_module_tasks,
     has_running_tasks, force_kill_module_tasks,
+};
+pub use smp::{
+    init_smp_scheduler, init_ap_scheduler, is_enabled as smp_enabled,
+    cpu_count as smp_cpu_count, local_queue_len, total_runnable,
+    force_balance, get_stats as get_smp_stats, SmpSchedStats,
 };
