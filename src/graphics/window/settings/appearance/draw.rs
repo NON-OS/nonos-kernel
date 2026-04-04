@@ -24,7 +24,7 @@ use crate::graphics::themes::get_theme;
 use crate::graphics::window::settings::render::draw_string;
 
 pub fn draw(x: u32, y: u32, w: u32) {
-    fill_rect(x, y, w, 350, 0xFF1C2128);
+    fill_rect(x, y, w, 510, 0xFF1C2128);
 
     draw_theme_section(x, y, w);
 
@@ -33,6 +33,8 @@ pub fn draw(x: u32, y: u32, w: u32) {
 
     let content_y = bg_start_y + 25;
     draw_wallpapers(x, content_y, w);
+
+    super::access::draw(x, y, w);
 }
 
 fn draw_theme_section(x: u32, y: u32, w: u32) {
