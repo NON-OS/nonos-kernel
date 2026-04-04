@@ -25,8 +25,7 @@ pub mod tasks;
 pub mod context;
 pub mod scheduler;
 
-#[cfg(test)]
-mod tests;
+pub mod tests;
 
 pub use core::{Agent, AgentConfig};
 pub use executor::{run_agent, stop_agent, agent_output, is_running, current_agent};
