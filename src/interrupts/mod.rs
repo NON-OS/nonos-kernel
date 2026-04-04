@@ -22,6 +22,8 @@ pub mod isr;
 pub mod pic;
 pub mod safety;
 pub mod stats;
+#[cfg(test)]
+mod tests;
 pub mod timer;
 
 pub use allocation::{
@@ -42,9 +44,11 @@ pub use handlers::{
 };
 
 pub use idt::{
-    init as init_idt, load_idt, EntryError, EntryOptions, GateType, IDT, DOUBLE_FAULT_IST_INDEX,
-    KEYBOARD_INTERRUPT_ID, MACHINE_CHECK_IST_INDEX, MOUSE_INTERRUPT_ID, NMI_IST_INDEX,
-    PAGE_FAULT_IST_INDEX, SYSCALL_INTERRUPT_ID, TIMER_INTERRUPT_ID,
+    exception_has_error_code, exception_is_fatal, exception_name, init as init_idt, irq_to_vector,
+    is_exception, is_irq, is_user_allocatable, load_idt, vector_to_irq, EntryError, EntryOptions,
+    GateType, IDT, DOUBLE_FAULT_IST_INDEX, KEYBOARD_INTERRUPT_ID, MACHINE_CHECK_IST_INDEX,
+    MOUSE_INTERRUPT_ID, NMI_IST_INDEX, PAGE_FAULT_IST_INDEX, SYSCALL_INTERRUPT_ID,
+    TIMER_INTERRUPT_ID, validate_handler_address, validate_ist_index,
 };
 
 pub use isr::{
