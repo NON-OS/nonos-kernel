@@ -24,6 +24,8 @@ pub mod constants;
 mod descriptors;
 mod device;
 pub mod error;
+pub mod hid;
+pub mod hub;
 mod manager;
 pub mod msc;
 pub mod rtl8152;
@@ -58,6 +60,16 @@ pub use msc::{
     get_capacity, get_msc_device, get_msc_devices, init_msc_driver, inquiry as msc_inquiry,
     query_all_capacities, query_capacity, read_blocks, read_capacity_10, read_capacity_16,
     test_unit_ready, write_blocks, InquiryResponse, MscDeviceState, StorageCapacity,
+};
+
+pub use hid::{
+    device_count as hid_device_count, get_devices as hid_devices, poll_key, poll_mouse,
+    process_hid_report, register as register_hid, HidDevice, HidDeviceType, KeyEvent, MouseEvent,
+};
+
+pub use hub::{
+    register_hub, init_hub_ports, poll_hub, enumerate_port, hub_count, get_hub,
+    HubState, PortState, PortStatus, HubDescriptor,
 };
 
 pub mod consts {
