@@ -18,6 +18,7 @@ extern crate alloc;
 
 use super::counters::{get_stats, reset_counters};
 use super::{driver_tests, memory_tests, process_tests, security_tests};
+use crate::agents::tests as agents_tests;
 
 pub fn run_all_tests() -> bool {
     use crate::drivers::console;
@@ -53,6 +54,12 @@ pub fn run_all_tests() -> bool {
     console::write_message("");
     console::write_message("━━━━━━━━━━━━━━━ PROCESS TESTS ━━━━━━━━━━━━━━━━");
     if !process_tests::run_all() {
+        all_passed = false;
+    }
+
+    console::write_message("");
+    console::write_message("━━━━━━━━━━━━━━━ AGENTS TESTS ━━━━━━━━━━━━━━━━━");
+    if !agents_tests::run_all() {
         all_passed = false;
     }
 
