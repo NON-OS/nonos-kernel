@@ -15,14 +15,25 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::sys::boot_log;
-use super::service_list::{CORE_SERVICES, DRIVER_SERVICES};
+use super::service_list::*;
 use super::supervisor::init_loop;
-use super::spawner::{spawn_core_services, spawn_driver_services};
+use super::spawner::{spawn_services, spawn_driver_services, spawn_core_services};
 
 pub fn run_init() -> ! {
     boot_log::ok("INIT", "Starting");
-    spawn_core_services(CORE_SERVICES);
+    crate::sys::boot_log::disable_display();
     spawn_driver_services(DRIVER_SERVICES);
+    for _ in 0..5 { crate::sched::yield_now(); }
+    spawn_services(KERNEL_SERVICES);
+    for _ in 0..5 { crate::sched::yield_now(); }
+    spawn_services(CRYPTO_ENGINE_SERVICES);
+    spawn_services(SIGNATURE_SERVICES);
+    spawn_services(PQ_CRYPTO_SERVICES);
+    spawn_services(ZK_SERVICES);
+    for _ in 0..5 { crate::sched::yield_now(); }
+    spawn_services(SYSTEM_SERVICES);
+    for _ in 0..5 { crate::sched::yield_now(); }
+    spawn_core_services(CORE_SERVICES);
     boot_log::ok("INIT", "Services spawned");
     lower_init_priority();
     for _ in 0..20 { crate::sched::yield_now(); }
