@@ -42,13 +42,29 @@ pub(crate) fn draw(x: u32, y: u32, w: u32) {
     draw_row(x + 28, y + 112, cw - 24, b"NYM Mixnet", is_nym_enabled());
     draw_row(x + 28, y + 148, cw - 24, b"MAC Random", is_privacy_enabled());
     draw_row(x + 28, y + 184, cw - 24, b"ZeroState", is_zero_state_enabled());
-    fill_rounded_rect(x + 16, y + 220, cw, 60, 8, BG_CARD);
-    draw_string(x + 28, y + 232, b"Data", TEXT);
+    fill_rounded_rect(x + 16, y + 220, cw, 80, 8, BG_CARD);
+    draw_row(x + 28, y + 232, cw - 24, b"WiFi Auto", is_wifi_autoconnect());
+    draw_autolock(x + 28, y + 268, cw - 24);
+    fill_rounded_rect(x + 16, y + 310, cw, 60, 8, BG_CARD);
+    draw_string(x + 28, y + 322, b"Data", TEXT);
     let btn_w = (cw - 36) / 2;
-    fill_rounded_rect(x + 28, y + 250, btn_w, 24, 4, BG_DANGER);
-    draw_string(x + 36, y + 255, b"Clear", TEXT);
-    fill_rounded_rect(x + 36 + btn_w, y + 250, btn_w, 24, 4, BG_BTN);
-    draw_string(x + 44 + btn_w, y + 255, b"History", TEXT_DIM);
+    fill_rounded_rect(x + 28, y + 340, btn_w, 24, 4, BG_DANGER);
+    draw_string(x + 36, y + 345, b"Clear", TEXT);
+    fill_rounded_rect(x + 36 + btn_w, y + 340, btn_w, 24, 4, BG_BTN);
+    draw_string(x + 44 + btn_w, y + 345, b"History", TEXT_DIM);
+}
+
+fn draw_autolock(x: u32, y: u32, _w: u32) {
+    draw_string(x, y + 6, b"Auto-Lock", TEXT);
+    let val = crate::sys::settings::auto_lock_timeout();
+    let vals: [&[u8]; 4] = [b"Off", b"1m", b"5m", b"15m"];
+    let idx = match val { 0 => 0, 1 => 1, 5 => 2, _ => 3 };
+    for (i, v) in vals.iter().enumerate() {
+        let bx = x + 100 + (i as u32) * 40;
+        let sel = i == idx;
+        fill_rounded_rect(bx, y, 36, 24, 4, if sel { BG_BTN_SEL } else { BG_BTN });
+        draw_string(bx + 8, y + 6, v, if sel { TEXT } else { TEXT_DIM });
+    }
 }
 
 fn draw_row(x: u32, y: u32, w: u32, title: &[u8], enabled: bool) {

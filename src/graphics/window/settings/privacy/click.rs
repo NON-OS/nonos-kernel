@@ -59,17 +59,7 @@ pub(crate) fn handle_click(cx: u32, cy: u32, cw: u32, mx: i32, my: i32) -> bool 
         }
     }
 
-    let clear_y = cy + 250;
-    if my >= clear_y as i32 && my < (clear_y + 32) as i32 {
-        if mx >= (cx + 15) as i32 && mx < (cx + 155) as i32 {
-            crate::network::http_client::clear_all_cookies();
-            return true;
-        }
-        if mx >= (cx + 165) as i32 && mx < (cx + 305) as i32 {
-            crate::apps::ecosystem::browser::history::clear_history();
-            return true;
-        }
-    }
-
-    false
+    if super::click2::handle_wifi(cx, cy, cw, mx, my) { return true; }
+    if super::click2::handle_autolock(cx, cy, mx, my) { return true; }
+    super::click2::handle_data(cx, cy, mx, my)
 }
