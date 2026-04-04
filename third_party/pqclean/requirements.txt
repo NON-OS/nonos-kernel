@@ -1,0 +1,6 @@
+PyYAML
+pytest
+pytest-xdist
+pycparser
+py-cpuinfo
+jinja2
