@@ -21,3 +21,7 @@ pub mod format;
 pub use core::{init, unix_ms};
 pub use time::{Time, get_time};
 pub use format::{format_time, format_time_full, format_date_short, format_date_only};
+
+pub fn uptime_seconds() -> u64 {
+    crate::sys::timer::uptime::uptime_seconds()
+}
