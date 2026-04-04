@@ -53,6 +53,9 @@ pub struct Agent {
 
 impl Agent {
     pub fn new(id: u32, config: AgentConfig) -> Self {
+        #[cfg(test)]
+        let now = 1000u64;
+        #[cfg(not(test))]
         let now = crate::time::timestamp_millis();
         Self { id, config, state: AgentState::Idle, messages: Vec::new(), output: Vec::new(), created_at: now, last_run: 0 }
     }
