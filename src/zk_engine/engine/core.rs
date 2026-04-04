@@ -15,19 +15,20 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use alloc::{collections::BTreeMap, boxed::Box};
-use spin::{Mutex, RwLock};
+use spin::RwLock;
 use core::sync::atomic::{AtomicU32, AtomicU64};
 use super::super::types::{ZKConfig, ZKStats, ZKError};
 use super::super::groth16::{Groth16Prover, Groth16Verifier, ProvingKey, VerifyingKey};
 use super::super::circuit::Circuit;
 use super::super::setup::TrustedSetup;
+use super::super::verification::VerificationCache;
 
 pub struct ZKEngine {
     pub(crate) config: ZKConfig,
     pub(super) circuits: RwLock<BTreeMap<u32, Box<Circuit>>>,
     pub(super) proving_keys: RwLock<BTreeMap<u32, ProvingKey>>,
     pub(super) verifying_keys: RwLock<BTreeMap<u32, VerifyingKey>>,
-    pub(crate) verification_cache: Mutex<BTreeMap<[u8; 32], bool>>,
+    pub(crate) verification_cache: VerificationCache,
     pub(crate) stats: ZKStats,
     pub(super) next_circuit_id: AtomicU32,
 }
@@ -40,7 +41,7 @@ impl ZKEngine {
         Ok(ZKEngine {
             config: config.clone(), circuits: RwLock::new(BTreeMap::new()),
             proving_keys: RwLock::new(BTreeMap::new()), verifying_keys: RwLock::new(BTreeMap::new()),
-            verification_cache: Mutex::new(BTreeMap::new()),
+            verification_cache: VerificationCache::new(),
             stats: ZKStats { proofs_generated: AtomicU64::new(0), proofs_verified: AtomicU64::new(0),
                 verification_failures: AtomicU64::new(0), circuits_compiled: AtomicU32::new(0),
                 total_proving_time_ms: AtomicU64::new(0), total_verification_time_ms: AtomicU64::new(0) },
@@ -51,8 +52,7 @@ impl ZKEngine {
     pub fn get_stats(&self) -> &ZKStats { &self.stats }
 
     pub fn cleanup(&self) {
-        let mut cache = self.verification_cache.lock();
-        cache.retain(|_, _| true);
+        self.verification_cache.clear();
         crate::log::info!("ZK engine cleanup completed");
     }
 }
