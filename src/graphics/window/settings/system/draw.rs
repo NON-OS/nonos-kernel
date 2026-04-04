@@ -31,25 +31,43 @@ pub(crate) fn draw(x: u32, y: u32, w: u32) {
     draw_slider(x + 28, y + 52, w - 72, sys_settings::brightness(), 100);
     draw_string(x + 28, y + 78, b"Mouse Speed", TEXT_DIM);
     draw_slider(x + 28, y + 94, w - 72, sys_settings::mouse_sensitivity(), 10);
-    fill_rounded_rect(x + 16, y + 130, w - 32, 90, 8, BG_CARD);
+    fill_rounded_rect(x + 16, y + 130, w - 32, 110, 8, BG_CARD);
     draw_string(x + 28, y + 142, b"Sound", TEXT);
     draw_toggle(x + w - 72, y + 138, sys_settings::sound_enabled());
-    draw_string(x + 28, y + 170, b"Dark Theme", TEXT);
-    draw_toggle(x + w - 72, y + 166, is_dark_theme());
-    draw_string(x + 28, y + 198, b"Always enabled for ZeroState", TEXT_DIM);
-    fill_rounded_rect(x + 16, y + 230, w - 32, 70, 8, BG_CARD);
-    draw_string(x + 28, y + 242, b"Keyboard", TEXT);
+    draw_string(x + 28, y + 170, b"Notifications", TEXT);
+    draw_toggle(x + w - 72, y + 166, sys_settings::notifications_enabled());
+    draw_string(x + 28, y + 198, b"Dark Theme", TEXT);
+    draw_toggle(x + w - 72, y + 194, is_dark_theme());
+    fill_rounded_rect(x + 16, y + 250, w - 32, 70, 8, BG_CARD);
+    draw_string(x + 28, y + 262, b"Keyboard", TEXT);
     let layouts: [&[u8]; 5] = [b"US", b"DVK", b"DE", b"FR", b"UK"];
     let current = sys_settings::keyboard_layout() as usize;
     let bw = 48u32;
     for (i, name) in layouts.iter().enumerate() {
         let bx = x + 28 + (i as u32) * (bw + 4);
         let sel = current == i;
-        fill_rounded_rect(bx, y + 262, bw, 26, 4, if sel { BG_BTN_SEL } else { BG_BTN });
+        fill_rounded_rect(bx, y + 282, bw, 26, 4, if sel { BG_BTN_SEL } else { BG_BTN });
         let tc = if sel { TEXT } else { TEXT_DIM };
         let tx = bx + (bw - (name.len() as u32 * 8)) / 2;
-        draw_string(tx, y + 268, name, tc);
+        draw_string(tx, y + 288, name, tc);
     }
     draw_timezone(x, y, w);
     draw_screen_timeout(x, y, w);
+    draw_language(x, y, w);
+}
+
+fn draw_language(x: u32, y: u32, w: u32) {
+    fill_rounded_rect(x + 16, y + 400, w - 32, 70, 8, BG_CARD);
+    draw_string(x + 28, y + 412, b"Language", TEXT);
+    let langs: [&[u8]; 6] = [b"EN", b"ES", b"FR", b"DE", b"ZH", b"JA"];
+    let current = crate::locale::get_lang() as usize;
+    let bw = 36u32;
+    for (i, name) in langs.iter().enumerate() {
+        let bx = x + 28 + (i as u32) * (bw + 4);
+        let sel = current == i;
+        fill_rounded_rect(bx, y + 432, bw, 26, 4, if sel { BG_BTN_SEL } else { BG_BTN });
+        let tc = if sel { TEXT } else { TEXT_DIM };
+        let tx = bx + (bw - (name.len() as u32 * 8)) / 2;
+        draw_string(tx, y + 438, name, tc);
+    }
 }
