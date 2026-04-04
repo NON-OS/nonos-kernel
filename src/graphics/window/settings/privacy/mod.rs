@@ -16,6 +16,7 @@
 
 mod draw;
 mod click;
+mod click2;
 mod sync;
 
 pub(super) use draw::draw;
