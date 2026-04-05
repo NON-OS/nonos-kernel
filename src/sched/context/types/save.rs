@@ -21,7 +21,7 @@ pub(crate) static CONTEXT_JUST_RESTORED: AtomicBool = AtomicBool::new(false);
 
 impl Context {
     #[inline(always)]
-    pub fn save() -> Self {
+    fn save_inner() -> Self {
         let mut ctx: Context = unsafe { core::mem::zeroed() };
         unsafe {
             core::arch::asm!(
@@ -52,6 +52,11 @@ impl Context {
             );
         }
         ctx
+    }
+
+    #[inline(never)]
+    pub fn save() -> Self {
+        Self::save_inner()
     }
 
     pub fn was_just_restored() -> bool {
