@@ -1,7 +1,7 @@
 use crate::graphics::animation::*;
 use crate::test::framework::TestResult;
 
-pub fn test_easing_values() -> TestResult {
+pub(crate) fn test_easing_values() -> TestResult {
     if Easing::Linear != Easing::Linear { return TestResult::Fail; }
     if Easing::EaseIn != Easing::EaseIn { return TestResult::Fail; }
     if Easing::EaseOut != Easing::EaseOut { return TestResult::Fail; }
@@ -10,27 +10,27 @@ pub fn test_easing_values() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_easing_inequality() -> TestResult {
+pub(crate) fn test_easing_inequality() -> TestResult {
     if Easing::Linear == Easing::EaseIn { return TestResult::Fail; }
     if Easing::EaseIn == Easing::EaseOut { return TestResult::Fail; }
     if Easing::EaseOut == Easing::EaseInOut { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_apply_easing_linear() -> TestResult {
+pub(crate) fn test_apply_easing_linear() -> TestResult {
     if apply_easing(0.0, Easing::Linear) != 0.0 { return TestResult::Fail; }
     if apply_easing(0.5, Easing::Linear) != 0.5 { return TestResult::Fail; }
     if apply_easing(1.0, Easing::Linear) != 1.0 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_apply_easing_clamps_input() -> TestResult {
+pub(crate) fn test_apply_easing_clamps_input() -> TestResult {
     if apply_easing(-1.0, Easing::Linear) != 0.0 { return TestResult::Fail; }
     if apply_easing(2.0, Easing::Linear) != 1.0 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_apply_easing_ease_in() -> TestResult {
+pub(crate) fn test_apply_easing_ease_in() -> TestResult {
     let start = apply_easing(0.0, Easing::EaseIn);
     let middle = apply_easing(0.5, Easing::EaseIn);
     let end = apply_easing(1.0, Easing::EaseIn);
@@ -41,7 +41,7 @@ pub fn test_apply_easing_ease_in() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_apply_easing_ease_out() -> TestResult {
+pub(crate) fn test_apply_easing_ease_out() -> TestResult {
     let start = apply_easing(0.0, Easing::EaseOut);
     let middle = apply_easing(0.5, Easing::EaseOut);
     let end = apply_easing(1.0, Easing::EaseOut);
@@ -52,7 +52,7 @@ pub fn test_apply_easing_ease_out() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_apply_easing_ease_in_out() -> TestResult {
+pub(crate) fn test_apply_easing_ease_in_out() -> TestResult {
     let start = apply_easing(0.0, Easing::EaseInOut);
     let middle = apply_easing(0.5, Easing::EaseInOut);
     let end = apply_easing(1.0, Easing::EaseInOut);
@@ -63,7 +63,7 @@ pub fn test_apply_easing_ease_in_out() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_apply_easing_spring() -> TestResult {
+pub(crate) fn test_apply_easing_spring() -> TestResult {
     let start = apply_easing(0.0, Easing::Spring);
     let end = apply_easing(1.0, Easing::Spring);
 
@@ -72,33 +72,33 @@ pub fn test_apply_easing_spring() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_interpolate() -> TestResult {
+pub(crate) fn test_interpolate() -> TestResult {
     if interpolate(0.0, 100.0, 0.0) != 0.0 { return TestResult::Fail; }
     if interpolate(0.0, 100.0, 0.5) != 50.0 { return TestResult::Fail; }
     if interpolate(0.0, 100.0, 1.0) != 100.0 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_interpolate_negative() -> TestResult {
+pub(crate) fn test_interpolate_negative() -> TestResult {
     if interpolate(-50.0, 50.0, 0.5) != 0.0 { return TestResult::Fail; }
     if interpolate(100.0, 0.0, 0.5) != 50.0 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_interpolate_u32() -> TestResult {
+pub(crate) fn test_interpolate_u32() -> TestResult {
     if interpolate_u32(0, 100, 0.0) != 0 { return TestResult::Fail; }
     if interpolate_u32(0, 100, 0.5) != 50 { return TestResult::Fail; }
     if interpolate_u32(0, 100, 1.0) != 100 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_interpolate_u32_boundary() -> TestResult {
+pub(crate) fn test_interpolate_u32_boundary() -> TestResult {
     if interpolate_u32(0, 100, -1.0) != 0 { return TestResult::Fail; }
     if interpolate_u32(0, 100, 2.0) != 100 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_interpolate_color() -> TestResult {
+pub(crate) fn test_interpolate_color() -> TestResult {
     let black = 0xFF000000u32;
     let white = 0xFFFFFFFFu32;
 
@@ -110,7 +110,7 @@ pub fn test_interpolate_color() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_interpolate_color_midpoint() -> TestResult {
+pub(crate) fn test_interpolate_color_midpoint() -> TestResult {
     let black = 0xFF000000u32;
     let white = 0xFFFFFFFFu32;
 
@@ -125,7 +125,7 @@ pub fn test_interpolate_color_midpoint() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_interpolate_color_alpha() -> TestResult {
+pub(crate) fn test_interpolate_color_alpha() -> TestResult {
     let transparent = 0x00FF0000u32;
     let opaque = 0xFFFF0000u32;
 
@@ -136,7 +136,7 @@ pub fn test_interpolate_color_alpha() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_animation_status_values() -> TestResult {
+pub(crate) fn test_animation_status_values() -> TestResult {
     if AnimationStatus::Idle != AnimationStatus::Idle { return TestResult::Fail; }
     if AnimationStatus::Running != AnimationStatus::Running { return TestResult::Fail; }
     if AnimationStatus::Completed != AnimationStatus::Completed { return TestResult::Fail; }
@@ -144,14 +144,14 @@ pub fn test_animation_status_values() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_animation_status_inequality() -> TestResult {
+pub(crate) fn test_animation_status_inequality() -> TestResult {
     if AnimationStatus::Idle == AnimationStatus::Running { return TestResult::Fail; }
     if AnimationStatus::Running == AnimationStatus::Completed { return TestResult::Fail; }
     if AnimationStatus::Completed == AnimationStatus::Paused { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_animation_new() -> TestResult {
+pub(crate) fn test_animation_new() -> TestResult {
     let anim = Animation::new(0.0, 100.0, 500, Easing::EaseOut);
     if anim.start_value != 0.0 { return TestResult::Fail; }
     if anim.end_value != 100.0 { return TestResult::Fail; }
@@ -162,13 +162,13 @@ pub fn test_animation_new() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_animation_with_delay() -> TestResult {
+pub(crate) fn test_animation_with_delay() -> TestResult {
     let anim = Animation::new(0.0, 1.0, 300, Easing::Linear).with_delay(100);
     if anim.delay_ms != 100 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_animation_start() -> TestResult {
+pub(crate) fn test_animation_start() -> TestResult {
     let mut anim = Animation::new(0.0, 1.0, 300, Easing::Linear);
     anim.start(1000);
     if anim.status != AnimationStatus::Running { return TestResult::Fail; }
@@ -176,20 +176,20 @@ pub fn test_animation_start() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_animation_progress_idle() -> TestResult {
+pub(crate) fn test_animation_progress_idle() -> TestResult {
     let anim = Animation::new(0.0, 1.0, 300, Easing::Linear);
     if anim.progress(1000) != 0.0 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_animation_progress_completed() -> TestResult {
+pub(crate) fn test_animation_progress_completed() -> TestResult {
     let mut anim = Animation::new(0.0, 1.0, 300, Easing::Linear);
     anim.complete();
     if anim.progress(1000) != 1.0 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_animation_progress_running() -> TestResult {
+pub(crate) fn test_animation_progress_running() -> TestResult {
     let mut anim = Animation::new(0.0, 1.0, 100, Easing::Linear);
     anim.start(0);
     if anim.progress(0) != 0.0 { return TestResult::Fail; }
@@ -199,7 +199,7 @@ pub fn test_animation_progress_running() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_animation_progress_with_delay() -> TestResult {
+pub(crate) fn test_animation_progress_with_delay() -> TestResult {
     let mut anim = Animation::new(0.0, 1.0, 100, Easing::Linear).with_delay(50);
     anim.start(0);
     if anim.progress(0) != 0.0 { return TestResult::Fail; }
@@ -209,7 +209,7 @@ pub fn test_animation_progress_with_delay() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_animation_current_value() -> TestResult {
+pub(crate) fn test_animation_current_value() -> TestResult {
     let mut anim = Animation::new(0.0, 100.0, 100, Easing::Linear);
     anim.start(0);
     if anim.current_value(0) != 0.0 { return TestResult::Fail; }
@@ -218,7 +218,7 @@ pub fn test_animation_current_value() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_animation_is_complete() -> TestResult {
+pub(crate) fn test_animation_is_complete() -> TestResult {
     let mut anim = Animation::new(0.0, 1.0, 100, Easing::Linear);
     anim.start(0);
     if anim.is_complete(50) { return TestResult::Fail; }
@@ -227,7 +227,7 @@ pub fn test_animation_is_complete() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_animation_complete() -> TestResult {
+pub(crate) fn test_animation_complete() -> TestResult {
     let mut anim = Animation::new(0.0, 1.0, 100, Easing::Linear);
     anim.start(0);
     anim.complete();
@@ -235,7 +235,7 @@ pub fn test_animation_complete() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_animation_reset() -> TestResult {
+pub(crate) fn test_animation_reset() -> TestResult {
     let mut anim = Animation::new(0.0, 1.0, 100, Easing::Linear);
     anim.start(1000);
     anim.reset();
@@ -244,7 +244,7 @@ pub fn test_animation_reset() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_animation_default() -> TestResult {
+pub(crate) fn test_animation_default() -> TestResult {
     let anim = Animation::default();
     if anim.start_value != 0.0 { return TestResult::Fail; }
     if anim.end_value != 1.0 { return TestResult::Fail; }
@@ -253,7 +253,7 @@ pub fn test_animation_default() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_animation_copy() -> TestResult {
+pub(crate) fn test_animation_copy() -> TestResult {
     let anim1 = Animation::new(0.0, 1.0, 300, Easing::EaseIn);
     let anim2 = anim1;
     if anim1.duration_ms != anim2.duration_ms { return TestResult::Fail; }
@@ -261,7 +261,7 @@ pub fn test_animation_copy() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_transition_fade_in() -> TestResult {
+pub(crate) fn test_transition_fade_in() -> TestResult {
     let anim = transitions::fade_in(200);
     if anim.start_value != 0.0 { return TestResult::Fail; }
     if anim.end_value != 1.0 { return TestResult::Fail; }
@@ -269,7 +269,7 @@ pub fn test_transition_fade_in() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_transition_fade_out() -> TestResult {
+pub(crate) fn test_transition_fade_out() -> TestResult {
     let anim = transitions::fade_out(200);
     if anim.start_value != 1.0 { return TestResult::Fail; }
     if anim.end_value != 0.0 { return TestResult::Fail; }
@@ -277,35 +277,35 @@ pub fn test_transition_fade_out() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_transition_slide_in_left() -> TestResult {
+pub(crate) fn test_transition_slide_in_left() -> TestResult {
     let anim = transitions::slide_in_left(100.0, 300);
     if anim.start_value != -100.0 { return TestResult::Fail; }
     if anim.end_value != 0.0 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_transition_slide_in_right() -> TestResult {
+pub(crate) fn test_transition_slide_in_right() -> TestResult {
     let anim = transitions::slide_in_right(100.0, 300);
     if anim.start_value != 100.0 { return TestResult::Fail; }
     if anim.end_value != 0.0 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_transition_slide_in_up() -> TestResult {
+pub(crate) fn test_transition_slide_in_up() -> TestResult {
     let anim = transitions::slide_in_up(100.0, 300);
     if anim.start_value != 100.0 { return TestResult::Fail; }
     if anim.end_value != 0.0 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_transition_slide_in_down() -> TestResult {
+pub(crate) fn test_transition_slide_in_down() -> TestResult {
     let anim = transitions::slide_in_down(100.0, 300);
     if anim.start_value != -100.0 { return TestResult::Fail; }
     if anim.end_value != 0.0 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_transition_scale_in() -> TestResult {
+pub(crate) fn test_transition_scale_in() -> TestResult {
     let anim = transitions::scale_in(250);
     if anim.start_value != 0.0 { return TestResult::Fail; }
     if anim.end_value != 1.0 { return TestResult::Fail; }
@@ -313,35 +313,35 @@ pub fn test_transition_scale_in() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_transition_scale_out() -> TestResult {
+pub(crate) fn test_transition_scale_out() -> TestResult {
     let anim = transitions::scale_out(200);
     if anim.start_value != 1.0 { return TestResult::Fail; }
     if anim.end_value != 0.0 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_transition_hover_grow() -> TestResult {
+pub(crate) fn test_transition_hover_grow() -> TestResult {
     let anim = transitions::hover_grow(150);
     if anim.start_value != 1.0 { return TestResult::Fail; }
     if anim.end_value != 1.05 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_transition_hover_shrink() -> TestResult {
+pub(crate) fn test_transition_hover_shrink() -> TestResult {
     let anim = transitions::hover_shrink(150);
     if anim.start_value != 1.05 { return TestResult::Fail; }
     if anim.end_value != 1.0 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_transition_press() -> TestResult {
+pub(crate) fn test_transition_press() -> TestResult {
     let anim = transitions::press(100);
     if anim.start_value != 1.0 { return TestResult::Fail; }
     if anim.end_value != 0.95 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_transition_release() -> TestResult {
+pub(crate) fn test_transition_release() -> TestResult {
     let anim = transitions::release(150);
     if anim.start_value != 0.95 { return TestResult::Fail; }
     if anim.end_value != 1.0 { return TestResult::Fail; }
@@ -349,14 +349,14 @@ pub fn test_transition_release() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_transition_pulse_glow() -> TestResult {
+pub(crate) fn test_transition_pulse_glow() -> TestResult {
     let anim = transitions::pulse_glow(400);
     if anim.start_value != 0.6 { return TestResult::Fail; }
     if anim.end_value != 1.0 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_transition_spinner_rotation() -> TestResult {
+pub(crate) fn test_transition_spinner_rotation() -> TestResult {
     let anim = transitions::spinner_rotation(1000);
     if anim.start_value != 0.0 { return TestResult::Fail; }
     if anim.end_value != 360.0 { return TestResult::Fail; }
@@ -364,7 +364,7 @@ pub fn test_transition_spinner_rotation() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_duration_constants() -> TestResult {
+pub(crate) fn test_duration_constants() -> TestResult {
     if transitions::DURATION_FAST != 150 { return TestResult::Fail; }
     if transitions::DURATION_NORMAL != 250 { return TestResult::Fail; }
     if transitions::DURATION_SLOW != 400 { return TestResult::Fail; }
@@ -372,27 +372,27 @@ pub fn test_duration_constants() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_timing_constants() -> TestResult {
+pub(crate) fn test_timing_constants() -> TestResult {
     if timing::TARGET_FPS != 60 { return TestResult::Fail; }
     if timing::FRAME_BUDGET_MS != 16 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_timing_ms_to_frames() -> TestResult {
+pub(crate) fn test_timing_ms_to_frames() -> TestResult {
     if timing::ms_to_frames(1000, 60) != 60 { return TestResult::Fail; }
     if timing::ms_to_frames(500, 60) != 30 { return TestResult::Fail; }
     if timing::ms_to_frames(0, 60) != 0 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_timing_frames_to_ms() -> TestResult {
+pub(crate) fn test_timing_frames_to_ms() -> TestResult {
     if timing::frames_to_ms(60, 60) != 1000 { return TestResult::Fail; }
     if timing::frames_to_ms(30, 60) != 500 { return TestResult::Fail; }
     if timing::frames_to_ms(0, 60) != 0 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_timing_should_update_animation() -> TestResult {
+pub(crate) fn test_timing_should_update_animation() -> TestResult {
     let now = timing::current_time();
     if timing::should_update_animation(now, u64::MAX) { return TestResult::Fail; }
     TestResult::Pass
