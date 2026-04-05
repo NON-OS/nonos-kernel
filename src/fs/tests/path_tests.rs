@@ -1,531 +1,532 @@
 use crate::fs::path::*;
+use crate::test::framework::TestResult;
 
-#[test]
-fn test_path_constants_max_path_len() {
-    assert_eq!(MAX_PATH_LEN, 4096);
+pub fn test_path_constants_max_path_len() -> TestResult {
+    if MAX_PATH_LEN != 4096 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_path_constants_max_component_len() {
-    assert_eq!(MAX_COMPONENT_LEN, 255);
+pub fn test_path_constants_max_component_len() -> TestResult {
+    if MAX_COMPONENT_LEN != 255 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_path_constants_separator() {
-    assert_eq!(PATH_SEPARATOR, '/');
+pub fn test_path_constants_separator() -> TestResult {
+    if PATH_SEPARATOR != '/' { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_path_constants_current_dir() {
-    assert_eq!(CURRENT_DIR, ".");
+pub fn test_path_constants_current_dir() -> TestResult {
+    if CURRENT_DIR != "." { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_path_constants_parent_dir() {
-    assert_eq!(PARENT_DIR, "..");
+pub fn test_path_constants_parent_dir() -> TestResult {
+    if PARENT_DIR != ".." { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_path_error_null_pointer_errno() {
-    assert_eq!(PathError::NullPointer.to_errno(), -14);
+pub fn test_path_error_null_pointer_errno() -> TestResult {
+    if PathError::NullPointer.to_errno() != -14 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_path_error_too_long_errno() {
-    assert_eq!(PathError::TooLong.to_errno(), -36);
+pub fn test_path_error_too_long_errno() -> TestResult {
+    if PathError::TooLong.to_errno() != -36 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_path_error_invalid_utf8_errno() {
-    assert_eq!(PathError::InvalidUtf8.to_errno(), -22);
+pub fn test_path_error_invalid_utf8_errno() -> TestResult {
+    if PathError::InvalidUtf8.to_errno() != -22 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_path_error_empty_errno() {
-    assert_eq!(PathError::Empty.to_errno(), -22);
+pub fn test_path_error_empty_errno() -> TestResult {
+    if PathError::Empty.to_errno() != -22 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_path_error_contains_null_errno() {
-    assert_eq!(PathError::ContainsNull.to_errno(), -22);
+pub fn test_path_error_contains_null_errno() -> TestResult {
+    if PathError::ContainsNull.to_errno() != -22 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_path_error_component_too_long_errno() {
-    assert_eq!(PathError::ComponentTooLong.to_errno(), -36);
+pub fn test_path_error_component_too_long_errno() -> TestResult {
+    if PathError::ComponentTooLong.to_errno() != -36 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_path_error_invalid_character_errno() {
-    assert_eq!(PathError::InvalidCharacter.to_errno(), -22);
+pub fn test_path_error_invalid_character_errno() -> TestResult {
+    if PathError::InvalidCharacter.to_errno() != -22 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_path_error_traversal_attempt_errno() {
-    assert_eq!(PathError::TraversalAttempt.to_errno(), -1);
+pub fn test_path_error_traversal_attempt_errno() -> TestResult {
+    if PathError::TraversalAttempt.to_errno() != -1 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_path_error_not_absolute_errno() {
-    assert_eq!(PathError::NotAbsolute.to_errno(), -22);
+pub fn test_path_error_not_absolute_errno() -> TestResult {
+    if PathError::NotAbsolute.to_errno() != -22 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_path_error_not_relative_errno() {
-    assert_eq!(PathError::NotRelative.to_errno(), -22);
+pub fn test_path_error_not_relative_errno() -> TestResult {
+    if PathError::NotRelative.to_errno() != -22 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_path_error_as_str_null_pointer() {
-    assert_eq!(PathError::NullPointer.as_str(), "Null pointer");
+pub fn test_path_error_as_str_null_pointer() -> TestResult {
+    if PathError::NullPointer.as_str() != "Null pointer" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_path_error_as_str_too_long() {
-    assert_eq!(PathError::TooLong.as_str(), "Path too long");
+pub fn test_path_error_as_str_too_long() -> TestResult {
+    if PathError::TooLong.as_str() != "Path too long" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_path_error_as_str_invalid_utf8() {
-    assert_eq!(PathError::InvalidUtf8.as_str(), "Invalid UTF-8 in path");
+pub fn test_path_error_as_str_invalid_utf8() -> TestResult {
+    if PathError::InvalidUtf8.as_str() != "Invalid UTF-8 in path" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_path_error_as_str_empty() {
-    assert_eq!(PathError::Empty.as_str(), "Empty path");
+pub fn test_path_error_as_str_empty() -> TestResult {
+    if PathError::Empty.as_str() != "Empty path" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_path_error_as_str_contains_null() {
-    assert_eq!(PathError::ContainsNull.as_str(), "Path contains null byte");
+pub fn test_path_error_as_str_contains_null() -> TestResult {
+    if PathError::ContainsNull.as_str() != "Path contains null byte" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_path_error_as_str_traversal() {
-    assert_eq!(PathError::TraversalAttempt.as_str(), "Path traversal attempt");
+pub fn test_path_error_as_str_traversal() -> TestResult {
+    if PathError::TraversalAttempt.as_str() != "Path traversal attempt" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_path_error_into_str() {
+pub fn test_path_error_into_str() -> TestResult {
     let err = PathError::Empty;
     let s: &'static str = err.into();
-    assert_eq!(s, "Empty path");
+    if s != "Empty path" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_validate_path_empty() {
-    assert!(validate_path("").is_err());
-    assert_eq!(validate_path("").unwrap_err(), PathError::Empty);
+pub fn test_validate_path_empty() -> TestResult {
+    if !validate_path("").is_err() { return TestResult::Fail; }
+    if validate_path("").unwrap_err() != PathError::Empty { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_validate_path_valid() {
-    assert!(validate_path("/foo/bar").is_ok());
+pub fn test_validate_path_valid() -> TestResult {
+    if !validate_path("/foo/bar").is_ok() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_validate_path_null_byte() {
-    assert!(validate_path("/foo\0bar").is_err());
-    assert_eq!(validate_path("/foo\0bar").unwrap_err(), PathError::ContainsNull);
+pub fn test_validate_path_null_byte() -> TestResult {
+    if !validate_path("/foo\0bar").is_err() { return TestResult::Fail; }
+    if validate_path("/foo\0bar").unwrap_err() != PathError::ContainsNull { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_validate_path_too_long() {
+pub fn test_validate_path_too_long() -> TestResult {
     let long_path = "a".repeat(MAX_PATH_LEN + 1);
-    assert!(validate_path(&long_path).is_err());
-    assert_eq!(validate_path(&long_path).unwrap_err(), PathError::TooLong);
+    if !validate_path(&long_path).is_err() { return TestResult::Fail; }
+    if validate_path(&long_path).unwrap_err() != PathError::TooLong { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_validate_path_secure_valid() {
-    assert!(validate_path_secure("/foo/bar").is_ok());
+pub fn test_validate_path_secure_valid() -> TestResult {
+    if !validate_path_secure("/foo/bar").is_ok() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_validate_path_secure_traversal() {
-    assert!(validate_path_secure("../etc/passwd").is_err());
+pub fn test_validate_path_secure_traversal() -> TestResult {
+    if !validate_path_secure("../etc/passwd").is_err() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_validate_path_secure_complex_traversal() {
-    assert!(validate_path_secure("foo/../../etc").is_err());
+pub fn test_validate_path_secure_complex_traversal() -> TestResult {
+    if !validate_path_secure("foo/../../etc").is_err() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_is_absolute_root() {
-    assert!(is_absolute("/"));
+pub fn test_is_absolute_root() -> TestResult {
+    if !is_absolute("/") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_is_absolute_path() {
-    assert!(is_absolute("/foo/bar"));
+pub fn test_is_absolute_path() -> TestResult {
+    if !is_absolute("/foo/bar") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_is_absolute_relative() {
-    assert!(!is_absolute("foo/bar"));
+pub fn test_is_absolute_relative() -> TestResult {
+    if is_absolute("foo/bar") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_is_absolute_empty() {
-    assert!(!is_absolute(""));
+pub fn test_is_absolute_empty() -> TestResult {
+    if is_absolute("") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_is_relative_path() {
-    assert!(is_relative("foo/bar"));
+pub fn test_is_relative_path() -> TestResult {
+    if !is_relative("foo/bar") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_is_relative_absolute() {
-    assert!(!is_relative("/foo/bar"));
+pub fn test_is_relative_absolute() -> TestResult {
+    if is_relative("/foo/bar") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_is_relative_empty() {
-    assert!(!is_relative(""));
+pub fn test_is_relative_empty() -> TestResult {
+    if is_relative("") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_normalize_path_simple() {
-    assert_eq!(normalize_path("/foo/bar"), "/foo/bar");
+pub fn test_normalize_path_simple() -> TestResult {
+    if normalize_path("/foo/bar") != "/foo/bar" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_normalize_path_double_slash() {
-    assert_eq!(normalize_path("/foo//bar"), "/foo/bar");
+pub fn test_normalize_path_double_slash() -> TestResult {
+    if normalize_path("/foo//bar") != "/foo/bar" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_normalize_path_dot() {
-    assert_eq!(normalize_path("/foo/./bar"), "/foo/bar");
+pub fn test_normalize_path_dot() -> TestResult {
+    if normalize_path("/foo/./bar") != "/foo/bar" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_normalize_path_dotdot() {
-    assert_eq!(normalize_path("/foo/bar/../baz"), "/foo/baz");
+pub fn test_normalize_path_dotdot() -> TestResult {
+    if normalize_path("/foo/bar/../baz") != "/foo/baz" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_normalize_path_dotdot_at_start() {
-    assert_eq!(normalize_path("/foo/../bar"), "/bar");
+pub fn test_normalize_path_dotdot_at_start() -> TestResult {
+    if normalize_path("/foo/../bar") != "/bar" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_normalize_path_multiple_dotdot() {
-    assert_eq!(normalize_path("/foo/bar/../../baz"), "/baz");
+pub fn test_normalize_path_multiple_dotdot() -> TestResult {
+    if normalize_path("/foo/bar/../../baz") != "/baz" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_normalize_path_root() {
-    assert_eq!(normalize_path("/"), "/");
+pub fn test_normalize_path_root() -> TestResult {
+    if normalize_path("/") != "/" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_normalize_path_relative() {
-    assert_eq!(normalize_path("foo/bar"), "foo/bar");
+pub fn test_normalize_path_relative() -> TestResult {
+    if normalize_path("foo/bar") != "foo/bar" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_normalize_path_relative_with_dot() {
-    assert_eq!(normalize_path("foo/./bar"), "foo/bar");
+pub fn test_normalize_path_relative_with_dot() -> TestResult {
+    if normalize_path("foo/./bar") != "foo/bar" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_normalize_path_relative_with_dotdot() {
-    assert_eq!(normalize_path("foo/bar/../baz"), "foo/baz");
+pub fn test_normalize_path_relative_with_dotdot() -> TestResult {
+    if normalize_path("foo/bar/../baz") != "foo/baz" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_normalize_path_empty() {
-    assert_eq!(normalize_path(""), "");
+pub fn test_normalize_path_empty() -> TestResult {
+    if normalize_path("") != "" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_normalize_path_only_dotdot() {
-    assert_eq!(normalize_path(".."), "..");
+pub fn test_normalize_path_only_dotdot() -> TestResult {
+    if normalize_path("..") != ".." { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_normalize_path_relative_dotdot_start() {
-    assert_eq!(normalize_path("../foo"), "../foo");
+pub fn test_normalize_path_relative_dotdot_start() -> TestResult {
+    if normalize_path("../foo") != "../foo" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_parent_simple() {
-    assert_eq!(parent("/foo/bar"), "/foo");
+pub fn test_parent_simple() -> TestResult {
+    if parent("/foo/bar") != "/foo" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_parent_nested() {
-    assert_eq!(parent("/foo/bar/baz"), "/foo/bar");
+pub fn test_parent_nested() -> TestResult {
+    if parent("/foo/bar/baz") != "/foo/bar" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_parent_root_child() {
-    assert_eq!(parent("/foo"), "/");
+pub fn test_parent_root_child() -> TestResult {
+    if parent("/foo") != "/" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_parent_root() {
-    assert_eq!(parent("/"), "/");
+pub fn test_parent_root() -> TestResult {
+    if parent("/") != "/" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_parent_relative() {
-    assert_eq!(parent("foo/bar"), "foo");
+pub fn test_parent_relative() -> TestResult {
+    if parent("foo/bar") != "foo" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_parent_relative_single() {
-    assert_eq!(parent("foo"), ".");
+pub fn test_parent_relative_single() -> TestResult {
+    if parent("foo") != "." { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_parent_trailing_slash() {
-    assert_eq!(parent("/foo/bar/"), "/foo");
+pub fn test_parent_trailing_slash() -> TestResult {
+    if parent("/foo/bar/") != "/foo" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_parent_empty() {
-    assert_eq!(parent(""), "");
+pub fn test_parent_empty() -> TestResult {
+    if parent("") != "" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_file_name_simple() {
-    assert_eq!(file_name("/foo/bar.txt"), "bar.txt");
+pub fn test_file_name_simple() -> TestResult {
+    if file_name("/foo/bar.txt") != "bar.txt" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_file_name_no_extension() {
-    assert_eq!(file_name("/foo/bar"), "bar");
+pub fn test_file_name_no_extension() -> TestResult {
+    if file_name("/foo/bar") != "bar" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_file_name_trailing_slash() {
-    assert_eq!(file_name("/foo/bar/"), "bar");
+pub fn test_file_name_trailing_slash() -> TestResult {
+    if file_name("/foo/bar/") != "bar" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_file_name_root() {
-    assert_eq!(file_name("/"), "");
+pub fn test_file_name_root() -> TestResult {
+    if file_name("/") != "" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_file_name_relative() {
-    assert_eq!(file_name("foo.txt"), "foo.txt");
+pub fn test_file_name_relative() -> TestResult {
+    if file_name("foo.txt") != "foo.txt" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_file_name_empty() {
-    assert_eq!(file_name(""), "");
+pub fn test_file_name_empty() -> TestResult {
+    if file_name("") != "" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_extension_simple() {
-    assert_eq!(extension("foo.txt"), Some("txt"));
+pub fn test_extension_simple() -> TestResult {
+    if extension("foo.txt") != Some("txt") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_extension_multiple_dots() {
-    assert_eq!(extension("foo.tar.gz"), Some("gz"));
+pub fn test_extension_multiple_dots() -> TestResult {
+    if extension("foo.tar.gz") != Some("gz") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_extension_none() {
-    assert_eq!(extension("foo"), None);
+pub fn test_extension_none() -> TestResult {
+    if extension("foo") != None { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_extension_hidden_file() {
-    assert_eq!(extension(".hidden"), None);
+pub fn test_extension_hidden_file() -> TestResult {
+    if extension(".hidden") != None { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_extension_hidden_with_ext() {
-    assert_eq!(extension(".hidden.txt"), None);
+pub fn test_extension_hidden_with_ext() -> TestResult {
+    if extension(".hidden.txt") != None { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_extension_path() {
-    assert_eq!(extension("/foo/bar.txt"), Some("txt"));
+pub fn test_extension_path() -> TestResult {
+    if extension("/foo/bar.txt") != Some("txt") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_extension_empty() {
-    assert_eq!(extension(""), None);
+pub fn test_extension_empty() -> TestResult {
+    if extension("") != None { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_join_simple() {
-    assert_eq!(join("/foo", "bar"), "/foo/bar");
+pub fn test_join_simple() -> TestResult {
+    if join("/foo", "bar") != "/foo/bar" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_join_trailing_slash() {
-    assert_eq!(join("/foo/", "bar"), "/foo/bar");
+pub fn test_join_trailing_slash() -> TestResult {
+    if join("/foo/", "bar") != "/foo/bar" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_join_absolute_child() {
-    assert_eq!(join("/foo", "/bar"), "/bar");
+pub fn test_join_absolute_child() -> TestResult {
+    if join("/foo", "/bar") != "/bar" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_join_empty_parent() {
-    assert_eq!(join("", "bar"), "bar");
+pub fn test_join_empty_parent() -> TestResult {
+    if join("", "bar") != "bar" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_join_empty_child() {
-    assert_eq!(join("/foo", ""), "/foo");
+pub fn test_join_empty_child() -> TestResult {
+    if join("/foo", "") != "/foo" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_join_normalize() {
-    assert_eq!(join_normalize("/foo", "./bar"), "/foo/bar");
+pub fn test_join_normalize() -> TestResult {
+    if join_normalize("/foo", "./bar") != "/foo/bar" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_join_normalize_dotdot() {
-    assert_eq!(join_normalize("/foo/bar", "../baz"), "/foo/baz");
+pub fn test_join_normalize_dotdot() -> TestResult {
+    if join_normalize("/foo/bar", "../baz") != "/foo/baz" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_join_secure_valid() {
+pub fn test_join_secure_valid() -> TestResult {
     let result = join_secure("/home/user", "documents/file.txt");
-    assert!(result.is_ok());
-    assert_eq!(result.unwrap(), "/home/user/documents/file.txt");
+    if !result.is_ok() { return TestResult::Fail; }
+    if result.unwrap() != "/home/user/documents/file.txt" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_join_secure_traversal() {
+pub fn test_join_secure_traversal() -> TestResult {
     let result = join_secure("/home/user", "../etc/passwd");
-    assert!(result.is_err());
+    if !result.is_err() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_join_secure_absolute_child() {
+pub fn test_join_secure_absolute_child() -> TestResult {
     let result = join_secure("/home/user", "/etc/passwd");
-    assert!(result.is_err());
+    if !result.is_err() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_components_absolute() {
+pub fn test_components_absolute() -> TestResult {
     let path = "/foo/bar/baz";
     let parts: alloc::vec::Vec<&str> = components(path).collect();
-    assert_eq!(parts, alloc::vec!["/", "foo", "bar", "baz"]);
+    if parts != alloc::vec!["/", "foo", "bar", "baz"] { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_components_relative() {
+pub fn test_components_relative() -> TestResult {
     let path = "foo/bar/baz";
     let parts: alloc::vec::Vec<&str> = components(path).collect();
-    assert_eq!(parts, alloc::vec!["foo", "bar", "baz"]);
+    if parts != alloc::vec!["foo", "bar", "baz"] { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_components_root() {
+pub fn test_components_root() -> TestResult {
     let path = "/";
     let parts: alloc::vec::Vec<&str> = components(path).collect();
-    assert_eq!(parts, alloc::vec!["/"]);
+    if parts != alloc::vec!["/"] { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_components_empty() {
+pub fn test_components_empty() -> TestResult {
     let path = "";
     let parts: alloc::vec::Vec<&str> = components(path).collect();
-    assert!(parts.is_empty());
+    if !parts.is_empty() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_components_double_slash() {
+pub fn test_components_double_slash() -> TestResult {
     let path = "/foo//bar";
     let parts: alloc::vec::Vec<&str> = components(path).collect();
-    assert_eq!(parts, alloc::vec!["/", "foo", "bar"]);
+    if parts != alloc::vec!["/", "foo", "bar"] { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_component_count_absolute() {
-    assert_eq!(component_count("/foo/bar/baz"), 4);
+pub fn test_component_count_absolute() -> TestResult {
+    if component_count("/foo/bar/baz") != 4 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_component_count_relative() {
-    assert_eq!(component_count("foo/bar"), 2);
+pub fn test_component_count_relative() -> TestResult {
+    if component_count("foo/bar") != 2 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_component_count_empty() {
-    assert_eq!(component_count(""), 0);
+pub fn test_component_count_empty() -> TestResult {
+    if component_count("") != 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_file_stem_simple() {
-    assert_eq!(file_stem("foo.txt"), "foo");
+pub fn test_file_stem_simple() -> TestResult {
+    if file_stem("foo.txt") != "foo" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_file_stem_multiple_dots() {
-    assert_eq!(file_stem("foo.tar.gz"), "foo.tar");
+pub fn test_file_stem_multiple_dots() -> TestResult {
+    if file_stem("foo.tar.gz") != "foo.tar" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_file_stem_no_extension() {
-    assert_eq!(file_stem("foo"), "foo");
+pub fn test_file_stem_no_extension() -> TestResult {
+    if file_stem("foo") != "foo" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_file_stem_hidden() {
-    assert_eq!(file_stem(".hidden"), ".hidden");
+pub fn test_file_stem_hidden() -> TestResult {
+    if file_stem(".hidden") != ".hidden" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_file_stem_path() {
-    assert_eq!(file_stem("/foo/bar.txt"), "bar");
+pub fn test_file_stem_path() -> TestResult {
+    if file_stem("/foo/bar.txt") != "bar" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_require_absolute_valid() {
-    assert!(require_absolute("/foo/bar").is_ok());
+pub fn test_require_absolute_valid() -> TestResult {
+    if !require_absolute("/foo/bar").is_ok() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_require_absolute_invalid() {
-    assert!(require_absolute("foo/bar").is_err());
+pub fn test_require_absolute_invalid() -> TestResult {
+    if !require_absolute("foo/bar").is_err() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_require_relative_valid() {
-    assert!(require_relative("foo/bar").is_ok());
+pub fn test_require_relative_valid() -> TestResult {
+    if !require_relative("foo/bar").is_ok() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_require_relative_invalid() {
-    assert!(require_relative("/foo/bar").is_err());
+pub fn test_require_relative_invalid() -> TestResult {
+    if !require_relative("/foo/bar").is_err() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_normalize_path_secure_valid() {
+pub fn test_normalize_path_secure_valid() -> TestResult {
     let result = normalize_path_secure("/foo/bar", "/foo");
-    assert!(result.is_ok());
+    if !result.is_ok() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_normalize_path_secure_traversal() {
+pub fn test_normalize_path_secure_traversal() -> TestResult {
     let result = normalize_path_secure("/etc/passwd", "/home");
-    assert!(result.is_err());
+    if !result.is_err() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_path_error_equality() {
-    assert_eq!(PathError::Empty, PathError::Empty);
-    assert_ne!(PathError::Empty, PathError::TooLong);
+pub fn test_path_error_equality() -> TestResult {
+    if PathError::Empty != PathError::Empty { return TestResult::Fail; }
+    if PathError::Empty == PathError::TooLong { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_path_error_copy() {
+pub fn test_path_error_copy() -> TestResult {
     let err1 = PathError::Empty;
     let err2 = err1;
-    assert_eq!(err1, err2);
+    if err1 != err2 { return TestResult::Fail; }
+    TestResult::Pass
 }

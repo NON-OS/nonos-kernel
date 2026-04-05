@@ -1,63 +1,63 @@
 use crate::fs::storage::*;
+use crate::test::framework::TestResult;
 
-#[test]
-fn test_storage_constants_default_max_storage() {
-    assert_eq!(DEFAULT_MAX_STORAGE, 256 * 1024 * 1024);
+pub fn test_storage_constants_default_max_storage() -> TestResult {
+    if DEFAULT_MAX_STORAGE != 256 * 1024 * 1024 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_storage_constants_default_max_files() {
-    assert_eq!(DEFAULT_MAX_FILES, 65536);
+pub fn test_storage_constants_default_max_files() -> TestResult {
+    if DEFAULT_MAX_FILES != 65536 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_storage_constants_block_size() {
-    assert_eq!(BLOCK_SIZE, 4096);
+pub fn test_storage_constants_block_size() -> TestResult {
+    if BLOCK_SIZE != 4096 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_storage_constants_inode_size() {
-    assert_eq!(INODE_SIZE, 256);
+pub fn test_storage_constants_inode_size() -> TestResult {
+    if INODE_SIZE != 256 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_storage_constants_warning_threshold() {
-    assert!((WARNING_THRESHOLD_PERCENT - 80.0).abs() < 0.001);
+pub fn test_storage_constants_warning_threshold() -> TestResult {
+    if !((WARNING_THRESHOLD_PERCENT - 80.0).abs() < 0.001) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_storage_constants_critical_threshold() {
-    assert!((CRITICAL_THRESHOLD_PERCENT - 95.0).abs() < 0.001);
+pub fn test_storage_constants_critical_threshold() -> TestResult {
+    if !((CRITICAL_THRESHOLD_PERCENT - 95.0).abs() < 0.001) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_storage_health_status_variants() {
-    assert_eq!(StorageHealthStatus::Healthy, StorageHealthStatus::Healthy);
-    assert_eq!(StorageHealthStatus::Warning, StorageHealthStatus::Warning);
-    assert_eq!(StorageHealthStatus::Critical, StorageHealthStatus::Critical);
-    assert_eq!(StorageHealthStatus::Degraded, StorageHealthStatus::Degraded);
-    assert_eq!(StorageHealthStatus::Unknown, StorageHealthStatus::Unknown);
+pub fn test_storage_health_status_variants() -> TestResult {
+    if StorageHealthStatus::Healthy != StorageHealthStatus::Healthy { return TestResult::Fail; }
+    if StorageHealthStatus::Warning != StorageHealthStatus::Warning { return TestResult::Fail; }
+    if StorageHealthStatus::Critical != StorageHealthStatus::Critical { return TestResult::Fail; }
+    if StorageHealthStatus::Degraded != StorageHealthStatus::Degraded { return TestResult::Fail; }
+    if StorageHealthStatus::Unknown != StorageHealthStatus::Unknown { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_storage_stats_default() {
+pub fn test_storage_stats_default() -> TestResult {
     let stats = StorageStats::default();
-    assert_eq!(stats.total_bytes, DEFAULT_MAX_STORAGE);
-    assert_eq!(stats.used_bytes, 0);
-    assert_eq!(stats.available_bytes, DEFAULT_MAX_STORAGE);
-    assert_eq!(stats.file_count, 0);
-    assert_eq!(stats.directory_count, 0);
-    assert_eq!(stats.block_size, BLOCK_SIZE);
+    if stats.total_bytes != DEFAULT_MAX_STORAGE { return TestResult::Fail; }
+    if stats.used_bytes != 0 { return TestResult::Fail; }
+    if stats.available_bytes != DEFAULT_MAX_STORAGE { return TestResult::Fail; }
+    if stats.file_count != 0 { return TestResult::Fail; }
+    if stats.directory_count != 0 { return TestResult::Fail; }
+    if stats.block_size != BLOCK_SIZE { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_storage_stats_usage_percent_zero() {
+pub fn test_storage_stats_usage_percent_zero() -> TestResult {
     let stats = StorageStats::default();
-    assert!((stats.usage_percent() - 0.0).abs() < 0.001);
+    if !((stats.usage_percent() - 0.0).abs() < 0.001) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_storage_stats_usage_percent_half() {
+pub fn test_storage_stats_usage_percent_half() -> TestResult {
     let stats = StorageStats {
         total_bytes: 1000,
         used_bytes: 500,
@@ -69,11 +69,11 @@ fn test_storage_stats_usage_percent_half() {
         used_blocks: 0,
         free_blocks: 0,
     };
-    assert!((stats.usage_percent() - 50.0).abs() < 0.001);
+    if !((stats.usage_percent() - 50.0).abs() < 0.001) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_storage_stats_usage_percent_full() {
+pub fn test_storage_stats_usage_percent_full() -> TestResult {
     let stats = StorageStats {
         total_bytes: 1000,
         used_bytes: 1000,
@@ -85,11 +85,11 @@ fn test_storage_stats_usage_percent_full() {
         used_blocks: 0,
         free_blocks: 0,
     };
-    assert!((stats.usage_percent() - 100.0).abs() < 0.001);
+    if !((stats.usage_percent() - 100.0).abs() < 0.001) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_storage_stats_free_percent() {
+pub fn test_storage_stats_free_percent() -> TestResult {
     let stats = StorageStats {
         total_bytes: 1000,
         used_bytes: 250,
@@ -101,11 +101,11 @@ fn test_storage_stats_free_percent() {
         used_blocks: 0,
         free_blocks: 0,
     };
-    assert!((stats.free_percent() - 75.0).abs() < 0.001);
+    if !((stats.free_percent() - 75.0).abs() < 0.001) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_storage_stats_block_usage_percent() {
+pub fn test_storage_stats_block_usage_percent() -> TestResult {
     let stats = StorageStats {
         total_bytes: 0,
         used_bytes: 0,
@@ -117,11 +117,11 @@ fn test_storage_stats_block_usage_percent() {
         used_blocks: 25,
         free_blocks: 75,
     };
-    assert!((stats.block_usage_percent() - 25.0).abs() < 0.001);
+    if !((stats.block_usage_percent() - 25.0).abs() < 0.001) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_storage_stats_block_usage_percent_zero_total() {
+pub fn test_storage_stats_block_usage_percent_zero_total() -> TestResult {
     let stats = StorageStats {
         total_bytes: 0,
         used_bytes: 0,
@@ -133,11 +133,11 @@ fn test_storage_stats_block_usage_percent_zero_total() {
         used_blocks: 0,
         free_blocks: 0,
     };
-    assert!((stats.block_usage_percent() - 0.0).abs() < 0.001);
+    if !((stats.block_usage_percent() - 0.0).abs() < 0.001) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_storage_stats_clone() {
+pub fn test_storage_stats_clone() -> TestResult {
     let stats = StorageStats {
         total_bytes: 1024,
         used_bytes: 512,
@@ -150,23 +150,23 @@ fn test_storage_stats_clone() {
         free_blocks: 50,
     };
     let cloned = stats.clone();
-    assert_eq!(cloned.total_bytes, 1024);
-    assert_eq!(cloned.file_count, 10);
+    if cloned.total_bytes != 1024 { return TestResult::Fail; }
+    if cloned.file_count != 10 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_filesystem_breakdown_default() {
+pub fn test_filesystem_breakdown_default() -> TestResult {
     let breakdown = FilesystemBreakdown::default();
-    assert_eq!(breakdown.ramfs_bytes, 0);
-    assert_eq!(breakdown.ramfs_files, 0);
-    assert_eq!(breakdown.cryptofs_bytes, 0);
-    assert_eq!(breakdown.cryptofs_files, 0);
-    assert_eq!(breakdown.cache_bytes, 0);
-    assert_eq!(breakdown.metadata_bytes, 0);
+    if breakdown.ramfs_bytes != 0 { return TestResult::Fail; }
+    if breakdown.ramfs_files != 0 { return TestResult::Fail; }
+    if breakdown.cryptofs_bytes != 0 { return TestResult::Fail; }
+    if breakdown.cryptofs_files != 0 { return TestResult::Fail; }
+    if breakdown.cache_bytes != 0 { return TestResult::Fail; }
+    if breakdown.metadata_bytes != 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_filesystem_breakdown_total_bytes() {
+pub fn test_filesystem_breakdown_total_bytes() -> TestResult {
     let breakdown = FilesystemBreakdown {
         ramfs_bytes: 1000,
         ramfs_files: 10,
@@ -175,11 +175,11 @@ fn test_filesystem_breakdown_total_bytes() {
         cache_bytes: 200,
         metadata_bytes: 100,
     };
-    assert_eq!(breakdown.total_bytes(), 1800);
+    if breakdown.total_bytes() != 1800 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_filesystem_breakdown_total_files() {
+pub fn test_filesystem_breakdown_total_files() -> TestResult {
     let breakdown = FilesystemBreakdown {
         ramfs_bytes: 0,
         ramfs_files: 10,
@@ -188,11 +188,11 @@ fn test_filesystem_breakdown_total_files() {
         cache_bytes: 0,
         metadata_bytes: 0,
     };
-    assert_eq!(breakdown.total_files(), 15);
+    if breakdown.total_files() != 15 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_filesystem_breakdown_clone() {
+pub fn test_filesystem_breakdown_clone() -> TestResult {
     let breakdown = FilesystemBreakdown {
         ramfs_bytes: 100,
         ramfs_files: 1,
@@ -202,21 +202,21 @@ fn test_filesystem_breakdown_clone() {
         metadata_bytes: 25,
     };
     let cloned = breakdown.clone();
-    assert_eq!(cloned.ramfs_bytes, 100);
-    assert_eq!(cloned.cryptofs_files, 2);
+    if cloned.ramfs_bytes != 100 { return TestResult::Fail; }
+    if cloned.cryptofs_files != 2 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_storage_health_default() {
+pub fn test_storage_health_default() -> TestResult {
     let health = StorageHealth::default();
-    assert_eq!(health.status, StorageHealthStatus::Unknown);
-    assert!((health.usage_percent - 0.0).abs() < 0.001);
-    assert!((health.inode_usage_percent - 0.0).abs() < 0.001);
-    assert!((health.fragmentation_percent - 0.0).abs() < 0.001);
+    if health.status != StorageHealthStatus::Unknown { return TestResult::Fail; }
+    if !((health.usage_percent - 0.0).abs() < 0.001) { return TestResult::Fail; }
+    if !((health.inode_usage_percent - 0.0).abs() < 0.001) { return TestResult::Fail; }
+    if !((health.fragmentation_percent - 0.0).abs() < 0.001) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_storage_health_clone() {
+pub fn test_storage_health_clone() -> TestResult {
     let health = StorageHealth {
         status: StorageHealthStatus::Healthy,
         usage_percent: 50.0,
@@ -225,28 +225,28 @@ fn test_storage_health_clone() {
         issues: StorageIssues::default(),
     };
     let cloned = health.clone();
-    assert_eq!(cloned.status, StorageHealthStatus::Healthy);
-    assert!((cloned.usage_percent - 50.0).abs() < 0.001);
+    if cloned.status != StorageHealthStatus::Healthy { return TestResult::Fail; }
+    if !((cloned.usage_percent - 50.0).abs() < 0.001) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_storage_issues_default() {
+pub fn test_storage_issues_default() -> TestResult {
     let issues = StorageIssues::default();
-    assert!(!issues.low_space);
-    assert!(!issues.low_inodes);
-    assert!(!issues.high_fragmentation);
-    assert_eq!(issues.allocation_failures, 0);
-    assert_eq!(issues.io_errors, 0);
+    if issues.low_space { return TestResult::Fail; }
+    if issues.low_inodes { return TestResult::Fail; }
+    if issues.high_fragmentation { return TestResult::Fail; }
+    if issues.allocation_failures != 0 { return TestResult::Fail; }
+    if issues.io_errors != 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_storage_issues_has_issues_none() {
+pub fn test_storage_issues_has_issues_none() -> TestResult {
     let issues = StorageIssues::default();
-    assert!(!issues.has_issues());
+    if issues.has_issues() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_storage_issues_has_issues_low_space() {
+pub fn test_storage_issues_has_issues_low_space() -> TestResult {
     let issues = StorageIssues {
         low_space: true,
         low_inodes: false,
@@ -254,11 +254,11 @@ fn test_storage_issues_has_issues_low_space() {
         allocation_failures: 0,
         io_errors: 0,
     };
-    assert!(issues.has_issues());
+    if !issues.has_issues() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_storage_issues_has_issues_low_inodes() {
+pub fn test_storage_issues_has_issues_low_inodes() -> TestResult {
     let issues = StorageIssues {
         low_space: false,
         low_inodes: true,
@@ -266,11 +266,11 @@ fn test_storage_issues_has_issues_low_inodes() {
         allocation_failures: 0,
         io_errors: 0,
     };
-    assert!(issues.has_issues());
+    if !issues.has_issues() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_storage_issues_has_issues_high_fragmentation() {
+pub fn test_storage_issues_has_issues_high_fragmentation() -> TestResult {
     let issues = StorageIssues {
         low_space: false,
         low_inodes: false,
@@ -278,11 +278,11 @@ fn test_storage_issues_has_issues_high_fragmentation() {
         allocation_failures: 0,
         io_errors: 0,
     };
-    assert!(issues.has_issues());
+    if !issues.has_issues() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_storage_issues_has_issues_allocation_failures() {
+pub fn test_storage_issues_has_issues_allocation_failures() -> TestResult {
     let issues = StorageIssues {
         low_space: false,
         low_inodes: false,
@@ -290,11 +290,11 @@ fn test_storage_issues_has_issues_allocation_failures() {
         allocation_failures: 1,
         io_errors: 0,
     };
-    assert!(issues.has_issues());
+    if !issues.has_issues() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_storage_issues_has_issues_io_errors() {
+pub fn test_storage_issues_has_issues_io_errors() -> TestResult {
     let issues = StorageIssues {
         low_space: false,
         low_inodes: false,
@@ -302,17 +302,17 @@ fn test_storage_issues_has_issues_io_errors() {
         allocation_failures: 0,
         io_errors: 1,
     };
-    assert!(issues.has_issues());
+    if !issues.has_issues() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_storage_issues_issue_count_zero() {
+pub fn test_storage_issues_issue_count_zero() -> TestResult {
     let issues = StorageIssues::default();
-    assert_eq!(issues.issue_count(), 0);
+    if issues.issue_count() != 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_storage_issues_issue_count_all() {
+pub fn test_storage_issues_issue_count_all() -> TestResult {
     let issues = StorageIssues {
         low_space: true,
         low_inodes: true,
@@ -320,11 +320,11 @@ fn test_storage_issues_issue_count_all() {
         allocation_failures: 1,
         io_errors: 1,
     };
-    assert_eq!(issues.issue_count(), 5);
+    if issues.issue_count() != 5 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_storage_issues_issue_count_some() {
+pub fn test_storage_issues_issue_count_some() -> TestResult {
     let issues = StorageIssues {
         low_space: true,
         low_inodes: false,
@@ -332,11 +332,11 @@ fn test_storage_issues_issue_count_some() {
         allocation_failures: 0,
         io_errors: 0,
     };
-    assert_eq!(issues.issue_count(), 2);
+    if issues.issue_count() != 2 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_storage_issues_clone() {
+pub fn test_storage_issues_clone() -> TestResult {
     let issues = StorageIssues {
         low_space: true,
         low_inodes: true,
@@ -345,50 +345,50 @@ fn test_storage_issues_clone() {
         io_errors: 3,
     };
     let cloned = issues.clone();
-    assert!(cloned.low_space);
-    assert!(cloned.low_inodes);
-    assert_eq!(cloned.allocation_failures, 5);
+    if !cloned.low_space { return TestResult::Fail; }
+    if !cloned.low_inodes { return TestResult::Fail; }
+    if cloned.allocation_failures != 5 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_inode_stats_default() {
+pub fn test_inode_stats_default() -> TestResult {
     let stats = InodeStats::default();
-    assert_eq!(stats.total_inodes, DEFAULT_MAX_FILES);
-    assert_eq!(stats.used_inodes, 0);
-    assert_eq!(stats.free_inodes, DEFAULT_MAX_FILES);
-    assert_eq!(stats.inode_size, INODE_SIZE);
+    if stats.total_inodes != DEFAULT_MAX_FILES { return TestResult::Fail; }
+    if stats.used_inodes != 0 { return TestResult::Fail; }
+    if stats.free_inodes != DEFAULT_MAX_FILES { return TestResult::Fail; }
+    if stats.inode_size != INODE_SIZE { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_inode_stats_usage_percent_zero() {
+pub fn test_inode_stats_usage_percent_zero() -> TestResult {
     let stats = InodeStats::default();
-    assert!((stats.usage_percent() - 0.0).abs() < 0.001);
+    if !((stats.usage_percent() - 0.0).abs() < 0.001) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_inode_stats_usage_percent_half() {
+pub fn test_inode_stats_usage_percent_half() -> TestResult {
     let stats = InodeStats {
         total_inodes: 1000,
         used_inodes: 500,
         free_inodes: 500,
         inode_size: INODE_SIZE,
     };
-    assert!((stats.usage_percent() - 50.0).abs() < 0.001);
+    if !((stats.usage_percent() - 50.0).abs() < 0.001) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_inode_stats_usage_percent_zero_total() {
+pub fn test_inode_stats_usage_percent_zero_total() -> TestResult {
     let stats = InodeStats {
         total_inodes: 0,
         used_inodes: 0,
         free_inodes: 0,
         inode_size: INODE_SIZE,
     };
-    assert!((stats.usage_percent() - 0.0).abs() < 0.001);
+    if !((stats.usage_percent() - 0.0).abs() < 0.001) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_inode_stats_clone() {
+pub fn test_inode_stats_clone() -> TestResult {
     let stats = InodeStats {
         total_inodes: 1000,
         used_inodes: 100,
@@ -396,30 +396,30 @@ fn test_inode_stats_clone() {
         inode_size: 512,
     };
     let cloned = stats.clone();
-    assert_eq!(cloned.total_inodes, 1000);
-    assert_eq!(cloned.inode_size, 512);
+    if cloned.total_inodes != 1000 { return TestResult::Fail; }
+    if cloned.inode_size != 512 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_storage_quota_default() {
+pub fn test_storage_quota_default() -> TestResult {
     let quota = StorageQuota::default();
-    assert!(quota.soft_limit < quota.hard_limit);
-    assert_eq!(quota.hard_limit, DEFAULT_MAX_STORAGE);
-    assert_eq!(quota.current_usage, 0);
-    assert_eq!(quota.file_limit, DEFAULT_MAX_FILES);
-    assert_eq!(quota.file_count, 0);
-    assert!(quota.grace_period_secs > 0);
-    assert!(quota.exceeded_at.is_none());
+    if !(quota.soft_limit < quota.hard_limit) { return TestResult::Fail; }
+    if quota.hard_limit != DEFAULT_MAX_STORAGE { return TestResult::Fail; }
+    if quota.current_usage != 0 { return TestResult::Fail; }
+    if quota.file_limit != DEFAULT_MAX_FILES { return TestResult::Fail; }
+    if quota.file_count != 0 { return TestResult::Fail; }
+    if !(quota.grace_period_secs > 0) { return TestResult::Fail; }
+    if !quota.exceeded_at.is_none() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_storage_quota_is_soft_exceeded_false() {
+pub fn test_storage_quota_is_soft_exceeded_false() -> TestResult {
     let quota = StorageQuota::default();
-    assert!(!quota.is_soft_exceeded());
+    if quota.is_soft_exceeded() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_storage_quota_is_soft_exceeded_true() {
+pub fn test_storage_quota_is_soft_exceeded_true() -> TestResult {
     let quota = StorageQuota {
         soft_limit: 100,
         hard_limit: 200,
@@ -429,17 +429,17 @@ fn test_storage_quota_is_soft_exceeded_true() {
         grace_period_secs: 0,
         exceeded_at: None,
     };
-    assert!(quota.is_soft_exceeded());
+    if !quota.is_soft_exceeded() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_storage_quota_is_hard_exceeded_false() {
+pub fn test_storage_quota_is_hard_exceeded_false() -> TestResult {
     let quota = StorageQuota::default();
-    assert!(!quota.is_hard_exceeded());
+    if quota.is_hard_exceeded() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_storage_quota_is_hard_exceeded_true() {
+pub fn test_storage_quota_is_hard_exceeded_true() -> TestResult {
     let quota = StorageQuota {
         soft_limit: 100,
         hard_limit: 200,
@@ -449,11 +449,11 @@ fn test_storage_quota_is_hard_exceeded_true() {
         grace_period_secs: 0,
         exceeded_at: None,
     };
-    assert!(quota.is_hard_exceeded());
+    if !quota.is_hard_exceeded() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_storage_quota_remaining_bytes() {
+pub fn test_storage_quota_remaining_bytes() -> TestResult {
     let quota = StorageQuota {
         soft_limit: 100,
         hard_limit: 200,
@@ -463,11 +463,11 @@ fn test_storage_quota_remaining_bytes() {
         grace_period_secs: 0,
         exceeded_at: None,
     };
-    assert_eq!(quota.remaining_bytes(), 150);
+    if quota.remaining_bytes() != 150 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_storage_quota_remaining_bytes_none() {
+pub fn test_storage_quota_remaining_bytes_none() -> TestResult {
     let quota = StorageQuota {
         soft_limit: 100,
         hard_limit: 200,
@@ -477,11 +477,11 @@ fn test_storage_quota_remaining_bytes_none() {
         grace_period_secs: 0,
         exceeded_at: None,
     };
-    assert_eq!(quota.remaining_bytes(), 0);
+    if quota.remaining_bytes() != 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_storage_quota_remaining_files() {
+pub fn test_storage_quota_remaining_files() -> TestResult {
     let quota = StorageQuota {
         soft_limit: 0,
         hard_limit: 0,
@@ -491,11 +491,11 @@ fn test_storage_quota_remaining_files() {
         grace_period_secs: 0,
         exceeded_at: None,
     };
-    assert_eq!(quota.remaining_files(), 900);
+    if quota.remaining_files() != 900 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_storage_quota_clone() {
+pub fn test_storage_quota_clone() -> TestResult {
     let quota = StorageQuota {
         soft_limit: 100,
         hard_limit: 200,
@@ -506,86 +506,87 @@ fn test_storage_quota_clone() {
         exceeded_at: Some(1000),
     };
     let cloned = quota.clone();
-    assert_eq!(cloned.soft_limit, 100);
-    assert_eq!(cloned.exceeded_at, Some(1000));
+    if cloned.soft_limit != 100 { return TestResult::Fail; }
+    if cloned.exceeded_at != Some(1000) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_get_storage_stats() {
+pub fn test_get_storage_stats() -> TestResult {
     let stats = get_storage_stats();
-    assert!(stats.total_bytes > 0);
+    if !(stats.total_bytes > 0) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_get_total_used_bytes() {
+pub fn test_get_total_used_bytes() -> TestResult {
     let used = get_total_used_bytes();
-    assert!(used >= 0);
+    if !(used >= 0) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_get_total_available_bytes() {
+pub fn test_get_total_available_bytes() -> TestResult {
     let available = get_total_available_bytes();
-    assert!(available >= 0);
+    if !(available >= 0) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_get_storage_usage_percent() {
+pub fn test_get_storage_usage_percent() -> TestResult {
     let percent = get_storage_usage_percent();
-    assert!(percent >= 0.0);
-    assert!(percent <= 100.0);
+    if !(percent >= 0.0) { return TestResult::Fail; }
+    if !(percent <= 100.0) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_get_filesystem_breakdown() {
+pub fn test_get_filesystem_breakdown() -> TestResult {
     let breakdown = get_filesystem_breakdown();
-    assert!(breakdown.total_bytes() >= 0);
+    if !(breakdown.total_bytes() >= 0) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_get_storage_health() {
+pub fn test_get_storage_health() -> TestResult {
     let health = get_storage_health();
-    assert!(health.usage_percent >= 0.0);
+    if !(health.usage_percent >= 0.0) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_get_inode_stats() {
+pub fn test_get_inode_stats() -> TestResult {
     let stats = get_inode_stats();
-    assert!(stats.total_inodes > 0);
+    if !(stats.total_inodes > 0) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_get_quota() {
+pub fn test_get_quota() -> TestResult {
     let quota = get_quota();
-    assert!(quota.hard_limit > 0);
+    if !(quota.hard_limit > 0) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_get_remaining_capacity() {
+pub fn test_get_remaining_capacity() -> TestResult {
     let (bytes, files) = get_remaining_capacity();
-    assert!(bytes >= 0);
-    assert!(files >= 0);
+    if !(bytes >= 0) { return TestResult::Fail; }
+    if !(files >= 0) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_is_soft_limit_exceeded() {
+pub fn test_is_soft_limit_exceeded() -> TestResult {
     let result = is_soft_limit_exceeded();
-    assert!(result == true || result == false);
+    if !(result == true || result == false) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_is_hard_limit_exceeded() {
+pub fn test_is_hard_limit_exceeded() -> TestResult {
     let result = is_hard_limit_exceeded();
-    assert!(result == true || result == false);
+    if !(result == true || result == false) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_check_can_allocate() {
+pub fn test_check_can_allocate() -> TestResult {
     let result = check_can_allocate(1024);
-    assert!(result.is_ok() || result.is_err());
+    if !(result.is_ok() || result.is_err()) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_check_can_create_file() {
+pub fn test_check_can_create_file() -> TestResult {
     let result = check_can_create_file();
-    assert!(result.is_ok() || result.is_err());
+    if !(result.is_ok() || result.is_err()) { return TestResult::Fail; }
+    TestResult::Pass
 }
