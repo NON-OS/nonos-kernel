@@ -14,50 +14,48 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-#[cfg(test)]
-mod tests {
-    use crate::drivers::nvme::constants;
+use crate::drivers::nvme::constants;
+use crate::test::framework::TestResult;
 
-    #[test]
-    fn test_constants() {
-        assert_eq!(constants::PAGE_SIZE, 4096);
-        assert_eq!(constants::ADMIN_QUEUE_DEPTH, 32);
-        assert_eq!(constants::IO_QUEUE_DEPTH, 256);
-        assert_eq!(constants::SUBMISSION_ENTRY_SIZE, 64);
-        assert_eq!(constants::COMPLETION_ENTRY_SIZE, 16);
-    }
+pub fn test_constants() -> TestResult {
+    if constants::PAGE_SIZE != 4096 { return TestResult::Fail; }
+    if constants::ADMIN_QUEUE_DEPTH != 32 { return TestResult::Fail; }
+    if constants::IO_QUEUE_DEPTH != 256 { return TestResult::Fail; }
+    if constants::SUBMISSION_ENTRY_SIZE != 64 { return TestResult::Fail; }
+    if constants::COMPLETION_ENTRY_SIZE != 16 { return TestResult::Fail; }
+    TestResult::Pass
+}
 
-    #[test]
-    fn test_doorbell_calculation() {
-        let dstrd = 0;
-        let qid = 1;
+pub fn test_doorbell_calculation() -> TestResult {
+    let dstrd = 0;
+    let qid = 1;
 
-        let sq_offset = constants::doorbell_sq_offset(dstrd, qid);
-        let cq_offset = constants::doorbell_cq_offset(dstrd, qid);
+    let sq_offset = constants::doorbell_sq_offset(dstrd, qid);
+    let cq_offset = constants::doorbell_cq_offset(dstrd, qid);
 
-        assert_eq!(sq_offset, 0x1000 + 8);
-        assert_eq!(cq_offset, 0x1000 + 12);
-    }
+    if sq_offset != 0x1000 + 8 { return TestResult::Fail; }
+    if cq_offset != 0x1000 + 12 { return TestResult::Fail; }
+    TestResult::Pass
+}
 
-    #[test]
-    fn test_cap_helpers() {
-        let cap: u64 = 0x00200028_0002_01FF;
+pub fn test_cap_helpers() -> TestResult {
+    let cap: u64 = 0x00200028_0002_01FF;
 
-        assert_eq!(constants::cap_mqes(cap), 0x01FF);
-        assert_eq!(constants::cap_dstrd(cap), 8);
-    }
+    if constants::cap_mqes(cap) != 0x01FF { return TestResult::Fail; }
+    if constants::cap_dstrd(cap) != 8 { return TestResult::Fail; }
+    TestResult::Pass
+}
 
-    #[test]
-    fn test_aqa_encoding() {
-        let aqa = constants::aqa(32, 32);
-        assert_eq!(aqa & 0xFFF, 31);
-        assert_eq!((aqa >> 16) & 0xFFF, 31);
-    }
+pub fn test_aqa_encoding() -> TestResult {
+    let aqa = constants::aqa(32, 32);
+    if aqa & 0xFFF != 31 { return TestResult::Fail; }
+    if (aqa >> 16) & 0xFFF != 31 { return TestResult::Fail; }
+    TestResult::Pass
+}
 
-    #[test]
-    fn test_version_parsing() {
-        assert_eq!(constants::version_major(0x00010400), 1);
-        assert_eq!(constants::version_minor(0x00010400), 4);
-        assert_eq!(constants::version_tertiary(0x00010400), 0);
-    }
+pub fn test_version_parsing() -> TestResult {
+    if constants::version_major(0x00010400) != 1 { return TestResult::Fail; }
+    if constants::version_minor(0x00010400) != 4 { return TestResult::Fail; }
+    if constants::version_tertiary(0x00010400) != 0 { return TestResult::Fail; }
+    TestResult::Pass
 }

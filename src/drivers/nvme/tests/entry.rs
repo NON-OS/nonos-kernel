@@ -14,73 +14,71 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-#[cfg(test)]
-mod tests {
-    use crate::drivers::nvme::{constants, types};
+use crate::drivers::nvme::{constants, types};
+use crate::test::framework::TestResult;
 
-    #[test]
-    fn test_submission_entry_creation() {
-        let entry = types::SubmissionEntry::new();
-        assert_eq!(entry.opcode(), 0);
-        assert_eq!(entry.cid(), 0);
-        assert_eq!(entry.nsid, 0);
-    }
+pub fn test_submission_entry_creation() -> TestResult {
+    let entry = types::SubmissionEntry::new();
+    if entry.opcode() != 0 { return TestResult::Fail; }
+    if entry.cid() != 0 { return TestResult::Fail; }
+    if entry.nsid != 0 { return TestResult::Fail; }
+    TestResult::Pass
+}
 
-    #[test]
-    fn test_submission_entry_opcode_cid() {
-        let mut entry = types::SubmissionEntry::new();
-        entry.set_opcode(0x02);
-        entry.set_cid(0x1234);
+pub fn test_submission_entry_opcode_cid() -> TestResult {
+    let mut entry = types::SubmissionEntry::new();
+    entry.set_opcode(0x02);
+    entry.set_cid(0x1234);
 
-        assert_eq!(entry.opcode(), 0x02);
-        assert_eq!(entry.cid(), 0x1234);
-    }
+    if entry.opcode() != 0x02 { return TestResult::Fail; }
+    if entry.cid() != 0x1234 { return TestResult::Fail; }
+    TestResult::Pass
+}
 
-    #[test]
-    fn test_submission_entry_sanitize() {
-        let mut entry = types::SubmissionEntry::new();
-        entry.set_opcode(constants::IO_OPC_READ);
-        entry.cdw2 = 0xDEADBEEF;
-        entry.cdw3 = 0xCAFEBABE;
-        entry.cdw0 |= 0xFF00;
+pub fn test_submission_entry_sanitize() -> TestResult {
+    let mut entry = types::SubmissionEntry::new();
+    entry.set_opcode(constants::IO_OPC_READ);
+    entry.cdw2 = 0xDEADBEEF;
+    entry.cdw3 = 0xCAFEBABE;
+    entry.cdw0 |= 0xFF00;
 
-        entry.sanitize();
+    entry.sanitize();
 
-        assert_eq!(entry.cdw2, 0);
-        assert_eq!(entry.cdw3, 0);
-        assert_eq!(entry.cdw0 & 0x3C00, 0);
-    }
+    if entry.cdw2 != 0 { return TestResult::Fail; }
+    if entry.cdw3 != 0 { return TestResult::Fail; }
+    if entry.cdw0 & 0x3C00 != 0 { return TestResult::Fail; }
+    TestResult::Pass
+}
 
-    #[test]
-    fn test_completion_entry_status() {
-        let entry = types::CompletionEntry {
-            dw0: 0,
-            dw1: 0,
-            sq_head: 0,
-            sq_id: 0,
-            cid: 0,
-            status: 0x0001,
-        };
+pub fn test_completion_entry_status() -> TestResult {
+    let entry = types::CompletionEntry {
+        dw0: 0,
+        dw1: 0,
+        sq_head: 0,
+        sq_id: 0,
+        cid: 0,
+        status: 0x0001,
+    };
 
-        assert!(entry.phase());
-        assert!(entry.is_success());
-        assert!(!entry.is_error());
-    }
+    if !entry.phase() { return TestResult::Fail; }
+    if !entry.is_success() { return TestResult::Fail; }
+    if entry.is_error() { return TestResult::Fail; }
+    TestResult::Pass
+}
 
-    #[test]
-    fn test_completion_entry_error() {
-        let entry = types::CompletionEntry {
-            dw0: 0,
-            dw1: 0,
-            sq_head: 0,
-            sq_id: 0,
-            cid: 0,
-            status: 0x0005,
-        };
+pub fn test_completion_entry_error() -> TestResult {
+    let entry = types::CompletionEntry {
+        dw0: 0,
+        dw1: 0,
+        sq_head: 0,
+        sq_id: 0,
+        cid: 0,
+        status: 0x0005,
+    };
 
-        assert!(entry.phase());
-        assert!(!entry.is_success());
-        assert!(entry.is_error());
-        assert_eq!(entry.status_code(), 0x02);
-    }
+    if !entry.phase() { return TestResult::Fail; }
+    if entry.is_success() { return TestResult::Fail; }
+    if !entry.is_error() { return TestResult::Fail; }
+    if entry.status_code() != 0x02 { return TestResult::Fail; }
+    TestResult::Pass
 }
