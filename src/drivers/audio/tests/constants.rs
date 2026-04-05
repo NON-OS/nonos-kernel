@@ -14,106 +14,107 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::super::constants::*;
+use crate::drivers::audio::constants::*;
+use crate::test::framework::TestResult;
 
-#[test]
-fn test_global_register_offsets() {
-    assert_eq!(GCAP, 0x00);
-    assert_eq!(VMIN, 0x02);
-    assert_eq!(VMAJ, 0x03);
-    assert_eq!(GCTL, 0x08);
-    assert_eq!(STATESTS, 0x0E);
-    assert_eq!(INTCTL, 0x20);
-    assert_eq!(INTSTS, 0x24);
+pub fn test_global_register_offsets() -> TestResult {
+    if GCAP != 0x00 { return TestResult::Fail; }
+    if VMIN != 0x02 { return TestResult::Fail; }
+    if VMAJ != 0x03 { return TestResult::Fail; }
+    if GCTL != 0x08 { return TestResult::Fail; }
+    if STATESTS != 0x0E { return TestResult::Fail; }
+    if INTCTL != 0x20 { return TestResult::Fail; }
+    if INTSTS != 0x24 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_corb_rirb_offsets() {
-    assert_eq!(CORBLBASE, 0x40);
-    assert_eq!(CORBUBASE, 0x44);
-    assert_eq!(CORBWP, 0x48);
-    assert_eq!(CORBRP, 0x4A);
-    assert_eq!(CORBCTL, 0x4C);
-    assert_eq!(RIRBLBASE, 0x50);
-    assert_eq!(RIRBUBASE, 0x54);
-    assert_eq!(RIRBWP, 0x58);
-    assert_eq!(RIRBCTL, 0x5C);
+pub fn test_corb_rirb_offsets() -> TestResult {
+    if CORBLBASE != 0x40 { return TestResult::Fail; }
+    if CORBUBASE != 0x44 { return TestResult::Fail; }
+    if CORBWP != 0x48 { return TestResult::Fail; }
+    if CORBRP != 0x4A { return TestResult::Fail; }
+    if CORBCTL != 0x4C { return TestResult::Fail; }
+    if RIRBLBASE != 0x50 { return TestResult::Fail; }
+    if RIRBUBASE != 0x54 { return TestResult::Fail; }
+    if RIRBWP != 0x58 { return TestResult::Fail; }
+    if RIRBCTL != 0x5C { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_immediate_command_offsets() {
-    assert_eq!(IC, 0x60);
-    assert_eq!(IR, 0x64);
-    assert_eq!(IRS, 0x68);
+pub fn test_immediate_command_offsets() -> TestResult {
+    if IC != 0x60 { return TestResult::Fail; }
+    if IR != 0x64 { return TestResult::Fail; }
+    if IRS != 0x68 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_stream_descriptor_offsets() {
-    assert_eq!(STREAM_BASE, 0x80);
-    assert_eq!(STREAM_STRIDE, 0x20);
-    assert_eq!(SD_CTL, 0x00);
-    assert_eq!(SD_LPIB, 0x04);
-    assert_eq!(SD_CBL, 0x08);
-    assert_eq!(SD_LVI, 0x0C);
-    assert_eq!(SD_FMT, 0x12);
-    assert_eq!(SD_BDPL, 0x18);
-    assert_eq!(SD_BDPU, 0x1C);
+pub fn test_stream_descriptor_offsets() -> TestResult {
+    if STREAM_BASE != 0x80 { return TestResult::Fail; }
+    if STREAM_STRIDE != 0x20 { return TestResult::Fail; }
+    if SD_CTL != 0x00 { return TestResult::Fail; }
+    if SD_LPIB != 0x04 { return TestResult::Fail; }
+    if SD_CBL != 0x08 { return TestResult::Fail; }
+    if SD_LVI != 0x0C { return TestResult::Fail; }
+    if SD_FMT != 0x12 { return TestResult::Fail; }
+    if SD_BDPL != 0x18 { return TestResult::Fail; }
+    if SD_BDPU != 0x1C { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_gctl_bits() {
-    assert_eq!(GCTL_CRST, 1 << 0);
-    assert_eq!(GCTL_FCNTRL, 1 << 1);
-    assert_eq!(GCTL_UNSOL, 1 << 8);
+pub fn test_gctl_bits() -> TestResult {
+    if GCTL_CRST != 1 << 0 { return TestResult::Fail; }
+    if GCTL_FCNTRL != 1 << 1 { return TestResult::Fail; }
+    if GCTL_UNSOL != 1 << 8 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_stream_ctl_bits() {
-    assert_eq!(SD_CTL_SRST, 1 << 0);
-    assert_eq!(SD_CTL_RUN, 1 << 1);
-    assert_eq!(SD_CTL_IOCE, 1 << 2);
-    assert_eq!(SD_CTL_FEIE, 1 << 3);
-    assert_eq!(SD_CTL_DEIE, 1 << 4);
+pub fn test_stream_ctl_bits() -> TestResult {
+    if SD_CTL_SRST != 1 << 0 { return TestResult::Fail; }
+    if SD_CTL_RUN != 1 << 1 { return TestResult::Fail; }
+    if SD_CTL_IOCE != 1 << 2 { return TestResult::Fail; }
+    if SD_CTL_FEIE != 1 << 3 { return TestResult::Fail; }
+    if SD_CTL_DEIE != 1 << 4 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_buffer_sizes() {
-    assert_eq!(CORB_ENTRIES, 256);
-    assert_eq!(RIRB_ENTRIES, 256);
-    assert_eq!(CORB_SIZE, 256 * 4);
-    assert_eq!(RIRB_SIZE, 256 * 8);
-    assert_eq!(BDL_ENTRIES, 16);
-    assert_eq!(PCM_BUFFER_SIZE, 64 * 1024);
+pub fn test_buffer_sizes() -> TestResult {
+    if CORB_ENTRIES != 256 { return TestResult::Fail; }
+    if RIRB_ENTRIES != 256 { return TestResult::Fail; }
+    if CORB_SIZE != 256 * 4 { return TestResult::Fail; }
+    if RIRB_SIZE != 256 * 8 { return TestResult::Fail; }
+    if BDL_ENTRIES != 16 { return TestResult::Fail; }
+    if PCM_BUFFER_SIZE != 64 * 1024 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_default_audio_constants() {
-    assert_eq!(DEFAULT_SAMPLE_RATE, 48_000);
-    assert_eq!(DEFAULT_BITS_PER_SAMPLE, 16);
-    assert_eq!(DEFAULT_CHANNELS, 2);
+pub fn test_default_audio_constants() -> TestResult {
+    if DEFAULT_SAMPLE_RATE != 48_000 { return TestResult::Fail; }
+    if DEFAULT_BITS_PER_SAMPLE != 16 { return TestResult::Fail; }
+    if DEFAULT_CHANNELS != 2 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_spin_timeouts() {
-    assert!(SPIN_TIMEOUT_DEFAULT > 0);
-    assert!(SPIN_TIMEOUT_SHORT > 0);
-    assert!(SPIN_TIMEOUT_LONG > 0);
-    assert!(SPIN_TIMEOUT_SHORT < SPIN_TIMEOUT_DEFAULT);
-    assert!(SPIN_TIMEOUT_DEFAULT < SPIN_TIMEOUT_LONG);
+pub fn test_spin_timeouts() -> TestResult {
+    if !(SPIN_TIMEOUT_DEFAULT > 0) { return TestResult::Fail; }
+    if !(SPIN_TIMEOUT_SHORT > 0) { return TestResult::Fail; }
+    if !(SPIN_TIMEOUT_LONG > 0) { return TestResult::Fail; }
+    if !(SPIN_TIMEOUT_SHORT < SPIN_TIMEOUT_DEFAULT) { return TestResult::Fail; }
+    if !(SPIN_TIMEOUT_DEFAULT < SPIN_TIMEOUT_LONG) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_pci_class_codes() {
-    assert_eq!(HDA_CLASS, 0x04);
-    assert_eq!(HDA_SUBCLASS, 0x03);
+pub fn test_pci_class_codes() -> TestResult {
+    if HDA_CLASS != 0x04 { return TestResult::Fail; }
+    if HDA_SUBCLASS != 0x03 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_parameter_constants() {
-    assert_eq!(PARAM_AMP_IN_CAP, 0x0D);
-    assert_eq!(PARAM_AMP_OUT_CAP, 0x12);
-    assert_eq!(VERB_SET_CONN_SELECT, 0x701);
-    assert_eq!(VERB_GET_CONN_LIST, 0xF02);
-    assert_eq!(VERB_GET_CONFIG_DEFAULT, 0xF1C);
-    assert_eq!(VERB_SET_STREAM_CHANNEL, 0x706);
+pub fn test_parameter_constants() -> TestResult {
+    if PARAM_AMP_IN_CAP != 0x0D { return TestResult::Fail; }
+    if PARAM_AMP_OUT_CAP != 0x12 { return TestResult::Fail; }
+    if VERB_SET_CONN_SELECT != 0x701 { return TestResult::Fail; }
+    if VERB_GET_CONN_LIST != 0xF02 { return TestResult::Fail; }
+    if VERB_GET_CONFIG_DEFAULT != 0xF1C { return TestResult::Fail; }
+    if VERB_SET_STREAM_CHANNEL != 0x706 { return TestResult::Fail; }
+    TestResult::Pass
 }
