@@ -17,7 +17,7 @@
 use crate::display::*;
 use crate::test::framework::TestResult;
 
-pub fn test_framebuffer_info_creation() -> TestResult {
+pub(crate) fn test_framebuffer_info_creation() -> TestResult {
     let info = FramebufferInfo {
         addr: 0xB8000,
         width: 1920,
@@ -33,7 +33,7 @@ pub fn test_framebuffer_info_creation() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_framebuffer_info_clone() -> TestResult {
+pub(crate) fn test_framebuffer_info_clone() -> TestResult {
     let info = FramebufferInfo {
         addr: 0xFD000000,
         width: 800,
@@ -50,7 +50,7 @@ pub fn test_framebuffer_info_clone() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_framebuffer_info_copy() -> TestResult {
+pub(crate) fn test_framebuffer_info_copy() -> TestResult {
     let info = FramebufferInfo {
         addr: 0xE0000000,
         width: 1024,
@@ -64,7 +64,7 @@ pub fn test_framebuffer_info_copy() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_framebuffer_info_debug() -> TestResult {
+pub(crate) fn test_framebuffer_info_debug() -> TestResult {
     let info = FramebufferInfo {
         addr: 0x12345678,
         width: 640,
@@ -80,7 +80,7 @@ pub fn test_framebuffer_info_debug() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_framebuffer_info_standard_resolutions() -> TestResult {
+pub(crate) fn test_framebuffer_info_standard_resolutions() -> TestResult {
     let hd = FramebufferInfo {
         addr: 0x10000000,
         width: 1920,
@@ -110,7 +110,7 @@ pub fn test_framebuffer_info_standard_resolutions() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_framebuffer_info_stride_calculation() -> TestResult {
+pub(crate) fn test_framebuffer_info_stride_calculation() -> TestResult {
     let info = FramebufferInfo {
         addr: 0x10000000,
         width: 1920,
@@ -122,7 +122,7 @@ pub fn test_framebuffer_info_stride_calculation() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_framebuffer_info_stride_with_padding() -> TestResult {
+pub(crate) fn test_framebuffer_info_stride_with_padding() -> TestResult {
     let info = FramebufferInfo {
         addr: 0x10000000,
         width: 1920,
@@ -134,7 +134,7 @@ pub fn test_framebuffer_info_stride_with_padding() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_framebuffer_info_vga_resolution() -> TestResult {
+pub(crate) fn test_framebuffer_info_vga_resolution() -> TestResult {
     let vga = FramebufferInfo {
         addr: 0xA0000,
         width: 640,
@@ -147,7 +147,7 @@ pub fn test_framebuffer_info_vga_resolution() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_framebuffer_info_svga_resolution() -> TestResult {
+pub(crate) fn test_framebuffer_info_svga_resolution() -> TestResult {
     let svga = FramebufferInfo {
         addr: 0xE0000000,
         width: 800,
@@ -160,7 +160,7 @@ pub fn test_framebuffer_info_svga_resolution() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_framebuffer_info_xga_resolution() -> TestResult {
+pub(crate) fn test_framebuffer_info_xga_resolution() -> TestResult {
     let xga = FramebufferInfo {
         addr: 0xE0000000,
         width: 1024,
@@ -173,7 +173,7 @@ pub fn test_framebuffer_info_xga_resolution() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_framebuffer_info_sxga_resolution() -> TestResult {
+pub(crate) fn test_framebuffer_info_sxga_resolution() -> TestResult {
     let sxga = FramebufferInfo {
         addr: 0xE0000000,
         width: 1280,
@@ -186,7 +186,7 @@ pub fn test_framebuffer_info_sxga_resolution() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_framebuffer_info_bpp_24() -> TestResult {
+pub(crate) fn test_framebuffer_info_bpp_24() -> TestResult {
     let info = FramebufferInfo {
         addr: 0xE0000000,
         width: 1920,
@@ -199,7 +199,7 @@ pub fn test_framebuffer_info_bpp_24() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_framebuffer_info_bpp_16() -> TestResult {
+pub(crate) fn test_framebuffer_info_bpp_16() -> TestResult {
     let info = FramebufferInfo {
         addr: 0xE0000000,
         width: 1920,
@@ -212,7 +212,7 @@ pub fn test_framebuffer_info_bpp_16() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_framebuffer_info_bpp_8() -> TestResult {
+pub(crate) fn test_framebuffer_info_bpp_8() -> TestResult {
     let info = FramebufferInfo {
         addr: 0xE0000000,
         width: 320,
@@ -225,7 +225,7 @@ pub fn test_framebuffer_info_bpp_8() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_framebuffer_info_large_address() -> TestResult {
+pub(crate) fn test_framebuffer_info_large_address() -> TestResult {
     let info = FramebufferInfo {
         addr: 0xFFFF_FFFF_FFFF_0000,
         width: 1920,
@@ -237,7 +237,7 @@ pub fn test_framebuffer_info_large_address() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_framebuffer_info_buffer_size() -> TestResult {
+pub(crate) fn test_framebuffer_info_buffer_size() -> TestResult {
     let info = FramebufferInfo {
         addr: 0xE0000000,
         width: 1920,
@@ -250,7 +250,7 @@ pub fn test_framebuffer_info_buffer_size() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_framebuffer_info_pixel_offset() -> TestResult {
+pub(crate) fn test_framebuffer_info_pixel_offset() -> TestResult {
     let info = FramebufferInfo {
         addr: 0xE0000000,
         width: 1920,
@@ -265,7 +265,7 @@ pub fn test_framebuffer_info_pixel_offset() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_framebuffer_info_row_offset() -> TestResult {
+pub(crate) fn test_framebuffer_info_row_offset() -> TestResult {
     let info = FramebufferInfo {
         addr: 0xE0000000,
         width: 1920,
@@ -278,7 +278,7 @@ pub fn test_framebuffer_info_row_offset() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_register_framebuffer_invalid_address_zero() -> TestResult {
+pub(crate) fn test_register_framebuffer_invalid_address_zero() -> TestResult {
     let info = FramebufferInfo {
         addr: 0,
         width: 1920,
@@ -292,7 +292,7 @@ pub fn test_register_framebuffer_invalid_address_zero() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_register_framebuffer_invalid_width_zero() -> TestResult {
+pub(crate) fn test_register_framebuffer_invalid_width_zero() -> TestResult {
     let info = FramebufferInfo {
         addr: 0xE0000000,
         width: 0,
@@ -306,7 +306,7 @@ pub fn test_register_framebuffer_invalid_width_zero() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_register_framebuffer_invalid_height_zero() -> TestResult {
+pub(crate) fn test_register_framebuffer_invalid_height_zero() -> TestResult {
     let info = FramebufferInfo {
         addr: 0xE0000000,
         width: 1920,
@@ -320,7 +320,7 @@ pub fn test_register_framebuffer_invalid_height_zero() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_register_framebuffer_invalid_both_dimensions_zero() -> TestResult {
+pub(crate) fn test_register_framebuffer_invalid_both_dimensions_zero() -> TestResult {
     let info = FramebufferInfo {
         addr: 0xE0000000,
         width: 0,
@@ -334,7 +334,7 @@ pub fn test_register_framebuffer_invalid_both_dimensions_zero() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_framebuffer_info_widescreen_16_9() -> TestResult {
+pub(crate) fn test_framebuffer_info_widescreen_16_9() -> TestResult {
     let info = FramebufferInfo {
         addr: 0xE0000000,
         width: 1920,
@@ -349,7 +349,7 @@ pub fn test_framebuffer_info_widescreen_16_9() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_framebuffer_info_widescreen_16_10() -> TestResult {
+pub(crate) fn test_framebuffer_info_widescreen_16_10() -> TestResult {
     let info = FramebufferInfo {
         addr: 0xE0000000,
         width: 1920,
@@ -364,7 +364,7 @@ pub fn test_framebuffer_info_widescreen_16_10() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_framebuffer_info_standard_4_3() -> TestResult {
+pub(crate) fn test_framebuffer_info_standard_4_3() -> TestResult {
     let info = FramebufferInfo {
         addr: 0xE0000000,
         width: 1024,
@@ -379,7 +379,7 @@ pub fn test_framebuffer_info_standard_4_3() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_framebuffer_info_retina_2x() -> TestResult {
+pub(crate) fn test_framebuffer_info_retina_2x() -> TestResult {
     let info = FramebufferInfo {
         addr: 0xE0000000,
         width: 3840,
@@ -392,7 +392,7 @@ pub fn test_framebuffer_info_retina_2x() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_framebuffer_info_5k_resolution() -> TestResult {
+pub(crate) fn test_framebuffer_info_5k_resolution() -> TestResult {
     let info = FramebufferInfo {
         addr: 0xE0000000,
         width: 5120,
@@ -404,7 +404,7 @@ pub fn test_framebuffer_info_5k_resolution() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_framebuffer_info_bytes_per_pixel_32() -> TestResult {
+pub(crate) fn test_framebuffer_info_bytes_per_pixel_32() -> TestResult {
     let info = FramebufferInfo {
         addr: 0xE0000000,
         width: 1920,
@@ -416,7 +416,7 @@ pub fn test_framebuffer_info_bytes_per_pixel_32() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_framebuffer_info_ultrawide_21_9() -> TestResult {
+pub(crate) fn test_framebuffer_info_ultrawide_21_9() -> TestResult {
     let info = FramebufferInfo {
         addr: 0xE0000000,
         width: 2560,
@@ -428,7 +428,7 @@ pub fn test_framebuffer_info_ultrawide_21_9() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_framebuffer_info_square_display() -> TestResult {
+pub(crate) fn test_framebuffer_info_square_display() -> TestResult {
     let info = FramebufferInfo {
         addr: 0xE0000000,
         width: 1024,
@@ -440,7 +440,7 @@ pub fn test_framebuffer_info_square_display() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_framebuffer_info_minimum_dimensions() -> TestResult {
+pub(crate) fn test_framebuffer_info_minimum_dimensions() -> TestResult {
     let info = FramebufferInfo {
         addr: 0xE0000000,
         width: 1,
@@ -453,7 +453,7 @@ pub fn test_framebuffer_info_minimum_dimensions() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_framebuffer_info_max_u32_dimensions() -> TestResult {
+pub(crate) fn test_framebuffer_info_max_u32_dimensions() -> TestResult {
     let info = FramebufferInfo {
         addr: 0xE0000000,
         width: u32::MAX,
