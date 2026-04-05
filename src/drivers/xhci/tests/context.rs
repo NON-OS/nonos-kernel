@@ -18,22 +18,22 @@ use crate::drivers::xhci::types;
 use crate::test::framework::TestResult;
 use core::mem;
 
-pub fn test_slot_context_size() -> TestResult {
+pub(crate) fn test_slot_context_size() -> TestResult {
     if mem::size_of::<types::SlotContext>() != 32 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_ep_context_size() -> TestResult {
+pub(crate) fn test_ep_context_size() -> TestResult {
     if mem::size_of::<types::EpContext>() != 32 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_device_context_alignment() -> TestResult {
+pub(crate) fn test_device_context_alignment() -> TestResult {
     if mem::align_of::<types::DeviceContext>() != 64 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_slot_context_fields() -> TestResult {
+pub(crate) fn test_slot_context_fields() -> TestResult {
     let mut slot = types::SlotContext::default();
 
     slot.set_speed(4);
@@ -54,7 +54,7 @@ pub fn test_slot_context_fields() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_ep_context_dequeue_pointer() -> TestResult {
+pub(crate) fn test_ep_context_dequeue_pointer() -> TestResult {
     let mut ep = types::EpContext::default();
 
     ep.set_tr_dequeue_pointer(0x1000_0010, true);
@@ -68,7 +68,7 @@ pub fn test_ep_context_dequeue_pointer() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_ep_context_max_packet_size() -> TestResult {
+pub(crate) fn test_ep_context_max_packet_size() -> TestResult {
     let mut ep = types::EpContext::default();
 
     ep.set_max_packet_size(512);
@@ -80,7 +80,7 @@ pub fn test_ep_context_max_packet_size() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_ep_addr_to_dci() -> TestResult {
+pub(crate) fn test_ep_addr_to_dci() -> TestResult {
     if types::DeviceContext::ep_addr_to_dci(0x00) != 1 { return TestResult::Fail; }
     if types::DeviceContext::ep_addr_to_dci(0x80) != 1 { return TestResult::Fail; }
     if types::DeviceContext::ep_addr_to_dci(0x01) != 2 { return TestResult::Fail; }
@@ -90,7 +90,7 @@ pub fn test_ep_addr_to_dci() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_input_control_context() -> TestResult {
+pub(crate) fn test_input_control_context() -> TestResult {
     let mut icc = types::InputControlContext::default();
 
     icc.add_context(0);

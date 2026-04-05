@@ -17,7 +17,7 @@
 use crate::drivers::xhci::constants;
 use crate::test::framework::TestResult;
 
-pub fn test_portsc_change_bits() -> TestResult {
+pub(crate) fn test_portsc_change_bits() -> TestResult {
     let change_bits = constants::PORTSC_CHANGE_BITS;
     if change_bits & constants::PORTSC_CSC != constants::PORTSC_CSC { return TestResult::Fail; }
     if change_bits & constants::PORTSC_PEC != constants::PORTSC_PEC { return TestResult::Fail; }
@@ -26,13 +26,13 @@ pub fn test_portsc_change_bits() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_trb_alignment_constant() -> TestResult {
+pub(crate) fn test_trb_alignment_constant() -> TestResult {
     if constants::TRB_ALIGNMENT != 16 { return TestResult::Fail; }
     if constants::DMA_MIN_ALIGNMENT < constants::TRB_ALIGNMENT as usize { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_ring_size_constants() -> TestResult {
+pub(crate) fn test_ring_size_constants() -> TestResult {
     if constants::MIN_RING_SIZE < 16 { return TestResult::Fail; }
     if constants::MAX_RING_SIZE < constants::MIN_RING_SIZE { return TestResult::Fail; }
     if constants::DEFAULT_CMD_RING_SIZE < constants::MIN_RING_SIZE { return TestResult::Fail; }
@@ -40,7 +40,7 @@ pub fn test_ring_size_constants() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_valid_trb_types_lists() -> TestResult {
+pub(crate) fn test_valid_trb_types_lists() -> TestResult {
     if !constants::VALID_TRANSFER_TRB_TYPES.contains(&constants::TRB_TYPE_NORMAL) { return TestResult::Fail; }
     if !constants::VALID_TRANSFER_TRB_TYPES.contains(&constants::TRB_TYPE_SETUP_STAGE) { return TestResult::Fail; }
     if !constants::VALID_TRANSFER_TRB_TYPES.contains(&constants::TRB_TYPE_LINK) { return TestResult::Fail; }

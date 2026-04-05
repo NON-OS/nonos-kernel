@@ -17,7 +17,7 @@
 use crate::drivers::xhci::stats;
 use crate::test::framework::TestResult;
 
-pub fn test_stats_increment() -> TestResult {
+pub(crate) fn test_stats_increment() -> TestResult {
     let stats = stats::XhciStatistics::new();
 
     stats.inc_interrupts();
@@ -34,7 +34,7 @@ pub fn test_stats_increment() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_stats_total_errors() -> TestResult {
+pub(crate) fn test_stats_total_errors() -> TestResult {
     let stats = stats::XhciStatistics::new();
 
     stats.inc_timeouts();
@@ -45,7 +45,7 @@ pub fn test_stats_total_errors() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_stats_error_rate() -> TestResult {
+pub(crate) fn test_stats_error_rate() -> TestResult {
     let mut snapshot = stats::XhciStats::new();
     snapshot.transfers = 90;
     snapshot.errors = 10;
@@ -56,7 +56,7 @@ pub fn test_stats_error_rate() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_controller_health() -> TestResult {
+pub(crate) fn test_controller_health() -> TestResult {
     let mut snapshot = stats::XhciStats::new();
     snapshot.transfers = 100;
     snapshot.errors = 0;

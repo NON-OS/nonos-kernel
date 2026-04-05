@@ -18,12 +18,12 @@ use crate::drivers::xhci::{constants, types};
 use crate::test::framework::TestResult;
 use core::mem;
 
-pub fn test_usb_device_descriptor_size() -> TestResult {
+pub(crate) fn test_usb_device_descriptor_size() -> TestResult {
     if mem::size_of::<types::UsbDeviceDescriptor>() != 18 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_usb_device_descriptor_validation() -> TestResult {
+pub(crate) fn test_usb_device_descriptor_validation() -> TestResult {
     let mut desc = types::UsbDeviceDescriptor::default();
     if desc.validate() { return TestResult::Fail; }
 
@@ -34,7 +34,7 @@ pub fn test_usb_device_descriptor_validation() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_usb_version_parsing() -> TestResult {
+pub(crate) fn test_usb_version_parsing() -> TestResult {
     let mut desc = types::UsbDeviceDescriptor::default();
     desc.bcd_usb = 0x0200;
 
