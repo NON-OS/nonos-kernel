@@ -1,206 +1,121 @@
-use crate::test::framework::{TestCase, TestSuite};
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod header_tests;
-pub mod program_header_tests;
-pub mod section_header_tests;
-pub mod symbol_tests;
-mod relocation_tests;
-mod dynamic_tests;
-mod tls_tests;
-mod constants_tests;
-mod auxv_tests;
-mod hash_tests;
-mod init_fini_tests;
-mod got_tests;
-mod error_tests;
-mod minimal_tests;
-mod interpreter_tests;
-mod dynlink_tests;
-mod aslr_tests;
-mod stack_tests;
-mod cache_tests;
-mod libmgr_tests;
-mod embedded_tests;
-mod symbol_resolver_tests;
+//! ELF subsystem tests
+//!
+//! Tests for ELF parsing, loading, ASLR, and dynamic linking.
 
+use crate::test::framework::{TestResult, TestCase, TestSuite};
+use crate::elf::*;
+
+/// Run all ELF tests
 pub fn run_all() -> bool {
-    let mut suite = TestSuite::new("elf");
+    let mut suite = TestSuite::new("ELF");
 
-    // header_tests (44 tests)
-    suite.add(TestCase::new("elf_header_size", header_tests::test_elf_header_size));
-    suite.add(TestCase::new("elf_header_default", header_tests::test_elf_header_default));
-    suite.add(TestCase::new("elf_magic_invalid", header_tests::test_elf_magic_invalid));
-    suite.add(TestCase::new("elf_magic_valid", header_tests::test_elf_magic_valid));
-    suite.add(TestCase::new("elf_magic_partial", header_tests::test_elf_magic_partial));
-    suite.add(TestCase::new("elf_magic_wrong_bytes", header_tests::test_elf_magic_wrong_bytes));
-    suite.add(TestCase::new("is_64bit_true", header_tests::test_is_64bit_true));
-    suite.add(TestCase::new("is_64bit_false_32bit", header_tests::test_is_64bit_false_32bit));
-    suite.add(TestCase::new("is_64bit_false_none", header_tests::test_is_64bit_false_none));
-    suite.add(TestCase::new("is_little_endian_true", header_tests::test_is_little_endian_true));
-    suite.add(TestCase::new("is_little_endian_false_big", header_tests::test_is_little_endian_false_big));
-    suite.add(TestCase::new("is_little_endian_false_none", header_tests::test_is_little_endian_false_none));
-    suite.add(TestCase::new("is_executable_exec", header_tests::test_is_executable_exec));
-    suite.add(TestCase::new("is_executable_dyn", header_tests::test_is_executable_dyn));
-    suite.add(TestCase::new("is_executable_false_rel", header_tests::test_is_executable_false_rel));
-    suite.add(TestCase::new("is_executable_false_core", header_tests::test_is_executable_false_core));
-    suite.add(TestCase::new("is_executable_false_none", header_tests::test_is_executable_false_none));
-    suite.add(TestCase::new("is_pie_true", header_tests::test_is_pie_true));
-    suite.add(TestCase::new("is_pie_false_exec", header_tests::test_is_pie_false_exec));
-    suite.add(TestCase::new("is_x86_64_true", header_tests::test_is_x86_64_true));
-    suite.add(TestCase::new("is_x86_64_false_386", header_tests::test_is_x86_64_false_386));
-    suite.add(TestCase::new("is_x86_64_false_aarch64", header_tests::test_is_x86_64_false_aarch64));
-    suite.add(TestCase::new("is_x86_64_false_riscv", header_tests::test_is_x86_64_false_riscv));
-    suite.add(TestCase::new("type_name_none", header_tests::test_type_name_none));
-    suite.add(TestCase::new("type_name_rel", header_tests::test_type_name_rel));
-    suite.add(TestCase::new("type_name_exec", header_tests::test_type_name_exec));
-    suite.add(TestCase::new("type_name_dyn", header_tests::test_type_name_dyn));
-    suite.add(TestCase::new("type_name_core", header_tests::test_type_name_core));
-    suite.add(TestCase::new("type_name_unknown", header_tests::test_type_name_unknown));
-    suite.add(TestCase::new("machine_name_none", header_tests::test_machine_name_none));
-    suite.add(TestCase::new("machine_name_386", header_tests::test_machine_name_386));
-    suite.add(TestCase::new("machine_name_x86_64", header_tests::test_machine_name_x86_64));
-    suite.add(TestCase::new("machine_name_aarch64", header_tests::test_machine_name_aarch64));
-    suite.add(TestCase::new("machine_name_riscv", header_tests::test_machine_name_riscv));
-    suite.add(TestCase::new("machine_name_unknown", header_tests::test_machine_name_unknown));
-    suite.add(TestCase::new("elf_header_fully_configured", header_tests::test_elf_header_fully_configured));
-    suite.add(TestCase::new("elf_header_clone", header_tests::test_elf_header_clone));
-    suite.add(TestCase::new("elf_header_copy", header_tests::test_elf_header_copy));
-    suite.add(TestCase::new("elf_header_alignment", header_tests::test_elf_header_alignment));
-    suite.add(TestCase::new("elf_header_ident_indices", header_tests::test_elf_header_ident_indices));
-    suite.add(TestCase::new("elf_magic_bytes", header_tests::test_elf_magic_bytes));
+    suite.add(TestCase::with_category("elf_magic_constant", test_elf_magic_constant, "elf"));
+    suite.add(TestCase::with_category("elf_header_size", test_elf_header_size, "elf"));
+    suite.add(TestCase::with_category("program_header_size", test_program_header_size, "elf"));
+    suite.add(TestCase::with_category("section_header_size", test_section_header_size, "elf"));
+    suite.add(TestCase::with_category("aslr_manager_creation", test_aslr_manager_creation, "elf"));
+    suite.add(TestCase::with_category("aslr_disabled", test_aslr_disabled, "elf"));
+    suite.add(TestCase::with_category("elf_class_values", test_elf_class_values, "elf"));
+    suite.add(TestCase::with_category("elf_type_values", test_elf_type_values, "elf"));
+    suite.add(TestCase::with_category("elf_machine_values", test_elf_machine_values, "elf"));
+    suite.add(TestCase::with_category("phdr_type_values", test_phdr_type_values, "elf"));
+    suite.add(TestCase::with_category("validate_elf_magic", test_validate_elf_magic, "elf"));
 
-    // program_header_tests (46 tests)
-    suite.add(TestCase::new("program_header_size", program_header_tests::test_program_header_size));
-    suite.add(TestCase::new("program_header_default", program_header_tests::test_program_header_default));
-    suite.add(TestCase::new("is_load_true", program_header_tests::test_is_load_true));
-    suite.add(TestCase::new("is_load_false_null", program_header_tests::test_is_load_false_null));
-    suite.add(TestCase::new("is_load_false_dynamic", program_header_tests::test_is_load_false_dynamic));
-    suite.add(TestCase::new("is_load_false_interp", program_header_tests::test_is_load_false_interp));
-    suite.add(TestCase::new("is_readable_true", program_header_tests::test_is_readable_true));
-    suite.add(TestCase::new("is_readable_false", program_header_tests::test_is_readable_false));
-    suite.add(TestCase::new("is_readable_with_other_flags", program_header_tests::test_is_readable_with_other_flags));
-    suite.add(TestCase::new("is_writable_true", program_header_tests::test_is_writable_true));
-    suite.add(TestCase::new("is_writable_false", program_header_tests::test_is_writable_false));
-    suite.add(TestCase::new("is_writable_with_read", program_header_tests::test_is_writable_with_read));
-    suite.add(TestCase::new("ph_is_executable_true", program_header_tests::test_is_executable_true));
-    suite.add(TestCase::new("ph_is_executable_false", program_header_tests::test_is_executable_false));
-    suite.add(TestCase::new("is_executable_with_read", program_header_tests::test_is_executable_with_read));
-    suite.add(TestCase::new("bss_size_no_bss", program_header_tests::test_bss_size_no_bss));
-    suite.add(TestCase::new("bss_size_with_bss", program_header_tests::test_bss_size_with_bss));
-    suite.add(TestCase::new("bss_size_large_bss", program_header_tests::test_bss_size_large_bss));
-    suite.add(TestCase::new("bss_size_zero_filesz", program_header_tests::test_bss_size_zero_filesz));
-    suite.add(TestCase::new("bss_size_saturating", program_header_tests::test_bss_size_saturating));
-    suite.add(TestCase::new("ph_type_name_null", program_header_tests::test_type_name_null));
-    suite.add(TestCase::new("ph_type_name_load", program_header_tests::test_type_name_load));
-    suite.add(TestCase::new("ph_type_name_dynamic", program_header_tests::test_type_name_dynamic));
-    suite.add(TestCase::new("ph_type_name_interp", program_header_tests::test_type_name_interp));
-    suite.add(TestCase::new("ph_type_name_note", program_header_tests::test_type_name_note));
-    suite.add(TestCase::new("ph_type_name_phdr", program_header_tests::test_type_name_phdr));
-    suite.add(TestCase::new("ph_type_name_tls", program_header_tests::test_type_name_tls));
-    suite.add(TestCase::new("ph_type_name_gnu_stack", program_header_tests::test_type_name_gnu_stack));
-    suite.add(TestCase::new("ph_type_name_gnu_relro", program_header_tests::test_type_name_gnu_relro));
-    suite.add(TestCase::new("ph_type_name_unknown", program_header_tests::test_type_name_unknown));
-    suite.add(TestCase::new("flags_str_rwx", program_header_tests::test_flags_str_rwx));
-    suite.add(TestCase::new("flags_str_rw", program_header_tests::test_flags_str_rw));
-    suite.add(TestCase::new("flags_str_rx", program_header_tests::test_flags_str_rx));
-    suite.add(TestCase::new("flags_str_r", program_header_tests::test_flags_str_r));
-    suite.add(TestCase::new("flags_str_wx", program_header_tests::test_flags_str_wx));
-    suite.add(TestCase::new("flags_str_w", program_header_tests::test_flags_str_w));
-    suite.add(TestCase::new("flags_str_x", program_header_tests::test_flags_str_x));
-    suite.add(TestCase::new("flags_str_none", program_header_tests::test_flags_str_none));
-    suite.add(TestCase::new("program_header_clone", program_header_tests::test_program_header_clone));
-    suite.add(TestCase::new("program_header_copy", program_header_tests::test_program_header_copy));
-    suite.add(TestCase::new("program_header_alignment", program_header_tests::test_program_header_alignment));
-    suite.add(TestCase::new("phdr_type_constants", program_header_tests::test_phdr_type_constants));
-    suite.add(TestCase::new("phdr_flags_constants", program_header_tests::test_phdr_flags_constants));
-    suite.add(TestCase::new("program_header_fully_configured", program_header_tests::test_program_header_fully_configured));
+    let (_, failed, _) = suite.run_all();
+    failed == 0
+}
 
-    // section_header_tests (39 tests)
-    suite.add(TestCase::new("section_header_size", section_header_tests::test_section_header_size));
-    suite.add(TestCase::new("section_header_default", section_header_tests::test_section_header_default));
-    suite.add(TestCase::new("is_alloc_true", section_header_tests::test_is_alloc_true));
-    suite.add(TestCase::new("is_alloc_false", section_header_tests::test_is_alloc_false));
-    suite.add(TestCase::new("is_alloc_with_other_flags", section_header_tests::test_is_alloc_with_other_flags));
-    suite.add(TestCase::new("sh_is_writable_true", section_header_tests::test_is_writable_true));
-    suite.add(TestCase::new("sh_is_writable_false", section_header_tests::test_is_writable_false));
-    suite.add(TestCase::new("sh_is_writable_with_alloc", section_header_tests::test_is_writable_with_alloc));
-    suite.add(TestCase::new("sh_is_executable_true", section_header_tests::test_is_executable_true));
-    suite.add(TestCase::new("sh_is_executable_false", section_header_tests::test_is_executable_false));
-    suite.add(TestCase::new("sh_is_executable_with_alloc_read", section_header_tests::test_is_executable_with_alloc_read));
-    suite.add(TestCase::new("is_bss_true", section_header_tests::test_is_bss_true));
-    suite.add(TestCase::new("is_bss_false_progbits", section_header_tests::test_is_bss_false_progbits));
-    suite.add(TestCase::new("is_bss_false_null", section_header_tests::test_is_bss_false_null));
-    suite.add(TestCase::new("sh_type_name_null", section_header_tests::test_type_name_null));
-    suite.add(TestCase::new("sh_type_name_progbits", section_header_tests::test_type_name_progbits));
-    suite.add(TestCase::new("sh_type_name_symtab", section_header_tests::test_type_name_symtab));
-    suite.add(TestCase::new("sh_type_name_strtab", section_header_tests::test_type_name_strtab));
-    suite.add(TestCase::new("sh_type_name_rela", section_header_tests::test_type_name_rela));
-    suite.add(TestCase::new("sh_type_name_hash", section_header_tests::test_type_name_hash));
-    suite.add(TestCase::new("sh_type_name_dynamic", section_header_tests::test_type_name_dynamic));
-    suite.add(TestCase::new("sh_type_name_note", section_header_tests::test_type_name_note));
-    suite.add(TestCase::new("sh_type_name_nobits", section_header_tests::test_type_name_nobits));
-    suite.add(TestCase::new("sh_type_name_rel", section_header_tests::test_type_name_rel));
-    suite.add(TestCase::new("sh_type_name_dynsym", section_header_tests::test_type_name_dynsym));
-    suite.add(TestCase::new("sh_type_name_unknown", section_header_tests::test_type_name_unknown));
-    suite.add(TestCase::new("section_header_clone", section_header_tests::test_section_header_clone));
-    suite.add(TestCase::new("section_header_copy", section_header_tests::test_section_header_copy));
-    suite.add(TestCase::new("section_header_alignment", section_header_tests::test_section_header_alignment));
-    suite.add(TestCase::new("shdr_type_constants", section_header_tests::test_shdr_type_constants));
-    suite.add(TestCase::new("shdr_flags_constants", section_header_tests::test_shdr_flags_constants));
-    suite.add(TestCase::new("section_header_text_section", section_header_tests::test_section_header_text_section));
-    suite.add(TestCase::new("section_header_data_section", section_header_tests::test_section_header_data_section));
-    suite.add(TestCase::new("section_header_bss_section", section_header_tests::test_section_header_bss_section));
-    suite.add(TestCase::new("section_header_tls_flag", section_header_tests::test_section_header_tls_flag));
-    suite.add(TestCase::new("section_header_symtab_section", section_header_tests::test_section_header_symtab_section));
-    suite.add(TestCase::new("section_header_rela_section", section_header_tests::test_section_header_rela_section));
+pub(crate) fn test_elf_magic_constant() -> TestResult {
+    if ELF_MAGIC != [0x7f, b'E', b'L', b'F'] { return TestResult::Fail; }
+    TestResult::Pass
+}
 
-    // symbol_tests (48 tests)
-    suite.add(TestCase::new("symbol_size", symbol_tests::test_symbol_size));
-    suite.add(TestCase::new("symbol_entry_alias", symbol_tests::test_symbol_entry_alias));
-    suite.add(TestCase::new("symbol_default", symbol_tests::test_symbol_default));
-    suite.add(TestCase::new("binding_local", symbol_tests::test_binding_local));
-    suite.add(TestCase::new("binding_global", symbol_tests::test_binding_global));
-    suite.add(TestCase::new("binding_weak", symbol_tests::test_binding_weak));
-    suite.add(TestCase::new("binding_with_type", symbol_tests::test_binding_with_type));
-    suite.add(TestCase::new("sym_type_notype", symbol_tests::test_sym_type_notype));
-    suite.add(TestCase::new("sym_type_object", symbol_tests::test_sym_type_object));
-    suite.add(TestCase::new("sym_type_func", symbol_tests::test_sym_type_func));
-    suite.add(TestCase::new("sym_type_section", symbol_tests::test_sym_type_section));
-    suite.add(TestCase::new("sym_type_file", symbol_tests::test_sym_type_file));
-    suite.add(TestCase::new("sym_type_tls", symbol_tests::test_sym_type_tls));
-    suite.add(TestCase::new("sym_type_with_binding", symbol_tests::test_sym_type_with_binding));
-    suite.add(TestCase::new("is_local_true", symbol_tests::test_is_local_true));
-    suite.add(TestCase::new("is_local_false_global", symbol_tests::test_is_local_false_global));
-    suite.add(TestCase::new("is_local_false_weak", symbol_tests::test_is_local_false_weak));
-    suite.add(TestCase::new("is_global_true", symbol_tests::test_is_global_true));
-    suite.add(TestCase::new("is_global_false_local", symbol_tests::test_is_global_false_local));
-    suite.add(TestCase::new("is_global_false_weak", symbol_tests::test_is_global_false_weak));
-    suite.add(TestCase::new("is_weak_true", symbol_tests::test_is_weak_true));
-    suite.add(TestCase::new("is_weak_false_local", symbol_tests::test_is_weak_false_local));
-    suite.add(TestCase::new("is_weak_false_global", symbol_tests::test_is_weak_false_global));
-    suite.add(TestCase::new("is_function_true", symbol_tests::test_is_function_true));
-    suite.add(TestCase::new("is_function_false_object", symbol_tests::test_is_function_false_object));
-    suite.add(TestCase::new("is_function_false_notype", symbol_tests::test_is_function_false_notype));
-    suite.add(TestCase::new("is_function_with_binding", symbol_tests::test_is_function_with_binding));
-    suite.add(TestCase::new("is_object_true", symbol_tests::test_is_object_true));
-    suite.add(TestCase::new("is_object_false_func", symbol_tests::test_is_object_false_func));
-    suite.add(TestCase::new("is_object_false_notype", symbol_tests::test_is_object_false_notype));
-    suite.add(TestCase::new("is_object_with_binding", symbol_tests::test_is_object_with_binding));
-    suite.add(TestCase::new("is_undefined_true", symbol_tests::test_is_undefined_true));
-    suite.add(TestCase::new("is_undefined_false", symbol_tests::test_is_undefined_false));
-    suite.add(TestCase::new("is_undefined_false_shndx_max", symbol_tests::test_is_undefined_false_shndx_max));
-    suite.add(TestCase::new("symbol_clone", symbol_tests::test_symbol_clone));
-    suite.add(TestCase::new("symbol_copy", symbol_tests::test_symbol_copy));
-    suite.add(TestCase::new("symbol_alignment", symbol_tests::test_symbol_alignment));
-    suite.add(TestCase::new("sym_bind_constants", symbol_tests::test_sym_bind_constants));
-    suite.add(TestCase::new("sym_type_constants", symbol_tests::test_sym_type_constants));
-    suite.add(TestCase::new("symbol_global_function", symbol_tests::test_symbol_global_function));
-    suite.add(TestCase::new("symbol_weak_object", symbol_tests::test_symbol_weak_object));
-    suite.add(TestCase::new("symbol_local_section", symbol_tests::test_symbol_local_section));
-    suite.add(TestCase::new("symbol_undefined_import", symbol_tests::test_symbol_undefined_import));
-    suite.add(TestCase::new("symbol_tls_variable", symbol_tests::test_symbol_tls_variable));
-    suite.add(TestCase::new("symbol_info_encoding", symbol_tests::test_symbol_info_encoding));
-    suite.add(TestCase::new("symbol_max_values", symbol_tests::test_symbol_max_values));
+pub(crate) fn test_elf_header_size() -> TestResult {
+    if core::mem::size_of::<ElfHeader>() != 64 { return TestResult::Fail; }
+    TestResult::Pass
+}
 
-    suite.run()
+pub(crate) fn test_program_header_size() -> TestResult {
+    if core::mem::size_of::<ProgramHeader>() != 56 { return TestResult::Fail; }
+    TestResult::Pass
+}
+
+pub(crate) fn test_section_header_size() -> TestResult {
+    if core::mem::size_of::<SectionHeader>() != 64 { return TestResult::Fail; }
+    TestResult::Pass
+}
+
+pub(crate) fn test_aslr_manager_creation() -> TestResult {
+    let manager = AslrManager::new();
+    if !manager.is_executable_randomization_enabled() { return TestResult::Fail; }
+    if !manager.is_stack_randomization_enabled() { return TestResult::Fail; }
+    if !manager.is_heap_randomization_enabled() { return TestResult::Fail; }
+    TestResult::Pass
+}
+
+pub(crate) fn test_aslr_disabled() -> TestResult {
+    let manager = AslrManager::disabled();
+    if manager.is_executable_randomization_enabled() { return TestResult::Fail; }
+    if manager.is_stack_randomization_enabled() { return TestResult::Fail; }
+    if manager.is_heap_randomization_enabled() { return TestResult::Fail; }
+    TestResult::Pass
+}
+
+pub(crate) fn test_elf_class_values() -> TestResult {
+    if elf_class::NONE != 0 { return TestResult::Fail; }
+    if elf_class::CLASS32 != 1 { return TestResult::Fail; }
+    if elf_class::CLASS64 != 2 { return TestResult::Fail; }
+    TestResult::Pass
+}
+
+pub(crate) fn test_elf_type_values() -> TestResult {
+    if elf_type::NONE != 0 { return TestResult::Fail; }
+    if elf_type::REL != 1 { return TestResult::Fail; }
+    if elf_type::EXEC != 2 { return TestResult::Fail; }
+    if elf_type::DYN != 3 { return TestResult::Fail; }
+    if elf_type::CORE != 4 { return TestResult::Fail; }
+    TestResult::Pass
+}
+
+pub(crate) fn test_elf_machine_values() -> TestResult {
+    if elf_machine::NONE != 0 { return TestResult::Fail; }
+    if elf_machine::X86_64 != 62 { return TestResult::Fail; }
+    TestResult::Pass
+}
+
+pub(crate) fn test_phdr_type_values() -> TestResult {
+    if phdr_type::NULL != 0 { return TestResult::Fail; }
+    if phdr_type::LOAD != 1 { return TestResult::Fail; }
+    if phdr_type::DYNAMIC != 2 { return TestResult::Fail; }
+    if phdr_type::INTERP != 3 { return TestResult::Fail; }
+    if phdr_type::NOTE != 4 { return TestResult::Fail; }
+    if phdr_type::PHDR != 6 { return TestResult::Fail; }
+    if phdr_type::TLS != 7 { return TestResult::Fail; }
+    TestResult::Pass
+}
+
+pub(crate) fn test_validate_elf_magic() -> TestResult {
+    let valid_header: [u8; 16] = [0x7f, b'E', b'L', b'F', 2, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+    if !validate_elf(&valid_header) { return TestResult::Fail; }
+
+    let invalid_header: [u8; 16] = [0x00, 0x00, 0x00, 0x00, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+    if validate_elf(&invalid_header) { return TestResult::Fail; }
+
+    TestResult::Pass
 }

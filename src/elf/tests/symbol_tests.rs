@@ -2,18 +2,18 @@ use crate::elf::types::{sym_bind, sym_type, Symbol, SymbolEntry};
 use crate::test::framework::TestResult;
 use core::mem;
 
-pub fn test_symbol_size() -> TestResult {
+pub(crate) fn test_symbol_size() -> TestResult {
     if mem::size_of::<Symbol>() != Symbol::SIZE { return TestResult::Fail; }
     if Symbol::SIZE != 24 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_symbol_entry_alias() -> TestResult {
+pub(crate) fn test_symbol_entry_alias() -> TestResult {
     if mem::size_of::<SymbolEntry>() != Symbol::SIZE { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_symbol_default() -> TestResult {
+pub(crate) fn test_symbol_default() -> TestResult {
     let sym = Symbol::default();
     if sym.st_name != 0 { return TestResult::Fail; }
     if sym.st_info != 0 { return TestResult::Fail; }
@@ -24,221 +24,221 @@ pub fn test_symbol_default() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_binding_local() -> TestResult {
+pub(crate) fn test_binding_local() -> TestResult {
     let mut sym = Symbol::default();
     sym.st_info = sym_bind::STB_LOCAL << 4;
     if sym.binding() != sym_bind::STB_LOCAL { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_binding_global() -> TestResult {
+pub(crate) fn test_binding_global() -> TestResult {
     let mut sym = Symbol::default();
     sym.st_info = sym_bind::STB_GLOBAL << 4;
     if sym.binding() != sym_bind::STB_GLOBAL { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_binding_weak() -> TestResult {
+pub(crate) fn test_binding_weak() -> TestResult {
     let mut sym = Symbol::default();
     sym.st_info = sym_bind::STB_WEAK << 4;
     if sym.binding() != sym_bind::STB_WEAK { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_binding_with_type() -> TestResult {
+pub(crate) fn test_binding_with_type() -> TestResult {
     let mut sym = Symbol::default();
     sym.st_info = (sym_bind::STB_GLOBAL << 4) | sym_type::STT_FUNC;
     if sym.binding() != sym_bind::STB_GLOBAL { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_sym_type_notype() -> TestResult {
+pub(crate) fn test_sym_type_notype() -> TestResult {
     let mut sym = Symbol::default();
     sym.st_info = sym_type::STT_NOTYPE;
     if sym.sym_type() != sym_type::STT_NOTYPE { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_sym_type_object() -> TestResult {
+pub(crate) fn test_sym_type_object() -> TestResult {
     let mut sym = Symbol::default();
     sym.st_info = sym_type::STT_OBJECT;
     if sym.sym_type() != sym_type::STT_OBJECT { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_sym_type_func() -> TestResult {
+pub(crate) fn test_sym_type_func() -> TestResult {
     let mut sym = Symbol::default();
     sym.st_info = sym_type::STT_FUNC;
     if sym.sym_type() != sym_type::STT_FUNC { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_sym_type_section() -> TestResult {
+pub(crate) fn test_sym_type_section() -> TestResult {
     let mut sym = Symbol::default();
     sym.st_info = sym_type::STT_SECTION;
     if sym.sym_type() != sym_type::STT_SECTION { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_sym_type_file() -> TestResult {
+pub(crate) fn test_sym_type_file() -> TestResult {
     let mut sym = Symbol::default();
     sym.st_info = sym_type::STT_FILE;
     if sym.sym_type() != sym_type::STT_FILE { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_sym_type_tls() -> TestResult {
+pub(crate) fn test_sym_type_tls() -> TestResult {
     let mut sym = Symbol::default();
     sym.st_info = sym_type::STT_TLS;
     if sym.sym_type() != sym_type::STT_TLS { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_sym_type_with_binding() -> TestResult {
+pub(crate) fn test_sym_type_with_binding() -> TestResult {
     let mut sym = Symbol::default();
     sym.st_info = (sym_bind::STB_GLOBAL << 4) | sym_type::STT_FUNC;
     if sym.sym_type() != sym_type::STT_FUNC { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_is_local_true() -> TestResult {
+pub(crate) fn test_is_local_true() -> TestResult {
     let mut sym = Symbol::default();
     sym.st_info = sym_bind::STB_LOCAL << 4;
     if !sym.is_local() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_is_local_false_global() -> TestResult {
+pub(crate) fn test_is_local_false_global() -> TestResult {
     let mut sym = Symbol::default();
     sym.st_info = sym_bind::STB_GLOBAL << 4;
     if sym.is_local() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_is_local_false_weak() -> TestResult {
+pub(crate) fn test_is_local_false_weak() -> TestResult {
     let mut sym = Symbol::default();
     sym.st_info = sym_bind::STB_WEAK << 4;
     if sym.is_local() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_is_global_true() -> TestResult {
+pub(crate) fn test_is_global_true() -> TestResult {
     let mut sym = Symbol::default();
     sym.st_info = sym_bind::STB_GLOBAL << 4;
     if !sym.is_global() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_is_global_false_local() -> TestResult {
+pub(crate) fn test_is_global_false_local() -> TestResult {
     let mut sym = Symbol::default();
     sym.st_info = sym_bind::STB_LOCAL << 4;
     if sym.is_global() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_is_global_false_weak() -> TestResult {
+pub(crate) fn test_is_global_false_weak() -> TestResult {
     let mut sym = Symbol::default();
     sym.st_info = sym_bind::STB_WEAK << 4;
     if sym.is_global() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_is_weak_true() -> TestResult {
+pub(crate) fn test_is_weak_true() -> TestResult {
     let mut sym = Symbol::default();
     sym.st_info = sym_bind::STB_WEAK << 4;
     if !sym.is_weak() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_is_weak_false_local() -> TestResult {
+pub(crate) fn test_is_weak_false_local() -> TestResult {
     let mut sym = Symbol::default();
     sym.st_info = sym_bind::STB_LOCAL << 4;
     if sym.is_weak() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_is_weak_false_global() -> TestResult {
+pub(crate) fn test_is_weak_false_global() -> TestResult {
     let mut sym = Symbol::default();
     sym.st_info = sym_bind::STB_GLOBAL << 4;
     if sym.is_weak() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_is_function_true() -> TestResult {
+pub(crate) fn test_is_function_true() -> TestResult {
     let mut sym = Symbol::default();
     sym.st_info = sym_type::STT_FUNC;
     if !sym.is_function() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_is_function_false_object() -> TestResult {
+pub(crate) fn test_is_function_false_object() -> TestResult {
     let mut sym = Symbol::default();
     sym.st_info = sym_type::STT_OBJECT;
     if sym.is_function() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_is_function_false_notype() -> TestResult {
+pub(crate) fn test_is_function_false_notype() -> TestResult {
     let sym = Symbol::default();
     if sym.is_function() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_is_function_with_binding() -> TestResult {
+pub(crate) fn test_is_function_with_binding() -> TestResult {
     let mut sym = Symbol::default();
     sym.st_info = (sym_bind::STB_GLOBAL << 4) | sym_type::STT_FUNC;
     if !sym.is_function() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_is_object_true() -> TestResult {
+pub(crate) fn test_is_object_true() -> TestResult {
     let mut sym = Symbol::default();
     sym.st_info = sym_type::STT_OBJECT;
     if !sym.is_object() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_is_object_false_func() -> TestResult {
+pub(crate) fn test_is_object_false_func() -> TestResult {
     let mut sym = Symbol::default();
     sym.st_info = sym_type::STT_FUNC;
     if sym.is_object() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_is_object_false_notype() -> TestResult {
+pub(crate) fn test_is_object_false_notype() -> TestResult {
     let sym = Symbol::default();
     if sym.is_object() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_is_object_with_binding() -> TestResult {
+pub(crate) fn test_is_object_with_binding() -> TestResult {
     let mut sym = Symbol::default();
     sym.st_info = (sym_bind::STB_GLOBAL << 4) | sym_type::STT_OBJECT;
     if !sym.is_object() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_is_undefined_true() -> TestResult {
+pub(crate) fn test_is_undefined_true() -> TestResult {
     let sym = Symbol::default();
     if !sym.is_undefined() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_is_undefined_false() -> TestResult {
+pub(crate) fn test_is_undefined_false() -> TestResult {
     let mut sym = Symbol::default();
     sym.st_shndx = 1;
     if sym.is_undefined() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_is_undefined_false_shndx_max() -> TestResult {
+pub(crate) fn test_is_undefined_false_shndx_max() -> TestResult {
     let mut sym = Symbol::default();
     sym.st_shndx = 0xFFFF;
     if sym.is_undefined() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_symbol_clone() -> TestResult {
+pub(crate) fn test_symbol_clone() -> TestResult {
     let mut sym = Symbol::default();
     sym.st_value = 0x401000;
     sym.st_size = 100;
@@ -248,7 +248,7 @@ pub fn test_symbol_clone() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_symbol_copy() -> TestResult {
+pub(crate) fn test_symbol_copy() -> TestResult {
     let mut sym = Symbol::default();
     sym.st_name = 42;
     let copied: Symbol = sym;
@@ -257,19 +257,19 @@ pub fn test_symbol_copy() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_symbol_alignment() -> TestResult {
+pub(crate) fn test_symbol_alignment() -> TestResult {
     if mem::align_of::<Symbol>() != 8 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_sym_bind_constants() -> TestResult {
+pub(crate) fn test_sym_bind_constants() -> TestResult {
     if sym_bind::STB_LOCAL != 0 { return TestResult::Fail; }
     if sym_bind::STB_GLOBAL != 1 { return TestResult::Fail; }
     if sym_bind::STB_WEAK != 2 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_sym_type_constants() -> TestResult {
+pub(crate) fn test_sym_type_constants() -> TestResult {
     if sym_type::STT_NOTYPE != 0 { return TestResult::Fail; }
     if sym_type::STT_OBJECT != 1 { return TestResult::Fail; }
     if sym_type::STT_FUNC != 2 { return TestResult::Fail; }
@@ -279,7 +279,7 @@ pub fn test_sym_type_constants() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_symbol_global_function() -> TestResult {
+pub(crate) fn test_symbol_global_function() -> TestResult {
     let mut sym = Symbol::default();
     sym.st_name = 10;
     sym.st_info = (sym_bind::STB_GLOBAL << 4) | sym_type::STT_FUNC;
@@ -298,7 +298,7 @@ pub fn test_symbol_global_function() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_symbol_weak_object() -> TestResult {
+pub(crate) fn test_symbol_weak_object() -> TestResult {
     let mut sym = Symbol::default();
     sym.st_name = 20;
     sym.st_info = (sym_bind::STB_WEAK << 4) | sym_type::STT_OBJECT;
@@ -317,7 +317,7 @@ pub fn test_symbol_weak_object() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_symbol_local_section() -> TestResult {
+pub(crate) fn test_symbol_local_section() -> TestResult {
     let mut sym = Symbol::default();
     sym.st_info = (sym_bind::STB_LOCAL << 4) | sym_type::STT_SECTION;
     sym.st_shndx = 5;
@@ -333,7 +333,7 @@ pub fn test_symbol_local_section() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_symbol_undefined_import() -> TestResult {
+pub(crate) fn test_symbol_undefined_import() -> TestResult {
     let mut sym = Symbol::default();
     sym.st_name = 50;
     sym.st_info = (sym_bind::STB_GLOBAL << 4) | sym_type::STT_FUNC;
@@ -347,7 +347,7 @@ pub fn test_symbol_undefined_import() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_symbol_tls_variable() -> TestResult {
+pub(crate) fn test_symbol_tls_variable() -> TestResult {
     let mut sym = Symbol::default();
     sym.st_info = (sym_bind::STB_GLOBAL << 4) | sym_type::STT_TLS;
     sym.st_shndx = 7;
@@ -362,7 +362,7 @@ pub fn test_symbol_tls_variable() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_symbol_info_encoding() -> TestResult {
+pub(crate) fn test_symbol_info_encoding() -> TestResult {
     for bind in 0u8..4 {
         for stype in 0u8..8 {
             let info = (bind << 4) | stype;
@@ -375,7 +375,7 @@ pub fn test_symbol_info_encoding() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_symbol_max_values() -> TestResult {
+pub(crate) fn test_symbol_max_values() -> TestResult {
     let mut sym = Symbol::default();
     sym.st_name = u32::MAX;
     sym.st_info = 0xFF;
