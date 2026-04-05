@@ -17,7 +17,7 @@
 use crate::drivers::tpm::status::{PcrBankConfig, TpmStatus};
 use crate::test::framework::TestResult;
 
-pub fn test_tpm_status_not_present() -> TestResult {
+pub(crate) fn test_tpm_status_not_present() -> TestResult {
     let status = TpmStatus::not_present();
     if status.present { return TestResult::Fail; }
     if status.initialized { return TestResult::Fail; }
@@ -28,14 +28,14 @@ pub fn test_tpm_status_not_present() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_tpm_status_default() -> TestResult {
+pub(crate) fn test_tpm_status_default() -> TestResult {
     let status = TpmStatus::default();
     if status.present { return TestResult::Fail; }
     if status.initialized { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_tpm_status_vendor_id() -> TestResult {
+pub(crate) fn test_tpm_status_vendor_id() -> TestResult {
     let status = TpmStatus {
         present: true,
         initialized: true,
@@ -48,7 +48,7 @@ pub fn test_tpm_status_vendor_id() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_tpm_status_device_id() -> TestResult {
+pub(crate) fn test_tpm_status_device_id() -> TestResult {
     let status = TpmStatus {
         present: true,
         initialized: true,
@@ -61,7 +61,7 @@ pub fn test_tpm_status_device_id() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_tpm_status_manufacturer_intel() -> TestResult {
+pub(crate) fn test_tpm_status_manufacturer_intel() -> TestResult {
     let status = TpmStatus {
         present: true,
         initialized: true,
@@ -74,7 +74,7 @@ pub fn test_tpm_status_manufacturer_intel() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_tpm_status_manufacturer_amd() -> TestResult {
+pub(crate) fn test_tpm_status_manufacturer_amd() -> TestResult {
     let status = TpmStatus {
         present: true,
         initialized: true,
@@ -87,7 +87,7 @@ pub fn test_tpm_status_manufacturer_amd() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_tpm_status_manufacturer_ibm() -> TestResult {
+pub(crate) fn test_tpm_status_manufacturer_ibm() -> TestResult {
     let status = TpmStatus {
         present: true,
         initialized: true,
@@ -100,7 +100,7 @@ pub fn test_tpm_status_manufacturer_ibm() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_tpm_status_manufacturer_infineon() -> TestResult {
+pub(crate) fn test_tpm_status_manufacturer_infineon() -> TestResult {
     let status = TpmStatus {
         present: true,
         initialized: true,
@@ -113,7 +113,7 @@ pub fn test_tpm_status_manufacturer_infineon() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_tpm_status_manufacturer_nuvoton() -> TestResult {
+pub(crate) fn test_tpm_status_manufacturer_nuvoton() -> TestResult {
     let status = TpmStatus {
         present: true,
         initialized: true,
@@ -126,7 +126,7 @@ pub fn test_tpm_status_manufacturer_nuvoton() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_tpm_status_manufacturer_unknown() -> TestResult {
+pub(crate) fn test_tpm_status_manufacturer_unknown() -> TestResult {
     let status = TpmStatus {
         present: true,
         initialized: true,
@@ -139,7 +139,7 @@ pub fn test_tpm_status_manufacturer_unknown() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_tpm_status_is_usable_when_present_and_init() -> TestResult {
+pub(crate) fn test_tpm_status_is_usable_when_present_and_init() -> TestResult {
     let status = TpmStatus {
         present: true,
         initialized: true,
@@ -152,13 +152,13 @@ pub fn test_tpm_status_is_usable_when_present_and_init() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_tpm_status_not_usable_when_not_present() -> TestResult {
+pub(crate) fn test_tpm_status_not_usable_when_not_present() -> TestResult {
     let status = TpmStatus::not_present();
     if status.is_usable() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_tpm_status_not_usable_when_not_initialized() -> TestResult {
+pub(crate) fn test_tpm_status_not_usable_when_not_initialized() -> TestResult {
     let status = TpmStatus {
         present: true,
         initialized: false,
@@ -171,7 +171,7 @@ pub fn test_tpm_status_not_usable_when_not_initialized() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_tpm_status_clone() -> TestResult {
+pub(crate) fn test_tpm_status_clone() -> TestResult {
     let status = TpmStatus {
         present: true,
         initialized: true,
@@ -187,7 +187,7 @@ pub fn test_tpm_status_clone() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_tpm_status_display_not_present() -> TestResult {
+pub(crate) fn test_tpm_status_display_not_present() -> TestResult {
     use core::fmt::Write;
     let status = TpmStatus::not_present();
     let mut buf = [0u8; 64];
@@ -197,7 +197,7 @@ pub fn test_tpm_status_display_not_present() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_tpm_status_display_not_initialized() -> TestResult {
+pub(crate) fn test_tpm_status_display_not_initialized() -> TestResult {
     use core::fmt::Write;
     let status = TpmStatus {
         present: true,
@@ -214,7 +214,7 @@ pub fn test_tpm_status_display_not_initialized() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_pcr_bank_config_default() -> TestResult {
+pub(crate) fn test_pcr_bank_config_default() -> TestResult {
     let config = PcrBankConfig::default();
     if !config.sha1_enabled { return TestResult::Fail; }
     if !config.sha256_enabled { return TestResult::Fail; }
@@ -223,7 +223,7 @@ pub fn test_pcr_bank_config_default() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_pcr_bank_config_sha256_only() -> TestResult {
+pub(crate) fn test_pcr_bank_config_sha256_only() -> TestResult {
     let config = PcrBankConfig::sha256_only();
     if config.sha1_enabled { return TestResult::Fail; }
     if !config.sha256_enabled { return TestResult::Fail; }
@@ -232,7 +232,7 @@ pub fn test_pcr_bank_config_sha256_only() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_pcr_bank_config_none() -> TestResult {
+pub(crate) fn test_pcr_bank_config_none() -> TestResult {
     let config = PcrBankConfig::none();
     if config.sha1_enabled { return TestResult::Fail; }
     if config.sha256_enabled { return TestResult::Fail; }
@@ -241,25 +241,25 @@ pub fn test_pcr_bank_config_none() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_pcr_bank_config_enabled_count_default() -> TestResult {
+pub(crate) fn test_pcr_bank_config_enabled_count_default() -> TestResult {
     let config = PcrBankConfig::default();
     if config.enabled_count() != 2 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_pcr_bank_config_enabled_count_sha256_only() -> TestResult {
+pub(crate) fn test_pcr_bank_config_enabled_count_sha256_only() -> TestResult {
     let config = PcrBankConfig::sha256_only();
     if config.enabled_count() != 1 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_pcr_bank_config_enabled_count_none() -> TestResult {
+pub(crate) fn test_pcr_bank_config_enabled_count_none() -> TestResult {
     let config = PcrBankConfig::none();
     if config.enabled_count() != 0 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_pcr_bank_config_enabled_count_all() -> TestResult {
+pub(crate) fn test_pcr_bank_config_enabled_count_all() -> TestResult {
     let config = PcrBankConfig {
         sha1_enabled: true,
         sha256_enabled: true,
@@ -270,7 +270,7 @@ pub fn test_pcr_bank_config_enabled_count_all() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_pcr_bank_config_copy() -> TestResult {
+pub(crate) fn test_pcr_bank_config_copy() -> TestResult {
     let c1 = PcrBankConfig::default();
     let c2 = c1;
     if c1.sha1_enabled != c2.sha1_enabled { return TestResult::Fail; }
@@ -278,7 +278,7 @@ pub fn test_pcr_bank_config_copy() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_pcr_bank_config_clone() -> TestResult {
+pub(crate) fn test_pcr_bank_config_clone() -> TestResult {
     let c1 = PcrBankConfig::sha256_only();
     let c2 = c1.clone();
     if c1.sha1_enabled != c2.sha1_enabled { return TestResult::Fail; }

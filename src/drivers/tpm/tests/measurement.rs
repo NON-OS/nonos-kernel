@@ -19,132 +19,132 @@ use crate::drivers::tpm::constants::*;
 use crate::drivers::tpm::measurement::{BootChainMeasurements, ComponentType, PcrMeasurement};
 use crate::test::framework::TestResult;
 
-pub fn test_component_type_bootloader_pcr() -> TestResult {
+pub(crate) fn test_component_type_bootloader_pcr() -> TestResult {
     if ComponentType::Bootloader.pcr_index() != PCR_NONOS_BOOTLOADER { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_component_type_bootloader_config_pcr() -> TestResult {
+pub(crate) fn test_component_type_bootloader_config_pcr() -> TestResult {
     if ComponentType::BootloaderConfig.pcr_index() != PCR_NONOS_BOOTLOADER_CONFIG { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_component_type_kernel_code_pcr() -> TestResult {
+pub(crate) fn test_component_type_kernel_code_pcr() -> TestResult {
     if ComponentType::KernelCode.pcr_index() != PCR_NONOS_KERNEL { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_component_type_kernel_config_pcr() -> TestResult {
+pub(crate) fn test_component_type_kernel_config_pcr() -> TestResult {
     if ComponentType::KernelConfig.pcr_index() != PCR_NONOS_KERNEL_CONFIG { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_component_type_module_pcr() -> TestResult {
+pub(crate) fn test_component_type_module_pcr() -> TestResult {
     if ComponentType::Module.pcr_index() != PCR_NONOS_MODULES { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_component_type_ima_policy_pcr() -> TestResult {
+pub(crate) fn test_component_type_ima_policy_pcr() -> TestResult {
     if ComponentType::ImaPolicy.pcr_index() != PCR_NONOS_IMA { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_component_type_bootloader_event() -> TestResult {
+pub(crate) fn test_component_type_bootloader_event() -> TestResult {
     if ComponentType::Bootloader.event_type() != EV_NONOS_KERNEL { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_component_type_kernel_event() -> TestResult {
+pub(crate) fn test_component_type_kernel_event() -> TestResult {
     if ComponentType::KernelCode.event_type() != EV_NONOS_KERNEL { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_component_type_module_event() -> TestResult {
+pub(crate) fn test_component_type_module_event() -> TestResult {
     if ComponentType::Module.event_type() != EV_NONOS_MODULE { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_component_type_ima_policy_event() -> TestResult {
+pub(crate) fn test_component_type_ima_policy_event() -> TestResult {
     if ComponentType::ImaPolicy.event_type() != EV_NONOS_CONFIG { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_component_type_bootloader_str() -> TestResult {
+pub(crate) fn test_component_type_bootloader_str() -> TestResult {
     if ComponentType::Bootloader.as_str() != "bootloader" { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_component_type_bootloader_config_str() -> TestResult {
+pub(crate) fn test_component_type_bootloader_config_str() -> TestResult {
     if ComponentType::BootloaderConfig.as_str() != "bootloader-config" { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_component_type_kernel_code_str() -> TestResult {
+pub(crate) fn test_component_type_kernel_code_str() -> TestResult {
     if ComponentType::KernelCode.as_str() != "kernel" { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_component_type_kernel_config_str() -> TestResult {
+pub(crate) fn test_component_type_kernel_config_str() -> TestResult {
     if ComponentType::KernelConfig.as_str() != "kernel-config" { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_component_type_module_str() -> TestResult {
+pub(crate) fn test_component_type_module_str() -> TestResult {
     if ComponentType::Module.as_str() != "module" { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_component_type_ima_policy_str() -> TestResult {
+pub(crate) fn test_component_type_ima_policy_str() -> TestResult {
     if ComponentType::ImaPolicy.as_str() != "ima-policy" { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_component_type_equality() -> TestResult {
+pub(crate) fn test_component_type_equality() -> TestResult {
     if ComponentType::Bootloader != ComponentType::Bootloader { return TestResult::Fail; }
     if ComponentType::Bootloader == ComponentType::KernelCode { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_component_type_copy() -> TestResult {
+pub(crate) fn test_component_type_copy() -> TestResult {
     let c1 = ComponentType::Module;
     let c2 = c1;
     if c1 != c2 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_component_type_clone() -> TestResult {
+pub(crate) fn test_component_type_clone() -> TestResult {
     let c1 = ComponentType::ImaPolicy;
     let c2 = c1.clone();
     if c1 != c2 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_pcr_measurement_digest_len_sha1() -> TestResult {
+pub(crate) fn test_pcr_measurement_digest_len_sha1() -> TestResult {
     if PcrMeasurement::digest_len_for_alg(alg::TPM2_ALG_SHA1) != 20 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_pcr_measurement_digest_len_sha256() -> TestResult {
+pub(crate) fn test_pcr_measurement_digest_len_sha256() -> TestResult {
     if PcrMeasurement::digest_len_for_alg(alg::TPM2_ALG_SHA256) != 32 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_pcr_measurement_digest_len_sha384() -> TestResult {
+pub(crate) fn test_pcr_measurement_digest_len_sha384() -> TestResult {
     if PcrMeasurement::digest_len_for_alg(alg::TPM2_ALG_SHA384) != 48 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_pcr_measurement_digest_len_sha512() -> TestResult {
+pub(crate) fn test_pcr_measurement_digest_len_sha512() -> TestResult {
     if PcrMeasurement::digest_len_for_alg(alg::TPM2_ALG_SHA512) != 64 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_pcr_measurement_digest_len_unknown() -> TestResult {
+pub(crate) fn test_pcr_measurement_digest_len_unknown() -> TestResult {
     if PcrMeasurement::digest_len_for_alg(0xFFFF) != 0 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_pcr_measurement_new() -> TestResult {
+pub(crate) fn test_pcr_measurement_new() -> TestResult {
     let digest = [0xAB; 32];
     let measurement = PcrMeasurement::new(
         8,
@@ -160,7 +160,7 @@ pub fn test_pcr_measurement_new() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_pcr_measurement_digest_slice() -> TestResult {
+pub(crate) fn test_pcr_measurement_digest_slice() -> TestResult {
     let digest = [0xCD; 32];
     let measurement = PcrMeasurement::new(
         8,
@@ -173,7 +173,7 @@ pub fn test_pcr_measurement_digest_slice() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_pcr_measurement_truncates_large_digest() -> TestResult {
+pub(crate) fn test_pcr_measurement_truncates_large_digest() -> TestResult {
     let large_digest = [0xEF; 128];
     let measurement = PcrMeasurement::new(
         8,
@@ -186,7 +186,7 @@ pub fn test_pcr_measurement_truncates_large_digest() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_pcr_measurement_clone() -> TestResult {
+pub(crate) fn test_pcr_measurement_clone() -> TestResult {
     let digest = [0x12; 32];
     let m1 = PcrMeasurement::new(
         4,
@@ -202,7 +202,7 @@ pub fn test_pcr_measurement_clone() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_boot_chain_measurements_new() -> TestResult {
+pub(crate) fn test_boot_chain_measurements_new() -> TestResult {
     let bootloader = vec![0x11; 32];
     let kernel = vec![0x22; 32];
     let bcm = BootChainMeasurements::new(bootloader.clone(), kernel.clone());
@@ -211,7 +211,7 @@ pub fn test_boot_chain_measurements_new() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_boot_chain_measurements_from_slices() -> TestResult {
+pub(crate) fn test_boot_chain_measurements_from_slices() -> TestResult {
     let bootloader = [0x33; 32];
     let kernel = [0x44; 32];
     let bcm = BootChainMeasurements::from_slices(&bootloader, &kernel);
@@ -222,7 +222,7 @@ pub fn test_boot_chain_measurements_from_slices() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_boot_chain_measurements_clone() -> TestResult {
+pub(crate) fn test_boot_chain_measurements_clone() -> TestResult {
     let bcm1 = BootChainMeasurements::new(vec![0xAA], vec![0xBB]);
     let bcm2 = bcm1.clone();
     if bcm1.bootloader_hash != bcm2.bootloader_hash { return TestResult::Fail; }
