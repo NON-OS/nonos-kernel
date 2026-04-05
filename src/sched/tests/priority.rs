@@ -15,62 +15,62 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::sched::*;
+use crate::test::framework::TestResult;
 
-#[test]
-fn test_priority_values() {
-    assert_eq!(Priority::Idle as u8, 0);
-    assert_eq!(Priority::Low as u8, 1);
-    assert_eq!(Priority::Normal as u8, 2);
-    assert_eq!(Priority::High as u8, 3);
-    assert_eq!(Priority::Critical as u8, 4);
-    assert_eq!(Priority::RealTime as u8, 5);
+pub fn test_priority_values() -> TestResult {
+    if Priority::Idle as u8 != 0 { return TestResult::Fail; }
+    if Priority::Low as u8 != 1 { return TestResult::Fail; }
+    if Priority::Normal as u8 != 2 { return TestResult::Fail; }
+    if Priority::High as u8 != 3 { return TestResult::Fail; }
+    if Priority::Critical as u8 != 4 { return TestResult::Fail; }
+    if Priority::RealTime as u8 != 5 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_priority_ordering() {
-    assert!(Priority::RealTime > Priority::Critical);
-    assert!(Priority::Critical > Priority::High);
-    assert!(Priority::High > Priority::Normal);
-    assert!(Priority::Normal > Priority::Low);
-    assert!(Priority::Low > Priority::Idle);
+pub fn test_priority_ordering() -> TestResult {
+    if !(Priority::RealTime > Priority::Critical) { return TestResult::Fail; }
+    if !(Priority::Critical > Priority::High) { return TestResult::Fail; }
+    if !(Priority::High > Priority::Normal) { return TestResult::Fail; }
+    if !(Priority::Normal > Priority::Low) { return TestResult::Fail; }
+    if !(Priority::Low > Priority::Idle) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_priority_equality() {
-    assert_eq!(Priority::Normal, Priority::Normal);
-    assert_ne!(Priority::High, Priority::Low);
+pub fn test_priority_equality() -> TestResult {
+    if Priority::Normal != Priority::Normal { return TestResult::Fail; }
+    if Priority::High == Priority::Low { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_priority_clone() {
+pub fn test_priority_clone() -> TestResult {
     let p1 = Priority::High;
     let p2 = p1.clone();
-    assert_eq!(p1, p2);
+    if p1 != p2 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_priority_copy() {
+pub fn test_priority_copy() -> TestResult {
     let p1 = Priority::Critical;
     let p2 = p1;
-    assert_eq!(p1, p2);
+    if p1 != p2 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_priority_partial_ord() {
-    assert!(Priority::RealTime >= Priority::Critical);
-    assert!(Priority::Idle <= Priority::Low);
-    assert!(Priority::Normal <= Priority::Normal);
-    assert!(Priority::High >= Priority::High);
+pub fn test_priority_partial_ord() -> TestResult {
+    if !(Priority::RealTime >= Priority::Critical) { return TestResult::Fail; }
+    if !(Priority::Idle <= Priority::Low) { return TestResult::Fail; }
+    if !(Priority::Normal <= Priority::Normal) { return TestResult::Fail; }
+    if !(Priority::High >= Priority::High) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_priority_debug() {
+pub fn test_priority_debug() -> TestResult {
     let debug_str = alloc::format!("{:?}", Priority::Normal);
-    assert!(debug_str.contains("Normal"));
+    if !debug_str.contains("Normal") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_all_priority_variants_unique() {
+pub fn test_all_priority_variants_unique() -> TestResult {
     let priorities = [
         Priority::Idle,
         Priority::Low,
@@ -81,13 +81,13 @@ fn test_all_priority_variants_unique() {
     ];
     for i in 0..priorities.len() {
         for j in (i + 1)..priorities.len() {
-            assert_ne!(priorities[i], priorities[j]);
+            if priorities[i] == priorities[j] { return TestResult::Fail; }
         }
     }
+    TestResult::Pass
 }
 
-#[test]
-fn test_priority_ord_consistency() {
+pub fn test_priority_ord_consistency() -> TestResult {
     let mut priorities = [
         Priority::High,
         Priority::Idle,
@@ -97,10 +97,11 @@ fn test_priority_ord_consistency() {
         Priority::Critical,
     ];
     priorities.sort();
-    assert_eq!(priorities[0], Priority::Idle);
-    assert_eq!(priorities[1], Priority::Low);
-    assert_eq!(priorities[2], Priority::Normal);
-    assert_eq!(priorities[3], Priority::High);
-    assert_eq!(priorities[4], Priority::Critical);
-    assert_eq!(priorities[5], Priority::RealTime);
+    if priorities[0] != Priority::Idle { return TestResult::Fail; }
+    if priorities[1] != Priority::Low { return TestResult::Fail; }
+    if priorities[2] != Priority::Normal { return TestResult::Fail; }
+    if priorities[3] != Priority::High { return TestResult::Fail; }
+    if priorities[4] != Priority::Critical { return TestResult::Fail; }
+    if priorities[5] != Priority::RealTime { return TestResult::Fail; }
+    TestResult::Pass
 }

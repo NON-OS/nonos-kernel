@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::sched::*;
+use crate::test::framework::TestResult;
 
 fn dummy_fn() {}
 
@@ -24,159 +25,158 @@ fn create_task(id: u64) -> Task {
     task
 }
 
-#[test]
-fn test_runqueue_new() {
+pub fn test_runqueue_new() -> TestResult {
     let rq = RunQueue::new();
-    assert!(rq.is_empty());
-    assert_eq!(rq.len(), 0);
+    if !rq.is_empty() { return TestResult::Fail; }
+    if rq.len() != 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_runqueue_push_single() {
+pub fn test_runqueue_push_single() -> TestResult {
     let mut rq = RunQueue::new();
     let task = create_task(1);
     rq.push(task);
-    assert_eq!(rq.len(), 1);
-    assert!(!rq.is_empty());
+    if rq.len() != 1 { return TestResult::Fail; }
+    if rq.is_empty() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_runqueue_push_multiple() {
+pub fn test_runqueue_push_multiple() -> TestResult {
     let mut rq = RunQueue::new();
     rq.push(create_task(1));
     rq.push(create_task(2));
     rq.push(create_task(3));
-    assert_eq!(rq.len(), 3);
+    if rq.len() != 3 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_runqueue_pop_empty() {
+pub fn test_runqueue_pop_empty() -> TestResult {
     let mut rq = RunQueue::new();
-    assert!(rq.pop().is_none());
+    if rq.pop().is_some() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_runqueue_pop_single() {
+pub fn test_runqueue_pop_single() -> TestResult {
     let mut rq = RunQueue::new();
     rq.push(create_task(42));
     let popped = rq.pop();
-    assert!(popped.is_some());
-    assert_eq!(popped.unwrap().id, 42);
-    assert!(rq.is_empty());
+    if popped.is_none() { return TestResult::Fail; }
+    if popped.unwrap().id != 42 { return TestResult::Fail; }
+    if !rq.is_empty() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_runqueue_fifo_order() {
+pub fn test_runqueue_fifo_order() -> TestResult {
     let mut rq = RunQueue::new();
     rq.push(create_task(1));
     rq.push(create_task(2));
     rq.push(create_task(3));
 
-    assert_eq!(rq.pop().unwrap().id, 1);
-    assert_eq!(rq.pop().unwrap().id, 2);
-    assert_eq!(rq.pop().unwrap().id, 3);
-    assert!(rq.pop().is_none());
+    if rq.pop().unwrap().id != 1 { return TestResult::Fail; }
+    if rq.pop().unwrap().id != 2 { return TestResult::Fail; }
+    if rq.pop().unwrap().id != 3 { return TestResult::Fail; }
+    if rq.pop().is_some() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_runqueue_clear() {
+pub fn test_runqueue_clear() -> TestResult {
     let mut rq = RunQueue::new();
     rq.push(create_task(1));
     rq.push(create_task(2));
     rq.push(create_task(3));
     rq.clear();
-    assert!(rq.is_empty());
-    assert_eq!(rq.len(), 0);
+    if !rq.is_empty() { return TestResult::Fail; }
+    if rq.len() != 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_runqueue_clear_empty() {
+pub fn test_runqueue_clear_empty() -> TestResult {
     let mut rq = RunQueue::new();
     rq.clear();
-    assert!(rq.is_empty());
+    if !rq.is_empty() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_runqueue_is_empty_after_pop() {
+pub fn test_runqueue_is_empty_after_pop() -> TestResult {
     let mut rq = RunQueue::new();
     rq.push(create_task(1));
     rq.pop();
-    assert!(rq.is_empty());
+    if !rq.is_empty() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_runqueue_len_after_operations() {
+pub fn test_runqueue_len_after_operations() -> TestResult {
     let mut rq = RunQueue::new();
-    assert_eq!(rq.len(), 0);
+    if rq.len() != 0 { return TestResult::Fail; }
     rq.push(create_task(1));
-    assert_eq!(rq.len(), 1);
+    if rq.len() != 1 { return TestResult::Fail; }
     rq.push(create_task(2));
-    assert_eq!(rq.len(), 2);
+    if rq.len() != 2 { return TestResult::Fail; }
     rq.pop();
-    assert_eq!(rq.len(), 1);
+    if rq.len() != 1 { return TestResult::Fail; }
     rq.pop();
-    assert_eq!(rq.len(), 0);
+    if rq.len() != 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_runqueue_remove_by_id_existing() {
+pub fn test_runqueue_remove_by_id_existing() -> TestResult {
     let mut rq = RunQueue::new();
     rq.push(create_task(1));
     rq.push(create_task(2));
     rq.push(create_task(3));
 
     let removed = rq.remove_by_id(2);
-    assert!(removed.is_some());
-    assert_eq!(removed.unwrap().id, 2);
-    assert_eq!(rq.len(), 2);
+    if removed.is_none() { return TestResult::Fail; }
+    if removed.unwrap().id != 2 { return TestResult::Fail; }
+    if rq.len() != 2 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_runqueue_remove_by_id_nonexistent() {
+pub fn test_runqueue_remove_by_id_nonexistent() -> TestResult {
     let mut rq = RunQueue::new();
     rq.push(create_task(1));
     rq.push(create_task(2));
 
     let removed = rq.remove_by_id(999);
-    assert!(removed.is_none());
-    assert_eq!(rq.len(), 2);
+    if removed.is_some() { return TestResult::Fail; }
+    if rq.len() != 2 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_runqueue_remove_by_id_empty() {
+pub fn test_runqueue_remove_by_id_empty() -> TestResult {
     let mut rq = RunQueue::new();
     let removed = rq.remove_by_id(1);
-    assert!(removed.is_none());
+    if removed.is_some() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_runqueue_remove_by_id_first() {
+pub fn test_runqueue_remove_by_id_first() -> TestResult {
     let mut rq = RunQueue::new();
     rq.push(create_task(1));
     rq.push(create_task(2));
     rq.push(create_task(3));
 
     let removed = rq.remove_by_id(1);
-    assert!(removed.is_some());
-    assert_eq!(removed.unwrap().id, 1);
-    assert_eq!(rq.pop().unwrap().id, 2);
+    if removed.is_none() { return TestResult::Fail; }
+    if removed.unwrap().id != 1 { return TestResult::Fail; }
+    if rq.pop().unwrap().id != 2 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_runqueue_remove_by_id_last() {
+pub fn test_runqueue_remove_by_id_last() -> TestResult {
     let mut rq = RunQueue::new();
     rq.push(create_task(1));
     rq.push(create_task(2));
     rq.push(create_task(3));
 
     let removed = rq.remove_by_id(3);
-    assert!(removed.is_some());
-    assert_eq!(removed.unwrap().id, 3);
-    assert_eq!(rq.len(), 2);
+    if removed.is_none() { return TestResult::Fail; }
+    if removed.unwrap().id != 3 { return TestResult::Fail; }
+    if rq.len() != 2 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_runqueue_remove_by_id_maintains_order() {
+pub fn test_runqueue_remove_by_id_maintains_order() -> TestResult {
     let mut rq = RunQueue::new();
     rq.push(create_task(1));
     rq.push(create_task(2));
@@ -186,14 +186,14 @@ fn test_runqueue_remove_by_id_maintains_order() {
 
     rq.remove_by_id(3);
 
-    assert_eq!(rq.pop().unwrap().id, 1);
-    assert_eq!(rq.pop().unwrap().id, 2);
-    assert_eq!(rq.pop().unwrap().id, 4);
-    assert_eq!(rq.pop().unwrap().id, 5);
+    if rq.pop().unwrap().id != 1 { return TestResult::Fail; }
+    if rq.pop().unwrap().id != 2 { return TestResult::Fail; }
+    if rq.pop().unwrap().id != 4 { return TestResult::Fail; }
+    if rq.pop().unwrap().id != 5 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_runqueue_mixed_operations() {
+pub fn test_runqueue_mixed_operations() -> TestResult {
     let mut rq = RunQueue::new();
     rq.push(create_task(1));
     rq.push(create_task(2));
@@ -202,34 +202,35 @@ fn test_runqueue_mixed_operations() {
     rq.remove_by_id(2);
     rq.push(create_task(4));
 
-    assert_eq!(rq.len(), 2);
-    assert_eq!(rq.pop().unwrap().id, 3);
-    assert_eq!(rq.pop().unwrap().id, 4);
+    if rq.len() != 2 { return TestResult::Fail; }
+    if rq.pop().unwrap().id != 3 { return TestResult::Fail; }
+    if rq.pop().unwrap().id != 4 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_runqueue_push_after_clear() {
+pub fn test_runqueue_push_after_clear() -> TestResult {
     let mut rq = RunQueue::new();
     rq.push(create_task(1));
     rq.push(create_task(2));
     rq.clear();
     rq.push(create_task(3));
 
-    assert_eq!(rq.len(), 1);
-    assert_eq!(rq.pop().unwrap().id, 3);
+    if rq.len() != 1 { return TestResult::Fail; }
+    if rq.pop().unwrap().id != 3 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_runqueue_large_number_of_tasks() {
+pub fn test_runqueue_large_number_of_tasks() -> TestResult {
     let mut rq = RunQueue::new();
     for i in 0..100 {
         rq.push(create_task(i));
     }
-    assert_eq!(rq.len(), 100);
+    if rq.len() != 100 { return TestResult::Fail; }
 
     for i in 0..100 {
         let task = rq.pop().unwrap();
-        assert_eq!(task.id, i);
+        if task.id != i { return TestResult::Fail; }
     }
-    assert!(rq.is_empty());
+    if !rq.is_empty() { return TestResult::Fail; }
+    TestResult::Pass
 }
