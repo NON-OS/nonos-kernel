@@ -1,346 +1,347 @@
 use crate::npkg::*;
 use crate::npkg::types::{PackageVersion, VersionRequirement};
+use crate::test::framework::TestResult;
 
-#[test]
-fn test_version_new() {
+pub fn test_version_new() -> TestResult {
     let v = PackageVersion::new(1, 2, 3);
-    assert_eq!(v.major, 1);
-    assert_eq!(v.minor, 2);
-    assert_eq!(v.patch, 3);
-    assert!(v.pre_release.is_none());
-    assert!(v.build.is_none());
+    if v.major != 1 { return TestResult::Fail; }
+    if v.minor != 2 { return TestResult::Fail; }
+    if v.patch != 3 { return TestResult::Fail; }
+    if v.pre_release.is_some() { return TestResult::Fail; }
+    if v.build.is_some() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_version_parse_simple() {
+pub fn test_version_parse_simple() -> TestResult {
     let v = PackageVersion::parse("1.2.3");
-    assert!(v.is_some());
+    if v.is_none() { return TestResult::Fail; }
     let v = v.unwrap();
-    assert_eq!(v.major, 1);
-    assert_eq!(v.minor, 2);
-    assert_eq!(v.patch, 3);
+    if v.major != 1 { return TestResult::Fail; }
+    if v.minor != 2 { return TestResult::Fail; }
+    if v.patch != 3 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_version_parse_two_parts() {
+pub fn test_version_parse_two_parts() -> TestResult {
     let v = PackageVersion::parse("1.2");
-    assert!(v.is_some());
+    if v.is_none() { return TestResult::Fail; }
     let v = v.unwrap();
-    assert_eq!(v.major, 1);
-    assert_eq!(v.minor, 2);
-    assert_eq!(v.patch, 0);
+    if v.major != 1 { return TestResult::Fail; }
+    if v.minor != 2 { return TestResult::Fail; }
+    if v.patch != 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_version_parse_with_prerelease() {
+pub fn test_version_parse_with_prerelease() -> TestResult {
     let v = PackageVersion::parse("1.0.0-alpha");
-    assert!(v.is_some());
+    if v.is_none() { return TestResult::Fail; }
     let v = v.unwrap();
-    assert_eq!(v.major, 1);
-    assert_eq!(v.minor, 0);
-    assert_eq!(v.patch, 0);
-    assert_eq!(v.pre_release, Some(alloc::string::String::from("alpha")));
+    if v.major != 1 { return TestResult::Fail; }
+    if v.minor != 0 { return TestResult::Fail; }
+    if v.patch != 0 { return TestResult::Fail; }
+    if v.pre_release != Some(alloc::string::String::from("alpha")) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_version_parse_with_build() {
+pub fn test_version_parse_with_build() -> TestResult {
     let v = PackageVersion::parse("1.0.0+build123");
-    assert!(v.is_some());
+    if v.is_none() { return TestResult::Fail; }
     let v = v.unwrap();
-    assert_eq!(v.major, 1);
-    assert_eq!(v.minor, 0);
-    assert_eq!(v.patch, 0);
-    assert_eq!(v.build, Some(alloc::string::String::from("build123")));
+    if v.major != 1 { return TestResult::Fail; }
+    if v.minor != 0 { return TestResult::Fail; }
+    if v.patch != 0 { return TestResult::Fail; }
+    if v.build != Some(alloc::string::String::from("build123")) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_version_parse_with_prerelease_and_build() {
+pub fn test_version_parse_with_prerelease_and_build() -> TestResult {
     let v = PackageVersion::parse("1.0.0-beta.1+build456");
-    assert!(v.is_some());
+    if v.is_none() { return TestResult::Fail; }
     let v = v.unwrap();
-    assert_eq!(v.pre_release, Some(alloc::string::String::from("beta.1")));
-    assert_eq!(v.build, Some(alloc::string::String::from("build456")));
+    if v.pre_release != Some(alloc::string::String::from("beta.1")) { return TestResult::Fail; }
+    if v.build != Some(alloc::string::String::from("build456")) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_version_parse_with_whitespace() {
+pub fn test_version_parse_with_whitespace() -> TestResult {
     let v = PackageVersion::parse("  1.2.3  ");
-    assert!(v.is_some());
+    if v.is_none() { return TestResult::Fail; }
     let v = v.unwrap();
-    assert_eq!(v.major, 1);
-    assert_eq!(v.minor, 2);
-    assert_eq!(v.patch, 3);
+    if v.major != 1 { return TestResult::Fail; }
+    if v.minor != 2 { return TestResult::Fail; }
+    if v.patch != 3 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_version_parse_invalid_single_part() {
+pub fn test_version_parse_invalid_single_part() -> TestResult {
     let v = PackageVersion::parse("1");
-    assert!(v.is_none());
+    if v.is_some() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_version_parse_invalid_four_parts() {
+pub fn test_version_parse_invalid_four_parts() -> TestResult {
     let v = PackageVersion::parse("1.2.3.4");
-    assert!(v.is_none());
+    if v.is_some() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_version_parse_invalid_non_numeric() {
+pub fn test_version_parse_invalid_non_numeric() -> TestResult {
     let v = PackageVersion::parse("a.b.c");
-    assert!(v.is_none());
+    if v.is_some() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_version_to_string_simple() {
+pub fn test_version_to_string_simple() -> TestResult {
     let v = PackageVersion::new(1, 2, 3);
-    assert_eq!(v.to_string(), "1.2.3");
+    if v.to_string() != "1.2.3" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_version_to_string_with_prerelease() {
+pub fn test_version_to_string_with_prerelease() -> TestResult {
     let mut v = PackageVersion::new(1, 0, 0);
     v.pre_release = Some(alloc::string::String::from("rc1"));
-    assert_eq!(v.to_string(), "1.0.0-rc1");
+    if v.to_string() != "1.0.0-rc1" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_version_to_string_with_build() {
+pub fn test_version_to_string_with_build() -> TestResult {
     let mut v = PackageVersion::new(1, 0, 0);
     v.build = Some(alloc::string::String::from("20260101"));
-    assert_eq!(v.to_string(), "1.0.0+20260101");
+    if v.to_string() != "1.0.0+20260101" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_version_to_string_with_both() {
+pub fn test_version_to_string_with_both() -> TestResult {
     let mut v = PackageVersion::new(2, 0, 0);
     v.pre_release = Some(alloc::string::String::from("alpha"));
     v.build = Some(alloc::string::String::from("build1"));
-    assert_eq!(v.to_string(), "2.0.0-alpha+build1");
+    if v.to_string() != "2.0.0-alpha+build1" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_version_comparison_equal() {
+pub fn test_version_comparison_equal() -> TestResult {
     let v1 = PackageVersion::new(1, 2, 3);
     let v2 = PackageVersion::new(1, 2, 3);
-    assert_eq!(v1, v2);
+    if v1 != v2 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_version_comparison_major() {
+pub fn test_version_comparison_major() -> TestResult {
     let v1 = PackageVersion::new(1, 0, 0);
     let v2 = PackageVersion::new(2, 0, 0);
-    assert!(v1 < v2);
+    if !(v1 < v2) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_version_comparison_minor() {
+pub fn test_version_comparison_minor() -> TestResult {
     let v1 = PackageVersion::new(1, 1, 0);
     let v2 = PackageVersion::new(1, 2, 0);
-    assert!(v1 < v2);
+    if !(v1 < v2) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_version_comparison_patch() {
+pub fn test_version_comparison_patch() -> TestResult {
     let v1 = PackageVersion::new(1, 0, 1);
     let v2 = PackageVersion::new(1, 0, 2);
-    assert!(v1 < v2);
+    if !(v1 < v2) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_version_comparison_prerelease_less_than_release() {
+pub fn test_version_comparison_prerelease_less_than_release() -> TestResult {
     let mut v1 = PackageVersion::new(1, 0, 0);
     v1.pre_release = Some(alloc::string::String::from("alpha"));
     let v2 = PackageVersion::new(1, 0, 0);
-    assert!(v1 < v2);
+    if !(v1 < v2) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_version_comparison_prerelease_ordering() {
+pub fn test_version_comparison_prerelease_ordering() -> TestResult {
     let mut v1 = PackageVersion::new(1, 0, 0);
     v1.pre_release = Some(alloc::string::String::from("alpha"));
     let mut v2 = PackageVersion::new(1, 0, 0);
     v2.pre_release = Some(alloc::string::String::from("beta"));
-    assert!(v1 < v2);
+    if !(v1 < v2) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_version_requirement_parse_any() {
+pub fn test_version_requirement_parse_any() -> TestResult {
     let req = VersionRequirement::parse("*");
-    assert_eq!(req, Some(VersionRequirement::Any));
+    if req != Some(VersionRequirement::Any) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_version_requirement_parse_empty() {
+pub fn test_version_requirement_parse_empty() -> TestResult {
     let req = VersionRequirement::parse("");
-    assert_eq!(req, Some(VersionRequirement::Any));
+    if req != Some(VersionRequirement::Any) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_version_requirement_parse_exact() {
+pub fn test_version_requirement_parse_exact() -> TestResult {
     let req = VersionRequirement::parse("=1.0.0");
-    assert!(req.is_some());
+    if req.is_none() { return TestResult::Fail; }
     if let Some(VersionRequirement::Exact(v)) = req {
-        assert_eq!(v.major, 1);
-        assert_eq!(v.minor, 0);
-        assert_eq!(v.patch, 0);
+        if v.major != 1 { return TestResult::Fail; }
+        if v.minor != 0 { return TestResult::Fail; }
+        if v.patch != 0 { return TestResult::Fail; }
     } else {
-        panic!("expected Exact");
+        return TestResult::Fail;
     }
+    TestResult::Pass
 }
 
-#[test]
-fn test_version_requirement_parse_exact_implicit() {
+pub fn test_version_requirement_parse_exact_implicit() -> TestResult {
     let req = VersionRequirement::parse("1.0.0");
-    assert!(req.is_some());
+    if req.is_none() { return TestResult::Fail; }
     if let Some(VersionRequirement::Exact(v)) = req {
-        assert_eq!(v.major, 1);
+        if v.major != 1 { return TestResult::Fail; }
     } else {
-        panic!("expected Exact");
+        return TestResult::Fail;
     }
+    TestResult::Pass
 }
 
-#[test]
-fn test_version_requirement_parse_greater_than() {
+pub fn test_version_requirement_parse_greater_than() -> TestResult {
     let req = VersionRequirement::parse(">1.0.0");
-    assert!(req.is_some());
+    if req.is_none() { return TestResult::Fail; }
     if let Some(VersionRequirement::GreaterThan(v)) = req {
-        assert_eq!(v.major, 1);
+        if v.major != 1 { return TestResult::Fail; }
     } else {
-        panic!("expected GreaterThan");
+        return TestResult::Fail;
     }
+    TestResult::Pass
 }
 
-#[test]
-fn test_version_requirement_parse_greater_or_equal() {
+pub fn test_version_requirement_parse_greater_or_equal() -> TestResult {
     let req = VersionRequirement::parse(">=2.0.0");
-    assert!(req.is_some());
+    if req.is_none() { return TestResult::Fail; }
     if let Some(VersionRequirement::GreaterOrEqual(v)) = req {
-        assert_eq!(v.major, 2);
+        if v.major != 2 { return TestResult::Fail; }
     } else {
-        panic!("expected GreaterOrEqual");
+        return TestResult::Fail;
     }
+    TestResult::Pass
 }
 
-#[test]
-fn test_version_requirement_parse_less_than() {
+pub fn test_version_requirement_parse_less_than() -> TestResult {
     let req = VersionRequirement::parse("<3.0.0");
-    assert!(req.is_some());
+    if req.is_none() { return TestResult::Fail; }
     if let Some(VersionRequirement::LessThan(v)) = req {
-        assert_eq!(v.major, 3);
+        if v.major != 3 { return TestResult::Fail; }
     } else {
-        panic!("expected LessThan");
+        return TestResult::Fail;
     }
+    TestResult::Pass
 }
 
-#[test]
-fn test_version_requirement_parse_less_or_equal() {
+pub fn test_version_requirement_parse_less_or_equal() -> TestResult {
     let req = VersionRequirement::parse("<=4.0.0");
-    assert!(req.is_some());
+    if req.is_none() { return TestResult::Fail; }
     if let Some(VersionRequirement::LessOrEqual(v)) = req {
-        assert_eq!(v.major, 4);
+        if v.major != 4 { return TestResult::Fail; }
     } else {
-        panic!("expected LessOrEqual");
+        return TestResult::Fail;
     }
+    TestResult::Pass
 }
 
-#[test]
-fn test_version_requirement_parse_compatible() {
+pub fn test_version_requirement_parse_compatible() -> TestResult {
     let req = VersionRequirement::parse("^1.2.0");
-    assert!(req.is_some());
+    if req.is_none() { return TestResult::Fail; }
     if let Some(VersionRequirement::Compatible(v)) = req {
-        assert_eq!(v.major, 1);
-        assert_eq!(v.minor, 2);
+        if v.major != 1 { return TestResult::Fail; }
+        if v.minor != 2 { return TestResult::Fail; }
     } else {
-        panic!("expected Compatible");
+        return TestResult::Fail;
     }
+    TestResult::Pass
 }
 
-#[test]
-fn test_version_satisfies_any() {
+pub fn test_version_satisfies_any() -> TestResult {
     let v = PackageVersion::new(5, 0, 0);
-    assert!(v.satisfies(&VersionRequirement::Any));
+    if !v.satisfies(&VersionRequirement::Any) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_version_satisfies_exact_true() {
+pub fn test_version_satisfies_exact_true() -> TestResult {
     let v = PackageVersion::new(1, 0, 0);
     let req = VersionRequirement::Exact(PackageVersion::new(1, 0, 0));
-    assert!(v.satisfies(&req));
+    if !v.satisfies(&req) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_version_satisfies_exact_false() {
+pub fn test_version_satisfies_exact_false() -> TestResult {
     let v = PackageVersion::new(1, 0, 1);
     let req = VersionRequirement::Exact(PackageVersion::new(1, 0, 0));
-    assert!(!v.satisfies(&req));
+    if v.satisfies(&req) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_version_satisfies_greater_than_true() {
+pub fn test_version_satisfies_greater_than_true() -> TestResult {
     let v = PackageVersion::new(2, 0, 0);
     let req = VersionRequirement::GreaterThan(PackageVersion::new(1, 0, 0));
-    assert!(v.satisfies(&req));
+    if !v.satisfies(&req) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_version_satisfies_greater_than_false() {
+pub fn test_version_satisfies_greater_than_false() -> TestResult {
     let v = PackageVersion::new(1, 0, 0);
     let req = VersionRequirement::GreaterThan(PackageVersion::new(1, 0, 0));
-    assert!(!v.satisfies(&req));
+    if v.satisfies(&req) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_version_satisfies_greater_or_equal_true() {
+pub fn test_version_satisfies_greater_or_equal_true() -> TestResult {
     let v = PackageVersion::new(1, 0, 0);
     let req = VersionRequirement::GreaterOrEqual(PackageVersion::new(1, 0, 0));
-    assert!(v.satisfies(&req));
+    if !v.satisfies(&req) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_version_satisfies_less_than_true() {
+pub fn test_version_satisfies_less_than_true() -> TestResult {
     let v = PackageVersion::new(0, 9, 0);
     let req = VersionRequirement::LessThan(PackageVersion::new(1, 0, 0));
-    assert!(v.satisfies(&req));
+    if !v.satisfies(&req) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_version_satisfies_less_or_equal_true() {
+pub fn test_version_satisfies_less_or_equal_true() -> TestResult {
     let v = PackageVersion::new(1, 0, 0);
     let req = VersionRequirement::LessOrEqual(PackageVersion::new(1, 0, 0));
-    assert!(v.satisfies(&req));
+    if !v.satisfies(&req) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_version_satisfies_compatible_same_major() {
+pub fn test_version_satisfies_compatible_same_major() -> TestResult {
     let v = PackageVersion::new(1, 5, 0);
     let req = VersionRequirement::Compatible(PackageVersion::new(1, 2, 0));
-    assert!(v.satisfies(&req));
+    if !v.satisfies(&req) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_version_satisfies_compatible_different_major() {
+pub fn test_version_satisfies_compatible_different_major() -> TestResult {
     let v = PackageVersion::new(2, 0, 0);
     let req = VersionRequirement::Compatible(PackageVersion::new(1, 2, 0));
-    assert!(!v.satisfies(&req));
+    if v.satisfies(&req) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_version_satisfies_compatible_lower_version() {
+pub fn test_version_satisfies_compatible_lower_version() -> TestResult {
     let v = PackageVersion::new(1, 1, 0);
     let req = VersionRequirement::Compatible(PackageVersion::new(1, 2, 0));
-    assert!(!v.satisfies(&req));
+    if v.satisfies(&req) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_version_equality() {
+pub fn test_version_equality() -> TestResult {
     let v1 = PackageVersion::new(1, 2, 3);
     let v2 = PackageVersion::new(1, 2, 3);
-    assert_eq!(v1, v2);
+    if v1 != v2 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_version_clone() {
+pub fn test_version_clone() -> TestResult {
     let v1 = PackageVersion::new(1, 2, 3);
     let v2 = v1.clone();
-    assert_eq!(v1, v2);
+    if v1 != v2 { return TestResult::Fail; }
+    TestResult::Pass
 }

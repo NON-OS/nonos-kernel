@@ -1,19 +1,19 @@
 use crate::npkg::*;
+use crate::test::framework::TestResult;
 
-#[test]
-fn test_pre_install_hook_structure() {
+pub fn test_pre_install_hook_structure() -> TestResult {
     let hook = PreInstallHook {
         package: alloc::string::String::from("test-pkg"),
         version: alloc::string::String::from("1.0.0"),
         script: alloc::string::String::from("mkdir -p /opt/test"),
     };
-    assert_eq!(hook.package, "test-pkg");
-    assert_eq!(hook.version, "1.0.0");
-    assert!(!hook.script.is_empty());
+    if hook.package != "test-pkg" { return TestResult::Fail; }
+    if hook.version != "1.0.0" { return TestResult::Fail; }
+    if hook.script.is_empty() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_post_install_hook_structure() {
+pub fn test_post_install_hook_structure() -> TestResult {
     let hook = PostInstallHook {
         package: alloc::string::String::from("test-pkg"),
         version: alloc::string::String::from("1.0.0"),
@@ -23,46 +23,46 @@ fn test_post_install_hook_structure() {
             alloc::string::String::from("/usr/bin/test"),
         ],
     };
-    assert_eq!(hook.package, "test-pkg");
-    assert_eq!(hook.files_installed.len(), 2);
+    if hook.package != "test-pkg" { return TestResult::Fail; }
+    if hook.files_installed.len() != 2 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_pre_remove_hook_structure() {
+pub fn test_pre_remove_hook_structure() -> TestResult {
     let hook = PreRemoveHook {
         package: alloc::string::String::from("test-pkg"),
         version: alloc::string::String::from("1.0.0"),
         script: alloc::string::String::from("echo 'removing'"),
         files: alloc::vec![alloc::string::String::from("/usr/bin/test")],
     };
-    assert_eq!(hook.package, "test-pkg");
-    assert_eq!(hook.files.len(), 1);
+    if hook.package != "test-pkg" { return TestResult::Fail; }
+    if hook.files.len() != 1 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_post_remove_hook_structure() {
+pub fn test_post_remove_hook_structure() -> TestResult {
     let hook = PostRemoveHook {
         package: alloc::string::String::from("test-pkg"),
         version: alloc::string::String::from("1.0.0"),
         script: alloc::string::String::from("ldconfig"),
     };
-    assert_eq!(hook.package, "test-pkg");
+    if hook.package != "test-pkg" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_hook_clone() {
+pub fn test_hook_clone() -> TestResult {
     let hook = PreInstallHook {
         package: alloc::string::String::from("pkg"),
         version: alloc::string::String::from("1.0.0"),
         script: alloc::string::String::from("touch /tmp/test"),
     };
     let cloned = hook.clone();
-    assert_eq!(hook.package, cloned.package);
-    assert_eq!(hook.script, cloned.script);
+    if hook.package != cloned.package { return TestResult::Fail; }
+    if hook.script != cloned.script { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_post_install_hook_clone() {
+pub fn test_post_install_hook_clone() -> TestResult {
     let hook = PostInstallHook {
         package: alloc::string::String::from("pkg"),
         version: alloc::string::String::from("2.0.0"),
@@ -70,11 +70,11 @@ fn test_post_install_hook_clone() {
         files_installed: alloc::vec![],
     };
     let cloned = hook.clone();
-    assert_eq!(hook.version, cloned.version);
+    if hook.version != cloned.version { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_pre_remove_hook_clone() {
+pub fn test_pre_remove_hook_clone() -> TestResult {
     let hook = PreRemoveHook {
         package: alloc::string::String::from("pkg"),
         version: alloc::string::String::from("3.0.0"),
@@ -82,78 +82,78 @@ fn test_pre_remove_hook_clone() {
         files: alloc::vec![],
     };
     let cloned = hook.clone();
-    assert_eq!(hook.script, cloned.script);
+    if hook.script != cloned.script { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_post_remove_hook_clone() {
+pub fn test_post_remove_hook_clone() -> TestResult {
     let hook = PostRemoveHook {
         package: alloc::string::String::from("pkg"),
         version: alloc::string::String::from("4.0.0"),
         script: alloc::string::String::from("cleanup"),
     };
     let cloned = hook.clone();
-    assert_eq!(hook.package, cloned.package);
+    if hook.package != cloned.package { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_run_pre_install_empty_script() {
+pub fn test_run_pre_install_empty_script() -> TestResult {
     let result = run_pre_install("test-pkg", "");
-    assert!(result.is_ok());
+    if result.is_err() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_run_post_install_empty_script() {
+pub fn test_run_post_install_empty_script() -> TestResult {
     let result = run_post_install("test-pkg", "");
-    assert!(result.is_ok());
+    if result.is_err() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_run_pre_remove_empty_script() {
+pub fn test_run_pre_remove_empty_script() -> TestResult {
     let result = run_pre_remove("test-pkg", "");
-    assert!(result.is_ok());
+    if result.is_err() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_run_post_remove_empty_script() {
+pub fn test_run_post_remove_empty_script() -> TestResult {
     let result = run_post_remove("test-pkg", "");
-    assert!(result.is_ok());
+    if result.is_err() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_hook_with_comment() {
+pub fn test_hook_with_comment() -> TestResult {
     let script = "# This is a comment\n";
     let result = run_pre_install("test", script);
-    assert!(result.is_ok());
+    if result.is_err() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_hook_with_empty_lines() {
+pub fn test_hook_with_empty_lines() -> TestResult {
     let script = "\n\n\n";
     let result = run_post_install("test", script);
-    assert!(result.is_ok());
+    if result.is_err() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_hook_script_echo() {
+pub fn test_hook_script_echo() -> TestResult {
     let script = "echo hello world";
     let result = run_pre_install("test", script);
-    assert!(result.is_ok());
+    if result.is_err() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_hook_debug_format() {
+pub fn test_hook_debug_format() -> TestResult {
     let hook = PreInstallHook {
         package: alloc::string::String::from("debug-test"),
         version: alloc::string::String::from("1.0.0"),
         script: alloc::string::String::from("test"),
     };
     let debug_str = alloc::format!("{:?}", hook);
-    assert!(debug_str.contains("PreInstallHook"));
+    if !debug_str.contains("PreInstallHook") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_post_install_hook_debug_format() {
+pub fn test_post_install_hook_debug_format() -> TestResult {
     let hook = PostInstallHook {
         package: alloc::string::String::from("pkg"),
         version: alloc::string::String::from("1.0.0"),
@@ -161,11 +161,11 @@ fn test_post_install_hook_debug_format() {
         files_installed: alloc::vec![],
     };
     let debug_str = alloc::format!("{:?}", hook);
-    assert!(debug_str.contains("PostInstallHook"));
+    if !debug_str.contains("PostInstallHook") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_pre_remove_hook_debug_format() {
+pub fn test_pre_remove_hook_debug_format() -> TestResult {
     let hook = PreRemoveHook {
         package: alloc::string::String::from("pkg"),
         version: alloc::string::String::from("1.0.0"),
@@ -173,16 +173,17 @@ fn test_pre_remove_hook_debug_format() {
         files: alloc::vec![],
     };
     let debug_str = alloc::format!("{:?}", hook);
-    assert!(debug_str.contains("PreRemoveHook"));
+    if !debug_str.contains("PreRemoveHook") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_post_remove_hook_debug_format() {
+pub fn test_post_remove_hook_debug_format() -> TestResult {
     let hook = PostRemoveHook {
         package: alloc::string::String::from("pkg"),
         version: alloc::string::String::from("1.0.0"),
         script: alloc::string::String::new(),
     };
     let debug_str = alloc::format!("{:?}", hook);
-    assert!(debug_str.contains("PostRemoveHook"));
+    if !debug_str.contains("PostRemoveHook") { return TestResult::Fail; }
+    TestResult::Pass
 }

@@ -1,172 +1,173 @@
 use crate::npkg::*;
 use crate::npkg::repository::{RepositoryKind, RepositoryConfig};
+use crate::test::framework::TestResult;
 
-#[test]
-fn test_repository_kind_official_trust_level() {
+pub fn test_repository_kind_official_trust_level() -> TestResult {
     let kind = RepositoryKind::Official;
-    assert_eq!(kind.trust_level(), 100);
+    if kind.trust_level() != 100 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_repository_kind_community_trust_level() {
+pub fn test_repository_kind_community_trust_level() -> TestResult {
     let kind = RepositoryKind::Community;
-    assert_eq!(kind.trust_level(), 75);
+    if kind.trust_level() != 75 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_repository_kind_thirdparty_trust_level() {
+pub fn test_repository_kind_thirdparty_trust_level() -> TestResult {
     let kind = RepositoryKind::ThirdParty;
-    assert_eq!(kind.trust_level(), 50);
+    if kind.trust_level() != 50 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_repository_kind_local_trust_level() {
+pub fn test_repository_kind_local_trust_level() -> TestResult {
     let kind = RepositoryKind::Local;
-    assert_eq!(kind.trust_level(), 25);
+    if kind.trust_level() != 25 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_repository_kind_variants() {
+pub fn test_repository_kind_variants() -> TestResult {
     let kinds = [
         RepositoryKind::Official,
         RepositoryKind::Community,
         RepositoryKind::ThirdParty,
         RepositoryKind::Local,
     ];
-    assert_eq!(kinds.len(), 4);
+    if kinds.len() != 4 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_repository_kind_equality() {
-    assert_eq!(RepositoryKind::Official, RepositoryKind::Official);
-    assert_ne!(RepositoryKind::Official, RepositoryKind::Local);
+pub fn test_repository_kind_equality() -> TestResult {
+    if RepositoryKind::Official != RepositoryKind::Official { return TestResult::Fail; }
+    if RepositoryKind::Official == RepositoryKind::Local { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_repository_kind_copy() {
+pub fn test_repository_kind_copy() -> TestResult {
     let kind = RepositoryKind::Community;
     let copied = kind;
-    assert_eq!(kind, copied);
+    if kind != copied { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_repository_kind_clone() {
+pub fn test_repository_kind_clone() -> TestResult {
     let kind = RepositoryKind::ThirdParty;
     let cloned = kind.clone();
-    assert_eq!(kind, cloned);
+    if kind != cloned { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_repository_kind_debug_format() {
+pub fn test_repository_kind_debug_format() -> TestResult {
     let kind = RepositoryKind::Official;
     let debug_str = alloc::format!("{:?}", kind);
-    assert!(debug_str.contains("Official"));
+    if !debug_str.contains("Official") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_repository_config_official() {
+pub fn test_repository_config_official() -> TestResult {
     let config = RepositoryConfig::official("main", "https://repo.nonos.org/main");
-    assert_eq!(config.name, "main");
-    assert_eq!(config.url, "https://repo.nonos.org/main");
-    assert_eq!(config.kind, RepositoryKind::Official);
-    assert!(config.enabled);
-    assert!(config.signature_required);
-    assert_eq!(config.priority, 100);
+    if config.name != "main" { return TestResult::Fail; }
+    if config.url != "https://repo.nonos.org/main" { return TestResult::Fail; }
+    if config.kind != RepositoryKind::Official { return TestResult::Fail; }
+    if !config.enabled { return TestResult::Fail; }
+    if !config.signature_required { return TestResult::Fail; }
+    if config.priority != 100 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_repository_config_community() {
+pub fn test_repository_config_community() -> TestResult {
     let config = RepositoryConfig::community("user-repo", "https://example.com/repo");
-    assert_eq!(config.name, "user-repo");
-    assert_eq!(config.kind, RepositoryKind::Community);
-    assert!(config.enabled);
-    assert!(config.signature_required);
-    assert_eq!(config.priority, 50);
+    if config.name != "user-repo" { return TestResult::Fail; }
+    if config.kind != RepositoryKind::Community { return TestResult::Fail; }
+    if !config.enabled { return TestResult::Fail; }
+    if !config.signature_required { return TestResult::Fail; }
+    if config.priority != 50 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_repository_config_local() {
+pub fn test_repository_config_local() -> TestResult {
     let config = RepositoryConfig::local("/home/user/packages");
-    assert_eq!(config.name, "local");
-    assert_eq!(config.url, "/home/user/packages");
-    assert_eq!(config.kind, RepositoryKind::Local);
-    assert!(config.enabled);
-    assert!(!config.signature_required);
-    assert_eq!(config.priority, 200);
+    if config.name != "local" { return TestResult::Fail; }
+    if config.url != "/home/user/packages" { return TestResult::Fail; }
+    if config.kind != RepositoryKind::Local { return TestResult::Fail; }
+    if !config.enabled { return TestResult::Fail; }
+    if config.signature_required { return TestResult::Fail; }
+    if config.priority != 200 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_repository_config_clone() {
+pub fn test_repository_config_clone() -> TestResult {
     let config = RepositoryConfig::official("test", "https://test.com");
     let cloned = config.clone();
-    assert_eq!(config.name, cloned.name);
-    assert_eq!(config.url, cloned.url);
-    assert_eq!(config.kind, cloned.kind);
+    if config.name != cloned.name { return TestResult::Fail; }
+    if config.url != cloned.url { return TestResult::Fail; }
+    if config.kind != cloned.kind { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_repository_config_debug_format() {
+pub fn test_repository_config_debug_format() -> TestResult {
     let config = RepositoryConfig::official("debug", "https://debug.com");
     let debug_str = alloc::format!("{:?}", config);
-    assert!(debug_str.contains("RepositoryConfig"));
+    if !debug_str.contains("RepositoryConfig") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_repository_config_priority_ordering() {
+pub fn test_repository_config_priority_ordering() -> TestResult {
     let local = RepositoryConfig::local("/local");
     let official = RepositoryConfig::official("main", "https://main.com");
     let community = RepositoryConfig::community("comm", "https://comm.com");
 
-    assert!(local.priority > official.priority);
-    assert!(official.priority > community.priority);
+    if local.priority <= official.priority { return TestResult::Fail; }
+    if official.priority <= community.priority { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_repository_config_signature_policy() {
+pub fn test_repository_config_signature_policy() -> TestResult {
     let official = RepositoryConfig::official("main", "https://main.com");
     let local = RepositoryConfig::local("/local");
 
-    assert!(official.signature_required);
-    assert!(!local.signature_required);
+    if !official.signature_required { return TestResult::Fail; }
+    if local.signature_required { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_repository_config_enabled_by_default() {
+pub fn test_repository_config_enabled_by_default() -> TestResult {
     let official = RepositoryConfig::official("main", "https://main.com");
     let community = RepositoryConfig::community("comm", "https://comm.com");
     let local = RepositoryConfig::local("/local");
 
-    assert!(official.enabled);
-    assert!(community.enabled);
-    assert!(local.enabled);
+    if !official.enabled { return TestResult::Fail; }
+    if !community.enabled { return TestResult::Fail; }
+    if !local.enabled { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_list_repositories() {
+pub fn test_list_repositories() -> TestResult {
     let repos = list_repositories();
     let _ = repos.len();
+    TestResult::Pass
 }
 
-#[test]
-fn test_repository_kind_trust_ordering() {
+pub fn test_repository_kind_trust_ordering() -> TestResult {
     let official = RepositoryKind::Official.trust_level();
     let community = RepositoryKind::Community.trust_level();
     let thirdparty = RepositoryKind::ThirdParty.trust_level();
     let local = RepositoryKind::Local.trust_level();
 
-    assert!(official > community);
-    assert!(community > thirdparty);
-    assert!(thirdparty > local);
+    if official <= community { return TestResult::Fail; }
+    if community <= thirdparty { return TestResult::Fail; }
+    if thirdparty <= local { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_repository_config_with_https() {
+pub fn test_repository_config_with_https() -> TestResult {
     let config = RepositoryConfig::official("secure", "https://secure.repo.org");
-    assert!(config.url.starts_with("https://"));
+    if !config.url.starts_with("https://") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_repository_config_local_path_absolute() {
+pub fn test_repository_config_local_path_absolute() -> TestResult {
     let config = RepositoryConfig::local("/var/cache/packages");
-    assert!(config.url.starts_with('/'));
+    if !config.url.starts_with('/') { return TestResult::Fail; }
+    TestResult::Pass
 }
