@@ -1,434 +1,423 @@
 // NONOS Operating System
 // Copyright (C) 2026 NONOS Contributors
 //
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU Affero General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-//
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-// GNU Affero General Public License for more details.
-//
-// You should have received a copy of the GNU Affero General Public License
-// along with this program. If not, see <https://www.gnu.org/licenses/>.
+// Errno constant tests
 
 use crate::syscall::types::errnos::*;
+use crate::test::framework::TestResult;
 
-#[test]
-fn test_eperm() {
-    assert_eq!(EPERM, 1);
+pub fn test_eperm() -> TestResult {
+    if EPERM != 1 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_enoent() {
-    assert_eq!(ENOENT, 2);
+pub fn test_enoent() -> TestResult {
+    if ENOENT != 2 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_esrch() {
-    assert_eq!(ESRCH, 3);
+pub fn test_esrch() -> TestResult {
+    if ESRCH != 3 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_eintr() {
-    assert_eq!(EINTR, 4);
+pub fn test_eintr() -> TestResult {
+    if EINTR != 4 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_eio() {
-    assert_eq!(EIO, 5);
+pub fn test_eio() -> TestResult {
+    if EIO != 5 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_enxio() {
-    assert_eq!(ENXIO, 6);
+pub fn test_enxio() -> TestResult {
+    if ENXIO != 6 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_e2big() {
-    assert_eq!(E2BIG, 7);
+pub fn test_e2big() -> TestResult {
+    if E2BIG != 7 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_enoexec() {
-    assert_eq!(ENOEXEC, 8);
+pub fn test_enoexec() -> TestResult {
+    if ENOEXEC != 8 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_ebadf() {
-    assert_eq!(EBADF, 9);
+pub fn test_ebadf() -> TestResult {
+    if EBADF != 9 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_echild() {
-    assert_eq!(ECHILD, 10);
+pub fn test_echild() -> TestResult {
+    if ECHILD != 10 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_eagain() {
-    assert_eq!(EAGAIN, 11);
+pub fn test_eagain() -> TestResult {
+    if EAGAIN != 11 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_enomem() {
-    assert_eq!(ENOMEM, 12);
+pub fn test_enomem() -> TestResult {
+    if ENOMEM != 12 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_eacces() {
-    assert_eq!(EACCES, 13);
+pub fn test_eacces() -> TestResult {
+    if EACCES != 13 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_efault() {
-    assert_eq!(EFAULT, 14);
+pub fn test_efault() -> TestResult {
+    if EFAULT != 14 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_enotblk() {
-    assert_eq!(ENOTBLK, 15);
+pub fn test_enotblk() -> TestResult {
+    if ENOTBLK != 15 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_ebusy() {
-    assert_eq!(EBUSY, 16);
+pub fn test_ebusy() -> TestResult {
+    if EBUSY != 16 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_eexist() {
-    assert_eq!(EEXIST, 17);
+pub fn test_eexist() -> TestResult {
+    if EEXIST != 17 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_exdev() {
-    assert_eq!(EXDEV, 18);
+pub fn test_exdev() -> TestResult {
+    if EXDEV != 18 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_enodev() {
-    assert_eq!(ENODEV, 19);
+pub fn test_enodev() -> TestResult {
+    if ENODEV != 19 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_enotdir() {
-    assert_eq!(ENOTDIR, 20);
+pub fn test_enotdir() -> TestResult {
+    if ENOTDIR != 20 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_eisdir() {
-    assert_eq!(EISDIR, 21);
+pub fn test_eisdir() -> TestResult {
+    if EISDIR != 21 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_einval() {
-    assert_eq!(EINVAL, 22);
+pub fn test_einval() -> TestResult {
+    if EINVAL != 22 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_enfile() {
-    assert_eq!(ENFILE, 23);
+pub fn test_enfile() -> TestResult {
+    if ENFILE != 23 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_emfile() {
-    assert_eq!(EMFILE, 24);
+pub fn test_emfile() -> TestResult {
+    if EMFILE != 24 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_enotty() {
-    assert_eq!(ENOTTY, 25);
+pub fn test_enotty() -> TestResult {
+    if ENOTTY != 25 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_etxtbsy() {
-    assert_eq!(ETXTBSY, 26);
+pub fn test_etxtbsy() -> TestResult {
+    if ETXTBSY != 26 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_efbig() {
-    assert_eq!(EFBIG, 27);
+pub fn test_efbig() -> TestResult {
+    if EFBIG != 27 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_enospc() {
-    assert_eq!(ENOSPC, 28);
+pub fn test_enospc() -> TestResult {
+    if ENOSPC != 28 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_espipe() {
-    assert_eq!(ESPIPE, 29);
+pub fn test_espipe() -> TestResult {
+    if ESPIPE != 29 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_erofs() {
-    assert_eq!(EROFS, 30);
+pub fn test_erofs() -> TestResult {
+    if EROFS != 30 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_emlink() {
-    assert_eq!(EMLINK, 31);
+pub fn test_emlink() -> TestResult {
+    if EMLINK != 31 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_epipe() {
-    assert_eq!(EPIPE, 32);
+pub fn test_epipe() -> TestResult {
+    if EPIPE != 32 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_edom() {
-    assert_eq!(EDOM, 33);
+pub fn test_edom() -> TestResult {
+    if EDOM != 33 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_erange() {
-    assert_eq!(ERANGE, 34);
+pub fn test_erange() -> TestResult {
+    if ERANGE != 34 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_edeadlk() {
-    assert_eq!(EDEADLK, 35);
+pub fn test_edeadlk() -> TestResult {
+    if EDEADLK != 35 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_enametoolong() {
-    assert_eq!(ENAMETOOLONG, 36);
+pub fn test_enametoolong() -> TestResult {
+    if ENAMETOOLONG != 36 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_enolck() {
-    assert_eq!(ENOLCK, 37);
+pub fn test_enolck() -> TestResult {
+    if ENOLCK != 37 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_enosys() {
-    assert_eq!(ENOSYS, 38);
+pub fn test_enosys() -> TestResult {
+    if ENOSYS != 38 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_enotempty() {
-    assert_eq!(ENOTEMPTY, 39);
+pub fn test_enotempty() -> TestResult {
+    if ENOTEMPTY != 39 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_eloop() {
-    assert_eq!(ELOOP, 40);
+pub fn test_eloop() -> TestResult {
+    if ELOOP != 40 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_ewouldblock_equals_eagain() {
-    assert_eq!(EWOULDBLOCK, EAGAIN);
-    assert_eq!(EWOULDBLOCK, 11);
+pub fn test_ewouldblock_equals_eagain() -> TestResult {
+    if EWOULDBLOCK != EAGAIN { return TestResult::Fail; }
+    if EWOULDBLOCK != 11 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_edeadlock_equals_edeadlk() {
-    assert_eq!(EDEADLOCK, EDEADLK);
-    assert_eq!(EDEADLOCK, 35);
+pub fn test_edeadlock_equals_edeadlk() -> TestResult {
+    if EDEADLOCK != EDEADLK { return TestResult::Fail; }
+    if EDEADLOCK != 35 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_enotsock() {
-    assert_eq!(ENOTSOCK, 88);
+pub fn test_enotsock() -> TestResult {
+    if ENOTSOCK != 88 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_edestaddrreq() {
-    assert_eq!(EDESTADDRREQ, 89);
+pub fn test_edestaddrreq() -> TestResult {
+    if EDESTADDRREQ != 89 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_emsgsize() {
-    assert_eq!(EMSGSIZE, 90);
+pub fn test_emsgsize() -> TestResult {
+    if EMSGSIZE != 90 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_eprototype() {
-    assert_eq!(EPROTOTYPE, 91);
+pub fn test_eprototype() -> TestResult {
+    if EPROTOTYPE != 91 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_enoprotoopt() {
-    assert_eq!(ENOPROTOOPT, 92);
+pub fn test_enoprotoopt() -> TestResult {
+    if ENOPROTOOPT != 92 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_eprotonosupport() {
-    assert_eq!(EPROTONOSUPPORT, 93);
+pub fn test_eprotonosupport() -> TestResult {
+    if EPROTONOSUPPORT != 93 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_esocktnosupport() {
-    assert_eq!(ESOCKTNOSUPPORT, 94);
+pub fn test_esocktnosupport() -> TestResult {
+    if ESOCKTNOSUPPORT != 94 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_eopnotsupp() {
-    assert_eq!(EOPNOTSUPP, 95);
+pub fn test_eopnotsupp() -> TestResult {
+    if EOPNOTSUPP != 95 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_epfnosupport() {
-    assert_eq!(EPFNOSUPPORT, 96);
+pub fn test_epfnosupport() -> TestResult {
+    if EPFNOSUPPORT != 96 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_eafnosupport() {
-    assert_eq!(EAFNOSUPPORT, 97);
+pub fn test_eafnosupport() -> TestResult {
+    if EAFNOSUPPORT != 97 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_eaddrinuse() {
-    assert_eq!(EADDRINUSE, 98);
+pub fn test_eaddrinuse() -> TestResult {
+    if EADDRINUSE != 98 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_eaddrnotavail() {
-    assert_eq!(EADDRNOTAVAIL, 99);
+pub fn test_eaddrnotavail() -> TestResult {
+    if EADDRNOTAVAIL != 99 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_enetdown() {
-    assert_eq!(ENETDOWN, 100);
+pub fn test_enetdown() -> TestResult {
+    if ENETDOWN != 100 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_enetunreach() {
-    assert_eq!(ENETUNREACH, 101);
+pub fn test_enetunreach() -> TestResult {
+    if ENETUNREACH != 101 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_enetreset() {
-    assert_eq!(ENETRESET, 102);
+pub fn test_enetreset() -> TestResult {
+    if ENETRESET != 102 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_econnaborted() {
-    assert_eq!(ECONNABORTED, 103);
+pub fn test_econnaborted() -> TestResult {
+    if ECONNABORTED != 103 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_econnreset() {
-    assert_eq!(ECONNRESET, 104);
+pub fn test_econnreset() -> TestResult {
+    if ECONNRESET != 104 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_enobufs() {
-    assert_eq!(ENOBUFS, 105);
+pub fn test_enobufs() -> TestResult {
+    if ENOBUFS != 105 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_eisconn() {
-    assert_eq!(EISCONN, 106);
+pub fn test_eisconn() -> TestResult {
+    if EISCONN != 106 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_enotconn() {
-    assert_eq!(ENOTCONN, 107);
+pub fn test_enotconn() -> TestResult {
+    if ENOTCONN != 107 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_eshutdown() {
-    assert_eq!(ESHUTDOWN, 108);
+pub fn test_eshutdown() -> TestResult {
+    if ESHUTDOWN != 108 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_etoomanyrefs() {
-    assert_eq!(ETOOMANYREFS, 109);
+pub fn test_etoomanyrefs() -> TestResult {
+    if ETOOMANYREFS != 109 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_etimedout() {
-    assert_eq!(ETIMEDOUT, 110);
+pub fn test_etimedout() -> TestResult {
+    if ETIMEDOUT != 110 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_econnrefused() {
-    assert_eq!(ECONNREFUSED, 111);
+pub fn test_econnrefused() -> TestResult {
+    if ECONNREFUSED != 111 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_ehostdown() {
-    assert_eq!(EHOSTDOWN, 112);
+pub fn test_ehostdown() -> TestResult {
+    if EHOSTDOWN != 112 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_ehostunreach() {
-    assert_eq!(EHOSTUNREACH, 113);
+pub fn test_ehostunreach() -> TestResult {
+    if EHOSTUNREACH != 113 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_ealready() {
-    assert_eq!(EALREADY, 114);
+pub fn test_ealready() -> TestResult {
+    if EALREADY != 114 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_einprogress() {
-    assert_eq!(EINPROGRESS, 115);
+pub fn test_einprogress() -> TestResult {
+    if EINPROGRESS != 115 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_estale() {
-    assert_eq!(ESTALE, 116);
+pub fn test_estale() -> TestResult {
+    if ESTALE != 116 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_ecanceled() {
-    assert_eq!(ECANCELED, 125);
+pub fn test_ecanceled() -> TestResult {
+    if ECANCELED != 125 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_enokey() {
-    assert_eq!(ENOKEY, 126);
+pub fn test_enokey() -> TestResult {
+    if ENOKEY != 126 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_ekeyexpired() {
-    assert_eq!(EKEYEXPIRED, 127);
+pub fn test_ekeyexpired() -> TestResult {
+    if EKEYEXPIRED != 127 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_ekeyrevoked() {
-    assert_eq!(EKEYREVOKED, 128);
+pub fn test_ekeyrevoked() -> TestResult {
+    if EKEYREVOKED != 128 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_ekeyrejected() {
-    assert_eq!(EKEYREJECTED, 129);
+pub fn test_ekeyrejected() -> TestResult {
+    if EKEYREJECTED != 129 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_eownerdead() {
-    assert_eq!(EOWNERDEAD, 130);
+pub fn test_eownerdead() -> TestResult {
+    if EOWNERDEAD != 130 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_enotrecoverable() {
-    assert_eq!(ENOTRECOVERABLE, 131);
+pub fn test_enotrecoverable() -> TestResult {
+    if ENOTRECOVERABLE != 131 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_erfkill() {
-    assert_eq!(ERFKILL, 132);
+pub fn test_erfkill() -> TestResult {
+    if ERFKILL != 132 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_ehwpoison() {
-    assert_eq!(EHWPOISON, 133);
+pub fn test_ehwpoison() -> TestResult {
+    if EHWPOISON != 133 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_errno_values_are_positive() {
-    assert!(EPERM > 0);
-    assert!(ENOENT > 0);
-    assert!(EINVAL > 0);
-    assert!(ENOSYS > 0);
-    assert!(EHWPOISON > 0);
+pub fn test_errno_values_are_positive() -> TestResult {
+    if EPERM <= 0 { return TestResult::Fail; }
+    if ENOENT <= 0 { return TestResult::Fail; }
+    if EINVAL <= 0 { return TestResult::Fail; }
+    if ENOSYS <= 0 { return TestResult::Fail; }
+    if EHWPOISON <= 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_errno_values_unique() {
+pub fn test_errno_values_unique() -> TestResult {
     let errnos = [
         EPERM, ENOENT, ESRCH, EINTR, EIO, ENXIO, E2BIG, ENOEXEC, EBADF, ECHILD,
         EAGAIN, ENOMEM, EACCES, EFAULT, ENOTBLK, EBUSY, EEXIST, EXDEV, ENODEV,
@@ -438,19 +427,20 @@ fn test_errno_values_unique() {
     ];
     for i in 0..errnos.len() {
         for j in (i + 1)..errnos.len() {
-            assert_ne!(errnos[i], errnos[j]);
+            if errnos[i] == errnos[j] { return TestResult::Fail; }
         }
     }
+    TestResult::Pass
 }
 
-#[test]
-fn test_errno_range_basic() {
-    assert!(EPERM >= 1 && EPERM <= 40);
-    assert!(ENOENT >= 1 && ENOENT <= 40);
+pub fn test_errno_range_basic() -> TestResult {
+    if !(EPERM >= 1 && EPERM <= 40) { return TestResult::Fail; }
+    if !(ENOENT >= 1 && ENOENT <= 40) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_errno_range_network() {
-    assert!(ENOTSOCK >= 88 && ENOTSOCK <= 133);
-    assert!(ECONNREFUSED >= 88 && ECONNREFUSED <= 133);
+pub fn test_errno_range_network() -> TestResult {
+    if !(ENOTSOCK >= 88 && ENOTSOCK <= 133) { return TestResult::Fail; }
+    if !(ECONNREFUSED >= 88 && ECONNREFUSED <= 133) { return TestResult::Fail; }
+    TestResult::Pass
 }

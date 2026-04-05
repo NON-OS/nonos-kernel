@@ -1,199 +1,189 @@
 // NONOS Operating System
 // Copyright (C) 2026 NONOS Contributors
 //
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU Affero General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-//
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-// GNU Affero General Public License for more details.
-//
-// You should have received a copy of the GNU Affero General Public License
-// along with this program. If not, see <https://www.gnu.org/licenses/>.
+// Capability token syscall permission tests
 
 use crate::capabilities::{Capability, CapabilityToken};
+use crate::test::framework::TestResult;
 
-#[test]
-fn test_capability_token_can_exit_requires_core_exec() {
+pub fn test_capability_token_can_exit_requires_core_exec() -> TestResult {
     let token = CapabilityToken::with_caps(&[Capability::CoreExec]);
-    assert!(token.can_exit());
+    if !token.can_exit() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_capability_token_can_exit_without_core_exec() {
+pub fn test_capability_token_can_exit_without_core_exec() -> TestResult {
     let token = CapabilityToken::with_caps(&[Capability::IO]);
-    assert!(!token.can_exit());
+    if token.can_exit() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_capability_token_can_getpid() {
+pub fn test_capability_token_can_getpid() -> TestResult {
     let token = CapabilityToken::with_caps(&[Capability::CoreExec]);
-    assert!(token.can_getpid());
+    if !token.can_getpid() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_capability_token_can_fork() {
+pub fn test_capability_token_can_fork() -> TestResult {
     let token = CapabilityToken::with_caps(&[Capability::CoreExec]);
-    assert!(token.can_fork());
+    if !token.can_fork() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_capability_token_can_exec() {
+pub fn test_capability_token_can_exec() -> TestResult {
     let token = CapabilityToken::with_caps(&[Capability::CoreExec]);
-    assert!(token.can_exec());
+    if !token.can_exec() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_capability_token_can_wait() {
+pub fn test_capability_token_can_wait() -> TestResult {
     let token = CapabilityToken::with_caps(&[Capability::CoreExec]);
-    assert!(token.can_wait());
+    if !token.can_wait() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_capability_token_can_signal() {
+pub fn test_capability_token_can_signal() -> TestResult {
     let token = CapabilityToken::with_caps(&[Capability::CoreExec]);
-    assert!(token.can_signal());
+    if !token.can_signal() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_capability_token_can_read() {
+pub fn test_capability_token_can_read() -> TestResult {
     let token = CapabilityToken::with_caps(&[Capability::IO]);
-    assert!(token.can_read());
+    if !token.can_read() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_capability_token_can_read_without_io() {
+pub fn test_capability_token_can_read_without_io() -> TestResult {
     let token = CapabilityToken::with_caps(&[Capability::CoreExec]);
-    assert!(!token.can_read());
+    if token.can_read() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_capability_token_can_write() {
+pub fn test_capability_token_can_write() -> TestResult {
     let token = CapabilityToken::with_caps(&[Capability::IO]);
-    assert!(token.can_write());
+    if !token.can_write() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_capability_token_can_open_files() {
+pub fn test_capability_token_can_open_files() -> TestResult {
     let token = CapabilityToken::with_caps(&[Capability::FileSystem]);
-    assert!(token.can_open_files());
+    if !token.can_open_files() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_capability_token_can_close_files() {
+pub fn test_capability_token_can_close_files() -> TestResult {
     let token = CapabilityToken::with_caps(&[Capability::FileSystem]);
-    assert!(token.can_close_files());
+    if !token.can_close_files() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_capability_token_can_stat() {
+pub fn test_capability_token_can_stat() -> TestResult {
     let token = CapabilityToken::with_caps(&[Capability::FileSystem]);
-    assert!(token.can_stat());
+    if !token.can_stat() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_capability_token_can_seek() {
+pub fn test_capability_token_can_seek() -> TestResult {
     let token = CapabilityToken::with_caps(&[Capability::FileSystem]);
-    assert!(token.can_seek());
+    if !token.can_seek() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_capability_token_can_modify_dirs() {
+pub fn test_capability_token_can_modify_dirs() -> TestResult {
     let token = CapabilityToken::with_caps(&[Capability::FileSystem]);
-    assert!(token.can_modify_dirs());
+    if !token.can_modify_dirs() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_capability_token_can_unlink() {
+pub fn test_capability_token_can_unlink() -> TestResult {
     let token = CapabilityToken::with_caps(&[Capability::FileSystem]);
-    assert!(token.can_unlink());
+    if !token.can_unlink() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_capability_token_can_allocate_memory() {
+pub fn test_capability_token_can_allocate_memory() -> TestResult {
     let token = CapabilityToken::with_caps(&[Capability::Memory]);
-    assert!(token.can_allocate_memory());
+    if !token.can_allocate_memory() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_capability_token_can_deallocate_memory() {
+pub fn test_capability_token_can_deallocate_memory() -> TestResult {
     let token = CapabilityToken::with_caps(&[Capability::Memory]);
-    assert!(token.can_deallocate_memory());
+    if !token.can_deallocate_memory() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_capability_token_can_network() {
+pub fn test_capability_token_can_network() -> TestResult {
     let token = CapabilityToken::with_caps(&[Capability::Network]);
-    assert!(token.can_network());
+    if !token.can_network() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_capability_token_can_ipc() {
+pub fn test_capability_token_can_ipc() -> TestResult {
     let token = CapabilityToken::with_caps(&[Capability::IPC]);
-    assert!(token.can_ipc());
+    if !token.can_ipc() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_capability_token_can_crypto() {
+pub fn test_capability_token_can_crypto() -> TestResult {
     let token = CapabilityToken::with_caps(&[Capability::Crypto]);
-    assert!(token.can_crypto());
+    if !token.can_crypto() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_capability_token_can_hardware() {
+pub fn test_capability_token_can_hardware() -> TestResult {
     let token = CapabilityToken::with_caps(&[Capability::Hardware]);
-    assert!(token.can_hardware());
+    if !token.can_hardware() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_capability_token_can_debug() {
+pub fn test_capability_token_can_debug() -> TestResult {
     let token = CapabilityToken::with_caps(&[Capability::Debug]);
-    assert!(token.can_debug());
+    if !token.can_debug() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_capability_token_can_admin() {
+pub fn test_capability_token_can_admin() -> TestResult {
     let token = CapabilityToken::with_caps(&[Capability::Admin]);
-    assert!(token.can_admin());
+    if !token.can_admin() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_capability_token_empty_cannot_do_anything() {
+pub fn test_capability_token_empty_cannot_do_anything() -> TestResult {
     let token = CapabilityToken::empty();
-    assert!(!token.can_exit());
-    assert!(!token.can_read());
-    assert!(!token.can_write());
-    assert!(!token.can_network());
-    assert!(!token.can_crypto());
-    assert!(!token.can_admin());
+    if token.can_exit() { return TestResult::Fail; }
+    if token.can_read() { return TestResult::Fail; }
+    if token.can_write() { return TestResult::Fail; }
+    if token.can_network() { return TestResult::Fail; }
+    if token.can_crypto() { return TestResult::Fail; }
+    if token.can_admin() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_capability_token_multiple_capabilities() {
+pub fn test_capability_token_multiple_capabilities() -> TestResult {
     let token = CapabilityToken::with_caps(&[Capability::CoreExec, Capability::IO, Capability::Network]);
-    assert!(token.can_exit());
-    assert!(token.can_read());
-    assert!(token.can_write());
-    assert!(token.can_network());
-    assert!(!token.can_crypto());
-    assert!(!token.can_admin());
+    if !token.can_exit() { return TestResult::Fail; }
+    if !token.can_read() { return TestResult::Fail; }
+    if !token.can_write() { return TestResult::Fail; }
+    if !token.can_network() { return TestResult::Fail; }
+    if token.can_crypto() { return TestResult::Fail; }
+    if token.can_admin() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_capability_token_all_capabilities() {
+pub fn test_capability_token_all_capabilities() -> TestResult {
     let token = CapabilityToken::with_caps(&Capability::all());
-    assert!(token.can_exit());
-    assert!(token.can_read());
-    assert!(token.can_write());
-    assert!(token.can_network());
-    assert!(token.can_crypto());
-    assert!(token.can_admin());
-    assert!(token.can_hardware());
-    assert!(token.can_debug());
-    assert!(token.can_ipc());
-    assert!(token.can_allocate_memory());
-    assert!(token.can_open_files());
+    if !token.can_exit() { return TestResult::Fail; }
+    if !token.can_read() { return TestResult::Fail; }
+    if !token.can_write() { return TestResult::Fail; }
+    if !token.can_network() { return TestResult::Fail; }
+    if !token.can_crypto() { return TestResult::Fail; }
+    if !token.can_admin() { return TestResult::Fail; }
+    if !token.can_hardware() { return TestResult::Fail; }
+    if !token.can_debug() { return TestResult::Fail; }
+    if !token.can_ipc() { return TestResult::Fail; }
+    if !token.can_allocate_memory() { return TestResult::Fail; }
+    if !token.can_open_files() { return TestResult::Fail; }
+    TestResult::Pass
 }
