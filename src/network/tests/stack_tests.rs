@@ -8,33 +8,33 @@ use crate::network::stack::types::{
 };
 use crate::test::framework::TestResult;
 
-pub fn test_tcp_socket_new() -> TestResult {
+pub(crate) fn test_tcp_socket_new() -> TestResult {
     let socket1 = TcpSocket::new();
     let socket2 = TcpSocket::new();
     if socket1.connection_id() == socket2.connection_id() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_tcp_socket_default() -> TestResult {
+pub(crate) fn test_tcp_socket_default() -> TestResult {
     let socket = TcpSocket::default();
     if socket.connection_id() <= 0 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_tcp_socket_from_connection() -> TestResult {
+pub(crate) fn test_tcp_socket_from_connection() -> TestResult {
     let socket = TcpSocket::from_connection(42);
     if socket.connection_id() != 42 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_tcp_socket_remote_port() -> TestResult {
+pub(crate) fn test_tcp_socket_remote_port() -> TestResult {
     let mut socket = TcpSocket::new();
     socket.remote_port = 443;
     if socket.remote_port != 443 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_tcp_socket_clone() -> TestResult {
+pub(crate) fn test_tcp_socket_clone() -> TestResult {
     let socket1 = TcpSocket::new();
     let socket2 = socket1.clone();
     if socket1.connection_id() != socket2.connection_id() { return TestResult::Fail; }
@@ -42,7 +42,7 @@ pub fn test_tcp_socket_clone() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_tcp_socket_increments_id() -> TestResult {
+pub(crate) fn test_tcp_socket_increments_id() -> TestResult {
     let socket1 = TcpSocket::new();
     let socket2 = TcpSocket::new();
     let socket3 = TcpSocket::new();
@@ -51,32 +51,32 @@ pub fn test_tcp_socket_increments_id() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_socket_new() -> TestResult {
+pub(crate) fn test_socket_new() -> TestResult {
     let socket = Socket::new();
     if socket.connection_id().is_some() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_socket_default() -> TestResult {
+pub(crate) fn test_socket_default() -> TestResult {
     let socket = Socket::default();
     if socket.connection_id().is_some() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_socket_for_connection() -> TestResult {
+pub(crate) fn test_socket_for_connection() -> TestResult {
     let socket = Socket::for_connection(123);
     if socket.connection_id() != Some(123) { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_socket_clone() -> TestResult {
+pub(crate) fn test_socket_clone() -> TestResult {
     let socket1 = Socket::for_connection(456);
     let socket2 = socket1.clone();
     if socket1.connection_id() != socket2.connection_id() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_network_stats_default() -> TestResult {
+pub(crate) fn test_network_stats_default() -> TestResult {
     let stats = NetworkStats::default();
     if stats.tx_packets != 0 { return TestResult::Fail; }
     if stats.rx_packets != 0 { return TestResult::Fail; }
@@ -85,7 +85,7 @@ pub fn test_network_stats_default() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_network_stats_fields() -> TestResult {
+pub(crate) fn test_network_stats_fields() -> TestResult {
     let stats = NetworkStats {
         tx_packets: 1000,
         rx_packets: 2000,
@@ -99,7 +99,7 @@ pub fn test_network_stats_fields() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_network_stats_clone() -> TestResult {
+pub(crate) fn test_network_stats_clone() -> TestResult {
     let stats = NetworkStats {
         tx_packets: 100,
         rx_packets: 200,
@@ -114,7 +114,7 @@ pub fn test_network_stats_clone() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_arp_entry_fields() -> TestResult {
+pub(crate) fn test_arp_entry_fields() -> TestResult {
     let entry = ArpEntry {
         ip: [192, 168, 1, 1],
         mac: [0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF],
@@ -124,7 +124,7 @@ pub fn test_arp_entry_fields() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_arp_entry_clone() -> TestResult {
+pub(crate) fn test_arp_entry_clone() -> TestResult {
     let entry = ArpEntry {
         ip: [10, 0, 0, 1],
         mac: [0x00, 0x11, 0x22, 0x33, 0x44, 0x55],
@@ -135,7 +135,7 @@ pub fn test_arp_entry_clone() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_socket_info_fields() -> TestResult {
+pub(crate) fn test_socket_info_fields() -> TestResult {
     let info = SocketInfo {
         id: 1,
         is_tcp: true,
@@ -167,7 +167,7 @@ pub fn test_socket_info_fields() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_socket_info_udp() -> TestResult {
+pub(crate) fn test_socket_info_udp() -> TestResult {
     let info = SocketInfo {
         id: 2,
         is_tcp: false,
@@ -188,7 +188,7 @@ pub fn test_socket_info_udp() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_socket_info_closed() -> TestResult {
+pub(crate) fn test_socket_info_closed() -> TestResult {
     let info = SocketInfo {
         id: 3,
         is_tcp: true,
@@ -211,7 +211,7 @@ pub fn test_socket_info_closed() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_socket_info_with_error() -> TestResult {
+pub(crate) fn test_socket_info_with_error() -> TestResult {
     let info = SocketInfo {
         id: 4,
         is_tcp: true,
@@ -231,7 +231,7 @@ pub fn test_socket_info_with_error() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_socket_info_clone() -> TestResult {
+pub(crate) fn test_socket_info_clone() -> TestResult {
     let info = SocketInfo {
         id: 5,
         is_tcp: true,
@@ -256,7 +256,7 @@ pub fn test_socket_info_clone() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_dhcp_lease_fields() -> TestResult {
+pub(crate) fn test_dhcp_lease_fields() -> TestResult {
     let lease = DhcpLease {
         ip: [192, 168, 1, 100],
         gateway: [192, 168, 1, 1],
@@ -270,7 +270,7 @@ pub fn test_dhcp_lease_fields() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_dhcp_lease_short_time() -> TestResult {
+pub(crate) fn test_dhcp_lease_short_time() -> TestResult {
     let lease = DhcpLease {
         ip: [10, 0, 0, 50],
         gateway: [10, 0, 0, 1],
@@ -281,7 +281,7 @@ pub fn test_dhcp_lease_short_time() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_dhcp_lease_clone() -> TestResult {
+pub(crate) fn test_dhcp_lease_clone() -> TestResult {
     let lease = DhcpLease {
         ip: [172, 16, 0, 100],
         gateway: [172, 16, 0, 1],
@@ -296,7 +296,7 @@ pub fn test_dhcp_lease_clone() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_dhcp_lease_infinite() -> TestResult {
+pub(crate) fn test_dhcp_lease_infinite() -> TestResult {
     let lease = DhcpLease {
         ip: [192, 168, 0, 1],
         gateway: [192, 168, 0, 254],

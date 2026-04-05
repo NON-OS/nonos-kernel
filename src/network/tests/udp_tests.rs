@@ -7,44 +7,44 @@ use crate::network::udp::types::{UdpState, UdpStats, UdpHeader, UdpPacket};
 use crate::test::framework::TestResult;
 use alloc::vec;
 
-pub fn test_udp_state_unbound() -> TestResult {
+pub(crate) fn test_udp_state_unbound() -> TestResult {
     let state = UdpState::Unbound;
     if state != UdpState::Unbound { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_udp_state_bound() -> TestResult {
+pub(crate) fn test_udp_state_bound() -> TestResult {
     let state = UdpState::Bound;
     if state != UdpState::Bound { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_udp_state_connected() -> TestResult {
+pub(crate) fn test_udp_state_connected() -> TestResult {
     let state = UdpState::Connected;
     if state != UdpState::Connected { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_udp_state_closed() -> TestResult {
+pub(crate) fn test_udp_state_closed() -> TestResult {
     let state = UdpState::Closed;
     if state != UdpState::Closed { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_udp_state_equality() -> TestResult {
+pub(crate) fn test_udp_state_equality() -> TestResult {
     if UdpState::Bound != UdpState::Bound { return TestResult::Fail; }
     if UdpState::Bound == UdpState::Connected { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_udp_state_clone() -> TestResult {
+pub(crate) fn test_udp_state_clone() -> TestResult {
     let state = UdpState::Connected;
     let cloned = state.clone();
     if state != cloned { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_udp_stats_default() -> TestResult {
+pub(crate) fn test_udp_stats_default() -> TestResult {
     let stats = UdpStats::default();
     if stats.packets_sent != 0 { return TestResult::Fail; }
     if stats.packets_received != 0 { return TestResult::Fail; }
@@ -54,7 +54,7 @@ pub fn test_udp_stats_default() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_udp_stats_fields() -> TestResult {
+pub(crate) fn test_udp_stats_fields() -> TestResult {
     let stats = UdpStats {
         packets_sent: 100,
         packets_received: 150,
@@ -70,7 +70,7 @@ pub fn test_udp_stats_fields() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_udp_stats_clone() -> TestResult {
+pub(crate) fn test_udp_stats_clone() -> TestResult {
     let stats = UdpStats {
         packets_sent: 10,
         packets_received: 20,
@@ -84,7 +84,7 @@ pub fn test_udp_stats_clone() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_udp_header_parse_valid() -> TestResult {
+pub(crate) fn test_udp_header_parse_valid() -> TestResult {
     let data = [
         0x30, 0x39, // src_port: 12345
         0x00, 0x50, // dst_port: 80
@@ -102,21 +102,21 @@ pub fn test_udp_header_parse_valid() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_udp_header_parse_too_short() -> TestResult {
+pub(crate) fn test_udp_header_parse_too_short() -> TestResult {
     let data = [0x30, 0x39, 0x00, 0x50, 0x00]; // Only 5 bytes
     let result = UdpHeader::parse(&data);
     if result.is_some() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_udp_header_parse_empty() -> TestResult {
+pub(crate) fn test_udp_header_parse_empty() -> TestResult {
     let data: [u8; 0] = [];
     let result = UdpHeader::parse(&data);
     if result.is_some() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_udp_header_parse_exact_size() -> TestResult {
+pub(crate) fn test_udp_header_parse_exact_size() -> TestResult {
     let data = [0x00, 0x35, 0x00, 0x35, 0x00, 0x08, 0x00, 0x00];
     let header = match UdpHeader::parse(&data) {
         Some(h) => h,
@@ -129,7 +129,7 @@ pub fn test_udp_header_parse_exact_size() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_udp_header_serialize() -> TestResult {
+pub(crate) fn test_udp_header_serialize() -> TestResult {
     let header = UdpHeader {
         src_port: 12345,
         dst_port: 80,
@@ -148,7 +148,7 @@ pub fn test_udp_header_serialize() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_udp_header_serialize_roundtrip() -> TestResult {
+pub(crate) fn test_udp_header_serialize_roundtrip() -> TestResult {
     let original = UdpHeader {
         src_port: 443,
         dst_port: 8080,
@@ -167,7 +167,7 @@ pub fn test_udp_header_serialize_roundtrip() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_udp_header_clone() -> TestResult {
+pub(crate) fn test_udp_header_clone() -> TestResult {
     let header = UdpHeader {
         src_port: 53,
         dst_port: 53,
@@ -180,7 +180,7 @@ pub fn test_udp_header_clone() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_udp_header_max_port() -> TestResult {
+pub(crate) fn test_udp_header_max_port() -> TestResult {
     let header = UdpHeader {
         src_port: 65535,
         dst_port: 65535,
@@ -197,7 +197,7 @@ pub fn test_udp_header_max_port() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_udp_header_min_length() -> TestResult {
+pub(crate) fn test_udp_header_min_length() -> TestResult {
     let header = UdpHeader {
         src_port: 1024,
         dst_port: 1025,
@@ -208,7 +208,7 @@ pub fn test_udp_header_min_length() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_udp_packet_fields() -> TestResult {
+pub(crate) fn test_udp_packet_fields() -> TestResult {
     let packet = UdpPacket {
         src_addr: [192, 168, 1, 1],
         src_port: 12345,
@@ -222,7 +222,7 @@ pub fn test_udp_packet_fields() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_udp_packet_clone() -> TestResult {
+pub(crate) fn test_udp_packet_clone() -> TestResult {
     let packet = UdpPacket {
         src_addr: [10, 0, 0, 1],
         src_port: 53,
@@ -237,7 +237,7 @@ pub fn test_udp_packet_clone() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_udp_packet_empty_data() -> TestResult {
+pub(crate) fn test_udp_packet_empty_data() -> TestResult {
     let packet = UdpPacket {
         src_addr: [0; 4],
         src_port: 0,
@@ -248,7 +248,7 @@ pub fn test_udp_packet_empty_data() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_udp_header_calculate_checksum() -> TestResult {
+pub(crate) fn test_udp_header_calculate_checksum() -> TestResult {
     let src_ip = [192, 168, 1, 1];
     let dst_ip = [192, 168, 1, 2];
     let data = [0x00, 0x35, 0x00, 0x35, 0x00, 0x08, 0x00, 0x00];
@@ -257,7 +257,7 @@ pub fn test_udp_header_calculate_checksum() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_udp_header_calculate_checksum_empty_data() -> TestResult {
+pub(crate) fn test_udp_header_calculate_checksum_empty_data() -> TestResult {
     let src_ip = [10, 0, 0, 1];
     let dst_ip = [10, 0, 0, 2];
     let data: [u8; 0] = [];
@@ -266,7 +266,7 @@ pub fn test_udp_header_calculate_checksum_empty_data() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_udp_header_calculate_checksum_odd_length() -> TestResult {
+pub(crate) fn test_udp_header_calculate_checksum_odd_length() -> TestResult {
     let src_ip = [172, 16, 0, 1];
     let dst_ip = [172, 16, 0, 2];
     let data = [0x01, 0x02, 0x03];

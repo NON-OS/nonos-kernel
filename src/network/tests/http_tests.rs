@@ -8,65 +8,65 @@ use alloc::string::String;
 use alloc::vec::Vec;
 use alloc::vec;
 
-pub fn test_http_method_get() -> TestResult {
+pub(crate) fn test_http_method_get() -> TestResult {
     let method = HttpMethod::Get;
     if method != HttpMethod::Get { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_http_method_head() -> TestResult {
+pub(crate) fn test_http_method_head() -> TestResult {
     let method = HttpMethod::Head;
     if method != HttpMethod::Head { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_http_method_post() -> TestResult {
+pub(crate) fn test_http_method_post() -> TestResult {
     let method = HttpMethod::Post;
     if method != HttpMethod::Post { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_http_method_put() -> TestResult {
+pub(crate) fn test_http_method_put() -> TestResult {
     let method = HttpMethod::Put;
     if method != HttpMethod::Put { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_http_method_delete() -> TestResult {
+pub(crate) fn test_http_method_delete() -> TestResult {
     let method = HttpMethod::Delete;
     if method != HttpMethod::Delete { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_http_method_clone() -> TestResult {
+pub(crate) fn test_http_method_clone() -> TestResult {
     let method = HttpMethod::Get;
     let cloned = method.clone();
     if method != cloned { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_http_method_copy() -> TestResult {
+pub(crate) fn test_http_method_copy() -> TestResult {
     let method1 = HttpMethod::Post;
     let method2 = method1;
     if method1 != method2 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_http_method_equality() -> TestResult {
+pub(crate) fn test_http_method_equality() -> TestResult {
     if HttpMethod::Get != HttpMethod::Get { return TestResult::Fail; }
     if HttpMethod::Get == HttpMethod::Post { return TestResult::Fail; }
     if HttpMethod::Put == HttpMethod::Delete { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_http_method_debug() -> TestResult {
+pub(crate) fn test_http_method_debug() -> TestResult {
     let method = HttpMethod::Delete;
     let debug_str = alloc::format!("{:?}", method);
     if !debug_str.contains("Delete") { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_http_request_options_default() -> TestResult {
+pub(crate) fn test_http_request_options_default() -> TestResult {
     let options = HttpRequestOptions::default();
     if options.method != HttpMethod::Get { return TestResult::Fail; }
     if !options.headers.is_empty() { return TestResult::Fail; }
@@ -80,7 +80,7 @@ pub fn test_http_request_options_default() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_http_request_options_with_method() -> TestResult {
+pub(crate) fn test_http_request_options_with_method() -> TestResult {
     let options = HttpRequestOptions {
         method: HttpMethod::Post,
         ..HttpRequestOptions::default()
@@ -89,7 +89,7 @@ pub fn test_http_request_options_with_method() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_http_request_options_with_headers() -> TestResult {
+pub(crate) fn test_http_request_options_with_headers() -> TestResult {
     let options = HttpRequestOptions {
         headers: vec![
             (String::from("Content-Type"), String::from("application/json")),
@@ -101,7 +101,7 @@ pub fn test_http_request_options_with_headers() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_http_request_options_with_body() -> TestResult {
+pub(crate) fn test_http_request_options_with_body() -> TestResult {
     let options = HttpRequestOptions {
         body: Some(vec![1, 2, 3, 4]),
         ..HttpRequestOptions::default()
@@ -111,7 +111,7 @@ pub fn test_http_request_options_with_body() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_http_request_options_no_redirects() -> TestResult {
+pub(crate) fn test_http_request_options_no_redirects() -> TestResult {
     let options = HttpRequestOptions {
         follow_redirects: false,
         ..HttpRequestOptions::default()
@@ -120,7 +120,7 @@ pub fn test_http_request_options_no_redirects() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_http_request_options_custom_timeout() -> TestResult {
+pub(crate) fn test_http_request_options_custom_timeout() -> TestResult {
     let options = HttpRequestOptions {
         timeout_ms: 60_000,
         ..HttpRequestOptions::default()
@@ -129,7 +129,7 @@ pub fn test_http_request_options_custom_timeout() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_http_request_options_verbose() -> TestResult {
+pub(crate) fn test_http_request_options_verbose() -> TestResult {
     let options = HttpRequestOptions {
         verbose: true,
         ..HttpRequestOptions::default()
@@ -138,7 +138,7 @@ pub fn test_http_request_options_verbose() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_http_request_options_no_keep_alive() -> TestResult {
+pub(crate) fn test_http_request_options_no_keep_alive() -> TestResult {
     let options = HttpRequestOptions {
         keep_alive: false,
         ..HttpRequestOptions::default()
@@ -147,7 +147,7 @@ pub fn test_http_request_options_no_keep_alive() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_http_request_options_no_cookies() -> TestResult {
+pub(crate) fn test_http_request_options_no_cookies() -> TestResult {
     let options = HttpRequestOptions {
         use_cookies: false,
         ..HttpRequestOptions::default()
@@ -156,7 +156,7 @@ pub fn test_http_request_options_no_cookies() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_http_request_options_clone() -> TestResult {
+pub(crate) fn test_http_request_options_clone() -> TestResult {
     let options = HttpRequestOptions {
         method: HttpMethod::Put,
         timeout_ms: 5000,
@@ -168,7 +168,7 @@ pub fn test_http_request_options_clone() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_http_response_new() -> TestResult {
+pub(crate) fn test_http_response_new() -> TestResult {
     let response = HttpResponse::new();
     if response.status_code != 0 { return TestResult::Fail; }
     if !response.status_text.is_empty() { return TestResult::Fail; }
@@ -179,7 +179,7 @@ pub fn test_http_response_new() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_http_response_success() -> TestResult {
+pub(crate) fn test_http_response_success() -> TestResult {
     let response = HttpResponse {
         status_code: 200,
         status_text: String::from("OK"),
@@ -193,7 +193,7 @@ pub fn test_http_response_success() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_http_response_success_range() -> TestResult {
+pub(crate) fn test_http_response_success_range() -> TestResult {
     for code in 200..300 {
         let response = HttpResponse {
             status_code: code,
@@ -204,7 +204,7 @@ pub fn test_http_response_success_range() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_http_response_not_success() -> TestResult {
+pub(crate) fn test_http_response_not_success() -> TestResult {
     for code in [100, 199, 300, 400, 404, 500, 503] {
         let response = HttpResponse {
             status_code: code,
@@ -215,7 +215,7 @@ pub fn test_http_response_not_success() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_http_response_redirect_301() -> TestResult {
+pub(crate) fn test_http_response_redirect_301() -> TestResult {
     let response = HttpResponse {
         status_code: 301,
         ..HttpResponse::new()
@@ -224,7 +224,7 @@ pub fn test_http_response_redirect_301() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_http_response_redirect_302() -> TestResult {
+pub(crate) fn test_http_response_redirect_302() -> TestResult {
     let response = HttpResponse {
         status_code: 302,
         ..HttpResponse::new()
@@ -233,7 +233,7 @@ pub fn test_http_response_redirect_302() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_http_response_redirect_303() -> TestResult {
+pub(crate) fn test_http_response_redirect_303() -> TestResult {
     let response = HttpResponse {
         status_code: 303,
         ..HttpResponse::new()
@@ -242,7 +242,7 @@ pub fn test_http_response_redirect_303() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_http_response_redirect_307() -> TestResult {
+pub(crate) fn test_http_response_redirect_307() -> TestResult {
     let response = HttpResponse {
         status_code: 307,
         ..HttpResponse::new()
@@ -251,7 +251,7 @@ pub fn test_http_response_redirect_307() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_http_response_redirect_308() -> TestResult {
+pub(crate) fn test_http_response_redirect_308() -> TestResult {
     let response = HttpResponse {
         status_code: 308,
         ..HttpResponse::new()
@@ -260,7 +260,7 @@ pub fn test_http_response_redirect_308() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_http_response_not_redirect() -> TestResult {
+pub(crate) fn test_http_response_not_redirect() -> TestResult {
     for code in [200, 201, 400, 404, 500] {
         let response = HttpResponse {
             status_code: code,
@@ -271,7 +271,7 @@ pub fn test_http_response_not_redirect() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_http_response_header_found() -> TestResult {
+pub(crate) fn test_http_response_header_found() -> TestResult {
     let response = HttpResponse {
         status_code: 200,
         headers: vec![
@@ -286,7 +286,7 @@ pub fn test_http_response_header_found() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_http_response_header_not_found() -> TestResult {
+pub(crate) fn test_http_response_header_not_found() -> TestResult {
     let response = HttpResponse {
         status_code: 200,
         headers: vec![
@@ -298,7 +298,7 @@ pub fn test_http_response_header_not_found() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_http_response_content_length() -> TestResult {
+pub(crate) fn test_http_response_content_length() -> TestResult {
     let response = HttpResponse {
         status_code: 200,
         headers: vec![
@@ -310,13 +310,13 @@ pub fn test_http_response_content_length() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_http_response_content_length_none() -> TestResult {
+pub(crate) fn test_http_response_content_length_none() -> TestResult {
     let response = HttpResponse::new();
     if !response.content_length().is_none() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_http_response_content_type() -> TestResult {
+pub(crate) fn test_http_response_content_type() -> TestResult {
     let response = HttpResponse {
         status_code: 200,
         headers: vec![
@@ -328,7 +328,7 @@ pub fn test_http_response_content_type() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_http_response_location() -> TestResult {
+pub(crate) fn test_http_response_location() -> TestResult {
     let response = HttpResponse {
         status_code: 302,
         headers: vec![
@@ -340,7 +340,7 @@ pub fn test_http_response_location() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_http_response_body_text() -> TestResult {
+pub(crate) fn test_http_response_body_text() -> TestResult {
     let response = HttpResponse {
         status_code: 200,
         body: b"Hello, World!".to_vec(),
@@ -350,7 +350,7 @@ pub fn test_http_response_body_text() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_http_response_body_text_invalid_utf8() -> TestResult {
+pub(crate) fn test_http_response_body_text_invalid_utf8() -> TestResult {
     let response = HttpResponse {
         status_code: 200,
         body: vec![0xFF, 0xFE, 0x00],
@@ -360,7 +360,7 @@ pub fn test_http_response_body_text_invalid_utf8() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_http_response_is_keep_alive_true() -> TestResult {
+pub(crate) fn test_http_response_is_keep_alive_true() -> TestResult {
     let response = HttpResponse {
         status_code: 200,
         headers: vec![
@@ -372,7 +372,7 @@ pub fn test_http_response_is_keep_alive_true() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_http_response_is_keep_alive_false() -> TestResult {
+pub(crate) fn test_http_response_is_keep_alive_false() -> TestResult {
     let response = HttpResponse {
         status_code: 200,
         headers: vec![
@@ -384,13 +384,13 @@ pub fn test_http_response_is_keep_alive_false() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_http_response_is_keep_alive_no_header() -> TestResult {
+pub(crate) fn test_http_response_is_keep_alive_no_header() -> TestResult {
     let response = HttpResponse::new();
     if response.is_keep_alive() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_http_response_set_cookie_headers() -> TestResult {
+pub(crate) fn test_http_response_set_cookie_headers() -> TestResult {
     let response = HttpResponse {
         status_code: 200,
         headers: vec![
@@ -407,14 +407,14 @@ pub fn test_http_response_set_cookie_headers() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_http_response_no_set_cookie_headers() -> TestResult {
+pub(crate) fn test_http_response_no_set_cookie_headers() -> TestResult {
     let response = HttpResponse::new();
     let cookies = response.get_set_cookie_headers();
     if !cookies.is_empty() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_http_response_clone() -> TestResult {
+pub(crate) fn test_http_response_clone() -> TestResult {
     let response = HttpResponse {
         status_code: 200,
         status_text: String::from("OK"),
@@ -430,7 +430,7 @@ pub fn test_http_response_clone() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_http_response_debug() -> TestResult {
+pub(crate) fn test_http_response_debug() -> TestResult {
     let response = HttpResponse {
         status_code: 404,
         ..HttpResponse::new()
@@ -441,7 +441,7 @@ pub fn test_http_response_debug() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_http_method_all_variants() -> TestResult {
+pub(crate) fn test_http_method_all_variants() -> TestResult {
     let methods = [
         HttpMethod::Get,
         HttpMethod::Head,

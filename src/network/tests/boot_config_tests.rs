@@ -9,84 +9,84 @@ use alloc::string::String;
 use alloc::vec::Vec;
 use alloc::vec;
 
-pub fn test_privacy_mode_standard() -> TestResult {
+pub(crate) fn test_privacy_mode_standard() -> TestResult {
     if PrivacyMode::Standard as u8 != 0 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_privacy_mode_tor_only() -> TestResult {
+pub(crate) fn test_privacy_mode_tor_only() -> TestResult {
     if PrivacyMode::TorOnly as u8 != 1 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_privacy_mode_maximum() -> TestResult {
+pub(crate) fn test_privacy_mode_maximum() -> TestResult {
     if PrivacyMode::Maximum as u8 != 2 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_privacy_mode_isolated() -> TestResult {
+pub(crate) fn test_privacy_mode_isolated() -> TestResult {
     if PrivacyMode::Isolated as u8 != 3 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_privacy_mode_from_u8_standard() -> TestResult {
+pub(crate) fn test_privacy_mode_from_u8_standard() -> TestResult {
     let mode: PrivacyMode = 0u8.into();
     if mode != PrivacyMode::Standard { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_privacy_mode_from_u8_tor_only() -> TestResult {
+pub(crate) fn test_privacy_mode_from_u8_tor_only() -> TestResult {
     let mode: PrivacyMode = 1u8.into();
     if mode != PrivacyMode::TorOnly { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_privacy_mode_from_u8_maximum() -> TestResult {
+pub(crate) fn test_privacy_mode_from_u8_maximum() -> TestResult {
     let mode: PrivacyMode = 2u8.into();
     if mode != PrivacyMode::Maximum { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_privacy_mode_from_u8_isolated() -> TestResult {
+pub(crate) fn test_privacy_mode_from_u8_isolated() -> TestResult {
     let mode: PrivacyMode = 3u8.into();
     if mode != PrivacyMode::Isolated { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_privacy_mode_from_u8_invalid() -> TestResult {
+pub(crate) fn test_privacy_mode_from_u8_invalid() -> TestResult {
     let mode: PrivacyMode = 255u8.into();
     if mode != PrivacyMode::Standard { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_privacy_mode_clone() -> TestResult {
+pub(crate) fn test_privacy_mode_clone() -> TestResult {
     let mode = PrivacyMode::Maximum;
     let cloned = mode.clone();
     if mode != cloned { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_privacy_mode_copy() -> TestResult {
+pub(crate) fn test_privacy_mode_copy() -> TestResult {
     let mode1 = PrivacyMode::TorOnly;
     let mode2 = mode1;
     if mode1 != mode2 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_privacy_mode_equality() -> TestResult {
+pub(crate) fn test_privacy_mode_equality() -> TestResult {
     if PrivacyMode::Standard != PrivacyMode::Standard { return TestResult::Fail; }
     if PrivacyMode::Standard == PrivacyMode::Isolated { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_privacy_mode_debug() -> TestResult {
+pub(crate) fn test_privacy_mode_debug() -> TestResult {
     let mode = PrivacyMode::Maximum;
     let debug_str = alloc::format!("{:?}", mode);
     if !debug_str.contains("Maximum") { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_dns_mode_dhcp() -> TestResult {
+pub(crate) fn test_dns_mode_dhcp() -> TestResult {
     let mode = DnsMode::Dhcp;
     if let DnsMode::Dhcp = mode {
         // ok
@@ -96,7 +96,7 @@ pub fn test_dns_mode_dhcp() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_dns_mode_custom() -> TestResult {
+pub(crate) fn test_dns_mode_custom() -> TestResult {
     let mode = DnsMode::Custom([8, 8, 8, 8]);
     if let DnsMode::Custom(addr) = mode {
         if addr != [8, 8, 8, 8] { return TestResult::Fail; }
@@ -106,7 +106,7 @@ pub fn test_dns_mode_custom() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_dns_mode_tor_dns() -> TestResult {
+pub(crate) fn test_dns_mode_tor_dns() -> TestResult {
     let mode = DnsMode::TorDns;
     if let DnsMode::TorDns = mode {
         // ok
@@ -116,7 +116,7 @@ pub fn test_dns_mode_tor_dns() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_dns_mode_doh() -> TestResult {
+pub(crate) fn test_dns_mode_doh() -> TestResult {
     let mode = DnsMode::DoH;
     if let DnsMode::DoH = mode {
         // ok
@@ -126,7 +126,7 @@ pub fn test_dns_mode_doh() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_dns_mode_none() -> TestResult {
+pub(crate) fn test_dns_mode_none() -> TestResult {
     let mode = DnsMode::None;
     if let DnsMode::None = mode {
         // ok
@@ -136,21 +136,21 @@ pub fn test_dns_mode_none() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_dns_mode_clone() -> TestResult {
+pub(crate) fn test_dns_mode_clone() -> TestResult {
     let mode = DnsMode::Custom([1, 1, 1, 1]);
     let cloned = mode.clone();
     if mode != cloned { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_dns_mode_copy() -> TestResult {
+pub(crate) fn test_dns_mode_copy() -> TestResult {
     let mode1 = DnsMode::DoH;
     let mode2 = mode1;
     if mode1 != mode2 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_dns_mode_equality() -> TestResult {
+pub(crate) fn test_dns_mode_equality() -> TestResult {
     if DnsMode::Dhcp != DnsMode::Dhcp { return TestResult::Fail; }
     if DnsMode::Custom([8, 8, 8, 8]) != DnsMode::Custom([8, 8, 8, 8]) { return TestResult::Fail; }
     if DnsMode::Custom([8, 8, 8, 8]) == DnsMode::Custom([1, 1, 1, 1]) { return TestResult::Fail; }
@@ -158,14 +158,14 @@ pub fn test_dns_mode_equality() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_dns_mode_debug() -> TestResult {
+pub(crate) fn test_dns_mode_debug() -> TestResult {
     let mode = DnsMode::TorDns;
     let debug_str = alloc::format!("{:?}", mode);
     if !debug_str.contains("TorDns") { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_ipv4_config_default() -> TestResult {
+pub(crate) fn test_ipv4_config_default() -> TestResult {
     let config = Ipv4Config::default();
     if config.address != [0, 0, 0, 0] { return TestResult::Fail; }
     if config.prefix != 24 { return TestResult::Fail; }
@@ -174,7 +174,7 @@ pub fn test_ipv4_config_default() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_ipv4_config_fields() -> TestResult {
+pub(crate) fn test_ipv4_config_fields() -> TestResult {
     let config = Ipv4Config {
         address: [192, 168, 1, 100],
         prefix: 24,
@@ -188,7 +188,7 @@ pub fn test_ipv4_config_fields() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_ipv4_config_clone() -> TestResult {
+pub(crate) fn test_ipv4_config_clone() -> TestResult {
     let config = Ipv4Config {
         address: [10, 0, 0, 1],
         prefix: 8,
@@ -203,7 +203,7 @@ pub fn test_ipv4_config_clone() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_ipv4_config_no_gateway() -> TestResult {
+pub(crate) fn test_ipv4_config_no_gateway() -> TestResult {
     let config = Ipv4Config {
         address: [172, 16, 0, 1],
         prefix: 16,
@@ -214,7 +214,7 @@ pub fn test_ipv4_config_no_gateway() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_onion_config_default() -> TestResult {
+pub(crate) fn test_onion_config_default() -> TestResult {
     let config = OnionConfig::default();
     if !config.enabled { return TestResult::Fail; }
     if !config.auto_connect { return TestResult::Fail; }
@@ -228,7 +228,7 @@ pub fn test_onion_config_default() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_onion_config_fields() -> TestResult {
+pub(crate) fn test_onion_config_fields() -> TestResult {
     let config = OnionConfig {
         enabled: true,
         auto_connect: false,
@@ -252,7 +252,7 @@ pub fn test_onion_config_fields() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_onion_config_clone() -> TestResult {
+pub(crate) fn test_onion_config_clone() -> TestResult {
     let config = OnionConfig {
         enabled: true,
         auto_connect: true,
@@ -271,7 +271,7 @@ pub fn test_onion_config_clone() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_firewall_config_default() -> TestResult {
+pub(crate) fn test_firewall_config_default() -> TestResult {
     let config = FirewallConfig::default();
     if !config.block_inbound { return TestResult::Fail; }
     if !config.allow_outbound { return TestResult::Fail; }
@@ -282,7 +282,7 @@ pub fn test_firewall_config_default() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_firewall_config_fields() -> TestResult {
+pub(crate) fn test_firewall_config_fields() -> TestResult {
     let config = FirewallConfig {
         block_inbound: false,
         allow_outbound: false,
@@ -300,7 +300,7 @@ pub fn test_firewall_config_fields() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_firewall_config_clone() -> TestResult {
+pub(crate) fn test_firewall_config_clone() -> TestResult {
     let config = FirewallConfig {
         block_inbound: true,
         allow_outbound: true,
@@ -315,7 +315,7 @@ pub fn test_firewall_config_clone() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_firewall_config_blocked_range() -> TestResult {
+pub(crate) fn test_firewall_config_blocked_range() -> TestResult {
     let config = FirewallConfig {
         block_inbound: true,
         allow_outbound: true,
@@ -333,7 +333,7 @@ pub fn test_firewall_config_blocked_range() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_network_boot_config_default() -> TestResult {
+pub(crate) fn test_network_boot_config_default() -> TestResult {
     let config = NetworkBootConfig::default();
     if config.privacy_mode != PrivacyMode::Standard { return TestResult::Fail; }
     if !config.ipv4.use_dhcp { return TestResult::Fail; }
@@ -348,7 +348,7 @@ pub fn test_network_boot_config_default() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_network_boot_config_fields() -> TestResult {
+pub(crate) fn test_network_boot_config_fields() -> TestResult {
     let config = NetworkBootConfig {
         privacy_mode: PrivacyMode::Maximum,
         ipv4: Ipv4Config {
@@ -377,7 +377,7 @@ pub fn test_network_boot_config_fields() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_network_boot_config_clone() -> TestResult {
+pub(crate) fn test_network_boot_config_clone() -> TestResult {
     let config = NetworkBootConfig {
         privacy_mode: PrivacyMode::TorOnly,
         ipv4: Ipv4Config::default(),
@@ -400,7 +400,7 @@ pub fn test_network_boot_config_clone() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_network_boot_config_isolated() -> TestResult {
+pub(crate) fn test_network_boot_config_isolated() -> TestResult {
     let config = NetworkBootConfig {
         privacy_mode: PrivacyMode::Isolated,
         ipv4: Ipv4Config {
@@ -430,7 +430,7 @@ pub fn test_network_boot_config_isolated() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_network_boot_config_tor_mode() -> TestResult {
+pub(crate) fn test_network_boot_config_tor_mode() -> TestResult {
     let config = NetworkBootConfig {
         privacy_mode: PrivacyMode::TorOnly,
         ipv4: Ipv4Config::default(),
@@ -459,7 +459,7 @@ pub fn test_network_boot_config_tor_mode() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_privacy_mode_all_variants() -> TestResult {
+pub(crate) fn test_privacy_mode_all_variants() -> TestResult {
     let modes = [
         PrivacyMode::Standard,
         PrivacyMode::TorOnly,
@@ -473,7 +473,7 @@ pub fn test_privacy_mode_all_variants() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_dns_mode_all_variants() -> TestResult {
+pub(crate) fn test_dns_mode_all_variants() -> TestResult {
     let modes = [
         DnsMode::Dhcp,
         DnsMode::Custom([8, 8, 8, 8]),
@@ -488,28 +488,28 @@ pub fn test_dns_mode_all_variants() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_ipv4_config_debug() -> TestResult {
+pub(crate) fn test_ipv4_config_debug() -> TestResult {
     let config = Ipv4Config::default();
     let debug_str = alloc::format!("{:?}", config);
     if !debug_str.contains("Ipv4Config") { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_onion_config_debug() -> TestResult {
+pub(crate) fn test_onion_config_debug() -> TestResult {
     let config = OnionConfig::default();
     let debug_str = alloc::format!("{:?}", config);
     if !debug_str.contains("OnionConfig") { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_firewall_config_debug() -> TestResult {
+pub(crate) fn test_firewall_config_debug() -> TestResult {
     let config = FirewallConfig::default();
     let debug_str = alloc::format!("{:?}", config);
     if !debug_str.contains("FirewallConfig") { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_network_boot_config_debug() -> TestResult {
+pub(crate) fn test_network_boot_config_debug() -> TestResult {
     let config = NetworkBootConfig::default();
     let debug_str = alloc::format!("{:?}", config);
     if !debug_str.contains("NetworkBootConfig") { return TestResult::Fail; }
