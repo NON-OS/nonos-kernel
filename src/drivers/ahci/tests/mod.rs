@@ -22,7 +22,7 @@ pub mod types;
 
 use crate::test::framework::TestSuite;
 
-pub fn run_all() -> TestSuite {
+pub fn run_all() -> bool {
     let mut suite = TestSuite::new("ahci");
 
     // constants tests (17 tests)
@@ -141,5 +141,5 @@ pub fn run_all() -> TestSuite {
     suite.add_test("test_command_table_acmd_size", types::test_command_table_acmd_size);
     suite.add_test("test_command_table_reserved_size", types::test_command_table_reserved_size);
 
-    suite
+    suite.run()
 }
