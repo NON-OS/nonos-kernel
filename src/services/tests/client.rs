@@ -1,37 +1,37 @@
 use crate::services::client::ClientError;
 use crate::test::framework::TestResult;
 
-pub fn test_client_error_not_found_variant() -> TestResult {
+pub(crate) fn test_client_error_not_found_variant() -> TestResult {
     let err = ClientError::NotFound;
     if err != ClientError::NotFound { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_client_error_capability_denied_variant() -> TestResult {
+pub(crate) fn test_client_error_capability_denied_variant() -> TestResult {
     let err = ClientError::CapabilityDenied;
     if err != ClientError::CapabilityDenied { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_client_error_send_failed_variant() -> TestResult {
+pub(crate) fn test_client_error_send_failed_variant() -> TestResult {
     let err = ClientError::SendFailed;
     if err != ClientError::SendFailed { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_client_error_recv_failed_variant() -> TestResult {
+pub(crate) fn test_client_error_recv_failed_variant() -> TestResult {
     let err = ClientError::RecvFailed;
     if err != ClientError::RecvFailed { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_client_error_timeout_variant() -> TestResult {
+pub(crate) fn test_client_error_timeout_variant() -> TestResult {
     let err = ClientError::Timeout;
     if err != ClientError::Timeout { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_client_error_remote_error_variant() -> TestResult {
+pub(crate) fn test_client_error_remote_error_variant() -> TestResult {
     let err = ClientError::RemoteError(-1);
     match err {
         ClientError::RemoteError(code) => {
@@ -42,7 +42,7 @@ pub fn test_client_error_remote_error_variant() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_client_error_remote_error_various_codes() -> TestResult {
+pub(crate) fn test_client_error_remote_error_various_codes() -> TestResult {
     let err1 = ClientError::RemoteError(-403);
     let err2 = ClientError::RemoteError(-404);
     let err3 = ClientError::RemoteError(-500);
@@ -52,7 +52,7 @@ pub fn test_client_error_remote_error_various_codes() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_client_error_equality_simple() -> TestResult {
+pub(crate) fn test_client_error_equality_simple() -> TestResult {
     if ClientError::NotFound != ClientError::NotFound { return TestResult::Fail; }
     if ClientError::CapabilityDenied != ClientError::CapabilityDenied { return TestResult::Fail; }
     if ClientError::SendFailed != ClientError::SendFailed { return TestResult::Fail; }
@@ -61,83 +61,83 @@ pub fn test_client_error_equality_simple() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_client_error_equality_remote_error() -> TestResult {
+pub(crate) fn test_client_error_equality_remote_error() -> TestResult {
     if ClientError::RemoteError(-1) != ClientError::RemoteError(-1) { return TestResult::Fail; }
     if ClientError::RemoteError(-1) == ClientError::RemoteError(-2) { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_client_error_inequality() -> TestResult {
+pub(crate) fn test_client_error_inequality() -> TestResult {
     if ClientError::NotFound == ClientError::Timeout { return TestResult::Fail; }
     if ClientError::CapabilityDenied == ClientError::SendFailed { return TestResult::Fail; }
     if ClientError::RecvFailed == ClientError::RemoteError(0) { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_client_error_clone() -> TestResult {
+pub(crate) fn test_client_error_clone() -> TestResult {
     let err = ClientError::Timeout;
     let cloned = err.clone();
     if err != cloned { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_client_error_clone_remote_error() -> TestResult {
+pub(crate) fn test_client_error_clone_remote_error() -> TestResult {
     let err = ClientError::RemoteError(-42);
     let cloned = err.clone();
     if err != cloned { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_client_error_copy() -> TestResult {
+pub(crate) fn test_client_error_copy() -> TestResult {
     let err = ClientError::SendFailed;
     let copied: ClientError = err;
     if err != copied { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_client_error_copy_remote_error() -> TestResult {
+pub(crate) fn test_client_error_copy_remote_error() -> TestResult {
     let err = ClientError::RemoteError(-100);
     let copied: ClientError = err;
     if err != copied { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_client_error_debug_not_found() -> TestResult {
+pub(crate) fn test_client_error_debug_not_found() -> TestResult {
     let err = ClientError::NotFound;
     let debug_str = alloc::format!("{:?}", err);
     if !debug_str.contains("NotFound") { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_client_error_debug_capability_denied() -> TestResult {
+pub(crate) fn test_client_error_debug_capability_denied() -> TestResult {
     let err = ClientError::CapabilityDenied;
     let debug_str = alloc::format!("{:?}", err);
     if !debug_str.contains("CapabilityDenied") { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_client_error_debug_send_failed() -> TestResult {
+pub(crate) fn test_client_error_debug_send_failed() -> TestResult {
     let err = ClientError::SendFailed;
     let debug_str = alloc::format!("{:?}", err);
     if !debug_str.contains("SendFailed") { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_client_error_debug_recv_failed() -> TestResult {
+pub(crate) fn test_client_error_debug_recv_failed() -> TestResult {
     let err = ClientError::RecvFailed;
     let debug_str = alloc::format!("{:?}", err);
     if !debug_str.contains("RecvFailed") { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_client_error_debug_timeout() -> TestResult {
+pub(crate) fn test_client_error_debug_timeout() -> TestResult {
     let err = ClientError::Timeout;
     let debug_str = alloc::format!("{:?}", err);
     if !debug_str.contains("Timeout") { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_client_error_debug_remote_error() -> TestResult {
+pub(crate) fn test_client_error_debug_remote_error() -> TestResult {
     let err = ClientError::RemoteError(-999);
     let debug_str = alloc::format!("{:?}", err);
     if !debug_str.contains("RemoteError") { return TestResult::Fail; }
@@ -145,7 +145,7 @@ pub fn test_client_error_debug_remote_error() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_client_error_remote_error_zero() -> TestResult {
+pub(crate) fn test_client_error_remote_error_zero() -> TestResult {
     let err = ClientError::RemoteError(0);
     match err {
         ClientError::RemoteError(code) => {
@@ -156,7 +156,7 @@ pub fn test_client_error_remote_error_zero() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_client_error_remote_error_positive() -> TestResult {
+pub(crate) fn test_client_error_remote_error_positive() -> TestResult {
     let err = ClientError::RemoteError(200);
     match err {
         ClientError::RemoteError(code) => {
@@ -167,7 +167,7 @@ pub fn test_client_error_remote_error_positive() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_client_error_remote_error_min() -> TestResult {
+pub(crate) fn test_client_error_remote_error_min() -> TestResult {
     let err = ClientError::RemoteError(i32::MIN);
     match err {
         ClientError::RemoteError(code) => {
@@ -178,7 +178,7 @@ pub fn test_client_error_remote_error_min() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_client_error_remote_error_max() -> TestResult {
+pub(crate) fn test_client_error_remote_error_max() -> TestResult {
     let err = ClientError::RemoteError(i32::MAX);
     match err {
         ClientError::RemoteError(code) => {
@@ -189,7 +189,7 @@ pub fn test_client_error_remote_error_max() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_client_error_all_variants_distinct() -> TestResult {
+pub(crate) fn test_client_error_all_variants_distinct() -> TestResult {
     let variants: [ClientError; 6] = [
         ClientError::NotFound,
         ClientError::CapabilityDenied,
@@ -206,19 +206,19 @@ pub fn test_client_error_all_variants_distinct() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_service_client_connect_nonexistent() -> TestResult {
+pub(crate) fn test_service_client_connect_nonexistent() -> TestResult {
     let result = crate::services::ServiceClient::connect("nonexistent_service_abc123");
     if !result.is_err() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_service_client_connect_empty_name() -> TestResult {
+pub(crate) fn test_service_client_connect_empty_name() -> TestResult {
     let result = crate::services::ServiceClient::connect("");
     if !result.is_err() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_service_client_connect_returns_not_found_for_unknown() -> TestResult {
+pub(crate) fn test_service_client_connect_returns_not_found_for_unknown() -> TestResult {
     let result = crate::services::ServiceClient::connect("unknown_xyz_789");
     match result {
         Err(ClientError::NotFound) => {}

@@ -9,22 +9,22 @@ use crate::services::registry::{
 use crate::test::framework::TestResult;
 use alloc::string::String;
 
-pub fn test_max_services_constant() -> TestResult {
+pub(crate) fn test_max_services_constant() -> TestResult {
     if MAX_SERVICES != 64 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_max_services_positive() -> TestResult {
+pub(crate) fn test_max_services_positive() -> TestResult {
     if MAX_SERVICES == 0 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_max_services_reasonable_upper_bound() -> TestResult {
+pub(crate) fn test_max_services_reasonable_upper_bound() -> TestResult {
     if MAX_SERVICES > 1024 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_service_endpoint_fields() -> TestResult {
+pub(crate) fn test_service_endpoint_fields() -> TestResult {
     let ep = ServiceEndpoint {
         name: String::from("test_svc"),
         port: 1234,
@@ -38,7 +38,7 @@ pub fn test_service_endpoint_fields() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_service_endpoint_empty_name() -> TestResult {
+pub(crate) fn test_service_endpoint_empty_name() -> TestResult {
     let ep = ServiceEndpoint {
         name: String::new(),
         port: 0,
@@ -49,7 +49,7 @@ pub fn test_service_endpoint_empty_name() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_service_endpoint_clone() -> TestResult {
+pub(crate) fn test_service_endpoint_clone() -> TestResult {
     let ep1 = ServiceEndpoint {
         name: String::from("clone_test"),
         port: 8080,
@@ -64,7 +64,7 @@ pub fn test_service_endpoint_clone() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_service_endpoint_debug() -> TestResult {
+pub(crate) fn test_service_endpoint_debug() -> TestResult {
     let ep = ServiceEndpoint {
         name: String::from("debug_svc"),
         port: 5000,
@@ -77,7 +77,7 @@ pub fn test_service_endpoint_debug() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_service_endpoint_max_port() -> TestResult {
+pub(crate) fn test_service_endpoint_max_port() -> TestResult {
     let ep = ServiceEndpoint {
         name: String::from("max_port"),
         port: u32::MAX,
@@ -88,7 +88,7 @@ pub fn test_service_endpoint_max_port() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_service_endpoint_max_pid() -> TestResult {
+pub(crate) fn test_service_endpoint_max_pid() -> TestResult {
     let ep = ServiceEndpoint {
         name: String::from("max_pid"),
         port: 1000,
@@ -99,7 +99,7 @@ pub fn test_service_endpoint_max_pid() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_service_endpoint_max_caps() -> TestResult {
+pub(crate) fn test_service_endpoint_max_caps() -> TestResult {
     let ep = ServiceEndpoint {
         name: String::from("max_caps"),
         port: 1000,
@@ -110,59 +110,59 @@ pub fn test_service_endpoint_max_caps() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_reg_error_full() -> TestResult {
+pub(crate) fn test_reg_error_full() -> TestResult {
     let err = RegError::Full;
     if err != RegError::Full { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_reg_error_exists() -> TestResult {
+pub(crate) fn test_reg_error_exists() -> TestResult {
     let err = RegError::Exists;
     if err != RegError::Exists { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_reg_error_not_found() -> TestResult {
+pub(crate) fn test_reg_error_not_found() -> TestResult {
     let err = RegError::NotFound;
     if err != RegError::NotFound { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_reg_error_permission_denied() -> TestResult {
+pub(crate) fn test_reg_error_permission_denied() -> TestResult {
     let err = RegError::PermissionDenied;
     if err != RegError::PermissionDenied { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_reg_error_equality() -> TestResult {
+pub(crate) fn test_reg_error_equality() -> TestResult {
     if RegError::Full != RegError::Full { return TestResult::Fail; }
     if RegError::Full == RegError::Exists { return TestResult::Fail; }
     if RegError::NotFound == RegError::PermissionDenied { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_reg_error_clone() -> TestResult {
+pub(crate) fn test_reg_error_clone() -> TestResult {
     let err1 = RegError::Exists;
     let err2 = err1.clone();
     if err1 != err2 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_reg_error_copy() -> TestResult {
+pub(crate) fn test_reg_error_copy() -> TestResult {
     let err1 = RegError::NotFound;
     let err2 = err1;
     if err1 != err2 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_reg_error_debug() -> TestResult {
+pub(crate) fn test_reg_error_debug() -> TestResult {
     let err = RegError::Full;
     let debug_str = alloc::format!("{:?}", err);
     if !debug_str.contains("Full") { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_reg_error_all_variants() -> TestResult {
+pub(crate) fn test_reg_error_all_variants() -> TestResult {
     let errors = [
         RegError::Full,
         RegError::Exists,
@@ -173,7 +173,7 @@ pub fn test_reg_error_all_variants() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_reg_error_all_unique() -> TestResult {
+pub(crate) fn test_reg_error_all_unique() -> TestResult {
     let errors = [
         RegError::Full,
         RegError::Exists,
@@ -188,35 +188,35 @@ pub fn test_reg_error_all_unique() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_list_endpoints_returns_vec() -> TestResult {
+pub(crate) fn test_list_endpoints_returns_vec() -> TestResult {
     let _eps = list_endpoints();
     TestResult::Pass
 }
 
-pub fn test_lookup_nonexistent_service() -> TestResult {
+pub(crate) fn test_lookup_nonexistent_service() -> TestResult {
     let result = lookup_service("definitely_nonexistent_service_xyz");
     if result.is_some() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_register_endpoint_returns_result() -> TestResult {
+pub(crate) fn test_register_endpoint_returns_result() -> TestResult {
     let result = register_endpoint("test_reg_1", 9000, 1, 0);
     let _ = result;
     TestResult::Pass
 }
 
-pub fn test_register_endpoint_simple_does_not_panic() -> TestResult {
+pub(crate) fn test_register_endpoint_simple_does_not_panic() -> TestResult {
     register_endpoint_simple("simple_test_svc", 9001, 1);
     TestResult::Pass
 }
 
-pub fn test_unregister_nonexistent() -> TestResult {
+pub(crate) fn test_unregister_nonexistent() -> TestResult {
     let result = unregister_endpoint("nonexistent_unregister_test");
     if result != Err(RegError::NotFound) { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_service_endpoint_long_name() -> TestResult {
+pub(crate) fn test_service_endpoint_long_name() -> TestResult {
     let long_name = String::from("this_is_a_very_long_service_name_for_testing");
     let ep = ServiceEndpoint {
         name: long_name.clone(),
@@ -228,7 +228,7 @@ pub fn test_service_endpoint_long_name() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_service_endpoint_with_unicode_name() -> TestResult {
+pub(crate) fn test_service_endpoint_with_unicode_name() -> TestResult {
     let ep = ServiceEndpoint {
         name: String::from("服务"),
         port: 1000,
@@ -239,7 +239,7 @@ pub fn test_service_endpoint_with_unicode_name() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_service_endpoint_name_with_numbers() -> TestResult {
+pub(crate) fn test_service_endpoint_name_with_numbers() -> TestResult {
     let ep = ServiceEndpoint {
         name: String::from("service123"),
         port: 1000,
@@ -250,7 +250,7 @@ pub fn test_service_endpoint_name_with_numbers() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_service_endpoint_name_with_underscores() -> TestResult {
+pub(crate) fn test_service_endpoint_name_with_underscores() -> TestResult {
     let ep = ServiceEndpoint {
         name: String::from("my_service_v2"),
         port: 1000,
@@ -261,7 +261,7 @@ pub fn test_service_endpoint_name_with_underscores() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_service_endpoint_port_zero() -> TestResult {
+pub(crate) fn test_service_endpoint_port_zero() -> TestResult {
     let ep = ServiceEndpoint {
         name: String::from("port_zero"),
         port: 0,
@@ -272,7 +272,7 @@ pub fn test_service_endpoint_port_zero() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_service_endpoint_pid_zero() -> TestResult {
+pub(crate) fn test_service_endpoint_pid_zero() -> TestResult {
     let ep = ServiceEndpoint {
         name: String::from("pid_zero"),
         port: 1000,
@@ -283,7 +283,7 @@ pub fn test_service_endpoint_pid_zero() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_service_endpoint_multiple_caps() -> TestResult {
+pub(crate) fn test_service_endpoint_multiple_caps() -> TestResult {
     let caps = 0x1 | 0x2 | 0x4 | 0x8;
     let ep = ServiceEndpoint {
         name: String::from("multi_caps"),
@@ -295,28 +295,28 @@ pub fn test_service_endpoint_multiple_caps() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_reg_error_debug_exists() -> TestResult {
+pub(crate) fn test_reg_error_debug_exists() -> TestResult {
     let err = RegError::Exists;
     let debug_str = alloc::format!("{:?}", err);
     if !debug_str.contains("Exists") { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_reg_error_debug_not_found() -> TestResult {
+pub(crate) fn test_reg_error_debug_not_found() -> TestResult {
     let err = RegError::NotFound;
     let debug_str = alloc::format!("{:?}", err);
     if !debug_str.contains("NotFound") { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_reg_error_debug_permission_denied() -> TestResult {
+pub(crate) fn test_reg_error_debug_permission_denied() -> TestResult {
     let err = RegError::PermissionDenied;
     let debug_str = alloc::format!("{:?}", err);
     if !debug_str.contains("PermissionDenied") { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_service_endpoint_default_like() -> TestResult {
+pub(crate) fn test_service_endpoint_default_like() -> TestResult {
     let ep = ServiceEndpoint {
         name: String::new(),
         port: 0,
@@ -330,25 +330,25 @@ pub fn test_service_endpoint_default_like() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_list_endpoints_type() -> TestResult {
+pub(crate) fn test_list_endpoints_type() -> TestResult {
     let eps: alloc::vec::Vec<ServiceEndpoint> = list_endpoints();
     let _ = eps.len();
     TestResult::Pass
 }
 
-pub fn test_lookup_service_type() -> TestResult {
+pub(crate) fn test_lookup_service_type() -> TestResult {
     let result: Option<ServiceEndpoint> = lookup_service("type_test");
     if result.is_some() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_register_endpoint_type() -> TestResult {
+pub(crate) fn test_register_endpoint_type() -> TestResult {
     let result: Result<(), RegError> = register_endpoint("type_test_reg", 9002, 1, 0);
     let _ = result;
     TestResult::Pass
 }
 
-pub fn test_unregister_endpoint_type() -> TestResult {
+pub(crate) fn test_unregister_endpoint_type() -> TestResult {
     let result: Result<(), RegError> = unregister_endpoint("type_test_unreg");
     let _ = result;
     TestResult::Pass
