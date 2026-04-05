@@ -20,7 +20,7 @@ pub mod error;
 
 use crate::test::framework::TestSuite;
 
-pub fn run_all() -> TestSuite {
+pub fn run_all() -> bool {
     let mut suite = TestSuite::new("e1000");
 
     // constants tests (66 tests)
@@ -198,5 +198,5 @@ pub fn run_all() -> TestSuite {
     suite.add_test("test_error_display", error::test_error_display);
     suite.add_test("test_all_errors_have_message", error::test_all_errors_have_message);
 
-    suite
+    suite.run()
 }
