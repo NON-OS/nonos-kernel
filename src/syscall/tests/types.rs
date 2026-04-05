@@ -1,122 +1,112 @@
 // NONOS Operating System
 // Copyright (C) 2026 NONOS Contributors
 //
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU Affero General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-//
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-// GNU Affero General Public License for more details.
-//
-// You should have received a copy of the GNU Affero General Public License
-// along with this program. If not, see <https://www.gnu.org/licenses/>.
+// Syscall result type tests
 
 use crate::syscall::types::*;
+use crate::test::framework::TestResult;
 
-#[test]
-fn test_syscall_result_success() {
+pub fn test_syscall_result_success() -> TestResult {
     let result = SyscallResult::success(42);
-    assert_eq!(result.value, 42);
-    assert!(!result.capability_consumed);
-    assert!(!result.audit_required);
+    if result.value != 42 { return TestResult::Fail; }
+    if result.capability_consumed { return TestResult::Fail; }
+    if result.audit_required { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_syscall_result_success_zero() {
+pub fn test_syscall_result_success_zero() -> TestResult {
     let result = SyscallResult::success(0);
-    assert_eq!(result.value, 0);
-    assert!(!result.is_error());
+    if result.value != 0 { return TestResult::Fail; }
+    if result.is_error() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_syscall_result_success_max() {
+pub fn test_syscall_result_success_max() -> TestResult {
     let result = SyscallResult::success(i64::MAX);
-    assert_eq!(result.value, i64::MAX);
-    assert!(!result.is_error());
+    if result.value != i64::MAX { return TestResult::Fail; }
+    if result.is_error() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_syscall_result_success_audited() {
+pub fn test_syscall_result_success_audited() -> TestResult {
     let result = SyscallResult::success_audited(100);
-    assert_eq!(result.value, 100);
-    assert!(!result.capability_consumed);
-    assert!(result.audit_required);
+    if result.value != 100 { return TestResult::Fail; }
+    if result.capability_consumed { return TestResult::Fail; }
+    if !result.audit_required { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_syscall_result_error() {
+pub fn test_syscall_result_error() -> TestResult {
     let result = SyscallResult::error(22);
-    assert!(result.is_error());
-    assert_eq!(result.errno(), Some(22));
-    assert!(result.audit_required);
+    if !result.is_error() { return TestResult::Fail; }
+    if result.errno() != Some(22) { return TestResult::Fail; }
+    if !result.audit_required { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_syscall_result_error_value_is_negated() {
+pub fn test_syscall_result_error_value_is_negated() -> TestResult {
     let result = SyscallResult::error(1);
-    assert_eq!(result.value, -1);
+    if result.value != -1 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_syscall_result_is_error_positive() {
+pub fn test_syscall_result_is_error_positive() -> TestResult {
     let result = SyscallResult::success(1);
-    assert!(!result.is_error());
+    if result.is_error() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_syscall_result_is_error_zero() {
+pub fn test_syscall_result_is_error_zero() -> TestResult {
     let result = SyscallResult::success(0);
-    assert!(!result.is_error());
+    if result.is_error() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_syscall_result_is_error_negative() {
+pub fn test_syscall_result_is_error_negative() -> TestResult {
     let result = SyscallResult::error(1);
-    assert!(result.is_error());
+    if !result.is_error() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_syscall_result_errno_none_for_success() {
+pub fn test_syscall_result_errno_none_for_success() -> TestResult {
     let result = SyscallResult::success(42);
-    assert_eq!(result.errno(), None);
+    if result.errno() != None { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_syscall_result_errno_some_for_error() {
+pub fn test_syscall_result_errno_some_for_error() -> TestResult {
     let result = SyscallResult::error(22);
-    assert_eq!(result.errno(), Some(22));
+    if result.errno() != Some(22) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_errno_helper() {
+pub fn test_errno_helper() -> TestResult {
     let result = errno(errnos::EINVAL);
-    assert!(result.is_error());
-    assert_eq!(result.errno(), Some(errnos::EINVAL));
+    if !result.is_error() { return TestResult::Fail; }
+    if result.errno() != Some(errnos::EINVAL) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_errno_helper_eperm() {
+pub fn test_errno_helper_eperm() -> TestResult {
     let result = errno(errnos::EPERM);
-    assert_eq!(result.errno(), Some(1));
+    if result.errno() != Some(1) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_errno_helper_enoent() {
+pub fn test_errno_helper_enoent() -> TestResult {
     let result = errno(errnos::ENOENT);
-    assert_eq!(result.errno(), Some(2));
+    if result.errno() != Some(2) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_syscall_result_const_success() {
+pub fn test_syscall_result_const_success() -> TestResult {
     const RESULT: SyscallResult = SyscallResult::success(99);
-    assert_eq!(RESULT.value, 99);
+    if RESULT.value != 99 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_syscall_result_const_error() {
+pub fn test_syscall_result_const_error() -> TestResult {
     const RESULT: SyscallResult = SyscallResult::error(22);
-    assert_eq!(RESULT.value, -22);
+    if RESULT.value != -22 { return TestResult::Fail; }
+    TestResult::Pass
 }
