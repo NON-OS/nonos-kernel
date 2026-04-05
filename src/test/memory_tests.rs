@@ -28,32 +28,32 @@ use alloc::boxed::Box;
 pub fn run_all() -> bool {
     let mut suite = TestSuite::new("Memory");
 
-    suite.add_test(TestCase::with_category(
+    suite.add(TestCase::with_category(
         "heap_allocation",
         test_heap_allocation,
         "memory",
     ));
-    suite.add_test(TestCase::with_category(
+    suite.add(TestCase::with_category(
         "vec_allocation",
         test_vec_allocation,
         "memory",
     ));
-    suite.add_test(TestCase::with_category(
+    suite.add(TestCase::with_category(
         "box_allocation",
         test_box_allocation,
         "memory",
     ));
-    suite.add_test(TestCase::with_category(
+    suite.add(TestCase::with_category(
         "large_allocation",
         test_large_allocation,
         "memory",
     ));
-    suite.add_test(TestCase::with_category(
+    suite.add(TestCase::with_category(
         "allocation_alignment",
         test_allocation_alignment,
         "memory",
     ));
-    suite.add_test(TestCase::with_category(
+    suite.add(TestCase::with_category(
         "memory_protection",
         test_memory_protection,
         "memory",
@@ -64,7 +64,7 @@ pub fn run_all() -> bool {
 }
 
 /// Test basic heap allocation
-fn test_heap_allocation() -> TestResult {
+pub(crate) fn test_heap_allocation() -> TestResult {
     // Allocate a small buffer
     let mut data = Vec::<u8>::with_capacity(64);
     for i in 0..64u8 {
@@ -82,7 +82,7 @@ fn test_heap_allocation() -> TestResult {
 }
 
 /// Test Vec allocation and operations
-fn test_vec_allocation() -> TestResult {
+pub(crate) fn test_vec_allocation() -> TestResult {
     let mut v: Vec<u32> = Vec::new();
 
     // Test push operations
@@ -110,7 +110,7 @@ fn test_vec_allocation() -> TestResult {
 }
 
 /// Test Box allocation
-fn test_box_allocation() -> TestResult {
+pub(crate) fn test_box_allocation() -> TestResult {
     // Test boxed value
     let boxed_val: Box<u64> = Box::new(0xDEAD_BEEF_CAFE_BABE);
 
@@ -131,7 +131,7 @@ fn test_box_allocation() -> TestResult {
 }
 
 /// Test large allocation
-fn test_large_allocation() -> TestResult {
+pub(crate) fn test_large_allocation() -> TestResult {
     // Allocate 1MB
     const SIZE: usize = 1024 * 1024;
     let mut large_vec: Vec<u8> = Vec::with_capacity(SIZE);
@@ -152,7 +152,7 @@ fn test_large_allocation() -> TestResult {
 }
 
 /// Test allocation alignment
-fn test_allocation_alignment() -> TestResult {
+pub(crate) fn test_allocation_alignment() -> TestResult {
     // Test various alignments
     let boxed_u8: Box<u8> = Box::new(1);
     let boxed_u16: Box<u16> = Box::new(2);
@@ -186,7 +186,7 @@ fn test_allocation_alignment() -> TestResult {
 }
 
 /// Test memory protection levels
-fn test_memory_protection() -> TestResult {
+pub(crate) fn test_memory_protection() -> TestResult {
     use crate::memory::MemoryProtection;
 
     // Test basic protection combinations

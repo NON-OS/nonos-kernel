@@ -26,32 +26,32 @@ use super::framework::{TestResult, TestCase, TestSuite};
 pub fn run_all() -> bool {
     let mut suite = TestSuite::new("Security");
 
-    suite.add_test(TestCase::with_category(
+    suite.add(TestCase::with_category(
         "capability_types",
         test_capability_types,
         "security",
     ));
-    suite.add_test(TestCase::with_category(
+    suite.add(TestCase::with_category(
         "capability_token",
         test_capability_token,
         "security",
     ));
-    suite.add_test(TestCase::with_category(
+    suite.add(TestCase::with_category(
         "capability_bits",
         test_capability_bits,
         "security",
     ));
-    suite.add_test(TestCase::with_category(
+    suite.add(TestCase::with_category(
         "driver_access_control",
         test_driver_access_control,
         "security",
     ));
-    suite.add_test(TestCase::with_category(
+    suite.add(TestCase::with_category(
         "pci_validation",
         test_pci_validation,
         "security",
     ));
-    suite.add_test(TestCase::with_category(
+    suite.add(TestCase::with_category(
         "memory_protection",
         test_memory_protection,
         "security",
@@ -62,7 +62,7 @@ pub fn run_all() -> bool {
 }
 
 /// Test capability types
-fn test_capability_types() -> TestResult {
+pub(crate) fn test_capability_types() -> TestResult {
     use crate::capabilities::Capability;
 
     // Test all capability types exist
@@ -92,7 +92,7 @@ fn test_capability_types() -> TestResult {
 }
 
 /// Test capability token functionality
-fn test_capability_token() -> TestResult {
+pub(crate) fn test_capability_token() -> TestResult {
     use crate::capabilities::{Capability, has_signing_key};
 
     // Skip if signing key not set
@@ -125,7 +125,7 @@ fn test_capability_token() -> TestResult {
 }
 
 /// Test capability bit conversion
-fn test_capability_bits() -> TestResult {
+pub(crate) fn test_capability_bits() -> TestResult {
     use crate::capabilities::{Capability, caps_to_bits, bits_to_caps};
 
     let caps = [Capability::CoreExec, Capability::Memory, Capability::Admin];
@@ -155,7 +155,7 @@ fn test_capability_bits() -> TestResult {
 }
 
 /// Test driver access control
-fn test_driver_access_control() -> TestResult {
+pub(crate) fn test_driver_access_control() -> TestResult {
     use crate::drivers::security::{validate_pci_access, DriverError};
 
     // Test valid PCI access
@@ -182,7 +182,7 @@ fn test_driver_access_control() -> TestResult {
 }
 
 /// Test PCI config space validation
-fn test_pci_validation() -> TestResult {
+pub(crate) fn test_pci_validation() -> TestResult {
     use crate::drivers::security::is_config_write_allowed;
 
     // Test that function doesn't panic for various offsets
@@ -194,7 +194,7 @@ fn test_pci_validation() -> TestResult {
 }
 
 /// Test memory protection policies
-fn test_memory_protection() -> TestResult {
+pub(crate) fn test_memory_protection() -> TestResult {
     use crate::memory::MemoryProtection;
 
     // Test protection levels

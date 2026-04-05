@@ -21,23 +21,23 @@ use super::framework::{TestCase, TestResult, TestSuite};
 pub fn run_all() -> bool {
     let mut suite = TestSuite::new("Agents");
 
-    suite.add_test(TestCase::new("agent_config_default", test_agent_config_default, "agents"));
-    suite.add_test(TestCase::new("agent_creation", test_agent_creation, "agents"));
-    suite.add_test(TestCase::new("agent_state_transitions", test_agent_state_transitions, "agents"));
-    suite.add_test(TestCase::new("agent_messages", test_agent_messages, "agents"));
-    suite.add_test(TestCase::new("agent_registry", test_agent_registry, "agents"));
-    suite.add_test(TestCase::new("agent_tools", test_agent_tools, "agents"));
-    suite.add_test(TestCase::new("agent_memory", test_agent_memory, "agents"));
-    suite.add_test(TestCase::new("agent_context", test_agent_context, "agents"));
-    suite.add_test(TestCase::new("agent_tasks", test_agent_tasks, "agents"));
-    suite.add_test(TestCase::new("agent_scheduler", test_agent_scheduler, "agents"));
-    suite.add_test(TestCase::new("agent_presets", test_agent_presets, "agents"));
+    suite.add(TestCase::new("agent_config_default", test_agent_config_default, "agents"));
+    suite.add(TestCase::new("agent_creation", test_agent_creation, "agents"));
+    suite.add(TestCase::new("agent_state_transitions", test_agent_state_transitions, "agents"));
+    suite.add(TestCase::new("agent_messages", test_agent_messages, "agents"));
+    suite.add(TestCase::new("agent_registry", test_agent_registry, "agents"));
+    suite.add(TestCase::new("agent_tools", test_agent_tools, "agents"));
+    suite.add(TestCase::new("agent_memory", test_agent_memory, "agents"));
+    suite.add(TestCase::new("agent_context", test_agent_context, "agents"));
+    suite.add(TestCase::new("agent_tasks", test_agent_tasks, "agents"));
+    suite.add(TestCase::new("agent_scheduler", test_agent_scheduler, "agents"));
+    suite.add(TestCase::new("agent_presets", test_agent_presets, "agents"));
 
     let (_, failed, _) = suite.run_all();
     failed == 0
 }
 
-fn test_agent_config_default() -> TestResult {
+pub(crate) fn test_agent_config_default() -> TestResult {
     use crate::agents::AgentConfig;
 
     let config = AgentConfig::default();
@@ -53,7 +53,7 @@ fn test_agent_config_default() -> TestResult {
     TestResult::Pass
 }
 
-fn test_agent_creation() -> TestResult {
+pub(crate) fn test_agent_creation() -> TestResult {
     use crate::agents::{Agent, AgentConfig};
 
     let mut config = AgentConfig::default();
@@ -69,7 +69,7 @@ fn test_agent_creation() -> TestResult {
     TestResult::Pass
 }
 
-fn test_agent_state_transitions() -> TestResult {
+pub(crate) fn test_agent_state_transitions() -> TestResult {
     use crate::agents::core::{AgentState, Agent, AgentConfig};
 
     let config = AgentConfig::default();
@@ -92,7 +92,7 @@ fn test_agent_state_transitions() -> TestResult {
     TestResult::Pass
 }
 
-fn test_agent_messages() -> TestResult {
+pub(crate) fn test_agent_messages() -> TestResult {
     use crate::agents::core::{Agent, AgentConfig, MessageRole};
 
     let config = AgentConfig::default();
@@ -114,7 +114,7 @@ fn test_agent_messages() -> TestResult {
     TestResult::Pass
 }
 
-fn test_agent_registry() -> TestResult {
+pub(crate) fn test_agent_registry() -> TestResult {
     use crate::agents::{create_agent, get_agent, delete_agent, list_agents, AgentConfig};
 
     let mut config = AgentConfig::default();
@@ -137,7 +137,7 @@ fn test_agent_registry() -> TestResult {
     TestResult::Pass
 }
 
-fn test_agent_tools() -> TestResult {
+pub(crate) fn test_agent_tools() -> TestResult {
     use crate::agents::tools::{register_tool, list_tools, execute_tool, ToolResult};
 
     let initial_count = list_tools().len();
@@ -161,7 +161,7 @@ fn test_agent_tools() -> TestResult {
     TestResult::Pass
 }
 
-fn test_agent_memory() -> TestResult {
+pub(crate) fn test_agent_memory() -> TestResult {
     use crate::agents::memory::{AgentMemory, MAX_ENTRIES};
 
     if MAX_ENTRIES != 1024 { return TestResult::Fail; }
@@ -185,7 +185,7 @@ fn test_agent_memory() -> TestResult {
     TestResult::Pass
 }
 
-fn test_agent_context() -> TestResult {
+pub(crate) fn test_agent_context() -> TestResult {
     use crate::agents::context::AgentContext;
 
     let mut ctx = AgentContext::new(1);
@@ -212,7 +212,7 @@ fn test_agent_context() -> TestResult {
     TestResult::Pass
 }
 
-fn test_agent_tasks() -> TestResult {
+pub(crate) fn test_agent_tasks() -> TestResult {
     use crate::agents::tasks::{create_task, get_task, update_task_status, TaskStatus, MAX_TASKS};
 
     if MAX_TASKS != 64 { return TestResult::Fail; }
@@ -239,7 +239,7 @@ fn test_agent_tasks() -> TestResult {
     TestResult::Pass
 }
 
-fn test_agent_scheduler() -> TestResult {
+pub(crate) fn test_agent_scheduler() -> TestResult {
     use crate::agents::scheduler::{schedule_once, schedule_repeat, cancel_schedule, active_count, MAX_SCHEDULED};
 
     if MAX_SCHEDULED != 32 { return TestResult::Fail; }
@@ -262,7 +262,7 @@ fn test_agent_scheduler() -> TestResult {
     TestResult::Pass
 }
 
-fn test_agent_presets() -> TestResult {
+pub(crate) fn test_agent_presets() -> TestResult {
     use crate::agents::presets::{coding_assistant, file_manager_agent, system_monitor, web_researcher, task_automator, list_presets};
 
     let presets = list_presets();

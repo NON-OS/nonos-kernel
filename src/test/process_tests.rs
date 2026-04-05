@@ -26,22 +26,22 @@ use super::framework::{TestResult, TestCase, TestSuite};
 pub fn run_all() -> bool {
     let mut suite = TestSuite::new("Process");
 
-    suite.add_test(TestCase::with_category(
+    suite.add(TestCase::with_category(
         "process_state",
         test_process_state,
         "process",
     ));
-    suite.add_test(TestCase::with_category(
+    suite.add(TestCase::with_category(
         "process_priority",
         test_process_priority,
         "process",
     ));
-    suite.add_test(TestCase::with_category(
+    suite.add(TestCase::with_category(
         "scheduler_priority",
         test_scheduler_priority,
         "process",
     ));
-    suite.add_test(TestCase::with_category(
+    suite.add(TestCase::with_category(
         "process_table",
         test_process_table,
         "process",
@@ -52,7 +52,7 @@ pub fn run_all() -> bool {
 }
 
 /// Test process state transitions
-fn test_process_state() -> TestResult {
+pub(crate) fn test_process_state() -> TestResult {
     use crate::process::nonos_core::ProcessState;
 
     // Test state values are distinct
@@ -88,7 +88,7 @@ fn test_process_state() -> TestResult {
 }
 
 /// Test process priority levels
-fn test_process_priority() -> TestResult {
+pub(crate) fn test_process_priority() -> TestResult {
     use crate::process::nonos_core::Priority;
 
     // Test priority ordering
@@ -116,7 +116,7 @@ fn test_process_priority() -> TestResult {
 }
 
 /// Test scheduler task priority
-fn test_scheduler_priority() -> TestResult {
+pub(crate) fn test_scheduler_priority() -> TestResult {
     use crate::sched::Priority;
 
     // Test scheduler priority levels
@@ -148,7 +148,7 @@ fn test_scheduler_priority() -> TestResult {
 }
 
 /// Test process table access
-fn test_process_table() -> TestResult {
+pub(crate) fn test_process_table() -> TestResult {
     // Test that we can access process management functions
     use crate::process;
 

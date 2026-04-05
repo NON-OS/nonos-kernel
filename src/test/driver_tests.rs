@@ -26,32 +26,32 @@ use super::framework::{TestResult, TestCase, TestSuite};
 pub fn run_all() -> bool {
     let mut suite = TestSuite::new("Drivers");
 
-    suite.add_test(TestCase::with_category(
+    suite.add(TestCase::with_category(
         "pci_manager_init",
         test_pci_manager_init,
         "drivers",
     ));
-    suite.add_test(TestCase::with_category(
+    suite.add(TestCase::with_category(
         "pci_stats_tracking",
         test_pci_stats_tracking,
         "drivers",
     ));
-    suite.add_test(TestCase::with_category(
+    suite.add(TestCase::with_category(
         "console_driver",
         test_console_driver,
         "drivers",
     ));
-    suite.add_test(TestCase::with_category(
+    suite.add(TestCase::with_category(
         "nvme_validation",
         test_nvme_validation,
         "drivers",
     ));
-    suite.add_test(TestCase::with_category(
+    suite.add(TestCase::with_category(
         "ahci_validation",
         test_ahci_validation,
         "drivers",
     ));
-    suite.add_test(TestCase::with_category(
+    suite.add(TestCase::with_category(
         "xhci_validation",
         test_xhci_validation,
         "drivers",
@@ -62,7 +62,7 @@ pub fn run_all() -> bool {
 }
 
 /// Test PCI manager initialization
-fn test_pci_manager_init() -> TestResult {
+pub(crate) fn test_pci_manager_init() -> TestResult {
     match crate::drivers::get_pci_manager() {
         Some(_mgr) => TestResult::Pass,
         None => TestResult::Skip, // PCI not available
@@ -70,7 +70,7 @@ fn test_pci_manager_init() -> TestResult {
 }
 
 /// Test PCI statistics tracking
-fn test_pci_stats_tracking() -> TestResult {
+pub(crate) fn test_pci_stats_tracking() -> TestResult {
     match crate::drivers::get_pci_manager() {
         Some(mgr) => {
             let stats = mgr.lock().get_stats();
@@ -87,7 +87,7 @@ fn test_pci_stats_tracking() -> TestResult {
 }
 
 /// Test console driver operations
-fn test_console_driver() -> TestResult {
+pub(crate) fn test_console_driver() -> TestResult {
     let stats = crate::drivers::console::get_console_stats();
 
     // Console should have written some messages by now
@@ -102,7 +102,7 @@ fn test_console_driver() -> TestResult {
 }
 
 /// Test NVMe driver validation
-fn test_nvme_validation() -> TestResult {
+pub(crate) fn test_nvme_validation() -> TestResult {
     match crate::drivers::nvme::get_controller() {
         Some(nvme) => {
             let stats = nvme.get_stats();
@@ -119,7 +119,7 @@ fn test_nvme_validation() -> TestResult {
 }
 
 /// Test AHCI driver validation
-fn test_ahci_validation() -> TestResult {
+pub(crate) fn test_ahci_validation() -> TestResult {
     match crate::drivers::ahci::get_controller() {
         Some(ahci) => {
             let stats = ahci.get_stats();
@@ -136,7 +136,7 @@ fn test_ahci_validation() -> TestResult {
 }
 
 /// Test xHCI driver validation
-fn test_xhci_validation() -> TestResult {
+pub(crate) fn test_xhci_validation() -> TestResult {
     match crate::drivers::xhci::get_controller() {
         Some(xhci) => {
             let stats = xhci.get_stats();
