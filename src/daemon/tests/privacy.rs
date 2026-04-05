@@ -17,7 +17,7 @@
 use crate::daemon::*;
 use crate::test::framework::TestResult;
 
-pub fn test_zk_identity_empty() -> TestResult {
+pub(crate) fn test_zk_identity_empty() -> TestResult {
     let identity = ZkIdentity::empty();
     if identity.id != [0u8; 32] { return TestResult::Fail; }
     if identity.commitment != [0u8; 32] { return TestResult::Fail; }
@@ -26,14 +26,14 @@ pub fn test_zk_identity_empty() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_zk_identity_generate() -> TestResult {
+pub(crate) fn test_zk_identity_generate() -> TestResult {
     let identity = ZkIdentity::generate(100);
     if !identity.active { return TestResult::Fail; }
     if identity.created_epoch != 100 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_zk_identity_generate_unique() -> TestResult {
+pub(crate) fn test_zk_identity_generate_unique() -> TestResult {
     let id1 = ZkIdentity::generate(100);
     let id2 = ZkIdentity::generate(100);
     if id1.id == id2.id { return TestResult::Fail; }
@@ -41,14 +41,14 @@ pub fn test_zk_identity_generate_unique() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_zk_identity_short_id_length() -> TestResult {
+pub(crate) fn test_zk_identity_short_id_length() -> TestResult {
     let identity = ZkIdentity::generate(100);
     let short = identity.short_id();
     if short.len() != 16 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_zk_identity_short_id_hex() -> TestResult {
+pub(crate) fn test_zk_identity_short_id_hex() -> TestResult {
     let mut identity = ZkIdentity::empty();
     identity.id[0] = 0xAB;
     let short = identity.short_id();
@@ -57,7 +57,7 @@ pub fn test_zk_identity_short_id_hex() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_privacy_state_new() -> TestResult {
+pub(crate) fn test_privacy_state_new() -> TestResult {
     let state = PrivacyState::new();
     if state.identity_count != 0 { return TestResult::Fail; }
     if state.active_identity != 0 { return TestResult::Fail; }
@@ -67,7 +67,7 @@ pub fn test_privacy_state_new() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_privacy_state_create_identity() -> TestResult {
+pub(crate) fn test_privacy_state_create_identity() -> TestResult {
     let mut state = PrivacyState::new();
     let result = state.create_identity(100);
     if result.is_none() { return TestResult::Fail; }
@@ -77,7 +77,7 @@ pub fn test_privacy_state_create_identity() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_privacy_state_create_identity_multiple() -> TestResult {
+pub(crate) fn test_privacy_state_create_identity_multiple() -> TestResult {
     let mut state = PrivacyState::new();
     if state.create_identity(100) != Some(0) { return TestResult::Fail; }
     if state.create_identity(101) != Some(1) { return TestResult::Fail; }
@@ -86,7 +86,7 @@ pub fn test_privacy_state_create_identity_multiple() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_privacy_state_create_identity_max() -> TestResult {
+pub(crate) fn test_privacy_state_create_identity_max() -> TestResult {
     let mut state = PrivacyState::new();
     for i in 0..MAX_IDENTITIES {
         if state.create_identity(i as u64).is_none() { return TestResult::Fail; }
@@ -96,14 +96,14 @@ pub fn test_privacy_state_create_identity_max() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_privacy_state_create_identity_sets_active() -> TestResult {
+pub(crate) fn test_privacy_state_create_identity_sets_active() -> TestResult {
     let mut state = PrivacyState::new();
     state.create_identity(100);
     if state.active_identity != 0 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_privacy_state_switch_identity() -> TestResult {
+pub(crate) fn test_privacy_state_switch_identity() -> TestResult {
     let mut state = PrivacyState::new();
     state.create_identity(100);
     state.create_identity(101);
@@ -112,7 +112,7 @@ pub fn test_privacy_state_switch_identity() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_privacy_state_switch_identity_invalid_index() -> TestResult {
+pub(crate) fn test_privacy_state_switch_identity_invalid_index() -> TestResult {
     let mut state = PrivacyState::new();
     state.create_identity(100);
     if state.switch_identity(5) { return TestResult::Fail; }
@@ -120,7 +120,7 @@ pub fn test_privacy_state_switch_identity_invalid_index() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_privacy_state_switch_identity_inactive() -> TestResult {
+pub(crate) fn test_privacy_state_switch_identity_inactive() -> TestResult {
     let mut state = PrivacyState::new();
     state.create_identity(100);
     state.create_identity(101);
@@ -129,7 +129,7 @@ pub fn test_privacy_state_switch_identity_inactive() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_privacy_state_deactivate_identity() -> TestResult {
+pub(crate) fn test_privacy_state_deactivate_identity() -> TestResult {
     let mut state = PrivacyState::new();
     state.create_identity(100);
     if !state.deactivate_identity(0) { return TestResult::Fail; }
@@ -137,19 +137,19 @@ pub fn test_privacy_state_deactivate_identity() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_privacy_state_deactivate_identity_invalid() -> TestResult {
+pub(crate) fn test_privacy_state_deactivate_identity_invalid() -> TestResult {
     let mut state = PrivacyState::new();
     if state.deactivate_identity(5) { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_privacy_state_get_active_none() -> TestResult {
+pub(crate) fn test_privacy_state_get_active_none() -> TestResult {
     let state = PrivacyState::new();
     if state.get_active().is_some() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_privacy_state_get_active_some() -> TestResult {
+pub(crate) fn test_privacy_state_get_active_some() -> TestResult {
     let mut state = PrivacyState::new();
     state.create_identity(100);
     let active = state.get_active();
@@ -158,13 +158,13 @@ pub fn test_privacy_state_get_active_some() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_privacy_state_active_count_none() -> TestResult {
+pub(crate) fn test_privacy_state_active_count_none() -> TestResult {
     let state = PrivacyState::new();
     if state.active_count() != 0 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_privacy_state_active_count_all() -> TestResult {
+pub(crate) fn test_privacy_state_active_count_all() -> TestResult {
     let mut state = PrivacyState::new();
     state.create_identity(100);
     state.create_identity(101);
@@ -173,7 +173,7 @@ pub fn test_privacy_state_active_count_all() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_privacy_state_active_count_partial() -> TestResult {
+pub(crate) fn test_privacy_state_active_count_partial() -> TestResult {
     let mut state = PrivacyState::new();
     state.create_identity(100);
     state.create_identity(101);
@@ -183,7 +183,7 @@ pub fn test_privacy_state_active_count_partial() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_privacy_state_enable_stealth() -> TestResult {
+pub(crate) fn test_privacy_state_enable_stealth() -> TestResult {
     let mut state = PrivacyState::new();
     state.disable_stealth();
     state.enable_stealth();
@@ -191,14 +191,14 @@ pub fn test_privacy_state_enable_stealth() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_privacy_state_disable_stealth() -> TestResult {
+pub(crate) fn test_privacy_state_disable_stealth() -> TestResult {
     let mut state = PrivacyState::new();
     state.disable_stealth();
     if state.stealth_enabled { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_privacy_state_set_fingerprint_protection_on() -> TestResult {
+pub(crate) fn test_privacy_state_set_fingerprint_protection_on() -> TestResult {
     let mut state = PrivacyState::new();
     state.set_fingerprint_protection(false);
     state.set_fingerprint_protection(true);
@@ -206,14 +206,14 @@ pub fn test_privacy_state_set_fingerprint_protection_on() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_privacy_state_set_fingerprint_protection_off() -> TestResult {
+pub(crate) fn test_privacy_state_set_fingerprint_protection_off() -> TestResult {
     let mut state = PrivacyState::new();
     state.set_fingerprint_protection(false);
     if state.fingerprint_protection { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_privacy_state_set_request_padding_on() -> TestResult {
+pub(crate) fn test_privacy_state_set_request_padding_on() -> TestResult {
     let mut state = PrivacyState::new();
     state.set_request_padding(false);
     state.set_request_padding(true);
@@ -221,14 +221,14 @@ pub fn test_privacy_state_set_request_padding_on() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_privacy_state_set_request_padding_off() -> TestResult {
+pub(crate) fn test_privacy_state_set_request_padding_off() -> TestResult {
     let mut state = PrivacyState::new();
     state.set_request_padding(false);
     if state.request_padding { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_privacy_state_default() -> TestResult {
+pub(crate) fn test_privacy_state_default() -> TestResult {
     let state = PrivacyState::default();
     if state.identity_count != 0 { return TestResult::Fail; }
     if !state.stealth_enabled { return TestResult::Fail; }
@@ -237,7 +237,7 @@ pub fn test_privacy_state_default() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_privacy_constants() -> TestResult {
+pub(crate) fn test_privacy_constants() -> TestResult {
     if MAX_IDENTITIES != 8 { return TestResult::Fail; }
     TestResult::Pass
 }

@@ -17,7 +17,7 @@
 use crate::daemon::*;
 use crate::test::framework::TestResult;
 
-pub fn test_epoch_reward_empty() -> TestResult {
+pub(crate) fn test_epoch_reward_empty() -> TestResult {
     let reward = EpochReward::empty();
     if reward.epoch != 0 { return TestResult::Fail; }
     if !reward.amount.is_zero() { return TestResult::Fail; }
@@ -28,7 +28,7 @@ pub fn test_epoch_reward_empty() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_rewards_tracker_new() -> TestResult {
+pub(crate) fn test_rewards_tracker_new() -> TestResult {
     let tracker = RewardsTracker::new();
     if tracker.history_count != 0 { return TestResult::Fail; }
     if !tracker.total_earned.is_zero() { return TestResult::Fail; }
@@ -38,7 +38,7 @@ pub fn test_rewards_tracker_new() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_rewards_tracker_add_epoch_reward() -> TestResult {
+pub(crate) fn test_rewards_tracker_add_epoch_reward() -> TestResult {
     let mut tracker = RewardsTracker::new();
     let quality = QualityScore::perfect();
     tracker.add_epoch_reward(100, 1000, 10000, &quality, NodeTier::Gold);
@@ -47,7 +47,7 @@ pub fn test_rewards_tracker_add_epoch_reward() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_rewards_tracker_add_epoch_reward_updates_history() -> TestResult {
+pub(crate) fn test_rewards_tracker_add_epoch_reward_updates_history() -> TestResult {
     let mut tracker = RewardsTracker::new();
     let quality = QualityScore::perfect();
     tracker.add_epoch_reward(100, 1000, 10000, &quality, NodeTier::Gold);
@@ -56,7 +56,7 @@ pub fn test_rewards_tracker_add_epoch_reward_updates_history() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_rewards_tracker_add_epoch_reward_quality_bonus_high() -> TestResult {
+pub(crate) fn test_rewards_tracker_add_epoch_reward_quality_bonus_high() -> TestResult {
     let mut tracker = RewardsTracker::new();
     let quality = QualityScore::perfect();
     tracker.add_epoch_reward(100, 1000, 10000, &quality, NodeTier::Gold);
@@ -64,7 +64,7 @@ pub fn test_rewards_tracker_add_epoch_reward_quality_bonus_high() -> TestResult 
     TestResult::Pass
 }
 
-pub fn test_rewards_tracker_add_epoch_reward_quality_bonus_90() -> TestResult {
+pub(crate) fn test_rewards_tracker_add_epoch_reward_quality_bonus_90() -> TestResult {
     let mut tracker = RewardsTracker::new();
     let quality = QualityScore {
         uptime: 90,
@@ -77,7 +77,7 @@ pub fn test_rewards_tracker_add_epoch_reward_quality_bonus_90() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_rewards_tracker_add_epoch_reward_quality_bonus_80() -> TestResult {
+pub(crate) fn test_rewards_tracker_add_epoch_reward_quality_bonus_80() -> TestResult {
     let mut tracker = RewardsTracker::new();
     let quality = QualityScore {
         uptime: 80,
@@ -90,7 +90,7 @@ pub fn test_rewards_tracker_add_epoch_reward_quality_bonus_80() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_rewards_tracker_add_epoch_reward_quality_bonus_70() -> TestResult {
+pub(crate) fn test_rewards_tracker_add_epoch_reward_quality_bonus_70() -> TestResult {
     let mut tracker = RewardsTracker::new();
     let quality = QualityScore {
         uptime: 70,
@@ -103,7 +103,7 @@ pub fn test_rewards_tracker_add_epoch_reward_quality_bonus_70() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_rewards_tracker_add_epoch_reward_quality_bonus_low() -> TestResult {
+pub(crate) fn test_rewards_tracker_add_epoch_reward_quality_bonus_low() -> TestResult {
     let mut tracker = RewardsTracker::new();
     let quality = QualityScore {
         uptime: 60,
@@ -116,7 +116,7 @@ pub fn test_rewards_tracker_add_epoch_reward_quality_bonus_low() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_rewards_tracker_streak_bonus_30_days() -> TestResult {
+pub(crate) fn test_rewards_tracker_streak_bonus_30_days() -> TestResult {
     let mut tracker = RewardsTracker::new();
     tracker.current_streak = 30;
     let quality = QualityScore::perfect();
@@ -125,7 +125,7 @@ pub fn test_rewards_tracker_streak_bonus_30_days() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_rewards_tracker_streak_bonus_14_days() -> TestResult {
+pub(crate) fn test_rewards_tracker_streak_bonus_14_days() -> TestResult {
     let mut tracker = RewardsTracker::new();
     tracker.current_streak = 14;
     let quality = QualityScore::perfect();
@@ -134,7 +134,7 @@ pub fn test_rewards_tracker_streak_bonus_14_days() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_rewards_tracker_streak_bonus_7_days() -> TestResult {
+pub(crate) fn test_rewards_tracker_streak_bonus_7_days() -> TestResult {
     let mut tracker = RewardsTracker::new();
     tracker.current_streak = 7;
     let quality = QualityScore::perfect();
@@ -143,7 +143,7 @@ pub fn test_rewards_tracker_streak_bonus_7_days() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_rewards_tracker_streak_bonus_none() -> TestResult {
+pub(crate) fn test_rewards_tracker_streak_bonus_none() -> TestResult {
     let mut tracker = RewardsTracker::new();
     tracker.current_streak = 3;
     let quality = QualityScore::perfect();
@@ -152,7 +152,7 @@ pub fn test_rewards_tracker_streak_bonus_none() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_rewards_tracker_streak_increments() -> TestResult {
+pub(crate) fn test_rewards_tracker_streak_increments() -> TestResult {
     let mut tracker = RewardsTracker::new();
     let quality = QualityScore::perfect();
     tracker.add_epoch_reward(100, 1000, 10000, &quality, NodeTier::Gold);
@@ -162,7 +162,7 @@ pub fn test_rewards_tracker_streak_increments() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_rewards_tracker_streak_resets_on_low_quality() -> TestResult {
+pub(crate) fn test_rewards_tracker_streak_resets_on_low_quality() -> TestResult {
     let mut tracker = RewardsTracker::new();
     tracker.current_streak = 10;
     let low_quality = QualityScore {
@@ -176,7 +176,7 @@ pub fn test_rewards_tracker_streak_resets_on_low_quality() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_rewards_tracker_best_streak_updates() -> TestResult {
+pub(crate) fn test_rewards_tracker_best_streak_updates() -> TestResult {
     let mut tracker = RewardsTracker::new();
     let quality = QualityScore::perfect();
     for i in 0..10 {
@@ -186,7 +186,7 @@ pub fn test_rewards_tracker_best_streak_updates() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_rewards_tracker_history_rotation() -> TestResult {
+pub(crate) fn test_rewards_tracker_history_rotation() -> TestResult {
     let mut tracker = RewardsTracker::new();
     let quality = QualityScore::perfect();
     for i in 0..40 {
@@ -197,7 +197,7 @@ pub fn test_rewards_tracker_history_rotation() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_rewards_tracker_claim_epoch() -> TestResult {
+pub(crate) fn test_rewards_tracker_claim_epoch() -> TestResult {
     let mut tracker = RewardsTracker::new();
     let quality = QualityScore::perfect();
     tracker.add_epoch_reward(100, 1000, 10000, &quality, NodeTier::Gold);
@@ -208,7 +208,7 @@ pub fn test_rewards_tracker_claim_epoch() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_rewards_tracker_claim_epoch_not_found() -> TestResult {
+pub(crate) fn test_rewards_tracker_claim_epoch_not_found() -> TestResult {
     let mut tracker = RewardsTracker::new();
     let quality = QualityScore::perfect();
     tracker.add_epoch_reward(100, 1000, 10000, &quality, NodeTier::Gold);
@@ -217,7 +217,7 @@ pub fn test_rewards_tracker_claim_epoch_not_found() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_rewards_tracker_claim_epoch_already_claimed() -> TestResult {
+pub(crate) fn test_rewards_tracker_claim_epoch_already_claimed() -> TestResult {
     let mut tracker = RewardsTracker::new();
     let quality = QualityScore::perfect();
     tracker.add_epoch_reward(100, 1000, 10000, &quality, NodeTier::Gold);
@@ -227,7 +227,7 @@ pub fn test_rewards_tracker_claim_epoch_already_claimed() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_rewards_tracker_claim_all() -> TestResult {
+pub(crate) fn test_rewards_tracker_claim_all() -> TestResult {
     let mut tracker = RewardsTracker::new();
     let quality = QualityScore::perfect();
     tracker.add_epoch_reward(100, 1000, 10000, &quality, NodeTier::Gold);
@@ -241,7 +241,7 @@ pub fn test_rewards_tracker_claim_all() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_rewards_tracker_claim_all_partial() -> TestResult {
+pub(crate) fn test_rewards_tracker_claim_all_partial() -> TestResult {
     let mut tracker = RewardsTracker::new();
     let quality = QualityScore::perfect();
     tracker.add_epoch_reward(100, 1000, 10000, &quality, NodeTier::Gold);
@@ -252,20 +252,20 @@ pub fn test_rewards_tracker_claim_all_partial() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_rewards_tracker_claim_all_empty() -> TestResult {
+pub(crate) fn test_rewards_tracker_claim_all_empty() -> TestResult {
     let mut tracker = RewardsTracker::new();
     let total = tracker.claim_all();
     if !total.is_zero() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_rewards_tracker_pending_none() -> TestResult {
+pub(crate) fn test_rewards_tracker_pending_none() -> TestResult {
     let tracker = RewardsTracker::new();
     if !tracker.pending().is_zero() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_rewards_tracker_pending_all() -> TestResult {
+pub(crate) fn test_rewards_tracker_pending_all() -> TestResult {
     let mut tracker = RewardsTracker::new();
     let quality = QualityScore::perfect();
     tracker.add_epoch_reward(100, 1000, 10000, &quality, NodeTier::Gold);
@@ -275,7 +275,7 @@ pub fn test_rewards_tracker_pending_all() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_rewards_tracker_pending_after_claim() -> TestResult {
+pub(crate) fn test_rewards_tracker_pending_after_claim() -> TestResult {
     let mut tracker = RewardsTracker::new();
     let quality = QualityScore::perfect();
     tracker.add_epoch_reward(100, 1000, 10000, &quality, NodeTier::Gold);
@@ -286,13 +286,13 @@ pub fn test_rewards_tracker_pending_after_claim() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_rewards_tracker_pending_count_none() -> TestResult {
+pub(crate) fn test_rewards_tracker_pending_count_none() -> TestResult {
     let tracker = RewardsTracker::new();
     if tracker.pending_count() != 0 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_rewards_tracker_pending_count_all() -> TestResult {
+pub(crate) fn test_rewards_tracker_pending_count_all() -> TestResult {
     let mut tracker = RewardsTracker::new();
     let quality = QualityScore::perfect();
     tracker.add_epoch_reward(100, 1000, 10000, &quality, NodeTier::Gold);
@@ -302,7 +302,7 @@ pub fn test_rewards_tracker_pending_count_all() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_rewards_tracker_pending_count_partial() -> TestResult {
+pub(crate) fn test_rewards_tracker_pending_count_partial() -> TestResult {
     let mut tracker = RewardsTracker::new();
     let quality = QualityScore::perfect();
     tracker.add_epoch_reward(100, 1000, 10000, &quality, NodeTier::Gold);
@@ -313,7 +313,7 @@ pub fn test_rewards_tracker_pending_count_partial() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_rewards_tracker_default() -> TestResult {
+pub(crate) fn test_rewards_tracker_default() -> TestResult {
     let tracker = RewardsTracker::default();
     if tracker.history_count != 0 { return TestResult::Fail; }
     if tracker.current_streak != 0 { return TestResult::Fail; }
@@ -321,7 +321,7 @@ pub fn test_rewards_tracker_default() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_rewards_constants() -> TestResult {
+pub(crate) fn test_rewards_constants() -> TestResult {
     if MAX_REWARD_HISTORY != 30 { return TestResult::Fail; }
     TestResult::Pass
 }
