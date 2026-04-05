@@ -1,50 +1,50 @@
 use crate::process::acct_record::*;
 use crate::process::accounting::ProcessRecord;
+use crate::test::framework::TestResult;
 
-#[test]
-fn acct_flag_constants() {
-    assert_eq!(AFORK, 0x01);
-    assert_eq!(ASU, 0x02);
-    assert_eq!(ACORE, 0x08);
-    assert_eq!(AXSIG, 0x10);
+pub fn acct_flag_constants() -> TestResult {
+    if AFORK != 0x01 { return TestResult::Fail; }
+    if ASU != 0x02 { return TestResult::Fail; }
+    if ACORE != 0x08 { return TestResult::Fail; }
+    if AXSIG != 0x10 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn acct_flags_no_overlap() {
-    assert_eq!(AFORK & ASU, 0);
-    assert_eq!(AFORK & ACORE, 0);
-    assert_eq!(AFORK & AXSIG, 0);
-    assert_eq!(ASU & ACORE, 0);
-    assert_eq!(ASU & AXSIG, 0);
-    assert_eq!(ACORE & AXSIG, 0);
+pub fn acct_flags_no_overlap() -> TestResult {
+    if AFORK & ASU != 0 { return TestResult::Fail; }
+    if AFORK & ACORE != 0 { return TestResult::Fail; }
+    if AFORK & AXSIG != 0 { return TestResult::Fail; }
+    if ASU & ACORE != 0 { return TestResult::Fail; }
+    if ASU & AXSIG != 0 { return TestResult::Fail; }
+    if ACORE & AXSIG != 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn acct_record_default() {
+pub fn acct_record_default() -> TestResult {
     let rec = AcctRecord::default();
-    assert_eq!(rec.ac_flag, 0);
-    assert_eq!(rec.ac_version, 0);
-    assert_eq!(rec.ac_tty, 0);
-    assert_eq!(rec.ac_exitcode, 0);
-    assert_eq!(rec.ac_uid, 0);
-    assert_eq!(rec.ac_gid, 0);
-    assert_eq!(rec.ac_pid, 0);
-    assert_eq!(rec.ac_ppid, 0);
-    assert_eq!(rec.ac_btime, 0);
-    assert_eq!(rec.ac_etime, 0.0);
-    assert_eq!(rec.ac_utime, 0.0);
-    assert_eq!(rec.ac_stime, 0.0);
-    assert_eq!(rec.ac_mem, 0.0);
-    assert_eq!(rec.ac_io, 0.0);
-    assert_eq!(rec.ac_rw, 0.0);
-    assert_eq!(rec.ac_minflt, 0.0);
-    assert_eq!(rec.ac_majflt, 0.0);
-    assert_eq!(rec.ac_swaps, 0.0);
-    assert_eq!(rec.ac_comm, [0u8; 16]);
+    if rec.ac_flag != 0 { return TestResult::Fail; }
+    if rec.ac_version != 0 { return TestResult::Fail; }
+    if rec.ac_tty != 0 { return TestResult::Fail; }
+    if rec.ac_exitcode != 0 { return TestResult::Fail; }
+    if rec.ac_uid != 0 { return TestResult::Fail; }
+    if rec.ac_gid != 0 { return TestResult::Fail; }
+    if rec.ac_pid != 0 { return TestResult::Fail; }
+    if rec.ac_ppid != 0 { return TestResult::Fail; }
+    if rec.ac_btime != 0 { return TestResult::Fail; }
+    if rec.ac_etime != 0.0 { return TestResult::Fail; }
+    if rec.ac_utime != 0.0 { return TestResult::Fail; }
+    if rec.ac_stime != 0.0 { return TestResult::Fail; }
+    if rec.ac_mem != 0.0 { return TestResult::Fail; }
+    if rec.ac_io != 0.0 { return TestResult::Fail; }
+    if rec.ac_rw != 0.0 { return TestResult::Fail; }
+    if rec.ac_minflt != 0.0 { return TestResult::Fail; }
+    if rec.ac_majflt != 0.0 { return TestResult::Fail; }
+    if rec.ac_swaps != 0.0 { return TestResult::Fail; }
+    if rec.ac_comm != [0u8; 16] { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn acct_record_with_values() {
+pub fn acct_record_with_values() -> TestResult {
     let rec = AcctRecord {
         ac_flag: AFORK | ASU,
         ac_version: 3,
@@ -66,71 +66,71 @@ fn acct_record_with_values() {
         ac_swaps: 0.0,
         ac_comm: [0u8; 16],
     };
-    assert_eq!(rec.ac_flag, AFORK | ASU);
-    assert_eq!(rec.ac_pid, 12345);
-    assert_eq!(rec.ac_ppid, 1);
-    assert_eq!(rec.ac_uid, 1000);
+    if rec.ac_flag != AFORK | ASU { return TestResult::Fail; }
+    if rec.ac_pid != 12345 { return TestResult::Fail; }
+    if rec.ac_ppid != 1 { return TestResult::Fail; }
+    if rec.ac_uid != 1000 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn acct_record_clone() {
+pub fn acct_record_clone() -> TestResult {
     let rec1 = AcctRecord {
         ac_pid: 999,
         ac_uid: 500,
         ..Default::default()
     };
     let rec2 = rec1;
-    assert_eq!(rec1.ac_pid, rec2.ac_pid);
-    assert_eq!(rec1.ac_uid, rec2.ac_uid);
+    if rec1.ac_pid != rec2.ac_pid { return TestResult::Fail; }
+    if rec1.ac_uid != rec2.ac_uid { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn acct_record_comm_field() {
+pub fn acct_record_comm_field() -> TestResult {
     let mut rec = AcctRecord::default();
     let name = b"test_process";
     rec.ac_comm[..name.len()].copy_from_slice(name);
-    assert_eq!(&rec.ac_comm[..12], b"test_process");
+    if &rec.ac_comm[..12] != b"test_process" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn acct_record_flag_combinations() {
+pub fn acct_record_flag_combinations() -> TestResult {
     let rec = AcctRecord {
         ac_flag: AFORK | ACORE | AXSIG,
         ..Default::default()
     };
-    assert_ne!(rec.ac_flag & AFORK, 0);
-    assert_ne!(rec.ac_flag & ACORE, 0);
-    assert_ne!(rec.ac_flag & AXSIG, 0);
-    assert_eq!(rec.ac_flag & ASU, 0);
+    if rec.ac_flag & AFORK == 0 { return TestResult::Fail; }
+    if rec.ac_flag & ACORE == 0 { return TestResult::Fail; }
+    if rec.ac_flag & AXSIG == 0 { return TestResult::Fail; }
+    if rec.ac_flag & ASU != 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn process_record_new() {
+pub fn process_record_new() -> TestResult {
     let rec = ProcessRecord::new(123, 1, "test_app");
-    assert_eq!(rec.pid, 123);
-    assert_eq!(rec.ppid, 1);
-    assert_eq!(rec.name, "test_app");
-    assert_eq!(rec.exit_code, 0);
-    assert_eq!(rec.start_time_ms, 0);
-    assert_eq!(rec.end_time_ms, 0);
-    assert_eq!(rec.elapsed_ms, 0);
-    assert_eq!(rec.peak_memory_kb, 0);
-    assert_eq!(rec.capabilities, 0);
-    assert!(!rec.signaled);
-    assert_eq!(rec.clone_flags, 0);
+    if rec.pid != 123 { return TestResult::Fail; }
+    if rec.ppid != 1 { return TestResult::Fail; }
+    if rec.name != "test_app" { return TestResult::Fail; }
+    if rec.exit_code != 0 { return TestResult::Fail; }
+    if rec.start_time_ms != 0 { return TestResult::Fail; }
+    if rec.end_time_ms != 0 { return TestResult::Fail; }
+    if rec.elapsed_ms != 0 { return TestResult::Fail; }
+    if rec.peak_memory_kb != 0 { return TestResult::Fail; }
+    if rec.capabilities != 0 { return TestResult::Fail; }
+    if rec.signaled { return TestResult::Fail; }
+    if rec.clone_flags != 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn process_record_clone() {
+pub fn process_record_clone() -> TestResult {
     let rec1 = ProcessRecord::new(456, 100, "app");
     let rec2 = rec1.clone();
-    assert_eq!(rec1.pid, rec2.pid);
-    assert_eq!(rec1.ppid, rec2.ppid);
-    assert_eq!(rec1.name, rec2.name);
+    if rec1.pid != rec2.pid { return TestResult::Fail; }
+    if rec1.ppid != rec2.ppid { return TestResult::Fail; }
+    if rec1.name != rec2.name { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn process_record_format_basic() {
+pub fn process_record_format_basic() -> TestResult {
     let rec = ProcessRecord {
         pid: 100,
         ppid: 1,
@@ -145,16 +145,16 @@ fn process_record_format_basic() {
         clone_flags: 0,
     };
     let formatted = rec.format();
-    assert!(formatted.contains("[100]"));
-    assert!(formatted.contains("myapp"));
-    assert!(formatted.contains("ppid=1"));
-    assert!(formatted.contains("exit=0"));
-    assert!(formatted.contains("elapsed=1000ms"));
-    assert!(formatted.contains("mem=512KB"));
+    if !formatted.contains("[100]") { return TestResult::Fail; }
+    if !formatted.contains("myapp") { return TestResult::Fail; }
+    if !formatted.contains("ppid=1") { return TestResult::Fail; }
+    if !formatted.contains("exit=0") { return TestResult::Fail; }
+    if !formatted.contains("elapsed=1000ms") { return TestResult::Fail; }
+    if !formatted.contains("mem=512KB") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn process_record_format_signaled() {
+pub fn process_record_format_signaled() -> TestResult {
     let rec = ProcessRecord {
         pid: 200,
         ppid: 1,
@@ -169,11 +169,11 @@ fn process_record_format_signaled() {
         clone_flags: 0,
     };
     let formatted = rec.format();
-    assert!(formatted.contains("[SIGNALED]"));
+    if !formatted.contains("[SIGNALED]") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn process_record_format_not_signaled() {
+pub fn process_record_format_not_signaled() -> TestResult {
     let rec = ProcessRecord {
         pid: 300,
         ppid: 1,
@@ -188,11 +188,11 @@ fn process_record_format_not_signaled() {
         clone_flags: 0,
     };
     let formatted = rec.format();
-    assert!(!formatted.contains("[SIGNALED]"));
+    if formatted.contains("[SIGNALED]") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn process_record_with_capabilities() {
+pub fn process_record_with_capabilities() -> TestResult {
     let rec = ProcessRecord {
         pid: 400,
         ppid: 1,
@@ -207,11 +207,11 @@ fn process_record_with_capabilities() {
         clone_flags: 0,
     };
     let formatted = rec.format();
-    assert!(formatted.contains("deadbeefcafebabe") || formatted.contains("DEADBEEFCAFEBABE"));
+    if !(formatted.contains("deadbeefcafebabe") || formatted.contains("DEADBEEFCAFEBABE")) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn process_record_with_clone_flags() {
+pub fn process_record_with_clone_flags() -> TestResult {
     let rec = ProcessRecord {
         pid: 500,
         ppid: 1,
@@ -225,5 +225,6 @@ fn process_record_with_clone_flags() {
         signaled: false,
         clone_flags: 0x100 | 0x200,
     };
-    assert_eq!(rec.clone_flags, 0x300);
+    if rec.clone_flags != 0x300 { return TestResult::Fail; }
+    TestResult::Pass
 }

@@ -1,92 +1,92 @@
 use crate::process::fd_types::*;
 use crate::process::process_fd_table::ProcessFdTable;
+use crate::test::framework::TestResult;
 
-#[test]
-fn fd_type_variants() {
-    assert_eq!(FdType::File, FdType::File);
-    assert_eq!(FdType::Socket, FdType::Socket);
-    assert_eq!(FdType::Pipe, FdType::Pipe);
-    assert_eq!(FdType::EventFd, FdType::EventFd);
-    assert_eq!(FdType::TimerFd, FdType::TimerFd);
-    assert_eq!(FdType::SignalFd, FdType::SignalFd);
-    assert_eq!(FdType::Epoll, FdType::Epoll);
-    assert_eq!(FdType::Directory, FdType::Directory);
-    assert_eq!(FdType::Unknown, FdType::Unknown);
+pub fn fd_type_variants() -> TestResult {
+    if FdType::File != FdType::File { return TestResult::Fail; }
+    if FdType::Socket != FdType::Socket { return TestResult::Fail; }
+    if FdType::Pipe != FdType::Pipe { return TestResult::Fail; }
+    if FdType::EventFd != FdType::EventFd { return TestResult::Fail; }
+    if FdType::TimerFd != FdType::TimerFd { return TestResult::Fail; }
+    if FdType::SignalFd != FdType::SignalFd { return TestResult::Fail; }
+    if FdType::Epoll != FdType::Epoll { return TestResult::Fail; }
+    if FdType::Directory != FdType::Directory { return TestResult::Fail; }
+    if FdType::Unknown != FdType::Unknown { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn fd_type_not_equal_different_variants() {
-    assert_ne!(FdType::File, FdType::Socket);
-    assert_ne!(FdType::Pipe, FdType::EventFd);
-    assert_ne!(FdType::Directory, FdType::Unknown);
+pub fn fd_type_not_equal_different_variants() -> TestResult {
+    if FdType::File == FdType::Socket { return TestResult::Fail; }
+    if FdType::Pipe == FdType::EventFd { return TestResult::Fail; }
+    if FdType::Directory == FdType::Unknown { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn fd_entry_new() {
+pub fn fd_entry_new() -> TestResult {
     let entry = FdEntry::new(FdType::File, 42);
-    assert_eq!(entry.fd, -1);
-    assert_eq!(entry.fd_type, FdType::File);
-    assert_eq!(entry.internal_id, 42);
-    assert!(!entry.is_read_end);
-    assert!(!entry.is_write_end);
-    assert_eq!(entry.flags, 0);
-    assert_eq!(entry.status_flags, 0);
+    if entry.fd != -1 { return TestResult::Fail; }
+    if entry.fd_type != FdType::File { return TestResult::Fail; }
+    if entry.internal_id != 42 { return TestResult::Fail; }
+    if entry.is_read_end { return TestResult::Fail; }
+    if entry.is_write_end { return TestResult::Fail; }
+    if entry.flags != 0 { return TestResult::Fail; }
+    if entry.status_flags != 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn fd_entry_with_pipe_read() {
+pub fn fd_entry_with_pipe_read() -> TestResult {
     let entry = FdEntry::with_pipe(100, true);
-    assert_eq!(entry.fd, -1);
-    assert_eq!(entry.fd_type, FdType::Pipe);
-    assert_eq!(entry.internal_id, 100);
-    assert!(entry.is_read_end);
-    assert!(!entry.is_write_end);
+    if entry.fd != -1 { return TestResult::Fail; }
+    if entry.fd_type != FdType::Pipe { return TestResult::Fail; }
+    if entry.internal_id != 100 { return TestResult::Fail; }
+    if !entry.is_read_end { return TestResult::Fail; }
+    if entry.is_write_end { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn fd_entry_with_pipe_write() {
+pub fn fd_entry_with_pipe_write() -> TestResult {
     let entry = FdEntry::with_pipe(200, false);
-    assert_eq!(entry.fd, -1);
-    assert_eq!(entry.fd_type, FdType::Pipe);
-    assert_eq!(entry.internal_id, 200);
-    assert!(!entry.is_read_end);
-    assert!(entry.is_write_end);
+    if entry.fd != -1 { return TestResult::Fail; }
+    if entry.fd_type != FdType::Pipe { return TestResult::Fail; }
+    if entry.internal_id != 200 { return TestResult::Fail; }
+    if entry.is_read_end { return TestResult::Fail; }
+    if !entry.is_write_end { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn fd_entry_is_cloexec() {
+pub fn fd_entry_is_cloexec() -> TestResult {
     let mut entry = FdEntry::new(FdType::File, 0);
-    assert!(!entry.is_cloexec());
+    if entry.is_cloexec() { return TestResult::Fail; }
     entry.flags = FD_CLOEXEC;
-    assert!(entry.is_cloexec());
+    if !entry.is_cloexec() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn fd_cloexec_constant() {
-    assert_eq!(FD_CLOEXEC, 1);
+pub fn fd_cloexec_constant() -> TestResult {
+    if FD_CLOEXEC != 1 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn max_process_fds_constant() {
-    assert_eq!(MAX_PROCESS_FDS, 1024);
+pub fn max_process_fds_constant() -> TestResult {
+    if MAX_PROCESS_FDS != 1024 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn stdio_fds_constant() {
-    assert_eq!(STDIO_FDS, 3);
+pub fn stdio_fds_constant() -> TestResult {
+    if STDIO_FDS != 3 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn fd_entry_clone() {
+pub fn fd_entry_clone() -> TestResult {
     let entry1 = FdEntry::new(FdType::Socket, 55);
     let entry2 = entry1.clone();
-    assert_eq!(entry1.fd, entry2.fd);
-    assert_eq!(entry1.fd_type, entry2.fd_type);
-    assert_eq!(entry1.internal_id, entry2.internal_id);
+    if entry1.fd != entry2.fd { return TestResult::Fail; }
+    if entry1.fd_type != entry2.fd_type { return TestResult::Fail; }
+    if entry1.internal_id != entry2.internal_id { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn fd_table_stats_default() {
+pub fn fd_table_stats_default() -> TestResult {
     let stats = FdTableStats {
         total_fds: 0,
         file_count: 0,
@@ -97,176 +97,176 @@ fn fd_table_stats_default() {
         signalfd_count: 0,
         epoll_count: 0,
     };
-    assert_eq!(stats.total_fds, 0);
-    assert_eq!(stats.file_count, 0);
-    assert_eq!(stats.socket_count, 0);
+    if stats.total_fds != 0 { return TestResult::Fail; }
+    if stats.file_count != 0 { return TestResult::Fail; }
+    if stats.socket_count != 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn process_fd_table_new() {
+pub fn process_fd_table_new() -> TestResult {
     let table = ProcessFdTable::new();
-    assert_eq!(table.count(), 0);
+    if table.count() != 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn process_fd_table_allocate() {
+pub fn process_fd_table_allocate() -> TestResult {
     let table = ProcessFdTable::new();
     let entry = FdEntry::new(FdType::File, 1);
     let fd = table.allocate(entry).unwrap();
-    assert!(fd >= STDIO_FDS);
-    assert_eq!(table.count(), 1);
+    if fd < STDIO_FDS { return TestResult::Fail; }
+    if table.count() != 1 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn process_fd_table_allocate_at() {
+pub fn process_fd_table_allocate_at() -> TestResult {
     let table = ProcessFdTable::new();
     let entry = FdEntry::new(FdType::File, 1);
     let fd = table.allocate_at(10, entry).unwrap();
-    assert_eq!(fd, 10);
-    assert!(table.is_valid(10));
+    if fd != 10 { return TestResult::Fail; }
+    if !table.is_valid(10) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn process_fd_table_allocate_min() {
+pub fn process_fd_table_allocate_min() -> TestResult {
     let table = ProcessFdTable::new();
     let entry1 = FdEntry::new(FdType::File, 1);
     let entry2 = FdEntry::new(FdType::File, 2);
     table.allocate_at(5, entry1).unwrap();
     let fd = table.allocate_min(entry2, 5).unwrap();
-    assert!(fd > 5);
+    if fd <= 5 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn process_fd_table_get() {
+pub fn process_fd_table_get() -> TestResult {
     let table = ProcessFdTable::new();
     let entry = FdEntry::new(FdType::Socket, 42);
     let fd = table.allocate(entry).unwrap();
     let retrieved = table.get(fd).unwrap();
-    assert_eq!(retrieved.fd_type, FdType::Socket);
-    assert_eq!(retrieved.internal_id, 42);
+    if retrieved.fd_type != FdType::Socket { return TestResult::Fail; }
+    if retrieved.internal_id != 42 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn process_fd_table_remove() {
+pub fn process_fd_table_remove() -> TestResult {
     let table = ProcessFdTable::new();
     let entry = FdEntry::new(FdType::File, 1);
     let fd = table.allocate(entry).unwrap();
-    assert!(table.is_valid(fd));
+    if !table.is_valid(fd) { return TestResult::Fail; }
     let removed = table.remove(fd);
-    assert!(removed.is_some());
-    assert!(!table.is_valid(fd));
+    if removed.is_none() { return TestResult::Fail; }
+    if table.is_valid(fd) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn process_fd_table_is_valid() {
+pub fn process_fd_table_is_valid() -> TestResult {
     let table = ProcessFdTable::new();
-    assert!(!table.is_valid(10));
+    if table.is_valid(10) { return TestResult::Fail; }
     let entry = FdEntry::new(FdType::File, 1);
     let fd = table.allocate(entry).unwrap();
-    assert!(table.is_valid(fd));
+    if !table.is_valid(fd) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn process_fd_table_get_type() {
+pub fn process_fd_table_get_type() -> TestResult {
     let table = ProcessFdTable::new();
     let entry = FdEntry::new(FdType::EventFd, 1);
     let fd = table.allocate(entry).unwrap();
-    assert_eq!(table.get_type(fd), Some(FdType::EventFd));
+    if table.get_type(fd) != Some(FdType::EventFd) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn process_fd_table_close_all() {
+pub fn process_fd_table_close_all() -> TestResult {
     let table = ProcessFdTable::new();
     table.allocate(FdEntry::new(FdType::File, 1)).unwrap();
     table.allocate(FdEntry::new(FdType::Socket, 2)).unwrap();
     table.allocate(FdEntry::new(FdType::Pipe, 3)).unwrap();
-    assert_eq!(table.count(), 3);
+    if table.count() != 3 { return TestResult::Fail; }
     table.close_all();
-    assert_eq!(table.count(), 0);
+    if table.count() != 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn process_fd_table_cloexec() {
+pub fn process_fd_table_cloexec() -> TestResult {
     let table = ProcessFdTable::new();
     let entry = FdEntry::new(FdType::File, 1);
     let fd = table.allocate(entry).unwrap();
-    assert_eq!(table.get_cloexec(fd), Some(false));
-    assert!(table.set_cloexec(fd, true));
-    assert_eq!(table.get_cloexec(fd), Some(true));
-    assert!(table.set_cloexec(fd, false));
-    assert_eq!(table.get_cloexec(fd), Some(false));
+    if table.get_cloexec(fd) != Some(false) { return TestResult::Fail; }
+    if !table.set_cloexec(fd, true) { return TestResult::Fail; }
+    if table.get_cloexec(fd) != Some(true) { return TestResult::Fail; }
+    if !table.set_cloexec(fd, false) { return TestResult::Fail; }
+    if table.get_cloexec(fd) != Some(false) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn process_fd_table_status_flags() {
+pub fn process_fd_table_status_flags() -> TestResult {
     let table = ProcessFdTable::new();
     let entry = FdEntry::new(FdType::File, 1);
     let fd = table.allocate(entry).unwrap();
-    assert_eq!(table.get_status_flags(fd), Some(0));
-    assert!(table.set_status_flags(fd, 0x800));
-    assert_eq!(table.get_status_flags(fd), Some(0x800));
+    if table.get_status_flags(fd) != Some(0) { return TestResult::Fail; }
+    if !table.set_status_flags(fd, 0x800) { return TestResult::Fail; }
+    if table.get_status_flags(fd) != Some(0x800) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn process_fd_table_dup() {
+pub fn process_fd_table_dup() -> TestResult {
     let table = ProcessFdTable::new();
     let entry = FdEntry::new(FdType::File, 42);
     let fd = table.allocate(entry).unwrap();
     table.set_cloexec(fd, true);
     let new_fd = table.dup(fd).unwrap();
-    assert_ne!(fd, new_fd);
-    assert_eq!(table.get_type(new_fd), Some(FdType::File));
-    assert_eq!(table.get_cloexec(new_fd), Some(false));
+    if fd == new_fd { return TestResult::Fail; }
+    if table.get_type(new_fd) != Some(FdType::File) { return TestResult::Fail; }
+    if table.get_cloexec(new_fd) != Some(false) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn process_fd_table_dup2() {
+pub fn process_fd_table_dup2() -> TestResult {
     let table = ProcessFdTable::new();
     let entry = FdEntry::new(FdType::File, 42);
     let fd = table.allocate(entry).unwrap();
     let new_fd = table.dup2(fd, 100).unwrap();
-    assert_eq!(new_fd, 100);
-    assert!(table.is_valid(100));
-    assert_eq!(table.get_type(100), Some(FdType::File));
+    if new_fd != 100 { return TestResult::Fail; }
+    if !table.is_valid(100) { return TestResult::Fail; }
+    if table.get_type(100) != Some(FdType::File) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn process_fd_table_dup2_same_fd() {
+pub fn process_fd_table_dup2_same_fd() -> TestResult {
     let table = ProcessFdTable::new();
     let entry = FdEntry::new(FdType::File, 42);
     let fd = table.allocate(entry).unwrap();
     let result = table.dup2(fd, fd);
-    assert_eq!(result, Some(fd));
+    if result != Some(fd) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn process_fd_table_dup2_replaces_existing() {
+pub fn process_fd_table_dup2_replaces_existing() -> TestResult {
     let table = ProcessFdTable::new();
     let entry1 = FdEntry::new(FdType::File, 1);
     let entry2 = FdEntry::new(FdType::Socket, 2);
     let fd1 = table.allocate(entry1).unwrap();
     let fd2 = table.allocate(entry2).unwrap();
     table.dup2(fd1, fd2).unwrap();
-    assert_eq!(table.get_type(fd2), Some(FdType::File));
+    if table.get_type(fd2) != Some(FdType::File) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn process_fd_table_close_cloexec() {
+pub fn process_fd_table_close_cloexec() -> TestResult {
     let table = ProcessFdTable::new();
     let entry1 = FdEntry::new(FdType::File, 1);
     let entry2 = FdEntry::new(FdType::File, 2);
     let fd1 = table.allocate(entry1).unwrap();
     let fd2 = table.allocate(entry2).unwrap();
     table.set_cloexec(fd1, true);
-    assert_eq!(table.count(), 2);
+    if table.count() != 2 { return TestResult::Fail; }
     table.close_cloexec();
-    assert_eq!(table.count(), 1);
-    assert!(!table.is_valid(fd1));
-    assert!(table.is_valid(fd2));
+    if table.count() != 1 { return TestResult::Fail; }
+    if table.is_valid(fd1) { return TestResult::Fail; }
+    if !table.is_valid(fd2) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn process_fd_table_fork() {
+pub fn process_fd_table_fork() -> TestResult {
     let table = ProcessFdTable::new();
     let entry1 = FdEntry::new(FdType::File, 1);
     let entry2 = FdEntry::new(FdType::Socket, 2);
@@ -274,13 +274,13 @@ fn process_fd_table_fork() {
     let fd2 = table.allocate(entry2).unwrap();
     table.set_cloexec(fd1, true);
     let forked = table.fork();
-    assert_eq!(forked.count(), 1);
-    assert!(!forked.is_valid(fd1));
-    assert!(forked.is_valid(fd2));
+    if forked.count() != 1 { return TestResult::Fail; }
+    if forked.is_valid(fd1) { return TestResult::Fail; }
+    if !forked.is_valid(fd2) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn process_fd_table_stats() {
+pub fn process_fd_table_stats() -> TestResult {
     let table = ProcessFdTable::new();
     table.allocate(FdEntry::new(FdType::File, 1)).unwrap();
     table.allocate(FdEntry::new(FdType::File, 2)).unwrap();
@@ -288,52 +288,53 @@ fn process_fd_table_stats() {
     table.allocate(FdEntry::new(FdType::Pipe, 4)).unwrap();
     table.allocate(FdEntry::new(FdType::EventFd, 5)).unwrap();
     let stats = table.stats();
-    assert_eq!(stats.total_fds, 5);
-    assert_eq!(stats.file_count, 2);
-    assert_eq!(stats.socket_count, 1);
-    assert_eq!(stats.pipe_count, 1);
-    assert_eq!(stats.eventfd_count, 1);
+    if stats.total_fds != 5 { return TestResult::Fail; }
+    if stats.file_count != 2 { return TestResult::Fail; }
+    if stats.socket_count != 1 { return TestResult::Fail; }
+    if stats.pipe_count != 1 { return TestResult::Fail; }
+    if stats.eventfd_count != 1 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn process_fd_table_allocate_at_invalid() {
+pub fn process_fd_table_allocate_at_invalid() -> TestResult {
     let table = ProcessFdTable::new();
     let entry = FdEntry::new(FdType::File, 1);
-    assert!(table.allocate_at(-1, entry.clone()).is_none());
-    assert!(table.allocate_at(MAX_PROCESS_FDS, entry).is_none());
+    if table.allocate_at(-1, entry.clone()).is_some() { return TestResult::Fail; }
+    if table.allocate_at(MAX_PROCESS_FDS, entry).is_some() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn process_fd_table_allocate_min_invalid() {
+pub fn process_fd_table_allocate_min_invalid() -> TestResult {
     let table = ProcessFdTable::new();
     let entry = FdEntry::new(FdType::File, 1);
-    assert!(table.allocate_min(entry.clone(), -1).is_none());
-    assert!(table.allocate_min(entry, MAX_PROCESS_FDS).is_none());
+    if table.allocate_min(entry.clone(), -1).is_some() { return TestResult::Fail; }
+    if table.allocate_min(entry, MAX_PROCESS_FDS).is_some() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn process_fd_table_dup2_invalid_new_fd() {
+pub fn process_fd_table_dup2_invalid_new_fd() -> TestResult {
     let table = ProcessFdTable::new();
     let entry = FdEntry::new(FdType::File, 1);
     let fd = table.allocate(entry).unwrap();
-    assert!(table.dup2(fd, -1).is_none());
-    assert!(table.dup2(fd, MAX_PROCESS_FDS).is_none());
+    if table.dup2(fd, -1).is_some() { return TestResult::Fail; }
+    if table.dup2(fd, MAX_PROCESS_FDS).is_some() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn process_fd_table_dup_nonexistent() {
+pub fn process_fd_table_dup_nonexistent() -> TestResult {
     let table = ProcessFdTable::new();
-    assert!(table.dup(999).is_none());
+    if table.dup(999).is_some() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn process_fd_table_set_cloexec_nonexistent() {
+pub fn process_fd_table_set_cloexec_nonexistent() -> TestResult {
     let table = ProcessFdTable::new();
-    assert!(!table.set_cloexec(999, true));
+    if table.set_cloexec(999, true) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn process_fd_table_set_status_flags_nonexistent() {
+pub fn process_fd_table_set_status_flags_nonexistent() -> TestResult {
     let table = ProcessFdTable::new();
-    assert!(!table.set_status_flags(999, 0x100));
+    if table.set_status_flags(999, 0x100) { return TestResult::Fail; }
+    TestResult::Pass
 }

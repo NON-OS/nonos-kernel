@@ -1,57 +1,57 @@
 use crate::process::elf_loader::*;
+use crate::test::framework::TestResult;
 
-#[test]
-fn elf64_header_size() {
-    assert_eq!(core::mem::size_of::<Elf64Header>(), 64);
+pub fn elf64_header_size() -> TestResult {
+    if core::mem::size_of::<Elf64Header>() != 64 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn elf64_program_header_size() {
-    assert_eq!(core::mem::size_of::<Elf64ProgramHeader>(), 56);
+pub fn elf64_program_header_size() -> TestResult {
+    if core::mem::size_of::<Elf64ProgramHeader>() != 56 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn elf64_section_header_size() {
-    assert_eq!(core::mem::size_of::<Elf64SectionHeader>(), 64);
+pub fn elf64_section_header_size() -> TestResult {
+    if core::mem::size_of::<Elf64SectionHeader>() != 64 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn elf64_symbol_size() {
-    assert_eq!(core::mem::size_of::<Elf64Symbol>(), 24);
+pub fn elf64_symbol_size() -> TestResult {
+    if core::mem::size_of::<Elf64Symbol>() != 24 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn elf64_rela_size() {
-    assert_eq!(core::mem::size_of::<Elf64Rela>(), 24);
+pub fn elf64_rela_size() -> TestResult {
+    if core::mem::size_of::<Elf64Rela>() != 24 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn elf64_dyn_size() {
-    assert_eq!(core::mem::size_of::<Elf64Dyn>(), 16);
+pub fn elf64_dyn_size() -> TestResult {
+    if core::mem::size_of::<Elf64Dyn>() != 16 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn elf64_rela_symbol_index() {
+pub fn elf64_rela_symbol_index() -> TestResult {
     let rela = Elf64Rela {
         r_offset: 0x1000,
         r_info: (42u64 << 32) | 7,
         r_addend: -8,
     };
-    assert_eq!(rela.symbol_index(), 42);
+    if rela.symbol_index() != 42 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn elf64_rela_relocation_type() {
+pub fn elf64_rela_relocation_type() -> TestResult {
     let rela = Elf64Rela {
         r_offset: 0x2000,
         r_info: (100u64 << 32) | 8,
         r_addend: 0,
     };
-    assert_eq!(rela.relocation_type(), 8);
+    if rela.relocation_type() != 8 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn loaded_segment_end_addr() {
+pub fn loaded_segment_end_addr() -> TestResult {
     let seg = LoadedSegment {
         vaddr: 0x1000,
         memsz: 0x500,
@@ -59,47 +59,47 @@ fn loaded_segment_end_addr() {
         file_offset: 0,
         filesz: 0x400,
     };
-    assert_eq!(seg.end_addr(), 0x1500);
+    if seg.end_addr() != 0x1500 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn loaded_segment_is_readable() {
+pub fn loaded_segment_is_readable() -> TestResult {
     let seg_r = LoadedSegment {
         vaddr: 0, memsz: 0, flags: PF_R, file_offset: 0, filesz: 0
     };
     let seg_w = LoadedSegment {
         vaddr: 0, memsz: 0, flags: PF_W, file_offset: 0, filesz: 0
     };
-    assert!(seg_r.is_readable());
-    assert!(!seg_w.is_readable());
+    if !seg_r.is_readable() { return TestResult::Fail; }
+    if seg_w.is_readable() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn loaded_segment_is_writable() {
+pub fn loaded_segment_is_writable() -> TestResult {
     let seg_w = LoadedSegment {
         vaddr: 0, memsz: 0, flags: PF_W, file_offset: 0, filesz: 0
     };
     let seg_r = LoadedSegment {
         vaddr: 0, memsz: 0, flags: PF_R, file_offset: 0, filesz: 0
     };
-    assert!(seg_w.is_writable());
-    assert!(!seg_r.is_writable());
+    if !seg_w.is_writable() { return TestResult::Fail; }
+    if seg_r.is_writable() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn loaded_segment_is_executable() {
+pub fn loaded_segment_is_executable() -> TestResult {
     let seg_x = LoadedSegment {
         vaddr: 0, memsz: 0, flags: PF_X, file_offset: 0, filesz: 0
     };
     let seg_r = LoadedSegment {
         vaddr: 0, memsz: 0, flags: PF_R, file_offset: 0, filesz: 0
     };
-    assert!(seg_x.is_executable());
-    assert!(!seg_r.is_executable());
+    if !seg_x.is_executable() { return TestResult::Fail; }
+    if seg_r.is_executable() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn loaded_segment_bss_size() {
+pub fn loaded_segment_bss_size() -> TestResult {
     let seg = LoadedSegment {
         vaddr: 0x1000,
         memsz: 0x1000,
@@ -107,11 +107,11 @@ fn loaded_segment_bss_size() {
         file_offset: 0x100,
         filesz: 0x800,
     };
-    assert_eq!(seg.bss_size(), 0x800);
+    if seg.bss_size() != 0x800 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn loaded_segment_bss_size_zero() {
+pub fn loaded_segment_bss_size_zero() -> TestResult {
     let seg = LoadedSegment {
         vaddr: 0x1000,
         memsz: 0x1000,
@@ -119,11 +119,11 @@ fn loaded_segment_bss_size_zero() {
         file_offset: 0,
         filesz: 0x1000,
     };
-    assert_eq!(seg.bss_size(), 0);
+    if seg.bss_size() != 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn loaded_segment_get_file_params() {
+pub fn loaded_segment_get_file_params() -> TestResult {
     let seg = LoadedSegment {
         vaddr: 0x2000,
         memsz: 0x2000,
@@ -132,12 +132,12 @@ fn loaded_segment_get_file_params() {
         filesz: 0x1800,
     };
     let (offset, size) = seg.get_file_params();
-    assert_eq!(offset, 0x1000);
-    assert_eq!(size, 0x1800);
+    if offset != 0x1000 { return TestResult::Fail; }
+    if size != 0x1800 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn loaded_segment_clone() {
+pub fn loaded_segment_clone() -> TestResult {
     let seg1 = LoadedSegment {
         vaddr: 0x3000,
         memsz: 0x500,
@@ -146,15 +146,15 @@ fn loaded_segment_clone() {
         filesz: 0x400,
     };
     let seg2 = seg1.clone();
-    assert_eq!(seg1.vaddr, seg2.vaddr);
-    assert_eq!(seg1.memsz, seg2.memsz);
-    assert_eq!(seg1.flags, seg2.flags);
-    assert_eq!(seg1.file_offset, seg2.file_offset);
-    assert_eq!(seg1.filesz, seg2.filesz);
+    if seg1.vaddr != seg2.vaddr { return TestResult::Fail; }
+    if seg1.memsz != seg2.memsz { return TestResult::Fail; }
+    if seg1.flags != seg2.flags { return TestResult::Fail; }
+    if seg1.file_offset != seg2.file_offset { return TestResult::Fail; }
+    if seg1.filesz != seg2.filesz { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn loaded_elf_memory_size() {
+pub fn loaded_elf_memory_size() -> TestResult {
     let elf = LoadedElf {
         entry: 0x401000,
         base_addr: 0x400000,
@@ -170,11 +170,11 @@ fn loaded_elf_memory_size() {
         tls_size: 0,
         tls_align: 0,
     };
-    assert_eq!(elf.memory_size(), 0x100000);
+    if elf.memory_size() != 0x100000 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn loaded_elf_has_tls() {
+pub fn loaded_elf_has_tls() -> TestResult {
     let elf_no_tls = LoadedElf {
         entry: 0, base_addr: 0, phdr_addr: 0, phnum: 0, phentsize: 0,
         segments: alloc::vec![], interp: None, exec_stack: false,
@@ -185,25 +185,25 @@ fn loaded_elf_has_tls() {
         segments: alloc::vec![], interp: None, exec_stack: false,
         min_addr: 0, max_addr: 0, tls_addr: 0x1000, tls_size: 64, tls_align: 16,
     };
-    assert!(!elf_no_tls.has_tls());
-    assert!(elf_with_tls.has_tls());
+    if elf_no_tls.has_tls() { return TestResult::Fail; }
+    if !elf_with_tls.has_tls() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn loaded_elf_get_tls_config() {
+pub fn loaded_elf_get_tls_config() -> TestResult {
     let elf = LoadedElf {
         entry: 0, base_addr: 0, phdr_addr: 0, phnum: 0, phentsize: 0,
         segments: alloc::vec![], interp: None, exec_stack: false,
         min_addr: 0, max_addr: 0, tls_addr: 0x2000, tls_size: 128, tls_align: 32,
     };
     let (addr, size, align) = elf.get_tls_config();
-    assert_eq!(addr, 0x2000);
-    assert_eq!(size, 128);
-    assert_eq!(align, 32);
+    if addr != 0x2000 { return TestResult::Fail; }
+    if size != 128 { return TestResult::Fail; }
+    if align != 32 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn loaded_elf_needs_interp() {
+pub fn loaded_elf_needs_interp() -> TestResult {
     let elf_no_interp = LoadedElf {
         entry: 0, base_addr: 0, phdr_addr: 0, phnum: 0, phentsize: 0,
         segments: alloc::vec![], interp: None, exec_stack: false,
@@ -214,22 +214,22 @@ fn loaded_elf_needs_interp() {
         segments: alloc::vec![], interp: Some(alloc::string::String::from("/lib/ld-linux.so.2")),
         exec_stack: false, min_addr: 0, max_addr: 0, tls_addr: 0, tls_size: 0, tls_align: 0,
     };
-    assert!(!elf_no_interp.needs_interp());
-    assert!(elf_with_interp.needs_interp());
+    if elf_no_interp.needs_interp() { return TestResult::Fail; }
+    if !elf_with_interp.needs_interp() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn loaded_elf_get_interp() {
+pub fn loaded_elf_get_interp() -> TestResult {
     let elf = LoadedElf {
         entry: 0, base_addr: 0, phdr_addr: 0, phnum: 0, phentsize: 0,
         segments: alloc::vec![], interp: Some(alloc::string::String::from("/lib64/ld-linux-x86-64.so.2")),
         exec_stack: false, min_addr: 0, max_addr: 0, tls_addr: 0, tls_size: 0, tls_align: 0,
     };
-    assert_eq!(elf.get_interp(), Some("/lib64/ld-linux-x86-64.so.2"));
+    if elf.get_interp() != Some("/lib64/ld-linux-x86-64.so.2") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn loaded_elf_allows_exec_stack() {
+pub fn loaded_elf_allows_exec_stack() -> TestResult {
     let elf_no_exec = LoadedElf {
         entry: 0, base_addr: 0, phdr_addr: 0, phnum: 0, phentsize: 0,
         segments: alloc::vec![], interp: None, exec_stack: false,
@@ -240,88 +240,89 @@ fn loaded_elf_allows_exec_stack() {
         segments: alloc::vec![], interp: None, exec_stack: true,
         min_addr: 0, max_addr: 0, tls_addr: 0, tls_size: 0, tls_align: 0,
     };
-    assert!(!elf_no_exec.allows_exec_stack());
-    assert!(elf_exec.allows_exec_stack());
+    if elf_no_exec.allows_exec_stack() { return TestResult::Fail; }
+    if !elf_exec.allows_exec_stack() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn loaded_elf_get_phdr_info() {
+pub fn loaded_elf_get_phdr_info() -> TestResult {
     let elf = LoadedElf {
         entry: 0x401000, base_addr: 0x400000, phdr_addr: 0x400040, phnum: 5, phentsize: 56,
         segments: alloc::vec![], interp: None, exec_stack: false,
         min_addr: 0x400000, max_addr: 0x500000, tls_addr: 0, tls_size: 0, tls_align: 0,
     };
     let (addr, num, entsize) = elf.get_phdr_info();
-    assert_eq!(addr, 0x400040);
-    assert_eq!(num, 5);
-    assert_eq!(entsize, 56);
+    if addr != 0x400040 { return TestResult::Fail; }
+    if num != 5 { return TestResult::Fail; }
+    if entsize != 56 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn elf_error_variants() {
-    assert_eq!(ElfError::TooSmall, ElfError::TooSmall);
-    assert_eq!(ElfError::InvalidMagic, ElfError::InvalidMagic);
-    assert_eq!(ElfError::Not64Bit, ElfError::Not64Bit);
-    assert_eq!(ElfError::WrongEndian, ElfError::WrongEndian);
-    assert_eq!(ElfError::WrongMachine, ElfError::WrongMachine);
-    assert_eq!(ElfError::NotExecutable, ElfError::NotExecutable);
-    assert_eq!(ElfError::InvalidProgramHeader, ElfError::InvalidProgramHeader);
-    assert_eq!(ElfError::InvalidSectionHeader, ElfError::InvalidSectionHeader);
-    assert_eq!(ElfError::OverlappingSegments, ElfError::OverlappingSegments);
-    assert_eq!(ElfError::InvalidAddress, ElfError::InvalidAddress);
-    assert_eq!(ElfError::WXViolation, ElfError::WXViolation);
-    assert_eq!(ElfError::AllocationFailed, ElfError::AllocationFailed);
-    assert_eq!(ElfError::InvalidAlignment, ElfError::InvalidAlignment);
-    assert_eq!(ElfError::RelocationFailed, ElfError::RelocationFailed);
-    assert_eq!(ElfError::MissingSection, ElfError::MissingSection);
+pub fn elf_error_variants() -> TestResult {
+    if ElfError::TooSmall != ElfError::TooSmall { return TestResult::Fail; }
+    if ElfError::InvalidMagic != ElfError::InvalidMagic { return TestResult::Fail; }
+    if ElfError::Not64Bit != ElfError::Not64Bit { return TestResult::Fail; }
+    if ElfError::WrongEndian != ElfError::WrongEndian { return TestResult::Fail; }
+    if ElfError::WrongMachine != ElfError::WrongMachine { return TestResult::Fail; }
+    if ElfError::NotExecutable != ElfError::NotExecutable { return TestResult::Fail; }
+    if ElfError::InvalidProgramHeader != ElfError::InvalidProgramHeader { return TestResult::Fail; }
+    if ElfError::InvalidSectionHeader != ElfError::InvalidSectionHeader { return TestResult::Fail; }
+    if ElfError::OverlappingSegments != ElfError::OverlappingSegments { return TestResult::Fail; }
+    if ElfError::InvalidAddress != ElfError::InvalidAddress { return TestResult::Fail; }
+    if ElfError::WXViolation != ElfError::WXViolation { return TestResult::Fail; }
+    if ElfError::AllocationFailed != ElfError::AllocationFailed { return TestResult::Fail; }
+    if ElfError::InvalidAlignment != ElfError::InvalidAlignment { return TestResult::Fail; }
+    if ElfError::RelocationFailed != ElfError::RelocationFailed { return TestResult::Fail; }
+    if ElfError::MissingSection != ElfError::MissingSection { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn elf_error_not_equal() {
-    assert_ne!(ElfError::TooSmall, ElfError::InvalidMagic);
-    assert_ne!(ElfError::Not64Bit, ElfError::WrongEndian);
+pub fn elf_error_not_equal() -> TestResult {
+    if ElfError::TooSmall == ElfError::InvalidMagic { return TestResult::Fail; }
+    if ElfError::Not64Bit == ElfError::WrongEndian { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn elf_error_display() {
+pub fn elf_error_display() -> TestResult {
     use alloc::string::ToString;
-    assert_eq!(ElfError::TooSmall.to_string(), "ELF data too small");
-    assert_eq!(ElfError::InvalidMagic.to_string(), "Invalid ELF magic number");
-    assert_eq!(ElfError::Not64Bit.to_string(), "Not a 64-bit ELF");
-    assert_eq!(ElfError::WrongEndian.to_string(), "Wrong endianness");
-    assert_eq!(ElfError::WrongMachine.to_string(), "Unsupported machine type");
-    assert_eq!(ElfError::NotExecutable.to_string(), "Not an executable");
-    assert_eq!(ElfError::InvalidProgramHeader.to_string(), "Invalid program header");
-    assert_eq!(ElfError::InvalidSectionHeader.to_string(), "Invalid section header");
-    assert_eq!(ElfError::OverlappingSegments.to_string(), "Overlapping segments");
-    assert_eq!(ElfError::InvalidAddress.to_string(), "Invalid address");
-    assert_eq!(ElfError::WXViolation.to_string(), "W^X violation");
-    assert_eq!(ElfError::AllocationFailed.to_string(), "Memory allocation failed");
-    assert_eq!(ElfError::InvalidAlignment.to_string(), "Invalid alignment");
-    assert_eq!(ElfError::RelocationFailed.to_string(), "Relocation failed");
-    assert_eq!(ElfError::MissingSection.to_string(), "Missing required section");
+    if ElfError::TooSmall.to_string() != "ELF data too small" { return TestResult::Fail; }
+    if ElfError::InvalidMagic.to_string() != "Invalid ELF magic number" { return TestResult::Fail; }
+    if ElfError::Not64Bit.to_string() != "Not a 64-bit ELF" { return TestResult::Fail; }
+    if ElfError::WrongEndian.to_string() != "Wrong endianness" { return TestResult::Fail; }
+    if ElfError::WrongMachine.to_string() != "Unsupported machine type" { return TestResult::Fail; }
+    if ElfError::NotExecutable.to_string() != "Not an executable" { return TestResult::Fail; }
+    if ElfError::InvalidProgramHeader.to_string() != "Invalid program header" { return TestResult::Fail; }
+    if ElfError::InvalidSectionHeader.to_string() != "Invalid section header" { return TestResult::Fail; }
+    if ElfError::OverlappingSegments.to_string() != "Overlapping segments" { return TestResult::Fail; }
+    if ElfError::InvalidAddress.to_string() != "Invalid address" { return TestResult::Fail; }
+    if ElfError::WXViolation.to_string() != "W^X violation" { return TestResult::Fail; }
+    if ElfError::AllocationFailed.to_string() != "Memory allocation failed" { return TestResult::Fail; }
+    if ElfError::InvalidAlignment.to_string() != "Invalid alignment" { return TestResult::Fail; }
+    if ElfError::RelocationFailed.to_string() != "Relocation failed" { return TestResult::Fail; }
+    if ElfError::MissingSection.to_string() != "Missing required section" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn elf_error_clone() {
+pub fn elf_error_clone() -> TestResult {
     let err1 = ElfError::InvalidMagic;
     let err2 = err1;
-    assert_eq!(err1, err2);
+    if err1 != err2 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn pf_flags_defined() {
-    assert_eq!(PF_X, 0x1);
-    assert_eq!(PF_W, 0x2);
-    assert_eq!(PF_R, 0x4);
+pub fn pf_flags_defined() -> TestResult {
+    if PF_X != 0x1 { return TestResult::Fail; }
+    if PF_W != 0x2 { return TestResult::Fail; }
+    if PF_R != 0x4 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn pf_flag_combinations() {
+pub fn pf_flag_combinations() -> TestResult {
     let rx = PF_R | PF_X;
     let rw = PF_R | PF_W;
     let rwx = PF_R | PF_W | PF_X;
-    assert_eq!(rx, 0x5);
-    assert_eq!(rw, 0x6);
-    assert_eq!(rwx, 0x7);
+    if rx != 0x5 { return TestResult::Fail; }
+    if rw != 0x6 { return TestResult::Fail; }
+    if rwx != 0x7 { return TestResult::Fail; }
+    TestResult::Pass
 }
