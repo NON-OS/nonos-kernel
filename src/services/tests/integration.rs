@@ -7,7 +7,7 @@ use crate::services::server::parsing::{parse_request, encode_response};
 use crate::test::framework::TestResult;
 use alloc::vec::Vec;
 
-pub fn test_request_encode_then_parse() -> TestResult {
+pub(crate) fn test_request_encode_then_parse() -> TestResult {
     let original = ServiceRequest::new(42, ServiceOp::Write, alloc::vec![1, 2, 3, 4]);
     let encoded = original.encode();
     let parsed = parse_request(&encoded);
@@ -19,7 +19,7 @@ pub fn test_request_encode_then_parse() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_request_encode_parse_ping() -> TestResult {
+pub(crate) fn test_request_encode_parse_ping() -> TestResult {
     let original = ServiceRequest::new(1, ServiceOp::Ping, Vec::new());
     let encoded = original.encode();
     let parsed = parse_request(&encoded);
@@ -29,7 +29,7 @@ pub fn test_request_encode_parse_ping() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_request_encode_parse_open() -> TestResult {
+pub(crate) fn test_request_encode_parse_open() -> TestResult {
     let original = ServiceRequest::new(2, ServiceOp::Open, Vec::new());
     let encoded = original.encode();
     let parsed = parse_request(&encoded);
@@ -39,7 +39,7 @@ pub fn test_request_encode_parse_open() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_request_encode_parse_close() -> TestResult {
+pub(crate) fn test_request_encode_parse_close() -> TestResult {
     let original = ServiceRequest::new(3, ServiceOp::Close, Vec::new());
     let encoded = original.encode();
     let parsed = parse_request(&encoded);
@@ -49,7 +49,7 @@ pub fn test_request_encode_parse_close() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_request_encode_parse_read() -> TestResult {
+pub(crate) fn test_request_encode_parse_read() -> TestResult {
     let original = ServiceRequest::new(4, ServiceOp::Read, Vec::new());
     let encoded = original.encode();
     let parsed = parse_request(&encoded);
@@ -59,7 +59,7 @@ pub fn test_request_encode_parse_read() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_request_encode_parse_ioctl() -> TestResult {
+pub(crate) fn test_request_encode_parse_ioctl() -> TestResult {
     let original = ServiceRequest::new(6, ServiceOp::Ioctl, alloc::vec![0xFF]);
     let encoded = original.encode();
     let parsed = parse_request(&encoded);
@@ -69,7 +69,7 @@ pub fn test_request_encode_parse_ioctl() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_request_encode_parse_query() -> TestResult {
+pub(crate) fn test_request_encode_parse_query() -> TestResult {
     let original = ServiceRequest::new(7, ServiceOp::Query, Vec::new());
     let encoded = original.encode();
     let parsed = parse_request(&encoded);
@@ -79,7 +79,7 @@ pub fn test_request_encode_parse_query() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_request_encode_parse_subscribe() -> TestResult {
+pub(crate) fn test_request_encode_parse_subscribe() -> TestResult {
     let original = ServiceRequest::new(8, ServiceOp::Subscribe, alloc::vec![1, 2]);
     let encoded = original.encode();
     let parsed = parse_request(&encoded);
@@ -89,7 +89,7 @@ pub fn test_request_encode_parse_subscribe() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_request_encode_parse_unsubscribe() -> TestResult {
+pub(crate) fn test_request_encode_parse_unsubscribe() -> TestResult {
     let original = ServiceRequest::new(9, ServiceOp::Unsubscribe, Vec::new());
     let encoded = original.encode();
     let parsed = parse_request(&encoded);
@@ -99,7 +99,7 @@ pub fn test_request_encode_parse_unsubscribe() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_request_encode_parse_preserves_seq() -> TestResult {
+pub(crate) fn test_request_encode_parse_preserves_seq() -> TestResult {
     for seq in [0u32, 1, 100, 1000, u32::MAX / 2, u32::MAX] {
         let original = ServiceRequest::new(seq, ServiceOp::Ping, Vec::new());
         let encoded = original.encode();
@@ -109,7 +109,7 @@ pub fn test_request_encode_parse_preserves_seq() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_request_encode_parse_preserves_flags() -> TestResult {
+pub(crate) fn test_request_encode_parse_preserves_flags() -> TestResult {
     let mut original = ServiceRequest::new(1, ServiceOp::Ping, Vec::new());
     original.flags = 0x1234;
     let encoded = original.encode();
@@ -118,7 +118,7 @@ pub fn test_request_encode_parse_preserves_flags() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_request_encode_parse_preserves_payload() -> TestResult {
+pub(crate) fn test_request_encode_parse_preserves_payload() -> TestResult {
     let payload: Vec<u8> = (0..100).map(|i| i as u8).collect();
     let original = ServiceRequest::new(1, ServiceOp::Write, payload.clone());
     let encoded = original.encode();
@@ -127,14 +127,14 @@ pub fn test_request_encode_parse_preserves_payload() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_response_ok_then_encode() -> TestResult {
+pub(crate) fn test_response_ok_then_encode() -> TestResult {
     let resp = ServiceResponse::ok(42, alloc::vec![5, 6, 7]);
     let encoded = encode_response(&resp);
     if encoded.len() != 8 + 3 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_response_err_then_encode() -> TestResult {
+pub(crate) fn test_response_err_then_encode() -> TestResult {
     let resp = ServiceResponse::err(99, -500);
     let encoded = encode_response(&resp);
     let status = i32::from_le_bytes([encoded[4], encoded[5], encoded[6], encoded[7]]);
@@ -142,7 +142,7 @@ pub fn test_response_err_then_encode() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_cap_check_with_service_cap() -> TestResult {
+pub(crate) fn test_cap_check_with_service_cap() -> TestResult {
     let cap = ServiceCap::new(CAP_VFS | CAP_NET, 1);
     if !cap.has(CAP_VFS) { return TestResult::Fail; }
     if !cap.has(CAP_NET) { return TestResult::Fail; }
@@ -151,7 +151,7 @@ pub fn test_cap_check_with_service_cap() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_cap_expiry_logic() -> TestResult {
+pub(crate) fn test_cap_expiry_logic() -> TestResult {
     let cap = ServiceCap::with_expiry(CAP_VFS, 1, 1000);
     if cap.is_expired(500) { return TestResult::Fail; }
     if cap.is_expired(1000) { return TestResult::Fail; }
@@ -159,7 +159,7 @@ pub fn test_cap_expiry_logic() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_service_message_roundtrip_request() -> TestResult {
+pub(crate) fn test_service_message_roundtrip_request() -> TestResult {
     let req = ServiceRequest::new(1, ServiceOp::Read, alloc::vec![1, 2, 3]);
     let msg = ServiceMessage::Request(req.clone());
     match msg {
@@ -173,7 +173,7 @@ pub fn test_service_message_roundtrip_request() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_service_message_roundtrip_response() -> TestResult {
+pub(crate) fn test_service_message_roundtrip_response() -> TestResult {
     let resp = ServiceResponse::ok(1, alloc::vec![4, 5, 6]);
     let msg = ServiceMessage::Response(resp.clone());
     match msg {
@@ -187,7 +187,7 @@ pub fn test_service_message_roundtrip_response() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_all_ops_can_be_encoded_and_parsed() -> TestResult {
+pub(crate) fn test_all_ops_can_be_encoded_and_parsed() -> TestResult {
     let ops = [
         ServiceOp::Ping, ServiceOp::Open, ServiceOp::Close,
         ServiceOp::Read, ServiceOp::Write, ServiceOp::Ioctl,
@@ -203,7 +203,7 @@ pub fn test_all_ops_can_be_encoded_and_parsed() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_client_error_from_response_status() -> TestResult {
+pub(crate) fn test_client_error_from_response_status() -> TestResult {
     let resp = ServiceResponse::err(1, -403);
     let err = ClientError::RemoteError(resp.status);
     match err {
@@ -215,7 +215,7 @@ pub fn test_client_error_from_response_status() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_cap_bits_do_not_overlap() -> TestResult {
+pub(crate) fn test_cap_bits_do_not_overlap() -> TestResult {
     let all_caps = [
         CAP_VFS, CAP_NET, CAP_DISPLAY, CAP_DRIVER, CAP_CRYPTO,
         CAP_INPUT, CAP_AUDIO, CAP_ZK, CAP_GPU, CAP_APPS,
@@ -229,7 +229,7 @@ pub fn test_cap_bits_do_not_overlap() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_service_cap_combined_check() -> TestResult {
+pub(crate) fn test_service_cap_combined_check() -> TestResult {
     let required = CAP_VFS | CAP_NET | CAP_CRYPTO;
     let cap = ServiceCap::new(required, 1);
     if !cap.has(required) { return TestResult::Fail; }
@@ -239,7 +239,7 @@ pub fn test_service_cap_combined_check() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_error_types_are_distinct() -> TestResult {
+pub(crate) fn test_error_types_are_distinct() -> TestResult {
     let cap_err = CapError::NoCap;
     let _cap_err2 = CapError::InsufficientCaps;
     let client_err = ClientError::NotFound;
@@ -261,14 +261,14 @@ pub fn test_error_types_are_distinct() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_request_with_max_payload_indicator() -> TestResult {
+pub(crate) fn test_request_with_max_payload_indicator() -> TestResult {
     let payload: Vec<u8> = (0..MAX_PAYLOAD).map(|i| (i % 256) as u8).collect();
     let req = ServiceRequest::new(1, ServiceOp::Write, payload.clone());
     if req.payload.len() != MAX_PAYLOAD { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_service_endpoint_with_all_fields() -> TestResult {
+pub(crate) fn test_service_endpoint_with_all_fields() -> TestResult {
     use crate::services::registry::ServiceEndpoint;
     let ep = ServiceEndpoint {
         name: alloc::string::String::from("test_service"),
@@ -283,7 +283,7 @@ pub fn test_service_endpoint_with_all_fields() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_version_compatibility() -> TestResult {
+pub(crate) fn test_version_compatibility() -> TestResult {
     let req = ServiceRequest::new(1, ServiceOp::Ping, Vec::new());
     let encoded = req.encode();
     if encoded[0] != MSG_VERSION { return TestResult::Fail; }
@@ -291,7 +291,7 @@ pub fn test_version_compatibility() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_service_response_status_codes() -> TestResult {
+pub(crate) fn test_service_response_status_codes() -> TestResult {
     let ok = ServiceResponse::ok(1, Vec::new());
     if ok.status != 0 { return TestResult::Fail; }
 
@@ -306,7 +306,7 @@ pub fn test_service_response_status_codes() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_encode_decode_consistency() -> TestResult {
+pub(crate) fn test_encode_decode_consistency() -> TestResult {
     let original_req = ServiceRequest::new(12345, ServiceOp::Query, alloc::vec![0xAA, 0xBB, 0xCC]);
     let encoded = original_req.encode();
     let decoded = parse_request(&encoded).unwrap();
@@ -327,13 +327,13 @@ pub fn test_encode_decode_consistency() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_max_services_bounds() -> TestResult {
+pub(crate) fn test_max_services_bounds() -> TestResult {
     if MAX_SERVICES == 0 { return TestResult::Fail; }
     if MAX_SERVICES > 1024 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_cap_admin_is_highest_bit() -> TestResult {
+pub(crate) fn test_cap_admin_is_highest_bit() -> TestResult {
     if CAP_ADMIN != 1u64 << 63 { return TestResult::Fail; }
     if CAP_ADMIN <= CAP_VFS { return TestResult::Fail; }
     if CAP_ADMIN <= CAP_NET { return TestResult::Fail; }
@@ -341,7 +341,7 @@ pub fn test_cap_admin_is_highest_bit() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_service_cap_no_expiry_means_never_expires() -> TestResult {
+pub(crate) fn test_service_cap_no_expiry_means_never_expires() -> TestResult {
     let cap = ServiceCap::new(CAP_VFS, 1);
     if cap.expires_ms != 0 { return TestResult::Fail; }
     if cap.is_expired(0) { return TestResult::Fail; }
