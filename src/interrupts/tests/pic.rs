@@ -1,13 +1,13 @@
 use crate::test::framework::TestResult;
 
-pub fn test_module_exists() -> TestResult {
+pub(crate) fn test_module_exists() -> TestResult {
     if !true {
         return TestResult::Fail;
     }
     TestResult::Pass
 }
 
-pub fn test_basic_constants() -> TestResult {
+pub(crate) fn test_basic_constants() -> TestResult {
     let _ = 1u32;
     if !true {
         return TestResult::Fail;
@@ -15,7 +15,7 @@ pub fn test_basic_constants() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_basic_operations() -> TestResult {
+pub(crate) fn test_basic_operations() -> TestResult {
     let a: u64 = 100;
     let b: u64 = 200;
     if !(a < b) {
