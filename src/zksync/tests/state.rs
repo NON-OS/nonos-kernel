@@ -16,406 +16,407 @@
 
 extern crate alloc;
 
+use crate::test::framework::TestResult;
 use crate::zksync::state::*;
 use crate::zksync::types::*;
 
-#[test]
-fn test_sparse_merkle_tree_new() {
+pub fn test_sparse_merkle_tree_new() -> TestResult {
     let tree = SparseMerkleTree::new();
-    assert_ne!(tree.root(), [0u8; 32]);
+    if tree.root() == [0u8; 32] { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_sparse_merkle_tree_default() {
+pub fn test_sparse_merkle_tree_default() -> TestResult {
     let tree: SparseMerkleTree = Default::default();
-    assert_ne!(tree.root(), [0u8; 32]);
+    if tree.root() == [0u8; 32] { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_sparse_merkle_tree_insert() {
+pub fn test_sparse_merkle_tree_insert() -> TestResult {
     let mut tree = SparseMerkleTree::new();
     let key = [1u8; 32];
     let value = [2u8; 32];
     tree.insert(key, value);
-    assert_eq!(tree.get(&key), Some(value));
+    if tree.get(&key) != Some(value) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_sparse_merkle_tree_get_nonexistent() {
+pub fn test_sparse_merkle_tree_get_nonexistent() -> TestResult {
     let tree = SparseMerkleTree::new();
     let key = [1u8; 32];
-    assert_eq!(tree.get(&key), None);
+    if tree.get(&key) != None { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_sparse_merkle_tree_remove() {
+pub fn test_sparse_merkle_tree_remove() -> TestResult {
     let mut tree = SparseMerkleTree::new();
     let key = [1u8; 32];
     let value = [2u8; 32];
     tree.insert(key, value);
     let removed = tree.remove(&key);
-    assert_eq!(removed, Some(value));
-    assert_eq!(tree.get(&key), None);
+    if removed != Some(value) { return TestResult::Fail; }
+    if tree.get(&key) != None { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_sparse_merkle_tree_remove_nonexistent() {
+pub fn test_sparse_merkle_tree_remove_nonexistent() -> TestResult {
     let mut tree = SparseMerkleTree::new();
     let key = [1u8; 32];
-    assert_eq!(tree.remove(&key), None);
+    if tree.remove(&key) != None { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_sparse_merkle_tree_root_changes_on_insert() {
+pub fn test_sparse_merkle_tree_root_changes_on_insert() -> TestResult {
     let mut tree = SparseMerkleTree::new();
     let root_before = tree.root();
     tree.insert([1u8; 32], [2u8; 32]);
     let root_after = tree.root();
-    assert_ne!(root_before, root_after);
+    if root_before == root_after { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_sparse_merkle_tree_root_changes_on_remove() {
+pub fn test_sparse_merkle_tree_root_changes_on_remove() -> TestResult {
     let mut tree = SparseMerkleTree::new();
     let key = [1u8; 32];
     tree.insert(key, [2u8; 32]);
     let root_with_value = tree.root();
     tree.remove(&key);
     let root_after_remove = tree.root();
-    assert_ne!(root_with_value, root_after_remove);
+    if root_with_value == root_after_remove { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_sparse_merkle_tree_proof() {
+pub fn test_sparse_merkle_tree_proof() -> TestResult {
     let mut tree = SparseMerkleTree::new();
     let key = [1u8; 32];
     let value = [2u8; 32];
     tree.insert(key, value);
     let proof = tree.proof(&key);
-    assert_eq!(proof.key, key);
-    assert_eq!(proof.value, Some(value));
-    assert!(!proof.siblings.is_empty());
+    if proof.key != key { return TestResult::Fail; }
+    if proof.value != Some(value) { return TestResult::Fail; }
+    if proof.siblings.is_empty() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_sparse_merkle_tree_proof_nonexistent() {
+pub fn test_sparse_merkle_tree_proof_nonexistent() -> TestResult {
     let tree = SparseMerkleTree::new();
     let key = [1u8; 32];
     let proof = tree.proof(&key);
-    assert_eq!(proof.key, key);
-    assert_eq!(proof.value, None);
+    if proof.key != key { return TestResult::Fail; }
+    if proof.value != None { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_merkle_proof_verify() {
+pub fn test_merkle_proof_verify() -> TestResult {
     let mut tree = SparseMerkleTree::new();
     let key = [1u8; 32];
     let value = [2u8; 32];
     tree.insert(key, value);
     let proof = tree.proof(&key);
     let root = tree.root();
-    assert!(proof.verify(&root));
+    if !proof.verify(&root) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_merkle_proof_verify_wrong_root() {
+pub fn test_merkle_proof_verify_wrong_root() -> TestResult {
     let mut tree = SparseMerkleTree::new();
     let key = [1u8; 32];
     let value = [2u8; 32];
     tree.insert(key, value);
     let proof = tree.proof(&key);
     let wrong_root = [0xFFu8; 32];
-    assert!(!proof.verify(&wrong_root));
+    if proof.verify(&wrong_root) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_state_manager_new() {
+pub fn test_state_manager_new() -> TestResult {
     let manager = StateManager::new();
-    assert_eq!(manager.current_block().0, 0);
-    assert_eq!(manager.current_batch().0, 0);
+    if manager.current_block().0 != 0 { return TestResult::Fail; }
+    if manager.current_batch().0 != 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_state_manager_default() {
+pub fn test_state_manager_default() -> TestResult {
     let manager: StateManager = Default::default();
-    assert_eq!(manager.current_block().0, 0);
+    if manager.current_block().0 != 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_state_manager_get_account_nonexistent() {
+pub fn test_state_manager_get_account_nonexistent() -> TestResult {
     let manager = StateManager::new();
     let addr = Address::from_slice(&[1u8; 20]);
-    assert!(manager.get_account(&addr).is_none());
+    if manager.get_account(&addr).is_some() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_state_manager_get_balance_nonexistent() {
+pub fn test_state_manager_get_balance_nonexistent() -> TestResult {
     let manager = StateManager::new();
     let addr = Address::from_slice(&[1u8; 20]);
-    assert!(manager.get_balance(&addr).is_zero());
+    if !manager.get_balance(&addr).is_zero() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_state_manager_get_nonce_nonexistent() {
+pub fn test_state_manager_get_nonce_nonexistent() -> TestResult {
     let manager = StateManager::new();
     let addr = Address::from_slice(&[1u8; 20]);
-    assert_eq!(manager.get_nonce(&addr).0, 0);
+    if manager.get_nonce(&addr).0 != 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_state_manager_set_balance() {
+pub fn test_state_manager_set_balance() -> TestResult {
     let mut manager = StateManager::new();
     let addr = Address::from_slice(&[1u8; 20]);
     let balance = U256::from_u64(1000);
     manager.set_balance(addr, balance);
-    assert_eq!(manager.get_balance(&addr), balance);
+    if manager.get_balance(&addr) != balance { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_state_manager_increment_nonce() {
+pub fn test_state_manager_increment_nonce() -> TestResult {
     let mut manager = StateManager::new();
     let addr = Address::from_slice(&[1u8; 20]);
     manager.set_balance(addr, U256::ONE);
     manager.increment_nonce(&addr);
-    assert_eq!(manager.get_nonce(&addr).0, 1);
+    if manager.get_nonce(&addr).0 != 1 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_state_manager_increment_nonce_nonexistent() {
+pub fn test_state_manager_increment_nonce_nonexistent() -> TestResult {
     let mut manager = StateManager::new();
     let addr = Address::from_slice(&[1u8; 20]);
     manager.increment_nonce(&addr);
-    assert_eq!(manager.get_nonce(&addr).0, 0);
+    if manager.get_nonce(&addr).0 != 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_state_manager_transfer() {
+pub fn test_state_manager_transfer() -> TestResult {
     let mut manager = StateManager::new();
     let from = Address::from_slice(&[1u8; 20]);
     let to = Address::from_slice(&[2u8; 20]);
     manager.set_balance(from, U256::from_u64(1000));
     let result = manager.transfer(&from, &to, U256::from_u64(300));
-    assert!(result.is_ok());
-    assert_eq!(manager.get_balance(&from), U256::from_u64(700));
-    assert_eq!(manager.get_balance(&to), U256::from_u64(300));
+    if result.is_err() { return TestResult::Fail; }
+    if manager.get_balance(&from) != U256::from_u64(700) { return TestResult::Fail; }
+    if manager.get_balance(&to) != U256::from_u64(300) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_state_manager_transfer_insufficient_balance() {
+pub fn test_state_manager_transfer_insufficient_balance() -> TestResult {
     let mut manager = StateManager::new();
     let from = Address::from_slice(&[1u8; 20]);
     let to = Address::from_slice(&[2u8; 20]);
     manager.set_balance(from, U256::from_u64(100));
     let result = manager.transfer(&from, &to, U256::from_u64(200));
-    assert!(result.is_err());
+    if result.is_ok() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_state_manager_state_root_changes() {
+pub fn test_state_manager_state_root_changes() -> TestResult {
     let mut manager = StateManager::new();
     let root_before = manager.state_root();
     let addr = Address::from_slice(&[1u8; 20]);
     manager.set_balance(addr, U256::from_u64(1000));
     let root_after = manager.state_root();
-    assert_ne!(root_before, root_after);
+    if root_before == root_after { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_state_manager_advance_block() {
+pub fn test_state_manager_advance_block() -> TestResult {
     let mut manager = StateManager::new();
-    assert_eq!(manager.current_block().0, 0);
+    if manager.current_block().0 != 0 { return TestResult::Fail; }
     manager.advance_block();
-    assert_eq!(manager.current_block().0, 1);
+    if manager.current_block().0 != 1 { return TestResult::Fail; }
     manager.advance_block();
-    assert_eq!(manager.current_block().0, 2);
+    if manager.current_block().0 != 2 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_state_manager_advance_batch() {
+pub fn test_state_manager_advance_batch() -> TestResult {
     let mut manager = StateManager::new();
-    assert_eq!(manager.current_batch().0, 0);
+    if manager.current_batch().0 != 0 { return TestResult::Fail; }
     manager.advance_batch();
-    assert_eq!(manager.current_batch().0, 1);
+    if manager.current_batch().0 != 1 { return TestResult::Fail; }
     manager.advance_batch();
-    assert_eq!(manager.current_batch().0, 2);
+    if manager.current_batch().0 != 2 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_account_storage_new() {
+pub fn test_account_storage_new() -> TestResult {
     let storage = AccountStorage::new();
-    assert!(storage.is_empty());
-    assert_eq!(storage.len(), 0);
+    if !storage.is_empty() { return TestResult::Fail; }
+    if storage.len() != 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_account_storage_default() {
+pub fn test_account_storage_default() -> TestResult {
     let storage: AccountStorage = Default::default();
-    assert!(storage.is_empty());
+    if !storage.is_empty() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_account_storage_get_nonexistent() {
+pub fn test_account_storage_get_nonexistent() -> TestResult {
     let storage = AccountStorage::new();
     let addr = Address::from_slice(&[1u8; 20]);
-    assert!(storage.get(&addr).is_none());
+    if storage.get(&addr).is_some() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_account_storage_exists() {
+pub fn test_account_storage_exists() -> TestResult {
     let mut storage = AccountStorage::new();
     let addr = Address::from_slice(&[1u8; 20]);
-    assert!(!storage.exists(&addr));
+    if storage.exists(&addr) { return TestResult::Fail; }
     storage.get_or_create(addr);
-    assert!(storage.exists(&addr));
+    if !storage.exists(&addr) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_account_storage_get_or_create() {
+pub fn test_account_storage_get_or_create() -> TestResult {
     let mut storage = AccountStorage::new();
     let addr = Address::from_slice(&[1u8; 20]);
     let account = storage.get_or_create(addr);
-    assert_eq!(account.nonce.0, 0);
-    assert!(account.balance.is_zero());
+    if account.nonce.0 != 0 { return TestResult::Fail; }
+    if !account.balance.is_zero() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_account_storage_balance() {
+pub fn test_account_storage_balance() -> TestResult {
     let mut storage = AccountStorage::new();
     let addr = Address::from_slice(&[1u8; 20]);
-    assert!(storage.balance(&addr).is_zero());
+    if !storage.balance(&addr).is_zero() { return TestResult::Fail; }
     storage.set_balance(addr, U256::from_u64(500));
-    assert_eq!(storage.balance(&addr), U256::from_u64(500));
+    if storage.balance(&addr) != U256::from_u64(500) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_account_storage_nonce() {
+pub fn test_account_storage_nonce() -> TestResult {
     let mut storage = AccountStorage::new();
     let addr = Address::from_slice(&[1u8; 20]);
-    assert_eq!(storage.nonce(&addr).0, 0);
+    if storage.nonce(&addr).0 != 0 { return TestResult::Fail; }
     storage.set_nonce(addr, Nonce(5));
-    assert_eq!(storage.nonce(&addr).0, 5);
+    if storage.nonce(&addr).0 != 5 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_account_storage_increment_nonce() {
+pub fn test_account_storage_increment_nonce() -> TestResult {
     let mut storage = AccountStorage::new();
     let addr = Address::from_slice(&[1u8; 20]);
     storage.set_nonce(addr, Nonce(0));
     storage.increment_nonce(&addr);
-    assert_eq!(storage.nonce(&addr).0, 1);
+    if storage.nonce(&addr).0 != 1 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_account_storage_len() {
+pub fn test_account_storage_len() -> TestResult {
     let mut storage = AccountStorage::new();
-    assert_eq!(storage.len(), 0);
+    if storage.len() != 0 { return TestResult::Fail; }
     storage.get_or_create(Address::from_slice(&[1u8; 20]));
-    assert_eq!(storage.len(), 1);
+    if storage.len() != 1 { return TestResult::Fail; }
     storage.get_or_create(Address::from_slice(&[2u8; 20]));
-    assert_eq!(storage.len(), 2);
+    if storage.len() != 2 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_account_storage_iter() {
+pub fn test_account_storage_iter() -> TestResult {
     let mut storage = AccountStorage::new();
     let addr1 = Address::from_slice(&[1u8; 20]);
     let addr2 = Address::from_slice(&[2u8; 20]);
     storage.set_balance(addr1, U256::from_u64(100));
     storage.set_balance(addr2, U256::from_u64(200));
     let count = storage.iter().count();
-    assert_eq!(count, 2);
+    if count != 2 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_contract_storage_new() {
+pub fn test_contract_storage_new() -> TestResult {
     let storage = ContractStorage::new();
-    assert!(storage.is_empty());
-    assert_eq!(storage.len(), 0);
+    if !storage.is_empty() { return TestResult::Fail; }
+    if storage.len() != 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_contract_storage_default() {
+pub fn test_contract_storage_default() -> TestResult {
     let storage: ContractStorage = Default::default();
-    assert!(storage.is_empty());
+    if !storage.is_empty() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_contract_storage_get_nonexistent() {
+pub fn test_contract_storage_get_nonexistent() -> TestResult {
     let storage = ContractStorage::new();
     let addr = Address::from_slice(&[1u8; 20]);
     let slot = U256::from_u64(0);
-    assert!(storage.get(&addr, &slot).is_zero());
+    if !storage.get(&addr, &slot).is_zero() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_contract_storage_set_get() {
+pub fn test_contract_storage_set_get() -> TestResult {
     let mut storage = ContractStorage::new();
     let addr = Address::from_slice(&[1u8; 20]);
     let slot = U256::from_u64(0);
     let value = U256::from_u64(12345);
     storage.set(addr, slot, value);
-    assert_eq!(storage.get(&addr, &slot), value);
+    if storage.get(&addr, &slot) != value { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_contract_storage_set_zero_removes() {
+pub fn test_contract_storage_set_zero_removes() -> TestResult {
     let mut storage = ContractStorage::new();
     let addr = Address::from_slice(&[1u8; 20]);
     let slot = U256::from_u64(0);
     storage.set(addr, slot, U256::from_u64(100));
-    assert_eq!(storage.len(), 1);
+    if storage.len() != 1 { return TestResult::Fail; }
     storage.set(addr, slot, U256::ZERO);
-    assert_eq!(storage.len(), 0);
+    if storage.len() != 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_contract_storage_remove() {
+pub fn test_contract_storage_remove() -> TestResult {
     let mut storage = ContractStorage::new();
     let addr = Address::from_slice(&[1u8; 20]);
     let slot = U256::from_u64(0);
     storage.set(addr, slot, U256::from_u64(100));
     let removed = storage.remove(&addr, &slot);
-    assert_eq!(removed, Some(U256::from_u64(100)));
-    assert!(storage.get(&addr, &slot).is_zero());
+    if removed != Some(U256::from_u64(100)) { return TestResult::Fail; }
+    if !storage.get(&addr, &slot).is_zero() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_contract_storage_remove_nonexistent() {
+pub fn test_contract_storage_remove_nonexistent() -> TestResult {
     let mut storage = ContractStorage::new();
     let addr = Address::from_slice(&[1u8; 20]);
     let slot = U256::from_u64(0);
-    assert!(storage.remove(&addr, &slot).is_none());
+    if storage.remove(&addr, &slot).is_some() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_contract_storage_clear_account() {
+pub fn test_contract_storage_clear_account() -> TestResult {
     let mut storage = ContractStorage::new();
     let addr = Address::from_slice(&[1u8; 20]);
     storage.set(addr, U256::from_u64(0), U256::from_u64(1));
     storage.set(addr, U256::from_u64(1), U256::from_u64(2));
     storage.set(addr, U256::from_u64(2), U256::from_u64(3));
-    assert_eq!(storage.len(), 3);
+    if storage.len() != 3 { return TestResult::Fail; }
     storage.clear_account(&addr);
-    assert_eq!(storage.len(), 0);
+    if storage.len() != 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_contract_storage_iter_account() {
+pub fn test_contract_storage_iter_account() -> TestResult {
     let mut storage = ContractStorage::new();
     let addr = Address::from_slice(&[1u8; 20]);
     storage.set(addr, U256::from_u64(0), U256::from_u64(10));
     storage.set(addr, U256::from_u64(1), U256::from_u64(20));
     let count = storage.iter_account(&addr).count();
-    assert_eq!(count, 2);
+    if count != 2 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_contract_storage_multiple_accounts() {
+pub fn test_contract_storage_multiple_accounts() -> TestResult {
     let mut storage = ContractStorage::new();
     let addr1 = Address::from_slice(&[1u8; 20]);
     let addr2 = Address::from_slice(&[2u8; 20]);
     storage.set(addr1, U256::from_u64(0), U256::from_u64(100));
     storage.set(addr2, U256::from_u64(0), U256::from_u64(200));
-    assert_eq!(storage.get(&addr1, &U256::from_u64(0)), U256::from_u64(100));
-    assert_eq!(storage.get(&addr2, &U256::from_u64(0)), U256::from_u64(200));
+    if storage.get(&addr1, &U256::from_u64(0)) != U256::from_u64(100) { return TestResult::Fail; }
+    if storage.get(&addr2, &U256::from_u64(0)) != U256::from_u64(200) { return TestResult::Fail; }
+    TestResult::Pass
 }
