@@ -40,12 +40,12 @@ fn create_context(rip: u64, rsp: u64) -> Context {
     }
 }
 
-pub fn test_context_struct_size() -> TestResult {
+pub(crate) fn test_context_struct_size() -> TestResult {
     if core::mem::size_of::<Context>() != 18 * 8 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_context_is_repr_c() -> TestResult {
+pub(crate) fn test_context_is_repr_c() -> TestResult {
     let ctx = create_context(0x1000, 0x2000);
     let ptr = &ctx as *const Context as *const u64;
     unsafe {
@@ -58,7 +58,7 @@ pub fn test_context_is_repr_c() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_context_copy() -> TestResult {
+pub(crate) fn test_context_copy() -> TestResult {
     let ctx1 = create_context(0x1000, 0x2000);
     let ctx2 = ctx1;
     if ctx1.rip != ctx2.rip { return TestResult::Fail; }
@@ -66,7 +66,7 @@ pub fn test_context_copy() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_context_clone() -> TestResult {
+pub(crate) fn test_context_clone() -> TestResult {
     let ctx1 = create_context(0x1000, 0x2000);
     let ctx2 = ctx1.clone();
     if ctx1.rip != ctx2.rip { return TestResult::Fail; }
@@ -74,67 +74,67 @@ pub fn test_context_clone() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_context_validate_valid_kernel() -> TestResult {
+pub(crate) fn test_context_validate_valid_kernel() -> TestResult {
     let ctx = create_context(0xFFFF_8000_0000_1000, 0xFFFF_8000_0000_2000);
     if ctx.validate().is_err() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_context_validate_valid_userspace() -> TestResult {
+pub(crate) fn test_context_validate_valid_userspace() -> TestResult {
     let ctx = create_context(0x0000_0000_0040_0000, 0x0000_7FFF_FFFF_0000);
     if ctx.validate().is_err() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_context_validate_noncanonical_rip() -> TestResult {
+pub(crate) fn test_context_validate_noncanonical_rip() -> TestResult {
     let ctx = create_context(0x0000_8000_0000_0000, 0x0000_0000_0040_0000);
     if ctx.validate().is_ok() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_context_validate_noncanonical_rsp() -> TestResult {
+pub(crate) fn test_context_validate_noncanonical_rsp() -> TestResult {
     let ctx = create_context(0x0000_0000_0040_0000, 0x0000_8000_0000_0000);
     if ctx.validate().is_ok() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_context_validate_null_rsp() -> TestResult {
+pub(crate) fn test_context_validate_null_rsp() -> TestResult {
     let ctx = create_context(0x0000_0000_0040_0000, 0);
     if ctx.validate().is_ok() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_context_validate_userspace_valid() -> TestResult {
+pub(crate) fn test_context_validate_userspace_valid() -> TestResult {
     let ctx = create_context(0x0000_0000_0040_0000, 0x0000_7FFF_0000_0000);
     if ctx.validate_userspace().is_err() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_context_validate_userspace_kernel_rip() -> TestResult {
+pub(crate) fn test_context_validate_userspace_kernel_rip() -> TestResult {
     let ctx = create_context(0xFFFF_8000_0000_1000, 0x0000_7FFF_0000_0000);
     if ctx.validate_userspace().is_ok() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_context_validate_userspace_kernel_rsp() -> TestResult {
+pub(crate) fn test_context_validate_userspace_kernel_rsp() -> TestResult {
     let ctx = create_context(0x0000_0000_0040_0000, 0xFFFF_8000_0000_2000);
     if ctx.validate_userspace().is_ok() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_context_validate_userspace_boundary_rip() -> TestResult {
+pub(crate) fn test_context_validate_userspace_boundary_rip() -> TestResult {
     let ctx = create_context(0x0000_7FFF_FFFF_FFFF, 0x0000_7FFF_0000_0000);
     if ctx.validate_userspace().is_err() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_context_validate_userspace_over_boundary_rip() -> TestResult {
+pub(crate) fn test_context_validate_userspace_over_boundary_rip() -> TestResult {
     let ctx = create_context(0x0000_8000_0000_0000, 0x0000_7FFF_0000_0000);
     if ctx.validate_userspace().is_ok() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_context_all_registers_zero() -> TestResult {
+pub(crate) fn test_context_all_registers_zero() -> TestResult {
     let ctx = create_context(0x1000, 0x2000);
     if ctx.rax != 0 { return TestResult::Fail; }
     if ctx.rbx != 0 { return TestResult::Fail; }
@@ -155,7 +155,7 @@ pub fn test_context_all_registers_zero() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_context_with_custom_registers() -> TestResult {
+pub(crate) fn test_context_with_custom_registers() -> TestResult {
     let ctx = Context {
         rax: 1,
         rbx: 2,
@@ -184,25 +184,25 @@ pub fn test_context_with_custom_registers() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_context_canonical_boundary_low() -> TestResult {
+pub(crate) fn test_context_canonical_boundary_low() -> TestResult {
     let ctx = create_context(0x0000_7FFF_FFFF_FFFF, 0x1000);
     if ctx.validate().is_err() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_context_canonical_boundary_high() -> TestResult {
+pub(crate) fn test_context_canonical_boundary_high() -> TestResult {
     let ctx = create_context(0xFFFF_8000_0000_0000, 0xFFFF_8000_0000_1000);
     if ctx.validate().is_err() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_context_noncanonical_hole_low() -> TestResult {
+pub(crate) fn test_context_noncanonical_hole_low() -> TestResult {
     let ctx = create_context(0x0000_8000_0000_0000, 0x1000);
     if ctx.validate().is_ok() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_context_noncanonical_hole_high() -> TestResult {
+pub(crate) fn test_context_noncanonical_hole_high() -> TestResult {
     let ctx = create_context(0xFFFF_7FFF_FFFF_FFFF, 0x1000);
     if ctx.validate().is_ok() { return TestResult::Fail; }
     TestResult::Pass

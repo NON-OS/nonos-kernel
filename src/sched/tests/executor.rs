@@ -17,7 +17,7 @@
 use crate::sched::executor::*;
 use crate::test::framework::TestResult;
 
-pub fn test_async_task_priority_values() -> TestResult {
+pub(crate) fn test_async_task_priority_values() -> TestResult {
     if AsyncTaskPriority::Critical as u8 != 0 { return TestResult::Fail; }
     if AsyncTaskPriority::High as u8 != 1 { return TestResult::Fail; }
     if AsyncTaskPriority::Normal as u8 != 2 { return TestResult::Fail; }
@@ -26,7 +26,7 @@ pub fn test_async_task_priority_values() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_async_task_priority_ordering() -> TestResult {
+pub(crate) fn test_async_task_priority_ordering() -> TestResult {
     if !(AsyncTaskPriority::Critical < AsyncTaskPriority::High) { return TestResult::Fail; }
     if !(AsyncTaskPriority::High < AsyncTaskPriority::Normal) { return TestResult::Fail; }
     if !(AsyncTaskPriority::Normal < AsyncTaskPriority::Low) { return TestResult::Fail; }
@@ -34,46 +34,46 @@ pub fn test_async_task_priority_ordering() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_async_task_priority_default() -> TestResult {
+pub(crate) fn test_async_task_priority_default() -> TestResult {
     let priority: AsyncTaskPriority = Default::default();
     if priority != AsyncTaskPriority::Normal { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_async_task_priority_clone() -> TestResult {
+pub(crate) fn test_async_task_priority_clone() -> TestResult {
     let p1 = AsyncTaskPriority::High;
     let p2 = p1.clone();
     if p1 != p2 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_async_task_priority_copy() -> TestResult {
+pub(crate) fn test_async_task_priority_copy() -> TestResult {
     let p1 = AsyncTaskPriority::Critical;
     let p2 = p1;
     if p1 != p2 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_async_task_priority_equality() -> TestResult {
+pub(crate) fn test_async_task_priority_equality() -> TestResult {
     if AsyncTaskPriority::Normal != AsyncTaskPriority::Normal { return TestResult::Fail; }
     if AsyncTaskPriority::High == AsyncTaskPriority::Low { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_async_task_priority_debug() -> TestResult {
+pub(crate) fn test_async_task_priority_debug() -> TestResult {
     let debug_str = alloc::format!("{:?}", AsyncTaskPriority::Critical);
     if !debug_str.contains("Critical") { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_async_task_priority_partial_ord() -> TestResult {
+pub(crate) fn test_async_task_priority_partial_ord() -> TestResult {
     if !(AsyncTaskPriority::Critical <= AsyncTaskPriority::High) { return TestResult::Fail; }
     if !(AsyncTaskPriority::Idle >= AsyncTaskPriority::Low) { return TestResult::Fail; }
     if !(AsyncTaskPriority::Normal <= AsyncTaskPriority::Normal) { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_async_task_priority_ord_sort() -> TestResult {
+pub(crate) fn test_async_task_priority_ord_sort() -> TestResult {
     let mut priorities = [
         AsyncTaskPriority::Low,
         AsyncTaskPriority::Critical,
@@ -90,7 +90,7 @@ pub fn test_async_task_priority_ord_sort() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_executor_stats_snapshot_default_values() -> TestResult {
+pub(crate) fn test_executor_stats_snapshot_default_values() -> TestResult {
     let stats = ExecutorStatsSnapshot {
         tasks_spawned: 0,
         tasks_completed: 0,
@@ -104,7 +104,7 @@ pub fn test_executor_stats_snapshot_default_values() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_executor_stats_snapshot_with_values() -> TestResult {
+pub(crate) fn test_executor_stats_snapshot_with_values() -> TestResult {
     let stats = ExecutorStatsSnapshot {
         tasks_spawned: 100,
         tasks_completed: 50,
@@ -122,7 +122,7 @@ pub fn test_executor_stats_snapshot_with_values() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_executor_stats_snapshot_clone() -> TestResult {
+pub(crate) fn test_executor_stats_snapshot_clone() -> TestResult {
     let stats1 = ExecutorStatsSnapshot {
         tasks_spawned: 42,
         tasks_completed: 21,
@@ -138,7 +138,7 @@ pub fn test_executor_stats_snapshot_clone() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_executor_stats_snapshot_debug() -> TestResult {
+pub(crate) fn test_executor_stats_snapshot_debug() -> TestResult {
     let stats = ExecutorStatsSnapshot {
         tasks_spawned: 1,
         tasks_completed: 0,
@@ -152,7 +152,7 @@ pub fn test_executor_stats_snapshot_debug() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_all_async_task_priority_variants_unique() -> TestResult {
+pub(crate) fn test_all_async_task_priority_variants_unique() -> TestResult {
     let priorities = [
         AsyncTaskPriority::Critical,
         AsyncTaskPriority::High,
@@ -168,37 +168,37 @@ pub fn test_all_async_task_priority_variants_unique() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_async_task_priority_is_ord() -> TestResult {
+pub(crate) fn test_async_task_priority_is_ord() -> TestResult {
     fn is_ord<T: Ord>() {}
     is_ord::<AsyncTaskPriority>();
     TestResult::Pass
 }
 
-pub fn test_async_task_priority_is_partial_ord() -> TestResult {
+pub(crate) fn test_async_task_priority_is_partial_ord() -> TestResult {
     fn is_partial_ord<T: PartialOrd>() {}
     is_partial_ord::<AsyncTaskPriority>();
     TestResult::Pass
 }
 
-pub fn test_async_task_priority_is_eq() -> TestResult {
+pub(crate) fn test_async_task_priority_is_eq() -> TestResult {
     fn is_eq<T: Eq>() {}
     is_eq::<AsyncTaskPriority>();
     TestResult::Pass
 }
 
-pub fn test_async_task_priority_is_partial_eq() -> TestResult {
+pub(crate) fn test_async_task_priority_is_partial_eq() -> TestResult {
     fn is_partial_eq<T: PartialEq>() {}
     is_partial_eq::<AsyncTaskPriority>();
     TestResult::Pass
 }
 
-pub fn test_executor_stats_snapshot_is_clone() -> TestResult {
+pub(crate) fn test_executor_stats_snapshot_is_clone() -> TestResult {
     fn is_clone<T: Clone>() {}
     is_clone::<ExecutorStatsSnapshot>();
     TestResult::Pass
 }
 
-pub fn test_executor_stats_snapshot_is_debug() -> TestResult {
+pub(crate) fn test_executor_stats_snapshot_is_debug() -> TestResult {
     fn is_debug<T: core::fmt::Debug>() {}
     is_debug::<ExecutorStatsSnapshot>();
     TestResult::Pass
