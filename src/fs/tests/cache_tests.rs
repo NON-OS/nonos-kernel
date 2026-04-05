@@ -1,7 +1,7 @@
 use crate::fs::cache::*;
 use crate::test::framework::TestResult;
 
-pub fn test_cache_stats_default() -> TestResult {
+pub(crate) fn test_cache_stats_default() -> TestResult {
     let stats = CacheStats::default();
     if stats.hits != 0 { return TestResult::Fail; }
     if stats.misses != 0 { return TestResult::Fail; }
@@ -13,13 +13,13 @@ pub fn test_cache_stats_default() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_cache_stats_hit_ratio_zero() -> TestResult {
+pub(crate) fn test_cache_stats_hit_ratio_zero() -> TestResult {
     let stats = CacheStats::default();
     if !((stats.hit_ratio() - 0.0).abs() < 0.001) { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_cache_stats_hit_ratio_all_hits() -> TestResult {
+pub(crate) fn test_cache_stats_hit_ratio_all_hits() -> TestResult {
     let stats = CacheStats {
         hits: 100,
         misses: 0,
@@ -33,7 +33,7 @@ pub fn test_cache_stats_hit_ratio_all_hits() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_cache_stats_hit_ratio_all_misses() -> TestResult {
+pub(crate) fn test_cache_stats_hit_ratio_all_misses() -> TestResult {
     let stats = CacheStats {
         hits: 0,
         misses: 100,
@@ -47,7 +47,7 @@ pub fn test_cache_stats_hit_ratio_all_misses() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_cache_stats_hit_ratio_mixed() -> TestResult {
+pub(crate) fn test_cache_stats_hit_ratio_mixed() -> TestResult {
     let stats = CacheStats {
         hits: 75,
         misses: 25,
@@ -61,7 +61,7 @@ pub fn test_cache_stats_hit_ratio_mixed() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_cache_stats_clone() -> TestResult {
+pub(crate) fn test_cache_stats_clone() -> TestResult {
     let stats = CacheStats {
         hits: 100,
         misses: 50,
@@ -78,20 +78,20 @@ pub fn test_cache_stats_clone() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_cache_statistics_new() -> TestResult {
+pub(crate) fn test_cache_statistics_new() -> TestResult {
     let stats = CacheStatistics::new();
     if stats.hits.load(core::sync::atomic::Ordering::Relaxed) != 0 { return TestResult::Fail; }
     if stats.misses.load(core::sync::atomic::Ordering::Relaxed) != 0 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_cache_statistics_hit_ratio_zero() -> TestResult {
+pub(crate) fn test_cache_statistics_hit_ratio_zero() -> TestResult {
     let stats = CacheStatistics::new();
     if !((stats.hit_ratio() - 0.0).abs() < 0.001) { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_cache_statistics_reset() -> TestResult {
+pub(crate) fn test_cache_statistics_reset() -> TestResult {
     CACHE_STATS.hits.store(100, core::sync::atomic::Ordering::Relaxed);
     CACHE_STATS.misses.store(50, core::sync::atomic::Ordering::Relaxed);
     CACHE_STATS.reset();
@@ -100,27 +100,27 @@ pub fn test_cache_statistics_reset() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_cache_constants_max_cached_pages() -> TestResult {
+pub(crate) fn test_cache_constants_max_cached_pages() -> TestResult {
     if MAX_CACHED_PAGES != 4096 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_cache_constants_writeback_batch_size() -> TestResult {
+pub(crate) fn test_cache_constants_writeback_batch_size() -> TestResult {
     if WRITEBACK_BATCH_SIZE != 32 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_cache_constants_max_cached_inodes() -> TestResult {
+pub(crate) fn test_cache_constants_max_cached_inodes() -> TestResult {
     if MAX_CACHED_INODES != 1024 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_cache_constants_max_operation_retries() -> TestResult {
+pub(crate) fn test_cache_constants_max_operation_retries() -> TestResult {
     if MAX_OPERATION_RETRIES != 3 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_directory_entry_file() -> TestResult {
+pub(crate) fn test_directory_entry_file() -> TestResult {
     let entry = DirectoryEntry {
         name: alloc::string::String::from("test.txt"),
         inode: 42,
@@ -135,7 +135,7 @@ pub fn test_directory_entry_file() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_directory_entry_clone() -> TestResult {
+pub(crate) fn test_directory_entry_clone() -> TestResult {
     let entry = DirectoryEntry {
         name: alloc::string::String::from("subdir"),
         inode: 100,
@@ -149,7 +149,7 @@ pub fn test_directory_entry_clone() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_cached_inode_basic() -> TestResult {
+pub(crate) fn test_cached_inode_basic() -> TestResult {
     let inode = CachedInode {
         inode: 42,
         size: 1024,
@@ -171,7 +171,7 @@ pub fn test_cached_inode_basic() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_cached_inode_dirty() -> TestResult {
+pub(crate) fn test_cached_inode_dirty() -> TestResult {
     let inode = CachedInode {
         inode: 1,
         size: 0,
@@ -191,7 +191,7 @@ pub fn test_cached_inode_dirty() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_cached_inode_clone() -> TestResult {
+pub(crate) fn test_cached_inode_clone() -> TestResult {
     let inode = CachedInode {
         inode: 10,
         size: 512,
@@ -213,7 +213,7 @@ pub fn test_cached_inode_clone() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_dirty_page_basic() -> TestResult {
+pub(crate) fn test_dirty_page_basic() -> TestResult {
     let page = DirtyPage {
         offset: 4096,
         data: alloc::vec![1, 2, 3, 4],
@@ -223,7 +223,7 @@ pub fn test_dirty_page_basic() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_file_info_basic() -> TestResult {
+pub(crate) fn test_file_info_basic() -> TestResult {
     let info = FileInfo {
         path: alloc::string::String::from("/test/file.txt"),
         inode: 42,
@@ -236,7 +236,7 @@ pub fn test_file_info_basic() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_file_info_clone() -> TestResult {
+pub(crate) fn test_file_info_clone() -> TestResult {
     let info = FileInfo {
         path: alloc::string::String::from("/data/log"),
         inode: 100,
@@ -249,7 +249,7 @@ pub fn test_file_info_clone() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_get_cache_statistics() -> TestResult {
+pub(crate) fn test_get_cache_statistics() -> TestResult {
     CACHE_STATS.reset();
     CACHE_STATS.hits.store(100, core::sync::atomic::Ordering::Relaxed);
     CACHE_STATS.misses.store(50, core::sync::atomic::Ordering::Relaxed);
@@ -264,7 +264,7 @@ pub fn test_get_cache_statistics() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_get_cache_hit_ratio() -> TestResult {
+pub(crate) fn test_get_cache_hit_ratio() -> TestResult {
     CACHE_STATS.reset();
     CACHE_STATS.hits.store(80, core::sync::atomic::Ordering::Relaxed);
     CACHE_STATS.misses.store(20, core::sync::atomic::Ordering::Relaxed);
@@ -274,29 +274,29 @@ pub fn test_get_cache_hit_ratio() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_init_all_caches() -> TestResult {
+pub(crate) fn test_init_all_caches() -> TestResult {
     init_all_caches();
     TestResult::Pass
 }
 
-pub fn test_clear_all_caches() -> TestResult {
+pub(crate) fn test_clear_all_caches() -> TestResult {
     init_all_caches();
     clear_all_caches();
     TestResult::Pass
 }
 
-pub fn test_init_page_cache() -> TestResult {
+pub(crate) fn test_init_page_cache() -> TestResult {
     init_page_cache();
     TestResult::Pass
 }
 
-pub fn test_clear_page_cache() -> TestResult {
+pub(crate) fn test_clear_page_cache() -> TestResult {
     init_page_cache();
     clear_page_cache();
     TestResult::Pass
 }
 
-pub fn test_get_page_cache_stats() -> TestResult {
+pub(crate) fn test_get_page_cache_stats() -> TestResult {
     init_page_cache();
     let (pages, dirty, bytes) = get_page_cache_stats();
     if !(pages >= 0) { return TestResult::Fail; }
@@ -305,50 +305,50 @@ pub fn test_get_page_cache_stats() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_init_dentry_cache() -> TestResult {
+pub(crate) fn test_init_dentry_cache() -> TestResult {
     init_dentry_cache();
     TestResult::Pass
 }
 
-pub fn test_clear_dentry_cache() -> TestResult {
+pub(crate) fn test_clear_dentry_cache() -> TestResult {
     init_dentry_cache();
     clear_dentry_cache();
     TestResult::Pass
 }
 
-pub fn test_init_inode_cache() -> TestResult {
+pub(crate) fn test_init_inode_cache() -> TestResult {
     init_inode_cache();
     TestResult::Pass
 }
 
-pub fn test_clear_inode_cache() -> TestResult {
+pub(crate) fn test_clear_inode_cache() -> TestResult {
     init_inode_cache();
     clear_inode_cache();
     TestResult::Pass
 }
 
-pub fn test_cleanup_unused_inodes() -> TestResult {
+pub(crate) fn test_cleanup_unused_inodes() -> TestResult {
     init_inode_cache();
     let removed = cleanup_unused_inodes(10);
     if !(removed >= 0) { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_update_inode_timestamps() -> TestResult {
+pub(crate) fn test_update_inode_timestamps() -> TestResult {
     init_inode_cache();
     let updated = update_inode_timestamps(10);
     if !(updated >= 0) { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_writeback_dirty_inodes() -> TestResult {
+pub(crate) fn test_writeback_dirty_inodes() -> TestResult {
     init_inode_cache();
     let written = writeback_dirty_inodes(10);
     if !(written >= 0) { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_get_full_cache_statistics() -> TestResult {
+pub(crate) fn test_get_full_cache_statistics() -> TestResult {
     init_all_caches();
     let stats = get_full_cache_statistics();
     if !(stats.pages_used >= 0) { return TestResult::Fail; }
@@ -356,7 +356,7 @@ pub fn test_get_full_cache_statistics() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_lookup_dentry_not_found() -> TestResult {
+pub(crate) fn test_lookup_dentry_not_found() -> TestResult {
     init_dentry_cache();
     clear_dentry_cache();
     let result = lookup_dentry("/nonexistent/path");
@@ -364,7 +364,7 @@ pub fn test_lookup_dentry_not_found() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_update_directory_entry() -> TestResult {
+pub(crate) fn test_update_directory_entry() -> TestResult {
     init_dentry_cache();
     let entry = DirectoryEntry {
         name: alloc::string::String::from("/test/entry"),
@@ -378,7 +378,7 @@ pub fn test_update_directory_entry() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_lookup_dentry_after_insert() -> TestResult {
+pub(crate) fn test_lookup_dentry_after_insert() -> TestResult {
     init_dentry_cache();
     let entry = DirectoryEntry {
         name: alloc::string::String::from("/test/lookup"),
@@ -394,7 +394,7 @@ pub fn test_lookup_dentry_after_insert() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_remove_dentry() -> TestResult {
+pub(crate) fn test_remove_dentry() -> TestResult {
     init_dentry_cache();
     let entry = DirectoryEntry {
         name: alloc::string::String::from("/test/remove"),
@@ -410,7 +410,7 @@ pub fn test_remove_dentry() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_queue_dentry_update() -> TestResult {
+pub(crate) fn test_queue_dentry_update() -> TestResult {
     init_dentry_cache();
     let entry = DirectoryEntry {
         name: alloc::string::String::from("/test/queue"),
@@ -423,28 +423,28 @@ pub fn test_queue_dentry_update() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_get_pending_dentry_updates() -> TestResult {
+pub(crate) fn test_get_pending_dentry_updates() -> TestResult {
     init_dentry_cache();
     let updates = get_pending_dentry_updates();
     if !(updates.len() <= 32) { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_process_inode_cache_maintenance() -> TestResult {
+pub(crate) fn test_process_inode_cache_maintenance() -> TestResult {
     init_inode_cache();
     let processed = process_inode_cache_maintenance(100);
     if !(processed >= 0) { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_cache_page() -> TestResult {
+pub(crate) fn test_cache_page() -> TestResult {
     init_page_cache();
     let data = alloc::vec![1u8, 2, 3, 4, 5, 6, 7, 8];
     cache_page(1, 0, data, false);
     TestResult::Pass
 }
 
-pub fn test_get_cached_page() -> TestResult {
+pub(crate) fn test_get_cached_page() -> TestResult {
     init_page_cache();
     let data = alloc::vec![10u8, 20, 30, 40];
     cache_page(2, 4096, data.clone(), false);
@@ -454,14 +454,14 @@ pub fn test_get_cached_page() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_get_cached_page_not_found() -> TestResult {
+pub(crate) fn test_get_cached_page_not_found() -> TestResult {
     init_page_cache();
     let cached = get_cached_page(99999, 0);
     if !cached.is_none() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_mark_page_clean() -> TestResult {
+pub(crate) fn test_mark_page_clean() -> TestResult {
     init_page_cache();
     let data = alloc::vec![1u8, 2, 3];
     cache_page(3, 0, data, true);
@@ -469,7 +469,7 @@ pub fn test_mark_page_clean() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_cache_inode() -> TestResult {
+pub(crate) fn test_cache_inode() -> TestResult {
     init_inode_cache();
     let inode = CachedInode {
         inode: 42,
@@ -489,7 +489,7 @@ pub fn test_cache_inode() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_get_cached_inode() -> TestResult {
+pub(crate) fn test_get_cached_inode() -> TestResult {
     init_inode_cache();
     let inode = CachedInode {
         inode: 100,
@@ -512,7 +512,7 @@ pub fn test_get_cached_inode() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_get_cached_inode_not_found() -> TestResult {
+pub(crate) fn test_get_cached_inode_not_found() -> TestResult {
     init_inode_cache();
     let cached = get_cached_inode(99999);
     if !cached.is_none() { return TestResult::Fail; }
