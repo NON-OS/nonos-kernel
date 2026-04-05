@@ -17,7 +17,7 @@
 use crate::drivers::nvme::constants;
 use crate::test::framework::TestResult;
 
-pub fn test_constants() -> TestResult {
+pub(crate) fn test_constants() -> TestResult {
     if constants::PAGE_SIZE != 4096 { return TestResult::Fail; }
     if constants::ADMIN_QUEUE_DEPTH != 32 { return TestResult::Fail; }
     if constants::IO_QUEUE_DEPTH != 256 { return TestResult::Fail; }
@@ -26,7 +26,7 @@ pub fn test_constants() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_doorbell_calculation() -> TestResult {
+pub(crate) fn test_doorbell_calculation() -> TestResult {
     let dstrd = 0;
     let qid = 1;
 
@@ -38,7 +38,7 @@ pub fn test_doorbell_calculation() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_cap_helpers() -> TestResult {
+pub(crate) fn test_cap_helpers() -> TestResult {
     let cap: u64 = 0x00200028_0002_01FF;
 
     if constants::cap_mqes(cap) != 0x01FF { return TestResult::Fail; }
@@ -46,14 +46,14 @@ pub fn test_cap_helpers() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_aqa_encoding() -> TestResult {
+pub(crate) fn test_aqa_encoding() -> TestResult {
     let aqa = constants::aqa(32, 32);
     if aqa & 0xFFF != 31 { return TestResult::Fail; }
     if (aqa >> 16) & 0xFFF != 31 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_version_parsing() -> TestResult {
+pub(crate) fn test_version_parsing() -> TestResult {
     if constants::version_major(0x00010400) != 1 { return TestResult::Fail; }
     if constants::version_minor(0x00010400) != 4 { return TestResult::Fail; }
     if constants::version_tertiary(0x00010400) != 0 { return TestResult::Fail; }

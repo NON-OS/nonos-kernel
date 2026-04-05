@@ -17,7 +17,7 @@
 use crate::drivers::nvme::{constants, types};
 use crate::test::framework::TestResult;
 
-pub fn test_controller_capabilities() -> TestResult {
+pub(crate) fn test_controller_capabilities() -> TestResult {
     let cap: u64 = 0x0014_0000_0020_00FF;
     let caps = types::ControllerCapabilities::from_register(cap);
 
@@ -26,7 +26,7 @@ pub fn test_controller_capabilities() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_controller_version() -> TestResult {
+pub(crate) fn test_controller_version() -> TestResult {
     let vs: u32 = 0x0001_0400;
     let version = types::ControllerVersion::from_register(vs);
 
@@ -39,7 +39,7 @@ pub fn test_controller_version() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_lba_format() -> TestResult {
+pub(crate) fn test_lba_format() -> TestResult {
     let dword: u32 = 0x0009_0000;
     let format = types::LbaFormat::from_dword(dword);
 
@@ -49,7 +49,7 @@ pub fn test_lba_format() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_lba_format_4k() -> TestResult {
+pub(crate) fn test_lba_format_4k() -> TestResult {
     let dword: u32 = 0x000C_0000;
     let format = types::LbaFormat::from_dword(dword);
 
@@ -58,7 +58,7 @@ pub fn test_lba_format_4k() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_dsm_range() -> TestResult {
+pub(crate) fn test_dsm_range() -> TestResult {
     let range = types::DsmRange::new(0x1000, 8, constants::DSM_ATTR_DEALLOCATE);
 
     if range.starting_lba != 0x1000 { return TestResult::Fail; }

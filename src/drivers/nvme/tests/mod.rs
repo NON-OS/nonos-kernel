@@ -24,7 +24,7 @@ pub mod types;
 
 use crate::test::framework::TestSuite;
 
-pub fn run_all() -> TestSuite {
+pub fn run_all() -> bool {
     let mut suite = TestSuite::new("nvme");
 
     // commands tests (7 tests)
@@ -71,5 +71,5 @@ pub fn run_all() -> TestSuite {
     suite.add_test("test_lba_format_4k", types::test_lba_format_4k);
     suite.add_test("test_dsm_range", types::test_dsm_range);
 
-    suite
+    suite.run()
 }

@@ -17,7 +17,7 @@
 use crate::drivers::nvme::{constants, types};
 use crate::test::framework::TestResult;
 
-pub fn test_submission_entry_creation() -> TestResult {
+pub(crate) fn test_submission_entry_creation() -> TestResult {
     let entry = types::SubmissionEntry::new();
     if entry.opcode() != 0 { return TestResult::Fail; }
     if entry.cid() != 0 { return TestResult::Fail; }
@@ -25,7 +25,7 @@ pub fn test_submission_entry_creation() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_submission_entry_opcode_cid() -> TestResult {
+pub(crate) fn test_submission_entry_opcode_cid() -> TestResult {
     let mut entry = types::SubmissionEntry::new();
     entry.set_opcode(0x02);
     entry.set_cid(0x1234);
@@ -35,7 +35,7 @@ pub fn test_submission_entry_opcode_cid() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_submission_entry_sanitize() -> TestResult {
+pub(crate) fn test_submission_entry_sanitize() -> TestResult {
     let mut entry = types::SubmissionEntry::new();
     entry.set_opcode(constants::IO_OPC_READ);
     entry.cdw2 = 0xDEADBEEF;
@@ -50,7 +50,7 @@ pub fn test_submission_entry_sanitize() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_completion_entry_status() -> TestResult {
+pub(crate) fn test_completion_entry_status() -> TestResult {
     let entry = types::CompletionEntry {
         dw0: 0,
         dw1: 0,
@@ -66,7 +66,7 @@ pub fn test_completion_entry_status() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_completion_entry_error() -> TestResult {
+pub(crate) fn test_completion_entry_error() -> TestResult {
     let entry = types::CompletionEntry {
         dw0: 0,
         dw1: 0,

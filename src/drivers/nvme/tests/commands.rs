@@ -17,7 +17,7 @@
 use crate::drivers::nvme::{constants, types};
 use crate::test::framework::TestResult;
 
-pub fn test_build_identify_command() -> TestResult {
+pub(crate) fn test_build_identify_command() -> TestResult {
     let cmd =
         types::SubmissionEntry::build_identify(0x10, 1, constants::CNS_NAMESPACE, 0x1000);
 
@@ -29,7 +29,7 @@ pub fn test_build_identify_command() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_build_read_command() -> TestResult {
+pub(crate) fn test_build_read_command() -> TestResult {
     let cmd = types::SubmissionEntry::build_read(0x20, 1, 0x1000, 8, 0x2000, 0x3000);
 
     if cmd.opcode() != constants::IO_OPC_READ { return TestResult::Fail; }
@@ -43,7 +43,7 @@ pub fn test_build_read_command() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_build_write_command() -> TestResult {
+pub(crate) fn test_build_write_command() -> TestResult {
     let cmd = types::SubmissionEntry::build_write(0x30, 1, 0x2000, 16, 0x4000, 0x5000);
 
     if cmd.opcode() != constants::IO_OPC_WRITE { return TestResult::Fail; }
@@ -54,7 +54,7 @@ pub fn test_build_write_command() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_build_flush_command() -> TestResult {
+pub(crate) fn test_build_flush_command() -> TestResult {
     let cmd = types::SubmissionEntry::build_flush(0x40, 1);
 
     if cmd.opcode() != constants::IO_OPC_FLUSH { return TestResult::Fail; }
@@ -63,7 +63,7 @@ pub fn test_build_flush_command() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_build_dsm_command() -> TestResult {
+pub(crate) fn test_build_dsm_command() -> TestResult {
     let cmd =
         types::SubmissionEntry::build_dsm(0x50, 1, 4, constants::DSM_ATTR_DEALLOCATE, 0x6000);
 
@@ -76,7 +76,7 @@ pub fn test_build_dsm_command() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_build_create_cq_command() -> TestResult {
+pub(crate) fn test_build_create_cq_command() -> TestResult {
     let cmd = types::SubmissionEntry::build_create_cq(0x60, 1, 256, 0x7000, 0, true);
 
     if cmd.opcode() != constants::ADMIN_OPC_CREATE_CQ { return TestResult::Fail; }
@@ -88,7 +88,7 @@ pub fn test_build_create_cq_command() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_build_create_sq_command() -> TestResult {
+pub(crate) fn test_build_create_sq_command() -> TestResult {
     let cmd = types::SubmissionEntry::build_create_sq(0x70, 1, 256, 0x8000, 1, 0);
 
     if cmd.opcode() != constants::ADMIN_OPC_CREATE_SQ { return TestResult::Fail; }

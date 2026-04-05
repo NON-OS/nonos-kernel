@@ -20,7 +20,7 @@ use alloc::vec;
 use crate::drivers::nvme::namespace;
 use crate::test::framework::TestResult;
 
-pub fn test_namespace_lba_validation() -> TestResult {
+pub(crate) fn test_namespace_lba_validation() -> TestResult {
     let mut ns_data = [0u8; 4096];
 
     ns_data[0x00..0x08].copy_from_slice(&1000u64.to_le_bytes());
@@ -42,7 +42,7 @@ pub fn test_namespace_lba_validation() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_namespace_manager() -> TestResult {
+pub(crate) fn test_namespace_manager() -> TestResult {
     let mut manager = namespace::NamespaceManager::new();
 
     let mut ns_data = [0u8; 4096];
@@ -72,7 +72,7 @@ pub fn test_namespace_manager() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_namespace_list_parsing() -> TestResult {
+pub(crate) fn test_namespace_list_parsing() -> TestResult {
     let mut data = [0u8; 4096];
     data[0..4].copy_from_slice(&1u32.to_le_bytes());
     data[4..8].copy_from_slice(&2u32.to_le_bytes());

@@ -17,7 +17,7 @@
 use crate::drivers::nvme::stats;
 use crate::test::framework::TestResult;
 
-pub fn test_stats_atomic_operations() -> TestResult {
+pub(crate) fn test_stats_atomic_operations() -> TestResult {
     let stats = stats::NvmeStats::new();
 
     stats.record_submit();
@@ -38,7 +38,7 @@ pub fn test_stats_atomic_operations() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_security_stats() -> TestResult {
+pub(crate) fn test_security_stats() -> TestResult {
     let stats = stats::SecurityStats::new();
 
     stats.record_rate_limit();
