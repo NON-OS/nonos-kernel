@@ -21,7 +21,7 @@ pub mod validation;
 
 use crate::test::framework::TestSuite;
 
-pub fn run_all() -> TestSuite {
+pub fn run_all() -> bool {
     let mut suite = TestSuite::new("virtio_net");
 
     // constants tests
@@ -192,5 +192,5 @@ pub fn run_all() -> TestSuite {
     suite.add_test("test_ethertype_equality", validation::test_ethertype_equality);
     suite.add_test("test_ethertype_other_values", validation::test_ethertype_other_values);
 
-    suite
+    suite.run()
 }
