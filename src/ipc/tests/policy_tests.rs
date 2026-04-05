@@ -4,121 +4,121 @@
 use crate::ipc::nonos_policy::capability::IpcCapability;
 use crate::ipc::nonos_policy::violation::PolicyViolation;
 use crate::ipc::nonos_message::types::SecurityLevel;
+use crate::test::framework::TestResult;
 use alloc::string::String;
 
-#[test]
-fn test_ipc_capability_send() {
+pub fn test_ipc_capability_send() -> TestResult {
     let cap = IpcCapability::Send;
-    assert_eq!(cap.name(), "Send");
-    assert_eq!(cap as u64, 1 << 0);
+    if cap.name() != "Send" { return TestResult::Fail; }
+    if cap as u64 != 1 << 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_ipc_capability_receive() {
+pub fn test_ipc_capability_receive() -> TestResult {
     let cap = IpcCapability::Receive;
-    assert_eq!(cap.name(), "Receive");
-    assert_eq!(cap as u64, 1 << 1);
+    if cap.name() != "Receive" { return TestResult::Fail; }
+    if cap as u64 != 1 << 1 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_ipc_capability_create_channel() {
+pub fn test_ipc_capability_create_channel() -> TestResult {
     let cap = IpcCapability::CreateChannel;
-    assert_eq!(cap.name(), "CreateChannel");
-    assert_eq!(cap as u64, 1 << 2);
+    if cap.name() != "CreateChannel" { return TestResult::Fail; }
+    if cap as u64 != 1 << 2 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_ipc_capability_kernel_access() {
+pub fn test_ipc_capability_kernel_access() -> TestResult {
     let cap = IpcCapability::KernelAccess;
-    assert_eq!(cap.name(), "KernelAccess");
-    assert_eq!(cap as u64, 1 << 3);
+    if cap.name() != "KernelAccess" { return TestResult::Fail; }
+    if cap as u64 != 1 << 3 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_ipc_capability_allow_unsigned() {
+pub fn test_ipc_capability_allow_unsigned() -> TestResult {
     let cap = IpcCapability::AllowUnsigned;
-    assert_eq!(cap.name(), "AllowUnsigned");
-    assert_eq!(cap as u64, 1 << 4);
+    if cap.name() != "AllowUnsigned" { return TestResult::Fail; }
+    if cap as u64 != 1 << 4 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_ipc_capability_large_messages() {
+pub fn test_ipc_capability_large_messages() -> TestResult {
     let cap = IpcCapability::LargeMessages;
-    assert_eq!(cap.name(), "LargeMessages");
-    assert_eq!(cap as u64, 1 << 5);
+    if cap.name() != "LargeMessages" { return TestResult::Fail; }
+    if cap as u64 != 1 << 5 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_ipc_capability_unlimited_rate() {
+pub fn test_ipc_capability_unlimited_rate() -> TestResult {
     let cap = IpcCapability::UnlimitedRate;
-    assert_eq!(cap.name(), "UnlimitedRate");
-    assert_eq!(cap as u64, 1 << 6);
+    if cap.name() != "UnlimitedRate" { return TestResult::Fail; }
+    if cap as u64 != 1 << 6 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_ipc_capability_network_access() {
+pub fn test_ipc_capability_network_access() -> TestResult {
     let cap = IpcCapability::NetworkAccess;
-    assert_eq!(cap.name(), "NetworkAccess");
-    assert_eq!(cap as u64, 1 << 7);
+    if cap.name() != "NetworkAccess" { return TestResult::Fail; }
+    if cap as u64 != 1 << 7 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_ipc_capability_filesystem_access() {
+pub fn test_ipc_capability_filesystem_access() -> TestResult {
     let cap = IpcCapability::FilesystemAccess;
-    assert_eq!(cap.name(), "FilesystemAccess");
-    assert_eq!(cap as u64, 1 << 8);
+    if cap.name() != "FilesystemAccess" { return TestResult::Fail; }
+    if cap as u64 != 1 << 8 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_ipc_capability_crypto_access() {
+pub fn test_ipc_capability_crypto_access() -> TestResult {
     let cap = IpcCapability::CryptoAccess;
-    assert_eq!(cap.name(), "CryptoAccess");
-    assert_eq!(cap as u64, 1 << 9);
+    if cap.name() != "CryptoAccess" { return TestResult::Fail; }
+    if cap as u64 != 1 << 9 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_ipc_capability_security_access() {
+pub fn test_ipc_capability_security_access() -> TestResult {
     let cap = IpcCapability::SecurityAccess;
-    assert_eq!(cap.name(), "SecurityAccess");
-    assert_eq!(cap as u64, 1 << 10);
+    if cap.name() != "SecurityAccess" { return TestResult::Fail; }
+    if cap as u64 != 1 << 10 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_ipc_capability_broadcast() {
+pub fn test_ipc_capability_broadcast() -> TestResult {
     let cap = IpcCapability::Broadcast;
-    assert_eq!(cap.name(), "Broadcast");
-    assert_eq!(cap as u64, 1 << 11);
+    if cap.name() != "Broadcast" { return TestResult::Fail; }
+    if cap as u64 != 1 << 11 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_ipc_capability_clone() {
+pub fn test_ipc_capability_clone() -> TestResult {
     let cap = IpcCapability::Send;
     let cloned = cap.clone();
-    assert_eq!(cap, cloned);
+    if cap != cloned { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_ipc_capability_copy() {
+pub fn test_ipc_capability_copy() -> TestResult {
     let cap = IpcCapability::Receive;
     let copied = cap;
-    assert_eq!(cap, copied);
+    if cap != copied { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_ipc_capability_equality() {
-    assert_eq!(IpcCapability::Send, IpcCapability::Send);
-    assert_ne!(IpcCapability::Send, IpcCapability::Receive);
+pub fn test_ipc_capability_equality() -> TestResult {
+    if IpcCapability::Send != IpcCapability::Send { return TestResult::Fail; }
+    if IpcCapability::Send == IpcCapability::Receive { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_ipc_capability_debug() {
+pub fn test_ipc_capability_debug() -> TestResult {
     let cap = IpcCapability::KernelAccess;
     let debug_str = alloc::format!("{:?}", cap);
-    assert!(debug_str.contains("KernelAccess"));
+    if !debug_str.contains("KernelAccess") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_ipc_capability_all_have_names() {
+pub fn test_ipc_capability_all_have_names() -> TestResult {
     let caps = [
         IpcCapability::Send,
         IpcCapability::Receive,
@@ -134,12 +134,12 @@ fn test_ipc_capability_all_have_names() {
         IpcCapability::Broadcast,
     ];
     for cap in caps {
-        assert!(!cap.name().is_empty());
+        if cap.name().is_empty() { return TestResult::Fail; }
     }
+    TestResult::Pass
 }
 
-#[test]
-fn test_ipc_capability_unique_values() {
+pub fn test_ipc_capability_unique_values() -> TestResult {
     let caps = [
         IpcCapability::Send,
         IpcCapability::Receive,
@@ -158,14 +158,14 @@ fn test_ipc_capability_unique_values() {
     for (i, v1) in values.iter().enumerate() {
         for (j, v2) in values.iter().enumerate() {
             if i != j {
-                assert_ne!(v1, v2);
+                if v1 == v2 { return TestResult::Fail; }
             }
         }
     }
+    TestResult::Pass
 }
 
-#[test]
-fn test_ipc_capability_are_powers_of_two() {
+pub fn test_ipc_capability_are_powers_of_two() -> TestResult {
     let caps = [
         IpcCapability::Send,
         IpcCapability::Receive,
@@ -182,181 +182,181 @@ fn test_ipc_capability_are_powers_of_two() {
     ];
     for cap in caps {
         let val = cap as u64;
-        assert!(val.is_power_of_two());
+        if !val.is_power_of_two() { return TestResult::Fail; }
     }
+    TestResult::Pass
 }
 
-#[test]
-fn test_policy_violation_message_too_large() {
+pub fn test_policy_violation_message_too_large() -> TestResult {
     let v = PolicyViolation::MessageTooLarge { size: 100000, limit: 65536 };
     let display = alloc::format!("{}", v);
-    assert!(display.contains("100000"));
-    assert!(display.contains("65536"));
+    if !display.contains("100000") { return TestResult::Fail; }
+    if !display.contains("65536") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_policy_violation_destination_blocked() {
+pub fn test_policy_violation_destination_blocked() -> TestResult {
     let v = PolicyViolation::DestinationBlocked {
         from: String::from("moduleA"),
         to: String::from("moduleB"),
     };
     let display = alloc::format!("{}", v);
-    assert!(display.contains("moduleA"));
-    assert!(display.contains("moduleB"));
+    if !display.contains("moduleA") { return TestResult::Fail; }
+    if !display.contains("moduleB") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_policy_violation_security_level_insufficient() {
+pub fn test_policy_violation_security_level_insufficient() -> TestResult {
     let v = PolicyViolation::SecurityLevelInsufficient {
         required: SecurityLevel::Encrypted,
         actual: SecurityLevel::None,
     };
     let display = alloc::format!("{}", v);
-    assert!(display.contains("Encrypted"));
-    assert!(display.contains("None"));
+    if !display.contains("Encrypted") { return TestResult::Fail; }
+    if !display.contains("None") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_policy_violation_rate_limit_exceeded() {
+pub fn test_policy_violation_rate_limit_exceeded() -> TestResult {
     let v = PolicyViolation::RateLimitExceeded {
         module: String::from("spammer"),
         limit: 1000,
     };
     let display = alloc::format!("{}", v);
-    assert!(display.contains("spammer"));
-    assert!(display.contains("1000"));
+    if !display.contains("spammer") { return TestResult::Fail; }
+    if !display.contains("1000") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_policy_violation_missing_capability() {
+pub fn test_policy_violation_missing_capability() -> TestResult {
     let v = PolicyViolation::MissingCapability {
         module: String::from("untrusted"),
         capability: IpcCapability::KernelAccess,
     };
     let display = alloc::format!("{}", v);
-    assert!(display.contains("untrusted"));
-    assert!(display.contains("KernelAccess"));
+    if !display.contains("untrusted") { return TestResult::Fail; }
+    if !display.contains("KernelAccess") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_policy_violation_invalid_token() {
+pub fn test_policy_violation_invalid_token() -> TestResult {
     let v = PolicyViolation::InvalidToken {
         module: String::from("badactor"),
         reason: "expired",
     };
     let display = alloc::format!("{}", v);
-    assert!(display.contains("badactor"));
-    assert!(display.contains("expired"));
+    if !display.contains("badactor") { return TestResult::Fail; }
+    if !display.contains("expired") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_policy_violation_channel_creation_denied() {
+pub fn test_policy_violation_channel_creation_denied() -> TestResult {
     let v = PolicyViolation::ChannelCreationDenied {
         from: String::from("user"),
         to: String::from("kernel"),
     };
     let display = alloc::format!("{}", v);
-    assert!(display.contains("user"));
-    assert!(display.contains("kernel"));
+    if !display.contains("user") { return TestResult::Fail; }
+    if !display.contains("kernel") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_policy_violation_clone() {
+pub fn test_policy_violation_clone() -> TestResult {
     let v = PolicyViolation::MessageTooLarge { size: 100, limit: 50 };
     let cloned = v.clone();
-    assert_eq!(v, cloned);
+    if v != cloned { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_policy_violation_equality() {
+pub fn test_policy_violation_equality() -> TestResult {
     let v1 = PolicyViolation::MessageTooLarge { size: 100, limit: 50 };
     let v2 = PolicyViolation::MessageTooLarge { size: 100, limit: 50 };
     let v3 = PolicyViolation::MessageTooLarge { size: 200, limit: 50 };
-    assert_eq!(v1, v2);
-    assert_ne!(v1, v3);
+    if v1 != v2 { return TestResult::Fail; }
+    if v1 == v3 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_policy_violation_debug() {
+pub fn test_policy_violation_debug() -> TestResult {
     let v = PolicyViolation::MessageTooLarge { size: 100, limit: 50 };
     let debug_str = alloc::format!("{:?}", v);
-    assert!(debug_str.contains("MessageTooLarge"));
+    if !debug_str.contains("MessageTooLarge") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_policy_violation_different_variants() {
+pub fn test_policy_violation_different_variants() -> TestResult {
     let v1 = PolicyViolation::MessageTooLarge { size: 100, limit: 50 };
     let v2 = PolicyViolation::DestinationBlocked {
         from: String::from("a"),
         to: String::from("b"),
     };
-    assert_ne!(v1, v2);
+    if v1 == v2 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_capability_combination_example() {
+pub fn test_capability_combination_example() -> TestResult {
     let send = IpcCapability::Send as u64;
     let receive = IpcCapability::Receive as u64;
     let combined = send | receive;
-    assert_eq!(combined, 0b11);
-    assert!((combined & send) != 0);
-    assert!((combined & receive) != 0);
+    if combined != 0b11 { return TestResult::Fail; }
+    if (combined & send) == 0 { return TestResult::Fail; }
+    if (combined & receive) == 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_capability_check_example() {
+pub fn test_capability_check_example() -> TestResult {
     let required = IpcCapability::KernelAccess as u64;
     let granted = IpcCapability::Send as u64 | IpcCapability::Receive as u64;
-    assert!((granted & required) == 0);
+    if (granted & required) != 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_capability_all_granted_example() {
+pub fn test_capability_all_granted_example() -> TestResult {
     let required = IpcCapability::Send as u64 | IpcCapability::Receive as u64;
     let granted = IpcCapability::Send as u64 | IpcCapability::Receive as u64 | IpcCapability::CreateChannel as u64;
-    assert!((granted & required) == required);
+    if (granted & required) != required { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_security_level_in_violation() {
+pub fn test_security_level_in_violation() -> TestResult {
     let v = PolicyViolation::SecurityLevelInsufficient {
         required: SecurityLevel::Signed,
         actual: SecurityLevel::None,
     };
     if let PolicyViolation::SecurityLevelInsufficient { required, actual } = v {
-        assert_eq!(required, SecurityLevel::Signed);
-        assert_eq!(actual, SecurityLevel::None);
+        if required != SecurityLevel::Signed { return TestResult::Fail; }
+        if actual != SecurityLevel::None { return TestResult::Fail; }
     }
+    TestResult::Pass
 }
 
-#[test]
-fn test_capability_in_violation() {
+pub fn test_capability_in_violation() -> TestResult {
     let v = PolicyViolation::MissingCapability {
         module: String::from("test"),
         capability: IpcCapability::Broadcast,
     };
     if let PolicyViolation::MissingCapability { capability, .. } = v {
-        assert_eq!(capability, IpcCapability::Broadcast);
+        if capability != IpcCapability::Broadcast { return TestResult::Fail; }
     }
+    TestResult::Pass
 }
 
-#[test]
-fn test_policy_violation_with_empty_strings() {
+pub fn test_policy_violation_with_empty_strings() -> TestResult {
     let v = PolicyViolation::DestinationBlocked {
         from: String::new(),
         to: String::new(),
     };
     let display = alloc::format!("{}", v);
-    assert!(display.contains("->"));
+    if !display.contains("->") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_policy_violation_with_long_module_names() {
+pub fn test_policy_violation_with_long_module_names() -> TestResult {
     let v = PolicyViolation::RateLimitExceeded {
         module: String::from("very_long_module_name_that_exceeds_normal_length"),
         limit: 100,
     };
     let display = alloc::format!("{}", v);
-    assert!(display.contains("very_long_module_name"));
+    if !display.contains("very_long_module_name") { return TestResult::Fail; }
+    TestResult::Pass
 }
-

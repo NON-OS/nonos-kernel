@@ -5,29 +5,29 @@ use crate::ipc::nonos_transport::error::TransportError;
 use crate::ipc::nonos_transport::frame::{
     FrameHeader, FRAME_MAGIC, FRAME_VERSION, FLAG_EOF, FRAME_HEADER_SIZE, parse_frame,
 };
+use crate::test::framework::TestResult;
 
-#[test]
-fn test_frame_magic_constant() {
-    assert_eq!(FRAME_MAGIC, 0x5354_524D);
+pub fn test_frame_magic_constant() -> TestResult {
+    if FRAME_MAGIC != 0x5354_524D { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_frame_version_constant() {
-    assert_eq!(FRAME_VERSION, 1);
+pub fn test_frame_version_constant() -> TestResult {
+    if FRAME_VERSION != 1 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_flag_eof_constant() {
-    assert_eq!(FLAG_EOF, 0x01);
+pub fn test_flag_eof_constant() -> TestResult {
+    if FLAG_EOF != 0x01 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_frame_header_size_constant() {
-    assert_eq!(FRAME_HEADER_SIZE, 23);
+pub fn test_frame_header_size_constant() -> TestResult {
+    if FRAME_HEADER_SIZE != 23 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_frame_header_is_eof_true() {
+pub fn test_frame_header_is_eof_true() -> TestResult {
     let header = FrameHeader {
         magic: FRAME_MAGIC,
         version: FRAME_VERSION,
@@ -36,11 +36,11 @@ fn test_frame_header_is_eof_true() {
         total: 1,
         flags: FLAG_EOF,
     };
-    assert!(header.is_eof());
+    if !header.is_eof() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_frame_header_is_eof_false() {
+pub fn test_frame_header_is_eof_false() -> TestResult {
     let header = FrameHeader {
         magic: FRAME_MAGIC,
         version: FRAME_VERSION,
@@ -49,11 +49,11 @@ fn test_frame_header_is_eof_false() {
         total: 2,
         flags: 0,
     };
-    assert!(!header.is_eof());
+    if header.is_eof() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_frame_header_to_bytes_size() {
+pub fn test_frame_header_to_bytes_size() -> TestResult {
     let header = FrameHeader {
         magic: FRAME_MAGIC,
         version: FRAME_VERSION,
@@ -63,11 +63,11 @@ fn test_frame_header_to_bytes_size() {
         flags: 0,
     };
     let bytes = header.to_bytes();
-    assert_eq!(bytes.len(), FRAME_HEADER_SIZE);
+    if bytes.len() != FRAME_HEADER_SIZE { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_frame_header_to_bytes_magic() {
+pub fn test_frame_header_to_bytes_magic() -> TestResult {
     let header = FrameHeader {
         magic: FRAME_MAGIC,
         version: FRAME_VERSION,
@@ -78,11 +78,11 @@ fn test_frame_header_to_bytes_magic() {
     };
     let bytes = header.to_bytes();
     let magic = u32::from_le_bytes([bytes[0], bytes[1], bytes[2], bytes[3]]);
-    assert_eq!(magic, FRAME_MAGIC);
+    if magic != FRAME_MAGIC { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_frame_header_to_bytes_version() {
+pub fn test_frame_header_to_bytes_version() -> TestResult {
     let header = FrameHeader {
         magic: FRAME_MAGIC,
         version: FRAME_VERSION,
@@ -93,11 +93,11 @@ fn test_frame_header_to_bytes_version() {
     };
     let bytes = header.to_bytes();
     let version = u16::from_le_bytes([bytes[4], bytes[5]]);
-    assert_eq!(version, FRAME_VERSION);
+    if version != FRAME_VERSION { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_frame_header_to_bytes_stream_id() {
+pub fn test_frame_header_to_bytes_stream_id() -> TestResult {
     let header = FrameHeader {
         magic: FRAME_MAGIC,
         version: FRAME_VERSION,
@@ -111,11 +111,11 @@ fn test_frame_header_to_bytes_stream_id() {
         bytes[6], bytes[7], bytes[8], bytes[9],
         bytes[10], bytes[11], bytes[12], bytes[13],
     ]);
-    assert_eq!(stream_id, 0x1234_5678_9ABC_DEF0);
+    if stream_id != 0x1234_5678_9ABC_DEF0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_frame_header_to_bytes_seq() {
+pub fn test_frame_header_to_bytes_seq() -> TestResult {
     let header = FrameHeader {
         magic: FRAME_MAGIC,
         version: FRAME_VERSION,
@@ -126,11 +126,11 @@ fn test_frame_header_to_bytes_seq() {
     };
     let bytes = header.to_bytes();
     let seq = u32::from_le_bytes([bytes[14], bytes[15], bytes[16], bytes[17]]);
-    assert_eq!(seq, 42);
+    if seq != 42 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_frame_header_to_bytes_total() {
+pub fn test_frame_header_to_bytes_total() -> TestResult {
     let header = FrameHeader {
         magic: FRAME_MAGIC,
         version: FRAME_VERSION,
@@ -141,11 +141,11 @@ fn test_frame_header_to_bytes_total() {
     };
     let bytes = header.to_bytes();
     let total = u32::from_le_bytes([bytes[18], bytes[19], bytes[20], bytes[21]]);
-    assert_eq!(total, 100);
+    if total != 100 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_frame_header_to_bytes_flags() {
+pub fn test_frame_header_to_bytes_flags() -> TestResult {
     let header = FrameHeader {
         magic: FRAME_MAGIC,
         version: FRAME_VERSION,
@@ -155,11 +155,11 @@ fn test_frame_header_to_bytes_flags() {
         flags: FLAG_EOF,
     };
     let bytes = header.to_bytes();
-    assert_eq!(bytes[22], FLAG_EOF);
+    if bytes[22] != FLAG_EOF { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_frame_header_from_bytes_valid() {
+pub fn test_frame_header_from_bytes_valid() -> TestResult {
     let header = FrameHeader {
         magic: FRAME_MAGIC,
         version: FRAME_VERSION,
@@ -170,40 +170,40 @@ fn test_frame_header_from_bytes_valid() {
     };
     let bytes = header.to_bytes();
     let parsed = FrameHeader::from_bytes(&bytes).unwrap();
-    assert_eq!(parsed.magic, FRAME_MAGIC);
-    assert_eq!(parsed.version, FRAME_VERSION);
-    assert_eq!(parsed.stream_id, 123);
-    assert_eq!(parsed.seq, 5);
-    assert_eq!(parsed.total, 10);
-    assert_eq!(parsed.flags, FLAG_EOF);
+    if parsed.magic != FRAME_MAGIC { return TestResult::Fail; }
+    if parsed.version != FRAME_VERSION { return TestResult::Fail; }
+    if parsed.stream_id != 123 { return TestResult::Fail; }
+    if parsed.seq != 5 { return TestResult::Fail; }
+    if parsed.total != 10 { return TestResult::Fail; }
+    if parsed.flags != FLAG_EOF { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_frame_header_from_bytes_invalid_magic() {
+pub fn test_frame_header_from_bytes_invalid_magic() -> TestResult {
     let mut bytes = [0u8; FRAME_HEADER_SIZE];
     bytes[0..4].copy_from_slice(&0xDEAD_BEEFu32.to_le_bytes());
     let result = FrameHeader::from_bytes(&bytes);
-    assert!(matches!(result, Err(TransportError::InvalidMagic { expected: _, found: 0xDEAD_BEEF })));
+    if !matches!(result, Err(TransportError::InvalidMagic { expected: _, found: 0xDEAD_BEEF })) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_frame_header_from_bytes_unsupported_version() {
+pub fn test_frame_header_from_bytes_unsupported_version() -> TestResult {
     let mut bytes = [0u8; FRAME_HEADER_SIZE];
     bytes[0..4].copy_from_slice(&FRAME_MAGIC.to_le_bytes());
     bytes[4..6].copy_from_slice(&99u16.to_le_bytes());
     let result = FrameHeader::from_bytes(&bytes);
-    assert!(matches!(result, Err(TransportError::UnsupportedVersion { version: 99 })));
+    if !matches!(result, Err(TransportError::UnsupportedVersion { version: 99 })) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_frame_header_from_bytes_frame_too_short() {
+pub fn test_frame_header_from_bytes_frame_too_short() -> TestResult {
     let bytes = [0u8; 10];
     let result = FrameHeader::from_bytes(&bytes);
-    assert!(matches!(result, Err(TransportError::FrameTooShort { size: 10, minimum: 23 })));
+    if !matches!(result, Err(TransportError::FrameTooShort { size: 10, minimum: 23 })) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_frame_header_from_bytes_sequence_out_of_range() {
+pub fn test_frame_header_from_bytes_sequence_out_of_range() -> TestResult {
     let header = FrameHeader {
         magic: FRAME_MAGIC,
         version: FRAME_VERSION,
@@ -214,11 +214,11 @@ fn test_frame_header_from_bytes_sequence_out_of_range() {
     };
     let bytes = header.to_bytes();
     let result = FrameHeader::from_bytes(&bytes);
-    assert!(matches!(result, Err(TransportError::SequenceOutOfRange { seq: 10, total: 5 })));
+    if !matches!(result, Err(TransportError::SequenceOutOfRange { seq: 10, total: 5 })) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_frame_header_from_bytes_zero_total_allowed() {
+pub fn test_frame_header_from_bytes_zero_total_allowed() -> TestResult {
     let header = FrameHeader {
         magic: FRAME_MAGIC,
         version: FRAME_VERSION,
@@ -229,11 +229,11 @@ fn test_frame_header_from_bytes_zero_total_allowed() {
     };
     let bytes = header.to_bytes();
     let result = FrameHeader::from_bytes(&bytes);
-    assert!(result.is_ok());
+    if result.is_err() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_frame_header_roundtrip() {
+pub fn test_frame_header_roundtrip() -> TestResult {
     let header = FrameHeader {
         magic: FRAME_MAGIC,
         version: FRAME_VERSION,
@@ -244,11 +244,11 @@ fn test_frame_header_roundtrip() {
     };
     let bytes = header.to_bytes();
     let parsed = FrameHeader::from_bytes(&bytes).unwrap();
-    assert_eq!(parsed, header);
+    if parsed != header { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_frame_header_clone() {
+pub fn test_frame_header_clone() -> TestResult {
     let header = FrameHeader {
         magic: FRAME_MAGIC,
         version: FRAME_VERSION,
@@ -258,11 +258,11 @@ fn test_frame_header_clone() {
         flags: 0,
     };
     let cloned = header.clone();
-    assert_eq!(header, cloned);
+    if header != cloned { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_frame_header_copy() {
+pub fn test_frame_header_copy() -> TestResult {
     let header = FrameHeader {
         magic: FRAME_MAGIC,
         version: FRAME_VERSION,
@@ -272,11 +272,11 @@ fn test_frame_header_copy() {
         flags: 0,
     };
     let copied = header;
-    assert_eq!(header, copied);
+    if header != copied { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_frame_header_debug() {
+pub fn test_frame_header_debug() -> TestResult {
     let header = FrameHeader {
         magic: FRAME_MAGIC,
         version: FRAME_VERSION,
@@ -286,153 +286,150 @@ fn test_frame_header_debug() {
         flags: 0,
     };
     let debug_str = alloc::format!("{:?}", header);
-    assert!(debug_str.contains("FrameHeader"));
+    if !debug_str.contains("FrameHeader") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_transport_error_invalid_magic_as_str() {
+pub fn test_transport_error_invalid_magic_as_str() -> TestResult {
     let err = TransportError::InvalidMagic { expected: FRAME_MAGIC, found: 0 };
-    assert_eq!(err.as_str(), "Invalid frame magic number");
+    if err.as_str() != "Invalid frame magic number" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_transport_error_unsupported_version_as_str() {
+pub fn test_transport_error_unsupported_version_as_str() -> TestResult {
     let err = TransportError::UnsupportedVersion { version: 99 };
-    assert_eq!(err.as_str(), "Unsupported frame version");
+    if err.as_str() != "Unsupported frame version" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_transport_error_frame_too_short_as_str() {
+pub fn test_transport_error_frame_too_short_as_str() -> TestResult {
     let err = TransportError::FrameTooShort { size: 10, minimum: 23 };
-    assert_eq!(err.as_str(), "Frame too short for header");
+    if err.as_str() != "Frame too short for header" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_transport_error_sequence_out_of_range_as_str() {
+pub fn test_transport_error_sequence_out_of_range_as_str() -> TestResult {
     let err = TransportError::SequenceOutOfRange { seq: 10, total: 5 };
-    assert_eq!(err.as_str(), "Sequence number out of range");
+    if err.as_str() != "Sequence number out of range" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_transport_error_duplicate_frame_as_str() {
+pub fn test_transport_error_duplicate_frame_as_str() -> TestResult {
     let err = TransportError::DuplicateFrame { stream_id: 1, seq: 0 };
-    assert_eq!(err.as_str(), "Duplicate frame received");
+    if err.as_str() != "Duplicate frame received" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_transport_error_stream_not_found_as_str() {
+pub fn test_transport_error_stream_not_found_as_str() -> TestResult {
     let err = TransportError::StreamNotFound { stream_id: 1 };
-    assert_eq!(err.as_str(), "Stream not found");
+    if err.as_str() != "Stream not found" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_transport_error_mtu_too_small_as_str() {
+pub fn test_transport_error_mtu_too_small_as_str() -> TestResult {
     let err = TransportError::MtuTooSmall { mtu: 32, minimum: 64 };
-    assert_eq!(err.as_str(), "MTU too small");
+    if err.as_str() != "MTU too small" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_transport_error_mtu_too_large_as_str() {
+pub fn test_transport_error_mtu_too_large_as_str() -> TestResult {
     let err = TransportError::MtuTooLarge { mtu: 100000, maximum: 65535 };
-    assert_eq!(err.as_str(), "MTU too large");
+    if err.as_str() != "MTU too large" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_transport_error_payload_too_large_as_str() {
+pub fn test_transport_error_payload_too_large_as_str() -> TestResult {
     let err = TransportError::PayloadTooLarge { size: 100000, maximum: 65536 };
-    assert_eq!(err.as_str(), "Payload exceeds maximum size");
+    if err.as_str() != "Payload exceeds maximum size" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_transport_error_transmit_failed_as_str() {
+pub fn test_transport_error_transmit_failed_as_str() -> TestResult {
     let err = TransportError::TransmitFailed;
-    assert_eq!(err.as_str(), "Transmission failed");
+    if err.as_str() != "Transmission failed" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_transport_error_assembly_timeout_as_str() {
+pub fn test_transport_error_assembly_timeout_as_str() -> TestResult {
     let err = TransportError::AssemblyTimeout { stream_id: 1 };
-    assert_eq!(err.as_str(), "Assembly timeout");
+    if err.as_str() != "Assembly timeout" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_transport_error_too_many_streams_as_str() {
+pub fn test_transport_error_too_many_streams_as_str() -> TestResult {
     let err = TransportError::TooManyStreams { count: 100, limit: 64 };
-    assert_eq!(err.as_str(), "Too many concurrent streams");
+    if err.as_str() != "Too many concurrent streams" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_transport_error_display_invalid_magic() {
+pub fn test_transport_error_display_invalid_magic() -> TestResult {
     let err = TransportError::InvalidMagic { expected: FRAME_MAGIC, found: 0xDEADBEEF };
     let display = alloc::format!("{}", err);
-    assert!(display.contains("5354524D"));
-    assert!(display.contains("DEADBEEF"));
+    if !display.contains("5354524D") { return TestResult::Fail; }
+    if !display.contains("DEADBEEF") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_transport_error_display_unsupported_version() {
+pub fn test_transport_error_display_unsupported_version() -> TestResult {
     let err = TransportError::UnsupportedVersion { version: 99 };
     let display = alloc::format!("{}", err);
-    assert!(display.contains("99"));
+    if !display.contains("99") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_transport_error_display_frame_too_short() {
+pub fn test_transport_error_display_frame_too_short() -> TestResult {
     let err = TransportError::FrameTooShort { size: 10, minimum: 23 };
     let display = alloc::format!("{}", err);
-    assert!(display.contains("10"));
-    assert!(display.contains("23"));
+    if !display.contains("10") { return TestResult::Fail; }
+    if !display.contains("23") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_transport_error_display_sequence_out_of_range() {
+pub fn test_transport_error_display_sequence_out_of_range() -> TestResult {
     let err = TransportError::SequenceOutOfRange { seq: 10, total: 5 };
     let display = alloc::format!("{}", err);
-    assert!(display.contains("10"));
-    assert!(display.contains("5"));
+    if !display.contains("10") { return TestResult::Fail; }
+    if !display.contains("5") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_transport_error_display_mtu_too_small() {
+pub fn test_transport_error_display_mtu_too_small() -> TestResult {
     let err = TransportError::MtuTooSmall { mtu: 32, minimum: 64 };
     let display = alloc::format!("{}", err);
-    assert!(display.contains("32"));
-    assert!(display.contains("64"));
+    if !display.contains("32") { return TestResult::Fail; }
+    if !display.contains("64") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_transport_error_display_payload_too_large() {
+pub fn test_transport_error_display_payload_too_large() -> TestResult {
     let err = TransportError::PayloadTooLarge { size: 100000, maximum: 65536 };
     let display = alloc::format!("{}", err);
-    assert!(display.contains("100000"));
-    assert!(display.contains("65536"));
+    if !display.contains("100000") { return TestResult::Fail; }
+    if !display.contains("65536") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_transport_error_clone() {
+pub fn test_transport_error_clone() -> TestResult {
     let err = TransportError::TransmitFailed;
     let cloned = err.clone();
-    assert_eq!(err, cloned);
+    if err != cloned { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_transport_error_copy() {
+pub fn test_transport_error_copy() -> TestResult {
     let err = TransportError::TransmitFailed;
     let copied = err;
-    assert_eq!(err, copied);
+    if err != copied { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_transport_error_equality() {
-    assert_eq!(TransportError::TransmitFailed, TransportError::TransmitFailed);
-    assert_ne!(
-        TransportError::TransmitFailed,
-        TransportError::UnsupportedVersion { version: 1 }
-    );
+pub fn test_transport_error_equality() -> TestResult {
+    if TransportError::TransmitFailed != TransportError::TransmitFailed { return TestResult::Fail; }
+    if TransportError::TransmitFailed == TransportError::UnsupportedVersion { version: 1 } { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_parse_frame_valid() {
+pub fn test_parse_frame_valid() -> TestResult {
     let header = FrameHeader {
         magic: FRAME_MAGIC,
         version: FRAME_VERSION,
@@ -448,12 +445,12 @@ fn test_parse_frame_valid() {
     frame.extend_from_slice(payload);
 
     let (parsed_header, parsed_payload) = parse_frame(&frame).unwrap();
-    assert_eq!(parsed_header.stream_id, 1);
-    assert_eq!(parsed_payload, payload);
+    if parsed_header.stream_id != 1 { return TestResult::Fail; }
+    if parsed_payload != payload { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_parse_frame_empty_payload() {
+pub fn test_parse_frame_empty_payload() -> TestResult {
     let header = FrameHeader {
         magic: FRAME_MAGIC,
         version: FRAME_VERSION,
@@ -464,19 +461,19 @@ fn test_parse_frame_empty_payload() {
     };
     let frame = header.to_bytes();
     let (parsed_header, parsed_payload) = parse_frame(&frame).unwrap();
-    assert_eq!(parsed_header.stream_id, 1);
-    assert!(parsed_payload.is_empty());
+    if parsed_header.stream_id != 1 { return TestResult::Fail; }
+    if !parsed_payload.is_empty() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_parse_frame_invalid() {
+pub fn test_parse_frame_invalid() -> TestResult {
     let bytes = [0u8; 10];
     let result = parse_frame(&bytes);
-    assert!(result.is_err());
+    if result.is_ok() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_frame_header_first_frame() {
+pub fn test_frame_header_first_frame() -> TestResult {
     let header = FrameHeader {
         magic: FRAME_MAGIC,
         version: FRAME_VERSION,
@@ -485,12 +482,12 @@ fn test_frame_header_first_frame() {
         total: 10,
         flags: 0,
     };
-    assert!(!header.is_eof());
-    assert_eq!(header.seq, 0);
+    if header.is_eof() { return TestResult::Fail; }
+    if header.seq != 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_frame_header_last_frame() {
+pub fn test_frame_header_last_frame() -> TestResult {
     let header = FrameHeader {
         magic: FRAME_MAGIC,
         version: FRAME_VERSION,
@@ -499,12 +496,12 @@ fn test_frame_header_last_frame() {
         total: 10,
         flags: FLAG_EOF,
     };
-    assert!(header.is_eof());
-    assert_eq!(header.seq, 9);
+    if !header.is_eof() { return TestResult::Fail; }
+    if header.seq != 9 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_transport_error_all_variants_have_str() {
+pub fn test_transport_error_all_variants_have_str() -> TestResult {
     let errors = [
         TransportError::InvalidMagic { expected: 0, found: 0 },
         TransportError::UnsupportedVersion { version: 0 },
@@ -520,7 +517,7 @@ fn test_transport_error_all_variants_have_str() {
         TransportError::TooManyStreams { count: 0, limit: 0 },
     ];
     for err in errors {
-        assert!(!err.as_str().is_empty());
+        if err.as_str().is_empty() { return TestResult::Fail; }
     }
+    TestResult::Pass
 }
-
