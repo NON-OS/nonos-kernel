@@ -1,138 +1,139 @@
 use crate::graphics::window::state::*;
+use crate::test::framework::TestResult;
 
-#[test]
-fn test_window_type_values() {
-    assert_eq!(WindowType::None as u8, 0);
-    assert_eq!(WindowType::FileManager as u8, 1);
-    assert_eq!(WindowType::Calculator as u8, 2);
-    assert_eq!(WindowType::TextEditor as u8, 3);
-    assert_eq!(WindowType::Settings as u8, 4);
-    assert_eq!(WindowType::About as u8, 5);
-    assert_eq!(WindowType::ProcessManager as u8, 6);
-    assert_eq!(WindowType::Browser as u8, 7);
-    assert_eq!(WindowType::Terminal as u8, 8);
-    assert_eq!(WindowType::Wallet as u8, 9);
-    assert_eq!(WindowType::Ecosystem as u8, 10);
-    assert_eq!(WindowType::Marketplace as u8, 11);
-    assert_eq!(WindowType::Developer as u8, 12);
-    assert_eq!(WindowType::Agents as u8, 13);
+pub fn test_window_type_values() -> TestResult {
+    if WindowType::None as u8 != 0 { return TestResult::Fail; }
+    if WindowType::FileManager as u8 != 1 { return TestResult::Fail; }
+    if WindowType::Calculator as u8 != 2 { return TestResult::Fail; }
+    if WindowType::TextEditor as u8 != 3 { return TestResult::Fail; }
+    if WindowType::Settings as u8 != 4 { return TestResult::Fail; }
+    if WindowType::About as u8 != 5 { return TestResult::Fail; }
+    if WindowType::ProcessManager as u8 != 6 { return TestResult::Fail; }
+    if WindowType::Browser as u8 != 7 { return TestResult::Fail; }
+    if WindowType::Terminal as u8 != 8 { return TestResult::Fail; }
+    if WindowType::Wallet as u8 != 9 { return TestResult::Fail; }
+    if WindowType::Ecosystem as u8 != 10 { return TestResult::Fail; }
+    if WindowType::Marketplace as u8 != 11 { return TestResult::Fail; }
+    if WindowType::Developer as u8 != 12 { return TestResult::Fail; }
+    if WindowType::Agents as u8 != 13 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_window_type_from_u32() {
-    assert_eq!(window_type_from_u32(0), WindowType::None);
-    assert_eq!(window_type_from_u32(1), WindowType::FileManager);
-    assert_eq!(window_type_from_u32(2), WindowType::Calculator);
-    assert_eq!(window_type_from_u32(3), WindowType::TextEditor);
-    assert_eq!(window_type_from_u32(4), WindowType::Settings);
-    assert_eq!(window_type_from_u32(5), WindowType::About);
-    assert_eq!(window_type_from_u32(6), WindowType::ProcessManager);
-    assert_eq!(window_type_from_u32(7), WindowType::Browser);
-    assert_eq!(window_type_from_u32(8), WindowType::Terminal);
-    assert_eq!(window_type_from_u32(9), WindowType::Wallet);
-    assert_eq!(window_type_from_u32(10), WindowType::Ecosystem);
-    assert_eq!(window_type_from_u32(11), WindowType::Marketplace);
-    assert_eq!(window_type_from_u32(12), WindowType::Developer);
-    assert_eq!(window_type_from_u32(13), WindowType::Agents);
+pub fn test_window_type_from_u32() -> TestResult {
+    if window_type_from_u32(0) != WindowType::None { return TestResult::Fail; }
+    if window_type_from_u32(1) != WindowType::FileManager { return TestResult::Fail; }
+    if window_type_from_u32(2) != WindowType::Calculator { return TestResult::Fail; }
+    if window_type_from_u32(3) != WindowType::TextEditor { return TestResult::Fail; }
+    if window_type_from_u32(4) != WindowType::Settings { return TestResult::Fail; }
+    if window_type_from_u32(5) != WindowType::About { return TestResult::Fail; }
+    if window_type_from_u32(6) != WindowType::ProcessManager { return TestResult::Fail; }
+    if window_type_from_u32(7) != WindowType::Browser { return TestResult::Fail; }
+    if window_type_from_u32(8) != WindowType::Terminal { return TestResult::Fail; }
+    if window_type_from_u32(9) != WindowType::Wallet { return TestResult::Fail; }
+    if window_type_from_u32(10) != WindowType::Ecosystem { return TestResult::Fail; }
+    if window_type_from_u32(11) != WindowType::Marketplace { return TestResult::Fail; }
+    if window_type_from_u32(12) != WindowType::Developer { return TestResult::Fail; }
+    if window_type_from_u32(13) != WindowType::Agents { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_window_type_from_u32_invalid() {
-    assert_eq!(window_type_from_u32(14), WindowType::None);
-    assert_eq!(window_type_from_u32(100), WindowType::None);
-    assert_eq!(window_type_from_u32(255), WindowType::None);
-    assert_eq!(window_type_from_u32(u32::MAX), WindowType::None);
+pub fn test_window_type_from_u32_invalid() -> TestResult {
+    if window_type_from_u32(14) != WindowType::None { return TestResult::Fail; }
+    if window_type_from_u32(100) != WindowType::None { return TestResult::Fail; }
+    if window_type_from_u32(255) != WindowType::None { return TestResult::Fail; }
+    if window_type_from_u32(u32::MAX) != WindowType::None { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_window_type_equality() {
-    assert_eq!(WindowType::FileManager, WindowType::FileManager);
-    assert_ne!(WindowType::FileManager, WindowType::Calculator);
-    assert_ne!(WindowType::None, WindowType::Terminal);
+pub fn test_window_type_equality() -> TestResult {
+    if WindowType::FileManager != WindowType::FileManager { return TestResult::Fail; }
+    if WindowType::FileManager == WindowType::Calculator { return TestResult::Fail; }
+    if WindowType::None == WindowType::Terminal { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_snap_zone_values() {
-    assert_eq!(SnapZone::None as u8, 0);
-    assert_eq!(SnapZone::Left as u8, 1);
-    assert_eq!(SnapZone::Right as u8, 2);
-    assert_eq!(SnapZone::Top as u8, 3);
-    assert_eq!(SnapZone::TopLeft as u8, 4);
-    assert_eq!(SnapZone::TopRight as u8, 5);
-    assert_eq!(SnapZone::BottomLeft as u8, 6);
-    assert_eq!(SnapZone::BottomRight as u8, 7);
+pub fn test_snap_zone_values() -> TestResult {
+    if SnapZone::None as u8 != 0 { return TestResult::Fail; }
+    if SnapZone::Left as u8 != 1 { return TestResult::Fail; }
+    if SnapZone::Right as u8 != 2 { return TestResult::Fail; }
+    if SnapZone::Top as u8 != 3 { return TestResult::Fail; }
+    if SnapZone::TopLeft as u8 != 4 { return TestResult::Fail; }
+    if SnapZone::TopRight as u8 != 5 { return TestResult::Fail; }
+    if SnapZone::BottomLeft as u8 != 6 { return TestResult::Fail; }
+    if SnapZone::BottomRight as u8 != 7 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_snap_zone_from_u8() {
-    assert_eq!(SnapZone::from_u8(0), SnapZone::None);
-    assert_eq!(SnapZone::from_u8(1), SnapZone::Left);
-    assert_eq!(SnapZone::from_u8(2), SnapZone::Right);
-    assert_eq!(SnapZone::from_u8(3), SnapZone::Top);
-    assert_eq!(SnapZone::from_u8(4), SnapZone::TopLeft);
-    assert_eq!(SnapZone::from_u8(5), SnapZone::TopRight);
-    assert_eq!(SnapZone::from_u8(6), SnapZone::BottomLeft);
-    assert_eq!(SnapZone::from_u8(7), SnapZone::BottomRight);
+pub fn test_snap_zone_from_u8() -> TestResult {
+    if SnapZone::from_u8(0) != SnapZone::None { return TestResult::Fail; }
+    if SnapZone::from_u8(1) != SnapZone::Left { return TestResult::Fail; }
+    if SnapZone::from_u8(2) != SnapZone::Right { return TestResult::Fail; }
+    if SnapZone::from_u8(3) != SnapZone::Top { return TestResult::Fail; }
+    if SnapZone::from_u8(4) != SnapZone::TopLeft { return TestResult::Fail; }
+    if SnapZone::from_u8(5) != SnapZone::TopRight { return TestResult::Fail; }
+    if SnapZone::from_u8(6) != SnapZone::BottomLeft { return TestResult::Fail; }
+    if SnapZone::from_u8(7) != SnapZone::BottomRight { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_snap_zone_from_u8_invalid() {
-    assert_eq!(SnapZone::from_u8(8), SnapZone::None);
-    assert_eq!(SnapZone::from_u8(100), SnapZone::None);
-    assert_eq!(SnapZone::from_u8(255), SnapZone::None);
+pub fn test_snap_zone_from_u8_invalid() -> TestResult {
+    if SnapZone::from_u8(8) != SnapZone::None { return TestResult::Fail; }
+    if SnapZone::from_u8(100) != SnapZone::None { return TestResult::Fail; }
+    if SnapZone::from_u8(255) != SnapZone::None { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_snap_zone_default() {
+pub fn test_snap_zone_default() -> TestResult {
     let zone: SnapZone = Default::default();
-    assert_eq!(zone, SnapZone::None);
+    if zone != SnapZone::None { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_max_windows_constant() {
-    assert_eq!(MAX_WINDOWS, 8);
+pub fn test_max_windows_constant() -> TestResult {
+    if MAX_WINDOWS != 8 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_window_padding_constant() {
-    assert_eq!(WINDOW_PADDING, 2);
+pub fn test_window_padding_constant() -> TestResult {
+    if WINDOW_PADDING != 2 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_windows_array_length() {
-    assert_eq!(WINDOWS.len(), MAX_WINDOWS);
+pub fn test_windows_array_length() -> TestResult {
+    if WINDOWS.len() != MAX_WINDOWS { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_window_type_copy() {
+pub fn test_window_type_copy() -> TestResult {
     let wt1 = WindowType::Browser;
     let wt2 = wt1;
-    assert_eq!(wt1, wt2);
+    if wt1 != wt2 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_snap_zone_copy() {
+pub fn test_snap_zone_copy() -> TestResult {
     let sz1 = SnapZone::TopRight;
     let sz2 = sz1;
-    assert_eq!(sz1, sz2);
+    if sz1 != sz2 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_window_type_roundtrip() {
+pub fn test_window_type_roundtrip() -> TestResult {
     for i in 0u32..14 {
         let wtype = window_type_from_u32(i);
         if i == 0 {
-            assert_eq!(wtype, WindowType::None);
+            if wtype != WindowType::None { return TestResult::Fail; }
         } else {
-            assert_eq!(wtype as u32, i);
+            if wtype as u32 != i { return TestResult::Fail; }
         }
     }
+    TestResult::Pass
 }
 
-#[test]
-fn test_snap_zone_roundtrip() {
+pub fn test_snap_zone_roundtrip() -> TestResult {
     for i in 0u8..8 {
         let zone = SnapZone::from_u8(i);
-        assert_eq!(zone as u8, i);
+        if zone as u8 != i { return TestResult::Fail; }
     }
+    TestResult::Pass
 }

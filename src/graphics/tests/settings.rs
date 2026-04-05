@@ -1,20 +1,21 @@
-#[test]
-fn test_settings_module_exists() {
-    assert!(true);
+use crate::test::framework::TestResult;
+
+pub fn test_settings_module_exists() -> TestResult {
+    TestResult::Pass
 }
 
-#[test]
-fn test_theme_values() {
+pub fn test_theme_values() -> TestResult {
     let light: u8 = 0;
     let dark: u8 = 1;
-    assert_ne!(light, dark);
+    if light == dark { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_font_sizes() {
+pub fn test_font_sizes() -> TestResult {
     let small: u8 = 12;
     let medium: u8 = 14;
     let large: u8 = 18;
-    assert!(small < medium);
-    assert!(medium < large);
+    if !(small < medium) { return TestResult::Fail; }
+    if !(medium < large) { return TestResult::Fail; }
+    TestResult::Pass
 }
