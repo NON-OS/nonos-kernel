@@ -1,102 +1,102 @@
 use crate::graphics::window::ecosystem::*;
+use crate::test::framework::TestResult;
 
-#[test]
-fn test_ecosystem_tab_values() {
-    assert_eq!(EcosystemTab::Browser as u8, 0);
-    assert_eq!(EcosystemTab::Wallet as u8, 1);
-    assert_eq!(EcosystemTab::Staking as u8, 2);
-    assert_eq!(EcosystemTab::Liquidity as u8, 3);
-    assert_eq!(EcosystemTab::Node as u8, 4);
-    assert_eq!(EcosystemTab::Privacy as u8, 5);
+pub fn test_ecosystem_tab_values() -> TestResult {
+    if EcosystemTab::Browser as u8 != 0 { return TestResult::Fail; }
+    if EcosystemTab::Wallet as u8 != 1 { return TestResult::Fail; }
+    if EcosystemTab::Staking as u8 != 2 { return TestResult::Fail; }
+    if EcosystemTab::Liquidity as u8 != 3 { return TestResult::Fail; }
+    if EcosystemTab::Node as u8 != 4 { return TestResult::Fail; }
+    if EcosystemTab::Privacy as u8 != 5 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_ecosystem_tab_from_u8() {
-    assert_eq!(EcosystemTab::from_u8(0), EcosystemTab::Browser);
-    assert_eq!(EcosystemTab::from_u8(1), EcosystemTab::Wallet);
-    assert_eq!(EcosystemTab::from_u8(2), EcosystemTab::Staking);
-    assert_eq!(EcosystemTab::from_u8(3), EcosystemTab::Liquidity);
-    assert_eq!(EcosystemTab::from_u8(4), EcosystemTab::Node);
-    assert_eq!(EcosystemTab::from_u8(5), EcosystemTab::Privacy);
+pub fn test_ecosystem_tab_from_u8() -> TestResult {
+    if EcosystemTab::from_u8(0) != EcosystemTab::Browser { return TestResult::Fail; }
+    if EcosystemTab::from_u8(1) != EcosystemTab::Wallet { return TestResult::Fail; }
+    if EcosystemTab::from_u8(2) != EcosystemTab::Staking { return TestResult::Fail; }
+    if EcosystemTab::from_u8(3) != EcosystemTab::Liquidity { return TestResult::Fail; }
+    if EcosystemTab::from_u8(4) != EcosystemTab::Node { return TestResult::Fail; }
+    if EcosystemTab::from_u8(5) != EcosystemTab::Privacy { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_ecosystem_tab_from_u8_invalid() {
-    assert_eq!(EcosystemTab::from_u8(6), EcosystemTab::Browser);
-    assert_eq!(EcosystemTab::from_u8(100), EcosystemTab::Browser);
-    assert_eq!(EcosystemTab::from_u8(255), EcosystemTab::Browser);
+pub fn test_ecosystem_tab_from_u8_invalid() -> TestResult {
+    if EcosystemTab::from_u8(6) != EcosystemTab::Browser { return TestResult::Fail; }
+    if EcosystemTab::from_u8(100) != EcosystemTab::Browser { return TestResult::Fail; }
+    if EcosystemTab::from_u8(255) != EcosystemTab::Browser { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_ecosystem_tab_label() {
-    assert_eq!(EcosystemTab::Browser.label(), b"Browser");
-    assert_eq!(EcosystemTab::Wallet.label(), b"Wallet");
-    assert_eq!(EcosystemTab::Staking.label(), b"Staking");
-    assert_eq!(EcosystemTab::Liquidity.label(), b"LP");
-    assert_eq!(EcosystemTab::Node.label(), b"Node");
-    assert_eq!(EcosystemTab::Privacy.label(), b"Privacy");
+pub fn test_ecosystem_tab_label() -> TestResult {
+    if EcosystemTab::Browser.label() != b"Browser" { return TestResult::Fail; }
+    if EcosystemTab::Wallet.label() != b"Wallet" { return TestResult::Fail; }
+    if EcosystemTab::Staking.label() != b"Staking" { return TestResult::Fail; }
+    if EcosystemTab::Liquidity.label() != b"LP" { return TestResult::Fail; }
+    if EcosystemTab::Node.label() != b"Node" { return TestResult::Fail; }
+    if EcosystemTab::Privacy.label() != b"Privacy" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_ecosystem_tab_count() {
-    assert_eq!(EcosystemTab::count(), 6);
+pub fn test_ecosystem_tab_count() -> TestResult {
+    if EcosystemTab::count() != 6 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_ecosystem_tab_equality() {
-    assert_eq!(EcosystemTab::Browser, EcosystemTab::Browser);
-    assert_eq!(EcosystemTab::Wallet, EcosystemTab::Wallet);
-    assert_ne!(EcosystemTab::Browser, EcosystemTab::Wallet);
-    assert_ne!(EcosystemTab::Staking, EcosystemTab::Privacy);
+pub fn test_ecosystem_tab_equality() -> TestResult {
+    if EcosystemTab::Browser != EcosystemTab::Browser { return TestResult::Fail; }
+    if EcosystemTab::Wallet != EcosystemTab::Wallet { return TestResult::Fail; }
+    if EcosystemTab::Browser == EcosystemTab::Wallet { return TestResult::Fail; }
+    if EcosystemTab::Staking == EcosystemTab::Privacy { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_ecosystem_tab_copy() {
+pub fn test_ecosystem_tab_copy() -> TestResult {
     let tab1 = EcosystemTab::Node;
     let tab2 = tab1;
-    assert_eq!(tab1, tab2);
+    if tab1 != tab2 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_ecosystem_tab_roundtrip() {
+pub fn test_ecosystem_tab_roundtrip() -> TestResult {
     for i in 0..EcosystemTab::count() {
         let tab = EcosystemTab::from_u8(i as u8);
-        assert_eq!(tab as u8, i as u8);
+        if tab as u8 != i as u8 { return TestResult::Fail; }
     }
+    TestResult::Pass
 }
 
-#[test]
-fn test_tab_labels_not_empty() {
+pub fn test_tab_labels_not_empty() -> TestResult {
     for i in 0..EcosystemTab::count() {
         let tab = EcosystemTab::from_u8(i as u8);
-        assert!(!tab.label().is_empty());
+        if tab.label().is_empty() { return TestResult::Fail; }
     }
+    TestResult::Pass
 }
 
-#[test]
-fn test_ecosystem_tab_default() {
+pub fn test_ecosystem_tab_default() -> TestResult {
     let default_tab = EcosystemTab::from_u8(0);
-    assert_eq!(default_tab, EcosystemTab::Browser);
+    if default_tab != EcosystemTab::Browser { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_get_set_active_tab() {
+pub fn test_get_set_active_tab() -> TestResult {
     let original = get_active_tab();
 
     set_active_tab(EcosystemTab::Wallet);
-    assert_eq!(get_active_tab(), EcosystemTab::Wallet);
+    if get_active_tab() != EcosystemTab::Wallet { return TestResult::Fail; }
 
     set_active_tab(EcosystemTab::Staking);
-    assert_eq!(get_active_tab(), EcosystemTab::Staking);
+    if get_active_tab() != EcosystemTab::Staking { return TestResult::Fail; }
 
     set_active_tab(EcosystemTab::Privacy);
-    assert_eq!(get_active_tab(), EcosystemTab::Privacy);
+    if get_active_tab() != EcosystemTab::Privacy { return TestResult::Fail; }
 
     set_active_tab(original);
+    TestResult::Pass
 }
 
-#[test]
-fn test_set_all_tabs() {
+pub fn test_set_all_tabs() -> TestResult {
     let original = get_active_tab();
 
     let tabs = [
@@ -110,71 +110,72 @@ fn test_set_all_tabs() {
 
     for tab in tabs {
         set_active_tab(tab);
-        assert_eq!(get_active_tab(), tab);
+        if get_active_tab() != tab { return TestResult::Fail; }
     }
 
     set_active_tab(original);
+    TestResult::Pass
 }
 
-#[test]
-fn test_input_focused_query() {
+pub fn test_input_focused_query() -> TestResult {
     let _focused = is_input_focused();
+    TestResult::Pass
 }
 
-#[test]
-fn test_tab_constants() {
+pub fn test_tab_constants() -> TestResult {
     use crate::graphics::window::ecosystem::tabs::*;
 
-    assert_eq!(TAB_HEIGHT, 40);
-    assert_eq!(TAB_MIN_WIDTH, 80);
-    assert_eq!(TAB_PADDING, 16);
+    if TAB_HEIGHT != 40 { return TestResult::Fail; }
+    if TAB_MIN_WIDTH != 80 { return TestResult::Fail; }
+    if TAB_PADDING != 16 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_tab_colors() {
+pub fn test_tab_colors() -> TestResult {
     use crate::graphics::window::ecosystem::tabs::*;
 
-    assert_eq!(COLOR_TAB_BAR, 0xFF1C1C1E);
-    assert_eq!(COLOR_TAB_ACTIVE, 0xFF007AFF);
-    assert_eq!(COLOR_TAB_HOVER, 0xFF2C2C2E);
-    assert_eq!(COLOR_TAB_TEXT, 0xFF8E8E93);
-    assert_eq!(COLOR_TAB_TEXT_ACTIVE, 0xFFFFFFFF);
-    assert_eq!(COLOR_TAB_BORDER, 0xFF38383A);
+    if COLOR_TAB_BAR != 0xFF1C1C1E { return TestResult::Fail; }
+    if COLOR_TAB_ACTIVE != 0xFF007AFF { return TestResult::Fail; }
+    if COLOR_TAB_HOVER != 0xFF2C2C2E { return TestResult::Fail; }
+    if COLOR_TAB_TEXT != 0xFF8E8E93 { return TestResult::Fail; }
+    if COLOR_TAB_TEXT_ACTIVE != 0xFFFFFFFF { return TestResult::Fail; }
+    if COLOR_TAB_BORDER != 0xFF38383A { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_tab_layout_calculation() {
+pub fn test_tab_layout_calculation() -> TestResult {
     use crate::graphics::window::ecosystem::tabs::*;
 
     let layout = calculate_layout(800);
-    assert_eq!(layout.tabs.len(), 6);
+    if layout.tabs.len() != 6 { return TestResult::Fail; }
 
     for i in 0..EcosystemTab::count() {
         let (x, w, h) = layout.tabs[i];
-        assert!(w >= 40);
-        assert_eq!(h, TAB_HEIGHT);
+        if !(w >= 40) { return TestResult::Fail; }
+        if h != TAB_HEIGHT { return TestResult::Fail; }
         if i > 0 {
             let (prev_x, prev_w, _) = layout.tabs[i - 1];
-            assert!(x >= prev_x + prev_w);
+            if !(x >= prev_x + prev_w) { return TestResult::Fail; }
         }
     }
+    TestResult::Pass
 }
 
-#[test]
-fn test_tab_layout_narrow_width() {
+pub fn test_tab_layout_narrow_width() -> TestResult {
     use crate::graphics::window::ecosystem::tabs::*;
 
     let layout = calculate_layout(300);
     for i in 0..EcosystemTab::count() {
         let (_, w, _) = layout.tabs[i];
-        assert!(w >= 40);
+        if !(w >= 40) { return TestResult::Fail; }
     }
+    TestResult::Pass
 }
 
-#[test]
-fn test_tab_layout_wide_width() {
+pub fn test_tab_layout_wide_width() -> TestResult {
     use crate::graphics::window::ecosystem::tabs::*;
 
     let layout = calculate_layout(1200);
-    assert!(layout.total_width <= 1200);
+    if !(layout.total_width <= 1200) { return TestResult::Fail; }
+    TestResult::Pass
 }

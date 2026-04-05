@@ -1,69 +1,69 @@
 use crate::graphics::window::dialogs::*;
+use crate::test::framework::TestResult;
 
-#[test]
-fn test_max_message_len() {
-    assert_eq!(MAX_MESSAGE_LEN, 128);
+pub fn test_max_message_len() -> TestResult {
+    if MAX_MESSAGE_LEN != 128 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_max_title_len() {
-    assert_eq!(MAX_TITLE_LEN, 32);
+pub fn test_max_title_len() -> TestResult {
+    if MAX_TITLE_LEN != 32 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_max_input_len() {
-    assert_eq!(MAX_INPUT_LEN, 64);
+pub fn test_max_input_len() -> TestResult {
+    if MAX_INPUT_LEN != 64 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_dialog_type_values() {
-    assert_eq!(DIALOG_INFO, 0);
-    assert_eq!(DIALOG_WARNING, 1);
-    assert_eq!(DIALOG_ERROR, 2);
-    assert_eq!(DIALOG_CONFIRM, 3);
-    assert_eq!(DIALOG_INPUT, 4);
+pub fn test_dialog_type_values() -> TestResult {
+    if DIALOG_INFO != 0 { return TestResult::Fail; }
+    if DIALOG_WARNING != 1 { return TestResult::Fail; }
+    if DIALOG_ERROR != 2 { return TestResult::Fail; }
+    if DIALOG_CONFIRM != 3 { return TestResult::Fail; }
+    if DIALOG_INPUT != 4 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_dialog_type_unique() {
+pub fn test_dialog_type_unique() -> TestResult {
     let types = [DIALOG_INFO, DIALOG_WARNING, DIALOG_ERROR, DIALOG_CONFIRM, DIALOG_INPUT];
     for i in 0..types.len() {
         for j in (i + 1)..types.len() {
-            assert_ne!(types[i], types[j]);
+            if types[i] == types[j] { return TestResult::Fail; }
         }
     }
+    TestResult::Pass
 }
 
-#[test]
-fn test_result_values() {
-    assert_eq!(RESULT_NONE, 0);
-    assert_eq!(RESULT_OK, 1);
-    assert_eq!(RESULT_CANCEL, 2);
-    assert_eq!(RESULT_YES, 3);
-    assert_eq!(RESULT_NO, 4);
+pub fn test_result_values() -> TestResult {
+    if RESULT_NONE != 0 { return TestResult::Fail; }
+    if RESULT_OK != 1 { return TestResult::Fail; }
+    if RESULT_CANCEL != 2 { return TestResult::Fail; }
+    if RESULT_YES != 3 { return TestResult::Fail; }
+    if RESULT_NO != 4 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_result_values_unique() {
+pub fn test_result_values_unique() -> TestResult {
     let results = [RESULT_NONE, RESULT_OK, RESULT_CANCEL, RESULT_YES, RESULT_NO];
     for i in 0..results.len() {
         for j in (i + 1)..results.len() {
-            assert_ne!(results[i], results[j]);
+            if results[i] == results[j] { return TestResult::Fail; }
         }
     }
+    TestResult::Pass
 }
 
-#[test]
-fn test_input_callback_values() {
-    assert_eq!(INPUT_CB_NONE, 0);
-    assert_eq!(INPUT_CB_DESKTOP_NEW_FOLDER, 1);
-    assert_eq!(INPUT_CB_DESKTOP_NEW_FILE, 2);
-    assert_eq!(INPUT_CB_FM_NEW_FOLDER, 3);
-    assert_eq!(INPUT_CB_FM_RENAME, 4);
+pub fn test_input_callback_values() -> TestResult {
+    if INPUT_CB_NONE != 0 { return TestResult::Fail; }
+    if INPUT_CB_DESKTOP_NEW_FOLDER != 1 { return TestResult::Fail; }
+    if INPUT_CB_DESKTOP_NEW_FILE != 2 { return TestResult::Fail; }
+    if INPUT_CB_FM_NEW_FOLDER != 3 { return TestResult::Fail; }
+    if INPUT_CB_FM_RENAME != 4 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_input_callback_unique() {
+pub fn test_input_callback_unique() -> TestResult {
     let callbacks = [
         INPUT_CB_NONE,
         INPUT_CB_DESKTOP_NEW_FOLDER,
@@ -73,52 +73,52 @@ fn test_input_callback_unique() {
     ];
     for i in 0..callbacks.len() {
         for j in (i + 1)..callbacks.len() {
-            assert_ne!(callbacks[i], callbacks[j]);
+            if callbacks[i] == callbacks[j] { return TestResult::Fail; }
         }
     }
+    TestResult::Pass
 }
 
-#[test]
-fn test_show_and_close_dialog() {
+pub fn test_show_and_close_dialog() -> TestResult {
     close();
-    assert!(!is_active());
+    if is_active() { return TestResult::Fail; }
 
     show_dialog(DIALOG_INFO, b"Test", b"Message");
-    assert!(is_active());
-    assert_eq!(get_result(), RESULT_NONE);
+    if !is_active() { return TestResult::Fail; }
+    if get_result() != RESULT_NONE { return TestResult::Fail; }
 
     close();
-    assert!(!is_active());
+    if is_active() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_dialog_types() {
+pub fn test_dialog_types() -> TestResult {
     let types = [DIALOG_INFO, DIALOG_WARNING, DIALOG_ERROR, DIALOG_CONFIRM];
 
     for dtype in types {
         close();
         show_dialog(dtype, b"Title", b"Msg");
-        assert!(is_active());
+        if !is_active() { return TestResult::Fail; }
         close();
     }
+    TestResult::Pass
 }
 
-#[test]
-fn test_show_input_dialog() {
+pub fn test_show_input_dialog() -> TestResult {
     close();
     show_input(b"Input Title", b"Enter value", INPUT_CB_FM_NEW_FOLDER);
 
-    assert!(is_active());
-    assert!(is_input_dialog());
-    assert_eq!(get_input_callback(), INPUT_CB_FM_NEW_FOLDER);
+    if !is_active() { return TestResult::Fail; }
+    if !is_input_dialog() { return TestResult::Fail; }
+    if get_input_callback() != INPUT_CB_FM_NEW_FOLDER { return TestResult::Fail; }
 
     close();
-    assert!(!is_active());
-    assert!(!is_input_dialog());
+    if is_active() { return TestResult::Fail; }
+    if is_input_dialog() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_input_push_char() {
+pub fn test_input_push_char() -> TestResult {
     close();
     show_input(b"Test", b"Input", INPUT_CB_NONE);
 
@@ -127,13 +127,13 @@ fn test_input_push_char() {
     input_push_char(b'c');
 
     let text = get_input_text();
-    assert_eq!(text, "abc");
+    if text != "abc" { return TestResult::Fail; }
 
     close();
+    TestResult::Pass
 }
 
-#[test]
-fn test_input_pop_char() {
+pub fn test_input_pop_char() -> TestResult {
     close();
     show_input(b"Test", b"Input", INPUT_CB_NONE);
 
@@ -143,13 +143,13 @@ fn test_input_pop_char() {
     input_pop_char();
 
     let text = get_input_text();
-    assert_eq!(text, "xy");
+    if text != "xy" { return TestResult::Fail; }
 
     close();
+    TestResult::Pass
 }
 
-#[test]
-fn test_input_pop_char_empty() {
+pub fn test_input_pop_char_empty() -> TestResult {
     close();
     show_input(b"Test", b"Input", INPUT_CB_NONE);
 
@@ -157,26 +157,26 @@ fn test_input_pop_char_empty() {
     input_pop_char();
 
     let text = get_input_text();
-    assert_eq!(text, "");
+    if text != "" { return TestResult::Fail; }
 
     close();
+    TestResult::Pass
 }
 
-#[test]
-fn test_close_resets_input() {
+pub fn test_close_resets_input() -> TestResult {
     close();
     show_input(b"Test", b"Input", INPUT_CB_FM_RENAME);
     input_push_char(b't');
 
     close();
 
-    assert_eq!(get_input_callback(), INPUT_CB_NONE);
+    if get_input_callback() != INPUT_CB_NONE { return TestResult::Fail; }
 
     close();
+    TestResult::Pass
 }
 
-#[test]
-fn test_input_max_length() {
+pub fn test_input_max_length() -> TestResult {
     close();
     show_input(b"Test", b"Input", INPUT_CB_NONE);
 
@@ -185,41 +185,42 @@ fn test_input_max_length() {
     }
 
     let text = get_input_text();
-    assert!(text.len() < MAX_INPUT_LEN);
+    if !(text.len() < MAX_INPUT_LEN) { return TestResult::Fail; }
 
     close();
+    TestResult::Pass
 }
 
-#[test]
-fn test_dialog_truncates_long_title() {
+pub fn test_dialog_truncates_long_title() -> TestResult {
     close();
     let long_title = [b'T'; 100];
     show_dialog(DIALOG_INFO, &long_title, b"Msg");
-    assert!(is_active());
+    if !is_active() { return TestResult::Fail; }
     close();
+    TestResult::Pass
 }
 
-#[test]
-fn test_dialog_truncates_long_message() {
+pub fn test_dialog_truncates_long_message() -> TestResult {
     close();
     let long_msg = [b'M'; 500];
     show_dialog(DIALOG_INFO, b"Title", &long_msg);
-    assert!(is_active());
+    if !is_active() { return TestResult::Fail; }
     close();
+    TestResult::Pass
 }
 
-#[test]
-fn test_dialog_empty_title() {
+pub fn test_dialog_empty_title() -> TestResult {
     close();
     show_dialog(DIALOG_INFO, b"", b"Message");
-    assert!(is_active());
+    if !is_active() { return TestResult::Fail; }
     close();
+    TestResult::Pass
 }
 
-#[test]
-fn test_dialog_empty_message() {
+pub fn test_dialog_empty_message() -> TestResult {
     close();
     show_dialog(DIALOG_INFO, b"Title", b"");
-    assert!(is_active());
+    if !is_active() { return TestResult::Fail; }
     close();
+    TestResult::Pass
 }
