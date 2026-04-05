@@ -17,12 +17,12 @@
 use super::types::TestResult;
 use crate::arch::x86_64::time::hpet;
 
-pub fn test_hpet_detection() -> TestResult {
+pub(crate) fn test_hpet_detection() -> TestResult {
     let _ = hpet::is_available();
     TestResult::Passed
 }
 
-pub fn test_hpet_initialized() -> TestResult {
+pub(crate) fn test_hpet_initialized() -> TestResult {
     let initialized = hpet::is_initialized();
     let available = hpet::is_available();
 
@@ -34,7 +34,7 @@ pub fn test_hpet_initialized() -> TestResult {
     TestResult::Passed
 }
 
-pub fn test_hpet_period_bounds() -> TestResult {
+pub(crate) fn test_hpet_period_bounds() -> TestResult {
     if !hpet::is_available() {
         return TestResult::Skipped;
     }
@@ -44,7 +44,7 @@ pub fn test_hpet_period_bounds() -> TestResult {
     TestResult::Passed
 }
 
-pub fn test_hpet_counter_monotonic() -> TestResult {
+pub(crate) fn test_hpet_counter_monotonic() -> TestResult {
     if !hpet::is_available() {
         return TestResult::Skipped;
     }
@@ -70,7 +70,7 @@ pub fn test_hpet_counter_monotonic() -> TestResult {
     }
 }
 
-pub fn test_hpet_ticks_to_ns() -> TestResult {
+pub(crate) fn test_hpet_ticks_to_ns() -> TestResult {
     if !hpet::is_available() {
         return TestResult::Skipped;
     }
@@ -82,7 +82,7 @@ pub fn test_hpet_ticks_to_ns() -> TestResult {
     TestResult::Passed
 }
 
-pub fn test_hpet_timer_count() -> TestResult {
+pub(crate) fn test_hpet_timer_count() -> TestResult {
     if !hpet::is_available() {
         return TestResult::Skipped;
     }

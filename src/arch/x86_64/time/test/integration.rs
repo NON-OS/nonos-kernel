@@ -17,7 +17,7 @@
 use super::types::TestResult;
 use crate::arch::x86_64::time::{tsc, nonos_timer};
 
-pub fn test_integration_tsc_timer() -> TestResult {
+pub(crate) fn test_integration_tsc_timer() -> TestResult {
     if !tsc::is_calibrated() {
         return TestResult::Skipped;
     }
@@ -35,7 +35,7 @@ pub fn test_integration_tsc_timer() -> TestResult {
     TestResult::Passed
 }
 
-pub fn test_integration_time_progression() -> TestResult {
+pub(crate) fn test_integration_time_progression() -> TestResult {
     const ITERATIONS: usize = 10;
 
     let mut prev_tsc = tsc::rdtsc();
