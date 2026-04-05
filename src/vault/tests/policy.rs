@@ -16,108 +16,108 @@
 
 extern crate alloc;
 
+use crate::test::framework::TestResult;
 use crate::vault::nonos_vault_policy::*;
 
-#[test]
-fn test_vault_capability_read_eq() {
-    assert_eq!(VaultCapability::Read, VaultCapability::Read);
+pub fn test_vault_capability_read_eq() -> TestResult {
+    if VaultCapability::Read != VaultCapability::Read { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_vault_capability_write_eq() {
-    assert_eq!(VaultCapability::Write, VaultCapability::Write);
+pub fn test_vault_capability_write_eq() -> TestResult {
+    if VaultCapability::Write != VaultCapability::Write { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_vault_capability_derive_eq() {
-    assert_eq!(VaultCapability::Derive, VaultCapability::Derive);
+pub fn test_vault_capability_derive_eq() -> TestResult {
+    if VaultCapability::Derive != VaultCapability::Derive { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_vault_capability_seal_eq() {
-    assert_eq!(VaultCapability::Seal, VaultCapability::Seal);
+pub fn test_vault_capability_seal_eq() -> TestResult {
+    if VaultCapability::Seal != VaultCapability::Seal { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_vault_capability_unseal_eq() {
-    assert_eq!(VaultCapability::Unseal, VaultCapability::Unseal);
+pub fn test_vault_capability_unseal_eq() -> TestResult {
+    if VaultCapability::Unseal != VaultCapability::Unseal { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_vault_capability_audit_eq() {
-    assert_eq!(VaultCapability::Audit, VaultCapability::Audit);
+pub fn test_vault_capability_audit_eq() -> TestResult {
+    if VaultCapability::Audit != VaultCapability::Audit { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_vault_capability_erase_eq() {
-    assert_eq!(VaultCapability::Erase, VaultCapability::Erase);
+pub fn test_vault_capability_erase_eq() -> TestResult {
+    if VaultCapability::Erase != VaultCapability::Erase { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_vault_capability_different_ne() {
-    assert_ne!(VaultCapability::Read, VaultCapability::Write);
-    assert_ne!(VaultCapability::Seal, VaultCapability::Unseal);
-    assert_ne!(VaultCapability::Derive, VaultCapability::Erase);
+pub fn test_vault_capability_different_ne() -> TestResult {
+    if VaultCapability::Read == VaultCapability::Write { return TestResult::Fail; }
+    if VaultCapability::Seal == VaultCapability::Unseal { return TestResult::Fail; }
+    if VaultCapability::Derive == VaultCapability::Erase { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_vault_capability_clone() {
+pub fn test_vault_capability_clone() -> TestResult {
     let cap = VaultCapability::Seal;
     let cloned = cap.clone();
-    assert_eq!(cap, cloned);
+    if cap != cloned { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_vault_capability_copy() {
+pub fn test_vault_capability_copy() -> TestResult {
     let cap = VaultCapability::Unseal;
     let copied: VaultCapability = cap;
-    assert_eq!(cap, copied);
+    if cap != copied { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_vault_capability_debug_read() {
+pub fn test_vault_capability_debug_read() -> TestResult {
     let debug = alloc::format!("{:?}", VaultCapability::Read);
-    assert!(debug.contains("Read"));
+    if !debug.contains("Read") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_vault_capability_debug_write() {
+pub fn test_vault_capability_debug_write() -> TestResult {
     let debug = alloc::format!("{:?}", VaultCapability::Write);
-    assert!(debug.contains("Write"));
+    if !debug.contains("Write") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_vault_capability_debug_derive() {
+pub fn test_vault_capability_debug_derive() -> TestResult {
     let debug = alloc::format!("{:?}", VaultCapability::Derive);
-    assert!(debug.contains("Derive"));
+    if !debug.contains("Derive") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_vault_capability_debug_seal() {
+pub fn test_vault_capability_debug_seal() -> TestResult {
     let debug = alloc::format!("{:?}", VaultCapability::Seal);
-    assert!(debug.contains("Seal"));
+    if !debug.contains("Seal") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_vault_capability_debug_unseal() {
+pub fn test_vault_capability_debug_unseal() -> TestResult {
     let debug = alloc::format!("{:?}", VaultCapability::Unseal);
-    assert!(debug.contains("Unseal"));
+    if !debug.contains("Unseal") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_vault_capability_debug_audit() {
+pub fn test_vault_capability_debug_audit() -> TestResult {
     let debug = alloc::format!("{:?}", VaultCapability::Audit);
-    assert!(debug.contains("Audit"));
+    if !debug.contains("Audit") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_vault_capability_debug_erase() {
+pub fn test_vault_capability_debug_erase() -> TestResult {
     let debug = alloc::format!("{:?}", VaultCapability::Erase);
-    assert!(debug.contains("Erase"));
+    if !debug.contains("Erase") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_vault_policy_rule_clone() {
+pub fn test_vault_policy_rule_clone() -> TestResult {
     let rule = VaultPolicyRule {
         capability: VaultCapability::Derive,
         context: "test_context".into(),
@@ -127,16 +127,16 @@ fn test_vault_policy_rule_clone() {
         allow: true,
     };
     let cloned = rule.clone();
-    assert_eq!(rule.capability, cloned.capability);
-    assert_eq!(rule.context, cloned.context);
-    assert_eq!(rule.max_uses, cloned.max_uses);
-    assert_eq!(rule.used, cloned.used);
-    assert_eq!(rule.expires_at, cloned.expires_at);
-    assert_eq!(rule.allow, cloned.allow);
+    if rule.capability != cloned.capability { return TestResult::Fail; }
+    if rule.context != cloned.context { return TestResult::Fail; }
+    if rule.max_uses != cloned.max_uses { return TestResult::Fail; }
+    if rule.used != cloned.used { return TestResult::Fail; }
+    if rule.expires_at != cloned.expires_at { return TestResult::Fail; }
+    if rule.allow != cloned.allow { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_vault_policy_rule_debug() {
+pub fn test_vault_policy_rule_debug() -> TestResult {
     let rule = VaultPolicyRule {
         capability: VaultCapability::Seal,
         context: "debug_ctx".into(),
@@ -146,12 +146,12 @@ fn test_vault_policy_rule_debug() {
         allow: true,
     };
     let debug = alloc::format!("{:?}", rule);
-    assert!(debug.contains("VaultPolicyRule"));
-    assert!(debug.contains("Seal"));
+    if !debug.contains("VaultPolicyRule") { return TestResult::Fail; }
+    if !debug.contains("Seal") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_vault_policy_rule_unlimited_uses() {
+pub fn test_vault_policy_rule_unlimited_uses() -> TestResult {
     let rule = VaultPolicyRule {
         capability: VaultCapability::Read,
         context: "unlimited".into(),
@@ -160,11 +160,11 @@ fn test_vault_policy_rule_unlimited_uses() {
         expires_at: None,
         allow: true,
     };
-    assert!(rule.max_uses.is_none());
+    if !rule.max_uses.is_none() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_vault_policy_rule_limited_uses() {
+pub fn test_vault_policy_rule_limited_uses() -> TestResult {
     let rule = VaultPolicyRule {
         capability: VaultCapability::Write,
         context: "limited".into(),
@@ -173,12 +173,12 @@ fn test_vault_policy_rule_limited_uses() {
         expires_at: None,
         allow: true,
     };
-    assert_eq!(rule.max_uses, Some(10));
-    assert_eq!(rule.used, 5);
+    if rule.max_uses != Some(10) { return TestResult::Fail; }
+    if rule.used != 5 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_vault_policy_rule_with_expiry() {
+pub fn test_vault_policy_rule_with_expiry() -> TestResult {
     let rule = VaultPolicyRule {
         capability: VaultCapability::Unseal,
         context: "expiring".into(),
@@ -187,11 +187,11 @@ fn test_vault_policy_rule_with_expiry() {
         expires_at: Some(1000000),
         allow: true,
     };
-    assert_eq!(rule.expires_at, Some(1000000));
+    if rule.expires_at != Some(1000000) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_vault_policy_rule_deny() {
+pub fn test_vault_policy_rule_deny() -> TestResult {
     let rule = VaultPolicyRule {
         capability: VaultCapability::Erase,
         context: "denied".into(),
@@ -200,18 +200,18 @@ fn test_vault_policy_rule_deny() {
         expires_at: None,
         allow: false,
     };
-    assert!(!rule.allow);
+    if rule.allow { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_vault_policy_engine_new() {
+pub fn test_vault_policy_engine_new() -> TestResult {
     let engine = VaultPolicyEngine::new();
     let policies = engine.list_policies();
-    assert!(policies.is_empty());
+    if !policies.is_empty() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_vault_policy_engine_set_policy() {
+pub fn test_vault_policy_engine_set_policy() -> TestResult {
     let engine = VaultPolicyEngine::new();
     let rule = VaultPolicyRule {
         capability: VaultCapability::Derive,
@@ -223,11 +223,11 @@ fn test_vault_policy_engine_set_policy() {
     };
     engine.set_policy("process_1", rule);
     let policies = engine.list_policies();
-    assert_eq!(policies.len(), 1);
+    if policies.len() != 1 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_vault_policy_engine_check_allowed() {
+pub fn test_vault_policy_engine_check_allowed() -> TestResult {
     let engine = VaultPolicyEngine::new();
     let rule = VaultPolicyRule {
         capability: VaultCapability::Read,
@@ -238,11 +238,11 @@ fn test_vault_policy_engine_check_allowed() {
         allow: true,
     };
     engine.set_policy("reader", rule);
-    assert!(engine.check("reader", VaultCapability::Read));
+    if !engine.check("reader", VaultCapability::Read) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_vault_policy_engine_check_denied() {
+pub fn test_vault_policy_engine_check_denied() -> TestResult {
     let engine = VaultPolicyEngine::new();
     let rule = VaultPolicyRule {
         capability: VaultCapability::Erase,
@@ -253,17 +253,17 @@ fn test_vault_policy_engine_check_denied() {
         allow: false,
     };
     engine.set_policy("restricted", rule);
-    assert!(!engine.check("restricted", VaultCapability::Erase));
+    if engine.check("restricted", VaultCapability::Erase) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_vault_policy_engine_check_no_rule_denies() {
+pub fn test_vault_policy_engine_check_no_rule_denies() -> TestResult {
     let engine = VaultPolicyEngine::new();
-    assert!(!engine.check("unknown_context", VaultCapability::Seal));
+    if engine.check("unknown_context", VaultCapability::Seal) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_vault_policy_engine_check_wrong_capability_denies() {
+pub fn test_vault_policy_engine_check_wrong_capability_denies() -> TestResult {
     let engine = VaultPolicyEngine::new();
     let rule = VaultPolicyRule {
         capability: VaultCapability::Read,
@@ -274,11 +274,11 @@ fn test_vault_policy_engine_check_wrong_capability_denies() {
         allow: true,
     };
     engine.set_policy("reader_only", rule);
-    assert!(!engine.check("reader_only", VaultCapability::Write));
+    if engine.check("reader_only", VaultCapability::Write) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_vault_policy_engine_increment_usage() {
+pub fn test_vault_policy_engine_increment_usage() -> TestResult {
     let engine = VaultPolicyEngine::new();
     let rule = VaultPolicyRule {
         capability: VaultCapability::Derive,
@@ -293,11 +293,11 @@ fn test_vault_policy_engine_increment_usage() {
     let policies = engine.list_policies();
     let entry = policies.iter().find(|(ctx, _)| ctx == "counter").unwrap();
     let r = entry.1.iter().find(|r| r.capability == VaultCapability::Derive).unwrap();
-    assert_eq!(r.used, 1);
+    if r.used != 1 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_vault_policy_engine_max_uses_exceeded() {
+pub fn test_vault_policy_engine_max_uses_exceeded() -> TestResult {
     let engine = VaultPolicyEngine::new();
     let rule = VaultPolicyRule {
         capability: VaultCapability::Seal,
@@ -308,11 +308,11 @@ fn test_vault_policy_engine_max_uses_exceeded() {
         allow: true,
     };
     engine.set_policy("limited", rule);
-    assert!(!engine.check("limited", VaultCapability::Seal));
+    if engine.check("limited", VaultCapability::Seal) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_vault_policy_engine_clear_policy() {
+pub fn test_vault_policy_engine_clear_policy() -> TestResult {
     let engine = VaultPolicyEngine::new();
     let rule = VaultPolicyRule {
         capability: VaultCapability::Audit,
@@ -323,13 +323,13 @@ fn test_vault_policy_engine_clear_policy() {
         allow: true,
     };
     engine.set_policy("to_clear", rule);
-    assert_eq!(engine.list_policies().len(), 1);
+    if engine.list_policies().len() != 1 { return TestResult::Fail; }
     engine.clear_policy("to_clear");
-    assert!(engine.list_policies().is_empty());
+    if !engine.list_policies().is_empty() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_vault_policy_engine_multiple_rules_same_context() {
+pub fn test_vault_policy_engine_multiple_rules_same_context() -> TestResult {
     let engine = VaultPolicyEngine::new();
     let rule1 = VaultPolicyRule {
         capability: VaultCapability::Read,
@@ -349,12 +349,12 @@ fn test_vault_policy_engine_multiple_rules_same_context() {
     };
     engine.set_policy("multi", rule1);
     engine.set_policy("multi", rule2);
-    assert!(engine.check("multi", VaultCapability::Read));
-    assert!(engine.check("multi", VaultCapability::Write));
+    if !engine.check("multi", VaultCapability::Read) { return TestResult::Fail; }
+    if !engine.check("multi", VaultCapability::Write) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_vault_policy_engine_update_existing_rule() {
+pub fn test_vault_policy_engine_update_existing_rule() -> TestResult {
     let engine = VaultPolicyEngine::new();
     let rule1 = VaultPolicyRule {
         capability: VaultCapability::Derive,
@@ -377,12 +377,12 @@ fn test_vault_policy_engine_update_existing_rule() {
     let policies = engine.list_policies();
     let entry = policies.iter().find(|(ctx, _)| ctx == "update").unwrap();
     let r = entry.1.iter().find(|r| r.capability == VaultCapability::Derive).unwrap();
-    assert_eq!(r.max_uses, Some(10));
-    assert_eq!(r.used, 3);
+    if r.max_uses != Some(10) { return TestResult::Fail; }
+    if r.used != 3 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_set_vault_policy_api() {
+pub fn test_set_vault_policy_api() -> TestResult {
     let rule = VaultPolicyRule {
         capability: VaultCapability::Seal,
         context: "api_test".into(),
@@ -392,11 +392,11 @@ fn test_set_vault_policy_api() {
         allow: true,
     };
     set_vault_policy("api_test", rule);
-    assert!(check_vault_policy("api_test", VaultCapability::Seal));
+    if !check_vault_policy("api_test", VaultCapability::Seal) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_check_vault_policy_api() {
+pub fn test_check_vault_policy_api() -> TestResult {
     let rule = VaultPolicyRule {
         capability: VaultCapability::Unseal,
         context: "check_api".into(),
@@ -406,12 +406,12 @@ fn test_check_vault_policy_api() {
         allow: true,
     };
     set_vault_policy("check_api", rule);
-    assert!(check_vault_policy("check_api", VaultCapability::Unseal));
-    assert!(!check_vault_policy("check_api", VaultCapability::Erase));
+    if !check_vault_policy("check_api", VaultCapability::Unseal) { return TestResult::Fail; }
+    if check_vault_policy("check_api", VaultCapability::Erase) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_increment_vault_policy_usage_api() {
+pub fn test_increment_vault_policy_usage_api() -> TestResult {
     let rule = VaultPolicyRule {
         capability: VaultCapability::Derive,
         context: "increment_api".into(),
@@ -427,13 +427,13 @@ fn test_increment_vault_policy_usage_api() {
     if let Some((_, rules)) = entry {
         let r = rules.iter().find(|r| r.capability == VaultCapability::Derive);
         if let Some(rule) = r {
-            assert!(rule.used >= 1);
+            if rule.used < 1 { return TestResult::Fail; }
         }
     }
+    TestResult::Pass
 }
 
-#[test]
-fn test_clear_vault_policy_api() {
+pub fn test_clear_vault_policy_api() -> TestResult {
     let rule = VaultPolicyRule {
         capability: VaultCapability::Read,
         context: "clear_api".into(),
@@ -444,17 +444,18 @@ fn test_clear_vault_policy_api() {
     };
     set_vault_policy("clear_api", rule);
     clear_vault_policy("clear_api");
-    assert!(!check_vault_policy("clear_api", VaultCapability::Read));
+    if check_vault_policy("clear_api", VaultCapability::Read) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_list_vault_policies_api() {
+pub fn test_list_vault_policies_api() -> TestResult {
     let policies = list_vault_policies();
-    assert!(policies.len() >= 0);
+    let _ = policies.len();
+    TestResult::Pass
 }
 
-#[test]
-fn test_vault_policy_engine_singleton_exists() {
+pub fn test_vault_policy_engine_singleton_exists() -> TestResult {
     let policies = VAULT_POLICY_ENGINE.list_policies();
-    assert!(policies.len() >= 0);
+    let _ = policies.len();
+    TestResult::Pass
 }
