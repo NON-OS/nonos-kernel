@@ -16,7 +16,7 @@ use crate::crypto::symmetric::chacha20poly1305::{
 };
 use crate::test::framework::TestResult;
 
-pub fn test_aes128_gcm_nist_case_1() -> TestResult {
+pub(crate) fn test_aes128_gcm_nist_case_1() -> TestResult {
     let key = [0u8; 16];
     let nonce = [0u8; 12];
     let aad: &[u8] = &[];
@@ -41,7 +41,7 @@ pub fn test_aes128_gcm_nist_case_1() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_aes128_gcm_nist_case_2() -> TestResult {
+pub(crate) fn test_aes128_gcm_nist_case_2() -> TestResult {
     let key = [0u8; 16];
     let nonce = [0u8; 12];
     let aad: &[u8] = &[];
@@ -71,7 +71,7 @@ pub fn test_aes128_gcm_nist_case_2() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_aes128_gcm_roundtrip() -> TestResult {
+pub(crate) fn test_aes128_gcm_roundtrip() -> TestResult {
     let key = [0x42u8; 16];
     let nonce = [0x24u8; 12];
     let aad = b"additional authenticated data";
@@ -91,7 +91,7 @@ pub fn test_aes128_gcm_roundtrip() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_aes128_gcm_tag_tampering() -> TestResult {
+pub(crate) fn test_aes128_gcm_tag_tampering() -> TestResult {
     let key = [0x42u8; 16];
     let nonce = [0x24u8; 12];
     let aad = b"header";
@@ -108,7 +108,7 @@ pub fn test_aes128_gcm_tag_tampering() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_aes128_gcm_ciphertext_tampering() -> TestResult {
+pub(crate) fn test_aes128_gcm_ciphertext_tampering() -> TestResult {
     let key = [0x42u8; 16];
     let nonce = [0x24u8; 12];
     let aad = b"header";
@@ -124,7 +124,7 @@ pub fn test_aes128_gcm_ciphertext_tampering() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_aes128_gcm_aad_tampering() -> TestResult {
+pub(crate) fn test_aes128_gcm_aad_tampering() -> TestResult {
     let key = [0x42u8; 16];
     let nonce = [0x24u8; 12];
     let aad = b"header";
@@ -139,7 +139,7 @@ pub fn test_aes128_gcm_aad_tampering() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_aes128_gcm_short_ciphertext() -> TestResult {
+pub(crate) fn test_aes128_gcm_short_ciphertext() -> TestResult {
     let key = [0x42u8; 16];
     let nonce = [0x24u8; 12];
     let aad = b"header";
@@ -149,7 +149,7 @@ pub fn test_aes128_gcm_short_ciphertext() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_aes128_gcm_empty_plaintext() -> TestResult {
+pub(crate) fn test_aes128_gcm_empty_plaintext() -> TestResult {
     let key = [0x42u8; 16];
     let nonce = [0x24u8; 12];
     let aad = b"header";
@@ -169,7 +169,7 @@ pub fn test_aes128_gcm_empty_plaintext() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_aes128_gcm_empty_aad() -> TestResult {
+pub(crate) fn test_aes128_gcm_empty_aad() -> TestResult {
     let key = [0x42u8; 16];
     let nonce = [0x24u8; 12];
     let aad = b"";
@@ -187,7 +187,7 @@ pub fn test_aes128_gcm_empty_aad() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_aes128_gcm_in_place() -> TestResult {
+pub(crate) fn test_aes128_gcm_in_place() -> TestResult {
     let gcm = Aes128Gcm::new(&[0x42u8; 16]);
     let nonce = [0x24u8; 12];
     let aad = b"header";
@@ -201,7 +201,7 @@ pub fn test_aes128_gcm_in_place() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_aes128_gcm_in_place_tag_tamper() -> TestResult {
+pub(crate) fn test_aes128_gcm_in_place_tag_tamper() -> TestResult {
     let gcm = Aes128Gcm::new(&[0x42u8; 16]);
     let nonce = [0x24u8; 12];
     let aad = b"header";
@@ -215,7 +215,7 @@ pub fn test_aes128_gcm_in_place_tag_tamper() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_aes128_gcm_large_plaintext() -> TestResult {
+pub(crate) fn test_aes128_gcm_large_plaintext() -> TestResult {
     let key = [0x42u8; 16];
     let nonce = [0x24u8; 12];
     let aad = b"header";
@@ -233,7 +233,7 @@ pub fn test_aes128_gcm_large_plaintext() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_aes256_gcm_roundtrip() -> TestResult {
+pub(crate) fn test_aes256_gcm_roundtrip() -> TestResult {
     let key = [0x42u8; 32];
     let nonce = [0x24u8; 12];
     let aad = b"additional authenticated data";
@@ -253,7 +253,7 @@ pub fn test_aes256_gcm_roundtrip() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_aes256_gcm_tag_tampering() -> TestResult {
+pub(crate) fn test_aes256_gcm_tag_tampering() -> TestResult {
     let key = [0x42u8; 32];
     let nonce = [0x24u8; 12];
     let aad = b"header";
@@ -270,7 +270,7 @@ pub fn test_aes256_gcm_tag_tampering() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_aes256_gcm_ciphertext_tampering() -> TestResult {
+pub(crate) fn test_aes256_gcm_ciphertext_tampering() -> TestResult {
     let key = [0x42u8; 32];
     let nonce = [0x24u8; 12];
     let aad = b"header";
@@ -286,7 +286,7 @@ pub fn test_aes256_gcm_ciphertext_tampering() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_aes256_gcm_empty_plaintext() -> TestResult {
+pub(crate) fn test_aes256_gcm_empty_plaintext() -> TestResult {
     let key = [0x42u8; 32];
     let nonce = [0x24u8; 12];
     let aad = b"header";
@@ -306,7 +306,7 @@ pub fn test_aes256_gcm_empty_plaintext() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_aes256_gcm_in_place() -> TestResult {
+pub(crate) fn test_aes256_gcm_in_place() -> TestResult {
     let gcm = Aes256Gcm::new(&[0x42u8; 32]);
     let nonce = [0x24u8; 12];
     let aad = b"header";
@@ -320,7 +320,7 @@ pub fn test_aes256_gcm_in_place() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_chacha20_rfc8439_block() -> TestResult {
+pub(crate) fn test_chacha20_rfc8439_block() -> TestResult {
     let key = [
         0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
         0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f,
@@ -349,7 +349,7 @@ pub fn test_chacha20_rfc8439_block() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_chacha20_poly1305_rfc8439_aead() -> TestResult {
+pub(crate) fn test_chacha20_poly1305_rfc8439_aead() -> TestResult {
     let key = [
         0x80, 0x81, 0x82, 0x83, 0x84, 0x85, 0x86, 0x87,
         0x88, 0x89, 0x8a, 0x8b, 0x8c, 0x8d, 0x8e, 0x8f,
@@ -405,7 +405,7 @@ If I could offer you only one tip for the future, sunscreen would be it.";
     TestResult::Pass
 }
 
-pub fn test_chacha20_poly1305_tag_tampering() -> TestResult {
+pub(crate) fn test_chacha20_poly1305_tag_tampering() -> TestResult {
     let key = [0x42u8; 32];
     let nonce = [0x24u8; 12];
     let aad = b"header";
@@ -422,7 +422,7 @@ pub fn test_chacha20_poly1305_tag_tampering() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_chacha20_poly1305_ciphertext_tampering() -> TestResult {
+pub(crate) fn test_chacha20_poly1305_ciphertext_tampering() -> TestResult {
     let key = [0x42u8; 32];
     let nonce = [0x24u8; 12];
     let aad = b"header";
@@ -438,7 +438,7 @@ pub fn test_chacha20_poly1305_ciphertext_tampering() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_chacha20_poly1305_aad_tampering() -> TestResult {
+pub(crate) fn test_chacha20_poly1305_aad_tampering() -> TestResult {
     let key = [0x42u8; 32];
     let nonce = [0x24u8; 12];
     let aad = b"header";
@@ -453,7 +453,7 @@ pub fn test_chacha20_poly1305_aad_tampering() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_chacha20_poly1305_empty_plaintext() -> TestResult {
+pub(crate) fn test_chacha20_poly1305_empty_plaintext() -> TestResult {
     let key = [0x42u8; 32];
     let nonce = [0x24u8; 12];
     let aad = b"header";
@@ -473,7 +473,7 @@ pub fn test_chacha20_poly1305_empty_plaintext() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_chacha20_poly1305_empty_aad() -> TestResult {
+pub(crate) fn test_chacha20_poly1305_empty_aad() -> TestResult {
     let key = [0x42u8; 32];
     let nonce = [0x24u8; 12];
     let aad = b"";
@@ -491,7 +491,7 @@ pub fn test_chacha20_poly1305_empty_aad() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_chacha20_poly1305_in_place() -> TestResult {
+pub(crate) fn test_chacha20_poly1305_in_place() -> TestResult {
     let key = [0x42u8; 32];
     let nonce = [0x24u8; 12];
     let aad = b"header";
@@ -514,7 +514,7 @@ pub fn test_chacha20_poly1305_in_place() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_chacha20_poly1305_large_plaintext() -> TestResult {
+pub(crate) fn test_chacha20_poly1305_large_plaintext() -> TestResult {
     let key = [0x42u8; 32];
     let nonce = [0x24u8; 12];
     let aad = b"header";
@@ -532,7 +532,7 @@ pub fn test_chacha20_poly1305_large_plaintext() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_poly1305_rfc8439_mac() -> TestResult {
+pub(crate) fn test_poly1305_rfc8439_mac() -> TestResult {
     let key = [
         0x85, 0xd6, 0xbe, 0x78, 0x57, 0x55, 0x6d, 0x33,
         0x7f, 0x44, 0x52, 0xfe, 0x42, 0xd5, 0x06, 0xa8,
@@ -551,7 +551,7 @@ pub fn test_poly1305_rfc8439_mac() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_poly1305_deterministic() -> TestResult {
+pub(crate) fn test_poly1305_deterministic() -> TestResult {
     let key = [0xff; 32];
     let tag1 = poly1305_mac(b"test", &key);
     let tag2 = poly1305_mac(b"test", &key);
@@ -559,7 +559,7 @@ pub fn test_poly1305_deterministic() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_chacha20_poly1305_short_ciphertext() -> TestResult {
+pub(crate) fn test_chacha20_poly1305_short_ciphertext() -> TestResult {
     let key = [0x42u8; 32];
     let nonce = [0x24u8; 12];
     let aad = b"header";
@@ -569,7 +569,7 @@ pub fn test_chacha20_poly1305_short_ciphertext() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_chacha20_poly1305_different_keys() -> TestResult {
+pub(crate) fn test_chacha20_poly1305_different_keys() -> TestResult {
     let key1 = [0x42u8; 32];
     let key2 = [0x43u8; 32];
     let nonce = [0x24u8; 12];
@@ -589,7 +589,7 @@ pub fn test_chacha20_poly1305_different_keys() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_chacha20_poly1305_different_nonces() -> TestResult {
+pub(crate) fn test_chacha20_poly1305_different_nonces() -> TestResult {
     let key = [0x42u8; 32];
     let nonce1 = [0x24u8; 12];
     let nonce2 = [0x25u8; 12];
@@ -609,7 +609,7 @@ pub fn test_chacha20_poly1305_different_nonces() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_aes_gcm_different_keys() -> TestResult {
+pub(crate) fn test_aes_gcm_different_keys() -> TestResult {
     let key1 = [0x42u8; 16];
     let key2 = [0x43u8; 16];
     let nonce = [0x24u8; 12];
@@ -629,7 +629,7 @@ pub fn test_aes_gcm_different_keys() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_aes_gcm_different_nonces() -> TestResult {
+pub(crate) fn test_aes_gcm_different_nonces() -> TestResult {
     let key = [0x42u8; 16];
     let nonce1 = [0x24u8; 12];
     let nonce2 = [0x25u8; 12];
@@ -649,7 +649,7 @@ pub fn test_aes_gcm_different_nonces() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_aes_gcm_cross_key_decrypt() -> TestResult {
+pub(crate) fn test_aes_gcm_cross_key_decrypt() -> TestResult {
     let key1 = [0x42u8; 16];
     let key2 = [0x43u8; 16];
     let nonce = [0x24u8; 12];
@@ -665,7 +665,7 @@ pub fn test_aes_gcm_cross_key_decrypt() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_chacha20_poly1305_cross_key_decrypt() -> TestResult {
+pub(crate) fn test_chacha20_poly1305_cross_key_decrypt() -> TestResult {
     let key1 = [0x42u8; 32];
     let key2 = [0x43u8; 32];
     let nonce = [0x24u8; 12];
@@ -681,7 +681,7 @@ pub fn test_chacha20_poly1305_cross_key_decrypt() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_aes_gcm_wrong_nonce() -> TestResult {
+pub(crate) fn test_aes_gcm_wrong_nonce() -> TestResult {
     let key = [0x42u8; 16];
     let nonce1 = [0x24u8; 12];
     let nonce2 = [0x25u8; 12];
@@ -696,7 +696,7 @@ pub fn test_aes_gcm_wrong_nonce() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_chacha20_poly1305_wrong_nonce() -> TestResult {
+pub(crate) fn test_chacha20_poly1305_wrong_nonce() -> TestResult {
     let key = [0x42u8; 32];
     let nonce1 = [0x24u8; 12];
     let nonce2 = [0x25u8; 12];

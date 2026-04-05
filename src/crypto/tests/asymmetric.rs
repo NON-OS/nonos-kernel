@@ -6,7 +6,7 @@
 use crate::crypto::asymmetric::ed25519::{sign, verify, KeyPair, Signature};
 use crate::test::framework::TestResult;
 
-pub fn test_ed25519_keypair_from_seed() -> TestResult {
+pub(crate) fn test_ed25519_keypair_from_seed() -> TestResult {
     let seed = [0x42u8; 32];
     let kp = KeyPair::from_seed(seed);
     if kp.public.len() != 32 { return TestResult::Fail; }
@@ -14,7 +14,7 @@ pub fn test_ed25519_keypair_from_seed() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_ed25519_keypair_deterministic() -> TestResult {
+pub(crate) fn test_ed25519_keypair_deterministic() -> TestResult {
     let seed = [0x42u8; 32];
     let kp1 = KeyPair::from_seed(seed);
     let kp2 = KeyPair::from_seed(seed);
@@ -22,14 +22,14 @@ pub fn test_ed25519_keypair_deterministic() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_ed25519_keypair_different_seeds() -> TestResult {
+pub(crate) fn test_ed25519_keypair_different_seeds() -> TestResult {
     let kp1 = KeyPair::from_seed([0x42u8; 32]);
     let kp2 = KeyPair::from_seed([0x43u8; 32]);
     if kp1.public == kp2.public { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_ed25519_sign_verify_roundtrip() -> TestResult {
+pub(crate) fn test_ed25519_sign_verify_roundtrip() -> TestResult {
     let kp = KeyPair::from_seed([0x42u8; 32]);
     let msg = b"test message";
     let sig = sign(&kp, msg);
@@ -37,7 +37,7 @@ pub fn test_ed25519_sign_verify_roundtrip() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_ed25519_sign_deterministic() -> TestResult {
+pub(crate) fn test_ed25519_sign_deterministic() -> TestResult {
     let kp = KeyPair::from_seed([0x42u8; 32]);
     let msg = b"test message";
     let sig1 = sign(&kp, msg);
@@ -47,7 +47,7 @@ pub fn test_ed25519_sign_deterministic() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_ed25519_verify_wrong_message() -> TestResult {
+pub(crate) fn test_ed25519_verify_wrong_message() -> TestResult {
     let kp = KeyPair::from_seed([0x42u8; 32]);
     let msg = b"test message";
     let sig = sign(&kp, msg);
@@ -55,7 +55,7 @@ pub fn test_ed25519_verify_wrong_message() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_ed25519_verify_wrong_key() -> TestResult {
+pub(crate) fn test_ed25519_verify_wrong_key() -> TestResult {
     let kp1 = KeyPair::from_seed([0x42u8; 32]);
     let kp2 = KeyPair::from_seed([0x43u8; 32]);
     let msg = b"test message";
@@ -64,7 +64,7 @@ pub fn test_ed25519_verify_wrong_key() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_ed25519_verify_tampered_signature_r() -> TestResult {
+pub(crate) fn test_ed25519_verify_tampered_signature_r() -> TestResult {
     let kp = KeyPair::from_seed([0x42u8; 32]);
     let msg = b"test message";
     let mut sig = sign(&kp, msg);
@@ -73,7 +73,7 @@ pub fn test_ed25519_verify_tampered_signature_r() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_ed25519_verify_tampered_signature_s() -> TestResult {
+pub(crate) fn test_ed25519_verify_tampered_signature_s() -> TestResult {
     let kp = KeyPair::from_seed([0x42u8; 32]);
     let msg = b"test message";
     let mut sig = sign(&kp, msg);
@@ -82,7 +82,7 @@ pub fn test_ed25519_verify_tampered_signature_s() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_ed25519_signature_to_bytes() -> TestResult {
+pub(crate) fn test_ed25519_signature_to_bytes() -> TestResult {
     let kp = KeyPair::from_seed([0x42u8; 32]);
     let msg = b"test message";
     let sig = sign(&kp, msg);
@@ -93,7 +93,7 @@ pub fn test_ed25519_signature_to_bytes() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_ed25519_signature_from_bytes() -> TestResult {
+pub(crate) fn test_ed25519_signature_from_bytes() -> TestResult {
     let kp = KeyPair::from_seed([0x42u8; 32]);
     let msg = b"test message";
     let sig = sign(&kp, msg);
@@ -104,7 +104,7 @@ pub fn test_ed25519_signature_from_bytes() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_ed25519_signature_roundtrip_bytes() -> TestResult {
+pub(crate) fn test_ed25519_signature_roundtrip_bytes() -> TestResult {
     let kp = KeyPair::from_seed([0x42u8; 32]);
     let msg = b"test message";
     let sig = sign(&kp, msg);
@@ -114,7 +114,7 @@ pub fn test_ed25519_signature_roundtrip_bytes() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_ed25519_sign_empty_message() -> TestResult {
+pub(crate) fn test_ed25519_sign_empty_message() -> TestResult {
     let kp = KeyPair::from_seed([0x42u8; 32]);
     let msg = b"";
     let sig = sign(&kp, msg);
@@ -122,7 +122,7 @@ pub fn test_ed25519_sign_empty_message() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_ed25519_sign_large_message() -> TestResult {
+pub(crate) fn test_ed25519_sign_large_message() -> TestResult {
     let kp = KeyPair::from_seed([0x42u8; 32]);
     let msg = [0x42u8; 4096];
     let sig = sign(&kp, &msg);
@@ -130,14 +130,14 @@ pub fn test_ed25519_sign_large_message() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_ed25519_keypair_clone() -> TestResult {
+pub(crate) fn test_ed25519_keypair_clone() -> TestResult {
     let kp = KeyPair::from_seed([0x42u8; 32]);
     let kp2 = kp.clone();
     if kp.public != kp2.public { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_ed25519_signature_clone() -> TestResult {
+pub(crate) fn test_ed25519_signature_clone() -> TestResult {
     let kp = KeyPair::from_seed([0x42u8; 32]);
     let sig = sign(&kp, b"msg");
     let sig2 = sig.clone();
@@ -146,25 +146,25 @@ pub fn test_ed25519_signature_clone() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_ed25519_public_key_size() -> TestResult {
+pub(crate) fn test_ed25519_public_key_size() -> TestResult {
     let ed25519_pub: usize = 32;
     if ed25519_pub != 32 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_ed25519_private_key_size() -> TestResult {
+pub(crate) fn test_ed25519_private_key_size() -> TestResult {
     let ed25519_priv: usize = 32;
     if ed25519_priv != 32 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_ed25519_signature_size() -> TestResult {
+pub(crate) fn test_ed25519_signature_size() -> TestResult {
     let ed25519_sig: usize = 64;
     if ed25519_sig != 64 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_ed25519_sign_different_messages_different_sigs() -> TestResult {
+pub(crate) fn test_ed25519_sign_different_messages_different_sigs() -> TestResult {
     let kp = KeyPair::from_seed([0x42u8; 32]);
     let sig1 = sign(&kp, b"message1");
     let sig2 = sign(&kp, b"message2");
@@ -172,7 +172,7 @@ pub fn test_ed25519_sign_different_messages_different_sigs() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_ed25519_all_zero_seed() -> TestResult {
+pub(crate) fn test_ed25519_all_zero_seed() -> TestResult {
     let kp = KeyPair::from_seed([0u8; 32]);
     let msg = b"test";
     let sig = sign(&kp, msg);
@@ -180,7 +180,7 @@ pub fn test_ed25519_all_zero_seed() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_ed25519_all_ones_seed() -> TestResult {
+pub(crate) fn test_ed25519_all_ones_seed() -> TestResult {
     let kp = KeyPair::from_seed([0xffu8; 32]);
     let msg = b"test";
     let sig = sign(&kp, msg);
@@ -188,7 +188,7 @@ pub fn test_ed25519_all_ones_seed() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_ed25519_sequential_signing() -> TestResult {
+pub(crate) fn test_ed25519_sequential_signing() -> TestResult {
     let kp = KeyPair::from_seed([0x42u8; 32]);
     for i in 0..10 {
         let msg = [i as u8; 32];
