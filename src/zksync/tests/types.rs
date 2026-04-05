@@ -19,13 +19,13 @@ extern crate alloc;
 use crate::test::framework::TestResult;
 use crate::zksync::types::*;
 
-pub fn test_address_zero() -> TestResult {
+pub(crate) fn test_address_zero() -> TestResult {
     let addr = Address::ZERO;
     if addr.0 != [0u8; 20] { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_address_from_bytes_valid() -> TestResult {
+pub(crate) fn test_address_from_bytes_valid() -> TestResult {
     let bytes = [1u8; 20];
     let addr = Address::from_bytes(&bytes);
     if addr.is_none() { return TestResult::Fail; }
@@ -33,35 +33,35 @@ pub fn test_address_from_bytes_valid() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_address_from_bytes_invalid_length() -> TestResult {
+pub(crate) fn test_address_from_bytes_invalid_length() -> TestResult {
     let short: [u8; 19] = [1u8; 19];
     let addr = Address::from_bytes(&short);
     if addr.is_some() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_address_from_slice() -> TestResult {
+pub(crate) fn test_address_from_slice() -> TestResult {
     let bytes = [0xAB; 20];
     let addr = Address::from_slice(&bytes);
     if addr.0 != bytes { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_address_as_bytes() -> TestResult {
+pub(crate) fn test_address_as_bytes() -> TestResult {
     let bytes = [0xCD; 20];
     let addr = Address::from_slice(&bytes);
     if addr.as_bytes() != &bytes { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_address_from_array() -> TestResult {
+pub(crate) fn test_address_from_array() -> TestResult {
     let bytes: [u8; 20] = [0x12; 20];
     let addr: Address = bytes.into();
     if addr.0 != bytes { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_address_as_ref() -> TestResult {
+pub(crate) fn test_address_as_ref() -> TestResult {
     let bytes = [0x34; 20];
     let addr = Address::from_slice(&bytes);
     let slice: &[u8] = addr.as_ref();
@@ -69,7 +69,7 @@ pub fn test_address_as_ref() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_address_debug_format() -> TestResult {
+pub(crate) fn test_address_debug_format() -> TestResult {
     let addr = Address::ZERO;
     let debug = alloc::format!("{:?}", addr);
     if !debug.starts_with("0x") { return TestResult::Fail; }
@@ -77,7 +77,7 @@ pub fn test_address_debug_format() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_address_equality() -> TestResult {
+pub(crate) fn test_address_equality() -> TestResult {
     let a1 = Address::from_slice(&[1u8; 20]);
     let a2 = Address::from_slice(&[1u8; 20]);
     let a3 = Address::from_slice(&[2u8; 20]);
@@ -86,27 +86,27 @@ pub fn test_address_equality() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_address_ordering() -> TestResult {
+pub(crate) fn test_address_ordering() -> TestResult {
     let a1 = Address::from_slice(&[0u8; 20]);
     let a2 = Address::from_slice(&[1u8; 20]);
     if !(a1 < a2) { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_address_default() -> TestResult {
+pub(crate) fn test_address_default() -> TestResult {
     let addr: Address = Default::default();
     if addr != Address::ZERO { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_u256_zero() -> TestResult {
+pub(crate) fn test_u256_zero() -> TestResult {
     let u = U256::ZERO;
     if !u.is_zero() { return TestResult::Fail; }
     if u.0 != [0, 0, 0, 0] { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_u256_one() -> TestResult {
+pub(crate) fn test_u256_one() -> TestResult {
     let u = U256::ONE;
     if u.is_zero() { return TestResult::Fail; }
     if u.0[0] != 1 { return TestResult::Fail; }
@@ -114,7 +114,7 @@ pub fn test_u256_one() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_u256_from_u64() -> TestResult {
+pub(crate) fn test_u256_from_u64() -> TestResult {
     let u = U256::from_u64(12345);
     if u.0[0] != 12345 { return TestResult::Fail; }
     if u.0[1] != 0 { return TestResult::Fail; }
@@ -123,7 +123,7 @@ pub fn test_u256_from_u64() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_u256_from_bytes_be() -> TestResult {
+pub(crate) fn test_u256_from_bytes_be() -> TestResult {
     let mut bytes = [0u8; 32];
     bytes[31] = 1;
     let u = U256::from_bytes_be(&bytes);
@@ -131,7 +131,7 @@ pub fn test_u256_from_bytes_be() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_u256_to_bytes_be() -> TestResult {
+pub(crate) fn test_u256_to_bytes_be() -> TestResult {
     let u = U256::from_u64(0x0102030405060708);
     let bytes = u.to_bytes_be();
     if bytes[24] != 0x01 { return TestResult::Fail; }
@@ -139,7 +139,7 @@ pub fn test_u256_to_bytes_be() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_u256_roundtrip() -> TestResult {
+pub(crate) fn test_u256_roundtrip() -> TestResult {
     let original = U256([0x1111, 0x2222, 0x3333, 0x4444]);
     let bytes = original.to_bytes_be();
     let restored = U256::from_bytes_be(&bytes);
@@ -147,7 +147,7 @@ pub fn test_u256_roundtrip() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_u256_checked_add() -> TestResult {
+pub(crate) fn test_u256_checked_add() -> TestResult {
     let a = U256::from_u64(100);
     let b = U256::from_u64(200);
     let sum = a.checked_add(&b);
@@ -156,7 +156,7 @@ pub fn test_u256_checked_add() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_u256_checked_add_overflow() -> TestResult {
+pub(crate) fn test_u256_checked_add_overflow() -> TestResult {
     let max = U256([u64::MAX, u64::MAX, u64::MAX, u64::MAX]);
     let one = U256::ONE;
     let result = max.checked_add(&one);
@@ -164,7 +164,7 @@ pub fn test_u256_checked_add_overflow() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_u256_checked_sub() -> TestResult {
+pub(crate) fn test_u256_checked_sub() -> TestResult {
     let a = U256::from_u64(300);
     let b = U256::from_u64(100);
     let diff = a.checked_sub(&b);
@@ -173,7 +173,7 @@ pub fn test_u256_checked_sub() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_u256_checked_sub_underflow() -> TestResult {
+pub(crate) fn test_u256_checked_sub_underflow() -> TestResult {
     let a = U256::from_u64(100);
     let b = U256::from_u64(200);
     let result = a.checked_sub(&b);
@@ -181,21 +181,21 @@ pub fn test_u256_checked_sub_underflow() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_u256_is_zero() -> TestResult {
+pub(crate) fn test_u256_is_zero() -> TestResult {
     if !U256::ZERO.is_zero() { return TestResult::Fail; }
     if U256::ONE.is_zero() { return TestResult::Fail; }
     if U256::from_u64(1).is_zero() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_u256_debug_format() -> TestResult {
+pub(crate) fn test_u256_debug_format() -> TestResult {
     let u = U256::from_u64(0xFF);
     let debug = alloc::format!("{:?}", u);
     if !debug.starts_with("0x") { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_u256_equality() -> TestResult {
+pub(crate) fn test_u256_equality() -> TestResult {
     let a = U256::from_u64(42);
     let b = U256::from_u64(42);
     let c = U256::from_u64(43);
@@ -204,7 +204,7 @@ pub fn test_u256_equality() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_u256_ordering() -> TestResult {
+pub(crate) fn test_u256_ordering() -> TestResult {
     let a = U256::from_u64(10);
     let b = U256::from_u64(20);
     if !(a < b) { return TestResult::Fail; }
@@ -212,13 +212,13 @@ pub fn test_u256_ordering() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_batch_number_default() -> TestResult {
+pub(crate) fn test_batch_number_default() -> TestResult {
     let bn: BatchNumber = Default::default();
     if bn.0 != 0 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_batch_number_equality() -> TestResult {
+pub(crate) fn test_batch_number_equality() -> TestResult {
     let a = BatchNumber(10);
     let b = BatchNumber(10);
     let c = BatchNumber(11);
@@ -227,33 +227,33 @@ pub fn test_batch_number_equality() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_batch_number_ordering() -> TestResult {
+pub(crate) fn test_batch_number_ordering() -> TestResult {
     let a = BatchNumber(5);
     let b = BatchNumber(10);
     if !(a < b) { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_block_number_default() -> TestResult {
+pub(crate) fn test_block_number_default() -> TestResult {
     let bn: BlockNumber = Default::default();
     if bn.0 != 0 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_block_number_equality() -> TestResult {
+pub(crate) fn test_block_number_equality() -> TestResult {
     let a = BlockNumber(100);
     let b = BlockNumber(100);
     if a != b { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_nonce_default() -> TestResult {
+pub(crate) fn test_nonce_default() -> TestResult {
     let n: Nonce = Default::default();
     if n.0 != 0 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_nonce_increment() -> TestResult {
+pub(crate) fn test_nonce_increment() -> TestResult {
     let mut n = Nonce(0);
     n.increment();
     if n.0 != 1 { return TestResult::Fail; }
@@ -262,61 +262,61 @@ pub fn test_nonce_increment() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_nonce_increment_saturating() -> TestResult {
+pub(crate) fn test_nonce_increment_saturating() -> TestResult {
     let mut n = Nonce(u64::MAX);
     n.increment();
     if n.0 != u64::MAX { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_gas_default() -> TestResult {
+pub(crate) fn test_gas_default() -> TestResult {
     let g: Gas = Default::default();
     if g.0 != 0 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_gas_equality() -> TestResult {
+pub(crate) fn test_gas_equality() -> TestResult {
     let a = Gas(21000);
     let b = Gas(21000);
     if a != b { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_tx_hash_zero() -> TestResult {
+pub(crate) fn test_tx_hash_zero() -> TestResult {
     let h = TxHash::ZERO;
     if h.0 != [0u8; 32] { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_tx_hash_from_bytes() -> TestResult {
+pub(crate) fn test_tx_hash_from_bytes() -> TestResult {
     let bytes = [0xAB; 32];
     let h = TxHash::from_bytes(&bytes);
     if h.0 != bytes { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_tx_hash_as_bytes() -> TestResult {
+pub(crate) fn test_tx_hash_as_bytes() -> TestResult {
     let bytes = [0xCD; 32];
     let h = TxHash::from_bytes(&bytes);
     if h.as_bytes() != &bytes { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_tx_hash_from_array() -> TestResult {
+pub(crate) fn test_tx_hash_from_array() -> TestResult {
     let bytes: [u8; 32] = [0xEF; 32];
     let h: TxHash = bytes.into();
     if h.0 != bytes { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_tx_hash_debug_format() -> TestResult {
+pub(crate) fn test_tx_hash_debug_format() -> TestResult {
     let h = TxHash::ZERO;
     let debug = alloc::format!("{:?}", h);
     if !debug.starts_with("0x") { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_tx_hash_equality() -> TestResult {
+pub(crate) fn test_tx_hash_equality() -> TestResult {
     let a = TxHash::from_bytes(&[1u8; 32]);
     let b = TxHash::from_bytes(&[1u8; 32]);
     let c = TxHash::from_bytes(&[2u8; 32]);
@@ -325,7 +325,7 @@ pub fn test_tx_hash_equality() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_transaction_signature_default() -> TestResult {
+pub(crate) fn test_transaction_signature_default() -> TestResult {
     let sig: TransactionSignature = Default::default();
     if sig.v != 0 { return TestResult::Fail; }
     if sig.r != [0u8; 32] { return TestResult::Fail; }
@@ -333,13 +333,13 @@ pub fn test_transaction_signature_default() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_transaction_status_pending() -> TestResult {
+pub(crate) fn test_transaction_status_pending() -> TestResult {
     let status = TransactionStatus::Pending;
     if status != TransactionStatus::Pending { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_transaction_status_included() -> TestResult {
+pub(crate) fn test_transaction_status_included() -> TestResult {
     let status = TransactionStatus::Included { block: BlockNumber(100) };
     if let TransactionStatus::Included { block } = status {
         if block.0 != 100 { return TestResult::Fail; }
@@ -349,7 +349,7 @@ pub fn test_transaction_status_included() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_transaction_status_committed() -> TestResult {
+pub(crate) fn test_transaction_status_committed() -> TestResult {
     let status = TransactionStatus::Committed { batch: BatchNumber(50) };
     if let TransactionStatus::Committed { batch } = status {
         if batch.0 != 50 { return TestResult::Fail; }
@@ -359,7 +359,7 @@ pub fn test_transaction_status_committed() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_transaction_status_proven() -> TestResult {
+pub(crate) fn test_transaction_status_proven() -> TestResult {
     let status = TransactionStatus::Proven { batch: BatchNumber(25) };
     if let TransactionStatus::Proven { batch } = status {
         if batch.0 != 25 { return TestResult::Fail; }
@@ -369,7 +369,7 @@ pub fn test_transaction_status_proven() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_transaction_status_finalized() -> TestResult {
+pub(crate) fn test_transaction_status_finalized() -> TestResult {
     let status = TransactionStatus::Finalized { batch: BatchNumber(10) };
     if let TransactionStatus::Finalized { batch } = status {
         if batch.0 != 10 { return TestResult::Fail; }
@@ -379,7 +379,7 @@ pub fn test_transaction_status_finalized() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_transaction_status_failed() -> TestResult {
+pub(crate) fn test_transaction_status_failed() -> TestResult {
     let status = TransactionStatus::Failed { reason: TxFailReason::OutOfGas };
     if let TransactionStatus::Failed { reason } = status {
         if reason != TxFailReason::OutOfGas { return TestResult::Fail; }
@@ -389,7 +389,7 @@ pub fn test_transaction_status_failed() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_tx_fail_reason_variants() -> TestResult {
+pub(crate) fn test_tx_fail_reason_variants() -> TestResult {
     let reasons = [
         TxFailReason::InvalidSignature,
         TxFailReason::InsufficientBalance,
@@ -406,14 +406,14 @@ pub fn test_tx_fail_reason_variants() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_account_state_default() -> TestResult {
+pub(crate) fn test_account_state_default() -> TestResult {
     let state: AccountState = Default::default();
     if state.nonce.0 != 0 { return TestResult::Fail; }
     if !state.balance.is_zero() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_account_state_empty_code_hash() -> TestResult {
+pub(crate) fn test_account_state_empty_code_hash() -> TestResult {
     let expected = [
         0xc5, 0xd2, 0x46, 0x01, 0x86, 0xf7, 0x23, 0x3c,
         0x92, 0x7e, 0x7d, 0xb2, 0xdc, 0xc7, 0x03, 0xc0,
@@ -424,7 +424,7 @@ pub fn test_account_state_empty_code_hash() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_account_state_is_empty_true() -> TestResult {
+pub(crate) fn test_account_state_is_empty_true() -> TestResult {
     let state = AccountState {
         nonce: Nonce(0),
         balance: U256::ZERO,
@@ -435,7 +435,7 @@ pub fn test_account_state_is_empty_true() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_account_state_is_empty_false_nonce() -> TestResult {
+pub(crate) fn test_account_state_is_empty_false_nonce() -> TestResult {
     let state = AccountState {
         nonce: Nonce(1),
         balance: U256::ZERO,
@@ -446,7 +446,7 @@ pub fn test_account_state_is_empty_false_nonce() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_account_state_is_empty_false_balance() -> TestResult {
+pub(crate) fn test_account_state_is_empty_false_balance() -> TestResult {
     let state = AccountState {
         nonce: Nonce(0),
         balance: U256::ONE,
@@ -457,7 +457,7 @@ pub fn test_account_state_is_empty_false_balance() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_account_state_is_empty_false_code() -> TestResult {
+pub(crate) fn test_account_state_is_empty_false_code() -> TestResult {
     let state = AccountState {
         nonce: Nonce(0),
         balance: U256::ZERO,
@@ -468,7 +468,7 @@ pub fn test_account_state_is_empty_false_code() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_l2_block_clone() -> TestResult {
+pub(crate) fn test_l2_block_clone() -> TestResult {
     let block = L2Block {
         number: BlockNumber(100),
         timestamp: 1234567890,
@@ -483,7 +483,7 @@ pub fn test_l2_block_clone() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_batch_clone() -> TestResult {
+pub(crate) fn test_batch_clone() -> TestResult {
     let batch = Batch {
         number: BatchNumber(10),
         blocks: alloc::vec![BlockNumber(1), BlockNumber(2)],

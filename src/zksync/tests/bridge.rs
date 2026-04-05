@@ -21,20 +21,20 @@ use crate::zksync::bridge::*;
 use crate::zksync::state::StateManager;
 use crate::zksync::types::*;
 
-pub fn test_deposit_handler_new() -> TestResult {
+pub(crate) fn test_deposit_handler_new() -> TestResult {
     let handler = DepositHandler::new();
     if !handler.is_empty() { return TestResult::Fail; }
     if handler.pending_count() != 0 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_deposit_handler_default() -> TestResult {
+pub(crate) fn test_deposit_handler_default() -> TestResult {
     let handler: DepositHandler = Default::default();
     if !handler.is_empty() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_deposit_handler_queue() -> TestResult {
+pub(crate) fn test_deposit_handler_queue() -> TestResult {
     let mut handler = DepositHandler::new();
     let deposit = Deposit {
         l1_tx_hash: [1u8; 32],
@@ -48,7 +48,7 @@ pub fn test_deposit_handler_queue() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_deposit_handler_queue_multiple() -> TestResult {
+pub(crate) fn test_deposit_handler_queue_multiple() -> TestResult {
     let mut handler = DepositHandler::new();
     for i in 0..5u8 {
         let mut hash = [0u8; 32];
@@ -65,7 +65,7 @@ pub fn test_deposit_handler_queue_multiple() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_deposit_handler_process_next_empty() -> TestResult {
+pub(crate) fn test_deposit_handler_process_next_empty() -> TestResult {
     let mut handler = DepositHandler::new();
     let mut state = StateManager::new();
     let result = handler.process_next(&mut state);
@@ -74,7 +74,7 @@ pub fn test_deposit_handler_process_next_empty() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_deposit_handler_process_next() -> TestResult {
+pub(crate) fn test_deposit_handler_process_next() -> TestResult {
     let mut handler = DepositHandler::new();
     let mut state = StateManager::new();
     let recipient = Address::from_slice(&[1u8; 20]);
@@ -93,7 +93,7 @@ pub fn test_deposit_handler_process_next() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_deposit_handler_process_next_fifo() -> TestResult {
+pub(crate) fn test_deposit_handler_process_next_fifo() -> TestResult {
     let mut handler = DepositHandler::new();
     let mut state = StateManager::new();
     let recipient1 = Address::from_slice(&[1u8; 20]);
@@ -117,7 +117,7 @@ pub fn test_deposit_handler_process_next_fifo() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_deposit_handler_process_accumulates_balance() -> TestResult {
+pub(crate) fn test_deposit_handler_process_accumulates_balance() -> TestResult {
     let mut handler = DepositHandler::new();
     let mut state = StateManager::new();
     let recipient = Address::from_slice(&[1u8; 20]);
@@ -139,7 +139,7 @@ pub fn test_deposit_handler_process_accumulates_balance() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_deposit_clone() -> TestResult {
+pub(crate) fn test_deposit_clone() -> TestResult {
     let deposit = Deposit {
         l1_tx_hash: [0xAB; 32],
         recipient: Address::from_slice(&[0xCD; 20]),
@@ -154,7 +154,7 @@ pub fn test_deposit_clone() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_deposit_debug() -> TestResult {
+pub(crate) fn test_deposit_debug() -> TestResult {
     let deposit = Deposit {
         l1_tx_hash: [0u8; 32],
         recipient: Address::ZERO,
@@ -166,20 +166,20 @@ pub fn test_deposit_debug() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_withdraw_handler_new() -> TestResult {
+pub(crate) fn test_withdraw_handler_new() -> TestResult {
     let handler = WithdrawHandler::new();
     if handler.pending_count() != 0 { return TestResult::Fail; }
     if handler.finalized_count() != 0 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_withdraw_handler_default() -> TestResult {
+pub(crate) fn test_withdraw_handler_default() -> TestResult {
     let handler: WithdrawHandler = Default::default();
     if handler.pending_count() != 0 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_withdraw_handler_initiate() -> TestResult {
+pub(crate) fn test_withdraw_handler_initiate() -> TestResult {
     let mut handler = WithdrawHandler::new();
     let mut state = StateManager::new();
     let sender = Address::from_slice(&[1u8; 20]);
@@ -192,7 +192,7 @@ pub fn test_withdraw_handler_initiate() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_withdraw_handler_initiate_insufficient_balance() -> TestResult {
+pub(crate) fn test_withdraw_handler_initiate_insufficient_balance() -> TestResult {
     let mut handler = WithdrawHandler::new();
     let mut state = StateManager::new();
     let sender = Address::from_slice(&[1u8; 20]);
@@ -204,7 +204,7 @@ pub fn test_withdraw_handler_initiate_insufficient_balance() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_withdraw_handler_initiate_returns_hash() -> TestResult {
+pub(crate) fn test_withdraw_handler_initiate_returns_hash() -> TestResult {
     let mut handler = WithdrawHandler::new();
     let mut state = StateManager::new();
     let sender = Address::from_slice(&[1u8; 20]);
@@ -215,7 +215,7 @@ pub fn test_withdraw_handler_initiate_returns_hash() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_withdraw_handler_initiate_multiple() -> TestResult {
+pub(crate) fn test_withdraw_handler_initiate_multiple() -> TestResult {
     let mut handler = WithdrawHandler::new();
     let mut state = StateManager::new();
     let sender = Address::from_slice(&[1u8; 20]);
@@ -229,7 +229,7 @@ pub fn test_withdraw_handler_initiate_multiple() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_withdraw_handler_finalize_batch() -> TestResult {
+pub(crate) fn test_withdraw_handler_finalize_batch() -> TestResult {
     let mut handler = WithdrawHandler::new();
     let mut state = StateManager::new();
     let sender = Address::from_slice(&[1u8; 20]);
@@ -244,7 +244,7 @@ pub fn test_withdraw_handler_finalize_batch() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_withdraw_handler_finalize_batch_partial() -> TestResult {
+pub(crate) fn test_withdraw_handler_finalize_batch_partial() -> TestResult {
     let mut handler = WithdrawHandler::new();
     let mut state = StateManager::new();
     let sender = Address::from_slice(&[1u8; 20]);
@@ -262,7 +262,7 @@ pub fn test_withdraw_handler_finalize_batch_partial() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_withdraw_handler_finalize_batch_none() -> TestResult {
+pub(crate) fn test_withdraw_handler_finalize_batch_none() -> TestResult {
     let mut handler = WithdrawHandler::new();
     let mut state = StateManager::new();
     let sender = Address::from_slice(&[1u8; 20]);
@@ -277,7 +277,7 @@ pub fn test_withdraw_handler_finalize_batch_none() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_withdraw_handler_different_hashes() -> TestResult {
+pub(crate) fn test_withdraw_handler_different_hashes() -> TestResult {
     let mut handler = WithdrawHandler::new();
     let mut state = StateManager::new();
     let sender = Address::from_slice(&[1u8; 20]);
