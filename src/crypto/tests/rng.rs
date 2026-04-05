@@ -6,14 +6,14 @@
 use crate::crypto::util::rng::csprng::{ChaChaRng, RESEED_INTERVAL};
 use crate::test::framework::TestResult;
 
-pub fn test_chacha_rng_new() -> TestResult {
+pub(crate) fn test_chacha_rng_new() -> TestResult {
     let seed = [0x42u8; 32];
     let rng = ChaChaRng::new(seed);
     if rng.blocks_generated() != 0 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_chacha_rng_fill_bytes() -> TestResult {
+pub(crate) fn test_chacha_rng_fill_bytes() -> TestResult {
     let seed = [0x42u8; 32];
     let mut rng = ChaChaRng::new(seed);
     let mut output = [0u8; 64];
@@ -22,7 +22,7 @@ pub fn test_chacha_rng_fill_bytes() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_chacha_rng_deterministic() -> TestResult {
+pub(crate) fn test_chacha_rng_deterministic() -> TestResult {
     let seed = [0x42u8; 32];
     let mut rng1 = ChaChaRng::new(seed);
     let mut rng2 = ChaChaRng::new(seed);
@@ -34,7 +34,7 @@ pub fn test_chacha_rng_deterministic() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_chacha_rng_different_seeds() -> TestResult {
+pub(crate) fn test_chacha_rng_different_seeds() -> TestResult {
     let seed1 = [0x42u8; 32];
     let seed2 = [0x43u8; 32];
     let mut rng1 = ChaChaRng::new(seed1);
@@ -47,7 +47,7 @@ pub fn test_chacha_rng_different_seeds() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_chacha_rng_next_u64() -> TestResult {
+pub(crate) fn test_chacha_rng_next_u64() -> TestResult {
     let seed = [0x42u8; 32];
     let mut rng = ChaChaRng::new(seed);
     let val = rng.next_u64();
@@ -55,7 +55,7 @@ pub fn test_chacha_rng_next_u64() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_chacha_rng_next_u64_deterministic() -> TestResult {
+pub(crate) fn test_chacha_rng_next_u64_deterministic() -> TestResult {
     let seed = [0x42u8; 32];
     let mut rng1 = ChaChaRng::new(seed);
     let mut rng2 = ChaChaRng::new(seed);
@@ -63,7 +63,7 @@ pub fn test_chacha_rng_next_u64_deterministic() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_chacha_rng_next_u32() -> TestResult {
+pub(crate) fn test_chacha_rng_next_u32() -> TestResult {
     let seed = [0x42u8; 32];
     let mut rng = ChaChaRng::new(seed);
     let val = rng.next_u32();
@@ -71,7 +71,7 @@ pub fn test_chacha_rng_next_u32() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_chacha_rng_next_u32_deterministic() -> TestResult {
+pub(crate) fn test_chacha_rng_next_u32_deterministic() -> TestResult {
     let seed = [0x42u8; 32];
     let mut rng1 = ChaChaRng::new(seed);
     let mut rng2 = ChaChaRng::new(seed);
@@ -79,7 +79,7 @@ pub fn test_chacha_rng_next_u32_deterministic() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_chacha_rng_multiple_calls() -> TestResult {
+pub(crate) fn test_chacha_rng_multiple_calls() -> TestResult {
     let seed = [0x42u8; 32];
     let mut rng = ChaChaRng::new(seed);
     let val1 = rng.next_u64();
@@ -88,7 +88,7 @@ pub fn test_chacha_rng_multiple_calls() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_chacha_rng_blocks_generated() -> TestResult {
+pub(crate) fn test_chacha_rng_blocks_generated() -> TestResult {
     let seed = [0x42u8; 32];
     let mut rng = ChaChaRng::new(seed);
     if rng.blocks_generated() != 0 { return TestResult::Fail; }
@@ -98,14 +98,14 @@ pub fn test_chacha_rng_blocks_generated() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_chacha_rng_needs_reseed_initial() -> TestResult {
+pub(crate) fn test_chacha_rng_needs_reseed_initial() -> TestResult {
     let seed = [0x42u8; 32];
     let rng = ChaChaRng::new(seed);
     if rng.needs_reseed() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_chacha_rng_reseed() -> TestResult {
+pub(crate) fn test_chacha_rng_reseed() -> TestResult {
     let seed1 = [0x42u8; 32];
     let seed2 = [0x43u8; 32];
     let mut rng = ChaChaRng::new(seed1);
@@ -116,7 +116,7 @@ pub fn test_chacha_rng_reseed() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_chacha_rng_reseed_changes_output() -> TestResult {
+pub(crate) fn test_chacha_rng_reseed_changes_output() -> TestResult {
     let seed1 = [0x42u8; 32];
     let seed2 = [0x43u8; 32];
     let mut rng = ChaChaRng::new(seed1);
@@ -127,7 +127,7 @@ pub fn test_chacha_rng_reseed_changes_output() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_chacha_rng_reseed_deterministic() -> TestResult {
+pub(crate) fn test_chacha_rng_reseed_deterministic() -> TestResult {
     let seed1 = [0x42u8; 32];
     let seed2 = [0x43u8; 32];
     let mut rng1 = ChaChaRng::new(seed1);
@@ -138,7 +138,7 @@ pub fn test_chacha_rng_reseed_deterministic() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_chacha_rng_fill_small() -> TestResult {
+pub(crate) fn test_chacha_rng_fill_small() -> TestResult {
     let seed = [0x42u8; 32];
     let mut rng = ChaChaRng::new(seed);
     let mut output = [0u8; 1];
@@ -146,7 +146,7 @@ pub fn test_chacha_rng_fill_small() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_chacha_rng_fill_large() -> TestResult {
+pub(crate) fn test_chacha_rng_fill_large() -> TestResult {
     let seed = [0x42u8; 32];
     let mut rng = ChaChaRng::new(seed);
     let mut output = [0u8; 1024];
@@ -155,7 +155,7 @@ pub fn test_chacha_rng_fill_large() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_chacha_rng_fill_exact_block() -> TestResult {
+pub(crate) fn test_chacha_rng_fill_exact_block() -> TestResult {
     let seed = [0x42u8; 32];
     let mut rng = ChaChaRng::new(seed);
     let mut output = [0u8; 64];
@@ -164,7 +164,7 @@ pub fn test_chacha_rng_fill_exact_block() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_chacha_rng_fill_two_blocks() -> TestResult {
+pub(crate) fn test_chacha_rng_fill_two_blocks() -> TestResult {
     let seed = [0x42u8; 32];
     let mut rng = ChaChaRng::new(seed);
     let mut output = [0u8; 128];
@@ -173,7 +173,7 @@ pub fn test_chacha_rng_fill_two_blocks() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_chacha_rng_fill_partial_block() -> TestResult {
+pub(crate) fn test_chacha_rng_fill_partial_block() -> TestResult {
     let seed = [0x42u8; 32];
     let mut rng = ChaChaRng::new(seed);
     let mut output = [0u8; 63];
@@ -182,7 +182,7 @@ pub fn test_chacha_rng_fill_partial_block() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_chacha_rng_fill_empty() -> TestResult {
+pub(crate) fn test_chacha_rng_fill_empty() -> TestResult {
     let seed = [0x42u8; 32];
     let mut rng = ChaChaRng::new(seed);
     let mut output = [0u8; 0];
@@ -190,13 +190,13 @@ pub fn test_chacha_rng_fill_empty() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_reseed_interval_constant() -> TestResult {
+pub(crate) fn test_reseed_interval_constant() -> TestResult {
     if RESEED_INTERVAL == 0 { return TestResult::Fail; }
     if RESEED_INTERVAL != 1 << 20 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_chacha_rng_zero_seed() -> TestResult {
+pub(crate) fn test_chacha_rng_zero_seed() -> TestResult {
     let seed = [0u8; 32];
     let mut rng = ChaChaRng::new(seed);
     let val = rng.next_u64();
@@ -204,7 +204,7 @@ pub fn test_chacha_rng_zero_seed() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_chacha_rng_all_ones_seed() -> TestResult {
+pub(crate) fn test_chacha_rng_all_ones_seed() -> TestResult {
     let seed = [0xffu8; 32];
     let mut rng = ChaChaRng::new(seed);
     let val = rng.next_u64();
@@ -212,7 +212,7 @@ pub fn test_chacha_rng_all_ones_seed() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_chacha_rng_sequential_consistent() -> TestResult {
+pub(crate) fn test_chacha_rng_sequential_consistent() -> TestResult {
     let seed = [0x42u8; 32];
     let mut rng1 = ChaChaRng::new(seed);
     let mut rng2 = ChaChaRng::new(seed);
@@ -230,7 +230,7 @@ pub fn test_chacha_rng_sequential_consistent() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_chacha_rng_different_sizes_match() -> TestResult {
+pub(crate) fn test_chacha_rng_different_sizes_match() -> TestResult {
     let seed = [0x42u8; 32];
     let mut rng1 = ChaChaRng::new(seed);
     let mut rng2 = ChaChaRng::new(seed);
@@ -248,7 +248,7 @@ pub fn test_chacha_rng_different_sizes_match() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_chacha_rng_u32_u64_consistency() -> TestResult {
+pub(crate) fn test_chacha_rng_u32_u64_consistency() -> TestResult {
     let seed = [0x42u8; 32];
     let mut rng1 = ChaChaRng::new(seed);
     let mut rng2 = ChaChaRng::new(seed);
