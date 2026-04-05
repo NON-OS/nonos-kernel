@@ -20,7 +20,7 @@ pub mod surface;
 
 use crate::test::framework::TestSuite;
 
-pub fn run_all() -> TestSuite {
+pub fn run_all() -> bool {
     let mut suite = TestSuite::new("gpu");
 
     // constants tests (41 tests)
@@ -135,5 +135,5 @@ pub fn run_all() -> TestSuite {
     suite.add_test("test_display_mode_framebuffer_size_matches_pitch_times_height", surface::test_display_mode_framebuffer_size_matches_pitch_times_height);
     suite.add_test("test_pixel_format_bits_matches_bytes_times_8", surface::test_pixel_format_bits_matches_bytes_times_8);
 
-    suite
+    suite.run()
 }
