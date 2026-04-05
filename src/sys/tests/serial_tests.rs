@@ -17,104 +17,104 @@
 use crate::sys::serial::*;
 use crate::test::framework::TestResult;
 
-pub fn test_serial_port_constant() -> TestResult {
+pub(crate) fn test_serial_port_constant() -> TestResult {
     if core::SERIAL_PORT != 0x3F8 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_serial_print_empty_slice() -> TestResult {
+pub(crate) fn test_serial_print_empty_slice() -> TestResult {
     print(b"");
     TestResult::Pass
 }
 
-pub fn test_serial_print_single_byte() -> TestResult {
+pub(crate) fn test_serial_print_single_byte() -> TestResult {
     print(b"X");
     TestResult::Pass
 }
 
-pub fn test_serial_print_multiple_bytes() -> TestResult {
+pub(crate) fn test_serial_print_multiple_bytes() -> TestResult {
     print(b"Hello");
     TestResult::Pass
 }
 
-pub fn test_serial_print_special_chars() -> TestResult {
+pub(crate) fn test_serial_print_special_chars() -> TestResult {
     print(b"\r\n");
     TestResult::Pass
 }
 
-pub fn test_serial_print_str_empty() -> TestResult {
+pub(crate) fn test_serial_print_str_empty() -> TestResult {
     print_str("");
     TestResult::Pass
 }
 
-pub fn test_serial_print_str_single() -> TestResult {
+pub(crate) fn test_serial_print_str_single() -> TestResult {
     print_str("X");
     TestResult::Pass
 }
 
-pub fn test_serial_print_str_multiple() -> TestResult {
+pub(crate) fn test_serial_print_str_multiple() -> TestResult {
     print_str("Hello, World!");
     TestResult::Pass
 }
 
-pub fn test_serial_println_empty() -> TestResult {
+pub(crate) fn test_serial_println_empty() -> TestResult {
     println(b"");
     TestResult::Pass
 }
 
-pub fn test_serial_println_message() -> TestResult {
+pub(crate) fn test_serial_println_message() -> TestResult {
     println(b"Test message");
     TestResult::Pass
 }
 
-pub fn test_serial_print_hex_zero() -> TestResult {
+pub(crate) fn test_serial_print_hex_zero() -> TestResult {
     print_hex(0);
     TestResult::Pass
 }
 
-pub fn test_serial_print_hex_one() -> TestResult {
+pub(crate) fn test_serial_print_hex_one() -> TestResult {
     print_hex(1);
     TestResult::Pass
 }
 
-pub fn test_serial_print_hex_max() -> TestResult {
+pub(crate) fn test_serial_print_hex_max() -> TestResult {
     print_hex(u64::MAX);
     TestResult::Pass
 }
 
-pub fn test_serial_print_hex_arbitrary() -> TestResult {
+pub(crate) fn test_serial_print_hex_arbitrary() -> TestResult {
     print_hex(0xDEADBEEF);
     TestResult::Pass
 }
 
-pub fn test_serial_print_hex_powers_of_two() -> TestResult {
+pub(crate) fn test_serial_print_hex_powers_of_two() -> TestResult {
     for i in 0..64u64 {
         print_hex(1u64 << i);
     }
     TestResult::Pass
 }
 
-pub fn test_serial_print_dec_zero() -> TestResult {
+pub(crate) fn test_serial_print_dec_zero() -> TestResult {
     print_dec(0);
     TestResult::Pass
 }
 
-pub fn test_serial_print_dec_one() -> TestResult {
+pub(crate) fn test_serial_print_dec_one() -> TestResult {
     print_dec(1);
     TestResult::Pass
 }
 
-pub fn test_serial_print_dec_max() -> TestResult {
+pub(crate) fn test_serial_print_dec_max() -> TestResult {
     print_dec(u64::MAX);
     TestResult::Pass
 }
 
-pub fn test_serial_print_dec_arbitrary() -> TestResult {
+pub(crate) fn test_serial_print_dec_arbitrary() -> TestResult {
     print_dec(12345);
     TestResult::Pass
 }
 
-pub fn test_serial_print_dec_powers_of_ten() -> TestResult {
+pub(crate) fn test_serial_print_dec_powers_of_ten() -> TestResult {
     let mut val = 1u64;
     for _ in 0..19 {
         print_dec(val);
@@ -123,26 +123,26 @@ pub fn test_serial_print_dec_powers_of_ten() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_serial_print_dec_sequential() -> TestResult {
+pub(crate) fn test_serial_print_dec_sequential() -> TestResult {
     for i in 0..100u64 {
         print_dec(i);
     }
     TestResult::Pass
 }
 
-pub fn test_serial_set_debug_enabled_true() -> TestResult {
+pub(crate) fn test_serial_set_debug_enabled_true() -> TestResult {
     set_debug_enabled(true);
     if !is_debug_enabled() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_serial_set_debug_enabled_false() -> TestResult {
+pub(crate) fn test_serial_set_debug_enabled_false() -> TestResult {
     set_debug_enabled(false);
     if is_debug_enabled() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_serial_set_debug_enabled_toggle() -> TestResult {
+pub(crate) fn test_serial_set_debug_enabled_toggle() -> TestResult {
     let initial = is_debug_enabled();
     set_debug_enabled(!initial);
     if is_debug_enabled() != !initial { return TestResult::Fail; }
@@ -151,64 +151,64 @@ pub fn test_serial_set_debug_enabled_toggle() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_serial_is_debug_enabled_returns_bool() -> TestResult {
+pub(crate) fn test_serial_is_debug_enabled_returns_bool() -> TestResult {
     let result: bool = is_debug_enabled();
     if !(result == true || result == false) { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_serial_print_binary_data() -> TestResult {
+pub(crate) fn test_serial_print_binary_data() -> TestResult {
     let data: [u8; 4] = [0x00, 0x7F, 0x80, 0xFF];
     print(&data);
     TestResult::Pass
 }
 
-pub fn test_serial_print_newline_variations() -> TestResult {
+pub(crate) fn test_serial_print_newline_variations() -> TestResult {
     print(b"\n");
     print(b"\r");
     print(b"\r\n");
     TestResult::Pass
 }
 
-pub fn test_serial_print_tab() -> TestResult {
+pub(crate) fn test_serial_print_tab() -> TestResult {
     print(b"\t");
     TestResult::Pass
 }
 
-pub fn test_serial_print_all_printable_ascii() -> TestResult {
+pub(crate) fn test_serial_print_all_printable_ascii() -> TestResult {
     for ch in 0x20u8..=0x7Eu8 {
         print(&[ch]);
     }
     TestResult::Pass
 }
 
-pub fn test_serial_print_long_string() -> TestResult {
+pub(crate) fn test_serial_print_long_string() -> TestResult {
     let long_str = b"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA";
     print(long_str);
     TestResult::Pass
 }
 
-pub fn test_serial_println_adds_newline() -> TestResult {
+pub(crate) fn test_serial_println_adds_newline() -> TestResult {
     println(b"Line 1");
     println(b"Line 2");
     TestResult::Pass
 }
 
-pub fn test_serial_print_hex_single_digit() -> TestResult {
+pub(crate) fn test_serial_print_hex_single_digit() -> TestResult {
     for i in 0..16u64 {
         print_hex(i);
     }
     TestResult::Pass
 }
 
-pub fn test_serial_print_dec_single_digit() -> TestResult {
+pub(crate) fn test_serial_print_dec_single_digit() -> TestResult {
     for i in 0..10u64 {
         print_dec(i);
     }
     TestResult::Pass
 }
 
-pub fn test_serial_combined_output() -> TestResult {
+pub(crate) fn test_serial_combined_output() -> TestResult {
     print(b"Value: ");
     print_dec(42);
     print(b" (0x");
@@ -217,7 +217,7 @@ pub fn test_serial_combined_output() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_serial_debug_flag_persistence() -> TestResult {
+pub(crate) fn test_serial_debug_flag_persistence() -> TestResult {
     let original = is_debug_enabled();
     set_debug_enabled(true);
     if !is_debug_enabled() { return TestResult::Fail; }
@@ -227,23 +227,23 @@ pub fn test_serial_debug_flag_persistence() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_serial_print_str_utf8() -> TestResult {
+pub(crate) fn test_serial_print_str_utf8() -> TestResult {
     print_str("ASCII");
     TestResult::Pass
 }
 
-pub fn test_serial_print_u64_alias() -> TestResult {
+pub(crate) fn test_serial_print_u64_alias() -> TestResult {
     print_dec(999);
     TestResult::Pass
 }
 
-pub fn test_serial_port_is_com1() -> TestResult {
+pub(crate) fn test_serial_port_is_com1() -> TestResult {
     let com1_standard: u16 = 0x3F8;
     if core::SERIAL_PORT != com1_standard { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_serial_related_ports() -> TestResult {
+pub(crate) fn test_serial_related_ports() -> TestResult {
     let base = core::SERIAL_PORT;
     if base + 0 != 0x3F8 { return TestResult::Fail; }
     if base + 1 != 0x3F9 { return TestResult::Fail; }
