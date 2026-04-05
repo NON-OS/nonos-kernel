@@ -19,7 +19,7 @@ pub mod types;
 
 use crate::test::framework::TestSuite;
 
-pub fn run_all() -> TestSuite {
+pub fn run_all() -> bool {
     let mut suite = TestSuite::new("virtio_blk");
 
     // constants tests
@@ -68,5 +68,5 @@ pub fn run_all() -> TestSuite {
     suite.add_test("test_basic_constants", types::test_basic_constants);
     suite.add_test("test_basic_operations", types::test_basic_operations);
 
-    suite
+    suite.run()
 }
