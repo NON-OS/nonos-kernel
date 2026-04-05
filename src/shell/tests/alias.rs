@@ -6,47 +6,47 @@ use crate::shell::commands::builtins::alias::{
 };
 use crate::test::framework::TestResult;
 
-pub fn test_max_aliases_constant() -> TestResult {
+pub(crate) fn test_max_aliases_constant() -> TestResult {
     if MAX_ALIASES != 32 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_max_alias_name_constant() -> TestResult {
+pub(crate) fn test_max_alias_name_constant() -> TestResult {
     if MAX_ALIAS_NAME != 16 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_max_alias_value_constant() -> TestResult {
+pub(crate) fn test_max_alias_value_constant() -> TestResult {
     if MAX_ALIAS_VALUE != 128 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_alias_empty() -> TestResult {
+pub(crate) fn test_alias_empty() -> TestResult {
     let alias = Alias::empty();
     if alias.name_len != 0 { return TestResult::Fail; }
     if alias.value_len != 0 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_alias_empty_name_array() -> TestResult {
+pub(crate) fn test_alias_empty_name_array() -> TestResult {
     let alias = Alias::empty();
     if !alias.name.iter().all(|&b| b == 0) { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_alias_empty_value_array() -> TestResult {
+pub(crate) fn test_alias_empty_value_array() -> TestResult {
     let alias = Alias::empty();
     if !alias.value.iter().all(|&b| b == 0) { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_alias_table_new() -> TestResult {
+pub(crate) fn test_alias_table_new() -> TestResult {
     let table = AliasTable::new();
     if table.count != 0 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_alias_table_set_single() -> TestResult {
+pub(crate) fn test_alias_table_set_single() -> TestResult {
     let mut table = AliasTable::new();
     let result = table.set(b"ll", b"ls -la");
     if !result { return TestResult::Fail; }
@@ -54,7 +54,7 @@ pub fn test_alias_table_set_single() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_alias_table_get_existing() -> TestResult {
+pub(crate) fn test_alias_table_get_existing() -> TestResult {
     let mut table = AliasTable::new();
     table.set(b"ll", b"ls -la");
     let value = table.get(b"ll");
@@ -63,13 +63,13 @@ pub fn test_alias_table_get_existing() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_alias_table_get_nonexistent() -> TestResult {
+pub(crate) fn test_alias_table_get_nonexistent() -> TestResult {
     let table = AliasTable::new();
     if table.get(b"nonexistent").is_some() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_alias_table_set_multiple() -> TestResult {
+pub(crate) fn test_alias_table_set_multiple() -> TestResult {
     let mut table = AliasTable::new();
     table.set(b"ll", b"ls -la");
     table.set(b"la", b"ls -a");
@@ -78,7 +78,7 @@ pub fn test_alias_table_set_multiple() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_alias_table_set_update_existing() -> TestResult {
+pub(crate) fn test_alias_table_set_update_existing() -> TestResult {
     let mut table = AliasTable::new();
     table.set(b"ll", b"ls -l");
     table.set(b"ll", b"ls -la");
@@ -87,7 +87,7 @@ pub fn test_alias_table_set_update_existing() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_alias_table_unset_existing() -> TestResult {
+pub(crate) fn test_alias_table_unset_existing() -> TestResult {
     let mut table = AliasTable::new();
     table.set(b"ll", b"ls -la");
     let result = table.unset(b"ll");
@@ -96,14 +96,14 @@ pub fn test_alias_table_unset_existing() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_alias_table_unset_nonexistent() -> TestResult {
+pub(crate) fn test_alias_table_unset_nonexistent() -> TestResult {
     let mut table = AliasTable::new();
     let result = table.unset(b"nonexistent");
     if result { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_alias_table_unset_middle() -> TestResult {
+pub(crate) fn test_alias_table_unset_middle() -> TestResult {
     let mut table = AliasTable::new();
     table.set(b"a", b"1");
     table.set(b"b", b"2");
@@ -116,7 +116,7 @@ pub fn test_alias_table_unset_middle() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_alias_table_expand_simple() -> TestResult {
+pub(crate) fn test_alias_table_expand_simple() -> TestResult {
     let mut table = AliasTable::new();
     table.set(b"ll", b"ls -la");
     let result = table.expand(b"ll");
@@ -126,7 +126,7 @@ pub fn test_alias_table_expand_simple() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_alias_table_expand_with_args() -> TestResult {
+pub(crate) fn test_alias_table_expand_with_args() -> TestResult {
     let mut table = AliasTable::new();
     table.set(b"ll", b"ls -la");
     let result = table.expand(b"ll /home");
@@ -136,13 +136,13 @@ pub fn test_alias_table_expand_with_args() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_alias_table_expand_nonexistent() -> TestResult {
+pub(crate) fn test_alias_table_expand_nonexistent() -> TestResult {
     let table = AliasTable::new();
     if table.expand(b"nonexistent").is_some() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_alias_table_init_defaults() -> TestResult {
+pub(crate) fn test_alias_table_init_defaults() -> TestResult {
     let mut table = AliasTable::new();
     table.init_defaults();
     if table.count <= 0 { return TestResult::Fail; }
@@ -151,7 +151,7 @@ pub fn test_alias_table_init_defaults() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_alias_table_secure_erase() -> TestResult {
+pub(crate) fn test_alias_table_secure_erase() -> TestResult {
     let mut table = AliasTable::new();
     table.set(b"secret", b"password123");
     table.secure_erase();
@@ -159,7 +159,7 @@ pub fn test_alias_table_secure_erase() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_alias_table_secure_erase_clears_all() -> TestResult {
+pub(crate) fn test_alias_table_secure_erase_clears_all() -> TestResult {
     let mut table = AliasTable::new();
     table.init_defaults();
     table.secure_erase();
@@ -168,7 +168,7 @@ pub fn test_alias_table_secure_erase_clears_all() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_alias_table_max_capacity() -> TestResult {
+pub(crate) fn test_alias_table_max_capacity() -> TestResult {
     let mut table = AliasTable::new();
     for i in 0..MAX_ALIASES {
         let name = [b'a' + (i % 26) as u8, b'0' + (i / 26) as u8];
@@ -178,7 +178,7 @@ pub fn test_alias_table_max_capacity() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_alias_table_over_capacity() -> TestResult {
+pub(crate) fn test_alias_table_over_capacity() -> TestResult {
     let mut table = AliasTable::new();
     for i in 0..MAX_ALIASES {
         let name = [b'a' + (i % 26) as u8, b'0' + (i / 26) as u8];
@@ -190,7 +190,7 @@ pub fn test_alias_table_over_capacity() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_alias_truncates_long_name() -> TestResult {
+pub(crate) fn test_alias_truncates_long_name() -> TestResult {
     let mut table = AliasTable::new();
     let long_name = [b'x'; MAX_ALIAS_NAME + 10];
     table.set(&long_name, b"value");
@@ -198,7 +198,7 @@ pub fn test_alias_truncates_long_name() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_alias_truncates_long_value() -> TestResult {
+pub(crate) fn test_alias_truncates_long_value() -> TestResult {
     let mut table = AliasTable::new();
     let long_value = [b'x'; MAX_ALIAS_VALUE + 10];
     table.set(b"name", &long_value);
@@ -206,14 +206,14 @@ pub fn test_alias_truncates_long_value() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_alias_table_empty_name() -> TestResult {
+pub(crate) fn test_alias_table_empty_name() -> TestResult {
     let mut table = AliasTable::new();
     table.set(b"", b"value");
     if table.get(b"").is_none() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_alias_table_empty_value() -> TestResult {
+pub(crate) fn test_alias_table_empty_value() -> TestResult {
     let mut table = AliasTable::new();
     table.set(b"name", b"");
     let value = table.get(b"name");
@@ -222,21 +222,21 @@ pub fn test_alias_table_empty_value() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_alias_copy() -> TestResult {
+pub(crate) fn test_alias_copy() -> TestResult {
     let alias1 = Alias::empty();
     let alias2 = alias1;
     if alias1.name_len != alias2.name_len { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_alias_clone() -> TestResult {
+pub(crate) fn test_alias_clone() -> TestResult {
     let alias1 = Alias::empty();
     let alias2 = alias1.clone();
     if alias1.name_len != alias2.name_len { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_alias_table_expand_preserves_whitespace() -> TestResult {
+pub(crate) fn test_alias_table_expand_preserves_whitespace() -> TestResult {
     let mut table = AliasTable::new();
     table.set(b"ll", b"ls -la");
     let result = table.expand(b"ll  /home  /var");
@@ -246,7 +246,7 @@ pub fn test_alias_table_expand_preserves_whitespace() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_alias_table_get_after_unset_others() -> TestResult {
+pub(crate) fn test_alias_table_get_after_unset_others() -> TestResult {
     let mut table = AliasTable::new();
     table.set(b"a", b"1");
     table.set(b"b", b"2");
@@ -257,13 +257,13 @@ pub fn test_alias_table_get_after_unset_others() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_alias_table_const_new() -> TestResult {
+pub(crate) fn test_alias_table_const_new() -> TestResult {
     const TABLE: AliasTable = AliasTable::new();
     if TABLE.count != 0 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_alias_const_empty() -> TestResult {
+pub(crate) fn test_alias_const_empty() -> TestResult {
     const ALIAS: Alias = Alias::empty();
     if ALIAS.name_len != 0 { return TestResult::Fail; }
     TestResult::Pass

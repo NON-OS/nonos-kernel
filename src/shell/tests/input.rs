@@ -4,14 +4,14 @@
 use crate::shell::terminal::input::{LineEditor, MAX_INPUT_LEN, PROMPT_LEN};
 use crate::test::framework::TestResult;
 
-pub fn test_line_editor_new() -> TestResult {
+pub(crate) fn test_line_editor_new() -> TestResult {
     let editor = LineEditor::new();
     if editor.length() != 0 { return TestResult::Fail; }
     if editor.cursor_pos() != 0 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_line_editor_reset() -> TestResult {
+pub(crate) fn test_line_editor_reset() -> TestResult {
     let mut editor = LineEditor::new();
     editor.insert_char(b'a');
     editor.insert_char(b'b');
@@ -22,27 +22,27 @@ pub fn test_line_editor_reset() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_line_editor_set_row() -> TestResult {
+pub(crate) fn test_line_editor_set_row() -> TestResult {
     let mut editor = LineEditor::new();
     editor.set_row(10);
     if editor.row() != 10 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_line_editor_row() -> TestResult {
+pub(crate) fn test_line_editor_row() -> TestResult {
     let mut editor = LineEditor::new();
     editor.reset(7);
     if editor.row() != 7 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_line_editor_get_content_empty() -> TestResult {
+pub(crate) fn test_line_editor_get_content_empty() -> TestResult {
     let editor = LineEditor::new();
     if editor.get_content() != b"" { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_line_editor_get_content() -> TestResult {
+pub(crate) fn test_line_editor_get_content() -> TestResult {
     let mut editor = LineEditor::new();
     editor.insert_char(b'h');
     editor.insert_char(b'i');
@@ -50,7 +50,7 @@ pub fn test_line_editor_get_content() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_line_editor_length() -> TestResult {
+pub(crate) fn test_line_editor_length() -> TestResult {
     let mut editor = LineEditor::new();
     editor.insert_char(b'a');
     editor.insert_char(b'b');
@@ -59,20 +59,20 @@ pub fn test_line_editor_length() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_line_editor_cursor_pos() -> TestResult {
+pub(crate) fn test_line_editor_cursor_pos() -> TestResult {
     let mut editor = LineEditor::new();
     editor.insert_char(b'x');
     if editor.cursor_pos() != 1 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_line_editor_cursor_col() -> TestResult {
+pub(crate) fn test_line_editor_cursor_col() -> TestResult {
     let editor = LineEditor::new();
     if editor.cursor_col() != PROMPT_LEN as u32 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_line_editor_cursor_col_after_input() -> TestResult {
+pub(crate) fn test_line_editor_cursor_col_after_input() -> TestResult {
     let mut editor = LineEditor::new();
     editor.insert_char(b'a');
     editor.insert_char(b'b');
@@ -80,7 +80,7 @@ pub fn test_line_editor_cursor_col_after_input() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_line_editor_set_content() -> TestResult {
+pub(crate) fn test_line_editor_set_content() -> TestResult {
     let mut editor = LineEditor::new();
     editor.set_content(b"test content");
     if editor.get_content() != b"test content" { return TestResult::Fail; }
@@ -88,7 +88,7 @@ pub fn test_line_editor_set_content() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_line_editor_set_content_truncates() -> TestResult {
+pub(crate) fn test_line_editor_set_content_truncates() -> TestResult {
     let mut editor = LineEditor::new();
     let long_content = [b'x'; MAX_INPUT_LEN + 50];
     editor.set_content(&long_content);
@@ -96,7 +96,7 @@ pub fn test_line_editor_set_content_truncates() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_line_editor_insert_char() -> TestResult {
+pub(crate) fn test_line_editor_insert_char() -> TestResult {
     let mut editor = LineEditor::new();
     editor.insert_char(b'A');
     if editor.length() != 1 { return TestResult::Fail; }
@@ -104,7 +104,7 @@ pub fn test_line_editor_insert_char() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_line_editor_insert_char_multiple() -> TestResult {
+pub(crate) fn test_line_editor_insert_char_multiple() -> TestResult {
     let mut editor = LineEditor::new();
     editor.insert_char(b'H');
     editor.insert_char(b'e');
@@ -115,7 +115,7 @@ pub fn test_line_editor_insert_char_multiple() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_line_editor_insert_char_at_middle() -> TestResult {
+pub(crate) fn test_line_editor_insert_char_at_middle() -> TestResult {
     let mut editor = LineEditor::new();
     editor.insert_char(b'A');
     editor.insert_char(b'C');
@@ -125,7 +125,7 @@ pub fn test_line_editor_insert_char_at_middle() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_line_editor_delete_char() -> TestResult {
+pub(crate) fn test_line_editor_delete_char() -> TestResult {
     let mut editor = LineEditor::new();
     editor.insert_char(b'a');
     editor.insert_char(b'b');
@@ -136,7 +136,7 @@ pub fn test_line_editor_delete_char() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_line_editor_delete_char_at_end() -> TestResult {
+pub(crate) fn test_line_editor_delete_char_at_end() -> TestResult {
     let mut editor = LineEditor::new();
     editor.insert_char(b'a');
     editor.delete_char();
@@ -144,7 +144,7 @@ pub fn test_line_editor_delete_char_at_end() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_line_editor_backspace() -> TestResult {
+pub(crate) fn test_line_editor_backspace() -> TestResult {
     let mut editor = LineEditor::new();
     editor.insert_char(b'a');
     editor.insert_char(b'b');
@@ -153,14 +153,14 @@ pub fn test_line_editor_backspace() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_line_editor_backspace_at_start() -> TestResult {
+pub(crate) fn test_line_editor_backspace_at_start() -> TestResult {
     let mut editor = LineEditor::new();
     editor.backspace();
     if editor.length() != 0 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_line_editor_move_left() -> TestResult {
+pub(crate) fn test_line_editor_move_left() -> TestResult {
     let mut editor = LineEditor::new();
     editor.insert_char(b'a');
     editor.insert_char(b'b');
@@ -169,14 +169,14 @@ pub fn test_line_editor_move_left() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_line_editor_move_left_at_start() -> TestResult {
+pub(crate) fn test_line_editor_move_left_at_start() -> TestResult {
     let mut editor = LineEditor::new();
     editor.move_left();
     if editor.cursor_pos() != 0 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_line_editor_move_right() -> TestResult {
+pub(crate) fn test_line_editor_move_right() -> TestResult {
     let mut editor = LineEditor::new();
     editor.insert_char(b'a');
     editor.insert_char(b'b');
@@ -187,7 +187,7 @@ pub fn test_line_editor_move_right() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_line_editor_move_right_at_end() -> TestResult {
+pub(crate) fn test_line_editor_move_right_at_end() -> TestResult {
     let mut editor = LineEditor::new();
     editor.insert_char(b'a');
     editor.move_right();
@@ -195,7 +195,7 @@ pub fn test_line_editor_move_right_at_end() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_line_editor_move_home() -> TestResult {
+pub(crate) fn test_line_editor_move_home() -> TestResult {
     let mut editor = LineEditor::new();
     editor.insert_char(b'a');
     editor.insert_char(b'b');
@@ -205,7 +205,7 @@ pub fn test_line_editor_move_home() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_line_editor_move_end() -> TestResult {
+pub(crate) fn test_line_editor_move_end() -> TestResult {
     let mut editor = LineEditor::new();
     editor.insert_char(b'a');
     editor.insert_char(b'b');
@@ -215,7 +215,7 @@ pub fn test_line_editor_move_end() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_line_editor_move_word_left() -> TestResult {
+pub(crate) fn test_line_editor_move_word_left() -> TestResult {
     let mut editor = LineEditor::new();
     editor.set_content(b"one two three");
     editor.move_word_left();
@@ -223,7 +223,7 @@ pub fn test_line_editor_move_word_left() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_line_editor_move_word_left_at_start() -> TestResult {
+pub(crate) fn test_line_editor_move_word_left_at_start() -> TestResult {
     let mut editor = LineEditor::new();
     editor.set_content(b"test");
     editor.move_home();
@@ -232,7 +232,7 @@ pub fn test_line_editor_move_word_left_at_start() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_line_editor_move_word_right() -> TestResult {
+pub(crate) fn test_line_editor_move_word_right() -> TestResult {
     let mut editor = LineEditor::new();
     editor.set_content(b"one two three");
     editor.move_home();
@@ -241,7 +241,7 @@ pub fn test_line_editor_move_word_right() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_line_editor_delete_word_left() -> TestResult {
+pub(crate) fn test_line_editor_delete_word_left() -> TestResult {
     let mut editor = LineEditor::new();
     editor.set_content(b"hello world");
     editor.delete_word_left();
@@ -249,7 +249,7 @@ pub fn test_line_editor_delete_word_left() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_line_editor_delete_word_left_at_start() -> TestResult {
+pub(crate) fn test_line_editor_delete_word_left_at_start() -> TestResult {
     let mut editor = LineEditor::new();
     editor.set_content(b"test");
     editor.move_home();
@@ -258,7 +258,7 @@ pub fn test_line_editor_delete_word_left_at_start() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_line_editor_delete_to_end() -> TestResult {
+pub(crate) fn test_line_editor_delete_to_end() -> TestResult {
     let mut editor = LineEditor::new();
     editor.set_content(b"hello world");
     editor.move_home();
@@ -272,7 +272,7 @@ pub fn test_line_editor_delete_to_end() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_line_editor_delete_to_start() -> TestResult {
+pub(crate) fn test_line_editor_delete_to_start() -> TestResult {
     let mut editor = LineEditor::new();
     editor.set_content(b"hello world");
     editor.move_home();
@@ -284,7 +284,7 @@ pub fn test_line_editor_delete_to_start() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_line_editor_delete_to_start_at_beginning() -> TestResult {
+pub(crate) fn test_line_editor_delete_to_start_at_beginning() -> TestResult {
     let mut editor = LineEditor::new();
     editor.set_content(b"test");
     editor.move_home();
@@ -293,7 +293,7 @@ pub fn test_line_editor_delete_to_start_at_beginning() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_line_editor_clear_line() -> TestResult {
+pub(crate) fn test_line_editor_clear_line() -> TestResult {
     let mut editor = LineEditor::new();
     editor.set_content(b"some content");
     editor.clear_line();
@@ -302,17 +302,17 @@ pub fn test_line_editor_clear_line() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_max_input_len_constant() -> TestResult {
+pub(crate) fn test_max_input_len_constant() -> TestResult {
     if MAX_INPUT_LEN != 240 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_prompt_len_constant() -> TestResult {
+pub(crate) fn test_prompt_len_constant() -> TestResult {
     if PROMPT_LEN != 7 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_line_editor_insert_at_max_length() -> TestResult {
+pub(crate) fn test_line_editor_insert_at_max_length() -> TestResult {
     let mut editor = LineEditor::new();
     for _ in 0..MAX_INPUT_LEN {
         editor.insert_char(b'x');
