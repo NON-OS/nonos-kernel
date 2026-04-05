@@ -3,7 +3,7 @@ use crate::input::i2c_hid::descriptor::{
 };
 use crate::test::framework::TestResult;
 
-pub fn test_hid_descriptor_default() -> TestResult {
+pub(crate) fn test_hid_descriptor_default() -> TestResult {
     let desc = HidDescriptor::default();
     if desc.hid_descriptor_length != 30 { return TestResult::Fail; }
     if desc.bcd_version != 0x0100 { return TestResult::Fail; }
@@ -21,7 +21,7 @@ pub fn test_hid_descriptor_default() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_hid_descriptor_parse_valid() -> TestResult {
+pub(crate) fn test_hid_descriptor_parse_valid() -> TestResult {
     let mut data = [0u8; 30];
     data[0] = 30;
     data[1] = 0;
@@ -64,14 +64,14 @@ pub fn test_hid_descriptor_parse_valid() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_hid_descriptor_parse_too_short() -> TestResult {
+pub(crate) fn test_hid_descriptor_parse_too_short() -> TestResult {
     let data = [0u8; 20];
     let desc = HidDescriptor::parse(&data);
     if !desc.is_none() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_hid_descriptor_parse_invalid_length() -> TestResult {
+pub(crate) fn test_hid_descriptor_parse_invalid_length() -> TestResult {
     let mut data = [0u8; 30];
     data[0] = 20;
     data[1] = 0;
@@ -80,7 +80,7 @@ pub fn test_hid_descriptor_parse_invalid_length() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_hid_descriptor_parse_invalid_version() -> TestResult {
+pub(crate) fn test_hid_descriptor_parse_invalid_version() -> TestResult {
     let mut data = [0u8; 30];
     data[0] = 30;
     data[1] = 0;
@@ -91,14 +91,14 @@ pub fn test_hid_descriptor_parse_invalid_version() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_field_location_default() -> TestResult {
+pub(crate) fn test_field_location_default() -> TestResult {
     let field = FieldLocation::default();
     if field.bit_offset != 0 { return TestResult::Fail; }
     if field.bit_size != 0 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_field_location_is_valid() -> TestResult {
+pub(crate) fn test_field_location_is_valid() -> TestResult {
     let valid = FieldLocation { bit_offset: 0, bit_size: 8 };
     if !valid.is_valid() { return TestResult::Fail; }
 
@@ -107,7 +107,7 @@ pub fn test_field_location_is_valid() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_field_location_extract_single_bit() -> TestResult {
+pub(crate) fn test_field_location_extract_single_bit() -> TestResult {
     let field = FieldLocation { bit_offset: 0, bit_size: 1 };
     let data = [0b00000001];
     if field.extract(&data) != 1 { return TestResult::Fail; }
@@ -117,7 +117,7 @@ pub fn test_field_location_extract_single_bit() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_field_location_extract_single_bit_offset() -> TestResult {
+pub(crate) fn test_field_location_extract_single_bit_offset() -> TestResult {
     let field = FieldLocation { bit_offset: 3, bit_size: 1 };
     let data = [0b00001000];
     if field.extract(&data) != 1 { return TestResult::Fail; }
@@ -127,42 +127,42 @@ pub fn test_field_location_extract_single_bit_offset() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_field_location_extract_byte_aligned() -> TestResult {
+pub(crate) fn test_field_location_extract_byte_aligned() -> TestResult {
     let field = FieldLocation { bit_offset: 0, bit_size: 8 };
     let data = [0xAB];
     if field.extract(&data) != 0xAB { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_field_location_extract_16bit_aligned() -> TestResult {
+pub(crate) fn test_field_location_extract_16bit_aligned() -> TestResult {
     let field = FieldLocation { bit_offset: 0, bit_size: 16 };
     let data = [0x34, 0x12];
     if field.extract(&data) != 0x1234 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_field_location_extract_empty_data() -> TestResult {
+pub(crate) fn test_field_location_extract_empty_data() -> TestResult {
     let field = FieldLocation { bit_offset: 0, bit_size: 8 };
     let data: [u8; 0] = [];
     if field.extract(&data) != 0 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_field_location_extract_invalid() -> TestResult {
+pub(crate) fn test_field_location_extract_invalid() -> TestResult {
     let field = FieldLocation { bit_offset: 0, bit_size: 0 };
     let data = [0xFF];
     if field.extract(&data) != 0 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_field_location_extract_out_of_bounds() -> TestResult {
+pub(crate) fn test_field_location_extract_out_of_bounds() -> TestResult {
     let field = FieldLocation { bit_offset: 16, bit_size: 8 };
     let data = [0xFF];
     if field.extract(&data) != 0 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_contact_fields_default() -> TestResult {
+pub(crate) fn test_contact_fields_default() -> TestResult {
     let fields = ContactFields::default();
     if fields.tip_switch.is_valid() { return TestResult::Fail; }
     if fields.confidence.is_valid() { return TestResult::Fail; }
@@ -175,7 +175,7 @@ pub fn test_contact_fields_default() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_contact_fields_structure() -> TestResult {
+pub(crate) fn test_contact_fields_structure() -> TestResult {
     let fields = ContactFields {
         tip_switch: FieldLocation { bit_offset: 0, bit_size: 1 },
         confidence: FieldLocation { bit_offset: 1, bit_size: 1 },
@@ -192,7 +192,7 @@ pub fn test_contact_fields_structure() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_touchpad_layout_default() -> TestResult {
+pub(crate) fn test_touchpad_layout_default() -> TestResult {
     let layout = TouchpadLayout::default();
     if layout.report_id != 0 { return TestResult::Fail; }
     if layout.scan_time.is_valid() { return TestResult::Fail; }
@@ -204,7 +204,7 @@ pub fn test_touchpad_layout_default() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_touchpad_layout_contacts_array() -> TestResult {
+pub(crate) fn test_touchpad_layout_contacts_array() -> TestResult {
     let layout = TouchpadLayout::default();
     for contact in &layout.contacts {
         if contact.tip_switch.is_valid() { return TestResult::Fail; }
@@ -214,7 +214,7 @@ pub fn test_touchpad_layout_contacts_array() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_field_location_clone() -> TestResult {
+pub(crate) fn test_field_location_clone() -> TestResult {
     let field = FieldLocation { bit_offset: 10, bit_size: 16 };
     let cloned = field.clone();
     if cloned.bit_offset != 10 { return TestResult::Fail; }
@@ -222,7 +222,7 @@ pub fn test_field_location_clone() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_field_location_copy() -> TestResult {
+pub(crate) fn test_field_location_copy() -> TestResult {
     let field = FieldLocation { bit_offset: 20, bit_size: 8 };
     let copied = field;
     if copied.bit_offset != 20 { return TestResult::Fail; }
@@ -230,7 +230,7 @@ pub fn test_field_location_copy() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_contact_fields_clone() -> TestResult {
+pub(crate) fn test_contact_fields_clone() -> TestResult {
     let fields = ContactFields {
         tip_switch: FieldLocation { bit_offset: 0, bit_size: 1 },
         confidence: FieldLocation::default(),
@@ -248,7 +248,7 @@ pub fn test_contact_fields_clone() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_hid_descriptor_clone() -> TestResult {
+pub(crate) fn test_hid_descriptor_clone() -> TestResult {
     let desc = HidDescriptor {
         hid_descriptor_length: 30,
         bcd_version: 0x0100,
@@ -271,7 +271,7 @@ pub fn test_hid_descriptor_clone() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_touchpad_layout_clone() -> TestResult {
+pub(crate) fn test_touchpad_layout_clone() -> TestResult {
     let mut layout = TouchpadLayout::default();
     layout.report_id = 5;
     layout.total_report_size = 64;
@@ -281,14 +281,14 @@ pub fn test_touchpad_layout_clone() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_field_location_extract_multi_byte() -> TestResult {
+pub(crate) fn test_field_location_extract_multi_byte() -> TestResult {
     let field = FieldLocation { bit_offset: 8, bit_size: 16 };
     let data = [0x00, 0x34, 0x12];
     if field.extract(&data) != 0x1234 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_field_location_extract_nibble() -> TestResult {
+pub(crate) fn test_field_location_extract_nibble() -> TestResult {
     let field = FieldLocation { bit_offset: 4, bit_size: 4 };
     let data = [0xAB];
     let result = field.extract(&data);
@@ -296,7 +296,7 @@ pub fn test_field_location_extract_nibble() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_field_location_bit_7() -> TestResult {
+pub(crate) fn test_field_location_bit_7() -> TestResult {
     let field = FieldLocation { bit_offset: 7, bit_size: 1 };
     let data = [0x80];
     if field.extract(&data) != 1 { return TestResult::Fail; }
@@ -306,7 +306,7 @@ pub fn test_field_location_bit_7() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_hid_descriptor_registers() -> TestResult {
+pub(crate) fn test_hid_descriptor_registers() -> TestResult {
     let desc = HidDescriptor::default();
     if !(desc.report_descriptor_register < desc.input_register) { return TestResult::Fail; }
     if !(desc.input_register < desc.output_register) { return TestResult::Fail; }
@@ -315,7 +315,7 @@ pub fn test_hid_descriptor_registers() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_touchpad_layout_structure() -> TestResult {
+pub(crate) fn test_touchpad_layout_structure() -> TestResult {
     let layout = TouchpadLayout {
         report_id: 1,
         scan_time: FieldLocation { bit_offset: 8, bit_size: 16 },

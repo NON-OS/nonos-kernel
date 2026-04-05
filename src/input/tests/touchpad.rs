@@ -12,7 +12,7 @@ use crate::input::i2c_hid::touchpad::gesture::{
 use crate::input::i2c_hid::touchpad::util::{apply_acceleration, distance, isqrt};
 use crate::test::framework::TestResult;
 
-pub fn test_touch_point_default() -> TestResult {
+pub(crate) fn test_touch_point_default() -> TestResult {
     let point = TouchPoint::default();
     if point.id != 0 { return TestResult::Fail; }
     if point.x != 0 { return TestResult::Fail; }
@@ -24,7 +24,7 @@ pub fn test_touch_point_default() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_touch_point_area() -> TestResult {
+pub(crate) fn test_touch_point_area() -> TestResult {
     let point = TouchPoint {
         id: 1,
         x: 100,
@@ -38,13 +38,13 @@ pub fn test_touch_point_area() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_touch_point_area_zero() -> TestResult {
+pub(crate) fn test_touch_point_area_zero() -> TestResult {
     let point = TouchPoint::default();
     if point.area() != 0 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_touch_point_is_palm_by_area() -> TestResult {
+pub(crate) fn test_touch_point_is_palm_by_area() -> TestResult {
     let point = TouchPoint {
         id: 1,
         x: 500,
@@ -58,7 +58,7 @@ pub fn test_touch_point_is_palm_by_area() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_touch_point_is_palm_by_pressure() -> TestResult {
+pub(crate) fn test_touch_point_is_palm_by_pressure() -> TestResult {
     let point = TouchPoint {
         id: 1,
         x: 500,
@@ -72,7 +72,7 @@ pub fn test_touch_point_is_palm_by_pressure() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_touch_point_is_palm_by_left_edge() -> TestResult {
+pub(crate) fn test_touch_point_is_palm_by_left_edge() -> TestResult {
     let point = TouchPoint {
         id: 1,
         x: PALM_EDGE_THRESHOLD - 1,
@@ -86,7 +86,7 @@ pub fn test_touch_point_is_palm_by_left_edge() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_touch_point_is_palm_by_right_edge() -> TestResult {
+pub(crate) fn test_touch_point_is_palm_by_right_edge() -> TestResult {
     let point = TouchPoint {
         id: 1,
         x: 1000 - PALM_EDGE_THRESHOLD + 1,
@@ -100,7 +100,7 @@ pub fn test_touch_point_is_palm_by_right_edge() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_touch_point_is_palm_by_top_edge() -> TestResult {
+pub(crate) fn test_touch_point_is_palm_by_top_edge() -> TestResult {
     let point = TouchPoint {
         id: 1,
         x: 500,
@@ -114,7 +114,7 @@ pub fn test_touch_point_is_palm_by_top_edge() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_touch_point_is_palm_by_bottom_edge() -> TestResult {
+pub(crate) fn test_touch_point_is_palm_by_bottom_edge() -> TestResult {
     let point = TouchPoint {
         id: 1,
         x: 500,
@@ -128,7 +128,7 @@ pub fn test_touch_point_is_palm_by_bottom_edge() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_touch_point_not_palm() -> TestResult {
+pub(crate) fn test_touch_point_not_palm() -> TestResult {
     let point = TouchPoint {
         id: 1,
         x: 500,
@@ -142,13 +142,13 @@ pub fn test_touch_point_not_palm() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_gesture_default() -> TestResult {
+pub(crate) fn test_gesture_default() -> TestResult {
     let gesture = Gesture::default();
     if gesture != Gesture::None { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_gesture_variants() -> TestResult {
+pub(crate) fn test_gesture_variants() -> TestResult {
     if Gesture::None != Gesture::None { return TestResult::Fail; }
     if Gesture::Tap != Gesture::Tap { return TestResult::Fail; }
     if Gesture::DoubleTap != Gesture::DoubleTap { return TestResult::Fail; }
@@ -157,7 +157,7 @@ pub fn test_gesture_variants() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_gesture_two_finger_scroll() -> TestResult {
+pub(crate) fn test_gesture_two_finger_scroll() -> TestResult {
     let gesture = Gesture::TwoFingerScroll { dx: 10, dy: 20 };
     match gesture {
         Gesture::TwoFingerScroll { dx, dy } => {
@@ -169,7 +169,7 @@ pub fn test_gesture_two_finger_scroll() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_gesture_pinch_zoom() -> TestResult {
+pub(crate) fn test_gesture_pinch_zoom() -> TestResult {
     let gesture = Gesture::PinchZoom { scale: 50 };
     match gesture {
         Gesture::PinchZoom { scale } => {
@@ -180,7 +180,7 @@ pub fn test_gesture_pinch_zoom() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_gesture_three_finger_swipes() -> TestResult {
+pub(crate) fn test_gesture_three_finger_swipes() -> TestResult {
     if Gesture::ThreeFingerSwipeLeft != Gesture::ThreeFingerSwipeLeft { return TestResult::Fail; }
     if Gesture::ThreeFingerSwipeRight != Gesture::ThreeFingerSwipeRight { return TestResult::Fail; }
     if Gesture::ThreeFingerSwipeUp != Gesture::ThreeFingerSwipeUp { return TestResult::Fail; }
@@ -188,13 +188,13 @@ pub fn test_gesture_three_finger_swipes() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_gesture_four_finger_swipes() -> TestResult {
+pub(crate) fn test_gesture_four_finger_swipes() -> TestResult {
     if Gesture::FourFingerSwipeUp != Gesture::FourFingerSwipeUp { return TestResult::Fail; }
     if Gesture::FourFingerSwipeDown != Gesture::FourFingerSwipeDown { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_touchpad_state_default() -> TestResult {
+pub(crate) fn test_touchpad_state_default() -> TestResult {
     let state = TouchpadState::default();
     if state.delta_x != 0 { return TestResult::Fail; }
     if state.delta_y != 0 { return TestResult::Fail; }
@@ -206,7 +206,7 @@ pub fn test_touchpad_state_default() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_tracked_contact_default() -> TestResult {
+pub(crate) fn test_tracked_contact_default() -> TestResult {
     let contact = TrackedContact::default();
     if contact.id != 0 { return TestResult::Fail; }
     if contact.start_x != 0 { return TestResult::Fail; }
@@ -218,59 +218,59 @@ pub fn test_tracked_contact_default() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_constants_max_contacts() -> TestResult {
+pub(crate) fn test_constants_max_contacts() -> TestResult {
     if MAX_CONTACTS != 10 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_constants_palm_detection() -> TestResult {
+pub(crate) fn test_constants_palm_detection() -> TestResult {
     if PALM_MIN_PRESSURE != 200 { return TestResult::Fail; }
     if PALM_MIN_AREA != 400 { return TestResult::Fail; }
     if PALM_EDGE_THRESHOLD != 50 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_constants_tap_timeouts() -> TestResult {
+pub(crate) fn test_constants_tap_timeouts() -> TestResult {
     if TAP_TIMEOUT_US != 200_000 { return TestResult::Fail; }
     if DOUBLE_TAP_TIMEOUT_US != 400_000 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_constants_gesture_thresholds() -> TestResult {
+pub(crate) fn test_constants_gesture_thresholds() -> TestResult {
     if SCROLL_THRESHOLD != 10 { return TestResult::Fail; }
     if PINCH_THRESHOLD != 20 { return TestResult::Fail; }
     if SWIPE_THRESHOLD != 100 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_is_tap_event_short() -> TestResult {
+pub(crate) fn test_is_tap_event_short() -> TestResult {
     if !is_tap_event(0, TAP_TIMEOUT_US - 1) { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_is_tap_event_too_long() -> TestResult {
+pub(crate) fn test_is_tap_event_too_long() -> TestResult {
     if is_tap_event(0, TAP_TIMEOUT_US + 1) { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_is_double_tap_quick() -> TestResult {
+pub(crate) fn test_is_double_tap_quick() -> TestResult {
     if !is_double_tap(0, DOUBLE_TAP_TIMEOUT_US - 1) { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_is_double_tap_too_slow() -> TestResult {
+pub(crate) fn test_is_double_tap_too_slow() -> TestResult {
     if is_double_tap(0, DOUBLE_TAP_TIMEOUT_US + 1) { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_tap_timing_config() -> TestResult {
+pub(crate) fn test_tap_timing_config() -> TestResult {
     let (tap, double_tap) = tap_timing_config();
     if tap != TAP_TIMEOUT_US { return TestResult::Fail; }
     if double_tap != DOUBLE_TAP_TIMEOUT_US { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_detect_two_finger_gesture_no_contacts() -> TestResult {
+pub(crate) fn test_detect_two_finger_gesture_no_contacts() -> TestResult {
     let tracked = [];
     let mut state = TouchpadState::default();
     let mut gesture_active = false;
@@ -285,7 +285,7 @@ pub fn test_detect_two_finger_gesture_no_contacts() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_detect_two_finger_gesture_one_contact() -> TestResult {
+pub(crate) fn test_detect_two_finger_gesture_one_contact() -> TestResult {
     let tracked = [TrackedContact {
         id: 0,
         start_x: 100,
@@ -308,119 +308,119 @@ pub fn test_detect_two_finger_gesture_one_contact() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_detect_three_finger_gesture_no_contacts() -> TestResult {
+pub(crate) fn test_detect_three_finger_gesture_no_contacts() -> TestResult {
     let tracked = [];
     let result = detect_three_finger_gesture(&tracked);
     if result != Gesture::None { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_detect_four_finger_gesture_no_contacts() -> TestResult {
+pub(crate) fn test_detect_four_finger_gesture_no_contacts() -> TestResult {
     let tracked = [];
     let result = detect_four_finger_gesture(&tracked);
     if result != Gesture::None { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_apply_acceleration_small_delta() -> TestResult {
+pub(crate) fn test_apply_acceleration_small_delta() -> TestResult {
     let result = apply_acceleration(3, 2, 10);
     if result != 3 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_apply_acceleration_medium_delta() -> TestResult {
+pub(crate) fn test_apply_acceleration_medium_delta() -> TestResult {
     let result = apply_acceleration(15, 2, 10);
     if result != 30 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_apply_acceleration_large_delta() -> TestResult {
+pub(crate) fn test_apply_acceleration_large_delta() -> TestResult {
     let result = apply_acceleration(30, 2, 10);
     if result != 120 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_apply_acceleration_very_large_delta() -> TestResult {
+pub(crate) fn test_apply_acceleration_very_large_delta() -> TestResult {
     let result = apply_acceleration(60, 2, 10);
     if result != 360 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_apply_acceleration_negative() -> TestResult {
+pub(crate) fn test_apply_acceleration_negative() -> TestResult {
     let result = apply_acceleration(-30, 2, 10);
     if result != -120 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_distance_zero() -> TestResult {
+pub(crate) fn test_distance_zero() -> TestResult {
     let d = distance(0, 0, 0, 0);
     if d != 0 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_distance_horizontal() -> TestResult {
+pub(crate) fn test_distance_horizontal() -> TestResult {
     let d = distance(0, 0, 10, 0);
     if d != 10 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_distance_vertical() -> TestResult {
+pub(crate) fn test_distance_vertical() -> TestResult {
     let d = distance(0, 0, 0, 10);
     if d != 10 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_distance_diagonal() -> TestResult {
+pub(crate) fn test_distance_diagonal() -> TestResult {
     let d = distance(0, 0, 3, 4);
     if d != 5 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_isqrt_zero() -> TestResult {
+pub(crate) fn test_isqrt_zero() -> TestResult {
     if isqrt(0) != 0 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_isqrt_one() -> TestResult {
+pub(crate) fn test_isqrt_one() -> TestResult {
     if isqrt(1) != 1 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_isqrt_four() -> TestResult {
+pub(crate) fn test_isqrt_four() -> TestResult {
     if isqrt(4) != 2 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_isqrt_nine() -> TestResult {
+pub(crate) fn test_isqrt_nine() -> TestResult {
     if isqrt(9) != 3 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_isqrt_sixteen() -> TestResult {
+pub(crate) fn test_isqrt_sixteen() -> TestResult {
     if isqrt(16) != 4 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_isqrt_large() -> TestResult {
+pub(crate) fn test_isqrt_large() -> TestResult {
     if isqrt(100) != 10 { return TestResult::Fail; }
     if isqrt(10000) != 100 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_isqrt_non_perfect() -> TestResult {
+pub(crate) fn test_isqrt_non_perfect() -> TestResult {
     if isqrt(5) != 2 { return TestResult::Fail; }
     if isqrt(8) != 2 { return TestResult::Fail; }
     if isqrt(15) != 3 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_touchpad_state_contacts_array_size() -> TestResult {
+pub(crate) fn test_touchpad_state_contacts_array_size() -> TestResult {
     let state = TouchpadState::default();
     if state.contacts.len() != MAX_CONTACTS { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_touch_point_clone() -> TestResult {
+pub(crate) fn test_touch_point_clone() -> TestResult {
     let point = TouchPoint {
         id: 1,
         x: 100,
@@ -437,7 +437,7 @@ pub fn test_touch_point_clone() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_tracked_contact_clone() -> TestResult {
+pub(crate) fn test_tracked_contact_clone() -> TestResult {
     let contact = TrackedContact {
         id: 1,
         start_x: 100,
@@ -453,14 +453,14 @@ pub fn test_tracked_contact_clone() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_gesture_clone() -> TestResult {
+pub(crate) fn test_gesture_clone() -> TestResult {
     let gesture = Gesture::TwoFingerScroll { dx: 5, dy: 10 };
     let cloned = gesture.clone();
     if gesture != cloned { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_touchpad_state_clone() -> TestResult {
+pub(crate) fn test_touchpad_state_clone() -> TestResult {
     let mut state = TouchpadState::default();
     state.delta_x = 10;
     state.delta_y = 20;
