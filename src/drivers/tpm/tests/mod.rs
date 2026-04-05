@@ -21,7 +21,7 @@ pub mod status;
 
 use crate::test::framework::TestSuite;
 
-pub fn run_all() -> TestSuite {
+pub fn run_all() -> bool {
     let mut suite = TestSuite::new("tpm");
 
     // constants tests (79 tests)
@@ -219,5 +219,5 @@ pub fn run_all() -> TestSuite {
     suite.add_test("test_pcr_bank_config_copy", status::test_pcr_bank_config_copy);
     suite.add_test("test_pcr_bank_config_clone", status::test_pcr_bank_config_clone);
 
-    suite
+    suite.run()
 }
