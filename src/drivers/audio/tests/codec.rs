@@ -14,57 +14,57 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::super::controller::{
+use crate::drivers::audio::controller::{
     compose_verb, device_name, vendor_name, AudioPath, Capabilities, CodecInfo, CodecPaths,
     CodecQuirks, WidgetInfo,
 };
+use crate::test::framework::TestResult;
 
-#[test]
-fn test_compose_verb() {
+pub fn test_compose_verb() -> TestResult {
     let verb = compose_verb(0, 0, 0xF00, 0x00);
-    assert_eq!(verb, 0x000F_0000);
+    if verb != 0x000F_0000 { return TestResult::Fail; }
 
     let verb = compose_verb(1, 2, 0x705, 0x00);
-    assert_eq!(verb, 0x1027_0500);
+    if verb != 0x1027_0500 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_capabilities_from_gcap() {
+pub fn test_capabilities_from_gcap() -> TestResult {
     let gcap = (4 << 12) | (2 << 8) | (1 << 3) | 1;
     let caps = Capabilities::from_gcap(gcap);
 
-    assert_eq!(caps.output_streams, 4);
-    assert_eq!(caps.input_streams, 2);
-    assert_eq!(caps.bidi_streams, 1);
-    assert!(caps.addr64);
-    assert_eq!(caps.total_streams(), 7);
+    if caps.output_streams != 4 { return TestResult::Fail; }
+    if caps.input_streams != 2 { return TestResult::Fail; }
+    if caps.bidi_streams != 1 { return TestResult::Fail; }
+    if !caps.addr64 { return TestResult::Fail; }
+    if caps.total_streams() != 7 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_vendor_name() {
-    assert_eq!(vendor_name(0x8086), "Intel");
-    assert_eq!(vendor_name(0x10DE), "NVIDIA");
-    assert_eq!(vendor_name(0x1002), "AMD/ATI");
-    assert_eq!(vendor_name(0x10EC), "Realtek");
-    assert_eq!(vendor_name(0x14F1), "Conexant");
-    assert_eq!(vendor_name(0x1106), "VIA");
-    assert_eq!(vendor_name(0x1AF4), "VirtIO");
-    assert_eq!(vendor_name(0x0000), "Unknown");
+pub fn test_vendor_name() -> TestResult {
+    if vendor_name(0x8086) != "Intel" { return TestResult::Fail; }
+    if vendor_name(0x10DE) != "NVIDIA" { return TestResult::Fail; }
+    if vendor_name(0x1002) != "AMD/ATI" { return TestResult::Fail; }
+    if vendor_name(0x10EC) != "Realtek" { return TestResult::Fail; }
+    if vendor_name(0x14F1) != "Conexant" { return TestResult::Fail; }
+    if vendor_name(0x1106) != "VIA" { return TestResult::Fail; }
+    if vendor_name(0x1AF4) != "VirtIO" { return TestResult::Fail; }
+    if vendor_name(0x0000) != "Unknown" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_codec_info_empty() {
+pub fn test_codec_info_empty() -> TestResult {
     let codec = CodecInfo::empty();
-    assert_eq!(codec.cad, 0);
-    assert_eq!(codec.vendor_id, 0);
-    assert_eq!(codec.device_id, 0);
-    assert_eq!(codec.revision_id, 0);
-    assert_eq!(codec.fn_group_start, 0);
-    assert_eq!(codec.fn_group_count, 0);
+    if codec.cad != 0 { return TestResult::Fail; }
+    if codec.vendor_id != 0 { return TestResult::Fail; }
+    if codec.device_id != 0 { return TestResult::Fail; }
+    if codec.revision_id != 0 { return TestResult::Fail; }
+    if codec.fn_group_start != 0 { return TestResult::Fail; }
+    if codec.fn_group_count != 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_codec_info_copy() {
+pub fn test_codec_info_copy() -> TestResult {
     let codec1 = CodecInfo {
         cad: 1,
         vendor_id: 0x10EC,
@@ -75,140 +75,140 @@ fn test_codec_info_copy() {
         quirks: CodecQuirks::default(),
     };
     let codec2 = codec1;
-    assert_eq!(codec1.cad, codec2.cad);
-    assert_eq!(codec1.vendor_id, codec2.vendor_id);
-    assert_eq!(codec1.device_id, codec2.device_id);
+    if codec1.cad != codec2.cad { return TestResult::Fail; }
+    if codec1.vendor_id != codec2.vendor_id { return TestResult::Fail; }
+    if codec1.device_id != codec2.device_id { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_widget_info_default() {
+pub fn test_widget_info_default() -> TestResult {
     let widget = WidgetInfo::default();
-    assert_eq!(widget.nid, 0);
-    assert_eq!(widget.widget_type, 0);
-    assert_eq!(widget.caps, 0);
-    assert_eq!(widget.conn_len, 0);
+    if widget.nid != 0 { return TestResult::Fail; }
+    if widget.widget_type != 0 { return TestResult::Fail; }
+    if widget.caps != 0 { return TestResult::Fail; }
+    if widget.conn_len != 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_widget_info_has_out_amp() {
+pub fn test_widget_info_has_out_amp() -> TestResult {
     let widget = WidgetInfo {
         caps: 1 << 2,
         ..Default::default()
     };
-    assert!(widget.has_out_amp());
+    if !widget.has_out_amp() { return TestResult::Fail; }
 
     let widget_no_amp = WidgetInfo::default();
-    assert!(!widget_no_amp.has_out_amp());
+    if widget_no_amp.has_out_amp() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_widget_info_has_in_amp() {
+pub fn test_widget_info_has_in_amp() -> TestResult {
     let widget = WidgetInfo {
         caps: 1 << 1,
         ..Default::default()
     };
-    assert!(widget.has_in_amp());
+    if !widget.has_in_amp() { return TestResult::Fail; }
 
     let widget_no_amp = WidgetInfo::default();
-    assert!(!widget_no_amp.has_in_amp());
+    if widget_no_amp.has_in_amp() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_widget_info_is_output_pin() {
+pub fn test_widget_info_is_output_pin() -> TestResult {
     let widget = WidgetInfo {
         widget_type: 4,
         pin_caps: 1 << 4,
         ..Default::default()
     };
-    assert!(widget.is_output_pin());
+    if !widget.is_output_pin() { return TestResult::Fail; }
 
     let dac = WidgetInfo {
         widget_type: 0,
         pin_caps: 1 << 4,
         ..Default::default()
     };
-    assert!(!dac.is_output_pin());
+    if dac.is_output_pin() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_widget_info_is_input_pin() {
+pub fn test_widget_info_is_input_pin() -> TestResult {
     let widget = WidgetInfo {
         widget_type: 4,
         pin_caps: 1 << 5,
         ..Default::default()
     };
-    assert!(widget.is_input_pin());
+    if !widget.is_input_pin() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_widget_info_pin_device_type() {
+pub fn test_widget_info_pin_device_type() -> TestResult {
     let widget = WidgetInfo {
         pin_config: 0x1 << 20,
         ..Default::default()
     };
-    assert_eq!(widget.pin_device_type(), 0x1);
+    if widget.pin_device_type() != 0x1 { return TestResult::Fail; }
 
     let hp_widget = WidgetInfo {
         pin_config: 0x2 << 20,
         ..Default::default()
     };
-    assert_eq!(hp_widget.pin_device_type(), 0x2);
+    if hp_widget.pin_device_type() != 0x2 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_widget_info_pin_connectivity() {
+pub fn test_widget_info_pin_connectivity() -> TestResult {
     let jack = WidgetInfo {
         pin_config: 0 << 30,
         ..Default::default()
     };
-    assert_eq!(jack.pin_connectivity(), 0);
+    if jack.pin_connectivity() != 0 { return TestResult::Fail; }
 
     let none = WidgetInfo {
         pin_config: 1 << 30,
         ..Default::default()
     };
-    assert_eq!(none.pin_connectivity(), 1);
+    if none.pin_connectivity() != 1 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_widget_info_is_connected() {
+pub fn test_widget_info_is_connected() -> TestResult {
     let connected = WidgetInfo {
         pin_config: 0 << 30,
         ..Default::default()
     };
-    assert!(connected.is_connected());
+    if !connected.is_connected() { return TestResult::Fail; }
 
     let not_connected = WidgetInfo {
         pin_config: 1 << 30,
         ..Default::default()
     };
-    assert!(!not_connected.is_connected());
+    if not_connected.is_connected() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_widget_info_amp_steps() {
+pub fn test_widget_info_amp_steps() -> TestResult {
     let widget = WidgetInfo {
         amp_out_caps: 0x7F << 8,
         amp_in_caps: 0x40 << 8,
         ..Default::default()
     };
-    assert_eq!(widget.out_amp_steps(), 127);
-    assert_eq!(widget.in_amp_steps(), 64);
+    if widget.out_amp_steps() != 127 { return TestResult::Fail; }
+    if widget.in_amp_steps() != 64 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_audio_path_default() {
+pub fn test_audio_path_default() -> TestResult {
     let path = AudioPath::default();
-    assert_eq!(path.dac_nid, 0);
-    assert_eq!(path.path, [0; 8]);
-    assert_eq!(path.path_len, 0);
-    assert_eq!(path.pin_nid, 0);
-    assert_eq!(path.device_type, 0);
-    assert!(!path.active);
+    if path.dac_nid != 0 { return TestResult::Fail; }
+    if path.path != [0; 8] { return TestResult::Fail; }
+    if path.path_len != 0 { return TestResult::Fail; }
+    if path.pin_nid != 0 { return TestResult::Fail; }
+    if path.device_type != 0 { return TestResult::Fail; }
+    if path.active { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_audio_path_copy() {
+pub fn test_audio_path_copy() -> TestResult {
     let path1 = AudioPath {
         dac_nid: 2,
         path: [5, 6, 0, 0, 0, 0, 0, 0],
@@ -218,37 +218,38 @@ fn test_audio_path_copy() {
         active: true,
     };
     let path2 = path1;
-    assert_eq!(path1.dac_nid, path2.dac_nid);
-    assert_eq!(path1.pin_nid, path2.pin_nid);
-    assert_eq!(path1.active, path2.active);
+    if path1.dac_nid != path2.dac_nid { return TestResult::Fail; }
+    if path1.pin_nid != path2.pin_nid { return TestResult::Fail; }
+    if path1.active != path2.active { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_codec_paths_default() {
+pub fn test_codec_paths_default() -> TestResult {
     let paths = CodecPaths::default();
-    assert_eq!(paths.output_count, 0);
-    assert_eq!(paths.primary_output, 0);
-    assert!(!paths.output_paths[0].active);
+    if paths.output_count != 0 { return TestResult::Fail; }
+    if paths.primary_output != 0 { return TestResult::Fail; }
+    if paths.output_paths[0].active { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_device_name() {
-    assert_eq!(device_name(0x10EC, 0x0892), "ALC892");
-    assert_eq!(device_name(0x10EC, 0x0269), "ALC269");
-    assert_eq!(device_name(0x10EC, 0x1220), "ALC1220");
-    assert_eq!(device_name(0x8086, 0x2812), "Tigerlake HDMI");
-    assert_eq!(device_name(0x8086, 0x2814), "Alderlake HDMI");
-    assert_eq!(device_name(0x1002, 0xAB28), "Navi 21 HDMI");
-    assert_eq!(device_name(0x1AF4, 0x0001), "VirtIO Sound");
-    assert_eq!(device_name(0x1234, 0x5678), "Unknown Device");
+pub fn test_device_name() -> TestResult {
+    if device_name(0x10EC, 0x0892) != "ALC892" { return TestResult::Fail; }
+    if device_name(0x10EC, 0x0269) != "ALC269" { return TestResult::Fail; }
+    if device_name(0x10EC, 0x1220) != "ALC1220" { return TestResult::Fail; }
+    if device_name(0x8086, 0x2812) != "Tigerlake HDMI" { return TestResult::Fail; }
+    if device_name(0x8086, 0x2814) != "Alderlake HDMI" { return TestResult::Fail; }
+    if device_name(0x1002, 0xAB28) != "Navi 21 HDMI" { return TestResult::Fail; }
+    if device_name(0x1AF4, 0x0001) != "VirtIO Sound" { return TestResult::Fail; }
+    if device_name(0x1234, 0x5678) != "Unknown Device" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_vendor_name_extended() {
-    assert_eq!(vendor_name(0x11D4), "Analog Devices");
-    assert_eq!(vendor_name(0x1013), "Cirrus Logic");
-    assert_eq!(vendor_name(0x13F6), "C-Media");
-    assert_eq!(vendor_name(0x15AD), "VMware");
-    assert_eq!(vendor_name(0x19E5), "Huawei");
-    assert_eq!(vendor_name(0x1D17), "Zhaoxin");
+pub fn test_vendor_name_extended() -> TestResult {
+    if vendor_name(0x11D4) != "Analog Devices" { return TestResult::Fail; }
+    if vendor_name(0x1013) != "Cirrus Logic" { return TestResult::Fail; }
+    if vendor_name(0x13F6) != "C-Media" { return TestResult::Fail; }
+    if vendor_name(0x15AD) != "VMware" { return TestResult::Fail; }
+    if vendor_name(0x19E5) != "Huawei" { return TestResult::Fail; }
+    if vendor_name(0x1D17) != "Zhaoxin" { return TestResult::Fail; }
+    TestResult::Pass
 }
