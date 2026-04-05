@@ -17,21 +17,21 @@
 use crate::daemon::*;
 use crate::test::framework::TestResult;
 
-pub fn test_node_id_from_bytes() -> TestResult {
+pub(crate) fn test_node_id_from_bytes() -> TestResult {
     let bytes = [0x42u8; 32];
     let id = NodeId::from_bytes(bytes);
     if id.0 != bytes { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_node_id_as_bytes() -> TestResult {
+pub(crate) fn test_node_id_as_bytes() -> TestResult {
     let bytes = [0x42u8; 32];
     let id = NodeId::from_bytes(bytes);
     if id.as_bytes() != &bytes { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_node_id_short_id_prefix() -> TestResult {
+pub(crate) fn test_node_id_short_id_prefix() -> TestResult {
     let bytes = [0u8; 32];
     let id = NodeId::from_bytes(bytes);
     let short = id.short_id();
@@ -39,7 +39,7 @@ pub fn test_node_id_short_id_prefix() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_node_id_short_id_length() -> TestResult {
+pub(crate) fn test_node_id_short_id_length() -> TestResult {
     let bytes = [0xABu8; 32];
     let id = NodeId::from_bytes(bytes);
     let short = id.short_id();
@@ -47,7 +47,7 @@ pub fn test_node_id_short_id_length() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_node_id_short_id_hex_encoding() -> TestResult {
+pub(crate) fn test_node_id_short_id_hex_encoding() -> TestResult {
     let mut bytes = [0u8; 32];
     bytes[0] = 0xAB;
     bytes[1] = 0xCD;
@@ -57,33 +57,33 @@ pub fn test_node_id_short_id_hex_encoding() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_node_info_generate_status() -> TestResult {
+pub(crate) fn test_node_info_generate_status() -> TestResult {
     let info = NodeInfo::generate();
     if info.status != NodeStatus::Stopped { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_node_info_generate_tier() -> TestResult {
+pub(crate) fn test_node_info_generate_tier() -> TestResult {
     let info = NodeInfo::generate();
     if info.tier != NodeTier::Bronze { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_node_info_generate_quality() -> TestResult {
+pub(crate) fn test_node_info_generate_quality() -> TestResult {
     let info = NodeInfo::generate();
     if info.quality.uptime != 0 { return TestResult::Fail; }
     if info.quality.success_rate != 0 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_node_info_generate_staked() -> TestResult {
+pub(crate) fn test_node_info_generate_staked() -> TestResult {
     let info = NodeInfo::generate();
     if !info.staked.is_zero() { return TestResult::Fail; }
     if !info.pending_rewards.is_zero() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_node_info_generate_counters() -> TestResult {
+pub(crate) fn test_node_info_generate_counters() -> TestResult {
     let info = NodeInfo::generate();
     if info.streak != 0 { return TestResult::Fail; }
     if info.uptime_secs != 0 { return TestResult::Fail; }
@@ -93,14 +93,14 @@ pub fn test_node_info_generate_counters() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_node_info_generate_nickname() -> TestResult {
+pub(crate) fn test_node_info_generate_nickname() -> TestResult {
     let info = NodeInfo::generate();
     if &info.nickname[..11] != b"nonos-node-" { return TestResult::Fail; }
     if info.nickname_len != 19 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_node_info_set_nickname() -> TestResult {
+pub(crate) fn test_node_info_set_nickname() -> TestResult {
     let mut info = NodeInfo::generate();
     info.set_nickname(b"my-custom-node");
     if info.get_nickname() != b"my-custom-node" { return TestResult::Fail; }
@@ -108,7 +108,7 @@ pub fn test_node_info_set_nickname() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_node_info_set_nickname_truncates() -> TestResult {
+pub(crate) fn test_node_info_set_nickname_truncates() -> TestResult {
     let mut info = NodeInfo::generate();
     let long_name = [b'x'; 64];
     info.set_nickname(&long_name);
@@ -116,7 +116,7 @@ pub fn test_node_info_set_nickname_truncates() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_node_info_set_nickname_empty() -> TestResult {
+pub(crate) fn test_node_info_set_nickname_empty() -> TestResult {
     let mut info = NodeInfo::generate();
     info.set_nickname(b"");
     if info.get_nickname() != b"" { return TestResult::Fail; }
@@ -124,13 +124,13 @@ pub fn test_node_info_set_nickname_empty() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_node_info_success_rate_zero_requests() -> TestResult {
+pub(crate) fn test_node_info_success_rate_zero_requests() -> TestResult {
     let info = NodeInfo::generate();
     if info.success_rate() != 0 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_node_info_success_rate_all_successful() -> TestResult {
+pub(crate) fn test_node_info_success_rate_all_successful() -> TestResult {
     let mut info = NodeInfo::generate();
     info.total_requests = 100;
     info.successful_requests = 100;
@@ -138,7 +138,7 @@ pub fn test_node_info_success_rate_all_successful() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_node_info_success_rate_partial() -> TestResult {
+pub(crate) fn test_node_info_success_rate_partial() -> TestResult {
     let mut info = NodeInfo::generate();
     info.total_requests = 100;
     info.successful_requests = 75;
@@ -146,7 +146,7 @@ pub fn test_node_info_success_rate_partial() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_node_info_success_rate_none() -> TestResult {
+pub(crate) fn test_node_info_success_rate_none() -> TestResult {
     let mut info = NodeInfo::generate();
     info.total_requests = 100;
     info.successful_requests = 0;
@@ -154,7 +154,7 @@ pub fn test_node_info_success_rate_none() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_node_info_update_quality_success_rate() -> TestResult {
+pub(crate) fn test_node_info_update_quality_success_rate() -> TestResult {
     let mut info = NodeInfo::generate();
     info.total_requests = 100;
     info.successful_requests = 80;
@@ -163,7 +163,7 @@ pub fn test_node_info_update_quality_success_rate() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_node_info_update_quality_uptime_full_day() -> TestResult {
+pub(crate) fn test_node_info_update_quality_uptime_full_day() -> TestResult {
     let mut info = NodeInfo::generate();
     info.uptime_secs = 86400;
     info.update_quality();
@@ -171,7 +171,7 @@ pub fn test_node_info_update_quality_uptime_full_day() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_node_info_update_quality_uptime_partial() -> TestResult {
+pub(crate) fn test_node_info_update_quality_uptime_partial() -> TestResult {
     let mut info = NodeInfo::generate();
     info.uptime_secs = 43200;
     info.update_quality();
@@ -179,7 +179,7 @@ pub fn test_node_info_update_quality_uptime_partial() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_node_info_update_quality_uptime_more_than_day() -> TestResult {
+pub(crate) fn test_node_info_update_quality_uptime_more_than_day() -> TestResult {
     let mut info = NodeInfo::generate();
     info.uptime_secs = 172800;
     info.update_quality();
@@ -187,7 +187,7 @@ pub fn test_node_info_update_quality_uptime_more_than_day() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_node_info_start() -> TestResult {
+pub(crate) fn test_node_info_start() -> TestResult {
     let mut info = NodeInfo::generate();
     if info.status != NodeStatus::Stopped { return TestResult::Fail; }
     info.start();
@@ -195,7 +195,7 @@ pub fn test_node_info_start() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_node_info_stop() -> TestResult {
+pub(crate) fn test_node_info_stop() -> TestResult {
     let mut info = NodeInfo::generate();
     info.start();
     info.stop();
@@ -203,14 +203,14 @@ pub fn test_node_info_stop() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_node_info_default() -> TestResult {
+pub(crate) fn test_node_info_default() -> TestResult {
     let info = NodeInfo::default();
     if info.status != NodeStatus::Stopped { return TestResult::Fail; }
     if info.tier != NodeTier::Bronze { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_node_info_clone() -> TestResult {
+pub(crate) fn test_node_info_clone() -> TestResult {
     let info = NodeInfo::generate();
     let cloned = info.clone();
     if info.status != cloned.status { return TestResult::Fail; }

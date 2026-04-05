@@ -17,7 +17,7 @@
 use crate::daemon::*;
 use crate::test::framework::TestResult;
 
-pub fn test_daemon_state_new() -> TestResult {
+pub(crate) fn test_daemon_state_new() -> TestResult {
     let state = DaemonState::new();
     if !state.node.is_none() {
         return TestResult::Fail;
@@ -28,7 +28,7 @@ pub fn test_daemon_state_new() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_daemon_state_new_staking() -> TestResult {
+pub(crate) fn test_daemon_state_new_staking() -> TestResult {
     let state = DaemonState::new();
     if !state.staking.stake.amount.is_zero() {
         return TestResult::Fail;
@@ -39,7 +39,7 @@ pub fn test_daemon_state_new_staking() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_daemon_state_new_p2p() -> TestResult {
+pub(crate) fn test_daemon_state_new_p2p() -> TestResult {
     let state = DaemonState::new();
     if state.p2p.status != ConnectionStatus::Disconnected {
         return TestResult::Fail;
@@ -50,7 +50,7 @@ pub fn test_daemon_state_new_p2p() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_daemon_state_new_privacy() -> TestResult {
+pub(crate) fn test_daemon_state_new_privacy() -> TestResult {
     let state = DaemonState::new();
     if state.privacy.identity_count != 0 {
         return TestResult::Fail;

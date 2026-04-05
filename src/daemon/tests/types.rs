@@ -17,7 +17,7 @@
 use crate::daemon::*;
 use crate::test::framework::TestResult;
 
-pub fn test_node_status_variants() -> TestResult {
+pub(crate) fn test_node_status_variants() -> TestResult {
     if NodeStatus::Stopped != NodeStatus::Stopped { return TestResult::Fail; }
     if NodeStatus::Starting != NodeStatus::Starting { return TestResult::Fail; }
     if NodeStatus::Running != NodeStatus::Running { return TestResult::Fail; }
@@ -27,7 +27,7 @@ pub fn test_node_status_variants() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_node_tier_ordering() -> TestResult {
+pub(crate) fn test_node_tier_ordering() -> TestResult {
     if !(NodeTier::Bronze < NodeTier::Silver) { return TestResult::Fail; }
     if !(NodeTier::Silver < NodeTier::Gold) { return TestResult::Fail; }
     if !(NodeTier::Gold < NodeTier::Platinum) { return TestResult::Fail; }
@@ -35,7 +35,7 @@ pub fn test_node_tier_ordering() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_node_tier_min_stake() -> TestResult {
+pub(crate) fn test_node_tier_min_stake() -> TestResult {
     if NodeTier::Bronze.min_stake() != 1_000 { return TestResult::Fail; }
     if NodeTier::Silver.min_stake() != 10_000 { return TestResult::Fail; }
     if NodeTier::Gold.min_stake() != 50_000 { return TestResult::Fail; }
@@ -44,7 +44,7 @@ pub fn test_node_tier_min_stake() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_node_tier_lock_days() -> TestResult {
+pub(crate) fn test_node_tier_lock_days() -> TestResult {
     if NodeTier::Bronze.lock_days() != 0 { return TestResult::Fail; }
     if NodeTier::Silver.lock_days() != 30 { return TestResult::Fail; }
     if NodeTier::Gold.lock_days() != 90 { return TestResult::Fail; }
@@ -53,7 +53,7 @@ pub fn test_node_tier_lock_days() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_node_tier_apy_range() -> TestResult {
+pub(crate) fn test_node_tier_apy_range() -> TestResult {
     if NodeTier::Bronze.apy_range() != (5, 8) { return TestResult::Fail; }
     if NodeTier::Silver.apy_range() != (8, 12) { return TestResult::Fail; }
     if NodeTier::Gold.apy_range() != (12, 18) { return TestResult::Fail; }
@@ -62,7 +62,7 @@ pub fn test_node_tier_apy_range() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_node_tier_multiplier() -> TestResult {
+pub(crate) fn test_node_tier_multiplier() -> TestResult {
     if NodeTier::Bronze.multiplier() != 100 { return TestResult::Fail; }
     if NodeTier::Silver.multiplier() != 150 { return TestResult::Fail; }
     if NodeTier::Gold.multiplier() != 200 { return TestResult::Fail; }
@@ -71,7 +71,7 @@ pub fn test_node_tier_multiplier() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_node_tier_from_stake_bronze() -> TestResult {
+pub(crate) fn test_node_tier_from_stake_bronze() -> TestResult {
     if NodeTier::from_stake(0) != NodeTier::Bronze { return TestResult::Fail; }
     if NodeTier::from_stake(999) != NodeTier::Bronze { return TestResult::Fail; }
     if NodeTier::from_stake(1_000) != NodeTier::Bronze { return TestResult::Fail; }
@@ -79,31 +79,31 @@ pub fn test_node_tier_from_stake_bronze() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_node_tier_from_stake_silver() -> TestResult {
+pub(crate) fn test_node_tier_from_stake_silver() -> TestResult {
     if NodeTier::from_stake(10_000) != NodeTier::Silver { return TestResult::Fail; }
     if NodeTier::from_stake(49_999) != NodeTier::Silver { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_node_tier_from_stake_gold() -> TestResult {
+pub(crate) fn test_node_tier_from_stake_gold() -> TestResult {
     if NodeTier::from_stake(50_000) != NodeTier::Gold { return TestResult::Fail; }
     if NodeTier::from_stake(199_999) != NodeTier::Gold { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_node_tier_from_stake_platinum() -> TestResult {
+pub(crate) fn test_node_tier_from_stake_platinum() -> TestResult {
     if NodeTier::from_stake(200_000) != NodeTier::Platinum { return TestResult::Fail; }
     if NodeTier::from_stake(999_999) != NodeTier::Platinum { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_node_tier_from_stake_diamond() -> TestResult {
+pub(crate) fn test_node_tier_from_stake_diamond() -> TestResult {
     if NodeTier::from_stake(1_000_000) != NodeTier::Diamond { return TestResult::Fail; }
     if NodeTier::from_stake(10_000_000) != NodeTier::Diamond { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_node_tier_name() -> TestResult {
+pub(crate) fn test_node_tier_name() -> TestResult {
     if NodeTier::Bronze.name() != b"Bronze" { return TestResult::Fail; }
     if NodeTier::Silver.name() != b"Silver" { return TestResult::Fail; }
     if NodeTier::Gold.name() != b"Gold" { return TestResult::Fail; }
@@ -112,7 +112,7 @@ pub fn test_node_tier_name() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_quality_score_new() -> TestResult {
+pub(crate) fn test_quality_score_new() -> TestResult {
     let score = QualityScore::new();
     if score.uptime != 0 { return TestResult::Fail; }
     if score.success_rate != 0 { return TestResult::Fail; }
@@ -121,7 +121,7 @@ pub fn test_quality_score_new() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_quality_score_perfect() -> TestResult {
+pub(crate) fn test_quality_score_perfect() -> TestResult {
     let score = QualityScore::perfect();
     if score.uptime != 100 { return TestResult::Fail; }
     if score.success_rate != 100 { return TestResult::Fail; }
@@ -130,19 +130,19 @@ pub fn test_quality_score_perfect() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_quality_score_total_perfect() -> TestResult {
+pub(crate) fn test_quality_score_total_perfect() -> TestResult {
     let score = QualityScore::perfect();
     if score.total() != 100 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_quality_score_total_zero() -> TestResult {
+pub(crate) fn test_quality_score_total_zero() -> TestResult {
     let score = QualityScore::new();
     if score.total() != 0 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_quality_score_total_weighted() -> TestResult {
+pub(crate) fn test_quality_score_total_weighted() -> TestResult {
     let score = QualityScore {
         uptime: 100,
         success_rate: 0,
@@ -177,14 +177,14 @@ pub fn test_quality_score_total_weighted() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_quality_score_default() -> TestResult {
+pub(crate) fn test_quality_score_default() -> TestResult {
     let score = QualityScore::default();
     if score.uptime != 0 { return TestResult::Fail; }
     if score.total() != 0 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_token_amount_zero() -> TestResult {
+pub(crate) fn test_token_amount_zero() -> TestResult {
     let amount = TokenAmount::zero();
     if amount.raw != 0 { return TestResult::Fail; }
     if amount.decimals != NOX_DECIMALS { return TestResult::Fail; }
@@ -192,7 +192,7 @@ pub fn test_token_amount_zero() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_token_amount_from_nox() -> TestResult {
+pub(crate) fn test_token_amount_from_nox() -> TestResult {
     let amount = TokenAmount::from_nox(1);
     if amount.whole() != 1 { return TestResult::Fail; }
     if amount.frac() != 0 { return TestResult::Fail; }
@@ -200,14 +200,14 @@ pub fn test_token_amount_from_nox() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_token_amount_from_nox_large() -> TestResult {
+pub(crate) fn test_token_amount_from_nox_large() -> TestResult {
     let amount = TokenAmount::from_nox(1_000_000);
     if amount.whole() != 1_000_000 { return TestResult::Fail; }
     if amount.frac() != 0 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_token_amount_whole_and_frac() -> TestResult {
+pub(crate) fn test_token_amount_whole_and_frac() -> TestResult {
     let amount = TokenAmount {
         raw: 1_500_000_000_000_000_000,
         decimals: NOX_DECIMALS,
@@ -217,7 +217,7 @@ pub fn test_token_amount_whole_and_frac() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_token_amount_checked_add() -> TestResult {
+pub(crate) fn test_token_amount_checked_add() -> TestResult {
     let a = TokenAmount::from_nox(100);
     let b = TokenAmount::from_nox(50);
     let result = a.checked_add(&b);
@@ -226,7 +226,7 @@ pub fn test_token_amount_checked_add() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_token_amount_checked_add_mismatched_decimals() -> TestResult {
+pub(crate) fn test_token_amount_checked_add_mismatched_decimals() -> TestResult {
     let a = TokenAmount::from_nox(100);
     let b = TokenAmount { raw: 50, decimals: 8 };
     let result = a.checked_add(&b);
@@ -234,7 +234,7 @@ pub fn test_token_amount_checked_add_mismatched_decimals() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_token_amount_checked_sub() -> TestResult {
+pub(crate) fn test_token_amount_checked_sub() -> TestResult {
     let a = TokenAmount::from_nox(100);
     let b = TokenAmount::from_nox(50);
     let result = a.checked_sub(&b);
@@ -243,7 +243,7 @@ pub fn test_token_amount_checked_sub() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_token_amount_checked_sub_underflow() -> TestResult {
+pub(crate) fn test_token_amount_checked_sub_underflow() -> TestResult {
     let a = TokenAmount::from_nox(50);
     let b = TokenAmount::from_nox(100);
     let result = a.checked_sub(&b);
@@ -251,7 +251,7 @@ pub fn test_token_amount_checked_sub_underflow() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_token_amount_checked_sub_mismatched_decimals() -> TestResult {
+pub(crate) fn test_token_amount_checked_sub_mismatched_decimals() -> TestResult {
     let a = TokenAmount::from_nox(100);
     let b = TokenAmount { raw: 50, decimals: 8 };
     let result = a.checked_sub(&b);
@@ -259,14 +259,14 @@ pub fn test_token_amount_checked_sub_mismatched_decimals() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_token_amount_default() -> TestResult {
+pub(crate) fn test_token_amount_default() -> TestResult {
     let amount = TokenAmount::default();
     if !amount.is_zero() { return TestResult::Fail; }
     if amount.decimals != NOX_DECIMALS { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_connection_status_variants() -> TestResult {
+pub(crate) fn test_connection_status_variants() -> TestResult {
     if ConnectionStatus::Disconnected != ConnectionStatus::Disconnected { return TestResult::Fail; }
     if ConnectionStatus::Connecting != ConnectionStatus::Connecting { return TestResult::Fail; }
     if ConnectionStatus::Bootstrapping != ConnectionStatus::Bootstrapping { return TestResult::Fail; }
@@ -275,13 +275,13 @@ pub fn test_connection_status_variants() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_connection_status_default() -> TestResult {
+pub(crate) fn test_connection_status_default() -> TestResult {
     let status = ConnectionStatus::default();
     if status != ConnectionStatus::Disconnected { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_constants() -> TestResult {
+pub(crate) fn test_constants() -> TestResult {
     if NOX_DECIMALS != 18 { return TestResult::Fail; }
     if NOX_TOTAL_SUPPLY != 800_000_000 { return TestResult::Fail; }
     if NOX_STAKING_POOL != 32_000_000 { return TestResult::Fail; }
