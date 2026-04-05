@@ -19,7 +19,7 @@ use crate::test::framework::TestResult;
 
 // is_available()
 
-pub fn test_is_available_before_init() -> TestResult {
+pub(crate) fn test_is_available_before_init() -> TestResult {
     // In the test harness, init() is never called, so the device
     // should not report as available.
     if virtio_rng::is_available() { return TestResult::Fail; }
@@ -28,7 +28,7 @@ pub fn test_is_available_before_init() -> TestResult {
 
 // get_random_bytes() without init
 
-pub fn test_get_random_bytes_fails_before_init() -> TestResult {
+pub(crate) fn test_get_random_bytes_fails_before_init() -> TestResult {
     let mut buf = [0u8; 32];
     let result = virtio_rng::get_random_bytes(&mut buf);
     if result.is_ok() { return TestResult::Fail; }
@@ -36,7 +36,7 @@ pub fn test_get_random_bytes_fails_before_init() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_get_random_bytes_empty_buf_fails_before_init() -> TestResult {
+pub(crate) fn test_get_random_bytes_empty_buf_fails_before_init() -> TestResult {
     let mut buf = [0u8; 0];
     // Even an empty buffer should fail - device not available
     let result = virtio_rng::get_random_bytes(&mut buf);
@@ -46,7 +46,7 @@ pub fn test_get_random_bytes_empty_buf_fails_before_init() -> TestResult {
 
 // fill_random() without init
 
-pub fn test_fill_random_empty_buf_ok() -> TestResult {
+pub(crate) fn test_fill_random_empty_buf_ok() -> TestResult {
     // Empty buffer is a no-op - should succeed even without device
     let mut buf = [0u8; 0];
     let result = virtio_rng::fill_random(&mut buf);
@@ -54,7 +54,7 @@ pub fn test_fill_random_empty_buf_ok() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_fill_random_fails_before_init() -> TestResult {
+pub(crate) fn test_fill_random_fails_before_init() -> TestResult {
     let mut buf = [0u8; 32];
     let result = virtio_rng::fill_random(&mut buf);
     if result.is_ok() { return TestResult::Fail; }

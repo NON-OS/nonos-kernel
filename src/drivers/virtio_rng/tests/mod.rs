@@ -21,7 +21,7 @@ pub mod api;
 
 use crate::test::framework::TestSuite;
 
-pub fn run_all() -> TestSuite {
+pub fn run_all() -> bool {
     let mut suite = TestSuite::new("virtio_rng");
 
     // constants tests
@@ -38,5 +38,5 @@ pub fn run_all() -> TestSuite {
     suite.add_test("test_fill_random_empty_buf_ok", api::test_fill_random_empty_buf_ok);
     suite.add_test("test_fill_random_fails_before_init", api::test_fill_random_fails_before_init);
 
-    suite
+    suite.run()
 }
