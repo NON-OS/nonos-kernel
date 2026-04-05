@@ -4,51 +4,51 @@
 use crate::npkg::extract::types::{
     ArchiveEntry, NPKG_MAGIC, NPKG_VERSION, ENTRY_FILE, ENTRY_DIR, ENTRY_SYMLINK,
 };
+use crate::test::framework::TestResult;
 use alloc::string::String;
 
-#[test]
-fn test_npkg_magic_constant() {
-    assert_eq!(NPKG_MAGIC, 0x4E504B47);
+pub fn test_npkg_magic_constant() -> TestResult {
+    if NPKG_MAGIC != 0x4E504B47 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_npkg_magic_is_npkg_ascii() {
+pub fn test_npkg_magic_is_npkg_ascii() -> TestResult {
     let bytes = NPKG_MAGIC.to_le_bytes();
-    assert_eq!(bytes[0], b'G');
-    assert_eq!(bytes[1], b'K');
-    assert_eq!(bytes[2], b'P');
-    assert_eq!(bytes[3], b'N');
+    if bytes[0] != b'G' { return TestResult::Fail; }
+    if bytes[1] != b'K' { return TestResult::Fail; }
+    if bytes[2] != b'P' { return TestResult::Fail; }
+    if bytes[3] != b'N' { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_npkg_version_constant() {
-    assert_eq!(NPKG_VERSION, 1);
+pub fn test_npkg_version_constant() -> TestResult {
+    if NPKG_VERSION != 1 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_entry_file_constant() {
-    assert_eq!(ENTRY_FILE, 0);
+pub fn test_entry_file_constant() -> TestResult {
+    if ENTRY_FILE != 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_entry_dir_constant() {
-    assert_eq!(ENTRY_DIR, 1);
+pub fn test_entry_dir_constant() -> TestResult {
+    if ENTRY_DIR != 1 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_entry_symlink_constant() {
-    assert_eq!(ENTRY_SYMLINK, 2);
+pub fn test_entry_symlink_constant() -> TestResult {
+    if ENTRY_SYMLINK != 2 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_entry_types_unique() {
-    assert_ne!(ENTRY_FILE, ENTRY_DIR);
-    assert_ne!(ENTRY_FILE, ENTRY_SYMLINK);
-    assert_ne!(ENTRY_DIR, ENTRY_SYMLINK);
+pub fn test_entry_types_unique() -> TestResult {
+    if ENTRY_FILE == ENTRY_DIR { return TestResult::Fail; }
+    if ENTRY_FILE == ENTRY_SYMLINK { return TestResult::Fail; }
+    if ENTRY_DIR == ENTRY_SYMLINK { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_archive_entry_file() {
+pub fn test_archive_entry_file() -> TestResult {
     let entry = ArchiveEntry {
         path: String::from("/usr/bin/app"),
         entry_type: ENTRY_FILE,
@@ -58,12 +58,12 @@ fn test_archive_entry_file() {
         data_offset: 0,
         link_target: None,
     };
-    assert_eq!(entry.entry_type, ENTRY_FILE);
-    assert!(entry.link_target.is_none());
+    if entry.entry_type != ENTRY_FILE { return TestResult::Fail; }
+    if entry.link_target.is_some() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_archive_entry_dir() {
+pub fn test_archive_entry_dir() -> TestResult {
     let entry = ArchiveEntry {
         path: String::from("/usr/share/app"),
         entry_type: ENTRY_DIR,
@@ -73,12 +73,12 @@ fn test_archive_entry_dir() {
         data_offset: 0,
         link_target: None,
     };
-    assert_eq!(entry.entry_type, ENTRY_DIR);
-    assert_eq!(entry.size, 0);
+    if entry.entry_type != ENTRY_DIR { return TestResult::Fail; }
+    if entry.size != 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_archive_entry_symlink() {
+pub fn test_archive_entry_symlink() -> TestResult {
     let entry = ArchiveEntry {
         path: String::from("/usr/bin/link"),
         entry_type: ENTRY_SYMLINK,
@@ -88,13 +88,13 @@ fn test_archive_entry_symlink() {
         data_offset: 0,
         link_target: Some(String::from("/usr/bin/target")),
     };
-    assert_eq!(entry.entry_type, ENTRY_SYMLINK);
-    assert!(entry.link_target.is_some());
-    assert_eq!(entry.link_target.unwrap(), "/usr/bin/target");
+    if entry.entry_type != ENTRY_SYMLINK { return TestResult::Fail; }
+    if entry.link_target.is_none() { return TestResult::Fail; }
+    if entry.link_target.unwrap() != "/usr/bin/target" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_archive_entry_path() {
+pub fn test_archive_entry_path() -> TestResult {
     let entry = ArchiveEntry {
         path: String::from("/etc/config.conf"),
         entry_type: ENTRY_FILE,
@@ -104,11 +104,11 @@ fn test_archive_entry_path() {
         data_offset: 100,
         link_target: None,
     };
-    assert_eq!(entry.path, "/etc/config.conf");
+    if entry.path != "/etc/config.conf" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_archive_entry_size() {
+pub fn test_archive_entry_size() -> TestResult {
     let entry = ArchiveEntry {
         path: String::from("test"),
         entry_type: ENTRY_FILE,
@@ -118,11 +118,11 @@ fn test_archive_entry_size() {
         data_offset: 0,
         link_target: None,
     };
-    assert_eq!(entry.size, 1_000_000);
+    if entry.size != 1_000_000 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_archive_entry_large_size() {
+pub fn test_archive_entry_large_size() -> TestResult {
     let entry = ArchiveEntry {
         path: String::from("large"),
         entry_type: ENTRY_FILE,
@@ -132,11 +132,11 @@ fn test_archive_entry_large_size() {
         data_offset: 0,
         link_target: None,
     };
-    assert_eq!(entry.size, u64::MAX);
+    if entry.size != u64::MAX { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_archive_entry_mode_executable() {
+pub fn test_archive_entry_mode_executable() -> TestResult {
     let entry = ArchiveEntry {
         path: String::from("bin"),
         entry_type: ENTRY_FILE,
@@ -146,12 +146,12 @@ fn test_archive_entry_mode_executable() {
         data_offset: 0,
         link_target: None,
     };
-    assert_eq!(entry.mode, 0o755);
-    assert!((entry.mode & 0o111) != 0);
+    if entry.mode != 0o755 { return TestResult::Fail; }
+    if (entry.mode & 0o111) == 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_archive_entry_mode_readonly() {
+pub fn test_archive_entry_mode_readonly() -> TestResult {
     let entry = ArchiveEntry {
         path: String::from("data"),
         entry_type: ENTRY_FILE,
@@ -161,12 +161,12 @@ fn test_archive_entry_mode_readonly() {
         data_offset: 0,
         link_target: None,
     };
-    assert_eq!(entry.mode, 0o444);
-    assert!((entry.mode & 0o222) == 0);
+    if entry.mode != 0o444 { return TestResult::Fail; }
+    if (entry.mode & 0o222) != 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_archive_entry_checksum() {
+pub fn test_archive_entry_checksum() -> TestResult {
     let checksum = [0xABu8; 32];
     let entry = ArchiveEntry {
         path: String::from("file"),
@@ -177,11 +177,11 @@ fn test_archive_entry_checksum() {
         data_offset: 0,
         link_target: None,
     };
-    assert_eq!(entry.checksum, [0xABu8; 32]);
+    if entry.checksum != [0xABu8; 32] { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_archive_entry_checksum_unique() {
+pub fn test_archive_entry_checksum_unique() -> TestResult {
     let mut checksum = [0u8; 32];
     for i in 0..32 {
         checksum[i] = i as u8;
@@ -195,12 +195,12 @@ fn test_archive_entry_checksum_unique() {
         data_offset: 0,
         link_target: None,
     };
-    assert_eq!(entry.checksum[0], 0);
-    assert_eq!(entry.checksum[31], 31);
+    if entry.checksum[0] != 0 { return TestResult::Fail; }
+    if entry.checksum[31] != 31 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_archive_entry_data_offset() {
+pub fn test_archive_entry_data_offset() -> TestResult {
     let entry = ArchiveEntry {
         path: String::from("file"),
         entry_type: ENTRY_FILE,
@@ -210,11 +210,11 @@ fn test_archive_entry_data_offset() {
         data_offset: 4096,
         link_target: None,
     };
-    assert_eq!(entry.data_offset, 4096);
+    if entry.data_offset != 4096 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_archive_entry_data_offset_large() {
+pub fn test_archive_entry_data_offset_large() -> TestResult {
     let entry = ArchiveEntry {
         path: String::from("file"),
         entry_type: ENTRY_FILE,
@@ -224,11 +224,11 @@ fn test_archive_entry_data_offset_large() {
         data_offset: u64::MAX,
         link_target: None,
     };
-    assert_eq!(entry.data_offset, u64::MAX);
+    if entry.data_offset != u64::MAX { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_archive_entry_clone() {
+pub fn test_archive_entry_clone() -> TestResult {
     let entry = ArchiveEntry {
         path: String::from("/usr/bin/test"),
         entry_type: ENTRY_FILE,
@@ -239,16 +239,16 @@ fn test_archive_entry_clone() {
         link_target: None,
     };
     let cloned = entry.clone();
-    assert_eq!(entry.path, cloned.path);
-    assert_eq!(entry.entry_type, cloned.entry_type);
-    assert_eq!(entry.size, cloned.size);
-    assert_eq!(entry.mode, cloned.mode);
-    assert_eq!(entry.checksum, cloned.checksum);
-    assert_eq!(entry.data_offset, cloned.data_offset);
+    if entry.path != cloned.path { return TestResult::Fail; }
+    if entry.entry_type != cloned.entry_type { return TestResult::Fail; }
+    if entry.size != cloned.size { return TestResult::Fail; }
+    if entry.mode != cloned.mode { return TestResult::Fail; }
+    if entry.checksum != cloned.checksum { return TestResult::Fail; }
+    if entry.data_offset != cloned.data_offset { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_archive_entry_clone_with_symlink() {
+pub fn test_archive_entry_clone_with_symlink() -> TestResult {
     let entry = ArchiveEntry {
         path: String::from("/usr/bin/link"),
         entry_type: ENTRY_SYMLINK,
@@ -259,11 +259,11 @@ fn test_archive_entry_clone_with_symlink() {
         link_target: Some(String::from("/usr/bin/target")),
     };
     let cloned = entry.clone();
-    assert_eq!(entry.link_target, cloned.link_target);
+    if entry.link_target != cloned.link_target { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_archive_entry_debug() {
+pub fn test_archive_entry_debug() -> TestResult {
     let entry = ArchiveEntry {
         path: String::from("test"),
         entry_type: ENTRY_FILE,
@@ -274,12 +274,12 @@ fn test_archive_entry_debug() {
         link_target: None,
     };
     let debug_str = alloc::format!("{:?}", entry);
-    assert!(debug_str.contains("ArchiveEntry"));
-    assert!(debug_str.contains("test"));
+    if !debug_str.contains("ArchiveEntry") { return TestResult::Fail; }
+    if !debug_str.contains("test") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_archive_entry_empty_path() {
+pub fn test_archive_entry_empty_path() -> TestResult {
     let entry = ArchiveEntry {
         path: String::new(),
         entry_type: ENTRY_FILE,
@@ -289,11 +289,11 @@ fn test_archive_entry_empty_path() {
         data_offset: 0,
         link_target: None,
     };
-    assert!(entry.path.is_empty());
+    if !entry.path.is_empty() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_archive_entry_deep_path() {
+pub fn test_archive_entry_deep_path() -> TestResult {
     let entry = ArchiveEntry {
         path: String::from("/very/deep/nested/directory/structure/file.txt"),
         entry_type: ENTRY_FILE,
@@ -303,11 +303,11 @@ fn test_archive_entry_deep_path() {
         data_offset: 0,
         link_target: None,
     };
-    assert!(entry.path.contains("nested"));
+    if !entry.path.contains("nested") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_archive_entry_unicode_path() {
+pub fn test_archive_entry_unicode_path() -> TestResult {
     let entry = ArchiveEntry {
         path: String::from("/usr/share/文档/readme.txt"),
         entry_type: ENTRY_FILE,
@@ -317,11 +317,11 @@ fn test_archive_entry_unicode_path() {
         data_offset: 0,
         link_target: None,
     };
-    assert!(entry.path.contains("文档"));
+    if !entry.path.contains("文档") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_archive_entry_zero_size_file() {
+pub fn test_archive_entry_zero_size_file() -> TestResult {
     let entry = ArchiveEntry {
         path: String::from("/empty"),
         entry_type: ENTRY_FILE,
@@ -331,12 +331,12 @@ fn test_archive_entry_zero_size_file() {
         data_offset: 0,
         link_target: None,
     };
-    assert_eq!(entry.size, 0);
-    assert_eq!(entry.entry_type, ENTRY_FILE);
+    if entry.size != 0 { return TestResult::Fail; }
+    if entry.entry_type != ENTRY_FILE { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_archive_entry_mode_all_permissions() {
+pub fn test_archive_entry_mode_all_permissions() -> TestResult {
     let entry = ArchiveEntry {
         path: String::from("/test"),
         entry_type: ENTRY_FILE,
@@ -346,11 +346,11 @@ fn test_archive_entry_mode_all_permissions() {
         data_offset: 0,
         link_target: None,
     };
-    assert_eq!(entry.mode & 0o777, 0o777);
+    if entry.mode & 0o777 != 0o777 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_archive_entry_mode_no_permissions() {
+pub fn test_archive_entry_mode_no_permissions() -> TestResult {
     let entry = ArchiveEntry {
         path: String::from("/test"),
         entry_type: ENTRY_FILE,
@@ -360,11 +360,11 @@ fn test_archive_entry_mode_no_permissions() {
         data_offset: 0,
         link_target: None,
     };
-    assert_eq!(entry.mode & 0o777, 0o000);
+    if entry.mode & 0o777 != 0o000 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_archive_entry_setuid_mode() {
+pub fn test_archive_entry_setuid_mode() -> TestResult {
     let entry = ArchiveEntry {
         path: String::from("/usr/bin/sudo"),
         entry_type: ENTRY_FILE,
@@ -374,11 +374,11 @@ fn test_archive_entry_setuid_mode() {
         data_offset: 0,
         link_target: None,
     };
-    assert!((entry.mode & 0o4000) != 0);
+    if (entry.mode & 0o4000) == 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_archive_entry_setgid_mode() {
+pub fn test_archive_entry_setgid_mode() -> TestResult {
     let entry = ArchiveEntry {
         path: String::from("/usr/bin/wall"),
         entry_type: ENTRY_FILE,
@@ -388,11 +388,11 @@ fn test_archive_entry_setgid_mode() {
         data_offset: 0,
         link_target: None,
     };
-    assert!((entry.mode & 0o2000) != 0);
+    if (entry.mode & 0o2000) == 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_archive_entry_sticky_bit() {
+pub fn test_archive_entry_sticky_bit() -> TestResult {
     let entry = ArchiveEntry {
         path: String::from("/tmp"),
         entry_type: ENTRY_DIR,
@@ -402,11 +402,11 @@ fn test_archive_entry_sticky_bit() {
         data_offset: 0,
         link_target: None,
     };
-    assert!((entry.mode & 0o1000) != 0);
+    if (entry.mode & 0o1000) == 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_archive_entry_relative_symlink() {
+pub fn test_archive_entry_relative_symlink() -> TestResult {
     let entry = ArchiveEntry {
         path: String::from("/usr/lib/libfoo.so"),
         entry_type: ENTRY_SYMLINK,
@@ -416,11 +416,11 @@ fn test_archive_entry_relative_symlink() {
         data_offset: 0,
         link_target: Some(String::from("libfoo.so.1")),
     };
-    assert!(!entry.link_target.as_ref().unwrap().starts_with('/'));
+    if entry.link_target.as_ref().unwrap().starts_with('/') { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_archive_entry_absolute_symlink() {
+pub fn test_archive_entry_absolute_symlink() -> TestResult {
     let entry = ArchiveEntry {
         path: String::from("/usr/bin/python"),
         entry_type: ENTRY_SYMLINK,
@@ -430,11 +430,11 @@ fn test_archive_entry_absolute_symlink() {
         data_offset: 0,
         link_target: Some(String::from("/usr/bin/python3")),
     };
-    assert!(entry.link_target.as_ref().unwrap().starts_with('/'));
+    if !entry.link_target.as_ref().unwrap().starts_with('/') { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_archive_entry_empty_symlink_target() {
+pub fn test_archive_entry_empty_symlink_target() -> TestResult {
     let entry = ArchiveEntry {
         path: String::from("/link"),
         entry_type: ENTRY_SYMLINK,
@@ -444,11 +444,11 @@ fn test_archive_entry_empty_symlink_target() {
         data_offset: 0,
         link_target: Some(String::new()),
     };
-    assert!(entry.link_target.as_ref().unwrap().is_empty());
+    if !entry.link_target.as_ref().unwrap().is_empty() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_entry_type_is_file() {
+pub fn test_entry_type_is_file() -> TestResult {
     let entry = ArchiveEntry {
         path: String::from("test"),
         entry_type: ENTRY_FILE,
@@ -458,13 +458,13 @@ fn test_entry_type_is_file() {
         data_offset: 0,
         link_target: None,
     };
-    assert_eq!(entry.entry_type, ENTRY_FILE);
-    assert_ne!(entry.entry_type, ENTRY_DIR);
-    assert_ne!(entry.entry_type, ENTRY_SYMLINK);
+    if entry.entry_type != ENTRY_FILE { return TestResult::Fail; }
+    if entry.entry_type == ENTRY_DIR { return TestResult::Fail; }
+    if entry.entry_type == ENTRY_SYMLINK { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_entry_type_is_dir() {
+pub fn test_entry_type_is_dir() -> TestResult {
     let entry = ArchiveEntry {
         path: String::from("testdir"),
         entry_type: ENTRY_DIR,
@@ -474,13 +474,13 @@ fn test_entry_type_is_dir() {
         data_offset: 0,
         link_target: None,
     };
-    assert_eq!(entry.entry_type, ENTRY_DIR);
-    assert_ne!(entry.entry_type, ENTRY_FILE);
-    assert_ne!(entry.entry_type, ENTRY_SYMLINK);
+    if entry.entry_type != ENTRY_DIR { return TestResult::Fail; }
+    if entry.entry_type == ENTRY_FILE { return TestResult::Fail; }
+    if entry.entry_type == ENTRY_SYMLINK { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_entry_type_is_symlink() {
+pub fn test_entry_type_is_symlink() -> TestResult {
     let entry = ArchiveEntry {
         path: String::from("testlink"),
         entry_type: ENTRY_SYMLINK,
@@ -490,13 +490,13 @@ fn test_entry_type_is_symlink() {
         data_offset: 0,
         link_target: Some(String::from("target")),
     };
-    assert_eq!(entry.entry_type, ENTRY_SYMLINK);
-    assert_ne!(entry.entry_type, ENTRY_FILE);
-    assert_ne!(entry.entry_type, ENTRY_DIR);
+    if entry.entry_type != ENTRY_SYMLINK { return TestResult::Fail; }
+    if entry.entry_type == ENTRY_FILE { return TestResult::Fail; }
+    if entry.entry_type == ENTRY_DIR { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_archive_entry_typical_binary() {
+pub fn test_archive_entry_typical_binary() -> TestResult {
     let entry = ArchiveEntry {
         path: String::from("/usr/bin/myapp"),
         entry_type: ENTRY_FILE,
@@ -506,13 +506,13 @@ fn test_archive_entry_typical_binary() {
         data_offset: 8192,
         link_target: None,
     };
-    assert_eq!(entry.path, "/usr/bin/myapp");
-    assert_eq!(entry.size, 1_048_576);
-    assert_eq!(entry.mode, 0o755);
+    if entry.path != "/usr/bin/myapp" { return TestResult::Fail; }
+    if entry.size != 1_048_576 { return TestResult::Fail; }
+    if entry.mode != 0o755 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_archive_entry_typical_config() {
+pub fn test_archive_entry_typical_config() -> TestResult {
     let entry = ArchiveEntry {
         path: String::from("/etc/myapp/config.toml"),
         entry_type: ENTRY_FILE,
@@ -522,12 +522,12 @@ fn test_archive_entry_typical_config() {
         data_offset: 0,
         link_target: None,
     };
-    assert!(entry.path.contains("config"));
-    assert_eq!(entry.mode, 0o644);
+    if !entry.path.contains("config") { return TestResult::Fail; }
+    if entry.mode != 0o644 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_archive_entry_typical_library() {
+pub fn test_archive_entry_typical_library() -> TestResult {
     let entry = ArchiveEntry {
         path: String::from("/usr/lib/libmylib.so.1.0.0"),
         entry_type: ENTRY_FILE,
@@ -537,12 +537,12 @@ fn test_archive_entry_typical_library() {
         data_offset: 1024,
         link_target: None,
     };
-    assert!(entry.path.contains("lib"));
-    assert!(entry.path.contains(".so"));
+    if !entry.path.contains("lib") { return TestResult::Fail; }
+    if !entry.path.contains(".so") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_archive_entry_library_symlink() {
+pub fn test_archive_entry_library_symlink() -> TestResult {
     let entry = ArchiveEntry {
         path: String::from("/usr/lib/libmylib.so"),
         entry_type: ENTRY_SYMLINK,
@@ -552,24 +552,24 @@ fn test_archive_entry_library_symlink() {
         data_offset: 0,
         link_target: Some(String::from("libmylib.so.1.0.0")),
     };
-    assert_eq!(entry.entry_type, ENTRY_SYMLINK);
-    assert!(entry.link_target.as_ref().unwrap().contains("1.0.0"));
+    if entry.entry_type != ENTRY_SYMLINK { return TestResult::Fail; }
+    if !entry.link_target.as_ref().unwrap().contains("1.0.0") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_npkg_magic_nonzero() {
-    assert_ne!(NPKG_MAGIC, 0);
+pub fn test_npkg_magic_nonzero() -> TestResult {
+    if NPKG_MAGIC == 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_npkg_version_positive() {
-    assert!(NPKG_VERSION > 0);
+pub fn test_npkg_version_positive() -> TestResult {
+    if NPKG_VERSION <= 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_entry_constants_fit_in_u8() {
-    assert!(ENTRY_FILE <= u8::MAX);
-    assert!(ENTRY_DIR <= u8::MAX);
-    assert!(ENTRY_SYMLINK <= u8::MAX);
+pub fn test_entry_constants_fit_in_u8() -> TestResult {
+    if ENTRY_FILE > u8::MAX { return TestResult::Fail; }
+    if ENTRY_DIR > u8::MAX { return TestResult::Fail; }
+    if ENTRY_SYMLINK > u8::MAX { return TestResult::Fail; }
+    TestResult::Pass
 }
-

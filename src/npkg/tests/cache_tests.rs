@@ -1,65 +1,65 @@
 use crate::npkg::*;
 use crate::npkg::cache::{CachePolicy, CacheStats};
+use crate::test::framework::TestResult;
 
-#[test]
-fn test_cache_policy_default() {
+pub fn test_cache_policy_default() -> TestResult {
     let policy: CachePolicy = Default::default();
-    assert_eq!(policy, CachePolicy::KeepLatest);
+    if policy != CachePolicy::KeepLatest { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_cache_policy_variants() {
+pub fn test_cache_policy_variants() -> TestResult {
     let policies = [
         CachePolicy::KeepAll,
         CachePolicy::KeepLatest,
         CachePolicy::KeepInstalled,
         CachePolicy::KeepNone,
     ];
-    assert_eq!(policies.len(), 4);
+    if policies.len() != 4 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_cache_policy_equality() {
-    assert_eq!(CachePolicy::KeepAll, CachePolicy::KeepAll);
-    assert_eq!(CachePolicy::KeepLatest, CachePolicy::KeepLatest);
-    assert_eq!(CachePolicy::KeepInstalled, CachePolicy::KeepInstalled);
-    assert_eq!(CachePolicy::KeepNone, CachePolicy::KeepNone);
+pub fn test_cache_policy_equality() -> TestResult {
+    if CachePolicy::KeepAll != CachePolicy::KeepAll { return TestResult::Fail; }
+    if CachePolicy::KeepLatest != CachePolicy::KeepLatest { return TestResult::Fail; }
+    if CachePolicy::KeepInstalled != CachePolicy::KeepInstalled { return TestResult::Fail; }
+    if CachePolicy::KeepNone != CachePolicy::KeepNone { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_cache_policy_inequality() {
-    assert_ne!(CachePolicy::KeepAll, CachePolicy::KeepNone);
-    assert_ne!(CachePolicy::KeepLatest, CachePolicy::KeepInstalled);
+pub fn test_cache_policy_inequality() -> TestResult {
+    if CachePolicy::KeepAll == CachePolicy::KeepNone { return TestResult::Fail; }
+    if CachePolicy::KeepLatest == CachePolicy::KeepInstalled { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_cache_policy_copy() {
+pub fn test_cache_policy_copy() -> TestResult {
     let policy = CachePolicy::KeepAll;
     let copied = policy;
-    assert_eq!(policy, copied);
+    if policy != copied { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_cache_policy_clone() {
+pub fn test_cache_policy_clone() -> TestResult {
     let policy = CachePolicy::KeepLatest;
     let cloned = policy.clone();
-    assert_eq!(policy, cloned);
+    if policy != cloned { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_cache_stats_structure() {
+pub fn test_cache_stats_structure() -> TestResult {
     let stats = CacheStats {
         total_size: 1024 * 1024,
         package_count: 10,
         oldest_entry: 1704067200,
         newest_entry: 1704153600,
     };
-    assert_eq!(stats.total_size, 1024 * 1024);
-    assert_eq!(stats.package_count, 10);
+    if stats.total_size != 1024 * 1024 { return TestResult::Fail; }
+    if stats.package_count != 10 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_cache_stats_clone() {
+pub fn test_cache_stats_clone() -> TestResult {
     let stats = CacheStats {
         total_size: 2048,
         package_count: 5,
@@ -67,12 +67,12 @@ fn test_cache_stats_clone() {
         newest_entry: 2000,
     };
     let cloned = stats.clone();
-    assert_eq!(stats.total_size, cloned.total_size);
-    assert_eq!(stats.package_count, cloned.package_count);
+    if stats.total_size != cloned.total_size { return TestResult::Fail; }
+    if stats.package_count != cloned.package_count { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_cache_stats_debug_format() {
+pub fn test_cache_stats_debug_format() -> TestResult {
     let stats = CacheStats {
         total_size: 100,
         package_count: 1,
@@ -80,58 +80,59 @@ fn test_cache_stats_debug_format() {
         newest_entry: 0,
     };
     let debug_str = alloc::format!("{:?}", stats);
-    assert!(debug_str.contains("CacheStats"));
+    if !debug_str.contains("CacheStats") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_get_cache_dir() {
+pub fn test_get_cache_dir() -> TestResult {
     let dir = get_cache_dir();
-    assert!(!dir.is_empty());
-    assert!(dir.starts_with('/'));
-    assert!(dir.contains("npkg"));
+    if dir.is_empty() { return TestResult::Fail; }
+    if !dir.starts_with('/') { return TestResult::Fail; }
+    if !dir.contains("npkg") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_cache_policy_debug_format() {
+pub fn test_cache_policy_debug_format() -> TestResult {
     let policy = CachePolicy::KeepAll;
     let debug_str = alloc::format!("{:?}", policy);
-    assert!(debug_str.contains("KeepAll"));
+    if !debug_str.contains("KeepAll") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_cache_stats_empty() {
+pub fn test_cache_stats_empty() -> TestResult {
     let stats = CacheStats {
         total_size: 0,
         package_count: 0,
         oldest_entry: 0,
         newest_entry: 0,
     };
-    assert_eq!(stats.total_size, 0);
-    assert_eq!(stats.package_count, 0);
+    if stats.total_size != 0 { return TestResult::Fail; }
+    if stats.package_count != 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_cache_stats_large_values() {
+pub fn test_cache_stats_large_values() -> TestResult {
     let stats = CacheStats {
         total_size: u64::MAX,
         package_count: u32::MAX,
         oldest_entry: 0,
         newest_entry: u64::MAX,
     };
-    assert_eq!(stats.total_size, u64::MAX);
-    assert_eq!(stats.package_count, u32::MAX);
+    if stats.total_size != u64::MAX { return TestResult::Fail; }
+    if stats.package_count != u32::MAX { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_cache_policy_consistency() {
+pub fn test_cache_policy_consistency() -> TestResult {
     let policy1 = CachePolicy::KeepAll;
     let policy2 = CachePolicy::KeepAll;
-    assert_eq!(policy1, policy2);
+    if policy1 != policy2 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_cache_dir_format() {
+pub fn test_cache_dir_format() -> TestResult {
     let dir = get_cache_dir();
-    assert!(!dir.contains(".."));
-    assert!(!dir.contains("//"));
+    if dir.contains("..") { return TestResult::Fail; }
+    if dir.contains("//") { return TestResult::Fail; }
+    TestResult::Pass
 }

@@ -1,19 +1,19 @@
 use crate::npkg::*;
 use crate::npkg::installer::{InstallOptions, RemoveOptions, UpgradeOptions};
+use crate::test::framework::TestResult;
 
-#[test]
-fn test_install_options_default() {
+pub fn test_install_options_default() -> TestResult {
     let opts = InstallOptions::default();
-    assert!(!opts.force);
-    assert!(!opts.no_deps);
-    assert!(!opts.no_scripts);
-    assert!(!opts.download_only);
-    assert!(!opts.as_dependency);
-    assert!(!opts.reinstall);
+    if opts.force { return TestResult::Fail; }
+    if opts.no_deps { return TestResult::Fail; }
+    if opts.no_scripts { return TestResult::Fail; }
+    if opts.download_only { return TestResult::Fail; }
+    if opts.as_dependency { return TestResult::Fail; }
+    if opts.reinstall { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_install_options_clone() {
+pub fn test_install_options_clone() -> TestResult {
     let opts = InstallOptions {
         force: true,
         no_deps: false,
@@ -23,84 +23,84 @@ fn test_install_options_clone() {
         reinstall: false,
     };
     let cloned = opts.clone();
-    assert_eq!(opts.force, cloned.force);
-    assert_eq!(opts.no_scripts, cloned.no_scripts);
-    assert_eq!(opts.as_dependency, cloned.as_dependency);
+    if opts.force != cloned.force { return TestResult::Fail; }
+    if opts.no_scripts != cloned.no_scripts { return TestResult::Fail; }
+    if opts.as_dependency != cloned.as_dependency { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_install_options_debug_format() {
+pub fn test_install_options_debug_format() -> TestResult {
     let opts = InstallOptions::default();
     let debug_str = alloc::format!("{:?}", opts);
-    assert!(debug_str.contains("InstallOptions"));
+    if !debug_str.contains("InstallOptions") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_install_options_force() {
+pub fn test_install_options_force() -> TestResult {
     let opts = InstallOptions {
         force: true,
         ..Default::default()
     };
-    assert!(opts.force);
-    assert!(!opts.no_deps);
+    if !opts.force { return TestResult::Fail; }
+    if opts.no_deps { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_install_options_no_deps() {
+pub fn test_install_options_no_deps() -> TestResult {
     let opts = InstallOptions {
         no_deps: true,
         ..Default::default()
     };
-    assert!(opts.no_deps);
+    if !opts.no_deps { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_install_options_no_scripts() {
+pub fn test_install_options_no_scripts() -> TestResult {
     let opts = InstallOptions {
         no_scripts: true,
         ..Default::default()
     };
-    assert!(opts.no_scripts);
+    if !opts.no_scripts { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_install_options_download_only() {
+pub fn test_install_options_download_only() -> TestResult {
     let opts = InstallOptions {
         download_only: true,
         ..Default::default()
     };
-    assert!(opts.download_only);
+    if !opts.download_only { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_install_options_as_dependency() {
+pub fn test_install_options_as_dependency() -> TestResult {
     let opts = InstallOptions {
         as_dependency: true,
         ..Default::default()
     };
-    assert!(opts.as_dependency);
+    if !opts.as_dependency { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_install_options_reinstall() {
+pub fn test_install_options_reinstall() -> TestResult {
     let opts = InstallOptions {
         reinstall: true,
         ..Default::default()
     };
-    assert!(opts.reinstall);
+    if !opts.reinstall { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_remove_options_default() {
+pub fn test_remove_options_default() -> TestResult {
     let opts = RemoveOptions::default();
-    assert!(!opts.recursive);
-    assert!(!opts.no_scripts);
-    assert!(opts.keep_config);
-    assert!(!opts.purge);
+    if opts.recursive { return TestResult::Fail; }
+    if opts.no_scripts { return TestResult::Fail; }
+    if !opts.keep_config { return TestResult::Fail; }
+    if opts.purge { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_remove_options_clone() {
+pub fn test_remove_options_clone() -> TestResult {
     let opts = RemoveOptions {
         recursive: true,
         no_scripts: false,
@@ -108,113 +108,113 @@ fn test_remove_options_clone() {
         purge: true,
     };
     let cloned = opts.clone();
-    assert_eq!(opts.recursive, cloned.recursive);
-    assert_eq!(opts.purge, cloned.purge);
+    if opts.recursive != cloned.recursive { return TestResult::Fail; }
+    if opts.purge != cloned.purge { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_remove_options_debug_format() {
+pub fn test_remove_options_debug_format() -> TestResult {
     let opts = RemoveOptions::default();
     let debug_str = alloc::format!("{:?}", opts);
-    assert!(debug_str.contains("RemoveOptions"));
+    if !debug_str.contains("RemoveOptions") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_remove_options_recursive() {
+pub fn test_remove_options_recursive() -> TestResult {
     let opts = RemoveOptions {
         recursive: true,
         ..Default::default()
     };
-    assert!(opts.recursive);
+    if !opts.recursive { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_remove_options_no_scripts() {
+pub fn test_remove_options_no_scripts() -> TestResult {
     let opts = RemoveOptions {
         no_scripts: true,
         ..Default::default()
     };
-    assert!(opts.no_scripts);
+    if !opts.no_scripts { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_remove_options_keep_config() {
+pub fn test_remove_options_keep_config() -> TestResult {
     let opts = RemoveOptions::default();
-    assert!(opts.keep_config);
+    if !opts.keep_config { return TestResult::Fail; }
 
     let opts_purge = RemoveOptions {
         keep_config: false,
         ..Default::default()
     };
-    assert!(!opts_purge.keep_config);
+    if opts_purge.keep_config { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_remove_options_purge() {
+pub fn test_remove_options_purge() -> TestResult {
     let opts = RemoveOptions {
         purge: true,
         ..Default::default()
     };
-    assert!(opts.purge);
+    if !opts.purge { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_upgrade_options_default() {
+pub fn test_upgrade_options_default() -> TestResult {
     let opts = UpgradeOptions::default();
-    assert!(!opts.no_deps);
-    assert!(!opts.no_scripts);
-    assert!(!opts.download_only);
+    if opts.no_deps { return TestResult::Fail; }
+    if opts.no_scripts { return TestResult::Fail; }
+    if opts.download_only { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_upgrade_options_clone() {
+pub fn test_upgrade_options_clone() -> TestResult {
     let opts = UpgradeOptions {
         no_deps: true,
         no_scripts: true,
         download_only: true,
     };
     let cloned = opts.clone();
-    assert_eq!(opts.no_deps, cloned.no_deps);
-    assert_eq!(opts.no_scripts, cloned.no_scripts);
-    assert_eq!(opts.download_only, cloned.download_only);
+    if opts.no_deps != cloned.no_deps { return TestResult::Fail; }
+    if opts.no_scripts != cloned.no_scripts { return TestResult::Fail; }
+    if opts.download_only != cloned.download_only { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_upgrade_options_debug_format() {
+pub fn test_upgrade_options_debug_format() -> TestResult {
     let opts = UpgradeOptions::default();
     let debug_str = alloc::format!("{:?}", opts);
-    assert!(debug_str.contains("UpgradeOptions"));
+    if !debug_str.contains("UpgradeOptions") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_upgrade_options_no_deps() {
+pub fn test_upgrade_options_no_deps() -> TestResult {
     let opts = UpgradeOptions {
         no_deps: true,
         ..Default::default()
     };
-    assert!(opts.no_deps);
+    if !opts.no_deps { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_upgrade_options_no_scripts() {
+pub fn test_upgrade_options_no_scripts() -> TestResult {
     let opts = UpgradeOptions {
         no_scripts: true,
         ..Default::default()
     };
-    assert!(opts.no_scripts);
+    if !opts.no_scripts { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_upgrade_options_download_only() {
+pub fn test_upgrade_options_download_only() -> TestResult {
     let opts = UpgradeOptions {
         download_only: true,
         ..Default::default()
     };
-    assert!(opts.download_only);
+    if !opts.download_only { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_install_options_all_true() {
+pub fn test_install_options_all_true() -> TestResult {
     let opts = InstallOptions {
         force: true,
         no_deps: true,
@@ -223,36 +223,37 @@ fn test_install_options_all_true() {
         as_dependency: true,
         reinstall: true,
     };
-    assert!(opts.force);
-    assert!(opts.no_deps);
-    assert!(opts.no_scripts);
-    assert!(opts.download_only);
-    assert!(opts.as_dependency);
-    assert!(opts.reinstall);
+    if !opts.force { return TestResult::Fail; }
+    if !opts.no_deps { return TestResult::Fail; }
+    if !opts.no_scripts { return TestResult::Fail; }
+    if !opts.download_only { return TestResult::Fail; }
+    if !opts.as_dependency { return TestResult::Fail; }
+    if !opts.reinstall { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_remove_options_all_true() {
+pub fn test_remove_options_all_true() -> TestResult {
     let opts = RemoveOptions {
         recursive: true,
         no_scripts: true,
         keep_config: true,
         purge: true,
     };
-    assert!(opts.recursive);
-    assert!(opts.no_scripts);
-    assert!(opts.keep_config);
-    assert!(opts.purge);
+    if !opts.recursive { return TestResult::Fail; }
+    if !opts.no_scripts { return TestResult::Fail; }
+    if !opts.keep_config { return TestResult::Fail; }
+    if !opts.purge { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_upgrade_options_all_true() {
+pub fn test_upgrade_options_all_true() -> TestResult {
     let opts = UpgradeOptions {
         no_deps: true,
         no_scripts: true,
         download_only: true,
     };
-    assert!(opts.no_deps);
-    assert!(opts.no_scripts);
-    assert!(opts.download_only);
+    if !opts.no_deps { return TestResult::Fail; }
+    if !opts.no_scripts { return TestResult::Fail; }
+    if !opts.download_only { return TestResult::Fail; }
+    TestResult::Pass
 }

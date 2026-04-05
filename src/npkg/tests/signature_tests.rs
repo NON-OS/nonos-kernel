@@ -3,24 +3,24 @@ use crate::npkg::signature::{
     PackageSignature, VerifyingKey, SIGNATURE_SIZE, PUBLIC_KEY_SIZE, SECRET_KEY_SIZE,
     list_trusted_keys, add_trusted_key, get_trusted_key, remove_trusted_key,
 };
+use crate::test::framework::TestResult;
 
-#[test]
-fn test_signature_size_constant() {
-    assert_eq!(SIGNATURE_SIZE, 64);
+pub fn test_signature_size_constant() -> TestResult {
+    if SIGNATURE_SIZE != 64 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_public_key_size_constant() {
-    assert_eq!(PUBLIC_KEY_SIZE, 32);
+pub fn test_public_key_size_constant() -> TestResult {
+    if PUBLIC_KEY_SIZE != 32 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_secret_key_size_constant() {
-    assert_eq!(SECRET_KEY_SIZE, 64);
+pub fn test_secret_key_size_constant() -> TestResult {
+    if SECRET_KEY_SIZE != 64 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_package_signature_from_bytes_valid() {
+pub fn test_package_signature_from_bytes_valid() -> TestResult {
     let mut data = [0u8; SIGNATURE_SIZE + 8 + 8];
     for i in 0..SIGNATURE_SIZE {
         data[i] = i as u8;
@@ -29,42 +29,42 @@ fn test_package_signature_from_bytes_valid() {
     data[SIGNATURE_SIZE + 8..].copy_from_slice(&100u64.to_le_bytes());
 
     let sig = PackageSignature::from_bytes(&data);
-    assert!(sig.is_some());
+    if sig.is_none() { return TestResult::Fail; }
     let sig = sig.unwrap();
-    assert_eq!(sig.bytes[0], 0);
-    assert_eq!(sig.key_id[0], 1);
-    assert_eq!(sig.timestamp, 100);
+    if sig.bytes[0] != 0 { return TestResult::Fail; }
+    if sig.key_id[0] != 1 { return TestResult::Fail; }
+    if sig.timestamp != 100 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_package_signature_from_bytes_too_short() {
+pub fn test_package_signature_from_bytes_too_short() -> TestResult {
     let data = [0u8; 10];
     let sig = PackageSignature::from_bytes(&data);
-    assert!(sig.is_none());
+    if sig.is_some() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_package_signature_from_bytes_exact_minimum() {
+pub fn test_package_signature_from_bytes_exact_minimum() -> TestResult {
     let data = [0u8; SIGNATURE_SIZE + 8 + 8];
     let sig = PackageSignature::from_bytes(&data);
-    assert!(sig.is_some());
+    if sig.is_none() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_package_signature_to_bytes() {
+pub fn test_package_signature_to_bytes() -> TestResult {
     let sig = PackageSignature {
         bytes: [42u8; SIGNATURE_SIZE],
         key_id: [1, 2, 3, 4, 5, 6, 7, 8],
         timestamp: 12345,
     };
     let bytes = sig.to_bytes();
-    assert_eq!(bytes.len(), SIGNATURE_SIZE + 8 + 8);
-    assert_eq!(bytes[0], 42);
-    assert_eq!(bytes[SIGNATURE_SIZE], 1);
+    if bytes.len() != SIGNATURE_SIZE + 8 + 8 { return TestResult::Fail; }
+    if bytes[0] != 42 { return TestResult::Fail; }
+    if bytes[SIGNATURE_SIZE] != 1 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_package_signature_roundtrip() {
+pub fn test_package_signature_roundtrip() -> TestResult {
     let original = PackageSignature {
         bytes: [0xAB; SIGNATURE_SIZE],
         key_id: [0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88],
@@ -72,197 +72,198 @@ fn test_package_signature_roundtrip() {
     };
     let bytes = original.to_bytes();
     let restored = PackageSignature::from_bytes(&bytes).unwrap();
-    assert_eq!(original.bytes, restored.bytes);
-    assert_eq!(original.key_id, restored.key_id);
-    assert_eq!(original.timestamp, restored.timestamp);
+    if original.bytes != restored.bytes { return TestResult::Fail; }
+    if original.key_id != restored.key_id { return TestResult::Fail; }
+    if original.timestamp != restored.timestamp { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_package_signature_clone() {
+pub fn test_package_signature_clone() -> TestResult {
     let sig = PackageSignature {
         bytes: [1u8; SIGNATURE_SIZE],
         key_id: [2u8; 8],
         timestamp: 500,
     };
     let cloned = sig.clone();
-    assert_eq!(sig.bytes, cloned.bytes);
-    assert_eq!(sig.key_id, cloned.key_id);
-    assert_eq!(sig.timestamp, cloned.timestamp);
+    if sig.bytes != cloned.bytes { return TestResult::Fail; }
+    if sig.key_id != cloned.key_id { return TestResult::Fail; }
+    if sig.timestamp != cloned.timestamp { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_package_signature_debug_format() {
+pub fn test_package_signature_debug_format() -> TestResult {
     let sig = PackageSignature {
         bytes: [0u8; SIGNATURE_SIZE],
         key_id: [0u8; 8],
         timestamp: 0,
     };
     let debug_str = alloc::format!("{:?}", sig);
-    assert!(debug_str.contains("PackageSignature"));
+    if !debug_str.contains("PackageSignature") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_verifying_key_from_bytes_valid() {
+pub fn test_verifying_key_from_bytes_valid() -> TestResult {
     let data = [0x55u8; PUBLIC_KEY_SIZE];
     let key = VerifyingKey::from_bytes(&data);
-    assert!(key.is_some());
+    if key.is_none() { return TestResult::Fail; }
     let key = key.unwrap();
-    assert_eq!(key.bytes[0], 0x55);
+    if key.bytes[0] != 0x55 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_verifying_key_from_bytes_too_short() {
+pub fn test_verifying_key_from_bytes_too_short() -> TestResult {
     let data = [0u8; 16];
     let key = VerifyingKey::from_bytes(&data);
-    assert!(key.is_none());
+    if key.is_some() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_verifying_key_from_bytes_too_long() {
+pub fn test_verifying_key_from_bytes_too_long() -> TestResult {
     let data = [0u8; 64];
     let key = VerifyingKey::from_bytes(&data);
-    assert!(key.is_none());
+    if key.is_some() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_verifying_key_key_id() {
+pub fn test_verifying_key_key_id() -> TestResult {
     let data = [0xAAu8; PUBLIC_KEY_SIZE];
     let key = VerifyingKey::from_bytes(&data).unwrap();
     let id = key.key_id();
-    assert_eq!(id.len(), 8);
+    if id.len() != 8 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_verifying_key_clone() {
+pub fn test_verifying_key_clone() -> TestResult {
     let data = [0x33u8; PUBLIC_KEY_SIZE];
     let key = VerifyingKey::from_bytes(&data).unwrap();
     let cloned = key.clone();
-    assert_eq!(key.bytes, cloned.bytes);
+    if key.bytes != cloned.bytes { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_verifying_key_debug_format() {
+pub fn test_verifying_key_debug_format() -> TestResult {
     let data = [0u8; PUBLIC_KEY_SIZE];
     let key = VerifyingKey::from_bytes(&data).unwrap();
     let debug_str = alloc::format!("{:?}", key);
-    assert!(debug_str.contains("VerifyingKey"));
+    if !debug_str.contains("VerifyingKey") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_generate_signing_keypair() {
+pub fn test_generate_signing_keypair() -> TestResult {
     let (signing, verifying) = generate_signing_keypair();
-    assert_eq!(verifying.bytes.len(), PUBLIC_KEY_SIZE);
+    if verifying.bytes.len() != PUBLIC_KEY_SIZE { return TestResult::Fail; }
     let id1 = signing.key_id();
     let id2 = verifying.key_id();
-    assert_eq!(id1, id2);
+    if id1 != id2 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_signing_key_public_key() {
+pub fn test_signing_key_public_key() -> TestResult {
     let (signing, verifying) = generate_signing_keypair();
     let pub_from_signing = signing.public_key();
-    assert_eq!(pub_from_signing.bytes, verifying.bytes);
+    if pub_from_signing.bytes != verifying.bytes { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_sign_package() {
+pub fn test_sign_package() -> TestResult {
     let (signing, _verifying) = generate_signing_keypair();
     let data = b"test package data";
     let sig = sign_package(data, &signing);
-    assert_eq!(sig.bytes.len(), SIGNATURE_SIZE);
-    assert_eq!(sig.key_id, signing.key_id());
-    assert!(sig.timestamp > 0);
+    if sig.bytes.len() != SIGNATURE_SIZE { return TestResult::Fail; }
+    if sig.key_id != signing.key_id() { return TestResult::Fail; }
+    if sig.timestamp <= 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_compute_checksum() {
+pub fn test_compute_checksum() -> TestResult {
     use crate::npkg::signature::compute_checksum;
     let data = b"hello world";
     let checksum = compute_checksum(data);
-    assert_eq!(checksum.len(), 32);
+    if checksum.len() != 32 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_compute_checksum_deterministic() {
+pub fn test_compute_checksum_deterministic() -> TestResult {
     use crate::npkg::signature::compute_checksum;
     let data = b"same data";
     let checksum1 = compute_checksum(data);
     let checksum2 = compute_checksum(data);
-    assert_eq!(checksum1, checksum2);
+    if checksum1 != checksum2 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_compute_checksum_different_data() {
+pub fn test_compute_checksum_different_data() -> TestResult {
     use crate::npkg::signature::compute_checksum;
     let checksum1 = compute_checksum(b"data1");
     let checksum2 = compute_checksum(b"data2");
-    assert_ne!(checksum1, checksum2);
+    if checksum1 == checksum2 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_verify_checksum_valid() {
+pub fn test_verify_checksum_valid() -> TestResult {
     use crate::npkg::download::verify_checksum;
     use crate::npkg::signature::compute_checksum;
     let data = b"test data for checksum";
     let checksum = compute_checksum(data);
-    assert!(verify_checksum(data, &checksum));
+    if !verify_checksum(data, &checksum) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_verify_checksum_invalid() {
+pub fn test_verify_checksum_invalid() -> TestResult {
     use crate::npkg::download::verify_checksum;
     let data = b"test data";
     let wrong_checksum = [0u8; 32];
-    assert!(!verify_checksum(data, &wrong_checksum));
+    if verify_checksum(data, &wrong_checksum) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_verify_checksum_empty_data() {
+pub fn test_verify_checksum_empty_data() -> TestResult {
     use crate::npkg::download::verify_checksum;
     use crate::npkg::signature::compute_checksum;
     let data = b"";
     let checksum = compute_checksum(data);
-    assert!(verify_checksum(data, &checksum));
+    if !verify_checksum(data, &checksum) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_list_trusted_keys() {
+pub fn test_list_trusted_keys() -> TestResult {
     let keys = list_trusted_keys();
     let _ = keys.len();
+    TestResult::Pass
 }
 
-#[test]
-fn test_add_trusted_key() {
+pub fn test_add_trusted_key() -> TestResult {
     let (_, verifying) = generate_signing_keypair();
     add_trusted_key(verifying.clone());
     let key_id = verifying.key_id();
     let found = get_trusted_key(&key_id);
-    assert!(found.is_some());
+    if found.is_none() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_add_trusted_key_duplicate() {
+pub fn test_add_trusted_key_duplicate() -> TestResult {
     let (_, verifying) = generate_signing_keypair();
     let initial_count = list_trusted_keys().len();
     add_trusted_key(verifying.clone());
     add_trusted_key(verifying.clone());
     let new_count = list_trusted_keys().len();
-    assert!(new_count <= initial_count + 1);
+    if new_count > initial_count + 1 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_remove_trusted_key() {
+pub fn test_remove_trusted_key() -> TestResult {
     let (_, verifying) = generate_signing_keypair();
     add_trusted_key(verifying.clone());
     let key_id = verifying.key_id();
     remove_trusted_key(&key_id);
     let found = get_trusted_key(&key_id);
-    assert!(found.is_none());
+    if found.is_some() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_get_trusted_key_not_found() {
+pub fn test_get_trusted_key_not_found() -> TestResult {
     let fake_id = [0xFF; 8];
     let found = get_trusted_key(&fake_id);
-    assert!(found.is_none());
+    if found.is_some() { return TestResult::Fail; }
+    TestResult::Pass
 }

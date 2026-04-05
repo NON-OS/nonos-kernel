@@ -1,157 +1,157 @@
 use crate::npkg::*;
 use crate::npkg::types::{Dependency, DependencyKind, VersionRequirement, PackageVersion};
+use crate::test::framework::TestResult;
 
-#[test]
-fn test_dependency_runtime() {
+pub fn test_dependency_runtime() -> TestResult {
     let dep = Dependency::runtime("libfoo", VersionRequirement::Any);
-    assert_eq!(dep.name, "libfoo");
-    assert_eq!(dep.kind, DependencyKind::Runtime);
-    assert_eq!(dep.version, VersionRequirement::Any);
-    assert!(dep.reason.is_none());
+    if dep.name != "libfoo" { return TestResult::Fail; }
+    if dep.kind != DependencyKind::Runtime { return TestResult::Fail; }
+    if dep.version != VersionRequirement::Any { return TestResult::Fail; }
+    if dep.reason.is_some() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_dependency_runtime_with_version() {
+pub fn test_dependency_runtime_with_version() -> TestResult {
     let req = VersionRequirement::GreaterOrEqual(PackageVersion::new(1, 0, 0));
     let dep = Dependency::runtime("libbar", req.clone());
-    assert_eq!(dep.name, "libbar");
-    assert_eq!(dep.kind, DependencyKind::Runtime);
-    assert_eq!(dep.version, req);
+    if dep.name != "libbar" { return TestResult::Fail; }
+    if dep.kind != DependencyKind::Runtime { return TestResult::Fail; }
+    if dep.version != req { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_dependency_optional() {
+pub fn test_dependency_optional() -> TestResult {
     let dep = Dependency::optional("optional-feature", "enables feature X");
-    assert_eq!(dep.name, "optional-feature");
-    assert_eq!(dep.kind, DependencyKind::Optional);
-    assert_eq!(dep.version, VersionRequirement::Any);
-    assert_eq!(dep.reason, Some(alloc::string::String::from("enables feature X")));
+    if dep.name != "optional-feature" { return TestResult::Fail; }
+    if dep.kind != DependencyKind::Optional { return TestResult::Fail; }
+    if dep.version != VersionRequirement::Any { return TestResult::Fail; }
+    if dep.reason != Some(alloc::string::String::from("enables feature X")) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_dependency_conflict() {
+pub fn test_dependency_conflict() -> TestResult {
     let dep = Dependency::conflict("conflicting-pkg");
-    assert_eq!(dep.name, "conflicting-pkg");
-    assert_eq!(dep.kind, DependencyKind::Conflict);
-    assert_eq!(dep.version, VersionRequirement::Any);
-    assert!(dep.reason.is_none());
+    if dep.name != "conflicting-pkg" { return TestResult::Fail; }
+    if dep.kind != DependencyKind::Conflict { return TestResult::Fail; }
+    if dep.version != VersionRequirement::Any { return TestResult::Fail; }
+    if dep.reason.is_some() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_dependency_parse_simple() {
+pub fn test_dependency_parse_simple() -> TestResult {
     let dep = Dependency::parse("libfoo");
-    assert!(dep.is_some());
+    if dep.is_none() { return TestResult::Fail; }
     let dep = dep.unwrap();
-    assert_eq!(dep.name, "libfoo");
-    assert_eq!(dep.kind, DependencyKind::Runtime);
-    assert_eq!(dep.version, VersionRequirement::Any);
+    if dep.name != "libfoo" { return TestResult::Fail; }
+    if dep.kind != DependencyKind::Runtime { return TestResult::Fail; }
+    if dep.version != VersionRequirement::Any { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_dependency_parse_with_version_greater_equal() {
+pub fn test_dependency_parse_with_version_greater_equal() -> TestResult {
     let dep = Dependency::parse("libfoo>=1.0.0");
-    assert!(dep.is_some());
+    if dep.is_none() { return TestResult::Fail; }
     let dep = dep.unwrap();
-    assert_eq!(dep.name, "libfoo");
+    if dep.name != "libfoo" { return TestResult::Fail; }
     if let VersionRequirement::GreaterOrEqual(v) = dep.version {
-        assert_eq!(v.major, 1);
+        if v.major != 1 { return TestResult::Fail; }
     } else {
-        panic!("expected GreaterOrEqual");
+        return TestResult::Fail;
     }
+    TestResult::Pass
 }
 
-#[test]
-fn test_dependency_parse_with_version_greater() {
+pub fn test_dependency_parse_with_version_greater() -> TestResult {
     let dep = Dependency::parse("libbar>2.0.0");
-    assert!(dep.is_some());
+    if dep.is_none() { return TestResult::Fail; }
     let dep = dep.unwrap();
-    assert_eq!(dep.name, "libbar");
+    if dep.name != "libbar" { return TestResult::Fail; }
     if let VersionRequirement::GreaterThan(v) = dep.version {
-        assert_eq!(v.major, 2);
+        if v.major != 2 { return TestResult::Fail; }
     } else {
-        panic!("expected GreaterThan");
+        return TestResult::Fail;
     }
+    TestResult::Pass
 }
 
-#[test]
-fn test_dependency_parse_with_version_less_equal() {
+pub fn test_dependency_parse_with_version_less_equal() -> TestResult {
     let dep = Dependency::parse("libqux<=3.0.0");
-    assert!(dep.is_some());
+    if dep.is_none() { return TestResult::Fail; }
     let dep = dep.unwrap();
     if let VersionRequirement::LessOrEqual(v) = dep.version {
-        assert_eq!(v.major, 3);
+        if v.major != 3 { return TestResult::Fail; }
     } else {
-        panic!("expected LessOrEqual");
+        return TestResult::Fail;
     }
+    TestResult::Pass
 }
 
-#[test]
-fn test_dependency_parse_with_version_less() {
+pub fn test_dependency_parse_with_version_less() -> TestResult {
     let dep = Dependency::parse("pkg<4.0.0");
-    assert!(dep.is_some());
+    if dep.is_none() { return TestResult::Fail; }
     let dep = dep.unwrap();
     if let VersionRequirement::LessThan(v) = dep.version {
-        assert_eq!(v.major, 4);
+        if v.major != 4 { return TestResult::Fail; }
     } else {
-        panic!("expected LessThan");
+        return TestResult::Fail;
     }
+    TestResult::Pass
 }
 
-#[test]
-fn test_dependency_parse_with_version_exact() {
+pub fn test_dependency_parse_with_version_exact() -> TestResult {
     let dep = Dependency::parse("pkg=5.0.0");
-    assert!(dep.is_some());
+    if dep.is_none() { return TestResult::Fail; }
     let dep = dep.unwrap();
     if let VersionRequirement::Exact(v) = dep.version {
-        assert_eq!(v.major, 5);
+        if v.major != 5 { return TestResult::Fail; }
     } else {
-        panic!("expected Exact");
+        return TestResult::Fail;
     }
+    TestResult::Pass
 }
 
-#[test]
-fn test_dependency_parse_with_version_compatible() {
+pub fn test_dependency_parse_with_version_compatible() -> TestResult {
     let dep = Dependency::parse("pkg^1.2.0");
-    assert!(dep.is_some());
+    if dep.is_none() { return TestResult::Fail; }
     let dep = dep.unwrap();
     if let VersionRequirement::Compatible(v) = dep.version {
-        assert_eq!(v.major, 1);
-        assert_eq!(v.minor, 2);
+        if v.major != 1 { return TestResult::Fail; }
+        if v.minor != 2 { return TestResult::Fail; }
     } else {
-        panic!("expected Compatible");
+        return TestResult::Fail;
     }
+    TestResult::Pass
 }
 
-#[test]
-fn test_dependency_parse_empty() {
+pub fn test_dependency_parse_empty() -> TestResult {
     let dep = Dependency::parse("");
-    assert!(dep.is_none());
+    if dep.is_some() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_dependency_parse_whitespace_only() {
+pub fn test_dependency_parse_whitespace_only() -> TestResult {
     let dep = Dependency::parse("   ");
-    assert!(dep.is_none());
+    if dep.is_some() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_dependency_parse_with_whitespace() {
+pub fn test_dependency_parse_with_whitespace() -> TestResult {
     let dep = Dependency::parse("  libfoo  ");
-    assert!(dep.is_some());
+    if dep.is_none() { return TestResult::Fail; }
     let dep = dep.unwrap();
-    assert_eq!(dep.name, "libfoo");
+    if dep.name != "libfoo" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_dependency_clone() {
+pub fn test_dependency_clone() -> TestResult {
     let dep = Dependency::runtime("test", VersionRequirement::Any);
     let cloned = dep.clone();
-    assert_eq!(dep.name, cloned.name);
-    assert_eq!(dep.kind, cloned.kind);
+    if dep.name != cloned.name { return TestResult::Fail; }
+    if dep.kind != cloned.kind { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_dependency_kind_variants() {
+pub fn test_dependency_kind_variants() -> TestResult {
     let kinds = [
         DependencyKind::Runtime,
         DependencyKind::Build,
@@ -160,43 +160,44 @@ fn test_dependency_kind_variants() {
         DependencyKind::Replace,
         DependencyKind::Provide,
     ];
-    assert_eq!(kinds.len(), 6);
+    if kinds.len() != 6 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_dependency_parse_name_with_hyphen() {
+pub fn test_dependency_parse_name_with_hyphen() -> TestResult {
     let dep = Dependency::parse("my-cool-lib>=1.0.0");
-    assert!(dep.is_some());
+    if dep.is_none() { return TestResult::Fail; }
     let dep = dep.unwrap();
-    assert_eq!(dep.name, "my-cool-lib");
+    if dep.name != "my-cool-lib" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_dependency_parse_name_with_underscore() {
+pub fn test_dependency_parse_name_with_underscore() -> TestResult {
     let dep = Dependency::parse("my_lib>=2.0.0");
-    assert!(dep.is_some());
+    if dep.is_none() { return TestResult::Fail; }
     let dep = dep.unwrap();
-    assert_eq!(dep.name, "my_lib");
+    if dep.name != "my_lib" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_version_requirement_equality() {
+pub fn test_version_requirement_equality() -> TestResult {
     let req1 = VersionRequirement::Any;
     let req2 = VersionRequirement::Any;
-    assert_eq!(req1, req2);
+    if req1 != req2 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_version_requirement_exact_equality() {
+pub fn test_version_requirement_exact_equality() -> TestResult {
     let v = PackageVersion::new(1, 0, 0);
     let req1 = VersionRequirement::Exact(v.clone());
     let req2 = VersionRequirement::Exact(v);
-    assert_eq!(req1, req2);
+    if req1 != req2 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_version_requirement_clone() {
+pub fn test_version_requirement_clone() -> TestResult {
     let req = VersionRequirement::GreaterThan(PackageVersion::new(1, 0, 0));
     let cloned = req.clone();
-    assert_eq!(req, cloned);
+    if req != cloned { return TestResult::Fail; }
+    TestResult::Pass
 }
