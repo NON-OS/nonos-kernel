@@ -15,229 +15,235 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::drivers::wifi::error::WifiError;
+use crate::test::framework::TestResult;
 
-#[test]
-fn test_error_not_initialized() {
-    assert_eq!(WifiError::NotInitialized.as_str(), "WiFi not initialized");
-    assert_eq!(WifiError::NotInitialized.code(), 0x0001);
+pub fn test_error_not_initialized() -> TestResult {
+    if WifiError::NotInitialized.as_str() != "WiFi not initialized" { return TestResult::Fail; }
+    if WifiError::NotInitialized.code() != 0x0001 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_error_device_not_found() {
-    assert_eq!(WifiError::DeviceNotFound.as_str(), "WiFi device not found");
-    assert_eq!(WifiError::DeviceNotFound.code(), 0x0002);
+pub fn test_error_device_not_found() -> TestResult {
+    if WifiError::DeviceNotFound.as_str() != "WiFi device not found" { return TestResult::Fail; }
+    if WifiError::DeviceNotFound.code() != 0x0002 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_error_firmware_not_found() {
-    assert_eq!(WifiError::FirmwareNotFound.as_str(), "Firmware not found");
-    assert_eq!(WifiError::FirmwareNotFound.code(), 0x0003);
+pub fn test_error_firmware_not_found() -> TestResult {
+    if WifiError::FirmwareNotFound.as_str() != "Firmware not found" { return TestResult::Fail; }
+    if WifiError::FirmwareNotFound.code() != 0x0003 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_error_firmware_invalid() {
-    assert_eq!(WifiError::FirmwareInvalid.as_str(), "Invalid firmware");
-    assert_eq!(WifiError::FirmwareInvalid.code(), 0x0004);
+pub fn test_error_firmware_invalid() -> TestResult {
+    if WifiError::FirmwareInvalid.as_str() != "Invalid firmware" { return TestResult::Fail; }
+    if WifiError::FirmwareInvalid.code() != 0x0004 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_error_firmware_load_failed() {
-    assert_eq!(WifiError::FirmwareLoadFailed.as_str(), "Firmware load failed");
-    assert_eq!(WifiError::FirmwareLoadFailed.code(), 0x0005);
+pub fn test_error_firmware_load_failed() -> TestResult {
+    if WifiError::FirmwareLoadFailed.as_str() != "Firmware load failed" { return TestResult::Fail; }
+    if WifiError::FirmwareLoadFailed.code() != 0x0005 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_error_hardware_error() {
-    assert_eq!(WifiError::HardwareError.as_str(), "Hardware error");
-    assert_eq!(WifiError::HardwareError.code(), 0x0006);
+pub fn test_error_hardware_error() -> TestResult {
+    if WifiError::HardwareError.as_str() != "Hardware error" { return TestResult::Fail; }
+    if WifiError::HardwareError.code() != 0x0006 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_error_timeout() {
-    assert_eq!(WifiError::Timeout.as_str(), "Operation timeout");
-    assert_eq!(WifiError::Timeout.code(), 0x0007);
+pub fn test_error_timeout() -> TestResult {
+    if WifiError::Timeout.as_str() != "Operation timeout" { return TestResult::Fail; }
+    if WifiError::Timeout.code() != 0x0007 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_error_invalid_state() {
-    assert_eq!(WifiError::InvalidState.as_str(), "Invalid state");
-    assert_eq!(WifiError::InvalidState.code(), 0x0008);
+pub fn test_error_invalid_state() -> TestResult {
+    if WifiError::InvalidState.as_str() != "Invalid state" { return TestResult::Fail; }
+    if WifiError::InvalidState.code() != 0x0008 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_error_not_connected() {
-    assert_eq!(WifiError::NotConnected.as_str(), "Not connected");
-    assert_eq!(WifiError::NotConnected.code(), 0x0009);
+pub fn test_error_not_connected() -> TestResult {
+    if WifiError::NotConnected.as_str() != "Not connected" { return TestResult::Fail; }
+    if WifiError::NotConnected.code() != 0x0009 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_error_authentication_failed() {
-    assert_eq!(WifiError::AuthenticationFailed.as_str(), "Authentication failed");
-    assert_eq!(WifiError::AuthenticationFailed.code(), 0x000A);
+pub fn test_error_authentication_failed() -> TestResult {
+    if WifiError::AuthenticationFailed.as_str() != "Authentication failed" { return TestResult::Fail; }
+    if WifiError::AuthenticationFailed.code() != 0x000A { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_error_association_failed() {
-    assert_eq!(WifiError::AssociationFailed.as_str(), "Association failed");
-    assert_eq!(WifiError::AssociationFailed.code(), 0x000B);
+pub fn test_error_association_failed() -> TestResult {
+    if WifiError::AssociationFailed.as_str() != "Association failed" { return TestResult::Fail; }
+    if WifiError::AssociationFailed.code() != 0x000B { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_error_scan_failed() {
-    assert_eq!(WifiError::ScanFailed.as_str(), "Scan failed");
-    assert_eq!(WifiError::ScanFailed.code(), 0x000C);
+pub fn test_error_scan_failed() -> TestResult {
+    if WifiError::ScanFailed.as_str() != "Scan failed" { return TestResult::Fail; }
+    if WifiError::ScanFailed.code() != 0x000C { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_error_no_network() {
-    assert_eq!(WifiError::NoNetwork.as_str(), "Network not found");
-    assert_eq!(WifiError::NoNetwork.code(), 0x000D);
+pub fn test_error_no_network() -> TestResult {
+    if WifiError::NoNetwork.as_str() != "Network not found" { return TestResult::Fail; }
+    if WifiError::NoNetwork.code() != 0x000D { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_error_invalid_parameter() {
-    assert_eq!(WifiError::InvalidParameter.as_str(), "Invalid parameter");
-    assert_eq!(WifiError::InvalidParameter.code(), 0x000E);
+pub fn test_error_invalid_parameter() -> TestResult {
+    if WifiError::InvalidParameter.as_str() != "Invalid parameter" { return TestResult::Fail; }
+    if WifiError::InvalidParameter.code() != 0x000E { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_error_buffer_too_small() {
-    assert_eq!(WifiError::BufferTooSmall.as_str(), "Buffer too small");
-    assert_eq!(WifiError::BufferTooSmall.code(), 0x000F);
+pub fn test_error_buffer_too_small() -> TestResult {
+    if WifiError::BufferTooSmall.as_str() != "Buffer too small" { return TestResult::Fail; }
+    if WifiError::BufferTooSmall.code() != 0x000F { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_error_dma_error() {
-    assert_eq!(WifiError::DmaError.as_str(), "DMA error");
-    assert_eq!(WifiError::DmaError.code(), 0x0010);
+pub fn test_error_dma_error() -> TestResult {
+    if WifiError::DmaError.as_str() != "DMA error" { return TestResult::Fail; }
+    if WifiError::DmaError.code() != 0x0010 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_error_command_failed() {
-    assert_eq!(WifiError::CommandFailed.as_str(), "Command failed");
-    assert_eq!(WifiError::CommandFailed.code(), 0x0011);
+pub fn test_error_command_failed() -> TestResult {
+    if WifiError::CommandFailed.as_str() != "Command failed" { return TestResult::Fail; }
+    if WifiError::CommandFailed.code() != 0x0011 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_error_rf_kill() {
-    assert_eq!(WifiError::RfKill.as_str(), "RF kill active");
-    assert_eq!(WifiError::RfKill.code(), 0x0012);
+pub fn test_error_rf_kill() -> TestResult {
+    if WifiError::RfKill.as_str() != "RF kill active" { return TestResult::Fail; }
+    if WifiError::RfKill.code() != 0x0012 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_error_nvm_error() {
-    assert_eq!(WifiError::NvmError.as_str(), "NVM error");
-    assert_eq!(WifiError::NvmError.code(), 0x0013);
+pub fn test_error_nvm_error() -> TestResult {
+    if WifiError::NvmError.as_str() != "NVM error" { return TestResult::Fail; }
+    if WifiError::NvmError.code() != 0x0013 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_error_out_of_memory() {
-    assert_eq!(WifiError::OutOfMemory.as_str(), "Out of memory");
-    assert_eq!(WifiError::OutOfMemory.code(), 0x0014);
+pub fn test_error_out_of_memory() -> TestResult {
+    if WifiError::OutOfMemory.as_str() != "Out of memory" { return TestResult::Fail; }
+    if WifiError::OutOfMemory.code() != 0x0014 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_error_invalid_frame() {
-    assert_eq!(WifiError::InvalidFrame.as_str(), "Invalid EAPOL frame");
-    assert_eq!(WifiError::InvalidFrame.code(), 0x0015);
+pub fn test_error_invalid_frame() -> TestResult {
+    if WifiError::InvalidFrame.as_str() != "Invalid EAPOL frame" { return TestResult::Fail; }
+    if WifiError::InvalidFrame.code() != 0x0015 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_error_invalid_key() {
-    assert_eq!(WifiError::InvalidKey.as_str(), "Invalid encryption key");
-    assert_eq!(WifiError::InvalidKey.code(), 0x0016);
+pub fn test_error_invalid_key() -> TestResult {
+    if WifiError::InvalidKey.as_str() != "Invalid encryption key" { return TestResult::Fail; }
+    if WifiError::InvalidKey.code() != 0x0016 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_error_mic_failure() {
-    assert_eq!(WifiError::MicFailure.as_str(), "MIC verification failed");
-    assert_eq!(WifiError::MicFailure.code(), 0x0017);
+pub fn test_error_mic_failure() -> TestResult {
+    if WifiError::MicFailure.as_str() != "MIC verification failed" { return TestResult::Fail; }
+    if WifiError::MicFailure.code() != 0x0017 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_error_replay_attack() {
-    assert_eq!(WifiError::ReplayAttack.as_str(), "Replay attack detected");
-    assert_eq!(WifiError::ReplayAttack.code(), 0x0018);
+pub fn test_error_replay_attack() -> TestResult {
+    if WifiError::ReplayAttack.as_str() != "Replay attack detected" { return TestResult::Fail; }
+    if WifiError::ReplayAttack.code() != 0x0018 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_error_integrity_failure() {
-    assert_eq!(WifiError::IntegrityFailure.as_str(), "Key integrity check failed");
-    assert_eq!(WifiError::IntegrityFailure.code(), 0x0019);
+pub fn test_error_integrity_failure() -> TestResult {
+    if WifiError::IntegrityFailure.as_str() != "Key integrity check failed" { return TestResult::Fail; }
+    if WifiError::IntegrityFailure.code() != 0x0019 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_error_unsupported_security() {
-    assert_eq!(WifiError::UnsupportedSecurity.as_str(), "Unsupported security type");
-    assert_eq!(WifiError::UnsupportedSecurity.code(), 0x001A);
+pub fn test_error_unsupported_security() -> TestResult {
+    if WifiError::UnsupportedSecurity.as_str() != "Unsupported security type" { return TestResult::Fail; }
+    if WifiError::UnsupportedSecurity.code() != 0x001A { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_error_handshake_timeout() {
-    assert_eq!(WifiError::HandshakeTimeout.as_str(), "Handshake timeout");
-    assert_eq!(WifiError::HandshakeTimeout.code(), 0x001B);
+pub fn test_error_handshake_timeout() -> TestResult {
+    if WifiError::HandshakeTimeout.as_str() != "Handshake timeout" { return TestResult::Fail; }
+    if WifiError::HandshakeTimeout.code() != 0x001B { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_error_handshake_failed() {
-    assert_eq!(WifiError::HandshakeFailed.as_str(), "4-way handshake failed");
-    assert_eq!(WifiError::HandshakeFailed.code(), 0x001C);
+pub fn test_error_handshake_failed() -> TestResult {
+    if WifiError::HandshakeFailed.as_str() != "4-way handshake failed" { return TestResult::Fail; }
+    if WifiError::HandshakeFailed.code() != 0x001C { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_error_decryption_failed() {
-    assert_eq!(WifiError::DecryptionFailed.as_str(), "Data decryption failed");
-    assert_eq!(WifiError::DecryptionFailed.code(), 0x001D);
+pub fn test_error_decryption_failed() -> TestResult {
+    if WifiError::DecryptionFailed.as_str() != "Data decryption failed" { return TestResult::Fail; }
+    if WifiError::DecryptionFailed.code() != 0x001D { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_error_firmware_timeout() {
-    assert_eq!(WifiError::FirmwareTimeout.as_str(), "Firmware init timeout");
-    assert_eq!(WifiError::FirmwareTimeout.code(), 0x001E);
+pub fn test_error_firmware_timeout() -> TestResult {
+    if WifiError::FirmwareTimeout.as_str() != "Firmware init timeout" { return TestResult::Fail; }
+    if WifiError::FirmwareTimeout.code() != 0x001E { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_error_network_not_found() {
-    assert_eq!(WifiError::NetworkNotFound.as_str(), "Network not found");
-    assert_eq!(WifiError::NetworkNotFound.code(), 0x001F);
+pub fn test_error_network_not_found() -> TestResult {
+    if WifiError::NetworkNotFound.as_str() != "Network not found" { return TestResult::Fail; }
+    if WifiError::NetworkNotFound.code() != 0x001F { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_error_equality() {
-    assert_eq!(WifiError::Timeout, WifiError::Timeout);
-    assert_ne!(WifiError::Timeout, WifiError::NotConnected);
+pub fn test_error_equality() -> TestResult {
+    if WifiError::Timeout != WifiError::Timeout { return TestResult::Fail; }
+    if WifiError::Timeout == WifiError::NotConnected { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_error_copy() {
+pub fn test_error_copy() -> TestResult {
     let err1 = WifiError::RfKill;
     let err2 = err1;
-    assert_eq!(err1, err2);
+    if err1 != err2 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_error_clone() {
+pub fn test_error_clone() -> TestResult {
     let err1 = WifiError::ScanFailed;
     let err2 = err1.clone();
-    assert_eq!(err1, err2);
+    if err1 != err2 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_error_debug() {
+pub fn test_error_debug() -> TestResult {
+    use core::fmt::Write;
     let err = WifiError::Timeout;
-    let debug_str = format!("{:?}", err);
-    assert_eq!(debug_str, "Timeout");
+    let mut buf = [0u8; 64];
+    let mut writer = crate::test::framework::ArrayWriter::new(&mut buf);
+    let _ = write!(writer, "{:?}", err);
+    if writer.as_str() != "Timeout" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_error_display() {
+pub fn test_error_display() -> TestResult {
+    use core::fmt::Write;
     let err = WifiError::Timeout;
-    let display_str = format!("{}", err);
-    assert_eq!(display_str, "Operation timeout");
+    let mut buf = [0u8; 64];
+    let mut writer = crate::test::framework::ArrayWriter::new(&mut buf);
+    let _ = write!(writer, "{}", err);
+    if writer.as_str() != "Operation timeout" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_error_codes_unique() {
+pub fn test_error_codes_unique() -> TestResult {
     let errors = [
         WifiError::NotInitialized,
         WifiError::DeviceNotFound,
@@ -274,13 +280,13 @@ fn test_error_codes_unique() {
 
     for i in 0..errors.len() {
         for j in (i + 1)..errors.len() {
-            assert_ne!(errors[i].code(), errors[j].code());
+            if errors[i].code() == errors[j].code() { return TestResult::Fail; }
         }
     }
+    TestResult::Pass
 }
 
-#[test]
-fn test_all_errors_have_message() {
+pub fn test_all_errors_have_message() -> TestResult {
     let errors = [
         WifiError::NotInitialized,
         WifiError::DeviceNotFound,
@@ -316,6 +322,7 @@ fn test_all_errors_have_message() {
     ];
 
     for err in &errors {
-        assert!(!err.as_str().is_empty());
+        if err.as_str().is_empty() { return TestResult::Fail; }
     }
+    TestResult::Pass
 }
