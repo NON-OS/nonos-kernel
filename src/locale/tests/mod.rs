@@ -192,7 +192,7 @@ pub fn run_all() -> bool {
     suite.add(TestCase::new("string_id_forward", strings_tests::test_string_id_forward));
     suite.add(TestCase::new("string_id_kernel", strings_tests::test_string_id_kernel));
     suite.add(TestCase::new("string_id_clone", strings_tests::test_string_id_clone));
-    suite.add(TestCase::new("string_id_copy", strings_tests::test_string_id_copy));
+    suite.add(TestCase::new("string_id_copy_trait", strings_tests::test_string_id_copy_trait));
     suite.add(TestCase::new("string_id_equality", strings_tests::test_string_id_equality));
     suite.add(TestCase::new("strings_en_length", strings_tests::test_strings_en_length));
     suite.add(TestCase::new("strings_es_length", strings_tests::test_strings_es_length));
