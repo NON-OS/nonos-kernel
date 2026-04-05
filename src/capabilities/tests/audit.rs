@@ -19,7 +19,7 @@ extern crate alloc;
 use crate::capabilities::*;
 use crate::test::framework::TestResult;
 
-pub fn test_audit_entry_in_time_range_true() -> TestResult {
+pub(crate) fn test_audit_entry_in_time_range_true() -> TestResult {
     let entry = AuditEntry {
         timestamp_ms: 500,
         owner_module: 1,
@@ -33,7 +33,7 @@ pub fn test_audit_entry_in_time_range_true() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_audit_entry_in_time_range_false() -> TestResult {
+pub(crate) fn test_audit_entry_in_time_range_false() -> TestResult {
     let entry = AuditEntry {
         timestamp_ms: 500,
         owner_module: 1,
@@ -47,7 +47,7 @@ pub fn test_audit_entry_in_time_range_false() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_audit_entry_matches_module_true() -> TestResult {
+pub(crate) fn test_audit_entry_matches_module_true() -> TestResult {
     let entry = AuditEntry {
         timestamp_ms: 0,
         owner_module: 42,
@@ -60,7 +60,7 @@ pub fn test_audit_entry_matches_module_true() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_audit_entry_matches_module_false() -> TestResult {
+pub(crate) fn test_audit_entry_matches_module_false() -> TestResult {
     let entry = AuditEntry {
         timestamp_ms: 0,
         owner_module: 42,
@@ -73,7 +73,7 @@ pub fn test_audit_entry_matches_module_false() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_audit_entry_matches_action_true() -> TestResult {
+pub(crate) fn test_audit_entry_matches_action_true() -> TestResult {
     let entry = AuditEntry {
         timestamp_ms: 0,
         owner_module: 1,
@@ -86,7 +86,7 @@ pub fn test_audit_entry_matches_action_true() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_audit_entry_matches_action_false() -> TestResult {
+pub(crate) fn test_audit_entry_matches_action_false() -> TestResult {
     let entry = AuditEntry {
         timestamp_ms: 0,
         owner_module: 1,
@@ -99,7 +99,7 @@ pub fn test_audit_entry_matches_action_false() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_audit_entry_matches_capability_true() -> TestResult {
+pub(crate) fn test_audit_entry_matches_capability_true() -> TestResult {
     let entry = AuditEntry {
         timestamp_ms: 0,
         owner_module: 1,
@@ -112,7 +112,7 @@ pub fn test_audit_entry_matches_capability_true() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_audit_entry_matches_capability_false() -> TestResult {
+pub(crate) fn test_audit_entry_matches_capability_false() -> TestResult {
     let entry = AuditEntry {
         timestamp_ms: 0,
         owner_module: 1,
@@ -125,7 +125,7 @@ pub fn test_audit_entry_matches_capability_false() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_audit_entry_matches_capability_none() -> TestResult {
+pub(crate) fn test_audit_entry_matches_capability_none() -> TestResult {
     let entry = AuditEntry {
         timestamp_ms: 0,
         owner_module: 1,
@@ -138,7 +138,7 @@ pub fn test_audit_entry_matches_capability_none() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_audit_entry_display_success() -> TestResult {
+pub(crate) fn test_audit_entry_display_success() -> TestResult {
     let entry = AuditEntry {
         timestamp_ms: 1000,
         owner_module: 42,
@@ -155,7 +155,7 @@ pub fn test_audit_entry_display_success() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_audit_entry_display_failure() -> TestResult {
+pub(crate) fn test_audit_entry_display_failure() -> TestResult {
     let entry = AuditEntry {
         timestamp_ms: 1000,
         owner_module: 42,
@@ -169,7 +169,7 @@ pub fn test_audit_entry_display_failure() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_audit_stats_snapshot_success_rate_all_success() -> TestResult {
+pub(crate) fn test_audit_stats_snapshot_success_rate_all_success() -> TestResult {
     let snap = AuditStatsSnapshot {
         total_logged: 10,
         success_count: 10,
@@ -182,7 +182,7 @@ pub fn test_audit_stats_snapshot_success_rate_all_success() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_audit_stats_snapshot_success_rate_half() -> TestResult {
+pub(crate) fn test_audit_stats_snapshot_success_rate_half() -> TestResult {
     let snap = AuditStatsSnapshot {
         total_logged: 10,
         success_count: 5,
@@ -195,7 +195,7 @@ pub fn test_audit_stats_snapshot_success_rate_half() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_audit_stats_snapshot_success_rate_zero_logged() -> TestResult {
+pub(crate) fn test_audit_stats_snapshot_success_rate_zero_logged() -> TestResult {
     let snap = AuditStatsSnapshot {
         total_logged: 0,
         success_count: 0,
@@ -208,7 +208,7 @@ pub fn test_audit_stats_snapshot_success_rate_zero_logged() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_audit_stats_snapshot_failure_rate() -> TestResult {
+pub(crate) fn test_audit_stats_snapshot_failure_rate() -> TestResult {
     let snap = AuditStatsSnapshot {
         total_logged: 10,
         success_count: 3,
@@ -221,7 +221,7 @@ pub fn test_audit_stats_snapshot_failure_rate() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_audit_stats_snapshot_failure_rate_zero_logged() -> TestResult {
+pub(crate) fn test_audit_stats_snapshot_failure_rate_zero_logged() -> TestResult {
     let snap = AuditStatsSnapshot {
         total_logged: 0,
         success_count: 0,
@@ -234,7 +234,7 @@ pub fn test_audit_stats_snapshot_failure_rate_zero_logged() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_audit_stats_snapshot_buffer_usage_percent() -> TestResult {
+pub(crate) fn test_audit_stats_snapshot_buffer_usage_percent() -> TestResult {
     let snap = AuditStatsSnapshot {
         total_logged: 0,
         success_count: 0,
@@ -247,7 +247,7 @@ pub fn test_audit_stats_snapshot_buffer_usage_percent() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_audit_stats_snapshot_buffer_usage_percent_zero_capacity() -> TestResult {
+pub(crate) fn test_audit_stats_snapshot_buffer_usage_percent_zero_capacity() -> TestResult {
     let snap = AuditStatsSnapshot {
         total_logged: 0,
         success_count: 0,
@@ -260,7 +260,7 @@ pub fn test_audit_stats_snapshot_buffer_usage_percent_zero_capacity() -> TestRes
     TestResult::Pass
 }
 
-pub fn test_audit_stats_snapshot_display() -> TestResult {
+pub(crate) fn test_audit_stats_snapshot_display() -> TestResult {
     let snap = AuditStatsSnapshot {
         total_logged: 100,
         success_count: 80,
@@ -276,7 +276,7 @@ pub fn test_audit_stats_snapshot_display() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_audit_stats_snapshot_default() -> TestResult {
+pub(crate) fn test_audit_stats_snapshot_default() -> TestResult {
     let snap = AuditStatsSnapshot::default();
     if snap.total_logged != 0 { return TestResult::Fail; }
     if snap.success_count != 0 { return TestResult::Fail; }
@@ -284,25 +284,25 @@ pub fn test_audit_stats_snapshot_default() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_audit_capacity() -> TestResult {
+pub(crate) fn test_audit_capacity() -> TestResult {
     if audit_capacity() == 0 { return TestResult::Fail; }
     if audit_capacity() != MAX_LOG_ENTRIES { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_max_log_entries_constant() -> TestResult {
+pub(crate) fn test_max_log_entries_constant() -> TestResult {
     if MAX_LOG_ENTRIES == 0 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_clear_log() -> TestResult {
+pub(crate) fn test_clear_log() -> TestResult {
     clear_log();
     if !is_empty() { return TestResult::Fail; }
     if log_count() != 0 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_log_raw() -> TestResult {
+pub(crate) fn test_log_raw() -> TestResult {
     clear_log();
     reset_stats();
     log_raw(100, "test_action", Some(Capability::Admin), 12345, true);
@@ -311,7 +311,7 @@ pub fn test_log_raw() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_log_use_with_token() -> TestResult {
+pub(crate) fn test_log_use_with_token() -> TestResult {
     clear_log();
     reset_stats();
     let tok = CapabilityToken {
@@ -326,7 +326,7 @@ pub fn test_log_use_with_token() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_log_success() -> TestResult {
+pub(crate) fn test_log_success() -> TestResult {
     clear_log();
     reset_stats();
     let tok = CapabilityToken {
@@ -342,7 +342,7 @@ pub fn test_log_success() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_log_failure() -> TestResult {
+pub(crate) fn test_log_failure() -> TestResult {
     clear_log();
     reset_stats();
     let tok = CapabilityToken {
@@ -358,7 +358,7 @@ pub fn test_log_failure() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_get_log_returns_entries() -> TestResult {
+pub(crate) fn test_get_log_returns_entries() -> TestResult {
     clear_log();
     log_raw(1, "action1", None, 1, true);
     log_raw(2, "action2", None, 2, false);
@@ -367,7 +367,7 @@ pub fn test_get_log_returns_entries() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_get_recent() -> TestResult {
+pub(crate) fn test_get_recent() -> TestResult {
     clear_log();
     for i in 0..10 {
         log_raw(i, "action", None, i, true);
@@ -377,7 +377,7 @@ pub fn test_get_recent() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_get_recent_more_than_available() -> TestResult {
+pub(crate) fn test_get_recent_more_than_available() -> TestResult {
     clear_log();
     log_raw(1, "action", None, 1, true);
     let recent = get_recent(100);
@@ -385,7 +385,7 @@ pub fn test_get_recent_more_than_available() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_get_stats() -> TestResult {
+pub(crate) fn test_get_stats() -> TestResult {
     clear_log();
     reset_stats();
     log_raw(1, "action", None, 1, true);
@@ -398,7 +398,7 @@ pub fn test_get_stats() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_reset_stats() -> TestResult {
+pub(crate) fn test_reset_stats() -> TestResult {
     log_raw(1, "action", None, 1, true);
     reset_stats();
     let stats = get_stats();
@@ -408,7 +408,7 @@ pub fn test_reset_stats() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_get_by_module() -> TestResult {
+pub(crate) fn test_get_by_module() -> TestResult {
     clear_log();
     log_raw(100, "action", None, 1, true);
     log_raw(200, "action", None, 2, true);
@@ -418,7 +418,7 @@ pub fn test_get_by_module() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_get_by_action() -> TestResult {
+pub(crate) fn test_get_by_action() -> TestResult {
     clear_log();
     log_raw(1, "read", None, 1, true);
     log_raw(2, "write", None, 2, true);
@@ -428,7 +428,7 @@ pub fn test_get_by_action() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_get_by_capability() -> TestResult {
+pub(crate) fn test_get_by_capability() -> TestResult {
     clear_log();
     log_raw(1, "action", Some(Capability::Admin), 1, true);
     log_raw(2, "action", Some(Capability::Debug), 2, true);
@@ -438,7 +438,7 @@ pub fn test_get_by_capability() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_get_successes() -> TestResult {
+pub(crate) fn test_get_successes() -> TestResult {
     clear_log();
     log_raw(1, "action", None, 1, true);
     log_raw(2, "action", None, 2, false);
@@ -448,7 +448,7 @@ pub fn test_get_successes() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_get_failures() -> TestResult {
+pub(crate) fn test_get_failures() -> TestResult {
     clear_log();
     log_raw(1, "action", None, 1, true);
     log_raw(2, "action", None, 2, false);
