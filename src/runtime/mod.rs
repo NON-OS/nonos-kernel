@@ -32,5 +32,4 @@ pub use nonos_service as service;
 pub use nonos_stats as stats;
 pub use nonos_runtime_task as runtime_task;
 
-#[cfg(test)]
-mod tests;
+pub mod tests;

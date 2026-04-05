@@ -14,14 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod field;
-mod g1;
-mod g2;
-mod gt;
-mod pairing;
-mod prover;
-mod keys;
-mod proof;
+pub(crate) mod field;
+pub(crate) mod g1;
+pub(crate) mod g2;
+pub(crate) mod gt;
+pub(crate) mod pairing;
+pub(crate) mod prover;
+pub(crate) mod keys;
+pub(crate) mod proof;
 
 pub use field::*;
 pub use g1::*;

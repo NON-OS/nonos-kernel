@@ -33,8 +33,7 @@ pub mod stats;
 pub mod validation;
 pub mod virtqueue;
 
-#[cfg(test)]
-mod tests;
+pub mod tests;
 
 pub use api::{
     get_isr_handler, get_virtio_net_device, init_virtio_net, is_ready, mac_address, receive,

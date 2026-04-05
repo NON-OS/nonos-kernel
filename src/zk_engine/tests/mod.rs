@@ -19,50 +19,49 @@ use alloc::vec::Vec;
 use alloc::string::String;
 use crate::memory::VirtAddr;
 use crate::zk_engine::groth16::field::{FieldElement, BN254_MODULUS, MONTGOMERY_R, MONTGOMERY_R2, MONTGOMERY_INV};
-use crate::zk_engine::groth16::g1::{G1Point, G1Affine};
-use crate::zk_engine::groth16::g2::{G2Point, G2FieldElement, G2Affine};
+use crate::zk_engine::groth16::g1::G1Point;
+use crate::zk_engine::groth16::g2::{G2Point, G2FieldElement};
 use crate::zk_engine::groth16::gt::{GTElement, Fp6Element};
 use crate::zk_engine::groth16::pairing::Pairing;
 use crate::zk_engine::groth16::proof::Proof;
-use crate::zk_engine::groth16::keys::{ProvingKey, VerifyingKey};
+use crate::zk_engine::groth16::keys::VerifyingKey;
 use crate::zk_engine::circuit::{Circuit, CircuitBuilder, Constraint, LinearCombination, Variable, CircuitOptimizer};
 use crate::zk_engine::circuit::examples::{multiplication_circuit, hash_preimage_circuit, range_proof_circuit};
 use crate::zk_engine::verification::{VerificationCache, compute_cache_key, Groth16Verifier, VerificationResult, VerificationStats, VerificationKeyManager};
 use crate::zk_engine::verification::specialized::{MerkleVerifier, RangeProofVerifier, RangeProof};
-use crate::zk_engine::setup::{SetupParameters, ToxicWaste, SetupVerifier};
 use crate::zk_engine::syscalls::params::{SYS_ZK_PROVE, SYS_ZK_VERIFY, SYS_ZK_COMPILE_CIRCUIT, SYS_ZK_GET_STATS, MAX_WITNESS_SIZE, MAX_PROOF_SIZE, MAX_PUBLIC_INPUTS, MAX_CONSTRAINTS, ZKProveParams, ZKVerifyParams, ZKCompileParams, ZKStatsUserspace};
 use crate::zk_engine::syscalls::helpers::{deserialize_constraints, deserialize_witness, deserialize_public_inputs};
-use crate::zk_engine::attestation::types::{KernelMeasurement, KernelAttestation, MemoryLayout, ModuleHash};
-use crate::zk_engine::types::{ZKConfig, ZKError, ZKProof, ZKStats};
+use crate::zk_engine::attestation::types::{KernelMeasurement, MemoryLayout, ModuleHash};
+use crate::zk_engine::types::{ZKConfig, ZKError};
 use crate::test::framework::{TestResult, TestCase, TestSuite};
 
-pub fn test_field_element_zero() -> TestResult {
+pub(crate) fn test_field_element_zero() -> TestResult {
     let zero = FieldElement::zero();
     if !zero.is_zero() { return TestResult::Fail; }
     if zero.limbs != [0, 0, 0, 0] { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_field_element_one() -> TestResult {
+pub(crate) fn test_field_element_one() -> TestResult {
     let one = FieldElement::one();
     if one.is_zero() { return TestResult::Fail; }
     if one.limbs != MONTGOMERY_R { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_field_element_from_u64() -> TestResult {
+pub(crate) fn test_field_element_from_u64() -> TestResult {
     let fe = FieldElement::from_u64(42);
     if fe.is_zero() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_field_element_from_u128() -> TestResult {
+pub(crate) fn test_field_element_from_u128() -> TestResult {
     let fe = FieldElement::from_u128(0x123456789ABCDEF0_123456789ABCDEF0);
     if fe.is_zero() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_field_element_add_zero() -> TestResult {
+pub(crate) fn test_field_element_add_zero() -> TestResult {
     let a = FieldElement::from_u64(100);
     let zero = FieldElement::zero();
     let result = a.add(&zero);
@@ -70,7 +69,7 @@ pub fn test_field_element_add_zero() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_field_element_add_commutative() -> TestResult {
+pub(crate) fn test_field_element_add_commutative() -> TestResult {
     let a = FieldElement::from_u64(123);
     let b = FieldElement::from_u64(456);
     let ab = a.add(&b);
@@ -79,14 +78,14 @@ pub fn test_field_element_add_commutative() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_field_element_sub_self_is_zero() -> TestResult {
+pub(crate) fn test_field_element_sub_self_is_zero() -> TestResult {
     let a = FieldElement::from_u64(999);
     let result = a.sub(&a);
     if !result.is_zero() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_field_element_mul_one() -> TestResult {
+pub(crate) fn test_field_element_mul_one() -> TestResult {
     let a = FieldElement::from_u64(777);
     let one = FieldElement::one();
     let result = a.mul(&one);
@@ -94,7 +93,7 @@ pub fn test_field_element_mul_one() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_field_element_mul_zero() -> TestResult {
+pub(crate) fn test_field_element_mul_zero() -> TestResult {
     let a = FieldElement::from_u64(555);
     let zero = FieldElement::zero();
     let result = a.mul(&zero);
@@ -102,7 +101,7 @@ pub fn test_field_element_mul_zero() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_field_element_mul_commutative() -> TestResult {
+pub(crate) fn test_field_element_mul_commutative() -> TestResult {
     let a = FieldElement::from_u64(17);
     let b = FieldElement::from_u64(23);
     let ab = a.mul(&b);
@@ -111,7 +110,7 @@ pub fn test_field_element_mul_commutative() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_field_element_square() -> TestResult {
+pub(crate) fn test_field_element_square() -> TestResult {
     let a = FieldElement::from_u64(5);
     let square = a.square();
     let manual = a.mul(&a);
@@ -119,7 +118,7 @@ pub fn test_field_element_square() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_field_element_double() -> TestResult {
+pub(crate) fn test_field_element_double() -> TestResult {
     let a = FieldElement::from_u64(100);
     let doubled = a.double();
     let manual = a.add(&a);
@@ -127,7 +126,7 @@ pub fn test_field_element_double() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_field_element_neg() -> TestResult {
+pub(crate) fn test_field_element_neg() -> TestResult {
     let a = FieldElement::from_u64(50);
     let neg_a = a.neg();
     let sum = a.add(&neg_a);
@@ -135,14 +134,14 @@ pub fn test_field_element_neg() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_field_element_neg_zero() -> TestResult {
+pub(crate) fn test_field_element_neg_zero() -> TestResult {
     let zero = FieldElement::zero();
     let neg_zero = zero.neg();
     if !neg_zero.is_zero() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_field_element_inverse() -> TestResult {
+pub(crate) fn test_field_element_inverse() -> TestResult {
     let a = FieldElement::from_u64(7);
     let inv = a.inverse().unwrap();
     let product = a.mul(&inv);
@@ -150,13 +149,13 @@ pub fn test_field_element_inverse() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_field_element_inverse_zero_returns_none() -> TestResult {
+pub(crate) fn test_field_element_inverse_zero_returns_none() -> TestResult {
     let zero = FieldElement::zero();
     if zero.inverse().is_some() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_field_element_invert() -> TestResult {
+pub(crate) fn test_field_element_invert() -> TestResult {
     let a = FieldElement::from_u64(11);
     let inv = a.invert().unwrap();
     let product = a.mul(&inv);
@@ -164,21 +163,21 @@ pub fn test_field_element_invert() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_field_element_pow_zero() -> TestResult {
+pub(crate) fn test_field_element_pow_zero() -> TestResult {
     let a = FieldElement::from_u64(99);
     let result = a.pow(&[0, 0, 0, 0]);
     if !result.equals(&FieldElement::one()) { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_field_element_pow_one() -> TestResult {
+pub(crate) fn test_field_element_pow_one() -> TestResult {
     let a = FieldElement::from_u64(13);
     let result = a.pow(&[1, 0, 0, 0]);
     if !a.equals(&result) { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_field_element_sqrt_perfect_square() -> TestResult {
+pub(crate) fn test_field_element_sqrt_perfect_square() -> TestResult {
     let a = FieldElement::from_u64(4);
     let sqrt = a.sqrt();
     if let Some(root) = sqrt {
@@ -188,14 +187,14 @@ pub fn test_field_element_sqrt_perfect_square() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_field_element_sqrt_zero() -> TestResult {
+pub(crate) fn test_field_element_sqrt_zero() -> TestResult {
     let zero = FieldElement::zero();
     let sqrt = zero.sqrt().unwrap();
     if !sqrt.is_zero() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_field_element_to_bytes_from_bytes_roundtrip() -> TestResult {
+pub(crate) fn test_field_element_to_bytes_from_bytes_roundtrip() -> TestResult {
     let a = FieldElement::from_u64(12345);
     let bytes = a.to_bytes();
     let recovered = FieldElement::from_bytes(&bytes).unwrap();
@@ -203,41 +202,41 @@ pub fn test_field_element_to_bytes_from_bytes_roundtrip() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_field_element_from_bytes_too_short() -> TestResult {
+pub(crate) fn test_field_element_from_bytes_too_short() -> TestResult {
     let short_bytes = [0u8; 16];
     if FieldElement::from_bytes(&short_bytes).is_ok() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_field_element_from_bytes_array() -> TestResult {
+pub(crate) fn test_field_element_from_bytes_array() -> TestResult {
     let bytes = [0u8; 32];
     let fe = FieldElement::from_bytes_array(&bytes);
     if !fe.is_zero() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_field_element_gte_equal() -> TestResult {
+pub(crate) fn test_field_element_gte_equal() -> TestResult {
     let a = [1u64, 2, 3, 4];
     let b = [1u64, 2, 3, 4];
     if !FieldElement::gte(&a, &b) { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_field_element_gte_greater() -> TestResult {
+pub(crate) fn test_field_element_gte_greater() -> TestResult {
     let a = [1u64, 2, 3, 5];
     let b = [1u64, 2, 3, 4];
     if !FieldElement::gte(&a, &b) { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_field_element_gte_less() -> TestResult {
+pub(crate) fn test_field_element_gte_less() -> TestResult {
     let a = [1u64, 2, 3, 3];
     let b = [1u64, 2, 3, 4];
     if FieldElement::gte(&a, &b) { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_field_element_montgomery_conversion_roundtrip() -> TestResult {
+pub(crate) fn test_field_element_montgomery_conversion_roundtrip() -> TestResult {
     let raw = FieldElement::from_limbs([1, 2, 3, 0]);
     let montgomery = raw.to_montgomery();
     let back = montgomery.from_montgomery();
@@ -245,26 +244,26 @@ pub fn test_field_element_montgomery_conversion_roundtrip() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_g1_point_infinity() -> TestResult {
+pub(crate) fn test_g1_point_infinity() -> TestResult {
     let inf = G1Point::infinity();
     if !inf.is_infinity() { return TestResult::Fail; }
     if !inf.is_identity() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_g1_point_generator() -> TestResult {
+pub(crate) fn test_g1_point_generator() -> TestResult {
     let gen = G1Point::generator();
     if gen.is_infinity() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_g1_point_identity() -> TestResult {
+pub(crate) fn test_g1_point_identity() -> TestResult {
     let id = G1Point::identity();
     if !id.is_identity() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_g1_point_negate() -> TestResult {
+pub(crate) fn test_g1_point_negate() -> TestResult {
     let gen = G1Point::generator();
     let neg = gen.negate();
     let sum = gen.add(&neg);
@@ -272,7 +271,7 @@ pub fn test_g1_point_negate() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_g1_point_add_infinity_left() -> TestResult {
+pub(crate) fn test_g1_point_add_infinity_left() -> TestResult {
     let inf = G1Point::infinity();
     let gen = G1Point::generator();
     let result = inf.add(&gen);
@@ -280,7 +279,7 @@ pub fn test_g1_point_add_infinity_left() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_g1_point_add_infinity_right() -> TestResult {
+pub(crate) fn test_g1_point_add_infinity_right() -> TestResult {
     let gen = G1Point::generator();
     let inf = G1Point::infinity();
     let result = gen.add(&inf);
@@ -288,7 +287,7 @@ pub fn test_g1_point_add_infinity_right() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_g1_point_double() -> TestResult {
+pub(crate) fn test_g1_point_double() -> TestResult {
     let gen = G1Point::generator();
     let doubled = gen.double();
     let manual = gen.add(&gen);
@@ -301,21 +300,21 @@ pub fn test_g1_point_double() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_g1_point_double_infinity() -> TestResult {
+pub(crate) fn test_g1_point_double_infinity() -> TestResult {
     let inf = G1Point::infinity();
     let doubled = inf.double();
     if !doubled.is_infinity() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_g1_point_scalar_mul_zero() -> TestResult {
+pub(crate) fn test_g1_point_scalar_mul_zero() -> TestResult {
     let gen = G1Point::generator();
     let result = gen.scalar_mul(&[0, 0, 0, 0]);
     if !result.is_infinity() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_g1_point_scalar_mul_one() -> TestResult {
+pub(crate) fn test_g1_point_scalar_mul_one() -> TestResult {
     let gen = G1Point::generator();
     let result = gen.scalar_mul(&[1, 0, 0, 0]);
     let gen_coords = gen.to_affine_coords();
@@ -327,13 +326,13 @@ pub fn test_g1_point_scalar_mul_one() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_g1_point_to_affine_infinity() -> TestResult {
+pub(crate) fn test_g1_point_to_affine_infinity() -> TestResult {
     let inf = G1Point::infinity();
     if inf.to_affine_coords().is_some() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_g1_point_to_bytes_from_bytes_roundtrip() -> TestResult {
+pub(crate) fn test_g1_point_to_bytes_from_bytes_roundtrip() -> TestResult {
     let gen = G1Point::generator();
     let bytes = gen.to_bytes();
     let recovered = G1Point::from_bytes(&bytes).unwrap();
@@ -341,39 +340,39 @@ pub fn test_g1_point_to_bytes_from_bytes_roundtrip() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_g1_point_from_bytes_too_short() -> TestResult {
+pub(crate) fn test_g1_point_from_bytes_too_short() -> TestResult {
     let short = [0u8; 16];
     if G1Point::from_bytes(&short).is_ok() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_g1_point_from_bytes_all_zeros() -> TestResult {
+pub(crate) fn test_g1_point_from_bytes_all_zeros() -> TestResult {
     let zeros = [0u8; 32];
     let result = G1Point::from_bytes(&zeros).unwrap();
     if !result.is_infinity() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_g1_affine_from_point() -> TestResult {
+pub(crate) fn test_g1_affine_from_point() -> TestResult {
     let gen = G1Point::generator();
     let affine = gen.to_affine();
     if affine.x.is_zero() && affine.y.is_zero() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_g2_field_element_zero() -> TestResult {
+pub(crate) fn test_g2_field_element_zero() -> TestResult {
     let zero = G2FieldElement::zero();
     if !zero.is_zero() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_g2_field_element_one() -> TestResult {
+pub(crate) fn test_g2_field_element_one() -> TestResult {
     let one = G2FieldElement::one();
     if one.is_zero() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_g2_field_element_from_base_field() -> TestResult {
+pub(crate) fn test_g2_field_element_from_base_field() -> TestResult {
     let base = FieldElement::from_u64(42);
     let g2fe = G2FieldElement::from_base_field(&base);
     if g2fe.is_zero() { return TestResult::Fail; }
@@ -381,68 +380,68 @@ pub fn test_g2_field_element_from_base_field() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_g2_field_element_add_zero() -> TestResult {
-    let a = G2FieldElement::from_base(&FieldElement::from_u64(100));
+pub(crate) fn test_g2_field_element_add_zero() -> TestResult {
+    let a = G2FieldElement::from_base(FieldElement::from_u64(100));
     let zero = G2FieldElement::zero();
     let result = a.add(&zero);
     if a != result { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_g2_field_element_sub_self_is_zero() -> TestResult {
-    let a = G2FieldElement::from_base(&FieldElement::from_u64(50));
+pub(crate) fn test_g2_field_element_sub_self_is_zero() -> TestResult {
+    let a = G2FieldElement::from_base(FieldElement::from_u64(50));
     let result = a.sub(&a);
     if !result.is_zero() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_g2_field_element_mul_one() -> TestResult {
-    let a = G2FieldElement::from_base(&FieldElement::from_u64(77));
+pub(crate) fn test_g2_field_element_mul_one() -> TestResult {
+    let a = G2FieldElement::from_base(FieldElement::from_u64(77));
     let one = G2FieldElement::one();
     let result = a.mul(&one);
     if a != result { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_g2_field_element_square() -> TestResult {
-    let a = G2FieldElement::from_base(&FieldElement::from_u64(5));
+pub(crate) fn test_g2_field_element_square() -> TestResult {
+    let a = G2FieldElement::from_base(FieldElement::from_u64(5));
     let squared = a.square();
     let manual = a.mul(&a);
     if squared != manual { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_g2_field_element_double() -> TestResult {
-    let a = G2FieldElement::from_base(&FieldElement::from_u64(10));
+pub(crate) fn test_g2_field_element_double() -> TestResult {
+    let a = G2FieldElement::from_base(FieldElement::from_u64(10));
     let doubled = a.double();
     let manual = a.add(&a);
     if doubled != manual { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_g2_field_element_neg() -> TestResult {
-    let a = G2FieldElement::from_base(&FieldElement::from_u64(30));
+pub(crate) fn test_g2_field_element_neg() -> TestResult {
+    let a = G2FieldElement::from_base(FieldElement::from_u64(30));
     let neg_a = a.neg();
     let sum = a.add(&neg_a);
     if !sum.is_zero() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_g2_field_element_inverse() -> TestResult {
-    let a = G2FieldElement::from_base(&FieldElement::from_u64(7));
+pub(crate) fn test_g2_field_element_inverse() -> TestResult {
+    let a = G2FieldElement::from_base(FieldElement::from_u64(7));
     let inv = a.inverse().unwrap();
     let product = a.mul(&inv);
     if product != G2FieldElement::one() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_g2_field_element_inverse_zero_returns_none() -> TestResult {
+pub(crate) fn test_g2_field_element_inverse_zero_returns_none() -> TestResult {
     let zero = G2FieldElement::zero();
     if zero.inverse().is_some() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_g2_field_element_conjugate() -> TestResult {
+pub(crate) fn test_g2_field_element_conjugate() -> TestResult {
     let a = G2FieldElement {
         c0: FieldElement::from_u64(10),
         c1: FieldElement::from_u64(20),
@@ -453,20 +452,20 @@ pub fn test_g2_field_element_conjugate() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_g2_point_infinity() -> TestResult {
+pub(crate) fn test_g2_point_infinity() -> TestResult {
     let inf = G2Point::infinity();
     if !inf.is_infinity() { return TestResult::Fail; }
     if !inf.is_identity() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_g2_point_generator() -> TestResult {
+pub(crate) fn test_g2_point_generator() -> TestResult {
     let gen = G2Point::generator();
     if gen.is_infinity() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_g2_point_negate() -> TestResult {
+pub(crate) fn test_g2_point_negate() -> TestResult {
     let gen = G2Point::generator();
     let neg = gen.negate();
     let sum = gen.add(&neg);
@@ -474,7 +473,7 @@ pub fn test_g2_point_negate() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_g2_point_add_infinity_left() -> TestResult {
+pub(crate) fn test_g2_point_add_infinity_left() -> TestResult {
     let inf = G2Point::infinity();
     let gen = G2Point::generator();
     let result = inf.add(&gen);
@@ -482,7 +481,7 @@ pub fn test_g2_point_add_infinity_left() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_g2_point_add_infinity_right() -> TestResult {
+pub(crate) fn test_g2_point_add_infinity_right() -> TestResult {
     let gen = G2Point::generator();
     let inf = G2Point::infinity();
     let result = gen.add(&inf);
@@ -490,7 +489,7 @@ pub fn test_g2_point_add_infinity_right() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_g2_point_double() -> TestResult {
+pub(crate) fn test_g2_point_double() -> TestResult {
     let gen = G2Point::generator();
     let doubled = gen.double();
     let manual = gen.add(&gen);
@@ -499,27 +498,27 @@ pub fn test_g2_point_double() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_g2_point_double_infinity() -> TestResult {
+pub(crate) fn test_g2_point_double_infinity() -> TestResult {
     let inf = G2Point::infinity();
     let doubled = inf.double();
     if !doubled.is_infinity() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_g2_point_scalar_mul_zero() -> TestResult {
+pub(crate) fn test_g2_point_scalar_mul_zero() -> TestResult {
     let gen = G2Point::generator();
     let result = gen.scalar_mul(&[0, 0, 0, 0]);
     if !result.is_infinity() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_g2_point_to_affine_infinity() -> TestResult {
+pub(crate) fn test_g2_point_to_affine_infinity() -> TestResult {
     let inf = G2Point::infinity();
     if inf.to_affine_coords().is_some() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_g2_point_to_bytes_from_bytes_roundtrip() -> TestResult {
+pub(crate) fn test_g2_point_to_bytes_from_bytes_roundtrip() -> TestResult {
     let gen = G2Point::generator();
     let bytes = gen.to_bytes();
     let recovered = G2Point::from_bytes(&bytes).unwrap();
@@ -527,13 +526,13 @@ pub fn test_g2_point_to_bytes_from_bytes_roundtrip() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_g2_point_from_bytes_too_short() -> TestResult {
+pub(crate) fn test_g2_point_from_bytes_too_short() -> TestResult {
     let short = [0u8; 32];
     if G2Point::from_bytes(&short).is_ok() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_g2_point_serialize_deserialize() -> TestResult {
+pub(crate) fn test_g2_point_serialize_deserialize() -> TestResult {
     let gen = G2Point::generator();
     let serialized = gen.serialize();
     let deserialized = G2Point::deserialize(&serialized).unwrap();
@@ -541,20 +540,20 @@ pub fn test_g2_point_serialize_deserialize() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_g2_point_deserialize_too_short() -> TestResult {
+pub(crate) fn test_g2_point_deserialize_too_short() -> TestResult {
     let short = [0u8; 64];
     if G2Point::deserialize(&short).is_ok() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_g2_point_deserialize_all_zeros() -> TestResult {
+pub(crate) fn test_g2_point_deserialize_all_zeros() -> TestResult {
     let zeros = [0u8; 128];
     let result = G2Point::deserialize(&zeros).unwrap();
     if !result.is_identity() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_g2_affine_neg() -> TestResult {
+pub(crate) fn test_g2_affine_neg() -> TestResult {
     let gen = G2Point::generator();
     let affine = gen.to_affine();
     let neg_affine = affine.neg();
@@ -562,26 +561,26 @@ pub fn test_g2_affine_neg() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_gt_element_identity() -> TestResult {
+pub(crate) fn test_gt_element_identity() -> TestResult {
     let id = GTElement::identity();
     if !id.is_identity() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_gt_element_one() -> TestResult {
+pub(crate) fn test_gt_element_one() -> TestResult {
     let one = GTElement::one();
     if !one.is_identity() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_gt_element_equals() -> TestResult {
+pub(crate) fn test_gt_element_equals() -> TestResult {
     let a = GTElement::identity();
     let b = GTElement::one();
     if !a.equals(&b) { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_pairing_infinity_g1() -> TestResult {
+pub(crate) fn test_pairing_infinity_g1() -> TestResult {
     let inf = G1Point::infinity();
     let gen = G2Point::generator();
     let result = Pairing::compute(&inf, &gen);
@@ -589,7 +588,7 @@ pub fn test_pairing_infinity_g1() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_pairing_infinity_g2() -> TestResult {
+pub(crate) fn test_pairing_infinity_g2() -> TestResult {
     let gen = G1Point::generator();
     let inf = G2Point::infinity();
     let result = Pairing::compute(&gen, &inf);
@@ -597,7 +596,7 @@ pub fn test_pairing_infinity_g2() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_pairing_both_infinity() -> TestResult {
+pub(crate) fn test_pairing_both_infinity() -> TestResult {
     let inf1 = G1Point::infinity();
     let inf2 = G2Point::infinity();
     let result = Pairing::compute(&inf1, &inf2);
@@ -605,7 +604,7 @@ pub fn test_pairing_both_infinity() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_pairing_generators() -> TestResult {
+pub(crate) fn test_pairing_generators() -> TestResult {
     let g1 = G1Point::generator();
     let g2 = G2Point::generator();
     let result = Pairing::compute(&g1, &g2);
@@ -613,39 +612,39 @@ pub fn test_pairing_generators() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_pairing_multi_empty() -> TestResult {
+pub(crate) fn test_pairing_multi_empty() -> TestResult {
     let pairs: Vec<(G1Point, G2Point)> = vec![];
     let result = Pairing::multi_pairing(&pairs);
     if !result.is_identity() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_variable_one() -> TestResult {
+pub(crate) fn test_variable_one() -> TestResult {
     let one = Variable::ONE;
     if one.index() != 0 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_variable_new() -> TestResult {
+pub(crate) fn test_variable_new() -> TestResult {
     let v = Variable::new(5);
     if v.index() != 6 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_variable_ordering() -> TestResult {
+pub(crate) fn test_variable_ordering() -> TestResult {
     let v1 = Variable::new(1);
     let v2 = Variable::new(2);
     if !(v1 < v2) { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_linear_combination_new() -> TestResult {
+pub(crate) fn test_linear_combination_new() -> TestResult {
     let lc = LinearCombination::new();
     if !lc.terms.is_empty() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_linear_combination_from_variable() -> TestResult {
+pub(crate) fn test_linear_combination_from_variable() -> TestResult {
     let v = Variable::new(3);
     let lc = LinearCombination::from_variable(v);
     if lc.terms.len() != 1 { return TestResult::Fail; }
@@ -653,7 +652,7 @@ pub fn test_linear_combination_from_variable() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_linear_combination_from_constant() -> TestResult {
+pub(crate) fn test_linear_combination_from_constant() -> TestResult {
     let c = FieldElement::from_u64(10);
     let lc = LinearCombination::from_constant(c);
     if lc.terms.len() != 1 { return TestResult::Fail; }
@@ -661,14 +660,14 @@ pub fn test_linear_combination_from_constant() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_linear_combination_from_constant_zero() -> TestResult {
+pub(crate) fn test_linear_combination_from_constant_zero() -> TestResult {
     let zero = FieldElement::zero();
     let lc = LinearCombination::from_constant(zero);
     if !lc.terms.is_empty() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_linear_combination_add_term() -> TestResult {
+pub(crate) fn test_linear_combination_add_term() -> TestResult {
     let mut lc = LinearCombination::new();
     let v = Variable::new(0);
     lc.add_term(v, FieldElement::from_u64(5));
@@ -676,7 +675,7 @@ pub fn test_linear_combination_add_term() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_linear_combination_add_term_zero_coefficient() -> TestResult {
+pub(crate) fn test_linear_combination_add_term_zero_coefficient() -> TestResult {
     let mut lc = LinearCombination::new();
     let v = Variable::new(0);
     lc.add_term(v, FieldElement::zero());
@@ -684,7 +683,7 @@ pub fn test_linear_combination_add_term_zero_coefficient() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_linear_combination_add_term_cancellation() -> TestResult {
+pub(crate) fn test_linear_combination_add_term_cancellation() -> TestResult {
     let mut lc = LinearCombination::new();
     let v = Variable::new(0);
     let c = FieldElement::from_u64(5);
@@ -694,21 +693,21 @@ pub fn test_linear_combination_add_term_cancellation() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_linear_combination_scale() -> TestResult {
+pub(crate) fn test_linear_combination_scale() -> TestResult {
     let mut lc = LinearCombination::from_variable(Variable::new(0));
     lc.scale(&FieldElement::from_u64(3));
     if lc.terms.len() != 1 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_linear_combination_scale_zero() -> TestResult {
+pub(crate) fn test_linear_combination_scale_zero() -> TestResult {
     let mut lc = LinearCombination::from_variable(Variable::new(0));
     lc.scale(&FieldElement::zero());
     if !lc.terms.is_empty() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_linear_combination_add() -> TestResult {
+pub(crate) fn test_linear_combination_add() -> TestResult {
     let mut lc1 = LinearCombination::from_variable(Variable::new(0));
     let lc2 = LinearCombination::from_variable(Variable::new(1));
     lc1.add(&lc2);
@@ -716,14 +715,14 @@ pub fn test_linear_combination_add() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_linear_combination_evaluate_constant() -> TestResult {
+pub(crate) fn test_linear_combination_evaluate_constant() -> TestResult {
     let lc = LinearCombination::from_constant(FieldElement::from_u64(42));
     let result = lc.evaluate(&[]).unwrap();
     if !result.equals(&FieldElement::from_u64(42)) { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_linear_combination_evaluate_variable() -> TestResult {
+pub(crate) fn test_linear_combination_evaluate_variable() -> TestResult {
     let v = Variable::new(0);
     let lc = LinearCombination::from_variable(v);
     let assignment = vec![FieldElement::from_u64(10)];
@@ -732,7 +731,7 @@ pub fn test_linear_combination_evaluate_variable() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_linear_combination_evaluate_out_of_bounds() -> TestResult {
+pub(crate) fn test_linear_combination_evaluate_out_of_bounds() -> TestResult {
     let v = Variable::new(100);
     let lc = LinearCombination::from_variable(v);
     let assignment = vec![FieldElement::from_u64(10)];
@@ -740,7 +739,7 @@ pub fn test_linear_combination_evaluate_out_of_bounds() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_constraint_new() -> TestResult {
+pub(crate) fn test_constraint_new() -> TestResult {
     let a = LinearCombination::new();
     let b = LinearCombination::new();
     let c = LinearCombination::new();
@@ -749,7 +748,7 @@ pub fn test_constraint_new() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_constraint_enforce_equal() -> TestResult {
+pub(crate) fn test_constraint_enforce_equal() -> TestResult {
     let left = LinearCombination::from_variable(Variable::new(0));
     let right = LinearCombination::from_variable(Variable::new(1));
     let constraint = Constraint::enforce_equal(left, right);
@@ -757,7 +756,7 @@ pub fn test_constraint_enforce_equal() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_constraint_enforce_multiplication() -> TestResult {
+pub(crate) fn test_constraint_enforce_multiplication() -> TestResult {
     let a = Variable::new(0);
     let b = Variable::new(1);
     let c = Variable::new(2);
@@ -768,13 +767,13 @@ pub fn test_constraint_enforce_multiplication() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_constraint_default_multiplication() -> TestResult {
+pub(crate) fn test_constraint_default_multiplication() -> TestResult {
     let constraint = Constraint::default_multiplication(0);
     if constraint.a.terms.is_empty() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_constraint_verify_valid() -> TestResult {
+pub(crate) fn test_constraint_verify_valid() -> TestResult {
     let a = Variable::new(0);
     let b = Variable::new(1);
     let c = Variable::new(2);
@@ -788,7 +787,7 @@ pub fn test_constraint_verify_valid() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_constraint_verify_invalid() -> TestResult {
+pub(crate) fn test_constraint_verify_invalid() -> TestResult {
     let a = Variable::new(0);
     let b = Variable::new(1);
     let c = Variable::new(2);
@@ -802,7 +801,7 @@ pub fn test_constraint_verify_invalid() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_circuit_new() -> TestResult {
+pub(crate) fn test_circuit_new() -> TestResult {
     let circuit = Circuit::new();
     if !circuit.constraints.is_empty() { return TestResult::Fail; }
     if circuit.num_variables != 0 { return TestResult::Fail; }
@@ -810,7 +809,7 @@ pub fn test_circuit_new() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_circuit_with_params() -> TestResult {
+pub(crate) fn test_circuit_with_params() -> TestResult {
     let constraints = vec![Constraint::default_multiplication(0)];
     let circuit = Circuit::with_params(constraints, 3, 2);
     if circuit.constraints.len() != 1 { return TestResult::Fail; }
@@ -819,7 +818,7 @@ pub fn test_circuit_with_params() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_circuit_get_matrices() -> TestResult {
+pub(crate) fn test_circuit_get_matrices() -> TestResult {
     let constraints = vec![Constraint::default_multiplication(0)];
     let circuit = Circuit::with_params(constraints, 3, 0);
     let (a, b, c) = circuit.get_matrices();
@@ -829,21 +828,21 @@ pub fn test_circuit_get_matrices() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_circuit_verify_assignment_empty() -> TestResult {
+pub(crate) fn test_circuit_verify_assignment_empty() -> TestResult {
     let circuit = Circuit::new();
     let result = circuit.verify_assignment(&[]).unwrap();
     if !result { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_circuit_verify_assignment_wrong_length() -> TestResult {
+pub(crate) fn test_circuit_verify_assignment_wrong_length() -> TestResult {
     let circuit = Circuit::with_params(vec![], 3, 0);
     let result = circuit.verify_assignment(&[]);
     if result.is_ok() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_circuit_builder_new() -> TestResult {
+pub(crate) fn test_circuit_builder_new() -> TestResult {
     let builder = CircuitBuilder::new();
     if !builder.constraints.is_empty() { return TestResult::Fail; }
     if builder.num_variables != 0 { return TestResult::Fail; }
@@ -851,7 +850,7 @@ pub fn test_circuit_builder_new() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_circuit_builder_alloc_variable() -> TestResult {
+pub(crate) fn test_circuit_builder_alloc_variable() -> TestResult {
     let mut builder = CircuitBuilder::new();
     let v = builder.alloc_variable(Some("test"));
     if builder.num_variables != 1 { return TestResult::Fail; }
@@ -859,7 +858,7 @@ pub fn test_circuit_builder_alloc_variable() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_circuit_builder_alloc_variable_no_name() -> TestResult {
+pub(crate) fn test_circuit_builder_alloc_variable_no_name() -> TestResult {
     let mut builder = CircuitBuilder::new();
     let _v = builder.alloc_variable(None);
     if builder.num_variables != 1 { return TestResult::Fail; }
@@ -867,7 +866,7 @@ pub fn test_circuit_builder_alloc_variable_no_name() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_circuit_builder_alloc_input() -> TestResult {
+pub(crate) fn test_circuit_builder_alloc_input() -> TestResult {
     let mut builder = CircuitBuilder::new();
     let _v = builder.alloc_input(Some("input"));
     if builder.num_variables != 1 { return TestResult::Fail; }
@@ -875,7 +874,7 @@ pub fn test_circuit_builder_alloc_input() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_circuit_builder_enforce_constraint() -> TestResult {
+pub(crate) fn test_circuit_builder_enforce_constraint() -> TestResult {
     let mut builder = CircuitBuilder::new();
     let constraint = Constraint::default_multiplication(0);
     builder.enforce_constraint(constraint);
@@ -883,7 +882,7 @@ pub fn test_circuit_builder_enforce_constraint() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_circuit_builder_enforce_equal() -> TestResult {
+pub(crate) fn test_circuit_builder_enforce_equal() -> TestResult {
     let mut builder = CircuitBuilder::new();
     let v1 = builder.alloc_variable(None);
     let v2 = builder.alloc_variable(None);
@@ -895,7 +894,7 @@ pub fn test_circuit_builder_enforce_equal() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_circuit_builder_enforce_multiplication() -> TestResult {
+pub(crate) fn test_circuit_builder_enforce_multiplication() -> TestResult {
     let mut builder = CircuitBuilder::new();
     let a = builder.alloc_variable(None);
     let b = builder.alloc_variable(None);
@@ -905,7 +904,7 @@ pub fn test_circuit_builder_enforce_multiplication() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_circuit_builder_add_boolean_constraint() -> TestResult {
+pub(crate) fn test_circuit_builder_add_boolean_constraint() -> TestResult {
     let mut builder = CircuitBuilder::new();
     let v = builder.alloc_variable(None);
     builder.add_boolean_constraint(v);
@@ -913,7 +912,7 @@ pub fn test_circuit_builder_add_boolean_constraint() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_circuit_builder_add_range_constraint() -> TestResult {
+pub(crate) fn test_circuit_builder_add_range_constraint() -> TestResult {
     let mut builder = CircuitBuilder::new();
     let v = builder.alloc_input(None);
     builder.add_range_constraint(v, 4);
@@ -921,7 +920,7 @@ pub fn test_circuit_builder_add_range_constraint() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_circuit_builder_build() -> TestResult {
+pub(crate) fn test_circuit_builder_build() -> TestResult {
     let mut builder = CircuitBuilder::new();
     let _x = builder.alloc_input(None);
     let _y = builder.alloc_input(None);
@@ -930,7 +929,7 @@ pub fn test_circuit_builder_build() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_circuit_builder_add_constraint() -> TestResult {
+pub(crate) fn test_circuit_builder_add_constraint() -> TestResult {
     let mut builder = CircuitBuilder::new();
     let constraint = Constraint::default_multiplication(0);
     let result = builder.add_constraint(constraint);
@@ -939,14 +938,14 @@ pub fn test_circuit_builder_add_constraint() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_circuit_optimizer_optimize_empty() -> TestResult {
+pub(crate) fn test_circuit_optimizer_optimize_empty() -> TestResult {
     let circuit = Circuit::new();
     let optimized = CircuitOptimizer::optimize(circuit);
     if !optimized.constraints.is_empty() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_circuit_optimizer_removes_trivial() -> TestResult {
+pub(crate) fn test_circuit_optimizer_removes_trivial() -> TestResult {
     let trivial = Constraint::new(
         LinearCombination::new(),
         LinearCombination::new(),
@@ -958,7 +957,7 @@ pub fn test_circuit_optimizer_removes_trivial() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_circuit_optimizer_keeps_nontrivial() -> TestResult {
+pub(crate) fn test_circuit_optimizer_keeps_nontrivial() -> TestResult {
     let nontrivial = Constraint::default_multiplication(0);
     let circuit = Circuit::with_params(vec![nontrivial], 3, 0);
     let optimized = CircuitOptimizer::optimize(circuit);
@@ -966,32 +965,32 @@ pub fn test_circuit_optimizer_keeps_nontrivial() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_multiplication_circuit() -> TestResult {
+pub(crate) fn test_multiplication_circuit() -> TestResult {
     let circuit = multiplication_circuit().unwrap();
     if circuit.num_inputs != 2 { return TestResult::Fail; }
     if circuit.constraints.len() <= 0 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_hash_preimage_circuit() -> TestResult {
+pub(crate) fn test_hash_preimage_circuit() -> TestResult {
     let circuit = hash_preimage_circuit().unwrap();
     if circuit.num_inputs != 2 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_range_proof_circuit() -> TestResult {
+pub(crate) fn test_range_proof_circuit() -> TestResult {
     let circuit = range_proof_circuit(8).unwrap();
     if circuit.num_inputs != 1 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_range_proof_circuit_zero_bits() -> TestResult {
+pub(crate) fn test_range_proof_circuit_zero_bits() -> TestResult {
     let circuit = range_proof_circuit(0).unwrap();
     if circuit.num_inputs != 1 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_proof_new() -> TestResult {
+pub(crate) fn test_proof_new() -> TestResult {
     let a = G1Point::generator();
     let b = G2Point::generator();
     let c = G1Point::generator();
@@ -1000,7 +999,7 @@ pub fn test_proof_new() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_proof_serialize_deserialize() -> TestResult {
+pub(crate) fn test_proof_serialize_deserialize() -> TestResult {
     let a = G1Point::generator();
     let b = G2Point::generator();
     let c = G1Point::generator();
@@ -1011,13 +1010,13 @@ pub fn test_proof_serialize_deserialize() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_proof_deserialize_too_short() -> TestResult {
+pub(crate) fn test_proof_deserialize_too_short() -> TestResult {
     let short = [0u8; 64];
     if Proof::deserialize(&short).is_ok() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_proof_is_valid_structure_valid() -> TestResult {
+pub(crate) fn test_proof_is_valid_structure_valid() -> TestResult {
     let a = G1Point::generator();
     let b = G2Point::generator();
     let c = G1Point::generator();
@@ -1026,7 +1025,7 @@ pub fn test_proof_is_valid_structure_valid() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_proof_is_valid_structure_invalid_a() -> TestResult {
+pub(crate) fn test_proof_is_valid_structure_invalid_a() -> TestResult {
     let a = G1Point::infinity();
     let b = G2Point::generator();
     let c = G1Point::generator();
@@ -1035,7 +1034,7 @@ pub fn test_proof_is_valid_structure_invalid_a() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_proof_is_valid_structure_invalid_b() -> TestResult {
+pub(crate) fn test_proof_is_valid_structure_invalid_b() -> TestResult {
     let a = G1Point::generator();
     let b = G2Point::infinity();
     let c = G1Point::generator();
@@ -1044,7 +1043,7 @@ pub fn test_proof_is_valid_structure_invalid_b() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_proof_is_valid_structure_invalid_c() -> TestResult {
+pub(crate) fn test_proof_is_valid_structure_invalid_c() -> TestResult {
     let a = G1Point::generator();
     let b = G2Point::generator();
     let c = G1Point::infinity();
@@ -1053,7 +1052,7 @@ pub fn test_proof_is_valid_structure_invalid_c() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_verifying_key_verify_key_valid() -> TestResult {
+pub(crate) fn test_verifying_key_verify_key_valid() -> TestResult {
     let vk = VerifyingKey {
         alpha_g1: G1Point::generator(),
         beta_g2: G2Point::generator(),
@@ -1065,7 +1064,7 @@ pub fn test_verifying_key_verify_key_valid() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_verifying_key_verify_key_invalid_alpha() -> TestResult {
+pub(crate) fn test_verifying_key_verify_key_invalid_alpha() -> TestResult {
     let vk = VerifyingKey {
         alpha_g1: G1Point::infinity(),
         beta_g2: G2Point::generator(),
@@ -1077,7 +1076,7 @@ pub fn test_verifying_key_verify_key_invalid_alpha() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_verifying_key_verify_key_invalid_beta() -> TestResult {
+pub(crate) fn test_verifying_key_verify_key_invalid_beta() -> TestResult {
     let vk = VerifyingKey {
         alpha_g1: G1Point::generator(),
         beta_g2: G2Point::infinity(),
@@ -1089,7 +1088,7 @@ pub fn test_verifying_key_verify_key_invalid_beta() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_verifying_key_verify_key_empty_ic() -> TestResult {
+pub(crate) fn test_verifying_key_verify_key_empty_ic() -> TestResult {
     let vk = VerifyingKey {
         alpha_g1: G1Point::generator(),
         beta_g2: G2Point::generator(),
@@ -1101,13 +1100,13 @@ pub fn test_verifying_key_verify_key_empty_ic() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_verification_cache_new() -> TestResult {
+pub(crate) fn test_verification_cache_new() -> TestResult {
     let cache = VerificationCache::new();
     if cache.len() != 0 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_verification_cache_insert_get() -> TestResult {
+pub(crate) fn test_verification_cache_insert_get() -> TestResult {
     let cache = VerificationCache::new();
     let key = [1u8; 32];
     cache.insert(key, true);
@@ -1115,14 +1114,14 @@ pub fn test_verification_cache_insert_get() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_verification_cache_get_missing() -> TestResult {
+pub(crate) fn test_verification_cache_get_missing() -> TestResult {
     let cache = VerificationCache::new();
     let key = [1u8; 32];
     if cache.get(&key) != None { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_verification_cache_len() -> TestResult {
+pub(crate) fn test_verification_cache_len() -> TestResult {
     let cache = VerificationCache::new();
     cache.insert([1u8; 32], true);
     cache.insert([2u8; 32], false);
@@ -1130,7 +1129,7 @@ pub fn test_verification_cache_len() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_verification_cache_clear() -> TestResult {
+pub(crate) fn test_verification_cache_clear() -> TestResult {
     let cache = VerificationCache::new();
     cache.insert([1u8; 32], true);
     cache.clear();
@@ -1138,7 +1137,7 @@ pub fn test_verification_cache_clear() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_verification_cache_evict_oldest() -> TestResult {
+pub(crate) fn test_verification_cache_evict_oldest() -> TestResult {
     let cache = VerificationCache::new();
     for i in 0..10u8 {
         cache.insert([i; 32], true);
@@ -1148,7 +1147,7 @@ pub fn test_verification_cache_evict_oldest() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_compute_cache_key_deterministic() -> TestResult {
+pub(crate) fn test_compute_cache_key_deterministic() -> TestResult {
     let circuit_id = 42u32;
     let proof_hash = [0xABu8; 32];
     let public_inputs: Vec<Vec<u8>> = vec![vec![1, 2, 3]];
@@ -1158,7 +1157,7 @@ pub fn test_compute_cache_key_deterministic() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_compute_cache_key_different_circuit_id() -> TestResult {
+pub(crate) fn test_compute_cache_key_different_circuit_id() -> TestResult {
     let proof_hash = [0xABu8; 32];
     let public_inputs: Vec<Vec<u8>> = vec![];
     let key1 = compute_cache_key(1, &proof_hash, &public_inputs);
@@ -1167,7 +1166,7 @@ pub fn test_compute_cache_key_different_circuit_id() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_verification_result_success() -> TestResult {
+pub(crate) fn test_verification_result_success() -> TestResult {
     let result = VerificationResult::success(100);
     if !result.valid { return TestResult::Fail; }
     if result.error.is_some() { return TestResult::Fail; }
@@ -1176,7 +1175,7 @@ pub fn test_verification_result_success() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_verification_result_failure() -> TestResult {
+pub(crate) fn test_verification_result_failure() -> TestResult {
     let result = VerificationResult::failure(ZKError::VerificationFailed, 50);
     if result.valid { return TestResult::Fail; }
     if result.error.is_none() { return TestResult::Fail; }
@@ -1185,7 +1184,7 @@ pub fn test_verification_result_failure() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_verification_stats_default() -> TestResult {
+pub(crate) fn test_verification_stats_default() -> TestResult {
     let stats = VerificationStats::default();
     if stats.total_verifications != 0 { return TestResult::Fail; }
     if stats.successful_verifications != 0 { return TestResult::Fail; }
@@ -1194,13 +1193,13 @@ pub fn test_verification_stats_default() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_verification_key_manager_new() -> TestResult {
+pub(crate) fn test_verification_key_manager_new() -> TestResult {
     let manager = VerificationKeyManager::new();
     if manager.key_count() != 0 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_verification_key_manager_add_key() -> TestResult {
+pub(crate) fn test_verification_key_manager_add_key() -> TestResult {
     let mut manager = VerificationKeyManager::new();
     let vk = VerifyingKey {
         alpha_g1: G1Point::generator(),
@@ -1214,7 +1213,7 @@ pub fn test_verification_key_manager_add_key() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_verification_key_manager_get_key() -> TestResult {
+pub(crate) fn test_verification_key_manager_get_key() -> TestResult {
     let mut manager = VerificationKeyManager::new();
     let vk = VerifyingKey {
         alpha_g1: G1Point::generator(),
@@ -1229,7 +1228,7 @@ pub fn test_verification_key_manager_get_key() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_verification_key_manager_remove_key() -> TestResult {
+pub(crate) fn test_verification_key_manager_remove_key() -> TestResult {
     let mut manager = VerificationKeyManager::new();
     let vk = VerifyingKey {
         alpha_g1: G1Point::generator(),
@@ -1245,7 +1244,7 @@ pub fn test_verification_key_manager_remove_key() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_verification_key_manager_list_circuits() -> TestResult {
+pub(crate) fn test_verification_key_manager_list_circuits() -> TestResult {
     let mut manager = VerificationKeyManager::new();
     let vk = VerifyingKey {
         alpha_g1: G1Point::generator(),
@@ -1263,7 +1262,7 @@ pub fn test_verification_key_manager_list_circuits() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_merkle_verifier_verify_membership_single() -> TestResult {
+pub(crate) fn test_merkle_verifier_verify_membership_single() -> TestResult {
     let leaf = [1u8; 32];
     let root = leaf;
     let proof: &[[u8; 32]] = &[];
@@ -1271,7 +1270,7 @@ pub fn test_merkle_verifier_verify_membership_single() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_merkle_verifier_verify_membership_mismatch() -> TestResult {
+pub(crate) fn test_merkle_verifier_verify_membership_mismatch() -> TestResult {
     let leaf = [1u8; 32];
     let root = [2u8; 32];
     let proof: &[[u8; 32]] = &[];
@@ -1279,7 +1278,7 @@ pub fn test_merkle_verifier_verify_membership_mismatch() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_merkle_verifier_verify_membership_too_long_proof() -> TestResult {
+pub(crate) fn test_merkle_verifier_verify_membership_too_long_proof() -> TestResult {
     let leaf = [1u8; 32];
     let root = leaf;
     let proof: Vec<[u8; 32]> = (0..65).map(|_| [0u8; 32]).collect();
@@ -1287,28 +1286,28 @@ pub fn test_merkle_verifier_verify_membership_too_long_proof() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_range_proof_verifier_invalid_range() -> TestResult {
+pub(crate) fn test_range_proof_verifier_invalid_range() -> TestResult {
     let commitment = [0u8; 32];
     let proof = [0u8; 256];
     if RangeProofVerifier::verify(&commitment, &proof, 100, 50) { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_range_proof_verifier_verify_simple_invalid_bit_length_zero() -> TestResult {
+pub(crate) fn test_range_proof_verifier_verify_simple_invalid_bit_length_zero() -> TestResult {
     let commitment = [0u8; 32];
     let proof = [0u8; 256];
     if RangeProofVerifier::verify_simple(&commitment, &proof, 0) { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_range_proof_verifier_verify_simple_invalid_bit_length_too_large() -> TestResult {
+pub(crate) fn test_range_proof_verifier_verify_simple_invalid_bit_length_too_large() -> TestResult {
     let commitment = [0u8; 32];
     let proof = [0u8; 256];
     if RangeProofVerifier::verify_simple(&commitment, &proof, 65) { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_syscall_constants() -> TestResult {
+pub(crate) fn test_syscall_constants() -> TestResult {
     if SYS_ZK_PROVE != 400 { return TestResult::Fail; }
     if SYS_ZK_VERIFY != 401 { return TestResult::Fail; }
     if SYS_ZK_COMPILE_CIRCUIT != 402 { return TestResult::Fail; }
@@ -1316,7 +1315,7 @@ pub fn test_syscall_constants() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_syscall_limits() -> TestResult {
+pub(crate) fn test_syscall_limits() -> TestResult {
     if MAX_WITNESS_SIZE <= 0 { return TestResult::Fail; }
     if MAX_PROOF_SIZE <= 0 { return TestResult::Fail; }
     if MAX_PUBLIC_INPUTS <= 0 { return TestResult::Fail; }
@@ -1324,47 +1323,47 @@ pub fn test_syscall_limits() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_deserialize_constraints_empty() -> TestResult {
+pub(crate) fn test_deserialize_constraints_empty() -> TestResult {
     let data: &[u8] = &[];
     let result = deserialize_constraints(data).unwrap();
     if !result.is_empty() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_deserialize_constraints_invalid_length() -> TestResult {
+pub(crate) fn test_deserialize_constraints_invalid_length() -> TestResult {
     let data = [0u8; 63];
     if deserialize_constraints(&data).is_ok() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_deserialize_constraints_valid() -> TestResult {
+pub(crate) fn test_deserialize_constraints_valid() -> TestResult {
     let data = [0u8; 128];
     let result = deserialize_constraints(&data).unwrap();
     if result.len() != 2 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_deserialize_witness_too_short() -> TestResult {
+pub(crate) fn test_deserialize_witness_too_short() -> TestResult {
     let data = [0u8; 2];
     if deserialize_witness(&data).is_ok() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_deserialize_witness_empty() -> TestResult {
+pub(crate) fn test_deserialize_witness_empty() -> TestResult {
     let data = [0u8, 0, 0, 0];
     let result = deserialize_witness(&data).unwrap();
     if !result.is_empty() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_deserialize_witness_truncated() -> TestResult {
+pub(crate) fn test_deserialize_witness_truncated() -> TestResult {
     let mut data = vec![1u8, 0, 0, 0];
     data.extend_from_slice(&[10u8, 0, 0, 0]);
     if deserialize_witness(&data).is_ok() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_deserialize_witness_valid() -> TestResult {
+pub(crate) fn test_deserialize_witness_valid() -> TestResult {
     let mut data = vec![1u8, 0, 0, 0];
     data.extend_from_slice(&[4u8, 0, 0, 0]);
     data.extend_from_slice(&[1, 2, 3, 4]);
@@ -1374,7 +1373,7 @@ pub fn test_deserialize_witness_valid() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_deserialize_public_inputs() -> TestResult {
+pub(crate) fn test_deserialize_public_inputs() -> TestResult {
     let mut data = vec![1u8, 0, 0, 0];
     data.extend_from_slice(&[2u8, 0, 0, 0]);
     data.extend_from_slice(&[0xAB, 0xCD]);
@@ -1383,7 +1382,7 @@ pub fn test_deserialize_public_inputs() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_kernel_measurement_new() -> TestResult {
+pub(crate) fn test_kernel_measurement_new() -> TestResult {
     let measurement = KernelMeasurement::new();
     if measurement.code_hash != [0u8; 32] { return TestResult::Fail; }
     if measurement.data_hash != [0u8; 32] { return TestResult::Fail; }
@@ -1392,14 +1391,14 @@ pub fn test_kernel_measurement_new() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_kernel_measurement_compute_integrity_hash() -> TestResult {
+pub(crate) fn test_kernel_measurement_compute_integrity_hash() -> TestResult {
     let measurement = KernelMeasurement::new();
     let hash = measurement.compute_integrity_hash();
     if hash == [0u8; 32] { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_kernel_measurement_compute_integrity_hash_deterministic() -> TestResult {
+pub(crate) fn test_kernel_measurement_compute_integrity_hash_deterministic() -> TestResult {
     let measurement = KernelMeasurement::new();
     let hash1 = measurement.compute_integrity_hash();
     let hash2 = measurement.compute_integrity_hash();
@@ -1407,7 +1406,7 @@ pub fn test_kernel_measurement_compute_integrity_hash_deterministic() -> TestRes
     TestResult::Pass
 }
 
-pub fn test_memory_layout_default() -> TestResult {
+pub(crate) fn test_memory_layout_default() -> TestResult {
     let layout = MemoryLayout::default();
     if layout.kernel_start.as_u64() != 0 { return TestResult::Fail; }
     if layout.kernel_end.as_u64() != 0 { return TestResult::Fail; }
@@ -1418,7 +1417,7 @@ pub fn test_memory_layout_default() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_zk_config_default() -> TestResult {
+pub(crate) fn test_zk_config_default() -> TestResult {
     let config = ZKConfig::default();
     if config.max_constraints != 1_000_000 { return TestResult::Fail; }
     if config.max_witnesses != 100_000 { return TestResult::Fail; }
@@ -1428,7 +1427,7 @@ pub fn test_zk_config_default() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_zk_error_variants() -> TestResult {
+pub(crate) fn test_zk_error_variants() -> TestResult {
     let errors = vec![
         ZKError::InvalidCircuit,
         ZKError::InvalidWitness,
@@ -1451,27 +1450,27 @@ pub fn test_zk_error_variants() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_zk_prove_params_size() -> TestResult {
+pub(crate) fn test_zk_prove_params_size() -> TestResult {
     if core::mem::size_of::<ZKProveParams>() <= 0 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_zk_verify_params_size() -> TestResult {
+pub(crate) fn test_zk_verify_params_size() -> TestResult {
     if core::mem::size_of::<ZKVerifyParams>() <= 0 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_zk_compile_params_size() -> TestResult {
+pub(crate) fn test_zk_compile_params_size() -> TestResult {
     if core::mem::size_of::<ZKCompileParams>() <= 0 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_zk_stats_userspace_size() -> TestResult {
+pub(crate) fn test_zk_stats_userspace_size() -> TestResult {
     if core::mem::size_of::<ZKStatsUserspace>() <= 0 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_g2_field_element_frobenius_coefficients() -> TestResult {
+pub(crate) fn test_g2_field_element_frobenius_coefficients() -> TestResult {
     let _ = G2FieldElement::frobenius_coeff_x_1();
     let _ = G2FieldElement::frobenius_coeff_x_2();
     let _ = G2FieldElement::frobenius_coeff_y_1();
@@ -1482,34 +1481,34 @@ pub fn test_g2_field_element_frobenius_coefficients() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_bn254_modulus_nonzero() -> TestResult {
+pub(crate) fn test_bn254_modulus_nonzero() -> TestResult {
     if !BN254_MODULUS.iter().any(|&x| x != 0) { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_montgomery_r_nonzero() -> TestResult {
+pub(crate) fn test_montgomery_r_nonzero() -> TestResult {
     if !MONTGOMERY_R.iter().any(|&x| x != 0) { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_montgomery_r2_nonzero() -> TestResult {
+pub(crate) fn test_montgomery_r2_nonzero() -> TestResult {
     if !MONTGOMERY_R2.iter().any(|&x| x != 0) { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_montgomery_inv_nonzero() -> TestResult {
+pub(crate) fn test_montgomery_inv_nonzero() -> TestResult {
     if MONTGOMERY_INV == 0 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_field_element_from_limbs() -> TestResult {
+pub(crate) fn test_field_element_from_limbs() -> TestResult {
     let limbs = [1u64, 2, 3, 4];
     let fe = FieldElement::from_limbs(limbs);
     if fe.limbs != limbs { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_range_proof_structure() -> TestResult {
+pub(crate) fn test_range_proof_structure() -> TestResult {
     let proof = RangeProof {
         a: [0u8; 32],
         s: [1u8; 32],
@@ -1524,7 +1523,7 @@ pub fn test_range_proof_structure() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_g1_point_from_affine() -> TestResult {
+pub(crate) fn test_g1_point_from_affine() -> TestResult {
     let x = FieldElement::from_u64(1);
     let y = FieldElement::from_u64(2);
     let point = G1Point::from_affine(x, y);
@@ -1532,42 +1531,42 @@ pub fn test_g1_point_from_affine() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_variable_equality() -> TestResult {
+pub(crate) fn test_variable_equality() -> TestResult {
     let v1 = Variable::new(5);
     let v2 = Variable::new(5);
     if v1 != v2 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_variable_copy() -> TestResult {
+pub(crate) fn test_variable_copy() -> TestResult {
     let v1 = Variable::new(3);
     let v2 = v1;
     if v1 != v2 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_circuit_clone() -> TestResult {
+pub(crate) fn test_circuit_clone() -> TestResult {
     let circuit = Circuit::new();
     let cloned = circuit.clone();
     if circuit.num_variables != cloned.num_variables { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_constraint_clone() -> TestResult {
+pub(crate) fn test_constraint_clone() -> TestResult {
     let constraint = Constraint::default_multiplication(0);
     let cloned = constraint.clone();
     if constraint.a.terms.len() != cloned.a.terms.len() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_linear_combination_clone() -> TestResult {
+pub(crate) fn test_linear_combination_clone() -> TestResult {
     let lc = LinearCombination::from_variable(Variable::new(0));
     let cloned = lc.clone();
     if lc.terms.len() != cloned.terms.len() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_proof_clone() -> TestResult {
+pub(crate) fn test_proof_clone() -> TestResult {
     let proof = Proof::new(
         G1Point::generator(),
         G2Point::generator(),
@@ -1579,48 +1578,48 @@ pub fn test_proof_clone() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_g1_point_copy() -> TestResult {
+pub(crate) fn test_g1_point_copy() -> TestResult {
     let p1 = G1Point::generator();
     let p2 = p1;
     if p2.is_infinity() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_g2_point_copy() -> TestResult {
+pub(crate) fn test_g2_point_copy() -> TestResult {
     let p1 = G2Point::generator();
     let p2 = p1;
     if p2.is_infinity() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_field_element_copy() -> TestResult {
+pub(crate) fn test_field_element_copy() -> TestResult {
     let f1 = FieldElement::from_u64(42);
     let f2 = f1;
     if !f1.equals(&f2) { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_g2_field_element_copy() -> TestResult {
+pub(crate) fn test_g2_field_element_copy() -> TestResult {
     let f1 = G2FieldElement::one();
     let f2 = f1;
     if f1 != f2 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_gt_element_copy() -> TestResult {
+pub(crate) fn test_gt_element_copy() -> TestResult {
     let g1 = GTElement::identity();
     let g2 = g1;
     if !g1.equals(&g2) { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_verification_cache_default() -> TestResult {
+pub(crate) fn test_verification_cache_default() -> TestResult {
     let cache = VerificationCache::default();
     if cache.len() != 0 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_field_element_sub_assign() -> TestResult {
+pub(crate) fn test_field_element_sub_assign() -> TestResult {
     let mut a = [10u64, 0, 0, 0];
     let b = [3u64, 0, 0, 0];
     FieldElement::sub_assign(&mut a, &b);
@@ -1628,7 +1627,7 @@ pub fn test_field_element_sub_assign() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_field_element_add_assign() -> TestResult {
+pub(crate) fn test_field_element_add_assign() -> TestResult {
     let mut a = [10u64, 0, 0, 0];
     let b = [3u64, 0, 0, 0];
     FieldElement::add_assign(&mut a, &b);
@@ -1636,7 +1635,7 @@ pub fn test_field_element_add_assign() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_g1_point_neg_vs_negate() -> TestResult {
+pub(crate) fn test_g1_point_neg_vs_negate() -> TestResult {
     let gen = G1Point::generator();
     let neg1 = gen.neg();
     let neg2 = gen.negate();
@@ -1649,7 +1648,7 @@ pub fn test_g1_point_neg_vs_negate() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_groth16_verifier_new() -> TestResult {
+pub(crate) fn test_groth16_verifier_new() -> TestResult {
     let vk = VerifyingKey {
         alpha_g1: G1Point::generator(),
         beta_g2: G2Point::generator(),
@@ -1662,21 +1661,21 @@ pub fn test_groth16_verifier_new() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_kernel_measurement_clone() -> TestResult {
+pub(crate) fn test_kernel_measurement_clone() -> TestResult {
     let measurement = KernelMeasurement::new();
     let cloned = measurement.clone();
     if measurement.code_hash != cloned.code_hash { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_zk_config_clone() -> TestResult {
+pub(crate) fn test_zk_config_clone() -> TestResult {
     let config = ZKConfig::default();
     let cloned = config.clone();
     if config.max_constraints != cloned.max_constraints { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_zk_error_clone() -> TestResult {
+pub(crate) fn test_zk_error_clone() -> TestResult {
     let error = ZKError::InvalidCircuit;
     let cloned = error.clone();
     match cloned {
@@ -1686,7 +1685,7 @@ pub fn test_zk_error_clone() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_linear_combination_multiple_terms() -> TestResult {
+pub(crate) fn test_linear_combination_multiple_terms() -> TestResult {
     let mut lc = LinearCombination::new();
     let v1 = Variable::new(0);
     let v2 = Variable::new(1);
@@ -1698,7 +1697,7 @@ pub fn test_linear_combination_multiple_terms() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_circuit_compute_witness_map_wrong_inputs() -> TestResult {
+pub(crate) fn test_circuit_compute_witness_map_wrong_inputs() -> TestResult {
     let mut builder = CircuitBuilder::new();
     let _x = builder.alloc_input(None);
     let _y = builder.alloc_input(None);
@@ -1708,7 +1707,7 @@ pub fn test_circuit_compute_witness_map_wrong_inputs() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_g2_field_element_mul_complex() -> TestResult {
+pub(crate) fn test_g2_field_element_mul_complex() -> TestResult {
     let a = G2FieldElement {
         c0: FieldElement::from_u64(3),
         c1: FieldElement::from_u64(4),
@@ -1722,7 +1721,7 @@ pub fn test_g2_field_element_mul_complex() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_fp6_element_zero() -> TestResult {
+pub(crate) fn test_fp6_element_zero() -> TestResult {
     let zero = Fp6Element::ZERO;
     if !zero.c0.is_zero() { return TestResult::Fail; }
     if !zero.c1.is_zero() { return TestResult::Fail; }
@@ -1730,13 +1729,13 @@ pub fn test_fp6_element_zero() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_fp6_element_one() -> TestResult {
+pub(crate) fn test_fp6_element_one() -> TestResult {
     let one = Fp6Element::ONE;
     if one.c0.is_zero() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_pairing_bilinearity_property() -> TestResult {
+pub(crate) fn test_pairing_bilinearity_property() -> TestResult {
     let g1 = G1Point::generator();
     let g2 = G2Point::generator();
     let e_g1_g2 = Pairing::compute(&g1, &g2);
@@ -1747,7 +1746,7 @@ pub fn test_pairing_bilinearity_property() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_module_hash_structure() -> TestResult {
+pub(crate) fn test_module_hash_structure() -> TestResult {
     let mh = ModuleHash {
         name: String::from("test_module"),
         hash: [0xABu8; 32],
@@ -1761,7 +1760,7 @@ pub fn test_module_hash_structure() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_kernel_measurement_with_modules() -> TestResult {
+pub(crate) fn test_kernel_measurement_with_modules() -> TestResult {
     let mut measurement = KernelMeasurement::new();
     measurement.module_hashes.push(ModuleHash {
         name: String::from("module1"),
@@ -1782,7 +1781,7 @@ pub fn test_kernel_measurement_with_modules() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_field_element_distributive() -> TestResult {
+pub(crate) fn test_field_element_distributive() -> TestResult {
     let a = FieldElement::from_u64(2);
     let b = FieldElement::from_u64(3);
     let c = FieldElement::from_u64(4);
@@ -1792,7 +1791,7 @@ pub fn test_field_element_distributive() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_field_element_associative_add() -> TestResult {
+pub(crate) fn test_field_element_associative_add() -> TestResult {
     let a = FieldElement::from_u64(1);
     let b = FieldElement::from_u64(2);
     let c = FieldElement::from_u64(3);
@@ -1802,7 +1801,7 @@ pub fn test_field_element_associative_add() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_field_element_associative_mul() -> TestResult {
+pub(crate) fn test_field_element_associative_mul() -> TestResult {
     let a = FieldElement::from_u64(2);
     let b = FieldElement::from_u64(3);
     let c = FieldElement::from_u64(4);
@@ -1812,7 +1811,7 @@ pub fn test_field_element_associative_mul() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_g1_point_associative_add() -> TestResult {
+pub(crate) fn test_g1_point_associative_add() -> TestResult {
     let p = G1Point::generator();
     let q = p.double();
     let r = q.double();
@@ -1827,7 +1826,7 @@ pub fn test_g1_point_associative_add() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_g2_point_associative_add() -> TestResult {
+pub(crate) fn test_g2_point_associative_add() -> TestResult {
     let p = G2Point::generator();
     let q = p.double();
     let r = q.double();

@@ -16,7 +16,7 @@
 
 mod aggregation;
 mod cache;
-mod specialized;
+pub(crate) mod specialized;
 mod verifier;
 
 pub use aggregation::*;

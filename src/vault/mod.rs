@@ -35,5 +35,4 @@ pub mod prelude {
     pub use super::nonos_vault_diag::*;
 }
 
-#[cfg(test)]
-mod tests;
+pub mod tests;

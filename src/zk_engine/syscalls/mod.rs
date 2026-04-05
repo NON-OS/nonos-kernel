@@ -15,8 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod handlers;
-mod helpers;
-mod params;
+pub(crate) mod helpers;
+pub(crate) mod params;
 
 pub use handlers::*;
 pub use helpers::*;

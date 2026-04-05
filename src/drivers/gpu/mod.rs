@@ -22,8 +22,7 @@ mod io;
 mod surface;
 mod vbe;
 
-#[cfg(test)]
-mod tests;
+pub mod tests;
 
 pub use api::{
     clear_screen, disable_gpu, get_dimensions, get_mode, get_stats, get_surface, init_gpu,

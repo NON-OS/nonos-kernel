@@ -30,5 +30,4 @@ pub use registry::{lookup_service, register_endpoint, ServiceEndpoint};
 pub use client::ServiceClient;
 pub use server::ServiceServer;
 
-#[cfg(test)]
-mod tests;
+pub mod tests;

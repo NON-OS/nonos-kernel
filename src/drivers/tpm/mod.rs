@@ -24,9 +24,7 @@ mod measurement;
 mod mmio;
 mod status;
 
-#[cfg(test)]
-#[cfg(not(feature = "std"))]
-mod tests;
+pub mod tests;
 
 pub use api::{
     create_quote, extend_pcr_sha256, get_random_bytes, get_tpm_status, init_tpm,

@@ -50,5 +50,4 @@ pub const SYS_ZKSYNC_GET_PROOF: u64 = 429;
 pub const SYS_ZKSYNC_BRIDGE_DEPOSIT: u64 = 430;
 pub const SYS_ZKSYNC_BRIDGE_WITHDRAW: u64 = 431;
 
-#[cfg(test)]
-mod tests;
+pub mod tests;

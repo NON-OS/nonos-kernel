@@ -26,8 +26,7 @@ pub mod security;
 pub mod stats;
 pub mod types;
 
-#[cfg(test)]
-mod tests;
+pub mod tests;
 
 pub use controller::NvmeController;
 pub use controller::SmartLog;

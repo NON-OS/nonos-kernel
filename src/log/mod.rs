@@ -50,5 +50,4 @@ pub use compat::logger;
 pub use compat::nonos_logger;
 pub use compat::simple_logger;
 
-#[cfg(test)]
-mod tests;
+pub mod tests;

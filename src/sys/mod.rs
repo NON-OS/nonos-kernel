@@ -25,8 +25,7 @@ pub mod settings;
 pub mod process;
 pub mod boot_log;
 
-#[cfg(test)]
-mod tests;
+pub mod tests;
 
 pub use io::{outb, inb, outw, inw, outl, inl, io_wait};
 pub use gdt::{setup as gdt_setup, enable_iopl};

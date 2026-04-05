@@ -21,8 +21,7 @@ pub mod keyboard;
 pub mod mouse;
 pub mod usb_hid;
 
-#[cfg(test)]
-mod tests;
+pub mod tests;
 
 // Re-export PS/2 keyboard functions for backward compatibility
 pub use keyboard::{

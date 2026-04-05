@@ -20,5 +20,5 @@ mod capabilities;
 mod discover;
 mod controller;
 
-pub(crate) use types::Capabilities;
+pub use types::Capabilities;
 pub(crate) use controller::{init_controller, read_version, shutdown_controller};

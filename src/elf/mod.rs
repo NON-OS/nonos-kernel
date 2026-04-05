@@ -34,6 +34,7 @@ pub mod stack;
 pub mod symbol;
 pub mod tls;
 pub mod types;
+pub mod tests;
 
 pub use types::{
     DynamicEntry, ElfHeader, ProgramHeader, RelaEntry, SectionHeader, Symbol,
