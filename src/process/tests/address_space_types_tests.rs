@@ -1,79 +1,79 @@
 use crate::process::address_space::*;
+use crate::test::framework::TestResult;
 use x86_64::VirtAddr;
 
-#[test]
-fn page_size_constant() {
-    assert_eq!(PAGE_SIZE, 4096);
+pub fn test_page_size_constant() -> TestResult {
+    if PAGE_SIZE != 4096 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn large_page_size_constant() {
-    assert_eq!(LARGE_PAGE_SIZE, 2 * 1024 * 1024);
+pub fn test_large_page_size_constant() -> TestResult {
+    if LARGE_PAGE_SIZE != 2 * 1024 * 1024 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn huge_page_size_constant() {
-    assert_eq!(HUGE_PAGE_SIZE, 1024 * 1024 * 1024);
+pub fn test_huge_page_size_constant() -> TestResult {
+    if HUGE_PAGE_SIZE != 1024 * 1024 * 1024 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn user_space_end_constant() {
-    assert_eq!(USER_SPACE_END, 0x0000_8000_0000_0000);
+pub fn test_user_space_end_constant() -> TestResult {
+    if USER_SPACE_END != 0x0000_8000_0000_0000 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn kernel_space_start_constant() {
-    assert_eq!(KERNEL_SPACE_START, 0xFFFF_8000_0000_0000);
+pub fn test_kernel_space_start_constant() -> TestResult {
+    if KERNEL_SPACE_START != 0xFFFF_8000_0000_0000 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn max_pcid_constant() {
-    assert_eq!(MAX_PCID, 4096);
+pub fn test_max_pcid_constant() -> TestResult {
+    if MAX_PCID != 4096 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn vma_new() {
+pub fn test_vma_new() -> TestResult {
     let prot = ProtectionFlags::new(true, true, false, true);
     let vma = Vma::new(
         VirtAddr::new(0x1000),
         VirtAddr::new(0x2000),
         prot,
     );
-    assert_eq!(vma.start.as_u64(), 0x1000);
-    assert_eq!(vma.end.as_u64(), 0x2000);
-    assert!(!vma.cow);
-    assert!(vma.anonymous);
-    assert_eq!(vma.refcount, 1);
+    if vma.start.as_u64() != 0x1000 { return TestResult::Fail; }
+    if vma.end.as_u64() != 0x2000 { return TestResult::Fail; }
+    if vma.cow { return TestResult::Fail; }
+    if !vma.anonymous { return TestResult::Fail; }
+    if vma.refcount != 1 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn vma_size() {
+pub fn test_vma_size() -> TestResult {
     let prot = ProtectionFlags::new(true, false, false, true);
     let vma = Vma::new(
         VirtAddr::new(0x1000),
         VirtAddr::new(0x5000),
         prot,
     );
-    assert_eq!(vma.size(), 0x4000);
+    if vma.size() != 0x4000 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn vma_contains() {
+pub fn test_vma_contains() -> TestResult {
     let prot = ProtectionFlags::new(true, false, false, true);
     let vma = Vma::new(
         VirtAddr::new(0x1000),
         VirtAddr::new(0x2000),
         prot,
     );
-    assert!(vma.contains(VirtAddr::new(0x1000)));
-    assert!(vma.contains(VirtAddr::new(0x1500)));
-    assert!(vma.contains(VirtAddr::new(0x1FFF)));
-    assert!(!vma.contains(VirtAddr::new(0x2000)));
-    assert!(!vma.contains(VirtAddr::new(0x0FFF)));
+    if !vma.contains(VirtAddr::new(0x1000)) { return TestResult::Fail; }
+    if !vma.contains(VirtAddr::new(0x1500)) { return TestResult::Fail; }
+    if !vma.contains(VirtAddr::new(0x1FFF)) { return TestResult::Fail; }
+    if vma.contains(VirtAddr::new(0x2000)) { return TestResult::Fail; }
+    if vma.contains(VirtAddr::new(0x0FFF)) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn vma_overlaps() {
+pub fn test_vma_overlaps() -> TestResult {
     let prot = ProtectionFlags::new(true, false, false, true);
     let vma1 = Vma::new(
         VirtAddr::new(0x1000),
@@ -90,14 +90,14 @@ fn vma_overlaps() {
         VirtAddr::new(0x3000),
         prot,
     );
-    assert!(vma1.overlaps(&vma2));
-    assert!(vma2.overlaps(&vma1));
-    assert!(!vma1.overlaps(&vma3));
-    assert!(!vma3.overlaps(&vma1));
+    if !vma1.overlaps(&vma2) { return TestResult::Fail; }
+    if !vma2.overlaps(&vma1) { return TestResult::Fail; }
+    if vma1.overlaps(&vma3) { return TestResult::Fail; }
+    if vma3.overlaps(&vma1) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn vma_overlaps_subset() {
+pub fn test_vma_overlaps_subset() -> TestResult {
     let prot = ProtectionFlags::new(true, false, false, true);
     let outer = Vma::new(
         VirtAddr::new(0x1000),
@@ -109,12 +109,12 @@ fn vma_overlaps_subset() {
         VirtAddr::new(0x3000),
         prot,
     );
-    assert!(outer.overlaps(&inner));
-    assert!(inner.overlaps(&outer));
+    if !outer.overlaps(&inner) { return TestResult::Fail; }
+    if !inner.overlaps(&outer) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn vma_clone() {
+pub fn test_vma_clone() -> TestResult {
     let prot = ProtectionFlags::new(true, true, false, true);
     let vma1 = Vma {
         start: VirtAddr::new(0x1000),
@@ -125,98 +125,98 @@ fn vma_clone() {
         refcount: 5,
     };
     let vma2 = vma1.clone();
-    assert_eq!(vma1.start, vma2.start);
-    assert_eq!(vma1.end, vma2.end);
-    assert_eq!(vma1.prot, vma2.prot);
-    assert_eq!(vma1.cow, vma2.cow);
-    assert_eq!(vma1.anonymous, vma2.anonymous);
-    assert_eq!(vma1.refcount, vma2.refcount);
+    if vma1.start != vma2.start { return TestResult::Fail; }
+    if vma1.end != vma2.end { return TestResult::Fail; }
+    if vma1.prot != vma2.prot { return TestResult::Fail; }
+    if vma1.cow != vma2.cow { return TestResult::Fail; }
+    if vma1.anonymous != vma2.anonymous { return TestResult::Fail; }
+    if vma1.refcount != vma2.refcount { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn protection_flags_read_only() {
+pub fn test_protection_flags_read_only() -> TestResult {
     let prot = ProtectionFlags::new(true, false, false, false);
-    assert!(prot.read);
-    assert!(!prot.write);
-    assert!(!prot.execute);
+    if !prot.read { return TestResult::Fail; }
+    if prot.write { return TestResult::Fail; }
+    if prot.execute { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn protection_flags_write() {
+pub fn test_protection_flags_write() -> TestResult {
     let prot = ProtectionFlags::new(false, true, false, false);
-    assert!(!prot.read);
-    assert!(prot.write);
-    assert!(!prot.execute);
+    if prot.read { return TestResult::Fail; }
+    if !prot.write { return TestResult::Fail; }
+    if prot.execute { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn protection_flags_exec() {
+pub fn test_protection_flags_exec() -> TestResult {
     let prot = ProtectionFlags::new(false, false, true, false);
-    assert!(!prot.read);
-    assert!(!prot.write);
-    assert!(prot.execute);
+    if prot.read { return TestResult::Fail; }
+    if prot.write { return TestResult::Fail; }
+    if !prot.execute { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn protection_flags_combined() {
+pub fn test_protection_flags_combined() -> TestResult {
     let prot = ProtectionFlags::new(true, true, false, true);
-    assert!(prot.read);
-    assert!(prot.write);
-    assert!(!prot.execute);
-    assert!(prot.user);
+    if !prot.read { return TestResult::Fail; }
+    if !prot.write { return TestResult::Fail; }
+    if prot.execute { return TestResult::Fail; }
+    if !prot.user { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn protection_flags_all() {
+pub fn test_protection_flags_all() -> TestResult {
     let prot = ProtectionFlags::new(true, true, true, true);
-    assert!(prot.read);
-    assert!(prot.write);
-    assert!(prot.execute);
-    assert!(prot.user);
+    if !prot.read { return TestResult::Fail; }
+    if !prot.write { return TestResult::Fail; }
+    if !prot.execute { return TestResult::Fail; }
+    if !prot.user { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn pte_flags_addr_mask() {
-    assert_eq!(pte_flags::ADDR_MASK, 0x000F_FFFF_FFFF_F000);
+pub fn test_pte_flags_addr_mask() -> TestResult {
+    if pte_flags::ADDR_MASK != 0x000F_FFFF_FFFF_F000 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn address_space_boundaries() {
-    assert!(USER_SPACE_END < KERNEL_SPACE_START);
+pub fn test_address_space_boundaries() -> TestResult {
+    if !(USER_SPACE_END < KERNEL_SPACE_START) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn page_sizes_ordering() {
-    assert!(PAGE_SIZE < LARGE_PAGE_SIZE);
-    assert!(LARGE_PAGE_SIZE < HUGE_PAGE_SIZE);
+pub fn test_page_sizes_ordering() -> TestResult {
+    if !(PAGE_SIZE < LARGE_PAGE_SIZE) { return TestResult::Fail; }
+    if !(LARGE_PAGE_SIZE < HUGE_PAGE_SIZE) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn page_sizes_power_of_two() {
-    assert!(PAGE_SIZE.is_power_of_two());
-    assert!(LARGE_PAGE_SIZE.is_power_of_two());
-    assert!(HUGE_PAGE_SIZE.is_power_of_two());
+pub fn test_page_sizes_power_of_two() -> TestResult {
+    if !PAGE_SIZE.is_power_of_two() { return TestResult::Fail; }
+    if !LARGE_PAGE_SIZE.is_power_of_two() { return TestResult::Fail; }
+    if !HUGE_PAGE_SIZE.is_power_of_two() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn page_size_alignment() {
-    assert_eq!(LARGE_PAGE_SIZE % PAGE_SIZE, 0);
-    assert_eq!(HUGE_PAGE_SIZE % LARGE_PAGE_SIZE, 0);
+pub fn test_page_size_alignment() -> TestResult {
+    if LARGE_PAGE_SIZE % PAGE_SIZE != 0 { return TestResult::Fail; }
+    if HUGE_PAGE_SIZE % LARGE_PAGE_SIZE != 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn vma_size_zero() {
+pub fn test_vma_size_zero() -> TestResult {
     let prot = ProtectionFlags::new(true, false, false, true);
     let vma = Vma::new(
         VirtAddr::new(0x1000),
         VirtAddr::new(0x1000),
         prot,
     );
-    assert_eq!(vma.size(), 0);
+    if vma.size() != 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn vma_adjacent_not_overlapping() {
+pub fn test_vma_adjacent_not_overlapping() -> TestResult {
     let prot = ProtectionFlags::new(true, false, false, true);
     let vma1 = Vma::new(
         VirtAddr::new(0x1000),
@@ -228,79 +228,80 @@ fn vma_adjacent_not_overlapping() {
         VirtAddr::new(0x3000),
         prot,
     );
-    assert!(!vma1.overlaps(&vma2));
+    if vma1.overlaps(&vma2) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn vma_cow_flag() {
+pub fn test_vma_cow_flag() -> TestResult {
     let prot = ProtectionFlags::new(true, true, false, true);
     let mut vma = Vma::new(
         VirtAddr::new(0x1000),
         VirtAddr::new(0x2000),
         prot,
     );
-    assert!(!vma.cow);
+    if vma.cow { return TestResult::Fail; }
     vma.cow = true;
-    assert!(vma.cow);
+    if !vma.cow { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn vma_anonymous_flag() {
+pub fn test_vma_anonymous_flag() -> TestResult {
     let prot = ProtectionFlags::new(true, false, false, true);
     let mut vma = Vma::new(
         VirtAddr::new(0x1000),
         VirtAddr::new(0x2000),
         prot,
     );
-    assert!(vma.anonymous);
+    if !vma.anonymous { return TestResult::Fail; }
     vma.anonymous = false;
-    assert!(!vma.anonymous);
+    if vma.anonymous { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn vma_refcount_increment() {
+pub fn test_vma_refcount_increment() -> TestResult {
     let prot = ProtectionFlags::new(true, false, false, true);
     let mut vma = Vma::new(
         VirtAddr::new(0x1000),
         VirtAddr::new(0x2000),
         prot,
     );
-    assert_eq!(vma.refcount, 1);
+    if vma.refcount != 1 { return TestResult::Fail; }
     vma.refcount += 1;
-    assert_eq!(vma.refcount, 2);
+    if vma.refcount != 2 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn protection_flags_default() {
+pub fn test_protection_flags_default() -> TestResult {
     let prot = ProtectionFlags::default();
-    assert!(prot.read);
-    assert!(!prot.write);
-    assert!(!prot.execute);
-    assert!(prot.user);
+    if !prot.read { return TestResult::Fail; }
+    if prot.write { return TestResult::Fail; }
+    if prot.execute { return TestResult::Fail; }
+    if !prot.user { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn protection_flags_equality() {
+pub fn test_protection_flags_equality() -> TestResult {
     let prot1 = ProtectionFlags::new(true, true, false, true);
     let prot2 = ProtectionFlags::new(true, true, false, true);
     let prot3 = ProtectionFlags::new(true, false, false, true);
-    assert_eq!(prot1, prot2);
-    assert_ne!(prot1, prot3);
+    if prot1 != prot2 { return TestResult::Fail; }
+    if prot1 == prot3 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn protection_flags_to_pte_flags() {
+pub fn test_protection_flags_to_pte_flags() -> TestResult {
     let prot = ProtectionFlags::new(true, true, true, true);
     let flags = prot.to_pte_flags();
-    assert!(flags & pte_flags::PRESENT != 0);
-    assert!(flags & pte_flags::WRITABLE != 0);
-    assert!(flags & pte_flags::USER_ACCESSIBLE != 0);
-    assert!(flags & pte_flags::NO_EXECUTE == 0);
+    if !(flags & pte_flags::PRESENT != 0) { return TestResult::Fail; }
+    if !(flags & pte_flags::WRITABLE != 0) { return TestResult::Fail; }
+    if !(flags & pte_flags::USER_ACCESSIBLE != 0) { return TestResult::Fail; }
+    if !(flags & pte_flags::NO_EXECUTE == 0) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn protection_flags_no_exec_flag() {
+pub fn test_protection_flags_no_exec_flag() -> TestResult {
     let prot = ProtectionFlags::new(true, false, false, true);
     let flags = prot.to_pte_flags();
-    assert!(flags & pte_flags::NO_EXECUTE != 0);
+    if !(flags & pte_flags::NO_EXECUTE != 0) { return TestResult::Fail; }
+    TestResult::Pass
 }
