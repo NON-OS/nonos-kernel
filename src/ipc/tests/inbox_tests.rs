@@ -3,139 +3,177 @@
 
 use crate::ipc::nonos_inbox::error::InboxError;
 use crate::ipc::nonos_inbox::stats::InboxStatsSnapshot;
+use crate::test::framework::TestResult;
 use alloc::string::String;
 
-#[test]
-fn test_inbox_error_not_found() {
+pub fn test_inbox_error_not_found() -> TestResult {
     let err = InboxError::NotFound {
         module: String::from("test_module"),
     };
-    assert_eq!(err.as_str(), "Inbox not found");
+    if err.as_str() != "Inbox not found" {
+        return TestResult::Fail;
+    }
+    TestResult::Pass
 }
 
-#[test]
-fn test_inbox_error_full() {
+pub fn test_inbox_error_full() -> TestResult {
     let err = InboxError::Full {
         module: String::from("busy_module"),
         capacity: 1024,
     };
-    assert_eq!(err.as_str(), "Inbox full");
+    if err.as_str() != "Inbox full" {
+        return TestResult::Fail;
+    }
+    TestResult::Pass
 }
 
-#[test]
-fn test_inbox_error_timeout() {
+pub fn test_inbox_error_timeout() -> TestResult {
     let err = InboxError::Timeout {
         module: String::from("slow_module"),
         waited_ms: 5000,
     };
-    assert_eq!(err.as_str(), "Enqueue timeout");
+    if err.as_str() != "Enqueue timeout" {
+        return TestResult::Fail;
+    }
+    TestResult::Pass
 }
 
-#[test]
-fn test_inbox_error_invalid_capacity() {
+pub fn test_inbox_error_invalid_capacity() -> TestResult {
     let err = InboxError::InvalidCapacity {
         value: 5,
         min: 16,
         max: 65536,
     };
-    assert_eq!(err.as_str(), "Invalid capacity");
+    if err.as_str() != "Invalid capacity" {
+        return TestResult::Fail;
+    }
+    TestResult::Pass
 }
 
-#[test]
-fn test_inbox_error_empty_module_name() {
+pub fn test_inbox_error_empty_module_name() -> TestResult {
     let err = InboxError::EmptyModuleName;
-    assert_eq!(err.as_str(), "Empty module name");
+    if err.as_str() != "Empty module name" {
+        return TestResult::Fail;
+    }
+    TestResult::Pass
 }
 
-#[test]
-fn test_inbox_error_display_not_found() {
+pub fn test_inbox_error_display_not_found() -> TestResult {
     let err = InboxError::NotFound {
         module: String::from("missing"),
     };
     let display = alloc::format!("{}", err);
-    assert!(display.contains("missing"));
-    assert!(display.contains("not found"));
+    if !display.contains("missing") {
+        return TestResult::Fail;
+    }
+    if !display.contains("not found") {
+        return TestResult::Fail;
+    }
+    TestResult::Pass
 }
 
-#[test]
-fn test_inbox_error_display_full() {
+pub fn test_inbox_error_display_full() -> TestResult {
     let err = InboxError::Full {
         module: String::from("full_module"),
         capacity: 256,
     };
     let display = alloc::format!("{}", err);
-    assert!(display.contains("full_module"));
-    assert!(display.contains("256"));
+    if !display.contains("full_module") {
+        return TestResult::Fail;
+    }
+    if !display.contains("256") {
+        return TestResult::Fail;
+    }
+    TestResult::Pass
 }
 
-#[test]
-fn test_inbox_error_display_timeout() {
+pub fn test_inbox_error_display_timeout() -> TestResult {
     let err = InboxError::Timeout {
         module: String::from("timeout_module"),
         waited_ms: 10000,
     };
     let display = alloc::format!("{}", err);
-    assert!(display.contains("timeout_module"));
-    assert!(display.contains("10000"));
+    if !display.contains("timeout_module") {
+        return TestResult::Fail;
+    }
+    if !display.contains("10000") {
+        return TestResult::Fail;
+    }
+    TestResult::Pass
 }
 
-#[test]
-fn test_inbox_error_display_invalid_capacity() {
+pub fn test_inbox_error_display_invalid_capacity() -> TestResult {
     let err = InboxError::InvalidCapacity {
         value: 8,
         min: 32,
         max: 4096,
     };
     let display = alloc::format!("{}", err);
-    assert!(display.contains("8"));
-    assert!(display.contains("32"));
-    assert!(display.contains("4096"));
+    if !display.contains("8") {
+        return TestResult::Fail;
+    }
+    if !display.contains("32") {
+        return TestResult::Fail;
+    }
+    if !display.contains("4096") {
+        return TestResult::Fail;
+    }
+    TestResult::Pass
 }
 
-#[test]
-fn test_inbox_error_display_empty_module_name() {
+pub fn test_inbox_error_display_empty_module_name() -> TestResult {
     let err = InboxError::EmptyModuleName;
     let display = alloc::format!("{}", err);
-    assert!(display.contains("empty"));
+    if !display.contains("empty") {
+        return TestResult::Fail;
+    }
+    TestResult::Pass
 }
 
-#[test]
-fn test_inbox_error_clone() {
+pub fn test_inbox_error_clone() -> TestResult {
     let err = InboxError::NotFound {
         module: String::from("test"),
     };
     let cloned = err.clone();
-    assert_eq!(err, cloned);
+    if err != cloned {
+        return TestResult::Fail;
+    }
+    TestResult::Pass
 }
 
-#[test]
-fn test_inbox_error_equality() {
+pub fn test_inbox_error_equality() -> TestResult {
     let err1 = InboxError::EmptyModuleName;
     let err2 = InboxError::EmptyModuleName;
-    assert_eq!(err1, err2);
+    if err1 != err2 {
+        return TestResult::Fail;
+    }
+    TestResult::Pass
 }
 
-#[test]
-fn test_inbox_error_different_variants() {
+pub fn test_inbox_error_different_variants() -> TestResult {
     let err1 = InboxError::EmptyModuleName;
     let err2 = InboxError::NotFound {
         module: String::from("x"),
     };
-    assert_ne!(err1, err2);
+    if err1 == err2 {
+        return TestResult::Fail;
+    }
+    TestResult::Pass
 }
 
-#[test]
-fn test_inbox_error_debug() {
+pub fn test_inbox_error_debug() -> TestResult {
     let err = InboxError::Full {
         module: String::from("test"),
         capacity: 100,
     };
     let debug_str = alloc::format!("{:?}", err);
-    assert!(debug_str.contains("Full"));
+    if !debug_str.contains("Full") {
+        return TestResult::Fail;
+    }
+    TestResult::Pass
 }
 
-#[test]
-fn test_inbox_error_all_variants_have_str() {
+pub fn test_inbox_error_all_variants_have_str() -> TestResult {
     let errors = [
         InboxError::NotFound {
             module: String::from("x"),
@@ -156,12 +194,14 @@ fn test_inbox_error_all_variants_have_str() {
         InboxError::EmptyModuleName,
     ];
     for err in errors {
-        assert!(!err.as_str().is_empty());
+        if err.as_str().is_empty() {
+            return TestResult::Fail;
+        }
     }
+    TestResult::Pass
 }
 
-#[test]
-fn test_inbox_stats_snapshot_display() {
+pub fn test_inbox_stats_snapshot_display() -> TestResult {
     let snap = InboxStatsSnapshot {
         enqueued: 100,
         dequeued: 90,
@@ -172,13 +212,19 @@ fn test_inbox_stats_snapshot_display() {
         capacity: 1024,
     };
     let display = alloc::format!("{}", snap);
-    assert!(display.contains("100"));
-    assert!(display.contains("90"));
-    assert!(display.contains("10/1024"));
+    if !display.contains("100") {
+        return TestResult::Fail;
+    }
+    if !display.contains("90") {
+        return TestResult::Fail;
+    }
+    if !display.contains("10/1024") {
+        return TestResult::Fail;
+    }
+    TestResult::Pass
 }
 
-#[test]
-fn test_inbox_stats_snapshot_clone() {
+pub fn test_inbox_stats_snapshot_clone() -> TestResult {
     let snap = InboxStatsSnapshot {
         enqueued: 100,
         dequeued: 90,
@@ -189,13 +235,19 @@ fn test_inbox_stats_snapshot_clone() {
         capacity: 1024,
     };
     let cloned = snap.clone();
-    assert_eq!(snap.enqueued, cloned.enqueued);
-    assert_eq!(snap.dequeued, cloned.dequeued);
-    assert_eq!(snap.dropped_full, cloned.dropped_full);
+    if snap.enqueued != cloned.enqueued {
+        return TestResult::Fail;
+    }
+    if snap.dequeued != cloned.dequeued {
+        return TestResult::Fail;
+    }
+    if snap.dropped_full != cloned.dropped_full {
+        return TestResult::Fail;
+    }
+    TestResult::Pass
 }
 
-#[test]
-fn test_inbox_stats_snapshot_copy() {
+pub fn test_inbox_stats_snapshot_copy() -> TestResult {
     let snap = InboxStatsSnapshot {
         enqueued: 50,
         dequeued: 40,
@@ -206,11 +258,13 @@ fn test_inbox_stats_snapshot_copy() {
         capacity: 512,
     };
     let copied = snap;
-    assert_eq!(snap.enqueued, copied.enqueued);
+    if snap.enqueued != copied.enqueued {
+        return TestResult::Fail;
+    }
+    TestResult::Pass
 }
 
-#[test]
-fn test_inbox_stats_snapshot_debug() {
+pub fn test_inbox_stats_snapshot_debug() -> TestResult {
     let snap = InboxStatsSnapshot {
         enqueued: 0,
         dequeued: 0,
@@ -221,11 +275,13 @@ fn test_inbox_stats_snapshot_debug() {
         capacity: 64,
     };
     let debug_str = alloc::format!("{:?}", snap);
-    assert!(debug_str.contains("InboxStatsSnapshot"));
+    if !debug_str.contains("InboxStatsSnapshot") {
+        return TestResult::Fail;
+    }
+    TestResult::Pass
 }
 
-#[test]
-fn test_inbox_stats_snapshot_empty() {
+pub fn test_inbox_stats_snapshot_empty() -> TestResult {
     let snap = InboxStatsSnapshot {
         enqueued: 0,
         dequeued: 0,
@@ -235,13 +291,19 @@ fn test_inbox_stats_snapshot_empty() {
         current_size: 0,
         capacity: 128,
     };
-    assert_eq!(snap.enqueued, 0);
-    assert_eq!(snap.dequeued, 0);
-    assert_eq!(snap.current_size, 0);
+    if snap.enqueued != 0 {
+        return TestResult::Fail;
+    }
+    if snap.dequeued != 0 {
+        return TestResult::Fail;
+    }
+    if snap.current_size != 0 {
+        return TestResult::Fail;
+    }
+    TestResult::Pass
 }
 
-#[test]
-fn test_inbox_stats_snapshot_full_utilization() {
+pub fn test_inbox_stats_snapshot_full_utilization() -> TestResult {
     let snap = InboxStatsSnapshot {
         enqueued: 1000,
         dequeued: 500,
@@ -251,11 +313,13 @@ fn test_inbox_stats_snapshot_full_utilization() {
         current_size: 500,
         capacity: 500,
     };
-    assert_eq!(snap.current_size, snap.capacity);
+    if snap.current_size != snap.capacity {
+        return TestResult::Fail;
+    }
+    TestResult::Pass
 }
 
-#[test]
-fn test_inbox_stats_snapshot_with_drops() {
+pub fn test_inbox_stats_snapshot_with_drops() -> TestResult {
     let snap = InboxStatsSnapshot {
         enqueued: 1000,
         dequeued: 950,
@@ -265,12 +329,16 @@ fn test_inbox_stats_snapshot_with_drops() {
         current_size: 50,
         capacity: 256,
     };
-    assert!(snap.dropped_full > 0);
-    assert!(snap.timeouts > 0);
+    if !(snap.dropped_full > 0) {
+        return TestResult::Fail;
+    }
+    if !(snap.timeouts > 0) {
+        return TestResult::Fail;
+    }
+    TestResult::Pass
 }
 
-#[test]
-fn test_inbox_stats_snapshot_large_values() {
+pub fn test_inbox_stats_snapshot_large_values() -> TestResult {
     let snap = InboxStatsSnapshot {
         enqueued: u64::MAX,
         dequeued: u64::MAX - 1,
@@ -281,60 +349,72 @@ fn test_inbox_stats_snapshot_large_values() {
         capacity: 65536,
     };
     let display = alloc::format!("{}", snap);
-    assert!(!display.is_empty());
+    if display.is_empty() {
+        return TestResult::Fail;
+    }
+    TestResult::Pass
 }
 
-#[test]
-fn test_inbox_error_with_special_characters() {
+pub fn test_inbox_error_with_special_characters() -> TestResult {
     let err = InboxError::NotFound {
         module: String::from("module/with/slashes"),
     };
     let display = alloc::format!("{}", err);
-    assert!(display.contains("module/with/slashes"));
+    if !display.contains("module/with/slashes") {
+        return TestResult::Fail;
+    }
+    TestResult::Pass
 }
 
-#[test]
-fn test_inbox_error_with_unicode() {
+pub fn test_inbox_error_with_unicode() -> TestResult {
     let err = InboxError::NotFound {
         module: String::from("模块"),
     };
     let display = alloc::format!("{}", err);
-    assert!(display.contains("模块"));
+    if !display.contains("模块") {
+        return TestResult::Fail;
+    }
+    TestResult::Pass
 }
 
-#[test]
-fn test_inbox_error_full_zero_capacity() {
+pub fn test_inbox_error_full_zero_capacity() -> TestResult {
     let err = InboxError::Full {
         module: String::from("mod"),
         capacity: 0,
     };
     let display = alloc::format!("{}", err);
-    assert!(display.contains("0"));
+    if !display.contains("0") {
+        return TestResult::Fail;
+    }
+    TestResult::Pass
 }
 
-#[test]
-fn test_inbox_error_timeout_zero_wait() {
+pub fn test_inbox_error_timeout_zero_wait() -> TestResult {
     let err = InboxError::Timeout {
         module: String::from("mod"),
         waited_ms: 0,
     };
     let display = alloc::format!("{}", err);
-    assert!(display.contains("0ms"));
+    if !display.contains("0ms") {
+        return TestResult::Fail;
+    }
+    TestResult::Pass
 }
 
-#[test]
-fn test_inbox_error_invalid_capacity_edge_case() {
+pub fn test_inbox_error_invalid_capacity_edge_case() -> TestResult {
     let err = InboxError::InvalidCapacity {
         value: 0,
         min: 1,
         max: 1,
     };
     let display = alloc::format!("{}", err);
-    assert!(display.contains("1"));
+    if !display.contains("1") {
+        return TestResult::Fail;
+    }
+    TestResult::Pass
 }
 
-#[test]
-fn test_inbox_stats_pending_messages() {
+pub fn test_inbox_stats_pending_messages() -> TestResult {
     let snap = InboxStatsSnapshot {
         enqueued: 100,
         dequeued: 80,
@@ -344,11 +424,13 @@ fn test_inbox_stats_pending_messages() {
         current_size: 20,
         capacity: 100,
     };
-    assert_eq!(snap.enqueued - snap.dequeued, snap.current_size as u64);
+    if snap.enqueued - snap.dequeued != snap.current_size as u64 {
+        return TestResult::Fail;
+    }
+    TestResult::Pass
 }
 
-#[test]
-fn test_inbox_stats_display_format() {
+pub fn test_inbox_stats_display_format() -> TestResult {
     let snap = InboxStatsSnapshot {
         enqueued: 42,
         dequeued: 30,
@@ -359,11 +441,23 @@ fn test_inbox_stats_display_format() {
         capacity: 64,
     };
     let display = alloc::format!("{}", snap);
-    assert!(display.contains("enq:42"));
-    assert!(display.contains("deq:30"));
-    assert!(display.contains("drop:2"));
-    assert!(display.contains("timeout:1"));
-    assert!(display.contains("12/64"));
-    assert!(display.contains("peak:15"));
+    if !display.contains("enq:42") {
+        return TestResult::Fail;
+    }
+    if !display.contains("deq:30") {
+        return TestResult::Fail;
+    }
+    if !display.contains("drop:2") {
+        return TestResult::Fail;
+    }
+    if !display.contains("timeout:1") {
+        return TestResult::Fail;
+    }
+    if !display.contains("12/64") {
+        return TestResult::Fail;
+    }
+    if !display.contains("peak:15") {
+        return TestResult::Fail;
+    }
+    TestResult::Pass
 }
-

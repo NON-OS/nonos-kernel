@@ -5,212 +5,212 @@ use crate::ipc::nonos_channel::{
     DEFAULT_MAX_QUEUE, DEFAULT_MSG_TIMEOUT_MS, MAX_MESSAGE_SIZE,
 };
 use crate::syscall::capabilities::CapabilityToken;
+use crate::test::framework::TestResult;
 use alloc::string::String;
 use alloc::vec;
 
-#[test]
-fn test_ipc_message_creation() {
+pub fn test_ipc_message_creation() -> TestResult {
     let msg = IpcMessage::new("sender", "receiver", b"hello world");
-    assert!(msg.is_ok());
+    if msg.is_err() { return TestResult::Fail; }
     let msg = msg.unwrap();
-    assert_eq!(msg.from, "sender");
-    assert_eq!(msg.to, "receiver");
-    assert_eq!(msg.data, b"hello world".to_vec());
+    if msg.from != "sender" { return TestResult::Fail; }
+    if msg.to != "receiver" { return TestResult::Fail; }
+    if msg.data != b"hello world".to_vec() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_ipc_message_empty_payload() {
+pub fn test_ipc_message_empty_payload() -> TestResult {
     let msg = IpcMessage::new("a", "b", &[]);
-    assert!(msg.is_ok());
+    if msg.is_err() { return TestResult::Fail; }
     let msg = msg.unwrap();
-    assert!(msg.is_empty());
-    assert_eq!(msg.payload_size(), 0);
+    if !msg.is_empty() { return TestResult::Fail; }
+    if msg.payload_size() != 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_ipc_message_payload_size() {
+pub fn test_ipc_message_payload_size() -> TestResult {
     let msg = IpcMessage::new("a", "b", b"test payload").unwrap();
-    assert_eq!(msg.payload_size(), 12);
-    assert!(!msg.is_empty());
+    if msg.payload_size() != 12 { return TestResult::Fail; }
+    if msg.is_empty() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_ipc_message_validate_integrity() {
+pub fn test_ipc_message_validate_integrity() -> TestResult {
     let msg = IpcMessage::new("sender", "receiver", b"data").unwrap();
-    assert!(msg.validate_integrity());
+    if !msg.validate_integrity() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_ipc_message_with_timestamp() {
+pub fn test_ipc_message_with_timestamp() -> TestResult {
     let msg = IpcMessage::with_timestamp("a", "b", b"test", 12345);
-    assert_eq!(msg.timestamp_ms, 12345);
-    assert!(msg.validate_integrity());
+    if msg.timestamp_ms != 12345 { return TestResult::Fail; }
+    if !msg.validate_integrity() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_ipc_message_size_limit_exceeded() {
+pub fn test_ipc_message_size_limit_exceeded() -> TestResult {
     let large_data = vec![0u8; MAX_MESSAGE_SIZE + 1];
     let result = IpcMessage::new("a", "b", &large_data);
-    assert!(result.is_err());
+    if result.is_ok() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_ipc_message_size_limit_at_boundary() {
+pub fn test_ipc_message_size_limit_at_boundary() -> TestResult {
     let boundary_data = vec![0u8; MAX_MESSAGE_SIZE];
     let result = IpcMessage::new("a", "b", &boundary_data);
-    assert!(result.is_ok());
+    if result.is_err() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_ipc_message_display() {
+pub fn test_ipc_message_display() -> TestResult {
     let msg = IpcMessage::with_timestamp("sender", "receiver", b"hello", 1000);
     let s = alloc::format!("{}", msg);
-    assert!(s.contains("sender"));
-    assert!(s.contains("receiver"));
-    assert!(s.contains("5 bytes"));
+    if !s.contains("sender") { return TestResult::Fail; }
+    if !s.contains("receiver") { return TestResult::Fail; }
+    if !s.contains("5 bytes") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_ipc_message_clone() {
+pub fn test_ipc_message_clone() -> TestResult {
     let msg = IpcMessage::new("a", "b", b"data").unwrap();
     let cloned = msg.clone();
-    assert_eq!(cloned.from, msg.from);
-    assert_eq!(cloned.to, msg.to);
-    assert_eq!(cloned.data, msg.data);
-    assert!(cloned.validate_integrity());
+    if cloned.from != msg.from { return TestResult::Fail; }
+    if cloned.to != msg.to { return TestResult::Fail; }
+    if cloned.data != msg.data { return TestResult::Fail; }
+    if !cloned.validate_integrity() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_ipc_channel_key() {
+pub fn test_ipc_channel_key() -> TestResult {
     let bus = IpcBus::new();
     let token = CapabilityToken::system();
     bus.open_channel("test_key_from", "test_key_to", &token).unwrap();
     let channel = bus.find_channel("test_key_from", "test_key_to").unwrap();
-    assert!(channel.key() != 0);
+    if channel.key() == 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_ipc_channel_debug() {
+pub fn test_ipc_channel_debug() -> TestResult {
     let bus = IpcBus::new();
     let token = CapabilityToken::system();
     bus.open_channel("debug_from", "debug_to", &token).unwrap();
     let channel = bus.find_channel("debug_from", "debug_to").unwrap();
     let s = alloc::format!("{:?}", channel);
-    assert!(s.contains("IpcChannel"));
+    if !s.contains("IpcChannel") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_ipc_channel_copy() {
+pub fn test_ipc_channel_copy() -> TestResult {
     let bus = IpcBus::new();
     let token = CapabilityToken::system();
     bus.open_channel("copy_from", "copy_to", &token).unwrap();
     let channel = bus.find_channel("copy_from", "copy_to").unwrap();
     let key = channel.key();
-    assert!(key != 0);
+    if key == 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_compute_channel_key_consistency() {
+pub fn test_compute_channel_key_consistency() -> TestResult {
     let key1 = compute_channel_key("from", "to");
     let key2 = compute_channel_key("from", "to");
-    assert_eq!(key1, key2);
+    if key1 != key2 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_compute_channel_key_different_endpoints() {
+pub fn test_compute_channel_key_different_endpoints() -> TestResult {
     let key1 = compute_channel_key("from1", "to1");
     let key2 = compute_channel_key("from2", "to2");
-    assert_ne!(key1, key2);
+    if key1 == key2 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_compute_channel_key_order_matters() {
+pub fn test_compute_channel_key_order_matters() -> TestResult {
     let key1 = compute_channel_key("a", "b");
     let key2 = compute_channel_key("b", "a");
-    assert_ne!(key1, key2);
+    if key1 == key2 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_compute_checksum_consistency() {
+pub fn test_compute_checksum_consistency() -> TestResult {
     let csum1 = compute_checksum("from", "to", b"data", 1000);
     let csum2 = compute_checksum("from", "to", b"data", 1000);
-    assert_eq!(csum1, csum2);
+    if csum1 != csum2 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_compute_checksum_different_data() {
+pub fn test_compute_checksum_different_data() -> TestResult {
     let csum1 = compute_checksum("from", "to", b"data1", 1000);
     let csum2 = compute_checksum("from", "to", b"data2", 1000);
-    assert_ne!(csum1, csum2);
+    if csum1 == csum2 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_compute_checksum_different_timestamp() {
+pub fn test_compute_checksum_different_timestamp() -> TestResult {
     let csum1 = compute_checksum("from", "to", b"data", 1000);
     let csum2 = compute_checksum("from", "to", b"data", 2000);
-    assert_ne!(csum1, csum2);
+    if csum1 == csum2 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_init_ipc_secret_idempotent() {
+pub fn test_init_ipc_secret_idempotent() -> TestResult {
     init_ipc_secret();
     let key1 = compute_channel_key("test", "secret");
     init_ipc_secret();
     let key2 = compute_channel_key("test", "secret");
-    assert_eq!(key1, key2);
+    if key1 != key2 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_ipc_bus_new() {
+pub fn test_ipc_bus_new() -> TestResult {
     let bus = IpcBus::new();
-    assert_eq!(bus.get_active_channel_count(), 0);
-    assert_eq!(bus.get_queue_depth(), 0);
+    if bus.get_active_channel_count() != 0 { return TestResult::Fail; }
+    if bus.get_queue_depth() != 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_ipc_bus_channel_exists() {
+pub fn test_ipc_bus_channel_exists() -> TestResult {
     let bus = IpcBus::new();
     let token = CapabilityToken::system();
     bus.open_channel("from", "to", &token).unwrap();
-    assert!(bus.channel_exists("from", "to"));
-    assert!(!bus.channel_exists("nonexistent", "channel"));
+    if !bus.channel_exists("from", "to") { return TestResult::Fail; }
+    if bus.channel_exists("nonexistent", "channel") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_ipc_bus_open_channel_idempotent() {
+pub fn test_ipc_bus_open_channel_idempotent() -> TestResult {
     let bus = IpcBus::new();
     let token = CapabilityToken::system();
     bus.open_channel("a", "b", &token).unwrap();
     bus.open_channel("a", "b", &token).unwrap();
-    assert_eq!(bus.get_active_channel_count(), 1);
+    if bus.get_active_channel_count() != 1 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_ipc_bus_open_channel_empty_endpoints() {
+pub fn test_ipc_bus_open_channel_empty_endpoints() -> TestResult {
     let bus = IpcBus::new();
     let token = CapabilityToken::system();
     let result = bus.open_channel("", "to", &token);
-    assert!(result.is_err());
+    if result.is_ok() { return TestResult::Fail; }
 
     let result = bus.open_channel("from", "", &token);
-    assert!(result.is_err());
+    if result.is_ok() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_ipc_bus_find_channel() {
+pub fn test_ipc_bus_find_channel() -> TestResult {
     let bus = IpcBus::new();
     let token = CapabilityToken::system();
     bus.open_channel("sender", "receiver", &token).unwrap();
 
     let channel = bus.find_channel("sender", "receiver");
-    assert!(channel.is_some());
+    if channel.is_none() { return TestResult::Fail; }
 
     let channel = bus.find_channel("nonexistent", "channel");
-    assert!(channel.is_none());
+    if channel.is_some() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_ipc_bus_enqueue_and_dequeue() {
+pub fn test_ipc_bus_enqueue_and_dequeue() -> TestResult {
     let bus = IpcBus::new();
     let token = CapabilityToken::system();
     bus.open_channel("from", "to", &token).unwrap();
@@ -219,53 +219,53 @@ fn test_ipc_bus_enqueue_and_dequeue() {
     let msg = IpcMessage::new("from", "to", b"test").unwrap();
     channel.send(msg).unwrap();
 
-    assert_eq!(bus.get_queue_depth(), 1);
+    if bus.get_queue_depth() != 1 { return TestResult::Fail; }
 
     let dequeued = bus.get_next_message();
-    assert!(dequeued.is_some());
-    assert_eq!(dequeued.unwrap().data, b"test".to_vec());
-    assert_eq!(bus.get_queue_depth(), 0);
+    if dequeued.is_none() { return TestResult::Fail; }
+    if dequeued.unwrap().data != b"test".to_vec() { return TestResult::Fail; }
+    if bus.get_queue_depth() != 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_ipc_bus_list_routes() {
+pub fn test_ipc_bus_list_routes() -> TestResult {
     let bus = IpcBus::new();
     let token = CapabilityToken::system();
     bus.open_channel("a", "b", &token).unwrap();
     bus.open_channel("c", "d", &token).unwrap();
 
     let routes = bus.list_routes();
-    assert_eq!(routes.len(), 2);
-    assert!(routes.iter().any(|(f, t)| f == "a" && t == "b"));
-    assert!(routes.iter().any(|(f, t)| f == "c" && t == "d"));
+    if routes.len() != 2 { return TestResult::Fail; }
+    if !routes.iter().any(|(f, t)| f == "a" && t == "b") { return TestResult::Fail; }
+    if !routes.iter().any(|(f, t)| f == "c" && t == "d") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_ipc_bus_remove_channel() {
+pub fn test_ipc_bus_remove_channel() -> TestResult {
     let bus = IpcBus::new();
     let token = CapabilityToken::system();
     bus.open_channel("a", "b", &token).unwrap();
-    assert_eq!(bus.get_active_channel_count(), 1);
+    if bus.get_active_channel_count() != 1 { return TestResult::Fail; }
 
     bus.remove_channel(0);
-    assert_eq!(bus.get_active_channel_count(), 0);
+    if bus.get_active_channel_count() != 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_ipc_bus_remove_all_channels_for_module() {
+pub fn test_ipc_bus_remove_all_channels_for_module() -> TestResult {
     let bus = IpcBus::new();
     let token = CapabilityToken::system();
     bus.open_channel("mod1", "mod2", &token).unwrap();
     bus.open_channel("mod1", "mod3", &token).unwrap();
     bus.open_channel("mod2", "mod3", &token).unwrap();
-    assert_eq!(bus.get_active_channel_count(), 3);
+    if bus.get_active_channel_count() != 3 { return TestResult::Fail; }
 
     bus.remove_all_channels_for_module("mod1");
-    assert_eq!(bus.get_active_channel_count(), 1);
+    if bus.get_active_channel_count() != 1 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_ipc_bus_get_stats() {
+pub fn test_ipc_bus_get_stats() -> TestResult {
     let bus = IpcBus::new();
     let token = CapabilityToken::system();
     bus.open_channel("from", "to", &token).unwrap();
@@ -275,13 +275,13 @@ fn test_ipc_bus_get_stats() {
     channel.send(msg).unwrap();
 
     let stats = bus.get_stats();
-    assert!(stats.channels_opened >= 1);
-    assert!(stats.messages_enqueued >= 1);
-    assert!(stats.bytes_transferred > 0);
+    if stats.channels_opened < 1 { return TestResult::Fail; }
+    if stats.messages_enqueued < 1 { return TestResult::Fail; }
+    if stats.bytes_transferred <= 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_bus_stats_snapshot_display() {
+pub fn test_bus_stats_snapshot_display() -> TestResult {
     let snap = BusStatsSnapshot {
         messages_enqueued: 100,
         messages_dequeued: 90,
@@ -294,129 +294,130 @@ fn test_bus_stats_snapshot_display() {
         current_channel_count: 8,
     };
     let s = alloc::format!("{}", snap);
-    assert!(s.contains("100"));
-    assert!(s.contains("90"));
-    assert!(s.contains("50000"));
+    if !s.contains("100") { return TestResult::Fail; }
+    if !s.contains("90") { return TestResult::Fail; }
+    if !s.contains("50000") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_channel_error_not_found() {
+pub fn test_channel_error_not_found() -> TestResult {
     let e = ChannelError::NotFound {
         from: String::from("a"),
         to: String::from("b"),
     };
-    assert_eq!(e.as_str(), "Channel not found");
+    if e.as_str() != "Channel not found" { return TestResult::Fail; }
     let msg = alloc::format!("{}", e);
-    assert!(msg.contains("a"));
-    assert!(msg.contains("b"));
+    if !msg.contains("a") { return TestResult::Fail; }
+    if !msg.contains("b") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_channel_error_queue_full() {
+pub fn test_channel_error_queue_full() -> TestResult {
     let e = ChannelError::QueueFull {
         queue_size: 100,
         max_size: 100,
     };
-    assert_eq!(e.as_str(), "Queue full");
+    if e.as_str() != "Queue full" { return TestResult::Fail; }
     let msg = alloc::format!("{}", e);
-    assert!(msg.contains("100"));
+    if !msg.contains("100") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_channel_error_message_too_large() {
+pub fn test_channel_error_message_too_large() -> TestResult {
     let e = ChannelError::MessageTooLarge {
         size: 2_000_000,
         max: 1_000_000,
     };
-    assert_eq!(e.as_str(), "Message too large");
+    if e.as_str() != "Message too large" { return TestResult::Fail; }
     let msg = alloc::format!("{}", e);
-    assert!(msg.contains("2000000"));
-    assert!(msg.contains("1000000"));
+    if !msg.contains("2000000") { return TestResult::Fail; }
+    if !msg.contains("1000000") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_channel_error_already_exists() {
+pub fn test_channel_error_already_exists() -> TestResult {
     let e = ChannelError::AlreadyExists {
         from: String::from("x"),
         to: String::from("y"),
     };
-    assert_eq!(e.as_str(), "Channel exists");
+    if e.as_str() != "Channel exists" { return TestResult::Fail; }
     let msg = alloc::format!("{}", e);
-    assert!(msg.contains("exists"));
+    if !msg.contains("exists") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_channel_error_invalid_endpoints() {
+pub fn test_channel_error_invalid_endpoints() -> TestResult {
     let e = ChannelError::InvalidEndpoints;
-    assert_eq!(e.as_str(), "Invalid endpoints");
+    if e.as_str() != "Invalid endpoints" { return TestResult::Fail; }
     let msg = alloc::format!("{}", e);
-    assert!(msg.contains("Invalid"));
+    if !msg.contains("Invalid") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_channel_error_integrity_check_failed() {
+pub fn test_channel_error_integrity_check_failed() -> TestResult {
     let e = ChannelError::IntegrityCheckFailed;
-    assert_eq!(e.as_str(), "Integrity check failed");
+    if e.as_str() != "Integrity check failed" { return TestResult::Fail; }
     let msg = alloc::format!("{}", e);
-    assert!(msg.contains("integrity"));
+    if !msg.contains("integrity") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_channel_error_equality() {
+pub fn test_channel_error_equality() -> TestResult {
     let e1 = ChannelError::InvalidEndpoints;
     let e2 = ChannelError::InvalidEndpoints;
     let e3 = ChannelError::IntegrityCheckFailed;
-    assert_eq!(e1, e2);
-    assert_ne!(e1, e3);
+    if e1 != e2 { return TestResult::Fail; }
+    if e1 == e3 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_default_max_queue_constant() {
-    assert!(DEFAULT_MAX_QUEUE > 0);
-    assert!(DEFAULT_MAX_QUEUE >= 1024);
+pub fn test_default_max_queue_constant() -> TestResult {
+    if DEFAULT_MAX_QUEUE <= 0 { return TestResult::Fail; }
+    if DEFAULT_MAX_QUEUE < 1024 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_default_msg_timeout_constant() {
-    assert!(DEFAULT_MSG_TIMEOUT_MS > 0);
-    assert!(DEFAULT_MSG_TIMEOUT_MS >= 1000);
+pub fn test_default_msg_timeout_constant() -> TestResult {
+    if DEFAULT_MSG_TIMEOUT_MS <= 0 { return TestResult::Fail; }
+    if DEFAULT_MSG_TIMEOUT_MS < 1000 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_max_message_size_constant() {
-    assert!(MAX_MESSAGE_SIZE > 0);
-    assert_eq!(MAX_MESSAGE_SIZE, 1024 * 1024);
+pub fn test_max_message_size_constant() -> TestResult {
+    if MAX_MESSAGE_SIZE <= 0 { return TestResult::Fail; }
+    if MAX_MESSAGE_SIZE != 1024 * 1024 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_global_ipc_bus_exists() {
-    assert!(IPC_BUS.get_active_channel_count() >= 0);
+pub fn test_global_ipc_bus_exists() -> TestResult {
+    if IPC_BUS.get_active_channel_count() < 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_ipc_bus_find_dead_channels_empty() {
+pub fn test_ipc_bus_find_dead_channels_empty() -> TestResult {
     let bus = IpcBus::new();
     let dead = bus.find_dead_channels();
-    assert!(dead.is_empty());
+    if !dead.is_empty() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_ipc_bus_get_timed_out_messages_empty() {
+pub fn test_ipc_bus_get_timed_out_messages_empty() -> TestResult {
     let bus = IpcBus::new();
     let timed_out = bus.get_timed_out_messages();
-    assert!(timed_out.is_empty());
+    if !timed_out.is_empty() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_ipc_bus_get_next_message_empty() {
+pub fn test_ipc_bus_get_next_message_empty() -> TestResult {
     let bus = IpcBus::new();
     let msg = bus.get_next_message();
-    assert!(msg.is_none());
+    if msg.is_some() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_ipc_bus_remove_channel_out_of_bounds() {
+pub fn test_ipc_bus_remove_channel_out_of_bounds() -> TestResult {
     let bus = IpcBus::new();
     bus.remove_channel(999);
-    assert_eq!(bus.get_active_channel_count(), 0);
+    if bus.get_active_channel_count() != 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
