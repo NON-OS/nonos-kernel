@@ -12,125 +12,125 @@ use crate::test::framework::TestResult;
 use alloc::string::String;
 use core::sync::atomic::Ordering;
 
-pub fn test_action_allow() -> TestResult {
+pub(crate) fn test_action_allow() -> TestResult {
     let action = Action::Allow;
     if action != Action::Allow { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_action_deny() -> TestResult {
+pub(crate) fn test_action_deny() -> TestResult {
     let action = Action::Deny;
     if action != Action::Deny { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_action_drop() -> TestResult {
+pub(crate) fn test_action_drop() -> TestResult {
     let action = Action::Drop;
     if action != Action::Drop { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_action_log() -> TestResult {
+pub(crate) fn test_action_log() -> TestResult {
     let action = Action::Log;
     if action != Action::Log { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_action_rate_limit() -> TestResult {
+pub(crate) fn test_action_rate_limit() -> TestResult {
     let action = Action::RateLimit;
     if action != Action::RateLimit { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_action_equality() -> TestResult {
+pub(crate) fn test_action_equality() -> TestResult {
     if Action::Allow != Action::Allow { return TestResult::Fail; }
     if Action::Allow == Action::Deny { return TestResult::Fail; }
     if Action::Drop == Action::Log { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_action_clone() -> TestResult {
+pub(crate) fn test_action_clone() -> TestResult {
     let action = Action::Deny;
     let cloned = action.clone();
     if action != cloned { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_protocol_any() -> TestResult {
+pub(crate) fn test_protocol_any() -> TestResult {
     let proto = Protocol::Any;
     if proto != Protocol::Any { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_protocol_tcp() -> TestResult {
+pub(crate) fn test_protocol_tcp() -> TestResult {
     let proto = Protocol::Tcp;
     if proto != Protocol::Tcp { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_protocol_udp() -> TestResult {
+pub(crate) fn test_protocol_udp() -> TestResult {
     let proto = Protocol::Udp;
     if proto != Protocol::Udp { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_protocol_icmp() -> TestResult {
+pub(crate) fn test_protocol_icmp() -> TestResult {
     let proto = Protocol::Icmp;
     if proto != Protocol::Icmp { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_protocol_equality() -> TestResult {
+pub(crate) fn test_protocol_equality() -> TestResult {
     if Protocol::Tcp != Protocol::Tcp { return TestResult::Fail; }
     if Protocol::Tcp == Protocol::Udp { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_protocol_clone() -> TestResult {
+pub(crate) fn test_protocol_clone() -> TestResult {
     let proto = Protocol::Icmp;
     let cloned = proto.clone();
     if proto != cloned { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_direction_inbound() -> TestResult {
+pub(crate) fn test_direction_inbound() -> TestResult {
     let dir = Direction::Inbound;
     if dir != Direction::Inbound { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_direction_outbound() -> TestResult {
+pub(crate) fn test_direction_outbound() -> TestResult {
     let dir = Direction::Outbound;
     if dir != Direction::Outbound { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_direction_both() -> TestResult {
+pub(crate) fn test_direction_both() -> TestResult {
     let dir = Direction::Both;
     if dir != Direction::Both { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_direction_equality() -> TestResult {
+pub(crate) fn test_direction_equality() -> TestResult {
     if Direction::Inbound != Direction::Inbound { return TestResult::Fail; }
     if Direction::Inbound == Direction::Outbound { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_direction_clone() -> TestResult {
+pub(crate) fn test_direction_clone() -> TestResult {
     let dir = Direction::Both;
     let cloned = dir.clone();
     if dir != cloned { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_ip_match_any() -> TestResult {
+pub(crate) fn test_ip_match_any() -> TestResult {
     let m = IpMatch::Any;
     if m != IpMatch::Any { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_ip_match_single() -> TestResult {
+pub(crate) fn test_ip_match_single() -> TestResult {
     let m = IpMatch::Single([192, 168, 1, 1]);
     if let IpMatch::Single(addr) = m {
         if addr != [192, 168, 1, 1] { return TestResult::Fail; }
@@ -140,7 +140,7 @@ pub fn test_ip_match_single() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_ip_match_subnet() -> TestResult {
+pub(crate) fn test_ip_match_subnet() -> TestResult {
     let m = IpMatch::Subnet([192, 168, 0, 0], 16);
     if let IpMatch::Subnet(addr, prefix) = m {
         if addr != [192, 168, 0, 0] { return TestResult::Fail; }
@@ -151,7 +151,7 @@ pub fn test_ip_match_subnet() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_ip_match_range() -> TestResult {
+pub(crate) fn test_ip_match_range() -> TestResult {
     let m = IpMatch::Range([10, 0, 0, 1], [10, 0, 0, 255]);
     if let IpMatch::Range(start, end) = m {
         if start != [10, 0, 0, 1] { return TestResult::Fail; }
@@ -162,27 +162,27 @@ pub fn test_ip_match_range() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_ip_match_equality() -> TestResult {
+pub(crate) fn test_ip_match_equality() -> TestResult {
     if IpMatch::Any != IpMatch::Any { return TestResult::Fail; }
     if IpMatch::Single([1, 2, 3, 4]) != IpMatch::Single([1, 2, 3, 4]) { return TestResult::Fail; }
     if IpMatch::Single([1, 2, 3, 4]) == IpMatch::Single([1, 2, 3, 5]) { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_ip_match_clone() -> TestResult {
+pub(crate) fn test_ip_match_clone() -> TestResult {
     let m = IpMatch::Subnet([172, 16, 0, 0], 12);
     let cloned = m.clone();
     if m != cloned { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_port_match_any() -> TestResult {
+pub(crate) fn test_port_match_any() -> TestResult {
     let m = PortMatch::Any;
     if m != PortMatch::Any { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_port_match_single() -> TestResult {
+pub(crate) fn test_port_match_single() -> TestResult {
     let m = PortMatch::Single(80);
     if let PortMatch::Single(port) = m {
         if port != 80 { return TestResult::Fail; }
@@ -192,7 +192,7 @@ pub fn test_port_match_single() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_port_match_range() -> TestResult {
+pub(crate) fn test_port_match_range() -> TestResult {
     let m = PortMatch::Range(1024, 65535);
     if let PortMatch::Range(start, end) = m {
         if start != 1024 { return TestResult::Fail; }
@@ -203,7 +203,7 @@ pub fn test_port_match_range() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_port_match_list() -> TestResult {
+pub(crate) fn test_port_match_list() -> TestResult {
     let m = PortMatch::List([80, 443, 8080, 8443, 0, 0, 0, 0], 4);
     if let PortMatch::List(ports, count) = m {
         if count != 4 { return TestResult::Fail; }
@@ -217,21 +217,21 @@ pub fn test_port_match_list() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_port_match_equality() -> TestResult {
+pub(crate) fn test_port_match_equality() -> TestResult {
     if PortMatch::Any != PortMatch::Any { return TestResult::Fail; }
     if PortMatch::Single(443) != PortMatch::Single(443) { return TestResult::Fail; }
     if PortMatch::Single(80) == PortMatch::Single(443) { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_port_match_clone() -> TestResult {
+pub(crate) fn test_port_match_clone() -> TestResult {
     let m = PortMatch::Range(1, 1023);
     let cloned = m.clone();
     if m != cloned { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_rate_limit_fields() -> TestResult {
+pub(crate) fn test_rate_limit_fields() -> TestResult {
     let rl = RateLimit {
         packets_per_second: 100,
         burst_size: 10,
@@ -241,7 +241,7 @@ pub fn test_rate_limit_fields() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_rate_limit_clone() -> TestResult {
+pub(crate) fn test_rate_limit_clone() -> TestResult {
     let rl = RateLimit {
         packets_per_second: 1000,
         burst_size: 50,
@@ -252,7 +252,7 @@ pub fn test_rate_limit_clone() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_rule_stats_default() -> TestResult {
+pub(crate) fn test_rule_stats_default() -> TestResult {
     let stats = RuleStats::default();
     if stats.matches.load(Ordering::Relaxed) != 0 { return TestResult::Fail; }
     if stats.bytes.load(Ordering::Relaxed) != 0 { return TestResult::Fail; }
@@ -260,7 +260,7 @@ pub fn test_rule_stats_default() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_rule_stats_clone() -> TestResult {
+pub(crate) fn test_rule_stats_clone() -> TestResult {
     let stats = RuleStats::default();
     stats.matches.store(100, Ordering::Relaxed);
     stats.bytes.store(5000, Ordering::Relaxed);
@@ -273,7 +273,7 @@ pub fn test_rule_stats_clone() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_rule_fields() -> TestResult {
+pub(crate) fn test_rule_fields() -> TestResult {
     let rule = Rule {
         id: 1,
         name: String::from("Allow HTTP"),
@@ -302,7 +302,7 @@ pub fn test_rule_fields() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_rule_with_rate_limit() -> TestResult {
+pub(crate) fn test_rule_with_rate_limit() -> TestResult {
     let rule = Rule {
         id: 2,
         name: String::from("Rate Limited"),
@@ -328,7 +328,7 @@ pub fn test_rule_with_rate_limit() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_rule_clone() -> TestResult {
+pub(crate) fn test_rule_clone() -> TestResult {
     let rule = Rule {
         id: 3,
         name: String::from("Block All"),
@@ -352,50 +352,50 @@ pub fn test_rule_clone() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_conn_state_new() -> TestResult {
+pub(crate) fn test_conn_state_new() -> TestResult {
     let state = ConnState::New;
     if state != ConnState::New { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_conn_state_established() -> TestResult {
+pub(crate) fn test_conn_state_established() -> TestResult {
     let state = ConnState::Established;
     if state != ConnState::Established { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_conn_state_related() -> TestResult {
+pub(crate) fn test_conn_state_related() -> TestResult {
     let state = ConnState::Related;
     if state != ConnState::Related { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_conn_state_invalid() -> TestResult {
+pub(crate) fn test_conn_state_invalid() -> TestResult {
     let state = ConnState::Invalid;
     if state != ConnState::Invalid { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_conn_state_time_wait() -> TestResult {
+pub(crate) fn test_conn_state_time_wait() -> TestResult {
     let state = ConnState::TimeWait;
     if state != ConnState::TimeWait { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_conn_state_equality() -> TestResult {
+pub(crate) fn test_conn_state_equality() -> TestResult {
     if ConnState::Established != ConnState::Established { return TestResult::Fail; }
     if ConnState::New == ConnState::Established { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_conn_state_clone() -> TestResult {
+pub(crate) fn test_conn_state_clone() -> TestResult {
     let state = ConnState::Related;
     let cloned = state.clone();
     if state != cloned { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_conn_track_fields() -> TestResult {
+pub(crate) fn test_conn_track_fields() -> TestResult {
     let conn = ConnTrack {
         src_ip: [192, 168, 1, 100],
         dst_ip: [93, 184, 216, 34],
@@ -427,7 +427,7 @@ pub fn test_conn_track_fields() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_conn_track_clone() -> TestResult {
+pub(crate) fn test_conn_track_clone() -> TestResult {
     let conn = ConnTrack {
         src_ip: [10, 0, 0, 1],
         dst_ip: [10, 0, 0, 2],
@@ -450,7 +450,7 @@ pub fn test_conn_track_clone() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_firewall_stats_default() -> TestResult {
+pub(crate) fn test_firewall_stats_default() -> TestResult {
     let stats = FirewallStats::default();
     if stats.packets_allowed.load(Ordering::Relaxed) != 0 { return TestResult::Fail; }
     if stats.packets_denied.load(Ordering::Relaxed) != 0 { return TestResult::Fail; }
@@ -462,28 +462,28 @@ pub fn test_firewall_stats_default() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_format_ip() -> TestResult {
+pub(crate) fn test_format_ip() -> TestResult {
     let ip = [192, 168, 1, 1];
     let formatted = format_ip(ip);
     if formatted != "192.168.1.1" { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_format_ip_zeros() -> TestResult {
+pub(crate) fn test_format_ip_zeros() -> TestResult {
     let ip = [0, 0, 0, 0];
     let formatted = format_ip(ip);
     if formatted != "0.0.0.0" { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_format_ip_max() -> TestResult {
+pub(crate) fn test_format_ip_max() -> TestResult {
     let ip = [255, 255, 255, 255];
     let formatted = format_ip(ip);
     if formatted != "255.255.255.255" { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_format_ip_localhost() -> TestResult {
+pub(crate) fn test_format_ip_localhost() -> TestResult {
     let ip = [127, 0, 0, 1];
     let formatted = format_ip(ip);
     if formatted != "127.0.0.1" { return TestResult::Fail; }

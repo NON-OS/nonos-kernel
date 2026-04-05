@@ -11,146 +11,146 @@ use alloc::string::String;
 use alloc::vec::Vec;
 use alloc::vec;
 
-pub fn test_max_query_cache_constant() -> TestResult {
+pub(crate) fn test_max_query_cache_constant() -> TestResult {
     if MAX_QUERY_CACHE != 64 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_default_ttl_ms_constant() -> TestResult {
+pub(crate) fn test_default_ttl_ms_constant() -> TestResult {
     if DEFAULT_TTL_MS != 300_000 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_max_cname_depth_constant() -> TestResult {
+pub(crate) fn test_max_cname_depth_constant() -> TestResult {
     if MAX_CNAME_DEPTH != 8 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_dns_record_type_a() -> TestResult {
+pub(crate) fn test_dns_record_type_a() -> TestResult {
     if DnsRecordType::A as u16 != 1 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_dns_record_type_ns() -> TestResult {
+pub(crate) fn test_dns_record_type_ns() -> TestResult {
     if DnsRecordType::NS as u16 != 2 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_dns_record_type_cname() -> TestResult {
+pub(crate) fn test_dns_record_type_cname() -> TestResult {
     if DnsRecordType::CNAME as u16 != 5 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_dns_record_type_soa() -> TestResult {
+pub(crate) fn test_dns_record_type_soa() -> TestResult {
     if DnsRecordType::SOA as u16 != 6 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_dns_record_type_ptr() -> TestResult {
+pub(crate) fn test_dns_record_type_ptr() -> TestResult {
     if DnsRecordType::PTR as u16 != 12 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_dns_record_type_mx() -> TestResult {
+pub(crate) fn test_dns_record_type_mx() -> TestResult {
     if DnsRecordType::MX as u16 != 15 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_dns_record_type_txt() -> TestResult {
+pub(crate) fn test_dns_record_type_txt() -> TestResult {
     if DnsRecordType::TXT as u16 != 16 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_dns_record_type_aaaa() -> TestResult {
+pub(crate) fn test_dns_record_type_aaaa() -> TestResult {
     if DnsRecordType::AAAA as u16 != 28 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_dns_record_type_srv() -> TestResult {
+pub(crate) fn test_dns_record_type_srv() -> TestResult {
     if DnsRecordType::SRV as u16 != 33 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_dns_record_type_from_u16_a() -> TestResult {
+pub(crate) fn test_dns_record_type_from_u16_a() -> TestResult {
     if DnsRecordType::from_u16(1) != Some(DnsRecordType::A) { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_dns_record_type_from_u16_ns() -> TestResult {
+pub(crate) fn test_dns_record_type_from_u16_ns() -> TestResult {
     if DnsRecordType::from_u16(2) != Some(DnsRecordType::NS) { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_dns_record_type_from_u16_cname() -> TestResult {
+pub(crate) fn test_dns_record_type_from_u16_cname() -> TestResult {
     if DnsRecordType::from_u16(5) != Some(DnsRecordType::CNAME) { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_dns_record_type_from_u16_soa() -> TestResult {
+pub(crate) fn test_dns_record_type_from_u16_soa() -> TestResult {
     if DnsRecordType::from_u16(6) != Some(DnsRecordType::SOA) { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_dns_record_type_from_u16_ptr() -> TestResult {
+pub(crate) fn test_dns_record_type_from_u16_ptr() -> TestResult {
     if DnsRecordType::from_u16(12) != Some(DnsRecordType::PTR) { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_dns_record_type_from_u16_mx() -> TestResult {
+pub(crate) fn test_dns_record_type_from_u16_mx() -> TestResult {
     if DnsRecordType::from_u16(15) != Some(DnsRecordType::MX) { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_dns_record_type_from_u16_txt() -> TestResult {
+pub(crate) fn test_dns_record_type_from_u16_txt() -> TestResult {
     if DnsRecordType::from_u16(16) != Some(DnsRecordType::TXT) { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_dns_record_type_from_u16_aaaa() -> TestResult {
+pub(crate) fn test_dns_record_type_from_u16_aaaa() -> TestResult {
     if DnsRecordType::from_u16(28) != Some(DnsRecordType::AAAA) { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_dns_record_type_from_u16_srv() -> TestResult {
+pub(crate) fn test_dns_record_type_from_u16_srv() -> TestResult {
     if DnsRecordType::from_u16(33) != Some(DnsRecordType::SRV) { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_dns_record_type_from_u16_invalid() -> TestResult {
+pub(crate) fn test_dns_record_type_from_u16_invalid() -> TestResult {
     if DnsRecordType::from_u16(0) != None { return TestResult::Fail; }
     if DnsRecordType::from_u16(100) != None { return TestResult::Fail; }
     if DnsRecordType::from_u16(255) != None { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_dns_record_type_clone() -> TestResult {
+pub(crate) fn test_dns_record_type_clone() -> TestResult {
     let t = DnsRecordType::A;
     let cloned = t.clone();
     if t != cloned { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_dns_record_type_copy() -> TestResult {
+pub(crate) fn test_dns_record_type_copy() -> TestResult {
     let t1 = DnsRecordType::AAAA;
     let t2 = t1;
     if t1 != t2 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_dns_record_type_equality() -> TestResult {
+pub(crate) fn test_dns_record_type_equality() -> TestResult {
     if DnsRecordType::A != DnsRecordType::A { return TestResult::Fail; }
     if DnsRecordType::A == DnsRecordType::AAAA { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_dns_record_type_debug() -> TestResult {
+pub(crate) fn test_dns_record_type_debug() -> TestResult {
     let t = DnsRecordType::MX;
     let debug_str = alloc::format!("{:?}", t);
     if !debug_str.contains("MX") { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_mx_record_fields() -> TestResult {
+pub(crate) fn test_mx_record_fields() -> TestResult {
     let mx = MxRecord {
         preference: 10,
         exchange: String::from("mail.example.com"),
@@ -160,7 +160,7 @@ pub fn test_mx_record_fields() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_mx_record_clone() -> TestResult {
+pub(crate) fn test_mx_record_clone() -> TestResult {
     let mx = MxRecord {
         preference: 20,
         exchange: String::from("smtp.test.org"),
@@ -171,7 +171,7 @@ pub fn test_mx_record_clone() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_mx_record_debug() -> TestResult {
+pub(crate) fn test_mx_record_debug() -> TestResult {
     let mx = MxRecord {
         preference: 5,
         exchange: String::from("mail.test.com"),
@@ -181,7 +181,7 @@ pub fn test_mx_record_debug() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_srv_record_fields() -> TestResult {
+pub(crate) fn test_srv_record_fields() -> TestResult {
     let srv = SrvRecord {
         priority: 10,
         weight: 20,
@@ -195,7 +195,7 @@ pub fn test_srv_record_fields() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_srv_record_clone() -> TestResult {
+pub(crate) fn test_srv_record_clone() -> TestResult {
     let srv = SrvRecord {
         priority: 1,
         weight: 100,
@@ -210,7 +210,7 @@ pub fn test_srv_record_clone() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_dns_record_a() -> TestResult {
+pub(crate) fn test_dns_record_a() -> TestResult {
     let record = DnsRecord::A([192, 168, 1, 1]);
     if let DnsRecord::A(addr) = record {
         if addr != [192, 168, 1, 1] { return TestResult::Fail; }
@@ -220,7 +220,7 @@ pub fn test_dns_record_a() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_dns_record_aaaa() -> TestResult {
+pub(crate) fn test_dns_record_aaaa() -> TestResult {
     let record = DnsRecord::AAAA([0x20, 0x01, 0x0d, 0xb8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1]);
     if let DnsRecord::AAAA(addr) = record {
         if addr[0] != 0x20 { return TestResult::Fail; }
@@ -231,7 +231,7 @@ pub fn test_dns_record_aaaa() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_dns_record_cname() -> TestResult {
+pub(crate) fn test_dns_record_cname() -> TestResult {
     let record = DnsRecord::CNAME(String::from("www.example.com"));
     if let DnsRecord::CNAME(name) = record {
         if name != "www.example.com" { return TestResult::Fail; }
@@ -241,7 +241,7 @@ pub fn test_dns_record_cname() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_dns_record_mx() -> TestResult {
+pub(crate) fn test_dns_record_mx() -> TestResult {
     let mx = MxRecord {
         preference: 10,
         exchange: String::from("mail.test.com"),
@@ -255,7 +255,7 @@ pub fn test_dns_record_mx() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_dns_record_txt() -> TestResult {
+pub(crate) fn test_dns_record_txt() -> TestResult {
     let record = DnsRecord::TXT(String::from("v=spf1 include:_spf.google.com ~all"));
     if let DnsRecord::TXT(txt) = record {
         if !txt.contains("spf1") { return TestResult::Fail; }
@@ -265,7 +265,7 @@ pub fn test_dns_record_txt() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_dns_record_ns() -> TestResult {
+pub(crate) fn test_dns_record_ns() -> TestResult {
     let record = DnsRecord::NS(String::from("ns1.example.com"));
     if let DnsRecord::NS(ns) = record {
         if ns != "ns1.example.com" { return TestResult::Fail; }
@@ -275,7 +275,7 @@ pub fn test_dns_record_ns() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_dns_record_ptr() -> TestResult {
+pub(crate) fn test_dns_record_ptr() -> TestResult {
     let record = DnsRecord::PTR(String::from("host.example.com"));
     if let DnsRecord::PTR(ptr) = record {
         if ptr != "host.example.com" { return TestResult::Fail; }
@@ -285,7 +285,7 @@ pub fn test_dns_record_ptr() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_dns_record_srv() -> TestResult {
+pub(crate) fn test_dns_record_srv() -> TestResult {
     let srv = SrvRecord {
         priority: 0,
         weight: 5,
@@ -301,7 +301,7 @@ pub fn test_dns_record_srv() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_dns_record_clone() -> TestResult {
+pub(crate) fn test_dns_record_clone() -> TestResult {
     let record = DnsRecord::A([10, 0, 0, 1]);
     let cloned = record.clone();
     if let (DnsRecord::A(a1), DnsRecord::A(a2)) = (record, cloned) {
@@ -310,7 +310,7 @@ pub fn test_dns_record_clone() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_dns_cache_entry_fields() -> TestResult {
+pub(crate) fn test_dns_cache_entry_fields() -> TestResult {
     let entry = DnsCacheEntry {
         hostname: String::from("example.com"),
         addresses: vec![[93, 184, 216, 34]],
@@ -324,7 +324,7 @@ pub fn test_dns_cache_entry_fields() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_dns_cache_entry_multiple_addresses() -> TestResult {
+pub(crate) fn test_dns_cache_entry_multiple_addresses() -> TestResult {
     let entry = DnsCacheEntry {
         hostname: String::from("multi.example.com"),
         addresses: vec![[1, 2, 3, 4], [5, 6, 7, 8], [9, 10, 11, 12]],
@@ -335,7 +335,7 @@ pub fn test_dns_cache_entry_multiple_addresses() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_dns_cache_entry_clone() -> TestResult {
+pub(crate) fn test_dns_cache_entry_clone() -> TestResult {
     let entry = DnsCacheEntry {
         hostname: String::from("test.com"),
         addresses: vec![[127, 0, 0, 1]],
@@ -348,7 +348,7 @@ pub fn test_dns_cache_entry_clone() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_dns_record_cache_entry_fields() -> TestResult {
+pub(crate) fn test_dns_record_cache_entry_fields() -> TestResult {
     let entry = DnsRecordCacheEntry {
         hostname: String::from("example.org"),
         record_type: DnsRecordType::A,
@@ -362,7 +362,7 @@ pub fn test_dns_record_cache_entry_fields() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_dns_record_cache_entry_clone() -> TestResult {
+pub(crate) fn test_dns_record_cache_entry_clone() -> TestResult {
     let entry = DnsRecordCacheEntry {
         hostname: String::from("test.org"),
         record_type: DnsRecordType::AAAA,
@@ -376,7 +376,7 @@ pub fn test_dns_record_cache_entry_clone() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_dns_query_record_fields() -> TestResult {
+pub(crate) fn test_dns_query_record_fields() -> TestResult {
     let query = DnsQueryRecord {
         hostname: String::from("query.test.com"),
         timestamp_ms: 999999,
@@ -388,7 +388,7 @@ pub fn test_dns_query_record_fields() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_dns_query_record_failed() -> TestResult {
+pub(crate) fn test_dns_query_record_failed() -> TestResult {
     let query = DnsQueryRecord {
         hostname: String::from("failed.test.com"),
         timestamp_ms: 100,
@@ -398,7 +398,7 @@ pub fn test_dns_query_record_failed() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_dns_query_record_clone() -> TestResult {
+pub(crate) fn test_dns_query_record_clone() -> TestResult {
     let query = DnsQueryRecord {
         hostname: String::from("clone.test.com"),
         timestamp_ms: 50000,
@@ -410,7 +410,7 @@ pub fn test_dns_query_record_clone() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_pending_query_fields() -> TestResult {
+pub(crate) fn test_pending_query_fields() -> TestResult {
     let pending = PendingQuery {
         hostname: String::from("pending.example.com"),
         start_ms: 1000,
@@ -422,7 +422,7 @@ pub fn test_pending_query_fields() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_pending_query_clone() -> TestResult {
+pub(crate) fn test_pending_query_clone() -> TestResult {
     let pending = PendingQuery {
         hostname: String::from("test.pending.com"),
         start_ms: 0,
@@ -434,7 +434,7 @@ pub fn test_pending_query_clone() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_dns_response_a_fields() -> TestResult {
+pub(crate) fn test_dns_response_a_fields() -> TestResult {
     let response = DnsResponseA {
         addresses: vec![[192, 168, 0, 1], [192, 168, 0, 2]],
         ttl_seconds: 3600,
@@ -446,7 +446,7 @@ pub fn test_dns_response_a_fields() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_dns_response_a_empty() -> TestResult {
+pub(crate) fn test_dns_response_a_empty() -> TestResult {
     let response = DnsResponseA {
         addresses: Vec::new(),
         ttl_seconds: 0,
@@ -457,7 +457,7 @@ pub fn test_dns_response_a_empty() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_dns_response_a_clone() -> TestResult {
+pub(crate) fn test_dns_response_a_clone() -> TestResult {
     let response = DnsResponseA {
         addresses: vec![[10, 0, 0, 1]],
         ttl_seconds: 300,
@@ -469,7 +469,7 @@ pub fn test_dns_response_a_clone() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_dns_response_aaaa_fields() -> TestResult {
+pub(crate) fn test_dns_response_aaaa_fields() -> TestResult {
     let response = DnsResponseAAAA {
         addresses: vec![[0x20, 0x01, 0x0d, 0xb8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1]],
         ttl_seconds: 7200,
@@ -479,7 +479,7 @@ pub fn test_dns_response_aaaa_fields() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_dns_response_aaaa_empty() -> TestResult {
+pub(crate) fn test_dns_response_aaaa_empty() -> TestResult {
     let response = DnsResponseAAAA {
         addresses: Vec::new(),
         ttl_seconds: 0,
@@ -488,7 +488,7 @@ pub fn test_dns_response_aaaa_empty() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_dns_response_aaaa_clone() -> TestResult {
+pub(crate) fn test_dns_response_aaaa_clone() -> TestResult {
     let response = DnsResponseAAAA {
         addresses: vec![[0; 16]],
         ttl_seconds: 600,
@@ -499,7 +499,7 @@ pub fn test_dns_response_aaaa_clone() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_dns_record_type_all_values() -> TestResult {
+pub(crate) fn test_dns_record_type_all_values() -> TestResult {
     let types = [
         (DnsRecordType::A, 1u16),
         (DnsRecordType::NS, 2),
