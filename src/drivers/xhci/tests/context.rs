@@ -14,92 +14,94 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-#[cfg(test)]
-mod tests {
-    use crate::drivers::xhci::types;
-    use core::mem;
+use crate::drivers::xhci::types;
+use crate::test::framework::TestResult;
+use core::mem;
 
-    #[test]
-    fn test_slot_context_size() {
-        assert_eq!(mem::size_of::<types::SlotContext>(), 32);
-    }
+pub fn test_slot_context_size() -> TestResult {
+    if mem::size_of::<types::SlotContext>() != 32 { return TestResult::Fail; }
+    TestResult::Pass
+}
 
-    #[test]
-    fn test_ep_context_size() {
-        assert_eq!(mem::size_of::<types::EpContext>(), 32);
-    }
+pub fn test_ep_context_size() -> TestResult {
+    if mem::size_of::<types::EpContext>() != 32 { return TestResult::Fail; }
+    TestResult::Pass
+}
 
-    #[test]
-    fn test_device_context_alignment() {
-        assert_eq!(mem::align_of::<types::DeviceContext>(), 64);
-    }
+pub fn test_device_context_alignment() -> TestResult {
+    if mem::align_of::<types::DeviceContext>() != 64 { return TestResult::Fail; }
+    TestResult::Pass
+}
 
-    #[test]
-    fn test_slot_context_fields() {
-        let mut slot = types::SlotContext::default();
+pub fn test_slot_context_fields() -> TestResult {
+    let mut slot = types::SlotContext::default();
 
-        slot.set_speed(4);
-        assert_eq!(slot.speed(), 4);
+    slot.set_speed(4);
+    if slot.speed() != 4 { return TestResult::Fail; }
 
-        slot.set_root_hub_port(3);
-        assert_eq!(slot.root_hub_port(), 3);
+    slot.set_root_hub_port(3);
+    if slot.root_hub_port() != 3 { return TestResult::Fail; }
 
-        slot.set_context_entries(5);
-        assert_eq!(slot.context_entries(), 5);
+    slot.set_context_entries(5);
+    if slot.context_entries() != 5 { return TestResult::Fail; }
 
-        slot.set_hub(true);
-        assert!(slot.hub());
+    slot.set_hub(true);
+    if !slot.hub() { return TestResult::Fail; }
 
-        slot.set_mtt(true);
-        assert!(slot.mtt());
-    }
+    slot.set_mtt(true);
+    if !slot.mtt() { return TestResult::Fail; }
 
-    #[test]
-    fn test_ep_context_dequeue_pointer() {
-        let mut ep = types::EpContext::default();
+    TestResult::Pass
+}
 
-        ep.set_tr_dequeue_pointer(0x1000_0010, true);
-        assert_eq!(ep.tr_dequeue_pointer(), 0x1000_0010);
-        assert!(ep.dcs());
+pub fn test_ep_context_dequeue_pointer() -> TestResult {
+    let mut ep = types::EpContext::default();
 
-        ep.set_tr_dequeue_pointer(0x2000_0020, false);
-        assert_eq!(ep.tr_dequeue_pointer(), 0x2000_0020);
-        assert!(!ep.dcs());
-    }
+    ep.set_tr_dequeue_pointer(0x1000_0010, true);
+    if ep.tr_dequeue_pointer() != 0x1000_0010 { return TestResult::Fail; }
+    if !ep.dcs() { return TestResult::Fail; }
 
-    #[test]
-    fn test_ep_context_max_packet_size() {
-        let mut ep = types::EpContext::default();
+    ep.set_tr_dequeue_pointer(0x2000_0020, false);
+    if ep.tr_dequeue_pointer() != 0x2000_0020 { return TestResult::Fail; }
+    if ep.dcs() { return TestResult::Fail; }
 
-        ep.set_max_packet_size(512);
-        assert_eq!(ep.max_packet_size(), 512);
+    TestResult::Pass
+}
 
-        ep.set_max_packet_size(1024);
-        assert_eq!(ep.max_packet_size(), 1024);
-    }
+pub fn test_ep_context_max_packet_size() -> TestResult {
+    let mut ep = types::EpContext::default();
 
-    #[test]
-    fn test_ep_addr_to_dci() {
-        assert_eq!(types::DeviceContext::ep_addr_to_dci(0x00), 1);
-        assert_eq!(types::DeviceContext::ep_addr_to_dci(0x80), 1);
-        assert_eq!(types::DeviceContext::ep_addr_to_dci(0x01), 2);
-        assert_eq!(types::DeviceContext::ep_addr_to_dci(0x81), 3);
-        assert_eq!(types::DeviceContext::ep_addr_to_dci(0x02), 4);
-        assert_eq!(types::DeviceContext::ep_addr_to_dci(0x82), 5);
-    }
+    ep.set_max_packet_size(512);
+    if ep.max_packet_size() != 512 { return TestResult::Fail; }
 
-    #[test]
-    fn test_input_control_context() {
-        let mut icc = types::InputControlContext::default();
+    ep.set_max_packet_size(1024);
+    if ep.max_packet_size() != 1024 { return TestResult::Fail; }
 
-        icc.add_context(0);
-        icc.add_context(1);
-        assert!(icc.is_adding(0));
-        assert!(icc.is_adding(1));
-        assert!(!icc.is_adding(2));
+    TestResult::Pass
+}
 
-        icc.drop_context(3);
-        assert!(icc.is_dropping(3));
-        assert!(!icc.is_dropping(0));
-    }
+pub fn test_ep_addr_to_dci() -> TestResult {
+    if types::DeviceContext::ep_addr_to_dci(0x00) != 1 { return TestResult::Fail; }
+    if types::DeviceContext::ep_addr_to_dci(0x80) != 1 { return TestResult::Fail; }
+    if types::DeviceContext::ep_addr_to_dci(0x01) != 2 { return TestResult::Fail; }
+    if types::DeviceContext::ep_addr_to_dci(0x81) != 3 { return TestResult::Fail; }
+    if types::DeviceContext::ep_addr_to_dci(0x02) != 4 { return TestResult::Fail; }
+    if types::DeviceContext::ep_addr_to_dci(0x82) != 5 { return TestResult::Fail; }
+    TestResult::Pass
+}
+
+pub fn test_input_control_context() -> TestResult {
+    let mut icc = types::InputControlContext::default();
+
+    icc.add_context(0);
+    icc.add_context(1);
+    if !icc.is_adding(0) { return TestResult::Fail; }
+    if !icc.is_adding(1) { return TestResult::Fail; }
+    if icc.is_adding(2) { return TestResult::Fail; }
+
+    icc.drop_context(3);
+    if !icc.is_dropping(3) { return TestResult::Fail; }
+    if icc.is_dropping(0) { return TestResult::Fail; }
+
+    TestResult::Pass
 }

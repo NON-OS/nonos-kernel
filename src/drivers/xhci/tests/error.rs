@@ -14,52 +14,46 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-#[cfg(test)]
-mod tests {
-    use crate::drivers::xhci::XhciError;
+use crate::drivers::xhci::XhciError;
+use crate::test::framework::TestResult;
 
-    #[test]
-    fn test_error_display() {
-        let err = XhciError::InvalidSlotId(5);
-        assert_eq!(err.as_str(), "Invalid slot ID");
+pub fn test_error_display() -> TestResult {
+    let err = XhciError::InvalidSlotId(5);
+    if err.as_str() != "Invalid slot ID" { return TestResult::Fail; }
 
-        let err = XhciError::Timeout;
-        assert_eq!(err.as_str(), "Operation timeout");
-    }
+    let err = XhciError::Timeout;
+    if err.as_str() != "Operation timeout" { return TestResult::Fail; }
 
-    #[test]
-    fn test_completion_code_extraction() {
-        let err = XhciError::CompletionCodeError(6);
-        assert_eq!(err.completion_code(), Some(6));
+    TestResult::Pass
+}
 
-        let err = XhciError::Timeout;
-        assert_eq!(err.completion_code(), None);
-    }
+pub fn test_completion_code_extraction() -> TestResult {
+    let err = XhciError::CompletionCodeError(6);
+    if err.completion_code() != Some(6) { return TestResult::Fail; }
 
-    #[test]
-    fn test_error_requires_reset() {
-        assert!(XhciError::Stall.requires_endpoint_reset());
-        assert!(XhciError::BabbleDetected.requires_endpoint_reset());
-        assert!(!XhciError::Timeout.requires_endpoint_reset());
-    }
+    let err = XhciError::Timeout;
+    if err.completion_code() != None { return TestResult::Fail; }
 
-    #[test]
-    fn test_error_is_recoverable() {
-        assert!(XhciError::Timeout.is_recoverable());
-        assert!(XhciError::Stall.is_recoverable());
-        assert!(XhciError::HostSystemError.is_fatal());
-    }
+    TestResult::Pass
+}
 
-    #[test]
-    fn test_from_completion_code() {
-        assert!(XhciError::from_completion_code(1).is_none());
-        assert!(matches!(
-            XhciError::from_completion_code(6),
-            Some(XhciError::Stall)
-        ));
-        assert!(matches!(
-            XhciError::from_completion_code(3),
-            Some(XhciError::BabbleDetected)
-        ));
-    }
+pub fn test_error_requires_reset() -> TestResult {
+    if !XhciError::Stall.requires_endpoint_reset() { return TestResult::Fail; }
+    if !XhciError::BabbleDetected.requires_endpoint_reset() { return TestResult::Fail; }
+    if XhciError::Timeout.requires_endpoint_reset() { return TestResult::Fail; }
+    TestResult::Pass
+}
+
+pub fn test_error_is_recoverable() -> TestResult {
+    if !XhciError::Timeout.is_recoverable() { return TestResult::Fail; }
+    if !XhciError::Stall.is_recoverable() { return TestResult::Fail; }
+    if !XhciError::HostSystemError.is_fatal() { return TestResult::Fail; }
+    TestResult::Pass
+}
+
+pub fn test_from_completion_code() -> TestResult {
+    if XhciError::from_completion_code(1).is_some() { return TestResult::Fail; }
+    if !matches!(XhciError::from_completion_code(6), Some(XhciError::Stall)) { return TestResult::Fail; }
+    if !matches!(XhciError::from_completion_code(3), Some(XhciError::BabbleDetected)) { return TestResult::Fail; }
+    TestResult::Pass
 }

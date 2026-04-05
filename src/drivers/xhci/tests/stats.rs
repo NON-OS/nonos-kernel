@@ -14,67 +14,66 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-#[cfg(test)]
-mod tests {
-    use crate::drivers::xhci::stats;
+use crate::drivers::xhci::stats;
+use crate::test::framework::TestResult;
 
-    #[test]
-    fn test_stats_increment() {
-        let stats = stats::XhciStatistics::new();
+pub fn test_stats_increment() -> TestResult {
+    let stats = stats::XhciStatistics::new();
 
-        stats.inc_interrupts();
-        stats.inc_commands();
-        stats.inc_transfers();
-        stats.add_bytes(1024);
+    stats.inc_interrupts();
+    stats.inc_commands();
+    stats.inc_transfers();
+    stats.add_bytes(1024);
 
-        let snapshot = stats.snapshot();
-        assert_eq!(snapshot.interrupts, 1);
-        assert_eq!(snapshot.commands_completed, 1);
-        assert_eq!(snapshot.transfers, 1);
-        assert_eq!(snapshot.bytes_transferred, 1024);
+    let snapshot = stats.snapshot();
+    if snapshot.interrupts != 1 { return TestResult::Fail; }
+    if snapshot.commands_completed != 1 { return TestResult::Fail; }
+    if snapshot.transfers != 1 { return TestResult::Fail; }
+    if snapshot.bytes_transferred != 1024 { return TestResult::Fail; }
+
+    TestResult::Pass
+}
+
+pub fn test_stats_total_errors() -> TestResult {
+    let stats = stats::XhciStatistics::new();
+
+    stats.inc_timeouts();
+    stats.inc_stalls();
+
+    if stats.total_errors() != 2 { return TestResult::Fail; }
+
+    TestResult::Pass
+}
+
+pub fn test_stats_error_rate() -> TestResult {
+    let mut snapshot = stats::XhciStats::new();
+    snapshot.transfers = 90;
+    snapshot.errors = 10;
+
+    let rate = snapshot.error_rate();
+    if (rate - 10.0).abs() >= 0.01 { return TestResult::Fail; }
+
+    TestResult::Pass
+}
+
+pub fn test_controller_health() -> TestResult {
+    let mut snapshot = stats::XhciStats::new();
+    snapshot.transfers = 100;
+    snapshot.errors = 0;
+
+    if stats::ControllerHealth::from_stats(&snapshot) != stats::ControllerHealth::Healthy {
+        return TestResult::Fail;
     }
 
-    #[test]
-    fn test_stats_total_errors() {
-        let stats = stats::XhciStatistics::new();
-
-        stats.inc_timeouts();
-        stats.inc_stalls();
-
-        assert_eq!(stats.total_errors(), 2);
+    snapshot.errors = 5;
+    if stats::ControllerHealth::from_stats(&snapshot) != stats::ControllerHealth::Warning {
+        return TestResult::Fail;
     }
 
-    #[test]
-    fn test_stats_error_rate() {
-        let mut snapshot = stats::XhciStats::new();
-        snapshot.transfers = 90;
-        snapshot.errors = 10;
-
-        let rate = snapshot.error_rate();
-        assert!((rate - 10.0).abs() < 0.01);
+    snapshot.errors = 20;
+    if stats::ControllerHealth::from_stats(&snapshot) != stats::ControllerHealth::Critical {
+        return TestResult::Fail;
     }
 
-    #[test]
-    fn test_controller_health() {
-        let mut snapshot = stats::XhciStats::new();
-        snapshot.transfers = 100;
-        snapshot.errors = 0;
-
-        assert_eq!(
-            stats::ControllerHealth::from_stats(&snapshot),
-            stats::ControllerHealth::Healthy
-        );
-
-        snapshot.errors = 5;
-        assert_eq!(
-            stats::ControllerHealth::from_stats(&snapshot),
-            stats::ControllerHealth::Warning
-        );
-
-        snapshot.errors = 20;
-        assert_eq!(
-            stats::ControllerHealth::from_stats(&snapshot),
-            stats::ControllerHealth::Critical
-        );
-    }
+    TestResult::Pass
 }

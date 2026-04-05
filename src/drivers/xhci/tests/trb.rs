@@ -14,141 +14,147 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-#[cfg(test)]
-mod tests {
-    use crate::drivers::xhci::{constants, trb, Trb};
-    use core::mem;
+use crate::drivers::xhci::{constants, trb, Trb};
+use crate::test::framework::TestResult;
+use core::mem;
 
-    #[test]
-    fn test_trb_size_and_alignment() {
-        assert_eq!(mem::size_of::<Trb>(), 16);
-        assert_eq!(mem::align_of::<Trb>(), 16);
-    }
+pub fn test_trb_size_and_alignment() -> TestResult {
+    if mem::size_of::<Trb>() != 16 { return TestResult::Fail; }
+    if mem::align_of::<Trb>() != 16 { return TestResult::Fail; }
+    TestResult::Pass
+}
 
-    #[test]
-    fn test_trb_type_field() {
-        let mut trb = Trb::default();
+pub fn test_trb_type_field() -> TestResult {
+    let mut trb = Trb::default();
 
-        trb.set_type(constants::TRB_TYPE_NORMAL);
-        assert_eq!(trb.get_type(), constants::TRB_TYPE_NORMAL);
+    trb.set_type(constants::TRB_TYPE_NORMAL);
+    if trb.get_type() != constants::TRB_TYPE_NORMAL { return TestResult::Fail; }
 
-        trb.set_type(constants::TRB_TYPE_LINK);
-        assert_eq!(trb.get_type(), constants::TRB_TYPE_LINK);
+    trb.set_type(constants::TRB_TYPE_LINK);
+    if trb.get_type() != constants::TRB_TYPE_LINK { return TestResult::Fail; }
 
-        trb.set_type(constants::TRB_TYPE_SETUP_STAGE);
-        assert_eq!(trb.get_type(), constants::TRB_TYPE_SETUP_STAGE);
-    }
+    trb.set_type(constants::TRB_TYPE_SETUP_STAGE);
+    if trb.get_type() != constants::TRB_TYPE_SETUP_STAGE { return TestResult::Fail; }
 
-    #[test]
-    fn test_trb_cycle_bit() {
-        let mut trb = Trb::default();
+    TestResult::Pass
+}
 
-        assert!(!trb.get_cycle());
+pub fn test_trb_cycle_bit() -> TestResult {
+    let mut trb = Trb::default();
 
-        trb.set_cycle(true);
-        assert!(trb.get_cycle());
+    if trb.get_cycle() { return TestResult::Fail; }
 
-        trb.set_cycle(false);
-        assert!(!trb.get_cycle());
-    }
+    trb.set_cycle(true);
+    if !trb.get_cycle() { return TestResult::Fail; }
 
-    #[test]
-    fn test_trb_pointer() {
-        let mut trb = Trb::default();
-        let ptr = 0x1234_5678_9ABC_DEF0u64;
+    trb.set_cycle(false);
+    if trb.get_cycle() { return TestResult::Fail; }
 
-        trb.set_pointer(ptr);
-        assert_eq!(trb.get_pointer(), ptr);
-    }
+    TestResult::Pass
+}
 
-    #[test]
-    fn test_trb_ioc_bit() {
-        let mut trb = Trb::default();
+pub fn test_trb_pointer() -> TestResult {
+    let mut trb = Trb::default();
+    let ptr = 0x1234_5678_9ABC_DEF0u64;
 
-        assert!(!trb.ioc());
+    trb.set_pointer(ptr);
+    if trb.get_pointer() != ptr { return TestResult::Fail; }
 
-        trb.set_ioc(true);
-        assert!(trb.ioc());
+    TestResult::Pass
+}
 
-        trb.set_ioc(false);
-        assert!(!trb.ioc());
-    }
+pub fn test_trb_ioc_bit() -> TestResult {
+    let mut trb = Trb::default();
 
-    #[test]
-    fn test_trb_pointer_alignment_validation() {
-        assert!(Trb::validate_pointer_alignment(0x1000).is_ok());
-        assert!(Trb::validate_pointer_alignment(0x1010).is_ok());
-        assert!(Trb::validate_pointer_alignment(0x1001).is_err());
-        assert!(Trb::validate_pointer_alignment(0x1008).is_err());
-    }
+    if trb.ioc() { return TestResult::Fail; }
 
-    #[test]
-    fn test_setup_stage_builder() {
-        let trb = trb::SetupStageTrbBuilder::new()
-            .setup_packet(0x80, 0x06, 0x0100, 0x0000, 18)
-            .transfer_type(true, true)
-            .cycle(true)
-            .build();
+    trb.set_ioc(true);
+    if !trb.ioc() { return TestResult::Fail; }
 
-        assert_eq!(trb.get_type(), constants::TRB_TYPE_SETUP_STAGE);
-        assert!(trb.get_cycle());
-        assert_eq!(trb.d0 & 0xFF, 0x80);
-        assert_eq!((trb.d0 >> 8) & 0xFF, 0x06);
-    }
+    trb.set_ioc(false);
+    if trb.ioc() { return TestResult::Fail; }
 
-    #[test]
-    fn test_data_stage_builder() {
-        let trb = trb::DataStageTrbBuilder::new()
-            .data_buffer(0x1000, 512)
-            .direction_in(true)
-            .ioc(true)
-            .cycle(true)
-            .build();
+    TestResult::Pass
+}
 
-        assert_eq!(trb.get_type(), constants::TRB_TYPE_DATA_STAGE);
-        assert!(trb.get_cycle());
-        assert!(trb.ioc());
-        assert_eq!(trb.get_pointer(), 0x1000);
-        assert_eq!(trb.get_transfer_length(), 512);
-    }
+pub fn test_trb_pointer_alignment_validation() -> TestResult {
+    if Trb::validate_pointer_alignment(0x1000).is_err() { return TestResult::Fail; }
+    if Trb::validate_pointer_alignment(0x1010).is_err() { return TestResult::Fail; }
+    if Trb::validate_pointer_alignment(0x1001).is_ok() { return TestResult::Fail; }
+    if Trb::validate_pointer_alignment(0x1008).is_ok() { return TestResult::Fail; }
+    TestResult::Pass
+}
 
-    #[test]
-    fn test_status_stage_builder() {
-        let trb = trb::StatusStageTrbBuilder::new()
-            .direction_in(false)
-            .cycle(true)
-            .build();
+pub fn test_setup_stage_builder() -> TestResult {
+    let trb = trb::SetupStageTrbBuilder::new()
+        .setup_packet(0x80, 0x06, 0x0100, 0x0000, 18)
+        .transfer_type(true, true)
+        .cycle(true)
+        .build();
 
-        assert_eq!(trb.get_type(), constants::TRB_TYPE_STATUS_STAGE);
-        assert!(trb.get_cycle());
-    }
+    if trb.get_type() != constants::TRB_TYPE_SETUP_STAGE { return TestResult::Fail; }
+    if !trb.get_cycle() { return TestResult::Fail; }
+    if trb.d0 & 0xFF != 0x80 { return TestResult::Fail; }
+    if (trb.d0 >> 8) & 0xFF != 0x06 { return TestResult::Fail; }
 
-    #[test]
-    fn test_link_trb_builder() {
-        let trb = trb::LinkTrbBuilder::new()
-            .target(0x2000)
-            .toggle_cycle(true)
-            .cycle(true)
-            .build();
+    TestResult::Pass
+}
 
-        assert_eq!(trb.get_type(), constants::TRB_TYPE_LINK);
-        assert!(trb.get_cycle());
-        assert_eq!(trb.get_pointer(), 0x2000);
-    }
+pub fn test_data_stage_builder() -> TestResult {
+    let trb = trb::DataStageTrbBuilder::new()
+        .data_buffer(0x1000, 512)
+        .direction_in(true)
+        .ioc(true)
+        .cycle(true)
+        .build();
 
-    #[test]
-    fn test_enable_slot_command() {
-        let trb = trb::enable_slot_command(true);
-        assert_eq!(trb.get_type(), constants::TRB_TYPE_ENABLE_SLOT_CMD);
-        assert!(trb.get_cycle());
-    }
+    if trb.get_type() != constants::TRB_TYPE_DATA_STAGE { return TestResult::Fail; }
+    if !trb.get_cycle() { return TestResult::Fail; }
+    if !trb.ioc() { return TestResult::Fail; }
+    if trb.get_pointer() != 0x1000 { return TestResult::Fail; }
+    if trb.get_transfer_length() != 512 { return TestResult::Fail; }
 
-    #[test]
-    fn test_address_device_command() {
-        let trb = trb::address_device_command(0x3000, 5, false, true);
-        assert_eq!(trb.get_type(), constants::TRB_TYPE_ADDRESS_DEVICE_CMD);
-        assert!(trb.get_cycle());
-        assert_eq!(trb.get_pointer(), 0x3000);
-        assert_eq!(trb.slot_id(), 5);
-    }
+    TestResult::Pass
+}
+
+pub fn test_status_stage_builder() -> TestResult {
+    let trb = trb::StatusStageTrbBuilder::new()
+        .direction_in(false)
+        .cycle(true)
+        .build();
+
+    if trb.get_type() != constants::TRB_TYPE_STATUS_STAGE { return TestResult::Fail; }
+    if !trb.get_cycle() { return TestResult::Fail; }
+
+    TestResult::Pass
+}
+
+pub fn test_link_trb_builder() -> TestResult {
+    let trb = trb::LinkTrbBuilder::new()
+        .target(0x2000)
+        .toggle_cycle(true)
+        .cycle(true)
+        .build();
+
+    if trb.get_type() != constants::TRB_TYPE_LINK { return TestResult::Fail; }
+    if !trb.get_cycle() { return TestResult::Fail; }
+    if trb.get_pointer() != 0x2000 { return TestResult::Fail; }
+
+    TestResult::Pass
+}
+
+pub fn test_enable_slot_command() -> TestResult {
+    let trb = trb::enable_slot_command(true);
+    if trb.get_type() != constants::TRB_TYPE_ENABLE_SLOT_CMD { return TestResult::Fail; }
+    if !trb.get_cycle() { return TestResult::Fail; }
+    TestResult::Pass
+}
+
+pub fn test_address_device_command() -> TestResult {
+    let trb = trb::address_device_command(0x3000, 5, false, true);
+    if trb.get_type() != constants::TRB_TYPE_ADDRESS_DEVICE_CMD { return TestResult::Fail; }
+    if !trb.get_cycle() { return TestResult::Fail; }
+    if trb.get_pointer() != 0x3000 { return TestResult::Fail; }
+    if trb.slot_id() != 5 { return TestResult::Fail; }
+    TestResult::Pass
 }
