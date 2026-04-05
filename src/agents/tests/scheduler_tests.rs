@@ -9,13 +9,13 @@ use crate::agents::scheduler::{
 };
 use crate::test::framework::TestResult;
 
-pub fn test_schedule_once() -> TestResult {
+pub(crate) fn test_schedule_once() -> TestResult {
     let id = schedule_once(1, b"test prompt", 1000);
     if id == 0 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_schedule_once_unique_ids() -> TestResult {
+pub(crate) fn test_schedule_once_unique_ids() -> TestResult {
     let id1 = schedule_once(1, b"prompt1", 1000);
     let id2 = schedule_once(1, b"prompt2", 2000);
 
@@ -23,13 +23,13 @@ pub fn test_schedule_once_unique_ids() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_schedule_repeat() -> TestResult {
+pub(crate) fn test_schedule_repeat() -> TestResult {
     let id = schedule_repeat(1, b"repeat prompt", 5000);
     if id == 0 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_schedule_repeat_unique_ids() -> TestResult {
+pub(crate) fn test_schedule_repeat_unique_ids() -> TestResult {
     let id1 = schedule_repeat(1, b"prompt1", 1000);
     let id2 = schedule_repeat(1, b"prompt2", 2000);
 
@@ -37,20 +37,20 @@ pub fn test_schedule_repeat_unique_ids() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_cancel_schedule() -> TestResult {
+pub(crate) fn test_cancel_schedule() -> TestResult {
     let id = schedule_once(1, b"cancel test", 100000);
     let result = cancel_schedule(id);
     if !result { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_cancel_schedule_nonexistent() -> TestResult {
+pub(crate) fn test_cancel_schedule_nonexistent() -> TestResult {
     let result = cancel_schedule(999999);
     if result { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_cancel_schedule_already_cancelled() -> TestResult {
+pub(crate) fn test_cancel_schedule_already_cancelled() -> TestResult {
     let id = schedule_once(1, b"double cancel", 100000);
     cancel_schedule(id);
     let result = cancel_schedule(id);
@@ -58,7 +58,7 @@ pub fn test_cancel_schedule_already_cancelled() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_list_scheduled() -> TestResult {
+pub(crate) fn test_list_scheduled() -> TestResult {
     let agent_id = 7000;
     schedule_once(agent_id, b"list test 1", 100000);
     schedule_once(agent_id, b"list test 2", 100000);
@@ -72,13 +72,13 @@ pub fn test_list_scheduled() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_list_scheduled_empty() -> TestResult {
+pub(crate) fn test_list_scheduled_empty() -> TestResult {
     let scheduled = list_scheduled(99999);
     if !scheduled.is_empty() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_list_scheduled_excludes_cancelled() -> TestResult {
+pub(crate) fn test_list_scheduled_excludes_cancelled() -> TestResult {
     let agent_id = 8000;
     let id1 = schedule_once(agent_id, b"active", 100000);
     let id2 = schedule_once(agent_id, b"cancelled", 100000);
@@ -93,7 +93,7 @@ pub fn test_list_scheduled_excludes_cancelled() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_active_count() -> TestResult {
+pub(crate) fn test_active_count() -> TestResult {
     let before = active_count();
     schedule_once(1, b"count test", 100000);
     let after = active_count();
@@ -101,12 +101,12 @@ pub fn test_active_count() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_max_scheduled_constant() -> TestResult {
+pub(crate) fn test_max_scheduled_constant() -> TestResult {
     if MAX_SCHEDULED != 32 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_scheduled_run_fields() -> TestResult {
+pub(crate) fn test_scheduled_run_fields() -> TestResult {
     let agent_id = 9000;
     let run_at = 50000;
     schedule_once(agent_id, b"field test", run_at);
@@ -122,7 +122,7 @@ pub fn test_scheduled_run_fields() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_scheduled_repeat_fields() -> TestResult {
+pub(crate) fn test_scheduled_repeat_fields() -> TestResult {
     let agent_id = 9001;
     let interval = 5000;
     schedule_repeat(agent_id, b"repeat field test", interval);
@@ -137,7 +137,7 @@ pub fn test_scheduled_repeat_fields() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_scheduled_clone() -> TestResult {
+pub(crate) fn test_scheduled_clone() -> TestResult {
     let agent_id = 9002;
     schedule_once(agent_id, b"clone test", 100000);
 
@@ -154,32 +154,32 @@ pub fn test_scheduled_clone() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_schedule_empty_prompt() -> TestResult {
+pub(crate) fn test_schedule_empty_prompt() -> TestResult {
     let id = schedule_once(1, b"", 100000);
     if id == 0 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_schedule_large_prompt() -> TestResult {
+pub(crate) fn test_schedule_large_prompt() -> TestResult {
     let large_prompt = [b'x'; 1000];
     let id = schedule_once(1, &large_prompt, 100000);
     if id == 0 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_schedule_zero_interval() -> TestResult {
+pub(crate) fn test_schedule_zero_interval() -> TestResult {
     let id = schedule_repeat(1, b"zero interval", 0);
     if id == 0 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_schedule_large_interval() -> TestResult {
+pub(crate) fn test_schedule_large_interval() -> TestResult {
     let id = schedule_repeat(1, b"large interval", u64::MAX / 2);
     if id == 0 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_mixed_scheduling() -> TestResult {
+pub(crate) fn test_mixed_scheduling() -> TestResult {
     let agent_id = 9500;
     schedule_once(agent_id, b"once1", 100000);
     schedule_repeat(agent_id, b"repeat1", 5000);

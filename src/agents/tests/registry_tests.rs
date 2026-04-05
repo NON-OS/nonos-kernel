@@ -10,14 +10,14 @@ use crate::agents::registry::{
 };
 use crate::test::framework::TestResult;
 
-pub fn test_create_agent() -> TestResult {
+pub(crate) fn test_create_agent() -> TestResult {
     let config = AgentConfig::default();
     let id = create_agent(config);
     if id == 0 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_create_agent_unique_ids() -> TestResult {
+pub(crate) fn test_create_agent_unique_ids() -> TestResult {
     let id1 = create_agent(AgentConfig::default());
     let id2 = create_agent(AgentConfig::default());
     let id3 = create_agent(AgentConfig::default());
@@ -28,7 +28,7 @@ pub fn test_create_agent_unique_ids() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_get_agent() -> TestResult {
+pub(crate) fn test_get_agent() -> TestResult {
     let mut config = AgentConfig::default();
     config.name[..4].copy_from_slice(b"Test");
 
@@ -42,13 +42,13 @@ pub fn test_get_agent() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_get_agent_nonexistent() -> TestResult {
+pub(crate) fn test_get_agent_nonexistent() -> TestResult {
     let agent = get_agent(999999);
     if agent.is_some() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_with_agent_mut() -> TestResult {
+pub(crate) fn test_with_agent_mut() -> TestResult {
     let config = AgentConfig::default();
     let id = create_agent(config);
 
@@ -64,13 +64,13 @@ pub fn test_with_agent_mut() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_with_agent_mut_nonexistent() -> TestResult {
+pub(crate) fn test_with_agent_mut_nonexistent() -> TestResult {
     let result = with_agent_mut(999999, |_| 42);
     if result.is_some() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_update_agent() -> TestResult {
+pub(crate) fn test_update_agent() -> TestResult {
     let config = AgentConfig::default();
     let id = create_agent(config);
 
@@ -85,13 +85,13 @@ pub fn test_update_agent() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_update_agent_nonexistent() -> TestResult {
+pub(crate) fn test_update_agent_nonexistent() -> TestResult {
     let success = update_agent(999999, |_| {});
     if success { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_list_agents() -> TestResult {
+pub(crate) fn test_list_agents() -> TestResult {
     let mut config1 = AgentConfig::default();
     config1.name[..6].copy_from_slice(b"Agent1");
     let mut config2 = AgentConfig::default();
@@ -105,7 +105,7 @@ pub fn test_list_agents() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_delete_agent() -> TestResult {
+pub(crate) fn test_delete_agent() -> TestResult {
     let config = AgentConfig::default();
     let id = create_agent(config);
 
@@ -118,13 +118,13 @@ pub fn test_delete_agent() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_delete_agent_nonexistent() -> TestResult {
+pub(crate) fn test_delete_agent_nonexistent() -> TestResult {
     let result = delete_agent(999999);
     if result { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_delete_agent_twice() -> TestResult {
+pub(crate) fn test_delete_agent_twice() -> TestResult {
     let config = AgentConfig::default();
     let id = create_agent(config);
 
@@ -133,7 +133,7 @@ pub fn test_delete_agent_twice() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_agent_count() -> TestResult {
+pub(crate) fn test_agent_count() -> TestResult {
     let before = agent_count();
     create_agent(AgentConfig::default());
     let after = agent_count();
@@ -141,12 +141,12 @@ pub fn test_agent_count() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_max_agents_constant() -> TestResult {
+pub(crate) fn test_max_agents_constant() -> TestResult {
     if MAX_AGENTS != 32 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_agent_config_preserved() -> TestResult {
+pub(crate) fn test_agent_config_preserved() -> TestResult {
     let mut config = AgentConfig::default();
     config.name[..8].copy_from_slice(b"MyAgent!");
     config.max_tokens = 2048;
@@ -168,7 +168,7 @@ pub fn test_agent_config_preserved() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_list_agents_returns_id_and_name() -> TestResult {
+pub(crate) fn test_list_agents_returns_id_and_name() -> TestResult {
     let mut config = AgentConfig::default();
     config.name[..7].copy_from_slice(b"ListBot");
 
@@ -183,7 +183,7 @@ pub fn test_list_agents_returns_id_and_name() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_agent_isolation() -> TestResult {
+pub(crate) fn test_agent_isolation() -> TestResult {
     let config1 = AgentConfig::default();
     let config2 = AgentConfig::default();
 
@@ -198,7 +198,7 @@ pub fn test_agent_isolation() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_multiple_operations() -> TestResult {
+pub(crate) fn test_multiple_operations() -> TestResult {
     let config = AgentConfig::default();
     let id = create_agent(config);
 

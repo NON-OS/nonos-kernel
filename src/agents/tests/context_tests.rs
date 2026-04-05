@@ -6,7 +6,7 @@
 use crate::agents::context::AgentContext;
 use crate::test::framework::TestResult;
 
-pub fn test_context_new() -> TestResult {
+pub(crate) fn test_context_new() -> TestResult {
     let ctx = AgentContext::new(1);
 
     if ctx.agent_id != 1 { return TestResult::Fail; }
@@ -17,7 +17,7 @@ pub fn test_context_new() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_context_new_different_ids() -> TestResult {
+pub(crate) fn test_context_new_different_ids() -> TestResult {
     let ctx1 = AgentContext::new(1);
     let ctx2 = AgentContext::new(42);
     let ctx3 = AgentContext::new(999);
@@ -28,7 +28,7 @@ pub fn test_context_new_different_ids() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_context_set_env_new_key() -> TestResult {
+pub(crate) fn test_context_set_env_new_key() -> TestResult {
     let mut ctx = AgentContext::new(1);
 
     ctx.set_env(b"PATH", b"/bin:/usr/bin");
@@ -39,7 +39,7 @@ pub fn test_context_set_env_new_key() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_context_set_env_update_existing() -> TestResult {
+pub(crate) fn test_context_set_env_update_existing() -> TestResult {
     let mut ctx = AgentContext::new(1);
 
     ctx.set_env(b"PATH", b"/bin");
@@ -50,7 +50,7 @@ pub fn test_context_set_env_update_existing() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_context_set_env_multiple_keys() -> TestResult {
+pub(crate) fn test_context_set_env_multiple_keys() -> TestResult {
     let mut ctx = AgentContext::new(1);
 
     ctx.set_env(b"PATH", b"/bin");
@@ -61,7 +61,7 @@ pub fn test_context_set_env_multiple_keys() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_context_get_env_existing() -> TestResult {
+pub(crate) fn test_context_get_env_existing() -> TestResult {
     let mut ctx = AgentContext::new(1);
     ctx.set_env(b"TEST_VAR", b"test_value");
 
@@ -71,7 +71,7 @@ pub fn test_context_get_env_existing() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_context_get_env_nonexistent() -> TestResult {
+pub(crate) fn test_context_get_env_nonexistent() -> TestResult {
     let ctx = AgentContext::new(1);
 
     let value = ctx.get_env(b"NONEXISTENT");
@@ -79,7 +79,7 @@ pub fn test_context_get_env_nonexistent() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_context_get_env_empty_value() -> TestResult {
+pub(crate) fn test_context_get_env_empty_value() -> TestResult {
     let mut ctx = AgentContext::new(1);
     ctx.set_env(b"EMPTY", b"");
 
@@ -89,7 +89,7 @@ pub fn test_context_get_env_empty_value() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_context_add_history() -> TestResult {
+pub(crate) fn test_context_add_history() -> TestResult {
     let mut ctx = AgentContext::new(1);
 
     ctx.add_history(b"command1");
@@ -103,7 +103,7 @@ pub fn test_context_add_history() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_context_history_limit() -> TestResult {
+pub(crate) fn test_context_history_limit() -> TestResult {
     let mut ctx = AgentContext::new(1);
 
     for i in 0..101 {
@@ -116,7 +116,7 @@ pub fn test_context_history_limit() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_context_history_fifo_eviction() -> TestResult {
+pub(crate) fn test_context_history_fifo_eviction() -> TestResult {
     let mut ctx = AgentContext::new(1);
 
     for i in 0..100 {
@@ -132,7 +132,7 @@ pub fn test_context_history_fifo_eviction() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_context_enable_tool() -> TestResult {
+pub(crate) fn test_context_enable_tool() -> TestResult {
     let mut ctx = AgentContext::new(1);
 
     if ctx.active_tools[0] { return TestResult::Fail; }
@@ -147,7 +147,7 @@ pub fn test_context_enable_tool() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_context_enable_tool_out_of_bounds() -> TestResult {
+pub(crate) fn test_context_enable_tool_out_of_bounds() -> TestResult {
     let mut ctx = AgentContext::new(1);
 
     ctx.enable_tool(16);
@@ -160,7 +160,7 @@ pub fn test_context_enable_tool_out_of_bounds() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_context_disable_tool() -> TestResult {
+pub(crate) fn test_context_disable_tool() -> TestResult {
     let mut ctx = AgentContext::new(1);
 
     ctx.enable_tool(5);
@@ -171,7 +171,7 @@ pub fn test_context_disable_tool() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_context_disable_tool_out_of_bounds() -> TestResult {
+pub(crate) fn test_context_disable_tool_out_of_bounds() -> TestResult {
     let mut ctx = AgentContext::new(1);
     ctx.enable_tool(0);
 
@@ -182,7 +182,7 @@ pub fn test_context_disable_tool_out_of_bounds() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_context_is_tool_enabled() -> TestResult {
+pub(crate) fn test_context_is_tool_enabled() -> TestResult {
     let mut ctx = AgentContext::new(1);
 
     if ctx.is_tool_enabled(0) { return TestResult::Fail; }
@@ -194,7 +194,7 @@ pub fn test_context_is_tool_enabled() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_context_is_tool_enabled_out_of_bounds() -> TestResult {
+pub(crate) fn test_context_is_tool_enabled_out_of_bounds() -> TestResult {
     let ctx = AgentContext::new(1);
 
     if ctx.is_tool_enabled(16) { return TestResult::Fail; }
@@ -203,7 +203,7 @@ pub fn test_context_is_tool_enabled_out_of_bounds() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_context_multiple_tools() -> TestResult {
+pub(crate) fn test_context_multiple_tools() -> TestResult {
     let mut ctx = AgentContext::new(1);
 
     ctx.enable_tool(0);
@@ -224,7 +224,7 @@ pub fn test_context_multiple_tools() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_context_clone() -> TestResult {
+pub(crate) fn test_context_clone() -> TestResult {
     let mut ctx = AgentContext::new(1);
     ctx.set_env(b"KEY", b"VALUE");
     ctx.add_history(b"cmd");
@@ -238,20 +238,20 @@ pub fn test_context_clone() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_context_working_dir_default() -> TestResult {
+pub(crate) fn test_context_working_dir_default() -> TestResult {
     let ctx = AgentContext::new(1);
     if ctx.working_dir.as_slice() != b"/ram" { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_context_working_dir_modification() -> TestResult {
+pub(crate) fn test_context_working_dir_modification() -> TestResult {
     let mut ctx = AgentContext::new(1);
     ctx.working_dir = b"/home/user".to_vec();
     if ctx.working_dir.as_slice() != b"/home/user" { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_context_env_binary_values() -> TestResult {
+pub(crate) fn test_context_env_binary_values() -> TestResult {
     let mut ctx = AgentContext::new(1);
 
     let binary_key = b"BIN_KEY\0TEST";
