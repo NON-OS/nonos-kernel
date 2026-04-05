@@ -17,7 +17,7 @@
 use crate::sched::*;
 use crate::test::framework::TestResult;
 
-pub fn test_priority_values() -> TestResult {
+pub(crate) fn test_priority_values() -> TestResult {
     if Priority::Idle as u8 != 0 { return TestResult::Fail; }
     if Priority::Low as u8 != 1 { return TestResult::Fail; }
     if Priority::Normal as u8 != 2 { return TestResult::Fail; }
@@ -27,7 +27,7 @@ pub fn test_priority_values() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_priority_ordering() -> TestResult {
+pub(crate) fn test_priority_ordering() -> TestResult {
     if !(Priority::RealTime > Priority::Critical) { return TestResult::Fail; }
     if !(Priority::Critical > Priority::High) { return TestResult::Fail; }
     if !(Priority::High > Priority::Normal) { return TestResult::Fail; }
@@ -36,27 +36,27 @@ pub fn test_priority_ordering() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_priority_equality() -> TestResult {
+pub(crate) fn test_priority_equality() -> TestResult {
     if Priority::Normal != Priority::Normal { return TestResult::Fail; }
     if Priority::High == Priority::Low { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_priority_clone() -> TestResult {
+pub(crate) fn test_priority_clone() -> TestResult {
     let p1 = Priority::High;
     let p2 = p1.clone();
     if p1 != p2 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_priority_copy() -> TestResult {
+pub(crate) fn test_priority_copy() -> TestResult {
     let p1 = Priority::Critical;
     let p2 = p1;
     if p1 != p2 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_priority_partial_ord() -> TestResult {
+pub(crate) fn test_priority_partial_ord() -> TestResult {
     if !(Priority::RealTime >= Priority::Critical) { return TestResult::Fail; }
     if !(Priority::Idle <= Priority::Low) { return TestResult::Fail; }
     if !(Priority::Normal <= Priority::Normal) { return TestResult::Fail; }
@@ -64,13 +64,13 @@ pub fn test_priority_partial_ord() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_priority_debug() -> TestResult {
+pub(crate) fn test_priority_debug() -> TestResult {
     let debug_str = alloc::format!("{:?}", Priority::Normal);
     if !debug_str.contains("Normal") { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_all_priority_variants_unique() -> TestResult {
+pub(crate) fn test_all_priority_variants_unique() -> TestResult {
     let priorities = [
         Priority::Idle,
         Priority::Low,
@@ -87,7 +87,7 @@ pub fn test_all_priority_variants_unique() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_priority_ord_consistency() -> TestResult {
+pub(crate) fn test_priority_ord_consistency() -> TestResult {
     let mut priorities = [
         Priority::High,
         Priority::Idle,

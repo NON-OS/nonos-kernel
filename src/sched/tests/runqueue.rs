@@ -25,14 +25,14 @@ fn create_task(id: u64) -> Task {
     task
 }
 
-pub fn test_runqueue_new() -> TestResult {
+pub(crate) fn test_runqueue_new() -> TestResult {
     let rq = RunQueue::new();
     if !rq.is_empty() { return TestResult::Fail; }
     if rq.len() != 0 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_runqueue_push_single() -> TestResult {
+pub(crate) fn test_runqueue_push_single() -> TestResult {
     let mut rq = RunQueue::new();
     let task = create_task(1);
     rq.push(task);
@@ -41,7 +41,7 @@ pub fn test_runqueue_push_single() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_runqueue_push_multiple() -> TestResult {
+pub(crate) fn test_runqueue_push_multiple() -> TestResult {
     let mut rq = RunQueue::new();
     rq.push(create_task(1));
     rq.push(create_task(2));
@@ -50,13 +50,13 @@ pub fn test_runqueue_push_multiple() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_runqueue_pop_empty() -> TestResult {
+pub(crate) fn test_runqueue_pop_empty() -> TestResult {
     let mut rq = RunQueue::new();
     if rq.pop().is_some() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_runqueue_pop_single() -> TestResult {
+pub(crate) fn test_runqueue_pop_single() -> TestResult {
     let mut rq = RunQueue::new();
     rq.push(create_task(42));
     let popped = rq.pop();
@@ -66,7 +66,7 @@ pub fn test_runqueue_pop_single() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_runqueue_fifo_order() -> TestResult {
+pub(crate) fn test_runqueue_fifo_order() -> TestResult {
     let mut rq = RunQueue::new();
     rq.push(create_task(1));
     rq.push(create_task(2));
@@ -79,7 +79,7 @@ pub fn test_runqueue_fifo_order() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_runqueue_clear() -> TestResult {
+pub(crate) fn test_runqueue_clear() -> TestResult {
     let mut rq = RunQueue::new();
     rq.push(create_task(1));
     rq.push(create_task(2));
@@ -90,14 +90,14 @@ pub fn test_runqueue_clear() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_runqueue_clear_empty() -> TestResult {
+pub(crate) fn test_runqueue_clear_empty() -> TestResult {
     let mut rq = RunQueue::new();
     rq.clear();
     if !rq.is_empty() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_runqueue_is_empty_after_pop() -> TestResult {
+pub(crate) fn test_runqueue_is_empty_after_pop() -> TestResult {
     let mut rq = RunQueue::new();
     rq.push(create_task(1));
     rq.pop();
@@ -105,7 +105,7 @@ pub fn test_runqueue_is_empty_after_pop() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_runqueue_len_after_operations() -> TestResult {
+pub(crate) fn test_runqueue_len_after_operations() -> TestResult {
     let mut rq = RunQueue::new();
     if rq.len() != 0 { return TestResult::Fail; }
     rq.push(create_task(1));
@@ -119,7 +119,7 @@ pub fn test_runqueue_len_after_operations() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_runqueue_remove_by_id_existing() -> TestResult {
+pub(crate) fn test_runqueue_remove_by_id_existing() -> TestResult {
     let mut rq = RunQueue::new();
     rq.push(create_task(1));
     rq.push(create_task(2));
@@ -132,7 +132,7 @@ pub fn test_runqueue_remove_by_id_existing() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_runqueue_remove_by_id_nonexistent() -> TestResult {
+pub(crate) fn test_runqueue_remove_by_id_nonexistent() -> TestResult {
     let mut rq = RunQueue::new();
     rq.push(create_task(1));
     rq.push(create_task(2));
@@ -143,14 +143,14 @@ pub fn test_runqueue_remove_by_id_nonexistent() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_runqueue_remove_by_id_empty() -> TestResult {
+pub(crate) fn test_runqueue_remove_by_id_empty() -> TestResult {
     let mut rq = RunQueue::new();
     let removed = rq.remove_by_id(1);
     if removed.is_some() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_runqueue_remove_by_id_first() -> TestResult {
+pub(crate) fn test_runqueue_remove_by_id_first() -> TestResult {
     let mut rq = RunQueue::new();
     rq.push(create_task(1));
     rq.push(create_task(2));
@@ -163,7 +163,7 @@ pub fn test_runqueue_remove_by_id_first() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_runqueue_remove_by_id_last() -> TestResult {
+pub(crate) fn test_runqueue_remove_by_id_last() -> TestResult {
     let mut rq = RunQueue::new();
     rq.push(create_task(1));
     rq.push(create_task(2));
@@ -176,7 +176,7 @@ pub fn test_runqueue_remove_by_id_last() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_runqueue_remove_by_id_maintains_order() -> TestResult {
+pub(crate) fn test_runqueue_remove_by_id_maintains_order() -> TestResult {
     let mut rq = RunQueue::new();
     rq.push(create_task(1));
     rq.push(create_task(2));
@@ -193,7 +193,7 @@ pub fn test_runqueue_remove_by_id_maintains_order() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_runqueue_mixed_operations() -> TestResult {
+pub(crate) fn test_runqueue_mixed_operations() -> TestResult {
     let mut rq = RunQueue::new();
     rq.push(create_task(1));
     rq.push(create_task(2));
@@ -208,7 +208,7 @@ pub fn test_runqueue_mixed_operations() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_runqueue_push_after_clear() -> TestResult {
+pub(crate) fn test_runqueue_push_after_clear() -> TestResult {
     let mut rq = RunQueue::new();
     rq.push(create_task(1));
     rq.push(create_task(2));
@@ -220,7 +220,7 @@ pub fn test_runqueue_push_after_clear() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_runqueue_large_number_of_tasks() -> TestResult {
+pub(crate) fn test_runqueue_large_number_of_tasks() -> TestResult {
     let mut rq = RunQueue::new();
     for i in 0..100 {
         rq.push(create_task(i));
