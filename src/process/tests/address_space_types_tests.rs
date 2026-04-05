@@ -2,37 +2,37 @@ use crate::process::address_space::*;
 use crate::test::framework::TestResult;
 use x86_64::VirtAddr;
 
-pub fn test_page_size_constant() -> TestResult {
+pub(crate) fn test_page_size_constant() -> TestResult {
     if PAGE_SIZE != 4096 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_large_page_size_constant() -> TestResult {
+pub(crate) fn test_large_page_size_constant() -> TestResult {
     if LARGE_PAGE_SIZE != 2 * 1024 * 1024 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_huge_page_size_constant() -> TestResult {
+pub(crate) fn test_huge_page_size_constant() -> TestResult {
     if HUGE_PAGE_SIZE != 1024 * 1024 * 1024 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_user_space_end_constant() -> TestResult {
+pub(crate) fn test_user_space_end_constant() -> TestResult {
     if USER_SPACE_END != 0x0000_8000_0000_0000 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_kernel_space_start_constant() -> TestResult {
+pub(crate) fn test_kernel_space_start_constant() -> TestResult {
     if KERNEL_SPACE_START != 0xFFFF_8000_0000_0000 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_max_pcid_constant() -> TestResult {
+pub(crate) fn test_max_pcid_constant() -> TestResult {
     if MAX_PCID != 4096 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_vma_new() -> TestResult {
+pub(crate) fn test_vma_new() -> TestResult {
     let prot = ProtectionFlags::new(true, true, false, true);
     let vma = Vma::new(
         VirtAddr::new(0x1000),
@@ -47,7 +47,7 @@ pub fn test_vma_new() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_vma_size() -> TestResult {
+pub(crate) fn test_vma_size() -> TestResult {
     let prot = ProtectionFlags::new(true, false, false, true);
     let vma = Vma::new(
         VirtAddr::new(0x1000),
@@ -58,7 +58,7 @@ pub fn test_vma_size() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_vma_contains() -> TestResult {
+pub(crate) fn test_vma_contains() -> TestResult {
     let prot = ProtectionFlags::new(true, false, false, true);
     let vma = Vma::new(
         VirtAddr::new(0x1000),
@@ -73,7 +73,7 @@ pub fn test_vma_contains() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_vma_overlaps() -> TestResult {
+pub(crate) fn test_vma_overlaps() -> TestResult {
     let prot = ProtectionFlags::new(true, false, false, true);
     let vma1 = Vma::new(
         VirtAddr::new(0x1000),
@@ -97,7 +97,7 @@ pub fn test_vma_overlaps() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_vma_overlaps_subset() -> TestResult {
+pub(crate) fn test_vma_overlaps_subset() -> TestResult {
     let prot = ProtectionFlags::new(true, false, false, true);
     let outer = Vma::new(
         VirtAddr::new(0x1000),
@@ -114,7 +114,7 @@ pub fn test_vma_overlaps_subset() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_vma_clone() -> TestResult {
+pub(crate) fn test_vma_clone() -> TestResult {
     let prot = ProtectionFlags::new(true, true, false, true);
     let vma1 = Vma {
         start: VirtAddr::new(0x1000),
@@ -134,7 +134,7 @@ pub fn test_vma_clone() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_protection_flags_read_only() -> TestResult {
+pub(crate) fn test_protection_flags_read_only() -> TestResult {
     let prot = ProtectionFlags::new(true, false, false, false);
     if !prot.read { return TestResult::Fail; }
     if prot.write { return TestResult::Fail; }
@@ -142,7 +142,7 @@ pub fn test_protection_flags_read_only() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_protection_flags_write() -> TestResult {
+pub(crate) fn test_protection_flags_write() -> TestResult {
     let prot = ProtectionFlags::new(false, true, false, false);
     if prot.read { return TestResult::Fail; }
     if !prot.write { return TestResult::Fail; }
@@ -150,7 +150,7 @@ pub fn test_protection_flags_write() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_protection_flags_exec() -> TestResult {
+pub(crate) fn test_protection_flags_exec() -> TestResult {
     let prot = ProtectionFlags::new(false, false, true, false);
     if prot.read { return TestResult::Fail; }
     if prot.write { return TestResult::Fail; }
@@ -158,7 +158,7 @@ pub fn test_protection_flags_exec() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_protection_flags_combined() -> TestResult {
+pub(crate) fn test_protection_flags_combined() -> TestResult {
     let prot = ProtectionFlags::new(true, true, false, true);
     if !prot.read { return TestResult::Fail; }
     if !prot.write { return TestResult::Fail; }
@@ -167,7 +167,7 @@ pub fn test_protection_flags_combined() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_protection_flags_all() -> TestResult {
+pub(crate) fn test_protection_flags_all() -> TestResult {
     let prot = ProtectionFlags::new(true, true, true, true);
     if !prot.read { return TestResult::Fail; }
     if !prot.write { return TestResult::Fail; }
@@ -176,36 +176,36 @@ pub fn test_protection_flags_all() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_pte_flags_addr_mask() -> TestResult {
+pub(crate) fn test_pte_flags_addr_mask() -> TestResult {
     if pte_flags::ADDR_MASK != 0x000F_FFFF_FFFF_F000 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_address_space_boundaries() -> TestResult {
+pub(crate) fn test_address_space_boundaries() -> TestResult {
     if !(USER_SPACE_END < KERNEL_SPACE_START) { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_page_sizes_ordering() -> TestResult {
+pub(crate) fn test_page_sizes_ordering() -> TestResult {
     if !(PAGE_SIZE < LARGE_PAGE_SIZE) { return TestResult::Fail; }
     if !(LARGE_PAGE_SIZE < HUGE_PAGE_SIZE) { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_page_sizes_power_of_two() -> TestResult {
+pub(crate) fn test_page_sizes_power_of_two() -> TestResult {
     if !PAGE_SIZE.is_power_of_two() { return TestResult::Fail; }
     if !LARGE_PAGE_SIZE.is_power_of_two() { return TestResult::Fail; }
     if !HUGE_PAGE_SIZE.is_power_of_two() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_page_size_alignment() -> TestResult {
+pub(crate) fn test_page_size_alignment() -> TestResult {
     if LARGE_PAGE_SIZE % PAGE_SIZE != 0 { return TestResult::Fail; }
     if HUGE_PAGE_SIZE % LARGE_PAGE_SIZE != 0 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_vma_size_zero() -> TestResult {
+pub(crate) fn test_vma_size_zero() -> TestResult {
     let prot = ProtectionFlags::new(true, false, false, true);
     let vma = Vma::new(
         VirtAddr::new(0x1000),
@@ -216,7 +216,7 @@ pub fn test_vma_size_zero() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_vma_adjacent_not_overlapping() -> TestResult {
+pub(crate) fn test_vma_adjacent_not_overlapping() -> TestResult {
     let prot = ProtectionFlags::new(true, false, false, true);
     let vma1 = Vma::new(
         VirtAddr::new(0x1000),
@@ -232,7 +232,7 @@ pub fn test_vma_adjacent_not_overlapping() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_vma_cow_flag() -> TestResult {
+pub(crate) fn test_vma_cow_flag() -> TestResult {
     let prot = ProtectionFlags::new(true, true, false, true);
     let mut vma = Vma::new(
         VirtAddr::new(0x1000),
@@ -245,7 +245,7 @@ pub fn test_vma_cow_flag() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_vma_anonymous_flag() -> TestResult {
+pub(crate) fn test_vma_anonymous_flag() -> TestResult {
     let prot = ProtectionFlags::new(true, false, false, true);
     let mut vma = Vma::new(
         VirtAddr::new(0x1000),
@@ -258,7 +258,7 @@ pub fn test_vma_anonymous_flag() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_vma_refcount_increment() -> TestResult {
+pub(crate) fn test_vma_refcount_increment() -> TestResult {
     let prot = ProtectionFlags::new(true, false, false, true);
     let mut vma = Vma::new(
         VirtAddr::new(0x1000),
@@ -271,7 +271,7 @@ pub fn test_vma_refcount_increment() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_protection_flags_default() -> TestResult {
+pub(crate) fn test_protection_flags_default() -> TestResult {
     let prot = ProtectionFlags::default();
     if !prot.read { return TestResult::Fail; }
     if prot.write { return TestResult::Fail; }
@@ -280,7 +280,7 @@ pub fn test_protection_flags_default() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_protection_flags_equality() -> TestResult {
+pub(crate) fn test_protection_flags_equality() -> TestResult {
     let prot1 = ProtectionFlags::new(true, true, false, true);
     let prot2 = ProtectionFlags::new(true, true, false, true);
     let prot3 = ProtectionFlags::new(true, false, false, true);
@@ -289,7 +289,7 @@ pub fn test_protection_flags_equality() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_protection_flags_to_pte_flags() -> TestResult {
+pub(crate) fn test_protection_flags_to_pte_flags() -> TestResult {
     let prot = ProtectionFlags::new(true, true, true, true);
     let flags = prot.to_pte_flags();
     if !(flags & pte_flags::PRESENT != 0) { return TestResult::Fail; }
@@ -299,7 +299,7 @@ pub fn test_protection_flags_to_pte_flags() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_protection_flags_no_exec_flag() -> TestResult {
+pub(crate) fn test_protection_flags_no_exec_flag() -> TestResult {
     let prot = ProtectionFlags::new(true, false, false, true);
     let flags = prot.to_pte_flags();
     if !(flags & pte_flags::NO_EXECUTE != 0) { return TestResult::Fail; }
