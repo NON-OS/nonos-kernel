@@ -4,28 +4,28 @@
 use crate::shell::terminal::history::{CommandHistory, HISTORY_SIZE, MAX_CMD_LEN};
 use crate::test::framework::TestResult;
 
-pub fn test_command_history_new() -> TestResult {
+pub(crate) fn test_command_history_new() -> TestResult {
     let history = CommandHistory::new();
     if history.count() != 0 { return TestResult::Fail; }
     if history.is_browsing() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_command_history_add_single() -> TestResult {
+pub(crate) fn test_command_history_add_single() -> TestResult {
     let mut history = CommandHistory::new();
     history.add(b"ls -la");
     if history.count() != 1 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_command_history_add_empty() -> TestResult {
+pub(crate) fn test_command_history_add_empty() -> TestResult {
     let mut history = CommandHistory::new();
     history.add(b"");
     if history.count() != 0 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_command_history_add_multiple() -> TestResult {
+pub(crate) fn test_command_history_add_multiple() -> TestResult {
     let mut history = CommandHistory::new();
     history.add(b"ls");
     history.add(b"pwd");
@@ -34,7 +34,7 @@ pub fn test_command_history_add_multiple() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_command_history_no_duplicates() -> TestResult {
+pub(crate) fn test_command_history_no_duplicates() -> TestResult {
     let mut history = CommandHistory::new();
     history.add(b"ls");
     history.add(b"ls");
@@ -42,7 +42,7 @@ pub fn test_command_history_no_duplicates() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_command_history_duplicates_after_other() -> TestResult {
+pub(crate) fn test_command_history_duplicates_after_other() -> TestResult {
     let mut history = CommandHistory::new();
     history.add(b"ls");
     history.add(b"pwd");
@@ -51,7 +51,7 @@ pub fn test_command_history_duplicates_after_other() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_command_history_get_single() -> TestResult {
+pub(crate) fn test_command_history_get_single() -> TestResult {
     let mut history = CommandHistory::new();
     history.add(b"test command");
     let (cmd, len) = history.get(0).unwrap();
@@ -59,7 +59,7 @@ pub fn test_command_history_get_single() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_command_history_get_multiple() -> TestResult {
+pub(crate) fn test_command_history_get_multiple() -> TestResult {
     let mut history = CommandHistory::new();
     history.add(b"first");
     history.add(b"second");
@@ -76,20 +76,20 @@ pub fn test_command_history_get_multiple() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_command_history_get_out_of_bounds() -> TestResult {
+pub(crate) fn test_command_history_get_out_of_bounds() -> TestResult {
     let mut history = CommandHistory::new();
     history.add(b"only one");
     if history.get(1).is_some() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_command_history_get_empty() -> TestResult {
+pub(crate) fn test_command_history_get_empty() -> TestResult {
     let history = CommandHistory::new();
     if history.get(0).is_some() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_command_history_start_browse() -> TestResult {
+pub(crate) fn test_command_history_start_browse() -> TestResult {
     let mut history = CommandHistory::new();
     history.add(b"cmd1");
     history.add(b"cmd2");
@@ -98,7 +98,7 @@ pub fn test_command_history_start_browse() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_command_history_browse_prev() -> TestResult {
+pub(crate) fn test_command_history_browse_prev() -> TestResult {
     let mut history = CommandHistory::new();
     history.add(b"first");
     history.add(b"second");
@@ -109,7 +109,7 @@ pub fn test_command_history_browse_prev() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_command_history_browse_prev_multiple() -> TestResult {
+pub(crate) fn test_command_history_browse_prev_multiple() -> TestResult {
     let mut history = CommandHistory::new();
     history.add(b"first");
     history.add(b"second");
@@ -127,7 +127,7 @@ pub fn test_command_history_browse_prev_multiple() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_command_history_browse_prev_at_start() -> TestResult {
+pub(crate) fn test_command_history_browse_prev_at_start() -> TestResult {
     let mut history = CommandHistory::new();
     history.add(b"only");
     history.start_browse(b"");
@@ -136,7 +136,7 @@ pub fn test_command_history_browse_prev_at_start() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_command_history_browse_next() -> TestResult {
+pub(crate) fn test_command_history_browse_next() -> TestResult {
     let mut history = CommandHistory::new();
     history.add(b"first");
     history.add(b"second");
@@ -149,7 +149,7 @@ pub fn test_command_history_browse_next() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_command_history_browse_next_to_saved() -> TestResult {
+pub(crate) fn test_command_history_browse_next_to_saved() -> TestResult {
     let mut history = CommandHistory::new();
     history.add(b"first");
     history.start_browse(b"saved");
@@ -161,14 +161,14 @@ pub fn test_command_history_browse_next_to_saved() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_command_history_browse_next_not_browsing() -> TestResult {
+pub(crate) fn test_command_history_browse_next_not_browsing() -> TestResult {
     let mut history = CommandHistory::new();
     history.add(b"cmd");
     if history.next().is_some() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_command_history_cancel_browse() -> TestResult {
+pub(crate) fn test_command_history_cancel_browse() -> TestResult {
     let mut history = CommandHistory::new();
     history.add(b"cmd");
     history.start_browse(b"");
@@ -178,7 +178,7 @@ pub fn test_command_history_cancel_browse() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_command_history_clear() -> TestResult {
+pub(crate) fn test_command_history_clear() -> TestResult {
     let mut history = CommandHistory::new();
     history.add(b"cmd1");
     history.add(b"cmd2");
@@ -188,7 +188,7 @@ pub fn test_command_history_clear() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_command_history_overflow() -> TestResult {
+pub(crate) fn test_command_history_overflow() -> TestResult {
     let mut history = CommandHistory::new();
     for i in 0..HISTORY_SIZE + 10 {
         let mut cmd = [0u8; 16];
@@ -200,7 +200,7 @@ pub fn test_command_history_overflow() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_command_history_truncates_long() -> TestResult {
+pub(crate) fn test_command_history_truncates_long() -> TestResult {
     let mut history = CommandHistory::new();
     let long_cmd = [b'x'; MAX_CMD_LEN + 100];
     history.add(&long_cmd);
@@ -210,17 +210,17 @@ pub fn test_command_history_truncates_long() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_history_size_constant() -> TestResult {
+pub(crate) fn test_history_size_constant() -> TestResult {
     if HISTORY_SIZE != 64 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_max_cmd_len_constant() -> TestResult {
+pub(crate) fn test_max_cmd_len_constant() -> TestResult {
     if MAX_CMD_LEN != 256 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_command_history_secure_erase() -> TestResult {
+pub(crate) fn test_command_history_secure_erase() -> TestResult {
     let mut history = CommandHistory::new();
     history.add(b"secret command");
     history.secure_erase();
@@ -229,14 +229,14 @@ pub fn test_command_history_secure_erase() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_command_history_browse_empty() -> TestResult {
+pub(crate) fn test_command_history_browse_empty() -> TestResult {
     let mut history = CommandHistory::new();
     history.start_browse(b"test");
     if history.prev().is_some() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_command_history_add_preserves_order() -> TestResult {
+pub(crate) fn test_command_history_add_preserves_order() -> TestResult {
     let mut history = CommandHistory::new();
     history.add(b"alpha");
     history.add(b"beta");
@@ -252,7 +252,7 @@ pub fn test_command_history_add_preserves_order() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_command_history_browsing_resets_on_add() -> TestResult {
+pub(crate) fn test_command_history_browsing_resets_on_add() -> TestResult {
     let mut history = CommandHistory::new();
     history.add(b"first");
     history.start_browse(b"");
