@@ -125,7 +125,7 @@ pub struct AudioPath {
 }
 
 #[derive(Clone, Debug)]
-pub(crate) struct CodecPaths {
+pub struct CodecPaths {
     pub output_paths: [AudioPath; MAX_OUTPUT_PATHS],
     pub output_count: usize,
     pub primary_output: usize,

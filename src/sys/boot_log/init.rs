@@ -19,7 +19,7 @@ use super::state::{DISPLAY_ENABLED, LOG_Y, MIN_LOG_Y};
 
 pub fn init_after_fb(cursor_y: u32) {
     LOG_Y.store(cursor_y, Ordering::SeqCst);
-    MIN_LOG_Y.store(cursor_y, Ordering::SeqCst);
+    MIN_LOG_Y.store(160, Ordering::SeqCst);
     DISPLAY_ENABLED.store(true, Ordering::Release);
 }
 

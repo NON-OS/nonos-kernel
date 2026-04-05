@@ -416,6 +416,13 @@ pub fn run() -> bool {
 
     exercise_subsystem_apis();
 
+    // Run comprehensive kernel test suites
+    console::write_message("");
+    console::write_message("Running kernel test suites...");
+    if !crate::test::run_all_tests() {
+        ok = false;
+    }
+
     if ok {
         console::write_message("SELFTEST PASS");
     } else {

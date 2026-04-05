@@ -80,11 +80,11 @@ impl StateManager {
             Some(a) => a,
             None => return,
         };
-        let mut data = [0u8; 96];
+        let mut data = [0u8; 92];
         data[..8].copy_from_slice(&account.nonce.0.to_le_bytes());
         data[8..40].copy_from_slice(&account.balance.to_bytes_be());
         data[40..72].copy_from_slice(&account.code_hash);
-        data[72..96].copy_from_slice(&address.0[..]);
+        data[72..92].copy_from_slice(&address.0[..]);
         let hash = sha256(&data);
         let mut key = [0u8; 32];
         key[12..].copy_from_slice(address.as_bytes());

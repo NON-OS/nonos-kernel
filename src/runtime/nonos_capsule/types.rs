@@ -17,7 +17,7 @@
 use core::sync::atomic::{AtomicU64, Ordering};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
-pub struct CapsuleId(pub(super) u64);
+pub struct CapsuleId(pub(crate) u64);
 
 impl CapsuleId {
     #[inline]

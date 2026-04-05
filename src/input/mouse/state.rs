@@ -16,22 +16,22 @@
 
 use core::sync::atomic::{AtomicI32, AtomicU8, AtomicUsize, AtomicBool, Ordering};
 
-pub(super) static MOUSE_X: AtomicI32 = AtomicI32::new(400);
-pub(super) static MOUSE_Y: AtomicI32 = AtomicI32::new(300);
-pub(super) static MOUSE_BUTTONS: AtomicU8 = AtomicU8::new(0);
+pub(crate) static MOUSE_X: AtomicI32 = AtomicI32::new(400);
+pub(crate) static MOUSE_Y: AtomicI32 = AtomicI32::new(300);
+pub(crate) static MOUSE_BUTTONS: AtomicU8 = AtomicU8::new(0);
 
-pub(super) static SCREEN_WIDTH: AtomicI32 = AtomicI32::new(800);
-pub(super) static SCREEN_HEIGHT: AtomicI32 = AtomicI32::new(600);
+pub(crate) static SCREEN_WIDTH: AtomicI32 = AtomicI32::new(800);
+pub(crate) static SCREEN_HEIGHT: AtomicI32 = AtomicI32::new(600);
 
-pub(super) static PACKET_BYTE0: AtomicU8 = AtomicU8::new(0);
-pub(super) static PACKET_BYTE1: AtomicU8 = AtomicU8::new(0);
-pub(super) static PACKET_BYTE2: AtomicU8 = AtomicU8::new(0);
-pub(super) static PACKET_BYTE3: AtomicU8 = AtomicU8::new(0);
-pub(super) static PACKET_INDEX: AtomicUsize = AtomicUsize::new(0);
+pub(crate) static PACKET_BYTE0: AtomicU8 = AtomicU8::new(0);
+pub(crate) static PACKET_BYTE1: AtomicU8 = AtomicU8::new(0);
+pub(crate) static PACKET_BYTE2: AtomicU8 = AtomicU8::new(0);
+pub(crate) static PACKET_BYTE3: AtomicU8 = AtomicU8::new(0);
+pub(crate) static PACKET_INDEX: AtomicUsize = AtomicUsize::new(0);
 
-pub(super) static MOUSE_AVAILABLE: AtomicBool = AtomicBool::new(false);
-pub(super) static SCROLL_WHEEL_AVAILABLE: AtomicBool = AtomicBool::new(false);
-pub(super) static SCROLL_DELTA: AtomicI32 = AtomicI32::new(0);
+pub(crate) static MOUSE_AVAILABLE: AtomicBool = AtomicBool::new(false);
+pub(crate) static SCROLL_WHEEL_AVAILABLE: AtomicBool = AtomicBool::new(false);
+pub(crate) static SCROLL_DELTA: AtomicI32 = AtomicI32::new(0);
 
 /// Flag set by interrupt handler when mouse state was updated
 pub(super) static MOUSE_UPDATED: AtomicBool = AtomicBool::new(false);

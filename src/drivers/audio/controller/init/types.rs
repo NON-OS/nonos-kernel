@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 #[derive(Clone, Copy, Debug)]
-pub(crate) struct Capabilities {
+pub struct Capabilities {
     pub output_streams: u8,
     pub input_streams: u8,
     pub bidi_streams: u8,
@@ -24,11 +24,15 @@ pub(crate) struct Capabilities {
 }
 
 impl Capabilities {
-    pub(crate) fn from_gcap(gcap: u16) -> Self {
+    pub fn from_gcap(gcap: u16) -> Self {
         Self {
             output_streams: ((gcap >> 12) & 0xF) as u8, input_streams: ((gcap >> 8) & 0xF) as u8,
             bidi_streams: ((gcap >> 3) & 0x1F) as u8, addr64: (gcap & (1 << 0)) != 0, nsdo: ((gcap >> 1) & 0x3) as u8,
         }
+    }
+
+    pub fn total_streams(&self) -> u8 {
+        self.output_streams + self.input_streams + self.bidi_streams
     }
 }
 
