@@ -21,7 +21,7 @@ pub mod types;
 
 use crate::test::framework::TestSuite;
 
-pub fn run_all() -> TestSuite {
+pub fn run_all() -> bool {
     let mut suite = TestSuite::new("audio");
 
     // codec tests (19 tests)
@@ -77,5 +77,5 @@ pub fn run_all() -> TestSuite {
     suite.add_test("test_audio_format_to_hda", types::test_audio_format_to_hda);
     suite.add_test("test_stream_state_default", types::test_stream_state_default);
 
-    suite
+    suite.run()
 }

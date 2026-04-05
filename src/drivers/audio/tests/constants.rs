@@ -17,7 +17,7 @@
 use crate::drivers::audio::constants::*;
 use crate::test::framework::TestResult;
 
-pub fn test_global_register_offsets() -> TestResult {
+pub(crate) fn test_global_register_offsets() -> TestResult {
     if GCAP != 0x00 { return TestResult::Fail; }
     if VMIN != 0x02 { return TestResult::Fail; }
     if VMAJ != 0x03 { return TestResult::Fail; }
@@ -28,7 +28,7 @@ pub fn test_global_register_offsets() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_corb_rirb_offsets() -> TestResult {
+pub(crate) fn test_corb_rirb_offsets() -> TestResult {
     if CORBLBASE != 0x40 { return TestResult::Fail; }
     if CORBUBASE != 0x44 { return TestResult::Fail; }
     if CORBWP != 0x48 { return TestResult::Fail; }
@@ -41,14 +41,14 @@ pub fn test_corb_rirb_offsets() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_immediate_command_offsets() -> TestResult {
+pub(crate) fn test_immediate_command_offsets() -> TestResult {
     if IC != 0x60 { return TestResult::Fail; }
     if IR != 0x64 { return TestResult::Fail; }
     if IRS != 0x68 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_stream_descriptor_offsets() -> TestResult {
+pub(crate) fn test_stream_descriptor_offsets() -> TestResult {
     if STREAM_BASE != 0x80 { return TestResult::Fail; }
     if STREAM_STRIDE != 0x20 { return TestResult::Fail; }
     if SD_CTL != 0x00 { return TestResult::Fail; }
@@ -61,14 +61,14 @@ pub fn test_stream_descriptor_offsets() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_gctl_bits() -> TestResult {
+pub(crate) fn test_gctl_bits() -> TestResult {
     if GCTL_CRST != 1 << 0 { return TestResult::Fail; }
     if GCTL_FCNTRL != 1 << 1 { return TestResult::Fail; }
     if GCTL_UNSOL != 1 << 8 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_stream_ctl_bits() -> TestResult {
+pub(crate) fn test_stream_ctl_bits() -> TestResult {
     if SD_CTL_SRST != 1 << 0 { return TestResult::Fail; }
     if SD_CTL_RUN != 1 << 1 { return TestResult::Fail; }
     if SD_CTL_IOCE != 1 << 2 { return TestResult::Fail; }
@@ -77,7 +77,7 @@ pub fn test_stream_ctl_bits() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_buffer_sizes() -> TestResult {
+pub(crate) fn test_buffer_sizes() -> TestResult {
     if CORB_ENTRIES != 256 { return TestResult::Fail; }
     if RIRB_ENTRIES != 256 { return TestResult::Fail; }
     if CORB_SIZE != 256 * 4 { return TestResult::Fail; }
@@ -87,14 +87,14 @@ pub fn test_buffer_sizes() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_default_audio_constants() -> TestResult {
+pub(crate) fn test_default_audio_constants() -> TestResult {
     if DEFAULT_SAMPLE_RATE != 48_000 { return TestResult::Fail; }
     if DEFAULT_BITS_PER_SAMPLE != 16 { return TestResult::Fail; }
     if DEFAULT_CHANNELS != 2 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_spin_timeouts() -> TestResult {
+pub(crate) fn test_spin_timeouts() -> TestResult {
     if !(SPIN_TIMEOUT_DEFAULT > 0) { return TestResult::Fail; }
     if !(SPIN_TIMEOUT_SHORT > 0) { return TestResult::Fail; }
     if !(SPIN_TIMEOUT_LONG > 0) { return TestResult::Fail; }
@@ -103,13 +103,13 @@ pub fn test_spin_timeouts() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_pci_class_codes() -> TestResult {
+pub(crate) fn test_pci_class_codes() -> TestResult {
     if HDA_CLASS != 0x04 { return TestResult::Fail; }
     if HDA_SUBCLASS != 0x03 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_parameter_constants() -> TestResult {
+pub(crate) fn test_parameter_constants() -> TestResult {
     if PARAM_AMP_IN_CAP != 0x0D { return TestResult::Fail; }
     if PARAM_AMP_OUT_CAP != 0x12 { return TestResult::Fail; }
     if VERB_SET_CONN_SELECT != 0x701 { return TestResult::Fail; }

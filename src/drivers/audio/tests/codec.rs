@@ -14,13 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::drivers::audio::controller::{
-    compose_verb, device_name, vendor_name, AudioPath, Capabilities, CodecInfo, CodecPaths,
-    CodecQuirks, WidgetInfo,
+use crate::drivers::audio::controller::compose_verb;
+use crate::drivers::audio::controller::codec::{
+    device_name, vendor_name, AudioPath, CodecInfo, CodecPaths, CodecQuirks, WidgetInfo,
 };
+use crate::drivers::audio::controller::init::Capabilities;
 use crate::test::framework::TestResult;
 
-pub fn test_compose_verb() -> TestResult {
+pub(crate) fn test_compose_verb() -> TestResult {
     let verb = compose_verb(0, 0, 0xF00, 0x00);
     if verb != 0x000F_0000 { return TestResult::Fail; }
 
@@ -29,7 +30,7 @@ pub fn test_compose_verb() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_capabilities_from_gcap() -> TestResult {
+pub(crate) fn test_capabilities_from_gcap() -> TestResult {
     let gcap = (4 << 12) | (2 << 8) | (1 << 3) | 1;
     let caps = Capabilities::from_gcap(gcap);
 
@@ -41,7 +42,7 @@ pub fn test_capabilities_from_gcap() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_vendor_name() -> TestResult {
+pub(crate) fn test_vendor_name() -> TestResult {
     if vendor_name(0x8086) != "Intel" { return TestResult::Fail; }
     if vendor_name(0x10DE) != "NVIDIA" { return TestResult::Fail; }
     if vendor_name(0x1002) != "AMD/ATI" { return TestResult::Fail; }
@@ -53,7 +54,7 @@ pub fn test_vendor_name() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_codec_info_empty() -> TestResult {
+pub(crate) fn test_codec_info_empty() -> TestResult {
     let codec = CodecInfo::empty();
     if codec.cad != 0 { return TestResult::Fail; }
     if codec.vendor_id != 0 { return TestResult::Fail; }
@@ -64,7 +65,7 @@ pub fn test_codec_info_empty() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_codec_info_copy() -> TestResult {
+pub(crate) fn test_codec_info_copy() -> TestResult {
     let codec1 = CodecInfo {
         cad: 1,
         vendor_id: 0x10EC,
@@ -81,7 +82,7 @@ pub fn test_codec_info_copy() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_widget_info_default() -> TestResult {
+pub(crate) fn test_widget_info_default() -> TestResult {
     let widget = WidgetInfo::default();
     if widget.nid != 0 { return TestResult::Fail; }
     if widget.widget_type != 0 { return TestResult::Fail; }
@@ -90,7 +91,7 @@ pub fn test_widget_info_default() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_widget_info_has_out_amp() -> TestResult {
+pub(crate) fn test_widget_info_has_out_amp() -> TestResult {
     let widget = WidgetInfo {
         caps: 1 << 2,
         ..Default::default()
@@ -102,7 +103,7 @@ pub fn test_widget_info_has_out_amp() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_widget_info_has_in_amp() -> TestResult {
+pub(crate) fn test_widget_info_has_in_amp() -> TestResult {
     let widget = WidgetInfo {
         caps: 1 << 1,
         ..Default::default()
@@ -114,7 +115,7 @@ pub fn test_widget_info_has_in_amp() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_widget_info_is_output_pin() -> TestResult {
+pub(crate) fn test_widget_info_is_output_pin() -> TestResult {
     let widget = WidgetInfo {
         widget_type: 4,
         pin_caps: 1 << 4,
@@ -131,7 +132,7 @@ pub fn test_widget_info_is_output_pin() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_widget_info_is_input_pin() -> TestResult {
+pub(crate) fn test_widget_info_is_input_pin() -> TestResult {
     let widget = WidgetInfo {
         widget_type: 4,
         pin_caps: 1 << 5,
@@ -141,7 +142,7 @@ pub fn test_widget_info_is_input_pin() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_widget_info_pin_device_type() -> TestResult {
+pub(crate) fn test_widget_info_pin_device_type() -> TestResult {
     let widget = WidgetInfo {
         pin_config: 0x1 << 20,
         ..Default::default()
@@ -156,7 +157,7 @@ pub fn test_widget_info_pin_device_type() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_widget_info_pin_connectivity() -> TestResult {
+pub(crate) fn test_widget_info_pin_connectivity() -> TestResult {
     let jack = WidgetInfo {
         pin_config: 0 << 30,
         ..Default::default()
@@ -171,7 +172,7 @@ pub fn test_widget_info_pin_connectivity() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_widget_info_is_connected() -> TestResult {
+pub(crate) fn test_widget_info_is_connected() -> TestResult {
     let connected = WidgetInfo {
         pin_config: 0 << 30,
         ..Default::default()
@@ -186,7 +187,7 @@ pub fn test_widget_info_is_connected() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_widget_info_amp_steps() -> TestResult {
+pub(crate) fn test_widget_info_amp_steps() -> TestResult {
     let widget = WidgetInfo {
         amp_out_caps: 0x7F << 8,
         amp_in_caps: 0x40 << 8,
@@ -197,7 +198,7 @@ pub fn test_widget_info_amp_steps() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_audio_path_default() -> TestResult {
+pub(crate) fn test_audio_path_default() -> TestResult {
     let path = AudioPath::default();
     if path.dac_nid != 0 { return TestResult::Fail; }
     if path.path != [0; 8] { return TestResult::Fail; }
@@ -208,7 +209,7 @@ pub fn test_audio_path_default() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_audio_path_copy() -> TestResult {
+pub(crate) fn test_audio_path_copy() -> TestResult {
     let path1 = AudioPath {
         dac_nid: 2,
         path: [5, 6, 0, 0, 0, 0, 0, 0],
@@ -224,7 +225,7 @@ pub fn test_audio_path_copy() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_codec_paths_default() -> TestResult {
+pub(crate) fn test_codec_paths_default() -> TestResult {
     let paths = CodecPaths::default();
     if paths.output_count != 0 { return TestResult::Fail; }
     if paths.primary_output != 0 { return TestResult::Fail; }
@@ -232,7 +233,7 @@ pub fn test_codec_paths_default() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_device_name() -> TestResult {
+pub(crate) fn test_device_name() -> TestResult {
     if device_name(0x10EC, 0x0892) != "ALC892" { return TestResult::Fail; }
     if device_name(0x10EC, 0x0269) != "ALC269" { return TestResult::Fail; }
     if device_name(0x10EC, 0x1220) != "ALC1220" { return TestResult::Fail; }
@@ -244,7 +245,7 @@ pub fn test_device_name() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_vendor_name_extended() -> TestResult {
+pub(crate) fn test_vendor_name_extended() -> TestResult {
     if vendor_name(0x11D4) != "Analog Devices" { return TestResult::Fail; }
     if vendor_name(0x1013) != "Cirrus Logic" { return TestResult::Fail; }
     if vendor_name(0x13F6) != "C-Media" { return TestResult::Fail; }

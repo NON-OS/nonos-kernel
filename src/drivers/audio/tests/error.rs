@@ -17,7 +17,7 @@
 use crate::drivers::audio::error::*;
 use crate::test::framework::TestResult;
 
-pub fn test_audio_error_display() -> TestResult {
+pub(crate) fn test_audio_error_display() -> TestResult {
     if AudioError::Bar0NotMmio.as_str() != "HDA BAR0 is not MMIO" { return TestResult::Fail; }
     if AudioError::NoControllerFound.as_str() != "No HD Audio controller found" { return TestResult::Fail; }
     if AudioError::PlaybackTimeout.as_str() != "Playback did not complete in time" { return TestResult::Fail; }
@@ -25,7 +25,7 @@ pub fn test_audio_error_display() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_audio_error_variants() -> TestResult {
+pub(crate) fn test_audio_error_variants() -> TestResult {
     let errors = [
         AudioError::Bar0NotMmio,
         AudioError::CrstClearTimeout,
@@ -55,7 +55,7 @@ pub fn test_audio_error_variants() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_audio_error_equality() -> TestResult {
+pub(crate) fn test_audio_error_equality() -> TestResult {
     if AudioError::Bar0NotMmio != AudioError::Bar0NotMmio { return TestResult::Fail; }
     if AudioError::Bar0NotMmio == AudioError::NoControllerFound { return TestResult::Fail; }
 
@@ -65,7 +65,7 @@ pub fn test_audio_error_equality() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_audio_error_from_str() -> TestResult {
+pub(crate) fn test_audio_error_from_str() -> TestResult {
     let err: AudioError = "HDA BAR0 is not MMIO".into();
     if err != AudioError::Bar0NotMmio { return TestResult::Fail; }
 
