@@ -14,51 +14,49 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-#[cfg(test)]
-mod tests {
-    use crate::drivers::virtio_rng;
+use crate::drivers::virtio_rng;
+use crate::test::framework::TestResult;
 
-    // ── is_available() ───────────────────────────────────────────────────
+// is_available()
 
-    #[test]
-    fn test_is_available_before_init() {
-        // In the test harness, init() is never called, so the device
-        // should not report as available.
-        assert!(!virtio_rng::is_available());
-    }
+pub fn test_is_available_before_init() -> TestResult {
+    // In the test harness, init() is never called, so the device
+    // should not report as available.
+    if virtio_rng::is_available() { return TestResult::Fail; }
+    TestResult::Pass
+}
 
-    // ── get_random_bytes() without init ──────────────────────────────────
+// get_random_bytes() without init
 
-    #[test]
-    fn test_get_random_bytes_fails_before_init() {
-        let mut buf = [0u8; 32];
-        let result = virtio_rng::get_random_bytes(&mut buf);
-        assert!(result.is_err());
-        assert_eq!(result.unwrap_err(), "virtio-rng not available");
-    }
+pub fn test_get_random_bytes_fails_before_init() -> TestResult {
+    let mut buf = [0u8; 32];
+    let result = virtio_rng::get_random_bytes(&mut buf);
+    if result.is_ok() { return TestResult::Fail; }
+    if result.unwrap_err() != "virtio-rng not available" { return TestResult::Fail; }
+    TestResult::Pass
+}
 
-    #[test]
-    fn test_get_random_bytes_empty_buf_fails_before_init() {
-        let mut buf = [0u8; 0];
-        // Even an empty buffer should fail — device not available
-        let result = virtio_rng::get_random_bytes(&mut buf);
-        assert!(result.is_err());
-    }
+pub fn test_get_random_bytes_empty_buf_fails_before_init() -> TestResult {
+    let mut buf = [0u8; 0];
+    // Even an empty buffer should fail - device not available
+    let result = virtio_rng::get_random_bytes(&mut buf);
+    if result.is_ok() { return TestResult::Fail; }
+    TestResult::Pass
+}
 
-    // ── fill_random() without init ───────────────────────────────────────
+// fill_random() without init
 
-    #[test]
-    fn test_fill_random_empty_buf_ok() {
-        // Empty buffer is a no-op — should succeed even without device
-        let mut buf = [0u8; 0];
-        let result = virtio_rng::fill_random(&mut buf);
-        assert!(result.is_ok());
-    }
+pub fn test_fill_random_empty_buf_ok() -> TestResult {
+    // Empty buffer is a no-op - should succeed even without device
+    let mut buf = [0u8; 0];
+    let result = virtio_rng::fill_random(&mut buf);
+    if result.is_err() { return TestResult::Fail; }
+    TestResult::Pass
+}
 
-    #[test]
-    fn test_fill_random_fails_before_init() {
-        let mut buf = [0u8; 32];
-        let result = virtio_rng::fill_random(&mut buf);
-        assert!(result.is_err());
-    }
+pub fn test_fill_random_fails_before_init() -> TestResult {
+    let mut buf = [0u8; 32];
+    let result = virtio_rng::fill_random(&mut buf);
+    if result.is_ok() { return TestResult::Fail; }
+    TestResult::Pass
 }
