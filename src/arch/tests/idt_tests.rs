@@ -12,34 +12,34 @@ use crate::arch::x86_64::idt::{
 };
 use crate::test::framework::TestResult;
 
-pub fn test_idt_entries_count() -> TestResult {
+pub(crate) fn test_idt_entries_count() -> TestResult {
     if IDT_ENTRIES != 256 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_kernel_cs() -> TestResult {
+pub(crate) fn test_kernel_cs() -> TestResult {
     if KERNEL_CS != 0x08 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_gate_types() -> TestResult {
+pub(crate) fn test_gate_types() -> TestResult {
     if GATE_INTERRUPT != 0x0E { return TestResult::Fail; }
     if GATE_TRAP != 0x0F { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_privilege_levels() -> TestResult {
+pub(crate) fn test_privilege_levels() -> TestResult {
     if DPL_KERNEL != 0 { return TestResult::Fail; }
     if DPL_USER != 3 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_present_flag() -> TestResult {
+pub(crate) fn test_present_flag() -> TestResult {
     if PRESENT != 0x80 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_exception_vectors_order() -> TestResult {
+pub(crate) fn test_exception_vectors_order() -> TestResult {
     if VEC_DIVIDE_ERROR != 0 { return TestResult::Fail; }
     if VEC_DEBUG != 1 { return TestResult::Fail; }
     if VEC_NMI != 2 { return TestResult::Fail; }
@@ -52,7 +52,7 @@ pub fn test_exception_vectors_order() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_exception_vectors_high() -> TestResult {
+pub(crate) fn test_exception_vectors_high() -> TestResult {
     if VEC_COPROCESSOR_SEGMENT != 9 { return TestResult::Fail; }
     if VEC_INVALID_TSS != 10 { return TestResult::Fail; }
     if VEC_SEGMENT_NOT_PRESENT != 11 { return TestResult::Fail; }
@@ -68,17 +68,17 @@ pub fn test_exception_vectors_high() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_irq_base() -> TestResult {
+pub(crate) fn test_irq_base() -> TestResult {
     if IRQ_BASE != 32 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_irq_base_after_exceptions() -> TestResult {
+pub(crate) fn test_irq_base_after_exceptions() -> TestResult {
     if (IRQ_BASE as usize) <= (VEC_CONTROL_PROTECTION as usize) { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_ist_indices() -> TestResult {
+pub(crate) fn test_ist_indices() -> TestResult {
     if IST_DOUBLE_FAULT != 1 { return TestResult::Fail; }
     if IST_NMI != 2 { return TestResult::Fail; }
     if IST_MACHINE_CHECK != 3 { return TestResult::Fail; }
@@ -88,7 +88,7 @@ pub fn test_ist_indices() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_ist_indices_valid_range() -> TestResult {
+pub(crate) fn test_ist_indices_valid_range() -> TestResult {
     if IST_DOUBLE_FAULT > 7 { return TestResult::Fail; }
     if IST_NMI > 7 { return TestResult::Fail; }
     if IST_MACHINE_CHECK > 7 { return TestResult::Fail; }
@@ -98,7 +98,7 @@ pub fn test_ist_indices_valid_range() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_ist_indices_nonzero() -> TestResult {
+pub(crate) fn test_ist_indices_nonzero() -> TestResult {
     if IST_DOUBLE_FAULT == 0 { return TestResult::Fail; }
     if IST_NMI == 0 { return TestResult::Fail; }
     if IST_MACHINE_CHECK == 0 { return TestResult::Fail; }
@@ -108,7 +108,7 @@ pub fn test_ist_indices_nonzero() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_exceptions_below_irq_base() -> TestResult {
+pub(crate) fn test_exceptions_below_irq_base() -> TestResult {
     if VEC_DIVIDE_ERROR >= IRQ_BASE { return TestResult::Fail; }
     if VEC_DOUBLE_FAULT >= IRQ_BASE { return TestResult::Fail; }
     if VEC_PAGE_FAULT >= IRQ_BASE { return TestResult::Fail; }
@@ -116,7 +116,7 @@ pub fn test_exceptions_below_irq_base() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_all_exceptions_unique() -> TestResult {
+pub(crate) fn test_all_exceptions_unique() -> TestResult {
     let exceptions = [
         VEC_DIVIDE_ERROR, VEC_DEBUG, VEC_NMI, VEC_BREAKPOINT, VEC_OVERFLOW,
         VEC_BOUND_RANGE, VEC_INVALID_OPCODE, VEC_DEVICE_NOT_AVAILABLE,
@@ -133,7 +133,7 @@ pub fn test_all_exceptions_unique() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_idt_size_fits_256_entries() -> TestResult {
+pub(crate) fn test_idt_size_fits_256_entries() -> TestResult {
     if IDT_ENTRIES > 256 { return TestResult::Fail; }
     TestResult::Pass
 }

@@ -7,7 +7,7 @@ use crate::arch::x86_64::acpi::{
 };
 use crate::test::framework::TestResult;
 
-pub fn test_table_signatures() -> TestResult {
+pub(crate) fn test_table_signatures() -> TestResult {
     if SIG_FADT != *b"FACP" { return TestResult::Fail; }
     if SIG_HPET != *b"HPET" { return TestResult::Fail; }
     if SIG_MADT != *b"APIC" { return TestResult::Fail; }
@@ -19,17 +19,17 @@ pub fn test_table_signatures() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_rsdp_signature() -> TestResult {
+pub(crate) fn test_rsdp_signature() -> TestResult {
     if RSDP_SIGNATURE != *b"RSD PTR " { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_rsdp_alignment() -> TestResult {
+pub(crate) fn test_rsdp_alignment() -> TestResult {
     if RSDP_ALIGNMENT != 16 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_pm_profile_variants() -> TestResult {
+pub(crate) fn test_pm_profile_variants() -> TestResult {
     if PmProfile::Unspecified as u8 != 0 { return TestResult::Fail; }
     if PmProfile::Desktop as u8 != 1 { return TestResult::Fail; }
     if PmProfile::Mobile as u8 != 2 { return TestResult::Fail; }
@@ -42,7 +42,7 @@ pub fn test_pm_profile_variants() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_madt_entry_types() -> TestResult {
+pub(crate) fn test_madt_entry_types() -> TestResult {
     if MadtEntryType::LocalApic as u8 != 0 { return TestResult::Fail; }
     if MadtEntryType::IoApic as u8 != 1 { return TestResult::Fail; }
     if MadtEntryType::InterruptOverride as u8 != 2 { return TestResult::Fail; }
@@ -54,14 +54,14 @@ pub fn test_madt_entry_types() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_srat_entry_types() -> TestResult {
+pub(crate) fn test_srat_entry_types() -> TestResult {
     if SratEntryType::ProcessorAffinity as u8 != 0 { return TestResult::Fail; }
     if SratEntryType::MemoryAffinity as u8 != 1 { return TestResult::Fail; }
     if SratEntryType::X2ApicAffinity as u8 != 2 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_address_space_variants() -> TestResult {
+pub(crate) fn test_address_space_variants() -> TestResult {
     if AddressSpace::SystemMemory as u8 != 0 { return TestResult::Fail; }
     if AddressSpace::SystemIo as u8 != 1 { return TestResult::Fail; }
     if AddressSpace::PciConfig as u8 != 2 { return TestResult::Fail; }
@@ -75,7 +75,7 @@ pub fn test_address_space_variants() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_signatures_are_4_bytes() -> TestResult {
+pub(crate) fn test_signatures_are_4_bytes() -> TestResult {
     if SIG_FADT.len() != 4 { return TestResult::Fail; }
     if SIG_HPET.len() != 4 { return TestResult::Fail; }
     if SIG_MADT.len() != 4 { return TestResult::Fail; }
@@ -85,12 +85,12 @@ pub fn test_signatures_are_4_bytes() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_rsdp_signature_is_8_bytes() -> TestResult {
+pub(crate) fn test_rsdp_signature_is_8_bytes() -> TestResult {
     if RSDP_SIGNATURE.len() != 8 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_rsdp_alignment_power_of_two() -> TestResult {
+pub(crate) fn test_rsdp_alignment_power_of_two() -> TestResult {
     if !RSDP_ALIGNMENT.is_power_of_two() { return TestResult::Fail; }
     TestResult::Pass
 }
