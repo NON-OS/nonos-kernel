@@ -17,82 +17,82 @@
 use crate::runtime::*;
 use crate::test::framework::TestResult;
 
-pub fn test_capsule_category_system() -> TestResult {
+pub(crate) fn test_capsule_category_system() -> TestResult {
     let category = capsule_store::CapsuleCategory::System;
     if category != capsule_store::CapsuleCategory::System { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_capsule_category_privacy() -> TestResult {
+pub(crate) fn test_capsule_category_privacy() -> TestResult {
     let category = capsule_store::CapsuleCategory::Privacy;
     if category != capsule_store::CapsuleCategory::Privacy { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_capsule_category_security() -> TestResult {
+pub(crate) fn test_capsule_category_security() -> TestResult {
     let category = capsule_store::CapsuleCategory::Security;
     if category != capsule_store::CapsuleCategory::Security { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_capsule_category_network() -> TestResult {
+pub(crate) fn test_capsule_category_network() -> TestResult {
     let category = capsule_store::CapsuleCategory::Network;
     if category != capsule_store::CapsuleCategory::Network { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_capsule_category_utility() -> TestResult {
+pub(crate) fn test_capsule_category_utility() -> TestResult {
     let category = capsule_store::CapsuleCategory::Utility;
     if category != capsule_store::CapsuleCategory::Utility { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_capsule_category_development() -> TestResult {
+pub(crate) fn test_capsule_category_development() -> TestResult {
     let category = capsule_store::CapsuleCategory::Development;
     if category != capsule_store::CapsuleCategory::Development { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_capsule_category_media() -> TestResult {
+pub(crate) fn test_capsule_category_media() -> TestResult {
     let category = capsule_store::CapsuleCategory::Media;
     if category != capsule_store::CapsuleCategory::Media { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_capsule_category_finance() -> TestResult {
+pub(crate) fn test_capsule_category_finance() -> TestResult {
     let category = capsule_store::CapsuleCategory::Finance;
     if category != capsule_store::CapsuleCategory::Finance { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_capsule_category_communication() -> TestResult {
+pub(crate) fn test_capsule_category_communication() -> TestResult {
     let category = capsule_store::CapsuleCategory::Communication;
     if category != capsule_store::CapsuleCategory::Communication { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_capsule_category_clone() -> TestResult {
+pub(crate) fn test_capsule_category_clone() -> TestResult {
     let c1 = capsule_store::CapsuleCategory::System;
     let c2 = c1.clone();
     if c1 != c2 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_capsule_category_copy() -> TestResult {
+pub(crate) fn test_capsule_category_copy() -> TestResult {
     let c1 = capsule_store::CapsuleCategory::Privacy;
     let c2 = c1;
     if c1 != c2 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_capsule_category_debug() -> TestResult {
+pub(crate) fn test_capsule_category_debug() -> TestResult {
     let category = capsule_store::CapsuleCategory::Security;
     let debug_str = alloc::format!("{:?}", category);
     if !debug_str.contains("Security") { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_capsule_category_all_unique() -> TestResult {
+pub(crate) fn test_capsule_category_all_unique() -> TestResult {
     let categories = [
         capsule_store::CapsuleCategory::System,
         capsule_store::CapsuleCategory::Privacy,
@@ -112,82 +112,82 @@ pub fn test_capsule_category_all_unique() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_install_state_pending() -> TestResult {
+pub(crate) fn test_install_state_pending() -> TestResult {
     let state = capsule_store::InstallState::Pending;
     if state != capsule_store::InstallState::Pending { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_install_state_payment_required() -> TestResult {
+pub(crate) fn test_install_state_payment_required() -> TestResult {
     let state = capsule_store::InstallState::PaymentRequired;
     if state != capsule_store::InstallState::PaymentRequired { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_install_state_payment_submitted() -> TestResult {
+pub(crate) fn test_install_state_payment_submitted() -> TestResult {
     let state = capsule_store::InstallState::PaymentSubmitted;
     if state != capsule_store::InstallState::PaymentSubmitted { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_install_state_payment_confirmed() -> TestResult {
+pub(crate) fn test_install_state_payment_confirmed() -> TestResult {
     let state = capsule_store::InstallState::PaymentConfirmed;
     if state != capsule_store::InstallState::PaymentConfirmed { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_install_state_downloading() -> TestResult {
+pub(crate) fn test_install_state_downloading() -> TestResult {
     let state = capsule_store::InstallState::Downloading;
     if state != capsule_store::InstallState::Downloading { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_install_state_verifying() -> TestResult {
+pub(crate) fn test_install_state_verifying() -> TestResult {
     let state = capsule_store::InstallState::Verifying;
     if state != capsule_store::InstallState::Verifying { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_install_state_installing() -> TestResult {
+pub(crate) fn test_install_state_installing() -> TestResult {
     let state = capsule_store::InstallState::Installing;
     if state != capsule_store::InstallState::Installing { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_install_state_installed() -> TestResult {
+pub(crate) fn test_install_state_installed() -> TestResult {
     let state = capsule_store::InstallState::Installed;
     if state != capsule_store::InstallState::Installed { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_install_state_failed() -> TestResult {
+pub(crate) fn test_install_state_failed() -> TestResult {
     let state = capsule_store::InstallState::Failed;
     if state != capsule_store::InstallState::Failed { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_install_state_clone() -> TestResult {
+pub(crate) fn test_install_state_clone() -> TestResult {
     let s1 = capsule_store::InstallState::Pending;
     let s2 = s1.clone();
     if s1 != s2 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_install_state_copy() -> TestResult {
+pub(crate) fn test_install_state_copy() -> TestResult {
     let s1 = capsule_store::InstallState::Installed;
     let s2 = s1;
     if s1 != s2 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_install_state_debug() -> TestResult {
+pub(crate) fn test_install_state_debug() -> TestResult {
     let state = capsule_store::InstallState::Downloading;
     let debug_str = alloc::format!("{:?}", state);
     if !debug_str.contains("Downloading") { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_install_state_all_unique() -> TestResult {
+pub(crate) fn test_install_state_all_unique() -> TestResult {
     let states = [
         capsule_store::InstallState::Pending,
         capsule_store::InstallState::PaymentRequired,
@@ -207,7 +207,7 @@ pub fn test_install_state_all_unique() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_capsule_metadata_clone() -> TestResult {
+pub(crate) fn test_capsule_metadata_clone() -> TestResult {
     let meta = capsule_store::CapsuleMetadata {
         id: [0u8; 32],
         name: alloc::string::String::from("test"),
@@ -228,7 +228,7 @@ pub fn test_capsule_metadata_clone() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_capsule_metadata_debug() -> TestResult {
+pub(crate) fn test_capsule_metadata_debug() -> TestResult {
     let meta = capsule_store::CapsuleMetadata {
         id: [1u8; 32],
         name: alloc::string::String::from("debug_test"),
@@ -247,7 +247,7 @@ pub fn test_capsule_metadata_debug() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_installation_task_clone() -> TestResult {
+pub(crate) fn test_installation_task_clone() -> TestResult {
     let task = capsule_store::InstallationTask {
         capsule_id: [0u8; 32],
         state: capsule_store::InstallState::Pending,
@@ -262,7 +262,7 @@ pub fn test_installation_task_clone() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_installation_task_debug() -> TestResult {
+pub(crate) fn test_installation_task_debug() -> TestResult {
     let task = capsule_store::InstallationTask {
         capsule_id: [1u8; 32],
         state: capsule_store::InstallState::Installing,
@@ -275,7 +275,7 @@ pub fn test_installation_task_debug() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_installation_task_with_error() -> TestResult {
+pub(crate) fn test_installation_task_with_error() -> TestResult {
     let task = capsule_store::InstallationTask {
         capsule_id: [0u8; 32],
         state: capsule_store::InstallState::Failed,
@@ -288,7 +288,7 @@ pub fn test_installation_task_with_error() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_installation_task_with_tx_hash() -> TestResult {
+pub(crate) fn test_installation_task_with_tx_hash() -> TestResult {
     let hash = [42u8; 32];
     let task = capsule_store::InstallationTask {
         capsule_id: [0u8; 32],
@@ -302,58 +302,58 @@ pub fn test_installation_task_with_tx_hash() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_micro_fee_nox_constant() -> TestResult {
+pub(crate) fn test_micro_fee_nox_constant() -> TestResult {
     if capsule_store::MICRO_FEE_NOX != 1_000_000_000_000_000 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_gas_price_gwei_constant() -> TestResult {
+pub(crate) fn test_gas_price_gwei_constant() -> TestResult {
     if capsule_store::GAS_PRICE_GWEI != 20 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_mainnet_chain_id_constant() -> TestResult {
+pub(crate) fn test_mainnet_chain_id_constant() -> TestResult {
     if capsule_store::MAINNET_CHAIN_ID != 1 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_format_nox_amount_zero() -> TestResult {
+pub(crate) fn test_format_nox_amount_zero() -> TestResult {
     let result = capsule_store::format_nox_amount(0);
     if result != "0.000 NOX" { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_format_nox_amount_one_wei() -> TestResult {
+pub(crate) fn test_format_nox_amount_one_wei() -> TestResult {
     let result = capsule_store::format_nox_amount(1);
     if result != "0.000 NOX" { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_format_nox_amount_one_nox() -> TestResult {
+pub(crate) fn test_format_nox_amount_one_nox() -> TestResult {
     let result = capsule_store::format_nox_amount(1_000_000_000_000_000_000);
     if result != "1.000 NOX" { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_format_nox_amount_fractional() -> TestResult {
+pub(crate) fn test_format_nox_amount_fractional() -> TestResult {
     let result = capsule_store::format_nox_amount(1_500_000_000_000_000_000);
     if result != "1.500 NOX" { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_format_nox_amount_large() -> TestResult {
+pub(crate) fn test_format_nox_amount_large() -> TestResult {
     let result = capsule_store::format_nox_amount(100_000_000_000_000_000_000);
     if result != "100.000 NOX" { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_format_nox_amount_micro_fee() -> TestResult {
+pub(crate) fn test_format_nox_amount_micro_fee() -> TestResult {
     let result = capsule_store::format_nox_amount(capsule_store::MICRO_FEE_NOX);
     if result != "0.001 NOX" { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_installed_capsule_clone() -> TestResult {
+pub(crate) fn test_installed_capsule_clone() -> TestResult {
     use core::sync::atomic::AtomicBool;
     let meta = capsule_store::CapsuleMetadata {
         id: [0u8; 32],
@@ -380,7 +380,7 @@ pub fn test_installed_capsule_clone() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_installed_capsule_debug() -> TestResult {
+pub(crate) fn test_installed_capsule_debug() -> TestResult {
     use core::sync::atomic::AtomicBool;
     let meta = capsule_store::CapsuleMetadata {
         id: [0u8; 32],
@@ -406,7 +406,7 @@ pub fn test_installed_capsule_debug() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_capsule_metadata_with_dilithium_signature() -> TestResult {
+pub(crate) fn test_capsule_metadata_with_dilithium_signature() -> TestResult {
     let sig = alloc::vec![1u8, 2, 3, 4, 5];
     let meta = capsule_store::CapsuleMetadata {
         id: [0u8; 32],
@@ -426,7 +426,7 @@ pub fn test_capsule_metadata_with_dilithium_signature() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_capsule_metadata_without_dilithium_signature() -> TestResult {
+pub(crate) fn test_capsule_metadata_without_dilithium_signature() -> TestResult {
     let meta = capsule_store::CapsuleMetadata {
         id: [0u8; 32],
         name: alloc::string::String::from("classic_test"),
@@ -444,7 +444,7 @@ pub fn test_capsule_metadata_without_dilithium_signature() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_installation_task_progress_bounds() -> TestResult {
+pub(crate) fn test_installation_task_progress_bounds() -> TestResult {
     let task_0 = capsule_store::InstallationTask {
         capsule_id: [0u8; 32],
         state: capsule_store::InstallState::Pending,
@@ -465,7 +465,7 @@ pub fn test_installation_task_progress_bounds() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_capsule_metadata_size_bytes() -> TestResult {
+pub(crate) fn test_capsule_metadata_size_bytes() -> TestResult {
     let meta = capsule_store::CapsuleMetadata {
         id: [0u8; 32],
         name: alloc::string::String::from("size_test"),
@@ -483,7 +483,7 @@ pub fn test_capsule_metadata_size_bytes() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_capsule_metadata_nox_fee() -> TestResult {
+pub(crate) fn test_capsule_metadata_nox_fee() -> TestResult {
     let meta = capsule_store::CapsuleMetadata {
         id: [0u8; 32],
         name: alloc::string::String::from("fee_test"),

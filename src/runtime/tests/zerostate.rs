@@ -17,14 +17,14 @@
 use crate::runtime::*;
 use crate::test::framework::TestResult;
 
-pub fn test_zerostate_register_capsule() -> TestResult {
+pub(crate) fn test_zerostate_register_capsule() -> TestResult {
     let quotas = capsule::CapsuleQuotas::default();
     let cap = zerostate::register_capsule("zerostate_test", alloc::vec![], quotas);
     if cap.name != "zerostate_test" { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_zerostate_register_capsule_with_peers() -> TestResult {
+pub(crate) fn test_zerostate_register_capsule_with_peers() -> TestResult {
     let quotas = capsule::CapsuleQuotas::default();
     let peers = alloc::vec!["peer_a", "peer_b"];
     let cap = zerostate::register_capsule("zerostate_peers_test", peers, quotas);
@@ -33,7 +33,7 @@ pub fn test_zerostate_register_capsule_with_peers() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_zerostate_register_capsule_with_custom_quotas() -> TestResult {
+pub(crate) fn test_zerostate_register_capsule_with_custom_quotas() -> TestResult {
     let quotas = capsule::CapsuleQuotas {
         inbox_capacity: 2048,
         max_msg_bytes: 512 * 1024,
@@ -46,7 +46,7 @@ pub fn test_zerostate_register_capsule_with_custom_quotas() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_zerostate_get_capsule_by_name() -> TestResult {
+pub(crate) fn test_zerostate_get_capsule_by_name() -> TestResult {
     let quotas = capsule::CapsuleQuotas::default();
     zerostate::register_capsule("get_by_name_test", alloc::vec![], quotas);
     let found = zerostate::get_capsule_by_name("get_by_name_test");
@@ -55,25 +55,25 @@ pub fn test_zerostate_get_capsule_by_name() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_zerostate_get_capsule_by_name_nonexistent() -> TestResult {
+pub(crate) fn test_zerostate_get_capsule_by_name_nonexistent() -> TestResult {
     let found = zerostate::get_capsule_by_name("nonexistent_capsule_abc");
     if !found.is_none() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_zerostate_heartbeat_for_registered() -> TestResult {
+pub(crate) fn test_zerostate_heartbeat_for_registered() -> TestResult {
     let quotas = capsule::CapsuleQuotas::default();
     zerostate::register_capsule("heartbeat_test_capsule", alloc::vec![], quotas);
     zerostate::heartbeat("heartbeat_test_capsule");
     TestResult::Pass
 }
 
-pub fn test_zerostate_heartbeat_for_nonexistent() -> TestResult {
+pub(crate) fn test_zerostate_heartbeat_for_nonexistent() -> TestResult {
     zerostate::heartbeat("nonexistent_heartbeat_capsule");
     TestResult::Pass
 }
 
-pub fn test_zerostate_poll_capsule_none_when_empty() -> TestResult {
+pub(crate) fn test_zerostate_poll_capsule_none_when_empty() -> TestResult {
     let quotas = capsule::CapsuleQuotas::default();
     zerostate::register_capsule("poll_empty_test", alloc::vec![], quotas);
     let msg = zerostate::poll_capsule("poll_empty_test");
@@ -81,13 +81,13 @@ pub fn test_zerostate_poll_capsule_none_when_empty() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_zerostate_poll_capsule_nonexistent() -> TestResult {
+pub(crate) fn test_zerostate_poll_capsule_nonexistent() -> TestResult {
     let msg = zerostate::poll_capsule("definitely_not_registered");
     if !msg.is_none() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_zerostate_register_multiple_capsules() -> TestResult {
+pub(crate) fn test_zerostate_register_multiple_capsules() -> TestResult {
     let quotas = capsule::CapsuleQuotas::default();
     let cap1 = zerostate::register_capsule("multi_cap_1", alloc::vec![], quotas.clone());
     let cap2 = zerostate::register_capsule("multi_cap_2", alloc::vec![], quotas.clone());
@@ -99,26 +99,26 @@ pub fn test_zerostate_register_multiple_capsules() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_zerostate_capsule_initial_health() -> TestResult {
+pub(crate) fn test_zerostate_capsule_initial_health() -> TestResult {
     let quotas = capsule::CapsuleQuotas::default();
     let cap = zerostate::register_capsule("health_test", alloc::vec![], quotas);
     if cap.health() != capsule::CapsuleState::Stopped { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_zerostate_monitor_once_no_panic() -> TestResult {
+pub(crate) fn test_zerostate_monitor_once_no_panic() -> TestResult {
     zerostate::monitor_once();
     TestResult::Pass
 }
 
-pub fn test_zerostate_monitor_once_multiple_calls() -> TestResult {
+pub(crate) fn test_zerostate_monitor_once_multiple_calls() -> TestResult {
     zerostate::monitor_once();
     zerostate::monitor_once();
     zerostate::monitor_once();
     TestResult::Pass
 }
 
-pub fn test_zerostate_capsule_ids_increasing() -> TestResult {
+pub(crate) fn test_zerostate_capsule_ids_increasing() -> TestResult {
     let quotas = capsule::CapsuleQuotas::default();
     let cap1 = zerostate::register_capsule("increasing_id_1", alloc::vec![], quotas.clone());
     let cap2 = zerostate::register_capsule("increasing_id_2", alloc::vec![], quotas);
@@ -126,7 +126,7 @@ pub fn test_zerostate_capsule_ids_increasing() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_zerostate_register_with_empty_peers() -> TestResult {
+pub(crate) fn test_zerostate_register_with_empty_peers() -> TestResult {
     let quotas = capsule::CapsuleQuotas::default();
     let cap = zerostate::register_capsule("empty_peers_cap", alloc::vec![], quotas);
     let peers = cap.peers.read();
@@ -134,7 +134,7 @@ pub fn test_zerostate_register_with_empty_peers() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_zerostate_register_with_many_peers() -> TestResult {
+pub(crate) fn test_zerostate_register_with_many_peers() -> TestResult {
     let quotas = capsule::CapsuleQuotas::default();
     let peers = alloc::vec!["p1", "p2", "p3", "p4", "p5"];
     let cap = zerostate::register_capsule("many_peers_cap", peers, quotas);
@@ -143,7 +143,7 @@ pub fn test_zerostate_register_with_many_peers() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_zerostate_capsule_name_preserved() -> TestResult {
+pub(crate) fn test_zerostate_capsule_name_preserved() -> TestResult {
     let quotas = capsule::CapsuleQuotas::default();
     let cap = zerostate::register_capsule("preserved_name", alloc::vec![], quotas);
     if cap.name != "preserved_name" { return TestResult::Fail; }
@@ -153,7 +153,7 @@ pub fn test_zerostate_capsule_name_preserved() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_zerostate_quotas_applied() -> TestResult {
+pub(crate) fn test_zerostate_quotas_applied() -> TestResult {
     let quotas = capsule::CapsuleQuotas {
         inbox_capacity: 100,
         max_msg_bytes: 200,
@@ -168,14 +168,14 @@ pub fn test_zerostate_quotas_applied() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_zerostate_stop_capsule_not_found() -> TestResult {
+pub(crate) fn test_zerostate_stop_capsule_not_found() -> TestResult {
     let result = zerostate::stop_capsule("never_registered_stop");
     if !result.is_err() { return TestResult::Fail; }
     if result.unwrap_err() != "capsule not found" { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_zerostate_start_capsule_not_found() -> TestResult {
+pub(crate) fn test_zerostate_start_capsule_not_found() -> TestResult {
     let token = crate::syscall::capabilities::CapabilityToken::empty();
     let result = zerostate::start_capsule("never_registered_start", &token);
     if !result.is_err() { return TestResult::Fail; }

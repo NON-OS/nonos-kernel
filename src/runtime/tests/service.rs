@@ -17,7 +17,7 @@
 use crate::runtime::*;
 use crate::test::framework::TestResult;
 
-pub fn test_service_bind_and_resolve() -> TestResult {
+pub(crate) fn test_service_bind_and_resolve() -> TestResult {
     service::bind("test_service", "test_capsule");
     let resolved = service::resolve("test_service");
     if !resolved.is_some() { return TestResult::Fail; }
@@ -26,7 +26,7 @@ pub fn test_service_bind_and_resolve() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_service_unbind() -> TestResult {
+pub(crate) fn test_service_unbind() -> TestResult {
     service::bind("unbind_test", "capsule_to_unbind");
     service::unbind("unbind_test");
     let resolved = service::resolve("unbind_test");
@@ -34,13 +34,13 @@ pub fn test_service_unbind() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_service_resolve_nonexistent() -> TestResult {
+pub(crate) fn test_service_resolve_nonexistent() -> TestResult {
     let resolved = service::resolve("nonexistent_service_xyz");
     if !resolved.is_none() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_service_bind_overwrites() -> TestResult {
+pub(crate) fn test_service_bind_overwrites() -> TestResult {
     service::bind("overwrite_test", "capsule_v1");
     service::bind("overwrite_test", "capsule_v2");
     let resolved = service::resolve("overwrite_test");
@@ -50,7 +50,7 @@ pub fn test_service_bind_overwrites() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_service_multiple_bindings() -> TestResult {
+pub(crate) fn test_service_multiple_bindings() -> TestResult {
     service::bind("service_a", "capsule_a");
     service::bind("service_b", "capsule_b");
     service::bind("service_c", "capsule_c");
@@ -72,12 +72,12 @@ pub fn test_service_multiple_bindings() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_service_unbind_nonexistent() -> TestResult {
+pub(crate) fn test_service_unbind_nonexistent() -> TestResult {
     service::unbind("never_existed_service");
     TestResult::Pass
 }
 
-pub fn test_service_resolve_after_unbind() -> TestResult {
+pub(crate) fn test_service_resolve_after_unbind() -> TestResult {
     service::bind("resolve_after_unbind", "some_capsule");
     let before = service::resolve("resolve_after_unbind");
     if !before.is_some() { return TestResult::Fail; }
@@ -88,7 +88,7 @@ pub fn test_service_resolve_after_unbind() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_service_bind_same_capsule_multiple_services() -> TestResult {
+pub(crate) fn test_service_bind_same_capsule_multiple_services() -> TestResult {
     service::bind("service_1", "shared_capsule");
     service::bind("service_2", "shared_capsule");
     service::bind("service_3", "shared_capsule");
@@ -107,7 +107,7 @@ pub fn test_service_bind_same_capsule_multiple_services() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_service_bind_empty_string() -> TestResult {
+pub(crate) fn test_service_bind_empty_string() -> TestResult {
     service::bind("", "empty_service_capsule");
     let resolved = service::resolve("");
     if !resolved.is_some() { return TestResult::Fail; }
@@ -115,7 +115,7 @@ pub fn test_service_bind_empty_string() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_service_bind_long_names() -> TestResult {
+pub(crate) fn test_service_bind_long_names() -> TestResult {
     let long_service = "a_very_long_service_name_that_goes_on_and_on";
     let long_capsule = "a_very_long_capsule_name_that_also_goes_on";
     service::bind(long_service, long_capsule);
@@ -126,7 +126,7 @@ pub fn test_service_bind_long_names() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_service_resolve_returns_string() -> TestResult {
+pub(crate) fn test_service_resolve_returns_string() -> TestResult {
     service::bind("string_test", "capsule_string");
     let resolved = service::resolve("string_test");
     if !resolved.is_some() { return TestResult::Fail; }
@@ -136,7 +136,7 @@ pub fn test_service_resolve_returns_string() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_service_bind_special_characters() -> TestResult {
+pub(crate) fn test_service_bind_special_characters() -> TestResult {
     service::bind("service-with-dashes", "capsule_dashes");
     service::bind("service.with.dots", "capsule_dots");
     service::bind("service_with_underscores", "capsule_underscores");
@@ -151,7 +151,7 @@ pub fn test_service_bind_special_characters() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_service_unbind_partial_does_not_affect_others() -> TestResult {
+pub(crate) fn test_service_unbind_partial_does_not_affect_others() -> TestResult {
     service::bind("partial_a", "cap_a");
     service::bind("partial_b", "cap_b");
 
@@ -164,7 +164,7 @@ pub fn test_service_unbind_partial_does_not_affect_others() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_service_rebind_after_unbind() -> TestResult {
+pub(crate) fn test_service_rebind_after_unbind() -> TestResult {
     service::bind("rebind_test", "original_capsule");
     service::unbind("rebind_test");
     service::bind("rebind_test", "new_capsule");
@@ -177,7 +177,7 @@ pub fn test_service_rebind_after_unbind() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_service_resolve_case_sensitive() -> TestResult {
+pub(crate) fn test_service_resolve_case_sensitive() -> TestResult {
     service::bind("CaseSensitive", "capsule_case");
 
     let upper = service::resolve("CaseSensitive");
@@ -190,7 +190,7 @@ pub fn test_service_resolve_case_sensitive() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_service_numeric_names() -> TestResult {
+pub(crate) fn test_service_numeric_names() -> TestResult {
     service::bind("123", "capsule_123");
     service::bind("456", "capsule_456");
 

@@ -4,25 +4,25 @@
 use crate::runtime::nonos_capsule::types::{CapsuleId, CapsuleState, CapsuleQuotas, next_capsule_id};
 use crate::test::framework::TestResult;
 
-pub fn test_capsule_id_get() -> TestResult {
+pub(crate) fn test_capsule_id_get() -> TestResult {
     let id = CapsuleId(42);
     if id.get() != 42 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_capsule_id_get_zero() -> TestResult {
+pub(crate) fn test_capsule_id_get_zero() -> TestResult {
     let id = CapsuleId(0);
     if id.get() != 0 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_capsule_id_get_max() -> TestResult {
+pub(crate) fn test_capsule_id_get_max() -> TestResult {
     let id = CapsuleId(u64::MAX);
     if id.get() != u64::MAX { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_capsule_id_equality() -> TestResult {
+pub(crate) fn test_capsule_id_equality() -> TestResult {
     let id1 = CapsuleId(100);
     let id2 = CapsuleId(100);
     let id3 = CapsuleId(200);
@@ -31,7 +31,7 @@ pub fn test_capsule_id_equality() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_capsule_id_ordering() -> TestResult {
+pub(crate) fn test_capsule_id_ordering() -> TestResult {
     let id1 = CapsuleId(1);
     let id2 = CapsuleId(2);
     let id3 = CapsuleId(3);
@@ -41,7 +41,7 @@ pub fn test_capsule_id_ordering() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_capsule_id_ordering_equal() -> TestResult {
+pub(crate) fn test_capsule_id_ordering_equal() -> TestResult {
     let id1 = CapsuleId(50);
     let id2 = CapsuleId(50);
     if !(id1 <= id2) { return TestResult::Fail; }
@@ -49,7 +49,7 @@ pub fn test_capsule_id_ordering_equal() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_capsule_id_clone() -> TestResult {
+pub(crate) fn test_capsule_id_clone() -> TestResult {
     let id1 = CapsuleId(123);
     let id2 = id1.clone();
     if id1 != id2 { return TestResult::Fail; }
@@ -57,14 +57,14 @@ pub fn test_capsule_id_clone() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_capsule_id_copy() -> TestResult {
+pub(crate) fn test_capsule_id_copy() -> TestResult {
     let id1 = CapsuleId(456);
     let id2 = id1;
     if id1 != id2 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_capsule_id_debug() -> TestResult {
+pub(crate) fn test_capsule_id_debug() -> TestResult {
     let id = CapsuleId(789);
     let debug_str = alloc::format!("{:?}", id);
     if !debug_str.contains("CapsuleId") { return TestResult::Fail; }
@@ -72,14 +72,14 @@ pub fn test_capsule_id_debug() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_capsule_id_partial_ord() -> TestResult {
+pub(crate) fn test_capsule_id_partial_ord() -> TestResult {
     let id1 = CapsuleId(10);
     let id2 = CapsuleId(20);
     if !(id1.partial_cmp(&id2) == Some(core::cmp::Ordering::Less)) { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_capsule_id_ord() -> TestResult {
+pub(crate) fn test_capsule_id_ord() -> TestResult {
     let id1 = CapsuleId(5);
     let id2 = CapsuleId(10);
     if id1.cmp(&id2) != core::cmp::Ordering::Less { return TestResult::Fail; }
@@ -88,7 +88,7 @@ pub fn test_capsule_id_ord() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_next_capsule_id_increments() -> TestResult {
+pub(crate) fn test_next_capsule_id_increments() -> TestResult {
     let id1 = next_capsule_id();
     let id2 = next_capsule_id();
     let id3 = next_capsule_id();
@@ -97,67 +97,67 @@ pub fn test_next_capsule_id_increments() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_next_capsule_id_unique() -> TestResult {
+pub(crate) fn test_next_capsule_id_unique() -> TestResult {
     let id1 = next_capsule_id();
     let id2 = next_capsule_id();
     if id1 == id2 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_capsule_state_stopped() -> TestResult {
+pub(crate) fn test_capsule_state_stopped() -> TestResult {
     let state = CapsuleState::Stopped;
     if state != CapsuleState::Stopped { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_capsule_state_running() -> TestResult {
+pub(crate) fn test_capsule_state_running() -> TestResult {
     let state = CapsuleState::Running;
     if state != CapsuleState::Running { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_capsule_state_degraded() -> TestResult {
+pub(crate) fn test_capsule_state_degraded() -> TestResult {
     let state = CapsuleState::Degraded;
     if state != CapsuleState::Degraded { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_capsule_state_equality() -> TestResult {
+pub(crate) fn test_capsule_state_equality() -> TestResult {
     if CapsuleState::Stopped != CapsuleState::Stopped { return TestResult::Fail; }
     if CapsuleState::Running != CapsuleState::Running { return TestResult::Fail; }
     if CapsuleState::Degraded != CapsuleState::Degraded { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_capsule_state_inequality() -> TestResult {
+pub(crate) fn test_capsule_state_inequality() -> TestResult {
     if CapsuleState::Stopped == CapsuleState::Running { return TestResult::Fail; }
     if CapsuleState::Running == CapsuleState::Degraded { return TestResult::Fail; }
     if CapsuleState::Stopped == CapsuleState::Degraded { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_capsule_state_clone() -> TestResult {
+pub(crate) fn test_capsule_state_clone() -> TestResult {
     let state = CapsuleState::Running;
     let cloned = state.clone();
     if state != cloned { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_capsule_state_copy() -> TestResult {
+pub(crate) fn test_capsule_state_copy() -> TestResult {
     let state1 = CapsuleState::Degraded;
     let state2 = state1;
     if state1 != state2 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_capsule_state_debug() -> TestResult {
+pub(crate) fn test_capsule_state_debug() -> TestResult {
     let state = CapsuleState::Running;
     let debug_str = alloc::format!("{:?}", state);
     if !debug_str.contains("Running") { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_capsule_state_all_variants_debug() -> TestResult {
+pub(crate) fn test_capsule_state_all_variants_debug() -> TestResult {
     let stopped = alloc::format!("{:?}", CapsuleState::Stopped);
     let running = alloc::format!("{:?}", CapsuleState::Running);
     let degraded = alloc::format!("{:?}", CapsuleState::Degraded);
@@ -167,7 +167,7 @@ pub fn test_capsule_state_all_variants_debug() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_capsule_quotas_default() -> TestResult {
+pub(crate) fn test_capsule_quotas_default() -> TestResult {
     let quotas = CapsuleQuotas::default();
     if quotas.inbox_capacity != 1024 { return TestResult::Fail; }
     if quotas.max_msg_bytes != 1 << 20 { return TestResult::Fail; }
@@ -176,31 +176,31 @@ pub fn test_capsule_quotas_default() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_capsule_quotas_default_inbox_capacity() -> TestResult {
+pub(crate) fn test_capsule_quotas_default_inbox_capacity() -> TestResult {
     let quotas = CapsuleQuotas::default();
     if quotas.inbox_capacity != 1024 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_capsule_quotas_default_max_msg_bytes() -> TestResult {
+pub(crate) fn test_capsule_quotas_default_max_msg_bytes() -> TestResult {
     let quotas = CapsuleQuotas::default();
     if quotas.max_msg_bytes != 1024 * 1024 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_capsule_quotas_default_max_bytes_per_sec() -> TestResult {
+pub(crate) fn test_capsule_quotas_default_max_bytes_per_sec() -> TestResult {
     let quotas = CapsuleQuotas::default();
     if quotas.max_bytes_per_sec != 4 * 1024 * 1024 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_capsule_quotas_default_heartbeat_interval() -> TestResult {
+pub(crate) fn test_capsule_quotas_default_heartbeat_interval() -> TestResult {
     let quotas = CapsuleQuotas::default();
     if quotas.heartbeat_interval_ms != 2000 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_capsule_quotas_custom() -> TestResult {
+pub(crate) fn test_capsule_quotas_custom() -> TestResult {
     let quotas = CapsuleQuotas {
         inbox_capacity: 512,
         max_msg_bytes: 4096,
@@ -214,7 +214,7 @@ pub fn test_capsule_quotas_custom() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_capsule_quotas_clone() -> TestResult {
+pub(crate) fn test_capsule_quotas_clone() -> TestResult {
     let quotas1 = CapsuleQuotas {
         inbox_capacity: 256,
         max_msg_bytes: 2048,
@@ -229,7 +229,7 @@ pub fn test_capsule_quotas_clone() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_capsule_quotas_debug() -> TestResult {
+pub(crate) fn test_capsule_quotas_debug() -> TestResult {
     let quotas = CapsuleQuotas::default();
     let debug_str = alloc::format!("{:?}", quotas);
     if !debug_str.contains("CapsuleQuotas") { return TestResult::Fail; }
@@ -237,7 +237,7 @@ pub fn test_capsule_quotas_debug() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_capsule_quotas_zero_values() -> TestResult {
+pub(crate) fn test_capsule_quotas_zero_values() -> TestResult {
     let quotas = CapsuleQuotas {
         inbox_capacity: 0,
         max_msg_bytes: 0,
@@ -251,7 +251,7 @@ pub fn test_capsule_quotas_zero_values() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_capsule_quotas_max_values() -> TestResult {
+pub(crate) fn test_capsule_quotas_max_values() -> TestResult {
     let quotas = CapsuleQuotas {
         inbox_capacity: usize::MAX,
         max_msg_bytes: usize::MAX,
@@ -265,25 +265,25 @@ pub fn test_capsule_quotas_max_values() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_capsule_quotas_inbox_capacity_power_of_two() -> TestResult {
+pub(crate) fn test_capsule_quotas_inbox_capacity_power_of_two() -> TestResult {
     let quotas = CapsuleQuotas::default();
     if !((quotas.inbox_capacity & (quotas.inbox_capacity - 1)) == 0) { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_capsule_quotas_max_msg_bytes_power_of_two() -> TestResult {
+pub(crate) fn test_capsule_quotas_max_msg_bytes_power_of_two() -> TestResult {
     let quotas = CapsuleQuotas::default();
     if !((quotas.max_msg_bytes & (quotas.max_msg_bytes - 1)) == 0) { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_capsule_quotas_max_bytes_per_sec_power_of_two() -> TestResult {
+pub(crate) fn test_capsule_quotas_max_bytes_per_sec_power_of_two() -> TestResult {
     let quotas = CapsuleQuotas::default();
     if !((quotas.max_bytes_per_sec & (quotas.max_bytes_per_sec - 1)) == 0) { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_capsule_state_all_variants() -> TestResult {
+pub(crate) fn test_capsule_state_all_variants() -> TestResult {
     let states = [
         CapsuleState::Stopped,
         CapsuleState::Running,
@@ -296,32 +296,32 @@ pub fn test_capsule_state_all_variants() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_capsule_id_size() -> TestResult {
+pub(crate) fn test_capsule_id_size() -> TestResult {
     if core::mem::size_of::<CapsuleId>() != 8 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_capsule_state_size() -> TestResult {
+pub(crate) fn test_capsule_state_size() -> TestResult {
     if !(core::mem::size_of::<CapsuleState>() <= 1) { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_capsule_quotas_size() -> TestResult {
+pub(crate) fn test_capsule_quotas_size() -> TestResult {
     if core::mem::size_of::<CapsuleQuotas>() != 32 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_capsule_id_alignment() -> TestResult {
+pub(crate) fn test_capsule_id_alignment() -> TestResult {
     if core::mem::align_of::<CapsuleId>() != 8 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_capsule_quotas_alignment() -> TestResult {
+pub(crate) fn test_capsule_quotas_alignment() -> TestResult {
     if core::mem::align_of::<CapsuleQuotas>() != 8 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_capsule_id_min_max_ordering() -> TestResult {
+pub(crate) fn test_capsule_id_min_max_ordering() -> TestResult {
     let min = CapsuleId(0);
     let max = CapsuleId(u64::MAX);
     if !(min < max) { return TestResult::Fail; }
@@ -329,41 +329,41 @@ pub fn test_capsule_id_min_max_ordering() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_capsule_quotas_heartbeat_reasonable() -> TestResult {
+pub(crate) fn test_capsule_quotas_heartbeat_reasonable() -> TestResult {
     let quotas = CapsuleQuotas::default();
     if !(quotas.heartbeat_interval_ms >= 1000) { return TestResult::Fail; }
     if !(quotas.heartbeat_interval_ms <= 10_000) { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_capsule_quotas_inbox_reasonable() -> TestResult {
+pub(crate) fn test_capsule_quotas_inbox_reasonable() -> TestResult {
     let quotas = CapsuleQuotas::default();
     if !(quotas.inbox_capacity >= 64) { return TestResult::Fail; }
     if !(quotas.inbox_capacity <= 65536) { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_capsule_quotas_msg_bytes_reasonable() -> TestResult {
+pub(crate) fn test_capsule_quotas_msg_bytes_reasonable() -> TestResult {
     let quotas = CapsuleQuotas::default();
     if !(quotas.max_msg_bytes >= 1024) { return TestResult::Fail; }
     if !(quotas.max_msg_bytes <= 16 * 1024 * 1024) { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_capsule_quotas_bytes_per_sec_reasonable() -> TestResult {
+pub(crate) fn test_capsule_quotas_bytes_per_sec_reasonable() -> TestResult {
     let quotas = CapsuleQuotas::default();
     if !(quotas.max_bytes_per_sec >= 1024) { return TestResult::Fail; }
     if !(quotas.max_bytes_per_sec <= 1024 * 1024 * 1024) { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_next_capsule_id_nonzero() -> TestResult {
+pub(crate) fn test_next_capsule_id_nonzero() -> TestResult {
     let id = next_capsule_id();
     if !(id.get() > 0) { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_capsule_id_from_sequential() -> TestResult {
+pub(crate) fn test_capsule_id_from_sequential() -> TestResult {
     let id1 = CapsuleId(1);
     let id2 = CapsuleId(2);
     let id3 = CapsuleId(3);
@@ -372,7 +372,7 @@ pub fn test_capsule_id_from_sequential() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_capsule_quotas_multiple_defaults() -> TestResult {
+pub(crate) fn test_capsule_quotas_multiple_defaults() -> TestResult {
     let q1 = CapsuleQuotas::default();
     let q2 = CapsuleQuotas::default();
     if q1.inbox_capacity != q2.inbox_capacity { return TestResult::Fail; }
@@ -382,35 +382,35 @@ pub fn test_capsule_quotas_multiple_defaults() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_capsule_state_stopped_not_running() -> TestResult {
+pub(crate) fn test_capsule_state_stopped_not_running() -> TestResult {
     let state = CapsuleState::Stopped;
     if state == CapsuleState::Running { return TestResult::Fail; }
     if state == CapsuleState::Degraded { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_capsule_state_running_not_stopped() -> TestResult {
+pub(crate) fn test_capsule_state_running_not_stopped() -> TestResult {
     let state = CapsuleState::Running;
     if state == CapsuleState::Stopped { return TestResult::Fail; }
     if state == CapsuleState::Degraded { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_capsule_state_degraded_not_others() -> TestResult {
+pub(crate) fn test_capsule_state_degraded_not_others() -> TestResult {
     let state = CapsuleState::Degraded;
     if state == CapsuleState::Stopped { return TestResult::Fail; }
     if state == CapsuleState::Running { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_capsule_id_hash_eq_consistency() -> TestResult {
+pub(crate) fn test_capsule_id_hash_eq_consistency() -> TestResult {
     let id1 = CapsuleId(42);
     let id2 = CapsuleId(42);
     if id1 != id2 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_capsule_quotas_clone_independence() -> TestResult {
+pub(crate) fn test_capsule_quotas_clone_independence() -> TestResult {
     let original = CapsuleQuotas {
         inbox_capacity: 100,
         max_msg_bytes: 200,
