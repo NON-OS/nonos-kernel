@@ -15,194 +15,194 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::sys::apic::*;
+use crate::test::framework::TestResult;
 
-#[test]
-fn test_timer_vector_value() {
-    assert_eq!(TIMER_VECTOR, 0x20);
+pub fn test_timer_vector_value() -> TestResult {
+    if TIMER_VECTOR != 0x20 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_irq_timer_value() {
-    assert_eq!(IRQ_TIMER, 0);
+pub fn test_irq_timer_value() -> TestResult {
+    if IRQ_TIMER != 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_irq_keyboard_value() {
-    assert_eq!(IRQ_KEYBOARD, 1);
+pub fn test_irq_keyboard_value() -> TestResult {
+    if IRQ_KEYBOARD != 1 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_irq_cascade_value() {
-    assert_eq!(IRQ_CASCADE, 2);
+pub fn test_irq_cascade_value() -> TestResult {
+    if IRQ_CASCADE != 2 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_irq_com2_value() {
-    assert_eq!(IRQ_COM2, 3);
+pub fn test_irq_com2_value() -> TestResult {
+    if IRQ_COM2 != 3 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_irq_com1_value() {
-    assert_eq!(IRQ_COM1, 4);
+pub fn test_irq_com1_value() -> TestResult {
+    if IRQ_COM1 != 4 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_irq_lpt2_value() {
-    assert_eq!(IRQ_LPT2, 5);
+pub fn test_irq_lpt2_value() -> TestResult {
+    if IRQ_LPT2 != 5 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_irq_floppy_value() {
-    assert_eq!(IRQ_FLOPPY, 6);
+pub fn test_irq_floppy_value() -> TestResult {
+    if IRQ_FLOPPY != 6 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_irq_lpt1_value() {
-    assert_eq!(IRQ_LPT1, 7);
+pub fn test_irq_lpt1_value() -> TestResult {
+    if IRQ_LPT1 != 7 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_irq_rtc_value() {
-    assert_eq!(IRQ_RTC, 8);
+pub fn test_irq_rtc_value() -> TestResult {
+    if IRQ_RTC != 8 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_irq_free1_value() {
-    assert_eq!(IRQ_FREE1, 9);
+pub fn test_irq_free1_value() -> TestResult {
+    if IRQ_FREE1 != 9 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_irq_free2_value() {
-    assert_eq!(IRQ_FREE2, 10);
+pub fn test_irq_free2_value() -> TestResult {
+    if IRQ_FREE2 != 10 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_irq_free3_value() {
-    assert_eq!(IRQ_FREE3, 11);
+pub fn test_irq_free3_value() -> TestResult {
+    if IRQ_FREE3 != 11 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_irq_mouse_value() {
-    assert_eq!(IRQ_MOUSE, 12);
+pub fn test_irq_mouse_value() -> TestResult {
+    if IRQ_MOUSE != 12 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_irq_coprocessor_value() {
-    assert_eq!(IRQ_COPROCESSOR, 13);
+pub fn test_irq_coprocessor_value() -> TestResult {
+    if IRQ_COPROCESSOR != 13 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_irq_primary_ata_value() {
-    assert_eq!(IRQ_PRIMARY_ATA, 14);
+pub fn test_irq_primary_ata_value() -> TestResult {
+    if IRQ_PRIMARY_ATA != 14 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_irq_secondary_ata_value() {
-    assert_eq!(IRQ_SECONDARY_ATA, 15);
+pub fn test_irq_secondary_ata_value() -> TestResult {
+    if IRQ_SECONDARY_ATA != 15 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_vector_timer_equals_timer_vector() {
-    assert_eq!(VECTOR_TIMER, TIMER_VECTOR);
+pub fn test_vector_timer_equals_timer_vector() -> TestResult {
+    if VECTOR_TIMER != TIMER_VECTOR { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_vector_keyboard_value() {
-    assert_eq!(VECTOR_KEYBOARD, 0x21);
+pub fn test_vector_keyboard_value() -> TestResult {
+    if VECTOR_KEYBOARD != 0x21 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_vector_mouse_value() {
-    assert_eq!(VECTOR_MOUSE, 0x2C);
+pub fn test_vector_mouse_value() -> TestResult {
+    if VECTOR_MOUSE != 0x2C { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_vector_com1_value() {
-    assert_eq!(VECTOR_COM1, 0x24);
+pub fn test_vector_com1_value() -> TestResult {
+    if VECTOR_COM1 != 0x24 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_irq_to_vector_timer() {
-    assert_eq!(irq_to_vector(IRQ_TIMER), 0x20);
+pub fn test_irq_to_vector_timer() -> TestResult {
+    if irq_to_vector(IRQ_TIMER) != 0x20 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_irq_to_vector_keyboard() {
-    assert_eq!(irq_to_vector(IRQ_KEYBOARD), 0x21);
+pub fn test_irq_to_vector_keyboard() -> TestResult {
+    if irq_to_vector(IRQ_KEYBOARD) != 0x21 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_irq_to_vector_mouse() {
-    assert_eq!(irq_to_vector(IRQ_MOUSE), 0x2C);
+pub fn test_irq_to_vector_mouse() -> TestResult {
+    if irq_to_vector(IRQ_MOUSE) != 0x2C { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_irq_to_vector_com1() {
-    assert_eq!(irq_to_vector(IRQ_COM1), 0x24);
+pub fn test_irq_to_vector_com1() -> TestResult {
+    if irq_to_vector(IRQ_COM1) != 0x24 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_irq_to_vector_com2() {
-    assert_eq!(irq_to_vector(IRQ_COM2), 0x23);
+pub fn test_irq_to_vector_com2() -> TestResult {
+    if irq_to_vector(IRQ_COM2) != 0x23 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_irq_to_vector_rtc() {
-    assert_eq!(irq_to_vector(IRQ_RTC), 0x28);
+pub fn test_irq_to_vector_rtc() -> TestResult {
+    if irq_to_vector(IRQ_RTC) != 0x28 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_irq_to_vector_floppy() {
-    assert_eq!(irq_to_vector(IRQ_FLOPPY), 0x26);
+pub fn test_irq_to_vector_floppy() -> TestResult {
+    if irq_to_vector(IRQ_FLOPPY) != 0x26 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_irq_to_vector_primary_ata() {
-    assert_eq!(irq_to_vector(IRQ_PRIMARY_ATA), 0x2E);
+pub fn test_irq_to_vector_primary_ata() -> TestResult {
+    if irq_to_vector(IRQ_PRIMARY_ATA) != 0x2E { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_irq_to_vector_secondary_ata() {
-    assert_eq!(irq_to_vector(IRQ_SECONDARY_ATA), 0x2F);
+pub fn test_irq_to_vector_secondary_ata() -> TestResult {
+    if irq_to_vector(IRQ_SECONDARY_ATA) != 0x2F { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_irq_to_vector_base_offset() {
+pub fn test_irq_to_vector_base_offset() -> TestResult {
     for irq in 0..16u8 {
-        assert_eq!(irq_to_vector(irq), irq + 0x20);
+        if irq_to_vector(irq) != irq + 0x20 { return TestResult::Fail; }
     }
+    TestResult::Pass
 }
 
-#[test]
-fn test_vector_values_above_32() {
-    assert!(VECTOR_TIMER >= 0x20);
-    assert!(VECTOR_KEYBOARD >= 0x20);
-    assert!(VECTOR_MOUSE >= 0x20);
-    assert!(VECTOR_COM1 >= 0x20);
+pub fn test_vector_values_above_32() -> TestResult {
+    if !(VECTOR_TIMER >= 0x20) { return TestResult::Fail; }
+    if !(VECTOR_KEYBOARD >= 0x20) { return TestResult::Fail; }
+    if !(VECTOR_MOUSE >= 0x20) { return TestResult::Fail; }
+    if !(VECTOR_COM1 >= 0x20) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_irq_values_below_16() {
-    assert!(IRQ_TIMER < 16);
-    assert!(IRQ_KEYBOARD < 16);
-    assert!(IRQ_CASCADE < 16);
-    assert!(IRQ_COM2 < 16);
-    assert!(IRQ_COM1 < 16);
-    assert!(IRQ_LPT2 < 16);
-    assert!(IRQ_FLOPPY < 16);
-    assert!(IRQ_LPT1 < 16);
-    assert!(IRQ_RTC < 16);
-    assert!(IRQ_FREE1 < 16);
-    assert!(IRQ_FREE2 < 16);
-    assert!(IRQ_FREE3 < 16);
-    assert!(IRQ_MOUSE < 16);
-    assert!(IRQ_COPROCESSOR < 16);
-    assert!(IRQ_PRIMARY_ATA < 16);
-    assert!(IRQ_SECONDARY_ATA < 16);
+pub fn test_irq_values_below_16() -> TestResult {
+    if !(IRQ_TIMER < 16) { return TestResult::Fail; }
+    if !(IRQ_KEYBOARD < 16) { return TestResult::Fail; }
+    if !(IRQ_CASCADE < 16) { return TestResult::Fail; }
+    if !(IRQ_COM2 < 16) { return TestResult::Fail; }
+    if !(IRQ_COM1 < 16) { return TestResult::Fail; }
+    if !(IRQ_LPT2 < 16) { return TestResult::Fail; }
+    if !(IRQ_FLOPPY < 16) { return TestResult::Fail; }
+    if !(IRQ_LPT1 < 16) { return TestResult::Fail; }
+    if !(IRQ_RTC < 16) { return TestResult::Fail; }
+    if !(IRQ_FREE1 < 16) { return TestResult::Fail; }
+    if !(IRQ_FREE2 < 16) { return TestResult::Fail; }
+    if !(IRQ_FREE3 < 16) { return TestResult::Fail; }
+    if !(IRQ_MOUSE < 16) { return TestResult::Fail; }
+    if !(IRQ_COPROCESSOR < 16) { return TestResult::Fail; }
+    if !(IRQ_PRIMARY_ATA < 16) { return TestResult::Fail; }
+    if !(IRQ_SECONDARY_ATA < 16) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_all_irqs_unique() {
+pub fn test_all_irqs_unique() -> TestResult {
     let irqs = [
         IRQ_TIMER, IRQ_KEYBOARD, IRQ_CASCADE, IRQ_COM2, IRQ_COM1, IRQ_LPT2,
         IRQ_FLOPPY, IRQ_LPT1, IRQ_RTC, IRQ_FREE1, IRQ_FREE2, IRQ_FREE3,
@@ -210,13 +210,14 @@ fn test_all_irqs_unique() {
     ];
     for i in 0..irqs.len() {
         for j in (i + 1)..irqs.len() {
-            assert_ne!(irqs[i], irqs[j]);
+            if irqs[i] == irqs[j] { return TestResult::Fail; }
         }
     }
+    TestResult::Pass
 }
 
-#[test]
-fn test_irq_to_vector_is_const() {
+pub fn test_irq_to_vector_is_const() -> TestResult {
     const V: u8 = irq_to_vector(1);
-    assert_eq!(V, 0x21);
+    if V != 0x21 { return TestResult::Fail; }
+    TestResult::Pass
 }

@@ -15,438 +15,438 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::sys::settings::*;
+use crate::test::framework::TestResult;
 
-#[test]
-fn test_settings_default_brightness() {
+pub fn test_settings_default_brightness() -> TestResult {
     let s = Settings::default();
-    assert_eq!(s.brightness, 80);
+    if s.brightness != 80 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_settings_default_mouse_sensitivity() {
+pub fn test_settings_default_mouse_sensitivity() -> TestResult {
     let s = Settings::default();
-    assert_eq!(s.mouse_sensitivity, 5);
+    if s.mouse_sensitivity != 5 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_settings_default_sound_enabled() {
+pub fn test_settings_default_sound_enabled() -> TestResult {
     let s = Settings::default();
-    assert!(s.sound_enabled);
+    if !s.sound_enabled { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_settings_default_anonymous_mode() {
+pub fn test_settings_default_anonymous_mode() -> TestResult {
     let s = Settings::default();
-    assert!(s.anonymous_mode);
+    if !s.anonymous_mode { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_settings_default_nym_enabled() {
+pub fn test_settings_default_nym_enabled() -> TestResult {
     let s = Settings::default();
-    assert!(!s.nym_enabled);
+    if s.nym_enabled { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_settings_default_theme() {
+pub fn test_settings_default_theme() -> TestResult {
     let s = Settings::default();
-    assert_eq!(s.theme, 0);
+    if s.theme != 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_settings_default_keyboard_layout() {
+pub fn test_settings_default_keyboard_layout() -> TestResult {
     let s = Settings::default();
-    assert_eq!(s.keyboard_layout, 0);
+    if s.keyboard_layout != 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_settings_default_auto_wipe() {
+pub fn test_settings_default_auto_wipe() -> TestResult {
     let s = Settings::default();
-    assert!(s.auto_wipe);
+    if !s.auto_wipe { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_settings_default_timezone() {
+pub fn test_settings_default_timezone() -> TestResult {
     let s = Settings::default();
-    assert_eq!(s.timezone, 0);
+    if s.timezone != 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_settings_default_screen_timeout() {
+pub fn test_settings_default_screen_timeout() -> TestResult {
     let s = Settings::default();
-    assert_eq!(s.screen_timeout, 0);
+    if s.screen_timeout != 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_settings_default_language() {
+pub fn test_settings_default_language() -> TestResult {
     let s = Settings::default();
-    assert_eq!(s.language, 0);
+    if s.language != 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_settings_default_developer_mode() {
+pub fn test_settings_default_developer_mode() -> TestResult {
     let s = Settings::default();
-    assert!(!s.developer_mode);
+    if s.developer_mode { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_settings_default_hardware_crypto() {
+pub fn test_settings_default_hardware_crypto() -> TestResult {
     let s = Settings::default();
-    assert!(s.hardware_crypto);
+    if !s.hardware_crypto { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_settings_default_zk_attestation() {
+pub fn test_settings_default_zk_attestation() -> TestResult {
     let s = Settings::default();
-    assert!(s.zk_attestation);
+    if !s.zk_attestation { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_settings_default_system_keys_generated() {
+pub fn test_settings_default_system_keys_generated() -> TestResult {
     let s = Settings::default();
-    assert!(!s.system_keys_generated);
+    if s.system_keys_generated { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_settings_default_notifications_enabled() {
+pub fn test_settings_default_notifications_enabled() -> TestResult {
     let s = Settings::default();
-    assert!(s.notifications_enabled);
+    if !s.notifications_enabled { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_settings_default_high_contrast() {
+pub fn test_settings_default_high_contrast() -> TestResult {
     let s = Settings::default();
-    assert!(!s.high_contrast);
+    if s.high_contrast { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_settings_default_font_size() {
+pub fn test_settings_default_font_size() -> TestResult {
     let s = Settings::default();
-    assert_eq!(s.font_size, 1);
+    if s.font_size != 1 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_settings_default_auto_lock_timeout() {
+pub fn test_settings_default_auto_lock_timeout() -> TestResult {
     let s = Settings::default();
-    assert_eq!(s.auto_lock_timeout, 5);
+    if s.auto_lock_timeout != 5 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_settings_default_wifi_autoconnect() {
+pub fn test_settings_default_wifi_autoconnect() -> TestResult {
     let s = Settings::default();
-    assert!(s.wifi_autoconnect);
+    if !s.wifi_autoconnect { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_settings_default_animations_enabled() {
+pub fn test_settings_default_animations_enabled() -> TestResult {
     let s = Settings::default();
-    assert!(s.animations_enabled);
+    if !s.animations_enabled { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_settings_default_cursor_size() {
+pub fn test_settings_default_cursor_size() -> TestResult {
     let s = Settings::default();
-    assert_eq!(s.cursor_size, 1);
+    if s.cursor_size != 1 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_settings_default_kernel_aslr() {
+pub fn test_settings_default_kernel_aslr() -> TestResult {
     let s = Settings::default();
-    assert!(s.kernel_aslr);
+    if !s.kernel_aslr { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_settings_default_kernel_stack_guard() {
+pub fn test_settings_default_kernel_stack_guard() -> TestResult {
     let s = Settings::default();
-    assert!(s.kernel_stack_guard);
+    if !s.kernel_stack_guard { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_settings_default_kernel_nx_bit() {
+pub fn test_settings_default_kernel_nx_bit() -> TestResult {
     let s = Settings::default();
-    assert!(s.kernel_nx_bit);
+    if !s.kernel_nx_bit { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_settings_default_kernel_smep() {
+pub fn test_settings_default_kernel_smep() -> TestResult {
     let s = Settings::default();
-    assert!(s.kernel_smep);
+    if !s.kernel_smep { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_settings_default_kernel_smap() {
+pub fn test_settings_default_kernel_smap() -> TestResult {
     let s = Settings::default();
-    assert!(s.kernel_smap);
+    if !s.kernel_smap { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_settings_default_kernel_debug() {
+pub fn test_settings_default_kernel_debug() -> TestResult {
     let s = Settings::default();
-    assert!(!s.kernel_debug);
+    if s.kernel_debug { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_settings_default_kernel_serial() {
+pub fn test_settings_default_kernel_serial() -> TestResult {
     let s = Settings::default();
-    assert!(s.kernel_serial);
+    if !s.kernel_serial { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_settings_default_kernel_watchdog() {
+pub fn test_settings_default_kernel_watchdog() -> TestResult {
     let s = Settings::default();
-    assert!(!s.kernel_watchdog);
+    if s.kernel_watchdog { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_settings_default_kernel_preempt() {
+pub fn test_settings_default_kernel_preempt() -> TestResult {
     let s = Settings::default();
-    assert!(s.kernel_preempt);
+    if !s.kernel_preempt { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_settings_default_kernel_hugepages() {
+pub fn test_settings_default_kernel_hugepages() -> TestResult {
     let s = Settings::default();
-    assert!(!s.kernel_hugepages);
+    if s.kernel_hugepages { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_settings_default_kernel_iommu() {
+pub fn test_settings_default_kernel_iommu() -> TestResult {
     let s = Settings::default();
-    assert!(s.kernel_iommu);
+    if !s.kernel_iommu { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_settings_default_kernel_seccomp() {
+pub fn test_settings_default_kernel_seccomp() -> TestResult {
     let s = Settings::default();
-    assert!(s.kernel_seccomp);
+    if !s.kernel_seccomp { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_settings_is_copy() {
+pub fn test_settings_is_copy() -> TestResult {
     let s1 = Settings::default();
     let s2 = s1;
-    assert_eq!(s1.brightness, s2.brightness);
+    if s1.brightness != s2.brightness { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_settings_is_clone() {
+pub fn test_settings_is_clone() -> TestResult {
     let s1 = Settings::default();
     let s2 = s1.clone();
-    assert_eq!(s1.brightness, s2.brightness);
+    if s1.brightness != s2.brightness { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_settings_const_default() {
+pub fn test_settings_const_default() -> TestResult {
     const S: Settings = Settings::default();
-    assert_eq!(S.brightness, 80);
+    if S.brightness != 80 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_brightness_getter() {
+pub fn test_brightness_getter() -> TestResult {
     init();
     let _ = brightness();
+    TestResult::Pass
 }
 
-#[test]
-fn test_set_brightness_normal() {
+pub fn test_set_brightness_normal() -> TestResult {
     init();
     set_brightness(50);
-    assert_eq!(brightness(), 50);
+    if brightness() != 50 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_set_brightness_max() {
+pub fn test_set_brightness_max() -> TestResult {
     init();
     set_brightness(100);
-    assert_eq!(brightness(), 100);
+    if brightness() != 100 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_set_brightness_clamp() {
+pub fn test_set_brightness_clamp() -> TestResult {
     init();
     set_brightness(255);
-    assert_eq!(brightness(), 100);
+    if brightness() != 100 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_set_brightness_zero() {
+pub fn test_set_brightness_zero() -> TestResult {
     init();
     set_brightness(0);
-    assert_eq!(brightness(), 0);
+    if brightness() != 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_mouse_sensitivity_getter() {
+pub fn test_mouse_sensitivity_getter() -> TestResult {
     init();
     let _ = mouse_sensitivity();
+    TestResult::Pass
 }
 
-#[test]
-fn test_set_mouse_sensitivity_normal() {
+pub fn test_set_mouse_sensitivity_normal() -> TestResult {
     init();
     set_mouse_sensitivity(5);
-    assert_eq!(mouse_sensitivity(), 5);
+    if mouse_sensitivity() != 5 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_set_mouse_sensitivity_clamp_low() {
+pub fn test_set_mouse_sensitivity_clamp_low() -> TestResult {
     init();
     set_mouse_sensitivity(0);
-    assert_eq!(mouse_sensitivity(), 1);
+    if mouse_sensitivity() != 1 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_set_mouse_sensitivity_clamp_high() {
+pub fn test_set_mouse_sensitivity_clamp_high() -> TestResult {
     init();
     set_mouse_sensitivity(100);
-    assert_eq!(mouse_sensitivity(), 10);
+    if mouse_sensitivity() != 10 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_anonymous_mode_getter() {
+pub fn test_anonymous_mode_getter() -> TestResult {
     init();
     let _ = anonymous_mode();
+    TestResult::Pass
 }
 
-#[test]
-fn test_set_anonymous_mode_true() {
+pub fn test_set_anonymous_mode_true() -> TestResult {
     init();
     set_anonymous_mode(true);
-    assert!(anonymous_mode());
+    if !anonymous_mode() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_set_anonymous_mode_false() {
+pub fn test_set_anonymous_mode_false() -> TestResult {
     init();
     set_anonymous_mode(false);
-    assert!(!anonymous_mode());
+    if anonymous_mode() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_nym_enabled_getter() {
+pub fn test_nym_enabled_getter() -> TestResult {
     init();
     let _ = nym_enabled();
+    TestResult::Pass
 }
 
-#[test]
-fn test_set_nym_enabled_true() {
+pub fn test_set_nym_enabled_true() -> TestResult {
     init();
     set_nym_enabled(true);
-    assert!(nym_enabled());
+    if !nym_enabled() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_set_nym_enabled_false() {
+pub fn test_set_nym_enabled_false() -> TestResult {
     init();
     set_nym_enabled(false);
-    assert!(!nym_enabled());
+    if nym_enabled() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_theme_getter() {
+pub fn test_theme_getter() -> TestResult {
     init();
     let _ = theme();
+    TestResult::Pass
 }
 
-#[test]
-fn test_set_theme() {
+pub fn test_set_theme() -> TestResult {
     init();
     set_theme(2);
-    assert_eq!(theme(), 2);
+    if theme() != 2 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_auto_wipe_getter() {
+pub fn test_auto_wipe_getter() -> TestResult {
     init();
     let _ = auto_wipe();
+    TestResult::Pass
 }
 
-#[test]
-fn test_set_auto_wipe_true() {
+pub fn test_set_auto_wipe_true() -> TestResult {
     init();
     set_auto_wipe(true);
-    assert!(auto_wipe());
+    if !auto_wipe() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_set_auto_wipe_false() {
+pub fn test_set_auto_wipe_false() -> TestResult {
     init();
     set_auto_wipe(false);
-    assert!(!auto_wipe());
+    if auto_wipe() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_timezone_getter() {
+pub fn test_timezone_getter() -> TestResult {
     init();
     let _ = timezone();
+    TestResult::Pass
 }
 
-#[test]
-fn test_set_timezone_positive() {
+pub fn test_set_timezone_positive() -> TestResult {
     init();
     set_timezone(5);
-    assert_eq!(timezone(), 5);
+    if timezone() != 5 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_set_timezone_negative() {
+pub fn test_set_timezone_negative() -> TestResult {
     init();
     set_timezone(-8);
-    assert_eq!(timezone(), -8);
+    if timezone() != -8 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_set_timezone_clamp_low() {
+pub fn test_set_timezone_clamp_low() -> TestResult {
     init();
     set_timezone(-20);
-    assert_eq!(timezone(), -12);
+    if timezone() != -12 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_set_timezone_clamp_high() {
+pub fn test_set_timezone_clamp_high() -> TestResult {
     init();
     set_timezone(20);
-    assert_eq!(timezone(), 14);
+    if timezone() != 14 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_get_returns_settings() {
+pub fn test_get_returns_settings() -> TestResult {
     init();
     let s = get();
-    assert!(s.brightness <= 100);
+    if !(s.brightness <= 100) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_get_mut_returns_mutable_ref() {
+pub fn test_get_mut_returns_mutable_ref() -> TestResult {
     init();
     let s = get_mut();
     s.brightness = 50;
-    assert_eq!(brightness(), 50);
+    if brightness() != 50 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_mark_modified() {
+pub fn test_mark_modified() -> TestResult {
     init();
     mark_modified();
-    assert!(needs_save());
+    if !needs_save() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_needs_save_returns_bool() {
+pub fn test_needs_save_returns_bool() -> TestResult {
     init();
     let _: bool = needs_save();
+    TestResult::Pass
 }
 
-#[test]
-fn test_serialize_returns_size() {
+pub fn test_serialize_returns_size() -> TestResult {
     let s = Settings::default();
     let mut buf = [0u8; 1024];
     let size = serialize(&s, &mut buf);
-    assert!(size > 0);
-    assert!(size <= 1024);
+    if !(size > 0) { return TestResult::Fail; }
+    if !(size <= 1024) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_deserialize_roundtrip() {
+pub fn test_deserialize_roundtrip() -> TestResult {
     let mut s1 = Settings::default();
     s1.brightness = 42;
     s1.mouse_sensitivity = 7;
@@ -459,333 +459,334 @@ fn test_deserialize_roundtrip() {
     let mut s2 = Settings::default();
     deserialize(&buf, &mut s2);
 
-    assert_eq!(s2.brightness, 42);
-    assert_eq!(s2.mouse_sensitivity, 7);
-    assert!(!s2.anonymous_mode);
-    assert_eq!(s2.timezone, -5);
+    if s2.brightness != 42 { return TestResult::Fail; }
+    if s2.mouse_sensitivity != 7 { return TestResult::Fail; }
+    if s2.anonymous_mode { return TestResult::Fail; }
+    if s2.timezone != -5 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_settings_filename_constant() {
-    assert!(!SETTINGS_FILENAME.is_empty());
+pub fn test_settings_filename_constant() -> TestResult {
+    if SETTINGS_FILENAME.is_empty() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_hostname_init() {
+pub fn test_hostname_init() -> TestResult {
     init_hostname();
+    TestResult::Pass
 }
 
-#[test]
-fn test_get_hostname() {
+pub fn test_get_hostname() -> TestResult {
     init_hostname();
     let hostname = get_hostname();
-    assert!(!hostname.is_empty());
+    if hostname.is_empty() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_set_hostname_valid() {
+pub fn test_set_hostname_valid() -> TestResult {
     init_hostname();
     let result = set_hostname("test-host");
-    assert!(result.is_ok());
-    assert_eq!(get_hostname(), "test-host");
+    if !result.is_ok() { return TestResult::Fail; }
+    if get_hostname() != "test-host" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_set_hostname_empty_fails() {
+pub fn test_set_hostname_empty_fails() -> TestResult {
     init_hostname();
     let result = set_hostname("");
-    assert!(result.is_err());
+    if !result.is_err() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_set_hostname_too_long_fails() {
+pub fn test_set_hostname_too_long_fails() -> TestResult {
     init_hostname();
     let long_name = "a".repeat(100);
     let result = set_hostname(&long_name);
-    assert!(result.is_err());
+    if !result.is_err() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_set_hostname_invalid_chars_fails() {
+pub fn test_set_hostname_invalid_chars_fails() -> TestResult {
     init_hostname();
     let result = set_hostname("host@name");
-    assert!(result.is_err());
+    if !result.is_err() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_get_domainname() {
+pub fn test_get_domainname() -> TestResult {
     init_hostname();
     let _ = get_domainname();
+    TestResult::Pass
 }
 
-#[test]
-fn test_set_domainname_valid() {
+pub fn test_set_domainname_valid() -> TestResult {
     init_hostname();
     let result = set_domainname("example.com");
-    assert!(result.is_ok());
-    assert_eq!(get_domainname(), "example.com");
+    if !result.is_ok() { return TestResult::Fail; }
+    if get_domainname() != "example.com" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_set_domainname_empty() {
+pub fn test_set_domainname_empty() -> TestResult {
     init_hostname();
     let result = set_domainname("");
-    assert!(result.is_ok());
-    assert_eq!(get_domainname(), "");
+    if !result.is_ok() { return TestResult::Fail; }
+    if get_domainname() != "" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_set_domainname_too_long_fails() {
+pub fn test_set_domainname_too_long_fails() -> TestResult {
     init_hostname();
     let long_domain = "a".repeat(100);
     let result = set_domainname(&long_domain);
-    assert!(result.is_err());
+    if !result.is_err() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_reset_to_defaults() {
+pub fn test_reset_to_defaults() -> TestResult {
     init();
     set_brightness(10);
     set_mouse_sensitivity(1);
     reset_to_defaults();
-    assert_eq!(brightness(), 80);
-    assert_eq!(mouse_sensitivity(), 5);
+    if brightness() != 80 { return TestResult::Fail; }
+    if mouse_sensitivity() != 5 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_screen_timeout_getter() {
+pub fn test_screen_timeout_getter() -> TestResult {
     init();
     let _ = screen_timeout();
+    TestResult::Pass
 }
 
-#[test]
-fn test_set_screen_timeout() {
+pub fn test_set_screen_timeout() -> TestResult {
     init();
     set_screen_timeout(30);
-    assert_eq!(screen_timeout(), 30);
+    if screen_timeout() != 30 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_set_screen_timeout_clamp() {
+pub fn test_set_screen_timeout_clamp() -> TestResult {
     init();
     set_screen_timeout(100);
-    assert_eq!(screen_timeout(), 60);
+    if screen_timeout() != 60 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_keyboard_layout_getter() {
+pub fn test_keyboard_layout_getter() -> TestResult {
     init();
     let _ = keyboard_layout();
+    TestResult::Pass
 }
 
-#[test]
-fn test_set_keyboard_layout() {
+pub fn test_set_keyboard_layout() -> TestResult {
     init();
     set_keyboard_layout(2);
-    assert_eq!(keyboard_layout(), 2);
+    if keyboard_layout() != 2 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_set_keyboard_layout_clamp() {
+pub fn test_set_keyboard_layout_clamp() -> TestResult {
     init();
     set_keyboard_layout(100);
-    assert_eq!(keyboard_layout(), 5);
+    if keyboard_layout() != 5 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_sound_enabled_getter() {
+pub fn test_sound_enabled_getter() -> TestResult {
     init();
     let _ = sound_enabled();
+    TestResult::Pass
 }
 
-#[test]
-fn test_set_sound_enabled() {
+pub fn test_set_sound_enabled() -> TestResult {
     init();
     set_sound_enabled(false);
-    assert!(!sound_enabled());
+    if sound_enabled() { return TestResult::Fail; }
     set_sound_enabled(true);
-    assert!(sound_enabled());
+    if !sound_enabled() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_language_getter() {
+pub fn test_language_getter() -> TestResult {
     init();
     let _ = language();
+    TestResult::Pass
 }
 
-#[test]
-fn test_set_language() {
+pub fn test_set_language() -> TestResult {
     init();
     set_language(2);
-    assert_eq!(language(), 2);
+    if language() != 2 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_developer_mode_getter() {
+pub fn test_developer_mode_getter() -> TestResult {
     init();
     let _ = developer_mode();
+    TestResult::Pass
 }
 
-#[test]
-fn test_set_developer_mode() {
+pub fn test_set_developer_mode() -> TestResult {
     init();
     set_developer_mode(true);
-    assert!(developer_mode());
+    if !developer_mode() { return TestResult::Fail; }
     set_developer_mode(false);
-    assert!(!developer_mode());
+    if developer_mode() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_hardware_crypto_getter() {
+pub fn test_hardware_crypto_getter() -> TestResult {
     init();
     let _ = hardware_crypto();
+    TestResult::Pass
 }
 
-#[test]
-fn test_set_hardware_crypto() {
+pub fn test_set_hardware_crypto() -> TestResult {
     init();
     set_hardware_crypto(false);
-    assert!(!hardware_crypto());
+    if hardware_crypto() { return TestResult::Fail; }
     set_hardware_crypto(true);
-    assert!(hardware_crypto());
+    if !hardware_crypto() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_zk_attestation_getter() {
+pub fn test_zk_attestation_getter() -> TestResult {
     init();
     let _ = zk_attestation();
+    TestResult::Pass
 }
 
-#[test]
-fn test_set_zk_attestation() {
+pub fn test_set_zk_attestation() -> TestResult {
     init();
     set_zk_attestation(false);
-    assert!(!zk_attestation());
+    if zk_attestation() { return TestResult::Fail; }
     set_zk_attestation(true);
-    assert!(zk_attestation());
+    if !zk_attestation() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_system_keys_generated_getter() {
+pub fn test_system_keys_generated_getter() -> TestResult {
     init();
     let _ = system_keys_generated();
+    TestResult::Pass
 }
 
-#[test]
-fn test_set_system_keys_generated() {
+pub fn test_set_system_keys_generated() -> TestResult {
     init();
     set_system_keys_generated(true);
-    assert!(system_keys_generated());
+    if !system_keys_generated() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_notifications_enabled_getter() {
+pub fn test_notifications_enabled_getter() -> TestResult {
     init();
     let _ = notifications_enabled();
+    TestResult::Pass
 }
 
-#[test]
-fn test_set_notifications_enabled() {
+pub fn test_set_notifications_enabled() -> TestResult {
     init();
     set_notifications_enabled(false);
-    assert!(!notifications_enabled());
+    if notifications_enabled() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_animations_enabled_getter() {
+pub fn test_animations_enabled_getter() -> TestResult {
     init();
     let _ = animations_enabled();
+    TestResult::Pass
 }
 
-#[test]
-fn test_set_animations_enabled() {
+pub fn test_set_animations_enabled() -> TestResult {
     init();
     set_animations_enabled(false);
-    assert!(!animations_enabled());
+    if animations_enabled() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_cursor_size_getter() {
+pub fn test_cursor_size_getter() -> TestResult {
     init();
     let _ = cursor_size();
+    TestResult::Pass
 }
 
-#[test]
-fn test_set_cursor_size() {
+pub fn test_set_cursor_size() -> TestResult {
     init();
     set_cursor_size(2);
-    assert_eq!(cursor_size(), 2);
+    if cursor_size() != 2 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_set_cursor_size_clamp() {
+pub fn test_set_cursor_size_clamp() -> TestResult {
     init();
     set_cursor_size(100);
-    assert_eq!(cursor_size(), 2);
+    if cursor_size() != 2 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_high_contrast_getter() {
+pub fn test_high_contrast_getter() -> TestResult {
     init();
     let _ = high_contrast();
+    TestResult::Pass
 }
 
-#[test]
-fn test_set_high_contrast() {
+pub fn test_set_high_contrast() -> TestResult {
     init();
     set_high_contrast(true);
-    assert!(high_contrast());
+    if !high_contrast() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_font_size_getter() {
+pub fn test_font_size_getter() -> TestResult {
     init();
     let _ = font_size();
+    TestResult::Pass
 }
 
-#[test]
-fn test_set_font_size() {
+pub fn test_set_font_size() -> TestResult {
     init();
     set_font_size(2);
-    assert_eq!(font_size(), 2);
+    if font_size() != 2 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_set_font_size_clamp() {
+pub fn test_set_font_size_clamp() -> TestResult {
     init();
     set_font_size(100);
-    assert_eq!(font_size(), 2);
+    if font_size() != 2 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_auto_lock_timeout_getter() {
+pub fn test_auto_lock_timeout_getter() -> TestResult {
     init();
     let _ = auto_lock_timeout();
+    TestResult::Pass
 }
 
-#[test]
-fn test_set_auto_lock_timeout() {
+pub fn test_set_auto_lock_timeout() -> TestResult {
     init();
     set_auto_lock_timeout(15);
-    assert_eq!(auto_lock_timeout(), 15);
+    if auto_lock_timeout() != 15 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_set_auto_lock_timeout_clamp() {
+pub fn test_set_auto_lock_timeout_clamp() -> TestResult {
     init();
     set_auto_lock_timeout(100);
-    assert_eq!(auto_lock_timeout(), 30);
+    if auto_lock_timeout() != 30 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_wifi_autoconnect_getter() {
+pub fn test_wifi_autoconnect_getter() -> TestResult {
     init();
     let _ = wifi_autoconnect();
+    TestResult::Pass
 }
 
-#[test]
-fn test_set_wifi_autoconnect() {
+pub fn test_set_wifi_autoconnect() -> TestResult {
     init();
     set_wifi_autoconnect(false);
-    assert!(!wifi_autoconnect());
+    if wifi_autoconnect() { return TestResult::Fail; }
+    TestResult::Pass
 }

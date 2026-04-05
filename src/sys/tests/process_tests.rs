@@ -15,282 +15,282 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::sys::process::*;
+use crate::test::framework::TestResult;
 use core::mem;
 
-#[test]
-fn test_max_tasks_value() {
-    assert_eq!(MAX_TASKS, 32);
+pub fn test_max_tasks_value() -> TestResult {
+    if MAX_TASKS != 32 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_task_stack_size_value() {
-    assert_eq!(TASK_STACK_SIZE, 64 * 1024);
+pub fn test_task_stack_size_value() -> TestResult {
+    if TASK_STACK_SIZE != 64 * 1024 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_task_stack_size_alignment() {
-    assert_eq!(TASK_STACK_SIZE % 4096, 0);
+pub fn test_task_stack_size_alignment() -> TestResult {
+    if TASK_STACK_SIZE % 4096 != 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_task_state_empty_value() {
-    assert_eq!(TaskState::Empty as u8, 0);
+pub fn test_task_state_empty_value() -> TestResult {
+    if TaskState::Empty as u8 != 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_task_state_ready_value() {
-    assert_eq!(TaskState::Ready as u8, 1);
+pub fn test_task_state_ready_value() -> TestResult {
+    if TaskState::Ready as u8 != 1 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_task_state_running_value() {
-    assert_eq!(TaskState::Running as u8, 2);
+pub fn test_task_state_running_value() -> TestResult {
+    if TaskState::Running as u8 != 2 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_task_state_blocked_value() {
-    assert_eq!(TaskState::Blocked as u8, 3);
+pub fn test_task_state_blocked_value() -> TestResult {
+    if TaskState::Blocked as u8 != 3 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_task_state_sleeping_value() {
-    assert_eq!(TaskState::Sleeping as u8, 4);
+pub fn test_task_state_sleeping_value() -> TestResult {
+    if TaskState::Sleeping as u8 != 4 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_task_state_terminated_value() {
-    assert_eq!(TaskState::Terminated as u8, 5);
+pub fn test_task_state_terminated_value() -> TestResult {
+    if TaskState::Terminated as u8 != 5 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_task_state_equality() {
-    assert_eq!(TaskState::Ready, TaskState::Ready);
-    assert_ne!(TaskState::Ready, TaskState::Running);
+pub fn test_task_state_equality() -> TestResult {
+    if TaskState::Ready != TaskState::Ready { return TestResult::Fail; }
+    if TaskState::Ready == TaskState::Running { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_task_state_clone() {
+pub fn test_task_state_clone() -> TestResult {
     let s1 = TaskState::Running;
     let s2 = s1.clone();
-    assert_eq!(s1, s2);
+    if s1 != s2 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_task_state_copy() {
+pub fn test_task_state_copy() -> TestResult {
     let s1 = TaskState::Sleeping;
     let s2 = s1;
-    assert_eq!(s1, s2);
+    if s1 != s2 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_cpu_context_empty() {
+pub fn test_cpu_context_empty() -> TestResult {
     let ctx = CpuContext::empty();
-    assert_eq!(ctx.rbx, 0);
-    assert_eq!(ctx.rbp, 0);
-    assert_eq!(ctx.r12, 0);
-    assert_eq!(ctx.r13, 0);
-    assert_eq!(ctx.r14, 0);
-    assert_eq!(ctx.r15, 0);
-    assert_eq!(ctx.rsp, 0);
-    assert_eq!(ctx.rip, 0);
-    assert_eq!(ctx.rflags, 0x202);
+    if ctx.rbx != 0 { return TestResult::Fail; }
+    if ctx.rbp != 0 { return TestResult::Fail; }
+    if ctx.r12 != 0 { return TestResult::Fail; }
+    if ctx.r13 != 0 { return TestResult::Fail; }
+    if ctx.r14 != 0 { return TestResult::Fail; }
+    if ctx.r15 != 0 { return TestResult::Fail; }
+    if ctx.rsp != 0 { return TestResult::Fail; }
+    if ctx.rip != 0 { return TestResult::Fail; }
+    if ctx.rflags != 0x202 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_cpu_context_rflags_default() {
+pub fn test_cpu_context_rflags_default() -> TestResult {
     let ctx = CpuContext::empty();
-    assert_eq!(ctx.rflags & 0x200, 0x200);
+    if ctx.rflags & 0x200 != 0x200 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_cpu_context_size() {
-    assert_eq!(mem::size_of::<CpuContext>(), 72);
+pub fn test_cpu_context_size() -> TestResult {
+    if mem::size_of::<CpuContext>() != 72 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_cpu_context_is_copy() {
+pub fn test_cpu_context_is_copy() -> TestResult {
     let ctx1 = CpuContext::empty();
     let ctx2 = ctx1;
-    assert_eq!(ctx1.rflags, ctx2.rflags);
+    if ctx1.rflags != ctx2.rflags { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_cpu_context_is_clone() {
+pub fn test_cpu_context_is_clone() -> TestResult {
     let ctx1 = CpuContext::empty();
     let ctx2 = ctx1.clone();
-    assert_eq!(ctx1.rflags, ctx2.rflags);
+    if ctx1.rflags != ctx2.rflags { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_task_empty() {
+pub fn test_task_empty() -> TestResult {
     let task = Task::empty();
-    assert_eq!(task.id, 0);
-    assert_eq!(task.state, TaskState::Empty);
-    assert_eq!(task.name_len, 0);
-    assert_eq!(task.stack_base, 0);
-    assert_eq!(task.stack_size, 0);
-    assert_eq!(task.priority, 128);
-    assert_eq!(task.sleep_until, 0);
-    assert_eq!(task.parent_id, 0);
-    assert_eq!(task.exit_code, 0);
-    assert_eq!(task.run_time, 0);
-    assert_eq!(task.last_scheduled, 0);
-    assert_eq!(task.switch_count, 0);
+    if task.id != 0 { return TestResult::Fail; }
+    if task.state != TaskState::Empty { return TestResult::Fail; }
+    if task.name_len != 0 { return TestResult::Fail; }
+    if task.stack_base != 0 { return TestResult::Fail; }
+    if task.stack_size != 0 { return TestResult::Fail; }
+    if task.priority != 128 { return TestResult::Fail; }
+    if task.sleep_until != 0 { return TestResult::Fail; }
+    if task.parent_id != 0 { return TestResult::Fail; }
+    if task.exit_code != 0 { return TestResult::Fail; }
+    if task.run_time != 0 { return TestResult::Fail; }
+    if task.last_scheduled != 0 { return TestResult::Fail; }
+    if task.switch_count != 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_task_set_name() {
+pub fn test_task_set_name() -> TestResult {
     let mut task = Task::empty();
     task.set_name(b"test_task");
-    assert_eq!(task.name_len, 9);
-    assert_eq!(&task.name[..9], b"test_task");
+    if task.name_len != 9 { return TestResult::Fail; }
+    if &task.name[..9] != b"test_task" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_task_set_name_truncates() {
+pub fn test_task_set_name_truncates() -> TestResult {
     let mut task = Task::empty();
     let long_name = b"this_is_a_very_long_task_name_that_exceeds_31_characters_limit";
     task.set_name(long_name);
-    assert_eq!(task.name_len, 31);
+    if task.name_len != 31 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_task_get_name() {
+pub fn test_task_get_name() -> TestResult {
     let mut task = Task::empty();
     task.set_name(b"my_task");
     let name = task.get_name();
-    assert_eq!(name, b"my_task");
+    if name != b"my_task" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_task_get_name_empty() {
+pub fn test_task_get_name_empty() -> TestResult {
     let task = Task::empty();
     let name = task.get_name();
-    assert_eq!(name.len(), 0);
+    if name.len() != 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_task_is_copy() {
+pub fn test_task_is_copy() -> TestResult {
     let task1 = Task::empty();
     let task2 = task1;
-    assert_eq!(task1.id, task2.id);
+    if task1.id != task2.id { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_task_is_clone() {
+pub fn test_task_is_clone() -> TestResult {
     let task1 = Task::empty();
     let task2 = task1.clone();
-    assert_eq!(task1.id, task2.id);
+    if task1.id != task2.id { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_state_str_empty() {
-    assert_eq!(state_str(TaskState::Empty), b"empty");
+pub fn test_state_str_empty() -> TestResult {
+    if state_str(TaskState::Empty) != b"empty" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_state_str_ready() {
-    assert_eq!(state_str(TaskState::Ready), b"ready");
+pub fn test_state_str_ready() -> TestResult {
+    if state_str(TaskState::Ready) != b"ready" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_state_str_running() {
-    assert_eq!(state_str(TaskState::Running), b"running");
+pub fn test_state_str_running() -> TestResult {
+    if state_str(TaskState::Running) != b"running" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_state_str_blocked() {
-    assert_eq!(state_str(TaskState::Blocked), b"blocked");
+pub fn test_state_str_blocked() -> TestResult {
+    if state_str(TaskState::Blocked) != b"blocked" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_state_str_sleeping() {
-    assert_eq!(state_str(TaskState::Sleeping), b"sleeping");
+pub fn test_state_str_sleeping() -> TestResult {
+    if state_str(TaskState::Sleeping) != b"sleeping" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_state_str_terminated() {
-    assert_eq!(state_str(TaskState::Terminated), b"zombie");
+pub fn test_state_str_terminated() -> TestResult {
+    if state_str(TaskState::Terminated) != b"zombie" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_scheduler_policy_round_robin() {
+pub fn test_scheduler_policy_round_robin() -> TestResult {
     let policy = SchedulerPolicy::RoundRobin;
-    assert_eq!(policy as u8, 0);
+    if policy as u8 != 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_scheduler_policy_priority() {
+pub fn test_scheduler_policy_priority() -> TestResult {
     let policy = SchedulerPolicy::Priority;
-    assert_eq!(policy as u8, 1);
+    if policy as u8 != 1 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_scheduler_policy_fair() {
+pub fn test_scheduler_policy_fair() -> TestResult {
     let policy = SchedulerPolicy::Fair;
-    assert_eq!(policy as u8, 2);
+    if policy as u8 != 2 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_scheduler_policy_from_u8_round_robin() {
+pub fn test_scheduler_policy_from_u8_round_robin() -> TestResult {
     let policy = SchedulerPolicy::from_u8(0);
-    assert_eq!(policy, SchedulerPolicy::RoundRobin);
+    if policy != SchedulerPolicy::RoundRobin { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_scheduler_policy_from_u8_priority() {
+pub fn test_scheduler_policy_from_u8_priority() -> TestResult {
     let policy = SchedulerPolicy::from_u8(1);
-    assert_eq!(policy, SchedulerPolicy::Priority);
+    if policy != SchedulerPolicy::Priority { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_scheduler_policy_from_u8_fair() {
+pub fn test_scheduler_policy_from_u8_fair() -> TestResult {
     let policy = SchedulerPolicy::from_u8(2);
-    assert_eq!(policy, SchedulerPolicy::Fair);
+    if policy != SchedulerPolicy::Fair { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_scheduler_policy_from_u8_invalid() {
+pub fn test_scheduler_policy_from_u8_invalid() -> TestResult {
     let policy = SchedulerPolicy::from_u8(99);
-    assert_eq!(policy, SchedulerPolicy::RoundRobin);
+    if policy != SchedulerPolicy::RoundRobin { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_scheduler_policy_equality() {
-    assert_eq!(SchedulerPolicy::Priority, SchedulerPolicy::Priority);
-    assert_ne!(SchedulerPolicy::Priority, SchedulerPolicy::Fair);
+pub fn test_scheduler_policy_equality() -> TestResult {
+    if SchedulerPolicy::Priority != SchedulerPolicy::Priority { return TestResult::Fail; }
+    if SchedulerPolicy::Priority == SchedulerPolicy::Fair { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_scheduler_policy_clone() {
+pub fn test_scheduler_policy_clone() -> TestResult {
     let p1 = SchedulerPolicy::Fair;
     let p2 = p1.clone();
-    assert_eq!(p1, p2);
+    if p1 != p2 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_scheduler_policy_copy() {
+pub fn test_scheduler_policy_copy() -> TestResult {
     let p1 = SchedulerPolicy::Priority;
     let p2 = p1;
-    assert_eq!(p1, p2);
+    if p1 != p2 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_task_stats_struct() {
+pub fn test_task_stats_struct() -> TestResult {
     let stats = TaskStats {
         run_time: 1000,
         switch_count: 10,
         priority: 128,
         state: TaskState::Running,
     };
-    assert_eq!(stats.run_time, 1000);
-    assert_eq!(stats.switch_count, 10);
-    assert_eq!(stats.priority, 128);
-    assert_eq!(stats.state, TaskState::Running);
+    if stats.run_time != 1000 { return TestResult::Fail; }
+    if stats.switch_count != 10 { return TestResult::Fail; }
+    if stats.priority != 128 { return TestResult::Fail; }
+    if stats.state != TaskState::Running { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_task_stats_copy() {
+pub fn test_task_stats_copy() -> TestResult {
     let stats1 = TaskStats {
         run_time: 500,
         switch_count: 5,
@@ -298,11 +298,11 @@ fn test_task_stats_copy() {
         state: TaskState::Ready,
     };
     let stats2 = stats1;
-    assert_eq!(stats1.run_time, stats2.run_time);
+    if stats1.run_time != stats2.run_time { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_task_stats_clone() {
+pub fn test_task_stats_clone() -> TestResult {
     let stats1 = TaskStats {
         run_time: 750,
         switch_count: 7,
@@ -310,11 +310,11 @@ fn test_task_stats_clone() {
         state: TaskState::Sleeping,
     };
     let stats2 = stats1.clone();
-    assert_eq!(stats1.run_time, stats2.run_time);
+    if stats1.run_time != stats2.run_time { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_scheduler_stats_struct() {
+pub fn test_scheduler_stats_struct() -> TestResult {
     let stats = SchedulerStats {
         active_tasks: 5,
         ready_tasks: 3,
@@ -325,18 +325,18 @@ fn test_scheduler_stats_struct() {
         policy: SchedulerPolicy::Priority,
         quantum_us: 10000,
     };
-    assert_eq!(stats.active_tasks, 5);
-    assert_eq!(stats.ready_tasks, 3);
-    assert_eq!(stats.running_tasks, 1);
-    assert_eq!(stats.sleeping_tasks, 1);
-    assert_eq!(stats.blocked_tasks, 0);
-    assert_eq!(stats.context_switches, 100);
-    assert_eq!(stats.policy, SchedulerPolicy::Priority);
-    assert_eq!(stats.quantum_us, 10000);
+    if stats.active_tasks != 5 { return TestResult::Fail; }
+    if stats.ready_tasks != 3 { return TestResult::Fail; }
+    if stats.running_tasks != 1 { return TestResult::Fail; }
+    if stats.sleeping_tasks != 1 { return TestResult::Fail; }
+    if stats.blocked_tasks != 0 { return TestResult::Fail; }
+    if stats.context_switches != 100 { return TestResult::Fail; }
+    if stats.policy != SchedulerPolicy::Priority { return TestResult::Fail; }
+    if stats.quantum_us != 10000 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_scheduler_stats_copy() {
+pub fn test_scheduler_stats_copy() -> TestResult {
     let stats1 = SchedulerStats {
         active_tasks: 2,
         ready_tasks: 1,
@@ -348,11 +348,11 @@ fn test_scheduler_stats_copy() {
         quantum_us: 20000,
     };
     let stats2 = stats1;
-    assert_eq!(stats1.active_tasks, stats2.active_tasks);
+    if stats1.active_tasks != stats2.active_tasks { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_scheduler_stats_clone() {
+pub fn test_scheduler_stats_clone() -> TestResult {
     let stats1 = SchedulerStats {
         active_tasks: 3,
         ready_tasks: 2,
@@ -364,149 +364,149 @@ fn test_scheduler_stats_clone() {
         quantum_us: 5000,
     };
     let stats2 = stats1.clone();
-    assert_eq!(stats1.context_switches, stats2.context_switches);
+    if stats1.context_switches != stats2.context_switches { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_is_init_returns_bool() {
+pub fn test_is_init_returns_bool() -> TestResult {
     let result: bool = is_init();
-    assert!(result == true || result == false);
+    if !(result == true || result == false) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_current_id_returns_u32() {
+pub fn test_current_id_returns_u32() -> TestResult {
     init();
     let id: u32 = current_id();
-    assert!(id < u32::MAX);
+    if !(id < u32::MAX) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_task_count_returns_u32() {
+pub fn test_task_count_returns_u32() -> TestResult {
     init();
     let count: u32 = task_count();
-    assert!(count >= 1);
-    assert!(count <= MAX_TASKS as u32);
+    if !(count >= 1) { return TestResult::Fail; }
+    if !(count <= MAX_TASKS as u32) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_context_switch_count_returns_u64() {
+pub fn test_context_switch_count_returns_u64() -> TestResult {
     init();
     let count: u64 = context_switch_count();
-    assert!(count < u64::MAX);
+    if !(count < u64::MAX) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_get_policy_returns_policy() {
+pub fn test_get_policy_returns_policy() -> TestResult {
     init();
     let policy: SchedulerPolicy = get_policy();
-    assert!(policy == SchedulerPolicy::RoundRobin
+    if !(policy == SchedulerPolicy::RoundRobin
          || policy == SchedulerPolicy::Priority
-         || policy == SchedulerPolicy::Fair);
+         || policy == SchedulerPolicy::Fair) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_set_policy_round_robin() {
+pub fn test_set_policy_round_robin() -> TestResult {
     init();
     set_policy(SchedulerPolicy::RoundRobin);
-    assert_eq!(get_policy(), SchedulerPolicy::RoundRobin);
+    if get_policy() != SchedulerPolicy::RoundRobin { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_set_policy_priority() {
+pub fn test_set_policy_priority() -> TestResult {
     init();
     set_policy(SchedulerPolicy::Priority);
-    assert_eq!(get_policy(), SchedulerPolicy::Priority);
+    if get_policy() != SchedulerPolicy::Priority { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_set_policy_fair() {
+pub fn test_set_policy_fair() -> TestResult {
     init();
     set_policy(SchedulerPolicy::Fair);
-    assert_eq!(get_policy(), SchedulerPolicy::Fair);
+    if get_policy() != SchedulerPolicy::Fair { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_get_time_quantum_us() {
+pub fn test_get_time_quantum_us() -> TestResult {
     init();
     let quantum = get_time_quantum_us();
-    assert!(quantum > 0);
+    if !(quantum > 0) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_set_time_quantum_us() {
+pub fn test_set_time_quantum_us() -> TestResult {
     init();
     set_time_quantum_us(5000);
     let quantum = get_time_quantum_us();
-    assert!(quantum > 0);
+    if !(quantum > 0) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_get_scheduler_stats_returns_struct() {
+pub fn test_get_scheduler_stats_returns_struct() -> TestResult {
     init();
     let stats = get_scheduler_stats();
-    assert!(stats.active_tasks >= 1);
-    assert!(stats.running_tasks <= stats.active_tasks);
+    if !(stats.active_tasks >= 1) { return TestResult::Fail; }
+    if !(stats.running_tasks <= stats.active_tasks) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_get_task_info_kernel_main() {
+pub fn test_get_task_info_kernel_main() -> TestResult {
     init();
     let info = get_task_info(0);
-    assert!(info.is_some());
+    if !info.is_some() { return TestResult::Fail; }
     if let Some((state, name)) = info {
-        assert_eq!(state, TaskState::Running);
-        assert!(!name.is_empty());
+        if state != TaskState::Running { return TestResult::Fail; }
+        if name.is_empty() { return TestResult::Fail; }
     }
+    TestResult::Pass
 }
 
-#[test]
-fn test_get_task_info_invalid_id() {
+pub fn test_get_task_info_invalid_id() -> TestResult {
     init();
     let info = get_task_info(999999);
-    assert!(info.is_none());
+    if !info.is_none() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_get_task_stats_kernel_main() {
+pub fn test_get_task_stats_kernel_main() -> TestResult {
     init();
     let stats = get_task_stats(0);
-    assert!(stats.is_some());
+    if !stats.is_some() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_get_task_stats_invalid_id() {
+pub fn test_get_task_stats_invalid_id() -> TestResult {
     init();
     let stats = get_task_stats(999999);
-    assert!(stats.is_none());
+    if !stats.is_none() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_get_task_priority_kernel_main() {
+pub fn test_get_task_priority_kernel_main() -> TestResult {
     init();
     let priority = get_task_priority(0);
-    assert!(priority.is_some());
-    assert_eq!(priority.unwrap(), 0);
+    if !priority.is_some() { return TestResult::Fail; }
+    if priority.unwrap() != 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_get_task_priority_invalid_id() {
+pub fn test_get_task_priority_invalid_id() -> TestResult {
     init();
     let priority = get_task_priority(999999);
-    assert!(priority.is_none());
+    if !priority.is_none() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_for_each_task_callback() {
+pub fn test_for_each_task_callback() -> TestResult {
     init();
     let mut count = 0u32;
     for_each_task(|_id, _state, _name| {
         count += 1;
     });
-    assert!(count >= 1);
+    if !(count >= 1) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_for_each_task_sees_kernel_main() {
+pub fn test_for_each_task_sees_kernel_main() -> TestResult {
     init();
     let mut found_kernel_main = false;
     for_each_task(|id, state, _name| {
@@ -514,48 +514,48 @@ fn test_for_each_task_sees_kernel_main() {
             found_kernel_main = true;
         }
     });
-    assert!(found_kernel_main);
+    if !found_kernel_main { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_get_task_info_extended_kernel_main() {
+pub fn test_get_task_info_extended_kernel_main() -> TestResult {
     init();
     let info = get_task_info_extended(0);
-    assert!(info.is_some());
+    if !info.is_some() { return TestResult::Fail; }
     if let Some((state, name, priority, _run_time, _switch_count)) = info {
-        assert_eq!(state, TaskState::Running);
-        assert!(!name.is_empty());
-        assert_eq!(priority, 0);
+        if state != TaskState::Running { return TestResult::Fail; }
+        if name.is_empty() { return TestResult::Fail; }
+        if priority != 0 { return TestResult::Fail; }
     }
+    TestResult::Pass
 }
 
-#[test]
-fn test_get_task_info_extended_invalid_id() {
+pub fn test_get_task_info_extended_invalid_id() -> TestResult {
     init();
     let info = get_task_info_extended(999999);
-    assert!(info.is_none());
+    if !info.is_none() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_task_default_priority() {
+pub fn test_task_default_priority() -> TestResult {
     let task = Task::empty();
-    assert_eq!(task.priority, 128);
+    if task.priority != 128 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_cpu_context_const_empty() {
+pub fn test_cpu_context_const_empty() -> TestResult {
     const CTX: CpuContext = CpuContext::empty();
-    assert_eq!(CTX.rflags, 0x202);
+    if CTX.rflags != 0x202 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_task_const_empty() {
+pub fn test_task_const_empty() -> TestResult {
     const TASK: Task = Task::empty();
-    assert_eq!(TASK.state, TaskState::Empty);
+    if TASK.state != TaskState::Empty { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_all_task_states_unique() {
+pub fn test_all_task_states_unique() -> TestResult {
     let states = [
         TaskState::Empty,
         TaskState::Ready,
@@ -566,13 +566,13 @@ fn test_all_task_states_unique() {
     ];
     for i in 0..states.len() {
         for j in (i + 1)..states.len() {
-            assert_ne!(states[i], states[j]);
+            if states[i] == states[j] { return TestResult::Fail; }
         }
     }
+    TestResult::Pass
 }
 
-#[test]
-fn test_all_scheduler_policies_unique() {
+pub fn test_all_scheduler_policies_unique() -> TestResult {
     let policies = [
         SchedulerPolicy::RoundRobin,
         SchedulerPolicy::Priority,
@@ -580,7 +580,8 @@ fn test_all_scheduler_policies_unique() {
     ];
     for i in 0..policies.len() {
         for j in (i + 1)..policies.len() {
-            assert_ne!(policies[i], policies[j]);
+            if policies[i] == policies[j] { return TestResult::Fail; }
         }
     }
+    TestResult::Pass
 }
