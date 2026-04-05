@@ -2,7 +2,7 @@ use alloc::vec;
 use crate::graphics::image::types::DecodedImage;
 use crate::test::framework::TestResult;
 
-pub fn test_decoded_image_new() -> TestResult {
+pub(crate) fn test_decoded_image_new() -> TestResult {
     let pixels = vec![0xFFFFFFFF; 16];
     let img = DecodedImage::new(4, 4, pixels);
     if img.width != 4 { return TestResult::Fail; }
@@ -11,7 +11,7 @@ pub fn test_decoded_image_new() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_decoded_image_empty() -> TestResult {
+pub(crate) fn test_decoded_image_empty() -> TestResult {
     let pixels = vec![];
     let img = DecodedImage::new(0, 0, pixels);
     if img.width != 0 { return TestResult::Fail; }
@@ -20,7 +20,7 @@ pub fn test_decoded_image_empty() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_decoded_image_get_pixel() -> TestResult {
+pub(crate) fn test_decoded_image_get_pixel() -> TestResult {
     let pixels = vec![
         0xFF000000, 0xFF0000FF, 0xFF00FF00, 0xFFFF0000,
     ];
@@ -33,7 +33,7 @@ pub fn test_decoded_image_get_pixel() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_decoded_image_get_pixel_out_of_bounds() -> TestResult {
+pub(crate) fn test_decoded_image_get_pixel_out_of_bounds() -> TestResult {
     let pixels = vec![0xFFFFFFFF; 4];
     let img = DecodedImage::new(2, 2, pixels);
 
@@ -44,7 +44,7 @@ pub fn test_decoded_image_get_pixel_out_of_bounds() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_decoded_image_get_pixel_boundary() -> TestResult {
+pub(crate) fn test_decoded_image_get_pixel_boundary() -> TestResult {
     let pixels = vec![0xFF123456; 9];
     let img = DecodedImage::new(3, 3, pixels);
 
@@ -58,14 +58,14 @@ pub fn test_decoded_image_get_pixel_boundary() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_decoded_image_dimensions() -> TestResult {
+pub(crate) fn test_decoded_image_dimensions() -> TestResult {
     let img = DecodedImage::new(100, 50, vec![0u32; 5000]);
     if img.width != 100 { return TestResult::Fail; }
     if img.height != 50 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_decoded_image_pixel_count() -> TestResult {
+pub(crate) fn test_decoded_image_pixel_count() -> TestResult {
     let width = 10u32;
     let height = 20u32;
     let pixels = vec![0u32; (width * height) as usize];
@@ -74,7 +74,7 @@ pub fn test_decoded_image_pixel_count() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_decoded_image_clone() -> TestResult {
+pub(crate) fn test_decoded_image_clone() -> TestResult {
     let pixels = vec![0xFF112233, 0xFF445566, 0xFF778899, 0xFFAABBCC];
     let img = DecodedImage::new(2, 2, pixels);
     let cloned = img.clone();
@@ -85,7 +85,7 @@ pub fn test_decoded_image_clone() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_decoded_image_pixel_layout() -> TestResult {
+pub(crate) fn test_decoded_image_pixel_layout() -> TestResult {
     let pixels = vec![
         1, 2, 3,
         4, 5, 6,
@@ -101,7 +101,7 @@ pub fn test_decoded_image_pixel_layout() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_decoded_image_large() -> TestResult {
+pub(crate) fn test_decoded_image_large() -> TestResult {
     let width = 256u32;
     let height = 256u32;
     let pixels = vec![0xFFFFFFFF; (width * height) as usize];
@@ -115,7 +115,7 @@ pub fn test_decoded_image_large() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_decoded_image_single_pixel() -> TestResult {
+pub(crate) fn test_decoded_image_single_pixel() -> TestResult {
     let pixels = vec![0xDEADBEEF];
     let img = DecodedImage::new(1, 1, pixels);
 
@@ -127,7 +127,7 @@ pub fn test_decoded_image_single_pixel() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_decoded_image_row_major() -> TestResult {
+pub(crate) fn test_decoded_image_row_major() -> TestResult {
     let pixels = vec![0, 1, 2, 3, 4, 5];
     let img = DecodedImage::new(3, 2, pixels);
 
@@ -140,7 +140,7 @@ pub fn test_decoded_image_row_major() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_decoded_image_transparent_pixels() -> TestResult {
+pub(crate) fn test_decoded_image_transparent_pixels() -> TestResult {
     let transparent = 0x00000000u32;
     let semi_transparent = 0x80FF0000u32;
     let opaque = 0xFFFF0000u32;
