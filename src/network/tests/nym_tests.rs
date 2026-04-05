@@ -12,543 +12,543 @@ use crate::network::nym::types::constants::{
 use crate::network::nym::types::ids::{MixNodeId, GatewayId, ClientId, SurbId};
 use crate::network::nym::types::address::NymAddress;
 use crate::network::nym::error::NymError;
+use crate::test::framework::TestResult;
 
-#[test]
-fn test_nym_packet_size() {
-    assert_eq!(NYM_PACKET_SIZE, 2048);
+pub fn test_nym_packet_size() -> TestResult {
+    if NYM_PACKET_SIZE != 2048 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_nym_payload_size() {
-    assert_eq!(NYM_PAYLOAD_SIZE, 1024);
+pub fn test_nym_payload_size() -> TestResult {
+    if NYM_PAYLOAD_SIZE != 1024 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_nym_header_size() {
-    assert_eq!(NYM_HEADER_SIZE, 816);
+pub fn test_nym_header_size() -> TestResult {
+    if NYM_HEADER_SIZE != 816 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_nym_mac_size() {
-    assert_eq!(NYM_MAC_SIZE, 16);
+pub fn test_nym_mac_size() -> TestResult {
+    if NYM_MAC_SIZE != 16 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_nym_routing_info_size() {
-    assert_eq!(NYM_ROUTING_INFO_SIZE, 32);
+pub fn test_nym_routing_info_size() -> TestResult {
+    if NYM_ROUTING_INFO_SIZE != 32 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_nym_mix_layers() {
-    assert_eq!(NYM_MIX_LAYERS, 5);
+pub fn test_nym_mix_layers() -> TestResult {
+    if NYM_MIX_LAYERS != 5 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_nym_cover_interval_ms() {
-    assert_eq!(NYM_COVER_INTERVAL_MS, 100);
+pub fn test_nym_cover_interval_ms() -> TestResult {
+    if NYM_COVER_INTERVAL_MS != 100 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_nym_key_size() {
-    assert_eq!(NYM_KEY_SIZE, 32);
+pub fn test_nym_key_size() -> TestResult {
+    if NYM_KEY_SIZE != 32 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_nym_nonce_size() {
-    assert_eq!(NYM_NONCE_SIZE, 12);
+pub fn test_nym_nonce_size() -> TestResult {
+    if NYM_NONCE_SIZE != 12 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_nym_tag_size() {
-    assert_eq!(NYM_TAG_SIZE, 16);
+pub fn test_nym_tag_size() -> TestResult {
+    if NYM_TAG_SIZE != 16 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_nym_node_address_size() {
-    assert_eq!(NYM_NODE_ADDRESS_SIZE, 32);
+pub fn test_nym_node_address_size() -> TestResult {
+    if NYM_NODE_ADDRESS_SIZE != 32 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_nym_surb_size() {
-    assert_eq!(NYM_SURB_SIZE, 296);
+pub fn test_nym_surb_size() -> TestResult {
+    if NYM_SURB_SIZE != 296 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_nym_fragment_size() {
-    assert_eq!(NYM_FRAGMENT_SIZE, 500);
+pub fn test_nym_fragment_size() -> TestResult {
+    if NYM_FRAGMENT_SIZE != 500 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_nym_max_hops() {
-    assert_eq!(NYM_MAX_HOPS, 5);
+pub fn test_nym_max_hops() -> TestResult {
+    if NYM_MAX_HOPS != 5 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_nym_default_gateway_port() {
-    assert_eq!(NYM_DEFAULT_GATEWAY_PORT, 9000);
+pub fn test_nym_default_gateway_port() -> TestResult {
+    if NYM_DEFAULT_GATEWAY_PORT != 9000 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_nym_default_mix_port() {
-    assert_eq!(NYM_DEFAULT_MIX_PORT, 1789);
+pub fn test_nym_default_mix_port() -> TestResult {
+    if NYM_DEFAULT_MIX_PORT != 1789 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_nym_connect_timeout_ms() {
-    assert_eq!(NYM_CONNECT_TIMEOUT_MS, 15000);
+pub fn test_nym_connect_timeout_ms() -> TestResult {
+    if NYM_CONNECT_TIMEOUT_MS != 15000 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_nym_read_timeout_ms() {
-    assert_eq!(NYM_READ_TIMEOUT_MS, 5000);
+pub fn test_nym_read_timeout_ms() -> TestResult {
+    if NYM_READ_TIMEOUT_MS != 5000 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_nym_write_timeout_ms() {
-    assert_eq!(NYM_WRITE_TIMEOUT_MS, 10000);
+pub fn test_nym_write_timeout_ms() -> TestResult {
+    if NYM_WRITE_TIMEOUT_MS != 10000 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_nym_packet_structure() {
-    assert!(NYM_HEADER_SIZE + NYM_PAYLOAD_SIZE <= NYM_PACKET_SIZE);
+pub fn test_nym_packet_structure() -> TestResult {
+    if !(NYM_HEADER_SIZE + NYM_PAYLOAD_SIZE <= NYM_PACKET_SIZE) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_nym_max_hops_equals_mix_layers() {
-    assert_eq!(NYM_MAX_HOPS, NYM_MIX_LAYERS);
+pub fn test_nym_max_hops_equals_mix_layers() -> TestResult {
+    if NYM_MAX_HOPS != NYM_MIX_LAYERS { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_mixnode_id_from_bytes() {
+pub fn test_mixnode_id_from_bytes() -> TestResult {
     let bytes = [1u8; 32];
     let id = MixNodeId::from_bytes(&bytes);
-    assert!(id.is_some());
-    assert_eq!(id.unwrap().0, bytes);
+    if !id.is_some() { return TestResult::Fail; }
+    if id.unwrap().0 != bytes { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_mixnode_id_from_bytes_wrong_size() {
+pub fn test_mixnode_id_from_bytes_wrong_size() -> TestResult {
     let bytes = [1u8; 16];
     let id = MixNodeId::from_bytes(&bytes);
-    assert!(id.is_none());
+    if !id.is_none() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_mixnode_id_as_bytes() {
+pub fn test_mixnode_id_as_bytes() -> TestResult {
     let bytes = [42u8; 32];
     let id = MixNodeId(bytes);
-    assert_eq!(id.as_bytes(), &bytes);
+    if id.as_bytes() != &bytes { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_mixnode_id_clone() {
+pub fn test_mixnode_id_clone() -> TestResult {
     let id = MixNodeId([0xAB; 32]);
     let cloned = id.clone();
-    assert_eq!(id, cloned);
+    if id != cloned { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_mixnode_id_copy() {
+pub fn test_mixnode_id_copy() -> TestResult {
     let id1 = MixNodeId([0xCD; 32]);
     let id2 = id1;
-    assert_eq!(id1, id2);
+    if id1 != id2 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_mixnode_id_equality() {
+pub fn test_mixnode_id_equality() -> TestResult {
     let id1 = MixNodeId([1; 32]);
     let id2 = MixNodeId([1; 32]);
     let id3 = MixNodeId([2; 32]);
-    assert_eq!(id1, id2);
-    assert_ne!(id1, id3);
+    if id1 != id2 { return TestResult::Fail; }
+    if id1 == id3 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_mixnode_id_ordering() {
+pub fn test_mixnode_id_ordering() -> TestResult {
     let id1 = MixNodeId([1; 32]);
     let id2 = MixNodeId([2; 32]);
-    assert!(id1 < id2);
+    if !(id1 < id2) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_gateway_id_from_bytes() {
+pub fn test_gateway_id_from_bytes() -> TestResult {
     let bytes = [0xFF; 32];
     let id = GatewayId::from_bytes(&bytes);
-    assert!(id.is_some());
-    assert_eq!(id.unwrap().0, bytes);
+    if !id.is_some() { return TestResult::Fail; }
+    if id.unwrap().0 != bytes { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_gateway_id_from_bytes_wrong_size() {
+pub fn test_gateway_id_from_bytes_wrong_size() -> TestResult {
     let bytes = [0xFF; 64];
     let id = GatewayId::from_bytes(&bytes);
-    assert!(id.is_none());
+    if !id.is_none() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_gateway_id_as_bytes() {
+pub fn test_gateway_id_as_bytes() -> TestResult {
     let bytes = [0x11; 32];
     let id = GatewayId(bytes);
-    assert_eq!(id.as_bytes(), &bytes);
+    if id.as_bytes() != &bytes { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_gateway_id_clone() {
+pub fn test_gateway_id_clone() -> TestResult {
     let id = GatewayId([0x22; 32]);
     let cloned = id.clone();
-    assert_eq!(id, cloned);
+    if id != cloned { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_gateway_id_copy() {
+pub fn test_gateway_id_copy() -> TestResult {
     let id1 = GatewayId([0x33; 32]);
     let id2 = id1;
-    assert_eq!(id1, id2);
+    if id1 != id2 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_gateway_id_equality() {
+pub fn test_gateway_id_equality() -> TestResult {
     let id1 = GatewayId([5; 32]);
     let id2 = GatewayId([5; 32]);
     let id3 = GatewayId([6; 32]);
-    assert_eq!(id1, id2);
-    assert_ne!(id1, id3);
+    if id1 != id2 { return TestResult::Fail; }
+    if id1 == id3 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_client_id_from_bytes() {
+pub fn test_client_id_from_bytes() -> TestResult {
     let bytes = [0xAA; 32];
     let id = ClientId::from_bytes(&bytes);
-    assert!(id.is_some());
-    assert_eq!(id.unwrap().0, bytes);
+    if !id.is_some() { return TestResult::Fail; }
+    if id.unwrap().0 != bytes { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_client_id_from_bytes_wrong_size() {
+pub fn test_client_id_from_bytes_wrong_size() -> TestResult {
     let bytes = [0xAA; 31];
     let id = ClientId::from_bytes(&bytes);
-    assert!(id.is_none());
+    if !id.is_none() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_client_id_as_bytes() {
+pub fn test_client_id_as_bytes() -> TestResult {
     let bytes = [0xBB; 32];
     let id = ClientId(bytes);
-    assert_eq!(id.as_bytes(), &bytes);
+    if id.as_bytes() != &bytes { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_client_id_clone() {
+pub fn test_client_id_clone() -> TestResult {
     let id = ClientId([0xCC; 32]);
     let cloned = id.clone();
-    assert_eq!(id, cloned);
+    if id != cloned { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_client_id_copy() {
+pub fn test_client_id_copy() -> TestResult {
     let id1 = ClientId([0xDD; 32]);
     let id2 = id1;
-    assert_eq!(id1, id2);
+    if id1 != id2 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_surb_id_from_bytes() {
+pub fn test_surb_id_from_bytes() -> TestResult {
     let bytes = [0x12; 16];
     let id = SurbId::from_bytes(&bytes);
-    assert!(id.is_some());
-    assert_eq!(id.unwrap().0, bytes);
+    if !id.is_some() { return TestResult::Fail; }
+    if id.unwrap().0 != bytes { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_surb_id_from_bytes_wrong_size() {
+pub fn test_surb_id_from_bytes_wrong_size() -> TestResult {
     let bytes = [0x12; 32];
     let id = SurbId::from_bytes(&bytes);
-    assert!(id.is_none());
+    if !id.is_none() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_surb_id_as_bytes() {
+pub fn test_surb_id_as_bytes() -> TestResult {
     let bytes = [0x34; 16];
     let id = SurbId(bytes);
-    assert_eq!(id.as_bytes(), &bytes);
+    if id.as_bytes() != &bytes { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_surb_id_clone() {
+pub fn test_surb_id_clone() -> TestResult {
     let id = SurbId([0x56; 16]);
     let cloned = id.clone();
-    assert_eq!(id, cloned);
+    if id != cloned { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_surb_id_copy() {
+pub fn test_surb_id_copy() -> TestResult {
     let id1 = SurbId([0x78; 16]);
     let id2 = id1;
-    assert_eq!(id1, id2);
+    if id1 != id2 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_nym_address_new() {
+pub fn test_nym_address_new() -> TestResult {
     let gateway = GatewayId([1; 32]);
     let client = ClientId([2; 32]);
     let addr = NymAddress::new(gateway, client);
-    assert_eq!(addr.gateway, gateway);
-    assert_eq!(addr.client_id, client);
+    if addr.gateway != gateway { return TestResult::Fail; }
+    if addr.client_id != client { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_nym_address_to_bytes() {
+pub fn test_nym_address_to_bytes() -> TestResult {
     let gateway = GatewayId([0xAA; 32]);
     let client = ClientId([0xBB; 32]);
     let addr = NymAddress::new(gateway, client);
     let bytes = addr.to_bytes();
-    assert_eq!(bytes.len(), 64);
-    assert_eq!(&bytes[..32], &[0xAA; 32]);
-    assert_eq!(&bytes[32..], &[0xBB; 32]);
+    if bytes.len() != 64 { return TestResult::Fail; }
+    if &bytes[..32] != &[0xAA; 32] { return TestResult::Fail; }
+    if &bytes[32..] != &[0xBB; 32] { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_nym_address_from_bytes() {
+pub fn test_nym_address_from_bytes() -> TestResult {
     let mut bytes = [0u8; 64];
     bytes[..32].copy_from_slice(&[0x11; 32]);
     bytes[32..].copy_from_slice(&[0x22; 32]);
     let addr = NymAddress::from_bytes(&bytes);
-    assert!(addr.is_some());
+    if !addr.is_some() { return TestResult::Fail; }
     let addr = addr.unwrap();
-    assert_eq!(addr.gateway.0, [0x11; 32]);
-    assert_eq!(addr.client_id.0, [0x22; 32]);
+    if addr.gateway.0 != [0x11; 32] { return TestResult::Fail; }
+    if addr.client_id.0 != [0x22; 32] { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_nym_address_from_bytes_wrong_size() {
+pub fn test_nym_address_from_bytes_wrong_size() -> TestResult {
     let bytes = [0u8; 32];
     let addr = NymAddress::from_bytes(&bytes);
-    assert!(addr.is_none());
+    if !addr.is_none() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_nym_address_roundtrip() {
+pub fn test_nym_address_roundtrip() -> TestResult {
     let gateway = GatewayId([0x55; 32]);
     let client = ClientId([0x66; 32]);
     let original = NymAddress::new(gateway, client);
     let bytes = original.to_bytes();
     let restored = NymAddress::from_bytes(&bytes).unwrap();
-    assert_eq!(original, restored);
+    if original != restored { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_nym_address_clone() {
+pub fn test_nym_address_clone() -> TestResult {
     let addr = NymAddress::new(GatewayId([1; 32]), ClientId([2; 32]));
     let cloned = addr.clone();
-    assert_eq!(addr, cloned);
+    if addr != cloned { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_nym_address_equality() {
+pub fn test_nym_address_equality() -> TestResult {
     let addr1 = NymAddress::new(GatewayId([1; 32]), ClientId([2; 32]));
     let addr2 = NymAddress::new(GatewayId([1; 32]), ClientId([2; 32]));
     let addr3 = NymAddress::new(GatewayId([3; 32]), ClientId([2; 32]));
-    assert_eq!(addr1, addr2);
-    assert_ne!(addr1, addr3);
+    if addr1 != addr2 { return TestResult::Fail; }
+    if addr1 == addr3 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_nym_error_not_initialized() {
+pub fn test_nym_error_not_initialized() -> TestResult {
     let err = NymError::NotInitialized;
-    assert_eq!(err.as_str(), "NYM client not initialized");
+    if err.as_str() != "NYM client not initialized" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_nym_error_already_initialized() {
+pub fn test_nym_error_already_initialized() -> TestResult {
     let err = NymError::AlreadyInitialized;
-    assert_eq!(err.as_str(), "NYM client already initialized");
+    if err.as_str() != "NYM client already initialized" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_nym_error_connection_failed() {
+pub fn test_nym_error_connection_failed() -> TestResult {
     let err = NymError::ConnectionFailed;
-    assert_eq!(err.as_str(), "Failed to connect to gateway");
+    if err.as_str() != "Failed to connect to gateway" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_nym_error_not_connected() {
+pub fn test_nym_error_not_connected() -> TestResult {
     let err = NymError::NotConnected;
-    assert_eq!(err.as_str(), "Not connected to gateway");
+    if err.as_str() != "Not connected to gateway" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_nym_error_handshake_failed() {
+pub fn test_nym_error_handshake_failed() -> TestResult {
     let err = NymError::HandshakeFailed;
-    assert_eq!(err.as_str(), "Gateway handshake failed");
+    if err.as_str() != "Gateway handshake failed" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_nym_error_send_failed() {
+pub fn test_nym_error_send_failed() -> TestResult {
     let err = NymError::SendFailed;
-    assert_eq!(err.as_str(), "Failed to send data");
+    if err.as_str() != "Failed to send data" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_nym_error_receive_failed() {
+pub fn test_nym_error_receive_failed() -> TestResult {
     let err = NymError::ReceiveFailed;
-    assert_eq!(err.as_str(), "Failed to receive data");
+    if err.as_str() != "Failed to receive data" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_nym_error_gateway_not_found() {
+pub fn test_nym_error_gateway_not_found() -> TestResult {
     let err = NymError::GatewayNotFound;
-    assert_eq!(err.as_str(), "Gateway not found");
+    if err.as_str() != "Gateway not found" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_nym_error_mixnode_not_found() {
+pub fn test_nym_error_mixnode_not_found() -> TestResult {
     let err = NymError::MixNodeNotFound;
-    assert_eq!(err.as_str(), "MixNode not found");
+    if err.as_str() != "MixNode not found" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_nym_error_invalid_route() {
+pub fn test_nym_error_invalid_route() -> TestResult {
     let err = NymError::InvalidRoute;
-    assert_eq!(err.as_str(), "Invalid route through mixnet");
+    if err.as_str() != "Invalid route through mixnet" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_nym_error_invalid_packet() {
+pub fn test_nym_error_invalid_packet() -> TestResult {
     let err = NymError::InvalidPacket;
-    assert_eq!(err.as_str(), "Invalid Sphinx packet");
+    if err.as_str() != "Invalid Sphinx packet" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_nym_error_packet_too_large() {
+pub fn test_nym_error_packet_too_large() -> TestResult {
     let err = NymError::PacketTooLarge;
-    assert_eq!(err.as_str(), "Packet payload too large");
+    if err.as_str() != "Packet payload too large" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_nym_error_encryption_failed() {
+pub fn test_nym_error_encryption_failed() -> TestResult {
     let err = NymError::EncryptionFailed;
-    assert_eq!(err.as_str(), "Sphinx encryption failed");
+    if err.as_str() != "Sphinx encryption failed" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_nym_error_decryption_failed() {
+pub fn test_nym_error_decryption_failed() -> TestResult {
     let err = NymError::DecryptionFailed;
-    assert_eq!(err.as_str(), "Sphinx decryption failed");
+    if err.as_str() != "Sphinx decryption failed" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_nym_error_invalid_mac() {
+pub fn test_nym_error_invalid_mac() -> TestResult {
     let err = NymError::InvalidMac;
-    assert_eq!(err.as_str(), "Invalid MAC on packet");
+    if err.as_str() != "Invalid MAC on packet" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_nym_error_invalid_header() {
+pub fn test_nym_error_invalid_header() -> TestResult {
     let err = NymError::InvalidHeader;
-    assert_eq!(err.as_str(), "Invalid Sphinx header");
+    if err.as_str() != "Invalid Sphinx header" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_nym_error_invalid_payload() {
+pub fn test_nym_error_invalid_payload() -> TestResult {
     let err = NymError::InvalidPayload;
-    assert_eq!(err.as_str(), "Invalid packet payload");
+    if err.as_str() != "Invalid packet payload" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_nym_error_invalid_surb() {
+pub fn test_nym_error_invalid_surb() -> TestResult {
     let err = NymError::InvalidSurb;
-    assert_eq!(err.as_str(), "Invalid SURB");
+    if err.as_str() != "Invalid SURB" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_nym_error_no_available_mixnodes() {
+pub fn test_nym_error_no_available_mixnodes() -> TestResult {
     let err = NymError::NoAvailableMixNodes;
-    assert_eq!(err.as_str(), "No available mixnodes");
+    if err.as_str() != "No available mixnodes" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_nym_error_no_available_gateways() {
+pub fn test_nym_error_no_available_gateways() -> TestResult {
     let err = NymError::NoAvailableGateways;
-    assert_eq!(err.as_str(), "No available gateways");
+    if err.as_str() != "No available gateways" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_nym_error_directory_fetch_failed() {
+pub fn test_nym_error_directory_fetch_failed() -> TestResult {
     let err = NymError::DirectoryFetchFailed;
-    assert_eq!(err.as_str(), "Failed to fetch directory");
+    if err.as_str() != "Failed to fetch directory" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_nym_error_timeout() {
+pub fn test_nym_error_timeout() -> TestResult {
     let err = NymError::Timeout;
-    assert_eq!(err.as_str(), "Operation timed out");
+    if err.as_str() != "Operation timed out" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_nym_error_socket_error() {
+pub fn test_nym_error_socket_error() -> TestResult {
     let err = NymError::SocketError;
-    assert_eq!(err.as_str(), "Socket operation failed");
+    if err.as_str() != "Socket operation failed" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_nym_error_tls_error() {
+pub fn test_nym_error_tls_error() -> TestResult {
     let err = NymError::TlsError;
-    assert_eq!(err.as_str(), "TLS error");
+    if err.as_str() != "TLS error" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_nym_error_invalid_address() {
+pub fn test_nym_error_invalid_address() -> TestResult {
     let err = NymError::InvalidAddress;
-    assert_eq!(err.as_str(), "Invalid NYM address");
+    if err.as_str() != "Invalid NYM address" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_nym_error_stream_closed() {
+pub fn test_nym_error_stream_closed() -> TestResult {
     let err = NymError::StreamClosed;
-    assert_eq!(err.as_str(), "Stream is closed");
+    if err.as_str() != "Stream is closed" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_nym_error_buffer_full() {
+pub fn test_nym_error_buffer_full() -> TestResult {
     let err = NymError::BufferFull;
-    assert_eq!(err.as_str(), "Buffer is full");
+    if err.as_str() != "Buffer is full" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_nym_error_internal_error() {
+pub fn test_nym_error_internal_error() -> TestResult {
     let err = NymError::InternalError;
-    assert_eq!(err.as_str(), "Internal error");
+    if err.as_str() != "Internal error" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_nym_error_clone() {
+pub fn test_nym_error_clone() -> TestResult {
     let err = NymError::Timeout;
     let cloned = err.clone();
-    assert_eq!(err, cloned);
+    if err != cloned { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_nym_error_copy() {
+pub fn test_nym_error_copy() -> TestResult {
     let err1 = NymError::ConnectionFailed;
     let err2 = err1;
-    assert_eq!(err1, err2);
+    if err1 != err2 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_nym_error_equality() {
-    assert_eq!(NymError::Timeout, NymError::Timeout);
-    assert_ne!(NymError::Timeout, NymError::SendFailed);
+pub fn test_nym_error_equality() -> TestResult {
+    if NymError::Timeout != NymError::Timeout { return TestResult::Fail; }
+    if NymError::Timeout == NymError::SendFailed { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_nym_error_debug() {
+pub fn test_nym_error_debug() -> TestResult {
     let err = NymError::HandshakeFailed;
     let debug_str = alloc::format!("{:?}", err);
-    assert!(debug_str.contains("HandshakeFailed"));
+    if !debug_str.contains("HandshakeFailed") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_nym_error_all_have_str() {
+pub fn test_nym_error_all_have_str() -> TestResult {
     let errors = [
         NymError::NotInitialized,
         NymError::AlreadyInitialized,
@@ -580,7 +580,7 @@ fn test_nym_error_all_have_str() {
         NymError::InternalError,
     ];
     for err in errors {
-        assert!(!err.as_str().is_empty());
+        if err.as_str().is_empty() { return TestResult::Fail; }
     }
+    TestResult::Pass
 }
-

@@ -3,93 +3,93 @@
 
 use crate::network::http_client::request::{HttpMethod, HttpRequestOptions};
 use crate::network::http_client::response::HttpResponse;
+use crate::test::framework::TestResult;
 use alloc::string::String;
 use alloc::vec::Vec;
 use alloc::vec;
 
-#[test]
-fn test_http_method_get() {
+pub fn test_http_method_get() -> TestResult {
     let method = HttpMethod::Get;
-    assert_eq!(method, HttpMethod::Get);
+    if method != HttpMethod::Get { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_http_method_head() {
+pub fn test_http_method_head() -> TestResult {
     let method = HttpMethod::Head;
-    assert_eq!(method, HttpMethod::Head);
+    if method != HttpMethod::Head { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_http_method_post() {
+pub fn test_http_method_post() -> TestResult {
     let method = HttpMethod::Post;
-    assert_eq!(method, HttpMethod::Post);
+    if method != HttpMethod::Post { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_http_method_put() {
+pub fn test_http_method_put() -> TestResult {
     let method = HttpMethod::Put;
-    assert_eq!(method, HttpMethod::Put);
+    if method != HttpMethod::Put { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_http_method_delete() {
+pub fn test_http_method_delete() -> TestResult {
     let method = HttpMethod::Delete;
-    assert_eq!(method, HttpMethod::Delete);
+    if method != HttpMethod::Delete { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_http_method_clone() {
+pub fn test_http_method_clone() -> TestResult {
     let method = HttpMethod::Get;
     let cloned = method.clone();
-    assert_eq!(method, cloned);
+    if method != cloned { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_http_method_copy() {
+pub fn test_http_method_copy() -> TestResult {
     let method1 = HttpMethod::Post;
     let method2 = method1;
-    assert_eq!(method1, method2);
+    if method1 != method2 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_http_method_equality() {
-    assert_eq!(HttpMethod::Get, HttpMethod::Get);
-    assert_ne!(HttpMethod::Get, HttpMethod::Post);
-    assert_ne!(HttpMethod::Put, HttpMethod::Delete);
+pub fn test_http_method_equality() -> TestResult {
+    if HttpMethod::Get != HttpMethod::Get { return TestResult::Fail; }
+    if HttpMethod::Get == HttpMethod::Post { return TestResult::Fail; }
+    if HttpMethod::Put == HttpMethod::Delete { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_http_method_debug() {
+pub fn test_http_method_debug() -> TestResult {
     let method = HttpMethod::Delete;
     let debug_str = alloc::format!("{:?}", method);
-    assert!(debug_str.contains("Delete"));
+    if !debug_str.contains("Delete") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_http_request_options_default() {
+pub fn test_http_request_options_default() -> TestResult {
     let options = HttpRequestOptions::default();
-    assert_eq!(options.method, HttpMethod::Get);
-    assert!(options.headers.is_empty());
-    assert!(options.body.is_none());
-    assert!(options.follow_redirects);
-    assert_eq!(options.max_redirects, 10);
-    assert_eq!(options.timeout_ms, 30_000);
-    assert!(!options.verbose);
-    assert!(options.keep_alive);
-    assert!(options.use_cookies);
+    if options.method != HttpMethod::Get { return TestResult::Fail; }
+    if !options.headers.is_empty() { return TestResult::Fail; }
+    if !options.body.is_none() { return TestResult::Fail; }
+    if !options.follow_redirects { return TestResult::Fail; }
+    if options.max_redirects != 10 { return TestResult::Fail; }
+    if options.timeout_ms != 30_000 { return TestResult::Fail; }
+    if options.verbose { return TestResult::Fail; }
+    if !options.keep_alive { return TestResult::Fail; }
+    if !options.use_cookies { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_http_request_options_with_method() {
+pub fn test_http_request_options_with_method() -> TestResult {
     let options = HttpRequestOptions {
         method: HttpMethod::Post,
         ..HttpRequestOptions::default()
     };
-    assert_eq!(options.method, HttpMethod::Post);
+    if options.method != HttpMethod::Post { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_http_request_options_with_headers() {
+pub fn test_http_request_options_with_headers() -> TestResult {
     let options = HttpRequestOptions {
         headers: vec![
             (String::from("Content-Type"), String::from("application/json")),
@@ -97,89 +97,89 @@ fn test_http_request_options_with_headers() {
         ],
         ..HttpRequestOptions::default()
     };
-    assert_eq!(options.headers.len(), 2);
+    if options.headers.len() != 2 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_http_request_options_with_body() {
+pub fn test_http_request_options_with_body() -> TestResult {
     let options = HttpRequestOptions {
         body: Some(vec![1, 2, 3, 4]),
         ..HttpRequestOptions::default()
     };
-    assert!(options.body.is_some());
-    assert_eq!(options.body.as_ref().unwrap().len(), 4);
+    if !options.body.is_some() { return TestResult::Fail; }
+    if options.body.as_ref().unwrap().len() != 4 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_http_request_options_no_redirects() {
+pub fn test_http_request_options_no_redirects() -> TestResult {
     let options = HttpRequestOptions {
         follow_redirects: false,
         ..HttpRequestOptions::default()
     };
-    assert!(!options.follow_redirects);
+    if options.follow_redirects { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_http_request_options_custom_timeout() {
+pub fn test_http_request_options_custom_timeout() -> TestResult {
     let options = HttpRequestOptions {
         timeout_ms: 60_000,
         ..HttpRequestOptions::default()
     };
-    assert_eq!(options.timeout_ms, 60_000);
+    if options.timeout_ms != 60_000 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_http_request_options_verbose() {
+pub fn test_http_request_options_verbose() -> TestResult {
     let options = HttpRequestOptions {
         verbose: true,
         ..HttpRequestOptions::default()
     };
-    assert!(options.verbose);
+    if !options.verbose { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_http_request_options_no_keep_alive() {
+pub fn test_http_request_options_no_keep_alive() -> TestResult {
     let options = HttpRequestOptions {
         keep_alive: false,
         ..HttpRequestOptions::default()
     };
-    assert!(!options.keep_alive);
+    if options.keep_alive { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_http_request_options_no_cookies() {
+pub fn test_http_request_options_no_cookies() -> TestResult {
     let options = HttpRequestOptions {
         use_cookies: false,
         ..HttpRequestOptions::default()
     };
-    assert!(!options.use_cookies);
+    if options.use_cookies { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_http_request_options_clone() {
+pub fn test_http_request_options_clone() -> TestResult {
     let options = HttpRequestOptions {
         method: HttpMethod::Put,
         timeout_ms: 5000,
         ..HttpRequestOptions::default()
     };
     let cloned = options.clone();
-    assert_eq!(options.method, cloned.method);
-    assert_eq!(options.timeout_ms, cloned.timeout_ms);
+    if options.method != cloned.method { return TestResult::Fail; }
+    if options.timeout_ms != cloned.timeout_ms { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_http_response_new() {
+pub fn test_http_response_new() -> TestResult {
     let response = HttpResponse::new();
-    assert_eq!(response.status_code, 0);
-    assert!(response.status_text.is_empty());
-    assert!(response.headers.is_empty());
-    assert!(response.body.is_empty());
-    assert!(response.final_url.is_empty());
-    assert_eq!(response.redirects, 0);
+    if response.status_code != 0 { return TestResult::Fail; }
+    if !response.status_text.is_empty() { return TestResult::Fail; }
+    if !response.headers.is_empty() { return TestResult::Fail; }
+    if !response.body.is_empty() { return TestResult::Fail; }
+    if !response.final_url.is_empty() { return TestResult::Fail; }
+    if response.redirects != 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_http_response_success() {
+pub fn test_http_response_success() -> TestResult {
     let response = HttpResponse {
         status_code: 200,
         status_text: String::from("OK"),
@@ -188,90 +188,90 @@ fn test_http_response_success() {
         final_url: String::from("https://example.com"),
         redirects: 0,
     };
-    assert!(response.is_success());
-    assert!(!response.is_redirect());
+    if !response.is_success() { return TestResult::Fail; }
+    if response.is_redirect() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_http_response_success_range() {
+pub fn test_http_response_success_range() -> TestResult {
     for code in 200..300 {
         let response = HttpResponse {
             status_code: code,
             ..HttpResponse::new()
         };
-        assert!(response.is_success());
+        if !response.is_success() { return TestResult::Fail; }
     }
+    TestResult::Pass
 }
 
-#[test]
-fn test_http_response_not_success() {
+pub fn test_http_response_not_success() -> TestResult {
     for code in [100, 199, 300, 400, 404, 500, 503] {
         let response = HttpResponse {
             status_code: code,
             ..HttpResponse::new()
         };
-        assert!(!response.is_success());
+        if response.is_success() { return TestResult::Fail; }
     }
+    TestResult::Pass
 }
 
-#[test]
-fn test_http_response_redirect_301() {
+pub fn test_http_response_redirect_301() -> TestResult {
     let response = HttpResponse {
         status_code: 301,
         ..HttpResponse::new()
     };
-    assert!(response.is_redirect());
+    if !response.is_redirect() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_http_response_redirect_302() {
+pub fn test_http_response_redirect_302() -> TestResult {
     let response = HttpResponse {
         status_code: 302,
         ..HttpResponse::new()
     };
-    assert!(response.is_redirect());
+    if !response.is_redirect() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_http_response_redirect_303() {
+pub fn test_http_response_redirect_303() -> TestResult {
     let response = HttpResponse {
         status_code: 303,
         ..HttpResponse::new()
     };
-    assert!(response.is_redirect());
+    if !response.is_redirect() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_http_response_redirect_307() {
+pub fn test_http_response_redirect_307() -> TestResult {
     let response = HttpResponse {
         status_code: 307,
         ..HttpResponse::new()
     };
-    assert!(response.is_redirect());
+    if !response.is_redirect() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_http_response_redirect_308() {
+pub fn test_http_response_redirect_308() -> TestResult {
     let response = HttpResponse {
         status_code: 308,
         ..HttpResponse::new()
     };
-    assert!(response.is_redirect());
+    if !response.is_redirect() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_http_response_not_redirect() {
+pub fn test_http_response_not_redirect() -> TestResult {
     for code in [200, 201, 400, 404, 500] {
         let response = HttpResponse {
             status_code: code,
             ..HttpResponse::new()
         };
-        assert!(!response.is_redirect());
+        if response.is_redirect() { return TestResult::Fail; }
     }
+    TestResult::Pass
 }
 
-#[test]
-fn test_http_response_header_found() {
+pub fn test_http_response_header_found() -> TestResult {
     let response = HttpResponse {
         status_code: 200,
         headers: vec![
@@ -280,13 +280,13 @@ fn test_http_response_header_found() {
         ],
         ..HttpResponse::new()
     };
-    assert_eq!(response.header("Content-Type"), Some("text/html"));
-    assert_eq!(response.header("content-type"), Some("text/html"));
-    assert_eq!(response.header("CONTENT-TYPE"), Some("text/html"));
+    if response.header("Content-Type") != Some("text/html") { return TestResult::Fail; }
+    if response.header("content-type") != Some("text/html") { return TestResult::Fail; }
+    if response.header("CONTENT-TYPE") != Some("text/html") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_http_response_header_not_found() {
+pub fn test_http_response_header_not_found() -> TestResult {
     let response = HttpResponse {
         status_code: 200,
         headers: vec![
@@ -294,11 +294,11 @@ fn test_http_response_header_not_found() {
         ],
         ..HttpResponse::new()
     };
-    assert!(response.header("X-Custom-Header").is_none());
+    if !response.header("X-Custom-Header").is_none() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_http_response_content_length() {
+pub fn test_http_response_content_length() -> TestResult {
     let response = HttpResponse {
         status_code: 200,
         headers: vec![
@@ -306,17 +306,17 @@ fn test_http_response_content_length() {
         ],
         ..HttpResponse::new()
     };
-    assert_eq!(response.content_length(), Some(5678));
+    if response.content_length() != Some(5678) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_http_response_content_length_none() {
+pub fn test_http_response_content_length_none() -> TestResult {
     let response = HttpResponse::new();
-    assert!(response.content_length().is_none());
+    if !response.content_length().is_none() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_http_response_content_type() {
+pub fn test_http_response_content_type() -> TestResult {
     let response = HttpResponse {
         status_code: 200,
         headers: vec![
@@ -324,11 +324,11 @@ fn test_http_response_content_type() {
         ],
         ..HttpResponse::new()
     };
-    assert_eq!(response.content_type(), Some("application/json"));
+    if response.content_type() != Some("application/json") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_http_response_location() {
+pub fn test_http_response_location() -> TestResult {
     let response = HttpResponse {
         status_code: 302,
         headers: vec![
@@ -336,31 +336,31 @@ fn test_http_response_location() {
         ],
         ..HttpResponse::new()
     };
-    assert_eq!(response.location(), Some("https://example.com/new"));
+    if response.location() != Some("https://example.com/new") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_http_response_body_text() {
+pub fn test_http_response_body_text() -> TestResult {
     let response = HttpResponse {
         status_code: 200,
         body: b"Hello, World!".to_vec(),
         ..HttpResponse::new()
     };
-    assert_eq!(response.body_text(), Some(String::from("Hello, World!")));
+    if response.body_text() != Some(String::from("Hello, World!")) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_http_response_body_text_invalid_utf8() {
+pub fn test_http_response_body_text_invalid_utf8() -> TestResult {
     let response = HttpResponse {
         status_code: 200,
         body: vec![0xFF, 0xFE, 0x00],
         ..HttpResponse::new()
     };
-    assert!(response.body_text().is_none());
+    if !response.body_text().is_none() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_http_response_is_keep_alive_true() {
+pub fn test_http_response_is_keep_alive_true() -> TestResult {
     let response = HttpResponse {
         status_code: 200,
         headers: vec![
@@ -368,11 +368,11 @@ fn test_http_response_is_keep_alive_true() {
         ],
         ..HttpResponse::new()
     };
-    assert!(response.is_keep_alive());
+    if !response.is_keep_alive() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_http_response_is_keep_alive_false() {
+pub fn test_http_response_is_keep_alive_false() -> TestResult {
     let response = HttpResponse {
         status_code: 200,
         headers: vec![
@@ -380,17 +380,17 @@ fn test_http_response_is_keep_alive_false() {
         ],
         ..HttpResponse::new()
     };
-    assert!(!response.is_keep_alive());
+    if response.is_keep_alive() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_http_response_is_keep_alive_no_header() {
+pub fn test_http_response_is_keep_alive_no_header() -> TestResult {
     let response = HttpResponse::new();
-    assert!(!response.is_keep_alive());
+    if response.is_keep_alive() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_http_response_set_cookie_headers() {
+pub fn test_http_response_set_cookie_headers() -> TestResult {
     let response = HttpResponse {
         status_code: 200,
         headers: vec![
@@ -401,20 +401,20 @@ fn test_http_response_set_cookie_headers() {
         ..HttpResponse::new()
     };
     let cookies = response.get_set_cookie_headers();
-    assert_eq!(cookies.len(), 2);
-    assert!(cookies.contains(&"session=abc123"));
-    assert!(cookies.contains(&"user=john"));
+    if cookies.len() != 2 { return TestResult::Fail; }
+    if !cookies.contains(&"session=abc123") { return TestResult::Fail; }
+    if !cookies.contains(&"user=john") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_http_response_no_set_cookie_headers() {
+pub fn test_http_response_no_set_cookie_headers() -> TestResult {
     let response = HttpResponse::new();
     let cookies = response.get_set_cookie_headers();
-    assert!(cookies.is_empty());
+    if !cookies.is_empty() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_http_response_clone() {
+pub fn test_http_response_clone() -> TestResult {
     let response = HttpResponse {
         status_code: 200,
         status_text: String::from("OK"),
@@ -424,24 +424,24 @@ fn test_http_response_clone() {
         redirects: 2,
     };
     let cloned = response.clone();
-    assert_eq!(response.status_code, cloned.status_code);
-    assert_eq!(response.body, cloned.body);
-    assert_eq!(response.redirects, cloned.redirects);
+    if response.status_code != cloned.status_code { return TestResult::Fail; }
+    if response.body != cloned.body { return TestResult::Fail; }
+    if response.redirects != cloned.redirects { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_http_response_debug() {
+pub fn test_http_response_debug() -> TestResult {
     let response = HttpResponse {
         status_code: 404,
         ..HttpResponse::new()
     };
     let debug_str = alloc::format!("{:?}", response);
-    assert!(debug_str.contains("HttpResponse"));
-    assert!(debug_str.contains("404"));
+    if !debug_str.contains("HttpResponse") { return TestResult::Fail; }
+    if !debug_str.contains("404") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_http_method_all_variants() {
+pub fn test_http_method_all_variants() -> TestResult {
     let methods = [
         HttpMethod::Get,
         HttpMethod::Head,
@@ -451,7 +451,7 @@ fn test_http_method_all_variants() {
     ];
     for method in methods {
         let cloned = method.clone();
-        assert_eq!(method, cloned);
+        if method != cloned { return TestResult::Fail; }
     }
+    TestResult::Pass
 }
-

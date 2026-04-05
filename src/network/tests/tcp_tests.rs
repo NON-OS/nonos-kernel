@@ -1,153 +1,155 @@
 // NONOS Operating System
 // Copyright (C) 2026 NONOS Contributors
+//
+// TCP protocol type tests
 
 use crate::network::tcp::types::{
     TcpState, TcpHeader, TcpConnection,
     TCP_SYN, TCP_ACK, TCP_FIN, TCP_RST, TCP_PSH,
 };
+use crate::test::framework::TestResult;
 
-#[test]
-fn test_tcp_syn_constant() {
-    assert_eq!(TCP_SYN, 0x02);
+pub fn test_tcp_syn_constant() -> TestResult {
+    if TCP_SYN != 0x02 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_tcp_ack_constant() {
-    assert_eq!(TCP_ACK, 0x10);
+pub fn test_tcp_ack_constant() -> TestResult {
+    if TCP_ACK != 0x10 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_tcp_fin_constant() {
-    assert_eq!(TCP_FIN, 0x01);
+pub fn test_tcp_fin_constant() -> TestResult {
+    if TCP_FIN != 0x01 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_tcp_rst_constant() {
-    assert_eq!(TCP_RST, 0x04);
+pub fn test_tcp_rst_constant() -> TestResult {
+    if TCP_RST != 0x04 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_tcp_psh_constant() {
-    assert_eq!(TCP_PSH, 0x08);
+pub fn test_tcp_psh_constant() -> TestResult {
+    if TCP_PSH != 0x08 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_tcp_flags_unique() {
-    assert_ne!(TCP_SYN, TCP_ACK);
-    assert_ne!(TCP_SYN, TCP_FIN);
-    assert_ne!(TCP_ACK, TCP_FIN);
-    assert_ne!(TCP_RST, TCP_PSH);
+pub fn test_tcp_flags_unique() -> TestResult {
+    if TCP_SYN == TCP_ACK { return TestResult::Fail; }
+    if TCP_SYN == TCP_FIN { return TestResult::Fail; }
+    if TCP_ACK == TCP_FIN { return TestResult::Fail; }
+    if TCP_RST == TCP_PSH { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_tcp_flags_combinable() {
+pub fn test_tcp_flags_combinable() -> TestResult {
     let syn_ack = TCP_SYN | TCP_ACK;
-    assert_eq!(syn_ack, 0x12);
-    assert!((syn_ack & TCP_SYN) != 0);
-    assert!((syn_ack & TCP_ACK) != 0);
+    if syn_ack != 0x12 { return TestResult::Fail; }
+    if (syn_ack & TCP_SYN) == 0 { return TestResult::Fail; }
+    if (syn_ack & TCP_ACK) == 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_tcp_state_closed() {
+pub fn test_tcp_state_closed() -> TestResult {
     let state = TcpState::Closed;
-    assert!(state.is_closed());
-    assert!(!state.is_established());
+    if !state.is_closed() { return TestResult::Fail; }
+    if state.is_established() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_tcp_state_listen() {
+pub fn test_tcp_state_listen() -> TestResult {
     let state = TcpState::Listen;
-    assert!(!state.is_closed());
-    assert!(!state.is_established());
+    if state.is_closed() { return TestResult::Fail; }
+    if state.is_established() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_tcp_state_syn_sent() {
+pub fn test_tcp_state_syn_sent() -> TestResult {
     let state = TcpState::SynSent;
-    assert!(!state.is_closed());
-    assert!(!state.is_established());
+    if state.is_closed() { return TestResult::Fail; }
+    if state.is_established() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_tcp_state_syn_received() {
+pub fn test_tcp_state_syn_received() -> TestResult {
     let state = TcpState::SynReceived;
-    assert!(!state.is_closed());
-    assert!(!state.is_established());
+    if state.is_closed() { return TestResult::Fail; }
+    if state.is_established() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_tcp_state_established() {
+pub fn test_tcp_state_established() -> TestResult {
     let state = TcpState::Established;
-    assert!(state.is_established());
-    assert!(!state.is_closed());
+    if !state.is_established() { return TestResult::Fail; }
+    if state.is_closed() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_tcp_state_fin_wait1() {
+pub fn test_tcp_state_fin_wait1() -> TestResult {
     let state = TcpState::FinWait1;
-    assert!(!state.is_established());
-    assert!(!state.is_closed());
+    if state.is_established() { return TestResult::Fail; }
+    if state.is_closed() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_tcp_state_fin_wait2() {
+pub fn test_tcp_state_fin_wait2() -> TestResult {
     let state = TcpState::FinWait2;
-    assert!(!state.is_established());
-    assert!(!state.is_closed());
+    if state.is_established() { return TestResult::Fail; }
+    if state.is_closed() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_tcp_state_close_wait() {
+pub fn test_tcp_state_close_wait() -> TestResult {
     let state = TcpState::CloseWait;
-    assert!(!state.is_established());
+    if state.is_established() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_tcp_state_closing() {
+pub fn test_tcp_state_closing() -> TestResult {
     let state = TcpState::Closing;
-    assert!(!state.is_established());
+    if state.is_established() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_tcp_state_last_ack() {
+pub fn test_tcp_state_last_ack() -> TestResult {
     let state = TcpState::LastAck;
-    assert!(!state.is_established());
+    if state.is_established() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_tcp_state_time_wait() {
+pub fn test_tcp_state_time_wait() -> TestResult {
     let state = TcpState::TimeWait;
-    assert!(!state.is_established());
+    if state.is_established() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_tcp_state_equality() {
-    assert_eq!(TcpState::Closed, TcpState::Closed);
-    assert_eq!(TcpState::Established, TcpState::Established);
-    assert_ne!(TcpState::Closed, TcpState::Established);
+pub fn test_tcp_state_equality() -> TestResult {
+    if TcpState::Closed != TcpState::Closed { return TestResult::Fail; }
+    if TcpState::Established != TcpState::Established { return TestResult::Fail; }
+    if TcpState::Closed == TcpState::Established { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_tcp_state_clone() {
+pub fn test_tcp_state_clone() -> TestResult {
     let state = TcpState::Established;
     let cloned = state.clone();
-    assert_eq!(state, cloned);
+    if state != cloned { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_tcp_state_copy() {
+pub fn test_tcp_state_copy() -> TestResult {
     let state1 = TcpState::Listen;
     let state2 = state1;
-    assert_eq!(state1, state2);
+    if state1 != state2 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_tcp_header_min_size() {
-    assert_eq!(TcpHeader::MIN_SIZE, 20);
+pub fn test_tcp_header_min_size() -> TestResult {
+    if TcpHeader::MIN_SIZE != 20 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_tcp_header_is_syn() {
+pub fn test_tcp_header_is_syn() -> TestResult {
     let header = TcpHeader {
         src_port: 12345,
         dst_port: 80,
@@ -159,14 +161,14 @@ fn test_tcp_header_is_syn() {
         checksum: 0,
         urgent_ptr: 0,
     };
-    assert!(header.is_syn());
-    assert!(!header.is_ack());
-    assert!(!header.is_fin());
-    assert!(!header.is_rst());
+    if !header.is_syn() { return TestResult::Fail; }
+    if header.is_ack() { return TestResult::Fail; }
+    if header.is_fin() { return TestResult::Fail; }
+    if header.is_rst() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_tcp_header_is_ack() {
+pub fn test_tcp_header_is_ack() -> TestResult {
     let header = TcpHeader {
         src_port: 80,
         dst_port: 12345,
@@ -178,12 +180,12 @@ fn test_tcp_header_is_ack() {
         checksum: 0,
         urgent_ptr: 0,
     };
-    assert!(header.is_ack());
-    assert!(!header.is_syn());
+    if !header.is_ack() { return TestResult::Fail; }
+    if header.is_syn() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_tcp_header_is_fin() {
+pub fn test_tcp_header_is_fin() -> TestResult {
     let header = TcpHeader {
         src_port: 12345,
         dst_port: 80,
@@ -195,12 +197,12 @@ fn test_tcp_header_is_fin() {
         checksum: 0,
         urgent_ptr: 0,
     };
-    assert!(header.is_fin());
-    assert!(header.is_ack());
+    if !header.is_fin() { return TestResult::Fail; }
+    if !header.is_ack() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_tcp_header_is_rst() {
+pub fn test_tcp_header_is_rst() -> TestResult {
     let header = TcpHeader {
         src_port: 80,
         dst_port: 12345,
@@ -212,12 +214,12 @@ fn test_tcp_header_is_rst() {
         checksum: 0,
         urgent_ptr: 0,
     };
-    assert!(header.is_rst());
-    assert!(!header.is_syn());
+    if !header.is_rst() { return TestResult::Fail; }
+    if header.is_syn() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_tcp_header_syn_ack() {
+pub fn test_tcp_header_syn_ack() -> TestResult {
     let header = TcpHeader {
         src_port: 80,
         dst_port: 12345,
@@ -229,14 +231,14 @@ fn test_tcp_header_syn_ack() {
         checksum: 0,
         urgent_ptr: 0,
     };
-    assert!(header.is_syn());
-    assert!(header.is_ack());
-    assert!(!header.is_fin());
-    assert!(!header.is_rst());
+    if !header.is_syn() { return TestResult::Fail; }
+    if !header.is_ack() { return TestResult::Fail; }
+    if header.is_fin() { return TestResult::Fail; }
+    if header.is_rst() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_tcp_header_clone() {
+pub fn test_tcp_header_clone() -> TestResult {
     let header = TcpHeader {
         src_port: 443,
         dst_port: 54321,
@@ -249,15 +251,15 @@ fn test_tcp_header_clone() {
         urgent_ptr: 0,
     };
     let cloned = header.clone();
-    assert_eq!(header.src_port, cloned.src_port);
-    assert_eq!(header.dst_port, cloned.dst_port);
-    assert_eq!(header.seq_num, cloned.seq_num);
-    assert_eq!(header.ack_num, cloned.ack_num);
-    assert_eq!(header.flags, cloned.flags);
+    if header.src_port != cloned.src_port { return TestResult::Fail; }
+    if header.dst_port != cloned.dst_port { return TestResult::Fail; }
+    if header.seq_num != cloned.seq_num { return TestResult::Fail; }
+    if header.ack_num != cloned.ack_num { return TestResult::Fail; }
+    if header.flags != cloned.flags { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_tcp_header_max_ports() {
+pub fn test_tcp_header_max_ports() -> TestResult {
     let header = TcpHeader {
         src_port: 65535,
         dst_port: 65535,
@@ -269,42 +271,42 @@ fn test_tcp_header_max_ports() {
         checksum: u16::MAX,
         urgent_ptr: u16::MAX,
     };
-    assert_eq!(header.src_port, 65535);
-    assert_eq!(header.dst_port, 65535);
+    if header.src_port != 65535 { return TestResult::Fail; }
+    if header.dst_port != 65535 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_tcp_connection_new() {
+pub fn test_tcp_connection_new() -> TestResult {
     let conn = TcpConnection::new();
-    assert_eq!(conn.state, TcpState::Closed);
-    assert_eq!(conn.local_port, 0);
-    assert_eq!(conn.remote_port, 0);
-    assert_eq!(conn.remote_addr, [0; 4]);
+    if conn.state != TcpState::Closed { return TestResult::Fail; }
+    if conn.local_port != 0 { return TestResult::Fail; }
+    if conn.remote_port != 0 { return TestResult::Fail; }
+    if conn.remote_addr != [0; 4] { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_tcp_connection_default() {
+pub fn test_tcp_connection_default() -> TestResult {
     let conn = TcpConnection::default();
-    assert_eq!(conn.state, TcpState::Closed);
-    assert_eq!(conn.local_port, 0);
+    if conn.state != TcpState::Closed { return TestResult::Fail; }
+    if conn.local_port != 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_tcp_connection_fields() {
+pub fn test_tcp_connection_fields() -> TestResult {
     let conn = TcpConnection {
         state: TcpState::Established,
         local_port: 8080,
         remote_port: 443,
         remote_addr: [93, 184, 216, 34],
     };
-    assert_eq!(conn.state, TcpState::Established);
-    assert_eq!(conn.local_port, 8080);
-    assert_eq!(conn.remote_port, 443);
-    assert_eq!(conn.remote_addr, [93, 184, 216, 34]);
+    if conn.state != TcpState::Established { return TestResult::Fail; }
+    if conn.local_port != 8080 { return TestResult::Fail; }
+    if conn.remote_port != 443 { return TestResult::Fail; }
+    if conn.remote_addr != [93, 184, 216, 34] { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_tcp_connection_clone() {
+pub fn test_tcp_connection_clone() -> TestResult {
     let conn = TcpConnection {
         state: TcpState::SynSent,
         local_port: 54321,
@@ -312,14 +314,14 @@ fn test_tcp_connection_clone() {
         remote_addr: [192, 168, 1, 1],
     };
     let cloned = conn.clone();
-    assert_eq!(conn.state, cloned.state);
-    assert_eq!(conn.local_port, cloned.local_port);
-    assert_eq!(conn.remote_port, cloned.remote_port);
-    assert_eq!(conn.remote_addr, cloned.remote_addr);
+    if conn.state != cloned.state { return TestResult::Fail; }
+    if conn.local_port != cloned.local_port { return TestResult::Fail; }
+    if conn.remote_port != cloned.remote_port { return TestResult::Fail; }
+    if conn.remote_addr != cloned.remote_addr { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_tcp_state_all_variants() {
+pub fn test_tcp_state_all_variants() -> TestResult {
     let states = [
         TcpState::Closed,
         TcpState::Listen,
@@ -335,24 +337,24 @@ fn test_tcp_state_all_variants() {
     ];
     for state in states {
         let cloned = state.clone();
-        assert_eq!(state, cloned);
+        if state != cloned { return TestResult::Fail; }
     }
+    TestResult::Pass
 }
 
-#[test]
-fn test_tcp_header_all_flags_combined() {
+pub fn test_tcp_header_all_flags_combined() -> TestResult {
     let all_flags = TCP_SYN | TCP_ACK | TCP_FIN | TCP_RST | TCP_PSH;
-    assert_eq!(all_flags, 0x1F);
+    if all_flags != 0x1F { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_tcp_connection_localhost() {
+pub fn test_tcp_connection_localhost() -> TestResult {
     let conn = TcpConnection {
         state: TcpState::Established,
         local_port: 8080,
         remote_port: 8080,
         remote_addr: [127, 0, 0, 1],
     };
-    assert_eq!(conn.remote_addr[0], 127);
+    if conn.remote_addr[0] != 127 { return TestResult::Fail; }
+    TestResult::Pass
 }
-

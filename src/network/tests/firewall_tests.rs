@@ -1,274 +1,279 @@
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
+//
+// Firewall type and rule tests
+
 use crate::network::firewall::types::{
     Action, Protocol, Direction, IpMatch, PortMatch,
     RateLimit, RuleStats, Rule, ConnState, ConnTrack, FirewallStats,
     format_ip,
 };
+use crate::test::framework::TestResult;
 use alloc::string::String;
 use core::sync::atomic::Ordering;
 
-#[test]
-fn test_action_allow() {
+pub fn test_action_allow() -> TestResult {
     let action = Action::Allow;
-    assert_eq!(action, Action::Allow);
+    if action != Action::Allow { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_action_deny() {
+pub fn test_action_deny() -> TestResult {
     let action = Action::Deny;
-    assert_eq!(action, Action::Deny);
+    if action != Action::Deny { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_action_drop() {
+pub fn test_action_drop() -> TestResult {
     let action = Action::Drop;
-    assert_eq!(action, Action::Drop);
+    if action != Action::Drop { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_action_log() {
+pub fn test_action_log() -> TestResult {
     let action = Action::Log;
-    assert_eq!(action, Action::Log);
+    if action != Action::Log { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_action_rate_limit() {
+pub fn test_action_rate_limit() -> TestResult {
     let action = Action::RateLimit;
-    assert_eq!(action, Action::RateLimit);
+    if action != Action::RateLimit { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_action_equality() {
-    assert_eq!(Action::Allow, Action::Allow);
-    assert_ne!(Action::Allow, Action::Deny);
-    assert_ne!(Action::Drop, Action::Log);
+pub fn test_action_equality() -> TestResult {
+    if Action::Allow != Action::Allow { return TestResult::Fail; }
+    if Action::Allow == Action::Deny { return TestResult::Fail; }
+    if Action::Drop == Action::Log { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_action_clone() {
+pub fn test_action_clone() -> TestResult {
     let action = Action::Deny;
     let cloned = action.clone();
-    assert_eq!(action, cloned);
+    if action != cloned { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_protocol_any() {
+pub fn test_protocol_any() -> TestResult {
     let proto = Protocol::Any;
-    assert_eq!(proto, Protocol::Any);
+    if proto != Protocol::Any { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_protocol_tcp() {
+pub fn test_protocol_tcp() -> TestResult {
     let proto = Protocol::Tcp;
-    assert_eq!(proto, Protocol::Tcp);
+    if proto != Protocol::Tcp { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_protocol_udp() {
+pub fn test_protocol_udp() -> TestResult {
     let proto = Protocol::Udp;
-    assert_eq!(proto, Protocol::Udp);
+    if proto != Protocol::Udp { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_protocol_icmp() {
+pub fn test_protocol_icmp() -> TestResult {
     let proto = Protocol::Icmp;
-    assert_eq!(proto, Protocol::Icmp);
+    if proto != Protocol::Icmp { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_protocol_equality() {
-    assert_eq!(Protocol::Tcp, Protocol::Tcp);
-    assert_ne!(Protocol::Tcp, Protocol::Udp);
+pub fn test_protocol_equality() -> TestResult {
+    if Protocol::Tcp != Protocol::Tcp { return TestResult::Fail; }
+    if Protocol::Tcp == Protocol::Udp { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_protocol_clone() {
+pub fn test_protocol_clone() -> TestResult {
     let proto = Protocol::Icmp;
     let cloned = proto.clone();
-    assert_eq!(proto, cloned);
+    if proto != cloned { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_direction_inbound() {
+pub fn test_direction_inbound() -> TestResult {
     let dir = Direction::Inbound;
-    assert_eq!(dir, Direction::Inbound);
+    if dir != Direction::Inbound { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_direction_outbound() {
+pub fn test_direction_outbound() -> TestResult {
     let dir = Direction::Outbound;
-    assert_eq!(dir, Direction::Outbound);
+    if dir != Direction::Outbound { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_direction_both() {
+pub fn test_direction_both() -> TestResult {
     let dir = Direction::Both;
-    assert_eq!(dir, Direction::Both);
+    if dir != Direction::Both { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_direction_equality() {
-    assert_eq!(Direction::Inbound, Direction::Inbound);
-    assert_ne!(Direction::Inbound, Direction::Outbound);
+pub fn test_direction_equality() -> TestResult {
+    if Direction::Inbound != Direction::Inbound { return TestResult::Fail; }
+    if Direction::Inbound == Direction::Outbound { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_direction_clone() {
+pub fn test_direction_clone() -> TestResult {
     let dir = Direction::Both;
     let cloned = dir.clone();
-    assert_eq!(dir, cloned);
+    if dir != cloned { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_ip_match_any() {
+pub fn test_ip_match_any() -> TestResult {
     let m = IpMatch::Any;
-    assert_eq!(m, IpMatch::Any);
+    if m != IpMatch::Any { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_ip_match_single() {
+pub fn test_ip_match_single() -> TestResult {
     let m = IpMatch::Single([192, 168, 1, 1]);
     if let IpMatch::Single(addr) = m {
-        assert_eq!(addr, [192, 168, 1, 1]);
+        if addr != [192, 168, 1, 1] { return TestResult::Fail; }
     } else {
-        panic!("Expected Single variant");
+        return TestResult::Fail;
     }
+    TestResult::Pass
 }
 
-#[test]
-fn test_ip_match_subnet() {
+pub fn test_ip_match_subnet() -> TestResult {
     let m = IpMatch::Subnet([192, 168, 0, 0], 16);
     if let IpMatch::Subnet(addr, prefix) = m {
-        assert_eq!(addr, [192, 168, 0, 0]);
-        assert_eq!(prefix, 16);
+        if addr != [192, 168, 0, 0] { return TestResult::Fail; }
+        if prefix != 16 { return TestResult::Fail; }
     } else {
-        panic!("Expected Subnet variant");
+        return TestResult::Fail;
     }
+    TestResult::Pass
 }
 
-#[test]
-fn test_ip_match_range() {
+pub fn test_ip_match_range() -> TestResult {
     let m = IpMatch::Range([10, 0, 0, 1], [10, 0, 0, 255]);
     if let IpMatch::Range(start, end) = m {
-        assert_eq!(start, [10, 0, 0, 1]);
-        assert_eq!(end, [10, 0, 0, 255]);
+        if start != [10, 0, 0, 1] { return TestResult::Fail; }
+        if end != [10, 0, 0, 255] { return TestResult::Fail; }
     } else {
-        panic!("Expected Range variant");
+        return TestResult::Fail;
     }
+    TestResult::Pass
 }
 
-#[test]
-fn test_ip_match_equality() {
-    assert_eq!(IpMatch::Any, IpMatch::Any);
-    assert_eq!(IpMatch::Single([1, 2, 3, 4]), IpMatch::Single([1, 2, 3, 4]));
-    assert_ne!(IpMatch::Single([1, 2, 3, 4]), IpMatch::Single([1, 2, 3, 5]));
+pub fn test_ip_match_equality() -> TestResult {
+    if IpMatch::Any != IpMatch::Any { return TestResult::Fail; }
+    if IpMatch::Single([1, 2, 3, 4]) != IpMatch::Single([1, 2, 3, 4]) { return TestResult::Fail; }
+    if IpMatch::Single([1, 2, 3, 4]) == IpMatch::Single([1, 2, 3, 5]) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_ip_match_clone() {
+pub fn test_ip_match_clone() -> TestResult {
     let m = IpMatch::Subnet([172, 16, 0, 0], 12);
     let cloned = m.clone();
-    assert_eq!(m, cloned);
+    if m != cloned { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_port_match_any() {
+pub fn test_port_match_any() -> TestResult {
     let m = PortMatch::Any;
-    assert_eq!(m, PortMatch::Any);
+    if m != PortMatch::Any { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_port_match_single() {
+pub fn test_port_match_single() -> TestResult {
     let m = PortMatch::Single(80);
     if let PortMatch::Single(port) = m {
-        assert_eq!(port, 80);
+        if port != 80 { return TestResult::Fail; }
     } else {
-        panic!("Expected Single variant");
+        return TestResult::Fail;
     }
+    TestResult::Pass
 }
 
-#[test]
-fn test_port_match_range() {
+pub fn test_port_match_range() -> TestResult {
     let m = PortMatch::Range(1024, 65535);
     if let PortMatch::Range(start, end) = m {
-        assert_eq!(start, 1024);
-        assert_eq!(end, 65535);
+        if start != 1024 { return TestResult::Fail; }
+        if end != 65535 { return TestResult::Fail; }
     } else {
-        panic!("Expected Range variant");
+        return TestResult::Fail;
     }
+    TestResult::Pass
 }
 
-#[test]
-fn test_port_match_list() {
+pub fn test_port_match_list() -> TestResult {
     let m = PortMatch::List([80, 443, 8080, 8443, 0, 0, 0, 0], 4);
     if let PortMatch::List(ports, count) = m {
-        assert_eq!(count, 4);
-        assert_eq!(ports[0], 80);
-        assert_eq!(ports[1], 443);
-        assert_eq!(ports[2], 8080);
-        assert_eq!(ports[3], 8443);
+        if count != 4 { return TestResult::Fail; }
+        if ports[0] != 80 { return TestResult::Fail; }
+        if ports[1] != 443 { return TestResult::Fail; }
+        if ports[2] != 8080 { return TestResult::Fail; }
+        if ports[3] != 8443 { return TestResult::Fail; }
     } else {
-        panic!("Expected List variant");
+        return TestResult::Fail;
     }
+    TestResult::Pass
 }
 
-#[test]
-fn test_port_match_equality() {
-    assert_eq!(PortMatch::Any, PortMatch::Any);
-    assert_eq!(PortMatch::Single(443), PortMatch::Single(443));
-    assert_ne!(PortMatch::Single(80), PortMatch::Single(443));
+pub fn test_port_match_equality() -> TestResult {
+    if PortMatch::Any != PortMatch::Any { return TestResult::Fail; }
+    if PortMatch::Single(443) != PortMatch::Single(443) { return TestResult::Fail; }
+    if PortMatch::Single(80) == PortMatch::Single(443) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_port_match_clone() {
+pub fn test_port_match_clone() -> TestResult {
     let m = PortMatch::Range(1, 1023);
     let cloned = m.clone();
-    assert_eq!(m, cloned);
+    if m != cloned { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_rate_limit_fields() {
+pub fn test_rate_limit_fields() -> TestResult {
     let rl = RateLimit {
         packets_per_second: 100,
         burst_size: 10,
     };
-    assert_eq!(rl.packets_per_second, 100);
-    assert_eq!(rl.burst_size, 10);
+    if rl.packets_per_second != 100 { return TestResult::Fail; }
+    if rl.burst_size != 10 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_rate_limit_clone() {
+pub fn test_rate_limit_clone() -> TestResult {
     let rl = RateLimit {
         packets_per_second: 1000,
         burst_size: 50,
     };
     let cloned = rl.clone();
-    assert_eq!(rl.packets_per_second, cloned.packets_per_second);
-    assert_eq!(rl.burst_size, cloned.burst_size);
+    if rl.packets_per_second != cloned.packets_per_second { return TestResult::Fail; }
+    if rl.burst_size != cloned.burst_size { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_rule_stats_default() {
+pub fn test_rule_stats_default() -> TestResult {
     let stats = RuleStats::default();
-    assert_eq!(stats.matches.load(Ordering::Relaxed), 0);
-    assert_eq!(stats.bytes.load(Ordering::Relaxed), 0);
-    assert_eq!(stats.last_match_ms.load(Ordering::Relaxed), 0);
+    if stats.matches.load(Ordering::Relaxed) != 0 { return TestResult::Fail; }
+    if stats.bytes.load(Ordering::Relaxed) != 0 { return TestResult::Fail; }
+    if stats.last_match_ms.load(Ordering::Relaxed) != 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_rule_stats_clone() {
+pub fn test_rule_stats_clone() -> TestResult {
     let stats = RuleStats::default();
     stats.matches.store(100, Ordering::Relaxed);
     stats.bytes.store(5000, Ordering::Relaxed);
     stats.last_match_ms.store(1000, Ordering::Relaxed);
 
     let cloned = stats.clone();
-    assert_eq!(cloned.matches.load(Ordering::Relaxed), 100);
-    assert_eq!(cloned.bytes.load(Ordering::Relaxed), 5000);
-    assert_eq!(cloned.last_match_ms.load(Ordering::Relaxed), 1000);
+    if cloned.matches.load(Ordering::Relaxed) != 100 { return TestResult::Fail; }
+    if cloned.bytes.load(Ordering::Relaxed) != 5000 { return TestResult::Fail; }
+    if cloned.last_match_ms.load(Ordering::Relaxed) != 1000 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_rule_fields() {
+pub fn test_rule_fields() -> TestResult {
     let rule = Rule {
         id: 1,
         name: String::from("Allow HTTP"),
@@ -285,19 +290,19 @@ fn test_rule_fields() {
         log: false,
         stats: RuleStats::default(),
     };
-    assert_eq!(rule.id, 1);
-    assert_eq!(rule.name, "Allow HTTP");
-    assert!(rule.enabled);
-    assert_eq!(rule.priority, 100);
-    assert_eq!(rule.action, Action::Allow);
-    assert_eq!(rule.direction, Direction::Outbound);
-    assert_eq!(rule.protocol, Protocol::Tcp);
-    assert!(rule.rate_limit.is_none());
-    assert!(!rule.log);
+    if rule.id != 1 { return TestResult::Fail; }
+    if rule.name != "Allow HTTP" { return TestResult::Fail; }
+    if !rule.enabled { return TestResult::Fail; }
+    if rule.priority != 100 { return TestResult::Fail; }
+    if rule.action != Action::Allow { return TestResult::Fail; }
+    if rule.direction != Direction::Outbound { return TestResult::Fail; }
+    if rule.protocol != Protocol::Tcp { return TestResult::Fail; }
+    if rule.rate_limit.is_some() { return TestResult::Fail; }
+    if rule.log { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_rule_with_rate_limit() {
+pub fn test_rule_with_rate_limit() -> TestResult {
     let rule = Rule {
         id: 2,
         name: String::from("Rate Limited"),
@@ -317,13 +322,13 @@ fn test_rule_with_rate_limit() {
         log: true,
         stats: RuleStats::default(),
     };
-    assert!(rule.rate_limit.is_some());
+    if rule.rate_limit.is_none() { return TestResult::Fail; }
     let rl = rule.rate_limit.unwrap();
-    assert_eq!(rl.packets_per_second, 100);
+    if rl.packets_per_second != 100 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_rule_clone() {
+pub fn test_rule_clone() -> TestResult {
     let rule = Rule {
         id: 3,
         name: String::from("Block All"),
@@ -341,56 +346,56 @@ fn test_rule_clone() {
         stats: RuleStats::default(),
     };
     let cloned = rule.clone();
-    assert_eq!(rule.id, cloned.id);
-    assert_eq!(rule.name, cloned.name);
-    assert_eq!(rule.enabled, cloned.enabled);
+    if rule.id != cloned.id { return TestResult::Fail; }
+    if rule.name != cloned.name { return TestResult::Fail; }
+    if rule.enabled != cloned.enabled { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_conn_state_new() {
+pub fn test_conn_state_new() -> TestResult {
     let state = ConnState::New;
-    assert_eq!(state, ConnState::New);
+    if state != ConnState::New { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_conn_state_established() {
+pub fn test_conn_state_established() -> TestResult {
     let state = ConnState::Established;
-    assert_eq!(state, ConnState::Established);
+    if state != ConnState::Established { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_conn_state_related() {
+pub fn test_conn_state_related() -> TestResult {
     let state = ConnState::Related;
-    assert_eq!(state, ConnState::Related);
+    if state != ConnState::Related { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_conn_state_invalid() {
+pub fn test_conn_state_invalid() -> TestResult {
     let state = ConnState::Invalid;
-    assert_eq!(state, ConnState::Invalid);
+    if state != ConnState::Invalid { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_conn_state_time_wait() {
+pub fn test_conn_state_time_wait() -> TestResult {
     let state = ConnState::TimeWait;
-    assert_eq!(state, ConnState::TimeWait);
+    if state != ConnState::TimeWait { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_conn_state_equality() {
-    assert_eq!(ConnState::Established, ConnState::Established);
-    assert_ne!(ConnState::New, ConnState::Established);
+pub fn test_conn_state_equality() -> TestResult {
+    if ConnState::Established != ConnState::Established { return TestResult::Fail; }
+    if ConnState::New == ConnState::Established { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_conn_state_clone() {
+pub fn test_conn_state_clone() -> TestResult {
     let state = ConnState::Related;
     let cloned = state.clone();
-    assert_eq!(state, cloned);
+    if state != cloned { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_conn_track_fields() {
+pub fn test_conn_track_fields() -> TestResult {
     let conn = ConnTrack {
         src_ip: [192, 168, 1, 100],
         dst_ip: [93, 184, 216, 34],
@@ -406,23 +411,23 @@ fn test_conn_track_fields() {
         last_seen_ms: 2000,
         timeout_ms: 300000,
     };
-    assert_eq!(conn.src_ip, [192, 168, 1, 100]);
-    assert_eq!(conn.dst_ip, [93, 184, 216, 34]);
-    assert_eq!(conn.src_port, 54321);
-    assert_eq!(conn.dst_port, 80);
-    assert_eq!(conn.protocol, Protocol::Tcp);
-    assert_eq!(conn.state, ConnState::Established);
-    assert_eq!(conn.packets_in, 100);
-    assert_eq!(conn.packets_out, 150);
-    assert_eq!(conn.bytes_in, 5000);
-    assert_eq!(conn.bytes_out, 15000);
-    assert_eq!(conn.created_ms, 1000);
-    assert_eq!(conn.last_seen_ms, 2000);
-    assert_eq!(conn.timeout_ms, 300000);
+    if conn.src_ip != [192, 168, 1, 100] { return TestResult::Fail; }
+    if conn.dst_ip != [93, 184, 216, 34] { return TestResult::Fail; }
+    if conn.src_port != 54321 { return TestResult::Fail; }
+    if conn.dst_port != 80 { return TestResult::Fail; }
+    if conn.protocol != Protocol::Tcp { return TestResult::Fail; }
+    if conn.state != ConnState::Established { return TestResult::Fail; }
+    if conn.packets_in != 100 { return TestResult::Fail; }
+    if conn.packets_out != 150 { return TestResult::Fail; }
+    if conn.bytes_in != 5000 { return TestResult::Fail; }
+    if conn.bytes_out != 15000 { return TestResult::Fail; }
+    if conn.created_ms != 1000 { return TestResult::Fail; }
+    if conn.last_seen_ms != 2000 { return TestResult::Fail; }
+    if conn.timeout_ms != 300000 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_conn_track_clone() {
+pub fn test_conn_track_clone() -> TestResult {
     let conn = ConnTrack {
         src_ip: [10, 0, 0, 1],
         dst_ip: [10, 0, 0, 2],
@@ -439,47 +444,48 @@ fn test_conn_track_clone() {
         timeout_ms: 60000,
     };
     let cloned = conn.clone();
-    assert_eq!(conn.src_ip, cloned.src_ip);
-    assert_eq!(conn.dst_ip, cloned.dst_ip);
-    assert_eq!(conn.state, cloned.state);
+    if conn.src_ip != cloned.src_ip { return TestResult::Fail; }
+    if conn.dst_ip != cloned.dst_ip { return TestResult::Fail; }
+    if conn.state != cloned.state { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_firewall_stats_default() {
+pub fn test_firewall_stats_default() -> TestResult {
     let stats = FirewallStats::default();
-    assert_eq!(stats.packets_allowed.load(Ordering::Relaxed), 0);
-    assert_eq!(stats.packets_denied.load(Ordering::Relaxed), 0);
-    assert_eq!(stats.packets_dropped.load(Ordering::Relaxed), 0);
-    assert_eq!(stats.packets_logged.load(Ordering::Relaxed), 0);
-    assert_eq!(stats.packets_rate_limited.load(Ordering::Relaxed), 0);
-    assert_eq!(stats.connections_tracked.load(Ordering::Relaxed), 0);
-    assert_eq!(stats.connections_expired.load(Ordering::Relaxed), 0);
+    if stats.packets_allowed.load(Ordering::Relaxed) != 0 { return TestResult::Fail; }
+    if stats.packets_denied.load(Ordering::Relaxed) != 0 { return TestResult::Fail; }
+    if stats.packets_dropped.load(Ordering::Relaxed) != 0 { return TestResult::Fail; }
+    if stats.packets_logged.load(Ordering::Relaxed) != 0 { return TestResult::Fail; }
+    if stats.packets_rate_limited.load(Ordering::Relaxed) != 0 { return TestResult::Fail; }
+    if stats.connections_tracked.load(Ordering::Relaxed) != 0 { return TestResult::Fail; }
+    if stats.connections_expired.load(Ordering::Relaxed) != 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_format_ip() {
+pub fn test_format_ip() -> TestResult {
     let ip = [192, 168, 1, 1];
     let formatted = format_ip(ip);
-    assert_eq!(formatted, "192.168.1.1");
+    if formatted != "192.168.1.1" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_format_ip_zeros() {
+pub fn test_format_ip_zeros() -> TestResult {
     let ip = [0, 0, 0, 0];
     let formatted = format_ip(ip);
-    assert_eq!(formatted, "0.0.0.0");
+    if formatted != "0.0.0.0" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_format_ip_max() {
+pub fn test_format_ip_max() -> TestResult {
     let ip = [255, 255, 255, 255];
     let formatted = format_ip(ip);
-    assert_eq!(formatted, "255.255.255.255");
+    if formatted != "255.255.255.255" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_format_ip_localhost() {
+pub fn test_format_ip_localhost() -> TestResult {
     let ip = [127, 0, 0, 1];
     let formatted = format_ip(ip);
-    assert_eq!(formatted, "127.0.0.1");
+    if formatted != "127.0.0.1" { return TestResult::Fail; }
+    TestResult::Pass
 }
