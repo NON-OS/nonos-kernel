@@ -15,20 +15,20 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::log::*;
+use crate::test::framework::TestResult;
 
-#[test]
-fn test_ram_buf_size_constant() {
-    assert_eq!(RAM_BUF_SIZE, 1024);
+pub fn test_ram_buf_size_constant() -> TestResult {
+    if RAM_BUF_SIZE != 1024 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_ram_buffer_backend_new() {
+pub fn test_ram_buffer_backend_new() -> TestResult {
     let backend = RamBufferBackend::new();
-    assert_eq!(backend.entry_count(), 0);
+    if backend.entry_count() != 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_ram_buffer_backend_write_single() {
+pub fn test_ram_buffer_backend_write_single() -> TestResult {
     let mut backend = RamBufferBackend::new();
     let entry = LogEntry {
         ts: 12345,
@@ -38,11 +38,11 @@ fn test_ram_buffer_backend_write_single() {
         hash: [0u8; 32],
     };
     backend.write(&entry);
-    assert_eq!(backend.entry_count(), 1);
+    if backend.entry_count() != 1 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_ram_buffer_backend_write_multiple() {
+pub fn test_ram_buffer_backend_write_multiple() -> TestResult {
     let mut backend = RamBufferBackend::new();
     for i in 0..10 {
         let entry = LogEntry {
@@ -54,18 +54,18 @@ fn test_ram_buffer_backend_write_multiple() {
         };
         backend.write(&entry);
     }
-    assert_eq!(backend.entry_count(), 10);
+    if backend.entry_count() != 10 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_ram_buffer_backend_get_entries_empty() {
+pub fn test_ram_buffer_backend_get_entries_empty() -> TestResult {
     let backend = RamBufferBackend::new();
     let entries = backend.get_entries();
-    assert!(entries.is_empty());
+    if !entries.is_empty() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_ram_buffer_backend_get_entries_single() {
+pub fn test_ram_buffer_backend_get_entries_single() -> TestResult {
     let mut backend = RamBufferBackend::new();
     let mut entry = LogEntry {
         ts: 100,
@@ -77,14 +77,14 @@ fn test_ram_buffer_backend_get_entries_single() {
     let _ = entry.msg.push_str("test");
     backend.write(&entry);
     let entries = backend.get_entries();
-    assert_eq!(entries.len(), 1);
-    assert_eq!(entries[0].ts, 100);
-    assert_eq!(entries[0].cpu, 1);
-    assert_eq!(entries[0].sev, Severity::Warn);
+    if entries.len() != 1 { return TestResult::Fail; }
+    if entries[0].ts != 100 { return TestResult::Fail; }
+    if entries[0].cpu != 1 { return TestResult::Fail; }
+    if entries[0].sev != Severity::Warn { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_ram_buffer_backend_get_entries_preserves_order() {
+pub fn test_ram_buffer_backend_get_entries_preserves_order() -> TestResult {
     let mut backend = RamBufferBackend::new();
     for i in 0..5 {
         let entry = LogEntry {
@@ -98,19 +98,19 @@ fn test_ram_buffer_backend_get_entries_preserves_order() {
     }
     let entries = backend.get_entries();
     for i in 0..5 {
-        assert_eq!(entries[i].ts, i as u64);
+        if entries[i].ts != i as u64 { return TestResult::Fail; }
     }
+    TestResult::Pass
 }
 
-#[test]
-fn test_ram_buffer_backend_get_recent_empty() {
+pub fn test_ram_buffer_backend_get_recent_empty() -> TestResult {
     let backend = RamBufferBackend::new();
     let recent = backend.get_recent(5);
-    assert!(recent.is_empty());
+    if !recent.is_empty() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_ram_buffer_backend_get_recent_single() {
+pub fn test_ram_buffer_backend_get_recent_single() -> TestResult {
     let mut backend = RamBufferBackend::new();
     let entry = LogEntry {
         ts: 50,
@@ -121,12 +121,12 @@ fn test_ram_buffer_backend_get_recent_single() {
     };
     backend.write(&entry);
     let recent = backend.get_recent(1);
-    assert_eq!(recent.len(), 1);
-    assert_eq!(recent[0].ts, 50);
+    if recent.len() != 1 { return TestResult::Fail; }
+    if recent[0].ts != 50 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_ram_buffer_backend_get_recent_less_than_requested() {
+pub fn test_ram_buffer_backend_get_recent_less_than_requested() -> TestResult {
     let mut backend = RamBufferBackend::new();
     for i in 0..3 {
         let entry = LogEntry {
@@ -139,11 +139,11 @@ fn test_ram_buffer_backend_get_recent_less_than_requested() {
         backend.write(&entry);
     }
     let recent = backend.get_recent(10);
-    assert_eq!(recent.len(), 3);
+    if recent.len() != 3 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_ram_buffer_backend_get_recent_exact_count() {
+pub fn test_ram_buffer_backend_get_recent_exact_count() -> TestResult {
     let mut backend = RamBufferBackend::new();
     for i in 0..5 {
         let entry = LogEntry {
@@ -156,11 +156,11 @@ fn test_ram_buffer_backend_get_recent_exact_count() {
         backend.write(&entry);
     }
     let recent = backend.get_recent(3);
-    assert_eq!(recent.len(), 3);
+    if recent.len() != 3 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_ram_buffer_backend_get_recent_returns_newest() {
+pub fn test_ram_buffer_backend_get_recent_returns_newest() -> TestResult {
     let mut backend = RamBufferBackend::new();
     for i in 0..10 {
         let entry = LogEntry {
@@ -173,13 +173,13 @@ fn test_ram_buffer_backend_get_recent_returns_newest() {
         backend.write(&entry);
     }
     let recent = backend.get_recent(3);
-    assert_eq!(recent[0].ts, 7);
-    assert_eq!(recent[1].ts, 8);
-    assert_eq!(recent[2].ts, 9);
+    if recent[0].ts != 7 { return TestResult::Fail; }
+    if recent[1].ts != 8 { return TestResult::Fail; }
+    if recent[2].ts != 9 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_ram_buffer_backend_clear() {
+pub fn test_ram_buffer_backend_clear() -> TestResult {
     let mut backend = RamBufferBackend::new();
     for i in 0..5 {
         let entry = LogEntry {
@@ -191,13 +191,13 @@ fn test_ram_buffer_backend_clear() {
         };
         backend.write(&entry);
     }
-    assert_eq!(backend.entry_count(), 5);
+    if backend.entry_count() != 5 { return TestResult::Fail; }
     backend.clear();
-    assert_eq!(backend.entry_count(), 0);
+    if backend.entry_count() != 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_ram_buffer_backend_clear_then_write() {
+pub fn test_ram_buffer_backend_clear_then_write() -> TestResult {
     let mut backend = RamBufferBackend::new();
     for i in 0..3 {
         let entry = LogEntry {
@@ -218,19 +218,19 @@ fn test_ram_buffer_backend_clear_then_write() {
         hash: [0u8; 32],
     };
     backend.write(&entry);
-    assert_eq!(backend.entry_count(), 1);
+    if backend.entry_count() != 1 { return TestResult::Fail; }
     let entries = backend.get_entries();
-    assert_eq!(entries[0].ts, 100);
+    if entries[0].ts != 100 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_ram_buffer_backend_entry_count_zero() {
+pub fn test_ram_buffer_backend_entry_count_zero() -> TestResult {
     let backend = RamBufferBackend::new();
-    assert_eq!(backend.entry_count(), 0);
+    if backend.entry_count() != 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_ram_buffer_backend_circular_buffer_wrap() {
+pub fn test_ram_buffer_backend_circular_buffer_wrap() -> TestResult {
     let mut backend = RamBufferBackend::new();
     for i in 0..RAM_BUF_SIZE {
         let entry = LogEntry {
@@ -242,11 +242,11 @@ fn test_ram_buffer_backend_circular_buffer_wrap() {
         };
         backend.write(&entry);
     }
-    assert_eq!(backend.entry_count(), RAM_BUF_SIZE);
+    if backend.entry_count() != RAM_BUF_SIZE { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_ram_buffer_backend_circular_buffer_overflow() {
+pub fn test_ram_buffer_backend_circular_buffer_overflow() -> TestResult {
     let mut backend = RamBufferBackend::new();
     for i in 0..(RAM_BUF_SIZE + 10) {
         let entry = LogEntry {
@@ -258,11 +258,11 @@ fn test_ram_buffer_backend_circular_buffer_overflow() {
         };
         backend.write(&entry);
     }
-    assert_eq!(backend.entry_count(), RAM_BUF_SIZE);
+    if backend.entry_count() != RAM_BUF_SIZE { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_ram_buffer_backend_preserves_entry_data() {
+pub fn test_ram_buffer_backend_preserves_entry_data() -> TestResult {
     let mut backend = RamBufferBackend::new();
     let mut entry = LogEntry {
         ts: 999,
@@ -274,20 +274,20 @@ fn test_ram_buffer_backend_preserves_entry_data() {
     let _ = entry.msg.push_str("preserved");
     backend.write(&entry);
     let entries = backend.get_entries();
-    assert_eq!(entries[0].ts, 999);
-    assert_eq!(entries[0].cpu, 7);
-    assert_eq!(entries[0].sev, Severity::Fatal);
-    assert_eq!(entries[0].msg.as_str(), "preserved");
-    assert_eq!(entries[0].hash, [42u8; 32]);
+    if entries[0].ts != 999 { return TestResult::Fail; }
+    if entries[0].cpu != 7 { return TestResult::Fail; }
+    if entries[0].sev != Severity::Fatal { return TestResult::Fail; }
+    if entries[0].msg.as_str() != "preserved" { return TestResult::Fail; }
+    if entries[0].hash != [42u8; 32] { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_ram_buffer_backend_const_new() {
+pub fn test_ram_buffer_backend_const_new() -> TestResult {
     const _BACKEND: RamBufferBackend = RamBufferBackend::new();
+    TestResult::Pass
 }
 
-#[test]
-fn test_ram_buffer_backend_get_recent_zero() {
+pub fn test_ram_buffer_backend_get_recent_zero() -> TestResult {
     let mut backend = RamBufferBackend::new();
     for i in 0..5 {
         let entry = LogEntry {
@@ -300,11 +300,11 @@ fn test_ram_buffer_backend_get_recent_zero() {
         backend.write(&entry);
     }
     let recent = backend.get_recent(0);
-    assert!(recent.is_empty());
+    if !recent.is_empty() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_ram_buffer_backend_write_different_severities() {
+pub fn test_ram_buffer_backend_write_different_severities() -> TestResult {
     let mut backend = RamBufferBackend::new();
     let severities = [
         Severity::Debug,
@@ -324,15 +324,15 @@ fn test_ram_buffer_backend_write_different_severities() {
         backend.write(&entry);
     }
     let entries = backend.get_entries();
-    assert_eq!(entries[0].sev, Severity::Debug);
-    assert_eq!(entries[1].sev, Severity::Info);
-    assert_eq!(entries[2].sev, Severity::Warn);
-    assert_eq!(entries[3].sev, Severity::Err);
-    assert_eq!(entries[4].sev, Severity::Fatal);
+    if entries[0].sev != Severity::Debug { return TestResult::Fail; }
+    if entries[1].sev != Severity::Info { return TestResult::Fail; }
+    if entries[2].sev != Severity::Warn { return TestResult::Fail; }
+    if entries[3].sev != Severity::Err { return TestResult::Fail; }
+    if entries[4].sev != Severity::Fatal { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_ram_buffer_backend_write_different_cpus() {
+pub fn test_ram_buffer_backend_write_different_cpus() -> TestResult {
     let mut backend = RamBufferBackend::new();
     for cpu in 0..8 {
         let entry = LogEntry {
@@ -346,12 +346,12 @@ fn test_ram_buffer_backend_write_different_cpus() {
     }
     let entries = backend.get_entries();
     for i in 0..8 {
-        assert_eq!(entries[i].cpu, i as u32);
+        if entries[i].cpu != i as u32 { return TestResult::Fail; }
     }
+    TestResult::Pass
 }
 
-#[test]
-fn test_ram_buffer_backend_get_entries_after_clear() {
+pub fn test_ram_buffer_backend_get_entries_after_clear() -> TestResult {
     let mut backend = RamBufferBackend::new();
     for i in 0..5 {
         let entry = LogEntry {
@@ -365,11 +365,11 @@ fn test_ram_buffer_backend_get_entries_after_clear() {
     }
     backend.clear();
     let entries = backend.get_entries();
-    assert!(entries.is_empty());
+    if !entries.is_empty() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_ram_buffer_backend_get_recent_after_clear() {
+pub fn test_ram_buffer_backend_get_recent_after_clear() -> TestResult {
     let mut backend = RamBufferBackend::new();
     for i in 0..5 {
         let entry = LogEntry {
@@ -383,11 +383,11 @@ fn test_ram_buffer_backend_get_recent_after_clear() {
     }
     backend.clear();
     let recent = backend.get_recent(10);
-    assert!(recent.is_empty());
+    if !recent.is_empty() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_log_backend_trait_object_safety() {
+pub fn test_log_backend_trait_object_safety() -> TestResult {
     let mut backend = RamBufferBackend::new();
     let entry = LogEntry {
         ts: 0,
@@ -398,10 +398,10 @@ fn test_log_backend_trait_object_safety() {
     };
     let backend_ref: &mut dyn LogBackend = &mut backend;
     backend_ref.write(&entry);
+    TestResult::Pass
 }
 
-#[test]
-fn test_ram_buffer_backend_write_message_preserved() {
+pub fn test_ram_buffer_backend_write_message_preserved() -> TestResult {
     let mut backend = RamBufferBackend::new();
     let mut entry = LogEntry {
         ts: 0,
@@ -413,11 +413,11 @@ fn test_ram_buffer_backend_write_message_preserved() {
     let _ = entry.msg.push_str("hello world");
     backend.write(&entry);
     let entries = backend.get_entries();
-    assert_eq!(entries[0].msg.as_str(), "hello world");
+    if entries[0].msg.as_str() != "hello world" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_ram_buffer_backend_multiple_clears() {
+pub fn test_ram_buffer_backend_multiple_clears() -> TestResult {
     let mut backend = RamBufferBackend::new();
     for _ in 0..3 {
         for i in 0..5 {
@@ -431,12 +431,12 @@ fn test_ram_buffer_backend_multiple_clears() {
             backend.write(&entry);
         }
         backend.clear();
-        assert_eq!(backend.entry_count(), 0);
+        if backend.entry_count() != 0 { return TestResult::Fail; }
     }
+    TestResult::Pass
 }
 
-#[test]
-fn test_ram_buffer_backend_hash_preserved() {
+pub fn test_ram_buffer_backend_hash_preserved() -> TestResult {
     let mut backend = RamBufferBackend::new();
     let mut hash = [0u8; 32];
     for i in 0..32 {
@@ -452,6 +452,7 @@ fn test_ram_buffer_backend_hash_preserved() {
     backend.write(&entry);
     let entries = backend.get_entries();
     for i in 0..32 {
-        assert_eq!(entries[0].hash[i], (i * 3) as u8);
+        if entries[0].hash[i] != (i * 3) as u8 { return TestResult::Fail; }
     }
+    TestResult::Pass
 }
