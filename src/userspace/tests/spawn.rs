@@ -1,49 +1,49 @@
+use crate::test::framework::TestResult;
 use crate::userspace::init::spawn_service;
 use crate::userspace::init::spawn::SpawnError;
 
-#[test]
-fn test_spawn_error_debug() {
+pub fn test_spawn_error_debug() -> TestResult {
     let err = SpawnError::Failed;
     let debug_str = alloc::format!("{:?}", err);
-    assert!(debug_str.contains("Failed"));
+    if !debug_str.contains("Failed") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_spawn_error_clone() {
+pub fn test_spawn_error_clone() -> TestResult {
     let err = SpawnError::Failed;
     let cloned = err.clone();
-    assert!(matches!(cloned, SpawnError::Failed));
+    if !matches!(cloned, SpawnError::Failed) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_spawn_error_copy() {
+pub fn test_spawn_error_copy() -> TestResult {
     let err = SpawnError::Failed;
     let copied: SpawnError = err;
-    assert!(matches!(copied, SpawnError::Failed));
-    assert!(matches!(err, SpawnError::Failed));
+    if !matches!(copied, SpawnError::Failed) { return TestResult::Fail; }
+    if !matches!(err, SpawnError::Failed) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_spawn_error_from_static_str() {
+pub fn test_spawn_error_from_static_str() -> TestResult {
     let err: SpawnError = "some error".into();
-    assert!(matches!(err, SpawnError::Failed));
+    if !matches!(err, SpawnError::Failed) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_spawn_error_from_empty_str() {
+pub fn test_spawn_error_from_empty_str() -> TestResult {
     let err: SpawnError = "".into();
-    assert!(matches!(err, SpawnError::Failed));
+    if !matches!(err, SpawnError::Failed) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_spawn_service_exported() {
+pub fn test_spawn_service_exported() -> TestResult {
     let _: fn(&str) -> Result<crate::process::core::Pid, SpawnError> = spawn_service;
+    TestResult::Pass
 }
 
-#[test]
-fn test_spawn_error_is_failed_variant() {
+pub fn test_spawn_error_is_failed_variant() -> TestResult {
     let err = SpawnError::Failed;
     match err {
-        SpawnError::Failed => assert!(true),
+        SpawnError::Failed => TestResult::Pass,
     }
 }

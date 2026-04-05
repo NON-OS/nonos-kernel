@@ -1,71 +1,71 @@
+use crate::test::framework::TestResult;
 use crate::userspace::drivers::{DriverRequest, DriverResponse, DriverOp};
 
-#[test]
-fn test_driver_op_init_value() {
-    assert_eq!(DriverOp::Init as u16, 0);
+pub fn test_driver_op_init_value() -> TestResult {
+    if DriverOp::Init as u16 != 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_driver_op_read_value() {
-    assert_eq!(DriverOp::Read as u16, 1);
+pub fn test_driver_op_read_value() -> TestResult {
+    if DriverOp::Read as u16 != 1 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_driver_op_write_value() {
-    assert_eq!(DriverOp::Write as u16, 2);
+pub fn test_driver_op_write_value() -> TestResult {
+    if DriverOp::Write as u16 != 2 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_driver_op_ioctl_value() {
-    assert_eq!(DriverOp::Ioctl as u16, 3);
+pub fn test_driver_op_ioctl_value() -> TestResult {
+    if DriverOp::Ioctl as u16 != 3 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_driver_op_interrupt_value() {
-    assert_eq!(DriverOp::Interrupt as u16, 4);
+pub fn test_driver_op_interrupt_value() -> TestResult {
+    if DriverOp::Interrupt as u16 != 4 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_driver_op_shutdown_value() {
-    assert_eq!(DriverOp::Shutdown as u16, 5);
+pub fn test_driver_op_shutdown_value() -> TestResult {
+    if DriverOp::Shutdown as u16 != 5 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_driver_op_debug() {
+pub fn test_driver_op_debug() -> TestResult {
     let op = DriverOp::Init;
     let debug_str = alloc::format!("{:?}", op);
-    assert!(debug_str.contains("Init"));
+    if !debug_str.contains("Init") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_driver_op_clone() {
+pub fn test_driver_op_clone() -> TestResult {
     let op = DriverOp::Read;
     let cloned = op.clone();
-    assert_eq!(op, cloned);
+    if op != cloned { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_driver_op_copy() {
+pub fn test_driver_op_copy() -> TestResult {
     let op = DriverOp::Write;
     let copied: DriverOp = op;
-    assert_eq!(op, copied);
+    if op != copied { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_driver_op_partial_eq() {
-    assert_eq!(DriverOp::Init, DriverOp::Init);
-    assert_ne!(DriverOp::Init, DriverOp::Read);
+pub fn test_driver_op_partial_eq() -> TestResult {
+    if DriverOp::Init != DriverOp::Init { return TestResult::Fail; }
+    if DriverOp::Init == DriverOp::Read { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_driver_op_eq() {
+pub fn test_driver_op_eq() -> TestResult {
     let op1 = DriverOp::Ioctl;
     let op2 = DriverOp::Ioctl;
-    assert!(op1 == op2);
+    if !(op1 == op2) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_driver_request_debug() {
+pub fn test_driver_request_debug() -> TestResult {
     let req = DriverRequest {
         op: DriverOp::Read,
         device_id: 1,
@@ -73,11 +73,11 @@ fn test_driver_request_debug() {
         data: alloc::vec![],
     };
     let debug_str = alloc::format!("{:?}", req);
-    assert!(debug_str.contains("DriverRequest"));
+    if !debug_str.contains("DriverRequest") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_driver_request_clone() {
+pub fn test_driver_request_clone() -> TestResult {
     let req = DriverRequest {
         op: DriverOp::Write,
         device_id: 2,
@@ -85,92 +85,92 @@ fn test_driver_request_clone() {
         data: alloc::vec![1, 2, 3],
     };
     let cloned = req.clone();
-    assert_eq!(cloned.op, DriverOp::Write);
-    assert_eq!(cloned.device_id, 2);
-    assert_eq!(cloned.offset, 100);
-    assert_eq!(cloned.data, alloc::vec![1, 2, 3]);
+    if cloned.op != DriverOp::Write { return TestResult::Fail; }
+    if cloned.device_id != 2 { return TestResult::Fail; }
+    if cloned.offset != 100 { return TestResult::Fail; }
+    if cloned.data != alloc::vec![1, 2, 3] { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_driver_request_fields() {
+pub fn test_driver_request_fields() -> TestResult {
     let req = DriverRequest {
         op: DriverOp::Ioctl,
         device_id: 42,
         offset: 1024,
         data: alloc::vec![0xAB, 0xCD],
     };
-    assert_eq!(req.op, DriverOp::Ioctl);
-    assert_eq!(req.device_id, 42);
-    assert_eq!(req.offset, 1024);
-    assert_eq!(req.data.len(), 2);
+    if req.op != DriverOp::Ioctl { return TestResult::Fail; }
+    if req.device_id != 42 { return TestResult::Fail; }
+    if req.offset != 1024 { return TestResult::Fail; }
+    if req.data.len() != 2 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_driver_request_empty_data() {
+pub fn test_driver_request_empty_data() -> TestResult {
     let req = DriverRequest {
         op: DriverOp::Init,
         device_id: 0,
         offset: 0,
         data: alloc::vec![],
     };
-    assert!(req.data.is_empty());
+    if !req.data.is_empty() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_driver_response_ok() {
+pub fn test_driver_response_ok() -> TestResult {
     let resp = DriverResponse::ok(alloc::vec![1, 2, 3]);
-    assert_eq!(resp.status, 0);
-    assert_eq!(resp.data, alloc::vec![1, 2, 3]);
+    if resp.status != 0 { return TestResult::Fail; }
+    if resp.data != alloc::vec![1, 2, 3] { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_driver_response_ok_empty() {
+pub fn test_driver_response_ok_empty() -> TestResult {
     let resp = DriverResponse::ok(alloc::vec![]);
-    assert_eq!(resp.status, 0);
-    assert!(resp.data.is_empty());
+    if resp.status != 0 { return TestResult::Fail; }
+    if !resp.data.is_empty() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_driver_response_err() {
+pub fn test_driver_response_err() -> TestResult {
     let resp = DriverResponse::err(-1);
-    assert_eq!(resp.status, -1);
-    assert!(resp.data.is_empty());
+    if resp.status != -1 { return TestResult::Fail; }
+    if !resp.data.is_empty() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_driver_response_err_codes() {
-    assert_eq!(DriverResponse::err(-2).status, -2);
-    assert_eq!(DriverResponse::err(-3).status, -3);
-    assert_eq!(DriverResponse::err(-100).status, -100);
+pub fn test_driver_response_err_codes() -> TestResult {
+    if DriverResponse::err(-2).status != -2 { return TestResult::Fail; }
+    if DriverResponse::err(-3).status != -3 { return TestResult::Fail; }
+    if DriverResponse::err(-100).status != -100 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_driver_response_debug() {
+pub fn test_driver_response_debug() -> TestResult {
     let resp = DriverResponse::ok(alloc::vec![0xFF]);
     let debug_str = alloc::format!("{:?}", resp);
-    assert!(debug_str.contains("DriverResponse"));
+    if !debug_str.contains("DriverResponse") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_driver_response_clone() {
+pub fn test_driver_response_clone() -> TestResult {
     let resp = DriverResponse::ok(alloc::vec![1, 2, 3, 4]);
     let cloned = resp.clone();
-    assert_eq!(cloned.status, resp.status);
-    assert_eq!(cloned.data, resp.data);
+    if cloned.status != resp.status { return TestResult::Fail; }
+    if cloned.data != resp.data { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_driver_response_fields() {
+pub fn test_driver_response_fields() -> TestResult {
     let resp = DriverResponse {
         status: 5,
         data: alloc::vec![10, 20, 30],
     };
-    assert_eq!(resp.status, 5);
-    assert_eq!(resp.data.len(), 3);
+    if resp.status != 5 { return TestResult::Fail; }
+    if resp.data.len() != 3 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_driver_op_all_variants() {
+pub fn test_driver_op_all_variants() -> TestResult {
     let ops = [
         DriverOp::Init,
         DriverOp::Read,
@@ -179,14 +179,15 @@ fn test_driver_op_all_variants() {
         DriverOp::Interrupt,
         DriverOp::Shutdown,
     ];
-    assert_eq!(ops.len(), 6);
+    if ops.len() != 6 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_driver_op_consecutive_values() {
-    assert_eq!(DriverOp::Init as u16 + 1, DriverOp::Read as u16);
-    assert_eq!(DriverOp::Read as u16 + 1, DriverOp::Write as u16);
-    assert_eq!(DriverOp::Write as u16 + 1, DriverOp::Ioctl as u16);
-    assert_eq!(DriverOp::Ioctl as u16 + 1, DriverOp::Interrupt as u16);
-    assert_eq!(DriverOp::Interrupt as u16 + 1, DriverOp::Shutdown as u16);
+pub fn test_driver_op_consecutive_values() -> TestResult {
+    if DriverOp::Init as u16 + 1 != DriverOp::Read as u16 { return TestResult::Fail; }
+    if DriverOp::Read as u16 + 1 != DriverOp::Write as u16 { return TestResult::Fail; }
+    if DriverOp::Write as u16 + 1 != DriverOp::Ioctl as u16 { return TestResult::Fail; }
+    if DriverOp::Ioctl as u16 + 1 != DriverOp::Interrupt as u16 { return TestResult::Fail; }
+    if DriverOp::Interrupt as u16 + 1 != DriverOp::Shutdown as u16 { return TestResult::Fail; }
+    TestResult::Pass
 }

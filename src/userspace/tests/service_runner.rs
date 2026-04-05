@@ -1,101 +1,101 @@
+use crate::test::framework::TestResult;
 use crate::userspace::*;
 
-#[test]
-fn test_run_vfs_service_exported() {
+pub fn test_run_vfs_service_exported() -> TestResult {
     let _: fn() -> ! = run_vfs_service;
+    TestResult::Pass
 }
 
-#[test]
-fn test_run_net_service_exported() {
+pub fn test_run_net_service_exported() -> TestResult {
     let _: fn() -> ! = run_net_service;
+    TestResult::Pass
 }
 
-#[test]
-fn test_run_display_service_exported() {
+pub fn test_run_display_service_exported() -> TestResult {
     let _: fn() -> ! = run_display_service;
+    TestResult::Pass
 }
 
-#[test]
-fn test_run_driver_manager_exported() {
+pub fn test_run_driver_manager_exported() -> TestResult {
     let _: fn() -> ! = run_driver_manager;
+    TestResult::Pass
 }
 
-#[test]
-fn test_run_crypto_service_exported() {
+pub fn test_run_crypto_service_exported() -> TestResult {
     let _: fn() -> ! = run_crypto_service;
+    TestResult::Pass
 }
 
-#[test]
-fn test_run_zk_service_exported() {
+pub fn test_run_zk_service_exported() -> TestResult {
     let _: fn() -> ! = run_zk_service;
+    TestResult::Pass
 }
 
-#[test]
-fn test_run_input_service_exported() {
+pub fn test_run_input_service_exported() -> TestResult {
     let _: fn() -> ! = run_input_service;
+    TestResult::Pass
 }
 
-#[test]
-fn test_run_audio_service_exported() {
+pub fn test_run_audio_service_exported() -> TestResult {
     let _: fn() -> ! = run_audio_service;
+    TestResult::Pass
 }
 
-#[test]
-fn test_run_gpu_service_exported() {
+pub fn test_run_gpu_service_exported() -> TestResult {
     let _: fn() -> ! = run_gpu_service;
+    TestResult::Pass
 }
 
-#[test]
-fn test_run_apps_service_exported() {
+pub fn test_run_apps_service_exported() -> TestResult {
     let _: fn() -> ! = run_apps_service;
+    TestResult::Pass
 }
 
-#[test]
-fn test_run_agents_service_exported() {
+pub fn test_run_agents_service_exported() -> TestResult {
     let _: fn() -> ! = run_agents_service;
+    TestResult::Pass
 }
 
-#[test]
-fn test_run_shell_service_exported() {
+pub fn test_run_shell_service_exported() -> TestResult {
     let _: fn() -> ! = run_shell_service;
+    TestResult::Pass
 }
 
-#[test]
-fn test_run_service_by_name_exported() {
+pub fn test_run_service_by_name_exported() -> TestResult {
     let _: fn(&str) -> ! = run_service_by_name;
+    TestResult::Pass
 }
 
-#[test]
-fn test_service_runner_known_names() {
+pub fn test_service_runner_known_names() -> TestResult {
     let known = ["vfs", "network", "display", "drivers", "crypto", "zk",
                  "input", "audio", "gpu", "apps", "agents", "shell", "desktop"];
     for name in known {
-        assert!(!name.is_empty());
+        if name.is_empty() { return TestResult::Fail; }
     }
+    TestResult::Pass
 }
 
-#[test]
-fn test_service_names_all_lowercase() {
+pub fn test_service_names_all_lowercase() -> TestResult {
     let names = ["vfs", "network", "display", "drivers", "crypto", "zk",
                  "input", "audio", "gpu", "apps", "agents", "shell", "desktop"];
     for name in names {
-        assert_eq!(name, name.to_lowercase());
+        if name != name.to_lowercase() { return TestResult::Fail; }
     }
+    TestResult::Pass
 }
 
-#[test]
-fn test_service_names_no_whitespace() {
+pub fn test_service_names_no_whitespace() -> TestResult {
     let names = ["vfs", "network", "display", "drivers", "crypto", "zk",
                  "input", "audio", "gpu", "apps", "agents", "shell", "desktop"];
     for name in names {
-        assert!(!name.contains(' '));
-        assert!(!name.contains('\t'));
-        assert!(!name.contains('\n'));
+        if name.contains(' ') { return TestResult::Fail; }
+        if name.contains('\t') { return TestResult::Fail; }
+        if name.contains('\n') { return TestResult::Fail; }
     }
+    TestResult::Pass
 }
 
-#[test]
-fn test_all_services_have_run_function() {
+pub fn test_all_services_have_run_function() -> TestResult {
     let _: fn() -> ! = run_vfs_service;
     let _: fn() -> ! = run_net_service;
     let _: fn() -> ! = run_display_service;
@@ -108,19 +108,19 @@ fn test_all_services_have_run_function() {
     let _: fn() -> ! = run_apps_service;
     let _: fn() -> ! = run_agents_service;
     let _: fn() -> ! = run_shell_service;
+    TestResult::Pass
 }
 
-#[test]
-fn test_service_count() {
+pub fn test_service_count() -> TestResult {
     let services = [
         "vfs", "network", "display", "drivers", "crypto", "zk",
         "input", "audio", "gpu", "apps", "agents", "shell", "desktop"
     ];
-    assert_eq!(services.len(), 13);
+    if services.len() != 13 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_services_are_unique() {
+pub fn test_services_are_unique() -> TestResult {
     let services = [
         "vfs", "network", "display", "drivers", "crypto", "zk",
         "input", "audio", "gpu", "apps", "agents", "shell", "desktop"
@@ -128,8 +128,9 @@ fn test_services_are_unique() {
     for (i, s1) in services.iter().enumerate() {
         for (j, s2) in services.iter().enumerate() {
             if i != j {
-                assert_ne!(s1, s2);
+                if s1 == s2 { return TestResult::Fail; }
             }
         }
     }
+    TestResult::Pass
 }
