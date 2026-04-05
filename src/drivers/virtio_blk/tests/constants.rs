@@ -15,186 +15,186 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::drivers::virtio_blk::constants::*;
+use crate::test::framework::TestResult;
 
-#[test]
-fn test_vendor_id() {
-    assert_eq!(VIRTIO_BLK_VENDOR_ID, 0x1AF4);
+pub fn test_vendor_id() -> TestResult {
+    if VIRTIO_BLK_VENDOR_ID != 0x1AF4 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_device_id_transitional() {
-    assert_eq!(VIRTIO_BLK_DEVICE_ID_TRANSITIONAL, 0x1001);
+pub fn test_device_id_transitional() -> TestResult {
+    if VIRTIO_BLK_DEVICE_ID_TRANSITIONAL != 0x1001 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_device_id_modern() {
-    assert_eq!(VIRTIO_BLK_DEVICE_ID_MODERN, 0x1042);
+pub fn test_device_id_modern() -> TestResult {
+    if VIRTIO_BLK_DEVICE_ID_MODERN != 0x1042 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_request_type_in() {
-    assert_eq!(VIRTIO_BLK_T_IN, 0);
+pub fn test_request_type_in() -> TestResult {
+    if VIRTIO_BLK_T_IN != 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_request_type_out() {
-    assert_eq!(VIRTIO_BLK_T_OUT, 1);
+pub fn test_request_type_out() -> TestResult {
+    if VIRTIO_BLK_T_OUT != 1 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_request_type_flush() {
-    assert_eq!(VIRTIO_BLK_T_FLUSH, 4);
+pub fn test_request_type_flush() -> TestResult {
+    if VIRTIO_BLK_T_FLUSH != 4 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_request_type_get_id() {
-    assert_eq!(VIRTIO_BLK_T_GET_ID, 8);
+pub fn test_request_type_get_id() -> TestResult {
+    if VIRTIO_BLK_T_GET_ID != 8 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_request_type_discard() {
-    assert_eq!(VIRTIO_BLK_T_DISCARD, 11);
+pub fn test_request_type_discard() -> TestResult {
+    if VIRTIO_BLK_T_DISCARD != 11 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_request_type_write_zeroes() {
-    assert_eq!(VIRTIO_BLK_T_WRITE_ZEROES, 13);
+pub fn test_request_type_write_zeroes() -> TestResult {
+    if VIRTIO_BLK_T_WRITE_ZEROES != 13 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_status_ok() {
-    assert_eq!(VIRTIO_BLK_S_OK, 0);
+pub fn test_status_ok() -> TestResult {
+    if VIRTIO_BLK_S_OK != 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_status_ioerr() {
-    assert_eq!(VIRTIO_BLK_S_IOERR, 1);
+pub fn test_status_ioerr() -> TestResult {
+    if VIRTIO_BLK_S_IOERR != 1 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_status_unsupp() {
-    assert_eq!(VIRTIO_BLK_S_UNSUPP, 2);
+pub fn test_status_unsupp() -> TestResult {
+    if VIRTIO_BLK_S_UNSUPP != 2 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_feature_size_max() {
-    assert_eq!(VIRTIO_BLK_F_SIZE_MAX, 1);
+pub fn test_feature_size_max() -> TestResult {
+    if VIRTIO_BLK_F_SIZE_MAX != 1 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_feature_seg_max() {
-    assert_eq!(VIRTIO_BLK_F_SEG_MAX, 2);
+pub fn test_feature_seg_max() -> TestResult {
+    if VIRTIO_BLK_F_SEG_MAX != 2 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_feature_geometry() {
-    assert_eq!(VIRTIO_BLK_F_GEOMETRY, 4);
+pub fn test_feature_geometry() -> TestResult {
+    if VIRTIO_BLK_F_GEOMETRY != 4 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_feature_ro() {
-    assert_eq!(VIRTIO_BLK_F_RO, 5);
+pub fn test_feature_ro() -> TestResult {
+    if VIRTIO_BLK_F_RO != 5 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_feature_blk_size() {
-    assert_eq!(VIRTIO_BLK_F_BLK_SIZE, 6);
+pub fn test_feature_blk_size() -> TestResult {
+    if VIRTIO_BLK_F_BLK_SIZE != 6 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_feature_flush() {
-    assert_eq!(VIRTIO_BLK_F_FLUSH, 9);
+pub fn test_feature_flush() -> TestResult {
+    if VIRTIO_BLK_F_FLUSH != 9 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_feature_discard() {
-    assert_eq!(VIRTIO_BLK_F_DISCARD, 13);
+pub fn test_feature_discard() -> TestResult {
+    if VIRTIO_BLK_F_DISCARD != 13 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_legacy_host_features() {
-    assert_eq!(LEG_HOST_FEATURES, 0x00);
+pub fn test_legacy_host_features() -> TestResult {
+    if LEG_HOST_FEATURES != 0x00 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_legacy_guest_features() {
-    assert_eq!(LEG_GUEST_FEATURES, 0x04);
+pub fn test_legacy_guest_features() -> TestResult {
+    if LEG_GUEST_FEATURES != 0x04 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_legacy_queue_pfn() {
-    assert_eq!(LEG_QUEUE_PFN, 0x08);
+pub fn test_legacy_queue_pfn() -> TestResult {
+    if LEG_QUEUE_PFN != 0x08 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_legacy_queue_num() {
-    assert_eq!(LEG_QUEUE_NUM, 0x0C);
+pub fn test_legacy_queue_num() -> TestResult {
+    if LEG_QUEUE_NUM != 0x0C { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_legacy_queue_sel() {
-    assert_eq!(LEG_QUEUE_SEL, 0x0E);
+pub fn test_legacy_queue_sel() -> TestResult {
+    if LEG_QUEUE_SEL != 0x0E { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_legacy_notify() {
-    assert_eq!(LEG_NOTIFY, 0x10);
+pub fn test_legacy_notify() -> TestResult {
+    if LEG_NOTIFY != 0x10 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_legacy_status() {
-    assert_eq!(LEG_STATUS, 0x12);
+pub fn test_legacy_status() -> TestResult {
+    if LEG_STATUS != 0x12 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_legacy_cfg_capacity() {
-    assert_eq!(LEG_CFG_CAPACITY, 0x14);
+pub fn test_legacy_cfg_capacity() -> TestResult {
+    if LEG_CFG_CAPACITY != 0x14 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_virtio_status_acknowledge() {
-    assert_eq!(VIRTIO_STATUS_ACKNOWLEDGE, 1);
+pub fn test_virtio_status_acknowledge() -> TestResult {
+    if VIRTIO_STATUS_ACKNOWLEDGE != 1 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_virtio_status_driver() {
-    assert_eq!(VIRTIO_STATUS_DRIVER, 2);
+pub fn test_virtio_status_driver() -> TestResult {
+    if VIRTIO_STATUS_DRIVER != 2 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_virtio_status_driver_ok() {
-    assert_eq!(VIRTIO_STATUS_DRIVER_OK, 4);
+pub fn test_virtio_status_driver_ok() -> TestResult {
+    if VIRTIO_STATUS_DRIVER_OK != 4 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_virtio_status_features_ok() {
-    assert_eq!(VIRTIO_STATUS_FEATURES_OK, 8);
+pub fn test_virtio_status_features_ok() -> TestResult {
+    if VIRTIO_STATUS_FEATURES_OK != 8 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_sector_size() {
-    assert_eq!(SECTOR_SIZE, 512);
+pub fn test_sector_size() -> TestResult {
+    if SECTOR_SIZE != 512 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_max_sectors_per_request() {
-    assert_eq!(MAX_SECTORS_PER_REQUEST, 256);
+pub fn test_max_sectors_per_request() -> TestResult {
+    if MAX_SECTORS_PER_REQUEST != 256 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_default_timeout() {
-    assert_eq!(DEFAULT_TIMEOUT_MS, 5000);
+pub fn test_default_timeout() -> TestResult {
+    if DEFAULT_TIMEOUT_MS != 5000 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_status_values_unique() {
-    assert_ne!(VIRTIO_BLK_S_OK, VIRTIO_BLK_S_IOERR);
-    assert_ne!(VIRTIO_BLK_S_IOERR, VIRTIO_BLK_S_UNSUPP);
-    assert_ne!(VIRTIO_BLK_S_OK, VIRTIO_BLK_S_UNSUPP);
+pub fn test_status_values_unique() -> TestResult {
+    if VIRTIO_BLK_S_OK == VIRTIO_BLK_S_IOERR { return TestResult::Fail; }
+    if VIRTIO_BLK_S_IOERR == VIRTIO_BLK_S_UNSUPP { return TestResult::Fail; }
+    if VIRTIO_BLK_S_OK == VIRTIO_BLK_S_UNSUPP { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_request_types_unique() {
+pub fn test_request_types_unique() -> TestResult {
     let types = [
         VIRTIO_BLK_T_IN,
         VIRTIO_BLK_T_OUT,
@@ -206,26 +206,27 @@ fn test_request_types_unique() {
 
     for i in 0..types.len() {
         for j in (i + 1)..types.len() {
-            assert_ne!(types[i], types[j]);
+            if types[i] == types[j] { return TestResult::Fail; }
         }
     }
+    TestResult::Pass
 }
 
-#[test]
-fn test_virtio_status_bits_unique() {
-    assert_eq!(VIRTIO_STATUS_ACKNOWLEDGE & VIRTIO_STATUS_DRIVER, 0);
-    assert_eq!(VIRTIO_STATUS_DRIVER & VIRTIO_STATUS_DRIVER_OK, 0);
-    assert_eq!(VIRTIO_STATUS_DRIVER_OK & VIRTIO_STATUS_FEATURES_OK, 0);
+pub fn test_virtio_status_bits_unique() -> TestResult {
+    if VIRTIO_STATUS_ACKNOWLEDGE & VIRTIO_STATUS_DRIVER != 0 { return TestResult::Fail; }
+    if VIRTIO_STATUS_DRIVER & VIRTIO_STATUS_DRIVER_OK != 0 { return TestResult::Fail; }
+    if VIRTIO_STATUS_DRIVER_OK & VIRTIO_STATUS_FEATURES_OK != 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_legacy_register_spacing() {
-    assert_eq!(LEG_GUEST_FEATURES - LEG_HOST_FEATURES, 4);
-    assert_eq!(LEG_QUEUE_PFN - LEG_GUEST_FEATURES, 4);
-    assert_eq!(LEG_QUEUE_NUM - LEG_QUEUE_PFN, 4);
+pub fn test_legacy_register_spacing() -> TestResult {
+    if LEG_GUEST_FEATURES - LEG_HOST_FEATURES != 4 { return TestResult::Fail; }
+    if LEG_QUEUE_PFN - LEG_GUEST_FEATURES != 4 { return TestResult::Fail; }
+    if LEG_QUEUE_NUM - LEG_QUEUE_PFN != 4 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_sector_size_is_power_of_two() {
-    assert!(SECTOR_SIZE.is_power_of_two());
+pub fn test_sector_size_is_power_of_two() -> TestResult {
+    if !SECTOR_SIZE.is_power_of_two() { return TestResult::Fail; }
+    TestResult::Pass
 }
