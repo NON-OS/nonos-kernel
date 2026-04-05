@@ -17,7 +17,7 @@
 use crate::zk_engine::setup::VerifyingKey;
 
 pub struct Groth16Verifier {
-    pub(super) verifying_key: VerifyingKey,
+    pub(crate) verifying_key: VerifyingKey,
 }
 
 impl Groth16Verifier {

@@ -18,7 +18,7 @@ use super::core::AgentConfig;
 
 pub fn coding_assistant() -> AgentConfig {
     let mut cfg = AgentConfig::default();
-    cfg.name[..15].copy_from_slice(b"Code Assistant");
+    cfg.name[..14].copy_from_slice(b"Code Assistant");
     cfg.system_prompt = b"You are a coding assistant. Help with programming tasks, debugging, and code review.".to_vec();
     cfg.tools_enabled[0] = true;
     cfg.tools_enabled[1] = true;

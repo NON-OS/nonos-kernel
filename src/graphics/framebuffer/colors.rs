@@ -66,6 +66,11 @@ pub const COLOR_ERROR: u32 = 0xFFFF5252;
 pub const COLOR_WARNING: u32 = 0xFFFFD740;
 pub const COLOR_INFO: u32 = 0xFF66FFFF;
 
+/* test result colors */
+pub const COLOR_PASS: u32 = COLOR_SUCCESS;
+pub const COLOR_FAIL: u32 = COLOR_ERROR;
+pub const COLOR_SKIP: u32 = COLOR_WARNING;
+
 /* cursor and selection - brand teal */
 pub const COLOR_CURSOR: u32 = 0xFF66FFFF;
 pub const COLOR_SELECTION: u32 = 0x4066FFFF;

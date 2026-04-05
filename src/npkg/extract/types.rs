@@ -16,11 +16,11 @@
 
 use alloc::string::String;
 
-pub(super) const NPKG_MAGIC: u32 = 0x4E504B47;
-pub(super) const NPKG_VERSION: u32 = 1;
-pub(super) const ENTRY_FILE: u8 = 0;
-pub(super) const ENTRY_DIR: u8 = 1;
-pub(super) const ENTRY_SYMLINK: u8 = 2;
+pub(crate) const NPKG_MAGIC: u32 = 0x4E504B47;
+pub(crate) const NPKG_VERSION: u32 = 1;
+pub(crate) const ENTRY_FILE: u8 = 0;
+pub(crate) const ENTRY_DIR: u8 = 1;
+pub(crate) const ENTRY_SYMLINK: u8 = 2;
 
 pub struct PackageArchive<'a> {
     pub(super) data: &'a [u8],

@@ -31,6 +31,9 @@ pub mod class {
     pub const ELFCLASSNONE: u8 = 0;
     pub const ELFCLASS32: u8 = 1;
     pub const ELFCLASS64: u8 = 2;
+    pub const NONE: u8 = 0;
+    pub const CLASS32: u8 = 1;
+    pub const CLASS64: u8 = 2;
 }
 
 pub mod data {
@@ -45,6 +48,11 @@ pub mod elf_type {
     pub const ET_EXEC: u16 = 2;
     pub const ET_DYN: u16 = 3;
     pub const ET_CORE: u16 = 4;
+    pub const NONE: u16 = 0;
+    pub const REL: u16 = 1;
+    pub const EXEC: u16 = 2;
+    pub const DYN: u16 = 3;
+    pub const CORE: u16 = 4;
 }
 
 pub mod machine {
@@ -53,6 +61,8 @@ pub mod machine {
     pub const EM_X86_64: u16 = 62;
     pub const EM_AARCH64: u16 = 183;
     pub const EM_RISCV: u16 = 243;
+    pub const NONE: u16 = 0;
+    pub const X86_64: u16 = 62;
 }
 
 pub mod phdr_type {
@@ -67,6 +77,13 @@ pub mod phdr_type {
     pub const PT_GNU_EH_FRAME: u32 = 0x6474_E550;
     pub const PT_GNU_STACK: u32 = 0x6474_E551;
     pub const PT_GNU_RELRO: u32 = 0x6474_E552;
+    pub const NULL: u32 = 0;
+    pub const LOAD: u32 = 1;
+    pub const DYNAMIC: u32 = 2;
+    pub const INTERP: u32 = 3;
+    pub const NOTE: u32 = 4;
+    pub const PHDR: u32 = 6;
+    pub const TLS: u32 = 7;
 }
 
 pub mod phdr_flags {
