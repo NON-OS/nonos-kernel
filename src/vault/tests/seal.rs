@@ -16,151 +16,151 @@
 
 extern crate alloc;
 
+use crate::test::framework::TestResult;
 use crate::vault::nonos_vault_seal::*;
 use crate::vault::nonos_vault::{initialize_vault, vault_initialized};
 
-#[test]
-fn test_vault_seal_store_new() {
+pub fn test_vault_seal_store_new() -> TestResult {
     let store = VaultSealStore::new();
     let list = store.list_sealed();
-    assert!(list.is_empty());
+    if !list.is_empty() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_vault_seal_store_list_sealed_empty() {
+pub fn test_vault_seal_store_list_sealed_empty() -> TestResult {
     let list = VAULT_SEAL_STORE.list_sealed();
-    assert!(list.len() >= 0);
+    let _ = list.len();
+    TestResult::Pass
 }
 
-#[test]
-fn test_seal_secret_requires_initialization() {
+pub fn test_seal_secret_requires_initialization() -> TestResult {
     let result = seal_secret(b"plaintext", b"aad", SealPolicy::RAMOnly);
-    assert!(result.is_ok() || result.is_err());
+    if !(result.is_ok() || result.is_err()) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_unseal_secret_requires_valid_sealed() {
+pub fn test_unseal_secret_requires_valid_sealed() -> TestResult {
     let _ = initialize_vault();
     if vault_initialized() {
         if let Ok(sealed) = seal_secret(b"test", b"aad", SealPolicy::RAMOnly) {
             let result = unseal_secret(&sealed);
-            assert!(result.is_ok() || result.is_err());
+            if !(result.is_ok() || result.is_err()) { return TestResult::Fail; }
         }
     }
+    TestResult::Pass
 }
 
-#[test]
-fn test_seal_unseal_roundtrip_ram_only() {
+pub fn test_seal_unseal_roundtrip_ram_only() -> TestResult {
     let _ = initialize_vault();
     if vault_initialized() {
         let plaintext = b"secret data to seal";
         let aad = b"additional authenticated data";
         if let Ok(sealed) = seal_secret(plaintext, aad, SealPolicy::RAMOnly) {
             if let Ok(unsealed) = unseal_secret(&sealed) {
-                assert_eq!(unsealed, plaintext);
+                if unsealed != plaintext { return TestResult::Fail; }
             }
         }
     }
+    TestResult::Pass
 }
 
-#[test]
-fn test_seal_secret_with_empty_plaintext() {
+pub fn test_seal_secret_with_empty_plaintext() -> TestResult {
     let _ = initialize_vault();
     if vault_initialized() {
         let result = seal_secret(b"", b"aad", SealPolicy::RAMOnly);
-        assert!(result.is_ok() || result.is_err());
+        if !(result.is_ok() || result.is_err()) { return TestResult::Fail; }
     }
+    TestResult::Pass
 }
 
-#[test]
-fn test_seal_secret_with_empty_aad() {
+pub fn test_seal_secret_with_empty_aad() -> TestResult {
     let _ = initialize_vault();
     if vault_initialized() {
         let result = seal_secret(b"plaintext", b"", SealPolicy::RAMOnly);
-        assert!(result.is_ok() || result.is_err());
+        if !(result.is_ok() || result.is_err()) { return TestResult::Fail; }
     }
+    TestResult::Pass
 }
 
-#[test]
-fn test_seal_secret_with_large_plaintext() {
+pub fn test_seal_secret_with_large_plaintext() -> TestResult {
     let _ = initialize_vault();
     if vault_initialized() {
         let large_plaintext = alloc::vec![0xAAu8; 4096];
         let result = seal_secret(&large_plaintext, b"aad", SealPolicy::RAMOnly);
-        assert!(result.is_ok() || result.is_err());
+        if !(result.is_ok() || result.is_err()) { return TestResult::Fail; }
     }
+    TestResult::Pass
 }
 
-#[test]
-fn test_sealed_secret_has_timestamp() {
+pub fn test_sealed_secret_has_timestamp() -> TestResult {
     let _ = initialize_vault();
     if vault_initialized() {
         if let Ok(sealed) = seal_secret(b"test", b"aad", SealPolicy::RAMOnly) {
-            assert!(sealed.timestamp > 0 || sealed.timestamp == 0);
+            if !(sealed.timestamp > 0 || sealed.timestamp == 0) { return TestResult::Fail; }
         }
     }
+    TestResult::Pass
 }
 
-#[test]
-fn test_sealed_secret_has_audit_event() {
+pub fn test_sealed_secret_has_audit_event() -> TestResult {
     let _ = initialize_vault();
     if vault_initialized() {
         if let Ok(sealed) = seal_secret(b"test", b"aad", SealPolicy::RAMOnly) {
-            assert!(!sealed.audit.event.is_empty());
+            if sealed.audit.event.is_empty() { return TestResult::Fail; }
         }
     }
+    TestResult::Pass
 }
 
-#[test]
-fn test_sealed_secret_preserves_policy() {
+pub fn test_sealed_secret_preserves_policy() -> TestResult {
     let _ = initialize_vault();
     if vault_initialized() {
         if let Ok(sealed) = seal_secret(b"test", b"aad", SealPolicy::RAMOnly) {
-            assert_eq!(sealed.policy, SealPolicy::RAMOnly);
+            if sealed.policy != SealPolicy::RAMOnly { return TestResult::Fail; }
         }
     }
+    TestResult::Pass
 }
 
-#[test]
-fn test_sealed_secret_preserves_aad() {
+pub fn test_sealed_secret_preserves_aad() -> TestResult {
     let _ = initialize_vault();
     if vault_initialized() {
         let aad = b"preserved aad";
         if let Ok(sealed) = seal_secret(b"test", aad, SealPolicy::RAMOnly) {
-            assert_eq!(sealed.aad, aad);
+            if sealed.aad != aad { return TestResult::Fail; }
         }
     }
+    TestResult::Pass
 }
 
-#[test]
-fn test_list_sealed_returns_vec() {
+pub fn test_list_sealed_returns_vec() -> TestResult {
     let list = list_sealed();
-    assert!(list.len() >= 0);
+    let _ = list.len();
+    TestResult::Pass
 }
 
-#[test]
-fn test_secure_erase_sealed_none() {
+pub fn test_secure_erase_sealed_none() -> TestResult {
     secure_erase_sealed(None);
+    TestResult::Pass
 }
 
-#[test]
-fn test_secure_erase_sealed_ram_only() {
+pub fn test_secure_erase_sealed_ram_only() -> TestResult {
     secure_erase_sealed(Some(SealPolicy::RAMOnly));
+    TestResult::Pass
 }
 
-#[test]
-fn test_seal_policy_ram_only_stays_in_memory() {
+pub fn test_seal_policy_ram_only_stays_in_memory() -> TestResult {
     let _ = initialize_vault();
     if vault_initialized() {
         if let Ok(sealed) = seal_secret(b"ram only", b"aad", SealPolicy::RAMOnly) {
-            assert_eq!(sealed.policy, SealPolicy::RAMOnly);
-            assert!(!sealed.sealed_data.is_empty());
+            if sealed.policy != SealPolicy::RAMOnly { return TestResult::Fail; }
+            if sealed.sealed_data.is_empty() { return TestResult::Fail; }
         }
     }
+    TestResult::Pass
 }
 
-#[test]
-fn test_multiple_seals_unique_ciphertexts() {
+pub fn test_multiple_seals_unique_ciphertexts() -> TestResult {
     let _ = initialize_vault();
     if vault_initialized() {
         let plaintext = b"same plaintext";
@@ -169,149 +169,150 @@ fn test_multiple_seals_unique_ciphertexts() {
             seal_secret(plaintext, aad, SealPolicy::RAMOnly),
             seal_secret(plaintext, aad, SealPolicy::RAMOnly),
         ) {
-            assert_ne!(sealed1.sealed_data, sealed2.sealed_data);
+            if sealed1.sealed_data == sealed2.sealed_data { return TestResult::Fail; }
         }
     }
+    TestResult::Pass
 }
 
-#[test]
-fn test_different_plaintext_different_ciphertext() {
+pub fn test_different_plaintext_different_ciphertext() -> TestResult {
     let _ = initialize_vault();
     if vault_initialized() {
         if let (Ok(sealed1), Ok(sealed2)) = (
             seal_secret(b"plaintext1", b"aad", SealPolicy::RAMOnly),
             seal_secret(b"plaintext2", b"aad", SealPolicy::RAMOnly),
         ) {
-            assert_ne!(sealed1.sealed_data, sealed2.sealed_data);
+            if sealed1.sealed_data == sealed2.sealed_data { return TestResult::Fail; }
         }
     }
+    TestResult::Pass
 }
 
-#[test]
-fn test_seal_secret_logs_audit() {
+pub fn test_seal_secret_logs_audit() -> TestResult {
     let _ = initialize_vault();
     if vault_initialized() {
         if let Ok(sealed) = seal_secret(b"audit test", b"aad", SealPolicy::RAMOnly) {
-            assert_eq!(sealed.audit.event, "seal_secret");
+            if sealed.audit.event != "seal_secret" { return TestResult::Fail; }
         }
     }
+    TestResult::Pass
 }
 
-#[test]
-fn test_seal_custom_policy() {
+pub fn test_seal_custom_policy() -> TestResult {
     let _ = initialize_vault();
     if vault_initialized() {
         let result = seal_secret(b"custom", b"aad", SealPolicy::Custom("test_backend".into()));
-        assert!(result.is_ok() || result.is_err());
+        if !(result.is_ok() || result.is_err()) { return TestResult::Fail; }
     }
+    TestResult::Pass
 }
 
-#[test]
-fn test_vault_seal_store_singleton_exists() {
+pub fn test_vault_seal_store_singleton_exists() -> TestResult {
     let _ = VAULT_SEAL_STORE.list_sealed();
+    TestResult::Pass
 }
 
-#[test]
-fn test_seal_secret_api_function() {
+pub fn test_seal_secret_api_function() -> TestResult {
     let result = seal_secret(b"api test", b"aad", SealPolicy::RAMOnly);
-    assert!(result.is_ok() || result.is_err());
+    if !(result.is_ok() || result.is_err()) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_unseal_secret_api_function() {
+pub fn test_unseal_secret_api_function() -> TestResult {
     let _ = initialize_vault();
     if vault_initialized() {
         if let Ok(sealed) = seal_secret(b"unseal api", b"aad", SealPolicy::RAMOnly) {
             let result = unseal_secret(&sealed);
-            assert!(result.is_ok() || result.is_err());
+            if !(result.is_ok() || result.is_err()) { return TestResult::Fail; }
         }
     }
+    TestResult::Pass
 }
 
-#[test]
-fn test_list_sealed_api_function() {
+pub fn test_list_sealed_api_function() -> TestResult {
     let list = list_sealed();
-    assert!(list.len() >= 0);
+    let _ = list.len();
+    TestResult::Pass
 }
 
-#[test]
-fn test_secure_erase_sealed_api_function() {
+pub fn test_secure_erase_sealed_api_function() -> TestResult {
     secure_erase_sealed(None);
+    TestResult::Pass
 }
 
-#[test]
-fn test_sealed_data_includes_nonce() {
+pub fn test_sealed_data_includes_nonce() -> TestResult {
     let _ = initialize_vault();
     if vault_initialized() {
         if let Ok(sealed) = seal_secret(b"nonce test", b"aad", SealPolicy::RAMOnly) {
-            assert!(sealed.sealed_data.len() >= 12);
+            if sealed.sealed_data.len() < 12 { return TestResult::Fail; }
         }
     }
+    TestResult::Pass
 }
 
-#[test]
-fn test_sealed_data_includes_tag() {
+pub fn test_sealed_data_includes_tag() -> TestResult {
     let _ = initialize_vault();
     if vault_initialized() {
         if let Ok(sealed) = seal_secret(b"tag test", b"aad", SealPolicy::RAMOnly) {
-            assert!(sealed.sealed_data.len() >= 12 + 16);
+            if sealed.sealed_data.len() < 12 + 16 { return TestResult::Fail; }
         }
     }
+    TestResult::Pass
 }
 
-#[test]
-fn test_seal_unseal_preserves_data_integrity() {
+pub fn test_seal_unseal_preserves_data_integrity() -> TestResult {
     let _ = initialize_vault();
     if vault_initialized() {
         let plaintext = b"integrity check data";
         let aad = b"integrity aad";
         if let Ok(sealed) = seal_secret(plaintext, aad, SealPolicy::RAMOnly) {
             if let Ok(unsealed) = unseal_secret(&sealed) {
-                assert_eq!(unsealed.len(), plaintext.len());
+                if unsealed.len() != plaintext.len() { return TestResult::Fail; }
                 for i in 0..plaintext.len() {
-                    assert_eq!(unsealed[i], plaintext[i]);
+                    if unsealed[i] != plaintext[i] { return TestResult::Fail; }
                 }
             }
         }
     }
+    TestResult::Pass
 }
 
-#[test]
-fn test_seal_binary_data() {
+pub fn test_seal_binary_data() -> TestResult {
     let _ = initialize_vault();
     if vault_initialized() {
         let binary_data: [u8; 16] = [0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
                                       0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F];
         if let Ok(sealed) = seal_secret(&binary_data, b"aad", SealPolicy::RAMOnly) {
             if let Ok(unsealed) = unseal_secret(&sealed) {
-                assert_eq!(unsealed.as_slice(), &binary_data);
+                if unsealed.as_slice() != &binary_data { return TestResult::Fail; }
             }
         }
     }
+    TestResult::Pass
 }
 
-#[test]
-fn test_seal_all_zeros() {
+pub fn test_seal_all_zeros() -> TestResult {
     let _ = initialize_vault();
     if vault_initialized() {
         let zeros = [0u8; 32];
         if let Ok(sealed) = seal_secret(&zeros, b"aad", SealPolicy::RAMOnly) {
             if let Ok(unsealed) = unseal_secret(&sealed) {
-                assert_eq!(unsealed.as_slice(), &zeros);
+                if unsealed.as_slice() != &zeros { return TestResult::Fail; }
             }
         }
     }
+    TestResult::Pass
 }
 
-#[test]
-fn test_seal_all_ones() {
+pub fn test_seal_all_ones() -> TestResult {
     let _ = initialize_vault();
     if vault_initialized() {
         let ones = [0xFFu8; 32];
         if let Ok(sealed) = seal_secret(&ones, b"aad", SealPolicy::RAMOnly) {
             if let Ok(unsealed) = unseal_secret(&sealed) {
-                assert_eq!(unsealed.as_slice(), &ones);
+                if unsealed.as_slice() != &ones { return TestResult::Fail; }
             }
         }
     }
+    TestResult::Pass
 }

@@ -16,18 +16,18 @@
 
 extern crate alloc;
 
+use crate::test::framework::TestResult;
 use crate::vault::nonos_vault::VaultAuditEvent;
 use crate::vault::nonos_vault_audit::*;
 
-#[test]
-fn test_vault_audit_manager_new() {
+pub fn test_vault_audit_manager_new() -> TestResult {
     let manager = VaultAuditManager::new();
     let log = manager.export_all();
-    assert!(log.is_empty());
+    if !log.is_empty() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_vault_audit_manager_log_event() {
+pub fn test_vault_audit_manager_log_event() -> TestResult {
     let manager = VaultAuditManager::new();
     let event = VaultAuditEvent {
         timestamp: 1000,
@@ -36,11 +36,11 @@ fn test_vault_audit_manager_log_event() {
         status: Some("success".into()),
     };
     manager.log_event(event);
-    assert_eq!(manager.export_all().len(), 1);
+    if manager.export_all().len() != 1 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_vault_audit_manager_recent_returns_reverse_order() {
+pub fn test_vault_audit_manager_recent_returns_reverse_order() -> TestResult {
     let manager = VaultAuditManager::new();
     for i in 0..5 {
         let event = VaultAuditEvent {
@@ -52,14 +52,14 @@ fn test_vault_audit_manager_recent_returns_reverse_order() {
         manager.log_event(event);
     }
     let recent = manager.recent(3);
-    assert_eq!(recent.len(), 3);
-    assert_eq!(recent[0].timestamp, 4);
-    assert_eq!(recent[1].timestamp, 3);
-    assert_eq!(recent[2].timestamp, 2);
+    if recent.len() != 3 { return TestResult::Fail; }
+    if recent[0].timestamp != 4 { return TestResult::Fail; }
+    if recent[1].timestamp != 3 { return TestResult::Fail; }
+    if recent[2].timestamp != 2 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_vault_audit_manager_recent_more_than_available() {
+pub fn test_vault_audit_manager_recent_more_than_available() -> TestResult {
     let manager = VaultAuditManager::new();
     let event = VaultAuditEvent {
         timestamp: 1,
@@ -69,11 +69,11 @@ fn test_vault_audit_manager_recent_more_than_available() {
     };
     manager.log_event(event);
     let recent = manager.recent(100);
-    assert_eq!(recent.len(), 1);
+    if recent.len() != 1 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_vault_audit_manager_recent_zero() {
+pub fn test_vault_audit_manager_recent_zero() -> TestResult {
     let manager = VaultAuditManager::new();
     let event = VaultAuditEvent {
         timestamp: 1,
@@ -83,11 +83,11 @@ fn test_vault_audit_manager_recent_zero() {
     };
     manager.log_event(event);
     let recent = manager.recent(0);
-    assert!(recent.is_empty());
+    if !recent.is_empty() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_vault_audit_manager_filter_by_op() {
+pub fn test_vault_audit_manager_filter_by_op() -> TestResult {
     let manager = VaultAuditManager::new();
     manager.log_event(VaultAuditEvent {
         timestamp: 1,
@@ -108,11 +108,11 @@ fn test_vault_audit_manager_filter_by_op() {
         status: None,
     });
     let filtered = manager.filter(Some("seal"), None, None);
-    assert_eq!(filtered.len(), 3);
+    if filtered.len() != 3 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_vault_audit_manager_filter_by_status() {
+pub fn test_vault_audit_manager_filter_by_status() -> TestResult {
     let manager = VaultAuditManager::new();
     manager.log_event(VaultAuditEvent {
         timestamp: 1,
@@ -133,11 +133,11 @@ fn test_vault_audit_manager_filter_by_status() {
         status: Some("success".into()),
     });
     let filtered = manager.filter(None, Some("success"), None);
-    assert_eq!(filtered.len(), 2);
+    if filtered.len() != 2 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_vault_audit_manager_filter_by_context() {
+pub fn test_vault_audit_manager_filter_by_context() -> TestResult {
     let manager = VaultAuditManager::new();
     manager.log_event(VaultAuditEvent {
         timestamp: 1,
@@ -158,11 +158,11 @@ fn test_vault_audit_manager_filter_by_context() {
         status: None,
     });
     let filtered = manager.filter(None, None, Some("process_1"));
-    assert_eq!(filtered.len(), 2);
+    if filtered.len() != 2 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_vault_audit_manager_filter_combined() {
+pub fn test_vault_audit_manager_filter_combined() -> TestResult {
     let manager = VaultAuditManager::new();
     manager.log_event(VaultAuditEvent {
         timestamp: 1,
@@ -183,11 +183,11 @@ fn test_vault_audit_manager_filter_combined() {
         status: Some("ok".into()),
     });
     let filtered = manager.filter(Some("seal"), Some("ok"), Some("ctx_a"));
-    assert_eq!(filtered.len(), 1);
+    if filtered.len() != 1 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_vault_audit_manager_filter_no_match() {
+pub fn test_vault_audit_manager_filter_no_match() -> TestResult {
     let manager = VaultAuditManager::new();
     manager.log_event(VaultAuditEvent {
         timestamp: 1,
@@ -196,11 +196,11 @@ fn test_vault_audit_manager_filter_no_match() {
         status: Some("success".into()),
     });
     let filtered = manager.filter(Some("nonexistent"), None, None);
-    assert!(filtered.is_empty());
+    if !filtered.is_empty() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_vault_audit_manager_export_all() {
+pub fn test_vault_audit_manager_export_all() -> TestResult {
     let manager = VaultAuditManager::new();
     for i in 0..10 {
         manager.log_event(VaultAuditEvent {
@@ -211,11 +211,11 @@ fn test_vault_audit_manager_export_all() {
         });
     }
     let all = manager.export_all();
-    assert_eq!(all.len(), 10);
+    if all.len() != 10 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_vault_audit_manager_secure_erase() {
+pub fn test_vault_audit_manager_secure_erase() -> TestResult {
     let manager = VaultAuditManager::new();
     manager.log_event(VaultAuditEvent {
         timestamp: 1,
@@ -224,11 +224,11 @@ fn test_vault_audit_manager_secure_erase() {
         status: Some("classified".into()),
     });
     manager.secure_erase();
-    assert!(manager.export_all().is_empty());
+    if !manager.export_all().is_empty() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_vault_log_event_api() {
+pub fn test_vault_log_event_api() -> TestResult {
     let event = VaultAuditEvent {
         timestamp: 12345,
         event: "api_test".into(),
@@ -237,71 +237,71 @@ fn test_vault_log_event_api() {
     };
     vault_log_event(event);
     let recent = vault_audit_recent(1);
-    assert!(!recent.is_empty() || recent.is_empty());
+    if !(!recent.is_empty() || recent.is_empty()) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_vault_audit_recent_api() {
+pub fn test_vault_audit_recent_api() -> TestResult {
     let events = vault_audit_recent(5);
-    assert!(events.len() <= 5);
+    if events.len() > 5 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_vault_audit_filter_api() {
+pub fn test_vault_audit_filter_api() -> TestResult {
     let events = vault_audit_filter(None, None, None);
-    assert!(events.len() >= 0);
+    let _ = events.len();
+    TestResult::Pass
 }
 
-#[test]
-fn test_vault_audit_filter_api_with_op() {
+pub fn test_vault_audit_filter_api_with_op() -> TestResult {
     let events = vault_audit_filter(Some("seal"), None, None);
     for e in &events {
-        assert!(e.event.contains("seal"));
+        if !e.event.contains("seal") { return TestResult::Fail; }
     }
+    TestResult::Pass
 }
 
-#[test]
-fn test_vault_audit_export_api() {
+pub fn test_vault_audit_export_api() -> TestResult {
     let events = vault_audit_export();
-    assert!(events.len() >= 0);
+    let _ = events.len();
+    TestResult::Pass
 }
 
-#[test]
-fn test_vault_audit_secure_erase_api() {
+pub fn test_vault_audit_secure_erase_api() -> TestResult {
     vault_audit_secure_erase();
     let events = VAULT_AUDIT_MANAGER.export_all();
-    assert!(events.is_empty());
+    if !events.is_empty() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_vault_audit_manager_singleton_exists() {
+pub fn test_vault_audit_manager_singleton_exists() -> TestResult {
     let _ = VAULT_AUDIT_MANAGER.export_all();
+    TestResult::Pass
 }
 
-#[test]
-fn test_vault_audit_event_timestamp_zero() {
+pub fn test_vault_audit_event_timestamp_zero() -> TestResult {
     let event = VaultAuditEvent {
         timestamp: 0,
         event: "zero_ts".into(),
         context: None,
         status: None,
     };
-    assert_eq!(event.timestamp, 0);
+    if event.timestamp != 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_vault_audit_event_timestamp_max() {
+pub fn test_vault_audit_event_timestamp_max() -> TestResult {
     let event = VaultAuditEvent {
         timestamp: u64::MAX,
         event: "max_ts".into(),
         context: None,
         status: None,
     };
-    assert_eq!(event.timestamp, u64::MAX);
+    if event.timestamp != u64::MAX { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_vault_audit_manager_many_events() {
+pub fn test_vault_audit_manager_many_events() -> TestResult {
     let manager = VaultAuditManager::new();
     for i in 0..1000 {
         manager.log_event(VaultAuditEvent {
@@ -311,11 +311,11 @@ fn test_vault_audit_manager_many_events() {
             status: None,
         });
     }
-    assert_eq!(manager.export_all().len(), 1000);
+    if manager.export_all().len() != 1000 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_vault_audit_filter_none_context() {
+pub fn test_vault_audit_filter_none_context() -> TestResult {
     let manager = VaultAuditManager::new();
     manager.log_event(VaultAuditEvent {
         timestamp: 1,
@@ -324,11 +324,11 @@ fn test_vault_audit_filter_none_context() {
         status: None,
     });
     let filtered = manager.filter(None, None, Some("anything"));
-    assert!(filtered.is_empty());
+    if !filtered.is_empty() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_vault_audit_filter_none_status() {
+pub fn test_vault_audit_filter_none_status() -> TestResult {
     let manager = VaultAuditManager::new();
     manager.log_event(VaultAuditEvent {
         timestamp: 1,
@@ -337,5 +337,6 @@ fn test_vault_audit_filter_none_status() {
         status: None,
     });
     let filtered = manager.filter(None, Some("anything"), None);
-    assert!(filtered.is_empty());
+    if !filtered.is_empty() { return TestResult::Fail; }
+    TestResult::Pass
 }
