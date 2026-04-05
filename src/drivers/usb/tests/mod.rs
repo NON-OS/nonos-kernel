@@ -23,22 +23,10 @@ pub mod msc;
 
 use crate::test::framework::TestSuite;
 
-pub fn run_all() -> TestSuite {
+pub fn run_all() -> bool {
     let mut suite = TestSuite::new("usb");
 
-    // constants tests
-    suite.add_test("test_request_type_direction_mask", constants::test_request_type_direction_mask);
-    suite.add_test("test_request_type_type_mask", constants::test_request_type_type_mask);
-    suite.add_test("test_request_type_recipient_mask", constants::test_request_type_recipient_mask);
-    suite.add_test("test_direction_host_to_device", constants::test_direction_host_to_device);
-    suite.add_test("test_direction_device_to_host", constants::test_direction_device_to_host);
-    suite.add_test("test_type_standard", constants::test_type_standard);
-    suite.add_test("test_type_class", constants::test_type_class);
-    suite.add_test("test_type_vendor", constants::test_type_vendor);
-    suite.add_test("test_recipient_device", constants::test_recipient_device);
-    suite.add_test("test_recipient_interface", constants::test_recipient_interface);
-    suite.add_test("test_recipient_endpoint", constants::test_recipient_endpoint);
-    suite.add_test("test_recipient_other", constants::test_recipient_other);
+    // constants tests - using actual function names from constants.rs
     suite.add_test("test_request_get_status", constants::test_request_get_status);
     suite.add_test("test_request_clear_feature", constants::test_request_clear_feature);
     suite.add_test("test_request_set_feature", constants::test_request_set_feature);
@@ -50,8 +38,17 @@ pub fn run_all() -> TestSuite {
     suite.add_test("test_request_get_interface", constants::test_request_get_interface);
     suite.add_test("test_request_set_interface", constants::test_request_set_interface);
     suite.add_test("test_request_synch_frame", constants::test_request_synch_frame);
+    suite.add_test("test_recipient_device", constants::test_recipient_device);
+    suite.add_test("test_recipient_interface", constants::test_recipient_interface);
+    suite.add_test("test_recipient_endpoint", constants::test_recipient_endpoint);
+    suite.add_test("test_recipient_other", constants::test_recipient_other);
+    suite.add_test("test_direction_out", constants::test_direction_out);
+    suite.add_test("test_direction_in", constants::test_direction_in);
+    suite.add_test("test_type_standard", constants::test_type_standard);
+    suite.add_test("test_type_class", constants::test_type_class);
+    suite.add_test("test_type_vendor", constants::test_type_vendor);
     suite.add_test("test_descriptor_type_device", constants::test_descriptor_type_device);
-    suite.add_test("test_descriptor_type_configuration", constants::test_descriptor_type_configuration);
+    suite.add_test("test_descriptor_type_config", constants::test_descriptor_type_config);
     suite.add_test("test_descriptor_type_string", constants::test_descriptor_type_string);
     suite.add_test("test_descriptor_type_interface", constants::test_descriptor_type_interface);
     suite.add_test("test_descriptor_type_endpoint", constants::test_descriptor_type_endpoint);
@@ -60,50 +57,57 @@ pub fn run_all() -> TestSuite {
     suite.add_test("test_descriptor_type_interface_power", constants::test_descriptor_type_interface_power);
     suite.add_test("test_descriptor_type_otg", constants::test_descriptor_type_otg);
     suite.add_test("test_descriptor_type_debug", constants::test_descriptor_type_debug);
-    suite.add_test("test_descriptor_type_interface_association", constants::test_descriptor_type_interface_association);
+    suite.add_test("test_descriptor_type_interface_assoc", constants::test_descriptor_type_interface_assoc);
     suite.add_test("test_descriptor_type_bos", constants::test_descriptor_type_bos);
     suite.add_test("test_descriptor_type_device_capability", constants::test_descriptor_type_device_capability);
-    suite.add_test("test_descriptor_type_ss_endpoint_companion", constants::test_descriptor_type_ss_endpoint_companion);
-    suite.add_test("test_endpoint_direction_mask", constants::test_endpoint_direction_mask);
-    suite.add_test("test_endpoint_direction_in", constants::test_endpoint_direction_in);
-    suite.add_test("test_endpoint_direction_out", constants::test_endpoint_direction_out);
-    suite.add_test("test_endpoint_type_mask", constants::test_endpoint_type_mask);
+    suite.add_test("test_descriptor_type_ss_ep_companion", constants::test_descriptor_type_ss_ep_companion);
+    suite.add_test("test_descriptor_type_ssp_isoch_ep_companion", constants::test_descriptor_type_ssp_isoch_ep_companion);
+    suite.add_test("test_endpoint_transfer_type_mask", constants::test_endpoint_transfer_type_mask);
     suite.add_test("test_endpoint_type_control", constants::test_endpoint_type_control);
     suite.add_test("test_endpoint_type_isochronous", constants::test_endpoint_type_isochronous);
     suite.add_test("test_endpoint_type_bulk", constants::test_endpoint_type_bulk);
     suite.add_test("test_endpoint_type_interrupt", constants::test_endpoint_type_interrupt);
-    suite.add_test("test_endpoint_sync_mask", constants::test_endpoint_sync_mask);
-    suite.add_test("test_endpoint_usage_mask", constants::test_endpoint_usage_mask);
-    suite.add_test("test_class_code_interface", constants::test_class_code_interface);
-    suite.add_test("test_class_code_audio", constants::test_class_code_audio);
-    suite.add_test("test_class_code_cdc", constants::test_class_code_cdc);
-    suite.add_test("test_class_code_hid", constants::test_class_code_hid);
-    suite.add_test("test_class_code_physical", constants::test_class_code_physical);
-    suite.add_test("test_class_code_image", constants::test_class_code_image);
-    suite.add_test("test_class_code_printer", constants::test_class_code_printer);
-    suite.add_test("test_class_code_mass_storage", constants::test_class_code_mass_storage);
-    suite.add_test("test_class_code_hub", constants::test_class_code_hub);
-    suite.add_test("test_class_code_cdc_data", constants::test_class_code_cdc_data);
-    suite.add_test("test_class_code_smart_card", constants::test_class_code_smart_card);
-    suite.add_test("test_class_code_content_security", constants::test_class_code_content_security);
-    suite.add_test("test_class_code_video", constants::test_class_code_video);
-    suite.add_test("test_class_code_personal_healthcare", constants::test_class_code_personal_healthcare);
-    suite.add_test("test_class_code_audio_video", constants::test_class_code_audio_video);
-    suite.add_test("test_class_code_billboard", constants::test_class_code_billboard);
-    suite.add_test("test_class_code_diagnostic", constants::test_class_code_diagnostic);
-    suite.add_test("test_class_code_wireless_controller", constants::test_class_code_wireless_controller);
-    suite.add_test("test_class_code_miscellaneous", constants::test_class_code_miscellaneous);
-    suite.add_test("test_class_code_application_specific", constants::test_class_code_application_specific);
-    suite.add_test("test_class_code_vendor_specific", constants::test_class_code_vendor_specific);
+    suite.add_test("test_endpoint_sync_type_mask", constants::test_endpoint_sync_type_mask);
+    suite.add_test("test_endpoint_sync_none", constants::test_endpoint_sync_none);
+    suite.add_test("test_endpoint_sync_async", constants::test_endpoint_sync_async);
+    suite.add_test("test_endpoint_sync_adaptive", constants::test_endpoint_sync_adaptive);
+    suite.add_test("test_endpoint_sync_sync", constants::test_endpoint_sync_sync);
+    suite.add_test("test_endpoint_usage_type_mask", constants::test_endpoint_usage_type_mask);
+    suite.add_test("test_endpoint_usage_data", constants::test_endpoint_usage_data);
+    suite.add_test("test_endpoint_usage_feedback", constants::test_endpoint_usage_feedback);
+    suite.add_test("test_endpoint_usage_implicit_fb", constants::test_endpoint_usage_implicit_fb);
+    suite.add_test("test_class_device", constants::test_class_device);
+    suite.add_test("test_class_audio", constants::test_class_audio);
+    suite.add_test("test_class_cdc", constants::test_class_cdc);
+    suite.add_test("test_class_hid", constants::test_class_hid);
+    suite.add_test("test_class_physical", constants::test_class_physical);
+    suite.add_test("test_class_image", constants::test_class_image);
+    suite.add_test("test_class_printer", constants::test_class_printer);
+    suite.add_test("test_class_mass_storage", constants::test_class_mass_storage);
+    suite.add_test("test_class_hub", constants::test_class_hub);
+    suite.add_test("test_class_cdc_data", constants::test_class_cdc_data);
+    suite.add_test("test_class_smart_card", constants::test_class_smart_card);
+    suite.add_test("test_class_content_security", constants::test_class_content_security);
+    suite.add_test("test_class_video", constants::test_class_video);
+    suite.add_test("test_class_personal_healthcare", constants::test_class_personal_healthcare);
+    suite.add_test("test_class_audio_video", constants::test_class_audio_video);
+    suite.add_test("test_class_billboard", constants::test_class_billboard);
+    suite.add_test("test_class_type_c_bridge", constants::test_class_type_c_bridge);
+    suite.add_test("test_class_diagnostic", constants::test_class_diagnostic);
+    suite.add_test("test_class_wireless", constants::test_class_wireless);
+    suite.add_test("test_class_misc", constants::test_class_misc);
+    suite.add_test("test_class_application", constants::test_class_application);
+    suite.add_test("test_class_vendor", constants::test_class_vendor);
     suite.add_test("test_feature_endpoint_halt", constants::test_feature_endpoint_halt);
     suite.add_test("test_feature_device_remote_wakeup", constants::test_feature_device_remote_wakeup);
     suite.add_test("test_feature_test_mode", constants::test_feature_test_mode);
-    suite.add_test("test_max_packet_size_low_speed", constants::test_max_packet_size_low_speed);
-    suite.add_test("test_max_packet_size_full_speed", constants::test_max_packet_size_full_speed);
-    suite.add_test("test_max_packet_size_high_speed", constants::test_max_packet_size_high_speed);
-    suite.add_test("test_max_packet_size_super_speed", constants::test_max_packet_size_super_speed);
-    suite.add_test("test_max_endpoints", constants::test_max_endpoints);
-    suite.add_test("test_max_interfaces", constants::test_max_interfaces);
+    suite.add_test("test_default_control_timeout", constants::test_default_control_timeout);
+    suite.add_test("test_default_bulk_timeout", constants::test_default_bulk_timeout);
+    suite.add_test("test_default_interrupt_timeout", constants::test_default_interrupt_timeout);
+    suite.add_test("test_usb2_max_control_packet", constants::test_usb2_max_control_packet);
+    suite.add_test("test_usb3_max_control_packet", constants::test_usb3_max_control_packet);
+    suite.add_test("test_default_lang_id", constants::test_default_lang_id);
+    suite.add_test("test_timeout_ordering", constants::test_timeout_ordering);
 
     // descriptors tests
     suite.add_test("test_device_descriptor_size", descriptors::test_device_descriptor_size);
@@ -268,5 +272,5 @@ pub fn run_all() -> TestSuite {
     suite.add_test("test_basic_constants", msc::test_basic_constants);
     suite.add_test("test_basic_operations", msc::test_basic_operations);
 
-    suite
+    suite.run()
 }
