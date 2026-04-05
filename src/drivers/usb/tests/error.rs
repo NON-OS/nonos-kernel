@@ -15,203 +15,209 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::drivers::usb::error::UsbError;
+use crate::test::framework::TestResult;
 
-#[test]
-fn test_error_as_str_controller_not_found() {
-    assert_eq!(UsbError::ControllerNotFound.as_str(), "USB controller not found");
+pub fn test_error_as_str_controller_not_found() -> TestResult {
+    if UsbError::ControllerNotFound.as_str() != "USB controller not found" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_error_as_str_initialization_failed() {
-    assert_eq!(UsbError::InitializationFailed.as_str(), "USB initialization failed");
+pub fn test_error_as_str_initialization_failed() -> TestResult {
+    if UsbError::InitializationFailed.as_str() != "USB initialization failed" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_error_as_str_device_not_found() {
-    assert_eq!(UsbError::DeviceNotFound.as_str(), "USB device not found");
+pub fn test_error_as_str_device_not_found() -> TestResult {
+    if UsbError::DeviceNotFound.as_str() != "USB device not found" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_error_as_str_endpoint_not_found() {
-    assert_eq!(UsbError::EndpointNotFound.as_str(), "Endpoint not found");
+pub fn test_error_as_str_endpoint_not_found() -> TestResult {
+    if UsbError::EndpointNotFound.as_str() != "Endpoint not found" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_error_as_str_transfer_failed() {
-    assert_eq!(UsbError::TransferFailed.as_str(), "Transfer failed");
+pub fn test_error_as_str_transfer_failed() -> TestResult {
+    if UsbError::TransferFailed.as_str() != "Transfer failed" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_error_as_str_transfer_timeout() {
-    assert_eq!(UsbError::TransferTimeout.as_str(), "Transfer timeout");
+pub fn test_error_as_str_transfer_timeout() -> TestResult {
+    if UsbError::TransferTimeout.as_str() != "Transfer timeout" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_error_as_str_transfer_stall() {
-    assert_eq!(UsbError::TransferStall.as_str(), "Endpoint stalled");
+pub fn test_error_as_str_transfer_stall() -> TestResult {
+    if UsbError::TransferStall.as_str() != "Endpoint stalled" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_error_as_str_transfer_babble() {
-    assert_eq!(UsbError::TransferBabble.as_str(), "Babble detected");
+pub fn test_error_as_str_transfer_babble() -> TestResult {
+    if UsbError::TransferBabble.as_str() != "Babble detected" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_error_as_str_buffer_overrun() {
-    assert_eq!(UsbError::BufferOverrun.as_str(), "Buffer overrun");
+pub fn test_error_as_str_buffer_overrun() -> TestResult {
+    if UsbError::BufferOverrun.as_str() != "Buffer overrun" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_error_as_str_buffer_underrun() {
-    assert_eq!(UsbError::BufferUnderrun.as_str(), "Buffer underrun");
+pub fn test_error_as_str_buffer_underrun() -> TestResult {
+    if UsbError::BufferUnderrun.as_str() != "Buffer underrun" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_error_as_str_invalid_descriptor() {
-    assert_eq!(UsbError::InvalidDescriptor.as_str(), "Invalid descriptor");
+pub fn test_error_as_str_invalid_descriptor() -> TestResult {
+    if UsbError::InvalidDescriptor.as_str() != "Invalid descriptor" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_error_as_str_invalid_configuration() {
-    assert_eq!(UsbError::InvalidConfiguration.as_str(), "Invalid configuration");
+pub fn test_error_as_str_invalid_configuration() -> TestResult {
+    if UsbError::InvalidConfiguration.as_str() != "Invalid configuration" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_error_as_str_invalid_interface() {
-    assert_eq!(UsbError::InvalidInterface.as_str(), "Invalid interface");
+pub fn test_error_as_str_invalid_interface() -> TestResult {
+    if UsbError::InvalidInterface.as_str() != "Invalid interface" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_error_as_str_invalid_endpoint() {
-    assert_eq!(UsbError::InvalidEndpoint.as_str(), "Invalid endpoint");
+pub fn test_error_as_str_invalid_endpoint() -> TestResult {
+    if UsbError::InvalidEndpoint.as_str() != "Invalid endpoint" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_error_as_str_unsupported_device() {
-    assert_eq!(UsbError::UnsupportedDevice.as_str(), "Unsupported device");
+pub fn test_error_as_str_unsupported_device() -> TestResult {
+    if UsbError::UnsupportedDevice.as_str() != "Unsupported device" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_error_as_str_unsupported_class() {
-    assert_eq!(UsbError::UnsupportedClass.as_str(), "Unsupported device class");
+pub fn test_error_as_str_unsupported_class() -> TestResult {
+    if UsbError::UnsupportedClass.as_str() != "Unsupported device class" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_error_as_str_port_error() {
-    assert_eq!(UsbError::PortError.as_str(), "Port error");
+pub fn test_error_as_str_port_error() -> TestResult {
+    if UsbError::PortError.as_str() != "Port error" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_error_as_str_reset_failed() {
-    assert_eq!(UsbError::ResetFailed.as_str(), "Device reset failed");
+pub fn test_error_as_str_reset_failed() -> TestResult {
+    if UsbError::ResetFailed.as_str() != "Device reset failed" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_error_as_str_enumeration_failed() {
-    assert_eq!(UsbError::EnumerationFailed.as_str(), "Device enumeration failed");
+pub fn test_error_as_str_enumeration_failed() -> TestResult {
+    if UsbError::EnumerationFailed.as_str() != "Device enumeration failed" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_error_as_str_dma_error() {
-    assert_eq!(UsbError::DmaError.as_str(), "DMA error");
+pub fn test_error_as_str_dma_error() -> TestResult {
+    if UsbError::DmaError.as_str() != "DMA error" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_error_as_str_command_ring_full() {
-    assert_eq!(UsbError::CommandRingFull.as_str(), "Command ring full");
+pub fn test_error_as_str_command_ring_full() -> TestResult {
+    if UsbError::CommandRingFull.as_str() != "Command ring full" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_error_as_str_event_ring_empty() {
-    assert_eq!(UsbError::EventRingEmpty.as_str(), "Event ring empty");
+pub fn test_error_as_str_event_ring_empty() -> TestResult {
+    if UsbError::EventRingEmpty.as_str() != "Event ring empty" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_error_as_str_slot_not_enabled() {
-    assert_eq!(UsbError::SlotNotEnabled.as_str(), "Slot not enabled");
+pub fn test_error_as_str_slot_not_enabled() -> TestResult {
+    if UsbError::SlotNotEnabled.as_str() != "Slot not enabled" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_error_as_str_context_error() {
-    assert_eq!(UsbError::ContextError.as_str(), "Context error");
+pub fn test_error_as_str_context_error() -> TestResult {
+    if UsbError::ContextError.as_str() != "Context error" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_error_is_recoverable_timeout() {
-    assert!(UsbError::TransferTimeout.is_recoverable());
+pub fn test_error_is_recoverable_timeout() -> TestResult {
+    if !UsbError::TransferTimeout.is_recoverable() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_error_is_recoverable_stall() {
-    assert!(UsbError::TransferStall.is_recoverable());
+pub fn test_error_is_recoverable_stall() -> TestResult {
+    if !UsbError::TransferStall.is_recoverable() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_error_is_recoverable_command_ring_full() {
-    assert!(UsbError::CommandRingFull.is_recoverable());
+pub fn test_error_is_recoverable_command_ring_full() -> TestResult {
+    if !UsbError::CommandRingFull.is_recoverable() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_error_is_recoverable_event_ring_empty() {
-    assert!(UsbError::EventRingEmpty.is_recoverable());
+pub fn test_error_is_recoverable_event_ring_empty() -> TestResult {
+    if !UsbError::EventRingEmpty.is_recoverable() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_error_is_not_recoverable_controller_not_found() {
-    assert!(!UsbError::ControllerNotFound.is_recoverable());
+pub fn test_error_is_not_recoverable_controller_not_found() -> TestResult {
+    if UsbError::ControllerNotFound.is_recoverable() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_error_is_not_recoverable_device_not_found() {
-    assert!(!UsbError::DeviceNotFound.is_recoverable());
+pub fn test_error_is_not_recoverable_device_not_found() -> TestResult {
+    if UsbError::DeviceNotFound.is_recoverable() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_error_is_not_recoverable_initialization_failed() {
-    assert!(!UsbError::InitializationFailed.is_recoverable());
+pub fn test_error_is_not_recoverable_initialization_failed() -> TestResult {
+    if UsbError::InitializationFailed.is_recoverable() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_error_is_not_recoverable_dma_error() {
-    assert!(!UsbError::DmaError.is_recoverable());
+pub fn test_error_is_not_recoverable_dma_error() -> TestResult {
+    if UsbError::DmaError.is_recoverable() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_error_equality() {
-    assert_eq!(UsbError::TransferTimeout, UsbError::TransferTimeout);
-    assert_ne!(UsbError::TransferTimeout, UsbError::TransferStall);
+pub fn test_error_equality() -> TestResult {
+    if UsbError::TransferTimeout != UsbError::TransferTimeout { return TestResult::Fail; }
+    if UsbError::TransferTimeout == UsbError::TransferStall { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_error_copy() {
+pub fn test_error_copy() -> TestResult {
     let err1 = UsbError::TransferFailed;
     let err2 = err1;
-    assert_eq!(err1, err2);
+    if err1 != err2 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_error_clone() {
+pub fn test_error_clone() -> TestResult {
     let err1 = UsbError::DeviceNotFound;
     let err2 = err1.clone();
-    assert_eq!(err1, err2);
+    if err1 != err2 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_error_debug() {
+pub fn test_error_debug() -> TestResult {
+    use core::fmt::Write;
     let err = UsbError::TransferTimeout;
-    let debug_str = format!("{:?}", err);
-    assert_eq!(debug_str, "TransferTimeout");
+    let mut buf = [0u8; 64];
+    let mut writer = crate::test::framework::ArrayWriter::new(&mut buf);
+    let _ = write!(writer, "{:?}", err);
+    if writer.as_str() != "TransferTimeout" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_error_display() {
+pub fn test_error_display() -> TestResult {
+    use core::fmt::Write;
     let err = UsbError::TransferTimeout;
-    let display_str = format!("{}", err);
-    assert_eq!(display_str, "Transfer timeout");
+    let mut buf = [0u8; 64];
+    let mut writer = crate::test::framework::ArrayWriter::new(&mut buf);
+    let _ = write!(writer, "{}", err);
+    if writer.as_str() != "Transfer timeout" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_all_error_variants_have_message() {
+pub fn test_all_error_variants_have_message() -> TestResult {
     let errors = [
         UsbError::ControllerNotFound,
         UsbError::InitializationFailed,
@@ -240,12 +246,12 @@ fn test_all_error_variants_have_message() {
     ];
 
     for err in &errors {
-        assert!(!err.as_str().is_empty());
+        if err.as_str().is_empty() { return TestResult::Fail; }
     }
+    TestResult::Pass
 }
 
-#[test]
-fn test_error_variant_count() {
+pub fn test_error_variant_count() -> TestResult {
     let errors = [
         UsbError::ControllerNotFound,
         UsbError::InitializationFailed,
@@ -273,5 +279,6 @@ fn test_error_variant_count() {
         UsbError::ContextError,
     ];
 
-    assert_eq!(errors.len(), 24);
+    if errors.len() != 24 { return TestResult::Fail; }
+    TestResult::Pass
 }
