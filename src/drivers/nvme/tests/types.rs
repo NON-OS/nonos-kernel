@@ -14,57 +14,55 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-#[cfg(test)]
-mod tests {
-    use crate::drivers::nvme::{constants, types};
+use crate::drivers::nvme::{constants, types};
+use crate::test::framework::TestResult;
 
-    #[test]
-    fn test_controller_capabilities() {
-        let cap: u64 = 0x0014_0000_0020_00FF;
-        let caps = types::ControllerCapabilities::from_register(cap);
+pub fn test_controller_capabilities() -> TestResult {
+    let cap: u64 = 0x0014_0000_0020_00FF;
+    let caps = types::ControllerCapabilities::from_register(cap);
 
-        assert_eq!(caps.max_queue_entries, 256);
-        assert_eq!(caps.timeout_500ms_units, 0);
-    }
+    if caps.max_queue_entries != 256 { return TestResult::Fail; }
+    if caps.timeout_500ms_units != 0 { return TestResult::Fail; }
+    TestResult::Pass
+}
 
-    #[test]
-    fn test_controller_version() {
-        let vs: u32 = 0x0001_0400;
-        let version = types::ControllerVersion::from_register(vs);
+pub fn test_controller_version() -> TestResult {
+    let vs: u32 = 0x0001_0400;
+    let version = types::ControllerVersion::from_register(vs);
 
-        assert_eq!(version.major, 1);
-        assert_eq!(version.minor, 4);
-        assert_eq!(version.tertiary, 0);
-        assert!(version.is_at_least(1, 3));
-        assert!(version.is_at_least(1, 4));
-        assert!(!version.is_at_least(1, 5));
-    }
+    if version.major != 1 { return TestResult::Fail; }
+    if version.minor != 4 { return TestResult::Fail; }
+    if version.tertiary != 0 { return TestResult::Fail; }
+    if !version.is_at_least(1, 3) { return TestResult::Fail; }
+    if !version.is_at_least(1, 4) { return TestResult::Fail; }
+    if version.is_at_least(1, 5) { return TestResult::Fail; }
+    TestResult::Pass
+}
 
-    #[test]
-    fn test_lba_format() {
-        let dword: u32 = 0x0009_0000;
-        let format = types::LbaFormat::from_dword(dword);
+pub fn test_lba_format() -> TestResult {
+    let dword: u32 = 0x0009_0000;
+    let format = types::LbaFormat::from_dword(dword);
 
-        assert_eq!(format.lba_data_size_shift, 9);
-        assert_eq!(format.lba_size(), 512);
-        assert_eq!(format.metadata_size, 0);
-    }
+    if format.lba_data_size_shift != 9 { return TestResult::Fail; }
+    if format.lba_size() != 512 { return TestResult::Fail; }
+    if format.metadata_size != 0 { return TestResult::Fail; }
+    TestResult::Pass
+}
 
-    #[test]
-    fn test_lba_format_4k() {
-        let dword: u32 = 0x000C_0000;
-        let format = types::LbaFormat::from_dword(dword);
+pub fn test_lba_format_4k() -> TestResult {
+    let dword: u32 = 0x000C_0000;
+    let format = types::LbaFormat::from_dword(dword);
 
-        assert_eq!(format.lba_data_size_shift, 12);
-        assert_eq!(format.lba_size(), 4096);
-    }
+    if format.lba_data_size_shift != 12 { return TestResult::Fail; }
+    if format.lba_size() != 4096 { return TestResult::Fail; }
+    TestResult::Pass
+}
 
-    #[test]
-    fn test_dsm_range() {
-        let range = types::DsmRange::new(0x1000, 8, constants::DSM_ATTR_DEALLOCATE);
+pub fn test_dsm_range() -> TestResult {
+    let range = types::DsmRange::new(0x1000, 8, constants::DSM_ATTR_DEALLOCATE);
 
-        assert_eq!(range.starting_lba, 0x1000);
-        assert_eq!(range.lba_count, 8);
-        assert_eq!(range.context_attributes, constants::DSM_ATTR_DEALLOCATE);
-    }
+    if range.starting_lba != 0x1000 { return TestResult::Fail; }
+    if range.lba_count != 8 { return TestResult::Fail; }
+    if range.context_attributes != constants::DSM_ATTR_DEALLOCATE { return TestResult::Fail; }
+    TestResult::Pass
 }

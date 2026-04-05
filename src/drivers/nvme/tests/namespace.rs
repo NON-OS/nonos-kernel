@@ -16,62 +16,69 @@
 
 extern crate alloc;
 
-#[cfg(test)]
-mod tests {
-    use alloc::vec;
-    use crate::drivers::nvme::namespace;
+use alloc::vec;
+use crate::drivers::nvme::namespace;
+use crate::test::framework::TestResult;
 
-    #[test]
-    fn test_namespace_lba_validation() {
-        let mut ns_data = [0u8; 4096];
+pub fn test_namespace_lba_validation() -> TestResult {
+    let mut ns_data = [0u8; 4096];
 
-        ns_data[0x00..0x08].copy_from_slice(&1000u64.to_le_bytes());
-        ns_data[0x08..0x10].copy_from_slice(&1000u64.to_le_bytes());
-        ns_data[0x19] = 0;
-        ns_data[0x1A] = 0;
-        ns_data[0x80..0x84].copy_from_slice(&0x0000_0900u32.to_le_bytes());
+    ns_data[0x00..0x08].copy_from_slice(&1000u64.to_le_bytes());
+    ns_data[0x08..0x10].copy_from_slice(&1000u64.to_le_bytes());
+    ns_data[0x19] = 0;
+    ns_data[0x1A] = 0;
+    ns_data[0x80..0x84].copy_from_slice(&0x0000_0900u32.to_le_bytes());
 
-        let ns = namespace::Namespace::from_identify_data(1, &ns_data).unwrap();
+    let ns = match namespace::Namespace::from_identify_data(1, &ns_data) {
+        Ok(n) => n,
+        Err(_) => return TestResult::Fail,
+    };
 
-        assert!(ns.validate_lba_range(0, 100).is_ok());
-        assert!(ns.validate_lba_range(900, 100).is_ok());
-        assert!(ns.validate_lba_range(900, 101).is_err());
-        assert!(ns.validate_lba_range(1000, 1).is_err());
-        assert!(ns.validate_lba_range(0, 0).is_err());
-    }
+    if ns.validate_lba_range(0, 100).is_err() { return TestResult::Fail; }
+    if ns.validate_lba_range(900, 100).is_err() { return TestResult::Fail; }
+    if ns.validate_lba_range(900, 101).is_ok() { return TestResult::Fail; }
+    if ns.validate_lba_range(1000, 1).is_ok() { return TestResult::Fail; }
+    if ns.validate_lba_range(0, 0).is_ok() { return TestResult::Fail; }
+    TestResult::Pass
+}
 
-    #[test]
-    fn test_namespace_manager() {
-        let mut manager = namespace::NamespaceManager::new();
+pub fn test_namespace_manager() -> TestResult {
+    let mut manager = namespace::NamespaceManager::new();
 
-        let mut ns_data = [0u8; 4096];
-        ns_data[0x00..0x08].copy_from_slice(&1000u64.to_le_bytes());
-        ns_data[0x08..0x10].copy_from_slice(&1000u64.to_le_bytes());
-        ns_data[0x80..0x84].copy_from_slice(&0x0000_0900u32.to_le_bytes());
+    let mut ns_data = [0u8; 4096];
+    ns_data[0x00..0x08].copy_from_slice(&1000u64.to_le_bytes());
+    ns_data[0x08..0x10].copy_from_slice(&1000u64.to_le_bytes());
+    ns_data[0x80..0x84].copy_from_slice(&0x0000_0900u32.to_le_bytes());
 
-        let ns1 = namespace::Namespace::from_identify_data(1, &ns_data).unwrap();
-        let ns2 = namespace::Namespace::from_identify_data(2, &ns_data).unwrap();
+    let ns1 = match namespace::Namespace::from_identify_data(1, &ns_data) {
+        Ok(n) => n,
+        Err(_) => return TestResult::Fail,
+    };
+    let ns2 = match namespace::Namespace::from_identify_data(2, &ns_data) {
+        Ok(n) => n,
+        Err(_) => return TestResult::Fail,
+    };
 
-        manager.add(ns1);
-        manager.add(ns2);
+    manager.add(ns1);
+    manager.add(ns2);
 
-        assert_eq!(manager.count(), 2);
-        assert!(manager.get(1).is_some());
-        assert!(manager.get(2).is_some());
-        assert!(manager.get(3).is_none());
+    if manager.count() != 2 { return TestResult::Fail; }
+    if manager.get(1).is_none() { return TestResult::Fail; }
+    if manager.get(2).is_none() { return TestResult::Fail; }
+    if manager.get(3).is_some() { return TestResult::Fail; }
 
-        let nsids = manager.nsids();
-        assert_eq!(nsids, vec![1, 2]);
-    }
+    let nsids = manager.nsids();
+    if nsids != vec![1, 2] { return TestResult::Fail; }
+    TestResult::Pass
+}
 
-    #[test]
-    fn test_namespace_list_parsing() {
-        let mut data = [0u8; 4096];
-        data[0..4].copy_from_slice(&1u32.to_le_bytes());
-        data[4..8].copy_from_slice(&2u32.to_le_bytes());
-        data[8..12].copy_from_slice(&5u32.to_le_bytes());
+pub fn test_namespace_list_parsing() -> TestResult {
+    let mut data = [0u8; 4096];
+    data[0..4].copy_from_slice(&1u32.to_le_bytes());
+    data[4..8].copy_from_slice(&2u32.to_le_bytes());
+    data[8..12].copy_from_slice(&5u32.to_le_bytes());
 
-        let nsids = namespace::parse_namespace_list(&data);
-        assert_eq!(nsids, vec![1, 2, 5]);
-    }
+    let nsids = namespace::parse_namespace_list(&data);
+    if nsids != vec![1, 2, 5] { return TestResult::Fail; }
+    TestResult::Pass
 }

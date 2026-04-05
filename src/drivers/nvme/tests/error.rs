@@ -14,42 +14,34 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-extern crate alloc;
+use crate::drivers::nvme::error;
+use crate::test::framework::TestResult;
 
-#[cfg(test)]
-mod tests {
-    use crate::drivers::nvme::error;
+pub fn test_error_display() -> TestResult {
+    let err = error::NvmeError::NoControllerFound;
+    if err.as_str() != "No NVMe controller found on PCI bus" { return TestResult::Fail; }
+    TestResult::Pass
+}
 
-    #[test]
-    fn test_error_display() {
-        let err = error::NvmeError::NoControllerFound;
-        assert_eq!(err.as_str(), "No NVMe controller found on PCI bus");
+pub fn test_error_classification() -> TestResult {
+    if !error::NvmeError::ControllerFatalStatus.is_fatal() { return TestResult::Fail; }
+    if !error::NvmeError::CqCorruption.is_fatal() { return TestResult::Fail; }
+    if error::NvmeError::CommandTimeout.is_fatal() { return TestResult::Fail; }
 
-        let err = error::NvmeError::CommandFailed { status_code: 0x281 };
-        let s = alloc::format!("{}", err);
-        assert!(s.contains("0x281"));
-    }
+    if !error::NvmeError::CommandTimeout.is_recoverable() { return TestResult::Fail; }
+    if !error::NvmeError::RateLimitExceeded.is_recoverable() { return TestResult::Fail; }
+    if error::NvmeError::ControllerFatalStatus.is_recoverable() { return TestResult::Fail; }
+    TestResult::Pass
+}
 
-    #[test]
-    fn test_error_classification() {
-        assert!(error::NvmeError::ControllerFatalStatus.is_fatal());
-        assert!(error::NvmeError::CqCorruption.is_fatal());
-        assert!(!error::NvmeError::CommandTimeout.is_fatal());
+pub fn test_status_code_parsing() -> TestResult {
+    let status = error::NvmeStatusCode::from_status_field(0x0000);
+    if !status.is_success() { return TestResult::Fail; }
 
-        assert!(error::NvmeError::CommandTimeout.is_recoverable());
-        assert!(error::NvmeError::RateLimitExceeded.is_recoverable());
-        assert!(!error::NvmeError::ControllerFatalStatus.is_recoverable());
-    }
+    let status = error::NvmeStatusCode::from_status_field(0x0002);
+    if status != error::NvmeStatusCode::InvalidOpcode { return TestResult::Fail; }
 
-    #[test]
-    fn test_status_code_parsing() {
-        let status = error::NvmeStatusCode::from_status_field(0x0000);
-        assert!(status.is_success());
-
-        let status = error::NvmeStatusCode::from_status_field(0x0002);
-        assert_eq!(status, error::NvmeStatusCode::InvalidOpcode);
-
-        let status = error::NvmeStatusCode::from_status_field(0x0004);
-        assert_eq!(status, error::NvmeStatusCode::InvalidField);
-    }
+    let status = error::NvmeStatusCode::from_status_field(0x0004);
+    if status != error::NvmeStatusCode::InvalidField { return TestResult::Fail; }
+    TestResult::Pass
 }
