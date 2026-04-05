@@ -17,61 +17,61 @@
 use crate::drivers::ahci::stats::AhciStats;
 use crate::test::framework::TestResult;
 
-pub fn test_stats_default_read_ops() -> TestResult {
+pub(crate) fn test_stats_default_read_ops() -> TestResult {
     let stats = AhciStats::default();
     if stats.read_ops != 0 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_stats_default_write_ops() -> TestResult {
+pub(crate) fn test_stats_default_write_ops() -> TestResult {
     let stats = AhciStats::default();
     if stats.write_ops != 0 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_stats_default_trim_ops() -> TestResult {
+pub(crate) fn test_stats_default_trim_ops() -> TestResult {
     let stats = AhciStats::default();
     if stats.trim_ops != 0 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_stats_default_errors() -> TestResult {
+pub(crate) fn test_stats_default_errors() -> TestResult {
     let stats = AhciStats::default();
     if stats.errors != 0 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_stats_default_bytes_read() -> TestResult {
+pub(crate) fn test_stats_default_bytes_read() -> TestResult {
     let stats = AhciStats::default();
     if stats.bytes_read != 0 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_stats_default_bytes_written() -> TestResult {
+pub(crate) fn test_stats_default_bytes_written() -> TestResult {
     let stats = AhciStats::default();
     if stats.bytes_written != 0 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_stats_default_devices_count() -> TestResult {
+pub(crate) fn test_stats_default_devices_count() -> TestResult {
     let stats = AhciStats::default();
     if stats.devices_count != 0 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_stats_default_port_resets() -> TestResult {
+pub(crate) fn test_stats_default_port_resets() -> TestResult {
     let stats = AhciStats::default();
     if stats.port_resets != 0 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_stats_default_validation_failures() -> TestResult {
+pub(crate) fn test_stats_default_validation_failures() -> TestResult {
     let stats = AhciStats::default();
     if stats.validation_failures != 0 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_stats_copy() -> TestResult {
+pub(crate) fn test_stats_copy() -> TestResult {
     let stats1 = AhciStats {
         read_ops: 100,
         write_ops: 50,
@@ -97,7 +97,7 @@ pub fn test_stats_copy() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_stats_clone() -> TestResult {
+pub(crate) fn test_stats_clone() -> TestResult {
     let stats1 = AhciStats {
         read_ops: 200,
         write_ops: 100,
@@ -116,7 +116,7 @@ pub fn test_stats_clone() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_stats_debug() -> TestResult {
+pub(crate) fn test_stats_debug() -> TestResult {
     let stats = AhciStats::default();
     let debug_str = format!("{:?}", stats);
     if !debug_str.contains("AhciStats") { return TestResult::Fail; }
@@ -125,7 +125,7 @@ pub fn test_stats_debug() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_stats_field_independence() -> TestResult {
+pub(crate) fn test_stats_field_independence() -> TestResult {
     let stats = AhciStats {
         read_ops: 1,
         write_ops: 2,
@@ -150,7 +150,7 @@ pub fn test_stats_field_independence() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_stats_large_values() -> TestResult {
+pub(crate) fn test_stats_large_values() -> TestResult {
     let stats = AhciStats {
         read_ops: u64::MAX,
         write_ops: u64::MAX,

@@ -18,104 +18,104 @@ use crate::drivers::ahci::types::*;
 use crate::drivers::ahci::controller::hdr_flags_for;
 use crate::test::framework::TestResult;
 
-pub fn test_device_type_sata_str() -> TestResult {
+pub(crate) fn test_device_type_sata_str() -> TestResult {
     if AhciDeviceType::Sata.as_str() != "SATA" { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_device_type_satapi_str() -> TestResult {
+pub(crate) fn test_device_type_satapi_str() -> TestResult {
     if AhciDeviceType::Satapi.as_str() != "SATAPI" { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_device_type_semb_str() -> TestResult {
+pub(crate) fn test_device_type_semb_str() -> TestResult {
     if AhciDeviceType::Semb.as_str() != "SEMB" { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_device_type_pm_str() -> TestResult {
+pub(crate) fn test_device_type_pm_str() -> TestResult {
     if AhciDeviceType::Pm.as_str() != "Port Multiplier" { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_device_type_from_signature_sata() -> TestResult {
+pub(crate) fn test_device_type_from_signature_sata() -> TestResult {
     if AhciDeviceType::from_signature(0x0000_0101) != Some(AhciDeviceType::Sata) { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_device_type_from_signature_satapi() -> TestResult {
+pub(crate) fn test_device_type_from_signature_satapi() -> TestResult {
     if AhciDeviceType::from_signature(0xEB14_0101) != Some(AhciDeviceType::Satapi) { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_device_type_from_signature_semb() -> TestResult {
+pub(crate) fn test_device_type_from_signature_semb() -> TestResult {
     if AhciDeviceType::from_signature(0xC33C_0101) != Some(AhciDeviceType::Semb) { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_device_type_from_signature_pm() -> TestResult {
+pub(crate) fn test_device_type_from_signature_pm() -> TestResult {
     if AhciDeviceType::from_signature(0x9669_0101) != Some(AhciDeviceType::Pm) { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_device_type_from_signature_invalid_zero() -> TestResult {
+pub(crate) fn test_device_type_from_signature_invalid_zero() -> TestResult {
     if AhciDeviceType::from_signature(0x0000_0000) != None { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_device_type_from_signature_invalid_random() -> TestResult {
+pub(crate) fn test_device_type_from_signature_invalid_random() -> TestResult {
     if AhciDeviceType::from_signature(0xDEAD_BEEF) != None { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_device_type_from_signature_invalid_partial() -> TestResult {
+pub(crate) fn test_device_type_from_signature_invalid_partial() -> TestResult {
     if AhciDeviceType::from_signature(0x0000_0100) != None { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_device_type_equality() -> TestResult {
+pub(crate) fn test_device_type_equality() -> TestResult {
     if AhciDeviceType::Sata != AhciDeviceType::Sata { return TestResult::Fail; }
     if AhciDeviceType::Sata == AhciDeviceType::Satapi { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_device_type_copy() -> TestResult {
+pub(crate) fn test_device_type_copy() -> TestResult {
     let dt1 = AhciDeviceType::Sata;
     let dt2 = dt1;
     if dt1 != dt2 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_device_type_clone() -> TestResult {
+pub(crate) fn test_device_type_clone() -> TestResult {
     let dt1 = AhciDeviceType::Satapi;
     let dt2 = dt1.clone();
     if dt1 != dt2 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_device_type_debug() -> TestResult {
+pub(crate) fn test_device_type_debug() -> TestResult {
     let dt = AhciDeviceType::Sata;
     let debug_str = format!("{:?}", dt);
     if debug_str != "Sata" { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_command_header_size() -> TestResult {
+pub(crate) fn test_command_header_size() -> TestResult {
     if core::mem::size_of::<CommandHeader>() != 32 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_prdt_entry_size() -> TestResult {
+pub(crate) fn test_prdt_entry_size() -> TestResult {
     if core::mem::size_of::<PhysicalRegionDescriptor>() != 16 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_command_table_alignment() -> TestResult {
+pub(crate) fn test_command_table_alignment() -> TestResult {
     if core::mem::align_of::<CommandTable>() != 128 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_command_header_layout() -> TestResult {
+pub(crate) fn test_command_header_layout() -> TestResult {
     let header = CommandHeader {
         flags: 0x1234,
         prdtl: 0x5678,
@@ -133,7 +133,7 @@ pub fn test_command_header_layout() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_command_header_reserved_zeroed() -> TestResult {
+pub(crate) fn test_command_header_reserved_zeroed() -> TestResult {
     let header = CommandHeader {
         flags: 0,
         prdtl: 0,
@@ -149,7 +149,7 @@ pub fn test_command_header_reserved_zeroed() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_prdt_layout() -> TestResult {
+pub(crate) fn test_prdt_layout() -> TestResult {
     let prdt = PhysicalRegionDescriptor {
         dba: 0x1234_5678,
         dbau: 0x9ABC_DEF0,
@@ -164,21 +164,21 @@ pub fn test_prdt_layout() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_hdr_flags_read_cfl_5() -> TestResult {
+pub(crate) fn test_hdr_flags_read_cfl_5() -> TestResult {
     let flags = hdr_flags_for(5, false);
     if flags & 0x1F != 5 { return TestResult::Fail; }
     if flags & (1 << 6) != 0 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_hdr_flags_write_cfl_5() -> TestResult {
+pub(crate) fn test_hdr_flags_write_cfl_5() -> TestResult {
     let flags = hdr_flags_for(5, true);
     if flags & 0x1F != 5 { return TestResult::Fail; }
     if flags & (1 << 6) == 0 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_hdr_flags_cfl_range() -> TestResult {
+pub(crate) fn test_hdr_flags_cfl_range() -> TestResult {
     for cfl in 0..=31u16 {
         let flags = hdr_flags_for(cfl, false);
         if flags & 0x1F != cfl { return TestResult::Fail; }
@@ -186,36 +186,36 @@ pub fn test_hdr_flags_cfl_range() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_hdr_flags_cfl_overflow() -> TestResult {
+pub(crate) fn test_hdr_flags_cfl_overflow() -> TestResult {
     let flags = hdr_flags_for(32, false);
     if flags & 0x1F != 0 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_hdr_flags_cfl_max() -> TestResult {
+pub(crate) fn test_hdr_flags_cfl_max() -> TestResult {
     let flags = hdr_flags_for(31, false);
     if flags & 0x1F != 31 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_hdr_flags_cfl_zero() -> TestResult {
+pub(crate) fn test_hdr_flags_cfl_zero() -> TestResult {
     let flags = hdr_flags_for(0, false);
     if flags & 0x1F != 0 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_hdr_flags_write_bit_position() -> TestResult {
+pub(crate) fn test_hdr_flags_write_bit_position() -> TestResult {
     let flags = hdr_flags_for(0, true);
     if flags & (1 << 6) != 1 << 6 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_ahci_hba_size() -> TestResult {
+pub(crate) fn test_ahci_hba_size() -> TestResult {
     if !(core::mem::size_of::<AhciHba>() >= 44) { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_command_table_cfis_size() -> TestResult {
+pub(crate) fn test_command_table_cfis_size() -> TestResult {
     let ct = CommandTable {
         cfis: [0; 64],
         acmd: [0; 16],
@@ -231,7 +231,7 @@ pub fn test_command_table_cfis_size() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_command_table_acmd_size() -> TestResult {
+pub(crate) fn test_command_table_acmd_size() -> TestResult {
     let ct = CommandTable {
         cfis: [0; 64],
         acmd: [0; 16],
@@ -247,7 +247,7 @@ pub fn test_command_table_acmd_size() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_command_table_reserved_size() -> TestResult {
+pub(crate) fn test_command_table_reserved_size() -> TestResult {
     let ct = CommandTable {
         cfis: [0; 64],
         acmd: [0; 16],
