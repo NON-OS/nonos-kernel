@@ -1,326 +1,326 @@
 use crate::elf::types::{phdr_flags, phdr_type, ProgramHeader};
+use crate::test::framework::TestResult;
 use core::mem;
 
-#[test]
-fn test_program_header_size() {
-    assert_eq!(mem::size_of::<ProgramHeader>(), ProgramHeader::SIZE);
-    assert_eq!(ProgramHeader::SIZE, 56);
+pub fn test_program_header_size() -> TestResult {
+    if mem::size_of::<ProgramHeader>() != ProgramHeader::SIZE { return TestResult::Fail; }
+    if ProgramHeader::SIZE != 56 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_program_header_default() {
+pub fn test_program_header_default() -> TestResult {
     let ph = ProgramHeader::default();
-    assert_eq!(ph.p_type, 0);
-    assert_eq!(ph.p_flags, 0);
-    assert_eq!(ph.p_offset, 0);
-    assert_eq!(ph.p_vaddr, 0);
-    assert_eq!(ph.p_paddr, 0);
-    assert_eq!(ph.p_filesz, 0);
-    assert_eq!(ph.p_memsz, 0);
-    assert_eq!(ph.p_align, 0);
+    if ph.p_type != 0 { return TestResult::Fail; }
+    if ph.p_flags != 0 { return TestResult::Fail; }
+    if ph.p_offset != 0 { return TestResult::Fail; }
+    if ph.p_vaddr != 0 { return TestResult::Fail; }
+    if ph.p_paddr != 0 { return TestResult::Fail; }
+    if ph.p_filesz != 0 { return TestResult::Fail; }
+    if ph.p_memsz != 0 { return TestResult::Fail; }
+    if ph.p_align != 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_is_load_true() {
+pub fn test_is_load_true() -> TestResult {
     let mut ph = ProgramHeader::default();
     ph.p_type = phdr_type::PT_LOAD;
-    assert!(ph.is_load());
+    if !ph.is_load() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_is_load_false_null() {
+pub fn test_is_load_false_null() -> TestResult {
     let mut ph = ProgramHeader::default();
     ph.p_type = phdr_type::PT_NULL;
-    assert!(!ph.is_load());
+    if ph.is_load() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_is_load_false_dynamic() {
+pub fn test_is_load_false_dynamic() -> TestResult {
     let mut ph = ProgramHeader::default();
     ph.p_type = phdr_type::PT_DYNAMIC;
-    assert!(!ph.is_load());
+    if ph.is_load() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_is_load_false_interp() {
+pub fn test_is_load_false_interp() -> TestResult {
     let mut ph = ProgramHeader::default();
     ph.p_type = phdr_type::PT_INTERP;
-    assert!(!ph.is_load());
+    if ph.is_load() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_is_readable_true() {
+pub fn test_is_readable_true() -> TestResult {
     let mut ph = ProgramHeader::default();
     ph.p_flags = phdr_flags::PF_R;
-    assert!(ph.is_readable());
+    if !ph.is_readable() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_is_readable_false() {
+pub fn test_is_readable_false() -> TestResult {
     let ph = ProgramHeader::default();
-    assert!(!ph.is_readable());
+    if ph.is_readable() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_is_readable_with_other_flags() {
+pub fn test_is_readable_with_other_flags() -> TestResult {
     let mut ph = ProgramHeader::default();
     ph.p_flags = phdr_flags::PF_R | phdr_flags::PF_W | phdr_flags::PF_X;
-    assert!(ph.is_readable());
+    if !ph.is_readable() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_is_writable_true() {
+pub fn test_is_writable_true() -> TestResult {
     let mut ph = ProgramHeader::default();
     ph.p_flags = phdr_flags::PF_W;
-    assert!(ph.is_writable());
+    if !ph.is_writable() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_is_writable_false() {
+pub fn test_is_writable_false() -> TestResult {
     let ph = ProgramHeader::default();
-    assert!(!ph.is_writable());
+    if ph.is_writable() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_is_writable_with_read() {
+pub fn test_is_writable_with_read() -> TestResult {
     let mut ph = ProgramHeader::default();
     ph.p_flags = phdr_flags::PF_R | phdr_flags::PF_W;
-    assert!(ph.is_writable());
+    if !ph.is_writable() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_is_executable_true() {
+pub fn test_is_executable_true() -> TestResult {
     let mut ph = ProgramHeader::default();
     ph.p_flags = phdr_flags::PF_X;
-    assert!(ph.is_executable());
+    if !ph.is_executable() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_is_executable_false() {
+pub fn test_is_executable_false() -> TestResult {
     let ph = ProgramHeader::default();
-    assert!(!ph.is_executable());
+    if ph.is_executable() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_is_executable_with_read() {
+pub fn test_is_executable_with_read() -> TestResult {
     let mut ph = ProgramHeader::default();
     ph.p_flags = phdr_flags::PF_R | phdr_flags::PF_X;
-    assert!(ph.is_executable());
+    if !ph.is_executable() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_bss_size_no_bss() {
+pub fn test_bss_size_no_bss() -> TestResult {
     let mut ph = ProgramHeader::default();
     ph.p_filesz = 0x1000;
     ph.p_memsz = 0x1000;
-    assert_eq!(ph.bss_size(), 0);
+    if ph.bss_size() != 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_bss_size_with_bss() {
+pub fn test_bss_size_with_bss() -> TestResult {
     let mut ph = ProgramHeader::default();
     ph.p_filesz = 0x1000;
     ph.p_memsz = 0x2000;
-    assert_eq!(ph.bss_size(), 0x1000);
+    if ph.bss_size() != 0x1000 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_bss_size_large_bss() {
+pub fn test_bss_size_large_bss() -> TestResult {
     let mut ph = ProgramHeader::default();
     ph.p_filesz = 0x100;
     ph.p_memsz = 0x10000;
-    assert_eq!(ph.bss_size(), 0xFF00);
+    if ph.bss_size() != 0xFF00 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_bss_size_zero_filesz() {
+pub fn test_bss_size_zero_filesz() -> TestResult {
     let mut ph = ProgramHeader::default();
     ph.p_filesz = 0;
     ph.p_memsz = 0x1000;
-    assert_eq!(ph.bss_size(), 0x1000);
+    if ph.bss_size() != 0x1000 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_bss_size_saturating() {
+pub fn test_bss_size_saturating() -> TestResult {
     let mut ph = ProgramHeader::default();
     ph.p_filesz = 0x2000;
     ph.p_memsz = 0x1000;
-    assert_eq!(ph.bss_size(), 0);
+    if ph.bss_size() != 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_type_name_null() {
+pub fn test_type_name_null() -> TestResult {
     let mut ph = ProgramHeader::default();
     ph.p_type = phdr_type::PT_NULL;
-    assert_eq!(ph.type_name(), "NULL");
+    if ph.type_name() != "NULL" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_type_name_load() {
+pub fn test_type_name_load() -> TestResult {
     let mut ph = ProgramHeader::default();
     ph.p_type = phdr_type::PT_LOAD;
-    assert_eq!(ph.type_name(), "LOAD");
+    if ph.type_name() != "LOAD" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_type_name_dynamic() {
+pub fn test_type_name_dynamic() -> TestResult {
     let mut ph = ProgramHeader::default();
     ph.p_type = phdr_type::PT_DYNAMIC;
-    assert_eq!(ph.type_name(), "DYNAMIC");
+    if ph.type_name() != "DYNAMIC" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_type_name_interp() {
+pub fn test_type_name_interp() -> TestResult {
     let mut ph = ProgramHeader::default();
     ph.p_type = phdr_type::PT_INTERP;
-    assert_eq!(ph.type_name(), "INTERP");
+    if ph.type_name() != "INTERP" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_type_name_note() {
+pub fn test_type_name_note() -> TestResult {
     let mut ph = ProgramHeader::default();
     ph.p_type = phdr_type::PT_NOTE;
-    assert_eq!(ph.type_name(), "NOTE");
+    if ph.type_name() != "NOTE" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_type_name_phdr() {
+pub fn test_type_name_phdr() -> TestResult {
     let mut ph = ProgramHeader::default();
     ph.p_type = phdr_type::PT_PHDR;
-    assert_eq!(ph.type_name(), "PHDR");
+    if ph.type_name() != "PHDR" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_type_name_tls() {
+pub fn test_type_name_tls() -> TestResult {
     let mut ph = ProgramHeader::default();
     ph.p_type = phdr_type::PT_TLS;
-    assert_eq!(ph.type_name(), "TLS");
+    if ph.type_name() != "TLS" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_type_name_gnu_stack() {
+pub fn test_type_name_gnu_stack() -> TestResult {
     let mut ph = ProgramHeader::default();
     ph.p_type = phdr_type::PT_GNU_STACK;
-    assert_eq!(ph.type_name(), "GNU_STACK");
+    if ph.type_name() != "GNU_STACK" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_type_name_gnu_relro() {
+pub fn test_type_name_gnu_relro() -> TestResult {
     let mut ph = ProgramHeader::default();
     ph.p_type = phdr_type::PT_GNU_RELRO;
-    assert_eq!(ph.type_name(), "GNU_RELRO");
+    if ph.type_name() != "GNU_RELRO" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_type_name_unknown() {
+pub fn test_type_name_unknown() -> TestResult {
     let mut ph = ProgramHeader::default();
     ph.p_type = 0xFFFFFFFF;
-    assert_eq!(ph.type_name(), "UNKNOWN");
+    if ph.type_name() != "UNKNOWN" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_flags_str_rwx() {
+pub fn test_flags_str_rwx() -> TestResult {
     let mut ph = ProgramHeader::default();
     ph.p_flags = phdr_flags::PF_R | phdr_flags::PF_W | phdr_flags::PF_X;
-    assert_eq!(ph.flags_str(), "RWX");
+    if ph.flags_str() != "RWX" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_flags_str_rw() {
+pub fn test_flags_str_rw() -> TestResult {
     let mut ph = ProgramHeader::default();
     ph.p_flags = phdr_flags::PF_R | phdr_flags::PF_W;
-    assert_eq!(ph.flags_str(), "RW-");
+    if ph.flags_str() != "RW-" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_flags_str_rx() {
+pub fn test_flags_str_rx() -> TestResult {
     let mut ph = ProgramHeader::default();
     ph.p_flags = phdr_flags::PF_R | phdr_flags::PF_X;
-    assert_eq!(ph.flags_str(), "R-X");
+    if ph.flags_str() != "R-X" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_flags_str_r() {
+pub fn test_flags_str_r() -> TestResult {
     let mut ph = ProgramHeader::default();
     ph.p_flags = phdr_flags::PF_R;
-    assert_eq!(ph.flags_str(), "R--");
+    if ph.flags_str() != "R--" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_flags_str_wx() {
+pub fn test_flags_str_wx() -> TestResult {
     let mut ph = ProgramHeader::default();
     ph.p_flags = phdr_flags::PF_W | phdr_flags::PF_X;
-    assert_eq!(ph.flags_str(), "-WX");
+    if ph.flags_str() != "-WX" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_flags_str_w() {
+pub fn test_flags_str_w() -> TestResult {
     let mut ph = ProgramHeader::default();
     ph.p_flags = phdr_flags::PF_W;
-    assert_eq!(ph.flags_str(), "-W-");
+    if ph.flags_str() != "-W-" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_flags_str_x() {
+pub fn test_flags_str_x() -> TestResult {
     let mut ph = ProgramHeader::default();
     ph.p_flags = phdr_flags::PF_X;
-    assert_eq!(ph.flags_str(), "--X");
+    if ph.flags_str() != "--X" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_flags_str_none() {
+pub fn test_flags_str_none() -> TestResult {
     let ph = ProgramHeader::default();
-    assert_eq!(ph.flags_str(), "---");
+    if ph.flags_str() != "---" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_program_header_clone() {
+pub fn test_program_header_clone() -> TestResult {
     let mut ph = ProgramHeader::default();
     ph.p_vaddr = 0x400000;
     ph.p_memsz = 0x1000;
     let cloned = ph;
-    assert_eq!(cloned.p_vaddr, 0x400000);
-    assert_eq!(cloned.p_memsz, 0x1000);
+    if cloned.p_vaddr != 0x400000 { return TestResult::Fail; }
+    if cloned.p_memsz != 0x1000 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_program_header_copy() {
+pub fn test_program_header_copy() -> TestResult {
     let mut ph = ProgramHeader::default();
     ph.p_offset = 0x1000;
     let copied: ProgramHeader = ph;
-    assert_eq!(copied.p_offset, 0x1000);
-    assert_eq!(ph.p_offset, 0x1000);
+    if copied.p_offset != 0x1000 { return TestResult::Fail; }
+    if ph.p_offset != 0x1000 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_program_header_alignment() {
-    assert_eq!(mem::align_of::<ProgramHeader>(), 8);
+pub fn test_program_header_alignment() -> TestResult {
+    if mem::align_of::<ProgramHeader>() != 8 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_phdr_type_constants() {
-    assert_eq!(phdr_type::PT_NULL, 0);
-    assert_eq!(phdr_type::PT_LOAD, 1);
-    assert_eq!(phdr_type::PT_DYNAMIC, 2);
-    assert_eq!(phdr_type::PT_INTERP, 3);
-    assert_eq!(phdr_type::PT_NOTE, 4);
-    assert_eq!(phdr_type::PT_SHLIB, 5);
-    assert_eq!(phdr_type::PT_PHDR, 6);
-    assert_eq!(phdr_type::PT_TLS, 7);
-    assert_eq!(phdr_type::PT_GNU_EH_FRAME, 0x6474_E550);
-    assert_eq!(phdr_type::PT_GNU_STACK, 0x6474_E551);
-    assert_eq!(phdr_type::PT_GNU_RELRO, 0x6474_E552);
+pub fn test_phdr_type_constants() -> TestResult {
+    if phdr_type::PT_NULL != 0 { return TestResult::Fail; }
+    if phdr_type::PT_LOAD != 1 { return TestResult::Fail; }
+    if phdr_type::PT_DYNAMIC != 2 { return TestResult::Fail; }
+    if phdr_type::PT_INTERP != 3 { return TestResult::Fail; }
+    if phdr_type::PT_NOTE != 4 { return TestResult::Fail; }
+    if phdr_type::PT_SHLIB != 5 { return TestResult::Fail; }
+    if phdr_type::PT_PHDR != 6 { return TestResult::Fail; }
+    if phdr_type::PT_TLS != 7 { return TestResult::Fail; }
+    if phdr_type::PT_GNU_EH_FRAME != 0x6474_E550 { return TestResult::Fail; }
+    if phdr_type::PT_GNU_STACK != 0x6474_E551 { return TestResult::Fail; }
+    if phdr_type::PT_GNU_RELRO != 0x6474_E552 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_phdr_flags_constants() {
-    assert_eq!(phdr_flags::PF_X, 1);
-    assert_eq!(phdr_flags::PF_W, 2);
-    assert_eq!(phdr_flags::PF_R, 4);
+pub fn test_phdr_flags_constants() -> TestResult {
+    if phdr_flags::PF_X != 1 { return TestResult::Fail; }
+    if phdr_flags::PF_W != 2 { return TestResult::Fail; }
+    if phdr_flags::PF_R != 4 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_program_header_fully_configured() {
+pub fn test_program_header_fully_configured() -> TestResult {
     let mut ph = ProgramHeader::default();
     ph.p_type = phdr_type::PT_LOAD;
     ph.p_flags = phdr_flags::PF_R | phdr_flags::PF_X;
@@ -331,11 +331,12 @@ fn test_program_header_fully_configured() {
     ph.p_memsz = 0x6000;
     ph.p_align = 0x1000;
 
-    assert!(ph.is_load());
-    assert!(ph.is_readable());
-    assert!(!ph.is_writable());
-    assert!(ph.is_executable());
-    assert_eq!(ph.bss_size(), 0x1000);
-    assert_eq!(ph.type_name(), "LOAD");
-    assert_eq!(ph.flags_str(), "R-X");
+    if !ph.is_load() { return TestResult::Fail; }
+    if !ph.is_readable() { return TestResult::Fail; }
+    if ph.is_writable() { return TestResult::Fail; }
+    if !ph.is_executable() { return TestResult::Fail; }
+    if ph.bss_size() != 0x1000 { return TestResult::Fail; }
+    if ph.type_name() != "LOAD" { return TestResult::Fail; }
+    if ph.flags_str() != "R-X" { return TestResult::Fail; }
+    TestResult::Pass
 }
