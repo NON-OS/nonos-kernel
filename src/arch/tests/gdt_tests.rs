@@ -8,7 +8,7 @@ use crate::arch::x86_64::gdt::{
 };
 use crate::test::framework::TestResult;
 
-pub fn test_gdt_constants() -> TestResult {
+pub(crate) fn test_gdt_constants() -> TestResult {
     if MAX_CPUS != 256 { return TestResult::Fail; }
     if TSS_SIZE != 104 { return TestResult::Fail; }
     if IST_COUNT != 7 { return TestResult::Fail; }
@@ -16,7 +16,7 @@ pub fn test_gdt_constants() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_segment_selectors() -> TestResult {
+pub(crate) fn test_segment_selectors() -> TestResult {
     if SEL_NULL != 0x00 { return TestResult::Fail; }
     if SEL_KERNEL_CODE != 0x08 { return TestResult::Fail; }
     if SEL_KERNEL_DATA != 0x10 { return TestResult::Fail; }
@@ -24,19 +24,19 @@ pub fn test_segment_selectors() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_user_selectors_have_ring3() -> TestResult {
+pub(crate) fn test_user_selectors_have_ring3() -> TestResult {
     if SEL_USER_DATA & 0x03 != 3 { return TestResult::Fail; }
     if SEL_USER_CODE & 0x03 != 3 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_kernel_selectors_have_ring0() -> TestResult {
+pub(crate) fn test_kernel_selectors_have_ring0() -> TestResult {
     if SEL_KERNEL_CODE & 0x03 != 0 { return TestResult::Fail; }
     if SEL_KERNEL_DATA & 0x03 != 0 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_ist_indices() -> TestResult {
+pub(crate) fn test_ist_indices() -> TestResult {
     if IST_DOUBLE_FAULT != 1 { return TestResult::Fail; }
     if IST_NMI != 2 { return TestResult::Fail; }
     if IST_MACHINE_CHECK != 3 { return TestResult::Fail; }
@@ -46,7 +46,7 @@ pub fn test_ist_indices() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_ist_indices_valid() -> TestResult {
+pub(crate) fn test_ist_indices_valid() -> TestResult {
     if IST_DOUBLE_FAULT == 0 || IST_DOUBLE_FAULT > IST_COUNT { return TestResult::Fail; }
     if IST_NMI == 0 || IST_NMI > IST_COUNT { return TestResult::Fail; }
     if IST_MACHINE_CHECK == 0 || IST_MACHINE_CHECK > IST_COUNT { return TestResult::Fail; }
@@ -56,7 +56,7 @@ pub fn test_ist_indices_valid() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_gdt_entry_null() -> TestResult {
+pub(crate) fn test_gdt_entry_null() -> TestResult {
     let entry = GdtEntry::null();
     if entry.limit_low != 0 { return TestResult::Fail; }
     if entry.base_low != 0 { return TestResult::Fail; }
@@ -68,7 +68,7 @@ pub fn test_gdt_entry_null() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_gdt_entry_kernel_code() -> TestResult {
+pub(crate) fn test_gdt_entry_kernel_code() -> TestResult {
     let entry = GdtEntry::kernel_code_64();
     if !entry.is_present() { return TestResult::Fail; }
     if entry.dpl() != 0 { return TestResult::Fail; }
@@ -77,7 +77,7 @@ pub fn test_gdt_entry_kernel_code() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_gdt_entry_kernel_data() -> TestResult {
+pub(crate) fn test_gdt_entry_kernel_data() -> TestResult {
     let entry = GdtEntry::kernel_data();
     if !entry.is_present() { return TestResult::Fail; }
     if entry.dpl() != 0 { return TestResult::Fail; }
@@ -85,7 +85,7 @@ pub fn test_gdt_entry_kernel_data() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_gdt_entry_user_code() -> TestResult {
+pub(crate) fn test_gdt_entry_user_code() -> TestResult {
     let entry = GdtEntry::user_code_64();
     if !entry.is_present() { return TestResult::Fail; }
     if entry.dpl() != 3 { return TestResult::Fail; }
@@ -94,7 +94,7 @@ pub fn test_gdt_entry_user_code() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_gdt_entry_user_data() -> TestResult {
+pub(crate) fn test_gdt_entry_user_data() -> TestResult {
     let entry = GdtEntry::user_data();
     if !entry.is_present() { return TestResult::Fail; }
     if entry.dpl() != 3 { return TestResult::Fail; }
@@ -102,7 +102,7 @@ pub fn test_gdt_entry_user_data() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_gdt_entry_new() -> TestResult {
+pub(crate) fn test_gdt_entry_new() -> TestResult {
     let entry = GdtEntry::new(0x12345678, 0xABCDE, 0x9A, 0xCF);
     if entry.base_low != 0x5678 { return TestResult::Fail; }
     if entry.base_mid != 0x34 { return TestResult::Fail; }
@@ -112,7 +112,7 @@ pub fn test_gdt_entry_new() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_gdt_entry_clone() -> TestResult {
+pub(crate) fn test_gdt_entry_clone() -> TestResult {
     let entry1 = GdtEntry::kernel_code_64();
     let entry2 = entry1.clone();
     if entry1.access != entry2.access { return TestResult::Fail; }
@@ -120,14 +120,14 @@ pub fn test_gdt_entry_clone() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_gdt_entry_copy() -> TestResult {
+pub(crate) fn test_gdt_entry_copy() -> TestResult {
     let entry1 = GdtEntry::kernel_data();
     let entry2 = entry1;
     if entry1.access != entry2.access { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_selector_alignment() -> TestResult {
+pub(crate) fn test_selector_alignment() -> TestResult {
     if SEL_NULL % 8 != 0 { return TestResult::Fail; }
     if (SEL_KERNEL_CODE & !0x03) % 8 != 0 { return TestResult::Fail; }
     if (SEL_KERNEL_DATA & !0x03) % 8 != 0 { return TestResult::Fail; }
@@ -137,12 +137,12 @@ pub fn test_selector_alignment() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_tss_size_valid() -> TestResult {
+pub(crate) fn test_tss_size_valid() -> TestResult {
     if TSS_SIZE < 104 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_default_stack_size_aligned() -> TestResult {
+pub(crate) fn test_default_stack_size_aligned() -> TestResult {
     if DEFAULT_STACK_SIZE % 4096 != 0 { return TestResult::Fail; }
     TestResult::Pass
 }
