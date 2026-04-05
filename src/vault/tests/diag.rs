@@ -21,94 +21,94 @@ use crate::vault::nonos_vault_diag::*;
 use crate::vault::nonos_vault::{initialize_vault, vault_initialized, secure_erase_vault};
 use crate::vault::nonos_vault_policy::{VaultCapability, VaultPolicyRule, set_vault_policy, clear_vault_policy};
 
-pub fn test_vault_health_healthy_eq() -> TestResult {
+pub(crate) fn test_vault_health_healthy_eq() -> TestResult {
     if VaultHealth::Healthy != VaultHealth::Healthy { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_vault_health_uninitialized_eq() -> TestResult {
+pub(crate) fn test_vault_health_uninitialized_eq() -> TestResult {
     if VaultHealth::Uninitialized != VaultHealth::Uninitialized { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_vault_health_leaked_eq() -> TestResult {
+pub(crate) fn test_vault_health_leaked_eq() -> TestResult {
     if VaultHealth::Leaked != VaultHealth::Leaked { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_vault_health_policy_violation_eq() -> TestResult {
+pub(crate) fn test_vault_health_policy_violation_eq() -> TestResult {
     if VaultHealth::PolicyViolation != VaultHealth::PolicyViolation { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_vault_health_audit_overflow_eq() -> TestResult {
+pub(crate) fn test_vault_health_audit_overflow_eq() -> TestResult {
     if VaultHealth::AuditOverflow != VaultHealth::AuditOverflow { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_vault_health_unknown_eq() -> TestResult {
+pub(crate) fn test_vault_health_unknown_eq() -> TestResult {
     if VaultHealth::Unknown != VaultHealth::Unknown { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_vault_health_different_ne() -> TestResult {
+pub(crate) fn test_vault_health_different_ne() -> TestResult {
     if VaultHealth::Healthy == VaultHealth::Uninitialized { return TestResult::Fail; }
     if VaultHealth::Leaked == VaultHealth::PolicyViolation { return TestResult::Fail; }
     if VaultHealth::AuditOverflow == VaultHealth::Unknown { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_vault_health_clone() -> TestResult {
+pub(crate) fn test_vault_health_clone() -> TestResult {
     let health = VaultHealth::Healthy;
     let cloned = health.clone();
     if health != cloned { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_vault_health_copy() -> TestResult {
+pub(crate) fn test_vault_health_copy() -> TestResult {
     let health = VaultHealth::Leaked;
     let copied: VaultHealth = health;
     if health != copied { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_vault_health_debug_healthy() -> TestResult {
+pub(crate) fn test_vault_health_debug_healthy() -> TestResult {
     let debug = alloc::format!("{:?}", VaultHealth::Healthy);
     if !debug.contains("Healthy") { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_vault_health_debug_uninitialized() -> TestResult {
+pub(crate) fn test_vault_health_debug_uninitialized() -> TestResult {
     let debug = alloc::format!("{:?}", VaultHealth::Uninitialized);
     if !debug.contains("Uninitialized") { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_vault_health_debug_leaked() -> TestResult {
+pub(crate) fn test_vault_health_debug_leaked() -> TestResult {
     let debug = alloc::format!("{:?}", VaultHealth::Leaked);
     if !debug.contains("Leaked") { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_vault_health_debug_policy_violation() -> TestResult {
+pub(crate) fn test_vault_health_debug_policy_violation() -> TestResult {
     let debug = alloc::format!("{:?}", VaultHealth::PolicyViolation);
     if !debug.contains("PolicyViolation") { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_vault_health_debug_audit_overflow() -> TestResult {
+pub(crate) fn test_vault_health_debug_audit_overflow() -> TestResult {
     let debug = alloc::format!("{:?}", VaultHealth::AuditOverflow);
     if !debug.contains("AuditOverflow") { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_vault_health_debug_unknown() -> TestResult {
+pub(crate) fn test_vault_health_debug_unknown() -> TestResult {
     let debug = alloc::format!("{:?}", VaultHealth::Unknown);
     if !debug.contains("Unknown") { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_vault_diagnostics_clone() -> TestResult {
+pub(crate) fn test_vault_diagnostics_clone() -> TestResult {
     let diag = VaultDiagnostics {
         health: VaultHealth::Healthy,
         audit_recent: alloc::vec![],
@@ -121,7 +121,7 @@ pub fn test_vault_diagnostics_clone() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_vault_diagnostics_debug() -> TestResult {
+pub(crate) fn test_vault_diagnostics_debug() -> TestResult {
     let diag = VaultDiagnostics {
         health: VaultHealth::Uninitialized,
         audit_recent: alloc::vec![],
@@ -134,7 +134,7 @@ pub fn test_vault_diagnostics_debug() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_vault_health_check_returns_health() -> TestResult {
+pub(crate) fn test_vault_health_check_returns_health() -> TestResult {
     let health = vault_health_check();
     match health {
         VaultHealth::Healthy |
@@ -147,7 +147,7 @@ pub fn test_vault_health_check_returns_health() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_vault_health_check_uninitialized_when_not_init() -> TestResult {
+pub(crate) fn test_vault_health_check_uninitialized_when_not_init() -> TestResult {
     secure_erase_vault();
     if !vault_initialized() {
         let health = vault_health_check();
@@ -156,7 +156,7 @@ pub fn test_vault_health_check_uninitialized_when_not_init() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_vault_health_check_detects_policy_violation() -> TestResult {
+pub(crate) fn test_vault_health_check_detects_policy_violation() -> TestResult {
     let _ = initialize_vault();
     let rule = VaultPolicyRule {
         capability: VaultCapability::Read,
@@ -173,13 +173,13 @@ pub fn test_vault_health_check_detects_policy_violation() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_vault_diagnostics_returns_struct() -> TestResult {
+pub(crate) fn test_vault_diagnostics_returns_struct() -> TestResult {
     let diag = vault_diagnostics();
-    if diag.sealed_count < 0 { return TestResult::Fail; }
+    let _ = diag.sealed_count;
     TestResult::Pass
 }
 
-pub fn test_vault_diagnostics_health_field() -> TestResult {
+pub(crate) fn test_vault_diagnostics_health_field() -> TestResult {
     let diag = vault_diagnostics();
     match diag.health {
         VaultHealth::Healthy |
@@ -192,31 +192,31 @@ pub fn test_vault_diagnostics_health_field() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_vault_diagnostics_audit_recent_field() -> TestResult {
+pub(crate) fn test_vault_diagnostics_audit_recent_field() -> TestResult {
     let diag = vault_diagnostics();
     if diag.audit_recent.len() > 16 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_vault_diagnostics_policy_overview_field() -> TestResult {
+pub(crate) fn test_vault_diagnostics_policy_overview_field() -> TestResult {
     let diag = vault_diagnostics();
     let _ = diag.policy_overview.len();
     TestResult::Pass
 }
 
-pub fn test_vault_diagnostics_sealed_count_field() -> TestResult {
+pub(crate) fn test_vault_diagnostics_sealed_count_field() -> TestResult {
     let diag = vault_diagnostics();
-    if diag.sealed_count < 0 { return TestResult::Fail; }
+    let _ = diag.sealed_count;
     TestResult::Pass
 }
 
-pub fn test_vault_leak_scan_returns_vec() -> TestResult {
+pub(crate) fn test_vault_leak_scan_returns_vec() -> TestResult {
     let leaks = vault_leak_scan();
     let _ = leaks.len();
     TestResult::Pass
 }
 
-pub fn test_vault_leak_scan_empty_when_no_leaks() -> TestResult {
+pub(crate) fn test_vault_leak_scan_empty_when_no_leaks() -> TestResult {
     let leaks = vault_leak_scan();
     for leak in &leaks {
         if !leak.event.contains("leak") { return TestResult::Fail; }
@@ -224,13 +224,13 @@ pub fn test_vault_leak_scan_empty_when_no_leaks() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_vault_policy_violations_returns_vec() -> TestResult {
+pub(crate) fn test_vault_policy_violations_returns_vec() -> TestResult {
     let violations = vault_policy_violations();
     let _ = violations.len();
     TestResult::Pass
 }
 
-pub fn test_vault_policy_violations_finds_denied() -> TestResult {
+pub(crate) fn test_vault_policy_violations_finds_denied() -> TestResult {
     let rule = VaultPolicyRule {
         capability: VaultCapability::Erase,
         context: "violation_check".into(),
@@ -247,37 +247,37 @@ pub fn test_vault_policy_violations_finds_denied() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_vault_live_status_returns_string() -> TestResult {
+pub(crate) fn test_vault_live_status_returns_string() -> TestResult {
     let status = vault_live_status();
     if status.is_empty() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_vault_live_status_contains_vault_status() -> TestResult {
+pub(crate) fn test_vault_live_status_contains_vault_status() -> TestResult {
     let status = vault_live_status();
     if !status.contains("Vault Status") { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_vault_live_status_contains_audit_events() -> TestResult {
+pub(crate) fn test_vault_live_status_contains_audit_events() -> TestResult {
     let status = vault_live_status();
     if !status.contains("Audit Events") { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_vault_live_status_contains_policies() -> TestResult {
+pub(crate) fn test_vault_live_status_contains_policies() -> TestResult {
     let status = vault_live_status();
     if !status.contains("Policies") { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_vault_live_status_contains_sealed_secrets() -> TestResult {
+pub(crate) fn test_vault_live_status_contains_sealed_secrets() -> TestResult {
     let status = vault_live_status();
     if !status.contains("Sealed Secrets") { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_vault_diagnostics_after_init() -> TestResult {
+pub(crate) fn test_vault_diagnostics_after_init() -> TestResult {
     let _ = initialize_vault();
     if vault_initialized() {
         let diag = vault_diagnostics();
@@ -287,35 +287,35 @@ pub fn test_vault_diagnostics_after_init() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_vault_diagnostics_after_erase() -> TestResult {
+pub(crate) fn test_vault_diagnostics_after_erase() -> TestResult {
     secure_erase_vault();
     let diag = vault_diagnostics();
     if diag.health != VaultHealth::Uninitialized { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_vault_health_check_multiple_calls() -> TestResult {
+pub(crate) fn test_vault_health_check_multiple_calls() -> TestResult {
     let h1 = vault_health_check();
     let h2 = vault_health_check();
     if h1 != h2 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_vault_diagnostics_multiple_calls() -> TestResult {
+pub(crate) fn test_vault_diagnostics_multiple_calls() -> TestResult {
     let d1 = vault_diagnostics();
     let d2 = vault_diagnostics();
     if d1.health != d2.health { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_vault_live_status_multiple_calls() -> TestResult {
+pub(crate) fn test_vault_live_status_multiple_calls() -> TestResult {
     let s1 = vault_live_status();
     let s2 = vault_live_status();
     if s1.len() != s2.len() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_vault_policy_violations_with_expired() -> TestResult {
+pub(crate) fn test_vault_policy_violations_with_expired() -> TestResult {
     let rule = VaultPolicyRule {
         capability: VaultCapability::Read,
         context: "expired_test".into(),
@@ -331,7 +331,7 @@ pub fn test_vault_policy_violations_with_expired() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_vault_diagnostics_with_policies() -> TestResult {
+pub(crate) fn test_vault_diagnostics_with_policies() -> TestResult {
     let rule = VaultPolicyRule {
         capability: VaultCapability::Derive,
         context: "diag_policy".into(),
