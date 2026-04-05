@@ -1,31 +1,31 @@
 use crate::test::framework::TestResult;
 use crate::userspace::init::{CORE_SERVICES, DRIVER_SERVICES};
 
-pub fn test_verify_interval_constant() -> TestResult {
+pub(crate) fn test_verify_interval_constant() -> TestResult {
     const VERIFY_INTERVAL_MS: u64 = 5000;
     if VERIFY_INTERVAL_MS != 5000 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_supervise_interval_constant() -> TestResult {
+pub(crate) fn test_supervise_interval_constant() -> TestResult {
     const SUPERVISE_INTERVAL_MS: u64 = 1000;
     if SUPERVISE_INTERVAL_MS != 1000 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_max_restart_attempts_constant() -> TestResult {
+pub(crate) fn test_max_restart_attempts_constant() -> TestResult {
     const MAX_RESTART_ATTEMPTS: u32 = 5;
     if MAX_RESTART_ATTEMPTS != 5 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_restart_backoff_base_constant() -> TestResult {
+pub(crate) fn test_restart_backoff_base_constant() -> TestResult {
     const RESTART_BACKOFF_BASE_MS: u64 = 1000;
     if RESTART_BACKOFF_BASE_MS != 1000 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_backoff_calculation_first_attempt() -> TestResult {
+pub(crate) fn test_backoff_calculation_first_attempt() -> TestResult {
     const RESTART_BACKOFF_BASE_MS: u64 = 1000;
     let attempts = 0u32;
     let backoff = RESTART_BACKOFF_BASE_MS * (1 << attempts.min(4));
@@ -33,7 +33,7 @@ pub fn test_backoff_calculation_first_attempt() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_backoff_calculation_second_attempt() -> TestResult {
+pub(crate) fn test_backoff_calculation_second_attempt() -> TestResult {
     const RESTART_BACKOFF_BASE_MS: u64 = 1000;
     let attempts = 1u32;
     let backoff = RESTART_BACKOFF_BASE_MS * (1 << attempts.min(4));
@@ -41,7 +41,7 @@ pub fn test_backoff_calculation_second_attempt() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_backoff_calculation_third_attempt() -> TestResult {
+pub(crate) fn test_backoff_calculation_third_attempt() -> TestResult {
     const RESTART_BACKOFF_BASE_MS: u64 = 1000;
     let attempts = 2u32;
     let backoff = RESTART_BACKOFF_BASE_MS * (1 << attempts.min(4));
@@ -49,7 +49,7 @@ pub fn test_backoff_calculation_third_attempt() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_backoff_calculation_fourth_attempt() -> TestResult {
+pub(crate) fn test_backoff_calculation_fourth_attempt() -> TestResult {
     const RESTART_BACKOFF_BASE_MS: u64 = 1000;
     let attempts = 3u32;
     let backoff = RESTART_BACKOFF_BASE_MS * (1 << attempts.min(4));
@@ -57,7 +57,7 @@ pub fn test_backoff_calculation_fourth_attempt() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_backoff_calculation_fifth_attempt() -> TestResult {
+pub(crate) fn test_backoff_calculation_fifth_attempt() -> TestResult {
     const RESTART_BACKOFF_BASE_MS: u64 = 1000;
     let attempts = 4u32;
     let backoff = RESTART_BACKOFF_BASE_MS * (1 << attempts.min(4));
@@ -65,7 +65,7 @@ pub fn test_backoff_calculation_fifth_attempt() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_backoff_capped_at_16_seconds() -> TestResult {
+pub(crate) fn test_backoff_capped_at_16_seconds() -> TestResult {
     const RESTART_BACKOFF_BASE_MS: u64 = 1000;
     let attempts = 10u32;
     let backoff = RESTART_BACKOFF_BASE_MS * (1 << attempts.min(4));
@@ -73,7 +73,7 @@ pub fn test_backoff_capped_at_16_seconds() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_backoff_capped_at_max_attempts() -> TestResult {
+pub(crate) fn test_backoff_capped_at_max_attempts() -> TestResult {
     const RESTART_BACKOFF_BASE_MS: u64 = 1000;
     let attempts = 100u32;
     let backoff = RESTART_BACKOFF_BASE_MS * (1 << attempts.min(4));
@@ -81,14 +81,14 @@ pub fn test_backoff_capped_at_max_attempts() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_verify_interval_is_5x_supervise() -> TestResult {
+pub(crate) fn test_verify_interval_is_5x_supervise() -> TestResult {
     const VERIFY_INTERVAL_MS: u64 = 5000;
     const SUPERVISE_INTERVAL_MS: u64 = 1000;
     if VERIFY_INTERVAL_MS != SUPERVISE_INTERVAL_MS * 5 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_all_core_services_supervised() -> TestResult {
+pub(crate) fn test_all_core_services_supervised() -> TestResult {
     let supervised = CORE_SERVICES;
     if !supervised.contains(&"vfs") { return TestResult::Fail; }
     if !supervised.contains(&"display") { return TestResult::Fail; }
@@ -97,17 +97,17 @@ pub fn test_all_core_services_supervised() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_supervision_uses_core_services_list() -> TestResult {
+pub(crate) fn test_supervision_uses_core_services_list() -> TestResult {
     if CORE_SERVICES.is_empty() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_verification_uses_core_services_list() -> TestResult {
+pub(crate) fn test_verification_uses_core_services_list() -> TestResult {
     if CORE_SERVICES.is_empty() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_restart_state_entry_creation() -> TestResult {
+pub(crate) fn test_restart_state_entry_creation() -> TestResult {
     struct RestartInfo {
         attempts: u32,
         last_restart_ms: u64,
@@ -118,7 +118,7 @@ pub fn test_restart_state_entry_creation() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_restart_info_increment() -> TestResult {
+pub(crate) fn test_restart_info_increment() -> TestResult {
     struct RestartInfo {
         attempts: u32,
         last_restart_ms: u64,
@@ -131,21 +131,21 @@ pub fn test_restart_info_increment() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_max_restarts_prevents_restart() -> TestResult {
+pub(crate) fn test_max_restarts_prevents_restart() -> TestResult {
     const MAX_RESTART_ATTEMPTS: u32 = 5;
     let attempts = 5u32;
     if !(attempts >= MAX_RESTART_ATTEMPTS) { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_under_max_restarts_allows_restart() -> TestResult {
+pub(crate) fn test_under_max_restarts_allows_restart() -> TestResult {
     const MAX_RESTART_ATTEMPTS: u32 = 5;
     let attempts = 4u32;
     if !(attempts < MAX_RESTART_ATTEMPTS) { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_backoff_progression() -> TestResult {
+pub(crate) fn test_backoff_progression() -> TestResult {
     const RESTART_BACKOFF_BASE_MS: u64 = 1000;
     let backoffs: [u64; 5] = [
         RESTART_BACKOFF_BASE_MS * (1 << 0u32.min(4)),
@@ -158,7 +158,7 @@ pub fn test_backoff_progression() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_supervisor_loop_constants_positive() -> TestResult {
+pub(crate) fn test_supervisor_loop_constants_positive() -> TestResult {
     const VERIFY_INTERVAL_MS: u64 = 5000;
     const SUPERVISE_INTERVAL_MS: u64 = 1000;
     if !(VERIFY_INTERVAL_MS > 0) { return TestResult::Fail; }
@@ -166,7 +166,7 @@ pub fn test_supervisor_loop_constants_positive() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_driver_services_not_in_core_supervision() -> TestResult {
+pub(crate) fn test_driver_services_not_in_core_supervision() -> TestResult {
     for driver_svc in DRIVER_SERVICES {
         if CORE_SERVICES.contains(driver_svc) { return TestResult::Fail; }
     }
