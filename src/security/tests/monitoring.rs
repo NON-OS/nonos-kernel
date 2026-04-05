@@ -1,101 +1,106 @@
 // NONOS Operating System
 // Copyright (C) 2026 NONOS Contributors
+//
+// Security monitoring and event tracking tests
 
+extern crate alloc;
+
+use alloc::format;
+use alloc::string::String;
+use alloc::vec;
 use crate::security::monitoring::monitor::{
     SecurityEventType, SecurityEvent, MonitorStats, log_event, get_recent_events,
     get_stats, set_enabled, is_enabled,
 };
-use alloc::string::String;
-use alloc::vec;
+use crate::test::framework::TestResult;
 
-#[test]
-fn test_security_event_type_suspicious_memory() {
+pub fn test_security_event_type_suspicious_memory() -> TestResult {
     let event_type = SecurityEventType::SuspiciousMemoryAccess;
-    assert_eq!(event_type, SecurityEventType::SuspiciousMemoryAccess);
+    if event_type != SecurityEventType::SuspiciousMemoryAccess { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_security_event_type_unauthorized_network() {
+pub fn test_security_event_type_unauthorized_network() -> TestResult {
     let event_type = SecurityEventType::UnauthorizedNetworkAccess;
-    assert_eq!(event_type, SecurityEventType::UnauthorizedNetworkAccess);
+    if event_type != SecurityEventType::UnauthorizedNetworkAccess { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_security_event_type_process_anomaly() {
+pub fn test_security_event_type_process_anomaly() -> TestResult {
     let event_type = SecurityEventType::ProcessAnomaly;
-    assert_eq!(event_type, SecurityEventType::ProcessAnomaly);
+    if event_type != SecurityEventType::ProcessAnomaly { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_security_event_type_hardware_tamper() {
+pub fn test_security_event_type_hardware_tamper() -> TestResult {
     let event_type = SecurityEventType::HardwareTamper;
-    assert_eq!(event_type, SecurityEventType::HardwareTamper);
+    if event_type != SecurityEventType::HardwareTamper { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_security_event_type_privilege_escalation() {
+pub fn test_security_event_type_privilege_escalation() -> TestResult {
     let event_type = SecurityEventType::PrivilegeEscalation;
-    assert_eq!(event_type, SecurityEventType::PrivilegeEscalation);
+    if event_type != SecurityEventType::PrivilegeEscalation { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_security_event_type_syscall_anomaly() {
+pub fn test_security_event_type_syscall_anomaly() -> TestResult {
     let event_type = SecurityEventType::SyscallAnomaly;
-    assert_eq!(event_type, SecurityEventType::SyscallAnomaly);
+    if event_type != SecurityEventType::SyscallAnomaly { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_security_event_type_filesystem_violation() {
+pub fn test_security_event_type_filesystem_violation() -> TestResult {
     let event_type = SecurityEventType::FilesystemViolation;
-    assert_eq!(event_type, SecurityEventType::FilesystemViolation);
+    if event_type != SecurityEventType::FilesystemViolation { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_security_event_type_capability_abuse() {
+pub fn test_security_event_type_capability_abuse() -> TestResult {
     let event_type = SecurityEventType::CapabilityAbuse;
-    assert_eq!(event_type, SecurityEventType::CapabilityAbuse);
+    if event_type != SecurityEventType::CapabilityAbuse { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_security_event_type_privacy_violation() {
+pub fn test_security_event_type_privacy_violation() -> TestResult {
     let event_type = SecurityEventType::PrivacyViolation;
-    assert_eq!(event_type, SecurityEventType::PrivacyViolation);
+    if event_type != SecurityEventType::PrivacyViolation { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_security_event_type_rootkit_detection() {
+pub fn test_security_event_type_rootkit_detection() -> TestResult {
     let event_type = SecurityEventType::RootkitDetection;
-    assert_eq!(event_type, SecurityEventType::RootkitDetection);
+    if event_type != SecurityEventType::RootkitDetection { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_security_event_type_integrity_breach() {
+pub fn test_security_event_type_integrity_breach() -> TestResult {
     let event_type = SecurityEventType::IntegrityBreach;
-    assert_eq!(event_type, SecurityEventType::IntegrityBreach);
+    if event_type != SecurityEventType::IntegrityBreach { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_security_event_type_equality() {
-    assert_eq!(SecurityEventType::SuspiciousMemoryAccess, SecurityEventType::SuspiciousMemoryAccess);
-    assert_ne!(SecurityEventType::SuspiciousMemoryAccess, SecurityEventType::RootkitDetection);
+pub fn test_security_event_type_equality() -> TestResult {
+    if SecurityEventType::SuspiciousMemoryAccess != SecurityEventType::SuspiciousMemoryAccess { return TestResult::Fail; }
+    if SecurityEventType::SuspiciousMemoryAccess == SecurityEventType::RootkitDetection { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_security_event_type_clone() {
+pub fn test_security_event_type_clone() -> TestResult {
     let et1 = SecurityEventType::ProcessAnomaly;
     let et2 = et1.clone();
-    assert_eq!(et1, et2);
+    if et1 != et2 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_security_event_type_copy() {
+pub fn test_security_event_type_copy() -> TestResult {
     let et1 = SecurityEventType::HardwareTamper;
     let et2 = et1;
-    assert_eq!(et1, et2);
+    if et1 != et2 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_security_event_fields() {
+pub fn test_security_event_fields() -> TestResult {
     let event = SecurityEvent {
         timestamp: 1000,
         event_type: SecurityEventType::SuspiciousMemoryAccess,
@@ -105,15 +110,15 @@ fn test_security_event_fields() {
         module: Some(String::from("test_module")),
         extra_tags: Some(vec![String::from("tag1")]),
     };
-    assert_eq!(event.timestamp, 1000);
-    assert_eq!(event.event_type, SecurityEventType::SuspiciousMemoryAccess);
-    assert_eq!(event.severity, 3);
-    assert_eq!(event.description, "Test event");
-    assert_eq!(event.process_id, Some(123));
+    if event.timestamp != 1000 { return TestResult::Fail; }
+    if event.event_type != SecurityEventType::SuspiciousMemoryAccess { return TestResult::Fail; }
+    if event.severity != 3 { return TestResult::Fail; }
+    if event.description != "Test event" { return TestResult::Fail; }
+    if event.process_id != Some(123) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_security_event_minimal() {
+pub fn test_security_event_minimal() -> TestResult {
     let event = SecurityEvent {
         timestamp: 0,
         event_type: SecurityEventType::IntegrityBreach,
@@ -123,13 +128,13 @@ fn test_security_event_minimal() {
         module: None,
         extra_tags: None,
     };
-    assert!(event.process_id.is_none());
-    assert!(event.module.is_none());
-    assert!(event.extra_tags.is_none());
+    if !event.process_id.is_none() { return TestResult::Fail; }
+    if !event.module.is_none() { return TestResult::Fail; }
+    if !event.extra_tags.is_none() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_security_event_clone() {
+pub fn test_security_event_clone() -> TestResult {
     let event = SecurityEvent {
         timestamp: 500,
         event_type: SecurityEventType::PrivilegeEscalation,
@@ -140,13 +145,13 @@ fn test_security_event_clone() {
         extra_tags: None,
     };
     let cloned = event.clone();
-    assert_eq!(event.timestamp, cloned.timestamp);
-    assert_eq!(event.event_type, cloned.event_type);
-    assert_eq!(event.severity, cloned.severity);
+    if event.timestamp != cloned.timestamp { return TestResult::Fail; }
+    if event.event_type != cloned.event_type { return TestResult::Fail; }
+    if event.severity != cloned.severity { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_log_event() {
+pub fn test_log_event() -> TestResult {
     log_event(
         SecurityEventType::SuspiciousMemoryAccess,
         1,
@@ -155,10 +160,10 @@ fn test_log_event() {
         Some(String::from("test")),
         None,
     );
+    TestResult::Pass
 }
 
-#[test]
-fn test_log_event_minimal() {
+pub fn test_log_event_minimal() -> TestResult {
     log_event(
         SecurityEventType::IntegrityBreach,
         0,
@@ -167,10 +172,10 @@ fn test_log_event_minimal() {
         None,
         None,
     );
+    TestResult::Pass
 }
 
-#[test]
-fn test_log_event_high_severity() {
+pub fn test_log_event_high_severity() -> TestResult {
     log_event(
         SecurityEventType::RootkitDetection,
         4,
@@ -179,46 +184,46 @@ fn test_log_event_high_severity() {
         Some(String::from("security")),
         Some(vec![String::from("rootkit"), String::from("alert")]),
     );
+    TestResult::Pass
 }
 
-#[test]
-fn test_get_recent_events() {
+pub fn test_get_recent_events() -> TestResult {
     let events = get_recent_events(10);
     let _ = events.len();
+    TestResult::Pass
 }
 
-#[test]
-fn test_get_recent_events_zero() {
+pub fn test_get_recent_events_zero() -> TestResult {
     let events = get_recent_events(0);
-    assert!(events.is_empty());
+    if !events.is_empty() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_get_stats() {
+pub fn test_get_stats() -> TestResult {
     let stats = get_stats();
     let _ = stats.total_events.load(core::sync::atomic::Ordering::Relaxed);
+    TestResult::Pass
 }
 
-#[test]
-fn test_set_enabled_true() {
+pub fn test_set_enabled_true() -> TestResult {
     set_enabled(true);
-    assert!(is_enabled());
+    if !is_enabled() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_set_enabled_false() {
+pub fn test_set_enabled_false() -> TestResult {
     set_enabled(false);
-    assert!(!is_enabled());
+    if is_enabled() { return TestResult::Fail; }
     set_enabled(true);
+    TestResult::Pass
 }
 
-#[test]
-fn test_is_enabled() {
+pub fn test_is_enabled() -> TestResult {
     let _ = is_enabled();
+    TestResult::Pass
 }
 
-#[test]
-fn test_security_event_type_all_variants() {
+pub fn test_security_event_type_all_variants() -> TestResult {
     let types = [
         SecurityEventType::SuspiciousMemoryAccess,
         SecurityEventType::UnauthorizedNetworkAccess,
@@ -232,11 +237,11 @@ fn test_security_event_type_all_variants() {
         SecurityEventType::RootkitDetection,
         SecurityEventType::IntegrityBreach,
     ];
-    assert_eq!(types.len(), 11);
+    if types.len() != 11 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_security_event_type_all_unique() {
+pub fn test_security_event_type_all_unique() -> TestResult {
     let types = [
         SecurityEventType::SuspiciousMemoryAccess,
         SecurityEventType::UnauthorizedNetworkAccess,
@@ -252,20 +257,20 @@ fn test_security_event_type_all_unique() {
     ];
     for i in 0..types.len() {
         for j in (i + 1)..types.len() {
-            assert_ne!(types[i], types[j]);
+            if types[i] == types[j] { return TestResult::Fail; }
         }
     }
+    TestResult::Pass
 }
 
-#[test]
-fn test_security_event_type_debug() {
+pub fn test_security_event_type_debug() -> TestResult {
     let et = SecurityEventType::RootkitDetection;
-    let debug_str = alloc::format!("{:?}", et);
-    assert!(debug_str.contains("RootkitDetection"));
+    let debug_str = format!("{:?}", et);
+    if !debug_str.contains("RootkitDetection") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_security_event_debug() {
+pub fn test_security_event_debug() -> TestResult {
     let event = SecurityEvent {
         timestamp: 100,
         event_type: SecurityEventType::ProcessAnomaly,
@@ -275,12 +280,12 @@ fn test_security_event_debug() {
         module: None,
         extra_tags: None,
     };
-    let debug_str = alloc::format!("{:?}", event);
-    assert!(debug_str.contains("SecurityEvent"));
+    let debug_str = format!("{:?}", event);
+    if !debug_str.contains("SecurityEvent") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_security_event_severity_range() {
+pub fn test_security_event_severity_range() -> TestResult {
     for severity in 0..=4 {
         log_event(
             SecurityEventType::IntegrityBreach,
@@ -291,24 +296,24 @@ fn test_security_event_severity_range() {
             None,
         );
     }
+    TestResult::Pass
 }
 
-#[test]
-fn test_log_multiple_events() {
+pub fn test_log_multiple_events() -> TestResult {
     for i in 0..5 {
         log_event(
             SecurityEventType::SuspiciousMemoryAccess,
             1,
-            alloc::format!("Event {}", i),
+            format!("Event {}", i),
             Some(i as u64),
             None,
             None,
         );
     }
+    TestResult::Pass
 }
 
-#[test]
-fn test_security_event_with_all_tags() {
+pub fn test_security_event_with_all_tags() -> TestResult {
     let event = SecurityEvent {
         timestamp: 200,
         event_type: SecurityEventType::CapabilityAbuse,
@@ -322,15 +327,15 @@ fn test_security_event_with_all_tags() {
             String::from("critical"),
         ]),
     };
-    assert_eq!(event.extra_tags.as_ref().unwrap().len(), 3);
+    if event.extra_tags.as_ref().unwrap().len() != 3 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_enabled_toggle() {
+pub fn test_enabled_toggle() -> TestResult {
     let original = is_enabled();
     set_enabled(!original);
-    assert_ne!(is_enabled(), original);
+    if is_enabled() == original { return TestResult::Fail; }
     set_enabled(original);
-    assert_eq!(is_enabled(), original);
+    if is_enabled() != original { return TestResult::Fail; }
+    TestResult::Pass
 }
-

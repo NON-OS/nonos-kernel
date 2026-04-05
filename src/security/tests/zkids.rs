@@ -1,9 +1,18 @@
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
+//
+// Zero-knowledge identity system tests
+
+extern crate alloc;
+
 use crate::security::network::zkids::*;
+use crate::test::framework::TestResult;
+use alloc::format;
 use alloc::string::String;
 use alloc::vec::Vec;
+use alloc::vec;
 
-#[test]
-fn test_zkid_fields() {
+pub fn test_zkid_fields() -> TestResult {
     let zkid = ZkId {
         id_hash: [0x11u8; 32],
         public_key: [0x22u8; 32],
@@ -12,16 +21,16 @@ fn test_zkid_fields() {
         last_auth: 2000,
         auth_count: 5,
     };
-    assert_eq!(zkid.id_hash, [0x11u8; 32]);
-    assert_eq!(zkid.public_key, [0x22u8; 32]);
-    assert!(zkid.capabilities.is_empty());
-    assert_eq!(zkid.created_at, 1000);
-    assert_eq!(zkid.last_auth, 2000);
-    assert_eq!(zkid.auth_count, 5);
+    if zkid.id_hash != [0x11u8; 32] { return TestResult::Fail; }
+    if zkid.public_key != [0x22u8; 32] { return TestResult::Fail; }
+    if !zkid.capabilities.is_empty() { return TestResult::Fail; }
+    if zkid.created_at != 1000 { return TestResult::Fail; }
+    if zkid.last_auth != 2000 { return TestResult::Fail; }
+    if zkid.auth_count != 5 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_zkid_clone() {
+pub fn test_zkid_clone() -> TestResult {
     let zkid = ZkId {
         id_hash: [0xAAu8; 32],
         public_key: [0xBBu8; 32],
@@ -31,12 +40,12 @@ fn test_zkid_clone() {
         auth_count: 1,
     };
     let cloned = zkid.clone();
-    assert_eq!(zkid.id_hash, cloned.id_hash);
-    assert_eq!(zkid.capabilities.len(), cloned.capabilities.len());
+    if zkid.id_hash != cloned.id_hash { return TestResult::Fail; }
+    if zkid.capabilities.len() != cloned.capabilities.len() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_zkid_with_capabilities() {
+pub fn test_zkid_with_capabilities() -> TestResult {
     let zkid = ZkId {
         id_hash: [0u8; 32],
         public_key: [0u8; 32],
@@ -49,102 +58,102 @@ fn test_zkid_with_capabilities() {
         last_auth: 0,
         auth_count: 0,
     };
-    assert_eq!(zkid.capabilities.len(), 3);
+    if zkid.capabilities.len() != 3 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_capability_system_admin() {
+pub fn test_capability_system_admin() -> TestResult {
     let cap = Capability::SystemAdmin;
-    assert_eq!(cap, Capability::SystemAdmin);
+    if cap != Capability::SystemAdmin { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_capability_process_manager() {
+pub fn test_capability_process_manager() -> TestResult {
     let cap = Capability::ProcessManager;
-    assert_eq!(cap, Capability::ProcessManager);
+    if cap != Capability::ProcessManager { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_capability_memory_manager() {
+pub fn test_capability_memory_manager() -> TestResult {
     let cap = Capability::MemoryManager;
-    assert_eq!(cap, Capability::MemoryManager);
+    if cap != Capability::MemoryManager { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_capability_network_admin() {
+pub fn test_capability_network_admin() -> TestResult {
     let cap = Capability::NetworkAdmin;
-    assert_eq!(cap, Capability::NetworkAdmin);
+    if cap != Capability::NetworkAdmin { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_capability_file_system() {
+pub fn test_capability_file_system() -> TestResult {
     let cap = Capability::FileSystem;
-    assert_eq!(cap, Capability::FileSystem);
+    if cap != Capability::FileSystem { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_capability_crypto_operator() {
+pub fn test_capability_crypto_operator() -> TestResult {
     let cap = Capability::CryptoOperator;
-    assert_eq!(cap, Capability::CryptoOperator);
+    if cap != Capability::CryptoOperator { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_capability_module_loader() {
+pub fn test_capability_module_loader() -> TestResult {
     let cap = Capability::ModuleLoader;
-    assert_eq!(cap, Capability::ModuleLoader);
+    if cap != Capability::ModuleLoader { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_capability_debug_access() {
+pub fn test_capability_debug_access() -> TestResult {
     let cap = Capability::DebugAccess;
-    assert_eq!(cap, Capability::DebugAccess);
+    if cap != Capability::DebugAccess { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_capability_time_critical() {
+pub fn test_capability_time_critical() -> TestResult {
     let cap = Capability::TimeCritical;
-    assert_eq!(cap, Capability::TimeCritical);
+    if cap != Capability::TimeCritical { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_capability_custom() {
+pub fn test_capability_custom() -> TestResult {
     let cap = Capability::Custom(String::from("custom_cap"));
     if let Capability::Custom(name) = cap {
-        assert_eq!(name, "custom_cap");
+        if name != "custom_cap" { return TestResult::Fail; }
     } else {
-        panic!("Expected Custom capability");
+        return TestResult::Fail;
     }
+    TestResult::Pass
 }
 
-#[test]
-fn test_capability_equality() {
-    assert_eq!(Capability::SystemAdmin, Capability::SystemAdmin);
-    assert_ne!(Capability::SystemAdmin, Capability::ProcessManager);
+pub fn test_capability_equality() -> TestResult {
+    if Capability::SystemAdmin != Capability::SystemAdmin { return TestResult::Fail; }
+    if Capability::SystemAdmin == Capability::ProcessManager { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_capability_clone() {
+pub fn test_capability_clone() -> TestResult {
     let cap1 = Capability::FileSystem;
     let cap2 = cap1.clone();
-    assert_eq!(cap1, cap2);
+    if cap1 != cap2 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_auth_challenge_fields() {
+pub fn test_auth_challenge_fields() -> TestResult {
     let challenge = AuthChallenge {
         challenge_id: [0x33u8; 32],
         nonce: [0x44u8; 32],
         timestamp: 5000,
         required_capabilities: vec![Capability::NetworkAdmin],
     };
-    assert_eq!(challenge.challenge_id, [0x33u8; 32]);
-    assert_eq!(challenge.nonce, [0x44u8; 32]);
-    assert_eq!(challenge.timestamp, 5000);
-    assert_eq!(challenge.required_capabilities.len(), 1);
+    if challenge.challenge_id != [0x33u8; 32] { return TestResult::Fail; }
+    if challenge.nonce != [0x44u8; 32] { return TestResult::Fail; }
+    if challenge.timestamp != 5000 { return TestResult::Fail; }
+    if challenge.required_capabilities.len() != 1 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_auth_challenge_clone() {
+pub fn test_auth_challenge_clone() -> TestResult {
     let challenge = AuthChallenge {
         challenge_id: [0u8; 32],
         nonce: [0u8; 32],
@@ -152,11 +161,11 @@ fn test_auth_challenge_clone() {
         required_capabilities: Vec::new(),
     };
     let cloned = challenge.clone();
-    assert_eq!(challenge.timestamp, cloned.timestamp);
+    if challenge.timestamp != cloned.timestamp { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_auth_session_fields() {
+pub fn test_auth_session_fields() -> TestResult {
     let session = AuthSession {
         session_id: [0x55u8; 32],
         zkid: ZkId {
@@ -172,13 +181,13 @@ fn test_auth_session_fields() {
         expires_at: 2000,
         last_activity: 1500,
     };
-    assert_eq!(session.session_id, [0x55u8; 32]);
-    assert_eq!(session.created_at, 1000);
-    assert_eq!(session.expires_at, 2000);
+    if session.session_id != [0x55u8; 32] { return TestResult::Fail; }
+    if session.created_at != 1000 { return TestResult::Fail; }
+    if session.expires_at != 2000 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_auth_session_clone() {
+pub fn test_auth_session_clone() -> TestResult {
     let session = AuthSession {
         session_id: [0u8; 32],
         zkid: ZkId {
@@ -195,21 +204,21 @@ fn test_auth_session_clone() {
         last_activity: 0,
     };
     let cloned = session.clone();
-    assert_eq!(session.session_id, cloned.session_id);
+    if session.session_id != cloned.session_id { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_zkids_config_default() {
+pub fn test_zkids_config_default() -> TestResult {
     let config = ZkidsConfig::default();
-    assert_eq!(config.max_registered_ids, 1024);
-    assert_eq!(config.session_timeout_seconds, 3600);
-    assert_eq!(config.challenge_timeout_seconds, 300);
-    assert!(config.require_zk_proofs);
-    assert!(!config.enable_capability_inheritance);
+    if config.max_registered_ids != 1024 { return TestResult::Fail; }
+    if config.session_timeout_seconds != 3600 { return TestResult::Fail; }
+    if config.challenge_timeout_seconds != 300 { return TestResult::Fail; }
+    if !config.require_zk_proofs { return TestResult::Fail; }
+    if config.enable_capability_inheritance { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_zkids_config_custom() {
+pub fn test_zkids_config_custom() -> TestResult {
     let config = ZkidsConfig {
         max_registered_ids: 512,
         session_timeout_seconds: 7200,
@@ -217,34 +226,34 @@ fn test_zkids_config_custom() {
         require_zk_proofs: false,
         enable_capability_inheritance: true,
     };
-    assert_eq!(config.max_registered_ids, 512);
-    assert!(!config.require_zk_proofs);
-    assert!(config.enable_capability_inheritance);
+    if config.max_registered_ids != 512 { return TestResult::Fail; }
+    if config.require_zk_proofs { return TestResult::Fail; }
+    if !config.enable_capability_inheritance { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_zkids_config_copy() {
+pub fn test_zkids_config_copy() -> TestResult {
     let config1 = ZkidsConfig::default();
     let config2 = config1;
-    assert_eq!(config1.max_registered_ids, config2.max_registered_ids);
+    if config1.max_registered_ids != config2.max_registered_ids { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_zkids_stats_fields() {
+pub fn test_zkids_stats_fields() -> TestResult {
     let stats = ZkidsStats {
         registered_ids: 100,
         active_sessions: 50,
         pending_challenges: 10,
         total_authentications: 1000,
     };
-    assert_eq!(stats.registered_ids, 100);
-    assert_eq!(stats.active_sessions, 50);
-    assert_eq!(stats.pending_challenges, 10);
-    assert_eq!(stats.total_authentications, 1000);
+    if stats.registered_ids != 100 { return TestResult::Fail; }
+    if stats.active_sessions != 50 { return TestResult::Fail; }
+    if stats.pending_challenges != 10 { return TestResult::Fail; }
+    if stats.total_authentications != 1000 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_zkids_stats_clone() {
+pub fn test_zkids_stats_clone() -> TestResult {
     let stats = ZkidsStats {
         registered_ids: 5,
         active_sessions: 3,
@@ -252,17 +261,17 @@ fn test_zkids_stats_clone() {
         total_authentications: 100,
     };
     let cloned = stats.clone();
-    assert_eq!(stats.registered_ids, cloned.registered_ids);
+    if stats.registered_ids != cloned.registered_ids { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_get_zkids_stats() {
+pub fn test_get_zkids_stats() -> TestResult {
     let stats = get_zkids_stats();
     let _ = stats.registered_ids;
+    TestResult::Pass
 }
 
-#[test]
-fn test_all_zkids_capabilities() {
+pub fn test_all_zkids_capabilities() -> TestResult {
     let caps = [
         Capability::SystemAdmin,
         Capability::ProcessManager,
@@ -274,11 +283,11 @@ fn test_all_zkids_capabilities() {
         Capability::DebugAccess,
         Capability::TimeCritical,
     ];
-    assert_eq!(caps.len(), 9);
+    if caps.len() != 9 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_zkid_debug_format() {
+pub fn test_zkid_debug_format() -> TestResult {
     let zkid = ZkId {
         id_hash: [0u8; 32],
         public_key: [0u8; 32],
@@ -287,40 +296,40 @@ fn test_zkid_debug_format() {
         last_auth: 0,
         auth_count: 0,
     };
-    let debug_str = alloc::format!("{:?}", zkid);
-    assert!(debug_str.contains("ZkId"));
+    let debug_str = format!("{:?}", zkid);
+    if !debug_str.contains("ZkId") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_capability_debug_format() {
+pub fn test_capability_debug_format() -> TestResult {
     let cap = Capability::CryptoOperator;
-    let debug_str = alloc::format!("{:?}", cap);
-    assert!(debug_str.contains("CryptoOperator"));
+    let debug_str = format!("{:?}", cap);
+    if !debug_str.contains("CryptoOperator") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_zkids_stats_debug_format() {
+pub fn test_zkids_stats_debug_format() -> TestResult {
     let stats = ZkidsStats {
         registered_ids: 0,
         active_sessions: 0,
         pending_challenges: 0,
         total_authentications: 0,
     };
-    let debug_str = alloc::format!("{:?}", stats);
-    assert!(debug_str.contains("ZkidsStats"));
+    let debug_str = format!("{:?}", stats);
+    if !debug_str.contains("ZkidsStats") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_custom_capability_equality() {
+pub fn test_custom_capability_equality() -> TestResult {
     let cap1 = Capability::Custom(String::from("test"));
     let cap2 = Capability::Custom(String::from("test"));
     let cap3 = Capability::Custom(String::from("other"));
-    assert_eq!(cap1, cap2);
-    assert_ne!(cap1, cap3);
+    if cap1 != cap2 { return TestResult::Fail; }
+    if cap1 == cap3 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_zkid_with_max_auth_count() {
+pub fn test_zkid_with_max_auth_count() -> TestResult {
     let zkid = ZkId {
         id_hash: [0u8; 32],
         public_key: [0u8; 32],
@@ -329,22 +338,22 @@ fn test_zkid_with_max_auth_count() {
         last_auth: 0,
         auth_count: u64::MAX,
     };
-    assert_eq!(zkid.auth_count, u64::MAX);
+    if zkid.auth_count != u64::MAX { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_auth_challenge_empty_capabilities() {
+pub fn test_auth_challenge_empty_capabilities() -> TestResult {
     let challenge = AuthChallenge {
         challenge_id: [0u8; 32],
         nonce: [0u8; 32],
         timestamp: 0,
         required_capabilities: Vec::new(),
     };
-    assert!(challenge.required_capabilities.is_empty());
+    if !challenge.required_capabilities.is_empty() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_auth_session_expired() {
+pub fn test_auth_session_expired() -> TestResult {
     let session = AuthSession {
         session_id: [0u8; 32],
         zkid: ZkId {
@@ -360,5 +369,6 @@ fn test_auth_session_expired() {
         expires_at: 1,
         last_activity: 0,
     };
-    assert!(session.expires_at < u64::MAX);
+    if session.expires_at >= u64::MAX { return TestResult::Fail; }
+    TestResult::Pass
 }
