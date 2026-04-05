@@ -20,25 +20,25 @@ use crate::test::framework::TestResult;
 use crate::zksync::eravm::*;
 use crate::zksync::types::*;
 
-pub fn test_vm_memory_new() -> TestResult {
+pub(crate) fn test_vm_memory_new() -> TestResult {
     let mem = VmMemory::new();
     if mem.size() != 0 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_vm_memory_default() -> TestResult {
+pub(crate) fn test_vm_memory_default() -> TestResult {
     let mem: VmMemory = Default::default();
     if mem.size() != 0 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_vm_memory_with_capacity() -> TestResult {
+pub(crate) fn test_vm_memory_with_capacity() -> TestResult {
     let mem = VmMemory::with_capacity(1024);
     if mem.size() != 0 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_vm_memory_store_load() -> TestResult {
+pub(crate) fn test_vm_memory_store_load() -> TestResult {
     let mut mem = VmMemory::new();
     let data = [1u8, 2, 3, 4, 5];
     mem.store(0, &data);
@@ -47,7 +47,7 @@ pub fn test_vm_memory_store_load() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_vm_memory_store_expands() -> TestResult {
+pub(crate) fn test_vm_memory_store_expands() -> TestResult {
     let mut mem = VmMemory::new();
     if mem.size() != 0 { return TestResult::Fail; }
     mem.store(0, &[1, 2, 3, 4]);
@@ -55,14 +55,14 @@ pub fn test_vm_memory_store_expands() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_vm_memory_load_expands() -> TestResult {
+pub(crate) fn test_vm_memory_load_expands() -> TestResult {
     let mut mem = VmMemory::new();
     let _ = mem.load(100, 10);
     if mem.size() <= 0 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_vm_memory_store_at_offset() -> TestResult {
+pub(crate) fn test_vm_memory_store_at_offset() -> TestResult {
     let mut mem = VmMemory::new();
     mem.store(100, &[0xAA, 0xBB, 0xCC]);
     let loaded = mem.load(100, 3);
@@ -70,7 +70,7 @@ pub fn test_vm_memory_store_at_offset() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_vm_memory_load_u256() -> TestResult {
+pub(crate) fn test_vm_memory_load_u256() -> TestResult {
     let mut mem = VmMemory::new();
     let data = [0x12u8; 32];
     mem.store(0, &data);
@@ -79,7 +79,7 @@ pub fn test_vm_memory_load_u256() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_vm_memory_store_u256() -> TestResult {
+pub(crate) fn test_vm_memory_store_u256() -> TestResult {
     let mut mem = VmMemory::new();
     let data = [0x34u8; 32];
     mem.store_u256(0, &data);
@@ -88,14 +88,14 @@ pub fn test_vm_memory_store_u256() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_vm_memory_load_u256_zeros() -> TestResult {
+pub(crate) fn test_vm_memory_load_u256_zeros() -> TestResult {
     let mut mem = VmMemory::new();
     let loaded = mem.load_u256(0);
     if loaded != [0u8; 32] { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_vm_memory_clear() -> TestResult {
+pub(crate) fn test_vm_memory_clear() -> TestResult {
     let mut mem = VmMemory::new();
     mem.store(0, &[1, 2, 3, 4]);
     if mem.size() <= 0 { return TestResult::Fail; }
@@ -104,14 +104,14 @@ pub fn test_vm_memory_clear() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_vm_memory_page_alignment() -> TestResult {
+pub(crate) fn test_vm_memory_page_alignment() -> TestResult {
     let mut mem = VmMemory::new();
     mem.store(0, &[1]);
     if mem.size() < 4096 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_vm_memory_multiple_stores() -> TestResult {
+pub(crate) fn test_vm_memory_multiple_stores() -> TestResult {
     let mut mem = VmMemory::new();
     mem.store(0, &[0xAA; 16]);
     mem.store(16, &[0xBB; 16]);
@@ -122,7 +122,7 @@ pub fn test_vm_memory_multiple_stores() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_vm_memory_overwrite() -> TestResult {
+pub(crate) fn test_vm_memory_overwrite() -> TestResult {
     let mut mem = VmMemory::new();
     mem.store(0, &[0xAA; 8]);
     mem.store(0, &[0xBB; 8]);
@@ -130,7 +130,7 @@ pub fn test_vm_memory_overwrite() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_execution_context_new() -> TestResult {
+pub(crate) fn test_execution_context_new() -> TestResult {
     let caller = Address::from_slice(&[1u8; 20]);
     let address = Address::from_slice(&[2u8; 20]);
     let value = U256::from_u64(1000);
@@ -143,7 +143,7 @@ pub fn test_execution_context_new() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_execution_context_initial_state() -> TestResult {
+pub(crate) fn test_execution_context_initial_state() -> TestResult {
     let ctx = ExecutionContext::new(
         Address::ZERO,
         Address::ZERO,
@@ -157,7 +157,7 @@ pub fn test_execution_context_initial_state() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_execution_context_consume_gas() -> TestResult {
+pub(crate) fn test_execution_context_consume_gas() -> TestResult {
     let mut ctx = ExecutionContext::new(
         Address::ZERO,
         Address::ZERO,
@@ -169,7 +169,7 @@ pub fn test_execution_context_consume_gas() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_execution_context_consume_gas_exceeds_limit() -> TestResult {
+pub(crate) fn test_execution_context_consume_gas_exceeds_limit() -> TestResult {
     let mut ctx = ExecutionContext::new(
         Address::ZERO,
         Address::ZERO,
@@ -181,7 +181,7 @@ pub fn test_execution_context_consume_gas_exceeds_limit() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_execution_context_consume_gas_exact_limit() -> TestResult {
+pub(crate) fn test_execution_context_consume_gas_exact_limit() -> TestResult {
     let mut ctx = ExecutionContext::new(
         Address::ZERO,
         Address::ZERO,
@@ -193,7 +193,7 @@ pub fn test_execution_context_consume_gas_exact_limit() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_execution_context_remaining_gas() -> TestResult {
+pub(crate) fn test_execution_context_remaining_gas() -> TestResult {
     let mut ctx = ExecutionContext::new(
         Address::ZERO,
         Address::ZERO,
@@ -206,7 +206,7 @@ pub fn test_execution_context_remaining_gas() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_execution_context_revert() -> TestResult {
+pub(crate) fn test_execution_context_revert() -> TestResult {
     let mut ctx = ExecutionContext::new(
         Address::ZERO,
         Address::ZERO,
@@ -220,7 +220,7 @@ pub fn test_execution_context_revert() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_execution_context_finish() -> TestResult {
+pub(crate) fn test_execution_context_finish() -> TestResult {
     let mut ctx = ExecutionContext::new(
         Address::ZERO,
         Address::ZERO,
@@ -234,7 +234,7 @@ pub fn test_execution_context_finish() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_execution_context_is_finished_false() -> TestResult {
+pub(crate) fn test_execution_context_is_finished_false() -> TestResult {
     let ctx = ExecutionContext::new(
         Address::ZERO,
         Address::ZERO,
@@ -245,7 +245,7 @@ pub fn test_execution_context_is_finished_false() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_execution_context_is_finished_after_finish() -> TestResult {
+pub(crate) fn test_execution_context_is_finished_after_finish() -> TestResult {
     let mut ctx = ExecutionContext::new(
         Address::ZERO,
         Address::ZERO,
@@ -257,7 +257,7 @@ pub fn test_execution_context_is_finished_after_finish() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_execution_context_is_finished_after_revert() -> TestResult {
+pub(crate) fn test_execution_context_is_finished_after_revert() -> TestResult {
     let mut ctx = ExecutionContext::new(
         Address::ZERO,
         Address::ZERO,
@@ -269,7 +269,7 @@ pub fn test_execution_context_is_finished_after_revert() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_execution_context_memory_access() -> TestResult {
+pub(crate) fn test_execution_context_memory_access() -> TestResult {
     let mut ctx = ExecutionContext::new(
         Address::ZERO,
         Address::ZERO,
@@ -282,7 +282,7 @@ pub fn test_execution_context_memory_access() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_execution_context_multiple_gas_consumption() -> TestResult {
+pub(crate) fn test_execution_context_multiple_gas_consumption() -> TestResult {
     let mut ctx = ExecutionContext::new(
         Address::ZERO,
         Address::ZERO,
@@ -297,7 +297,7 @@ pub fn test_execution_context_multiple_gas_consumption() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_execution_context_gas_consumption_fails_mid_execution() -> TestResult {
+pub(crate) fn test_execution_context_gas_consumption_fails_mid_execution() -> TestResult {
     let mut ctx = ExecutionContext::new(
         Address::ZERO,
         Address::ZERO,

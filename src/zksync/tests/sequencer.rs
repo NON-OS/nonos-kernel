@@ -36,20 +36,20 @@ fn create_test_tx(hash: [u8; 32], from: Address, nonce: u64, value: u64) -> L2Tr
     }
 }
 
-pub fn test_transaction_pool_new() -> TestResult {
+pub(crate) fn test_transaction_pool_new() -> TestResult {
     let pool = TransactionPool::new(100);
     if !pool.is_empty() { return TestResult::Fail; }
     if pool.len() != 0 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_transaction_pool_default() -> TestResult {
+pub(crate) fn test_transaction_pool_default() -> TestResult {
     let pool: TransactionPool = Default::default();
     if !pool.is_empty() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_transaction_pool_insert() -> TestResult {
+pub(crate) fn test_transaction_pool_insert() -> TestResult {
     let mut pool = TransactionPool::new(100);
     let from = Address::from_slice(&[1u8; 20]);
     let tx = create_test_tx([1u8; 32], from, 0, 100);
@@ -58,7 +58,7 @@ pub fn test_transaction_pool_insert() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_transaction_pool_insert_duplicate() -> TestResult {
+pub(crate) fn test_transaction_pool_insert_duplicate() -> TestResult {
     let mut pool = TransactionPool::new(100);
     let from = Address::from_slice(&[1u8; 20]);
     let tx1 = create_test_tx([1u8; 32], from, 0, 100);
@@ -69,7 +69,7 @@ pub fn test_transaction_pool_insert_duplicate() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_transaction_pool_insert_full() -> TestResult {
+pub(crate) fn test_transaction_pool_insert_full() -> TestResult {
     let mut pool = TransactionPool::new(2);
     let from = Address::from_slice(&[1u8; 20]);
     let tx1 = create_test_tx([1u8; 32], from, 0, 100);
@@ -82,7 +82,7 @@ pub fn test_transaction_pool_insert_full() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_transaction_pool_get() -> TestResult {
+pub(crate) fn test_transaction_pool_get() -> TestResult {
     let mut pool = TransactionPool::new(100);
     let from = Address::from_slice(&[1u8; 20]);
     let tx = create_test_tx([1u8; 32], from, 0, 100);
@@ -94,14 +94,14 @@ pub fn test_transaction_pool_get() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_transaction_pool_get_nonexistent() -> TestResult {
+pub(crate) fn test_transaction_pool_get_nonexistent() -> TestResult {
     let pool = TransactionPool::new(100);
     let hash = TxHash([99u8; 32]);
     if pool.get(&hash).is_some() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_transaction_pool_contains() -> TestResult {
+pub(crate) fn test_transaction_pool_contains() -> TestResult {
     let mut pool = TransactionPool::new(100);
     let from = Address::from_slice(&[1u8; 20]);
     let tx = create_test_tx([1u8; 32], from, 0, 100);
@@ -113,7 +113,7 @@ pub fn test_transaction_pool_contains() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_transaction_pool_remove() -> TestResult {
+pub(crate) fn test_transaction_pool_remove() -> TestResult {
     let mut pool = TransactionPool::new(100);
     let from = Address::from_slice(&[1u8; 20]);
     let tx = create_test_tx([1u8; 32], from, 0, 100);
@@ -126,14 +126,14 @@ pub fn test_transaction_pool_remove() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_transaction_pool_remove_nonexistent() -> TestResult {
+pub(crate) fn test_transaction_pool_remove_nonexistent() -> TestResult {
     let mut pool = TransactionPool::new(100);
     let hash = TxHash([99u8; 32]);
     if pool.remove(&hash).is_some() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_transaction_pool_get_pending_for() -> TestResult {
+pub(crate) fn test_transaction_pool_get_pending_for() -> TestResult {
     let mut pool = TransactionPool::new(100);
     let from = Address::from_slice(&[1u8; 20]);
     let other = Address::from_slice(&[2u8; 20]);
@@ -148,7 +148,7 @@ pub fn test_transaction_pool_get_pending_for() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_transaction_pool_get_pending_for_empty() -> TestResult {
+pub(crate) fn test_transaction_pool_get_pending_for_empty() -> TestResult {
     let pool = TransactionPool::new(100);
     let addr = Address::from_slice(&[1u8; 20]);
     let pending = pool.get_pending_for(&addr);
@@ -156,7 +156,7 @@ pub fn test_transaction_pool_get_pending_for_empty() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_transaction_pool_next_nonce_for() -> TestResult {
+pub(crate) fn test_transaction_pool_next_nonce_for() -> TestResult {
     let mut pool = TransactionPool::new(100);
     let from = Address::from_slice(&[1u8; 20]);
     let tx1 = create_test_tx([1u8; 32], from, 5, 100);
@@ -168,7 +168,7 @@ pub fn test_transaction_pool_next_nonce_for() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_transaction_pool_next_nonce_for_current_higher() -> TestResult {
+pub(crate) fn test_transaction_pool_next_nonce_for_current_higher() -> TestResult {
     let mut pool = TransactionPool::new(100);
     let from = Address::from_slice(&[1u8; 20]);
     let tx = create_test_tx([1u8; 32], from, 2, 100);
@@ -178,7 +178,7 @@ pub fn test_transaction_pool_next_nonce_for_current_higher() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_transaction_pool_drain_batch() -> TestResult {
+pub(crate) fn test_transaction_pool_drain_batch() -> TestResult {
     let mut pool = TransactionPool::new(100);
     let from = Address::from_slice(&[1u8; 20]);
     for i in 0..5u8 {
@@ -193,7 +193,7 @@ pub fn test_transaction_pool_drain_batch() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_transaction_pool_drain_batch_more_than_available() -> TestResult {
+pub(crate) fn test_transaction_pool_drain_batch_more_than_available() -> TestResult {
     let mut pool = TransactionPool::new(100);
     let from = Address::from_slice(&[1u8; 20]);
     for i in 0..2u8 {
@@ -207,13 +207,13 @@ pub fn test_transaction_pool_drain_batch_more_than_available() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_transaction_executor_new() -> TestResult {
+pub(crate) fn test_transaction_executor_new() -> TestResult {
     let mut state = StateManager::new();
     let _executor = TransactionExecutor::new(&mut state);
     TestResult::Pass
 }
 
-pub fn test_transaction_executor_current_block() -> TestResult {
+pub(crate) fn test_transaction_executor_current_block() -> TestResult {
     let mut state = StateManager::new();
     state.advance_block();
     state.advance_block();
@@ -222,7 +222,7 @@ pub fn test_transaction_executor_current_block() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_transaction_executor_execute_success() -> TestResult {
+pub(crate) fn test_transaction_executor_execute_success() -> TestResult {
     let mut state = StateManager::new();
     let from = Address::from_slice(&[1u8; 20]);
     let to = Address::from_slice(&[2u8; 20]);
@@ -249,7 +249,7 @@ pub fn test_transaction_executor_execute_success() -> TestResult {
     }
 }
 
-pub fn test_transaction_executor_execute_nonce_too_low() -> TestResult {
+pub(crate) fn test_transaction_executor_execute_nonce_too_low() -> TestResult {
     let mut state = StateManager::new();
     let from = Address::from_slice(&[1u8; 20]);
     state.set_balance(from, U256::from_u64(1000));
@@ -267,7 +267,7 @@ pub fn test_transaction_executor_execute_nonce_too_low() -> TestResult {
     }
 }
 
-pub fn test_transaction_executor_execute_nonce_too_high() -> TestResult {
+pub(crate) fn test_transaction_executor_execute_nonce_too_high() -> TestResult {
     let mut state = StateManager::new();
     let from = Address::from_slice(&[1u8; 20]);
     state.set_balance(from, U256::from_u64(1000));
@@ -283,7 +283,7 @@ pub fn test_transaction_executor_execute_nonce_too_high() -> TestResult {
     }
 }
 
-pub fn test_transaction_executor_execute_insufficient_balance() -> TestResult {
+pub(crate) fn test_transaction_executor_execute_insufficient_balance() -> TestResult {
     let mut state = StateManager::new();
     let from = Address::from_slice(&[1u8; 20]);
     state.set_balance(from, U256::from_u64(50));
@@ -299,7 +299,7 @@ pub fn test_transaction_executor_execute_insufficient_balance() -> TestResult {
     }
 }
 
-pub fn test_transaction_executor_validate_success() -> TestResult {
+pub(crate) fn test_transaction_executor_validate_success() -> TestResult {
     let mut state = StateManager::new();
     let from = Address::from_slice(&[1u8; 20]);
     state.set_balance(from, U256::from_u64(1000));
@@ -310,7 +310,7 @@ pub fn test_transaction_executor_validate_success() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_transaction_executor_validate_nonce_too_low() -> TestResult {
+pub(crate) fn test_transaction_executor_validate_nonce_too_low() -> TestResult {
     let mut state = StateManager::new();
     let from = Address::from_slice(&[1u8; 20]);
     state.set_balance(from, U256::from_u64(1000));
@@ -322,7 +322,7 @@ pub fn test_transaction_executor_validate_nonce_too_low() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_transaction_executor_validate_insufficient_balance() -> TestResult {
+pub(crate) fn test_transaction_executor_validate_insufficient_balance() -> TestResult {
     let mut state = StateManager::new();
     let from = Address::from_slice(&[1u8; 20]);
     state.set_balance(from, U256::from_u64(50));
@@ -333,7 +333,7 @@ pub fn test_transaction_executor_validate_insufficient_balance() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_transaction_executor_increments_nonce() -> TestResult {
+pub(crate) fn test_transaction_executor_increments_nonce() -> TestResult {
     let mut state = StateManager::new();
     let from = Address::from_slice(&[1u8; 20]);
     let to = Address::from_slice(&[2u8; 20]);
@@ -356,7 +356,7 @@ pub fn test_transaction_executor_increments_nonce() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_transaction_executor_transfers_value() -> TestResult {
+pub(crate) fn test_transaction_executor_transfers_value() -> TestResult {
     let mut state = StateManager::new();
     let from = Address::from_slice(&[1u8; 20]);
     let to = Address::from_slice(&[2u8; 20]);
