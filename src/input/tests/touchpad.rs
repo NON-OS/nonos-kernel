@@ -10,21 +10,21 @@ use crate::input::i2c_hid::touchpad::gesture::{
     is_tap_event, is_double_tap, tap_timing_config,
 };
 use crate::input::i2c_hid::touchpad::util::{apply_acceleration, distance, isqrt};
+use crate::test::framework::TestResult;
 
-#[test]
-fn test_touch_point_default() {
+pub fn test_touch_point_default() -> TestResult {
     let point = TouchPoint::default();
-    assert_eq!(point.id, 0);
-    assert_eq!(point.x, 0);
-    assert_eq!(point.y, 0);
-    assert!(!point.tip);
-    assert_eq!(point.pressure, 0);
-    assert_eq!(point.width, 0);
-    assert_eq!(point.height, 0);
+    if point.id != 0 { return TestResult::Fail; }
+    if point.x != 0 { return TestResult::Fail; }
+    if point.y != 0 { return TestResult::Fail; }
+    if point.tip { return TestResult::Fail; }
+    if point.pressure != 0 { return TestResult::Fail; }
+    if point.width != 0 { return TestResult::Fail; }
+    if point.height != 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_touch_point_area() {
+pub fn test_touch_point_area() -> TestResult {
     let point = TouchPoint {
         id: 1,
         x: 100,
@@ -34,17 +34,17 @@ fn test_touch_point_area() {
         width: 10,
         height: 20,
     };
-    assert_eq!(point.area(), 200);
+    if point.area() != 200 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_touch_point_area_zero() {
+pub fn test_touch_point_area_zero() -> TestResult {
     let point = TouchPoint::default();
-    assert_eq!(point.area(), 0);
+    if point.area() != 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_touch_point_is_palm_by_area() {
+pub fn test_touch_point_is_palm_by_area() -> TestResult {
     let point = TouchPoint {
         id: 1,
         x: 500,
@@ -54,11 +54,11 @@ fn test_touch_point_is_palm_by_area() {
         width: 25,
         height: 20,
     };
-    assert!(point.is_palm_candidate(1000, 1000));
+    if !point.is_palm_candidate(1000, 1000) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_touch_point_is_palm_by_pressure() {
+pub fn test_touch_point_is_palm_by_pressure() -> TestResult {
     let point = TouchPoint {
         id: 1,
         x: 500,
@@ -68,11 +68,11 @@ fn test_touch_point_is_palm_by_pressure() {
         width: 5,
         height: 5,
     };
-    assert!(point.is_palm_candidate(1000, 1000));
+    if !point.is_palm_candidate(1000, 1000) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_touch_point_is_palm_by_left_edge() {
+pub fn test_touch_point_is_palm_by_left_edge() -> TestResult {
     let point = TouchPoint {
         id: 1,
         x: PALM_EDGE_THRESHOLD - 1,
@@ -82,11 +82,11 @@ fn test_touch_point_is_palm_by_left_edge() {
         width: 5,
         height: 5,
     };
-    assert!(point.is_palm_candidate(1000, 1000));
+    if !point.is_palm_candidate(1000, 1000) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_touch_point_is_palm_by_right_edge() {
+pub fn test_touch_point_is_palm_by_right_edge() -> TestResult {
     let point = TouchPoint {
         id: 1,
         x: 1000 - PALM_EDGE_THRESHOLD + 1,
@@ -96,11 +96,11 @@ fn test_touch_point_is_palm_by_right_edge() {
         width: 5,
         height: 5,
     };
-    assert!(point.is_palm_candidate(1000, 1000));
+    if !point.is_palm_candidate(1000, 1000) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_touch_point_is_palm_by_top_edge() {
+pub fn test_touch_point_is_palm_by_top_edge() -> TestResult {
     let point = TouchPoint {
         id: 1,
         x: 500,
@@ -110,11 +110,11 @@ fn test_touch_point_is_palm_by_top_edge() {
         width: 5,
         height: 5,
     };
-    assert!(point.is_palm_candidate(1000, 1000));
+    if !point.is_palm_candidate(1000, 1000) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_touch_point_is_palm_by_bottom_edge() {
+pub fn test_touch_point_is_palm_by_bottom_edge() -> TestResult {
     let point = TouchPoint {
         id: 1,
         x: 500,
@@ -124,11 +124,11 @@ fn test_touch_point_is_palm_by_bottom_edge() {
         width: 5,
         height: 5,
     };
-    assert!(point.is_palm_candidate(1000, 1000));
+    if !point.is_palm_candidate(1000, 1000) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_touch_point_not_palm() {
+pub fn test_touch_point_not_palm() -> TestResult {
     let point = TouchPoint {
         id: 1,
         x: 500,
@@ -138,139 +138,139 @@ fn test_touch_point_not_palm() {
         width: 5,
         height: 5,
     };
-    assert!(!point.is_palm_candidate(1000, 1000));
+    if point.is_palm_candidate(1000, 1000) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_gesture_default() {
+pub fn test_gesture_default() -> TestResult {
     let gesture = Gesture::default();
-    assert_eq!(gesture, Gesture::None);
+    if gesture != Gesture::None { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_gesture_variants() {
-    assert_eq!(Gesture::None, Gesture::None);
-    assert_eq!(Gesture::Tap, Gesture::Tap);
-    assert_eq!(Gesture::DoubleTap, Gesture::DoubleTap);
-    assert_eq!(Gesture::TwoFingerTap, Gesture::TwoFingerTap);
-    assert_eq!(Gesture::ThreeFingerTap, Gesture::ThreeFingerTap);
+pub fn test_gesture_variants() -> TestResult {
+    if Gesture::None != Gesture::None { return TestResult::Fail; }
+    if Gesture::Tap != Gesture::Tap { return TestResult::Fail; }
+    if Gesture::DoubleTap != Gesture::DoubleTap { return TestResult::Fail; }
+    if Gesture::TwoFingerTap != Gesture::TwoFingerTap { return TestResult::Fail; }
+    if Gesture::ThreeFingerTap != Gesture::ThreeFingerTap { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_gesture_two_finger_scroll() {
+pub fn test_gesture_two_finger_scroll() -> TestResult {
     let gesture = Gesture::TwoFingerScroll { dx: 10, dy: 20 };
     match gesture {
         Gesture::TwoFingerScroll { dx, dy } => {
-            assert_eq!(dx, 10);
-            assert_eq!(dy, 20);
+            if dx != 10 { return TestResult::Fail; }
+            if dy != 20 { return TestResult::Fail; }
         }
-        _ => panic!("Expected TwoFingerScroll"),
+        _ => return TestResult::Fail,
     }
+    TestResult::Pass
 }
 
-#[test]
-fn test_gesture_pinch_zoom() {
+pub fn test_gesture_pinch_zoom() -> TestResult {
     let gesture = Gesture::PinchZoom { scale: 50 };
     match gesture {
         Gesture::PinchZoom { scale } => {
-            assert_eq!(scale, 50);
+            if scale != 50 { return TestResult::Fail; }
         }
-        _ => panic!("Expected PinchZoom"),
+        _ => return TestResult::Fail,
     }
+    TestResult::Pass
 }
 
-#[test]
-fn test_gesture_three_finger_swipes() {
-    assert_eq!(Gesture::ThreeFingerSwipeLeft, Gesture::ThreeFingerSwipeLeft);
-    assert_eq!(Gesture::ThreeFingerSwipeRight, Gesture::ThreeFingerSwipeRight);
-    assert_eq!(Gesture::ThreeFingerSwipeUp, Gesture::ThreeFingerSwipeUp);
-    assert_eq!(Gesture::ThreeFingerSwipeDown, Gesture::ThreeFingerSwipeDown);
+pub fn test_gesture_three_finger_swipes() -> TestResult {
+    if Gesture::ThreeFingerSwipeLeft != Gesture::ThreeFingerSwipeLeft { return TestResult::Fail; }
+    if Gesture::ThreeFingerSwipeRight != Gesture::ThreeFingerSwipeRight { return TestResult::Fail; }
+    if Gesture::ThreeFingerSwipeUp != Gesture::ThreeFingerSwipeUp { return TestResult::Fail; }
+    if Gesture::ThreeFingerSwipeDown != Gesture::ThreeFingerSwipeDown { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_gesture_four_finger_swipes() {
-    assert_eq!(Gesture::FourFingerSwipeUp, Gesture::FourFingerSwipeUp);
-    assert_eq!(Gesture::FourFingerSwipeDown, Gesture::FourFingerSwipeDown);
+pub fn test_gesture_four_finger_swipes() -> TestResult {
+    if Gesture::FourFingerSwipeUp != Gesture::FourFingerSwipeUp { return TestResult::Fail; }
+    if Gesture::FourFingerSwipeDown != Gesture::FourFingerSwipeDown { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_touchpad_state_default() {
+pub fn test_touchpad_state_default() -> TestResult {
     let state = TouchpadState::default();
-    assert_eq!(state.delta_x, 0);
-    assert_eq!(state.delta_y, 0);
-    assert_eq!(state.buttons, 0);
-    assert_eq!(state.contact_count, 0);
-    assert_eq!(state.gesture, Gesture::None);
-    assert_eq!(state.scroll_x, 0);
-    assert_eq!(state.scroll_y, 0);
+    if state.delta_x != 0 { return TestResult::Fail; }
+    if state.delta_y != 0 { return TestResult::Fail; }
+    if state.buttons != 0 { return TestResult::Fail; }
+    if state.contact_count != 0 { return TestResult::Fail; }
+    if state.gesture != Gesture::None { return TestResult::Fail; }
+    if state.scroll_x != 0 { return TestResult::Fail; }
+    if state.scroll_y != 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_tracked_contact_default() {
+pub fn test_tracked_contact_default() -> TestResult {
     let contact = TrackedContact::default();
-    assert_eq!(contact.id, 0);
-    assert_eq!(contact.start_x, 0);
-    assert_eq!(contact.start_y, 0);
-    assert_eq!(contact.current_x, 0);
-    assert_eq!(contact.current_y, 0);
-    assert!(!contact.active);
-    assert!(!contact.is_palm);
+    if contact.id != 0 { return TestResult::Fail; }
+    if contact.start_x != 0 { return TestResult::Fail; }
+    if contact.start_y != 0 { return TestResult::Fail; }
+    if contact.current_x != 0 { return TestResult::Fail; }
+    if contact.current_y != 0 { return TestResult::Fail; }
+    if contact.active { return TestResult::Fail; }
+    if contact.is_palm { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_constants_max_contacts() {
-    assert_eq!(MAX_CONTACTS, 10);
+pub fn test_constants_max_contacts() -> TestResult {
+    if MAX_CONTACTS != 10 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_constants_palm_detection() {
-    assert_eq!(PALM_MIN_PRESSURE, 200);
-    assert_eq!(PALM_MIN_AREA, 400);
-    assert_eq!(PALM_EDGE_THRESHOLD, 50);
+pub fn test_constants_palm_detection() -> TestResult {
+    if PALM_MIN_PRESSURE != 200 { return TestResult::Fail; }
+    if PALM_MIN_AREA != 400 { return TestResult::Fail; }
+    if PALM_EDGE_THRESHOLD != 50 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_constants_tap_timeouts() {
-    assert_eq!(TAP_TIMEOUT_US, 200_000);
-    assert_eq!(DOUBLE_TAP_TIMEOUT_US, 400_000);
+pub fn test_constants_tap_timeouts() -> TestResult {
+    if TAP_TIMEOUT_US != 200_000 { return TestResult::Fail; }
+    if DOUBLE_TAP_TIMEOUT_US != 400_000 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_constants_gesture_thresholds() {
-    assert_eq!(SCROLL_THRESHOLD, 10);
-    assert_eq!(PINCH_THRESHOLD, 20);
-    assert_eq!(SWIPE_THRESHOLD, 100);
+pub fn test_constants_gesture_thresholds() -> TestResult {
+    if SCROLL_THRESHOLD != 10 { return TestResult::Fail; }
+    if PINCH_THRESHOLD != 20 { return TestResult::Fail; }
+    if SWIPE_THRESHOLD != 100 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_is_tap_event_short() {
-    assert!(is_tap_event(0, TAP_TIMEOUT_US - 1));
+pub fn test_is_tap_event_short() -> TestResult {
+    if !is_tap_event(0, TAP_TIMEOUT_US - 1) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_is_tap_event_too_long() {
-    assert!(!is_tap_event(0, TAP_TIMEOUT_US + 1));
+pub fn test_is_tap_event_too_long() -> TestResult {
+    if is_tap_event(0, TAP_TIMEOUT_US + 1) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_is_double_tap_quick() {
-    assert!(is_double_tap(0, DOUBLE_TAP_TIMEOUT_US - 1));
+pub fn test_is_double_tap_quick() -> TestResult {
+    if !is_double_tap(0, DOUBLE_TAP_TIMEOUT_US - 1) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_is_double_tap_too_slow() {
-    assert!(!is_double_tap(0, DOUBLE_TAP_TIMEOUT_US + 1));
+pub fn test_is_double_tap_too_slow() -> TestResult {
+    if is_double_tap(0, DOUBLE_TAP_TIMEOUT_US + 1) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_tap_timing_config() {
+pub fn test_tap_timing_config() -> TestResult {
     let (tap, double_tap) = tap_timing_config();
-    assert_eq!(tap, TAP_TIMEOUT_US);
-    assert_eq!(double_tap, DOUBLE_TAP_TIMEOUT_US);
+    if tap != TAP_TIMEOUT_US { return TestResult::Fail; }
+    if double_tap != DOUBLE_TAP_TIMEOUT_US { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_detect_two_finger_gesture_no_contacts() {
+pub fn test_detect_two_finger_gesture_no_contacts() -> TestResult {
     let tracked = [];
     let mut state = TouchpadState::default();
     let mut gesture_active = false;
@@ -281,11 +281,11 @@ fn test_detect_two_finger_gesture_no_contacts() {
         &tracked, &mut state, &mut gesture_active,
         &mut two_finger_start_distance, &mut tap_moved,
     );
-    assert_eq!(result, Gesture::None);
+    if result != Gesture::None { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_detect_two_finger_gesture_one_contact() {
+pub fn test_detect_two_finger_gesture_one_contact() -> TestResult {
     let tracked = [TrackedContact {
         id: 0,
         start_x: 100,
@@ -304,123 +304,123 @@ fn test_detect_two_finger_gesture_one_contact() {
         &tracked, &mut state, &mut gesture_active,
         &mut two_finger_start_distance, &mut tap_moved,
     );
-    assert_eq!(result, Gesture::None);
+    if result != Gesture::None { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_detect_three_finger_gesture_no_contacts() {
+pub fn test_detect_three_finger_gesture_no_contacts() -> TestResult {
     let tracked = [];
     let result = detect_three_finger_gesture(&tracked);
-    assert_eq!(result, Gesture::None);
+    if result != Gesture::None { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_detect_four_finger_gesture_no_contacts() {
+pub fn test_detect_four_finger_gesture_no_contacts() -> TestResult {
     let tracked = [];
     let result = detect_four_finger_gesture(&tracked);
-    assert_eq!(result, Gesture::None);
+    if result != Gesture::None { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_apply_acceleration_small_delta() {
+pub fn test_apply_acceleration_small_delta() -> TestResult {
     let result = apply_acceleration(3, 2, 10);
-    assert_eq!(result, 3);
+    if result != 3 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_apply_acceleration_medium_delta() {
+pub fn test_apply_acceleration_medium_delta() -> TestResult {
     let result = apply_acceleration(15, 2, 10);
-    assert_eq!(result, 30);
+    if result != 30 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_apply_acceleration_large_delta() {
+pub fn test_apply_acceleration_large_delta() -> TestResult {
     let result = apply_acceleration(30, 2, 10);
-    assert_eq!(result, 120);
+    if result != 120 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_apply_acceleration_very_large_delta() {
+pub fn test_apply_acceleration_very_large_delta() -> TestResult {
     let result = apply_acceleration(60, 2, 10);
-    assert_eq!(result, 360);
+    if result != 360 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_apply_acceleration_negative() {
+pub fn test_apply_acceleration_negative() -> TestResult {
     let result = apply_acceleration(-30, 2, 10);
-    assert_eq!(result, -120);
+    if result != -120 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_distance_zero() {
+pub fn test_distance_zero() -> TestResult {
     let d = distance(0, 0, 0, 0);
-    assert_eq!(d, 0);
+    if d != 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_distance_horizontal() {
+pub fn test_distance_horizontal() -> TestResult {
     let d = distance(0, 0, 10, 0);
-    assert_eq!(d, 10);
+    if d != 10 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_distance_vertical() {
+pub fn test_distance_vertical() -> TestResult {
     let d = distance(0, 0, 0, 10);
-    assert_eq!(d, 10);
+    if d != 10 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_distance_diagonal() {
+pub fn test_distance_diagonal() -> TestResult {
     let d = distance(0, 0, 3, 4);
-    assert_eq!(d, 5);
+    if d != 5 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_isqrt_zero() {
-    assert_eq!(isqrt(0), 0);
+pub fn test_isqrt_zero() -> TestResult {
+    if isqrt(0) != 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_isqrt_one() {
-    assert_eq!(isqrt(1), 1);
+pub fn test_isqrt_one() -> TestResult {
+    if isqrt(1) != 1 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_isqrt_four() {
-    assert_eq!(isqrt(4), 2);
+pub fn test_isqrt_four() -> TestResult {
+    if isqrt(4) != 2 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_isqrt_nine() {
-    assert_eq!(isqrt(9), 3);
+pub fn test_isqrt_nine() -> TestResult {
+    if isqrt(9) != 3 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_isqrt_sixteen() {
-    assert_eq!(isqrt(16), 4);
+pub fn test_isqrt_sixteen() -> TestResult {
+    if isqrt(16) != 4 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_isqrt_large() {
-    assert_eq!(isqrt(100), 10);
-    assert_eq!(isqrt(10000), 100);
+pub fn test_isqrt_large() -> TestResult {
+    if isqrt(100) != 10 { return TestResult::Fail; }
+    if isqrt(10000) != 100 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_isqrt_non_perfect() {
-    assert_eq!(isqrt(5), 2);
-    assert_eq!(isqrt(8), 2);
-    assert_eq!(isqrt(15), 3);
+pub fn test_isqrt_non_perfect() -> TestResult {
+    if isqrt(5) != 2 { return TestResult::Fail; }
+    if isqrt(8) != 2 { return TestResult::Fail; }
+    if isqrt(15) != 3 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_touchpad_state_contacts_array_size() {
+pub fn test_touchpad_state_contacts_array_size() -> TestResult {
     let state = TouchpadState::default();
-    assert_eq!(state.contacts.len(), MAX_CONTACTS);
+    if state.contacts.len() != MAX_CONTACTS { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_touch_point_clone() {
+pub fn test_touch_point_clone() -> TestResult {
     let point = TouchPoint {
         id: 1,
         x: 100,
@@ -431,13 +431,13 @@ fn test_touch_point_clone() {
         height: 10,
     };
     let cloned = point.clone();
-    assert_eq!(cloned.id, point.id);
-    assert_eq!(cloned.x, point.x);
-    assert_eq!(cloned.y, point.y);
+    if cloned.id != point.id { return TestResult::Fail; }
+    if cloned.x != point.x { return TestResult::Fail; }
+    if cloned.y != point.y { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_tracked_contact_clone() {
+pub fn test_tracked_contact_clone() -> TestResult {
     let contact = TrackedContact {
         id: 1,
         start_x: 100,
@@ -448,25 +448,26 @@ fn test_tracked_contact_clone() {
         is_palm: false,
     };
     let cloned = contact.clone();
-    assert_eq!(cloned.id, contact.id);
-    assert_eq!(cloned.active, contact.active);
+    if cloned.id != contact.id { return TestResult::Fail; }
+    if cloned.active != contact.active { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_gesture_clone() {
+pub fn test_gesture_clone() -> TestResult {
     let gesture = Gesture::TwoFingerScroll { dx: 5, dy: 10 };
     let cloned = gesture.clone();
-    assert_eq!(gesture, cloned);
+    if gesture != cloned { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_touchpad_state_clone() {
+pub fn test_touchpad_state_clone() -> TestResult {
     let mut state = TouchpadState::default();
     state.delta_x = 10;
     state.delta_y = 20;
     state.buttons = 1;
     let cloned = state.clone();
-    assert_eq!(cloned.delta_x, 10);
-    assert_eq!(cloned.delta_y, 20);
-    assert_eq!(cloned.buttons, 1);
+    if cloned.delta_x != 10 { return TestResult::Fail; }
+    if cloned.delta_y != 20 { return TestResult::Fail; }
+    if cloned.buttons != 1 { return TestResult::Fail; }
+    TestResult::Pass
 }

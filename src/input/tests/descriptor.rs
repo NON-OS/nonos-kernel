@@ -1,27 +1,27 @@
 use crate::input::i2c_hid::descriptor::{
     HidDescriptor, FieldLocation, ContactFields, TouchpadLayout,
 };
+use crate::test::framework::TestResult;
 
-#[test]
-fn test_hid_descriptor_default() {
+pub fn test_hid_descriptor_default() -> TestResult {
     let desc = HidDescriptor::default();
-    assert_eq!(desc.hid_descriptor_length, 30);
-    assert_eq!(desc.bcd_version, 0x0100);
-    assert_eq!(desc.report_descriptor_length, 0);
-    assert_eq!(desc.report_descriptor_register, 0x0002);
-    assert_eq!(desc.input_register, 0x0003);
-    assert_eq!(desc.max_input_length, 64);
-    assert_eq!(desc.output_register, 0x0004);
-    assert_eq!(desc.max_output_length, 64);
-    assert_eq!(desc.command_register, 0x0005);
-    assert_eq!(desc.data_register, 0x0006);
-    assert_eq!(desc.vendor_id, 0);
-    assert_eq!(desc.product_id, 0);
-    assert_eq!(desc.version_id, 0);
+    if desc.hid_descriptor_length != 30 { return TestResult::Fail; }
+    if desc.bcd_version != 0x0100 { return TestResult::Fail; }
+    if desc.report_descriptor_length != 0 { return TestResult::Fail; }
+    if desc.report_descriptor_register != 0x0002 { return TestResult::Fail; }
+    if desc.input_register != 0x0003 { return TestResult::Fail; }
+    if desc.max_input_length != 64 { return TestResult::Fail; }
+    if desc.output_register != 0x0004 { return TestResult::Fail; }
+    if desc.max_output_length != 64 { return TestResult::Fail; }
+    if desc.command_register != 0x0005 { return TestResult::Fail; }
+    if desc.data_register != 0x0006 { return TestResult::Fail; }
+    if desc.vendor_id != 0 { return TestResult::Fail; }
+    if desc.product_id != 0 { return TestResult::Fail; }
+    if desc.version_id != 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_hid_descriptor_parse_valid() {
+pub fn test_hid_descriptor_parse_valid() -> TestResult {
     let mut data = [0u8; 30];
     data[0] = 30;
     data[1] = 0;
@@ -51,131 +51,131 @@ fn test_hid_descriptor_parse_valid() {
     data[25] = 0x00;
 
     let desc = HidDescriptor::parse(&data);
-    assert!(desc.is_some());
+    if !desc.is_some() { return TestResult::Fail; }
     let desc = desc.unwrap();
-    assert_eq!(desc.hid_descriptor_length, 30);
-    assert_eq!(desc.bcd_version, 0x0100);
-    assert_eq!(desc.report_descriptor_length, 0x0050);
-    assert_eq!(desc.report_descriptor_register, 0x0002);
-    assert_eq!(desc.input_register, 0x0003);
-    assert_eq!(desc.max_input_length, 0x0040);
-    assert_eq!(desc.vendor_id, 0x12AB);
-    assert_eq!(desc.product_id, 0x34CD);
+    if desc.hid_descriptor_length != 30 { return TestResult::Fail; }
+    if desc.bcd_version != 0x0100 { return TestResult::Fail; }
+    if desc.report_descriptor_length != 0x0050 { return TestResult::Fail; }
+    if desc.report_descriptor_register != 0x0002 { return TestResult::Fail; }
+    if desc.input_register != 0x0003 { return TestResult::Fail; }
+    if desc.max_input_length != 0x0040 { return TestResult::Fail; }
+    if desc.vendor_id != 0x12AB { return TestResult::Fail; }
+    if desc.product_id != 0x34CD { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_hid_descriptor_parse_too_short() {
+pub fn test_hid_descriptor_parse_too_short() -> TestResult {
     let data = [0u8; 20];
     let desc = HidDescriptor::parse(&data);
-    assert!(desc.is_none());
+    if !desc.is_none() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_hid_descriptor_parse_invalid_length() {
+pub fn test_hid_descriptor_parse_invalid_length() -> TestResult {
     let mut data = [0u8; 30];
     data[0] = 20;
     data[1] = 0;
     let desc = HidDescriptor::parse(&data);
-    assert!(desc.is_none());
+    if !desc.is_none() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_hid_descriptor_parse_invalid_version() {
+pub fn test_hid_descriptor_parse_invalid_version() -> TestResult {
     let mut data = [0u8; 30];
     data[0] = 30;
     data[1] = 0;
     data[2] = 0x00;
     data[3] = 0x02;
     let desc = HidDescriptor::parse(&data);
-    assert!(desc.is_none());
+    if !desc.is_none() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_field_location_default() {
+pub fn test_field_location_default() -> TestResult {
     let field = FieldLocation::default();
-    assert_eq!(field.bit_offset, 0);
-    assert_eq!(field.bit_size, 0);
+    if field.bit_offset != 0 { return TestResult::Fail; }
+    if field.bit_size != 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_field_location_is_valid() {
+pub fn test_field_location_is_valid() -> TestResult {
     let valid = FieldLocation { bit_offset: 0, bit_size: 8 };
-    assert!(valid.is_valid());
+    if !valid.is_valid() { return TestResult::Fail; }
 
     let invalid = FieldLocation { bit_offset: 0, bit_size: 0 };
-    assert!(!invalid.is_valid());
+    if invalid.is_valid() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_field_location_extract_single_bit() {
+pub fn test_field_location_extract_single_bit() -> TestResult {
     let field = FieldLocation { bit_offset: 0, bit_size: 1 };
     let data = [0b00000001];
-    assert_eq!(field.extract(&data), 1);
+    if field.extract(&data) != 1 { return TestResult::Fail; }
 
     let data = [0b00000000];
-    assert_eq!(field.extract(&data), 0);
+    if field.extract(&data) != 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_field_location_extract_single_bit_offset() {
+pub fn test_field_location_extract_single_bit_offset() -> TestResult {
     let field = FieldLocation { bit_offset: 3, bit_size: 1 };
     let data = [0b00001000];
-    assert_eq!(field.extract(&data), 1);
+    if field.extract(&data) != 1 { return TestResult::Fail; }
 
     let data = [0b00000000];
-    assert_eq!(field.extract(&data), 0);
+    if field.extract(&data) != 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_field_location_extract_byte_aligned() {
+pub fn test_field_location_extract_byte_aligned() -> TestResult {
     let field = FieldLocation { bit_offset: 0, bit_size: 8 };
     let data = [0xAB];
-    assert_eq!(field.extract(&data), 0xAB);
+    if field.extract(&data) != 0xAB { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_field_location_extract_16bit_aligned() {
+pub fn test_field_location_extract_16bit_aligned() -> TestResult {
     let field = FieldLocation { bit_offset: 0, bit_size: 16 };
     let data = [0x34, 0x12];
-    assert_eq!(field.extract(&data), 0x1234);
+    if field.extract(&data) != 0x1234 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_field_location_extract_empty_data() {
+pub fn test_field_location_extract_empty_data() -> TestResult {
     let field = FieldLocation { bit_offset: 0, bit_size: 8 };
     let data: [u8; 0] = [];
-    assert_eq!(field.extract(&data), 0);
+    if field.extract(&data) != 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_field_location_extract_invalid() {
+pub fn test_field_location_extract_invalid() -> TestResult {
     let field = FieldLocation { bit_offset: 0, bit_size: 0 };
     let data = [0xFF];
-    assert_eq!(field.extract(&data), 0);
+    if field.extract(&data) != 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_field_location_extract_out_of_bounds() {
+pub fn test_field_location_extract_out_of_bounds() -> TestResult {
     let field = FieldLocation { bit_offset: 16, bit_size: 8 };
     let data = [0xFF];
-    assert_eq!(field.extract(&data), 0);
+    if field.extract(&data) != 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_contact_fields_default() {
+pub fn test_contact_fields_default() -> TestResult {
     let fields = ContactFields::default();
-    assert!(!fields.tip_switch.is_valid());
-    assert!(!fields.confidence.is_valid());
-    assert!(!fields.contact_id.is_valid());
-    assert!(!fields.x.is_valid());
-    assert!(!fields.y.is_valid());
-    assert!(!fields.pressure.is_valid());
-    assert!(!fields.width.is_valid());
-    assert!(!fields.height.is_valid());
+    if fields.tip_switch.is_valid() { return TestResult::Fail; }
+    if fields.confidence.is_valid() { return TestResult::Fail; }
+    if fields.contact_id.is_valid() { return TestResult::Fail; }
+    if fields.x.is_valid() { return TestResult::Fail; }
+    if fields.y.is_valid() { return TestResult::Fail; }
+    if fields.pressure.is_valid() { return TestResult::Fail; }
+    if fields.width.is_valid() { return TestResult::Fail; }
+    if fields.height.is_valid() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_contact_fields_structure() {
+pub fn test_contact_fields_structure() -> TestResult {
     let fields = ContactFields {
         tip_switch: FieldLocation { bit_offset: 0, bit_size: 1 },
         confidence: FieldLocation { bit_offset: 1, bit_size: 1 },
@@ -186,51 +186,51 @@ fn test_contact_fields_structure() {
         width: FieldLocation { bit_offset: 56, bit_size: 8 },
         height: FieldLocation { bit_offset: 64, bit_size: 8 },
     };
-    assert!(fields.tip_switch.is_valid());
-    assert!(fields.x.is_valid());
-    assert!(fields.y.is_valid());
+    if !fields.tip_switch.is_valid() { return TestResult::Fail; }
+    if !fields.x.is_valid() { return TestResult::Fail; }
+    if !fields.y.is_valid() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_touchpad_layout_default() {
+pub fn test_touchpad_layout_default() -> TestResult {
     let layout = TouchpadLayout::default();
-    assert_eq!(layout.report_id, 0);
-    assert!(!layout.scan_time.is_valid());
-    assert!(!layout.contact_count.is_valid());
-    assert!(!layout.button.is_valid());
-    assert_eq!(layout.contacts.len(), 5);
-    assert_eq!(layout.contact_field_size, 0);
-    assert_eq!(layout.total_report_size, 0);
+    if layout.report_id != 0 { return TestResult::Fail; }
+    if layout.scan_time.is_valid() { return TestResult::Fail; }
+    if layout.contact_count.is_valid() { return TestResult::Fail; }
+    if layout.button.is_valid() { return TestResult::Fail; }
+    if layout.contacts.len() != 5 { return TestResult::Fail; }
+    if layout.contact_field_size != 0 { return TestResult::Fail; }
+    if layout.total_report_size != 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_touchpad_layout_contacts_array() {
+pub fn test_touchpad_layout_contacts_array() -> TestResult {
     let layout = TouchpadLayout::default();
     for contact in &layout.contacts {
-        assert!(!contact.tip_switch.is_valid());
-        assert!(!contact.x.is_valid());
-        assert!(!contact.y.is_valid());
+        if contact.tip_switch.is_valid() { return TestResult::Fail; }
+        if contact.x.is_valid() { return TestResult::Fail; }
+        if contact.y.is_valid() { return TestResult::Fail; }
     }
+    TestResult::Pass
 }
 
-#[test]
-fn test_field_location_clone() {
+pub fn test_field_location_clone() -> TestResult {
     let field = FieldLocation { bit_offset: 10, bit_size: 16 };
     let cloned = field.clone();
-    assert_eq!(cloned.bit_offset, 10);
-    assert_eq!(cloned.bit_size, 16);
+    if cloned.bit_offset != 10 { return TestResult::Fail; }
+    if cloned.bit_size != 16 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_field_location_copy() {
+pub fn test_field_location_copy() -> TestResult {
     let field = FieldLocation { bit_offset: 20, bit_size: 8 };
     let copied = field;
-    assert_eq!(copied.bit_offset, 20);
-    assert_eq!(copied.bit_size, 8);
+    if copied.bit_offset != 20 { return TestResult::Fail; }
+    if copied.bit_size != 8 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_contact_fields_clone() {
+pub fn test_contact_fields_clone() -> TestResult {
     let fields = ContactFields {
         tip_switch: FieldLocation { bit_offset: 0, bit_size: 1 },
         confidence: FieldLocation::default(),
@@ -242,13 +242,13 @@ fn test_contact_fields_clone() {
         height: FieldLocation::default(),
     };
     let cloned = fields.clone();
-    assert_eq!(cloned.tip_switch.bit_offset, 0);
-    assert_eq!(cloned.x.bit_offset, 8);
-    assert_eq!(cloned.y.bit_offset, 24);
+    if cloned.tip_switch.bit_offset != 0 { return TestResult::Fail; }
+    if cloned.x.bit_offset != 8 { return TestResult::Fail; }
+    if cloned.y.bit_offset != 24 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_hid_descriptor_clone() {
+pub fn test_hid_descriptor_clone() -> TestResult {
     let desc = HidDescriptor {
         hid_descriptor_length: 30,
         bcd_version: 0x0100,
@@ -265,57 +265,57 @@ fn test_hid_descriptor_clone() {
         version_id: 0x0001,
     };
     let cloned = desc.clone();
-    assert_eq!(cloned.vendor_id, 0x1234);
-    assert_eq!(cloned.product_id, 0x5678);
-    assert_eq!(cloned.max_input_length, 128);
+    if cloned.vendor_id != 0x1234 { return TestResult::Fail; }
+    if cloned.product_id != 0x5678 { return TestResult::Fail; }
+    if cloned.max_input_length != 128 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_touchpad_layout_clone() {
+pub fn test_touchpad_layout_clone() -> TestResult {
     let mut layout = TouchpadLayout::default();
     layout.report_id = 5;
     layout.total_report_size = 64;
     let cloned = layout.clone();
-    assert_eq!(cloned.report_id, 5);
-    assert_eq!(cloned.total_report_size, 64);
+    if cloned.report_id != 5 { return TestResult::Fail; }
+    if cloned.total_report_size != 64 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_field_location_extract_multi_byte() {
+pub fn test_field_location_extract_multi_byte() -> TestResult {
     let field = FieldLocation { bit_offset: 8, bit_size: 16 };
     let data = [0x00, 0x34, 0x12];
-    assert_eq!(field.extract(&data), 0x1234);
+    if field.extract(&data) != 0x1234 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_field_location_extract_nibble() {
+pub fn test_field_location_extract_nibble() -> TestResult {
     let field = FieldLocation { bit_offset: 4, bit_size: 4 };
     let data = [0xAB];
     let result = field.extract(&data);
-    assert_eq!(result, 0x0A);
+    if result != 0x0A { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_field_location_bit_7() {
+pub fn test_field_location_bit_7() -> TestResult {
     let field = FieldLocation { bit_offset: 7, bit_size: 1 };
     let data = [0x80];
-    assert_eq!(field.extract(&data), 1);
+    if field.extract(&data) != 1 { return TestResult::Fail; }
 
     let data = [0x7F];
-    assert_eq!(field.extract(&data), 0);
+    if field.extract(&data) != 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_hid_descriptor_registers() {
+pub fn test_hid_descriptor_registers() -> TestResult {
     let desc = HidDescriptor::default();
-    assert!(desc.report_descriptor_register < desc.input_register);
-    assert!(desc.input_register < desc.output_register);
-    assert!(desc.output_register < desc.command_register);
-    assert!(desc.command_register < desc.data_register);
+    if !(desc.report_descriptor_register < desc.input_register) { return TestResult::Fail; }
+    if !(desc.input_register < desc.output_register) { return TestResult::Fail; }
+    if !(desc.output_register < desc.command_register) { return TestResult::Fail; }
+    if !(desc.command_register < desc.data_register) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_touchpad_layout_structure() {
+pub fn test_touchpad_layout_structure() -> TestResult {
     let layout = TouchpadLayout {
         report_id: 1,
         scan_time: FieldLocation { bit_offset: 8, bit_size: 16 },
@@ -325,8 +325,9 @@ fn test_touchpad_layout_structure() {
         contact_field_size: 40,
         total_report_size: 240,
     };
-    assert_eq!(layout.report_id, 1);
-    assert!(layout.scan_time.is_valid());
-    assert!(layout.contact_count.is_valid());
-    assert!(layout.button.is_valid());
+    if layout.report_id != 1 { return TestResult::Fail; }
+    if !layout.scan_time.is_valid() { return TestResult::Fail; }
+    if !layout.contact_count.is_valid() { return TestResult::Fail; }
+    if !layout.button.is_valid() { return TestResult::Fail; }
+    TestResult::Pass
 }
