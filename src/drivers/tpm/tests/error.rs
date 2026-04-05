@@ -15,202 +15,211 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::drivers::tpm::error::TpmError;
+use crate::test::framework::TestResult;
 
-#[test]
-fn test_error_not_initialized_str() {
-    assert_eq!(TpmError::NotInitialized.as_str(), "TPM not initialized");
+pub fn test_error_not_initialized_str() -> TestResult {
+    if TpmError::NotInitialized.as_str() != "TPM not initialized" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_error_not_present_str() {
-    assert_eq!(TpmError::NotPresent.as_str(), "TPM not present");
+pub fn test_error_not_present_str() -> TestResult {
+    if TpmError::NotPresent.as_str() != "TPM not present" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_error_timeout_str() {
-    assert_eq!(TpmError::Timeout.as_str(), "TPM operation timed out");
+pub fn test_error_timeout_str() -> TestResult {
+    if TpmError::Timeout.as_str() != "TPM operation timed out" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_error_invalid_response_str() {
-    assert_eq!(TpmError::InvalidResponse.as_str(), "invalid TPM response");
+pub fn test_error_invalid_response_str() -> TestResult {
+    if TpmError::InvalidResponse.as_str() != "invalid TPM response" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_error_locality_error_str() {
-    assert_eq!(TpmError::LocalityError.as_str(), "locality access error");
+pub fn test_error_locality_error_str() -> TestResult {
+    if TpmError::LocalityError.as_str() != "locality access error" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_error_command_failed_str() {
-    assert_eq!(TpmError::CommandFailed(0x123).as_str(), "TPM command failed");
+pub fn test_error_command_failed_str() -> TestResult {
+    if TpmError::CommandFailed(0x123).as_str() != "TPM command failed" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_error_buffer_too_small_str() {
-    assert_eq!(TpmError::BufferTooSmall.as_str(), "buffer too small");
+pub fn test_error_buffer_too_small_str() -> TestResult {
+    if TpmError::BufferTooSmall.as_str() != "buffer too small" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_error_invalid_parameter_str() {
-    assert_eq!(TpmError::InvalidParameter.as_str(), "invalid parameter");
+pub fn test_error_invalid_parameter_str() -> TestResult {
+    if TpmError::InvalidParameter.as_str() != "invalid parameter" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_error_auth_failed_str() {
-    assert_eq!(TpmError::AuthFailed.as_str(), "authentication failed");
+pub fn test_error_auth_failed_str() -> TestResult {
+    if TpmError::AuthFailed.as_str() != "authentication failed" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_error_nv_error_str() {
-    assert_eq!(TpmError::NvError.as_str(), "NV storage error");
+pub fn test_error_nv_error_str() -> TestResult {
+    if TpmError::NvError.as_str() != "NV storage error" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_error_pcr_error_str() {
-    assert_eq!(TpmError::PcrError.as_str(), "PCR operation error");
+pub fn test_error_pcr_error_str() -> TestResult {
+    if TpmError::PcrError.as_str() != "PCR operation error" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_error_communication_error_str() {
-    assert_eq!(TpmError::CommunicationError.as_str(), "communication error");
+pub fn test_error_communication_error_str() -> TestResult {
+    if TpmError::CommunicationError.as_str() != "communication error" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_error_hardware_error_str() {
-    assert_eq!(TpmError::HardwareError.as_str(), "hardware error");
+pub fn test_error_hardware_error_str() -> TestResult {
+    if TpmError::HardwareError.as_str() != "hardware error" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_error_rate_limit_exceeded_str() {
-    assert_eq!(TpmError::RateLimitExceeded.as_str(), "rate limit exceeded");
+pub fn test_error_rate_limit_exceeded_str() -> TestResult {
+    if TpmError::RateLimitExceeded.as_str() != "rate limit exceeded" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_error_command_failed_response_code() {
+pub fn test_error_command_failed_response_code() -> TestResult {
     let err = TpmError::CommandFailed(0x123);
-    assert_eq!(err.response_code(), Some(0x123));
+    if err.response_code() != Some(0x123) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_error_timeout_response_code_none() {
-    assert_eq!(TpmError::Timeout.response_code(), None);
+pub fn test_error_timeout_response_code_none() -> TestResult {
+    if TpmError::Timeout.response_code() != None { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_error_not_present_response_code_none() {
-    assert_eq!(TpmError::NotPresent.response_code(), None);
+pub fn test_error_not_present_response_code_none() -> TestResult {
+    if TpmError::NotPresent.response_code() != None { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_error_timeout_recoverable() {
-    assert!(TpmError::Timeout.is_recoverable());
+pub fn test_error_timeout_recoverable() -> TestResult {
+    if !TpmError::Timeout.is_recoverable() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_error_locality_error_recoverable() {
-    assert!(TpmError::LocalityError.is_recoverable());
+pub fn test_error_locality_error_recoverable() -> TestResult {
+    if !TpmError::LocalityError.is_recoverable() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_error_buffer_too_small_recoverable() {
-    assert!(TpmError::BufferTooSmall.is_recoverable());
+pub fn test_error_buffer_too_small_recoverable() -> TestResult {
+    if !TpmError::BufferTooSmall.is_recoverable() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_error_invalid_parameter_recoverable() {
-    assert!(TpmError::InvalidParameter.is_recoverable());
+pub fn test_error_invalid_parameter_recoverable() -> TestResult {
+    if !TpmError::InvalidParameter.is_recoverable() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_error_rate_limit_exceeded_recoverable() {
-    assert!(TpmError::RateLimitExceeded.is_recoverable());
+pub fn test_error_rate_limit_exceeded_recoverable() -> TestResult {
+    if !TpmError::RateLimitExceeded.is_recoverable() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_error_not_present_not_recoverable() {
-    assert!(!TpmError::NotPresent.is_recoverable());
+pub fn test_error_not_present_not_recoverable() -> TestResult {
+    if TpmError::NotPresent.is_recoverable() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_error_hardware_error_not_recoverable() {
-    assert!(!TpmError::HardwareError.is_recoverable());
+pub fn test_error_hardware_error_not_recoverable() -> TestResult {
+    if TpmError::HardwareError.is_recoverable() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_error_command_failed_not_recoverable() {
-    assert!(!TpmError::CommandFailed(0).is_recoverable());
+pub fn test_error_command_failed_not_recoverable() -> TestResult {
+    if TpmError::CommandFailed(0).is_recoverable() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_error_not_present_fatal() {
-    assert!(TpmError::NotPresent.is_fatal());
+pub fn test_error_not_present_fatal() -> TestResult {
+    if !TpmError::NotPresent.is_fatal() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_error_hardware_error_fatal() {
-    assert!(TpmError::HardwareError.is_fatal());
+pub fn test_error_hardware_error_fatal() -> TestResult {
+    if !TpmError::HardwareError.is_fatal() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_error_timeout_not_fatal() {
-    assert!(!TpmError::Timeout.is_fatal());
+pub fn test_error_timeout_not_fatal() -> TestResult {
+    if TpmError::Timeout.is_fatal() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_error_command_failed_not_fatal() {
-    assert!(!TpmError::CommandFailed(0x100).is_fatal());
+pub fn test_error_command_failed_not_fatal() -> TestResult {
+    if TpmError::CommandFailed(0x100).is_fatal() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_error_equality() {
-    assert_eq!(TpmError::Timeout, TpmError::Timeout);
-    assert_ne!(TpmError::Timeout, TpmError::NotPresent);
+pub fn test_error_equality() -> TestResult {
+    if TpmError::Timeout != TpmError::Timeout { return TestResult::Fail; }
+    if TpmError::Timeout == TpmError::NotPresent { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_error_command_failed_equality() {
-    assert_eq!(TpmError::CommandFailed(0x100), TpmError::CommandFailed(0x100));
-    assert_ne!(TpmError::CommandFailed(0x100), TpmError::CommandFailed(0x200));
+pub fn test_error_command_failed_equality() -> TestResult {
+    if TpmError::CommandFailed(0x100) != TpmError::CommandFailed(0x100) { return TestResult::Fail; }
+    if TpmError::CommandFailed(0x100) == TpmError::CommandFailed(0x200) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_error_copy() {
+pub fn test_error_copy() -> TestResult {
     let err1 = TpmError::PcrError;
     let err2 = err1;
-    assert_eq!(err1, err2);
+    if err1 != err2 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_error_clone() {
+pub fn test_error_clone() -> TestResult {
     let err1 = TpmError::NvError;
     let err2 = err1.clone();
-    assert_eq!(err1, err2);
+    if err1 != err2 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_error_debug() {
+pub fn test_error_debug() -> TestResult {
+    use core::fmt::Write;
     let err = TpmError::Timeout;
-    let debug_str = format!("{:?}", err);
-    assert_eq!(debug_str, "Timeout");
+    let mut buf = [0u8; 64];
+    let mut writer = crate::test::framework::ArrayWriter::new(&mut buf);
+    let _ = write!(writer, "{:?}", err);
+    if writer.as_str() != "Timeout" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_error_display_timeout() {
+pub fn test_error_display_timeout() -> TestResult {
+    use core::fmt::Write;
     let err = TpmError::Timeout;
-    let display_str = format!("{}", err);
-    assert_eq!(display_str, "TPM operation timed out");
+    let mut buf = [0u8; 64];
+    let mut writer = crate::test::framework::ArrayWriter::new(&mut buf);
+    let _ = write!(writer, "{}", err);
+    if writer.as_str() != "TPM operation timed out" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_error_display_command_failed() {
+pub fn test_error_display_command_failed() -> TestResult {
+    use core::fmt::Write;
     let err = TpmError::CommandFailed(0x123);
-    let display_str = format!("{}", err);
-    assert_eq!(display_str, "TPM command failed with code 0x00000123");
+    let mut buf = [0u8; 64];
+    let mut writer = crate::test::framework::ArrayWriter::new(&mut buf);
+    let _ = write!(writer, "{}", err);
+    if writer.as_str() != "TPM command failed with code 0x00000123" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_all_errors_have_message() {
+pub fn test_all_errors_have_message() -> TestResult {
     let errors = [
         TpmError::NotInitialized,
         TpmError::NotPresent,
@@ -229,6 +238,7 @@ fn test_all_errors_have_message() {
     ];
 
     for err in &errors {
-        assert!(!err.as_str().is_empty());
+        if err.as_str().is_empty() { return TestResult::Fail; }
     }
+    TestResult::Pass
 }

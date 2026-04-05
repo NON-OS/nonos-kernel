@@ -15,27 +15,27 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::drivers::tpm::status::{PcrBankConfig, TpmStatus};
+use crate::test::framework::TestResult;
 
-#[test]
-fn test_tpm_status_not_present() {
+pub fn test_tpm_status_not_present() -> TestResult {
     let status = TpmStatus::not_present();
-    assert!(!status.present);
-    assert!(!status.initialized);
-    assert_eq!(status.manufacturer, 0);
-    assert_eq!(status.version, 0);
-    assert_eq!(status.locality, 0);
-    assert_eq!(status.measurement_count, 0);
+    if status.present { return TestResult::Fail; }
+    if status.initialized { return TestResult::Fail; }
+    if status.manufacturer != 0 { return TestResult::Fail; }
+    if status.version != 0 { return TestResult::Fail; }
+    if status.locality != 0 { return TestResult::Fail; }
+    if status.measurement_count != 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_tpm_status_default() {
+pub fn test_tpm_status_default() -> TestResult {
     let status = TpmStatus::default();
-    assert!(!status.present);
-    assert!(!status.initialized);
+    if status.present { return TestResult::Fail; }
+    if status.initialized { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_tpm_status_vendor_id() {
+pub fn test_tpm_status_vendor_id() -> TestResult {
     let status = TpmStatus {
         present: true,
         initialized: true,
@@ -44,11 +44,11 @@ fn test_tpm_status_vendor_id() {
         locality: 0,
         measurement_count: 0,
     };
-    assert_eq!(status.vendor_id(), 0x5678);
+    if status.vendor_id() != 0x5678 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_tpm_status_device_id() {
+pub fn test_tpm_status_device_id() -> TestResult {
     let status = TpmStatus {
         present: true,
         initialized: true,
@@ -57,11 +57,11 @@ fn test_tpm_status_device_id() {
         locality: 0,
         measurement_count: 0,
     };
-    assert_eq!(status.device_id(), 0x1234);
+    if status.device_id() != 0x1234 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_tpm_status_manufacturer_intel() {
+pub fn test_tpm_status_manufacturer_intel() -> TestResult {
     let status = TpmStatus {
         present: true,
         initialized: true,
@@ -70,11 +70,11 @@ fn test_tpm_status_manufacturer_intel() {
         locality: 0,
         measurement_count: 0,
     };
-    assert_eq!(status.manufacturer_name(), "Intel");
+    if status.manufacturer_name() != "Intel" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_tpm_status_manufacturer_amd() {
+pub fn test_tpm_status_manufacturer_amd() -> TestResult {
     let status = TpmStatus {
         present: true,
         initialized: true,
@@ -83,11 +83,11 @@ fn test_tpm_status_manufacturer_amd() {
         locality: 0,
         measurement_count: 0,
     };
-    assert_eq!(status.manufacturer_name(), "AMD");
+    if status.manufacturer_name() != "AMD" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_tpm_status_manufacturer_ibm() {
+pub fn test_tpm_status_manufacturer_ibm() -> TestResult {
     let status = TpmStatus {
         present: true,
         initialized: true,
@@ -96,11 +96,11 @@ fn test_tpm_status_manufacturer_ibm() {
         locality: 0,
         measurement_count: 0,
     };
-    assert_eq!(status.manufacturer_name(), "IBM");
+    if status.manufacturer_name() != "IBM" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_tpm_status_manufacturer_infineon() {
+pub fn test_tpm_status_manufacturer_infineon() -> TestResult {
     let status = TpmStatus {
         present: true,
         initialized: true,
@@ -109,11 +109,11 @@ fn test_tpm_status_manufacturer_infineon() {
         locality: 0,
         measurement_count: 0,
     };
-    assert_eq!(status.manufacturer_name(), "Infineon");
+    if status.manufacturer_name() != "Infineon" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_tpm_status_manufacturer_nuvoton() {
+pub fn test_tpm_status_manufacturer_nuvoton() -> TestResult {
     let status = TpmStatus {
         present: true,
         initialized: true,
@@ -122,11 +122,11 @@ fn test_tpm_status_manufacturer_nuvoton() {
         locality: 0,
         measurement_count: 0,
     };
-    assert_eq!(status.manufacturer_name(), "Nuvoton");
+    if status.manufacturer_name() != "Nuvoton" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_tpm_status_manufacturer_unknown() {
+pub fn test_tpm_status_manufacturer_unknown() -> TestResult {
     let status = TpmStatus {
         present: true,
         initialized: true,
@@ -135,11 +135,11 @@ fn test_tpm_status_manufacturer_unknown() {
         locality: 0,
         measurement_count: 0,
     };
-    assert_eq!(status.manufacturer_name(), "Unknown");
+    if status.manufacturer_name() != "Unknown" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_tpm_status_is_usable_when_present_and_init() {
+pub fn test_tpm_status_is_usable_when_present_and_init() -> TestResult {
     let status = TpmStatus {
         present: true,
         initialized: true,
@@ -148,17 +148,17 @@ fn test_tpm_status_is_usable_when_present_and_init() {
         locality: 0,
         measurement_count: 0,
     };
-    assert!(status.is_usable());
+    if !status.is_usable() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_tpm_status_not_usable_when_not_present() {
+pub fn test_tpm_status_not_usable_when_not_present() -> TestResult {
     let status = TpmStatus::not_present();
-    assert!(!status.is_usable());
+    if status.is_usable() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_tpm_status_not_usable_when_not_initialized() {
+pub fn test_tpm_status_not_usable_when_not_initialized() -> TestResult {
     let status = TpmStatus {
         present: true,
         initialized: false,
@@ -167,11 +167,11 @@ fn test_tpm_status_not_usable_when_not_initialized() {
         locality: 0,
         measurement_count: 0,
     };
-    assert!(!status.is_usable());
+    if status.is_usable() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_tpm_status_clone() {
+pub fn test_tpm_status_clone() -> TestResult {
     let status = TpmStatus {
         present: true,
         initialized: true,
@@ -181,20 +181,24 @@ fn test_tpm_status_clone() {
         measurement_count: 5,
     };
     let cloned = status.clone();
-    assert_eq!(status.present, cloned.present);
-    assert_eq!(status.manufacturer, cloned.manufacturer);
-    assert_eq!(status.measurement_count, cloned.measurement_count);
+    if status.present != cloned.present { return TestResult::Fail; }
+    if status.manufacturer != cloned.manufacturer { return TestResult::Fail; }
+    if status.measurement_count != cloned.measurement_count { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_tpm_status_display_not_present() {
+pub fn test_tpm_status_display_not_present() -> TestResult {
+    use core::fmt::Write;
     let status = TpmStatus::not_present();
-    let display = format!("{}", status);
-    assert_eq!(display, "TPM: not present");
+    let mut buf = [0u8; 64];
+    let mut writer = crate::test::framework::ArrayWriter::new(&mut buf);
+    let _ = write!(writer, "{}", status);
+    if writer.as_str() != "TPM: not present" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_tpm_status_display_not_initialized() {
+pub fn test_tpm_status_display_not_initialized() -> TestResult {
+    use core::fmt::Write;
     let status = TpmStatus {
         present: true,
         initialized: false,
@@ -203,78 +207,81 @@ fn test_tpm_status_display_not_initialized() {
         locality: 0,
         measurement_count: 0,
     };
-    let display = format!("{}", status);
-    assert_eq!(display, "TPM: present but not initialized");
+    let mut buf = [0u8; 64];
+    let mut writer = crate::test::framework::ArrayWriter::new(&mut buf);
+    let _ = write!(writer, "{}", status);
+    if writer.as_str() != "TPM: present but not initialized" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_pcr_bank_config_default() {
+pub fn test_pcr_bank_config_default() -> TestResult {
     let config = PcrBankConfig::default();
-    assert!(config.sha1_enabled);
-    assert!(config.sha256_enabled);
-    assert!(!config.sha384_enabled);
-    assert!(!config.sha512_enabled);
+    if !config.sha1_enabled { return TestResult::Fail; }
+    if !config.sha256_enabled { return TestResult::Fail; }
+    if config.sha384_enabled { return TestResult::Fail; }
+    if config.sha512_enabled { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_pcr_bank_config_sha256_only() {
+pub fn test_pcr_bank_config_sha256_only() -> TestResult {
     let config = PcrBankConfig::sha256_only();
-    assert!(!config.sha1_enabled);
-    assert!(config.sha256_enabled);
-    assert!(!config.sha384_enabled);
-    assert!(!config.sha512_enabled);
+    if config.sha1_enabled { return TestResult::Fail; }
+    if !config.sha256_enabled { return TestResult::Fail; }
+    if config.sha384_enabled { return TestResult::Fail; }
+    if config.sha512_enabled { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_pcr_bank_config_none() {
+pub fn test_pcr_bank_config_none() -> TestResult {
     let config = PcrBankConfig::none();
-    assert!(!config.sha1_enabled);
-    assert!(!config.sha256_enabled);
-    assert!(!config.sha384_enabled);
-    assert!(!config.sha512_enabled);
+    if config.sha1_enabled { return TestResult::Fail; }
+    if config.sha256_enabled { return TestResult::Fail; }
+    if config.sha384_enabled { return TestResult::Fail; }
+    if config.sha512_enabled { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_pcr_bank_config_enabled_count_default() {
+pub fn test_pcr_bank_config_enabled_count_default() -> TestResult {
     let config = PcrBankConfig::default();
-    assert_eq!(config.enabled_count(), 2);
+    if config.enabled_count() != 2 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_pcr_bank_config_enabled_count_sha256_only() {
+pub fn test_pcr_bank_config_enabled_count_sha256_only() -> TestResult {
     let config = PcrBankConfig::sha256_only();
-    assert_eq!(config.enabled_count(), 1);
+    if config.enabled_count() != 1 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_pcr_bank_config_enabled_count_none() {
+pub fn test_pcr_bank_config_enabled_count_none() -> TestResult {
     let config = PcrBankConfig::none();
-    assert_eq!(config.enabled_count(), 0);
+    if config.enabled_count() != 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_pcr_bank_config_enabled_count_all() {
+pub fn test_pcr_bank_config_enabled_count_all() -> TestResult {
     let config = PcrBankConfig {
         sha1_enabled: true,
         sha256_enabled: true,
         sha384_enabled: true,
         sha512_enabled: true,
     };
-    assert_eq!(config.enabled_count(), 4);
+    if config.enabled_count() != 4 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_pcr_bank_config_copy() {
+pub fn test_pcr_bank_config_copy() -> TestResult {
     let c1 = PcrBankConfig::default();
     let c2 = c1;
-    assert_eq!(c1.sha1_enabled, c2.sha1_enabled);
-    assert_eq!(c1.sha256_enabled, c2.sha256_enabled);
+    if c1.sha1_enabled != c2.sha1_enabled { return TestResult::Fail; }
+    if c1.sha256_enabled != c2.sha256_enabled { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_pcr_bank_config_clone() {
+pub fn test_pcr_bank_config_clone() -> TestResult {
     let c1 = PcrBankConfig::sha256_only();
     let c2 = c1.clone();
-    assert_eq!(c1.sha1_enabled, c2.sha1_enabled);
-    assert_eq!(c1.sha256_enabled, c2.sha256_enabled);
+    if c1.sha1_enabled != c2.sha1_enabled { return TestResult::Fail; }
+    if c1.sha256_enabled != c2.sha256_enabled { return TestResult::Fail; }
+    TestResult::Pass
 }
