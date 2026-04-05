@@ -11,7 +11,7 @@ use core::sync::atomic::AtomicU64;
 use crate::security::policy::capability::quantum::{QuantumState, QuantumParticle};
 use crate::test::framework::TestResult;
 
-pub fn test_quantum_particle_fields() -> TestResult {
+pub(crate) fn test_quantum_particle_fields() -> TestResult {
     let particle = QuantumParticle {
         state_vector: [0.5, 0.5, 0.5, 0.5],
         spin: 0.5,
@@ -27,7 +27,7 @@ pub fn test_quantum_particle_fields() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_quantum_particle_state_vector_size() -> TestResult {
+pub(crate) fn test_quantum_particle_state_vector_size() -> TestResult {
     let particle = QuantumParticle {
         state_vector: [1.0, 0.0, 0.0, 0.0],
         spin: 0.0,
@@ -39,7 +39,7 @@ pub fn test_quantum_particle_state_vector_size() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_quantum_particle_normalized_state() -> TestResult {
+pub(crate) fn test_quantum_particle_normalized_state() -> TestResult {
     let particle = QuantumParticle {
         state_vector: [1.0, 0.0, 0.0, 0.0],
         spin: 0.5,
@@ -52,7 +52,7 @@ pub fn test_quantum_particle_normalized_state() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_quantum_particle_spin_up() -> TestResult {
+pub(crate) fn test_quantum_particle_spin_up() -> TestResult {
     let particle = QuantumParticle {
         state_vector: [0.0; 4],
         spin: 0.5,
@@ -64,7 +64,7 @@ pub fn test_quantum_particle_spin_up() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_quantum_particle_spin_down() -> TestResult {
+pub(crate) fn test_quantum_particle_spin_down() -> TestResult {
     let particle = QuantumParticle {
         state_vector: [0.0; 4],
         spin: -0.5,
@@ -76,7 +76,7 @@ pub fn test_quantum_particle_spin_down() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_quantum_particle_uncertainty_positive() -> TestResult {
+pub(crate) fn test_quantum_particle_uncertainty_positive() -> TestResult {
     let particle = QuantumParticle {
         state_vector: [0.0; 4],
         spin: 0.0,
@@ -89,7 +89,7 @@ pub fn test_quantum_particle_uncertainty_positive() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_quantum_particle_heisenberg_relation() -> TestResult {
+pub(crate) fn test_quantum_particle_heisenberg_relation() -> TestResult {
     let particle = QuantumParticle {
         state_vector: [0.0; 4],
         spin: 0.0,
@@ -102,7 +102,7 @@ pub fn test_quantum_particle_heisenberg_relation() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_quantum_particle_timestamp() -> TestResult {
+pub(crate) fn test_quantum_particle_timestamp() -> TestResult {
     let particle = QuantumParticle {
         state_vector: [0.0; 4],
         spin: 0.0,
@@ -114,7 +114,7 @@ pub fn test_quantum_particle_timestamp() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_quantum_particle_debug() -> TestResult {
+pub(crate) fn test_quantum_particle_debug() -> TestResult {
     let particle = QuantumParticle {
         state_vector: [0.5, 0.5, 0.5, 0.5],
         spin: 0.5,
@@ -127,7 +127,7 @@ pub fn test_quantum_particle_debug() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_quantum_state_empty_particles() -> TestResult {
+pub(crate) fn test_quantum_state_empty_particles() -> TestResult {
     let state = QuantumState {
         entangled_particles: Vec::new(),
         decoherence_timer: AtomicU64::new(0),
@@ -137,7 +137,7 @@ pub fn test_quantum_state_empty_particles() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_quantum_state_with_particles() -> TestResult {
+pub(crate) fn test_quantum_state_with_particles() -> TestResult {
     let particle = QuantumParticle {
         state_vector: [1.0, 0.0, 0.0, 0.0],
         spin: 0.5,
@@ -154,7 +154,7 @@ pub fn test_quantum_state_with_particles() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_quantum_state_key_size() -> TestResult {
+pub(crate) fn test_quantum_state_key_size() -> TestResult {
     let state = QuantumState {
         entangled_particles: Vec::new(),
         decoherence_timer: AtomicU64::new(0),
@@ -164,7 +164,7 @@ pub fn test_quantum_state_key_size() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_quantum_state_decoherence_timer() -> TestResult {
+pub(crate) fn test_quantum_state_decoherence_timer() -> TestResult {
     let state = QuantumState {
         entangled_particles: Vec::new(),
         decoherence_timer: AtomicU64::new(5000),
@@ -175,7 +175,7 @@ pub fn test_quantum_state_decoherence_timer() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_quantum_state_debug() -> TestResult {
+pub(crate) fn test_quantum_state_debug() -> TestResult {
     let state = QuantumState {
         entangled_particles: Vec::new(),
         decoherence_timer: AtomicU64::new(0),
@@ -186,7 +186,7 @@ pub fn test_quantum_state_debug() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_quantum_state_key_all_zeros() -> TestResult {
+pub(crate) fn test_quantum_state_key_all_zeros() -> TestResult {
     let state = QuantumState {
         entangled_particles: Vec::new(),
         decoherence_timer: AtomicU64::new(0),
@@ -196,7 +196,7 @@ pub fn test_quantum_state_key_all_zeros() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_quantum_state_key_all_ones() -> TestResult {
+pub(crate) fn test_quantum_state_key_all_ones() -> TestResult {
     let state = QuantumState {
         entangled_particles: Vec::new(),
         decoherence_timer: AtomicU64::new(0),
@@ -206,7 +206,7 @@ pub fn test_quantum_state_key_all_ones() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_quantum_particle_superposition() -> TestResult {
+pub(crate) fn test_quantum_particle_superposition() -> TestResult {
     let inv_sqrt_2 = 1.0 / 2.0_f64.sqrt();
     let particle = QuantumParticle {
         state_vector: [inv_sqrt_2, inv_sqrt_2, 0.0, 0.0],
@@ -220,7 +220,7 @@ pub fn test_quantum_particle_superposition() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_quantum_state_multiple_particles() -> TestResult {
+pub(crate) fn test_quantum_state_multiple_particles() -> TestResult {
     let p1 = QuantumParticle {
         state_vector: [1.0, 0.0, 0.0, 0.0],
         spin: 0.5,
@@ -244,7 +244,7 @@ pub fn test_quantum_state_multiple_particles() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_quantum_particle_all_fields_zero() -> TestResult {
+pub(crate) fn test_quantum_particle_all_fields_zero() -> TestResult {
     let particle = QuantumParticle {
         state_vector: [0.0; 4],
         spin: 0.0,
@@ -258,7 +258,7 @@ pub fn test_quantum_particle_all_fields_zero() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_quantum_state_timer_atomic_operations() -> TestResult {
+pub(crate) fn test_quantum_state_timer_atomic_operations() -> TestResult {
     let state = QuantumState {
         entangled_particles: Vec::new(),
         decoherence_timer: AtomicU64::new(100),
@@ -270,7 +270,7 @@ pub fn test_quantum_state_timer_atomic_operations() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_quantum_particle_different_states() -> TestResult {
+pub(crate) fn test_quantum_particle_different_states() -> TestResult {
     let ground = QuantumParticle {
         state_vector: [1.0, 0.0, 0.0, 0.0],
         spin: 0.0,

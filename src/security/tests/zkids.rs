@@ -12,7 +12,7 @@ use alloc::string::String;
 use alloc::vec::Vec;
 use alloc::vec;
 
-pub fn test_zkid_fields() -> TestResult {
+pub(crate) fn test_zkid_fields() -> TestResult {
     let zkid = ZkId {
         id_hash: [0x11u8; 32],
         public_key: [0x22u8; 32],
@@ -30,7 +30,7 @@ pub fn test_zkid_fields() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_zkid_clone() -> TestResult {
+pub(crate) fn test_zkid_clone() -> TestResult {
     let zkid = ZkId {
         id_hash: [0xAAu8; 32],
         public_key: [0xBBu8; 32],
@@ -45,7 +45,7 @@ pub fn test_zkid_clone() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_zkid_with_capabilities() -> TestResult {
+pub(crate) fn test_zkid_with_capabilities() -> TestResult {
     let zkid = ZkId {
         id_hash: [0u8; 32],
         public_key: [0u8; 32],
@@ -62,61 +62,61 @@ pub fn test_zkid_with_capabilities() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_capability_system_admin() -> TestResult {
+pub(crate) fn test_capability_system_admin() -> TestResult {
     let cap = Capability::SystemAdmin;
     if cap != Capability::SystemAdmin { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_capability_process_manager() -> TestResult {
+pub(crate) fn test_capability_process_manager() -> TestResult {
     let cap = Capability::ProcessManager;
     if cap != Capability::ProcessManager { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_capability_memory_manager() -> TestResult {
+pub(crate) fn test_capability_memory_manager() -> TestResult {
     let cap = Capability::MemoryManager;
     if cap != Capability::MemoryManager { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_capability_network_admin() -> TestResult {
+pub(crate) fn test_capability_network_admin() -> TestResult {
     let cap = Capability::NetworkAdmin;
     if cap != Capability::NetworkAdmin { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_capability_file_system() -> TestResult {
+pub(crate) fn test_capability_file_system() -> TestResult {
     let cap = Capability::FileSystem;
     if cap != Capability::FileSystem { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_capability_crypto_operator() -> TestResult {
+pub(crate) fn test_capability_crypto_operator() -> TestResult {
     let cap = Capability::CryptoOperator;
     if cap != Capability::CryptoOperator { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_capability_module_loader() -> TestResult {
+pub(crate) fn test_capability_module_loader() -> TestResult {
     let cap = Capability::ModuleLoader;
     if cap != Capability::ModuleLoader { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_capability_debug_access() -> TestResult {
+pub(crate) fn test_capability_debug_access() -> TestResult {
     let cap = Capability::DebugAccess;
     if cap != Capability::DebugAccess { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_capability_time_critical() -> TestResult {
+pub(crate) fn test_capability_time_critical() -> TestResult {
     let cap = Capability::TimeCritical;
     if cap != Capability::TimeCritical { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_capability_custom() -> TestResult {
+pub(crate) fn test_capability_custom() -> TestResult {
     let cap = Capability::Custom(String::from("custom_cap"));
     if let Capability::Custom(name) = cap {
         if name != "custom_cap" { return TestResult::Fail; }
@@ -126,20 +126,20 @@ pub fn test_capability_custom() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_capability_equality() -> TestResult {
+pub(crate) fn test_capability_equality() -> TestResult {
     if Capability::SystemAdmin != Capability::SystemAdmin { return TestResult::Fail; }
     if Capability::SystemAdmin == Capability::ProcessManager { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_capability_clone() -> TestResult {
+pub(crate) fn test_capability_clone() -> TestResult {
     let cap1 = Capability::FileSystem;
     let cap2 = cap1.clone();
     if cap1 != cap2 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_auth_challenge_fields() -> TestResult {
+pub(crate) fn test_auth_challenge_fields() -> TestResult {
     let challenge = AuthChallenge {
         challenge_id: [0x33u8; 32],
         nonce: [0x44u8; 32],
@@ -153,7 +153,7 @@ pub fn test_auth_challenge_fields() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_auth_challenge_clone() -> TestResult {
+pub(crate) fn test_auth_challenge_clone() -> TestResult {
     let challenge = AuthChallenge {
         challenge_id: [0u8; 32],
         nonce: [0u8; 32],
@@ -165,7 +165,7 @@ pub fn test_auth_challenge_clone() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_auth_session_fields() -> TestResult {
+pub(crate) fn test_auth_session_fields() -> TestResult {
     let session = AuthSession {
         session_id: [0x55u8; 32],
         zkid: ZkId {
@@ -187,7 +187,7 @@ pub fn test_auth_session_fields() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_auth_session_clone() -> TestResult {
+pub(crate) fn test_auth_session_clone() -> TestResult {
     let session = AuthSession {
         session_id: [0u8; 32],
         zkid: ZkId {
@@ -208,7 +208,7 @@ pub fn test_auth_session_clone() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_zkids_config_default() -> TestResult {
+pub(crate) fn test_zkids_config_default() -> TestResult {
     let config = ZkidsConfig::default();
     if config.max_registered_ids != 1024 { return TestResult::Fail; }
     if config.session_timeout_seconds != 3600 { return TestResult::Fail; }
@@ -218,7 +218,7 @@ pub fn test_zkids_config_default() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_zkids_config_custom() -> TestResult {
+pub(crate) fn test_zkids_config_custom() -> TestResult {
     let config = ZkidsConfig {
         max_registered_ids: 512,
         session_timeout_seconds: 7200,
@@ -232,14 +232,14 @@ pub fn test_zkids_config_custom() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_zkids_config_copy() -> TestResult {
+pub(crate) fn test_zkids_config_copy() -> TestResult {
     let config1 = ZkidsConfig::default();
     let config2 = config1;
     if config1.max_registered_ids != config2.max_registered_ids { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_zkids_stats_fields() -> TestResult {
+pub(crate) fn test_zkids_stats_fields() -> TestResult {
     let stats = ZkidsStats {
         registered_ids: 100,
         active_sessions: 50,
@@ -253,7 +253,7 @@ pub fn test_zkids_stats_fields() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_zkids_stats_clone() -> TestResult {
+pub(crate) fn test_zkids_stats_clone() -> TestResult {
     let stats = ZkidsStats {
         registered_ids: 5,
         active_sessions: 3,
@@ -265,13 +265,13 @@ pub fn test_zkids_stats_clone() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_get_zkids_stats() -> TestResult {
+pub(crate) fn test_get_zkids_stats() -> TestResult {
     let stats = get_zkids_stats();
     let _ = stats.registered_ids;
     TestResult::Pass
 }
 
-pub fn test_all_zkids_capabilities() -> TestResult {
+pub(crate) fn test_all_zkids_capabilities() -> TestResult {
     let caps = [
         Capability::SystemAdmin,
         Capability::ProcessManager,
@@ -287,7 +287,7 @@ pub fn test_all_zkids_capabilities() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_zkid_debug_format() -> TestResult {
+pub(crate) fn test_zkid_debug_format() -> TestResult {
     let zkid = ZkId {
         id_hash: [0u8; 32],
         public_key: [0u8; 32],
@@ -301,14 +301,14 @@ pub fn test_zkid_debug_format() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_capability_debug_format() -> TestResult {
+pub(crate) fn test_capability_debug_format() -> TestResult {
     let cap = Capability::CryptoOperator;
     let debug_str = format!("{:?}", cap);
     if !debug_str.contains("CryptoOperator") { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_zkids_stats_debug_format() -> TestResult {
+pub(crate) fn test_zkids_stats_debug_format() -> TestResult {
     let stats = ZkidsStats {
         registered_ids: 0,
         active_sessions: 0,
@@ -320,7 +320,7 @@ pub fn test_zkids_stats_debug_format() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_custom_capability_equality() -> TestResult {
+pub(crate) fn test_custom_capability_equality() -> TestResult {
     let cap1 = Capability::Custom(String::from("test"));
     let cap2 = Capability::Custom(String::from("test"));
     let cap3 = Capability::Custom(String::from("other"));
@@ -329,7 +329,7 @@ pub fn test_custom_capability_equality() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_zkid_with_max_auth_count() -> TestResult {
+pub(crate) fn test_zkid_with_max_auth_count() -> TestResult {
     let zkid = ZkId {
         id_hash: [0u8; 32],
         public_key: [0u8; 32],
@@ -342,7 +342,7 @@ pub fn test_zkid_with_max_auth_count() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_auth_challenge_empty_capabilities() -> TestResult {
+pub(crate) fn test_auth_challenge_empty_capabilities() -> TestResult {
     let challenge = AuthChallenge {
         challenge_id: [0u8; 32],
         nonce: [0u8; 32],
@@ -353,7 +353,7 @@ pub fn test_auth_challenge_empty_capabilities() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_auth_session_expired() -> TestResult {
+pub(crate) fn test_auth_session_expired() -> TestResult {
     let session = AuthSession {
         session_id: [0u8; 32],
         zkid: ZkId {
