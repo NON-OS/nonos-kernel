@@ -17,7 +17,7 @@
 use crate::drivers::pci::*;
 use crate::test::framework::TestResult;
 
-pub fn test_error_display() -> TestResult {
+pub(crate) fn test_error_display() -> TestResult {
     use core::fmt::Write;
     let err = error::PciError::InvalidDevice(32);
     let mut buf = [0u8; 128];
@@ -36,11 +36,11 @@ pub fn test_error_display() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_error_classification() -> TestResult {
+pub(crate) fn test_error_classification() -> TestResult {
     if !error::PciError::RootComplexError.is_fatal() { return TestResult::Fail; }
     if error::PciError::DeviceNotFound.is_fatal() { return TestResult::Fail; }
 
-    if !error::PciError::DeviceBlocked { vendor: 0, device: 0 }.is_security_related() { return TestResult::Fail; }
+    if !(error::PciError::DeviceBlocked { vendor: 0, device: 0 }).is_security_related() { return TestResult::Fail; }
     if error::PciError::DeviceNotFound.is_security_related() { return TestResult::Fail; }
 
     if !error::PciError::DeviceNotFound.is_recoverable() { return TestResult::Fail; }
@@ -48,7 +48,7 @@ pub fn test_error_classification() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_security_level_ordering() -> TestResult {
+pub(crate) fn test_security_level_ordering() -> TestResult {
     if !(security::SecurityLevel::Critical > security::SecurityLevel::High) { return TestResult::Fail; }
     if !(security::SecurityLevel::High > security::SecurityLevel::Medium) { return TestResult::Fail; }
     if !(security::SecurityLevel::Medium > security::SecurityLevel::Low) { return TestResult::Fail; }

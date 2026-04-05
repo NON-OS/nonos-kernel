@@ -17,7 +17,7 @@
 use crate::drivers::pci::*;
 use crate::test::framework::TestResult;
 
-pub fn test_class_code_methods() -> TestResult {
+pub(crate) fn test_class_code_methods() -> TestResult {
     let storage = types::ClassCode::new(constants::CLASS_MASS_STORAGE, constants::SUBCLASS_STORAGE_NVM, 0x02);
     if !storage.is_storage() { return TestResult::Fail; }
     if !storage.is_nvme() { return TestResult::Fail; }
@@ -35,7 +35,7 @@ pub fn test_class_code_methods() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_header_type_parsing() -> TestResult {
+pub(crate) fn test_header_type_parsing() -> TestResult {
     if types::HeaderType::from(0x00) != types::HeaderType::Standard { return TestResult::Fail; }
     if types::HeaderType::from(0x01) != types::HeaderType::PciToPciBridge { return TestResult::Fail; }
     if types::HeaderType::from(0x02) != types::HeaderType::CardBusBridge { return TestResult::Fail; }
@@ -45,7 +45,7 @@ pub fn test_header_type_parsing() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_capability_creation() -> TestResult {
+pub(crate) fn test_capability_creation() -> TestResult {
     let cap = types::PciCapability::new(constants::CAP_ID_MSI, 0x50);
     if cap.id != constants::CAP_ID_MSI { return TestResult::Fail; }
     if cap.offset != 0x50 { return TestResult::Fail; }
@@ -56,14 +56,14 @@ pub fn test_capability_creation() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_msi_message_creation() -> TestResult {
+pub(crate) fn test_msi_message_creation() -> TestResult {
     let msg = types::MsiMessage::for_local_apic(0x30);
     if msg.address & 0xFFF0_0000 != constants::MSI_ADDRESS_BASE as u64 { return TestResult::Fail; }
     if msg.data & 0xFF != 0x30 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_device_id_matching() -> TestResult {
+pub(crate) fn test_device_id_matching() -> TestResult {
     let id = types::DeviceId::new(0x8086, 0x1234);
     if !id.matches(0x8086, 0x1234) { return TestResult::Fail; }
     if id.matches(0x8086, 0x5678) { return TestResult::Fail; }
@@ -71,14 +71,14 @@ pub fn test_device_id_matching() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_pcie_device_type_parsing() -> TestResult {
+pub(crate) fn test_pcie_device_type_parsing() -> TestResult {
     if types::PcieDeviceType::from(constants::PCIE_TYPE_ENDPOINT) != types::PcieDeviceType::Endpoint { return TestResult::Fail; }
     if types::PcieDeviceType::from(constants::PCIE_TYPE_ROOT_PORT) != types::PcieDeviceType::RootPort { return TestResult::Fail; }
     if types::PcieDeviceType::from(0xFF) != types::PcieDeviceType::Unknown(0xFF) { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_pci_device_creation() -> TestResult {
+pub(crate) fn test_pci_device_creation() -> TestResult {
     let addr = types::PciAddress::new(0, 1, 0);
     let dev = types::PciDevice::new(addr);
 
@@ -92,7 +92,7 @@ pub fn test_pci_device_creation() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_bridge_info_creation() -> TestResult {
+pub(crate) fn test_bridge_info_creation() -> TestResult {
     let info = types::BridgeInfo::new();
     if info.primary_bus != 0 { return TestResult::Fail; }
     if info.secondary_bus != 0 { return TestResult::Fail; }
@@ -102,7 +102,7 @@ pub fn test_bridge_info_creation() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_msi_info_vectors() -> TestResult {
+pub(crate) fn test_msi_info_vectors() -> TestResult {
     let msi = types::MsiInfo {
         offset: 0x50,
         is_64bit: true,
@@ -117,7 +117,7 @@ pub fn test_msi_info_vectors() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_msix_info_vectors() -> TestResult {
+pub(crate) fn test_msix_info_vectors() -> TestResult {
     let msix = types::MsixInfo {
         offset: 0x70,
         table_size: 15,
@@ -133,7 +133,7 @@ pub fn test_msix_info_vectors() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_power_management_info() -> TestResult {
+pub(crate) fn test_power_management_info() -> TestResult {
     let pm = types::PowerManagementInfo {
         offset: 0x40,
         version: 3,
@@ -158,7 +158,7 @@ pub fn test_power_management_info() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_stats_snapshot() -> TestResult {
+pub(crate) fn test_stats_snapshot() -> TestResult {
     let stats = stats::PciStats::snapshot();
     if !(stats.total_devices < 1000) { return TestResult::Fail; }
     TestResult::Pass

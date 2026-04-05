@@ -17,14 +17,14 @@
 use crate::drivers::pci::*;
 use crate::test::framework::TestResult;
 
-pub fn test_bar_offset_calculation() -> TestResult {
+pub(crate) fn test_bar_offset_calculation() -> TestResult {
     if constants::bar_offset(0) != constants::CFG_BAR0 { return TestResult::Fail; }
     if constants::bar_offset(1) != constants::CFG_BAR1 { return TestResult::Fail; }
     if constants::bar_offset(5) != constants::CFG_BAR5 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_pci_bar_properties() -> TestResult {
+pub(crate) fn test_pci_bar_properties() -> TestResult {
     let mem32 = types::PciBar::Memory32 {
         address: x86_64::PhysAddr::new(0xF000_0000),
         size: 0x1000,
@@ -58,7 +58,7 @@ pub fn test_pci_bar_properties() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_bar_alignment_calculation() -> TestResult {
+pub(crate) fn test_bar_alignment_calculation() -> TestResult {
     if bar::calculate_bar_alignment(0) != 0 { return TestResult::Fail; }
     if bar::calculate_bar_alignment(1) != 1 { return TestResult::Fail; }
     if bar::calculate_bar_alignment(100) != 128 { return TestResult::Fail; }
@@ -67,7 +67,7 @@ pub fn test_bar_alignment_calculation() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_bar_type_identification() -> TestResult {
+pub(crate) fn test_bar_type_identification() -> TestResult {
     let mem32 = types::PciBar::Memory32 {
         address: x86_64::PhysAddr::new(0xF000_0000),
         size: 0x1000,

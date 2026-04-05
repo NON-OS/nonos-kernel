@@ -17,7 +17,7 @@
 use crate::drivers::pci::*;
 use crate::test::framework::TestResult;
 
-pub fn test_pci_address_creation() -> TestResult {
+pub(crate) fn test_pci_address_creation() -> TestResult {
     let addr = types::PciAddress::new(0, 1, 2);
     if addr.bus != 0 { return TestResult::Fail; }
     if addr.device != 1 { return TestResult::Fail; }
@@ -25,7 +25,7 @@ pub fn test_pci_address_creation() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_pci_address_bdf_conversion() -> TestResult {
+pub(crate) fn test_pci_address_bdf_conversion() -> TestResult {
     let addr = types::PciAddress::new(5, 10, 3);
     let bdf = addr.to_bdf();
     let restored = types::PciAddress::from_bdf(bdf);
@@ -36,7 +36,7 @@ pub fn test_pci_address_bdf_conversion() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_pci_address_display() -> TestResult {
+pub(crate) fn test_pci_address_display() -> TestResult {
     use core::fmt::Write;
     let addr = types::PciAddress::new(0x12, 0x0A, 0x03);
     let mut buf = [0u8; 32];
@@ -47,7 +47,7 @@ pub fn test_pci_address_display() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_config_address_calculation() -> TestResult {
+pub(crate) fn test_config_address_calculation() -> TestResult {
     let addr = constants::pci_config_address(0, 0, 0, 0);
     if addr & (1 << 31) != 1 << 31 { return TestResult::Fail; }
 
