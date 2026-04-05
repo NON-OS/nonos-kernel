@@ -1,112 +1,115 @@
-use crate::shell::terminal::history::{CommandHistory, HISTORY_SIZE, MAX_CMD_LEN};
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 
-#[test]
-fn test_command_history_new() {
+use crate::shell::terminal::history::{CommandHistory, HISTORY_SIZE, MAX_CMD_LEN};
+use crate::test::framework::TestResult;
+
+pub fn test_command_history_new() -> TestResult {
     let history = CommandHistory::new();
-    assert_eq!(history.count(), 0);
-    assert!(!history.is_browsing());
+    if history.count() != 0 { return TestResult::Fail; }
+    if history.is_browsing() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_command_history_add_single() {
+pub fn test_command_history_add_single() -> TestResult {
     let mut history = CommandHistory::new();
     history.add(b"ls -la");
-    assert_eq!(history.count(), 1);
+    if history.count() != 1 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_command_history_add_empty() {
+pub fn test_command_history_add_empty() -> TestResult {
     let mut history = CommandHistory::new();
     history.add(b"");
-    assert_eq!(history.count(), 0);
+    if history.count() != 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_command_history_add_multiple() {
+pub fn test_command_history_add_multiple() -> TestResult {
     let mut history = CommandHistory::new();
     history.add(b"ls");
     history.add(b"pwd");
     history.add(b"cd /home");
-    assert_eq!(history.count(), 3);
+    if history.count() != 3 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_command_history_no_duplicates() {
+pub fn test_command_history_no_duplicates() -> TestResult {
     let mut history = CommandHistory::new();
     history.add(b"ls");
     history.add(b"ls");
-    assert_eq!(history.count(), 1);
+    if history.count() != 1 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_command_history_duplicates_after_other() {
+pub fn test_command_history_duplicates_after_other() -> TestResult {
     let mut history = CommandHistory::new();
     history.add(b"ls");
     history.add(b"pwd");
     history.add(b"ls");
-    assert_eq!(history.count(), 3);
+    if history.count() != 3 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_command_history_get_single() {
+pub fn test_command_history_get_single() -> TestResult {
     let mut history = CommandHistory::new();
     history.add(b"test command");
     let (cmd, len) = history.get(0).unwrap();
-    assert_eq!(&cmd[..len], b"test command");
+    if &cmd[..len] != b"test command" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_command_history_get_multiple() {
+pub fn test_command_history_get_multiple() -> TestResult {
     let mut history = CommandHistory::new();
     history.add(b"first");
     history.add(b"second");
     history.add(b"third");
 
     let (cmd0, len0) = history.get(0).unwrap();
-    assert_eq!(&cmd0[..len0], b"first");
+    if &cmd0[..len0] != b"first" { return TestResult::Fail; }
 
     let (cmd1, len1) = history.get(1).unwrap();
-    assert_eq!(&cmd1[..len1], b"second");
+    if &cmd1[..len1] != b"second" { return TestResult::Fail; }
 
     let (cmd2, len2) = history.get(2).unwrap();
-    assert_eq!(&cmd2[..len2], b"third");
+    if &cmd2[..len2] != b"third" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_command_history_get_out_of_bounds() {
+pub fn test_command_history_get_out_of_bounds() -> TestResult {
     let mut history = CommandHistory::new();
     history.add(b"only one");
-    assert!(history.get(1).is_none());
+    if history.get(1).is_some() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_command_history_get_empty() {
+pub fn test_command_history_get_empty() -> TestResult {
     let history = CommandHistory::new();
-    assert!(history.get(0).is_none());
+    if history.get(0).is_some() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_command_history_start_browse() {
+pub fn test_command_history_start_browse() -> TestResult {
     let mut history = CommandHistory::new();
     history.add(b"cmd1");
     history.add(b"cmd2");
     history.start_browse(b"current");
-    assert!(history.is_browsing());
+    if !history.is_browsing() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_command_history_browse_prev() {
+pub fn test_command_history_browse_prev() -> TestResult {
     let mut history = CommandHistory::new();
     history.add(b"first");
     history.add(b"second");
     history.start_browse(b"");
 
     let (cmd, len) = history.prev().unwrap();
-    assert_eq!(&cmd[..len], b"second");
+    if &cmd[..len] != b"second" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_command_history_browse_prev_multiple() {
+pub fn test_command_history_browse_prev_multiple() -> TestResult {
     let mut history = CommandHistory::new();
     history.add(b"first");
     history.add(b"second");
@@ -114,26 +117,26 @@ fn test_command_history_browse_prev_multiple() {
     history.start_browse(b"");
 
     let (cmd1, len1) = history.prev().unwrap();
-    assert_eq!(&cmd1[..len1], b"third");
+    if &cmd1[..len1] != b"third" { return TestResult::Fail; }
 
     let (cmd2, len2) = history.prev().unwrap();
-    assert_eq!(&cmd2[..len2], b"second");
+    if &cmd2[..len2] != b"second" { return TestResult::Fail; }
 
     let (cmd3, len3) = history.prev().unwrap();
-    assert_eq!(&cmd3[..len3], b"first");
+    if &cmd3[..len3] != b"first" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_command_history_browse_prev_at_start() {
+pub fn test_command_history_browse_prev_at_start() -> TestResult {
     let mut history = CommandHistory::new();
     history.add(b"only");
     history.start_browse(b"");
     history.prev();
-    assert!(history.prev().is_none());
+    if history.prev().is_some() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_command_history_browse_next() {
+pub fn test_command_history_browse_next() -> TestResult {
     let mut history = CommandHistory::new();
     history.add(b"first");
     history.add(b"second");
@@ -142,50 +145,50 @@ fn test_command_history_browse_next() {
     history.prev();
 
     let (cmd, len) = history.next().unwrap();
-    assert_eq!(&cmd[..len], b"second");
+    if &cmd[..len] != b"second" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_command_history_browse_next_to_saved() {
+pub fn test_command_history_browse_next_to_saved() -> TestResult {
     let mut history = CommandHistory::new();
     history.add(b"first");
     history.start_browse(b"saved");
     history.prev();
 
     let (cmd, len) = history.next().unwrap();
-    assert_eq!(&cmd[..len], b"saved");
-    assert!(!history.is_browsing());
+    if &cmd[..len] != b"saved" { return TestResult::Fail; }
+    if history.is_browsing() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_command_history_browse_next_not_browsing() {
+pub fn test_command_history_browse_next_not_browsing() -> TestResult {
     let mut history = CommandHistory::new();
     history.add(b"cmd");
-    assert!(history.next().is_none());
+    if history.next().is_some() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_command_history_cancel_browse() {
+pub fn test_command_history_cancel_browse() -> TestResult {
     let mut history = CommandHistory::new();
     history.add(b"cmd");
     history.start_browse(b"");
-    assert!(history.is_browsing());
+    if !history.is_browsing() { return TestResult::Fail; }
     history.cancel_browse();
-    assert!(!history.is_browsing());
+    if history.is_browsing() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_command_history_clear() {
+pub fn test_command_history_clear() -> TestResult {
     let mut history = CommandHistory::new();
     history.add(b"cmd1");
     history.add(b"cmd2");
     history.clear();
-    assert_eq!(history.count(), 0);
-    assert!(history.get(0).is_none());
+    if history.count() != 0 { return TestResult::Fail; }
+    if history.get(0).is_some() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_command_history_overflow() {
+pub fn test_command_history_overflow() -> TestResult {
     let mut history = CommandHistory::new();
     for i in 0..HISTORY_SIZE + 10 {
         let mut cmd = [0u8; 16];
@@ -193,47 +196,47 @@ fn test_command_history_overflow() {
         cmd[..s.len()].copy_from_slice(s.as_bytes());
         history.add(&cmd[..s.len()]);
     }
-    assert_eq!(history.count(), HISTORY_SIZE);
+    if history.count() != HISTORY_SIZE { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_command_history_truncates_long() {
+pub fn test_command_history_truncates_long() -> TestResult {
     let mut history = CommandHistory::new();
     let long_cmd = [b'x'; MAX_CMD_LEN + 100];
     history.add(&long_cmd);
-    assert_eq!(history.count(), 1);
+    if history.count() != 1 { return TestResult::Fail; }
     let (_, len) = history.get(0).unwrap();
-    assert_eq!(len, MAX_CMD_LEN);
+    if len != MAX_CMD_LEN { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_history_size_constant() {
-    assert_eq!(HISTORY_SIZE, 64);
+pub fn test_history_size_constant() -> TestResult {
+    if HISTORY_SIZE != 64 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_max_cmd_len_constant() {
-    assert_eq!(MAX_CMD_LEN, 256);
+pub fn test_max_cmd_len_constant() -> TestResult {
+    if MAX_CMD_LEN != 256 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_command_history_secure_erase() {
+pub fn test_command_history_secure_erase() -> TestResult {
     let mut history = CommandHistory::new();
     history.add(b"secret command");
     history.secure_erase();
-    assert_eq!(history.count(), 0);
-    assert!(!history.is_browsing());
+    if history.count() != 0 { return TestResult::Fail; }
+    if history.is_browsing() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_command_history_browse_empty() {
+pub fn test_command_history_browse_empty() -> TestResult {
     let mut history = CommandHistory::new();
     history.start_browse(b"test");
-    assert!(history.prev().is_none());
+    if history.prev().is_some() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_command_history_add_preserves_order() {
+pub fn test_command_history_add_preserves_order() -> TestResult {
     let mut history = CommandHistory::new();
     history.add(b"alpha");
     history.add(b"beta");
@@ -243,18 +246,19 @@ fn test_command_history_add_preserves_order() {
     let (cmd1, len1) = history.get(1).unwrap();
     let (cmd2, len2) = history.get(2).unwrap();
 
-    assert_eq!(&cmd0[..len0], b"alpha");
-    assert_eq!(&cmd1[..len1], b"beta");
-    assert_eq!(&cmd2[..len2], b"gamma");
+    if &cmd0[..len0] != b"alpha" { return TestResult::Fail; }
+    if &cmd1[..len1] != b"beta" { return TestResult::Fail; }
+    if &cmd2[..len2] != b"gamma" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_command_history_browsing_resets_on_add() {
+pub fn test_command_history_browsing_resets_on_add() -> TestResult {
     let mut history = CommandHistory::new();
     history.add(b"first");
     history.start_browse(b"");
     history.prev();
-    assert!(history.is_browsing());
+    if !history.is_browsing() { return TestResult::Fail; }
     history.add(b"second");
-    assert!(!history.is_browsing());
+    if history.is_browsing() { return TestResult::Fail; }
+    TestResult::Pass
 }

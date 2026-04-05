@@ -1,194 +1,198 @@
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
+
 use crate::shell::commands::pipeline::{Pipeline, RedirectType};
+use crate::test::framework::TestResult;
 
-#[test]
-fn test_redirect_type_none() {
+pub fn test_redirect_type_none() -> TestResult {
     let rt = RedirectType::None;
-    assert_eq!(rt, RedirectType::None);
+    if rt != RedirectType::None { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_redirect_type_write() {
+pub fn test_redirect_type_write() -> TestResult {
     let rt = RedirectType::Write;
-    assert_eq!(rt, RedirectType::Write);
+    if rt != RedirectType::Write { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_redirect_type_append() {
+pub fn test_redirect_type_append() -> TestResult {
     let rt = RedirectType::Append;
-    assert_eq!(rt, RedirectType::Append);
+    if rt != RedirectType::Append { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_redirect_type_input() {
+pub fn test_redirect_type_input() -> TestResult {
     let rt = RedirectType::Input;
-    assert_eq!(rt, RedirectType::Input);
+    if rt != RedirectType::Input { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_redirect_type_equality() {
-    assert_eq!(RedirectType::None, RedirectType::None);
-    assert_ne!(RedirectType::None, RedirectType::Write);
+pub fn test_redirect_type_equality() -> TestResult {
+    if RedirectType::None != RedirectType::None { return TestResult::Fail; }
+    if RedirectType::None == RedirectType::Write { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_pipeline_parse_simple() {
+pub fn test_pipeline_parse_simple() -> TestResult {
     let pipe = Pipeline::parse(b"ls");
-    assert_eq!(pipe.stages.len(), 1);
-    assert_eq!(pipe.stages[0].command, b"ls");
+    if pipe.stages.len() != 1 { return TestResult::Fail; }
+    if pipe.stages[0].command != b"ls" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_pipeline_parse_with_args() {
+pub fn test_pipeline_parse_with_args() -> TestResult {
     let pipe = Pipeline::parse(b"ls -la /home");
-    assert_eq!(pipe.stages.len(), 1);
-    assert_eq!(pipe.stages[0].command, b"ls -la /home");
+    if pipe.stages.len() != 1 { return TestResult::Fail; }
+    if pipe.stages[0].command != b"ls -la /home" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_pipeline_parse_two_stages() {
+pub fn test_pipeline_parse_two_stages() -> TestResult {
     let pipe = Pipeline::parse(b"ls | grep txt");
-    assert_eq!(pipe.stages.len(), 2);
-    assert_eq!(pipe.stages[0].command, b"ls");
-    assert_eq!(pipe.stages[1].command, b"grep txt");
+    if pipe.stages.len() != 2 { return TestResult::Fail; }
+    if pipe.stages[0].command != b"ls" { return TestResult::Fail; }
+    if pipe.stages[1].command != b"grep txt" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_pipeline_parse_three_stages() {
+pub fn test_pipeline_parse_three_stages() -> TestResult {
     let pipe = Pipeline::parse(b"cat file | grep pattern | wc -l");
-    assert_eq!(pipe.stages.len(), 3);
-    assert_eq!(pipe.stages[0].command, b"cat file");
-    assert_eq!(pipe.stages[1].command, b"grep pattern");
-    assert_eq!(pipe.stages[2].command, b"wc -l");
+    if pipe.stages.len() != 3 { return TestResult::Fail; }
+    if pipe.stages[0].command != b"cat file" { return TestResult::Fail; }
+    if pipe.stages[1].command != b"grep pattern" { return TestResult::Fail; }
+    if pipe.stages[2].command != b"wc -l" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_pipeline_parse_redirect_write() {
+pub fn test_pipeline_parse_redirect_write() -> TestResult {
     let pipe = Pipeline::parse(b"ls > output.txt");
-    assert_eq!(pipe.stages.len(), 1);
-    assert_eq!(pipe.stages[0].command, b"ls");
-    assert_eq!(pipe.stages[0].redirect_type, RedirectType::Write);
-    assert_eq!(pipe.stages[0].redirect_target, Some(b"output.txt" as &[u8]));
+    if pipe.stages.len() != 1 { return TestResult::Fail; }
+    if pipe.stages[0].command != b"ls" { return TestResult::Fail; }
+    if pipe.stages[0].redirect_type != RedirectType::Write { return TestResult::Fail; }
+    if pipe.stages[0].redirect_target != Some(b"output.txt" as &[u8]) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_pipeline_parse_redirect_append() {
+pub fn test_pipeline_parse_redirect_append() -> TestResult {
     let pipe = Pipeline::parse(b"echo hello >> log.txt");
-    assert_eq!(pipe.stages.len(), 1);
-    assert_eq!(pipe.stages[0].command, b"echo hello");
-    assert_eq!(pipe.stages[0].redirect_type, RedirectType::Append);
-    assert_eq!(pipe.stages[0].redirect_target, Some(b"log.txt" as &[u8]));
+    if pipe.stages.len() != 1 { return TestResult::Fail; }
+    if pipe.stages[0].command != b"echo hello" { return TestResult::Fail; }
+    if pipe.stages[0].redirect_type != RedirectType::Append { return TestResult::Fail; }
+    if pipe.stages[0].redirect_target != Some(b"log.txt" as &[u8]) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_pipeline_parse_redirect_input() {
+pub fn test_pipeline_parse_redirect_input() -> TestResult {
     let pipe = Pipeline::parse(b"cat < input.txt");
-    assert_eq!(pipe.stages.len(), 1);
-    assert_eq!(pipe.stages[0].command, b"cat");
-    assert_eq!(pipe.stages[0].redirect_type, RedirectType::Input);
-    assert_eq!(pipe.stages[0].redirect_target, Some(b"input.txt" as &[u8]));
+    if pipe.stages.len() != 1 { return TestResult::Fail; }
+    if pipe.stages[0].command != b"cat" { return TestResult::Fail; }
+    if pipe.stages[0].redirect_type != RedirectType::Input { return TestResult::Fail; }
+    if pipe.stages[0].redirect_target != Some(b"input.txt" as &[u8]) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_pipeline_is_simple_true() {
+pub fn test_pipeline_is_simple_true() -> TestResult {
     let pipe = Pipeline::parse(b"ls");
-    assert!(pipe.is_simple());
+    if !pipe.is_simple() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_pipeline_is_simple_false_with_pipe() {
+pub fn test_pipeline_is_simple_false_with_pipe() -> TestResult {
     let pipe = Pipeline::parse(b"ls | grep x");
-    assert!(!pipe.is_simple());
+    if pipe.is_simple() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_pipeline_is_simple_false_with_redirect() {
+pub fn test_pipeline_is_simple_false_with_redirect() -> TestResult {
     let pipe = Pipeline::parse(b"ls > file");
-    assert!(!pipe.is_simple());
+    if pipe.is_simple() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_pipeline_has_pipes_false() {
+pub fn test_pipeline_has_pipes_false() -> TestResult {
     let pipe = Pipeline::parse(b"ls");
-    assert!(!pipe.has_pipes());
+    if pipe.has_pipes() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_pipeline_has_pipes_true() {
+pub fn test_pipeline_has_pipes_true() -> TestResult {
     let pipe = Pipeline::parse(b"ls | wc");
-    assert!(pipe.has_pipes());
+    if !pipe.has_pipes() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_pipeline_parse_empty() {
+pub fn test_pipeline_parse_empty() -> TestResult {
     let pipe = Pipeline::parse(b"");
-    assert_eq!(pipe.stages.len(), 0);
+    if pipe.stages.len() != 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_pipeline_parse_whitespace_only() {
+pub fn test_pipeline_parse_whitespace_only() -> TestResult {
     let pipe = Pipeline::parse(b"   ");
-    assert_eq!(pipe.stages.len(), 0);
+    if pipe.stages.len() != 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_pipeline_parse_trims_whitespace() {
+pub fn test_pipeline_parse_trims_whitespace() -> TestResult {
     let pipe = Pipeline::parse(b"  ls  ");
-    assert_eq!(pipe.stages.len(), 1);
-    assert_eq!(pipe.stages[0].command, b"ls");
+    if pipe.stages.len() != 1 { return TestResult::Fail; }
+    if pipe.stages[0].command != b"ls" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_pipeline_parse_pipe_with_spaces() {
+pub fn test_pipeline_parse_pipe_with_spaces() -> TestResult {
     let pipe = Pipeline::parse(b"ls  |  grep x");
-    assert_eq!(pipe.stages.len(), 2);
-    assert_eq!(pipe.stages[0].command, b"ls");
-    assert_eq!(pipe.stages[1].command, b"grep x");
+    if pipe.stages.len() != 2 { return TestResult::Fail; }
+    if pipe.stages[0].command != b"ls" { return TestResult::Fail; }
+    if pipe.stages[1].command != b"grep x" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_pipeline_parse_redirect_no_target() {
+pub fn test_pipeline_parse_redirect_no_target() -> TestResult {
     let pipe = Pipeline::parse(b"ls >");
-    assert_eq!(pipe.stages.len(), 1);
-    assert_eq!(pipe.stages[0].redirect_type, RedirectType::Write);
-    assert!(pipe.stages[0].redirect_target.is_none());
+    if pipe.stages.len() != 1 { return TestResult::Fail; }
+    if pipe.stages[0].redirect_type != RedirectType::Write { return TestResult::Fail; }
+    if pipe.stages[0].redirect_target.is_some() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_pipeline_parse_multiple_pipes_and_redirect() {
+pub fn test_pipeline_parse_multiple_pipes_and_redirect() -> TestResult {
     let pipe = Pipeline::parse(b"cat file | grep x | sort > out");
-    assert_eq!(pipe.stages.len(), 3);
-    assert_eq!(pipe.stages[2].redirect_type, RedirectType::Write);
+    if pipe.stages.len() != 3 { return TestResult::Fail; }
+    if pipe.stages[2].redirect_type != RedirectType::Write { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_pipeline_stage_command_preserved() {
+pub fn test_pipeline_stage_command_preserved() -> TestResult {
     let pipe = Pipeline::parse(b"echo 'hello world'");
-    assert_eq!(pipe.stages[0].command, b"echo 'hello world'");
+    if pipe.stages[0].command != b"echo 'hello world'" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_pipeline_redirect_type_copy() {
+pub fn test_pipeline_redirect_type_copy() -> TestResult {
     let rt1 = RedirectType::Write;
     let rt2 = rt1;
-    assert_eq!(rt2, RedirectType::Write);
+    if rt2 != RedirectType::Write { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_pipeline_redirect_type_clone() {
+pub fn test_pipeline_redirect_type_clone() -> TestResult {
     let rt = RedirectType::Append;
     let cloned = rt.clone();
-    assert_eq!(cloned, RedirectType::Append);
+    if cloned != RedirectType::Append { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_pipeline_parse_long_command() {
+pub fn test_pipeline_parse_long_command() -> TestResult {
     let long_cmd = b"very_long_command_name with many arguments and options";
     let pipe = Pipeline::parse(long_cmd);
-    assert_eq!(pipe.stages.len(), 1);
+    if pipe.stages.len() != 1 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_pipeline_parse_tabs() {
+pub fn test_pipeline_parse_tabs() -> TestResult {
     let pipe = Pipeline::parse(b"ls\t|\tgrep x");
-    assert_eq!(pipe.stages.len(), 2);
+    if pipe.stages.len() != 2 { return TestResult::Fail; }
+    TestResult::Pass
 }
