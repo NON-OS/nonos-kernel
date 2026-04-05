@@ -20,4 +20,4 @@ mod output;
 mod render;
 
 pub use init::{init_after_fb, disable_display};
-pub use output::{info, ok, warn, error, stage};
+pub use output::{info, ok, warn, error, stage, test_pass, test_fail, test_skip, test_header};

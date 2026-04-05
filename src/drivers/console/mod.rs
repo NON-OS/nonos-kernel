@@ -72,7 +72,10 @@ pub fn printf(args: fmt::Arguments) {
 pub fn write_message(msg: &str) {
     CONSOLE_STATS.inc_messages();
     CONSOLE_STATS.add_bytes(msg.len() as u64);
-    CONSOLE.lock().write_str(msg);
+    let mut console = CONSOLE.lock();
+    console.write_str(msg);
+    console.put_byte(b'\n');
+    console.flush_cursor();
 }
 
 pub fn get_console_stats() -> ConsoleStats {

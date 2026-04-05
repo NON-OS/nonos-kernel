@@ -25,8 +25,7 @@ mod device;
 pub mod error;
 mod interface;
 mod io;
-#[cfg(test)]
-mod tests;
+pub mod tests;
 
 pub use constants::*;
 pub use device::Rtl8139Device;

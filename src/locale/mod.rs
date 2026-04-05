@@ -17,8 +17,7 @@
 mod strings;
 mod api;
 
-#[cfg(test)]
-mod tests;
+pub mod tests;
 
 pub use api::{get, get_lang, set_lang, Language, init_from_settings};
 pub use strings::StringId;

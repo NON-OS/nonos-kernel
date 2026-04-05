@@ -30,8 +30,7 @@ mod manager;
 pub mod msc;
 pub mod rtl8152;
 
-#[cfg(test)]
-mod tests;
+pub mod tests;
 
 pub use api::{
     device_count, find_device, find_devices_by_class, find_hid_devices, find_mass_storage_devices,

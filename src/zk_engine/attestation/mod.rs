@@ -17,7 +17,7 @@
 mod manager;
 mod policy;
 mod remote;
-mod types;
+pub(crate) mod types;
 
 pub use manager::*;
 pub use types::*;

@@ -25,8 +25,7 @@ mod descriptors;
 mod device;
 pub mod error;
 mod interface;
-#[cfg(test)]
-mod tests;
+pub mod tests;
 
 pub use constants::*;
 pub use descriptors::{E1000RxDesc, E1000TxDesc};

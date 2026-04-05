@@ -19,7 +19,7 @@ mod jobs;
 mod options;
 mod io;
 pub(crate) mod env;
-mod alias;
+pub(crate) mod alias;
 
 pub use self::core::*;
 pub use self::jobs::*;

@@ -31,9 +31,7 @@ pub mod smol_bridge;
 pub mod tx;
 pub mod wpa;
 
-#[cfg(test)]
-#[cfg(not(feature = "std"))]
-mod tests;
+pub mod tests;
 
 pub use api::{
     connect, device_count, disconnect, get_device, get_realtek_device, get_link_info,

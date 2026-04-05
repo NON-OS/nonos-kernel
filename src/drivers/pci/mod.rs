@@ -28,8 +28,7 @@ pub mod security;
 pub mod stats;
 pub mod types;
 
-#[cfg(test)]
-mod tests;
+pub mod tests;
 
 pub use api::{
     add_device_to_blocklist, clear_device_blocklist, get_pci_stats_tuple, pci_read_config32,

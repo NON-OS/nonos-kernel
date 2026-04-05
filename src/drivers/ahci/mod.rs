@@ -22,8 +22,7 @@ pub mod error;
 pub mod stats;
 pub mod types;
 
-#[cfg(test)]
-mod tests;
+pub mod tests;
 
 pub use api::{get_controller, init_ahci};
 pub use controller::{hdr_flags_for, AhciController};

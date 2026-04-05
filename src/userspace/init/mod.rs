@@ -22,5 +22,4 @@ mod supervisor;
 
 pub use entry::run_init;
 pub use spawn::spawn_service;
-#[cfg(test)]
 pub(crate) use service_list::{CORE_SERVICES, DRIVER_SERVICES};
