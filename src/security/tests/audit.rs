@@ -11,51 +11,51 @@ use alloc::format;
 use alloc::string::String;
 use alloc::vec;
 
-pub fn test_audit_severity_info() -> TestResult {
+pub(crate) fn test_audit_severity_info() -> TestResult {
     let severity = AuditSeverity::Info;
     if severity != AuditSeverity::Info { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_audit_severity_warning() -> TestResult {
+pub(crate) fn test_audit_severity_warning() -> TestResult {
     let severity = AuditSeverity::Warning;
     if severity != AuditSeverity::Warning { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_audit_severity_error() -> TestResult {
+pub(crate) fn test_audit_severity_error() -> TestResult {
     let severity = AuditSeverity::Error;
     if severity != AuditSeverity::Error { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_audit_severity_critical() -> TestResult {
+pub(crate) fn test_audit_severity_critical() -> TestResult {
     let severity = AuditSeverity::Critical;
     if severity != AuditSeverity::Critical { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_audit_severity_emergency() -> TestResult {
+pub(crate) fn test_audit_severity_emergency() -> TestResult {
     let severity = AuditSeverity::Emergency;
     if severity != AuditSeverity::Emergency { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_audit_severity_equality() -> TestResult {
+pub(crate) fn test_audit_severity_equality() -> TestResult {
     if AuditSeverity::Info != AuditSeverity::Info { return TestResult::Fail; }
     if AuditSeverity::Info == AuditSeverity::Warning { return TestResult::Fail; }
     if AuditSeverity::Critical == AuditSeverity::Emergency { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_audit_severity_copy() -> TestResult {
+pub(crate) fn test_audit_severity_copy() -> TestResult {
     let s1 = AuditSeverity::Critical;
     let s2 = s1;
     if s1 != s2 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_security_audit_event_fields() -> TestResult {
+pub(crate) fn test_security_audit_event_fields() -> TestResult {
     let event = SecurityAuditEvent {
         timestamp: 1000,
         subsystem: "test",
@@ -73,7 +73,7 @@ pub fn test_security_audit_event_fields() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_security_audit_event_minimal() -> TestResult {
+pub(crate) fn test_security_audit_event_minimal() -> TestResult {
     let event = SecurityAuditEvent {
         timestamp: 0,
         subsystem: "security",
@@ -89,7 +89,7 @@ pub fn test_security_audit_event_minimal() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_security_audit_event_clone() -> TestResult {
+pub(crate) fn test_security_audit_event_clone() -> TestResult {
     let event = SecurityAuditEvent {
         timestamp: 500,
         subsystem: "kernel",
@@ -105,7 +105,7 @@ pub fn test_security_audit_event_clone() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_log_security_event() -> TestResult {
+pub(crate) fn test_log_security_event() -> TestResult {
     log_security_event(
         "test_subsystem",
         AuditSeverity::Info,
@@ -117,7 +117,7 @@ pub fn test_log_security_event() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_log_security_event_minimal() -> TestResult {
+pub(crate) fn test_log_security_event_minimal() -> TestResult {
     log_security_event(
         "security",
         AuditSeverity::Warning,
@@ -129,7 +129,7 @@ pub fn test_log_security_event_minimal() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_log_security_violation() -> TestResult {
+pub(crate) fn test_log_security_violation() -> TestResult {
     log_security_violation(
         String::from("Test violation"),
         AuditSeverity::Critical,
@@ -137,13 +137,13 @@ pub fn test_log_security_violation() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_get_audit_log() -> TestResult {
+pub(crate) fn test_get_audit_log() -> TestResult {
     let log = get_audit_log();
     let _ = log.len();
     TestResult::Pass
 }
 
-pub fn test_clear_audit_log() -> TestResult {
+pub(crate) fn test_clear_audit_log() -> TestResult {
     log_security_event(
         "test",
         AuditSeverity::Info,
@@ -158,7 +158,7 @@ pub fn test_clear_audit_log() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_audit_event_alias() -> TestResult {
+pub(crate) fn test_audit_event_alias() -> TestResult {
     let event: AuditEvent = SecurityAuditEvent {
         timestamp: 100,
         subsystem: "alias_test",
@@ -172,7 +172,7 @@ pub fn test_audit_event_alias() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_audit_event_function() -> TestResult {
+pub(crate) fn test_audit_event_function() -> TestResult {
     audit_event(
         "function_test",
         AuditSeverity::Warning,
@@ -184,7 +184,7 @@ pub fn test_audit_event_function() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_audit_log_multiple_events() -> TestResult {
+pub(crate) fn test_audit_log_multiple_events() -> TestResult {
     clear_audit_log();
     for i in 0..5 {
         log_security_event(
@@ -201,7 +201,7 @@ pub fn test_audit_log_multiple_events() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_audit_severity_all_variants() -> TestResult {
+pub(crate) fn test_audit_severity_all_variants() -> TestResult {
     let severities = [
         AuditSeverity::Info,
         AuditSeverity::Warning,
@@ -213,7 +213,7 @@ pub fn test_audit_severity_all_variants() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_security_audit_event_with_tags() -> TestResult {
+pub(crate) fn test_security_audit_event_with_tags() -> TestResult {
     let event = SecurityAuditEvent {
         timestamp: 200,
         subsystem: "tags_test",
@@ -232,7 +232,7 @@ pub fn test_security_audit_event_with_tags() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_audit_event_debug_format() -> TestResult {
+pub(crate) fn test_audit_event_debug_format() -> TestResult {
     let event = SecurityAuditEvent {
         timestamp: 300,
         subsystem: "debug",
@@ -247,14 +247,14 @@ pub fn test_audit_event_debug_format() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_audit_severity_debug_format() -> TestResult {
+pub(crate) fn test_audit_severity_debug_format() -> TestResult {
     let severity = AuditSeverity::Emergency;
     let debug_str = format!("{:?}", severity);
     if !debug_str.contains("Emergency") { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_log_security_event_all_fields() -> TestResult {
+pub(crate) fn test_log_security_event_all_fields() -> TestResult {
     log_security_event(
         "full_test",
         AuditSeverity::Critical,
@@ -266,7 +266,7 @@ pub fn test_log_security_event_all_fields() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_security_audit_event_timestamp_range() -> TestResult {
+pub(crate) fn test_security_audit_event_timestamp_range() -> TestResult {
     let event = SecurityAuditEvent {
         timestamp: u64::MAX,
         subsystem: "range",
@@ -280,7 +280,7 @@ pub fn test_security_audit_event_timestamp_range() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_security_audit_event_empty_description() -> TestResult {
+pub(crate) fn test_security_audit_event_empty_description() -> TestResult {
     let event = SecurityAuditEvent {
         timestamp: 0,
         subsystem: "empty",

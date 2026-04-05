@@ -9,38 +9,38 @@ use crate::security::*;
 use crate::test::framework::TestResult;
 use alloc::string::String;
 
-pub fn test_secure_boot_policy_disabled() -> TestResult {
+pub(crate) fn test_secure_boot_policy_disabled() -> TestResult {
     let policy = SecureBootPolicy::Disabled;
     if policy != SecureBootPolicy::Disabled { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_secure_boot_policy_permissive() -> TestResult {
+pub(crate) fn test_secure_boot_policy_permissive() -> TestResult {
     let policy = SecureBootPolicy::Permissive;
     if policy != SecureBootPolicy::Permissive { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_secure_boot_policy_enforcing() -> TestResult {
+pub(crate) fn test_secure_boot_policy_enforcing() -> TestResult {
     let policy = SecureBootPolicy::Enforcing;
     if policy != SecureBootPolicy::Enforcing { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_secure_boot_policy_strict() -> TestResult {
+pub(crate) fn test_secure_boot_policy_strict() -> TestResult {
     let policy = SecureBootPolicy::Strict;
     if policy != SecureBootPolicy::Strict { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_secure_boot_policy_equality() -> TestResult {
+pub(crate) fn test_secure_boot_policy_equality() -> TestResult {
     if SecureBootPolicy::Disabled != SecureBootPolicy::Disabled { return TestResult::Fail; }
     if SecureBootPolicy::Disabled == SecureBootPolicy::Enforcing { return TestResult::Fail; }
     if SecureBootPolicy::Permissive == SecureBootPolicy::Strict { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_secure_boot_error_variants() -> TestResult {
+pub(crate) fn test_secure_boot_error_variants() -> TestResult {
     let errors = [
         SecureBootError::NotInitialized,
         SecureBootError::NoTrustedKeys,
@@ -57,7 +57,7 @@ pub fn test_secure_boot_error_variants() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_boot_measurements_new() -> TestResult {
+pub(crate) fn test_boot_measurements_new() -> TestResult {
     let measurements = BootMeasurements::new();
     if measurements.bootloader_hash != [0u8; 32] { return TestResult::Fail; }
     if measurements.kernel_hash != [0u8; 32] { return TestResult::Fail; }
@@ -70,7 +70,7 @@ pub fn test_boot_measurements_new() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_boot_measurements_getters() -> TestResult {
+pub(crate) fn test_boot_measurements_getters() -> TestResult {
     let measurements = BootMeasurements::new();
     if measurements.get_bootloader_hash() != &[0u8; 32] { return TestResult::Fail; }
     if measurements.get_kernel_hash() != &[0u8; 32] { return TestResult::Fail; }
@@ -81,14 +81,14 @@ pub fn test_boot_measurements_getters() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_boot_measurements_signature_state() -> TestResult {
+pub(crate) fn test_boot_measurements_signature_state() -> TestResult {
     let measurements = BootMeasurements::new();
     if measurements.is_signature_valid() { return TestResult::Fail; }
     if measurements.is_uefi_secure_boot() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_boot_measurements_pcr_values() -> TestResult {
+pub(crate) fn test_boot_measurements_pcr_values() -> TestResult {
     let measurements = BootMeasurements::new();
     if measurements.get_pcr(0).is_some() { return TestResult::Fail; }
     if measurements.get_pcr(23).is_some() { return TestResult::Fail; }
@@ -96,19 +96,19 @@ pub fn test_boot_measurements_pcr_values() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_boot_measurements_timestamp() -> TestResult {
+pub(crate) fn test_boot_measurements_timestamp() -> TestResult {
     let measurements = BootMeasurements::new();
     if measurements.get_boot_timestamp() != 0 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_boot_measurements_chain_verified() -> TestResult {
+pub(crate) fn test_boot_measurements_chain_verified() -> TestResult {
     let measurements = BootMeasurements::new();
     if measurements.is_chain_verified() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_trusted_boot_keys_new() -> TestResult {
+pub(crate) fn test_trusted_boot_keys_new() -> TestResult {
     let keys = TrustedBootKeys::new();
     if !keys.production_keys.is_empty() { return TestResult::Fail; }
     if !keys.development_keys.is_empty() { return TestResult::Fail; }
@@ -117,7 +117,7 @@ pub fn test_trusted_boot_keys_new() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_trusted_boot_keys_getters() -> TestResult {
+pub(crate) fn test_trusted_boot_keys_getters() -> TestResult {
     let keys = TrustedBootKeys::new();
     if !keys.get_production_keys().is_empty() { return TestResult::Fail; }
     if !keys.get_development_keys().is_empty() { return TestResult::Fail; }
@@ -125,26 +125,26 @@ pub fn test_trusted_boot_keys_getters() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_trusted_boot_keys_revocation_check() -> TestResult {
+pub(crate) fn test_trusted_boot_keys_revocation_check() -> TestResult {
     let keys = TrustedBootKeys::new();
     let fingerprint = [0u8; 32];
     if keys.is_revoked(&fingerprint) { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_trusted_boot_keys_rotation_count() -> TestResult {
+pub(crate) fn test_trusted_boot_keys_rotation_count() -> TestResult {
     let keys = TrustedBootKeys::new();
     if keys.get_rotation_count() != 0 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_trusted_boot_keys_total_count() -> TestResult {
+pub(crate) fn test_trusted_boot_keys_total_count() -> TestResult {
     let keys = TrustedBootKeys::new();
     if keys.total_keys() != 0 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_attestation_report_fields() -> TestResult {
+pub(crate) fn test_attestation_report_fields() -> TestResult {
     let measurements = BootMeasurements::new();
     let report = AttestationReport {
         measurements: measurements.clone(),
@@ -162,7 +162,7 @@ pub fn test_attestation_report_fields() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_secure_boot_stats_fields() -> TestResult {
+pub(crate) fn test_secure_boot_stats_fields() -> TestResult {
     let stats = SecureBootStats {
         initialized: true,
         enforcing: true,
@@ -181,27 +181,27 @@ pub fn test_secure_boot_stats_fields() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_secure_boot_result_ok() -> TestResult {
+pub(crate) fn test_secure_boot_result_ok() -> TestResult {
     let result: SecureBootResult<u32> = Ok(42);
     if !result.is_ok() { return TestResult::Fail; }
     if result.unwrap() != 42 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_secure_boot_result_err() -> TestResult {
+pub(crate) fn test_secure_boot_result_err() -> TestResult {
     let result: SecureBootResult<u32> = Err(SecureBootError::SignatureInvalid);
     if !result.is_err() { return TestResult::Fail; }
     if result.unwrap_err() != SecureBootError::SignatureInvalid { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_secure_boot_error_equality() -> TestResult {
+pub(crate) fn test_secure_boot_error_equality() -> TestResult {
     if SecureBootError::NotInitialized != SecureBootError::NotInitialized { return TestResult::Fail; }
     if SecureBootError::NotInitialized == SecureBootError::SignatureInvalid { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_boot_measurements_with_initrd() -> TestResult {
+pub(crate) fn test_boot_measurements_with_initrd() -> TestResult {
     let mut measurements = BootMeasurements::new();
     measurements.initrd_hash = Some([0xABu8; 32]);
     if !measurements.has_initrd() { return TestResult::Fail; }
@@ -209,7 +209,7 @@ pub fn test_boot_measurements_with_initrd() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_boot_measurements_with_acpi() -> TestResult {
+pub(crate) fn test_boot_measurements_with_acpi() -> TestResult {
     let mut measurements = BootMeasurements::new();
     measurements.acpi_hash = Some([0xCDu8; 32]);
     if !measurements.has_acpi() { return TestResult::Fail; }
@@ -217,7 +217,7 @@ pub fn test_boot_measurements_with_acpi() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_boot_measurements_clone() -> TestResult {
+pub(crate) fn test_boot_measurements_clone() -> TestResult {
     let measurements = BootMeasurements::new();
     let cloned = measurements.clone();
     if cloned.bootloader_hash != measurements.bootloader_hash { return TestResult::Fail; }
@@ -225,7 +225,7 @@ pub fn test_boot_measurements_clone() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_trusted_key_creation() -> TestResult {
+pub(crate) fn test_trusted_key_creation() -> TestResult {
     let key = secure_boot::types::TrustedKey {
         name: String::from("test_key"),
         public_key: [0x11u8; 32],
@@ -240,7 +240,7 @@ pub fn test_trusted_key_creation() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_trusted_key_expiration() -> TestResult {
+pub(crate) fn test_trusted_key_expiration() -> TestResult {
     let key = secure_boot::types::TrustedKey {
         name: String::from("expiring_key"),
         public_key: [0u8; 32],
@@ -255,7 +255,7 @@ pub fn test_trusted_key_expiration() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_trusted_key_timestamps() -> TestResult {
+pub(crate) fn test_trusted_key_timestamps() -> TestResult {
     let key = secure_boot::types::TrustedKey {
         name: String::from("timestamp_key"),
         public_key: [0u8; 32],

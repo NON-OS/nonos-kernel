@@ -6,13 +6,13 @@
 use crate::security::*;
 use crate::test::framework::TestResult;
 
-pub fn test_secure_random_u64_returns_value() -> TestResult {
+pub(crate) fn test_secure_random_u64_returns_value() -> TestResult {
     let value = secure_random_u64();
     let _ = value;
     TestResult::Pass
 }
 
-pub fn test_secure_random_u64_produces_different_values() -> TestResult {
+pub(crate) fn test_secure_random_u64_produces_different_values() -> TestResult {
     let v1 = secure_random_u64();
     let v2 = secure_random_u64();
     let v3 = secure_random_u64();
@@ -20,13 +20,13 @@ pub fn test_secure_random_u64_produces_different_values() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_secure_random_u32_returns_value() -> TestResult {
+pub(crate) fn test_secure_random_u32_returns_value() -> TestResult {
     let value = secure_random_u32();
     let _ = value;
     TestResult::Pass
 }
 
-pub fn test_secure_random_u32_produces_different_values() -> TestResult {
+pub(crate) fn test_secure_random_u32_produces_different_values() -> TestResult {
     let v1 = secure_random_u32();
     let v2 = secure_random_u32();
     let v3 = secure_random_u32();
@@ -34,27 +34,27 @@ pub fn test_secure_random_u32_produces_different_values() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_secure_random_u8_returns_value() -> TestResult {
+pub(crate) fn test_secure_random_u8_returns_value() -> TestResult {
     let value = secure_random_u8();
     let _ = value;
     TestResult::Pass
 }
 
-pub fn test_fill_random_small_buffer() -> TestResult {
+pub(crate) fn test_fill_random_small_buffer() -> TestResult {
     let mut buf = [0u8; 8];
     fill_random(&mut buf);
     if !buf.iter().any(|&b| b != 0) { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_fill_random_large_buffer() -> TestResult {
+pub(crate) fn test_fill_random_large_buffer() -> TestResult {
     let mut buf = [0u8; 256];
     fill_random(&mut buf);
     if !buf.iter().any(|&b| b != 0) { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_fill_random_different_calls() -> TestResult {
+pub(crate) fn test_fill_random_different_calls() -> TestResult {
     let mut buf1 = [0u8; 32];
     let mut buf2 = [0u8; 32];
     fill_random(&mut buf1);
@@ -63,37 +63,37 @@ pub fn test_fill_random_different_calls() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_fill_random_empty_buffer() -> TestResult {
+pub(crate) fn test_fill_random_empty_buffer() -> TestResult {
     let mut buf: [u8; 0] = [];
     fill_random(&mut buf);
     TestResult::Pass
 }
 
-pub fn test_fill_random_single_byte() -> TestResult {
+pub(crate) fn test_fill_random_single_byte() -> TestResult {
     let mut buf = [0u8; 1];
     fill_random(&mut buf);
     TestResult::Pass
 }
 
-pub fn test_fill_random_non_aligned_size() -> TestResult {
+pub(crate) fn test_fill_random_non_aligned_size() -> TestResult {
     let mut buf = [0u8; 13];
     fill_random(&mut buf);
     TestResult::Pass
 }
 
-pub fn test_fill_random_exactly_u64_size() -> TestResult {
+pub(crate) fn test_fill_random_exactly_u64_size() -> TestResult {
     let mut buf = [0u8; 8];
     fill_random(&mut buf);
     TestResult::Pass
 }
 
-pub fn test_fill_random_multiple_of_u64() -> TestResult {
+pub(crate) fn test_fill_random_multiple_of_u64() -> TestResult {
     let mut buf = [0u8; 64];
     fill_random(&mut buf);
     TestResult::Pass
 }
 
-pub fn test_secure_random_u64_nonzero_probability() -> TestResult {
+pub(crate) fn test_secure_random_u64_nonzero_probability() -> TestResult {
     let mut found_nonzero = false;
     for _ in 0..100 {
         if secure_random_u64() != 0 {
@@ -105,7 +105,7 @@ pub fn test_secure_random_u64_nonzero_probability() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_secure_random_u32_range() -> TestResult {
+pub(crate) fn test_secure_random_u32_range() -> TestResult {
     for _ in 0..100 {
         let value = secure_random_u32();
         if value > u32::MAX { return TestResult::Fail; }
@@ -113,7 +113,7 @@ pub fn test_secure_random_u32_range() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_secure_random_u8_range() -> TestResult {
+pub(crate) fn test_secure_random_u8_range() -> TestResult {
     for _ in 0..100 {
         let value = secure_random_u8();
         if value > u8::MAX { return TestResult::Fail; }
@@ -121,7 +121,7 @@ pub fn test_secure_random_u8_range() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_fill_random_all_bytes_potentially_nonzero() -> TestResult {
+pub(crate) fn test_fill_random_all_bytes_potentially_nonzero() -> TestResult {
     let mut combined = [0u8; 32];
     for _ in 0..100 {
         let mut buf = [0u8; 32];
@@ -134,7 +134,7 @@ pub fn test_fill_random_all_bytes_potentially_nonzero() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_secure_random_u64_statistical_distribution() -> TestResult {
+pub(crate) fn test_secure_random_u64_statistical_distribution() -> TestResult {
     let mut high_count = 0u64;
     let mut low_count = 0u64;
     let threshold = 1u64 << 63;
@@ -153,7 +153,7 @@ pub fn test_secure_random_u64_statistical_distribution() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_fill_random_byte_distribution() -> TestResult {
+pub(crate) fn test_fill_random_byte_distribution() -> TestResult {
     let mut counts = [0u32; 256];
     let mut buf = [0u8; 1024];
 
@@ -169,7 +169,7 @@ pub fn test_fill_random_byte_distribution() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_secure_random_u64_bit_coverage() -> TestResult {
+pub(crate) fn test_secure_random_u64_bit_coverage() -> TestResult {
     let mut combined = 0u64;
     for _ in 0..1000 {
         combined |= secure_random_u64();
@@ -178,7 +178,7 @@ pub fn test_secure_random_u64_bit_coverage() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_fill_random_independence() -> TestResult {
+pub(crate) fn test_fill_random_independence() -> TestResult {
     let mut buf1 = [0u8; 16];
     let mut buf2 = [0u8; 16];
     let mut buf3 = [0u8; 16];

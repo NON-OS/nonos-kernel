@@ -14,93 +14,93 @@ use crate::security::monitoring::monitor::{
 };
 use crate::test::framework::TestResult;
 
-pub fn test_security_event_type_suspicious_memory() -> TestResult {
+pub(crate) fn test_security_event_type_suspicious_memory() -> TestResult {
     let event_type = SecurityEventType::SuspiciousMemoryAccess;
     if event_type != SecurityEventType::SuspiciousMemoryAccess { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_security_event_type_unauthorized_network() -> TestResult {
+pub(crate) fn test_security_event_type_unauthorized_network() -> TestResult {
     let event_type = SecurityEventType::UnauthorizedNetworkAccess;
     if event_type != SecurityEventType::UnauthorizedNetworkAccess { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_security_event_type_process_anomaly() -> TestResult {
+pub(crate) fn test_security_event_type_process_anomaly() -> TestResult {
     let event_type = SecurityEventType::ProcessAnomaly;
     if event_type != SecurityEventType::ProcessAnomaly { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_security_event_type_hardware_tamper() -> TestResult {
+pub(crate) fn test_security_event_type_hardware_tamper() -> TestResult {
     let event_type = SecurityEventType::HardwareTamper;
     if event_type != SecurityEventType::HardwareTamper { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_security_event_type_privilege_escalation() -> TestResult {
+pub(crate) fn test_security_event_type_privilege_escalation() -> TestResult {
     let event_type = SecurityEventType::PrivilegeEscalation;
     if event_type != SecurityEventType::PrivilegeEscalation { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_security_event_type_syscall_anomaly() -> TestResult {
+pub(crate) fn test_security_event_type_syscall_anomaly() -> TestResult {
     let event_type = SecurityEventType::SyscallAnomaly;
     if event_type != SecurityEventType::SyscallAnomaly { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_security_event_type_filesystem_violation() -> TestResult {
+pub(crate) fn test_security_event_type_filesystem_violation() -> TestResult {
     let event_type = SecurityEventType::FilesystemViolation;
     if event_type != SecurityEventType::FilesystemViolation { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_security_event_type_capability_abuse() -> TestResult {
+pub(crate) fn test_security_event_type_capability_abuse() -> TestResult {
     let event_type = SecurityEventType::CapabilityAbuse;
     if event_type != SecurityEventType::CapabilityAbuse { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_security_event_type_privacy_violation() -> TestResult {
+pub(crate) fn test_security_event_type_privacy_violation() -> TestResult {
     let event_type = SecurityEventType::PrivacyViolation;
     if event_type != SecurityEventType::PrivacyViolation { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_security_event_type_rootkit_detection() -> TestResult {
+pub(crate) fn test_security_event_type_rootkit_detection() -> TestResult {
     let event_type = SecurityEventType::RootkitDetection;
     if event_type != SecurityEventType::RootkitDetection { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_security_event_type_integrity_breach() -> TestResult {
+pub(crate) fn test_security_event_type_integrity_breach() -> TestResult {
     let event_type = SecurityEventType::IntegrityBreach;
     if event_type != SecurityEventType::IntegrityBreach { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_security_event_type_equality() -> TestResult {
+pub(crate) fn test_security_event_type_equality() -> TestResult {
     if SecurityEventType::SuspiciousMemoryAccess != SecurityEventType::SuspiciousMemoryAccess { return TestResult::Fail; }
     if SecurityEventType::SuspiciousMemoryAccess == SecurityEventType::RootkitDetection { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_security_event_type_clone() -> TestResult {
+pub(crate) fn test_security_event_type_clone() -> TestResult {
     let et1 = SecurityEventType::ProcessAnomaly;
     let et2 = et1.clone();
     if et1 != et2 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_security_event_type_copy() -> TestResult {
+pub(crate) fn test_security_event_type_copy() -> TestResult {
     let et1 = SecurityEventType::HardwareTamper;
     let et2 = et1;
     if et1 != et2 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_security_event_fields() -> TestResult {
+pub(crate) fn test_security_event_fields() -> TestResult {
     let event = SecurityEvent {
         timestamp: 1000,
         event_type: SecurityEventType::SuspiciousMemoryAccess,
@@ -118,7 +118,7 @@ pub fn test_security_event_fields() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_security_event_minimal() -> TestResult {
+pub(crate) fn test_security_event_minimal() -> TestResult {
     let event = SecurityEvent {
         timestamp: 0,
         event_type: SecurityEventType::IntegrityBreach,
@@ -134,7 +134,7 @@ pub fn test_security_event_minimal() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_security_event_clone() -> TestResult {
+pub(crate) fn test_security_event_clone() -> TestResult {
     let event = SecurityEvent {
         timestamp: 500,
         event_type: SecurityEventType::PrivilegeEscalation,
@@ -151,7 +151,7 @@ pub fn test_security_event_clone() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_log_event() -> TestResult {
+pub(crate) fn test_log_event() -> TestResult {
     log_event(
         SecurityEventType::SuspiciousMemoryAccess,
         1,
@@ -163,7 +163,7 @@ pub fn test_log_event() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_log_event_minimal() -> TestResult {
+pub(crate) fn test_log_event_minimal() -> TestResult {
     log_event(
         SecurityEventType::IntegrityBreach,
         0,
@@ -175,7 +175,7 @@ pub fn test_log_event_minimal() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_log_event_high_severity() -> TestResult {
+pub(crate) fn test_log_event_high_severity() -> TestResult {
     log_event(
         SecurityEventType::RootkitDetection,
         4,
@@ -187,43 +187,43 @@ pub fn test_log_event_high_severity() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_get_recent_events() -> TestResult {
+pub(crate) fn test_get_recent_events() -> TestResult {
     let events = get_recent_events(10);
     let _ = events.len();
     TestResult::Pass
 }
 
-pub fn test_get_recent_events_zero() -> TestResult {
+pub(crate) fn test_get_recent_events_zero() -> TestResult {
     let events = get_recent_events(0);
     if !events.is_empty() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_get_stats() -> TestResult {
+pub(crate) fn test_get_stats() -> TestResult {
     let stats = get_stats();
     let _ = stats.total_events.load(core::sync::atomic::Ordering::Relaxed);
     TestResult::Pass
 }
 
-pub fn test_set_enabled_true() -> TestResult {
+pub(crate) fn test_set_enabled_true() -> TestResult {
     set_enabled(true);
     if !is_enabled() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_set_enabled_false() -> TestResult {
+pub(crate) fn test_set_enabled_false() -> TestResult {
     set_enabled(false);
     if is_enabled() { return TestResult::Fail; }
     set_enabled(true);
     TestResult::Pass
 }
 
-pub fn test_is_enabled() -> TestResult {
+pub(crate) fn test_is_enabled() -> TestResult {
     let _ = is_enabled();
     TestResult::Pass
 }
 
-pub fn test_security_event_type_all_variants() -> TestResult {
+pub(crate) fn test_security_event_type_all_variants() -> TestResult {
     let types = [
         SecurityEventType::SuspiciousMemoryAccess,
         SecurityEventType::UnauthorizedNetworkAccess,
@@ -241,7 +241,7 @@ pub fn test_security_event_type_all_variants() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_security_event_type_all_unique() -> TestResult {
+pub(crate) fn test_security_event_type_all_unique() -> TestResult {
     let types = [
         SecurityEventType::SuspiciousMemoryAccess,
         SecurityEventType::UnauthorizedNetworkAccess,
@@ -263,14 +263,14 @@ pub fn test_security_event_type_all_unique() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_security_event_type_debug() -> TestResult {
+pub(crate) fn test_security_event_type_debug() -> TestResult {
     let et = SecurityEventType::RootkitDetection;
     let debug_str = format!("{:?}", et);
     if !debug_str.contains("RootkitDetection") { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_security_event_debug() -> TestResult {
+pub(crate) fn test_security_event_debug() -> TestResult {
     let event = SecurityEvent {
         timestamp: 100,
         event_type: SecurityEventType::ProcessAnomaly,
@@ -285,7 +285,7 @@ pub fn test_security_event_debug() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_security_event_severity_range() -> TestResult {
+pub(crate) fn test_security_event_severity_range() -> TestResult {
     for severity in 0..=4 {
         log_event(
             SecurityEventType::IntegrityBreach,
@@ -299,7 +299,7 @@ pub fn test_security_event_severity_range() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_log_multiple_events() -> TestResult {
+pub(crate) fn test_log_multiple_events() -> TestResult {
     for i in 0..5 {
         log_event(
             SecurityEventType::SuspiciousMemoryAccess,
@@ -313,7 +313,7 @@ pub fn test_log_multiple_events() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_security_event_with_all_tags() -> TestResult {
+pub(crate) fn test_security_event_with_all_tags() -> TestResult {
     let event = SecurityEvent {
         timestamp: 200,
         event_type: SecurityEventType::CapabilityAbuse,
@@ -331,7 +331,7 @@ pub fn test_security_event_with_all_tags() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_enabled_toggle() -> TestResult {
+pub(crate) fn test_enabled_toggle() -> TestResult {
     let original = is_enabled();
     set_enabled(!original);
     if is_enabled() == original { return TestResult::Fail; }
