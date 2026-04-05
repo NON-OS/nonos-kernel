@@ -17,13 +17,13 @@
 use crate::drivers::nvme::error;
 use crate::test::framework::TestResult;
 
-pub fn test_error_display() -> TestResult {
+pub(crate) fn test_error_display() -> TestResult {
     let err = error::NvmeError::NoControllerFound;
     if err.as_str() != "No NVMe controller found on PCI bus" { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_error_classification() -> TestResult {
+pub(crate) fn test_error_classification() -> TestResult {
     if !error::NvmeError::ControllerFatalStatus.is_fatal() { return TestResult::Fail; }
     if !error::NvmeError::CqCorruption.is_fatal() { return TestResult::Fail; }
     if error::NvmeError::CommandTimeout.is_fatal() { return TestResult::Fail; }
@@ -34,7 +34,7 @@ pub fn test_error_classification() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_status_code_parsing() -> TestResult {
+pub(crate) fn test_status_code_parsing() -> TestResult {
     let status = error::NvmeStatusCode::from_status_field(0x0000);
     if !status.is_success() { return TestResult::Fail; }
 
