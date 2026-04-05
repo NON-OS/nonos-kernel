@@ -22,7 +22,7 @@ pub mod types;
 
 use crate::test::framework::TestSuite;
 
-pub fn run_all() -> TestSuite {
+pub fn run_all() -> bool {
     let mut suite = TestSuite::new("pci");
 
     // address tests (4 tests)
@@ -64,5 +64,5 @@ pub fn run_all() -> TestSuite {
     suite.add_test("test_power_management_info", types::test_power_management_info);
     suite.add_test("test_stats_snapshot", types::test_stats_snapshot);
 
-    suite
+    suite.run()
 }
