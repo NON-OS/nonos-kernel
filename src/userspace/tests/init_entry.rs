@@ -1,92 +1,93 @@
+use crate::test::framework::TestResult;
 use crate::userspace::*;
 use crate::userspace::init::{CORE_SERVICES, DRIVER_SERVICES};
 
-#[test]
-fn test_core_services_not_empty() {
-    assert!(!CORE_SERVICES.is_empty());
+pub fn test_core_services_not_empty() -> TestResult {
+    if CORE_SERVICES.is_empty() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_driver_services_not_empty() {
-    assert!(!DRIVER_SERVICES.is_empty());
+pub fn test_driver_services_not_empty() -> TestResult {
+    if DRIVER_SERVICES.is_empty() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_core_services_contains_vfs() {
-    assert!(CORE_SERVICES.contains(&"vfs"));
+pub fn test_core_services_contains_vfs() -> TestResult {
+    if !CORE_SERVICES.contains(&"vfs") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_core_services_contains_display() {
-    assert!(CORE_SERVICES.contains(&"display"));
+pub fn test_core_services_contains_display() -> TestResult {
+    if !CORE_SERVICES.contains(&"display") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_core_services_contains_input() {
-    assert!(CORE_SERVICES.contains(&"input"));
+pub fn test_core_services_contains_input() -> TestResult {
+    if !CORE_SERVICES.contains(&"input") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_core_services_contains_network() {
-    assert!(CORE_SERVICES.contains(&"network"));
+pub fn test_core_services_contains_network() -> TestResult {
+    if !CORE_SERVICES.contains(&"network") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_core_services_contains_crypto() {
-    assert!(CORE_SERVICES.contains(&"crypto"));
+pub fn test_core_services_contains_crypto() -> TestResult {
+    if !CORE_SERVICES.contains(&"crypto") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_core_services_contains_zk() {
-    assert!(CORE_SERVICES.contains(&"zk"));
+pub fn test_core_services_contains_zk() -> TestResult {
+    if !CORE_SERVICES.contains(&"zk") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_core_services_contains_audio() {
-    assert!(CORE_SERVICES.contains(&"audio"));
+pub fn test_core_services_contains_audio() -> TestResult {
+    if !CORE_SERVICES.contains(&"audio") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_core_services_contains_gpu() {
-    assert!(CORE_SERVICES.contains(&"gpu"));
+pub fn test_core_services_contains_gpu() -> TestResult {
+    if !CORE_SERVICES.contains(&"gpu") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_core_services_contains_apps() {
-    assert!(CORE_SERVICES.contains(&"apps"));
+pub fn test_core_services_contains_apps() -> TestResult {
+    if !CORE_SERVICES.contains(&"apps") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_core_services_contains_agents() {
-    assert!(CORE_SERVICES.contains(&"agents"));
+pub fn test_core_services_contains_agents() -> TestResult {
+    if !CORE_SERVICES.contains(&"agents") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_core_services_contains_shell() {
-    assert!(CORE_SERVICES.contains(&"shell"));
+pub fn test_core_services_contains_shell() -> TestResult {
+    if !CORE_SERVICES.contains(&"shell") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_core_services_contains_desktop() {
-    assert!(CORE_SERVICES.contains(&"desktop"));
+pub fn test_core_services_contains_desktop() -> TestResult {
+    if !CORE_SERVICES.contains(&"desktop") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_driver_services_contains_drivers() {
-    assert!(DRIVER_SERVICES.contains(&"drivers"));
+pub fn test_driver_services_contains_drivers() -> TestResult {
+    if !DRIVER_SERVICES.contains(&"drivers") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_core_services_count() {
-    assert_eq!(CORE_SERVICES.len(), 12);
+pub fn test_core_services_count() -> TestResult {
+    if CORE_SERVICES.len() != 12 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_driver_services_count() {
-    assert_eq!(DRIVER_SERVICES.len(), 1);
+pub fn test_driver_services_count() -> TestResult {
+    if DRIVER_SERVICES.len() != 1 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_run_init_exported() {
+pub fn test_run_init_exported() -> TestResult {
     let _: fn() -> ! = run_init;
+    TestResult::Pass
 }
