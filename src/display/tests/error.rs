@@ -15,85 +15,85 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::display::*;
+use crate::test::framework::TestResult;
 
-#[test]
-fn test_display_error_not_initialized_display() {
+pub fn test_display_error_not_initialized_display() -> TestResult {
     let err = DisplayError::NotInitialized;
     let msg = alloc::format!("{}", err);
-    assert!(msg.contains("not initialized"));
+    if !msg.contains("not initialized") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_display_error_invalid_address_display() {
+pub fn test_display_error_invalid_address_display() -> TestResult {
     let err = DisplayError::InvalidAddress;
     let msg = alloc::format!("{}", err);
-    assert!(msg.contains("invalid"));
-    assert!(msg.contains("address"));
+    if !msg.contains("invalid") { return TestResult::Fail; }
+    if !msg.contains("address") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_display_error_out_of_bounds_display() {
+pub fn test_display_error_out_of_bounds_display() -> TestResult {
     let err = DisplayError::OutOfBounds;
     let msg = alloc::format!("{}", err);
-    assert!(msg.contains("out of bounds"));
+    if !msg.contains("out of bounds") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_display_error_invalid_format_display() {
+pub fn test_display_error_invalid_format_display() -> TestResult {
     let err = DisplayError::InvalidFormat;
     let msg = alloc::format!("{}", err);
-    assert!(msg.contains("invalid"));
-    assert!(msg.contains("format"));
+    if !msg.contains("invalid") { return TestResult::Fail; }
+    if !msg.contains("format") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_display_error_no_framebuffer_display() {
+pub fn test_display_error_no_framebuffer_display() -> TestResult {
     let err = DisplayError::NoFramebuffer;
     let msg = alloc::format!("{}", err);
-    assert!(msg.contains("no framebuffer"));
+    if !msg.contains("no framebuffer") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_display_error_equality() {
-    assert_eq!(DisplayError::NotInitialized, DisplayError::NotInitialized);
-    assert_eq!(DisplayError::InvalidAddress, DisplayError::InvalidAddress);
-    assert_eq!(DisplayError::OutOfBounds, DisplayError::OutOfBounds);
-    assert_eq!(DisplayError::InvalidFormat, DisplayError::InvalidFormat);
-    assert_eq!(DisplayError::NoFramebuffer, DisplayError::NoFramebuffer);
+pub fn test_display_error_equality() -> TestResult {
+    if DisplayError::NotInitialized != DisplayError::NotInitialized { return TestResult::Fail; }
+    if DisplayError::InvalidAddress != DisplayError::InvalidAddress { return TestResult::Fail; }
+    if DisplayError::OutOfBounds != DisplayError::OutOfBounds { return TestResult::Fail; }
+    if DisplayError::InvalidFormat != DisplayError::InvalidFormat { return TestResult::Fail; }
+    if DisplayError::NoFramebuffer != DisplayError::NoFramebuffer { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_display_error_inequality() {
-    assert_ne!(DisplayError::NotInitialized, DisplayError::InvalidAddress);
-    assert_ne!(DisplayError::InvalidAddress, DisplayError::OutOfBounds);
-    assert_ne!(DisplayError::OutOfBounds, DisplayError::InvalidFormat);
-    assert_ne!(DisplayError::InvalidFormat, DisplayError::NoFramebuffer);
-    assert_ne!(DisplayError::NoFramebuffer, DisplayError::NotInitialized);
+pub fn test_display_error_inequality() -> TestResult {
+    if DisplayError::NotInitialized == DisplayError::InvalidAddress { return TestResult::Fail; }
+    if DisplayError::InvalidAddress == DisplayError::OutOfBounds { return TestResult::Fail; }
+    if DisplayError::OutOfBounds == DisplayError::InvalidFormat { return TestResult::Fail; }
+    if DisplayError::InvalidFormat == DisplayError::NoFramebuffer { return TestResult::Fail; }
+    if DisplayError::NoFramebuffer == DisplayError::NotInitialized { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_display_error_debug() {
+pub fn test_display_error_debug() -> TestResult {
     let err = DisplayError::NotInitialized;
     let debug = alloc::format!("{:?}", err);
-    assert!(debug.contains("NotInitialized"));
+    if !debug.contains("NotInitialized") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_display_error_clone() {
+pub fn test_display_error_clone() -> TestResult {
     let err = DisplayError::OutOfBounds;
     let cloned = err.clone();
-    assert_eq!(err, cloned);
+    if err != cloned { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_display_error_copy() {
+pub fn test_display_error_copy() -> TestResult {
     let err = DisplayError::InvalidFormat;
     let copied = err;
-    assert_eq!(err, copied);
+    if err != copied { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_all_error_variants_distinct() {
+pub fn test_all_error_variants_distinct() -> TestResult {
     let errors = [
         DisplayError::NotInitialized,
         DisplayError::InvalidAddress,
@@ -103,22 +103,23 @@ fn test_all_error_variants_distinct() {
     ];
     for i in 0..errors.len() {
         for j in (i + 1)..errors.len() {
-            assert_ne!(errors[i], errors[j]);
+            if errors[i] == errors[j] { return TestResult::Fail; }
         }
     }
+    TestResult::Pass
 }
 
-#[test]
-fn test_display_error_debug_all_variants() {
+pub fn test_display_error_debug_all_variants() -> TestResult {
     let debug = alloc::format!("{:?}", DisplayError::InvalidAddress);
-    assert!(debug.contains("InvalidAddress"));
+    if !debug.contains("InvalidAddress") { return TestResult::Fail; }
 
     let debug = alloc::format!("{:?}", DisplayError::OutOfBounds);
-    assert!(debug.contains("OutOfBounds"));
+    if !debug.contains("OutOfBounds") { return TestResult::Fail; }
 
     let debug = alloc::format!("{:?}", DisplayError::InvalidFormat);
-    assert!(debug.contains("InvalidFormat"));
+    if !debug.contains("InvalidFormat") { return TestResult::Fail; }
 
     let debug = alloc::format!("{:?}", DisplayError::NoFramebuffer);
-    assert!(debug.contains("NoFramebuffer"));
+    if !debug.contains("NoFramebuffer") { return TestResult::Fail; }
+    TestResult::Pass
 }

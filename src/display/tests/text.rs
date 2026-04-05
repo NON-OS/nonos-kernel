@@ -1,17 +1,19 @@
-#[test]
-fn test_module_exists() {
-    assert!(true);
+use crate::test::framework::TestResult;
+
+pub fn test_module_exists() -> TestResult {
+    if !true { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_basic_constants() {
+pub fn test_basic_constants() -> TestResult {
     let _ = 1u32;
-    assert!(true);
+    if !true { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_basic_operations() {
+pub fn test_basic_operations() -> TestResult {
     let a: u64 = 100;
     let b: u64 = 200;
-    assert!(a < b);
+    if !(a < b) { return TestResult::Fail; }
+    TestResult::Pass
 }
