@@ -20,14 +20,14 @@ use crate::test::framework::TestResult;
 use crate::vault::nonos_vault::VaultAuditEvent;
 use crate::vault::nonos_vault_audit::*;
 
-pub fn test_vault_audit_manager_new() -> TestResult {
+pub(crate) fn test_vault_audit_manager_new() -> TestResult {
     let manager = VaultAuditManager::new();
     let log = manager.export_all();
     if !log.is_empty() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_vault_audit_manager_log_event() -> TestResult {
+pub(crate) fn test_vault_audit_manager_log_event() -> TestResult {
     let manager = VaultAuditManager::new();
     let event = VaultAuditEvent {
         timestamp: 1000,
@@ -40,7 +40,7 @@ pub fn test_vault_audit_manager_log_event() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_vault_audit_manager_recent_returns_reverse_order() -> TestResult {
+pub(crate) fn test_vault_audit_manager_recent_returns_reverse_order() -> TestResult {
     let manager = VaultAuditManager::new();
     for i in 0..5 {
         let event = VaultAuditEvent {
@@ -59,7 +59,7 @@ pub fn test_vault_audit_manager_recent_returns_reverse_order() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_vault_audit_manager_recent_more_than_available() -> TestResult {
+pub(crate) fn test_vault_audit_manager_recent_more_than_available() -> TestResult {
     let manager = VaultAuditManager::new();
     let event = VaultAuditEvent {
         timestamp: 1,
@@ -73,7 +73,7 @@ pub fn test_vault_audit_manager_recent_more_than_available() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_vault_audit_manager_recent_zero() -> TestResult {
+pub(crate) fn test_vault_audit_manager_recent_zero() -> TestResult {
     let manager = VaultAuditManager::new();
     let event = VaultAuditEvent {
         timestamp: 1,
@@ -87,7 +87,7 @@ pub fn test_vault_audit_manager_recent_zero() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_vault_audit_manager_filter_by_op() -> TestResult {
+pub(crate) fn test_vault_audit_manager_filter_by_op() -> TestResult {
     let manager = VaultAuditManager::new();
     manager.log_event(VaultAuditEvent {
         timestamp: 1,
@@ -112,7 +112,7 @@ pub fn test_vault_audit_manager_filter_by_op() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_vault_audit_manager_filter_by_status() -> TestResult {
+pub(crate) fn test_vault_audit_manager_filter_by_status() -> TestResult {
     let manager = VaultAuditManager::new();
     manager.log_event(VaultAuditEvent {
         timestamp: 1,
@@ -137,7 +137,7 @@ pub fn test_vault_audit_manager_filter_by_status() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_vault_audit_manager_filter_by_context() -> TestResult {
+pub(crate) fn test_vault_audit_manager_filter_by_context() -> TestResult {
     let manager = VaultAuditManager::new();
     manager.log_event(VaultAuditEvent {
         timestamp: 1,
@@ -162,7 +162,7 @@ pub fn test_vault_audit_manager_filter_by_context() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_vault_audit_manager_filter_combined() -> TestResult {
+pub(crate) fn test_vault_audit_manager_filter_combined() -> TestResult {
     let manager = VaultAuditManager::new();
     manager.log_event(VaultAuditEvent {
         timestamp: 1,
@@ -187,7 +187,7 @@ pub fn test_vault_audit_manager_filter_combined() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_vault_audit_manager_filter_no_match() -> TestResult {
+pub(crate) fn test_vault_audit_manager_filter_no_match() -> TestResult {
     let manager = VaultAuditManager::new();
     manager.log_event(VaultAuditEvent {
         timestamp: 1,
@@ -200,7 +200,7 @@ pub fn test_vault_audit_manager_filter_no_match() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_vault_audit_manager_export_all() -> TestResult {
+pub(crate) fn test_vault_audit_manager_export_all() -> TestResult {
     let manager = VaultAuditManager::new();
     for i in 0..10 {
         manager.log_event(VaultAuditEvent {
@@ -215,7 +215,7 @@ pub fn test_vault_audit_manager_export_all() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_vault_audit_manager_secure_erase() -> TestResult {
+pub(crate) fn test_vault_audit_manager_secure_erase() -> TestResult {
     let manager = VaultAuditManager::new();
     manager.log_event(VaultAuditEvent {
         timestamp: 1,
@@ -228,7 +228,7 @@ pub fn test_vault_audit_manager_secure_erase() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_vault_log_event_api() -> TestResult {
+pub(crate) fn test_vault_log_event_api() -> TestResult {
     let event = VaultAuditEvent {
         timestamp: 12345,
         event: "api_test".into(),
@@ -241,19 +241,19 @@ pub fn test_vault_log_event_api() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_vault_audit_recent_api() -> TestResult {
+pub(crate) fn test_vault_audit_recent_api() -> TestResult {
     let events = vault_audit_recent(5);
     if events.len() > 5 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_vault_audit_filter_api() -> TestResult {
+pub(crate) fn test_vault_audit_filter_api() -> TestResult {
     let events = vault_audit_filter(None, None, None);
     let _ = events.len();
     TestResult::Pass
 }
 
-pub fn test_vault_audit_filter_api_with_op() -> TestResult {
+pub(crate) fn test_vault_audit_filter_api_with_op() -> TestResult {
     let events = vault_audit_filter(Some("seal"), None, None);
     for e in &events {
         if !e.event.contains("seal") { return TestResult::Fail; }
@@ -261,25 +261,25 @@ pub fn test_vault_audit_filter_api_with_op() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_vault_audit_export_api() -> TestResult {
+pub(crate) fn test_vault_audit_export_api() -> TestResult {
     let events = vault_audit_export();
     let _ = events.len();
     TestResult::Pass
 }
 
-pub fn test_vault_audit_secure_erase_api() -> TestResult {
+pub(crate) fn test_vault_audit_secure_erase_api() -> TestResult {
     vault_audit_secure_erase();
     let events = VAULT_AUDIT_MANAGER.export_all();
     if !events.is_empty() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_vault_audit_manager_singleton_exists() -> TestResult {
+pub(crate) fn test_vault_audit_manager_singleton_exists() -> TestResult {
     let _ = VAULT_AUDIT_MANAGER.export_all();
     TestResult::Pass
 }
 
-pub fn test_vault_audit_event_timestamp_zero() -> TestResult {
+pub(crate) fn test_vault_audit_event_timestamp_zero() -> TestResult {
     let event = VaultAuditEvent {
         timestamp: 0,
         event: "zero_ts".into(),
@@ -290,7 +290,7 @@ pub fn test_vault_audit_event_timestamp_zero() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_vault_audit_event_timestamp_max() -> TestResult {
+pub(crate) fn test_vault_audit_event_timestamp_max() -> TestResult {
     let event = VaultAuditEvent {
         timestamp: u64::MAX,
         event: "max_ts".into(),
@@ -301,7 +301,7 @@ pub fn test_vault_audit_event_timestamp_max() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_vault_audit_manager_many_events() -> TestResult {
+pub(crate) fn test_vault_audit_manager_many_events() -> TestResult {
     let manager = VaultAuditManager::new();
     for i in 0..1000 {
         manager.log_event(VaultAuditEvent {
@@ -315,7 +315,7 @@ pub fn test_vault_audit_manager_many_events() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_vault_audit_filter_none_context() -> TestResult {
+pub(crate) fn test_vault_audit_filter_none_context() -> TestResult {
     let manager = VaultAuditManager::new();
     manager.log_event(VaultAuditEvent {
         timestamp: 1,
@@ -328,7 +328,7 @@ pub fn test_vault_audit_filter_none_context() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_vault_audit_filter_none_status() -> TestResult {
+pub(crate) fn test_vault_audit_filter_none_status() -> TestResult {
     let manager = VaultAuditManager::new();
     manager.log_event(VaultAuditEvent {
         timestamp: 1,

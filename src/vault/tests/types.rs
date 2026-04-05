@@ -20,78 +20,78 @@ use crate::test::framework::TestResult;
 use crate::vault::nonos_vault_seal::{SealPolicy, SealedSecret};
 use crate::vault::nonos_vault::VaultAuditEvent;
 
-pub fn test_seal_policy_ram_only_eq() -> TestResult {
+pub(crate) fn test_seal_policy_ram_only_eq() -> TestResult {
     if SealPolicy::RAMOnly != SealPolicy::RAMOnly { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_seal_policy_uefi_eq() -> TestResult {
+pub(crate) fn test_seal_policy_uefi_eq() -> TestResult {
     if SealPolicy::UEFI != SealPolicy::UEFI { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_seal_policy_disk_eq() -> TestResult {
+pub(crate) fn test_seal_policy_disk_eq() -> TestResult {
     if SealPolicy::Disk != SealPolicy::Disk { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_seal_policy_custom_eq() -> TestResult {
+pub(crate) fn test_seal_policy_custom_eq() -> TestResult {
     let p1 = SealPolicy::Custom("backend".into());
     let p2 = SealPolicy::Custom("backend".into());
     if p1 != p2 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_seal_policy_custom_ne_different_backend() -> TestResult {
+pub(crate) fn test_seal_policy_custom_ne_different_backend() -> TestResult {
     let p1 = SealPolicy::Custom("backend1".into());
     let p2 = SealPolicy::Custom("backend2".into());
     if p1 == p2 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_seal_policy_different_variants_ne() -> TestResult {
+pub(crate) fn test_seal_policy_different_variants_ne() -> TestResult {
     if SealPolicy::RAMOnly == SealPolicy::UEFI { return TestResult::Fail; }
     if SealPolicy::UEFI == SealPolicy::Disk { return TestResult::Fail; }
     if SealPolicy::Disk == SealPolicy::RAMOnly { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_seal_policy_clone() -> TestResult {
+pub(crate) fn test_seal_policy_clone() -> TestResult {
     let p1 = SealPolicy::UEFI;
     let p2 = p1.clone();
     if p1 != p2 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_seal_policy_custom_clone() -> TestResult {
+pub(crate) fn test_seal_policy_custom_clone() -> TestResult {
     let p1 = SealPolicy::Custom("my_backend".into());
     let p2 = p1.clone();
     if p1 != p2 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_seal_policy_debug_ram_only() -> TestResult {
+pub(crate) fn test_seal_policy_debug_ram_only() -> TestResult {
     let p = SealPolicy::RAMOnly;
     let debug = alloc::format!("{:?}", p);
     if !debug.contains("RAMOnly") { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_seal_policy_debug_uefi() -> TestResult {
+pub(crate) fn test_seal_policy_debug_uefi() -> TestResult {
     let p = SealPolicy::UEFI;
     let debug = alloc::format!("{:?}", p);
     if !debug.contains("UEFI") { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_seal_policy_debug_disk() -> TestResult {
+pub(crate) fn test_seal_policy_debug_disk() -> TestResult {
     let p = SealPolicy::Disk;
     let debug = alloc::format!("{:?}", p);
     if !debug.contains("Disk") { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_seal_policy_debug_custom() -> TestResult {
+pub(crate) fn test_seal_policy_debug_custom() -> TestResult {
     let p = SealPolicy::Custom("test_backend".into());
     let debug = alloc::format!("{:?}", p);
     if !debug.contains("Custom") { return TestResult::Fail; }
@@ -99,7 +99,7 @@ pub fn test_seal_policy_debug_custom() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_sealed_secret_clone() -> TestResult {
+pub(crate) fn test_sealed_secret_clone() -> TestResult {
     let audit = VaultAuditEvent {
         timestamp: 12345,
         event: "seal".into(),
@@ -121,7 +121,7 @@ pub fn test_sealed_secret_clone() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_sealed_secret_debug() -> TestResult {
+pub(crate) fn test_sealed_secret_debug() -> TestResult {
     let audit = VaultAuditEvent {
         timestamp: 1000,
         event: "seal".into(),
@@ -141,7 +141,7 @@ pub fn test_sealed_secret_debug() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_sealed_secret_empty_data() -> TestResult {
+pub(crate) fn test_sealed_secret_empty_data() -> TestResult {
     let audit = VaultAuditEvent {
         timestamp: 0,
         event: "empty".into(),
@@ -160,7 +160,7 @@ pub fn test_sealed_secret_empty_data() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_sealed_secret_large_data() -> TestResult {
+pub(crate) fn test_sealed_secret_large_data() -> TestResult {
     let audit = VaultAuditEvent {
         timestamp: 0,
         event: "large".into(),
@@ -179,7 +179,7 @@ pub fn test_sealed_secret_large_data() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_sealed_secret_with_custom_policy() -> TestResult {
+pub(crate) fn test_sealed_secret_with_custom_policy() -> TestResult {
     let audit = VaultAuditEvent {
         timestamp: 0,
         event: "custom".into(),
@@ -201,7 +201,7 @@ pub fn test_sealed_secret_with_custom_policy() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_sealed_secret_audit_event_preserved() -> TestResult {
+pub(crate) fn test_sealed_secret_audit_event_preserved() -> TestResult {
     let audit = VaultAuditEvent {
         timestamp: 42,
         event: "audit_check".into(),
