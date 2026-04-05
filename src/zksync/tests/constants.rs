@@ -14,85 +14,85 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use crate::test::framework::TestResult;
 use crate::zksync::*;
 
-#[test]
-fn test_syscall_submit_tx() {
-    assert_eq!(SYS_ZKSYNC_SUBMIT_TX, 420);
+pub fn test_syscall_submit_tx() -> TestResult {
+    if SYS_ZKSYNC_SUBMIT_TX != 420 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_syscall_get_tx_status() {
-    assert_eq!(SYS_ZKSYNC_GET_TX_STATUS, 421);
+pub fn test_syscall_get_tx_status() -> TestResult {
+    if SYS_ZKSYNC_GET_TX_STATUS != 421 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_syscall_get_balance() {
-    assert_eq!(SYS_ZKSYNC_GET_BALANCE, 422);
+pub fn test_syscall_get_balance() -> TestResult {
+    if SYS_ZKSYNC_GET_BALANCE != 422 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_syscall_get_nonce() {
-    assert_eq!(SYS_ZKSYNC_GET_NONCE, 423);
+pub fn test_syscall_get_nonce() -> TestResult {
+    if SYS_ZKSYNC_GET_NONCE != 423 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_syscall_call() {
-    assert_eq!(SYS_ZKSYNC_CALL, 424);
+pub fn test_syscall_call() -> TestResult {
+    if SYS_ZKSYNC_CALL != 424 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_syscall_estimate_gas() {
-    assert_eq!(SYS_ZKSYNC_ESTIMATE_GAS, 425);
+pub fn test_syscall_estimate_gas() -> TestResult {
+    if SYS_ZKSYNC_ESTIMATE_GAS != 425 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_syscall_get_block() {
-    assert_eq!(SYS_ZKSYNC_GET_BLOCK, 426);
+pub fn test_syscall_get_block() -> TestResult {
+    if SYS_ZKSYNC_GET_BLOCK != 426 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_syscall_get_batch() {
-    assert_eq!(SYS_ZKSYNC_GET_BATCH, 427);
+pub fn test_syscall_get_batch() -> TestResult {
+    if SYS_ZKSYNC_GET_BATCH != 427 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_syscall_prove_batch() {
-    assert_eq!(SYS_ZKSYNC_PROVE_BATCH, 428);
+pub fn test_syscall_prove_batch() -> TestResult {
+    if SYS_ZKSYNC_PROVE_BATCH != 428 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_syscall_get_proof() {
-    assert_eq!(SYS_ZKSYNC_GET_PROOF, 429);
+pub fn test_syscall_get_proof() -> TestResult {
+    if SYS_ZKSYNC_GET_PROOF != 429 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_syscall_bridge_deposit() {
-    assert_eq!(SYS_ZKSYNC_BRIDGE_DEPOSIT, 430);
+pub fn test_syscall_bridge_deposit() -> TestResult {
+    if SYS_ZKSYNC_BRIDGE_DEPOSIT != 430 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_syscall_bridge_withdraw() {
-    assert_eq!(SYS_ZKSYNC_BRIDGE_WITHDRAW, 431);
+pub fn test_syscall_bridge_withdraw() -> TestResult {
+    if SYS_ZKSYNC_BRIDGE_WITHDRAW != 431 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_syscall_numbers_sequential() {
-    assert_eq!(SYS_ZKSYNC_GET_TX_STATUS, SYS_ZKSYNC_SUBMIT_TX + 1);
-    assert_eq!(SYS_ZKSYNC_GET_BALANCE, SYS_ZKSYNC_GET_TX_STATUS + 1);
-    assert_eq!(SYS_ZKSYNC_GET_NONCE, SYS_ZKSYNC_GET_BALANCE + 1);
-    assert_eq!(SYS_ZKSYNC_CALL, SYS_ZKSYNC_GET_NONCE + 1);
-    assert_eq!(SYS_ZKSYNC_ESTIMATE_GAS, SYS_ZKSYNC_CALL + 1);
-    assert_eq!(SYS_ZKSYNC_GET_BLOCK, SYS_ZKSYNC_ESTIMATE_GAS + 1);
-    assert_eq!(SYS_ZKSYNC_GET_BATCH, SYS_ZKSYNC_GET_BLOCK + 1);
-    assert_eq!(SYS_ZKSYNC_PROVE_BATCH, SYS_ZKSYNC_GET_BATCH + 1);
-    assert_eq!(SYS_ZKSYNC_GET_PROOF, SYS_ZKSYNC_PROVE_BATCH + 1);
-    assert_eq!(SYS_ZKSYNC_BRIDGE_DEPOSIT, SYS_ZKSYNC_GET_PROOF + 1);
-    assert_eq!(SYS_ZKSYNC_BRIDGE_WITHDRAW, SYS_ZKSYNC_BRIDGE_DEPOSIT + 1);
+pub fn test_syscall_numbers_sequential() -> TestResult {
+    if SYS_ZKSYNC_GET_TX_STATUS != SYS_ZKSYNC_SUBMIT_TX + 1 { return TestResult::Fail; }
+    if SYS_ZKSYNC_GET_BALANCE != SYS_ZKSYNC_GET_TX_STATUS + 1 { return TestResult::Fail; }
+    if SYS_ZKSYNC_GET_NONCE != SYS_ZKSYNC_GET_BALANCE + 1 { return TestResult::Fail; }
+    if SYS_ZKSYNC_CALL != SYS_ZKSYNC_GET_NONCE + 1 { return TestResult::Fail; }
+    if SYS_ZKSYNC_ESTIMATE_GAS != SYS_ZKSYNC_CALL + 1 { return TestResult::Fail; }
+    if SYS_ZKSYNC_GET_BLOCK != SYS_ZKSYNC_ESTIMATE_GAS + 1 { return TestResult::Fail; }
+    if SYS_ZKSYNC_GET_BATCH != SYS_ZKSYNC_GET_BLOCK + 1 { return TestResult::Fail; }
+    if SYS_ZKSYNC_PROVE_BATCH != SYS_ZKSYNC_GET_BATCH + 1 { return TestResult::Fail; }
+    if SYS_ZKSYNC_GET_PROOF != SYS_ZKSYNC_PROVE_BATCH + 1 { return TestResult::Fail; }
+    if SYS_ZKSYNC_BRIDGE_DEPOSIT != SYS_ZKSYNC_GET_PROOF + 1 { return TestResult::Fail; }
+    if SYS_ZKSYNC_BRIDGE_WITHDRAW != SYS_ZKSYNC_BRIDGE_DEPOSIT + 1 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_syscall_numbers_unique() {
+pub fn test_syscall_numbers_unique() -> TestResult {
     let syscalls = [
         SYS_ZKSYNC_SUBMIT_TX,
         SYS_ZKSYNC_GET_TX_STATUS,
@@ -109,72 +109,73 @@ fn test_syscall_numbers_unique() {
     ];
     for i in 0..syscalls.len() {
         for j in (i + 1)..syscalls.len() {
-            assert_ne!(syscalls[i], syscalls[j]);
+            if syscalls[i] == syscalls[j] { return TestResult::Fail; }
         }
     }
+    TestResult::Pass
 }
 
-#[test]
-fn test_public_exports_address() {
+pub fn test_public_exports_address() -> TestResult {
     let _: Address = Address::ZERO;
+    TestResult::Pass
 }
 
-#[test]
-fn test_public_exports_u256() {
+pub fn test_public_exports_u256() -> TestResult {
     let _: U256 = U256::ZERO;
+    TestResult::Pass
 }
 
-#[test]
-fn test_public_exports_batch_number() {
+pub fn test_public_exports_batch_number() -> TestResult {
     let _: BatchNumber = BatchNumber(0);
+    TestResult::Pass
 }
 
-#[test]
-fn test_public_exports_block_number() {
+pub fn test_public_exports_block_number() -> TestResult {
     let _: BlockNumber = BlockNumber(0);
+    TestResult::Pass
 }
 
-#[test]
-fn test_public_exports_nonce() {
+pub fn test_public_exports_nonce() -> TestResult {
     let _: Nonce = Nonce(0);
+    TestResult::Pass
 }
 
-#[test]
-fn test_public_exports_gas() {
+pub fn test_public_exports_gas() -> TestResult {
     let _: Gas = Gas(0);
+    TestResult::Pass
 }
 
-#[test]
-fn test_public_exports_tx_hash() {
+pub fn test_public_exports_tx_hash() -> TestResult {
     let _: TxHash = TxHash::ZERO;
+    TestResult::Pass
 }
 
-#[test]
-fn test_public_exports_zksync_config() {
+pub fn test_public_exports_zksync_config() -> TestResult {
     let _: ZkSyncConfig = ZkSyncConfig::default();
+    TestResult::Pass
 }
 
-#[test]
-fn test_public_exports_zksync_error() {
+pub fn test_public_exports_zksync_error() -> TestResult {
     let _: ZkSyncError = ZkSyncError::NotInitialized;
+    TestResult::Pass
 }
 
-#[test]
-fn test_public_exports_goldilocks_field() {
+pub fn test_public_exports_goldilocks_field() -> TestResult {
     let _: GoldilocksField = GoldilocksField::ZERO;
+    TestResult::Pass
 }
 
-#[test]
-fn test_public_exports_sparse_merkle_tree() {
+pub fn test_public_exports_sparse_merkle_tree() -> TestResult {
     let _: SparseMerkleTree = SparseMerkleTree::new();
+    TestResult::Pass
 }
 
-#[test]
-fn test_init_zksync_function_exists() {
+pub fn test_init_zksync_function_exists() -> TestResult {
     let _ = init_zksync(ZkSyncConfig::default());
+    TestResult::Pass
 }
 
-#[test]
-fn test_is_initialized_function_exists() {
+pub fn test_is_initialized_function_exists() -> TestResult {
     let _ = is_initialized();
+    TestResult::Pass
 }

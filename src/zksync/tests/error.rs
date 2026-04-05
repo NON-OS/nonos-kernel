@@ -16,170 +16,170 @@
 
 extern crate alloc;
 
+use crate::test::framework::TestResult;
 use crate::zksync::error::ZkSyncError;
 
-#[test]
-fn test_error_not_initialized() {
+pub fn test_error_not_initialized() -> TestResult {
     let err = ZkSyncError::NotInitialized;
     let msg = alloc::format!("{}", err);
-    assert!(msg.contains("not initialized"));
+    if !msg.contains("not initialized") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_error_invalid_transaction() {
+pub fn test_error_invalid_transaction() -> TestResult {
     let err = ZkSyncError::InvalidTransaction;
     let msg = alloc::format!("{}", err);
-    assert!(msg.contains("invalid transaction"));
+    if !msg.contains("invalid transaction") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_error_invalid_signature() {
+pub fn test_error_invalid_signature() -> TestResult {
     let err = ZkSyncError::InvalidSignature;
     let msg = alloc::format!("{}", err);
-    assert!(msg.contains("invalid signature"));
+    if !msg.contains("invalid signature") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_error_insufficient_balance() {
+pub fn test_error_insufficient_balance() -> TestResult {
     let err = ZkSyncError::InsufficientBalance;
     let msg = alloc::format!("{}", err);
-    assert!(msg.contains("insufficient balance"));
+    if !msg.contains("insufficient balance") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_error_nonce_mismatch() {
+pub fn test_error_nonce_mismatch() -> TestResult {
     let err = ZkSyncError::NonceMismatch;
     let msg = alloc::format!("{}", err);
-    assert!(msg.contains("nonce mismatch"));
+    if !msg.contains("nonce mismatch") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_error_gas_limit_exceeded() {
+pub fn test_error_gas_limit_exceeded() -> TestResult {
     let err = ZkSyncError::GasLimitExceeded;
     let msg = alloc::format!("{}", err);
-    assert!(msg.contains("gas limit exceeded"));
+    if !msg.contains("gas limit exceeded") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_error_invalid_proof() {
+pub fn test_error_invalid_proof() -> TestResult {
     let err = ZkSyncError::InvalidProof;
     let msg = alloc::format!("{}", err);
-    assert!(msg.contains("invalid proof"));
+    if !msg.contains("invalid proof") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_error_batch_not_found() {
+pub fn test_error_batch_not_found() -> TestResult {
     let err = ZkSyncError::BatchNotFound;
     let msg = alloc::format!("{}", err);
-    assert!(msg.contains("batch not found"));
+    if !msg.contains("batch not found") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_error_block_not_found() {
+pub fn test_error_block_not_found() -> TestResult {
     let err = ZkSyncError::BlockNotFound;
     let msg = alloc::format!("{}", err);
-    assert!(msg.contains("block not found"));
+    if !msg.contains("block not found") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_error_account_not_found() {
+pub fn test_error_account_not_found() -> TestResult {
     let err = ZkSyncError::AccountNotFound;
     let msg = alloc::format!("{}", err);
-    assert!(msg.contains("account not found"));
+    if !msg.contains("account not found") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_error_storage_error() {
+pub fn test_error_storage_error() -> TestResult {
     let err = ZkSyncError::StorageError;
     let msg = alloc::format!("{}", err);
-    assert!(msg.contains("storage error"));
+    if !msg.contains("storage error") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_error_proving_failed() {
+pub fn test_error_proving_failed() -> TestResult {
     let err = ZkSyncError::ProvingFailed;
     let msg = alloc::format!("{}", err);
-    assert!(msg.contains("proving failed"));
+    if !msg.contains("proving failed") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_error_witness_generation_failed() {
+pub fn test_error_witness_generation_failed() -> TestResult {
     let err = ZkSyncError::WitnessGenerationFailed;
     let msg = alloc::format!("{}", err);
-    assert!(msg.contains("witness generation failed"));
+    if !msg.contains("witness generation failed") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_error_l1_communication_failed() {
+pub fn test_error_l1_communication_failed() -> TestResult {
     let err = ZkSyncError::L1CommunicationFailed;
     let msg = alloc::format!("{}", err);
-    assert!(msg.contains("L1 communication failed"));
+    if !msg.contains("L1 communication failed") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_error_bridge_error() {
+pub fn test_error_bridge_error() -> TestResult {
     let err = ZkSyncError::BridgeError;
     let msg = alloc::format!("{}", err);
-    assert!(msg.contains("bridge error"));
+    if !msg.contains("bridge error") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_error_capability_denied() {
+pub fn test_error_capability_denied() -> TestResult {
     let err = ZkSyncError::CapabilityDenied;
     let msg = alloc::format!("{}", err);
-    assert!(msg.contains("capability denied"));
+    if !msg.contains("capability denied") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_error_invalid_input() {
+pub fn test_error_invalid_input() -> TestResult {
     let err = ZkSyncError::InvalidInput;
     let msg = alloc::format!("{}", err);
-    assert!(msg.contains("invalid input"));
+    if !msg.contains("invalid input") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_error_out_of_memory() {
+pub fn test_error_out_of_memory() -> TestResult {
     let err = ZkSyncError::OutOfMemory;
     let msg = alloc::format!("{}", err);
-    assert!(msg.contains("out of memory"));
+    if !msg.contains("out of memory") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_error_internal_error() {
+pub fn test_error_internal_error() -> TestResult {
     let err = ZkSyncError::InternalError;
     let msg = alloc::format!("{}", err);
-    assert!(msg.contains("internal error"));
+    if !msg.contains("internal error") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_error_debug_format() {
+pub fn test_error_debug_format() -> TestResult {
     let err = ZkSyncError::NotInitialized;
     let debug = alloc::format!("{:?}", err);
-    assert!(debug.contains("NotInitialized"));
+    if !debug.contains("NotInitialized") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_error_equality() {
-    assert_eq!(ZkSyncError::NotInitialized, ZkSyncError::NotInitialized);
-    assert_ne!(ZkSyncError::NotInitialized, ZkSyncError::InvalidTransaction);
+pub fn test_error_equality() -> TestResult {
+    if ZkSyncError::NotInitialized != ZkSyncError::NotInitialized { return TestResult::Fail; }
+    if ZkSyncError::NotInitialized == ZkSyncError::InvalidTransaction { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_error_clone() {
+pub fn test_error_clone() -> TestResult {
     let err = ZkSyncError::InvalidProof;
     let cloned = err.clone();
-    assert_eq!(err, cloned);
+    if err != cloned { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_error_copy() {
+pub fn test_error_copy() -> TestResult {
     let err = ZkSyncError::StorageError;
     let copied = err;
-    assert_eq!(err, copied);
+    if err != copied { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_all_error_variants_distinct() {
+pub fn test_all_error_variants_distinct() -> TestResult {
     let errors = [
         ZkSyncError::NotInitialized,
         ZkSyncError::InvalidTransaction,
@@ -203,7 +203,8 @@ fn test_all_error_variants_distinct() {
     ];
     for i in 0..errors.len() {
         for j in (i + 1)..errors.len() {
-            assert_ne!(errors[i], errors[j]);
+            if errors[i] == errors[j] { return TestResult::Fail; }
         }
     }
+    TestResult::Pass
 }
