@@ -15,409 +15,410 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::drivers::usb::constants::*;
+use crate::test::framework::TestResult;
 
-#[test]
-fn test_request_get_status() {
-    assert_eq!(REQ_GET_STATUS, 0x00);
+pub fn test_request_get_status() -> TestResult {
+    if REQ_GET_STATUS != 0x00 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_request_clear_feature() {
-    assert_eq!(REQ_CLEAR_FEATURE, 0x01);
+pub fn test_request_clear_feature() -> TestResult {
+    if REQ_CLEAR_FEATURE != 0x01 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_request_set_feature() {
-    assert_eq!(REQ_SET_FEATURE, 0x03);
+pub fn test_request_set_feature() -> TestResult {
+    if REQ_SET_FEATURE != 0x03 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_request_set_address() {
-    assert_eq!(REQ_SET_ADDRESS, 0x05);
+pub fn test_request_set_address() -> TestResult {
+    if REQ_SET_ADDRESS != 0x05 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_request_get_descriptor() {
-    assert_eq!(REQ_GET_DESCRIPTOR, 0x06);
+pub fn test_request_get_descriptor() -> TestResult {
+    if REQ_GET_DESCRIPTOR != 0x06 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_request_set_descriptor() {
-    assert_eq!(REQ_SET_DESCRIPTOR, 0x07);
+pub fn test_request_set_descriptor() -> TestResult {
+    if REQ_SET_DESCRIPTOR != 0x07 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_request_get_configuration() {
-    assert_eq!(REQ_GET_CONFIGURATION, 0x08);
+pub fn test_request_get_configuration() -> TestResult {
+    if REQ_GET_CONFIGURATION != 0x08 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_request_set_configuration() {
-    assert_eq!(REQ_SET_CONFIGURATION, 0x09);
+pub fn test_request_set_configuration() -> TestResult {
+    if REQ_SET_CONFIGURATION != 0x09 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_request_get_interface() {
-    assert_eq!(REQ_GET_INTERFACE, 0x0A);
+pub fn test_request_get_interface() -> TestResult {
+    if REQ_GET_INTERFACE != 0x0A { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_request_set_interface() {
-    assert_eq!(REQ_SET_INTERFACE, 0x0B);
+pub fn test_request_set_interface() -> TestResult {
+    if REQ_SET_INTERFACE != 0x0B { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_request_synch_frame() {
-    assert_eq!(REQ_SYNCH_FRAME, 0x0C);
+pub fn test_request_synch_frame() -> TestResult {
+    if REQ_SYNCH_FRAME != 0x0C { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_recipient_device() {
-    assert_eq!(RT_DEV, 0x00);
+pub fn test_recipient_device() -> TestResult {
+    if RT_DEV != 0x00 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_recipient_interface() {
-    assert_eq!(RT_INTF, 0x01);
+pub fn test_recipient_interface() -> TestResult {
+    if RT_INTF != 0x01 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_recipient_endpoint() {
-    assert_eq!(RT_EP, 0x02);
+pub fn test_recipient_endpoint() -> TestResult {
+    if RT_EP != 0x02 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_recipient_other() {
-    assert_eq!(RT_OTHER, 0x03);
+pub fn test_recipient_other() -> TestResult {
+    if RT_OTHER != 0x03 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_direction_out() {
-    assert_eq!(DIR_OUT, 0x00);
+pub fn test_direction_out() -> TestResult {
+    if DIR_OUT != 0x00 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_direction_in() {
-    assert_eq!(DIR_IN, 0x80);
+pub fn test_direction_in() -> TestResult {
+    if DIR_IN != 0x80 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_type_standard() {
-    assert_eq!(TYPE_STD, 0x00);
+pub fn test_type_standard() -> TestResult {
+    if TYPE_STD != 0x00 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_type_class() {
-    assert_eq!(TYPE_CLASS, 0x20);
+pub fn test_type_class() -> TestResult {
+    if TYPE_CLASS != 0x20 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_type_vendor() {
-    assert_eq!(TYPE_VENDOR, 0x40);
+pub fn test_type_vendor() -> TestResult {
+    if TYPE_VENDOR != 0x40 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_descriptor_type_device() {
-    assert_eq!(DT_DEVICE, 1);
+pub fn test_descriptor_type_device() -> TestResult {
+    if DT_DEVICE != 1 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_descriptor_type_config() {
-    assert_eq!(DT_CONFIG, 2);
+pub fn test_descriptor_type_config() -> TestResult {
+    if DT_CONFIG != 2 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_descriptor_type_string() {
-    assert_eq!(DT_STRING, 3);
+pub fn test_descriptor_type_string() -> TestResult {
+    if DT_STRING != 3 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_descriptor_type_interface() {
-    assert_eq!(DT_INTERFACE, 4);
+pub fn test_descriptor_type_interface() -> TestResult {
+    if DT_INTERFACE != 4 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_descriptor_type_endpoint() {
-    assert_eq!(DT_ENDPOINT, 5);
+pub fn test_descriptor_type_endpoint() -> TestResult {
+    if DT_ENDPOINT != 5 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_descriptor_type_device_qualifier() {
-    assert_eq!(DT_DEVICE_QUALIFIER, 6);
+pub fn test_descriptor_type_device_qualifier() -> TestResult {
+    if DT_DEVICE_QUALIFIER != 6 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_descriptor_type_other_speed_config() {
-    assert_eq!(DT_OTHER_SPEED_CONFIG, 7);
+pub fn test_descriptor_type_other_speed_config() -> TestResult {
+    if DT_OTHER_SPEED_CONFIG != 7 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_descriptor_type_interface_power() {
-    assert_eq!(DT_INTERFACE_POWER, 8);
+pub fn test_descriptor_type_interface_power() -> TestResult {
+    if DT_INTERFACE_POWER != 8 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_descriptor_type_otg() {
-    assert_eq!(DT_OTG, 9);
+pub fn test_descriptor_type_otg() -> TestResult {
+    if DT_OTG != 9 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_descriptor_type_debug() {
-    assert_eq!(DT_DEBUG, 10);
+pub fn test_descriptor_type_debug() -> TestResult {
+    if DT_DEBUG != 10 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_descriptor_type_interface_assoc() {
-    assert_eq!(DT_INTERFACE_ASSOC, 11);
+pub fn test_descriptor_type_interface_assoc() -> TestResult {
+    if DT_INTERFACE_ASSOC != 11 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_descriptor_type_bos() {
-    assert_eq!(DT_BOS, 15);
+pub fn test_descriptor_type_bos() -> TestResult {
+    if DT_BOS != 15 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_descriptor_type_device_capability() {
-    assert_eq!(DT_DEVICE_CAPABILITY, 16);
+pub fn test_descriptor_type_device_capability() -> TestResult {
+    if DT_DEVICE_CAPABILITY != 16 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_descriptor_type_ss_ep_companion() {
-    assert_eq!(DT_SS_EP_COMPANION, 48);
+pub fn test_descriptor_type_ss_ep_companion() -> TestResult {
+    if DT_SS_EP_COMPANION != 48 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_descriptor_type_ssp_isoch_ep_companion() {
-    assert_eq!(DT_SSP_ISOCH_EP_COMPANION, 49);
+pub fn test_descriptor_type_ssp_isoch_ep_companion() -> TestResult {
+    if DT_SSP_ISOCH_EP_COMPANION != 49 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_endpoint_transfer_type_mask() {
-    assert_eq!(EP_TRANSFER_TYPE_MASK, 0x03);
+pub fn test_endpoint_transfer_type_mask() -> TestResult {
+    if EP_TRANSFER_TYPE_MASK != 0x03 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_endpoint_type_control() {
-    assert_eq!(EP_TYPE_CONTROL, 0x00);
+pub fn test_endpoint_type_control() -> TestResult {
+    if EP_TYPE_CONTROL != 0x00 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_endpoint_type_isochronous() {
-    assert_eq!(EP_TYPE_ISOCHRONOUS, 0x01);
+pub fn test_endpoint_type_isochronous() -> TestResult {
+    if EP_TYPE_ISOCHRONOUS != 0x01 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_endpoint_type_bulk() {
-    assert_eq!(EP_TYPE_BULK, 0x02);
+pub fn test_endpoint_type_bulk() -> TestResult {
+    if EP_TYPE_BULK != 0x02 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_endpoint_type_interrupt() {
-    assert_eq!(EP_TYPE_INTERRUPT, 0x03);
+pub fn test_endpoint_type_interrupt() -> TestResult {
+    if EP_TYPE_INTERRUPT != 0x03 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_endpoint_sync_type_mask() {
-    assert_eq!(EP_SYNC_TYPE_MASK, 0x0C);
+pub fn test_endpoint_sync_type_mask() -> TestResult {
+    if EP_SYNC_TYPE_MASK != 0x0C { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_endpoint_sync_none() {
-    assert_eq!(EP_SYNC_NONE, 0x00);
+pub fn test_endpoint_sync_none() -> TestResult {
+    if EP_SYNC_NONE != 0x00 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_endpoint_sync_async() {
-    assert_eq!(EP_SYNC_ASYNC, 0x04);
+pub fn test_endpoint_sync_async() -> TestResult {
+    if EP_SYNC_ASYNC != 0x04 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_endpoint_sync_adaptive() {
-    assert_eq!(EP_SYNC_ADAPTIVE, 0x08);
+pub fn test_endpoint_sync_adaptive() -> TestResult {
+    if EP_SYNC_ADAPTIVE != 0x08 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_endpoint_sync_sync() {
-    assert_eq!(EP_SYNC_SYNC, 0x0C);
+pub fn test_endpoint_sync_sync() -> TestResult {
+    if EP_SYNC_SYNC != 0x0C { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_endpoint_usage_type_mask() {
-    assert_eq!(EP_USAGE_TYPE_MASK, 0x30);
+pub fn test_endpoint_usage_type_mask() -> TestResult {
+    if EP_USAGE_TYPE_MASK != 0x30 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_endpoint_usage_data() {
-    assert_eq!(EP_USAGE_DATA, 0x00);
+pub fn test_endpoint_usage_data() -> TestResult {
+    if EP_USAGE_DATA != 0x00 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_endpoint_usage_feedback() {
-    assert_eq!(EP_USAGE_FEEDBACK, 0x10);
+pub fn test_endpoint_usage_feedback() -> TestResult {
+    if EP_USAGE_FEEDBACK != 0x10 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_endpoint_usage_implicit_fb() {
-    assert_eq!(EP_USAGE_IMPLICIT_FB, 0x20);
+pub fn test_endpoint_usage_implicit_fb() -> TestResult {
+    if EP_USAGE_IMPLICIT_FB != 0x20 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_class_device() {
-    assert_eq!(CLASS_DEVICE, 0x00);
+pub fn test_class_device() -> TestResult {
+    if CLASS_DEVICE != 0x00 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_class_audio() {
-    assert_eq!(CLASS_AUDIO, 0x01);
+pub fn test_class_audio() -> TestResult {
+    if CLASS_AUDIO != 0x01 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_class_cdc() {
-    assert_eq!(CLASS_CDC, 0x02);
+pub fn test_class_cdc() -> TestResult {
+    if CLASS_CDC != 0x02 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_class_hid() {
-    assert_eq!(CLASS_HID, 0x03);
+pub fn test_class_hid() -> TestResult {
+    if CLASS_HID != 0x03 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_class_physical() {
-    assert_eq!(CLASS_PHYSICAL, 0x05);
+pub fn test_class_physical() -> TestResult {
+    if CLASS_PHYSICAL != 0x05 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_class_image() {
-    assert_eq!(CLASS_IMAGE, 0x06);
+pub fn test_class_image() -> TestResult {
+    if CLASS_IMAGE != 0x06 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_class_printer() {
-    assert_eq!(CLASS_PRINTER, 0x07);
+pub fn test_class_printer() -> TestResult {
+    if CLASS_PRINTER != 0x07 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_class_mass_storage() {
-    assert_eq!(CLASS_MASS_STORAGE, 0x08);
+pub fn test_class_mass_storage() -> TestResult {
+    if CLASS_MASS_STORAGE != 0x08 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_class_hub() {
-    assert_eq!(CLASS_HUB, 0x09);
+pub fn test_class_hub() -> TestResult {
+    if CLASS_HUB != 0x09 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_class_cdc_data() {
-    assert_eq!(CLASS_CDC_DATA, 0x0A);
+pub fn test_class_cdc_data() -> TestResult {
+    if CLASS_CDC_DATA != 0x0A { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_class_smart_card() {
-    assert_eq!(CLASS_SMART_CARD, 0x0B);
+pub fn test_class_smart_card() -> TestResult {
+    if CLASS_SMART_CARD != 0x0B { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_class_content_security() {
-    assert_eq!(CLASS_CONTENT_SECURITY, 0x0D);
+pub fn test_class_content_security() -> TestResult {
+    if CLASS_CONTENT_SECURITY != 0x0D { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_class_video() {
-    assert_eq!(CLASS_VIDEO, 0x0E);
+pub fn test_class_video() -> TestResult {
+    if CLASS_VIDEO != 0x0E { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_class_personal_healthcare() {
-    assert_eq!(CLASS_PERSONAL_HEALTHCARE, 0x0F);
+pub fn test_class_personal_healthcare() -> TestResult {
+    if CLASS_PERSONAL_HEALTHCARE != 0x0F { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_class_audio_video() {
-    assert_eq!(CLASS_AUDIO_VIDEO, 0x10);
+pub fn test_class_audio_video() -> TestResult {
+    if CLASS_AUDIO_VIDEO != 0x10 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_class_billboard() {
-    assert_eq!(CLASS_BILLBOARD, 0x11);
+pub fn test_class_billboard() -> TestResult {
+    if CLASS_BILLBOARD != 0x11 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_class_type_c_bridge() {
-    assert_eq!(CLASS_TYPE_C_BRIDGE, 0x12);
+pub fn test_class_type_c_bridge() -> TestResult {
+    if CLASS_TYPE_C_BRIDGE != 0x12 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_class_diagnostic() {
-    assert_eq!(CLASS_DIAGNOSTIC, 0xDC);
+pub fn test_class_diagnostic() -> TestResult {
+    if CLASS_DIAGNOSTIC != 0xDC { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_class_wireless() {
-    assert_eq!(CLASS_WIRELESS, 0xE0);
+pub fn test_class_wireless() -> TestResult {
+    if CLASS_WIRELESS != 0xE0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_class_misc() {
-    assert_eq!(CLASS_MISC, 0xEF);
+pub fn test_class_misc() -> TestResult {
+    if CLASS_MISC != 0xEF { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_class_application() {
-    assert_eq!(CLASS_APPLICATION, 0xFE);
+pub fn test_class_application() -> TestResult {
+    if CLASS_APPLICATION != 0xFE { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_class_vendor() {
-    assert_eq!(CLASS_VENDOR, 0xFF);
+pub fn test_class_vendor() -> TestResult {
+    if CLASS_VENDOR != 0xFF { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_feature_endpoint_halt() {
-    assert_eq!(FEATURE_ENDPOINT_HALT, 0);
+pub fn test_feature_endpoint_halt() -> TestResult {
+    if FEATURE_ENDPOINT_HALT != 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_feature_device_remote_wakeup() {
-    assert_eq!(FEATURE_DEVICE_REMOTE_WAKEUP, 1);
+pub fn test_feature_device_remote_wakeup() -> TestResult {
+    if FEATURE_DEVICE_REMOTE_WAKEUP != 1 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_feature_test_mode() {
-    assert_eq!(FEATURE_TEST_MODE, 2);
+pub fn test_feature_test_mode() -> TestResult {
+    if FEATURE_TEST_MODE != 2 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_default_control_timeout() {
-    assert_eq!(DEFAULT_CONTROL_TIMEOUT_US, 5_000_000);
+pub fn test_default_control_timeout() -> TestResult {
+    if DEFAULT_CONTROL_TIMEOUT_US != 5_000_000 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_default_bulk_timeout() {
-    assert_eq!(DEFAULT_BULK_TIMEOUT_US, 5_000_000);
+pub fn test_default_bulk_timeout() -> TestResult {
+    if DEFAULT_BULK_TIMEOUT_US != 5_000_000 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_default_interrupt_timeout() {
-    assert_eq!(DEFAULT_INTERRUPT_TIMEOUT_US, 1_000_000);
+pub fn test_default_interrupt_timeout() -> TestResult {
+    if DEFAULT_INTERRUPT_TIMEOUT_US != 1_000_000 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_usb2_max_control_packet() {
-    assert_eq!(USB2_MAX_CONTROL_PACKET, 64);
+pub fn test_usb2_max_control_packet() -> TestResult {
+    if USB2_MAX_CONTROL_PACKET != 64 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_usb3_max_control_packet() {
-    assert_eq!(USB3_MAX_CONTROL_PACKET, 512);
+pub fn test_usb3_max_control_packet() -> TestResult {
+    if USB3_MAX_CONTROL_PACKET != 512 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_default_lang_id() {
-    assert_eq!(DEFAULT_LANG_ID, 0x0409);
+pub fn test_default_lang_id() -> TestResult {
+    if DEFAULT_LANG_ID != 0x0409 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_timeout_ordering() {
-    assert!(DEFAULT_INTERRUPT_TIMEOUT_US < DEFAULT_CONTROL_TIMEOUT_US);
-    assert_eq!(DEFAULT_CONTROL_TIMEOUT_US, DEFAULT_BULK_TIMEOUT_US);
+pub fn test_timeout_ordering() -> TestResult {
+    if !(DEFAULT_INTERRUPT_TIMEOUT_US < DEFAULT_CONTROL_TIMEOUT_US) { return TestResult::Fail; }
+    if DEFAULT_CONTROL_TIMEOUT_US != DEFAULT_BULK_TIMEOUT_US { return TestResult::Fail; }
+    TestResult::Pass
 }
