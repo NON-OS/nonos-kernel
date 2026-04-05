@@ -2,28 +2,28 @@ use crate::npkg::*;
 use crate::npkg::types::{PackageVersion, Architecture, PackageKind, DependencyKind, VersionRequirement};
 use crate::test::framework::TestResult;
 
-pub fn test_manifest_builder_new() -> TestResult {
+pub(crate) fn test_manifest_builder_new() -> TestResult {
     let builder = ManifestBuilder::new();
     let result = builder.name("test").version(PackageVersion::new(1, 0, 0)).build();
     if result.is_err() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_manifest_builder_missing_name() -> TestResult {
+pub(crate) fn test_manifest_builder_missing_name() -> TestResult {
     let builder = ManifestBuilder::new();
     let result = builder.version(PackageVersion::new(1, 0, 0)).build();
     if result.is_ok() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_manifest_builder_missing_version() -> TestResult {
+pub(crate) fn test_manifest_builder_missing_version() -> TestResult {
     let builder = ManifestBuilder::new();
     let result = builder.name("test").build();
     if result.is_ok() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_manifest_builder_full() -> TestResult {
+pub(crate) fn test_manifest_builder_full() -> TestResult {
     let manifest = ManifestBuilder::new()
         .name("testpkg")
         .version(PackageVersion::new(1, 2, 3))
@@ -43,7 +43,7 @@ pub fn test_manifest_builder_full() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_manifest_builder_default_license() -> TestResult {
+pub(crate) fn test_manifest_builder_default_license() -> TestResult {
     let manifest = ManifestBuilder::new()
         .name("test")
         .version(PackageVersion::new(1, 0, 0))
@@ -54,7 +54,7 @@ pub fn test_manifest_builder_default_license() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_manifest_builder_with_dependency() -> TestResult {
+pub(crate) fn test_manifest_builder_with_dependency() -> TestResult {
     use crate::npkg::types::Dependency;
 
     let dep = Dependency::runtime("libfoo", VersionRequirement::Any);
@@ -70,7 +70,7 @@ pub fn test_manifest_builder_with_dependency() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_manifest_builder_with_install_script() -> TestResult {
+pub(crate) fn test_manifest_builder_with_install_script() -> TestResult {
     let manifest = ManifestBuilder::new()
         .name("test")
         .version(PackageVersion::new(1, 0, 0))
@@ -82,7 +82,7 @@ pub fn test_manifest_builder_with_install_script() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_manifest_builder_with_remove_script() -> TestResult {
+pub(crate) fn test_manifest_builder_with_remove_script() -> TestResult {
     let manifest = ManifestBuilder::new()
         .name("test")
         .version(PackageVersion::new(1, 0, 0))
@@ -94,14 +94,14 @@ pub fn test_manifest_builder_with_remove_script() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_manifest_builder_default() -> TestResult {
+pub(crate) fn test_manifest_builder_default() -> TestResult {
     let builder: ManifestBuilder = Default::default();
     let result = builder.name("test").version(PackageVersion::new(1, 0, 0)).build();
     if result.is_err() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_parse_manifest_simple() -> TestResult {
+pub(crate) fn test_parse_manifest_simple() -> TestResult {
     let data = b"name = \"testpkg\"\nversion = \"1.0.0\"\ndescription = \"Test\"\n";
     let result = parse_manifest(data);
     if result.is_err() { return TestResult::Fail; }
@@ -111,7 +111,7 @@ pub fn test_parse_manifest_simple() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_parse_manifest_with_quotes() -> TestResult {
+pub(crate) fn test_parse_manifest_with_quotes() -> TestResult {
     let data = b"name = \"my-package\"\nversion = \"2.0.0\"\n";
     let result = parse_manifest(data);
     if result.is_err() { return TestResult::Fail; }
@@ -120,35 +120,35 @@ pub fn test_parse_manifest_with_quotes() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_parse_manifest_missing_name() -> TestResult {
+pub(crate) fn test_parse_manifest_missing_name() -> TestResult {
     let data = b"version = \"1.0.0\"\n";
     let result = parse_manifest(data);
     if result.is_ok() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_parse_manifest_missing_version() -> TestResult {
+pub(crate) fn test_parse_manifest_missing_version() -> TestResult {
     let data = b"name = \"test\"\n";
     let result = parse_manifest(data);
     if result.is_ok() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_parse_manifest_with_comments() -> TestResult {
+pub(crate) fn test_parse_manifest_with_comments() -> TestResult {
     let data = b"# This is a comment\nname = \"test\"\n# Another comment\nversion = \"1.0.0\"\n";
     let result = parse_manifest(data);
     if result.is_err() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_parse_manifest_with_empty_lines() -> TestResult {
+pub(crate) fn test_parse_manifest_with_empty_lines() -> TestResult {
     let data = b"\n\nname = \"test\"\n\nversion = \"1.0.0\"\n\n";
     let result = parse_manifest(data);
     if result.is_err() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_parse_manifest_with_architecture() -> TestResult {
+pub(crate) fn test_parse_manifest_with_architecture() -> TestResult {
     let data = b"name = \"test\"\nversion = \"1.0.0\"\narchitecture = \"x86_64\"\n";
     let result = parse_manifest(data);
     if result.is_err() { return TestResult::Fail; }
@@ -157,7 +157,7 @@ pub fn test_parse_manifest_with_architecture() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_parse_manifest_with_arch_shorthand() -> TestResult {
+pub(crate) fn test_parse_manifest_with_arch_shorthand() -> TestResult {
     let data = b"name = \"test\"\nversion = \"1.0.0\"\narch = \"aarch64\"\n";
     let result = parse_manifest(data);
     if result.is_err() { return TestResult::Fail; }
@@ -166,7 +166,7 @@ pub fn test_parse_manifest_with_arch_shorthand() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_parse_manifest_with_kind() -> TestResult {
+pub(crate) fn test_parse_manifest_with_kind() -> TestResult {
     let data = b"name = \"test\"\nversion = \"1.0.0\"\nkind = \"library\"\n";
     let result = parse_manifest(data);
     if result.is_err() { return TestResult::Fail; }
@@ -175,7 +175,7 @@ pub fn test_parse_manifest_with_kind() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_parse_manifest_with_type_shorthand() -> TestResult {
+pub(crate) fn test_parse_manifest_with_type_shorthand() -> TestResult {
     let data = b"name = \"test\"\nversion = \"1.0.0\"\ntype = \"driver\"\n";
     let result = parse_manifest(data);
     if result.is_err() { return TestResult::Fail; }
@@ -184,7 +184,7 @@ pub fn test_parse_manifest_with_type_shorthand() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_parse_manifest_with_dependencies() -> TestResult {
+pub(crate) fn test_parse_manifest_with_dependencies() -> TestResult {
     let data = b"name = \"test\"\nversion = \"1.0.0\"\n\n[dependencies]\nlibfoo\nlibbar>=1.0.0\n";
     let result = parse_manifest(data);
     if result.is_err() { return TestResult::Fail; }
@@ -193,7 +193,7 @@ pub fn test_parse_manifest_with_dependencies() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_parse_manifest_with_optional_dependency() -> TestResult {
+pub(crate) fn test_parse_manifest_with_optional_dependency() -> TestResult {
     let data = b"name = \"test\"\nversion = \"1.0.0\"\n\n[dependencies]\noptional: extra-feature: enables feature X\n";
     let result = parse_manifest(data);
     if result.is_err() { return TestResult::Fail; }
@@ -203,7 +203,7 @@ pub fn test_parse_manifest_with_optional_dependency() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_parse_manifest_with_conflict() -> TestResult {
+pub(crate) fn test_parse_manifest_with_conflict() -> TestResult {
     let data = b"name = \"test\"\nversion = \"1.0.0\"\n\n[dependencies]\nconflict: other-pkg\n";
     let result = parse_manifest(data);
     if result.is_err() { return TestResult::Fail; }
@@ -212,7 +212,7 @@ pub fn test_parse_manifest_with_conflict() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_parse_manifest_with_files() -> TestResult {
+pub(crate) fn test_parse_manifest_with_files() -> TestResult {
     let data = b"name = \"test\"\nversion = \"1.0.0\"\n\n[files]\n/usr/bin/test exec\n/etc/test.conf config\n";
     let result = parse_manifest(data);
     if result.is_err() { return TestResult::Fail; }
@@ -221,7 +221,7 @@ pub fn test_parse_manifest_with_files() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_parse_manifest_file_executable() -> TestResult {
+pub(crate) fn test_parse_manifest_file_executable() -> TestResult {
     let data = b"name = \"test\"\nversion = \"1.0.0\"\n\n[files]\n/usr/bin/test exec\n";
     let result = parse_manifest(data);
     if result.is_err() { return TestResult::Fail; }
@@ -230,7 +230,7 @@ pub fn test_parse_manifest_file_executable() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_parse_manifest_file_config() -> TestResult {
+pub(crate) fn test_parse_manifest_file_config() -> TestResult {
     let data = b"name = \"test\"\nversion = \"1.0.0\"\n\n[files]\n/etc/test.conf config\n";
     let result = parse_manifest(data);
     if result.is_err() { return TestResult::Fail; }
@@ -239,7 +239,7 @@ pub fn test_parse_manifest_file_config() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_parse_manifest_file_directory() -> TestResult {
+pub(crate) fn test_parse_manifest_file_directory() -> TestResult {
     let data = b"name = \"test\"\nversion = \"1.0.0\"\n\n[files]\n/opt/test/ dir\n";
     let result = parse_manifest(data);
     if result.is_err() { return TestResult::Fail; }
@@ -248,7 +248,7 @@ pub fn test_parse_manifest_file_directory() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_parse_manifest_with_install_section() -> TestResult {
+pub(crate) fn test_parse_manifest_with_install_section() -> TestResult {
     let data = b"name = \"test\"\nversion = \"1.0.0\"\n\n[install]\nmkdir -p /opt/test\ntouch /opt/test/.installed\n";
     let result = parse_manifest(data);
     if result.is_err() { return TestResult::Fail; }
@@ -257,7 +257,7 @@ pub fn test_parse_manifest_with_install_section() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_parse_manifest_with_remove_section() -> TestResult {
+pub(crate) fn test_parse_manifest_with_remove_section() -> TestResult {
     let data = b"name = \"test\"\nversion = \"1.0.0\"\n\n[remove]\nrm -rf /opt/test\n";
     let result = parse_manifest(data);
     if result.is_err() { return TestResult::Fail; }
@@ -266,14 +266,14 @@ pub fn test_parse_manifest_with_remove_section() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_parse_manifest_invalid_utf8() -> TestResult {
+pub(crate) fn test_parse_manifest_invalid_utf8() -> TestResult {
     let data = &[0xff, 0xfe, 0x00];
     let result = parse_manifest(data);
     if result.is_ok() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_serialize_manifest_simple() -> TestResult {
+pub(crate) fn test_serialize_manifest_simple() -> TestResult {
     let manifest = ManifestBuilder::new()
         .name("test")
         .version(PackageVersion::new(1, 0, 0))
@@ -288,7 +288,7 @@ pub fn test_serialize_manifest_simple() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_serialize_then_parse() -> TestResult {
+pub(crate) fn test_serialize_then_parse() -> TestResult {
     let original = ManifestBuilder::new()
         .name("roundtrip")
         .version(PackageVersion::new(2, 3, 4))
@@ -306,14 +306,14 @@ pub fn test_serialize_then_parse() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_manifest_raw_bytes() -> TestResult {
+pub(crate) fn test_manifest_raw_bytes() -> TestResult {
     let data = b"name = \"test\"\nversion = \"1.0.0\"\n";
     let manifest = parse_manifest(data).unwrap();
     if manifest.raw_bytes() != data { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_manifest_new() -> TestResult {
+pub(crate) fn test_manifest_new() -> TestResult {
     use crate::npkg::types::{Package, PackageMeta};
     use alloc::vec::Vec;
 

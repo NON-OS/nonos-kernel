@@ -5,22 +5,22 @@ use crate::npkg::signature::{
 };
 use crate::test::framework::TestResult;
 
-pub fn test_signature_size_constant() -> TestResult {
+pub(crate) fn test_signature_size_constant() -> TestResult {
     if SIGNATURE_SIZE != 64 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_public_key_size_constant() -> TestResult {
+pub(crate) fn test_public_key_size_constant() -> TestResult {
     if PUBLIC_KEY_SIZE != 32 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_secret_key_size_constant() -> TestResult {
+pub(crate) fn test_secret_key_size_constant() -> TestResult {
     if SECRET_KEY_SIZE != 64 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_package_signature_from_bytes_valid() -> TestResult {
+pub(crate) fn test_package_signature_from_bytes_valid() -> TestResult {
     let mut data = [0u8; SIGNATURE_SIZE + 8 + 8];
     for i in 0..SIGNATURE_SIZE {
         data[i] = i as u8;
@@ -37,21 +37,21 @@ pub fn test_package_signature_from_bytes_valid() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_package_signature_from_bytes_too_short() -> TestResult {
+pub(crate) fn test_package_signature_from_bytes_too_short() -> TestResult {
     let data = [0u8; 10];
     let sig = PackageSignature::from_bytes(&data);
     if sig.is_some() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_package_signature_from_bytes_exact_minimum() -> TestResult {
+pub(crate) fn test_package_signature_from_bytes_exact_minimum() -> TestResult {
     let data = [0u8; SIGNATURE_SIZE + 8 + 8];
     let sig = PackageSignature::from_bytes(&data);
     if sig.is_none() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_package_signature_to_bytes() -> TestResult {
+pub(crate) fn test_package_signature_to_bytes() -> TestResult {
     let sig = PackageSignature {
         bytes: [42u8; SIGNATURE_SIZE],
         key_id: [1, 2, 3, 4, 5, 6, 7, 8],
@@ -64,7 +64,7 @@ pub fn test_package_signature_to_bytes() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_package_signature_roundtrip() -> TestResult {
+pub(crate) fn test_package_signature_roundtrip() -> TestResult {
     let original = PackageSignature {
         bytes: [0xAB; SIGNATURE_SIZE],
         key_id: [0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88],
@@ -78,7 +78,7 @@ pub fn test_package_signature_roundtrip() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_package_signature_clone() -> TestResult {
+pub(crate) fn test_package_signature_clone() -> TestResult {
     let sig = PackageSignature {
         bytes: [1u8; SIGNATURE_SIZE],
         key_id: [2u8; 8],
@@ -91,7 +91,7 @@ pub fn test_package_signature_clone() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_package_signature_debug_format() -> TestResult {
+pub(crate) fn test_package_signature_debug_format() -> TestResult {
     let sig = PackageSignature {
         bytes: [0u8; SIGNATURE_SIZE],
         key_id: [0u8; 8],
@@ -102,7 +102,7 @@ pub fn test_package_signature_debug_format() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_verifying_key_from_bytes_valid() -> TestResult {
+pub(crate) fn test_verifying_key_from_bytes_valid() -> TestResult {
     let data = [0x55u8; PUBLIC_KEY_SIZE];
     let key = VerifyingKey::from_bytes(&data);
     if key.is_none() { return TestResult::Fail; }
@@ -111,21 +111,21 @@ pub fn test_verifying_key_from_bytes_valid() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_verifying_key_from_bytes_too_short() -> TestResult {
+pub(crate) fn test_verifying_key_from_bytes_too_short() -> TestResult {
     let data = [0u8; 16];
     let key = VerifyingKey::from_bytes(&data);
     if key.is_some() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_verifying_key_from_bytes_too_long() -> TestResult {
+pub(crate) fn test_verifying_key_from_bytes_too_long() -> TestResult {
     let data = [0u8; 64];
     let key = VerifyingKey::from_bytes(&data);
     if key.is_some() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_verifying_key_key_id() -> TestResult {
+pub(crate) fn test_verifying_key_key_id() -> TestResult {
     let data = [0xAAu8; PUBLIC_KEY_SIZE];
     let key = VerifyingKey::from_bytes(&data).unwrap();
     let id = key.key_id();
@@ -133,7 +133,7 @@ pub fn test_verifying_key_key_id() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_verifying_key_clone() -> TestResult {
+pub(crate) fn test_verifying_key_clone() -> TestResult {
     let data = [0x33u8; PUBLIC_KEY_SIZE];
     let key = VerifyingKey::from_bytes(&data).unwrap();
     let cloned = key.clone();
@@ -141,7 +141,7 @@ pub fn test_verifying_key_clone() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_verifying_key_debug_format() -> TestResult {
+pub(crate) fn test_verifying_key_debug_format() -> TestResult {
     let data = [0u8; PUBLIC_KEY_SIZE];
     let key = VerifyingKey::from_bytes(&data).unwrap();
     let debug_str = alloc::format!("{:?}", key);
@@ -149,7 +149,7 @@ pub fn test_verifying_key_debug_format() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_generate_signing_keypair() -> TestResult {
+pub(crate) fn test_generate_signing_keypair() -> TestResult {
     let (signing, verifying) = generate_signing_keypair();
     if verifying.bytes.len() != PUBLIC_KEY_SIZE { return TestResult::Fail; }
     let id1 = signing.key_id();
@@ -158,14 +158,14 @@ pub fn test_generate_signing_keypair() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_signing_key_public_key() -> TestResult {
+pub(crate) fn test_signing_key_public_key() -> TestResult {
     let (signing, verifying) = generate_signing_keypair();
     let pub_from_signing = signing.public_key();
     if pub_from_signing.bytes != verifying.bytes { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_sign_package() -> TestResult {
+pub(crate) fn test_sign_package() -> TestResult {
     let (signing, _verifying) = generate_signing_keypair();
     let data = b"test package data";
     let sig = sign_package(data, &signing);
@@ -175,7 +175,7 @@ pub fn test_sign_package() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_compute_checksum() -> TestResult {
+pub(crate) fn test_compute_checksum() -> TestResult {
     use crate::npkg::signature::compute_checksum;
     let data = b"hello world";
     let checksum = compute_checksum(data);
@@ -183,7 +183,7 @@ pub fn test_compute_checksum() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_compute_checksum_deterministic() -> TestResult {
+pub(crate) fn test_compute_checksum_deterministic() -> TestResult {
     use crate::npkg::signature::compute_checksum;
     let data = b"same data";
     let checksum1 = compute_checksum(data);
@@ -192,7 +192,7 @@ pub fn test_compute_checksum_deterministic() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_compute_checksum_different_data() -> TestResult {
+pub(crate) fn test_compute_checksum_different_data() -> TestResult {
     use crate::npkg::signature::compute_checksum;
     let checksum1 = compute_checksum(b"data1");
     let checksum2 = compute_checksum(b"data2");
@@ -200,7 +200,7 @@ pub fn test_compute_checksum_different_data() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_verify_checksum_valid() -> TestResult {
+pub(crate) fn test_verify_checksum_valid() -> TestResult {
     use crate::npkg::download::verify_checksum;
     use crate::npkg::signature::compute_checksum;
     let data = b"test data for checksum";
@@ -209,7 +209,7 @@ pub fn test_verify_checksum_valid() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_verify_checksum_invalid() -> TestResult {
+pub(crate) fn test_verify_checksum_invalid() -> TestResult {
     use crate::npkg::download::verify_checksum;
     let data = b"test data";
     let wrong_checksum = [0u8; 32];
@@ -217,7 +217,7 @@ pub fn test_verify_checksum_invalid() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_verify_checksum_empty_data() -> TestResult {
+pub(crate) fn test_verify_checksum_empty_data() -> TestResult {
     use crate::npkg::download::verify_checksum;
     use crate::npkg::signature::compute_checksum;
     let data = b"";
@@ -226,13 +226,13 @@ pub fn test_verify_checksum_empty_data() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_list_trusted_keys() -> TestResult {
+pub(crate) fn test_list_trusted_keys() -> TestResult {
     let keys = list_trusted_keys();
     let _ = keys.len();
     TestResult::Pass
 }
 
-pub fn test_add_trusted_key() -> TestResult {
+pub(crate) fn test_add_trusted_key() -> TestResult {
     let (_, verifying) = generate_signing_keypair();
     add_trusted_key(verifying.clone());
     let key_id = verifying.key_id();
@@ -241,7 +241,7 @@ pub fn test_add_trusted_key() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_add_trusted_key_duplicate() -> TestResult {
+pub(crate) fn test_add_trusted_key_duplicate() -> TestResult {
     let (_, verifying) = generate_signing_keypair();
     let initial_count = list_trusted_keys().len();
     add_trusted_key(verifying.clone());
@@ -251,7 +251,7 @@ pub fn test_add_trusted_key_duplicate() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_remove_trusted_key() -> TestResult {
+pub(crate) fn test_remove_trusted_key() -> TestResult {
     let (_, verifying) = generate_signing_keypair();
     add_trusted_key(verifying.clone());
     let key_id = verifying.key_id();
@@ -261,7 +261,7 @@ pub fn test_remove_trusted_key() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_get_trusted_key_not_found() -> TestResult {
+pub(crate) fn test_get_trusted_key_not_found() -> TestResult {
     let fake_id = [0xFF; 8];
     let found = get_trusted_key(&fake_id);
     if found.is_some() { return TestResult::Fail; }

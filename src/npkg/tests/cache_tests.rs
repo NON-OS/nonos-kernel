@@ -2,13 +2,13 @@ use crate::npkg::*;
 use crate::npkg::cache::{CachePolicy, CacheStats};
 use crate::test::framework::TestResult;
 
-pub fn test_cache_policy_default() -> TestResult {
+pub(crate) fn test_cache_policy_default() -> TestResult {
     let policy: CachePolicy = Default::default();
     if policy != CachePolicy::KeepLatest { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_cache_policy_variants() -> TestResult {
+pub(crate) fn test_cache_policy_variants() -> TestResult {
     let policies = [
         CachePolicy::KeepAll,
         CachePolicy::KeepLatest,
@@ -19,7 +19,7 @@ pub fn test_cache_policy_variants() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_cache_policy_equality() -> TestResult {
+pub(crate) fn test_cache_policy_equality() -> TestResult {
     if CachePolicy::KeepAll != CachePolicy::KeepAll { return TestResult::Fail; }
     if CachePolicy::KeepLatest != CachePolicy::KeepLatest { return TestResult::Fail; }
     if CachePolicy::KeepInstalled != CachePolicy::KeepInstalled { return TestResult::Fail; }
@@ -27,27 +27,27 @@ pub fn test_cache_policy_equality() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_cache_policy_inequality() -> TestResult {
+pub(crate) fn test_cache_policy_inequality() -> TestResult {
     if CachePolicy::KeepAll == CachePolicy::KeepNone { return TestResult::Fail; }
     if CachePolicy::KeepLatest == CachePolicy::KeepInstalled { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_cache_policy_copy() -> TestResult {
+pub(crate) fn test_cache_policy_copy() -> TestResult {
     let policy = CachePolicy::KeepAll;
     let copied = policy;
     if policy != copied { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_cache_policy_clone() -> TestResult {
+pub(crate) fn test_cache_policy_clone() -> TestResult {
     let policy = CachePolicy::KeepLatest;
     let cloned = policy.clone();
     if policy != cloned { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_cache_stats_structure() -> TestResult {
+pub(crate) fn test_cache_stats_structure() -> TestResult {
     let stats = CacheStats {
         total_size: 1024 * 1024,
         package_count: 10,
@@ -59,7 +59,7 @@ pub fn test_cache_stats_structure() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_cache_stats_clone() -> TestResult {
+pub(crate) fn test_cache_stats_clone() -> TestResult {
     let stats = CacheStats {
         total_size: 2048,
         package_count: 5,
@@ -72,7 +72,7 @@ pub fn test_cache_stats_clone() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_cache_stats_debug_format() -> TestResult {
+pub(crate) fn test_cache_stats_debug_format() -> TestResult {
     let stats = CacheStats {
         total_size: 100,
         package_count: 1,
@@ -84,7 +84,7 @@ pub fn test_cache_stats_debug_format() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_get_cache_dir() -> TestResult {
+pub(crate) fn test_get_cache_dir() -> TestResult {
     let dir = get_cache_dir();
     if dir.is_empty() { return TestResult::Fail; }
     if !dir.starts_with('/') { return TestResult::Fail; }
@@ -92,14 +92,14 @@ pub fn test_get_cache_dir() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_cache_policy_debug_format() -> TestResult {
+pub(crate) fn test_cache_policy_debug_format() -> TestResult {
     let policy = CachePolicy::KeepAll;
     let debug_str = alloc::format!("{:?}", policy);
     if !debug_str.contains("KeepAll") { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_cache_stats_empty() -> TestResult {
+pub(crate) fn test_cache_stats_empty() -> TestResult {
     let stats = CacheStats {
         total_size: 0,
         package_count: 0,
@@ -111,7 +111,7 @@ pub fn test_cache_stats_empty() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_cache_stats_large_values() -> TestResult {
+pub(crate) fn test_cache_stats_large_values() -> TestResult {
     let stats = CacheStats {
         total_size: u64::MAX,
         package_count: u32::MAX,
@@ -123,14 +123,14 @@ pub fn test_cache_stats_large_values() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_cache_policy_consistency() -> TestResult {
+pub(crate) fn test_cache_policy_consistency() -> TestResult {
     let policy1 = CachePolicy::KeepAll;
     let policy2 = CachePolicy::KeepAll;
     if policy1 != policy2 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_cache_dir_format() -> TestResult {
+pub(crate) fn test_cache_dir_format() -> TestResult {
     let dir = get_cache_dir();
     if dir.contains("..") { return TestResult::Fail; }
     if dir.contains("//") { return TestResult::Fail; }

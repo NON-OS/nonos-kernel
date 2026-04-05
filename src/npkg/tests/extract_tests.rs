@@ -7,12 +7,12 @@ use crate::npkg::extract::types::{
 use crate::test::framework::TestResult;
 use alloc::string::String;
 
-pub fn test_npkg_magic_constant() -> TestResult {
+pub(crate) fn test_npkg_magic_constant() -> TestResult {
     if NPKG_MAGIC != 0x4E504B47 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_npkg_magic_is_npkg_ascii() -> TestResult {
+pub(crate) fn test_npkg_magic_is_npkg_ascii() -> TestResult {
     let bytes = NPKG_MAGIC.to_le_bytes();
     if bytes[0] != b'G' { return TestResult::Fail; }
     if bytes[1] != b'K' { return TestResult::Fail; }
@@ -21,34 +21,34 @@ pub fn test_npkg_magic_is_npkg_ascii() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_npkg_version_constant() -> TestResult {
+pub(crate) fn test_npkg_version_constant() -> TestResult {
     if NPKG_VERSION != 1 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_entry_file_constant() -> TestResult {
+pub(crate) fn test_entry_file_constant() -> TestResult {
     if ENTRY_FILE != 0 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_entry_dir_constant() -> TestResult {
+pub(crate) fn test_entry_dir_constant() -> TestResult {
     if ENTRY_DIR != 1 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_entry_symlink_constant() -> TestResult {
+pub(crate) fn test_entry_symlink_constant() -> TestResult {
     if ENTRY_SYMLINK != 2 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_entry_types_unique() -> TestResult {
+pub(crate) fn test_entry_types_unique() -> TestResult {
     if ENTRY_FILE == ENTRY_DIR { return TestResult::Fail; }
     if ENTRY_FILE == ENTRY_SYMLINK { return TestResult::Fail; }
     if ENTRY_DIR == ENTRY_SYMLINK { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_archive_entry_file() -> TestResult {
+pub(crate) fn test_archive_entry_file() -> TestResult {
     let entry = ArchiveEntry {
         path: String::from("/usr/bin/app"),
         entry_type: ENTRY_FILE,
@@ -63,7 +63,7 @@ pub fn test_archive_entry_file() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_archive_entry_dir() -> TestResult {
+pub(crate) fn test_archive_entry_dir() -> TestResult {
     let entry = ArchiveEntry {
         path: String::from("/usr/share/app"),
         entry_type: ENTRY_DIR,
@@ -78,7 +78,7 @@ pub fn test_archive_entry_dir() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_archive_entry_symlink() -> TestResult {
+pub(crate) fn test_archive_entry_symlink() -> TestResult {
     let entry = ArchiveEntry {
         path: String::from("/usr/bin/link"),
         entry_type: ENTRY_SYMLINK,
@@ -94,7 +94,7 @@ pub fn test_archive_entry_symlink() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_archive_entry_path() -> TestResult {
+pub(crate) fn test_archive_entry_path() -> TestResult {
     let entry = ArchiveEntry {
         path: String::from("/etc/config.conf"),
         entry_type: ENTRY_FILE,
@@ -108,7 +108,7 @@ pub fn test_archive_entry_path() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_archive_entry_size() -> TestResult {
+pub(crate) fn test_archive_entry_size() -> TestResult {
     let entry = ArchiveEntry {
         path: String::from("test"),
         entry_type: ENTRY_FILE,
@@ -122,7 +122,7 @@ pub fn test_archive_entry_size() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_archive_entry_large_size() -> TestResult {
+pub(crate) fn test_archive_entry_large_size() -> TestResult {
     let entry = ArchiveEntry {
         path: String::from("large"),
         entry_type: ENTRY_FILE,
@@ -136,7 +136,7 @@ pub fn test_archive_entry_large_size() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_archive_entry_mode_executable() -> TestResult {
+pub(crate) fn test_archive_entry_mode_executable() -> TestResult {
     let entry = ArchiveEntry {
         path: String::from("bin"),
         entry_type: ENTRY_FILE,
@@ -151,7 +151,7 @@ pub fn test_archive_entry_mode_executable() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_archive_entry_mode_readonly() -> TestResult {
+pub(crate) fn test_archive_entry_mode_readonly() -> TestResult {
     let entry = ArchiveEntry {
         path: String::from("data"),
         entry_type: ENTRY_FILE,
@@ -166,7 +166,7 @@ pub fn test_archive_entry_mode_readonly() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_archive_entry_checksum() -> TestResult {
+pub(crate) fn test_archive_entry_checksum() -> TestResult {
     let checksum = [0xABu8; 32];
     let entry = ArchiveEntry {
         path: String::from("file"),
@@ -181,7 +181,7 @@ pub fn test_archive_entry_checksum() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_archive_entry_checksum_unique() -> TestResult {
+pub(crate) fn test_archive_entry_checksum_unique() -> TestResult {
     let mut checksum = [0u8; 32];
     for i in 0..32 {
         checksum[i] = i as u8;
@@ -200,7 +200,7 @@ pub fn test_archive_entry_checksum_unique() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_archive_entry_data_offset() -> TestResult {
+pub(crate) fn test_archive_entry_data_offset() -> TestResult {
     let entry = ArchiveEntry {
         path: String::from("file"),
         entry_type: ENTRY_FILE,
@@ -214,7 +214,7 @@ pub fn test_archive_entry_data_offset() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_archive_entry_data_offset_large() -> TestResult {
+pub(crate) fn test_archive_entry_data_offset_large() -> TestResult {
     let entry = ArchiveEntry {
         path: String::from("file"),
         entry_type: ENTRY_FILE,
@@ -228,7 +228,7 @@ pub fn test_archive_entry_data_offset_large() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_archive_entry_clone() -> TestResult {
+pub(crate) fn test_archive_entry_clone() -> TestResult {
     let entry = ArchiveEntry {
         path: String::from("/usr/bin/test"),
         entry_type: ENTRY_FILE,
@@ -248,7 +248,7 @@ pub fn test_archive_entry_clone() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_archive_entry_clone_with_symlink() -> TestResult {
+pub(crate) fn test_archive_entry_clone_with_symlink() -> TestResult {
     let entry = ArchiveEntry {
         path: String::from("/usr/bin/link"),
         entry_type: ENTRY_SYMLINK,
@@ -263,7 +263,7 @@ pub fn test_archive_entry_clone_with_symlink() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_archive_entry_debug() -> TestResult {
+pub(crate) fn test_archive_entry_debug() -> TestResult {
     let entry = ArchiveEntry {
         path: String::from("test"),
         entry_type: ENTRY_FILE,
@@ -279,7 +279,7 @@ pub fn test_archive_entry_debug() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_archive_entry_empty_path() -> TestResult {
+pub(crate) fn test_archive_entry_empty_path() -> TestResult {
     let entry = ArchiveEntry {
         path: String::new(),
         entry_type: ENTRY_FILE,
@@ -293,7 +293,7 @@ pub fn test_archive_entry_empty_path() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_archive_entry_deep_path() -> TestResult {
+pub(crate) fn test_archive_entry_deep_path() -> TestResult {
     let entry = ArchiveEntry {
         path: String::from("/very/deep/nested/directory/structure/file.txt"),
         entry_type: ENTRY_FILE,
@@ -307,7 +307,7 @@ pub fn test_archive_entry_deep_path() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_archive_entry_unicode_path() -> TestResult {
+pub(crate) fn test_archive_entry_unicode_path() -> TestResult {
     let entry = ArchiveEntry {
         path: String::from("/usr/share/文档/readme.txt"),
         entry_type: ENTRY_FILE,
@@ -321,7 +321,7 @@ pub fn test_archive_entry_unicode_path() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_archive_entry_zero_size_file() -> TestResult {
+pub(crate) fn test_archive_entry_zero_size_file() -> TestResult {
     let entry = ArchiveEntry {
         path: String::from("/empty"),
         entry_type: ENTRY_FILE,
@@ -336,7 +336,7 @@ pub fn test_archive_entry_zero_size_file() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_archive_entry_mode_all_permissions() -> TestResult {
+pub(crate) fn test_archive_entry_mode_all_permissions() -> TestResult {
     let entry = ArchiveEntry {
         path: String::from("/test"),
         entry_type: ENTRY_FILE,
@@ -350,7 +350,7 @@ pub fn test_archive_entry_mode_all_permissions() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_archive_entry_mode_no_permissions() -> TestResult {
+pub(crate) fn test_archive_entry_mode_no_permissions() -> TestResult {
     let entry = ArchiveEntry {
         path: String::from("/test"),
         entry_type: ENTRY_FILE,
@@ -364,7 +364,7 @@ pub fn test_archive_entry_mode_no_permissions() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_archive_entry_setuid_mode() -> TestResult {
+pub(crate) fn test_archive_entry_setuid_mode() -> TestResult {
     let entry = ArchiveEntry {
         path: String::from("/usr/bin/sudo"),
         entry_type: ENTRY_FILE,
@@ -378,7 +378,7 @@ pub fn test_archive_entry_setuid_mode() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_archive_entry_setgid_mode() -> TestResult {
+pub(crate) fn test_archive_entry_setgid_mode() -> TestResult {
     let entry = ArchiveEntry {
         path: String::from("/usr/bin/wall"),
         entry_type: ENTRY_FILE,
@@ -392,7 +392,7 @@ pub fn test_archive_entry_setgid_mode() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_archive_entry_sticky_bit() -> TestResult {
+pub(crate) fn test_archive_entry_sticky_bit() -> TestResult {
     let entry = ArchiveEntry {
         path: String::from("/tmp"),
         entry_type: ENTRY_DIR,
@@ -406,7 +406,7 @@ pub fn test_archive_entry_sticky_bit() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_archive_entry_relative_symlink() -> TestResult {
+pub(crate) fn test_archive_entry_relative_symlink() -> TestResult {
     let entry = ArchiveEntry {
         path: String::from("/usr/lib/libfoo.so"),
         entry_type: ENTRY_SYMLINK,
@@ -420,7 +420,7 @@ pub fn test_archive_entry_relative_symlink() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_archive_entry_absolute_symlink() -> TestResult {
+pub(crate) fn test_archive_entry_absolute_symlink() -> TestResult {
     let entry = ArchiveEntry {
         path: String::from("/usr/bin/python"),
         entry_type: ENTRY_SYMLINK,
@@ -434,7 +434,7 @@ pub fn test_archive_entry_absolute_symlink() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_archive_entry_empty_symlink_target() -> TestResult {
+pub(crate) fn test_archive_entry_empty_symlink_target() -> TestResult {
     let entry = ArchiveEntry {
         path: String::from("/link"),
         entry_type: ENTRY_SYMLINK,
@@ -448,7 +448,7 @@ pub fn test_archive_entry_empty_symlink_target() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_entry_type_is_file() -> TestResult {
+pub(crate) fn test_entry_type_is_file() -> TestResult {
     let entry = ArchiveEntry {
         path: String::from("test"),
         entry_type: ENTRY_FILE,
@@ -464,7 +464,7 @@ pub fn test_entry_type_is_file() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_entry_type_is_dir() -> TestResult {
+pub(crate) fn test_entry_type_is_dir() -> TestResult {
     let entry = ArchiveEntry {
         path: String::from("testdir"),
         entry_type: ENTRY_DIR,
@@ -480,7 +480,7 @@ pub fn test_entry_type_is_dir() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_entry_type_is_symlink() -> TestResult {
+pub(crate) fn test_entry_type_is_symlink() -> TestResult {
     let entry = ArchiveEntry {
         path: String::from("testlink"),
         entry_type: ENTRY_SYMLINK,
@@ -496,7 +496,7 @@ pub fn test_entry_type_is_symlink() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_archive_entry_typical_binary() -> TestResult {
+pub(crate) fn test_archive_entry_typical_binary() -> TestResult {
     let entry = ArchiveEntry {
         path: String::from("/usr/bin/myapp"),
         entry_type: ENTRY_FILE,
@@ -512,7 +512,7 @@ pub fn test_archive_entry_typical_binary() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_archive_entry_typical_config() -> TestResult {
+pub(crate) fn test_archive_entry_typical_config() -> TestResult {
     let entry = ArchiveEntry {
         path: String::from("/etc/myapp/config.toml"),
         entry_type: ENTRY_FILE,
@@ -527,7 +527,7 @@ pub fn test_archive_entry_typical_config() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_archive_entry_typical_library() -> TestResult {
+pub(crate) fn test_archive_entry_typical_library() -> TestResult {
     let entry = ArchiveEntry {
         path: String::from("/usr/lib/libmylib.so.1.0.0"),
         entry_type: ENTRY_FILE,
@@ -542,7 +542,7 @@ pub fn test_archive_entry_typical_library() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_archive_entry_library_symlink() -> TestResult {
+pub(crate) fn test_archive_entry_library_symlink() -> TestResult {
     let entry = ArchiveEntry {
         path: String::from("/usr/lib/libmylib.so"),
         entry_type: ENTRY_SYMLINK,
@@ -557,17 +557,17 @@ pub fn test_archive_entry_library_symlink() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_npkg_magic_nonzero() -> TestResult {
+pub(crate) fn test_npkg_magic_nonzero() -> TestResult {
     if NPKG_MAGIC == 0 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_npkg_version_positive() -> TestResult {
+pub(crate) fn test_npkg_version_positive() -> TestResult {
     if NPKG_VERSION <= 0 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_entry_constants_fit_in_u8() -> TestResult {
+pub(crate) fn test_entry_constants_fit_in_u8() -> TestResult {
     if ENTRY_FILE > u8::MAX { return TestResult::Fail; }
     if ENTRY_DIR > u8::MAX { return TestResult::Fail; }
     if ENTRY_SYMLINK > u8::MAX { return TestResult::Fail; }

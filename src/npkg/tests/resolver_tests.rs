@@ -18,7 +18,7 @@ fn make_test_package(name: &str, major: u32, minor: u32, patch: u32) -> Package 
             license: String::from("MIT"),
             maintainer: None,
             architecture: Architecture::X86_64,
-            kind: PackageKind::Application,
+            kind: PackageKind::Binary,
             size_installed: 1024,
             size_download: 512,
             checksum_blake3: [0u8; 32],
@@ -31,7 +31,7 @@ fn make_test_package(name: &str, major: u32, minor: u32, patch: u32) -> Package 
     }
 }
 
-pub fn test_resolution_result_new() -> TestResult {
+pub(crate) fn test_resolution_result_new() -> TestResult {
     let result = ResolutionResult::new();
     if !result.to_install.is_empty() { return TestResult::Fail; }
     if !result.to_upgrade.is_empty() { return TestResult::Fail; }
@@ -41,13 +41,13 @@ pub fn test_resolution_result_new() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_resolution_result_is_empty_true() -> TestResult {
+pub(crate) fn test_resolution_result_is_empty_true() -> TestResult {
     let result = ResolutionResult::new();
     if !result.is_empty() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_resolution_result_is_empty_with_install() -> TestResult {
+pub(crate) fn test_resolution_result_is_empty_with_install() -> TestResult {
     let mut result = ResolutionResult::new();
     let pkg = make_test_package("test", 1, 0, 0);
     result.to_install.push((pkg, InstallReason::Explicit));
@@ -55,7 +55,7 @@ pub fn test_resolution_result_is_empty_with_install() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_resolution_result_is_empty_with_upgrade() -> TestResult {
+pub(crate) fn test_resolution_result_is_empty_with_upgrade() -> TestResult {
     let mut result = ResolutionResult::new();
     let pkg = make_test_package("test", 2, 0, 0);
     let old_version = PackageVersion::new(1, 0, 0);
@@ -64,20 +64,20 @@ pub fn test_resolution_result_is_empty_with_upgrade() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_resolution_result_is_empty_with_remove() -> TestResult {
+pub(crate) fn test_resolution_result_is_empty_with_remove() -> TestResult {
     let mut result = ResolutionResult::new();
     result.to_remove.push(String::from("removed-pkg"));
     if result.is_empty() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_resolution_result_total_packages_empty() -> TestResult {
+pub(crate) fn test_resolution_result_total_packages_empty() -> TestResult {
     let result = ResolutionResult::new();
     if result.total_packages() != 0 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_resolution_result_total_packages_with_install() -> TestResult {
+pub(crate) fn test_resolution_result_total_packages_with_install() -> TestResult {
     let mut result = ResolutionResult::new();
     let pkg = make_test_package("pkg1", 1, 0, 0);
     result.to_install.push((pkg, InstallReason::Explicit));
@@ -85,7 +85,7 @@ pub fn test_resolution_result_total_packages_with_install() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_resolution_result_total_packages_with_upgrade() -> TestResult {
+pub(crate) fn test_resolution_result_total_packages_with_upgrade() -> TestResult {
     let mut result = ResolutionResult::new();
     let pkg = make_test_package("pkg1", 2, 0, 0);
     result.to_upgrade.push((pkg, PackageVersion::new(1, 0, 0)));
@@ -93,7 +93,7 @@ pub fn test_resolution_result_total_packages_with_upgrade() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_resolution_result_total_packages_combined() -> TestResult {
+pub(crate) fn test_resolution_result_total_packages_combined() -> TestResult {
     let mut result = ResolutionResult::new();
     result.to_install.push((make_test_package("pkg1", 1, 0, 0), InstallReason::Explicit));
     result.to_install.push((make_test_package("pkg2", 1, 0, 0), InstallReason::Dependency));
@@ -102,7 +102,7 @@ pub fn test_resolution_result_total_packages_combined() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_resolution_result_total_packages_ignores_remove() -> TestResult {
+pub(crate) fn test_resolution_result_total_packages_ignores_remove() -> TestResult {
     let mut result = ResolutionResult::new();
     result.to_remove.push(String::from("removed1"));
     result.to_remove.push(String::from("removed2"));
@@ -110,7 +110,7 @@ pub fn test_resolution_result_total_packages_ignores_remove() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_resolution_result_clone() -> TestResult {
+pub(crate) fn test_resolution_result_clone() -> TestResult {
     let mut result = ResolutionResult::new();
     result.to_install.push((make_test_package("test", 1, 0, 0), InstallReason::Explicit));
     result.to_remove.push(String::from("old-pkg"));
@@ -120,7 +120,7 @@ pub fn test_resolution_result_clone() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_resolution_result_with_satisfied() -> TestResult {
+pub(crate) fn test_resolution_result_with_satisfied() -> TestResult {
     let mut result = ResolutionResult::new();
     result.satisfied.push(String::from("already-installed"));
     if !result.is_empty() { return TestResult::Fail; }
@@ -128,7 +128,7 @@ pub fn test_resolution_result_with_satisfied() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_resolution_result_with_optional() -> TestResult {
+pub(crate) fn test_resolution_result_with_optional() -> TestResult {
     let mut result = ResolutionResult::new();
     result.optional.push((String::from("optional-pkg"), String::from("for feature X")));
     if !result.is_empty() { return TestResult::Fail; }
@@ -136,7 +136,7 @@ pub fn test_resolution_result_with_optional() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_resolution_result_install_reasons() -> TestResult {
+pub(crate) fn test_resolution_result_install_reasons() -> TestResult {
     let mut result = ResolutionResult::new();
     result.to_install.push((make_test_package("app", 1, 0, 0), InstallReason::Explicit));
     result.to_install.push((make_test_package("lib", 1, 0, 0), InstallReason::Dependency));
@@ -147,7 +147,7 @@ pub fn test_resolution_result_install_reasons() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_resolution_plan_fields() -> TestResult {
+pub(crate) fn test_resolution_plan_fields() -> TestResult {
     let result = ResolutionResult::new();
     let plan = ResolutionPlan {
         result,
@@ -161,7 +161,7 @@ pub fn test_resolution_plan_fields() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_resolution_plan_empty_result() -> TestResult {
+pub(crate) fn test_resolution_plan_empty_result() -> TestResult {
     let result = ResolutionResult::new();
     let plan = ResolutionPlan {
         result,
@@ -174,7 +174,7 @@ pub fn test_resolution_plan_empty_result() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_resolution_plan_with_installs() -> TestResult {
+pub(crate) fn test_resolution_plan_with_installs() -> TestResult {
     let mut result = ResolutionResult::new();
     result.to_install.push((make_test_package("pkg1", 1, 0, 0), InstallReason::Explicit));
     let plan = ResolutionPlan {
@@ -188,7 +188,7 @@ pub fn test_resolution_plan_with_installs() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_resolution_plan_with_removes() -> TestResult {
+pub(crate) fn test_resolution_plan_with_removes() -> TestResult {
     let mut result = ResolutionResult::new();
     result.to_remove.push(String::from("old-pkg"));
     let plan = ResolutionPlan {
@@ -202,7 +202,7 @@ pub fn test_resolution_plan_with_removes() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_resolution_plan_clone() -> TestResult {
+pub(crate) fn test_resolution_plan_clone() -> TestResult {
     let mut result = ResolutionResult::new();
     result.to_install.push((make_test_package("pkg", 1, 0, 0), InstallReason::Explicit));
     let plan = ResolutionPlan {
@@ -218,7 +218,7 @@ pub fn test_resolution_plan_clone() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_resolution_plan_large_sizes() -> TestResult {
+pub(crate) fn test_resolution_plan_large_sizes() -> TestResult {
     let result = ResolutionResult::new();
     let plan = ResolutionPlan {
         result,
@@ -232,7 +232,7 @@ pub fn test_resolution_plan_large_sizes() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_resolution_plan_net_size_increase() -> TestResult {
+pub(crate) fn test_resolution_plan_net_size_increase() -> TestResult {
     let result = ResolutionResult::new();
     let plan = ResolutionPlan {
         result,
@@ -245,7 +245,7 @@ pub fn test_resolution_plan_net_size_increase() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_resolution_plan_net_size_decrease() -> TestResult {
+pub(crate) fn test_resolution_plan_net_size_decrease() -> TestResult {
     let result = ResolutionResult::new();
     let plan = ResolutionPlan {
         result,
@@ -258,46 +258,46 @@ pub fn test_resolution_plan_net_size_decrease() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_install_reason_explicit() -> TestResult {
+pub(crate) fn test_install_reason_explicit() -> TestResult {
     let reason = InstallReason::Explicit;
     if reason != InstallReason::Explicit { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_install_reason_dependency() -> TestResult {
+pub(crate) fn test_install_reason_dependency() -> TestResult {
     let reason = InstallReason::Dependency;
     if reason != InstallReason::Dependency { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_install_reason_optional() -> TestResult {
+pub(crate) fn test_install_reason_optional() -> TestResult {
     let reason = InstallReason::Optional;
     if reason != InstallReason::Optional { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_install_reason_clone() -> TestResult {
+pub(crate) fn test_install_reason_clone() -> TestResult {
     let reason = InstallReason::Explicit;
     let cloned = reason.clone();
     if reason != cloned { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_install_reason_copy() -> TestResult {
+pub(crate) fn test_install_reason_copy() -> TestResult {
     let reason = InstallReason::Dependency;
     let copied = reason;
     if reason != copied { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_install_reason_equality() -> TestResult {
+pub(crate) fn test_install_reason_equality() -> TestResult {
     if InstallReason::Explicit != InstallReason::Explicit { return TestResult::Fail; }
     if InstallReason::Explicit == InstallReason::Dependency { return TestResult::Fail; }
     if InstallReason::Dependency == InstallReason::Optional { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_resolution_result_multiple_satisfied() -> TestResult {
+pub(crate) fn test_resolution_result_multiple_satisfied() -> TestResult {
     let mut result = ResolutionResult::new();
     result.satisfied.push(String::from("pkg1"));
     result.satisfied.push(String::from("pkg2"));
@@ -307,7 +307,7 @@ pub fn test_resolution_result_multiple_satisfied() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_resolution_result_complex_scenario() -> TestResult {
+pub(crate) fn test_resolution_result_complex_scenario() -> TestResult {
     let mut result = ResolutionResult::new();
     result.to_install.push((make_test_package("new-app", 1, 0, 0), InstallReason::Explicit));
     result.to_install.push((make_test_package("new-lib", 2, 3, 4), InstallReason::Dependency));
@@ -323,14 +323,14 @@ pub fn test_resolution_result_complex_scenario() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_resolution_result_debug() -> TestResult {
+pub(crate) fn test_resolution_result_debug() -> TestResult {
     let result = ResolutionResult::new();
     let debug_str = alloc::format!("{:?}", result);
     if !debug_str.contains("ResolutionResult") { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_resolution_plan_debug() -> TestResult {
+pub(crate) fn test_resolution_plan_debug() -> TestResult {
     let result = ResolutionResult::new();
     let plan = ResolutionPlan {
         result,
@@ -343,7 +343,7 @@ pub fn test_resolution_plan_debug() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_resolution_result_upgrade_versions() -> TestResult {
+pub(crate) fn test_resolution_result_upgrade_versions() -> TestResult {
     let mut result = ResolutionResult::new();
     let new_pkg = make_test_package("test", 2, 0, 0);
     let old_version = PackageVersion::new(1, 0, 0);
@@ -353,7 +353,7 @@ pub fn test_resolution_result_upgrade_versions() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_resolution_plan_access_inner_result() -> TestResult {
+pub(crate) fn test_resolution_plan_access_inner_result() -> TestResult {
     let mut result = ResolutionResult::new();
     result.to_install.push((make_test_package("inner", 1, 0, 0), InstallReason::Explicit));
     let plan = ResolutionPlan {
@@ -367,7 +367,7 @@ pub fn test_resolution_plan_access_inner_result() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_resolution_result_empty_strings() -> TestResult {
+pub(crate) fn test_resolution_result_empty_strings() -> TestResult {
     let mut result = ResolutionResult::new();
     result.to_remove.push(String::new());
     result.satisfied.push(String::new());
@@ -376,7 +376,7 @@ pub fn test_resolution_result_empty_strings() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_resolution_plan_zero_download_nonzero_install() -> TestResult {
+pub(crate) fn test_resolution_plan_zero_download_nonzero_install() -> TestResult {
     let result = ResolutionResult::new();
     let plan = ResolutionPlan {
         result,

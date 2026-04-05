@@ -1,7 +1,7 @@
 use crate::npkg::*;
 use crate::test::framework::TestResult;
 
-pub fn test_pre_install_hook_structure() -> TestResult {
+pub(crate) fn test_pre_install_hook_structure() -> TestResult {
     let hook = PreInstallHook {
         package: alloc::string::String::from("test-pkg"),
         version: alloc::string::String::from("1.0.0"),
@@ -13,7 +13,7 @@ pub fn test_pre_install_hook_structure() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_post_install_hook_structure() -> TestResult {
+pub(crate) fn test_post_install_hook_structure() -> TestResult {
     let hook = PostInstallHook {
         package: alloc::string::String::from("test-pkg"),
         version: alloc::string::String::from("1.0.0"),
@@ -28,7 +28,7 @@ pub fn test_post_install_hook_structure() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_pre_remove_hook_structure() -> TestResult {
+pub(crate) fn test_pre_remove_hook_structure() -> TestResult {
     let hook = PreRemoveHook {
         package: alloc::string::String::from("test-pkg"),
         version: alloc::string::String::from("1.0.0"),
@@ -40,7 +40,7 @@ pub fn test_pre_remove_hook_structure() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_post_remove_hook_structure() -> TestResult {
+pub(crate) fn test_post_remove_hook_structure() -> TestResult {
     let hook = PostRemoveHook {
         package: alloc::string::String::from("test-pkg"),
         version: alloc::string::String::from("1.0.0"),
@@ -50,7 +50,7 @@ pub fn test_post_remove_hook_structure() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_hook_clone() -> TestResult {
+pub(crate) fn test_hook_clone() -> TestResult {
     let hook = PreInstallHook {
         package: alloc::string::String::from("pkg"),
         version: alloc::string::String::from("1.0.0"),
@@ -62,7 +62,7 @@ pub fn test_hook_clone() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_post_install_hook_clone() -> TestResult {
+pub(crate) fn test_post_install_hook_clone() -> TestResult {
     let hook = PostInstallHook {
         package: alloc::string::String::from("pkg"),
         version: alloc::string::String::from("2.0.0"),
@@ -74,7 +74,7 @@ pub fn test_post_install_hook_clone() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_pre_remove_hook_clone() -> TestResult {
+pub(crate) fn test_pre_remove_hook_clone() -> TestResult {
     let hook = PreRemoveHook {
         package: alloc::string::String::from("pkg"),
         version: alloc::string::String::from("3.0.0"),
@@ -86,7 +86,7 @@ pub fn test_pre_remove_hook_clone() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_post_remove_hook_clone() -> TestResult {
+pub(crate) fn test_post_remove_hook_clone() -> TestResult {
     let hook = PostRemoveHook {
         package: alloc::string::String::from("pkg"),
         version: alloc::string::String::from("4.0.0"),
@@ -97,52 +97,52 @@ pub fn test_post_remove_hook_clone() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_run_pre_install_empty_script() -> TestResult {
+pub(crate) fn test_run_pre_install_empty_script() -> TestResult {
     let result = run_pre_install("test-pkg", "");
     if result.is_err() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_run_post_install_empty_script() -> TestResult {
+pub(crate) fn test_run_post_install_empty_script() -> TestResult {
     let result = run_post_install("test-pkg", "");
     if result.is_err() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_run_pre_remove_empty_script() -> TestResult {
+pub(crate) fn test_run_pre_remove_empty_script() -> TestResult {
     let result = run_pre_remove("test-pkg", "");
     if result.is_err() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_run_post_remove_empty_script() -> TestResult {
+pub(crate) fn test_run_post_remove_empty_script() -> TestResult {
     let result = run_post_remove("test-pkg", "");
     if result.is_err() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_hook_with_comment() -> TestResult {
+pub(crate) fn test_hook_with_comment() -> TestResult {
     let script = "# This is a comment\n";
     let result = run_pre_install("test", script);
     if result.is_err() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_hook_with_empty_lines() -> TestResult {
+pub(crate) fn test_hook_with_empty_lines() -> TestResult {
     let script = "\n\n\n";
     let result = run_post_install("test", script);
     if result.is_err() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_hook_script_echo() -> TestResult {
+pub(crate) fn test_hook_script_echo() -> TestResult {
     let script = "echo hello world";
     let result = run_pre_install("test", script);
     if result.is_err() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_hook_debug_format() -> TestResult {
+pub(crate) fn test_hook_debug_format() -> TestResult {
     let hook = PreInstallHook {
         package: alloc::string::String::from("debug-test"),
         version: alloc::string::String::from("1.0.0"),
@@ -153,7 +153,7 @@ pub fn test_hook_debug_format() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_post_install_hook_debug_format() -> TestResult {
+pub(crate) fn test_post_install_hook_debug_format() -> TestResult {
     let hook = PostInstallHook {
         package: alloc::string::String::from("pkg"),
         version: alloc::string::String::from("1.0.0"),
@@ -165,7 +165,7 @@ pub fn test_post_install_hook_debug_format() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_pre_remove_hook_debug_format() -> TestResult {
+pub(crate) fn test_pre_remove_hook_debug_format() -> TestResult {
     let hook = PreRemoveHook {
         package: alloc::string::String::from("pkg"),
         version: alloc::string::String::from("1.0.0"),
@@ -177,7 +177,7 @@ pub fn test_pre_remove_hook_debug_format() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_post_remove_hook_debug_format() -> TestResult {
+pub(crate) fn test_post_remove_hook_debug_format() -> TestResult {
     let hook = PostRemoveHook {
         package: alloc::string::String::from("pkg"),
         version: alloc::string::String::from("1.0.0"),

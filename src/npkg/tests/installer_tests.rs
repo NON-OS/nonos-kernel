@@ -2,7 +2,7 @@ use crate::npkg::*;
 use crate::npkg::installer::{InstallOptions, RemoveOptions, UpgradeOptions};
 use crate::test::framework::TestResult;
 
-pub fn test_install_options_default() -> TestResult {
+pub(crate) fn test_install_options_default() -> TestResult {
     let opts = InstallOptions::default();
     if opts.force { return TestResult::Fail; }
     if opts.no_deps { return TestResult::Fail; }
@@ -13,7 +13,7 @@ pub fn test_install_options_default() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_install_options_clone() -> TestResult {
+pub(crate) fn test_install_options_clone() -> TestResult {
     let opts = InstallOptions {
         force: true,
         no_deps: false,
@@ -29,14 +29,14 @@ pub fn test_install_options_clone() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_install_options_debug_format() -> TestResult {
+pub(crate) fn test_install_options_debug_format() -> TestResult {
     let opts = InstallOptions::default();
     let debug_str = alloc::format!("{:?}", opts);
     if !debug_str.contains("InstallOptions") { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_install_options_force() -> TestResult {
+pub(crate) fn test_install_options_force() -> TestResult {
     let opts = InstallOptions {
         force: true,
         ..Default::default()
@@ -46,7 +46,7 @@ pub fn test_install_options_force() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_install_options_no_deps() -> TestResult {
+pub(crate) fn test_install_options_no_deps() -> TestResult {
     let opts = InstallOptions {
         no_deps: true,
         ..Default::default()
@@ -55,7 +55,7 @@ pub fn test_install_options_no_deps() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_install_options_no_scripts() -> TestResult {
+pub(crate) fn test_install_options_no_scripts() -> TestResult {
     let opts = InstallOptions {
         no_scripts: true,
         ..Default::default()
@@ -64,7 +64,7 @@ pub fn test_install_options_no_scripts() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_install_options_download_only() -> TestResult {
+pub(crate) fn test_install_options_download_only() -> TestResult {
     let opts = InstallOptions {
         download_only: true,
         ..Default::default()
@@ -73,7 +73,7 @@ pub fn test_install_options_download_only() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_install_options_as_dependency() -> TestResult {
+pub(crate) fn test_install_options_as_dependency() -> TestResult {
     let opts = InstallOptions {
         as_dependency: true,
         ..Default::default()
@@ -82,7 +82,7 @@ pub fn test_install_options_as_dependency() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_install_options_reinstall() -> TestResult {
+pub(crate) fn test_install_options_reinstall() -> TestResult {
     let opts = InstallOptions {
         reinstall: true,
         ..Default::default()
@@ -91,7 +91,7 @@ pub fn test_install_options_reinstall() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_remove_options_default() -> TestResult {
+pub(crate) fn test_remove_options_default() -> TestResult {
     let opts = RemoveOptions::default();
     if opts.recursive { return TestResult::Fail; }
     if opts.no_scripts { return TestResult::Fail; }
@@ -100,7 +100,7 @@ pub fn test_remove_options_default() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_remove_options_clone() -> TestResult {
+pub(crate) fn test_remove_options_clone() -> TestResult {
     let opts = RemoveOptions {
         recursive: true,
         no_scripts: false,
@@ -113,14 +113,14 @@ pub fn test_remove_options_clone() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_remove_options_debug_format() -> TestResult {
+pub(crate) fn test_remove_options_debug_format() -> TestResult {
     let opts = RemoveOptions::default();
     let debug_str = alloc::format!("{:?}", opts);
     if !debug_str.contains("RemoveOptions") { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_remove_options_recursive() -> TestResult {
+pub(crate) fn test_remove_options_recursive() -> TestResult {
     let opts = RemoveOptions {
         recursive: true,
         ..Default::default()
@@ -129,7 +129,7 @@ pub fn test_remove_options_recursive() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_remove_options_no_scripts() -> TestResult {
+pub(crate) fn test_remove_options_no_scripts() -> TestResult {
     let opts = RemoveOptions {
         no_scripts: true,
         ..Default::default()
@@ -138,7 +138,7 @@ pub fn test_remove_options_no_scripts() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_remove_options_keep_config() -> TestResult {
+pub(crate) fn test_remove_options_keep_config() -> TestResult {
     let opts = RemoveOptions::default();
     if !opts.keep_config { return TestResult::Fail; }
 
@@ -150,7 +150,7 @@ pub fn test_remove_options_keep_config() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_remove_options_purge() -> TestResult {
+pub(crate) fn test_remove_options_purge() -> TestResult {
     let opts = RemoveOptions {
         purge: true,
         ..Default::default()
@@ -159,7 +159,7 @@ pub fn test_remove_options_purge() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_upgrade_options_default() -> TestResult {
+pub(crate) fn test_upgrade_options_default() -> TestResult {
     let opts = UpgradeOptions::default();
     if opts.no_deps { return TestResult::Fail; }
     if opts.no_scripts { return TestResult::Fail; }
@@ -167,7 +167,7 @@ pub fn test_upgrade_options_default() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_upgrade_options_clone() -> TestResult {
+pub(crate) fn test_upgrade_options_clone() -> TestResult {
     let opts = UpgradeOptions {
         no_deps: true,
         no_scripts: true,
@@ -180,14 +180,14 @@ pub fn test_upgrade_options_clone() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_upgrade_options_debug_format() -> TestResult {
+pub(crate) fn test_upgrade_options_debug_format() -> TestResult {
     let opts = UpgradeOptions::default();
     let debug_str = alloc::format!("{:?}", opts);
     if !debug_str.contains("UpgradeOptions") { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_upgrade_options_no_deps() -> TestResult {
+pub(crate) fn test_upgrade_options_no_deps() -> TestResult {
     let opts = UpgradeOptions {
         no_deps: true,
         ..Default::default()
@@ -196,7 +196,7 @@ pub fn test_upgrade_options_no_deps() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_upgrade_options_no_scripts() -> TestResult {
+pub(crate) fn test_upgrade_options_no_scripts() -> TestResult {
     let opts = UpgradeOptions {
         no_scripts: true,
         ..Default::default()
@@ -205,7 +205,7 @@ pub fn test_upgrade_options_no_scripts() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_upgrade_options_download_only() -> TestResult {
+pub(crate) fn test_upgrade_options_download_only() -> TestResult {
     let opts = UpgradeOptions {
         download_only: true,
         ..Default::default()
@@ -214,7 +214,7 @@ pub fn test_upgrade_options_download_only() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_install_options_all_true() -> TestResult {
+pub(crate) fn test_install_options_all_true() -> TestResult {
     let opts = InstallOptions {
         force: true,
         no_deps: true,
@@ -232,7 +232,7 @@ pub fn test_install_options_all_true() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_remove_options_all_true() -> TestResult {
+pub(crate) fn test_remove_options_all_true() -> TestResult {
     let opts = RemoveOptions {
         recursive: true,
         no_scripts: true,
@@ -246,7 +246,7 @@ pub fn test_remove_options_all_true() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_upgrade_options_all_true() -> TestResult {
+pub(crate) fn test_upgrade_options_all_true() -> TestResult {
     let opts = UpgradeOptions {
         no_deps: true,
         no_scripts: true,

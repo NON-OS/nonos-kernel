@@ -2,7 +2,7 @@ use crate::npkg::*;
 use crate::npkg::types::{Dependency, DependencyKind, VersionRequirement, PackageVersion};
 use crate::test::framework::TestResult;
 
-pub fn test_dependency_runtime() -> TestResult {
+pub(crate) fn test_dependency_runtime() -> TestResult {
     let dep = Dependency::runtime("libfoo", VersionRequirement::Any);
     if dep.name != "libfoo" { return TestResult::Fail; }
     if dep.kind != DependencyKind::Runtime { return TestResult::Fail; }
@@ -11,7 +11,7 @@ pub fn test_dependency_runtime() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_dependency_runtime_with_version() -> TestResult {
+pub(crate) fn test_dependency_runtime_with_version() -> TestResult {
     let req = VersionRequirement::GreaterOrEqual(PackageVersion::new(1, 0, 0));
     let dep = Dependency::runtime("libbar", req.clone());
     if dep.name != "libbar" { return TestResult::Fail; }
@@ -20,7 +20,7 @@ pub fn test_dependency_runtime_with_version() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_dependency_optional() -> TestResult {
+pub(crate) fn test_dependency_optional() -> TestResult {
     let dep = Dependency::optional("optional-feature", "enables feature X");
     if dep.name != "optional-feature" { return TestResult::Fail; }
     if dep.kind != DependencyKind::Optional { return TestResult::Fail; }
@@ -29,7 +29,7 @@ pub fn test_dependency_optional() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_dependency_conflict() -> TestResult {
+pub(crate) fn test_dependency_conflict() -> TestResult {
     let dep = Dependency::conflict("conflicting-pkg");
     if dep.name != "conflicting-pkg" { return TestResult::Fail; }
     if dep.kind != DependencyKind::Conflict { return TestResult::Fail; }
@@ -38,7 +38,7 @@ pub fn test_dependency_conflict() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_dependency_parse_simple() -> TestResult {
+pub(crate) fn test_dependency_parse_simple() -> TestResult {
     let dep = Dependency::parse("libfoo");
     if dep.is_none() { return TestResult::Fail; }
     let dep = dep.unwrap();
@@ -48,7 +48,7 @@ pub fn test_dependency_parse_simple() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_dependency_parse_with_version_greater_equal() -> TestResult {
+pub(crate) fn test_dependency_parse_with_version_greater_equal() -> TestResult {
     let dep = Dependency::parse("libfoo>=1.0.0");
     if dep.is_none() { return TestResult::Fail; }
     let dep = dep.unwrap();
@@ -61,7 +61,7 @@ pub fn test_dependency_parse_with_version_greater_equal() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_dependency_parse_with_version_greater() -> TestResult {
+pub(crate) fn test_dependency_parse_with_version_greater() -> TestResult {
     let dep = Dependency::parse("libbar>2.0.0");
     if dep.is_none() { return TestResult::Fail; }
     let dep = dep.unwrap();
@@ -74,7 +74,7 @@ pub fn test_dependency_parse_with_version_greater() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_dependency_parse_with_version_less_equal() -> TestResult {
+pub(crate) fn test_dependency_parse_with_version_less_equal() -> TestResult {
     let dep = Dependency::parse("libqux<=3.0.0");
     if dep.is_none() { return TestResult::Fail; }
     let dep = dep.unwrap();
@@ -86,7 +86,7 @@ pub fn test_dependency_parse_with_version_less_equal() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_dependency_parse_with_version_less() -> TestResult {
+pub(crate) fn test_dependency_parse_with_version_less() -> TestResult {
     let dep = Dependency::parse("pkg<4.0.0");
     if dep.is_none() { return TestResult::Fail; }
     let dep = dep.unwrap();
@@ -98,7 +98,7 @@ pub fn test_dependency_parse_with_version_less() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_dependency_parse_with_version_exact() -> TestResult {
+pub(crate) fn test_dependency_parse_with_version_exact() -> TestResult {
     let dep = Dependency::parse("pkg=5.0.0");
     if dep.is_none() { return TestResult::Fail; }
     let dep = dep.unwrap();
@@ -110,7 +110,7 @@ pub fn test_dependency_parse_with_version_exact() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_dependency_parse_with_version_compatible() -> TestResult {
+pub(crate) fn test_dependency_parse_with_version_compatible() -> TestResult {
     let dep = Dependency::parse("pkg^1.2.0");
     if dep.is_none() { return TestResult::Fail; }
     let dep = dep.unwrap();
@@ -123,19 +123,19 @@ pub fn test_dependency_parse_with_version_compatible() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_dependency_parse_empty() -> TestResult {
+pub(crate) fn test_dependency_parse_empty() -> TestResult {
     let dep = Dependency::parse("");
     if dep.is_some() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_dependency_parse_whitespace_only() -> TestResult {
+pub(crate) fn test_dependency_parse_whitespace_only() -> TestResult {
     let dep = Dependency::parse("   ");
     if dep.is_some() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_dependency_parse_with_whitespace() -> TestResult {
+pub(crate) fn test_dependency_parse_with_whitespace() -> TestResult {
     let dep = Dependency::parse("  libfoo  ");
     if dep.is_none() { return TestResult::Fail; }
     let dep = dep.unwrap();
@@ -143,7 +143,7 @@ pub fn test_dependency_parse_with_whitespace() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_dependency_clone() -> TestResult {
+pub(crate) fn test_dependency_clone() -> TestResult {
     let dep = Dependency::runtime("test", VersionRequirement::Any);
     let cloned = dep.clone();
     if dep.name != cloned.name { return TestResult::Fail; }
@@ -151,7 +151,7 @@ pub fn test_dependency_clone() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_dependency_kind_variants() -> TestResult {
+pub(crate) fn test_dependency_kind_variants() -> TestResult {
     let kinds = [
         DependencyKind::Runtime,
         DependencyKind::Build,
@@ -164,7 +164,7 @@ pub fn test_dependency_kind_variants() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_dependency_parse_name_with_hyphen() -> TestResult {
+pub(crate) fn test_dependency_parse_name_with_hyphen() -> TestResult {
     let dep = Dependency::parse("my-cool-lib>=1.0.0");
     if dep.is_none() { return TestResult::Fail; }
     let dep = dep.unwrap();
@@ -172,7 +172,7 @@ pub fn test_dependency_parse_name_with_hyphen() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_dependency_parse_name_with_underscore() -> TestResult {
+pub(crate) fn test_dependency_parse_name_with_underscore() -> TestResult {
     let dep = Dependency::parse("my_lib>=2.0.0");
     if dep.is_none() { return TestResult::Fail; }
     let dep = dep.unwrap();
@@ -180,14 +180,14 @@ pub fn test_dependency_parse_name_with_underscore() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_version_requirement_equality() -> TestResult {
+pub(crate) fn test_version_requirement_equality() -> TestResult {
     let req1 = VersionRequirement::Any;
     let req2 = VersionRequirement::Any;
     if req1 != req2 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_version_requirement_exact_equality() -> TestResult {
+pub(crate) fn test_version_requirement_exact_equality() -> TestResult {
     let v = PackageVersion::new(1, 0, 0);
     let req1 = VersionRequirement::Exact(v.clone());
     let req2 = VersionRequirement::Exact(v);
@@ -195,7 +195,7 @@ pub fn test_version_requirement_exact_equality() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_version_requirement_clone() -> TestResult {
+pub(crate) fn test_version_requirement_clone() -> TestResult {
     let req = VersionRequirement::GreaterThan(PackageVersion::new(1, 0, 0));
     let cloned = req.clone();
     if req != cloned { return TestResult::Fail; }
