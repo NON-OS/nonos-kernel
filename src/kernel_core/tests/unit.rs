@@ -20,7 +20,7 @@ use alloc::string::String;
 use crate::kernel_core::service::{register_service, update_state, get_service, ServiceState};
 
 #[test]
-fn test_service_registry_creation() {
+pub(crate) fn test_service_registry_creation() {
     let id = register_service(String::from("test_svc"), 0x1);
     let svc = get_service(id);
     assert!(svc.is_some());
@@ -30,7 +30,7 @@ fn test_service_registry_creation() {
 }
 
 #[test]
-fn test_service_state_transition() {
+pub(crate) fn test_service_state_transition() {
     let id = register_service(String::from("trans_svc"), 0);
     update_state(id, ServiceState::Starting);
     let s1 = get_service(id).unwrap();
