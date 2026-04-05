@@ -8,7 +8,7 @@ use crate::boot::multiboot::types::*;
 use crate::test::framework::TestResult;
 use x86_64::PhysAddr;
 
-pub fn test_memory_type_constants() -> TestResult {
+pub(crate) fn test_memory_type_constants() -> TestResult {
     if memory_type::AVAILABLE != 1 { return TestResult::Fail; }
     if memory_type::RESERVED != 2 { return TestResult::Fail; }
     if memory_type::ACPI_RECLAIMABLE != 3 { return TestResult::Fail; }
@@ -17,7 +17,7 @@ pub fn test_memory_type_constants() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_memory_map_entry_is_available() -> TestResult {
+pub(crate) fn test_memory_map_entry_is_available() -> TestResult {
     let available = MemoryMapEntry {
         base_addr: 0x100000,
         length: 0x1000,
@@ -35,7 +35,7 @@ pub fn test_memory_map_entry_is_available() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_memory_map_entry_start_addr() -> TestResult {
+pub(crate) fn test_memory_map_entry_start_addr() -> TestResult {
     let entry = MemoryMapEntry {
         base_addr: 0x100000,
         length: 0x1000,
@@ -46,7 +46,7 @@ pub fn test_memory_map_entry_start_addr() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_memory_map_entry_end_addr() -> TestResult {
+pub(crate) fn test_memory_map_entry_end_addr() -> TestResult {
     let entry = MemoryMapEntry {
         base_addr: 0x100000,
         length: 0x1000,
@@ -57,7 +57,7 @@ pub fn test_memory_map_entry_end_addr() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_memory_map_entry_size() -> TestResult {
+pub(crate) fn test_memory_map_entry_size() -> TestResult {
     let entry = MemoryMapEntry {
         base_addr: 0x100000,
         length: 0x2000,
@@ -68,7 +68,7 @@ pub fn test_memory_map_entry_size() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_memory_map_entry_page_count() -> TestResult {
+pub(crate) fn test_memory_map_entry_page_count() -> TestResult {
     let entry = MemoryMapEntry {
         base_addr: 0x100000,
         length: 0x8000,
@@ -79,7 +79,7 @@ pub fn test_memory_map_entry_page_count() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_memory_map_entry_page_count_partial() -> TestResult {
+pub(crate) fn test_memory_map_entry_page_count_partial() -> TestResult {
     let entry = MemoryMapEntry {
         base_addr: 0x100000,
         length: 0x1500,
@@ -90,7 +90,7 @@ pub fn test_memory_map_entry_page_count_partial() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_memory_map_entry_end_addr_saturating() -> TestResult {
+pub(crate) fn test_memory_map_entry_end_addr_saturating() -> TestResult {
     let entry = MemoryMapEntry {
         base_addr: u64::MAX - 0x100,
         length: 0x200,
@@ -101,43 +101,43 @@ pub fn test_memory_map_entry_end_addr_saturating() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_multiboot_error_invalid_size_str() -> TestResult {
+pub(crate) fn test_multiboot_error_invalid_size_str() -> TestResult {
     let err = MultibootError::InvalidSize;
     if err.as_str() != "Invalid multiboot info size" { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_multiboot_error_invalid_tag_str() -> TestResult {
+pub(crate) fn test_multiboot_error_invalid_tag_str() -> TestResult {
     let err = MultibootError::InvalidTag { tag_type: 42 };
     if err.as_str() != "Invalid multiboot tag" { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_multiboot_error_memory_map_str() -> TestResult {
+pub(crate) fn test_multiboot_error_memory_map_str() -> TestResult {
     let err = MultibootError::MemoryMapError;
     if err.as_str() != "Memory map parsing failed" { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_multiboot_error_framebuffer_str() -> TestResult {
+pub(crate) fn test_multiboot_error_framebuffer_str() -> TestResult {
     let err = MultibootError::FramebufferError;
     if err.as_str() != "Framebuffer info parsing failed" { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_multiboot_error_module_str() -> TestResult {
+pub(crate) fn test_multiboot_error_module_str() -> TestResult {
     let err = MultibootError::ModuleError;
     if err.as_str() != "Module info parsing failed" { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_multiboot_error_invalid_cmdline_str() -> TestResult {
+pub(crate) fn test_multiboot_error_invalid_cmdline_str() -> TestResult {
     let err = MultibootError::InvalidCmdline;
     if err.as_str() != "Invalid UTF-8 in command line" { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_multiboot_error_equality() -> TestResult {
+pub(crate) fn test_multiboot_error_equality() -> TestResult {
     if MultibootError::InvalidSize != MultibootError::InvalidSize { return TestResult::Fail; }
     if MultibootError::InvalidTag { tag_type: 1 } != MultibootError::InvalidTag { tag_type: 1 } { return TestResult::Fail; }
     if MultibootError::InvalidTag { tag_type: 1 } == MultibootError::InvalidTag { tag_type: 2 } { return TestResult::Fail; }
@@ -145,23 +145,23 @@ pub fn test_multiboot_error_equality() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_multiboot2_header_repr() -> TestResult {
+pub(crate) fn test_multiboot2_header_repr() -> TestResult {
     if core::mem::size_of::<Multiboot2Header>() != 16 { return TestResult::Fail; }
     if core::mem::align_of::<Multiboot2Header>() != 8 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_multiboot2_info_repr() -> TestResult {
+pub(crate) fn test_multiboot2_info_repr() -> TestResult {
     if core::mem::size_of::<Multiboot2Info>() != 8 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_memory_map_entry_repr() -> TestResult {
+pub(crate) fn test_memory_map_entry_repr() -> TestResult {
     if core::mem::size_of::<MemoryMapEntry>() != 24 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_multiboot_info_total_available_memory_empty() -> TestResult {
+pub(crate) fn test_multiboot_info_total_available_memory_empty() -> TestResult {
     let info = MultibootInfo {
         memory_map: vec![],
         framebuffer_info: None,
@@ -171,7 +171,7 @@ pub fn test_multiboot_info_total_available_memory_empty() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_multiboot_info_total_available_memory_single() -> TestResult {
+pub(crate) fn test_multiboot_info_total_available_memory_single() -> TestResult {
     let info = MultibootInfo {
         memory_map: vec![MemoryMapEntry {
             base_addr: 0x100000,
@@ -186,7 +186,7 @@ pub fn test_multiboot_info_total_available_memory_single() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_multiboot_info_total_available_memory_mixed() -> TestResult {
+pub(crate) fn test_multiboot_info_total_available_memory_mixed() -> TestResult {
     let info = MultibootInfo {
         memory_map: vec![
             MemoryMapEntry {
@@ -215,7 +215,7 @@ pub fn test_multiboot_info_total_available_memory_mixed() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_multiboot_info_has_framebuffer_none() -> TestResult {
+pub(crate) fn test_multiboot_info_has_framebuffer_none() -> TestResult {
     let info = MultibootInfo {
         memory_map: vec![],
         framebuffer_info: None,
@@ -225,7 +225,7 @@ pub fn test_multiboot_info_has_framebuffer_none() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_multiboot_info_has_framebuffer_some() -> TestResult {
+pub(crate) fn test_multiboot_info_has_framebuffer_some() -> TestResult {
     let info = MultibootInfo {
         memory_map: vec![],
         framebuffer_info: Some(FramebufferInfo {
@@ -242,7 +242,7 @@ pub fn test_multiboot_info_has_framebuffer_some() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_multiboot_info_has_module_none() -> TestResult {
+pub(crate) fn test_multiboot_info_has_module_none() -> TestResult {
     let info = MultibootInfo {
         memory_map: vec![],
         framebuffer_info: None,
@@ -252,7 +252,7 @@ pub fn test_multiboot_info_has_module_none() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_multiboot_info_has_module_some() -> TestResult {
+pub(crate) fn test_multiboot_info_has_module_some() -> TestResult {
     let info = MultibootInfo {
         memory_map: vec![],
         framebuffer_info: None,
@@ -266,7 +266,7 @@ pub fn test_multiboot_info_has_module_some() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_framebuffer_info_size() -> TestResult {
+pub(crate) fn test_framebuffer_info_size() -> TestResult {
     let fb = FramebufferInfo {
         addr: PhysAddr::new(0xFD000000),
         width: 1920,
@@ -279,7 +279,7 @@ pub fn test_framebuffer_info_size() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_framebuffer_info_is_rgb() -> TestResult {
+pub(crate) fn test_framebuffer_info_is_rgb() -> TestResult {
     let fb_rgb = FramebufferInfo {
         addr: PhysAddr::new(0xFD000000),
         width: 800,
@@ -301,7 +301,7 @@ pub fn test_framebuffer_info_is_rgb() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_framebuffer_info_is_text_mode() -> TestResult {
+pub(crate) fn test_framebuffer_info_is_text_mode() -> TestResult {
     let fb_text = FramebufferInfo {
         addr: PhysAddr::new(0xB8000),
         width: 80,
@@ -323,7 +323,7 @@ pub fn test_framebuffer_info_is_text_mode() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_module_info_size() -> TestResult {
+pub(crate) fn test_module_info_size() -> TestResult {
     let module = ModuleInfo {
         start: PhysAddr::new(0x200000),
         end: PhysAddr::new(0x300000),
@@ -333,7 +333,7 @@ pub fn test_module_info_size() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_module_info_size_saturating() -> TestResult {
+pub(crate) fn test_module_info_size_saturating() -> TestResult {
     let module = ModuleInfo {
         start: PhysAddr::new(0x300000),
         end: PhysAddr::new(0x200000),
@@ -343,7 +343,7 @@ pub fn test_module_info_size_saturating() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_module_info_with_cmdline() -> TestResult {
+pub(crate) fn test_module_info_with_cmdline() -> TestResult {
     let module = ModuleInfo {
         start: PhysAddr::new(0x200000),
         end: PhysAddr::new(0x300000),
