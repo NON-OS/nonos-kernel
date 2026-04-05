@@ -18,27 +18,27 @@ use crate::drivers::usb::constants::*;
 use crate::drivers::usb::descriptors::*;
 use crate::test::framework::TestResult;
 
-pub fn test_device_descriptor_size() -> TestResult {
+pub(crate) fn test_device_descriptor_size() -> TestResult {
     if core::mem::size_of::<DeviceDescriptor>() != 18 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_config_descriptor_header_size() -> TestResult {
+pub(crate) fn test_config_descriptor_header_size() -> TestResult {
     if core::mem::size_of::<ConfigDescriptorHeader>() != 9 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_interface_descriptor_size() -> TestResult {
+pub(crate) fn test_interface_descriptor_size() -> TestResult {
     if core::mem::size_of::<InterfaceDescriptor>() != 9 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_endpoint_descriptor_size() -> TestResult {
+pub(crate) fn test_endpoint_descriptor_size() -> TestResult {
     if core::mem::size_of::<EndpointDescriptor>() != 7 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_endpoint_descriptor_in_direction() -> TestResult {
+pub(crate) fn test_endpoint_descriptor_in_direction() -> TestResult {
     let ep = EndpointDescriptor {
         b_length: 7,
         b_descriptor_type: DT_ENDPOINT,
@@ -53,7 +53,7 @@ pub fn test_endpoint_descriptor_in_direction() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_endpoint_descriptor_out_direction() -> TestResult {
+pub(crate) fn test_endpoint_descriptor_out_direction() -> TestResult {
     let ep = EndpointDescriptor {
         b_length: 7,
         b_descriptor_type: DT_ENDPOINT,
@@ -68,7 +68,7 @@ pub fn test_endpoint_descriptor_out_direction() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_endpoint_descriptor_number() -> TestResult {
+pub(crate) fn test_endpoint_descriptor_number() -> TestResult {
     let ep = EndpointDescriptor {
         b_length: 7,
         b_descriptor_type: DT_ENDPOINT,
@@ -82,7 +82,7 @@ pub fn test_endpoint_descriptor_number() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_endpoint_descriptor_bulk_type() -> TestResult {
+pub(crate) fn test_endpoint_descriptor_bulk_type() -> TestResult {
     let ep = EndpointDescriptor {
         b_length: 7,
         b_descriptor_type: DT_ENDPOINT,
@@ -99,7 +99,7 @@ pub fn test_endpoint_descriptor_bulk_type() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_endpoint_descriptor_interrupt_type() -> TestResult {
+pub(crate) fn test_endpoint_descriptor_interrupt_type() -> TestResult {
     let ep = EndpointDescriptor {
         b_length: 7,
         b_descriptor_type: DT_ENDPOINT,
@@ -116,7 +116,7 @@ pub fn test_endpoint_descriptor_interrupt_type() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_endpoint_descriptor_control_type() -> TestResult {
+pub(crate) fn test_endpoint_descriptor_control_type() -> TestResult {
     let ep = EndpointDescriptor {
         b_length: 7,
         b_descriptor_type: DT_ENDPOINT,
@@ -133,7 +133,7 @@ pub fn test_endpoint_descriptor_control_type() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_endpoint_descriptor_isochronous_type() -> TestResult {
+pub(crate) fn test_endpoint_descriptor_isochronous_type() -> TestResult {
     let ep = EndpointDescriptor {
         b_length: 7,
         b_descriptor_type: DT_ENDPOINT,
@@ -150,7 +150,7 @@ pub fn test_endpoint_descriptor_isochronous_type() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_endpoint_descriptor_max_packet_size() -> TestResult {
+pub(crate) fn test_endpoint_descriptor_max_packet_size() -> TestResult {
     let ep = EndpointDescriptor {
         b_length: 7,
         b_descriptor_type: DT_ENDPOINT,
@@ -164,7 +164,7 @@ pub fn test_endpoint_descriptor_max_packet_size() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_endpoint_descriptor_transfer_type_name_control() -> TestResult {
+pub(crate) fn test_endpoint_descriptor_transfer_type_name_control() -> TestResult {
     let ep = EndpointDescriptor {
         b_length: 7,
         b_descriptor_type: DT_ENDPOINT,
@@ -178,7 +178,7 @@ pub fn test_endpoint_descriptor_transfer_type_name_control() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_endpoint_descriptor_transfer_type_name_bulk() -> TestResult {
+pub(crate) fn test_endpoint_descriptor_transfer_type_name_bulk() -> TestResult {
     let ep = EndpointDescriptor {
         b_length: 7,
         b_descriptor_type: DT_ENDPOINT,
@@ -192,7 +192,7 @@ pub fn test_endpoint_descriptor_transfer_type_name_bulk() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_endpoint_descriptor_transfer_type_name_interrupt() -> TestResult {
+pub(crate) fn test_endpoint_descriptor_transfer_type_name_interrupt() -> TestResult {
     let ep = EndpointDescriptor {
         b_length: 7,
         b_descriptor_type: DT_ENDPOINT,
@@ -206,7 +206,7 @@ pub fn test_endpoint_descriptor_transfer_type_name_interrupt() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_endpoint_descriptor_transfer_type_name_isochronous() -> TestResult {
+pub(crate) fn test_endpoint_descriptor_transfer_type_name_isochronous() -> TestResult {
     let ep = EndpointDescriptor {
         b_length: 7,
         b_descriptor_type: DT_ENDPOINT,
@@ -220,7 +220,7 @@ pub fn test_endpoint_descriptor_transfer_type_name_isochronous() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_string_table_new() -> TestResult {
+pub(crate) fn test_string_table_new() -> TestResult {
     let table = UsbStringTable::new();
     if table.manufacturer.is_some() { return TestResult::Fail; }
     if table.product.is_some() { return TestResult::Fail; }
@@ -228,13 +228,13 @@ pub fn test_string_table_new() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_string_table_display_name_empty() -> TestResult {
+pub(crate) fn test_string_table_display_name_empty() -> TestResult {
     let table = UsbStringTable::new();
     if table.display_name().is_some() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_endpoint_number_range() -> TestResult {
+pub(crate) fn test_endpoint_number_range() -> TestResult {
     for addr in 0x80..=0x8F {
         let ep = EndpointDescriptor {
             b_length: 7,
@@ -249,7 +249,7 @@ pub fn test_endpoint_number_range() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_endpoint_direction_mask() -> TestResult {
+pub(crate) fn test_endpoint_direction_mask() -> TestResult {
     let in_ep = EndpointDescriptor {
         b_length: 7,
         b_descriptor_type: DT_ENDPOINT,
