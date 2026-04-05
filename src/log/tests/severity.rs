@@ -18,101 +18,101 @@ use crate::log::*;
 use crate::arch::x86_64::vga::Color;
 use crate::test::framework::TestResult;
 
-pub fn test_severity_debug_variant() -> TestResult {
+pub(crate) fn test_severity_debug_variant() -> TestResult {
     let sev = Severity::Debug;
     if sev != Severity::Debug { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_severity_info_variant() -> TestResult {
+pub(crate) fn test_severity_info_variant() -> TestResult {
     let sev = Severity::Info;
     if sev != Severity::Info { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_severity_warn_variant() -> TestResult {
+pub(crate) fn test_severity_warn_variant() -> TestResult {
     let sev = Severity::Warn;
     if sev != Severity::Warn { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_severity_err_variant() -> TestResult {
+pub(crate) fn test_severity_err_variant() -> TestResult {
     let sev = Severity::Err;
     if sev != Severity::Err { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_severity_fatal_variant() -> TestResult {
+pub(crate) fn test_severity_fatal_variant() -> TestResult {
     let sev = Severity::Fatal;
     if sev != Severity::Fatal { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_severity_debug_color() -> TestResult {
+pub(crate) fn test_severity_debug_color() -> TestResult {
     if Severity::Debug.color() != Color::Cyan { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_severity_info_color() -> TestResult {
+pub(crate) fn test_severity_info_color() -> TestResult {
     if Severity::Info.color() != Color::LightGreen { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_severity_warn_color() -> TestResult {
+pub(crate) fn test_severity_warn_color() -> TestResult {
     if Severity::Warn.color() != Color::Yellow { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_severity_err_color() -> TestResult {
+pub(crate) fn test_severity_err_color() -> TestResult {
     if Severity::Err.color() != Color::LightRed { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_severity_fatal_color() -> TestResult {
+pub(crate) fn test_severity_fatal_color() -> TestResult {
     if Severity::Fatal.color() != Color::LightRed { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_severity_debug_as_str() -> TestResult {
+pub(crate) fn test_severity_debug_as_str() -> TestResult {
     if Severity::Debug.as_str() != "DBG" { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_severity_info_as_str() -> TestResult {
+pub(crate) fn test_severity_info_as_str() -> TestResult {
     if Severity::Info.as_str() != "INFO" { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_severity_warn_as_str() -> TestResult {
+pub(crate) fn test_severity_warn_as_str() -> TestResult {
     if Severity::Warn.as_str() != "WARN" { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_severity_err_as_str() -> TestResult {
+pub(crate) fn test_severity_err_as_str() -> TestResult {
     if Severity::Err.as_str() != "ERR" { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_severity_fatal_as_str() -> TestResult {
+pub(crate) fn test_severity_fatal_as_str() -> TestResult {
     if Severity::Fatal.as_str() != "FATAL" { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_severity_clone() -> TestResult {
+pub(crate) fn test_severity_clone() -> TestResult {
     let s1 = Severity::Info;
     let s2 = s1.clone();
     if s1 != s2 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_severity_copy() -> TestResult {
+pub(crate) fn test_severity_copy() -> TestResult {
     let s1 = Severity::Warn;
     let s2 = s1;
     if s1 != s2 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_severity_equality() -> TestResult {
+pub(crate) fn test_severity_equality() -> TestResult {
     if Severity::Debug != Severity::Debug { return TestResult::Fail; }
     if Severity::Info != Severity::Info { return TestResult::Fail; }
     if Severity::Warn != Severity::Warn { return TestResult::Fail; }
@@ -121,7 +121,7 @@ pub fn test_severity_equality() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_severity_inequality() -> TestResult {
+pub(crate) fn test_severity_inequality() -> TestResult {
     if Severity::Debug == Severity::Info { return TestResult::Fail; }
     if Severity::Info == Severity::Warn { return TestResult::Fail; }
     if Severity::Warn == Severity::Err { return TestResult::Fail; }
@@ -130,37 +130,37 @@ pub fn test_severity_inequality() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_severity_debug_format() -> TestResult {
+pub(crate) fn test_severity_debug_format() -> TestResult {
     let debug_str = alloc::format!("{:?}", Severity::Debug);
     if !debug_str.contains("Debug") { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_severity_info_debug_format() -> TestResult {
+pub(crate) fn test_severity_info_debug_format() -> TestResult {
     let debug_str = alloc::format!("{:?}", Severity::Info);
     if !debug_str.contains("Info") { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_severity_warn_debug_format() -> TestResult {
+pub(crate) fn test_severity_warn_debug_format() -> TestResult {
     let debug_str = alloc::format!("{:?}", Severity::Warn);
     if !debug_str.contains("Warn") { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_severity_err_debug_format() -> TestResult {
+pub(crate) fn test_severity_err_debug_format() -> TestResult {
     let debug_str = alloc::format!("{:?}", Severity::Err);
     if !debug_str.contains("Err") { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_severity_fatal_debug_format() -> TestResult {
+pub(crate) fn test_severity_fatal_debug_format() -> TestResult {
     let debug_str = alloc::format!("{:?}", Severity::Fatal);
     if !debug_str.contains("Fatal") { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_all_severity_variants_unique() -> TestResult {
+pub(crate) fn test_all_severity_variants_unique() -> TestResult {
     let severities = [
         Severity::Debug,
         Severity::Info,
@@ -176,7 +176,7 @@ pub fn test_all_severity_variants_unique() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_all_severity_str_representations_unique() -> TestResult {
+pub(crate) fn test_all_severity_str_representations_unique() -> TestResult {
     let strs = [
         Severity::Debug.as_str(),
         Severity::Info.as_str(),
@@ -192,7 +192,7 @@ pub fn test_all_severity_str_representations_unique() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_severity_color_returns_valid_color() -> TestResult {
+pub(crate) fn test_severity_color_returns_valid_color() -> TestResult {
     let severities = [
         Severity::Debug,
         Severity::Info,
@@ -206,7 +206,7 @@ pub fn test_severity_color_returns_valid_color() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_severity_as_str_not_empty() -> TestResult {
+pub(crate) fn test_severity_as_str_not_empty() -> TestResult {
     let severities = [
         Severity::Debug,
         Severity::Info,
@@ -220,12 +220,12 @@ pub fn test_severity_as_str_not_empty() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_severity_err_and_fatal_same_color() -> TestResult {
+pub(crate) fn test_severity_err_and_fatal_same_color() -> TestResult {
     if Severity::Err.color() != Severity::Fatal.color() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_severity_debug_info_warn_different_colors() -> TestResult {
+pub(crate) fn test_severity_debug_info_warn_different_colors() -> TestResult {
     if Severity::Debug.color() == Severity::Info.color() { return TestResult::Fail; }
     if Severity::Info.color() == Severity::Warn.color() { return TestResult::Fail; }
     if Severity::Debug.color() == Severity::Warn.color() { return TestResult::Fail; }

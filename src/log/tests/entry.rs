@@ -17,7 +17,7 @@
 use crate::log::*;
 use crate::test::framework::TestResult;
 
-pub fn test_log_entry_creation() -> TestResult {
+pub(crate) fn test_log_entry_creation() -> TestResult {
     let entry = LogEntry {
         ts: 12345,
         cpu: 0,
@@ -31,7 +31,7 @@ pub fn test_log_entry_creation() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_log_entry_with_message() -> TestResult {
+pub(crate) fn test_log_entry_with_message() -> TestResult {
     let mut entry = LogEntry {
         ts: 100,
         cpu: 1,
@@ -44,7 +44,7 @@ pub fn test_log_entry_with_message() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_log_entry_clone() -> TestResult {
+pub(crate) fn test_log_entry_clone() -> TestResult {
     let mut entry1 = LogEntry {
         ts: 999,
         cpu: 2,
@@ -62,7 +62,7 @@ pub fn test_log_entry_clone() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_log_entry_timestamp_zero() -> TestResult {
+pub(crate) fn test_log_entry_timestamp_zero() -> TestResult {
     let entry = LogEntry {
         ts: 0,
         cpu: 0,
@@ -74,7 +74,7 @@ pub fn test_log_entry_timestamp_zero() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_log_entry_timestamp_max() -> TestResult {
+pub(crate) fn test_log_entry_timestamp_max() -> TestResult {
     let entry = LogEntry {
         ts: u64::MAX,
         cpu: 0,
@@ -86,7 +86,7 @@ pub fn test_log_entry_timestamp_max() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_log_entry_cpu_various_values() -> TestResult {
+pub(crate) fn test_log_entry_cpu_various_values() -> TestResult {
     for cpu_id in [0, 1, 4, 8, 16, 255, u32::MAX] {
         let entry = LogEntry {
             ts: 0,
@@ -100,7 +100,7 @@ pub fn test_log_entry_cpu_various_values() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_log_entry_all_severity_levels() -> TestResult {
+pub(crate) fn test_log_entry_all_severity_levels() -> TestResult {
     let severities = [
         Severity::Debug,
         Severity::Info,
@@ -121,7 +121,7 @@ pub fn test_log_entry_all_severity_levels() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_log_entry_hash_default() -> TestResult {
+pub(crate) fn test_log_entry_hash_default() -> TestResult {
     let entry = LogEntry {
         ts: 0,
         cpu: 0,
@@ -133,7 +133,7 @@ pub fn test_log_entry_hash_default() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_log_entry_hash_nonzero() -> TestResult {
+pub(crate) fn test_log_entry_hash_nonzero() -> TestResult {
     let mut hash = [0u8; 32];
     for i in 0..32 {
         hash[i] = i as u8;
@@ -151,7 +151,7 @@ pub fn test_log_entry_hash_nonzero() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_log_entry_message_empty() -> TestResult {
+pub(crate) fn test_log_entry_message_empty() -> TestResult {
     let entry = LogEntry {
         ts: 0,
         cpu: 0,
@@ -164,7 +164,7 @@ pub fn test_log_entry_message_empty() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_log_entry_message_long() -> TestResult {
+pub(crate) fn test_log_entry_message_long() -> TestResult {
     let mut entry = LogEntry {
         ts: 0,
         cpu: 0,
@@ -178,7 +178,7 @@ pub fn test_log_entry_message_long() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_log_entry_message_max_capacity() -> TestResult {
+pub(crate) fn test_log_entry_message_max_capacity() -> TestResult {
     let mut entry = LogEntry {
         ts: 0,
         cpu: 0,
@@ -192,7 +192,7 @@ pub fn test_log_entry_message_max_capacity() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_log_entry_message_exceeds_capacity() -> TestResult {
+pub(crate) fn test_log_entry_message_exceeds_capacity() -> TestResult {
     let mut entry = LogEntry {
         ts: 0,
         cpu: 0,
@@ -206,7 +206,7 @@ pub fn test_log_entry_message_exceeds_capacity() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_log_entry_clone_independence() -> TestResult {
+pub(crate) fn test_log_entry_clone_independence() -> TestResult {
     let mut entry1 = LogEntry {
         ts: 100,
         cpu: 1,
@@ -230,7 +230,7 @@ pub fn test_log_entry_clone_independence() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_log_entry_hash_size() -> TestResult {
+pub(crate) fn test_log_entry_hash_size() -> TestResult {
     let entry = LogEntry {
         ts: 0,
         cpu: 0,
@@ -242,7 +242,7 @@ pub fn test_log_entry_hash_size() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_log_entry_message_push_single_char() -> TestResult {
+pub(crate) fn test_log_entry_message_push_single_char() -> TestResult {
     let mut entry = LogEntry {
         ts: 0,
         cpu: 0,
@@ -256,7 +256,7 @@ pub fn test_log_entry_message_push_single_char() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_log_entry_message_unicode() -> TestResult {
+pub(crate) fn test_log_entry_message_unicode() -> TestResult {
     let mut entry = LogEntry {
         ts: 0,
         cpu: 0,
@@ -269,7 +269,7 @@ pub fn test_log_entry_message_unicode() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_log_entry_multiple_modifications() -> TestResult {
+pub(crate) fn test_log_entry_multiple_modifications() -> TestResult {
     let mut entry = LogEntry {
         ts: 0,
         cpu: 0,

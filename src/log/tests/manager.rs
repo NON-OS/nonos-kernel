@@ -18,25 +18,25 @@ use crate::log::*;
 use crate::test::framework::TestResult;
 use core::sync::atomic::Ordering;
 
-pub fn test_log_manager_new() -> TestResult {
+pub(crate) fn test_log_manager_new() -> TestResult {
     let manager = LogManager::new();
     if manager.entry_count() != 0 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_log_manager_const_new() -> TestResult {
+pub(crate) fn test_log_manager_const_new() -> TestResult {
     const _MANAGER: LogManager = LogManager::new();
     TestResult::Pass
 }
 
-pub fn test_log_manager_log_single() -> TestResult {
+pub(crate) fn test_log_manager_log_single() -> TestResult {
     let mut manager = LogManager::new();
     manager.log(Severity::Info, "test message");
     if manager.entry_count() != 1 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_log_manager_log_multiple() -> TestResult {
+pub(crate) fn test_log_manager_log_multiple() -> TestResult {
     let mut manager = LogManager::new();
     for _ in 0..10 {
         manager.log(Severity::Debug, "message");
@@ -45,7 +45,7 @@ pub fn test_log_manager_log_multiple() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_log_manager_log_all_severities() -> TestResult {
+pub(crate) fn test_log_manager_log_all_severities() -> TestResult {
     let mut manager = LogManager::new();
     manager.log(Severity::Debug, "debug");
     manager.log(Severity::Info, "info");
@@ -56,14 +56,14 @@ pub fn test_log_manager_log_all_severities() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_log_manager_get_entries_empty() -> TestResult {
+pub(crate) fn test_log_manager_get_entries_empty() -> TestResult {
     let manager = LogManager::new();
     let entries = manager.get_entries();
     if !entries.is_empty() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_log_manager_get_entries_single() -> TestResult {
+pub(crate) fn test_log_manager_get_entries_single() -> TestResult {
     let mut manager = LogManager::new();
     manager.log(Severity::Info, "single entry");
     let entries = manager.get_entries();
@@ -71,7 +71,7 @@ pub fn test_log_manager_get_entries_single() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_log_manager_get_entries_preserves_message() -> TestResult {
+pub(crate) fn test_log_manager_get_entries_preserves_message() -> TestResult {
     let mut manager = LogManager::new();
     manager.log(Severity::Info, "hello world");
     let entries = manager.get_entries();
@@ -79,7 +79,7 @@ pub fn test_log_manager_get_entries_preserves_message() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_log_manager_get_entries_preserves_severity() -> TestResult {
+pub(crate) fn test_log_manager_get_entries_preserves_severity() -> TestResult {
     let mut manager = LogManager::new();
     manager.log(Severity::Warn, "warning");
     let entries = manager.get_entries();
@@ -87,14 +87,14 @@ pub fn test_log_manager_get_entries_preserves_severity() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_log_manager_get_recent_empty() -> TestResult {
+pub(crate) fn test_log_manager_get_recent_empty() -> TestResult {
     let manager = LogManager::new();
     let recent = manager.get_recent(5);
     if !recent.is_empty() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_log_manager_get_recent_single() -> TestResult {
+pub(crate) fn test_log_manager_get_recent_single() -> TestResult {
     let mut manager = LogManager::new();
     manager.log(Severity::Info, "recent");
     let recent = manager.get_recent(1);
@@ -102,7 +102,7 @@ pub fn test_log_manager_get_recent_single() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_log_manager_get_recent_returns_newest() -> TestResult {
+pub(crate) fn test_log_manager_get_recent_returns_newest() -> TestResult {
     let mut manager = LogManager::new();
     manager.log(Severity::Info, "first");
     manager.log(Severity::Info, "second");
@@ -114,7 +114,7 @@ pub fn test_log_manager_get_recent_returns_newest() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_log_manager_get_recent_less_than_available() -> TestResult {
+pub(crate) fn test_log_manager_get_recent_less_than_available() -> TestResult {
     let mut manager = LogManager::new();
     manager.log(Severity::Info, "one");
     manager.log(Severity::Info, "two");
@@ -123,13 +123,13 @@ pub fn test_log_manager_get_recent_less_than_available() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_log_manager_entry_count_zero() -> TestResult {
+pub(crate) fn test_log_manager_entry_count_zero() -> TestResult {
     let manager = LogManager::new();
     if manager.entry_count() != 0 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_log_manager_entry_count_increments() -> TestResult {
+pub(crate) fn test_log_manager_entry_count_increments() -> TestResult {
     let mut manager = LogManager::new();
     for i in 1..=5 {
         manager.log(Severity::Info, "msg");
@@ -138,7 +138,7 @@ pub fn test_log_manager_entry_count_increments() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_log_manager_clear_buffer() -> TestResult {
+pub(crate) fn test_log_manager_clear_buffer() -> TestResult {
     let mut manager = LogManager::new();
     for _ in 0..5 {
         manager.log(Severity::Info, "msg");
@@ -149,14 +149,14 @@ pub fn test_log_manager_clear_buffer() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_log_manager_clear_buffer_empty() -> TestResult {
+pub(crate) fn test_log_manager_clear_buffer_empty() -> TestResult {
     let mut manager = LogManager::new();
     manager.clear_buffer();
     if manager.entry_count() != 0 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_log_manager_clear_then_log() -> TestResult {
+pub(crate) fn test_log_manager_clear_then_log() -> TestResult {
     let mut manager = LogManager::new();
     manager.log(Severity::Info, "before");
     manager.clear_buffer();
@@ -167,7 +167,7 @@ pub fn test_log_manager_clear_then_log() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_log_manager_hash_chain() -> TestResult {
+pub(crate) fn test_log_manager_hash_chain() -> TestResult {
     let mut manager = LogManager::new();
     manager.log(Severity::Info, "first");
     manager.log(Severity::Info, "second");
@@ -176,7 +176,7 @@ pub fn test_log_manager_hash_chain() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_log_manager_hash_not_zero() -> TestResult {
+pub(crate) fn test_log_manager_hash_not_zero() -> TestResult {
     let mut manager = LogManager::new();
     manager.log(Severity::Info, "test");
     let entries = manager.get_entries();
@@ -184,7 +184,7 @@ pub fn test_log_manager_hash_not_zero() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_log_manager_enter_panic_mode() -> TestResult {
+pub(crate) fn test_log_manager_enter_panic_mode() -> TestResult {
     let manager = LogManager::new();
     PANIC_MODE.store(false, Ordering::SeqCst);
     manager.enter_panic_mode();
@@ -193,13 +193,13 @@ pub fn test_log_manager_enter_panic_mode() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_panic_mode_static_default() -> TestResult {
+pub(crate) fn test_panic_mode_static_default() -> TestResult {
     PANIC_MODE.store(false, Ordering::SeqCst);
     if PANIC_MODE.load(Ordering::SeqCst) { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_panic_mode_atomic_store_load() -> TestResult {
+pub(crate) fn test_panic_mode_atomic_store_load() -> TestResult {
     PANIC_MODE.store(true, Ordering::SeqCst);
     if !PANIC_MODE.load(Ordering::SeqCst) { return TestResult::Fail; }
     PANIC_MODE.store(false, Ordering::SeqCst);
@@ -207,13 +207,13 @@ pub fn test_panic_mode_atomic_store_load() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_log_manager_add_backend() -> TestResult {
+pub(crate) fn test_log_manager_add_backend() -> TestResult {
     let mut manager = LogManager::new();
     manager.add_backend(alloc::boxed::Box::new(RamBufferBackend::new()));
     TestResult::Pass
 }
 
-pub fn test_log_manager_empty_message() -> TestResult {
+pub(crate) fn test_log_manager_empty_message() -> TestResult {
     let mut manager = LogManager::new();
     manager.log(Severity::Info, "");
     let entries = manager.get_entries();
@@ -221,7 +221,7 @@ pub fn test_log_manager_empty_message() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_log_manager_long_message() -> TestResult {
+pub(crate) fn test_log_manager_long_message() -> TestResult {
     let mut manager = LogManager::new();
     let long_msg = "a".repeat(200);
     manager.log(Severity::Info, &long_msg);
@@ -230,7 +230,7 @@ pub fn test_log_manager_long_message() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_log_manager_message_truncation() -> TestResult {
+pub(crate) fn test_log_manager_message_truncation() -> TestResult {
     let mut manager = LogManager::new();
     let overflow_msg = "x".repeat(300);
     manager.log(Severity::Info, &overflow_msg);
@@ -239,18 +239,18 @@ pub fn test_log_manager_message_truncation() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_logger_static_exists() -> TestResult {
+pub(crate) fn test_logger_static_exists() -> TestResult {
     let _guard = LOGGER.lock();
     TestResult::Pass
 }
 
-pub fn test_try_get_logger_returns_some() -> TestResult {
+pub(crate) fn test_try_get_logger_returns_some() -> TestResult {
     let result = try_get_logger();
     if !result.is_some() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_log_critical_uses_fatal() -> TestResult {
+pub(crate) fn test_log_critical_uses_fatal() -> TestResult {
     let mut lock = LOGGER.lock();
     if lock.is_none() {
         *lock = Some(LogManager::new());
@@ -275,7 +275,7 @@ pub fn test_log_critical_uses_fatal() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_enter_panic_mode_function() -> TestResult {
+pub(crate) fn test_enter_panic_mode_function() -> TestResult {
     PANIC_MODE.store(false, Ordering::SeqCst);
     enter_panic_mode();
     if !PANIC_MODE.load(Ordering::SeqCst) { return TestResult::Fail; }
@@ -283,7 +283,7 @@ pub fn test_enter_panic_mode_function() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_get_log_entries_function() -> TestResult {
+pub(crate) fn test_get_log_entries_function() -> TestResult {
     let mut lock = LOGGER.lock();
     if lock.is_none() {
         *lock = Some(LogManager::new());
@@ -299,7 +299,7 @@ pub fn test_get_log_entries_function() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_get_recent_logs_function() -> TestResult {
+pub(crate) fn test_get_recent_logs_function() -> TestResult {
     let mut lock = LOGGER.lock();
     if lock.is_none() {
         *lock = Some(LogManager::new());
@@ -315,13 +315,12 @@ pub fn test_get_recent_logs_function() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_log_entry_count_function() -> TestResult {
-    let count = log_entry_count();
-    if !(count >= 0) { return TestResult::Fail; }
+pub(crate) fn test_log_entry_count_function() -> TestResult {
+    let _ = log_entry_count();
     TestResult::Pass
 }
 
-pub fn test_clear_log_buffer_function() -> TestResult {
+pub(crate) fn test_clear_log_buffer_function() -> TestResult {
     let mut lock = LOGGER.lock();
     if lock.is_none() {
         *lock = Some(LogManager::new());
@@ -338,7 +337,7 @@ pub fn test_clear_log_buffer_function() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_log_function_with_severity() -> TestResult {
+pub(crate) fn test_log_function_with_severity() -> TestResult {
     let mut lock = LOGGER.lock();
     if lock.is_none() {
         *lock = Some(LogManager::new());
@@ -361,7 +360,7 @@ pub fn test_log_function_with_severity() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_log_manager_timestamps_increase() -> TestResult {
+pub(crate) fn test_log_manager_timestamps_increase() -> TestResult {
     let mut manager = LogManager::new();
     manager.log(Severity::Info, "first");
     manager.log(Severity::Info, "second");
@@ -372,7 +371,7 @@ pub fn test_log_manager_timestamps_increase() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_log_manager_cpu_field_set() -> TestResult {
+pub(crate) fn test_log_manager_cpu_field_set() -> TestResult {
     let mut manager = LogManager::new();
     manager.log(Severity::Info, "test");
     let entries = manager.get_entries();
@@ -380,7 +379,7 @@ pub fn test_log_manager_cpu_field_set() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_log_manager_hash_deterministic() -> TestResult {
+pub(crate) fn test_log_manager_hash_deterministic() -> TestResult {
     let mut manager1 = LogManager::new();
     let mut manager2 = LogManager::new();
     manager1.log(Severity::Info, "same message");
@@ -391,7 +390,7 @@ pub fn test_log_manager_hash_deterministic() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_log_manager_different_messages_different_hashes() -> TestResult {
+pub(crate) fn test_log_manager_different_messages_different_hashes() -> TestResult {
     let mut manager = LogManager::new();
     manager.clear_buffer();
 
