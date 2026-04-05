@@ -15,63 +15,63 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::drivers::ahci::stats::AhciStats;
+use crate::test::framework::TestResult;
 
-#[test]
-fn test_stats_default_read_ops() {
+pub fn test_stats_default_read_ops() -> TestResult {
     let stats = AhciStats::default();
-    assert_eq!(stats.read_ops, 0);
+    if stats.read_ops != 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_stats_default_write_ops() {
+pub fn test_stats_default_write_ops() -> TestResult {
     let stats = AhciStats::default();
-    assert_eq!(stats.write_ops, 0);
+    if stats.write_ops != 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_stats_default_trim_ops() {
+pub fn test_stats_default_trim_ops() -> TestResult {
     let stats = AhciStats::default();
-    assert_eq!(stats.trim_ops, 0);
+    if stats.trim_ops != 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_stats_default_errors() {
+pub fn test_stats_default_errors() -> TestResult {
     let stats = AhciStats::default();
-    assert_eq!(stats.errors, 0);
+    if stats.errors != 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_stats_default_bytes_read() {
+pub fn test_stats_default_bytes_read() -> TestResult {
     let stats = AhciStats::default();
-    assert_eq!(stats.bytes_read, 0);
+    if stats.bytes_read != 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_stats_default_bytes_written() {
+pub fn test_stats_default_bytes_written() -> TestResult {
     let stats = AhciStats::default();
-    assert_eq!(stats.bytes_written, 0);
+    if stats.bytes_written != 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_stats_default_devices_count() {
+pub fn test_stats_default_devices_count() -> TestResult {
     let stats = AhciStats::default();
-    assert_eq!(stats.devices_count, 0);
+    if stats.devices_count != 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_stats_default_port_resets() {
+pub fn test_stats_default_port_resets() -> TestResult {
     let stats = AhciStats::default();
-    assert_eq!(stats.port_resets, 0);
+    if stats.port_resets != 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_stats_default_validation_failures() {
+pub fn test_stats_default_validation_failures() -> TestResult {
     let stats = AhciStats::default();
-    assert_eq!(stats.validation_failures, 0);
+    if stats.validation_failures != 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_stats_copy() {
+pub fn test_stats_copy() -> TestResult {
     let stats1 = AhciStats {
         read_ops: 100,
         write_ops: 50,
@@ -85,19 +85,19 @@ fn test_stats_copy() {
     };
 
     let stats2 = stats1;
-    assert_eq!(stats1.read_ops, stats2.read_ops);
-    assert_eq!(stats1.write_ops, stats2.write_ops);
-    assert_eq!(stats1.trim_ops, stats2.trim_ops);
-    assert_eq!(stats1.errors, stats2.errors);
-    assert_eq!(stats1.bytes_read, stats2.bytes_read);
-    assert_eq!(stats1.bytes_written, stats2.bytes_written);
-    assert_eq!(stats1.devices_count, stats2.devices_count);
-    assert_eq!(stats1.port_resets, stats2.port_resets);
-    assert_eq!(stats1.validation_failures, stats2.validation_failures);
+    if stats1.read_ops != stats2.read_ops { return TestResult::Fail; }
+    if stats1.write_ops != stats2.write_ops { return TestResult::Fail; }
+    if stats1.trim_ops != stats2.trim_ops { return TestResult::Fail; }
+    if stats1.errors != stats2.errors { return TestResult::Fail; }
+    if stats1.bytes_read != stats2.bytes_read { return TestResult::Fail; }
+    if stats1.bytes_written != stats2.bytes_written { return TestResult::Fail; }
+    if stats1.devices_count != stats2.devices_count { return TestResult::Fail; }
+    if stats1.port_resets != stats2.port_resets { return TestResult::Fail; }
+    if stats1.validation_failures != stats2.validation_failures { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_stats_clone() {
+pub fn test_stats_clone() -> TestResult {
     let stats1 = AhciStats {
         read_ops: 200,
         write_ops: 100,
@@ -111,21 +111,21 @@ fn test_stats_clone() {
     };
 
     let stats2 = stats1.clone();
-    assert_eq!(stats1.read_ops, stats2.read_ops);
-    assert_eq!(stats1.bytes_read, stats2.bytes_read);
+    if stats1.read_ops != stats2.read_ops { return TestResult::Fail; }
+    if stats1.bytes_read != stats2.bytes_read { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_stats_debug() {
+pub fn test_stats_debug() -> TestResult {
     let stats = AhciStats::default();
     let debug_str = format!("{:?}", stats);
-    assert!(debug_str.contains("AhciStats"));
-    assert!(debug_str.contains("read_ops"));
-    assert!(debug_str.contains("write_ops"));
+    if !debug_str.contains("AhciStats") { return TestResult::Fail; }
+    if !debug_str.contains("read_ops") { return TestResult::Fail; }
+    if !debug_str.contains("write_ops") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_stats_field_independence() {
+pub fn test_stats_field_independence() -> TestResult {
     let stats = AhciStats {
         read_ops: 1,
         write_ops: 2,
@@ -138,19 +138,19 @@ fn test_stats_field_independence() {
         validation_failures: 9,
     };
 
-    assert_eq!(stats.read_ops, 1);
-    assert_eq!(stats.write_ops, 2);
-    assert_eq!(stats.trim_ops, 3);
-    assert_eq!(stats.errors, 4);
-    assert_eq!(stats.bytes_read, 5);
-    assert_eq!(stats.bytes_written, 6);
-    assert_eq!(stats.devices_count, 7);
-    assert_eq!(stats.port_resets, 8);
-    assert_eq!(stats.validation_failures, 9);
+    if stats.read_ops != 1 { return TestResult::Fail; }
+    if stats.write_ops != 2 { return TestResult::Fail; }
+    if stats.trim_ops != 3 { return TestResult::Fail; }
+    if stats.errors != 4 { return TestResult::Fail; }
+    if stats.bytes_read != 5 { return TestResult::Fail; }
+    if stats.bytes_written != 6 { return TestResult::Fail; }
+    if stats.devices_count != 7 { return TestResult::Fail; }
+    if stats.port_resets != 8 { return TestResult::Fail; }
+    if stats.validation_failures != 9 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_stats_large_values() {
+pub fn test_stats_large_values() -> TestResult {
     let stats = AhciStats {
         read_ops: u64::MAX,
         write_ops: u64::MAX,
@@ -163,6 +163,7 @@ fn test_stats_large_values() {
         validation_failures: u64::MAX,
     };
 
-    assert_eq!(stats.read_ops, u64::MAX);
-    assert_eq!(stats.devices_count, u32::MAX);
+    if stats.read_ops != u64::MAX { return TestResult::Fail; }
+    if stats.devices_count != u32::MAX { return TestResult::Fail; }
+    TestResult::Pass
 }
