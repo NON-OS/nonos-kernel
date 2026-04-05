@@ -26,32 +26,32 @@ use super::framework::{TestResult, TestCase, TestSuite};
 pub fn run_all() -> bool {
     let mut suite = TestSuite::new("Drivers");
 
-    suite.add_test(TestCase::new(
+    suite.add_test(TestCase::with_category(
         "pci_manager_init",
         test_pci_manager_init,
         "drivers",
     ));
-    suite.add_test(TestCase::new(
+    suite.add_test(TestCase::with_category(
         "pci_stats_tracking",
         test_pci_stats_tracking,
         "drivers",
     ));
-    suite.add_test(TestCase::new(
+    suite.add_test(TestCase::with_category(
         "console_driver",
         test_console_driver,
         "drivers",
     ));
-    suite.add_test(TestCase::new(
+    suite.add_test(TestCase::with_category(
         "nvme_validation",
         test_nvme_validation,
         "drivers",
     ));
-    suite.add_test(TestCase::new(
+    suite.add_test(TestCase::with_category(
         "ahci_validation",
         test_ahci_validation,
         "drivers",
     ));
-    suite.add_test(TestCase::new(
+    suite.add_test(TestCase::with_category(
         "xhci_validation",
         test_xhci_validation,
         "drivers",

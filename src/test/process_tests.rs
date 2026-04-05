@@ -26,22 +26,22 @@ use super::framework::{TestResult, TestCase, TestSuite};
 pub fn run_all() -> bool {
     let mut suite = TestSuite::new("Process");
 
-    suite.add_test(TestCase::new(
+    suite.add_test(TestCase::with_category(
         "process_state",
         test_process_state,
         "process",
     ));
-    suite.add_test(TestCase::new(
+    suite.add_test(TestCase::with_category(
         "process_priority",
         test_process_priority,
         "process",
     ));
-    suite.add_test(TestCase::new(
+    suite.add_test(TestCase::with_category(
         "scheduler_priority",
         test_scheduler_priority,
         "process",
     ));
-    suite.add_test(TestCase::new(
+    suite.add_test(TestCase::with_category(
         "process_table",
         test_process_table,
         "process",

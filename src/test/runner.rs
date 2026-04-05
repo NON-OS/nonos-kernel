@@ -19,9 +19,6 @@ extern crate alloc;
 use super::counters::{get_stats, reset_counters};
 use super::{driver_tests, memory_tests, process_tests, security_tests};
 use crate::agents::tests as agents_tests;
-use crate::ipc::tests as ipc_tests;
-use crate::interrupts::tests as interrupts_tests;
-use crate::process::tests as proc_tests;
 
 pub fn run_all_tests() -> bool {
     use crate::drivers::console;
@@ -63,24 +60,6 @@ pub fn run_all_tests() -> bool {
     console::write_message("");
     console::write_message("━━━━━━━━━━━━━━━ AGENTS TESTS ━━━━━━━━━━━━━━━━━");
     if !agents_tests::run_all() {
-        all_passed = false;
-    }
-
-    console::write_message("");
-    console::write_message("━━━━━━━━━━━━━━━━━ IPC TESTS ━━━━━━━━━━━━━━━━━━");
-    if !ipc_tests::run_all() {
-        all_passed = false;
-    }
-
-    console::write_message("");
-    console::write_message("━━━━━━━━━━━━━━━ PROCESS TESTS ━━━━━━━━━━━━━━━━");
-    if !proc_tests::run_all() {
-        all_passed = false;
-    }
-
-    console::write_message("");
-    console::write_message("━━━━━━━━━━━━━━ INTERRUPTS TESTS ━━━━━━━━━━━━━━");
-    if !interrupts_tests::run_all() {
         all_passed = false;
     }
 

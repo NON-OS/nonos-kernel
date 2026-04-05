@@ -26,32 +26,32 @@ use super::framework::{TestResult, TestCase, TestSuite};
 pub fn run_all() -> bool {
     let mut suite = TestSuite::new("Security");
 
-    suite.add_test(TestCase::new(
+    suite.add_test(TestCase::with_category(
         "capability_types",
         test_capability_types,
         "security",
     ));
-    suite.add_test(TestCase::new(
+    suite.add_test(TestCase::with_category(
         "capability_token",
         test_capability_token,
         "security",
     ));
-    suite.add_test(TestCase::new(
+    suite.add_test(TestCase::with_category(
         "capability_bits",
         test_capability_bits,
         "security",
     ));
-    suite.add_test(TestCase::new(
+    suite.add_test(TestCase::with_category(
         "driver_access_control",
         test_driver_access_control,
         "security",
     ));
-    suite.add_test(TestCase::new(
+    suite.add_test(TestCase::with_category(
         "pci_validation",
         test_pci_validation,
         "security",
     ));
-    suite.add_test(TestCase::new(
+    suite.add_test(TestCase::with_category(
         "memory_protection",
         test_memory_protection,
         "security",
