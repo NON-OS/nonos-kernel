@@ -9,7 +9,7 @@ use alloc::vec;
 use crate::apps::ecosystem::browser::engine::types::document::{Document, Node, NodeType};
 use crate::test::framework::TestResult;
 
-pub fn test_node_type_element() -> TestResult {
+pub(crate) fn test_node_type_element() -> TestResult {
     let node_type = NodeType::Element(String::from("div"));
     match node_type {
         NodeType::Element(name) => {
@@ -20,7 +20,7 @@ pub fn test_node_type_element() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_node_type_text() -> TestResult {
+pub(crate) fn test_node_type_text() -> TestResult {
     let node_type = NodeType::Text(String::from("Hello World"));
     match node_type {
         NodeType::Text(content) => {
@@ -31,7 +31,7 @@ pub fn test_node_type_text() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_node_type_comment() -> TestResult {
+pub(crate) fn test_node_type_comment() -> TestResult {
     let node_type = NodeType::Comment(String::from("This is a comment"));
     match node_type {
         NodeType::Comment(content) => {
@@ -42,7 +42,7 @@ pub fn test_node_type_comment() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_node_new_element() -> TestResult {
+pub(crate) fn test_node_new_element() -> TestResult {
     let node = Node {
         node_type: NodeType::Element(String::from("p")),
         children: Vec::new(),
@@ -53,7 +53,7 @@ pub fn test_node_new_element() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_node_with_children() -> TestResult {
+pub(crate) fn test_node_with_children() -> TestResult {
     let child = Node {
         node_type: NodeType::Text(String::from("text")),
         children: Vec::new(),
@@ -68,7 +68,7 @@ pub fn test_node_with_children() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_node_with_attributes() -> TestResult {
+pub(crate) fn test_node_with_attributes() -> TestResult {
     let node = Node {
         node_type: NodeType::Element(String::from("a")),
         children: Vec::new(),
@@ -83,7 +83,7 @@ pub fn test_node_with_attributes() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_document_new() -> TestResult {
+pub(crate) fn test_document_new() -> TestResult {
     let root = Node {
         node_type: NodeType::Element(String::from("html")),
         children: Vec::new(),
@@ -104,7 +104,7 @@ pub fn test_document_new() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_document_with_title() -> TestResult {
+pub(crate) fn test_document_with_title() -> TestResult {
     let root = Node {
         node_type: NodeType::Element(String::from("html")),
         children: Vec::new(),
@@ -123,7 +123,7 @@ pub fn test_document_with_title() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_document_noscript_redirect() -> TestResult {
+pub(crate) fn test_document_noscript_redirect() -> TestResult {
     let root = Node {
         node_type: NodeType::Element(String::from("html")),
         children: Vec::new(),
@@ -143,7 +143,7 @@ pub fn test_document_noscript_redirect() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_document_hidden_classes() -> TestResult {
+pub(crate) fn test_document_hidden_classes() -> TestResult {
     let root = Node {
         node_type: NodeType::Element(String::from("html")),
         children: Vec::new(),
@@ -163,7 +163,7 @@ pub fn test_document_hidden_classes() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_node_type_clone() -> TestResult {
+pub(crate) fn test_node_type_clone() -> TestResult {
     let original = NodeType::Element(String::from("div"));
     let cloned = original.clone();
     match cloned {
@@ -175,7 +175,7 @@ pub fn test_node_type_clone() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_node_clone() -> TestResult {
+pub(crate) fn test_node_clone() -> TestResult {
     let node = Node {
         node_type: NodeType::Element(String::from("span")),
         children: Vec::new(),
@@ -187,7 +187,7 @@ pub fn test_node_clone() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_document_clone() -> TestResult {
+pub(crate) fn test_document_clone() -> TestResult {
     let root = Node {
         node_type: NodeType::Element(String::from("html")),
         children: Vec::new(),
@@ -207,7 +207,7 @@ pub fn test_document_clone() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_nested_nodes() -> TestResult {
+pub(crate) fn test_nested_nodes() -> TestResult {
     let text = Node {
         node_type: NodeType::Text(String::from("Hello")),
         children: Vec::new(),

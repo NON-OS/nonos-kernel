@@ -9,7 +9,7 @@ use crate::apps::context::{AppContext, AppPermissions, PermissionLevel};
 use crate::apps::types::AppType;
 use crate::test::framework::TestResult;
 
-pub fn test_permission_level_denied() -> TestResult {
+pub(crate) fn test_permission_level_denied() -> TestResult {
     let level = PermissionLevel::Denied;
     if level.can_read() { return TestResult::Fail; }
     if level.can_write() { return TestResult::Fail; }
@@ -17,7 +17,7 @@ pub fn test_permission_level_denied() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_permission_level_readonly() -> TestResult {
+pub(crate) fn test_permission_level_readonly() -> TestResult {
     let level = PermissionLevel::ReadOnly;
     if !level.can_read() { return TestResult::Fail; }
     if level.can_write() { return TestResult::Fail; }
@@ -25,7 +25,7 @@ pub fn test_permission_level_readonly() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_permission_level_readwrite() -> TestResult {
+pub(crate) fn test_permission_level_readwrite() -> TestResult {
     let level = PermissionLevel::ReadWrite;
     if !level.can_read() { return TestResult::Fail; }
     if !level.can_write() { return TestResult::Fail; }
@@ -33,7 +33,7 @@ pub fn test_permission_level_readwrite() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_permission_level_full() -> TestResult {
+pub(crate) fn test_permission_level_full() -> TestResult {
     let level = PermissionLevel::Full;
     if !level.can_read() { return TestResult::Fail; }
     if !level.can_write() { return TestResult::Fail; }
@@ -41,20 +41,20 @@ pub fn test_permission_level_full() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_permission_level_default() -> TestResult {
+pub(crate) fn test_permission_level_default() -> TestResult {
     let level: PermissionLevel = Default::default();
     if level != PermissionLevel::Denied { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_permission_level_ordering() -> TestResult {
+pub(crate) fn test_permission_level_ordering() -> TestResult {
     if !(PermissionLevel::Denied < PermissionLevel::ReadOnly) { return TestResult::Fail; }
     if !(PermissionLevel::ReadOnly < PermissionLevel::ReadWrite) { return TestResult::Fail; }
     if !(PermissionLevel::ReadWrite < PermissionLevel::Full) { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_permission_level_repr() -> TestResult {
+pub(crate) fn test_permission_level_repr() -> TestResult {
     if (PermissionLevel::Denied as u8) != 0 { return TestResult::Fail; }
     if (PermissionLevel::ReadOnly as u8) != 1 { return TestResult::Fail; }
     if (PermissionLevel::ReadWrite as u8) != 2 { return TestResult::Fail; }
@@ -62,13 +62,13 @@ pub fn test_permission_level_repr() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_app_permissions_none() -> TestResult {
+pub(crate) fn test_app_permissions_none() -> TestResult {
     let perms = AppPermissions::NONE;
     if !perms.is_empty() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_app_permissions_individual() -> TestResult {
+pub(crate) fn test_app_permissions_individual() -> TestResult {
     if !AppPermissions::NETWORK.contains(AppPermissions::NETWORK) { return TestResult::Fail; }
     if !AppPermissions::FILESYSTEM.contains(AppPermissions::FILESYSTEM) { return TestResult::Fail; }
     if !AppPermissions::CRYPTO.contains(AppPermissions::CRYPTO) { return TestResult::Fail; }
@@ -76,7 +76,7 @@ pub fn test_app_permissions_individual() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_app_permissions_browser_preset() -> TestResult {
+pub(crate) fn test_app_permissions_browser_preset() -> TestResult {
     let browser = AppPermissions::BROWSER;
     if !browser.contains(AppPermissions::NETWORK) { return TestResult::Fail; }
     if !browser.contains(AppPermissions::DISPLAY) { return TestResult::Fail; }
@@ -86,7 +86,7 @@ pub fn test_app_permissions_browser_preset() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_app_permissions_wallet_preset() -> TestResult {
+pub(crate) fn test_app_permissions_wallet_preset() -> TestResult {
     let wallet = AppPermissions::WALLET_APP;
     if !wallet.contains(AppPermissions::CRYPTO) { return TestResult::Fail; }
     if !wallet.contains(AppPermissions::WALLET) { return TestResult::Fail; }
@@ -96,7 +96,7 @@ pub fn test_app_permissions_wallet_preset() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_app_permissions_ecosystem_preset() -> TestResult {
+pub(crate) fn test_app_permissions_ecosystem_preset() -> TestResult {
     let eco = AppPermissions::ECOSYSTEM;
     if !eco.contains(AppPermissions::NETWORK) { return TestResult::Fail; }
     if !eco.contains(AppPermissions::CRYPTO) { return TestResult::Fail; }
@@ -105,7 +105,7 @@ pub fn test_app_permissions_ecosystem_preset() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_app_permissions_combine() -> TestResult {
+pub(crate) fn test_app_permissions_combine() -> TestResult {
     let perms = AppPermissions::NETWORK | AppPermissions::CRYPTO;
     if !perms.contains(AppPermissions::NETWORK) { return TestResult::Fail; }
     if !perms.contains(AppPermissions::CRYPTO) { return TestResult::Fail; }
@@ -113,13 +113,13 @@ pub fn test_app_permissions_combine() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_app_permissions_default() -> TestResult {
+pub(crate) fn test_app_permissions_default() -> TestResult {
     let perms: AppPermissions = Default::default();
     if perms != AppPermissions::NONE { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_app_context_new() -> TestResult {
+pub(crate) fn test_app_context_new() -> TestResult {
     let ctx = AppContext::new(
         String::from("TestApp"),
         AppType::Utility,
@@ -130,7 +130,7 @@ pub fn test_app_context_new() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_app_context_with_permissions() -> TestResult {
+pub(crate) fn test_app_context_with_permissions() -> TestResult {
     let ctx = AppContext::new(
         String::from("Browser"),
         AppType::Browser,
@@ -142,14 +142,14 @@ pub fn test_app_context_with_permissions() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_app_context_id_unique() -> TestResult {
+pub(crate) fn test_app_context_id_unique() -> TestResult {
     let ctx1 = AppContext::new(String::from("App1"), AppType::Utility, AppPermissions::NONE);
     let ctx2 = AppContext::new(String::from("App2"), AppType::Utility, AppPermissions::NONE);
     if ctx1.id() == ctx2.id() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_app_context_mark_started() -> TestResult {
+pub(crate) fn test_app_context_mark_started() -> TestResult {
     let ctx = AppContext::new(String::from("App"), AppType::Utility, AppPermissions::NONE);
     if ctx.started_at() != 0 { return TestResult::Fail; }
     ctx.mark_started();
@@ -158,7 +158,7 @@ pub fn test_app_context_mark_started() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_app_context_mark_active() -> TestResult {
+pub(crate) fn test_app_context_mark_active() -> TestResult {
     let ctx = AppContext::new(String::from("App"), AppType::Utility, AppPermissions::NONE);
     ctx.mark_started();
     let first = ctx.last_active();
@@ -167,7 +167,7 @@ pub fn test_app_context_mark_active() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_app_context_memory_tracking() -> TestResult {
+pub(crate) fn test_app_context_memory_tracking() -> TestResult {
     let ctx = AppContext::new(String::from("App"), AppType::Utility, AppPermissions::NONE);
     if ctx.memory_used() != 0 { return TestResult::Fail; }
     ctx.add_memory(1024);
@@ -179,7 +179,7 @@ pub fn test_app_context_memory_tracking() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_app_context_memory_free_overflow() -> TestResult {
+pub(crate) fn test_app_context_memory_free_overflow() -> TestResult {
     let ctx = AppContext::new(String::from("App"), AppType::Utility, AppPermissions::NONE);
     ctx.add_memory(100);
     ctx.free_memory(200);
@@ -187,7 +187,7 @@ pub fn test_app_context_memory_free_overflow() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_app_context_state() -> TestResult {
+pub(crate) fn test_app_context_state() -> TestResult {
     let mut ctx = AppContext::new(String::from("App"), AppType::Utility, AppPermissions::NONE);
     ctx.set_state(String::from("key1"), vec![1, 2, 3]);
     ctx.set_state(String::from("key2"), vec![4, 5, 6]);
@@ -197,7 +197,7 @@ pub fn test_app_context_state() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_app_context_state_update() -> TestResult {
+pub(crate) fn test_app_context_state_update() -> TestResult {
     let mut ctx = AppContext::new(String::from("App"), AppType::Utility, AppPermissions::NONE);
     ctx.set_state(String::from("key"), vec![1]);
     ctx.set_state(String::from("key"), vec![2]);
@@ -205,7 +205,7 @@ pub fn test_app_context_state_update() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_app_context_remove_state() -> TestResult {
+pub(crate) fn test_app_context_remove_state() -> TestResult {
     let mut ctx = AppContext::new(String::from("App"), AppType::Utility, AppPermissions::NONE);
     ctx.set_state(String::from("key"), vec![1, 2, 3]);
     let removed = ctx.remove_state("key");
@@ -214,7 +214,7 @@ pub fn test_app_context_remove_state() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_app_context_clear_state() -> TestResult {
+pub(crate) fn test_app_context_clear_state() -> TestResult {
     let mut ctx = AppContext::new(String::from("App"), AppType::Utility, AppPermissions::NONE);
     ctx.set_state(String::from("key1"), vec![1]);
     ctx.set_state(String::from("key2"), vec![2]);
@@ -224,7 +224,7 @@ pub fn test_app_context_clear_state() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_app_context_state_keys() -> TestResult {
+pub(crate) fn test_app_context_state_keys() -> TestResult {
     let mut ctx = AppContext::new(String::from("App"), AppType::Utility, AppPermissions::NONE);
     ctx.set_state(String::from("alpha"), vec![1]);
     ctx.set_state(String::from("beta"), vec![2]);
@@ -233,7 +233,7 @@ pub fn test_app_context_state_keys() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_app_context_uptime() -> TestResult {
+pub(crate) fn test_app_context_uptime() -> TestResult {
     let ctx = AppContext::new(String::from("App"), AppType::Utility, AppPermissions::NONE);
     if ctx.uptime_ms() != 0 { return TestResult::Fail; }
     ctx.mark_started();
@@ -241,7 +241,7 @@ pub fn test_app_context_uptime() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_app_context_idle() -> TestResult {
+pub(crate) fn test_app_context_idle() -> TestResult {
     let ctx = AppContext::new(String::from("App"), AppType::Utility, AppPermissions::NONE);
     if ctx.idle_ms() != 0 { return TestResult::Fail; }
     ctx.mark_started();
@@ -249,14 +249,14 @@ pub fn test_app_context_idle() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_permission_level_clone() -> TestResult {
+pub(crate) fn test_permission_level_clone() -> TestResult {
     let level = PermissionLevel::Full;
     let cloned = level.clone();
     if level != cloned { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_app_permissions_clone() -> TestResult {
+pub(crate) fn test_app_permissions_clone() -> TestResult {
     let perms = AppPermissions::NETWORK | AppPermissions::CRYPTO;
     let cloned = perms.clone();
     if perms != cloned { return TestResult::Fail; }
