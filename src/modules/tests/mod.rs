@@ -7,7 +7,7 @@ use crate::modules::{
 use alloc::string::String;
 
 #[test]
-fn test_module_state_unloaded() {
+pub(crate) fn test_module_state_unloaded() {
     let state = ModuleState::Unloaded;
     assert_eq!(state.as_str(), "Unloaded");
     assert!(!state.is_active());
@@ -16,7 +16,7 @@ fn test_module_state_unloaded() {
 }
 
 #[test]
-fn test_module_state_loading() {
+pub(crate) fn test_module_state_loading() {
     let state = ModuleState::Loading;
     assert_eq!(state.as_str(), "Loading");
     assert!(!state.is_active());
@@ -25,7 +25,7 @@ fn test_module_state_loading() {
 }
 
 #[test]
-fn test_module_state_loaded() {
+pub(crate) fn test_module_state_loaded() {
     let state = ModuleState::Loaded;
     assert_eq!(state.as_str(), "Loaded");
     assert!(!state.is_active());
@@ -34,7 +34,7 @@ fn test_module_state_loaded() {
 }
 
 #[test]
-fn test_module_state_running() {
+pub(crate) fn test_module_state_running() {
     let state = ModuleState::Running;
     assert_eq!(state.as_str(), "Running");
     assert!(state.is_active());
@@ -43,7 +43,7 @@ fn test_module_state_running() {
 }
 
 #[test]
-fn test_module_state_paused() {
+pub(crate) fn test_module_state_paused() {
     let state = ModuleState::Paused;
     assert_eq!(state.as_str(), "Paused");
     assert!(state.is_active());
@@ -52,7 +52,7 @@ fn test_module_state_paused() {
 }
 
 #[test]
-fn test_module_state_stopping() {
+pub(crate) fn test_module_state_stopping() {
     let state = ModuleState::Stopping;
     assert_eq!(state.as_str(), "Stopping");
     assert!(!state.is_active());
@@ -61,7 +61,7 @@ fn test_module_state_stopping() {
 }
 
 #[test]
-fn test_module_state_stopped() {
+pub(crate) fn test_module_state_stopped() {
     let state = ModuleState::Stopped;
     assert_eq!(state.as_str(), "Stopped");
     assert!(!state.is_active());
@@ -70,7 +70,7 @@ fn test_module_state_stopped() {
 }
 
 #[test]
-fn test_module_state_failed() {
+pub(crate) fn test_module_state_failed() {
     let state = ModuleState::Failed;
     assert_eq!(state.as_str(), "Failed");
     assert!(!state.is_active());
@@ -79,40 +79,40 @@ fn test_module_state_failed() {
 }
 
 #[test]
-fn test_module_state_default() {
+pub(crate) fn test_module_state_default() {
     let state = ModuleState::default();
     assert_eq!(state, ModuleState::Unloaded);
 }
 
 #[test]
-fn test_module_state_clone() {
+pub(crate) fn test_module_state_clone() {
     let state = ModuleState::Running;
     let cloned = state.clone();
     assert_eq!(state, cloned);
 }
 
 #[test]
-fn test_module_state_copy() {
+pub(crate) fn test_module_state_copy() {
     let state = ModuleState::Loaded;
     let copied = state;
     assert_eq!(state, copied);
 }
 
 #[test]
-fn test_module_state_equality() {
+pub(crate) fn test_module_state_equality() {
     assert_eq!(ModuleState::Running, ModuleState::Running);
     assert_ne!(ModuleState::Running, ModuleState::Stopped);
 }
 
 #[test]
-fn test_module_state_debug() {
+pub(crate) fn test_module_state_debug() {
     let state = ModuleState::Running;
     let debug_str = alloc::format!("{:?}", state);
     assert!(debug_str.contains("Running"));
 }
 
 #[test]
-fn test_module_info_new() {
+pub(crate) fn test_module_info_new() {
     let info = ModuleInfo::new(1, String::from("test_module"));
     assert_eq!(info.id, 1);
     assert_eq!(info.name, "test_module");
@@ -125,34 +125,34 @@ fn test_module_info_new() {
 }
 
 #[test]
-fn test_module_info_with_params() {
+pub(crate) fn test_module_info_with_params() {
     let info = ModuleInfo::new(2, String::from("param_module"))
         .with_params(String::from("key=value"));
     assert_eq!(info.params, Some(String::from("key=value")));
 }
 
 #[test]
-fn test_module_info_is_loaded_unloaded() {
+pub(crate) fn test_module_info_is_loaded_unloaded() {
     let info = ModuleInfo::new(1, String::from("test"));
     assert!(!info.is_loaded());
 }
 
 #[test]
-fn test_module_info_is_loaded_running() {
+pub(crate) fn test_module_info_is_loaded_running() {
     let mut info = ModuleInfo::new(1, String::from("test"));
     info.state = ModuleState::Running;
     assert!(info.is_loaded());
 }
 
 #[test]
-fn test_module_info_is_loaded_failed() {
+pub(crate) fn test_module_info_is_loaded_failed() {
     let mut info = ModuleInfo::new(1, String::from("test"));
     info.state = ModuleState::Failed;
     assert!(!info.is_loaded());
 }
 
 #[test]
-fn test_module_info_is_running() {
+pub(crate) fn test_module_info_is_running() {
     let mut info = ModuleInfo::new(1, String::from("test"));
     assert!(!info.is_running());
     info.state = ModuleState::Running;
@@ -160,7 +160,7 @@ fn test_module_info_is_running() {
 }
 
 #[test]
-fn test_module_info_clone() {
+pub(crate) fn test_module_info_clone() {
     let info = ModuleInfo::new(3, String::from("clone_test"));
     let cloned = info.clone();
     assert_eq!(cloned.id, info.id);
@@ -169,68 +169,68 @@ fn test_module_info_clone() {
 }
 
 #[test]
-fn test_module_type_system() {
+pub(crate) fn test_module_type_system() {
     let mt = ModuleType::System;
     assert_eq!(mt.as_str(), "System");
     assert_eq!(mt.as_u8(), 0);
 }
 
 #[test]
-fn test_module_type_user() {
+pub(crate) fn test_module_type_user() {
     let mt = ModuleType::User;
     assert_eq!(mt.as_str(), "User");
     assert_eq!(mt.as_u8(), 1);
 }
 
 #[test]
-fn test_module_type_driver() {
+pub(crate) fn test_module_type_driver() {
     let mt = ModuleType::Driver;
     assert_eq!(mt.as_str(), "Driver");
     assert_eq!(mt.as_u8(), 2);
 }
 
 #[test]
-fn test_module_type_service() {
+pub(crate) fn test_module_type_service() {
     let mt = ModuleType::Service;
     assert_eq!(mt.as_str(), "Service");
     assert_eq!(mt.as_u8(), 3);
 }
 
 #[test]
-fn test_module_type_library() {
+pub(crate) fn test_module_type_library() {
     let mt = ModuleType::Library;
     assert_eq!(mt.as_str(), "Library");
     assert_eq!(mt.as_u8(), 4);
 }
 
 #[test]
-fn test_module_type_default() {
+pub(crate) fn test_module_type_default() {
     let mt = ModuleType::default();
     assert_eq!(mt, ModuleType::User);
 }
 
 #[test]
-fn test_module_type_clone() {
+pub(crate) fn test_module_type_clone() {
     let mt = ModuleType::Driver;
     let cloned = mt.clone();
     assert_eq!(mt, cloned);
 }
 
 #[test]
-fn test_module_type_copy() {
+pub(crate) fn test_module_type_copy() {
     let mt = ModuleType::Service;
     let copied = mt;
     assert_eq!(mt, copied);
 }
 
 #[test]
-fn test_module_type_equality() {
+pub(crate) fn test_module_type_equality() {
     assert_eq!(ModuleType::System, ModuleType::System);
     assert_ne!(ModuleType::System, ModuleType::User);
 }
 
 #[test]
-fn test_privacy_policy_zero_state_only() {
+pub(crate) fn test_privacy_policy_zero_state_only() {
     let pp = PrivacyPolicy::ZeroStateOnly;
     assert_eq!(pp.as_str(), "ZeroStateOnly");
     assert!(!pp.allows_persistence());
@@ -238,7 +238,7 @@ fn test_privacy_policy_zero_state_only() {
 }
 
 #[test]
-fn test_privacy_policy_ephemeral() {
+pub(crate) fn test_privacy_policy_ephemeral() {
     let pp = PrivacyPolicy::Ephemeral;
     assert_eq!(pp.as_str(), "Ephemeral");
     assert!(!pp.allows_persistence());
@@ -246,7 +246,7 @@ fn test_privacy_policy_ephemeral() {
 }
 
 #[test]
-fn test_privacy_policy_encrypted_persistent() {
+pub(crate) fn test_privacy_policy_encrypted_persistent() {
     let pp = PrivacyPolicy::EncryptedPersistent;
     assert_eq!(pp.as_str(), "EncryptedPersistent");
     assert!(pp.allows_persistence());
@@ -254,7 +254,7 @@ fn test_privacy_policy_encrypted_persistent() {
 }
 
 #[test]
-fn test_privacy_policy_none() {
+pub(crate) fn test_privacy_policy_none() {
     let pp = PrivacyPolicy::None;
     assert_eq!(pp.as_str(), "None");
     assert!(!pp.allows_persistence());
@@ -262,27 +262,27 @@ fn test_privacy_policy_none() {
 }
 
 #[test]
-fn test_privacy_policy_default() {
+pub(crate) fn test_privacy_policy_default() {
     let pp = PrivacyPolicy::default();
     assert_eq!(pp, PrivacyPolicy::ZeroStateOnly);
 }
 
 #[test]
-fn test_privacy_policy_clone() {
+pub(crate) fn test_privacy_policy_clone() {
     let pp = PrivacyPolicy::Ephemeral;
     let cloned = pp.clone();
     assert_eq!(pp, cloned);
 }
 
 #[test]
-fn test_privacy_policy_copy() {
+pub(crate) fn test_privacy_policy_copy() {
     let pp = PrivacyPolicy::EncryptedPersistent;
     let copied = pp;
     assert_eq!(pp, copied);
 }
 
 #[test]
-fn test_memory_requirements_default() {
+pub(crate) fn test_memory_requirements_default() {
     let mr = MemoryRequirements::default();
     assert!(mr.min_heap > 0);
     assert!(mr.max_heap > mr.min_heap);
@@ -291,7 +291,7 @@ fn test_memory_requirements_default() {
 }
 
 #[test]
-fn test_memory_requirements_clone() {
+pub(crate) fn test_memory_requirements_clone() {
     let mr = MemoryRequirements {
         min_heap: 4096,
         max_heap: 65536,
@@ -306,7 +306,7 @@ fn test_memory_requirements_clone() {
 }
 
 #[test]
-fn test_memory_requirements_copy() {
+pub(crate) fn test_memory_requirements_copy() {
     let mr = MemoryRequirements {
         min_heap: 1024,
         max_heap: 2048,
@@ -319,7 +319,7 @@ fn test_memory_requirements_copy() {
 }
 
 #[test]
-fn test_module_state_transition_loaded_to_running() {
+pub(crate) fn test_module_state_transition_loaded_to_running() {
     let loaded = ModuleState::Loaded;
     let running = ModuleState::Running;
     assert!(loaded.can_start());
@@ -327,7 +327,7 @@ fn test_module_state_transition_loaded_to_running() {
 }
 
 #[test]
-fn test_module_state_transition_running_to_stopped() {
+pub(crate) fn test_module_state_transition_running_to_stopped() {
     let running = ModuleState::Running;
     let stopped = ModuleState::Stopped;
     assert!(running.can_stop());
@@ -335,7 +335,7 @@ fn test_module_state_transition_running_to_stopped() {
 }
 
 #[test]
-fn test_module_state_all_variants_have_str() {
+pub(crate) fn test_module_state_all_variants_have_str() {
     let states = [
         ModuleState::Unloaded,
         ModuleState::Loading,
@@ -352,7 +352,7 @@ fn test_module_state_all_variants_have_str() {
 }
 
 #[test]
-fn test_module_type_all_variants_have_str() {
+pub(crate) fn test_module_type_all_variants_have_str() {
     let types = [
         ModuleType::System,
         ModuleType::User,
@@ -366,7 +366,7 @@ fn test_module_type_all_variants_have_str() {
 }
 
 #[test]
-fn test_module_type_unique_u8_values() {
+pub(crate) fn test_module_type_unique_u8_values() {
     let types = [
         ModuleType::System,
         ModuleType::User,
@@ -385,7 +385,7 @@ fn test_module_type_unique_u8_values() {
 }
 
 #[test]
-fn test_privacy_policy_all_variants_have_str() {
+pub(crate) fn test_privacy_policy_all_variants_have_str() {
     let policies = [
         PrivacyPolicy::ZeroStateOnly,
         PrivacyPolicy::Ephemeral,
