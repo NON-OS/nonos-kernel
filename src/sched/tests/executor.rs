@@ -15,65 +15,65 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::sched::executor::*;
+use crate::test::framework::TestResult;
 
-#[test]
-fn test_async_task_priority_values() {
-    assert_eq!(AsyncTaskPriority::Critical as u8, 0);
-    assert_eq!(AsyncTaskPriority::High as u8, 1);
-    assert_eq!(AsyncTaskPriority::Normal as u8, 2);
-    assert_eq!(AsyncTaskPriority::Low as u8, 3);
-    assert_eq!(AsyncTaskPriority::Idle as u8, 4);
+pub fn test_async_task_priority_values() -> TestResult {
+    if AsyncTaskPriority::Critical as u8 != 0 { return TestResult::Fail; }
+    if AsyncTaskPriority::High as u8 != 1 { return TestResult::Fail; }
+    if AsyncTaskPriority::Normal as u8 != 2 { return TestResult::Fail; }
+    if AsyncTaskPriority::Low as u8 != 3 { return TestResult::Fail; }
+    if AsyncTaskPriority::Idle as u8 != 4 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_async_task_priority_ordering() {
-    assert!(AsyncTaskPriority::Critical < AsyncTaskPriority::High);
-    assert!(AsyncTaskPriority::High < AsyncTaskPriority::Normal);
-    assert!(AsyncTaskPriority::Normal < AsyncTaskPriority::Low);
-    assert!(AsyncTaskPriority::Low < AsyncTaskPriority::Idle);
+pub fn test_async_task_priority_ordering() -> TestResult {
+    if !(AsyncTaskPriority::Critical < AsyncTaskPriority::High) { return TestResult::Fail; }
+    if !(AsyncTaskPriority::High < AsyncTaskPriority::Normal) { return TestResult::Fail; }
+    if !(AsyncTaskPriority::Normal < AsyncTaskPriority::Low) { return TestResult::Fail; }
+    if !(AsyncTaskPriority::Low < AsyncTaskPriority::Idle) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_async_task_priority_default() {
+pub fn test_async_task_priority_default() -> TestResult {
     let priority: AsyncTaskPriority = Default::default();
-    assert_eq!(priority, AsyncTaskPriority::Normal);
+    if priority != AsyncTaskPriority::Normal { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_async_task_priority_clone() {
+pub fn test_async_task_priority_clone() -> TestResult {
     let p1 = AsyncTaskPriority::High;
     let p2 = p1.clone();
-    assert_eq!(p1, p2);
+    if p1 != p2 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_async_task_priority_copy() {
+pub fn test_async_task_priority_copy() -> TestResult {
     let p1 = AsyncTaskPriority::Critical;
     let p2 = p1;
-    assert_eq!(p1, p2);
+    if p1 != p2 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_async_task_priority_equality() {
-    assert_eq!(AsyncTaskPriority::Normal, AsyncTaskPriority::Normal);
-    assert_ne!(AsyncTaskPriority::High, AsyncTaskPriority::Low);
+pub fn test_async_task_priority_equality() -> TestResult {
+    if AsyncTaskPriority::Normal != AsyncTaskPriority::Normal { return TestResult::Fail; }
+    if AsyncTaskPriority::High == AsyncTaskPriority::Low { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_async_task_priority_debug() {
+pub fn test_async_task_priority_debug() -> TestResult {
     let debug_str = alloc::format!("{:?}", AsyncTaskPriority::Critical);
-    assert!(debug_str.contains("Critical"));
+    if !debug_str.contains("Critical") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_async_task_priority_partial_ord() {
-    assert!(AsyncTaskPriority::Critical <= AsyncTaskPriority::High);
-    assert!(AsyncTaskPriority::Idle >= AsyncTaskPriority::Low);
-    assert!(AsyncTaskPriority::Normal <= AsyncTaskPriority::Normal);
+pub fn test_async_task_priority_partial_ord() -> TestResult {
+    if !(AsyncTaskPriority::Critical <= AsyncTaskPriority::High) { return TestResult::Fail; }
+    if !(AsyncTaskPriority::Idle >= AsyncTaskPriority::Low) { return TestResult::Fail; }
+    if !(AsyncTaskPriority::Normal <= AsyncTaskPriority::Normal) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_async_task_priority_ord_sort() {
+pub fn test_async_task_priority_ord_sort() -> TestResult {
     let mut priorities = [
         AsyncTaskPriority::Low,
         AsyncTaskPriority::Critical,
@@ -82,15 +82,15 @@ fn test_async_task_priority_ord_sort() {
         AsyncTaskPriority::Normal,
     ];
     priorities.sort();
-    assert_eq!(priorities[0], AsyncTaskPriority::Critical);
-    assert_eq!(priorities[1], AsyncTaskPriority::High);
-    assert_eq!(priorities[2], AsyncTaskPriority::Normal);
-    assert_eq!(priorities[3], AsyncTaskPriority::Low);
-    assert_eq!(priorities[4], AsyncTaskPriority::Idle);
+    if priorities[0] != AsyncTaskPriority::Critical { return TestResult::Fail; }
+    if priorities[1] != AsyncTaskPriority::High { return TestResult::Fail; }
+    if priorities[2] != AsyncTaskPriority::Normal { return TestResult::Fail; }
+    if priorities[3] != AsyncTaskPriority::Low { return TestResult::Fail; }
+    if priorities[4] != AsyncTaskPriority::Idle { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_executor_stats_snapshot_default_values() {
+pub fn test_executor_stats_snapshot_default_values() -> TestResult {
     let stats = ExecutorStatsSnapshot {
         tasks_spawned: 0,
         tasks_completed: 0,
@@ -99,12 +99,12 @@ fn test_executor_stats_snapshot_default_values() {
         pending_tasks: 0,
         woken_tasks: 0,
     };
-    assert_eq!(stats.tasks_spawned, 0);
-    assert_eq!(stats.tasks_completed, 0);
+    if stats.tasks_spawned != 0 { return TestResult::Fail; }
+    if stats.tasks_completed != 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_executor_stats_snapshot_with_values() {
+pub fn test_executor_stats_snapshot_with_values() -> TestResult {
     let stats = ExecutorStatsSnapshot {
         tasks_spawned: 100,
         tasks_completed: 50,
@@ -113,16 +113,16 @@ fn test_executor_stats_snapshot_with_values() {
         pending_tasks: 25,
         woken_tasks: 10,
     };
-    assert_eq!(stats.tasks_spawned, 100);
-    assert_eq!(stats.tasks_completed, 50);
-    assert_eq!(stats.polls_performed, 200);
-    assert_eq!(stats.wakeups_triggered, 75);
-    assert_eq!(stats.pending_tasks, 25);
-    assert_eq!(stats.woken_tasks, 10);
+    if stats.tasks_spawned != 100 { return TestResult::Fail; }
+    if stats.tasks_completed != 50 { return TestResult::Fail; }
+    if stats.polls_performed != 200 { return TestResult::Fail; }
+    if stats.wakeups_triggered != 75 { return TestResult::Fail; }
+    if stats.pending_tasks != 25 { return TestResult::Fail; }
+    if stats.woken_tasks != 10 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_executor_stats_snapshot_clone() {
+pub fn test_executor_stats_snapshot_clone() -> TestResult {
     let stats1 = ExecutorStatsSnapshot {
         tasks_spawned: 42,
         tasks_completed: 21,
@@ -132,13 +132,13 @@ fn test_executor_stats_snapshot_clone() {
         woken_tasks: 3,
     };
     let stats2 = stats1.clone();
-    assert_eq!(stats1.tasks_spawned, stats2.tasks_spawned);
-    assert_eq!(stats1.tasks_completed, stats2.tasks_completed);
-    assert_eq!(stats1.polls_performed, stats2.polls_performed);
+    if stats1.tasks_spawned != stats2.tasks_spawned { return TestResult::Fail; }
+    if stats1.tasks_completed != stats2.tasks_completed { return TestResult::Fail; }
+    if stats1.polls_performed != stats2.polls_performed { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_executor_stats_snapshot_debug() {
+pub fn test_executor_stats_snapshot_debug() -> TestResult {
     let stats = ExecutorStatsSnapshot {
         tasks_spawned: 1,
         tasks_completed: 0,
@@ -148,11 +148,11 @@ fn test_executor_stats_snapshot_debug() {
         woken_tasks: 0,
     };
     let debug_str = alloc::format!("{:?}", stats);
-    assert!(debug_str.contains("ExecutorStatsSnapshot"));
+    if !debug_str.contains("ExecutorStatsSnapshot") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_all_async_task_priority_variants_unique() {
+pub fn test_all_async_task_priority_variants_unique() -> TestResult {
     let priorities = [
         AsyncTaskPriority::Critical,
         AsyncTaskPriority::High,
@@ -162,43 +162,44 @@ fn test_all_async_task_priority_variants_unique() {
     ];
     for i in 0..priorities.len() {
         for j in (i + 1)..priorities.len() {
-            assert_ne!(priorities[i], priorities[j]);
+            if priorities[i] == priorities[j] { return TestResult::Fail; }
         }
     }
+    TestResult::Pass
 }
 
-#[test]
-fn test_async_task_priority_is_ord() {
+pub fn test_async_task_priority_is_ord() -> TestResult {
     fn is_ord<T: Ord>() {}
     is_ord::<AsyncTaskPriority>();
+    TestResult::Pass
 }
 
-#[test]
-fn test_async_task_priority_is_partial_ord() {
+pub fn test_async_task_priority_is_partial_ord() -> TestResult {
     fn is_partial_ord<T: PartialOrd>() {}
     is_partial_ord::<AsyncTaskPriority>();
+    TestResult::Pass
 }
 
-#[test]
-fn test_async_task_priority_is_eq() {
+pub fn test_async_task_priority_is_eq() -> TestResult {
     fn is_eq<T: Eq>() {}
     is_eq::<AsyncTaskPriority>();
+    TestResult::Pass
 }
 
-#[test]
-fn test_async_task_priority_is_partial_eq() {
+pub fn test_async_task_priority_is_partial_eq() -> TestResult {
     fn is_partial_eq<T: PartialEq>() {}
     is_partial_eq::<AsyncTaskPriority>();
+    TestResult::Pass
 }
 
-#[test]
-fn test_executor_stats_snapshot_is_clone() {
+pub fn test_executor_stats_snapshot_is_clone() -> TestResult {
     fn is_clone<T: Clone>() {}
     is_clone::<ExecutorStatsSnapshot>();
+    TestResult::Pass
 }
 
-#[test]
-fn test_executor_stats_snapshot_is_debug() {
+pub fn test_executor_stats_snapshot_is_debug() -> TestResult {
     fn is_debug<T: core::fmt::Debug>() {}
     is_debug::<ExecutorStatsSnapshot>();
+    TestResult::Pass
 }

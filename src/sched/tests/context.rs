@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::sched::*;
+use crate::test::framework::TestResult;
 
 fn create_context(rip: u64, rsp: u64) -> Context {
     Context {
@@ -39,123 +40,122 @@ fn create_context(rip: u64, rsp: u64) -> Context {
     }
 }
 
-#[test]
-fn test_context_struct_size() {
-    assert_eq!(core::mem::size_of::<Context>(), 18 * 8);
+pub fn test_context_struct_size() -> TestResult {
+    if core::mem::size_of::<Context>() != 18 * 8 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_context_is_repr_c() {
+pub fn test_context_is_repr_c() -> TestResult {
     let ctx = create_context(0x1000, 0x2000);
     let ptr = &ctx as *const Context as *const u64;
     unsafe {
-        assert_eq!(*ptr, ctx.rax);
-        assert_eq!(*ptr.add(1), ctx.rbx);
-        assert_eq!(*ptr.add(7), ctx.rsp);
-        assert_eq!(*ptr.add(16), ctx.rip);
-        assert_eq!(*ptr.add(17), ctx.rflags);
+        if *ptr != ctx.rax { return TestResult::Fail; }
+        if *ptr.add(1) != ctx.rbx { return TestResult::Fail; }
+        if *ptr.add(7) != ctx.rsp { return TestResult::Fail; }
+        if *ptr.add(16) != ctx.rip { return TestResult::Fail; }
+        if *ptr.add(17) != ctx.rflags { return TestResult::Fail; }
     }
+    TestResult::Pass
 }
 
-#[test]
-fn test_context_copy() {
+pub fn test_context_copy() -> TestResult {
     let ctx1 = create_context(0x1000, 0x2000);
     let ctx2 = ctx1;
-    assert_eq!(ctx1.rip, ctx2.rip);
-    assert_eq!(ctx1.rsp, ctx2.rsp);
+    if ctx1.rip != ctx2.rip { return TestResult::Fail; }
+    if ctx1.rsp != ctx2.rsp { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_context_clone() {
+pub fn test_context_clone() -> TestResult {
     let ctx1 = create_context(0x1000, 0x2000);
     let ctx2 = ctx1.clone();
-    assert_eq!(ctx1.rip, ctx2.rip);
-    assert_eq!(ctx1.rsp, ctx2.rsp);
+    if ctx1.rip != ctx2.rip { return TestResult::Fail; }
+    if ctx1.rsp != ctx2.rsp { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_context_validate_valid_kernel() {
+pub fn test_context_validate_valid_kernel() -> TestResult {
     let ctx = create_context(0xFFFF_8000_0000_1000, 0xFFFF_8000_0000_2000);
-    assert!(ctx.validate().is_ok());
+    if ctx.validate().is_err() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_context_validate_valid_userspace() {
+pub fn test_context_validate_valid_userspace() -> TestResult {
     let ctx = create_context(0x0000_0000_0040_0000, 0x0000_7FFF_FFFF_0000);
-    assert!(ctx.validate().is_ok());
+    if ctx.validate().is_err() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_context_validate_noncanonical_rip() {
+pub fn test_context_validate_noncanonical_rip() -> TestResult {
     let ctx = create_context(0x0000_8000_0000_0000, 0x0000_0000_0040_0000);
-    assert!(ctx.validate().is_err());
+    if ctx.validate().is_ok() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_context_validate_noncanonical_rsp() {
+pub fn test_context_validate_noncanonical_rsp() -> TestResult {
     let ctx = create_context(0x0000_0000_0040_0000, 0x0000_8000_0000_0000);
-    assert!(ctx.validate().is_err());
+    if ctx.validate().is_ok() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_context_validate_null_rsp() {
+pub fn test_context_validate_null_rsp() -> TestResult {
     let ctx = create_context(0x0000_0000_0040_0000, 0);
-    assert!(ctx.validate().is_err());
+    if ctx.validate().is_ok() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_context_validate_userspace_valid() {
+pub fn test_context_validate_userspace_valid() -> TestResult {
     let ctx = create_context(0x0000_0000_0040_0000, 0x0000_7FFF_0000_0000);
-    assert!(ctx.validate_userspace().is_ok());
+    if ctx.validate_userspace().is_err() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_context_validate_userspace_kernel_rip() {
+pub fn test_context_validate_userspace_kernel_rip() -> TestResult {
     let ctx = create_context(0xFFFF_8000_0000_1000, 0x0000_7FFF_0000_0000);
-    assert!(ctx.validate_userspace().is_err());
+    if ctx.validate_userspace().is_ok() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_context_validate_userspace_kernel_rsp() {
+pub fn test_context_validate_userspace_kernel_rsp() -> TestResult {
     let ctx = create_context(0x0000_0000_0040_0000, 0xFFFF_8000_0000_2000);
-    assert!(ctx.validate_userspace().is_err());
+    if ctx.validate_userspace().is_ok() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_context_validate_userspace_boundary_rip() {
+pub fn test_context_validate_userspace_boundary_rip() -> TestResult {
     let ctx = create_context(0x0000_7FFF_FFFF_FFFF, 0x0000_7FFF_0000_0000);
-    assert!(ctx.validate_userspace().is_ok());
+    if ctx.validate_userspace().is_err() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_context_validate_userspace_over_boundary_rip() {
+pub fn test_context_validate_userspace_over_boundary_rip() -> TestResult {
     let ctx = create_context(0x0000_8000_0000_0000, 0x0000_7FFF_0000_0000);
-    assert!(ctx.validate_userspace().is_err());
+    if ctx.validate_userspace().is_ok() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_context_all_registers_zero() {
+pub fn test_context_all_registers_zero() -> TestResult {
     let ctx = create_context(0x1000, 0x2000);
-    assert_eq!(ctx.rax, 0);
-    assert_eq!(ctx.rbx, 0);
-    assert_eq!(ctx.rcx, 0);
-    assert_eq!(ctx.rdx, 0);
-    assert_eq!(ctx.rsi, 0);
-    assert_eq!(ctx.rdi, 0);
-    assert_eq!(ctx.rbp, 0);
-    assert_eq!(ctx.r8, 0);
-    assert_eq!(ctx.r9, 0);
-    assert_eq!(ctx.r10, 0);
-    assert_eq!(ctx.r11, 0);
-    assert_eq!(ctx.r12, 0);
-    assert_eq!(ctx.r13, 0);
-    assert_eq!(ctx.r14, 0);
-    assert_eq!(ctx.r15, 0);
-    assert_eq!(ctx.rflags, 0);
+    if ctx.rax != 0 { return TestResult::Fail; }
+    if ctx.rbx != 0 { return TestResult::Fail; }
+    if ctx.rcx != 0 { return TestResult::Fail; }
+    if ctx.rdx != 0 { return TestResult::Fail; }
+    if ctx.rsi != 0 { return TestResult::Fail; }
+    if ctx.rdi != 0 { return TestResult::Fail; }
+    if ctx.rbp != 0 { return TestResult::Fail; }
+    if ctx.r8 != 0 { return TestResult::Fail; }
+    if ctx.r9 != 0 { return TestResult::Fail; }
+    if ctx.r10 != 0 { return TestResult::Fail; }
+    if ctx.r11 != 0 { return TestResult::Fail; }
+    if ctx.r12 != 0 { return TestResult::Fail; }
+    if ctx.r13 != 0 { return TestResult::Fail; }
+    if ctx.r14 != 0 { return TestResult::Fail; }
+    if ctx.r15 != 0 { return TestResult::Fail; }
+    if ctx.rflags != 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_context_with_custom_registers() {
+pub fn test_context_with_custom_registers() -> TestResult {
     let ctx = Context {
         rax: 1,
         rbx: 2,
@@ -177,32 +177,33 @@ fn test_context_with_custom_registers() {
         rflags: 0x202,
     };
 
-    assert_eq!(ctx.rax, 1);
-    assert_eq!(ctx.r8, 8);
-    assert_eq!(ctx.r15, 15);
-    assert_eq!(ctx.rflags, 0x202);
+    if ctx.rax != 1 { return TestResult::Fail; }
+    if ctx.r8 != 8 { return TestResult::Fail; }
+    if ctx.r15 != 15 { return TestResult::Fail; }
+    if ctx.rflags != 0x202 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_context_canonical_boundary_low() {
+pub fn test_context_canonical_boundary_low() -> TestResult {
     let ctx = create_context(0x0000_7FFF_FFFF_FFFF, 0x1000);
-    assert!(ctx.validate().is_ok());
+    if ctx.validate().is_err() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_context_canonical_boundary_high() {
+pub fn test_context_canonical_boundary_high() -> TestResult {
     let ctx = create_context(0xFFFF_8000_0000_0000, 0xFFFF_8000_0000_1000);
-    assert!(ctx.validate().is_ok());
+    if ctx.validate().is_err() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_context_noncanonical_hole_low() {
+pub fn test_context_noncanonical_hole_low() -> TestResult {
     let ctx = create_context(0x0000_8000_0000_0000, 0x1000);
-    assert!(ctx.validate().is_err());
+    if ctx.validate().is_ok() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_context_noncanonical_hole_high() {
+pub fn test_context_noncanonical_hole_high() -> TestResult {
     let ctx = create_context(0xFFFF_7FFF_FFFF_FFFF, 0x1000);
-    assert!(ctx.validate().is_err());
+    if ctx.validate().is_ok() { return TestResult::Fail; }
+    TestResult::Pass
 }

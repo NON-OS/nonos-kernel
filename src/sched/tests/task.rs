@@ -15,217 +15,218 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::sched::*;
+use crate::test::framework::TestResult;
 
 fn dummy_task_fn() {}
 
-#[test]
-fn test_task_spawn_creates_task() {
+pub fn test_task_spawn_creates_task() -> TestResult {
     let task = Task::spawn("test_task", dummy_task_fn, Priority::Normal, CpuAffinity::any());
-    assert_eq!(task.name, "test_task");
-    assert_eq!(task.priority, Priority::Normal);
-    assert!(!task.is_complete());
+    if task.name != "test_task" { return TestResult::Fail; }
+    if task.priority != Priority::Normal { return TestResult::Fail; }
+    if task.is_complete() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_task_spawn_with_different_priorities() {
+pub fn test_task_spawn_with_different_priorities() -> TestResult {
     let idle = Task::spawn("idle", dummy_task_fn, Priority::Idle, CpuAffinity::any());
     let realtime = Task::spawn("rt", dummy_task_fn, Priority::RealTime, CpuAffinity::any());
-    assert_eq!(idle.priority, Priority::Idle);
-    assert_eq!(realtime.priority, Priority::RealTime);
+    if idle.priority != Priority::Idle { return TestResult::Fail; }
+    if realtime.priority != Priority::RealTime { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_task_id_starts_at_zero() {
+pub fn test_task_id_starts_at_zero() -> TestResult {
     let task = Task::spawn("test", dummy_task_fn, Priority::Normal, CpuAffinity::any());
-    assert_eq!(task.id, 0);
+    if task.id != 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_task_has_function() {
+pub fn test_task_has_function() -> TestResult {
     let task = Task::spawn("test", dummy_task_fn, Priority::Normal, CpuAffinity::any());
-    assert!(task.func.is_some());
+    if task.func.is_none() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_task_is_complete_initially_false() {
+pub fn test_task_is_complete_initially_false() -> TestResult {
     let task = Task::spawn("test", dummy_task_fn, Priority::Normal, CpuAffinity::any());
-    assert!(!task.is_complete());
-    assert!(!task.complete);
+    if task.is_complete() { return TestResult::Fail; }
+    if task.complete { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_task_module_id_none_for_spawned() {
+pub fn test_task_module_id_none_for_spawned() -> TestResult {
     let task = Task::spawn("test", dummy_task_fn, Priority::Normal, CpuAffinity::any());
-    assert!(task.module_id.is_none());
+    if task.module_id.is_some() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_task_entry_point_zero_for_spawned() {
+pub fn test_task_entry_point_zero_for_spawned() -> TestResult {
     let task = Task::spawn("test", dummy_task_fn, Priority::Normal, CpuAffinity::any());
-    assert_eq!(task.entry_point, 0);
+    if task.entry_point != 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_task_stack_pointer_zero_for_spawned() {
+pub fn test_task_stack_pointer_zero_for_spawned() -> TestResult {
     let task = Task::spawn("test", dummy_task_fn, Priority::Normal, CpuAffinity::any());
-    assert_eq!(task.stack_pointer, 0);
+    if task.stack_pointer != 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_new_module_task_low_priority() {
+pub fn test_new_module_task_low_priority() -> TestResult {
     let task = Task::new_module_task(1, 100, 0x1000, 0x2000, 25);
-    assert_eq!(task.id, 1);
-    assert_eq!(task.module_id, Some(100));
-    assert_eq!(task.entry_point, 0x1000);
-    assert_eq!(task.stack_pointer, 0x2000);
-    assert_eq!(task.priority, Priority::Low);
+    if task.id != 1 { return TestResult::Fail; }
+    if task.module_id != Some(100) { return TestResult::Fail; }
+    if task.entry_point != 0x1000 { return TestResult::Fail; }
+    if task.stack_pointer != 0x2000 { return TestResult::Fail; }
+    if task.priority != Priority::Low { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_new_module_task_normal_priority() {
+pub fn test_new_module_task_normal_priority() -> TestResult {
     let task = Task::new_module_task(2, 200, 0x3000, 0x4000, 75);
-    assert_eq!(task.priority, Priority::Normal);
+    if task.priority != Priority::Normal { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_new_module_task_high_priority() {
+pub fn test_new_module_task_high_priority() -> TestResult {
     let task = Task::new_module_task(3, 300, 0x5000, 0x6000, 125);
-    assert_eq!(task.priority, Priority::High);
+    if task.priority != Priority::High { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_new_module_task_critical_priority() {
+pub fn test_new_module_task_critical_priority() -> TestResult {
     let task = Task::new_module_task(4, 400, 0x7000, 0x8000, 175);
-    assert_eq!(task.priority, Priority::Critical);
+    if task.priority != Priority::Critical { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_new_module_task_realtime_priority() {
+pub fn test_new_module_task_realtime_priority() -> TestResult {
     let task = Task::new_module_task(5, 500, 0x9000, 0xA000, 255);
-    assert_eq!(task.priority, Priority::RealTime);
+    if task.priority != Priority::RealTime { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_new_module_task_priority_boundary_50() {
+pub fn test_new_module_task_priority_boundary_50() -> TestResult {
     let task = Task::new_module_task(1, 1, 0, 0, 50);
-    assert_eq!(task.priority, Priority::Low);
+    if task.priority != Priority::Low { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_new_module_task_priority_boundary_51() {
+pub fn test_new_module_task_priority_boundary_51() -> TestResult {
     let task = Task::new_module_task(1, 1, 0, 0, 51);
-    assert_eq!(task.priority, Priority::Normal);
+    if task.priority != Priority::Normal { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_new_module_task_priority_boundary_100() {
+pub fn test_new_module_task_priority_boundary_100() -> TestResult {
     let task = Task::new_module_task(1, 1, 0, 0, 100);
-    assert_eq!(task.priority, Priority::Normal);
+    if task.priority != Priority::Normal { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_new_module_task_priority_boundary_101() {
+pub fn test_new_module_task_priority_boundary_101() -> TestResult {
     let task = Task::new_module_task(1, 1, 0, 0, 101);
-    assert_eq!(task.priority, Priority::High);
+    if task.priority != Priority::High { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_new_module_task_priority_boundary_150() {
+pub fn test_new_module_task_priority_boundary_150() -> TestResult {
     let task = Task::new_module_task(1, 1, 0, 0, 150);
-    assert_eq!(task.priority, Priority::High);
+    if task.priority != Priority::High { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_new_module_task_priority_boundary_151() {
+pub fn test_new_module_task_priority_boundary_151() -> TestResult {
     let task = Task::new_module_task(1, 1, 0, 0, 151);
-    assert_eq!(task.priority, Priority::Critical);
+    if task.priority != Priority::Critical { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_new_module_task_priority_boundary_200() {
+pub fn test_new_module_task_priority_boundary_200() -> TestResult {
     let task = Task::new_module_task(1, 1, 0, 0, 200);
-    assert_eq!(task.priority, Priority::Critical);
+    if task.priority != Priority::Critical { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_new_module_task_priority_boundary_201() {
+pub fn test_new_module_task_priority_boundary_201() -> TestResult {
     let task = Task::new_module_task(1, 1, 0, 0, 201);
-    assert_eq!(task.priority, Priority::RealTime);
+    if task.priority != Priority::RealTime { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_new_module_task_name() {
+pub fn test_new_module_task_name() -> TestResult {
     let task = Task::new_module_task(1, 1, 0, 0, 50);
-    assert_eq!(task.name, "module_task");
+    if task.name != "module_task" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_new_module_task_func_is_none() {
+pub fn test_new_module_task_func_is_none() -> TestResult {
     let task = Task::new_module_task(1, 1, 0, 0, 50);
-    assert!(task.func.is_none());
+    if task.func.is_some() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_new_module_task_not_complete() {
+pub fn test_new_module_task_not_complete() -> TestResult {
     let task = Task::new_module_task(1, 1, 0, 0, 50);
-    assert!(!task.is_complete());
+    if task.is_complete() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_new_module_task_affinity_any() {
+pub fn test_new_module_task_affinity_any() -> TestResult {
     let task = Task::new_module_task(1, 1, 0, 0, 50);
-    assert_eq!(task.affinity.allowed_cpus.len(), 16);
+    if task.affinity.allowed_cpus.len() != 16 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_cpu_affinity_any() {
+pub fn test_cpu_affinity_any() -> TestResult {
     let affinity = CpuAffinity::any();
-    assert_eq!(affinity.allowed_cpus.len(), 16);
+    if affinity.allowed_cpus.len() != 16 { return TestResult::Fail; }
     for i in 0..16 {
-        assert!(affinity.allowed_cpus.contains(&i));
+        if !affinity.allowed_cpus.contains(&i) { return TestResult::Fail; }
     }
+    TestResult::Pass
 }
 
-#[test]
-fn test_cpu_affinity_new_single() {
+pub fn test_cpu_affinity_new_single() -> TestResult {
     let affinity = CpuAffinity::new(alloc::vec![0]);
-    assert_eq!(affinity.allowed_cpus.len(), 1);
-    assert!(affinity.allowed_cpus.contains(&0));
+    if affinity.allowed_cpus.len() != 1 { return TestResult::Fail; }
+    if !affinity.allowed_cpus.contains(&0) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_cpu_affinity_new_multiple() {
+pub fn test_cpu_affinity_new_multiple() -> TestResult {
     let affinity = CpuAffinity::new(alloc::vec![0, 2, 4, 6]);
-    assert_eq!(affinity.allowed_cpus.len(), 4);
-    assert!(affinity.allowed_cpus.contains(&0));
-    assert!(affinity.allowed_cpus.contains(&2));
-    assert!(affinity.allowed_cpus.contains(&4));
-    assert!(affinity.allowed_cpus.contains(&6));
+    if affinity.allowed_cpus.len() != 4 { return TestResult::Fail; }
+    if !affinity.allowed_cpus.contains(&0) { return TestResult::Fail; }
+    if !affinity.allowed_cpus.contains(&2) { return TestResult::Fail; }
+    if !affinity.allowed_cpus.contains(&4) { return TestResult::Fail; }
+    if !affinity.allowed_cpus.contains(&6) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_cpu_affinity_new_empty() {
+pub fn test_cpu_affinity_new_empty() -> TestResult {
     let affinity = CpuAffinity::new(alloc::vec![]);
-    assert_eq!(affinity.allowed_cpus.len(), 0);
+    if affinity.allowed_cpus.len() != 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_cpu_affinity_clone() {
+pub fn test_cpu_affinity_clone() -> TestResult {
     let affinity1 = CpuAffinity::new(alloc::vec![1, 3, 5]);
     let affinity2 = affinity1.clone();
-    assert_eq!(affinity1.allowed_cpus, affinity2.allowed_cpus);
+    if affinity1.allowed_cpus != affinity2.allowed_cpus { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_cpu_affinity_debug() {
+pub fn test_cpu_affinity_debug() -> TestResult {
     let affinity = CpuAffinity::new(alloc::vec![0, 1]);
     let debug_str = alloc::format!("{:?}", affinity);
-    assert!(debug_str.contains("CpuAffinity"));
+    if !debug_str.contains("CpuAffinity") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_task_with_custom_affinity() {
+pub fn test_task_with_custom_affinity() -> TestResult {
     let affinity = CpuAffinity::new(alloc::vec![0, 1, 2, 3]);
     let task = Task::spawn("test", dummy_task_fn, Priority::Normal, affinity);
-    assert_eq!(task.affinity.allowed_cpus.len(), 4);
+    if task.affinity.allowed_cpus.len() != 4 { return TestResult::Fail; }
+    TestResult::Pass
 }
