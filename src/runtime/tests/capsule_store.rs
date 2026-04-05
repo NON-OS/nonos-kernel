@@ -15,84 +15,84 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::runtime::*;
+use crate::test::framework::TestResult;
 
-#[test]
-fn test_capsule_category_system() {
+pub fn test_capsule_category_system() -> TestResult {
     let category = capsule_store::CapsuleCategory::System;
-    assert_eq!(category, capsule_store::CapsuleCategory::System);
+    if category != capsule_store::CapsuleCategory::System { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_capsule_category_privacy() {
+pub fn test_capsule_category_privacy() -> TestResult {
     let category = capsule_store::CapsuleCategory::Privacy;
-    assert_eq!(category, capsule_store::CapsuleCategory::Privacy);
+    if category != capsule_store::CapsuleCategory::Privacy { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_capsule_category_security() {
+pub fn test_capsule_category_security() -> TestResult {
     let category = capsule_store::CapsuleCategory::Security;
-    assert_eq!(category, capsule_store::CapsuleCategory::Security);
+    if category != capsule_store::CapsuleCategory::Security { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_capsule_category_network() {
+pub fn test_capsule_category_network() -> TestResult {
     let category = capsule_store::CapsuleCategory::Network;
-    assert_eq!(category, capsule_store::CapsuleCategory::Network);
+    if category != capsule_store::CapsuleCategory::Network { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_capsule_category_utility() {
+pub fn test_capsule_category_utility() -> TestResult {
     let category = capsule_store::CapsuleCategory::Utility;
-    assert_eq!(category, capsule_store::CapsuleCategory::Utility);
+    if category != capsule_store::CapsuleCategory::Utility { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_capsule_category_development() {
+pub fn test_capsule_category_development() -> TestResult {
     let category = capsule_store::CapsuleCategory::Development;
-    assert_eq!(category, capsule_store::CapsuleCategory::Development);
+    if category != capsule_store::CapsuleCategory::Development { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_capsule_category_media() {
+pub fn test_capsule_category_media() -> TestResult {
     let category = capsule_store::CapsuleCategory::Media;
-    assert_eq!(category, capsule_store::CapsuleCategory::Media);
+    if category != capsule_store::CapsuleCategory::Media { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_capsule_category_finance() {
+pub fn test_capsule_category_finance() -> TestResult {
     let category = capsule_store::CapsuleCategory::Finance;
-    assert_eq!(category, capsule_store::CapsuleCategory::Finance);
+    if category != capsule_store::CapsuleCategory::Finance { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_capsule_category_communication() {
+pub fn test_capsule_category_communication() -> TestResult {
     let category = capsule_store::CapsuleCategory::Communication;
-    assert_eq!(category, capsule_store::CapsuleCategory::Communication);
+    if category != capsule_store::CapsuleCategory::Communication { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_capsule_category_clone() {
+pub fn test_capsule_category_clone() -> TestResult {
     let c1 = capsule_store::CapsuleCategory::System;
     let c2 = c1.clone();
-    assert_eq!(c1, c2);
+    if c1 != c2 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_capsule_category_copy() {
+pub fn test_capsule_category_copy() -> TestResult {
     let c1 = capsule_store::CapsuleCategory::Privacy;
     let c2 = c1;
-    assert_eq!(c1, c2);
+    if c1 != c2 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_capsule_category_debug() {
+pub fn test_capsule_category_debug() -> TestResult {
     let category = capsule_store::CapsuleCategory::Security;
     let debug_str = alloc::format!("{:?}", category);
-    assert!(debug_str.contains("Security"));
+    if !debug_str.contains("Security") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_capsule_category_all_unique() {
+pub fn test_capsule_category_all_unique() -> TestResult {
     let categories = [
         capsule_store::CapsuleCategory::System,
         capsule_store::CapsuleCategory::Privacy,
@@ -106,88 +106,88 @@ fn test_capsule_category_all_unique() {
     ];
     for i in 0..categories.len() {
         for j in (i + 1)..categories.len() {
-            assert_ne!(categories[i], categories[j]);
+            if categories[i] == categories[j] { return TestResult::Fail; }
         }
     }
+    TestResult::Pass
 }
 
-#[test]
-fn test_install_state_pending() {
+pub fn test_install_state_pending() -> TestResult {
     let state = capsule_store::InstallState::Pending;
-    assert_eq!(state, capsule_store::InstallState::Pending);
+    if state != capsule_store::InstallState::Pending { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_install_state_payment_required() {
+pub fn test_install_state_payment_required() -> TestResult {
     let state = capsule_store::InstallState::PaymentRequired;
-    assert_eq!(state, capsule_store::InstallState::PaymentRequired);
+    if state != capsule_store::InstallState::PaymentRequired { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_install_state_payment_submitted() {
+pub fn test_install_state_payment_submitted() -> TestResult {
     let state = capsule_store::InstallState::PaymentSubmitted;
-    assert_eq!(state, capsule_store::InstallState::PaymentSubmitted);
+    if state != capsule_store::InstallState::PaymentSubmitted { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_install_state_payment_confirmed() {
+pub fn test_install_state_payment_confirmed() -> TestResult {
     let state = capsule_store::InstallState::PaymentConfirmed;
-    assert_eq!(state, capsule_store::InstallState::PaymentConfirmed);
+    if state != capsule_store::InstallState::PaymentConfirmed { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_install_state_downloading() {
+pub fn test_install_state_downloading() -> TestResult {
     let state = capsule_store::InstallState::Downloading;
-    assert_eq!(state, capsule_store::InstallState::Downloading);
+    if state != capsule_store::InstallState::Downloading { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_install_state_verifying() {
+pub fn test_install_state_verifying() -> TestResult {
     let state = capsule_store::InstallState::Verifying;
-    assert_eq!(state, capsule_store::InstallState::Verifying);
+    if state != capsule_store::InstallState::Verifying { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_install_state_installing() {
+pub fn test_install_state_installing() -> TestResult {
     let state = capsule_store::InstallState::Installing;
-    assert_eq!(state, capsule_store::InstallState::Installing);
+    if state != capsule_store::InstallState::Installing { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_install_state_installed() {
+pub fn test_install_state_installed() -> TestResult {
     let state = capsule_store::InstallState::Installed;
-    assert_eq!(state, capsule_store::InstallState::Installed);
+    if state != capsule_store::InstallState::Installed { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_install_state_failed() {
+pub fn test_install_state_failed() -> TestResult {
     let state = capsule_store::InstallState::Failed;
-    assert_eq!(state, capsule_store::InstallState::Failed);
+    if state != capsule_store::InstallState::Failed { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_install_state_clone() {
+pub fn test_install_state_clone() -> TestResult {
     let s1 = capsule_store::InstallState::Pending;
     let s2 = s1.clone();
-    assert_eq!(s1, s2);
+    if s1 != s2 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_install_state_copy() {
+pub fn test_install_state_copy() -> TestResult {
     let s1 = capsule_store::InstallState::Installed;
     let s2 = s1;
-    assert_eq!(s1, s2);
+    if s1 != s2 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_install_state_debug() {
+pub fn test_install_state_debug() -> TestResult {
     let state = capsule_store::InstallState::Downloading;
     let debug_str = alloc::format!("{:?}", state);
-    assert!(debug_str.contains("Downloading"));
+    if !debug_str.contains("Downloading") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_install_state_all_unique() {
+pub fn test_install_state_all_unique() -> TestResult {
     let states = [
         capsule_store::InstallState::Pending,
         capsule_store::InstallState::PaymentRequired,
@@ -201,13 +201,13 @@ fn test_install_state_all_unique() {
     ];
     for i in 0..states.len() {
         for j in (i + 1)..states.len() {
-            assert_ne!(states[i], states[j]);
+            if states[i] == states[j] { return TestResult::Fail; }
         }
     }
+    TestResult::Pass
 }
 
-#[test]
-fn test_capsule_metadata_clone() {
+pub fn test_capsule_metadata_clone() -> TestResult {
     let meta = capsule_store::CapsuleMetadata {
         id: [0u8; 32],
         name: alloc::string::String::from("test"),
@@ -222,13 +222,13 @@ fn test_capsule_metadata_clone() {
         dilithium_signature: None,
     };
     let cloned = meta.clone();
-    assert_eq!(meta.name, cloned.name);
-    assert_eq!(meta.version, cloned.version);
-    assert_eq!(meta.category, cloned.category);
+    if meta.name != cloned.name { return TestResult::Fail; }
+    if meta.version != cloned.version { return TestResult::Fail; }
+    if meta.category != cloned.category { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_capsule_metadata_debug() {
+pub fn test_capsule_metadata_debug() -> TestResult {
     let meta = capsule_store::CapsuleMetadata {
         id: [1u8; 32],
         name: alloc::string::String::from("debug_test"),
@@ -243,11 +243,11 @@ fn test_capsule_metadata_debug() {
         dilithium_signature: None,
     };
     let debug_str = alloc::format!("{:?}", meta);
-    assert!(debug_str.contains("debug_test"));
+    if !debug_str.contains("debug_test") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_installation_task_clone() {
+pub fn test_installation_task_clone() -> TestResult {
     let task = capsule_store::InstallationTask {
         capsule_id: [0u8; 32],
         state: capsule_store::InstallState::Pending,
@@ -256,13 +256,13 @@ fn test_installation_task_clone() {
         error: None,
     };
     let cloned = task.clone();
-    assert_eq!(task.capsule_id, cloned.capsule_id);
-    assert_eq!(task.state, cloned.state);
-    assert_eq!(task.progress_percent, cloned.progress_percent);
+    if task.capsule_id != cloned.capsule_id { return TestResult::Fail; }
+    if task.state != cloned.state { return TestResult::Fail; }
+    if task.progress_percent != cloned.progress_percent { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_installation_task_debug() {
+pub fn test_installation_task_debug() -> TestResult {
     let task = capsule_store::InstallationTask {
         capsule_id: [1u8; 32],
         state: capsule_store::InstallState::Installing,
@@ -271,11 +271,11 @@ fn test_installation_task_debug() {
         error: None,
     };
     let debug_str = alloc::format!("{:?}", task);
-    assert!(debug_str.contains("InstallationTask"));
+    if !debug_str.contains("InstallationTask") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_installation_task_with_error() {
+pub fn test_installation_task_with_error() -> TestResult {
     let task = capsule_store::InstallationTask {
         capsule_id: [0u8; 32],
         state: capsule_store::InstallState::Failed,
@@ -283,12 +283,12 @@ fn test_installation_task_with_error() {
         progress_percent: 0,
         error: Some(alloc::string::String::from("test error")),
     };
-    assert!(task.error.is_some());
-    assert_eq!(task.error.unwrap(), "test error");
+    if !task.error.is_some() { return TestResult::Fail; }
+    if task.error.unwrap() != "test error" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_installation_task_with_tx_hash() {
+pub fn test_installation_task_with_tx_hash() -> TestResult {
     let hash = [42u8; 32];
     let task = capsule_store::InstallationTask {
         capsule_id: [0u8; 32],
@@ -297,63 +297,63 @@ fn test_installation_task_with_tx_hash() {
         progress_percent: 25,
         error: None,
     };
-    assert!(task.tx_hash.is_some());
-    assert_eq!(task.tx_hash.unwrap(), hash);
+    if !task.tx_hash.is_some() { return TestResult::Fail; }
+    if task.tx_hash.unwrap() != hash { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_micro_fee_nox_constant() {
-    assert_eq!(capsule_store::MICRO_FEE_NOX, 1_000_000_000_000_000);
+pub fn test_micro_fee_nox_constant() -> TestResult {
+    if capsule_store::MICRO_FEE_NOX != 1_000_000_000_000_000 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_gas_price_gwei_constant() {
-    assert_eq!(capsule_store::GAS_PRICE_GWEI, 20);
+pub fn test_gas_price_gwei_constant() -> TestResult {
+    if capsule_store::GAS_PRICE_GWEI != 20 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_mainnet_chain_id_constant() {
-    assert_eq!(capsule_store::MAINNET_CHAIN_ID, 1);
+pub fn test_mainnet_chain_id_constant() -> TestResult {
+    if capsule_store::MAINNET_CHAIN_ID != 1 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_format_nox_amount_zero() {
+pub fn test_format_nox_amount_zero() -> TestResult {
     let result = capsule_store::format_nox_amount(0);
-    assert_eq!(result, "0.000 NOX");
+    if result != "0.000 NOX" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_format_nox_amount_one_wei() {
+pub fn test_format_nox_amount_one_wei() -> TestResult {
     let result = capsule_store::format_nox_amount(1);
-    assert_eq!(result, "0.000 NOX");
+    if result != "0.000 NOX" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_format_nox_amount_one_nox() {
+pub fn test_format_nox_amount_one_nox() -> TestResult {
     let result = capsule_store::format_nox_amount(1_000_000_000_000_000_000);
-    assert_eq!(result, "1.000 NOX");
+    if result != "1.000 NOX" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_format_nox_amount_fractional() {
+pub fn test_format_nox_amount_fractional() -> TestResult {
     let result = capsule_store::format_nox_amount(1_500_000_000_000_000_000);
-    assert_eq!(result, "1.500 NOX");
+    if result != "1.500 NOX" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_format_nox_amount_large() {
+pub fn test_format_nox_amount_large() -> TestResult {
     let result = capsule_store::format_nox_amount(100_000_000_000_000_000_000);
-    assert_eq!(result, "100.000 NOX");
+    if result != "100.000 NOX" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_format_nox_amount_micro_fee() {
+pub fn test_format_nox_amount_micro_fee() -> TestResult {
     let result = capsule_store::format_nox_amount(capsule_store::MICRO_FEE_NOX);
-    assert_eq!(result, "0.001 NOX");
+    if result != "0.001 NOX" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_installed_capsule_clone() {
+pub fn test_installed_capsule_clone() -> TestResult {
     use core::sync::atomic::AtomicBool;
     let meta = capsule_store::CapsuleMetadata {
         id: [0u8; 32],
@@ -375,12 +375,12 @@ fn test_installed_capsule_clone() {
         active: AtomicBool::new(true),
     };
     let cloned = installed.clone();
-    assert_eq!(installed.install_timestamp, cloned.install_timestamp);
-    assert_eq!(installed.code_hash, cloned.code_hash);
+    if installed.install_timestamp != cloned.install_timestamp { return TestResult::Fail; }
+    if installed.code_hash != cloned.code_hash { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_installed_capsule_debug() {
+pub fn test_installed_capsule_debug() -> TestResult {
     use core::sync::atomic::AtomicBool;
     let meta = capsule_store::CapsuleMetadata {
         id: [0u8; 32],
@@ -402,11 +402,11 @@ fn test_installed_capsule_debug() {
         active: AtomicBool::new(true),
     };
     let debug_str = alloc::format!("{:?}", installed);
-    assert!(debug_str.contains("InstalledCapsule"));
+    if !debug_str.contains("InstalledCapsule") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_capsule_metadata_with_dilithium_signature() {
+pub fn test_capsule_metadata_with_dilithium_signature() -> TestResult {
     let sig = alloc::vec![1u8, 2, 3, 4, 5];
     let meta = capsule_store::CapsuleMetadata {
         id: [0u8; 32],
@@ -421,12 +421,12 @@ fn test_capsule_metadata_with_dilithium_signature() {
         ed25519_pubkey: [0u8; 32],
         dilithium_signature: Some(sig.clone()),
     };
-    assert!(meta.dilithium_signature.is_some());
-    assert_eq!(meta.dilithium_signature.unwrap(), sig);
+    if !meta.dilithium_signature.is_some() { return TestResult::Fail; }
+    if meta.dilithium_signature.unwrap() != sig { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_capsule_metadata_without_dilithium_signature() {
+pub fn test_capsule_metadata_without_dilithium_signature() -> TestResult {
     let meta = capsule_store::CapsuleMetadata {
         id: [0u8; 32],
         name: alloc::string::String::from("classic_test"),
@@ -440,11 +440,11 @@ fn test_capsule_metadata_without_dilithium_signature() {
         ed25519_pubkey: [0u8; 32],
         dilithium_signature: None,
     };
-    assert!(meta.dilithium_signature.is_none());
+    if !meta.dilithium_signature.is_none() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_installation_task_progress_bounds() {
+pub fn test_installation_task_progress_bounds() -> TestResult {
     let task_0 = capsule_store::InstallationTask {
         capsule_id: [0u8; 32],
         state: capsule_store::InstallState::Pending,
@@ -452,7 +452,7 @@ fn test_installation_task_progress_bounds() {
         progress_percent: 0,
         error: None,
     };
-    assert_eq!(task_0.progress_percent, 0);
+    if task_0.progress_percent != 0 { return TestResult::Fail; }
 
     let task_100 = capsule_store::InstallationTask {
         capsule_id: [0u8; 32],
@@ -461,11 +461,11 @@ fn test_installation_task_progress_bounds() {
         progress_percent: 100,
         error: None,
     };
-    assert_eq!(task_100.progress_percent, 100);
+    if task_100.progress_percent != 100 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_capsule_metadata_size_bytes() {
+pub fn test_capsule_metadata_size_bytes() -> TestResult {
     let meta = capsule_store::CapsuleMetadata {
         id: [0u8; 32],
         name: alloc::string::String::from("size_test"),
@@ -479,11 +479,11 @@ fn test_capsule_metadata_size_bytes() {
         ed25519_pubkey: [0u8; 32],
         dilithium_signature: None,
     };
-    assert_eq!(meta.size_bytes, 10485760);
+    if meta.size_bytes != 10485760 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_capsule_metadata_nox_fee() {
+pub fn test_capsule_metadata_nox_fee() -> TestResult {
     let meta = capsule_store::CapsuleMetadata {
         id: [0u8; 32],
         name: alloc::string::String::from("fee_test"),
@@ -497,5 +497,6 @@ fn test_capsule_metadata_nox_fee() {
         ed25519_pubkey: [0u8; 32],
         dilithium_signature: None,
     };
-    assert_eq!(meta.nox_fee, capsule_store::MICRO_FEE_NOX * 5);
+    if meta.nox_fee != capsule_store::MICRO_FEE_NOX * 5 { return TestResult::Fail; }
+    TestResult::Pass
 }
