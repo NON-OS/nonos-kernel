@@ -17,39 +17,39 @@
 use crate::sys::clock::*;
 use crate::test::framework::TestResult;
 
-pub fn test_time_struct_hour_range() -> TestResult {
+pub(crate) fn test_time_struct_hour_range() -> TestResult {
     let time = get_time();
     if !(time.hour < 24) { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_time_struct_minute_range() -> TestResult {
+pub(crate) fn test_time_struct_minute_range() -> TestResult {
     let time = get_time();
     if !(time.minute < 60) { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_time_struct_second_range() -> TestResult {
+pub(crate) fn test_time_struct_second_range() -> TestResult {
     let time = get_time();
     if !(time.second < 60) { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_format_time_buffer_size() -> TestResult {
+pub(crate) fn test_format_time_buffer_size() -> TestResult {
     let mut buf = [0u8; 5];
     format_time(&mut buf);
     if buf.len() != 5 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_format_time_colon_position() -> TestResult {
+pub(crate) fn test_format_time_colon_position() -> TestResult {
     let mut buf = [0u8; 5];
     format_time(&mut buf);
     if buf[2] != b':' { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_format_time_valid_digits() -> TestResult {
+pub(crate) fn test_format_time_valid_digits() -> TestResult {
     let mut buf = [0u8; 5];
     format_time(&mut buf);
     if !(buf[0] >= b'0' && buf[0] <= b'9') { return TestResult::Fail; }
@@ -59,14 +59,14 @@ pub fn test_format_time_valid_digits() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_format_time_full_buffer_size() -> TestResult {
+pub(crate) fn test_format_time_full_buffer_size() -> TestResult {
     let mut buf = [0u8; 8];
     format_time_full(&mut buf);
     if buf.len() != 8 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_format_time_full_colon_positions() -> TestResult {
+pub(crate) fn test_format_time_full_colon_positions() -> TestResult {
     let mut buf = [0u8; 8];
     format_time_full(&mut buf);
     if buf[2] != b':' { return TestResult::Fail; }
@@ -74,7 +74,7 @@ pub fn test_format_time_full_colon_positions() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_format_time_full_valid_digits() -> TestResult {
+pub(crate) fn test_format_time_full_valid_digits() -> TestResult {
     let mut buf = [0u8; 8];
     format_time_full(&mut buf);
     if !(buf[0] >= b'0' && buf[0] <= b'9') { return TestResult::Fail; }
@@ -86,7 +86,7 @@ pub fn test_format_time_full_valid_digits() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_format_time_full_hour_range() -> TestResult {
+pub(crate) fn test_format_time_full_hour_range() -> TestResult {
     let mut buf = [0u8; 8];
     format_time_full(&mut buf);
     let hour = (buf[0] - b'0') * 10 + (buf[1] - b'0');
@@ -94,7 +94,7 @@ pub fn test_format_time_full_hour_range() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_format_time_full_minute_range() -> TestResult {
+pub(crate) fn test_format_time_full_minute_range() -> TestResult {
     let mut buf = [0u8; 8];
     format_time_full(&mut buf);
     let minute = (buf[3] - b'0') * 10 + (buf[4] - b'0');
@@ -102,7 +102,7 @@ pub fn test_format_time_full_minute_range() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_format_time_full_second_range() -> TestResult {
+pub(crate) fn test_format_time_full_second_range() -> TestResult {
     let mut buf = [0u8; 8];
     format_time_full(&mut buf);
     let second = (buf[6] - b'0') * 10 + (buf[7] - b'0');
@@ -110,7 +110,7 @@ pub fn test_format_time_full_second_range() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_format_date_short_buffer_size() -> TestResult {
+pub(crate) fn test_format_date_short_buffer_size() -> TestResult {
     let mut buf = [0u8; 20];
     let len = format_date_short(&mut buf);
     if !(len <= 20) { return TestResult::Fail; }
@@ -118,7 +118,7 @@ pub fn test_format_date_short_buffer_size() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_format_date_short_contains_space() -> TestResult {
+pub(crate) fn test_format_date_short_contains_space() -> TestResult {
     let mut buf = [0u8; 20];
     let len = format_date_short(&mut buf);
     let has_space = buf[..len].iter().any(|&c| c == b' ');
@@ -126,7 +126,7 @@ pub fn test_format_date_short_contains_space() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_format_date_short_contains_colon() -> TestResult {
+pub(crate) fn test_format_date_short_contains_colon() -> TestResult {
     let mut buf = [0u8; 20];
     let len = format_date_short(&mut buf);
     let has_colon = buf[..len].iter().any(|&c| c == b':');
@@ -134,7 +134,7 @@ pub fn test_format_date_short_contains_colon() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_format_date_short_ends_with_am_or_pm() -> TestResult {
+pub(crate) fn test_format_date_short_ends_with_am_or_pm() -> TestResult {
     let mut buf = [0u8; 20];
     let len = format_date_short(&mut buf);
     let ends_am = buf[len - 2] == b'A' && buf[len - 1] == b'M';
@@ -143,7 +143,7 @@ pub fn test_format_date_short_ends_with_am_or_pm() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_format_date_only_buffer_size() -> TestResult {
+pub(crate) fn test_format_date_only_buffer_size() -> TestResult {
     let mut buf = [0u8; 12];
     let len = format_date_only(&mut buf);
     if !(len <= 12) { return TestResult::Fail; }
@@ -151,7 +151,7 @@ pub fn test_format_date_only_buffer_size() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_format_date_only_no_time() -> TestResult {
+pub(crate) fn test_format_date_only_no_time() -> TestResult {
     let mut buf = [0u8; 12];
     let len = format_date_only(&mut buf);
     let has_colon = buf[..len].iter().any(|&c| c == b':');
@@ -159,26 +159,26 @@ pub fn test_format_date_only_no_time() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_unix_ms_returns_value() -> TestResult {
+pub(crate) fn test_unix_ms_returns_value() -> TestResult {
     let ms = unix_ms();
     if !(ms > 0 || ms == 0) { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_unix_ms_monotonic() -> TestResult {
+pub(crate) fn test_unix_ms_monotonic() -> TestResult {
     let ms1 = unix_ms();
     let ms2 = unix_ms();
     if !(ms2 >= ms1) { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_uptime_seconds_returns_value() -> TestResult {
+pub(crate) fn test_uptime_seconds_returns_value() -> TestResult {
     let secs = uptime_seconds();
     if !(secs < u64::MAX) { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_get_time_consistency() -> TestResult {
+pub(crate) fn test_get_time_consistency() -> TestResult {
     let t1 = get_time();
     let t2 = get_time();
     let diff_seconds = if t2.hour >= t1.hour {
@@ -192,7 +192,7 @@ pub fn test_get_time_consistency() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_format_time_produces_valid_output() -> TestResult {
+pub(crate) fn test_format_time_produces_valid_output() -> TestResult {
     let mut buf = [0u8; 5];
     format_time(&mut buf);
     for (i, &c) in buf.iter().enumerate() {
@@ -205,7 +205,7 @@ pub fn test_format_time_produces_valid_output() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_format_time_full_produces_valid_output() -> TestResult {
+pub(crate) fn test_format_time_full_produces_valid_output() -> TestResult {
     let mut buf = [0u8; 8];
     format_time_full(&mut buf);
     for (i, &c) in buf.iter().enumerate() {
