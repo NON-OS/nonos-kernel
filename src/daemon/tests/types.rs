@@ -15,141 +15,141 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::daemon::*;
+use crate::test::framework::TestResult;
 
-#[test]
-fn test_node_status_variants() {
-    assert_eq!(NodeStatus::Stopped, NodeStatus::Stopped);
-    assert_eq!(NodeStatus::Starting, NodeStatus::Starting);
-    assert_eq!(NodeStatus::Running, NodeStatus::Running);
-    assert_eq!(NodeStatus::Syncing, NodeStatus::Syncing);
-    assert_eq!(NodeStatus::Error, NodeStatus::Error);
-    assert_ne!(NodeStatus::Stopped, NodeStatus::Running);
+pub fn test_node_status_variants() -> TestResult {
+    if NodeStatus::Stopped != NodeStatus::Stopped { return TestResult::Fail; }
+    if NodeStatus::Starting != NodeStatus::Starting { return TestResult::Fail; }
+    if NodeStatus::Running != NodeStatus::Running { return TestResult::Fail; }
+    if NodeStatus::Syncing != NodeStatus::Syncing { return TestResult::Fail; }
+    if NodeStatus::Error != NodeStatus::Error { return TestResult::Fail; }
+    if NodeStatus::Stopped == NodeStatus::Running { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_node_tier_ordering() {
-    assert!(NodeTier::Bronze < NodeTier::Silver);
-    assert!(NodeTier::Silver < NodeTier::Gold);
-    assert!(NodeTier::Gold < NodeTier::Platinum);
-    assert!(NodeTier::Platinum < NodeTier::Diamond);
+pub fn test_node_tier_ordering() -> TestResult {
+    if !(NodeTier::Bronze < NodeTier::Silver) { return TestResult::Fail; }
+    if !(NodeTier::Silver < NodeTier::Gold) { return TestResult::Fail; }
+    if !(NodeTier::Gold < NodeTier::Platinum) { return TestResult::Fail; }
+    if !(NodeTier::Platinum < NodeTier::Diamond) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_node_tier_min_stake() {
-    assert_eq!(NodeTier::Bronze.min_stake(), 1_000);
-    assert_eq!(NodeTier::Silver.min_stake(), 10_000);
-    assert_eq!(NodeTier::Gold.min_stake(), 50_000);
-    assert_eq!(NodeTier::Platinum.min_stake(), 200_000);
-    assert_eq!(NodeTier::Diamond.min_stake(), 1_000_000);
+pub fn test_node_tier_min_stake() -> TestResult {
+    if NodeTier::Bronze.min_stake() != 1_000 { return TestResult::Fail; }
+    if NodeTier::Silver.min_stake() != 10_000 { return TestResult::Fail; }
+    if NodeTier::Gold.min_stake() != 50_000 { return TestResult::Fail; }
+    if NodeTier::Platinum.min_stake() != 200_000 { return TestResult::Fail; }
+    if NodeTier::Diamond.min_stake() != 1_000_000 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_node_tier_lock_days() {
-    assert_eq!(NodeTier::Bronze.lock_days(), 0);
-    assert_eq!(NodeTier::Silver.lock_days(), 30);
-    assert_eq!(NodeTier::Gold.lock_days(), 90);
-    assert_eq!(NodeTier::Platinum.lock_days(), 180);
-    assert_eq!(NodeTier::Diamond.lock_days(), 365);
+pub fn test_node_tier_lock_days() -> TestResult {
+    if NodeTier::Bronze.lock_days() != 0 { return TestResult::Fail; }
+    if NodeTier::Silver.lock_days() != 30 { return TestResult::Fail; }
+    if NodeTier::Gold.lock_days() != 90 { return TestResult::Fail; }
+    if NodeTier::Platinum.lock_days() != 180 { return TestResult::Fail; }
+    if NodeTier::Diamond.lock_days() != 365 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_node_tier_apy_range() {
-    assert_eq!(NodeTier::Bronze.apy_range(), (5, 8));
-    assert_eq!(NodeTier::Silver.apy_range(), (8, 12));
-    assert_eq!(NodeTier::Gold.apy_range(), (12, 18));
-    assert_eq!(NodeTier::Platinum.apy_range(), (18, 25));
-    assert_eq!(NodeTier::Diamond.apy_range(), (25, 35));
+pub fn test_node_tier_apy_range() -> TestResult {
+    if NodeTier::Bronze.apy_range() != (5, 8) { return TestResult::Fail; }
+    if NodeTier::Silver.apy_range() != (8, 12) { return TestResult::Fail; }
+    if NodeTier::Gold.apy_range() != (12, 18) { return TestResult::Fail; }
+    if NodeTier::Platinum.apy_range() != (18, 25) { return TestResult::Fail; }
+    if NodeTier::Diamond.apy_range() != (25, 35) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_node_tier_multiplier() {
-    assert_eq!(NodeTier::Bronze.multiplier(), 100);
-    assert_eq!(NodeTier::Silver.multiplier(), 150);
-    assert_eq!(NodeTier::Gold.multiplier(), 200);
-    assert_eq!(NodeTier::Platinum.multiplier(), 250);
-    assert_eq!(NodeTier::Diamond.multiplier(), 300);
+pub fn test_node_tier_multiplier() -> TestResult {
+    if NodeTier::Bronze.multiplier() != 100 { return TestResult::Fail; }
+    if NodeTier::Silver.multiplier() != 150 { return TestResult::Fail; }
+    if NodeTier::Gold.multiplier() != 200 { return TestResult::Fail; }
+    if NodeTier::Platinum.multiplier() != 250 { return TestResult::Fail; }
+    if NodeTier::Diamond.multiplier() != 300 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_node_tier_from_stake_bronze() {
-    assert_eq!(NodeTier::from_stake(0), NodeTier::Bronze);
-    assert_eq!(NodeTier::from_stake(999), NodeTier::Bronze);
-    assert_eq!(NodeTier::from_stake(1_000), NodeTier::Bronze);
-    assert_eq!(NodeTier::from_stake(9_999), NodeTier::Bronze);
+pub fn test_node_tier_from_stake_bronze() -> TestResult {
+    if NodeTier::from_stake(0) != NodeTier::Bronze { return TestResult::Fail; }
+    if NodeTier::from_stake(999) != NodeTier::Bronze { return TestResult::Fail; }
+    if NodeTier::from_stake(1_000) != NodeTier::Bronze { return TestResult::Fail; }
+    if NodeTier::from_stake(9_999) != NodeTier::Bronze { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_node_tier_from_stake_silver() {
-    assert_eq!(NodeTier::from_stake(10_000), NodeTier::Silver);
-    assert_eq!(NodeTier::from_stake(49_999), NodeTier::Silver);
+pub fn test_node_tier_from_stake_silver() -> TestResult {
+    if NodeTier::from_stake(10_000) != NodeTier::Silver { return TestResult::Fail; }
+    if NodeTier::from_stake(49_999) != NodeTier::Silver { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_node_tier_from_stake_gold() {
-    assert_eq!(NodeTier::from_stake(50_000), NodeTier::Gold);
-    assert_eq!(NodeTier::from_stake(199_999), NodeTier::Gold);
+pub fn test_node_tier_from_stake_gold() -> TestResult {
+    if NodeTier::from_stake(50_000) != NodeTier::Gold { return TestResult::Fail; }
+    if NodeTier::from_stake(199_999) != NodeTier::Gold { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_node_tier_from_stake_platinum() {
-    assert_eq!(NodeTier::from_stake(200_000), NodeTier::Platinum);
-    assert_eq!(NodeTier::from_stake(999_999), NodeTier::Platinum);
+pub fn test_node_tier_from_stake_platinum() -> TestResult {
+    if NodeTier::from_stake(200_000) != NodeTier::Platinum { return TestResult::Fail; }
+    if NodeTier::from_stake(999_999) != NodeTier::Platinum { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_node_tier_from_stake_diamond() {
-    assert_eq!(NodeTier::from_stake(1_000_000), NodeTier::Diamond);
-    assert_eq!(NodeTier::from_stake(10_000_000), NodeTier::Diamond);
+pub fn test_node_tier_from_stake_diamond() -> TestResult {
+    if NodeTier::from_stake(1_000_000) != NodeTier::Diamond { return TestResult::Fail; }
+    if NodeTier::from_stake(10_000_000) != NodeTier::Diamond { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_node_tier_name() {
-    assert_eq!(NodeTier::Bronze.name(), b"Bronze");
-    assert_eq!(NodeTier::Silver.name(), b"Silver");
-    assert_eq!(NodeTier::Gold.name(), b"Gold");
-    assert_eq!(NodeTier::Platinum.name(), b"Platinum");
-    assert_eq!(NodeTier::Diamond.name(), b"Diamond");
+pub fn test_node_tier_name() -> TestResult {
+    if NodeTier::Bronze.name() != b"Bronze" { return TestResult::Fail; }
+    if NodeTier::Silver.name() != b"Silver" { return TestResult::Fail; }
+    if NodeTier::Gold.name() != b"Gold" { return TestResult::Fail; }
+    if NodeTier::Platinum.name() != b"Platinum" { return TestResult::Fail; }
+    if NodeTier::Diamond.name() != b"Diamond" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_quality_score_new() {
+pub fn test_quality_score_new() -> TestResult {
     let score = QualityScore::new();
-    assert_eq!(score.uptime, 0);
-    assert_eq!(score.success_rate, 0);
-    assert_eq!(score.latency_score, 0);
-    assert_eq!(score.reliability, 0);
+    if score.uptime != 0 { return TestResult::Fail; }
+    if score.success_rate != 0 { return TestResult::Fail; }
+    if score.latency_score != 0 { return TestResult::Fail; }
+    if score.reliability != 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_quality_score_perfect() {
+pub fn test_quality_score_perfect() -> TestResult {
     let score = QualityScore::perfect();
-    assert_eq!(score.uptime, 100);
-    assert_eq!(score.success_rate, 100);
-    assert_eq!(score.latency_score, 100);
-    assert_eq!(score.reliability, 100);
+    if score.uptime != 100 { return TestResult::Fail; }
+    if score.success_rate != 100 { return TestResult::Fail; }
+    if score.latency_score != 100 { return TestResult::Fail; }
+    if score.reliability != 100 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_quality_score_total_perfect() {
+pub fn test_quality_score_total_perfect() -> TestResult {
     let score = QualityScore::perfect();
-    assert_eq!(score.total(), 100);
+    if score.total() != 100 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_quality_score_total_zero() {
+pub fn test_quality_score_total_zero() -> TestResult {
     let score = QualityScore::new();
-    assert_eq!(score.total(), 0);
+    if score.total() != 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_quality_score_total_weighted() {
+pub fn test_quality_score_total_weighted() -> TestResult {
     let score = QualityScore {
         uptime: 100,
         success_rate: 0,
         latency_score: 0,
         reliability: 0,
     };
-    assert_eq!(score.total(), 30);
+    if score.total() != 30 { return TestResult::Fail; }
 
     let score = QualityScore {
         uptime: 0,
@@ -157,7 +157,7 @@ fn test_quality_score_total_weighted() {
         latency_score: 0,
         reliability: 0,
     };
-    assert_eq!(score.total(), 35);
+    if score.total() != 35 { return TestResult::Fail; }
 
     let score = QualityScore {
         uptime: 0,
@@ -165,7 +165,7 @@ fn test_quality_score_total_weighted() {
         latency_score: 100,
         reliability: 0,
     };
-    assert_eq!(score.total(), 20);
+    if score.total() != 20 { return TestResult::Fail; }
 
     let score = QualityScore {
         uptime: 0,
@@ -173,117 +173,118 @@ fn test_quality_score_total_weighted() {
         latency_score: 0,
         reliability: 100,
     };
-    assert_eq!(score.total(), 15);
+    if score.total() != 15 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_quality_score_default() {
+pub fn test_quality_score_default() -> TestResult {
     let score = QualityScore::default();
-    assert_eq!(score.uptime, 0);
-    assert_eq!(score.total(), 0);
+    if score.uptime != 0 { return TestResult::Fail; }
+    if score.total() != 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_token_amount_zero() {
+pub fn test_token_amount_zero() -> TestResult {
     let amount = TokenAmount::zero();
-    assert_eq!(amount.raw, 0);
-    assert_eq!(amount.decimals, NOX_DECIMALS);
-    assert!(amount.is_zero());
+    if amount.raw != 0 { return TestResult::Fail; }
+    if amount.decimals != NOX_DECIMALS { return TestResult::Fail; }
+    if !amount.is_zero() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_token_amount_from_nox() {
+pub fn test_token_amount_from_nox() -> TestResult {
     let amount = TokenAmount::from_nox(1);
-    assert_eq!(amount.whole(), 1);
-    assert_eq!(amount.frac(), 0);
-    assert!(!amount.is_zero());
+    if amount.whole() != 1 { return TestResult::Fail; }
+    if amount.frac() != 0 { return TestResult::Fail; }
+    if amount.is_zero() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_token_amount_from_nox_large() {
+pub fn test_token_amount_from_nox_large() -> TestResult {
     let amount = TokenAmount::from_nox(1_000_000);
-    assert_eq!(amount.whole(), 1_000_000);
-    assert_eq!(amount.frac(), 0);
+    if amount.whole() != 1_000_000 { return TestResult::Fail; }
+    if amount.frac() != 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_token_amount_whole_and_frac() {
+pub fn test_token_amount_whole_and_frac() -> TestResult {
     let amount = TokenAmount {
         raw: 1_500_000_000_000_000_000,
         decimals: NOX_DECIMALS,
     };
-    assert_eq!(amount.whole(), 1);
-    assert_eq!(amount.frac(), 500_000_000_000_000_000);
+    if amount.whole() != 1 { return TestResult::Fail; }
+    if amount.frac() != 500_000_000_000_000_000 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_token_amount_checked_add() {
+pub fn test_token_amount_checked_add() -> TestResult {
     let a = TokenAmount::from_nox(100);
     let b = TokenAmount::from_nox(50);
     let result = a.checked_add(&b);
-    assert!(result.is_some());
-    assert_eq!(result.unwrap().whole(), 150);
+    if !result.is_some() { return TestResult::Fail; }
+    if result.unwrap().whole() != 150 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_token_amount_checked_add_mismatched_decimals() {
+pub fn test_token_amount_checked_add_mismatched_decimals() -> TestResult {
     let a = TokenAmount::from_nox(100);
     let b = TokenAmount { raw: 50, decimals: 8 };
     let result = a.checked_add(&b);
-    assert!(result.is_none());
+    if !result.is_none() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_token_amount_checked_sub() {
+pub fn test_token_amount_checked_sub() -> TestResult {
     let a = TokenAmount::from_nox(100);
     let b = TokenAmount::from_nox(50);
     let result = a.checked_sub(&b);
-    assert!(result.is_some());
-    assert_eq!(result.unwrap().whole(), 50);
+    if !result.is_some() { return TestResult::Fail; }
+    if result.unwrap().whole() != 50 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_token_amount_checked_sub_underflow() {
+pub fn test_token_amount_checked_sub_underflow() -> TestResult {
     let a = TokenAmount::from_nox(50);
     let b = TokenAmount::from_nox(100);
     let result = a.checked_sub(&b);
-    assert!(result.is_none());
+    if !result.is_none() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_token_amount_checked_sub_mismatched_decimals() {
+pub fn test_token_amount_checked_sub_mismatched_decimals() -> TestResult {
     let a = TokenAmount::from_nox(100);
     let b = TokenAmount { raw: 50, decimals: 8 };
     let result = a.checked_sub(&b);
-    assert!(result.is_none());
+    if !result.is_none() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_token_amount_default() {
+pub fn test_token_amount_default() -> TestResult {
     let amount = TokenAmount::default();
-    assert!(amount.is_zero());
-    assert_eq!(amount.decimals, NOX_DECIMALS);
+    if !amount.is_zero() { return TestResult::Fail; }
+    if amount.decimals != NOX_DECIMALS { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_connection_status_variants() {
-    assert_eq!(ConnectionStatus::Disconnected, ConnectionStatus::Disconnected);
-    assert_eq!(ConnectionStatus::Connecting, ConnectionStatus::Connecting);
-    assert_eq!(ConnectionStatus::Bootstrapping, ConnectionStatus::Bootstrapping);
-    assert_eq!(ConnectionStatus::Connected, ConnectionStatus::Connected);
-    assert_eq!(ConnectionStatus::Error, ConnectionStatus::Error);
+pub fn test_connection_status_variants() -> TestResult {
+    if ConnectionStatus::Disconnected != ConnectionStatus::Disconnected { return TestResult::Fail; }
+    if ConnectionStatus::Connecting != ConnectionStatus::Connecting { return TestResult::Fail; }
+    if ConnectionStatus::Bootstrapping != ConnectionStatus::Bootstrapping { return TestResult::Fail; }
+    if ConnectionStatus::Connected != ConnectionStatus::Connected { return TestResult::Fail; }
+    if ConnectionStatus::Error != ConnectionStatus::Error { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_connection_status_default() {
+pub fn test_connection_status_default() -> TestResult {
     let status = ConnectionStatus::default();
-    assert_eq!(status, ConnectionStatus::Disconnected);
+    if status != ConnectionStatus::Disconnected { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_constants() {
-    assert_eq!(NOX_DECIMALS, 18);
-    assert_eq!(NOX_TOTAL_SUPPLY, 800_000_000);
-    assert_eq!(NOX_STAKING_POOL, 32_000_000);
-    assert_eq!(EPOCH_DURATION_SECS, 86_400);
+pub fn test_constants() -> TestResult {
+    if NOX_DECIMALS != 18 { return TestResult::Fail; }
+    if NOX_TOTAL_SUPPLY != 800_000_000 { return TestResult::Fail; }
+    if NOX_STAKING_POOL != 32_000_000 { return TestResult::Fail; }
+    if EPOCH_DURATION_SECS != 86_400 { return TestResult::Fail; }
+    TestResult::Pass
 }

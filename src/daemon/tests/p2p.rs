@@ -15,120 +15,120 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::daemon::*;
+use crate::test::framework::TestResult;
 
-#[test]
-fn test_peer_info_empty() {
+pub fn test_peer_info_empty() -> TestResult {
     let peer = PeerInfo::empty();
-    assert_eq!(peer.id.0, [0u8; 32]);
-    assert!(!peer.connected);
-    assert_eq!(peer.latency_ms, 0);
-    assert_eq!(peer.bytes_sent, 0);
-    assert_eq!(peer.bytes_received, 0);
-    assert_eq!(peer.requests_served, 0);
-    assert_eq!(peer.last_seen, 0);
+    if peer.id.0 != [0u8; 32] { return TestResult::Fail; }
+    if peer.connected { return TestResult::Fail; }
+    if peer.latency_ms != 0 { return TestResult::Fail; }
+    if peer.bytes_sent != 0 { return TestResult::Fail; }
+    if peer.bytes_received != 0 { return TestResult::Fail; }
+    if peer.requests_served != 0 { return TestResult::Fail; }
+    if peer.last_seen != 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_p2p_state_new() {
+pub fn test_p2p_state_new() -> TestResult {
     let state = P2PState::new();
-    assert_eq!(state.status, ConnectionStatus::Disconnected);
-    assert_eq!(state.peer_count, 0);
-    assert_eq!(state.active_connections, 0);
-    assert_eq!(state.total_bytes_sent, 0);
-    assert_eq!(state.total_bytes_received, 0);
-    assert_eq!(state.bootstrap_progress, 0);
-    assert!(!state.mixing_enabled);
-    assert_eq!(state.cache_size_mb, 256);
+    if state.status != ConnectionStatus::Disconnected { return TestResult::Fail; }
+    if state.peer_count != 0 { return TestResult::Fail; }
+    if state.active_connections != 0 { return TestResult::Fail; }
+    if state.total_bytes_sent != 0 { return TestResult::Fail; }
+    if state.total_bytes_received != 0 { return TestResult::Fail; }
+    if state.bootstrap_progress != 0 { return TestResult::Fail; }
+    if state.mixing_enabled { return TestResult::Fail; }
+    if state.cache_size_mb != 256 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_p2p_state_connect() {
+pub fn test_p2p_state_connect() -> TestResult {
     let mut state = P2PState::new();
     state.connect();
-    assert_eq!(state.status, ConnectionStatus::Connecting);
+    if state.status != ConnectionStatus::Connecting { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_p2p_state_disconnect() {
+pub fn test_p2p_state_disconnect() -> TestResult {
     let mut state = P2PState::new();
     state.connect();
     state.active_connections = 5;
     state.bootstrap_progress = 50;
     state.disconnect();
-    assert_eq!(state.status, ConnectionStatus::Disconnected);
-    assert_eq!(state.active_connections, 0);
-    assert_eq!(state.bootstrap_progress, 0);
+    if state.status != ConnectionStatus::Disconnected { return TestResult::Fail; }
+    if state.active_connections != 0 { return TestResult::Fail; }
+    if state.bootstrap_progress != 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_p2p_state_set_connected() {
+pub fn test_p2p_state_set_connected() -> TestResult {
     let mut state = P2PState::new();
     state.connect();
     state.set_connected();
-    assert_eq!(state.status, ConnectionStatus::Connected);
-    assert_eq!(state.bootstrap_progress, 100);
+    if state.status != ConnectionStatus::Connected { return TestResult::Fail; }
+    if state.bootstrap_progress != 100 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_p2p_state_add_peer() {
+pub fn test_p2p_state_add_peer() -> TestResult {
     let mut state = P2PState::new();
     let id = NodeId::from_bytes([1u8; 32]);
-    assert!(state.add_peer(id));
-    assert_eq!(state.peer_count, 1);
+    if !state.add_peer(id) { return TestResult::Fail; }
+    if state.peer_count != 1 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_p2p_state_add_peer_multiple() {
+pub fn test_p2p_state_add_peer_multiple() -> TestResult {
     let mut state = P2PState::new();
     for i in 0..10 {
         let id = NodeId::from_bytes([i; 32]);
-        assert!(state.add_peer(id));
+        if !state.add_peer(id) { return TestResult::Fail; }
     }
-    assert_eq!(state.peer_count, 10);
+    if state.peer_count != 10 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_p2p_state_add_peer_max() {
+pub fn test_p2p_state_add_peer_max() -> TestResult {
     let mut state = P2PState::new();
     for i in 0..MAX_PEERS {
         let id = NodeId::from_bytes([i as u8; 32]);
-        assert!(state.add_peer(id));
+        if !state.add_peer(id) { return TestResult::Fail; }
     }
-    assert_eq!(state.peer_count, MAX_PEERS);
+    if state.peer_count != MAX_PEERS { return TestResult::Fail; }
     let id = NodeId::from_bytes([0xFF; 32]);
-    assert!(!state.add_peer(id));
-    assert_eq!(state.peer_count, MAX_PEERS);
+    if state.add_peer(id) { return TestResult::Fail; }
+    if state.peer_count != MAX_PEERS { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_p2p_state_add_peer_initializes_fields() {
+pub fn test_p2p_state_add_peer_initializes_fields() -> TestResult {
     let mut state = P2PState::new();
     let id = NodeId::from_bytes([1u8; 32]);
     state.add_peer(id);
     let peer = state.get_peer(&id).unwrap();
-    assert!(!peer.connected);
-    assert_eq!(peer.latency_ms, 0);
-    assert_eq!(peer.bytes_sent, 0);
+    if peer.connected { return TestResult::Fail; }
+    if peer.latency_ms != 0 { return TestResult::Fail; }
+    if peer.bytes_sent != 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_p2p_state_remove_peer() {
+pub fn test_p2p_state_remove_peer() -> TestResult {
     let mut state = P2PState::new();
     let id = NodeId::from_bytes([1u8; 32]);
     state.add_peer(id);
-    assert!(state.remove_peer(&id));
-    assert_eq!(state.peer_count, 0);
+    if !state.remove_peer(&id) { return TestResult::Fail; }
+    if state.peer_count != 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_p2p_state_remove_peer_not_found() {
+pub fn test_p2p_state_remove_peer_not_found() -> TestResult {
     let mut state = P2PState::new();
     let id = NodeId::from_bytes([1u8; 32]);
-    assert!(!state.remove_peer(&id));
+    if state.remove_peer(&id) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_p2p_state_remove_peer_middle() {
+pub fn test_p2p_state_remove_peer_middle() -> TestResult {
     let mut state = P2PState::new();
     let id1 = NodeId::from_bytes([1u8; 32]);
     let id2 = NodeId::from_bytes([2u8; 32]);
@@ -136,38 +136,38 @@ fn test_p2p_state_remove_peer_middle() {
     state.add_peer(id1);
     state.add_peer(id2);
     state.add_peer(id3);
-    assert!(state.remove_peer(&id2));
-    assert_eq!(state.peer_count, 2);
-    assert!(state.get_peer(&id1).is_some());
-    assert!(state.get_peer(&id2).is_none());
-    assert!(state.get_peer(&id3).is_some());
+    if !state.remove_peer(&id2) { return TestResult::Fail; }
+    if state.peer_count != 2 { return TestResult::Fail; }
+    if state.get_peer(&id1).is_none() { return TestResult::Fail; }
+    if state.get_peer(&id2).is_some() { return TestResult::Fail; }
+    if state.get_peer(&id3).is_none() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_p2p_state_get_peer() {
+pub fn test_p2p_state_get_peer() -> TestResult {
     let mut state = P2PState::new();
     let id = NodeId::from_bytes([1u8; 32]);
     state.add_peer(id);
     let peer = state.get_peer(&id);
-    assert!(peer.is_some());
-    assert_eq!(peer.unwrap().id.0, id.0);
+    if peer.is_none() { return TestResult::Fail; }
+    if peer.unwrap().id.0 != id.0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_p2p_state_get_peer_not_found() {
+pub fn test_p2p_state_get_peer_not_found() -> TestResult {
     let state = P2PState::new();
     let id = NodeId::from_bytes([1u8; 32]);
-    assert!(state.get_peer(&id).is_none());
+    if !state.get_peer(&id).is_none() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_p2p_state_connected_peers_none() {
+pub fn test_p2p_state_connected_peers_none() -> TestResult {
     let state = P2PState::new();
-    assert_eq!(state.connected_peers(), 0);
+    if state.connected_peers() != 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_p2p_state_connected_peers_some() {
+pub fn test_p2p_state_connected_peers_some() -> TestResult {
     let mut state = P2PState::new();
     for i in 0..5 {
         let id = NodeId::from_bytes([i; 32]);
@@ -175,72 +175,73 @@ fn test_p2p_state_connected_peers_some() {
     }
     state.peers[0].connected = true;
     state.peers[2].connected = true;
-    assert_eq!(state.connected_peers(), 2);
+    if state.connected_peers() != 2 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_p2p_state_enable_mixing() {
+pub fn test_p2p_state_enable_mixing() -> TestResult {
     let mut state = P2PState::new();
-    assert!(!state.mixing_enabled);
+    if state.mixing_enabled { return TestResult::Fail; }
     state.enable_mixing();
-    assert!(state.mixing_enabled);
+    if !state.mixing_enabled { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_p2p_state_disable_mixing() {
+pub fn test_p2p_state_disable_mixing() -> TestResult {
     let mut state = P2PState::new();
     state.enable_mixing();
     state.disable_mixing();
-    assert!(!state.mixing_enabled);
+    if state.mixing_enabled { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_p2p_state_set_cache_size() {
+pub fn test_p2p_state_set_cache_size() -> TestResult {
     let mut state = P2PState::new();
     state.set_cache_size(512);
-    assert_eq!(state.cache_size_mb, 512);
+    if state.cache_size_mb != 512 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_p2p_state_set_cache_size_max() {
+pub fn test_p2p_state_set_cache_size_max() -> TestResult {
     let mut state = P2PState::new();
     state.set_cache_size(8192);
-    assert_eq!(state.cache_size_mb, 4096);
+    if state.cache_size_mb != 4096 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_p2p_state_set_cache_size_zero() {
+pub fn test_p2p_state_set_cache_size_zero() -> TestResult {
     let mut state = P2PState::new();
     state.set_cache_size(0);
-    assert_eq!(state.cache_size_mb, 0);
+    if state.cache_size_mb != 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_p2p_state_default() {
+pub fn test_p2p_state_default() -> TestResult {
     let state = P2PState::default();
-    assert_eq!(state.status, ConnectionStatus::Disconnected);
-    assert_eq!(state.peer_count, 0);
-    assert!(!state.mixing_enabled);
+    if state.status != ConnectionStatus::Disconnected { return TestResult::Fail; }
+    if state.peer_count != 0 { return TestResult::Fail; }
+    if state.mixing_enabled { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_mixer_stats_new() {
+pub fn test_mixer_stats_new() -> TestResult {
     let stats = MixerStats::new();
-    assert_eq!(stats.requests_mixed, 0);
-    assert_eq!(stats.bytes_mixed, 0);
-    assert_eq!(stats.avg_latency_ms, 0);
-    assert_eq!(stats.cache_hit_rate, 0);
+    if stats.requests_mixed != 0 { return TestResult::Fail; }
+    if stats.bytes_mixed != 0 { return TestResult::Fail; }
+    if stats.avg_latency_ms != 0 { return TestResult::Fail; }
+    if stats.cache_hit_rate != 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_mixer_stats_default() {
+pub fn test_mixer_stats_default() -> TestResult {
     let stats = MixerStats::default();
-    assert_eq!(stats.requests_mixed, 0);
-    assert_eq!(stats.bytes_mixed, 0);
+    if stats.requests_mixed != 0 { return TestResult::Fail; }
+    if stats.bytes_mixed != 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_p2p_constants() {
-    assert_eq!(MAX_PEERS, 64);
-    assert_eq!(MAX_CONNECTIONS, 32);
+pub fn test_p2p_constants() -> TestResult {
+    if MAX_PEERS != 64 { return TestResult::Fail; }
+    if MAX_CONNECTIONS != 32 { return TestResult::Fail; }
+    TestResult::Pass
 }
