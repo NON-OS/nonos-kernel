@@ -15,9 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::log::*;
+use crate::test::framework::TestResult;
 
-#[test]
-fn test_debug_simple_logs_debug_severity() {
+pub fn test_debug_simple_logs_debug_severity() -> TestResult {
     let mut lock = LOGGER.lock();
     if lock.is_none() {
         *lock = Some(LogManager::new());
@@ -34,13 +34,13 @@ fn test_debug_simple_logs_debug_severity() {
         let found = entries.iter().any(|e| {
             e.msg.as_str() == "debug test" && e.sev == Severity::Debug
         });
-        assert!(found || entries.is_empty());
+        if !(found || entries.is_empty()) { return TestResult::Fail; }
     }
     clear_log_buffer();
+    TestResult::Pass
 }
 
-#[test]
-fn test_info_simple_logs_info_severity() {
+pub fn test_info_simple_logs_info_severity() -> TestResult {
     let mut lock = LOGGER.lock();
     if lock.is_none() {
         *lock = Some(LogManager::new());
@@ -57,13 +57,13 @@ fn test_info_simple_logs_info_severity() {
         let found = entries.iter().any(|e| {
             e.msg.as_str() == "info test" && e.sev == Severity::Info
         });
-        assert!(found || entries.is_empty());
+        if !(found || entries.is_empty()) { return TestResult::Fail; }
     }
     clear_log_buffer();
+    TestResult::Pass
 }
 
-#[test]
-fn test_warn_simple_logs_warn_severity() {
+pub fn test_warn_simple_logs_warn_severity() -> TestResult {
     let mut lock = LOGGER.lock();
     if lock.is_none() {
         *lock = Some(LogManager::new());
@@ -80,13 +80,13 @@ fn test_warn_simple_logs_warn_severity() {
         let found = entries.iter().any(|e| {
             e.msg.as_str() == "warn test" && e.sev == Severity::Warn
         });
-        assert!(found || entries.is_empty());
+        if !(found || entries.is_empty()) { return TestResult::Fail; }
     }
     clear_log_buffer();
+    TestResult::Pass
 }
 
-#[test]
-fn test_log_error_simple_logs_err_severity() {
+pub fn test_log_error_simple_logs_err_severity() -> TestResult {
     let mut lock = LOGGER.lock();
     if lock.is_none() {
         *lock = Some(LogManager::new());
@@ -103,13 +103,13 @@ fn test_log_error_simple_logs_err_severity() {
         let found = entries.iter().any(|e| {
             e.msg.as_str() == "error test" && e.sev == Severity::Err
         });
-        assert!(found || entries.is_empty());
+        if !(found || entries.is_empty()) { return TestResult::Fail; }
     }
     clear_log_buffer();
+    TestResult::Pass
 }
 
-#[test]
-fn test_debug_simple_empty_message() {
+pub fn test_debug_simple_empty_message() -> TestResult {
     let mut lock = LOGGER.lock();
     if lock.is_none() {
         *lock = Some(LogManager::new());
@@ -121,10 +121,10 @@ fn test_debug_simple_empty_message() {
 
     debug_simple("");
     clear_log_buffer();
+    TestResult::Pass
 }
 
-#[test]
-fn test_info_simple_empty_message() {
+pub fn test_info_simple_empty_message() -> TestResult {
     let mut lock = LOGGER.lock();
     if lock.is_none() {
         *lock = Some(LogManager::new());
@@ -136,10 +136,10 @@ fn test_info_simple_empty_message() {
 
     info_simple("");
     clear_log_buffer();
+    TestResult::Pass
 }
 
-#[test]
-fn test_warn_simple_empty_message() {
+pub fn test_warn_simple_empty_message() -> TestResult {
     let mut lock = LOGGER.lock();
     if lock.is_none() {
         *lock = Some(LogManager::new());
@@ -151,10 +151,10 @@ fn test_warn_simple_empty_message() {
 
     warn_simple("");
     clear_log_buffer();
+    TestResult::Pass
 }
 
-#[test]
-fn test_log_error_simple_empty_message() {
+pub fn test_log_error_simple_empty_message() -> TestResult {
     let mut lock = LOGGER.lock();
     if lock.is_none() {
         *lock = Some(LogManager::new());
@@ -166,10 +166,10 @@ fn test_log_error_simple_empty_message() {
 
     log_error_simple("");
     clear_log_buffer();
+    TestResult::Pass
 }
 
-#[test]
-fn test_debug_simple_long_message() {
+pub fn test_debug_simple_long_message() -> TestResult {
     let mut lock = LOGGER.lock();
     if lock.is_none() {
         *lock = Some(LogManager::new());
@@ -182,10 +182,10 @@ fn test_debug_simple_long_message() {
     let long_msg = "d".repeat(200);
     debug_simple(&long_msg);
     clear_log_buffer();
+    TestResult::Pass
 }
 
-#[test]
-fn test_info_simple_long_message() {
+pub fn test_info_simple_long_message() -> TestResult {
     let mut lock = LOGGER.lock();
     if lock.is_none() {
         *lock = Some(LogManager::new());
@@ -198,10 +198,10 @@ fn test_info_simple_long_message() {
     let long_msg = "i".repeat(200);
     info_simple(&long_msg);
     clear_log_buffer();
+    TestResult::Pass
 }
 
-#[test]
-fn test_warn_simple_long_message() {
+pub fn test_warn_simple_long_message() -> TestResult {
     let mut lock = LOGGER.lock();
     if lock.is_none() {
         *lock = Some(LogManager::new());
@@ -214,10 +214,10 @@ fn test_warn_simple_long_message() {
     let long_msg = "w".repeat(200);
     warn_simple(&long_msg);
     clear_log_buffer();
+    TestResult::Pass
 }
 
-#[test]
-fn test_log_error_simple_long_message() {
+pub fn test_log_error_simple_long_message() -> TestResult {
     let mut lock = LOGGER.lock();
     if lock.is_none() {
         *lock = Some(LogManager::new());
@@ -230,10 +230,10 @@ fn test_log_error_simple_long_message() {
     let long_msg = "e".repeat(200);
     log_error_simple(&long_msg);
     clear_log_buffer();
+    TestResult::Pass
 }
 
-#[test]
-fn test_multiple_helper_calls() {
+pub fn test_multiple_helper_calls() -> TestResult {
     let mut lock = LOGGER.lock();
     if lock.is_none() {
         *lock = Some(LogManager::new());
@@ -249,12 +249,12 @@ fn test_multiple_helper_calls() {
     log_error_simple("msg4");
 
     let count = log_entry_count();
-    assert!(count >= 4);
+    if !(count >= 4) { return TestResult::Fail; }
     clear_log_buffer();
+    TestResult::Pass
 }
 
-#[test]
-fn test_helpers_preserve_message_content() {
+pub fn test_helpers_preserve_message_content() -> TestResult {
     let mut lock = LOGGER.lock();
     if lock.is_none() {
         *lock = Some(LogManager::new());
@@ -268,79 +268,80 @@ fn test_helpers_preserve_message_content() {
 
     let entries = get_log_entries();
     let found = entries.iter().any(|e| e.msg.as_str() == "preserved content");
-    assert!(found || entries.is_empty());
+    if !(found || entries.is_empty()) { return TestResult::Fail; }
     clear_log_buffer();
+    TestResult::Pass
 }
 
-#[test]
-fn test_helpers_no_panic_without_logger() {
+pub fn test_helpers_no_panic_without_logger() -> TestResult {
     debug_simple("no panic");
     info_simple("no panic");
     warn_simple("no panic");
     log_error_simple("no panic");
+    TestResult::Pass
 }
 
-#[test]
-fn test_compat_logger_module_exports() {
+pub fn test_compat_logger_module_exports() -> TestResult {
     use crate::log::logger;
     let _sev = logger::Severity::Info;
+    TestResult::Pass
 }
 
-#[test]
-fn test_compat_nonos_logger_module_exports() {
+pub fn test_compat_nonos_logger_module_exports() -> TestResult {
     use crate::log::nonos_logger;
     let _sev = nonos_logger::Severity::Debug;
     let _size = nonos_logger::RAM_BUF_SIZE;
+    TestResult::Pass
 }
 
-#[test]
-fn test_compat_simple_logger_module_exports() {
+pub fn test_compat_simple_logger_module_exports() -> TestResult {
     use crate::log::simple_logger;
     let _sev = simple_logger::Severity::Warn;
+    TestResult::Pass
 }
 
-#[test]
-fn test_init_logger_alias_exists() {
+pub fn test_init_logger_alias_exists() -> TestResult {
     let _ = init_logger as fn();
+    TestResult::Pass
 }
 
-#[test]
-fn test_helper_functions_are_inline() {
+pub fn test_helper_functions_are_inline() -> TestResult {
     debug_simple("inline check");
     info_simple("inline check");
     warn_simple("inline check");
     log_error_simple("inline check");
     clear_log_buffer();
+    TestResult::Pass
 }
 
-#[test]
-fn test_debug_simple_uses_debug_str() {
+pub fn test_debug_simple_uses_debug_str() -> TestResult {
     let mut manager = LogManager::new();
     manager.log(Severity::Debug, "test");
     let entries = manager.get_entries();
-    assert_eq!(entries[0].sev.as_str(), "DBG");
+    if entries[0].sev.as_str() != "DBG" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_info_simple_uses_info_str() {
+pub fn test_info_simple_uses_info_str() -> TestResult {
     let mut manager = LogManager::new();
     manager.log(Severity::Info, "test");
     let entries = manager.get_entries();
-    assert_eq!(entries[0].sev.as_str(), "INFO");
+    if entries[0].sev.as_str() != "INFO" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_warn_simple_uses_warn_str() {
+pub fn test_warn_simple_uses_warn_str() -> TestResult {
     let mut manager = LogManager::new();
     manager.log(Severity::Warn, "test");
     let entries = manager.get_entries();
-    assert_eq!(entries[0].sev.as_str(), "WARN");
+    if entries[0].sev.as_str() != "WARN" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_error_simple_uses_err_str() {
+pub fn test_error_simple_uses_err_str() -> TestResult {
     let mut manager = LogManager::new();
     manager.log(Severity::Err, "test");
     let entries = manager.get_entries();
-    assert_eq!(entries[0].sev.as_str(), "ERR");
+    if entries[0].sev.as_str() != "ERR" { return TestResult::Fail; }
+    TestResult::Pass
 }

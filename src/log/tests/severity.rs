@@ -16,151 +16,151 @@
 
 use crate::log::*;
 use crate::arch::x86_64::vga::Color;
+use crate::test::framework::TestResult;
 
-#[test]
-fn test_severity_debug_variant() {
+pub fn test_severity_debug_variant() -> TestResult {
     let sev = Severity::Debug;
-    assert_eq!(sev, Severity::Debug);
+    if sev != Severity::Debug { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_severity_info_variant() {
+pub fn test_severity_info_variant() -> TestResult {
     let sev = Severity::Info;
-    assert_eq!(sev, Severity::Info);
+    if sev != Severity::Info { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_severity_warn_variant() {
+pub fn test_severity_warn_variant() -> TestResult {
     let sev = Severity::Warn;
-    assert_eq!(sev, Severity::Warn);
+    if sev != Severity::Warn { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_severity_err_variant() {
+pub fn test_severity_err_variant() -> TestResult {
     let sev = Severity::Err;
-    assert_eq!(sev, Severity::Err);
+    if sev != Severity::Err { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_severity_fatal_variant() {
+pub fn test_severity_fatal_variant() -> TestResult {
     let sev = Severity::Fatal;
-    assert_eq!(sev, Severity::Fatal);
+    if sev != Severity::Fatal { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_severity_debug_color() {
-    assert_eq!(Severity::Debug.color(), Color::Cyan);
+pub fn test_severity_debug_color() -> TestResult {
+    if Severity::Debug.color() != Color::Cyan { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_severity_info_color() {
-    assert_eq!(Severity::Info.color(), Color::LightGreen);
+pub fn test_severity_info_color() -> TestResult {
+    if Severity::Info.color() != Color::LightGreen { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_severity_warn_color() {
-    assert_eq!(Severity::Warn.color(), Color::Yellow);
+pub fn test_severity_warn_color() -> TestResult {
+    if Severity::Warn.color() != Color::Yellow { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_severity_err_color() {
-    assert_eq!(Severity::Err.color(), Color::LightRed);
+pub fn test_severity_err_color() -> TestResult {
+    if Severity::Err.color() != Color::LightRed { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_severity_fatal_color() {
-    assert_eq!(Severity::Fatal.color(), Color::LightRed);
+pub fn test_severity_fatal_color() -> TestResult {
+    if Severity::Fatal.color() != Color::LightRed { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_severity_debug_as_str() {
-    assert_eq!(Severity::Debug.as_str(), "DBG");
+pub fn test_severity_debug_as_str() -> TestResult {
+    if Severity::Debug.as_str() != "DBG" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_severity_info_as_str() {
-    assert_eq!(Severity::Info.as_str(), "INFO");
+pub fn test_severity_info_as_str() -> TestResult {
+    if Severity::Info.as_str() != "INFO" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_severity_warn_as_str() {
-    assert_eq!(Severity::Warn.as_str(), "WARN");
+pub fn test_severity_warn_as_str() -> TestResult {
+    if Severity::Warn.as_str() != "WARN" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_severity_err_as_str() {
-    assert_eq!(Severity::Err.as_str(), "ERR");
+pub fn test_severity_err_as_str() -> TestResult {
+    if Severity::Err.as_str() != "ERR" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_severity_fatal_as_str() {
-    assert_eq!(Severity::Fatal.as_str(), "FATAL");
+pub fn test_severity_fatal_as_str() -> TestResult {
+    if Severity::Fatal.as_str() != "FATAL" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_severity_clone() {
+pub fn test_severity_clone() -> TestResult {
     let s1 = Severity::Info;
     let s2 = s1.clone();
-    assert_eq!(s1, s2);
+    if s1 != s2 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_severity_copy() {
+pub fn test_severity_copy() -> TestResult {
     let s1 = Severity::Warn;
     let s2 = s1;
-    assert_eq!(s1, s2);
+    if s1 != s2 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_severity_equality() {
-    assert_eq!(Severity::Debug, Severity::Debug);
-    assert_eq!(Severity::Info, Severity::Info);
-    assert_eq!(Severity::Warn, Severity::Warn);
-    assert_eq!(Severity::Err, Severity::Err);
-    assert_eq!(Severity::Fatal, Severity::Fatal);
+pub fn test_severity_equality() -> TestResult {
+    if Severity::Debug != Severity::Debug { return TestResult::Fail; }
+    if Severity::Info != Severity::Info { return TestResult::Fail; }
+    if Severity::Warn != Severity::Warn { return TestResult::Fail; }
+    if Severity::Err != Severity::Err { return TestResult::Fail; }
+    if Severity::Fatal != Severity::Fatal { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_severity_inequality() {
-    assert_ne!(Severity::Debug, Severity::Info);
-    assert_ne!(Severity::Info, Severity::Warn);
-    assert_ne!(Severity::Warn, Severity::Err);
-    assert_ne!(Severity::Err, Severity::Fatal);
-    assert_ne!(Severity::Fatal, Severity::Debug);
+pub fn test_severity_inequality() -> TestResult {
+    if Severity::Debug == Severity::Info { return TestResult::Fail; }
+    if Severity::Info == Severity::Warn { return TestResult::Fail; }
+    if Severity::Warn == Severity::Err { return TestResult::Fail; }
+    if Severity::Err == Severity::Fatal { return TestResult::Fail; }
+    if Severity::Fatal == Severity::Debug { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_severity_debug_format() {
+pub fn test_severity_debug_format() -> TestResult {
     let debug_str = alloc::format!("{:?}", Severity::Debug);
-    assert!(debug_str.contains("Debug"));
+    if !debug_str.contains("Debug") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_severity_info_debug_format() {
+pub fn test_severity_info_debug_format() -> TestResult {
     let debug_str = alloc::format!("{:?}", Severity::Info);
-    assert!(debug_str.contains("Info"));
+    if !debug_str.contains("Info") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_severity_warn_debug_format() {
+pub fn test_severity_warn_debug_format() -> TestResult {
     let debug_str = alloc::format!("{:?}", Severity::Warn);
-    assert!(debug_str.contains("Warn"));
+    if !debug_str.contains("Warn") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_severity_err_debug_format() {
+pub fn test_severity_err_debug_format() -> TestResult {
     let debug_str = alloc::format!("{:?}", Severity::Err);
-    assert!(debug_str.contains("Err"));
+    if !debug_str.contains("Err") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_severity_fatal_debug_format() {
+pub fn test_severity_fatal_debug_format() -> TestResult {
     let debug_str = alloc::format!("{:?}", Severity::Fatal);
-    assert!(debug_str.contains("Fatal"));
+    if !debug_str.contains("Fatal") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_all_severity_variants_unique() {
+pub fn test_all_severity_variants_unique() -> TestResult {
     let severities = [
         Severity::Debug,
         Severity::Info,
@@ -170,13 +170,13 @@ fn test_all_severity_variants_unique() {
     ];
     for i in 0..severities.len() {
         for j in (i + 1)..severities.len() {
-            assert_ne!(severities[i], severities[j]);
+            if severities[i] == severities[j] { return TestResult::Fail; }
         }
     }
+    TestResult::Pass
 }
 
-#[test]
-fn test_all_severity_str_representations_unique() {
+pub fn test_all_severity_str_representations_unique() -> TestResult {
     let strs = [
         Severity::Debug.as_str(),
         Severity::Info.as_str(),
@@ -186,13 +186,13 @@ fn test_all_severity_str_representations_unique() {
     ];
     for i in 0..strs.len() {
         for j in (i + 1)..strs.len() {
-            assert_ne!(strs[i], strs[j]);
+            if strs[i] == strs[j] { return TestResult::Fail; }
         }
     }
+    TestResult::Pass
 }
 
-#[test]
-fn test_severity_color_returns_valid_color() {
+pub fn test_severity_color_returns_valid_color() -> TestResult {
     let severities = [
         Severity::Debug,
         Severity::Info,
@@ -203,10 +203,10 @@ fn test_severity_color_returns_valid_color() {
     for sev in severities {
         let _ = sev.color();
     }
+    TestResult::Pass
 }
 
-#[test]
-fn test_severity_as_str_not_empty() {
+pub fn test_severity_as_str_not_empty() -> TestResult {
     let severities = [
         Severity::Debug,
         Severity::Info,
@@ -215,18 +215,19 @@ fn test_severity_as_str_not_empty() {
         Severity::Fatal,
     ];
     for sev in severities {
-        assert!(!sev.as_str().is_empty());
+        if sev.as_str().is_empty() { return TestResult::Fail; }
     }
+    TestResult::Pass
 }
 
-#[test]
-fn test_severity_err_and_fatal_same_color() {
-    assert_eq!(Severity::Err.color(), Severity::Fatal.color());
+pub fn test_severity_err_and_fatal_same_color() -> TestResult {
+    if Severity::Err.color() != Severity::Fatal.color() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_severity_debug_info_warn_different_colors() {
-    assert_ne!(Severity::Debug.color(), Severity::Info.color());
-    assert_ne!(Severity::Info.color(), Severity::Warn.color());
-    assert_ne!(Severity::Debug.color(), Severity::Warn.color());
+pub fn test_severity_debug_info_warn_different_colors() -> TestResult {
+    if Severity::Debug.color() == Severity::Info.color() { return TestResult::Fail; }
+    if Severity::Info.color() == Severity::Warn.color() { return TestResult::Fail; }
+    if Severity::Debug.color() == Severity::Warn.color() { return TestResult::Fail; }
+    TestResult::Pass
 }
