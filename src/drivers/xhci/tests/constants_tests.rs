@@ -14,42 +14,37 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-#[cfg(test)]
-mod tests {
-    use crate::drivers::xhci::constants;
+use crate::drivers::xhci::constants;
+use crate::test::framework::TestResult;
 
-    #[test]
-    fn test_portsc_change_bits() {
-        let change_bits = constants::PORTSC_CHANGE_BITS;
-        assert_eq!(change_bits & constants::PORTSC_CSC, constants::PORTSC_CSC);
-        assert_eq!(change_bits & constants::PORTSC_PEC, constants::PORTSC_PEC);
-        assert_eq!(change_bits & constants::PORTSC_PRC, constants::PORTSC_PRC);
-        assert_eq!(change_bits & constants::PORTSC_PED, 0);
-    }
+pub fn test_portsc_change_bits() -> TestResult {
+    let change_bits = constants::PORTSC_CHANGE_BITS;
+    if change_bits & constants::PORTSC_CSC != constants::PORTSC_CSC { return TestResult::Fail; }
+    if change_bits & constants::PORTSC_PEC != constants::PORTSC_PEC { return TestResult::Fail; }
+    if change_bits & constants::PORTSC_PRC != constants::PORTSC_PRC { return TestResult::Fail; }
+    if change_bits & constants::PORTSC_PED != 0 { return TestResult::Fail; }
+    TestResult::Pass
+}
 
-    #[test]
-    fn test_trb_alignment_constant() {
-        assert_eq!(constants::TRB_ALIGNMENT, 16);
-        assert!(constants::DMA_MIN_ALIGNMENT >= constants::TRB_ALIGNMENT as usize);
-    }
+pub fn test_trb_alignment_constant() -> TestResult {
+    if constants::TRB_ALIGNMENT != 16 { return TestResult::Fail; }
+    if constants::DMA_MIN_ALIGNMENT < constants::TRB_ALIGNMENT as usize { return TestResult::Fail; }
+    TestResult::Pass
+}
 
-    #[test]
-    fn test_ring_size_constants() {
-        assert!(constants::MIN_RING_SIZE >= 16);
-        assert!(constants::MAX_RING_SIZE >= constants::MIN_RING_SIZE);
-        assert!(constants::DEFAULT_CMD_RING_SIZE >= constants::MIN_RING_SIZE);
-        assert!(constants::DEFAULT_EVENT_RING_SIZE >= constants::MIN_RING_SIZE);
-    }
+pub fn test_ring_size_constants() -> TestResult {
+    if constants::MIN_RING_SIZE < 16 { return TestResult::Fail; }
+    if constants::MAX_RING_SIZE < constants::MIN_RING_SIZE { return TestResult::Fail; }
+    if constants::DEFAULT_CMD_RING_SIZE < constants::MIN_RING_SIZE { return TestResult::Fail; }
+    if constants::DEFAULT_EVENT_RING_SIZE < constants::MIN_RING_SIZE { return TestResult::Fail; }
+    TestResult::Pass
+}
 
-    #[test]
-    fn test_valid_trb_types_lists() {
-        assert!(constants::VALID_TRANSFER_TRB_TYPES.contains(&constants::TRB_TYPE_NORMAL));
-        assert!(constants::VALID_TRANSFER_TRB_TYPES.contains(&constants::TRB_TYPE_SETUP_STAGE));
-        assert!(constants::VALID_TRANSFER_TRB_TYPES.contains(&constants::TRB_TYPE_LINK));
-
-        assert!(constants::VALID_COMMAND_TRB_TYPES.contains(&constants::TRB_TYPE_ENABLE_SLOT_CMD));
-        assert!(
-            constants::VALID_COMMAND_TRB_TYPES.contains(&constants::TRB_TYPE_ADDRESS_DEVICE_CMD)
-        );
-    }
+pub fn test_valid_trb_types_lists() -> TestResult {
+    if !constants::VALID_TRANSFER_TRB_TYPES.contains(&constants::TRB_TYPE_NORMAL) { return TestResult::Fail; }
+    if !constants::VALID_TRANSFER_TRB_TYPES.contains(&constants::TRB_TYPE_SETUP_STAGE) { return TestResult::Fail; }
+    if !constants::VALID_TRANSFER_TRB_TYPES.contains(&constants::TRB_TYPE_LINK) { return TestResult::Fail; }
+    if !constants::VALID_COMMAND_TRB_TYPES.contains(&constants::TRB_TYPE_ENABLE_SLOT_CMD) { return TestResult::Fail; }
+    if !constants::VALID_COMMAND_TRB_TYPES.contains(&constants::TRB_TYPE_ADDRESS_DEVICE_CMD) { return TestResult::Fail; }
+    TestResult::Pass
 }

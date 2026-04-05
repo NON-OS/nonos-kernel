@@ -14,38 +14,38 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-#[cfg(test)]
-mod tests {
-    use crate::drivers::xhci::{constants, types};
-    use core::mem;
+use crate::drivers::xhci::{constants, types};
+use crate::test::framework::TestResult;
+use core::mem;
 
-    #[test]
-    fn test_usb_device_descriptor_size() {
-        assert_eq!(mem::size_of::<types::UsbDeviceDescriptor>(), 18);
-    }
+pub fn test_usb_device_descriptor_size() -> TestResult {
+    if mem::size_of::<types::UsbDeviceDescriptor>() != 18 { return TestResult::Fail; }
+    TestResult::Pass
+}
 
-    #[test]
-    fn test_usb_device_descriptor_validation() {
-        let mut desc = types::UsbDeviceDescriptor::default();
-        assert!(!desc.validate());
+pub fn test_usb_device_descriptor_validation() -> TestResult {
+    let mut desc = types::UsbDeviceDescriptor::default();
+    if desc.validate() { return TestResult::Fail; }
 
-        desc.length = 18;
-        desc.descriptor_type = constants::DESC_TYPE_DEVICE;
-        assert!(desc.validate());
-    }
+    desc.length = 18;
+    desc.descriptor_type = constants::DESC_TYPE_DEVICE;
+    if !desc.validate() { return TestResult::Fail; }
 
-    #[test]
-    fn test_usb_version_parsing() {
-        let mut desc = types::UsbDeviceDescriptor::default();
-        desc.bcd_usb = 0x0200;
+    TestResult::Pass
+}
 
-        let (major, minor) = desc.usb_version();
-        assert_eq!(major, 2);
-        assert_eq!(minor, 0);
+pub fn test_usb_version_parsing() -> TestResult {
+    let mut desc = types::UsbDeviceDescriptor::default();
+    desc.bcd_usb = 0x0200;
 
-        desc.bcd_usb = 0x0310;
-        let (major, minor) = desc.usb_version();
-        assert_eq!(major, 3);
-        assert_eq!(minor, 0x10);
-    }
+    let (major, minor) = desc.usb_version();
+    if major != 2 { return TestResult::Fail; }
+    if minor != 0 { return TestResult::Fail; }
+
+    desc.bcd_usb = 0x0310;
+    let (major, minor) = desc.usb_version();
+    if major != 3 { return TestResult::Fail; }
+    if minor != 0x10 { return TestResult::Fail; }
+
+    TestResult::Pass
 }
