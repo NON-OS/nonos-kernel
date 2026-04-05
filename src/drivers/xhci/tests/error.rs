@@ -17,7 +17,7 @@
 use crate::drivers::xhci::XhciError;
 use crate::test::framework::TestResult;
 
-pub fn test_error_display() -> TestResult {
+pub(crate) fn test_error_display() -> TestResult {
     let err = XhciError::InvalidSlotId(5);
     if err.as_str() != "Invalid slot ID" { return TestResult::Fail; }
 
@@ -27,7 +27,7 @@ pub fn test_error_display() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_completion_code_extraction() -> TestResult {
+pub(crate) fn test_completion_code_extraction() -> TestResult {
     let err = XhciError::CompletionCodeError(6);
     if err.completion_code() != Some(6) { return TestResult::Fail; }
 
@@ -37,21 +37,21 @@ pub fn test_completion_code_extraction() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_error_requires_reset() -> TestResult {
+pub(crate) fn test_error_requires_reset() -> TestResult {
     if !XhciError::Stall.requires_endpoint_reset() { return TestResult::Fail; }
     if !XhciError::BabbleDetected.requires_endpoint_reset() { return TestResult::Fail; }
     if XhciError::Timeout.requires_endpoint_reset() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_error_is_recoverable() -> TestResult {
+pub(crate) fn test_error_is_recoverable() -> TestResult {
     if !XhciError::Timeout.is_recoverable() { return TestResult::Fail; }
     if !XhciError::Stall.is_recoverable() { return TestResult::Fail; }
     if !XhciError::HostSystemError.is_fatal() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_from_completion_code() -> TestResult {
+pub(crate) fn test_from_completion_code() -> TestResult {
     if XhciError::from_completion_code(1).is_some() { return TestResult::Fail; }
     if !matches!(XhciError::from_completion_code(6), Some(XhciError::Stall)) { return TestResult::Fail; }
     if !matches!(XhciError::from_completion_code(3), Some(XhciError::BabbleDetected)) { return TestResult::Fail; }
