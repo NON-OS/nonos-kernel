@@ -18,7 +18,7 @@ fn make_test_info(name: &'static str) -> AppInfo {
     )
 }
 
-pub fn test_app_info_new() -> TestResult {
+pub(crate) fn test_app_info_new() -> TestResult {
     let info = AppInfo::new(
         "TestApp",
         "2.0.0",
@@ -36,7 +36,7 @@ pub fn test_app_info_new() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_app_entry_new() -> TestResult {
+pub(crate) fn test_app_entry_new() -> TestResult {
     let info = make_test_info("EntryTest");
     let entry = AppEntry::new(info);
     if entry.name() != "EntryTest" { return TestResult::Fail; }
@@ -46,7 +46,7 @@ pub fn test_app_entry_new() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_app_entry_info_accessors() -> TestResult {
+pub(crate) fn test_app_entry_info_accessors() -> TestResult {
     let info = AppInfo::new(
         "Wallet",
         "3.5.1",
@@ -64,7 +64,7 @@ pub fn test_app_entry_info_accessors() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_app_entry_state() -> TestResult {
+pub(crate) fn test_app_entry_state() -> TestResult {
     let info = make_test_info("StateTest");
     let mut entry = AppEntry::new(info);
     if entry.state() != LifecycleState::Stopped { return TestResult::Fail; }
@@ -75,7 +75,7 @@ pub fn test_app_entry_state() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_app_entry_is_running() -> TestResult {
+pub(crate) fn test_app_entry_is_running() -> TestResult {
     let info = make_test_info("RunningTest");
     let mut entry = AppEntry::new(info);
     if entry.is_running() { return TestResult::Fail; }
@@ -88,7 +88,7 @@ pub fn test_app_entry_is_running() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_app_entry_create_context() -> TestResult {
+pub(crate) fn test_app_entry_create_context() -> TestResult {
     let info = make_test_info("ContextTest");
     let mut entry = AppEntry::new(info);
     if entry.context().is_some() { return TestResult::Fail; }
@@ -99,7 +99,7 @@ pub fn test_app_entry_create_context() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_app_entry_context_properties() -> TestResult {
+pub(crate) fn test_app_entry_context_properties() -> TestResult {
     let info = AppInfo::new(
         "PropTest",
         "1.0.0",
@@ -117,7 +117,7 @@ pub fn test_app_entry_context_properties() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_app_entry_destroy_context() -> TestResult {
+pub(crate) fn test_app_entry_destroy_context() -> TestResult {
     let info = make_test_info("DestroyTest");
     let mut entry = AppEntry::new(info);
     entry.create_context();
@@ -128,7 +128,7 @@ pub fn test_app_entry_destroy_context() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_app_entry_context_mut() -> TestResult {
+pub(crate) fn test_app_entry_context_mut() -> TestResult {
     let info = make_test_info("MutTest");
     let mut entry = AppEntry::new(info);
     entry.create_context();
@@ -139,21 +139,21 @@ pub fn test_app_entry_context_mut() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_app_entry_registered_at() -> TestResult {
+pub(crate) fn test_app_entry_registered_at() -> TestResult {
     let info = make_test_info("TimeTest");
     let entry = AppEntry::new(info);
     if entry.registered_at() == 0 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_app_entry_uptime_no_context() -> TestResult {
+pub(crate) fn test_app_entry_uptime_no_context() -> TestResult {
     let info = make_test_info("UptimeTest");
     let entry = AppEntry::new(info);
     if entry.uptime_ms() != 0 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_app_entry_uptime_with_context() -> TestResult {
+pub(crate) fn test_app_entry_uptime_with_context() -> TestResult {
     let info = make_test_info("UptimeTest2");
     let mut entry = AppEntry::new(info);
     entry.create_context();
@@ -163,7 +163,7 @@ pub fn test_app_entry_uptime_with_context() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_app_info_fields() -> TestResult {
+pub(crate) fn test_app_info_fields() -> TestResult {
     let info = AppInfo::new(
         "FieldsTest",
         "0.1.0",
@@ -180,7 +180,7 @@ pub fn test_app_info_fields() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_multiple_entries() -> TestResult {
+pub(crate) fn test_multiple_entries() -> TestResult {
     let info1 = make_test_info("App1");
     let info2 = make_test_info("App2");
     let mut entry1 = AppEntry::new(info1);
@@ -193,7 +193,7 @@ pub fn test_multiple_entries() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_lifecycle_state_transitions() -> TestResult {
+pub(crate) fn test_lifecycle_state_transitions() -> TestResult {
     let info = make_test_info("TransitionTest");
     let mut entry = AppEntry::new(info);
     let states = [
@@ -211,7 +211,7 @@ pub fn test_lifecycle_state_transitions() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_app_entry_info_reference() -> TestResult {
+pub(crate) fn test_app_entry_info_reference() -> TestResult {
     let info = make_test_info("RefTest");
     let entry = AppEntry::new(info);
     let info_ref = entry.info();

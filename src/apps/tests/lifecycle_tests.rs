@@ -9,7 +9,7 @@ use crate::apps::lifecycle::events::{AppEvent, emit_event, poll_event, peek_even
 use crate::apps::types::AppId;
 use crate::test::framework::TestResult;
 
-pub fn test_lifecycle_state_as_str() -> TestResult {
+pub(crate) fn test_lifecycle_state_as_str() -> TestResult {
     if LifecycleState::Stopped.as_str() != "Stopped" { return TestResult::Fail; }
     if LifecycleState::Starting.as_str() != "Starting" { return TestResult::Fail; }
     if LifecycleState::Running.as_str() != "Running" { return TestResult::Fail; }
@@ -19,7 +19,7 @@ pub fn test_lifecycle_state_as_str() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_lifecycle_state_is_active() -> TestResult {
+pub(crate) fn test_lifecycle_state_is_active() -> TestResult {
     if LifecycleState::Stopped.is_active() { return TestResult::Fail; }
     if LifecycleState::Starting.is_active() { return TestResult::Fail; }
     if !LifecycleState::Running.is_active() { return TestResult::Fail; }
@@ -29,7 +29,7 @@ pub fn test_lifecycle_state_is_active() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_lifecycle_state_can_start() -> TestResult {
+pub(crate) fn test_lifecycle_state_can_start() -> TestResult {
     if !LifecycleState::Stopped.can_start() { return TestResult::Fail; }
     if !LifecycleState::Failed.can_start() { return TestResult::Fail; }
     if LifecycleState::Starting.can_start() { return TestResult::Fail; }
@@ -39,7 +39,7 @@ pub fn test_lifecycle_state_can_start() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_lifecycle_state_can_stop() -> TestResult {
+pub(crate) fn test_lifecycle_state_can_stop() -> TestResult {
     if LifecycleState::Stopped.can_stop() { return TestResult::Fail; }
     if LifecycleState::Starting.can_stop() { return TestResult::Fail; }
     if !LifecycleState::Running.can_stop() { return TestResult::Fail; }
@@ -49,7 +49,7 @@ pub fn test_lifecycle_state_can_stop() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_lifecycle_state_can_suspend() -> TestResult {
+pub(crate) fn test_lifecycle_state_can_suspend() -> TestResult {
     if LifecycleState::Stopped.can_suspend() { return TestResult::Fail; }
     if LifecycleState::Starting.can_suspend() { return TestResult::Fail; }
     if !LifecycleState::Running.can_suspend() { return TestResult::Fail; }
@@ -59,7 +59,7 @@ pub fn test_lifecycle_state_can_suspend() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_lifecycle_state_can_resume() -> TestResult {
+pub(crate) fn test_lifecycle_state_can_resume() -> TestResult {
     if LifecycleState::Stopped.can_resume() { return TestResult::Fail; }
     if LifecycleState::Starting.can_resume() { return TestResult::Fail; }
     if LifecycleState::Running.can_resume() { return TestResult::Fail; }
@@ -69,40 +69,40 @@ pub fn test_lifecycle_state_can_resume() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_lifecycle_state_default() -> TestResult {
+pub(crate) fn test_lifecycle_state_default() -> TestResult {
     let default: LifecycleState = Default::default();
     if default != LifecycleState::Stopped { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_lifecycle_state_display() -> TestResult {
+pub(crate) fn test_lifecycle_state_display() -> TestResult {
     let state = LifecycleState::Running;
     let s = alloc::format!("{}", state);
     if s != "Running" { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_lifecycle_state_equality() -> TestResult {
+pub(crate) fn test_lifecycle_state_equality() -> TestResult {
     if LifecycleState::Running != LifecycleState::Running { return TestResult::Fail; }
     if LifecycleState::Running == LifecycleState::Stopped { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_lifecycle_state_clone() -> TestResult {
+pub(crate) fn test_lifecycle_state_clone() -> TestResult {
     let s1 = LifecycleState::Suspended;
     let s2 = s1.clone();
     if s1 != s2 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_lifecycle_state_copy() -> TestResult {
+pub(crate) fn test_lifecycle_state_copy() -> TestResult {
     let s1 = LifecycleState::Starting;
     let s2 = s1;
     if s1 != s2 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_lifecycle_state_repr() -> TestResult {
+pub(crate) fn test_lifecycle_state_repr() -> TestResult {
     if (LifecycleState::Stopped as u8) != 0 { return TestResult::Fail; }
     if (LifecycleState::Starting as u8) != 1 { return TestResult::Fail; }
     if (LifecycleState::Running as u8) != 2 { return TestResult::Fail; }
@@ -112,7 +112,7 @@ pub fn test_lifecycle_state_repr() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_app_event_started_app_id() -> TestResult {
+pub(crate) fn test_app_event_started_app_id() -> TestResult {
     let event = AppEvent::Started {
         app_id: AppId::from_raw(42),
         name: String::from("TestApp"),
@@ -121,7 +121,7 @@ pub fn test_app_event_started_app_id() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_app_event_stopped_app_id() -> TestResult {
+pub(crate) fn test_app_event_stopped_app_id() -> TestResult {
     let event = AppEvent::Stopped {
         app_id: AppId::from_raw(43),
         name: String::from("TestApp"),
@@ -130,7 +130,7 @@ pub fn test_app_event_stopped_app_id() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_app_event_suspended_app_id() -> TestResult {
+pub(crate) fn test_app_event_suspended_app_id() -> TestResult {
     let event = AppEvent::Suspended {
         app_id: AppId::from_raw(44),
         name: String::from("TestApp"),
@@ -139,7 +139,7 @@ pub fn test_app_event_suspended_app_id() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_app_event_resumed_app_id() -> TestResult {
+pub(crate) fn test_app_event_resumed_app_id() -> TestResult {
     let event = AppEvent::Resumed {
         app_id: AppId::from_raw(45),
         name: String::from("TestApp"),
@@ -148,7 +148,7 @@ pub fn test_app_event_resumed_app_id() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_app_event_failed_app_id() -> TestResult {
+pub(crate) fn test_app_event_failed_app_id() -> TestResult {
     let event = AppEvent::Failed {
         app_id: AppId::from_raw(46),
         name: String::from("TestApp"),
@@ -158,7 +158,7 @@ pub fn test_app_event_failed_app_id() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_app_event_permission_granted_app_id() -> TestResult {
+pub(crate) fn test_app_event_permission_granted_app_id() -> TestResult {
     let event = AppEvent::PermissionGranted {
         app_id: AppId::from_raw(47),
         permission: 1,
@@ -167,7 +167,7 @@ pub fn test_app_event_permission_granted_app_id() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_app_event_permission_revoked_app_id() -> TestResult {
+pub(crate) fn test_app_event_permission_revoked_app_id() -> TestResult {
     let event = AppEvent::PermissionRevoked {
         app_id: AppId::from_raw(48),
         permission: 2,
@@ -176,7 +176,7 @@ pub fn test_app_event_permission_revoked_app_id() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_app_event_name_started() -> TestResult {
+pub(crate) fn test_app_event_name_started() -> TestResult {
     let event = AppEvent::Started {
         app_id: AppId::from_raw(1),
         name: String::from("Browser"),
@@ -185,7 +185,7 @@ pub fn test_app_event_name_started() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_app_event_name_stopped() -> TestResult {
+pub(crate) fn test_app_event_name_stopped() -> TestResult {
     let event = AppEvent::Stopped {
         app_id: AppId::from_raw(1),
         name: String::from("Editor"),
@@ -194,7 +194,7 @@ pub fn test_app_event_name_stopped() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_app_event_name_suspended() -> TestResult {
+pub(crate) fn test_app_event_name_suspended() -> TestResult {
     let event = AppEvent::Suspended {
         app_id: AppId::from_raw(1),
         name: String::from("Wallet"),
@@ -203,7 +203,7 @@ pub fn test_app_event_name_suspended() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_app_event_name_resumed() -> TestResult {
+pub(crate) fn test_app_event_name_resumed() -> TestResult {
     let event = AppEvent::Resumed {
         app_id: AppId::from_raw(1),
         name: String::from("Terminal"),
@@ -212,7 +212,7 @@ pub fn test_app_event_name_resumed() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_app_event_name_failed() -> TestResult {
+pub(crate) fn test_app_event_name_failed() -> TestResult {
     let event = AppEvent::Failed {
         app_id: AppId::from_raw(1),
         name: String::from("Settings"),
@@ -222,7 +222,7 @@ pub fn test_app_event_name_failed() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_app_event_name_permission_granted_is_none() -> TestResult {
+pub(crate) fn test_app_event_name_permission_granted_is_none() -> TestResult {
     let event = AppEvent::PermissionGranted {
         app_id: AppId::from_raw(1),
         permission: 1,
@@ -231,7 +231,7 @@ pub fn test_app_event_name_permission_granted_is_none() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_app_event_name_permission_revoked_is_none() -> TestResult {
+pub(crate) fn test_app_event_name_permission_revoked_is_none() -> TestResult {
     let event = AppEvent::PermissionRevoked {
         app_id: AppId::from_raw(1),
         permission: 1,
@@ -240,7 +240,7 @@ pub fn test_app_event_name_permission_revoked_is_none() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_event_queue_emit_and_poll() -> TestResult {
+pub(crate) fn test_event_queue_emit_and_poll() -> TestResult {
     clear_events();
     let event = AppEvent::Started {
         app_id: AppId::from_raw(100),
@@ -255,7 +255,7 @@ pub fn test_event_queue_emit_and_poll() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_event_queue_peek() -> TestResult {
+pub(crate) fn test_event_queue_peek() -> TestResult {
     clear_events();
     let event = AppEvent::Stopped {
         app_id: AppId::from_raw(101),
@@ -271,7 +271,7 @@ pub fn test_event_queue_peek() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_event_queue_count() -> TestResult {
+pub(crate) fn test_event_queue_count() -> TestResult {
     clear_events();
     if event_count() != 0 { return TestResult::Fail; }
     emit_event(AppEvent::Started {
@@ -288,7 +288,7 @@ pub fn test_event_queue_count() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_event_queue_clear() -> TestResult {
+pub(crate) fn test_event_queue_clear() -> TestResult {
     clear_events();
     emit_event(AppEvent::Started {
         app_id: AppId::from_raw(1),
@@ -304,19 +304,19 @@ pub fn test_event_queue_clear() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_event_queue_poll_empty() -> TestResult {
+pub(crate) fn test_event_queue_poll_empty() -> TestResult {
     clear_events();
     if poll_event().is_some() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_event_queue_peek_empty() -> TestResult {
+pub(crate) fn test_event_queue_peek_empty() -> TestResult {
     clear_events();
     if peek_event().is_some() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_event_fifo_order() -> TestResult {
+pub(crate) fn test_event_fifo_order() -> TestResult {
     clear_events();
     emit_event(AppEvent::Started {
         app_id: AppId::from_raw(1),
@@ -337,7 +337,7 @@ pub fn test_event_fifo_order() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_app_event_clone() -> TestResult {
+pub(crate) fn test_app_event_clone() -> TestResult {
     let event = AppEvent::Failed {
         app_id: AppId::from_raw(99),
         name: String::from("Crasher"),

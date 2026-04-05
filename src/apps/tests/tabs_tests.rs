@@ -9,88 +9,88 @@ use alloc::vec;
 use crate::apps::ecosystem::browser::tabs::types::{TabStatus, SecurityStatus, BrowserTab};
 use crate::test::framework::TestResult;
 
-pub fn test_tab_status_loading() -> TestResult {
+pub(crate) fn test_tab_status_loading() -> TestResult {
     let status = TabStatus::Loading;
     if status != TabStatus::Loading { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_tab_status_ready() -> TestResult {
+pub(crate) fn test_tab_status_ready() -> TestResult {
     let status = TabStatus::Ready;
     if status != TabStatus::Ready { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_tab_status_error() -> TestResult {
+pub(crate) fn test_tab_status_error() -> TestResult {
     let status = TabStatus::Error;
     if status != TabStatus::Error { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_tab_status_blank() -> TestResult {
+pub(crate) fn test_tab_status_blank() -> TestResult {
     let status = TabStatus::Blank;
     if status != TabStatus::Blank { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_tab_status_equality() -> TestResult {
+pub(crate) fn test_tab_status_equality() -> TestResult {
     if TabStatus::Loading != TabStatus::Loading { return TestResult::Fail; }
     if TabStatus::Ready == TabStatus::Error { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_tab_status_clone() -> TestResult {
+pub(crate) fn test_tab_status_clone() -> TestResult {
     let status = TabStatus::Loading;
     let cloned = status.clone();
     if status != cloned { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_tab_status_copy() -> TestResult {
+pub(crate) fn test_tab_status_copy() -> TestResult {
     let status = TabStatus::Ready;
     let copied = status;
     if status != copied { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_security_status_secure() -> TestResult {
+pub(crate) fn test_security_status_secure() -> TestResult {
     let status = SecurityStatus::Secure;
     if status != SecurityStatus::Secure { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_security_status_insecure() -> TestResult {
+pub(crate) fn test_security_status_insecure() -> TestResult {
     let status = SecurityStatus::Insecure;
     if status != SecurityStatus::Insecure { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_security_status_mixed() -> TestResult {
+pub(crate) fn test_security_status_mixed() -> TestResult {
     let status = SecurityStatus::Mixed;
     if status != SecurityStatus::Mixed { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_security_status_unknown() -> TestResult {
+pub(crate) fn test_security_status_unknown() -> TestResult {
     let status = SecurityStatus::Unknown;
     if status != SecurityStatus::Unknown { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_security_status_equality() -> TestResult {
+pub(crate) fn test_security_status_equality() -> TestResult {
     if SecurityStatus::Secure != SecurityStatus::Secure { return TestResult::Fail; }
     if SecurityStatus::Secure == SecurityStatus::Insecure { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_security_status_clone() -> TestResult {
+pub(crate) fn test_security_status_clone() -> TestResult {
     let status = SecurityStatus::Mixed;
     let cloned = status.clone();
     if status != cloned { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_browser_tab_new() -> TestResult {
+pub(crate) fn test_browser_tab_new() -> TestResult {
     let tab = BrowserTab {
         id: 1,
         url: String::from("https://example.com"),
@@ -111,7 +111,7 @@ pub fn test_browser_tab_new() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_browser_tab_url() -> TestResult {
+pub(crate) fn test_browser_tab_url() -> TestResult {
     let tab = BrowserTab {
         id: 2,
         url: String::from("https://nonos.io/apps"),
@@ -132,7 +132,7 @@ pub fn test_browser_tab_url() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_browser_tab_security() -> TestResult {
+pub(crate) fn test_browser_tab_security() -> TestResult {
     let tab = BrowserTab {
         id: 3,
         url: String::from("https://secure.example.com"),
@@ -152,7 +152,7 @@ pub fn test_browser_tab_security() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_browser_tab_error() -> TestResult {
+pub(crate) fn test_browser_tab_error() -> TestResult {
     let tab = BrowserTab {
         id: 4,
         url: String::from("https://broken.example.com"),
@@ -174,7 +174,7 @@ pub fn test_browser_tab_error() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_browser_tab_history() -> TestResult {
+pub(crate) fn test_browser_tab_history() -> TestResult {
     let tab = BrowserTab {
         id: 5,
         url: String::from("https://example.com/page3"),
@@ -199,7 +199,7 @@ pub fn test_browser_tab_history() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_browser_tab_favicon() -> TestResult {
+pub(crate) fn test_browser_tab_favicon() -> TestResult {
     let favicon_data = vec![0x89, 0x50, 0x4E, 0x47];
     let tab = BrowserTab {
         id: 6,
@@ -221,7 +221,7 @@ pub fn test_browser_tab_favicon() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_browser_tab_scroll() -> TestResult {
+pub(crate) fn test_browser_tab_scroll() -> TestResult {
     let tab = BrowserTab {
         id: 7,
         url: String::from("https://example.com/long-page"),
@@ -241,7 +241,7 @@ pub fn test_browser_tab_scroll() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_browser_tab_clone() -> TestResult {
+pub(crate) fn test_browser_tab_clone() -> TestResult {
     let tab = BrowserTab {
         id: 8,
         url: String::from("https://example.com"),
