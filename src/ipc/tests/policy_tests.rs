@@ -1,9 +1,7 @@
 // NONOS Operating System
 // Copyright (C) 2026 NONOS Contributors
 
-use crate::ipc::nonos_policy::capability::IpcCapability;
-use crate::ipc::nonos_policy::violation::PolicyViolation;
-use crate::ipc::nonos_message::types::SecurityLevel;
+use crate::ipc::{IpcCapability, PolicyViolation, SecurityLevel};
 use crate::test::framework::TestResult;
 use alloc::string::String;
 

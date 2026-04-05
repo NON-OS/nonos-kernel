@@ -1,8 +1,7 @@
 // NONOS Operating System
 // Copyright (C) 2026 NONOS Contributors
 
-use crate::ipc::nonos_inbox::error::InboxError;
-use crate::ipc::nonos_inbox::stats::InboxStatsSnapshot;
+use crate::ipc::{InboxError, InboxStatsSnapshot};
 use crate::test::framework::TestResult;
 use alloc::string::String;
 

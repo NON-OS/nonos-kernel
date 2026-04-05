@@ -1,10 +1,8 @@
 // NONOS Operating System
 // Copyright (C) 2026 NONOS Contributors
 
-use crate::ipc::nonos_message::types::{SecurityLevel, MessageType, MessageError};
-use crate::ipc::nonos_message::envelope::{IpcEnvelope, MAX_PAYLOAD_SIZE};
-use crate::ipc::nonos_message::builder::EnvelopeBuilder;
-use crate::ipc::nonos_channel::message::{IpcMessage, MAX_MESSAGE_SIZE};
+use crate::ipc::message::{SecurityLevel, MessageType, MessageError, IpcEnvelope, MAX_PAYLOAD_SIZE, EnvelopeBuilder};
+use crate::ipc::channel::{IpcMessage, MAX_MESSAGE_SIZE};
 use crate::test::framework::TestResult;
 use alloc::vec;
 use alloc::string::String;
