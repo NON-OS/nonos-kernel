@@ -15,239 +15,242 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::drivers::virtio_net::error::{ErrorCategory, VirtioNetError};
+use crate::test::framework::TestResult;
 
-#[test]
-fn test_error_invalid_packet_size() {
-    assert_eq!(VirtioNetError::InvalidPacketSize.as_str(), "invalid packet size");
+pub fn test_error_invalid_packet_size() -> TestResult {
+    if VirtioNetError::InvalidPacketSize.as_str() != "invalid packet size" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_error_packet_too_small() {
-    assert_eq!(VirtioNetError::PacketTooSmall.as_str(), "packet too small");
+pub fn test_error_packet_too_small() -> TestResult {
+    if VirtioNetError::PacketTooSmall.as_str() != "packet too small" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_error_packet_exceeds_mtu() {
-    assert_eq!(VirtioNetError::PacketExceedsMtu.as_str(), "packet exceeds MTU");
+pub fn test_error_packet_exceeds_mtu() -> TestResult {
+    if VirtioNetError::PacketExceedsMtu.as_str() != "packet exceeds MTU" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_error_invalid_header() {
-    assert_eq!(VirtioNetError::InvalidHeader.as_str(), "invalid virtio net header");
+pub fn test_error_invalid_header() -> TestResult {
+    if VirtioNetError::InvalidHeader.as_str() != "invalid virtio net header" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_error_descriptor_out_of_bounds() {
-    assert_eq!(VirtioNetError::DescriptorOutOfBounds.as_str(), "descriptor out of bounds");
+pub fn test_error_descriptor_out_of_bounds() -> TestResult {
+    if VirtioNetError::DescriptorOutOfBounds.as_str() != "descriptor out of bounds" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_error_descriptor_chain_too_long() {
-    assert_eq!(VirtioNetError::DescriptorChainTooLong.as_str(), "descriptor chain too long");
+pub fn test_error_descriptor_chain_too_long() -> TestResult {
+    if VirtioNetError::DescriptorChainTooLong.as_str() != "descriptor chain too long" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_error_invalid_dma_address() {
-    assert_eq!(VirtioNetError::InvalidDmaAddress.as_str(), "invalid DMA address");
+pub fn test_error_invalid_dma_address() -> TestResult {
+    if VirtioNetError::InvalidDmaAddress.as_str() != "invalid DMA address" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_error_rate_limit_exceeded() {
-    assert_eq!(VirtioNetError::RateLimitExceeded.as_str(), "rate limit exceeded");
+pub fn test_error_rate_limit_exceeded() -> TestResult {
+    if VirtioNetError::RateLimitExceeded.as_str() != "rate limit exceeded" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_error_no_buffers_available() {
-    assert_eq!(VirtioNetError::NoBuffersAvailable.as_str(), "no buffers available");
+pub fn test_error_no_buffers_available() -> TestResult {
+    if VirtioNetError::NoBuffersAvailable.as_str() != "no buffers available" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_error_no_descriptors_available() {
-    assert_eq!(VirtioNetError::NoDescriptorsAvailable.as_str(), "no descriptors available");
+pub fn test_error_no_descriptors_available() -> TestResult {
+    if VirtioNetError::NoDescriptorsAvailable.as_str() != "no descriptors available" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_error_queue_error() {
-    assert_eq!(VirtioNetError::QueueError.as_str(), "queue error");
+pub fn test_error_queue_error() -> TestResult {
+    if VirtioNetError::QueueError.as_str() != "queue error" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_error_invalid_mac_address() {
-    assert_eq!(VirtioNetError::InvalidMacAddress.as_str(), "invalid MAC address");
+pub fn test_error_invalid_mac_address() -> TestResult {
+    if VirtioNetError::InvalidMacAddress.as_str() != "invalid MAC address" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_error_malformed_packet() {
-    assert_eq!(VirtioNetError::MalformedPacket.as_str(), "malformed packet");
+pub fn test_error_malformed_packet() -> TestResult {
+    if VirtioNetError::MalformedPacket.as_str() != "malformed packet" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_error_checksum_error() {
-    assert_eq!(VirtioNetError::ChecksumError.as_str(), "checksum error");
+pub fn test_error_checksum_error() -> TestResult {
+    if VirtioNetError::ChecksumError.as_str() != "checksum error" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_error_device_not_ready() {
-    assert_eq!(VirtioNetError::DeviceNotReady.as_str(), "device not ready");
+pub fn test_error_device_not_ready() -> TestResult {
+    if VirtioNetError::DeviceNotReady.as_str() != "device not ready" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_error_buffer_too_small() {
-    assert_eq!(VirtioNetError::BufferTooSmall.as_str(), "buffer too small");
+pub fn test_error_buffer_too_small() -> TestResult {
+    if VirtioNetError::BufferTooSmall.as_str() != "buffer too small" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_error_initialization_failed() {
-    assert_eq!(VirtioNetError::InitializationFailed.as_str(), "initialization failed");
+pub fn test_error_initialization_failed() -> TestResult {
+    if VirtioNetError::InitializationFailed.as_str() != "initialization failed" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_error_feature_negotiation_failed() {
-    assert_eq!(VirtioNetError::FeatureNegotiationFailed.as_str(), "feature negotiation failed");
+pub fn test_error_feature_negotiation_failed() -> TestResult {
+    if VirtioNetError::FeatureNegotiationFailed.as_str() != "feature negotiation failed" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_error_msix_configuration_failed() {
-    assert_eq!(VirtioNetError::MsixConfigurationFailed.as_str(), "MSI-X configuration failed");
+pub fn test_error_msix_configuration_failed() -> TestResult {
+    if VirtioNetError::MsixConfigurationFailed.as_str() != "MSI-X configuration failed" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_error_queue_setup_failed() {
-    assert_eq!(VirtioNetError::QueueSetupFailed.as_str(), "queue setup failed");
+pub fn test_error_queue_setup_failed() -> TestResult {
+    if VirtioNetError::QueueSetupFailed.as_str() != "queue setup failed" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_error_allocation_failed() {
-    assert_eq!(VirtioNetError::AllocationFailed.as_str(), "memory allocation failed");
+pub fn test_error_allocation_failed() -> TestResult {
+    if VirtioNetError::AllocationFailed.as_str() != "memory allocation failed" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_error_generic_error() {
-    assert_eq!(VirtioNetError::GenericError.as_str(), "generic error");
+pub fn test_error_generic_error() -> TestResult {
+    if VirtioNetError::GenericError.as_str() != "generic error" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_is_security_relevant_rate_limit() {
-    assert!(VirtioNetError::RateLimitExceeded.is_security_relevant());
+pub fn test_is_security_relevant_rate_limit() -> TestResult {
+    if !VirtioNetError::RateLimitExceeded.is_security_relevant() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_is_security_relevant_invalid_mac() {
-    assert!(VirtioNetError::InvalidMacAddress.is_security_relevant());
+pub fn test_is_security_relevant_invalid_mac() -> TestResult {
+    if !VirtioNetError::InvalidMacAddress.is_security_relevant() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_is_security_relevant_malformed_packet() {
-    assert!(VirtioNetError::MalformedPacket.is_security_relevant());
+pub fn test_is_security_relevant_malformed_packet() -> TestResult {
+    if !VirtioNetError::MalformedPacket.is_security_relevant() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_is_security_relevant_invalid_header() {
-    assert!(VirtioNetError::InvalidHeader.is_security_relevant());
+pub fn test_is_security_relevant_invalid_header() -> TestResult {
+    if !VirtioNetError::InvalidHeader.is_security_relevant() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_is_security_relevant_descriptor_out_of_bounds() {
-    assert!(VirtioNetError::DescriptorOutOfBounds.is_security_relevant());
+pub fn test_is_security_relevant_descriptor_out_of_bounds() -> TestResult {
+    if !VirtioNetError::DescriptorOutOfBounds.is_security_relevant() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_is_not_security_relevant_buffer_too_small() {
-    assert!(!VirtioNetError::BufferTooSmall.is_security_relevant());
+pub fn test_is_not_security_relevant_buffer_too_small() -> TestResult {
+    if VirtioNetError::BufferTooSmall.is_security_relevant() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_is_recoverable_packet_too_small() {
-    assert!(VirtioNetError::PacketTooSmall.is_recoverable());
+pub fn test_is_recoverable_packet_too_small() -> TestResult {
+    if !VirtioNetError::PacketTooSmall.is_recoverable() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_is_recoverable_no_buffers() {
-    assert!(VirtioNetError::NoBuffersAvailable.is_recoverable());
+pub fn test_is_recoverable_no_buffers() -> TestResult {
+    if !VirtioNetError::NoBuffersAvailable.is_recoverable() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_is_not_recoverable_queue_error() {
-    assert!(!VirtioNetError::QueueError.is_recoverable());
+pub fn test_is_not_recoverable_queue_error() -> TestResult {
+    if VirtioNetError::QueueError.is_recoverable() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_is_fatal_descriptor_out_of_bounds() {
-    assert!(VirtioNetError::DescriptorOutOfBounds.is_fatal());
+pub fn test_is_fatal_descriptor_out_of_bounds() -> TestResult {
+    if !VirtioNetError::DescriptorOutOfBounds.is_fatal() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_is_fatal_queue_error() {
-    assert!(VirtioNetError::QueueError.is_fatal());
+pub fn test_is_fatal_queue_error() -> TestResult {
+    if !VirtioNetError::QueueError.is_fatal() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_is_not_fatal_packet_too_small() {
-    assert!(!VirtioNetError::PacketTooSmall.is_fatal());
+pub fn test_is_not_fatal_packet_too_small() -> TestResult {
+    if VirtioNetError::PacketTooSmall.is_fatal() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_category_packet_size() {
-    assert_eq!(VirtioNetError::PacketTooSmall.category(), ErrorCategory::PacketSize);
-    assert_eq!(VirtioNetError::PacketExceedsMtu.category(), ErrorCategory::PacketSize);
+pub fn test_category_packet_size() -> TestResult {
+    if VirtioNetError::PacketTooSmall.category() != ErrorCategory::PacketSize { return TestResult::Fail; }
+    if VirtioNetError::PacketExceedsMtu.category() != ErrorCategory::PacketSize { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_category_packet_format() {
-    assert_eq!(VirtioNetError::InvalidHeader.category(), ErrorCategory::PacketFormat);
-    assert_eq!(VirtioNetError::MalformedPacket.category(), ErrorCategory::PacketFormat);
+pub fn test_category_packet_format() -> TestResult {
+    if VirtioNetError::InvalidHeader.category() != ErrorCategory::PacketFormat { return TestResult::Fail; }
+    if VirtioNetError::MalformedPacket.category() != ErrorCategory::PacketFormat { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_category_descriptor() {
-    assert_eq!(VirtioNetError::QueueError.category(), ErrorCategory::Descriptor);
-    assert_eq!(VirtioNetError::DescriptorOutOfBounds.category(), ErrorCategory::Descriptor);
+pub fn test_category_descriptor() -> TestResult {
+    if VirtioNetError::QueueError.category() != ErrorCategory::Descriptor { return TestResult::Fail; }
+    if VirtioNetError::DescriptorOutOfBounds.category() != ErrorCategory::Descriptor { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_category_memory() {
-    assert_eq!(VirtioNetError::InvalidDmaAddress.category(), ErrorCategory::Memory);
-    assert_eq!(VirtioNetError::AllocationFailed.category(), ErrorCategory::Memory);
+pub fn test_category_memory() -> TestResult {
+    if VirtioNetError::InvalidDmaAddress.category() != ErrorCategory::Memory { return TestResult::Fail; }
+    if VirtioNetError::AllocationFailed.category() != ErrorCategory::Memory { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_category_security() {
-    assert_eq!(VirtioNetError::RateLimitExceeded.category(), ErrorCategory::Security);
-    assert_eq!(VirtioNetError::InvalidMacAddress.category(), ErrorCategory::Security);
+pub fn test_category_security() -> TestResult {
+    if VirtioNetError::RateLimitExceeded.category() != ErrorCategory::Security { return TestResult::Fail; }
+    if VirtioNetError::InvalidMacAddress.category() != ErrorCategory::Security { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_category_device() {
-    assert_eq!(VirtioNetError::DeviceNotReady.category(), ErrorCategory::Device);
-    assert_eq!(VirtioNetError::InitializationFailed.category(), ErrorCategory::Device);
+pub fn test_category_device() -> TestResult {
+    if VirtioNetError::DeviceNotReady.category() != ErrorCategory::Device { return TestResult::Fail; }
+    if VirtioNetError::InitializationFailed.category() != ErrorCategory::Device { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_error_category_as_str() {
-    assert_eq!(ErrorCategory::PacketSize.as_str(), "packet_size");
-    assert_eq!(ErrorCategory::PacketFormat.as_str(), "packet_format");
-    assert_eq!(ErrorCategory::Descriptor.as_str(), "descriptor");
-    assert_eq!(ErrorCategory::Memory.as_str(), "memory");
-    assert_eq!(ErrorCategory::Security.as_str(), "security");
-    assert_eq!(ErrorCategory::Device.as_str(), "device");
-    assert_eq!(ErrorCategory::Other.as_str(), "other");
+pub fn test_error_category_as_str() -> TestResult {
+    if ErrorCategory::PacketSize.as_str() != "packet_size" { return TestResult::Fail; }
+    if ErrorCategory::PacketFormat.as_str() != "packet_format" { return TestResult::Fail; }
+    if ErrorCategory::Descriptor.as_str() != "descriptor" { return TestResult::Fail; }
+    if ErrorCategory::Memory.as_str() != "memory" { return TestResult::Fail; }
+    if ErrorCategory::Security.as_str() != "security" { return TestResult::Fail; }
+    if ErrorCategory::Device.as_str() != "device" { return TestResult::Fail; }
+    if ErrorCategory::Other.as_str() != "other" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_error_equality() {
-    assert_eq!(VirtioNetError::PacketTooSmall, VirtioNetError::PacketTooSmall);
-    assert_ne!(VirtioNetError::PacketTooSmall, VirtioNetError::PacketExceedsMtu);
+pub fn test_error_equality() -> TestResult {
+    if VirtioNetError::PacketTooSmall != VirtioNetError::PacketTooSmall { return TestResult::Fail; }
+    if VirtioNetError::PacketTooSmall == VirtioNetError::PacketExceedsMtu { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_error_display() {
+pub fn test_error_display() -> TestResult {
+    use core::fmt::Write;
     let err = VirtioNetError::PacketTooSmall;
-    let display_str = format!("{}", err);
-    assert_eq!(display_str, "packet too small");
+    let mut buf = [0u8; 64];
+    let mut writer = crate::test::framework::ArrayWriter::new(&mut buf);
+    let _ = write!(writer, "{}", err);
+    if writer.as_str() != "packet too small" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_all_errors_have_message() {
+pub fn test_all_errors_have_message() -> TestResult {
     let errors = [
         VirtioNetError::InvalidPacketSize,
         VirtioNetError::PacketTooSmall,
@@ -274,6 +277,7 @@ fn test_all_errors_have_message() {
     ];
 
     for err in &errors {
-        assert!(!err.as_str().is_empty());
+        if err.as_str().is_empty() { return TestResult::Fail; }
     }
+    TestResult::Pass
 }

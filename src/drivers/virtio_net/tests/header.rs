@@ -17,233 +17,234 @@
 use crate::drivers::virtio_net::constants::*;
 use crate::drivers::virtio_net::error::VirtioNetError;
 use crate::drivers::virtio_net::header::VirtioNetHeader;
+use crate::test::framework::TestResult;
 
-#[test]
-fn test_header_size_const() {
-    assert_eq!(VirtioNetHeader::SIZE, 12);
+pub fn test_header_size_const() -> TestResult {
+    if VirtioNetHeader::SIZE != 12 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_header_size_of() {
-    assert_eq!(core::mem::size_of::<VirtioNetHeader>(), 12);
+pub fn test_header_size_of() -> TestResult {
+    if core::mem::size_of::<VirtioNetHeader>() != 12 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_default_header() {
+pub fn test_default_header() -> TestResult {
     let hdr = VirtioNetHeader::default();
-    assert_eq!(hdr.flags, 0);
-    assert_eq!(hdr.gso_type, VIRTIO_NET_HDR_GSO_NONE);
-    assert_eq!(hdr.hdr_len, 0);
-    assert_eq!(hdr.gso_size, 0);
-    assert_eq!(hdr.csum_start, 0);
-    assert_eq!(hdr.csum_offset, 0);
-    assert_eq!(hdr.num_buffers, 1);
+    if hdr.flags != 0 { return TestResult::Fail; }
+    if hdr.gso_type != VIRTIO_NET_HDR_GSO_NONE { return TestResult::Fail; }
+    if hdr.hdr_len != 0 { return TestResult::Fail; }
+    if hdr.gso_size != 0 { return TestResult::Fail; }
+    if hdr.csum_start != 0 { return TestResult::Fail; }
+    if hdr.csum_offset != 0 { return TestResult::Fail; }
+    if hdr.num_buffers != 1 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_new_header() {
+pub fn test_new_header() -> TestResult {
     let hdr = VirtioNetHeader::new();
-    assert_eq!(hdr.flags, 0);
-    assert_eq!(hdr.gso_type, VIRTIO_NET_HDR_GSO_NONE);
+    if hdr.flags != 0 { return TestResult::Fail; }
+    if hdr.gso_type != VIRTIO_NET_HDR_GSO_NONE { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_simple_header() {
+pub fn test_simple_header() -> TestResult {
     let hdr = VirtioNetHeader::simple();
-    assert!(hdr.validate().is_ok());
-    assert_eq!(hdr.gso_type, VIRTIO_NET_HDR_GSO_NONE);
+    if hdr.validate().is_err() { return TestResult::Fail; }
+    if hdr.gso_type != VIRTIO_NET_HDR_GSO_NONE { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_default_validates() {
+pub fn test_default_validates() -> TestResult {
     let hdr = VirtioNetHeader::default();
-    assert!(hdr.validate().is_ok());
+    if hdr.validate().is_err() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_default_no_gso() {
+pub fn test_default_no_gso() -> TestResult {
     let hdr = VirtioNetHeader::default();
-    assert!(!hdr.has_gso());
+    if hdr.has_gso() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_default_no_csum() {
+pub fn test_default_no_csum() -> TestResult {
     let hdr = VirtioNetHeader::default();
-    assert!(!hdr.needs_csum());
+    if hdr.needs_csum() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_with_csum() {
+pub fn test_with_csum() -> TestResult {
     let hdr = VirtioNetHeader::with_csum(34, 6);
-    assert!(hdr.validate().is_ok());
-    assert!(hdr.needs_csum());
+    if hdr.validate().is_err() { return TestResult::Fail; }
+    if !hdr.needs_csum() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_invalid_flags() {
+pub fn test_invalid_flags() -> TestResult {
     let mut hdr = VirtioNetHeader::default();
     hdr.flags = 0x80;
-    assert!(hdr.validate().is_err());
+    if hdr.validate().is_ok() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_invalid_gso_type() {
+pub fn test_invalid_gso_type() -> TestResult {
     let mut hdr = VirtioNetHeader::default();
     hdr.gso_type = 0x42;
-    assert!(hdr.validate().is_err());
+    if hdr.validate().is_ok() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_gso_tcpv4_invalid_without_params() {
+pub fn test_gso_tcpv4_invalid_without_params() -> TestResult {
     let mut hdr = VirtioNetHeader::default();
     hdr.gso_type = VIRTIO_NET_HDR_GSO_TCPV4;
-    assert!(hdr.validate().is_err());
+    if hdr.validate().is_ok() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_gso_tcpv4_valid_with_params() {
+pub fn test_gso_tcpv4_valid_with_params() -> TestResult {
     let mut hdr = VirtioNetHeader::default();
     hdr.gso_type = VIRTIO_NET_HDR_GSO_TCPV4;
     hdr.hdr_len = 54;
     hdr.gso_size = 1460;
-    assert!(hdr.validate().is_ok());
+    if hdr.validate().is_err() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_gso_tcpv6() {
+pub fn test_gso_tcpv6() -> TestResult {
     let mut hdr = VirtioNetHeader::default();
     hdr.gso_type = VIRTIO_NET_HDR_GSO_TCPV6;
     hdr.hdr_len = 74;
     hdr.gso_size = 1440;
-    assert!(hdr.validate().is_ok());
+    if hdr.validate().is_err() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_gso_udp() {
+pub fn test_gso_udp() -> TestResult {
     let mut hdr = VirtioNetHeader::default();
     hdr.gso_type = VIRTIO_NET_HDR_GSO_UDP;
     hdr.hdr_len = 42;
     hdr.gso_size = 1472;
-    assert!(hdr.validate().is_ok());
+    if hdr.validate().is_err() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_invalid_num_buffers_zero() {
+pub fn test_invalid_num_buffers_zero() -> TestResult {
     let mut hdr = VirtioNetHeader::default();
     hdr.num_buffers = 0;
-    assert_eq!(hdr.validate(), Err(VirtioNetError::InvalidHeader));
+    if hdr.validate() != Err(VirtioNetError::InvalidHeader) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_invalid_num_buffers_too_large() {
+pub fn test_invalid_num_buffers_too_large() -> TestResult {
     let mut hdr = VirtioNetHeader::default();
     hdr.num_buffers = 257;
-    assert_eq!(hdr.validate(), Err(VirtioNetError::InvalidHeader));
+    if hdr.validate() != Err(VirtioNetError::InvalidHeader) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_valid_num_buffers() {
+pub fn test_valid_num_buffers() -> TestResult {
     let mut hdr = VirtioNetHeader::default();
     hdr.num_buffers = 128;
-    assert!(hdr.validate().is_ok());
+    if hdr.validate().is_err() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_has_gso_none() {
+pub fn test_has_gso_none() -> TestResult {
     let hdr = VirtioNetHeader::default();
-    assert!(!hdr.has_gso());
+    if hdr.has_gso() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_has_gso_tcpv4() {
+pub fn test_has_gso_tcpv4() -> TestResult {
     let mut hdr = VirtioNetHeader::default();
     hdr.gso_type = VIRTIO_NET_HDR_GSO_TCPV4;
-    assert!(hdr.has_gso());
+    if !hdr.has_gso() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_has_ecn() {
+pub fn test_has_ecn() -> TestResult {
     let mut hdr = VirtioNetHeader::default();
-    assert!(!hdr.has_ecn());
+    if hdr.has_ecn() { return TestResult::Fail; }
 
     hdr.gso_type = VIRTIO_NET_HDR_GSO_TCPV4 | VIRTIO_NET_HDR_GSO_ECN;
-    assert!(hdr.has_ecn());
-    assert!(hdr.has_gso());
+    if !hdr.has_ecn() { return TestResult::Fail; }
+    if !hdr.has_gso() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_csum_valid_flag() {
+pub fn test_csum_valid_flag() -> TestResult {
     let mut hdr = VirtioNetHeader::default();
-    assert!(!hdr.csum_valid());
+    if hdr.csum_valid() { return TestResult::Fail; }
 
     hdr.flags = VIRTIO_NET_HDR_F_DATA_VALID;
-    assert!(hdr.csum_valid());
+    if !hdr.csum_valid() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_gso_type_name_none() {
+pub fn test_gso_type_name_none() -> TestResult {
     let hdr = VirtioNetHeader::default();
-    assert_eq!(hdr.gso_type_name(), "none");
+    if hdr.gso_type_name() != "none" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_gso_type_name_tcpv4() {
+pub fn test_gso_type_name_tcpv4() -> TestResult {
     let mut hdr = VirtioNetHeader::default();
     hdr.gso_type = VIRTIO_NET_HDR_GSO_TCPV4;
-    assert_eq!(hdr.gso_type_name(), "tcpv4");
+    if hdr.gso_type_name() != "tcpv4" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_gso_type_name_tcpv6() {
+pub fn test_gso_type_name_tcpv6() -> TestResult {
     let mut hdr = VirtioNetHeader::default();
     hdr.gso_type = VIRTIO_NET_HDR_GSO_TCPV6;
-    assert_eq!(hdr.gso_type_name(), "tcpv6");
+    if hdr.gso_type_name() != "tcpv6" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_gso_type_name_udp() {
+pub fn test_gso_type_name_udp() -> TestResult {
     let mut hdr = VirtioNetHeader::default();
     hdr.gso_type = VIRTIO_NET_HDR_GSO_UDP;
-    assert_eq!(hdr.gso_type_name(), "udp");
+    if hdr.gso_type_name() != "udp" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_gso_type_name_with_ecn() {
+pub fn test_gso_type_name_with_ecn() -> TestResult {
     let mut hdr = VirtioNetHeader::default();
     hdr.gso_type = VIRTIO_NET_HDR_GSO_TCPV4 | VIRTIO_NET_HDR_GSO_ECN;
-    assert_eq!(hdr.gso_type_name(), "tcpv4");
+    if hdr.gso_type_name() != "tcpv4" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_as_bytes_length() {
+pub fn test_as_bytes_length() -> TestResult {
     let hdr = VirtioNetHeader::default();
-    assert_eq!(hdr.as_bytes().len(), 12);
+    if hdr.as_bytes().len() != 12 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_invalid_csum_start_too_large() {
+pub fn test_invalid_csum_start_too_large() -> TestResult {
     let hdr = VirtioNetHeader::with_csum(2000, 0);
-    assert_eq!(hdr.validate(), Err(VirtioNetError::InvalidHeader));
+    if hdr.validate() != Err(VirtioNetError::InvalidHeader) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_invalid_csum_offset_too_large() {
+pub fn test_invalid_csum_offset_too_large() -> TestResult {
     let hdr = VirtioNetHeader::with_csum(0, 2000);
-    assert_eq!(hdr.validate(), Err(VirtioNetError::InvalidHeader));
+    if hdr.validate() != Err(VirtioNetError::InvalidHeader) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_header_copy() {
+pub fn test_header_copy() -> TestResult {
     let hdr1 = VirtioNetHeader::with_csum(34, 6);
     let hdr2 = hdr1;
-    assert_eq!(hdr1.csum_start, hdr2.csum_start);
-    assert_eq!(hdr1.csum_offset, hdr2.csum_offset);
+    if hdr1.csum_start != hdr2.csum_start { return TestResult::Fail; }
+    if hdr1.csum_offset != hdr2.csum_offset { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_header_clone() {
+pub fn test_header_clone() -> TestResult {
     let hdr1 = VirtioNetHeader::simple();
     let hdr2 = hdr1.clone();
-    assert_eq!(hdr1.flags, hdr2.flags);
-    assert_eq!(hdr1.gso_type, hdr2.gso_type);
+    if hdr1.flags != hdr2.flags { return TestResult::Fail; }
+    if hdr1.gso_type != hdr2.gso_type { return TestResult::Fail; }
+    TestResult::Pass
 }
