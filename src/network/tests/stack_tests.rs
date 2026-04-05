@@ -1,100 +1,105 @@
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
+//
+// Network stack type tests
+
 use crate::network::stack::types::{
     TcpSocket, Socket, NetworkStats, ArpEntry, SocketInfo, DhcpLease,
 };
+use crate::test::framework::TestResult;
 
-#[test]
-fn test_tcp_socket_new() {
+pub fn test_tcp_socket_new() -> TestResult {
     let socket1 = TcpSocket::new();
     let socket2 = TcpSocket::new();
-    assert_ne!(socket1.connection_id(), socket2.connection_id());
+    if socket1.connection_id() == socket2.connection_id() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_tcp_socket_default() {
+pub fn test_tcp_socket_default() -> TestResult {
     let socket = TcpSocket::default();
-    assert!(socket.connection_id() > 0);
+    if socket.connection_id() <= 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_tcp_socket_from_connection() {
+pub fn test_tcp_socket_from_connection() -> TestResult {
     let socket = TcpSocket::from_connection(42);
-    assert_eq!(socket.connection_id(), 42);
+    if socket.connection_id() != 42 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_tcp_socket_remote_port() {
+pub fn test_tcp_socket_remote_port() -> TestResult {
     let mut socket = TcpSocket::new();
     socket.remote_port = 443;
-    assert_eq!(socket.remote_port, 443);
+    if socket.remote_port != 443 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_tcp_socket_clone() {
+pub fn test_tcp_socket_clone() -> TestResult {
     let socket1 = TcpSocket::new();
     let socket2 = socket1.clone();
-    assert_eq!(socket1.connection_id(), socket2.connection_id());
-    assert_eq!(socket1.remote_port, socket2.remote_port);
+    if socket1.connection_id() != socket2.connection_id() { return TestResult::Fail; }
+    if socket1.remote_port != socket2.remote_port { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_tcp_socket_increments_id() {
+pub fn test_tcp_socket_increments_id() -> TestResult {
     let socket1 = TcpSocket::new();
     let socket2 = TcpSocket::new();
     let socket3 = TcpSocket::new();
-    assert!(socket1.connection_id() < socket2.connection_id());
-    assert!(socket2.connection_id() < socket3.connection_id());
+    if socket1.connection_id() >= socket2.connection_id() { return TestResult::Fail; }
+    if socket2.connection_id() >= socket3.connection_id() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_socket_new() {
+pub fn test_socket_new() -> TestResult {
     let socket = Socket::new();
-    assert!(socket.connection_id().is_none());
+    if socket.connection_id().is_some() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_socket_default() {
+pub fn test_socket_default() -> TestResult {
     let socket = Socket::default();
-    assert!(socket.connection_id().is_none());
+    if socket.connection_id().is_some() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_socket_for_connection() {
+pub fn test_socket_for_connection() -> TestResult {
     let socket = Socket::for_connection(123);
-    assert_eq!(socket.connection_id(), Some(123));
+    if socket.connection_id() != Some(123) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_socket_clone() {
+pub fn test_socket_clone() -> TestResult {
     let socket1 = Socket::for_connection(456);
     let socket2 = socket1.clone();
-    assert_eq!(socket1.connection_id(), socket2.connection_id());
+    if socket1.connection_id() != socket2.connection_id() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_network_stats_default() {
+pub fn test_network_stats_default() -> TestResult {
     let stats = NetworkStats::default();
-    assert_eq!(stats.tx_packets, 0);
-    assert_eq!(stats.rx_packets, 0);
-    assert_eq!(stats.tx_bytes, 0);
-    assert_eq!(stats.rx_bytes, 0);
+    if stats.tx_packets != 0 { return TestResult::Fail; }
+    if stats.rx_packets != 0 { return TestResult::Fail; }
+    if stats.tx_bytes != 0 { return TestResult::Fail; }
+    if stats.rx_bytes != 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_network_stats_fields() {
+pub fn test_network_stats_fields() -> TestResult {
     let stats = NetworkStats {
         tx_packets: 1000,
         rx_packets: 2000,
         tx_bytes: 500000,
         rx_bytes: 1000000,
     };
-    assert_eq!(stats.tx_packets, 1000);
-    assert_eq!(stats.rx_packets, 2000);
-    assert_eq!(stats.tx_bytes, 500000);
-    assert_eq!(stats.rx_bytes, 1000000);
+    if stats.tx_packets != 1000 { return TestResult::Fail; }
+    if stats.rx_packets != 2000 { return TestResult::Fail; }
+    if stats.tx_bytes != 500000 { return TestResult::Fail; }
+    if stats.rx_bytes != 1000000 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_network_stats_clone() {
+pub fn test_network_stats_clone() -> TestResult {
     let stats = NetworkStats {
         tx_packets: 100,
         rx_packets: 200,
@@ -102,35 +107,35 @@ fn test_network_stats_clone() {
         rx_bytes: 10000,
     };
     let cloned = stats.clone();
-    assert_eq!(stats.tx_packets, cloned.tx_packets);
-    assert_eq!(stats.rx_packets, cloned.rx_packets);
-    assert_eq!(stats.tx_bytes, cloned.tx_bytes);
-    assert_eq!(stats.rx_bytes, cloned.rx_bytes);
+    if stats.tx_packets != cloned.tx_packets { return TestResult::Fail; }
+    if stats.rx_packets != cloned.rx_packets { return TestResult::Fail; }
+    if stats.tx_bytes != cloned.tx_bytes { return TestResult::Fail; }
+    if stats.rx_bytes != cloned.rx_bytes { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_arp_entry_fields() {
+pub fn test_arp_entry_fields() -> TestResult {
     let entry = ArpEntry {
         ip: [192, 168, 1, 1],
         mac: [0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF],
     };
-    assert_eq!(entry.ip, [192, 168, 1, 1]);
-    assert_eq!(entry.mac, [0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF]);
+    if entry.ip != [192, 168, 1, 1] { return TestResult::Fail; }
+    if entry.mac != [0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF] { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_arp_entry_clone() {
+pub fn test_arp_entry_clone() -> TestResult {
     let entry = ArpEntry {
         ip: [10, 0, 0, 1],
         mac: [0x00, 0x11, 0x22, 0x33, 0x44, 0x55],
     };
     let cloned = entry.clone();
-    assert_eq!(entry.ip, cloned.ip);
-    assert_eq!(entry.mac, cloned.mac);
+    if entry.ip != cloned.ip { return TestResult::Fail; }
+    if entry.mac != cloned.mac { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_socket_info_fields() {
+pub fn test_socket_info_fields() -> TestResult {
     let info = SocketInfo {
         id: 1,
         is_tcp: true,
@@ -146,23 +151,23 @@ fn test_socket_info_fields() {
         is_closed: false,
         peer_closed: false,
     };
-    assert_eq!(info.id, 1);
-    assert!(info.is_tcp);
-    assert_eq!(info.local_port, 8080);
-    assert_eq!(info.remote_ip, [93, 184, 216, 34]);
-    assert_eq!(info.remote_port, 80);
-    assert_eq!(info.state, 1);
-    assert_eq!(info.rx_available, 1024);
-    assert_eq!(info.tx_available, 4096);
-    assert!(info.can_recv);
-    assert!(info.can_send);
-    assert!(!info.has_error);
-    assert!(!info.is_closed);
-    assert!(!info.peer_closed);
+    if info.id != 1 { return TestResult::Fail; }
+    if !info.is_tcp { return TestResult::Fail; }
+    if info.local_port != 8080 { return TestResult::Fail; }
+    if info.remote_ip != [93, 184, 216, 34] { return TestResult::Fail; }
+    if info.remote_port != 80 { return TestResult::Fail; }
+    if info.state != 1 { return TestResult::Fail; }
+    if info.rx_available != 1024 { return TestResult::Fail; }
+    if info.tx_available != 4096 { return TestResult::Fail; }
+    if !info.can_recv { return TestResult::Fail; }
+    if !info.can_send { return TestResult::Fail; }
+    if info.has_error { return TestResult::Fail; }
+    if info.is_closed { return TestResult::Fail; }
+    if info.peer_closed { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_socket_info_udp() {
+pub fn test_socket_info_udp() -> TestResult {
     let info = SocketInfo {
         id: 2,
         is_tcp: false,
@@ -178,12 +183,12 @@ fn test_socket_info_udp() {
         is_closed: false,
         peer_closed: false,
     };
-    assert!(!info.is_tcp);
-    assert_eq!(info.local_port, 53);
+    if info.is_tcp { return TestResult::Fail; }
+    if info.local_port != 53 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_socket_info_closed() {
+pub fn test_socket_info_closed() -> TestResult {
     let info = SocketInfo {
         id: 3,
         is_tcp: true,
@@ -199,14 +204,14 @@ fn test_socket_info_closed() {
         is_closed: true,
         peer_closed: true,
     };
-    assert!(info.is_closed);
-    assert!(info.peer_closed);
-    assert!(!info.can_recv);
-    assert!(!info.can_send);
+    if !info.is_closed { return TestResult::Fail; }
+    if !info.peer_closed { return TestResult::Fail; }
+    if info.can_recv { return TestResult::Fail; }
+    if info.can_send { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_socket_info_with_error() {
+pub fn test_socket_info_with_error() -> TestResult {
     let info = SocketInfo {
         id: 4,
         is_tcp: true,
@@ -222,11 +227,11 @@ fn test_socket_info_with_error() {
         is_closed: true,
         peer_closed: false,
     };
-    assert!(info.has_error);
+    if !info.has_error { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_socket_info_clone() {
+pub fn test_socket_info_clone() -> TestResult {
     let info = SocketInfo {
         id: 5,
         is_tcp: true,
@@ -243,40 +248,40 @@ fn test_socket_info_clone() {
         peer_closed: false,
     };
     let cloned = info.clone();
-    assert_eq!(info.id, cloned.id);
-    assert_eq!(info.is_tcp, cloned.is_tcp);
-    assert_eq!(info.local_port, cloned.local_port);
-    assert_eq!(info.remote_ip, cloned.remote_ip);
-    assert_eq!(info.remote_port, cloned.remote_port);
+    if info.id != cloned.id { return TestResult::Fail; }
+    if info.is_tcp != cloned.is_tcp { return TestResult::Fail; }
+    if info.local_port != cloned.local_port { return TestResult::Fail; }
+    if info.remote_ip != cloned.remote_ip { return TestResult::Fail; }
+    if info.remote_port != cloned.remote_port { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_dhcp_lease_fields() {
+pub fn test_dhcp_lease_fields() -> TestResult {
     let lease = DhcpLease {
         ip: [192, 168, 1, 100],
         gateway: [192, 168, 1, 1],
         dns: [8, 8, 8, 8],
         lease_time: 86400,
     };
-    assert_eq!(lease.ip, [192, 168, 1, 100]);
-    assert_eq!(lease.gateway, [192, 168, 1, 1]);
-    assert_eq!(lease.dns, [8, 8, 8, 8]);
-    assert_eq!(lease.lease_time, 86400);
+    if lease.ip != [192, 168, 1, 100] { return TestResult::Fail; }
+    if lease.gateway != [192, 168, 1, 1] { return TestResult::Fail; }
+    if lease.dns != [8, 8, 8, 8] { return TestResult::Fail; }
+    if lease.lease_time != 86400 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_dhcp_lease_short_time() {
+pub fn test_dhcp_lease_short_time() -> TestResult {
     let lease = DhcpLease {
         ip: [10, 0, 0, 50],
         gateway: [10, 0, 0, 1],
         dns: [10, 0, 0, 1],
         lease_time: 3600,
     };
-    assert_eq!(lease.lease_time, 3600);
+    if lease.lease_time != 3600 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_dhcp_lease_clone() {
+pub fn test_dhcp_lease_clone() -> TestResult {
     let lease = DhcpLease {
         ip: [172, 16, 0, 100],
         gateway: [172, 16, 0, 1],
@@ -284,19 +289,20 @@ fn test_dhcp_lease_clone() {
         lease_time: 43200,
     };
     let cloned = lease.clone();
-    assert_eq!(lease.ip, cloned.ip);
-    assert_eq!(lease.gateway, cloned.gateway);
-    assert_eq!(lease.dns, cloned.dns);
-    assert_eq!(lease.lease_time, cloned.lease_time);
+    if lease.ip != cloned.ip { return TestResult::Fail; }
+    if lease.gateway != cloned.gateway { return TestResult::Fail; }
+    if lease.dns != cloned.dns { return TestResult::Fail; }
+    if lease.lease_time != cloned.lease_time { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_dhcp_lease_infinite() {
+pub fn test_dhcp_lease_infinite() -> TestResult {
     let lease = DhcpLease {
         ip: [192, 168, 0, 1],
         gateway: [192, 168, 0, 254],
         dns: [1, 1, 1, 1],
         lease_time: 0xFFFFFFFF,
     };
-    assert_eq!(lease.lease_time, u32::MAX);
+    if lease.lease_time != u32::MAX { return TestResult::Fail; }
+    TestResult::Pass
 }

@@ -1,111 +1,116 @@
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
+//
+// SOCKS proxy error and type tests
+
 use crate::network::socks::{SocksError, error_message};
+use crate::test::framework::TestResult;
 
-#[test]
-fn test_socks_error_connection_failed() {
+pub fn test_socks_error_connection_failed() -> TestResult {
     let err = SocksError::ConnectionFailed;
-    assert_eq!(err, SocksError::ConnectionFailed);
+    if err != SocksError::ConnectionFailed { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_socks_error_auth_failed() {
+pub fn test_socks_error_auth_failed() -> TestResult {
     let err = SocksError::AuthFailed;
-    assert_eq!(err, SocksError::AuthFailed);
+    if err != SocksError::AuthFailed { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_socks_error_target_unreachable() {
+pub fn test_socks_error_target_unreachable() -> TestResult {
     let err = SocksError::TargetUnreachable;
-    assert_eq!(err, SocksError::TargetUnreachable);
+    if err != SocksError::TargetUnreachable { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_socks_error_timeout() {
+pub fn test_socks_error_timeout() -> TestResult {
     let err = SocksError::Timeout;
-    assert_eq!(err, SocksError::Timeout);
+    if err != SocksError::Timeout { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_socks_error_protocol_error() {
+pub fn test_socks_error_protocol_error() -> TestResult {
     let err = SocksError::ProtocolError;
-    assert_eq!(err, SocksError::ProtocolError);
+    if err != SocksError::ProtocolError { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_socks_error_send_failed() {
+pub fn test_socks_error_send_failed() -> TestResult {
     let err = SocksError::SendFailed;
-    assert_eq!(err, SocksError::SendFailed);
+    if err != SocksError::SendFailed { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_socks_error_recv_failed() {
+pub fn test_socks_error_recv_failed() -> TestResult {
     let err = SocksError::RecvFailed;
-    assert_eq!(err, SocksError::RecvFailed);
+    if err != SocksError::RecvFailed { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_socks_error_equality() {
-    assert_eq!(SocksError::Timeout, SocksError::Timeout);
-    assert_ne!(SocksError::Timeout, SocksError::SendFailed);
+pub fn test_socks_error_equality() -> TestResult {
+    if SocksError::Timeout != SocksError::Timeout { return TestResult::Fail; }
+    if SocksError::Timeout == SocksError::SendFailed { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_socks_error_clone() {
+pub fn test_socks_error_clone() -> TestResult {
     let err = SocksError::AuthFailed;
     let cloned = err.clone();
-    assert_eq!(err, cloned);
+    if err != cloned { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_socks_error_copy() {
+pub fn test_socks_error_copy() -> TestResult {
     let err = SocksError::ProtocolError;
     let copied: SocksError = err;
-    assert_eq!(err, copied);
+    if err != copied { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_error_message_connection_failed() {
+pub fn test_error_message_connection_failed() -> TestResult {
     let msg = error_message(SocksError::ConnectionFailed);
-    assert_eq!(msg, "Connection failed");
+    if msg != "Connection failed" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_error_message_auth_failed() {
+pub fn test_error_message_auth_failed() -> TestResult {
     let msg = error_message(SocksError::AuthFailed);
-    assert_eq!(msg, "Authentication failed");
+    if msg != "Authentication failed" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_error_message_target_unreachable() {
+pub fn test_error_message_target_unreachable() -> TestResult {
     let msg = error_message(SocksError::TargetUnreachable);
-    assert_eq!(msg, "Target unreachable");
+    if msg != "Target unreachable" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_error_message_timeout() {
+pub fn test_error_message_timeout() -> TestResult {
     let msg = error_message(SocksError::Timeout);
-    assert_eq!(msg, "Connection timed out");
+    if msg != "Connection timed out" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_error_message_protocol_error() {
+pub fn test_error_message_protocol_error() -> TestResult {
     let msg = error_message(SocksError::ProtocolError);
-    assert_eq!(msg, "Protocol error");
+    if msg != "Protocol error" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_error_message_send_failed() {
+pub fn test_error_message_send_failed() -> TestResult {
     let msg = error_message(SocksError::SendFailed);
-    assert_eq!(msg, "Send failed");
+    if msg != "Send failed" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_error_message_recv_failed() {
+pub fn test_error_message_recv_failed() -> TestResult {
     let msg = error_message(SocksError::RecvFailed);
-    assert_eq!(msg, "Receive failed");
+    if msg != "Receive failed" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_all_error_variants_distinct() {
+pub fn test_all_error_variants_distinct() -> TestResult {
     let errors = [
         SocksError::ConnectionFailed,
         SocksError::AuthFailed,
@@ -117,13 +122,13 @@ fn test_all_error_variants_distinct() {
     ];
     for i in 0..errors.len() {
         for j in (i + 1)..errors.len() {
-            assert_ne!(errors[i], errors[j]);
+            if errors[i] == errors[j] { return TestResult::Fail; }
         }
     }
+    TestResult::Pass
 }
 
-#[test]
-fn test_all_error_messages_non_empty() {
+pub fn test_all_error_messages_non_empty() -> TestResult {
     let errors = [
         SocksError::ConnectionFailed,
         SocksError::AuthFailed,
@@ -135,6 +140,7 @@ fn test_all_error_messages_non_empty() {
     ];
     for err in &errors {
         let msg = error_message(*err);
-        assert!(!msg.is_empty());
+        if msg.is_empty() { return TestResult::Fail; }
     }
+    TestResult::Pass
 }
