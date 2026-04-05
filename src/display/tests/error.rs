@@ -17,14 +17,14 @@
 use crate::display::*;
 use crate::test::framework::TestResult;
 
-pub fn test_display_error_not_initialized_display() -> TestResult {
+pub(crate) fn test_display_error_not_initialized_display() -> TestResult {
     let err = DisplayError::NotInitialized;
     let msg = alloc::format!("{}", err);
     if !msg.contains("not initialized") { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_display_error_invalid_address_display() -> TestResult {
+pub(crate) fn test_display_error_invalid_address_display() -> TestResult {
     let err = DisplayError::InvalidAddress;
     let msg = alloc::format!("{}", err);
     if !msg.contains("invalid") { return TestResult::Fail; }
@@ -32,14 +32,14 @@ pub fn test_display_error_invalid_address_display() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_display_error_out_of_bounds_display() -> TestResult {
+pub(crate) fn test_display_error_out_of_bounds_display() -> TestResult {
     let err = DisplayError::OutOfBounds;
     let msg = alloc::format!("{}", err);
     if !msg.contains("out of bounds") { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_display_error_invalid_format_display() -> TestResult {
+pub(crate) fn test_display_error_invalid_format_display() -> TestResult {
     let err = DisplayError::InvalidFormat;
     let msg = alloc::format!("{}", err);
     if !msg.contains("invalid") { return TestResult::Fail; }
@@ -47,14 +47,14 @@ pub fn test_display_error_invalid_format_display() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_display_error_no_framebuffer_display() -> TestResult {
+pub(crate) fn test_display_error_no_framebuffer_display() -> TestResult {
     let err = DisplayError::NoFramebuffer;
     let msg = alloc::format!("{}", err);
     if !msg.contains("no framebuffer") { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_display_error_equality() -> TestResult {
+pub(crate) fn test_display_error_equality() -> TestResult {
     if DisplayError::NotInitialized != DisplayError::NotInitialized { return TestResult::Fail; }
     if DisplayError::InvalidAddress != DisplayError::InvalidAddress { return TestResult::Fail; }
     if DisplayError::OutOfBounds != DisplayError::OutOfBounds { return TestResult::Fail; }
@@ -63,7 +63,7 @@ pub fn test_display_error_equality() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_display_error_inequality() -> TestResult {
+pub(crate) fn test_display_error_inequality() -> TestResult {
     if DisplayError::NotInitialized == DisplayError::InvalidAddress { return TestResult::Fail; }
     if DisplayError::InvalidAddress == DisplayError::OutOfBounds { return TestResult::Fail; }
     if DisplayError::OutOfBounds == DisplayError::InvalidFormat { return TestResult::Fail; }
@@ -72,28 +72,28 @@ pub fn test_display_error_inequality() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_display_error_debug() -> TestResult {
+pub(crate) fn test_display_error_debug() -> TestResult {
     let err = DisplayError::NotInitialized;
     let debug = alloc::format!("{:?}", err);
     if !debug.contains("NotInitialized") { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_display_error_clone() -> TestResult {
+pub(crate) fn test_display_error_clone() -> TestResult {
     let err = DisplayError::OutOfBounds;
     let cloned = err.clone();
     if err != cloned { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_display_error_copy() -> TestResult {
+pub(crate) fn test_display_error_copy() -> TestResult {
     let err = DisplayError::InvalidFormat;
     let copied = err;
     if err != copied { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_all_error_variants_distinct() -> TestResult {
+pub(crate) fn test_all_error_variants_distinct() -> TestResult {
     let errors = [
         DisplayError::NotInitialized,
         DisplayError::InvalidAddress,
@@ -109,7 +109,7 @@ pub fn test_all_error_variants_distinct() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_display_error_debug_all_variants() -> TestResult {
+pub(crate) fn test_display_error_debug_all_variants() -> TestResult {
     let debug = alloc::format!("{:?}", DisplayError::InvalidAddress);
     if !debug.contains("InvalidAddress") { return TestResult::Fail; }
 
