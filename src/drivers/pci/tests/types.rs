@@ -15,103 +15,94 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::drivers::pci::*;
+use crate::test::framework::TestResult;
 
-#[test]
-fn test_class_code_methods() {
+pub fn test_class_code_methods() -> TestResult {
     let storage = types::ClassCode::new(constants::CLASS_MASS_STORAGE, constants::SUBCLASS_STORAGE_NVM, 0x02);
-    assert!(storage.is_storage());
-    assert!(storage.is_nvme());
-    assert!(!storage.is_network());
+    if !storage.is_storage() { return TestResult::Fail; }
+    if !storage.is_nvme() { return TestResult::Fail; }
+    if storage.is_network() { return TestResult::Fail; }
 
     let network = types::ClassCode::new(constants::CLASS_NETWORK, 0x00, 0x00);
-    assert!(network.is_network());
-    assert!(!network.is_storage());
+    if !network.is_network() { return TestResult::Fail; }
+    if network.is_storage() { return TestResult::Fail; }
 
     let usb = types::ClassCode::new(constants::CLASS_SERIAL_BUS, constants::SUBCLASS_SERIAL_USB, 0x30);
-    assert!(usb.is_usb());
+    if !usb.is_usb() { return TestResult::Fail; }
 
     let ahci = types::ClassCode::new(constants::CLASS_MASS_STORAGE, constants::SUBCLASS_STORAGE_SATA, constants::PROGIF_AHCI);
-    assert!(ahci.is_ahci());
+    if !ahci.is_ahci() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_header_type_parsing() {
-    assert_eq!(types::HeaderType::from(0x00), types::HeaderType::Standard);
-    assert_eq!(types::HeaderType::from(0x01), types::HeaderType::PciToPciBridge);
-    assert_eq!(types::HeaderType::from(0x02), types::HeaderType::CardBusBridge);
-    assert_eq!(types::HeaderType::from(0x80), types::HeaderType::Standard);
-    assert!(types::HeaderType::is_multifunction(0x80));
-    assert!(!types::HeaderType::is_multifunction(0x00));
+pub fn test_header_type_parsing() -> TestResult {
+    if types::HeaderType::from(0x00) != types::HeaderType::Standard { return TestResult::Fail; }
+    if types::HeaderType::from(0x01) != types::HeaderType::PciToPciBridge { return TestResult::Fail; }
+    if types::HeaderType::from(0x02) != types::HeaderType::CardBusBridge { return TestResult::Fail; }
+    if types::HeaderType::from(0x80) != types::HeaderType::Standard { return TestResult::Fail; }
+    if !types::HeaderType::is_multifunction(0x80) { return TestResult::Fail; }
+    if types::HeaderType::is_multifunction(0x00) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_capability_creation() {
+pub fn test_capability_creation() -> TestResult {
     let cap = types::PciCapability::new(constants::CAP_ID_MSI, 0x50);
-    assert_eq!(cap.id, constants::CAP_ID_MSI);
-    assert_eq!(cap.offset, 0x50);
-    assert_eq!(cap.name(), "MSI");
+    if cap.id != constants::CAP_ID_MSI { return TestResult::Fail; }
+    if cap.offset != 0x50 { return TestResult::Fail; }
+    if cap.name() != "MSI" { return TestResult::Fail; }
 
     let cap_ver = types::PciCapability::with_version(constants::CAP_ID_PCIE, 0x60, 2);
-    assert_eq!(cap_ver.version, 2);
+    if cap_ver.version != 2 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_msi_message_creation() {
+pub fn test_msi_message_creation() -> TestResult {
     let msg = types::MsiMessage::for_local_apic(0x30);
-    assert_eq!(msg.address & 0xFFF0_0000, constants::MSI_ADDRESS_BASE as u64);
-    assert_eq!(msg.data & 0xFF, 0x30);
+    if msg.address & 0xFFF0_0000 != constants::MSI_ADDRESS_BASE as u64 { return TestResult::Fail; }
+    if msg.data & 0xFF != 0x30 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_device_id_matching() {
+pub fn test_device_id_matching() -> TestResult {
     let id = types::DeviceId::new(0x8086, 0x1234);
-    assert!(id.matches(0x8086, 0x1234));
-    assert!(!id.matches(0x8086, 0x5678));
-    assert!(!id.matches(0x1022, 0x1234));
+    if !id.matches(0x8086, 0x1234) { return TestResult::Fail; }
+    if id.matches(0x8086, 0x5678) { return TestResult::Fail; }
+    if id.matches(0x1022, 0x1234) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_pcie_device_type_parsing() {
-    assert_eq!(
-        types::PcieDeviceType::from(constants::PCIE_TYPE_ENDPOINT),
-        types::PcieDeviceType::Endpoint
-    );
-    assert_eq!(
-        types::PcieDeviceType::from(constants::PCIE_TYPE_ROOT_PORT),
-        types::PcieDeviceType::RootPort
-    );
-    assert_eq!(
-        types::PcieDeviceType::from(0xFF),
-        types::PcieDeviceType::Unknown(0xFF)
-    );
+pub fn test_pcie_device_type_parsing() -> TestResult {
+    if types::PcieDeviceType::from(constants::PCIE_TYPE_ENDPOINT) != types::PcieDeviceType::Endpoint { return TestResult::Fail; }
+    if types::PcieDeviceType::from(constants::PCIE_TYPE_ROOT_PORT) != types::PcieDeviceType::RootPort { return TestResult::Fail; }
+    if types::PcieDeviceType::from(0xFF) != types::PcieDeviceType::Unknown(0xFF) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_pci_device_creation() {
+pub fn test_pci_device_creation() -> TestResult {
     let addr = types::PciAddress::new(0, 1, 0);
     let dev = types::PciDevice::new(addr);
 
-    assert_eq!(dev.bus(), 0);
-    assert_eq!(dev.device(), 1);
-    assert_eq!(dev.function(), 0);
-    assert_eq!(dev.vendor_id(), 0xFFFF);
-    assert!(!dev.supports_msi());
-    assert!(!dev.supports_msix());
-    assert!(!dev.is_pcie());
+    if dev.bus() != 0 { return TestResult::Fail; }
+    if dev.device() != 1 { return TestResult::Fail; }
+    if dev.function() != 0 { return TestResult::Fail; }
+    if dev.vendor_id() != 0xFFFF { return TestResult::Fail; }
+    if dev.supports_msi() { return TestResult::Fail; }
+    if dev.supports_msix() { return TestResult::Fail; }
+    if dev.is_pcie() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_bridge_info_creation() {
+pub fn test_bridge_info_creation() -> TestResult {
     let info = types::BridgeInfo::new();
-    assert_eq!(info.primary_bus, 0);
-    assert_eq!(info.secondary_bus, 0);
-    assert_eq!(info.subordinate_bus, 0);
-    assert_eq!(info.io_window(), (0, 0));
-    assert_eq!(info.memory_window(), (0, 0));
+    if info.primary_bus != 0 { return TestResult::Fail; }
+    if info.secondary_bus != 0 { return TestResult::Fail; }
+    if info.subordinate_bus != 0 { return TestResult::Fail; }
+    if info.io_window() != (0, 0) { return TestResult::Fail; }
+    if info.memory_window() != (0, 0) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_msi_info_vectors() {
+pub fn test_msi_info_vectors() -> TestResult {
     let msi = types::MsiInfo {
         offset: 0x50,
         is_64bit: true,
@@ -121,12 +112,12 @@ fn test_msi_info_vectors() {
         enabled: false,
     };
 
-    assert_eq!(msi.max_vectors(), 8);
-    assert_eq!(msi.allocated_vectors(), 4);
+    if msi.max_vectors() != 8 { return TestResult::Fail; }
+    if msi.allocated_vectors() != 4 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_msix_info_vectors() {
+pub fn test_msix_info_vectors() -> TestResult {
     let msix = types::MsixInfo {
         offset: 0x70,
         table_size: 15,
@@ -138,11 +129,11 @@ fn test_msix_info_vectors() {
         function_mask: false,
     };
 
-    assert_eq!(msix.vector_count(), 16);
+    if msix.vector_count() != 16 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_power_management_info() {
+pub fn test_power_management_info() -> TestResult {
     let pm = types::PowerManagementInfo {
         offset: 0x40,
         version: 3,
@@ -158,16 +149,17 @@ fn test_power_management_info() {
         pme_status: false,
     };
 
-    assert!(pm.supports_d1());
-    assert!(pm.supports_d2());
-    assert!(pm.supports_pme_from_d0());
-    assert!(pm.supports_pme_from_d3_hot());
-    assert!(pm.supports_pme_from_d3_cold());
-    assert_eq!(pm.state_name(), "D0");
+    if !pm.supports_d1() { return TestResult::Fail; }
+    if !pm.supports_d2() { return TestResult::Fail; }
+    if !pm.supports_pme_from_d0() { return TestResult::Fail; }
+    if !pm.supports_pme_from_d3_hot() { return TestResult::Fail; }
+    if !pm.supports_pme_from_d3_cold() { return TestResult::Fail; }
+    if pm.state_name() != "D0" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_stats_snapshot() {
+pub fn test_stats_snapshot() -> TestResult {
     let stats = stats::PciStats::snapshot();
-    assert!(stats.total_devices < 1000);
+    if !(stats.total_devices < 1000) { return TestResult::Fail; }
+    TestResult::Pass
 }

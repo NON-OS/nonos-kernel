@@ -15,29 +15,29 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::drivers::pci::*;
+use crate::test::framework::TestResult;
 
-#[test]
-fn test_bar_offset_calculation() {
-    assert_eq!(constants::bar_offset(0), constants::CFG_BAR0);
-    assert_eq!(constants::bar_offset(1), constants::CFG_BAR1);
-    assert_eq!(constants::bar_offset(5), constants::CFG_BAR5);
+pub fn test_bar_offset_calculation() -> TestResult {
+    if constants::bar_offset(0) != constants::CFG_BAR0 { return TestResult::Fail; }
+    if constants::bar_offset(1) != constants::CFG_BAR1 { return TestResult::Fail; }
+    if constants::bar_offset(5) != constants::CFG_BAR5 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_pci_bar_properties() {
+pub fn test_pci_bar_properties() -> TestResult {
     let mem32 = types::PciBar::Memory32 {
         address: x86_64::PhysAddr::new(0xF000_0000),
         size: 0x1000,
         prefetchable: true,
     };
 
-    assert!(mem32.is_memory());
-    assert!(!mem32.is_io());
-    assert!(!mem32.is_64bit());
-    assert!(mem32.is_prefetchable());
-    assert!(mem32.is_present());
-    assert_eq!(mem32.size(), 0x1000);
-    assert_eq!(mem32.address(), Some(x86_64::PhysAddr::new(0xF000_0000)));
+    if !mem32.is_memory() { return TestResult::Fail; }
+    if mem32.is_io() { return TestResult::Fail; }
+    if mem32.is_64bit() { return TestResult::Fail; }
+    if !mem32.is_prefetchable() { return TestResult::Fail; }
+    if !mem32.is_present() { return TestResult::Fail; }
+    if mem32.size() != 0x1000 { return TestResult::Fail; }
+    if mem32.address() != Some(x86_64::PhysAddr::new(0xF000_0000)) { return TestResult::Fail; }
 
     let mem64 = types::PciBar::Memory64 {
         address: x86_64::PhysAddr::new(0x1_0000_0000),
@@ -45,46 +45,47 @@ fn test_pci_bar_properties() {
         prefetchable: false,
     };
 
-    assert!(mem64.is_64bit());
-    assert!(!mem64.is_prefetchable());
+    if !mem64.is_64bit() { return TestResult::Fail; }
+    if mem64.is_prefetchable() { return TestResult::Fail; }
 
     let io = types::PciBar::Io { port: 0x1000, size: 0x100 };
-    assert!(io.is_io());
-    assert!(!io.is_memory());
-    assert_eq!(io.port(), Some(0x1000));
+    if !io.is_io() { return TestResult::Fail; }
+    if io.is_memory() { return TestResult::Fail; }
+    if io.port() != Some(0x1000) { return TestResult::Fail; }
 
     let none = types::PciBar::NotPresent;
-    assert!(!none.is_present());
+    if none.is_present() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_bar_alignment_calculation() {
-    assert_eq!(bar::calculate_bar_alignment(0), 0);
-    assert_eq!(bar::calculate_bar_alignment(1), 1);
-    assert_eq!(bar::calculate_bar_alignment(100), 128);
-    assert_eq!(bar::calculate_bar_alignment(256), 256);
-    assert_eq!(bar::calculate_bar_alignment(1000), 1024);
+pub fn test_bar_alignment_calculation() -> TestResult {
+    if bar::calculate_bar_alignment(0) != 0 { return TestResult::Fail; }
+    if bar::calculate_bar_alignment(1) != 1 { return TestResult::Fail; }
+    if bar::calculate_bar_alignment(100) != 128 { return TestResult::Fail; }
+    if bar::calculate_bar_alignment(256) != 256 { return TestResult::Fail; }
+    if bar::calculate_bar_alignment(1000) != 1024 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_bar_type_identification() {
+pub fn test_bar_type_identification() -> TestResult {
     let mem32 = types::PciBar::Memory32 {
         address: x86_64::PhysAddr::new(0xF000_0000),
         size: 0x1000,
         prefetchable: false,
     };
-    assert_eq!(bar::bar_type(&mem32), error::BarType::Memory32);
+    if bar::bar_type(&mem32) != error::BarType::Memory32 { return TestResult::Fail; }
 
     let mem64 = types::PciBar::Memory64 {
         address: x86_64::PhysAddr::new(0x1_0000_0000),
         size: 0x1000,
         prefetchable: false,
     };
-    assert_eq!(bar::bar_type(&mem64), error::BarType::Memory64);
+    if bar::bar_type(&mem64) != error::BarType::Memory64 { return TestResult::Fail; }
 
     let io = types::PciBar::Io { port: 0x1000, size: 0x100 };
-    assert_eq!(bar::bar_type(&io), error::BarType::Io);
+    if bar::bar_type(&io) != error::BarType::Io { return TestResult::Fail; }
 
     let none = types::PciBar::NotPresent;
-    assert_eq!(bar::bar_type(&none), error::BarType::NotPresent);
+    if bar::bar_type(&none) != error::BarType::NotPresent { return TestResult::Fail; }
+    TestResult::Pass
 }
