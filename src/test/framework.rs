@@ -36,7 +36,11 @@ pub struct TestCase {
 }
 
 impl TestCase {
-    pub const fn new(name: &'static str, func: fn() -> TestResult, category: &'static str) -> Self {
+    pub const fn new(name: &'static str, func: fn() -> TestResult) -> Self {
+        Self { name, func, category: "" }
+    }
+
+    pub const fn with_category(name: &'static str, func: fn() -> TestResult, category: &'static str) -> Self {
         Self { name, func, category }
     }
 
@@ -59,8 +63,17 @@ impl TestSuite {
         }
     }
 
+    pub fn add(&mut self, test: TestCase) {
+        self.tests.push(test);
+    }
+
     pub fn add_test(&mut self, test: TestCase) {
         self.tests.push(test);
+    }
+
+    pub fn run(&self) -> bool {
+        let (_, failed, _) = self.run_all();
+        failed == 0
     }
 
     pub fn run_all(&self) -> (u32, u32, u32) {

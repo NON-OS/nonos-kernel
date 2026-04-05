@@ -28,32 +28,32 @@ use alloc::boxed::Box;
 pub fn run_all() -> bool {
     let mut suite = TestSuite::new("Memory");
 
-    suite.add_test(TestCase::new(
+    suite.add_test(TestCase::with_category(
         "heap_allocation",
         test_heap_allocation,
         "memory",
     ));
-    suite.add_test(TestCase::new(
+    suite.add_test(TestCase::with_category(
         "vec_allocation",
         test_vec_allocation,
         "memory",
     ));
-    suite.add_test(TestCase::new(
+    suite.add_test(TestCase::with_category(
         "box_allocation",
         test_box_allocation,
         "memory",
     ));
-    suite.add_test(TestCase::new(
+    suite.add_test(TestCase::with_category(
         "large_allocation",
         test_large_allocation,
         "memory",
     ));
-    suite.add_test(TestCase::new(
+    suite.add_test(TestCase::with_category(
         "allocation_alignment",
         test_allocation_alignment,
         "memory",
     ));
-    suite.add_test(TestCase::new(
+    suite.add_test(TestCase::with_category(
         "memory_protection",
         test_memory_protection,
         "memory",
