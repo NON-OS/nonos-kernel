@@ -15,183 +15,191 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::drivers::gpu::surface::{DisplayMode, PixelFormat};
+use crate::test::framework::TestResult;
 
-#[test]
-fn test_pixel_format_x8r8g8b8_bytes() {
-    assert_eq!(PixelFormat::X8R8G8B8.bytes_per_pixel(), 4);
+pub fn test_pixel_format_x8r8g8b8_bytes() -> TestResult {
+    if PixelFormat::X8R8G8B8.bytes_per_pixel() != 4 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_pixel_format_a8r8g8b8_bytes() {
-    assert_eq!(PixelFormat::A8R8G8B8.bytes_per_pixel(), 4);
+pub fn test_pixel_format_a8r8g8b8_bytes() -> TestResult {
+    if PixelFormat::A8R8G8B8.bytes_per_pixel() != 4 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_pixel_format_r8g8b8_bytes() {
-    assert_eq!(PixelFormat::R8G8B8.bytes_per_pixel(), 3);
+pub fn test_pixel_format_r8g8b8_bytes() -> TestResult {
+    if PixelFormat::R8G8B8.bytes_per_pixel() != 3 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_pixel_format_r5g6b5_bytes() {
-    assert_eq!(PixelFormat::R5G6B5.bytes_per_pixel(), 2);
+pub fn test_pixel_format_r5g6b5_bytes() -> TestResult {
+    if PixelFormat::R5G6B5.bytes_per_pixel() != 2 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_pixel_format_x8r8g8b8_bits() {
-    assert_eq!(PixelFormat::X8R8G8B8.bits_per_pixel(), 32);
+pub fn test_pixel_format_x8r8g8b8_bits() -> TestResult {
+    if PixelFormat::X8R8G8B8.bits_per_pixel() != 32 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_pixel_format_a8r8g8b8_bits() {
-    assert_eq!(PixelFormat::A8R8G8B8.bits_per_pixel(), 32);
+pub fn test_pixel_format_a8r8g8b8_bits() -> TestResult {
+    if PixelFormat::A8R8G8B8.bits_per_pixel() != 32 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_pixel_format_r8g8b8_bits() {
-    assert_eq!(PixelFormat::R8G8B8.bits_per_pixel(), 24);
+pub fn test_pixel_format_r8g8b8_bits() -> TestResult {
+    if PixelFormat::R8G8B8.bits_per_pixel() != 24 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_pixel_format_r5g6b5_bits() {
-    assert_eq!(PixelFormat::R5G6B5.bits_per_pixel(), 16);
+pub fn test_pixel_format_r5g6b5_bits() -> TestResult {
+    if PixelFormat::R5G6B5.bits_per_pixel() != 16 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_pixel_format_equality() {
-    assert_eq!(PixelFormat::X8R8G8B8, PixelFormat::X8R8G8B8);
-    assert_ne!(PixelFormat::X8R8G8B8, PixelFormat::A8R8G8B8);
+pub fn test_pixel_format_equality() -> TestResult {
+    if PixelFormat::X8R8G8B8 != PixelFormat::X8R8G8B8 { return TestResult::Fail; }
+    if PixelFormat::X8R8G8B8 == PixelFormat::A8R8G8B8 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_pixel_format_copy() {
+pub fn test_pixel_format_copy() -> TestResult {
     let fmt1 = PixelFormat::R5G6B5;
     let fmt2 = fmt1;
-    assert_eq!(fmt1, fmt2);
+    if fmt1 != fmt2 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_pixel_format_clone() {
+pub fn test_pixel_format_clone() -> TestResult {
     let fmt1 = PixelFormat::R8G8B8;
     let fmt2 = fmt1.clone();
-    assert_eq!(fmt1, fmt2);
+    if fmt1 != fmt2 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_display_mode_new() {
+pub fn test_display_mode_new() -> TestResult {
     let mode = DisplayMode::new(1024, 768, 32);
-    assert_eq!(mode.width, 1024);
-    assert_eq!(mode.height, 768);
-    assert_eq!(mode.bpp, 32);
+    if mode.width != 1024 { return TestResult::Fail; }
+    if mode.height != 768 { return TestResult::Fail; }
+    if mode.bpp != 32 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_display_mode_pitch_32bpp() {
+pub fn test_display_mode_pitch_32bpp() -> TestResult {
     let mode = DisplayMode::new(1024, 768, 32);
-    assert_eq!(mode.pitch, 1024 * 4);
+    if mode.pitch != 1024 * 4 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_display_mode_pitch_24bpp() {
+pub fn test_display_mode_pitch_24bpp() -> TestResult {
     let mode = DisplayMode::new(1024, 768, 24);
-    assert_eq!(mode.pitch, 1024 * 3);
+    if mode.pitch != 1024 * 3 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_display_mode_pitch_16bpp() {
+pub fn test_display_mode_pitch_16bpp() -> TestResult {
     let mode = DisplayMode::new(1024, 768, 16);
-    assert_eq!(mode.pitch, 1024 * 2);
+    if mode.pitch != 1024 * 2 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_display_mode_framebuffer_size_32bpp() {
+pub fn test_display_mode_framebuffer_size_32bpp() -> TestResult {
     let mode = DisplayMode::new(1024, 768, 32);
-    assert_eq!(mode.framebuffer_size(), 1024 * 768 * 4);
+    if mode.framebuffer_size() != 1024 * 768 * 4 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_display_mode_framebuffer_size_16bpp() {
+pub fn test_display_mode_framebuffer_size_16bpp() -> TestResult {
     let mode = DisplayMode::new(640, 480, 16);
-    assert_eq!(mode.framebuffer_size(), 640 * 480 * 2);
+    if mode.framebuffer_size() != 640 * 480 * 2 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_display_mode_total_pixels() {
+pub fn test_display_mode_total_pixels() -> TestResult {
     let mode = DisplayMode::new(1024, 768, 32);
-    assert_eq!(mode.total_pixels(), 1024 * 768);
+    if mode.total_pixels() != 1024 * 768 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_display_mode_total_pixels_1080p() {
+pub fn test_display_mode_total_pixels_1080p() -> TestResult {
     let mode = DisplayMode::new(1920, 1080, 32);
-    assert_eq!(mode.total_pixels(), 1920 * 1080);
+    if mode.total_pixels() != 1920 * 1080 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_display_mode_vga() {
+pub fn test_display_mode_vga() -> TestResult {
     let mode = DisplayMode::new(640, 480, 32);
-    assert_eq!(mode.width, 640);
-    assert_eq!(mode.height, 480);
-    assert_eq!(mode.total_pixels(), 307200);
+    if mode.width != 640 { return TestResult::Fail; }
+    if mode.height != 480 { return TestResult::Fail; }
+    if mode.total_pixels() != 307200 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_display_mode_svga() {
+pub fn test_display_mode_svga() -> TestResult {
     let mode = DisplayMode::new(800, 600, 32);
-    assert_eq!(mode.total_pixels(), 480000);
+    if mode.total_pixels() != 480000 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_display_mode_xga() {
+pub fn test_display_mode_xga() -> TestResult {
     let mode = DisplayMode::new(1024, 768, 32);
-    assert_eq!(mode.total_pixels(), 786432);
+    if mode.total_pixels() != 786432 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_display_mode_full_hd() {
+pub fn test_display_mode_full_hd() -> TestResult {
     let mode = DisplayMode::new(1920, 1080, 32);
-    assert_eq!(mode.framebuffer_size(), 1920 * 1080 * 4);
+    if mode.framebuffer_size() != 1920 * 1080 * 4 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_display_mode_copy() {
+pub fn test_display_mode_copy() -> TestResult {
     let mode1 = DisplayMode::new(1024, 768, 32);
     let mode2 = mode1;
-    assert_eq!(mode1.width, mode2.width);
-    assert_eq!(mode1.height, mode2.height);
+    if mode1.width != mode2.width { return TestResult::Fail; }
+    if mode1.height != mode2.height { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_display_mode_clone() {
+pub fn test_display_mode_clone() -> TestResult {
     let mode1 = DisplayMode::new(800, 600, 16);
     let mode2 = mode1.clone();
-    assert_eq!(mode1.width, mode2.width);
-    assert_eq!(mode1.bpp, mode2.bpp);
+    if mode1.width != mode2.width { return TestResult::Fail; }
+    if mode1.bpp != mode2.bpp { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_display_mode_debug() {
+pub fn test_display_mode_debug() -> TestResult {
+    use core::fmt::Write;
     let mode = DisplayMode::new(640, 480, 32);
-    let debug_str = format!("{:?}", mode);
-    assert!(debug_str.contains("640"));
-    assert!(debug_str.contains("480"));
-    assert!(debug_str.contains("32"));
+    let mut buf = [0u8; 128];
+    let mut writer = crate::test::framework::ArrayWriter::new(&mut buf);
+    let _ = write!(writer, "{:?}", mode);
+    let debug_str = writer.as_str();
+    if !debug_str.contains("640") { return TestResult::Fail; }
+    if !debug_str.contains("480") { return TestResult::Fail; }
+    if !debug_str.contains("32") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_pixel_format_debug() {
+pub fn test_pixel_format_debug() -> TestResult {
+    use core::fmt::Write;
     let fmt = PixelFormat::X8R8G8B8;
-    let debug_str = format!("{:?}", fmt);
-    assert_eq!(debug_str, "X8R8G8B8");
+    let mut buf = [0u8; 64];
+    let mut writer = crate::test::framework::ArrayWriter::new(&mut buf);
+    let _ = write!(writer, "{:?}", fmt);
+    let debug_str = writer.as_str();
+    if debug_str != "X8R8G8B8" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_display_mode_framebuffer_size_matches_pitch_times_height() {
+pub fn test_display_mode_framebuffer_size_matches_pitch_times_height() -> TestResult {
     let mode = DisplayMode::new(1280, 720, 32);
-    assert_eq!(mode.framebuffer_size(), mode.pitch as usize * mode.height as usize);
+    if mode.framebuffer_size() != mode.pitch as usize * mode.height as usize { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_pixel_format_bits_matches_bytes_times_8() {
+pub fn test_pixel_format_bits_matches_bytes_times_8() -> TestResult {
     let formats = [
         PixelFormat::X8R8G8B8,
         PixelFormat::A8R8G8B8,
@@ -199,6 +207,7 @@ fn test_pixel_format_bits_matches_bytes_times_8() {
         PixelFormat::R5G6B5,
     ];
     for fmt in formats {
-        assert_eq!(fmt.bits_per_pixel(), fmt.bytes_per_pixel() * 8);
+        if fmt.bits_per_pixel() != fmt.bytes_per_pixel() * 8 { return TestResult::Fail; }
     }
+    TestResult::Pass
 }
