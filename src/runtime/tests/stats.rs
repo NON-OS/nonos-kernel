@@ -17,7 +17,7 @@
 use crate::runtime::*;
 use crate::test::framework::TestResult;
 
-pub fn test_snapshot_debug() -> TestResult {
+pub(crate) fn test_snapshot_debug() -> TestResult {
     let snap = stats::Snapshot {
         starts: 1,
         stops: 2,
@@ -29,7 +29,7 @@ pub fn test_snapshot_debug() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_snapshot_clone() -> TestResult {
+pub(crate) fn test_snapshot_clone() -> TestResult {
     let snap = stats::Snapshot {
         starts: 10,
         stops: 20,
@@ -44,7 +44,7 @@ pub fn test_snapshot_clone() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_snapshot_starts_field() -> TestResult {
+pub(crate) fn test_snapshot_starts_field() -> TestResult {
     let snap = stats::Snapshot {
         starts: 100,
         stops: 0,
@@ -55,7 +55,7 @@ pub fn test_snapshot_starts_field() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_snapshot_stops_field() -> TestResult {
+pub(crate) fn test_snapshot_stops_field() -> TestResult {
     let snap = stats::Snapshot {
         starts: 0,
         stops: 200,
@@ -66,7 +66,7 @@ pub fn test_snapshot_stops_field() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_snapshot_restarts_field() -> TestResult {
+pub(crate) fn test_snapshot_restarts_field() -> TestResult {
     let snap = stats::Snapshot {
         starts: 0,
         stops: 0,
@@ -77,7 +77,7 @@ pub fn test_snapshot_restarts_field() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_snapshot_heartbeats_field() -> TestResult {
+pub(crate) fn test_snapshot_heartbeats_field() -> TestResult {
     let snap = stats::Snapshot {
         starts: 0,
         stops: 0,
@@ -88,7 +88,7 @@ pub fn test_snapshot_heartbeats_field() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_snapshot_all_zeros() -> TestResult {
+pub(crate) fn test_snapshot_all_zeros() -> TestResult {
     let snap = stats::Snapshot {
         starts: 0,
         stops: 0,
@@ -102,7 +102,7 @@ pub fn test_snapshot_all_zeros() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_snapshot_large_values() -> TestResult {
+pub(crate) fn test_snapshot_large_values() -> TestResult {
     let snap = stats::Snapshot {
         starts: u64::MAX,
         stops: u64::MAX,
@@ -116,7 +116,7 @@ pub fn test_snapshot_large_values() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_mark_start_increments() -> TestResult {
+pub(crate) fn test_mark_start_increments() -> TestResult {
     let before = stats::snapshot();
     stats::mark_start();
     let after = stats::snapshot();
@@ -124,7 +124,7 @@ pub fn test_mark_start_increments() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_mark_stop_increments() -> TestResult {
+pub(crate) fn test_mark_stop_increments() -> TestResult {
     let before = stats::snapshot();
     stats::mark_stop();
     let after = stats::snapshot();
@@ -132,7 +132,7 @@ pub fn test_mark_stop_increments() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_mark_restart_increments() -> TestResult {
+pub(crate) fn test_mark_restart_increments() -> TestResult {
     let before = stats::snapshot();
     stats::mark_restart();
     let after = stats::snapshot();
@@ -140,7 +140,7 @@ pub fn test_mark_restart_increments() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_mark_heartbeat_increments() -> TestResult {
+pub(crate) fn test_mark_heartbeat_increments() -> TestResult {
     let before = stats::snapshot();
     stats::mark_heartbeat();
     let after = stats::snapshot();
@@ -148,41 +148,41 @@ pub fn test_mark_heartbeat_increments() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_as_string_contains_start() -> TestResult {
+pub(crate) fn test_as_string_contains_start() -> TestResult {
     stats::mark_start();
     let s = stats::as_string();
     if !s.contains("start=") { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_as_string_contains_stop() -> TestResult {
+pub(crate) fn test_as_string_contains_stop() -> TestResult {
     stats::mark_stop();
     let s = stats::as_string();
     if !s.contains("stop=") { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_as_string_contains_restart() -> TestResult {
+pub(crate) fn test_as_string_contains_restart() -> TestResult {
     stats::mark_restart();
     let s = stats::as_string();
     if !s.contains("restart=") { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_as_string_contains_hb() -> TestResult {
+pub(crate) fn test_as_string_contains_hb() -> TestResult {
     stats::mark_heartbeat();
     let s = stats::as_string();
     if !s.contains("hb=") { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_as_string_prefix() -> TestResult {
+pub(crate) fn test_as_string_prefix() -> TestResult {
     let s = stats::as_string();
     if !s.starts_with("rt_stats:") { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_multiple_mark_start() -> TestResult {
+pub(crate) fn test_multiple_mark_start() -> TestResult {
     let before = stats::snapshot();
     stats::mark_start();
     stats::mark_start();
@@ -192,7 +192,7 @@ pub fn test_multiple_mark_start() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_multiple_mark_stop() -> TestResult {
+pub(crate) fn test_multiple_mark_stop() -> TestResult {
     let before = stats::snapshot();
     stats::mark_stop();
     stats::mark_stop();
@@ -201,7 +201,7 @@ pub fn test_multiple_mark_stop() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_multiple_mark_restart() -> TestResult {
+pub(crate) fn test_multiple_mark_restart() -> TestResult {
     let before = stats::snapshot();
     stats::mark_restart();
     stats::mark_restart();
@@ -212,7 +212,7 @@ pub fn test_multiple_mark_restart() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_multiple_mark_heartbeat() -> TestResult {
+pub(crate) fn test_multiple_mark_heartbeat() -> TestResult {
     let before = stats::snapshot();
     stats::mark_heartbeat();
     stats::mark_heartbeat();
@@ -224,7 +224,7 @@ pub fn test_multiple_mark_heartbeat() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_snapshot_returns_consistent_values() -> TestResult {
+pub(crate) fn test_snapshot_returns_consistent_values() -> TestResult {
     let snap1 = stats::snapshot();
     let snap2 = stats::snapshot();
     if !(snap2.starts >= snap1.starts) { return TestResult::Fail; }
@@ -234,7 +234,7 @@ pub fn test_snapshot_returns_consistent_values() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_as_string_format() -> TestResult {
+pub(crate) fn test_as_string_format() -> TestResult {
     let s = stats::as_string();
     if !s.contains("rt_stats:") { return TestResult::Fail; }
     if !s.contains("start=") { return TestResult::Fail; }
@@ -244,7 +244,7 @@ pub fn test_as_string_format() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_snapshot_debug_format() -> TestResult {
+pub(crate) fn test_snapshot_debug_format() -> TestResult {
     let snap = stats::snapshot();
     let debug_str = alloc::format!("{:?}", snap);
     if !debug_str.contains("starts") { return TestResult::Fail; }

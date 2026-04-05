@@ -17,31 +17,31 @@
 use crate::runtime::*;
 use crate::test::framework::TestResult;
 
-pub fn test_isolation_policy_default_inbox_capacity() -> TestResult {
+pub(crate) fn test_isolation_policy_default_inbox_capacity() -> TestResult {
     let policy = isolation::IsolationPolicy::default();
     if policy.inbox_capacity != 1024 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_isolation_policy_default_max_msg_bytes() -> TestResult {
+pub(crate) fn test_isolation_policy_default_max_msg_bytes() -> TestResult {
     let policy = isolation::IsolationPolicy::default();
     if policy.max_msg_bytes != 1 << 20 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_isolation_policy_default_max_bytes_per_sec() -> TestResult {
+pub(crate) fn test_isolation_policy_default_max_bytes_per_sec() -> TestResult {
     let policy = isolation::IsolationPolicy::default();
     if policy.max_bytes_per_sec != 4 << 20 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_isolation_policy_default_heartbeat_interval_ms() -> TestResult {
+pub(crate) fn test_isolation_policy_default_heartbeat_interval_ms() -> TestResult {
     let policy = isolation::IsolationPolicy::default();
     if policy.heartbeat_interval_ms != 2_000 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_isolation_policy_clone() -> TestResult {
+pub(crate) fn test_isolation_policy_clone() -> TestResult {
     let policy = isolation::IsolationPolicy::default();
     let cloned = policy.clone();
     if policy.inbox_capacity != cloned.inbox_capacity { return TestResult::Fail; }
@@ -51,14 +51,14 @@ pub fn test_isolation_policy_clone() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_isolation_policy_debug() -> TestResult {
+pub(crate) fn test_isolation_policy_debug() -> TestResult {
     let policy = isolation::IsolationPolicy::default();
     let debug_str = alloc::format!("{:?}", policy);
     if !debug_str.contains("IsolationPolicy") { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_isolation_policy_custom_inbox_capacity() -> TestResult {
+pub(crate) fn test_isolation_policy_custom_inbox_capacity() -> TestResult {
     let policy = isolation::IsolationPolicy {
         inbox_capacity: 2048,
         ..Default::default()
@@ -67,7 +67,7 @@ pub fn test_isolation_policy_custom_inbox_capacity() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_isolation_policy_custom_max_msg_bytes() -> TestResult {
+pub(crate) fn test_isolation_policy_custom_max_msg_bytes() -> TestResult {
     let policy = isolation::IsolationPolicy {
         max_msg_bytes: 512 * 1024,
         ..Default::default()
@@ -76,7 +76,7 @@ pub fn test_isolation_policy_custom_max_msg_bytes() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_isolation_policy_custom_max_bytes_per_sec() -> TestResult {
+pub(crate) fn test_isolation_policy_custom_max_bytes_per_sec() -> TestResult {
     let policy = isolation::IsolationPolicy {
         max_bytes_per_sec: 8 << 20,
         ..Default::default()
@@ -85,7 +85,7 @@ pub fn test_isolation_policy_custom_max_bytes_per_sec() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_isolation_policy_custom_heartbeat_interval_ms() -> TestResult {
+pub(crate) fn test_isolation_policy_custom_heartbeat_interval_ms() -> TestResult {
     let policy = isolation::IsolationPolicy {
         heartbeat_interval_ms: 5_000,
         ..Default::default()
@@ -94,7 +94,7 @@ pub fn test_isolation_policy_custom_heartbeat_interval_ms() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_isolation_policy_all_custom() -> TestResult {
+pub(crate) fn test_isolation_policy_all_custom() -> TestResult {
     let policy = isolation::IsolationPolicy {
         inbox_capacity: 512,
         max_msg_bytes: 256 * 1024,
@@ -108,21 +108,21 @@ pub fn test_isolation_policy_all_custom() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_isolation_state_new() -> TestResult {
+pub(crate) fn test_isolation_state_new() -> TestResult {
     let policy = isolation::IsolationPolicy::default();
     let state = isolation::IsolationState::new("test_capsule", policy);
     if state.capsule_name != "test_capsule" { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_isolation_state_dropped_initial() -> TestResult {
+pub(crate) fn test_isolation_state_dropped_initial() -> TestResult {
     let policy = isolation::IsolationPolicy::default();
     let state = isolation::IsolationState::new("test", policy);
     if state.dropped() != 0 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_isolation_state_status_format() -> TestResult {
+pub(crate) fn test_isolation_state_status_format() -> TestResult {
     let policy = isolation::IsolationPolicy::default();
     let state = isolation::IsolationState::new("my_capsule", policy);
     let status = state.status();
@@ -133,7 +133,7 @@ pub fn test_isolation_state_status_format() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_isolation_state_charge_message_small() -> TestResult {
+pub(crate) fn test_isolation_state_charge_message_small() -> TestResult {
     let policy = isolation::IsolationPolicy::default();
     let state = isolation::IsolationState::new("test", policy);
     let result = state.charge_message(100);
@@ -141,7 +141,7 @@ pub fn test_isolation_state_charge_message_small() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_isolation_state_charge_message_at_limit() -> TestResult {
+pub(crate) fn test_isolation_state_charge_message_at_limit() -> TestResult {
     let policy = isolation::IsolationPolicy {
         max_msg_bytes: 1024,
         ..Default::default()
@@ -152,7 +152,7 @@ pub fn test_isolation_state_charge_message_at_limit() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_isolation_state_charge_message_over_limit() -> TestResult {
+pub(crate) fn test_isolation_state_charge_message_over_limit() -> TestResult {
     let policy = isolation::IsolationPolicy {
         max_msg_bytes: 1024,
         ..Default::default()
@@ -164,7 +164,7 @@ pub fn test_isolation_state_charge_message_over_limit() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_isolation_state_dropped_increments_on_large_message() -> TestResult {
+pub(crate) fn test_isolation_state_dropped_increments_on_large_message() -> TestResult {
     let policy = isolation::IsolationPolicy {
         max_msg_bytes: 100,
         ..Default::default()
@@ -175,7 +175,7 @@ pub fn test_isolation_state_dropped_increments_on_large_message() -> TestResult 
     TestResult::Pass
 }
 
-pub fn test_isolation_state_set_enforced() -> TestResult {
+pub(crate) fn test_isolation_state_set_enforced() -> TestResult {
     let policy = isolation::IsolationPolicy::default();
     let mut state = isolation::IsolationState::new("test", policy);
     state.set_enforced(false);
@@ -184,7 +184,7 @@ pub fn test_isolation_state_set_enforced() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_isolation_state_multiple_charge_messages() -> TestResult {
+pub(crate) fn test_isolation_state_multiple_charge_messages() -> TestResult {
     let policy = isolation::IsolationPolicy {
         max_bytes_per_sec: 1000,
         max_msg_bytes: 500,
@@ -197,7 +197,7 @@ pub fn test_isolation_state_multiple_charge_messages() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_isolation_policy_megabyte_limits() -> TestResult {
+pub(crate) fn test_isolation_policy_megabyte_limits() -> TestResult {
     let policy = isolation::IsolationPolicy {
         max_msg_bytes: 1 << 20,
         max_bytes_per_sec: 4 << 20,
@@ -208,14 +208,14 @@ pub fn test_isolation_policy_megabyte_limits() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_isolation_state_capsule_name_static() -> TestResult {
+pub(crate) fn test_isolation_state_capsule_name_static() -> TestResult {
     let policy = isolation::IsolationPolicy::default();
     let state = isolation::IsolationState::new("static_name", policy);
     if state.capsule_name != "static_name" { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_isolation_state_status_contains_capsule_name() -> TestResult {
+pub(crate) fn test_isolation_state_status_contains_capsule_name() -> TestResult {
     let policy = isolation::IsolationPolicy::default();
     let state = isolation::IsolationState::new("unique_capsule_name", policy);
     let status = state.status();
@@ -223,7 +223,7 @@ pub fn test_isolation_state_status_contains_capsule_name() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_isolation_state_status_contains_limit() -> TestResult {
+pub(crate) fn test_isolation_state_status_contains_limit() -> TestResult {
     let policy = isolation::IsolationPolicy {
         max_bytes_per_sec: 12345678,
         ..Default::default()
@@ -234,7 +234,7 @@ pub fn test_isolation_state_status_contains_limit() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_isolation_policy_zero_inbox_capacity() -> TestResult {
+pub(crate) fn test_isolation_policy_zero_inbox_capacity() -> TestResult {
     let policy = isolation::IsolationPolicy {
         inbox_capacity: 0,
         ..Default::default()
@@ -243,7 +243,7 @@ pub fn test_isolation_policy_zero_inbox_capacity() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_isolation_policy_large_heartbeat_interval() -> TestResult {
+pub(crate) fn test_isolation_policy_large_heartbeat_interval() -> TestResult {
     let policy = isolation::IsolationPolicy {
         heartbeat_interval_ms: 60_000,
         ..Default::default()
@@ -252,7 +252,7 @@ pub fn test_isolation_policy_large_heartbeat_interval() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_isolation_state_charge_zero_bytes() -> TestResult {
+pub(crate) fn test_isolation_state_charge_zero_bytes() -> TestResult {
     let policy = isolation::IsolationPolicy::default();
     let state = isolation::IsolationState::new("test", policy);
     let result = state.charge_message(0);
@@ -260,7 +260,7 @@ pub fn test_isolation_state_charge_zero_bytes() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_isolation_state_multiple_dropped() -> TestResult {
+pub(crate) fn test_isolation_state_multiple_dropped() -> TestResult {
     let policy = isolation::IsolationPolicy {
         max_msg_bytes: 10,
         ..Default::default()
