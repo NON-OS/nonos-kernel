@@ -15,177 +15,177 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::runtime::*;
+use crate::test::framework::TestResult;
 
-#[test]
-fn test_supervisor_policy_default_restart_on_degraded() {
+pub fn test_supervisor_policy_default_restart_on_degraded() -> TestResult {
     let policy = supervisor::SupervisorPolicy::default();
-    assert!(policy.restart_on_degraded);
+    if !policy.restart_on_degraded { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_supervisor_policy_default_restart_on_stopped() {
+pub fn test_supervisor_policy_default_restart_on_stopped() -> TestResult {
     let policy = supervisor::SupervisorPolicy::default();
-    assert!(policy.restart_on_stopped);
+    if !policy.restart_on_stopped { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_supervisor_policy_default_restart_cooldown_ms() {
+pub fn test_supervisor_policy_default_restart_cooldown_ms() -> TestResult {
     let policy = supervisor::SupervisorPolicy::default();
-    assert_eq!(policy.restart_cooldown_ms, 5_000);
+    if policy.restart_cooldown_ms != 5_000 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_supervisor_policy_default_max_restarts_per_minute() {
+pub fn test_supervisor_policy_default_max_restarts_per_minute() -> TestResult {
     let policy = supervisor::SupervisorPolicy::default();
-    assert_eq!(policy.max_restarts_per_minute, 10);
+    if policy.max_restarts_per_minute != 10 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_supervisor_policy_clone() {
+pub fn test_supervisor_policy_clone() -> TestResult {
     let policy = supervisor::SupervisorPolicy::default();
     let cloned = policy.clone();
-    assert_eq!(policy.restart_on_degraded, cloned.restart_on_degraded);
-    assert_eq!(policy.restart_on_stopped, cloned.restart_on_stopped);
-    assert_eq!(policy.restart_cooldown_ms, cloned.restart_cooldown_ms);
-    assert_eq!(policy.max_restarts_per_minute, cloned.max_restarts_per_minute);
+    if policy.restart_on_degraded != cloned.restart_on_degraded { return TestResult::Fail; }
+    if policy.restart_on_stopped != cloned.restart_on_stopped { return TestResult::Fail; }
+    if policy.restart_cooldown_ms != cloned.restart_cooldown_ms { return TestResult::Fail; }
+    if policy.max_restarts_per_minute != cloned.max_restarts_per_minute { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_supervisor_policy_debug() {
+pub fn test_supervisor_policy_debug() -> TestResult {
     let policy = supervisor::SupervisorPolicy::default();
     let debug_str = alloc::format!("{:?}", policy);
-    assert!(debug_str.contains("SupervisorPolicy"));
+    if !debug_str.contains("SupervisorPolicy") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_supervisor_policy_custom_restart_on_degraded_false() {
+pub fn test_supervisor_policy_custom_restart_on_degraded_false() -> TestResult {
     let policy = supervisor::SupervisorPolicy {
         restart_on_degraded: false,
         ..Default::default()
     };
-    assert!(!policy.restart_on_degraded);
+    if policy.restart_on_degraded { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_supervisor_policy_custom_restart_on_stopped_false() {
+pub fn test_supervisor_policy_custom_restart_on_stopped_false() -> TestResult {
     let policy = supervisor::SupervisorPolicy {
         restart_on_stopped: false,
         ..Default::default()
     };
-    assert!(!policy.restart_on_stopped);
+    if policy.restart_on_stopped { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_supervisor_policy_custom_restart_cooldown_ms() {
+pub fn test_supervisor_policy_custom_restart_cooldown_ms() -> TestResult {
     let policy = supervisor::SupervisorPolicy {
         restart_cooldown_ms: 10_000,
         ..Default::default()
     };
-    assert_eq!(policy.restart_cooldown_ms, 10_000);
+    if policy.restart_cooldown_ms != 10_000 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_supervisor_policy_custom_max_restarts_per_minute() {
+pub fn test_supervisor_policy_custom_max_restarts_per_minute() -> TestResult {
     let policy = supervisor::SupervisorPolicy {
         max_restarts_per_minute: 5,
         ..Default::default()
     };
-    assert_eq!(policy.max_restarts_per_minute, 5);
+    if policy.max_restarts_per_minute != 5 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_supervisor_policy_all_custom() {
+pub fn test_supervisor_policy_all_custom() -> TestResult {
     let policy = supervisor::SupervisorPolicy {
         restart_on_degraded: false,
         restart_on_stopped: false,
         restart_cooldown_ms: 1_000,
         max_restarts_per_minute: 3,
     };
-    assert!(!policy.restart_on_degraded);
-    assert!(!policy.restart_on_stopped);
-    assert_eq!(policy.restart_cooldown_ms, 1_000);
-    assert_eq!(policy.max_restarts_per_minute, 3);
+    if policy.restart_on_degraded { return TestResult::Fail; }
+    if policy.restart_on_stopped { return TestResult::Fail; }
+    if policy.restart_cooldown_ms != 1_000 { return TestResult::Fail; }
+    if policy.max_restarts_per_minute != 3 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_supervisor_policy_zero_cooldown() {
+pub fn test_supervisor_policy_zero_cooldown() -> TestResult {
     let policy = supervisor::SupervisorPolicy {
         restart_cooldown_ms: 0,
         ..Default::default()
     };
-    assert_eq!(policy.restart_cooldown_ms, 0);
+    if policy.restart_cooldown_ms != 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_supervisor_policy_zero_max_restarts() {
+pub fn test_supervisor_policy_zero_max_restarts() -> TestResult {
     let policy = supervisor::SupervisorPolicy {
         max_restarts_per_minute: 0,
         ..Default::default()
     };
-    assert_eq!(policy.max_restarts_per_minute, 0);
+    if policy.max_restarts_per_minute != 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_supervisor_policy_large_cooldown() {
+pub fn test_supervisor_policy_large_cooldown() -> TestResult {
     let policy = supervisor::SupervisorPolicy {
         restart_cooldown_ms: 60_000,
         ..Default::default()
     };
-    assert_eq!(policy.restart_cooldown_ms, 60_000);
+    if policy.restart_cooldown_ms != 60_000 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_supervisor_policy_large_max_restarts() {
+pub fn test_supervisor_policy_large_max_restarts() -> TestResult {
     let policy = supervisor::SupervisorPolicy {
         max_restarts_per_minute: 100,
         ..Default::default()
     };
-    assert_eq!(policy.max_restarts_per_minute, 100);
+    if policy.max_restarts_per_minute != 100 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_supervisor_policy_both_restart_flags_true() {
+pub fn test_supervisor_policy_both_restart_flags_true() -> TestResult {
     let policy = supervisor::SupervisorPolicy {
         restart_on_degraded: true,
         restart_on_stopped: true,
         ..Default::default()
     };
-    assert!(policy.restart_on_degraded);
-    assert!(policy.restart_on_stopped);
+    if !policy.restart_on_degraded { return TestResult::Fail; }
+    if !policy.restart_on_stopped { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_supervisor_policy_both_restart_flags_false() {
+pub fn test_supervisor_policy_both_restart_flags_false() -> TestResult {
     let policy = supervisor::SupervisorPolicy {
         restart_on_degraded: false,
         restart_on_stopped: false,
         ..Default::default()
     };
-    assert!(!policy.restart_on_degraded);
-    assert!(!policy.restart_on_stopped);
+    if policy.restart_on_degraded { return TestResult::Fail; }
+    if policy.restart_on_stopped { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_supervisor_policy_mixed_restart_flags() {
+pub fn test_supervisor_policy_mixed_restart_flags() -> TestResult {
     let policy1 = supervisor::SupervisorPolicy {
         restart_on_degraded: true,
         restart_on_stopped: false,
         ..Default::default()
     };
-    assert!(policy1.restart_on_degraded);
-    assert!(!policy1.restart_on_stopped);
+    if !policy1.restart_on_degraded { return TestResult::Fail; }
+    if policy1.restart_on_stopped { return TestResult::Fail; }
 
     let policy2 = supervisor::SupervisorPolicy {
         restart_on_degraded: false,
         restart_on_stopped: true,
         ..Default::default()
     };
-    assert!(!policy2.restart_on_degraded);
-    assert!(policy2.restart_on_stopped);
+    if policy2.restart_on_degraded { return TestResult::Fail; }
+    if !policy2.restart_on_stopped { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_supervisor_policy_debug_contains_fields() {
+pub fn test_supervisor_policy_debug_contains_fields() -> TestResult {
     let policy = supervisor::SupervisorPolicy {
         restart_on_degraded: true,
         restart_on_stopped: false,
@@ -193,21 +193,21 @@ fn test_supervisor_policy_debug_contains_fields() {
         max_restarts_per_minute: 42,
     };
     let debug_str = alloc::format!("{:?}", policy);
-    assert!(debug_str.contains("restart_on_degraded"));
-    assert!(debug_str.contains("restart_on_stopped"));
-    assert!(debug_str.contains("restart_cooldown_ms"));
-    assert!(debug_str.contains("max_restarts_per_minute"));
+    if !debug_str.contains("restart_on_degraded") { return TestResult::Fail; }
+    if !debug_str.contains("restart_on_stopped") { return TestResult::Fail; }
+    if !debug_str.contains("restart_cooldown_ms") { return TestResult::Fail; }
+    if !debug_str.contains("max_restarts_per_minute") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_supervisor_register_and_unregister() {
+pub fn test_supervisor_register_and_unregister() -> TestResult {
     let policy = supervisor::SupervisorPolicy::default();
     supervisor::register("test_capsule_supervisor", policy);
     supervisor::unregister("test_capsule_supervisor");
+    TestResult::Pass
 }
 
-#[test]
-fn test_supervisor_register_custom_policy() {
+pub fn test_supervisor_register_custom_policy() -> TestResult {
     let policy = supervisor::SupervisorPolicy {
         restart_on_degraded: false,
         restart_on_stopped: true,
@@ -216,27 +216,27 @@ fn test_supervisor_register_custom_policy() {
     };
     supervisor::register("custom_policy_capsule", policy);
     supervisor::unregister("custom_policy_capsule");
+    TestResult::Pass
 }
 
-#[test]
-fn test_supervisor_restart_stats_none_for_unknown() {
+pub fn test_supervisor_restart_stats_none_for_unknown() -> TestResult {
     let result = supervisor::restart_stats("nonexistent_capsule_xyz");
-    assert!(result.is_none());
+    if !result.is_none() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_supervisor_restart_stats_after_register() {
+pub fn test_supervisor_restart_stats_after_register() -> TestResult {
     let policy = supervisor::SupervisorPolicy::default();
     supervisor::register("stats_test_capsule", policy);
     let stats = supervisor::restart_stats("stats_test_capsule");
-    assert!(stats.is_some());
+    if !stats.is_some() { return TestResult::Fail; }
     let (count, _last) = stats.unwrap();
-    assert_eq!(count, 0);
+    if count != 0 { return TestResult::Fail; }
     supervisor::unregister("stats_test_capsule");
+    TestResult::Pass
 }
 
-#[test]
-fn test_supervisor_register_multiple() {
+pub fn test_supervisor_register_multiple() -> TestResult {
     let policy = supervisor::SupervisorPolicy::default();
     supervisor::register("multi_capsule_1", policy.clone());
     supervisor::register("multi_capsule_2", policy.clone());
@@ -244,21 +244,22 @@ fn test_supervisor_register_multiple() {
     supervisor::unregister("multi_capsule_1");
     supervisor::unregister("multi_capsule_2");
     supervisor::unregister("multi_capsule_3");
+    TestResult::Pass
 }
 
-#[test]
-fn test_supervisor_unregister_nonexistent() {
+pub fn test_supervisor_unregister_nonexistent() -> TestResult {
     supervisor::unregister("definitely_not_registered_capsule");
+    TestResult::Pass
 }
 
-#[test]
-fn test_supervisor_policy_max_values() {
+pub fn test_supervisor_policy_max_values() -> TestResult {
     let policy = supervisor::SupervisorPolicy {
         restart_on_degraded: true,
         restart_on_stopped: true,
         restart_cooldown_ms: u64::MAX,
         max_restarts_per_minute: u32::MAX,
     };
-    assert_eq!(policy.restart_cooldown_ms, u64::MAX);
-    assert_eq!(policy.max_restarts_per_minute, u32::MAX);
+    if policy.restart_cooldown_ms != u64::MAX { return TestResult::Fail; }
+    if policy.max_restarts_per_minute != u32::MAX { return TestResult::Fail; }
+    TestResult::Pass
 }
