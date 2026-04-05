@@ -18,7 +18,7 @@ use core::sync::atomic::{AtomicU32, Ordering};
 use crate::process::core::Pid;
 
 pub(crate) const SERVICE_STACK_SIZE: usize = 64 * 1024;
-const MAX_SERVICE_STACKS: usize = 32;
+const MAX_SERVICE_STACKS: usize = 64;
 
 #[repr(C, align(16))]
 struct AlignedStack([u8; SERVICE_STACK_SIZE]);
