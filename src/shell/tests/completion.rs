@@ -1,183 +1,187 @@
-use crate::shell::terminal::completion::{Completer, MAX_COMPLETIONS, MAX_COMPLETION_LEN};
+// NONOS Operating System
+// Copyright (C) 2026 NONOS Contributors
 
-#[test]
-fn test_completer_new() {
+use crate::shell::terminal::completion::{Completer, MAX_COMPLETIONS, MAX_COMPLETION_LEN};
+use crate::test::framework::TestResult;
+
+pub fn test_completer_new() -> TestResult {
     let completer = Completer::new();
-    assert_eq!(completer.match_count(), 0);
-    assert!(!completer.is_showing());
+    if completer.match_count() != 0 { return TestResult::Fail; }
+    if completer.is_showing() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_completer_find_completions_empty() {
+pub fn test_completer_find_completions_empty() -> TestResult {
     let mut completer = Completer::new();
     completer.find_completions(b"");
-    assert_eq!(completer.match_count(), 0);
+    if completer.match_count() != 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_completer_find_completions_single_match() {
+pub fn test_completer_find_completions_single_match() -> TestResult {
     let mut completer = Completer::new();
     completer.find_completions(b"exi");
-    assert!(completer.match_count() >= 1);
+    if completer.match_count() < 1 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_completer_find_completions_multiple_matches() {
+pub fn test_completer_find_completions_multiple_matches() -> TestResult {
     let mut completer = Completer::new();
     completer.find_completions(b"l");
-    assert!(completer.match_count() > 1);
+    if completer.match_count() <= 1 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_completer_find_completions_no_match() {
+pub fn test_completer_find_completions_no_match() -> TestResult {
     let mut completer = Completer::new();
     completer.find_completions(b"zzzznotacommand");
-    assert_eq!(completer.match_count(), 0);
+    if completer.match_count() != 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_completer_complete_single() {
+pub fn test_completer_complete_single() -> TestResult {
     let mut completer = Completer::new();
     let result = completer.complete(b"exi");
-    assert!(result.is_some());
+    if result.is_none() { return TestResult::Fail; }
     let completion = result.unwrap();
-    assert_eq!(completion, b"exit");
+    if completion != b"exit" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_completer_complete_cycles() {
+pub fn test_completer_complete_cycles() -> TestResult {
     let mut completer = Completer::new();
     let first = completer.complete(b"l");
-    assert!(first.is_some());
+    if first.is_none() { return TestResult::Fail; }
 
     let second = completer.complete(b"l");
-    assert!(second.is_some());
+    if second.is_none() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_completer_complete_no_match() {
+pub fn test_completer_complete_no_match() -> TestResult {
     let mut completer = Completer::new();
     let result = completer.complete(b"xyznotexist");
-    assert!(result.is_none());
+    if result.is_some() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_completer_reset() {
+pub fn test_completer_reset() -> TestResult {
     let mut completer = Completer::new();
     completer.find_completions(b"ls");
-    assert!(completer.match_count() > 0);
+    if completer.match_count() <= 0 { return TestResult::Fail; }
     completer.reset();
-    assert_eq!(completer.match_count(), 0);
-    assert!(!completer.is_showing());
+    if completer.match_count() != 0 { return TestResult::Fail; }
+    if completer.is_showing() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_completer_is_showing_after_complete() {
+pub fn test_completer_is_showing_after_complete() -> TestResult {
     let mut completer = Completer::new();
     completer.complete(b"hel");
-    assert!(completer.is_showing() || completer.match_count() == 1);
+    if !completer.is_showing() && completer.match_count() != 1 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_completer_prefix_cd() {
+pub fn test_completer_prefix_cd() -> TestResult {
     let mut completer = Completer::new();
     completer.find_completions(b"cd");
-    assert!(completer.match_count() >= 1);
+    if completer.match_count() < 1 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_completer_prefix_cat() {
+pub fn test_completer_prefix_cat() -> TestResult {
     let mut completer = Completer::new();
     completer.find_completions(b"cat");
-    assert!(completer.match_count() >= 1);
+    if completer.match_count() < 1 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_completer_prefix_vault() {
+pub fn test_completer_prefix_vault() -> TestResult {
     let mut completer = Completer::new();
     completer.find_completions(b"vault");
-    assert!(completer.match_count() >= 1);
+    if completer.match_count() < 1 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_completer_prefix_net() {
+pub fn test_completer_prefix_net() -> TestResult {
     let mut completer = Completer::new();
     completer.find_completions(b"net");
-    assert!(completer.match_count() >= 1);
+    if completer.match_count() < 1 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_max_completions_constant() {
-    assert_eq!(MAX_COMPLETIONS, 16);
+pub fn test_max_completions_constant() -> TestResult {
+    if MAX_COMPLETIONS != 16 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_max_completion_len_constant() {
-    assert_eq!(MAX_COMPLETION_LEN, 32);
+pub fn test_max_completion_len_constant() -> TestResult {
+    if MAX_COMPLETION_LEN != 32 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_completer_complete_with_space_prefix() {
+pub fn test_completer_complete_with_space_prefix() -> TestResult {
     let mut completer = Completer::new();
     let result = completer.complete(b"echo hel");
-    assert!(result.is_some());
+    if result.is_none() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_completer_find_completions_case_sensitive() {
+pub fn test_completer_find_completions_case_sensitive() -> TestResult {
     let mut completer = Completer::new();
     completer.find_completions(b"LS");
-    assert_eq!(completer.match_count(), 0);
+    if completer.match_count() != 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_completer_find_about() {
+pub fn test_completer_find_about() -> TestResult {
     let mut completer = Completer::new();
     completer.find_completions(b"abo");
-    assert!(completer.match_count() >= 1);
+    if completer.match_count() < 1 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_completer_find_clear() {
+pub fn test_completer_find_clear() -> TestResult {
     let mut completer = Completer::new();
     completer.find_completions(b"cle");
-    assert!(completer.match_count() >= 1);
+    if completer.match_count() < 1 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_completer_find_crypto() {
+pub fn test_completer_find_crypto() -> TestResult {
     let mut completer = Completer::new();
     completer.find_completions(b"cry");
-    assert!(completer.match_count() >= 1);
+    if completer.match_count() < 1 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_completer_find_ping() {
+pub fn test_completer_find_ping() -> TestResult {
     let mut completer = Completer::new();
     completer.find_completions(b"pin");
-    assert!(completer.match_count() >= 1);
+    if completer.match_count() < 1 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_completer_find_grep() {
+pub fn test_completer_find_grep() -> TestResult {
     let mut completer = Completer::new();
     completer.find_completions(b"gre");
-    assert!(completer.match_count() >= 1);
+    if completer.match_count() < 1 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_completer_reset_clears_showing() {
+pub fn test_completer_reset_clears_showing() -> TestResult {
     let mut completer = Completer::new();
     completer.complete(b"ls");
     completer.reset();
-    assert!(!completer.is_showing());
+    if completer.is_showing() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_completer_complete_returns_full_command() {
+pub fn test_completer_complete_returns_full_command() -> TestResult {
     let mut completer = Completer::new();
     let result = completer.complete(b"hel");
     if let Some(completion) = result {
-        assert!(completion.len() >= 4);
+        if completion.len() < 4 { return TestResult::Fail; }
     }
+    TestResult::Pass
 }
