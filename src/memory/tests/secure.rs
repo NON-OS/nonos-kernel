@@ -17,7 +17,7 @@ use crate::memory::secure_memory::{
 use crate::test::framework::TestResult;
 use x86_64::{PhysAddr, VirtAddr};
 
-pub fn test_region_type_code() -> TestResult {
+pub(crate) fn test_region_type_code() -> TestResult {
     let rt = RegionType::Code;
     if rt.as_u8() != REGION_TYPE_CODE { return TestResult::Fail; }
     if rt.as_str() != "Code" { return TestResult::Fail; }
@@ -26,7 +26,7 @@ pub fn test_region_type_code() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_region_type_data() -> TestResult {
+pub(crate) fn test_region_type_data() -> TestResult {
     let rt = RegionType::Data;
     if rt.as_u8() != REGION_TYPE_DATA { return TestResult::Fail; }
     if rt.as_str() != "Data" { return TestResult::Fail; }
@@ -35,7 +35,7 @@ pub fn test_region_type_data() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_region_type_stack() -> TestResult {
+pub(crate) fn test_region_type_stack() -> TestResult {
     let rt = RegionType::Stack;
     if rt.as_u8() != REGION_TYPE_STACK { return TestResult::Fail; }
     if rt.as_str() != "Stack" { return TestResult::Fail; }
@@ -44,7 +44,7 @@ pub fn test_region_type_stack() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_region_type_heap() -> TestResult {
+pub(crate) fn test_region_type_heap() -> TestResult {
     let rt = RegionType::Heap;
     if rt.as_u8() != REGION_TYPE_HEAP { return TestResult::Fail; }
     if rt.as_str() != "Heap" { return TestResult::Fail; }
@@ -53,7 +53,7 @@ pub fn test_region_type_heap() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_region_type_device() -> TestResult {
+pub(crate) fn test_region_type_device() -> TestResult {
     let rt = RegionType::Device;
     if rt.as_u8() != REGION_TYPE_DEVICE { return TestResult::Fail; }
     if rt.as_str() != "Device" { return TestResult::Fail; }
@@ -62,7 +62,7 @@ pub fn test_region_type_device() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_region_type_capsule() -> TestResult {
+pub(crate) fn test_region_type_capsule() -> TestResult {
     let rt = RegionType::Capsule;
     if rt.as_u8() != REGION_TYPE_CAPSULE { return TestResult::Fail; }
     if rt.as_str() != "Capsule" { return TestResult::Fail; }
@@ -71,20 +71,20 @@ pub fn test_region_type_capsule() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_region_type_equality() -> TestResult {
+pub(crate) fn test_region_type_equality() -> TestResult {
     if RegionType::Code != RegionType::Code { return TestResult::Fail; }
     if RegionType::Code == RegionType::Data { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_region_type_clone() -> TestResult {
+pub(crate) fn test_region_type_clone() -> TestResult {
     let rt = RegionType::Stack;
     let cloned = rt.clone();
     if rt != cloned { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_security_level_public() -> TestResult {
+pub(crate) fn test_security_level_public() -> TestResult {
     let sl = SecurityLevel::Public;
     if sl.as_u8() != SECURITY_LEVEL_PUBLIC { return TestResult::Fail; }
     if sl.as_str() != "Public" { return TestResult::Fail; }
@@ -94,7 +94,7 @@ pub fn test_security_level_public() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_security_level_internal() -> TestResult {
+pub(crate) fn test_security_level_internal() -> TestResult {
     let sl = SecurityLevel::Internal;
     if sl.as_u8() != SECURITY_LEVEL_INTERNAL { return TestResult::Fail; }
     if sl.as_str() != "Internal" { return TestResult::Fail; }
@@ -104,7 +104,7 @@ pub fn test_security_level_internal() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_security_level_confidential() -> TestResult {
+pub(crate) fn test_security_level_confidential() -> TestResult {
     let sl = SecurityLevel::Confidential;
     if sl.as_u8() != SECURITY_LEVEL_CONFIDENTIAL { return TestResult::Fail; }
     if sl.as_str() != "Confidential" { return TestResult::Fail; }
@@ -114,7 +114,7 @@ pub fn test_security_level_confidential() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_security_level_secret() -> TestResult {
+pub(crate) fn test_security_level_secret() -> TestResult {
     let sl = SecurityLevel::Secret;
     if sl.as_u8() != SECURITY_LEVEL_SECRET { return TestResult::Fail; }
     if sl.as_str() != "Secret" { return TestResult::Fail; }
@@ -124,7 +124,7 @@ pub fn test_security_level_secret() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_security_level_top_secret() -> TestResult {
+pub(crate) fn test_security_level_top_secret() -> TestResult {
     let sl = SecurityLevel::TopSecret;
     if sl.as_u8() != SECURITY_LEVEL_TOP_SECRET { return TestResult::Fail; }
     if sl.as_str() != "TopSecret" { return TestResult::Fail; }
@@ -134,7 +134,7 @@ pub fn test_security_level_top_secret() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_security_level_ordering() -> TestResult {
+pub(crate) fn test_security_level_ordering() -> TestResult {
     if SecurityLevel::Public >= SecurityLevel::Internal { return TestResult::Fail; }
     if SecurityLevel::Internal >= SecurityLevel::Confidential { return TestResult::Fail; }
     if SecurityLevel::Confidential >= SecurityLevel::Secret { return TestResult::Fail; }
@@ -142,20 +142,20 @@ pub fn test_security_level_ordering() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_security_level_equality() -> TestResult {
+pub(crate) fn test_security_level_equality() -> TestResult {
     if SecurityLevel::Secret != SecurityLevel::Secret { return TestResult::Fail; }
     if SecurityLevel::Secret == SecurityLevel::TopSecret { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_security_level_clone() -> TestResult {
+pub(crate) fn test_security_level_clone() -> TestResult {
     let sl = SecurityLevel::Confidential;
     let cloned = sl.clone();
     if sl != cloned { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_memory_region_new() -> TestResult {
+pub(crate) fn test_memory_region_new() -> TestResult {
     let va = VirtAddr::new(0x1000);
     let pa = PhysAddr::new(0x2000);
     let region = MemoryRegion::new(
@@ -174,7 +174,7 @@ pub fn test_memory_region_new() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_memory_region_encrypted_secret() -> TestResult {
+pub(crate) fn test_memory_region_encrypted_secret() -> TestResult {
     let region = MemoryRegion::new(
         1, VirtAddr::new(0x1000), PhysAddr::new(0x2000),
         4096, RegionType::Data, SecurityLevel::Secret, 42, 1000
@@ -183,7 +183,7 @@ pub fn test_memory_region_encrypted_secret() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_memory_region_encrypted_top_secret() -> TestResult {
+pub(crate) fn test_memory_region_encrypted_top_secret() -> TestResult {
     let region = MemoryRegion::new(
         1, VirtAddr::new(0x1000), PhysAddr::new(0x2000),
         4096, RegionType::Data, SecurityLevel::TopSecret, 42, 1000
@@ -192,7 +192,7 @@ pub fn test_memory_region_encrypted_top_secret() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_memory_region_not_encrypted_public() -> TestResult {
+pub(crate) fn test_memory_region_not_encrypted_public() -> TestResult {
     let region = MemoryRegion::new(
         1, VirtAddr::new(0x1000), PhysAddr::new(0x2000),
         4096, RegionType::Data, SecurityLevel::Public, 42, 1000
@@ -201,7 +201,7 @@ pub fn test_memory_region_not_encrypted_public() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_memory_region_end_addr() -> TestResult {
+pub(crate) fn test_memory_region_end_addr() -> TestResult {
     let region = MemoryRegion::new(
         1, VirtAddr::new(0x1000), PhysAddr::new(0x2000),
         4096, RegionType::Data, SecurityLevel::Public, 42, 1000
@@ -210,7 +210,7 @@ pub fn test_memory_region_end_addr() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_memory_region_contains_inside() -> TestResult {
+pub(crate) fn test_memory_region_contains_inside() -> TestResult {
     let region = MemoryRegion::new(
         1, VirtAddr::new(0x1000), PhysAddr::new(0x2000),
         4096, RegionType::Data, SecurityLevel::Public, 42, 1000
@@ -220,7 +220,7 @@ pub fn test_memory_region_contains_inside() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_memory_region_contains_outside() -> TestResult {
+pub(crate) fn test_memory_region_contains_outside() -> TestResult {
     let region = MemoryRegion::new(
         1, VirtAddr::new(0x1000), PhysAddr::new(0x2000),
         4096, RegionType::Data, SecurityLevel::Public, 42, 1000
@@ -230,7 +230,7 @@ pub fn test_memory_region_contains_outside() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_memory_region_page_count_single() -> TestResult {
+pub(crate) fn test_memory_region_page_count_single() -> TestResult {
     let region = MemoryRegion::new(
         1, VirtAddr::new(0x1000), PhysAddr::new(0x2000),
         4096, RegionType::Data, SecurityLevel::Public, 42, 1000
@@ -239,7 +239,7 @@ pub fn test_memory_region_page_count_single() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_memory_region_page_count_multiple() -> TestResult {
+pub(crate) fn test_memory_region_page_count_multiple() -> TestResult {
     let region = MemoryRegion::new(
         1, VirtAddr::new(0x1000), PhysAddr::new(0x2000),
         8192, RegionType::Data, SecurityLevel::Public, 42, 1000
@@ -248,7 +248,7 @@ pub fn test_memory_region_page_count_multiple() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_memory_region_page_count_partial() -> TestResult {
+pub(crate) fn test_memory_region_page_count_partial() -> TestResult {
     let region = MemoryRegion::new(
         1, VirtAddr::new(0x1000), PhysAddr::new(0x2000),
         4097, RegionType::Data, SecurityLevel::Public, 42, 1000
@@ -257,7 +257,7 @@ pub fn test_memory_region_page_count_partial() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_memory_region_clone() -> TestResult {
+pub(crate) fn test_memory_region_clone() -> TestResult {
     let region = MemoryRegion::new(
         1, VirtAddr::new(0x1000), PhysAddr::new(0x2000),
         4096, RegionType::Data, SecurityLevel::Internal, 42, 1000
@@ -269,7 +269,7 @@ pub fn test_memory_region_clone() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_manager_stats_utilization_percent() -> TestResult {
+pub(crate) fn test_manager_stats_utilization_percent() -> TestResult {
     let stats = ManagerStats {
         total_regions: 10,
         allocated_memory: 50,
@@ -282,7 +282,7 @@ pub fn test_manager_stats_utilization_percent() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_manager_stats_utilization_percent_zero_peak() -> TestResult {
+pub(crate) fn test_manager_stats_utilization_percent_zero_peak() -> TestResult {
     let stats = ManagerStats {
         total_regions: 0,
         allocated_memory: 0,
@@ -294,7 +294,7 @@ pub fn test_manager_stats_utilization_percent_zero_peak() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_manager_stats_clone() -> TestResult {
+pub(crate) fn test_manager_stats_clone() -> TestResult {
     let stats = ManagerStats {
         total_regions: 5,
         allocated_memory: 1000,
@@ -308,7 +308,7 @@ pub fn test_manager_stats_clone() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_secure_memory_error_variants() -> TestResult {
+pub(crate) fn test_secure_memory_error_variants() -> TestResult {
     if SecureMemoryError::NotInitialized != SecureMemoryError::NotInitialized { return TestResult::Fail; }
     if SecureMemoryError::AlreadyInitialized != SecureMemoryError::AlreadyInitialized { return TestResult::Fail; }
     if SecureMemoryError::InvalidSize != SecureMemoryError::InvalidSize { return TestResult::Fail; }
@@ -331,14 +331,14 @@ pub fn test_secure_memory_error_variants() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_secure_memory_error_clone() -> TestResult {
+pub(crate) fn test_secure_memory_error_clone() -> TestResult {
     let err = SecureMemoryError::AccessDenied;
     let cloned = err.clone();
     if err != cloned { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_limits_constants() -> TestResult {
+pub(crate) fn test_limits_constants() -> TestResult {
     if MIN_ALLOCATION_SIZE != 1 { return TestResult::Fail; }
     if MAX_ALLOCATION_SIZE != 1024 * 1024 * 1024 { return TestResult::Fail; }
     if DEFAULT_ALIGNMENT != 16 { return TestResult::Fail; }
@@ -346,25 +346,25 @@ pub fn test_limits_constants() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_scrub_constants() -> TestResult {
+pub(crate) fn test_scrub_constants() -> TestResult {
     if SECURE_SCRUB_PATTERN != 0xAA { return TestResult::Fail; }
     if SECURE_SCRUB_PASSES != 3 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_max_constants() -> TestResult {
+pub(crate) fn test_max_constants() -> TestResult {
     if MAX_ALLOCATION_COUNT != u64::MAX - 1 { return TestResult::Fail; }
     if MAX_MEMORY_USAGE != u64::MAX - 1 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_process_id_constants() -> TestResult {
+pub(crate) fn test_process_id_constants() -> TestResult {
     if KERNEL_PROCESS_ID != 0 { return TestResult::Fail; }
     if INVALID_PROCESS_ID != u64::MAX { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_permission_constants() -> TestResult {
+pub(crate) fn test_permission_constants() -> TestResult {
     if PERM_READ != 0x01 { return TestResult::Fail; }
     if PERM_WRITE != 0x02 { return TestResult::Fail; }
     if PERM_EXECUTE != 0x04 { return TestResult::Fail; }
@@ -372,7 +372,7 @@ pub fn test_permission_constants() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_security_level_constants() -> TestResult {
+pub(crate) fn test_security_level_constants() -> TestResult {
     if SECURITY_LEVEL_PUBLIC != 0 { return TestResult::Fail; }
     if SECURITY_LEVEL_INTERNAL != 1 { return TestResult::Fail; }
     if SECURITY_LEVEL_CONFIDENTIAL != 2 { return TestResult::Fail; }
@@ -381,12 +381,12 @@ pub fn test_security_level_constants() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_encryption_threshold() -> TestResult {
+pub(crate) fn test_encryption_threshold() -> TestResult {
     if ENCRYPTION_THRESHOLD_LEVEL != SECURITY_LEVEL_SECRET { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_region_type_constants() -> TestResult {
+pub(crate) fn test_region_type_constants() -> TestResult {
     if REGION_TYPE_CODE != 0 { return TestResult::Fail; }
     if REGION_TYPE_DATA != 1 { return TestResult::Fail; }
     if REGION_TYPE_STACK != 2 { return TestResult::Fail; }
@@ -396,14 +396,14 @@ pub fn test_region_type_constants() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_region_id_constants() -> TestResult {
+pub(crate) fn test_region_id_constants() -> TestResult {
     if INITIAL_REGION_ID != 1 { return TestResult::Fail; }
     if MAX_REGIONS != 65536 { return TestResult::Fail; }
     if INVALID_REGION_ID != 0 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_security_level_all_variants() -> TestResult {
+pub(crate) fn test_security_level_all_variants() -> TestResult {
     let levels = [
         SecurityLevel::Public,
         SecurityLevel::Internal,
@@ -419,21 +419,21 @@ pub fn test_security_level_all_variants() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_region_type_same_value() -> TestResult {
+pub(crate) fn test_region_type_same_value() -> TestResult {
     let rt1 = RegionType::Code;
     let rt2 = RegionType::Code;
     if rt1 != rt2 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_security_level_same_value() -> TestResult {
+pub(crate) fn test_security_level_same_value() -> TestResult {
     let sl1 = SecurityLevel::Secret;
     let sl2 = SecurityLevel::Secret;
     if sl1 != sl2 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_memory_region_large_size() -> TestResult {
+pub(crate) fn test_memory_region_large_size() -> TestResult {
     let region = MemoryRegion::new(
         1, VirtAddr::new(0x1000), PhysAddr::new(0x2000),
         1024 * 1024 * 1024, RegionType::Heap, SecurityLevel::Public, 42, 1000
@@ -442,7 +442,7 @@ pub fn test_memory_region_large_size() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_region_type_all_writable() -> TestResult {
+pub(crate) fn test_region_type_all_writable() -> TestResult {
     if !RegionType::Data.is_writable() { return TestResult::Fail; }
     if !RegionType::Stack.is_writable() { return TestResult::Fail; }
     if !RegionType::Heap.is_writable() { return TestResult::Fail; }
@@ -450,18 +450,18 @@ pub fn test_region_type_all_writable() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_region_type_all_not_writable() -> TestResult {
+pub(crate) fn test_region_type_all_not_writable() -> TestResult {
     if RegionType::Code.is_writable() { return TestResult::Fail; }
     if RegionType::Capsule.is_writable() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_region_type_all_executable() -> TestResult {
+pub(crate) fn test_region_type_all_executable() -> TestResult {
     if !RegionType::Code.is_executable() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_region_type_all_not_executable() -> TestResult {
+pub(crate) fn test_region_type_all_not_executable() -> TestResult {
     if RegionType::Data.is_executable() { return TestResult::Fail; }
     if RegionType::Stack.is_executable() { return TestResult::Fail; }
     if RegionType::Heap.is_executable() { return TestResult::Fail; }
@@ -470,7 +470,7 @@ pub fn test_region_type_all_not_executable() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_manager_stats_fields() -> TestResult {
+pub(crate) fn test_manager_stats_fields() -> TestResult {
     let stats = ManagerStats {
         total_regions: 100,
         allocated_memory: 1024 * 1024,
@@ -486,7 +486,7 @@ pub fn test_manager_stats_fields() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_memory_region_boundary_address() -> TestResult {
+pub(crate) fn test_memory_region_boundary_address() -> TestResult {
     let region = MemoryRegion::new(
         1, VirtAddr::new(0xFFFF_FFFF_FFFF_F000), PhysAddr::new(0x1000),
         4096, RegionType::Data, SecurityLevel::Public, 0, 0
@@ -495,14 +495,14 @@ pub fn test_memory_region_boundary_address() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_security_level_copy() -> TestResult {
+pub(crate) fn test_security_level_copy() -> TestResult {
     let sl1 = SecurityLevel::Confidential;
     let sl2 = sl1;
     if sl1 != sl2 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_region_type_copy() -> TestResult {
+pub(crate) fn test_region_type_copy() -> TestResult {
     let rt1 = RegionType::Heap;
     let rt2 = rt1;
     if rt1 != rt2 { return TestResult::Fail; }

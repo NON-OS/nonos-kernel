@@ -14,54 +14,54 @@ use crate::memory::dma::{
 use crate::test::framework::TestResult;
 use x86_64::{PhysAddr, VirtAddr};
 
-pub fn test_dma_direction_to_device() -> TestResult {
+pub(crate) fn test_dma_direction_to_device() -> TestResult {
     let dir = DmaDirection::ToDevice;
     if !dir.writes_to_device() { return TestResult::Fail; }
     if dir.reads_from_device() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_dma_direction_from_device() -> TestResult {
+pub(crate) fn test_dma_direction_from_device() -> TestResult {
     let dir = DmaDirection::FromDevice;
     if dir.writes_to_device() { return TestResult::Fail; }
     if !dir.reads_from_device() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_dma_direction_bidirectional() -> TestResult {
+pub(crate) fn test_dma_direction_bidirectional() -> TestResult {
     let dir = DmaDirection::Bidirectional;
     if !dir.writes_to_device() { return TestResult::Fail; }
     if !dir.reads_from_device() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_dma_direction_default() -> TestResult {
+pub(crate) fn test_dma_direction_default() -> TestResult {
     let dir = DmaDirection::default();
     if dir != DmaDirection::Bidirectional { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_dma_direction_equality() -> TestResult {
+pub(crate) fn test_dma_direction_equality() -> TestResult {
     if DmaDirection::ToDevice != DmaDirection::ToDevice { return TestResult::Fail; }
     if DmaDirection::ToDevice == DmaDirection::FromDevice { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_dma_direction_clone() -> TestResult {
+pub(crate) fn test_dma_direction_clone() -> TestResult {
     let dir = DmaDirection::ToDevice;
     let cloned = dir.clone();
     if dir != cloned { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_dma_direction_copy() -> TestResult {
+pub(crate) fn test_dma_direction_copy() -> TestResult {
     let dir1 = DmaDirection::Bidirectional;
     let dir2 = dir1;
     if dir1 != dir2 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_dma_constraints_new() -> TestResult {
+pub(crate) fn test_dma_constraints_new() -> TestResult {
     let c = DmaConstraints::new();
     if c.alignment != DEFAULT_ALIGNMENT { return TestResult::Fail; }
     if c.max_segment_size != DEFAULT_MAX_SEGMENT_SIZE { return TestResult::Fail; }
@@ -70,41 +70,41 @@ pub fn test_dma_constraints_new() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_dma_constraints_dma32() -> TestResult {
+pub(crate) fn test_dma_constraints_dma32() -> TestResult {
     let c = DmaConstraints::dma32();
     if !c.dma32_only { return TestResult::Fail; }
     if !c.coherent { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_dma_constraints_non_coherent() -> TestResult {
+pub(crate) fn test_dma_constraints_non_coherent() -> TestResult {
     let c = DmaConstraints::non_coherent();
     if c.dma32_only { return TestResult::Fail; }
     if c.coherent { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_dma_constraints_default() -> TestResult {
+pub(crate) fn test_dma_constraints_default() -> TestResult {
     let c = DmaConstraints::default();
     if c.alignment != 4096 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_dma_constraints_clone() -> TestResult {
+pub(crate) fn test_dma_constraints_clone() -> TestResult {
     let c = DmaConstraints::dma32();
     let cloned = c.clone();
     if c.dma32_only != cloned.dma32_only { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_dma_constraints_copy() -> TestResult {
+pub(crate) fn test_dma_constraints_copy() -> TestResult {
     let c1 = DmaConstraints::new();
     let c2 = c1;
     if c1.alignment != c2.alignment { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_dma_region_new() -> TestResult {
+pub(crate) fn test_dma_region_new() -> TestResult {
     let region = DmaRegion::new(
         VirtAddr::new(0x1000),
         PhysAddr::new(0x2000),
@@ -120,7 +120,7 @@ pub fn test_dma_region_new() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_dma_region_dma_addr() -> TestResult {
+pub(crate) fn test_dma_region_dma_addr() -> TestResult {
     let region = DmaRegion::new(
         VirtAddr::new(0x1000),
         PhysAddr::new(0x5000),
@@ -132,7 +132,7 @@ pub fn test_dma_region_dma_addr() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_dma_region_as_ptr() -> TestResult {
+pub(crate) fn test_dma_region_as_ptr() -> TestResult {
     let region = DmaRegion::new(
         VirtAddr::new(0x1000),
         PhysAddr::new(0x2000),
@@ -144,7 +144,7 @@ pub fn test_dma_region_as_ptr() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_dma_region_as_mut_ptr() -> TestResult {
+pub(crate) fn test_dma_region_as_mut_ptr() -> TestResult {
     let region = DmaRegion::new(
         VirtAddr::new(0x3000),
         PhysAddr::new(0x4000),
@@ -156,7 +156,7 @@ pub fn test_dma_region_as_mut_ptr() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_dma_region_clone() -> TestResult {
+pub(crate) fn test_dma_region_clone() -> TestResult {
     let region = DmaRegion::new(
         VirtAddr::new(0x1000),
         PhysAddr::new(0x2000),
@@ -170,7 +170,7 @@ pub fn test_dma_region_clone() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_dma_region_copy() -> TestResult {
+pub(crate) fn test_dma_region_copy() -> TestResult {
     let r1 = DmaRegion::new(
         VirtAddr::new(0x1000),
         PhysAddr::new(0x2000),
@@ -183,7 +183,7 @@ pub fn test_dma_region_copy() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_streaming_mapping_new() -> TestResult {
+pub(crate) fn test_streaming_mapping_new() -> TestResult {
     let mapping = StreamingMapping::new(
         1,
         VirtAddr::new(0x1000),
@@ -201,7 +201,7 @@ pub fn test_streaming_mapping_new() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_streaming_mapping_with_bounce() -> TestResult {
+pub(crate) fn test_streaming_mapping_with_bounce() -> TestResult {
     let bounce = DmaRegion::new(
         VirtAddr::new(0x5000),
         PhysAddr::new(0x6000),
@@ -221,7 +221,7 @@ pub fn test_streaming_mapping_with_bounce() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_streaming_mapping_dma_address() -> TestResult {
+pub(crate) fn test_streaming_mapping_dma_address() -> TestResult {
     let mapping = StreamingMapping::new(
         3,
         VirtAddr::new(0x1000),
@@ -234,7 +234,7 @@ pub fn test_streaming_mapping_dma_address() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_streaming_mapping_clone() -> TestResult {
+pub(crate) fn test_streaming_mapping_clone() -> TestResult {
     let mapping = StreamingMapping::new(
         1,
         VirtAddr::new(0x1000),
@@ -248,7 +248,7 @@ pub fn test_streaming_mapping_clone() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_streaming_mapping_copy() -> TestResult {
+pub(crate) fn test_streaming_mapping_copy() -> TestResult {
     let m1 = StreamingMapping::new(
         1,
         VirtAddr::new(0x1000),
@@ -262,7 +262,7 @@ pub fn test_streaming_mapping_copy() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_dma_stats_snapshot_new() -> TestResult {
+pub(crate) fn test_dma_stats_snapshot_new() -> TestResult {
     let stats = DmaStatsSnapshot::new();
     if stats.coherent_allocations != 0 { return TestResult::Fail; }
     if stats.streaming_mappings != 0 { return TestResult::Fail; }
@@ -272,13 +272,13 @@ pub fn test_dma_stats_snapshot_new() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_dma_stats_snapshot_default() -> TestResult {
+pub(crate) fn test_dma_stats_snapshot_default() -> TestResult {
     let stats = DmaStatsSnapshot::default();
     if stats.coherent_allocations != 0 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_dma_stats_snapshot_clone() -> TestResult {
+pub(crate) fn test_dma_stats_snapshot_clone() -> TestResult {
     let stats = DmaStatsSnapshot {
         coherent_allocations: 10,
         streaming_mappings: 5,
@@ -291,192 +291,192 @@ pub fn test_dma_stats_snapshot_clone() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_dma_error_as_str() -> TestResult {
+pub(crate) fn test_dma_error_as_str() -> TestResult {
     if DmaError::NotInitialized.as_str() != "DMA allocator not initialized" { return TestResult::Fail; }
     if DmaError::InvalidSize.as_str() != "Invalid allocation size" { return TestResult::Fail; }
     if DmaError::DoubleFree.as_str() != "Double free detected" { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_dma_error_is_fatal() -> TestResult {
+pub(crate) fn test_dma_error_is_fatal() -> TestResult {
     if !DmaError::AddressSpaceExhausted.is_fatal() { return TestResult::Fail; }
     if !DmaError::FrameAllocationFailed.is_fatal() { return TestResult::Fail; }
     if DmaError::NotInitialized.is_fatal() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_dma_error_is_bug() -> TestResult {
+pub(crate) fn test_dma_error_is_bug() -> TestResult {
     if !DmaError::DoubleFree.is_bug() { return TestResult::Fail; }
     if !DmaError::NotInPool.is_bug() { return TestResult::Fail; }
     if DmaError::InvalidSize.is_bug() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_dma_error_is_recoverable() -> TestResult {
+pub(crate) fn test_dma_error_is_recoverable() -> TestResult {
     if !DmaError::NotInitialized.is_recoverable() { return TestResult::Fail; }
     if !DmaError::InvalidSize.is_recoverable() { return TestResult::Fail; }
     if DmaError::DoubleFree.is_recoverable() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_dma_error_equality() -> TestResult {
+pub(crate) fn test_dma_error_equality() -> TestResult {
     if DmaError::NotInitialized != DmaError::NotInitialized { return TestResult::Fail; }
     if DmaError::NotInitialized == DmaError::InvalidSize { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_dma_error_clone() -> TestResult {
+pub(crate) fn test_dma_error_clone() -> TestResult {
     let err = DmaError::MappingFailed;
     let cloned = err.clone();
     if err != cloned { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_dma_error_copy() -> TestResult {
+pub(crate) fn test_dma_error_copy() -> TestResult {
     let err1 = DmaError::PoolFull;
     let err2 = err1;
     if err1 != err2 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_default_alignment_constant() -> TestResult {
+pub(crate) fn test_default_alignment_constant() -> TestResult {
     if DEFAULT_ALIGNMENT != 4096 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_default_max_segment_size_constant() -> TestResult {
+pub(crate) fn test_default_max_segment_size_constant() -> TestResult {
     if DEFAULT_MAX_SEGMENT_SIZE != 1024 * 1024 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_dma32_limit_constant() -> TestResult {
+pub(crate) fn test_dma32_limit_constant() -> TestResult {
     if DMA32_LIMIT != 0x1_0000_0000 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_min_dma_size_constant() -> TestResult {
+pub(crate) fn test_min_dma_size_constant() -> TestResult {
     if MIN_DMA_SIZE != 1 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_max_dma_size_constant() -> TestResult {
+pub(crate) fn test_max_dma_size_constant() -> TestResult {
     if MAX_DMA_SIZE != 256 * 1024 * 1024 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_pte_dma_coherent_constant() -> TestResult {
+pub(crate) fn test_pte_dma_coherent_constant() -> TestResult {
     if PTE_DMA_COHERENT != 0x03 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_pte_cache_disable_constant() -> TestResult {
+pub(crate) fn test_pte_cache_disable_constant() -> TestResult {
     if PTE_CACHE_DISABLE != 0x10 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_pte_dma_non_coherent_constant() -> TestResult {
+pub(crate) fn test_pte_dma_non_coherent_constant() -> TestResult {
     if PTE_DMA_NON_COHERENT != PTE_DMA_COHERENT | PTE_CACHE_DISABLE { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_default_pool_region_size_constant() -> TestResult {
+pub(crate) fn test_default_pool_region_size_constant() -> TestResult {
     if DEFAULT_POOL_REGION_SIZE != 4096 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_max_pool_capacity_constant() -> TestResult {
+pub(crate) fn test_max_pool_capacity_constant() -> TestResult {
     if MAX_POOL_CAPACITY != 1024 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_align_up_zero() -> TestResult {
+pub(crate) fn test_align_up_zero() -> TestResult {
     if align_up(0, 4096) != 0 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_align_up_aligned() -> TestResult {
+pub(crate) fn test_align_up_aligned() -> TestResult {
     if align_up(4096, 4096) != 4096 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_align_up_unaligned() -> TestResult {
+pub(crate) fn test_align_up_unaligned() -> TestResult {
     if align_up(1, 4096) != 4096 { return TestResult::Fail; }
     if align_up(4097, 4096) != 8192 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_align_down_zero() -> TestResult {
+pub(crate) fn test_align_down_zero() -> TestResult {
     if align_down(0, 4096) != 0 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_align_down_aligned() -> TestResult {
+pub(crate) fn test_align_down_aligned() -> TestResult {
     if align_down(4096, 4096) != 4096 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_align_down_unaligned() -> TestResult {
+pub(crate) fn test_align_down_unaligned() -> TestResult {
     if align_down(1, 4096) != 0 { return TestResult::Fail; }
     if align_down(8000, 4096) != 4096 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_is_aligned_true() -> TestResult {
+pub(crate) fn test_is_aligned_true() -> TestResult {
     if !is_aligned(0, 4096) { return TestResult::Fail; }
     if !is_aligned(4096, 4096) { return TestResult::Fail; }
     if !is_aligned(8192, 4096) { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_is_aligned_false() -> TestResult {
+pub(crate) fn test_is_aligned_false() -> TestResult {
     if is_aligned(1, 4096) { return TestResult::Fail; }
     if is_aligned(4097, 4096) { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_pages_needed_zero() -> TestResult {
+pub(crate) fn test_pages_needed_zero() -> TestResult {
     if pages_needed(0) != 0 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_pages_needed_exact() -> TestResult {
+pub(crate) fn test_pages_needed_exact() -> TestResult {
     if pages_needed(4096) != 1 { return TestResult::Fail; }
     if pages_needed(8192) != 2 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_pages_needed_partial() -> TestResult {
+pub(crate) fn test_pages_needed_partial() -> TestResult {
     if pages_needed(1) != 1 { return TestResult::Fail; }
     if pages_needed(4097) != 2 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_is_dma32_compatible_true() -> TestResult {
+pub(crate) fn test_is_dma32_compatible_true() -> TestResult {
     if !is_dma32_compatible(0) { return TestResult::Fail; }
     if !is_dma32_compatible(0x1000) { return TestResult::Fail; }
     if !is_dma32_compatible(0xFFFF_FFFF) { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_is_dma32_compatible_false() -> TestResult {
+pub(crate) fn test_is_dma32_compatible_false() -> TestResult {
     if is_dma32_compatible(0x1_0000_0000) { return TestResult::Fail; }
     if is_dma32_compatible(0x2_0000_0000) { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_is_range_dma32_compatible_true() -> TestResult {
+pub(crate) fn test_is_range_dma32_compatible_true() -> TestResult {
     if !is_range_dma32_compatible(0, 4096) { return TestResult::Fail; }
     if !is_range_dma32_compatible(0xFFFF_F000, 4096) { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_is_range_dma32_compatible_false() -> TestResult {
+pub(crate) fn test_is_range_dma32_compatible_false() -> TestResult {
     if is_range_dma32_compatible(0xFFFF_F000, 8192) { return TestResult::Fail; }
     if is_range_dma32_compatible(0x1_0000_0000, 1) { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_dma_error_all_variants() -> TestResult {
+pub(crate) fn test_dma_error_all_variants() -> TestResult {
     let errors = [
         DmaError::NotInitialized,
         DmaError::InvalidSize,
@@ -500,7 +500,7 @@ pub fn test_dma_error_all_variants() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_dma_direction_all_variants() -> TestResult {
+pub(crate) fn test_dma_direction_all_variants() -> TestResult {
     let directions = [
         DmaDirection::ToDevice,
         DmaDirection::FromDevice,
