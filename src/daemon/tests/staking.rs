@@ -15,304 +15,305 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::daemon::*;
+use crate::test::framework::TestResult;
 
-#[test]
-fn test_stake_record_new() {
+pub fn test_stake_record_new() -> TestResult {
     let record = StakeRecord::new();
-    assert!(record.amount.is_zero());
-    assert_eq!(record.tier, NodeTier::Bronze);
-    assert_eq!(record.lock_start_epoch, 0);
-    assert_eq!(record.lock_end_epoch, 0);
-    assert!(!record.is_locked);
+    if !record.amount.is_zero() { return TestResult::Fail; }
+    if record.tier != NodeTier::Bronze { return TestResult::Fail; }
+    if record.lock_start_epoch != 0 { return TestResult::Fail; }
+    if record.lock_end_epoch != 0 { return TestResult::Fail; }
+    if record.is_locked { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_stake_record_stake_bronze() {
+pub fn test_stake_record_stake_bronze() -> TestResult {
     let mut record = StakeRecord::new();
     record.stake(TokenAmount::from_nox(1_000), 100);
-    assert_eq!(record.amount.whole(), 1_000);
-    assert_eq!(record.tier, NodeTier::Bronze);
-    assert_eq!(record.lock_start_epoch, 100);
-    assert_eq!(record.lock_end_epoch, 100);
-    assert!(!record.is_locked);
+    if record.amount.whole() != 1_000 { return TestResult::Fail; }
+    if record.tier != NodeTier::Bronze { return TestResult::Fail; }
+    if record.lock_start_epoch != 100 { return TestResult::Fail; }
+    if record.lock_end_epoch != 100 { return TestResult::Fail; }
+    if record.is_locked { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_stake_record_stake_silver() {
+pub fn test_stake_record_stake_silver() -> TestResult {
     let mut record = StakeRecord::new();
     record.stake(TokenAmount::from_nox(10_000), 100);
-    assert_eq!(record.tier, NodeTier::Silver);
-    assert!(record.is_locked);
-    assert_eq!(record.lock_end_epoch, 130);
+    if record.tier != NodeTier::Silver { return TestResult::Fail; }
+    if !record.is_locked { return TestResult::Fail; }
+    if record.lock_end_epoch != 130 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_stake_record_stake_gold() {
+pub fn test_stake_record_stake_gold() -> TestResult {
     let mut record = StakeRecord::new();
     record.stake(TokenAmount::from_nox(50_000), 100);
-    assert_eq!(record.tier, NodeTier::Gold);
-    assert!(record.is_locked);
-    assert_eq!(record.lock_end_epoch, 190);
+    if record.tier != NodeTier::Gold { return TestResult::Fail; }
+    if !record.is_locked { return TestResult::Fail; }
+    if record.lock_end_epoch != 190 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_stake_record_stake_platinum() {
+pub fn test_stake_record_stake_platinum() -> TestResult {
     let mut record = StakeRecord::new();
     record.stake(TokenAmount::from_nox(200_000), 100);
-    assert_eq!(record.tier, NodeTier::Platinum);
-    assert!(record.is_locked);
-    assert_eq!(record.lock_end_epoch, 280);
+    if record.tier != NodeTier::Platinum { return TestResult::Fail; }
+    if !record.is_locked { return TestResult::Fail; }
+    if record.lock_end_epoch != 280 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_stake_record_stake_diamond() {
+pub fn test_stake_record_stake_diamond() -> TestResult {
     let mut record = StakeRecord::new();
     record.stake(TokenAmount::from_nox(1_000_000), 100);
-    assert_eq!(record.tier, NodeTier::Diamond);
-    assert!(record.is_locked);
-    assert_eq!(record.lock_end_epoch, 465);
+    if record.tier != NodeTier::Diamond { return TestResult::Fail; }
+    if !record.is_locked { return TestResult::Fail; }
+    if record.lock_end_epoch != 465 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_stake_record_stake_accumulates() {
+pub fn test_stake_record_stake_accumulates() -> TestResult {
     let mut record = StakeRecord::new();
     record.stake(TokenAmount::from_nox(5_000), 100);
     record.stake(TokenAmount::from_nox(5_000), 100);
-    assert_eq!(record.amount.whole(), 10_000);
-    assert_eq!(record.tier, NodeTier::Silver);
+    if record.amount.whole() != 10_000 { return TestResult::Fail; }
+    if record.tier != NodeTier::Silver { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_stake_record_can_unstake_not_locked() {
+pub fn test_stake_record_can_unstake_not_locked() -> TestResult {
     let mut record = StakeRecord::new();
     record.stake(TokenAmount::from_nox(1_000), 100);
-    assert!(record.can_unstake(100));
-    assert!(record.can_unstake(0));
+    if !record.can_unstake(100) { return TestResult::Fail; }
+    if !record.can_unstake(0) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_stake_record_can_unstake_locked_before_end() {
+pub fn test_stake_record_can_unstake_locked_before_end() -> TestResult {
     let mut record = StakeRecord::new();
     record.stake(TokenAmount::from_nox(10_000), 100);
-    assert!(!record.can_unstake(100));
-    assert!(!record.can_unstake(129));
+    if record.can_unstake(100) { return TestResult::Fail; }
+    if record.can_unstake(129) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_stake_record_can_unstake_locked_at_end() {
+pub fn test_stake_record_can_unstake_locked_at_end() -> TestResult {
     let mut record = StakeRecord::new();
     record.stake(TokenAmount::from_nox(10_000), 100);
-    assert!(record.can_unstake(130));
+    if !record.can_unstake(130) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_stake_record_can_unstake_locked_after_end() {
+pub fn test_stake_record_can_unstake_locked_after_end() -> TestResult {
     let mut record = StakeRecord::new();
     record.stake(TokenAmount::from_nox(10_000), 100);
-    assert!(record.can_unstake(200));
+    if !record.can_unstake(200) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_stake_record_unstake_success() {
+pub fn test_stake_record_unstake_success() -> TestResult {
     let mut record = StakeRecord::new();
     record.stake(TokenAmount::from_nox(1_000), 100);
     let result = record.unstake(TokenAmount::from_nox(500), 100);
-    assert!(result.is_ok());
-    assert_eq!(result.unwrap().whole(), 500);
-    assert_eq!(record.amount.whole(), 500);
+    if !result.is_ok() { return TestResult::Fail; }
+    if result.unwrap().whole() != 500 { return TestResult::Fail; }
+    if record.amount.whole() != 500 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_stake_record_unstake_locked() {
+pub fn test_stake_record_unstake_locked() -> TestResult {
     let mut record = StakeRecord::new();
     record.stake(TokenAmount::from_nox(10_000), 100);
     let result = record.unstake(TokenAmount::from_nox(5_000), 100);
-    assert!(result.is_err());
-    assert_eq!(result.unwrap_err(), "Stake is still locked");
+    if !result.is_err() { return TestResult::Fail; }
+    if result.unwrap_err() != "Stake is still locked" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_stake_record_unstake_insufficient() {
+pub fn test_stake_record_unstake_insufficient() -> TestResult {
     let mut record = StakeRecord::new();
     record.stake(TokenAmount::from_nox(1_000), 100);
     let result = record.unstake(TokenAmount::from_nox(2_000), 100);
-    assert!(result.is_err());
-    assert_eq!(result.unwrap_err(), "Insufficient staked amount");
+    if !result.is_err() { return TestResult::Fail; }
+    if result.unwrap_err() != "Insufficient staked amount" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_stake_record_unstake_updates_tier() {
+pub fn test_stake_record_unstake_updates_tier() -> TestResult {
     let mut record = StakeRecord::new();
     record.stake(TokenAmount::from_nox(10_000), 100);
     let _ = record.unstake(TokenAmount::from_nox(5_000), 130);
-    assert_eq!(record.tier, NodeTier::Bronze);
+    if record.tier != NodeTier::Bronze { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_stake_record_weight_zero() {
+pub fn test_stake_record_weight_zero() -> TestResult {
     let record = StakeRecord::new();
-    assert_eq!(record.weight(), 0);
+    if record.weight() != 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_stake_record_weight_bronze() {
+pub fn test_stake_record_weight_bronze() -> TestResult {
     let mut record = StakeRecord::new();
     record.stake(TokenAmount::from_nox(10_000), 0);
     record.tier = NodeTier::Bronze;
     let weight = record.weight();
-    assert!(weight > 0);
+    if !(weight > 0) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_staking_state_new() {
+pub fn test_staking_state_new() -> TestResult {
     let state = StakingState::new();
-    assert!(state.stake.amount.is_zero());
-    assert!(state.pending_rewards.is_zero());
-    assert!(state.claimed_rewards.is_zero());
-    assert_eq!(state.current_epoch, 0);
-    assert_eq!(state.last_claim_epoch, 0);
-    assert_eq!(state.streak, 0);
+    if !state.stake.amount.is_zero() { return TestResult::Fail; }
+    if !state.pending_rewards.is_zero() { return TestResult::Fail; }
+    if !state.claimed_rewards.is_zero() { return TestResult::Fail; }
+    if state.current_epoch != 0 { return TestResult::Fail; }
+    if state.last_claim_epoch != 0 { return TestResult::Fail; }
+    if state.streak != 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_staking_state_deposit() {
+pub fn test_staking_state_deposit() -> TestResult {
     let mut state = StakingState::new();
     state.deposit(TokenAmount::from_nox(10_000));
-    assert_eq!(state.stake.amount.whole(), 10_000);
-    assert_eq!(state.stake.tier, NodeTier::Silver);
+    if state.stake.amount.whole() != 10_000 { return TestResult::Fail; }
+    if state.stake.tier != NodeTier::Silver { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_staking_state_deposit_multiple() {
+pub fn test_staking_state_deposit_multiple() -> TestResult {
     let mut state = StakingState::new();
     state.deposit(TokenAmount::from_nox(5_000));
     state.deposit(TokenAmount::from_nox(5_000));
-    assert_eq!(state.stake.amount.whole(), 10_000);
+    if state.stake.amount.whole() != 10_000 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_staking_state_withdraw_success() {
+pub fn test_staking_state_withdraw_success() -> TestResult {
     let mut state = StakingState::new();
     state.deposit(TokenAmount::from_nox(1_000));
     let result = state.withdraw(TokenAmount::from_nox(500));
-    assert!(result.is_ok());
-    assert_eq!(state.stake.amount.whole(), 500);
+    if !result.is_ok() { return TestResult::Fail; }
+    if state.stake.amount.whole() != 500 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_staking_state_withdraw_locked() {
+pub fn test_staking_state_withdraw_locked() -> TestResult {
     let mut state = StakingState::new();
     state.deposit(TokenAmount::from_nox(10_000));
     let result = state.withdraw(TokenAmount::from_nox(5_000));
-    assert!(result.is_err());
+    if !result.is_err() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_staking_state_claim_rewards_none() {
+pub fn test_staking_state_claim_rewards_none() -> TestResult {
     let mut state = StakingState::new();
     let result = state.claim_rewards();
-    assert!(result.is_err());
-    assert_eq!(result.unwrap_err(), "No pending rewards");
+    if !result.is_err() { return TestResult::Fail; }
+    if result.unwrap_err() != "No pending rewards" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_staking_state_claim_rewards_success() {
+pub fn test_staking_state_claim_rewards_success() -> TestResult {
     let mut state = StakingState::new();
     state.add_rewards(TokenAmount::from_nox(100));
     state.current_epoch = 10;
     let result = state.claim_rewards();
-    assert!(result.is_ok());
-    assert_eq!(result.unwrap().whole(), 100);
-    assert!(state.pending_rewards.is_zero());
-    assert_eq!(state.claimed_rewards.whole(), 100);
-    assert_eq!(state.last_claim_epoch, 10);
+    if !result.is_ok() { return TestResult::Fail; }
+    if result.unwrap().whole() != 100 { return TestResult::Fail; }
+    if !state.pending_rewards.is_zero() { return TestResult::Fail; }
+    if state.claimed_rewards.whole() != 100 { return TestResult::Fail; }
+    if state.last_claim_epoch != 10 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_staking_state_update_epoch() {
+pub fn test_staking_state_update_epoch() -> TestResult {
     let mut state = StakingState::new();
     state.update_epoch(100);
-    assert_eq!(state.current_epoch, 100);
+    if state.current_epoch != 100 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_staking_state_update_epoch_no_decrease() {
+pub fn test_staking_state_update_epoch_no_decrease() -> TestResult {
     let mut state = StakingState::new();
     state.update_epoch(100);
     state.update_epoch(50);
-    assert_eq!(state.current_epoch, 100);
+    if state.current_epoch != 100 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_staking_state_add_rewards() {
+pub fn test_staking_state_add_rewards() -> TestResult {
     let mut state = StakingState::new();
     state.add_rewards(TokenAmount::from_nox(50));
     state.add_rewards(TokenAmount::from_nox(50));
-    assert_eq!(state.pending_rewards.whole(), 100);
+    if state.pending_rewards.whole() != 100 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_staking_state_total_staked() {
+pub fn test_staking_state_total_staked() -> TestResult {
     let mut state = StakingState::new();
     state.deposit(TokenAmount::from_nox(50_000));
-    assert_eq!(state.total_staked().whole(), 50_000);
+    if state.total_staked().whole() != 50_000 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_staking_state_tier() {
+pub fn test_staking_state_tier() -> TestResult {
     let mut state = StakingState::new();
     state.deposit(TokenAmount::from_nox(50_000));
-    assert_eq!(state.tier(), NodeTier::Gold);
+    if state.tier() != NodeTier::Gold { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_staking_state_default() {
+pub fn test_staking_state_default() -> TestResult {
     let state = StakingState::default();
-    assert!(state.stake.amount.is_zero());
-    assert_eq!(state.current_epoch, 0);
+    if !state.stake.amount.is_zero() { return TestResult::Fail; }
+    if state.current_epoch != 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_calculate_epoch_reward_zero_weight() {
+pub fn test_calculate_epoch_reward_zero_weight() -> TestResult {
     let reward = calculate_epoch_reward(0, 1000, 1000);
-    assert_eq!(reward, 0);
+    if reward != 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_calculate_epoch_reward_zero_total() {
+pub fn test_calculate_epoch_reward_zero_total() -> TestResult {
     let reward = calculate_epoch_reward(100, 0, 1000);
-    assert_eq!(reward, 0);
+    if reward != 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_calculate_epoch_reward_full_share() {
+pub fn test_calculate_epoch_reward_full_share() -> TestResult {
     let reward = calculate_epoch_reward(1000, 1000, 1000);
-    assert_eq!(reward, 1000);
+    if reward != 1000 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_calculate_epoch_reward_half_share() {
+pub fn test_calculate_epoch_reward_half_share() -> TestResult {
     let reward = calculate_epoch_reward(500, 1000, 1000);
-    assert_eq!(reward, 500);
+    if reward != 500 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_calculate_epoch_emission_year_zero() {
+pub fn test_calculate_epoch_emission_year_zero() -> TestResult {
     let emission = calculate_epoch_emission(0);
-    assert_eq!(emission, 3_200_000 / 365);
+    if emission != 3_200_000 / 365 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_calculate_epoch_emission_year_one() {
+pub fn test_calculate_epoch_emission_year_one() -> TestResult {
     let emission = calculate_epoch_emission(365);
-    assert!(emission < 3_200_000 / 365);
+    if !(emission < 3_200_000 / 365) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_calculate_epoch_emission_decreases_over_time() {
+pub fn test_calculate_epoch_emission_decreases_over_time() -> TestResult {
     let emission_y0 = calculate_epoch_emission(0);
     let emission_y1 = calculate_epoch_emission(365);
     let emission_y2 = calculate_epoch_emission(730);
-    assert!(emission_y0 > emission_y1);
-    assert!(emission_y1 > emission_y2);
+    if !(emission_y0 > emission_y1) { return TestResult::Fail; }
+    if !(emission_y1 > emission_y2) { return TestResult::Fail; }
+    TestResult::Pass
 }

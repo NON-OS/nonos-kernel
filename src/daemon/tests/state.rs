@@ -15,31 +15,48 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::daemon::*;
+use crate::test::framework::TestResult;
 
-#[test]
-fn test_daemon_state_new() {
+pub fn test_daemon_state_new() -> TestResult {
     let state = DaemonState::new();
-    assert!(state.node.is_none());
-    assert!(!state.running);
+    if !state.node.is_none() {
+        return TestResult::Fail;
+    }
+    if state.running {
+        return TestResult::Fail;
+    }
+    TestResult::Pass
 }
 
-#[test]
-fn test_daemon_state_new_staking() {
+pub fn test_daemon_state_new_staking() -> TestResult {
     let state = DaemonState::new();
-    assert!(state.staking.stake.amount.is_zero());
-    assert_eq!(state.staking.current_epoch, 0);
+    if !state.staking.stake.amount.is_zero() {
+        return TestResult::Fail;
+    }
+    if state.staking.current_epoch != 0 {
+        return TestResult::Fail;
+    }
+    TestResult::Pass
 }
 
-#[test]
-fn test_daemon_state_new_p2p() {
+pub fn test_daemon_state_new_p2p() -> TestResult {
     let state = DaemonState::new();
-    assert_eq!(state.p2p.status, ConnectionStatus::Disconnected);
-    assert_eq!(state.p2p.peer_count, 0);
+    if state.p2p.status != ConnectionStatus::Disconnected {
+        return TestResult::Fail;
+    }
+    if state.p2p.peer_count != 0 {
+        return TestResult::Fail;
+    }
+    TestResult::Pass
 }
 
-#[test]
-fn test_daemon_state_new_privacy() {
+pub fn test_daemon_state_new_privacy() -> TestResult {
     let state = DaemonState::new();
-    assert_eq!(state.privacy.identity_count, 0);
-    assert!(state.privacy.stealth_enabled);
+    if state.privacy.identity_count != 0 {
+        return TestResult::Fail;
+    }
+    if !state.privacy.stealth_enabled {
+        return TestResult::Fail;
+    }
+    TestResult::Pass
 }
