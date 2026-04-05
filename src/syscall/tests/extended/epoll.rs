@@ -2,160 +2,160 @@ use crate::syscall::SyscallResult;
 use crate::syscall::extended::epoll::types::*;
 
 #[test]
-fn test_epoll_cloexec_constant() {
+pub(crate) fn test_epoll_cloexec_constant() {
     assert_eq!(EPOLL_CLOEXEC, 0x80000);
 }
 
 #[test]
-fn test_epoll_ctl_add_constant() {
+pub(crate) fn test_epoll_ctl_add_constant() {
     assert_eq!(EPOLL_CTL_ADD, 1);
 }
 
 #[test]
-fn test_epoll_ctl_del_constant() {
+pub(crate) fn test_epoll_ctl_del_constant() {
     assert_eq!(EPOLL_CTL_DEL, 2);
 }
 
 #[test]
-fn test_epoll_ctl_mod_constant() {
+pub(crate) fn test_epoll_ctl_mod_constant() {
     assert_eq!(EPOLL_CTL_MOD, 3);
 }
 
 #[test]
-fn test_epollin_constant() {
+pub(crate) fn test_epollin_constant() {
     assert_eq!(EPOLLIN, 0x001);
 }
 
 #[test]
-fn test_epollpri_constant() {
+pub(crate) fn test_epollpri_constant() {
     assert_eq!(EPOLLPRI, 0x002);
 }
 
 #[test]
-fn test_epollout_constant() {
+pub(crate) fn test_epollout_constant() {
     assert_eq!(EPOLLOUT, 0x004);
 }
 
 #[test]
-fn test_epollrdnorm_constant() {
+pub(crate) fn test_epollrdnorm_constant() {
     assert_eq!(EPOLLRDNORM, 0x040);
 }
 
 #[test]
-fn test_epollrdband_constant() {
+pub(crate) fn test_epollrdband_constant() {
     assert_eq!(EPOLLRDBAND, 0x080);
 }
 
 #[test]
-fn test_epollwrnorm_constant() {
+pub(crate) fn test_epollwrnorm_constant() {
     assert_eq!(EPOLLWRNORM, 0x100);
 }
 
 #[test]
-fn test_epollwrband_constant() {
+pub(crate) fn test_epollwrband_constant() {
     assert_eq!(EPOLLWRBAND, 0x200);
 }
 
 #[test]
-fn test_epollmsg_constant() {
+pub(crate) fn test_epollmsg_constant() {
     assert_eq!(EPOLLMSG, 0x400);
 }
 
 #[test]
-fn test_epollerr_constant() {
+pub(crate) fn test_epollerr_constant() {
     assert_eq!(EPOLLERR, 0x008);
 }
 
 #[test]
-fn test_epollhup_constant() {
+pub(crate) fn test_epollhup_constant() {
     assert_eq!(EPOLLHUP, 0x010);
 }
 
 #[test]
-fn test_epollrdhup_constant() {
+pub(crate) fn test_epollrdhup_constant() {
     assert_eq!(EPOLLRDHUP, 0x2000);
 }
 
 #[test]
-fn test_epollexclusive_constant() {
+pub(crate) fn test_epollexclusive_constant() {
     assert_eq!(EPOLLEXCLUSIVE, 1 << 28);
 }
 
 #[test]
-fn test_epollwakeup_constant() {
+pub(crate) fn test_epollwakeup_constant() {
     assert_eq!(EPOLLWAKEUP, 1 << 29);
 }
 
 #[test]
-fn test_epolloneshot_constant() {
+pub(crate) fn test_epolloneshot_constant() {
     assert_eq!(EPOLLONESHOT, 1 << 30);
 }
 
 #[test]
-fn test_epollet_constant() {
+pub(crate) fn test_epollet_constant() {
     assert_eq!(EPOLLET, 1 << 31);
 }
 
 #[test]
-fn test_epoll_ebadf_constant() {
+pub(crate) fn test_epoll_ebadf_constant() {
     assert_eq!(EBADF, 9);
 }
 
 #[test]
-fn test_epoll_einval_constant() {
+pub(crate) fn test_epoll_einval_constant() {
     assert_eq!(EINVAL, 22);
 }
 
 #[test]
-fn test_epoll_enomem_constant() {
+pub(crate) fn test_epoll_enomem_constant() {
     assert_eq!(ENOMEM, 12);
 }
 
 #[test]
-fn test_epoll_enoent_constant() {
+pub(crate) fn test_epoll_enoent_constant() {
     assert_eq!(ENOENT, 2);
 }
 
 #[test]
-fn test_epoll_eexist_constant() {
+pub(crate) fn test_epoll_eexist_constant() {
     assert_eq!(EEXIST, 17);
 }
 
 #[test]
-fn test_epoll_efault_constant() {
+pub(crate) fn test_epoll_efault_constant() {
     assert_eq!(EFAULT, 14);
 }
 
 #[test]
-fn test_epoll_eintr_constant() {
+pub(crate) fn test_epoll_eintr_constant() {
     assert_eq!(EINTR, 4);
 }
 
 #[test]
-fn test_max_epoll_instances() {
+pub(crate) fn test_max_epoll_instances() {
     assert_eq!(MAX_EPOLL_INSTANCES, 256);
 }
 
 #[test]
-fn test_max_events_per_instance() {
+pub(crate) fn test_max_events_per_instance() {
     assert_eq!(MAX_EVENTS_PER_INSTANCE, 4096);
 }
 
 #[test]
-fn test_epoll_event_size() {
+pub(crate) fn test_epoll_event_size() {
     let ev = EpollEvent { events: 0, data: 0 };
     assert_eq!(core::mem::size_of_val(&ev), 12);
 }
 
 #[test]
-fn test_epoll_event_fields() {
+pub(crate) fn test_epoll_event_fields() {
     let ev = EpollEvent { events: EPOLLIN, data: 42 };
     assert_eq!(ev.events, EPOLLIN);
     assert_eq!(ev.data, 42);
 }
 
 #[test]
-fn test_epoll_event_clone() {
+pub(crate) fn test_epoll_event_clone() {
     let ev = EpollEvent { events: EPOLLOUT, data: 100 };
     let cloned = ev.clone();
     assert_eq!(cloned.events, EPOLLOUT);
@@ -163,7 +163,7 @@ fn test_epoll_event_clone() {
 }
 
 #[test]
-fn test_epoll_event_copy() {
+pub(crate) fn test_epoll_event_copy() {
     let ev = EpollEvent { events: EPOLLERR, data: 200 };
     let copied = ev;
     assert_eq!(copied.events, EPOLLERR);
@@ -171,228 +171,228 @@ fn test_epoll_event_copy() {
 }
 
 #[test]
-fn test_epoll_event_debug() {
+pub(crate) fn test_epoll_event_debug() {
     let ev = EpollEvent { events: EPOLLHUP, data: 0 };
     let debug_str = format!("{:?}", ev);
     assert!(debug_str.contains("EpollEvent"));
 }
 
 #[test]
-fn test_epoll_create_negative_size_returns_einval() {
+pub(crate) fn test_epoll_create_negative_size_returns_einval() {
     let result = SyscallResult::error(22);
     assert_eq!(result.errno(), Some(22));
 }
 
 #[test]
-fn test_epoll_create_zero_size_returns_einval() {
+pub(crate) fn test_epoll_create_zero_size_returns_einval() {
     let result = SyscallResult::error(22);
     assert_eq!(result.errno(), Some(22));
 }
 
 #[test]
-fn test_epoll_create_success_returns_fd() {
+pub(crate) fn test_epoll_create_success_returns_fd() {
     let fd = 5i64;
     let result = SyscallResult::success(fd);
     assert_eq!(result.value, 5);
 }
 
 #[test]
-fn test_epoll_create1_invalid_flags_returns_einval() {
+pub(crate) fn test_epoll_create1_invalid_flags_returns_einval() {
     let result = SyscallResult::error(22);
     assert_eq!(result.errno(), Some(22));
 }
 
 #[test]
-fn test_epoll_create1_success_returns_fd() {
+pub(crate) fn test_epoll_create1_success_returns_fd() {
     let fd = 6i64;
     let result = SyscallResult::success(fd);
     assert_eq!(result.value, 6);
 }
 
 #[test]
-fn test_epoll_create1_cloexec_flag() {
+pub(crate) fn test_epoll_create1_cloexec_flag() {
     let flags = EPOLL_CLOEXEC;
     assert_eq!(flags, 0x80000);
 }
 
 #[test]
-fn test_epoll_create_max_instances_returns_enomem() {
+pub(crate) fn test_epoll_create_max_instances_returns_enomem() {
     let result = SyscallResult::error(12);
     assert_eq!(result.errno(), Some(12));
 }
 
 #[test]
-fn test_epoll_ctl_invalid_epfd_returns_ebadf() {
+pub(crate) fn test_epoll_ctl_invalid_epfd_returns_ebadf() {
     let result = SyscallResult::error(9);
     assert_eq!(result.errno(), Some(9));
 }
 
 #[test]
-fn test_epoll_ctl_same_fd_returns_einval() {
+pub(crate) fn test_epoll_ctl_same_fd_returns_einval() {
     let result = SyscallResult::error(22);
     assert_eq!(result.errno(), Some(22));
 }
 
 #[test]
-fn test_epoll_ctl_invalid_target_fd_returns_ebadf() {
+pub(crate) fn test_epoll_ctl_invalid_target_fd_returns_ebadf() {
     let result = SyscallResult::error(9);
     assert_eq!(result.errno(), Some(9));
 }
 
 #[test]
-fn test_epoll_ctl_add_null_event_returns_efault() {
+pub(crate) fn test_epoll_ctl_add_null_event_returns_efault() {
     let result = SyscallResult::error(14);
     assert_eq!(result.errno(), Some(14));
 }
 
 #[test]
-fn test_epoll_ctl_add_existing_returns_eexist() {
+pub(crate) fn test_epoll_ctl_add_existing_returns_eexist() {
     let result = SyscallResult::error(17);
     assert_eq!(result.errno(), Some(17));
 }
 
 #[test]
-fn test_epoll_ctl_add_success_returns_zero() {
+pub(crate) fn test_epoll_ctl_add_success_returns_zero() {
     let result = SyscallResult::success(0);
     assert_eq!(result.value, 0);
 }
 
 #[test]
-fn test_epoll_ctl_mod_not_found_returns_enoent() {
+pub(crate) fn test_epoll_ctl_mod_not_found_returns_enoent() {
     let result = SyscallResult::error(2);
     assert_eq!(result.errno(), Some(2));
 }
 
 #[test]
-fn test_epoll_ctl_mod_success_returns_zero() {
+pub(crate) fn test_epoll_ctl_mod_success_returns_zero() {
     let result = SyscallResult::success(0);
     assert_eq!(result.value, 0);
 }
 
 #[test]
-fn test_epoll_ctl_del_not_found_returns_enoent() {
+pub(crate) fn test_epoll_ctl_del_not_found_returns_enoent() {
     let result = SyscallResult::error(2);
     assert_eq!(result.errno(), Some(2));
 }
 
 #[test]
-fn test_epoll_ctl_del_success_returns_zero() {
+pub(crate) fn test_epoll_ctl_del_success_returns_zero() {
     let result = SyscallResult::success(0);
     assert_eq!(result.value, 0);
 }
 
 #[test]
-fn test_epoll_ctl_invalid_op_returns_einval() {
+pub(crate) fn test_epoll_ctl_invalid_op_returns_einval() {
     let result = SyscallResult::error(22);
     assert_eq!(result.errno(), Some(22));
 }
 
 #[test]
-fn test_epoll_ctl_max_events_returns_enomem() {
+pub(crate) fn test_epoll_ctl_max_events_returns_enomem() {
     let result = SyscallResult::error(12);
     assert_eq!(result.errno(), Some(12));
 }
 
 #[test]
-fn test_epoll_wait_negative_maxevents_returns_einval() {
+pub(crate) fn test_epoll_wait_negative_maxevents_returns_einval() {
     let result = SyscallResult::error(22);
     assert_eq!(result.errno(), Some(22));
 }
 
 #[test]
-fn test_epoll_wait_zero_maxevents_returns_einval() {
+pub(crate) fn test_epoll_wait_zero_maxevents_returns_einval() {
     let result = SyscallResult::error(22);
     assert_eq!(result.errno(), Some(22));
 }
 
 #[test]
-fn test_epoll_wait_null_events_returns_efault() {
+pub(crate) fn test_epoll_wait_null_events_returns_efault() {
     let result = SyscallResult::error(14);
     assert_eq!(result.errno(), Some(14));
 }
 
 #[test]
-fn test_epoll_wait_invalid_epfd_returns_ebadf() {
+pub(crate) fn test_epoll_wait_invalid_epfd_returns_ebadf() {
     let result = SyscallResult::error(9);
     assert_eq!(result.errno(), Some(9));
 }
 
 #[test]
-fn test_epoll_wait_success_returns_count() {
+pub(crate) fn test_epoll_wait_success_returns_count() {
     let count = 3i64;
     let result = SyscallResult::success(count);
     assert_eq!(result.value, 3);
 }
 
 #[test]
-fn test_epoll_wait_timeout_zero_returns_immediately() {
+pub(crate) fn test_epoll_wait_timeout_zero_returns_immediately() {
     let result = SyscallResult::success(0);
     assert_eq!(result.value, 0);
 }
 
 #[test]
-fn test_epoll_wait_timeout_expired_returns_zero() {
+pub(crate) fn test_epoll_wait_timeout_expired_returns_zero() {
     let result = SyscallResult::success(0);
     assert_eq!(result.value, 0);
 }
 
 #[test]
-fn test_epoll_wait_interrupted_returns_eintr() {
+pub(crate) fn test_epoll_wait_interrupted_returns_eintr() {
     let result = SyscallResult::error(4);
     assert_eq!(result.errno(), Some(4));
 }
 
 #[test]
-fn test_epoll_pwait_success_returns_count() {
+pub(crate) fn test_epoll_pwait_success_returns_count() {
     let count = 2i64;
     let result = SyscallResult::success(count);
     assert_eq!(result.value, 2);
 }
 
 #[test]
-fn test_epoll_event_combine_in_out() {
+pub(crate) fn test_epoll_event_combine_in_out() {
     let events = EPOLLIN | EPOLLOUT;
     assert_eq!(events, 0x005);
 }
 
 #[test]
-fn test_epoll_event_combine_err_hup() {
+pub(crate) fn test_epoll_event_combine_err_hup() {
     let events = EPOLLERR | EPOLLHUP;
     assert_eq!(events, 0x018);
 }
 
 #[test]
-fn test_epoll_event_combine_et_oneshot() {
+pub(crate) fn test_epoll_event_combine_et_oneshot() {
     let events = EPOLLET | EPOLLONESHOT;
     assert_eq!(events, (1 << 31) | (1 << 30));
 }
 
 #[test]
-fn test_epoll_event_data_max() {
+pub(crate) fn test_epoll_event_data_max() {
     let ev = EpollEvent { events: EPOLLIN, data: u64::MAX };
     assert_eq!(ev.data, u64::MAX);
 }
 
 #[test]
-fn test_epoll_event_data_zero() {
+pub(crate) fn test_epoll_event_data_zero() {
     let ev = EpollEvent { events: EPOLLOUT, data: 0 };
     assert_eq!(ev.data, 0);
 }
 
 #[test]
-fn test_epoll_oneshot_triggered_flag() {
+pub(crate) fn test_epoll_oneshot_triggered_flag() {
     let oneshot = EPOLLONESHOT;
     assert!(oneshot != 0);
 }
 
 #[test]
-fn test_epoll_edge_triggered_flag() {
+pub(crate) fn test_epoll_edge_triggered_flag() {
     let et = EPOLLET;
     assert!(et != 0);
 }
 
 #[test]
-fn test_epoll_exclusive_flag() {
+pub(crate) fn test_epoll_exclusive_flag() {
     let exclusive = EPOLLEXCLUSIVE;
     assert!(exclusive != 0);
 }
