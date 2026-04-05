@@ -21,20 +21,20 @@ use super::framework::{TestCase, TestResult, TestSuite};
 pub fn run_all() -> bool {
     let mut suite = TestSuite::new("Filesystem");
 
-    suite.add_test(TestCase::new("path_parsing", test_path_parsing, "fs"));
-    suite.add_test(TestCase::new("path_components", test_path_components, "fs"));
-    suite.add_test(TestCase::new("file_descriptor_allocation", test_file_descriptor_allocation, "fs"));
-    suite.add_test(TestCase::new("ramfs_create_file", test_ramfs_create_file, "fs"));
-    suite.add_test(TestCase::new("ramfs_read_write", test_ramfs_read_write, "fs"));
-    suite.add_test(TestCase::new("ramfs_directory_ops", test_ramfs_directory_ops, "fs"));
-    suite.add_test(TestCase::new("vfs_mount_unmount", test_vfs_mount_unmount, "fs"));
-    suite.add_test(TestCase::new("file_permissions", test_file_permissions, "fs"));
+    suite.add(TestCase::new("path_parsing", test_path_parsing, "fs"));
+    suite.add(TestCase::new("path_components", test_path_components, "fs"));
+    suite.add(TestCase::new("file_descriptor_allocation", test_file_descriptor_allocation, "fs"));
+    suite.add(TestCase::new("ramfs_create_file", test_ramfs_create_file, "fs"));
+    suite.add(TestCase::new("ramfs_read_write", test_ramfs_read_write, "fs"));
+    suite.add(TestCase::new("ramfs_directory_ops", test_ramfs_directory_ops, "fs"));
+    suite.add(TestCase::new("vfs_mount_unmount", test_vfs_mount_unmount, "fs"));
+    suite.add(TestCase::new("file_permissions", test_file_permissions, "fs"));
 
     let (_, failed, _) = suite.run_all();
     failed == 0
 }
 
-fn test_path_parsing() -> TestResult {
+pub(crate) fn test_path_parsing() -> TestResult {
     use crate::fs::path::Path;
 
     let path = Path::new(b"/home/user/file.txt");
@@ -49,7 +49,7 @@ fn test_path_parsing() -> TestResult {
     TestResult::Pass
 }
 
-fn test_path_components() -> TestResult {
+pub(crate) fn test_path_components() -> TestResult {
     use crate::fs::path::Path;
 
     let path = Path::new(b"/home/user/docs");
@@ -63,7 +63,7 @@ fn test_path_components() -> TestResult {
     TestResult::Pass
 }
 
-fn test_file_descriptor_allocation() -> TestResult {
+pub(crate) fn test_file_descriptor_allocation() -> TestResult {
     use crate::fs::fd::{allocate_fd, release_fd, is_valid_fd};
 
     let fd = allocate_fd();
@@ -76,7 +76,7 @@ fn test_file_descriptor_allocation() -> TestResult {
     TestResult::Pass
 }
 
-fn test_ramfs_create_file() -> TestResult {
+pub(crate) fn test_ramfs_create_file() -> TestResult {
     use crate::fs::ramfs::{RamFs, FileType};
 
     let mut fs = RamFs::new();
@@ -93,7 +93,7 @@ fn test_ramfs_create_file() -> TestResult {
     TestResult::Pass
 }
 
-fn test_ramfs_read_write() -> TestResult {
+pub(crate) fn test_ramfs_read_write() -> TestResult {
     use crate::fs::ramfs::{RamFs, FileType};
 
     let mut fs = RamFs::new();
@@ -113,7 +113,7 @@ fn test_ramfs_read_write() -> TestResult {
     TestResult::Pass
 }
 
-fn test_ramfs_directory_ops() -> TestResult {
+pub(crate) fn test_ramfs_directory_ops() -> TestResult {
     use crate::fs::ramfs::{RamFs, FileType};
 
     let mut fs = RamFs::new();
@@ -131,7 +131,7 @@ fn test_ramfs_directory_ops() -> TestResult {
     TestResult::Pass
 }
 
-fn test_vfs_mount_unmount() -> TestResult {
+pub(crate) fn test_vfs_mount_unmount() -> TestResult {
     use crate::fs::vfs::{mount, unmount, is_mounted};
 
     let mount_point = b"/mnt/test";
@@ -148,7 +148,7 @@ fn test_vfs_mount_unmount() -> TestResult {
     TestResult::Pass
 }
 
-fn test_file_permissions() -> TestResult {
+pub(crate) fn test_file_permissions() -> TestResult {
     use crate::fs::types::{FileMode, Permission};
 
     let mode = FileMode::new(Permission::ReadWrite, Permission::Read, Permission::None);

@@ -21,18 +21,18 @@ use super::framework::{TestCase, TestResult, TestSuite};
 pub fn run_all() -> bool {
     let mut suite = TestSuite::new("IPC");
 
-    suite.add_test(TestCase::new("message_construction", test_message_construction, "ipc"));
-    suite.add_test(TestCase::new("message_types", test_message_types, "ipc"));
-    suite.add_test(TestCase::new("channel_creation", test_channel_creation, "ipc"));
-    suite.add_test(TestCase::new("channel_send_receive", test_channel_send_receive, "ipc"));
-    suite.add_test(TestCase::new("pipe_operations", test_pipe_operations, "ipc"));
-    suite.add_test(TestCase::new("inbox_operations", test_inbox_operations, "ipc"));
+    suite.add(TestCase::new("message_construction", test_message_construction, "ipc"));
+    suite.add(TestCase::new("message_types", test_message_types, "ipc"));
+    suite.add(TestCase::new("channel_creation", test_channel_creation, "ipc"));
+    suite.add(TestCase::new("channel_send_receive", test_channel_send_receive, "ipc"));
+    suite.add(TestCase::new("pipe_operations", test_pipe_operations, "ipc"));
+    suite.add(TestCase::new("inbox_operations", test_inbox_operations, "ipc"));
 
     let (_, failed, _) = suite.run_all();
     failed == 0
 }
 
-fn test_message_construction() -> TestResult {
+pub(crate) fn test_message_construction() -> TestResult {
     use crate::ipc::message::{Message, MessageType};
 
     let msg = Message::new(1, 2, MessageType::Request, b"hello");
@@ -45,7 +45,7 @@ fn test_message_construction() -> TestResult {
     TestResult::Pass
 }
 
-fn test_message_types() -> TestResult {
+pub(crate) fn test_message_types() -> TestResult {
     use crate::ipc::message::MessageType;
 
     let request = MessageType::Request;
@@ -59,7 +59,7 @@ fn test_message_types() -> TestResult {
     TestResult::Pass
 }
 
-fn test_channel_creation() -> TestResult {
+pub(crate) fn test_channel_creation() -> TestResult {
     use crate::ipc::channel::{create_channel, destroy_channel};
 
     let channel_id = create_channel(1, 2);
@@ -75,7 +75,7 @@ fn test_channel_creation() -> TestResult {
     TestResult::Pass
 }
 
-fn test_channel_send_receive() -> TestResult {
+pub(crate) fn test_channel_send_receive() -> TestResult {
     use crate::ipc::channel::{create_channel, send, receive, destroy_channel};
     use crate::ipc::message::{Message, MessageType};
 
@@ -96,7 +96,7 @@ fn test_channel_send_receive() -> TestResult {
     TestResult::Pass
 }
 
-fn test_pipe_operations() -> TestResult {
+pub(crate) fn test_pipe_operations() -> TestResult {
     use crate::ipc::pipe::{create_pipe, pipe_write, pipe_read, close_pipe};
 
     let (read_end, write_end) = create_pipe();
@@ -117,7 +117,7 @@ fn test_pipe_operations() -> TestResult {
     TestResult::Pass
 }
 
-fn test_inbox_operations() -> TestResult {
+pub(crate) fn test_inbox_operations() -> TestResult {
     use crate::ipc::inbox::{create_inbox, post_message, check_inbox, clear_inbox};
     use crate::ipc::message::{Message, MessageType};
 

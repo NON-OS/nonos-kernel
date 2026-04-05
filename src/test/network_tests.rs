@@ -21,20 +21,20 @@ use super::framework::{TestCase, TestResult, TestSuite};
 pub fn run_all() -> bool {
     let mut suite = TestSuite::new("Network");
 
-    suite.add_test(TestCase::new("ipv4_address_parsing", test_ipv4_address_parsing, "network"));
-    suite.add_test(TestCase::new("ipv4_address_format", test_ipv4_address_format, "network"));
-    suite.add_test(TestCase::new("mac_address_parsing", test_mac_address_parsing, "network"));
-    suite.add_test(TestCase::new("ethernet_frame_types", test_ethernet_frame_types, "network"));
-    suite.add_test(TestCase::new("tcp_state_machine", test_tcp_state_machine, "network"));
-    suite.add_test(TestCase::new("udp_header_construction", test_udp_header_construction, "network"));
-    suite.add_test(TestCase::new("dns_query_construction", test_dns_query_construction, "network"));
-    suite.add_test(TestCase::new("firewall_rule_matching", test_firewall_rule_matching, "network"));
+    suite.add(TestCase::new("ipv4_address_parsing", test_ipv4_address_parsing, "network"));
+    suite.add(TestCase::new("ipv4_address_format", test_ipv4_address_format, "network"));
+    suite.add(TestCase::new("mac_address_parsing", test_mac_address_parsing, "network"));
+    suite.add(TestCase::new("ethernet_frame_types", test_ethernet_frame_types, "network"));
+    suite.add(TestCase::new("tcp_state_machine", test_tcp_state_machine, "network"));
+    suite.add(TestCase::new("udp_header_construction", test_udp_header_construction, "network"));
+    suite.add(TestCase::new("dns_query_construction", test_dns_query_construction, "network"));
+    suite.add(TestCase::new("firewall_rule_matching", test_firewall_rule_matching, "network"));
 
     let (_, failed, _) = suite.run_all();
     failed == 0
 }
 
-fn test_ipv4_address_parsing() -> TestResult {
+pub(crate) fn test_ipv4_address_parsing() -> TestResult {
     use crate::network::ip::Ipv4Addr;
 
     let addr = Ipv4Addr::new(192, 168, 1, 1);
@@ -49,7 +49,7 @@ fn test_ipv4_address_parsing() -> TestResult {
     TestResult::Pass
 }
 
-fn test_ipv4_address_format() -> TestResult {
+pub(crate) fn test_ipv4_address_format() -> TestResult {
     use crate::network::ip::Ipv4Addr;
 
     let addr = Ipv4Addr::new(10, 0, 0, 1);
@@ -61,7 +61,7 @@ fn test_ipv4_address_format() -> TestResult {
     TestResult::Pass
 }
 
-fn test_mac_address_parsing() -> TestResult {
+pub(crate) fn test_mac_address_parsing() -> TestResult {
     use crate::network::ethernet::MacAddress;
 
     let mac = MacAddress::new([0x00, 0x11, 0x22, 0x33, 0x44, 0x55]);
@@ -75,7 +75,7 @@ fn test_mac_address_parsing() -> TestResult {
     TestResult::Pass
 }
 
-fn test_ethernet_frame_types() -> TestResult {
+pub(crate) fn test_ethernet_frame_types() -> TestResult {
     use crate::network::ethernet::EtherType;
 
     if EtherType::Ipv4 as u16 != 0x0800 { return TestResult::Fail; }
@@ -85,7 +85,7 @@ fn test_ethernet_frame_types() -> TestResult {
     TestResult::Pass
 }
 
-fn test_tcp_state_machine() -> TestResult {
+pub(crate) fn test_tcp_state_machine() -> TestResult {
     use crate::network::tcp::TcpState;
 
     let state = TcpState::Closed;
@@ -100,7 +100,7 @@ fn test_tcp_state_machine() -> TestResult {
     TestResult::Pass
 }
 
-fn test_udp_header_construction() -> TestResult {
+pub(crate) fn test_udp_header_construction() -> TestResult {
     use crate::network::udp::UdpHeader;
 
     let header = UdpHeader::new(12345, 80, 100);
@@ -112,7 +112,7 @@ fn test_udp_header_construction() -> TestResult {
     TestResult::Pass
 }
 
-fn test_dns_query_construction() -> TestResult {
+pub(crate) fn test_dns_query_construction() -> TestResult {
     use crate::network::dns::{DnsQuery, QueryType};
 
     let query = DnsQuery::new(b"example.com", QueryType::A);
@@ -126,7 +126,7 @@ fn test_dns_query_construction() -> TestResult {
     TestResult::Pass
 }
 
-fn test_firewall_rule_matching() -> TestResult {
+pub(crate) fn test_firewall_rule_matching() -> TestResult {
     use crate::network::firewall::{FirewallRule, Action, Protocol};
     use crate::network::ip::Ipv4Addr;
 
