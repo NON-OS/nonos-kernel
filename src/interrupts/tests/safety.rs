@@ -15,78 +15,79 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::interrupts::*;
+use crate::test::framework::TestResult;
 
-#[test]
-fn test_in_interrupt_context_returns_bool() {
+pub fn test_in_interrupt_context_returns_bool() -> TestResult {
     let in_ctx = in_interrupt_context();
-    assert!(in_ctx == true || in_ctx == false);
+    if !(in_ctx == true || in_ctx == false) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_set_interrupt_context_creates_context() {
+pub fn test_set_interrupt_context_creates_context() -> TestResult {
     let _ctx = set_interrupt_context();
-    assert!(in_interrupt_context());
+    if !in_interrupt_context() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_interrupt_context_cleared_on_drop() {
+pub fn test_interrupt_context_cleared_on_drop() -> TestResult {
     {
         let _ctx = set_interrupt_context();
-        assert!(in_interrupt_context());
+        if !in_interrupt_context() { return TestResult::Fail; }
     }
-    assert!(!in_interrupt_context());
+    if in_interrupt_context() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_nested_interrupt_context() {
+pub fn test_nested_interrupt_context() -> TestResult {
     {
         let _ctx1 = set_interrupt_context();
-        assert!(in_interrupt_context());
+        if !in_interrupt_context() { return TestResult::Fail; }
         {
             let _ctx2 = set_interrupt_context();
-            assert!(in_interrupt_context());
+            if !in_interrupt_context() { return TestResult::Fail; }
         }
-        assert!(in_interrupt_context());
+        if !in_interrupt_context() { return TestResult::Fail; }
     }
-    assert!(!in_interrupt_context());
+    if in_interrupt_context() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_disable_interrupts_guard_returns_guard() {
+pub fn test_disable_interrupts_guard_returns_guard() -> TestResult {
     let _guard = disable_interrupts_guard();
+    TestResult::Pass
 }
 
-#[test]
-fn test_interrupt_guard_restores_on_drop() {
+pub fn test_interrupt_guard_restores_on_drop() -> TestResult {
     {
         let _guard = disable_interrupts_guard();
     }
+    TestResult::Pass
 }
 
-#[test]
-fn test_nested_interrupt_guards() {
+pub fn test_nested_interrupt_guards() -> TestResult {
     {
         let _guard1 = disable_interrupts_guard();
         {
             let _guard2 = disable_interrupts_guard();
         }
     }
+    TestResult::Pass
 }
 
-#[test]
-fn test_interrupt_context_multiple_drops() {
+pub fn test_interrupt_context_multiple_drops() -> TestResult {
     let ctx1 = set_interrupt_context();
     let ctx2 = set_interrupt_context();
-    assert!(in_interrupt_context());
+    if !in_interrupt_context() { return TestResult::Fail; }
     drop(ctx2);
-    assert!(in_interrupt_context());
+    if !in_interrupt_context() { return TestResult::Fail; }
     drop(ctx1);
-    assert!(!in_interrupt_context());
+    if in_interrupt_context() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_interrupt_guard_and_context_together() {
+pub fn test_interrupt_guard_and_context_together() -> TestResult {
     let _guard = disable_interrupts_guard();
     let _ctx = set_interrupt_context();
-    assert!(in_interrupt_context());
+    if !in_interrupt_context() { return TestResult::Fail; }
+    TestResult::Pass
 }

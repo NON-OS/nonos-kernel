@@ -17,98 +17,98 @@
 use core::sync::atomic::Ordering;
 
 use crate::interrupts::*;
+use crate::test::framework::TestResult;
 
-#[test]
-fn test_interrupt_counters_new() {
+pub fn test_interrupt_counters_new() -> TestResult {
     let counters = InterruptCounters::new();
-    assert_eq!(counters.timer_ticks.load(Ordering::Relaxed), 0);
-    assert_eq!(counters.keyboard_presses.load(Ordering::Relaxed), 0);
-    assert_eq!(counters.mouse_events.load(Ordering::Relaxed), 0);
-    assert_eq!(counters.syscalls.load(Ordering::Relaxed), 0);
-    assert_eq!(counters.exceptions.load(Ordering::Relaxed), 0);
-    assert_eq!(counters.page_faults.load(Ordering::Relaxed), 0);
+    if counters.timer_ticks.load(Ordering::Relaxed) != 0 { return TestResult::Fail; }
+    if counters.keyboard_presses.load(Ordering::Relaxed) != 0 { return TestResult::Fail; }
+    if counters.mouse_events.load(Ordering::Relaxed) != 0 { return TestResult::Fail; }
+    if counters.syscalls.load(Ordering::Relaxed) != 0 { return TestResult::Fail; }
+    if counters.exceptions.load(Ordering::Relaxed) != 0 { return TestResult::Fail; }
+    if counters.page_faults.load(Ordering::Relaxed) != 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_counters_static_initialization() {
-    assert!(COUNTERS.timer_ticks.load(Ordering::Relaxed) < u64::MAX);
-    assert!(COUNTERS.keyboard_presses.load(Ordering::Relaxed) < u64::MAX);
-    assert!(COUNTERS.mouse_events.load(Ordering::Relaxed) < u64::MAX);
-    assert!(COUNTERS.syscalls.load(Ordering::Relaxed) < u64::MAX);
-    assert!(COUNTERS.exceptions.load(Ordering::Relaxed) < u64::MAX);
-    assert!(COUNTERS.page_faults.load(Ordering::Relaxed) < u64::MAX);
+pub fn test_counters_static_initialization() -> TestResult {
+    if !(COUNTERS.timer_ticks.load(Ordering::Relaxed) < u64::MAX) { return TestResult::Fail; }
+    if !(COUNTERS.keyboard_presses.load(Ordering::Relaxed) < u64::MAX) { return TestResult::Fail; }
+    if !(COUNTERS.mouse_events.load(Ordering::Relaxed) < u64::MAX) { return TestResult::Fail; }
+    if !(COUNTERS.syscalls.load(Ordering::Relaxed) < u64::MAX) { return TestResult::Fail; }
+    if !(COUNTERS.exceptions.load(Ordering::Relaxed) < u64::MAX) { return TestResult::Fail; }
+    if !(COUNTERS.page_faults.load(Ordering::Relaxed) < u64::MAX) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_increment_timer() {
+pub fn test_increment_timer() -> TestResult {
     let before = COUNTERS.timer_ticks.load(Ordering::Relaxed);
     increment_timer();
     let after = COUNTERS.timer_ticks.load(Ordering::Relaxed);
-    assert_eq!(after, before + 1);
+    if after != before + 1 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_increment_keyboard() {
+pub fn test_increment_keyboard() -> TestResult {
     let before = COUNTERS.keyboard_presses.load(Ordering::Relaxed);
     increment_keyboard();
     let after = COUNTERS.keyboard_presses.load(Ordering::Relaxed);
-    assert_eq!(after, before + 1);
+    if after != before + 1 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_increment_mouse() {
+pub fn test_increment_mouse() -> TestResult {
     let before = COUNTERS.mouse_events.load(Ordering::Relaxed);
     increment_mouse();
     let after = COUNTERS.mouse_events.load(Ordering::Relaxed);
-    assert_eq!(after, before + 1);
+    if after != before + 1 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_increment_syscalls() {
+pub fn test_increment_syscalls() -> TestResult {
     let before = COUNTERS.syscalls.load(Ordering::Relaxed);
     increment_syscalls();
     let after = COUNTERS.syscalls.load(Ordering::Relaxed);
-    assert_eq!(after, before + 1);
+    if after != before + 1 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_increment_exceptions() {
+pub fn test_increment_exceptions() -> TestResult {
     let before = COUNTERS.exceptions.load(Ordering::Relaxed);
     increment_exceptions();
     let after = COUNTERS.exceptions.load(Ordering::Relaxed);
-    assert_eq!(after, before + 1);
+    if after != before + 1 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_increment_page_faults() {
+pub fn test_increment_page_faults() -> TestResult {
     let before = COUNTERS.page_faults.load(Ordering::Relaxed);
     increment_page_faults();
     let after = COUNTERS.page_faults.load(Ordering::Relaxed);
-    assert_eq!(after, before + 1);
+    if after != before + 1 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_get_stats_returns_struct() {
+pub fn test_get_stats_returns_struct() -> TestResult {
     let stats = get_stats();
-    assert!(stats.timer_ticks < u64::MAX);
-    assert!(stats.keyboard_presses < u64::MAX);
-    assert!(stats.mouse_events < u64::MAX);
-    assert!(stats.syscalls < u64::MAX);
-    assert!(stats.exceptions < u64::MAX);
-    assert!(stats.page_faults < u64::MAX);
+    if !(stats.timer_ticks < u64::MAX) { return TestResult::Fail; }
+    if !(stats.keyboard_presses < u64::MAX) { return TestResult::Fail; }
+    if !(stats.mouse_events < u64::MAX) { return TestResult::Fail; }
+    if !(stats.syscalls < u64::MAX) { return TestResult::Fail; }
+    if !(stats.exceptions < u64::MAX) { return TestResult::Fail; }
+    if !(stats.page_faults < u64::MAX) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_get_stats_tuple_returns_four_values() {
+pub fn test_get_stats_tuple_returns_four_values() -> TestResult {
     let (timer, keyboard, syscalls, exceptions) = get_stats_tuple();
-    assert!(timer < u64::MAX);
-    assert!(keyboard < u64::MAX);
-    assert!(syscalls < u64::MAX);
-    assert!(exceptions < u64::MAX);
+    if !(timer < u64::MAX) { return TestResult::Fail; }
+    if !(keyboard < u64::MAX) { return TestResult::Fail; }
+    if !(syscalls < u64::MAX) { return TestResult::Fail; }
+    if !(exceptions < u64::MAX) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_reset_stats() {
+pub fn test_reset_stats() -> TestResult {
     increment_timer();
     increment_keyboard();
     increment_mouse();
@@ -119,16 +119,16 @@ fn test_reset_stats() {
     reset_stats();
 
     let stats = get_stats();
-    assert_eq!(stats.timer_ticks, 0);
-    assert_eq!(stats.keyboard_presses, 0);
-    assert_eq!(stats.mouse_events, 0);
-    assert_eq!(stats.syscalls, 0);
-    assert_eq!(stats.exceptions, 0);
-    assert_eq!(stats.page_faults, 0);
+    if stats.timer_ticks != 0 { return TestResult::Fail; }
+    if stats.keyboard_presses != 0 { return TestResult::Fail; }
+    if stats.mouse_events != 0 { return TestResult::Fail; }
+    if stats.syscalls != 0 { return TestResult::Fail; }
+    if stats.exceptions != 0 { return TestResult::Fail; }
+    if stats.page_faults != 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_interrupt_stats_fields() {
+pub fn test_interrupt_stats_fields() -> TestResult {
     reset_stats();
 
     increment_timer();
@@ -139,13 +139,13 @@ fn test_interrupt_stats_fields() {
     increment_syscalls();
 
     let stats = get_stats();
-    assert_eq!(stats.timer_ticks, 2);
-    assert_eq!(stats.keyboard_presses, 1);
-    assert_eq!(stats.syscalls, 3);
+    if stats.timer_ticks != 2 { return TestResult::Fail; }
+    if stats.keyboard_presses != 1 { return TestResult::Fail; }
+    if stats.syscalls != 3 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_multiple_increments() {
+pub fn test_multiple_increments() -> TestResult {
     reset_stats();
 
     for _ in 0..100 {
@@ -153,5 +153,6 @@ fn test_multiple_increments() {
     }
 
     let stats = get_stats();
-    assert_eq!(stats.timer_ticks, 100);
+    if stats.timer_ticks != 100 { return TestResult::Fail; }
+    TestResult::Pass
 }

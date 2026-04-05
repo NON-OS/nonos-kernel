@@ -15,188 +15,189 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::interrupts::*;
+use crate::test::framework::TestResult;
 
-#[test]
-fn test_vector_count() {
-    assert_eq!(VECTOR_COUNT, 256);
+pub fn test_vector_count() -> TestResult {
+    if VECTOR_COUNT != 256 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_reserved_vectors_end() {
-    assert_eq!(RESERVED_VECTORS_END, 32);
+pub fn test_reserved_vectors_end() -> TestResult {
+    if RESERVED_VECTORS_END != 32 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_timer_vector() {
-    assert_eq!(TIMER_VECTOR, 32);
+pub fn test_timer_vector() -> TestResult {
+    if TIMER_VECTOR != 32 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_keyboard_vector() {
-    assert_eq!(KEYBOARD_VECTOR, 33);
+pub fn test_keyboard_vector() -> TestResult {
+    if KEYBOARD_VECTOR != 33 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_syscall_vector() {
-    assert_eq!(SYSCALL_VECTOR, 0x80);
+pub fn test_syscall_vector() -> TestResult {
+    if SYSCALL_VECTOR != 0x80 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_reserved_vectors_below_32() {
-    assert!(!is_vector_available(0));
-    assert!(!is_vector_available(14));
-    assert!(!is_vector_available(31));
+pub fn test_reserved_vectors_below_32() -> TestResult {
+    if is_vector_available(0) { return TestResult::Fail; }
+    if is_vector_available(14) { return TestResult::Fail; }
+    if is_vector_available(31) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_is_vector_available_checks_reserved() {
+pub fn test_is_vector_available_checks_reserved() -> TestResult {
     for v in 0..RESERVED_VECTORS_END {
-        assert!(!is_vector_available(v));
+        if is_vector_available(v) { return TestResult::Fail; }
     }
+    TestResult::Pass
 }
 
-#[test]
-fn test_allocate_vector_returns_above_reserved() {
+pub fn test_allocate_vector_returns_above_reserved() -> TestResult {
     if let Some(vector) = allocate_vector() {
-        assert!(vector >= RESERVED_VECTORS_END);
+        if vector < RESERVED_VECTORS_END { return TestResult::Fail; }
         let _ = free_vector(vector);
     }
+    TestResult::Pass
 }
 
-#[test]
-fn test_allocate_and_free_vector() {
+pub fn test_allocate_and_free_vector() -> TestResult {
     if let Some(vector) = allocate_vector() {
-        assert!(!is_vector_available(vector));
-        assert!(free_vector(vector).is_ok());
-        assert!(is_vector_available(vector));
+        if is_vector_available(vector) { return TestResult::Fail; }
+        if free_vector(vector).is_err() { return TestResult::Fail; }
+        if !is_vector_available(vector) { return TestResult::Fail; }
     }
+    TestResult::Pass
 }
 
-#[test]
-fn test_free_reserved_vector_fails() {
+pub fn test_free_reserved_vector_fails() -> TestResult {
     let result = free_vector(0);
-    assert!(result.is_err());
-    assert_eq!(result.unwrap_err(), "cannot free reserved vector");
+    if result.is_ok() { return TestResult::Fail; }
+    if result.unwrap_err() != "cannot free reserved vector" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_free_reserved_vector_31_fails() {
+pub fn test_free_reserved_vector_31_fails() -> TestResult {
     let result = free_vector(31);
-    assert!(result.is_err());
-    assert_eq!(result.unwrap_err(), "cannot free reserved vector");
+    if result.is_ok() { return TestResult::Fail; }
+    if result.unwrap_err() != "cannot free reserved vector" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_free_unallocated_vector_fails() {
+pub fn test_free_unallocated_vector_fails() -> TestResult {
     if let Some(vector) = allocate_vector() {
         let _ = free_vector(vector);
         let result = free_vector(vector);
-        assert!(result.is_err());
-        assert_eq!(result.unwrap_err(), "vector not allocated");
+        if result.is_ok() { return TestResult::Fail; }
+        if result.unwrap_err() != "vector not allocated" { return TestResult::Fail; }
     }
+    TestResult::Pass
 }
 
-#[test]
-fn test_register_handler_reserved_fails() {
+pub fn test_register_handler_reserved_fails() -> TestResult {
     fn dummy_handler(_: x86_64::structures::idt::InterruptStackFrame) {}
     let result = register_interrupt_handler(0, dummy_handler);
-    assert!(result.is_err());
-    assert_eq!(result.unwrap_err(), "vector reserved for CPU exceptions");
+    if result.is_ok() { return TestResult::Fail; }
+    if result.unwrap_err() != "vector reserved for CPU exceptions" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_register_handler_reserved_31_fails() {
+pub fn test_register_handler_reserved_31_fails() -> TestResult {
     fn dummy_handler(_: x86_64::structures::idt::InterruptStackFrame) {}
     let result = register_interrupt_handler(31, dummy_handler);
-    assert!(result.is_err());
-    assert_eq!(result.unwrap_err(), "vector reserved for CPU exceptions");
+    if result.is_ok() { return TestResult::Fail; }
+    if result.unwrap_err() != "vector reserved for CPU exceptions" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_unregister_handler_reserved_fails() {
+pub fn test_unregister_handler_reserved_fails() -> TestResult {
     let result = unregister_handler(0);
-    assert!(result.is_err());
-    assert_eq!(result.unwrap_err(), "cannot unregister CPU exception handler");
+    if result.is_ok() { return TestResult::Fail; }
+    if result.unwrap_err() != "cannot unregister CPU exception handler" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_unregister_handler_reserved_31_fails() {
+pub fn test_unregister_handler_reserved_31_fails() -> TestResult {
     let result = unregister_handler(31);
-    assert!(result.is_err());
-    assert_eq!(result.unwrap_err(), "cannot unregister CPU exception handler");
+    if result.is_ok() { return TestResult::Fail; }
+    if result.unwrap_err() != "cannot unregister CPU exception handler" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_get_handler_none_for_unregistered() {
+pub fn test_get_handler_none_for_unregistered() -> TestResult {
     if let Some(vector) = allocate_vector() {
-        assert!(get_handler(vector).is_none());
+        if get_handler(vector).is_some() { return TestResult::Fail; }
         let _ = free_vector(vector);
     }
+    TestResult::Pass
 }
 
-#[test]
-fn test_register_and_get_handler() {
+pub fn test_register_and_get_handler() -> TestResult {
     fn test_handler(_: x86_64::structures::idt::InterruptStackFrame) {}
     if let Some(vector) = allocate_vector() {
-        assert!(register_interrupt_handler(vector, test_handler).is_ok());
-        assert!(get_handler(vector).is_some());
+        if register_interrupt_handler(vector, test_handler).is_err() { return TestResult::Fail; }
+        if get_handler(vector).is_none() { return TestResult::Fail; }
         let _ = unregister_handler(vector);
         let _ = free_vector(vector);
     }
+    TestResult::Pass
 }
 
-#[test]
-fn test_register_handler_twice_fails() {
+pub fn test_register_handler_twice_fails() -> TestResult {
     fn handler1(_: x86_64::structures::idt::InterruptStackFrame) {}
     fn handler2(_: x86_64::structures::idt::InterruptStackFrame) {}
     if let Some(vector) = allocate_vector() {
-        assert!(register_interrupt_handler(vector, handler1).is_ok());
+        if register_interrupt_handler(vector, handler1).is_err() { return TestResult::Fail; }
         let result = register_interrupt_handler(vector, handler2);
-        assert!(result.is_err());
-        assert_eq!(result.unwrap_err(), "handler already registered");
+        if result.is_ok() { return TestResult::Fail; }
+        if result.unwrap_err() != "handler already registered" { return TestResult::Fail; }
         let _ = unregister_handler(vector);
         let _ = free_vector(vector);
     }
+    TestResult::Pass
 }
 
-#[test]
-fn test_unregister_and_register_handler() {
+pub fn test_unregister_and_register_handler() -> TestResult {
     fn handler1(_: x86_64::structures::idt::InterruptStackFrame) {}
     fn handler2(_: x86_64::structures::idt::InterruptStackFrame) {}
     if let Some(vector) = allocate_vector() {
-        assert!(register_interrupt_handler(vector, handler1).is_ok());
-        assert!(unregister_handler(vector).is_ok());
-        assert!(register_interrupt_handler(vector, handler2).is_ok());
+        if register_interrupt_handler(vector, handler1).is_err() { return TestResult::Fail; }
+        if unregister_handler(vector).is_err() { return TestResult::Fail; }
+        if register_interrupt_handler(vector, handler2).is_err() { return TestResult::Fail; }
         let _ = unregister_handler(vector);
         let _ = free_vector(vector);
     }
+    TestResult::Pass
 }
 
-#[test]
-fn test_unregister_handler_none_fails() {
+pub fn test_unregister_handler_none_fails() -> TestResult {
     if let Some(vector) = allocate_vector() {
         let result = unregister_handler(vector);
-        assert!(result.is_err());
-        assert_eq!(result.unwrap_err(), "no handler registered");
+        if result.is_ok() { return TestResult::Fail; }
+        if result.unwrap_err() != "no handler registered" { return TestResult::Fail; }
         let _ = free_vector(vector);
     }
+    TestResult::Pass
 }
 
-#[test]
-fn test_registry_exists() {
+pub fn test_registry_exists() -> TestResult {
     let _guard = REGISTRY.read();
+    TestResult::Pass
 }
 
-#[test]
-fn test_multiple_allocations() {
+pub fn test_multiple_allocations() -> TestResult {
     let mut allocated = alloc::vec::Vec::new();
     for _ in 0..10 {
         if let Some(vector) = allocate_vector() {
-            assert!(!allocated.contains(&vector));
+            if allocated.contains(&vector) { return TestResult::Fail; }
             allocated.push(vector);
         }
     }
     for vector in allocated {
         let _ = free_vector(vector);
     }
+    TestResult::Pass
 }
