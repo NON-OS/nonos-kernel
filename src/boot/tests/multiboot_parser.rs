@@ -4,7 +4,7 @@
 use crate::boot::multiboot::parser::tags::{tag_type, TagHeader, MemoryMapTag, FramebufferTag, ModuleTag};
 use crate::test::framework::TestResult;
 
-pub fn test_tag_type_constants() -> TestResult {
+pub(crate) fn test_tag_type_constants() -> TestResult {
     if tag_type::END != 0 { return TestResult::Fail; }
     if tag_type::MODULE != 3 { return TestResult::Fail; }
     if tag_type::MMAP != 6 { return TestResult::Fail; }
@@ -12,27 +12,27 @@ pub fn test_tag_type_constants() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_tag_header_size() -> TestResult {
+pub(crate) fn test_tag_header_size() -> TestResult {
     if core::mem::size_of::<TagHeader>() != 8 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_memory_map_tag_size() -> TestResult {
+pub(crate) fn test_memory_map_tag_size() -> TestResult {
     if core::mem::size_of::<MemoryMapTag>() != 16 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_framebuffer_tag_size() -> TestResult {
+pub(crate) fn test_framebuffer_tag_size() -> TestResult {
     if core::mem::size_of::<FramebufferTag>() < 31 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_module_tag_size() -> TestResult {
+pub(crate) fn test_module_tag_size() -> TestResult {
     if core::mem::size_of::<ModuleTag>() != 16 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_tag_header_layout() -> TestResult {
+pub(crate) fn test_tag_header_layout() -> TestResult {
     let header = TagHeader {
         tag_type: tag_type::MMAP,
         size: 64,
@@ -42,7 +42,7 @@ pub fn test_tag_header_layout() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_memory_map_tag_layout() -> TestResult {
+pub(crate) fn test_memory_map_tag_layout() -> TestResult {
     let tag = MemoryMapTag {
         tag_type: tag_type::MMAP,
         size: 64,
@@ -56,7 +56,7 @@ pub fn test_memory_map_tag_layout() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_framebuffer_tag_layout() -> TestResult {
+pub(crate) fn test_framebuffer_tag_layout() -> TestResult {
     let tag = FramebufferTag {
         tag_type: tag_type::FRAMEBUFFER,
         size: 31,
@@ -77,7 +77,7 @@ pub fn test_framebuffer_tag_layout() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_module_tag_layout() -> TestResult {
+pub(crate) fn test_module_tag_layout() -> TestResult {
     let tag = ModuleTag {
         tag_type: tag_type::MODULE,
         size: 24,
