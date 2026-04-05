@@ -9,13 +9,13 @@ use crate::agents::tasks::{
 };
 use crate::test::framework::TestResult;
 
-pub fn test_create_task() -> TestResult {
+pub(crate) fn test_create_task() -> TestResult {
     let id = create_task(1, b"Test task");
     if id == 0 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_create_task_unique_ids() -> TestResult {
+pub(crate) fn test_create_task_unique_ids() -> TestResult {
     let id1 = create_task(1, b"Task 1");
     let id2 = create_task(1, b"Task 2");
     let id3 = create_task(2, b"Task 3");
@@ -26,7 +26,7 @@ pub fn test_create_task_unique_ids() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_get_task() -> TestResult {
+pub(crate) fn test_get_task() -> TestResult {
     let id = create_task(1, b"Get task test");
     let task = get_task(id);
 
@@ -39,13 +39,13 @@ pub fn test_get_task() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_get_task_nonexistent() -> TestResult {
+pub(crate) fn test_get_task_nonexistent() -> TestResult {
     let task = get_task(999999);
     if task.is_some() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_task_status_variants() -> TestResult {
+pub(crate) fn test_task_status_variants() -> TestResult {
     if TaskStatus::Pending != TaskStatus::Pending { return TestResult::Fail; }
     if TaskStatus::Running != TaskStatus::Running { return TestResult::Fail; }
     if TaskStatus::Complete != TaskStatus::Complete { return TestResult::Fail; }
@@ -55,7 +55,7 @@ pub fn test_task_status_variants() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_update_task_status_running() -> TestResult {
+pub(crate) fn test_update_task_status_running() -> TestResult {
     let id = create_task(1, b"Status test");
     update_task_status(id, TaskStatus::Running, None);
 
@@ -64,7 +64,7 @@ pub fn test_update_task_status_running() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_update_task_status_complete() -> TestResult {
+pub(crate) fn test_update_task_status_complete() -> TestResult {
     let id = create_task(1, b"Complete test");
     update_task_status(id, TaskStatus::Complete, Some(b"Result data"));
 
@@ -75,7 +75,7 @@ pub fn test_update_task_status_complete() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_update_task_status_failed() -> TestResult {
+pub(crate) fn test_update_task_status_failed() -> TestResult {
     let id = create_task(1, b"Fail test");
     update_task_status(id, TaskStatus::Failed, Some(b"Error message"));
 
@@ -86,7 +86,7 @@ pub fn test_update_task_status_failed() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_list_agent_tasks() -> TestResult {
+pub(crate) fn test_list_agent_tasks() -> TestResult {
     let agent_id = 5000;
     create_task(agent_id, b"Task A");
     create_task(agent_id, b"Task B");
@@ -100,13 +100,13 @@ pub fn test_list_agent_tasks() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_list_agent_tasks_empty() -> TestResult {
+pub(crate) fn test_list_agent_tasks_empty() -> TestResult {
     let tasks = list_agent_tasks(99999);
     if !tasks.is_empty() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_pending_tasks() -> TestResult {
+pub(crate) fn test_pending_tasks() -> TestResult {
     let agent_id = 6000;
     let id1 = create_task(agent_id, b"Pending 1");
     let id2 = create_task(agent_id, b"Pending 2");
@@ -122,7 +122,7 @@ pub fn test_pending_tasks() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_cancel_task_pending() -> TestResult {
+pub(crate) fn test_cancel_task_pending() -> TestResult {
     let id = create_task(1, b"Cancel test");
     let result = cancel_task(id);
 
@@ -132,7 +132,7 @@ pub fn test_cancel_task_pending() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_cancel_task_already_running() -> TestResult {
+pub(crate) fn test_cancel_task_already_running() -> TestResult {
     let id = create_task(1, b"Running task");
     update_task_status(id, TaskStatus::Running, None);
 
@@ -144,13 +144,13 @@ pub fn test_cancel_task_already_running() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_cancel_task_nonexistent() -> TestResult {
+pub(crate) fn test_cancel_task_nonexistent() -> TestResult {
     let result = cancel_task(999999);
     if result { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_task_timestamps() -> TestResult {
+pub(crate) fn test_task_timestamps() -> TestResult {
     let id = create_task(1, b"Timestamp test");
     let task = get_task(id).unwrap();
 
@@ -159,7 +159,7 @@ pub fn test_task_timestamps() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_task_clone() -> TestResult {
+pub(crate) fn test_task_clone() -> TestResult {
     let id = create_task(1, b"Clone test");
     let task = get_task(id).unwrap();
     let cloned = task.clone();
@@ -171,19 +171,19 @@ pub fn test_task_clone() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_max_tasks_constant() -> TestResult {
+pub(crate) fn test_max_tasks_constant() -> TestResult {
     if MAX_TASKS != 64 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_task_empty_description() -> TestResult {
+pub(crate) fn test_task_empty_description() -> TestResult {
     let id = create_task(1, b"");
     let task = get_task(id).unwrap();
     if !task.description.is_empty() { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_task_large_description() -> TestResult {
+pub(crate) fn test_task_large_description() -> TestResult {
     let large_desc = [b'x'; 1000];
     let id = create_task(1, &large_desc);
     let task = get_task(id).unwrap();
@@ -191,12 +191,12 @@ pub fn test_task_large_description() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_update_nonexistent_task() -> TestResult {
+pub(crate) fn test_update_nonexistent_task() -> TestResult {
     update_task_status(999999, TaskStatus::Complete, Some(b"data"));
     TestResult::Pass
 }
 
-pub fn test_task_result_empty() -> TestResult {
+pub(crate) fn test_task_result_empty() -> TestResult {
     let id = create_task(1, b"No result");
     update_task_status(id, TaskStatus::Complete, None);
 
@@ -205,7 +205,7 @@ pub fn test_task_result_empty() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_task_multiple_status_updates() -> TestResult {
+pub(crate) fn test_task_multiple_status_updates() -> TestResult {
     let id = create_task(1, b"Multi update");
 
     update_task_status(id, TaskStatus::Running, None);

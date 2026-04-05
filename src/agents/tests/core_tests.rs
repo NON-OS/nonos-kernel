@@ -6,7 +6,7 @@
 use crate::agents::core::{Agent, AgentConfig, AgentState, AgentMessage, MessageRole};
 use crate::test::framework::TestResult;
 
-pub fn test_agent_state_variants() -> TestResult {
+pub(crate) fn test_agent_state_variants() -> TestResult {
     if AgentState::Idle != AgentState::Idle { return TestResult::Fail; }
     if AgentState::Running != AgentState::Running { return TestResult::Fail; }
     if AgentState::Paused != AgentState::Paused { return TestResult::Fail; }
@@ -16,7 +16,7 @@ pub fn test_agent_state_variants() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_message_role_variants() -> TestResult {
+pub(crate) fn test_message_role_variants() -> TestResult {
     if MessageRole::System != MessageRole::System { return TestResult::Fail; }
     if MessageRole::User != MessageRole::User { return TestResult::Fail; }
     if MessageRole::Assistant != MessageRole::Assistant { return TestResult::Fail; }
@@ -25,7 +25,7 @@ pub fn test_message_role_variants() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_agent_config_default() -> TestResult {
+pub(crate) fn test_agent_config_default() -> TestResult {
     let config = AgentConfig::default();
     if config.name != [0u8; 32] { return TestResult::Fail; }
     if !config.system_prompt.is_empty() { return TestResult::Fail; }
@@ -35,7 +35,7 @@ pub fn test_agent_config_default() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_agent_config_custom() -> TestResult {
+pub(crate) fn test_agent_config_custom() -> TestResult {
     let mut config = AgentConfig::default();
     config.name[..4].copy_from_slice(b"Test");
     config.system_prompt = b"You are a test agent".to_vec();
@@ -54,7 +54,7 @@ pub fn test_agent_config_custom() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_agent_new() -> TestResult {
+pub(crate) fn test_agent_new() -> TestResult {
     let config = AgentConfig::default();
     let agent = Agent::new(1, config);
 
@@ -67,7 +67,7 @@ pub fn test_agent_new() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_agent_with_custom_config() -> TestResult {
+pub(crate) fn test_agent_with_custom_config() -> TestResult {
     let mut config = AgentConfig::default();
     config.name[..11].copy_from_slice(b"TestAgent01");
     config.max_tokens = 2048;
@@ -80,7 +80,7 @@ pub fn test_agent_with_custom_config() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_agent_name_extraction() -> TestResult {
+pub(crate) fn test_agent_name_extraction() -> TestResult {
     let mut config = AgentConfig::default();
     config.name[..7].copy_from_slice(b"TestBot");
 
@@ -89,7 +89,7 @@ pub fn test_agent_name_extraction() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_agent_add_message() -> TestResult {
+pub(crate) fn test_agent_add_message() -> TestResult {
     let config = AgentConfig::default();
     let mut agent = Agent::new(1, config);
 
@@ -106,7 +106,7 @@ pub fn test_agent_add_message() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_agent_multiple_messages() -> TestResult {
+pub(crate) fn test_agent_multiple_messages() -> TestResult {
     let config = AgentConfig::default();
     let mut agent = Agent::new(1, config);
 
@@ -123,7 +123,7 @@ pub fn test_agent_multiple_messages() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_agent_clear_messages() -> TestResult {
+pub(crate) fn test_agent_clear_messages() -> TestResult {
     let config = AgentConfig::default();
     let mut agent = Agent::new(1, config);
 
@@ -137,7 +137,7 @@ pub fn test_agent_clear_messages() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_agent_state_changes() -> TestResult {
+pub(crate) fn test_agent_state_changes() -> TestResult {
     let config = AgentConfig::default();
     let mut agent = Agent::new(1, config);
 
@@ -157,7 +157,7 @@ pub fn test_agent_state_changes() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_agent_output() -> TestResult {
+pub(crate) fn test_agent_output() -> TestResult {
     let config = AgentConfig::default();
     let mut agent = Agent::new(1, config);
 
@@ -168,7 +168,7 @@ pub fn test_agent_output() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_agent_clone() -> TestResult {
+pub(crate) fn test_agent_clone() -> TestResult {
     let mut config = AgentConfig::default();
     config.name[..4].copy_from_slice(b"Test");
 
@@ -184,7 +184,7 @@ pub fn test_agent_clone() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_agent_config_clone() -> TestResult {
+pub(crate) fn test_agent_config_clone() -> TestResult {
     let mut config = AgentConfig::default();
     config.name[..4].copy_from_slice(b"Test");
     config.max_tokens = 8192;
@@ -195,7 +195,7 @@ pub fn test_agent_config_clone() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_agent_message_clone() -> TestResult {
+pub(crate) fn test_agent_message_clone() -> TestResult {
     let msg = AgentMessage {
         role: MessageRole::User,
         content: b"Test content".to_vec(),
@@ -207,7 +207,7 @@ pub fn test_agent_message_clone() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_agent_tools_enabled() -> TestResult {
+pub(crate) fn test_agent_tools_enabled() -> TestResult {
     let mut config = AgentConfig::default();
     config.tools_enabled[0] = true;
     config.tools_enabled[7] = true;
@@ -224,7 +224,7 @@ pub fn test_agent_tools_enabled() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_agent_unique_ids() -> TestResult {
+pub(crate) fn test_agent_unique_ids() -> TestResult {
     let config1 = AgentConfig::default();
     let config2 = AgentConfig::default();
 
@@ -235,7 +235,7 @@ pub fn test_agent_unique_ids() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_agent_empty_name() -> TestResult {
+pub(crate) fn test_agent_empty_name() -> TestResult {
     let config = AgentConfig::default();
     let agent = Agent::new(1, config);
 

@@ -6,13 +6,13 @@
 use crate::agents::memory::{AgentMemory, MemoryEntry, MAX_ENTRIES};
 use crate::test::framework::TestResult;
 
-pub fn test_memory_new() -> TestResult {
+pub(crate) fn test_memory_new() -> TestResult {
     let mem = AgentMemory::new(1);
     if mem.agent_id != 1 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_memory_store_and_recall() -> TestResult {
+pub(crate) fn test_memory_store_and_recall() -> TestResult {
     let mem = AgentMemory::new(100);
 
     mem.store(b"test_key", b"test_value", 5);
@@ -23,7 +23,7 @@ pub fn test_memory_store_and_recall() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_memory_recall_nonexistent() -> TestResult {
+pub(crate) fn test_memory_recall_nonexistent() -> TestResult {
     let mem = AgentMemory::new(100);
 
     let recalled = mem.recall(b"nonexistent");
@@ -31,7 +31,7 @@ pub fn test_memory_recall_nonexistent() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_memory_store_update_existing() -> TestResult {
+pub(crate) fn test_memory_store_update_existing() -> TestResult {
     let mem = AgentMemory::new(100);
 
     mem.store(b"key", b"value1", 5);
@@ -43,7 +43,7 @@ pub fn test_memory_store_update_existing() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_memory_multiple_keys() -> TestResult {
+pub(crate) fn test_memory_multiple_keys() -> TestResult {
     let mem = AgentMemory::new(100);
 
     mem.store(b"key1", b"value1", 5);
@@ -56,7 +56,7 @@ pub fn test_memory_multiple_keys() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_memory_isolation_between_agents() -> TestResult {
+pub(crate) fn test_memory_isolation_between_agents() -> TestResult {
     let mem1 = AgentMemory::new(200);
     let mem2 = AgentMemory::new(201);
 
@@ -68,7 +68,7 @@ pub fn test_memory_isolation_between_agents() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_memory_search_basic() -> TestResult {
+pub(crate) fn test_memory_search_basic() -> TestResult {
     let mem = AgentMemory::new(300);
 
     mem.store(b"key1", b"hello world", 5);
@@ -80,7 +80,7 @@ pub fn test_memory_search_basic() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_memory_search_no_results() -> TestResult {
+pub(crate) fn test_memory_search_no_results() -> TestResult {
     let mem = AgentMemory::new(300);
 
     mem.store(b"key1", b"hello", 5);
@@ -91,7 +91,7 @@ pub fn test_memory_search_no_results() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_memory_search_empty_query() -> TestResult {
+pub(crate) fn test_memory_search_empty_query() -> TestResult {
     let mem = AgentMemory::new(300);
 
     mem.store(b"key1", b"value1", 5);
@@ -102,7 +102,7 @@ pub fn test_memory_search_empty_query() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_memory_search_isolation() -> TestResult {
+pub(crate) fn test_memory_search_isolation() -> TestResult {
     let mem1 = AgentMemory::new(400);
     let mem2 = AgentMemory::new(401);
 
@@ -119,7 +119,7 @@ pub fn test_memory_search_isolation() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_memory_recent() -> TestResult {
+pub(crate) fn test_memory_recent() -> TestResult {
     let mem = AgentMemory::new(500);
 
     mem.store(b"key1", b"value1", 5);
@@ -133,7 +133,7 @@ pub fn test_memory_recent() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_memory_recent_more_than_available() -> TestResult {
+pub(crate) fn test_memory_recent_more_than_available() -> TestResult {
     let mem = AgentMemory::new(500);
 
     mem.store(b"key1", b"value1", 5);
@@ -143,7 +143,7 @@ pub fn test_memory_recent_more_than_available() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_memory_recent_zero() -> TestResult {
+pub(crate) fn test_memory_recent_zero() -> TestResult {
     let mem = AgentMemory::new(500);
 
     mem.store(b"key1", b"value1", 5);
@@ -154,7 +154,7 @@ pub fn test_memory_recent_zero() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_memory_recent_isolation() -> TestResult {
+pub(crate) fn test_memory_recent_isolation() -> TestResult {
     let mem1 = AgentMemory::new(600);
     let mem2 = AgentMemory::new(601);
 
@@ -171,7 +171,7 @@ pub fn test_memory_recent_isolation() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_memory_importance_stored() -> TestResult {
+pub(crate) fn test_memory_importance_stored() -> TestResult {
     let mem = AgentMemory::new(700);
 
     mem.store(b"low", b"value", 1);
@@ -186,7 +186,7 @@ pub fn test_memory_importance_stored() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_memory_key_truncation() -> TestResult {
+pub(crate) fn test_memory_key_truncation() -> TestResult {
     let mem = AgentMemory::new(800);
 
     let long_key = [b'x'; 100];
@@ -199,7 +199,7 @@ pub fn test_memory_key_truncation() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_memory_entry_timestamp() -> TestResult {
+pub(crate) fn test_memory_entry_timestamp() -> TestResult {
     let mem = AgentMemory::new(900);
 
     mem.store(b"key", b"value", 5);
@@ -210,7 +210,7 @@ pub fn test_memory_entry_timestamp() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_memory_entry_clone() -> TestResult {
+pub(crate) fn test_memory_entry_clone() -> TestResult {
     let entry = MemoryEntry {
         key: [b'k'; 64],
         value: b"test_value".to_vec(),
@@ -228,7 +228,7 @@ pub fn test_memory_entry_clone() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_memory_empty_value() -> TestResult {
+pub(crate) fn test_memory_empty_value() -> TestResult {
     let mem = AgentMemory::new(1000);
 
     mem.store(b"key", b"", 5);
@@ -239,7 +239,7 @@ pub fn test_memory_empty_value() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_memory_large_value() -> TestResult {
+pub(crate) fn test_memory_large_value() -> TestResult {
     let mem = AgentMemory::new(1001);
 
     let large_value = [b'x'; 10000];
@@ -251,12 +251,12 @@ pub fn test_memory_large_value() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_memory_max_entries_constant() -> TestResult {
+pub(crate) fn test_memory_max_entries_constant() -> TestResult {
     if MAX_ENTRIES != 1024 { return TestResult::Fail; }
     TestResult::Pass
 }
 
-pub fn test_memory_binary_key() -> TestResult {
+pub(crate) fn test_memory_binary_key() -> TestResult {
     let mem = AgentMemory::new(1100);
 
     let binary_key = b"\x00\x01\x02\x03";
@@ -268,7 +268,7 @@ pub fn test_memory_binary_key() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_memory_binary_value() -> TestResult {
+pub(crate) fn test_memory_binary_value() -> TestResult {
     let mem = AgentMemory::new(1100);
 
     let binary_value = b"\x00\x01\x02\x03\xff\xfe";
@@ -280,7 +280,7 @@ pub fn test_memory_binary_value() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_memory_search_partial_match() -> TestResult {
+pub(crate) fn test_memory_search_partial_match() -> TestResult {
     let mem = AgentMemory::new(1200);
 
     mem.store(b"key1", b"abcdefgh", 5);
