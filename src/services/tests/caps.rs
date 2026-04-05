@@ -1,100 +1,100 @@
 use crate::services::*;
 use crate::services::caps::{CAP_PROCESS, CAP_MEMORY};
+use crate::test::framework::TestResult;
 
-#[test]
-fn test_cap_vfs_bit_value() {
-    assert_eq!(CAP_VFS, 1 << 0);
+pub fn test_cap_vfs_bit_value() -> TestResult {
+    if CAP_VFS != 1 << 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_cap_net_bit_value() {
-    assert_eq!(CAP_NET, 1 << 1);
+pub fn test_cap_net_bit_value() -> TestResult {
+    if CAP_NET != 1 << 1 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_cap_display_bit_value() {
-    assert_eq!(CAP_DISPLAY, 1 << 2);
+pub fn test_cap_display_bit_value() -> TestResult {
+    if CAP_DISPLAY != 1 << 2 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_cap_driver_bit_value() {
-    assert_eq!(CAP_DRIVER, 1 << 3);
+pub fn test_cap_driver_bit_value() -> TestResult {
+    if CAP_DRIVER != 1 << 3 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_cap_crypto_bit_value() {
-    assert_eq!(CAP_CRYPTO, 1 << 4);
+pub fn test_cap_crypto_bit_value() -> TestResult {
+    if CAP_CRYPTO != 1 << 4 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_cap_process_bit_value() {
-    assert_eq!(CAP_PROCESS, 1 << 5);
+pub fn test_cap_process_bit_value() -> TestResult {
+    if CAP_PROCESS != 1 << 5 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_cap_memory_bit_value() {
-    assert_eq!(CAP_MEMORY, 1 << 6);
+pub fn test_cap_memory_bit_value() -> TestResult {
+    if CAP_MEMORY != 1 << 6 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_cap_input_bit_value() {
-    assert_eq!(CAP_INPUT, 1 << 7);
+pub fn test_cap_input_bit_value() -> TestResult {
+    if CAP_INPUT != 1 << 7 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_cap_audio_bit_value() {
-    assert_eq!(CAP_AUDIO, 1 << 8);
+pub fn test_cap_audio_bit_value() -> TestResult {
+    if CAP_AUDIO != 1 << 8 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_cap_zk_bit_value() {
-    assert_eq!(CAP_ZK, 1 << 9);
+pub fn test_cap_zk_bit_value() -> TestResult {
+    if CAP_ZK != 1 << 9 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_cap_gpu_bit_value() {
-    assert_eq!(CAP_GPU, 1 << 10);
+pub fn test_cap_gpu_bit_value() -> TestResult {
+    if CAP_GPU != 1 << 10 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_cap_apps_bit_value() {
-    assert_eq!(CAP_APPS, 1 << 11);
+pub fn test_cap_apps_bit_value() -> TestResult {
+    if CAP_APPS != 1 << 11 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_cap_agents_bit_value() {
-    assert_eq!(CAP_AGENTS, 1 << 12);
+pub fn test_cap_agents_bit_value() -> TestResult {
+    if CAP_AGENTS != 1 << 12 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_cap_shell_bit_value() {
-    assert_eq!(CAP_SHELL, 1 << 13);
+pub fn test_cap_shell_bit_value() -> TestResult {
+    if CAP_SHELL != 1 << 13 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_cap_admin_bit_value() {
-    assert_eq!(CAP_ADMIN, 1 << 63);
+pub fn test_cap_admin_bit_value() -> TestResult {
+    if CAP_ADMIN != 1 << 63 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_cap_bits_are_powers_of_two() {
-    assert!(CAP_VFS.is_power_of_two());
-    assert!(CAP_NET.is_power_of_two());
-    assert!(CAP_DISPLAY.is_power_of_two());
-    assert!(CAP_DRIVER.is_power_of_two());
-    assert!(CAP_CRYPTO.is_power_of_two());
-    assert!(CAP_INPUT.is_power_of_two());
-    assert!(CAP_AUDIO.is_power_of_two());
-    assert!(CAP_ZK.is_power_of_two());
-    assert!(CAP_GPU.is_power_of_two());
-    assert!(CAP_APPS.is_power_of_two());
-    assert!(CAP_AGENTS.is_power_of_two());
-    assert!(CAP_SHELL.is_power_of_two());
-    assert!(CAP_ADMIN.is_power_of_two());
+pub fn test_cap_bits_are_powers_of_two() -> TestResult {
+    if !CAP_VFS.is_power_of_two() { return TestResult::Fail; }
+    if !CAP_NET.is_power_of_two() { return TestResult::Fail; }
+    if !CAP_DISPLAY.is_power_of_two() { return TestResult::Fail; }
+    if !CAP_DRIVER.is_power_of_two() { return TestResult::Fail; }
+    if !CAP_CRYPTO.is_power_of_two() { return TestResult::Fail; }
+    if !CAP_INPUT.is_power_of_two() { return TestResult::Fail; }
+    if !CAP_AUDIO.is_power_of_two() { return TestResult::Fail; }
+    if !CAP_ZK.is_power_of_two() { return TestResult::Fail; }
+    if !CAP_GPU.is_power_of_two() { return TestResult::Fail; }
+    if !CAP_APPS.is_power_of_two() { return TestResult::Fail; }
+    if !CAP_AGENTS.is_power_of_two() { return TestResult::Fail; }
+    if !CAP_SHELL.is_power_of_two() { return TestResult::Fail; }
+    if !CAP_ADMIN.is_power_of_two() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_cap_bits_are_unique() {
+pub fn test_cap_bits_are_unique() -> TestResult {
     let caps = [
         CAP_VFS, CAP_NET, CAP_DISPLAY, CAP_DRIVER, CAP_CRYPTO,
         CAP_PROCESS, CAP_MEMORY, CAP_INPUT, CAP_AUDIO, CAP_ZK,
@@ -102,209 +102,210 @@ fn test_cap_bits_are_unique() {
     ];
     for i in 0..caps.len() {
         for j in (i + 1)..caps.len() {
-            assert_ne!(caps[i], caps[j]);
+            if caps[i] == caps[j] { return TestResult::Fail; }
         }
     }
+    TestResult::Pass
 }
 
-#[test]
-fn test_service_cap_new() {
+pub fn test_service_cap_new() -> TestResult {
     let cap = ServiceCap::new(CAP_VFS | CAP_NET, 42);
-    assert_eq!(cap.bits, CAP_VFS | CAP_NET);
-    assert_eq!(cap.owner_pid, 42);
-    assert_eq!(cap.expires_ms, 0);
+    if cap.bits != CAP_VFS | CAP_NET { return TestResult::Fail; }
+    if cap.owner_pid != 42 { return TestResult::Fail; }
+    if cap.expires_ms != 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_service_cap_with_expiry() {
+pub fn test_service_cap_with_expiry() -> TestResult {
     let cap = ServiceCap::with_expiry(CAP_CRYPTO, 100, 5000);
-    assert_eq!(cap.bits, CAP_CRYPTO);
-    assert_eq!(cap.owner_pid, 100);
-    assert_eq!(cap.expires_ms, 5000);
+    if cap.bits != CAP_CRYPTO { return TestResult::Fail; }
+    if cap.owner_pid != 100 { return TestResult::Fail; }
+    if cap.expires_ms != 5000 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_service_cap_has_single_cap() {
+pub fn test_service_cap_has_single_cap() -> TestResult {
     let cap = ServiceCap::new(CAP_VFS, 1);
-    assert!(cap.has(CAP_VFS));
-    assert!(!cap.has(CAP_NET));
+    if !cap.has(CAP_VFS) { return TestResult::Fail; }
+    if cap.has(CAP_NET) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_service_cap_has_multiple_caps() {
+pub fn test_service_cap_has_multiple_caps() -> TestResult {
     let cap = ServiceCap::new(CAP_VFS | CAP_NET | CAP_CRYPTO, 1);
-    assert!(cap.has(CAP_VFS));
-    assert!(cap.has(CAP_NET));
-    assert!(cap.has(CAP_CRYPTO));
-    assert!(!cap.has(CAP_INPUT));
+    if !cap.has(CAP_VFS) { return TestResult::Fail; }
+    if !cap.has(CAP_NET) { return TestResult::Fail; }
+    if !cap.has(CAP_CRYPTO) { return TestResult::Fail; }
+    if cap.has(CAP_INPUT) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_service_cap_has_combined_caps() {
+pub fn test_service_cap_has_combined_caps() -> TestResult {
     let cap = ServiceCap::new(CAP_VFS | CAP_NET, 1);
-    assert!(cap.has(CAP_VFS | CAP_NET));
+    if !cap.has(CAP_VFS | CAP_NET) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_service_cap_has_zero_cap_always_true() {
+pub fn test_service_cap_has_zero_cap_always_true() -> TestResult {
     let cap = ServiceCap::new(0, 1);
-    assert!(cap.has(0));
+    if !cap.has(0) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_service_cap_has_partial_caps_fails() {
+pub fn test_service_cap_has_partial_caps_fails() -> TestResult {
     let cap = ServiceCap::new(CAP_VFS, 1);
-    assert!(!cap.has(CAP_VFS | CAP_NET));
+    if cap.has(CAP_VFS | CAP_NET) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_service_cap_is_expired_zero_never_expires() {
+pub fn test_service_cap_is_expired_zero_never_expires() -> TestResult {
     let cap = ServiceCap::new(CAP_VFS, 1);
-    assert!(!cap.is_expired(0));
-    assert!(!cap.is_expired(u64::MAX));
+    if cap.is_expired(0) { return TestResult::Fail; }
+    if cap.is_expired(u64::MAX) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_service_cap_is_expired_before_expiry() {
+pub fn test_service_cap_is_expired_before_expiry() -> TestResult {
     let cap = ServiceCap::with_expiry(CAP_VFS, 1, 1000);
-    assert!(!cap.is_expired(500));
-    assert!(!cap.is_expired(999));
-    assert!(!cap.is_expired(1000));
+    if cap.is_expired(500) { return TestResult::Fail; }
+    if cap.is_expired(999) { return TestResult::Fail; }
+    if cap.is_expired(1000) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_service_cap_is_expired_after_expiry() {
+pub fn test_service_cap_is_expired_after_expiry() -> TestResult {
     let cap = ServiceCap::with_expiry(CAP_VFS, 1, 1000);
-    assert!(cap.is_expired(1001));
-    assert!(cap.is_expired(2000));
+    if !cap.is_expired(1001) { return TestResult::Fail; }
+    if !cap.is_expired(2000) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_service_cap_clone() {
+pub fn test_service_cap_clone() -> TestResult {
     let cap = ServiceCap::new(CAP_NET, 42);
     let cloned = cap.clone();
-    assert_eq!(cap.bits, cloned.bits);
-    assert_eq!(cap.owner_pid, cloned.owner_pid);
-    assert_eq!(cap.expires_ms, cloned.expires_ms);
+    if cap.bits != cloned.bits { return TestResult::Fail; }
+    if cap.owner_pid != cloned.owner_pid { return TestResult::Fail; }
+    if cap.expires_ms != cloned.expires_ms { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_service_cap_copy() {
+pub fn test_service_cap_copy() -> TestResult {
     let cap = ServiceCap::new(CAP_CRYPTO, 99);
     let copied: ServiceCap = cap;
-    assert_eq!(cap.bits, copied.bits);
+    if cap.bits != copied.bits { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_service_cap_equality() {
+pub fn test_service_cap_equality() -> TestResult {
     let cap1 = ServiceCap::new(CAP_VFS, 1);
     let cap2 = ServiceCap::new(CAP_VFS, 1);
     let cap3 = ServiceCap::new(CAP_NET, 1);
-    assert_eq!(cap1, cap2);
-    assert_ne!(cap1, cap3);
+    if cap1 != cap2 { return TestResult::Fail; }
+    if cap1 == cap3 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_service_cap_debug_format() {
+pub fn test_service_cap_debug_format() -> TestResult {
     let cap = ServiceCap::new(CAP_VFS, 42);
     let debug_str = alloc::format!("{:?}", cap);
-    assert!(debug_str.contains("ServiceCap"));
-    assert!(debug_str.contains("bits"));
-    assert!(debug_str.contains("owner_pid"));
+    if !debug_str.contains("ServiceCap") { return TestResult::Fail; }
+    if !debug_str.contains("bits") { return TestResult::Fail; }
+    if !debug_str.contains("owner_pid") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_cap_error_variants_exist() {
+pub fn test_cap_error_variants_exist() -> TestResult {
     let _no_cap = CapError::NoCap;
     let _insufficient = CapError::InsufficientCaps;
     let _expired = CapError::Expired;
     let _not_found = CapError::ServiceNotFound;
+    TestResult::Pass
 }
 
-#[test]
-fn test_cap_error_equality() {
-    assert_eq!(CapError::NoCap, CapError::NoCap);
-    assert_eq!(CapError::InsufficientCaps, CapError::InsufficientCaps);
-    assert_eq!(CapError::Expired, CapError::Expired);
-    assert_eq!(CapError::ServiceNotFound, CapError::ServiceNotFound);
-    assert_ne!(CapError::NoCap, CapError::Expired);
+pub fn test_cap_error_equality() -> TestResult {
+    if CapError::NoCap != CapError::NoCap { return TestResult::Fail; }
+    if CapError::InsufficientCaps != CapError::InsufficientCaps { return TestResult::Fail; }
+    if CapError::Expired != CapError::Expired { return TestResult::Fail; }
+    if CapError::ServiceNotFound != CapError::ServiceNotFound { return TestResult::Fail; }
+    if CapError::NoCap == CapError::Expired { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_cap_error_clone() {
+pub fn test_cap_error_clone() -> TestResult {
     let err = CapError::InsufficientCaps;
     let cloned = err.clone();
-    assert_eq!(err, cloned);
+    if err != cloned { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_cap_error_copy() {
+pub fn test_cap_error_copy() -> TestResult {
     let err = CapError::Expired;
     let copied: CapError = err;
-    assert_eq!(err, copied);
+    if err != copied { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_cap_error_debug_format() {
+pub fn test_cap_error_debug_format() -> TestResult {
     let err = CapError::ServiceNotFound;
     let debug_str = alloc::format!("{:?}", err);
-    assert!(debug_str.contains("ServiceNotFound"));
+    if !debug_str.contains("ServiceNotFound") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_caps_can_be_combined_with_or() {
+pub fn test_caps_can_be_combined_with_or() -> TestResult {
     let combined = CAP_VFS | CAP_NET | CAP_CRYPTO;
-    assert_eq!(combined, (1 << 0) | (1 << 1) | (1 << 4));
+    if combined != (1 << 0) | (1 << 1) | (1 << 4) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_caps_can_be_checked_with_and() {
+pub fn test_caps_can_be_checked_with_and() -> TestResult {
     let combined = CAP_VFS | CAP_NET;
-    assert_eq!(combined & CAP_VFS, CAP_VFS);
-    assert_eq!(combined & CAP_CRYPTO, 0);
+    if combined & CAP_VFS != CAP_VFS { return TestResult::Fail; }
+    if combined & CAP_CRYPTO != 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_service_cap_with_all_standard_caps() {
+pub fn test_service_cap_with_all_standard_caps() -> TestResult {
     let all = CAP_VFS | CAP_NET | CAP_DISPLAY | CAP_DRIVER | CAP_CRYPTO |
               CAP_INPUT | CAP_AUDIO | CAP_ZK | CAP_GPU | CAP_APPS |
               CAP_AGENTS | CAP_SHELL;
     let cap = ServiceCap::new(all, 1);
-    assert!(cap.has(CAP_VFS));
-    assert!(cap.has(CAP_NET));
-    assert!(cap.has(CAP_DISPLAY));
-    assert!(cap.has(CAP_DRIVER));
-    assert!(cap.has(CAP_CRYPTO));
-    assert!(cap.has(CAP_INPUT));
-    assert!(cap.has(CAP_AUDIO));
-    assert!(cap.has(CAP_ZK));
-    assert!(cap.has(CAP_GPU));
-    assert!(cap.has(CAP_APPS));
-    assert!(cap.has(CAP_AGENTS));
-    assert!(cap.has(CAP_SHELL));
-    assert!(!cap.has(CAP_ADMIN));
+    if !cap.has(CAP_VFS) { return TestResult::Fail; }
+    if !cap.has(CAP_NET) { return TestResult::Fail; }
+    if !cap.has(CAP_DISPLAY) { return TestResult::Fail; }
+    if !cap.has(CAP_DRIVER) { return TestResult::Fail; }
+    if !cap.has(CAP_CRYPTO) { return TestResult::Fail; }
+    if !cap.has(CAP_INPUT) { return TestResult::Fail; }
+    if !cap.has(CAP_AUDIO) { return TestResult::Fail; }
+    if !cap.has(CAP_ZK) { return TestResult::Fail; }
+    if !cap.has(CAP_GPU) { return TestResult::Fail; }
+    if !cap.has(CAP_APPS) { return TestResult::Fail; }
+    if !cap.has(CAP_AGENTS) { return TestResult::Fail; }
+    if !cap.has(CAP_SHELL) { return TestResult::Fail; }
+    if cap.has(CAP_ADMIN) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_service_cap_admin_is_separate() {
+pub fn test_service_cap_admin_is_separate() -> TestResult {
     let cap = ServiceCap::new(CAP_ADMIN, 1);
-    assert!(cap.has(CAP_ADMIN));
-    assert!(!cap.has(CAP_VFS));
-    assert!(!cap.has(CAP_NET));
+    if !cap.has(CAP_ADMIN) { return TestResult::Fail; }
+    if cap.has(CAP_VFS) { return TestResult::Fail; }
+    if cap.has(CAP_NET) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_service_cap_zero_bits_has_nothing() {
+pub fn test_service_cap_zero_bits_has_nothing() -> TestResult {
     let cap = ServiceCap::new(0, 1);
-    assert!(!cap.has(CAP_VFS));
-    assert!(!cap.has(CAP_NET));
-    assert!(!cap.has(CAP_ADMIN));
+    if cap.has(CAP_VFS) { return TestResult::Fail; }
+    if cap.has(CAP_NET) { return TestResult::Fail; }
+    if cap.has(CAP_ADMIN) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_service_cap_max_bits() {
+pub fn test_service_cap_max_bits() -> TestResult {
     let cap = ServiceCap::new(u64::MAX, 1);
-    assert!(cap.has(CAP_VFS));
-    assert!(cap.has(CAP_ADMIN));
-    assert!(cap.has(u64::MAX));
+    if !cap.has(CAP_VFS) { return TestResult::Fail; }
+    if !cap.has(CAP_ADMIN) { return TestResult::Fail; }
+    if !cap.has(u64::MAX) { return TestResult::Fail; }
+    TestResult::Pass
 }
