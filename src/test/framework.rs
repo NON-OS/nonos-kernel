@@ -67,8 +67,16 @@ impl TestSuite {
         self.tests.push(test);
     }
 
-    pub fn add_test(&mut self, test: TestCase) {
+    pub fn add_test(&mut self, name: &'static str, func: fn() -> TestResult) {
+        self.tests.push(TestCase::new(name, func));
+    }
+
+    pub fn add_test_case(&mut self, test: TestCase) {
         self.tests.push(test);
+    }
+
+    pub fn add_categorized(&mut self, name: &'static str, func: fn() -> TestResult, category: &'static str) {
+        self.tests.push(TestCase::with_category(name, func, category));
     }
 
     pub fn run(&self) -> bool {
@@ -77,7 +85,7 @@ impl TestSuite {
     }
 
     pub fn run_all(&self) -> (u32, u32, u32) {
-        use crate::drivers::console;
+        use crate::sys::boot_log;
 
         let mut passed = 0u32;
         let mut failed = 0u32;
@@ -87,17 +95,17 @@ impl TestSuite {
             let result = test.run();
             match result {
                 TestResult::Pass => {
-                    console::write_message(&alloc::format!("  [PASS] {}", test.name));
+                    boot_log::test_pass(test.name);
                     passed += 1;
                     super::record_pass();
                 }
                 TestResult::Fail => {
-                    console::write_message(&alloc::format!("  [FAIL] {}", test.name));
+                    boot_log::test_fail(test.name);
                     failed += 1;
                     super::record_fail();
                 }
                 TestResult::Skip => {
-                    console::write_message(&alloc::format!("  [SKIP] {}", test.name));
+                    boot_log::test_skip(test.name);
                     skipped += 1;
                     super::record_skip();
                 }
@@ -239,4 +247,39 @@ macro_rules! test_fail {
     () => {
         return $crate::test::framework::TestResult::Fail;
     };
+}
+
+/// A simple writer for formatting into a fixed-size buffer
+pub struct ArrayWriter<'a> {
+    buf: &'a mut [u8],
+    pos: usize,
+}
+
+impl<'a> ArrayWriter<'a> {
+    pub fn new(buf: &'a mut [u8]) -> Self {
+        Self { buf, pos: 0 }
+    }
+
+    pub fn as_str(&self) -> &str {
+        core::str::from_utf8(&self.buf[..self.pos]).unwrap_or("")
+    }
+
+    pub fn len(&self) -> usize {
+        self.pos
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.pos == 0
+    }
+}
+
+impl<'a> core::fmt::Write for ArrayWriter<'a> {
+    fn write_str(&mut self, s: &str) -> core::fmt::Result {
+        let bytes = s.as_bytes();
+        let remaining = self.buf.len() - self.pos;
+        let to_copy = bytes.len().min(remaining);
+        self.buf[self.pos..self.pos + to_copy].copy_from_slice(&bytes[..to_copy]);
+        self.pos += to_copy;
+        Ok(())
+    }
 }
