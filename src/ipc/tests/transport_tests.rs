@@ -1,10 +1,7 @@
 // NONOS Operating System
 // Copyright (C) 2026 NONOS Contributors
 
-use crate::ipc::nonos_transport::error::TransportError;
-use crate::ipc::nonos_transport::frame::{
-    FrameHeader, FRAME_MAGIC, FRAME_VERSION, FLAG_EOF, FRAME_HEADER_SIZE, parse_frame,
-};
+use crate::ipc::transport::{TransportError, FrameHeader, FRAME_MAGIC, FRAME_VERSION, FLAG_EOF, FRAME_HEADER_SIZE, parse_frame};
 use crate::test::framework::TestResult;
 
 pub fn test_frame_magic_constant() -> TestResult {
@@ -425,7 +422,7 @@ pub fn test_transport_error_copy() -> TestResult {
 
 pub fn test_transport_error_equality() -> TestResult {
     if TransportError::TransmitFailed != TransportError::TransmitFailed { return TestResult::Fail; }
-    if TransportError::TransmitFailed == TransportError::UnsupportedVersion { version: 1 } { return TestResult::Fail; }
+    if TransportError::TransmitFailed == (TransportError::UnsupportedVersion { version: 1 }) { return TestResult::Fail; }
     TestResult::Pass
 }
 

@@ -63,7 +63,6 @@ impl IpcMessage {
     }
 
     /// Create a message with custom timestamp (for testing)
-    #[cfg(test)]
     pub fn with_timestamp(from: &str, to: &str, data: &[u8], ts: u64) -> Self {
         let csum = compute_checksum(from, to, data, ts);
         Self {
