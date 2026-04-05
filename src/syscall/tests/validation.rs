@@ -5,16 +5,16 @@
 
 use crate::test::framework::TestResult;
 
-pub fn test_module_exists() -> TestResult {
+pub(crate) fn test_module_exists() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_basic_constants() -> TestResult {
+pub(crate) fn test_basic_constants() -> TestResult {
     let _ = 1u32;
     TestResult::Pass
 }
 
-pub fn test_basic_operations() -> TestResult {
+pub(crate) fn test_basic_operations() -> TestResult {
     let a: u64 = 100;
     let b: u64 = 200;
     if a >= b { return TestResult::Fail; }
