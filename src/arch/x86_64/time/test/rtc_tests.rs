@@ -17,7 +17,7 @@
 use super::types::TestResult;
 use crate::arch::x86_64::time::rtc;
 
-pub fn test_rtc_bcd_to_bin() -> TestResult {
+pub(crate) fn test_rtc_bcd_to_bin() -> TestResult {
     let time = rtc::RtcTime::new(2024, 6, 15, 12, 30, 45);
     if time.validate().is_err() {
         return TestResult::Failed;
@@ -26,7 +26,7 @@ pub fn test_rtc_bcd_to_bin() -> TestResult {
     TestResult::Passed
 }
 
-pub fn test_rtc_time_valid() -> TestResult {
+pub(crate) fn test_rtc_time_valid() -> TestResult {
     let t1 = rtc::RtcTime::new(2024, 1, 1, 0, 0, 0);
     if t1.validate().is_err() {
         return TestResult::Failed;
@@ -45,7 +45,7 @@ pub fn test_rtc_time_valid() -> TestResult {
     TestResult::Passed
 }
 
-pub fn test_rtc_time_invalid() -> TestResult {
+pub(crate) fn test_rtc_time_invalid() -> TestResult {
     let t1 = rtc::RtcTime::new(2024, 1, 1, 0, 0, 60);
     if t1.validate().is_ok() {
         return TestResult::Failed;
@@ -79,7 +79,7 @@ pub fn test_rtc_time_invalid() -> TestResult {
     TestResult::Passed
 }
 
-pub fn test_rtc_leap_year() -> TestResult {
+pub(crate) fn test_rtc_leap_year() -> TestResult {
     if !rtc::is_leap_year(2000) {
         return TestResult::Failed;
     }
@@ -103,7 +103,7 @@ pub fn test_rtc_leap_year() -> TestResult {
     TestResult::Passed
 }
 
-pub fn test_rtc_days_in_month() -> TestResult {
+pub(crate) fn test_rtc_days_in_month() -> TestResult {
     if rtc::days_in_month(2024, 1) != 31 {
         return TestResult::Failed;
     }
@@ -131,7 +131,7 @@ pub fn test_rtc_days_in_month() -> TestResult {
     TestResult::Passed
 }
 
-pub fn test_rtc_day_of_week() -> TestResult {
+pub(crate) fn test_rtc_day_of_week() -> TestResult {
     if rtc::day_of_week(1970, 1, 1) != 5 {
         return TestResult::Failed;
     }
@@ -143,7 +143,7 @@ pub fn test_rtc_day_of_week() -> TestResult {
     TestResult::Passed
 }
 
-pub fn test_rtc_unix_epoch() -> TestResult {
+pub(crate) fn test_rtc_unix_epoch() -> TestResult {
     let time = rtc::RtcTime::from_unix_timestamp(0);
 
     if time.year != 1970 || time.month != 1 || time.day != 1 {
@@ -156,7 +156,7 @@ pub fn test_rtc_unix_epoch() -> TestResult {
     TestResult::Passed
 }
 
-pub fn test_rtc_unix_roundtrip() -> TestResult {
+pub(crate) fn test_rtc_unix_roundtrip() -> TestResult {
     let original = rtc::RtcTime::new(2024, 6, 15, 12, 30, 45);
     let timestamp = original.to_unix_timestamp();
     let converted = rtc::RtcTime::from_unix_timestamp(timestamp);
@@ -183,7 +183,7 @@ pub fn test_rtc_unix_roundtrip() -> TestResult {
     TestResult::Passed
 }
 
-pub fn test_rtc_alarm_validation() -> TestResult {
+pub(crate) fn test_rtc_alarm_validation() -> TestResult {
     let valid = rtc::RtcAlarm::new(12, 30, 45);
     if valid.validate().is_err() {
         return TestResult::Failed;
@@ -202,7 +202,7 @@ pub fn test_rtc_alarm_validation() -> TestResult {
     TestResult::Passed
 }
 
-pub fn test_rtc_periodic_rate() -> TestResult {
+pub(crate) fn test_rtc_periodic_rate() -> TestResult {
     if rtc::PeriodicRate::Hz1024.frequency_hz() != 1024 {
         return TestResult::Failed;
     }
@@ -220,7 +220,7 @@ pub fn test_rtc_periodic_rate() -> TestResult {
     TestResult::Passed
 }
 
-pub fn test_rtc_format_iso8601() -> TestResult {
+pub(crate) fn test_rtc_format_iso8601() -> TestResult {
     let time = rtc::RtcTime::new(2024, 6, 15, 12, 30, 45);
     let formatted = time.format_iso8601();
 
@@ -231,7 +231,7 @@ pub fn test_rtc_format_iso8601() -> TestResult {
     TestResult::Passed
 }
 
-pub fn test_rtc_day_of_year() -> TestResult {
+pub(crate) fn test_rtc_day_of_year() -> TestResult {
     let jan1 = rtc::RtcTime::new(2024, 1, 1, 0, 0, 0);
     if jan1.day_of_year() != 1 {
         return TestResult::Failed;

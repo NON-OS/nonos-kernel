@@ -17,7 +17,7 @@
 use super::types::TestResult;
 use crate::arch::x86_64::time::tsc;
 
-pub fn test_tsc_rdtsc_basic() -> TestResult {
+pub(crate) fn test_tsc_rdtsc_basic() -> TestResult {
     let t0 = tsc::rdtsc();
     let t1 = tsc::rdtsc();
 
@@ -28,7 +28,7 @@ pub fn test_tsc_rdtsc_basic() -> TestResult {
     }
 }
 
-pub fn test_tsc_rdtsc_nonzero() -> TestResult {
+pub(crate) fn test_tsc_rdtsc_nonzero() -> TestResult {
     let t = tsc::rdtsc();
 
     if t > 0 {
@@ -38,7 +38,7 @@ pub fn test_tsc_rdtsc_nonzero() -> TestResult {
     }
 }
 
-pub fn test_tsc_ordering() -> TestResult {
+pub(crate) fn test_tsc_ordering() -> TestResult {
     const ITERATIONS: usize = 100;
     let mut prev = tsc::rdtsc();
 
@@ -53,7 +53,7 @@ pub fn test_tsc_ordering() -> TestResult {
     TestResult::Passed
 }
 
-pub fn test_tsc_features() -> TestResult {
+pub(crate) fn test_tsc_features() -> TestResult {
     let features = tsc::detect_features();
 
     if !features.tsc_available {
@@ -63,7 +63,7 @@ pub fn test_tsc_features() -> TestResult {
     TestResult::Passed
 }
 
-pub fn test_tsc_frequency_bounds() -> TestResult {
+pub(crate) fn test_tsc_frequency_bounds() -> TestResult {
     let freq = tsc::get_frequency();
 
     if freq > 0 {
@@ -75,7 +75,7 @@ pub fn test_tsc_frequency_bounds() -> TestResult {
     TestResult::Passed
 }
 
-pub fn test_tsc_conversion_roundtrip() -> TestResult {
+pub(crate) fn test_tsc_conversion_roundtrip() -> TestResult {
     let freq: u64 = 3_000_000_000;
 
     let ns: u64 = 1_000_000_000;
@@ -92,7 +92,7 @@ pub fn test_tsc_conversion_roundtrip() -> TestResult {
     }
 }
 
-pub fn test_tsc_conversion_zero_freq() -> TestResult {
+pub(crate) fn test_tsc_conversion_zero_freq() -> TestResult {
     let result1 = tsc::tsc_to_ns(1000, 0);
     let result2 = tsc::ns_to_tsc(1000, 0);
 
@@ -103,7 +103,7 @@ pub fn test_tsc_conversion_zero_freq() -> TestResult {
     }
 }
 
-pub fn test_tsc_rdtscp() -> TestResult {
+pub(crate) fn test_tsc_rdtscp() -> TestResult {
     let features = tsc::detect_features();
 
     if !features.rdtscp_available {
@@ -121,7 +121,7 @@ pub fn test_tsc_rdtscp() -> TestResult {
     TestResult::Passed
 }
 
-pub fn test_tsc_calibration_source() -> TestResult {
+pub(crate) fn test_tsc_calibration_source() -> TestResult {
     let source = tsc::get_calibration_source();
 
     let name = source.name();

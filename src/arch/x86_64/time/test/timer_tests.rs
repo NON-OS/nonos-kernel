@@ -17,7 +17,7 @@
 use super::types::TestResult;
 use crate::arch::x86_64::time::nonos_timer;
 
-pub fn test_timer_now_ns() -> TestResult {
+pub(crate) fn test_timer_now_ns() -> TestResult {
     let t1 = nonos_timer::now_ns();
     let t2 = nonos_timer::now_ns();
 
@@ -28,7 +28,7 @@ pub fn test_timer_now_ns() -> TestResult {
     }
 }
 
-pub fn test_timer_time_units() -> TestResult {
+pub(crate) fn test_timer_time_units() -> TestResult {
     let ns = nonos_timer::now_ns();
     let us = nonos_timer::now_us();
     let ms = nonos_timer::now_ms();
@@ -45,7 +45,7 @@ pub fn test_timer_time_units() -> TestResult {
     TestResult::Passed
 }
 
-pub fn test_timer_clock_source() -> TestResult {
+pub(crate) fn test_timer_clock_source() -> TestResult {
     let source = nonos_timer::get_clock_source();
     let name = source.name();
 
@@ -56,7 +56,7 @@ pub fn test_timer_clock_source() -> TestResult {
     TestResult::Passed
 }
 
-pub fn test_timer_freq_period() -> TestResult {
+pub(crate) fn test_timer_freq_period() -> TestResult {
     let period = nonos_timer::freq_to_period_ns(1_000_000);
     if period != 1_000 {
         return TestResult::Failed;
@@ -77,7 +77,7 @@ pub fn test_timer_freq_period() -> TestResult {
     TestResult::Passed
 }
 
-pub fn test_timer_format_duration() -> TestResult {
+pub(crate) fn test_timer_format_duration() -> TestResult {
     let ns = nonos_timer::format_duration_ns(500);
     if !ns.ends_with("ns") {
         return TestResult::Failed;
@@ -101,7 +101,7 @@ pub fn test_timer_format_duration() -> TestResult {
     TestResult::Passed
 }
 
-pub fn test_timer_statistics() -> TestResult {
+pub(crate) fn test_timer_statistics() -> TestResult {
     let stats = nonos_timer::get_statistics();
 
     if stats.uptime_ns > 1_000_000_000_000_000 {

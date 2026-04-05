@@ -17,7 +17,7 @@
 use super::types::TestResult;
 use crate::arch::x86_64::time::pit;
 
-pub fn test_pit_constants() -> TestResult {
+pub(crate) fn test_pit_constants() -> TestResult {
     if pit::PIT_FREQUENCY != 1193182 {
         return TestResult::Failed;
     }
@@ -32,7 +32,7 @@ pub fn test_pit_constants() -> TestResult {
     TestResult::Passed
 }
 
-pub fn test_pit_freq_to_divisor() -> TestResult {
+pub(crate) fn test_pit_freq_to_divisor() -> TestResult {
     match pit::frequency_to_divisor(1000) {
         Ok(divisor) => {
             if divisor < 1190 || divisor > 1196 {
@@ -54,7 +54,7 @@ pub fn test_pit_freq_to_divisor() -> TestResult {
     TestResult::Passed
 }
 
-pub fn test_pit_divisor_to_freq() -> TestResult {
+pub(crate) fn test_pit_divisor_to_freq() -> TestResult {
     let freq = pit::divisor_to_frequency(1193);
     if freq < 990 || freq > 1010 {
         return TestResult::Failed;
@@ -68,7 +68,7 @@ pub fn test_pit_divisor_to_freq() -> TestResult {
     TestResult::Passed
 }
 
-pub fn test_pit_period_ns() -> TestResult {
+pub(crate) fn test_pit_period_ns() -> TestResult {
     let period = pit::divisor_to_period_ns(1193);
 
     if period < 950_000 || period > 1_050_000 {
@@ -78,7 +78,7 @@ pub fn test_pit_period_ns() -> TestResult {
     TestResult::Passed
 }
 
-pub fn test_pit_invalid_frequency() -> TestResult {
+pub(crate) fn test_pit_invalid_frequency() -> TestResult {
     if pit::frequency_to_divisor(0).is_ok() {
         return TestResult::Failed;
     }
@@ -90,7 +90,7 @@ pub fn test_pit_invalid_frequency() -> TestResult {
     TestResult::Passed
 }
 
-pub fn test_pit_channels() -> TestResult {
+pub(crate) fn test_pit_channels() -> TestResult {
     if pit::Channel::Channel0.data_port() != 0x40 {
         return TestResult::Failed;
     }
@@ -104,7 +104,7 @@ pub fn test_pit_channels() -> TestResult {
     TestResult::Passed
 }
 
-pub fn test_pit_modes() -> TestResult {
+pub(crate) fn test_pit_modes() -> TestResult {
     if !pit::Mode::RateGenerator.is_periodic() {
         return TestResult::Failed;
     }
@@ -119,7 +119,7 @@ pub fn test_pit_modes() -> TestResult {
     TestResult::Passed
 }
 
-pub fn test_pit_best_divisor() -> TestResult {
+pub(crate) fn test_pit_best_divisor() -> TestResult {
     match pit::find_best_divisor(1000) {
         Some((divisor, actual_freq, error)) => {
             if divisor == 0 || divisor > 65535 {
