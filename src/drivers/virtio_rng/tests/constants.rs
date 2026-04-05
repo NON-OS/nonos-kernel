@@ -14,52 +14,50 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-#[cfg(test)]
-mod tests {
-    use crate::drivers::virtio_rng::{
-        VIRTIO_VENDOR_ID, VIRTIO_RNG_DEVICE_ID_TRANSITIONAL, VIRTIO_RNG_DEVICE_ID_MODERN,
-    };
+use crate::drivers::virtio_rng::{
+    VIRTIO_VENDOR_ID, VIRTIO_RNG_DEVICE_ID_TRANSITIONAL, VIRTIO_RNG_DEVICE_ID_MODERN,
+};
+use crate::test::framework::TestResult;
 
-    // ── PCI vendor / device IDs ──────────────────────────────────────────
+// PCI vendor / device IDs
 
-    #[test]
-    fn test_virtio_vendor_id() {
-        // Red Hat / VirtIO subsystem vendor (OASIS spec §4.1.2)
-        assert_eq!(VIRTIO_VENDOR_ID, 0x1AF4);
-    }
+pub fn test_virtio_vendor_id() -> TestResult {
+    // Red Hat / VirtIO subsystem vendor (OASIS spec 4.1.2)
+    if VIRTIO_VENDOR_ID != 0x1AF4 { return TestResult::Fail; }
+    TestResult::Pass
+}
 
-    #[test]
-    fn test_virtio_rng_device_ids() {
-        // Transitional: legacy VirtIO RNG (pre-1.0 spec)
-        assert_eq!(VIRTIO_RNG_DEVICE_ID_TRANSITIONAL, 0x1005);
-        // Modern: VirtIO 1.0+ RNG device
-        assert_eq!(VIRTIO_RNG_DEVICE_ID_MODERN, 0x1044);
-    }
+pub fn test_virtio_rng_device_ids() -> TestResult {
+    // Transitional: legacy VirtIO RNG (pre-1.0 spec)
+    if VIRTIO_RNG_DEVICE_ID_TRANSITIONAL != 0x1005 { return TestResult::Fail; }
+    // Modern: VirtIO 1.0+ RNG device
+    if VIRTIO_RNG_DEVICE_ID_MODERN != 0x1044 { return TestResult::Fail; }
+    TestResult::Pass
+}
 
-    #[test]
-    fn test_device_ids_are_distinct() {
-        assert_ne!(VIRTIO_RNG_DEVICE_ID_TRANSITIONAL, VIRTIO_RNG_DEVICE_ID_MODERN);
-    }
+pub fn test_device_ids_are_distinct() -> TestResult {
+    if VIRTIO_RNG_DEVICE_ID_TRANSITIONAL == VIRTIO_RNG_DEVICE_ID_MODERN { return TestResult::Fail; }
+    TestResult::Pass
+}
 
-    #[test]
-    fn test_device_ids_are_in_virtio_range() {
-        // VirtIO transitional IDs: 0x1000..0x103F
-        assert!(VIRTIO_RNG_DEVICE_ID_TRANSITIONAL >= 0x1000);
-        assert!(VIRTIO_RNG_DEVICE_ID_TRANSITIONAL <= 0x103F
-            || VIRTIO_RNG_DEVICE_ID_TRANSITIONAL == 0x1005); // RNG is 0x1005
+pub fn test_device_ids_are_in_virtio_range() -> TestResult {
+    // VirtIO transitional IDs: 0x1000..0x103F
+    if !(VIRTIO_RNG_DEVICE_ID_TRANSITIONAL >= 0x1000) { return TestResult::Fail; }
+    if !(VIRTIO_RNG_DEVICE_ID_TRANSITIONAL <= 0x103F
+        || VIRTIO_RNG_DEVICE_ID_TRANSITIONAL == 0x1005) { return TestResult::Fail; }
 
-        // Modern VirtIO IDs: 0x1040..0x107F (device type base + 0x1040)
-        assert!(VIRTIO_RNG_DEVICE_ID_MODERN >= 0x1040);
-        assert!(VIRTIO_RNG_DEVICE_ID_MODERN <= 0x107F);
-    }
+    // Modern VirtIO IDs: 0x1040..0x107F (device type base + 0x1040)
+    if !(VIRTIO_RNG_DEVICE_ID_MODERN >= 0x1040) { return TestResult::Fail; }
+    if !(VIRTIO_RNG_DEVICE_ID_MODERN <= 0x107F) { return TestResult::Fail; }
+    TestResult::Pass
+}
 
-    // ── Availability flag ────────────────────────────────────────────────
+// Availability flag
 
-    #[test]
-    fn test_is_available_initially_false() {
-        // Before init, virtio-rng should not be available.
-        // Note: in test context, init() was never called.
-        let available = crate::drivers::virtio_rng::is_available();
-        assert!(!available, "virtio-rng should not be available before init");
-    }
+pub fn test_is_available_initially_false() -> TestResult {
+    // Before init, virtio-rng should not be available.
+    // Note: in test context, init() was never called.
+    let available = crate::drivers::virtio_rng::is_available();
+    if available { return TestResult::Fail; }
+    TestResult::Pass
 }
