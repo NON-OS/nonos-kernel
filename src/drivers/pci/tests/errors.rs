@@ -15,34 +15,42 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::drivers::pci::*;
+use crate::test::framework::TestResult;
 
-#[test]
-fn test_error_display() {
+pub fn test_error_display() -> TestResult {
+    use core::fmt::Write;
     let err = error::PciError::InvalidDevice(32);
-    let msg = alloc::format!("{}", err);
-    assert!(msg.contains("32"));
+    let mut buf = [0u8; 128];
+    let mut writer = crate::test::framework::ArrayWriter::new(&mut buf);
+    let _ = write!(writer, "{}", err);
+    let msg = writer.as_str();
+    if !msg.contains("32") { return TestResult::Fail; }
 
     let err = error::PciError::DeviceBlocked { vendor: 0x1234, device: 0x5678 };
-    let msg = alloc::format!("{}", err);
-    assert!(msg.contains("1234"));
-    assert!(msg.contains("5678"));
+    let mut buf2 = [0u8; 128];
+    let mut writer2 = crate::test::framework::ArrayWriter::new(&mut buf2);
+    let _ = write!(writer2, "{}", err);
+    let msg2 = writer2.as_str();
+    if !msg2.contains("1234") { return TestResult::Fail; }
+    if !msg2.contains("5678") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_error_classification() {
-    assert!(error::PciError::RootComplexError.is_fatal());
-    assert!(!error::PciError::DeviceNotFound.is_fatal());
+pub fn test_error_classification() -> TestResult {
+    if !error::PciError::RootComplexError.is_fatal() { return TestResult::Fail; }
+    if error::PciError::DeviceNotFound.is_fatal() { return TestResult::Fail; }
 
-    assert!(error::PciError::DeviceBlocked { vendor: 0, device: 0 }.is_security_related());
-    assert!(!error::PciError::DeviceNotFound.is_security_related());
+    if !error::PciError::DeviceBlocked { vendor: 0, device: 0 }.is_security_related() { return TestResult::Fail; }
+    if error::PciError::DeviceNotFound.is_security_related() { return TestResult::Fail; }
 
-    assert!(error::PciError::DeviceNotFound.is_recoverable());
-    assert!(!error::PciError::RootComplexError.is_recoverable());
+    if !error::PciError::DeviceNotFound.is_recoverable() { return TestResult::Fail; }
+    if error::PciError::RootComplexError.is_recoverable() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_security_level_ordering() {
-    assert!(security::SecurityLevel::Critical > security::SecurityLevel::High);
-    assert!(security::SecurityLevel::High > security::SecurityLevel::Medium);
-    assert!(security::SecurityLevel::Medium > security::SecurityLevel::Low);
+pub fn test_security_level_ordering() -> TestResult {
+    if !(security::SecurityLevel::Critical > security::SecurityLevel::High) { return TestResult::Fail; }
+    if !(security::SecurityLevel::High > security::SecurityLevel::Medium) { return TestResult::Fail; }
+    if !(security::SecurityLevel::Medium > security::SecurityLevel::Low) { return TestResult::Fail; }
+    TestResult::Pass
 }

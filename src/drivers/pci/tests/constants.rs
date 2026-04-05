@@ -15,49 +15,50 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::drivers::pci::*;
+use crate::test::framework::TestResult;
 
-#[test]
-fn test_class_name_lookup() {
-    assert_eq!(constants::class_name(constants::CLASS_MASS_STORAGE), "Mass Storage");
-    assert_eq!(constants::class_name(constants::CLASS_NETWORK), "Network");
-    assert_eq!(constants::class_name(constants::CLASS_DISPLAY), "Display");
-    assert_eq!(constants::class_name(constants::CLASS_SERIAL_BUS), "Serial Bus");
+pub fn test_class_name_lookup() -> TestResult {
+    if constants::class_name(constants::CLASS_MASS_STORAGE) != "Mass Storage" { return TestResult::Fail; }
+    if constants::class_name(constants::CLASS_NETWORK) != "Network" { return TestResult::Fail; }
+    if constants::class_name(constants::CLASS_DISPLAY) != "Display" { return TestResult::Fail; }
+    if constants::class_name(constants::CLASS_SERIAL_BUS) != "Serial Bus" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_capability_name_lookup() {
-    assert_eq!(constants::capability_name(constants::CAP_ID_MSI), "MSI");
-    assert_eq!(constants::capability_name(constants::CAP_ID_MSIX), "MSI-X");
-    assert_eq!(constants::capability_name(constants::CAP_ID_PM), "Power Management");
-    assert_eq!(constants::capability_name(constants::CAP_ID_PCIE), "PCI Express");
+pub fn test_capability_name_lookup() -> TestResult {
+    if constants::capability_name(constants::CAP_ID_MSI) != "MSI" { return TestResult::Fail; }
+    if constants::capability_name(constants::CAP_ID_MSIX) != "MSI-X" { return TestResult::Fail; }
+    if constants::capability_name(constants::CAP_ID_PM) != "Power Management" { return TestResult::Fail; }
+    if constants::capability_name(constants::CAP_ID_PCIE) != "PCI Express" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_pcie_link_speed_string() {
-    assert_eq!(constants::pcie_link_speed_str(constants::PCIE_LINK_SPEED_2_5GT), "2.5 GT/s (Gen1)");
-    assert_eq!(constants::pcie_link_speed_str(constants::PCIE_LINK_SPEED_8GT), "8 GT/s (Gen3)");
-    assert_eq!(constants::pcie_link_speed_str(constants::PCIE_LINK_SPEED_32GT), "32 GT/s (Gen5)");
+pub fn test_pcie_link_speed_string() -> TestResult {
+    if constants::pcie_link_speed_str(constants::PCIE_LINK_SPEED_2_5GT) != "2.5 GT/s (Gen1)" { return TestResult::Fail; }
+    if constants::pcie_link_speed_str(constants::PCIE_LINK_SPEED_8GT) != "8 GT/s (Gen3)" { return TestResult::Fail; }
+    if constants::pcie_link_speed_str(constants::PCIE_LINK_SPEED_32GT) != "32 GT/s (Gen5)" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_command_register_bits() {
-    assert_eq!(constants::CMD_IO_SPACE, 1 << 0);
-    assert_eq!(constants::CMD_MEMORY_SPACE, 1 << 1);
-    assert_eq!(constants::CMD_BUS_MASTER, 1 << 2);
-    assert_eq!(constants::CMD_INTERRUPT_DISABLE, 1 << 10);
+pub fn test_command_register_bits() -> TestResult {
+    if constants::CMD_IO_SPACE != 1 << 0 { return TestResult::Fail; }
+    if constants::CMD_MEMORY_SPACE != 1 << 1 { return TestResult::Fail; }
+    if constants::CMD_BUS_MASTER != 1 << 2 { return TestResult::Fail; }
+    if constants::CMD_INTERRUPT_DISABLE != 1 << 10 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_status_register_bits() {
-    assert_eq!(constants::STS_CAPABILITIES_LIST, 1 << 4);
-    assert_eq!(constants::STS_66MHZ_CAPABLE, 1 << 5);
-    assert_eq!(constants::STS_DETECTED_PARITY_ERROR, 1 << 15);
+pub fn test_status_register_bits() -> TestResult {
+    if constants::STS_CAPABILITIES_LIST != 1 << 4 { return TestResult::Fail; }
+    if constants::STS_66MHZ_CAPABLE != 1 << 5 { return TestResult::Fail; }
+    if constants::STS_DETECTED_PARITY_ERROR != 1 << 15 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_vendor_ids() {
-    assert_eq!(constants::VENDOR_INTEL, 0x8086);
-    assert_eq!(constants::VENDOR_AMD, 0x1022);
-    assert_eq!(constants::VENDOR_NVIDIA, 0x10DE);
-    assert_eq!(constants::VENDOR_VIRTIO, 0x1AF4);
+pub fn test_vendor_ids() -> TestResult {
+    if constants::VENDOR_INTEL != 0x8086 { return TestResult::Fail; }
+    if constants::VENDOR_AMD != 0x1022 { return TestResult::Fail; }
+    if constants::VENDOR_NVIDIA != 0x10DE { return TestResult::Fail; }
+    if constants::VENDOR_VIRTIO != 0x1AF4 { return TestResult::Fail; }
+    TestResult::Pass
 }
