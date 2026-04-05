@@ -17,134 +17,134 @@
 use alloc::vec;
 use crate::drivers::tpm::constants::*;
 use crate::drivers::tpm::measurement::{BootChainMeasurements, ComponentType, PcrMeasurement};
+use crate::test::framework::TestResult;
 
-#[test]
-fn test_component_type_bootloader_pcr() {
-    assert_eq!(ComponentType::Bootloader.pcr_index(), PCR_NONOS_BOOTLOADER);
+pub fn test_component_type_bootloader_pcr() -> TestResult {
+    if ComponentType::Bootloader.pcr_index() != PCR_NONOS_BOOTLOADER { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_component_type_bootloader_config_pcr() {
-    assert_eq!(ComponentType::BootloaderConfig.pcr_index(), PCR_NONOS_BOOTLOADER_CONFIG);
+pub fn test_component_type_bootloader_config_pcr() -> TestResult {
+    if ComponentType::BootloaderConfig.pcr_index() != PCR_NONOS_BOOTLOADER_CONFIG { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_component_type_kernel_code_pcr() {
-    assert_eq!(ComponentType::KernelCode.pcr_index(), PCR_NONOS_KERNEL);
+pub fn test_component_type_kernel_code_pcr() -> TestResult {
+    if ComponentType::KernelCode.pcr_index() != PCR_NONOS_KERNEL { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_component_type_kernel_config_pcr() {
-    assert_eq!(ComponentType::KernelConfig.pcr_index(), PCR_NONOS_KERNEL_CONFIG);
+pub fn test_component_type_kernel_config_pcr() -> TestResult {
+    if ComponentType::KernelConfig.pcr_index() != PCR_NONOS_KERNEL_CONFIG { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_component_type_module_pcr() {
-    assert_eq!(ComponentType::Module.pcr_index(), PCR_NONOS_MODULES);
+pub fn test_component_type_module_pcr() -> TestResult {
+    if ComponentType::Module.pcr_index() != PCR_NONOS_MODULES { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_component_type_ima_policy_pcr() {
-    assert_eq!(ComponentType::ImaPolicy.pcr_index(), PCR_NONOS_IMA);
+pub fn test_component_type_ima_policy_pcr() -> TestResult {
+    if ComponentType::ImaPolicy.pcr_index() != PCR_NONOS_IMA { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_component_type_bootloader_event() {
-    assert_eq!(ComponentType::Bootloader.event_type(), EV_NONOS_KERNEL);
+pub fn test_component_type_bootloader_event() -> TestResult {
+    if ComponentType::Bootloader.event_type() != EV_NONOS_KERNEL { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_component_type_kernel_event() {
-    assert_eq!(ComponentType::KernelCode.event_type(), EV_NONOS_KERNEL);
+pub fn test_component_type_kernel_event() -> TestResult {
+    if ComponentType::KernelCode.event_type() != EV_NONOS_KERNEL { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_component_type_module_event() {
-    assert_eq!(ComponentType::Module.event_type(), EV_NONOS_MODULE);
+pub fn test_component_type_module_event() -> TestResult {
+    if ComponentType::Module.event_type() != EV_NONOS_MODULE { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_component_type_ima_policy_event() {
-    assert_eq!(ComponentType::ImaPolicy.event_type(), EV_NONOS_CONFIG);
+pub fn test_component_type_ima_policy_event() -> TestResult {
+    if ComponentType::ImaPolicy.event_type() != EV_NONOS_CONFIG { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_component_type_bootloader_str() {
-    assert_eq!(ComponentType::Bootloader.as_str(), "bootloader");
+pub fn test_component_type_bootloader_str() -> TestResult {
+    if ComponentType::Bootloader.as_str() != "bootloader" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_component_type_bootloader_config_str() {
-    assert_eq!(ComponentType::BootloaderConfig.as_str(), "bootloader-config");
+pub fn test_component_type_bootloader_config_str() -> TestResult {
+    if ComponentType::BootloaderConfig.as_str() != "bootloader-config" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_component_type_kernel_code_str() {
-    assert_eq!(ComponentType::KernelCode.as_str(), "kernel");
+pub fn test_component_type_kernel_code_str() -> TestResult {
+    if ComponentType::KernelCode.as_str() != "kernel" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_component_type_kernel_config_str() {
-    assert_eq!(ComponentType::KernelConfig.as_str(), "kernel-config");
+pub fn test_component_type_kernel_config_str() -> TestResult {
+    if ComponentType::KernelConfig.as_str() != "kernel-config" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_component_type_module_str() {
-    assert_eq!(ComponentType::Module.as_str(), "module");
+pub fn test_component_type_module_str() -> TestResult {
+    if ComponentType::Module.as_str() != "module" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_component_type_ima_policy_str() {
-    assert_eq!(ComponentType::ImaPolicy.as_str(), "ima-policy");
+pub fn test_component_type_ima_policy_str() -> TestResult {
+    if ComponentType::ImaPolicy.as_str() != "ima-policy" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_component_type_equality() {
-    assert_eq!(ComponentType::Bootloader, ComponentType::Bootloader);
-    assert_ne!(ComponentType::Bootloader, ComponentType::KernelCode);
+pub fn test_component_type_equality() -> TestResult {
+    if ComponentType::Bootloader != ComponentType::Bootloader { return TestResult::Fail; }
+    if ComponentType::Bootloader == ComponentType::KernelCode { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_component_type_copy() {
+pub fn test_component_type_copy() -> TestResult {
     let c1 = ComponentType::Module;
     let c2 = c1;
-    assert_eq!(c1, c2);
+    if c1 != c2 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_component_type_clone() {
+pub fn test_component_type_clone() -> TestResult {
     let c1 = ComponentType::ImaPolicy;
     let c2 = c1.clone();
-    assert_eq!(c1, c2);
+    if c1 != c2 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_pcr_measurement_digest_len_sha1() {
-    assert_eq!(PcrMeasurement::digest_len_for_alg(alg::TPM2_ALG_SHA1), 20);
+pub fn test_pcr_measurement_digest_len_sha1() -> TestResult {
+    if PcrMeasurement::digest_len_for_alg(alg::TPM2_ALG_SHA1) != 20 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_pcr_measurement_digest_len_sha256() {
-    assert_eq!(PcrMeasurement::digest_len_for_alg(alg::TPM2_ALG_SHA256), 32);
+pub fn test_pcr_measurement_digest_len_sha256() -> TestResult {
+    if PcrMeasurement::digest_len_for_alg(alg::TPM2_ALG_SHA256) != 32 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_pcr_measurement_digest_len_sha384() {
-    assert_eq!(PcrMeasurement::digest_len_for_alg(alg::TPM2_ALG_SHA384), 48);
+pub fn test_pcr_measurement_digest_len_sha384() -> TestResult {
+    if PcrMeasurement::digest_len_for_alg(alg::TPM2_ALG_SHA384) != 48 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_pcr_measurement_digest_len_sha512() {
-    assert_eq!(PcrMeasurement::digest_len_for_alg(alg::TPM2_ALG_SHA512), 64);
+pub fn test_pcr_measurement_digest_len_sha512() -> TestResult {
+    if PcrMeasurement::digest_len_for_alg(alg::TPM2_ALG_SHA512) != 64 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_pcr_measurement_digest_len_unknown() {
-    assert_eq!(PcrMeasurement::digest_len_for_alg(0xFFFF), 0);
+pub fn test_pcr_measurement_digest_len_unknown() -> TestResult {
+    if PcrMeasurement::digest_len_for_alg(0xFFFF) != 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_pcr_measurement_new() {
+pub fn test_pcr_measurement_new() -> TestResult {
     let digest = [0xAB; 32];
     let measurement = PcrMeasurement::new(
         8,
@@ -153,14 +153,14 @@ fn test_pcr_measurement_new() {
         EV_NONOS_KERNEL,
         vec![0x01, 0x02, 0x03],
     );
-    assert_eq!(measurement.pcr_index, 8);
-    assert_eq!(measurement.hash_alg, alg::TPM2_ALG_SHA256);
-    assert_eq!(measurement.digest_len, 32);
-    assert_eq!(measurement.event_type, EV_NONOS_KERNEL);
+    if measurement.pcr_index != 8 { return TestResult::Fail; }
+    if measurement.hash_alg != alg::TPM2_ALG_SHA256 { return TestResult::Fail; }
+    if measurement.digest_len != 32 { return TestResult::Fail; }
+    if measurement.event_type != EV_NONOS_KERNEL { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_pcr_measurement_digest_slice() {
+pub fn test_pcr_measurement_digest_slice() -> TestResult {
     let digest = [0xCD; 32];
     let measurement = PcrMeasurement::new(
         8,
@@ -169,11 +169,11 @@ fn test_pcr_measurement_digest_slice() {
         EV_NONOS_KERNEL,
         vec![],
     );
-    assert_eq!(measurement.digest_slice(), &digest);
+    if measurement.digest_slice() != &digest { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_pcr_measurement_truncates_large_digest() {
+pub fn test_pcr_measurement_truncates_large_digest() -> TestResult {
     let large_digest = [0xEF; 128];
     let measurement = PcrMeasurement::new(
         8,
@@ -182,11 +182,11 @@ fn test_pcr_measurement_truncates_large_digest() {
         EV_NONOS_KERNEL,
         vec![],
     );
-    assert_eq!(measurement.digest_len, TPM_MAX_DIGEST_SIZE);
+    if measurement.digest_len != TPM_MAX_DIGEST_SIZE { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_pcr_measurement_clone() {
+pub fn test_pcr_measurement_clone() -> TestResult {
     let digest = [0x12; 32];
     let m1 = PcrMeasurement::new(
         4,
@@ -196,35 +196,36 @@ fn test_pcr_measurement_clone() {
         vec![0x55],
     );
     let m2 = m1.clone();
-    assert_eq!(m1.pcr_index, m2.pcr_index);
-    assert_eq!(m1.hash_alg, m2.hash_alg);
-    assert_eq!(m1.digest_slice(), m2.digest_slice());
+    if m1.pcr_index != m2.pcr_index { return TestResult::Fail; }
+    if m1.hash_alg != m2.hash_alg { return TestResult::Fail; }
+    if m1.digest_slice() != m2.digest_slice() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_boot_chain_measurements_new() {
+pub fn test_boot_chain_measurements_new() -> TestResult {
     let bootloader = vec![0x11; 32];
     let kernel = vec![0x22; 32];
     let bcm = BootChainMeasurements::new(bootloader.clone(), kernel.clone());
-    assert_eq!(bcm.bootloader_hash, bootloader);
-    assert_eq!(bcm.kernel_hash, kernel);
+    if bcm.bootloader_hash != bootloader { return TestResult::Fail; }
+    if bcm.kernel_hash != kernel { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_boot_chain_measurements_from_slices() {
+pub fn test_boot_chain_measurements_from_slices() -> TestResult {
     let bootloader = [0x33; 32];
     let kernel = [0x44; 32];
     let bcm = BootChainMeasurements::from_slices(&bootloader, &kernel);
-    assert_eq!(bcm.bootloader_hash.len(), 32);
-    assert_eq!(bcm.kernel_hash.len(), 32);
-    assert_eq!(bcm.bootloader_hash[0], 0x33);
-    assert_eq!(bcm.kernel_hash[0], 0x44);
+    if bcm.bootloader_hash.len() != 32 { return TestResult::Fail; }
+    if bcm.kernel_hash.len() != 32 { return TestResult::Fail; }
+    if bcm.bootloader_hash[0] != 0x33 { return TestResult::Fail; }
+    if bcm.kernel_hash[0] != 0x44 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_boot_chain_measurements_clone() {
+pub fn test_boot_chain_measurements_clone() -> TestResult {
     let bcm1 = BootChainMeasurements::new(vec![0xAA], vec![0xBB]);
     let bcm2 = bcm1.clone();
-    assert_eq!(bcm1.bootloader_hash, bcm2.bootloader_hash);
-    assert_eq!(bcm1.kernel_hash, bcm2.kernel_hash);
+    if bcm1.bootloader_hash != bcm2.bootloader_hash { return TestResult::Fail; }
+    if bcm1.kernel_hash != bcm2.kernel_hash { return TestResult::Fail; }
+    TestResult::Pass
 }
