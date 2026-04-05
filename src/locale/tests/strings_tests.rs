@@ -2,376 +2,376 @@
 // Copyright (C) 2026 NONOS Contributors
 
 use crate::locale::strings::{StringId, STRINGS_EN, STRINGS_ES, STRINGS_FR, STRINGS_DE, STRINGS_ZH, STRINGS_JA};
+use crate::test::framework::TestResult;
 
-#[test]
-fn test_string_id_settings() {
-    assert_eq!(StringId::Settings as usize, 0);
+pub fn test_string_id_settings() -> TestResult {
+    if StringId::Settings as usize != 0 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_string_id_system() {
-    assert_eq!(StringId::System as usize, 1);
+pub fn test_string_id_system() -> TestResult {
+    if StringId::System as usize != 1 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_string_id_network() {
-    assert_eq!(StringId::Network as usize, 2);
+pub fn test_string_id_network() -> TestResult {
+    if StringId::Network as usize != 2 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_string_id_privacy() {
-    assert_eq!(StringId::Privacy as usize, 3);
+pub fn test_string_id_privacy() -> TestResult {
+    if StringId::Privacy as usize != 3 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_string_id_appearance() {
-    assert_eq!(StringId::Appearance as usize, 4);
+pub fn test_string_id_appearance() -> TestResult {
+    if StringId::Appearance as usize != 4 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_string_id_power() {
-    assert_eq!(StringId::Power as usize, 5);
+pub fn test_string_id_power() -> TestResult {
+    if StringId::Power as usize != 5 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_string_id_language() {
-    assert_eq!(StringId::Language as usize, 6);
+pub fn test_string_id_language() -> TestResult {
+    if StringId::Language as usize != 6 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_string_id_timezone() {
-    assert_eq!(StringId::Timezone as usize, 7);
+pub fn test_string_id_timezone() -> TestResult {
+    if StringId::Timezone as usize != 7 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_string_id_theme() {
-    assert_eq!(StringId::Theme as usize, 8);
+pub fn test_string_id_theme() -> TestResult {
+    if StringId::Theme as usize != 8 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_string_id_dark() {
-    assert_eq!(StringId::Dark as usize, 9);
+pub fn test_string_id_dark() -> TestResult {
+    if StringId::Dark as usize != 9 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_string_id_light() {
-    assert_eq!(StringId::Light as usize, 10);
+pub fn test_string_id_light() -> TestResult {
+    if StringId::Light as usize != 10 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_string_id_auto() {
-    assert_eq!(StringId::Auto as usize, 11);
+pub fn test_string_id_auto() -> TestResult {
+    if StringId::Auto as usize != 11 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_string_id_files() {
-    assert_eq!(StringId::Files as usize, 12);
+pub fn test_string_id_files() -> TestResult {
+    if StringId::Files as usize != 12 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_string_id_terminal() {
-    assert_eq!(StringId::Terminal as usize, 13);
+pub fn test_string_id_terminal() -> TestResult {
+    if StringId::Terminal as usize != 13 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_string_id_browser() {
-    assert_eq!(StringId::Browser as usize, 14);
+pub fn test_string_id_browser() -> TestResult {
+    if StringId::Browser as usize != 14 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_string_id_wallet() {
-    assert_eq!(StringId::Wallet as usize, 15);
+pub fn test_string_id_wallet() -> TestResult {
+    if StringId::Wallet as usize != 15 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_string_id_cancel() {
-    assert_eq!(StringId::Cancel as usize, 16);
+pub fn test_string_id_cancel() -> TestResult {
+    if StringId::Cancel as usize != 16 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_string_id_ok() {
-    assert_eq!(StringId::Ok as usize, 17);
+pub fn test_string_id_ok() -> TestResult {
+    if StringId::Ok as usize != 17 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_string_id_apply() {
-    assert_eq!(StringId::Apply as usize, 18);
+pub fn test_string_id_apply() -> TestResult {
+    if StringId::Apply as usize != 18 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_string_id_save() {
-    assert_eq!(StringId::Save as usize, 19);
+pub fn test_string_id_save() -> TestResult {
+    if StringId::Save as usize != 19 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_string_id_delete() {
-    assert_eq!(StringId::Delete as usize, 20);
+pub fn test_string_id_delete() -> TestResult {
+    if StringId::Delete as usize != 20 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_string_id_rename() {
-    assert_eq!(StringId::Rename as usize, 21);
+pub fn test_string_id_rename() -> TestResult {
+    if StringId::Rename as usize != 21 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_string_id_newfolder() {
-    assert_eq!(StringId::NewFolder as usize, 22);
+pub fn test_string_id_newfolder() -> TestResult {
+    if StringId::NewFolder as usize != 22 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_string_id_newfile() {
-    assert_eq!(StringId::NewFile as usize, 23);
+pub fn test_string_id_newfile() -> TestResult {
+    if StringId::NewFile as usize != 23 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_string_id_copy() {
-    assert_eq!(StringId::Copy as usize, 24);
+pub fn test_string_id_copy() -> TestResult {
+    if StringId::Copy as usize != 24 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_string_id_paste() {
-    assert_eq!(StringId::Paste as usize, 25);
+pub fn test_string_id_paste() -> TestResult {
+    if StringId::Paste as usize != 25 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_string_id_cut() {
-    assert_eq!(StringId::Cut as usize, 26);
+pub fn test_string_id_cut() -> TestResult {
+    if StringId::Cut as usize != 26 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_string_id_refresh() {
-    assert_eq!(StringId::Refresh as usize, 27);
+pub fn test_string_id_refresh() -> TestResult {
+    if StringId::Refresh as usize != 27 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_string_id_about() {
-    assert_eq!(StringId::About as usize, 28);
+pub fn test_string_id_about() -> TestResult {
+    if StringId::About as usize != 28 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_string_id_help() {
-    assert_eq!(StringId::Help as usize, 29);
+pub fn test_string_id_help() -> TestResult {
+    if StringId::Help as usize != 29 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_string_id_shutdown() {
-    assert_eq!(StringId::Shutdown as usize, 30);
+pub fn test_string_id_shutdown() -> TestResult {
+    if StringId::Shutdown as usize != 30 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_string_id_restart() {
-    assert_eq!(StringId::Restart as usize, 31);
+pub fn test_string_id_restart() -> TestResult {
+    if StringId::Restart as usize != 31 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_string_id_sleep() {
-    assert_eq!(StringId::Sleep as usize, 32);
+pub fn test_string_id_sleep() -> TestResult {
+    if StringId::Sleep as usize != 32 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_string_id_logout() {
-    assert_eq!(StringId::Logout as usize, 33);
+pub fn test_string_id_logout() -> TestResult {
+    if StringId::Logout as usize != 33 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_string_id_back() {
-    assert_eq!(StringId::Back as usize, 34);
+pub fn test_string_id_back() -> TestResult {
+    if StringId::Back as usize != 34 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_string_id_forward() {
-    assert_eq!(StringId::Forward as usize, 35);
+pub fn test_string_id_forward() -> TestResult {
+    if StringId::Forward as usize != 35 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_string_id_kernel() {
-    assert_eq!(StringId::Kernel as usize, 36);
+pub fn test_string_id_kernel() -> TestResult {
+    if StringId::Kernel as usize != 36 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_string_id_clone() {
+pub fn test_string_id_clone() -> TestResult {
     let id = StringId::Settings;
     let cloned = id.clone();
-    assert_eq!(id, cloned);
+    if id != cloned { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_string_id_copy() {
+pub fn test_string_id_copy() -> TestResult {
     let id = StringId::System;
     let copied = id;
-    assert_eq!(id, copied);
+    if id != copied { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_string_id_equality() {
-    assert_eq!(StringId::Settings, StringId::Settings);
-    assert_ne!(StringId::Settings, StringId::System);
+pub fn test_string_id_equality() -> TestResult {
+    if StringId::Settings != StringId::Settings { return TestResult::Fail; }
+    if StringId::Settings == StringId::System { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_strings_en_length() {
-    assert_eq!(STRINGS_EN.len(), 37);
+pub fn test_strings_en_length() -> TestResult {
+    if STRINGS_EN.len() != 37 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_strings_es_length() {
-    assert_eq!(STRINGS_ES.len(), 37);
+pub fn test_strings_es_length() -> TestResult {
+    if STRINGS_ES.len() != 37 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_strings_fr_length() {
-    assert_eq!(STRINGS_FR.len(), 37);
+pub fn test_strings_fr_length() -> TestResult {
+    if STRINGS_FR.len() != 37 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_strings_de_length() {
-    assert_eq!(STRINGS_DE.len(), 37);
+pub fn test_strings_de_length() -> TestResult {
+    if STRINGS_DE.len() != 37 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_strings_zh_length() {
-    assert_eq!(STRINGS_ZH.len(), 37);
+pub fn test_strings_zh_length() -> TestResult {
+    if STRINGS_ZH.len() != 37 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_strings_ja_length() {
-    assert_eq!(STRINGS_JA.len(), 37);
+pub fn test_strings_ja_length() -> TestResult {
+    if STRINGS_JA.len() != 37 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_strings_en_settings() {
-    assert_eq!(STRINGS_EN[StringId::Settings as usize], b"Settings");
+pub fn test_strings_en_settings() -> TestResult {
+    if STRINGS_EN[StringId::Settings as usize] != b"Settings" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_strings_en_system() {
-    assert_eq!(STRINGS_EN[StringId::System as usize], b"System");
+pub fn test_strings_en_system() -> TestResult {
+    if STRINGS_EN[StringId::System as usize] != b"System" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_strings_en_network() {
-    assert_eq!(STRINGS_EN[StringId::Network as usize], b"Network");
+pub fn test_strings_en_network() -> TestResult {
+    if STRINGS_EN[StringId::Network as usize] != b"Network" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_strings_en_privacy() {
-    assert_eq!(STRINGS_EN[StringId::Privacy as usize], b"Privacy");
+pub fn test_strings_en_privacy() -> TestResult {
+    if STRINGS_EN[StringId::Privacy as usize] != b"Privacy" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_strings_en_cancel() {
-    assert_eq!(STRINGS_EN[StringId::Cancel as usize], b"Cancel");
+pub fn test_strings_en_cancel() -> TestResult {
+    if STRINGS_EN[StringId::Cancel as usize] != b"Cancel" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_strings_en_ok() {
-    assert_eq!(STRINGS_EN[StringId::Ok as usize], b"OK");
+pub fn test_strings_en_ok() -> TestResult {
+    if STRINGS_EN[StringId::Ok as usize] != b"OK" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_strings_en_kernel() {
-    assert_eq!(STRINGS_EN[StringId::Kernel as usize], b"Kernel");
+pub fn test_strings_en_kernel() -> TestResult {
+    if STRINGS_EN[StringId::Kernel as usize] != b"Kernel" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_strings_es_settings() {
-    assert_eq!(STRINGS_ES[StringId::Settings as usize], b"Ajustes");
+pub fn test_strings_es_settings() -> TestResult {
+    if STRINGS_ES[StringId::Settings as usize] != b"Ajustes" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_strings_es_system() {
-    assert_eq!(STRINGS_ES[StringId::System as usize], b"Sistema");
+pub fn test_strings_es_system() -> TestResult {
+    if STRINGS_ES[StringId::System as usize] != b"Sistema" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_strings_es_network() {
-    assert_eq!(STRINGS_ES[StringId::Network as usize], b"Red");
+pub fn test_strings_es_network() -> TestResult {
+    if STRINGS_ES[StringId::Network as usize] != b"Red" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_strings_es_cancel() {
-    assert_eq!(STRINGS_ES[StringId::Cancel as usize], b"Cancelar");
+pub fn test_strings_es_cancel() -> TestResult {
+    if STRINGS_ES[StringId::Cancel as usize] != b"Cancelar" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_strings_fr_settings() {
-    assert_eq!(STRINGS_FR[StringId::Settings as usize], b"Parametres");
+pub fn test_strings_fr_settings() -> TestResult {
+    if STRINGS_FR[StringId::Settings as usize] != b"Parametres" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_strings_fr_system() {
-    assert_eq!(STRINGS_FR[StringId::System as usize], b"Systeme");
+pub fn test_strings_fr_system() -> TestResult {
+    if STRINGS_FR[StringId::System as usize] != b"Systeme" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_strings_fr_network() {
-    assert_eq!(STRINGS_FR[StringId::Network as usize], b"Reseau");
+pub fn test_strings_fr_network() -> TestResult {
+    if STRINGS_FR[StringId::Network as usize] != b"Reseau" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_strings_fr_cancel() {
-    assert_eq!(STRINGS_FR[StringId::Cancel as usize], b"Annuler");
+pub fn test_strings_fr_cancel() -> TestResult {
+    if STRINGS_FR[StringId::Cancel as usize] != b"Annuler" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_strings_de_settings() {
-    assert_eq!(STRINGS_DE[StringId::Settings as usize], b"Einstellungen");
+pub fn test_strings_de_settings() -> TestResult {
+    if STRINGS_DE[StringId::Settings as usize] != b"Einstellungen" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_strings_de_system() {
-    assert_eq!(STRINGS_DE[StringId::System as usize], b"System");
+pub fn test_strings_de_system() -> TestResult {
+    if STRINGS_DE[StringId::System as usize] != b"System" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_strings_de_network() {
-    assert_eq!(STRINGS_DE[StringId::Network as usize], b"Netzwerk");
+pub fn test_strings_de_network() -> TestResult {
+    if STRINGS_DE[StringId::Network as usize] != b"Netzwerk" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_strings_de_cancel() {
-    assert_eq!(STRINGS_DE[StringId::Cancel as usize], b"Abbrechen");
+pub fn test_strings_de_cancel() -> TestResult {
+    if STRINGS_DE[StringId::Cancel as usize] != b"Abbrechen" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_all_languages_have_same_string_count() {
-    assert_eq!(STRINGS_EN.len(), STRINGS_ES.len());
-    assert_eq!(STRINGS_ES.len(), STRINGS_FR.len());
-    assert_eq!(STRINGS_FR.len(), STRINGS_DE.len());
-    assert_eq!(STRINGS_DE.len(), STRINGS_ZH.len());
-    assert_eq!(STRINGS_ZH.len(), STRINGS_JA.len());
+pub fn test_all_languages_have_same_string_count() -> TestResult {
+    if STRINGS_EN.len() != STRINGS_ES.len() { return TestResult::Fail; }
+    if STRINGS_ES.len() != STRINGS_FR.len() { return TestResult::Fail; }
+    if STRINGS_FR.len() != STRINGS_DE.len() { return TestResult::Fail; }
+    if STRINGS_DE.len() != STRINGS_ZH.len() { return TestResult::Fail; }
+    if STRINGS_ZH.len() != STRINGS_JA.len() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_all_strings_en_non_empty() {
+pub fn test_all_strings_en_non_empty() -> TestResult {
     for s in STRINGS_EN.iter() {
-        assert!(!s.is_empty());
+        if s.is_empty() { return TestResult::Fail; }
     }
+    TestResult::Pass
 }
 
-#[test]
-fn test_all_strings_es_non_empty() {
+pub fn test_all_strings_es_non_empty() -> TestResult {
     for s in STRINGS_ES.iter() {
-        assert!(!s.is_empty());
+        if s.is_empty() { return TestResult::Fail; }
     }
+    TestResult::Pass
 }
 
-#[test]
-fn test_all_strings_fr_non_empty() {
+pub fn test_all_strings_fr_non_empty() -> TestResult {
     for s in STRINGS_FR.iter() {
-        assert!(!s.is_empty());
+        if s.is_empty() { return TestResult::Fail; }
     }
+    TestResult::Pass
 }
 
-#[test]
-fn test_all_strings_de_non_empty() {
+pub fn test_all_strings_de_non_empty() -> TestResult {
     for s in STRINGS_DE.iter() {
-        assert!(!s.is_empty());
+        if s.is_empty() { return TestResult::Fail; }
     }
+    TestResult::Pass
 }
 
-#[test]
-fn test_string_id_sequential() {
+pub fn test_string_id_sequential() -> TestResult {
     let ids = [
         StringId::Settings, StringId::System, StringId::Network, StringId::Privacy,
         StringId::Appearance, StringId::Power, StringId::Language, StringId::Timezone,
@@ -384,19 +384,19 @@ fn test_string_id_sequential() {
         StringId::Sleep, StringId::Logout, StringId::Back, StringId::Forward, StringId::Kernel,
     ];
     for (i, id) in ids.iter().enumerate() {
-        assert_eq!(*id as usize, i);
+        if *id as usize != i { return TestResult::Fail; }
     }
+    TestResult::Pass
 }
 
-#[test]
-fn test_string_id_max() {
-    assert_eq!(StringId::Kernel as usize, 36);
+pub fn test_string_id_max() -> TestResult {
+    if StringId::Kernel as usize != 36 { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_strings_valid_utf8() {
+pub fn test_strings_valid_utf8() -> TestResult {
     for s in STRINGS_EN.iter() {
-        assert!(core::str::from_utf8(s).is_ok());
+        if core::str::from_utf8(s).is_err() { return TestResult::Fail; }
     }
+    TestResult::Pass
 }
-
