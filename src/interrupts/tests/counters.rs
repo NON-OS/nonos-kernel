@@ -19,7 +19,7 @@ use core::sync::atomic::Ordering;
 use crate::interrupts::*;
 use crate::test::framework::TestResult;
 
-pub fn test_interrupt_counters_new() -> TestResult {
+pub(crate) fn test_interrupt_counters_new() -> TestResult {
     let counters = InterruptCounters::new();
     if counters.timer_ticks.load(Ordering::Relaxed) != 0 { return TestResult::Fail; }
     if counters.keyboard_presses.load(Ordering::Relaxed) != 0 { return TestResult::Fail; }
@@ -30,7 +30,7 @@ pub fn test_interrupt_counters_new() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_counters_static_initialization() -> TestResult {
+pub(crate) fn test_counters_static_initialization() -> TestResult {
     if !(COUNTERS.timer_ticks.load(Ordering::Relaxed) < u64::MAX) { return TestResult::Fail; }
     if !(COUNTERS.keyboard_presses.load(Ordering::Relaxed) < u64::MAX) { return TestResult::Fail; }
     if !(COUNTERS.mouse_events.load(Ordering::Relaxed) < u64::MAX) { return TestResult::Fail; }
@@ -40,7 +40,7 @@ pub fn test_counters_static_initialization() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_increment_timer() -> TestResult {
+pub(crate) fn test_increment_timer() -> TestResult {
     let before = COUNTERS.timer_ticks.load(Ordering::Relaxed);
     increment_timer();
     let after = COUNTERS.timer_ticks.load(Ordering::Relaxed);
@@ -48,7 +48,7 @@ pub fn test_increment_timer() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_increment_keyboard() -> TestResult {
+pub(crate) fn test_increment_keyboard() -> TestResult {
     let before = COUNTERS.keyboard_presses.load(Ordering::Relaxed);
     increment_keyboard();
     let after = COUNTERS.keyboard_presses.load(Ordering::Relaxed);
@@ -56,7 +56,7 @@ pub fn test_increment_keyboard() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_increment_mouse() -> TestResult {
+pub(crate) fn test_increment_mouse() -> TestResult {
     let before = COUNTERS.mouse_events.load(Ordering::Relaxed);
     increment_mouse();
     let after = COUNTERS.mouse_events.load(Ordering::Relaxed);
@@ -64,7 +64,7 @@ pub fn test_increment_mouse() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_increment_syscalls() -> TestResult {
+pub(crate) fn test_increment_syscalls() -> TestResult {
     let before = COUNTERS.syscalls.load(Ordering::Relaxed);
     increment_syscalls();
     let after = COUNTERS.syscalls.load(Ordering::Relaxed);
@@ -72,7 +72,7 @@ pub fn test_increment_syscalls() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_increment_exceptions() -> TestResult {
+pub(crate) fn test_increment_exceptions() -> TestResult {
     let before = COUNTERS.exceptions.load(Ordering::Relaxed);
     increment_exceptions();
     let after = COUNTERS.exceptions.load(Ordering::Relaxed);
@@ -80,7 +80,7 @@ pub fn test_increment_exceptions() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_increment_page_faults() -> TestResult {
+pub(crate) fn test_increment_page_faults() -> TestResult {
     let before = COUNTERS.page_faults.load(Ordering::Relaxed);
     increment_page_faults();
     let after = COUNTERS.page_faults.load(Ordering::Relaxed);
@@ -88,7 +88,7 @@ pub fn test_increment_page_faults() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_get_stats_returns_struct() -> TestResult {
+pub(crate) fn test_get_stats_returns_struct() -> TestResult {
     let stats = get_stats();
     if !(stats.timer_ticks < u64::MAX) { return TestResult::Fail; }
     if !(stats.keyboard_presses < u64::MAX) { return TestResult::Fail; }
@@ -99,7 +99,7 @@ pub fn test_get_stats_returns_struct() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_get_stats_tuple_returns_four_values() -> TestResult {
+pub(crate) fn test_get_stats_tuple_returns_four_values() -> TestResult {
     let (timer, keyboard, syscalls, exceptions) = get_stats_tuple();
     if !(timer < u64::MAX) { return TestResult::Fail; }
     if !(keyboard < u64::MAX) { return TestResult::Fail; }
@@ -108,7 +108,7 @@ pub fn test_get_stats_tuple_returns_four_values() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_reset_stats() -> TestResult {
+pub(crate) fn test_reset_stats() -> TestResult {
     increment_timer();
     increment_keyboard();
     increment_mouse();
@@ -128,7 +128,7 @@ pub fn test_reset_stats() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_interrupt_stats_fields() -> TestResult {
+pub(crate) fn test_interrupt_stats_fields() -> TestResult {
     reset_stats();
 
     increment_timer();
@@ -145,7 +145,7 @@ pub fn test_interrupt_stats_fields() -> TestResult {
     TestResult::Pass
 }
 
-pub fn test_multiple_increments() -> TestResult {
+pub(crate) fn test_multiple_increments() -> TestResult {
     reset_stats();
 
     for _ in 0..100 {
