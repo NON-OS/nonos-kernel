@@ -15,217 +15,217 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::usercopy::*;
+use crate::test::framework::TestResult;
 use alloc::format;
 
-#[test]
-fn test_usercopy_error_null_pointer_variant() {
+pub fn test_usercopy_error_null_pointer_variant() -> TestResult {
     let err = UsercopyError::NullPointer;
-    assert_eq!(err, UsercopyError::NullPointer);
+    if err != UsercopyError::NullPointer { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_usercopy_error_invalid_address_variant() {
+pub fn test_usercopy_error_invalid_address_variant() -> TestResult {
     let err = UsercopyError::InvalidAddress;
-    assert_eq!(err, UsercopyError::InvalidAddress);
+    if err != UsercopyError::InvalidAddress { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_usercopy_error_address_overflow_variant() {
+pub fn test_usercopy_error_address_overflow_variant() -> TestResult {
     let err = UsercopyError::AddressOverflow;
-    assert_eq!(err, UsercopyError::AddressOverflow);
+    if err != UsercopyError::AddressOverflow { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_usercopy_error_page_not_mapped_variant() {
+pub fn test_usercopy_error_page_not_mapped_variant() -> TestResult {
     let err = UsercopyError::PageNotMapped;
-    assert_eq!(err, UsercopyError::PageNotMapped);
+    if err != UsercopyError::PageNotMapped { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_usercopy_error_page_not_user_variant() {
+pub fn test_usercopy_error_page_not_user_variant() -> TestResult {
     let err = UsercopyError::PageNotUser;
-    assert_eq!(err, UsercopyError::PageNotUser);
+    if err != UsercopyError::PageNotUser { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_usercopy_error_page_not_writable_variant() {
+pub fn test_usercopy_error_page_not_writable_variant() -> TestResult {
     let err = UsercopyError::PageNotWritable;
-    assert_eq!(err, UsercopyError::PageNotWritable);
+    if err != UsercopyError::PageNotWritable { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_usercopy_error_page_fault_variant() {
+pub fn test_usercopy_error_page_fault_variant() -> TestResult {
     let err = UsercopyError::PageFault;
-    assert_eq!(err, UsercopyError::PageFault);
+    if err != UsercopyError::PageFault { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_usercopy_error_no_process_context_variant() {
+pub fn test_usercopy_error_no_process_context_variant() -> TestResult {
     let err = UsercopyError::NoProcessContext;
-    assert_eq!(err, UsercopyError::NoProcessContext);
+    if err != UsercopyError::NoProcessContext { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_usercopy_error_size_too_large_variant() {
+pub fn test_usercopy_error_size_too_large_variant() -> TestResult {
     let err = UsercopyError::SizeTooLarge;
-    assert_eq!(err, UsercopyError::SizeTooLarge);
+    if err != UsercopyError::SizeTooLarge { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_usercopy_error_variants_not_equal() {
-    assert_ne!(UsercopyError::NullPointer, UsercopyError::InvalidAddress);
-    assert_ne!(UsercopyError::AddressOverflow, UsercopyError::PageNotMapped);
-    assert_ne!(UsercopyError::PageNotUser, UsercopyError::PageNotWritable);
-    assert_ne!(UsercopyError::PageFault, UsercopyError::NoProcessContext);
-    assert_ne!(UsercopyError::SizeTooLarge, UsercopyError::NullPointer);
+pub fn test_usercopy_error_variants_not_equal() -> TestResult {
+    if UsercopyError::NullPointer == UsercopyError::InvalidAddress { return TestResult::Fail; }
+    if UsercopyError::AddressOverflow == UsercopyError::PageNotMapped { return TestResult::Fail; }
+    if UsercopyError::PageNotUser == UsercopyError::PageNotWritable { return TestResult::Fail; }
+    if UsercopyError::PageFault == UsercopyError::NoProcessContext { return TestResult::Fail; }
+    if UsercopyError::SizeTooLarge == UsercopyError::NullPointer { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_usercopy_error_clone() {
+pub fn test_usercopy_error_clone() -> TestResult {
     let err = UsercopyError::PageFault;
     let cloned = err.clone();
-    assert_eq!(err, cloned);
+    if err != cloned { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_usercopy_error_copy() {
+pub fn test_usercopy_error_copy() -> TestResult {
     let err = UsercopyError::InvalidAddress;
     let copied = err;
-    assert_eq!(err, copied);
+    if err != copied { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_usercopy_error_display_null_pointer() {
+pub fn test_usercopy_error_display_null_pointer() -> TestResult {
     let err = UsercopyError::NullPointer;
-    assert_eq!(format!("{}", err), "null pointer");
+    if format!("{}", err) != "null pointer" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_usercopy_error_display_invalid_address() {
+pub fn test_usercopy_error_display_invalid_address() -> TestResult {
     let err = UsercopyError::InvalidAddress;
-    assert_eq!(format!("{}", err), "invalid user address");
+    if format!("{}", err) != "invalid user address" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_usercopy_error_display_address_overflow() {
+pub fn test_usercopy_error_display_address_overflow() -> TestResult {
     let err = UsercopyError::AddressOverflow;
-    assert_eq!(format!("{}", err), "address overflow");
+    if format!("{}", err) != "address overflow" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_usercopy_error_display_page_not_mapped() {
+pub fn test_usercopy_error_display_page_not_mapped() -> TestResult {
     let err = UsercopyError::PageNotMapped;
-    assert_eq!(format!("{}", err), "page not mapped");
+    if format!("{}", err) != "page not mapped" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_usercopy_error_display_page_not_user() {
+pub fn test_usercopy_error_display_page_not_user() -> TestResult {
     let err = UsercopyError::PageNotUser;
-    assert_eq!(format!("{}", err), "page not accessible from userspace");
+    if format!("{}", err) != "page not accessible from userspace" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_usercopy_error_display_page_not_writable() {
+pub fn test_usercopy_error_display_page_not_writable() -> TestResult {
     let err = UsercopyError::PageNotWritable;
-    assert_eq!(format!("{}", err), "page not writable");
+    if format!("{}", err) != "page not writable" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_usercopy_error_display_page_fault() {
+pub fn test_usercopy_error_display_page_fault() -> TestResult {
     let err = UsercopyError::PageFault;
-    assert_eq!(format!("{}", err), "page fault during access");
+    if format!("{}", err) != "page fault during access" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_usercopy_error_display_no_process_context() {
+pub fn test_usercopy_error_display_no_process_context() -> TestResult {
     let err = UsercopyError::NoProcessContext;
-    assert_eq!(format!("{}", err), "no process context");
+    if format!("{}", err) != "no process context" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_usercopy_error_display_size_too_large() {
+pub fn test_usercopy_error_display_size_too_large() -> TestResult {
     let err = UsercopyError::SizeTooLarge;
-    assert_eq!(format!("{}", err), "copy size too large");
+    if format!("{}", err) != "copy size too large" { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_usercopy_error_debug_null_pointer() {
+pub fn test_usercopy_error_debug_null_pointer() -> TestResult {
     let err = UsercopyError::NullPointer;
     let debug_str = format!("{:?}", err);
-    assert!(debug_str.contains("NullPointer"));
+    if !debug_str.contains("NullPointer") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_usercopy_error_debug_invalid_address() {
+pub fn test_usercopy_error_debug_invalid_address() -> TestResult {
     let err = UsercopyError::InvalidAddress;
     let debug_str = format!("{:?}", err);
-    assert!(debug_str.contains("InvalidAddress"));
+    if !debug_str.contains("InvalidAddress") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_usercopy_error_debug_address_overflow() {
+pub fn test_usercopy_error_debug_address_overflow() -> TestResult {
     let err = UsercopyError::AddressOverflow;
     let debug_str = format!("{:?}", err);
-    assert!(debug_str.contains("AddressOverflow"));
+    if !debug_str.contains("AddressOverflow") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_usercopy_error_debug_page_not_mapped() {
+pub fn test_usercopy_error_debug_page_not_mapped() -> TestResult {
     let err = UsercopyError::PageNotMapped;
     let debug_str = format!("{:?}", err);
-    assert!(debug_str.contains("PageNotMapped"));
+    if !debug_str.contains("PageNotMapped") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_usercopy_error_debug_page_not_user() {
+pub fn test_usercopy_error_debug_page_not_user() -> TestResult {
     let err = UsercopyError::PageNotUser;
     let debug_str = format!("{:?}", err);
-    assert!(debug_str.contains("PageNotUser"));
+    if !debug_str.contains("PageNotUser") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_usercopy_error_debug_page_not_writable() {
+pub fn test_usercopy_error_debug_page_not_writable() -> TestResult {
     let err = UsercopyError::PageNotWritable;
     let debug_str = format!("{:?}", err);
-    assert!(debug_str.contains("PageNotWritable"));
+    if !debug_str.contains("PageNotWritable") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_usercopy_error_debug_page_fault() {
+pub fn test_usercopy_error_debug_page_fault() -> TestResult {
     let err = UsercopyError::PageFault;
     let debug_str = format!("{:?}", err);
-    assert!(debug_str.contains("PageFault"));
+    if !debug_str.contains("PageFault") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_usercopy_error_debug_no_process_context() {
+pub fn test_usercopy_error_debug_no_process_context() -> TestResult {
     let err = UsercopyError::NoProcessContext;
     let debug_str = format!("{:?}", err);
-    assert!(debug_str.contains("NoProcessContext"));
+    if !debug_str.contains("NoProcessContext") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_usercopy_error_debug_size_too_large() {
+pub fn test_usercopy_error_debug_size_too_large() -> TestResult {
     let err = UsercopyError::SizeTooLarge;
     let debug_str = format!("{:?}", err);
-    assert!(debug_str.contains("SizeTooLarge"));
+    if !debug_str.contains("SizeTooLarge") { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_usercopy_error_equality_same_variant() {
-    assert_eq!(UsercopyError::NullPointer, UsercopyError::NullPointer);
-    assert_eq!(UsercopyError::InvalidAddress, UsercopyError::InvalidAddress);
-    assert_eq!(UsercopyError::AddressOverflow, UsercopyError::AddressOverflow);
-    assert_eq!(UsercopyError::PageNotMapped, UsercopyError::PageNotMapped);
-    assert_eq!(UsercopyError::PageNotUser, UsercopyError::PageNotUser);
-    assert_eq!(UsercopyError::PageNotWritable, UsercopyError::PageNotWritable);
-    assert_eq!(UsercopyError::PageFault, UsercopyError::PageFault);
-    assert_eq!(UsercopyError::NoProcessContext, UsercopyError::NoProcessContext);
-    assert_eq!(UsercopyError::SizeTooLarge, UsercopyError::SizeTooLarge);
+pub fn test_usercopy_error_equality_same_variant() -> TestResult {
+    if UsercopyError::NullPointer != UsercopyError::NullPointer { return TestResult::Fail; }
+    if UsercopyError::InvalidAddress != UsercopyError::InvalidAddress { return TestResult::Fail; }
+    if UsercopyError::AddressOverflow != UsercopyError::AddressOverflow { return TestResult::Fail; }
+    if UsercopyError::PageNotMapped != UsercopyError::PageNotMapped { return TestResult::Fail; }
+    if UsercopyError::PageNotUser != UsercopyError::PageNotUser { return TestResult::Fail; }
+    if UsercopyError::PageNotWritable != UsercopyError::PageNotWritable { return TestResult::Fail; }
+    if UsercopyError::PageFault != UsercopyError::PageFault { return TestResult::Fail; }
+    if UsercopyError::NoProcessContext != UsercopyError::NoProcessContext { return TestResult::Fail; }
+    if UsercopyError::SizeTooLarge != UsercopyError::SizeTooLarge { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_usercopy_error_all_variants_unique_display() {
+pub fn test_usercopy_error_all_variants_unique_display() -> TestResult {
     let variants = [
         UsercopyError::NullPointer,
         UsercopyError::InvalidAddress,
@@ -240,26 +240,26 @@ fn test_usercopy_error_all_variants_unique_display() {
 
     for i in 0..variants.len() {
         for j in (i + 1)..variants.len() {
-            assert_ne!(format!("{}", variants[i]), format!("{}", variants[j]));
+            if format!("{}", variants[i]) == format!("{}", variants[j]) { return TestResult::Fail; }
         }
     }
+    TestResult::Pass
 }
 
-#[test]
-fn test_usercopy_error_result_ok() {
+pub fn test_usercopy_error_result_ok() -> TestResult {
     let result: Result<(), UsercopyError> = Ok(());
-    assert!(result.is_ok());
+    if !result.is_ok() { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_usercopy_error_result_err() {
+pub fn test_usercopy_error_result_err() -> TestResult {
     let result: Result<(), UsercopyError> = Err(UsercopyError::PageFault);
-    assert!(result.is_err());
-    assert_eq!(result.err(), Some(UsercopyError::PageFault));
+    if !result.is_err() { return TestResult::Fail; }
+    if result.err() != Some(UsercopyError::PageFault) { return TestResult::Fail; }
+    TestResult::Pass
 }
 
-#[test]
-fn test_usercopy_error_match_exhaustive() {
+pub fn test_usercopy_error_match_exhaustive() -> TestResult {
     let err = UsercopyError::NullPointer;
     let matched = match err {
         UsercopyError::NullPointer => true,
@@ -272,5 +272,6 @@ fn test_usercopy_error_match_exhaustive() {
         UsercopyError::NoProcessContext => false,
         UsercopyError::SizeTooLarge => false,
     };
-    assert!(matched);
+    if !matched { return TestResult::Fail; }
+    TestResult::Pass
 }
