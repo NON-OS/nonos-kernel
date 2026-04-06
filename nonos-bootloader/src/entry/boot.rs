@@ -21,7 +21,9 @@ use nonos_boot::boot::{
     run_security_checks, run_uefi_init, run_zk_attestation,
 };
 use nonos_boot::boot::prepare::HandoffParams;
-use nonos_boot::menu::{check_dev_key_held, run_boot_menu, MenuState, SecurityMode};
+#[cfg(feature = "dev-mode")]
+use nonos_boot::menu::check_dev_key_held;
+use nonos_boot::menu::{run_boot_menu, MenuState, SecurityMode};
 use super::action::resolve_action;
 
 pub fn boot_entry(_handle: Handle, mut st: SystemTable<Boot>) -> Status {
