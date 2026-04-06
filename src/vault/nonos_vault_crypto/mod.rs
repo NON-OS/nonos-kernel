@@ -22,6 +22,7 @@ use crate::crypto::{
     aes_gcm::{aes256_gcm_encrypt, aes256_gcm_decrypt},
     chacha20poly1305::{aead_encrypt as chacha_encrypt, aead_decrypt as chacha_decrypt},
     sha256, hkdf_expand, hmac_sha256, hmac_verify,
+    hmac::{hkdf_extract, hkdf},
     ed25519::{KeyPair, Signature, sign as ed_sign, verify as ed_verify},
     kyber::{KyberKeyPair, kyber_keygen, kyber_encaps, kyber_decaps, KyberPublicKey, KyberSecretKey, KyberCiphertext},
     dilithium::{DilithiumKeyPair, dilithium_keypair, dilithium_sign, dilithium_verify, DilithiumPublicKey, DilithiumSecretKey, DilithiumSignature},
@@ -83,11 +84,21 @@ pub fn vault_hash_sha256(data: &[u8]) -> [u8; 32] {
     sha256(data)
 }
 
-/// HKDF-Expand
+/// HKDF-Extract - derives PRK from salt and input key material
+pub fn vault_hkdf_extract(salt: &[u8], ikm: &[u8]) -> [u8; 32] {
+    hkdf_extract(salt, ikm)
+}
+
+/// HKDF-Expand - expands PRK with info to produce output key material
 pub fn vault_hkdf_expand(prk: &[u8; 32], info: &[u8], out_len: usize) -> Result<Vec<u8>, &'static str> {
     let mut okm = vec![0u8; out_len];
-    hkdf_expand(prk, info, &mut okm).map_err(|_| "HKDF error")?;
+    hkdf_expand(prk, info, &mut okm)?;
     Ok(okm)
+}
+
+/// Complete HKDF - combines Extract and Expand phases
+pub fn vault_hkdf(salt: &[u8], ikm: &[u8], info: &[u8], out_len: usize) -> Result<Vec<u8>, &'static str> {
+    hkdf(salt, ikm, info, out_len)
 }
 
 /// HMAC-SHA256
