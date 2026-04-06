@@ -45,6 +45,9 @@ impl NonosFilesystem {
             modified: file.modified,
             encrypted: file.encrypted,
             quantum_protected: file.quantum_protected,
+            mode: file.mode,
+            uid: file.uid,
+            gid: file.gid,
         })
     }
 
