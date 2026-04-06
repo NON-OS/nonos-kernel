@@ -16,7 +16,7 @@
 
 use crate::display::constants::*;
 use crate::display::font::{draw_string, CHAR_HEIGHT};
-use crate::display::gop::{get_dimensions, fill_rect, draw_rect};
+use crate::display::gop::{get_dimensions, fill_rect};
 use crate::display::ui::StageStatus;
 use core::sync::atomic::{AtomicU8, AtomicBool, Ordering};
 
