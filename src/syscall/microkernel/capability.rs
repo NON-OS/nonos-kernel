@@ -68,12 +68,31 @@ pub fn sys_cap_check(target_pid: u32, caps: u64) -> i64 {
 
 fn has_admin_cap(pid: u32) -> bool {
     let table = CAP_TABLE.lock();
-    table.iter().find(|e| e.pid == pid).map(|e| e.caps & (1 << 63) != 0).unwrap_or(pid == 1)
+    // SECURITY FIX: Fail-closed authorization - if process not in table, deny access
+    // Do NOT grant admin to PID 1 by default - it must be explicitly granted via init_cap_for_init
+    table.iter().find(|e| e.pid == pid).map(|e| e.caps & (1 << 63) != 0).unwrap_or(false)
 }
+
+/// Capability bits for init process (PID 1) - minimal necessary capabilities
+const INIT_CAPABILITIES: u64 = {
+    const CAP_ADMIN: u64 = 1 << 63;        // Required for granting caps to child processes
+    const CAP_PROCESS: u64 = 1 << 0;       // Process management
+    const CAP_MEMORY: u64 = 1 << 1;        // Memory management
+    const CAP_IPC: u64 = 1 << 2;           // IPC operations
+    const CAP_FILESYSTEM: u64 = 1 << 3;    // Filesystem access
+    const CAP_NETWORK: u64 = 1 << 4;       // Network access
+    const CAP_DEVICE: u64 = 1 << 5;        // Device access
+    CAP_ADMIN | CAP_PROCESS | CAP_MEMORY | CAP_IPC | CAP_FILESYSTEM | CAP_NETWORK | CAP_DEVICE
+};
 
 pub fn init_cap_for_init() {
     let mut table = CAP_TABLE.lock();
-    table.push(CapEntry { pid: 1, caps: u64::MAX });
+    // Grant init process (PID 1) the minimal required capabilities, not u64::MAX
+    // This is a security improvement - init should only have what it needs
+    table.push(CapEntry { pid: 1, caps: INIT_CAPABILITIES });
+
+    // Log capability initialization for audit
+    crate::log::info!("[CAPS] Init process (PID 1) granted capabilities: {:#x}", INIT_CAPABILITIES);
 }
 
 pub fn grant_caps_internal(pid: u32, caps: u64) {
