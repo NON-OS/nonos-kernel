@@ -58,10 +58,23 @@ fn handle_msg_set(queues: &mut alloc::collections::BTreeMap<i32, super::msg_type
     if let Some(queue) = queues.get_mut(&msqid) {
         let mut set_buf = [0u8; 72];
         if copy_from_user(buf, &mut set_buf).is_err() { return errno(14); }
-        queue.uid = u64::from_ne_bytes(set_buf[8..16].try_into().unwrap()) as u32;
-        queue.gid = u64::from_ne_bytes(set_buf[16..24].try_into().unwrap()) as u32;
-        queue.mode = u64::from_ne_bytes(set_buf[24..32].try_into().unwrap()) as u16;
-        queue.qbytes = u64::from_ne_bytes(set_buf[64..72].try_into().unwrap()) as usize;
+        // SAFETY: Safe array conversions from fixed-size buffer - return EINVAL on any failure
+        queue.uid = u64::from_ne_bytes(match set_buf[8..16].try_into() {
+            Ok(arr) => arr,
+            Err(_) => return errno(22),
+        }) as u32;
+        queue.gid = u64::from_ne_bytes(match set_buf[16..24].try_into() {
+            Ok(arr) => arr,
+            Err(_) => return errno(22),
+        }) as u32;
+        queue.mode = u64::from_ne_bytes(match set_buf[24..32].try_into() {
+            Ok(arr) => arr,
+            Err(_) => return errno(22),
+        }) as u16;
+        queue.qbytes = u64::from_ne_bytes(match set_buf[64..72].try_into() {
+            Ok(arr) => arr,
+            Err(_) => return errno(22),
+        }) as usize;
         queue.ctime = crate::time::timestamp_millis();
         ok(0)
     } else { errno(22) }
