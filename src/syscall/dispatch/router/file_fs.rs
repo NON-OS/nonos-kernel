@@ -149,3 +149,4 @@ fn dispatch_process_vm_readv(pid: i32, lvec: usize, liovcnt: usize, rvec: usize,
 fn dispatch_process_vm_writev(pid: i32, lvec: usize, liovcnt: usize, rvec: usize, riovcnt: usize) -> SyscallResult {
     let result = crate::syscall::process_vm::sys_process_vm_writev(pid, lvec, liovcnt, rvec, riovcnt, 0);
     SyscallResult { value: result, capability_consumed: false, audit_required: true }
+}
