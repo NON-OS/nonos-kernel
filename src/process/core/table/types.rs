@@ -38,7 +38,12 @@ pub static PROCESS_TABLE: ProcessTable = ProcessTable { inner: RwLock::new(Vec::
 pub static CURRENT_PID: AtomicU32 = AtomicU32::new(0);
 pub(super) static NEXT_PID: AtomicU32 = AtomicU32::new(1);
 
-pub fn allocate_tid() -> Pid {
+/* DEV NOTES eK@nonos.systems
+   PID allocation with wrap-around protection. Returns None if PID space exhausted
+   after 65536 attempts. Callers must handle the None case gracefully by returning
+   EAGAIN to userspace or terminating the fork/clone syscall with an error.
+*/
+pub fn allocate_tid() -> Option<Pid> {
     const MAX_ATTEMPTS: u32 = 65536;
     let mut attempts = 0;
     loop {
@@ -46,14 +51,13 @@ pub fn allocate_tid() -> Pid {
         let next = if current >= u32::MAX - 1 { 1 } else { current + 1 };
         if NEXT_PID.compare_exchange(current, next, Ordering::SeqCst, Ordering::SeqCst).is_ok() {
             let pid = if current == 0 { 1 } else { current };
-            // Check if this PID is already in use (wrap-around protection)
             if !PROCESS_TABLE.is_active_pid(pid as u64) {
-                return pid;
+                return Some(pid);
             }
-            // PID is in use, try next one
             attempts += 1;
             if attempts >= MAX_ATTEMPTS {
-                panic!("PID space exhausted: no available PIDs");
+                crate::log::error!("[PROCESS] PID space exhausted after {} attempts", MAX_ATTEMPTS);
+                return None;
             }
             continue;
         }
