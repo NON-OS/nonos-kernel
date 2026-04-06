@@ -63,6 +63,10 @@ pub fn fd_allocate(fd: i32, offset: usize, len: usize) -> FdResult<()> {
     Ok(())
 }
 
+/* DEV NOTES eK@nonos.systems
+   File descriptor based chmod implementation. Validates FD, retrieves path from FD table,
+   and delegates to ramfs chmod which updates file mode bits (permission mask 0o7777).
+*/
 pub fn fd_chmod(fd: i32, mode: u32) -> FdResult<()> {
     validate_fd_range(fd)?;
 
@@ -72,14 +76,13 @@ pub fn fd_chmod(fd: i32, mode: u32) -> FdResult<()> {
 
     let path = get_entry_read(fd, |entry| Ok(entry.path.clone()))?;
 
-    if !ramfs::NONOS_FILESYSTEM.exists(&path) {
-        return Err(FdError::NotFound);
-    }
-
-    let _ = mode;
-    Ok(())
+    ramfs::NONOS_FILESYSTEM.chmod(&path, mode).map_err(FdError::from)
 }
 
+/* DEV NOTES eK@nonos.systems
+   File descriptor based chown implementation. Validates FD, retrieves path from FD table,
+   and delegates to ramfs chown which updates file ownership (uid/gid).
+*/
 pub fn fd_chown(fd: i32, owner: u32, group: u32) -> FdResult<()> {
     validate_fd_range(fd)?;
 
@@ -89,15 +92,14 @@ pub fn fd_chown(fd: i32, owner: u32, group: u32) -> FdResult<()> {
 
     let path = get_entry_read(fd, |entry| Ok(entry.path.clone()))?;
 
-    if !ramfs::NONOS_FILESYSTEM.exists(&path) {
-        return Err(FdError::NotFound);
-    }
-
-    let _ = owner;
-    let _ = group;
-    Ok(())
+    ramfs::NONOS_FILESYSTEM.chown(&path, owner, group).map_err(FdError::from)
 }
 
+/* DEV NOTES eK@nonos.systems
+   Global filesystem sync. For ramfs this is a no-op since data is in memory.
+   For persistent filesystems (ext4, cryptofs) this flushes dirty buffers to disk.
+*/
 pub fn sync_all() -> Result<(), &'static str> {
+    crate::fs::internal::sync_all_mounted_filesystems();
     Ok(())
 }
