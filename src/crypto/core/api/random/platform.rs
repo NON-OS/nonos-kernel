@@ -18,9 +18,18 @@ use core::sync::atomic::AtomicU64;
 
 pub(super) static KEYGEN_COUNTER: AtomicU64 = AtomicU64::new(0xB5A1_9E37_C4D2_8F6B);
 
+/* DEV NOTES eK@nonos.systems
+   Provides random value with fallback to TSC-based PRNG when hardware entropy unavailable.
+   The TSC mixing provides reasonable entropy for keygen counters but callers requiring
+   cryptographic randomness should validate hardware entropy availability first.
+*/
 #[inline]
 pub(super) fn rdrand64_or_tsc() -> u64 {
-    secure_random64().unwrap_or_else(|| panic!("CRITICAL: No hardware entropy available"))
+    secure_random64().unwrap_or_else(|| {
+        let tsc = read_tsc();
+        let counter = KEYGEN_COUNTER.fetch_add(1, core::sync::atomic::Ordering::Relaxed);
+        tsc.wrapping_mul(0x5851f42d4c957f2d) ^ counter
+    })
 }
 
 pub(super) fn secure_random64() -> Option<u64> {
