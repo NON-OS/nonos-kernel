@@ -76,7 +76,7 @@ fn draw_usb_eth_card(x: u32, y: u32, w: u32) {
 
     draw_connection_status(x, y, w);
 
-    let mac = get_mac_address();
+    let mac = get_mac_address().unwrap_or([0; 6]);
     let mac_str = format_mac(&mac);
     draw_string(x + 25, y + 22, &mac_str, 0xFF7D8590);
 }
@@ -114,7 +114,7 @@ fn draw_interface_card(x: u32, y: u32, w: u32, idx: u8, _is_up: bool) {
 
     draw_connection_status(x, y, w);
 
-    let mac = get_mac_address();
+    let mac = get_mac_address().unwrap_or([0; 6]);
     let mac_str = format_mac(&mac);
     draw_string(x + 25, y + 22, &mac_str, 0xFF7D8590);
 }
@@ -150,7 +150,7 @@ fn draw_virtio_card(x: u32, y: u32, w: u32) {
 
     draw_connection_status(x, y, w);
 
-    let mac = get_mac_address();
+    let mac = get_mac_address().unwrap_or([0; 6]);
     let mac_str = format_mac(&mac);
     draw_string(x + 25, y + 22, &mac_str, 0xFF7D8590);
 }
