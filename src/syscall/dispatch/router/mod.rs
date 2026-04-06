@@ -101,6 +101,16 @@ fn dispatch_syscall(syscall: SyscallNumber, a0: u64, a1: u64, a2: u64, a3: u64, 
         SyscallNumber::AdminShutdown | SyscallNumber::AdminModLoad |
         SyscallNumber::AdminCapGrant | SyscallNumber::AdminCapRevoke => admin::dispatch_admin(syscall, a0, a1, a2, a3, a4, a5),
 
+        SyscallNumber::MkIpcSend | SyscallNumber::MkIpcRecv | SyscallNumber::MkIpcCall |
+        SyscallNumber::MkMmap | SyscallNumber::MkMunmap | SyscallNumber::MkSpawn |
+        SyscallNumber::MkExit | SyscallNumber::MkYield | SyscallNumber::MkCapGrant |
+        SyscallNumber::MkCapRevoke | SyscallNumber::MkCapCheck => {
+            let result = crate::syscall::microkernel::dispatch_microkernel_syscall(
+                syscall as u64, a0, a1, a2, a3, a4
+            );
+            SyscallResult { value: result, audit_required: true }
+        }
+
         _ => file_fs::dispatch_file_fs(syscall, a0, a1, a2, a3, a4, a5),
     }
 }
