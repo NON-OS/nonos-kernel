@@ -63,6 +63,9 @@ impl NonosFilesystem {
             modified: timestamp,
             encrypted: self.encryption_enabled,
             quantum_protected: matches!(self.filesystem_type, NonosFileSystemType::QuantumSafe),
+            mode: 0o644,
+            uid: 0,
+            gid: 0,
         };
 
         let was_new = self.files.write().insert(name.to_string(), file).is_none();
