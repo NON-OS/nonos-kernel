@@ -86,3 +86,25 @@ pub fn calculate_ip_checksum(header: &[u8]) -> u16 {
 pub fn make_ethernet_frame(src_mac: [u8; 6], dst_mac: [u8; 6], ethertype: u16, payload: &[u8]) -> Vec<u8> {
     build_ethernet_frame(&src_mac, &dst_mac, ethertype, payload)
 }
+
+pub fn send_ipv6_packet(packet: &[u8]) -> Result<(), i32> {
+    if packet.len() < 40 { return Err(-22); }
+    let stack = get_network_stack().ok_or(-19)?;
+    let src_mac = stack.get_mac_address();
+    let mut dst = [0u8; 16]; dst.copy_from_slice(&packet[24..40]);
+    let dst_addr = crate::network::ipv6::Ipv6Address(dst);
+    let dst_mac = if dst_addr.is_multicast() {
+        [0x33, 0x33, dst[12], dst[13], dst[14], dst[15]]
+    } else {
+        crate::network::ipv6::neighbor::resolve_neighbor(&dst_addr).unwrap_or([0xff; 6])
+    };
+    let frame = build_ethernet_frame(&src_mac, &dst_mac, 0x86DD, packet);
+    if let Some(dev) = DEVICE_SLOT.get() {
+        dev.transmit(&frame).map_err(|_| -5)?;
+    }
+    Ok(())
+}
+
+pub fn get_mac_address_opt() -> Option<[u8; 6]> {
+    get_network_stack().map(|s| s.get_mac_address())
+}
