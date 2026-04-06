@@ -46,7 +46,7 @@ pub fn draw_boot_progress(progress: u32, total: u32) {
 pub fn show_handoff_message() {
     let (cx, _cy, _cw, ch) = get_right_panel_bounds();
     let y = MARGIN + ch - 50;
-    fill_rect(cx, y, 280, 24, COLOR_GLASS_BG);
+    // Transparent background
     draw_string(cx + 8, y + 4, b"Transferring to kernel...", COLOR_SUCCESS);
 }
 
