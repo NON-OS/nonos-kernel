@@ -20,22 +20,49 @@ pub fn init() -> Result<(), &'static str> {
     Ok(())
 }
 
+/* DEV NOTES eK@nonos.systems
+   Secure random generation with multiple entropy source fallbacks: RDRAND, RDSEED, VirtIO RNG.
+   Uses TSC-based PRNG as last resort fallback to prevent system panic if no hardware RNG is
+   available. The TSC fallback provides reasonable entropy for non-cryptographic uses but callers
+   requiring cryptographic randomness should use try_secure_random_u64() and handle errors.
+*/
 pub fn secure_random_u64() -> u64 {
+    match try_secure_random_u64() {
+        Ok(v) => v,
+        Err(_) => {
+            crate::log::warn!("[RNG] No hardware entropy source, using TSC-based fallback");
+            tsc_fallback_random()
+        }
+    }
+}
+
+pub fn try_secure_random_u64() -> Result<u64, &'static str> {
     #[cfg(target_arch = "x86_64")]
     {
         for _ in 0..10 {
             let mut value: u64 = 0;
             unsafe {
                 if core::arch::x86_64::_rdrand64_step(&mut value) == 1 {
-                    return value;
+                    return Ok(value);
                 }
             }
             core::hint::spin_loop();
         }
-        if let Some(v) = try_rdseed() { return v; }
-        if let Ok(v) = try_virtio_rng() { return v; }
+        if let Some(v) = try_rdseed() { return Ok(v); }
+        if let Ok(v) = try_virtio_rng() { return Ok(v); }
     }
-    panic!("FATAL: No hardware entropy source available for secure_random_u64");
+    Err("No hardware entropy source available")
+}
+
+fn tsc_fallback_random() -> u64 {
+    use core::sync::atomic::{AtomicU64, Ordering};
+    static STATE: AtomicU64 = AtomicU64::new(0x853c49e6748fea9b);
+    let tsc = unsafe { core::arch::x86_64::_rdtsc() };
+    let old = STATE.load(Ordering::Relaxed);
+    let mixed = old.wrapping_mul(0x5851f42d4c957f2d).wrapping_add(tsc);
+    let new = mixed ^ (mixed >> 33);
+    STATE.store(new, Ordering::Relaxed);
+    new.wrapping_mul(0xff51afd7ed558ccd)
 }
 
 #[cfg(target_arch = "x86_64")]
