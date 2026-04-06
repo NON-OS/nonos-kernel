@@ -76,6 +76,8 @@ pub fn write_message(msg: &str) {
     console.write_str(msg);
     console.put_byte(b'\n');
     console.flush_cursor();
+    // Also render to graphical boot log
+    crate::sys::boot_log::info(msg);
 }
 
 pub fn get_console_stats() -> ConsoleStats {
