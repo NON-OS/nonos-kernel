@@ -15,10 +15,15 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub mod check;
+pub mod close;
+pub mod ctl;
+pub mod fd;
 pub mod instance;
+pub mod stats;
 pub mod syscalls;
 pub mod types;
 pub mod util;
+pub mod wait;
 
 pub use types::{
     EpollEvent, EPOLL_CLOEXEC, EPOLL_CTL_ADD, EPOLL_CTL_DEL, EPOLL_CTL_MOD,
@@ -33,3 +38,9 @@ pub use syscalls::{
 };
 
 pub use util::{is_epoll_fd, fd_to_epoll_id, close_epoll, check_fd_events_external};
+
+pub use close::{epoll_close, close_all_for_process, cleanup_stale, close_all, remove_fd_from_all_instances};
+pub use ctl::{epoll_add, epoll_mod, epoll_del, epoll_ctl, is_fd_monitored, get_fd_events, monitored_fd_count, all_monitored_fds};
+pub use fd::{allocate_fd, release_fd, fd_to_instance_id, bind_fd_to_instance, fd_count, instance_count, create_instance_with_fd};
+pub use stats::{get_stats, instance_stats, total_instances, total_fds, total_monitored_fds, memory_usage, EpollStats, InstanceStats};
+pub use wait::{epoll_poll, epoll_wait_blocking, has_ready_events, count_ready_events, peek_events, can_read};
