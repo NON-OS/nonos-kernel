@@ -33,6 +33,7 @@ pub mod stack;
 pub mod tcp;
 pub mod transparent;
 pub mod udp;
+pub mod unix;
 
 pub use api::is_network_ready;
 
