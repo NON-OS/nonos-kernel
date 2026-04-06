@@ -25,24 +25,35 @@ pub fn handle_clone(flags: u64, stack: u64, parent_tid: u64, child_tid: u64, tls
     }
 }
 
+/// Helper macro to safely convert slice to array, returning EINVAL on failure
+macro_rules! safe_u64_from_slice {
+    ($buf:expr, $start:expr, $end:expr) => {
+        match $buf[$start..$end].try_into() {
+            Ok(arr) => u64::from_ne_bytes(arr),
+            Err(_) => return errno(22),
+        }
+    };
+}
+
 pub fn handle_clone3(args_ptr: u64, size: u64) -> SyscallResult {
     if args_ptr == 0 { return errno(14); }
     let expected_size = core::mem::size_of::<crate::process::CloneArgs>();
     if (size as usize) < expected_size { return errno(22); }
     let mut buf = [0u8; 88];
     if copy_from_user(args_ptr, &mut buf).is_err() { return errno(14); }
+    // SAFETY: All conversions use safe macro that returns EINVAL on failure
     let args = crate::process::CloneArgs {
-        flags: u64::from_ne_bytes(buf[0..8].try_into().unwrap()),
-        pidfd: u64::from_ne_bytes(buf[8..16].try_into().unwrap()),
-        child_tid: u64::from_ne_bytes(buf[16..24].try_into().unwrap()),
-        parent_tid: u64::from_ne_bytes(buf[24..32].try_into().unwrap()),
-        exit_signal: u64::from_ne_bytes(buf[32..40].try_into().unwrap()),
-        stack: u64::from_ne_bytes(buf[40..48].try_into().unwrap()),
-        stack_size: u64::from_ne_bytes(buf[48..56].try_into().unwrap()),
-        tls: u64::from_ne_bytes(buf[56..64].try_into().unwrap()),
-        set_tid: u64::from_ne_bytes(buf[64..72].try_into().unwrap()),
-        set_tid_size: u64::from_ne_bytes(buf[72..80].try_into().unwrap()),
-        cgroup: u64::from_ne_bytes(buf[80..88].try_into().unwrap()),
+        flags: safe_u64_from_slice!(buf, 0, 8),
+        pidfd: safe_u64_from_slice!(buf, 8, 16),
+        child_tid: safe_u64_from_slice!(buf, 16, 24),
+        parent_tid: safe_u64_from_slice!(buf, 24, 32),
+        exit_signal: safe_u64_from_slice!(buf, 32, 40),
+        stack: safe_u64_from_slice!(buf, 40, 48),
+        stack_size: safe_u64_from_slice!(buf, 48, 56),
+        tls: safe_u64_from_slice!(buf, 56, 64),
+        set_tid: safe_u64_from_slice!(buf, 64, 72),
+        set_tid_size: safe_u64_from_slice!(buf, 72, 80),
+        cgroup: safe_u64_from_slice!(buf, 80, 88),
     };
     match crate::process::clone3(&args, size as usize) {
         Ok(tid) => SyscallResult { value: tid as i64, capability_consumed: false, audit_required: true },
