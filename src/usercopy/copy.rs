@@ -38,31 +38,37 @@ pub fn copy_to_user(user_ptr: u64, src: &[u8]) -> Result<(), UsercopyError> {
 
 /// # Safety
 /// Reads a typed value from user space with validation. Type must be Copy
-/// and have stable representation. User pointer must be properly aligned.
+/// and have stable representation. Enforces that the user pointer is
+/// aligned to align_of::<T>() before performing any copy.
 pub fn read_user_value<T: Copy>(user_ptr: u64) -> Result<T, UsercopyError> {
+    let align = core::mem::align_of::<T>() as u64;
+    if user_ptr % align != 0 {
+        return Err(UsercopyError::UnalignedPointer);
+    }
     let size = core::mem::size_of::<T>();
     validate_user_read(user_ptr, size)?;
-
     let mut value: T = unsafe { core::mem::zeroed() };
     let dst = unsafe {
         core::slice::from_raw_parts_mut(&mut value as *mut T as *mut u8, size)
     };
-
     unsafe { do_copy_from_user(user_ptr, dst)?; }
     Ok(value)
 }
 
 /// # Safety
 /// Writes a typed value to user space with validation. Type must be Copy
-/// and have stable representation. User pointer must be properly aligned.
+/// and have stable representation. Enforces that the user pointer is
+/// aligned to align_of::<T>() before performing any copy.
 pub fn write_user_value<T: Copy>(user_ptr: u64, value: &T) -> Result<(), UsercopyError> {
+    let align = core::mem::align_of::<T>() as u64;
+    if user_ptr % align != 0 {
+        return Err(UsercopyError::UnalignedPointer);
+    }
     let size = core::mem::size_of::<T>();
     validate_user_write(user_ptr, size)?;
-
     let src = unsafe {
         core::slice::from_raw_parts(value as *const T as *const u8, size)
     };
-
     unsafe { do_copy_to_user(user_ptr, src) }
 }
 

@@ -27,6 +27,7 @@ pub enum UsercopyError {
     PageFault,
     NoProcessContext,
     SizeTooLarge,
+    UnalignedPointer,
 }
 
 impl fmt::Display for UsercopyError {
@@ -41,6 +42,7 @@ impl fmt::Display for UsercopyError {
             Self::PageFault => write!(f, "page fault during access"),
             Self::NoProcessContext => write!(f, "no process context"),
             Self::SizeTooLarge => write!(f, "copy size too large"),
+            Self::UnalignedPointer => write!(f, "user pointer is not aligned for the target type"),
         }
     }
 }
