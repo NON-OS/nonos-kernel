@@ -36,12 +36,42 @@ pub fn boot_entry(_handle: Handle, mut st: SystemTable<Boot>) -> Status {
     let _ = st.boot_services().set_watchdog_timer(0, 0x10000, None);
     let uefi_result = run_uefi_init(&mut st);
     let gop = uefi_result.gop_available;
-    let dev_override = check_dev_key_held(st.boot_services());
+    // SECURITY: Development mode bypass is disabled in production builds
+    // F12 can only activate development mode if:
+    // 1. The "dev-mode" feature is enabled at compile time, AND
+    // 2. Secure Boot is NOT enabled (development environments typically have it disabled)
+    #[cfg(feature = "dev-mode")]
+    let dev_override = {
+        let f12_pressed = check_dev_key_held(st.boot_services());
+        if f12_pressed {
+            // Check if Secure Boot is disabled - development mode only allowed without Secure Boot
+            let secure_boot_on = st.runtime_services()
+                .get_variable(
+                    uefi::cstr16!("SecureBoot"),
+                    &uefi::table::runtime::VariableVendor::GLOBAL_VARIABLE
+                )
+                .map(|(data, _)| data.first().copied().unwrap_or(0) == 1)
+                .unwrap_or(false);
+
+            if secure_boot_on {
+                let _ = st.stdout().output_string(uefi::cstr16!("[SECURITY] F12 dev mode blocked: Secure Boot is enabled\r\n"));
+                false
+            } else {
+                let _ = st.stdout().output_string(uefi::cstr16!("[WARN] F12 pressed - development mode (Secure Boot disabled)\r\n"));
+                true
+            }
+        } else {
+            false
+        }
+    };
+    #[cfg(not(feature = "dev-mode"))]
+    let dev_override = false; // Development mode completely disabled in production builds
+
     let mut menu_state = MenuState::default();
     let menu_action = run_boot_menu(st.boot_services(), &mut menu_state);
 
     let security_mode = if dev_override {
-        let _ = st.stdout().output_string(uefi::cstr16!("[WARN] DEV MODE\r\n"));
+        let _ = st.stdout().output_string(uefi::cstr16!("[WARN] DEV MODE - SECURITY BYPASSED\r\n"));
         SecurityMode::Development
     } else {
         match resolve_action(&mut st, menu_action) {
