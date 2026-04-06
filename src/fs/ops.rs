@@ -20,14 +20,40 @@ use alloc::vec::Vec;
 use core::sync::atomic::{compiler_fence, Ordering};
 
 use super::manager::get_filesystem_manager;
-use super::{cache, cryptofs, internal, ramfs, vfs};
+use super::{cache, cryptofs, devfs, procfs, sysfs, internal, ramfs, vfs};
 
+/* DEV NOTES eK@nonos.systems
+   Filesystem subsystem initialization. Order matters:
+   1. VFS layer (virtual filesystem switch)
+   2. CryptoFS (encrypted storage)
+   3. RamFS (in-memory filesystem for /tmp, etc.)
+   4. Caches (dentry, inode, page caches)
+   5. DevFS at /dev (device nodes: null, zero, random, tty, pts)
+   6. ProcFS at /proc (process information, kernel stats)
+   7. SysFS at /sys (device/driver/bus hierarchy)
+*/
 pub fn init() {
     vfs::init_vfs();
     let _ = cryptofs::init_cryptofs(1024 * 1024, 4096);
     let _ = ramfs::init_nonos_filesystem();
     cache::init_all_caches();
-    crate::log::logger::log_info!("Filesystem subsystem initialized (RAM-only mode)");
+
+    match devfs::devfs_mount("/dev") {
+        Ok(()) => crate::log::logger::log_info!("DevFS mounted at /dev"),
+        Err(e) => crate::log_warn!("DevFS mount failed: {}", e),
+    }
+
+    match procfs::procfs_mount("/proc") {
+        Ok(()) => crate::log::logger::log_info!("ProcFS mounted at /proc"),
+        Err(e) => crate::log_warn!("ProcFS mount failed: {}", e),
+    }
+
+    match sysfs::sysfs_mount("/sys") {
+        Ok(()) => crate::log::logger::log_info!("SysFS mounted at /sys"),
+        Err(e) => crate::log_warn!("SysFS mount failed: {}", e),
+    }
+
+    crate::log::logger::log_info!("Filesystem subsystem initialized");
 }
 
 pub fn read_file(file_path: &str) -> Result<Vec<u8>, &'static str> {
@@ -178,20 +204,11 @@ pub fn link(old_path: &str, new_path: &str) -> Result<(), &'static str> {
 }
 
 pub fn chmod(path: &str, mode: u32) -> Result<(), &'static str> {
-    if !ramfs::NONOS_FILESYSTEM.exists(path) {
-        return Err("File not found");
-    }
-
-    let _ = mode;
-    Ok(())
+    ramfs::NONOS_FILESYSTEM.chmod(path, mode).map_err(|e| e.as_str())
 }
 
-pub fn chown(path: &str, _owner: u32, _group: u32) -> Result<(), &'static str> {
-    if !ramfs::NONOS_FILESYSTEM.exists(path) {
-        return Err("File not found");
-    }
-
-    Ok(())
+pub fn chown(path: &str, owner: u32, group: u32) -> Result<(), &'static str> {
+    ramfs::NONOS_FILESYSTEM.chown(path, owner, group).map_err(|e| e.as_str())
 }
 
 pub fn truncate(path: &str, length: u64) -> Result<(), &'static str> {
