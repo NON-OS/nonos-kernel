@@ -111,6 +111,9 @@ impl NonosFilesystem {
                 modified: timestamp,
                 encrypted: self.encryption_enabled,
                 quantum_protected: matches!(self.filesystem_type, NonosFileSystemType::QuantumSafe),
+                mode: 0o644,
+                uid: 0,
+                gid: 0,
             };
 
             files.insert(name.to_string(), file);
@@ -128,5 +131,30 @@ impl NonosFilesystem {
         }
 
         Ok(())
+    }
+
+    pub fn chmod(&self, path: &str, mode: u32) -> FsResult<()> {
+        validate_path(path)?;
+        let mut files = self.files.write();
+        if let Some(file) = files.get_mut(path) {
+            file.mode = mode & 0o7777;
+            file.modified = crate::time::timestamp_millis();
+            Ok(())
+        } else {
+            Err(FsError::NotFound)
+        }
+    }
+
+    pub fn chown(&self, path: &str, uid: u32, gid: u32) -> FsResult<()> {
+        validate_path(path)?;
+        let mut files = self.files.write();
+        if let Some(file) = files.get_mut(path) {
+            file.uid = uid;
+            file.gid = gid;
+            file.modified = crate::time::timestamp_millis();
+            Ok(())
+        } else {
+            Err(FsError::NotFound)
+        }
     }
 }
