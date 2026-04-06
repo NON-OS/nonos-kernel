@@ -59,13 +59,27 @@ pub fn handle_recvmsg(sockfd: u64, msg: u64, flags: u64) -> SyscallResult {
     if msg == 0 { return errno(22); }
     let mut msghdr_bytes = [0u8; 56];
     if copy_from_user(msg, &mut msghdr_bytes).is_err() { return errno(14); }
-    let iov_ptr = u64::from_ne_bytes(msghdr_bytes[16..24].try_into().unwrap());
-    let iovlen = u64::from_ne_bytes(msghdr_bytes[24..32].try_into().unwrap());
+    // SAFETY: These slices are exactly 8 bytes from a 56-byte buffer, conversion cannot fail
+    let iov_ptr = u64::from_ne_bytes(match msghdr_bytes[16..24].try_into() {
+        Ok(arr) => arr,
+        Err(_) => return errno(22), // EINVAL - should never happen with fixed buffer
+    });
+    let iovlen = u64::from_ne_bytes(match msghdr_bytes[24..32].try_into() {
+        Ok(arr) => arr,
+        Err(_) => return errno(22),
+    });
     if iov_ptr == 0 || iovlen == 0 { return errno(22); }
     let mut iov_bytes = [0u8; 16];
     if copy_from_user(iov_ptr, &mut iov_bytes).is_err() { return errno(14); }
-    let iov_base = u64::from_ne_bytes(iov_bytes[0..8].try_into().unwrap());
-    let iov_len = u64::from_ne_bytes(iov_bytes[8..16].try_into().unwrap());
+    // SAFETY: These slices are exactly 8 bytes from a 16-byte buffer
+    let iov_base = u64::from_ne_bytes(match iov_bytes[0..8].try_into() {
+        Ok(arr) => arr,
+        Err(_) => return errno(22),
+    });
+    let iov_len = u64::from_ne_bytes(match iov_bytes[8..16].try_into() {
+        Ok(arr) => arr,
+        Err(_) => return errno(22),
+    });
     handle_recvfrom(sockfd, iov_base, iov_len, flags)
 }
 
