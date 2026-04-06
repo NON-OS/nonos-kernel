@@ -266,6 +266,17 @@ impl SyscallNumber {
             1202 => Some(Self::AdminModLoad),
             1203 => Some(Self::AdminCapGrant),
             1204 => Some(Self::AdminCapRevoke),
+            0x1000 => Some(Self::MkIpcSend),
+            0x1001 => Some(Self::MkIpcRecv),
+            0x1002 => Some(Self::MkIpcCall),
+            0x1010 => Some(Self::MkMmap),
+            0x1011 => Some(Self::MkMunmap),
+            0x1020 => Some(Self::MkSpawn),
+            0x1021 => Some(Self::MkExit),
+            0x1022 => Some(Self::MkYield),
+            0x1030 => Some(Self::MkCapGrant),
+            0x1031 => Some(Self::MkCapRevoke),
+            0x1032 => Some(Self::MkCapCheck),
             _ => None,
         }
     }
