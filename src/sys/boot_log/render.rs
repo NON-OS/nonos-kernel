@@ -14,36 +14,48 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
-use crate::display::{Framebuffer, font, fill_rect, write_pixel};
-use super::state::{DISPLAY_ENABLED, LOG_Y, MIN_LOG_Y, CHAR_HEIGHT, LEFT_MARGIN, BG_COLOR};
+use core::sync::atomic::{AtomicU32, Ordering};
+use crate::display::{font, write_pixel};
+use super::state::{DISPLAY_ENABLED, LOG_Y, CHAR_HEIGHT, LEFT_MARGIN};
+
+const MAX_MSG_LEN: usize = 80;
+const SCREEN_HEIGHT: u32 = 1024;
+static KERNEL_START_Y: AtomicU32 = AtomicU32::new(0);
+static CURRENT_Y: AtomicU32 = AtomicU32::new(0);
+static INIT_DONE: AtomicU32 = AtomicU32::new(0);
 
 pub(super) fn write_line(_tag: &str, msg: &str, color: u32) {
     if !DISPLAY_ENABLED.load(Ordering::Acquire) {
         return;
     }
-    let y = advance_line();
-    clear_line(y);
+
+    // Initialize: kernel logs continue from where bootloader ended
+    if INIT_DONE.swap(1, Ordering::SeqCst) == 0 {
+        let cursor_y = LOG_Y.load(Ordering::Relaxed);
+        KERNEL_START_Y.store(cursor_y, Ordering::SeqCst);
+        CURRENT_Y.store(cursor_y, Ordering::SeqCst);
+    }
+
+    let y = CURRENT_Y.fetch_add(CHAR_HEIGHT, Ordering::SeqCst);
+
+    // Stop if we go off screen
+    if y >= SCREEN_HEIGHT - CHAR_HEIGHT {
+        return;
+    }
+
+    // Draw directly - no clearing, transparent background
     let mut x = LEFT_MARGIN;
     x = render_str(x, y, "[+] ", color);
-    let _ = render_str(x, y, msg, color);
+
+    let msg_len = msg.len().min(MAX_MSG_LEN);
+    let _ = render_str(x, y, &msg[..msg_len], color);
+
+    log_delay();
 }
 
-fn advance_line() -> u32 {
-    let y = LOG_Y.fetch_add(CHAR_HEIGHT, Ordering::Relaxed);
-    if let Ok(info) = Framebuffer::info() {
-        if y + CHAR_HEIGHT >= info.height - 40 {
-            let min_y = MIN_LOG_Y.load(Ordering::Relaxed);
-            LOG_Y.store(min_y, Ordering::Relaxed);
-            return min_y;
-        }
-    }
-    y
-}
-
-fn clear_line(y: u32) {
-    if let Ok(info) = Framebuffer::info() {
-        let _ = fill_rect(0, y, info.width, CHAR_HEIGHT, BG_COLOR);
+fn log_delay() {
+    for _ in 0..300_000 {
+        core::hint::spin_loop();
     }
 }
 
