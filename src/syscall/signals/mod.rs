@@ -14,16 +14,22 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+pub mod blocked;
 pub mod constants;
-pub mod types;
-pub mod state;
 pub mod delivery;
+pub mod handler;
+pub mod info;
+pub mod pending;
+pub mod queue;
+pub mod state;
+pub mod types;
+
 mod action;
 mod mask;
-mod wait;
-mod timedwait;
 mod send;
 mod stack;
+mod timedwait;
+mod wait;
 
 pub use constants::*;
 pub use types::*;
@@ -36,3 +42,9 @@ pub use wait::{handle_rt_sigreturn, handle_rt_sigsuspend, handle_pause};
 pub use timedwait::handle_rt_sigtimedwait;
 pub use send::{handle_kill, handle_tgkill, handle_tkill, handle_rt_sigqueueinfo, handle_rt_tgsigqueueinfo};
 pub use stack::{handle_sigaltstack, write_siginfo};
+
+pub use blocked::{get_blocked_mask, set_blocked_mask, block_signal, unblock_signal, is_blocked, sigprocmask, save_mask, restore_mask};
+pub use handler::{get_handler, set_handler, get_action, set_action, is_ignored, is_default, is_caught, reset_to_default, reset_all_handlers};
+pub use info::{SigInfo, copy_siginfo_to_user, copy_siginfo_from_user, SI_USER, SI_KERNEL, SI_QUEUE, SI_TKILL};
+pub use pending::{get_pending_mask, add_pending, remove_pending, is_pending, any_pending, get_deliverable, any_deliverable, first_deliverable};
+pub use queue::{queue_pending, dequeue_pending, pending_count, clear_pending, get_pending_signals, has_pending_signal, MAX_PENDING_SIGNALS};
