@@ -151,6 +151,9 @@ pub fn handle_yield() -> SyscallResult {
 }
 
 pub fn handle_ipc_send(channel: u64, buf: u64, len: u64) -> SyscallResult {
+    // IPC operations require IPC capability
+    if let Err(e) = require_capability(Capability::IPC) { return e; }
+
     if buf == 0 || len == 0 || len > 65536 {
         return errno(22);
     }
@@ -170,6 +173,9 @@ pub fn handle_ipc_send(channel: u64, buf: u64, len: u64) -> SyscallResult {
 }
 
 pub fn handle_ipc_recv(channel: u64, buf: u64, max_len: u64) -> SyscallResult {
+    // IPC operations require IPC capability
+    if let Err(e) = require_capability(Capability::IPC) { return e; }
+
     if buf == 0 || max_len == 0 {
         return errno(22);
     }
@@ -190,6 +196,9 @@ pub fn handle_ipc_recv(channel: u64, buf: u64, max_len: u64) -> SyscallResult {
 }
 
 pub fn handle_ipc_create(flags: u64) -> SyscallResult {
+    // Creating IPC channels requires IPC capability
+    if let Err(e) = require_capability(Capability::IPC) { return e; }
+
     match crate::ipc::create_channel(flags as u32) {
         Ok(channel_id) => SyscallResult { value: channel_id as i64, capability_consumed: false, audit_required: true },
         Err(crate::ipc::IpcError::TooManyChannels) => errno(24),
@@ -199,6 +208,9 @@ pub fn handle_ipc_create(flags: u64) -> SyscallResult {
 }
 
 pub fn handle_ipc_destroy(channel: u64) -> SyscallResult {
+    // Destroying IPC channels requires IPC capability
+    if let Err(e) = require_capability(Capability::IPC) { return e; }
+
     match crate::ipc::destroy_channel(channel as u32) {
         Ok(()) => SyscallResult { value: 0, capability_consumed: false, audit_required: true },
         Err(crate::ipc::IpcError::ChannelNotFound) => errno(2),
