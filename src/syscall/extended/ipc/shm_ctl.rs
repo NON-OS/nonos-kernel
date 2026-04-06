@@ -64,9 +64,19 @@ fn handle_set(segments: &mut alloc::collections::BTreeMap<i32, super::shm_types:
     if let Some(segment) = segments.get_mut(&shmid) {
         let mut set_buf = [0u8; 32];
         if copy_from_user(buf, &mut set_buf).is_err() { return errno(14); }
-        segment.uid = u64::from_ne_bytes(set_buf[8..16].try_into().unwrap()) as u32;
-        segment.gid = u64::from_ne_bytes(set_buf[16..24].try_into().unwrap()) as u32;
-        segment.mode = u64::from_ne_bytes(set_buf[24..32].try_into().unwrap()) as u16;
+        // SAFETY: Safe array conversions from fixed-size buffer - return EINVAL on any failure
+        segment.uid = u64::from_ne_bytes(match set_buf[8..16].try_into() {
+            Ok(arr) => arr,
+            Err(_) => return errno(22),
+        }) as u32;
+        segment.gid = u64::from_ne_bytes(match set_buf[16..24].try_into() {
+            Ok(arr) => arr,
+            Err(_) => return errno(22),
+        }) as u32;
+        segment.mode = u64::from_ne_bytes(match set_buf[24..32].try_into() {
+            Ok(arr) => arr,
+            Err(_) => return errno(22),
+        }) as u16;
         segment.ctime = crate::time::timestamp_millis();
         ok(0)
     } else { errno(22) }
