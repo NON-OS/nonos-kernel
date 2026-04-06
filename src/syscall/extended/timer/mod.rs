@@ -20,6 +20,7 @@ pub mod clock;
 pub mod posix;
 pub mod timerfd_types;
 pub mod timerfd_util;
+pub mod timerfd_stats;
 pub mod interval;
 pub mod alarm;
 pub mod utime;
@@ -31,6 +32,7 @@ pub use clock::{handle_clock_gettime, handle_clock_settime, handle_clock_getres,
 pub use posix::{handle_timer_create, handle_timer_settime, handle_timer_gettime, handle_timer_getoverrun, handle_timer_delete};
 pub use timerfd_types::{handle_timerfd_create, handle_timerfd_settime, handle_timerfd_gettime};
 pub use timerfd_util::{timerfd_read, get_timerfd_info_for_poll, is_timerfd, fd_to_timerfd_id, close_timerfd};
+pub use timerfd_stats::{TimerfdGlobalStats, get_global_stats as get_timerfd_global_stats, reset_stats as reset_timerfd_stats};
 pub use interval::{handle_getitimer, handle_setitimer};
 pub use alarm::handle_alarm;
 pub use utime::{handle_utime, handle_utimes, handle_utimensat, handle_futimesat};
