@@ -16,20 +16,37 @@
 
 use crate::display::constants::*;
 use crate::display::font::draw_string;
-use crate::display::gop::get_dimensions;
-use core::sync::atomic::{AtomicU32, Ordering};
+use crate::display::gop::{get_dimensions, fill_rect, draw_rect};
+use super::stages::get_stages_box_bottom;
+use core::sync::atomic::{AtomicU32, AtomicBool, Ordering};
 
 static HASH_REVEAL: AtomicU32 = AtomicU32::new(0);
+static CRYPTO_BOX_DRAWN: AtomicBool = AtomicBool::new(false);
 
-const MARGIN: u32 = 30;
-const PAD: u32 = 16;
-const CRYPTO_Y_START: u32 = 320;
+const CRYPTO_BOX_WIDTH: u32 = 200;
+const CRYPTO_BOX_HEIGHT: u32 = 110;
+const CRYPTO_BOX_PAD: u32 = 12;
+const CRYPTO_BOX_GAP: u32 = 20;
+
+fn get_crypto_box_pos() -> (u32, u32) {
+    let (screen_w, _) = get_dimensions();
+    let x = screen_w - CRYPTO_BOX_WIDTH - 50;
+    let y = get_stages_box_bottom() + CRYPTO_BOX_GAP;
+    (x, y)
+}
+
+fn draw_crypto_box() {
+    if CRYPTO_BOX_DRAWN.swap(true, Ordering::SeqCst) {
+        return;
+    }
+    let (bx, by) = get_crypto_box_pos();
+    // Transparent - draw cyan accent stripe
+    fill_rect(bx, by, 4, CRYPTO_BOX_HEIGHT, COLOR_CRYPTO_CYAN);
+}
 
 fn get_crypto_area() -> (u32, u32) {
-    let (screen_w, _) = get_dimensions();
-    let x = (screen_w / 2) + (MARGIN / 2) + PAD;
-    let y = CRYPTO_Y_START;
-    (x, y)
+    let (bx, by) = get_crypto_box_pos();
+    (bx + CRYPTO_BOX_PAD + 4, by + CRYPTO_BOX_PAD)
 }
 
 pub struct BootCryptoState {
@@ -57,45 +74,51 @@ impl BootCryptoState {
 }
 
 pub fn show_crypto_verification(crypto: &BootCryptoState) {
+    draw_crypto_box();
     let (cx, cy) = get_crypto_area();
 
-    draw_string(cx, cy, b"Cryptographic Verification", COLOR_ACCENT);
+    draw_string(cx, cy, b"Crypto Verification", COLOR_CRYPTO_CYAN);
 
-    let mut hash_line = [0u8; 48];
+    // Format hash: "BLAKE3 xxxx...xxxx"
+    let mut hash_line = [b' '; 28];
     hash_line[..7].copy_from_slice(b"BLAKE3 ");
-    format_hash_short(&crypto.kernel_hash, &mut hash_line[7..]);
-    draw_string(cx, cy + 22, &hash_line, COLOR_SUCCESS);
+    let len = format_hash_short(&crypto.kernel_hash, &mut hash_line[7..]);
+    draw_string(cx, cy + 24, &hash_line[..7 + len], COLOR_SUCCESS);
 
     let sig_status: (&[u8], u32) = match crypto.signature_valid {
         Some(true) => (b"Ed25519 VALID", COLOR_SUCCESS),
         Some(false) => (b"Ed25519 INVALID", COLOR_ERROR),
-        None => (b"Ed25519 verifying...", COLOR_TEXT_DIM),
+        None => (b"Ed25519 ...", COLOR_TEXT_DIM),
     };
-    draw_string(cx, cy + 44, sig_status.0, sig_status.1);
+    draw_string(cx, cy + 48, sig_status.0, sig_status.1);
 
     let zk_status: (&[u8], u32) = match (crypto.zk_present, crypto.zk_verified) {
-        (true, Some(true)) => (b"ZK-SNARK VERIFIED", COLOR_SUCCESS),
-        (true, Some(false)) => (b"ZK-SNARK FAILED", COLOR_ERROR),
-        (true, None) => (b"ZK-SNARK verifying...", COLOR_WARNING),
-        (false, _) => (b"ZK-SNARK not present", COLOR_TEXT_DIM),
+        (true, Some(true)) => (b"ZK VERIFIED", COLOR_SUCCESS),
+        (true, Some(false)) => (b"ZK FAILED", COLOR_ERROR),
+        (true, None) => (b"ZK ...", COLOR_WARNING),
+        (false, _) => (b"ZK not present", COLOR_TEXT_DIM),
     };
-    draw_string(cx, cy + 66, zk_status.0, zk_status.1);
+    draw_string(cx, cy + 72, zk_status.0, zk_status.1);
 }
 
-fn format_hash_short(hash: &[u8], out: &mut [u8]) {
+fn format_hash_short(hash: &[u8], out: &mut [u8]) -> usize {
     let hex = b"0123456789abcdef";
-    let show = hash.len().min(8);
-    for (i, &b) in hash[..show].iter().enumerate() {
-        if i * 2 + 1 < out.len() {
-            out[i * 2] = hex[(b >> 4) as usize];
-            out[i * 2 + 1] = hex[(b & 0xF) as usize];
+    let show = hash.len().min(6); // Show 6 bytes = 12 hex chars
+    let mut pos = 0;
+    for &b in hash[..show].iter() {
+        if pos + 1 < out.len() {
+            out[pos] = hex[(b >> 4) as usize];
+            out[pos + 1] = hex[(b & 0xF) as usize];
+            pos += 2;
         }
     }
-    if show * 2 + 3 <= out.len() {
-        out[show * 2] = b'.';
-        out[show * 2 + 1] = b'.';
-        out[show * 2 + 2] = b'.';
+    if pos + 3 <= out.len() {
+        out[pos] = b'.';
+        out[pos + 1] = b'.';
+        out[pos + 2] = b'.';
+        pos += 3;
     }
+    pos
 }
 
 pub fn animate_hash_reveal() {
