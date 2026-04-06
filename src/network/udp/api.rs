@@ -209,3 +209,18 @@ pub fn init() -> Result<(), &'static str> {
     crate::log::info!("UDP subsystem initialized");
     Ok(())
 }
+
+pub fn send_udp6(src: &crate::network::ipv6::Ipv6Address, src_port: u16, dst: &crate::network::ipv6::Ipv6Address, dst_port: u16, data: &[u8]) -> Result<(), i32> {
+    use alloc::vec::Vec;
+    let mut udp = Vec::with_capacity(8 + data.len());
+    udp.extend_from_slice(&src_port.to_be_bytes());
+    udp.extend_from_slice(&dst_port.to_be_bytes());
+    udp.extend_from_slice(&((8 + data.len()) as u16).to_be_bytes());
+    udp.push(0); udp.push(0);
+    udp.extend_from_slice(data);
+    let sum = crate::network::ipv6::packet::compute_pseudo_header_checksum(&src, &dst, 17, udp.len() as u32);
+    let cs = crate::network::ipv6::packet::finish_checksum(sum, &udp);
+    udp[6] = (cs >> 8) as u8; udp[7] = cs as u8;
+    let pkt = crate::network::ipv6::packet::build_ipv6_packet(*src, *dst, crate::network::ipv6::header::NextHeader::Udp, 64, &udp);
+    crate::network::stack::send_ipv6_packet(&pkt)
+}
