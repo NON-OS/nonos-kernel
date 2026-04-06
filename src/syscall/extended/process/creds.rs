@@ -17,23 +17,34 @@
 use crate::syscall::SyscallResult;
 use crate::syscall::extended::errno;
 use crate::usercopy::{copy_to_user, write_user_value};
+use crate::capabilities::Capability;
+use crate::syscall::dispatch::util::require_capability;
 
+/// Credential manipulation requires Admin capability - these are privileged operations
 pub fn handle_setuid(uid: u32) -> SyscallResult {
+    // Changing UID requires Admin capability
+    if let Err(e) = require_capability(Capability::Admin) { return e; }
     let _ = uid;
     SyscallResult { value: 0, capability_consumed: false, audit_required: true }
 }
 
 pub fn handle_setgid(gid: u32) -> SyscallResult {
+    // Changing GID requires Admin capability
+    if let Err(e) = require_capability(Capability::Admin) { return e; }
     let _ = gid;
     SyscallResult { value: 0, capability_consumed: false, audit_required: true }
 }
 
 pub fn handle_setreuid(ruid: u32, euid: u32) -> SyscallResult {
+    // Changing UID requires Admin capability
+    if let Err(e) = require_capability(Capability::Admin) { return e; }
     let _ = (ruid, euid);
     SyscallResult { value: 0, capability_consumed: false, audit_required: true }
 }
 
 pub fn handle_setregid(rgid: u32, egid: u32) -> SyscallResult {
+    // Changing GID requires Admin capability
+    if let Err(e) = require_capability(Capability::Admin) { return e; }
     let _ = (rgid, egid);
     SyscallResult { value: 0, capability_consumed: false, audit_required: true }
 }
@@ -52,6 +63,8 @@ pub fn handle_getresuid(ruid: u64, euid: u64, suid: u64) -> SyscallResult {
 }
 
 pub fn handle_setresuid(ruid: u32, euid: u32, suid: u32) -> SyscallResult {
+    // Changing UID requires Admin capability
+    if let Err(e) = require_capability(Capability::Admin) { return e; }
     let _ = (ruid, euid, suid);
     SyscallResult { value: 0, capability_consumed: false, audit_required: true }
 }
@@ -70,6 +83,8 @@ pub fn handle_getresgid(rgid: u64, egid: u64, sgid: u64) -> SyscallResult {
 }
 
 pub fn handle_setresgid(rgid: u32, egid: u32, sgid: u32) -> SyscallResult {
+    // Changing GID requires Admin capability
+    if let Err(e) = require_capability(Capability::Admin) { return e; }
     let _ = (rgid, egid, sgid);
     SyscallResult { value: 0, capability_consumed: false, audit_required: true }
 }
@@ -97,6 +112,8 @@ pub fn handle_getgroups(size: i32, _list: u64) -> SyscallResult {
 }
 
 pub fn handle_setgroups(size: u64, list: u64) -> SyscallResult {
+    // Changing groups requires Admin capability
+    if let Err(e) = require_capability(Capability::Admin) { return e; }
     let _ = (size, list);
     SyscallResult { value: 0, capability_consumed: false, audit_required: true }
 }
