@@ -29,7 +29,7 @@ mod tcp_methods;
 pub mod types;
 pub mod util;
 
-pub use api::{is_network_connected, set_network_connected, get_socket_info, get_current_ipv4, get_current_gateway, get_current_dns, get_mac_address, is_network_available, is_link_up};
+pub use api::{is_network_connected, set_network_connected, get_socket_info, get_current_ipv4, get_current_gateway, get_current_dns, get_mac_address, is_network_available, is_link_up, send_ipv6_packet, get_mac_address_opt};
 pub use device::{register_device, SmolDevice, SmolDeviceAdapter};
 pub use core::{get_network_stack, init_network_stack, NetworkStack};
 pub use types::{ArpEntry, DhcpLease, Ipv4Address, Ipv6Address, NetworkStats, SmolHandle, Socket, SocketInfo, TcpSocket};
