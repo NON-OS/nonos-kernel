@@ -16,21 +16,41 @@
 
 use crate::display::constants::*;
 use crate::display::font::{draw_string, CHAR_HEIGHT};
-use crate::display::gop::get_dimensions;
+use crate::display::gop::{get_dimensions, fill_rect, draw_rect};
 use crate::display::ui::StageStatus;
-use core::sync::atomic::{AtomicU8, Ordering};
+use core::sync::atomic::{AtomicU8, AtomicBool, Ordering};
 
 static CURRENT_STAGE: AtomicU8 = AtomicU8::new(STAGE_INIT);
+static STAGES_BOX_DRAWN: AtomicBool = AtomicBool::new(false);
 
-const MARGIN: u32 = 30;
-const HEADER_H: u32 = 32;
-const PAD: u32 = 16;
+pub const STAGES_BOX_WIDTH: u32 = 200;
+pub const STAGES_BOX_HEIGHT: u32 = 260;
+const STAGES_BOX_PAD: u32 = 12;
+
+fn get_stages_box_pos() -> (u32, u32) {
+    let (screen_w, _) = get_dimensions();
+    let x = screen_w - STAGES_BOX_WIDTH - 50;
+    let y = 140;
+    (x, y)
+}
+
+pub fn get_stages_box_bottom() -> u32 {
+    let (_, y) = get_stages_box_pos();
+    y + STAGES_BOX_HEIGHT
+}
+
+fn draw_stages_box() {
+    if STAGES_BOX_DRAWN.swap(true, Ordering::SeqCst) {
+        return;
+    }
+    let (bx, by) = get_stages_box_pos();
+    // Transparent background - only draw accent stripe
+    fill_rect(bx, by, 4, STAGES_BOX_HEIGHT, COLOR_ACCENT);
+}
 
 fn get_stages_area() -> (u32, u32) {
-    let (screen_w, _) = get_dimensions();
-    let x = (screen_w / 2) + (MARGIN / 2) + PAD;
-    let y = MARGIN + HEADER_H + PAD;
-    (x, y)
+    let (bx, by) = get_stages_box_pos();
+    (bx + STAGES_BOX_PAD + 4, by + STAGES_BOX_PAD)
 }
 
 pub fn update_stage(stage: u8, status: StageStatus) {
@@ -39,35 +59,42 @@ pub fn update_stage(stage: u8, status: StageStatus) {
         return;
     }
 
+    draw_stages_box();
     CURRENT_STAGE.store(stage, Ordering::Release);
 
     let (panel_x, base_y) = get_stages_area();
 
+    // Draw title on first call
+    static TITLE_DRAWN: AtomicBool = AtomicBool::new(false);
+    if !TITLE_DRAWN.swap(true, Ordering::SeqCst) {
+        draw_string(panel_x, base_y, b"Boot Stages", COLOR_ACCENT);
+    }
+
     let (offset, label): (u32, &[u8]) = match stage {
-        STAGE_UEFI => (0, b"UEFI Services"),
-        STAGE_SECURITY => (1, b"Security Policy"),
-        STAGE_HARDWARE => (2, b"Hardware Init"),
-        STAGE_KERNEL_LOAD => (3, b"Kernel Load"),
-        STAGE_BLAKE3_HASH => (4, b"BLAKE3 Hash"),
-        STAGE_ED25519_VERIFY => (5, b"Ed25519 Verify"),
-        STAGE_ZK_VERIFY => (6, b"ZK Attestation"),
-        STAGE_ELF_PARSE => (7, b"ELF Parse"),
-        STAGE_HANDOFF => (8, b"Kernel Handoff"),
-        STAGE_COMPLETE => (9, b"Boot Complete"),
+        STAGE_UEFI => (1, b"UEFI Services"),
+        STAGE_SECURITY => (2, b"Security"),
+        STAGE_HARDWARE => (3, b"Hardware Init"),
+        STAGE_KERNEL_LOAD => (4, b"Kernel Load"),
+        STAGE_BLAKE3_HASH => (5, b"BLAKE3 Hash"),
+        STAGE_ED25519_VERIFY => (6, b"Ed25519 Verify"),
+        STAGE_ZK_VERIFY => (7, b"ZK Attestation"),
+        STAGE_ELF_PARSE => (8, b"ELF Parse"),
+        STAGE_HANDOFF => (9, b"Kernel Handoff"),
+        STAGE_COMPLETE => (10, b"Boot Complete"),
         _ => return,
     };
 
     let y = base_y + offset * (CHAR_HEIGHT + 4);
 
     let (indicator, color) = match status {
-        StageStatus::Pending => (b"   ", COLOR_TEXT_DIM),
-        StageStatus::Running => (b" > ", COLOR_WARNING),
-        StageStatus::Success => (b" + ", COLOR_SUCCESS),
-        StageStatus::Failed => (b" X ", COLOR_ERROR),
+        StageStatus::Pending => (b"  ", COLOR_TEXT_DIM),
+        StageStatus::Running => (b"> ", COLOR_WARNING),
+        StageStatus::Success => (b"+ ", COLOR_SUCCESS),
+        StageStatus::Failed => (b"X ", COLOR_ERROR),
     };
 
     draw_string(panel_x, y, indicator, color);
-    draw_string(panel_x + 24, y, label, color);
+    draw_string(panel_x + 18, y, label, color);
 }
 
 pub fn get_current_stage() -> u8 {
