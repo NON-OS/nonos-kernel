@@ -18,6 +18,7 @@ pub mod types;
 pub mod instance;
 pub mod syscalls;
 pub mod util;
+pub mod stats;
 
 pub use types::{
     SFD_CLOEXEC, SFD_NONBLOCK, SIGNALFD_SIGINFO_SIZE,
@@ -31,3 +32,5 @@ pub use util::{
     get_signalfd_info, signalfd_has_pending, fd_to_signalfd_id,
     is_signalfd, signalfd_count, get_signalfd_stats, cleanup_process_signalfds,
 };
+
+pub use stats::{SignalfdGlobalStats, get_global_stats, reset_stats as reset_global_stats};
