@@ -18,11 +18,13 @@ extern crate alloc;
 
 mod api;
 pub mod boot_config;
+pub mod dhcpv6;
 pub mod dns;
 pub mod ethernet;
 pub mod firewall;
 pub mod http_client;
 pub mod ip;
+pub mod ipv6;
 pub mod manager;
 pub mod nym;
 pub mod onion;
@@ -43,9 +45,10 @@ pub use manager::{get_recent_dns_queries, get_suspicious_flows, read_flow_bytes}
 pub use stack::{
     get_network_stack, init_network_stack, register_device, ArpEntry, DhcpLease, NetworkStack,
     NetworkStats, SmolDevice, Socket, SocketInfo, TcpSocket,
-    get_current_ipv4, get_current_gateway, get_current_dns, get_mac_address,
-    is_network_available,
+    get_current_ipv4, get_current_gateway, get_current_dns,
+    is_network_available, send_ipv6_packet,
 };
+pub use stack::get_mac_address_opt as get_mac_address;
 
 pub use stack::http;
 
