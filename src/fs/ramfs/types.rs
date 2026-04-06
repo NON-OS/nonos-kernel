@@ -58,6 +58,9 @@ pub struct NonosFile {
     pub modified: u64,
     pub encrypted: bool,
     pub quantum_protected: bool,
+    pub mode: u32,
+    pub uid: u32,
+    pub gid: u32,
 }
 
 impl NonosFile {
@@ -82,6 +85,9 @@ pub struct NonosFileInfo {
     pub modified: u64,
     pub encrypted: bool,
     pub quantum_protected: bool,
+    pub mode: u32,
+    pub uid: u32,
+    pub gid: u32,
 }
 
 #[derive(Debug, Default, Clone)]
