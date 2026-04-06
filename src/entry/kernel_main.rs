@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+extern crate alloc;
+
 use super::vga_error::{early_vga_error, halt_loop};
 
 #[no_mangle]
@@ -25,6 +27,43 @@ pub extern "C" fn kernel_main() -> ! {
     if let Err(err) = crate::drivers::init_all_drivers() {
         early_vga_error(format_args!("DRIVERS INIT FAILED: {:#?}", err));
         halt_loop();
+    }
+
+    /* DEV NOTES eK@nonos.systems
+       Security subsystem must be initialized after drivers but before scheduler.
+       This initializes: spectre mitigations, memory sanitization, constant-time crypto,
+       key management, secure boot verification, capability system, audit logging,
+       firmware database, module database, RNG, rootkit detection, trusted hashes/keys,
+       leak detection patterns, DNS privacy scanning, ZK-IDS, quantum crypto, and sessions.
+    */
+    if let Err(err) = crate::security::init_all_security() {
+        early_vga_error(format_args!("SECURITY INIT FAILED: {}", err));
+        halt_loop();
+    }
+
+    /* DEV NOTES eK@nonos.systems
+       ZkSync L2 bridge initialization with default mainnet configuration.
+       This enables zero-knowledge proof validation for blockchain interoperability.
+    */
+    if let Err(_) = crate::zksync::global::init_zksync(crate::zksync::config::ZkSyncConfig::default()) {
+        crate::drivers::console::write_message("zksync: init skipped");
+    }
+
+    /* DEV NOTES eK@nonos.systems
+       Runtime zerostate monitor initialization. Creates the kernel capsule with
+       full system capabilities and starts health monitoring for all registered capsules.
+    */
+    let kernel_token = crate::capabilities::token::types::CapabilityToken::system();
+    if let Err(err) = crate::runtime::nonos_zerostate::monitor::init_runtime(&kernel_token) {
+        crate::drivers::console::write_message(&alloc::format!("zerostate: {}", err));
+    }
+
+    /* DEV NOTES eK@nonos.systems
+       NPKG package manager initialization. Sets up the package database, repository
+       manager, and cache for software installation and updates.
+    */
+    if let Err(_) = crate::npkg::init() {
+        crate::drivers::console::write_message("npkg: init deferred");
     }
 
     crate::drivers::console::write_message("kernel online");
