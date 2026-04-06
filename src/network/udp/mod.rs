@@ -24,7 +24,7 @@ pub mod types;
 
 pub use api::{
     bind, close_socket, connect, create_socket, get_global_stats, get_socket, init,
-    process_incoming_packet, recv, recv_from, return_socket, send, send_to,
+    process_incoming_packet, recv, recv_from, return_socket, send, send_to, send_udp6,
 };
 pub use socket::UdpSocket;
 pub use types::{GlobalUdpStats, UdpHeader, UdpPacket, UdpSocketId, UdpState, UdpStats};
