@@ -18,8 +18,55 @@ use x86_64::PhysAddr;
 use crate::memory::layout;
 use super::super::types::*;
 use super::state::PROOF_SYSTEM;
+use core::sync::atomic::{AtomicBool, Ordering};
 
-pub fn init() -> Result<(), &'static str> { Ok(()) }
+static INITIALIZED: AtomicBool = AtomicBool::new(false);
+
+/* DEV NOTES eK@nonos.systems
+   Initialize the cryptographic memory proof system. Creates initial capsules for kernel
+   critical regions: kernel text (rx), kernel data (rw), and kernel heap (rw). These
+   capsules establish baseline integrity measurements for runtime verification. Text
+   capsule is sealed since kernel code should not change after boot.
+*/
+pub fn init() -> Result<(), &'static str> {
+    if INITIALIZED.swap(true, Ordering::SeqCst) {
+        return Ok(());
+    }
+
+    let text_start = layout::KTEXT_BASE;
+    let text_end = layout::KTEXT_BASE + layout::KTEXT_SIZE;
+    let data_start = layout::KDATA_BASE;
+    let data_end = layout::KDATA_BASE + layout::KDATA_SIZE;
+    let heap_start = layout::KHEAP_BASE;
+    let heap_end = layout::KHEAP_BASE + layout::KHEAP_SIZE;
+
+    let text_capsule = PROOF_SYSTEM.create_capsule(
+        PhysAddr::new(text_start),
+        PhysAddr::new(text_end),
+        CapTag::KERNEL,
+        CapsulePermissions { read: true, write: false, execute: true, sealed: false },
+    )?;
+    PROOF_SYSTEM.seal_capsule(text_capsule)?;
+
+    let _data_capsule = PROOF_SYSTEM.create_capsule(
+        PhysAddr::new(data_start),
+        PhysAddr::new(data_end),
+        CapTag::KERNEL,
+        CapsulePermissions { read: true, write: true, execute: false, sealed: false },
+    )?;
+
+    let _heap_capsule = PROOF_SYSTEM.create_capsule(
+        PhysAddr::new(heap_start),
+        PhysAddr::new(heap_end),
+        CapTag::KERNEL,
+        CapsulePermissions { read: true, write: true, execute: false, sealed: false },
+    )?;
+
+    PROOF_SYSTEM.create_proof(text_start, layout::KTEXT_SIZE, CapTag::KERNEL);
+
+    crate::log_info!("[PROOF] Memory proof system initialized with 3 capsules");
+    Ok(())
+}
 
 pub fn create_memory_capsule(start: PhysAddr, end: PhysAddr, tag: CapTag, read: bool, write: bool, execute: bool) -> Result<u64, &'static str> {
     let permissions = CapsulePermissions { read, write, execute, sealed: false };
