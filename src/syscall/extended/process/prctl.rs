@@ -111,8 +111,7 @@ pub fn handle_set_tid_address(tidptr: u64) -> SyscallResult {
 }
 
 pub fn handle_seccomp(operation: u32, flags: u32, args: u64) -> SyscallResult {
-    let _ = (operation, flags, args);
-    errno(38)
+    crate::syscall::seccomp::handle_seccomp(operation, flags, args)
 }
 
 pub fn handle_getrandom(buf: u64, buflen: u64, flags: u32) -> SyscallResult {
