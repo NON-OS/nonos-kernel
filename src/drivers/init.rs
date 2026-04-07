@@ -45,9 +45,9 @@ use super::ahci::{init_ahci, AhciError};
 use super::nvme::{init_nvme, NvmeError};
 use super::audio::{init_hd_audio, AudioError};
 use super::gpu::api::init_gpu;
-use super::usb::manager::global::init_usb;
+use super::usb::manager::init_usb;
 use super::virtio_blk::api::init as init_virtio_blk;
-use super::virtio_net::api::init_virtio_net;
+use super::virtio_net::init_virtio_net;
 
 pub fn init_all_drivers() -> Result<(), &'static str> {
     crate::memory::dma::init_dma_allocator()
