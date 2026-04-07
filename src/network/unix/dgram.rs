@@ -38,9 +38,10 @@ impl UnixDgram {
     pub fn sendto(&self, buf: &[u8], dest_path: &str) -> Result<usize, i32> {
         let dest = super::listen::lookup_bound_socket(dest_path)?;
         let src_path = self.socket.bound_path.lock().clone();
+        let anc_data = src_path.map(|p| super::ancillary::AncillaryData::from_path(&p));
         dest.recv_buf.lock().push_back(UnixMessage {
             data: buf.to_vec(),
-            ancillary: None,
+            ancillary: anc_data,
         });
         Ok(buf.len())
     }
@@ -84,5 +85,6 @@ pub fn dgram_send(socket: &Arc<UnixSocket>, buf: &[u8], dest: Option<&str>) -> R
 
 pub fn dgram_recv(socket: &Arc<UnixSocket>, buf: &mut [u8]) -> Result<(usize, Option<String>), i32> {
     let (len, anc) = socket.recv(buf)?;
-    Ok((len, None))
+    let src_path = anc.and_then(|a| a.get_source_path());
+    Ok((len, src_path))
 }
