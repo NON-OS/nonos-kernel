@@ -22,7 +22,7 @@ use super::storage::*;
 use super::msr::{write_msr, read_msr};
 
 pub fn handle_arch_prctl(code: i32, addr: u64) -> SyscallResult {
-    let tid = crate::process::current_tid().unwrap_or(0);
+    let tid = crate::process::current_tid() as u64;
     match code {
         ARCH_SET_FS => do_set_fs(tid, addr),
         ARCH_GET_FS => do_get_fs(tid, addr),
