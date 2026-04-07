@@ -15,17 +15,17 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use core::ptr;
-use core::alloc::Layout;
 
 const MIN_ALIGN: usize = 16;
 
 #[no_mangle]
 pub unsafe extern "C" fn free(ptr: *mut u8) {
     if ptr.is_null() { return; }
-    let header = ptr.sub(16);
+    let header = ptr.sub(MIN_ALIGN);
     let total_size = ptr::read(header as *const usize);
     #[cfg(feature = "kernel")]
     {
+        use core::alloc::Layout;
         let layout = Layout::from_size_align_unchecked(total_size, MIN_ALIGN);
         alloc::alloc::dealloc(header, layout);
     }
@@ -43,6 +43,6 @@ pub unsafe extern "C" fn cfree(ptr: *mut u8) {
 #[no_mangle]
 pub unsafe extern "C" fn malloc_usable_size(ptr: *mut u8) -> usize {
     if ptr.is_null() { return 0; }
-    let header = ptr.sub(16);
+    let header = ptr.sub(MIN_ALIGN);
     ptr::read((header as *const usize).add(1))
 }
