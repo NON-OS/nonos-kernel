@@ -23,8 +23,8 @@ pub mod char;
 pub mod block;
 pub mod pts;
 
-pub use types::{DeviceNode, DeviceType, DeviceOps};
-pub use inode::{devfs_lookup, devfs_readdir, devfs_mknod};
-pub use mount::{devfs_mount, devfs_unmount, is_devfs_mounted};
-pub use registry::{register_device, unregister_device, get_device};
-pub use major_minor::{make_dev, major, minor};
+pub use types::*;
+pub use inode::*;
+pub use mount::*;
+pub use registry::*;
+pub use major_minor::*;
