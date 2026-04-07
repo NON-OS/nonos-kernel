@@ -30,7 +30,7 @@ pub unsafe extern "C" fn vfork() -> i32 {
 
 #[no_mangle]
 pub unsafe extern "C" fn execve(path: *const u8, argv: *const *const u8, envp: *const *const u8) -> i32 {
-    let ret = crate::syscall::sys_execve(path as usize, argv as usize, envp as usize);
+    let ret = crate::syscall::sys_execve(path as u64, argv as u64, envp as u64);
     if ret < 0 { crate::libc::errno::set_errno((-ret) as i32); }
     -1
 }
@@ -66,8 +66,7 @@ pub unsafe extern "C" fn execvp(file: *const u8, argv: *const *const u8) -> i32 
 
 #[no_mangle]
 pub extern "C" fn _exit(status: i32) -> ! {
-    unsafe { crate::syscall::sys_exit(status as usize); }
-    loop { core::hint::spin_loop(); }
+    crate::syscall::sys_exit(status);
 }
 
 #[no_mangle]
