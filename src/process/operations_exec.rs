@@ -41,7 +41,7 @@ pub fn exec_process(path: &str, argv: &[String], envp: &[String]) -> Result<(), 
         mem.code_end = x86_64::VirtAddr::new(0);
         mem.next_va = 0x0000_4000_0000;
     }
-    current.fd_table.close_on_exec();
+    current.fd_table.close_cloexec();
     *current.signals.lock() = super::core::types::ProcessSignals::default();
     current.pending_signals.store(0, Ordering::Release);
     *current.name.lock() = path.into();
