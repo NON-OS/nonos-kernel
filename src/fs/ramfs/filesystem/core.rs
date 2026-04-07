@@ -109,4 +109,9 @@ impl NonosFilesystem {
     pub fn current_nonce(&self) -> u64 {
         self.nonce_counter.load(Ordering::Relaxed)
     }
+
+    pub fn sync(&self, _path: &str) -> FsResult<()> {
+        core::sync::atomic::compiler_fence(Ordering::SeqCst);
+        Ok(())
+    }
 }
