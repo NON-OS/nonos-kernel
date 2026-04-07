@@ -22,11 +22,10 @@ mod fd;
 mod stats;
 mod clone;
 
-pub use types::{NamespaceType, NamespaceFlags, CLONE_NEWNS, CLONE_NEWUTS, CLONE_NEWIPC};
-pub use types::{CLONE_NEWPID, CLONE_NEWNET, CLONE_NEWUSER, CLONE_NEWCGROUP, NS_ALL};
+pub use types::*;
 pub use manager::{NamespaceManager, ProcessNamespaces};
 pub use unshare::handle_unshare;
 pub use setns::handle_setns;
-pub use fd::{open_namespace_fd, lookup_namespace_fd, close_namespace_fd, is_namespace_fd};
-pub use stats::{NamespaceStats, get_stats, reset_stats, get_total_namespaces};
+pub use fd::*;
+pub use stats::*;
 pub use clone::{clone_namespaces_for_fork, get_all_namespaces, share_namespace, cleanup_process_namespaces};
