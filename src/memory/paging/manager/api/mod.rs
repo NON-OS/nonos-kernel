@@ -28,7 +28,7 @@ pub use init::{init, is_initialized};
 pub use mapping::{map_page, map_huge_page, unmap_page, map_kernel_page, map_user_page, map_device_memory};
 pub use query::{translate_address, is_mapped, get_mapping_info, get_page_permissions};
 pub use protection::{update_page_flags, update_page_protection, protect_pages, protect_pages_range};
-pub use address_space::{create_address_space, switch_address_space, cleanup_address_space, lookup_asid_for_process, switch_to_process_address_space};
+pub use address_space::{create_address_space, switch_address_space, cleanup_address_space, lookup_asid_for_process, switch_to_process_address_space, get_process_cr3};
 pub use faults::handle_page_fault;
 pub use tlb_ops::{flush_tlb, invalidate_page, invalidate_all_pages, get_current_cr3, set_cr3, enable_write_protection, disable_write_protection};
 pub use stats::{get_paging_stats, get_memory_usage};
