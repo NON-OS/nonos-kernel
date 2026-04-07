@@ -58,7 +58,7 @@ pub fn has_notification(mqdes: i32) -> bool {
 pub fn trigger_notification(mqdes: i32) {
     if let Some(notif) = NOTIFICATIONS.lock().remove(&mqdes) {
         if notif.notify_type == SIGEV_SIGNAL && notif.signo > 0 {
-            let _ = crate::syscall::signals::send_signal_to_process(notif.pid, notif.signo);
+            let _ = crate::syscall::signals::send_signal_to_process(notif.pid, notif.signo as u32);
         }
     }
 }
