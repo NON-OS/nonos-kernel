@@ -31,5 +31,5 @@ pub use file_io::*;
 pub use hardware::*;
 pub use network::*;
 pub use process::*;
-pub use router::handle_syscall_dispatch;
-pub use util::{errno, has_capability, parse_string_from_user, require_capability};
+pub use router::*;
+pub use util::*;
