@@ -18,72 +18,14 @@ pub mod syscall;
 pub mod read;
 pub mod write;
 pub mod fork;
+mod fd_ops;
+mod path_ops;
+mod sleep;
 
 pub use syscall::syscall;
 pub use read::read;
 pub use write::write;
 pub use fork::{fork, vfork, execve, execvp, _exit, getpid, getppid, getuid, getgid, geteuid, getegid};
-
-#[no_mangle]
-pub unsafe extern "C" fn close(fd: i32) -> i32 {
-    crate::syscall::sys_close(fd as u64) as i32
-}
-
-#[no_mangle]
-pub unsafe extern "C" fn dup(oldfd: i32) -> i32 {
-    crate::syscall::sys_dup(oldfd as usize) as i32
-}
-
-#[no_mangle]
-pub unsafe extern "C" fn dup2(oldfd: i32, newfd: i32) -> i32 {
-    crate::syscall::sys_dup2(oldfd as usize, newfd as usize) as i32
-}
-
-#[no_mangle]
-pub unsafe extern "C" fn pipe(pipefd: *mut i32) -> i32 {
-    crate::syscall::sys_pipe(pipefd as usize) as i32
-}
-
-#[no_mangle]
-pub unsafe extern "C" fn lseek(fd: i32, offset: i64, whence: i32) -> i64 {
-    crate::syscall::sys_lseek(fd as u64, offset as u64, whence as u64)
-}
-
-#[no_mangle]
-pub unsafe extern "C" fn chdir(path: *const u8) -> i32 {
-    crate::syscall::sys_chdir(path as usize) as i32
-}
-
-#[no_mangle]
-pub unsafe extern "C" fn getcwd(buf: *mut u8, size: usize) -> *mut u8 {
-    let ret = crate::syscall::sys_getcwd(buf as usize, size);
-    if ret < 0 { core::ptr::null_mut() } else { buf }
-}
-
-#[no_mangle]
-pub unsafe extern "C" fn unlink(path: *const u8) -> i32 {
-    crate::syscall::sys_unlink(path as u64) as i32
-}
-
-#[no_mangle]
-pub unsafe extern "C" fn rmdir(path: *const u8) -> i32 {
-    crate::syscall::sys_rmdir(path as u64) as i32
-}
-
-#[no_mangle]
-pub unsafe extern "C" fn access(path: *const u8, mode: i32) -> i32 {
-    crate::syscall::sys_access(path as usize, mode) as i32
-}
-
-#[no_mangle]
-pub unsafe extern "C" fn sleep(seconds: u32) -> u32 {
-    let ts = crate::libc::time::Timespec { tv_sec: seconds as i64, tv_nsec: 0 };
-    crate::libc::time::nanosleep(&ts, core::ptr::null_mut());
-    0
-}
-
-#[no_mangle]
-pub unsafe extern "C" fn usleep(usec: u32) -> i32 {
-    let ts = crate::libc::time::Timespec { tv_sec: (usec / 1_000_000) as i64, tv_nsec: ((usec % 1_000_000) * 1000) as i64 };
-    crate::libc::time::nanosleep(&ts, core::ptr::null_mut())
-}
+pub use fd_ops::{close, dup, dup2, pipe, lseek};
+pub use path_ops::{chdir, getcwd, unlink, rmdir, access};
+pub use sleep::{sleep, usleep};
