@@ -79,6 +79,11 @@ impl VirtualFileSystem {
 
     pub fn stats(&self) -> VfsStatistics { self.inner.lock().vfs_stats.clone() }
 
+    pub fn create_directory(&self, path: &str) -> VfsResult<()> {
+        validate_path(path)?;
+        crate::fs::ramfs::create_dir(path).map_err(super::error::VfsError::from)
+    }
+
     pub fn clear_all(&self) {
         let mut inner = self.inner.lock();
         for mount in inner.mounts.iter_mut() { secure_zeroize_string(&mut mount.mount_path); }
