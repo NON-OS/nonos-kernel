@@ -79,5 +79,98 @@ fn legacy_block_lookup(inode: &Ext4Inode, lblock: u32) -> Result<u64, i32> {
 }
 
 pub fn extent_insert(dev: &str, sb: &Ext4Superblock, inode: &mut Ext4Inode, lblock: u32, pblock: u64, len: u32) -> Result<(), i32> {
+    if !inode.uses_extents() {
+        return insert_legacy_blocks(inode, lblock, pblock, len);
+    }
+    let hdr = unsafe { &mut *(inode.i_block.as_mut_ptr() as *mut Ext4ExtentHeader) };
+    if hdr.eh_magic != EXT4_EXT_MAGIC {
+        hdr.eh_magic = EXT4_EXT_MAGIC;
+        hdr.eh_entries = 0;
+        hdr.eh_max = 4;
+        hdr.eh_depth = 0;
+        hdr.eh_generation = 0;
+    }
+    if hdr.eh_depth != 0 {
+        return insert_extent_deep(dev, sb, hdr, lblock, pblock, len);
+    }
+    let extents = unsafe {
+        core::slice::from_raw_parts_mut(
+            (hdr as *mut _ as *mut u8).add(12) as *mut Ext4Extent,
+            hdr.eh_max as usize
+        )
+    };
+    if hdr.eh_entries > 0 {
+        let last = &mut extents[(hdr.eh_entries - 1) as usize];
+        if last.ee_block + last.len() == lblock && last.start() + last.len() as u64 == pblock {
+            let new_len = last.len() + len;
+            if new_len <= 32768 {
+                last.ee_len = new_len as u16;
+                return Ok(());
+            }
+        }
+    }
+    if hdr.eh_entries >= hdr.eh_max {
+        return Err(-28);
+    }
+    let idx = hdr.eh_entries as usize;
+    extents[idx].ee_block = lblock;
+    extents[idx].ee_len = len as u16;
+    extents[idx].ee_start_hi = (pblock >> 32) as u16;
+    extents[idx].ee_start_lo = pblock as u32;
+    hdr.eh_entries += 1;
+    Ok(())
+}
+
+fn insert_extent_deep(dev: &str, sb: &Ext4Superblock, hdr: &Ext4ExtentHeader, lblock: u32, pblock: u64, len: u32) -> Result<(), i32> {
+    let idxs = unsafe {
+        core::slice::from_raw_parts(
+            (hdr as *const _ as *const u8).add(12) as *const Ext4ExtentIdx,
+            hdr.eh_entries as usize
+        )
+    };
+    let mut target_idx = &idxs[0];
+    for idx in idxs {
+        if idx.ei_block <= lblock {
+            target_idx = idx;
+        } else {
+            break;
+        }
+    }
+    let block_size = sb.block_size() as usize;
+    let mut buf = alloc::vec![0u8; block_size];
+    crate::drivers::block::read(dev, &mut buf, target_idx.leaf() * block_size as u64)?;
+    let child_hdr = unsafe { &mut *(buf.as_mut_ptr() as *mut Ext4ExtentHeader) };
+    if child_hdr.eh_depth == 0 {
+        let extents = unsafe {
+            core::slice::from_raw_parts_mut(
+                (child_hdr as *mut _ as *mut u8).add(12) as *mut Ext4Extent,
+                child_hdr.eh_max as usize
+            )
+        };
+        if child_hdr.eh_entries >= child_hdr.eh_max {
+            return Err(-28);
+        }
+        let idx = child_hdr.eh_entries as usize;
+        extents[idx].ee_block = lblock;
+        extents[idx].ee_len = len as u16;
+        extents[idx].ee_start_hi = (pblock >> 32) as u16;
+        extents[idx].ee_start_lo = pblock as u32;
+        child_hdr.eh_entries += 1;
+        crate::drivers::block::write(dev, &buf, target_idx.leaf() * block_size as u64)?;
+        Ok(())
+    } else {
+        insert_extent_deep(dev, sb, child_hdr, lblock, pblock, len)
+    }
+}
+
+fn insert_legacy_blocks(inode: &mut Ext4Inode, lblock: u32, pblock: u64, len: u32) -> Result<(), i32> {
+    for i in 0..len {
+        let block_idx = (lblock + i) as usize;
+        if block_idx < 12 {
+            inode.i_block[block_idx] = pblock as u32 + i;
+        } else {
+            return Err(-28);
+        }
+    }
     Ok(())
 }
