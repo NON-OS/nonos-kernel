@@ -25,46 +25,29 @@ use super::core::{current_process, ProcessControlBlock, ProcessState, PROCESS_TA
 
 pub fn exec_process(path: &str, argv: &[String], envp: &[String]) -> Result<(), &'static str> {
     let current = current_process().ok_or("no current process")?;
-
     let executable_data = crate::fs::read_file(path)?;
-
     let entry_point = match crate::elf::minimal::entry_from_bytes(&executable_data) {
         Ok(ep) => ep,
         Err(_) => return Err("invalid executable format"),
     };
-
-    if entry_point == 0 {
-        return Err("executable has no entry point");
-    }
-
+    if entry_point == 0 { return Err("executable has no entry point"); }
     {
-        let mut name = current.name.lock();
-        *name = path.into();
-    }
-
-    {
-        let mut current_argv = current.argv.lock();
-        current_argv.clear();
-        current_argv.reserve(argv.len());
-        for arg in argv {
-            current_argv.push(arg.clone());
+        let mut mem = current.memory.lock();
+        for vma in mem.vmas.drain(..) {
+            let pages = (vma.end.as_u64() - vma.start.as_u64()) / 4096;
+            mem.resident_pages.fetch_sub(pages, Ordering::Relaxed);
         }
+        mem.code_start = x86_64::VirtAddr::new(0);
+        mem.code_end = x86_64::VirtAddr::new(0);
+        mem.next_va = 0x0000_4000_0000;
     }
-
-    {
-        let mut current_envp = current.envp.lock();
-        current_envp.clear();
-        current_envp.reserve(envp.len());
-        for env in envp {
-            current_envp.push(env.clone());
-        }
-    }
-
-    {
-        let mut state = current.state.lock();
-        *state = ProcessState::Ready;
-    }
-
+    current.fd_table.close_on_exec();
+    *current.signals.lock() = super::core::types::ProcessSignals::default();
+    current.pending_signals.store(0, Ordering::Release);
+    *current.name.lock() = path.into();
+    { let mut a = current.argv.lock(); a.clear(); a.extend(argv.iter().cloned()); }
+    { let mut e = current.envp.lock(); e.clear(); e.extend(envp.iter().cloned()); }
+    *current.state.lock() = ProcessState::Ready;
     Ok(())
 }
 
