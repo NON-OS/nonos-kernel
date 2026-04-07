@@ -21,18 +21,14 @@ use alloc::format;
 use alloc::vec::Vec;
 
 pub fn read_pid_maps(pid: i32) -> Result<String, i32> {
-    let proc = crate::process::get_process(pid).ok_or(-3)?;
-    let regions = crate::memory::get_process_vm_areas(pid)?;
+    let _proc = crate::process::get_process(pid as u32).ok_or(-3)?;
+    let regions = crate::memory::get_process_vm_areas(pid as u32);
     let mut output = String::new();
-    for region in regions {
-        let perms = format_permissions(region.flags);
-        let offset = region.offset;
-        let dev = format!("{:02x}:{:02x}", region.dev_major, region.dev_minor);
-        let inode = region.inode;
-        let pathname = region.pathname.as_deref().unwrap_or("");
+    for (start, end, flags) in regions {
+        let perms = format_permissions(flags);
         output.push_str(&format!(
-            "{:016x}-{:016x} {} {:08x} {} {:>8} {}\n",
-            region.start, region.end, perms, offset, dev, inode, pathname
+            "{:016x}-{:016x} {} {:08x} 00:00 {:>8} \n",
+            start, end, perms, 0u64, 0u64
         ));
     }
     Ok(output)
