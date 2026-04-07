@@ -17,8 +17,8 @@
 mod pci;
 mod usb;
 
-pub use pci::{init_pci_bus, register_pci_driver};
-pub use usb::{init_usb_bus, register_usb_driver};
+pub use pci::*;
+pub use usb::*;
 
 use super::kobject::{register_kobject, KobjectType};
 
