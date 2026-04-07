@@ -20,11 +20,11 @@ pub use crate::syscall::extended::select::{
 };
 
 pub fn sys_poll(fds_ptr: usize, nfds: usize, timeout_ms: i32) -> i64 {
-    crate::syscall::extended::select::handle_poll(fds_ptr as u64, nfds as u64, timeout_ms).value
+    crate::syscall::extended::select::handle_poll(fds_ptr as u64, nfds as u32, timeout_ms).value
 }
 
 pub fn sys_ppoll(fds_ptr: usize, nfds: usize, timeout_ptr: usize, sigmask: usize, sigsetsize: usize) -> i64 {
-    crate::syscall::extended::select::handle_ppoll(fds_ptr as u64, nfds as u64, timeout_ptr as u64, sigmask as u64, sigsetsize as u64).value
+    crate::syscall::extended::select::handle_ppoll(fds_ptr as u64, nfds as u32, timeout_ptr as u64, sigmask as u64, sigsetsize as u64).value
 }
 
 pub fn sys_select(nfds: i32, readfds: usize, writefds: usize, exceptfds: usize, timeout: usize) -> i64 {
