@@ -16,6 +16,7 @@
 
 pub mod constants;
 pub mod types;
+pub mod asm;
 pub mod transitions;
 pub mod context;
 pub mod memory;
