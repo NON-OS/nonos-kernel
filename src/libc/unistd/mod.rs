@@ -26,7 +26,7 @@ pub use fork::{fork, vfork, execve, execvp, _exit, getpid, getppid, getuid, getg
 
 #[no_mangle]
 pub unsafe extern "C" fn close(fd: i32) -> i32 {
-    crate::syscall::sys_close(fd as usize) as i32
+    crate::syscall::sys_close(fd as u64) as i32
 }
 
 #[no_mangle]
@@ -46,7 +46,7 @@ pub unsafe extern "C" fn pipe(pipefd: *mut i32) -> i32 {
 
 #[no_mangle]
 pub unsafe extern "C" fn lseek(fd: i32, offset: i64, whence: i32) -> i64 {
-    crate::syscall::sys_lseek(fd as usize, offset, whence as usize)
+    crate::syscall::sys_lseek(fd as u64, offset as u64, whence as u64)
 }
 
 #[no_mangle]
@@ -62,17 +62,17 @@ pub unsafe extern "C" fn getcwd(buf: *mut u8, size: usize) -> *mut u8 {
 
 #[no_mangle]
 pub unsafe extern "C" fn unlink(path: *const u8) -> i32 {
-    crate::syscall::sys_unlink(path as usize) as i32
+    crate::syscall::sys_unlink(path as u64) as i32
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn rmdir(path: *const u8) -> i32 {
-    crate::syscall::sys_rmdir(path as usize) as i32
+    crate::syscall::sys_rmdir(path as u64) as i32
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn access(path: *const u8, mode: i32) -> i32 {
-    crate::syscall::sys_access(path as usize, mode as usize) as i32
+    crate::syscall::sys_access(path as usize, mode) as i32
 }
 
 #[no_mangle]
