@@ -25,7 +25,7 @@ pub unsafe extern "C" fn pthread_cond_wait(cond: *mut PthreadCond, mutex: *mut P
     let seq = c.seq.load(Ordering::Acquire);
     c.waiters.fetch_add(1, Ordering::SeqCst);
     crate::libc::pthread::mutex::pthread_mutex_unlock(mutex);
-    crate::syscall::sys_futex(&c.seq as *const _ as usize, 0, seq, 0, 0, 0);
+    crate::syscall::sys_futex(&c.seq as *const _ as u64, 0, seq, 0, 0, 0);
     c.waiters.fetch_sub(1, Ordering::SeqCst);
     crate::libc::pthread::mutex::pthread_mutex_lock(mutex);
     0
@@ -45,9 +45,9 @@ pub unsafe extern "C" fn pthread_cond_timedwait(
     let timeout = if abstime.is_null() {
         0
     } else {
-        ((*abstime).tv_sec * 1_000_000_000 + (*abstime).tv_nsec) as usize
+        ((*abstime).tv_sec * 1_000_000_000 + (*abstime).tv_nsec) as u64
     };
-    let ret = crate::syscall::sys_futex(&c.seq as *const _ as usize, 0, seq, timeout, 0, 0);
+    let ret = crate::syscall::sys_futex(&c.seq as *const _ as u64, 0, seq, timeout, 0, 0);
     c.waiters.fetch_sub(1, Ordering::SeqCst);
     crate::libc::pthread::mutex::pthread_mutex_lock(mutex);
     if ret == -110 { 110 } else { 0 }
