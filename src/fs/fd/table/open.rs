@@ -60,27 +60,27 @@ pub fn fd_open(path: &str, flags: i32) -> FdResult<i32> {
         ramfs::write_file(&normalized, &[])?;
     }
 
-    let fd = loop {
-        let candidate = NEXT_FD.fetch_add(1, Ordering::Relaxed);
-        if candidate > MAX_FD {
-            NEXT_FD.store(RESERVED_FDS, Ordering::Relaxed);
-            let table = FD_TABLE.read();
+    let mut table = FD_TABLE.write();
+    let fd = {
+        let mut candidate = NEXT_FD.fetch_add(1, Ordering::SeqCst);
+        if candidate > MAX_FD || table.contains_key(&candidate) {
+            NEXT_FD.store(RESERVED_FDS, Ordering::SeqCst);
             let mut found_fd = None;
             for i in RESERVED_FDS..=MAX_FD {
                 if !table.contains_key(&i) {
                     found_fd = Some(i);
+                    NEXT_FD.store(i + 1, Ordering::SeqCst);
                     break;
                 }
             }
             match found_fd {
-                Some(fd) => break fd,
+                Some(fd) => fd,
                 None => return Err(FdError::NoFdsAvailable),
             }
+        } else {
+            candidate
         }
-        break candidate;
     };
-
-    let mut table = FD_TABLE.write();
     table.insert(fd, OpenFile::new(normalized, flags));
     Ok(fd)
 }
