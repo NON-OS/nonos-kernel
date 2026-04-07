@@ -25,7 +25,7 @@ static mut ENVIRON_PTRS: [*const u8; 256] = [ptr::null(); 256];
 
 pub fn environ_ptr() -> *const *const u8 {
     update_environ_ptrs();
-    unsafe { ENVIRON_PTRS.as_ptr() }
+    core::ptr::addr_of!(ENVIRON_PTRS) as *const *const u8
 }
 
 fn update_environ_ptrs() {
