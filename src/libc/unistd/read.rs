@@ -16,7 +16,7 @@
 
 #[no_mangle]
 pub unsafe extern "C" fn read(fd: i32, buf: *mut u8, count: usize) -> isize {
-    let ret = crate::syscall::sys_read(fd as usize, buf as usize, count);
+    let ret = crate::syscall::sys_read(fd as u64, buf as u64, count as u64);
     if ret < 0 {
         crate::libc::errno::set_errno((-ret) as i32);
         return -1;
@@ -26,7 +26,7 @@ pub unsafe extern "C" fn read(fd: i32, buf: *mut u8, count: usize) -> isize {
 
 #[no_mangle]
 pub unsafe extern "C" fn pread(fd: i32, buf: *mut u8, count: usize, offset: i64) -> isize {
-    let ret = crate::syscall::sys_pread64(fd as usize, buf as usize, count, offset as usize);
+    let ret = crate::syscall::sys_pread64(fd as u64, buf as u64, count as u64, offset);
     if ret < 0 {
         crate::libc::errno::set_errno((-ret) as i32);
         return -1;
@@ -42,7 +42,7 @@ pub struct Iovec {
 
 #[no_mangle]
 pub unsafe extern "C" fn readv(fd: i32, iov: *const Iovec, iovcnt: i32) -> isize {
-    let ret = crate::syscall::sys_readv(fd as usize, iov as usize, iovcnt as usize);
+    let ret = crate::syscall::sys_readv(fd as u64, iov as u64, iovcnt);
     if ret < 0 {
         crate::libc::errno::set_errno((-ret) as i32);
         return -1;
@@ -52,7 +52,7 @@ pub unsafe extern "C" fn readv(fd: i32, iov: *const Iovec, iovcnt: i32) -> isize
 
 #[no_mangle]
 pub unsafe extern "C" fn preadv(fd: i32, iov: *const Iovec, iovcnt: i32, offset: i64) -> isize {
-    let ret = crate::syscall::sys_preadv(fd as usize, iov as usize, iovcnt as usize, offset as usize);
+    let ret = crate::syscall::sys_preadv(fd as u64, iov as u64, iovcnt, offset);
     if ret < 0 {
         crate::libc::errno::set_errno((-ret) as i32);
         return -1;
