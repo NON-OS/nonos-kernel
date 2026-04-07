@@ -14,11 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod api;
-mod constants;
-mod device;
-mod queue;
-mod types;
+pub mod api;
+pub mod constants;
+pub mod device;
+pub mod queue;
+pub mod types;
 
 pub mod tests;
 
