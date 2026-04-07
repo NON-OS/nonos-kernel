@@ -17,7 +17,6 @@
 extern crate alloc;
 
 use alloc::string::String;
-use alloc::vec::Vec;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ProcEntryType {
