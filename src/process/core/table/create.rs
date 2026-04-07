@@ -18,7 +18,7 @@ use alloc::{string::String, sync::Arc, vec::Vec};
 use core::sync::atomic::{AtomicU32, AtomicU64, Ordering};
 use x86_64::VirtAddr;
 use super::types::{PROCESS_TABLE, CURRENT_PID, NEXT_PID};
-use super::super::types::{Pid, ProcessState, Priority, MemoryState};
+use super::super::types::{Pid, ProcessState, Priority, MemoryState, ProcessIoStats};
 use super::super::pcb::ProcessControlBlock;
 use crate::process::process_fd_table::ProcessFdTable;
 use crate::process::capabilities::{system_capabilities, standard_user_capabilities, sandboxed_capabilities};
@@ -59,16 +59,16 @@ fn build_pcb(pid: Pid, ppid: Pid, name: &str, st: ProcessState, pr: Priority, pg
         thread_group: None, argv: spin::Mutex::new(Vec::new()), envp: spin::Mutex::new(Vec::new()),
         caps_bits: AtomicU64::new(caps), exit_code: AtomicI32::new(0),
         zk_proofs_generated: AtomicU64::new(0), zk_proving_time_ms: AtomicU64::new(0), zk_proofs_verified: AtomicU64::new(0), zk_verification_time_ms: AtomicU64::new(0), zk_circuits_compiled: AtomicU64::new(0),
-        umask: spin::Mutex::new(0o022), root_dir: spin::Mutex::new(String::from("/")),
+        umask: spin::Mutex::new(0o022), root_dir: spin::Mutex::new(String::from("/")), cwd: spin::Mutex::new(String::from("/")),
         clear_child_tid: AtomicU64::new(0), set_child_tid: AtomicU64::new(0), alarm_time_ms: AtomicU64::new(0),
         tls_base: AtomicU64::new(0), stack_base: AtomicU64::new(0), clone_flags: AtomicU64::new(0),
         start_time_ms: AtomicU64::new(crate::time::timestamp_millis()), fd_table: ProcessFdTable::new(),
         signals: spin::Mutex::new(ProcessSignals::default()), caps: spin::Mutex::new(ProcessCapabilities::default()),
         time_info: spin::Mutex::new(ProcessTimeInfo::default()), memory_info: spin::Mutex::new(ProcessMemoryInfo::default()),
-        creds: spin::Mutex::new(ProcessCredentials::default()), tty_nr: AU32::new(0), tty_pgrp: AtomicI32::new(-1),
+        creds: spin::Mutex::new(ProcessCredentials::default()), io_stats: spin::Mutex::new(ProcessIoStats::default()), tty_nr: AU32::new(0), tty_pgrp: AtomicI32::new(-1),
         flags: AtomicU64::new(0), nice: AtomicI32::new(0), thread_count: AU32::new(1), pending_signals: AtomicU64::new(0),
         kstkesp: AtomicU64::new(0), kstkeip: AtomicU64::new(0), wchan: AtomicU64::new(0), exit_signal: AtomicI32::new(17),
         processor: AU32::new(0), rt_priority: AU32::new(0), policy: AU32::new(0), no_new_privs: AU32::new(0), seccomp: AU32::new(0),
-        cpus_allowed: AtomicU64::new(!0), voluntary_switches: AtomicU64::new(0), involuntary_switches: AtomicU64::new(0),
+        cpus_allowed: AtomicU64::new(!0), voluntary_switches: AtomicU64::new(0), involuntary_switches: AtomicU64::new(0), cr3: AtomicU64::new(0),
     })
 }
