@@ -38,11 +38,6 @@ pub static PROCESS_TABLE: ProcessTable = ProcessTable { inner: RwLock::new(Vec::
 pub static CURRENT_PID: AtomicU32 = AtomicU32::new(0);
 pub(super) static NEXT_PID: AtomicU32 = AtomicU32::new(1);
 
-/* DEV NOTES eK@nonos.systems
-   PID allocation with wrap-around protection. Returns None if PID space exhausted
-   after 65536 attempts. Callers must handle the None case gracefully by returning
-   EAGAIN to userspace or terminating the fork/clone syscall with an error.
-*/
 pub fn allocate_tid() -> Option<Pid> {
     const MAX_ATTEMPTS: u32 = 65536;
     let mut attempts = 0;
