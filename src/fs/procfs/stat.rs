@@ -28,11 +28,12 @@ pub fn read_stat() -> String {
         "cpu  {} {} {} {} {} {} {} {} {} {}\n",
         user, nice, system, idle, iowait, irq, softirq, steal, guest, guest_nice
     ));
+    let per_cpu = stats.per_cpu();
     for cpu in 0..num_cpus {
-        let (u, n, s, i, io, ir, si, st, g, gn) = stats.per_cpu(cpu);
+        let s = per_cpu.get(cpu).cloned().unwrap_or_default();
         output.push_str(&format!(
             "cpu{} {} {} {} {} {} {} {} {} {} {}\n",
-            cpu, u, n, s, i, io, ir, si, st, g, gn
+            cpu, s.user_time, 0, s.system_time, s.idle_time, s.iowait_time, s.irq_time, s.softirq_time, s.steal_time, s.guest_time, s.guest_nice_time
         ));
     }
     let intr_stats = crate::interrupts::get_interrupt_stats();
