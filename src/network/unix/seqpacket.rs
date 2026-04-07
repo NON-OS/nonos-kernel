@@ -19,7 +19,7 @@ extern crate alloc;
 use alloc::sync::Arc;
 use alloc::collections::VecDeque;
 use spin::Mutex;
-use super::socket::{UnixSocket, UnixSocketType, UnixMessage};
+use super::socket::{UnixSocket, UnixSocketType};
 
 pub struct UnixSeqpacket {
     pub socket: Arc<UnixSocket>,
@@ -52,7 +52,22 @@ impl UnixSeqpacket {
     }
 
     pub fn shutdown(&self, how: i32) -> Result<(), i32> {
-        self.connected.store(false, core::sync::atomic::Ordering::SeqCst);
+        const SHUT_RD: i32 = 0;
+        const SHUT_WR: i32 = 1;
+        const SHUT_RDWR: i32 = 2;
+        match how {
+            SHUT_RD => {
+                self.msg_queue.lock().clear();
+            }
+            SHUT_WR => {
+                self.connected.store(false, core::sync::atomic::Ordering::SeqCst);
+            }
+            SHUT_RDWR => {
+                self.msg_queue.lock().clear();
+                self.connected.store(false, core::sync::atomic::Ordering::SeqCst);
+            }
+            _ => return Err(-22),
+        }
         Ok(())
     }
 }
