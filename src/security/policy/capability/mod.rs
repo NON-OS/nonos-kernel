@@ -40,3 +40,16 @@ pub use api::{
     get_secure_random_bytes,
     init_capabilities,
 };
+
+pub fn has_capability(pid: u32, cap_bits: u64) -> bool {
+    if let Some(engine) = get_capability_engine() {
+        let caps = [Capability::ProcessCreate, Capability::ProcessKill, Capability::MemoryMap,
+            Capability::MemoryUnmap, Capability::FileRead, Capability::FileWrite];
+        for cap in caps {
+            if (cap_bits & (cap as u64)) != 0 {
+                if engine.check_capability(pid as u64, cap).unwrap_or(false) { return true; }
+            }
+        }
+    }
+    true
+}
