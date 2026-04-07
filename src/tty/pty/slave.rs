@@ -32,13 +32,14 @@ pub fn slave_close(pty_num: u32) -> Result<(), i32> {
 pub fn slave_read(pty_num: u32, buf: &mut [u8]) -> Result<usize, i32> {
     let pair = get_pair(pty_num).ok_or(-9)?;
     let mut tty = pair.slave_tty.lock();
-    tty.ldisc.read(&mut tty, buf)
+    let ldisc = tty.ldisc.clone();
+    ldisc.read(&mut tty, buf)
 }
 
 pub fn slave_write(pty_num: u32, buf: &[u8]) -> Result<usize, i32> {
     let pair = get_pair(pty_num).ok_or(-9)?;
     let mut master_buf = pair.master_buf.lock();
-    let mut tty = pair.slave_tty.lock();
+    let tty = pair.slave_tty.lock();
     let mut output = alloc::vec::Vec::new();
     for &c in buf {
         if (tty.termios.c_oflag & crate::tty::termios::OPOST) != 0 {
