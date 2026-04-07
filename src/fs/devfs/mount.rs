@@ -22,7 +22,7 @@ pub fn devfs_mount(mountpoint: &str) -> Result<(), i32> {
     if DEVFS_MOUNTED.load(Ordering::SeqCst) {
         return Err(-16);
     }
-    crate::fs::vfs::register_mount(mountpoint, "devtmpfs", 1)?;
+    crate::fs::vfs::register_mount(mountpoint, "devtmpfs").map_err(|e| i32::from(e))?;
     DEVFS_MOUNTED.store(true, Ordering::SeqCst);
     init_standard_devices();
     Ok(())
