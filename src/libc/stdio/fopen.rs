@@ -21,7 +21,7 @@ use super::file::{FILE, _IOREAD, _IOWRITE, _IOLBF, EOF};
 pub unsafe extern "C" fn fopen(path: *const u8, mode: *const u8) -> *mut FILE {
     if path.is_null() || mode.is_null() { return ptr::null_mut(); }
     let (flags, oflag) = parse_mode(mode);
-    let fd = crate::syscall::sys_open(path as usize, oflag, 0o644);
+    let fd = crate::syscall::sys_open(path as u64, oflag as u64, 0o644);
     if fd < 0 { return ptr::null_mut(); }
     let f = crate::libc::stdlib::malloc::malloc(core::mem::size_of::<FILE>()) as *mut FILE;
     if f.is_null() { crate::libc::unistd::close(fd as i32); return ptr::null_mut(); }
@@ -78,14 +78,14 @@ pub unsafe extern "C" fn fwrite(ptr: *const u8, size: usize, nmemb: usize, strea
 #[no_mangle]
 pub unsafe extern "C" fn fseek(stream: *mut FILE, offset: i64, whence: i32) -> i32 {
     if stream.is_null() { return -1; }
-    let r = crate::syscall::sys_lseek((*stream).fd as usize, offset, whence as usize);
+    let r = crate::syscall::sys_lseek((*stream).fd as u64, offset as u64, whence as u64);
     if r < 0 { -1 } else { (*stream).eof = false; 0 }
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn ftell(stream: *mut FILE) -> i64 {
     if stream.is_null() { return -1; }
-    crate::syscall::sys_lseek((*stream).fd as usize, 0, 1)
+    crate::syscall::sys_lseek((*stream).fd as u64, 0, 1)
 }
 
 #[no_mangle]
