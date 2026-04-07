@@ -38,6 +38,5 @@ pub extern "C" fn pthread_exit(retval: *mut u8) -> ! {
         }
     }
 
-    unsafe { crate::syscall::sys_exit(0); }
-    loop { core::hint::spin_loop(); }
+    crate::syscall::sys_exit(0)
 }
