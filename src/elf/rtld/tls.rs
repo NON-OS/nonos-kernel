@@ -50,7 +50,39 @@ pub fn init_static_tls() {
 }
 
 pub fn register_tls_module(obj: &super::load::LoadedObject) {
-    let _ = obj;
+    if obj.dynamic == 0 { return; }
+    let mut tls_addr = 0usize;
+    let mut tls_size = 0usize;
+    let mut tls_align = 0usize;
+    let mut tls_filesz = 0usize;
+    let mut dyn_ptr = obj.dynamic as *const crate::elf::types::DynamicEntry;
+    unsafe {
+        while (*dyn_ptr).d_tag != 0 {
+            match (*dyn_ptr).d_tag {
+                29 => tls_addr = obj.base + (*dyn_ptr).value as usize,
+                30 => tls_size = (*dyn_ptr).value as usize,
+                32 => tls_align = (*dyn_ptr).value as usize,
+                31 => tls_filesz = (*dyn_ptr).value as usize,
+                _ => {}
+            }
+            dyn_ptr = dyn_ptr.add(1);
+        }
+    }
+    if tls_size == 0 { return; }
+    let id = NEXT_TLS_ID.fetch_add(1, core::sync::atomic::Ordering::SeqCst);
+    let current_size = TLS_SIZE.load(core::sync::atomic::Ordering::SeqCst);
+    let aligned_offset = ((current_size + tls_align - 1) & !(tls_align - 1)) as isize;
+    TLS_SIZE.store(aligned_offset as usize + tls_size, core::sync::atomic::Ordering::SeqCst);
+    let module = TlsModule {
+        id,
+        base: tls_addr,
+        size: tls_size,
+        align: tls_align.max(1),
+        init_image: tls_addr,
+        init_size: tls_filesz,
+        offset: -aligned_offset - tls_size as isize,
+    };
+    TLS_MODULES.lock().push(module);
 }
 
 pub fn allocate_tls_block() -> *mut u8 {
@@ -88,7 +120,7 @@ fn get_thread_pointer() -> usize {
 }
 
 pub fn set_thread_pointer(tp: usize) {
-    unsafe { crate::syscall::sys_arch_prctl(0x1002, tp); }
+    crate::syscall::core::sys_arch_prctl(0x1002, tp);
 }
 
 pub fn get_tls_size() -> usize { TLS_SIZE.load(core::sync::atomic::Ordering::SeqCst) }
