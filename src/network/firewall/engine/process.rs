@@ -22,6 +22,20 @@ impl Firewall {
     pub fn process_packet(&self, direction: Direction, protocol: Protocol, src_ip: [u8; 4],
         dst_ip: [u8; 4], src_port: u16, dst_port: u16, packet_len: usize) -> Action {
         if !self.enabled.load(Ordering::Relaxed) { return Action::Allow; }
+        if direction == Direction::Inbound {
+            if !super::blacklist::check_ip(src_ip) {
+                self.stats.packets_dropped.fetch_add(1, Ordering::Relaxed);
+                return Action::Drop;
+            }
+            if super::synflood::is_blocked(src_ip) || super::portscan::is_scanner_blocked(src_ip) {
+                self.stats.packets_dropped.fetch_add(1, Ordering::Relaxed);
+                return Action::Drop;
+            }
+            if protocol == Protocol::Tcp && !super::portscan::track_connection_attempt(src_ip, dst_port) {
+                self.stats.packets_dropped.fetch_add(1, Ordering::Relaxed);
+                return Action::Drop;
+            }
+        }
         let conn_key = Self::conn_key(src_ip, dst_ip, src_port, dst_port, protocol);
         let reverse_key = Self::conn_key(dst_ip, src_ip, dst_port, src_port, protocol);
         if let Some(action) = self.check_conntrack(conn_key, reverse_key, direction, packet_len) { return action; }
