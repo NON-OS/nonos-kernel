@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::translate::{translate_with_cr3, phys_to_virt, is_writable_with_cr3};
-use crate::memory::paging::constants::PAGE_SIZE;
+use crate::memory::paging::constants::PAGE_SIZE_4K as PAGE_SIZE;
 
 pub fn copy_from_remote(cr3: u64, remote_addr: usize, local_buf: &mut [u8]) -> Result<usize, i32> {
     let mut copied = 0;
