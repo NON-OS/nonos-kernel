@@ -19,17 +19,19 @@ extern crate alloc;
 use alloc::string::String;
 
 pub fn read_pid_root(pid: i32) -> Result<String, i32> {
-    let _proc = crate::process::get_process(pid as u32).ok_or(-3)?;
-    Ok(String::from("/"))
+    let proc = crate::process::get_process(pid as u32).ok_or(-3)?;
+    let root_dir = proc.root_dir.lock();
+    if root_dir.is_empty() { return Ok(String::from("/")); }
+    Ok(root_dir.clone())
 }
 
 pub fn get_root_inode(pid: i32) -> Result<u64, i32> {
-    let _proc = crate::process::get_process(pid as u32).ok_or(-3)?;
-    Ok(2)
+    let path = read_pid_root(pid)?;
+    Ok(crate::fs::ramfs::NONOS_FILESYSTEM.get_file_info(&path).map(|info| info.inode).unwrap_or(2))
 }
 
 pub fn get_root_dev(pid: i32) -> Result<(u32, u32), i32> {
-    let _proc = crate::process::get_process(pid as u32).ok_or(-3)?;
+    let _ = crate::process::get_process(pid as u32).ok_or(-3)?;
     Ok((0, 1))
 }
 
