@@ -21,9 +21,8 @@ mod set;
 mod list;
 mod remove;
 
-pub use types::{Ext4XattrHeader, Ext4XattrEntry};
-pub use types::{EXT4_XATTR_MAGIC, EXT4_XATTR_INDEX_USER, EXT4_XATTR_INDEX_TRUSTED};
-pub use types::{EXT4_XATTR_INDEX_SECURITY, EXT4_XATTR_INDEX_SYSTEM};
+pub use types::*;
+pub use parse::*;
 pub use get::ext4_getxattr;
 pub use set::ext4_setxattr;
 pub use list::ext4_listxattr;
