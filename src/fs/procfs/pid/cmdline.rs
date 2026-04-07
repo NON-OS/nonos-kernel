@@ -20,17 +20,16 @@ use alloc::string::String;
 use alloc::vec::Vec;
 
 pub fn read_pid_cmdline(pid: i32) -> Result<Vec<u8>, i32> {
-    let proc = crate::process::get_process(pid).ok_or(-3)?;
-    let mem = proc.memory_info;
-    if mem.arg_start == 0 || mem.arg_end == 0 {
+    let proc = crate::process::get_process(pid as u32).ok_or(-3)?;
+    let argv = proc.argv.lock();
+    if argv.is_empty() {
         return Ok(Vec::new());
     }
-    let len = (mem.arg_end - mem.arg_start) as usize;
-    if len > 4096 * 32 {
-        return Err(-14);
+    let mut buf = Vec::new();
+    for arg in argv.iter() {
+        buf.extend(arg.as_bytes());
+        buf.push(0);
     }
-    let mut buf = alloc::vec![0u8; len];
-    crate::memory::read_process_memory(pid, mem.arg_start, &mut buf)?;
     Ok(buf)
 }
 
@@ -44,7 +43,7 @@ pub fn read_pid_cmdline_string(pid: i32) -> Result<String, i32> {
             result.push(byte as char);
         }
     }
-    Ok(result.trim_end().to_string())
+    Ok(String::from(result.trim_end()))
 }
 
 pub fn get_cmdline_args(pid: i32) -> Result<Vec<String>, i32> {
