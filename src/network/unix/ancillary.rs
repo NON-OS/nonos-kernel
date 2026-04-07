@@ -26,6 +26,34 @@ pub const SOL_SOCKET: u32 = 1;
 pub enum AncillaryData {
     Rights(ScmRights),
     Credentials(ScmCredentials),
+    SourcePath(alloc::string::String),
+}
+
+impl AncillaryData {
+    pub fn from_path(path: &str) -> Self {
+        AncillaryData::SourcePath(alloc::string::String::from(path))
+    }
+
+    pub fn get_source_path(&self) -> Option<alloc::string::String> {
+        match self {
+            AncillaryData::SourcePath(p) => Some(p.clone()),
+            _ => None,
+        }
+    }
+
+    pub fn get_fds(&self) -> Option<&[i32]> {
+        match self {
+            AncillaryData::Rights(r) => Some(&r.fds),
+            _ => None,
+        }
+    }
+
+    pub fn get_credentials(&self) -> Option<ScmCredentials> {
+        match self {
+            AncillaryData::Credentials(c) => Some(*c),
+            _ => None,
+        }
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -90,10 +118,12 @@ pub fn build_ancillary(items: &[AncillaryData]) -> Vec<u8> {
                 while result.len() % 8 != 0 { result.push(0); }
             }
             AncillaryData::Credentials(c) => {
-                let total_len = 12 + 12;
+                let total_len: usize = 12 + 12;
                 result.extend(&total_len.to_ne_bytes()); result.extend(&SOL_SOCKET.to_ne_bytes()); result.extend(&SCM_CREDENTIALS.to_ne_bytes());
                 result.extend(&c.pid.to_ne_bytes()); result.extend(&c.uid.to_ne_bytes()); result.extend(&c.gid.to_ne_bytes());
                 while result.len() % 8 != 0 { result.push(0); }
+            }
+            AncillaryData::SourcePath(_path) => {
             }
         }
     }
