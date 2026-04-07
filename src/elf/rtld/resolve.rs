@@ -43,7 +43,10 @@ fn lookup_in_object(obj: &super::load::LoadedObject, name: &str) -> Option<Symbo
 
 pub fn resolve_plt(obj_base: usize, reloc_idx: usize) -> usize {
     let objects = super::load::get_loaded_objects();
-    let obj = objects.iter().find(|o| o.base == obj_base)?;
+    let obj = match objects.iter().find(|o| o.base == obj_base) {
+        Some(o) => o,
+        None => return 0,
+    };
     let _ = (obj, reloc_idx);
     0
 }
