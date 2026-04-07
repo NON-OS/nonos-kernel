@@ -103,28 +103,43 @@ pub fn allocate_fd() -> Result<i32, i32> {
 }
 
 pub fn pread(fd: i32, buf: &mut [u8], offset: u64) -> Result<usize, i32> {
-    let _ = (fd, buf, offset);
-    Err(-38)
+    let orig_pos = fd::fd_get_offset(fd).map_err(|_| -9i32)? as i64;
+    fd::fd_lseek(fd, offset as i64, 0).map_err(|_| -9i32)?;
+    let result = fd::fd_read(fd, buf.as_mut_ptr(), buf.len());
+    let _ = fd::fd_lseek(fd, orig_pos, 0);
+    result.map_err(|_| -5)
 }
 
 pub fn pwrite(fd: i32, buf: &[u8], offset: u64) -> Result<usize, i32> {
-    let _ = (fd, buf, offset);
-    Err(-38)
+    let orig_pos = fd::fd_get_offset(fd).map_err(|_| -9i32)? as i64;
+    fd::fd_lseek(fd, offset as i64, 0).map_err(|_| -9i32)?;
+    let result = fd::fd_write(fd, buf.as_ptr(), buf.len());
+    let _ = fd::fd_lseek(fd, orig_pos, 0);
+    result.map_err(|_| -5)
 }
 
 pub fn get_file_size(fd: i32) -> Result<u64, i32> {
-    let _ = fd;
-    Ok(0)
+    let mut stat_buf = [0u8; 48];
+    fd::fd_fstat(fd, stat_buf.as_mut_ptr()).map_err(|_| -9)?;
+    let size = u64::from_le_bytes(stat_buf[16..24].try_into().unwrap_or([0; 8]));
+    Ok(size)
 }
 
 pub fn register_pipe_reader<T>(_fd: i32, _reader: T) {}
 pub fn register_pipe_writer<T>(_fd: i32, _writer: T) {}
 pub fn set_cloexec(fd: i32, cloexec: bool) { let _ = fd::fd_set_cloexec(fd, cloexec); }
 pub fn is_pipe_fd(_fd: i32) -> bool { false }
-pub fn get_pipe_buffer_size(_fd: i32) -> Result<usize, i32> { Ok(65536) }
-pub fn set_pipe_buffer_size(_fd: i32, _size: usize) -> Result<usize, i32> { Ok(65536) }
-pub fn get_process_fds(_pid: i32) -> Result<alloc::vec::Vec<i32>, i32> { Ok(alloc::vec::Vec::new()) }
-pub fn get_process_fd(_pid: i32, _fd: i32) -> Option<FdInfo> { None }
+pub fn get_pipe_buffer_size(_fd: i32) -> Result<usize, i32> { Ok(crate::fs::pipe::PIPE_BUF_SIZE) }
+pub fn set_pipe_buffer_size(_fd: i32, size: usize) -> Result<usize, i32> { Ok(size.min(crate::fs::pipe::PIPE_BUF_SIZE * 16)) }
+pub fn get_process_fds(pid: i32) -> Result<alloc::vec::Vec<i32>, i32> {
+    let proc = crate::process::get_process(pid as u32).ok_or(-3)?;
+    Ok(proc.fd_table.all_fds())
+}
+pub fn get_process_fd(pid: i32, fd: i32) -> Option<FdInfo> {
+    let proc = crate::process::get_process(pid as u32)?;
+    let entry = proc.fd_table.get(fd)?;
+    Some(FdInfo { path: alloc::format!("fd:{}", fd), flags: entry.flags, mode: 0, position: 0, mount_id: 0, inode: entry.internal_id as u64 })
+}
 
 use alloc::sync::Arc;
 use spin::Mutex;
