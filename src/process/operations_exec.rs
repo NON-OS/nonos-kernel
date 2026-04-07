@@ -153,9 +153,6 @@ pub fn get_current_process() -> Option<Arc<ProcessControlBlock>> {
     current_process()
 }
 
-/// # Safety
-/// Returns capabilities for current process. Returns EMPTY set if no process.
-/// Never returns full capabilities as fallback - this is a security requirement.
 #[inline]
 pub fn get_current_process_capabilities() -> super::capabilities::CapabilitySet {
     if let Some(pcb) = current_process() {
