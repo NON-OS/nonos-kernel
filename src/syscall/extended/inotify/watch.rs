@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::instance::{FD_TO_INOTIFY, INOTIFY_INSTANCES, Watch};
+use super::instance::{FD_TO_INOTIFY, INOTIFY_INSTANCES};
 use alloc::string::String;
 use alloc::vec::Vec;
 
