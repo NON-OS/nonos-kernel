@@ -48,3 +48,7 @@ pub use handler::{get_handler, set_handler, get_action, set_action, is_ignored, 
 pub use info::{SigInfo, copy_siginfo_to_user, copy_siginfo_from_user, SI_USER, SI_KERNEL, SI_QUEUE, SI_TKILL};
 pub use pending::{get_pending_mask, add_pending, remove_pending, is_pending, any_pending, get_deliverable, any_deliverable, first_deliverable};
 pub use queue::{queue_pending, dequeue_pending, pending_count, clear_pending, get_pending_signals, has_pending_signal, MAX_PENDING_SIGNALS};
+
+pub fn send_signal_to_process(pid: u32, sig: u32) -> crate::syscall::SyscallResult {
+    send_signal(pid, sig)
+}
