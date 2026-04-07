@@ -191,3 +191,101 @@ pub fn handle_writev(fd: i32, iov: u64, iovcnt: i32) -> SyscallResult {
     }
     SyscallResult { value: total, capability_consumed: false, audit_required: false }
 }
+
+pub fn handle_copy_file_range(fd_in: i32, off_in: u64, fd_out: i32, off_out: u64, len: u64, flags: u32) -> SyscallResult {
+    let _ = flags;
+
+    if !crate::fs::fd::fd_is_valid(fd_in) || !crate::fs::fd::fd_is_valid(fd_out) {
+        return errno(9);
+    }
+
+    if len == 0 {
+        return SyscallResult { value: 0, capability_consumed: false, audit_required: false };
+    }
+
+    let transfer_size = len.min(64 * 1024) as usize;
+
+    let read_offset = if off_in != 0 {
+        match read_user_value::<i64>(off_in) {
+            Ok(v) => Some(v as u64),
+            Err(_) => return errno(14),
+        }
+    } else {
+        None
+    };
+
+    let write_offset = if off_out != 0 {
+        match read_user_value::<i64>(off_out) {
+            Ok(v) => Some(v as u64),
+            Err(_) => return errno(14),
+        }
+    } else {
+        None
+    };
+
+    let mut buffer = Vec::with_capacity(transfer_size);
+    buffer.resize(transfer_size, 0u8);
+
+    let bytes_read = if let Some(off) = read_offset {
+        crate::fs::fd::fd_read_at(fd_in, buffer.as_mut_ptr(), transfer_size, off as usize)
+    } else {
+        crate::fs::fd::fd_read(fd_in, buffer.as_mut_ptr(), transfer_size)
+    };
+
+    let bytes_read = match bytes_read {
+        Ok(n) => n,
+        Err(_) => return errno(5),
+    };
+
+    if bytes_read == 0 {
+        return SyscallResult { value: 0, capability_consumed: false, audit_required: false };
+    }
+
+    let bytes_written = if let Some(off) = write_offset {
+        match crate::fs::fd::fd_write_at(fd_out, buffer.as_ptr(), bytes_read, off as usize) {
+            Ok(n) => n,
+            Err(_) => return errno(5),
+        }
+    } else {
+        match crate::fs::fd::fd_write(fd_out, buffer.as_ptr(), bytes_read) {
+            Ok(n) => n,
+            Err(_) => return errno(5),
+        }
+    };
+
+    if off_in != 0 {
+        if let Some(new_off) = read_offset.unwrap_or(0).checked_add(bytes_written as u64) {
+            let _ = write_user_value(off_in, &(new_off as i64));
+        }
+    }
+
+    if off_out != 0 {
+        if let Some(new_off) = write_offset.unwrap_or(0).checked_add(bytes_written as u64) {
+            let _ = write_user_value(off_out, &(new_off as i64));
+        }
+    }
+
+    SyscallResult { value: bytes_written as i64, capability_consumed: false, audit_required: false }
+}
+
+pub fn handle_readahead(fd: i32, offset: i64, count: u64) -> SyscallResult {
+    if !crate::fs::fd::fd_is_valid(fd) {
+        return errno(9);
+    }
+
+    if offset < 0 {
+        return errno(22);
+    }
+
+    let _ = count;
+    SyscallResult { value: 0, capability_consumed: false, audit_required: false }
+}
+
+pub fn handle_fadvise64(fd: i32, offset: i64, len: i64, advice: i32) -> SyscallResult {
+    if !crate::fs::fd::fd_is_valid(fd) {
+        return errno(9);
+    }
+
+    let _ = (offset, len, advice);
+    SyscallResult { value: 0, capability_consumed: false, audit_required: false }
+}
