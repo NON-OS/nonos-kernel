@@ -15,7 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub mod ahci; pub mod audio; pub mod block; pub mod console; mod critical; mod device_info; pub mod e1000;
-mod exports; pub mod gpu; pub mod i2c; mod init; pub mod keyboard; pub mod keyboard_buffer;
+mod exports; pub mod gpu; pub mod i2c; mod init; mod init_dma; mod init_storage; mod init_network; mod init_peripherals;
+pub mod keyboard; pub mod keyboard_buffer;
 pub mod monster; pub mod network; pub mod nvme; pub mod pci; pub mod rtl8139; pub mod rtl8168;
 pub mod security; mod stats; pub mod tpm; pub mod usb; pub mod vga; pub mod virtio_blk;
 pub mod virtio_net; pub mod virtio_rng; pub mod wifi; pub mod xhci;
