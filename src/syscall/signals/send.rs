@@ -68,8 +68,6 @@ pub fn handle_tkill(tid: u64, sig: u64) -> SyscallResult {
     send_signal(tid as u32, sig as u32)
 }
 
-/// # Safety
-/// Handles rt_sigqueueinfo with validated user pointer access.
 pub fn handle_rt_sigqueueinfo(pid: u64, sig: u64, info: u64) -> SyscallResult {
     if sig < 1 || sig > SIGRTMAX as u64 {
         return errno(22);
@@ -100,8 +98,6 @@ pub fn handle_rt_sigqueueinfo(pid: u64, sig: u64, info: u64) -> SyscallResult {
     queue_signal(pid as u32, pending)
 }
 
-/// # Safety
-/// Handles rt_tgsigqueueinfo with validated user pointer access.
 pub fn handle_rt_tgsigqueueinfo(tgid: u64, tid: u64, sig: u64, info: u64) -> SyscallResult {
     if sig < 1 || sig > SIGRTMAX as u64 {
         return errno(22);
