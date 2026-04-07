@@ -45,3 +45,7 @@ pub fn uptime_ns() -> u64 {
 pub fn uptime_ms() -> u64 {
     crate::sys::timer::uptime::uptime_seconds() * 1000
 }
+
+pub fn get_ticks() -> u64 {
+    crate::interrupts::timer::state::get_ticks()
+}
