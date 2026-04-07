@@ -18,9 +18,9 @@ mod pci;
 mod platform;
 mod system;
 
-pub use pci::{init_pci_devices, register_pci_device};
-pub use platform::{init_platform_devices, register_platform_device};
-pub use system::{init_system_devices, get_cpu_device, get_node_device};
+pub use pci::*;
+pub use platform::*;
+pub use system::*;
 
 use super::kobject::{register_kobject, KobjectType};
 
