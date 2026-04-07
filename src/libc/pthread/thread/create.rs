@@ -80,7 +80,7 @@ pub unsafe extern "C" fn pthread_create(
         }
     };
 
-    let ret = crate::syscall::sys_clone(clone_flags, child_stack as usize, tid_ptr, tid_ptr, 0);
+    let ret = crate::syscall::sys_clone(clone_flags, child_stack as u64, tid_ptr as u64, tid_ptr as u64, 0);
 
     if ret < 0 {
         let mut table = THREAD_TABLE.lock();
