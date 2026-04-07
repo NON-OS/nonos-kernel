@@ -53,31 +53,21 @@ pub fn find_mass_storage_devices() -> Vec<UsbDevice> {
 
 pub fn print_device_tree() {
     let devices = get_devices();
-    if devices.is_empty() {
-        crate::log_info!("[USB] No devices enumerated");
-        return;
-    }
-
-    crate::log_info!("[USB] Enumerated devices:");
+    if devices.is_empty() { return; }
     for dev in devices {
-        crate::log_info!(
-            "  Slot {}: {} (VID={:04x} PID={:04x}) - {}",
-            dev.slot_id,
-            dev.display_name(),
-            dev.vendor_id(),
-            dev.product_id(),
-            dev.usb_version_string()
-        );
-
-        if let Some(config) = &dev.active_config {
-            for iface in &config.interfaces {
-                crate::log_info!(
-                    "    Interface {}: {} ({} endpoints)",
-                    iface.iface.b_interface_number,
-                    iface.iface.class_name(),
-                    iface.endpoints.len()
-                );
-            }
-        }
+        crate::log_info!("  Slot {}: {} (VID={:04x} PID={:04x})", dev.slot_id, dev.display_name(), dev.vendor_id(), dev.product_id());
     }
 }
+
+pub struct UsbDeviceInfo { pub path: alloc::string::String, pub vendor_id: u16, pub product_id: u16 }
+
+pub fn list_devices() -> Vec<UsbDeviceInfo> {
+    get_devices().iter().map(|d| UsbDeviceInfo {
+        path: alloc::format!("usb{}/{}", d.slot_id / 8, d.slot_id % 8),
+        vendor_id: d.vendor_id(), product_id: d.product_id(),
+    }).collect()
+}
+
+pub fn bind_driver(_dev: &str) -> Result<(), i32> { Ok(()) }
+
+pub fn unbind_driver(_dev: &str) -> Result<(), i32> { Ok(()) }
