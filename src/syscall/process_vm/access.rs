@@ -48,13 +48,7 @@ pub fn is_same_address_space(target_pid: u32) -> bool {
 }
 
 pub fn get_target_cr3(target_pid: u32) -> Option<u64> {
-    let paging = crate::memory::paging::PAGING_MANAGER.lock();
-    for (_, addr_space) in paging.address_spaces.iter() {
-        if addr_space.process_id == target_pid {
-            return Some(addr_space.cr3_value.as_u64());
-        }
-    }
-    None
+    crate::memory::paging::get_process_cr3(target_pid)
 }
 
 pub fn validate_remote_range(pid: u32, addr: usize, len: usize) -> Result<(), i32> {
