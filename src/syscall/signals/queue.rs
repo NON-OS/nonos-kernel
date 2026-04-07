@@ -96,6 +96,7 @@ pub fn remove_all_of_type(pid: u32, signo: u32) -> usize {
     let before = state.pending_queue.len();
     state.pending_queue.retain(|s| s.signo != signo);
     state.pending.remove(signo);
+    let after = state.pending_queue.len();
     set_signal_state(pid, state);
-    before - state.pending_queue.len()
+    before - after
 }
