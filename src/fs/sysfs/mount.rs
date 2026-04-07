@@ -22,7 +22,7 @@ pub fn sysfs_mount(mountpoint: &str) -> Result<(), i32> {
     if SYSFS_MOUNTED.load(Ordering::SeqCst) {
         return Err(-16);
     }
-    crate::fs::vfs::register_mount(mountpoint, "sysfs", 1)?;
+    crate::fs::vfs::register_mount(mountpoint, "sysfs").map_err(|e| i32::from(e))?;
     SYSFS_MOUNTED.store(true, Ordering::SeqCst);
     init_sysfs_tree();
     Ok(())
