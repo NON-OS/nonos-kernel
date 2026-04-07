@@ -18,7 +18,7 @@ extern crate alloc;
 
 use alloc::sync::Arc;
 use super::socket::{UnixSocket, UnixSocketType};
-use super::address::{parse_unix_address, AF_UNIX};
+use super::address::parse_unix_address;
 
 pub const SOCK_STREAM: u32 = 1;
 pub const SOCK_DGRAM: u32 = 2;
@@ -61,9 +61,9 @@ pub fn unix_accept(fd: i32, addr_ptr: u64, addr_len_ptr: u64) -> Result<i32, i32
     if addr_ptr != 0 && addr_len_ptr != 0 {
         if let Some(path) = peer.bound_path.lock().as_ref() {
             let addr = super::address::format_unix_address(path);
-            let len = super::address::address_len(&addr);
-            crate::usercopy::copy_to_user(addr_ptr, &addr)?;
-            crate::usercopy::copy_to_user(addr_len_ptr, &(len as u32))?;
+            let len = super::address::address_len(&addr) as u32;
+            let _ = crate::usercopy::write_user_value(addr_ptr, &addr);
+            let _ = crate::usercopy::write_user_value(addr_len_ptr, &len);
         }
     }
     Ok(new_fd)
@@ -76,7 +76,10 @@ pub fn unix_connect(fd: i32, addr_ptr: u64, addr_len: usize) -> Result<i32, i32>
     match socket.socket_type {
         UnixSocketType::Stream => { super::stream::stream_connect(&socket, &path)?; }
         UnixSocketType::Seqpacket => { super::seqpacket::seqpacket_connect(&socket, &path)?; }
-        UnixSocketType::Dgram => { let peer = super::listen::lookup_bound_socket(&path)?; socket.connect(peer)?; }
+        UnixSocketType::Dgram => {
+            let peer = super::listen::lookup_bound_socket(&path)?;
+            socket.connect(peer)?;
+        }
     }
     Ok(0)
 }
