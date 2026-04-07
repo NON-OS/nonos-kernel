@@ -33,8 +33,17 @@ pub struct RootkitScanResult {
 
 static LAST_SCAN_RESULT: Mutex<Option<RootkitScanResult>> = Mutex::new(None);
 static SCAN_COUNTER: AtomicU64 = AtomicU64::new(0);
+static BASELINE_CAPTURED: core::sync::atomic::AtomicBool = core::sync::atomic::AtomicBool::new(false);
 
 pub fn init() -> Result<(), &'static str> {
+    if BASELINE_CAPTURED.swap(true, Ordering::SeqCst) {
+        return Ok(());
+    }
+    let initial_scan = scan_system();
+    if initial_scan.score > 0 {
+        crate::log::warn!("[ROOTKIT] Initial scan found {} alert(s) during boot", initial_scan.alerts.len());
+    }
+    crate::log::info!("[ROOTKIT] Monitoring initialized, baseline captured");
     Ok(())
 }
 
