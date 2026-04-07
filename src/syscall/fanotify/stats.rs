@@ -46,12 +46,17 @@ pub fn get_stats() -> FanotifyStats {
 
 pub fn instance_stats(fd: i32) -> Option<InstanceStats> {
     let instance = super::fd::fd_to_instance(fd)?;
+    let id = instance.id;
+    let flags = instance.flags;
+    let event_f_flags = instance.event_f_flags;
+    let mark_count = instance.marks.lock().len();
+    let event_count = instance.events.lock().len();
     Some(InstanceStats {
-        id: instance.id,
-        flags: instance.flags,
-        event_f_flags: instance.event_f_flags,
-        mark_count: instance.marks.lock().len(),
-        event_count: instance.events.lock().len(),
+        id,
+        flags,
+        event_f_flags,
+        mark_count,
+        event_count,
     })
 }
 
