@@ -58,6 +58,10 @@ pub struct SchedulerStatsSnapshot {
     pub time_slice_exhaustions: u64,
     pub runnable_processes: usize,
     pub pending_tasks: usize,
+    pub total_count: usize,
+    pub running_count: usize,
+    pub total_scheduled: usize,
+    pub runnable_count: usize,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
