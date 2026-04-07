@@ -19,7 +19,7 @@ mod alloc;
 mod free;
 mod mprotect;
 
-pub use types::{ProtectionKey, PKEY_DISABLE_ACCESS, PKEY_DISABLE_WRITE};
+pub use types::*;
 pub use alloc::handle_pkey_alloc;
 pub use free::handle_pkey_free;
 pub use mprotect::handle_pkey_mprotect;
