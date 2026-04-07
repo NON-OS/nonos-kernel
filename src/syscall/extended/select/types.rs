@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub const FD_SETSIZE: i32 = 1024;
+pub const FD_SETSIZE: usize = 1024;
 const NFDBITS: usize = 64;
 
 pub const POLLIN: i16 = 0x0001;
@@ -35,16 +35,16 @@ pub(super) const EINTR: i32 = 4;
 #[repr(C)]
 #[derive(Clone, Copy)]
 pub(super) struct FdSet {
-    pub bits: [u64; FD_SETSIZE as usize / NFDBITS],
+    pub bits: [u64; FD_SETSIZE / NFDBITS],
 }
 
 impl FdSet {
     pub(super) fn new() -> Self {
-        Self { bits: [0; FD_SETSIZE as usize / NFDBITS] }
+        Self { bits: [0; FD_SETSIZE / NFDBITS] }
     }
 
     pub(super) fn isset(&self, fd: i32) -> bool {
-        if fd < 0 || fd >= FD_SETSIZE {
+        if fd < 0 || fd as usize >= FD_SETSIZE {
             return false;
         }
         let idx = fd as usize / NFDBITS;
@@ -53,7 +53,7 @@ impl FdSet {
     }
 
     pub(super) fn set(&mut self, fd: i32) {
-        if fd >= 0 && fd < FD_SETSIZE {
+        if fd >= 0 && (fd as usize) < FD_SETSIZE {
             let idx = fd as usize / NFDBITS;
             let bit = fd as usize % NFDBITS;
             self.bits[idx] |= 1u64 << bit;
