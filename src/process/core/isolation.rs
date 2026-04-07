@@ -118,3 +118,70 @@ pub fn check_isolated_capability(pid: Pid, capability: u64) -> bool {
     }
     true
 }
+
+pub fn can_signal_process(sender_pid: Pid, target_pid: Pid) -> bool {
+    if sender_pid == target_pid { return true; }
+    if is_process_isolated(target_pid) {
+        if let Some(flags) = get_isolation_flags(target_pid) {
+            if flags.no_signals { return false; }
+        }
+    }
+    if is_process_isolated(sender_pid) {
+        if let Some(flags) = get_isolation_flags(sender_pid) {
+            if flags.no_signals { return false; }
+        }
+    }
+    true
+}
+
+pub fn can_access_shared_memory(pid: Pid, shmid: i32) -> bool {
+    if is_process_isolated(pid) {
+        if let Some(flags) = get_isolation_flags(pid) {
+            if flags.no_ipc {
+                crate::security::monitoring::audit::log_security_event(
+                    "isolation",
+                    crate::security::monitoring::audit::AuditSeverity::Warning,
+                    alloc::format!("Isolated process {} denied shm access to {}", pid, shmid),
+                    Some(pid as u64),
+                    None,
+                    None,
+                );
+                return false;
+            }
+        }
+    }
+    true
+}
+
+pub fn can_ptrace_process(tracer_pid: Pid, tracee_pid: Pid) -> bool {
+    if is_process_isolated(tracee_pid) {
+        crate::security::monitoring::audit::log_security_event(
+            "isolation",
+            crate::security::monitoring::audit::AuditSeverity::Warning,
+            alloc::format!("Ptrace denied: {} -> isolated {}", tracer_pid, tracee_pid),
+            Some(tracer_pid as u64),
+            None,
+            None,
+        );
+        return false;
+    }
+    if is_process_isolated(tracer_pid) {
+        return false;
+    }
+    true
+}
+
+pub fn enforce_isolation_on_exec(pid: Pid) {
+    if let Some(pcb) = PROCESS_TABLE.find_by_pid(pid) {
+        const ALL_DANGEROUS_CAPS: u64 = (1 << 10) | (1 << 11) | (1 << 12) | (1 << 13) | (1 << 14) | (1 << 15);
+        pcb.caps_bits.fetch_and(!ALL_DANGEROUS_CAPS, Ordering::SeqCst);
+        crate::security::monitoring::audit::log_security_event(
+            "isolation",
+            crate::security::monitoring::audit::AuditSeverity::Info,
+            alloc::format!("Capabilities reduced on exec for isolated process {}", pid),
+            Some(pid as u64),
+            None,
+            None,
+        );
+    }
+}
