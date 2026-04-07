@@ -290,6 +290,10 @@ pub(crate) fn test_nonos_file_info_clone() -> TestResult {
         modified: 2000,
         encrypted: true,
         quantum_protected: false,
+        mode: 0o644,
+        uid: 0,
+        gid: 0,
+        inode: 12345,
     };
     let cloned = info.clone();
     if cloned.name != "test" { return TestResult::Fail; }
