@@ -24,13 +24,16 @@ pub fn fanotify_close(fd: i32) -> Result<(), i32> {
 }
 
 pub fn close_all_for_process(pid: u32) {
-    let fd_map = FD_MAP.lock();
+    let fd_owner = super::init::FD_OWNER.lock();
     let mut to_close = alloc::vec::Vec::new();
-    for (&fd, _) in fd_map.iter() {
-        to_close.push(fd);
+    for (&fd, &owner_pid) in fd_owner.iter() {
+        if owner_pid == pid {
+            to_close.push(fd);
+        }
     }
-    drop(fd_map);
+    drop(fd_owner);
     for fd in to_close {
+        super::init::FD_OWNER.lock().remove(&fd);
         let _ = fanotify_close(fd);
     }
 }
