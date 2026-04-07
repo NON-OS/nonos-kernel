@@ -21,6 +21,9 @@ mod setns;
 mod fd;
 mod stats;
 mod clone;
+pub mod userns;
+pub mod netns;
+pub mod enforce;
 
 pub use types::*;
 pub use manager::{NamespaceManager, ProcessNamespaces};
@@ -29,3 +32,6 @@ pub use setns::handle_setns;
 pub use fd::*;
 pub use stats::*;
 pub use clone::{clone_namespaces_for_fork, get_all_namespaces, share_namespace, cleanup_process_namespaces};
+pub use userns::{IdMapping, UserNamespace, create_user_ns, set_uid_map, set_gid_map, map_uid_to_ns, map_uid_from_ns};
+pub use netns::{NetNamespace, NetRoute, create_net_ns, add_interface, remove_interface, create_veth_pair};
+pub use enforce::{check_pid_visibility, check_ipc_access, check_mount_access, check_net_access, enforce_ns_isolation};
