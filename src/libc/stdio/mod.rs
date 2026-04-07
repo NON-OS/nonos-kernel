@@ -19,7 +19,7 @@ pub mod printf;
 pub mod scanf;
 pub mod fopen;
 
-pub use file::{FILE, stdin, stdout, stderr, fflush, feof, ferror, clearerr, fileno};
-pub use printf::{printf, fprintf, sprintf, snprintf, vprintf, vfprintf, vsprintf, vsnprintf};
-pub use scanf::{scanf, fscanf, sscanf};
-pub use fopen::{fopen, fclose, fread, fwrite, fseek, ftell, rewind, fgetc, fputc, fgets, fputs};
+pub use file::*;
+pub use printf::*;
+pub use scanf::*;
+pub use fopen::*;
