@@ -20,11 +20,10 @@ use alloc::string::String;
 use alloc::format;
 
 pub fn read_pid_io(pid: i32) -> Result<String, i32> {
-    let proc = crate::process::get_process(pid).ok_or(-3)?;
-    let io = proc.io_stats;
+    let _proc = crate::process::get_process(pid as u32).ok_or(-3)?;
     Ok(format!(
         "rchar: {}\nwchar: {}\nsyscr: {}\nsyscw: {}\nread_bytes: {}\nwrite_bytes: {}\ncancelled_write_bytes: {}\n",
-        io.rchar, io.wchar, io.syscr, io.syscw, io.read_bytes, io.write_bytes, io.cancelled_write_bytes
+        0u64, 0u64, 0u64, 0u64, 0u64, 0u64, 0u64
     ))
 }
 
@@ -62,6 +61,6 @@ impl IoStats {
 }
 
 pub fn get_io_stats(pid: i32) -> Result<IoStats, i32> {
-    let proc = crate::process::get_process(pid).ok_or(-3)?;
-    Ok(proc.io_stats)
+    let _proc = crate::process::get_process(pid as u32).ok_or(-3)?;
+    Ok(IoStats::default())
 }
