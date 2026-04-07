@@ -27,6 +27,7 @@ pub enum UsercopyError {
     PageFault,
     NoProcessContext,
     SizeTooLarge,
+    InvalidUtf8,
 }
 
 impl fmt::Display for UsercopyError {
@@ -41,6 +42,24 @@ impl fmt::Display for UsercopyError {
             Self::PageFault => write!(f, "page fault during access"),
             Self::NoProcessContext => write!(f, "no process context"),
             Self::SizeTooLarge => write!(f, "copy size too large"),
+            Self::InvalidUtf8 => write!(f, "invalid UTF-8 string"),
+        }
+    }
+}
+
+impl From<UsercopyError> for i32 {
+    fn from(e: UsercopyError) -> i32 {
+        match e {
+            UsercopyError::NullPointer => -14,
+            UsercopyError::InvalidAddress => -14,
+            UsercopyError::AddressOverflow => -14,
+            UsercopyError::PageNotMapped => -14,
+            UsercopyError::PageNotUser => -14,
+            UsercopyError::PageNotWritable => -14,
+            UsercopyError::PageFault => -14,
+            UsercopyError::NoProcessContext => -3,
+            UsercopyError::SizeTooLarge => -12,
+            UsercopyError::InvalidUtf8 => -22,
         }
     }
 }
