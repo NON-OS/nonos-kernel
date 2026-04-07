@@ -39,7 +39,7 @@ pub fn epoll_del(epfd: i32, fd: i32) -> Result<(), i32> {
     instance.delete(fd)
 }
 
-pub fn epoll_ctl(epfd: i32, op: u32, fd: i32, events: u32, data: u64) -> Result<(), i32> {
+pub fn epoll_ctl(epfd: i32, op: i32, fd: i32, events: u32, data: u64) -> Result<(), i32> {
     match op {
         EPOLL_CTL_ADD => epoll_add(epfd, fd, events, data),
         EPOLL_CTL_MOD => epoll_mod(epfd, fd, events, data),
