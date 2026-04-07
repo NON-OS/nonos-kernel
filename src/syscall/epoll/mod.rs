@@ -27,23 +27,19 @@ pub fn sys_epoll_create(size: i32) -> i64 {
 }
 
 pub fn sys_epoll_create1(flags: i32) -> i64 {
-    crate::syscall::extended::epoll::handle_epoll_create1(flags as u32).value
+    crate::syscall::extended::epoll::handle_epoll_create1(flags).value
 }
 
 pub fn sys_epoll_ctl(epfd: i32, op: i32, fd: i32, event_ptr: usize) -> i64 {
-    let (events, data) = if event_ptr != 0 && op != EPOLL_CTL_DEL {
-        let ev = unsafe { core::ptr::read(event_ptr as *const EpollEvent) };
-        (ev.events, ev.data)
-    } else { (0, 0) };
-    crate::syscall::extended::epoll::handle_epoll_ctl(epfd, op as u32, fd, events, data).value
+    crate::syscall::extended::epoll::handle_epoll_ctl(epfd, op, fd, event_ptr as u64).value
 }
 
 pub fn sys_epoll_wait(epfd: i32, events_ptr: usize, maxevents: i32, timeout: i32) -> i64 {
     crate::syscall::extended::epoll::handle_epoll_wait(epfd, events_ptr as u64, maxevents, timeout).value
 }
 
-pub fn sys_epoll_pwait(epfd: i32, events_ptr: usize, maxevents: i32, timeout: i32, sigmask: usize, _sigsetsize: usize) -> i64 {
-    crate::syscall::extended::epoll::handle_epoll_pwait(epfd, events_ptr as u64, maxevents, timeout, sigmask as u64).value
+pub fn sys_epoll_pwait(epfd: i32, events_ptr: usize, maxevents: i32, timeout: i32, sigmask: usize, sigsetsize: usize) -> i64 {
+    crate::syscall::extended::epoll::handle_epoll_pwait(epfd, events_ptr as u64, maxevents, timeout, sigmask as u64, sigsetsize as u64).value
 }
 
 pub fn sys_epoll_pwait2(epfd: i32, events_ptr: usize, maxevents: i32, timeout_ptr: usize, sigmask: usize, sigsetsize: usize) -> i64 {
