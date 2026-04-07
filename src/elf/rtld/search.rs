@@ -66,7 +66,7 @@ fn file_exists(path: &str) -> bool {
     if path_bytes.len() >= 255 { return false; }
     buf[..path_bytes.len()].copy_from_slice(path_bytes);
     buf[path_bytes.len()] = 0;
-    unsafe { crate::syscall::sys_access(buf.as_ptr() as usize, 0) == 0 }
+    crate::syscall::core::sys_access(buf.as_ptr() as usize, 0) == 0
 }
 
 pub fn add_rpath(rpath: &str) {
