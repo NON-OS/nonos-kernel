@@ -32,12 +32,13 @@ pub mod topology;
 pub mod ipi;
 
 pub use constants::*;
-pub use types::{CpuState, CpuDescriptor, SmpStats, CpuStats};
+pub use types::*;
 pub(crate) use state::{cpu_count, cpus_online};
-pub use cpu::{cpu_id, apic_to_cpu_id, current_cpu, get_cpu, is_bsp};
-pub use preempt::{preempt_disable, preempt_enable, preempt_enabled};
-pub use tlb::{tlb_shootdown, handle_tlb_shootdown_ipi, flush_tlb};
-pub use ipi_handler::{send_reschedule_ipi, send_panic_ipi, handle_panic_ipi, handle_stop_ipi};
-pub use stats::get_smp_stats;
-pub use init::{init_bsp, start_aps};
-pub use ap::ap_entry;
+pub use cpu::*;
+pub fn current_cpu_id() -> u32 { cpu_id() as u32 }
+pub use preempt::*;
+pub use tlb::*;
+pub use ipi_handler::*;
+pub use stats::*;
+pub use init::*;
+pub use ap::*;
