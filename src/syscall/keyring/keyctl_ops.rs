@@ -16,17 +16,16 @@
 
 use crate::syscall::SyscallResult;
 use crate::syscall::dispatch::util::errno;
-use crate::usercopy::{read_user_bytes, read_user_string, write_user_bytes};
+use crate::usercopy::read_user_bytes;
 use super::types::KeySerial;
-use super::store::{get_key, get_key_mut, remove_key};
+use super::store::get_key_mut;
 use super::special::resolve_special_keyring;
 use super::key_ops::*;
-use super::search::search_keyring;
 
 pub fn keyctl_get_keyring_id(id: KeySerial, create: bool) -> SyscallResult {
-    let tid = crate::process::current_tid().unwrap_or(0);
-    let pid = crate::process::current_pid().unwrap_or(0);
-    let uid = crate::process::current_uid().unwrap_or(0);
+    let tid = crate::process::current_tid() as u64;
+    let pid = crate::process::current_pid().unwrap_or(1);
+    let uid = crate::process::current_uid();
     if !create && id < 0 { return errno(2); }
     match resolve_special_keyring(id, tid, pid, uid) {
         Some(s) => SyscallResult { value: s as i64, capability_consumed: false, audit_required: false },
@@ -35,7 +34,7 @@ pub fn keyctl_get_keyring_id(id: KeySerial, create: bool) -> SyscallResult {
 }
 
 pub fn keyctl_join_session_keyring(_name: u64) -> SyscallResult {
-    let pid = crate::process::current_pid().unwrap_or(0);
+    let pid = crate::process::current_pid().unwrap_or(1);
     match super::special::get_or_create_session_keyring(pid) {
         Some(s) => SyscallResult { value: s as i64, capability_consumed: false, audit_required: false },
         None => errno(12),
