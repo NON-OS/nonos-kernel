@@ -54,5 +54,5 @@ pub fn get_block_devices() -> alloc::vec::Vec<String> {
 }
 
 pub fn get_block_device_size(name: &str) -> Option<u64> {
-    crate::drivers::block::get_device(name).map(|d| d.size_bytes)
+    crate::drivers::block::get_device_info(name).map(|d| d.size_bytes)
 }
