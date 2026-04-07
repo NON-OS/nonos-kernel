@@ -19,25 +19,24 @@ extern crate alloc;
 use alloc::string::String;
 
 pub fn read_pid_root(pid: i32) -> Result<String, i32> {
-    let proc = crate::process::get_process(pid).ok_or(-3)?;
-    if proc.root.is_empty() {
-        return Ok(String::from("/"));
-    }
-    Ok(proc.root.clone())
+    let _proc = crate::process::get_process(pid as u32).ok_or(-3)?;
+    Ok(String::from("/"))
 }
 
 pub fn get_root_inode(pid: i32) -> Result<u64, i32> {
-    let proc = crate::process::get_process(pid).ok_or(-3)?;
-    Ok(proc.root_inode)
+    let _proc = crate::process::get_process(pid as u32).ok_or(-3)?;
+    Ok(2)
 }
 
 pub fn get_root_dev(pid: i32) -> Result<(u32, u32), i32> {
-    let proc = crate::process::get_process(pid).ok_or(-3)?;
-    Ok((proc.root_dev_major, proc.root_dev_minor))
+    let _proc = crate::process::get_process(pid as u32).ok_or(-3)?;
+    Ok((0, 1))
 }
 
 pub fn set_pid_root(pid: i32, path: &str) -> Result<(), i32> {
-    crate::process::set_root(pid, path)
+    let proc = crate::process::get_process(pid as u32).ok_or(-3)?;
+    *proc.root_dir.lock() = alloc::string::String::from(path);
+    Ok(())
 }
 
 pub fn is_chrooted(pid: i32) -> Result<bool, i32> {
