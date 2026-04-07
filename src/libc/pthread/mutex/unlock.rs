@@ -27,6 +27,6 @@ pub unsafe extern "C" fn pthread_mutex_unlock(mutex: *mut PthreadMutex) -> i32 {
     }
     m.owner = 0;
     m.lock.store(0, Ordering::Release);
-    crate::syscall::sys_futex(mutex as usize, 1, 1, 0, 0, 0);
+    crate::syscall::sys_futex(mutex as u64, 1, 1, 0, 0, 0);
     0
 }
