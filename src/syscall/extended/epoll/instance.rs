@@ -35,6 +35,7 @@ pub struct EpollEntry {
 pub struct EpollInstance {
     pub interest_list: BTreeMap<i32, EpollEntry>,
     pub ready_events: Vec<EpollEvent>,
+    pub cloexec: bool,
 }
 
 impl EpollInstance {
@@ -42,6 +43,15 @@ impl EpollInstance {
         Self {
             interest_list: BTreeMap::new(),
             ready_events: Vec::new(),
+            cloexec: false,
+        }
+    }
+
+    pub fn new_with_cloexec(cloexec: bool) -> Self {
+        Self {
+            interest_list: BTreeMap::new(),
+            ready_events: Vec::new(),
+            cloexec,
         }
     }
 
