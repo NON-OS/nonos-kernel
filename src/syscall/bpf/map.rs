@@ -22,8 +22,8 @@ use spin::Mutex;
 use core::sync::atomic::{AtomicI32, Ordering};
 use super::types::BpfMapType;
 
-static NEXT_MAP_FD: AtomicI32 = AtomicI32::new(200);
-static MAPS: Mutex<BTreeMap<i32, BpfMap>> = Mutex::new(BTreeMap::new());
+pub static NEXT_MAP_FD: AtomicI32 = AtomicI32::new(200);
+pub static MAPS: Mutex<BTreeMap<i32, BpfMap>> = Mutex::new(BTreeMap::new());
 
 pub struct BpfMap {
     pub fd: i32,
