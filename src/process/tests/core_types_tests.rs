@@ -113,6 +113,7 @@ pub fn isolation_flags_clone() -> TestResult {
         no_filesystem: true,
         no_ipc: false,
         no_devices: true,
+        no_signals: true,
         memory_isolated: true,
     };
     let flags2 = flags1;
