@@ -19,10 +19,10 @@ mod net;
 mod tty;
 mod input;
 
-pub use block::{init_block_class, register_block_device};
-pub use net::{init_net_class, register_net_device};
-pub use tty::{init_tty_class, register_tty_device};
-pub use input::{init_input_class, register_input_device};
+pub use block::*;
+pub use net::*;
+pub use tty::*;
+pub use input::*;
 
 use super::kobject::{register_kobject, KobjectType};
 
