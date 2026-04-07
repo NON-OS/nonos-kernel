@@ -19,6 +19,7 @@ pub mod runqueue;
 pub mod context;
 pub mod executor;
 pub mod realtime;
+pub mod deadline;
 pub mod scheduler;
 mod api;
 
@@ -41,6 +42,12 @@ pub use executor::{spawn_async, poll_async_tasks, pending_async_tasks};
 pub use realtime::{
     init as realtime_init, spawn_realtime, run_realtime_tasks,
     pending_realtime_tasks, has_realtime_tasks,
+};
+pub use deadline::{
+    init as deadline_init, spawn_deadline, run_deadline_tasks,
+    has_runnable as has_deadline_tasks, task_count as deadline_task_count,
+    get_stats as get_deadline_stats, bandwidth_utilization,
+    AdmissionError, DeadlineStatsSnapshot,
 };
 pub use scheduler::{
     init_smp_scheduler, init_ap_scheduler, smp_enabled, smp_cpu_count,
