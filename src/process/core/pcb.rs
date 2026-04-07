@@ -17,7 +17,7 @@
 use alloc::{string::String, sync::Arc, vec::Vec};
 use core::sync::atomic::{AtomicI32, AtomicU32, AtomicU64, Ordering};
 use spin::Mutex;
-use super::types::{Pid, ProcessState, Priority, MemoryState, ProcessSignals, ProcessCapabilities, ProcessTimeInfo, ProcessMemoryInfo, ProcessCredentials};
+use super::types::{Pid, ProcessState, Priority, MemoryState, ProcessSignals, ProcessCapabilities, ProcessTimeInfo, ProcessMemoryInfo, ProcessCredentials, ProcessIoStats};
 use super::thread_group::ThreadGroup;
 use crate::process::process_fd_table::ProcessFdTable;
 
@@ -43,6 +43,7 @@ pub struct ProcessControlBlock {
     pub zk_circuits_compiled: AtomicU64,
     pub umask: Mutex<u32>,
     pub root_dir: Mutex<String>,
+    pub cwd: Mutex<String>,
     pub clear_child_tid: AtomicU64,
     pub set_child_tid: AtomicU64,
     pub alarm_time_ms: AtomicU64,
@@ -56,6 +57,7 @@ pub struct ProcessControlBlock {
     pub time_info: Mutex<ProcessTimeInfo>,
     pub memory_info: Mutex<ProcessMemoryInfo>,
     pub creds: Mutex<ProcessCredentials>,
+    pub io_stats: Mutex<ProcessIoStats>,
     pub tty_nr: AtomicU32,
     pub tty_pgrp: AtomicI32,
     pub flags: AtomicU64,
@@ -74,6 +76,7 @@ pub struct ProcessControlBlock {
     pub cpus_allowed: AtomicU64,
     pub voluntary_switches: AtomicU64,
     pub involuntary_switches: AtomicU64,
+    pub cr3: AtomicU64,
 }
 
 impl ProcessControlBlock {
