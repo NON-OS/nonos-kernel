@@ -43,12 +43,7 @@ pub fn current_pid() -> Option<Pid> {
 
 #[inline]
 pub fn current_process() -> Option<Arc<ProcessControlBlock>> {
-    crate::sys::serial::println(b"[PROC] current_process: getting pid");
-    let pid = current_pid()?;
-    crate::sys::serial::println(b"[PROC] current_process: finding in table");
-    let result = PROCESS_TABLE.find_by_pid(pid);
-    crate::sys::serial::println(b"[PROC] current_process: done");
-    result
+    PROCESS_TABLE.find_by_pid(current_pid()?)
 }
 
 #[inline]
@@ -101,17 +96,17 @@ pub mod syscalls {
             if let Some(pcb) = PROCESS_TABLE.find_by_pid(pid) {
                 crate::process::accounting::record_exit_from_pcb(&pcb, code, false);
                 pcb.exit_code.store(code, Ordering::Release);
+                let parent_pid = pcb.ppid.load(Ordering::Acquire);
                 {
                     let mut state = pcb.state.lock();
                     *state = ProcessState::Zombie(code);
                 }
-                let name = pcb.name.lock().clone();
-                crate::log::info!("Process {} ({}) exited with code {}", pid, name, code);
+                crate::syscall::extended::process::record_child_exit(parent_pid, pid, code);
+                super::init::reparent_orphans(pid);
+                crate::sched::remove_from_run_queue(pid);
             }
             CURRENT_PID.store(0, Ordering::Release);
         }
-        loop {
-            x86_64::instructions::hlt();
-        }
+        loop { x86_64::instructions::hlt(); }
     }
 }
