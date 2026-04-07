@@ -271,6 +271,7 @@ pub(crate) fn test_usercopy_error_match_exhaustive() -> TestResult {
         UsercopyError::PageFault => false,
         UsercopyError::NoProcessContext => false,
         UsercopyError::SizeTooLarge => false,
+        UsercopyError::InvalidUtf8 => false,
     };
     if !matched { return TestResult::Fail; }
     TestResult::Pass
