@@ -23,5 +23,5 @@ mod misc;
 pub use prot::{PROT_NONE, PROT_READ, PROT_WRITE, PROT_EXEC, handle_mprotect};
 pub use brk::handle_brk;
 pub use remap::handle_mremap;
-pub use lock::{handle_mlock, handle_mlock2, handle_munlock, handle_mlockall, handle_munlockall};
+pub use lock::*;
 pub use misc::{handle_msync, handle_mincore, handle_madvise, handle_memfd_create};
