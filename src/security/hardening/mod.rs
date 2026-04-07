@@ -16,6 +16,7 @@
 
 pub mod spectre_mitigations;
 pub mod memory_sanitization;
+pub mod memory_encryption;
 
 pub use spectre_mitigations::{
     init as spectre_init, CpuVulnerabilities, MitigationStatus, lfence, mfence, sfence,
@@ -35,4 +36,12 @@ pub use memory_sanitization::{
     GuardPage, allocate_with_guards, free_with_guards, SensitiveData, SecureString,
     on_free, on_realloc, sanitize_process_memory, zerostate_shutdown_wipe,
     SanitizationStats, sanitization_stats, set_level, get_level,
+};
+
+pub use memory_encryption::{
+    init as memory_encryption_init, is_initialized as mem_encrypt_initialized,
+    encrypt_region, decrypt_region, protect_sensitive, unprotect_sensitive,
+    rotate_keys as rotate_encryption_keys, register_region as register_encrypted_region,
+    unregister_region as unregister_encrypted_region, get_protected_regions, is_region_protected,
+    EncryptedRegion, EncryptionError, MemEncryptStats,
 };
