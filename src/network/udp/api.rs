@@ -206,6 +206,10 @@ pub fn get_global_stats() -> (u64, u64, u64, u64) {
 
 /// Initialize UDP subsystem
 pub fn init() -> Result<(), &'static str> {
+    GLOBAL_STATS.packets_sent.store(0, Ordering::SeqCst);
+    GLOBAL_STATS.packets_received.store(0, Ordering::SeqCst);
+    GLOBAL_STATS.bytes_sent.store(0, Ordering::SeqCst);
+    GLOBAL_STATS.bytes_received.store(0, Ordering::SeqCst);
     crate::log::info!("UDP subsystem initialized");
     Ok(())
 }
