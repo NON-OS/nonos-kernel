@@ -88,6 +88,7 @@ pub struct NonosFileInfo {
     pub mode: u32,
     pub uid: u32,
     pub gid: u32,
+    pub inode: u64,
 }
 
 #[derive(Debug, Default, Clone)]
