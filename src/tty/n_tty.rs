@@ -20,7 +20,7 @@ use alloc::collections::VecDeque;
 use spin::Mutex;
 use super::ldisc::LineDiscipline;
 use super::driver::TtyStruct;
-use super::termios::{ICANON, ECHO, ISIG, ICRNL, INLCR, IGNCR, OPOST, ONLCR};
+use super::termios::{ICANON, ECHO, ICRNL, INLCR, IGNCR, OPOST, ONLCR};
 
 const N_TTY_BUF_SIZE: usize = 4096;
 
@@ -88,7 +88,7 @@ impl LineDiscipline for NTtyLdisc {
 
     fn write_wakeup(&self, _tty: &TtyStruct) {}
     fn ioctl(&self, _tty: &mut TtyStruct, _cmd: u32, _arg: u64) -> Result<i64, i32> { Err(-25) }
-    fn poll(&self, tty: &TtyStruct) -> u32 {
+    fn poll(&self, _tty: &TtyStruct) -> u32 {
         let has_data = !self.read_buf.lock().is_empty() || !self.canon_buf.lock().is_empty();
         if has_data { 0x01 | 0x04 } else { 0x04 }
     }
