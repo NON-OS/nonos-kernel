@@ -42,7 +42,7 @@ fn format_cpu_entry(cpu: usize) -> String {
 }
 
 fn get_cpu_info() -> (&'static str, u32, u32, u32) {
-    let cpuid = unsafe { __cpuid(1) };
+    let cpuid = __cpuid(1);
     let family = (cpuid.eax >> 8) & 0xf;
     let model = (cpuid.eax >> 4) & 0xf;
     let stepping = cpuid.eax & 0xf;
@@ -52,7 +52,7 @@ fn get_cpu_info() -> (&'static str, u32, u32, u32) {
 fn get_cpu_brand() -> String {
     let mut brand = [0u8; 48];
     for i in 0..3 {
-        let cpuid = unsafe { __cpuid(0x80000002 + i) };
+        let cpuid = __cpuid(0x80000002 + i);
         let offset = i as usize * 16;
         brand[offset..offset+4].copy_from_slice(&cpuid.eax.to_le_bytes());
         brand[offset+4..offset+8].copy_from_slice(&cpuid.ebx.to_le_bytes());
