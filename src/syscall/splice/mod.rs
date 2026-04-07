@@ -22,10 +22,10 @@ mod vmsplice;
 mod sync_file_range;
 mod stats;
 
-pub use types::{SpliceFlags, SPLICE_F_MOVE, SPLICE_F_NONBLOCK, SPLICE_F_MORE, SPLICE_F_GIFT};
-pub use pipe_buffer::PipeBuffer;
-pub use splice::handle_splice;
-pub use tee::handle_tee;
-pub use vmsplice::handle_vmsplice;
-pub use sync_file_range::handle_sync_file_range;
-pub use stats::{SpliceStats, get_stats, reset_stats, record_splice, record_tee, record_vmsplice};
+pub use types::*;
+pub use pipe_buffer::*;
+pub use splice::*;
+pub use tee::*;
+pub use vmsplice::*;
+pub use sync_file_range::*;
+pub use stats::*;
