@@ -48,7 +48,13 @@ impl VirtualFileSystem {
         }
     }
 
-    pub fn sync_metadata(&self) {}
+    pub fn sync_metadata(&self) {
+        let g = self.inner.lock();
+        for mount in &g.mounts {
+            let _ = crate::fs::ramfs::NONOS_FILESYSTEM.sync(&mount.mount_path);
+        }
+        compiler_fence(Ordering::SeqCst);
+    }
 
     pub fn process_pending_operations(&self, max_ops: usize) -> usize {
         let mut g = self.inner.lock();
