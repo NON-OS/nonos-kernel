@@ -23,16 +23,10 @@ use alloc::vec::Vec;
 pub fn read_mounts() -> String {
     let mounts = crate::fs::vfs::get_mounts();
     let mut output = String::new();
+    let default_opts = [MountOption::ReadWrite, MountOption::Relatime];
     for mount in mounts {
-        output.push_str(&format!(
-            "{} {} {} {} {} {}\n",
-            mount.device,
-            mount.mountpoint,
-            mount.fstype,
-            format_mount_options(&mount.options),
-            mount.dump_freq,
-            mount.pass_num
-        ));
+        let opts = format_mount_options(&default_opts);
+        output.push_str(&format!("{} {} tmpfs {} 0 0\n", mount, mount, opts));
     }
     output
 }
