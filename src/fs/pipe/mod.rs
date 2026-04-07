@@ -20,8 +20,8 @@ mod writer;
 mod syscall;
 mod splice_support;
 
-pub use buffer::{PipeBuffer, PIPE_BUF_SIZE};
-pub use reader::{PipeReader, pipe_read};
-pub use writer::{PipeWriter, pipe_write};
-pub use syscall::{sys_pipe, sys_pipe2};
-pub use splice_support::{pipe_splice_read, pipe_splice_write};
+pub use buffer::*;
+pub use reader::*;
+pub use writer::*;
+pub use syscall::*;
+pub use splice_support::*;
