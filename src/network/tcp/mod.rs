@@ -18,6 +18,6 @@ mod api;
 mod types;
 mod socket;
 
-pub use api::{TcpError, connect_to, send_socket, recv_socket, recv_socket_available, close_socket, recv_all};
+pub use api::{TcpError, connect_to, send_socket, recv_socket, recv_socket_available, close_socket, recv_all, send_data};
 pub use types::{TcpState, TcpHeader, TcpConnection, TCP_SYN, TCP_ACK, TCP_FIN, TCP_RST, TCP_PSH};
 pub use socket::TcpSocket;
