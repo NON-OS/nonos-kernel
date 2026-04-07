@@ -54,3 +54,38 @@ pub fn get_device(index: usize) -> Option<PciDevice> {
 pub fn device_count() -> usize { DEVICE_COUNT.load(Ordering::Relaxed) as usize }
 
 pub fn is_init() -> bool { PCI_INIT.load(Ordering::Relaxed) }
+
+pub fn enumerate_devices() -> alloc::vec::Vec<PciDeviceExt> {
+    extern crate alloc;
+    let count = DEVICE_COUNT.load(Ordering::Relaxed) as usize;
+    (0..count).filter_map(|i| {
+        let dev = unsafe { DEVICES[i] };
+        if dev.is_valid() {
+            Some(PciDeviceExt {
+                bus: dev.bus, device: dev.device, function: dev.function,
+                vendor_id: dev.vendor_id, device_id: dev.device_id,
+                class: ((dev.class as u32) << 16) | ((dev.subclass as u32) << 8) | (dev.prog_if as u32),
+            })
+        } else { None }
+    }).collect()
+}
+
+pub struct PciDeviceExt { pub bus: u8, pub device: u8, pub function: u8, pub vendor_id: u16, pub device_id: u16, pub class: u32 }
+
+pub fn rescan() { crate::bus::pci::init::init(); }
+
+pub fn bind_driver(_bdf: &str) -> Result<(), i32> { Ok(()) }
+
+pub fn unbind_driver(_bdf: &str) -> Result<(), i32> { Ok(()) }
+
+pub struct PciDriver { pub name: alloc::string::String }
+
+pub fn list_drivers() -> alloc::vec::Vec<PciDriver> {
+    extern crate alloc;
+    alloc::vec![PciDriver { name: alloc::string::String::from("pci-generic") }]
+}
+
+pub fn get_driver_devices(_driver: &str) -> alloc::vec::Vec<alloc::string::String> {
+    extern crate alloc;
+    enumerate_devices().iter().map(|d| alloc::format!("0000:{:02x}:{:02x}.{}", d.bus, d.device, d.function)).collect()
+}
