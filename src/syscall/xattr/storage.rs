@@ -70,22 +70,22 @@ impl XattrStorage {
     }
 
     pub fn get_by_fd(fd: i32, name: &str) -> Result<Vec<u8>, i32> {
-        let path = crate::fs::fd::fd_get_path(fd).ok_or(9)?;
+        let path = crate::fs::fd::fd_get_path(fd).map_err(|_| 9)?;
         Self::get(&path, name)
     }
 
     pub fn set_by_fd(fd: i32, name: &str, value: &[u8], flags: i32) -> Result<(), i32> {
-        let path = crate::fs::fd::fd_get_path(fd).ok_or(9)?;
+        let path = crate::fs::fd::fd_get_path(fd).map_err(|_| 9)?;
         Self::set(&path, name, value, flags)
     }
 
     pub fn list_by_fd(fd: i32) -> Result<Vec<String>, i32> {
-        let path = crate::fs::fd::fd_get_path(fd).ok_or(9)?;
+        let path = crate::fs::fd::fd_get_path(fd).map_err(|_| 9)?;
         Self::list(&path)
     }
 
     pub fn remove_by_fd(fd: i32, name: &str) -> Result<(), i32> {
-        let path = crate::fs::fd::fd_get_path(fd).ok_or(9)?;
+        let path = crate::fs::fd::fd_get_path(fd).map_err(|_| 9)?;
         Self::remove(&path, name)
     }
 }
