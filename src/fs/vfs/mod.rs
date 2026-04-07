@@ -28,9 +28,10 @@ pub mod vfs_global;
 #[cfg(test)]
 mod fd_tests;
 
-pub use error::{VfsError, VfsResult};
+pub use error::*;
 pub use types::*;
-pub use open_file::OpenFile;
+pub use open_file::*;
 pub use fd_ops::*;
-pub use vfs_core::VirtualFileSystem;
+pub use path_validate::*;
+pub use vfs_core::*;
 pub use vfs_global::*;
