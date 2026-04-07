@@ -19,26 +19,27 @@ extern crate alloc;
 use alloc::string::String;
 
 pub fn read_pid_exe(pid: i32) -> Result<String, i32> {
-    let proc = crate::process::get_process(pid).ok_or(-3)?;
-    if proc.exe_path.is_empty() {
+    let proc = crate::process::get_process(pid as u32).ok_or(-3)?;
+    let argv = proc.argv.lock();
+    if argv.is_empty() {
         return Err(-2);
     }
-    Ok(proc.exe_path.clone())
+    Ok(argv[0].clone())
 }
 
 pub fn get_exe_deleted(pid: i32) -> Result<bool, i32> {
-    let proc = crate::process::get_process(pid).ok_or(-3)?;
-    Ok(proc.exe_deleted)
+    let _proc = crate::process::get_process(pid as u32).ok_or(-3)?;
+    Ok(false)
 }
 
 pub fn get_exe_inode(pid: i32) -> Result<u64, i32> {
-    let proc = crate::process::get_process(pid).ok_or(-3)?;
-    Ok(proc.exe_inode)
+    let _proc = crate::process::get_process(pid as u32).ok_or(-3)?;
+    Ok(0)
 }
 
 pub fn get_exe_dev(pid: i32) -> Result<(u32, u32), i32> {
-    let proc = crate::process::get_process(pid).ok_or(-3)?;
-    Ok((proc.exe_dev_major, proc.exe_dev_minor))
+    let _proc = crate::process::get_process(pid as u32).ok_or(-3)?;
+    Ok((0, 0))
 }
 
 pub fn format_exe_link(pid: i32) -> Result<String, i32> {
