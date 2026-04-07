@@ -79,8 +79,6 @@ pub static NEXT_EVENTFD_ID: AtomicU32 = AtomicU32::new(1);
 pub static FD_TO_EVENTFD: Mutex<BTreeMap<i32, u32>> = Mutex::new(BTreeMap::new());
 pub static NEXT_FD: AtomicU32 = AtomicU32::new(5000);
 
-pub fn handle_eventfd(initval: u32) -> SyscallResult { handle_eventfd2(initval, 0) }
-
 pub fn handle_eventfd2(initval: u32, flags: i32) -> SyscallResult {
     let valid_flags = EFD_CLOEXEC | EFD_NONBLOCK | EFD_SEMAPHORE;
     if (flags & !valid_flags) != 0 { return errno(EINVAL); }
