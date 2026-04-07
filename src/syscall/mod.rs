@@ -16,6 +16,8 @@
 
 extern crate alloc;
 
+pub mod aio;
+pub mod bpf;
 pub mod caps;
 pub mod core;
 pub mod dispatch;
@@ -24,17 +26,26 @@ pub mod epoll;
 pub mod extended;
 pub mod fanotify;
 pub mod handler;
+pub mod keyring;
 pub mod microkernel;
+pub mod mqueue;
+pub mod namespace;
 pub mod numbers;
 pub mod pkey;
 pub mod poll;
 pub mod process_vm;
+pub mod ptrace;
 pub mod robust_futex;
+pub mod rseq;
+pub mod seccomp;
 pub mod service_ipc;
 pub mod signals;
+pub mod splice;
+pub mod tls;
 pub mod types;
 pub mod validation;
 pub mod vdso;
+pub mod xattr;
 
 #[cfg(test)]
 mod tests;
@@ -45,3 +56,13 @@ pub use dispatch::handle_syscall_dispatch;
 pub use entry::{handle_interrupt, handle_syscall};
 pub use numbers::SyscallNumber;
 pub use types::{errno, errnos, SyscallResult};
+pub use core::{
+    sys_open, sys_read, sys_write, sys_close, sys_stat, sys_fstat, sys_lseek,
+    sys_mkdir, sys_rmdir, sys_unlink, sys_rename, sys_access, sys_arch_prctl, sys_futex,
+    sys_fork, sys_clone, sys_execve, sys_exit, sys_getpid, sys_getppid, sys_kill,
+    sys_rt_sigaction, sys_rt_sigprocmask, sys_rt_sigpending, sys_rt_sigsuspend,
+    sys_nanosleep, sys_clock_gettime, sys_clock_settime, sys_clock_getres, sys_clock_nanosleep,
+    sys_pread64, sys_pwrite64, sys_readv, sys_writev, sys_preadv, sys_pwritev,
+    sys_getuid, sys_getgid, sys_geteuid, sys_getegid, sys_setuid, sys_setgid,
+    sys_dup, sys_dup2, sys_pipe, sys_chdir, sys_getcwd,
+};
