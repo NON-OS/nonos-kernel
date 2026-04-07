@@ -50,10 +50,7 @@ pub fn run_kworker_service() -> ! {
             let _ = workqueue::queue_work(WorkItem::SyncFilesystem);
         }
 
-        // If no work was done, yield more aggressively
-        if processed == 0 {
-            crate::sched::yield_now();
-        }
+        crate::sched::yield_now();
     }
 }
 
