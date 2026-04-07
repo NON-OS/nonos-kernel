@@ -37,3 +37,28 @@ pub use stdlib::{malloc, free, calloc, realloc, exit, abort, getenv, setenv};
 pub use string::{memcpy, memset, memmove, memcmp, strlen, strcmp, strcpy, strncpy};
 pub use time::{time, clock_gettime, gettimeofday, nanosleep};
 pub use unistd::{read, write, close, fork, execve, _exit, getpid, getppid};
+
+pub fn get_libc_start_main_addr() -> u64 { crt::crt0_start as usize as u64 }
+pub fn get_exit_addr() -> u64 { stdlib::exit as usize as u64 }
+pub fn get_write_addr() -> u64 { unistd::write as usize as u64 }
+pub fn get_read_addr() -> u64 { unistd::read as usize as u64 }
+pub fn get_open_addr() -> u64 { 0 }
+pub fn get_close_addr() -> u64 { unistd::close as usize as u64 }
+pub fn get_malloc_addr() -> u64 { stdlib::malloc as usize as u64 }
+pub fn get_free_addr() -> u64 { stdlib::free as usize as u64 }
+pub fn get_mmap_addr() -> u64 { 0 }
+pub fn get_munmap_addr() -> u64 { 0 }
+pub fn get_brk_addr() -> u64 { 0 }
+pub fn get_getpid_addr() -> u64 { unistd::getpid as usize as u64 }
+pub fn get_fork_addr() -> u64 { unistd::fork as usize as u64 }
+pub fn get_execve_addr() -> u64 { unistd::execve as usize as u64 }
+pub fn get_waitpid_addr() -> u64 { 0 }
+pub fn get_ioctl_addr() -> u64 { 0 }
+pub fn get_printf_addr() -> u64 { stdio::printf as usize as u64 }
+pub fn get_puts_addr() -> u64 { 0 }
+pub fn get_fopen_addr() -> u64 { stdio::fopen as usize as u64 }
+pub fn get_fclose_addr() -> u64 { stdio::fclose as usize as u64 }
+pub fn get_fread_addr() -> u64 { stdio::fread as usize as u64 }
+pub fn get_fwrite_addr() -> u64 { stdio::fwrite as usize as u64 }
+pub fn get_stack_chk_fail_addr() -> u64 { 0 }
+pub fn get_cxa_atexit_addr() -> u64 { 0 }
