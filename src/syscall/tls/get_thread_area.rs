@@ -32,7 +32,7 @@ pub fn handle_get_thread_area(u_info: u64) -> SyscallResult {
     if entry_number < GDT_ENTRY_TLS_MIN || entry_number >= GDT_ENTRY_TLS_MIN + GDT_ENTRY_TLS_ENTRIES {
         return errno(22);
     }
-    let tid = crate::process::current_tid().unwrap_or(0);
+    let tid = crate::process::current_tid() as u64;
     let tls_desc = match get_tls_entry(tid, entry_number) {
         Ok(e) => e,
         Err(e) => return errno(e),
