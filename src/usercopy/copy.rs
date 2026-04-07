@@ -96,7 +96,12 @@ unsafe fn do_copy_to_user(dst: u64, src: &[u8]) -> Result<(), UsercopyError> {
     Ok(())
 }
 
+const MAX_USER_COPY_SIZE: usize = 16 * 1024 * 1024;
+
 pub fn read_user_bytes(user_ptr: u64, len: usize) -> Result<alloc::vec::Vec<u8>, UsercopyError> {
+    if len > MAX_USER_COPY_SIZE {
+        return Err(UsercopyError::SizeTooLarge);
+    }
     let mut buf = alloc::vec![0u8; len];
     copy_from_user(user_ptr, &mut buf)?;
     Ok(buf)
@@ -106,14 +111,23 @@ pub fn write_user_bytes(user_ptr: u64, data: &[u8]) -> Result<(), UsercopyError>
     copy_to_user(user_ptr, data)
 }
 
+const MAX_STRING_LEN: usize = 4096;
+
 pub fn read_user_string(user_ptr: u64, max_len: usize) -> Result<alloc::string::String, UsercopyError> {
-    let mut buf = alloc::vec![0u8; max_len];
-    validate_user_read(user_ptr, max_len)?;
-    for i in 0..max_len {
-        let byte = unsafe { core::ptr::read_volatile((user_ptr as *const u8).add(i)) };
+    let safe_len = max_len.min(MAX_STRING_LEN);
+    if safe_len == 0 { return Ok(alloc::string::String::new()); }
+    let mut buf = alloc::vec![0u8; safe_len];
+    validate_user_read(user_ptr, safe_len)?;
+    let mut actual_len = 0;
+    for i in 0..safe_len {
+        let addr = user_ptr.checked_add(i as u64).ok_or(UsercopyError::AddressOverflow)?;
+        if addr > 0x0000_7FFF_FFFF_FFFF { return Err(UsercopyError::InvalidAddress); }
+        let byte = unsafe { core::ptr::read_volatile(addr as *const u8) };
         if did_fault() { return Err(UsercopyError::PageFault); }
-        if byte == 0 { buf.truncate(i); break; }
+        if byte == 0 { break; }
         buf[i] = byte;
+        actual_len = i + 1;
     }
+    buf.truncate(actual_len);
     alloc::string::String::from_utf8(buf).map_err(|_| UsercopyError::InvalidUtf8)
 }
