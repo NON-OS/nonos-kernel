@@ -99,9 +99,8 @@ pub fn send_ipv6_packet(packet: &[u8]) -> Result<(), i32> {
         crate::network::ipv6::neighbor::resolve_neighbor(&dst_addr).unwrap_or([0xff; 6])
     };
     let frame = build_ethernet_frame(&src_mac, &dst_mac, 0x86DD, packet);
-    if let Some(dev) = DEVICE_SLOT.get() {
-        dev.transmit(&frame).map_err(|_| -5)?;
-    }
+    let dev = DEVICE_SLOT.get().ok_or(-19)?;
+    dev.transmit(&frame).map_err(|_| -5)?;
     Ok(())
 }
 
