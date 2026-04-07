@@ -17,12 +17,6 @@
 use core::cmp::Ordering;
 use super::super::BigUint;
 
-impl PartialEq for BigUint {
-    fn eq(&self, other: &Self) -> bool {
-        self.limbs == other.limbs
-    }
-}
-
 impl PartialOrd for BigUint {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         Some(self.cmp(other))
