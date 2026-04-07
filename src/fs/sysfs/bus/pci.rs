@@ -42,7 +42,8 @@ pub fn init_pci_bus() {
 pub fn register_pci_driver(name: &str) -> u64 {
     let parent = unsafe { PCI_DRIVERS_INO };
     let ino = register_kobject(name, KobjectType::Driver, parent);
-    register_attribute(ino, SysfsAttribute::readonly("module", move || format!("{}\n", name)));
+    let name_owned = String::from(name);
+    register_attribute(ino, SysfsAttribute::readonly("module", move || format!("{}\n", name_owned)));
     register_attribute(ino, SysfsAttribute::writeonly("bind", |bdf| {
         crate::bus::pci::bind_driver(bdf)?;
         Ok(())
