@@ -20,6 +20,17 @@ use crate::fs::fd::table::{validate_fd_range, is_stdio, get_entry_read, get_entr
 
 use super::stdio::read_stdin;
 
+fn record_read_io(bytes: usize) {
+    if let Some(pid) = crate::process::current_pid() {
+        if let Some(proc) = crate::process::get_process(pid) {
+            let mut io = proc.io_stats.lock();
+            io.rchar += bytes as u64;
+            io.syscr += 1;
+            io.read_bytes += bytes as u64;
+        }
+    }
+}
+
 pub(crate) fn read_file_impl(entry: &mut OpenFile, buf: *mut u8, count: usize) -> FdResult<usize> {
     if !entry.is_readable() {
         return Err(FdError::NotReadable);
@@ -65,20 +76,15 @@ pub fn read_file_descriptor(fd: i32, buf: *mut u8, count: usize) -> Option<usize
 
 pub fn fd_read(fd: i32, buf: *mut u8, count: usize) -> FdResult<usize> {
     validate_fd_range(fd)?;
-
-    if buf.is_null() {
-        return Err(FdError::NullPointer);
-    }
-
-    if count == 0 {
-        return Ok(0);
-    }
-
-    match fd {
+    if buf.is_null() { return Err(FdError::NullPointer); }
+    if count == 0 { return Ok(0); }
+    let result = match fd {
         0 => read_stdin(buf, count),
         1 | 2 => Err(FdError::NotReadable),
         _ => get_entry_write(fd, |entry| read_file_impl(entry, buf, count)),
-    }
+    };
+    if let Ok(bytes) = &result { record_read_io(*bytes); }
+    result
 }
 
 pub fn fd_read_at(fd: i32, buf: *mut u8, count: usize, offset: usize) -> FdResult<usize> {
