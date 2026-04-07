@@ -47,7 +47,8 @@ pub fn sys_pipe2(pipefd: u64, flags: u32) -> Result<i64, i32> {
         crate::fs::set_cloexec(write_fd, true);
     }
     let fds = [read_fd, write_fd];
-    copy_to_user(pipefd, &fds)?;
+    let fds_bytes: [u8; 8] = unsafe { core::mem::transmute::<[i32; 2], [u8; 8]>(fds) };
+    copy_to_user(pipefd, &fds_bytes)?;
     Ok(0)
 }
 
