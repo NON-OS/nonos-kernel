@@ -29,7 +29,7 @@ pub fn handle_set_thread_area(u_info: u64) -> SyscallResult {
         Ok(v) => v,
         Err(_) => return errno(14),
     };
-    let tid = crate::process::current_tid().unwrap_or(0);
+    let tid = crate::process::current_tid() as u64;
     let entry_number = if desc.entry_number == u32::MAX {
         match find_free_tls_slot(tid) {
             Some(idx) => idx as u32,
