@@ -20,18 +20,18 @@ use alloc::string::String;
 use alloc::format;
 
 pub fn resolve_self_link() -> String {
-    let pid = crate::process::current_pid();
+    let pid = crate::process::current_pid().unwrap_or(1);
     format!("{}", pid)
 }
 
 pub fn resolve_thread_self_link() -> String {
-    let pid = crate::process::current_pid();
+    let pid = crate::process::current_pid().unwrap_or(1);
     let tid = crate::process::current_tid();
     format!("{}/task/{}", pid, tid)
 }
 
 pub fn get_self_target() -> i32 {
-    crate::process::current_pid()
+    crate::process::current_pid().unwrap_or(1) as i32
 }
 
 pub fn is_self_link(path: &str) -> bool {
@@ -44,12 +44,12 @@ pub fn is_thread_self_link(path: &str) -> bool {
 
 pub fn resolve_proc_path(path: &str) -> String {
     if path.starts_with("/proc/self/") {
-        let pid = crate::process::current_pid();
+        let pid = crate::process::current_pid().unwrap_or(1);
         let rest = &path[11..];
         return format!("/proc/{}/{}", pid, rest);
     }
     if path.starts_with("/proc/thread-self/") {
-        let pid = crate::process::current_pid();
+        let pid = crate::process::current_pid().unwrap_or(1);
         let tid = crate::process::current_tid();
         let rest = &path[18..];
         return format!("/proc/{}/task/{}/{}", pid, tid, rest);
