@@ -91,3 +91,18 @@ pub fn recv_all(handle: u32, timeout_ms: u32) -> Result<Vec<u8>, TcpError> {
 
     Ok(result)
 }
+
+pub fn send_data(dst: [u8; 4], port: u16, data: &[u8]) -> Result<(), i32> {
+    use crate::network::stack::get_network_stack;
+
+    let stack = get_network_stack().ok_or(-128)?;
+
+    let socket = crate::network::stack::TcpSocket::new();
+    let handle = socket.connection_id();
+
+    stack.tcp_connect(&socket, dst, port).map_err(|_| -111)?;
+    stack.tcp_send(handle, data).map_err(|_| -104)?;
+    let _ = stack.tcp_close(handle);
+
+    Ok(())
+}
