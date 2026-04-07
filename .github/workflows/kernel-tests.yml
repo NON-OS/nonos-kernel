@@ -58,6 +58,11 @@ jobs:
         env:
           SIGNING_KEY: ${{ github.workspace }}/.keys/dev-signing.seed
 
+      - name: Generate ZK keys
+        run: make generate-zk-keys
+        env:
+          SIGNING_KEY: ${{ github.workspace }}/.keys/dev-signing.seed
+
       - name: Create test ISO
         run: make iso
         env:
