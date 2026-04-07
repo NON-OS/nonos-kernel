@@ -22,4 +22,4 @@ pub const CLONE_SIGHAND: u64 = 0x800;
 pub const CLONE_THREAD: u64 = 0x10000;
 pub const CLONE_CHILD_CLEARTID: u64 = 0x200000;
 pub const CLONE_PARENT_SETTID: u64 = 0x100000;
-pub const FUTEX_WAIT: usize = 0;
+pub const FUTEX_WAIT: u32 = 0;
