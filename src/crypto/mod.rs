@@ -22,7 +22,7 @@ pub mod application;
 pub mod asymmetric;
 pub mod core;
 pub mod error;
-mod exports;
+pub mod exports;
 pub mod hardware_accel;
 pub mod hash;
 pub mod kernel_keys;
@@ -43,3 +43,12 @@ pub use symmetric::aes; pub use symmetric::aes_gcm; pub use symmetric::chacha20p
 pub use hash::blake3; pub use hash::sha3; pub use hash::sha512;
 pub use rng::{fill_random_bytes, get_random_bytes, random_u32};
 pub use exports::*;
+
+pub fn fnv1a_u32(value: u32) -> u32 {
+    let mut hash: u32 = 0x811c9dc5;
+    for byte in value.to_le_bytes() {
+        hash ^= byte as u32;
+        hash = hash.wrapping_mul(0x01000193);
+    }
+    hash
+}
