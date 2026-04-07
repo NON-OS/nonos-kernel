@@ -23,12 +23,11 @@ pub const PIPE_BUF_SIZE: usize = 65536;
 pub struct PipeBuffer {
     data: Vec<u8>,
     read_pos: usize,
-    write_pos: usize,
 }
 
 impl PipeBuffer {
     pub fn new() -> Self {
-        Self { data: Vec::with_capacity(PIPE_BUF_SIZE), read_pos: 0, write_pos: 0 }
+        Self { data: Vec::with_capacity(PIPE_BUF_SIZE), read_pos: 0 }
     }
 
     pub fn available_read(&self) -> usize {
