@@ -21,7 +21,6 @@ use super::types::KeySerial;
 use super::store::{get_key, get_key_mut, remove_key};
 use super::key_ops::{describe_key, link_key, unlink_key, clear_keyring, set_timeout};
 use super::search::search_keyring;
-use super::special::resolve_special_keyring;
 
 pub fn keyctl_describe(key_id: KeySerial, buf: u64, buflen: usize) -> SyscallResult {
     let key = match get_key(key_id) { Some(k) => k, None => return errno(2) };
