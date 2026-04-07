@@ -37,7 +37,7 @@ pub use constant_time::{
 };
 
 pub use random::{
-    init as random_init, secure_random_u64, fill_random, secure_random_u32, secure_random_u8,
+    init as random_init, secure_random_u64, fill_random, fill_random_bytes, secure_random_u32, secure_random_u8,
 };
 
 pub use trusted_keys::{
