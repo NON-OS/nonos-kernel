@@ -25,12 +25,14 @@ use super::verifier::BpfVerifier;
 
 static NEXT_PROG_FD: AtomicI32 = AtomicI32::new(300);
 static PROGRAMS: Mutex<BTreeMap<i32, BpfProgram>> = Mutex::new(BTreeMap::new());
+static ATTACHMENTS: Mutex<BTreeMap<(i32, i32, u32), i32>> = Mutex::new(BTreeMap::new());
 
 pub struct BpfProgram {
     pub fd: i32,
     pub prog_type: BpfProgType,
     pub insns: Vec<u64>,
     pub name: [u8; 16],
+    pub attached_count: u32,
 }
 
 impl BpfProgram {
@@ -40,7 +42,7 @@ impl BpfProgram {
         }
         BpfVerifier::verify(&insns)?;
         let fd = NEXT_PROG_FD.fetch_add(1, Ordering::SeqCst);
-        let prog = BpfProgram { fd, prog_type, insns, name };
+        let prog = BpfProgram { fd, prog_type, insns, name, attached_count: 0 };
         PROGRAMS.lock().insert(fd, prog);
         Ok(fd)
     }
@@ -50,14 +52,42 @@ impl BpfProgram {
     }
 
     pub fn close(fd: i32) -> Result<(), i32> {
-        PROGRAMS.lock().remove(&fd).map(|_| ()).ok_or(9)
+        let mut progs = PROGRAMS.lock();
+        if let Some(prog) = progs.get(&fd) {
+            if prog.attached_count > 0 { return Err(16); }
+        }
+        progs.remove(&fd).map(|_| ()).ok_or(9)
     }
 
-    pub fn attach(_prog_fd: i32, _target_fd: i32, _attach_type: u32) -> Result<(), i32> {
+    pub fn attach(prog_fd: i32, target_fd: i32, attach_type: u32) -> Result<(), i32> {
+        let mut progs = PROGRAMS.lock();
+        let prog = progs.get_mut(&prog_fd).ok_or(9)?;
+        let key = (prog_fd, target_fd, attach_type);
+        let mut attachments = ATTACHMENTS.lock();
+        if attachments.contains_key(&key) { return Err(17); }
+        attachments.insert(key, prog_fd);
+        prog.attached_count += 1;
         Ok(())
     }
 
-    pub fn detach(_prog_fd: i32, _target_fd: i32, _attach_type: u32) -> Result<(), i32> {
+    pub fn detach(prog_fd: i32, target_fd: i32, attach_type: u32) -> Result<(), i32> {
+        let key = (prog_fd, target_fd, attach_type);
+        let mut attachments = ATTACHMENTS.lock();
+        if attachments.remove(&key).is_none() { return Err(2); }
+        let mut progs = PROGRAMS.lock();
+        if let Some(prog) = progs.get_mut(&prog_fd) {
+            prog.attached_count = prog.attached_count.saturating_sub(1);
+        }
         Ok(())
+    }
+
+    pub fn is_attached(prog_fd: i32, target_fd: i32, attach_type: u32) -> bool {
+        ATTACHMENTS.lock().contains_key(&(prog_fd, target_fd, attach_type))
+    }
+
+    pub fn get_attachments(prog_fd: i32) -> Vec<(i32, u32)> {
+        ATTACHMENTS.lock().iter().filter_map(|((pfd, tfd, at), _)| {
+            if *pfd == prog_fd { Some((*tfd, *at)) } else { None }
+        }).collect()
     }
 }
