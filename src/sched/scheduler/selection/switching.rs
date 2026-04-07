@@ -22,27 +22,18 @@ pub fn switch_to_process(pid: u32) {
     use crate::memory::paging::manager::api::switch_to_process_address_space;
     let ctx_opt = crate::process::nonos_core::INTERRUPT_SAVED_CONTEXTS.write().remove(&pid);
     if ctx_opt.is_none() {
-        if let Some(pcb) = PROCESS_TABLE.find_by_pid(pid) {
-            *pcb.state.lock() = ProcessState::Ready;
-        }
+        if let Some(pcb) = PROCESS_TABLE.find_by_pid(pid) { *pcb.state.lock() = ProcessState::Ready; }
         crate::sched::yield_now();
         return;
     }
-    if let Some(pcb) = PROCESS_TABLE.find_by_pid(pid) {
-        *pcb.state.lock() = ProcessState::Running;
-    }
+    let has_own_addr_space = PROCESS_TABLE.find_by_pid(pid)
+        .map(|pcb| pcb.cr3.load(Ordering::Relaxed) != 0)
+        .unwrap_or(false);
+    if let Some(pcb) = PROCESS_TABLE.find_by_pid(pid) { *pcb.state.lock() = ProcessState::Running; }
     CURRENT_PID.store(pid, Ordering::SeqCst);
     CURRENT_TIME_SLICE.store(DEFAULT_TIME_SLICE, Ordering::SeqCst);
-    if pid > 64 {
-        let _ = switch_to_process_address_space(pid);
-    }
-    if !has_saved_fpu_state(pid) {
-        init_fpu();
-    } else {
-        restore_fpu_state(pid);
-    }
-    if let Some(ctx) = ctx_opt {
-        ctx.restore();
-    }
+    if has_own_addr_space { let _ = switch_to_process_address_space(pid); }
+    if !has_saved_fpu_state(pid) { init_fpu(); } else { restore_fpu_state(pid); }
+    if let Some(ctx) = ctx_opt { ctx.restore(); }
     loop { core::hint::spin_loop(); }
 }
