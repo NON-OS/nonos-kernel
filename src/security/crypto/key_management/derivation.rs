@@ -26,6 +26,43 @@ use super::store::{KEY_STORE, KEY_STORE_INITIALIZED};
 use super::audit::KeyOperation;
 use super::errors::{KeyError, KeyResult};
 
+pub fn hkdf_extract(salt: &[u8], ikm: &[u8]) -> [u8; 32] {
+    let effective_salt = if salt.is_empty() { &[0u8; 32] } else { salt };
+    crate::crypto::hmac::hmac_sha256(effective_salt, ikm)
+}
+
+pub fn hkdf_expand(prk: &[u8], info: &[u8], length: usize) -> Vec<u8> {
+    let hash_len = 32;
+    let n = (length + hash_len - 1) / hash_len;
+    if n > 255 { return Vec::new(); }
+    let mut okm = Vec::with_capacity(length);
+    let mut t_prev: Vec<u8> = Vec::new();
+    for i in 1..=n {
+        let mut input = t_prev.clone();
+        input.extend_from_slice(info);
+        input.push(i as u8);
+        let t = crate::crypto::hmac::hmac_sha256(prk, &input);
+        t_prev = t.to_vec();
+        okm.extend_from_slice(&t);
+    }
+    okm.truncate(length);
+    okm
+}
+
+pub fn hkdf(salt: &[u8], ikm: &[u8], info: &[u8], length: usize) -> Vec<u8> {
+    let prk = hkdf_extract(salt, ikm);
+    hkdf_expand(&prk, info, length)
+}
+
+pub fn derive_subkey(master: &[u8], context: &str, key_id: u64, length: usize) -> Vec<u8> {
+    let mut info = Vec::new();
+    info.extend_from_slice(b"NONOS-SUBKEY-V1:");
+    info.extend_from_slice(context.as_bytes());
+    info.push(0);
+    info.extend_from_slice(&key_id.to_le_bytes());
+    hkdf(&[], master, &info, length)
+}
+
 pub fn derive_key(
     name: String,
     key_type: KeyType,
