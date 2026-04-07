@@ -28,7 +28,7 @@ mod removexattr;
 mod lremovexattr;
 mod fremovexattr;
 
-pub use storage::XattrStorage;
+pub use storage::*;
 pub use setxattr::handle_setxattr;
 pub use lsetxattr::handle_lsetxattr;
 pub use fsetxattr::handle_fsetxattr;
