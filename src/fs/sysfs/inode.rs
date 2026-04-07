@@ -48,14 +48,11 @@ fn root_entries() -> Vec<SysfsEntry> {
 }
 
 pub fn sysfs_read_attr(inode: u64) -> Result<String, i32> {
-    let attr = super::kobject::get_attribute(inode).ok_or(-2)?;
-    Ok((attr.show)())
+    super::kobject::get_attribute(inode).ok_or(-2)
 }
 
 pub fn sysfs_write_attr(inode: u64, data: &str) -> Result<(), i32> {
-    let attr = super::kobject::get_attribute(inode).ok_or(-2)?;
-    let store = attr.store.ok_or(-1)?;
-    store(data)
+    super::kobject::store_attribute(inode, data)
 }
 
 pub fn sysfs_getattr(inode: u64) -> Result<SysfsAttr, i32> {
