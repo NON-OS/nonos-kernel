@@ -18,7 +18,7 @@ use super::read::Iovec;
 
 #[no_mangle]
 pub unsafe extern "C" fn write(fd: i32, buf: *const u8, count: usize) -> isize {
-    let ret = crate::syscall::sys_write(fd as usize, buf as usize, count);
+    let ret = crate::syscall::sys_write(fd as u64, buf as u64, count as u64);
     if ret < 0 {
         crate::libc::errno::set_errno((-ret) as i32);
         return -1;
@@ -28,7 +28,7 @@ pub unsafe extern "C" fn write(fd: i32, buf: *const u8, count: usize) -> isize {
 
 #[no_mangle]
 pub unsafe extern "C" fn pwrite(fd: i32, buf: *const u8, count: usize, offset: i64) -> isize {
-    let ret = crate::syscall::sys_pwrite64(fd as usize, buf as usize, count, offset as usize);
+    let ret = crate::syscall::sys_pwrite64(fd as u64, buf as u64, count as u64, offset);
     if ret < 0 {
         crate::libc::errno::set_errno((-ret) as i32);
         return -1;
@@ -38,7 +38,7 @@ pub unsafe extern "C" fn pwrite(fd: i32, buf: *const u8, count: usize, offset: i
 
 #[no_mangle]
 pub unsafe extern "C" fn writev(fd: i32, iov: *const Iovec, iovcnt: i32) -> isize {
-    let ret = crate::syscall::sys_writev(fd as usize, iov as usize, iovcnt as usize);
+    let ret = crate::syscall::sys_writev(fd as u64, iov as u64, iovcnt);
     if ret < 0 {
         crate::libc::errno::set_errno((-ret) as i32);
         return -1;
@@ -48,7 +48,7 @@ pub unsafe extern "C" fn writev(fd: i32, iov: *const Iovec, iovcnt: i32) -> isiz
 
 #[no_mangle]
 pub unsafe extern "C" fn pwritev(fd: i32, iov: *const Iovec, iovcnt: i32, offset: i64) -> isize {
-    let ret = crate::syscall::sys_pwritev(fd as usize, iov as usize, iovcnt as usize, offset as usize);
+    let ret = crate::syscall::sys_pwritev(fd as u64, iov as u64, iovcnt, offset);
     if ret < 0 {
         crate::libc::errno::set_errno((-ret) as i32);
         return -1;
