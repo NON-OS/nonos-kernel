@@ -57,10 +57,12 @@ pub fn get_ldisc(num: u32) -> Option<Arc<dyn LineDiscipline>> {
 }
 
 pub fn set_ldisc(tty: &mut TtyStruct, num: u32) -> Result<(), i32> {
-    let ldisc = get_ldisc(num).ok_or(-22)?;
-    tty.ldisc.close(tty)?;
-    tty.ldisc = ldisc;
-    tty.ldisc.open(tty)
+    let new_ldisc = get_ldisc(num).ok_or(-22)?;
+    let old_ldisc = tty.ldisc.clone();
+    old_ldisc.close(tty)?;
+    tty.ldisc = new_ldisc;
+    let ldisc = tty.ldisc.clone();
+    ldisc.open(tty)
 }
 
 pub fn init_ldiscs() {
