@@ -78,3 +78,16 @@ pub use safety::{
     disable_interrupts_guard, in_interrupt_context, set_interrupt_context, InterruptContext,
     InterruptGuard,
 };
+
+pub fn get_interrupt_stats() -> InterruptStatsExt {
+    let s = get_stats();
+    let total = s.timer_ticks + s.keyboard_presses + s.mouse_events + s.syscalls + s.page_faults + s.exceptions;
+    InterruptStatsExt { total, per_irq: alloc::vec![s.timer_ticks, s.keyboard_presses, s.mouse_events, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] }
+}
+pub fn get_softirq_stats() -> SoftirqStats { SoftirqStats { total: timer::tick_count(), per_type: alloc::vec![timer::tick_count(), 0, 0, 0, 0, 0, 0, 0, 0, 0] } }
+
+#[derive(Default, Clone)]
+pub struct InterruptStatsExt { pub total: u64, pub per_irq: alloc::vec::Vec<u64> }
+
+#[derive(Default, Clone)]
+pub struct SoftirqStats { pub total: u64, pub per_type: alloc::vec::Vec<u64> }
