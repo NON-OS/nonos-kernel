@@ -107,4 +107,10 @@ impl From<crate::fs::ramfs::FsError> for VfsError {
     }
 }
 
+impl From<VfsError> for i32 {
+    fn from(err: VfsError) -> i32 {
+        err.to_errno()
+    }
+}
+
 pub type VfsResult<T> = Result<T, VfsError>;
