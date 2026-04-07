@@ -27,8 +27,8 @@ pub fn init_block_devices() {
     for i in 0..8 {
         loop_dev::register_loop_device(i);
     }
-    for disk in crate::drivers::block::list_disks() {
-        storage::register_storage_device(&disk.name, disk.major, disk.minor, disk.size);
+    for disk in crate::drivers::block::list_devices() {
+        storage::register_storage_device(&disk.name, 8, 0, disk.size_bytes);
     }
 }
 
