@@ -17,7 +17,7 @@
 use alloc::{string::String, sync::Arc, vec::Vec};
 use core::sync::atomic::{AtomicI32, AtomicU32, AtomicU64, Ordering};
 use spin::Mutex;
-use super::types::{Pid, ProcessState, Priority, MemoryState};
+use super::types::{Pid, ProcessState, Priority, MemoryState, ProcessSignals, ProcessCapabilities, ProcessTimeInfo, ProcessMemoryInfo, ProcessCredentials};
 use super::thread_group::ThreadGroup;
 use crate::process::process_fd_table::ProcessFdTable;
 
@@ -51,6 +51,29 @@ pub struct ProcessControlBlock {
     pub clone_flags: AtomicU64,
     pub start_time_ms: AtomicU64,
     pub fd_table: ProcessFdTable,
+    pub signals: Mutex<ProcessSignals>,
+    pub caps: Mutex<ProcessCapabilities>,
+    pub time_info: Mutex<ProcessTimeInfo>,
+    pub memory_info: Mutex<ProcessMemoryInfo>,
+    pub creds: Mutex<ProcessCredentials>,
+    pub tty_nr: AtomicU32,
+    pub tty_pgrp: AtomicI32,
+    pub flags: AtomicU64,
+    pub nice: AtomicI32,
+    pub thread_count: AtomicU32,
+    pub pending_signals: AtomicU64,
+    pub kstkesp: AtomicU64,
+    pub kstkeip: AtomicU64,
+    pub wchan: AtomicU64,
+    pub exit_signal: AtomicI32,
+    pub processor: AtomicU32,
+    pub rt_priority: AtomicU32,
+    pub policy: AtomicU32,
+    pub no_new_privs: AtomicU32,
+    pub seccomp: AtomicU32,
+    pub cpus_allowed: AtomicU64,
+    pub voluntary_switches: AtomicU64,
+    pub involuntary_switches: AtomicU64,
 }
 
 impl ProcessControlBlock {
