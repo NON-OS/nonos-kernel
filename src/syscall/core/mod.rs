@@ -17,12 +17,5 @@
 mod legacy;
 mod wrappers;
 
-pub use legacy::{
-    legacy_handle_syscall2, legacy_handle_syscall3, legacy_handle_syscall4,
-    legacy_handle_syscall5, legacy_handle_syscall6, nonos_legacy_syscall_entry,
-};
-
-pub use wrappers::{
-    sys_open, sys_read, sys_write, sys_close, sys_stat, sys_fstat,
-    sys_lseek, sys_mkdir, sys_rmdir, sys_unlink, sys_rename,
-};
+pub use legacy::*;
+pub use wrappers::*;
