@@ -41,19 +41,19 @@ pub fn get_tracee_regs(pid: u32) -> Result<UserRegsStruct, i32> {
         rbp: ctx.rbp, rbx: ctx.rbx, r11: ctx.r11, r10: ctx.r10,
         r9: ctx.r9, r8: ctx.r8, rax: ctx.rax, rcx: ctx.rcx,
         rdx: ctx.rdx, rsi: ctx.rsi, rdi: ctx.rdi, orig_rax: ctx.rax,
-        rip: ctx.rip, cs: ctx.cs, eflags: ctx.rflags, rsp: ctx.rsp,
-        ss: ctx.ss, fs_base: 0, gs_base: 0, ds: 0, es: 0, fs: 0, gs: 0,
+        rip: ctx.rip, cs: 0x33, eflags: ctx.rflags, rsp: ctx.rsp,
+        ss: 0x2b, fs_base: 0, gs_base: 0, ds: 0, es: 0, fs: 0, gs: 0,
     })
 }
 
 pub fn set_tracee_regs(pid: u32, regs: &UserRegsStruct) -> Result<(), i32> {
-    crate::sched::context::modify_saved_context(pid as u64, |ctx| {
+    if crate::sched::context::modify_saved_context(pid as u64, |ctx| {
         ctx.r15 = regs.r15; ctx.r14 = regs.r14; ctx.r13 = regs.r13; ctx.r12 = regs.r12;
         ctx.rbp = regs.rbp; ctx.rbx = regs.rbx; ctx.r11 = regs.r11; ctx.r10 = regs.r10;
         ctx.r9 = regs.r9; ctx.r8 = regs.r8; ctx.rax = regs.rax; ctx.rcx = regs.rcx;
         ctx.rdx = regs.rdx; ctx.rsi = regs.rsi; ctx.rdi = regs.rdi;
         ctx.rip = regs.rip; ctx.rflags = regs.eflags; ctx.rsp = regs.rsp;
-    }).ok_or(3)
+    }) { Ok(()) } else { Err(3) }
 }
 
 pub fn do_getregset(pid: u32, regset_type: u32, iov_ptr: u64) -> Result<(), i32> {
