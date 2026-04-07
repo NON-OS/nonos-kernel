@@ -22,7 +22,7 @@ pub fn handle_pkey_mprotect(addr: u64, len: u64, prot: i32, pkey: i32) -> Syscal
     if !ProtectionKey::is_valid(pkey) && pkey != -1 {
         return errno(22);
     }
-    let result = crate::syscall::extended::memory::handle_mprotect(addr, len, prot);
+    let result = crate::syscall::extended::memory::handle_mprotect(addr, len, prot as u64);
     if result.value < 0 {
         return result;
     }
