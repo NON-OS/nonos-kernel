@@ -65,7 +65,7 @@ pub fn queue_capacity(fd: i32) -> usize {
 
 pub fn queue_remaining(fd: i32) -> usize {
     fd_to_instance(fd).map(|i| {
-        let cap = if (i.flags & super::FAN_UNLIMITED_QUEUE) != 0 { 16384 } else { 256 };
+        let cap: usize = if (i.flags & super::FAN_UNLIMITED_QUEUE) != 0 { 16384 } else { 256 };
         cap.saturating_sub(i.events.lock().len())
     }).unwrap_or(0)
 }
