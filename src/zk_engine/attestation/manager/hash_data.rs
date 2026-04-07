@@ -58,8 +58,8 @@ pub(super) fn hash_kernel_data(_mgr: &AttestationManager) -> Result<[u8; 32], ZK
     hasher_input.extend_from_slice(&sched_stats.tick_count.to_le_bytes());
     hasher_input.extend_from_slice(&sched_stats.wakeups.to_le_bytes());
     let mem_stats = crate::memory::get_memory_system_stats();
-    hasher_input.extend_from_slice(&mem_stats.total_physical_memory.to_le_bytes());
-    hasher_input.extend_from_slice(&mem_stats.total_virtual_memory.to_le_bytes());
+    hasher_input.extend_from_slice(&mem_stats.total_bytes.to_le_bytes());
+    hasher_input.extend_from_slice(&mem_stats.vmalloc_total.to_le_bytes());
     hasher_input.extend_from_slice(&(mem_stats.active_allocations as u64).to_le_bytes());
     Ok(blake3_hash(&hasher_input))
 }
