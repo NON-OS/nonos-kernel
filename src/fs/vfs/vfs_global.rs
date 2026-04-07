@@ -63,3 +63,19 @@ pub fn vfs_read_file(path: &str) -> VfsResult<Vec<u8>> {
         Err(VfsError::NotInitialized)
     }
 }
+
+pub fn register_mount(path: &str, _fstype: &str) -> VfsResult<()> {
+    if let Some(vfs) = get_vfs() {
+        vfs.create_directory(path)
+    } else {
+        Err(VfsError::NotInitialized)
+    }
+}
+
+pub fn unregister_mount(_path: &str) -> VfsResult<()> {
+    Ok(())
+}
+
+pub fn get_mounts() -> Vec<alloc::string::String> {
+    Vec::new()
+}
