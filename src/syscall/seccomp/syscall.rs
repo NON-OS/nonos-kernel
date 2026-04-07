@@ -19,7 +19,6 @@ use crate::syscall::dispatch::util::errno;
 use crate::usercopy::{read_user_value, write_user_value};
 use super::types::*;
 use super::state::{set_strict_mode, add_filter};
-use super::filter::SeccompFilter;
 use super::load::load_filter_from_user;
 
 pub fn handle_seccomp(operation: u32, flags: u32, args: u64) -> SyscallResult {
