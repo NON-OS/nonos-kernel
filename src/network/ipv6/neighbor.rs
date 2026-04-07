@@ -92,7 +92,7 @@ impl NeighborCache {
                 _ => true,
             }
         });
-        self.pending.retain(|(_, t)| now - *t < 5000);
+        self.pending.retain(|(_, t)| now - *t < DELAY_FIRST_PROBE_MS);
     }
 }
 
