@@ -20,5 +20,8 @@ mod process;
 mod conntrack;
 mod match_ops;
 mod stats;
+pub mod synflood;
+pub mod portscan;
+pub mod blacklist;
 
 pub use firewall::Firewall;
