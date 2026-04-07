@@ -16,7 +16,7 @@
 
 extern crate alloc;
 
-mod api;
+pub mod api;
 pub mod boot_config;
 pub mod dhcpv6;
 pub mod dns;
@@ -69,6 +69,30 @@ pub use nym::{
     NymClient, NymAddress, NymError, NymRoute, MixNode, Gateway, MixNodeId, GatewayId, ClientId,
     init_nym_client, get_nym_client,
 };
+
+#[derive(Clone)]
+pub struct InterfaceStats { pub rx_bytes: u64, pub tx_bytes: u64, pub rx_packets: u64, pub tx_packets: u64 }
+
+#[derive(Clone)]
+pub struct NetworkInterface { pub name: alloc::string::String, pub mac: [u8; 6], pub mtu: u32, pub stats: InterfaceStats }
+
+pub fn list_interfaces() -> alloc::vec::Vec<NetworkInterface> {
+    let mut interfaces = alloc::vec::Vec::new();
+    if let Some(stack) = get_network_stack() {
+        let stats = stack.stats.lock();
+        interfaces.push(NetworkInterface {
+            name: alloc::string::String::from("eth0"),
+            mac: get_mac_address().unwrap_or([0; 6]),
+            mtu: 1500,
+            stats: InterfaceStats { rx_bytes: stats.rx_bytes, tx_bytes: stats.tx_bytes, rx_packets: stats.rx_packets, tx_packets: stats.tx_packets },
+        });
+    }
+    interfaces
+}
+
+pub fn get_interface(name: &str) -> Option<NetworkInterface> {
+    list_interfaces().into_iter().find(|i| i.name == name)
+}
 
 #[cfg(test)]
 mod tests;
