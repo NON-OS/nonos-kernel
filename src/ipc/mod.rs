@@ -27,7 +27,10 @@ pub mod pipe;
 
 pub mod eventfd {
     pub use crate::syscall::extended::eventfd_types::*;
-    pub use crate::syscall::extended::eventfd_ops::*;
+    pub use crate::syscall::extended::eventfd_ops::{
+        eventfd_read, eventfd_write, eventfd_close, is_eventfd,
+        eventfd_is_readable, eventfd_is_writable,
+    };
 }
 
 pub mod signalfd {
