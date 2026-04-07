@@ -25,6 +25,17 @@ use crate::fs::fd::table::{validate_fd_range, is_stdio, get_entry_read, get_entr
 
 use super::stdio::{write_stdout, write_stderr};
 
+fn record_write_io(bytes: usize) {
+    if let Some(pid) = crate::process::current_pid() {
+        if let Some(proc) = crate::process::get_process(pid) {
+            let mut io = proc.io_stats.lock();
+            io.wchar += bytes as u64;
+            io.syscw += 1;
+            io.write_bytes += bytes as u64;
+        }
+    }
+}
+
 pub(crate) fn write_file_impl(entry: &mut OpenFile, buf: *const u8, count: usize) -> FdResult<usize> {
     if !entry.is_writable() {
         return Err(FdError::NotWritable);
@@ -70,21 +81,16 @@ pub fn write_file_descriptor(fd: i32, buf: *const u8, count: usize) -> Option<us
 
 pub fn fd_write(fd: i32, buf: *const u8, count: usize) -> FdResult<usize> {
     validate_fd_range(fd)?;
-
-    if buf.is_null() {
-        return Err(FdError::NullPointer);
-    }
-
-    if count == 0 {
-        return Ok(0);
-    }
-
-    match fd {
+    if buf.is_null() { return Err(FdError::NullPointer); }
+    if count == 0 { return Ok(0); }
+    let result = match fd {
         0 => Err(FdError::NotWritable),
         1 => write_stdout(buf, count),
         2 => write_stderr(buf, count),
         _ => get_entry_write(fd, |entry| write_file_impl(entry, buf, count)),
-    }
+    };
+    if let Ok(bytes) = &result { record_write_io(*bytes); }
+    result
 }
 
 pub fn fd_write_at(fd: i32, buf: *const u8, count: usize, offset: usize) -> FdResult<usize> {
