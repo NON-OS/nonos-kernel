@@ -16,7 +16,6 @@
 
 extern crate alloc;
 
-use alloc::string::String;
 use alloc::collections::BTreeMap;
 use spin::Mutex;
 
