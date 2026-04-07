@@ -64,6 +64,7 @@ pub struct IsolationFlags {
     pub no_filesystem: bool,
     pub no_ipc: bool,
     pub no_devices: bool,
+    pub no_signals: bool,
     pub memory_isolated: bool,
 }
 
@@ -74,6 +75,7 @@ impl Default for IsolationFlags {
             no_filesystem: true,
             no_ipc: true,
             no_devices: true,
+            no_signals: true,
             memory_isolated: true,
         }
     }
@@ -175,6 +177,17 @@ pub struct ProcessCredentials {
     pub egid: u32,
     pub sgid: u32,
     pub fsgid: u32,
+}
+
+#[derive(Debug, Clone, Copy, Default)]
+pub struct ProcessIoStats {
+    pub rchar: u64,
+    pub wchar: u64,
+    pub syscr: u64,
+    pub syscw: u64,
+    pub read_bytes: u64,
+    pub write_bytes: u64,
+    pub cancelled_write_bytes: u64,
 }
 
 #[inline]
