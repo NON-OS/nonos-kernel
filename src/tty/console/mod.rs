@@ -18,7 +18,7 @@ mod vt;
 mod keyboard;
 mod screen;
 
-pub use vt::{VirtualTerminal, switch_vt, get_active_vt, init_vts};
+pub use vt::{VirtualTerminal, switch_vt, get_active_vt, init_vts, console_ioctl};
 pub use keyboard::{process_key, set_keymap, KeyEvent};
 pub use screen::{ScreenBuffer, clear_screen, scroll_up, scroll_down};
 
@@ -47,10 +47,6 @@ pub fn console_read(buf: &mut [u8]) -> Result<usize, i32> {
 pub fn console_write(buf: &[u8]) -> Result<usize, i32> {
     let vt = get_active_vt();
     vt.write(buf)
-}
-
-pub fn console_ioctl(cmd: u32, arg: u64) -> Result<i64, i32> {
-    vt::console_ioctl(cmd, arg)
 }
 
 pub fn console_poll() -> u32 {
