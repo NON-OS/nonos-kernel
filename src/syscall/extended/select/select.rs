@@ -23,7 +23,7 @@ use super::check::{is_fd_readable, is_fd_writable, has_fd_exception};
 pub fn handle_select(
     nfds: i32, readfds_ptr: u64, writefds_ptr: u64, exceptfds_ptr: u64, timeout_ptr: u64,
 ) -> SyscallResult {
-    if nfds < 0 || nfds > FD_SETSIZE { return errno(EINVAL); }
+    if nfds < 0 || nfds > FD_SETSIZE as i32 { return errno(EINVAL); }
     let timeout_ms = if timeout_ptr != 0 {
         let timeout: Timeval = match read_user_value(timeout_ptr) { Ok(v) => v, Err(_) => return errno(14) };
         if timeout.tv_sec < 0 || timeout.tv_usec < 0 { return errno(EINVAL); }
@@ -43,7 +43,7 @@ pub fn handle_select(
 pub fn handle_pselect6(
     nfds: i32, readfds_ptr: u64, writefds_ptr: u64, exceptfds_ptr: u64, timeout_ptr: u64, _sigmask_ptr: u64,
 ) -> SyscallResult {
-    if nfds < 0 || nfds > FD_SETSIZE { return errno(EINVAL); }
+    if nfds < 0 || nfds > FD_SETSIZE as i32 { return errno(EINVAL); }
     let timeout_ms = if timeout_ptr != 0 {
         let timeout: Timespec = match read_user_value(timeout_ptr) { Ok(v) => v, Err(_) => return errno(14) };
         if timeout.tv_sec < 0 || timeout.tv_nsec < 0 || timeout.tv_nsec >= 1_000_000_000 { return errno(EINVAL); }
