@@ -41,5 +41,9 @@ pub use runner::{ExecutionContext, ExecutionState, FaultInfo, FaultPolicy, Fault
 pub use sandbox::{SandboxConfig, SandboxState, SandboxError, SandboxResult, setup_sandbox, destroy_sandbox};
 pub use api::register_active_module;
 
+pub fn get_module(name: &str) -> Option<ModuleInfo> {
+    get_module_info(name).ok()
+}
+
 #[cfg(test)]
 mod tests;
