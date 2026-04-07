@@ -47,6 +47,7 @@ pub use util::{
 
 pub use close::{close_all_for_process, close_if_cloexec, cleanup_stale, close_all};
 pub use fd::{allocate_fd, release_fd, fd_to_instance_id, is_inotify_fd, fd_count, instance_count, is_nonblocking};
+pub use instance::*;
 pub use notify::{notify_access, notify_modify, notify_attrib, notify_open, notify_create, notify_delete, notify_close_write, notify_close_nowrite};
 pub use queue::{queue_event, pending_events, has_pending_events, clear_events, peek_event, queue_remaining, total_queued_events};
 pub use read::{inotify_read_to_buffer, can_read, bytes_available, read_single_event, peek_next_event_size};
