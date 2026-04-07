@@ -36,21 +36,21 @@ pub unsafe extern "C" fn time(tloc: *mut i64) -> i64 {
 
 #[no_mangle]
 pub unsafe extern "C" fn clock_gettime(clockid: i32, tp: *mut Timespec) -> i32 {
-    let ret = crate::syscall::sys_clock_gettime(clockid as usize, tp as usize);
+    let ret = crate::syscall::sys_clock_gettime(clockid, tp as u64);
     if ret < 0 { crate::libc::errno::set_errno((-ret) as i32); return -1; }
     0
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn clock_settime(clockid: i32, tp: *const Timespec) -> i32 {
-    let ret = crate::syscall::sys_clock_settime(clockid as usize, tp as usize);
+    let ret = crate::syscall::sys_clock_settime(clockid, tp as u64);
     if ret < 0 { crate::libc::errno::set_errno((-ret) as i32); return -1; }
     0
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn clock_getres(clockid: i32, res: *mut Timespec) -> i32 {
-    let ret = crate::syscall::sys_clock_getres(clockid as usize, res as usize);
+    let ret = crate::syscall::sys_clock_getres(clockid, res as u64);
     if ret < 0 { crate::libc::errno::set_errno((-ret) as i32); return -1; }
     0
 }
@@ -74,14 +74,14 @@ pub unsafe extern "C" fn settimeofday(tv: *const Timeval, _tz: *const u8) -> i32
 
 #[no_mangle]
 pub unsafe extern "C" fn nanosleep(req: *const Timespec, rem: *mut Timespec) -> i32 {
-    let ret = crate::syscall::sys_nanosleep(req as usize, rem as usize);
+    let ret = crate::syscall::sys_nanosleep(req as u64, rem as u64);
     if ret < 0 { crate::libc::errno::set_errno((-ret) as i32); return -1; }
     0
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn clock_nanosleep(clockid: i32, flags: i32, req: *const Timespec, rem: *mut Timespec) -> i32 {
-    let ret = crate::syscall::sys_clock_nanosleep(clockid as usize, flags as usize, req as usize, rem as usize);
+    let ret = crate::syscall::sys_clock_nanosleep(clockid, flags, req as u64, rem as u64);
     if ret < 0 { return (-ret) as i32; }
     0
 }
