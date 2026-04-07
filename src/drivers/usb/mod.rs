@@ -16,17 +16,17 @@
 
 extern crate alloc;
 
-mod api;
-mod backend;
+pub mod api;
+pub mod backend;
 pub mod cdc_eth;
-mod class_driver;
+pub mod class_driver;
 pub mod constants;
-mod descriptors;
-mod device;
+pub mod descriptors;
+pub mod device;
 pub mod error;
 pub mod hid;
 pub mod hub;
-mod manager;
+pub mod manager;
 pub mod msc;
 pub mod rtl8152;
 
@@ -34,7 +34,7 @@ pub mod tests;
 
 pub use api::{
     device_count, find_device, find_devices_by_class, find_hid_devices, find_mass_storage_devices,
-    get_devices, get_stats, is_initialized, print_device_tree,
+    get_devices, get_stats, is_initialized, print_device_tree, list_devices, bind_driver, unbind_driver, UsbDeviceInfo,
 };
 
 pub use backend::{UsbHostBackend, XhciBackend};
