@@ -54,3 +54,13 @@ pub(crate) const AES128_ROUNDS: usize = 10;
 pub(crate) const AES256_ROUNDS: usize = 14;
 
 pub(crate) const RCON: [u8; 10] = [0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80, 0x1B, 0x36];
+
+pub fn aes_gcm_encrypt_in_place(key: &[u8; 32], nonce: &[u8; 12], aad: &[u8], data: &mut [u8], tag: &mut [u8; 16]) {
+    let cipher = super::aes_gcm::Aes256Gcm::new(key);
+    *tag = cipher.encrypt_in_place(nonce, aad, data);
+}
+
+pub fn aes_gcm_decrypt_in_place(key: &[u8; 32], nonce: &[u8; 12], aad: &[u8], data: &mut [u8], tag: &[u8; 16]) -> bool {
+    let cipher = super::aes_gcm::Aes256Gcm::new(key);
+    cipher.decrypt_in_place(nonce, aad, data, tag).is_ok()
+}
