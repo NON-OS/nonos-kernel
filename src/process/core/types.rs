@@ -103,6 +103,80 @@ pub struct SuspendedContext {
     pub previous_state: ProcessState,
 }
 
+#[derive(Debug, Clone, Copy, Default)]
+pub struct ProcessSignals {
+    pub pending: u64,
+    pub shared_pending: u64,
+    pub blocked: u64,
+    pub ignored: u64,
+    pub caught: u64,
+}
+
+#[derive(Debug, Clone, Copy, Default)]
+pub struct ProcessCapabilities {
+    pub inheritable: u64,
+    pub permitted: u64,
+    pub effective: u64,
+    pub bounding: u64,
+    pub ambient: u64,
+}
+
+#[derive(Debug, Clone, Copy, Default)]
+pub struct ProcessTimeInfo {
+    pub utime: u64,
+    pub stime: u64,
+    pub cutime: u64,
+    pub cstime: u64,
+    pub start_time: u64,
+    pub guest_time: u64,
+    pub cguest_time: u64,
+    pub delayacct_blkio_ticks: u64,
+}
+
+#[derive(Debug, Clone, Copy, Default)]
+pub struct ProcessMemoryInfo {
+    pub vm_peak: u64,
+    pub vm_size: u64,
+    pub vm_hwm: u64,
+    pub vm_rss: u64,
+    pub vm_data: u64,
+    pub vm_stack: u64,
+    pub vm_exe: u64,
+    pub vm_lib: u64,
+    pub vm_pte: u64,
+    pub rss_anon: u64,
+    pub rss_file: u64,
+    pub rss_shmem: u64,
+    pub vsize: u64,
+    pub rsslim: u64,
+    pub startcode: u64,
+    pub endcode: u64,
+    pub startstack: u64,
+    pub start_data: u64,
+    pub end_data: u64,
+    pub start_brk: u64,
+    pub arg_start: u64,
+    pub arg_end: u64,
+    pub env_start: u64,
+    pub env_end: u64,
+    pub minflt: u64,
+    pub cminflt: u64,
+    pub majflt: u64,
+    pub cmajflt: u64,
+}
+
+#[derive(Debug, Clone, Copy, Default)]
+pub struct ProcessCredentials {
+    pub uid: u32,
+    pub euid: u32,
+    pub suid: u32,
+    pub fsuid: u32,
+    pub gid: u32,
+    pub egid: u32,
+    pub sgid: u32,
+    pub fsgid: u32,
+}
+
 #[inline]
 pub fn align_up(v: u64, a: u64) -> u64 {
     (v + (a - 1)) & !(a - 1)
