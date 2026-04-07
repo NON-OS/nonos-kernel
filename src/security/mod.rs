@@ -58,7 +58,7 @@ pub use crypto::{
     ct_select_slice, ct_swap_slices, ct_lt_u32, ct_lt_u64, ct_gt_u32, ct_eq_u32, ct_eq_u64,
     ct_min_u32, ct_max_u32, ct_copy_bounded, ct_zero, ct_zero_u64, ct_hmac_verify,
     ct_signature_verify, run_self_tests, CtVerifyResult, TimingMode, SelfTestResult,
-    random_init, secure_random_u64, fill_random, secure_random_u32, secure_random_u8,
+    random_init, secure_random_u64, fill_random, fill_random_bytes, secure_random_u32, secure_random_u8,
     trusted_keys_init, add_trusted_key, get_trusted_key, verify_signature as crypto_verify_signature,
     list_trusted_keys as crypto_list_trusted_keys, init_trusted_keys, get_trusted_keys,
     TrustedKeyDB, TrustedKey,
