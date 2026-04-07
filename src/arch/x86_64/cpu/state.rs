@@ -111,7 +111,14 @@ pub fn cpu_count() -> u32 {
 
 #[inline]
 pub fn current_cpu_id() -> u16 {
-    0
+    let apic_id: u32;
+    unsafe {
+        core::arch::asm!(
+            "push rbx", "mov eax, 1", "cpuid", "shr ebx, 24", "mov {0:e}, ebx", "pop rbx",
+            out(reg) apic_id, out("eax") _, out("ecx") _, out("edx") _, options(nomem)
+        );
+    }
+    apic_id as u16
 }
 
 pub fn vendor() -> CpuVendor {
