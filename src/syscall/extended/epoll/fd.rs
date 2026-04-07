@@ -60,7 +60,7 @@ pub fn validate_fd(fd: i32) -> Result<u32, i32> {
 
 pub fn create_instance_with_fd(cloexec: bool) -> i32 {
     let id = allocate_epoll_id();
-    let instance = super::instance::EpollInstance::new();
+    let instance = super::instance::EpollInstance::new_with_cloexec(cloexec);
     EPOLL_INSTANCES.lock().insert(id, instance);
     let fd = allocate_fd();
     bind_fd_to_instance(fd, id);
