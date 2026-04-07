@@ -54,3 +54,13 @@ pub fn is_within_root(path: &str, root: &str) -> bool {
         Err(_) => false,
     }
 }
+
+pub fn resolve_path(path: &str) -> VfsResult<String> {
+    if path.starts_with('/') {
+        sanitize_path(path)
+    } else {
+        let cwd = crate::shell::get_cwd();
+        let full = if cwd.ends_with('/') { alloc::format!("{}{}", cwd, path) } else { alloc::format!("{}/{}", cwd, path) };
+        sanitize_path(&full)
+    }
+}
