@@ -33,6 +33,7 @@ pub struct FanotifyInstance {
 
 pub static INSTANCES: Mutex<BTreeMap<u32, Arc<FanotifyInstance>>> = Mutex::new(BTreeMap::new());
 pub static FD_MAP: Mutex<BTreeMap<i32, u32>> = Mutex::new(BTreeMap::new());
+pub static FD_OWNER: Mutex<BTreeMap<i32, u32>> = Mutex::new(BTreeMap::new());
 pub static NEXT_ID: AtomicU32 = AtomicU32::new(1);
 pub static NEXT_FD: AtomicI32 = AtomicI32::new(0x8000_0000u32 as i32);
 
@@ -73,5 +74,7 @@ pub fn sys_fanotify_init(flags: u32, event_f_flags: u32) -> i64 {
     let instance = FanotifyInstance::new(flags, event_f_flags);
     let fd = NEXT_FD.fetch_add(1, Ordering::SeqCst);
     FD_MAP.lock().insert(fd, instance.id);
+    let pid = crate::process::current_pid().unwrap_or(0);
+    FD_OWNER.lock().insert(fd, pid);
     fd as i64
 }
