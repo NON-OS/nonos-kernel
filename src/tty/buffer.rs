@@ -18,7 +18,6 @@ extern crate alloc;
 
 use alloc::vec::Vec;
 use alloc::collections::VecDeque;
-use spin::Mutex;
 
 const TTY_BUFFER_SIZE: usize = 4096;
 const FLIP_BUFFER_SIZE: usize = 512;
@@ -29,8 +28,8 @@ pub struct TtyBuffer {
 }
 
 impl TtyBuffer {
-    pub fn new() -> Self {
-        Self { data: VecDeque::with_capacity(TTY_BUFFER_SIZE), capacity: TTY_BUFFER_SIZE }
+    pub const fn new() -> Self {
+        Self { data: VecDeque::new(), capacity: TTY_BUFFER_SIZE }
     }
 
     pub fn push(&mut self, byte: u8) -> bool {
