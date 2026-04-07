@@ -24,8 +24,9 @@ mod detach;
 mod self_ops;
 mod attr;
 
-pub use types::{PthreadT, StartRoutine, PthreadAttr, ThreadControlBlock};
-pub use types::{PTHREAD_CREATE_JOINABLE, PTHREAD_CREATE_DETACHED};
+pub use types::*;
+pub use constants::*;
+pub use state::*;
 pub use create::pthread_create;
 pub use join::pthread_join;
 pub use exit::pthread_exit;
