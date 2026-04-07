@@ -67,16 +67,53 @@ pub fn get_kobject_entries(parent_ino: u64) -> Vec<SysfsEntry> {
         .collect()
 }
 
-pub fn get_attribute(ino: u64) -> Option<SysfsAttribute> {
-    ATTRIBUTES.lock().get(&ino).cloned()
+pub fn get_attribute(ino: u64) -> Option<alloc::string::String> {
+    ATTRIBUTES.lock().get(&ino).map(|attr| (attr.show)())
+}
+
+pub fn store_attribute(ino: u64, data: &str) -> Result<(), i32> {
+    let attrs = ATTRIBUTES.lock();
+    let attr = attrs.get(&ino).ok_or(-2)?;
+    match &attr.store {
+        Some(store_fn) => store_fn(data),
+        None => Err(-1),
+    }
 }
 
 pub fn get_entry(ino: u64) -> Option<SysfsEntry> {
     KOBJECTS.lock().get(&ino).map(|k| SysfsEntry::directory(&k.name, k.ino))
 }
 
+static ATTR_TO_PARENT: Mutex<BTreeMap<u64, u64>> = Mutex::new(BTreeMap::new());
+
 pub fn register_attribute(parent: u64, attr: SysfsAttribute) -> u64 {
     let ino = NEXT_INO.fetch_add(1, Ordering::SeqCst);
     ATTRIBUTES.lock().insert(ino, attr);
+    ATTR_TO_PARENT.lock().insert(ino, parent);
+    let mut kobjects = KOBJECTS.lock();
+    if let Some(p) = kobjects.get_mut(&parent) {
+        p.children.push(ino);
+    }
     ino
+}
+
+pub struct AttributeInfo {
+    pub ino: u64,
+    pub name: alloc::string::String,
+    pub mode: u32,
+    pub writable: bool,
+}
+
+pub fn get_attributes_for_kobject(parent: u64) -> Vec<AttributeInfo> {
+    let attr_to_parent = ATTR_TO_PARENT.lock();
+    let attrs = ATTRIBUTES.lock();
+    attrs.iter()
+        .filter(|(ino, _)| attr_to_parent.get(*ino) == Some(&parent))
+        .map(|(ino, attr)| AttributeInfo {
+            ino: *ino,
+            name: attr.name.clone(),
+            mode: attr.mode,
+            writable: attr.is_writable(),
+        })
+        .collect()
 }
