@@ -34,14 +34,16 @@ pub fn read(minor: u32, buf: &mut [u8]) -> Result<usize, i32> {
     let ttys = TTYS.lock();
     let tty = ttys.get(&minor).ok_or(-6)?;
     let mut tty_guard = tty.lock();
-    tty_guard.ldisc.read(&mut tty_guard, buf)
+    let ldisc = tty_guard.ldisc.clone();
+    ldisc.read(&mut tty_guard, buf)
 }
 
 pub fn write(minor: u32, buf: &[u8]) -> Result<usize, i32> {
     let ttys = TTYS.lock();
     let tty = ttys.get(&minor).ok_or(-6)?;
     let mut tty_guard = tty.lock();
-    tty_guard.ldisc.write(&mut tty_guard, buf)
+    let ldisc = tty_guard.ldisc.clone();
+    ldisc.write(&mut tty_guard, buf)
 }
 
 pub fn ioctl(minor: u32, cmd: u32, arg: u64) -> Result<i64, i32> {
