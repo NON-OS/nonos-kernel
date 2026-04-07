@@ -18,29 +18,51 @@ extern crate alloc;
 
 use alloc::string::String;
 use alloc::format;
+use crate::process::ProcessState;
+use core::sync::atomic::Ordering;
 
 pub fn read_pid_status(pid: i32) -> Result<String, i32> {
-    let proc = crate::process::get_process(pid).ok_or(-3)?;
-    let state = match proc.state {
-        crate::process::ProcessState::Running => "R (running)",
-        crate::process::ProcessState::Sleeping => "S (sleeping)",
-        crate::process::ProcessState::Stopped => "T (stopped)",
-        crate::process::ProcessState::Zombie => "Z (zombie)",
-        crate::process::ProcessState::Dead => "X (dead)",
+    let proc = crate::process::get_process(pid as u32).ok_or(-3)?;
+    let state_guard = proc.state.lock();
+    let state = match *state_guard {
+        ProcessState::Running => "R (running)",
+        ProcessState::Sleeping => "S (sleeping)",
+        ProcessState::Stopped => "T (stopped)",
+        ProcessState::Zombie(_) => "Z (zombie)",
+        ProcessState::Terminated(_) => "X (dead)",
+        ProcessState::New => "N (new)",
+        ProcessState::Ready => "R (ready)",
     };
-    let mem = proc.memory_info;
+    drop(state_guard);
+
+    let name = proc.name.lock().clone();
+    let umask = *proc.umask.lock();
+    let ppid = proc.ppid.load(Ordering::Relaxed);
+    let pgid = proc.pgid.load(Ordering::Relaxed);
+    let sid = proc.sid.load(Ordering::Relaxed);
+    let tgid = proc.tgid.load(Ordering::Relaxed);
+    let thread_count = proc.thread_count.load(Ordering::Relaxed);
+
+    let creds = proc.creds.lock();
+    let signals = proc.signals.lock();
+    let caps = proc.caps.lock();
+    let mem_info = proc.memory_info.lock();
+
     Ok(format!(
-        "Name:\t{}\nUmask:\t{:04o}\nState:\t{}\nTgid:\t{}\nNgid:\t{}\nPid:\t{}\nPPid:\t{}\nTracerPid:\t{}\nUid:\t{}\t{}\t{}\t{}\nGid:\t{}\t{}\t{}\t{}\nFDSize:\t{}\nGroups:\t{}\nNStgid:\t{}\nNSpid:\t{}\nNSpgid:\t{}\nNSsid:\t{}\nVmPeak:\t{:>8} kB\nVmSize:\t{:>8} kB\nVmLck:\t{:>8} kB\nVmPin:\t{:>8} kB\nVmHWM:\t{:>8} kB\nVmRSS:\t{:>8} kB\nRssAnon:\t{:>8} kB\nRssFile:\t{:>8} kB\nRssShmem:\t{:>8} kB\nVmData:\t{:>8} kB\nVmStk:\t{:>8} kB\nVmExe:\t{:>8} kB\nVmLib:\t{:>8} kB\nVmPTE:\t{:>8} kB\nVmSwap:\t{:>8} kB\nHugetlbPages:\t{:>8} kB\nCoreDumping:\t{}\nTHP_enabled:\t{}\nThreads:\t{}\nSigQ:\t{}/{}\nSigPnd:\t{:016x}\nShdPnd:\t{:016x}\nSigBlk:\t{:016x}\nSigIgn:\t{:016x}\nSigCgt:\t{:016x}\nCapInh:\t{:016x}\nCapPrm:\t{:016x}\nCapEff:\t{:016x}\nCapBnd:\t{:016x}\nCapAmb:\t{:016x}\nNoNewPrivs:\t{}\nSeccomp:\t{}\nSeccomp_filters:\t{}\nSpeculation_Store_Bypass:\t{}\nSpeculationIndirectBranch:\t{}\nCpus_allowed:\t{:x}\nCpus_allowed_list:\t{}\nMems_allowed:\t{:x}\nMems_allowed_list:\t{}\nvoluntary_ctxt_switches:\t{}\nnonvoluntary_ctxt_switches:\t{}\n",
-        proc.name, proc.umask, state, pid, 0, pid, proc.ppid, 0,
-        proc.uid, proc.euid, proc.suid, proc.fsuid, proc.gid, proc.egid, proc.sgid, proc.fsgid,
-        proc.fd_count, "", pid, pid, proc.pgid, proc.sid,
-        mem.vm_peak / 1024, mem.vm_size / 1024, 0, 0, mem.vm_hwm / 1024, mem.vm_rss / 1024,
-        mem.rss_anon / 1024, mem.rss_file / 1024, mem.rss_shmem / 1024,
-        mem.vm_data / 1024, mem.vm_stack / 1024, mem.vm_exe / 1024, mem.vm_lib / 1024, mem.vm_pte / 1024, 0, 0,
-        0, 1, proc.thread_count, proc.pending_signals, 128,
-        proc.signals.pending, proc.signals.shared_pending, proc.signals.blocked, proc.signals.ignored, proc.signals.caught,
-        proc.caps.inheritable, proc.caps.permitted, proc.caps.effective, proc.caps.bounding, proc.caps.ambient,
-        proc.no_new_privs as u8, proc.seccomp, 0, "not vulnerable", "conditional enabled", proc.cpus_allowed, "0-3", 1, "0",
-        proc.voluntary_switches, proc.involuntary_switches
+        "Name:\t{}\nUmask:\t{:04o}\nState:\t{}\nTgid:\t{}\nNgid:\t0\nPid:\t{}\nPPid:\t{}\nTracerPid:\t0\n\
+Uid:\t{}\t{}\t{}\t{}\nGid:\t{}\t{}\t{}\t{}\nFDSize:\t64\nGroups:\t\nNStgid:\t{}\nNSpid:\t{}\nNSpgid:\t{}\nNSsid:\t{}\n\
+VmPeak:\t{:>8} kB\nVmSize:\t{:>8} kB\nVmLck:\t{:>8} kB\nVmPin:\t{:>8} kB\n\
+VmHWM:\t{:>8} kB\nVmRSS:\t{:>8} kB\nRssAnon:\t{:>8} kB\nRssFile:\t{:>8} kB\nRssShmem:\t{:>8} kB\n\
+VmData:\t{:>8} kB\nVmStk:\t{:>8} kB\nVmExe:\t{:>8} kB\nVmLib:\t{:>8} kB\nVmPTE:\t{:>8} kB\nVmSwap:\t{:>8} kB\n\
+Threads:\t{}\nSigPnd:\t{:016x}\nShdPnd:\t{:016x}\nSigBlk:\t{:016x}\nSigIgn:\t{:016x}\nSigCgt:\t{:016x}\n\
+CapInh:\t{:016x}\nCapPrm:\t{:016x}\nCapEff:\t{:016x}\nCapBnd:\t{:016x}\nCapAmb:\t{:016x}\n",
+        name, umask, state, tgid, pid, ppid,
+        creds.uid, creds.euid, creds.suid, creds.fsuid, creds.gid, creds.egid, creds.sgid, creds.fsgid,
+        tgid, pid, pgid, sid,
+        mem_info.vm_peak / 1024, mem_info.vm_size / 1024, 0, 0,
+        mem_info.vm_hwm / 1024, mem_info.vm_rss / 1024, mem_info.rss_anon / 1024, mem_info.rss_file / 1024, mem_info.rss_shmem / 1024,
+        mem_info.vm_data / 1024, mem_info.vm_stack / 1024, mem_info.vm_exe / 1024, mem_info.vm_lib / 1024, mem_info.vm_pte / 1024, 0,
+        thread_count, signals.pending, signals.shared_pending, signals.blocked, signals.ignored, signals.caught,
+        caps.inheritable, caps.permitted, caps.effective, caps.bounding, caps.ambient
     ))
 }
