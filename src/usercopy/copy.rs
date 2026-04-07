@@ -95,3 +95,25 @@ unsafe fn do_copy_to_user(dst: u64, src: &[u8]) -> Result<(), UsercopyError> {
     }
     Ok(())
 }
+
+pub fn read_user_bytes(user_ptr: u64, len: usize) -> Result<alloc::vec::Vec<u8>, UsercopyError> {
+    let mut buf = alloc::vec![0u8; len];
+    copy_from_user(user_ptr, &mut buf)?;
+    Ok(buf)
+}
+
+pub fn write_user_bytes(user_ptr: u64, data: &[u8]) -> Result<(), UsercopyError> {
+    copy_to_user(user_ptr, data)
+}
+
+pub fn read_user_string(user_ptr: u64, max_len: usize) -> Result<alloc::string::String, UsercopyError> {
+    let mut buf = alloc::vec![0u8; max_len];
+    validate_user_read(user_ptr, max_len)?;
+    for i in 0..max_len {
+        let byte = unsafe { core::ptr::read_volatile((user_ptr as *const u8).add(i)) };
+        if did_fault() { return Err(UsercopyError::PageFault); }
+        if byte == 0 { buf.truncate(i); break; }
+        buf[i] = byte;
+    }
+    alloc::string::String::from_utf8(buf).map_err(|_| UsercopyError::InvalidUtf8)
+}
