@@ -22,7 +22,7 @@ pub fn do_cont(pid: u32, signal: u32) -> Result<(), i32> {
     set_singlestep(pid, false);
     let _ = crate::process::resume_process(pid);
     if signal != 0 {
-        let _ = crate::syscall::signals::send_signal_to_process(pid, signal as i32);
+        let _ = crate::syscall::signals::send_signal_to_process(pid, signal);
     }
     Ok(())
 }
@@ -34,7 +34,7 @@ pub fn do_singlestep(pid: u32, signal: u32) -> Result<(), i32> {
     enable_trap_flag(pid)?;
     let _ = crate::process::resume_process(pid);
     if signal != 0 {
-        let _ = crate::syscall::signals::send_signal_to_process(pid, signal as i32);
+        let _ = crate::syscall::signals::send_signal_to_process(pid, signal);
     }
     Ok(())
 }
@@ -45,7 +45,7 @@ pub fn do_syscall(pid: u32, signal: u32) -> Result<(), i32> {
     set_syscall_entry(pid, true);
     let _ = crate::process::resume_process(pid);
     if signal != 0 {
-        let _ = crate::syscall::signals::send_signal_to_process(pid, signal as i32);
+        let _ = crate::syscall::signals::send_signal_to_process(pid, signal);
     }
     Ok(())
 }
@@ -73,13 +73,13 @@ pub fn do_geteventmsg(pid: u32, data: u64) -> Result<(), i32> {
 }
 
 fn enable_trap_flag(pid: u32) -> Result<(), i32> {
-    crate::sched::context::modify_saved_context(pid as u64, |ctx| {
+    if crate::sched::context::modify_saved_context(pid as u64, |ctx| {
         ctx.rflags |= 0x100;
-    }).ok_or(3)
+    }) { Ok(()) } else { Err(3) }
 }
 
 pub fn disable_trap_flag(pid: u32) -> Result<(), i32> {
-    crate::sched::context::modify_saved_context(pid as u64, |ctx| {
+    if crate::sched::context::modify_saved_context(pid as u64, |ctx| {
         ctx.rflags &= !0x100;
-    }).ok_or(3)
+    }) { Ok(()) } else { Err(3) }
 }
