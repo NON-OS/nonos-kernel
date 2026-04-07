@@ -20,7 +20,7 @@ use alloc::string::String;
 use alloc::sync::Arc;
 use alloc::collections::VecDeque;
 use spin::Mutex;
-use core::sync::atomic::{AtomicU32, Ordering};
+use core::sync::atomic::AtomicU32;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum UnixSocketType { Stream, Dgram, Seqpacket }
@@ -33,6 +33,7 @@ pub struct UnixSocket {
     pub recv_buf: Mutex<VecDeque<UnixMessage>>,
     pub send_buf: Mutex<VecDeque<UnixMessage>>,
     pub backlog: Mutex<VecDeque<Arc<UnixSocket>>>,
+    pub backlog_limit: core::sync::atomic::AtomicUsize,
     pub listening: core::sync::atomic::AtomicBool,
 }
 
@@ -47,8 +48,21 @@ impl UnixSocket {
             socket_type, flags: AtomicU32::new(flags),
             bound_path: Mutex::new(None), peer: Mutex::new(None),
             recv_buf: Mutex::new(VecDeque::new()), send_buf: Mutex::new(VecDeque::new()),
-            backlog: Mutex::new(VecDeque::new()), listening: core::sync::atomic::AtomicBool::new(false),
+            backlog: Mutex::new(VecDeque::new()), backlog_limit: core::sync::atomic::AtomicUsize::new(128),
+            listening: core::sync::atomic::AtomicBool::new(false),
         }
+    }
+
+    pub fn set_backlog_limit(&self, limit: usize) {
+        self.backlog_limit.store(limit, core::sync::atomic::Ordering::SeqCst);
+    }
+
+    pub fn get_backlog_limit(&self) -> usize {
+        self.backlog_limit.load(core::sync::atomic::Ordering::SeqCst)
+    }
+
+    pub fn can_accept_connection(&self) -> bool {
+        self.backlog.lock().len() < self.get_backlog_limit()
     }
 
     pub fn bind(&self, path: &str) -> Result<(), i32> {
