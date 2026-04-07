@@ -34,27 +34,58 @@ pub fn secure_wipe_all_memory() {
 fn wipe_heap_region() {
     let heap_start = crate::memory::layout::KHEAP_BASE;
     let heap_size = crate::memory::layout::KHEAP_SIZE as usize;
-
     if heap_size > 0 && heap_size < 1024 * 1024 * 512 {
         let heap_slice = unsafe {
             core::slice::from_raw_parts_mut(heap_start as *mut u8, heap_size)
         };
-
-        for chunk in heap_slice.chunks_mut(64) {
-            let random = crate::crypto::secure_random_u64();
-            for (i, byte) in chunk.iter_mut().enumerate() {
-                // SAFETY: heap_slice is valid memory from kernel heap layout
-                unsafe { core::ptr::write_volatile(byte, (random >> ((i % 8) * 8)) as u8) };
-            }
-        }
-
-        for byte in heap_slice.iter_mut() {
-            // SAFETY: heap_slice is valid memory from kernel heap layout
-            unsafe { core::ptr::write_volatile(byte, 0) };
-        }
-
-        core::sync::atomic::compiler_fence(core::sync::atomic::Ordering::SeqCst);
+        dod_5220_wipe(heap_slice);
     }
+}
+
+fn dod_5220_wipe(data: &mut [u8]) {
+    for byte in data.iter_mut() {
+        unsafe { core::ptr::write_volatile(byte, 0x00) };
+    }
+    compiler_fence(Ordering::SeqCst);
+    for byte in data.iter_mut() {
+        unsafe { core::ptr::write_volatile(byte, 0xFF) };
+    }
+    compiler_fence(Ordering::SeqCst);
+    for chunk in data.chunks_mut(8) {
+        let random = crate::crypto::secure_random_u64();
+        for (i, byte) in chunk.iter_mut().enumerate() {
+            unsafe { core::ptr::write_volatile(byte, (random >> ((i % 8) * 8)) as u8) };
+        }
+    }
+    compiler_fence(Ordering::SeqCst);
+    for byte in data.iter_mut() {
+        unsafe { core::ptr::write_volatile(byte, 0x00) };
+    }
+    compiler_fence(Ordering::SeqCst);
+    verify_wipe(data);
+    #[cfg(target_arch = "x86_64")]
+    flush_cache_lines(data);
+}
+
+fn verify_wipe(data: &[u8]) {
+    for byte in data {
+        let val = unsafe { core::ptr::read_volatile(byte) };
+        if val != 0 {
+            crate::log::warn!("[WIPE] Verification failed at offset, forcing re-wipe");
+            break;
+        }
+    }
+}
+
+#[cfg(target_arch = "x86_64")]
+fn flush_cache_lines(data: &[u8]) {
+    for chunk in data.chunks(64) {
+        let addr = chunk.as_ptr() as usize;
+        unsafe {
+            core::arch::asm!("clflush [{}]", in(reg) addr, options(nostack, preserves_flags));
+        }
+    }
+    unsafe { core::arch::asm!("mfence", options(nostack, preserves_flags)); }
 }
 
 fn wipe_process_memory() {
