@@ -16,7 +16,6 @@
 
 extern crate alloc;
 use alloc::sync::Arc;
-use alloc::string::String;
 use super::mount::Ext4MountInfo;
 use super::inode::{read_inode, write_inode, EXT4_ROOT_INO, S_IFREG, S_IFDIR};
 use super::dir::{dir_lookup, dir_add_entry, dir_remove_entry, EXT4_FT_REG_FILE, EXT4_FT_DIR};
