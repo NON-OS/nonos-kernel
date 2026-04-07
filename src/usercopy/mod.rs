@@ -21,7 +21,7 @@ mod fault;
 
 pub mod tests;
 
-pub use error::UsercopyError;
-pub use validate::{validate_user_read, validate_user_write};
-pub use copy::{copy_from_user, copy_to_user, read_user_value, write_user_value};
-pub use fault::{set_fault_handler, clear_fault_handler, try_recover_fault, did_fault, FaultRecovery};
+pub use error::*;
+pub use validate::*;
+pub use copy::*;
+pub use fault::*;
