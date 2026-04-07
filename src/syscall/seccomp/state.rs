@@ -45,6 +45,14 @@ pub fn set_strict_mode(pid: u32) -> Result<(), i32> {
     let state = map.entry(pid).or_default();
     if state.mode != SECCOMP_MODE_DISABLED { return Err(1); }
     state.mode = SECCOMP_MODE_STRICT;
+    crate::security::monitoring::audit::log_security_event(
+        "seccomp",
+        crate::security::monitoring::audit::AuditSeverity::Info,
+        alloc::format!("Process {} entered strict seccomp mode", pid),
+        Some(pid as u64),
+        None,
+        None,
+    );
     Ok(())
 }
 
@@ -54,8 +62,28 @@ pub fn add_filter(pid: u32, filter: SeccompFilter) -> Result<(), i32> {
     let state = map.entry(pid).or_default();
     if state.mode == SECCOMP_MODE_STRICT { return Err(1); }
     state.mode = SECCOMP_MODE_FILTER;
+    let filter_count = state.filters.len() + 1;
     state.filters.push(filter);
+    crate::security::monitoring::audit::log_security_event(
+        "seccomp",
+        crate::security::monitoring::audit::AuditSeverity::Info,
+        alloc::format!("Process {} installed seccomp filter #{}", pid, filter_count),
+        Some(pid as u64),
+        None,
+        None,
+    );
     Ok(())
+}
+
+pub fn log_seccomp_violation(pid: u32, syscall_nr: u64, action: u32) {
+    crate::security::monitoring::audit::log_security_event(
+        "seccomp",
+        crate::security::monitoring::audit::AuditSeverity::Warning,
+        alloc::format!("Process {} seccomp violation: syscall {} action {:#x}", pid, syscall_nr, action),
+        Some(pid as u64),
+        None,
+        Some(alloc::vec![alloc::format!("syscall:{}", syscall_nr)]),
+    );
 }
 
 pub fn get_filters(pid: u32) -> Vec<SeccompFilter> {
