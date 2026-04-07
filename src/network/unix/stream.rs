@@ -59,7 +59,22 @@ impl UnixStream {
     }
 
     pub fn shutdown(&self, how: i32) -> Result<(), i32> {
-        self.connected.store(false, core::sync::atomic::Ordering::SeqCst);
+        const SHUT_RD: i32 = 0;
+        const SHUT_WR: i32 = 1;
+        const SHUT_RDWR: i32 = 2;
+        match how {
+            SHUT_RD => {
+                self.recv_buf.lock().clear();
+            }
+            SHUT_WR => {
+                self.connected.store(false, core::sync::atomic::Ordering::SeqCst);
+            }
+            SHUT_RDWR => {
+                self.recv_buf.lock().clear();
+                self.connected.store(false, core::sync::atomic::Ordering::SeqCst);
+            }
+            _ => return Err(-22),
+        }
         Ok(())
     }
 }
