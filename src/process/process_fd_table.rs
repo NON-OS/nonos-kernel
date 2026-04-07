@@ -83,6 +83,7 @@ impl ProcessFdTable {
     }
 
     #[inline] pub fn get(&self, fd: i32) -> Option<FdEntry> { self.entries.read().get(&fd).cloned() }
+    #[inline] pub fn all_fds(&self) -> Vec<i32> { self.entries.read().keys().copied().collect() }
     #[inline] pub fn remove(&self, fd: i32) -> Option<FdEntry> { self.entries.write().remove(&fd) }
     #[inline] pub fn is_valid(&self, fd: i32) -> bool { self.entries.read().contains_key(&fd) }
     #[inline] pub fn get_type(&self, fd: i32) -> Option<FdType> { self.entries.read().get(&fd).map(|e| e.fd_type) }
