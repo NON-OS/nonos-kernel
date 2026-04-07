@@ -60,7 +60,7 @@ pub unsafe extern "C" fn pthread_join(thread: PthreadT, retval: *mut *mut u8) ->
             }
         };
 
-        crate::syscall::sys_futex(futex_ptr, FUTEX_WAIT, futex_val, 0, 0, 0);
+        crate::syscall::sys_futex(futex_ptr as u64, FUTEX_WAIT, futex_val, 0, 0, 0);
     }
 
     let (ret_ptr, stack) = {
