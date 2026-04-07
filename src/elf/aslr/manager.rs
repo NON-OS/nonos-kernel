@@ -157,3 +157,27 @@ impl Default for AslrManager {
         Self::new()
     }
 }
+
+impl AslrManager {
+    /// Static helper to generate a random address within a range without needing an instance
+    pub fn random_address(min: usize, max: usize, size: usize) -> usize {
+        if min >= max || size == 0 {
+            return min;
+        }
+        let range = max - min - size;
+        if range == 0 {
+            return min;
+        }
+        // Gather entropy for the random offset
+        let entropy = unsafe {
+            let mut tmp: u64 = 0;
+            if _rdrand64_step(&mut tmp) == 1 {
+                tmp
+            } else {
+                FALLBACK_SEED
+            }
+        };
+        let offset = ((entropy >> 16) as usize) % range;
+        (min + offset) & !0xFFF // Page-align the result
+    }
+}
