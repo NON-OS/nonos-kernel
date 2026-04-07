@@ -102,7 +102,6 @@ pub fn send_data(dst: [u8; 4], port: u16, data: &[u8]) -> Result<(), i32> {
 
     stack.tcp_connect(&socket, dst, port).map_err(|_| -111)?;
     stack.tcp_send(handle, data).map_err(|_| -104)?;
-    let _ = stack.tcp_close(handle);
-
+    stack.tcp_close(handle).map_err(|_| -104)?;
     Ok(())
 }
