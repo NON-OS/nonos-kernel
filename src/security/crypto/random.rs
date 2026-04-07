@@ -106,3 +106,13 @@ pub fn secure_random_u32() -> u32 {
 pub fn secure_random_u8() -> u8 {
     secure_random_u64() as u8
 }
+
+pub fn fill_bytes(buf: &mut [u8]) { fill_random(buf) }
+
+pub fn fill_random_bytes(buf: &mut [u8]) { fill_random(buf) }
+
+pub fn add_entropy(_data: &[u8]) {}
+
+pub fn get_entropy_count() -> u32 { 4096 }
+
+pub fn add_entropy_count(_bits: u32) {}
