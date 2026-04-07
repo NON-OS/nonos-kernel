@@ -16,7 +16,7 @@
 
 mod pty;
 
-pub use pty::{PtySlaveDevice, allocate_pty, deallocate_pty, get_pty_count};
+pub use pty::*;
 
 use alloc::vec::Vec;
 use spin::Mutex;
