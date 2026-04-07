@@ -41,6 +41,17 @@ static NEXT_TLS_ID: core::sync::atomic::AtomicUsize = core::sync::atomic::Atomic
 static TLS_SIZE: core::sync::atomic::AtomicUsize = core::sync::atomic::AtomicUsize::new(0);
 
 pub fn init_tls() -> Result<(), i32> {
+    init_static_tls();
+    let tls_block = allocate_tls_block();
+    if tls_block.is_null() && get_tls_size() > 0 {
+        return Err(-12);
+    }
+    if !tls_block.is_null() {
+        let tcb_size = core::mem::size_of::<usize>() * 2;
+        let tp = unsafe { tls_block.add(get_tls_size()).add(tcb_size) };
+        unsafe { *(tp.sub(core::mem::size_of::<usize>()) as *mut usize) = tp as usize; }
+        set_thread_pointer(tp as usize);
+    }
     Ok(())
 }
 
