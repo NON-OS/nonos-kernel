@@ -41,8 +41,18 @@ impl UnixListener {
     }
 }
 
-pub fn register_bound_socket(path: &str, _ptr: u64) -> Result<(), i32> {
+static SOCKET_PTRS: Mutex<BTreeMap<String, u64>> = Mutex::new(BTreeMap::new());
+
+pub fn register_bound_socket(path: &str, ptr: u64) -> Result<(), i32> {
+    if is_path_bound(path) {
+        return Err(-98);
+    }
+    SOCKET_PTRS.lock().insert(String::from(path), ptr);
     Ok(())
+}
+
+pub fn get_socket_ptr(path: &str) -> Option<u64> {
+    SOCKET_PTRS.lock().get(path).copied()
 }
 
 pub fn bind_unix(socket: &Arc<UnixSocket>, path: &str) -> Result<(), i32> {
@@ -56,6 +66,8 @@ pub fn bind_unix(socket: &Arc<UnixSocket>, path: &str) -> Result<(), i32> {
 pub fn listen_unix(socket: &Arc<UnixSocket>, backlog: i32) -> Result<(), i32> {
     if socket.bound_path.lock().is_none() { return Err(-22); }
     socket.listening.store(true, core::sync::atomic::Ordering::SeqCst);
+    let max_backlog = if backlog <= 0 { 128 } else { backlog.min(4096) as usize };
+    socket.set_backlog_limit(max_backlog);
     Ok(())
 }
 
