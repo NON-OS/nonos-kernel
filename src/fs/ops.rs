@@ -22,16 +22,6 @@ use core::sync::atomic::{compiler_fence, Ordering};
 use super::manager::get_filesystem_manager;
 use super::{cache, cryptofs, devfs, procfs, sysfs, internal, ramfs, vfs};
 
-/* DEV NOTES eK@nonos.systems
-   Filesystem subsystem initialization. Order matters:
-   1. VFS layer (virtual filesystem switch)
-   2. CryptoFS (encrypted storage)
-   3. RamFS (in-memory filesystem for /tmp, etc.)
-   4. Caches (dentry, inode, page caches)
-   5. DevFS at /dev (device nodes: null, zero, random, tty, pts)
-   6. ProcFS at /proc (process information, kernel stats)
-   7. SysFS at /sys (device/driver/bus hierarchy)
-*/
 pub fn init() {
     vfs::init_vfs();
     let _ = cryptofs::init_cryptofs(1024 * 1024, 4096);
