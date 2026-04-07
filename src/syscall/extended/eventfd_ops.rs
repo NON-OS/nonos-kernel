@@ -14,8 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use crate::syscall::SyscallResult;
 use crate::usercopy::{copy_to_user, copy_from_user};
 use super::eventfd_types::*;
+
+pub fn handle_eventfd(initval: u32) -> SyscallResult {
+    super::eventfd_types::handle_eventfd2(initval, 0)
+}
+
+pub fn handle_eventfd2(initval: u32, flags: i32) -> SyscallResult {
+    super::eventfd_types::handle_eventfd2(initval, flags)
+}
 
 pub fn eventfd_read(fd: i32, buf: u64, count: usize) -> Result<usize, i32> {
     if count < 8 { return Err(EINVAL); }
