@@ -73,14 +73,17 @@ pub fn check_fsgsbase_support() -> bool {
     let result: u32;
     unsafe {
         asm!(
+            "push rbx",
             "mov eax, 7",
             "xor ecx, ecx",
             "cpuid",
-            out("ebx") result,
+            "mov {0:e}, ebx",
+            "pop rbx",
+            out(reg) result,
             out("eax") _,
             out("ecx") _,
             out("edx") _,
-            options(nomem, nostack, preserves_flags)
+            options(nostack, preserves_flags)
         );
     }
     result & (1 << 0) != 0
