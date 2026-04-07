@@ -108,7 +108,7 @@ fn dispatch_syscall(syscall: SyscallNumber, a0: u64, a1: u64, a2: u64, a3: u64, 
             let result = crate::syscall::microkernel::dispatch_microkernel_syscall(
                 syscall as u64, a0, a1, a2, a3, a4
             );
-            SyscallResult { value: result, audit_required: true }
+            SyscallResult { value: result, capability_consumed: false, audit_required: true }
         }
 
         _ => file_fs::dispatch_file_fs(syscall, a0, a1, a2, a3, a4, a5),
