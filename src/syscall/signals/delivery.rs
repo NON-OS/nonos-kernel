@@ -184,8 +184,10 @@ fn terminate_process(pid: u32, sig: u32) {
     if let Some(pcb) = crate::process::get_process_table().find_by_pid(pid) {
         let exit_status = 128i32.saturating_add(sig as i32);
         crate::process::accounting::record_exit_from_pcb(&pcb, exit_status, true);
+        let parent_pid = pcb.ppid.load(Ordering::Acquire);
         pcb.terminate(exit_status);
-        crate::log::info!("Process {} terminated by signal {}", pid, sig);
+        crate::syscall::extended::process::record_child_exit(parent_pid, pid, exit_status);
+        crate::sched::remove_from_run_queue(pid);
     }
 }
 
