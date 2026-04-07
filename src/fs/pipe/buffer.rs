@@ -17,16 +17,15 @@
 extern crate alloc;
 
 use alloc::vec::Vec;
-use spin::Mutex;
-use core::sync::atomic::{AtomicUsize, AtomicBool, Ordering};
+use core::sync::atomic::{AtomicUsize, Ordering};
 
 pub const PIPE_BUF_SIZE: usize = 65536;
 
 pub struct PipeBuffer {
-    data: Vec<u8>,
-    head: AtomicUsize,
-    tail: AtomicUsize,
-    capacity: usize,
+    pub data: Vec<u8>,
+    pub head: AtomicUsize,
+    pub tail: AtomicUsize,
+    pub capacity: usize,
     readers: AtomicUsize,
     writers: AtomicUsize,
 }
