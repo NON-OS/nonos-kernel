@@ -20,7 +20,7 @@ use alloc::sync::Arc;
 use spin::Mutex;
 use core::sync::atomic::{AtomicU64, Ordering};
 use super::mount::Ext4MountInfo;
-use super::inode::{Ext4Inode, read_inode, write_inode};
+use super::inode::{read_inode, write_inode};
 
 static OPEN_FILES: Mutex<BTreeMap<i32, Ext4OpenFile>> = Mutex::new(BTreeMap::new());
 
