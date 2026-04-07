@@ -38,7 +38,7 @@ pub fn handle_splice(fd_in: i32, off_in: u64, fd_out: i32, off_out: u64, len: u6
         }
     } else { None };
     let read_len = len.min(65536) as usize;
-    let mut buf = vec![0u8; read_len];
+    let buf = vec![0u8; read_len];
     let read_result = if let Some(off) = in_offset {
         crate::syscall::extended::handle_pread64(fd_in, buf.as_ptr() as u64, read_len as u64, off)
     } else {
