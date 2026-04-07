@@ -16,8 +16,11 @@
 
 mod priority;
 mod affinity;
+mod deadline_types;
 mod task;
+mod task_run;
 
-pub use priority::Priority;
+pub use priority::{Priority, SchedPolicy};
 pub use affinity::CpuAffinity;
+pub use deadline_types::{DeadlineParams, DeadlineFlags};
 pub use task::Task;
