@@ -15,14 +15,23 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod elf_constants;
+mod elf_structs;
+mod elf_loaded;
+mod elf_error;
 mod types;
 mod parser;
+mod validate;
+mod load_segment;
+mod load_phdr;
 mod loader;
 mod relocations;
+mod symbols;
+mod auxv;
 mod api;
 
 pub use types::*;
 pub use parser::*;
 pub use loader::*;
 pub use relocations::*;
+pub use auxv::*;
 pub use api::*;
