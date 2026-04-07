@@ -77,8 +77,10 @@ pub fn resume_process(pid: u32) -> Result<(), i32> { core::resume_process(pid).m
 pub fn current_uid() -> u32 { get_process(current_pid().unwrap_or(1)).map(|p| p.creds.lock().uid).unwrap_or(0) }
 
 pub fn set_cwd(pid: u32, path: &str) -> Result<(), i32> {
-    get_process(pid).ok_or(-3)?.root_dir.lock().clear();
-    get_process(pid).ok_or(-3)?.root_dir.lock().push_str(path);
+    let proc = get_process(pid).ok_or(-3)?;
+    let mut cwd = proc.cwd.lock();
+    cwd.clear();
+    cwd.push_str(path);
     Ok(())
 }
 
