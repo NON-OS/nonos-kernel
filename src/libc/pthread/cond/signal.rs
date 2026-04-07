@@ -23,7 +23,7 @@ pub unsafe extern "C" fn pthread_cond_signal(cond: *mut PthreadCond) -> i32 {
     let c = &*cond;
     if c.waiters.load(Ordering::SeqCst) > 0 {
         c.seq.fetch_add(1, Ordering::Release);
-        crate::syscall::sys_futex(&c.seq as *const _ as usize, 1, 1, 0, 0, 0);
+        crate::syscall::sys_futex(&c.seq as *const _ as u64, 1, 1, 0, 0, 0);
     }
     0
 }
@@ -35,7 +35,7 @@ pub unsafe extern "C" fn pthread_cond_broadcast(cond: *mut PthreadCond) -> i32 {
     let waiters = c.waiters.load(Ordering::SeqCst);
     if waiters > 0 {
         c.seq.fetch_add(1, Ordering::Release);
-        crate::syscall::sys_futex(&c.seq as *const _ as usize, 1, waiters, 0, 0, 0);
+        crate::syscall::sys_futex(&c.seq as *const _ as u64, 1, waiters, 0, 0, 0);
     }
     0
 }
