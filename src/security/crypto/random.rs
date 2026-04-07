@@ -16,7 +16,24 @@
 
 extern crate alloc;
 
+use core::sync::atomic::{AtomicU32, AtomicBool, Ordering};
+use spin::Mutex;
+
+static ENTROPY_POOL: Mutex<[u8; 512]> = Mutex::new([0u8; 512]);
+static ENTROPY_BITS: AtomicU32 = AtomicU32::new(0);
+static POOL_INDEX: AtomicU32 = AtomicU32::new(0);
+static INITIALIZED: AtomicBool = AtomicBool::new(false);
+
 pub fn init() -> Result<(), &'static str> {
+    if INITIALIZED.swap(true, Ordering::SeqCst) { return Ok(()); }
+    let mut pool = ENTROPY_POOL.lock();
+    for chunk in pool.chunks_mut(8) {
+        if let Ok(v) = try_secure_random_u64() {
+            let bytes = v.to_le_bytes();
+            chunk.copy_from_slice(&bytes[..chunk.len().min(8)]);
+        }
+    }
+    ENTROPY_BITS.store(256, Ordering::SeqCst);
     Ok(())
 }
 
@@ -111,8 +128,30 @@ pub fn fill_bytes(buf: &mut [u8]) { fill_random(buf) }
 
 pub fn fill_random_bytes(buf: &mut [u8]) { fill_random(buf) }
 
-pub fn add_entropy(_data: &[u8]) {}
+pub fn add_entropy(data: &[u8]) {
+    if data.is_empty() { return; }
+    let mut pool = ENTROPY_POOL.lock();
+    let mut idx = POOL_INDEX.load(Ordering::Relaxed) as usize;
+    for &byte in data {
+        pool[idx % 512] ^= byte;
+        idx = idx.wrapping_add(1);
+    }
+    POOL_INDEX.store((idx % 512) as u32, Ordering::Relaxed);
+    let estimated_bits = (data.len() * 2).min(256) as u32;
+    let current = ENTROPY_BITS.load(Ordering::Relaxed);
+    ENTROPY_BITS.store((current + estimated_bits).min(4096), Ordering::Relaxed);
+}
 
-pub fn get_entropy_count() -> u32 { 4096 }
+pub fn get_entropy_count() -> u32 {
+    ENTROPY_BITS.load(Ordering::Relaxed)
+}
 
-pub fn add_entropy_count(_bits: u32) {}
+pub fn add_entropy_count(bits: u32) {
+    let current = ENTROPY_BITS.load(Ordering::Relaxed);
+    ENTROPY_BITS.store((current + bits).min(4096), Ordering::Relaxed);
+}
+
+fn consume_entropy(bits: u32) {
+    let current = ENTROPY_BITS.load(Ordering::Relaxed);
+    ENTROPY_BITS.store(current.saturating_sub(bits), Ordering::Relaxed);
+}
