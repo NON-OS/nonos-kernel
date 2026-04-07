@@ -28,6 +28,12 @@ pub struct StorageDevice {
     size: u64,
 }
 
+impl StorageDevice {
+    pub fn dev_t(&self) -> u64 {
+        ((self.major as u64) << 8) | (self.minor as u64)
+    }
+}
+
 impl DeviceOps for StorageDevice {
     fn open(&self, _flags: u32) -> Result<(), i32> {
         crate::drivers::block::open(&self.name)
@@ -52,6 +58,7 @@ impl DeviceOps for StorageDevice {
             0x1271 => Ok(512),
             0x1272 => Ok(4096),
             0x1277 => { crate::drivers::block::flush(&self.name)?; Ok(0) }
+            0x80041272 => Ok(self.dev_t() as i64),
             _ => crate::drivers::block::ioctl(&self.name, cmd, arg),
         }
     }
