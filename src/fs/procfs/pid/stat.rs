@@ -18,49 +18,80 @@ extern crate alloc;
 
 use alloc::string::String;
 use alloc::format;
+use crate::process::ProcessState;
+use core::sync::atomic::Ordering;
 
 pub fn read_pid_stat(pid: i32) -> Result<String, i32> {
-    let proc = crate::process::get_process(pid).ok_or(-3)?;
-    let state = match proc.state {
-        crate::process::ProcessState::Running => 'R',
-        crate::process::ProcessState::Sleeping => 'S',
-        crate::process::ProcessState::Stopped => 'T',
-        crate::process::ProcessState::Zombie => 'Z',
-        crate::process::ProcessState::Dead => 'X',
+    let proc = crate::process::get_process(pid as u32).ok_or(-3)?;
+    let state_guard = proc.state.lock();
+    let state = match *state_guard {
+        ProcessState::Running | ProcessState::Ready => 'R',
+        ProcessState::Sleeping => 'S',
+        ProcessState::Stopped => 'T',
+        ProcessState::Zombie(_) => 'Z',
+        ProcessState::Terminated(_) => 'X',
+        ProcessState::New => 'N',
     };
-    let mem = proc.memory_info;
-    let time = proc.time_info;
+    drop(state_guard);
+
+    let name = proc.name.lock().clone();
+    let ppid = proc.ppid.load(Ordering::Relaxed);
+    let pgid = proc.pgid.load(Ordering::Relaxed);
+    let sid = proc.sid.load(Ordering::Relaxed);
+    let tty_nr = proc.tty_nr.load(Ordering::Relaxed);
+    let tty_pgrp = proc.tty_pgrp.load(Ordering::Relaxed);
+    let flags = proc.flags.load(Ordering::Relaxed);
+    let nice = proc.nice.load(Ordering::Relaxed);
+    let thread_count = proc.thread_count.load(Ordering::Relaxed);
+    let processor = proc.processor.load(Ordering::Relaxed);
+    let rt_priority = proc.rt_priority.load(Ordering::Relaxed);
+    let policy = proc.policy.load(Ordering::Relaxed);
+    let exit_signal = proc.exit_signal.load(Ordering::Relaxed);
+    let kstkesp = proc.kstkesp.load(Ordering::Relaxed);
+    let kstkeip = proc.kstkeip.load(Ordering::Relaxed);
+    let wchan = proc.wchan.load(Ordering::Relaxed);
+
+    let time_info = proc.time_info.lock();
+    let mem_info = proc.memory_info.lock();
+    let signals = proc.signals.lock();
+    let priority = proc.priority.lock();
+    let prio_val = match *priority {
+        crate::process::Priority::Idle => 19,
+        crate::process::Priority::Low => 10,
+        crate::process::Priority::Normal => 0,
+        crate::process::Priority::High => -10,
+        crate::process::Priority::RealTime => -20,
+    };
+
     Ok(format!(
         "{} ({}) {} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {}\n",
-        pid, proc.name, state, proc.ppid, proc.pgid, proc.sid,
-        proc.tty_nr, proc.tty_pgrp, proc.flags,
-        mem.minflt, mem.cminflt, mem.majflt, mem.cmajflt,
-        time.utime, time.stime, time.cutime, time.cstime,
-        proc.priority, proc.nice, proc.thread_count, 0i64,
-        time.start_time, mem.vsize, mem.rss,
-        mem.rsslim, mem.startcode, mem.endcode, mem.startstack,
-        proc.kstkesp, proc.kstkeip, proc.signals.pending,
-        proc.signals.blocked, proc.signals.ignored, proc.signals.caught,
-        proc.wchan, 0u64, 0u64, proc.exit_signal, proc.processor,
-        proc.rt_priority, proc.policy, time.delayacct_blkio_ticks,
-        time.guest_time, time.cguest_time,
-        mem.start_data, mem.end_data, mem.start_brk, mem.arg_start, mem.arg_end,
-        mem.env_start, mem.env_end, proc.exit_code
+        pid, name, state, ppid, pgid, sid, tty_nr, tty_pgrp, flags,
+        mem_info.minflt, mem_info.cminflt, mem_info.majflt, mem_info.cmajflt,
+        time_info.utime, time_info.stime, time_info.cutime, time_info.cstime,
+        prio_val, nice, thread_count, 0i64,
+        time_info.start_time, mem_info.vsize, mem_info.vm_rss / 4096,
+        mem_info.rsslim, mem_info.startcode, mem_info.endcode, mem_info.startstack,
+        kstkesp, kstkeip, signals.pending, signals.blocked, signals.ignored, signals.caught,
+        wchan, 0u64, 0u64, exit_signal, processor, rt_priority, policy,
+        time_info.delayacct_blkio_ticks, time_info.guest_time, time_info.cguest_time,
+        mem_info.start_data, mem_info.end_data, mem_info.start_brk,
+        mem_info.arg_start, mem_info.arg_end, mem_info.env_start, mem_info.env_end,
+        proc.exit_code.load(Ordering::Relaxed)
     ))
 }
 
 pub fn parse_pid_stat(content: &str) -> Option<PidStatInfo> {
     let parts: alloc::vec::Vec<&str> = content.split_whitespace().collect();
-    if parts.len() < 52 { return None; }
+    if parts.len() < 24 { return None; }
     Some(PidStatInfo {
         pid: parts[0].parse().ok()?,
         comm: parts[1].trim_matches(|c| c == '(' || c == ')').into(),
         state: parts[2].chars().next()?,
         ppid: parts[3].parse().ok()?,
-        utime: parts[13].parse().ok()?,
-        stime: parts[14].parse().ok()?,
-        vsize: parts[22].parse().ok()?,
-        rss: parts[23].parse().ok()?,
+        utime: parts.get(13).and_then(|s| s.parse().ok()).unwrap_or(0),
+        stime: parts.get(14).and_then(|s| s.parse().ok()).unwrap_or(0),
+        vsize: parts.get(22).and_then(|s| s.parse().ok()).unwrap_or(0),
+        rss: parts.get(23).and_then(|s| s.parse().ok()).unwrap_or(0),
     })
 }
 
