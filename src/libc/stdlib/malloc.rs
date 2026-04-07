@@ -15,7 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use core::ptr;
-use core::alloc::{GlobalAlloc, Layout};
+#[cfg(feature = "kernel")]
+use core::alloc::Layout;
 
 extern "C" {
     #[cfg(not(feature = "kernel"))]
