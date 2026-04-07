@@ -15,7 +15,6 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 extern crate alloc;
-use alloc::vec::Vec;
 
 #[repr(C)]
 #[derive(Clone, Copy, Debug)]
@@ -29,6 +28,7 @@ pub struct FanotifyEventMetadata {
     pub pid: i32,
 }
 
+#[derive(Clone)]
 pub struct FanotifyEvent {
     pub mask: u64,
     pub fd: i32,
