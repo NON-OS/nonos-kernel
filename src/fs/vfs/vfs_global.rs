@@ -72,10 +72,21 @@ pub fn register_mount(path: &str, _fstype: &str) -> VfsResult<()> {
     }
 }
 
-pub fn unregister_mount(_path: &str) -> VfsResult<()> {
+pub fn unregister_mount(path: &str) -> VfsResult<()> {
+    let vfs = get_vfs().ok_or(VfsError::NotInitialized)?;
+    let mounts = vfs.mounts();
+    if !mounts.iter().any(|m| m.mount_path == path) {
+        return Err(VfsError::NotFound);
+    }
+    let files = crate::fs::ramfs::NONOS_FILESYSTEM.list_files();
+    for file in files {
+        if file.starts_with(path) {
+            let _ = crate::fs::ramfs::NONOS_FILESYSTEM.delete_file(&file);
+        }
+    }
     Ok(())
 }
 
 pub fn get_mounts() -> Vec<alloc::string::String> {
-    Vec::new()
+    get_vfs().map(|vfs| vfs.mounts().iter().map(|m| m.mount_path.clone()).collect()).unwrap_or_default()
 }
