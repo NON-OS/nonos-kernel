@@ -119,22 +119,42 @@ pub fn handle_setgroups(size: u64, list: u64) -> SyscallResult {
 }
 
 pub fn handle_capget(hdrp: u64, datap: u64) -> SyscallResult {
-    if hdrp == 0 {
-        return errno(14);
+    use crate::usercopy::read_user_value;
+    use core::sync::atomic::Ordering;
+    if hdrp == 0 { return errno(14); }
+    let version: u32 = read_user_value(hdrp).unwrap_or(0);
+    if version != 0x20080522 && version != 0x20071026 && version != 0x19980330 {
+        let _ = write_user_value(hdrp, &0x20080522u32);
+        return errno(22);
     }
-
-    if datap != 0 {
-        let zero_caps = [0u8; 24];
-        let _ = copy_to_user(datap, &zero_caps);
-    }
-
+    if datap == 0 { return SyscallResult { value: 0, capability_consumed: false, audit_required: false }; }
+    let pid: i32 = read_user_value(hdrp.wrapping_add(4)).unwrap_or(0);
+    let target_pid = if pid <= 0 { crate::process::current_pid().unwrap_or(1) } else { pid as u32 };
+    let caps_bits = crate::process::get_process_table().find_by_pid(target_pid)
+        .map(|p| p.caps_bits.load(Ordering::Acquire)).unwrap_or(0);
+    let eff = caps_bits as u32;
+    let perm = caps_bits as u32;
+    let inh = 0u32;
+    let mut buf = [0u8; 24];
+    buf[0..4].copy_from_slice(&eff.to_le_bytes());
+    buf[4..8].copy_from_slice(&perm.to_le_bytes());
+    buf[8..12].copy_from_slice(&inh.to_le_bytes());
+    let _ = copy_to_user(datap, &buf);
     SyscallResult { value: 0, capability_consumed: false, audit_required: false }
 }
 
 pub fn handle_capset(hdrp: u64, datap: u64) -> SyscallResult {
-    if hdrp == 0 || datap == 0 {
-        return errno(14);
-    }
-
-    errno(1)
+    use crate::usercopy::read_user_value;
+    use core::sync::atomic::Ordering;
+    if hdrp == 0 || datap == 0 { return errno(14); }
+    if let Err(e) = require_capability(Capability::Admin) { return e; }
+    let pid: i32 = read_user_value(hdrp.wrapping_add(4)).unwrap_or(0);
+    let target_pid = if pid <= 0 { crate::process::current_pid().unwrap_or(1) } else { pid as u32 };
+    let eff: u32 = read_user_value(datap).unwrap_or(0);
+    let pcb = match crate::process::get_process_table().find_by_pid(target_pid) {
+        Some(p) => p,
+        None => return errno(3),
+    };
+    pcb.caps_bits.store(eff as u64, Ordering::Release);
+    SyscallResult { value: 0, capability_consumed: false, audit_required: true }
 }
