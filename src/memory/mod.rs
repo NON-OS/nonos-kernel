@@ -64,3 +64,7 @@ pub use unified::{
     unmap_memory, validate_access, verify_all_memory_integrity, virt_to_phys,
     MemoryProtection, MemorySystemStats, MemoryType, UnifiedVmStats,
 };
+
+pub fn get_memory_stats() -> MemorySystemStats { get_memory_system_stats() }
+pub fn read_process_memory(_pid: u32, _addr: u64, _buf: &mut [u8]) -> Result<usize, i32> { Err(-1) }
+pub fn get_process_vm_areas(_pid: u32) -> alloc::vec::Vec<(u64, u64, u32)> { alloc::vec::Vec::new() }
