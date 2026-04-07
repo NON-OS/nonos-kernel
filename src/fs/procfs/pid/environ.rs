@@ -20,17 +20,16 @@ use alloc::string::String;
 use alloc::vec::Vec;
 
 pub fn read_pid_environ(pid: i32) -> Result<Vec<u8>, i32> {
-    let proc = crate::process::get_process(pid).ok_or(-3)?;
-    let mem = proc.memory_info;
-    if mem.env_start == 0 || mem.env_end == 0 {
+    let proc = crate::process::get_process(pid as u32).ok_or(-3)?;
+    let envp = proc.envp.lock();
+    if envp.is_empty() {
         return Ok(Vec::new());
     }
-    let len = (mem.env_end - mem.env_start) as usize;
-    if len > 4096 * 32 {
-        return Err(-14);
+    let mut buf = Vec::new();
+    for env in envp.iter() {
+        buf.extend(env.as_bytes());
+        buf.push(0);
     }
-    let mut buf = alloc::vec![0u8; len];
-    crate::memory::read_process_memory(pid, mem.env_start, &mut buf)?;
     Ok(buf)
 }
 
