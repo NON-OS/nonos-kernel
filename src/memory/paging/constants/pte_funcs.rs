@@ -30,3 +30,8 @@ pub const fn pte_is_huge(pte: u64) -> bool {
 pub const fn pte_address(pte: u64) -> u64 {
     pte & PTE_ADDR_MASK
 }
+
+#[inline]
+pub const fn pte_is_writable(pte: u64) -> bool {
+    pte & PTE_WRITABLE != 0
+}
