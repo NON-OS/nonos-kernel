@@ -16,10 +16,15 @@
 
 pub mod cache;
 pub mod cryptofs;
+pub mod devfs;
+pub mod ext4;
 pub mod fd;
 pub mod path;
+pub mod pipe;
+pub mod procfs;
 pub mod ramfs;
 pub mod storage;
+pub mod sysfs;
 pub mod utils;
 pub mod vfs;
 pub mod vfs_redirect;
@@ -92,3 +97,50 @@ pub use ops::{
     mkdir, rmdir, unlink, rename, symlink, readlink, link, chmod, chown, truncate, mount, umount, mknod, set_times, set_times_at,
     is_directory,
 };
+
+pub fn allocate_fd() -> Result<i32, i32> {
+    fd::fd_open_raw(core::ptr::null(), 0).map_err(|_| -24)
+}
+
+pub fn pread(fd: i32, buf: &mut [u8], offset: u64) -> Result<usize, i32> {
+    let _ = (fd, buf, offset);
+    Err(-38)
+}
+
+pub fn pwrite(fd: i32, buf: &[u8], offset: u64) -> Result<usize, i32> {
+    let _ = (fd, buf, offset);
+    Err(-38)
+}
+
+pub fn get_file_size(fd: i32) -> Result<u64, i32> {
+    let _ = fd;
+    Ok(0)
+}
+
+pub fn register_pipe_reader<T>(_fd: i32, _reader: T) {}
+pub fn register_pipe_writer<T>(_fd: i32, _writer: T) {}
+pub fn set_cloexec(fd: i32, cloexec: bool) { let _ = fd::fd_set_cloexec(fd, cloexec); }
+pub fn is_pipe_fd(_fd: i32) -> bool { false }
+pub fn get_pipe_buffer_size(_fd: i32) -> Result<usize, i32> { Ok(65536) }
+pub fn set_pipe_buffer_size(_fd: i32, _size: usize) -> Result<usize, i32> { Ok(65536) }
+pub fn get_process_fds(_pid: i32) -> Result<alloc::vec::Vec<i32>, i32> { Ok(alloc::vec::Vec::new()) }
+pub fn get_process_fd(_pid: i32, _fd: i32) -> Option<FdInfo> { None }
+
+use alloc::sync::Arc;
+use spin::Mutex;
+use alloc::collections::BTreeMap;
+
+static UNIX_SOCKETS: Mutex<BTreeMap<i32, Arc<crate::network::unix::UnixSocket>>> = Mutex::new(BTreeMap::new());
+
+pub fn register_unix_socket(fd: i32, socket: Arc<crate::network::unix::UnixSocket>) { UNIX_SOCKETS.lock().insert(fd, socket); }
+pub fn get_unix_socket(fd: i32) -> Option<Arc<crate::network::unix::UnixSocket>> { UNIX_SOCKETS.lock().get(&fd).cloned() }
+pub fn close_unix_socket(fd: i32) { UNIX_SOCKETS.lock().remove(&fd); }
+
+pub struct FdInfo {
+    pub path: alloc::string::String,
+    pub flags: u32,
+    pub mode: u32,
+    pub position: u64,
+    pub mount_id: u32,
+    pub inode: u64,
+}
