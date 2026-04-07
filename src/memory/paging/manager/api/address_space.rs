@@ -42,3 +42,13 @@ pub fn switch_to_process_address_space(process_id: u32) -> PagingResult<()> {
         .ok_or(crate::memory::paging::error::PagingError::AddressSpaceNotFound)?;
     switch_address_space(asid)
 }
+
+pub fn get_process_cr3(process_id: u32) -> Option<u64> {
+    let mgr = PAGING_MANAGER.lock();
+    for (_, addr_space) in mgr.address_spaces.iter() {
+        if addr_space.process_id == process_id {
+            return Some(addr_space.cr3_value.as_u64());
+        }
+    }
+    None
+}
