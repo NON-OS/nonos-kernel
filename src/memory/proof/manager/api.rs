@@ -22,12 +22,6 @@ use core::sync::atomic::{AtomicBool, Ordering};
 
 static INITIALIZED: AtomicBool = AtomicBool::new(false);
 
-/* DEV NOTES eK@nonos.systems
-   Initialize the cryptographic memory proof system. Creates initial capsules for kernel
-   critical regions: kernel text (rx), kernel data (rw), and kernel heap (rw). These
-   capsules establish baseline integrity measurements for runtime verification. Text
-   capsule is sealed since kernel code should not change after boot.
-*/
 pub fn init() -> Result<(), &'static str> {
     if INITIALIZED.swap(true, Ordering::SeqCst) {
         return Ok(());
