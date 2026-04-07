@@ -32,6 +32,6 @@ pub unsafe extern "C" fn pthread_mutex_lock(mutex: *mut PthreadMutex) -> i32 {
             m.count = 1;
             return 0;
         }
-        crate::syscall::sys_futex(mutex as usize, 0, 1, 0, 0, 0);
+        crate::syscall::sys_futex(mutex as u64, 0, 1, 0, 0, 0);
     }
 }
