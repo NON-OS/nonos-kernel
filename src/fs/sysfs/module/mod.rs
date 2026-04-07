@@ -25,45 +25,42 @@ use crate::fs::sysfs::types::SysfsAttribute;
 static mut MODULE_INO: u64 = 500;
 
 pub fn init_module_subsystem() {
-    unsafe {
-        MODULE_INO = 500;
-    }
-    for module in crate::modules::list_modules() {
-        register_module(&module.name, module.size, module.refcount);
+    unsafe { MODULE_INO = 500; }
+    for name in crate::modules::list_modules() {
+        if let Ok(info) = crate::modules::get_module_info(&name) {
+            register_module_entry(&info.name, info.memory_size, 1);
+        }
     }
 }
 
-pub fn get_module_ino() -> u64 {
-    unsafe { MODULE_INO }
-}
+pub fn get_module_ino() -> u64 { unsafe { MODULE_INO } }
 
-pub fn register_module(name: &str, size: usize, refcount: u32) -> u64 {
+pub fn register_module_entry(name: &str, size: usize, refcount: u32) -> u64 {
     let parent = get_module_ino();
     let ino = register_kobject(name, KobjectType::Module, parent);
     register_attribute(ino, SysfsAttribute::readonly("coresize", move || format!("{}\n", size)));
     register_attribute(ino, SysfsAttribute::readonly("refcnt", move || format!("{}\n", refcount)));
     register_attribute(ino, SysfsAttribute::readonly("taint", || String::from("\n")));
-    let params_ino = register_kobject("parameters", KobjectType::Subsystem, ino);
+    let _ = register_kobject("parameters", KobjectType::Subsystem, ino);
     register_attribute(ino, SysfsAttribute::readonly("srcversion", || String::from("NONOS\n")));
     register_attribute(ino, SysfsAttribute::readonly("initstate", || String::from("live\n")));
     ino
 }
 
 pub fn unregister_module(name: &str) {
-    crate::fs::sysfs::kobject::unregister_kobject(find_module_ino(name).unwrap_or(0));
+    if let Some(ino) = find_module_ino(name) {
+        crate::fs::sysfs::kobject::unregister_kobject(ino);
+    }
 }
 
-fn find_module_ino(name: &str) -> Option<u64> {
-    crate::fs::sysfs::kobject::get_entry(get_module_ino())
-        .and_then(|_| None)
-}
+fn find_module_ino(_name: &str) -> Option<u64> { None }
 
-pub fn list_modules() -> Vec<String> {
-    crate::modules::list_modules().iter().map(|m| m.name.clone()).collect()
-}
+pub fn list_modules() -> Vec<String> { crate::modules::list_modules() }
 
 pub fn get_module_info(name: &str) -> Option<ModuleInfo> {
-    crate::modules::get_module(name).map(|m| ModuleInfo { name: m.name.clone(), size: m.size, refcount: m.refcount })
+    crate::modules::get_module_info(name).ok().map(|m| ModuleInfo {
+        name: m.name.clone(), size: m.memory_size, refcount: 1
+    })
 }
 
 pub struct ModuleInfo { pub name: String, pub size: usize, pub refcount: u32 }
