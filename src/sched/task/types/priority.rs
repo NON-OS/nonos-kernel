@@ -22,4 +22,19 @@ pub enum Priority {
     High = 3,
     Critical = 4,
     RealTime = 5,
+    Deadline = 6,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum SchedPolicy {
+    Normal,
+    Fifo,
+    RoundRobin,
+    Deadline,
+    Idle,
+    Batch,
+}
+
+impl Default for SchedPolicy {
+    fn default() -> Self { SchedPolicy::Normal }
 }
