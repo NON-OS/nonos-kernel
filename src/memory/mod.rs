@@ -66,5 +66,30 @@ pub use unified::{
 };
 
 pub fn get_memory_stats() -> MemorySystemStats { get_memory_system_stats() }
-pub fn read_process_memory(_pid: u32, _addr: u64, _buf: &mut [u8]) -> Result<usize, i32> { Err(-1) }
-pub fn get_process_vm_areas(_pid: u32) -> alloc::vec::Vec<(u64, u64, u32)> { alloc::vec::Vec::new() }
+
+pub fn read_process_memory(pid: u32, addr: u64, buf: &mut [u8]) -> Result<usize, i32> {
+    let pcb = crate::process::core::table::types::PROCESS_TABLE.find_by_pid(pid).ok_or(-3)?;
+    let mem = pcb.memory.lock();
+    for vma in &mem.vmas {
+        if addr >= vma.start.as_u64() && addr < vma.end.as_u64() {
+            let max_len = (vma.end.as_u64() - addr) as usize;
+            let copy_len = buf.len().min(max_len);
+            let src = addr as *const u8;
+            unsafe { core::ptr::copy_nonoverlapping(src, buf.as_mut_ptr(), copy_len); }
+            return Ok(copy_len);
+        }
+    }
+    Err(-14)
+}
+
+pub fn get_process_vm_areas(pid: u32) -> alloc::vec::Vec<(u64, u64, u32)> {
+    let mut result = alloc::vec::Vec::new();
+    if let Some(pcb) = crate::process::core::table::types::PROCESS_TABLE.find_by_pid(pid) {
+        let mem = pcb.memory.lock();
+        for vma in &mem.vmas {
+            let flags = vma.flags.bits() as u32;
+            result.push((vma.start.as_u64(), vma.end.as_u64(), flags));
+        }
+    }
+    result
+}
