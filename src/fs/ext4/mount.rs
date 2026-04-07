@@ -44,7 +44,7 @@ pub fn ext4_mount(device: &str, mountpoint: &str, flags: u32) -> Result<Arc<Ext4
         sb, flags, journal,
     });
     MOUNTS.lock().insert(String::from(mountpoint), mount.clone());
-    crate::fs::vfs::register_mount(mountpoint, "ext4", super::inode::EXT4_ROOT_INO as u64)?;
+    crate::fs::vfs::register_mount(mountpoint, "ext4").map_err(|e| i32::from(e))?;
     Ok(mount)
 }
 
