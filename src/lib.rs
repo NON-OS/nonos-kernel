@@ -18,7 +18,9 @@
 #![cfg_attr(not(feature = "std"), feature(alloc_error_handler))]
 #![feature(abi_x86_interrupt)]
 #![feature(c_variadic)]
+#![feature(thread_local)]
 #![allow(unsafe_op_in_unsafe_fn)]
+#![allow(unexpected_cfgs)]
 
 #[macro_use]
 extern crate alloc;
@@ -34,7 +36,7 @@ pub mod kernel_core; pub mod kernel_selftest; pub mod lang; pub mod libc; pub mo
 pub mod mem; pub mod memory; pub mod modules; pub mod monitor; pub mod network; pub mod nox; pub mod npkg;
 pub mod persistence; pub mod process; pub mod runtime; pub mod sched; pub mod sdk;
 pub mod security; pub mod services; pub mod shell; pub mod smp; pub mod storage; pub mod sys;
-pub mod syscall; pub mod test; pub mod ui; pub mod usercopy; pub mod userspace; pub mod vault;
+pub mod syscall; pub mod test; pub mod tty; pub mod ui; pub mod usercopy; pub mod userspace; pub mod vault;
 pub mod zk_engine; pub mod zksync;
 
 pub use arch::x86_64::time as time; pub use fs as filesystem;
