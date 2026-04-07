@@ -21,5 +21,5 @@ mod unix98;
 
 pub use master::{master_read, master_write, master_ioctl, master_poll};
 pub use slave::{slave_open, slave_close, slave_read, slave_write, slave_ioctl, slave_poll};
-pub use pair::{create_pair, destroy_pair, get_pair, PtyPair};
-pub use unix98::{unlock, get_pty_name, grantpt, ptsname};
+pub use pair::*;
+pub use unix98::*;
