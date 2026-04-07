@@ -142,3 +142,19 @@ pub fn set_screen_bounds_unified(width: u32, height: u32) {
     usb_hid::set_screen_bounds(width, height);
     i2c_hid::set_screen_bounds(width, height);
 }
+
+pub struct InputDevice { pub name: alloc::string::String, pub source: InputSource }
+
+pub fn list_devices() -> alloc::vec::Vec<InputDevice> {
+    extern crate alloc;
+    let mut devs = alloc::vec::Vec::new();
+    devs.push(InputDevice { name: alloc::string::String::from("keyboard0"), source: InputSource::PS2 });
+    devs.push(InputDevice { name: alloc::string::String::from("mouse0"), source: InputSource::PS2 });
+    if usb_hid::keyboard_available() {
+        devs.push(InputDevice { name: alloc::string::String::from("keyboard1"), source: InputSource::USB });
+    }
+    if usb_hid::mouse_available() {
+        devs.push(InputDevice { name: alloc::string::String::from("mouse1"), source: InputSource::USB });
+    }
+    devs
+}
