@@ -14,20 +14,20 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod types;
-mod commands;
-mod map;
-mod program;
-mod verifier;
-mod syscall;
-mod stats;
-mod fd;
+pub mod types;
+pub mod commands;
+pub mod map;
+pub mod program;
+pub mod verifier;
+pub mod syscall;
+pub mod stats;
+pub mod fd;
 
-pub use types::{BpfCmd, BpfMapType, BpfProgType, BpfAttr};
-pub use commands::{BpfMapCreate, BpfProgLoad};
-pub use map::BpfMap;
-pub use program::BpfProgram;
-pub use verifier::BpfVerifier;
-pub use syscall::handle_bpf;
-pub use stats::{BpfStats, get_stats, reset_stats, get_programs_loaded, get_maps_created};
-pub use fd::{BpfFdType, register_fd, get_fd_type, is_bpf_fd, is_program_fd, is_map_fd, close_bpf_fd};
+pub use types::*;
+pub use commands::*;
+pub use map::*;
+pub use program::*;
+pub use verifier::*;
+pub use syscall::*;
+pub use stats::*;
+pub use fd::*;
