@@ -21,8 +21,8 @@ mod init;
 mod find;
 mod enable;
 
-pub use types::PciDevice;
-pub use config::{pci_read32, pci_read16, pci_read8, pci_write32, pci_write16, pci_write8};
-pub use init::init;
-pub use find::{find_device_by_id, find_device, find_devices, get_device, device_count, is_init};
-pub use enable::{enable_bus_master, enable_memory_space, enable_io_space, get_bar_address};
+pub use types::*;
+pub use config::*;
+pub use init::*;
+pub use find::*;
+pub use enable::*;
