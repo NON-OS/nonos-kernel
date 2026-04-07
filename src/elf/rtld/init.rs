@@ -57,9 +57,9 @@ unsafe fn parse_dynamic(dynamic: *const u8, base: usize) {
     let mut p = dynamic as *const crate::elf::types::DynamicEntry;
     while (*p).d_tag != 0 {
         match (*p).d_tag as u64 {
-            12 => { init = base + (*p).d_val as usize; }
-            25 => { init_array = base + (*p).d_val as usize; }
-            27 => { init_arraysz = (*p).d_val as usize; }
+            12 => { init = base + (*p).value as usize; }
+            25 => { init_array = base + (*p).value as usize; }
+            27 => { init_arraysz = (*p).value as usize; }
             30 => { CONFIG.lock().bind_now = true; }
             _ => {}
         }
