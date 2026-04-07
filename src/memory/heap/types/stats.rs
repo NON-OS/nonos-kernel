@@ -20,6 +20,8 @@ pub struct HeapStats {
     pub current_usage: usize,
     pub peak_usage: usize,
     pub allocation_count: usize,
+    pub total_allocated: u64,
+    pub total_deallocated: u64,
 }
 
 impl HeapStats {
