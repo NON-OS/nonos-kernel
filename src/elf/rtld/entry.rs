@@ -32,7 +32,7 @@ pub unsafe extern "C" fn rtld_start(stack_ptr: *const usize) -> usize {
     let argc = ptr::read(stack_ptr) as i32;
     let argv = stack_ptr.add(1) as *const *const u8;
     let mut envp_idx = 1 + argc as usize + 1;
-    while !ptr::read(stack_ptr.add(envp_idx)).is_null() { envp_idx += 1; }
+    while ptr::read(stack_ptr.add(envp_idx)) != 0 { envp_idx += 1; }
     let envp = stack_ptr.add(1 + argc as usize + 1) as *const *const u8;
     let auxv = stack_ptr.add(envp_idx + 1) as *const crate::elf::auxv::AuxEntry;
     let entry = rtld_entry(argc, argv, envp, auxv);
@@ -40,7 +40,7 @@ pub unsafe extern "C" fn rtld_start(stack_ptr: *const usize) -> usize {
     entry
 }
 
-pub unsafe fn rtld_entry(argc: i32, argv: *const *const u8, envp: *const *const u8, auxv: *const crate::elf::auxv::AuxEntry) -> usize {
+pub unsafe fn rtld_entry(_argc: i32, _argv: *const *const u8, envp: *const *const u8, auxv: *const crate::elf::auxv::AuxEntry) -> usize {
     super::preload::parse_preload(envp);
     let mut phdr: *const u8 = ptr::null();
     let mut phent = 0usize;
@@ -50,11 +50,11 @@ pub unsafe fn rtld_entry(argc: i32, argv: *const *const u8, envp: *const *const 
     let mut p = auxv;
     while (*p).a_type != 0 {
         match (*p).a_type as u64 {
-            3 => phdr = (*p).a_val as *const u8,
-            4 => phent = (*p).a_val,
-            5 => phnum = (*p).a_val,
-            7 => base = (*p).a_val,
-            9 => entry = (*p).a_val,
+            3 => phdr = (*p).a_val as usize as *const u8,
+            4 => phent = (*p).a_val as usize,
+            5 => phnum = (*p).a_val as usize,
+            7 => base = (*p).a_val as usize,
+            9 => entry = (*p).a_val as usize,
             _ => {}
         }
         p = p.add(1);
