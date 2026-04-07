@@ -60,10 +60,12 @@ pub fn notify_move_self(path: &str) {
 pub fn notify_event(path: &str, mask: u32, name: Option<&str>) {
     let mut instances = INOTIFY_INSTANCES.lock();
     for instance in instances.values_mut() {
-        for (wd, watch) in instance.watches.iter() {
-            if (watch.mask & mask) != 0 && path_matches(&watch.path, path) {
-                instance.queue_event(*wd, mask, name);
-            }
+        let matching: alloc::vec::Vec<i32> = instance.watches.iter()
+            .filter(|(_, watch)| (watch.mask & mask) != 0 && path_matches(&watch.path, path))
+            .map(|(wd, _)| *wd)
+            .collect();
+        for wd in matching {
+            instance.queue_event(wd, mask, name);
         }
     }
 }
