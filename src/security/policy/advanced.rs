@@ -189,3 +189,11 @@ pub fn security_manager() -> &'static AdvancedSecurityManager {
         manager
     })
 }
+
+static ENFORCE_WX: AtomicBool = AtomicBool::new(true);
+static ENFORCE_NX_STACK: AtomicBool = AtomicBool::new(true);
+
+pub fn enforce_wx_policy() -> bool { ENFORCE_WX.load(Ordering::Relaxed) }
+pub fn enforce_nx_stack() -> bool { ENFORCE_NX_STACK.load(Ordering::Relaxed) }
+pub fn set_wx_policy(enforce: bool) { ENFORCE_WX.store(enforce, Ordering::Relaxed); }
+pub fn set_nx_stack_policy(enforce: bool) { ENFORCE_NX_STACK.store(enforce, Ordering::Relaxed); }
