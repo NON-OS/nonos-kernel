@@ -30,10 +30,11 @@ pub fn init_input_class() {
     }
 }
 
-pub fn register_input_device(name: &str, input_type: InputType, bustype: u16, vendor: u16, product: u16) -> u64 {
+pub fn register_input_device(name: &str, _input_type: InputType, bustype: u16, vendor: u16, product: u16) -> u64 {
     let parent = unsafe { INPUT_CLASS_INO };
     let ino = register_kobject(name, KobjectType::Device, parent);
-    register_attribute(ino, SysfsAttribute::readonly("name", move || format!("{}\n", name)));
+    let name_owned = String::from(name);
+    register_attribute(ino, SysfsAttribute::readonly("name", move || format!("{}\n", name_owned)));
     register_attribute(ino, SysfsAttribute::readonly("phys", || String::from("usb-0000:00:14.0-1/input0\n")));
     register_attribute(ino, SysfsAttribute::readonly("id/bustype", move || format!("{:04x}\n", bustype)));
     register_attribute(ino, SysfsAttribute::readonly("id/vendor", move || format!("{:04x}\n", vendor)));
