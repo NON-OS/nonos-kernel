@@ -15,91 +15,66 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use core::arch::asm;
-
 use crate::arch::x86_64::idt::constants::{PIC1_COMMAND, PIC2_COMMAND, PIC_EOI};
 use crate::arch::x86_64::idt::entry::{InterruptFrame, PageFaultError};
 
 #[inline]
 pub(crate) fn read_cr2() -> u64 {
     let value: u64;
-    // SAFETY: Reading CR2 is safe and does not modify system state.
-    unsafe {
-        asm!("mov {}, cr2", out(reg) value, options(nomem, nostack, preserves_flags));
-    }
+    unsafe { asm!("mov {}, cr2", out(reg) value, options(nomem, nostack, preserves_flags)); }
     value
 }
 
-pub(crate) fn exception_panic(_name: &str, _frame: &InterruptFrame) -> ! {
-    // SAFETY: Disabling interrupts before halt.
-    unsafe {
-        asm!("cli", options(nomem, nostack));
-    }
-
-    loop {
-        // SAFETY: Halting the CPU in an infinite loop.
-        unsafe {
-            asm!("hlt", options(nomem, nostack));
-        }
-    }
+pub(crate) fn exception_panic(name: &str, frame: &InterruptFrame) -> ! {
+    crate::sys::serial::print_str("\n!!! KERNEL PANIC: ");
+    crate::sys::serial::print_str(name);
+    crate::sys::serial::print_str(" !!!\nRIP=0x");
+    crate::sys::serial::print_hex(frame.rip);
+    crate::sys::serial::print_str(" RSP=0x");
+    crate::sys::serial::print_hex(frame.rsp);
+    crate::sys::serial::print_str(" ERR=0x");
+    crate::sys::serial::print_hex(frame.error_code);
+    crate::sys::serial::print_str("\n");
+    unsafe { asm!("cli", options(nomem, nostack)); }
+    loop { unsafe { asm!("hlt", options(nomem, nostack)); } }
 }
 
-pub(crate) fn exception_panic_with_cr2(
-    _name: &str,
-    _frame: &InterruptFrame,
-    _cr2: u64,
-    _error: PageFaultError,
-) -> ! {
-    // SAFETY: Disabling interrupts before halt.
-    unsafe {
-        asm!("cli", options(nomem, nostack));
-    }
-
-    loop {
-        // SAFETY: Halting the CPU in an infinite loop.
-        unsafe {
-            asm!("hlt", options(nomem, nostack));
-        }
-    }
+pub(crate) fn exception_panic_with_cr2(name: &str, frame: &InterruptFrame, cr2: u64, error: PageFaultError) -> ! {
+    crate::sys::serial::print_str("\n!!! KERNEL PANIC: ");
+    crate::sys::serial::print_str(name);
+    crate::sys::serial::print_str(" !!!\nRIP=0x");
+    crate::sys::serial::print_hex(frame.rip);
+    crate::sys::serial::print_str(" CR2=0x");
+    crate::sys::serial::print_hex(cr2);
+    crate::sys::serial::print_str(" ERR=0x");
+    crate::sys::serial::print_hex(error.0);
+    let is_present = (error.0 & 1) != 0;
+    crate::sys::serial::print_str(if is_present { " P" } else { " NP" });
+    if error.write() { crate::sys::serial::print_str(" W"); }
+    if error.user() { crate::sys::serial::print_str(" U"); }
+    crate::sys::serial::print_str("\n");
+    unsafe { asm!("cli", options(nomem, nostack)); }
+    loop { unsafe { asm!("hlt", options(nomem, nostack)); } }
 }
 
 pub(crate) fn send_eoi(irq: u8) {
-    // SAFETY: Writing to PIC ports to signal end of interrupt.
     unsafe {
-        if irq >= 8 {
-            outb(PIC2_COMMAND, PIC_EOI);
-        }
+        if irq >= 8 { outb(PIC2_COMMAND, PIC_EOI); }
         outb(PIC1_COMMAND, PIC_EOI);
     }
 }
 
 #[inline]
 pub(crate) unsafe fn outb(port: u16, value: u8) {
-    // SAFETY: Caller ensures port access is valid.
-    asm!(
-        "out dx, al",
-        in("dx") port,
-        in("al") value,
-        options(nomem, nostack, preserves_flags)
-    );
+    asm!("out dx, al", in("dx") port, in("al") value, options(nomem, nostack, preserves_flags));
 }
 
 #[inline]
 pub(crate) unsafe fn inb(port: u16) -> u8 {
-    // SAFETY: Caller ensures port access is valid.
     let value: u8;
-    asm!(
-        "in al, dx",
-        in("dx") port,
-        out("al") value,
-        options(nomem, nostack, preserves_flags)
-    );
+    asm!("in al, dx", in("dx") port, out("al") value, options(nomem, nostack, preserves_flags));
     value
 }
 
 #[inline]
-pub(crate) fn io_wait() {
-    // SAFETY: Writing to port 0x80 is a standard I/O delay technique.
-    unsafe {
-        outb(0x80, 0);
-    }
-}
+pub(crate) fn io_wait() { unsafe { outb(0x80, 0); } }
