@@ -68,6 +68,34 @@ pub fn list_devices() -> Vec<UsbDeviceInfo> {
     }).collect()
 }
 
-pub fn bind_driver(_dev: &str) -> Result<(), i32> { Ok(()) }
+pub fn bind_driver(dev_path: &str) -> Result<(), i32> {
+    let parts: Vec<&str> = dev_path.trim_start_matches("usb").split('/').filter(|s| !s.is_empty()).collect();
+    if parts.len() < 2 { return Err(-22); }
+    let slot_base: u8 = parts[0].parse().map_err(|_| -22)?;
+    let slot_offset: u8 = parts[1].parse().map_err(|_| -22)?;
+    let slot_id = slot_base * 8 + slot_offset;
+    let devices = get_devices();
+    let device = devices.iter().find(|d| d.slot_id == slot_id).ok_or(-19)?;
+    super::class_driver::bind_drivers_to_device(device);
+    Ok(())
+}
 
-pub fn unbind_driver(_dev: &str) -> Result<(), i32> { Ok(()) }
+pub fn unbind_driver(dev_path: &str) -> Result<(), i32> {
+    let parts: Vec<&str> = dev_path.trim_start_matches("usb").split('/').filter(|s| !s.is_empty()).collect();
+    if parts.len() < 2 { return Err(-22); }
+    let slot_base: u8 = parts[0].parse().map_err(|_| -22)?;
+    let slot_offset: u8 = parts[1].parse().map_err(|_| -22)?;
+    let slot_id = slot_base * 8 + slot_offset;
+    let devices = get_devices();
+    let device = devices.iter().find(|d| d.slot_id == slot_id).ok_or(-19)?;
+    if let Some(cfg) = &device.active_config {
+        for driver in super::class_driver::get_class_drivers() {
+            for iface in &cfg.interfaces {
+                if driver.matches(device, cfg, iface) {
+                    driver.unbind(device, iface);
+                }
+            }
+        }
+    }
+    Ok(())
+}
