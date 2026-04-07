@@ -49,18 +49,6 @@ impl DeviceOps for PtySlaveDevice {
     }
 }
 
-pub fn allocate_pty() -> Result<u32, i32> {
-    super::allocate_pty()
-}
-
-pub fn deallocate_pty(num: u32) {
-    super::deallocate_pty(num)
-}
-
-pub fn get_pty_count() -> usize {
-    super::get_pty_count()
-}
-
 pub fn get_slave_ops(pty_num: u32) -> Arc<dyn DeviceOps> {
     Arc::new(PtySlaveDevice { pty_num })
 }
