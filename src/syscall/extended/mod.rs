@@ -35,8 +35,16 @@ pub mod time;
 pub mod timer;
 
 pub use admin::*;
-pub use eventfd_types::*;
-pub use eventfd_ops::*;
+pub use eventfd_types::{
+    EFD_CLOEXEC, EFD_NONBLOCK, EFD_SEMAPHORE, EVENTFD_MAX, MAX_EVENTFD_INSTANCES,
+    EventFdInstance, EVENTFD_INSTANCES, NEXT_EVENTFD_ID, FD_TO_EVENTFD, NEXT_FD,
+};
+pub use eventfd_ops::{
+    handle_eventfd, handle_eventfd2,
+    eventfd_read, eventfd_write, eventfd_close, get_eventfd_info, EventFdInfo,
+    eventfd_is_readable, eventfd_is_writable, fd_to_eventfd_id, is_eventfd,
+    eventfd_count, EventFdStats, get_eventfd_stats,
+};
 pub use fd::*;
 pub use filesystem::*;
 pub use memory::*;
@@ -118,3 +126,7 @@ pub use timer::{
 };
 
 pub use crate::syscall::dispatch::util::errno;
+
+pub use crate::syscall::splice::{
+    handle_splice, handle_tee, handle_vmsplice, handle_sync_file_range,
+};
