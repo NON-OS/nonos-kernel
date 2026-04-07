@@ -28,7 +28,7 @@ pub fn procfs_mount(mountpoint: &str) -> Result<(), i32> {
         PROCFS_ROOT = Some(ProcInode::root());
     }
     PROCFS_MOUNTED.store(true, Ordering::SeqCst);
-    crate::fs::vfs::register_mount(mountpoint, "proc", get_root_inode())?;
+    crate::fs::vfs::register_mount(mountpoint, "proc").map_err(|e| i32::from(e))?;
     Ok(())
 }
 
