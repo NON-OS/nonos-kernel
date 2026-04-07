@@ -45,7 +45,7 @@ pub extern "C" fn kernel_main() -> ! {
        ZkSync L2 bridge initialization with default mainnet configuration.
        This enables zero-knowledge proof validation for blockchain interoperability.
     */
-    if let Err(_) = crate::zksync::global::init_zksync(crate::zksync::config::ZkSyncConfig::default()) {
+    if let Err(_) = crate::zksync::init_zksync(crate::zksync::config::ZkSyncConfig::default()) {
         crate::drivers::console::write_message("zksync: init skipped");
     }
 
@@ -53,8 +53,8 @@ pub extern "C" fn kernel_main() -> ! {
        Runtime zerostate monitor initialization. Creates the kernel capsule with
        full system capabilities and starts health monitoring for all registered capsules.
     */
-    let kernel_token = crate::capabilities::token::types::CapabilityToken::system();
-    if let Err(err) = crate::runtime::nonos_zerostate::monitor::init_runtime(&kernel_token) {
+    let kernel_token = crate::syscall::caps::CapabilityToken::system();
+    if let Err(err) = crate::runtime::nonos_zerostate::init_runtime(&kernel_token) {
         crate::drivers::console::write_message(&alloc::format!("zerostate: {}", err));
     }
 
