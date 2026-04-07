@@ -17,3 +17,26 @@
 mod types;
 
 pub use types::Context;
+
+use spin::Mutex;
+use alloc::collections::BTreeMap;
+extern crate alloc;
+
+static SAVED_CONTEXTS: Mutex<BTreeMap<u64, Context>> = Mutex::new(BTreeMap::new());
+
+pub fn save_context(pid: u64, ctx: Context) {
+    SAVED_CONTEXTS.lock().insert(pid, ctx);
+}
+
+pub fn get_saved_context(pid: u64) -> Option<Context> {
+    SAVED_CONTEXTS.lock().get(&pid).copied()
+}
+
+pub fn modify_saved_context<F: FnOnce(&mut Context)>(pid: u64, f: F) -> bool {
+    let mut map = SAVED_CONTEXTS.lock();
+    if let Some(ctx) = map.get_mut(&pid) { f(ctx); true } else { false }
+}
+
+pub fn remove_saved_context(pid: u64) {
+    SAVED_CONTEXTS.lock().remove(&pid);
+}
