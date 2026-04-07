@@ -38,6 +38,11 @@ impl NonosFilesystem {
         let files = self.files.read();
         let file = files.get(name).ok_or(super::super::error::FsError::NotFound)?;
 
+        let mut hash: u64 = 0xcbf29ce484222325;
+        for byte in file.name.bytes() {
+            hash ^= byte as u64;
+            hash = hash.wrapping_mul(0x100000001b3);
+        }
         Ok(NonosFileInfo {
             name: file.name.clone(),
             size: file.size,
@@ -48,6 +53,7 @@ impl NonosFilesystem {
             mode: file.mode,
             uid: file.uid,
             gid: file.gid,
+            inode: hash,
         })
     }
 
