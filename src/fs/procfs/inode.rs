@@ -69,5 +69,5 @@ pub fn procfs_readdir(inode: &ProcInode) -> Vec<ProcEntry> {
 }
 
 fn get_active_pids() -> Vec<i32> {
-    crate::process::list_all_pids().unwrap_or_else(|_| alloc::vec![1])
+    crate::process::list_all_pids().iter().map(|&p| p as i32).collect()
 }
