@@ -47,16 +47,16 @@ pub fn load_library(name: &str) -> Result<LoadedObject, i32> {
 }
 
 fn load_library_from_path(path: &str, name: &str) -> Result<LoadedObject, i32> {
-    let fd = unsafe { crate::syscall::sys_open(path.as_ptr() as usize, 0, 0) };
+    let fd = crate::syscall::core::sys_open(path.as_ptr() as u64, 0, 0);
     if fd < 0 { return Err(fd as i32); }
     let mut header = [0u8; 64];
-    let n = unsafe { crate::syscall::sys_read(fd as usize, header.as_mut_ptr() as usize, 64) };
-    if n < 64 { unsafe { crate::syscall::sys_close(fd as usize); } return Err(-22); }
+    let n = crate::syscall::core::sys_read(fd as u64, header.as_mut_ptr() as u64, 64);
+    if n < 64 { crate::syscall::core::sys_close(fd as u64); return Err(-22); }
     let elf_hdr = unsafe { &*(header.as_ptr() as *const crate::elf::types::ElfHeader) };
-    if &header[0..4] != b"\x7fELF" { unsafe { crate::syscall::sys_close(fd as usize); } return Err(-8); }
+    if &header[0..4] != b"\x7fELF" { crate::syscall::core::sys_close(fd as u64); return Err(-8); }
     let base = allocate_load_address(elf_hdr);
     let obj = map_library(fd as i32, elf_hdr, base, name)?;
-    unsafe { crate::syscall::sys_close(fd as usize); }
+    crate::syscall::core::sys_close(fd as u64);
     LOADED_OBJECTS.lock().push(obj.clone());
     super::debug::add_link_map(&obj);
     Ok(obj)
