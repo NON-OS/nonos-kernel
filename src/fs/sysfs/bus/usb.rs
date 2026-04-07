@@ -38,7 +38,8 @@ pub fn init_usb_bus() {
 pub fn register_usb_driver(name: &str) -> u64 {
     let parent = unsafe { USB_DRIVERS_INO };
     let ino = register_kobject(name, KobjectType::Driver, parent);
-    register_attribute(ino, SysfsAttribute::readonly("module", move || format!("{}\n", name)));
+    let name_owned = String::from(name);
+    register_attribute(ino, SysfsAttribute::readonly("module", move || format!("{}\n", name_owned)));
     register_attribute(ino, SysfsAttribute::writeonly("bind", |dev| {
         crate::drivers::usb::bind_driver(dev)?;
         Ok(())
