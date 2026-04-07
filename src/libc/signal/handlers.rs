@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::ptr;
 
 pub const SIGHUP: i32 = 1; pub const SIGINT: i32 = 2; pub const SIGQUIT: i32 = 3;
 pub const SIGILL: i32 = 4; pub const SIGABRT: i32 = 6; pub const SIGFPE: i32 = 8;
@@ -49,7 +48,7 @@ pub unsafe extern "C" fn signal(signum: i32, handler: SigHandler) -> usize {
 
 #[no_mangle]
 pub unsafe extern "C" fn sigaction(signum: i32, act: *const SigAction, oldact: *mut SigAction) -> i32 {
-    let ret = crate::syscall::sys_rt_sigaction(signum as usize, act as usize, oldact as usize, 8);
+    let ret = crate::syscall::sys_rt_sigaction(signum, act as u64, oldact as u64, 8);
     if ret < 0 { crate::libc::errno::set_errno((-ret) as i32); return -1; }
     0
 }
@@ -61,14 +60,14 @@ pub unsafe extern "C" fn raise(sig: i32) -> i32 {
 
 #[no_mangle]
 pub unsafe extern "C" fn kill(pid: i32, sig: i32) -> i32 {
-    let ret = crate::syscall::sys_kill(pid as usize, sig as usize);
+    let ret = crate::syscall::sys_kill(pid as i64, sig);
     if ret < 0 { crate::libc::errno::set_errno((-ret) as i32); return -1; }
     0
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn sigprocmask(how: i32, set: *const Sigset, oldset: *mut Sigset) -> i32 {
-    let ret = crate::syscall::sys_rt_sigprocmask(how as usize, set as usize, oldset as usize, 8);
+    let ret = crate::syscall::sys_rt_sigprocmask(how, set as u64, oldset as u64, 8);
     if ret < 0 { crate::libc::errno::set_errno((-ret) as i32); return -1; }
     0
 }
@@ -109,14 +108,14 @@ pub unsafe extern "C" fn sigismember(set: *const Sigset, signum: i32) -> i32 {
 
 #[no_mangle]
 pub unsafe extern "C" fn sigpending(set: *mut Sigset) -> i32 {
-    let ret = crate::syscall::sys_rt_sigpending(set as usize, 8);
+    let ret = crate::syscall::sys_rt_sigpending(set as u64, 8);
     if ret < 0 { crate::libc::errno::set_errno((-ret) as i32); return -1; }
     0
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn sigsuspend(mask: *const Sigset) -> i32 {
-    let ret = crate::syscall::sys_rt_sigsuspend(mask as usize, 8);
+    let ret = crate::syscall::sys_rt_sigsuspend(mask as u64, 8);
     if ret < 0 { crate::libc::errno::set_errno((-ret) as i32); }
     -1
 }
