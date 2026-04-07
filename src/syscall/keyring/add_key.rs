@@ -16,7 +16,6 @@
 
 extern crate alloc;
 
-use alloc::string::String;
 use alloc::vec::Vec;
 use crate::syscall::SyscallResult;
 use crate::syscall::dispatch::util::errno;
@@ -48,9 +47,9 @@ pub fn handle_add_key(type_ptr: u64, desc_ptr: u64, payload_ptr: u64, plen: u64,
     } else {
         Vec::new()
     };
-    let tid = crate::process::current_tid().unwrap_or(0);
-    let pid = crate::process::current_pid().unwrap_or(0);
-    let uid = crate::process::current_uid().unwrap_or(0);
+    let tid = crate::process::current_tid() as u64;
+    let pid = crate::process::current_pid().unwrap_or(1);
+    let uid = crate::process::current_uid();
     let keyring_serial = match resolve_special_keyring(keyring, tid, pid, uid) {
         Some(s) => s,
         None => return errno(22),
