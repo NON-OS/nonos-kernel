@@ -20,16 +20,18 @@ use alloc::string::String;
 use alloc::format;
 
 pub fn read_pid_comm(pid: i32) -> Result<String, i32> {
-    let proc = crate::process::get_process(pid).ok_or(-3)?;
-    Ok(format!("{}\n", proc.name))
+    let proc = crate::process::get_process(pid as u32).ok_or(-3)?;
+    let name = proc.name.lock();
+    Ok(format!("{}\n", *name))
 }
 
 pub fn write_pid_comm(pid: i32, comm: &str) -> Result<(), i32> {
     let truncated: String = comm.chars().take(15).collect();
-    crate::process::set_comm(pid, &truncated)
+    crate::process::set_comm(pid as u32, &truncated)
 }
 
 pub fn get_pid_comm_raw(pid: i32) -> Result<String, i32> {
-    let proc = crate::process::get_process(pid).ok_or(-3)?;
-    Ok(proc.name.clone())
+    let proc = crate::process::get_process(pid as u32).ok_or(-3)?;
+    let name = proc.name.lock();
+    Ok(name.clone())
 }
