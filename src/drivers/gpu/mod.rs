@@ -14,13 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod api;
-mod constants;
-mod driver;
+pub mod api;
+pub mod constants;
+pub mod driver;
 pub mod error;
-mod io;
-mod surface;
-mod vbe;
+pub mod io;
+pub mod surface;
+pub mod vbe;
 
 pub mod tests;
 
