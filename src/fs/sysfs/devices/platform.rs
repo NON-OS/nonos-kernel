@@ -38,10 +38,13 @@ pub fn register_platform_device(name: &str, driver: &str, id: u32) -> u64 {
     let parent = unsafe { PLATFORM_INO };
     let ino = register_kobject(&dev_name, KobjectType::Device, parent);
     let drv = String::from(driver);
+    let name_owned = String::from(name);
+    let driver_owned = String::from(driver);
+    let name_owned2 = String::from(name);
     register_attribute(ino, SysfsAttribute::readonly("driver", move || format!("{}\n", drv)));
-    register_attribute(ino, SysfsAttribute::readonly("modalias", move || format!("platform:{}\n", name)));
+    register_attribute(ino, SysfsAttribute::readonly("modalias", move || format!("platform:{}\n", name_owned)));
     register_attribute(ino, SysfsAttribute::readonly("uevent", move || {
-        format!("DRIVER={}\nMODALIAS=platform:{}\n", driver, name)
+        format!("DRIVER={}\nMODALIAS=platform:{}\n", driver_owned, name_owned2)
     }));
     ino
 }
