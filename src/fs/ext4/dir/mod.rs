@@ -21,9 +21,8 @@ mod add;
 mod remove;
 mod iterate;
 
-pub use types::Ext4DirEntry;
-pub use types::{EXT4_FT_UNKNOWN, EXT4_FT_REG_FILE, EXT4_FT_DIR, EXT4_FT_CHRDEV};
-pub use types::{EXT4_FT_BLKDEV, EXT4_FT_FIFO, EXT4_FT_SOCK, EXT4_FT_SYMLINK};
+pub use types::*;
+pub use helpers::*;
 pub use lookup::dir_lookup;
 pub use add::dir_add_entry;
 pub use remove::dir_remove_entry;
