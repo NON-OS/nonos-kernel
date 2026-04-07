@@ -49,10 +49,10 @@ pub fn clone_process(flags: u64, stack: u64, parent_tid: u64, child_tid: u64, tl
 
     handle_tid_settings(flags, parent_tid, child_tid, child_tid_val, &child_pcb)?;
     PROCESS_TABLE.add(child_pcb.clone());
-
     if is_thread {
         if let Some(ref tg) = parent.thread_group { tg.add_thread(child_tid_val); }
     }
+    crate::sched::add_to_run_queue(child_tid_val);
     Ok(child_tid_val)
 }
 
