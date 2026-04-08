@@ -15,6 +15,4 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub use super::scan_process::{process_scan_code, KeymapResult};
-pub use super::scan_extended::map_extended_scan_code;
-pub use super::scan_standard::map_standard_scan_code;
 pub use super::scan_api::{map_scan_code, map_scan_code_full};

@@ -14,11 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::vec::Vec;
 use spin::Mutex;
 use super::device_trait::{InputDevice, MAX_INPUT_DEVICES};
 use super::error::{InputError, InputErrorCode, InputResult};
-use super::types::{DeviceId, EventPriority, InputEvent, InputEventKind};
+use super::types::{EventPriority, InputEvent, InputEventKind};
 use super::push_event;
 
 struct DeviceEntry {
