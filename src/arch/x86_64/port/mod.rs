@@ -15,10 +15,23 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod api;
+mod constants_dma;
+mod constants_legacy;
+mod constants_io;
+mod constants_vga;
+mod constants_names;
 pub mod constants;
 pub mod error;
+mod manager_core;
+mod manager_api;
 pub mod manager;
+mod ops_basic;
+mod ops_paused;
+mod ops_string;
 pub mod ops;
+mod stats_types;
+mod stats_snapshot;
+mod stats_api;
 pub mod stats;
 pub mod types;
 
@@ -26,9 +39,6 @@ pub use api::{get_stats, port, port_read_only, port_write_only};
 pub use constants::*;
 pub use error::PortError;
 pub use manager::{init, is_initialized, is_reserved, release_range, reserve_range, PortManager, PORT_MANAGER};
-pub use ops::{
-    inb, inb_p, inl, insb, insl, insw, inw, inw_p, io_delay, io_delay_n, outb, outb_p, outl,
-    outsb, outsl, outsw, outw, outw_p,
-};
+pub use ops::{inb, inb_p, inl, insb, insl, insw, inw, inw_p, io_delay, io_delay_n, outb, outb_p, outl, outsb, outsl, outsw, outw, outw_p};
 pub use stats::{PortStats, PortStatsSnapshot, PORT_STATS};
 pub use types::{Port, PortRange, PortReadOnly, PortValue, PortWriteOnly};

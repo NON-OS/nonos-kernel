@@ -14,8 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub use super::constants_dma::*;
-pub use super::constants_legacy::*;
-pub use super::constants_io::*;
-pub use super::constants_vga::*;
-pub use super::constants_names::port_name;
+use super::stats_types::PortStats;
+use super::stats_snapshot::PortStatsSnapshot;
+
+pub static PORT_STATS: PortStats = PortStats::new();
+
+pub fn stats() -> &'static PortStats { &PORT_STATS }
+pub fn get_snapshot() -> PortStatsSnapshot { PORT_STATS.snapshot() }
+pub fn reset_stats() { PORT_STATS.reset(); }

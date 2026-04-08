@@ -14,8 +14,22 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub use super::constants_dma::*;
-pub use super::constants_legacy::*;
-pub use super::constants_io::*;
-pub use super::constants_vga::*;
-pub use super::constants_names::port_name;
+use super::error::PortError;
+use super::types::PortRange;
+use super::manager_core::PortManager;
+
+pub static PORT_MANAGER: PortManager = PortManager::new();
+
+pub fn init() -> Result<(), PortError> { PORT_MANAGER.initialize() }
+
+pub fn is_initialized() -> bool { PORT_MANAGER.is_initialized() }
+
+pub fn reserve_range(start: u16, count: u16) -> Result<(), PortError> {
+    PORT_MANAGER.reserve_range(PortRange::new(start, count))
+}
+
+pub fn release_range(start: u16, count: u16) {
+    PORT_MANAGER.release_range(PortRange::new(start, count));
+}
+
+pub fn is_reserved(port: u16) -> bool { PORT_MANAGER.is_reserved(port) }

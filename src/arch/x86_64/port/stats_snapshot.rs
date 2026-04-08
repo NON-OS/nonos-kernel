@@ -14,8 +14,20 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub use super::constants_dma::*;
-pub use super::constants_legacy::*;
-pub use super::constants_io::*;
-pub use super::constants_vga::*;
-pub use super::constants_names::port_name;
+#[derive(Debug, Clone, Copy, Default)]
+pub struct PortStatsSnapshot {
+    pub bytes_read: u64,
+    pub bytes_written: u64,
+    pub read_ops: u64,
+    pub write_ops: u64,
+    pub string_read_ops: u64,
+    pub string_write_ops: u64,
+    pub io_delays: u64,
+}
+
+impl PortStatsSnapshot {
+    pub const fn total_ops(&self) -> u64 {
+        self.read_ops + self.write_ops + self.string_read_ops + self.string_write_ops
+    }
+    pub const fn total_bytes(&self) -> u64 { self.bytes_read + self.bytes_written }
+}

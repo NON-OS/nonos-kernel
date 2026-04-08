@@ -14,8 +14,24 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub use super::constants_dma::*;
-pub use super::constants_legacy::*;
-pub use super::constants_io::*;
-pub use super::constants_vga::*;
-pub use super::constants_names::port_name;
+use super::value::PortValue;
+use super::port_rw::Port;
+
+#[derive(Debug, Clone, Copy)]
+pub struct PortWriteOnly<T: PortValue> {
+    port: Port<T>,
+}
+
+impl<T: PortValue> PortWriteOnly<T> {
+    #[inline]
+    pub const fn new(port: u16) -> Self { Self { port: Port::new(port) } }
+
+    #[inline]
+    pub const fn port(&self) -> u16 { self.port.port() }
+
+    #[inline]
+    pub unsafe fn write(&self, value: T) { self.port.write(value); }
+
+    #[inline]
+    pub unsafe fn write_string(&self, buffer: &[T]) { self.port.write_string(buffer); }
+}

@@ -14,8 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub use super::constants_dma::*;
-pub use super::constants_legacy::*;
-pub use super::constants_io::*;
-pub use super::constants_vga::*;
-pub use super::constants_names::port_name;
+pub trait PortValue: Copy + Default {
+    unsafe fn read_from_port(port: u16) -> Self;
+    unsafe fn write_to_port(port: u16, value: Self);
+    unsafe fn read_string_from_port(port: u16, buffer: &mut [Self]);
+    unsafe fn write_string_to_port(port: u16, buffer: &[Self]);
+    fn size() -> usize;
+}
