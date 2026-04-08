@@ -14,7 +14,24 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub use super::config_core::{pci_config_read_dword, pci_config_write_dword};
-pub use super::config_helpers::{
-    pci_config_read_byte, pci_config_read_word, pci_config_write_byte, pci_config_write_word,
-};
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum BarType {
+    Io,
+    Memory,
+}
+
+#[derive(Debug, Clone, Copy)]
+pub struct PciBar {
+    pub base_addr: u64,
+    pub size: u64,
+    pub bar_type: BarType,
+    pub prefetchable: bool,
+    pub is_64bit: bool,
+}
+
+#[derive(Debug, Clone, Copy)]
+pub struct PciCapability {
+    pub id: u8,
+    pub offset: u8,
+    pub next: u8,
+}

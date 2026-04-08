@@ -14,7 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub use super::config_core::{pci_config_read_dword, pci_config_write_dword};
-pub use super::config_helpers::{
-    pci_config_read_byte, pci_config_read_word, pci_config_write_byte, pci_config_write_word,
-};
+pub const INTERRUPT_STATUS: u16 = 1 << 3;
+pub const CAPABILITIES_LIST: u16 = 1 << 4;
+pub const MHZ_66_CAPABLE: u16 = 1 << 5;
+pub const FAST_B2B_CAPABLE: u16 = 1 << 7;
+pub const MASTER_DATA_PARITY_ERROR: u16 = 1 << 8;
+pub const SIGNALED_TARGET_ABORT: u16 = 1 << 11;
+pub const RECEIVED_TARGET_ABORT: u16 = 1 << 12;
+pub const RECEIVED_MASTER_ABORT: u16 = 1 << 13;
+pub const SIGNALED_SYSTEM_ERROR: u16 = 1 << 14;
+pub const DETECTED_PARITY_ERROR: u16 = 1 << 15;

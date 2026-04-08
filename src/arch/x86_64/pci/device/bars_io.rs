@@ -14,7 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub use super::config_core::{pci_config_read_dword, pci_config_write_dword};
-pub use super::config_helpers::{
-    pci_config_read_byte, pci_config_read_word, pci_config_write_byte, pci_config_write_word,
-};
+use crate::arch::x86_64::pci::config::{pci_config_read_dword, pci_config_write_dword};
+use crate::arch::x86_64::pci::types::{BarType, PciBar};
+
+pub fn parse_io_bar(bus: u8, slot: u8, function: u8, bar_offset: u16, bar_value: u32) -> PciBar {
+    let base_addr = (bar_value & !0x3) as u64;
+    pci_config_write_dword(bus, slot, function, bar_offset, 0xFFFFFFFF);
+    let size_mask = pci_config_read_dword(bus, slot, function, bar_offset);
+    pci_config_write_dword(bus, slot, function, bar_offset, bar_value);
+    let size = (!(size_mask & !0x3)).wrapping_add(1) as u64 & 0xFFFF;
+    PciBar { base_addr, size, bar_type: BarType::Io, prefetchable: false, is_64bit: false }
+}

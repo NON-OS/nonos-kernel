@@ -14,7 +14,25 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub use super::config_core::{pci_config_read_dword, pci_config_write_dword};
-pub use super::config_helpers::{
-    pci_config_read_byte, pci_config_read_word, pci_config_write_byte, pci_config_write_word,
-};
+pub const UNCLASSIFIED: u8 = 0x00;
+pub const STORAGE: u8 = 0x01;
+pub const NETWORK: u8 = 0x02;
+pub const DISPLAY: u8 = 0x03;
+pub const MULTIMEDIA: u8 = 0x04;
+pub const MEMORY: u8 = 0x05;
+pub const BRIDGE: u8 = 0x06;
+pub const COMMUNICATION: u8 = 0x07;
+pub const SYSTEM: u8 = 0x08;
+pub const INPUT: u8 = 0x09;
+pub const DOCKING: u8 = 0x0A;
+pub const PROCESSOR: u8 = 0x0B;
+pub const SERIAL_BUS: u8 = 0x0C;
+pub const WIRELESS: u8 = 0x0D;
+pub const INTELLIGENT_IO: u8 = 0x0E;
+pub const SATELLITE: u8 = 0x0F;
+pub const ENCRYPTION: u8 = 0x10;
+pub const SIGNAL_PROCESSING: u8 = 0x11;
+pub const PROCESSING_ACCELERATOR: u8 = 0x12;
+pub const NON_ESSENTIAL: u8 = 0x13;
+pub const COPROCESSOR: u8 = 0x40;
+pub const UNASSIGNED: u8 = 0xFF;

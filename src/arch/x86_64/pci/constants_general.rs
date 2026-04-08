@@ -14,7 +14,10 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub use super::config_core::{pci_config_read_dword, pci_config_write_dword};
-pub use super::config_helpers::{
-    pci_config_read_byte, pci_config_read_word, pci_config_write_byte, pci_config_write_word,
-};
+pub const MAX_PCI_BUSES: u16 = 256;
+pub const MAX_DEVICES_PER_BUS: u8 = 32;
+pub const MAX_FUNCTIONS_PER_DEVICE: u8 = 8;
+pub const MAX_BARS: u8 = 6;
+
+pub const PCI_CONFIG_ADDRESS: u16 = 0xCF8;
+pub const PCI_CONFIG_DATA: u16 = 0xCFC;

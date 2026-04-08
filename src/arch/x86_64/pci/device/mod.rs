@@ -15,8 +15,16 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod device;
+mod device_struct;
+mod device_new;
+mod device_accessors;
 mod commands;
 mod bars;
+mod bars_io;
+mod bars_mem;
 mod capabilities;
+mod capabilities_find;
+mod capabilities_msix;
+mod capabilities_errors;
 
 pub use device::PciDevice;

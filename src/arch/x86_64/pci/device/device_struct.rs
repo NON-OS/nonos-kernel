@@ -14,7 +14,21 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub use super::config_core::{pci_config_read_dword, pci_config_write_dword};
-pub use super::config_helpers::{
-    pci_config_read_byte, pci_config_read_word, pci_config_write_byte, pci_config_write_word,
-};
+#[derive(Debug, Clone, Copy)]
+pub struct PciDevice {
+    pub bus: u8,
+    pub slot: u8,
+    pub function: u8,
+    pub vendor_id: u16,
+    pub device_id: u16,
+    pub class_code: u8,
+    pub subclass: u8,
+    pub prog_if: u8,
+    pub revision_id: u8,
+    pub header_type: u8,
+    pub interrupt_line: u8,
+    pub interrupt_pin: u8,
+    pub subsystem_vendor_id: u16,
+    pub subsystem_id: u16,
+    pub multifunction: bool,
+}

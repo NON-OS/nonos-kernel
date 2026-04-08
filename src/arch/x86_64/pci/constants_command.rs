@@ -14,7 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub use super::config_core::{pci_config_read_dword, pci_config_write_dword};
-pub use super::config_helpers::{
-    pci_config_read_byte, pci_config_read_word, pci_config_write_byte, pci_config_write_word,
-};
+pub const IO_SPACE: u16 = 1 << 0;
+pub const MEMORY_SPACE: u16 = 1 << 1;
+pub const BUS_MASTER: u16 = 1 << 2;
+pub const SPECIAL_CYCLES: u16 = 1 << 3;
+pub const MWI_ENABLE: u16 = 1 << 4;
+pub const VGA_PALETTE_SNOOP: u16 = 1 << 5;
+pub const PARITY_ERROR_RESPONSE: u16 = 1 << 6;
+pub const SERR_ENABLE: u16 = 1 << 8;
+pub const FAST_B2B_ENABLE: u16 = 1 << 9;
+pub const INTERRUPT_DISABLE: u16 = 1 << 10;

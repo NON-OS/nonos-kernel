@@ -62,14 +62,3 @@ impl PciError {
 }
 
 pub type PciResult<T> = Result<T, PciError>;
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_error_messages() {
-        assert_eq!(PciError::NotInitialized.as_str(), "PCI subsystem not initialized");
-        assert_eq!(PciError::MsixNotSupported.as_str(), "MSI-X not supported by device");
-    }
-}

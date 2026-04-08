@@ -14,7 +14,26 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub use super::config_core::{pci_config_read_dword, pci_config_write_dword};
-pub use super::config_helpers::{
-    pci_config_read_byte, pci_config_read_word, pci_config_write_byte, pci_config_write_word,
-};
+use alloc::vec::Vec;
+use super::device::PciDevice;
+use super::scan_state::DEVICE_CACHE;
+
+pub fn find_device(vendor_id: u16, device_id: u16) -> Option<PciDevice> {
+    DEVICE_CACHE.read().iter()
+        .find(|d| d.vendor_id == vendor_id && d.device_id == device_id)
+        .copied()
+}
+
+pub fn find_devices_by_class(class_code: u8) -> Vec<PciDevice> {
+    DEVICE_CACHE.read().iter()
+        .filter(|d| d.class_code == class_code)
+        .copied()
+        .collect()
+}
+
+pub fn find_devices_by_class_subclass(class_code: u8, subclass: u8) -> Vec<PciDevice> {
+    DEVICE_CACHE.read().iter()
+        .filter(|d| d.class_code == class_code && d.subclass == subclass)
+        .copied()
+        .collect()
+}
