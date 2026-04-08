@@ -14,5 +14,28 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub use super::types_rte::Rte;
-pub use super::types_madt::{MadtIoApic, MadtIso, MadtNmi, IsoFlags};
+use super::state::{is_initialized, is_x2apic, supports_tsc_deadline};
+use super::ops_core::{id, get_tpr, version, max_lvt};
+
+#[derive(Debug, Clone)]
+pub struct ApicStatus {
+    pub initialized: bool,
+    pub x2apic: bool,
+    pub tsc_deadline: bool,
+    pub id: u32,
+    pub version: u32,
+    pub max_lvt: u8,
+    pub tpr: u8,
+}
+
+pub fn status() -> ApicStatus {
+    ApicStatus {
+        initialized: is_initialized(),
+        x2apic: is_x2apic(),
+        tsc_deadline: supports_tsc_deadline(),
+        id: id(),
+        version: if is_initialized() { version() } else { 0 },
+        max_lvt: if is_initialized() { max_lvt() } else { 0 },
+        tpr: get_tpr(),
+    }
+}

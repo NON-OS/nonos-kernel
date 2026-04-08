@@ -14,5 +14,27 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub use super::types_rte::Rte;
-pub use super::types_madt::{MadtIoApic, MadtIso, MadtNmi, IsoFlags};
+use core::sync::atomic::Ordering;
+use super::constants::*;
+use super::state::*;
+use super::mmio::{mmio_r32, mmio_w32};
+
+pub fn timer_mask() {
+    if X2APIC_MODE.load(Ordering::Acquire) {
+        let val = rdmsr(IA32_X2APIC_LVT_TIMER) as u32 | LVT_MASKED;
+        wrmsr(IA32_X2APIC_LVT_TIMER, val as u64);
+    } else {
+        let val = mmio_r32(LAPIC_LVT_TIMER) | LVT_MASKED;
+        mmio_w32(LAPIC_LVT_TIMER, val);
+    }
+}
+
+pub fn timer_unmask() {
+    if X2APIC_MODE.load(Ordering::Acquire) {
+        let val = rdmsr(IA32_X2APIC_LVT_TIMER) as u32 & !LVT_MASKED;
+        wrmsr(IA32_X2APIC_LVT_TIMER, val as u64);
+    } else {
+        let val = mmio_r32(LAPIC_LVT_TIMER) & !LVT_MASKED;
+        mmio_w32(LAPIC_LVT_TIMER, val);
+    }
+}

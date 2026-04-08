@@ -20,7 +20,14 @@ pub mod state;
 mod io;
 pub mod init;
 pub mod eoi;
+mod mask_ops;
+mod mask_bulk;
 pub mod mask;
+mod ops_aeoi;
+mod ops_smm;
+mod ops_isr;
+mod ops_status;
+mod ops_reinit;
 pub mod ops;
 
 pub use constants::{MAX_IRQ, SPURIOUS_IRQ_MASTER, SPURIOUS_IRQ_SLAVE, CASCADE_IRQ};

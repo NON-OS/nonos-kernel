@@ -14,5 +14,21 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub use super::types_rte::Rte;
-pub use super::types_madt::{MadtIoApic, MadtIso, MadtNmi, IsoFlags};
+use super::types::IsoFlags;
+use super::state::{IoApicChip, IOAPICS, ISO};
+
+pub(super) fn iso_flags_for(gsi: u32) -> Option<IsoFlags> {
+    let cache = ISO.lock();
+    cache.iso.iter().find(|e| e.gsi == gsi).map(|e| e.flags)
+}
+
+pub(super) fn locate(gsi: u32) -> Option<(IoApicChip, u32)> {
+    let chips = IOAPICS.lock();
+    for chip in chips.iter().flatten() {
+        let end = chip.gsi_base + chip.redirs;
+        if gsi >= chip.gsi_base && gsi < end {
+            return Some((*chip, gsi - chip.gsi_base));
+        }
+    }
+    None
+}

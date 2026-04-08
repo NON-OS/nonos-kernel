@@ -14,5 +14,23 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub use super::types_rte::Rte;
-pub use super::types_madt::{MadtIoApic, MadtIso, MadtNmi, IsoFlags};
+use super::state::MSI_CLAIMED;
+
+pub fn claim_gsi_for_msi(gsi: u32) {
+    let mut claimed = MSI_CLAIMED.lock();
+    if (gsi as usize) < claimed.len() {
+        claimed.set(gsi as usize, true);
+    }
+}
+
+pub fn release_gsi_from_msi(gsi: u32) {
+    let mut claimed = MSI_CLAIMED.lock();
+    if (gsi as usize) < claimed.len() {
+        claimed.set(gsi as usize, false);
+    }
+}
+
+pub(super) fn is_gsi_claimed(gsi: u32) -> bool {
+    let claimed = MSI_CLAIMED.lock();
+    (gsi as usize) < claimed.len() && claimed[gsi as usize]
+}

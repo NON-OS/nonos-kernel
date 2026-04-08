@@ -16,10 +16,19 @@
 
 pub mod constants;
 pub mod error;
+mod types_rte;
+mod types_madt;
 pub mod types;
+mod state_chip;
+mod state_alloc;
 pub mod state;
 pub mod mmio;
 pub mod init;
+mod ops_msi;
+mod ops_helpers;
+mod ops_route;
+mod ops_query;
+mod ops_status;
 pub mod ops;
 
 pub use error::{IoApicError, IoApicResult};

@@ -18,9 +18,18 @@ pub mod constants;
 pub mod error;
 pub mod state;
 pub mod mmio;
+mod init_x2apic;
+mod init_xapic;
 pub mod init;
+mod ops_core;
+mod ops_status;
 pub mod ops;
+mod ipi_basic;
+mod ipi_ap;
 pub mod ipi;
+mod timer_mode;
+mod timer_ops;
+mod timer_mask;
 pub mod timer;
 
 pub use constants::{VEC_SPURIOUS, VEC_TIMER, VEC_THERMAL, VEC_ERROR};

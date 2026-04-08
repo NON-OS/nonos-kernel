@@ -14,5 +14,23 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub use super::types_rte::Rte;
-pub use super::types_madt::{MadtIoApic, MadtIso, MadtNmi, IsoFlags};
+use super::constants::*;
+use super::io::{outb, inb};
+
+pub fn read_irr() -> (u8, u8) {
+    unsafe {
+        outb(PIC1_CMD, OCW3_READ_IRR);
+        outb(PIC2_CMD, OCW3_READ_IRR);
+        (inb(PIC1_CMD), inb(PIC2_CMD))
+    }
+}
+
+pub fn read_isr() -> (u8, u8) { read_isr_internal() }
+
+pub(crate) fn read_isr_internal() -> (u8, u8) {
+    unsafe {
+        outb(PIC1_CMD, OCW3_READ_ISR);
+        outb(PIC2_CMD, OCW3_READ_ISR);
+        (inb(PIC2_CMD), inb(PIC1_CMD))
+    }
+}

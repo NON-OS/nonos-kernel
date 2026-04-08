@@ -14,5 +14,20 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub use super::types_rte::Rte;
-pub use super::types_madt::{MadtIoApic, MadtIso, MadtNmi, IsoFlags};
+use super::state::{is_initialized, count, IOAPICS};
+
+#[derive(Debug, Clone)]
+pub struct IoApicStatus {
+    pub initialized: bool,
+    pub count: usize,
+    pub total_gsis: u32,
+}
+
+pub fn status() -> IoApicStatus {
+    let chips = IOAPICS.lock();
+    let mut total_gsis = 0u32;
+    for chip in chips.iter().flatten() {
+        total_gsis += chip.redirs;
+    }
+    IoApicStatus { initialized: is_initialized(), count: count(), total_gsis }
+}
