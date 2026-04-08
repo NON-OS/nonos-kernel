@@ -21,6 +21,7 @@ mod browser;
 mod png;
 mod svg;
 mod jpeg;
+pub mod css;
 pub mod image_loader;
 
 pub use types::{
