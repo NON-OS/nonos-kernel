@@ -28,6 +28,7 @@ pub unsafe fn restore_saved_masks() -> PicResult<()> {
             outb(PIC2_DATA, *m2);
             MASTER_MASK.store(*m1, Ordering::Release);
             SLAVE_MASK.store(*m2, Ordering::Release);
+            proof::audit_phys_alloc(0x8259_0006, ((*m1 as u64) << 8) | *m2 as u64, CapTag::KERNEL);
             Ok(())
         } else {
             Err(PicError::NotInitialized)
@@ -57,5 +58,10 @@ pub(super) unsafe fn reinit_with_icw4(off1: u8, off2: u8, icw4_master: u8, icw4_
         io_wait();
         outb(PIC1_DATA, m1);
         outb(PIC2_DATA, m2);
+        proof::audit_phys_alloc(
+            0x8259_0007,
+            ((off1 as u64) << 24) | ((off2 as u64) << 16) | ((icw4_master as u64) << 8) | icw4_slave as u64,
+            CapTag::KERNEL,
+        );
     }
 }

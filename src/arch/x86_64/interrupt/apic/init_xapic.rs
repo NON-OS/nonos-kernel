@@ -21,7 +21,7 @@ use crate::memory::virt::VmFlags;
 use crate::memory::layout::PAGE_SIZE;
 use crate::memory::proof::{self, CapTag};
 use super::constants::*;
-use super::error::{ApicError, ApicResult};
+use super::error::ApicResult;
 use super::state::*;
 use super::mmio::{mmio_w32, map_apic_mmio};
 

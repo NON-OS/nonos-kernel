@@ -14,6 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub(crate) use super::state_chip::{IoApicChip, INITIALIZED, IOAPICS, COUNT, IsoCache, ISO, MSI_CLAIMED};
-pub(crate) use super::state_alloc::{VEC_ALLOC, VecAlloc};
+pub(crate) use super::state_chip::{IoApicChip, IOAPICS, COUNT, ISO, MSI_CLAIMED};
+pub(crate) use super::state_alloc::VEC_ALLOC;
 pub use super::state_chip::{is_initialized, count};
