@@ -14,43 +14,45 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+mod constants;
 mod device;
+mod device_keyboard;
+mod device_mouse;
+mod device_state;
+mod device_type;
 mod driver;
 mod enumeration;
 mod error;
 mod keyboard;
+mod keyboard_leds;
+mod keyboard_poll;
+mod led_state;
+mod modifier_state;
+mod button_state;
 mod mouse;
 mod report;
 mod state;
+mod stats;
 pub mod types;
 pub mod usage;
+mod usage_alpha;
+mod usage_convert;
+mod usage_func;
+mod usage_modifiers;
+mod usage_numbers;
+mod usage_numpad;
 
-// Device types
 pub use device::{HidDeviceState, UsbHidKeyboard, UsbHidMouse};
-
-// Error handling
 pub use error::{UsbHidError, UsbHidResult};
-
-// Driver lifecycle
 pub use driver::{init, poll, shutdown, get_device_info};
 pub use enumeration::enumerate_devices;
-
-// State accessors
 pub use state::{device_count, get_stats, is_initialized, reset_stats};
-
-// Keyboard functions
 pub use keyboard::{get_leds, set_leds};
-
-// Report parsing
 pub use report::{
     parse_keyboard_modifiers, parse_keyboard_report, parse_keyboard_report_all,
     parse_mouse_report, parse_mouse_report_scroll,
 };
-
-// HID usage codes
 pub use usage::hid_to_scancode;
-
-// Type re-exports
 pub use types::{
     HidDeviceInfo, HidDeviceType, LedState, ModifierState, MouseButtonState, UsbHidStats,
     HID_CLASS, HID_PROTOCOL_KEYBOARD, HID_PROTOCOL_MOUSE, HID_SUBCLASS_BOOT,

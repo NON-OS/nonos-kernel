@@ -14,26 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod convert;
-mod convert_ascii;
-mod convert_keycode;
-mod numpad;
-mod scan;
-mod scan_api;
-mod scan_extended;
-mod scan_process;
-mod scan_standard;
-mod state;
-#[cfg(test)]
-mod test;
+use super::types::{DeviceId, InputEvent};
 
-pub use convert::{ascii_to_keycode, keycode_to_ascii, keycode_to_ascii_with_mods};
-pub use numpad::NumpadKey;
-pub use scan::{map_scan_code, map_scan_code_full, process_scan_code, KeymapResult};
-pub use state::{
-    get_extended_state, get_modifiers, reset_extended_state, reset_modifiers, set_extended_state,
-    set_modifiers, update_modifiers, ExtendedState,
-};
-pub use crate::arch::x86_64::keyboard::error::KeymapError;
-pub use crate::arch::x86_64::keyboard::types::{KeyCode, KeyMapping, Modifiers, ScanCode};
-pub type ModifierState = Modifiers;
+pub const MAX_INPUT_DEVICES: usize = 16;
+
+pub trait InputDevice: Send + Sync {
+    fn device_id(&self) -> DeviceId;
+    fn name(&self) -> &str;
+    fn device_type(&self) -> &'static str;
+    fn poll(&self) -> Option<InputEvent>;
+    fn is_connected(&self) -> bool;
+}

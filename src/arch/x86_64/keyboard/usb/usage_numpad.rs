@@ -14,26 +14,20 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod convert;
-mod convert_ascii;
-mod convert_keycode;
-mod numpad;
-mod scan;
-mod scan_api;
-mod scan_extended;
-mod scan_process;
-mod scan_standard;
-mod state;
-#[cfg(test)]
-mod test;
-
-pub use convert::{ascii_to_keycode, keycode_to_ascii, keycode_to_ascii_with_mods};
-pub use numpad::NumpadKey;
-pub use scan::{map_scan_code, map_scan_code_full, process_scan_code, KeymapResult};
-pub use state::{
-    get_extended_state, get_modifiers, reset_extended_state, reset_modifiers, set_extended_state,
-    set_modifiers, update_modifiers, ExtendedState,
-};
-pub use crate::arch::x86_64::keyboard::error::KeymapError;
-pub use crate::arch::x86_64::keyboard::types::{KeyCode, KeyMapping, Modifiers, ScanCode};
-pub type ModifierState = Modifiers;
+pub const KEY_NUM_LOCK: u8 = 0x53;
+pub const KEY_KP_DIVIDE: u8 = 0x54;
+pub const KEY_KP_MULTIPLY: u8 = 0x55;
+pub const KEY_KP_MINUS: u8 = 0x56;
+pub const KEY_KP_PLUS: u8 = 0x57;
+pub const KEY_KP_ENTER: u8 = 0x58;
+pub const KEY_KP_1: u8 = 0x59;
+pub const KEY_KP_2: u8 = 0x5A;
+pub const KEY_KP_3: u8 = 0x5B;
+pub const KEY_KP_4: u8 = 0x5C;
+pub const KEY_KP_5: u8 = 0x5D;
+pub const KEY_KP_6: u8 = 0x5E;
+pub const KEY_KP_7: u8 = 0x5F;
+pub const KEY_KP_8: u8 = 0x60;
+pub const KEY_KP_9: u8 = 0x61;
+pub const KEY_KP_0: u8 = 0x62;
+pub const KEY_KP_DECIMAL: u8 = 0x63;

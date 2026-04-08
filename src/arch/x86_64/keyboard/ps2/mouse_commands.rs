@@ -14,26 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod convert;
-mod convert_ascii;
-mod convert_keycode;
-mod numpad;
-mod scan;
-mod scan_api;
-mod scan_extended;
-mod scan_process;
-mod scan_standard;
-mod state;
-#[cfg(test)]
-mod test;
-
-pub use convert::{ascii_to_keycode, keycode_to_ascii, keycode_to_ascii_with_mods};
-pub use numpad::NumpadKey;
-pub use scan::{map_scan_code, map_scan_code_full, process_scan_code, KeymapResult};
-pub use state::{
-    get_extended_state, get_modifiers, reset_extended_state, reset_modifiers, set_extended_state,
-    set_modifiers, update_modifiers, ExtendedState,
-};
-pub use crate::arch::x86_64::keyboard::error::KeymapError;
-pub use crate::arch::x86_64::keyboard::types::{KeyCode, KeyMapping, Modifiers, ScanCode};
-pub type ModifierState = Modifiers;
+pub const CMD_SET_RESOLUTION: u8 = 0xE8;
+pub const CMD_GET_DEVICE_ID: u8 = 0xF2;
+pub const CMD_SET_SAMPLE_RATE: u8 = 0xF3;
+pub const CMD_ENABLE_REPORTING: u8 = 0xF4;
+pub const CMD_SET_DEFAULTS: u8 = 0xF6;
+pub const CMD_RESET: u8 = 0xFF;
+pub const RESP_ACK: u8 = 0xFA;
+pub const RESP_SELF_TEST_PASS: u8 = 0xAA;
+pub const DEVICE_ID_WHEEL: u8 = 0x03;
+pub const DEVICE_ID_5_BUTTON: u8 = 0x04;

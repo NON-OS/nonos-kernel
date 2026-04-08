@@ -18,6 +18,8 @@ mod device;
 mod modifiers;
 mod mouse;
 mod events;
+mod events_kind;
+mod events_struct;
 mod filter;
 
 pub use device::{DeviceId, EventPriority};

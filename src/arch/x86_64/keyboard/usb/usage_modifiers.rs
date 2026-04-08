@@ -14,26 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod convert;
-mod convert_ascii;
-mod convert_keycode;
-mod numpad;
-mod scan;
-mod scan_api;
-mod scan_extended;
-mod scan_process;
-mod scan_standard;
-mod state;
-#[cfg(test)]
-mod test;
-
-pub use convert::{ascii_to_keycode, keycode_to_ascii, keycode_to_ascii_with_mods};
-pub use numpad::NumpadKey;
-pub use scan::{map_scan_code, map_scan_code_full, process_scan_code, KeymapResult};
-pub use state::{
-    get_extended_state, get_modifiers, reset_extended_state, reset_modifiers, set_extended_state,
-    set_modifiers, update_modifiers, ExtendedState,
-};
-pub use crate::arch::x86_64::keyboard::error::KeymapError;
-pub use crate::arch::x86_64::keyboard::types::{KeyCode, KeyMapping, Modifiers, ScanCode};
-pub type ModifierState = Modifiers;
+pub const KEY_LEFT_CTRL: u8 = 0xE0;
+pub const KEY_LEFT_SHIFT: u8 = 0xE1;
+pub const KEY_LEFT_ALT: u8 = 0xE2;
+pub const KEY_LEFT_GUI: u8 = 0xE3;
+pub const KEY_RIGHT_CTRL: u8 = 0xE4;
+pub const KEY_RIGHT_SHIFT: u8 = 0xE5;
+pub const KEY_RIGHT_ALT: u8 = 0xE6;
+pub const KEY_RIGHT_GUI: u8 = 0xE7;
+pub const ERR_ROLLOVER: u8 = 0x01;
+pub const ERR_POST_FAIL: u8 = 0x02;
+pub const ERR_UNDEFINED: u8 = 0x03;

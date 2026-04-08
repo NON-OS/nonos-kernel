@@ -14,26 +14,33 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod convert;
-mod convert_ascii;
-mod convert_keycode;
-mod numpad;
-mod scan;
-mod scan_api;
-mod scan_extended;
-mod scan_process;
-mod scan_standard;
-mod state;
-#[cfg(test)]
-mod test;
+use super::super::types::MouseButtons;
 
-pub use convert::{ascii_to_keycode, keycode_to_ascii, keycode_to_ascii_with_mods};
-pub use numpad::NumpadKey;
-pub use scan::{map_scan_code, map_scan_code_full, process_scan_code, KeymapResult};
-pub use state::{
-    get_extended_state, get_modifiers, reset_extended_state, reset_modifiers, set_extended_state,
-    set_modifiers, update_modifiers, ExtendedState,
-};
-pub use crate::arch::x86_64::keyboard::error::KeymapError;
-pub use crate::arch::x86_64::keyboard::types::{KeyCode, KeyMapping, Modifiers, ScanCode};
-pub type ModifierState = Modifiers;
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum MouseType {
+    Standard,
+    Wheel,
+    FiveButton,
+}
+
+impl MouseType {
+    pub const fn packet_size(self) -> usize {
+        match self { Self::Standard => 3, Self::Wheel | Self::FiveButton => 4 }
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Resolution {
+    Count1PerMm = 0,
+    Count2PerMm = 1,
+    Count4PerMm = 2,
+    Count8PerMm = 3,
+}
+
+#[derive(Debug, Clone, Copy, Default)]
+pub struct MousePacket {
+    pub buttons: MouseButtons,
+    pub dx: i16,
+    pub dy: i16,
+    pub dz: i8,
+}

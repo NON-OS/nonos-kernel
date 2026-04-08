@@ -15,7 +15,13 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub mod device;
+mod device_ops;
+mod device_registry;
+mod device_trait;
 pub mod error;
+mod error_code;
+mod error_log;
+mod error_struct;
 pub mod queue;
 pub mod types;
 
@@ -39,29 +45,10 @@ pub use types::{
 };
 
 use core::sync::atomic::{AtomicU64, Ordering};
-
 static TIMESTAMP_COUNTER: AtomicU64 = AtomicU64::new(0);
-
-pub fn get_timestamp() -> u64 {
-    TIMESTAMP_COUNTER.fetch_add(1, Ordering::SeqCst)
-}
-
-pub fn push_key_press(scan_code: u8) {
-    let _ = push_event(InputEvent::key_press(scan_code));
-}
-
-pub fn push_key_release(scan_code: u8) {
-    let _ = push_event(InputEvent::key_release(scan_code));
-}
-
-pub fn push_mouse_move(dx: i16, dy: i16) {
-    let _ = push_event(InputEvent::mouse_move(dx, dy));
-}
-
-pub fn push_mouse_button(button: u8, pressed: bool) {
-    let _ = push_event(InputEvent::mouse_button(button, pressed));
-}
-
-pub fn push_mouse_scroll(delta: i8) {
-    let _ = push_event(InputEvent::mouse_scroll(delta));
-}
+pub fn get_timestamp() -> u64 { TIMESTAMP_COUNTER.fetch_add(1, Ordering::SeqCst) }
+pub fn push_key_press(scan_code: u8) { let _ = push_event(InputEvent::key_press(scan_code)); }
+pub fn push_key_release(scan_code: u8) { let _ = push_event(InputEvent::key_release(scan_code)); }
+pub fn push_mouse_move(dx: i16, dy: i16) { let _ = push_event(InputEvent::mouse_move(dx, dy)); }
+pub fn push_mouse_button(button: u8, pressed: bool) { let _ = push_event(InputEvent::mouse_button(button, pressed)); }
+pub fn push_mouse_scroll(delta: i8) { let _ = push_event(InputEvent::mouse_scroll(delta)); }
