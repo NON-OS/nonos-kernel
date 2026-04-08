@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod isr;
 mod isr_exceptions;
 mod isr_irqs;
 mod common;
