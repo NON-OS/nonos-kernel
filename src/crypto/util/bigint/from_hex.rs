@@ -16,7 +16,6 @@
 
 extern crate alloc;
 use alloc::vec;
-use alloc::vec::Vec;
 use super::types::BigUint;
 
 impl BigUint {
