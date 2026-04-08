@@ -35,6 +35,7 @@ pub mod samples;
 mod demos;
 pub mod store;
 pub mod ipc_client;
+pub mod capsule;
 
 pub use ipc_client::{
     VfsClient, NetClient, CryptoClient, DisplayClient, InputClient, ZkClient,
