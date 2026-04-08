@@ -34,6 +34,12 @@ pub mod tcp;
 pub mod transparent;
 pub mod udp;
 pub mod unix;
+pub mod eth;
+pub mod ipfs;
+pub mod marketplace;
+pub mod socket;
+pub mod revenue;
+pub mod nft;
 
 pub use api::is_network_ready;
 
