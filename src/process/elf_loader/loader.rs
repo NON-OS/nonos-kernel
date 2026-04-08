@@ -14,7 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::vec::Vec;
 use super::types::*;
 use super::parser::{parse_header, get_program_headers};
 use super::validate::{validate_user_address, validate_wx_segment, validate_alignment};

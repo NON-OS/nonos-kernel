@@ -14,9 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::string::String;
-use alloc::vec::Vec;
-
 pub use super::elf_constants::*;
 pub use super::elf_structs::*;
 pub use super::elf_loaded::*;
