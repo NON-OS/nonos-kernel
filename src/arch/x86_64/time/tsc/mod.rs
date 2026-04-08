@@ -14,22 +14,27 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod asm;
-pub mod calibration;
-pub mod constants;
-pub mod conversion;
-pub mod deadline;
-pub mod delay;
-pub mod elapsed;
-pub mod error;
-pub mod features;
-pub mod per_cpu;
-pub mod state;
-pub mod types;
+mod asm;
+mod calibration;
+mod constants;
+mod conversion;
+mod cpuid_ops;
+mod deadline;
+mod delay;
+mod elapsed;
+mod error;
+mod features;
+mod globals;
+mod init_state;
+mod io;
+mod per_cpu;
+mod rdtsc;
+mod state;
+mod stats_query;
+mod types;
 
 pub use error::{TscError, TscResult};
 pub use types::{TscFeatures, CalibrationSource, TscStatistics};
-
 pub use asm::{rdtsc, rdtsc_unserialized, rdtscp, read_tsc, read_tsc_cpu, tsc_fence};
 pub use features::{detect_features, is_tsc_available, is_invariant, has_rdtscp, has_deadline_mode, get_features};
 pub use calibration::{calibrate, calibrate_with_hpet_base, set_frequency, get_frequency, get_frequency_mhz};

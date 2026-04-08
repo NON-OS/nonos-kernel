@@ -14,9 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub use super::error::{PitError, PitResult};
-pub use super::channel::Channel;
-pub use super::mode::Mode;
-pub use super::access::AccessMode;
-pub use super::channel_state::ChannelState;
-pub use super::stats::PitStatistics;
+#[inline(always)]
+pub const fn bcd_to_bin(bcd: u8) -> u8 {
+    ((bcd >> 4) * 10) + (bcd & 0x0F)
+}
+
+#[inline(always)]
+pub const fn bin_to_bcd(bin: u8) -> u8 {
+    ((bin / 10) << 4) | (bin % 10)
+}
+
+#[inline(always)]
+pub const fn is_valid_bcd(bcd: u8) -> bool {
+    (bcd & 0x0F) <= 9 && ((bcd >> 4) & 0x0F) <= 9
+}

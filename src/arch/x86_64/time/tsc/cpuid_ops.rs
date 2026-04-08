@@ -14,9 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub use super::error::{PitError, PitResult};
-pub use super::channel::Channel;
-pub use super::mode::Mode;
-pub use super::access::AccessMode;
-pub use super::channel_state::ChannelState;
-pub use super::stats::PitStatistics;
+pub fn cpuid(leaf: u32, subleaf: u32) -> (u32, u32, u32, u32) {
+    let (eax, ebx, ecx, edx): (u32, u32, u32, u32);
+    unsafe {
+        core::arch::asm!(
+            "push rbx", "cpuid", "mov {0:e}, ebx", "pop rbx",
+            out(reg) ebx, inout("eax") leaf => eax, inout("ecx") subleaf => ecx, out("edx") edx, options(preserves_flags)
+        );
+    }
+    (eax, ebx, ecx, edx)
+}
+
+pub fn cpuid_max_leaf() -> u32 { cpuid(0, 0).0 }
+
+pub fn cpuid_max_extended_leaf() -> u32 { cpuid(0x80000000, 0).0 }

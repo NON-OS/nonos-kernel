@@ -15,6 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod api;
+mod api_init;
+mod api_time;
 pub mod hpet;
 pub mod pit;
 pub mod rtc;
@@ -26,24 +28,8 @@ pub mod tsc;
 pub mod test;
 
 pub use api::*;
-
 pub use hpet::{detect_hpet, read_hpet_counter};
-
-pub use timer::{
-    cancel_timer, get_active_timer_count, get_hpet_counter, get_timer_stats, get_tsc_frequency,
-    hpet_to_ns, hrtimer_after_ns, ns_to_tsc, tick, tsc_to_ns, TimerStats,
-};
-
-pub use pit::{
-    AccessMode as PitAccessMode, Channel as PitChannel, Mode as PitMode, PitError, PitStatistics,
-    PIT_FREQUENCY,
-};
-
-pub use rtc::{
-    read_rtc_time, PeriodicRate as RtcPeriodicRate, Register as RtcRegister, RtcAlarm, RtcError,
-    RtcStatistics, RtcTime,
-};
-
-pub use tsc::{
-    CalibrationSource as TscCalibrationSource, TscError, TscFeatures, TscStatistics,
-};
+pub use timer::{cancel_timer, get_active_timer_count, get_hpet_counter, get_timer_stats, get_tsc_frequency, hpet_to_ns, hrtimer_after_ns, ns_to_tsc, tick, tsc_to_ns, TimerStats};
+pub use pit::{AccessMode as PitAccessMode, Channel as PitChannel, Mode as PitMode, PitError, PitStatistics, PIT_FREQUENCY};
+pub use rtc::{read_rtc_time, PeriodicRate as RtcPeriodicRate, Register as RtcRegister, RtcAlarm, RtcError, RtcStatistics, RtcTime};
+pub use tsc::{CalibrationSource as TscCalibrationSource, TscError, TscFeatures, TscStatistics};

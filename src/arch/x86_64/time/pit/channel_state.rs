@@ -14,9 +14,28 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub use super::error::{PitError, PitResult};
-pub use super::channel::Channel;
-pub use super::mode::Mode;
-pub use super::access::AccessMode;
-pub use super::channel_state::ChannelState;
-pub use super::stats::PitStatistics;
+use core::sync::atomic::{AtomicBool, AtomicU64};
+use super::mode::Mode;
+
+#[derive(Debug)]
+pub(super) struct ChannelState {
+    pub(super) configured: bool,
+    pub(super) mode: Mode,
+    pub(super) divisor: u16,
+    pub(super) frequency_hz: u32,
+    pub(super) tick_count: AtomicU64,
+    pub(super) oneshot_pending: AtomicBool,
+}
+
+impl Default for ChannelState {
+    fn default() -> Self {
+        Self {
+            configured: false,
+            mode: Mode::RateGenerator,
+            divisor: 0,
+            frequency_hz: 0,
+            tick_count: AtomicU64::new(0),
+            oneshot_pending: AtomicBool::new(false),
+        }
+    }
+}

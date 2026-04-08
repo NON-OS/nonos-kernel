@@ -14,9 +14,24 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub use super::error::{PitError, PitResult};
-pub use super::channel::Channel;
-pub use super::mode::Mode;
-pub use super::access::AccessMode;
-pub use super::channel_state::ChannelState;
-pub use super::stats::PitStatistics;
+use super::command;
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[repr(u8)]
+pub enum AccessMode {
+    Latch = 0,
+    LowByte = 1,
+    HighByte = 2,
+    LowHigh = 3,
+}
+
+impl AccessMode {
+    pub const fn bits(&self) -> u8 {
+        match self {
+            Self::Latch => command::ACCESS_LATCH,
+            Self::LowByte => command::ACCESS_LOBYTE,
+            Self::HighByte => command::ACCESS_HIBYTE,
+            Self::LowHigh => command::ACCESS_LOHI,
+        }
+    }
+}

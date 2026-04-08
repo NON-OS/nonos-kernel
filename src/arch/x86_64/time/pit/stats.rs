@@ -14,9 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub use super::error::{PitError, PitResult};
-pub use super::channel::Channel;
-pub use super::mode::Mode;
-pub use super::access::AccessMode;
-pub use super::channel_state::ChannelState;
-pub use super::stats::PitStatistics;
+#[derive(Debug, Clone, Default)]
+pub struct PitStatistics {
+    pub initialized: bool,
+    pub channel0_frequency: u32,
+    pub channel0_divisor: u16,
+    pub channel0_ticks: u64,
+    pub channel2_frequency: u32,
+    pub channel2_divisor: u16,
+    pub calibrations: u64,
+    pub last_calibration_hz: u64,
+    pub speaker_beeps: u64,
+    pub oneshot_completed: u64,
+}

@@ -14,22 +14,26 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod alarm;
-pub mod checksum;
-pub mod cmos;
-pub mod constants;
-pub mod conversion;
-pub mod error;
-pub mod interrupt;
-pub mod ops;
-pub mod periodic;
-pub mod state;
-pub mod types;
+mod alarm;
+mod bcd;
+mod calendar;
+mod checksum;
+mod cmos;
+mod constants;
+mod conversion;
+mod error;
+mod interrupt;
+mod ops;
+mod periodic;
+mod read;
+mod state;
+mod types;
+mod unix;
+mod write;
 
 pub use constants::Register;
 pub use error::{RtcError, RtcResult};
 pub use types::{RtcTime, RtcAlarm, PeriodicRate, RtcStatistics};
-
 pub use cmos::{read_register, write_register, read_cmos, write_cmos};
 pub use conversion::{is_leap_year, days_in_month, day_of_week, day_name, month_name, datetime_to_unix, unix_to_datetime};
 pub use ops::{read_rtc, read_rtc_checked, read_unix_timestamp, write_rtc, set_unix_timestamp, read_local_time, read_rtc_time};
