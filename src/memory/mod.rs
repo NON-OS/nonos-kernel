@@ -40,7 +40,7 @@ pub use unified::{allocate_secure_region, flush_tlb_all, flush_tlb_range, get_me
 pub fn get_memory_stats() -> MemorySystemStats { get_memory_system_stats() }
 
 pub fn read_process_memory(pid: u32, addr: u64, buf: &mut [u8]) -> Result<usize, i32> {
-    let pcb = crate::process::core::table::types::PROCESS_TABLE.find_by_pid(pid).ok_or(-3)?;
+    let pcb = crate::process::PROCESS_TABLE.find_by_pid(pid).ok_or(-3)?;
     let mem = pcb.memory.lock();
     for vma in &mem.vmas {
         if addr >= vma.start.as_u64() && addr < vma.end.as_u64() {
@@ -54,7 +54,7 @@ pub fn read_process_memory(pid: u32, addr: u64, buf: &mut [u8]) -> Result<usize,
 }
 
 pub fn get_process_vm_areas(pid: u32) -> alloc::vec::Vec<(u64, u64, u32)> {
-    crate::process::core::table::types::PROCESS_TABLE.find_by_pid(pid).map(|pcb| {
+    crate::process::PROCESS_TABLE.find_by_pid(pid).map(|pcb| {
         pcb.memory.lock().vmas.iter().map(|v| (v.start.as_u64(), v.end.as_u64(), v.flags.bits() as u32)).collect()
     }).unwrap_or_default()
 }
