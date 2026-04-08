@@ -19,7 +19,6 @@ mod madt_api;
 mod tables;
 
 pub use self::core::*;
-pub use madt_api::ParsedMadt;
 pub use tables::*;
 
 pub mod madt {

@@ -16,13 +16,9 @@
 
 use alloc::vec::Vec;
 
-use crate::arch::x86_64::acpi::data::{
-    AcpiStats, InterruptOverride, IoApicInfo, NmiConfig, NumaMemoryRegion, PcieSegment,
-    ProcessorInfo,
-};
+use crate::arch::x86_64::acpi::data::{InterruptOverride, IoApicInfo, NmiConfig, ProcessorInfo};
 use crate::arch::x86_64::acpi::error::AcpiResult;
 use crate::arch::x86_64::acpi::parser;
-use crate::arch::x86_64::acpi::tables::PmProfile;
 
 #[inline]
 pub fn init() -> AcpiResult<()> {
