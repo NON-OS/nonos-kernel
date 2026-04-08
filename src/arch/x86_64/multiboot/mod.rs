@@ -30,7 +30,6 @@ mod platform_signatures;
 mod platform_types;
 pub mod state;
 pub mod stats;
-mod structures;
 mod structures_acpi;
 mod structures_elf;
 mod structures_fb;
