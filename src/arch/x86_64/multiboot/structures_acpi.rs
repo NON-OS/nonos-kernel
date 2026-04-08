@@ -14,9 +14,28 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub use super::structures_header::{Multiboot2Header, Multiboot2Info, TagHeader};
-pub use super::structures_memory::{MemoryMapEntry, BasicMemInfo, BiosBootDevice};
-pub use super::structures_fb::{FramebufferInfo, FramebufferType, ColorInfo, VbeInfo};
-pub use super::structures_elf::{ElfSections, ElfSection, ApmTable};
-pub use super::structures_acpi::{AcpiRsdp, SmbiosInfo, EfiMemoryDescriptor};
-pub use super::structures_parsed::{ModuleInfo, ParsedMultibootInfo};
+extern crate alloc;
+use x86_64::PhysAddr;
+
+#[derive(Debug, Clone)]
+pub struct AcpiRsdp {
+    pub revision: u8,
+    pub rsdp_address: PhysAddr,
+    pub is_xsdt: bool,
+}
+
+#[derive(Debug, Clone)]
+pub struct SmbiosInfo {
+    pub major: u8,
+    pub minor: u8,
+    pub tables: alloc::vec::Vec<u8>,
+}
+
+#[derive(Debug, Clone, Copy)]
+pub struct EfiMemoryDescriptor {
+    pub type_: u32,
+    pub phys_addr: u64,
+    pub virt_addr: u64,
+    pub num_pages: u64,
+    pub attribute: u64,
+}

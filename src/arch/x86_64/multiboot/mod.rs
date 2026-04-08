@@ -21,31 +21,33 @@ pub mod header;
 pub mod info;
 pub mod memory_map;
 pub mod modules;
+mod modules_acpi;
+mod modules_types;
 mod ops;
 pub mod platform;
+mod platform_detect;
+mod platform_signatures;
+mod platform_types;
 pub mod state;
 pub mod stats;
-
+mod structures;
+mod structures_acpi;
+mod structures_elf;
+mod structures_fb;
+mod structures_header;
+mod structures_memory;
+mod structures_parsed;
 #[cfg(test)]
 mod tests;
 
-pub use constants::{
-    memory_type, tag, MULTIBOOT2_ARCHITECTURE_I386, MULTIBOOT2_BOOTLOADER_MAGIC,
-    MULTIBOOT2_HEADER_MAGIC,
-};
+pub use constants::{memory_type, tag, MULTIBOOT2_ARCHITECTURE_I386, MULTIBOOT2_BOOTLOADER_MAGIC, MULTIBOOT2_HEADER_MAGIC};
 pub use error::MultibootError;
 pub use framebuffer::{ColorInfo, FramebufferInfo, FramebufferType};
 pub use header::{Multiboot2Header, Multiboot2Info, TagHeader};
 pub use info::ParsedMultibootInfo;
 pub use memory_map::{EfiMemoryDescriptor, MemoryMapEntry};
-pub use modules::{
-    AcpiRsdp, ApmTable, BasicMemInfo, BiosBootDevice, ElfSection, ElfSections, ModuleInfo,
-    SmbiosInfo, VbeInfo,
-};
-pub use ops::{
-    acpi_rsdp, cmdline, framebuffer, get_fallback_memory_regions, get_safe_memory_regions, init,
-    init_platform_features, init_with_info, is_efi_boot, memory_map, modules, platform,
-};
+pub use modules::{AcpiRsdp, ApmTable, BasicMemInfo, BiosBootDevice, ElfSection, ElfSections, ModuleInfo, SmbiosInfo, VbeInfo};
+pub use ops::{acpi_rsdp, cmdline, framebuffer, get_fallback_memory_regions, get_safe_memory_regions, init, init_platform_features, init_with_info, is_efi_boot, memory_map, modules, platform};
 pub use platform::{detect_platform, ConsoleType, Platform};
 pub use state::{MultibootManager, MULTIBOOT_MANAGER};
 pub use stats::MultibootStats;
