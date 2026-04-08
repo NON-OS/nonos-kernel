@@ -29,7 +29,7 @@ pub fn run_kworker_service() -> ! {
 
     loop {
         // Process any pending work items
-        let processed = workqueue::process_work();
+        let _ = workqueue::process_work();
 
         // Handle IPC requests
         handle_kworker_requests();
