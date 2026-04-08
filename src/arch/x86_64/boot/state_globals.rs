@@ -14,18 +14,26 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod memory;
-mod cpu;
-mod sse;
-mod sse_enable;
-mod sse_avx;
-mod simd;
-mod simd_level;
-mod simd_types;
-#[cfg(test)]
-mod tests;
+use core::sync::atomic::{AtomicBool, AtomicU64, AtomicU8};
 
-pub use memory::validate_memory;
-pub use cpu::validate_cpu_features;
-pub use sse::{enable_sse, enable_avx, enable_avx512, enable_sse_avx};
-pub use simd::{get_simd_support, SimdSupport, SimdLevel};
+use super::stage::BootStage;
+
+pub static BOOT_STAGE: AtomicU8 = AtomicU8::new(0);
+pub static BOOT_ERROR: AtomicU8 = AtomicU8::new(0);
+pub static BOOT_COMPLETE: AtomicBool = AtomicBool::new(false);
+pub static BOOT_TSC: AtomicU64 = AtomicU64::new(0);
+pub static EXCEPTION_COUNT: AtomicU64 = AtomicU64::new(0);
+
+pub static STAGE_TSC: [AtomicU64; BootStage::COUNT] = [
+    AtomicU64::new(0),
+    AtomicU64::new(0),
+    AtomicU64::new(0),
+    AtomicU64::new(0),
+    AtomicU64::new(0),
+    AtomicU64::new(0),
+    AtomicU64::new(0),
+    AtomicU64::new(0),
+    AtomicU64::new(0),
+    AtomicU64::new(0),
+    AtomicU64::new(0),
+];

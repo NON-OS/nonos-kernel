@@ -14,115 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::{AtomicBool, AtomicU64, AtomicU8, Ordering};
-
-use super::error::BootError;
-use super::stage::BootStage;
-use super::types::BootStats;
-
-static BOOT_STAGE: AtomicU8 = AtomicU8::new(0);
-static BOOT_ERROR: AtomicU8 = AtomicU8::new(0);
-static BOOT_COMPLETE: AtomicBool = AtomicBool::new(false);
-static BOOT_TSC: AtomicU64 = AtomicU64::new(0);
-static EXCEPTION_COUNT: AtomicU64 = AtomicU64::new(0);
-
-static STAGE_TSC: [AtomicU64; BootStage::COUNT] = [
-    AtomicU64::new(0),
-    AtomicU64::new(0),
-    AtomicU64::new(0),
-    AtomicU64::new(0),
-    AtomicU64::new(0),
-    AtomicU64::new(0),
-    AtomicU64::new(0),
-    AtomicU64::new(0),
-    AtomicU64::new(0),
-    AtomicU64::new(0),
-    AtomicU64::new(0),
-];
-
-#[inline]
-pub fn set_stage(stage: BootStage, tsc: u64) {
-    BOOT_STAGE.store(stage.as_u8(), Ordering::SeqCst);
-    let idx = stage.as_u8() as usize;
-    if idx < STAGE_TSC.len() {
-        STAGE_TSC[idx].store(tsc, Ordering::Relaxed);
-    }
-}
-
-#[inline]
-pub fn get_stage() -> BootStage {
-    BootStage::from_u8(BOOT_STAGE.load(Ordering::Acquire))
-}
-
-#[inline]
-pub fn set_error(error: BootError) {
-    BOOT_ERROR.store(error as u8, Ordering::SeqCst);
-}
-
-#[inline]
-pub fn get_error() -> BootError {
-    BootError::from_u8(BOOT_ERROR.load(Ordering::Acquire))
-}
-
-#[inline]
-pub fn set_complete(complete: bool) {
-    BOOT_COMPLETE.store(complete, Ordering::SeqCst);
-}
-
-#[inline]
-pub fn is_complete() -> bool {
-    BOOT_COMPLETE.load(Ordering::Acquire)
-}
-
-#[inline]
-pub fn set_boot_tsc(tsc: u64) {
-    BOOT_TSC.store(tsc, Ordering::SeqCst);
-}
-
-#[inline]
-pub fn get_boot_tsc() -> u64 {
-    BOOT_TSC.load(Ordering::Acquire)
-}
-
-#[inline]
-pub fn increment_exception_count() {
-    EXCEPTION_COUNT.fetch_add(1, Ordering::Relaxed);
-}
-
-#[inline]
-pub fn get_exception_count() -> u64 {
-    EXCEPTION_COUNT.load(Ordering::Acquire)
-}
-
-#[inline]
-pub fn get_stage_tsc(stage: BootStage) -> u64 {
-    let idx = stage.as_u8() as usize;
-    if idx < STAGE_TSC.len() {
-        STAGE_TSC[idx].load(Ordering::Relaxed)
-    } else {
-        0
-    }
-}
-
-pub fn get_stats() -> BootStats {
-    let mut stage_tsc = [0u64; BootStage::COUNT];
-    for i in 0..BootStage::COUNT {
-        stage_tsc[i] = STAGE_TSC[i].load(Ordering::Relaxed);
-    }
-
-    BootStats {
-        stage: BOOT_STAGE.load(Ordering::Relaxed),
-        error: BOOT_ERROR.load(Ordering::Relaxed),
-        complete: BOOT_COMPLETE.load(Ordering::Relaxed),
-        boot_tsc: BOOT_TSC.load(Ordering::Relaxed),
-        complete_tsc: stage_tsc[BootStage::Complete.as_u8() as usize],
-        exceptions: EXCEPTION_COUNT.load(Ordering::Relaxed),
-        stage_tsc,
-    }
-}
+pub use super::state_ops::{
+    get_boot_tsc, get_error, get_exception_count, get_stage, get_stage_tsc, increment_exception_count,
+    is_complete, set_boot_tsc, set_complete, set_error, set_stage,
+};
+pub use super::state_stats::get_stats;
 
 #[cfg(test)]
 mod tests {
+    use super::super::error::BootError;
+    use super::super::stage::BootStage;
     use super::*;
 
     #[test]

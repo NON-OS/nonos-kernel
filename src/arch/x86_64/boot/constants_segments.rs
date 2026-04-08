@@ -14,18 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod memory;
-mod cpu;
-mod sse;
-mod sse_enable;
-mod sse_avx;
-mod simd;
-mod simd_level;
-mod simd_types;
-#[cfg(test)]
-mod tests;
-
-pub use memory::validate_memory;
-pub use cpu::validate_cpu_features;
-pub use sse::{enable_sse, enable_avx, enable_avx512, enable_sse_avx};
-pub use simd::{get_simd_support, SimdSupport, SimdLevel};
+pub const KERNEL_CS: u16 = crate::arch::x86_64::gdt::SEL_KERNEL_CODE;
+pub const KERNEL_DS: u16 = crate::arch::x86_64::gdt::SEL_KERNEL_DATA;
+pub const USER_CS: u16 = crate::arch::x86_64::gdt::SEL_USER_CODE;
+pub const USER_DS: u16 = crate::arch::x86_64::gdt::SEL_USER_DATA;
+pub const TSS_SEL: u16 = crate::arch::x86_64::gdt::SEL_TSS;

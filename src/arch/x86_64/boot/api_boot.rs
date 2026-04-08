@@ -14,18 +14,31 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod memory;
-mod cpu;
-mod sse;
-mod sse_enable;
-mod sse_avx;
-mod simd;
-mod simd_level;
-mod simd_types;
-#[cfg(test)]
-mod tests;
+use super::error::BootError;
+use super::stage::BootStage;
+use super::state;
+use super::validation::{self, SimdSupport};
 
-pub use memory::validate_memory;
-pub use cpu::validate_cpu_features;
-pub use sse::{enable_sse, enable_avx, enable_avx512, enable_sse_avx};
-pub use simd::{get_simd_support, SimdSupport, SimdLevel};
+#[inline]
+pub fn boot_stage() -> BootStage { state::get_stage() }
+
+#[inline]
+pub fn boot_error() -> BootError { state::get_error() }
+
+#[inline]
+pub fn is_boot_complete() -> bool { state::is_complete() }
+
+#[inline]
+pub fn boot_tsc() -> u64 { state::get_boot_tsc() }
+
+#[inline]
+pub fn exception_count() -> u64 { state::get_exception_count() }
+
+#[inline]
+pub fn increment_exception_count() { state::increment_exception_count() }
+
+#[inline]
+pub fn simd_support() -> SimdSupport { validation::get_simd_support() }
+
+#[inline]
+pub fn kernel_stack() -> u64 { crate::arch::x86_64::gdt::get_kernel_stack(0).unwrap_or(0) }

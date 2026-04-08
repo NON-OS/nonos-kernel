@@ -14,18 +14,19 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod memory;
-mod cpu;
-mod sse;
-mod sse_enable;
-mod sse_avx;
-mod simd;
-mod simd_level;
-mod simd_types;
-#[cfg(test)]
-mod tests;
+use super::error_types::BootError;
 
-pub use memory::validate_memory;
-pub use cpu::validate_cpu_features;
-pub use sse::{enable_sse, enable_avx, enable_avx512, enable_sse_avx};
-pub use simd::{get_simd_support, SimdSupport, SimdLevel};
+impl BootError {
+    pub const fn is_fatal(self) -> bool { !matches!(self, Self::None) }
+
+    pub const fn is_cpu_related(self) -> bool {
+        matches!(self, Self::CpuInitFailed | Self::NoCpuid | Self::NoLongMode | Self::NoSse |
+            Self::NoSse2 | Self::NoFxsr | Self::NoApic | Self::NoMsr | Self::NoPae |
+            Self::NoSmap | Self::NoSmep | Self::NoNx)
+    }
+
+    pub const fn is_memory_related(self) -> bool {
+        matches!(self, Self::InvalidPageTable | Self::PagingNotEnabled | Self::PaeNotEnabled |
+            Self::LongModeNotActive | Self::NoHigherHalf | Self::MemoryValidationFailed | Self::StackSetupFailed)
+    }
+}

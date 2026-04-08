@@ -14,18 +14,24 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod memory;
-mod cpu;
-mod sse;
-mod sse_enable;
-mod sse_avx;
-mod simd;
-mod simd_level;
-mod simd_types;
-#[cfg(test)]
-mod tests;
+use core::arch::asm;
 
-pub use memory::validate_memory;
-pub use cpu::validate_cpu_features;
-pub use sse::{enable_sse, enable_avx, enable_avx512, enable_sse_avx};
-pub use simd::{get_simd_support, SimdSupport, SimdLevel};
+#[inline]
+pub fn lfence() {
+    unsafe { asm!("lfence", options(nomem, nostack, preserves_flags)); }
+}
+
+#[inline]
+pub fn mfence() {
+    unsafe { asm!("mfence", options(nomem, nostack, preserves_flags)); }
+}
+
+#[inline]
+pub fn sfence() {
+    unsafe { asm!("sfence", options(nomem, nostack, preserves_flags)); }
+}
+
+#[inline]
+pub fn invlpg(addr: u64) {
+    unsafe { asm!("invlpg [{}]", in(reg) addr, options(nostack, preserves_flags)); }
+}

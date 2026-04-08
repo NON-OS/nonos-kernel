@@ -14,18 +14,28 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod memory;
-mod cpu;
-mod sse;
-mod sse_enable;
-mod sse_avx;
-mod simd;
-mod simd_level;
-mod simd_types;
-#[cfg(test)]
-mod tests;
+use core::arch::asm;
 
-pub use memory::validate_memory;
-pub use cpu::validate_cpu_features;
-pub use sse::{enable_sse, enable_avx, enable_avx512, enable_sse_avx};
-pub use simd::{get_simd_support, SimdSupport, SimdLevel};
+#[inline]
+pub fn read_cr4() -> u64 {
+    let value: u64;
+    unsafe { asm!("mov {}, cr4", out(reg) value, options(nomem, nostack, preserves_flags)); }
+    value
+}
+
+#[inline]
+pub unsafe fn write_cr4(value: u64) {
+    asm!("mov cr4, {}", in(reg) value, options(nomem, nostack, preserves_flags));
+}
+
+#[inline]
+pub fn read_cr8() -> u64 {
+    let value: u64;
+    unsafe { asm!("mov {}, cr8", out(reg) value, options(nomem, nostack, preserves_flags)); }
+    value
+}
+
+#[inline]
+pub unsafe fn write_cr8(value: u64) {
+    asm!("mov cr8, {}", in(reg) value, options(nomem, nostack, preserves_flags));
+}

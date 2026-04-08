@@ -16,7 +16,11 @@
 
 pub mod log;
 pub mod panic;
-pub mod main;
+mod main;
+mod main_start;
+mod main_early;
+mod main_late;
+mod main_cpu;
 #[cfg(test)]
 mod tests;
 

@@ -14,18 +14,34 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod memory;
-mod cpu;
-mod sse;
-mod sse_enable;
-mod sse_avx;
-mod simd;
-mod simd_level;
-mod simd_types;
-#[cfg(test)]
-mod tests;
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[repr(u8)]
+pub enum BootStage {
+    Entry = 0,
+    SerialInit = 1,
+    VgaInit = 2,
+    CpuDetect = 3,
+    GdtSetup = 4,
+    SegmentReload = 5,
+    SseEnable = 6,
+    IdtSetup = 7,
+    MemoryValidation = 8,
+    KernelTransfer = 9,
+    Complete = 10,
+}
 
-pub use memory::validate_memory;
-pub use cpu::validate_cpu_features;
-pub use sse::{enable_sse, enable_avx, enable_avx512, enable_sse_avx};
-pub use simd::{get_simd_support, SimdSupport, SimdLevel};
+impl BootStage {
+    pub const COUNT: usize = 11;
+}
+
+impl Default for BootStage {
+    fn default() -> Self {
+        Self::Entry
+    }
+}
+
+impl core::fmt::Display for BootStage {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        write!(f, "{}", self.as_str())
+    }
+}

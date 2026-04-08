@@ -14,18 +14,27 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod memory;
-mod cpu;
-mod sse;
-mod sse_enable;
-mod sse_avx;
-mod simd;
-mod simd_level;
-mod simd_types;
-#[cfg(test)]
-mod tests;
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+pub enum SimdLevel {
+    None = 0,
+    Sse = 1,
+    Sse2 = 2,
+    Sse3 = 3,
+    Ssse3 = 4,
+    Sse41 = 5,
+    Sse42 = 6,
+    Avx = 7,
+    Avx2 = 8,
+    Avx512 = 9,
+}
 
-pub use memory::validate_memory;
-pub use cpu::validate_cpu_features;
-pub use sse::{enable_sse, enable_avx, enable_avx512, enable_sse_avx};
-pub use simd::{get_simd_support, SimdSupport, SimdLevel};
+impl SimdLevel {
+    pub const fn register_width(&self) -> usize {
+        match self {
+            Self::None => 0,
+            Self::Sse | Self::Sse2 | Self::Sse3 | Self::Ssse3 | Self::Sse41 | Self::Sse42 => 128,
+            Self::Avx | Self::Avx2 => 256,
+            Self::Avx512 => 512,
+        }
+    }
+}

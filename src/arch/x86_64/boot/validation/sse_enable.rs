@@ -14,18 +14,26 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod memory;
-mod cpu;
-mod sse;
-mod sse_enable;
-mod sse_avx;
-mod simd;
-mod simd_level;
-mod simd_types;
-#[cfg(test)]
-mod tests;
+use super::super::constants::{CR4_OSFXSR, CR4_OSXMMEXCPT, CR4_OSXSAVE};
+use super::super::cpu_ops::{read_cr0, read_cr4, write_cr0, write_cr4};
+use super::super::error::BootError;
+use crate::arch::x86_64::cpu;
 
-pub use memory::validate_memory;
-pub use cpu::validate_cpu_features;
-pub use sse::{enable_sse, enable_avx, enable_avx512, enable_sse_avx};
-pub use simd::{get_simd_support, SimdSupport, SimdLevel};
+pub unsafe fn enable_sse() -> Result<(), BootError> {
+    let features = cpu::features();
+    if !features.sse { return Err(BootError::NoSse); }
+    if !features.sse2 { return Err(BootError::NoSse2); }
+    if !features.fxsr { return Err(BootError::NoFxsr); }
+
+    let mut cr0 = read_cr0();
+    cr0 &= !(1 << 2);
+    cr0 |= 1 << 1;
+    write_cr0(cr0);
+
+    let mut cr4 = read_cr4();
+    cr4 |= CR4_OSFXSR | CR4_OSXMMEXCPT;
+    if features.xsave { cr4 |= CR4_OSXSAVE; }
+    write_cr4(cr4);
+
+    Ok(())
+}

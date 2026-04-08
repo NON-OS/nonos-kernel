@@ -14,18 +14,31 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod memory;
-mod cpu;
-mod sse;
-mod sse_enable;
-mod sse_avx;
-mod simd;
-mod simd_level;
-mod simd_types;
-#[cfg(test)]
-mod tests;
+use core::arch::asm;
 
-pub use memory::validate_memory;
-pub use cpu::validate_cpu_features;
-pub use sse::{enable_sse, enable_avx, enable_avx512, enable_sse_avx};
-pub use simd::{get_simd_support, SimdSupport, SimdLevel};
+#[inline]
+pub fn cli() {
+    unsafe { asm!("cli", options(nomem, nostack, preserves_flags)); }
+}
+
+#[inline]
+pub fn sti() {
+    unsafe { asm!("sti", options(nomem, nostack, preserves_flags)); }
+}
+
+#[inline]
+pub fn hlt() {
+    unsafe { asm!("hlt", options(nomem, nostack, preserves_flags)); }
+}
+
+#[inline]
+pub fn pause() {
+    unsafe { asm!("pause", options(nomem, nostack, preserves_flags)); }
+}
+
+pub fn halt_loop() -> ! {
+    loop {
+        cli();
+        hlt();
+    }
+}

@@ -14,18 +14,25 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod memory;
-mod cpu;
-mod sse;
-mod sse_enable;
-mod sse_avx;
-mod simd;
-mod simd_level;
-mod simd_types;
-#[cfg(test)]
-mod tests;
+use core::sync::atomic::Ordering;
 
-pub use memory::validate_memory;
-pub use cpu::validate_cpu_features;
-pub use sse::{enable_sse, enable_avx, enable_avx512, enable_sse_avx};
-pub use simd::{get_simd_support, SimdSupport, SimdLevel};
+use super::stage::BootStage;
+use super::state_globals::*;
+use super::types::BootStats;
+
+pub fn get_stats() -> BootStats {
+    let mut stage_tsc = [0u64; BootStage::COUNT];
+    for i in 0..BootStage::COUNT {
+        stage_tsc[i] = STAGE_TSC[i].load(Ordering::Relaxed);
+    }
+
+    BootStats {
+        stage: BOOT_STAGE.load(Ordering::Relaxed),
+        error: BOOT_ERROR.load(Ordering::Relaxed),
+        complete: BOOT_COMPLETE.load(Ordering::Relaxed),
+        boot_tsc: BOOT_TSC.load(Ordering::Relaxed),
+        complete_tsc: stage_tsc[BootStage::Complete.as_u8() as usize],
+        exceptions: EXCEPTION_COUNT.load(Ordering::Relaxed),
+        stage_tsc,
+    }
+}

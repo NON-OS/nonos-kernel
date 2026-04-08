@@ -14,18 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod memory;
-mod cpu;
-mod sse;
-mod sse_enable;
-mod sse_avx;
-mod simd;
-mod simd_level;
-mod simd_types;
-#[cfg(test)]
-mod tests;
-
-pub use memory::validate_memory;
-pub use cpu::validate_cpu_features;
-pub use sse::{enable_sse, enable_avx, enable_avx512, enable_sse_avx};
-pub use simd::{get_simd_support, SimdSupport, SimdLevel};
+pub const BOOT_STACK_BASE: u64 = 0x100000;
+pub const BOOT_STACK_SIZE: u64 = 0x10000;
+pub const BOOT_STACK_TOP: u64 = BOOT_STACK_BASE + BOOT_STACK_SIZE - 16;
+pub const BOOT_STAGE_COUNT: usize = 11;

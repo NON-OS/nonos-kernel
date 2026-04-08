@@ -14,18 +14,25 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod memory;
-mod cpu;
-mod sse;
-mod sse_enable;
-mod sse_avx;
-mod simd;
-mod simd_level;
-mod simd_types;
-#[cfg(test)]
-mod tests;
+use super::stage_enum::BootStage;
 
-pub use memory::validate_memory;
-pub use cpu::validate_cpu_features;
-pub use sse::{enable_sse, enable_avx, enable_avx512, enable_sse_avx};
-pub use simd::{get_simd_support, SimdSupport, SimdLevel};
+impl BootStage {
+    pub const fn is_complete(self) -> bool {
+        matches!(self, Self::Complete)
+    }
+
+    pub const fn is_early(self) -> bool {
+        matches!(self, Self::Entry | Self::SerialInit | Self::VgaInit | Self::CpuDetect)
+    }
+
+    pub const fn has_interrupts(self) -> bool {
+        matches!(
+            self,
+            Self::IdtSetup | Self::MemoryValidation | Self::KernelTransfer | Self::Complete
+        )
+    }
+
+    pub fn all() -> impl Iterator<Item = Self> {
+        (0..Self::COUNT).map(|i| Self::from_u8(i as u8))
+    }
+}

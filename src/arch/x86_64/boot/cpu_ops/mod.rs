@@ -17,9 +17,13 @@
 mod tsc;
 mod msr;
 mod control_regs;
+mod control_regs_cr0;
+mod control_regs_cr4;
 mod xcr;
 mod flags;
 mod intrinsics;
+mod intrinsics_interrupt;
+mod intrinsics_fence;
 mod cpuid;
 #[cfg(all(test, not(feature = "std")))]
 mod tests;

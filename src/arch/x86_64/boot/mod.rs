@@ -15,6 +15,28 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod api;
+mod api_boot;
+mod api_cpu;
+mod constants_stack;
+mod constants_msr;
+mod constants_cr;
+mod constants_xcr;
+mod constants_segments;
+mod stage_enum;
+mod stage_convert;
+mod stage_nav;
+mod stage_query;
+mod state_globals;
+mod state_ops;
+mod state_ops_stage;
+mod state_ops_boot;
+mod state_stats;
+mod types_context;
+mod types_stats;
+mod error_types;
+mod error_convert;
+mod error_classify;
+
 pub mod constants;
 pub mod cpu_ops;
 pub mod entry;
