@@ -62,7 +62,7 @@ pub fn fd_open(path: &str, flags: i32) -> FdResult<i32> {
 
     let mut table = FD_TABLE.write();
     let fd = {
-        let mut candidate = NEXT_FD.fetch_add(1, Ordering::SeqCst);
+        let candidate = NEXT_FD.fetch_add(1, Ordering::SeqCst);
         if candidate > MAX_FD || table.contains_key(&candidate) {
             NEXT_FD.store(RESERVED_FDS, Ordering::SeqCst);
             let mut found_fd = None;
