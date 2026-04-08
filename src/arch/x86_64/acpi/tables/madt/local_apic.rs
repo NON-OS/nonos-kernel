@@ -14,63 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::header::MadtEntryHeader;
-
-#[repr(C, packed)]
-#[derive(Debug, Clone, Copy)]
-pub struct MadtLocalApic {
-    pub header: MadtEntryHeader,
-    pub processor_id: u8,
-    pub apic_id: u8,
-    pub flags: u32,
-}
-
-impl MadtLocalApic {
-    pub const ENABLED: u32 = 1 << 0;
-    pub const ONLINE_CAPABLE: u32 = 1 << 1;
-
-    pub fn is_enabled(&self) -> bool {
-        self.flags & Self::ENABLED != 0
-    }
-
-    pub fn is_online_capable(&self) -> bool {
-        self.flags & Self::ONLINE_CAPABLE != 0
-    }
-
-    pub fn is_usable(&self) -> bool {
-        self.is_enabled() || self.is_online_capable()
-    }
-}
-
-#[repr(C, packed)]
-#[derive(Debug, Clone, Copy)]
-pub struct MadtLocalApicNmi {
-    pub header: MadtEntryHeader,
-    pub processor_id: u8,
-    pub flags: u16,
-    pub lint: u8,
-}
-
-impl MadtLocalApicNmi {
-    pub const ALL_PROCESSORS: u8 = 0xFF;
-
-    pub fn applies_to_all(&self) -> bool {
-        self.processor_id == Self::ALL_PROCESSORS
-    }
-
-    pub fn polarity(&self) -> u8 {
-        (self.flags & 0x03) as u8
-    }
-
-    pub fn trigger_mode(&self) -> u8 {
-        ((self.flags >> 2) & 0x03) as u8
-    }
-}
-
-#[repr(C, packed)]
-#[derive(Debug, Clone, Copy)]
-pub struct MadtLocalApicOverride {
-    pub header: MadtEntryHeader,
-    pub reserved: u16,
-    pub address: u64,
-}
+pub use super::local_apic_entry::MadtLocalApic;
+pub use super::local_apic_nmi::MadtLocalApicNmi;
+pub use super::local_apic_override::MadtLocalApicOverride;

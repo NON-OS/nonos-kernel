@@ -16,13 +16,13 @@
 
 use alloc::vec::Vec;
 
-use super::data::{
+use crate::arch::x86_64::acpi::data::{
     AcpiStats, InterruptOverride, IoApicInfo, NmiConfig, NumaMemoryRegion, PcieSegment,
     ProcessorInfo,
 };
-use super::error::AcpiResult;
-use super::parser;
-use super::tables::PmProfile;
+use crate::arch::x86_64::acpi::error::AcpiResult;
+use crate::arch::x86_64::acpi::parser;
+use crate::arch::x86_64::acpi::tables::PmProfile;
 
 #[inline]
 pub fn init() -> AcpiResult<()> {
@@ -72,65 +72,4 @@ pub fn interrupt_overrides() -> Vec<InterruptOverride> {
 #[inline]
 pub fn nmi_configs() -> Vec<NmiConfig> {
     parser::nmi_configs()
-}
-
-#[inline]
-pub fn numa_regions() -> Vec<NumaMemoryRegion> {
-    parser::numa_regions()
-}
-
-#[inline]
-pub fn pcie_segments() -> Vec<PcieSegment> {
-    parser::pcie_segments()
-}
-
-#[inline]
-pub fn hpet_address() -> Option<u64> {
-    parser::hpet_address()
-}
-
-#[inline]
-pub fn pm_profile() -> Option<PmProfile> {
-    parser::pm_profile()
-}
-
-#[inline]
-pub fn sci_interrupt() -> Option<u16> {
-    parser::sci_interrupt()
-}
-
-#[inline]
-pub fn stats() -> AcpiStats {
-    parser::stats()
-}
-
-#[inline]
-pub fn has_table(signature: &[u8; 4]) -> bool {
-    parser::has_table(signature)
-}
-
-#[inline]
-pub fn table_address(signature: &[u8; 4]) -> Option<u64> {
-    parser::table_address(signature)
-}
-
-pub mod madt {
-    use super::*;
-
-    #[derive(Debug)]
-    pub struct ParsedMadt {
-        pub lapic_addr: u64,
-        pub ioapics: Vec<IoApicInfo>,
-        pub isos: Vec<InterruptOverride>,
-        pub nmis: Vec<NmiConfig>,
-    }
-
-    pub fn parse_madt() -> Option<ParsedMadt> {
-        Some(ParsedMadt {
-            lapic_addr: parser::lapic_address()?,
-            ioapics: parser::ioapics(),
-            isos: parser::interrupt_overrides(),
-            nmis: parser::nmi_configs(),
-        })
-    }
 }

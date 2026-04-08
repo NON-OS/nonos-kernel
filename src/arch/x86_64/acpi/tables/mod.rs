@@ -20,7 +20,16 @@ pub mod fadt;
 pub mod madt;
 pub mod hpet;
 pub mod mcfg;
+mod mcfg_types;
+mod mcfg_config;
+mod mcfg_bridge;
+mod mcfg_header;
+mod mcfg_class;
 pub mod srat;
+mod srat_types;
+mod srat_processor;
+mod srat_memory;
+mod srat_other;
 pub mod slit;
 
 pub use rsdp::*;

@@ -17,6 +17,8 @@
 pub mod state;
 pub mod rsdp;
 pub mod root;
+mod root_rsdt;
+mod root_xsdt;
 pub mod fadt;
 pub mod madt;
 pub mod other;
@@ -26,7 +28,7 @@ pub mod init;
 pub use state::is_initialized;
 pub use init::init;
 pub use getters::{
-    revision, oem_id, lapic_address, has_legacy_pics, processors, ioapics,
-    interrupt_overrides, nmi_configs, numa_regions, pcie_segments, hpet_address,
-    pm_profile, sci_interrupt, stats, has_table, table_address, with_data,
+    has_table, hpet_address, interrupt_overrides, ioapics, lapic_address, nmi_configs,
+    numa_regions, oem_id, pcie_segments, pm_profile, processors, revision, sci_interrupt,
+    stats, table_address, with_data, has_legacy_pics,
 };

@@ -15,11 +15,19 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod entry_types;
+mod entry_type_enum;
+mod entry_type_flags;
 mod header;
 mod local_apic;
+mod local_apic_entry;
+mod local_apic_nmi;
+mod local_apic_override;
 mod io_apic;
 mod interrupt;
 mod x2apic;
+mod x2apic_local;
+mod x2apic_nmi;
+mod x2apic_wakeup;
 
 pub use entry_types::{MadtEntryType, polarity, trigger};
 pub use header::{Madt, MadtEntryHeader, madt_flags};

@@ -15,13 +15,18 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod api;
+mod error_types;
+mod error_strings;
+mod power_types;
+mod power_sleep;
+mod power_reboot;
+mod power_query;
 pub mod data;
 pub mod devices;
 pub mod error;
 pub mod parser;
 pub mod power;
 pub mod tables;
-
 #[cfg(test)]
 mod tests;
 
@@ -31,7 +36,6 @@ pub use api::{
     revision, sci_interrupt, stats, table_address,
 };
 pub use api::madt;
-
 pub use data::{
     AcpiData, AcpiStats, InterruptOverride, IoApicInfo, NmiConfig, NumaMemoryRegion, PcieSegment,
     ProcessorInfo,

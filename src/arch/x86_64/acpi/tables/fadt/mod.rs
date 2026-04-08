@@ -17,9 +17,13 @@
 mod profile;
 mod flags;
 mod fadt;
+mod fadt_struct;
+mod fadt_methods;
+mod fadt_addresses;
+mod fadt_boot;
 mod pm_registers;
 
 pub use profile::PmProfile;
-pub use flags::{fadt_flags, boot_flags};
+pub use flags::{boot_flags, fadt_flags};
 pub use fadt::Fadt;
-pub use pm_registers::{pm1_status, pm1_enable, pm1_control};
+pub use pm_registers::{pm1_control, pm1_enable, pm1_status};
