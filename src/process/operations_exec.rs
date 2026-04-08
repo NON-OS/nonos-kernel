@@ -33,10 +33,11 @@ pub fn exec_process(path: &str, argv: &[String], envp: &[String]) -> Result<(), 
     if entry_point == 0 { return Err("executable has no entry point"); }
     {
         let mut mem = current.memory.lock();
-        for vma in mem.vmas.drain(..) {
-            let pages = (vma.end.as_u64() - vma.start.as_u64()) / 4096;
-            mem.resident_pages.fetch_sub(pages, Ordering::Relaxed);
-        }
+        let total_pages: u64 = mem.vmas.iter()
+            .map(|vma| (vma.end.as_u64() - vma.start.as_u64()) / 4096)
+            .sum();
+        mem.vmas.clear();
+        mem.resident_pages.fetch_sub(total_pages, Ordering::Relaxed);
         mem.code_start = x86_64::VirtAddr::new(0);
         mem.code_end = x86_64::VirtAddr::new(0);
         mem.next_va = 0x0000_4000_0000;

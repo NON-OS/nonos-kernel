@@ -75,7 +75,7 @@ fn lookup_kernel_symbol(name: &str) -> Option<u64> {
         "__stack_chk_fail" => Some(crate::libc::get_stack_chk_fail_addr()),
         "__cxa_atexit" => Some(crate::libc::get_cxa_atexit_addr()),
         "__gmon_start__" | "_ITM_deregisterTMCloneTable" | "_ITM_registerTMCloneTable" => Some(0),
-        _ => crate::elf::rtld::resolve_global_symbol(name).map(|r| r.address),
+        _ => crate::elf::rtld::resolve_global_symbol(name).map(|r| r.address as u64),
     }
 }
 

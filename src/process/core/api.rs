@@ -22,7 +22,7 @@ use super::pcb::ProcessControlBlock;
 use super::table::{PROCESS_TABLE, CURRENT_PID, ProcessTable};
 
 pub fn init_process_management() {
-    super::init::init_system_processes();
+    crate::process::core::init::init_system_processes();
     crate::log::info!("[PROCESS] Process management initialized");
 }
 
@@ -65,7 +65,7 @@ pub mod syscalls {
                 let ppid = pcb.ppid.load(Ordering::Acquire);
                 *pcb.state.lock() = ProcessState::Zombie(code);
                 crate::syscall::extended::process::record_child_exit(ppid, pid, code);
-                super::init::reparent_orphans(pid);
+                crate::process::core::init::reparent_orphans(pid);
                 crate::sched::remove_from_run_queue(pid);
             }
             CURRENT_PID.store(0, Ordering::Release);

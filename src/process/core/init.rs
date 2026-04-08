@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::table::types::{PROCESS_TABLE, CURRENT_PID};
+use super::table::{PROCESS_TABLE, CURRENT_PID};
 use super::types::{ProcessState, Priority};
 use super::table::create_process;
 use core::sync::atomic::Ordering;

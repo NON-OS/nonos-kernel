@@ -22,8 +22,8 @@ pub mod thread_group;
 pub mod table;
 pub mod isolation;
 pub mod suspend;
+pub mod init;
 pub mod api;
-mod init;
 
 pub use types::*;
 pub use pcb::ProcessControlBlock;
