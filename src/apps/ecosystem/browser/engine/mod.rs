@@ -24,6 +24,7 @@ mod jpeg;
 pub mod css;
 pub mod layout;
 pub mod dom;
+pub mod events;
 pub mod image_loader;
 
 pub use types::{
