@@ -239,3 +239,10 @@ pub fn eth_address(pk: &PublicKey) -> [u8; 20] {
     addr.copy_from_slice(&hash[12..32]);
     addr
 }
+
+pub fn address_from_secret(sk: &SecretKey) -> [u8; 20] {
+    match public_key_from_secret(sk) {
+        Some(pk) => eth_address(&pk),
+        None => [0u8; 20],
+    }
+}

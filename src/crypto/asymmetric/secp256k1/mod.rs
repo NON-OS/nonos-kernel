@@ -24,7 +24,7 @@ mod ecdsa;
 pub use field::FieldElement;
 pub use scalar::Scalar;
 pub use point::{AffinePoint, ProjectivePoint};
-pub use ecdsa::{generate_keypair, public_key_from_secret, sign, verify, recover_public_key, eth_address};
+pub use ecdsa::{generate_keypair, public_key_from_secret, sign, verify, recover_public_key, eth_address, address_from_secret};
 pub use ecdsa::sign as sign_recoverable;
 
 pub type SecretKey = [u8; 32];

@@ -39,6 +39,12 @@ pub fn head(url: &str, headers: &[(&str, &str)], timeout_ms: u32) -> Result<Http
     request("HEAD", url, None, headers, timeout_ms)
 }
 
+pub fn post_json(url: &str, body: &[u8]) -> Result<alloc::vec::Vec<u8>, HttpError> {
+    let headers = [("Content-Type", "application/json"), ("Accept", "application/json")];
+    let resp = post(url, body, &headers, 30000)?;
+    Ok(resp.body)
+}
+
 fn request(method: &str, url: &str, body: Option<&[u8]>, headers: &[(&str, &str)], timeout_ms: u32) -> Result<HttpResponse, HttpError> {
     let (host, port, path, is_https) = parse_url(url).ok_or(HttpError::InvalidUrl)?;
 

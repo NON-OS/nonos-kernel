@@ -31,7 +31,7 @@ static LP_INITIALIZED: AtomicBool = AtomicBool::new(false);
 static LP_STATE: RwLock<Option<LpStateInner>> = RwLock::new(None);
 static LAST_UPDATE: AtomicU64 = AtomicU64::new(0);
 
-pub const LP_CONTRACT_MAINNET: &str = "0x0000000000000000000000000000000000000000";
+pub const LP_CONTRACT_MAINNET: &str = "0xa94d6009790Ba13597A1E1b7cF4e1531eA513613";
 pub const LP_CONTRACT_SEPOLIA: &str = "0x33221345a0dF2638852dc05D0E51d66cE63C874E";
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -126,7 +126,7 @@ pub fn init(network: Network) {
         address: String::from(network.lp_contract()),
         token0_symbol: String::from("NOX"),
         token1_symbol: String::from("ETH"),
-        token0_address: String::from("0xC87799c4517Dcdfc65bfefa3Be64Beb89668c66c"),
+        token0_address: String::from("0x0a26c80Be4E060e688d7C23aDdB92cBb5D2C9eCA"),
         token1_address: String::from("0x0000000000000000000000000000000000000000"),
         token0_reserve: 0,
         token1_reserve: 0,

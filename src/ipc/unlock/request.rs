@@ -19,7 +19,10 @@ use alloc::vec::Vec;
 use super::types::{UnlockRequest, UnlockResponse, UnlockError};
 use crate::network::eth::{self, abi};
 
-const REGISTRY_ADDR: [u8; 20] = [0x00; 20];
+const REGISTRY_ADDR: [u8; 20] = [
+    0xB4, 0x7F, 0xBd, 0x4E, 0x66, 0x8f, 0xaD, 0x29, 0xC3, 0x74,
+    0x52, 0x3B, 0x1f, 0x7F, 0x82, 0xEA, 0x8b, 0xa1, 0x78, 0xD7,
+];
 
 pub fn request_unlock(req: &UnlockRequest) -> Result<UnlockResponse, UnlockError> {
     let calldata = encode_unlock_call(req);

@@ -20,5 +20,5 @@ mod request;
 mod stack_impl;
 mod types;
 
-pub use request::{delete, get, head, post, put};
+pub use request::{delete, get, head, post, post_json, put};
 pub use types::{HttpError, HttpResponse};

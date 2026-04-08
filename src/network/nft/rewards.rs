@@ -17,7 +17,10 @@
 use crate::network::eth::{self, abi};
 use super::types::{NftError, RewardInfo};
 
-pub const REWARD_POOL_ADDR: [u8; 20] = [0x00; 20];
+pub const REWARD_POOL_ADDR: [u8; 20] = [
+    0xF3, 0xA4, 0xbA, 0xc4, 0x62, 0x9A, 0xab, 0x57, 0x47, 0x31,
+    0xED, 0xf5, 0xA7, 0x8f, 0x4e, 0xc4, 0xFA, 0x14, 0x20, 0x79,
+];
 
 pub fn get_claimable(token_id: u64) -> Result<u128, NftError> {
     let mut calldata = abi::selector("claimable(uint256)").to_vec();

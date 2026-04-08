@@ -19,7 +19,10 @@ use alloc::vec::Vec;
 use crate::network::eth::{self, abi};
 use super::types::{MarketError, CapsuleListing};
 
-pub const REGISTRY_ADDR: [u8; 20] = [0x00; 20];
+pub const REGISTRY_ADDR: [u8; 20] = [
+    0xB4, 0x7F, 0xBd, 0x4E, 0x66, 0x8f, 0xaD, 0x29, 0xC3, 0x74,
+    0x52, 0x3B, 0x1f, 0x7F, 0x82, 0xEA, 0x8b, 0xa1, 0x78, 0xD7,
+];
 
 pub fn register_capsule(ipfs_cid: &str, manifest_hash: &[u8; 32], price: u128, caps: u64) -> Result<[u8; 32], MarketError> {
     let calldata = encode_register(ipfs_cid, manifest_hash, price, caps);

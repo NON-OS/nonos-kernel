@@ -27,10 +27,10 @@ pub fn fetch(content_id: &str) -> Result<Vec<u8>, FetchError> {
     if !cid::validate(content_id) { return Err(FetchError::InvalidCid); }
     for _ in 0..gateway::GATEWAYS.len() {
         let url = gateway::get_url(content_id);
-        match crate::network::http::get(&url) {
-            Ok(data) => {
-                if data.len() > MAX_SIZE { return Err(FetchError::TooLarge); }
-                return Ok(data);
+        match crate::network::http::get(&url, &[], 60000) {
+            Ok(resp) => {
+                if resp.body.len() > MAX_SIZE { return Err(FetchError::TooLarge); }
+                return Ok(resp.body);
             }
             Err(_) => gateway::rotate_gateway(),
         }

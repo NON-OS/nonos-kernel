@@ -20,7 +20,7 @@ use alloc::{string::String, sync::Arc, vec::Vec};
 
 use crate::runtime::nonos_capsule::{Capsule, CapsuleQuotas};
 use crate::runtime::nonos_isolation::{IsolationPolicy, IsolationState};
-use crate::syscall::capabilities::CapabilityToken;
+use crate::capabilities::CapabilityToken;
 
 use super::registry::get_registry;
 

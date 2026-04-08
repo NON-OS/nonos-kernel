@@ -17,7 +17,10 @@
 use crate::network::eth::{self, abi};
 use super::types::{NftError, NftInfo};
 
-pub const ZEROSTATE_ADDR: [u8; 20] = [0x00; 20];
+pub const ZEROSTATE_ADDR: [u8; 20] = [
+    0x7b, 0x57, 0x5D, 0xD8, 0xe8, 0xb1, 0x11, 0xc5, 0x2A, 0xb1,
+    0xe8, 0x72, 0x92, 0x4d, 0x4E, 0xfd, 0x4D, 0xF4, 0x03, 0xdf,
+];
 
 pub fn balance_of(owner: &[u8; 20]) -> Result<u64, NftError> {
     let mut calldata = abi::selector("balanceOf(address)").to_vec();

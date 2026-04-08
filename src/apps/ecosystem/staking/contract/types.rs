@@ -36,8 +36,8 @@ impl StakingContract {
 
     pub fn for_network(network: RpcNetwork) -> Option<Self> {
         match network {
-            RpcNetwork::Mainnet => Some(Self::new("0x00000000219ab540356cBB839Cbe05303d7705Fa", "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2")),
-            RpcNetwork::Sepolia => Some(Self::new("0x7f39C581F595B53c5cb19bD0b3f8dA6c935E2Ca0", "0x7f39C581F595B53c5cb19bD0b3f8dA6c935E2Ca0")),
+            RpcNetwork::Mainnet => Some(Self::new("0xa94d6009790Ba13597A1E1b7cF4e1531eA513613", "0x0a26c80Be4E060e688d7C23aDdB92cBb5D2C9eCA")),
+            RpcNetwork::Sepolia => Some(Self::new("0x7c34956eb5e92460307846D754dD4d1a2400B652", "0xC87799c4517Dcdfc65bfefa3Be64Beb89668c66c")),
             RpcNetwork::Localhost => None,
         }
     }
