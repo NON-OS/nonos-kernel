@@ -23,6 +23,7 @@ mod svg;
 mod jpeg;
 pub mod css;
 pub mod layout;
+pub mod dom;
 pub mod image_loader;
 
 pub use types::{
