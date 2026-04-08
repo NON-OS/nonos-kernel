@@ -14,22 +14,18 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
+#[inline]
+pub unsafe fn read_cr4() -> u64 {
+    let cr4: u64;
+    unsafe {
+        core::arch::asm!("mov {}, cr4", out(reg) cr4);
+    }
+    cr4
+}
 
-use crate::arch::x86_64::smm::error::SmmError;
-use crate::arch::x86_64::smm::types::CpuVendor;
-use super::state::SmmManager;
-
-impl SmmManager {
-    pub(crate) fn enable_protection(&self, vendor: CpuVendor) -> Result<(), SmmError> {
-        match vendor {
-            CpuVendor::Intel => self.enable_intel_protection()?,
-            CpuVendor::Amd => self.enable_amd_protection()?,
-            CpuVendor::Unknown => {
-                crate::log::info!("Unknown CPU, skipping SMM protection");
-            }
-        }
-        self.protection_enabled.store(true, Ordering::SeqCst);
-        Ok(())
+#[inline]
+pub unsafe fn write_cr4(value: u64) {
+    unsafe {
+        core::arch::asm!("mov cr4, {}", in(reg) value);
     }
 }

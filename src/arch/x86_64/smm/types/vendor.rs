@@ -14,22 +14,32 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum CpuVendor {
+    Intel,
+    Amd,
+    Unknown,
+}
 
-use crate::arch::x86_64::smm::error::SmmError;
-use crate::arch::x86_64::smm::types::CpuVendor;
-use super::state::SmmManager;
+impl CpuVendor {
+    pub fn detect() -> Self {
+        let result = core::arch::x86_64::__cpuid(0);
+        let vendor_bytes: [u8; 12] = unsafe {
+            core::mem::transmute([result.ebx, result.edx, result.ecx])
+        };
 
-impl SmmManager {
-    pub(crate) fn enable_protection(&self, vendor: CpuVendor) -> Result<(), SmmError> {
-        match vendor {
-            CpuVendor::Intel => self.enable_intel_protection()?,
-            CpuVendor::Amd => self.enable_amd_protection()?,
-            CpuVendor::Unknown => {
-                crate::log::info!("Unknown CPU, skipping SMM protection");
-            }
+        match &vendor_bytes {
+            b"GenuineIntel" => Self::Intel,
+            b"AuthenticAMD" => Self::Amd,
+            _ => Self::Unknown,
         }
-        self.protection_enabled.store(true, Ordering::SeqCst);
-        Ok(())
+    }
+
+    pub const fn name(&self) -> &'static str {
+        match self {
+            Self::Intel => "Intel",
+            Self::Amd => "AMD",
+            Self::Unknown => "Unknown",
+        }
     }
 }

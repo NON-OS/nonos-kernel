@@ -14,22 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
+mod memory;
+mod msr;
+mod smi;
+mod smramc;
+#[cfg(test)]
+mod tests;
 
-use crate::arch::x86_64::smm::error::SmmError;
-use crate::arch::x86_64::smm::types::CpuVendor;
-use super::state::SmmManager;
-
-impl SmmManager {
-    pub(crate) fn enable_protection(&self, vendor: CpuVendor) -> Result<(), SmmError> {
-        match vendor {
-            CpuVendor::Intel => self.enable_intel_protection()?,
-            CpuVendor::Amd => self.enable_amd_protection()?,
-            CpuVendor::Unknown => {
-                crate::log::info!("Unknown CPU, skipping SMM protection");
-            }
-        }
-        self.protection_enabled.store(true, Ordering::SeqCst);
-        Ok(())
-    }
-}
+pub use memory::*;
+pub use msr::{amd_msr, cr4, intel_msr};
+pub use smi::{smi_en, SMI_EN_OFFSET, SMI_STS_OFFSET};
+pub use smramc::{smramc, SMRAMC_REGISTER};

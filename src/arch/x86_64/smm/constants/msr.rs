@@ -14,22 +14,21 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::Ordering;
+pub mod amd_msr {
+    pub const SMM_BASE: u32 = 0xC001_0111;
+    pub const SMM_ADDR: u32 = 0xC001_0112;
+    pub const SMM_MASK: u32 = 0xC001_0113;
+    pub const LOCK_BIT: u64 = 0x2;
+}
 
-use crate::arch::x86_64::smm::error::SmmError;
-use crate::arch::x86_64::smm::types::CpuVendor;
-use super::state::SmmManager;
+pub mod intel_msr {
+    pub const IA32_FEATURE_CONTROL: u32 = 0x3A;
+    pub const SMM_FEATURE_CONTROL: u32 = 0x4E0;
+    pub const SMM_CODE_CHK_EN: u64 = 0x1;
+    pub const SMM_BWP: u64 = 0x2;
+}
 
-impl SmmManager {
-    pub(crate) fn enable_protection(&self, vendor: CpuVendor) -> Result<(), SmmError> {
-        match vendor {
-            CpuVendor::Intel => self.enable_intel_protection()?,
-            CpuVendor::Amd => self.enable_amd_protection()?,
-            CpuVendor::Unknown => {
-                crate::log::info!("Unknown CPU, skipping SMM protection");
-            }
-        }
-        self.protection_enabled.store(true, Ordering::SeqCst);
-        Ok(())
-    }
+pub mod cr4 {
+    pub const SMEP: u64 = 1 << 20;
+    pub const SMAP: u64 = 1 << 21;
 }

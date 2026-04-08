@@ -14,39 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use alloc::vec::Vec;
-
-#[inline]
-pub unsafe fn read_msr(msr: u32) -> u64 {
-    let lo: u32;
-    let hi: u32;
-    unsafe {
-        core::arch::asm!(
-            "rdmsr",
-            in("ecx") msr,
-            out("eax") lo,
-            out("edx") hi,
-            options(nomem, nostack, preserves_flags)
-        );
-    }
-    ((hi as u64) << 32) | (lo as u64)
-}
-
-#[inline]
-pub unsafe fn write_msr(msr: u32, value: u64) {
-    let lo = value as u32;
-    let hi = (value >> 32) as u32;
-    unsafe {
-        core::arch::asm!(
-            "wrmsr",
-            in("ecx") msr,
-            in("eax") lo,
-            in("edx") hi,
-            options(nomem, nostack, preserves_flags)
-        );
-    }
-}
-
 pub fn read_pci_byte(bus: u8, device: u8, function: u8, offset: u16) -> u8 {
     let address = 0x80000000u32
         | ((bus as u32) << 16)
@@ -94,34 +61,5 @@ pub fn read_pci_dword(bus: u8, device: u8, function: u8, offset: u16) -> u32 {
 pub fn get_acpi_pm_base() -> Option<u16> {
     let pm_base = read_pci_dword(0, 31, 0, 0x40);
     let base = (pm_base & 0xFF80) as u16;
-    if base != 0 {
-        Some(base)
-    } else {
-        None
-    }
-}
-
-#[inline]
-pub unsafe fn read_cr4() -> u64 {
-    let cr4: u64;
-    unsafe {
-        core::arch::asm!("mov {}, cr4", out(reg) cr4);
-    }
-    cr4
-}
-
-#[inline]
-pub unsafe fn write_cr4(value: u64) {
-    unsafe {
-        core::arch::asm!("mov cr4, {}", in(reg) value);
-    }
-}
-
-pub fn read_smram(base: u64, size: usize) -> Vec<u8> {
-    let mut data = alloc::vec![0u8; size];
-    for i in 0..size {
-        let ptr = (base + i as u64) as *const u8;
-        data[i] = unsafe { core::ptr::read_volatile(ptr) };
-    }
-    data
+    if base != 0 { Some(base) } else { None }
 }

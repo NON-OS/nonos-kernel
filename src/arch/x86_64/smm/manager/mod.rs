@@ -14,13 +14,17 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod state;
 mod detect;
+mod detect_amd;
+mod detect_intel;
 mod handlers;
-mod protection;
-mod verify;
-mod monitor;
 mod init;
+mod monitor;
 mod ops;
+mod protection;
+mod protection_amd;
+mod protection_intel;
+mod state;
+mod verify;
 
 pub use state::{SmmManager, SMM_MANAGER};
