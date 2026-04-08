@@ -14,28 +14,20 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod api;
-pub mod constants;
-pub mod entry;
-mod entry_types;
-mod entry_idt;
-mod entry_frame;
-pub mod error;
-mod handlers;
-pub mod ops;
-mod state;
-pub mod table;
+pub trait FnPtr {
+    fn addr(self) -> u64;
+}
 
-#[cfg(test)]
-mod tests;
+impl<T> FnPtr for T
+where
+    T: Copy,
+{
+    #[inline]
+    fn addr(self) -> u64 {
+        let ptr = &self as *const T as *const ();
+        unsafe { core::ptr::read(ptr as *const u64) }
+    }
+}
 
-pub use api::verify_idt_integrity;
-pub use constants::*;
-pub use entry::{ExceptionHandler, ExceptionHandlerWithError, FnPtr, IdtEntry, InterruptFrame};
-pub use entry::PageFaultError;
-pub use error::IdtError;
-pub use ops::{are_enabled, disable, disable_pic, enable, get_pic_masks, get_stats};
-pub use ops::{get_vector_count, init, is_initialized, register_handler, register_irq_handler};
-pub use ops::{register_syscall_handler, remap_pic, set_pic_masks, unregister_irq_handler};
-pub use ops::{without_interrupts, IdtStats};
-pub use table::{Idt, IdtPtr};
+pub type ExceptionHandler = extern "C" fn(&mut super::entry_frame::InterruptFrame);
+pub type ExceptionHandlerWithError = extern "C" fn(&mut super::entry_frame::InterruptFrame, u64);

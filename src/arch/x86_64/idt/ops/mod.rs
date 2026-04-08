@@ -15,13 +15,16 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod init;
+mod init_exceptions;
+mod init_irqs;
 mod handlers;
 mod pic;
 mod interrupt;
 mod stats;
 
 pub use init::{init, is_initialized};
-pub use handlers::{register_irq_handler, unregister_irq_handler, register_syscall_handler, register_handler};
+pub use handlers::{register_irq_handler, unregister_irq_handler, register_syscall_handler};
+pub use handlers::register_handler;
 pub use pic::{remap_pic, disable_pic, set_pic_masks, get_pic_masks};
 pub use interrupt::{enable, disable, are_enabled, without_interrupts};
 pub use stats::{IdtStats, get_stats, get_vector_count};

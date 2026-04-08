@@ -15,12 +15,18 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod isr;
+mod isr_exceptions;
+mod isr_irqs;
 mod common;
 mod dispatch;
+mod dispatch_exception;
+mod dispatch_other;
 mod utils;
+mod utils_io;
+mod utils_panic;
 mod exports;
 
-pub(crate) use utils::{outb, inb, io_wait};
+pub(crate) use utils::{inb, io_wait, outb};
 pub(crate) use exports::*;
 
 pub(crate) fn acknowledge_interrupt(irq: u8) {
