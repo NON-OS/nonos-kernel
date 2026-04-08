@@ -14,7 +14,46 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub use super::state_globals::{is_initialized, cpu_count};
-pub use super::state_init::{init, init_ap};
-pub use super::state_getters::{vendor, cpu_id, features, cache_info, topology, per_cpu_data, current_cpu_id, has_feature};
-pub use super::state_stats::{CpuStats, get_stats};
+use core::arch::asm;
+
+#[inline]
+pub fn pause() {
+    unsafe {
+        asm!("pause", options(nomem, nostack, preserves_flags));
+    }
+}
+
+#[inline]
+pub fn hlt() {
+    unsafe {
+        asm!("hlt", options(nomem, nostack));
+    }
+}
+
+#[inline]
+pub fn cli() {
+    unsafe {
+        asm!("cli", options(nomem, nostack));
+    }
+}
+
+#[inline]
+pub fn sti() {
+    unsafe {
+        asm!("sti", options(nomem, nostack));
+    }
+}
+
+#[inline]
+pub fn interrupts_enabled() -> bool {
+    let flags: u64;
+    unsafe {
+        asm!(
+            "pushfq",
+            "pop {}",
+            out(reg) flags,
+            options(nomem, preserves_flags)
+        );
+    }
+    (flags & (1 << 9)) != 0
+}

@@ -14,7 +14,20 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub use super::state_globals::{is_initialized, cpu_count};
-pub use super::state_init::{init, init_ap};
-pub use super::state_getters::{vendor, cpu_id, features, cache_info, topology, per_cpu_data, current_cpu_id, has_feature};
-pub use super::state_stats::{CpuStats, get_stats};
+pub fn decode_l2_assoc(encoded: u8) -> u16 {
+    match encoded {
+        0 => 0,
+        1 => 1,
+        2 => 2,
+        4 => 4,
+        6 => 8,
+        8 => 16,
+        10 => 32,
+        11 => 48,
+        12 => 64,
+        13 => 96,
+        14 => 128,
+        15 => 0,
+        _ => 0,
+    }
+}

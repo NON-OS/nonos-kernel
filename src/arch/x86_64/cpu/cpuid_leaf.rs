@@ -14,7 +14,16 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub use super::state_globals::{is_initialized, cpu_count};
-pub use super::state_init::{init, init_ap};
-pub use super::state_getters::{vendor, cpu_id, features, cache_info, topology, per_cpu_data, current_cpu_id, has_feature};
-pub use super::state_stats::{CpuStats, get_stats};
+use super::cpuid_core::cpuid;
+
+#[inline]
+pub fn cpuid_max_leaf() -> u32 {
+    let (eax, _, _, _) = cpuid(0);
+    eax
+}
+
+#[inline]
+pub fn cpuid_max_extended_leaf() -> u32 {
+    let (eax, _, _, _) = cpuid(0x80000000);
+    eax
+}

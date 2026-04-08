@@ -15,20 +15,45 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod api;
+mod api_init;
+mod api_getters;
 pub mod cache;
+mod cache_types;
+mod cache_detect;
+mod cache_extended;
+mod cache_assoc;
 pub mod control;
+mod control_fence;
+mod control_intr;
 pub mod cpuid;
+mod cpuid_core;
+mod cpuid_stats;
+mod cpuid_leaf;
 pub mod error;
 pub mod features;
 pub mod frequency;
+mod frequency_cpuid;
+mod frequency_pit;
+mod frequency_api;
 pub mod identification;
+mod identification_types;
+mod identification_detect;
 pub mod msr;
+mod msr_core;
+mod msr_stats;
+mod msr_safe;
 pub mod per_cpu;
 pub mod state;
+mod state_globals;
+mod state_init;
+mod state_getters;
+mod state_stats;
 pub mod thermal;
 pub mod topology;
+mod topology_types;
+mod topology_detect;
+mod topology_leaf0b;
 pub mod tsc;
-
 mod vendor;
 
 pub use api::{

@@ -14,7 +14,20 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub use super::state_globals::{is_initialized, cpu_count};
-pub use super::state_init::{init, init_ap};
-pub use super::state_getters::{vendor, cpu_id, features, cache_info, topology, per_cpu_data, current_cpu_id, has_feature};
-pub use super::state_stats::{CpuStats, get_stats};
+use super::error::CpuError;
+use super::msr_core::{rdmsr, wrmsr};
+
+pub fn try_rdmsr(msr: u32) -> Result<u64, CpuError> {
+    if msr > 0xC0002FFF && msr < 0xC0010000 {
+        return Err(CpuError::InvalidMsr);
+    }
+    Ok(rdmsr(msr))
+}
+
+pub fn try_wrmsr(msr: u32, value: u64) -> Result<(), CpuError> {
+    if msr > 0xC0002FFF && msr < 0xC0010000 {
+        return Err(CpuError::InvalidMsr);
+    }
+    wrmsr(msr, value);
+    Ok(())
+}

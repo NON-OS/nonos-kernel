@@ -14,76 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use super::cache::CacheInfo;
-use super::error::CpuError;
-use super::features::CpuFeatures;
-use super::identification::CpuId;
-use super::per_cpu::PerCpuData;
-use super::state::{self, CpuStats};
-use super::topology::CpuTopology;
-use super::vendor::CpuVendor;
-
-#[inline]
-pub fn init() -> Result<(), CpuError> {
-    state::init()
-}
-
-#[inline]
-pub unsafe fn init_ap(cpu_id: u16, apic_id: u32) -> Result<(), CpuError> {
-    unsafe { state::init_ap(cpu_id, apic_id) }
-}
-
-#[inline]
-pub fn is_initialized() -> bool {
-    state::is_initialized()
-}
-
-#[inline]
-pub fn vendor() -> CpuVendor {
-    state::vendor()
-}
-
-#[inline]
-pub fn cpu_id() -> CpuId {
-    state::cpu_id()
-}
-
-#[inline]
-pub fn features() -> CpuFeatures {
-    state::features()
-}
-
-#[inline]
-pub fn cache_info() -> CacheInfo {
-    state::cache_info()
-}
-
-#[inline]
-pub fn topology() -> CpuTopology {
-    state::topology()
-}
-
-#[inline]
-pub fn per_cpu_data(cpu_id: u16) -> Option<PerCpuData> {
-    state::per_cpu_data(cpu_id)
-}
-
-#[inline]
-pub fn cpu_count() -> u32 {
-    state::cpu_count()
-}
-
-#[inline]
-pub fn current_cpu_id() -> u16 {
-    state::current_cpu_id()
-}
-
-#[inline]
-pub fn has_feature(name: &str) -> bool {
-    state::has_feature(name)
-}
-
-#[inline]
-pub fn get_stats() -> CpuStats {
-    state::get_stats()
-}
+pub use super::api_init::{init, init_ap, is_initialized};
+pub use super::api_getters::{
+    cache_info, cpu_count, cpu_id, current_cpu_id, features, get_stats, has_feature,
+    per_cpu_data, topology, vendor,
+};

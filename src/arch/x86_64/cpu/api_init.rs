@@ -14,7 +14,20 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub use super::state_globals::{is_initialized, cpu_count};
-pub use super::state_init::{init, init_ap};
-pub use super::state_getters::{vendor, cpu_id, features, cache_info, topology, per_cpu_data, current_cpu_id, has_feature};
-pub use super::state_stats::{CpuStats, get_stats};
+use super::error::CpuError;
+use super::state;
+
+#[inline]
+pub fn init() -> Result<(), CpuError> {
+    state::init()
+}
+
+#[inline]
+pub unsafe fn init_ap(cpu_id: u16, apic_id: u32) -> Result<(), CpuError> {
+    unsafe { state::init_ap(cpu_id, apic_id) }
+}
+
+#[inline]
+pub fn is_initialized() -> bool {
+    state::is_initialized()
+}

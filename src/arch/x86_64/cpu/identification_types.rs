@@ -14,7 +14,30 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub use super::state_globals::{is_initialized, cpu_count};
-pub use super::state_init::{init, init_ap};
-pub use super::state_getters::{vendor, cpu_id, features, cache_info, topology, per_cpu_data, current_cpu_id, has_feature};
-pub use super::state_stats::{CpuStats, get_stats};
+use super::vendor::CpuVendor;
+
+#[derive(Debug, Clone, Copy)]
+pub struct CpuId {
+    pub vendor: CpuVendor,
+    pub family: u8,
+    pub ext_family: u8,
+    pub model: u8,
+    pub ext_model: u8,
+    pub stepping: u8,
+    pub brand_index: u8,
+    pub clflush_size: u8,
+    pub max_logical_processors: u8,
+    pub apic_id: u8,
+    pub display_family: u16,
+    pub display_model: u8,
+}
+
+impl CpuId {
+    pub const fn new() -> Self {
+        Self {
+            vendor: CpuVendor::Unknown, family: 0, ext_family: 0, model: 0, ext_model: 0,
+            stepping: 0, brand_index: 0, clflush_size: 0, max_logical_processors: 0,
+            apic_id: 0, display_family: 0, display_model: 0,
+        }
+    }
+}

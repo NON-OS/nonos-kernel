@@ -15,7 +15,12 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod types;
+mod types_struct;
+mod types_new;
 mod detect;
+mod detect_leaf1;
+mod detect_leaf7;
+mod detect_extended;
 mod lookup;
 
 pub use types::CpuFeatures;

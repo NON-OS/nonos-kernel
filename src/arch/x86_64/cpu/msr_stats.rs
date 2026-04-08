@@ -14,7 +14,25 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub use super::state_globals::{is_initialized, cpu_count};
-pub use super::state_init::{init, init_ap};
-pub use super::state_getters::{vendor, cpu_id, features, cache_info, topology, per_cpu_data, current_cpu_id, has_feature};
-pub use super::state_stats::{CpuStats, get_stats};
+use core::sync::atomic::{AtomicU64, Ordering};
+
+static MSR_READS: AtomicU64 = AtomicU64::new(0);
+static MSR_WRITES: AtomicU64 = AtomicU64::new(0);
+
+#[inline]
+pub fn increment_reads() {
+    MSR_READS.fetch_add(1, Ordering::Relaxed);
+}
+
+#[inline]
+pub fn increment_writes() {
+    MSR_WRITES.fetch_add(1, Ordering::Relaxed);
+}
+
+pub fn msr_reads() -> u64 {
+    MSR_READS.load(Ordering::Relaxed)
+}
+
+pub fn msr_writes() -> u64 {
+    MSR_WRITES.load(Ordering::Relaxed)
+}

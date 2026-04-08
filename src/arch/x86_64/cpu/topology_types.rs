@@ -14,7 +14,13 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub use super::state_globals::{is_initialized, cpu_count};
-pub use super::state_init::{init, init_ap};
-pub use super::state_getters::{vendor, cpu_id, features, cache_info, topology, per_cpu_data, current_cpu_id, has_feature};
-pub use super::state_stats::{CpuStats, get_stats};
+#[derive(Debug, Clone, Copy, Default)]
+pub struct CpuTopology {
+    pub packages: u16,
+    pub cores_per_package: u16,
+    pub threads_per_core: u16,
+    pub logical_processors: u16,
+    pub physical_cores: u16,
+    pub smt_width: u8,
+    pub core_width: u8,
+}

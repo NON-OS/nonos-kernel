@@ -14,7 +14,31 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub use super::state_globals::{is_initialized, cpu_count};
-pub use super::state_init::{init, init_ap};
-pub use super::state_getters::{vendor, cpu_id, features, cache_info, topology, per_cpu_data, current_cpu_id, has_feature};
-pub use super::state_stats::{CpuStats, get_stats};
+use core::arch::asm;
+use super::cpuid::cpuid;
+
+#[inline]
+pub fn lfence() {
+    unsafe {
+        asm!("lfence", options(nomem, nostack));
+    }
+}
+
+#[inline]
+pub fn mfence() {
+    unsafe {
+        asm!("mfence", options(nomem, nostack));
+    }
+}
+
+#[inline]
+pub fn sfence() {
+    unsafe {
+        asm!("sfence", options(nomem, nostack));
+    }
+}
+
+#[inline]
+pub fn serialize() {
+    let _: (u32, u32, u32, u32) = cpuid(0);
+}
