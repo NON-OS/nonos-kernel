@@ -19,7 +19,4 @@ mod pit;
 mod hpet;
 mod calibrate;
 
-pub use cpuid::get_cpuid_frequency;
-pub use pit::calibrate_with_pit;
-pub use hpet::calibrate_with_hpet;
 pub use calibrate::{calibrate, calibrate_with_hpet_base, set_frequency, get_frequency, get_frequency_mhz};

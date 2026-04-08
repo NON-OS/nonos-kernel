@@ -14,6 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub use super::bcd::{bcd_to_bin, bin_to_bcd, is_valid_bcd};
-pub use super::calendar::{is_leap_year, days_in_month, day_of_week, day_of_year, day_name, month_name};
+pub use super::bcd::{bcd_to_bin, bin_to_bcd};
+pub use super::calendar::{is_leap_year, days_in_month, day_of_week, day_name, month_name};
 pub use super::unix::{datetime_to_unix, unix_to_datetime};
