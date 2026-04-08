@@ -18,6 +18,8 @@ mod header;
 mod runtime;
 mod time;
 mod memory;
+mod memory_desc;
+mod memory_type;
 mod tests;
 
 pub use header::TableHeader;

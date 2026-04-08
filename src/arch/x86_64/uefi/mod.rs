@@ -20,6 +20,8 @@ pub mod crc;
 pub mod error;
 pub mod manager;
 pub mod secure_boot;
+mod secure_boot_status;
+mod secure_boot_ops;
 pub mod signature;
 pub mod stats;
 pub mod tables;
