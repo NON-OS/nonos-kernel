@@ -14,8 +14,5 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod rsdp_base;
-mod rsdp_extended;
-
-pub use rsdp_base::{Rsdp, RSDP_SIGNATURE, RSDP_ALIGNMENT, EBDA_PTR_ADDR, BIOS_ROM_START, BIOS_ROM_SIZE};
-pub use rsdp_extended::RsdpExtended;
+pub use super::rsdp_base::*;
+pub use super::rsdp_extended::*;

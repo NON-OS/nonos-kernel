@@ -14,21 +14,23 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod state;
-pub mod rsdp;
-pub mod root;
-mod root_rsdt;
-mod root_xsdt;
 pub mod fadt;
+mod getters_core;
+mod getters_table;
+pub mod init;
 pub mod madt;
 pub mod other;
-pub mod getters;
-pub mod init;
+pub mod rsdp;
+mod root_rsdt;
+mod root_xsdt;
+pub mod state;
 
-pub use state::is_initialized;
-pub use init::init;
-pub use getters::{
-    has_table, hpet_address, interrupt_overrides, ioapics, lapic_address, nmi_configs,
+pub use getters_core::{
+    has_legacy_pics, hpet_address, interrupt_overrides, ioapics, lapic_address, nmi_configs,
     numa_regions, oem_id, pcie_segments, pm_profile, processors, revision, sci_interrupt,
-    stats, table_address, with_data, has_legacy_pics,
 };
+pub use getters_table::{has_table, stats, table_address, with_data};
+pub use init::init;
+pub use root_rsdt::parse_rsdt;
+pub use root_xsdt::parse_xsdt;
+pub use state::is_initialized;

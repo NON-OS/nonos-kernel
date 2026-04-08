@@ -15,8 +15,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use super::acpi_data_struct::AcpiData;
-use super::types::IoApicInfo;
-use super::types::InterruptOverride;
+use super::ioapic::IoApicInfo;
+use super::interrupt::InterruptOverride;
 
 impl AcpiData {
     pub fn processor_count(&self) -> usize {

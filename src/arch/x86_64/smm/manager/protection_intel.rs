@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::arch::x86_64::smm::constants::{smramc, SMRAMC_REGISTER};
+use crate::arch::x86_64::smm::constants::{smramc_bits, SMRAMC_REGISTER};
 use crate::arch::x86_64::smm::error::SmmError;
 use crate::arch::x86_64::smm::hw::{read_pci_byte, write_pci_byte};
 use super::state::SmmManager;
@@ -23,14 +23,14 @@ impl SmmManager {
     pub(super) fn enable_intel_protection(&self) -> Result<(), SmmError> {
         let mut smramc_val = read_pci_byte(0, 0, 0, SMRAMC_REGISTER);
 
-        if (smramc_val & smramc::D_LCK) == 0 {
-            smramc_val |= smramc::D_LCK;
+        if (smramc_val & smramc_bits::D_LCK) == 0 {
+            smramc_val |= smramc_bits::D_LCK;
             write_pci_byte(0, 0, 0, SMRAMC_REGISTER, smramc_val);
             crate::log::info!("Intel SMRAM: D_LCK set");
         }
 
-        if (smramc_val & smramc::D_OPEN) != 0 {
-            smramc_val &= !smramc::D_OPEN;
+        if (smramc_val & smramc_bits::D_OPEN) != 0 {
+            smramc_val &= !smramc_bits::D_OPEN;
             write_pci_byte(0, 0, 0, SMRAMC_REGISTER, smramc_val);
             crate::log::info!("Intel SMRAM: D_OPEN cleared");
         }

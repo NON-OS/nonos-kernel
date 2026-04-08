@@ -24,4 +24,4 @@ mod tests;
 pub use memory::*;
 pub use msr::{amd_msr, cr4, intel_msr};
 pub use smi::{smi_en, SMI_EN_OFFSET, SMI_STS_OFFSET};
-pub use smramc::{smramc, SMRAMC_REGISTER};
+pub use smramc::{bits as smramc_bits, SMRAMC_REGISTER};

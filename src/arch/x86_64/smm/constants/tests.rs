@@ -18,10 +18,10 @@ use super::*;
 
 #[test]
 fn test_smramc_bits() {
-    assert_eq!(smramc::G_SMRAME, 0x08);
-    assert_eq!(smramc::D_LCK, 0x10);
-    assert_eq!(smramc::D_CLS, 0x20);
-    assert_eq!(smramc::D_OPEN, 0x40);
+    assert_eq!(smramc_bits::G_SMRAME, 0x08);
+    assert_eq!(smramc_bits::D_LCK, 0x10);
+    assert_eq!(smramc_bits::D_CLS, 0x20);
+    assert_eq!(smramc_bits::D_OPEN, 0x40);
 }
 
 #[test]

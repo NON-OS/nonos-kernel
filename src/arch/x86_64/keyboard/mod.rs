@@ -15,6 +15,10 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub mod error;
+mod error_keyboard;
+mod error_misc;
+mod error_ps2;
+mod error_usb;
 pub mod input;
 pub mod keymap;
 pub mod layout;

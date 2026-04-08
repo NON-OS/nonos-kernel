@@ -19,7 +19,7 @@ use core::sync::atomic::Ordering;
 use crate::arch::x86_64::acpi::error::{AcpiError, AcpiResult};
 use super::state::{INITIALIZED, TABLES, STATS, TableRegistry};
 use super::rsdp::find_rsdp;
-use super::root::{parse_rsdt, parse_xsdt};
+use super::{parse_rsdt, parse_xsdt};
 use super::fadt::parse_fadt;
 use super::madt::parse_madt;
 use super::other::{parse_hpet, parse_mcfg, parse_srat};

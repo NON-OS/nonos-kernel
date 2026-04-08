@@ -15,4 +15,5 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub use super::mask_ops::{mask, unmask};
-pub use super::mask_bulk::{mask_all, get_masks, set_masks, mask_all_internal};
+pub use super::mask_bulk::{mask_all, get_masks, set_masks};
+pub(crate) use super::mask_bulk::mask_all_internal;

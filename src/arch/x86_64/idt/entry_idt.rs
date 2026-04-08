@@ -69,8 +69,9 @@ impl IdtEntry {
 
 impl core::fmt::Debug for IdtEntry {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        let selector = self.selector;
         f.debug_struct("IdtEntry").field("handler", &format_args!("{:#x}", self.handler()))
-            .field("selector", &format_args!("{:#x}", self.selector)).field("ist", &self.ist())
+            .field("selector", &format_args!("{:#x}", selector)).field("ist", &self.ist())
             .field("dpl", &self.dpl()).field("present", &self.is_present())
             .field("trap", &self.is_trap()).finish()
     }

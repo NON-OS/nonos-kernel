@@ -25,7 +25,7 @@ pub mod types;
 
 pub use api::{handlers, init, is_protection_enabled, monitor_smi, regions, stats, verify_integrity};
 pub use constants::{
-    amd_msr, cr4, intel_msr, smi_en, smramc, LEGACY_SMRAM_BASE, LEGACY_SMRAM_SIZE,
+    amd_msr, cr4, intel_msr, smi_en, smramc_bits, LEGACY_SMRAM_BASE, LEGACY_SMRAM_SIZE,
     SMI_EN_OFFSET, SMI_STS_OFFSET, SMRAMC_REGISTER, SMM_ENTRY_OFFSET, SMM_SAVE_STATE_32,
     SMM_SAVE_STATE_64,
 };

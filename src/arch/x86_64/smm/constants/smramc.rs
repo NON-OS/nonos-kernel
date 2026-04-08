@@ -16,7 +16,7 @@
 
 pub const SMRAMC_REGISTER: u16 = 0x88;
 
-pub mod smramc {
+pub mod bits {
     pub const G_SMRAME: u8 = 0x08;
     pub const D_LCK: u8 = 0x10;
     pub const D_CLS: u8 = 0x20;

@@ -16,7 +16,7 @@
 
 use alloc::vec::Vec;
 
-use crate::arch::x86_64::smm::constants::{smramc, LEGACY_SMRAM_BASE, LEGACY_SMRAM_SIZE, SMRAMC_REGISTER};
+use crate::arch::x86_64::smm::constants::{smramc_bits, LEGACY_SMRAM_BASE, LEGACY_SMRAM_SIZE, SMRAMC_REGISTER};
 use crate::arch::x86_64::smm::error::SmmError;
 use crate::arch::x86_64::smm::hw::{read_pci_byte, read_pci_dword};
 use crate::arch::x86_64::smm::types::{SmmRegion, SmmRegionType};
@@ -25,9 +25,9 @@ use super::state::SmmManager;
 impl SmmManager {
     pub(super) fn detect_intel_regions(&self, regions: &mut Vec<SmmRegion>) -> Result<(), SmmError> {
         let smramc = read_pci_byte(0, 0, 0, SMRAMC_REGISTER);
-        let smram_enabled = (smramc & smramc::G_SMRAME) != 0;
-        let d_open = (smramc & smramc::D_OPEN) != 0;
-        let d_locked = (smramc & smramc::D_LCK) != 0;
+        let smram_enabled = (smramc & smramc_bits::G_SMRAME) != 0;
+        let d_open = (smramc & smramc_bits::D_OPEN) != 0;
+        let d_locked = (smramc & smramc_bits::D_LCK) != 0;
 
         crate::log::info!("Intel SMRAMC: enabled={}, open={}, locked={}", smram_enabled, d_open, d_locked);
 

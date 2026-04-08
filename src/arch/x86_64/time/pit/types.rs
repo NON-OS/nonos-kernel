@@ -18,5 +18,5 @@ pub use super::error::{PitError, PitResult};
 pub use super::channel::Channel;
 pub use super::mode::Mode;
 pub use super::access::AccessMode;
-pub use super::channel_state::ChannelState;
+pub(super) use super::channel_state::ChannelState;
 pub use super::stats::PitStatistics;

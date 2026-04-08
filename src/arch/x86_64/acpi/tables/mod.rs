@@ -14,32 +14,41 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-pub mod rsdp;
-pub mod sdt;
 pub mod fadt;
-pub mod madt;
 pub mod hpet;
-pub mod mcfg;
-mod mcfg_types;
-mod mcfg_config;
+pub mod madt;
 mod mcfg_bridge;
-mod mcfg_header;
 mod mcfg_class;
+mod mcfg_config;
+mod mcfg_header;
+mod mcfg_types;
+pub mod rsdp;
+mod rsdp_base;
+mod rsdp_extended;
+pub mod sdt;
 pub mod srat;
-mod srat_types;
-mod srat_processor;
+pub mod slit;
 mod srat_memory;
 mod srat_other;
-pub mod slit;
+mod srat_processor;
+mod srat_types;
 
-pub use rsdp::*;
-pub use sdt::*;
 pub use fadt::*;
-pub use madt::*;
 pub use hpet::*;
-pub use mcfg::*;
-pub use srat::*;
+pub use madt::*;
+pub use mcfg_bridge::*;
+pub use mcfg_class::*;
+pub use mcfg_config::*;
+pub use mcfg_header::*;
+pub use mcfg_types::*;
+pub use rsdp_base::{Rsdp, BIOS_ROM_SIZE, BIOS_ROM_START, EBDA_PTR_ADDR, RSDP_ALIGNMENT, RSDP_SIGNATURE};
+pub use rsdp_extended::RsdpExtended;
+pub use sdt::*;
 pub use slit::*;
+pub use srat_memory::*;
+pub use srat_other::*;
+pub use srat_processor::*;
+pub use srat_types::*;
 
 pub const SIG_RSDT: u32 = u32::from_le_bytes(*b"RSDT");
 pub const SIG_XSDT: u32 = u32::from_le_bytes(*b"XSDT");

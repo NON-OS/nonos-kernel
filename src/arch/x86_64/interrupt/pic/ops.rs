@@ -16,6 +16,7 @@
 
 pub use super::ops_aeoi::{enable_aeoi, disable_aeoi};
 pub use super::ops_smm::{enable_smm, disable_smm};
-pub use super::ops_isr::{read_irr, read_isr, read_isr_internal};
+pub use super::ops_isr::{read_irr, read_isr};
+pub(crate) use super::ops_isr::read_isr_internal;
 pub use super::ops_status::{dump, status, PicStatus};
 pub use super::ops_reinit::restore_saved_masks;

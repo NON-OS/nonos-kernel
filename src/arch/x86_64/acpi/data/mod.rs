@@ -14,11 +14,22 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod types;
-mod acpi_data;
+mod acpi_data_methods;
+mod acpi_data_new;
+mod acpi_data_struct;
+mod interrupt;
+mod ioapic;
+mod numa;
+mod pcie;
+mod processor;
 mod stats;
+#[cfg(test)]
 mod tests;
 
-pub use types::{ProcessorInfo, IoApicInfo, InterruptOverride, NmiConfig, NumaMemoryRegion, PcieSegment};
-pub use acpi_data::AcpiData;
+pub use acpi_data_struct::AcpiData;
+pub use interrupt::{InterruptOverride, NmiConfig};
+pub use ioapic::IoApicInfo;
+pub use numa::NumaMemoryRegion;
+pub use pcie::PcieSegment;
+pub use processor::ProcessorInfo;
 pub use stats::AcpiStats;
