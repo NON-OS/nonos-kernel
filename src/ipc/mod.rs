@@ -24,6 +24,8 @@ pub mod nonos_message;
 pub mod nonos_policy;
 pub mod nonos_transport;
 pub mod pipe;
+pub mod unlock;
+pub mod capsule;
 
 pub mod eventfd {
     pub use crate::syscall::extended::eventfd_types::*;
