@@ -15,18 +15,25 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub mod constants;
+mod entry_base;
+mod entry_presets;
 pub mod entry;
 pub mod error;
 pub mod fs_gs;
+mod ops_init;
+mod ops_stack;
 pub mod ops;
+mod percpu_struct;
+mod percpu_load;
 pub mod percpu;
 pub mod segments;
 mod state;
 pub mod stats;
 pub mod syscall;
 pub mod table;
+mod tss_entry;
+mod tss_struct;
 pub mod tss;
-
 #[cfg(test)]
 mod tests;
 
@@ -42,7 +49,6 @@ pub use syscall::setup_syscall;
 pub use table::{Gdt, GdtPtr};
 pub use tss::{Tss, TssEntry};
 
-// Legacy aliases for compatibility
 pub const NMI_IST_INDEX: u16 = IST_NMI as u16;
 pub const DF_IST_INDEX: u16 = IST_DOUBLE_FAULT as u16;
 pub const PF_IST_INDEX: u16 = IST_PAGE_FAULT as u16;
