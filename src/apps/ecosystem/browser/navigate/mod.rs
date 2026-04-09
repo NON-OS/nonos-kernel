@@ -22,5 +22,8 @@ mod response;
 mod decompress;
 mod image_fetch;
 mod api;
+pub mod http2;
+mod chunked;
+mod compression;
 
 pub use api::{start, stop, is_running, is_navigating, navigate, navigate_with_post, poll_navigation, cancel_navigation};
