@@ -21,6 +21,7 @@ use alloc::rc::Rc;
 use core::cell::RefCell;
 use alloc::collections::BTreeMap;
 use crate::apps::ecosystem::browser::js::parser::Stmt;
+use crate::apps::ecosystem::browser::js::promise::JsPromise;
 
 pub(super) type JsObject = Rc<RefCell<BTreeMap<String, JsValue>>>;
 pub(super) type JsArray = Rc<RefCell<Vec<JsValue>>>;
@@ -34,6 +35,19 @@ pub enum JsValue {
     Undefined, Null, Bool(bool), Number(f64), String(String),
     Object(JsObject), Array(JsArray), Function(JsFunc),
     NativeFunc(fn(&[JsValue]) -> JsValue),
+    Promise(JsPromise),
+}
+
+impl core::fmt::Debug for JsValue {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        match self {
+            Self::Undefined => write!(f, "Undefined"), Self::Null => write!(f, "Null"),
+            Self::Bool(b) => write!(f, "Bool({})", b), Self::Number(n) => write!(f, "Number({})", n),
+            Self::String(s) => write!(f, "String(\"{}\")", s), Self::Object(_) => write!(f, "Object"),
+            Self::Array(_) => write!(f, "Array"), Self::Function(_) => write!(f, "Function"),
+            Self::NativeFunc(_) => write!(f, "NativeFunc"), Self::Promise(_) => write!(f, "Promise"),
+        }
+    }
 }
 
 impl JsValue {
@@ -47,7 +61,8 @@ impl JsValue {
             Self::String(s) => s.clone(), Self::Object(_) => String::from("[object Object]"),
             Self::Array(a) => { let arr = a.borrow(); let parts: Vec<String> = arr.iter().map(|v| v.to_string()).collect(); parts.join(",") }
             Self::Function(_) | Self::NativeFunc(_) => String::from("[Function]"),
+            Self::Promise(_) => String::from("[object Promise]"),
         }
     }
-    pub fn type_of(&self) -> &'static str { match self { Self::Undefined => "undefined", Self::Null => "object", Self::Bool(_) => "boolean", Self::Number(_) => "number", Self::String(_) => "string", Self::Object(_) | Self::Array(_) => "object", Self::Function(_) | Self::NativeFunc(_) => "function" } }
+    pub fn type_of(&self) -> &'static str { match self { Self::Undefined => "undefined", Self::Null => "object", Self::Bool(_) => "boolean", Self::Number(_) => "number", Self::String(_) => "string", Self::Object(_) | Self::Array(_) | Self::Promise(_) => "object", Self::Function(_) | Self::NativeFunc(_) => "function" } }
 }

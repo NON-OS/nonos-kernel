@@ -153,45 +153,45 @@ engine/css/
 ### Checklist
 
 **Types & Tokenizer:**
-- [ ] `CssValue` enum: Length, Color, Keyword, Number, Percentage, Auto, None, Inherit, Initial
-- [ ] `Unit` enum: Px, Em, Rem, Percent, Vw, Vh, Pt
-- [ ] Color parsing: named colors, `#rgb`, `#rrggbb`, `rgb()`, `rgba()`
-- [ ] Tokenizer: ident, hash, string, number, dimension, delim, whitespace, punctuation
-- [ ] `CssError` enum with `as_str()`, `code()`, `is_recoverable()`
+- [x] `CssValue` enum: Length, Color, Keyword, Number, Percentage, Auto, None, Inherit, Initial
+- [x] `Unit` enum: Px, Em, Rem, Percent, Vw, Vh, Pt
+- [x] Color parsing: named colors, `#rgb`, `#rrggbb`, `rgb()`, `rgba()`
+- [x] Tokenizer: ident, hash, string, number, dimension, delim, whitespace, punctuation
+- [x] `CssError` enum with `as_str()`, `code()`, `is_recoverable()`
 
 **Parser:**
-- [ ] Parse `<style>` block content → `Stylesheet` (Vec of Rules)
-- [ ] Parse inline `style=""` → `Vec<Declaration>`
-- [ ] Selectors: type, class, id, universal, attribute, pseudo-classes
-- [ ] Combinators: descendant, child, adjacent, general sibling
-- [ ] Compound selectors (`.foo.bar#baz`)
-- [ ] `@media` queries: store rules, evaluate viewport match
-- [ ] Shorthand expansion: margin, padding, border, background, font
+- [x] Parse `<style>` block content → `Stylesheet` (Vec of Rules)
+- [x] Parse inline `style=""` → `Vec<Declaration>`
+- [x] Selectors: type, class, id, universal, attribute, pseudo-classes
+- [x] Combinators: descendant, child, adjacent, general sibling
+- [x] Compound selectors (`.foo.bar#baz`)
+- [x] `@media` queries: store rules, evaluate viewport match
+- [x] Shorthand expansion: margin, padding, border, background, font
 
 **Cascade & Inheritance:**
-- [ ] `ComputedStyle` struct: all resolved CSS properties with typed values
-- [ ] Default style for each property (CSS initial values)
-- [ ] Inheritance table: color/font-size inherit, margin/padding don't
-- [ ] Specificity: `(inline, id, class, type)` with `Ord`
-- [ ] Cascade: origin, specificity, order, `!important`
-- [ ] Selector matching: given node + ancestors, which selectors match?
-- [ ] `resolve_style(node, parent_computed, stylesheets) -> ComputedStyle`
-- [ ] Unit resolution: em/rem/% → px
-- [ ] CSS custom properties + `var()` resolution
+- [x] `ComputedStyle` struct: all resolved CSS properties with typed values
+- [x] Default style for each property (CSS initial values)
+- [x] Inheritance table: color/font-size inherit, margin/padding don't
+- [x] Specificity: `(inline, id, class, type)` with `Ord`
+- [x] Cascade: origin, specificity, order, `!important`
+- [x] Selector matching: given node + ancestors, which selectors match?
+- [x] `resolve_style(node, parent_computed, stylesheets) -> ComputedStyle`
+- [x] Unit resolution: em/rem/% → px
+- [x] CSS custom properties + `var()` resolution
 
 **Stylesheet Loading:**
-- [ ] HTML parser: extract `<style>` blocks, collect `<link rel="stylesheet">` URLs
-- [ ] Replace `parse_hidden_classes()` with real CSS cascade
+- [x] HTML parser: extract `<style>` blocks, collect `<link rel="stylesheet">` URLs
+- [x] Replace `parse_hidden_classes()` with real CSS cascade
 
 **Tests:**
-- [ ] Tokenizer: simple rules, complex selectors, edge cases
-- [ ] Parser: single rule, multiple rules, nested selectors, media queries, shorthands
-- [ ] Selector matching: `.foo` matches `<div class="foo">`, combinators
-- [ ] Specificity ordering: `(0,0,1) < (0,1,0) < (1,0,0)`
-- [ ] Cascade: higher specificity wins, same specificity → later wins
-- [ ] Inheritance: child inherits color, not margin
-- [ ] Computed style: `2em` on parent `font-size:16px` → `32px`
-- [ ] `cargo test` + `cargo build` (bare metal) pass
+- [x] Tokenizer: simple rules, complex selectors, edge cases
+- [x] Parser: single rule, multiple rules, nested selectors, media queries, shorthands
+- [x] Selector matching: `.foo` matches `<div class="foo">`, combinators
+- [x] Specificity ordering: `(0,0,1) < (0,1,0) < (1,0,0)`
+- [x] Cascade: higher specificity wins, same specificity → later wins
+- [x] Inheritance: child inherits color, not margin
+- [x] Computed style: `2em` on parent `font-size:16px` → `32px`
+- [x] `cargo test` + `cargo build` (bare metal) pass
 
 **Commit & push.**
 
@@ -246,53 +246,53 @@ engine/layout/
 ### Checklist
 
 **Box Model:**
-- [ ] `LayoutBox`: box_type, dimensions, children, style, node_id
-- [ ] `Dimensions`: content Rect + padding/border/margin EdgeSizes
-- [ ] `padding_box()`, `border_box()`, `margin_box()` helpers
-- [ ] `build_layout_tree(dom, styles) -> LayoutBox`
+- [x] `LayoutBox`: box_type, dimensions, children, style, node_id
+- [x] `Dimensions`: content Rect + padding/border/margin EdgeSizes
+- [x] `padding_box()`, `border_box()`, `margin_box()` helpers
+- [x] `build_layout_tree(dom, styles) -> LayoutBox`
 
 **Block Layout:**
-- [ ] Block children stack vertically
-- [ ] Width: auto margins, explicit width, min/max constraints
-- [ ] Height: explicit or sum of children
-- [ ] Vertical margin collapsing
-- [ ] Anonymous block boxes for mixed inline/block content
-- [ ] `display: inline-block`
+- [x] Block children stack vertically
+- [x] Width: auto margins, explicit width, min/max constraints
+- [x] Height: explicit or sum of children
+- [x] Vertical margin collapsing
+- [x] Anonymous block boxes for mixed inline/block content
+- [x] `display: inline-block`
 
 **Inline Layout:**
-- [ ] Line boxes: left-to-right flow, wrap at container width
-- [ ] Word breaking at whitespace
-- [ ] `text-align`: left, center, right, justify
-- [ ] `line-height` spacing
+- [x] Line boxes: left-to-right flow, wrap at container width
+- [x] Word breaking at whitespace
+- [x] `text-align`: left, center, right, justify
+- [x] `line-height` spacing
 
 **Flexbox:**
-- [ ] `flex-direction`, `flex-wrap`, `justify-content`, `align-items`
-- [ ] `flex-grow`, `flex-shrink`, `flex-basis`
-- [ ] Main axis: distribute free space / shrink overflow
-- [ ] Cross axis alignment
-- [ ] Multi-line wrapping
+- [x] `flex-direction`, `flex-wrap`, `justify-content`, `align-items`
+- [x] `flex-grow`, `flex-shrink`, `flex-basis`
+- [x] Main axis: distribute free space / shrink overflow
+- [x] Cross axis alignment
+- [x] Multi-line wrapping
 
 **Positioning:**
-- [ ] `relative`: offset from normal flow
-- [ ] `absolute`: relative to positioned ancestor
-- [ ] `fixed`: relative to viewport
-- [ ] `float`/`clear`
-- [ ] `z-index` stacking contexts
-- [ ] `overflow: hidden/scroll/auto`
+- [x] `relative`: offset from normal flow
+- [x] `absolute`: relative to positioned ancestor
+- [x] `fixed`: relative to viewport
+- [x] `float`/`clear`
+- [x] `z-index` stacking contexts
+- [x] `overflow: hidden/scroll/auto`
 
 **Integration:**
-- [ ] `render_page()`: parse → style → layout → paint
-- [ ] Backward compat: `render_to_lines()` still works
-- [ ] `RenderOutput` extended with layout tree for hit testing
+- [x] `render_page()`: parse → style → layout → paint
+- [x] Backward compat: `render_to_lines()` still works
+- [x] `RenderOutput` extended with layout tree for hit testing
 
 **Tests:**
-- [ ] Box model: padding/border/margin calculations
-- [ ] Block: three divs stack vertically, fill width
-- [ ] Inline: text wraps at viewport width
-- [ ] Flexbox: row layout, flex-grow, justify-content center
-- [ ] Positioning: absolute at correct coords
-- [ ] Margin collapsing
-- [ ] `cargo test` + `cargo build` pass
+- [x] Box model: padding/border/margin calculations
+- [x] Block: three divs stack vertically, fill width
+- [x] Inline: text wraps at viewport width
+- [x] Flexbox: row layout, flex-grow, justify-content center
+- [x] Positioning: absolute at correct coords
+- [x] Margin collapsing
+- [x] `cargo test` + `cargo build` pass
 
 **Commit & push.**
 
@@ -325,45 +325,45 @@ js/dom/
 ### Checklist
 
 **Arena:**
-- [ ] `NodeId` newtype: u32 index
-- [ ] `DomArena`: Vec<DomNode>, access by NodeId
-- [ ] `DomNode`: id, node_type, tag, attributes, parent, children, siblings, text
-- [ ] `create_element(tag) -> NodeId`
-- [ ] `create_text_node(text) -> NodeId`
-- [ ] `append_child`, `remove_child`, `insert_before`, `replace_child`
-- [ ] Convert HTML parser `Document` → `DomArena`
+- [x] `NodeId` newtype: u32 index
+- [x] `DomArena`: Vec<DomNode>, access by NodeId
+- [x] `DomNode`: id, node_type, tag, attributes, parent, children, siblings, text
+- [x] `create_element(tag) -> NodeId`
+- [x] `create_text_node(text) -> NodeId`
+- [x] `append_child`, `remove_child`, `insert_before`, `replace_child`
+- [x] Convert HTML parser `Document` → `DomArena`
 
 **Query:**
-- [ ] `get_element_by_id(id) -> Option<NodeId>`
-- [ ] `get_elements_by_class_name(class) -> Vec<NodeId>`
-- [ ] `get_elements_by_tag_name(tag) -> Vec<NodeId>`
-- [ ] `query_selector(selector) -> Option<NodeId>` (uses CSS selector matcher)
-- [ ] `query_selector_all(selector) -> Vec<NodeId>`
+- [x] `get_element_by_id(id) -> Option<NodeId>`
+- [x] `get_elements_by_class_name(class) -> Vec<NodeId>`
+- [x] `get_elements_by_tag_name(tag) -> Vec<NodeId>`
+- [x] `query_selector(selector) -> Option<NodeId>` (uses CSS selector matcher)
+- [x] `query_selector_all(selector) -> Vec<NodeId>`
 
 **JS Bridge:**
-- [ ] `JsDocument` holds `Rc<RefCell<DomArena>>`
-- [ ] All document.* methods → real arena operations
-- [ ] `element.appendChild()` → `arena.append_child()` + mark dirty
-- [ ] `element.innerHTML` setter → parse fragment, replace children
-- [ ] `element.textContent` get/set
-- [ ] `element.setAttribute`/`getAttribute`
-- [ ] `classList`: add, remove, toggle, contains
-- [ ] `element.style` → CSSStyleDeclaration proxy
-- [ ] `getBoundingClientRect()` → read from layout tree
+- [x] `JsDocument` holds `Rc<RefCell<DomArena>>`
+- [x] All document.* methods → real arena operations
+- [x] `element.appendChild()` → `arena.append_child()` + mark dirty
+- [x] `element.innerHTML` setter → parse fragment, replace children
+- [x] `element.textContent` get/set
+- [x] `element.setAttribute`/`getAttribute`
+- [x] `classList`: add, remove, toggle, contains
+- [x] `element.style` → CSSStyleDeclaration proxy
+- [x] `getBoundingClientRect()` → read from layout tree
 
 **Dirty Tracking:**
-- [ ] Any DOM mutation sets `needs_layout = true`
-- [ ] Before `getBoundingClientRect()` or paint: relayout if dirty
-- [ ] Batch mutations → single relayout
+- [x] Any DOM mutation sets `needs_layout = true`
+- [x] Before `getBoundingClientRect()` or paint: relayout if dirty
+- [x] Batch mutations → single relayout
 
 **Tests:**
-- [ ] Arena: create, append, verify parent/child/sibling links
-- [ ] Remove/insert: siblings update correctly
-- [ ] Query: getElementById finds node, querySelectorAll returns matches
-- [ ] JS: createElement + appendChild → node in arena
-- [ ] innerHTML: set → parses, replaces children
-- [ ] classList: add/remove/toggle/contains roundtrip
-- [ ] `cargo test` + `cargo build` pass
+- [x] Arena: create, append, verify parent/child/sibling links
+- [x] Remove/insert: siblings update correctly
+- [x] Query: getElementById finds node, querySelectorAll returns matches
+- [x] JS: createElement + appendChild → node in arena
+- [x] innerHTML: set → parses, replaces children
+- [x] classList: add/remove/toggle/contains roundtrip
+- [x] `cargo test` + `cargo build` pass
 
 **Commit & push.**
 
@@ -394,38 +394,38 @@ js/dom/
 ### Checklist
 
 **Event Types:**
-- [ ] `DomEvent`: type, target, current_target, phase, bubbles, cancelable, timestamps
-- [ ] `preventDefault()`, `stopPropagation()`, `stopImmediatePropagation()`
-- [ ] `MouseEvent`: client_x, client_y, button
-- [ ] `KeyboardEvent`: key, code, ctrl/shift/alt/meta
-- [ ] `InputEvent`: data, input_type
-- [ ] `FocusEvent`: related_target
-- [ ] `EventListener`: callback, capture, once, passive
+- [x] `DomEvent`: type, target, current_target, phase, bubbles, cancelable, timestamps
+- [x] `preventDefault()`, `stopPropagation()`, `stopImmediatePropagation()`
+- [x] `MouseEvent`: client_x, client_y, button
+- [x] `KeyboardEvent`: key, code, ctrl/shift/alt/meta
+- [x] `InputEvent`: data, input_type
+- [x] `FocusEvent`: related_target
+- [x] `EventListener`: callback, capture, once, passive
 
 **Dispatch:**
-- [ ] Build path: target → ancestors → document
-- [ ] Capture phase: root → target, call capture listeners
-- [ ] Target phase: call all listeners on target
-- [ ] Bubble phase: target → root (if bubbles)
-- [ ] stopPropagation stops traversal
-- [ ] stopImmediatePropagation stops current node
-- [ ] After dispatch: execute default action if not prevented
+- [x] Build path: target → ancestors → document
+- [x] Capture phase: root → target, call capture listeners
+- [x] Target phase: call all listeners on target
+- [x] Bubble phase: target → root (if bubbles)
+- [x] stopPropagation stops traversal
+- [x] stopImmediatePropagation stops current node
+- [x] After dispatch: execute default action if not prevented
 
 **Input Wiring:**
-- [ ] Click: (x,y) → hit test layout tree → dispatch MouseEvent
-- [ ] Keyboard: keydown/keyup → dispatch to focused element
-- [ ] Focus: focus()/blur() update activeElement, dispatch focus events
-- [ ] Lifecycle: DOMContentLoaded after parse, load after resources
+- [x] Click: (x,y) → hit test layout tree → dispatch MouseEvent
+- [x] Keyboard: keydown/keyup → dispatch to focused element
+- [x] Focus: focus()/blur() update activeElement, dispatch focus events
+- [x] Lifecycle: DOMContentLoaded after parse, load after resources
 
 **Tests:**
-- [ ] Event reaches target, bubbles to parent
-- [ ] stopPropagation stops bubble
-- [ ] Capture fires before bubble
-- [ ] preventDefault sets flag
-- [ ] once listener auto-removes
-- [ ] Hit testing maps coords to correct node
-- [ ] focus() sets activeElement
-- [ ] `cargo test` + `cargo build` pass
+- [x] Event reaches target, bubbles to parent
+- [x] stopPropagation stops bubble
+- [x] Capture fires before bubble
+- [x] preventDefault sets flag
+- [x] once listener auto-removes
+- [x] Hit testing maps coords to correct node
+- [x] focus() sets activeElement
+- [x] `cargo test` + `cargo build` pass
 
 **Commit & push.**
 
