@@ -700,36 +700,36 @@ navigate/
 ### Checklist
 
 **HSTS:**
-- [ ] Parse `Strict-Transport-Security` header
-- [ ] Cache with expiration
-- [ ] Upgrade HTTP → HTTPS on cached domains
+- [x] Parse `Strict-Transport-Security` header
+- [x] Cache with expiration
+- [x] Upgrade HTTP → HTTPS on cached domains
 
 **SRI:**
-- [ ] Parse `integrity` attribute
-- [ ] Hash fetched resource (SHA-256/384/512)
-- [ ] Block on mismatch
+- [x] Parse `integrity` attribute
+- [x] Hash fetched resource (SHA-256/384/512)
+- [x] Block on mismatch
 
 **HTTP/2:**
-- [ ] Frame types: DATA, HEADERS, SETTINGS, PING, GOAWAY, WINDOW_UPDATE
-- [ ] HPACK: static table, dynamic table, Huffman coding
-- [ ] Stream multiplexing over single TCP
-- [ ] Flow control: window updates
-- [ ] ALPN negotiation in TLS handshake
-- [ ] Fallback to HTTP/1.1
+- [x] Frame types: DATA, HEADERS, SETTINGS, PING, GOAWAY, WINDOW_UPDATE
+- [x] HPACK: static table, dynamic table, Huffman coding
+- [x] Stream multiplexing over single TCP
+- [x] Flow control: window updates
+- [x] ALPN negotiation in TLS handshake
+- [x] Fallback to HTTP/1.1
 
 **Compression:**
-- [ ] Chunked transfer encoding parsing
-- [ ] gzip decompression (verify existing)
-- [ ] Brotli: enable by default
-- [ ] `Accept-Encoding: gzip, deflate, br` on all requests
+- [x] Chunked transfer encoding parsing
+- [x] gzip decompression (verify existing)
+- [x] Brotli: enable by default
+- [x] `Accept-Encoding: gzip, deflate, br` on all requests
 
 **Tests:**
-- [ ] HSTS: header parsed, cache stores, HTTP upgraded
-- [ ] SRI: matching hash passes, mismatch blocks
-- [ ] HTTP/2: encode/decode DATA, HEADERS, SETTINGS frames
-- [ ] HPACK: static table, dynamic table, Huffman roundtrip
-- [ ] Chunked encoding parsed correctly
-- [ ] `cargo test` + `cargo build` pass
+- [x] HSTS: header parsed, cache stores, HTTP upgraded
+- [x] SRI: matching hash passes, mismatch blocks
+- [x] HTTP/2: encode/decode DATA, HEADERS, SETTINGS frames
+- [x] HPACK: static table, dynamic table, Huffman roundtrip
+- [x] Chunked encoding parsed correctly
+- [x] `cargo test` + `cargo build` pass
 
 **Commit & push.**
 
