@@ -25,6 +25,7 @@ pub mod closure;
 pub mod promise;
 pub mod event_loop;
 pub mod builtins_ext;
+pub mod security;
 
 pub use runtime::JsRuntime;
 pub use runtime::JsValue;
