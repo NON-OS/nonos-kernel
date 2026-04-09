@@ -1,0 +1,31 @@
+use super::super::types::AriaRole;
+
+pub fn parse_role(role_attr: &str) -> AriaRole {
+    match role_attr.trim().to_ascii_lowercase().as_str() {
+        "alert" => AriaRole::Alert, "alertdialog" => AriaRole::AlertDialog,
+        "application" => AriaRole::Application, "article" => AriaRole::Article,
+        "banner" => AriaRole::Banner, "button" => AriaRole::Button,
+        "cell" => AriaRole::Cell, "checkbox" => AriaRole::Checkbox,
+        "complementary" => AriaRole::Complementary, "contentinfo" => AriaRole::ContentInfo,
+        "dialog" => AriaRole::Dialog, "document" => AriaRole::Document,
+        "figure" => AriaRole::Figure, "form" => AriaRole::Form,
+        "grid" => AriaRole::Grid, "gridcell" => AriaRole::GridCell,
+        "group" => AriaRole::Group, "heading" => AriaRole::Heading,
+        "img" => AriaRole::Img, "link" => AriaRole::Link,
+        "list" => AriaRole::List, "listbox" => AriaRole::ListBox,
+        "listitem" => AriaRole::ListItem, "main" => AriaRole::Main,
+        "navigation" => AriaRole::Navigation, "option" => AriaRole::Option,
+        "presentation" | "none" => AriaRole::Presentation,
+        "progressbar" => AriaRole::ProgressBar, "radio" => AriaRole::Radio,
+        "radiogroup" => AriaRole::RadioGroup, "region" => AriaRole::Region,
+        "search" => AriaRole::Search, "separator" => AriaRole::Separator,
+        "slider" => AriaRole::Slider, "spinbutton" => AriaRole::SpinButton,
+        "status" => AriaRole::Status, "switch" => AriaRole::Switch,
+        "tab" => AriaRole::Tab, "tablist" => AriaRole::TabList,
+        "tabpanel" => AriaRole::TabPanel, "table" => AriaRole::Table,
+        "textbox" => AriaRole::TextBox, "timer" => AriaRole::Timer,
+        "toolbar" => AriaRole::ToolBar, "tooltip" => AriaRole::Tooltip,
+        "tree" => AriaRole::Tree,
+        _ => AriaRole::None,
+    }
+}
