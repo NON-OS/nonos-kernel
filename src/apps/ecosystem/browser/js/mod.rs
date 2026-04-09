@@ -20,6 +20,11 @@ pub mod runtime;
 pub mod dom;
 pub mod builtins;
 pub mod api;
+pub mod prototype;
+pub mod closure;
+pub mod promise;
+pub mod event_loop;
+pub mod builtins_ext;
 
 pub use runtime::JsRuntime;
 pub use runtime::JsValue;
