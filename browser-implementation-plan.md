@@ -470,53 +470,53 @@ js/runtime/
 ### Checklist
 
 **Prototypes:**
-- [ ] Property lookup: own → __proto__ → chain until null
-- [ ] `new Foo()`: create obj, set proto, call constructor with this
-- [ ] `instanceof`: walk proto chain
-- [ ] Built-in prototypes: Array, String, Number, Object
-- [ ] Method resolution on primitives: `"hello".toUpperCase()`
+- [x] Property lookup: own → __proto__ → chain until null
+- [x] `new Foo()`: create obj, set proto, call constructor with this
+- [x] `instanceof`: walk proto chain
+- [x] Built-in prototypes: Array, String, Number, Object
+- [x] Method resolution on primitives: `"hello".toUpperCase()`
 
 **Closures & Scope:**
-- [ ] Lexical scoping: function captures enclosing scope
-- [ ] Scope chain: parent links, walk outward for lookup
-- [ ] `let`/`const` block scope, `var` hoisting
-- [ ] `this` binding: method, arrow, call/apply/bind
-- [ ] IIFE pattern works
+- [x] Lexical scoping: function captures enclosing scope
+- [x] Scope chain: parent links, walk outward for lookup
+- [x] `let`/`const` block scope, `var` hoisting
+- [x] `this` binding: method, arrow, call/apply/bind
+- [x] IIFE pattern works
 
 **Promises & Async:**
-- [ ] Promise states: Pending, Fulfilled, Rejected
-- [ ] `.then()` → enqueue microtask, return new Promise
-- [ ] `.catch()`, `.finally()`
-- [ ] `Promise.resolve/reject/all/race`
-- [ ] `async function` returns Promise
-- [ ] `await` suspends, resumes on settlement
-- [ ] `queueMicrotask()`
+- [x] Promise states: Pending, Fulfilled, Rejected
+- [x] `.then()` → enqueue microtask, return new Promise
+- [x] `.catch()`, `.finally()`
+- [x] `Promise.resolve/reject/all/race`
+- [x] `async function` returns Promise
+- [x] `await` suspends, resumes on settlement
+- [x] `queueMicrotask()`
 
 **Timers & Event Loop:**
-- [ ] `setTimeout(cb, delay)` → enqueue macrotask
-- [ ] `setInterval(cb, delay)` → recurring macrotask
-- [ ] `clearTimeout`/`clearInterval`
-- [ ] `requestAnimationFrame`
-- [ ] Event loop: drain stack → drain microtasks → fire one timer
+- [x] `setTimeout(cb, delay)` → enqueue macrotask
+- [x] `setInterval(cb, delay)` → recurring macrotask
+- [x] `clearTimeout`/`clearInterval`
+- [x] `requestAnimationFrame`
+- [x] Event loop: drain stack → drain microtasks → fire one timer
 
 **Builtins:**
-- [ ] Error/TypeError/RangeError/SyntaxError/ReferenceError
-- [ ] try/catch/finally execution
-- [ ] `Map`, `Set`
-- [ ] `Symbol`, `Symbol.iterator`, `for...of`
-- [ ] Basic RegExp execution: `.test()`, `.exec()`
-- [ ] Destructuring: object + array
-- [ ] Spread, template literals, optional chaining, nullish coalescing
+- [x] Error/TypeError/RangeError/SyntaxError/ReferenceError
+- [x] try/catch/finally execution
+- [x] `Map`, `Set`
+- [x] `Symbol`, `Symbol.iterator`, `for...of`
+- [x] Basic RegExp execution: `.test()`, `.exec()`
+- [x] Destructuring: object + array
+- [x] Spread, template literals, optional chaining, nullish coalescing
 
 **Tests:**
-- [ ] Proto chain: `obj.toString()` resolves from Object.prototype
-- [ ] Closures: counter closure increments
-- [ ] this: method call, arrow, call/apply/bind
-- [ ] Promise: resolve/reject, chaining, Promise.all
-- [ ] async/await: returns promise, await resolves
-- [ ] setTimeout fires, clearTimeout cancels
-- [ ] try/catch: catches thrown error, finally runs
-- [ ] `cargo test` + `cargo build` pass
+- [x] Proto chain: `obj.toString()` resolves from Object.prototype
+- [x] Closures: counter closure increments
+- [x] this: method call, arrow, call/apply/bind
+- [x] Promise: resolve/reject, chaining, Promise.all
+- [x] async/await: returns promise, await resolves
+- [x] setTimeout fires, clearTimeout cancels
+- [x] try/catch: catches thrown error, finally runs
+- [x] `cargo test` + `cargo build` pass
 
 **Commit & push.**
 
@@ -555,44 +555,44 @@ js/api/
 ### Checklist
 
 **Fetch (real):**
-- [ ] `fetch(url, options)` returns Promise
-- [ ] Wire to `request::fetch_page()` for HTTP
-- [ ] Response: `.status`, `.ok`, `.headers`, `.json()`, `.text()`
-- [ ] Request constructor, Headers object
-- [ ] Respect CORS (Phase 7 hook point)
+- [x] `fetch(url, options)` returns Promise
+- [x] Wire to `request::fetch_page()` for HTTP
+- [x] Response: `.status`, `.ok`, `.headers`, `.json()`, `.text()`
+- [x] Request constructor, Headers object
+- [x] Respect CORS (Phase 7 hook point)
 
 **URL & FormData:**
-- [ ] URL: parse, expose href/origin/protocol/host/pathname/search/hash/searchParams
-- [ ] URLSearchParams: get/set/append/delete/toString/iterable
-- [ ] FormData: append/get/getAll/has/delete/entries
+- [x] URL: parse, expose href/origin/protocol/host/pathname/search/hash/searchParams
+- [x] URLSearchParams: get/set/append/delete/toString/iterable
+- [x] FormData: append/get/getAll/has/delete/entries
 
 **History/Location/Navigator:**
-- [ ] `history.pushState/replaceState/back/forward/go`
-- [ ] `popstate` event on navigation
-- [ ] `location`: href, origin, assign(), replace(), reload()
-- [ ] `navigator`: userAgent, language, onLine, cookieEnabled
+- [x] `history.pushState/replaceState/back/forward/go`
+- [x] `popstate` event on navigation
+- [x] `location`: href, origin, assign(), replace(), reload()
+- [x] `navigator`: userAgent, language, onLine, cookieEnabled
 
 **Storage:**
-- [ ] localStorage/sessionStorage: getItem/setItem/removeItem/clear/length
-- [ ] Wire to existing `session::storage`
+- [x] localStorage/sessionStorage: getItem/setItem/removeItem/clear/length
+- [x] Wire to existing `session::storage`
 
 **Utilities:**
-- [ ] `crypto.getRandomValues()` → kernel CSPRNG
-- [ ] `TextEncoder`/`TextDecoder` → UTF-8
-- [ ] `atob()`/`btoa()` → base64
-- [ ] `performance.now()` → kernel timer
-- [ ] `AbortController`/`AbortSignal`
-- [ ] `MutationObserver`, `IntersectionObserver`, `ResizeObserver`
+- [x] `crypto.getRandomValues()` → kernel CSPRNG
+- [x] `TextEncoder`/`TextDecoder` → UTF-8
+- [x] `atob()`/`btoa()` → base64
+- [x] `performance.now()` → kernel timer
+- [x] `AbortController`/`AbortSignal`
+- [x] `MutationObserver`, `IntersectionObserver`, `ResizeObserver`
 
 **Tests:**
-- [ ] Fetch resolves with response, .json() parses
-- [ ] URL parses all components
-- [ ] URLSearchParams roundtrip
-- [ ] pushState changes URL, popstate fires on back()
-- [ ] localStorage set/get roundtrip
-- [ ] TextEncoder/TextDecoder roundtrip
-- [ ] btoa/atob roundtrip
-- [ ] `cargo test` + `cargo build` pass
+- [x] Fetch resolves with response, .json() parses
+- [x] URL parses all components
+- [x] URLSearchParams roundtrip
+- [x] pushState changes URL, popstate fires on back()
+- [x] localStorage set/get roundtrip
+- [x] TextEncoder/TextDecoder roundtrip
+- [x] btoa/atob roundtrip
+- [x] `cargo test` + `cargo build` pass
 
 **Commit & push.**
 
