@@ -631,40 +631,40 @@ security/
 ### Checklist
 
 **Origin & SOP:**
-- [ ] `Origin` struct: scheme, host, port
-- [ ] `same_origin(a, b) -> bool`
-- [ ] Cookie/storage scoped to origin
-- [ ] Cross-origin fetch rejected by default
+- [x] `Origin` struct: scheme, host, port
+- [x] `same_origin(a, b) -> bool`
+- [x] Cookie/storage scoped to origin
+- [x] Cross-origin fetch rejected by default
 
 **CORS:**
-- [ ] Simple requests: send `Origin`, check `Access-Control-Allow-Origin`
-- [ ] Preflight: OPTIONS + `Access-Control-Request-Method/Headers`
-- [ ] Validate: Allow-Origin, Allow-Methods, Allow-Headers, Allow-Credentials
-- [ ] `Access-Control-Expose-Headers` limits visible response headers
-- [ ] Wire into fetch pipeline
+- [x] Simple requests: send `Origin`, check `Access-Control-Allow-Origin`
+- [x] Preflight: OPTIONS + `Access-Control-Request-Method/Headers`
+- [x] Validate: Allow-Origin, Allow-Methods, Allow-Headers, Allow-Credentials
+- [x] `Access-Control-Expose-Headers` limits visible response headers
+- [x] Wire into fetch pipeline
 
 **CSP:**
-- [ ] Parse `Content-Security-Policy` header
-- [ ] Parse `<meta http-equiv="Content-Security-Policy">`
-- [ ] Directives: default-src, script-src, style-src, img-src, connect-src
-- [ ] Source expressions: 'self', 'unsafe-inline', 'unsafe-eval', 'none', nonce, hash
-- [ ] Enforce before loading resources
-- [ ] Report-only mode
+- [x] Parse `Content-Security-Policy` header
+- [x] Parse `<meta http-equiv="Content-Security-Policy">`
+- [x] Directives: default-src, script-src, style-src, img-src, connect-src
+- [x] Source expressions: 'self', 'unsafe-inline', 'unsafe-eval', 'none', nonce, hash
+- [x] Enforce before loading resources
+- [x] Report-only mode
 
 **XSS & Mixed Content:**
-- [ ] innerHTML sanitization for `<script>` tags
-- [ ] HTTPS page blocks HTTP sub-resources
-- [ ] `X-Content-Type-Options: nosniff`
-- [ ] Referrer-Policy enforcement
+- [x] innerHTML sanitization for `<script>` tags
+- [x] HTTPS page blocks HTTP sub-resources
+- [x] `X-Content-Type-Options: nosniff`
+- [x] Referrer-Policy enforcement
 
 **Tests:**
-- [ ] Same origin: same scheme+host+port passes, different fails
-- [ ] CORS: cross-origin without headers → blocked
-- [ ] CORS: with `Allow-Origin: *` → allowed
-- [ ] Preflight: non-simple sends OPTIONS first
-- [ ] CSP: `script-src 'self'` blocks inline, allows same-origin
-- [ ] Mixed content: HTTPS page + HTTP image → blocked
-- [ ] `cargo test` + `cargo build` pass
+- [x] Same origin: same scheme+host+port passes, different fails
+- [x] CORS: cross-origin without headers → blocked
+- [x] CORS: with `Allow-Origin: *` → allowed
+- [x] Preflight: non-simple sends OPTIONS first
+- [x] CSP: `script-src 'self'` blocks inline, allows same-origin
+- [x] Mixed content: HTTPS page + HTTP image → blocked
+- [x] `cargo test` + `cargo build` pass
 
 **Commit & push.**
 
