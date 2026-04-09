@@ -1,0 +1,17 @@
+extern crate alloc;
+use alloc::string::String;
+use alloc::rc::Rc;
+use core::cell::RefCell;
+use alloc::collections::BTreeMap;
+use crate::apps::ecosystem::browser::js::runtime::JsValue;
+
+pub fn create_performance() -> JsValue {
+    let mut obj = BTreeMap::new();
+    obj.insert(String::from("now"), JsValue::NativeFunc(now));
+    obj.insert(String::from("timeOrigin"), JsValue::Number(0.0));
+    JsValue::Object(Rc::new(RefCell::new(obj)))
+}
+
+fn now(_args: &[JsValue]) -> JsValue {
+    JsValue::Number(0.0)
+}

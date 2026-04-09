@@ -1,28 +1,33 @@
-// NONOS Operating System
-// Copyright (C) 2026 NONOS Contributors
-//
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU Affero General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-//
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-// GNU Affero General Public License for more details.
-//
-// You should have received a copy of the GNU Affero General Public License
-// along with this program. If not, see <https://www.gnu.org/licenses/>.
-
 mod fetch;
+mod headers_api;
 mod xhr;
 mod websocket;
 mod storage;
 mod cookies;
 mod cookie_parse;
+mod url_api;
+mod form_data;
+mod history;
+mod location;
+mod navigator;
+mod encoding;
+mod crypto_api;
+mod performance;
+mod abort;
+mod observers;
 
 pub use fetch::create_fetch_api;
 pub use xhr::create_xhr_constructor;
 pub use websocket::create_websocket_constructor;
 pub use storage::create_storage;
 pub use cookies::CookieJar;
+pub use url_api::{create_url_constructor, create_search_params};
+pub use form_data::create_form_data;
+pub use history::create_history;
+pub use location::create_location;
+pub use navigator::create_navigator;
+pub use encoding::{create_atob, create_btoa, create_text_encoder, create_text_decoder};
+pub use crypto_api::create_crypto;
+pub use performance::create_performance;
+pub use abort::create_abort_controller;
+pub use observers::{create_mutation_observer, create_intersection_observer, create_resize_observer};

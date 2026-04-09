@@ -21,7 +21,15 @@ mod browser;
 mod png;
 mod svg;
 mod jpeg;
+pub mod css;
+pub mod layout;
+pub mod dom;
+pub mod events;
 pub mod image_loader;
+pub mod fonts;
+pub mod canvas;
+pub mod media;
+pub mod a11y;
 
 pub use types::{
     Document, Node, NodeType, Link, Form, FormInput, Image, ImageData,

@@ -48,6 +48,14 @@ fn math_pow(args: &[JsValue]) -> JsValue {
     JsValue::Number(libm::pow(base, exp))
 }
 
+pub(super) fn create_console() -> JsValue {
+    let mut console = BTreeMap::new();
+    console.insert(String::from("log"), JsValue::NativeFunc(super::natives::console_log));
+    console.insert(String::from("error"), JsValue::NativeFunc(super::natives::console_log));
+    console.insert(String::from("warn"), JsValue::NativeFunc(super::natives::console_log));
+    JsValue::Object(Rc::new(RefCell::new(console)))
+}
+
 pub(super) fn create_json() -> JsValue {
     let mut json = BTreeMap::new();
     json.insert(String::from("stringify"), JsValue::NativeFunc(natives::json_stringify));

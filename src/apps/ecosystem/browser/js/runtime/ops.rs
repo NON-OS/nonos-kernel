@@ -57,7 +57,8 @@ impl JsRuntime {
             BinaryOp::Ge => JsValue::Bool(l.to_number() >= r.to_number()),
             BinaryOp::Eq | BinaryOp::StrictEq => self.eq_check(&l, &r, op == BinaryOp::StrictEq),
             BinaryOp::Ne | BinaryOp::StrictNe => { let eq = self.eq_check(&l, &r, op == BinaryOp::StrictNe); JsValue::Bool(!eq.to_bool()) }
-            _ => JsValue::Undefined,
+            BinaryOp::Instanceof => JsValue::Bool(matches!((&l, &r), (JsValue::Object(_), JsValue::Function(_) | JsValue::NativeFunc(_)))),
+            BinaryOp::In => { if let JsValue::Object(ref o) = r { let key = l.to_string(); JsValue::Bool(o.borrow().contains_key(&key)) } else { JsValue::Bool(false) } }
         }
     }
     fn eq_check(&self, l: &JsValue, r: &JsValue, strict: bool) -> JsValue {

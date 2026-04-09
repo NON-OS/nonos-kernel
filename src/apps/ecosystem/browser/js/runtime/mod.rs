@@ -20,6 +20,13 @@ mod engine;
 mod eval_expr;
 mod eval_stmt;
 mod ops;
+mod natives;
+mod globals;
+mod member;
+mod call;
+mod array_dispatch;
+mod timer_dispatch;
+mod globals_ext;
 
 pub use value::JsValue;
 pub use engine::JsRuntime;
