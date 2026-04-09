@@ -767,20 +767,20 @@ engine/media/
 
 ### Checklist
 
-- [ ] Font metrics: char width/height/ascent/descent
-- [ ] Font matching: font-family → best available
-- [ ] Built-in font metric tables
-- [ ] @font-face parsing + loading
-- [ ] SVG: text, gradients, transforms, full path `d` parsing
-- [ ] Canvas 2D: paths, drawing, styles, gradients, text, images, pixels, transforms, state stack
-- [ ] Video/audio: API surface only, `.play()` returns error
+- [x] Font metrics: char width/height/ascent/descent
+- [x] Font matching: font-family → best available
+- [x] Built-in font metric tables
+- [x] @font-face parsing + loading
+- [x] SVG: text, gradients, transforms, full path `d` parsing
+- [x] Canvas 2D: paths, drawing, styles, gradients, text, images, pixels, transforms, state stack
+- [x] Video/audio: API surface only, `.play()` returns error
 
 **Tests:**
-- [ ] Font metrics: monospace width × chars = line width
-- [ ] SVG: gradient parsing, transform, path d
-- [ ] Canvas: path ops, gradient interpolation
-- [ ] Video stub: .play() doesn't crash
-- [ ] `cargo test` + `cargo build` pass
+- [x] Font metrics: monospace width × chars = line width
+- [x] SVG: gradient parsing, transform, path d
+- [x] Canvas: path ops, gradient interpolation
+- [x] Video stub: .play() doesn't crash
+- [x] `cargo test` + `cargo build` pass
 
 **Commit & push.**
 
@@ -814,24 +814,24 @@ engine/a11y/
 
 ### Checklist
 
-- [ ] AccessibleNode, AriaRole enum (~25 roles)
-- [ ] Build a11y tree from DOM: implicit + explicit roles
-- [ ] ARIA: aria-label, aria-labelledby, aria-describedby, aria-hidden, aria-live
-- [ ] Tab order: tabindex sorting, natural focusable elements
-- [ ] Tab/Shift+Tab cycle, focus ring
-- [ ] Enter/Space → click on focused button
-- [ ] Text linearization from a11y tree
-- [ ] Live region announcements
-- [ ] High contrast + prefers-reduced-motion media queries
+- [x] AccessibleNode, AriaRole enum (~25 roles)
+- [x] Build a11y tree from DOM: implicit + explicit roles
+- [x] ARIA: aria-label, aria-labelledby, aria-describedby, aria-hidden, aria-live
+- [x] Tab order: tabindex sorting, natural focusable elements
+- [x] Tab/Shift+Tab cycle, focus ring
+- [x] Enter/Space → click on focused button
+- [x] Text linearization from a11y tree
+- [x] Live region announcements
+- [x] High contrast + prefers-reduced-motion media queries
 
 **Tests:**
-- [ ] `<button>` → Button role, `<nav>` → Navigation role
-- [ ] `role="button"` overrides implicit
-- [ ] aria-label sets accessible name
-- [ ] Tab cycles focusable elements in order
-- [ ] tabindex=-1 not reachable by Tab
-- [ ] Enter on button dispatches click
-- [ ] `cargo test` + `cargo build` pass
+- [x] `<button>` → Button role, `<nav>` → Navigation role
+- [x] `role="button"` overrides implicit
+- [x] aria-label sets accessible name
+- [x] Tab cycles focusable elements in order
+- [x] tabindex=-1 not reachable by Tab
+- [x] Enter on button dispatches click
+- [x] `cargo test` + `cargo build` pass
 
 **Commit & push.**
 
