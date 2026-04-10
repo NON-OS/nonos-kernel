@@ -1,8 +1,8 @@
 extern crate alloc;
-use alloc::string::String;
+use alloc::boxed::Box;
 use alloc::vec::Vec;
 use super::super::tokenizer::CssToken;
-use super::super::selector::types::{Selector, SimpleSelector};
+use super::super::selector::{Selector, SimpleSelector};
 
 pub fn parse_selector(tokens: &[CssToken]) -> Vec<Selector> {
     let groups = split_by_comma(tokens);
