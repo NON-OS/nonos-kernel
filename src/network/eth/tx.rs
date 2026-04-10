@@ -36,34 +36,47 @@ impl Tx1559 {
         crate::crypto::keccak::keccak256(&buf)
     }
 
-    pub fn sign(&self, privkey: &[u8; 32]) -> Vec<u8> {
+    pub fn sign(&self, privkey: &[u8; 32]) -> Option<Vec<u8>> {
         let hash = self.hash();
-        let sig = crate::crypto::secp256k1::sign(&hash, privkey);
+        let sig = crate::crypto::secp256k1::sign(privkey, &hash)?;
+        let sig_bytes = sig.to_bytes();
         let mut out = Vec::with_capacity(256);
         out.push(0x02);
-        self.rlp_signed(&mut out, &sig);
-        out
+        self.rlp_signed(&mut out, &sig_bytes);
+        Some(out)
     }
 
     fn rlp_encode(&self, buf: &mut Vec<u8>) {
+        let chain_id_bytes = self.chain_id.to_be_bytes();
+        let nonce_bytes = self.nonce.to_be_bytes();
+        let max_priority_bytes = self.max_priority.to_be_bytes();
+        let max_fee_bytes = self.max_fee.to_be_bytes();
+        let gas_limit_bytes = self.gas_limit.to_be_bytes();
+        let value_bytes = self.value.to_be_bytes();
         let items: [&[u8]; 9] = [
-            &trim(&self.chain_id.to_be_bytes()), &trim(&self.nonce.to_be_bytes()),
-            &trim(&self.max_priority.to_be_bytes()), &trim(&self.max_fee.to_be_bytes()),
-            &trim(&self.gas_limit.to_be_bytes()), &self.to,
-            &trim(&self.value.to_be_bytes()), &self.data, &[],
+            trim(&chain_id_bytes), trim(&nonce_bytes),
+            trim(&max_priority_bytes), trim(&max_fee_bytes),
+            trim(&gas_limit_bytes), &self.to,
+            trim(&value_bytes), &self.data, &[],
         ];
         rlp_list(buf, &items);
     }
 
     fn rlp_signed(&self, buf: &mut Vec<u8>, sig: &[u8; 65]) {
+        let chain_id_bytes = self.chain_id.to_be_bytes();
+        let nonce_bytes = self.nonce.to_be_bytes();
+        let max_priority_bytes = self.max_priority.to_be_bytes();
+        let max_fee_bytes = self.max_fee.to_be_bytes();
+        let gas_limit_bytes = self.gas_limit.to_be_bytes();
+        let value_bytes = self.value.to_be_bytes();
         let v = [sig[64]];
         let r = trim(&sig[0..32]);
         let s = trim(&sig[32..64]);
         let items: [&[u8]; 12] = [
-            &trim(&self.chain_id.to_be_bytes()), &trim(&self.nonce.to_be_bytes()),
-            &trim(&self.max_priority.to_be_bytes()), &trim(&self.max_fee.to_be_bytes()),
-            &trim(&self.gas_limit.to_be_bytes()), &self.to,
-            &trim(&self.value.to_be_bytes()), &self.data, &[], &v, r, s,
+            trim(&chain_id_bytes), trim(&nonce_bytes),
+            trim(&max_priority_bytes), trim(&max_fee_bytes),
+            trim(&gas_limit_bytes), &self.to,
+            trim(&value_bytes), &self.data, &[], &v, r, s,
         ];
         rlp_list(buf, &items);
     }
