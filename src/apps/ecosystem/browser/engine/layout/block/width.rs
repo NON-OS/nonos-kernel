@@ -1,4 +1,4 @@
-use super::super::types::{LayoutBox, Dimensions};
+use super::super::types::LayoutBox;
 use super::super::super::css::types::CssValue;
 use super::super::super::css::cascade::resolve_length;
 
