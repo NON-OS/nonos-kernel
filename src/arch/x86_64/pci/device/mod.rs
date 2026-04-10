@@ -20,11 +20,13 @@ mod device_new;
 mod device_accessors;
 mod commands;
 mod bars;
-mod bars_io;
-mod bars_mem;
+pub mod bars_io;
+pub mod bars_mem;
 mod capabilities;
 mod capabilities_find;
 mod capabilities_msix;
 mod capabilities_errors;
 
 pub use device::PciDevice;
+pub use bars_io::parse_io_bar;
+pub use bars_mem::parse_mem_bar;
