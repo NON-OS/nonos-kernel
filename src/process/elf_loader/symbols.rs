@@ -31,8 +31,11 @@ pub fn resolve_symbol(base: u64, symtab: u64, strtab: u64, sym_idx: u32) -> Resu
     let binding = sym.st_info >> 4;
     if sym.st_shndx == SHN_UNDEF {
         if binding == STB_WEAK { return Ok(0); }
+        if binding == STB_LOCAL { return Err(ElfError::RelocationFailed); }
         let name = get_symbol_name(base, strtab, sym.st_name);
-        if let Some(addr) = lookup_kernel_symbol(&name) { return Ok(addr); }
+        if binding == STB_GLOBAL {
+            if let Some(addr) = lookup_kernel_symbol(&name) { return Ok(addr); }
+        }
         return Err(ElfError::RelocationFailed);
     }
     if sym.st_shndx == SHN_ABS { return Ok(sym.st_value); }
