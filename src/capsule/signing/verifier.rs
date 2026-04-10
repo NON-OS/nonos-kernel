@@ -16,12 +16,14 @@
 
 use super::keys::{self, PublicKey};
 use super::signer::Signature;
+use crate::crypto::ed25519::Signature as Ed25519Sig;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum VerifyError { InvalidSignature, InvalidPublicKey, UntrustedKey, DataTooShort }
 
 pub fn verify(message: &[u8], signature: &Signature, pubkey: &PublicKey) -> Result<(), VerifyError> {
-    if !crate::crypto::ed25519::verify(message, signature, pubkey) {
+    let sig = Ed25519Sig::from_bytes(signature);
+    if !crate::crypto::ed25519::verify(pubkey, message, &sig) {
         return Err(VerifyError::InvalidSignature);
     }
     Ok(())
