@@ -20,9 +20,9 @@ mod convert_keycode;
 mod numpad;
 mod scan;
 mod scan_api;
-mod scan_extended;
+pub mod scan_extended;
 mod scan_process;
-mod scan_standard;
+pub mod scan_standard;
 mod state;
 #[cfg(test)]
 mod test;
@@ -30,6 +30,8 @@ mod test;
 pub use convert::{ascii_to_keycode, keycode_to_ascii, keycode_to_ascii_with_mods};
 pub use numpad::NumpadKey;
 pub use scan::{map_scan_code, map_scan_code_full, process_scan_code, KeymapResult};
+pub use scan_extended::map_extended_scan_code;
+pub use scan_standard::map_standard_scan_code;
 pub use state::{
     get_extended_state, get_modifiers, reset_extended_state, reset_modifiers, set_extended_state,
     set_modifiers, update_modifiers, ExtendedState,
