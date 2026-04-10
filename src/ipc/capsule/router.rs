@@ -25,12 +25,14 @@ static ROUTES: RwLock<Option<BTreeMap<RoutePair, RoutePolicy>>> = RwLock::new(No
 
 pub fn init_router() { *ROUTES.write() = Some(BTreeMap::new()); }
 
+type RouteMap = BTreeMap<RoutePair, RoutePolicy>;
+
 pub fn set_route(src: CapsuleId, dst: CapsuleId, policy: RoutePolicy) {
     if let Some(r) = ROUTES.write().as_mut() { r.insert((src, dst), policy); }
 }
 
 pub fn get_route(src: CapsuleId, dst: CapsuleId) -> RoutePolicy {
-    ROUTES.read().as_ref().and_then(|r| r.get(&(src, dst)).copied()).unwrap_or(RoutePolicy::Deny)
+    ROUTES.read().as_ref().and_then(|r: &RouteMap| r.get(&(src, dst)).copied()).unwrap_or(RoutePolicy::Deny)
 }
 
 pub fn remove_route(src: CapsuleId, dst: CapsuleId) {
