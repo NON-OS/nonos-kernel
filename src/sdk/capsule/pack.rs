@@ -66,11 +66,16 @@ pub fn get_manifest_hash(data: &[u8]) -> Option<[u8; 32]> {
 }
 
 pub fn verify_capsule(data: &[u8]) -> bool {
-    let h = match crate::capsule::format::CapsuleHeader::parse(data) { Ok(h) => h, Err(_) => return false };
-    let sig = match h.signature(data) { Some(s) => s, None => return false };
+    use crate::crypto::ed25519::Signature;
+    let h: crate::capsule::format::CapsuleHeader = match crate::capsule::format::CapsuleHeader::parse(data) { Ok(h) => h, Err(_) => return false };
+    let sig_bytes = match h.signature(data) { Some(s) => s, None => return false };
     let signed = match h.signed_data(data) { Some(d) => d, None => return false };
     let manifest = match h.manifest(data) { Some(m) => m, None => return false };
     let m = match crate::capsule::manifest::Manifest::parse(manifest) { Ok(m) => m, Err(_) => return false };
     if m.dev_pubkey == [0u8; 32] { return false; }
-    crate::crypto::ed25519::verify(&m.dev_pubkey, signed, sig)
+    if sig_bytes.len() != 64 { return false; }
+    let mut sig_arr = [0u8; 64];
+    sig_arr.copy_from_slice(sig_bytes);
+    let sig = Signature::from_bytes(&sig_arr);
+    crate::crypto::ed25519::verify(&m.dev_pubkey, signed, &sig)
 }
