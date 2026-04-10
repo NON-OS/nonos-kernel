@@ -16,7 +16,7 @@
 
 extern crate alloc;
 use alloc::sync::Arc;
-use crate::memory::AddressSpace;
+use crate::memory::virtual_memory::AddressSpace;
 use super::types::CapsuleId;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -38,6 +38,22 @@ pub struct Sandbox {
 impl Sandbox {
     pub fn new(id: CapsuleId, as_: AddressSpace, entry: u64, caps: u64, mem_limit: u64) -> Self {
         Self { capsule_id: id, addr_space: Arc::new(as_), entry, caps, mem_limit, mem_used: 0, state: SandboxState::Ready }
+    }
+
+    pub fn new_minimal(id: CapsuleId, entry: u64, caps: u64, mem_limit: u64) -> Self {
+        use x86_64::{PhysAddr, VirtAddr};
+        let addr_space = AddressSpace {
+            asid: id as u32,
+            page_table: PhysAddr::new(0),
+            vm_areas: alloc::vec::Vec::new(),
+            heap_start: VirtAddr::new(0),
+            heap_end: VirtAddr::new(0),
+            stack_start: VirtAddr::new(0),
+            stack_end: VirtAddr::new(0),
+            mmap_start: VirtAddr::new(0),
+            creation_time: crate::time::unix_timestamp(),
+        };
+        Self { capsule_id: id, addr_space: Arc::new(addr_space), entry, caps, mem_limit, mem_used: 0, state: SandboxState::Ready }
     }
 
     pub fn has_cap(&self, cap: u64) -> bool { self.caps & cap != 0 }
