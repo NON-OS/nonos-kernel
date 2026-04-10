@@ -19,8 +19,8 @@ pub mod panic;
 mod main;
 mod main_start;
 mod main_early;
-mod main_late;
-mod main_cpu;
+pub mod main_late;
+pub mod main_cpu;
 #[cfg(test)]
 mod tests;
 
@@ -28,3 +28,5 @@ pub use panic::boot_panic;
 #[cfg(not(feature = "std"))]
 pub use main::_arch_start;
 pub use main::boot_main;
+pub use main_late::boot_late;
+pub use main_cpu::init_cpu_success;
