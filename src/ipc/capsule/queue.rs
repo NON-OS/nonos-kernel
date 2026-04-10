@@ -63,7 +63,7 @@ pub fn peek(id: CapsuleId) -> Option<CapsuleMsg> {
 }
 
 pub fn queue_len(id: CapsuleId) -> usize {
-    STORE.read().as_ref().and_then(|s| s.queues.get(&id).map(|q| q.len())).unwrap_or(0)
+    STORE.read().as_ref().and_then(|s: &QueueStore| s.queues.get(&id).map(|q: &VecDeque<CapsuleMsg>| q.len())).unwrap_or(0)
 }
 
 pub fn total_pending() -> u64 {
