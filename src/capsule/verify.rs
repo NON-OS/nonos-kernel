@@ -53,9 +53,13 @@ pub fn verify(data: &[u8], token: &UnlockToken) -> Result<(CapsuleHeader, Manife
     if mh != token.manifest_hash { return Err(VerifyError::HashMismatch); }
     let m = Manifest::parse(md)?;
     if m.dev_pubkey == [0u8; 32] { return Err(VerifyError::NoPubkey); }
-    let sig = h.signature(data).ok_or(VerifyError::Format(FormatError::BadOffset))?;
+    let sig_bytes = h.signature(data).ok_or(VerifyError::Format(FormatError::BadOffset))?;
     let sd = h.signed_data(data).ok_or(VerifyError::Format(FormatError::BadOffset))?;
-    if !crate::crypto::ed25519::verify(&m.dev_pubkey, sd, sig) {
+    if sig_bytes.len() != 64 { return Err(VerifyError::BadSignature); }
+    let mut sig_arr = [0u8; 64];
+    sig_arr.copy_from_slice(sig_bytes);
+    let sig = crate::crypto::ed25519::Signature::from_bytes(&sig_arr);
+    if !crate::crypto::ed25519::verify(&m.dev_pubkey, sd, &sig) {
         return Err(VerifyError::BadSignature);
     }
     if token.expires_at != 0 && crate::sys::clock::get_unix_time() > token.expires_at {
