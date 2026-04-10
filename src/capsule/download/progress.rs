@@ -66,3 +66,17 @@ pub fn clear_completed() {
 pub fn active_count() -> usize {
     PROGRESS.read().as_ref().map(|p| p.values().filter(|e| e.status == Status::Downloading).count()).unwrap_or(0)
 }
+
+pub fn get_elapsed_secs(cid: &str) -> u64 {
+    let now = crate::time::unix_timestamp();
+    PROGRESS.read().as_ref()
+        .and_then(|p| p.get(cid).map(|e| now.saturating_sub(e.started_at)))
+        .unwrap_or(0)
+}
+
+pub fn get_download_speed(cid: &str) -> u64 {
+    let elapsed = get_elapsed_secs(cid);
+    if elapsed == 0 { return 0; }
+    let (downloaded, _) = get_progress(cid);
+    downloaded / elapsed
+}
