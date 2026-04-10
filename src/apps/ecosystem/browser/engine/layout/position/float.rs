@@ -1,7 +1,7 @@
 use super::super::types::LayoutBox;
 use super::super::super::css::properties::{Float, Clear};
 
-pub fn apply_float(layout_box: &mut LayoutBox, container_width: f32, float_left_x: &mut f32, float_right_x: &mut f32) {
+pub fn apply_float(layout_box: &mut LayoutBox, _container_width: f32, float_left_x: &mut f32, float_right_x: &mut f32) {
     match layout_box.style.float {
         Float::Left => {
             layout_box.dimensions.content.x = *float_left_x
