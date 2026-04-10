@@ -1,5 +1,4 @@
 extern crate alloc;
-use alloc::string::String;
 use super::token_types::CssToken;
 use super::scan_string::scan_quoted_string;
 use super::scan_number::scan_numeric;
