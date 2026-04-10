@@ -17,7 +17,7 @@
 extern crate alloc;
 use alloc::collections::BTreeMap;
 use spin::RwLock;
-use super::types::{RevenueEntry, RevenueError, RevenueSplit};
+use super::types::{RevenueEntry, RevenueSplit};
 
 struct Tracker { entries: BTreeMap<[u8; 32], RevenueEntry>, total: u128 }
 static TRACK: RwLock<Option<Tracker>> = RwLock::new(None);
