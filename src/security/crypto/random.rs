@@ -45,7 +45,10 @@ pub fn init() -> Result<(), &'static str> {
 */
 pub fn secure_random_u64() -> u64 {
     match try_secure_random_u64() {
-        Ok(v) => v,
+        Ok(v) => {
+            consume_entropy(64);
+            v
+        }
         Err(_) => {
             crate::log::warn!("[RNG] No hardware entropy source, using TSC-based fallback");
             tsc_fallback_random()
