@@ -31,13 +31,12 @@ pub fn get_claimable(token_id: u64) -> Result<u128, NftError> {
     Ok(u128::from_be_bytes(result[16..32].try_into().unwrap()))
 }
 
-pub fn claim_rewards(token_id: u64) -> Result<u128, NftError> {
+pub fn claim_rewards(token_id: u64, key: &[u8; 32]) -> Result<u128, NftError> {
     let mut calldata = abi::selector("claim(uint256)").to_vec();
     calldata.extend_from_slice(&[0u8; 24]);
     calldata.extend_from_slice(&token_id.to_be_bytes());
-    let result = eth::client::send_tx(&REWARD_POOL_ADDR, &calldata, 0).map_err(|_| NftError::NetworkError)?;
-    if result.len() < 32 { return Err(NftError::InvalidToken); }
-    Ok(u128::from_be_bytes(result[16..32].try_into().unwrap()))
+    let result = eth::client::send_tx(&REWARD_POOL_ADDR, 0, calldata, key).map_err(|_| NftError::NetworkError)?;
+    Ok(u128::from_be_bytes(result[16..32].try_into().unwrap_or([0u8; 16])))
 }
 
 pub fn get_reward_info(token_id: u64) -> Result<RewardInfo, NftError> {
