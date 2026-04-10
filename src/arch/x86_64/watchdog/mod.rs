@@ -14,11 +14,14 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod constants;
-mod detect;
+pub mod constants;
+pub mod detect;
 mod ops;
-mod state;
+pub mod state;
 mod status;
 
 pub use ops::{disable, enable, get_timeout, is_enabled, kick, set_timeout};
 pub use status::{get_status, WatchdogStatus};
+pub use constants::{TCO_RLD, TCO1_CNT, TCO1_STS, TCO2_STS};
+pub use detect::detect_tco_watchdog;
+pub use state::{ENABLED, LAST_KICK, TIMEOUT_MS};
