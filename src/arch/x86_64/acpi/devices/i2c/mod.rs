@@ -15,11 +15,11 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod types;
-mod hids;
+pub mod hids;
 mod enumerate;
 mod configs;
 
 pub use types::{I2cHidDevice, I2cHidDeviceType};
-pub use hids::classify_hid_device;
+pub use hids::{classify_hid_device, TOUCHPAD_HIDS, TOUCHSCREEN_HIDS};
 pub use enumerate::{enumerate_i2c_hid_devices, find_touchpads, find_touchscreens};
 pub use configs::get_additional_touchpad_configs;
