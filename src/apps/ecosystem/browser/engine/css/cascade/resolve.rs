@@ -16,7 +16,7 @@ pub fn resolve_style(
 ) -> ComputedStyle {
     let mut style = default_style();
     let mut matched = collect_matching_rules(node, stylesheets);
-    matched.sort_by_key(|(spec, idx, imp)| (*imp, *spec, *idx));
+    matched.sort_by_key(|(spec, idx, imp, _)| (*imp, *spec, *idx));
 
     for (_, _, _, decl) in &matched {
         apply_declaration(&mut style, decl);
