@@ -42,7 +42,8 @@ pub(super) fn execute_pending_payment() -> bool {
     PAYMENT_PENDING.store(false, Ordering::Relaxed);
     match send_nox_to(&TREASURY, fee_wei) {
         Ok(_) => {
-            super::capsule::create_capsule(app_idx, fee);
+            let capsule_id = [0u8; 32]; // Placeholder until we get real ID
+            super::capsule::create_capsule(app_idx, &capsule_id, "installed_app", 0);
             crate::graphics::window::notify_success(b"App installed!");
             true
         }
