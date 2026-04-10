@@ -1,5 +1,4 @@
 extern crate alloc;
-use alloc::string::String;
 use super::node::NodeId;
 use super::arena::DomArena;
 use super::mutate::append_child;
