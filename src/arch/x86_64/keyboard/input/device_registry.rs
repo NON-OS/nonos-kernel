@@ -59,3 +59,31 @@ pub fn register_device(device: &'static dyn InputDevice) -> InputResult<()> {
     }
     Err(InputError::with_context(InputErrorCode::ResourceExhausted, "device registry full"))
 }
+
+pub fn is_device_enabled(device_id: super::types::DeviceId) -> bool {
+    let registry = DEVICE_REGISTRY.lock();
+    registry.devices.iter().flatten()
+        .find(|e| e.device.device_id() == device_id)
+        .map(|e| e.enabled)
+        .unwrap_or(false)
+}
+
+pub fn set_device_enabled(device_id: super::types::DeviceId, en: bool) -> InputResult<()> {
+    let mut registry = DEVICE_REGISTRY.lock();
+    for entry in registry.devices.iter_mut().flatten() {
+        if entry.device.device_id() == device_id {
+            entry.enabled = en;
+            return Ok(());
+        }
+    }
+    Err(InputError::with_context(InputErrorCode::InvalidConfig, "device not found"))
+}
+
+pub fn poll_enabled_devices() {
+    let registry = DEVICE_REGISTRY.lock();
+    for entry in registry.devices.iter().flatten() {
+        if entry.enabled {
+            entry.device.poll();
+        }
+    }
+}
