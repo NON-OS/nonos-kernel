@@ -122,4 +122,11 @@ impl NetworkStack {
             None
         }
     }
+
+    pub fn close_socket(&self, socket_id: usize) {
+        let mut conns = self.conns.lock();
+        if let Some(conn) = conns.get_mut(&(socket_id as u32)) {
+            conn.closed = true;
+        }
+    }
 }
