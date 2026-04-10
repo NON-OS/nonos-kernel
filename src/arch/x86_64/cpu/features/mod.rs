@@ -18,10 +18,13 @@ mod types;
 mod types_struct;
 mod types_new;
 mod detect;
-mod detect_leaf1;
-mod detect_leaf7;
-mod detect_extended;
+pub mod detect_leaf1;
+pub mod detect_leaf7;
+pub mod detect_extended;
 mod lookup;
 
 pub use types::CpuFeatures;
 pub use lookup::has_feature;
+pub use detect_leaf1::{detect_leaf1_ecx, detect_leaf1_edx};
+pub use detect_leaf7::{detect_leaf7_ebx, detect_leaf7_ecx, detect_leaf7_edx};
+pub use detect_extended::{detect_extended_ecx, detect_extended_edx};
