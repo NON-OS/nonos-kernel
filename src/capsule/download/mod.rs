@@ -19,5 +19,10 @@ pub mod cache;
 pub mod progress;
 
 pub use manager::*;
-pub use cache::*;
-pub use progress::*;
+pub use cache::{get as cache_get, insert as cache_insert};
+pub use progress::{Status, set_status, set_progress, get_status, get_progress};
+
+pub fn init() {
+    cache::init();
+    progress::init();
+}
