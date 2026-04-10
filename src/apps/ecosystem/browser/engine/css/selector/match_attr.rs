@@ -1,5 +1,4 @@
 extern crate alloc;
-use alloc::string::String;
 use super::types::{AttributeSelector, AttributeOp};
 use super::match_node::NodeInfo;
 
