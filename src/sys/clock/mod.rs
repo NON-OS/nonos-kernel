@@ -22,6 +22,10 @@ pub use core::*;
 pub use time::*;
 pub use format::*;
 
+pub fn get_unix_time() -> u64 {
+    unix_ms() / 1000
+}
+
 pub fn uptime_seconds() -> u64 {
     crate::sys::timer::uptime::uptime_seconds()
 }
