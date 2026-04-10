@@ -20,6 +20,7 @@ use crate::runtime::zerostate;
 use crate::capabilities::CapabilityToken;
 
 pub(super) const MAX_CAPSULES: usize = 32;
+pub(super) const TREASURY: [u8; 20] = [0xDE, 0xAD, 0xBE, 0xEF, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01];
 
 #[derive(Clone, Copy)]
 pub(super) struct Capsule {
@@ -37,7 +38,7 @@ impl Capsule {
         Self { app_idx: 0, capsule_id: [0u8; 32], caps_granted: 0, running: false, install_time: 0, active: false, name: [0u8; 64] }
     }
     pub(super) fn is_running(&self) -> bool { self.running }
-    fn copy_name(&self, buf: &mut [u8; 64]) -> usize {
+    pub(super) fn copy_name(&self, buf: &mut [u8; 64]) -> usize {
         buf.copy_from_slice(&self.name);
         self.name.iter().position(|&c| c == 0).unwrap_or(64)
     }
