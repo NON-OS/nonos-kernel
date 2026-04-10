@@ -20,6 +20,7 @@ extern crate alloc;
 
 pub mod application;
 pub mod asymmetric;
+pub mod base64;
 pub mod core;
 pub mod error;
 pub mod exports;
@@ -40,7 +41,14 @@ pub use error::{CryptoError, CryptoResult};
 pub use random_api as random;
 pub use util::bigint; pub use util::constant_time; pub use util::entropy; pub use util::hmac; pub use util::rng;
 pub use symmetric::aes; pub use symmetric::aes_gcm; pub use symmetric::chacha20poly1305;
+pub use asymmetric::ed25519;
+pub use asymmetric::secp256k1;
 pub use hash::blake3; pub use hash::sha3; pub use hash::sha512;
+pub use hash::sha3 as keccak;
+
+pub mod sha256 {
+    pub fn hash(data: &[u8]) -> [u8; 32] { super::hash::sha256(data) }
+}
 pub use rng::{fill_random_bytes, get_random_bytes, random_u32};
 pub use exports::*;
 
