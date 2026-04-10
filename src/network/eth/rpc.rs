@@ -24,7 +24,7 @@ pub const CHAIN_MAINNET: u64 = 1;
 pub const CHAIN_BASE: u64 = 8453;
 
 #[derive(Debug)]
-pub enum RpcError { Network, Parse, Revert(String) }
+pub enum RpcError { Network, Parse, Sign, Revert(String) }
 
 pub fn json_rpc(url: &str, method: &str, params: &str) -> Result<Vec<u8>, RpcError> {
     let body = alloc::format!(r#"{{"jsonrpc":"2.0","method":"{}","params":{},"id":1}}"#, method, params);
