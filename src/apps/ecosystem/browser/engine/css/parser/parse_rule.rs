@@ -1,5 +1,4 @@
 extern crate alloc;
-use alloc::vec::Vec;
 use super::stylesheet::{Stylesheet, Rule};
 use super::parse_selector::parse_selector;
 use super::parse_declaration::parse_declarations_from_tokens;
