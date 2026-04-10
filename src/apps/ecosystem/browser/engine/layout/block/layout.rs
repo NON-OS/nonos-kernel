@@ -23,11 +23,16 @@ fn calculate_block_position(layout_box: &mut LayoutBox, containing: &Dimensions)
     layout_box.dimensions.margin.top = resolve_length(&style.margin_top, fs, vw, 0.0);
     layout_box.dimensions.margin.bottom = resolve_length(&style.margin_bottom, fs, vw, 0.0);
 
-    let d = &layout_box.dimensions;
+    let margin_left = layout_box.dimensions.margin.left;
+    let border_left = layout_box.dimensions.border.left;
+    let padding_left = layout_box.dimensions.padding.left;
+    let margin_top = layout_box.dimensions.margin.top;
+    let border_top = layout_box.dimensions.border.top;
+    let padding_top = layout_box.dimensions.padding.top;
     layout_box.dimensions.content.x = containing.content.x
-        + d.margin.left + d.border.left + d.padding.left;
+        + margin_left + border_left + padding_left;
     layout_box.dimensions.content.y = containing.content.y + containing.content.height
-        + d.margin.top + d.border.top + d.padding.top;
+        + margin_top + border_top + padding_top;
 }
 
 fn layout_block_children(layout_box: &mut LayoutBox) {
