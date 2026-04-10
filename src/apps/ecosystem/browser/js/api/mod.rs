@@ -1,5 +1,5 @@
-mod fetch;
-mod headers_api;
+pub mod fetch;
+pub mod headers_api;
 mod xhr;
 mod websocket;
 mod storage;
@@ -16,7 +16,8 @@ mod performance;
 mod abort;
 mod observers;
 
-pub use fetch::create_fetch_api;
+pub use fetch::{create_fetch_api, set_page_url, check_script_csp, check_nosniff};
+pub use headers_api::create_headers;
 pub use xhr::create_xhr_constructor;
 pub use websocket::create_websocket_constructor;
 pub use storage::create_storage;
