@@ -4,6 +4,7 @@ use alloc::vec::Vec;
 use alloc::rc::Rc;
 use core::cell::RefCell;
 use alloc::collections::BTreeMap;
+use spin::Mutex;
 use crate::apps::ecosystem::browser::js::runtime::JsValue;
 use crate::apps::ecosystem::browser::js::promise;
 use crate::apps::ecosystem::browser::js::security::{
@@ -13,10 +14,10 @@ use crate::apps::ecosystem::browser::js::security::{
 };
 use super::headers_api;
 
-static mut PAGE_URL: Option<String> = None;
+static PAGE_URL: Mutex<Option<String>> = Mutex::new(None);
 
-pub fn set_page_url(url: &str) { unsafe { PAGE_URL = Some(String::from(url)); } }
-fn get_page_url() -> String { unsafe { PAGE_URL.clone().unwrap_or_default() } }
+pub fn set_page_url(url: &str) { *PAGE_URL.lock() = Some(String::from(url)); }
+fn get_page_url() -> String { PAGE_URL.lock().clone().unwrap_or_default() }
 
 pub fn create_fetch_api() -> JsValue { JsValue::NativeFunc(native_fetch) }
 
