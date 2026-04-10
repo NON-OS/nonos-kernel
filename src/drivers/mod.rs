@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 pub mod ahci; pub mod audio; pub mod block; pub mod console; mod critical; mod device_info; pub mod e1000;
-mod exports; pub mod gpu; pub mod i2c; mod init; mod init_dma; mod init_storage; mod init_network; mod init_peripherals;
+mod exports; pub mod gpu; pub mod i2c; mod init; pub mod init_dma; pub mod init_storage; pub mod init_network; pub mod init_peripherals;
 pub mod keyboard; pub mod keyboard_buffer;
 pub mod monster; pub mod network; pub mod nvme; pub mod pci; pub mod rtl8139; pub mod rtl8168;
 pub mod security; mod stats; pub mod tpm; pub mod usb; pub mod vga; pub mod virtio_blk;
@@ -29,6 +29,11 @@ pub use gpu::{init_gpu, with_driver as with_gpu_driver, DisplayMode, GpuDriver, 
 pub use critical::{get_critical_drivers, CriticalDriver, DriverType, SecurityLevel};
 pub use device_info::{get_all_devices, DeviceInfo, SecurityStatus};
 pub use init::init_all_drivers;
+pub use init_dma::init_dma_subsystem;
+pub use init_storage::init_storage_drivers;
+pub use init_network::init_network_drivers;
+pub use init_peripherals::init_peripheral_drivers;
 pub use stats::{get_hardware_stats, HardwareStats};
 pub use i2c::{controller_count as i2c_controller_count, get_controller as get_i2c_controller, init as init_i2c, read as i2c_read, write as i2c_write, write_read as i2c_write_read, DesignWareI2c, I2cAddress, I2cError, I2cSpeed, LpssController};
+pub use block::{is_open, open_count};
 pub use exports::*;
