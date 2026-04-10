@@ -1,9 +1,8 @@
 extern crate alloc;
-use alloc::vec::Vec;
 use super::super::types::{LayoutBox, BoxType};
 use super::super::super::css::cascade::ComputedStyle;
 use super::super::super::css::properties::Display;
-use super::super::super::types::{Node, NodeType};
+use super::super::super::types::Node;
 use super::anonymous::wrap_anonymous_blocks;
 
 pub fn build_layout_tree(node: &Node, styles: &[ComputedStyle], index: &mut u32) -> Option<LayoutBox> {
