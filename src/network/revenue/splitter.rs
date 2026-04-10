@@ -26,42 +26,42 @@ pub const REWARD_POOL_ADDR: [u8; 20] = [
     0xED, 0xf5, 0xA7, 0x8f, 0x4e, 0xc4, 0xFA, 0x14, 0x20, 0x79,
 ];
 
-pub fn distribute(capsule_id: &[u8; 32]) -> Result<RevenueSplit, RevenueError> {
+pub fn distribute(capsule_id: &[u8; 32], key: &[u8; 32]) -> Result<RevenueSplit, RevenueError> {
     let pending = tracker::get_pending(capsule_id);
     if pending == 0 { return Err(RevenueError::InvalidAmount); }
     let split = RevenueSplit::calculate(pending);
-    call_distribute(capsule_id)?;
+    call_distribute(capsule_id, key)?;
     tracker::record_distribution(capsule_id, &split);
     Ok(split)
 }
 
-pub fn claim_developer(capsule_id: &[u8; 32]) -> Result<u128, RevenueError> {
+pub fn claim_developer(capsule_id: &[u8; 32], key: &[u8; 32]) -> Result<u128, RevenueError> {
     let entry = tracker::get_entry(capsule_id).ok_or(RevenueError::NotFound)?;
     let claimable = entry.developer_paid;
     if claimable == 0 { return Err(RevenueError::InvalidAmount); }
-    call_claim_developer(capsule_id)?;
+    call_claim_developer(capsule_id, key)?;
     Ok(claimable)
 }
 
-pub fn deposit_to_pool(capsule_id: &[u8; 32], amount: u128) -> Result<(), RevenueError> {
+pub fn deposit_to_pool(capsule_id: &[u8; 32], amount: u128, key: &[u8; 32]) -> Result<(), RevenueError> {
     let mut calldata = abi::selector("deposit(bytes32,uint256)").to_vec();
     calldata.extend_from_slice(capsule_id);
     calldata.extend_from_slice(&[0u8; 16]);
     calldata.extend_from_slice(&amount.to_be_bytes());
-    eth::client::send_tx(&REWARD_POOL_ADDR, &calldata, 0).map_err(|_| RevenueError::NetworkError)?;
+    eth::client::send_tx(&REWARD_POOL_ADDR, 0, calldata, key).map_err(|_| RevenueError::NetworkError)?;
     Ok(())
 }
 
-fn call_distribute(capsule_id: &[u8; 32]) -> Result<(), RevenueError> {
+fn call_distribute(capsule_id: &[u8; 32], key: &[u8; 32]) -> Result<(), RevenueError> {
     let mut calldata = abi::selector("distribute(bytes32)").to_vec();
     calldata.extend_from_slice(capsule_id);
-    eth::client::send_tx(&SPLITTER_ADDR, &calldata, 0).map_err(|_| RevenueError::NetworkError)?;
+    eth::client::send_tx(&SPLITTER_ADDR, 0, calldata, key).map_err(|_| RevenueError::NetworkError)?;
     Ok(())
 }
 
-fn call_claim_developer(capsule_id: &[u8; 32]) -> Result<(), RevenueError> {
+fn call_claim_developer(capsule_id: &[u8; 32], key: &[u8; 32]) -> Result<(), RevenueError> {
     let mut calldata = abi::selector("claimDeveloper(bytes32)").to_vec();
     calldata.extend_from_slice(capsule_id);
-    eth::client::send_tx(&SPLITTER_ADDR, &calldata, 0).map_err(|_| RevenueError::NetworkError)?;
+    eth::client::send_tx(&SPLITTER_ADDR, 0, calldata, key).map_err(|_| RevenueError::NetworkError)?;
     Ok(())
 }
