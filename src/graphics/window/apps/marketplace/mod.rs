@@ -16,7 +16,7 @@
 
 mod state;
 mod apps;
-mod capsule;
+pub mod capsule;
 mod payment;
 mod cards;
 mod render;
