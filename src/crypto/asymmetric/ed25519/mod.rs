@@ -27,3 +27,7 @@ mod signature;
 mod tests;
 
 pub use signature::{sign, verify, verify_batch, KeyPair, Signature};
+
+pub fn pubkey_from_secret(secret: &[u8; 32]) -> [u8; 32] {
+    KeyPair::from_seed(*secret).public
+}
