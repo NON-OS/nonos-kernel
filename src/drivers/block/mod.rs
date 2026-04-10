@@ -15,9 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod device;
-mod ops;
+pub mod ops;
 mod registry;
 
 pub use device::{BlockDevice, BlockDeviceInfo};
-pub use ops::{open, close, read, write, flush, ioctl};
+pub use ops::{open, close, read, write, flush, ioctl, is_open, open_count};
 pub use registry::{register_device, unregister_device, list_disks, get_device, get_device_info, list_devices};
