@@ -14,34 +14,34 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use crate::crypto::ed25519::{KeyPair, Signature};
+
 pub struct SigningKey {
-    secret: [u8; 32],
-    public: [u8; 32],
+    keypair: KeyPair,
 }
 
 impl SigningKey {
     pub fn generate() -> Self {
-        let mut secret = [0u8; 32];
-        crate::crypto::random::fill_bytes(&mut secret);
-        let public = crate::crypto::ed25519::pubkey_from_secret(&secret);
-        Self { secret, public }
+        Self { keypair: KeyPair::generate() }
     }
 
     pub fn from_secret(secret: [u8; 32]) -> Self {
-        let public = crate::crypto::ed25519::pubkey_from_secret(&secret);
-        Self { secret, public }
+        Self { keypair: KeyPair::from_seed(secret) }
     }
 
-    pub fn public(&self) -> &[u8; 32] { &self.public }
+    pub fn public(&self) -> &[u8; 32] { &self.keypair.public }
 
     pub fn sign(&self, data: &[u8]) -> [u8; 64] {
-        crate::crypto::ed25519::sign(&self.secret, data)
+        crate::crypto::ed25519::sign(&self.keypair, data).to_bytes()
     }
 }
 
 pub fn verify_signature(pubkey: &[u8; 32], data: &[u8], sig: &[u8]) -> bool {
     if sig.len() != 64 { return false; }
-    crate::crypto::ed25519::verify(pubkey, data, sig)
+    let mut sig_arr = [0u8; 64];
+    sig_arr.copy_from_slice(sig);
+    let signature = Signature::from_bytes(&sig_arr);
+    crate::crypto::ed25519::verify(pubkey, data, &signature)
 }
 
 pub fn load_key_from_file(path: &str) -> Option<SigningKey> {
@@ -53,5 +53,5 @@ pub fn load_key_from_file(path: &str) -> Option<SigningKey> {
 }
 
 pub fn save_key_to_file(key: &SigningKey, path: &str) -> bool {
-    crate::fs::ramfs::write_file(path, &key.secret).is_ok()
+    crate::fs::ramfs::write_file(path, &key.keypair.private).is_ok()
 }
