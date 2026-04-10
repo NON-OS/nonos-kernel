@@ -72,6 +72,6 @@ pub fn send_tx(to: &[u8; 20], value: u128, data: Vec<u8>, key: &[u8; 32]) -> Res
         value,
         data,
     };
-    let signed = tx.sign(key);
+    let signed = tx.sign(key).ok_or(RpcError::Sign)?;
     send_raw_tx(&signed)
 }
