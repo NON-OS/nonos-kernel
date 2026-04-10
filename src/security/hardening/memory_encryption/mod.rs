@@ -17,9 +17,9 @@
 mod types;
 mod engine;
 mod api;
-mod region;
+pub mod region;
 
 pub use types::{EncryptedRegion, EncryptionError, MemEncryptStats};
 pub use engine::{init, is_initialized};
 pub use api::{encrypt_region, decrypt_region, protect_sensitive, unprotect_sensitive, rotate_keys};
-pub use region::{register_region, unregister_region, get_protected_regions, is_region_protected};
+pub use region::{register_region, unregister_region, get_protected_regions, is_region_protected, get_region, update_region};
