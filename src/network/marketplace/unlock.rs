@@ -18,12 +18,12 @@ use crate::network::eth::{self, abi};
 use super::types::{MarketError, UnlockInfo};
 use super::registry::REGISTRY_ADDR;
 
-pub fn unlock_capsule(capsule_id: &[u8; 32], caps: u64, value: u128) -> Result<UnlockInfo, MarketError> {
+pub fn unlock_capsule(capsule_id: &[u8; 32], caps: u64, value: u128, key: &[u8; 32]) -> Result<UnlockInfo, MarketError> {
     let mut calldata = abi::selector("unlockCapsule(bytes32,uint64)").to_vec();
     calldata.extend_from_slice(capsule_id);
     calldata.extend_from_slice(&[0u8; 24]);
     calldata.extend_from_slice(&caps.to_be_bytes());
-    let result = eth::client::send_tx(&REGISTRY_ADDR, &calldata, value).map_err(|_| MarketError::NetworkError)?;
+    let result = eth::client::send_tx(&REGISTRY_ADDR, value, calldata, key).map_err(|_| MarketError::NetworkError)?;
     decode_unlock_info(&result, capsule_id)
 }
 
