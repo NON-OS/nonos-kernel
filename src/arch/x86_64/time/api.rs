@@ -16,3 +16,6 @@
 
 pub use super::api_time::{now_ns, is_initialized, delay_ns, delay_us, delay_ms, timestamp_millis, timestamp_micros, uptime_nanos, timestamp_secs, current_time_ns, get_kernel_time_ns, current_ticks, sleep_ms, sleep_us, yield_now};
 pub use super::api_init::{rdtsc, tsc_now, rdtscp, read_rtc, read_rtc_checked, unix_timestamp, init, init_with_hpet, get_all_stats};
+
+#[inline]
+pub fn monotonic_ns() -> u64 { now_ns() }
