@@ -29,7 +29,7 @@ extern crate alloc;
 #[alloc_error_handler]
 fn alloc_error_handler(layout: core::alloc::Layout) -> ! { entry::handle_oom(layout) }
 
-pub mod agents; pub mod apps; pub mod arch; pub mod boot; pub mod bus; pub mod capabilities;
+pub mod agents; pub mod apps; pub mod arch; pub mod boot; pub mod bus; pub mod capabilities; pub mod capsule;
 pub mod context; pub mod crypto; pub mod daemon; pub mod display; pub mod drivers; pub mod elf;
 pub mod entry; pub mod fs; pub mod graphics; pub mod input; pub mod interrupts; pub mod ipc;
 pub mod kernel_core; pub mod kernel_selftest; pub mod lang; pub mod libc; pub mod locale; pub mod log;
