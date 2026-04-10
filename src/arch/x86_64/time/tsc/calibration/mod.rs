@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-mod cpuid;
-mod pit;
-mod hpet;
+pub mod cpuid;
+pub mod pit;
+pub mod hpet;
 mod calibrate;
 
 pub use calibrate::{calibrate, calibrate_with_hpet_base, set_frequency, get_frequency, get_frequency_mhz};
