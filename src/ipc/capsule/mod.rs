@@ -20,6 +20,6 @@ pub mod router;
 pub mod service;
 
 pub use types::*;
-pub use queue::*;
-pub use router::*;
-pub use service::*;
+pub use queue::{init_queues, create_queue, destroy_queue, enqueue, dequeue, peek, queue_len, total_pending};
+pub use router::{init_router, set_route, get_route, remove_route, check_route, allow_all, deny_all};
+pub use service::{init as service_init, register, unregister, send, send_data, send_request, recv, pending, connect, disconnect};
