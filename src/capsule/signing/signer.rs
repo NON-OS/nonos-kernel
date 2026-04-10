@@ -17,6 +17,7 @@
 extern crate alloc;
 use alloc::vec::Vec;
 use super::keys::{PublicKey, SecretKey};
+use crate::crypto::ed25519::KeyPair;
 
 pub type Signature = [u8; 64];
 
@@ -24,21 +25,29 @@ pub type Signature = [u8; 64];
 pub enum SignError { InvalidKey, SigningFailed }
 
 pub fn generate_keypair() -> (PublicKey, SecretKey) {
-    let mut seed = [0u8; 32];
-    crate::random::fill_bytes(&mut seed);
-    keypair_from_seed(&seed)
+    let kp = KeyPair::generate();
+    let public = kp.public;
+    let mut secret = [0u8; 64];
+    secret[..32].copy_from_slice(&kp.private);
+    secret[32..].copy_from_slice(&public);
+    (public, secret)
 }
 
 pub fn keypair_from_seed(seed: &[u8; 32]) -> (PublicKey, SecretKey) {
-    let secret = ed25519_expand_key(seed);
-    let public = ed25519_public_from_secret(&secret);
+    let kp = KeyPair::from_seed(*seed);
+    let public = kp.public;
+    let mut secret = [0u8; 64];
+    secret[..32].copy_from_slice(&kp.private);
+    secret[32..].copy_from_slice(&public);
     (public, secret)
 }
 
 pub fn sign(message: &[u8], secret: &SecretKey) -> Result<Signature, SignError> {
-    let public = ed25519_public_from_secret(secret);
-    let sig = ed25519_sign(message, secret, &public);
-    Ok(sig)
+    let mut seed = [0u8; 32];
+    seed.copy_from_slice(&secret[..32]);
+    let kp = KeyPair::from_seed(seed);
+    let sig = crate::crypto::ed25519::sign(&kp, message);
+    Ok(sig.to_bytes())
 }
 
 pub fn sign_capsule(data: &[u8], secret: &SecretKey) -> Result<Vec<u8>, SignError> {
@@ -46,24 +55,4 @@ pub fn sign_capsule(data: &[u8], secret: &SecretKey) -> Result<Vec<u8>, SignErro
     let mut signed = data.to_vec();
     signed.extend_from_slice(&sig);
     Ok(signed)
-}
-
-fn ed25519_expand_key(seed: &[u8; 32]) -> SecretKey {
-    let hash = crate::crypto::sha512(seed);
-    let mut secret = [0u8; 64];
-    secret.copy_from_slice(&hash);
-    secret[0] &= 248;
-    secret[31] &= 127;
-    secret[31] |= 64;
-    secret
-}
-
-fn ed25519_public_from_secret(secret: &SecretKey) -> PublicKey {
-    let mut scalar = [0u8; 32];
-    scalar.copy_from_slice(&secret[0..32]);
-    crate::crypto::ed25519::scalar_mult_base(&scalar)
-}
-
-fn ed25519_sign(message: &[u8], secret: &SecretKey, public: &PublicKey) -> Signature {
-    crate::crypto::ed25519::sign(message, secret, public)
 }
