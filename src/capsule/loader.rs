@@ -35,7 +35,7 @@ pub fn init_loader() {
 }
 
 pub fn load(data: &[u8], token: UnlockToken) -> Result<CapsuleId, LoadError> {
-    let (h, m) = verify(data, &token)?;
+    let (_h, m) = verify(data, &token)?;
     let id = { let mut n = NEXT_ID.lock(); let i = *n; *n += 1; i };
     let cap = Capsule::new(id, m.id, token.token, m.caps);
     registry::insert(cap);
@@ -45,17 +45,26 @@ pub fn load(data: &[u8], token: UnlockToken) -> Result<CapsuleId, LoadError> {
 pub fn execute(id: CapsuleId, data: &[u8]) -> Result<u64, LoadError> {
     let h = CapsuleHeader::parse(data).map_err(|e| LoadError::Verify(e.into()))?;
     let elf = h.binary(data).ok_or(LoadError::Elf)?;
-    let addr_space = crate::memory::AddressSpace::new_user().map_err(|_| LoadError::Memory)?;
-    let entry = crate::elf::loader::load_elf(elf, &addr_space).map_err(|_| LoadError::Elf)?;
+
+    // Load ELF binary to get entry point
+    const USER_BASE: u64 = 0x400000;
+    let loaded = crate::process::elf_loader::load_elf(elf, USER_BASE).map_err(|_| LoadError::Elf)?;
+    let entry = loaded.entry;
+
     let cap = registry::get_mut(id).ok_or(LoadError::Process)?;
     let name = alloc::format!("capsule:{}", id);
-    let proc = crate::process::Process::new_capsule(id, &name, addr_space.handle(), entry)
+
+    // Create process via the standard process API
+    let pid = crate::process::create_process(&name, crate::process::ProcessState::Ready, crate::process::Priority::Normal)
         .map_err(|_| LoadError::Process)?;
-    let pid = proc.pid();
-    cap.pid = Some(pid);
+
+    cap.pid = Some(pid as u64);
     cap.state = CapsuleState::Running;
-    let sb = Sandbox::new(id, addr_space, entry, cap.caps, 128 * 1024 * 1024);
+
+    // Create sandbox with minimal configuration
+    let sb = Sandbox::new_minimal(id, entry, cap.caps, 128 * 1024 * 1024);
     registry::insert_sandbox(id, sb);
-    registry::map_pid(pid, id);
-    Ok(pid)
+    registry::map_pid(pid as u64, id);
+
+    Ok(pid as u64)
 }
