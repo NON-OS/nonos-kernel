@@ -21,6 +21,7 @@ use alloc::format;
 use crate::network::stack::async_ops::{http_start_request, http_poll, AsyncResult};
 use crate::apps::ecosystem::browser::session;
 use super::state::*;
+use super::compression;
 
 pub(super) fn start_http_connection(ip: [u8; 4], port: u16) {
     let host = match PENDING_HOST.lock().clone() {
@@ -35,10 +36,11 @@ pub(super) fn start_http_connection(ip: [u8; 4], port: u16) {
     let method = PENDING_METHOD.lock().clone().unwrap_or_else(|| String::from("GET"));
     let body = PENDING_BODY.lock().clone();
     let content_type = PENDING_CONTENT_TYPE.lock().clone();
+    let accept_encoding = compression::accept_encoding_header();
 
     let mut request = format!(
-        "{} {} HTTP/1.1\r\nHost: {}\r\nUser-Agent: NONOS/1.0\r\nAccept: text/html,*/*\r\nConnection: close\r\n",
-        method, path, host
+        "{} {} HTTP/1.1\r\nHost: {}\r\nUser-Agent: NONOS/1.0\r\nAccept: text/html,*/*\r\nAccept-Encoding: {}\r\nConnection: close\r\n",
+        method, path, host, accept_encoding
     );
     if let Some(ref ct) = content_type {
         request.push_str(&format!("Content-Type: {}\r\n", ct));
