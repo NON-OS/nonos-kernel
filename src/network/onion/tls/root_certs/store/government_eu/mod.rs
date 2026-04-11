@@ -1,4 +1,3 @@
-mod ;
 mod ac_raiz_fnmt_rcm_servidores_seguros;
 mod atos_trustedroot_2011;
 mod atos_trustedroot_root_ca_ecc_tls_2021;
@@ -18,7 +17,6 @@ mod t_telesec_globalroot_class_3;
 use super::super::types::TrustedRootCa;
 
 pub static GOV_EU_ROOTS: &[TrustedRootCa] = &[
-    ::ROOT,
     ac_raiz_fnmt_rcm_servidores_seguros::ROOT,
     atos_trustedroot_2011::ROOT,
     atos_trustedroot_root_ca_ecc_tls_2021::ROOT,
