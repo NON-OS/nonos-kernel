@@ -1,11 +1,15 @@
-mod rsa;
-mod usertrust_rsa;
-mod usertrust_ecc;
+mod comodo_certification_authority;
+mod comodo_ecc_certification_authority;
+mod comodo_rsa_certification_authority;
+mod usertrust_ecc_certification_authority;
+mod usertrust_rsa_certification_authority;
 
 use super::super::types::TrustedRootCa;
 
 pub static COMODO_ROOTS: &[TrustedRootCa] = &[
-    rsa::ROOT,
-    usertrust_rsa::ROOT,
-    usertrust_ecc::ROOT,
+    comodo_certification_authority::ROOT,
+    comodo_ecc_certification_authority::ROOT,
+    comodo_rsa_certification_authority::ROOT,
+    usertrust_ecc_certification_authority::ROOT,
+    usertrust_rsa_certification_authority::ROOT,
 ];

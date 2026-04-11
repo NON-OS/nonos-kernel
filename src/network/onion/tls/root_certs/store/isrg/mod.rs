@@ -1,9 +1,9 @@
-mod x1;
-mod x2;
+mod isrg_root_x1;
+mod isrg_root_x2;
 
 use super::super::types::TrustedRootCa;
 
 pub static ISRG_ROOTS: &[TrustedRootCa] = &[
-    x1::ROOT,
-    x2::ROOT,
+    isrg_root_x1::ROOT,
+    isrg_root_x2::ROOT,
 ];
