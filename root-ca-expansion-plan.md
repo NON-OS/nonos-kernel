@@ -287,16 +287,16 @@ Split 7 oversized files into one-CA-per-file directories. No new CAs.
 
 ### Edit `tools/extract_root_cas.py`
 
-- [ ] Add `--source <pem-file>` arg to read from PEM bundle
-- [ ] Add `--output-dir <dir>` arg for output directory
-- [ ] Output one file per CA (never multi-CA files)
-- [ ] Zero comments in generated files
-- [ ] Zero license headers in generated files
-- [ ] Auto-generate `mod.rs` per operator directory
-- [ ] Auto-generate top-level `store/mod.rs`
-- [ ] Output `MANIFEST.toml` with all CA metadata
-- [ ] Enforce 75-line max per generated file
-- [ ] Exclusion list: CNNIC, Symantec, WoSign, StartCom, expired
+- [x] Add `--source <pem-file>` arg to read from PEM bundle
+- [x] Add `--output-dir <dir>` arg for output directory
+- [x] Output one file per CA (never multi-CA files)
+- [x] Zero comments in generated files
+- [x] Zero license headers in generated files
+- [x] Auto-generate `mod.rs` per operator directory
+- [x] Auto-generate top-level `store/mod.rs`
+- [x] Output `MANIFEST.toml` with all CA metadata
+- [x] Enforce 75-line max per generated file
+- [x] Exclusion list: CNNIC, Symantec, WoSign, StartCom, expired
 
 ### Generated file template (per CA)
 
