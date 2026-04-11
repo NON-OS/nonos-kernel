@@ -1,11 +1,9 @@
-mod r1;
-mod r3;
-mod ecc_r5;
+mod globalsign_root_e46;
+mod globalsign_root_r46;
 
 use super::super::types::TrustedRootCa;
 
 pub static GLOBALSIGN_ROOTS: &[TrustedRootCa] = &[
-    r1::ROOT,
-    r3::ROOT,
-    ecc_r5::ROOT,
+    globalsign_root_e46::ROOT,
+    globalsign_root_r46::ROOT,
 ];
