@@ -403,11 +403,11 @@ pub static OPERATOR_ROOTS: &[TrustedRootCa] = &[
 
 ### Create `src/network/onion/tls/root_certs/TRUST_POLICY.md`
 
-- [ ] Source: Mozilla NSS via `https://curl.se/ca/cacert.pem`
-- [ ] Update cadence: quarterly (Jan, Apr, Jul, Oct)
-- [ ] Inclusion criteria: Mozilla NSS + TLS server auth bit + not distrusted + expiry > 2 years
-- [ ] Exclusion list: CNNIC, Symantec, WoSign, StartCom
-- [ ] Update process: download PEM → run tool → review diff → cargo check → commit
+- [x] Source: Mozilla NSS via `https://curl.se/ca/cacert.pem`
+- [x] Update cadence: quarterly (Jan, Apr, Jul, Oct)
+- [x] Inclusion criteria: Mozilla NSS + TLS server auth bit + not distrusted + expiry > 2 years
+- [x] Exclusion list: CNNIC, Symantec, WoSign, StartCom
+- [x] Update process: download PEM → run tool → review diff → cargo check → commit
 
 ---
 
