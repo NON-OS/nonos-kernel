@@ -1,4 +1,3 @@
-mod ;
 mod cfca_ev_root;
 mod emsign_ecc_root_ca_c3;
 mod emsign_ecc_root_ca_g3;
@@ -13,7 +12,6 @@ mod twca_root_certification_authority;
 use super::super::types::TrustedRootCa;
 
 pub static GOV_APAC_ROOTS: &[TrustedRootCa] = &[
-    ::ROOT,
     cfca_ev_root::ROOT,
     emsign_ecc_root_ca_c3::ROOT,
     emsign_ecc_root_ca_g3::ROOT,

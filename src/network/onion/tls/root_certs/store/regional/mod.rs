@@ -1,6 +1,3 @@
-mod ;
-mod _2;
-mod _2;
 mod accvraiz1;
 mod anf_secure_server_root_ca;
 mod autoridad_de_certificacion_firmaprofesio;
@@ -13,10 +10,6 @@ mod e_szigno_root_ca_2017;
 mod e_szigno_tls_root_ca_2023;
 mod firmaprofesional_ca_root_a_web;
 mod gdca_trustauth_r5_root;
-mod globalsign;
-mod globalsign_2;
-mod globalsign_2;
-mod globalsign_2;
 mod globaltrust_2020;
 mod harica_tls_ecc_root_ca_2021;
 mod harica_tls_rsa_root_ca_2021;
@@ -48,9 +41,6 @@ mod vtrus_root_ca;
 use super::super::types::TrustedRootCa;
 
 pub static REGIONAL_ROOTS: &[TrustedRootCa] = &[
-    ::ROOT,
-    _2::ROOT,
-    _2::ROOT,
     accvraiz1::ROOT,
     anf_secure_server_root_ca::ROOT,
     autoridad_de_certificacion_firmaprofesio::ROOT,
@@ -63,10 +53,6 @@ pub static REGIONAL_ROOTS: &[TrustedRootCa] = &[
     e_szigno_tls_root_ca_2023::ROOT,
     firmaprofesional_ca_root_a_web::ROOT,
     gdca_trustauth_r5_root::ROOT,
-    globalsign::ROOT,
-    globalsign_2::ROOT,
-    globalsign_2::ROOT,
-    globalsign_2::ROOT,
     globaltrust_2020::ROOT,
     harica_tls_ecc_root_ca_2021::ROOT,
     harica_tls_rsa_root_ca_2021::ROOT,
