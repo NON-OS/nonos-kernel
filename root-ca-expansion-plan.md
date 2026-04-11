@@ -332,37 +332,36 @@ pub static OPERATOR_ROOTS: &[TrustedRootCa] = &[
 
 ### Download source
 
-- [ ] `curl -o tools/cacert.pem https://curl.se/ca/cacert.pem`
+- [x] `curl -o tools/cacert.pem https://curl.se/ca/cacert.pem`
 
 ### Run tool
 
-- [ ] `python3 tools/extract_root_cas.py --source tools/cacert.pem --output-dir src/network/onion/tls/root_certs/store/`
+- [x] `python3 tools/generate_ca_store.py tools/cacert.pem src/network/onion/tls/root_certs/store/`
 
 ### Create 13 new operator directories
 
-- [ ] `store/sectigo/` — 2 CAs (Sectigo R46, E46)
-- [ ] `store/identrust/` — 2 CAs (Commercial, DST X3)
-- [ ] `store/ssl_com/` — 3 CAs (RSA, ECC, EV RSA)
-- [ ] `store/buypass/` — 2 CAs (Class 2, Class 3)
-- [ ] `store/certum/` — 3 CAs (Trusted Network, TN2, EC-384)
-- [ ] `store/affirmtrust/` — 4 CAs (Commercial, Networking, Premium, Premium ECC)
-- [ ] `store/telia/` — 1 CA (Root v2)
-- [ ] `store/swisssign/` — 2 CAs (Gold G2, Silver G2)
-- [ ] `store/trustwave/` — 2 CAs (Global G2, Global ECC)
-- [ ] `store/oiste/` — 2 CAs (GC, GB)
-- [ ] `store/government_eu/` — 15 CAs
-- [ ] `store/government_apac/` — 12 CAs
-- [ ] `store/regional/` — 7 CAs
+- [x] `store/sectigo/` — 2 CAs (Sectigo R46, E46)
+- [x] `store/identrust/` — 2 CAs (Commercial, Public Sector)
+- [x] `store/ssl_com/` — 6 CAs (RSA, ECC, EV RSA + 2022 variants)
+- [x] `store/buypass/` — 2 CAs (Class 2, Class 3)
+- [x] `store/certum/` — 4 CAs (Trusted Network, TN2, EC-384, Trusted Root)
+- [x] `store/affirmtrust/` — 4 CAs (Commercial, Networking, Premium, Premium ECC)
+- [x] `store/telia/` — 2 CAs (Root v2, TeliaSonera v1)
+- [x] `store/swisssign/` — 2 CAs (Gold G2, RSA TLS 2022)
+- [x] `store/trustwave/` — 3 CAs (Global, ECC P256, ECC P384)
+- [x] `store/oiste/` — 4 CAs (Server Root RSA/ECC G1, WiseKey GC/GB)
+- [x] `store/government_eu/` — 16 CAs (D-Trust, T-Telesec, Certigna, Atos, etc.)
+- [x] `store/government_apac/` — 11 CAs (TWCA, CFCA, eMudhra, SECOM, Hongkong Post)
+- [x] `store/regional/` — 46 CAs (Certainly, ANF, TrustAsia, GDCA, E-Szigno, etc.)
 
 ### Add new roots to existing operators
 
-- [ ] `store/entrust/entrust_g4.rs` — Entrust Root CA G4
-- [ ] `store/entrust/godaddy_class2.rs` — GoDaddy Class 2
+- [x] Existing operators updated with additional CAs (145 total)
 
 ### Update `store/mod.rs`
 
-- [ ] Add all 13 new operator mod imports
-- [ ] Add all 13 new entries to `TRUSTED_ROOT_GROUPS`
+- [x] Add all 13 new operator mod imports
+- [x] Add all 13 new entries to `TRUSTED_ROOT_GROUPS`
 
 ---
 
