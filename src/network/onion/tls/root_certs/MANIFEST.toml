@@ -1,0 +1,190 @@
+# Root CA Trust Store Manifest
+# Generated from Mozilla NSS PEM bundle
+
+[affirmtrust]
+  "AffirmTrust Commercial" = { key = "RSAPublicKey", expires = "2030-12-31", spki_prefix = "6c464b9a5b233a5e" }
+  "AffirmTrust Networking" = { key = "RSAPublicKey", expires = "2030-12-31", spki_prefix = "94072ad3f58f70f9" }
+  "AffirmTrust Premium" = { key = "RSAPublicKey", expires = "2040-12-31", spki_prefix = "c7f43b4cf5b71568" }
+  "AffirmTrust Premium ECC" = { key = "ECPublicKey", expires = "2040-12-31", spki_prefix = "3219b09114ff495a" }
+
+[amazon]
+  "Amazon Root CA 1" = { key = "RSAPublicKey", expires = "2038-01-17", spki_prefix = "fbe3018031f9586b" }
+  "Amazon Root CA 2" = { key = "RSAPublicKey", expires = "2040-05-26", spki_prefix = "7f4296fc5b6a4e3b" }
+  "Amazon Root CA 3" = { key = "ECPublicKey", expires = "2040-05-26", spki_prefix = "36abc32656acfc64" }
+  "Amazon Root CA 4" = { key = "ECPublicKey", expires = "2040-05-26", spki_prefix = "f7ecded5c66047d2" }
+
+[buypass]
+  "Buypass Class 2 Root CA" = { key = "RSAPublicKey", expires = "2040-10-26", spki_prefix = "5955ae291574a931" }
+  "Buypass Class 3 Root CA" = { key = "RSAPublicKey", expires = "2040-10-26", spki_prefix = "b03d87b056d08cc9" }
+
+[certum]
+  "Certum EC-384 CA" = { key = "ECPublicKey", expires = "2043-03-26", spki_prefix = "de7b6932e9c44582" }
+  "Certum Trusted Network CA" = { key = "RSAPublicKey", expires = "2029-12-31", spki_prefix = "aa2630a7b617b04d" }
+  "Certum Trusted Network CA 2" = { key = "RSAPublicKey", expires = "2046-10-06", spki_prefix = "6b3b57e9ec88d1bb" }
+  "Certum Trusted Root CA" = { key = "RSAPublicKey", expires = "2043-03-16", spki_prefix = "681dc482c296c840" }
+
+[comodo]
+  "COMODO Certification Authority" = { key = "RSAPublicKey", expires = "2029-12-31", spki_prefix = "006d7be7555dd820" }
+  "COMODO ECC Certification Authority" = { key = "ECPublicKey", expires = "2038-01-18", spki_prefix = "e7ca91bbfbb18788" }
+  "COMODO RSA Certification Authority" = { key = "RSAPublicKey", expires = "2038-01-18", spki_prefix = "82b5f84daf47a59c" }
+  "USERTrust ECC Certification Authority" = { key = "ECPublicKey", expires = "2038-01-18", spki_prefix = "2021917e98263945" }
+  "USERTrust RSA Certification Authority" = { key = "RSAPublicKey", expires = "2038-01-18", spki_prefix = "c784333d20bcd742" }
+
+[digicert]
+  "DigiCert Assured ID Root CA" = { key = "RSAPublicKey", expires = "2031-11-10", spki_prefix = "23f2edff3ede9025" }
+  "DigiCert Assured ID Root G2" = { key = "RSAPublicKey", expires = "2038-01-15", spki_prefix = "f1c6ba670cfc88e4" }
+  "DigiCert Assured ID Root G3" = { key = "ECPublicKey", expires = "2038-01-15", spki_prefix = "15eed339594b304f" }
+  "DigiCert Global Root CA" = { key = "RSAPublicKey", expires = "2031-11-10", spki_prefix = "aff988906dde1295" }
+  "DigiCert Global Root G2" = { key = "RSAPublicKey", expires = "2038-01-15", spki_prefix = "8bb593a93be1d0e8" }
+  "DigiCert Global Root G3" = { key = "ECPublicKey", expires = "2038-01-15", spki_prefix = "b94c198300cec5c0" }
+  "DigiCert High Assurance EV Root CA" = { key = "RSAPublicKey", expires = "2031-11-10", spki_prefix = "5a889647220e54d6" }
+  "DigiCert TLS ECC P384 Root G5" = { key = "ECPublicKey", expires = "2046-01-14", spki_prefix = "a02fafa192c8cb81" }
+  "DigiCert TLS RSA4096 Root G5" = { key = "RSAPublicKey", expires = "2046-01-14", spki_prefix = "6a97b51c8219e93e" }
+  "DigiCert Trusted Root G4" = { key = "RSAPublicKey", expires = "2038-01-15", spki_prefix = "59df317bfa9f4f0a" }
+
+[entrust]
+  "Actalis Authentication Root CA" = { key = "RSAPublicKey", expires = "2030-09-22", spki_prefix = "25d4913cf5870974" }
+  "Entrust Root Certification Authority" = { key = "RSAPublicKey", expires = "2026-11-27", spki_prefix = "6dbfae00d37b9cd7" }
+  "Entrust Root Certification Authority - EC1" = { key = "ECPublicKey", expires = "2037-12-18", spki_prefix = "fea2b7d645fba73d" }
+  "Entrust Root Certification Authority - G2" = { key = "RSAPublicKey", expires = "2030-12-07", spki_prefix = "76ee8590374c7154" }
+  "Go Daddy Root Certificate Authority - G2" = { key = "RSAPublicKey", expires = "2037-12-31", spki_prefix = "2a8f2d8af0eb1238" }
+  "QuoVadis Root CA 1 G3" = { key = "RSAPublicKey", expires = "2042-01-12", spki_prefix = "86a68f050034126a" }
+  "QuoVadis Root CA 2" = { key = "RSAPublicKey", expires = "2031-11-24", spki_prefix = "8fd112c3c8370f14" }
+  "QuoVadis Root CA 2 G3" = { key = "RSAPublicKey", expires = "2042-01-12", spki_prefix = "4a49edbd2f8f8230" }
+  "QuoVadis Root CA 3" = { key = "RSAPublicKey", expires = "2031-11-24", spki_prefix = "0c7acaa710226720" }
+  "QuoVadis Root CA 3 G3" = { key = "RSAPublicKey", expires = "2042-01-12", spki_prefix = "f3438e23b3ce5325" }
+  "Starfield Root Certificate Authority - G2" = { key = "RSAPublicKey", expires = "2037-12-31", spki_prefix = "808d68b3fab4884a" }
+  "Starfield Services Root Certificate Authority - G2" = { key = "RSAPublicKey", expires = "2037-12-31", spki_prefix = "2b071c59a0a0ae76" }
+
+[globalsign]
+  "GlobalSign Root E46" = { key = "ECPublicKey", expires = "2046-03-20", spki_prefix = "e04a022ce32f4ccf" }
+  "GlobalSign Root R46" = { key = "RSAPublicKey", expires = "2046-03-20", spki_prefix = "ae7f962cb9e6a7db" }
+
+[google]
+  "GTS Root R1" = { key = "RSAPublicKey", expires = "2036-06-22", spki_prefix = "871a9194f4eed5b3" }
+  "GTS Root R2" = { key = "RSAPublicKey", expires = "2036-06-22", spki_prefix = "55f77de41c037924" }
+  "GTS Root R3" = { key = "ECPublicKey", expires = "2036-06-22", spki_prefix = "4179edd981ef7474" }
+  "GTS Root R4" = { key = "ECPublicKey", expires = "2036-06-22", spki_prefix = "9847e5653e5e9e84" }
+
+[government_apac]
+  "" = { key = "RSAPublicKey", expires = "2029-05-29", spki_prefix = "3380709af3b096be" }
+  "CFCA EV ROOT" = { key = "RSAPublicKey", expires = "2029-12-31", spki_prefix = "dd5ed1c090f9f448" }
+  "Hongkong Post Root CA 3" = { key = "RSAPublicKey", expires = "2042-06-03", spki_prefix = "2541e53ba5b3b07a" }
+  "Security Communication ECC RootCA1" = { key = "ECPublicKey", expires = "2038-01-18", spki_prefix = "3329bfa13b6007ab" }
+  "TWCA CYBER Root CA" = { key = "RSAPublicKey", expires = "2047-11-22", spki_prefix = "06600b94c0318bb6" }
+  "TWCA Global Root CA" = { key = "RSAPublicKey", expires = "2030-12-31", spki_prefix = "c444b5b66ce5d71e" }
+  "TWCA Root Certification Authority" = { key = "RSAPublicKey", expires = "2030-12-31", spki_prefix = "92c46879626ef2cc" }
+  "emSign ECC Root CA - C3" = { key = "ECPublicKey", expires = "2043-02-18", spki_prefix = "eabc185c4e82d942" }
+  "emSign ECC Root CA - G3" = { key = "ECPublicKey", expires = "2043-02-18", spki_prefix = "8d417db2dd8bf5e3" }
+  "emSign Root CA - C1" = { key = "RSAPublicKey", expires = "2043-02-18", spki_prefix = "b7408b4d2be0238b" }
+  "emSign Root CA - G1" = { key = "RSAPublicKey", expires = "2043-02-18", spki_prefix = "376a1a7082a593dc" }
+
+[government_eu]
+  "" = { key = "RSAPublicKey", expires = "2030-01-01", spki_prefix = "2fc5667a4b9a2678" }
+  "AC RAIZ FNMT-RCM SERVIDORES SEGUROS" = { key = "ECPublicKey", expires = "2043-12-20", spki_prefix = "453b74809b690196" }
+  "Atos TrustedRoot 2011" = { key = "RSAPublicKey", expires = "2030-12-31", spki_prefix = "e5ca37bc7b6c3619" }
+  "Atos TrustedRoot Root CA ECC TLS 2021" = { key = "ECPublicKey", expires = "2041-04-17", spki_prefix = "608963c78c455e6e" }
+  "Atos TrustedRoot Root CA RSA TLS 2021" = { key = "RSAPublicKey", expires = "2041-04-17", spki_prefix = "f7ca77a610e3d424" }
+  "Certigna" = { key = "RSAPublicKey", expires = "2027-06-29", spki_prefix = "510d20e5c47f63cf" }
+  "Certigna Root CA" = { key = "RSAPublicKey", expires = "2033-10-01", spki_prefix = "8e8046ec4cac015a" }
+  "D-TRUST BR Root CA 1 2020" = { key = "ECPublicKey", expires = "2035-02-11", spki_prefix = "603f76f28c9feba8" }
+  "D-TRUST BR Root CA 2 2023" = { key = "RSAPublicKey", expires = "2038-05-09", spki_prefix = "ac76f63a46e761b5" }
+  "D-TRUST EV Root CA 1 2020" = { key = "ECPublicKey", expires = "2035-02-11", spki_prefix = "9d37e4a989eab388" }
+  "D-TRUST EV Root CA 2 2023" = { key = "RSAPublicKey", expires = "2038-05-09", spki_prefix = "e753cdd9f13413c7" }
+  "D-TRUST Root Class 3 CA 2 2009" = { key = "RSAPublicKey", expires = "2029-11-05", spki_prefix = "eca0f181402ce7a8" }
+  "D-TRUST Root Class 3 CA 2 EV 2009" = { key = "RSAPublicKey", expires = "2029-11-05", spki_prefix = "ff342fb6c4c8bd30" }
+  "Izenpe.com" = { key = "RSAPublicKey", expires = "2037-12-13", spki_prefix = "952c2039c0243eb5" }
+  "T-TeleSec GlobalRoot Class 2" = { key = "RSAPublicKey", expires = "2033-10-01", spki_prefix = "6106c0e3a0a29983" }
+  "T-TeleSec GlobalRoot Class 3" = { key = "RSAPublicKey", expires = "2033-10-01", spki_prefix = "8d767764b3cbda08" }
+
+[identrust]
+  "IdenTrust Commercial Root CA 1" = { key = "RSAPublicKey", expires = "2034-01-16", spki_prefix = "07e854f26a7cbd38" }
+  "IdenTrust Public Sector Root CA 1" = { key = "RSAPublicKey", expires = "2034-01-16", spki_prefix = "58dd61feb36ea7d2" }
+
+[isrg]
+  "ISRG Root X1" = { key = "RSAPublicKey", expires = "2035-06-04", spki_prefix = "0b9fa5a59eed715c" }
+  "ISRG Root X2" = { key = "ECPublicKey", expires = "2040-09-17", spki_prefix = "762195c225586ee6" }
+
+[microsoft]
+  "Microsoft ECC Root Certificate Authority 2017" = { key = "ECPublicKey", expires = "2042-07-18", spki_prefix = "35f53ce1264611e0" }
+  "Microsoft RSA Root Certificate Authority 2017" = { key = "RSAPublicKey", expires = "2042-07-18", spki_prefix = "b2f7298b52bf2c3c" }
+
+[oiste]
+  "OISTE Server Root ECC G1" = { key = "ECPublicKey", expires = "2048-05-24", spki_prefix = "d439dd80f1e3bc5c" }
+  "OISTE Server Root RSA G1" = { key = "RSAPublicKey", expires = "2048-05-24", spki_prefix = "b964e141d3a55cae" }
+  "OISTE WISeKey Global Root GB CA" = { key = "RSAPublicKey", expires = "2039-12-01", spki_prefix = "149f2ee63b9a5e58" }
+  "OISTE WISeKey Global Root GC CA" = { key = "ECPublicKey", expires = "2042-05-09", spki_prefix = "fd371bea9755ff60" }
+
+[regional]
+  "" = { key = "RSAPublicKey", expires = "2034-12-20", spki_prefix = "62554c17005543b2" }
+  "" = { key = "RSAPublicKey", expires = "2031-07-04", spki_prefix = "dbc1e3a15238a048" }
+  "" = { key = "RSAPublicKey", expires = "2042-02-06", spki_prefix = "cbad7b1d384849df" }
+  "ACCVRAIZ1" = { key = "RSAPublicKey", expires = "2030-12-31", spki_prefix = "05570ae6eb0fceb4" }
+  "ANF Secure Server Root CA" = { key = "RSAPublicKey", expires = "2039-08-30", spki_prefix = "9a52ff6a3cb6e353" }
+  "Autoridad de Certificacion Firmaprofesional CIF A62634068" = { key = "RSAPublicKey", expires = "2036-05-05", spki_prefix = "3b0d73b4be4a854a" }
+  "BJCA Global Root CA1" = { key = "RSAPublicKey", expires = "2044-12-12", spki_prefix = "ebc55f21e88d49ed" }
+  "BJCA Global Root CA2" = { key = "ECPublicKey", expires = "2044-12-12", spki_prefix = "cc94a5a0319ff77a" }
+  "CA Disig Root R2" = { key = "RSAPublicKey", expires = "2042-07-19", spki_prefix = "702116ccd8bf23e1" }
+  "Certainly Root E1" = { key = "ECPublicKey", expires = "2046-04-01", spki_prefix = "1ef64625daa2e5d4" }
+  "Certainly Root R1" = { key = "RSAPublicKey", expires = "2046-04-01", spki_prefix = "3f93f3fcf79d225d" }
+  "FIRMAPROFESIONAL CA ROOT-A WEB" = { key = "ECPublicKey", expires = "2047-03-31", spki_prefix = "2db2ae4d0d08a4dc" }
+  "GDCA TrustAUTH R5 ROOT" = { key = "RSAPublicKey", expires = "2040-12-31", spki_prefix = "ceb19411c65052c7" }
+  "GLOBALTRUST 2020" = { key = "RSAPublicKey", expires = "2040-06-10", spki_prefix = "fee8af929175687f" }
+  "GlobalSign" = { key = "RSAPublicKey", expires = "2029-03-18", spki_prefix = "706bb1017c855c59" }
+  "GlobalSign" = { key = "ECPublicKey", expires = "2038-01-19", spki_prefix = "7e0ead76bb6819dc" }
+  "GlobalSign" = { key = "RSAPublicKey", expires = "2034-12-10", spki_prefix = "682747f8ba621b87" }
+  "GlobalSign" = { key = "ECPublicKey", expires = "2038-01-19", spki_prefix = "08b3a6335fce5ef4" }
+  "HARICA TLS ECC Root CA 2021" = { key = "ECPublicKey", expires = "2045-02-13", spki_prefix = "fc784300ec8df4d3" }
+  "HARICA TLS RSA Root CA 2021" = { key = "RSAPublicKey", expires = "2045-02-13", spki_prefix = "693c9aa6b245b3b0" }
+  "Hellenic Academic and Research Institutions ECC RootCA 2015" = { key = "ECPublicKey", expires = "2040-06-30", spki_prefix = "bb52086d0639e8db" }
+  "Hellenic Academic and Research Institutions RootCA 2015" = { key = "RSAPublicKey", expires = "2040-06-30", spki_prefix = "50cc86ba96db3263" }
+  "HiPKI Root CA - G1" = { key = "RSAPublicKey", expires = "2037-12-31", spki_prefix = "79caaf5347e6e4a9" }
+  "Microsec e-Szigno Root CA 2009" = { key = "RSAPublicKey", expires = "2029-12-30", spki_prefix = "616167201433aea6" }
+  "NAVER Global Root Certification Authority" = { key = "RSAPublicKey", expires = "2037-08-18", spki_prefix = "786ffa578618c3b9" }
+  "NetLock Arany (Class Gold) Főtanúsítvány" = { key = "RSAPublicKey", expires = "2028-12-06", spki_prefix = "f48badd7df6a0669" }
+  "SZAFIR ROOT CA2" = { key = "RSAPublicKey", expires = "2035-10-19", spki_prefix = "6e364b6133deefdc" }
+  "Secure Global CA" = { key = "RSAPublicKey", expires = "2029-12-31", spki_prefix = "2596904dc4d699ae" }
+  "SecureSign Root CA12" = { key = "RSAPublicKey", expires = "2040-04-08", spki_prefix = "e14e51891f349224" }
+  "SecureSign Root CA14" = { key = "RSAPublicKey", expires = "2045-04-08", spki_prefix = "581cc15821169694" }
+  "SecureSign Root CA15" = { key = "ECPublicKey", expires = "2045-04-08", spki_prefix = "f0011f92fcf9be36" }
+  "SecureTrust CA" = { key = "RSAPublicKey", expires = "2029-12-31", spki_prefix = "77290717614b25f1" }
+  "TUBITAK Kamu SM SSL Kok Sertifikasi - Surum 1" = { key = "RSAPublicKey", expires = "2043-10-25", spki_prefix = "55e00be277ceb054" }
+  "Telekom Security TLS ECC Root 2020" = { key = "ECPublicKey", expires = "2045-08-25", spki_prefix = "eab0de5a46419010" }
+  "Telekom Security TLS RSA Root 2023" = { key = "RSAPublicKey", expires = "2048-03-27", spki_prefix = "0e05e9bb23869eb6" }
+  "TrustAsia Global Root CA G3" = { key = "RSAPublicKey", expires = "2046-05-19", spki_prefix = "8685ad850f7f56cd" }
+  "TrustAsia Global Root CA G4" = { key = "ECPublicKey", expires = "2046-05-19", spki_prefix = "07a2904d4bff9604" }
+  "TrustAsia TLS ECC Root CA" = { key = "ECPublicKey", expires = "2044-05-15", spki_prefix = "f4632e58701c0bd7" }
+  "TrustAsia TLS RSA Root CA" = { key = "RSAPublicKey", expires = "2044-05-15", spki_prefix = "5628872e245fe661" }
+  "TunTrust Root CA" = { key = "RSAPublicKey", expires = "2044-04-26", spki_prefix = "c942262c0c7c0a95" }
+  "UCA Extended Validation Root" = { key = "RSAPublicKey", expires = "2038-12-31", spki_prefix = "5c41a73ab2c35dfc" }
+  "UCA Global G2 Root" = { key = "RSAPublicKey", expires = "2040-12-31", spki_prefix = "1255cabe8152fa64" }
+  "e-Szigno Root CA 2017" = { key = "ECPublicKey", expires = "2042-08-22", spki_prefix = "42431627ea76cc78" }
+  "e-Szigno TLS Root CA 2023" = { key = "ECPublicKey", expires = "2038-07-17", spki_prefix = "47487900a1beb9ee" }
+  "vTrus ECC Root CA" = { key = "ECPublicKey", expires = "2043-07-31", spki_prefix = "a246b822f96cfecc" }
+  "vTrus Root CA" = { key = "RSAPublicKey", expires = "2043-07-31", spki_prefix = "e06647e52610160c" }
+
+[sectigo]
+  "Sectigo Public Server Authentication Root E46" = { key = "ECPublicKey", expires = "2046-03-21", spki_prefix = "b0b56335468561f5" }
+  "Sectigo Public Server Authentication Root R46" = { key = "RSAPublicKey", expires = "2046-03-21", spki_prefix = "0e8bb18bbeefb381" }
+
+[ssl_com]
+  "SSL.com EV Root Certification Authority ECC" = { key = "ECPublicKey", expires = "2041-02-12", spki_prefix = "348767cdad3bdd28" }
+  "SSL.com EV Root Certification Authority RSA R2" = { key = "RSAPublicKey", expires = "2042-05-30", spki_prefix = "7cd67c248f69d83f" }
+  "SSL.com Root Certification Authority ECC" = { key = "ECPublicKey", expires = "2041-02-12", spki_prefix = "a320f4d534d7be97" }
+  "SSL.com Root Certification Authority RSA" = { key = "RSAPublicKey", expires = "2041-02-12", spki_prefix = "d1c45377ebdcd618" }
+  "SSL.com TLS ECC Root CA 2022" = { key = "ECPublicKey", expires = "2046-08-19", spki_prefix = "1bf00d5c8f13c094" }
+  "SSL.com TLS RSA Root CA 2022" = { key = "RSAPublicKey", expires = "2046-08-19", spki_prefix = "2bcf553a66f57090" }
+
+[swisssign]
+  "SwissSign Gold CA - G2" = { key = "RSAPublicKey", expires = "2036-10-25", spki_prefix = "40fcfc28875dccbf" }
+  "SwissSign RSA TLS Root CA 2022 - 1" = { key = "RSAPublicKey", expires = "2047-06-08", spki_prefix = "ebc978ae0dd9e582" }
+
+[telia]
+  "Telia Root CA v2" = { key = "RSAPublicKey", expires = "2043-11-29", spki_prefix = "c2b3c31a4a29850a" }
+  "TeliaSonera Root CA v1" = { key = "RSAPublicKey", expires = "2032-10-18", spki_prefix = "10ba3485ca8bb688" }
+
+[trustwave]
+  "Trustwave Global Certification Authority" = { key = "RSAPublicKey", expires = "2042-08-23", spki_prefix = "2e06cae1fc20b200" }
+  "Trustwave Global ECC P256 Certification Authority" = { key = "ECPublicKey", expires = "2042-08-23", spki_prefix = "497128fc90656b87" }
+  "Trustwave Global ECC P384 Certification Authority" = { key = "ECPublicKey", expires = "2042-08-23", spki_prefix = "828b0eeff24654e8" }
+
