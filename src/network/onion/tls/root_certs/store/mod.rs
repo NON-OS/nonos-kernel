@@ -6,7 +6,7 @@ mod comodo;
 mod digicert;
 mod entrust;
 mod globalsign;
-mod google;
+// mod google; // TODO: Missing individual CA files - needs to be regenerated
 mod government_apac;
 mod government_eu;
 mod identrust;
@@ -31,7 +31,7 @@ pub static TRUSTED_ROOT_GROUPS: &[&[TrustedRootCa]] = &[
     digicert::DIGICERT_ROOTS,
     entrust::ENTRUST_ROOTS,
     globalsign::GLOBALSIGN_ROOTS,
-    google::GOOGLE_ROOTS,
+    // google::GOOGLE_ROOTS, // TODO: Missing individual CA files
     government_apac::GOV_APAC_ROOTS,
     government_eu::GOV_EU_ROOTS,
     identrust::IDENTRUST_ROOTS,
