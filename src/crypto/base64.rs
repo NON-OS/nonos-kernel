@@ -15,16 +15,14 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 extern crate alloc;
+
 use alloc::vec::Vec;
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct DecodeError;
-
-pub fn decode(data: &str) -> Result<Vec<u8>, DecodeError> {
+pub fn decode(data: &str) -> Result<Vec<u8>, ()> {
     decode_bytes(data.as_bytes())
 }
 
-pub fn decode_bytes(data: &[u8]) -> Result<Vec<u8>, DecodeError> {
+fn decode_bytes(data: &[u8]) -> Result<Vec<u8>, ()> {
     let mut result = Vec::new();
     let mut buf = [0u8; 4];
     let mut buf_len = 0;
@@ -47,7 +45,7 @@ pub fn decode_bytes(data: &[u8]) -> Result<Vec<u8>, DecodeError> {
         } else if c == b'=' {
             64
         } else {
-            return Err(DecodeError);
+            return Err(());
         };
 
         buf[buf_len] = val;
