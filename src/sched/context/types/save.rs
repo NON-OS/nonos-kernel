@@ -20,43 +20,40 @@ use core::sync::atomic::{AtomicBool, Ordering};
 pub(crate) static CONTEXT_JUST_RESTORED: AtomicBool = AtomicBool::new(false);
 
 impl Context {
-    #[inline(always)]
-    fn save_inner() -> Self {
-        let mut ctx: Context = unsafe { core::mem::zeroed() };
-        unsafe {
-            core::arch::asm!(
-                "mov [{0}], rax",
-                "mov [{0} + 8], rbx",
-                "mov [{0} + 16], rcx",
-                "mov [{0} + 24], rdx",
-                "mov [{0} + 32], rsi",
-                "mov [{0} + 40], rdi",
-                "mov [{0} + 48], rbp",
-                "mov [{0} + 56], rsp",
-                "mov [{0} + 64], r8",
-                "mov [{0} + 72], r9",
-                "mov [{0} + 80], r10",
-                "mov [{0} + 88], r11",
-                "mov [{0} + 96], r12",
-                "mov [{0} + 104], r13",
-                "mov [{0} + 112], r14",
-                "mov [{0} + 120], r15",
-                "pushfq",
-                "pop rax",
-                "mov [{0} + 136], rax",
-                "lea rax, [rip + 2f]",
-                "mov [{0} + 128], rax",
-                "2:",
-                in(reg) &mut ctx as *mut Context,
-                out("rax") _,
-            );
-        }
-        ctx
+    #[unsafe(naked)]
+    pub unsafe extern "C" fn save_to(ctx: *mut Context) {
+        core::arch::naked_asm!(
+            "mov [rdi], rax",
+            "mov [rdi + 8], rbx",
+            "mov [rdi + 16], rcx",
+            "mov [rdi + 24], rdx",
+            "mov [rdi + 32], rsi",
+            "mov [rdi + 40], rdi",
+            "mov [rdi + 48], rbp",
+            "lea rax, [rsp + 8]",
+            "mov [rdi + 56], rax",
+            "mov [rdi + 64], r8",
+            "mov [rdi + 72], r9",
+            "mov [rdi + 80], r10",
+            "mov [rdi + 88], r11",
+            "mov [rdi + 96], r12",
+            "mov [rdi + 104], r13",
+            "mov [rdi + 112], r14",
+            "mov [rdi + 120], r15",
+            "mov rax, [rsp]",
+            "mov [rdi + 128], rax",
+            "pushfq",
+            "pop rax",
+            "mov [rdi + 136], rax",
+            "ret",
+        );
     }
 
     #[inline(never)]
     pub fn save() -> Self {
-        Self::save_inner()
+        let mut ctx: Context = unsafe { core::mem::zeroed() };
+        unsafe { Self::save_to(&mut ctx as *mut Context) };
+        ctx
     }
 
     pub fn was_just_restored() -> bool {
