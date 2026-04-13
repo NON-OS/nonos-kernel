@@ -25,7 +25,8 @@ pub fn preempt_current_process() {
     if let Some(curr_pid) = current {
         save_fpu_state(curr_pid);
         crate::sched::Context::clear_restored_flag();
-        let ctx = crate::sched::Context::save();
+        let mut ctx: crate::sched::Context = unsafe { core::mem::zeroed() };
+        unsafe { crate::sched::Context::save_to(&mut ctx as *mut crate::sched::Context) };
         if crate::sched::Context::was_just_restored() {
             return;
         }
