@@ -47,7 +47,8 @@ pub fn suspend_process(pid: Pid) -> Result<(), &'static str> {
     }
 
     let context = if current_pid() == Some(pid) {
-        let saved = crate::sched::Context::save();
+        let mut saved: crate::sched::Context = unsafe { core::mem::zeroed() };
+        unsafe { crate::sched::Context::save_to(&mut saved as *mut crate::sched::Context) };
         SuspendedContext {
             rax: saved.rax,
             rbx: saved.rbx,
