@@ -21,17 +21,17 @@ use super::error::{InputError, InputErrorCode, InputResult};
 use super::types::{DeviceId, EventPriority, InputEvent, InputEventKind};
 use super::push_event;
 
-struct DeviceEntry {
-    device: &'static dyn InputDevice,
-    enabled: bool,
+pub(super) struct DeviceEntry {
+    pub(super) device: &'static dyn InputDevice,
+    pub(super) enabled: bool,
 }
 
-struct DeviceRegistry {
-    devices: [Option<DeviceEntry>; MAX_INPUT_DEVICES],
-    count: usize,
+pub(super) struct DeviceRegistry {
+    pub(super) devices: [Option<DeviceEntry>; MAX_INPUT_DEVICES],
+    pub(super) count: usize,
 }
 
-static DEVICE_REGISTRY: Mutex<DeviceRegistry> = Mutex::new({
+pub(super) static DEVICE_REGISTRY: Mutex<DeviceRegistry> = Mutex::new({
     const NONE: Option<DeviceEntry> = None;
     DeviceRegistry { devices: [NONE; MAX_INPUT_DEVICES], count: 0 }
 });
