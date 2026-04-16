@@ -29,6 +29,7 @@ pub enum BuddyAllocError {
     UnmapFailed,
     BlockOutOfRange,
     DoubleFree,
+    Overflow,
 }
 
 pub type BuddyAllocResult<T> = Result<T, BuddyAllocError>;
