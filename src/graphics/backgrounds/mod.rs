@@ -31,5 +31,5 @@ pub use wallpaper::{
     get_cached_wallpaper, get_current_wallpaper_id, get_wallpaper, get_wallpapers_by_category,
     is_using_wallpaper, is_wallpaper_loading, load_current_wallpaper, next_wallpaper, prev_wallpaper,
     set_current_wallpaper, WallpaperCategory, WallpaperInfo, WALLPAPERS, WALLPAPER_COUNT,
-    init_wallpaper_system, has_embedded_wallpaper, DEFAULT_WALLPAPER_ID,
+    init_wallpaper_system, has_embedded_wallpaper, DEFAULT_WALLPAPER_ID, try_load_wallpaper,
 };
