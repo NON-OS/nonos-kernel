@@ -52,6 +52,9 @@ pub fn apply_config(config: &SetupConfig) {
     crate::locale::set_lang(crate::locale::Language::from(lang_id));
     if let Some(idx) = config.wallpaper_index {
         crate::graphics::backgrounds::set_current_wallpaper(idx);
+        crate::sys::serial::println(b"[SETUP] Loading selected wallpaper");
+        crate::graphics::backgrounds::try_load_wallpaper();
+        crate::sys::serial::println(b"[SETUP] Wallpaper loaded");
     }
     settings::set_developer_mode(config.developer_mode);
     settings::set_hardware_crypto(config.hardware_crypto);
