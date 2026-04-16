@@ -17,7 +17,7 @@
 use super::state::*;
 use super::apps::{get_apps, app_count};
 use super::payment::initiate_payment;
-use super::capsule::{create_capsule, launch_capsule, stop_capsule, get_capsule};
+use super::capsule::{create_capsule, launch_capsule, stop_capsule, get_capsule, capsule_count};
 
 pub(crate) fn handle_click(x: u32, y: u32, w: u32, _h: u32, mx: i32, my: i32) -> bool {
     let rx = (mx - x as i32) as u32;
@@ -63,6 +63,10 @@ fn try_install(idx: usize) -> bool {
         return true;
     }
     if app.nox_fee == 0 {
+        if capsule_count() >= super::capsule::MAX_CAPSULES as u32 {
+            crate::graphics::window::notify_info(b"Capsule limit reached");
+            return true;
+        }
         let id = [0u8; 32];
         let name_str = core::str::from_utf8(&app.name).unwrap_or("app");
         if create_capsule(idx, &id, name_str, 0).is_some() {
