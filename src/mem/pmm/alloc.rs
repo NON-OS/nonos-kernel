@@ -15,9 +15,12 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use core::sync::atomic::Ordering;
+use spin::Mutex;
 use super::super::{PhysAddr, PAGE_SIZE, PAGE_SHIFT};
 use super::state::{TOTAL_PAGES, FREE_PAGES, MAX_BITMAP_PAGES, BITMAP_SIZE};
 use super::bitmap::{mark_page_allocated, mark_page_free, is_page_allocated, get_bitmap_word};
+
+static PMM_LOCK: Mutex<()> = Mutex::new(());
 
 pub fn alloc_page() -> Option<PhysAddr> {
     alloc_pages(1)
@@ -27,6 +30,7 @@ pub fn alloc_pages(count: usize) -> Option<PhysAddr> {
     if count == 0 {
         return None;
     }
+    let _guard = PMM_LOCK.lock();
 
     let total = TOTAL_PAGES.load(Ordering::Relaxed);
     let mut start_page = 0usize;
@@ -70,6 +74,7 @@ pub fn alloc_pages_aligned(count: usize, alignment: usize) -> Option<PhysAddr> {
     if count == 0 || alignment < PAGE_SIZE || !alignment.is_power_of_two() {
         return None;
     }
+    let _guard = PMM_LOCK.lock();
 
     let align_pages = alignment / PAGE_SIZE;
     let total = TOTAL_PAGES.load(Ordering::Relaxed);
@@ -110,6 +115,7 @@ pub fn free_pages(addr: PhysAddr, count: usize) {
     if count == 0 {
         return;
     }
+    let _guard = PMM_LOCK.lock();
 
     let start_page = (addr >> PAGE_SHIFT) as usize;
 
