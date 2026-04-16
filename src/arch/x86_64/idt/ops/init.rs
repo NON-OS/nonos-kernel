@@ -28,14 +28,21 @@ use super::init_irqs::setup_irqs;
 use super::pic::remap_pic;
 
 pub fn init() -> Result<(), IdtError> {
-    if INITIALIZED.swap(true, Ordering::SeqCst) { return Err(IdtError::AlreadyInitialized); }
+    use super::super::state::INITIALIZING;
+    if !INITIALIZING.compare_exchange(false, true, Ordering::SeqCst, Ordering::SeqCst).is_ok() {
+        while !INITIALIZED.load(Ordering::Acquire) { core::hint::spin_loop(); }
+        return Err(IdtError::AlreadyInitialized);
+    }
     unsafe {
+        asm!("cli", options(nomem, nostack, preserves_flags));
         let idt = &mut *addr_of_mut!(IDT);
         setup_exceptions(idt);
         setup_irqs(idt);
         remap_pic();
         load_idt();
+        asm!("sti", options(nomem, nostack, preserves_flags));
     }
+    INITIALIZED.store(true, Ordering::Release);
     Ok(())
 }
 
