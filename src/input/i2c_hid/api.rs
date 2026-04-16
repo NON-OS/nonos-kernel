@@ -51,8 +51,8 @@ pub fn is_available() -> bool { state::is_available() }
 pub fn touchpad_available() -> bool { state::is_available() }
 pub fn touchpad_working() -> bool { state::is_available() && state::get_update_count() >= 5 }
 #[inline] pub fn touchpad_position() -> (i32, i32) { state::get_cursor() }
-pub fn left_pressed() -> bool { false }
-pub fn right_pressed() -> bool { false }
+pub fn left_pressed() -> bool { state::left_pressed() }
+pub fn right_pressed() -> bool { state::right_pressed() }
 pub fn poll() -> bool { super::poll::poll() }
 pub fn device_count() -> usize { state::device_count() }
 
