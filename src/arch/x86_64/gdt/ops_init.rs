@@ -21,7 +21,10 @@ use crate::arch::x86_64::gdt::error::GdtError;
 use crate::arch::x86_64::gdt::state::*;
 
 pub fn init() -> Result<(), GdtError> {
-    if INITIALIZED.swap(true, Ordering::SeqCst) { return Err(GdtError::AlreadyInitialized); }
+    if !INITIALIZING.compare_exchange(false, true, Ordering::SeqCst, Ordering::SeqCst).is_ok() {
+        while !INITIALIZED.load(Ordering::Acquire) { core::hint::spin_loop(); }
+        return Err(GdtError::AlreadyInitialized);
+    }
     unsafe {
         let gdt = addr_of_mut!(BSP_GDT);
         (*gdt).init(0);
@@ -30,6 +33,7 @@ pub fn init() -> Result<(), GdtError> {
         TSS_LOADS.fetch_add(1, Ordering::Relaxed);
         CPU_COUNT.store(1, Ordering::Release);
     }
+    INITIALIZED.store(true, Ordering::Release);
     Ok(())
 }
 
