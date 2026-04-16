@@ -38,23 +38,24 @@ pub static PROCESS_TABLE: ProcessTable = ProcessTable { inner: RwLock::new(Vec::
 pub static CURRENT_PID: AtomicU32 = AtomicU32::new(0);
 pub(super) static NEXT_PID: AtomicU32 = AtomicU32::new(1);
 
+static PID_ALLOC_LOCK: spin::Mutex<()> = spin::Mutex::new(());
+
 pub fn allocate_tid() -> Option<Pid> {
     const MAX_ATTEMPTS: u32 = 65536;
+    let _guard = PID_ALLOC_LOCK.lock();
     let mut attempts = 0;
     loop {
         let current = NEXT_PID.load(Ordering::SeqCst);
         let next = if current >= u32::MAX - 1 { 1 } else { current + 1 };
-        if NEXT_PID.compare_exchange(current, next, Ordering::SeqCst, Ordering::SeqCst).is_ok() {
-            let pid = if current == 0 { 1 } else { current };
-            if !PROCESS_TABLE.is_active_pid(pid as u64) {
-                return Some(pid);
-            }
-            attempts += 1;
-            if attempts >= MAX_ATTEMPTS {
-                crate::log::error!("[PROCESS] PID space exhausted after {} attempts", MAX_ATTEMPTS);
-                return None;
-            }
-            continue;
+        NEXT_PID.store(next, Ordering::SeqCst);
+        let pid = if current == 0 { 1 } else { current };
+        if !PROCESS_TABLE.is_active_pid(pid as u64) {
+            return Some(pid);
+        }
+        attempts += 1;
+        if attempts >= MAX_ATTEMPTS {
+            crate::log::error!("[PROCESS] PID space exhausted after {} attempts", MAX_ATTEMPTS);
+            return None;
         }
     }
 }
