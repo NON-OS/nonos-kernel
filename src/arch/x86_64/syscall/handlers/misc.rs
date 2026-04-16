@@ -14,40 +14,21 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-#[repr(C)]
-pub struct Utsname {
-    pub sysname: [u8; 65],
-    pub nodename: [u8; 65],
-    pub release: [u8; 65],
-    pub version: [u8; 65],
-    pub machine: [u8; 65],
-    pub domainname: [u8; 65],
-}
+use crate::usercopy::{validate_user_write, copy_to_user};
+use super::uname_types::Utsname;
+
+const EFAULT: i64 = -14;
 
 pub fn syscall_uname(buf: u64, _: u64, _: u64, _: u64, _: u64, _: u64) -> u64 {
     if buf == 0 {
-        return (-14i64) as u64;
+        return EFAULT as u64;
     }
-
-    let utsname = buf as *mut Utsname;
-
-    unsafe {
-        core::ptr::write_bytes(utsname, 0, 1);
-
-        let sysname = b"NONOS";
-        let nodename = b"nonos";
-        let release = b"0.1.0";
-        let version = b"#1 SMP PREEMPT";
-        let machine = b"x86_64";
-        let domainname = b"(none)";
-
-        core::ptr::copy_nonoverlapping(sysname.as_ptr(), core::ptr::addr_of_mut!((*utsname).sysname).cast(), sysname.len());
-        core::ptr::copy_nonoverlapping(nodename.as_ptr(), core::ptr::addr_of_mut!((*utsname).nodename).cast(), nodename.len());
-        core::ptr::copy_nonoverlapping(release.as_ptr(), core::ptr::addr_of_mut!((*utsname).release).cast(), release.len());
-        core::ptr::copy_nonoverlapping(version.as_ptr(), core::ptr::addr_of_mut!((*utsname).version).cast(), version.len());
-        core::ptr::copy_nonoverlapping(machine.as_ptr(), core::ptr::addr_of_mut!((*utsname).machine).cast(), machine.len());
-        core::ptr::copy_nonoverlapping(domainname.as_ptr(), core::ptr::addr_of_mut!((*utsname).domainname).cast(), domainname.len());
+    if validate_user_write(buf, Utsname::SIZE).is_err() {
+        return EFAULT as u64;
     }
-
+    let utsname = Utsname::new();
+    if copy_to_user(buf, utsname.as_bytes()).is_err() {
+        return EFAULT as u64;
+    }
     0
 }
