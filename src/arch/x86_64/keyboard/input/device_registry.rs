@@ -14,30 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use spin::Mutex;
-use super::device_trait::{InputDevice, MAX_INPUT_DEVICES};
+use super::device_trait::InputDevice;
 use super::error::{InputError, InputErrorCode, InputResult};
 use super::types::{EventPriority, InputEvent, InputEventKind};
 use super::push_event;
-
-struct DeviceEntry {
-    device: &'static dyn InputDevice,
-    enabled: bool,
-}
-
-struct DeviceRegistry {
-    devices: [Option<DeviceEntry>; MAX_INPUT_DEVICES],
-    count: usize,
-}
-
-impl DeviceRegistry {
-    const fn new() -> Self {
-        const NONE: Option<DeviceEntry> = None;
-        Self { devices: [NONE; MAX_INPUT_DEVICES], count: 0 }
-    }
-}
-
-static DEVICE_REGISTRY: Mutex<DeviceRegistry> = Mutex::new(DeviceRegistry::new());
+use super::device_ops::DEVICE_REGISTRY;
 
 pub fn register_device(device: &'static dyn InputDevice) -> InputResult<()> {
     let mut registry = DEVICE_REGISTRY.lock();
@@ -49,7 +30,7 @@ pub fn register_device(device: &'static dyn InputDevice) -> InputResult<()> {
     }
     for slot in registry.devices.iter_mut() {
         if slot.is_none() {
-            *slot = Some(DeviceEntry { device, enabled: true });
+            *slot = Some(super::device_ops::DeviceEntry { device, enabled: true });
             registry.count += 1;
             let event = InputEvent::new(InputEventKind::DeviceConnected(device_id)).with_priority(EventPriority::High);
             drop(registry);
@@ -58,32 +39,4 @@ pub fn register_device(device: &'static dyn InputDevice) -> InputResult<()> {
         }
     }
     Err(InputError::with_context(InputErrorCode::ResourceExhausted, "device registry full"))
-}
-
-pub fn is_device_enabled(device_id: super::types::DeviceId) -> bool {
-    let registry = DEVICE_REGISTRY.lock();
-    registry.devices.iter().flatten()
-        .find(|e| e.device.device_id() == device_id)
-        .map(|e| e.enabled)
-        .unwrap_or(false)
-}
-
-pub fn set_device_enabled(device_id: super::types::DeviceId, en: bool) -> InputResult<()> {
-    let mut registry = DEVICE_REGISTRY.lock();
-    for entry in registry.devices.iter_mut().flatten() {
-        if entry.device.device_id() == device_id {
-            entry.enabled = en;
-            return Ok(());
-        }
-    }
-    Err(InputError::with_context(InputErrorCode::InvalidConfig, "device not found"))
-}
-
-pub fn poll_enabled_devices() {
-    let registry = DEVICE_REGISTRY.lock();
-    for entry in registry.devices.iter().flatten() {
-        if entry.enabled {
-            entry.device.poll();
-        }
-    }
 }
