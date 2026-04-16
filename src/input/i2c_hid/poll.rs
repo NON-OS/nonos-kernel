@@ -12,6 +12,7 @@
 
 use super::device::HidDeviceType;
 use super::state::{self, DEVICES};
+use super::touchpad::types::Gesture;
 
 /// Poll all touchpad devices for input.
 ///
@@ -37,10 +38,17 @@ pub fn poll() -> bool {
 
         match device.poll_touchpad() {
             Ok(Some(touchpad_state)) => {
+                let mut buttons = touchpad_state.buttons;
+                if matches!(touchpad_state.gesture, Gesture::Tap | Gesture::DoubleTap) {
+                    buttons |= 0x01;
+                }
+                if matches!(touchpad_state.gesture, Gesture::TwoFingerTap) {
+                    buttons |= 0x02;
+                }
+                state::set_buttons(buttons);
                 if touchpad_state.contact_count > 0 {
                     let dx = touchpad_state.delta_x;
                     let dy = touchpad_state.delta_y;
-
                     if dx != 0 || dy != 0 {
                         state::move_cursor(dx, dy);
                         state::record_update();
@@ -48,7 +56,7 @@ pub fn poll() -> bool {
                     }
                 }
             }
-            Ok(None) => {}
+            Ok(None) => { state::set_buttons(0); }
             Err(_) => {}
         }
     }
