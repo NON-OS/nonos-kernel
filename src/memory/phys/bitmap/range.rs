@@ -16,36 +16,36 @@
 
 use super::bit_ops::{bit_set, bit_clear, bit_test};
 
-pub(in crate::memory::phys) unsafe fn set_bit_range(ptr: *mut u8, start: usize, count: usize) {
-    let end = start.saturating_add(count);
-    unsafe {
-        for i in start..end {
-            bit_set(ptr, i);
-        }
-    }
+pub(in crate::memory::phys) unsafe fn set_bit_range(
+    ptr: *mut u8,
+    start: usize,
+    count: usize,
+) -> bool {
+    let Some(end) = start.checked_add(count) else { return false };
+    unsafe { for i in start..end { bit_set(ptr, i); } }
+    true
 }
 
-pub(in crate::memory::phys) unsafe fn clear_bit_range(ptr: *mut u8, start: usize, count: usize) {
-    let end = start.saturating_add(count);
-    unsafe {
-        for i in start..end {
-            bit_clear(ptr, i);
-        }
-    }
+pub(in crate::memory::phys) unsafe fn clear_bit_range(
+    ptr: *mut u8,
+    start: usize,
+    count: usize,
+) -> bool {
+    let Some(end) = start.checked_add(count) else { return false };
+    unsafe { for i in start..end { bit_clear(ptr, i); } }
+    true
 }
 
 pub(in crate::memory::phys) unsafe fn is_range_allocated(
     ptr: *mut u8,
     start: usize,
     count: usize,
-) -> bool {
-    let end = start.saturating_add(count);
+) -> Option<bool> {
+    let end = start.checked_add(count)?;
     unsafe {
         for i in start..end {
-            if !bit_test(ptr, i) {
-                return false;
-            }
+            if !bit_test(ptr, i) { return Some(false); }
         }
-        true
+        Some(true)
     }
 }
