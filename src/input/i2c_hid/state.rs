@@ -14,7 +14,7 @@
 extern crate alloc;
 
 use alloc::vec::Vec;
-use core::sync::atomic::{AtomicBool, AtomicI32, AtomicU32, Ordering};
+use core::sync::atomic::{AtomicBool, AtomicI32, AtomicU32, AtomicU8, Ordering};
 use spin::Mutex;
 
 use super::device::I2cHidDevice;
@@ -43,6 +43,9 @@ pub static SCREEN_H: AtomicI32 = AtomicI32::new(600);
 
 /// Count of successful touchpad updates (for diagnostics)
 pub static UPDATE_COUNT: AtomicU32 = AtomicU32::new(0);
+
+/// Button state (bit 0 = left, bit 1 = right)
+pub static BUTTON_STATE: AtomicU8 = AtomicU8::new(0);
 
 // =============================================================================
 // PUBLIC API
@@ -129,4 +132,28 @@ pub fn device_count() -> usize {
 /// Add a device to the list
 pub fn add_device(device: I2cHidDevice) {
     DEVICES.lock().push(device);
+}
+
+/// Get button state
+#[inline]
+pub fn get_buttons() -> u8 {
+    BUTTON_STATE.load(Ordering::Acquire)
+}
+
+/// Set button state
+#[inline]
+pub fn set_buttons(buttons: u8) {
+    BUTTON_STATE.store(buttons, Ordering::Release);
+}
+
+/// Check if left button is pressed
+#[inline]
+pub fn left_pressed() -> bool {
+    (BUTTON_STATE.load(Ordering::Acquire) & 0x01) != 0
+}
+
+/// Check if right button is pressed
+#[inline]
+pub fn right_pressed() -> bool {
+    (BUTTON_STATE.load(Ordering::Acquire) & 0x02) != 0
 }
