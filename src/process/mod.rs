@@ -14,8 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-extern crate alloc;
-
+pub mod api;
 pub mod core;
 pub mod types;
 pub mod manager;
@@ -62,61 +61,12 @@ pub use core as nonos_core;
 pub use context as nonos_context;
 pub use accounting::{enable_accounting, disable_accounting, is_accounting_enabled, record_process_exit, record_exit_from_pcb};
 pub use accounting::{get_accounting_stats, get_recent_records, get_all_records, clear_records, find_by_pid, ProcessRecord, AcctRecord, AFORK, ASU, ACORE, AXSIG};
+
 pub type ProcessCapabilities = capabilities::CapabilitySet;
 
-pub fn get_current_pty() -> Option<u32> { None }
-pub fn list_all_pids() -> alloc::vec::Vec<u32> {
-    get_process_table().get_all_processes().iter().map(|p| p.pid).collect()
-}
-pub fn last_pid() -> u32 { current_pid().unwrap_or(1) }
-pub fn current_tid() -> u32 { current_pid().unwrap_or(1) }
-pub fn get_process(pid: u32) -> Option<alloc::sync::Arc<ProcessControlBlock>> { get_process_table().find_by_pid(pid) }
-pub fn stop_process(pid: u32) -> Result<(), i32> { suspend_process(pid).map_err(|_| -3) }
-pub fn resume_process_by_pid(pid: u32) -> Result<(), i32> { core::resume_process(pid).map_err(|_| -3) }
-pub fn resume_process(pid: u32) -> Result<(), i32> { core::resume_process(pid).map_err(|_| -3) }
-pub fn current_uid() -> u32 { get_process(current_pid().unwrap_or(1)).map(|p| p.creds.lock().uid).unwrap_or(0) }
-
-pub fn set_cwd(pid: u32, path: &str) -> Result<(), i32> {
-    let proc = get_process(pid).ok_or(-3)?;
-    let mut cwd = proc.cwd.lock();
-    cwd.clear();
-    cwd.push_str(path);
-    Ok(())
-}
-
-pub fn set_comm(pid: u32, name: &str) -> Result<(), i32> {
-    get_process(pid).ok_or(-3)?.set_name(name);
-    Ok(())
-}
-
-pub fn get_uid(pid: u32) -> Option<u32> {
-    get_process(pid).map(|p| p.creds.lock().uid)
-}
-
-pub fn get_parent_pid(pid: u32) -> Option<u32> {
-    get_process(pid).map(|p| p.parent_pid())
-}
-
-pub fn set_controlling_tty(pid: u32, tty: u32) -> Result<(), i32> {
-    use ::core::sync::atomic::Ordering;
-    get_process(pid).ok_or(-3)?.tty_nr.store(tty, Ordering::Relaxed);
-    Ok(())
-}
-
-pub fn release_controlling_tty(pid: u32) -> Result<(), i32> {
-    use ::core::sync::atomic::Ordering;
-    get_process(pid).ok_or(-3)?.tty_nr.store(0, Ordering::Relaxed);
-    get_process(pid).ok_or(-3)?.tty_pgrp.store(-1, Ordering::Relaxed);
-    Ok(())
-}
-
-pub fn get_tty_pgrp(pid: u32) -> Option<i32> {
-    use ::core::sync::atomic::Ordering;
-    get_process(pid).map(|p| p.tty_pgrp.load(Ordering::Relaxed))
-}
-
-pub fn set_tty_pgrp(pid: u32, pgrp: i32) -> Result<(), i32> {
-    use ::core::sync::atomic::Ordering;
-    get_process(pid).ok_or(-3)?.tty_pgrp.store(pgrp, Ordering::Relaxed);
-    Ok(())
-}
+pub use api::{
+    get_current_pty, list_all_pids, last_pid, current_tid, get_process,
+    stop_process, resume_process_by_pid, resume_process, current_uid,
+    set_cwd, set_comm, get_uid, get_parent_pid,
+    set_controlling_tty, release_controlling_tty, get_tty_pgrp, set_tty_pgrp,
+};
