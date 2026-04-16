@@ -47,6 +47,15 @@ impl Capsule {
 static CAPSULES: Mutex<[Capsule; MAX_CAPSULES]> = Mutex::new([Capsule::empty(); MAX_CAPSULES]);
 static CAPSULE_COUNT: AtomicU32 = AtomicU32::new(0);
 
+pub(super) fn capsule_count() -> u32 {
+    CAPSULE_COUNT.load(Ordering::Relaxed)
+}
+
+pub(super) fn get_capsule(idx: usize) -> Option<Capsule> {
+    let arr = CAPSULES.lock();
+    arr.get(idx).filter(|c| c.active).copied()
+}
+
 pub(super) fn create_capsule(app_idx: usize, id: &[u8; 32], name: &str, caps: u64) -> Option<usize> {
     let mut arr = CAPSULES.lock();
     for (i, c) in arr.iter_mut().enumerate() {
