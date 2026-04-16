@@ -72,3 +72,7 @@ impl Background {
         BG_COUNT
     }
 }
+
+pub fn background_count() -> u8 {
+    Background::count()
+}
