@@ -39,10 +39,20 @@ pub(super) fn init_services() {
 }
 
 pub(super) fn init_desktop() {
-    crate::sys::serial::println(b"[NONOS] Loading wallpaper");
     crate::graphics::backgrounds::init_wallpaper_system();
     crate::sys::serial::println(b"[NONOS] Starting desktop");
     crate::sys::apic::setup_timer(100);
+    desktop::draw_all();
+    let (mx, my) = input::mouse_position_unified();
+    cursor::draw(mx, my);
+    framebuffer::swap_buffers();
+    crate::sys::serial::println(b"[NONOS] Loading wallpaper");
+    crate::graphics::backgrounds::try_load_wallpaper();
+    if crate::graphics::backgrounds::get_cached_wallpaper().is_some() {
+        crate::sys::serial::println(b"[NONOS] Wallpaper loaded");
+    } else {
+        crate::sys::serial::println(b"[NONOS] Wallpaper load failed");
+    }
     desktop::draw_all();
     let (mx, my) = input::mouse_position_unified();
     cursor::draw(mx, my);
