@@ -17,6 +17,7 @@
 use super::state::*;
 use super::apps::{get_apps, app_count};
 use super::payment::initiate_payment;
+use super::capsule::{create_capsule, launch_capsule, stop_capsule, get_capsule};
 
 pub(crate) fn handle_click(x: u32, y: u32, w: u32, _h: u32, mx: i32, my: i32) -> bool {
     let rx = (mx - x as i32) as u32;
@@ -50,8 +51,26 @@ fn try_install(idx: usize) -> bool {
     let apps = get_apps(category());
     if idx >= apps.len() { return false; }
     let app = &apps[idx];
-    if is_installed(idx) { crate::graphics::window::notify_info(b"Already installed"); return true; }
-    if app.nox_fee == 0 { set_installed(idx, true); crate::graphics::window::notify_success(b"Installed!"); return true; }
+    if is_installed(idx) {
+        if let Some(cap) = get_capsule(idx) {
+            if cap.is_running() {
+                if stop_capsule(idx).is_ok() { crate::graphics::window::notify_info(b"Stopped"); }
+            } else {
+                let token = crate::capabilities::CapabilityToken::empty();
+                if launch_capsule(idx, &token).is_ok() { crate::graphics::window::notify_success(b"Launched!"); }
+            }
+        }
+        return true;
+    }
+    if app.nox_fee == 0 {
+        let id = [0u8; 32];
+        let name_str = core::str::from_utf8(&app.name).unwrap_or("app");
+        if create_capsule(idx, &id, name_str, 0).is_some() {
+            set_installed(idx, true);
+            crate::graphics::window::notify_success(b"Installed!");
+        }
+        return true;
+    }
     if initiate_payment(idx, app.nox_fee) { super::payment::execute_pending_payment(); }
     true
 }
