@@ -65,7 +65,7 @@ fn find_module_ino(name: &str) -> Option<u64> {
     let parent = get_module_ino();
     for entry in get_kobject_entries(parent) {
         if entry.name == name {
-            return Some(entry.ino);
+            return Some(entry.inode);
         }
     }
     None
