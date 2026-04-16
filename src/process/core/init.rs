@@ -20,15 +20,16 @@ use super::table::create_process;
 use core::sync::atomic::Ordering;
 
 pub(crate) fn init_system_processes() {
-    match create_process("init", ProcessState::Ready, Priority::Normal) {
-        Ok(pid) => {
-            CURRENT_PID.store(pid, Ordering::SeqCst);
-            crate::log::info!("[PROCESS] Init process created with PID {}", pid);
-        }
-        Err(e) => crate::log::error!("[PROCESS] Failed to create init: {}", e),
+    let pid = create_process("init", ProcessState::Ready, Priority::Normal)
+        .expect("[FATAL] Failed to create init process - system cannot continue");
+    CURRENT_PID.store(pid, Ordering::SeqCst);
+    crate::log::info!("[PROCESS] Init process created with PID {}", pid);
+    if let Err(e) = create_process("kthreadd", ProcessState::Ready, Priority::High) {
+        crate::log::warn!("[PROCESS] Failed to create kthreadd: {}", e);
     }
-    let _ = create_process("kthreadd", ProcessState::Ready, Priority::High);
-    let _ = create_process("ksoftirqd", ProcessState::Ready, Priority::High);
+    if let Err(e) = create_process("ksoftirqd", ProcessState::Ready, Priority::High) {
+        crate::log::warn!("[PROCESS] Failed to create ksoftirqd: {}", e);
+    }
 }
 
 pub fn get_init_process() -> Option<alloc::sync::Arc<super::pcb::ProcessControlBlock>> {
