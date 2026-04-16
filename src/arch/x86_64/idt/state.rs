@@ -23,6 +23,7 @@ use crate::arch::x86_64::idt::table::Idt;
 pub(crate) static mut IDT: Idt = Idt::new();
 
 pub(crate) static INITIALIZED: AtomicBool = AtomicBool::new(false);
+pub(crate) static INITIALIZING: AtomicBool = AtomicBool::new(false);
 
 pub(crate) static INTERRUPT_COUNTS: [AtomicU64; IDT_ENTRIES] = {
     const INIT: AtomicU64 = AtomicU64::new(0);
