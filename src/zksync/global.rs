@@ -15,15 +15,19 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use core::sync::atomic::{AtomicBool, Ordering};
+use spin::{Mutex, Once};
 use super::config::ZkSyncConfig;
+use super::state::StateManager;
 
 static INITIALIZED: AtomicBool = AtomicBool::new(false);
 static mut CONFIG: Option<ZkSyncConfig> = None;
+static STATE_MANAGER: Once<Mutex<StateManager>> = Once::new();
 
 pub fn init_zksync(config: ZkSyncConfig) -> Result<(), super::ZkSyncError> {
     if INITIALIZED.load(Ordering::Acquire) {
         return Ok(());
     }
+    STATE_MANAGER.call_once(|| Mutex::new(StateManager::new()));
     unsafe { CONFIG = Some(config); }
     INITIALIZED.store(true, Ordering::Release);
     Ok(())
@@ -36,4 +40,12 @@ pub fn is_initialized() -> bool {
 pub(crate) fn get_config() -> Option<&'static ZkSyncConfig> {
     if !is_initialized() { return None; }
     unsafe { (*core::ptr::addr_of!(CONFIG)).as_ref() }
+}
+
+pub(crate) fn with_state<R, F: FnOnce(&StateManager) -> R>(f: F) -> Option<R> {
+    STATE_MANAGER.get().map(|m| f(&m.lock()))
+}
+
+pub(crate) fn with_state_mut<R, F: FnOnce(&mut StateManager) -> R>(f: F) -> Option<R> {
+    STATE_MANAGER.get().map(|m| f(&mut m.lock()))
 }
