@@ -23,6 +23,7 @@ use core::sync::atomic::{AtomicBool, AtomicU64, Ordering};
 use super::dialogs::handle_dialogs;
 
 static ICONS_REFRESHED: AtomicBool = AtomicBool::new(false);
+static WALLPAPER_LOADED: AtomicBool = AtomicBool::new(false);
 static BOOT_TIME: AtomicU64 = AtomicU64::new(0);
 
 pub fn run_desktop() -> ! {
@@ -40,6 +41,7 @@ pub fn run_desktop() -> ! {
         crate::apps::ecosystem::browser::poll_navigation();
         check_redraws();
         deferred_icon_refresh();
+        deferred_wallpaper_load();
         do_redraw(&mut old_mx, &mut old_my);
         update_clock(&mut last_clock);
         for _ in 0..50 { unsafe { asm!("pause", options(nomem, nostack)); } }
@@ -59,6 +61,17 @@ fn deferred_icon_refresh() {
     if now > boot + 500 {
         desktop::refresh_desktop_icons();
         ICONS_REFRESHED.store(true, Ordering::SeqCst);
+        desktop_loop::set_needs_redraw();
+    }
+}
+
+fn deferred_wallpaper_load() {
+    if WALLPAPER_LOADED.load(Ordering::Relaxed) { return; }
+    let now = clock::unix_ms();
+    let boot = BOOT_TIME.load(Ordering::Relaxed);
+    if now > boot + 1000 {
+        crate::graphics::backgrounds::try_load_wallpaper();
+        WALLPAPER_LOADED.store(true, Ordering::SeqCst);
         desktop_loop::set_needs_redraw();
     }
 }
