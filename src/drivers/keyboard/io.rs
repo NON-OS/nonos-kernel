@@ -82,11 +82,13 @@ pub fn i8042_init_best_effort() {
 pub fn read_data_if_available() -> Option<u8> {
     // SAFETY: Reading status and data ports.
     let status = unsafe { inb(KBD_STATUS) };
-    if (status & STATUS_OUTPUT_FULL) != 0 {
-        Some(unsafe { inb(KBD_DATA) })
-    } else {
-        None
+    if (status & STATUS_OUTPUT_FULL) == 0 {
+        return None;
     }
+    if (status & 0x20) != 0 {
+        return None;
+    }
+    Some(unsafe { inb(KBD_DATA) })
 }
 
 pub fn send_keyboard_command(cmd: u8) -> bool {
