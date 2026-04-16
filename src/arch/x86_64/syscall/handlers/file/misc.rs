@@ -14,7 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use crate::usercopy::{validate_user_write, write_user_value};
 use super::super::super::util::{PIPE_READ_FLAG, PIPE_WRITE_FLAG};
+
+const EFAULT: i64 = -14;
+const EMFILE: i64 = -24;
 
 pub fn syscall_dup(fd: u64, _: u64, _: u64, _: u64, _: u64, _: u64) -> u64 {
     match crate::fs::fd::fd_dup(fd as i32) {
@@ -32,25 +36,27 @@ pub fn syscall_dup2(oldfd: u64, newfd: u64, _: u64, _: u64, _: u64, _: u64) -> u
 
 pub fn syscall_pipe(pipefd: u64, _: u64, _: u64, _: u64, _: u64, _: u64) -> u64 {
     if pipefd == 0 {
-        return (-14i64) as u64;
+        return EFAULT as u64;
     }
-
+    if validate_user_write(pipefd, 8).is_err() {
+        return EFAULT as u64;
+    }
     match crate::ipc::create_channel(0) {
         Ok(channel_id) => {
-            let fds = pipefd as *mut [i32; 2];
-            unsafe {
-                let read_fd = (channel_id | PIPE_READ_FLAG) as i32;
-                let write_fd = (channel_id | PIPE_WRITE_FLAG) as i32;
-                (*fds)[0] = read_fd;
-                (*fds)[1] = write_fd;
+            let read_fd = (channel_id | PIPE_READ_FLAG) as i32;
+            let write_fd = (channel_id | PIPE_WRITE_FLAG) as i32;
+            if write_user_value(pipefd, &read_fd).is_err() {
+                return EFAULT as u64;
+            }
+            if write_user_value(pipefd + 4, &write_fd).is_err() {
+                return EFAULT as u64;
             }
             0
         }
-        Err(_) => (-24i64) as u64,
+        Err(_) => EMFILE as u64,
     }
 }
 
 pub fn syscall_ioctl(fd: u64, request: u64, arg: u64, _: u64, _: u64, _: u64) -> u64 {
-    let result = crate::syscall::extended::misc::handle_ioctl(fd as i32, request, arg);
-    result.value as u64
+    crate::syscall::extended::misc::handle_ioctl(fd as i32, request, arg).value as u64
 }
