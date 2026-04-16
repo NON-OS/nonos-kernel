@@ -20,11 +20,12 @@ use super::super::types::{Pid, ProcessState};
 
 impl ProcessTable {
     pub fn terminate_process(&self, pid: Pid) -> Result<(), &'static str> {
-        crate::sched::remove_from_run_queue(pid);
         let mut inner = self.inner.write();
         if let Some(pos) = inner.iter().position(|p| p.pid == pid) {
             *inner[pos].state.lock() = ProcessState::Terminated(0);
             inner.remove(pos);
+            drop(inner);
+            crate::sched::remove_from_run_queue(pid);
             Ok(())
         } else { Err("Process not found") }
     }
@@ -34,6 +35,9 @@ impl ProcessTable {
     }
 
     pub fn set_session_leader(&self, pid: Pid) -> Result<(), &'static str> {
-        self.find_by_pid(pid).map(|pcb| pcb.pgid.store(pid, Ordering::Relaxed)).ok_or("Process not found")
+        self.find_by_pid(pid).map(|pcb| {
+            pcb.sid.store(pid, Ordering::Relaxed);
+            pcb.pgid.store(pid, Ordering::Relaxed);
+        }).ok_or("Process not found")
     }
 }
