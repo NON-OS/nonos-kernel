@@ -26,6 +26,7 @@ pub(crate) static mut AP_GDTS: [PerCpuGdt; MAX_CPUS] = {
 };
 
 pub(crate) static INITIALIZED: AtomicBool = AtomicBool::new(false);
+pub(crate) static INITIALIZING: AtomicBool = AtomicBool::new(false);
 pub(crate) static CPU_COUNT: AtomicU64 = AtomicU64::new(0);
 pub(crate) static GDT_LOADS: AtomicU64 = AtomicU64::new(0);
 pub(crate) static TSS_LOADS: AtomicU64 = AtomicU64::new(0);
