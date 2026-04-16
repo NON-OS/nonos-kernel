@@ -17,7 +17,18 @@
 use super::definition::Context;
 use core::sync::atomic::{AtomicBool, Ordering};
 
-pub(crate) static CONTEXT_JUST_RESTORED: AtomicBool = AtomicBool::new(false);
+const MAX_CPUS: usize = 256;
+const INIT_FALSE: AtomicBool = AtomicBool::new(false);
+static CONTEXT_JUST_RESTORED: [AtomicBool; MAX_CPUS] = [INIT_FALSE; MAX_CPUS];
+
+#[inline]
+fn current_cpu_index() -> usize {
+    (crate::sched::current_cpu_id() as usize) % MAX_CPUS
+}
+
+pub(crate) fn set_restored_flag() {
+    CONTEXT_JUST_RESTORED[current_cpu_index()].store(true, Ordering::SeqCst);
+}
 
 impl Context {
     #[unsafe(naked)]
@@ -57,10 +68,10 @@ impl Context {
     }
 
     pub fn was_just_restored() -> bool {
-        CONTEXT_JUST_RESTORED.swap(false, Ordering::SeqCst)
+        CONTEXT_JUST_RESTORED[current_cpu_index()].swap(false, Ordering::SeqCst)
     }
 
     pub fn clear_restored_flag() {
-        CONTEXT_JUST_RESTORED.store(false, Ordering::SeqCst);
+        CONTEXT_JUST_RESTORED[current_cpu_index()].store(false, Ordering::SeqCst);
     }
 }
