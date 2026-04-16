@@ -21,6 +21,7 @@ pub mod signal;
 pub mod network;
 pub mod time;
 pub mod misc;
+mod uname_types;
 
 pub use file::*;
 pub use process::*;
@@ -29,3 +30,4 @@ pub use signal::*;
 pub use network::*;
 pub use time::*;
 pub use misc::*;
+pub use uname_types::Utsname;
