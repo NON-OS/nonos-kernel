@@ -14,14 +14,20 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use core::sync::atomic::{fence, AtomicBool, AtomicU64, AtomicUsize, Ordering};
+use core::sync::atomic::{AtomicBool, AtomicU64, AtomicUsize, Ordering};
+use spin::Once;
 use super::constants::MAX_CPUS;
 use super::percpu_queue::PerCpuRunQueue;
 use super::types::LoadBalanceState;
 
-static mut CPU_QUEUES: [Option<PerCpuRunQueue>; MAX_CPUS] = {
-    const NONE: Option<PerCpuRunQueue> = None;
-    [NONE; MAX_CPUS]
+struct CpuQueueSlot(Once<PerCpuRunQueue>);
+impl CpuQueueSlot {
+    const fn new() -> Self { Self(Once::new()) }
+}
+
+static CPU_QUEUES: [CpuQueueSlot; MAX_CPUS] = {
+    const SLOT: CpuQueueSlot = CpuQueueSlot::new();
+    [SLOT; MAX_CPUS]
 };
 
 pub(super) static GLOBAL_TICK: AtomicU64 = AtomicU64::new(0);
@@ -30,10 +36,7 @@ static ACTIVE_CPU_COUNT: AtomicUsize = AtomicUsize::new(1);
 static SMP_INITIALIZED: AtomicBool = AtomicBool::new(false);
 
 pub fn init_cpu_queue(cpu_id: usize) {
-    unsafe {
-        CPU_QUEUES[cpu_id] = Some(PerCpuRunQueue::new(cpu_id));
-    }
-    fence(Ordering::Release);
+    CPU_QUEUES[cpu_id].0.call_once(|| PerCpuRunQueue::new(cpu_id));
     if cpu_id == 0 {
         SMP_INITIALIZED.store(true, Ordering::Release);
     } else {
@@ -42,8 +45,7 @@ pub fn init_cpu_queue(cpu_id: usize) {
 }
 
 pub fn get_cpu_queue(cpu_id: usize) -> &'static PerCpuRunQueue {
-    fence(Ordering::Acquire);
-    unsafe { CPU_QUEUES[cpu_id].as_ref().expect("CPU queue not initialized") }
+    CPU_QUEUES[cpu_id].0.get().expect("CPU queue not initialized")
 }
 
 pub fn active_cpu_count() -> usize { ACTIVE_CPU_COUNT.load(Ordering::Relaxed) }
@@ -51,13 +53,10 @@ pub fn active_cpu_count() -> usize { ACTIVE_CPU_COUNT.load(Ordering::Relaxed) }
 pub fn is_smp_initialized() -> bool { SMP_INITIALIZED.load(Ordering::Acquire) }
 
 pub fn for_each_cpu_queue<F: FnMut(usize, &PerCpuRunQueue)>(mut f: F) {
-    fence(Ordering::Acquire);
     let count = active_cpu_count();
     for cpu_id in 0..count {
-        unsafe {
-            if let Some(ref queue) = CPU_QUEUES[cpu_id] {
-                f(cpu_id, queue);
-            }
+        if let Some(queue) = CPU_QUEUES[cpu_id].0.get() {
+            f(cpu_id, queue);
         }
     }
 }
