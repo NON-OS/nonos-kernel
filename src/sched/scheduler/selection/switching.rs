@@ -39,6 +39,5 @@ pub fn switch_to_process(pid: u32) {
     CURRENT_TIME_SLICE.store(DEFAULT_TIME_SLICE, Ordering::SeqCst);
     if has_own_addr_space { let _ = switch_to_process_address_space(pid); }
     if !has_saved_fpu_state(pid) { init_fpu(); } else { restore_fpu_state(pid); }
-    ctx.restore();
-    loop { core::hint::spin_loop(); }
+    ctx.restore()
 }
