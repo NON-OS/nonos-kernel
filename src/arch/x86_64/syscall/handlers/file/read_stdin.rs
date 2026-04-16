@@ -17,7 +17,7 @@
 use crate::arch::x86_64::keyboard::input::{pop_event, InputEventKind};
 use super::super::super::util::scancode_to_ascii;
 
-pub fn read_stdin_to_buffer(buf: &mut [u8]) -> Result<usize, ()> {
+pub(super) fn read_stdin_to_buffer(buf: &mut [u8]) -> Result<usize, ()> {
     if let Some(input) = pop_event() {
         if let InputEventKind::KeyPress(ev) = input.kind {
             if let Some(c) = scancode_to_ascii(ev.scan_code) {
