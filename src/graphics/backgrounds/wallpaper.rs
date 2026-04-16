@@ -56,57 +56,65 @@ pub fn is_using_wallpaper() -> bool {
 
 pub fn load_current_wallpaper() -> Option<&'static DecodedImage> {
     let id = get_current_wallpaper_id();
+    crate::sys::serial::println(b"[WALLPAPER] load start");
 
     if id >= WALLPAPER_COUNT {
+        crate::sys::serial::println(b"[WALLPAPER] id out of range");
         return None;
     }
 
-    // Already cached - return immediately
     if CACHED_WALLPAPER_ID.load(Ordering::Acquire) == id {
+        crate::sys::serial::println(b"[WALLPAPER] using cache");
         unsafe { return (*addr_of!(CACHED_WALLPAPER)).as_ref(); }
     }
 
-    // Prevent concurrent loads
     if WALLPAPER_LOADING.swap(true, Ordering::AcqRel) {
-        // Another load in progress - return current cached wallpaper
+        crate::sys::serial::println(b"[WALLPAPER] already loading");
         unsafe { return (*addr_of!(CACHED_WALLPAPER)).as_ref(); }
     }
 
-    // Double-check after acquiring load flag
     if CACHED_WALLPAPER_ID.load(Ordering::Acquire) == id {
         WALLPAPER_LOADING.store(false, Ordering::Release);
         unsafe { return (*addr_of!(CACHED_WALLPAPER)).as_ref(); }
     }
 
+    crate::sys::serial::println(b"[WALLPAPER] getting data");
     let png_data = match get_embedded_wallpaper_data(id as u8) {
         Some(data) => data,
         None => {
+            crate::sys::serial::println(b"[WALLPAPER] no data");
             WALLPAPER_LOADING.store(false, Ordering::Release);
             return unsafe { (*addr_of!(CACHED_WALLPAPER)).as_ref() };
         }
     };
 
+    crate::sys::serial::println(b"[WALLPAPER] decoding");
     unsafe { *addr_of_mut!(CACHED_WALLPAPER) = None; }
 
     let image = if png_data.len() >= 4 && &png_data[0..4] == b"NLZ4" {
+        crate::sys::serial::println(b"[WALLPAPER] LZ4 decode");
         decode_lz4_raw(png_data)
     } else {
+        crate::sys::serial::println(b"[WALLPAPER] PNG decode");
         decode_png(png_data)
     };
     let image = match image {
         Some(img) => img,
         None => {
+            crate::sys::serial::println(b"[WALLPAPER] decode failed");
             WALLPAPER_LOADING.store(false, Ordering::Release);
             return None;
         }
     };
 
+    crate::sys::serial::println(b"[WALLPAPER] caching");
     unsafe {
         *addr_of_mut!(CACHED_WALLPAPER) = Some(image);
         CACHED_WALLPAPER_ID.store(id, Ordering::Release);
     }
 
     WALLPAPER_LOADING.store(false, Ordering::Release);
+    crate::sys::serial::println(b"[WALLPAPER] load done");
 
     unsafe { (*addr_of!(CACHED_WALLPAPER)).as_ref() }
 }
@@ -155,10 +163,13 @@ pub fn prev_wallpaper() -> usize {
 }
 
 pub fn init_wallpaper_system() {
+    crate::sys::serial::println(b"[WALLPAPER] init start");
     if load_current_wallpaper().is_none() {
+        crate::sys::serial::println(b"[WALLPAPER] fallback to 0");
         set_current_wallpaper(0);
         let _ = load_current_wallpaper();
     }
+    crate::sys::serial::println(b"[WALLPAPER] init done");
 }
 
 pub fn has_embedded_wallpaper() -> bool {
