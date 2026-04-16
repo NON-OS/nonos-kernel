@@ -60,28 +60,13 @@ impl Context {
     }
 
     pub fn restore(&self) -> ! {
-        use crate::sys::serial;
-        serial::print(b"[RESTORE] validating rip=0x");
-        serial::print_hex(self.rip);
-        serial::print(b" rsp=0x");
-        serial::print_hex(self.rsp);
-        serial::println(b"");
-        if let Err(e) = self.validate() {
-            serial::println(b"[FATAL] Context validation failed:");
-            serial::println(e.as_bytes());
-            serial::print(b"rip=0x");
-            serial::print_hex(self.rip);
-            serial::print(b" rsp=0x");
-            serial::print_hex(self.rsp);
-            serial::println(b"");
+        if let Err(_) = self.validate() {
             loop { core::hint::spin_loop(); }
         }
         let mut safe_ctx = *self;
         safe_ctx.rflags = Self::validate_rflags(safe_ctx.rflags);
-        serial::println(b"[RESTORE] setting flag and jumping");
-        super::save::CONTEXT_JUST_RESTORED.store(true, core::sync::atomic::Ordering::SeqCst);
-        let ctx_ptr = &safe_ctx as *const Context;
-        context_restore_asm(ctx_ptr)
+        super::save::set_restored_flag();
+        context_restore_asm(&safe_ctx as *const Context)
     }
 }
 
