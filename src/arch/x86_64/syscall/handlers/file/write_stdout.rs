@@ -16,7 +16,7 @@
 
 use crate::arch::x86_64::vga::{write_str, set_color, Color};
 
-pub fn write_to_stdout(data: &[u8]) -> u64 {
+pub(super) fn write_to_stdout(data: &[u8]) -> u64 {
     for &byte in data {
         if byte.is_ascii() {
             write_str(unsafe { core::str::from_utf8_unchecked(&[byte]) });
@@ -25,7 +25,7 @@ pub fn write_to_stdout(data: &[u8]) -> u64 {
     data.len() as u64
 }
 
-pub fn write_to_stderr(data: &[u8]) -> u64 {
+pub(super) fn write_to_stderr(data: &[u8]) -> u64 {
     set_color(Color::LightRed, Color::Black);
     for &byte in data {
         if byte.is_ascii() {
