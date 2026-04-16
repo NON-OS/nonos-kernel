@@ -23,7 +23,9 @@ use super::state::{CPU_DESCRIPTORS, CPU_COUNT, CPUS_ONLINE, BSP_APIC_ID, SMP_INI
 use super::topology;
 
 pub fn init_bsp() -> Result<(), &'static str> {
-    if SMP_INITIALIZED.load(Ordering::Acquire) {
+    use super::state::BSP_INITIALIZING;
+    if !BSP_INITIALIZING.compare_exchange(false, true, Ordering::SeqCst, Ordering::SeqCst).is_ok() {
+        while !SMP_INITIALIZED.load(Ordering::Acquire) { core::hint::spin_loop(); }
         return Ok(());
     }
 
