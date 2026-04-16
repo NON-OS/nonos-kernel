@@ -53,7 +53,9 @@ pub fn handle_zksync_get_balance(addr_ptr: u64, balance_out: u64) -> SyscallResu
     if addr_ptr == 0 || balance_out == 0 { return errno(EINVAL); }
     let mut addr_bytes = [0u8; 20];
     if copy_from_user(addr_ptr, &mut addr_bytes).is_err() { return errno(EFAULT); }
-    let balance = U256::ZERO;
+    let address = crate::zksync::types::Address(addr_bytes);
+    let balance = crate::zksync::global::with_state(|state| state.get_balance(&address))
+        .unwrap_or(U256::ZERO);
     let balance_bytes = balance.to_bytes_be();
     if copy_to_user(balance_out, &balance_bytes).is_err() { return errno(EFAULT); }
     result_ok(0)
@@ -64,7 +66,9 @@ pub fn handle_zksync_get_nonce(addr_ptr: u64, nonce_out: u64) -> SyscallResult {
     if addr_ptr == 0 || nonce_out == 0 { return errno(EINVAL); }
     let mut addr_bytes = [0u8; 20];
     if copy_from_user(addr_ptr, &mut addr_bytes).is_err() { return errno(EFAULT); }
-    let nonce: u64 = 0;
+    let address = crate::zksync::types::Address(addr_bytes);
+    let nonce = crate::zksync::global::with_state(|state| state.get_nonce(&address).0)
+        .unwrap_or(0);
     if copy_to_user(nonce_out, &nonce.to_le_bytes()).is_err() { return errno(EFAULT); }
     result_ok(0)
 }
@@ -94,9 +98,13 @@ pub fn handle_zksync_estimate_gas(tx_ptr: u64, tx_len: u64, gas_out: u64) -> Sys
 pub fn handle_zksync_get_block(block_num: u64, block_out: u64) -> SyscallResult {
     if !crate::zksync::is_initialized() { return errno(ENOSYS); }
     if block_out == 0 { return errno(EINVAL); }
+    let current_block = crate::zksync::global::with_state(|s| s.current_block().0).unwrap_or(0);
+    if block_num > current_block { return errno(EINVAL); }
+    let state_root = crate::zksync::global::with_state(|s| s.state_root()).unwrap_or([0u8; 32]);
     let mut block_data = [0u8; 128];
     block_data[..8].copy_from_slice(&block_num.to_le_bytes());
-    block_data[8..16].copy_from_slice(&0u64.to_le_bytes());
+    block_data[8..16].copy_from_slice(&current_block.to_le_bytes());
+    block_data[16..48].copy_from_slice(&state_root);
     if copy_to_user(block_out, &block_data).is_err() { return errno(EFAULT); }
     result_ok(128)
 }
@@ -104,8 +112,13 @@ pub fn handle_zksync_get_block(block_num: u64, block_out: u64) -> SyscallResult 
 pub fn handle_zksync_get_batch(batch_num: u64, batch_out: u64) -> SyscallResult {
     if !crate::zksync::is_initialized() { return errno(ENOSYS); }
     if batch_out == 0 { return errno(EINVAL); }
+    let current_batch = crate::zksync::global::with_state(|s| s.current_batch().0).unwrap_or(0);
+    if batch_num > current_batch { return errno(EINVAL); }
+    let state_root = crate::zksync::global::with_state(|s| s.state_root()).unwrap_or([0u8; 32]);
     let mut batch_data = [0u8; 96];
     batch_data[..8].copy_from_slice(&batch_num.to_le_bytes());
+    batch_data[8..16].copy_from_slice(&current_batch.to_le_bytes());
+    batch_data[16..48].copy_from_slice(&state_root);
     if copy_to_user(batch_out, &batch_data).is_err() { return errno(EFAULT); }
     result_ok(96)
 }
