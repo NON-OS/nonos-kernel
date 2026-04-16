@@ -40,8 +40,6 @@ pub(super) fn init_services() {
 
 pub(super) fn init_desktop() {
     crate::graphics::backgrounds::init_wallpaper_system();
-    crate::sys::serial::println(b"[NONOS] Loading wallpaper");
-    crate::graphics::backgrounds::try_load_wallpaper();
     crate::sys::serial::println(b"[NONOS] Starting desktop");
     crate::sys::apic::setup_timer(100);
     desktop::draw_all();
