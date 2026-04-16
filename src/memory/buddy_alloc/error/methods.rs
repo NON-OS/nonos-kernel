@@ -32,6 +32,7 @@ impl BuddyAllocError {
             Self::UnmapFailed => "Failed to unmap page",
             Self::BlockOutOfRange => "Block outside valid range",
             Self::DoubleFree => "Double free detected",
+            Self::Overflow => "Integer overflow in allocation size",
         }
     }
 
