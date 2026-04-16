@@ -14,25 +14,40 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use crate::usercopy::{validate_user_write, copy_to_user};
+
+const STAT_SIZE: usize = 144;
+const EFAULT: i64 = -14;
+
 pub fn syscall_stat(pathname: u64, statbuf: u64, _: u64, _: u64, _: u64, _: u64) -> u64 {
     if pathname == 0 || statbuf == 0 {
-        return (-14i64) as u64;
+        return EFAULT as u64;
     }
-
-    let stat_ptr = statbuf as *mut u8;
-    unsafe {
-        core::ptr::write_bytes(stat_ptr, 0, 144);
+    if validate_user_write(statbuf, STAT_SIZE).is_err() {
+        return EFAULT as u64;
+    }
+    let zeroed_stat = [0u8; STAT_SIZE];
+    if copy_to_user(statbuf, &zeroed_stat).is_err() {
+        return EFAULT as u64;
     }
     0
 }
 
 pub fn syscall_fstat(fd: u64, statbuf: u64, _: u64, _: u64, _: u64, _: u64) -> u64 {
     if statbuf == 0 {
-        return (-14i64) as u64;
+        return EFAULT as u64;
     }
-
-    match crate::fs::fd::fd_fstat(fd as i32, statbuf as *mut u8) {
-        Ok(()) => 0,
+    if validate_user_write(statbuf, STAT_SIZE).is_err() {
+        return EFAULT as u64;
+    }
+    let mut kernel_stat = [0u8; STAT_SIZE];
+    match crate::fs::fd::fd_fstat(fd as i32, kernel_stat.as_mut_ptr()) {
+        Ok(()) => {
+            if copy_to_user(statbuf, &kernel_stat).is_err() {
+                return EFAULT as u64;
+            }
+            0
+        }
         Err(e) => e.to_errno() as u64,
     }
 }
