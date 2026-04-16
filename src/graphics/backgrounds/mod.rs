@@ -20,7 +20,7 @@ pub mod state;
 pub mod wallpaper;
 
 pub use images::Background as BackgroundType;
-pub(crate) use images::{BG_HEIGHT, BG_WIDTH, Background};
+pub(crate) use images::{BG_HEIGHT, BG_WIDTH};
 pub(crate) use state::get_background;
 
 pub use images::background_count;
