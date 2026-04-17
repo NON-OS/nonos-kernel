@@ -23,14 +23,14 @@ use core::sync::atomic::{AtomicU8, AtomicBool, Ordering};
 static CURRENT_STAGE: AtomicU8 = AtomicU8::new(STAGE_INIT);
 static STAGES_BOX_DRAWN: AtomicBool = AtomicBool::new(false);
 
-pub const STAGES_BOX_WIDTH: u32 = 200;
-pub const STAGES_BOX_HEIGHT: u32 = 260;
-const STAGES_BOX_PAD: u32 = 12;
+pub const STAGES_BOX_WIDTH: u32 = 280;
+pub const STAGES_BOX_HEIGHT: u32 = 320;
+const STAGES_BOX_PAD: u32 = 16;
 
 fn get_stages_box_pos() -> (u32, u32) {
     let (screen_w, _) = get_dimensions();
-    let x = screen_w - STAGES_BOX_WIDTH - 50;
-    let y = 140;
+    let x = screen_w - STAGES_BOX_WIDTH - 40;
+    let y = 100;
     (x, y)
 }
 
