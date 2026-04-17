@@ -23,6 +23,9 @@ pub fn switch_to_process(pid: u32) {
     use crate::memory::paging::manager::api::switch_to_process_address_space;
     let ctx_opt = crate::process::nonos_core::INTERRUPT_SAVED_CONTEXTS.write().remove(&pid);
     let Some(ctx) = ctx_opt else {
+        crate::sys::serial::print(b"[SCHED] No ctx for pid=");
+        crate::sys::serial::print_dec(pid as u64);
+        crate::sys::serial::println(b"");
         if let Some(pcb) = PROCESS_TABLE.find_by_pid(pid) { *pcb.state.lock() = ProcessState::Ready; }
         return;
     };
