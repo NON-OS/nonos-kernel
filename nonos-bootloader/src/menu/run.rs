@@ -17,18 +17,19 @@
 use uefi::prelude::*;
 
 use super::input::{poll_input, KeyAction};
-use super::render::{clear_menu_area, render_menu, render_timeout_bar};
+use super::render::{clear_menu_area, clear_screen, draw_logo, render_menu};
 use super::types::{MenuAction, MenuState};
 
 const POLL_INTERVAL_MS: u64 = 50;
 
 pub fn run_boot_menu(bs: &BootServices, state: &mut MenuState) -> MenuAction {
+    clear_screen();
+    draw_logo();
     state.visible = true;
     state.elapsed_ms = 0;
 
     loop {
         render_menu(state);
-        render_timeout_bar(state);
 
         let action = poll_input(bs);
         match action {
