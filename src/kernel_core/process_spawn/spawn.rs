@@ -31,6 +31,11 @@ pub fn spawn_isolated_service(name: &str, caps: u64) -> Result<ServiceProcess, I
     let stack_top = allocate_service_stack(pid);
     setup_initial_context(pid, entry as usize as u64, stack_top);
     crate::sched::add_to_run_queue(pid);
+    crate::sys::serial::print(b"[SPAWN] ");
+    crate::sys::serial::print_str(name);
+    crate::sys::serial::print(b" pid=");
+    crate::sys::serial::print_dec(pid as u64);
+    crate::sys::serial::println(b"");
     Ok(ServiceProcess { pid, asid, caps })
 }
 
