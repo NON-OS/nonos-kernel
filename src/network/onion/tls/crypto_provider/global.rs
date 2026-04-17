@@ -26,8 +26,7 @@ pub fn init_tls_crypto(provider: &'static dyn TlsCrypto) {
 
 #[inline]
 pub(in crate::network::onion::tls) fn crypto() -> &'static dyn TlsCrypto {
-    TLS_CRYPTO.call_once(|| &KERNEL_TLS_CRYPTO as &'static dyn TlsCrypto);
-    *TLS_CRYPTO.get().unwrap()
+    *TLS_CRYPTO.call_once(|| &KERNEL_TLS_CRYPTO as &'static dyn TlsCrypto)
 }
 
 pub fn is_tls_crypto_initialized() -> bool {
