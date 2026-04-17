@@ -56,16 +56,18 @@ pub(super) fn verify_guard(addr: usize) -> bool {
 }
 
 /// # Safety
-/// Checks both heap guards. Panics if either is corrupted.
+/// Checks both heap guards. Halts system if either is corrupted.
 pub(super) fn check_heap_guards() {
     let low = HEAP_GUARD_LOW.load(Ordering::Relaxed) as usize;
     let high = HEAP_GUARD_HIGH.load(Ordering::Relaxed) as usize;
 
     if low != 0 && !verify_guard(low) {
-        panic!("HEAP CORRUPTION: low guard corrupted");
+        crate::sys::serial::println(b"[FATAL] HEAP CORRUPTION: low guard corrupted");
+        crate::arch::x86_64::boot::cpu_ops::halt_loop();
     }
     if high != 0 && !verify_guard(high) {
-        panic!("HEAP CORRUPTION: high guard corrupted");
+        crate::sys::serial::println(b"[FATAL] HEAP CORRUPTION: high guard corrupted");
+        crate::arch::x86_64::boot::cpu_ops::halt_loop();
     }
 }
 
