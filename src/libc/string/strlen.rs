@@ -16,11 +16,13 @@
 
 use core::ptr;
 
+const MAX_STRLEN: usize = 1 << 20;
+
 #[no_mangle]
 pub unsafe extern "C" fn strlen(s: *const u8) -> usize {
     if s.is_null() { return 0; }
     let mut len = 0usize;
-    while ptr::read(s.add(len)) != 0 { len += 1; }
+    while len < MAX_STRLEN && ptr::read(s.add(len)) != 0 { len += 1; }
     len
 }
 
