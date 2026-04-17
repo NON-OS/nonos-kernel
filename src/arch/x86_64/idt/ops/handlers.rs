@@ -16,18 +16,14 @@
 
 use super::super::entry::InterruptFrame;
 use super::super::error::IdtError;
-use super::super::state::{IRQ_HANDLERS, OTHER_HANDLERS, SYSCALL_HANDLER};
+use super::super::state::{set_irq_handler, set_other_handler, set_syscall_handler};
+use core::sync::atomic::Ordering;
 
 pub fn register_irq_handler(irq: u8, handler: fn(u8)) -> Result<(), IdtError> {
     if irq >= 16 {
         return Err(IdtError::InvalidVector);
     }
-
-    // SAFETY: IRQ_HANDLERS is only modified during handler registration.
-    unsafe {
-        IRQ_HANDLERS[irq as usize] = Some(handler);
-    }
-
+    set_irq_handler(irq, handler);
     Ok(())
 }
 
@@ -35,31 +31,18 @@ pub fn unregister_irq_handler(irq: u8) -> Result<(), IdtError> {
     if irq >= 16 {
         return Err(IdtError::InvalidVector);
     }
-
-    // SAFETY: IRQ_HANDLERS is only modified during handler registration.
-    unsafe {
-        IRQ_HANDLERS[irq as usize] = None;
-    }
-
+    super::super::state::IRQ_HANDLERS[irq as usize].store(core::ptr::null_mut(), Ordering::Release);
     Ok(())
 }
 
 pub fn register_syscall_handler(handler: fn(&mut InterruptFrame)) {
-    // SAFETY: SYSCALL_HANDLER is only modified during handler registration.
-    unsafe {
-        SYSCALL_HANDLER = Some(handler);
-    }
+    set_syscall_handler(handler);
 }
 
 pub fn register_handler(vector: u8, handler: fn(&mut InterruptFrame)) -> Result<(), IdtError> {
     if vector < 32 {
         return Err(IdtError::ReservedVector);
     }
-
-    // SAFETY: OTHER_HANDLERS is only modified during handler registration.
-    unsafe {
-        OTHER_HANDLERS[vector as usize] = Some(handler);
-    }
-
+    set_other_handler(vector, handler);
     Ok(())
 }
