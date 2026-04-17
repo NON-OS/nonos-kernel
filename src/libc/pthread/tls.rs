@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use core::ptr;
-use core::sync::atomic::{AtomicU32, AtomicUsize, Ordering};
+use core::sync::atomic::{AtomicU32, AtomicU64, AtomicUsize, Ordering};
 
 pub type PthreadKeyT = u32;
 pub type Destructor = extern "C" fn(*mut u8);
@@ -31,26 +31,30 @@ static KEY_DESTRUCTORS: [AtomicUsize; PTHREAD_KEYS_MAX] = {
 #[thread_local]
 static mut TLS_VALUES: [*mut u8; PTHREAD_KEYS_MAX] = [ptr::null_mut(); PTHREAD_KEYS_MAX];
 
-static mut STACK_CANARY: u64 = 0;
+static STACK_CANARY: AtomicU64 = AtomicU64::new(0);
 
 pub fn set_stack_canary(canary: u64) {
-    unsafe { STACK_CANARY = canary; }
+    STACK_CANARY.store(canary, Ordering::SeqCst);
 }
 
 pub fn get_stack_canary() -> u64 {
-    unsafe { STACK_CANARY }
+    STACK_CANARY.load(Ordering::SeqCst)
 }
 
 #[no_mangle]
 pub unsafe extern "C" fn pthread_key_create(key: *mut PthreadKeyT, destructor: Option<Destructor>) -> i32 {
     if key.is_null() { return 22; }
-    let k = NEXT_KEY.fetch_add(1, Ordering::SeqCst);
-    if k as usize >= PTHREAD_KEYS_MAX { return 11; }
-    if let Some(d) = destructor {
-        KEY_DESTRUCTORS[k as usize].store(d as usize, Ordering::SeqCst);
+    loop {
+        let current = NEXT_KEY.load(Ordering::SeqCst);
+        if current as usize >= PTHREAD_KEYS_MAX { return 11; }
+        if NEXT_KEY.compare_exchange(current, current + 1, Ordering::SeqCst, Ordering::SeqCst).is_ok() {
+            if let Some(d) = destructor {
+                KEY_DESTRUCTORS[current as usize].store(d as usize, Ordering::SeqCst);
+            }
+            ptr::write(key, current);
+            return 0;
+        }
     }
-    ptr::write(key, k);
-    0
 }
 
 #[no_mangle]
