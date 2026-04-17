@@ -22,22 +22,29 @@ use super::state::kernel_sections;
 pub fn get_all_stack_regions() -> Vec<StackRegion> {
     let mut regions = Vec::with_capacity((MAX_CPUS as usize) * (1 + IST_STACKS_PER_CPU));
     for cpu_id in 0..MAX_CPUS {
-        let stack_base = PERCPU_BASE + (cpu_id as u64) * PERCPU_STRIDE;
+        let stack_base = PERCPU_BASE.saturating_add((cpu_id as u64).saturating_mul(PERCPU_STRIDE));
         regions.push(StackRegion { base: stack_base, size: KSTACK_SIZE, guard_size: GUARD_PAGES * PAGE_SIZE, cpu_id: Some(cpu_id), thread_id: None });
-        for ist_num in 0..IST_STACKS_PER_CPU { regions.push(StackRegion { base: stack_base + KSTACK_SIZE as u64 + (ist_num * IST_STACK_SIZE) as u64, size: IST_STACK_SIZE, guard_size: GUARD_PAGES * PAGE_SIZE, cpu_id: Some(cpu_id), thread_id: None }); }
+        for ist_num in 0..IST_STACKS_PER_CPU {
+            let ist_offset = (KSTACK_SIZE as u64).saturating_add((ist_num as u64).saturating_mul(IST_STACK_SIZE as u64));
+            regions.push(StackRegion { base: stack_base.saturating_add(ist_offset), size: IST_STACK_SIZE, guard_size: GUARD_PAGES * PAGE_SIZE, cpu_id: Some(cpu_id), thread_id: None });
+        }
     }
     regions
 }
 
 pub fn get_percpu_regions() -> Vec<PercpuRegion> {
     let mut regions = Vec::with_capacity(MAX_CPUS as usize);
-    for cpu_id in 0..MAX_CPUS { regions.push(PercpuRegion { base: PERCPU_BASE + (cpu_id as u64) * PERCPU_STRIDE, size: PERCPU_STRIDE as usize, cpu_id }); }
+    for cpu_id in 0..MAX_CPUS {
+        let base = PERCPU_BASE.saturating_add((cpu_id as u64).saturating_mul(PERCPU_STRIDE));
+        regions.push(PercpuRegion { base, size: PERCPU_STRIDE as usize, cpu_id });
+    }
     regions
 }
 
 pub fn get_percpu_region_for(cpu_id: u32) -> Option<PercpuRegion> {
     if cpu_id >= MAX_CPUS { return None; }
-    Some(PercpuRegion { base: PERCPU_BASE + (cpu_id as u64) * PERCPU_STRIDE, size: PERCPU_STRIDE as usize, cpu_id })
+    let base = PERCPU_BASE.saturating_add((cpu_id as u64).saturating_mul(PERCPU_STRIDE));
+    Some(PercpuRegion { base, size: PERCPU_STRIDE as usize, cpu_id })
 }
 
 pub fn get_module_regions() -> Vec<ModuleRegion> {
