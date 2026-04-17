@@ -21,7 +21,10 @@ use super::balance::try_load_balance;
 
 pub fn smp_tick(cpu_id: usize) -> bool {
     let tick = GLOBAL_TICK.fetch_add(1, Ordering::Relaxed);
-    let queue = get_cpu_queue(cpu_id);
+    let queue = match get_cpu_queue(cpu_id) {
+        Some(q) => q,
+        None => return false,
+    };
     queue.tick_count.fetch_add(1, Ordering::Relaxed);
     let remaining = queue.slice_remaining.load(Ordering::Relaxed);
     if remaining > 0 {
@@ -46,7 +49,10 @@ pub fn smp_tick(cpu_id: usize) -> bool {
 }
 
 fn preempt_current(cpu_id: usize) {
-    let queue = get_cpu_queue(cpu_id);
+    let queue = match get_cpu_queue(cpu_id) {
+        Some(q) => q,
+        None => return,
+    };
     let mut current = queue.current_task.lock();
     if let Some(task) = current.take() {
         if !task.complete {
