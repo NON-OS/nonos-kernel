@@ -43,10 +43,16 @@ pub fn has_valid_unlock(user: &[u8; 20], capsule_id: &[u8; 32]) -> Result<bool, 
 }
 
 fn decode_unlock_info(data: &[u8], capsule_id: &[u8; 32]) -> Result<UnlockInfo, MarketError> {
-    if data.len() < 64 { return Err(MarketError::InvalidResponse); }
-    let unlocked_at = u64::from_be_bytes(data[24..32].try_into().unwrap());
-    let expires_at = u64::from_be_bytes(data[56..64].try_into().unwrap());
-    let caps_granted = u64::from_be_bytes(data[88..96].try_into().ok().unwrap_or([0u8; 8]));
+    if data.len() < 96 { return Err(MarketError::InvalidResponse); }
+    let mut unlocked_bytes = [0u8; 8];
+    unlocked_bytes.copy_from_slice(&data[24..32]);
+    let unlocked_at = u64::from_be_bytes(unlocked_bytes);
+    let mut expires_bytes = [0u8; 8];
+    expires_bytes.copy_from_slice(&data[56..64]);
+    let expires_at = u64::from_be_bytes(expires_bytes);
+    let mut caps_bytes = [0u8; 8];
+    caps_bytes.copy_from_slice(&data[88..96]);
+    let caps_granted = u64::from_be_bytes(caps_bytes);
     Ok(UnlockInfo { user: [0u8; 20], capsule_id: *capsule_id, unlocked_at, expires_at, caps_granted })
 }
 
