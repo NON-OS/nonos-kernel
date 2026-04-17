@@ -25,6 +25,7 @@ pub enum MmioError {
     InvalidBaseAddress,
     MappingFailed,
     UnmapFailed,
+    Overflow,
 }
 
 pub type MmioResult<T> = Result<T, MmioError>;
