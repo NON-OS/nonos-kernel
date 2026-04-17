@@ -25,10 +25,15 @@ use super::{errno, require_capability, parse_string_from_user};
 pub fn handle_read(fd: i32, buf: u64, count: u64) -> SyscallResult {
     if let Err(e) = require_capability(Capability::IO) { return e; }
     if buf == 0 || count == 0 || count > 0x7FFF_FFFF { return errno(22); }
-    let ptr = buf as *mut u8;
-    let n = crate::fs::read_file_descriptor(fd, ptr, count as usize);
+    if crate::usercopy::validate_user_write(buf, count as usize).is_err() { return errno(14); }
+    let mut kernel_buf = Vec::with_capacity(count as usize);
+    kernel_buf.resize(count as usize, 0);
+    let n = crate::fs::read_file_descriptor(fd, kernel_buf.as_mut_ptr(), count as usize);
     match n {
-        Some(bytes) => SyscallResult { value: bytes as i64, capability_consumed: false, audit_required: false },
+        Some(bytes) => {
+            if crate::usercopy::copy_to_user(buf, &kernel_buf[..bytes]).is_err() { return errno(14); }
+            SyscallResult { value: bytes as i64, capability_consumed: false, audit_required: false }
+        }
         None => errno(5),
     }
 }
@@ -36,8 +41,11 @@ pub fn handle_read(fd: i32, buf: u64, count: u64) -> SyscallResult {
 pub fn handle_write(fd: i32, buf: u64, count: u64) -> SyscallResult {
     if let Err(e) = require_capability(Capability::IO) { return e; }
     if buf == 0 || count == 0 || count > 0x7FFF_FFFF { return errno(22); }
-    let ptr = buf as *const u8;
-    let n = crate::fs::write_file_descriptor(fd, ptr, count as usize);
+    if crate::usercopy::validate_user_read(buf, count as usize).is_err() { return errno(14); }
+    let mut kernel_buf = Vec::with_capacity(count as usize);
+    kernel_buf.resize(count as usize, 0);
+    if crate::usercopy::copy_from_user(buf, &mut kernel_buf).is_err() { return errno(14); }
+    let n = crate::fs::write_file_descriptor(fd, kernel_buf.as_ptr(), count as usize);
     match n {
         Some(bytes) => SyscallResult { value: bytes as i64, capability_consumed: false, audit_required: false },
         None => errno(5),
@@ -92,8 +100,14 @@ pub fn handle_stat(pathname: u64, statbuf: u64) -> SyscallResult {
     tmp.extend_from_slice(s.as_bytes());
     tmp.push(0);
 
-    let ok = crate::fs::stat_file_syscall(tmp.as_ptr(), statbuf as *mut u8);
-    if ok { SyscallResult { value: 0, capability_consumed: false, audit_required: false } } else { errno(2) }
+    const STAT_SIZE: usize = 144;
+    if crate::usercopy::validate_user_write(statbuf, STAT_SIZE).is_err() { return errno(14); }
+    let mut kernel_stat = [0u8; STAT_SIZE];
+    let ok = crate::fs::stat_file_syscall(tmp.as_ptr(), kernel_stat.as_mut_ptr());
+    if ok {
+        if crate::usercopy::copy_to_user(statbuf, &kernel_stat).is_err() { return errno(14); }
+        SyscallResult { value: 0, capability_consumed: false, audit_required: false }
+    } else { errno(2) }
 }
 
 pub fn handle_fstat(fd: i32, statbuf: u64) -> SyscallResult {
@@ -104,8 +118,14 @@ pub fn handle_fstat(fd: i32, statbuf: u64) -> SyscallResult {
     if statbuf == 0 {
         return errno(22);
     }
-    let ok = crate::fs::fstat_file_syscall(fd, statbuf as *mut u8);
-    if ok { SyscallResult { value: 0, capability_consumed: false, audit_required: false } } else { errno(9) }
+    const STAT_SIZE: usize = 144;
+    if crate::usercopy::validate_user_write(statbuf, STAT_SIZE).is_err() { return errno(14); }
+    let mut kernel_stat = [0u8; STAT_SIZE];
+    let ok = crate::fs::fstat_file_syscall(fd, kernel_stat.as_mut_ptr());
+    if ok {
+        if crate::usercopy::copy_to_user(statbuf, &kernel_stat).is_err() { return errno(14); }
+        SyscallResult { value: 0, capability_consumed: false, audit_required: false }
+    } else { errno(9) }
 }
 
 pub fn handle_lseek(fd: i32, offset: i64, whence: i32) -> SyscallResult {
