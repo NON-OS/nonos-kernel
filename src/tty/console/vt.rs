@@ -70,7 +70,11 @@ pub fn switch_vt(num: usize) -> Result<(), i32> {
     Ok(())
 }
 
-pub fn get_active_vt() -> Arc<VirtualTerminal> { VTS.lock()[ACTIVE_VT.load(Ordering::SeqCst)].as_ref().unwrap().clone() }
+pub fn get_active_vt() -> Option<Arc<VirtualTerminal>> {
+    let idx = ACTIVE_VT.load(Ordering::SeqCst);
+    if idx >= MAX_VTS { return None; }
+    VTS.lock()[idx].as_ref().cloned()
+}
 
 pub fn console_ioctl(cmd: u32, arg: u64) -> Result<i64, i32> {
     match cmd { 0x5606 => switch_vt(arg as usize).map(|_| 0), 0x5600 => Ok(ACTIVE_VT.load(Ordering::SeqCst) as i64), _ => Err(-25) }
