@@ -20,10 +20,11 @@ use crate::smp::cpu_id;
 
 pub fn spawn_smp(task: Task) -> usize {
     let target_cpu = select_target_cpu(&task);
-    let queue = get_cpu_queue(target_cpu);
-    queue.enqueue(task);
-    if target_cpu != cpu_id() as usize {
-        crate::smp::send_reschedule_ipi(target_cpu);
+    if let Some(queue) = get_cpu_queue(target_cpu) {
+        queue.enqueue(task);
+        if target_cpu != cpu_id() as usize {
+            crate::smp::send_reschedule_ipi(target_cpu);
+        }
     }
     target_cpu
 }
@@ -50,16 +51,20 @@ fn select_target_cpu(task: &Task) -> usize {
 }
 
 pub fn spawn_on_cpu(task: Task, cpu_id: usize) {
-    let queue = get_cpu_queue(cpu_id);
-    queue.enqueue(task);
-    if cpu_id != crate::smp::cpu_id() as usize {
-        crate::smp::send_reschedule_ipi(cpu_id);
+    if let Some(queue) = get_cpu_queue(cpu_id) {
+        queue.enqueue(task);
+        if cpu_id != crate::smp::cpu_id() as usize {
+            crate::smp::send_reschedule_ipi(cpu_id);
+        }
     }
 }
 
 pub fn run_local() {
     let cpu = cpu_id() as usize;
-    let queue = get_cpu_queue(cpu);
+    let queue = match get_cpu_queue(cpu) {
+        Some(q) => q,
+        None => return,
+    };
     if let Some(mut task) = queue.pick_next() {
         task.run();
         if !task.complete {
