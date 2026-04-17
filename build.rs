@@ -218,9 +218,9 @@ fn generate_manifest_and_signature() {
 }
 
 fn generate_manifest_content() -> Vec<u8> {
-    use std::collections::HashMap;
+    use std::collections::BTreeMap;
 
-    let mut manifest = HashMap::new();
+    let mut manifest = BTreeMap::new();
 
     let module_id = blake3::hash(b"nonos_kernel").as_bytes().to_vec();
     manifest.insert("module_id".to_string(), module_id);
@@ -233,14 +233,19 @@ fn generate_manifest_content() -> Vec<u8> {
     let version: u32 = 1;
     manifest.insert("version".to_string(), version.to_le_bytes().to_vec());
 
-    use std::time::{SystemTime, UNIX_EPOCH};
-    let epoch = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_nanos() as u64;
+    let epoch = match std::env::var("SOURCE_DATE_EPOCH") {
+        Ok(val) => val.parse::<u64>().unwrap_or(0) * 1_000_000_000,
+        Err(_) => {
+            use std::time::{SystemTime, UNIX_EPOCH};
+            SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_nanos() as u64
+        }
+    };
     manifest.insert("build_epoch_ns".to_string(), epoch.to_le_bytes().to_vec());
 
     serialize_manifest(manifest)
 }
 
-fn serialize_manifest(manifest: std::collections::HashMap<String, Vec<u8>>) -> Vec<u8> {
+fn serialize_manifest(manifest: std::collections::BTreeMap<String, Vec<u8>>) -> Vec<u8> {
     let mut result = Vec::new();
     result.extend_from_slice(&(manifest.len() as u32).to_le_bytes());
     for (key, value) in manifest {
