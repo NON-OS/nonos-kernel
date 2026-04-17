@@ -23,11 +23,13 @@ pub unsafe extern "C" fn free(ptr: *mut u8) {
     if ptr.is_null() { return; }
     let header = ptr.sub(MIN_ALIGN);
     let total_size = ptr::read(header as *const usize);
+    if total_size == 0 || total_size > (1 << 30) { return; }
     #[cfg(feature = "kernel")]
     {
         use core::alloc::Layout;
-        let layout = Layout::from_size_align_unchecked(total_size, MIN_ALIGN);
-        alloc::alloc::dealloc(header, layout);
+        if let Ok(layout) = Layout::from_size_align(total_size, MIN_ALIGN) {
+            alloc::alloc::dealloc(header, layout);
+        }
     }
     #[cfg(not(feature = "kernel"))]
     {
