@@ -56,13 +56,17 @@ pub fn handle_splice(fd_in: i32, off_in: u64, fd_out: i32, off_out: u64, len: u6
     if write_result.value < 0 {
         return write_result;
     }
-    if off_in != 0 && in_offset.is_some() {
-        let new_off = in_offset.unwrap() + bytes_read as i64;
-        let _ = write_user_value(off_in, &new_off);
+    if off_in != 0 {
+        if let Some(off) = in_offset {
+            let new_off = off + bytes_read as i64;
+            let _ = write_user_value(off_in, &new_off);
+        }
     }
-    if off_out != 0 && out_offset.is_some() {
-        let new_off = out_offset.unwrap() + write_result.value;
-        let _ = write_user_value(off_out, &new_off);
+    if off_out != 0 {
+        if let Some(off) = out_offset {
+            let new_off = off + write_result.value;
+            let _ = write_user_value(off_out, &new_off);
+        }
     }
     SyscallResult { value: write_result.value, capability_consumed: false, audit_required: false }
 }
