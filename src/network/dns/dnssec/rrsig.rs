@@ -105,6 +105,10 @@ fn verify_ecdsa_p256(data: &[u8], sig: &[u8], pubkey: &[u8]) -> DnssecResult<boo
 fn verify_ed25519(data: &[u8], sig: &[u8], pubkey: &[u8]) -> DnssecResult<bool> {
     let pk: [u8; 32] = pubkey.try_into().map_err(|_| DnssecError::InvalidSignature)?;
     if sig.len() != 64 { return Err(DnssecError::InvalidSignature); }
-    let ed_sig = crate::crypto::asymmetric::ed25519::Signature { R: sig[..32].try_into().unwrap(), S: sig[32..].try_into().unwrap() };
+    let mut r = [0u8; 32];
+    let mut s = [0u8; 32];
+    r.copy_from_slice(&sig[..32]);
+    s.copy_from_slice(&sig[32..]);
+    let ed_sig = crate::crypto::asymmetric::ed25519::Signature { R: r, S: s };
     Ok(crate::crypto::asymmetric::ed25519::verify(&pk, data, &ed_sig))
 }
