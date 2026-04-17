@@ -25,7 +25,7 @@ impl<'a> Lexer<'a> {
         let mut s = String::new();
         while let Some(c) = self.peek() {
             if c.is_ascii_alphanumeric() || c == '_' || c == '$' {
-                s.push(self.advance().unwrap());
+                if let Some(ch) = self.advance() { s.push(ch); } else { break; }
             } else {
                 break;
             }
