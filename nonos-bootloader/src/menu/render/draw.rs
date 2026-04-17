@@ -19,40 +19,57 @@ use crate::display::gop::{fill_rect, get_dimensions};
 use crate::menu::brand;
 use crate::menu::types::MenuState;
 
-const MARGIN: u32 = 30;
-const HEADER_H: u32 = 32;
-const ENTRY_H: u32 = 35;
-const PAD: u32 = 16;
+const MARGIN: u32 = 40;
+const PANEL_WIDTH: u32 = 320;
+const ENTRY_H: u32 = 40;
+const PAD: u32 = 20;
 
 fn get_panel_bounds() -> (u32, u32, u32, u32) {
     let (screen_w, screen_h) = get_dimensions();
-    let x = (screen_w / 2) + (MARGIN / 2);
-    let width = (screen_w / 2) - MARGIN - (MARGIN / 2);
-    let content_x = x + PAD;
-    let content_y = MARGIN + HEADER_H + PAD;
-    (content_x, content_y, width - PAD * 2, screen_h - MARGIN * 2 - HEADER_H)
+    let panel_x = screen_w - PANEL_WIDTH - MARGIN;
+    let panel_y = MARGIN;
+    let panel_h = screen_h - MARGIN * 2 - 60;
+    (panel_x, panel_y, PANEL_WIDTH, panel_h)
 }
 
 pub fn draw_logo() {
     let (screen_w, _) = get_dimensions();
     let logo_w = brand::LOGO[0].len() as u32 * 8;
-    let x = (screen_w / 4) - (logo_w / 2);
+    let center_x = (screen_w - PANEL_WIDTH - MARGIN * 2) / 2;
+    let x = center_x.saturating_sub(logo_w / 2);
     for (i, line) in brand::LOGO.iter().enumerate() {
-        draw_string(x, 60 + i as u32 * 16, line, brand::ACCENT_PRIMARY);
+        draw_string(x, 80 + i as u32 * 18, line, brand::ACCENT_PRIMARY);
     }
-    let tagline_x = (screen_w / 4) - (brand::TAGLINE.len() as u32 * 4);
-    draw_string(tagline_x, 160, brand::TAGLINE, brand::TEXT_SECONDARY);
+    let tagline_w = brand::TAGLINE.len() as u32 * 8;
+    let tagline_x = center_x.saturating_sub(tagline_w / 2);
+    draw_string(tagline_x, 190, brand::TAGLINE, brand::TEXT_SECONDARY);
 }
 
 pub fn render_menu(state: &MenuState) {
     if !state.visible { return; }
-    let (cx, cy, cw, _ch) = get_panel_bounds();
-    fill_rect(cx - PAD, cy - 8, cw + PAD * 2, 1, brand::ACCENT_SECONDARY);
-    draw_string(cx, cy, b"Boot Mode Selection", brand::ACCENT_PRIMARY);
-    fill_rect(cx, cy + 20, cw, 1, brand::ACCENT_SECONDARY);
-    draw_entries(state, cx, cy + 32, cw);
-    let footer_y = cy + 32 + (state.entries.len() as u32 * ENTRY_H) + 16;
-    draw_footer(state, cx, footer_y, cw);
+    let (px, py, pw, _ph) = get_panel_bounds();
+    draw_panel_background(px, py, pw);
+    draw_panel_header(px, py, pw);
+    let entries_y = py + 70;
+    draw_entries(state, px + PAD, entries_y, pw - PAD * 2);
+    let footer_y = entries_y + (state.entries.len() as u32 * ENTRY_H) + 30;
+    draw_panel_footer(state, px + PAD, footer_y, pw - PAD * 2);
+    draw_bottom_bar(state);
+}
+
+fn draw_panel_background(x: u32, y: u32, w: u32) {
+    let (_, screen_h) = get_dimensions();
+    let h = screen_h - y - MARGIN - 60;
+    fill_rect(x, y, w, h, brand::BG_CARD);
+    fill_rect(x, y, w, 3, brand::ACCENT_PRIMARY);
+    fill_rect(x, y, 1, h, brand::BORDER);
+    fill_rect(x + w - 1, y, 1, h, brand::BORDER);
+    fill_rect(x, y + h - 1, w, 1, brand::BORDER);
+}
+
+fn draw_panel_header(x: u32, y: u32, w: u32) {
+    draw_string(x + PAD, y + 20, b"Boot Options", brand::ACCENT_PRIMARY);
+    fill_rect(x + PAD, y + 50, w - PAD * 2, 1, brand::BORDER);
 }
 
 fn draw_entries(state: &MenuState, x: u32, y: u32, w: u32) {
@@ -60,51 +77,72 @@ fn draw_entries(state: &MenuState, x: u32, y: u32, w: u32) {
         let ey = y + (i as u32 * ENTRY_H);
         let selected = i == state.selected;
         let (bg, fg) = if selected {
-            (brand::BG_CARD, brand::TEXT_PRIMARY)
+            (brand::BG_SECONDARY, brand::TEXT_PRIMARY)
         } else {
-            (brand::BG_PRIMARY, brand::TEXT_MUTED)
+            (brand::BG_CARD, brand::TEXT_MUTED)
         };
-        fill_rect(x, ey, w, ENTRY_H - 2, bg);
-        if selected { fill_rect(x, ey, 3, ENTRY_H - 2, brand::ACCENT_PRIMARY); }
-        draw_string(x + 16, ey + 10, action.label().as_bytes(), fg);
+        fill_rect(x, ey, w, ENTRY_H - 4, bg);
+        if selected {
+            fill_rect(x, ey, 4, ENTRY_H - 4, brand::ACCENT_PRIMARY);
+        }
+        let label = action.label();
+        draw_string(x + 20, ey + 12, label.as_bytes(), fg);
     }
 }
 
-fn draw_footer(state: &MenuState, x: u32, y: u32, w: u32) {
-    fill_rect(x, y, w, 1, brand::ACCENT_SECONDARY);
-    draw_string(x, y + 12, b"[Up/Down] Navigate", brand::TEXT_MUTED);
-    draw_string(x + 170, y + 12, b"[Enter] Select", brand::TEXT_MUTED);
+fn draw_panel_footer(state: &MenuState, x: u32, y: u32, w: u32) {
+    fill_rect(x, y, w, 1, brand::BORDER);
+    draw_string(x, y + 16, b"[", brand::TEXT_MUTED);
+    draw_string(x + 8, y + 16, b"^", brand::ACCENT_PRIMARY);
+    draw_string(x + 16, y + 16, b"/", brand::TEXT_MUTED);
+    draw_string(x + 24, y + 16, b"v", brand::ACCENT_PRIMARY);
+    draw_string(x + 32, y + 16, b"] Navigate", brand::TEXT_MUTED);
+    draw_string(x + 130, y + 16, b"[Enter] Select", brand::TEXT_MUTED);
     if state.timeout_ms > 0 {
         let remaining = state.remaining_ms();
         let secs = ((remaining + 999) / 1000) as u32;
-        draw_timer(x, y + 36, w, secs, state.timeout_ms, remaining);
+        draw_timeout_indicator(x, y + 45, w, secs);
     }
-    let (screen_w, screen_h) = get_dimensions();
-    fill_rect(0, screen_h - 50, screen_w, 50, brand::BG_SECONDARY);
-    draw_string(20, screen_h - 35, b"Press F1 for help", brand::TEXT_MUTED);
-    let ver_x = screen_w - brand::VERSION.len() as u32 * 8 - 20;
-    draw_string(ver_x, screen_h - 35, brand::VERSION, brand::TEXT_MUTED);
 }
 
-fn draw_timer(x: u32, y: u32, w: u32, secs: u32, total_ms: u64, remaining_ms: u64) {
-    let elapsed = total_ms.saturating_sub(remaining_ms);
-    let progress = ((elapsed * w as u64) / total_ms) as u32;
-    fill_rect(x, y, w, 4, brand::BORDER);
-    if progress > 0 && progress <= w { fill_rect(x, y, progress, 4, brand::ACCENT_PRIMARY); }
-    let msg: &[u8] = match secs {
-        0 | 1 => b"Auto-boot in 1 second",
-        2 => b"Auto-boot in 2 seconds",
-        3 => b"Auto-boot in 3 seconds",
-        4 => b"Auto-boot in 4 seconds",
-        5 => b"Auto-boot in 5 seconds",
-        _ => b"Auto-boot in 6+ seconds",
+fn draw_timeout_indicator(x: u32, y: u32, w: u32, secs: u32) {
+    let msg = match secs {
+        0 | 1 => b"Auto-boot in 1s",
+        2 => b"Auto-boot in 2s",
+        3 => b"Auto-boot in 3s",
+        4 => b"Auto-boot in 4s",
+        5 => b"Auto-boot in 5s",
+        _ => b"Auto-boot in 6s+",
     };
-    draw_string(x, y + 10, msg, brand::TEXT_MUTED);
+    let msg_w = msg.len() as u32 * 8;
+    draw_string(x + (w - msg_w) / 2, y, msg, brand::TEXT_SECONDARY);
+}
+
+fn draw_bottom_bar(state: &MenuState) {
+    let (screen_w, screen_h) = get_dimensions();
+    let bar_h = 50;
+    let bar_y = screen_h - bar_h;
+    fill_rect(0, bar_y, screen_w, bar_h, brand::BG_SECONDARY);
+    fill_rect(0, bar_y, screen_w, 1, brand::BORDER);
+    draw_string(MARGIN, bar_y + 18, b"Press F1 for help", brand::TEXT_MUTED);
+    let ver_w = brand::VERSION.len() as u32 * 8;
+    draw_string(screen_w - ver_w - MARGIN, bar_y + 18, brand::VERSION, brand::TEXT_MUTED);
+    if state.timeout_ms > 0 {
+        let remaining = state.remaining_ms();
+        let elapsed = state.timeout_ms.saturating_sub(remaining);
+        let progress_w = screen_w - MARGIN * 2;
+        let filled = ((elapsed * progress_w as u64) / state.timeout_ms) as u32;
+        let progress_y = bar_y - 6;
+        fill_rect(MARGIN, progress_y, progress_w, 4, brand::BORDER);
+        if filled > 0 && filled <= progress_w {
+            fill_rect(MARGIN, progress_y, filled, 4, brand::ACCENT_PRIMARY);
+        }
+    }
 }
 
 pub fn clear_menu_area() {
-    let (cx, cy, cw, ch) = get_panel_bounds();
-    fill_rect(cx - PAD, cy - 8, cw + PAD * 2, ch, brand::BG_PRIMARY);
+    let (px, py, pw, ph) = get_panel_bounds();
+    fill_rect(px, py, pw, ph, brand::BG_PRIMARY);
 }
 
 pub fn clear_screen() {
