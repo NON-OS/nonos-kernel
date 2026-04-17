@@ -33,7 +33,7 @@ pub unsafe fn return_to_usermode(frame: *const InterruptFrame) -> ! {
     const USER_SPACE_MAX: u64 = 0x0000_7FFF_FFFF_FFFF;
     if f.rip > USER_SPACE_MAX || f.rsp > USER_SPACE_MAX || f.rsp == 0 {
         crate::sys::serial::println(b"[FATAL] Invalid user frame");
-        loop { core::hint::spin_loop(); }
+        crate::arch::x86_64::boot::cpu_ops::halt_loop()
     }
     unsafe { return_to_usermode_asm(frame) }
 }
