@@ -59,7 +59,11 @@ fn parse_token(data: &[u8; 113]) -> UnlockToken {
     token.copy_from_slice(&data[0..32]);
     capsule_id.copy_from_slice(&data[32..64]);
     manifest_hash.copy_from_slice(&data[64..96]);
-    let approved_caps = u64::from_le_bytes(data[96..104].try_into().unwrap());
-    let expires_at = u64::from_le_bytes(data[104..112].try_into().unwrap());
+    let mut approved_bytes = [0u8; 8];
+    let mut expires_bytes = [0u8; 8];
+    approved_bytes.copy_from_slice(&data[96..104]);
+    expires_bytes.copy_from_slice(&data[104..112]);
+    let approved_caps = u64::from_le_bytes(approved_bytes);
+    let expires_at = u64::from_le_bytes(expires_bytes);
     UnlockToken { token, capsule_id, manifest_hash, approved_caps, expires_at }
 }
