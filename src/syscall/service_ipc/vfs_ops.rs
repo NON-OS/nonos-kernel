@@ -24,6 +24,7 @@ use crate::services::ServiceClient;
 const E_NOENT: i64 = -2;
 const E_BADF: i64 = -9;
 const E_NOMEM: i64 = -12;
+const E_FAULT: i64 = -14;
 
 pub fn ipc_open(pid: u32, path: &str, flags: i32, mode: u32) -> i64 {
     let client = match ServiceClient::connect("vfs") {
@@ -40,6 +41,8 @@ pub fn ipc_open(pid: u32, path: &str, flags: i32, mode: u32) -> i64 {
 
 pub fn ipc_read(pid: u32, fd: i32, buf: *mut u8, count: usize) -> i64 {
     let handle = match lookup_fd(pid, fd) { Some(h) => h, None => return E_BADF };
+    let addr = buf as u64;
+    if crate::usercopy::validate_user_write(addr, count).is_err() { return E_FAULT; }
     let client = match ServiceClient::connect("vfs") {
         Ok(c) => c, Err(_) => return E_NOMEM,
     };
@@ -49,17 +52,20 @@ pub fn ipc_read(pid: u32, fd: i32, buf: *mut u8, count: usize) -> i64 {
     };
     if resp.status != 0 { return resp.status as i64; }
     let read_len = resp.payload.len().min(count);
-    unsafe { core::ptr::copy_nonoverlapping(resp.payload.as_ptr(), buf, read_len); }
+    if crate::usercopy::copy_to_user(addr, &resp.payload[..read_len]).is_err() { return E_FAULT; }
     read_len as i64
 }
 
 pub fn ipc_write(pid: u32, fd: i32, buf: *const u8, count: usize) -> i64 {
     let handle = match lookup_fd(pid, fd) { Some(h) => h, None => return E_BADF };
+    let addr = buf as u64;
+    if crate::usercopy::validate_user_read(addr, count).is_err() { return E_FAULT; }
+    let mut data = alloc::vec![0u8; count];
+    if crate::usercopy::copy_from_user(addr, &mut data).is_err() { return E_FAULT; }
     let client = match ServiceClient::connect("vfs") {
         Ok(c) => c, Err(_) => return E_NOMEM,
     };
-    let data = unsafe { core::slice::from_raw_parts(buf, count) };
-    let req = encode_write_request(handle, data);
+    let req = encode_write_request(handle, &data);
     let resp = match client.call(crate::services::protocol::ServiceOp::Write, req) {
         Ok(r) => r, Err(_) => return E_NOMEM,
     };
@@ -77,6 +83,8 @@ pub fn ipc_close(pid: u32, fd: i32) -> i64 {
 }
 
 pub fn ipc_stat(path: &str, statbuf: *mut u8) -> i64 {
+    let addr = statbuf as u64;
+    if crate::usercopy::validate_user_write(addr, 144).is_err() { return E_FAULT; }
     let client = match ServiceClient::connect("vfs") { Ok(c) => c, Err(_) => return E_NOENT };
     let req = encode_stat_request(path);
     let resp = match client.call(crate::services::protocol::ServiceOp::Query, req) {
@@ -84,6 +92,6 @@ pub fn ipc_stat(path: &str, statbuf: *mut u8) -> i64 {
     };
     if resp.status != 0 { return resp.status as i64; }
     let copy_len = resp.payload.len().min(144);
-    unsafe { core::ptr::copy_nonoverlapping(resp.payload.as_ptr(), statbuf, copy_len); }
+    if crate::usercopy::copy_to_user(addr, &resp.payload[..copy_len]).is_err() { return E_FAULT; }
     0
 }
