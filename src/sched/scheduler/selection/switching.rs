@@ -24,7 +24,6 @@ pub fn switch_to_process(pid: u32) {
     let ctx_opt = crate::process::nonos_core::INTERRUPT_SAVED_CONTEXTS.write().remove(&pid);
     let Some(ctx) = ctx_opt else {
         if let Some(pcb) = PROCESS_TABLE.find_by_pid(pid) { *pcb.state.lock() = ProcessState::Ready; }
-        crate::sched::yield_now();
         return;
     };
     let has_own_addr_space = if let Some(pcb) = PROCESS_TABLE.find_by_pid(pid) {
