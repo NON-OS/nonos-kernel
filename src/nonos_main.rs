@@ -38,11 +38,19 @@ static HANDOFF_PTR: AtomicU64 = AtomicU64::new(0);
 #[link_section = ".text._start"]
 pub extern "C" fn _start() -> ! {
     naked_asm!(
-        "cli", "cld", "push rdi",
-        "mov dx, 0x3F8", "mov al, 'K'", "out dx, al", "mov al, 10", "out dx, al",
+        "cli", "cld",
+        "mov dx, 0x3F8", "mov al, '['", "out dx, al",
+        "mov al, 'E'", "out dx, al", "mov al, 'N'", "out dx, al",
+        "mov al, 'T'", "out dx, al", "mov al, 'R'", "out dx, al",
+        "mov al, 'Y'", "out dx, al", "mov al, ']'", "out dx, al",
+        "mov al, 10", "out dx, al",
+        "push rdi",
         "finit", "mov rax, cr0", "and eax, 0xFFFFFFFB", "or eax, 0x00000022", "mov cr0, rax",
         "mov rax, cr4", "or eax, 0x00000600", "mov cr4, rax",
-        "mov dx, 0x3F8", "mov al, 'S'", "out dx, al", "mov al, 10", "out dx, al",
+        "mov dx, 0x3F8", "mov al, '['", "out dx, al",
+        "mov al, 'S'", "out dx, al", "mov al, 'S'", "out dx, al",
+        "mov al, 'E'", "out dx, al", "mov al, ']'", "out dx, al",
+        "mov al, 10", "out dx, al",
         "pop rdi", "call {rust_entry}", "2:", "cli", "hlt", "jmp 2b",
         rust_entry = sym kernel_entry,
     )
@@ -50,6 +58,15 @@ pub extern "C" fn _start() -> ! {
 
 #[no_mangle]
 extern "C" fn kernel_entry(handoff_ptr: u64) -> ! {
+    unsafe {
+        core::arch::asm!(
+            "mov dx, 0x3F8", "mov al, '['", "out dx, al",
+            "mov al, 'R'", "out dx, al", "mov al, 'U'", "out dx, al",
+            "mov al, 'S'", "out dx, al", "mov al, 'T'", "out dx, al",
+            "mov al, ']'", "out dx, al", "mov al, 10", "out dx, al",
+            options(nomem, nostack)
+        );
+    }
     HANDOFF_PTR.store(handoff_ptr, Ordering::SeqCst);
     init_core_systems();
     if handoff_ptr == 0 {
