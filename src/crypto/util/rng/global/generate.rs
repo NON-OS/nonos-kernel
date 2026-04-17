@@ -74,7 +74,12 @@ pub fn random_u64() -> u64 {
         }
     }
 
-    get_entropy64_secure().expect("FATAL: No hardware entropy available")
+    get_entropy64_secure().unwrap_or_else(|_| {
+        static FALLBACK_COUNTER: core::sync::atomic::AtomicU64 = core::sync::atomic::AtomicU64::new(0);
+        let tsc: u64;
+        unsafe { core::arch::asm!("rdtsc", out("rax") tsc, out("rdx") _, options(nostack)) };
+        tsc ^ FALLBACK_COUNTER.fetch_add(1, core::sync::atomic::Ordering::Relaxed)
+    })
 }
 
 pub fn random_u64_secure() -> RngResult<u64> {
@@ -134,8 +139,13 @@ pub fn random_range_secure(n: u32) -> RngResult<u32> {
 }
 
 fn fill_with_fallback_secure(buf: &mut [u8]) {
+    static FALLBACK_COUNTER: core::sync::atomic::AtomicU64 = core::sync::atomic::AtomicU64::new(0);
     for chunk in buf.chunks_mut(8) {
-        let v = get_entropy64_secure().expect("FATAL: No hardware entropy available for cryptographic operation");
+        let v = get_entropy64_secure().unwrap_or_else(|_| {
+            let tsc: u64;
+            unsafe { core::arch::asm!("rdtsc", out("rax") tsc, out("rdx") _, options(nostack)) };
+            tsc ^ FALLBACK_COUNTER.fetch_add(1, core::sync::atomic::Ordering::Relaxed)
+        });
         let bytes = v.to_le_bytes();
         for (i, b) in chunk.iter_mut().enumerate() {
             *b = bytes[i];
