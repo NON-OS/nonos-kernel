@@ -76,9 +76,8 @@ pub fn get_mount_for_path(path: &str) -> Option<Arc<Ext4MountInfo>> {
     let mut best_match: Option<(&String, &Arc<Ext4MountInfo>)> = None;
     for (mp, mount) in mounts.iter() {
         if path.starts_with(mp.as_str()) {
-            if best_match.is_none() || mp.len() > best_match.unwrap().0.len() {
-                best_match = Some((mp, mount));
-            }
+            let dominated = best_match.as_ref().map_or(true, |(best_mp, _)| mp.len() > best_mp.len());
+            if dominated { best_match = Some((mp, mount)); }
         }
     }
     best_match.map(|(_, m)| m.clone())
