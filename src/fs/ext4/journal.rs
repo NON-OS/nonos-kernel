@@ -71,7 +71,7 @@ impl Ext4Journal {
 
 pub fn journal_start(journal: &Arc<Ext4Journal>, nblocks: u32) -> Result<u32, i32> {
     let mut txn = journal.running_transaction.lock();
-    if txn.is_some() { return Ok(txn.as_ref().unwrap().tid); }
+    if let Some(ref existing) = *txn { return Ok(existing.tid); }
     let tid = journal.sequence.fetch_add(1, Ordering::SeqCst);
     let buffers = Vec::with_capacity(nblocks as usize);
     *txn = Some(JournalTransaction { tid, state: TransactionState::Running, buffers });
