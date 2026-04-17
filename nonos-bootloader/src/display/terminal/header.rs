@@ -18,11 +18,11 @@ use crate::display::font::draw_string;
 use crate::display::gop::fill_rect;
 use super::frame::TerminalLayout;
 
-const COLOR_CYAN: u32 = 0xFF66FFFF;
-const COLOR_DIM: u32 = 0xFF2E5C5C;
-const COLOR_TEXT: u32 = 0xFF6B7280;
+const COLOR_ACCENT: u32 = 0xFF00D4AA;
+const COLOR_DIM: u32 = 0xFF0A2828;
+const COLOR_TEXT: u32 = 0xFF556677;
 
-const ASCII_LOGO: &[&[u8]] = &[
+const ASCII_LOGO: [&[u8]; 6] = [
     b" ##    ##  #####  ##    ##  #####   ##### ",
     b" ###   ## ##   ## ###   ## ##   ## ##     ",
     b" ## #  ## ##   ## ## #  ## ##   ##  ##### ",
@@ -34,31 +34,14 @@ const ASCII_LOGO: &[&[u8]] = &[
 pub fn draw_terminal_header(_layout: &TerminalLayout) {}
 
 pub fn draw_ascii_banner(layout: &TerminalLayout) {
-    let x = layout.x + 20;
-    let mut y = layout.y + 10;
-    for line in ASCII_LOGO {
-        draw_string(x, y, line, COLOR_CYAN);
-        y += 12;
-    }
-    fill_rect(x, y + 4, 340, 1, COLOR_DIM);
-    draw_string(x, y + 10, b"SOVEREIGNTY FROM ZERO", COLOR_TEXT);
-    draw_dots(layout);
-}
+    let x = layout.x + 24;
+    let mut y = layout.y + 16;
 
-fn draw_dots(layout: &TerminalLayout) {
-    let y = layout.y + 35;
-    let x = layout.x + layout.width - 80;
-    draw_dot(x, y, COLOR_CYAN);
-    draw_dot(x + 20, y, COLOR_DIM);
-    draw_dot(x + 40, y, 0xFF1A3030);
-}
-
-fn draw_dot(cx: u32, cy: u32, color: u32) {
-    for dy in 0..6u32 {
-        for dx in 0..6u32 {
-            if (dx as i32 - 3).pow(2) + (dy as i32 - 3).pow(2) <= 9 {
-                crate::display::gop::put_pixel(cx + dx, cy + dy, color);
-            }
-        }
+    for line in ASCII_LOGO.iter() {
+        draw_string(x, y, *line, COLOR_ACCENT);
+        y += 14;
     }
+
+    fill_rect(x, y + 6, 340, 1, COLOR_DIM);
+    draw_string(x, y + 14, b"SOVEREIGNTY FROM ZERO", COLOR_TEXT);
 }
