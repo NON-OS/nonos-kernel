@@ -33,7 +33,7 @@ macro_rules! do_parse {
                     match spec {
                         b'd' | b'i' => {
                             let (v, consumed) = parse_int(&input[ipos..]);
-                            if consumed > 0 { let p: *mut i32 = $args.arg(); ptr::write(p, v as i32); ipos += consumed; count += 1; }
+                            if consumed > 0 { let p: *mut i32 = $args.arg(); if !p.is_null() { ptr::write(p, v as i32); ipos += consumed; count += 1; } }
                         }
                         b's' => {
                             let p: *mut u8 = $args.arg();
@@ -50,8 +50,7 @@ macro_rules! do_parse {
                         b'c' => {
                             if ipos < input.len() {
                                 let p: *mut u8 = $args.arg();
-                                ptr::write(p, input[ipos]);
-                                ipos += 1; count += 1;
+                                if !p.is_null() { ptr::write(p, input[ipos]); ipos += 1; count += 1; }
                             }
                         }
                         _ => {}
