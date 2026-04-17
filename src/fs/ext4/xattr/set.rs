@@ -107,7 +107,9 @@ fn scan_entries(buf: &[u8], block_size: usize, index: u8, attr_name: &str) -> Re
         }
         if entry.e_name_index == index && entry.e_name_len as usize == attr_name.len() {
             let name_start = offset + 16;
-            let entry_name = core::str::from_utf8(&buf[name_start..name_start + entry.e_name_len as usize]).unwrap_or("");
+            let name_end = name_start.saturating_add(entry.e_name_len as usize);
+            if name_end > buf.len() { break; }
+            let entry_name = core::str::from_utf8(&buf[name_start..name_end]).unwrap_or("");
             if entry_name == attr_name {
                 found_offset = Some(offset);
             }

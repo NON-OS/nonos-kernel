@@ -52,7 +52,9 @@ pub fn ext4_listxattr(mount: &Arc<Ext4MountInfo>, ino: u32) -> Result<Vec<String
         }
 
         let name_start = offset + 16;
-        if let Ok(attr_name) = core::str::from_utf8(&buf[name_start..name_start + entry.e_name_len as usize]) {
+        let name_end = name_start.saturating_add(entry.e_name_len as usize);
+        if name_end > buf.len() { break; }
+        if let Ok(attr_name) = core::str::from_utf8(&buf[name_start..name_end]) {
             let prefix = index_to_prefix(entry.e_name_index);
             let mut full_name = String::from(prefix);
             full_name.push_str(attr_name);
