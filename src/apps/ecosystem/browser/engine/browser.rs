@@ -43,7 +43,7 @@ impl BrowserEngine {
         self.scroll_x = 0;
         self.scroll_y = 0;
         self.execute_scripts();
-        self.document.as_ref().unwrap()
+        self.document.as_ref().expect("document just set")
     }
     pub fn document(&self) -> Option<&Document> { self.document.as_ref() }
     pub fn title(&self) -> Option<&str> { self.document.as_ref().map(|d| d.title.as_str()) }
