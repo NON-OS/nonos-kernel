@@ -8,25 +8,34 @@
 
 //! Hostname and domainname management
 
-static mut HOSTNAME: [u8; 64] = [0; 64];
-static mut HOSTNAME_LEN: usize = 5;
-static mut DOMAINNAME: [u8; 64] = [0; 64];
-static mut DOMAINNAME_LEN: usize = 0;
+use spin::Mutex;
 
-pub fn init() {
-    unsafe {
-        HOSTNAME[..5].copy_from_slice(b"nonos");
-        HOSTNAME_LEN = 5;
-    }
+struct HostnameState {
+    hostname: [u8; 64],
+    hostname_len: usize,
+    domainname: [u8; 64],
+    domainname_len: usize,
 }
 
-pub fn get() -> &'static str {
-    unsafe {
-        if HOSTNAME_LEN == 0 {
-            "nonos"
-        } else {
-            core::str::from_utf8_unchecked(&HOSTNAME[..HOSTNAME_LEN])
-        }
+static STATE: Mutex<HostnameState> = Mutex::new(HostnameState {
+    hostname: [0; 64],
+    hostname_len: 0,
+    domainname: [0; 64],
+    domainname_len: 0,
+});
+
+pub fn init() {
+    let mut state = STATE.lock();
+    state.hostname[..5].copy_from_slice(b"nonos");
+    state.hostname_len = 5;
+}
+
+pub fn get() -> alloc::string::String {
+    let state = STATE.lock();
+    if state.hostname_len == 0 {
+        alloc::string::String::from("nonos")
+    } else {
+        alloc::string::String::from_utf8_lossy(&state.hostname[..state.hostname_len]).into_owned()
     }
 }
 
@@ -41,20 +50,18 @@ pub fn set(name: &str) -> Result<(), &'static str> {
         return Err("Invalid hostname characters");
     }
 
-    unsafe {
-        HOSTNAME[..name.len()].copy_from_slice(name.as_bytes());
-        HOSTNAME_LEN = name.len();
-    }
+    let mut state = STATE.lock();
+    state.hostname[..name.len()].copy_from_slice(name.as_bytes());
+    state.hostname_len = name.len();
     Ok(())
 }
 
-pub fn get_domain() -> &'static str {
-    unsafe {
-        if DOMAINNAME_LEN == 0 {
-            ""
-        } else {
-            core::str::from_utf8_unchecked(&DOMAINNAME[..DOMAINNAME_LEN])
-        }
+pub fn get_domain() -> alloc::string::String {
+    let state = STATE.lock();
+    if state.domainname_len == 0 {
+        alloc::string::String::new()
+    } else {
+        alloc::string::String::from_utf8_lossy(&state.domainname[..state.domainname_len]).into_owned()
     }
 }
 
@@ -63,13 +70,12 @@ pub fn set_domain(name: &str) -> Result<(), &'static str> {
         return Err("Domainname too long");
     }
 
-    unsafe {
-        if name.is_empty() {
-            DOMAINNAME_LEN = 0;
-        } else {
-            DOMAINNAME[..name.len()].copy_from_slice(name.as_bytes());
-            DOMAINNAME_LEN = name.len();
-        }
+    let mut state = STATE.lock();
+    if name.is_empty() {
+        state.domainname_len = 0;
+    } else {
+        state.domainname[..name.len()].copy_from_slice(name.as_bytes());
+        state.domainname_len = name.len();
     }
     Ok(())
 }
