@@ -39,7 +39,14 @@ pub fn yield_now() {
     crate::sched::add_to_run_queue(pid);
     CURRENT_TIME_SLICE.store(0, Ordering::Relaxed);
     match select_next_process() {
-        Some(next) if next != pid => switch_to_process(next),
+        Some(next) if next != pid => {
+            crate::sys::serial::print(b"[YIELD] ");
+            crate::sys::serial::print_dec(pid as u64);
+            crate::sys::serial::print(b"->");
+            crate::sys::serial::print_dec(next as u64);
+            crate::sys::serial::println(b"");
+            switch_to_process(next)
+        }
         _ => {}
     }
 }
