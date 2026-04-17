@@ -34,8 +34,16 @@ fn init_drivers() {
 }
 
 fn server_loop() -> ! {
+    crate::sys::serial::println(b"[DRIVERS] Entering server loop");
+    let mut tick = 0u32;
     loop {
         handle_drv_requests();
+        tick = tick.wrapping_add(1);
+        if tick == 1 || tick % 1000 == 0 {
+            crate::sys::serial::print(b"[DRIVERS] loop ");
+            crate::sys::serial::print_dec(tick as u64);
+            crate::sys::serial::println(b"");
+        }
         crate::sched::yield_now();
     }
 }
