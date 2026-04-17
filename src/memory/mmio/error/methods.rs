@@ -28,6 +28,7 @@ impl MmioError {
             Self::InvalidBaseAddress => "Invalid MMIO base address",
             Self::MappingFailed => "Failed to map MMIO page",
             Self::UnmapFailed => "Failed to unmap MMIO page",
+            Self::Overflow => "Integer overflow in MMIO operation",
         }
     }
 
