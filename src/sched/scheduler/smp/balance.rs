@@ -61,8 +61,14 @@ fn find_busiest_and_idlest(loads: &[CpuLoad], caller_cpu: usize) -> (Option<CpuL
 
 fn migrate_tasks(from_cpu: usize, to_cpu: usize, count: usize) {
     if count < MIGRATION_THRESHOLD || from_cpu == to_cpu { return; }
-    let from_queue = get_cpu_queue(from_cpu);
-    let to_queue = get_cpu_queue(to_cpu);
+    let from_queue = match get_cpu_queue(from_cpu) {
+        Some(q) => q,
+        None => return,
+    };
+    let to_queue = match get_cpu_queue(to_cpu) {
+        Some(q) => q,
+        None => return,
+    };
     for _ in 0..count {
         if let Some(task) = steal_migratable_task(from_cpu, to_cpu) {
             to_queue.enqueue(task);
@@ -74,7 +80,7 @@ fn migrate_tasks(from_cpu: usize, to_cpu: usize, count: usize) {
 }
 
 fn steal_migratable_task(from_cpu: usize, to_cpu: usize) -> Option<Task> {
-    let from_queue = get_cpu_queue(from_cpu);
+    let from_queue = get_cpu_queue(from_cpu)?;
     let mut queue = from_queue.queue.lock();
     let pos = queue.iter().position(|t| t.affinity.allowed_cpus.contains(&(to_cpu as u32)))?;
     from_queue.stats.steals.fetch_add(1, Ordering::Relaxed);
