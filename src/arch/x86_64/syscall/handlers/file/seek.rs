@@ -55,7 +55,7 @@ pub fn syscall_pwrite64(fd: u64, buf: u64, count: u64, offset: u64, _: u64, _: u
     }
 
     let mut kernel_buf = alloc::vec![0u8; count as usize];
-    if copy_from_user(&mut kernel_buf, buf).is_err() {
+    if copy_from_user(buf, &mut kernel_buf).is_err() {
         return EFAULT as u64;
     }
 
