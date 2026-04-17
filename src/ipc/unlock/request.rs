@@ -40,15 +40,19 @@ fn encode_unlock_call(req: &UnlockRequest) -> Vec<u8> {
 }
 
 fn decode_unlock_response(data: &[u8]) -> Result<UnlockResponse, UnlockError> {
-    if data.len() < 128 { return Err(UnlockError::NotFound); }
+    if data.len() < 160 { return Err(UnlockError::NotFound); }
     let mut token = [0u8; 32];
     let mut capsule_id = [0u8; 32];
     let mut manifest_hash = [0u8; 32];
     token.copy_from_slice(&data[0..32]);
     capsule_id.copy_from_slice(&data[32..64]);
     manifest_hash.copy_from_slice(&data[64..96]);
-    let approved_caps = u64::from_be_bytes(data[120..128].try_into().unwrap());
-    let expires_at = u64::from_be_bytes(data[152..160].try_into().unwrap());
+    let mut caps_bytes = [0u8; 8];
+    caps_bytes.copy_from_slice(&data[120..128]);
+    let approved_caps = u64::from_be_bytes(caps_bytes);
+    let mut expires_bytes = [0u8; 8];
+    expires_bytes.copy_from_slice(&data[152..160]);
+    let expires_at = u64::from_be_bytes(expires_bytes);
     Ok(UnlockResponse { token, capsule_id, manifest_hash, approved_caps, expires_at })
 }
 
