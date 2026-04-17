@@ -23,29 +23,29 @@ impl<'a> Lexer<'a> {
     pub fn scan_number(&mut self) -> TokenKind {
         let mut s = String::new();
         if self.peek() == Some('0') && matches!(self.peek_n(1), Some('x') | Some('X')) {
-            s.push(self.advance().unwrap()); s.push(self.advance().unwrap());
-            while let Some(c) = self.peek() { if c.is_ascii_hexdigit() { s.push(self.advance().unwrap()); } else { break; } }
-            return TokenKind::Number(i64::from_str_radix(&s[2..], 16).unwrap_or(0) as f64);
+            if let Some(c) = self.advance() { s.push(c); } if let Some(c) = self.advance() { s.push(c); }
+            while let Some(c) = self.peek() { if c.is_ascii_hexdigit() { if let Some(ch) = self.advance() { s.push(ch); } } else { break; } }
+            return TokenKind::Number(i64::from_str_radix(s.get(2..).unwrap_or("0"), 16).unwrap_or(0) as f64);
         }
         if self.peek() == Some('0') && matches!(self.peek_n(1), Some('b') | Some('B')) {
-            s.push(self.advance().unwrap()); s.push(self.advance().unwrap());
-            while let Some(c) = self.peek() { if c == '0' || c == '1' { s.push(self.advance().unwrap()); } else { break; } }
-            return TokenKind::Number(i64::from_str_radix(&s[2..], 2).unwrap_or(0) as f64);
+            if let Some(c) = self.advance() { s.push(c); } if let Some(c) = self.advance() { s.push(c); }
+            while let Some(c) = self.peek() { if c == '0' || c == '1' { if let Some(ch) = self.advance() { s.push(ch); } } else { break; } }
+            return TokenKind::Number(i64::from_str_radix(s.get(2..).unwrap_or("0"), 2).unwrap_or(0) as f64);
         }
         if self.peek() == Some('0') && matches!(self.peek_n(1), Some('o') | Some('O')) {
-            s.push(self.advance().unwrap()); s.push(self.advance().unwrap());
-            while let Some(c) = self.peek() { if c.is_ascii_digit() && c < '8' { s.push(self.advance().unwrap()); } else { break; } }
-            return TokenKind::Number(i64::from_str_radix(&s[2..], 8).unwrap_or(0) as f64);
+            if let Some(c) = self.advance() { s.push(c); } if let Some(c) = self.advance() { s.push(c); }
+            while let Some(c) = self.peek() { if c.is_ascii_digit() && c < '8' { if let Some(ch) = self.advance() { s.push(ch); } } else { break; } }
+            return TokenKind::Number(i64::from_str_radix(s.get(2..).unwrap_or("0"), 8).unwrap_or(0) as f64);
         }
-        while let Some(c) = self.peek() { if c.is_ascii_digit() { s.push(self.advance().unwrap()); } else { break; } }
+        while let Some(c) = self.peek() { if c.is_ascii_digit() { if let Some(ch) = self.advance() { s.push(ch); } } else { break; } }
         if self.peek() == Some('.') && self.peek_n(1).map(|c| c.is_ascii_digit()).unwrap_or(false) {
-            s.push(self.advance().unwrap());
-            while let Some(c) = self.peek() { if c.is_ascii_digit() { s.push(self.advance().unwrap()); } else { break; } }
+            if let Some(c) = self.advance() { s.push(c); }
+            while let Some(c) = self.peek() { if c.is_ascii_digit() { if let Some(ch) = self.advance() { s.push(ch); } } else { break; } }
         }
         if matches!(self.peek(), Some('e') | Some('E')) {
-            s.push(self.advance().unwrap());
-            if matches!(self.peek(), Some('+') | Some('-')) { s.push(self.advance().unwrap()); }
-            while let Some(c) = self.peek() { if c.is_ascii_digit() { s.push(self.advance().unwrap()); } else { break; } }
+            if let Some(c) = self.advance() { s.push(c); }
+            if matches!(self.peek(), Some('+') | Some('-')) { if let Some(c) = self.advance() { s.push(c); } }
+            while let Some(c) = self.peek() { if c.is_ascii_digit() { if let Some(ch) = self.advance() { s.push(ch); } } else { break; } }
         }
         TokenKind::Number(s.parse().unwrap_or(0.0))
     }
