@@ -43,10 +43,16 @@ fn decode_listing(id: &[u8; 32], data: &[u8]) -> Result<CapsuleListing, MarketEr
     developer.copy_from_slice(&data[12..32]);
     let mut manifest_hash = [0u8; 32];
     manifest_hash.copy_from_slice(&data[32..64]);
-    let price = u128::from_be_bytes(data[80..96].try_into().unwrap());
-    let caps_required = u64::from_be_bytes(data[120..128].try_into().unwrap());
+    let mut price_bytes = [0u8; 16];
+    price_bytes.copy_from_slice(&data[80..96]);
+    let price = u128::from_be_bytes(price_bytes);
+    let mut caps_bytes = [0u8; 8];
+    caps_bytes.copy_from_slice(&data[120..128]);
+    let caps_required = u64::from_be_bytes(caps_bytes);
     let active = data[159] != 0;
-    let total_unlocks = u64::from_be_bytes(data[184..192].try_into().unwrap());
+    let mut unlocks_bytes = [0u8; 8];
+    unlocks_bytes.copy_from_slice(&data[184..192]);
+    let total_unlocks = u64::from_be_bytes(unlocks_bytes);
     Ok(CapsuleListing {
         id: *id, developer, ipfs_cid: String::new(), manifest_hash, price, caps_required, active, total_unlocks
     })
