@@ -106,7 +106,7 @@ fn draw_panel_footer(state: &MenuState, x: u32, y: u32, w: u32) {
 }
 
 fn draw_timeout_indicator(x: u32, y: u32, w: u32, secs: u32) {
-    let msg = match secs {
+    let msg: &[u8] = match secs {
         0 | 1 => b"Auto-boot in 1s",
         2 => b"Auto-boot in 2s",
         3 => b"Auto-boot in 3s",
