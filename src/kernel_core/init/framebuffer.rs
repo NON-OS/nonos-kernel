@@ -44,4 +44,5 @@ pub(crate) fn init_framebuffer(handoff: &BootHandoffV1) {
     }
     let _ = crate::graphics::framebuffer::init_double_buffer();
     crate::graphics::framebuffer::clear(0x00000000);
+    crate::graphics::framebuffer::swap_buffers();
 }

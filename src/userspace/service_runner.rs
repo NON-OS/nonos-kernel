@@ -41,7 +41,6 @@ pub fn run_service_by_name(name: &str) -> ! {
 
 fn run_desktop_service() -> ! {
     crate::sys::serial::println(b"[DESKTOP] Service started");
-    crate::graphics::framebuffer::fill_rect(0, 0, 100, 100, 0xFF00FF00);
     if crate::boot::main::graphics_init::init_graphics_for_microkernel() {
         crate::sys::serial::println(b"[DESKTOP] Running desktop loop");
         crate::boot::main::desktop_run::run_desktop();
