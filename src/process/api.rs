@@ -24,7 +24,7 @@ use super::core::{ProcessControlBlock, current_pid, get_process_table, suspend_p
 pub fn get_current_pty() -> Option<u32> {
     let pid = current_pid()?;
     let proc = get_process(pid)?;
-    let tty = proc.tty_nr.load(Ordering::Relaxed);
+    let tty = proc.tty_nr.load(Ordering::Acquire);
     if tty == 0 { None } else { Some(tty) }
 }
 
@@ -77,21 +77,22 @@ pub fn get_parent_pid(pid: u32) -> Option<u32> {
 }
 
 pub fn set_controlling_tty(pid: u32, tty: u32) -> Result<(), i32> {
-    get_process(pid).ok_or(-3)?.tty_nr.store(tty, Ordering::Relaxed);
+    get_process(pid).ok_or(-3)?.tty_nr.store(tty, Ordering::Release);
     Ok(())
 }
 
 pub fn release_controlling_tty(pid: u32) -> Result<(), i32> {
-    get_process(pid).ok_or(-3)?.tty_nr.store(0, Ordering::Relaxed);
-    get_process(pid).ok_or(-3)?.tty_pgrp.store(-1, Ordering::Relaxed);
+    let proc = get_process(pid).ok_or(-3)?;
+    proc.tty_pgrp.store(-1, Ordering::Release);
+    proc.tty_nr.store(0, Ordering::Release);
     Ok(())
 }
 
 pub fn get_tty_pgrp(pid: u32) -> Option<i32> {
-    get_process(pid).map(|p| p.tty_pgrp.load(Ordering::Relaxed))
+    get_process(pid).map(|p| p.tty_pgrp.load(Ordering::Acquire))
 }
 
 pub fn set_tty_pgrp(pid: u32, pgrp: i32) -> Result<(), i32> {
-    get_process(pid).ok_or(-3)?.tty_pgrp.store(pgrp, Ordering::Relaxed);
+    get_process(pid).ok_or(-3)?.tty_pgrp.store(pgrp, Ordering::Release);
     Ok(())
 }
