@@ -14,5 +14,8 @@
 #[inline]
 pub const fn align_up(value: usize, align: usize) -> usize {
     if align == 0 || align & (align - 1) != 0 { return value; }
-    (value + align - 1) & !(align - 1)
+    match value.checked_add(align - 1) {
+        Some(v) => v & !(align - 1),
+        None => usize::MAX & !(align - 1),
+    }
 }
