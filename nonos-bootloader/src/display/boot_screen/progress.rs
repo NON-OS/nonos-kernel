@@ -21,43 +21,48 @@ use core::sync::atomic::{AtomicU32, Ordering};
 
 static ANIMATION_FRAME: AtomicU32 = AtomicU32::new(0);
 
-const MARGIN: u32 = 30;
-const PAD: u32 = 16;
+const BAR_WIDTH: u32 = 400;
+const BAR_HEIGHT: u32 = 4;
+const BAR_MARGIN_BOTTOM: u32 = 80;
 
-fn get_right_panel_bounds() -> (u32, u32, u32, u32) {
+fn get_progress_pos() -> (u32, u32) {
     let (screen_w, screen_h) = get_dimensions();
-    let x = (screen_w / 2) + (MARGIN / 2);
-    let width = (screen_w / 2) - MARGIN - (MARGIN / 2);
-    (x + PAD, MARGIN + PAD, width - PAD * 2, screen_h - MARGIN * 2 - PAD * 2)
+    let x = (screen_w - BAR_WIDTH) / 2;
+    let y = screen_h - BAR_MARGIN_BOTTOM;
+    (x, y)
 }
 
 pub fn draw_boot_progress(progress: u32, total: u32) {
-    let (cx, _cy, cw, ch) = get_right_panel_bounds();
-    let bar_y = MARGIN + ch - 16;
-
-    fill_rect(cx, bar_y, cw, 8, COLOR_PROGRESS_BG);
-
+    let (bar_x, bar_y) = get_progress_pos();
+    fill_rect(bar_x, bar_y, BAR_WIDTH, BAR_HEIGHT, COLOR_PROGRESS_BG);
     if total > 0 && progress > 0 {
-        let fill = (cw * progress.min(total)) / total;
-        fill_rect(cx, bar_y, fill, 8, COLOR_ACCENT);
+        let fill = (BAR_WIDTH * progress.min(total)) / total;
+        fill_rect(bar_x, bar_y, fill, BAR_HEIGHT, COLOR_ACCENT);
     }
 }
 
 pub fn show_handoff_message() {
-    let (cx, _cy, _cw, ch) = get_right_panel_bounds();
-    let y = MARGIN + ch - 50;
-    // Transparent background
-    draw_string(cx + 8, y + 4, b"Transferring to kernel...", COLOR_SUCCESS);
+    let (screen_w, screen_h) = get_dimensions();
+    let msg = b"Transferring to kernel...";
+    let msg_width = msg.len() as u32 * 8;
+    let x = (screen_w - msg_width) / 2;
+    let y = screen_h - BAR_MARGIN_BOTTOM - 32;
+    draw_string(x, y, msg, COLOR_SUCCESS);
 }
 
 pub fn show_error_screen(error: &[u8]) {
-    let (cx, cy, cw, _ch) = get_right_panel_bounds();
-    let panel_h = 80;
-    let panel_y = cy + 100;
-    fill_rect(cx, panel_y, cw, panel_h, COLOR_ERROR_BG);
-    fill_rect(cx, panel_y, cw, 3, COLOR_ERROR);
-    draw_string(cx + 16, panel_y + 20, b"BOOT FAILED", COLOR_TEXT_WHITE);
-    draw_string(cx + 16, panel_y + 44, error, COLOR_TEXT_WHITE);
+    let (screen_w, screen_h) = get_dimensions();
+    let panel_w = 480;
+    let panel_h = 120;
+    let px = (screen_w - panel_w) / 2;
+    let py = (screen_h - panel_h) / 2;
+    fill_rect(px, py, panel_w, panel_h, COLOR_ERROR_BG);
+    fill_rect(px, py, panel_w, 3, COLOR_ERROR);
+    fill_rect(px, py, 3, panel_h, COLOR_ERROR);
+    fill_rect(px + panel_w - 3, py, 3, panel_h, COLOR_ERROR);
+    fill_rect(px, py + panel_h - 3, panel_w, 3, COLOR_ERROR);
+    draw_string(px + 24, py + 28, b"BOOT FAILED", COLOR_TEXT_WHITE);
+    draw_string(px + 24, py + 60, error, COLOR_TEXT_DIM);
 }
 
 pub fn tick_animation() {

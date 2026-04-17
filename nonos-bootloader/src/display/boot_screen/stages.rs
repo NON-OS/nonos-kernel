@@ -21,36 +21,40 @@ use crate::display::ui::StageStatus;
 use core::sync::atomic::{AtomicU8, AtomicBool, Ordering};
 
 static CURRENT_STAGE: AtomicU8 = AtomicU8::new(STAGE_INIT);
-static STAGES_BOX_DRAWN: AtomicBool = AtomicBool::new(false);
+static PANEL_DRAWN: AtomicBool = AtomicBool::new(false);
 
-pub const STAGES_BOX_WIDTH: u32 = 280;
-pub const STAGES_BOX_HEIGHT: u32 = 320;
-const STAGES_BOX_PAD: u32 = 16;
+const PANEL_WIDTH: u32 = 320;
+const PANEL_HEIGHT: u32 = 380;
+const PANEL_MARGIN: u32 = 48;
+const INNER_PAD: u32 = 24;
+const LINE_HEIGHT: u32 = 28;
+const HEADER_HEIGHT: u32 = 48;
 
-fn get_stages_box_pos() -> (u32, u32) {
-    let (screen_w, _) = get_dimensions();
-    let x = screen_w - STAGES_BOX_WIDTH - 40;
-    let y = 100;
+fn get_panel_pos() -> (u32, u32) {
+    let (screen_w, screen_h) = get_dimensions();
+    let x = screen_w - PANEL_WIDTH - PANEL_MARGIN;
+    let y = (screen_h - PANEL_HEIGHT) / 2;
     (x, y)
 }
 
 pub fn get_stages_box_bottom() -> u32 {
-    let (_, y) = get_stages_box_pos();
-    y + STAGES_BOX_HEIGHT
+    let (_, y) = get_panel_pos();
+    y + PANEL_HEIGHT
 }
 
-fn draw_stages_box() {
-    if STAGES_BOX_DRAWN.swap(true, Ordering::SeqCst) {
+fn draw_panel_background() {
+    if PANEL_DRAWN.swap(true, Ordering::SeqCst) {
         return;
     }
-    let (bx, by) = get_stages_box_pos();
-    // Transparent background - only draw accent stripe
-    fill_rect(bx, by, 4, STAGES_BOX_HEIGHT, COLOR_ACCENT);
+    let (px, py) = get_panel_pos();
+    fill_rect(px, py, PANEL_WIDTH, PANEL_HEIGHT, COLOR_BOX_BG);
+    fill_rect(px, py, PANEL_WIDTH, 2, COLOR_ACCENT);
+    fill_rect(px, py + HEADER_HEIGHT, PANEL_WIDTH, 1, COLOR_BORDER);
 }
 
-fn get_stages_area() -> (u32, u32) {
-    let (bx, by) = get_stages_box_pos();
-    (bx + STAGES_BOX_PAD + 4, by + STAGES_BOX_PAD)
+fn draw_header() {
+    let (px, py) = get_panel_pos();
+    draw_string(px + INNER_PAD, py + 16, b"Boot Sequence", COLOR_TEXT_PRIMARY);
 }
 
 pub fn update_stage(stage: u8, status: StageStatus) {
@@ -59,42 +63,49 @@ pub fn update_stage(stage: u8, status: StageStatus) {
         return;
     }
 
-    draw_stages_box();
-    CURRENT_STAGE.store(stage, Ordering::Release);
+    draw_panel_background();
 
-    let (panel_x, base_y) = get_stages_area();
-
-    // Draw title on first call
-    static TITLE_DRAWN: AtomicBool = AtomicBool::new(false);
-    if !TITLE_DRAWN.swap(true, Ordering::SeqCst) {
-        draw_string(panel_x, base_y, b"Boot Stages", COLOR_ACCENT);
+    static HEADER_DONE: AtomicBool = AtomicBool::new(false);
+    if !HEADER_DONE.swap(true, Ordering::SeqCst) {
+        draw_header();
     }
 
-    let (offset, label): (u32, &[u8]) = match stage {
-        STAGE_UEFI => (1, b"UEFI Services"),
-        STAGE_SECURITY => (2, b"Security"),
-        STAGE_HARDWARE => (3, b"Hardware Init"),
-        STAGE_KERNEL_LOAD => (4, b"Kernel Load"),
-        STAGE_BLAKE3_HASH => (5, b"BLAKE3 Hash"),
-        STAGE_ED25519_VERIFY => (6, b"Ed25519 Verify"),
-        STAGE_ZK_VERIFY => (7, b"ZK Attestation"),
-        STAGE_ELF_PARSE => (8, b"ELF Parse"),
-        STAGE_HANDOFF => (9, b"Kernel Handoff"),
-        STAGE_COMPLETE => (10, b"Boot Complete"),
-        _ => return,
-    };
+    CURRENT_STAGE.store(stage, Ordering::Release);
 
-    let y = base_y + offset * (CHAR_HEIGHT + 4);
+    let (px, py) = get_panel_pos();
+    let content_y = py + HEADER_HEIGHT + 16;
 
-    let (indicator, color) = match status {
-        StageStatus::Pending => (b"  ", COLOR_TEXT_DIM),
-        StageStatus::Running => (b"> ", COLOR_WARNING),
-        StageStatus::Success => (b"+ ", COLOR_SUCCESS),
-        StageStatus::Failed => (b"X ", COLOR_ERROR),
-    };
+    let stages: [(u8, &[u8]); 10] = [
+        (STAGE_UEFI, b"UEFI Services"),
+        (STAGE_SECURITY, b"Security Policy"),
+        (STAGE_HARDWARE, b"Hardware Init"),
+        (STAGE_KERNEL_LOAD, b"Kernel Load"),
+        (STAGE_BLAKE3_HASH, b"BLAKE3 Integrity"),
+        (STAGE_ED25519_VERIFY, b"Ed25519 Signature"),
+        (STAGE_ZK_VERIFY, b"ZK Attestation"),
+        (STAGE_ELF_PARSE, b"ELF Validation"),
+        (STAGE_HANDOFF, b"Kernel Handoff"),
+        (STAGE_COMPLETE, b"Boot Complete"),
+    ];
 
-    draw_string(panel_x, y, indicator, color);
-    draw_string(panel_x + 18, y, label, color);
+    for (i, (s, label)) in stages.iter().enumerate() {
+        if *s != stage {
+            continue;
+        }
+        let y = content_y + (i as u32) * LINE_HEIGHT;
+        let (indicator, bg_color, text_color) = match status {
+            StageStatus::Pending => (b"   ", COLOR_BOX_BG, COLOR_TEXT_MUTED),
+            StageStatus::Running => (b" > ", COLOR_WARNING, COLOR_TEXT_WHITE),
+            StageStatus::Success => (b" + ", COLOR_SUCCESS, COLOR_TEXT_PRIMARY),
+            StageStatus::Failed => (b" X ", COLOR_ERROR, COLOR_TEXT_WHITE),
+        };
+        fill_rect(px + 8, y - 2, PANEL_WIDTH - 16, LINE_HEIGHT - 4, COLOR_BOX_BG);
+        if status == StageStatus::Running || status == StageStatus::Success || status == StageStatus::Failed {
+            fill_rect(px + 8, y - 2, 4, LINE_HEIGHT - 4, bg_color);
+        }
+        draw_string(px + INNER_PAD, y, indicator, bg_color);
+        draw_string(px + INNER_PAD + 24, y, *label, text_color);
+    }
 }
 
 pub fn get_current_stage() -> u8 {

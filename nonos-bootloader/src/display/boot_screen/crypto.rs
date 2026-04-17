@@ -21,32 +21,29 @@ use super::stages::get_stages_box_bottom;
 use core::sync::atomic::{AtomicU32, AtomicBool, Ordering};
 
 static HASH_REVEAL: AtomicU32 = AtomicU32::new(0);
-static CRYPTO_BOX_DRAWN: AtomicBool = AtomicBool::new(false);
+static PANEL_DRAWN: AtomicBool = AtomicBool::new(false);
 
-const CRYPTO_BOX_WIDTH: u32 = 200;
-const CRYPTO_BOX_HEIGHT: u32 = 110;
-const CRYPTO_BOX_PAD: u32 = 12;
-const CRYPTO_BOX_GAP: u32 = 20;
+const PANEL_WIDTH: u32 = 240;
+const PANEL_HEIGHT: u32 = 140;
+const PANEL_MARGIN: u32 = 48;
+const INNER_PAD: u32 = 20;
+const PANEL_GAP: u32 = 24;
 
-fn get_crypto_box_pos() -> (u32, u32) {
+fn get_panel_pos() -> (u32, u32) {
     let (screen_w, _) = get_dimensions();
-    let x = screen_w - CRYPTO_BOX_WIDTH - 50;
-    let y = get_stages_box_bottom() + CRYPTO_BOX_GAP;
+    let x = screen_w - PANEL_WIDTH - PANEL_MARGIN;
+    let y = get_stages_box_bottom() + PANEL_GAP;
     (x, y)
 }
 
-fn draw_crypto_box() {
-    if CRYPTO_BOX_DRAWN.swap(true, Ordering::SeqCst) {
+fn draw_panel_bg() {
+    if PANEL_DRAWN.swap(true, Ordering::SeqCst) {
         return;
     }
-    let (bx, by) = get_crypto_box_pos();
-    // Transparent - draw cyan accent stripe
-    fill_rect(bx, by, 4, CRYPTO_BOX_HEIGHT, COLOR_CRYPTO_CYAN);
-}
-
-fn get_crypto_area() -> (u32, u32) {
-    let (bx, by) = get_crypto_box_pos();
-    (bx + CRYPTO_BOX_PAD + 4, by + CRYPTO_BOX_PAD)
+    let (px, py) = get_panel_pos();
+    fill_rect(px, py, PANEL_WIDTH, PANEL_HEIGHT, COLOR_BOX_BG);
+    fill_rect(px, py, PANEL_WIDTH, 2, COLOR_CRYPTO_CYAN);
+    fill_rect(px, py + 40, PANEL_WIDTH, 1, COLOR_BORDER);
 }
 
 pub struct BootCryptoState {
@@ -74,36 +71,31 @@ impl BootCryptoState {
 }
 
 pub fn show_crypto_verification(crypto: &BootCryptoState) {
-    draw_crypto_box();
-    let (cx, cy) = get_crypto_area();
-
-    draw_string(cx, cy, b"Crypto Verification", COLOR_CRYPTO_CYAN);
-
-    // Format hash: "BLAKE3 xxxx...xxxx"
-    let mut hash_line = [b' '; 28];
+    draw_panel_bg();
+    let (px, py) = get_panel_pos();
+    draw_string(px + INNER_PAD, py + 12, b"Crypto Verification", COLOR_TEXT_PRIMARY);
+    let mut hash_line = [b' '; 24];
     hash_line[..7].copy_from_slice(b"BLAKE3 ");
     let len = format_hash_short(&crypto.kernel_hash, &mut hash_line[7..]);
-    draw_string(cx, cy + 24, &hash_line[..7 + len], COLOR_SUCCESS);
-
-    let sig_status: (&[u8], u32) = match crypto.signature_valid {
-        Some(true) => (b"Ed25519 VALID", COLOR_SUCCESS),
-        Some(false) => (b"Ed25519 INVALID", COLOR_ERROR),
-        None => (b"Ed25519 ...", COLOR_TEXT_DIM),
+    draw_string(px + INNER_PAD, py + 56, &hash_line[..7 + len], COLOR_CRYPTO_CYAN);
+    let (sig_text, sig_color) = match crypto.signature_valid {
+        Some(true) => (b"Ed25519 VALID    ", COLOR_SUCCESS),
+        Some(false) => (b"Ed25519 INVALID  ", COLOR_ERROR),
+        None => (b"Ed25519 pending  ", COLOR_TEXT_DIM),
     };
-    draw_string(cx, cy + 48, sig_status.0, sig_status.1);
-
-    let zk_status: (&[u8], u32) = match (crypto.zk_present, crypto.zk_verified) {
-        (true, Some(true)) => (b"ZK VERIFIED", COLOR_SUCCESS),
-        (true, Some(false)) => (b"ZK FAILED", COLOR_ERROR),
-        (true, None) => (b"ZK ...", COLOR_WARNING),
-        (false, _) => (b"ZK not present", COLOR_TEXT_DIM),
+    draw_string(px + INNER_PAD, py + 80, sig_text, sig_color);
+    let (zk_text, zk_color) = match (crypto.zk_present, crypto.zk_verified) {
+        (true, Some(true)) => (b"ZK VERIFIED      ", COLOR_SUCCESS),
+        (true, Some(false)) => (b"ZK FAILED        ", COLOR_ERROR),
+        (true, None) => (b"ZK verifying...  ", COLOR_WARNING),
+        (false, _) => (b"ZK not present   ", COLOR_TEXT_MUTED),
     };
-    draw_string(cx, cy + 72, zk_status.0, zk_status.1);
+    draw_string(px + INNER_PAD, py + 104, zk_text, zk_color);
 }
 
 fn format_hash_short(hash: &[u8], out: &mut [u8]) -> usize {
     let hex = b"0123456789abcdef";
-    let show = hash.len().min(6); // Show 6 bytes = 12 hex chars
+    let show = hash.len().min(6);
     let mut pos = 0;
     for &b in hash[..show].iter() {
         if pos + 1 < out.len() {
