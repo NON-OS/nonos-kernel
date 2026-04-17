@@ -43,9 +43,14 @@ pub fn ext4_getxattr(mount: &Arc<Ext4MountInfo>, ino: u32, name: &str) -> Result
         }
         if entry.e_name_index == index && entry.e_name_len as usize == attr_name.len() {
             let name_start = offset + 16;
-            let entry_name = core::str::from_utf8(&buf[name_start..name_start + entry.e_name_len as usize]).unwrap_or("");
+            let name_end = name_start.saturating_add(entry.e_name_len as usize);
+            if name_end > buf.len() { break; }
+            let entry_name = core::str::from_utf8(&buf[name_start..name_end]).unwrap_or("");
             if entry_name == attr_name {
-                let value = buf[entry.e_value_offs as usize..entry.e_value_offs as usize + entry.e_value_size as usize].to_vec();
+                let val_start = entry.e_value_offs as usize;
+                let val_end = val_start.checked_add(entry.e_value_size as usize).ok_or(-5i32)?;
+                if val_end > buf.len() { return Err(-5); }
+                let value = buf[val_start..val_end].to_vec();
                 return Ok(value);
             }
         }
