@@ -60,7 +60,9 @@ impl Context {
     }
 
     pub fn restore(&self) -> ! {
-        if let Err(_) = self.validate() {
+        if let Err(e) = self.validate() {
+            crate::sys::serial::println(b"[FATAL] Context restore failed");
+            crate::sys::serial::println(e.as_bytes());
             loop { core::hint::spin_loop(); }
         }
         let mut safe_ctx = *self;
