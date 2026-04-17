@@ -19,7 +19,7 @@ use super::token::TokenKind;
 
 impl<'a> Lexer<'a> {
     pub fn scan_punct(&mut self) -> TokenKind {
-        let c = self.advance().unwrap();
+        let Some(c) = self.advance() else { return TokenKind::Invalid; };
         match c {
             '(' => TokenKind::LParen, ')' => TokenKind::RParen,
             '{' => TokenKind::LBrace, '}' => TokenKind::RBrace,
