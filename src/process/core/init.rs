@@ -20,8 +20,14 @@ use super::table::create_process;
 use core::sync::atomic::Ordering;
 
 pub(crate) fn init_system_processes() {
-    let pid = create_process("init", ProcessState::Ready, Priority::Normal)
-        .expect("[FATAL] Failed to create init process - system cannot continue");
+    let pid = match create_process("init", ProcessState::Ready, Priority::Normal) {
+        Ok(p) => p,
+        Err(e) => {
+            crate::sys::serial::println(b"[FATAL] Failed to create init process");
+            crate::sys::serial::println(e.as_bytes());
+            crate::arch::x86_64::boot::cpu_ops::halt_loop()
+        }
+    };
     CURRENT_PID.store(pid, Ordering::SeqCst);
     crate::log::info!("[PROCESS] Init process created with PID {}", pid);
     if let Err(e) = create_process("kthreadd", ProcessState::Ready, Priority::High) {
