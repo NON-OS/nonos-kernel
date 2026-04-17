@@ -92,6 +92,11 @@ pub fn read_user_string(ptr: u64) -> Result<String, i64> {
     }
 
     const MAX_PATH: usize = 4096;
+
+    if crate::usercopy::validate_user_read(ptr, MAX_PATH).is_err() {
+        return Err(-14);
+    }
+
     let mut buf = Vec::with_capacity(MAX_PATH);
     let str_ptr = ptr as *const u8;
 
@@ -113,12 +118,22 @@ pub fn read_user_string_array(ptr: u64) -> Result<Vec<String>, i64> {
         return Ok(Vec::new());
     }
 
+    const MAX_ARRAY_ENTRIES: usize = 1024;
+    let array_size = MAX_ARRAY_ENTRIES * core::mem::size_of::<u64>();
+
+    if crate::usercopy::validate_user_read(ptr, array_size).is_err() {
+        return Err(-14);
+    }
+
     let mut result = Vec::new();
     let arr_ptr = ptr as *const u64;
 
     unsafe {
         let mut i = 0;
         loop {
+            if i >= MAX_ARRAY_ENTRIES {
+                break;
+            }
             let str_ptr = *arr_ptr.add(i);
             if str_ptr == 0 {
                 break;
@@ -128,9 +143,6 @@ pub fn read_user_string_array(ptr: u64) -> Result<Vec<String>, i64> {
                 Err(e) => return Err(e),
             }
             i += 1;
-            if i > 1024 {
-                break;
-            }
         }
     }
 
