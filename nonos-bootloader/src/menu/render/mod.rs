@@ -15,7 +15,5 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 mod draw;
-mod timer;
 
-pub use draw::{clear_menu_area, render_menu};
-pub use timer::render_timeout_bar;
+pub use draw::{clear_menu_area, clear_screen, draw_logo, render_menu};
