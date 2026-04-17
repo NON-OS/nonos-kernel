@@ -41,11 +41,7 @@ pub fn dns_start_query(hostname: &str) -> Result<(), &'static str> {
     let ns = get_network_stack().ok_or("no network stack")?;
     ns.poll();
 
-    let our_ip = ns.get_ipv4_config();
-    if our_ip.is_none() {
-        return Err("no ipv4 address");
-    }
-    let (ip, _) = our_ip.unwrap();
+    let (ip, _) = ns.get_ipv4_config().ok_or("no ipv4 address")?;
     if ip[0] == 127 || ip == [0, 0, 0, 0] {
         return Err("no routable ip");
     }
