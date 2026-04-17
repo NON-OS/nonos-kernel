@@ -14,19 +14,25 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+extern crate alloc;
+
 use crate::ipc::kernel_ipc::kernel_route_ipc;
 use crate::ipc::nonos_inbox;
 use crate::process::current_pid;
 
 const E_INVAL: i64 = -22;
+const E_FAULT: i64 = -14;
 const E_TIMEDOUT: i64 = -110;
 
 pub fn sys_ipc_send(endpoint: u64, buf: *const u8, len: usize) -> i64 {
     if buf.is_null() || len == 0 { return E_INVAL; }
-    let data = unsafe { core::slice::from_raw_parts(buf, len) };
+    let addr = buf as u64;
+    if crate::usercopy::validate_user_read(addr, len).is_err() { return E_FAULT; }
+    let mut data = alloc::vec![0u8; len];
+    if crate::usercopy::copy_from_user(addr, &mut data).is_err() { return E_FAULT; }
     let pid = current_pid().unwrap_or(0);
     let target = alloc::format!("endpoint.{}", endpoint);
-    match kernel_route_ipc(pid, &target, data) {
+    match kernel_route_ipc(pid, &target, &data) {
         Ok(()) => 0,
         Err(e) => e as i64,
     }
@@ -34,6 +40,8 @@ pub fn sys_ipc_send(endpoint: u64, buf: *const u8, len: usize) -> i64 {
 
 pub fn sys_ipc_recv(_endpoint: u64, buf: *mut u8, len: usize, timeout_ms: u64) -> i64 {
     if buf.is_null() || len == 0 { return E_INVAL; }
+    let addr = buf as u64;
+    if crate::usercopy::validate_user_write(addr, len).is_err() { return E_FAULT; }
     let pid = current_pid().unwrap_or(0);
     let inbox_name = alloc::format!("proc.{}", pid);
     nonos_inbox::register_inbox(&inbox_name);
@@ -41,7 +49,7 @@ pub fn sys_ipc_recv(_endpoint: u64, buf: *mut u8, len: usize, timeout_ms: u64) -
     loop {
         if let Some(msg) = nonos_inbox::try_dequeue(&inbox_name) {
             let copy_len = msg.data.len().min(len);
-            unsafe { core::ptr::copy_nonoverlapping(msg.data.as_ptr(), buf, copy_len); }
+            if crate::usercopy::copy_to_user(addr, &msg.data[..copy_len]).is_err() { return E_FAULT; }
             return copy_len as i64;
         }
         let elapsed = crate::time::timestamp_millis().saturating_sub(start);
