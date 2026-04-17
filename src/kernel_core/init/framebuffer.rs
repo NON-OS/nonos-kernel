@@ -43,4 +43,5 @@ pub(crate) fn init_framebuffer(handoff: &BootHandoffV1) {
         serial::println(b"[FB] Graphics FB dimensions zero!");
     }
     let _ = crate::graphics::framebuffer::init_double_buffer();
+    crate::graphics::framebuffer::clear(0x00000000);
 }
