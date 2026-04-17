@@ -31,8 +31,9 @@ impl MmioManager {
         let page_count = aligned_size / layout::PAGE_SIZE;
         let vm_flags = flags.to_vm_flags();
         for i in 0..page_count {
-            let page_va = VirtAddr::new(va.as_u64() + (i * layout::PAGE_SIZE) as u64);
-            let page_pa = PhysAddr::new(pa.as_u64() + (i * layout::PAGE_SIZE) as u64);
+            let offset = i.checked_mul(layout::PAGE_SIZE).ok_or(MmioError::Overflow)? as u64;
+            let page_va = VirtAddr::new(va.as_u64().checked_add(offset).ok_or(MmioError::Overflow)?);
+            let page_pa = PhysAddr::new(pa.as_u64().checked_add(offset).ok_or(MmioError::Overflow)?);
             self.map_page(page_va, page_pa, vm_flags)?;
         }
         let region = MmioRegion::new(va, pa, aligned_size, flags, MMIO_STATS.next_id());
@@ -44,7 +45,15 @@ impl MmioManager {
     pub fn unmap_region(&mut self, va: VirtAddr) -> MmioResult<()> {
         let region = self.regions.remove(&va).ok_or(MmioError::RegionNotFound)?;
         for i in 0..(region.size / layout::PAGE_SIZE) {
-            self.unmap_page(VirtAddr::new(va.as_u64() + (i * layout::PAGE_SIZE) as u64))?;
+            let offset = match i.checked_mul(layout::PAGE_SIZE) {
+                Some(o) => o as u64,
+                None => return Err(MmioError::Overflow),
+            };
+            let page_va = match va.as_u64().checked_add(offset) {
+                Some(a) => VirtAddr::new(a),
+                None => return Err(MmioError::Overflow),
+            };
+            self.unmap_page(page_va)?;
         }
         MMIO_STATS.record_unmapping(region.size);
         Ok(())
