@@ -27,7 +27,11 @@ pub(crate) struct VecAlloc {
 impl VecAlloc {
     pub(crate) const fn new() -> Self { Self { next: VEC_MIN, reserved: [false; 256] } }
 
-    pub(crate) fn reserve(&mut self, v: u8) { self.reserved[v as usize] = true; }
+    pub(crate) fn reserve(&mut self, v: u8) {
+        if v >= VEC_MIN && v <= VEC_MAX {
+            self.reserved[v as usize] = true;
+        }
+    }
 
     pub(crate) fn alloc(&mut self) -> Option<u8> {
         for _ in 0..200 {
