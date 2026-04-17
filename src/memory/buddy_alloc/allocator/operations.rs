@@ -23,8 +23,14 @@ impl VmapAllocator {
             let mut block = self.free_lists[list_idx].remove(0);
             while block.order > order {
                 let split_order = block.order - 1;
-                let split_size = 1u64 << split_order;
-                let buddy_addr = block.addr + split_size;
+                let split_size = match (1u64).checked_shl(split_order as u32) {
+                    Some(s) => s,
+                    None => break,
+                };
+                let buddy_addr = match block.addr.checked_add(split_size) {
+                    Some(a) => a,
+                    None => break,
+                };
                 let buddy_idx = split_order.saturating_sub(MIN_ORDER);
                 if buddy_idx < self.free_lists.len() {
                     self.free_lists[buddy_idx].push(BuddyBlock { addr: buddy_addr, order: split_order });
@@ -45,7 +51,11 @@ impl VmapAllocator {
             let buddy_pos = self.free_lists[list_idx].iter().position(|b| b.addr == buddy_addr);
             if let Some(pos) = buddy_pos {
                 self.free_lists[list_idx].remove(pos);
-                block = BuddyBlock { addr: block.addr.min(buddy_addr), order: block.order + 1 };
+                let new_order = match block.order.checked_add(1) {
+                    Some(o) if o <= MAX_ORDER => o,
+                    _ => break,
+                };
+                block = BuddyBlock { addr: block.addr.min(buddy_addr), order: new_order };
             } else { break; }
         }
         let list_idx = block.order.saturating_sub(MIN_ORDER);
