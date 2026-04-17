@@ -86,6 +86,7 @@ pub unsafe extern "C" fn clock_nanosleep(clockid: i32, flags: i32, req: *const T
     0
 }
 
+#[thread_local]
 static mut TM_BUFFER: Tm = Tm { tm_sec: 0, tm_min: 0, tm_hour: 0, tm_mday: 1, tm_mon: 0, tm_year: 70, tm_wday: 4, tm_yday: 0, tm_isdst: 0 };
 const DAYS_PER_MONTH: [i32; 12] = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
 fn is_leap(y: i32) -> bool { y % 4 == 0 && (y % 100 != 0 || y % 400 == 0) }
