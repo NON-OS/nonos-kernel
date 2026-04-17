@@ -45,8 +45,10 @@ pub fn console_read(buf: &mut [u8]) -> Result<usize, i32> {
 }
 
 pub fn console_write(buf: &[u8]) -> Result<usize, i32> {
-    let vt = get_active_vt();
-    vt.write(buf)
+    match get_active_vt() {
+        Some(vt) => vt.write(buf),
+        None => Err(-5),
+    }
 }
 
 pub fn console_poll() -> u32 {
