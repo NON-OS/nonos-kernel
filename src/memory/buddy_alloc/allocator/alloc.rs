@@ -28,7 +28,10 @@ impl VmapAllocator {
         let required_order = size_to_order(aligned_size);
         if required_order > MAX_ORDER { return Err(BuddyAllocError::AllocationTooLarge); }
         if let Some(block) = self.find_block(required_order) {
-            if block.addr < self.base_addr || block.addr + (1u64 << block.order) > self.base_addr + self.total_size {
+            let block_size = (1u64).checked_shl(block.order as u32).ok_or(BuddyAllocError::Overflow)?;
+            let block_end = block.addr.checked_add(block_size).ok_or(BuddyAllocError::Overflow)?;
+            let region_end = self.base_addr.checked_add(self.total_size).ok_or(BuddyAllocError::Overflow)?;
+            if block.addr < self.base_addr || block_end > region_end {
                 return Err(BuddyAllocError::BlockOutOfRange);
             }
             self.allocated_blocks.insert(block.addr, AllocatedBlock { addr: block.addr, size: aligned_size, order: block.order, flags: 0 });
