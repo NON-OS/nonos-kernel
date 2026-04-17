@@ -29,19 +29,20 @@ pub fn tick() -> bool { smp_tick(cpu_id() as usize) }
 pub fn schedule_local() { run_local(); }
 pub fn yield_cpu() {
     let cpu = cpu_id() as usize;
-    let queue = get_cpu_queue(cpu);
-    let mut current = queue.current_task.lock();
-    if let Some(task) = current.take() {
-        drop(current);
-        if !task.complete { queue.enqueue(task); }
-        run_local();
+    if let Some(queue) = get_cpu_queue(cpu) {
+        let mut current = queue.current_task.lock();
+        if let Some(task) = current.take() {
+            drop(current);
+            if !task.complete { queue.enqueue(task); }
+            run_local();
+        }
     }
 }
 
 pub fn is_enabled() -> bool { is_smp_initialized() && active_cpu_count() > 1 }
 pub fn cpu_count() -> usize { active_cpu_count() }
 
-pub fn local_queue_len() -> usize { get_cpu_queue(cpu_id() as usize).len() }
+pub fn local_queue_len() -> usize { get_cpu_queue(cpu_id() as usize).map(|q| q.len()).unwrap_or(0) }
 
 pub fn total_runnable() -> usize {
     let mut total = 0;
