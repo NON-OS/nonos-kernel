@@ -32,10 +32,12 @@ fn align_up(size: usize, align: usize) -> usize {
 #[no_mangle]
 pub unsafe extern "C" fn malloc(size: usize) -> *mut u8 {
     if size == 0 { return ptr::null_mut(); }
-    let total = align_up(size + 16, MIN_ALIGN);
+    let Some(with_header) = size.checked_add(16) else { return ptr::null_mut(); };
+    let total = align_up(with_header, MIN_ALIGN);
+    if total < size { return ptr::null_mut(); }
     #[cfg(feature = "kernel")]
     let ptr = {
-        let layout = Layout::from_size_align_unchecked(total, MIN_ALIGN);
+        let Ok(layout) = Layout::from_size_align(total, MIN_ALIGN) else { return ptr::null_mut(); };
         alloc::alloc::alloc(layout)
     };
     #[cfg(not(feature = "kernel"))]
@@ -74,10 +76,13 @@ pub unsafe extern "C" fn aligned_alloc(alignment: usize, size: usize) -> *mut u8
     if alignment == 0 || (alignment & (alignment - 1)) != 0 { return ptr::null_mut(); }
     if size == 0 { return ptr::null_mut(); }
     let actual_align = alignment.max(MIN_ALIGN);
-    let total = align_up(size + actual_align + 16, actual_align);
+    let Some(with_align) = size.checked_add(actual_align) else { return ptr::null_mut(); };
+    let Some(with_header) = with_align.checked_add(16) else { return ptr::null_mut(); };
+    let total = align_up(with_header, actual_align);
+    if total < size { return ptr::null_mut(); }
     #[cfg(feature = "kernel")]
     let raw = {
-        let layout = Layout::from_size_align_unchecked(total, actual_align);
+        let Ok(layout) = Layout::from_size_align(total, actual_align) else { return ptr::null_mut(); };
         alloc::alloc::alloc(layout)
     };
     #[cfg(not(feature = "kernel"))]
