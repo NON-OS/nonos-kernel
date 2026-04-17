@@ -30,8 +30,8 @@ pub fn clone_process(flags: u64, stack: u64, parent_tid: u64, child_tid: u64, tl
     let parent_priority = *parent.priority.lock();
     let parent_caps = parent.caps_bits.load(Ordering::Acquire);
     let parent_tgid = parent.tgid.load(Ordering::Acquire);
-    let parent_pgid = parent.pgid.load(Ordering::Relaxed);
-    let parent_sid = parent.sid.load(Ordering::Relaxed);
+    let parent_pgid = parent.pgid.load(Ordering::Acquire);
+    let parent_sid = parent.sid.load(Ordering::Acquire);
     let child_tid_val = allocate_tid().ok_or(-11i32)?;
     let is_thread = (flags & CLONE_VM) != 0;
 
