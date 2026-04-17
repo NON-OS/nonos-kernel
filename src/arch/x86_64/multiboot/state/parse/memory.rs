@@ -71,10 +71,16 @@ impl MultibootManager {
 
             let entries_size = size.saturating_sub(16);
             let num_entries = entries_size / tag.entry_size;
+            let max_entries = 1024;
+            let num_entries = num_entries.min(max_entries);
             let mut entries = Vec::with_capacity(num_entries as usize);
 
+            let tag_end = tag_ptr.add(size as usize);
             let mut entry_ptr = tag_ptr.add(16);
             for _ in 0..num_entries {
+                if entry_ptr.add(core::mem::size_of::<MemoryMapEntry>()) > tag_end {
+                    break;
+                }
                 let entry = *(entry_ptr as *const MemoryMapEntry);
                 entries.push(entry);
                 entry_ptr = entry_ptr.add(tag.entry_size as usize);
@@ -110,19 +116,26 @@ impl MultibootManager {
             let entries_offset = 16u32;
             let entries_size = size.saturating_sub(entries_offset);
             let num_entries = entries_size / tag.descriptor_size;
+            let max_entries = 1024u32;
+            let num_entries = num_entries.min(max_entries);
 
             let mut entries = Vec::with_capacity(num_entries as usize);
+            let tag_end = tag_ptr.add(size as usize);
             let mut entry_ptr = tag_ptr.add(entries_offset as usize);
 
+            #[repr(C)]
+            struct EfiMemDesc {
+                memory_type: u32,
+                padding: u32,
+                physical_start: u64,
+                virtual_start: u64,
+                number_of_pages: u64,
+                attribute: u64,
+            }
+
             for _ in 0..num_entries {
-                #[repr(C)]
-                struct EfiMemDesc {
-                    memory_type: u32,
-                    padding: u32,
-                    physical_start: u64,
-                    virtual_start: u64,
-                    number_of_pages: u64,
-                    attribute: u64,
+                if entry_ptr.add(core::mem::size_of::<EfiMemDesc>()) > tag_end {
+                    break;
                 }
 
                 let desc = &*(entry_ptr as *const EfiMemDesc);
