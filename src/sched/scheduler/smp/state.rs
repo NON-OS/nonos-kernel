@@ -36,6 +36,9 @@ static ACTIVE_CPU_COUNT: AtomicUsize = AtomicUsize::new(1);
 static SMP_INITIALIZED: AtomicBool = AtomicBool::new(false);
 
 pub fn init_cpu_queue(cpu_id: usize) {
+    if cpu_id >= MAX_CPUS {
+        return;
+    }
     CPU_QUEUES[cpu_id].0.call_once(|| PerCpuRunQueue::new(cpu_id));
     if cpu_id == 0 {
         SMP_INITIALIZED.store(true, Ordering::Release);
@@ -44,8 +47,11 @@ pub fn init_cpu_queue(cpu_id: usize) {
     }
 }
 
-pub fn get_cpu_queue(cpu_id: usize) -> &'static PerCpuRunQueue {
-    CPU_QUEUES[cpu_id].0.get().expect("CPU queue not initialized")
+pub fn get_cpu_queue(cpu_id: usize) -> Option<&'static PerCpuRunQueue> {
+    if cpu_id >= MAX_CPUS {
+        return None;
+    }
+    CPU_QUEUES[cpu_id].0.get()
 }
 
 pub fn active_cpu_count() -> usize { ACTIVE_CPU_COUNT.load(Ordering::Relaxed) }
