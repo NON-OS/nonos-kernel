@@ -28,7 +28,8 @@ pub fn get_claimable(token_id: u64) -> Result<u128, NftError> {
     calldata.extend_from_slice(&token_id.to_be_bytes());
     let result = eth::client::call(&REWARD_POOL_ADDR, &calldata).map_err(|_| NftError::NetworkError)?;
     if result.len() < 32 { return Err(NftError::InvalidToken); }
-    Ok(u128::from_be_bytes(result[16..32].try_into().unwrap()))
+    let bytes: [u8; 16] = result[16..32].try_into().map_err(|_| NftError::InvalidToken)?;
+    Ok(u128::from_be_bytes(bytes))
 }
 
 pub fn claim_rewards(token_id: u64, key: &[u8; 32]) -> Result<u128, NftError> {
@@ -45,20 +46,18 @@ pub fn get_reward_info(token_id: u64) -> Result<RewardInfo, NftError> {
     calldata.extend_from_slice(&[0u8; 24]);
     calldata.extend_from_slice(&token_id.to_be_bytes());
     let result = eth::client::call(&REWARD_POOL_ADDR, &calldata).map_err(|_| NftError::NetworkError)?;
-    let claimed = if result.len() >= 32 { u128::from_be_bytes(result[16..32].try_into().unwrap()) } else { 0 };
+    let claimed = result.get(16..32).and_then(|s| s.try_into().ok()).map(u128::from_be_bytes).unwrap_or(0);
     Ok(RewardInfo { claimable, claimed, last_claim: 0, epoch: 0 })
 }
 
 pub fn current_epoch() -> Result<u64, NftError> {
     let calldata = abi::selector("currentEpoch()").to_vec();
     let result = eth::client::call(&REWARD_POOL_ADDR, &calldata).map_err(|_| NftError::NetworkError)?;
-    if result.len() < 32 { return Ok(0); }
-    Ok(u64::from_be_bytes(result[24..32].try_into().unwrap()))
+    Ok(result.get(24..32).and_then(|s| s.try_into().ok()).map(u64::from_be_bytes).unwrap_or(0))
 }
 
 pub fn epoch_pool_balance() -> Result<u128, NftError> {
     let calldata = abi::selector("epochPool()").to_vec();
     let result = eth::client::call(&REWARD_POOL_ADDR, &calldata).map_err(|_| NftError::NetworkError)?;
-    if result.len() < 32 { return Ok(0); }
-    Ok(u128::from_be_bytes(result[16..32].try_into().unwrap()))
+    Ok(result.get(16..32).and_then(|s| s.try_into().ok()).map(u128::from_be_bytes).unwrap_or(0))
 }
