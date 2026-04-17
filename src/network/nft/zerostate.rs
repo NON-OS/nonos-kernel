@@ -28,7 +28,8 @@ pub fn balance_of(owner: &[u8; 20]) -> Result<u64, NftError> {
     calldata.extend_from_slice(owner);
     let result = eth::client::call(&ZEROSTATE_ADDR, &calldata).map_err(|_| NftError::NetworkError)?;
     if result.len() < 32 { return Err(NftError::InvalidToken); }
-    Ok(u64::from_be_bytes(result[24..32].try_into().unwrap()))
+    let bytes: [u8; 8] = result[24..32].try_into().map_err(|_| NftError::InvalidToken)?;
+    Ok(u64::from_be_bytes(bytes))
 }
 
 pub fn owner_of(token_id: u64) -> Result<[u8; 20], NftError> {
@@ -58,5 +59,6 @@ pub fn total_supply() -> Result<u64, NftError> {
     let calldata = abi::selector("totalSupply()").to_vec();
     let result = eth::client::call(&ZEROSTATE_ADDR, &calldata).map_err(|_| NftError::NetworkError)?;
     if result.len() < 32 { return Err(NftError::InvalidToken); }
-    Ok(u64::from_be_bytes(result[24..32].try_into().unwrap()))
+    let bytes: [u8; 8] = result[24..32].try_into().map_err(|_| NftError::InvalidToken)?;
+    Ok(u64::from_be_bytes(bytes))
 }
