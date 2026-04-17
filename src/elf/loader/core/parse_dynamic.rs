@@ -41,8 +41,9 @@ pub(super) fn parse_dynamic_section(elf_data: &[u8], ph: &ProgramHeader, base_ad
     }
     if let Some(strtab_file_offset) = strtab_offset {
         for &name_offset in &needed_offsets {
-            let string_offset = strtab_file_offset as usize + name_offset as usize;
-            if string_offset < elf_data.len() { let name = read_string_from_data(elf_data, string_offset); if !name.is_empty() { dynamic_info.needed_libraries.push(name); } }
+            if let Some(string_offset) = (strtab_file_offset as usize).checked_add(name_offset as usize) {
+                if string_offset < elf_data.len() { let name = read_string_from_data(elf_data, string_offset); if !name.is_empty() { dynamic_info.needed_libraries.push(name); } }
+            }
         }
     }
     Ok(dynamic_info)
