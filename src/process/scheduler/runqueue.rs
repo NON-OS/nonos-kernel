@@ -47,7 +47,7 @@ impl RunQueue {
 
     #[inline]
     pub fn current(&self) -> Option<u32> {
-        match self.current.load(Ordering::Relaxed) {
+        match self.current.load(Ordering::Acquire) {
             0 => None,
             v => Some(v),
         }
@@ -61,10 +61,10 @@ impl RunQueue {
         if pid == 0 {
             return;
         }
-        if self.current.load(Ordering::Relaxed) == pid {
+        let mut q = self.q.lock();
+        if self.current.load(Ordering::Acquire) == pid {
             return;
         }
-        let mut q = self.q.lock();
         if !Self::contains_locked(&q, pid) {
             q.push_back(pid);
         }
@@ -74,10 +74,10 @@ impl RunQueue {
         if pid == 0 {
             return;
         }
-        if self.current.load(Ordering::Relaxed) == pid {
+        let mut q = self.q.lock();
+        if self.current.load(Ordering::Acquire) == pid {
             return;
         }
-        let mut q = self.q.lock();
         if !Self::contains_locked(&q, pid) {
             q.push_front(pid);
         }
@@ -97,9 +97,9 @@ impl RunQueue {
     }
 
     pub fn clear_current(&self) -> Option<u32> {
-        let prev = self.current.swap(0, Ordering::Relaxed);
+        let prev = self.current.swap(0, Ordering::AcqRel);
         if prev != 0 {
-            self.slice_left.store(0, Ordering::Relaxed);
+            self.slice_left.store(0, Ordering::Release);
             Some(prev)
         } else {
             None
@@ -110,8 +110,8 @@ impl RunQueue {
         if pid == 0 {
             return;
         }
-        self.current.store(pid, Ordering::Relaxed);
-        self.slice_left.store(self.default_slice, Ordering::Relaxed);
+        self.slice_left.store(self.default_slice, Ordering::Release);
+        self.current.store(pid, Ordering::Release);
     }
 
     pub fn yield_current(&self) -> Option<u32> {
@@ -123,18 +123,18 @@ impl RunQueue {
     }
 
     pub fn on_timer_tick(&self) -> Option<u32> {
-        if self.current.load(Ordering::Relaxed) == 0 {
+        if self.current.load(Ordering::Acquire) == 0 {
             return self.pick_next();
         }
 
-        let left = self.slice_left.load(Ordering::Relaxed);
+        let left = self.slice_left.load(Ordering::Acquire);
         if left <= 1 {
             if let Some(cur) = self.clear_current() {
                 self.push(cur);
             }
             return self.pick_next();
         } else {
-            self.slice_left.store(left - 1, Ordering::Relaxed);
+            self.slice_left.store(left - 1, Ordering::Release);
             return self.current();
         }
     }
@@ -146,8 +146,8 @@ impl RunQueue {
             self.set_current(next);
             Some(next)
         } else {
-            self.current.store(0, Ordering::Relaxed);
-            self.slice_left.store(0, Ordering::Relaxed);
+            self.slice_left.store(0, Ordering::Release);
+            self.current.store(0, Ordering::Release);
             None
         }
     }
