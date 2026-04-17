@@ -31,7 +31,6 @@ pub fn switch_to_process(pid: u32) {
         *pcb.state.lock() = ProcessState::Running;
         owns_space
     } else {
-        crate::sched::yield_now();
         return;
     };
     CURRENT_PID.store(pid, Ordering::SeqCst);
