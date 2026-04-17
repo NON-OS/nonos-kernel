@@ -35,7 +35,9 @@ impl AgentsClient {
         payload.extend_from_slice(name.as_bytes());
         let resp = self.client.call(ServiceOp::Ioctl, payload).map_err(|_| -1)?;
         if resp.status == 0 && resp.payload.len() >= 4 {
-            Ok(u32::from_le_bytes(resp.payload[..4].try_into().unwrap()))
+            let mut bytes = [0u8; 4];
+            bytes.copy_from_slice(&resp.payload[..4]);
+            Ok(u32::from_le_bytes(bytes))
         } else {
             Err(resp.status)
         }
