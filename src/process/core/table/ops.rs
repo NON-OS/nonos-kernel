@@ -31,13 +31,13 @@ impl ProcessTable {
     }
 
     pub fn set_process_group(&self, pid: Pid, pgid: Pid) -> Result<(), &'static str> {
-        self.find_by_pid(pid).map(|pcb| pcb.pgid.store(pgid, Ordering::Relaxed)).ok_or("Process not found")
+        self.find_by_pid(pid).map(|pcb| pcb.pgid.store(pgid, Ordering::Release)).ok_or("Process not found")
     }
 
     pub fn set_session_leader(&self, pid: Pid) -> Result<(), &'static str> {
         self.find_by_pid(pid).map(|pcb| {
-            pcb.sid.store(pid, Ordering::Relaxed);
-            pcb.pgid.store(pid, Ordering::Relaxed);
+            pcb.sid.store(pid, Ordering::Release);
+            pcb.pgid.store(pid, Ordering::Release);
         }).ok_or("Process not found")
     }
 }
