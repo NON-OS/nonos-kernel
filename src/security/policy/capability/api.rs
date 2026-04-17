@@ -75,12 +75,12 @@ fn secure_random_u8() -> u8 {
         return hw_rand;
     }
 
-    static mut SEED: u64 = 1;
-    // SAFETY: Single-threaded fallback, only used when hardware RNG unavailable
-    unsafe {
-        *addr_of_mut!(SEED) = (*addr_of!(SEED)).wrapping_mul(1103515245).wrapping_add(12345);
-        (*addr_of!(SEED) >> 24) as u8
-    }
+    use core::sync::atomic::{AtomicU64, Ordering};
+    static SEED: AtomicU64 = AtomicU64::new(1);
+    let old = SEED.fetch_update(Ordering::SeqCst, Ordering::SeqCst, |s| {
+        Some(s.wrapping_mul(1103515245).wrapping_add(12345))
+    }).unwrap_or(1);
+    (old >> 24) as u8
 }
 
 fn try_hardware_rng() -> Option<u8> {
