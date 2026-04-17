@@ -20,8 +20,10 @@ use super::types::*;
 pub fn map_segment_pages(phdr: &Elf64ProgramHeader, vaddr: u64) -> Result<(), ElfError> {
     let page_offset = vaddr & 0xFFF;
     let aligned_vaddr = vaddr & !0xFFF;
-    let aligned_filesz = (phdr.p_filesz + page_offset + 0xFFF) & !0xFFF;
-    let aligned_memsz = (phdr.p_memsz + page_offset + 0xFFF) & !0xFFF;
+    let aligned_filesz = phdr.p_filesz.checked_add(page_offset).and_then(|v| v.checked_add(0xFFF))
+        .ok_or(ElfError::InvalidProgramHeader)? & !0xFFF;
+    let aligned_memsz = phdr.p_memsz.checked_add(page_offset).and_then(|v| v.checked_add(0xFFF))
+        .ok_or(ElfError::InvalidProgramHeader)? & !0xFFF;
     let file_pages = aligned_filesz as usize / 4096;
     let num_pages = aligned_memsz.max(aligned_filesz) as usize / 4096;
 
@@ -49,7 +51,7 @@ pub fn map_segment_pages(phdr: &Elf64ProgramHeader, vaddr: u64) -> Result<(), El
 pub fn copy_segment_data(data: &[u8], phdr: &Elf64ProgramHeader, vaddr: u64) -> Result<(), ElfError> {
     if phdr.p_filesz > 0 {
         let file_offset = phdr.p_offset as usize;
-        let file_end = file_offset + phdr.p_filesz as usize;
+        let file_end = file_offset.checked_add(phdr.p_filesz as usize).ok_or(ElfError::InvalidProgramHeader)?;
         if file_end > data.len() { return Err(ElfError::InvalidProgramHeader); }
         let src = &data[file_offset..file_end];
         let dst = vaddr as *mut u8;
