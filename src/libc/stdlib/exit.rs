@@ -42,7 +42,7 @@ pub extern "C" fn quick_exit(status: i32) -> ! {
 #[no_mangle]
 pub extern "C" fn abort() -> ! {
     unsafe { crate::libc::signal::raise(6) };
-    loop { core::hint::spin_loop(); }
+    crate::arch::x86_64::boot::cpu_ops::halt_loop()
 }
 
 #[no_mangle]
