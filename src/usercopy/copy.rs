@@ -18,81 +18,64 @@ use super::error::UsercopyError;
 use super::validate::{validate_user_read, validate_user_write};
 use super::fault::did_fault;
 
-/// # Safety
-/// Copies data from user space to kernel buffer with full validation.
-/// Validates page mappings before access. Returns error on any fault.
-/// User pointer must be in canonical user address range.
 pub fn copy_from_user(user_ptr: u64, dst: &mut [u8]) -> Result<(), UsercopyError> {
-    validate_user_read(user_ptr, dst.len())?;
-    unsafe { do_copy_from_user(user_ptr, dst) }
+    crate::arch::x86_64::idt::without_interrupts(|| {
+        validate_user_read(user_ptr, dst.len())?;
+        unsafe { do_copy_from_user(user_ptr, dst) }
+    })
 }
 
-/// # Safety
-/// Copies data from kernel buffer to user space with full validation.
-/// Validates page mappings and writability before access.
-/// User pointer must be in canonical user address range.
 pub fn copy_to_user(user_ptr: u64, src: &[u8]) -> Result<(), UsercopyError> {
-    validate_user_write(user_ptr, src.len())?;
-    unsafe { do_copy_to_user(user_ptr, src) }
+    crate::arch::x86_64::idt::without_interrupts(|| {
+        validate_user_write(user_ptr, src.len())?;
+        unsafe { do_copy_to_user(user_ptr, src) }
+    })
 }
 
-/// # Safety
-/// Reads a typed value from user space with validation. Type must be Copy
-/// and have stable representation. User pointer must be properly aligned.
 pub fn read_user_value<T: Copy>(user_ptr: u64) -> Result<T, UsercopyError> {
     let size = core::mem::size_of::<T>();
     let align = core::mem::align_of::<T>();
     if align > 1 && (user_ptr as usize) % align != 0 {
         return Err(UsercopyError::MisalignedAddress);
     }
-    validate_user_read(user_ptr, size)?;
-
-    let mut value: T = unsafe { core::mem::zeroed() };
-    let dst = unsafe {
-        core::slice::from_raw_parts_mut(&mut value as *mut T as *mut u8, size)
-    };
-
-    unsafe { do_copy_from_user(user_ptr, dst)?; }
-    Ok(value)
+    crate::arch::x86_64::idt::without_interrupts(|| {
+        validate_user_read(user_ptr, size)?;
+        let mut value: T = unsafe { core::mem::zeroed() };
+        let dst = unsafe {
+            core::slice::from_raw_parts_mut(&mut value as *mut T as *mut u8, size)
+        };
+        unsafe { do_copy_from_user(user_ptr, dst)?; }
+        Ok(value)
+    })
 }
 
-/// # Safety
-/// Writes a typed value to user space with validation. Type must be Copy
-/// and have stable representation. User pointer must be properly aligned.
 pub fn write_user_value<T: Copy>(user_ptr: u64, value: &T) -> Result<(), UsercopyError> {
     let size = core::mem::size_of::<T>();
     let align = core::mem::align_of::<T>();
     if align > 1 && (user_ptr as usize) % align != 0 {
         return Err(UsercopyError::MisalignedAddress);
     }
-    validate_user_write(user_ptr, size)?;
-
-    let src = unsafe {
-        core::slice::from_raw_parts(value as *const T as *const u8, size)
-    };
-
-    unsafe { do_copy_to_user(user_ptr, src) }
+    crate::arch::x86_64::idt::without_interrupts(|| {
+        validate_user_write(user_ptr, size)?;
+        let src = unsafe {
+            core::slice::from_raw_parts(value as *const T as *const u8, size)
+        };
+        unsafe { do_copy_to_user(user_ptr, src) }
+    })
 }
 
-/// # Safety
-/// Internal copy from user using volatile reads. Checks fault flag after
-/// each byte to detect page faults during access. Caller must have
-/// validated the address range before calling.
 unsafe fn do_copy_from_user(src: u64, dst: &mut [u8]) -> Result<(), UsercopyError> {
     let src_ptr = src as *const u8;
     for (i, byte) in dst.iter_mut().enumerate() {
         *byte = core::ptr::read_volatile(src_ptr.add(i));
         if did_fault() {
+            dst.fill(0);
             return Err(UsercopyError::PageFault);
         }
     }
     Ok(())
 }
 
-/// # Safety
-/// Internal copy to user using volatile writes. Checks fault flag after
-/// each byte to detect page faults during access. Caller must have
-/// validated the address range before calling.
 unsafe fn do_copy_to_user(dst: u64, src: &[u8]) -> Result<(), UsercopyError> {
     let dst_ptr = dst as *mut u8;
     for (i, byte) in src.iter().enumerate() {
@@ -125,17 +108,23 @@ pub fn read_user_string(user_ptr: u64, max_len: usize) -> Result<alloc::string::
     let safe_len = max_len.min(MAX_STRING_LEN);
     if safe_len == 0 { return Ok(alloc::string::String::new()); }
     let mut buf = alloc::vec![0u8; safe_len];
-    validate_user_read(user_ptr, safe_len)?;
-    let mut actual_len = 0;
-    for i in 0..safe_len {
-        let addr = user_ptr.checked_add(i as u64).ok_or(UsercopyError::AddressOverflow)?;
-        if addr > 0x0000_7FFF_FFFF_FFFF { return Err(UsercopyError::InvalidAddress); }
-        let byte = unsafe { core::ptr::read_volatile(addr as *const u8) };
-        if did_fault() { return Err(UsercopyError::PageFault); }
-        if byte == 0 { break; }
-        buf[i] = byte;
-        actual_len = i + 1;
-    }
+    let actual_len = crate::arch::x86_64::idt::without_interrupts(|| {
+        validate_user_read(user_ptr, safe_len)?;
+        let mut len = 0usize;
+        for i in 0..safe_len {
+            let addr = user_ptr.checked_add(i as u64).ok_or(UsercopyError::AddressOverflow)?;
+            if addr > 0x0000_7FFF_FFFF_FFFF { return Err(UsercopyError::InvalidAddress); }
+            let byte = unsafe { core::ptr::read_volatile(addr as *const u8) };
+            if did_fault() {
+                buf.fill(0);
+                return Err(UsercopyError::PageFault);
+            }
+            if byte == 0 { break; }
+            buf[i] = byte;
+            len = i + 1;
+        }
+        Ok(len)
+    })?;
     buf.truncate(actual_len);
     alloc::string::String::from_utf8(buf).map_err(|_| UsercopyError::InvalidUtf8)
 }
