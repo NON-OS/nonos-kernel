@@ -41,6 +41,10 @@ pub fn copy_to_user(user_ptr: u64, src: &[u8]) -> Result<(), UsercopyError> {
 /// and have stable representation. User pointer must be properly aligned.
 pub fn read_user_value<T: Copy>(user_ptr: u64) -> Result<T, UsercopyError> {
     let size = core::mem::size_of::<T>();
+    let align = core::mem::align_of::<T>();
+    if align > 1 && (user_ptr as usize) % align != 0 {
+        return Err(UsercopyError::MisalignedAddress);
+    }
     validate_user_read(user_ptr, size)?;
 
     let mut value: T = unsafe { core::mem::zeroed() };
@@ -57,6 +61,10 @@ pub fn read_user_value<T: Copy>(user_ptr: u64) -> Result<T, UsercopyError> {
 /// and have stable representation. User pointer must be properly aligned.
 pub fn write_user_value<T: Copy>(user_ptr: u64, value: &T) -> Result<(), UsercopyError> {
     let size = core::mem::size_of::<T>();
+    let align = core::mem::align_of::<T>();
+    if align > 1 && (user_ptr as usize) % align != 0 {
+        return Err(UsercopyError::MisalignedAddress);
+    }
     validate_user_write(user_ptr, size)?;
 
     let src = unsafe {
