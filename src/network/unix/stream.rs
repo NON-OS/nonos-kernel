@@ -46,7 +46,9 @@ impl UnixStream {
         }
         let len = buf.len().min(recv.len());
         for i in 0..len {
-            buf[i] = recv.pop_front().unwrap();
+            if let Some(byte) = recv.pop_front() {
+                buf[i] = byte;
+            }
         }
         Ok(len)
     }
