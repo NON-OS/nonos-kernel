@@ -108,13 +108,9 @@ impl AioContext {
     pub fn cancel(id: u64, data: u64) -> Result<IoEvent, i32> {
         let mut contexts = CONTEXTS.lock();
         let ctx = contexts.get_mut(&id).ok_or(22)?;
-        let pos = ctx.pending.iter().position(|iocb| iocb.aio_data == data);
-        if let Some(idx) = pos {
-            let iocb = ctx.pending.remove(idx).unwrap();
-            Ok(IoEvent::error(iocb.aio_data, 0, 125))
-        } else {
-            Err(11)
-        }
+        let idx = ctx.pending.iter().position(|iocb| iocb.aio_data == data).ok_or(11)?;
+        let iocb = ctx.pending.remove(idx).ok_or(11)?;
+        Ok(IoEvent::error(iocb.aio_data, 0, 125))
     }
 
     pub fn cancel_all(id: u64) -> Result<usize, i32> {
