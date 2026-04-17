@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+extern crate alloc;
+
 use crate::process::core::{create_process, ProcessState, Priority, PROCESS_TABLE};
 use crate::process::current_pid;
 
@@ -24,8 +26,11 @@ const MAX_NAME_LEN: usize = 256;
 
 pub fn sys_spawn(name_ptr: *const u8, name_len: usize) -> i64 {
     if name_ptr.is_null() || name_len == 0 || name_len > MAX_NAME_LEN { return E_INVAL; }
-    let name_bytes = unsafe { core::slice::from_raw_parts(name_ptr, name_len) };
-    let name = match core::str::from_utf8(name_bytes) {
+    let addr = name_ptr as u64;
+    if crate::usercopy::validate_user_read(addr, name_len).is_err() { return E_FAULT; }
+    let mut name_bytes = alloc::vec![0u8; name_len];
+    if crate::usercopy::copy_from_user(addr, &mut name_bytes).is_err() { return E_FAULT; }
+    let name = match core::str::from_utf8(&name_bytes) {
         Ok(s) => s,
         Err(_) => return E_FAULT,
     };
