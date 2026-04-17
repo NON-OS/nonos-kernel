@@ -14,16 +14,23 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+use crate::usercopy::validate_user_read;
 use super::super::super::util::{is_pipe_read_fd, is_pipe_write_fd, pipe_fd_to_channel_id, convert_open_flags};
+
+const EFAULT: i64 = -14;
+const ENAMETOOLONG: i64 = -36;
+const MAX_PATH: usize = 4096;
 
 pub fn syscall_open(pathname: u64, flags: u64, _mode: u64, _: u64, _: u64, _: u64) -> u64 {
     if pathname == 0 {
-        return (-14i64) as u64;
+        return EFAULT as u64;
+    }
+    if validate_user_read(pathname, MAX_PATH).is_err() {
+        return EFAULT as u64;
     }
 
     let path_ptr = pathname as *const u8;
     let mut path_len = 0usize;
-    const MAX_PATH: usize = 4096;
 
     unsafe {
         while path_len < MAX_PATH && *path_ptr.add(path_len) != 0 {
@@ -32,7 +39,7 @@ pub fn syscall_open(pathname: u64, flags: u64, _mode: u64, _: u64, _: u64, _: u6
     }
 
     if path_len == 0 || path_len >= MAX_PATH {
-        return (-36i64) as u64;
+        return ENAMETOOLONG as u64;
     }
 
     let path_slice = unsafe { core::slice::from_raw_parts(path_ptr, path_len) };
