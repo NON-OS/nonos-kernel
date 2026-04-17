@@ -84,8 +84,11 @@ pub fn process_ra(src: &Ipv6Address, data: &[u8]) {
     let mut offset = 12;
     while offset + 2 <= data.len() {
         let opt_type = data[offset];
-        let opt_len = data[offset + 1] as usize * 8;
-        if opt_len == 0 || offset + opt_len > data.len() { break; }
+        let opt_len = match (data[offset + 1] as usize).checked_mul(8) {
+            Some(len) if len > 0 => len,
+            _ => break,
+        };
+        if offset.saturating_add(opt_len) > data.len() { break; }
         if opt_type == 3 && opt_len >= 32 {
             let prefix_len = data[offset + 2];
             let valid = u32::from_be_bytes([data[offset+4], data[offset+5], data[offset+6], data[offset+7]]);
