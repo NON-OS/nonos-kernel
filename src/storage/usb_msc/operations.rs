@@ -32,12 +32,12 @@ pub fn read_blocks(device_id: u8, start_lba: u64, count: u32, buffer: &mut [u8])
         return Err(BlockError::InvalidBlock);
     }
 
-    let expected_size = count as usize * dev.block_size as usize;
+    let expected_size = (count as usize).checked_mul(dev.block_size as usize).ok_or(BlockError::IoError)?;
     if buffer.len() < expected_size {
         return Err(BlockError::IoError);
     }
 
-    if start_lba > 0xFFFFFFFF {
+    if start_lba > 0xFFFFFFFF || expected_size > u32::MAX as usize {
         return Err(BlockError::InvalidBlock);
     }
 
@@ -91,12 +91,12 @@ pub fn write_blocks(device_id: u8, start_lba: u64, count: u32, buffer: &[u8]) ->
         return Err(BlockError::InvalidBlock);
     }
 
-    let expected_size = count as usize * dev.block_size as usize;
+    let expected_size = (count as usize).checked_mul(dev.block_size as usize).ok_or(BlockError::IoError)?;
     if buffer.len() < expected_size {
         return Err(BlockError::IoError);
     }
 
-    if start_lba > 0xFFFFFFFF {
+    if start_lba > 0xFFFFFFFF || expected_size > u32::MAX as usize {
         return Err(BlockError::InvalidBlock);
     }
 
