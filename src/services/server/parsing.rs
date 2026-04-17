@@ -29,7 +29,8 @@ pub(crate) fn parse_request(data: &[u8]) -> Option<ServiceRequest> {
     let op_raw = u16::from_le_bytes([data[6], data[7]]);
     let flags = u16::from_le_bytes([data[8], data[9]]);
     let len = u16::from_le_bytes([data[10], data[11]]) as usize;
-    let payload = data.get(12..12 + len).unwrap_or(&[]).to_vec();
+    let end = 12usize.checked_add(len)?;
+    let payload = data.get(12..end).unwrap_or(&[]).to_vec();
     let op = match op_raw {
         0 => ServiceOp::Ping, 1 => ServiceOp::Open, 2 => ServiceOp::Close,
         3 => ServiceOp::Read, 4 => ServiceOp::Write, 5 => ServiceOp::Ioctl,
