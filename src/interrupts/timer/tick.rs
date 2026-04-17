@@ -28,6 +28,11 @@ pub fn on_timer_interrupt() {
     }
 
     hooks::invoke_hook();
+
+    if crate::sched::scheduler::preemption::need_reschedule() {
+        crate::sched::scheduler::preemption::clear_reschedule();
+        crate::sched::scheduler::preemption::preempt_current_process();
+    }
 }
 
 pub fn tick() {
