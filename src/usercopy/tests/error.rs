@@ -265,6 +265,7 @@ pub(crate) fn test_usercopy_error_match_exhaustive() -> TestResult {
         UsercopyError::NullPointer => true,
         UsercopyError::InvalidAddress => false,
         UsercopyError::AddressOverflow => false,
+        UsercopyError::MisalignedAddress => false,
         UsercopyError::PageNotMapped => false,
         UsercopyError::PageNotUser => false,
         UsercopyError::PageNotWritable => false,
