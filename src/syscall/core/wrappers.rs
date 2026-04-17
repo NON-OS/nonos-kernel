@@ -104,7 +104,7 @@ pub fn sys_execve(path: u64, argv: u64, envp: u64) -> i64 {
 #[inline]
 pub fn sys_exit(code: i32) -> ! {
     handle_syscall(SyscallNumber::Exit as u64, code as u64, 0, 0, 0, 0, 0);
-    loop { core::hint::spin_loop(); }
+    crate::arch::x86_64::boot::cpu_ops::halt_loop()
 }
 
 #[inline]
