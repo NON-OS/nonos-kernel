@@ -23,10 +23,11 @@ pub fn get_zone_stats(state: &AllocatorState) -> ZoneStats {
 
 pub fn managed_range(state: &AllocatorState) -> (u64, u64) {
     let start = state.frame_start;
-    let end = start + ((state.frame_count as u64) * PAGE_SIZE_U64);
+    let size = (state.frame_count as u64).saturating_mul(PAGE_SIZE_U64);
+    let end = start.saturating_add(size);
     (start, end)
 }
 
 pub fn total_memory(state: &AllocatorState) -> u64 {
-    (state.frame_count * PAGE_SIZE) as u64
+    (state.frame_count as u64).saturating_mul(PAGE_SIZE as u64)
 }
