@@ -16,20 +16,26 @@
 
 use crate::arch::x86_64::idt::constants::IRQ_BASE;
 use crate::arch::x86_64::idt::entry::InterruptFrame;
-use crate::arch::x86_64::idt::state::{IRQ_HANDLERS, OTHER_HANDLERS, SYSCALL_HANDLER};
+use crate::arch::x86_64::idt::state::{get_irq_handler, get_other_handler, get_syscall_handler};
 use super::acknowledge_interrupt;
 
 pub(crate) fn handle_irq(frame: &mut InterruptFrame) {
-    let irq = (frame.vector as u8) - IRQ_BASE;
-    unsafe { if let Some(handler) = IRQ_HANDLERS[irq as usize] { handler(irq); } }
+    let irq = (frame.vector as u8).wrapping_sub(IRQ_BASE);
+    if let Some(handler) = get_irq_handler(irq) {
+        handler(irq);
+    }
     acknowledge_interrupt(irq);
 }
 
 pub(crate) fn handle_syscall(frame: &mut InterruptFrame) {
-    unsafe { if let Some(handler) = SYSCALL_HANDLER { handler(frame); } }
+    if let Some(handler) = get_syscall_handler() {
+        handler(frame);
+    }
 }
 
 pub(crate) fn handle_other(frame: &mut InterruptFrame) {
     let vector = frame.vector as u8;
-    unsafe { if let Some(handler) = OTHER_HANDLERS[vector as usize] { handler(frame); } }
+    if let Some(handler) = get_other_handler(vector) {
+        handler(frame);
+    }
 }
