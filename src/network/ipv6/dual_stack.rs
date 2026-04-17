@@ -64,8 +64,7 @@ impl DualStackSocket {
     pub fn send(&self, data: &[u8]) -> Result<usize, i32> {
         let remote = self.v6_socket.remote_addr.lock().ok_or(-107)?;
         if self.v6only && is_ipv4_mapped(&remote) { return Err(-99); }
-        if is_ipv4_mapped(&remote) {
-            let v4 = extract_ipv4(&remote).unwrap();
+        if let Some(v4) = extract_ipv4(&remote) {
             return self.send_v4(data, v4, *self.v6_socket.remote_port.lock());
         }
         self.v6_socket.send(data)
