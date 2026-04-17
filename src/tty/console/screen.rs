@@ -79,6 +79,6 @@ impl ScreenBuffer {
     pub fn set_attribute(&mut self, attr: u8) { self.attr = attr; }
 }
 
-pub fn clear_screen() { super::get_active_vt().screen.lock().clear(); }
-pub fn scroll_up() { super::get_active_vt().screen.lock().scroll_up(); }
-pub fn scroll_down() { super::get_active_vt().screen.lock().scroll_down(); }
+pub fn clear_screen() { if let Some(vt) = super::get_active_vt() { vt.screen.lock().clear(); } }
+pub fn scroll_up() { if let Some(vt) = super::get_active_vt() { vt.screen.lock().scroll_up(); } }
+pub fn scroll_down() { if let Some(vt) = super::get_active_vt() { vt.screen.lock().scroll_down(); } }
