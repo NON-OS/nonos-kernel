@@ -35,7 +35,7 @@ macro_rules! do_format {
                         b'u' => { let v: u32 = $args.arg(); pos += uint_to_str(v as u64, 10, &mut buf[pos..]); }
                         b'x' => { let v: u32 = $args.arg(); pos += uint_to_str(v as u64, 16, &mut buf[pos..]); }
                         b'X' => { let v: u32 = $args.arg(); pos += uint_to_str(v as u64, 16, &mut buf[pos..]); }
-                        b'p' => { let v: usize = $args.arg(); buf[pos] = b'0'; buf[pos+1] = b'x'; pos += 2; pos += uint_to_str(v as u64, 16, &mut buf[pos..]); }
+                        b'p' => { let v: usize = $args.arg(); if pos + 2 < buf.len() { buf[pos] = b'0'; buf[pos+1] = b'x'; pos += 2; pos += uint_to_str(v as u64, 16, &mut buf[pos..]); } }
                         b's' => { let s: *const u8 = $args.arg(); if !s.is_null() { let mut j = 0; while ptr::read(s.add(j)) != 0 && pos < max { buf[pos] = ptr::read(s.add(j)); pos += 1; j += 1; } } }
                         b'c' => { let c: i32 = $args.arg(); buf[pos] = c as u8; pos += 1; }
                         b'%' => { buf[pos] = b'%'; pos += 1; }
