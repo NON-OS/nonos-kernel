@@ -18,7 +18,6 @@ use crate::graphics::{framebuffer, desktop, cursor, window};
 use crate::sys::clock;
 use crate::entry::desktop_loop;
 use crate::input;
-use core::arch::asm;
 use core::sync::atomic::{AtomicBool, AtomicU64, Ordering};
 use super::dialogs::handle_dialogs;
 
@@ -44,7 +43,7 @@ pub fn run_desktop() -> ! {
         deferred_wallpaper_load();
         do_redraw(&mut old_mx, &mut old_my);
         update_clock(&mut last_clock);
-        for _ in 0..50 { unsafe { asm!("pause", options(nomem, nostack)); } }
+        crate::sched::yield_now();
     }
 }
 
