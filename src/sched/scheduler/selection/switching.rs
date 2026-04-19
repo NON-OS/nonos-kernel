@@ -20,25 +20,40 @@ use super::super::preemption::{CURRENT_TIME_SLICE, DEFAULT_TIME_SLICE};
 pub fn switch_to_process(pid: u32) {
     use crate::process::nonos_core::{PROCESS_TABLE, ProcessState, CURRENT_PID};
     use crate::process::nonos_core::{restore_fpu_state, has_saved_fpu_state, init_fpu};
+    use crate::process::nonos_core::INTERRUPT_SAVED_CONTEXTS;
     use crate::memory::paging::manager::api::switch_to_process_address_space;
-    let ctx_opt = crate::process::nonos_core::INTERRUPT_SAVED_CONTEXTS.write().remove(&pid);
-    let Some(ctx) = ctx_opt else {
-        crate::sys::serial::print(b"[SCHED] No ctx for pid=");
-        crate::sys::serial::print_dec(pid as u64);
-        crate::sys::serial::println(b"");
-        if let Some(pcb) = PROCESS_TABLE.find_by_pid(pid) { *pcb.state.lock() = ProcessState::Ready; }
-        return;
+
+    let ctx = match INTERRUPT_SAVED_CONTEXTS.write().remove(&pid) {
+        Some(c) => c,
+        None => {
+            if let Some(pcb) = PROCESS_TABLE.find_by_pid(pid) {
+                *pcb.state.lock() = ProcessState::Ready;
+            }
+            return;
+        }
     };
-    let has_own_addr_space = if let Some(pcb) = PROCESS_TABLE.find_by_pid(pid) {
-        let owns_space = pcb.cr3.load(Ordering::Relaxed) != 0;
-        *pcb.state.lock() = ProcessState::Running;
-        owns_space
-    } else {
-        return;
+
+    let has_own_addr_space = match PROCESS_TABLE.find_by_pid(pid) {
+        Some(pcb) => {
+            let owns = pcb.cr3.load(Ordering::Relaxed) != 0;
+            *pcb.state.lock() = ProcessState::Running;
+            owns
+        }
+        None => return,
     };
+
     CURRENT_PID.store(pid, Ordering::SeqCst);
     CURRENT_TIME_SLICE.store(DEFAULT_TIME_SLICE, Ordering::SeqCst);
-    if has_own_addr_space { let _ = switch_to_process_address_space(pid); }
-    if !has_saved_fpu_state(pid) { init_fpu(); } else { restore_fpu_state(pid); }
+
+    if has_own_addr_space {
+        let _ = switch_to_process_address_space(pid);
+    }
+
+    if has_saved_fpu_state(pid) {
+        restore_fpu_state(pid);
+    } else {
+        init_fpu();
+    }
+
     ctx.restore()
 }
