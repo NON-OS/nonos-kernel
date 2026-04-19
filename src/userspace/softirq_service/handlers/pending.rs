@@ -18,17 +18,33 @@ pub(super) fn handle_timer_softirq() {
     crate::interrupts::timer::tick::tick();
 }
 
-pub(super) fn handle_net_tx_softirq() {}
+pub(super) fn handle_net_tx_softirq() {
+    if let Some(dev) = crate::drivers::virtio_net::get_virtio_net_device() {
+        dev.lock().reclaim_tx();
+    }
+    crate::drivers::network::e1000::poll();
+    crate::drivers::rtl8139::poll();
+    crate::drivers::rtl8168::poll();
+}
 
-pub(super) fn handle_net_rx_softirq() {}
+pub(super) fn handle_net_rx_softirq() {
+    crate::network::manager::poll_network();
+}
 
 pub(super) fn handle_block_softirq() {
     let _ = crate::fs::cache::process_inode_cache_maintenance(16);
 }
 
-pub(super) fn handle_irq_poll_softirq() {}
+pub(super) fn handle_irq_poll_softirq() {
+    crate::drivers::network::e1000::poll();
+    crate::drivers::rtl8139::poll();
+    crate::drivers::rtl8168::poll();
+}
 
-pub(super) fn handle_sched_softirq() {}
+pub(super) fn handle_sched_softirq() {
+    crate::sched::scheduler::process::check_sleeping_processes();
+    crate::sched::scheduler::process::wakeup();
+}
 
 pub(super) fn handle_hrtimer_softirq() {
     crate::interrupts::timer::tick::tick();
