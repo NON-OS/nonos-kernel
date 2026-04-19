@@ -42,6 +42,24 @@ pub fn register_block_device(name: &str, dev_major: u32, dev_minor: u32, size_by
 }
 
 fn read_block_stat() -> String {
+    let devices = crate::drivers::block::list_devices();
+    if let Some(dev) = devices.first() {
+        if let Some(stats) = crate::drivers::block::registry::get_device_stats(&dev.name) {
+            use core::sync::atomic::Ordering;
+            return format!("{:>8} {:>8} {:>8} {:>8} {:>8} {:>8} {:>8} {:>8} {:>8} {:>8} {:>8}\n",
+                stats.reads_completed.load(Ordering::Relaxed),
+                stats.reads_merged.load(Ordering::Relaxed),
+                stats.sectors_read.load(Ordering::Relaxed),
+                stats.read_ms.load(Ordering::Relaxed),
+                stats.writes_completed.load(Ordering::Relaxed),
+                stats.writes_merged.load(Ordering::Relaxed),
+                stats.sectors_written.load(Ordering::Relaxed),
+                stats.write_ms.load(Ordering::Relaxed),
+                stats.io_in_progress.load(Ordering::Relaxed),
+                stats.io_ms.load(Ordering::Relaxed),
+                stats.weighted_io_ms.load(Ordering::Relaxed));
+        }
+    }
     format!("{:>8} {:>8} {:>8} {:>8} {:>8} {:>8} {:>8} {:>8} {:>8} {:>8} {:>8}\n",
         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0)
 }
