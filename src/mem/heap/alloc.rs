@@ -39,8 +39,15 @@ pub fn alloc(size: usize, align: usize) -> *mut u8 {
     check_heap_guards();
 
     let data_size = size.max(MIN_BLOCK_SIZE);
-    let total_size = ALLOC_HEADER_SIZE + data_size;
-    let aligned_size = (total_size + align - 1) & !(align - 1);
+    let Some(total_size) = ALLOC_HEADER_SIZE.checked_add(data_size) else {
+        unlock_heap();
+        return null_mut();
+    };
+    let Some(aligned_size) = total_size.checked_add(align.saturating_sub(1))
+        .map(|s| s & !(align - 1)) else {
+        unlock_heap();
+        return null_mut();
+    };
 
     let result = unsafe { alloc_from_freelist(aligned_size, align) };
 
