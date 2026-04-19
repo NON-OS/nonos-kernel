@@ -89,6 +89,7 @@ pub fn handle_accept(sockfd: u64, _addr: u64, _addrlen: u64) -> SyscallResult {
                 remote_port: 0,
                 tcp_conn_id: Some(conn_id),
                 udp_socket_id: None,
+                options: super::types::SocketOptions::default(),
             };
 
             SOCKET_TABLE.lock().insert(new_fd, new_entry);
