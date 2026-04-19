@@ -200,8 +200,96 @@ pub unsafe fn probe_ahci_port(hba: *mut AhciHba, port_num: u8) -> Option<AhciPor
     }
 }
 
-pub unsafe fn send_identify_command(_hba: *mut AhciHba, _port_num: u8) -> Option<[u16; 256]> {
-    None
+pub unsafe fn send_identify_command(hba: *mut AhciHba, port_num: u8) -> Option<[u16; 256]> {
+    let port = &mut (*hba).ports[port_num as usize];
+
+    let cmd_reg = core::ptr::read_volatile(&port.cmd);
+    if (cmd_reg & PORT_CMD_ST) != 0 {
+        core::ptr::write_volatile(&mut port.cmd, cmd_reg & !PORT_CMD_ST);
+        for _ in 0..1000 {
+            if (core::ptr::read_volatile(&port.cmd) & PORT_CMD_CR) == 0 {
+                break;
+            }
+            core::hint::spin_loop();
+        }
+    }
+
+    let clb = core::ptr::read_volatile(&port.clb) as u64
+        | ((core::ptr::read_volatile(&port.clbu) as u64) << 32);
+    let fb = core::ptr::read_volatile(&port.fb) as u64
+        | ((core::ptr::read_volatile(&port.fbu) as u64) << 32);
+
+    if clb == 0 || fb == 0 {
+        return None;
+    }
+
+    let cmd_header = clb as *mut AhciCommandHeader;
+    let cmd_table_phys = core::ptr::read_volatile(&(*cmd_header).ctba) as u64
+        | ((core::ptr::read_volatile(&(*cmd_header).ctbau) as u64) << 32);
+
+    if cmd_table_phys == 0 {
+        return None;
+    }
+
+    let cmd_table = cmd_table_phys as *mut AhciCommandTable;
+    let identify_buf: *mut [u16; 256] = alloc::alloc::alloc(
+        alloc::alloc::Layout::from_size_align(512, 512).unwrap()
+    ) as *mut [u16; 256];
+
+    if identify_buf.is_null() {
+        return None;
+    }
+
+    core::ptr::write_bytes((*cmd_table).cfis.as_mut_ptr(), 0, 64);
+    (*cmd_table).cfis[0] = 0x27;
+    (*cmd_table).cfis[1] = 0x80;
+    (*cmd_table).cfis[2] = ATA_CMD_IDENTIFY;
+
+    (*cmd_table).prdt[0].dba = (identify_buf as u64 & 0xFFFFFFFF) as u32;
+    (*cmd_table).prdt[0].dbau = ((identify_buf as u64) >> 32) as u32;
+    (*cmd_table).prdt[0].dbc = 511;
+
+    (*cmd_header).dw0 = (5 << 0) | (1 << 16);
+    (*cmd_header).prdtl = 0;
+
+    core::ptr::write_volatile(&mut port.serr, 0xFFFFFFFF);
+    core::ptr::write_volatile(&mut port.is, 0xFFFFFFFF);
+
+    let cmd_reg = core::ptr::read_volatile(&port.cmd);
+    core::ptr::write_volatile(&mut port.cmd, cmd_reg | PORT_CMD_FRE | PORT_CMD_ST);
+
+    core::ptr::write_volatile(&mut port.ci, 1);
+
+    for _ in 0..100_000 {
+        let ci = core::ptr::read_volatile(&port.ci);
+        let is = core::ptr::read_volatile(&port.is);
+        if (ci & 1) == 0 || (is & 0x40000000) != 0 {
+            break;
+        }
+        core::hint::spin_loop();
+    }
+
+    let tfd = core::ptr::read_volatile(&port.tfd);
+    let cmd_reg = core::ptr::read_volatile(&port.cmd);
+    core::ptr::write_volatile(&mut port.cmd, cmd_reg & !(PORT_CMD_ST | PORT_CMD_FRE));
+
+    if (tfd & 0x01) != 0 || (tfd & 0x08) != 0 {
+        alloc::alloc::dealloc(
+            identify_buf as *mut u8,
+            alloc::alloc::Layout::from_size_align(512, 512).unwrap()
+        );
+        return None;
+    }
+
+    let mut result = [0u16; 256];
+    core::ptr::copy_nonoverlapping(identify_buf, &mut result as *mut _, 1);
+
+    alloc::alloc::dealloc(
+        identify_buf as *mut u8,
+        alloc::alloc::Layout::from_size_align(512, 512).unwrap()
+    );
+
+    Some(result)
 }
 
 pub fn parse_ata_string(words: &[u16]) -> String {
