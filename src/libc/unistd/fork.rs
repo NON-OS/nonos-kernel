@@ -92,3 +92,15 @@ pub unsafe extern "C" fn setuid(uid: u32) -> i32 { crate::syscall::sys_setuid(ui
 
 #[no_mangle]
 pub unsafe extern "C" fn setgid(gid: u32) -> i32 { crate::syscall::sys_setgid(gid as usize) as i32 }
+
+#[no_mangle]
+pub unsafe extern "C" fn waitpid(pid: i32, status: *mut i32, options: i32) -> i32 {
+    let ret = crate::syscall::sys_waitpid(pid as i64, status as u64, options as u64);
+    if ret < 0 { crate::libc::errno::set_errno((-ret) as i32); return -1; }
+    ret as i32
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn wait(status: *mut i32) -> i32 {
+    waitpid(-1, status, 0)
+}
