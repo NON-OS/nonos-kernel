@@ -66,3 +66,35 @@ pub fn fini_array_call() {
 pub fn register_atexit(f: FiniFn) {
     crate::libc::stdlib::atexit_register(f);
 }
+
+#[no_mangle]
+pub extern "C" fn __stack_chk_fail() -> ! {
+    crate::sys::serial::println(b"*** stack smashing detected ***");
+    crate::syscall::sys_exit(134);
+}
+
+#[no_mangle]
+pub static __stack_chk_guard: u64 = 0x595e9fbd94fda766;
+
+type CxaFn = extern "C" fn(*mut u8);
+static mut CXA_ATEXIT_FUNCS: [(CxaFn, *mut u8, *mut u8); 32] = [(dummy_cxa, core::ptr::null_mut(), core::ptr::null_mut()); 32];
+static mut CXA_ATEXIT_COUNT: usize = 0;
+extern "C" fn dummy_cxa(_: *mut u8) {}
+
+#[no_mangle]
+pub unsafe extern "C" fn __cxa_atexit(f: CxaFn, arg: *mut u8, dso: *mut u8) -> i32 {
+    if CXA_ATEXIT_COUNT >= 32 { return -1; }
+    CXA_ATEXIT_FUNCS[CXA_ATEXIT_COUNT] = (f, arg, dso);
+    CXA_ATEXIT_COUNT += 1;
+    0
+}
+
+pub fn run_cxa_atexit_funcs() {
+    unsafe {
+        while CXA_ATEXIT_COUNT > 0 {
+            CXA_ATEXIT_COUNT -= 1;
+            let (f, arg, _) = CXA_ATEXIT_FUNCS[CXA_ATEXIT_COUNT];
+            f(arg);
+        }
+    }
+}
