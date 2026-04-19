@@ -18,8 +18,10 @@ pub mod malloc;
 pub mod free;
 pub mod exit;
 pub mod env;
+pub mod mmap;
 
 pub use malloc::{malloc, calloc, realloc, aligned_alloc, posix_memalign};
 pub use free::free;
 pub use exit::{exit, abort, _Exit, atexit, atexit_register, quick_exit};
 pub use env::{getenv, setenv, unsetenv, putenv, environ_ptr};
+pub use mmap::{mmap, munmap, brk, sbrk};
