@@ -46,3 +46,15 @@ pub fn stop() {
 pub fn is_running() -> bool {
     RUNNING.load(Ordering::Relaxed)
 }
+
+pub fn add_liquidity_simple(token_a: u64, token_b: u64) -> Result<u64, &'static str> {
+    let _state = get_lp_state().ok_or("LP not initialized")?;
+    let lp_tokens = ((token_a as u128) * (token_b as u128)).isqrt() as u64;
+    Ok(lp_tokens)
+}
+
+pub fn remove_liquidity_simple(lp_amount: u64) -> Result<(u64, u64), &'static str> {
+    let _state = get_lp_state().ok_or("LP not initialized")?;
+    let half = lp_amount / 2;
+    Ok((half, half))
+}
