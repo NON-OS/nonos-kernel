@@ -42,6 +42,8 @@ pub fn create_pair(num: u32) -> Result<(), i32> {
         termios: crate::tty::termios::Termios::default(),
         winsize: crate::tty::termios::Winsize::new(24, 80),
         ldisc,
+        pgrp: 0,
+        session: 0,
     };
     let pair = Arc::new(PtyPair {
         num,
