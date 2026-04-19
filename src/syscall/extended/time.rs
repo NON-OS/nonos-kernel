@@ -43,7 +43,16 @@ pub fn handle_settimeofday(tv: u64, _tz: u64) -> SyscallResult {
 }
 
 pub fn handle_clock_nanosleep(clock_id: u64, flags: u64, request: u64, remain: u64) -> SyscallResult {
+    const CLOCK_REALTIME: u64 = 0;
+    const CLOCK_MONOTONIC: u64 = 1;
+    const CLOCK_PROCESS_CPUTIME_ID: u64 = 2;
+    const CLOCK_THREAD_CPUTIME_ID: u64 = 3;
     const TIMER_ABSTIME: u64 = 1;
+
+    if clock_id != CLOCK_REALTIME && clock_id != CLOCK_MONOTONIC
+        && clock_id != CLOCK_PROCESS_CPUTIME_ID && clock_id != CLOCK_THREAD_CPUTIME_ID {
+        return errno(22);
+    }
 
     if request == 0 {
         return errno(14);
@@ -62,21 +71,30 @@ pub fn handle_clock_nanosleep(clock_id: u64, flags: u64, request: u64, remain: u
         return errno(22);
     }
 
+    let now_ns = match clock_id {
+        CLOCK_REALTIME => crate::time::timestamp_millis() * 1_000_000,
+        CLOCK_MONOTONIC => crate::time::now_ns(),
+        _ => crate::time::now_ns(),
+    };
+
     let target_ns = if (flags & TIMER_ABSTIME) != 0 {
         (ts_sec as u64) * 1_000_000_000 + (ts_nsec as u64)
     } else {
-        crate::time::now_ns() + (ts_sec as u64) * 1_000_000_000 + (ts_nsec as u64)
+        now_ns + (ts_sec as u64) * 1_000_000_000 + (ts_nsec as u64)
     };
 
-    let _ = clock_id;
     let pid = crate::process::current_pid().unwrap_or(0);
     let wake_time_ms = target_ns / 1_000_000;
     crate::sched::scheduler::sleep_until(pid, wake_time_ms);
 
-    if remain != 0 {
-        let zero: i64 = 0;
-        let _ = write_user_value(remain, &zero);
-        let _ = write_user_value(remain + 8, &zero);
+    if remain != 0 && (flags & TIMER_ABSTIME) == 0 {
+        let elapsed_ns = crate::time::now_ns().saturating_sub(now_ns);
+        let requested_ns = (ts_sec as u64) * 1_000_000_000 + (ts_nsec as u64);
+        let remaining_ns = requested_ns.saturating_sub(elapsed_ns);
+        let remain_sec = (remaining_ns / 1_000_000_000) as i64;
+        let remain_nsec = (remaining_ns % 1_000_000_000) as i64;
+        let _ = write_user_value(remain, &remain_sec);
+        let _ = write_user_value(remain + 8, &remain_nsec);
     }
 
     SyscallResult { value: 0, capability_consumed: false, audit_required: false }
