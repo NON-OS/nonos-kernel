@@ -62,3 +62,20 @@ fn format_amount(amount: u128) -> String {
     let decimals = (amount % 1_000_000_000_000_000_000) / 10_000_000_000_000_000;
     alloc::format!("{}.{:02}", eth, decimals)
 }
+
+pub fn stake_simple(amount: u64) -> Result<(), &'static str> {
+    let state = get_staking_state().ok_or("Staking not initialized")?;
+    let amount_wei = (amount as u128) * 1_000_000_000_000_000_000;
+    state::update_staked_amount(state.staked_amount.saturating_add(amount_wei));
+    Ok(())
+}
+
+pub fn unstake_simple(amount: u64) -> Result<(), &'static str> {
+    let state = get_staking_state().ok_or("Staking not initialized")?;
+    let amount_wei = (amount as u128) * 1_000_000_000_000_000_000;
+    if state.staked_amount < amount_wei {
+        return Err("Insufficient staked balance");
+    }
+    state::update_staked_amount(state.staked_amount.saturating_sub(amount_wei));
+    Ok(())
+}
