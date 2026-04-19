@@ -251,3 +251,33 @@ pub fn sys_chdir(path: usize) -> i64 {
 pub fn sys_getcwd(buf: usize, size: usize) -> i64 {
     handle_syscall(SyscallNumber::Getcwd as u64, buf as u64, size as u64, 0, 0, 0, 0) as i64
 }
+
+#[inline]
+pub fn sys_mmap(addr: u64, length: u64, prot: u64, flags: u64, fd: u64, offset: u64) -> i64 {
+    handle_syscall(SyscallNumber::Mmap as u64, addr, length, prot, flags, fd, offset) as i64
+}
+
+#[inline]
+pub fn sys_munmap(addr: u64, length: u64) -> i64 {
+    handle_syscall(SyscallNumber::Munmap as u64, addr, length, 0, 0, 0, 0) as i64
+}
+
+#[inline]
+pub fn sys_brk(addr: u64) -> u64 {
+    handle_syscall(SyscallNumber::Brk as u64, addr, 0, 0, 0, 0, 0)
+}
+
+#[inline]
+pub fn sys_ioctl(fd: i32, request: u64, arg: u64) -> i64 {
+    handle_syscall(SyscallNumber::Ioctl as u64, fd as u64, request, arg, 0, 0, 0) as i64
+}
+
+#[inline]
+pub fn sys_waitpid(pid: i64, status: u64, options: u64) -> i64 {
+    handle_syscall(SyscallNumber::Wait4 as u64, pid as u64, status, options, 0, 0, 0) as i64
+}
+
+#[inline]
+pub fn sys_openat(dirfd: u64, pathname: u64, flags: u64, mode: u64) -> i64 {
+    handle_syscall(SyscallNumber::Openat as u64, dirfd, pathname, flags, mode, 0, 0) as i64
+}
