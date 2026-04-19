@@ -41,6 +41,9 @@ pub struct GpuDriver {
     pub vendor_id: u16,
     pub device_id: u16,
     pub surface: GpuSurface,
+    frames_rendered: u64,
+    commands_executed: u64,
+    gpu_errors: u64,
 }
 
 pub static GPU_ONCE: spin::Once<Mutex<GpuDriver>> = spin::Once::new();
@@ -122,6 +125,9 @@ impl GpuDriver {
             vendor_id: dev.vendor_id,
             device_id: dev.device_id,
             surface,
+            frames_rendered: 0,
+            commands_executed: 0,
+            gpu_errors: 0,
         };
 
         let m = Mutex::new(driver);
@@ -164,14 +170,26 @@ impl GpuDriver {
 
     pub fn get_stats(&self) -> GpuStats {
         GpuStats {
-            frames_rendered: 0,
-            commands_executed: 0,
+            frames_rendered: super::surface::get_frames_presented(),
+            commands_executed: self.commands_executed,
             memory_allocated: self.surface.mode.pitch as u64 * self.surface.mode.height as u64,
-            gpu_errors: 0,
+            gpu_errors: self.gpu_errors,
             surfaces_created: 1,
             shaders_loaded: 0,
             vendor_id: self.vendor_id as u32,
             device_id: self.device_id as u32,
         }
+    }
+
+    pub fn increment_frame_count(&mut self) {
+        self.frames_rendered += 1;
+    }
+
+    pub fn increment_command_count(&mut self) {
+        self.commands_executed += 1;
+    }
+
+    pub fn record_error(&mut self) {
+        self.gpu_errors += 1;
     }
 }
