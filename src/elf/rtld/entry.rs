@@ -107,5 +107,5 @@ fn call_fini_functions() {
         let fini_fn: extern "C" fn() = unsafe { core::mem::transmute(fini) };
         fini_fn();
     }
-    super::init::call_fini_functions();
+    unsafe { super::init::call_fini_functions(); }
 }
