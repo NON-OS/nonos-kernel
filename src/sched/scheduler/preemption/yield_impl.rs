@@ -25,31 +25,30 @@ pub fn yield_now() {
     SCHEDULER_STATS.voluntary_yields.fetch_add(1, Ordering::Relaxed);
     let Some(pid) = current_pid() else { return };
 
-    let mut ctx: crate::sched::Context = unsafe { core::mem::zeroed() };
-
-    let just_restored = without_interrupts(|| {
+    without_interrupts(|| {
+        let mut ctx: crate::sched::Context = unsafe { core::mem::zeroed() };
         crate::sched::Context::clear_restored_flag();
         unsafe { crate::sched::Context::save_to(&mut ctx as *mut crate::sched::Context) };
-        crate::sched::Context::was_just_restored()
-    });
-
-    if just_restored {
-        return;
-    }
-
-    crate::process::nonos_core::save_interrupt_context(pid, ctx);
-    crate::process::nonos_core::save_fpu_state(pid);
-
-    if let Some(pcb) = PROCESS_TABLE.find_by_pid(pid) {
-        *pcb.state.lock() = ProcessState::Ready;
-    }
-
-    crate::sched::add_to_run_queue(pid);
-    CURRENT_TIME_SLICE.store(0, Ordering::Relaxed);
-
-    if let Some(next) = select_next_process() {
-        if next != pid {
-            switch_to_process(next);
+        if crate::sched::Context::was_just_restored() {
+            return;
         }
-    }
+
+        crate::process::nonos_core::save_interrupt_context(pid, ctx);
+        crate::process::nonos_core::save_fpu_state(pid);
+
+        if let Some(pcb) = PROCESS_TABLE.find_by_pid(pid) {
+            *pcb.state.lock() = ProcessState::Ready;
+        }
+
+        crate::sched::add_to_run_queue(pid);
+        CURRENT_TIME_SLICE.store(0, Ordering::Relaxed);
+
+        if let Some(next) = select_next_process() {
+            if next != pid {
+                switch_to_process(next);
+            } else if let Some(pcb) = PROCESS_TABLE.find_by_pid(pid) {
+                *pcb.state.lock() = ProcessState::Running;
+            }
+        }
+    });
 }
