@@ -57,6 +57,7 @@ pub(crate) fn create_thread_pcb(
         kstkesp: AtomicU64::new(0), kstkeip: AtomicU64::new(0), wchan: AtomicU64::new(0), exit_signal: AtomicI32::new(17),
         processor: AtomicU32::new(0), rt_priority: AtomicU32::new(0), policy: AtomicU32::new(0), no_new_privs: AtomicU32::new(parent.no_new_privs.load(Ordering::Relaxed)),
         seccomp: AtomicU32::new(0), cpus_allowed: AtomicU64::new(!0), voluntary_switches: AtomicU64::new(0), involuntary_switches: AtomicU64::new(0), cr3: AtomicU64::new(0),
+        io_bitmap: spin::Mutex::new([0xFF; 8192]),
     }))
 }
 
@@ -86,5 +87,6 @@ pub(crate) fn create_process_pcb(
         wchan: AtomicU64::new(0), exit_signal: AtomicI32::new(17), processor: AtomicU32::new(0), rt_priority: AtomicU32::new(0),
         policy: AtomicU32::new(0), no_new_privs: AtomicU32::new(parent.no_new_privs.load(Ordering::Relaxed)), seccomp: AtomicU32::new(0),
         cpus_allowed: AtomicU64::new(!0), voluntary_switches: AtomicU64::new(0), involuntary_switches: AtomicU64::new(0), cr3: AtomicU64::new(0),
+        io_bitmap: spin::Mutex::new([0xFF; 8192]),
     }))
 }
