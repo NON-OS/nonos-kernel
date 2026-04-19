@@ -20,17 +20,38 @@ use crate::syscall::SyscallResult;
 use crate::usercopy::{copy_to_user, read_user_value, write_user_value};
 use super::errno;
 
-pub fn handle_getrusage(_who: u64, usage: u64) -> SyscallResult {
+pub fn handle_getrusage(who: u64, usage: u64) -> SyscallResult {
+    const RUSAGE_SELF: i32 = 0;
+    const RUSAGE_CHILDREN: i32 = -1;
+    const RUSAGE_THREAD: i32 = 1;
+
     if usage == 0 {
         return errno(14);
     }
 
+    let who_val = who as i32;
+    if who_val != RUSAGE_SELF && who_val != RUSAGE_CHILDREN && who_val != RUSAGE_THREAD {
+        return errno(22);
+    }
+
     let mut rusage_buf = [0u8; 144];
-    if let Some(proc) = crate::process::current_process() {
+
+    let proc_opt = match who_val {
+        RUSAGE_SELF | RUSAGE_THREAD => crate::process::current_process(),
+        RUSAGE_CHILDREN => crate::process::current_process(),
+        _ => None,
+    };
+
+    if let Some(proc) = proc_opt {
         let mem = proc.memory.lock();
         let resident_pages = mem.resident_pages.load(Ordering::Relaxed);
         let maxrss = (resident_pages as u64).saturating_mul(4) as i64;
         rusage_buf[16..24].copy_from_slice(&maxrss.to_ne_bytes());
+
+        let utime_sec: i64 = (crate::time::current_ticks() / 1000) as i64;
+        let utime_usec: i64 = ((crate::time::current_ticks() % 1000) * 1000) as i64;
+        rusage_buf[0..8].copy_from_slice(&utime_sec.to_ne_bytes());
+        rusage_buf[8..16].copy_from_slice(&utime_usec.to_ne_bytes());
     }
 
     if copy_to_user(usage, &rusage_buf).is_err() {
@@ -82,13 +103,13 @@ pub fn handle_ioctl(fd: i32, request: u64, arg: u64) -> SyscallResult {
 
     match request {
         TCGETS => handle_tcgets(arg),
-        TCSETS => SyscallResult { value: 0, capability_consumed: false, audit_required: false },
+        TCSETS => handle_tcsets(fd, arg),
         TIOCGWINSZ => handle_tiocgwinsz(arg),
-        TIOCSWINSZ => SyscallResult { value: 0, capability_consumed: false, audit_required: false },
+        TIOCSWINSZ => handle_tiocswinsz(fd, arg),
         FIONREAD => handle_fionread(fd, arg),
         FIONBIO => handle_fionbio(fd, arg),
         TIOCGPGRP => handle_tiocgpgrp(arg),
-        TIOCSPGRP => SyscallResult { value: 0, capability_consumed: false, audit_required: false },
+        TIOCSPGRP => handle_tiocspgrp(fd, arg),
         _ => errno(25),
     }
 }
@@ -162,6 +183,52 @@ fn handle_tiocgpgrp(arg: u64) -> SyscallResult {
     SyscallResult { value: 0, capability_consumed: false, audit_required: false }
 }
 
+fn handle_tcsets(fd: i32, arg: u64) -> SyscallResult {
+    if arg == 0 {
+        return errno(14);
+    }
+    let mut termios = [0u8; 60];
+    if crate::usercopy::copy_from_user(arg, &mut termios).is_err() {
+        return errno(14);
+    }
+    if let Err(_) = crate::tty::set_termios(fd, &termios) {
+        return errno(25);
+    }
+    SyscallResult { value: 0, capability_consumed: false, audit_required: false }
+}
+
+fn handle_tiocswinsz(fd: i32, arg: u64) -> SyscallResult {
+    if arg == 0 {
+        return errno(14);
+    }
+    let rows: u16 = match read_user_value(arg) {
+        Ok(v) => v,
+        Err(_) => return errno(14),
+    };
+    let cols: u16 = match read_user_value(arg + 2) {
+        Ok(v) => v,
+        Err(_) => return errno(14),
+    };
+    if let Err(_) = crate::tty::set_window_size(fd, rows, cols) {
+        return errno(25);
+    }
+    SyscallResult { value: 0, capability_consumed: false, audit_required: false }
+}
+
+fn handle_tiocspgrp(fd: i32, arg: u64) -> SyscallResult {
+    if arg == 0 {
+        return errno(14);
+    }
+    let pgrp: i32 = match read_user_value(arg) {
+        Ok(v) => v,
+        Err(_) => return errno(14),
+    };
+    if let Err(_) = crate::tty::set_foreground_pgrp(fd, pgrp) {
+        return errno(25);
+    }
+    SyscallResult { value: 0, capability_consumed: false, audit_required: false }
+}
+
 pub fn handle_iopl(level: i32) -> SyscallResult {
     if level < 0 || level > 3 {
         return errno(22);
@@ -173,7 +240,23 @@ pub fn handle_ioperm(from: u64, num: u64, turn_on: i32) -> SyscallResult {
     if from > 0xFFFF || num == 0 || from.saturating_add(num) > 0x10000 {
         return errno(22);
     }
-    let _ = turn_on;
+
+    if let Some(proc) = crate::process::current_process() {
+        let mut io_bitmap = proc.io_bitmap.lock();
+        let end = (from + num) as usize;
+        for port in (from as usize)..end {
+            if port < io_bitmap.len() * 8 {
+                let byte_idx = port / 8;
+                let bit_idx = port % 8;
+                if turn_on != 0 {
+                    io_bitmap[byte_idx] &= !(1 << bit_idx);
+                } else {
+                    io_bitmap[byte_idx] |= 1 << bit_idx;
+                }
+            }
+        }
+    }
+
     SyscallResult { value: 0, capability_consumed: true, audit_required: true }
 }
 
