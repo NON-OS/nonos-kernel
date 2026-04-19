@@ -22,88 +22,148 @@ use crate::syscall::dispatch::util::require_capability;
 
 pub fn handle_setuid(uid: u32) -> SyscallResult {
     if let Err(e) = require_capability(Capability::Admin) { return e; }
-    let _ = uid;
+    if let Some(pcb) = crate::process::current_process() {
+        let mut creds = pcb.creds.lock();
+        creds.uid = uid;
+        creds.euid = uid;
+        creds.suid = uid;
+        creds.fsuid = uid;
+    }
     SyscallResult { value: 0, capability_consumed: false, audit_required: true }
 }
 
 pub fn handle_setgid(gid: u32) -> SyscallResult {
     if let Err(e) = require_capability(Capability::Admin) { return e; }
-    let _ = gid;
+    if let Some(pcb) = crate::process::current_process() {
+        let mut creds = pcb.creds.lock();
+        creds.gid = gid;
+        creds.egid = gid;
+        creds.sgid = gid;
+        creds.fsgid = gid;
+    }
     SyscallResult { value: 0, capability_consumed: false, audit_required: true }
 }
 
 pub fn handle_setreuid(ruid: u32, euid: u32) -> SyscallResult {
     if let Err(e) = require_capability(Capability::Admin) { return e; }
-    let _ = (ruid, euid);
+    if let Some(pcb) = crate::process::current_process() {
+        let mut creds = pcb.creds.lock();
+        if ruid != u32::MAX { creds.uid = ruid; }
+        if euid != u32::MAX { creds.euid = euid; creds.fsuid = euid; }
+    }
     SyscallResult { value: 0, capability_consumed: false, audit_required: true }
 }
 
 pub fn handle_setregid(rgid: u32, egid: u32) -> SyscallResult {
-    // Changing GID requires Admin capability
     if let Err(e) = require_capability(Capability::Admin) { return e; }
-    let _ = (rgid, egid);
+    if let Some(pcb) = crate::process::current_process() {
+        let mut creds = pcb.creds.lock();
+        if rgid != u32::MAX { creds.gid = rgid; }
+        if egid != u32::MAX { creds.egid = egid; creds.fsgid = egid; }
+    }
     SyscallResult { value: 0, capability_consumed: false, audit_required: true }
 }
 
-pub fn handle_getresuid(ruid: u64, euid: u64, suid: u64) -> SyscallResult {
-    if ruid == 0 || euid == 0 || suid == 0 {
+pub fn handle_getresuid(ruid_ptr: u64, euid_ptr: u64, suid_ptr: u64) -> SyscallResult {
+    if ruid_ptr == 0 || euid_ptr == 0 || suid_ptr == 0 {
         return errno(14);
     }
-
-    let zero: u32 = 0;
-    let _ = write_user_value(ruid, &zero);
-    let _ = write_user_value(euid, &zero);
-    let _ = write_user_value(suid, &zero);
-
+    let creds = crate::process::current_process()
+        .map(|p| *p.creds.lock())
+        .unwrap_or_default();
+    let _ = write_user_value(ruid_ptr, &creds.uid);
+    let _ = write_user_value(euid_ptr, &creds.euid);
+    let _ = write_user_value(suid_ptr, &creds.suid);
     SyscallResult { value: 0, capability_consumed: false, audit_required: false }
 }
 
 pub fn handle_setresuid(ruid: u32, euid: u32, suid: u32) -> SyscallResult {
     if let Err(e) = require_capability(Capability::Admin) { return e; }
-    let _ = (ruid, euid, suid);
+    if let Some(pcb) = crate::process::current_process() {
+        let mut creds = pcb.creds.lock();
+        if ruid != u32::MAX { creds.uid = ruid; }
+        if euid != u32::MAX { creds.euid = euid; creds.fsuid = euid; }
+        if suid != u32::MAX { creds.suid = suid; }
+    }
     SyscallResult { value: 0, capability_consumed: false, audit_required: true }
 }
 
-pub fn handle_getresgid(rgid: u64, egid: u64, sgid: u64) -> SyscallResult {
-    if rgid == 0 || egid == 0 || sgid == 0 { return errno(14); }
-    let zero: u32 = 0;
-    let _ = write_user_value(rgid, &zero);
-    let _ = write_user_value(egid, &zero);
-    let _ = write_user_value(sgid, &zero);
+pub fn handle_getresgid(rgid_ptr: u64, egid_ptr: u64, sgid_ptr: u64) -> SyscallResult {
+    if rgid_ptr == 0 || egid_ptr == 0 || sgid_ptr == 0 { return errno(14); }
+    let creds = crate::process::current_process()
+        .map(|p| *p.creds.lock())
+        .unwrap_or_default();
+    let _ = write_user_value(rgid_ptr, &creds.gid);
+    let _ = write_user_value(egid_ptr, &creds.egid);
+    let _ = write_user_value(sgid_ptr, &creds.sgid);
     SyscallResult { value: 0, capability_consumed: false, audit_required: false }
 }
 
 pub fn handle_setresgid(rgid: u32, egid: u32, sgid: u32) -> SyscallResult {
     if let Err(e) = require_capability(Capability::Admin) { return e; }
-    let _ = (rgid, egid, sgid);
+    if let Some(pcb) = crate::process::current_process() {
+        let mut creds = pcb.creds.lock();
+        if rgid != u32::MAX { creds.gid = rgid; }
+        if egid != u32::MAX { creds.egid = egid; creds.fsgid = egid; }
+        if sgid != u32::MAX { creds.sgid = sgid; }
+    }
     SyscallResult { value: 0, capability_consumed: false, audit_required: true }
 }
 
 pub fn handle_setfsuid(fsuid: u32) -> SyscallResult {
-    let _ = fsuid;
-    SyscallResult { value: 0, capability_consumed: false, audit_required: false }
+    let old_fsuid = crate::process::current_process()
+        .map(|pcb| {
+            let mut creds = pcb.creds.lock();
+            let old = creds.fsuid;
+            creds.fsuid = fsuid;
+            old
+        })
+        .unwrap_or(0);
+    SyscallResult { value: old_fsuid as i64, capability_consumed: false, audit_required: false }
 }
 
 pub fn handle_setfsgid(fsgid: u32) -> SyscallResult {
-    let _ = fsgid;
-    SyscallResult { value: 0, capability_consumed: false, audit_required: false }
+    let old_fsgid = crate::process::current_process()
+        .map(|pcb| {
+            let mut creds = pcb.creds.lock();
+            let old = creds.fsgid;
+            creds.fsgid = fsgid;
+            old
+        })
+        .unwrap_or(0);
+    SyscallResult { value: old_fsgid as i64, capability_consumed: false, audit_required: false }
 }
 
-pub fn handle_getgroups(size: i32, _list: u64) -> SyscallResult {
-    if size < 0 {
-        return errno(22);
-    }
-
+pub fn handle_getgroups(size: i32, list: u64) -> SyscallResult {
+    if size < 0 { return errno(22); }
+    let creds = crate::process::current_process()
+        .map(|p| *p.creds.lock())
+        .unwrap_or_default();
+    let ngroups = creds.ngroups;
     if size == 0 {
-        return SyscallResult { value: 0, capability_consumed: false, audit_required: false };
+        return SyscallResult { value: ngroups as i64, capability_consumed: false, audit_required: false };
     }
-
-    SyscallResult { value: 0, capability_consumed: false, audit_required: false }
+    if (size as usize) < ngroups { return errno(22); }
+    if list == 0 { return errno(14); }
+    for i in 0..ngroups {
+        if write_user_value(list + (i * 4) as u64, &creds.groups[i]).is_err() {
+            return errno(14);
+        }
+    }
+    SyscallResult { value: ngroups as i64, capability_consumed: false, audit_required: false }
 }
 
 pub fn handle_setgroups(size: u64, list: u64) -> SyscallResult {
+    use crate::usercopy::read_user_value;
     if let Err(e) = require_capability(Capability::Admin) { return e; }
-    let _ = (size, list);
+    if size as usize > crate::process::core::types::NGROUPS_MAX { return errno(22); }
+    if let Some(pcb) = crate::process::current_process() {
+        let mut creds = pcb.creds.lock();
+        creds.ngroups = size as usize;
+        for i in 0..size as usize {
+            creds.groups[i] = read_user_value(list + (i * 4) as u64).unwrap_or(0);
+        }
+    }
     SyscallResult { value: 0, capability_consumed: false, audit_required: true }
 }
 
