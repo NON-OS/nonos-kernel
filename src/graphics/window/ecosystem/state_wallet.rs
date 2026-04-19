@@ -111,13 +111,15 @@ pub fn clear_lp_amounts() { *LP_AMOUNT_A.lock() = None; *LP_AMOUNT_B.lock() = No
 pub fn get_remove_lp_amount() -> Option<u64> { *REMOVE_LP_AMOUNT.lock() }
 pub fn clear_remove_lp_amount() { *REMOVE_LP_AMOUNT.lock() = None; }
 pub fn refresh_staking_info() {
-    if let Ok(info) = crate::apps::ecosystem::staking::get_staking_info() {
+    if let Some(info) = crate::apps::ecosystem::staking::get_staking_state() {
         set_staking_amount(&alloc::format!("{}", info.staked_amount));
         set_staking_rewards(&alloc::format!("{}", info.pending_rewards));
     }
 }
 pub fn refresh_lp_info() {
-    if let Ok(info) = crate::apps::ecosystem::lp::get_position_info() {
-        set_wallet_balance(&alloc::format!("{}", info.lp_tokens));
+    if let Some(info) = crate::apps::ecosystem::lp::get_lp_state() {
+        if let Some(pos) = info.user_position {
+            set_wallet_balance(&alloc::format!("{}", pos.lp_tokens));
+        }
     }
 }
