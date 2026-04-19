@@ -49,6 +49,6 @@ impl InputDevice for UsbHidMouse {
     fn device_id(&self) -> DeviceId { DeviceId((Self::BASE_DEVICE_ID + self.device_index as u32) as u16) }
     fn name(&self) -> &'static str { "USB HID Mouse" }
     fn device_type(&self) -> &'static str { "USB Mouse" }
-    fn is_connected(&self) -> bool { false }
+    fn is_connected(&self) -> bool { self.is_connected_in(&super::state::DEVICES.lock()) }
     fn poll(&self) -> Option<InputEvent> { None }
 }
