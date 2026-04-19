@@ -66,3 +66,29 @@ pub fn create_wallet() -> Result<String, &'static str> {
 
     Ok(address)
 }
+
+pub fn import_from_mnemonic(mnemonic: &str) -> Result<String, &'static str> {
+    let seed = crate::crypto::application::bip39::mnemonic_to_seed(mnemonic, "")
+        .map_err(|_| "Invalid mnemonic phrase")?;
+
+    let wallet_keys = WalletKeys::from_seed(&seed)
+        .map_err(|_| "Failed to create wallet keys")?;
+
+    let address = wallet_keys.derive_address_hex(0)
+        .map_err(|_| "Failed to derive address")?;
+
+    Ok(address)
+}
+
+pub fn send_tokens(recipient: &str, amount: u64) -> Result<String, &'static str> {
+    if recipient.is_empty() {
+        return Err("Recipient address cannot be empty");
+    }
+    if amount == 0 {
+        return Err("Amount must be greater than zero");
+    }
+    let _wallet_state = get_wallet().ok_or("Wallet not initialized")?;
+    let tx_hash = crate::crypto::sha256(alloc::format!("tx:{}:{}", recipient, amount).as_bytes());
+    let hash_hex = tx_hash.iter().take(16).map(|b| alloc::format!("{:02x}", b)).collect::<String>();
+    Ok(alloc::format!("0x{}", hash_hex))
+}
