@@ -305,11 +305,23 @@ pub fn handle_readahead(fd: i32, offset: i64, count: u64) -> SyscallResult {
     SyscallResult { value: 0, capability_consumed: false, audit_required: false }
 }
 
-pub fn handle_fadvise64(fd: i32, offset: i64, len: i64, advice: i32) -> SyscallResult {
-    if !crate::fs::fd::fd_is_valid(fd) {
-        return errno(9);
-    }
+const POSIX_FADV_NORMAL: i32 = 0;
+const POSIX_FADV_RANDOM: i32 = 1;
+const POSIX_FADV_SEQUENTIAL: i32 = 2;
+const POSIX_FADV_WILLNEED: i32 = 3;
+const POSIX_FADV_DONTNEED: i32 = 4;
+const POSIX_FADV_NOREUSE: i32 = 5;
 
-    let _ = (offset, len, advice);
+pub fn handle_fadvise64(fd: i32, offset: i64, _len: i64, advice: i32) -> SyscallResult {
+    if !crate::fs::fd::fd_is_valid(fd) { return errno(9); }
+    if offset < 0 { return errno(22); }
+    match advice {
+        POSIX_FADV_NORMAL | POSIX_FADV_RANDOM | POSIX_FADV_NOREUSE => {}
+        POSIX_FADV_SEQUENTIAL => {
+            crate::fs::cache::set_fd_readahead(fd, true);
+        }
+        POSIX_FADV_WILLNEED | POSIX_FADV_DONTNEED => {}
+        _ => return errno(22),
+    }
     SyscallResult { value: 0, capability_consumed: false, audit_required: false }
 }
