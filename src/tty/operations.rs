@@ -74,3 +74,44 @@ pub fn unregister_tty(minor: u32) {
 pub fn get_tty(minor: u32) -> Option<Arc<Mutex<TtyStruct>>> {
     TTYS.lock().get(&minor).cloned()
 }
+
+pub fn set_termios(fd: i32, termios: &[u8]) -> Result<(), &'static str> {
+    let minor = fd_to_minor(fd)?;
+    let ttys = TTYS.lock();
+    let tty = ttys.get(&minor).ok_or("tty not found")?;
+    let mut tty_guard = tty.lock();
+    if termios.len() >= 60 {
+        tty_guard.termios.c_iflag = u32::from_ne_bytes([termios[0], termios[1], termios[2], termios[3]]);
+        tty_guard.termios.c_oflag = u32::from_ne_bytes([termios[4], termios[5], termios[6], termios[7]]);
+        tty_guard.termios.c_cflag = u32::from_ne_bytes([termios[8], termios[9], termios[10], termios[11]]);
+        tty_guard.termios.c_lflag = u32::from_ne_bytes([termios[12], termios[13], termios[14], termios[15]]);
+    }
+    Ok(())
+}
+
+pub fn set_window_size(fd: i32, rows: u16, cols: u16) -> Result<(), &'static str> {
+    let minor = fd_to_minor(fd)?;
+    let ttys = TTYS.lock();
+    let tty = ttys.get(&minor).ok_or("tty not found")?;
+    let mut tty_guard = tty.lock();
+    tty_guard.winsize.ws_row = rows;
+    tty_guard.winsize.ws_col = cols;
+    Ok(())
+}
+
+pub fn set_foreground_pgrp(fd: i32, pgrp: i32) -> Result<(), &'static str> {
+    let minor = fd_to_minor(fd)?;
+    let ttys = TTYS.lock();
+    let tty = ttys.get(&minor).ok_or("tty not found")?;
+    let mut tty_guard = tty.lock();
+    tty_guard.pgrp = pgrp;
+    Ok(())
+}
+
+fn fd_to_minor(fd: i32) -> Result<u32, &'static str> {
+    if fd <= 2 {
+        Ok(0)
+    } else {
+        Ok(fd as u32 - 3)
+    }
+}
