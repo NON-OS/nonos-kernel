@@ -21,27 +21,35 @@ use super::super::selection::{select_next_process, switch_to_process};
 pub fn preempt_current_process() {
     use crate::process::nonos_core::{current_pid, PROCESS_TABLE, ProcessState, save_fpu_state};
 
-    let current = current_pid();
-    if let Some(curr_pid) = current {
-        save_fpu_state(curr_pid);
-        crate::sched::Context::clear_restored_flag();
-        let mut ctx: crate::sched::Context = unsafe { core::mem::zeroed() };
-        unsafe { crate::sched::Context::save_to(&mut ctx as *mut crate::sched::Context) };
-        if crate::sched::Context::was_just_restored() {
-            return;
-        }
-        crate::process::nonos_core::save_interrupt_context(curr_pid, ctx);
-        if let Some(pcb) = PROCESS_TABLE.find_by_pid(curr_pid) {
-            let mut state = pcb.state.lock();
-            if *state == ProcessState::Running { *state = ProcessState::Ready; }
-        }
-        crate::sched::add_to_run_queue(curr_pid);
+    let curr_pid = match current_pid() {
+        Some(pid) => pid,
+        None => return,
+    };
+
+    save_fpu_state(curr_pid);
+    crate::sched::Context::clear_restored_flag();
+    let mut ctx: crate::sched::Context = unsafe { core::mem::zeroed() };
+    unsafe { crate::sched::Context::save_to(&mut ctx as *mut crate::sched::Context) };
+    if crate::sched::Context::was_just_restored() {
+        return;
     }
 
-    let next_pid = select_next_process();
-    if let Some(next) = next_pid {
-        SCHEDULER_STATS.context_switches.fetch_add(1, Ordering::Relaxed);
-        SCHEDULER_STATS.preemptions.fetch_add(1, Ordering::Relaxed);
-        switch_to_process(next);
+    crate::process::nonos_core::save_interrupt_context(curr_pid, ctx);
+    if let Some(pcb) = PROCESS_TABLE.find_by_pid(curr_pid) {
+        *pcb.state.lock() = ProcessState::Ready;
+    }
+    crate::sched::add_to_run_queue(curr_pid);
+
+    match select_next_process() {
+        Some(next) if next != curr_pid => {
+            SCHEDULER_STATS.context_switches.fetch_add(1, Ordering::Relaxed);
+            SCHEDULER_STATS.preemptions.fetch_add(1, Ordering::Relaxed);
+            switch_to_process(next);
+        }
+        _ => {
+            if let Some(pcb) = PROCESS_TABLE.find_by_pid(curr_pid) {
+                *pcb.state.lock() = ProcessState::Running;
+            }
+        }
     }
 }
