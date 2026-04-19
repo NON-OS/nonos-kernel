@@ -17,36 +17,39 @@
 use core::sync::atomic::Ordering;
 use super::state::{CURRENT_TIME_SLICE, SCHEDULER_STATS};
 use super::super::selection::{select_next_process, switch_to_process};
-use crate::arch::x86_64::idt::without_interrupts;
 
 pub fn yield_now() {
     use crate::process::nonos_core::{current_pid, PROCESS_TABLE, ProcessState};
+    use crate::arch::x86_64::idt::without_interrupts;
+
     SCHEDULER_STATS.voluntary_yields.fetch_add(1, Ordering::Relaxed);
     let Some(pid) = current_pid() else { return };
-    let (ctx, was_restored) = without_interrupts(|| {
-        let mut c: crate::sched::Context = unsafe { core::mem::zeroed() };
-        unsafe { crate::sched::Context::save_to(&mut c as *mut crate::sched::Context) };
-        let restored = crate::sched::Context::was_just_restored();
-        (c, restored)
+
+    let mut ctx: crate::sched::Context = unsafe { core::mem::zeroed() };
+
+    let just_restored = without_interrupts(|| {
+        crate::sched::Context::clear_restored_flag();
+        unsafe { crate::sched::Context::save_to(&mut ctx as *mut crate::sched::Context) };
+        crate::sched::Context::was_just_restored()
     });
-    if was_restored { return; }
+
+    if just_restored {
+        return;
+    }
+
     crate::process::nonos_core::save_interrupt_context(pid, ctx);
     crate::process::nonos_core::save_fpu_state(pid);
+
     if let Some(pcb) = PROCESS_TABLE.find_by_pid(pid) {
-        let mut state = pcb.state.lock();
-        if *state == ProcessState::Running { *state = ProcessState::Ready; }
+        *pcb.state.lock() = ProcessState::Ready;
     }
+
     crate::sched::add_to_run_queue(pid);
     CURRENT_TIME_SLICE.store(0, Ordering::Relaxed);
-    match select_next_process() {
-        Some(next) if next != pid => {
-            crate::sys::serial::print(b"[YIELD] ");
-            crate::sys::serial::print_dec(pid as u64);
-            crate::sys::serial::print(b"->");
-            crate::sys::serial::print_dec(next as u64);
-            crate::sys::serial::println(b"");
-            switch_to_process(next)
+
+    if let Some(next) = select_next_process() {
+        if next != pid {
+            switch_to_process(next);
         }
-        _ => {}
     }
 }
