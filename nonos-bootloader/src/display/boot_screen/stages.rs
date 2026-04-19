@@ -31,6 +31,10 @@ const INNER_PAD: u32 = 16;
 const LINE_HEIGHT: u32 = 30;
 const HEADER_HEIGHT: u32 = 44;
 
+const CRYPTO_PANEL_HEIGHT: u32 = 120;
+const CRYPTO_PANEL_GAP: u32 = 16;
+const TOTAL_PANELS_HEIGHT: u32 = PANEL_HEIGHT + CRYPTO_PANEL_GAP + CRYPTO_PANEL_HEIGHT;
+
 const STAGE_LABELS: [&[u8]; 10] = [
     b"UEFI Services",
     b"Security Policy",
@@ -51,8 +55,10 @@ fn get_panel_pos() -> (u32, u32) {
     } else {
         0
     };
-    let y = if screen_h > PANEL_HEIGHT {
-        (screen_h - PANEL_HEIGHT) / 2
+    let y = if screen_h > TOTAL_PANELS_HEIGHT + PANEL_MARGIN * 2 {
+        (screen_h - TOTAL_PANELS_HEIGHT) / 2
+    } else if screen_h > PANEL_MARGIN {
+        PANEL_MARGIN
     } else {
         0
     };
