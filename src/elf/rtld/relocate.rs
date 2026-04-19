@@ -84,13 +84,23 @@ pub fn apply_relocation(reloc_type: u32, addr: usize, base: usize, sym_idx: usiz
 }
 
 fn resolve_symbol_value(ctx: &RelocationContext, sym_idx: usize) -> usize {
-    let _ = (ctx, sym_idx);
-    0
+    if ctx.symtab == 0 || ctx.strtab == 0 { return 0; }
+    let sym = unsafe { &*((ctx.symtab + sym_idx * 24) as *const crate::elf::types::Symbol) };
+    if sym.st_shndx != 0 {
+        return ctx.base + sym.st_value as usize;
+    }
+    let strtab_slice = unsafe { core::slice::from_raw_parts(ctx.strtab as *const u8, 0x10000) };
+    let name = super::resolve::symbol_name(strtab_slice, sym);
+    if name.is_empty() { return 0; }
+    super::resolve::resolve_symbol(name, Some(ctx.base))
+        .map(|s| s.address)
+        .unwrap_or(0)
 }
 
 fn get_symbol_size(ctx: &RelocationContext, sym_idx: usize) -> usize {
-    let _ = (ctx, sym_idx);
-    0
+    if ctx.symtab == 0 { return 0; }
+    let sym = unsafe { &*((ctx.symtab + sym_idx * 24) as *const crate::elf::types::Symbol) };
+    sym.st_size as usize
 }
 
 pub fn process_all_relocs() {
@@ -104,5 +114,26 @@ pub fn process_all_relocs() {
 }
 
 fn build_reloc_context(obj: &super::load::LoadedObject) -> RelocationContext {
-    RelocationContext { base: obj.base, symtab: 0, strtab: 0, rela: 0, relasz: 0, pltrel: 0, pltrelsz: 0, jmprel: 0 }
+    let mut ctx = RelocationContext {
+        base: obj.base, symtab: 0, strtab: 0, rela: 0, relasz: 0, pltrel: 0, pltrelsz: 0, jmprel: 0
+    };
+    if obj.dynamic == 0 { return ctx; }
+    let mut ptr = obj.dynamic;
+    loop {
+        let tag = unsafe { *(ptr as *const i64) };
+        let val = unsafe { *((ptr + 8) as *const u64) };
+        match tag {
+            0 => break,
+            5 => ctx.strtab = obj.base + val as usize,
+            6 => ctx.symtab = obj.base + val as usize,
+            7 => ctx.rela = obj.base + val as usize,
+            8 => ctx.relasz = val as usize,
+            20 => ctx.pltrel = val as usize,
+            2 => ctx.pltrelsz = val as usize,
+            23 => ctx.jmprel = obj.base + val as usize,
+            _ => {}
+        }
+        ptr += 16;
+    }
+    ctx
 }
