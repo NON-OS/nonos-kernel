@@ -92,3 +92,30 @@ pub unsafe fn call_init_functions() {
 pub fn get_config() -> RtldConfig { CONFIG.lock().clone() }
 
 pub fn set_bind_now(val: bool) { CONFIG.lock().bind_now = val; }
+
+static FINI_FUNCTIONS: Mutex<Vec<(usize, usize)>> = Mutex::new(Vec::new());
+
+pub fn register_fini(fini: usize, fini_array: usize, fini_arraysz: usize) {
+    if fini != 0 { FINI_FUNCTIONS.lock().push((fini, 0)); }
+    if fini_array != 0 && fini_arraysz > 0 { FINI_FUNCTIONS.lock().push((fini_array, fini_arraysz)); }
+}
+
+pub unsafe fn call_fini_functions() {
+    let funcs: Vec<_> = FINI_FUNCTIONS.lock().drain(..).rev().collect();
+    for (addr, size) in funcs {
+        if size == 0 {
+            let f: extern "C" fn() = core::mem::transmute(addr);
+            f();
+        } else {
+            let count = size / 8;
+            let array = addr as *const usize;
+            for i in (0..count).rev() {
+                let fn_addr = core::ptr::read(array.add(i));
+                if fn_addr != 0 && fn_addr != usize::MAX {
+                    let f: extern "C" fn() = core::mem::transmute(fn_addr);
+                    f();
+                }
+            }
+        }
+    }
+}
