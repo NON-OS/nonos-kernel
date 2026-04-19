@@ -52,13 +52,14 @@ fn stat_path(path: &str, statbuf: *mut u8) -> FdResult<()> {
     let p = ramfs::normalize_path(path);
 
     if ramfs::NONOS_FILESYSTEM.exists(&p) && ramfs::list_dir(&p).is_ok() {
+        let now = crate::time::timestamp_millis() / 1000;
         let st = KernelStat {
-            mode: 0o755,
+            mode: 0o40755,
             file_type: 2,
-            size: 0,
-            atime: 0,
-            mtime: 0,
-            ctime: 0,
+            size: 4096,
+            atime: now,
+            mtime: now,
+            ctime: now,
         };
         if write_stat(statbuf, &st) {
             return Ok(());
@@ -69,7 +70,7 @@ fn stat_path(path: &str, statbuf: *mut u8) -> FdResult<()> {
     match ramfs::NONOS_FILESYSTEM.get_file_info(&p) {
         Ok(info) => {
             let st = KernelStat {
-                mode: 0o644,
+                mode: 0o100000 | info.mode,
                 file_type: 1,
                 size: info.size as u64,
                 atime: info.modified,
