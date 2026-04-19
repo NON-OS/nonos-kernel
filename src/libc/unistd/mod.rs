@@ -29,4 +29,3 @@ pub use fork::{fork, vfork, execve, execvp, _exit, getpid, getppid, getuid, getg
 pub use fd_ops::{close, dup, dup2, pipe, lseek, open, ioctl};
 pub use path_ops::{chdir, getcwd, unlink, rmdir, access};
 pub use sleep::{sleep, usleep};
-pub mod fd_ops;
