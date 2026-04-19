@@ -54,13 +54,16 @@ impl RealtekWifiDevice {
             return;
         }
         self.current_channel = channel;
-        let freq = match channel {
-            1 => 2412u16, 2 => 2417, 3 => 2422, 4 => 2427, 5 => 2432,
-            6 => 2437, 7 => 2442, 8 => 2447, 9 => 2452, 10 => 2457,
-            11 => 2462, 12 => 2467, 13 => 2472, 14 => 2484,
-            _ => 2437,
+        let rf_channel_value: u32 = match channel {
+            1 => 0x7D9, 2 => 0x7E1, 3 => 0x7E9, 4 => 0x7F1, 5 => 0x7F9,
+            6 => 0x801, 7 => 0x809, 8 => 0x811, 9 => 0x819, 10 => 0x821,
+            11 => 0x829, 12 => 0x831, 13 => 0x839, 14 => 0x881,
+            _ => 0x801,
         };
-        let _ = freq;
+        let rf_reg_val = (regs::RF_CHNLBW as u32) << 20 | rf_channel_value;
+        self.write32(regs::LSSI_WRITE, rf_reg_val);
+        self.delay_us(100);
+        core::sync::atomic::fence(core::sync::atomic::Ordering::SeqCst);
     }
 
     pub fn get_link_info(&self) -> Option<LinkInfo> {
