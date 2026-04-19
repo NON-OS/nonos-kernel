@@ -132,3 +132,14 @@ pub unsafe extern "C" fn fputs(s: *const u8, stream: *mut FILE) -> i32 {
     let n = crate::libc::unistd::write((*stream).fd, s, len);
     if n < 0 { EOF } else { 0 }
 }
+
+#[no_mangle]
+pub unsafe extern "C" fn puts(s: *const u8) -> i32 {
+    if s.is_null() { return EOF; }
+    let len = crate::libc::string::strlen::strlen(s);
+    let n = crate::libc::unistd::write(1, s, len);
+    if n < 0 { return EOF; }
+    let newline = b"\n";
+    crate::libc::unistd::write(1, newline.as_ptr(), 1);
+    0
+}
