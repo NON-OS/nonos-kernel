@@ -83,3 +83,41 @@ pub fn get_staking_rewards() -> Option<String> {
         core::str::from_utf8(&buf[..len]).ok().map(String::from)
     } else { None }
 }
+
+pub static IMPORT_SEED_PHRASE: Mutex<String> = Mutex::new(String::new());
+pub static SEND_RECIPIENT: Mutex<Option<String>> = Mutex::new(None);
+pub static SEND_AMOUNT: Mutex<Option<u64>> = Mutex::new(None);
+pub static STAKE_INPUT: Mutex<Option<u64>> = Mutex::new(None);
+pub static UNSTAKE_INPUT: Mutex<Option<u64>> = Mutex::new(None);
+pub static LP_AMOUNT_A: Mutex<Option<u64>> = Mutex::new(None);
+pub static LP_AMOUNT_B: Mutex<Option<u64>> = Mutex::new(None);
+pub static REMOVE_LP_AMOUNT: Mutex<Option<u64>> = Mutex::new(None);
+
+pub fn get_import_seed_phrase() -> String { IMPORT_SEED_PHRASE.lock().clone() }
+pub fn clear_import_seed_phrase() { IMPORT_SEED_PHRASE.lock().clear(); }
+pub fn get_send_recipient() -> Option<String> { SEND_RECIPIENT.lock().clone() }
+pub fn get_send_amount() -> Option<u64> { *SEND_AMOUNT.lock() }
+pub fn clear_send_fields() { *SEND_RECIPIENT.lock() = None; *SEND_AMOUNT.lock() = None; }
+pub fn get_stake_amount() -> Option<u64> { *STAKE_INPUT.lock() }
+pub fn clear_stake_amount() { *STAKE_INPUT.lock() = None; }
+pub fn get_unstake_amount() -> Option<u64> { *UNSTAKE_INPUT.lock() }
+pub fn clear_unstake_amount() { *UNSTAKE_INPUT.lock() = None; }
+pub fn get_lp_amounts() -> Option<(u64, u64)> {
+    let a = LP_AMOUNT_A.lock().clone()?;
+    let b = LP_AMOUNT_B.lock().clone()?;
+    Some((a, b))
+}
+pub fn clear_lp_amounts() { *LP_AMOUNT_A.lock() = None; *LP_AMOUNT_B.lock() = None; }
+pub fn get_remove_lp_amount() -> Option<u64> { *REMOVE_LP_AMOUNT.lock() }
+pub fn clear_remove_lp_amount() { *REMOVE_LP_AMOUNT.lock() = None; }
+pub fn refresh_staking_info() {
+    if let Ok(info) = crate::apps::ecosystem::staking::get_staking_info() {
+        set_staking_amount(&alloc::format!("{}", info.staked_amount));
+        set_staking_rewards(&alloc::format!("{}", info.pending_rewards));
+    }
+}
+pub fn refresh_lp_info() {
+    if let Ok(info) = crate::apps::ecosystem::lp::get_position_info() {
+        set_wallet_balance(&alloc::format!("{}", info.lp_tokens));
+    }
+}
