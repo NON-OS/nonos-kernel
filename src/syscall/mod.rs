@@ -65,4 +65,5 @@ pub use core::{
     sys_pread64, sys_pwrite64, sys_readv, sys_writev, sys_preadv, sys_pwritev,
     sys_getuid, sys_getgid, sys_geteuid, sys_getegid, sys_setuid, sys_setgid,
     sys_dup, sys_dup2, sys_pipe, sys_chdir, sys_getcwd,
+    sys_mmap, sys_munmap, sys_brk, sys_ioctl, sys_waitpid, sys_openat,
 };
