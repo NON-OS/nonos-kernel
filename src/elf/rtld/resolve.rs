@@ -103,7 +103,35 @@ pub fn resolve_plt(obj_base: usize, reloc_idx: usize) -> usize {
         Some(o) => o,
         None => return 0,
     };
-    let _ = (obj, reloc_idx);
+    if obj.dynamic == 0 { return 0; }
+    let dyn_info = parse_dynamic_section(obj.dynamic, obj.base);
+    if dyn_info.symtab == 0 || dyn_info.strtab == 0 { return 0; }
+    let jmprel = get_jmprel(obj.dynamic, obj.base);
+    if jmprel == 0 { return 0; }
+    let rela_addr = jmprel + reloc_idx * 24;
+    let rela = unsafe { &*(rela_addr as *const crate::elf::types::RelaEntry) };
+    let sym_idx = (rela.r_info >> 32) as usize;
+    if sym_idx == 0 { return 0; }
+    let sym = unsafe { &*((dyn_info.symtab + sym_idx * 24) as *const crate::elf::types::Symbol) };
+    if sym.st_shndx != 0 { return obj.base + sym.st_value as usize; }
+    let strtab = unsafe { core::slice::from_raw_parts(dyn_info.strtab as *const u8, 0x10000) };
+    let name = symbol_name(strtab, sym);
+    if name.is_empty() { return 0; }
+    resolve_symbol(name, Some(obj.base)).map(|s| s.address).unwrap_or(0)
+}
+
+fn get_jmprel(dynamic: usize, base: usize) -> usize {
+    let mut ptr = dynamic;
+    loop {
+        let tag = unsafe { *(ptr as *const i64) };
+        let val = unsafe { *((ptr + 8) as *const u64) };
+        match tag {
+            0 => break,
+            23 => return base + val as usize,
+            _ => {}
+        }
+        ptr += 16;
+    }
     0
 }
 
