@@ -52,7 +52,11 @@ pub fn get_tty_devices() -> alloc::vec::Vec<String> {
 }
 
 pub fn get_active_tty() -> Option<String> {
-    Some(String::from("tty1"))
+    if let Some(vt) = crate::tty::console::get_active_vt() {
+        Some(format!("tty{}", vt.num + 1))
+    } else {
+        Some(String::from("tty1"))
+    }
 }
 
 pub fn get_tty_driver(name: &str) -> Option<String> {
