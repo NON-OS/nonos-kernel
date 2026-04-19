@@ -25,12 +25,17 @@ pub fn fd_sync(fd: i32) -> FdResult<()> {
         return Ok(());
     }
 
-    get_entry_read(fd, |entry| {
+    let path = get_entry_read(fd, |entry| {
         if !ramfs::NONOS_FILESYSTEM.exists(&entry.path) {
             return Err(FdError::NotFound);
         }
-        Ok(())
+        Ok(entry.path.clone())
     })?;
+
+    if let Ok(info) = ramfs::NONOS_FILESYSTEM.get_file_info(&path) {
+        crate::fs::cache::mark_page_clean(info.inode, 0);
+    }
+    crate::fs::cache::process_inode_cache_maintenance(16);
 
     Ok(())
 }
