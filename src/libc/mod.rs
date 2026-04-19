@@ -42,7 +42,7 @@ pub fn get_libc_start_main_addr() -> u64 { crt::crt0_start as *const () as usize
 pub fn get_exit_addr() -> u64 { stdlib::exit as *const () as usize as u64 }
 pub fn get_write_addr() -> u64 { unistd::write as *const () as usize as u64 }
 pub fn get_read_addr() -> u64 { unistd::read as *const () as usize as u64 }
-pub fn get_open_addr() -> u64 { unistd::fd_ops::open as *const () as usize as u64 }
+pub fn get_open_addr() -> u64 { unistd::open as *const () as usize as u64 }
 pub fn get_close_addr() -> u64 { unistd::close as *const () as usize as u64 }
 pub fn get_malloc_addr() -> u64 { stdlib::malloc as *const () as usize as u64 }
 pub fn get_free_addr() -> u64 { stdlib::free as *const () as usize as u64 }
@@ -52,8 +52,8 @@ pub fn get_brk_addr() -> u64 { stdlib::mmap::brk as *const () as usize as u64 }
 pub fn get_getpid_addr() -> u64 { unistd::getpid as *const () as usize as u64 }
 pub fn get_fork_addr() -> u64 { unistd::fork as *const () as usize as u64 }
 pub fn get_execve_addr() -> u64 { unistd::execve as *const () as usize as u64 }
-pub fn get_waitpid_addr() -> u64 { unistd::fork::waitpid as *const () as usize as u64 }
-pub fn get_ioctl_addr() -> u64 { unistd::fd_ops::ioctl as *const () as usize as u64 }
+pub fn get_waitpid_addr() -> u64 { unistd::waitpid as *const () as usize as u64 }
+pub fn get_ioctl_addr() -> u64 { unistd::ioctl as *const () as usize as u64 }
 pub fn get_printf_addr() -> u64 { stdio::printf as *const () as usize as u64 }
 pub fn get_puts_addr() -> u64 { stdio::fopen::puts as *const () as usize as u64 }
 pub fn get_fopen_addr() -> u64 { stdio::fopen as *const () as usize as u64 }
