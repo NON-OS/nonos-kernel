@@ -75,7 +75,13 @@ pub fn handle_execveat(dirfd: i32, pathname: u64, argv: u64, envp: u64, flags: i
     let _ = (argv, envp, flags);
 
     match crate::process::exec_fn(&full_path) {
-        Ok(()) => SyscallResult { value: 0, capability_consumed: false, audit_required: true },
-        Err(_) => errno(2),
+        Err(e) => match e {
+            "no current process" => errno(3),
+            "invalid executable format" => errno(8),
+            "executable has no entry point" => errno(8),
+            "failed to setup user stack" => errno(12),
+            "no valid cr3 for process" => errno(14),
+            _ => errno(2),
+        },
     }
 }
