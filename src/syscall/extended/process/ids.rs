@@ -23,19 +23,31 @@ pub fn handle_getppid() -> SyscallResult {
 }
 
 pub fn handle_getuid() -> SyscallResult {
-    SyscallResult { value: 0, capability_consumed: false, audit_required: false }
+    let uid = crate::process::current_process()
+        .map(|p| p.creds.lock().uid)
+        .unwrap_or(0);
+    SyscallResult { value: uid as i64, capability_consumed: false, audit_required: false }
 }
 
 pub fn handle_geteuid() -> SyscallResult {
-    SyscallResult { value: 0, capability_consumed: false, audit_required: false }
+    let euid = crate::process::current_process()
+        .map(|p| p.creds.lock().euid)
+        .unwrap_or(0);
+    SyscallResult { value: euid as i64, capability_consumed: false, audit_required: false }
 }
 
 pub fn handle_getgid() -> SyscallResult {
-    SyscallResult { value: 0, capability_consumed: false, audit_required: false }
+    let gid = crate::process::current_process()
+        .map(|p| p.creds.lock().gid)
+        .unwrap_or(0);
+    SyscallResult { value: gid as i64, capability_consumed: false, audit_required: false }
 }
 
 pub fn handle_getegid() -> SyscallResult {
-    SyscallResult { value: 0, capability_consumed: false, audit_required: false }
+    let egid = crate::process::current_process()
+        .map(|p| p.creds.lock().egid)
+        .unwrap_or(0);
+    SyscallResult { value: egid as i64, capability_consumed: false, audit_required: false }
 }
 
 pub fn handle_gettid() -> SyscallResult {
