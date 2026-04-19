@@ -48,3 +48,14 @@ pub const MAX_INPUT_LEN: usize = 256;
 pub static INPUT_BUFFER: Mutex<[u8; MAX_INPUT_LEN]> = Mutex::new([0u8; MAX_INPUT_LEN]);
 pub static INPUT_LEN: AtomicUsize = AtomicUsize::new(0);
 pub static INPUT_CURSOR: AtomicUsize = AtomicUsize::new(0);
+
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
+#[repr(u8)]
+pub enum EcosystemView { Main = 0, Swap = 1, NodeSettings = 2 }
+pub static CURRENT_VIEW: AtomicU8 = AtomicU8::new(0);
+pub fn set_current_view(view: EcosystemView) { CURRENT_VIEW.store(view as u8, Ordering::Relaxed); }
+pub fn get_current_view() -> EcosystemView {
+    match CURRENT_VIEW.load(Ordering::Relaxed) {
+        1 => EcosystemView::Swap, 2 => EcosystemView::NodeSettings, _ => EcosystemView::Main,
+    }
+}
