@@ -166,7 +166,18 @@ impl TxToken for TxT {
         let mut out = vec![0u8; len];
         let res = f(&mut out);
         if let Some(dev) = DEVICE_SLOT.get() {
-            let _ = dev.transmit(&out);
+            if let Err(()) = dev.transmit(&out) {
+                crate::sys::serial::println(b"[NET] TX FAILED - retrying");
+                for retry in 0..3 {
+                    core::hint::spin_loop();
+                    if dev.transmit(&out).is_ok() {
+                        crate::sys::serial::print(b"[NET] TX retry ");
+                        crate::sys::serial::print_dec(retry as u64 + 1);
+                        crate::sys::serial::println(b" succeeded");
+                        break;
+                    }
+                }
+            }
         } else {
             crate::sys::serial::println(b"[NET] TxToken: NO DEVICE!");
         }
