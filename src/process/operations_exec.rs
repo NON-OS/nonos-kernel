@@ -20,17 +20,24 @@ use alloc::string::String;
 use alloc::sync::Arc;
 use alloc::vec::Vec;
 use core::sync::atomic::Ordering;
+use x86_64::VirtAddr;
 
 use super::core::{current_process, ProcessControlBlock, ProcessState, PROCESS_TABLE};
+use super::userspace::constants::{USER_STACK_BASE, USER_STACK_SIZE};
 
-pub fn exec_process(path: &str, argv: &[String], envp: &[String]) -> Result<(), &'static str> {
+pub fn exec_process(path: &str, argv: &[String], envp: &[String]) -> Result<core::convert::Infallible, &'static str> {
     let current = current_process().ok_or("no current process")?;
     let executable_data = crate::fs::read_file(path)?;
-    let entry_point = match crate::elf::minimal::entry_from_bytes(&executable_data) {
-        Ok(ep) => ep,
+
+    let elf_image = match crate::elf::loader::load_elf_executable(&executable_data) {
+        Ok(img) => img,
         Err(_) => return Err("invalid executable format"),
     };
-    if entry_point == 0 { return Err("executable has no entry point"); }
+
+    if elf_image.entry_point.as_u64() == 0 {
+        return Err("executable has no entry point");
+    }
+
     {
         let mut mem = current.memory.lock();
         let total_pages: u64 = mem.vmas.iter()
@@ -38,22 +45,52 @@ pub fn exec_process(path: &str, argv: &[String], envp: &[String]) -> Result<(), 
             .sum();
         mem.vmas.clear();
         mem.resident_pages.fetch_sub(total_pages, Ordering::Relaxed);
-        mem.code_start = x86_64::VirtAddr::new(0);
-        mem.code_end = x86_64::VirtAddr::new(0);
+        mem.code_start = elf_image.base_addr;
+        mem.code_end = elf_image.base_addr + elf_image.memory_size as u64;
         mem.next_va = 0x0000_4000_0000;
     }
+
     current.fd_table.close_cloexec();
     *current.signals.lock() = super::core::types::ProcessSignals::default();
     current.pending_signals.store(0, Ordering::Release);
     *current.name.lock() = path.into();
     { let mut a = current.argv.lock(); a.clear(); a.extend(argv.iter().cloned()); }
     { let mut e = current.envp.lock(); e.clear(); e.extend(envp.iter().cloned()); }
-    *current.state.lock() = ProcessState::Ready;
-    Ok(())
+
+    let stack_top = VirtAddr::new(USER_STACK_BASE);
+    let stack_config = crate::elf::stack::StackConfig::new()
+        .with_args(argv.to_vec())
+        .with_env(envp.to_vec())
+        .with_stack_size(USER_STACK_SIZE);
+
+    let stack_layout = match crate::elf::stack::setup_user_stack(stack_top, USER_STACK_SIZE, &stack_config) {
+        Ok(layout) => layout,
+        Err(_) => return Err("failed to setup user stack"),
+    };
+
+    let cr3 = current.cr3.load(Ordering::Acquire);
+    if cr3 == 0 {
+        return Err("no valid cr3 for process");
+    }
+
+    let exec_ctx = super::userspace::types::ExecContext {
+        entry: elf_image.entry_point.as_u64(),
+        stack: stack_layout.stack_pointer.as_u64(),
+        pid: current.pid as u64,
+        tid: current.pid as u64,
+        cr3,
+        argc: argv.len() as u64,
+        argv: stack_layout.argv_ptr.as_u64(),
+        envp: stack_layout.envp_ptr.as_u64(),
+    };
+
+    *current.state.lock() = ProcessState::Running;
+
+    super::userspace::transitions::exec_process(&exec_ctx)
 }
 
 #[inline]
-pub fn exec_fn(path: &str) -> Result<(), &'static str> {
+pub fn exec_fn(path: &str) -> Result<core::convert::Infallible, &'static str> {
     exec_process(path, &[], &[])
 }
 
