@@ -77,6 +77,7 @@ pub struct ProcessControlBlock {
     pub voluntary_switches: AtomicU64,
     pub involuntary_switches: AtomicU64,
     pub cr3: AtomicU64,
+    pub io_bitmap: Mutex<[u8; 8192]>,
 }
 
 impl ProcessControlBlock {
