@@ -197,14 +197,14 @@ pub(super) fn stake_tokens() {
             return;
         }
     };
-    match crate::apps::ecosystem::staking::stake(amount) {
+    match crate::apps::ecosystem::staking::stake_simple(amount) {
         Ok(()) => {
             crate::graphics::window::notify_success(b"Tokens staked successfully");
             state::clear_stake_amount();
             state::refresh_staking_info();
         }
         Err(e) => {
-            state::set_error(&alloc::format!("Stake failed: {}", e));
+            state::set_error(e);
         }
     }
 }
@@ -217,14 +217,14 @@ pub(super) fn unstake_tokens() {
             return;
         }
     };
-    match crate::apps::ecosystem::staking::unstake(amount) {
+    match crate::apps::ecosystem::staking::unstake_simple(amount) {
         Ok(()) => {
             crate::graphics::window::notify_success(b"Unstake initiated");
             state::clear_unstake_amount();
             state::refresh_staking_info();
         }
         Err(e) => {
-            state::set_error(&alloc::format!("Unstake failed: {}", e));
+            state::set_error(e);
         }
     }
 }
@@ -250,7 +250,7 @@ pub(super) fn add_liquidity() {
             return;
         }
     };
-    match crate::apps::ecosystem::lp::add_liquidity(token_a, token_b) {
+    match crate::apps::ecosystem::lp::add_liquidity_simple(token_a, token_b) {
         Ok(lp_tokens) => {
             let msg = alloc::format!("Added liquidity, received {} LP tokens", lp_tokens);
             crate::graphics::window::notify_success(msg.as_bytes());
@@ -258,7 +258,7 @@ pub(super) fn add_liquidity() {
             state::refresh_lp_info();
         }
         Err(e) => {
-            state::set_error(&alloc::format!("Add liquidity failed: {}", e));
+            state::set_error(e);
         }
     }
 }
@@ -271,7 +271,7 @@ pub(super) fn remove_liquidity() {
             return;
         }
     };
-    match crate::apps::ecosystem::lp::remove_liquidity(lp_amount) {
+    match crate::apps::ecosystem::lp::remove_liquidity_simple(lp_amount) {
         Ok((token_a, token_b)) => {
             let msg = alloc::format!("Removed liquidity: {} + {}", token_a, token_b);
             crate::graphics::window::notify_success(msg.as_bytes());
@@ -279,7 +279,7 @@ pub(super) fn remove_liquidity() {
             state::refresh_lp_info();
         }
         Err(e) => {
-            state::set_error(&alloc::format!("Remove liquidity failed: {}", e));
+            state::set_error(e);
         }
     }
 }
