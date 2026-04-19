@@ -16,8 +16,15 @@
 
 
 use core::ptr;
+use core::sync::atomic::{AtomicU64, Ordering};
 use x86_64::PhysAddr;
 use crate::memory::dma::{alloc_dma_coherent, DmaConstraints};
+
+static FRAMES_PRESENTED: AtomicU64 = AtomicU64::new(0);
+
+pub fn get_frames_presented() -> u64 {
+    FRAMES_PRESENTED.load(Ordering::Relaxed)
+}
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum PixelFormat {
@@ -258,6 +265,8 @@ impl GpuSurface {
                 }
             }
         }
+
+        FRAMES_PRESENTED.fetch_add(1, Ordering::Relaxed);
     }
 
     pub fn width(&self) -> u16 {
