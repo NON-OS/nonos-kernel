@@ -24,8 +24,8 @@ mod interceptor;
 
 pub(crate) use interceptor::{InterceptorConfig, init_interceptor, get_interceptor};
 
-pub(crate) fn init_transparent_routing(config: InterceptorConfig) {
-    let _ = init_interceptor(config);
+pub(crate) fn init_transparent_routing(config: InterceptorConfig) -> Result<(), &'static str> {
+    init_interceptor(config)
 }
 
 pub(crate) fn shutdown_transparent_routing() {
