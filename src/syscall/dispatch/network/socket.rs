@@ -56,6 +56,7 @@ pub fn handle_socket(domain: u64, socket_type: u64, _protocol: u64) -> SyscallRe
         } else {
             None
         },
+        options: super::types::SocketOptions::default(),
     };
 
     SOCKET_TABLE.lock().insert(fd, entry);
@@ -87,6 +88,7 @@ pub fn handle_socketpair(domain: u64, socket_type: u64, _protocol: u64, sv: u64)
         remote_port: 0,
         tcp_conn_id: None,
         udp_socket_id: None,
+        options: super::types::SocketOptions::default(),
     };
 
     let entry2 = entry1.clone();
