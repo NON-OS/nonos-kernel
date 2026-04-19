@@ -63,3 +63,24 @@ pub fn process_inode_cache_maintenance(max_operations: usize) -> usize {
 
     processed
 }
+
+use spin::Mutex;
+use alloc::collections::BTreeMap;
+
+static FD_READAHEAD: Mutex<BTreeMap<i32, bool>> = Mutex::new(BTreeMap::new());
+
+pub fn set_fd_readahead(fd: i32, enabled: bool) {
+    FD_READAHEAD.lock().insert(fd, enabled);
+}
+
+pub fn get_fd_readahead(fd: i32) -> bool {
+    FD_READAHEAD.lock().get(&fd).copied().unwrap_or(false)
+}
+
+pub fn prefetch_range(inode: u64, offset: u64, length: u64) -> Result<(), &'static str> {
+    super::page_cache::prefetch_pages(inode, offset, length)
+}
+
+pub fn drop_range(inode: u64, offset: u64, length: u64) {
+    super::page_cache::invalidate_pages(inode, offset, length);
+}
