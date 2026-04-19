@@ -18,20 +18,73 @@ extern crate alloc;
 use alloc::string::String;
 use alloc::sync::Arc;
 use alloc::vec::Vec;
+use core::sync::atomic::{AtomicU64, Ordering};
 use spin::Mutex;
 use super::device::{BlockDevice, BlockDeviceInfo};
+
+pub struct BlockIoStats {
+    pub reads_completed: AtomicU64,
+    pub reads_merged: AtomicU64,
+    pub sectors_read: AtomicU64,
+    pub read_ms: AtomicU64,
+    pub writes_completed: AtomicU64,
+    pub writes_merged: AtomicU64,
+    pub sectors_written: AtomicU64,
+    pub write_ms: AtomicU64,
+    pub io_in_progress: AtomicU64,
+    pub io_ms: AtomicU64,
+    pub weighted_io_ms: AtomicU64,
+}
+
+impl BlockIoStats {
+    pub const fn new() -> Self {
+        Self {
+            reads_completed: AtomicU64::new(0),
+            reads_merged: AtomicU64::new(0),
+            sectors_read: AtomicU64::new(0),
+            read_ms: AtomicU64::new(0),
+            writes_completed: AtomicU64::new(0),
+            writes_merged: AtomicU64::new(0),
+            sectors_written: AtomicU64::new(0),
+            write_ms: AtomicU64::new(0),
+            io_in_progress: AtomicU64::new(0),
+            io_ms: AtomicU64::new(0),
+            weighted_io_ms: AtomicU64::new(0),
+        }
+    }
+
+    pub fn record_read(&self, sectors: u64) {
+        self.reads_completed.fetch_add(1, Ordering::Relaxed);
+        self.sectors_read.fetch_add(sectors, Ordering::Relaxed);
+    }
+
+    pub fn record_write(&self, sectors: u64) {
+        self.writes_completed.fetch_add(1, Ordering::Relaxed);
+        self.sectors_written.fetch_add(sectors, Ordering::Relaxed);
+    }
+}
+
+impl Default for BlockIoStats {
+    fn default() -> Self { Self::new() }
+}
 
 struct RegisteredDevice {
     name: String,
     device: Arc<dyn BlockDevice>,
     info: BlockDeviceInfo,
+    stats: Arc<BlockIoStats>,
 }
 
 static DEVICES: Mutex<Vec<RegisteredDevice>> = Mutex::new(Vec::new());
 
 pub fn register_device(name: &str, device: Arc<dyn BlockDevice>, info: BlockDeviceInfo) {
     let mut devs = DEVICES.lock();
-    devs.push(RegisteredDevice { name: String::from(name), device, info });
+    devs.push(RegisteredDevice {
+        name: String::from(name),
+        device,
+        info,
+        stats: Arc::new(BlockIoStats::new()),
+    });
 }
 
 pub fn unregister_device(name: &str) {
@@ -53,4 +106,20 @@ pub fn get_device_info(name: &str) -> Option<BlockDeviceInfo> {
 
 pub fn list_devices() -> Vec<BlockDeviceInfo> {
     DEVICES.lock().iter().map(|d| d.info.clone()).collect()
+}
+
+pub fn get_device_stats(name: &str) -> Option<Arc<BlockIoStats>> {
+    DEVICES.lock().iter().find(|d| d.name == name).map(|d| d.stats.clone())
+}
+
+pub fn record_read(name: &str, bytes: usize) {
+    if let Some(stats) = get_device_stats(name) {
+        stats.record_read((bytes / 512) as u64);
+    }
+}
+
+pub fn record_write(name: &str, bytes: usize) {
+    if let Some(stats) = get_device_stats(name) {
+        stats.record_write((bytes / 512) as u64);
+    }
 }
