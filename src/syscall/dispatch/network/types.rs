@@ -29,6 +29,20 @@ pub enum SocketState {
     Closed,
 }
 
+#[derive(Debug, Clone, Copy, Default)]
+pub struct SocketOptions {
+    pub reuseaddr: bool,
+    pub reuseport: bool,
+    pub keepalive: bool,
+    pub broadcast: bool,
+    pub nodelay: bool,
+    pub linger: Option<u32>,
+    pub rcvbuf: u32,
+    pub sndbuf: u32,
+    pub rcvtimeo_ms: u64,
+    pub sndtimeo_ms: u64,
+}
+
 #[derive(Clone)]
 pub struct SocketEntry {
     pub socket_type: SocketType,
@@ -38,4 +52,5 @@ pub struct SocketEntry {
     pub remote_port: u16,
     pub tcp_conn_id: Option<u32>,
     pub udp_socket_id: Option<u32>,
+    pub options: SocketOptions,
 }
