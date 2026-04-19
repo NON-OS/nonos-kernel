@@ -18,6 +18,7 @@ use crate::display::gop::get_dimensions;
 
 const MARGIN: u32 = 40;
 const HEADER_HEIGHT: u32 = 120;
+const RIGHT_PANEL_WIDTH: u32 = 320;
 
 pub struct TerminalLayout {
     pub x: u32,
@@ -33,7 +34,12 @@ pub struct TerminalLayout {
 impl TerminalLayout {
     pub fn compute() -> Self {
         let (screen_w, screen_h) = get_dimensions();
-        let width = screen_w - (MARGIN * 2);
+        let available_w = if screen_w > RIGHT_PANEL_WIDTH + MARGIN * 3 {
+            screen_w - RIGHT_PANEL_WIDTH - MARGIN * 3
+        } else {
+            screen_w - MARGIN * 2
+        };
+        let width = available_w;
         let height = screen_h - (MARGIN * 2);
         let x = MARGIN;
         let y = MARGIN;
