@@ -70,5 +70,6 @@ fn build_pcb(pid: Pid, ppid: Pid, name: &str, st: ProcessState, pr: Priority, pg
         kstkesp: AtomicU64::new(0), kstkeip: AtomicU64::new(0), wchan: AtomicU64::new(0), exit_signal: AtomicI32::new(17),
         processor: AU32::new(0), rt_priority: AU32::new(0), policy: AU32::new(0), no_new_privs: AU32::new(0), seccomp: AU32::new(0),
         cpus_allowed: AtomicU64::new(!0), voluntary_switches: AtomicU64::new(0), involuntary_switches: AtomicU64::new(0), cr3: AtomicU64::new(0),
+        io_bitmap: spin::Mutex::new([0xFF; 8192]),
     })
 }
