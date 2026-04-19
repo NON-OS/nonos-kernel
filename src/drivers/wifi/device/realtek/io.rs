@@ -52,6 +52,9 @@ impl RealtekWifiDevice {
         let buf_phys = self.tx_buffers_phys.as_u64() + (self.tx_head * TX_BUFFER_SIZE) as u64;
         desc.configure_tx((frame.len() + 48) as u16, buf_phys);
 
+        core::sync::atomic::fence(core::sync::atomic::Ordering::SeqCst);
+        self.write8(regs::MGQ_POLL, 0x80);
+
         self.tx_head = (self.tx_head + 1) % TX_RING_SIZE;
         Ok(())
     }
@@ -147,9 +150,12 @@ impl RealtekWifiDevice {
             let pkt_len = desc.pkt_len() as usize;
             if pkt_len > 0 && pkt_len <= RX_BUFFER_SIZE {
                 let buf_addr = self.rx_buffers_virt.as_u64() + (self.rx_head * RX_BUFFER_SIZE) as u64;
-                let mut data = alloc::vec![0u8; pkt_len];
+                let rssi = desc.rssi();
+                self.rssi = rssi;
+                let mut data = alloc::vec![0u8; pkt_len + 1];
+                data[0] = (rssi as u8).wrapping_add(128);
                 unsafe {
-                    ptr::copy_nonoverlapping(buf_addr as *const u8, data.as_mut_ptr(), pkt_len);
+                    ptr::copy_nonoverlapping(buf_addr as *const u8, data.as_mut_ptr().add(1), pkt_len);
                 }
                 frames.push(data);
             }
