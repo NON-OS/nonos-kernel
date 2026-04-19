@@ -178,21 +178,5 @@ pub fn handle_ioperm(from: u64, num: u64, turn_on: i32) -> SyscallResult {
 }
 
 pub fn handle_ptrace(request: i64, pid: i64, addr: u64, data: u64) -> SyscallResult {
-    const PTRACE_TRACEME: i64 = 0;
-    const PTRACE_ATTACH: i64 = 16;
-    const PTRACE_DETACH: i64 = 17;
-
-    match request {
-        PTRACE_TRACEME => {
-            SyscallResult { value: 0, capability_consumed: false, audit_required: true }
-        }
-        PTRACE_ATTACH | PTRACE_DETACH => {
-            let _ = (pid, addr, data);
-            errno(1)
-        }
-        _ => {
-            let _ = (pid, addr, data);
-            errno(1)
-        }
-    }
+    crate::syscall::ptrace::handle_ptrace(request as u32, pid as u32, addr, data)
 }
