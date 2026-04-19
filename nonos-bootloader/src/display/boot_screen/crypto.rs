@@ -83,7 +83,7 @@ pub fn show_crypto_verification(crypto: &BootCryptoState) {
 
     let hash_y = py + 44;
     fill_rect(px + 4, hash_y, PANEL_WIDTH - 8, LINE_HEIGHT, COLOR_BOX_BG);
-    let mut hash_buf: [u8; 20] = *b"BLAKE3 ............";
+    let mut hash_buf: [u8; 20] = *b"BLAKE3 .............";
     format_hash_into(&crypto.kernel_hash, &mut hash_buf[7..19]);
     draw_string(px + INNER_PAD, hash_y + 4, &hash_buf, COLOR_CRYPTO_CYAN);
 
