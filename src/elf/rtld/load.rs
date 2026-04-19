@@ -63,19 +63,101 @@ fn load_library_from_path(path: &str, name: &str) -> Result<LoadedObject, i32> {
 }
 
 fn allocate_load_address(hdr: &crate::elf::types::ElfHeader) -> usize {
-    let mut size = 0usize;
-    let _ = hdr;
-    size = (size + 0xfff) & !0xfff;
-    if size == 0 { size = 0x400000; }
+    let phnum = hdr.e_phnum as usize;
+    let phoff = hdr.e_phoff as usize;
+    let mut min_vaddr = usize::MAX;
+    let mut max_vaddr = 0usize;
+    for i in 0..phnum {
+        let phdr_off = phoff + i * 56;
+        let p_type = unsafe { *((hdr as *const _ as usize + phdr_off) as *const u32) };
+        if p_type != 1 { continue; }
+        let p_vaddr = unsafe { *((hdr as *const _ as usize + phdr_off + 16) as *const u64) } as usize;
+        let p_memsz = unsafe { *((hdr as *const _ as usize + phdr_off + 40) as *const u64) } as usize;
+        min_vaddr = min_vaddr.min(p_vaddr);
+        max_vaddr = max_vaddr.max(p_vaddr + p_memsz);
+    }
+    let size = if max_vaddr > min_vaddr { max_vaddr - min_vaddr } else { 0x400000 };
+    let size = (size + 0xfff) & !0xfff;
     crate::elf::aslr::AslrManager::random_address(0x7f0000000000, 0x7fff00000000, size)
 }
 
 fn map_library(fd: i32, hdr: &crate::elf::types::ElfHeader, base: usize, name: &str) -> Result<LoadedObject, i32> {
-    let _ = (fd, hdr);
-    Ok(LoadedObject {
-        name: String::from(name), base, phdr: 0, phnum: 0, dynamic: 0,
+    let phnum = hdr.e_phnum as usize;
+    let phentsize = hdr.e_phentsize as usize;
+    let phoff = hdr.e_phoff;
+    let mut phdrs = alloc::vec![0u8; phnum * phentsize];
+    crate::syscall::core::sys_lseek(fd as u64, phoff as u64, 0);
+    let n = crate::syscall::core::sys_read(fd as u64, phdrs.as_mut_ptr() as u64, phdrs.len() as u64);
+    if (n as usize) < phdrs.len() { return Err(-5); }
+    let mut obj = LoadedObject {
+        name: String::from(name), base, phdr: 0, phnum, dynamic: 0,
         needed: Vec::new(), init: 0, fini: 0, init_array: 0, init_arraysz: 0, fini_array: 0, fini_arraysz: 0,
-    })
+    };
+    for i in 0..phnum {
+        let phdr = &phdrs[i * phentsize..];
+        let p_type = u32::from_le_bytes([phdr[0], phdr[1], phdr[2], phdr[3]]);
+        let p_offset = u64::from_le_bytes([phdr[8], phdr[9], phdr[10], phdr[11], phdr[12], phdr[13], phdr[14], phdr[15]]);
+        let p_vaddr = u64::from_le_bytes([phdr[16], phdr[17], phdr[18], phdr[19], phdr[20], phdr[21], phdr[22], phdr[23]]);
+        let p_filesz = u64::from_le_bytes([phdr[32], phdr[33], phdr[34], phdr[35], phdr[36], phdr[37], phdr[38], phdr[39]]);
+        let p_memsz = u64::from_le_bytes([phdr[40], phdr[41], phdr[42], phdr[43], phdr[44], phdr[45], phdr[46], phdr[47]]);
+        match p_type {
+            1 => {
+                let addr = base + p_vaddr as usize;
+                let pages = (p_memsz as usize + 0xfff) / 0x1000;
+                crate::syscall::microkernel::sys_mmap(addr as u64, pages * 0x1000, 7, 0x22);
+                crate::syscall::core::sys_lseek(fd as u64, p_offset, 0);
+                crate::syscall::core::sys_read(fd as u64, addr as u64, p_filesz);
+                if p_memsz > p_filesz {
+                    let bss_start = addr + p_filesz as usize;
+                    let bss_size = (p_memsz - p_filesz) as usize;
+                    unsafe { core::ptr::write_bytes(bss_start as *mut u8, 0, bss_size); }
+                }
+            }
+            2 => obj.dynamic = base + p_vaddr as usize,
+            6 => obj.phdr = base + p_vaddr as usize,
+            _ => {}
+        }
+    }
+    if obj.dynamic != 0 { parse_dynamic(&mut obj); }
+    Ok(obj)
+}
+
+fn parse_dynamic(obj: &mut LoadedObject) {
+    let mut ptr = obj.dynamic;
+    loop {
+        let tag = unsafe { *(ptr as *const i64) };
+        let val = unsafe { *((ptr + 8) as *const u64) };
+        match tag {
+            0 => break,
+            1 => {
+                let strtab = get_strtab(obj.dynamic, obj.base);
+                if strtab != 0 {
+                    let s = unsafe { core::ffi::CStr::from_ptr((strtab + val as usize) as *const i8) };
+                    if let Ok(name) = s.to_str() { obj.needed.push(String::from(name)); }
+                }
+            }
+            12 => obj.init = obj.base + val as usize,
+            13 => obj.fini = obj.base + val as usize,
+            25 => obj.init_array = obj.base + val as usize,
+            27 => obj.init_arraysz = val as usize,
+            26 => obj.fini_array = obj.base + val as usize,
+            28 => obj.fini_arraysz = val as usize,
+            _ => {}
+        }
+        ptr += 16;
+    }
+}
+
+fn get_strtab(dynamic: usize, base: usize) -> usize {
+    let mut ptr = dynamic;
+    loop {
+        let tag = unsafe { *(ptr as *const i64) };
+        let val = unsafe { *((ptr + 8) as *const u64) };
+        if tag == 0 { break; }
+        if tag == 5 { return base + val as usize; }
+        ptr += 16;
+    }
+    0
 }
 
 pub fn load_needed(names: &[String]) -> Result<(), i32> {
