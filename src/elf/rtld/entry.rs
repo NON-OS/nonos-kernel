@@ -75,8 +75,37 @@ pub unsafe extern "C" fn _dl_start(stack_ptr: *const usize) -> usize {
 
 #[no_mangle]
 pub unsafe extern "C" fn __libc_start_main(main: usize, argc: i32, argv: *const *const u8, init: usize, fini: usize, rtld_fini: usize, stack_end: *mut u8) -> i32 {
-    let _ = (init, fini, rtld_fini, stack_end);
+    register_fini(fini, rtld_fini);
+    if init != 0 {
+        let init_fn: extern "C" fn(i32, *const *const u8, *const *const u8) = core::mem::transmute(init);
+        let envp = argv.add(argc as usize + 1);
+        init_fn(argc, argv, envp);
+    }
     let main_fn: extern "C" fn(i32, *const *const u8, *const *const u8) -> i32 = core::mem::transmute(main);
     let envp = argv.add(argc as usize + 1);
-    main_fn(argc, argv, envp)
+    let result = main_fn(argc, argv, envp);
+    call_fini_functions();
+    if let Some(rtld) = RTLD_FINI.lock().take() {
+        let rtld_fn: extern "C" fn() = core::mem::transmute(rtld);
+        rtld_fn();
+    }
+    let _ = stack_end;
+    result
+}
+
+static FINI_FUNC: Mutex<Option<usize>> = Mutex::new(None);
+static RTLD_FINI: Mutex<Option<usize>> = Mutex::new(None);
+
+fn register_fini(fini: usize, rtld_fini: usize) {
+    if fini != 0 { *FINI_FUNC.lock() = Some(fini); }
+    if rtld_fini != 0 { *RTLD_FINI.lock() = Some(rtld_fini); }
+}
+
+fn call_fini_functions() {
+    set_state(RtldState::Finalizing);
+    if let Some(fini) = FINI_FUNC.lock().take() {
+        let fini_fn: extern "C" fn() = unsafe { core::mem::transmute(fini) };
+        fini_fn();
+    }
+    super::init::call_fini_functions();
 }
