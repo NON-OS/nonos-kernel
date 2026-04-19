@@ -196,6 +196,34 @@ pub fn get_cached_page(file_id: u64, offset: u64) -> Option<Vec<u8>> {
     }
 }
 
+pub fn prefetch_pages(_file_id: u64, _offset: u64, _length: u64) -> Result<(), &'static str> {
+    init_page_cache();
+    Ok(())
+}
+
+pub fn invalidate_pages(file_id: u64, offset: u64, length: u64) {
+    init_page_cache();
+    if let Some(cache) = PAGE_CACHE.get() {
+        let mut guard = cache.lock();
+        let page_size = 4096u64;
+        let start_page = offset / page_size;
+        let end_offset = if length == u64::MAX { u64::MAX } else { offset.saturating_add(length) };
+        let keys_to_remove: Vec<_> = guard.pages.keys()
+            .filter(|(fid, off)| {
+                *fid == file_id && *off >= start_page * page_size &&
+                (length == u64::MAX || *off < end_offset)
+            })
+            .copied()
+            .collect();
+        for key in keys_to_remove {
+            if let Some(page) = guard.pages.remove(&key) {
+                guard.total_cached_bytes = guard.total_cached_bytes.saturating_sub(page.data.len());
+                guard.dirty_list.retain(|k| *k != key);
+            }
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
