@@ -167,7 +167,9 @@ pub struct ProcessMemoryInfo {
     pub cmajflt: u64,
 }
 
-#[derive(Debug, Clone, Copy, Default)]
+pub const NGROUPS_MAX: usize = 32;
+
+#[derive(Debug, Clone, Copy)]
 pub struct ProcessCredentials {
     pub uid: u32,
     pub euid: u32,
@@ -177,6 +179,18 @@ pub struct ProcessCredentials {
     pub egid: u32,
     pub sgid: u32,
     pub fsgid: u32,
+    pub groups: [u32; NGROUPS_MAX],
+    pub ngroups: usize,
+}
+
+impl Default for ProcessCredentials {
+    fn default() -> Self {
+        Self {
+            uid: 0, euid: 0, suid: 0, fsuid: 0,
+            gid: 0, egid: 0, sgid: 0, fsgid: 0,
+            groups: [0; NGROUPS_MAX], ngroups: 0,
+        }
+    }
 }
 
 #[derive(Debug, Clone, Copy, Default)]
