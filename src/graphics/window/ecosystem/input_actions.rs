@@ -133,9 +133,48 @@ pub(super) fn create_new_wallet() {
 }
 
 pub(super) fn import_wallet() {
+    let seed_phrase = state::get_import_seed_phrase();
+    if seed_phrase.is_empty() {
+        state::set_error("Enter seed phrase to import wallet");
+        return;
+    }
+    match crate::apps::ecosystem::wallet::import_from_mnemonic(&seed_phrase) {
+        Ok(address) => {
+            state::set_wallet_address(&address);
+            state::clear_import_seed_phrase();
+            crate::graphics::window::notify_success(b"Wallet imported successfully");
+        }
+        Err(e) => {
+            state::set_error(&alloc::format!("Import failed: {}", e));
+        }
+    }
 }
 
 pub(super) fn send_transaction() {
+    let recipient = match state::get_send_recipient() {
+        Some(r) => r,
+        None => {
+            state::set_error("Enter recipient address");
+            return;
+        }
+    };
+    let amount = match state::get_send_amount() {
+        Some(a) => a,
+        None => {
+            state::set_error("Enter amount to send");
+            return;
+        }
+    };
+    match crate::apps::ecosystem::wallet::send_tokens(&recipient, amount) {
+        Ok(tx_hash) => {
+            let msg = alloc::format!("Transaction sent: {}", tx_hash);
+            crate::graphics::window::notify_success(msg.as_bytes());
+            state::clear_send_fields();
+        }
+        Err(e) => {
+            state::set_error(&alloc::format!("Send failed: {}", e));
+        }
+    }
 }
 
 pub(super) fn show_receive_address() {
@@ -146,12 +185,48 @@ pub(super) fn show_receive_address() {
 }
 
 pub(super) fn open_swap() {
+    state::set_current_view(state::EcosystemView::Swap);
+    state::mark_content_changed();
 }
 
 pub(super) fn stake_tokens() {
+    let amount = match state::get_stake_amount() {
+        Some(a) => a,
+        None => {
+            state::set_error("Enter amount to stake");
+            return;
+        }
+    };
+    match crate::apps::ecosystem::staking::stake(amount) {
+        Ok(()) => {
+            crate::graphics::window::notify_success(b"Tokens staked successfully");
+            state::clear_stake_amount();
+            state::refresh_staking_info();
+        }
+        Err(e) => {
+            state::set_error(&alloc::format!("Stake failed: {}", e));
+        }
+    }
 }
 
 pub(super) fn unstake_tokens() {
+    let amount = match state::get_unstake_amount() {
+        Some(a) => a,
+        None => {
+            state::set_error("Enter amount to unstake");
+            return;
+        }
+    };
+    match crate::apps::ecosystem::staking::unstake(amount) {
+        Ok(()) => {
+            crate::graphics::window::notify_success(b"Unstake initiated");
+            state::clear_unstake_amount();
+            state::refresh_staking_info();
+        }
+        Err(e) => {
+            state::set_error(&alloc::format!("Unstake failed: {}", e));
+        }
+    }
 }
 
 pub(super) fn claim_rewards() {
@@ -168,9 +243,45 @@ pub(super) fn claim_rewards() {
 }
 
 pub(super) fn add_liquidity() {
+    let (token_a, token_b) = match state::get_lp_amounts() {
+        Some((a, b)) => (a, b),
+        None => {
+            state::set_error("Enter amounts for both tokens");
+            return;
+        }
+    };
+    match crate::apps::ecosystem::lp::add_liquidity(token_a, token_b) {
+        Ok(lp_tokens) => {
+            let msg = alloc::format!("Added liquidity, received {} LP tokens", lp_tokens);
+            crate::graphics::window::notify_success(msg.as_bytes());
+            state::clear_lp_amounts();
+            state::refresh_lp_info();
+        }
+        Err(e) => {
+            state::set_error(&alloc::format!("Add liquidity failed: {}", e));
+        }
+    }
 }
 
 pub(super) fn remove_liquidity() {
+    let lp_amount = match state::get_remove_lp_amount() {
+        Some(a) => a,
+        None => {
+            state::set_error("Enter LP token amount to remove");
+            return;
+        }
+    };
+    match crate::apps::ecosystem::lp::remove_liquidity(lp_amount) {
+        Ok((token_a, token_b)) => {
+            let msg = alloc::format!("Removed liquidity: {} + {}", token_a, token_b);
+            crate::graphics::window::notify_success(msg.as_bytes());
+            state::clear_remove_lp_amount();
+            state::refresh_lp_info();
+        }
+        Err(e) => {
+            state::set_error(&alloc::format!("Remove liquidity failed: {}", e));
+        }
+    }
 }
 
 pub(super) fn compound_lp() {
@@ -199,6 +310,8 @@ pub(super) fn disconnect_node() {
 }
 
 pub(super) fn open_node_settings() {
+    state::set_current_view(state::EcosystemView::NodeSettings);
+    state::mark_content_changed();
 }
 
 pub(super) fn page_up() {
