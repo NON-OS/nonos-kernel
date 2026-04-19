@@ -45,9 +45,51 @@ pub fn handle_sysinfo(info: u64) -> SyscallResult {
     SyscallResult { value: 0, capability_consumed: false, audit_required: false }
 }
 
+const SYSLOG_ACTION_CLOSE: i32 = 0;
+const SYSLOG_ACTION_OPEN: i32 = 1;
+const SYSLOG_ACTION_READ: i32 = 2;
+const SYSLOG_ACTION_READ_ALL: i32 = 3;
+const SYSLOG_ACTION_READ_CLEAR: i32 = 4;
+const SYSLOG_ACTION_CLEAR: i32 = 5;
+const SYSLOG_ACTION_CONSOLE_OFF: i32 = 6;
+const SYSLOG_ACTION_CONSOLE_ON: i32 = 7;
+const SYSLOG_ACTION_CONSOLE_LEVEL: i32 = 8;
+const SYSLOG_ACTION_SIZE_UNREAD: i32 = 9;
+const SYSLOG_ACTION_SIZE_BUFFER: i32 = 10;
+
 pub fn handle_syslog(cmd: i32, buf: u64, len: i32) -> SyscallResult {
-    let _ = (cmd, buf, len);
-    SyscallResult { value: 0, capability_consumed: false, audit_required: false }
+    match cmd {
+        SYSLOG_ACTION_CLOSE | SYSLOG_ACTION_OPEN => {
+            SyscallResult { value: 0, capability_consumed: false, audit_required: false }
+        }
+        SYSLOG_ACTION_READ | SYSLOG_ACTION_READ_ALL | SYSLOG_ACTION_READ_CLEAR => {
+            if buf == 0 || len <= 0 { return errno(22); }
+            let entries = crate::log::get_log_entries();
+            let mut output = alloc::string::String::new();
+            for entry in &entries {
+                use core::fmt::Write;
+                let _ = write!(output, "[{}] {}\n", entry.ts, entry.msg);
+                if output.len() >= len as usize { break; }
+            }
+            let bytes = output.as_bytes();
+            let copy_len = bytes.len().min(len as usize);
+            if copy_to_user(buf, &bytes[..copy_len]).is_err() { return errno(14); }
+            if cmd == SYSLOG_ACTION_READ_CLEAR { crate::log::clear_log_buffer(); }
+            SyscallResult { value: copy_len as i64, capability_consumed: false, audit_required: false }
+        }
+        SYSLOG_ACTION_CLEAR => {
+            crate::log::clear_log_buffer();
+            SyscallResult { value: 0, capability_consumed: false, audit_required: true }
+        }
+        SYSLOG_ACTION_CONSOLE_OFF | SYSLOG_ACTION_CONSOLE_ON | SYSLOG_ACTION_CONSOLE_LEVEL => {
+            SyscallResult { value: 0, capability_consumed: false, audit_required: false }
+        }
+        SYSLOG_ACTION_SIZE_UNREAD | SYSLOG_ACTION_SIZE_BUFFER => {
+            let count = crate::log::log_entry_count();
+            SyscallResult { value: (count * 128) as i64, capability_consumed: false, audit_required: false }
+        }
+        _ => errno(22),
+    }
 }
 
 pub fn handle_getcpu(cpu: u64, node: u64, _tcache: u64) -> SyscallResult {
