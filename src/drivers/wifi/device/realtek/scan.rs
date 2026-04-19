@@ -85,8 +85,8 @@ impl RealtekWifiDevice {
         Ok(self.scan_results.clone())
     }
 
-    fn send_probe_request(&mut self, _ssid: Option<&str>) {
-        let probe_req: [u8; 24] = [
+    fn send_probe_request(&mut self, ssid: Option<&str>) {
+        let mut probe_req = alloc::vec![
             0x40, 0x00,
             0x00, 0x00,
             0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
@@ -95,13 +95,29 @@ impl RealtekWifiDevice {
             0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
             0x00, 0x00,
         ];
+        if let Some(ssid_str) = ssid {
+            let ssid_bytes = ssid_str.as_bytes();
+            let ssid_len = ssid_bytes.len().min(32);
+            probe_req.push(0x00);
+            probe_req.push(ssid_len as u8);
+            probe_req.extend_from_slice(&ssid_bytes[..ssid_len]);
+        } else {
+            probe_req.push(0x00);
+            probe_req.push(0x00);
+        }
+        probe_req.push(0x01);
+        probe_req.push(0x08);
+        probe_req.extend_from_slice(&[0x82, 0x84, 0x8B, 0x96, 0x0C, 0x12, 0x18, 0x24]);
         let _ = self.transmit_raw(&probe_req);
     }
 
     fn parse_beacon_or_probe_resp(&self, frame: &[u8], channel: u8) -> Option<ScanResult> {
-        if frame.len() < 36 {
+        if frame.len() < 37 {
             return None;
         }
+
+        let rssi = (frame[0] as i8).wrapping_sub(-128);
+        let frame = &frame[1..];
 
         let frame_type = frame[0] & 0xFC;
         if frame_type != 0x80 && frame_type != 0x50 {
@@ -162,7 +178,7 @@ impl RealtekWifiDevice {
             ssid,
             bssid,
             channel,
-            rssi: -50,
+            rssi,
             security,
         })
     }
