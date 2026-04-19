@@ -114,7 +114,7 @@ impl UdpSocket {
     pub fn send_to(
         &mut self,
         data: &[u8],
-        _dest_ip: [u8; 4],
+        dest_ip: [u8; 4],
         port: u16,
     ) -> Result<usize, &'static str> {
         if self.state == UdpState::Closed {
@@ -130,32 +130,45 @@ impl UdpSocket {
             return Err("Data too large for UDP");
         }
 
-        let header = UdpHeader {
-            src_port: self.local_port,
-            dst_port: port,
-            length: (8 + data.len()) as u16,
-            checksum: 0,
-        };
+        let stack = crate::network::get_network_stack().ok_or("Network stack not initialized")?;
 
-        if let Some(_stack) = crate::network::get_network_stack() {
-            let mut packet = Vec::with_capacity(8 + data.len());
-            packet.extend_from_slice(&header.serialize());
-            packet.extend_from_slice(data);
+        let rx = smoltcp::socket::udp::PacketBuffer::new(
+            alloc::vec![smoltcp::socket::udp::PacketMetadata::EMPTY; 8],
+            alloc::vec![0u8; 2048],
+        );
+        let tx = smoltcp::socket::udp::PacketBuffer::new(
+            alloc::vec![smoltcp::socket::udp::PacketMetadata::EMPTY; 8],
+            alloc::vec![0u8; 2048],
+        );
 
-            self.stats.packets_sent += 1;
-            self.stats.bytes_sent += data.len() as u64;
+        let mut sockets = stack.sockets.lock();
+        let handle = sockets.add(smoltcp::socket::udp::Socket::new(rx, tx));
 
-            GLOBAL_STATS
-                .packets_sent
-                .fetch_add(1, Ordering::Relaxed);
-            GLOBAL_STATS
-                .bytes_sent
-                .fetch_add(data.len() as u64, Ordering::Relaxed);
+        {
+            let sock: &mut smoltcp::socket::udp::Socket = sockets.get_mut(handle);
+            sock.bind(self.local_port).map_err(|_| "Failed to bind UDP socket")?;
 
-            return Ok(data.len());
+            let endpoint = smoltcp::wire::IpEndpoint::new(
+                smoltcp::wire::IpAddress::Ipv4(smoltcp::wire::Ipv4Address::from_bytes(&dest_ip)),
+                port,
+            );
+            let metadata = smoltcp::socket::udp::UdpMetadata::from(endpoint);
+            sock.send_slice(data, metadata).map_err(|_| "UDP send failed")?;
         }
 
-        Err("Network stack not initialized")
+        drop(sockets);
+        stack.poll_interface();
+
+        let mut sockets = stack.sockets.lock();
+        sockets.remove(handle);
+
+        self.stats.packets_sent += 1;
+        self.stats.bytes_sent += data.len() as u64;
+
+        GLOBAL_STATS.packets_sent.fetch_add(1, Ordering::Relaxed);
+        GLOBAL_STATS.bytes_sent.fetch_add(data.len() as u64, Ordering::Relaxed);
+
+        Ok(data.len())
     }
 
     /// Receive data from the socket
