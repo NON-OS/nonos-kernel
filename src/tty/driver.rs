@@ -57,6 +57,8 @@ pub struct TtyStruct {
     pub termios: super::termios::Termios,
     pub winsize: super::termios::Winsize,
     pub ldisc: Arc<dyn super::ldisc::LineDiscipline>,
+    pub pgrp: i32,
+    pub session: i32,
 }
 
 pub fn register_driver(driver: Arc<TtyDriver>) -> Result<(), i32> {
