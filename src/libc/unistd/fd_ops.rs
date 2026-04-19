@@ -28,3 +28,13 @@ pub unsafe extern "C" fn pipe(pipefd: *mut i32) -> i32 { crate::syscall::sys_pip
 
 #[no_mangle]
 pub unsafe extern "C" fn lseek(fd: i32, offset: i64, whence: i32) -> i64 { crate::syscall::sys_lseek(fd as u64, offset as u64, whence as u64) }
+
+#[no_mangle]
+pub unsafe extern "C" fn open(path: *const u8, flags: i32, mode: u32) -> i32 {
+    crate::syscall::sys_openat(-100i64 as u64, path as u64, flags as u64, mode as u64) as i32
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn ioctl(fd: i32, request: u64, arg: u64) -> i32 {
+    crate::syscall::sys_ioctl(fd, request, arg) as i32
+}
