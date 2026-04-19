@@ -65,9 +65,15 @@ impl CryptoFileSystem {
     }
 
     pub fn sync_all(&self) {
+        let inner = self.inner.read();
+        let mut stats = self.stats.write();
+        stats.files = inner.files.len() as u64;
+        stats.bytes_stored = inner.files.values().map(|e| e.encrypted.len() as u64).sum();
     }
 
-    pub fn process_pending_operations(&self, _max_ops: usize) -> usize {
+    pub fn process_pending_operations(&self, max_ops: usize) -> usize {
+        if max_ops == 0 { return 0; }
+        self.sync_all();
         0
     }
 
