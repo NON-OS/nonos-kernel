@@ -16,7 +16,7 @@
 
 use core::sync::atomic::{AtomicBool, Ordering};
 use spin::{Mutex, Once};
-use crate::crypto::rand::secure_random_bytes;
+use crate::crypto::random_api::get_bytes_secure;
 use super::{EncryptionError, context::CryptoContext};
 
 pub static CRYPTO_CONTEXT: Once<Mutex<CryptoContext>> = Once::new();
@@ -28,7 +28,7 @@ pub fn init_global_key() -> Result<(), EncryptionError> {
     }
 
     let mut master_key = [0u8; 32];
-    secure_random_bytes(&mut master_key)
+    get_bytes_secure(&mut master_key)
         .map_err(|_| EncryptionError::InsufficientEntropy)?;
 
     CRYPTO_CONTEXT.call_once(|| Mutex::new(CryptoContext::new(master_key)));

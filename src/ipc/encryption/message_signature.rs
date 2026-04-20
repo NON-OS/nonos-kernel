@@ -16,7 +16,7 @@
 
 extern crate alloc;
 use alloc::vec::Vec;
-use crate::crypto::signing::ed25519::PublicKey;
+use crate::crypto::asymmetric::curve25519::PublicKey;
 use super::EncryptionError;
 
 #[derive(Debug, Clone)]
@@ -30,7 +30,7 @@ impl MessageSignature {
     pub fn new(signature: [u8; 64], public_key: PublicKey, timestamp: u64) -> Self {
         Self {
             signature,
-            public_key: public_key.to_bytes(),
+            public_key: public_key,
             timestamp,
         }
     }
