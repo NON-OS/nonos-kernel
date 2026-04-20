@@ -1,6 +1,6 @@
 use super::super::super::types::TrustedRootCa;
 
-pub static ROOT: TrustedRootCa = TrustedRootCa {
+pub(super) static ROOT: TrustedRootCa = TrustedRootCa {
     name: "TeliaSonera Root CA v1",
     subject_der: &[
         0x30,0x37,0x31,0x14,0x30,0x12,0x06,0x03,0x55,0x04,0x0a,0x0c,

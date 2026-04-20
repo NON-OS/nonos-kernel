@@ -1,6 +1,6 @@
 use super::super::super::types::TrustedRootCa;
 
-pub static ROOT: TrustedRootCa = TrustedRootCa {
+pub(super) static ROOT: TrustedRootCa = TrustedRootCa {
     name: "Atos TrustedRoot Root CA RSA TLS 2021",
     subject_der: &[
         0x30,0x4c,0x31,0x2e,0x30,0x2c,0x06,0x03,0x55,0x04,0x03,0x0c,

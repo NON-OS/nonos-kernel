@@ -11,7 +11,7 @@ mod digicert_trusted_root_g4;
 
 use super::super::types::TrustedRootCa;
 
-pub static DIGICERT_ROOTS: &[TrustedRootCa] = &[
+pub(super) static DIGICERT_ROOTS: &[TrustedRootCa] = &[
     digicert_assured_id_root_ca::ROOT,
     digicert_assured_id_root_g2::ROOT,
     digicert_assured_id_root_g3::ROOT,

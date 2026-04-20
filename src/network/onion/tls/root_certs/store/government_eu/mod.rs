@@ -16,7 +16,7 @@ mod t_telesec_globalroot_class_3;
 
 use super::super::types::TrustedRootCa;
 
-pub static GOV_EU_ROOTS: &[TrustedRootCa] = &[
+pub(super) static GOV_EU_ROOTS: &[TrustedRootCa] = &[
     ac_raiz_fnmt_rcm_servidores_seguros::ROOT,
     atos_trustedroot_2011::ROOT,
     atos_trustedroot_root_ca_ecc_tls_2021::ROOT,

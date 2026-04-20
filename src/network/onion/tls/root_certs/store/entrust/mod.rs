@@ -13,7 +13,7 @@ mod starfield_services_root_certificate_auth;
 
 use super::super::types::TrustedRootCa;
 
-pub static ENTRUST_ROOTS: &[TrustedRootCa] = &[
+pub(super) static ENTRUST_ROOTS: &[TrustedRootCa] = &[
     actalis_authentication_root_ca::ROOT,
     entrust_root_certification_authority::ROOT,
     entrust_root_certification_authority_ec1::ROOT,

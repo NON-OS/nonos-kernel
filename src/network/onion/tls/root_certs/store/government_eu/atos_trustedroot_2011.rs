@@ -1,6 +1,6 @@
 use super::super::super::types::TrustedRootCa;
 
-pub static ROOT: TrustedRootCa = TrustedRootCa {
+pub(super) static ROOT: TrustedRootCa = TrustedRootCa {
     name: "Atos TrustedRoot 2011",
     subject_der: &[
         0x30,0x3c,0x31,0x1e,0x30,0x1c,0x06,0x03,0x55,0x04,0x03,0x0c,

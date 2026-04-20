@@ -5,7 +5,7 @@ mod affirmtrust_premium_ecc;
 
 use super::super::types::TrustedRootCa;
 
-pub static AFFIRMTRUST_ROOTS: &[TrustedRootCa] = &[
+pub(super) static AFFIRMTRUST_ROOTS: &[TrustedRootCa] = &[
     affirmtrust_commercial::ROOT,
     affirmtrust_networking::ROOT,
     affirmtrust_premium::ROOT,

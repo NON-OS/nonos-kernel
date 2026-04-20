@@ -40,7 +40,7 @@ mod vtrus_root_ca;
 
 use super::super::types::TrustedRootCa;
 
-pub static REGIONAL_ROOTS: &[TrustedRootCa] = &[
+pub(super) static REGIONAL_ROOTS: &[TrustedRootCa] = &[
     accvraiz1::ROOT,
     anf_secure_server_root_ca::ROOT,
     autoridad_de_certificacion_firmaprofesio::ROOT,

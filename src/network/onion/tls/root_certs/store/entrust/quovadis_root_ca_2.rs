@@ -1,6 +1,6 @@
 use super::super::super::types::TrustedRootCa;
 
-pub static ROOT: TrustedRootCa = TrustedRootCa {
+pub(super) static ROOT: TrustedRootCa = TrustedRootCa {
     name: "QuoVadis Root CA 2",
     subject_der: &[
         0x30,0x45,0x31,0x0b,0x30,0x09,0x06,0x03,0x55,0x04,0x06,0x13,

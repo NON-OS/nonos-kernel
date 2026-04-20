@@ -1,6 +1,6 @@
 use super::super::super::types::TrustedRootCa;
 
-pub static ROOT: TrustedRootCa = TrustedRootCa {
+pub(super) static ROOT: TrustedRootCa = TrustedRootCa {
     name: "TUBITAK Kamu SM SSL Kok Sertifikasi - Surum 1",
     subject_der: &[
         0x30,0x81,0xd2,0x31,0x0b,0x30,0x09,0x06,0x03,0x55,0x04,0x06,

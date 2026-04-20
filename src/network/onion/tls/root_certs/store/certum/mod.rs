@@ -5,7 +5,7 @@ mod certum_trusted_root_ca;
 
 use super::super::types::TrustedRootCa;
 
-pub static CERTUM_ROOTS: &[TrustedRootCa] = &[
+pub(super) static CERTUM_ROOTS: &[TrustedRootCa] = &[
     certum_ec_384_ca::ROOT,
     certum_trusted_network_ca::ROOT,
     certum_trusted_network_ca_2::ROOT,
