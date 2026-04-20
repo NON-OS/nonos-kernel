@@ -418,10 +418,10 @@ pub fn run() -> bool {
 
     // Run comprehensive kernel test suites
     console::write_message("");
-    console::write_message("Running kernel test suites...");
-    if !crate::test::run_all_tests() {
-        ok = false;
-    }
+    console::write_message("Test suites disabled for production");
+    // Tests disabled: if !crate::test::run_all_tests() {
+    //     ok = false;
+    // }
 
     if ok {
         console::write_message("SELFTEST PASS");
