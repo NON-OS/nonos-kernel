@@ -16,7 +16,6 @@
 
 extern crate alloc;
 
-use alloc::vec::Vec;
 use super::access::{check_process_access, is_same_address_space, get_target_cr3};
 use super::iovec::{IoVec, validate_iovec, validate_iovec_access};
 use super::copy::copy_from_remote;
