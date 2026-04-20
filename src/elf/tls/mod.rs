@@ -17,6 +17,7 @@
 mod info;
 
 #[cfg(test)]
+#[cfg(test)]
 mod tests;
 
 pub use info::{

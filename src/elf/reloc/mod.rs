@@ -20,6 +20,8 @@ mod utils;
 
 #[cfg(test)]
 #[cfg(not(feature = "std"))]
+#[cfg(test)]
+#[cfg(test)]
 mod tests;
 
 pub use apply::{process_relocations, process_relocations_with_context};

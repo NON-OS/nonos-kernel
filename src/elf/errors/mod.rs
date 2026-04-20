@@ -17,6 +17,7 @@
 mod types;
 
 #[cfg(test)]
+#[cfg(test)]
 mod tests;
 
 pub use types::{ElfError, ElfResult};

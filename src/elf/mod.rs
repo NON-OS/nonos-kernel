@@ -35,6 +35,8 @@ pub mod stack;
 pub mod symbol;
 pub mod tls;
 pub mod types;
+#[cfg(test)]
+#[cfg(test)]
 pub mod tests;
 
 pub use types::{

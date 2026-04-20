@@ -17,6 +17,7 @@
 mod manager;
 
 #[cfg(test)]
+#[cfg(test)]
 mod tests;
 
 pub use manager::{
