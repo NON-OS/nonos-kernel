@@ -23,5 +23,5 @@ pub mod format;
 pub use bmp::decode_bmp;
 pub use lz4_raw::decode_lz4_raw;
 pub use png::decode_png;
-pub use types::DecodedImage;
+pub use types::{DecodedImage, draw_wallpaper};
 pub use format::{ImageFormat, detect_format, decode};
