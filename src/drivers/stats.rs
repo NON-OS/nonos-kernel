@@ -23,7 +23,7 @@ use super::{
 pub fn get_hardware_stats() -> HardwareStats {
     HardwareStats {
         pci_stats: get_pci_manager().map(|mgr| mgr.lock().get_stats()).unwrap_or_default(),
-        nvme_stats: super::nvme::get_controller().map(|ctrl| ctrl.get_stats()).unwrap_or_default(),
+        nvme_stats: super::nvme::get_controller().map(|ctrl: &super::nvme::NvmeController| ctrl.get_stats()).unwrap_or_default(),
         ahci_stats: get_ahci_controller().map(|ctrl| ctrl.get_stats()).unwrap_or_default(),
         xhci_stats: get_xhci_controller().map(|ctrl| ctrl.get_stats()).unwrap_or_default(),
         audio_stats: get_audio_controller().map(|ctrl| ctrl.get_stats()).unwrap_or_default(),

@@ -32,7 +32,7 @@ impl CompletionQueue {
             let head = self.head.load(Ordering::Acquire);
             let expected_phase = self.phase.load(Ordering::Acquire) == 1;
             let index = (head as usize) % (self.depth as usize);
-            let entry = unsafe { ptr::read_volatile(self.entries.as_ptr().add(index)) };
+            let entry: CompletionEntry = unsafe { ptr::read_volatile(self.entries.as_ptr().add(index)) };
             if entry.phase() == expected_phase {
                 if entry.cid != expected_cid {
                     unexpected_count += 1;
@@ -54,7 +54,7 @@ impl CompletionQueue {
         let head = self.head.load(Ordering::Acquire);
         let expected_phase = self.phase.load(Ordering::Acquire) == 1;
         let index = (head as usize) % (self.depth as usize);
-        let entry = unsafe { ptr::read_volatile(self.entries.as_ptr().add(index)) };
+        let entry: CompletionEntry = unsafe { ptr::read_volatile(self.entries.as_ptr().add(index)) };
         if entry.phase() == expected_phase { self.advance_head(); Some(entry) } else { None }
     }
 
