@@ -26,10 +26,20 @@ pub struct NvmeDriver;
 
 impl NvmeDriver {
     pub fn read_blocks(lba: u64, count: u16, dst: PhysAddr) -> Result<(), NvmeError> {
-        get_controller().ok_or(NvmeError::ControllerNotInitialized)?.read(lba, count, dst)
+        let result = get_controller().ok_or(NvmeError::ControllerNotInitialized)?.read(lba, count, dst);
+        if result.is_ok() {
+            let bytes_read = count as usize * 512;
+            crate::drivers::block::record_read("nvme0", bytes_read);
+        }
+        result
     }
     pub fn write_blocks(lba: u64, count: u16, src: PhysAddr) -> Result<(), NvmeError> {
-        get_controller().ok_or(NvmeError::ControllerNotInitialized)?.write(lba, count, src)
+        let result = get_controller().ok_or(NvmeError::ControllerNotInitialized)?.write(lba, count, src);
+        if result.is_ok() {
+            let bytes_written = count as usize * 512;
+            crate::drivers::block::record_write("nvme0", bytes_written);
+        }
+        result
     }
     pub fn flush() -> Result<(), NvmeError> {
         get_controller().ok_or(NvmeError::ControllerNotInitialized)?.flush()
