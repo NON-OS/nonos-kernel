@@ -19,6 +19,7 @@ use core::sync::atomic::{AtomicBool, AtomicI32, AtomicU8, Ordering};
 pub(crate) static USB_INIT: AtomicBool = AtomicBool::new(false);
 pub(crate) static KBD_AVAIL: AtomicBool = AtomicBool::new(false);
 pub(crate) static MOUSE_AVAIL: AtomicBool = AtomicBool::new(false);
+pub(crate) static TABLET_MODE: AtomicBool = AtomicBool::new(false);
 
 pub(crate) static MOUSE_X: AtomicI32 = AtomicI32::new(400);
 pub(crate) static MOUSE_Y: AtomicI32 = AtomicI32::new(300);

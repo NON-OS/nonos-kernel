@@ -98,23 +98,25 @@ pub(crate) fn control_transfer(slot: u8, req_type: u8, req: u8, value: u16, inde
     // Ring doorbell for EP0 (DCI=1)
     ring_db(slot, 1);
 
-    // Wait for completion
-    for _ in 0..3 {
-        if let Some((typ, code, _)) = wait_event(100_000) {
-            if typ == 32 { // Transfer Event
-                if code == 1 || code == 13 { // Success or Short Packet
-                    continue; // Wait for more events
+    // Wait for transfer events, skipping non-transfer events (e.g. PSC type 34)
+    let expected = if data_len > 0 { 2u8 } else { 1u8 };
+    let mut ok = 0u8;
+    for _ in 0..20 {
+        if let Some((typ, code, _)) = wait_event(500_000) {
+            if typ != 32 {
+                continue; // Skip PSC and other non-Transfer events
+            }
+            if code == 1 || code == 13 {
+                ok += 1;
+                if ok >= expected {
+                    return true;
                 }
+            } else {
+                return false; // Transfer error
             }
-            if typ == 32 && (code == 1 || code == 13) {
-                return true;
-            }
+        } else {
+            break; // Timeout
         }
-    }
-
-    // Check final status
-    if let Some((_, code, _)) = wait_event(10_000) {
-        return code == 1 || code == 13;
     }
     false
 }
@@ -176,9 +178,14 @@ pub(crate) fn parse_config_descriptor() -> Option<(u8, u8, EpInfo)> {
                         let iface_subclass = data[pos + 6];
                         let iface_protocol = data[pos + 7];
 
-                        // HID class, boot interface (subclass 1), keyboard (1) or mouse (2)
-                        if iface_class == USB_CLASS_HID && iface_subclass == 1 {
+                        // HID class with interrupt endpoint
+                        if iface_class == USB_CLASS_HID && (iface_subclass == 1 || iface_subclass == 0) {
                             found_hid = true;
+                            if iface_subclass == 0 {
+                                use core::sync::atomic::Ordering;
+                                crate::input::usb_hid::TABLET_MODE.store(true, Ordering::SeqCst);
+                                serial::println(b"[USB] Tablet device detected");
+                            }
                             serial::print(b"[USB] HID interface ");
                             serial::print_dec(cur_iface as u64);
                             serial::print(b" proto ");

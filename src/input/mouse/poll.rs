@@ -79,56 +79,62 @@ pub fn poll() -> bool {
     }
 
     // Fallback: direct polling for environments without IRQs
-    // SAFETY: Reading PS/2 status port
-    let status = unsafe { inb(0x64) };
+    // Drain all available mouse bytes to keep up with hardware sample rate
+    let mut updated = false;
+    for _ in 0..12 {
+        // SAFETY: Reading PS/2 status port
+        let status = unsafe { inb(0x64) };
 
-    // Bit 0 = output buffer full, bit 5 = mouse data (vs keyboard)
-    if status & 0x01 == 0 {
-        return false;
-    }
+        // Bit 0 = output buffer full, bit 5 = mouse data (vs keyboard)
+        if status & 0x01 == 0 {
+            break;
+        }
 
-    // Check if this is mouse data (bit 5 set in status)
-    if status & 0x20 == 0 {
-        return false;
-    }
+        // Check if this is mouse data (bit 5 set in status)
+        if status & 0x20 == 0 {
+            break;
+        }
 
-    // SAFETY: Reading PS/2 data port
-    let data = unsafe { inb(0x60) };
+        // SAFETY: Reading PS/2 data port
+        let data = unsafe { inb(0x60) };
 
-    let idx = PACKET_INDEX.load(Ordering::Relaxed);
+        let idx = PACKET_INDEX.load(Ordering::Relaxed);
 
-    match idx {
-        0 => {
-            // First byte must have bit 3 set (always-1 bit in standard PS/2 protocol)
-            if data & 0x08 == 0 {
-                return false;
+        match idx {
+            0 => {
+                // First byte must have bit 3 set (always-1 bit in standard PS/2 protocol)
+                if data & 0x08 == 0 {
+                    continue;
+                }
+                PACKET_BYTE0.store(data, Ordering::Relaxed);
+                PACKET_INDEX.store(1, Ordering::Relaxed);
             }
-            PACKET_BYTE0.store(data, Ordering::Relaxed);
-            PACKET_INDEX.store(1, Ordering::Relaxed);
-        }
-        1 => {
-            PACKET_BYTE1.store(data, Ordering::Relaxed);
-            PACKET_INDEX.store(2, Ordering::Relaxed);
-        }
-        2 => {
-            PACKET_BYTE2.store(data, Ordering::Relaxed);
+            1 => {
+                PACKET_BYTE1.store(data, Ordering::Relaxed);
+                PACKET_INDEX.store(2, Ordering::Relaxed);
+            }
+            2 => {
+                PACKET_BYTE2.store(data, Ordering::Relaxed);
 
-            if SCROLL_WHEEL_AVAILABLE.load(Ordering::Relaxed) {
-                PACKET_INDEX.store(3, Ordering::Relaxed);
-            } else {
+                if SCROLL_WHEEL_AVAILABLE.load(Ordering::Relaxed) {
+                    PACKET_INDEX.store(3, Ordering::Relaxed);
+                } else {
+                    PACKET_INDEX.store(0, Ordering::Relaxed);
+                    process_packet(false);
+                    updated = true;
+                }
+            }
+            3 => {
+                PACKET_BYTE3.store(data, Ordering::Relaxed);
                 PACKET_INDEX.store(0, Ordering::Relaxed);
-                return process_packet(false);
+                process_packet(true);
+                updated = true;
             }
-        }
-        3 => {
-            PACKET_BYTE3.store(data, Ordering::Relaxed);
-            PACKET_INDEX.store(0, Ordering::Relaxed);
-            return process_packet(true);
-        }
-        _ => {
-            PACKET_INDEX.store(0, Ordering::Relaxed);
+            _ => {
+                PACKET_INDEX.store(0, Ordering::Relaxed);
+            }
         }
     }
 
-    false
+    updated
 }

@@ -52,7 +52,10 @@ pub(super) fn get_descriptors_and_configure(slot: u8) -> bool {
 fn configure_endpoint(slot: u8, cfg_val: u8, iface: u8, ep_info: crate::input::usb_hid::transfer::EpInfo) -> bool {
     if !set_configuration(slot, cfg_val) { serial::println(b"[USB] SetCfg fail"); }
     serial::println(b"[USB] Configuration set");
-    if !set_protocol(slot, iface, 0) { serial::println(b"[USB] SetProto fail"); }
+    // Only set boot protocol for boot-class devices (not tablets)
+    if !crate::input::usb_hid::TABLET_MODE.load(core::sync::atomic::Ordering::Relaxed) {
+        if !set_protocol(slot, iface, 0) { serial::println(b"[USB] SetProto fail"); }
+    }
     set_idle(slot, iface);
     let ep_num = ep_info.address & 0x0F;
     let ep_dci = ep_num * 2 + 1;
@@ -61,6 +64,7 @@ fn configure_endpoint(slot: u8, cfg_val: u8, iface: u8, ep_info: crate::input::u
     HID_INTERVAL.store(ep_info.interval, Ordering::SeqCst);
     unsafe { setup_input_ctx_configure(slot, ep_dci, &ep_info); }
     let inp_p = addr_of_mut!(INPUT_CTX) as u64;
+    core::sync::atomic::fence(Ordering::SeqCst);
     queue_cmd((inp_p & 0xFFFFFFFF) as u32, (inp_p >> 32) as u32, 0,
               (TRB_TYPE_CONFIGURE_ENDPOINT << 10) | ((slot as u32) << 24));
     process_configure_result(slot, &ep_info)
@@ -68,19 +72,22 @@ fn configure_endpoint(slot: u8, cfg_val: u8, iface: u8, ep_info: crate::input::u
 
 unsafe fn setup_input_ctx_configure(_slot: u8, ep_dci: u8, ep_info: &crate::input::usb_hid::transfer::EpInfo) {
     let input_ctx_ptr = addr_of_mut!(INPUT_CTX);
-    for i in 0..8 { (*input_ctx_ptr).ctrl[i] = 0; (*input_ctx_ptr).slot[i] = 0; }
-    for i in 0..31 { for j in 0..8 { (*input_ctx_ptr).ep[i][j] = 0; } }
-    (*input_ctx_ptr).ctrl[1] = 1 << (ep_dci as u32);
+    // Zero everything with volatile writes
+    for i in 0..8 { core::ptr::write_volatile(&mut (*input_ctx_ptr).ctrl[i], 0); core::ptr::write_volatile(&mut (*input_ctx_ptr).slot[i], 0); }
+    for i in 0..31 { for j in 0..8 { core::ptr::write_volatile(&mut (*input_ctx_ptr).ep[i][j], 0); } }
+    // Add flags: A0 (Slot Context) + endpoint DCI
+    core::ptr::write_volatile(&mut (*input_ctx_ptr).ctrl[1], (1u32 << (ep_dci as u32)) | 1);
     let dev_ctx_ptr = addr_of_mut!(DEV_CTX);
-    for i in 0..8 { (*input_ctx_ptr).slot[i] = (*dev_ctx_ptr).slot[i]; }
+    for i in 0..8 { core::ptr::write_volatile(&mut (*input_ctx_ptr).slot[i], core::ptr::read_volatile(&(*dev_ctx_ptr).slot[i])); }
     let ctx_entries = ep_dci.max(1);
-    (*input_ctx_ptr).slot[0] = ((*input_ctx_ptr).slot[0] & 0x07FFFFFF) | ((ctx_entries as u32) << 27);
+    let slot0 = core::ptr::read_volatile(&(*input_ctx_ptr).slot[0]);
+    core::ptr::write_volatile(&mut (*input_ctx_ptr).slot[0], (slot0 & 0x07FFFFFF) | ((ctx_entries as u32) << 27));
     let ep_idx = (ep_dci - 1) as usize;
     let hid_p = addr_of_mut!(HID_EP_RING) as u64;
     let interval_exp = ep_info.interval.saturating_sub(1).min(15);
-    (*input_ctx_ptr).ep[ep_idx][0] = (interval_exp as u32) << 16;
-    (*input_ctx_ptr).ep[ep_idx][1] = (3 << 1) | (7 << 3) | ((ep_info.max_packet as u32) << 16);
-    (*input_ctx_ptr).ep[ep_idx][2] = (hid_p & 0xFFFFFFFF) as u32 | 1;
-    (*input_ctx_ptr).ep[ep_idx][3] = (hid_p >> 32) as u32;
-    (*input_ctx_ptr).ep[ep_idx][4] = ep_info.max_packet as u32;
+    core::ptr::write_volatile(&mut (*input_ctx_ptr).ep[ep_idx][0], (interval_exp as u32) << 16);
+    core::ptr::write_volatile(&mut (*input_ctx_ptr).ep[ep_idx][1], (3 << 1) | (7 << 3) | ((ep_info.max_packet as u32) << 16));
+    core::ptr::write_volatile(&mut (*input_ctx_ptr).ep[ep_idx][2], (hid_p & 0xFFFFFFFF) as u32 | 1);
+    core::ptr::write_volatile(&mut (*input_ctx_ptr).ep[ep_idx][3], (hid_p >> 32) as u32);
+    core::ptr::write_volatile(&mut (*input_ctx_ptr).ep[ep_idx][4], ep_info.max_packet as u32);
 }

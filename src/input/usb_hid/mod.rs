@@ -23,7 +23,7 @@ mod state;
 mod poll;
 mod entry;
 
-pub(crate) use state::{USB_INIT, KBD_AVAIL, MOUSE_AVAIL, MOUSE_X, MOUSE_Y, MOUSE_BTN, SCR_W, SCR_H};
+pub(crate) use state::{USB_INIT, KBD_AVAIL, MOUSE_AVAIL, TABLET_MODE, MOUSE_X, MOUSE_Y, MOUSE_BTN, SCR_W, SCR_H};
 pub use state::{set_screen_bounds, is_available, keyboard_available, mouse_available};
 pub use state::{mouse_position, left_pressed, right_pressed};
 pub use poll::{poll_keyboard, poll_mouse};

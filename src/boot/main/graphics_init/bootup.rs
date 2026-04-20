@@ -47,8 +47,14 @@ fn init_framebuffer(handoff: &BootHandoffV1) {
 }
 
 fn init_input_devices(handoff: &BootHandoffV1) {
+    crate::sys::serial::println(b"[BOOT] init_input_devices");
     input::set_screen_bounds_unified(handoff.fb.width, handoff.fb.height);
     let _ = input::i2c_hid::init();
     input::usb_hid::init();
+    crate::sys::serial::print(b"[BOOT] USB mouse_avail=");
+    crate::sys::serial::print_dec(input::usb_hid::mouse_available() as u64);
+    crate::sys::serial::print(b" kbd_avail=");
+    crate::sys::serial::print_dec(input::usb_hid::keyboard_available() as u64);
+    crate::sys::serial::println(b"");
     clock::init(handoff.timing.tsc_hz, handoff.timing.unix_epoch_ms);
 }

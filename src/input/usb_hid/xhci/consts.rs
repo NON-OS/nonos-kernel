@@ -16,8 +16,10 @@
 
 pub(crate) const XHCI_CAP_CAPLENGTH: u64 = 0x00;
 pub(crate) const XHCI_CAP_HCSPARAMS1: u64 = 0x04;
+pub(crate) const XHCI_CAP_HCSPARAMS2: u64 = 0x08;
 pub(crate) const XHCI_CAP_DBOFF: u64 = 0x14;
 pub(crate) const XHCI_CAP_RTSOFF: u64 = 0x18;
+pub(crate) const XHCI_CAP_HCCPARAMS1: u64 = 0x10;
 
 pub(crate) const XHCI_OP_USBCMD: u64 = 0x00;
 pub(crate) const XHCI_OP_USBSTS: u64 = 0x04;

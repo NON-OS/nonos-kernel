@@ -141,9 +141,6 @@ fn keyboard_isr(_: crate::arch::x86_64::InterruptStackFrame) {
 
 pub fn handle_keyboard_interrupt() {
     if let Some(sc) = read_data_if_available() {
-        crate::sys::serial::print(b"[KBD] scancode=0x");
-        crate::sys::serial::print_hex(sc as u64);
-        crate::sys::serial::println(b"");
         process_scancode(sc);
     }
 }

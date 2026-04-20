@@ -209,6 +209,7 @@ run: esp
 		-drive if=pflash,format=raw,unit=0,readonly=on,file="$(OVMF)" \
 		-drive if=pflash,format=raw,unit=1,readonly=on,file="$(OVMF_VARS)" \
 		-device virtio-rng-pci -device e1000,netdev=net0 -netdev user,id=net0 \
+		-device qemu-xhci,id=xhci -device usb-tablet,bus=xhci.0 \
 		-serial mon:stdio -vga std -no-reboot
 
 run-usb: esp

@@ -28,6 +28,23 @@ pub(crate) static mut ERST: EventRingSegmentTable = EventRingSegmentTable {
     ring_base: 0, ring_size: 256, _rsvd: [0; 3],
 };
 
+// Scratchpad buffers for xHCI controllers that require them
+#[repr(C, align(4096))]
+pub(crate) struct ScratchpadPage { pub data: [u8; 4096] }
+#[repr(C, align(4096))]
+pub(crate) struct ScratchpadArray { pub entries: [u64; 16] }
+pub(crate) static mut SCRATCHPAD_ARRAY: ScratchpadArray = ScratchpadArray { entries: [0; 16] };
+pub(crate) static mut SCRATCHPAD_PAGES: [ScratchpadPage; 16] = [
+    ScratchpadPage { data: [0; 4096] }, ScratchpadPage { data: [0; 4096] },
+    ScratchpadPage { data: [0; 4096] }, ScratchpadPage { data: [0; 4096] },
+    ScratchpadPage { data: [0; 4096] }, ScratchpadPage { data: [0; 4096] },
+    ScratchpadPage { data: [0; 4096] }, ScratchpadPage { data: [0; 4096] },
+    ScratchpadPage { data: [0; 4096] }, ScratchpadPage { data: [0; 4096] },
+    ScratchpadPage { data: [0; 4096] }, ScratchpadPage { data: [0; 4096] },
+    ScratchpadPage { data: [0; 4096] }, ScratchpadPage { data: [0; 4096] },
+    ScratchpadPage { data: [0; 4096] }, ScratchpadPage { data: [0; 4096] },
+];
+
 #[repr(C, align(4096))]
 pub(crate) struct DeviceContext {
     pub slot: [u32; 8],
