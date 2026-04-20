@@ -30,5 +30,5 @@ pub use poll::{poll_keyboard, poll_mouse};
 pub use entry::init;
 pub use pci::find_xhci;
 pub use xhci::init_xhci;
-pub use ring::{queue_cmd, queue_ep0, queue_hid, ring_db, wait_event};
+pub use ring::{queue_cmd, queue_ep0, queue_hid, ring_db, wait_event, check_event};
 pub use hid::{process_keyboard_report, process_mouse_report, hid_to_ascii, start_hid_poll};
