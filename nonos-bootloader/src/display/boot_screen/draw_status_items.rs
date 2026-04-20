@@ -14,27 +14,30 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::display::gop::{fill_rect, draw_string};
+use crate::display::gop::fill_rect;
+use crate::display::font::draw_string;
+use crate::display::constants::COLOR_TEXT_WHITE;
 
 
 pub fn draw_status_items(x: u32, y: u32) {
-    let success_color = RGB { r: 0x00, g: 0xD4, b: 0x69 };
+    let success_color = 0xFF00D469u32;
+    let error_color = 0xFFF44336u32;
     let item_spacing = 150;
 
     let items = [
-        ("SecureBoot", true),
-        ("TPM 2.0", true),
-        ("UEFI Mode", true),
-        ("Verified", true),
+        (b"SecureBoot", true),
+        (b"TPM 2.0", true),
+        (b"UEFI Mode", true),
+        (b"Verified", true),
     ];
 
     for (i, (label, enabled)) in items.iter().enumerate() {
         let item_x = x + i as u32 * item_spacing;
-        let color = if *enabled { success_color } else { RGB { r: 0xF4, g: 0x43, b: 0x36 } };
-        let status = if *enabled { "✓" } else { "✗" };
+        let color = if *enabled { success_color } else { error_color };
+        let status = if *enabled { b"\xE2\x9C\x93" } else { b"\xE2\x9C\x97" };
 
         fill_rect(item_x, y, 12, 12, color);
-        draw_string(item_x + 2, y + 2, status, WHITE, 1);
-        draw_string(item_x + 20, y + 2, label, WHITE, 1);
+        draw_string(item_x + 2, y + 2, status, COLOR_TEXT_WHITE);
+        draw_string(item_x + 20, y + 2, *label, COLOR_TEXT_WHITE);
     }
 }

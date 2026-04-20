@@ -1,5 +1,5 @@
-// NONOS Operating System
-// Copyright (C) 2026 NONOS Contributors
+// NØNOS Operating System
+// Copyright (C) 2026 NØNOS Contributors
 //
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Affero General Public License as published by
@@ -14,17 +14,20 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::display::gop::draw_string;
-
+use crate::display::font::draw_string;
 
 static mut MESSAGES: [&'static str; 10] = [""; 10];
 static mut MESSAGE_COUNT: usize = 0;
 
 pub fn draw_boot_messages(x: u32, y: u32) {
-    let msg_color = RGB { r: 0x00, g: 0xD4, b: 0x69 };
-    let fade_color = RGB { r: 180, g: 180, b: 180 };
+    let msg_color = 0xFF00D469u32;
+    let fade_color = 0xFFB4B4B4u32;
 
-    let start_index = if unsafe { MESSAGE_COUNT } > 8 { unsafe { MESSAGE_COUNT } - 8 } else { 0 };
+    let start_index = if unsafe { MESSAGE_COUNT } > 8 {
+        unsafe { MESSAGE_COUNT } - 8
+    } else {
+        0
+    };
 
     for i in 0..8 {
         let msg_index = start_index + i;
@@ -35,14 +38,18 @@ pub fn draw_boot_messages(x: u32, y: u32) {
             let color = if i >= 6 {
                 msg_color
             } else {
-                RGB {
-                    r: (fade_color.r as u16 * alpha / 255) as u8,
-                    g: (fade_color.g as u16 * alpha / 255) as u8,
-                    b: (fade_color.b as u16 * alpha / 255) as u8,
-                }
+                let fade_r = (fade_color >> 16) & 0xFF;
+                let fade_g = (fade_color >> 8) & 0xFF;
+                let fade_b = fade_color & 0xFF;
+
+                let r = (fade_r * alpha / 255) & 0xFF;
+                let g = (fade_g * alpha / 255) & 0xFF;
+                let b = (fade_b * alpha / 255) & 0xFF;
+
+                0xFF000000 | (r << 16) | (g << 8) | b
             };
 
-            draw_string(x, y + i * 18, message, color, 1);
+            draw_string(x, y + (i as u32) * 18, message.as_bytes(), color);
         }
     }
 }
