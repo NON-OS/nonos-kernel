@@ -24,6 +24,7 @@ pub mod scheduler;
 mod api;
 
 #[cfg(test)]
+#[cfg(test)]
 mod tests;
 
 pub use scheduler::{

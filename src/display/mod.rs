@@ -24,4 +24,7 @@ pub use framebuffer::{Framebuffer, FramebufferInfo, register_framebuffer, get_fr
 pub use framebuffer::{write_pixel, fill_rect, clear};
 pub use text::{write_char, write_string, clear_screen};
 
+#[cfg(test)]
+#[cfg(test)]
+#[cfg(test)]
 pub mod tests;

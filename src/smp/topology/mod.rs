@@ -19,6 +19,7 @@ pub mod types;
 pub mod detection;
 
 #[cfg(test)]
+#[cfg(test)]
 mod tests;
 
 pub use types::{CpuTopology, CpuInfo, MAX_NUMA_NODES};

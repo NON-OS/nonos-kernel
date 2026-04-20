@@ -22,6 +22,7 @@ pub mod ops;
 pub mod legacy;
 
 #[cfg(test)]
+#[cfg(test)]
 mod tests;
 
 pub use error::{CryptoFsError, CryptoResult};

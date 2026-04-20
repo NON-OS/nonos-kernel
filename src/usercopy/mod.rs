@@ -19,6 +19,8 @@ mod validate;
 mod copy;
 mod fault;
 
+#[cfg(test)]
+#[cfg(test)]
 pub mod tests;
 
 pub use error::*;

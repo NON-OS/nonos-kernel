@@ -17,6 +17,8 @@
 mod strings;
 mod api;
 
+#[cfg(test)]
+#[cfg(test)]
 pub mod tests;
 
 pub use api::{get, get_lang, set_lang, Language, init_from_settings};

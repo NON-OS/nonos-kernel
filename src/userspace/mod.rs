@@ -84,4 +84,6 @@ pub use wallet_service::run_wallet_service;
 pub use storage_service::run_storage_service;
 pub use udev_service::run_udev_service;
 
+#[cfg(test)]
+#[cfg(test)]
 pub mod tests;

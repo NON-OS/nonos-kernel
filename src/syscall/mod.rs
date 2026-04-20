@@ -48,6 +48,7 @@ pub mod vdso;
 pub mod xattr;
 
 #[cfg(test)]
+#[cfg(test)]
 mod tests;
 
 pub use caps::current_caps;

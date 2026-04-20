@@ -65,4 +65,6 @@ pub use nonos_transport::{
     get_assembler, parse_frame, FrameHeader, IpcStream, StreamAssembler, TransportError,
 };
 
+#[cfg(test)]
+#[cfg(test)]
 pub mod tests;

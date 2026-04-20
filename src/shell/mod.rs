@@ -21,6 +21,8 @@ pub mod terminal;
 mod init;
 pub mod script;
 
+#[cfg(test)]
+#[cfg(test)]
 pub mod tests;
 
 pub use terminal::*;

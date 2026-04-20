@@ -27,6 +27,8 @@ pub mod design_system;
 pub mod components;
 pub mod animation;
 
+#[cfg(test)]
+#[cfg(test)]
 pub mod tests;
 
 pub use framebuffer::init as framebuffer_init;

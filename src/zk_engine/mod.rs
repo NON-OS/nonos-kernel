@@ -25,6 +25,8 @@ mod types;
 mod engine;
 mod global;
 
+#[cfg(test)]
+#[cfg(test)]
 pub mod tests;
 
 pub use types::{ZKConfig, ZKStats, ZKProof, ZKError};

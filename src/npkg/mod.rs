@@ -31,6 +31,8 @@ pub mod cache;
 pub mod hooks;
 pub mod sandbox;
 
+#[cfg(test)]
+#[cfg(test)]
 pub mod tests;
 
 pub use types::{

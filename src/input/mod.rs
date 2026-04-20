@@ -22,6 +22,8 @@ pub mod mouse;
 pub mod usb_hid;
 pub mod unified;
 
+#[cfg(test)]
+#[cfg(test)]
 pub mod tests;
 
 pub use keyboard::{

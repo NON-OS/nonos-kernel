@@ -25,6 +25,9 @@ pub mod tasks;
 pub mod context;
 pub mod scheduler;
 
+#[cfg(test)]
+#[cfg(test)]
+#[cfg(test)]
 pub mod tests;
 
 pub use core::{Agent, AgentConfig};

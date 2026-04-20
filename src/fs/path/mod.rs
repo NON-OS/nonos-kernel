@@ -24,6 +24,7 @@ mod join;
 mod components;
 
 #[cfg(test)]
+#[cfg(test)]
 mod tests;
 
 pub use error::{PathError, PathResult};

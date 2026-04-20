@@ -19,6 +19,7 @@ pub mod types;
 pub mod operations;
 
 #[cfg(test)]
+#[cfg(test)]
 mod tests;
 
 pub use types::{

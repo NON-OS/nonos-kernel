@@ -22,6 +22,8 @@ pub mod isr;
 pub mod pic;
 pub mod safety;
 pub mod stats;
+#[cfg(test)]
+#[cfg(test)]
 pub mod tests;
 pub mod timer;
 

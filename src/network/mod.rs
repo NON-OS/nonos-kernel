@@ -101,4 +101,5 @@ pub fn get_interface(name: &str) -> Option<NetworkInterface> {
 }
 
 #[cfg(test)]
+#[cfg(test)]
 mod tests;

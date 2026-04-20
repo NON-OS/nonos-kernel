@@ -28,6 +28,7 @@ pub mod resource;
 pub mod token;
 
 #[cfg(test)]
+#[cfg(test)]
 mod tests;
 
 pub use bits::{add_capability, bits_to_caps, capability_count, caps_to_bits, has_capability, remove_capability};

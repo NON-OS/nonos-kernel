@@ -37,6 +37,7 @@ mod mapping;
 mod ops;
 
 #[cfg(test)]
+#[cfg(test)]
 mod tests;
 
 pub use vfs as nonos_vfs;
