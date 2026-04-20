@@ -47,7 +47,7 @@ pub fn init_zksync(config: ZkSyncConfig) -> Result<(), super::ZkSyncError> {
     Ok(())
 }
 
-pub fn submit_transaction(tx: L2Transaction) -> bool {
+pub(super) fn submit_transaction(tx: L2Transaction) -> bool {
     let pool: &Mutex<TransactionPool> = match TX_POOL.get() {
         Some(p) => p,
         None => return false,
@@ -62,11 +62,11 @@ pub fn submit_transaction(tx: L2Transaction) -> bool {
     success
 }
 
-pub fn get_tx_status(hash: &TxHash) -> Option<TransactionStatus> {
+pub(super) fn get_tx_status(hash: &TxHash) -> Option<TransactionStatus> {
     TX_STATUS.get().and_then(|m| m.lock().get(hash).copied())
 }
 
-pub fn set_tx_status(hash: TxHash, status: TransactionStatus) {
+pub(super) fn set_tx_status(hash: TxHash, status: TransactionStatus) {
     if let Some(m) = TX_STATUS.get() { m.lock().insert(hash, status); }
 }
 
@@ -87,7 +87,7 @@ pub(crate) fn with_state_mut<R, F: FnOnce(&mut StateManager) -> R>(f: F) -> Opti
     STATE_MANAGER.get().map(|m| f(&mut m.lock()))
 }
 
-pub fn get_storage_value(address: &Address, slot: &U256) -> U256 {
+pub(super) fn get_storage_value(address: &Address, slot: &U256) -> U256 {
     let storage: &Mutex<ContractStorage> = match CONTRACT_STORAGE.get() {
         Some(s) => s,
         None => return U256::ZERO,
@@ -95,7 +95,7 @@ pub fn get_storage_value(address: &Address, slot: &U256) -> U256 {
     storage.lock().get(address, slot)
 }
 
-pub fn set_storage_value(address: Address, slot: U256, value: U256) {
+pub(super) fn set_storage_value(address: Address, slot: U256, value: U256) {
     let storage: &Mutex<ContractStorage> = match CONTRACT_STORAGE.get() {
         Some(s) => s,
         None => return,
@@ -103,13 +103,13 @@ pub fn set_storage_value(address: Address, slot: U256, value: U256) {
     storage.lock().set(address, slot, value);
 }
 
-pub fn queue_deposit(deposit: Deposit) {
+pub(super) fn queue_deposit(deposit: Deposit) {
     if let Some(h) = DEPOSIT_HANDLER.get() {
         h.lock().queue(deposit);
     }
 }
 
-pub fn process_deposit() -> Option<Deposit> {
+pub(super) fn process_deposit() -> Option<Deposit> {
     if let Some(h) = DEPOSIT_HANDLER.get() {
         if let Some(state) = STATE_MANAGER.get() {
             return h.lock().process_next(&mut state.lock()).ok().flatten();
@@ -118,7 +118,7 @@ pub fn process_deposit() -> Option<Deposit> {
     None
 }
 
-pub fn initiate_withdrawal(sender: Address, recipient: Address, amount: U256) -> Option<[u8; 32]> {
+pub(super) fn initiate_withdrawal(sender: Address, recipient: Address, amount: U256) -> Option<[u8; 32]> {
     let handler: &Mutex<WithdrawHandler> = WITHDRAW_HANDLER.get()?;
     let state: &Mutex<StateManager> = STATE_MANAGER.get()?;
     handler.lock().initiate(&mut state.lock(), sender, recipient, amount).ok()
