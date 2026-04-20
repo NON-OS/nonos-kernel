@@ -31,6 +31,7 @@ pub fn init_zk_nonce_required(st: &SystemTable<Boot>) {
     if let Err(e) = init_zk_nonce(st) {
         log_error("zk_init", e);
         log_error("zk_init", "FATAL: Cannot initialize ZK replay protection");
-        panic!("ZK nonce initialization failed");
+        crate::log::logger::log_critical("zk_init", "ZK nonce initialization failed - secure halt");
+        loop { core::hint::spin_loop(); }
     }
 }
