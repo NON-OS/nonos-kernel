@@ -22,7 +22,7 @@ use alloc::vec::Vec;
 use core::sync::atomic::Ordering;
 
 use super::api::{allocate_ephemeral_port, GLOBAL_STATS, SOCKET_TABLE};
-use super::types::{UdpHeader, UdpPacket, UdpSocketId, UdpState, UdpStats};
+use super::types::{UdpPacket, UdpSocketId, UdpState, UdpStats};
 
 /// UDP socket structure
 #[derive(Debug)]
