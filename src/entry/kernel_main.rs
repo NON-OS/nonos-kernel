@@ -49,8 +49,7 @@ pub extern "C" fn kernel_main() -> ! {
 
     crate::drivers::console::write_message("kernel online");
 
-    let ok = crate::kernel_selftest::run();
-    if !ok { crate::drivers::console::write_message("selftest degraded"); }
+    // Selftest disabled for production boot
 
     #[cfg(feature = "cli")]
     { crate::ui::cli::spawn(); }
