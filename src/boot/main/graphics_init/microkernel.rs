@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use crate::input;
+use crate::sys::{clock, timer};
 use super::components::init_desktop;
 use super::super::setup_menu;
 
@@ -25,6 +26,18 @@ pub fn init_graphics_for_microkernel() -> bool {
         return false;
     }
     crate::sys::serial::println(b"[DESKTOP] Graphics init OK");
+
+    let tsc_hz = timer::tsc_frequency();
+    let current_unix_ms = timer::unix_timestamp_ms();
+    if current_unix_ms == 0 {
+        let current_time_ms = crate::time::current_time_ns() / 1_000_000;
+        clock::init(tsc_hz, current_time_ms);
+        crate::sys::serial::println(b"[DESKTOP] Clock initialized with current timestamp");
+    } else {
+        clock::init(tsc_hz, current_unix_ms);
+        crate::sys::serial::println(b"[DESKTOP] Clock initialized with unix timestamp");
+    }
+
     input::set_screen_bounds_unified(width, height);
     if setup_menu::needs_setup() {
         crate::sys::serial::println(b"[NONOS] Running first-time setup");
