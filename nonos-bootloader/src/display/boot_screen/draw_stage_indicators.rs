@@ -14,34 +14,33 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::graphics::framebuffer::draw_filled_rect;
-use crate::graphics::colors::RGB;
+use crate::display::gop::fill_rect;
 
 static mut CURRENT_STAGE: u8 = 0;
 
 pub fn draw_stage_indicators(x: u32, y: u32) {
-    let complete_color = RGB { r: 0x4C, g: 0xAF, b: 0x50 };
-    let current_color = RGB { r: 0xFF, g: 0xD7, b: 0x00 };
-    let pending_color = RGB { r: 60, g: 60, b: 60 };
+    let complete_color = 0xFF4CAF50u32;
+    let current_color = 0xFFFFD700u32;
+    let pending_color = 0xFF3C3C3Cu32;
 
-    for stage in 0..10 {
+    for stage in 0u32..10u32 {
         let indicator_y = y + stage * 12;
         let indicator_size = 8;
 
-        let color = if stage < unsafe { CURRENT_STAGE } {
+        let color = if stage < unsafe { CURRENT_STAGE } as u32 {
             complete_color
-        } else if stage == unsafe { CURRENT_STAGE } {
+        } else if stage == unsafe { CURRENT_STAGE } as u32 {
             current_color
         } else {
             pending_color
         };
 
-        draw_filled_rect(x, indicator_y, indicator_size, indicator_size, color);
+        fill_rect(x, indicator_y, indicator_size, indicator_size, color);
 
-        if stage == unsafe { CURRENT_STAGE } {
+        if stage == unsafe { CURRENT_STAGE } as u32 {
             let pulse_size = indicator_size + 2;
-            let pulse_color = RGB { r: color.r / 2, g: color.g / 2, b: color.b / 2 };
-            draw_filled_rect(x - 1, indicator_y - 1, pulse_size, pulse_size, pulse_color);
+            let pulse_color = ((color & 0xFF000000) | ((color & 0x00FEFEFE) >> 1)) as u32;
+            fill_rect(x - 1, indicator_y - 1, pulse_size, pulse_size, pulse_color);
         }
     }
 }

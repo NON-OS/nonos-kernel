@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::graphics::framebuffer::draw_text;
-use crate::graphics::colors::RGB;
+use crate::display::gop::draw_string;
+
 
 static mut MESSAGES: [&'static str; 10] = [""; 10];
 static mut MESSAGE_COUNT: usize = 0;
@@ -42,7 +42,7 @@ pub fn draw_boot_messages(x: u32, y: u32) {
                 }
             };
 
-            draw_text(x, y + i * 18, message, color, 1);
+            draw_string(x, y + i * 18, message, color, 1);
         }
     }
 }

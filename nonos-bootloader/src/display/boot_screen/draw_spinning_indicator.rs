@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::graphics::framebuffer::draw_filled_rect;
-use crate::graphics::colors::RGB;
+use crate::display::gop::fill_rect;
+
 
 static mut SPIN_FRAME: u16 = 0;
 
@@ -37,6 +37,6 @@ pub fn draw_spinning_indicator(x: u32, y: u32) {
             b: (primary_color.b as u16 * alpha / 255) as u8,
         };
 
-        draw_filled_rect(dot_x, dot_y, 4, 4, color);
+        fill_rect(dot_x, dot_y, 4, 4, color);
     }
 }

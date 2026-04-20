@@ -18,6 +18,7 @@ mod crypto;
 mod init;
 mod progress;
 mod stages;
+mod math_utils;
 mod draw_gradient_background;
 mod draw_particle_effects;
 mod draw_animated_logo;

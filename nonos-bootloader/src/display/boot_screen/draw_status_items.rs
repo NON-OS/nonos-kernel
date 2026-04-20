@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::graphics::framebuffer::{draw_filled_rect, draw_text};
-use crate::graphics::colors::{RGB, WHITE};
+use crate::display::gop::{fill_rect, draw_string};
+
 
 pub fn draw_status_items(x: u32, y: u32) {
     let success_color = RGB { r: 0x00, g: 0xD4, b: 0x69 };
@@ -33,8 +33,8 @@ pub fn draw_status_items(x: u32, y: u32) {
         let color = if *enabled { success_color } else { RGB { r: 0xF4, g: 0x43, b: 0x36 } };
         let status = if *enabled { "✓" } else { "✗" };
 
-        draw_filled_rect(item_x, y, 12, 12, color);
-        draw_text(item_x + 2, y + 2, status, WHITE, 1);
-        draw_text(item_x + 20, y + 2, label, WHITE, 1);
+        fill_rect(item_x, y, 12, 12, color);
+        draw_string(item_x + 2, y + 2, status, WHITE, 1);
+        draw_string(item_x + 20, y + 2, label, WHITE, 1);
     }
 }

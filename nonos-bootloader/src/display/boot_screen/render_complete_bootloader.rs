@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::graphics::framebuffer::{get_dimensions, swap_buffers, draw_text};
-use crate::graphics::colors::{RGB, WHITE};
+use crate::display::gop::{get_dimensions, swap_buffers, draw_string};
+
 use super::{
     draw_gradient_background::draw_gradient_background,
     draw_particle_effects::draw_particle_effects,
@@ -46,7 +46,7 @@ pub fn render_complete_bootloader() {
     let progress_x = 100;
 
     let stage_name = get_stage_name(unsafe { CURRENT_BOOT_STAGE });
-    draw_text(progress_x, progress_y - 50, stage_name, WHITE, 1);
+    draw_string(progress_x, progress_y - 50, stage_name, WHITE, 1);
 
     draw_progress_bar(progress_x, progress_y, progress_width, 24);
     draw_spinning_indicator(progress_x + progress_width + 40, progress_y + 12);

@@ -14,20 +14,27 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::graphics::framebuffer::draw_filled_rect;
-use crate::graphics::colors::RGB;
+use crate::display::gop::fill_rect;
 
 pub fn draw_gradient_background(width: u32, height: u32) {
-    let top_color = RGB { r: 0x0A, g: 0x0E, b: 0x27 };
-    let bottom_color = RGB { r: 0x1A, g: 0x1A, b: 0x2E };
+    let top_color = 0xFF0A0E27u32;
+    let bottom_color = 0xFF1A1A2Eu32;
 
     for y in 0..height {
         let ratio = y as f32 / height as f32;
-        let color = RGB {
-            r: (top_color.r as f32 + (bottom_color.r as f32 - top_color.r as f32) * ratio) as u8,
-            g: (top_color.g as f32 + (bottom_color.g as f32 - top_color.g as f32) * ratio) as u8,
-            b: (top_color.b as f32 + (bottom_color.b as f32 - top_color.b as f32) * ratio) as u8,
-        };
-        draw_filled_rect(0, y, width, 1, color);
+        let top_r = (top_color >> 16) & 0xFF;
+        let top_g = (top_color >> 8) & 0xFF;
+        let top_b = top_color & 0xFF;
+
+        let bottom_r = (bottom_color >> 16) & 0xFF;
+        let bottom_g = (bottom_color >> 8) & 0xFF;
+        let bottom_b = bottom_color & 0xFF;
+
+        let r = (top_r as f32 + (bottom_r as f32 - top_r as f32) * ratio) as u32;
+        let g = (top_g as f32 + (bottom_g as f32 - top_g as f32) * ratio) as u32;
+        let b = (top_b as f32 + (bottom_b as f32 - top_b as f32) * ratio) as u32;
+
+        let color = 0xFF000000 | (r << 16) | (g << 8) | b;
+        fill_rect(0, y, width, 1, color);
     }
 }

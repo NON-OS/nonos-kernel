@@ -14,8 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::graphics::framebuffer::draw_filled_rect;
-use crate::graphics::colors::RGB;
+use crate::display::gop::fill_rect;
+use super::math_utils::sin_approx;
 
 static mut PARTICLE_TIMER: u32 = 0;
 
@@ -25,15 +25,15 @@ pub fn draw_particle_effects(width: u32, height: u32) {
     for i in 0..80 {
         let x = ((i * 17 + unsafe { PARTICLE_TIMER } * 2) % width) as u32;
         let y = ((i * 23 + unsafe { PARTICLE_TIMER }) % height) as u32;
-        let brightness = ((unsafe { PARTICLE_TIMER } as f32 * 0.01 + i as f32 * 0.1).sin().abs() * 150.0) as u8;
+        let brightness_val = sin_approx(unsafe { PARTICLE_TIMER } as f32 * 0.01 + i as f32 * 0.1);
+        let brightness = (brightness_val.abs() * 150.0) as u32;
 
         if brightness > 60 {
-            let color = RGB {
-                r: brightness / 6,
-                g: brightness / 3,
-                b: brightness,
-            };
-            draw_filled_rect(x, y, 1, 1, color);
+            let r = brightness / 6;
+            let g = brightness / 3;
+            let b = brightness;
+            let color = 0xFF000000 | (r << 16) | (g << 8) | b;
+            fill_rect(x, y, 1, 1, color);
         }
     }
 }
