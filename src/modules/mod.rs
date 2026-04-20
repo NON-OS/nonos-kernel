@@ -46,4 +46,5 @@ pub fn get_module(name: &str) -> Option<ModuleInfo> {
 }
 
 #[cfg(test)]
+#[cfg(test)]
 mod tests;

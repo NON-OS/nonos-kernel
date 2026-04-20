@@ -22,6 +22,7 @@ pub mod types;
 pub mod manager;
 
 #[cfg(test)]
+#[cfg(test)]
 mod tests;
 
 pub use constants::*;

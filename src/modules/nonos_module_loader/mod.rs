@@ -23,6 +23,7 @@ pub mod types;
 mod api;
 
 #[cfg(test)]
+#[cfg(test)]
 mod tests;
 
 pub use constants::*;

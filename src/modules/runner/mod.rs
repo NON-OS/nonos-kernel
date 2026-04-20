@@ -23,6 +23,7 @@ pub mod executor;
 pub mod watchdog;
 
 #[cfg(test)]
+#[cfg(test)]
 mod tests;
 
 pub use constants::*;

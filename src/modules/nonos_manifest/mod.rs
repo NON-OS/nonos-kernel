@@ -21,6 +21,7 @@ pub mod types;
 pub mod validation;
 
 #[cfg(test)]
+#[cfg(test)]
 mod tests;
 
 pub use types::{
