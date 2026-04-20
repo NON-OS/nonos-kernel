@@ -20,6 +20,8 @@ mod memory;
 mod features;
 #[cfg(test)]
 #[cfg(not(feature = "std"))]
+#[cfg(test)]
+#[cfg(test)]
 mod tests;
 
 pub use types::{Platform, ConsoleType};

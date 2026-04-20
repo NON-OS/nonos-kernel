@@ -19,6 +19,7 @@ mod output;
 mod splash;
 
 #[cfg(test)]
+#[cfg(test)]
 mod tests;
 
 pub use output::{

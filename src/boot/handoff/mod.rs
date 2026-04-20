@@ -18,6 +18,7 @@ pub mod api;
 pub mod types;
 
 #[cfg(test)]
+#[cfg(test)]
 mod tests;
 
 pub use api::{get_handoff, init_handoff, is_initialized, total_memory, HandoffError};

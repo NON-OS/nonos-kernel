@@ -21,6 +21,7 @@ pub mod info;
 pub mod security;
 pub mod handoff;
 #[cfg(test)]
+#[cfg(test)]
 mod tests;
 
 pub use constants::{HANDOFF_MAGIC, HANDOFF_VERSION, flags, pixel_format};

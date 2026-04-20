@@ -19,6 +19,7 @@ mod header;
 mod memory;
 mod info;
 #[cfg(test)]
+#[cfg(test)]
 mod tests;
 
 pub use error::MultibootError;

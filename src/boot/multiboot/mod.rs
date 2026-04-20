@@ -19,6 +19,7 @@ pub mod platform;
 pub mod types;
 
 #[cfg(test)]
+#[cfg(test)]
 mod tests;
 
 pub use parser::parse_multiboot_info;
