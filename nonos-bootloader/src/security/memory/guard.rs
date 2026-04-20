@@ -90,7 +90,8 @@ impl<const N: usize> GuardedBuffer<N> {
 
     pub fn check_and_panic(&self) {
         if !self.verify_guards() {
-            panic!("SECURITY: Buffer overflow detected");
+            crate::log::logger::log_critical("security", "SECURITY: Buffer overflow detected - secure halt");
+            loop { core::hint::spin_loop(); }
         }
     }
 }
