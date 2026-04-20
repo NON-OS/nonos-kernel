@@ -1,0 +1,85 @@
+qemu-system-x86_64: warning: TCG doesn't support requested feature: CPUID[eax=01h].ECX.pcid [bit 17]
+qemu-system-x86_64: warning: TCG doesn't support requested feature: CPUID[eax=01h].ECX.tsc-deadline [bit 24]
+qemu-system-x86_64: warning: TCG doesn't support requested feature: CPUID[eax=07h,ecx=00h].EBX.hle [bit 4]
+qemu-system-x86_64: warning: TCG doesn't support requested feature: CPUID[eax=07h,ecx=00h].EBX.invpcid [bit 10]
+qemu-system-x86_64: warning: TCG doesn't support requested feature: CPUID[eax=07h,ecx=00h].EBX.rtm [bit 11]
+[2J[01;01H[=3h[2J[01;01H[2J[01;01H[=3h[2J[01;01H[2J[01;01H[=3h[2J[01;01HBdsDxe: loading Boot0001 "UEFI QEMU HARDDISK QM00001 " from PciRoot(0x0)/Pci(0x1F,0x2)/Sata(0x0,0xFFFF,0x0)
+BdsDxe: starting Boot0001 "UEFI QEMU HARDDISK QM00001 " from PciRoot(0x0)/Pci(0x1F,0x2)/Sata(0x0,0xFFFF,0x0)
+[2J[01;01H[=3h[2J[01;01H[BOOT] NONOS Bootloader v1.0
+[INFO] boot: UEFI services initialized
+=== Loading Bootloader Configuration ===
+   [INFO] Using default security policy
+   [INFO] Using default network policy
+========================================
+[INFO] config: Configuration loading completed
+=== Security Init ===
+   [INFO] Initializing cryptographic keystore...
+[INFO] crypto: initializing NONOS keystore
+[INFO] crypto: NONOS signing key loaded
+[INFO] crypto: keystore ready
+[INFO] security: Production keys loaded successfully
+[INFO] security: Key fingerprint: 390df489e61c8731
+[INFO] security: Build timestamp: 1776419241
+[INFO] security: Key ID prefix: 390df489
+[INFO] security: Keystore fingerprint: 390df489e61c8731
+[ERROR] security: Cannot read SecureBoot variable: NOT_FOUND
+[ERROR] security: Platform Key missing: NOT_FOUND
+[ERROR] security: Signature DB missing: NOT_FOUND
+[INFO] rng: EFI RNG protocol detected
+=== Security Status ===
+Production Keys: LOADED
+SecureBoot: DISABLED
+PlatformKey: MISSING
+SignatureDB: MISSING
+HW RNG: AVAILABLE
+Measured Boot: INACTIVE
+Ed25519: PASS
+BLAKE3: PASS
+=======================
+[INFO] enforce: policy: Standard
+[INFO] enforce: STANDARD MODE - core security required
+[WARN] enforce: SecureBoot not enabled
+[WARN] enforce: TPM not available
+[SECURITY] PASSED
+[WARN] enforce: SecureBoot disabled
+[WARN] enforce: TPM not available
+[WARN] enforce: PlatformKey not verified
+[INFO] zk_init: Initializing ZK replay protection bindings
+[INFO] zk_init: Boot nonce initialized from hardware entropy
+[WARN] zk_init: TPM EK unavailable, using fallback machine ID
+[WARN] zk_init: TPM not initialized
+[INFO] zk_init: ZK replay protection READY
+=== HW Discovery ===
+[INFO] acpi: ACPI RSDP found
+[INFO] memory: Total RAM: 1279 MiB
+[INFO] storage: Storage devices: 3
+[INFO] network: Network interfaces: 3
+[INFO] graphics: Graphics devices: 1
+[INFO] pci: PCI devices: 36
+[INFO] cpu: CPU features: NXE=true SMEP=true SMAP=false UMIP=false
+=== HW Summary ===
+ACPI: available
+Memory: reported
+CPUs: detected
+Storage: counted
+Network: counted
+Graphics: counted
+PCI: counted
+==================
+
+[INFO] file: Searching for kernel binary...
+[INFO] file: Trying \EFI\nonos\kernel.bin
+[INFO] file: File loaded successfully
+[INFO] file: Kernel found and loaded
+[INFO] loader: kernel binary loaded
+[INFO] kernel_verify: Starting cryptographic verification
+  [CRYPTO] Computing BLAKE3 hash...
+  [CRYPTO] BLAKE3: 042930b3a12c7167...
+  [CRYPTO] Extracting Ed25519 signature...
+  [CRYPTO] Sig R: 0599514253dcf406...
+  [CRYPTO] Sig S: 38a0259398668119...
+  [CRYPTO] Verifying Ed25519 signature...
+[INFO] kernel_verify: Ed25519 signature VERIFIED against trusted key
+  [CRYPTO] Ed25519 verify ....................... [PASS]
+  [CRYPTO] Signer key ID: 390df489e61c8731...
+[INFO] kernel_verify: Cryptographic verification complete

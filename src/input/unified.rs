@@ -64,27 +64,29 @@ pub fn poll_special_key() -> Option<KeyEvent> {
 pub fn poll_mouse_unified() -> bool {
     i2c_hid::poll();
     if usb_hid::mouse_available() {
-        usb_hid::poll_mouse();
+        if usb_hid::poll_mouse() {
+            return true;
+        }
     }
-    mouse::poll();
-    true
+    mouse::poll()
 }
 
 pub fn mouse_position_unified() -> (i32, i32) {
-    if mouse::is_available() {
-        return mouse::position();
-    }
+    // Prefer USB (tablet absolute positioning) when available
     if usb_hid::mouse_available() {
         return usb_hid::mouse_position();
+    }
+    if mouse::is_available() {
+        return mouse::position();
     }
     i2c_hid::touchpad_position()
 }
 
 pub fn left_button_pressed() -> bool {
-    if mouse::is_available() && mouse::left_pressed() {
+    if usb_hid::mouse_available() && usb_hid::left_pressed() {
         return true;
     }
-    if usb_hid::mouse_available() && usb_hid::left_pressed() {
+    if mouse::is_available() && mouse::left_pressed() {
         return true;
     }
     if i2c_hid::touchpad_available() && i2c_hid::left_pressed() {
@@ -94,10 +96,10 @@ pub fn left_button_pressed() -> bool {
 }
 
 pub fn right_button_pressed() -> bool {
-    if mouse::is_available() && mouse::right_pressed() {
+    if usb_hid::mouse_available() && usb_hid::right_pressed() {
         return true;
     }
-    if usb_hid::mouse_available() && usb_hid::right_pressed() {
+    if mouse::is_available() && mouse::right_pressed() {
         return true;
     }
     if i2c_hid::touchpad_available() && i2c_hid::right_pressed() {

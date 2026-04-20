@@ -20,7 +20,7 @@ use crate::sys::serial;
 use super::consts::*;
 use super::structures::INPUT_CTX;
 use super::state::{SLOT_ID, MAX_PACKET};
-use crate::input::usb_hid::ring::{EVENT_RING, EVT_RING_IDX, queue_cmd, wait_event};
+use crate::input::usb_hid::ring::{queue_cmd, wait_event};
 use super::address::setup_input_ctx_address;
 use super::configure::get_descriptors_and_configure;
 
@@ -47,18 +47,30 @@ pub(super) fn enumerate_device(port: u8, speed: u8) -> bool {
 }
 
 fn get_slot_id() -> Option<u8> {
-    if let Some((33, code, _)) = wait_event(100_000) {
-        if code != 1 {
-            serial::println(b"[USB] EnableSlot fail");
-            return None;
+    // Drain pending events (e.g. Port Status Change type 34) until Command Completion
+    for _ in 0..20 {
+        if let Some((typ, cc, t3)) = wait_event(500_000) {
+            if typ == 33 {
+                if cc != 1 {
+                    serial::print(b"[USB] EnableSlot fail cc=");
+                    serial::print_dec(cc as u64);
+                    serial::println(b"");
+                    return None;
+                }
+                let slot = ((t3 >> 24) & 0xFF) as u8;
+                return Some(slot);
+            }
+            // Skip non-command-completion event
+            serial::print(b"[USB] Skip evt type ");
+            serial::print_dec(typ as u64);
+            serial::println(b"");
+            continue;
+        } else {
+            break;
         }
-        let ei = EVT_RING_IDX.load(Ordering::Relaxed);
-        let pi = if ei == 0 { 255 } else { ei - 1 } as usize;
-        Some(unsafe { ((EVENT_RING.trbs[pi][3] >> 24) & 0xFF) as u8 })
-    } else {
-        serial::println(b"[USB] EnableSlot timeout");
-        None
     }
+    serial::println(b"[USB] EnableSlot timeout");
+    None
 }
 
 fn address_device(slot: u8, port: u8, speed: u8) -> bool {
@@ -68,16 +80,24 @@ fn address_device(slot: u8, port: u8, speed: u8) -> bool {
     let inp_p = addr_of_mut!(INPUT_CTX) as u64;
     queue_cmd((inp_p & 0xFFFFFFFF) as u32, (inp_p >> 32) as u32, 0,
               (TRB_TYPE_ADDRESS_DEVICE << 10) | ((slot as u32) << 24));
-    if let Some((33, code, _)) = wait_event(100_000) {
-        if code != 1 {
-            serial::print(b"[USB] Addr fail ");
-            serial::print_dec(code as u64);
-            serial::println(b"");
-            return false;
+    // Drain pending events until Command Completion
+    for _ in 0..20 {
+        if let Some((typ, cc, _)) = wait_event(500_000) {
+            if typ == 33 {
+                if cc != 1 {
+                    serial::print(b"[USB] Addr fail cc=");
+                    serial::print_dec(cc as u64);
+                    serial::println(b"");
+                    return false;
+                }
+                return true;
+            }
+            // Skip non-command-completion event
+            continue;
+        } else {
+            break;
         }
-    } else {
-        serial::println(b"[USB] Addr timeout");
-        return false;
     }
-    true
+    serial::println(b"[USB] Addr timeout");
+    false
 }

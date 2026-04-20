@@ -24,29 +24,47 @@ use crate::input::usb_hid::hid::start_hid_poll;
 use crate::input::usb_hid::{KBD_AVAIL, MOUSE_AVAIL};
 
 pub(super) fn process_configure_result(_slot: u8, ep_info: &EpInfo) -> bool {
-    if let Some((33, code, _)) = wait_event(100_000) {
-        if code != 1 {
-            serial::print(b"[USB] CfgEP fail ");
-            serial::print_dec(code as u64);
-            serial::println(b"");
-            return false;
+    // Drain pending events until Command Completion (type 33)
+    for _ in 0..20 {
+        if let Some((typ, code, _)) = wait_event(100_000) {
+            if typ == 33 {
+                if code != 1 {
+                    serial::print(b"[USB] CfgEP fail ");
+                    serial::print_dec(code as u64);
+                    serial::println(b"");
+                    return false;
+                }
+                serial::println(b"[USB] Endpoint configured");
+                let proto = unsafe {
+                    let usb_buf_ptr = addr_of_mut!(USB_BUF);
+                    (*usb_buf_ptr).data.iter().position(|&x| x == USB_DESC_INTERFACE)
+                        .map(|i| (*usb_buf_ptr).data.get(i + 7).copied().unwrap_or(0)).unwrap_or(0)
+                };
+                serial::print(b"[USB] proto=");
+                serial::print_dec(proto as u64);
+                serial::print(b" max_pkt=");
+                serial::print_dec(ep_info.max_packet as u64);
+                serial::print(b" tablet=");
+                serial::print_dec(crate::input::usb_hid::TABLET_MODE.load(Ordering::Relaxed) as u64);
+                serial::println(b"");
+                if proto == 1 || ep_info.max_packet <= 8 {
+                    KBD_AVAIL.store(true, Ordering::SeqCst);
+                    serial::println(b"[USB] Keyboard ready");
+                }
+                // For tablets (subclass=0, protocol=0), always enable mouse
+                let is_tablet = crate::input::usb_hid::TABLET_MODE.load(Ordering::Relaxed);
+                if proto == 2 || is_tablet || (proto == 0 && ep_info.max_packet <= 8) {
+                    MOUSE_AVAIL.store(true, Ordering::SeqCst);
+                    serial::println(b"[USB] Mouse ready");
+                }
+                start_hid_poll();
+                return true;
+            }
+            // Skip non-command-completion event
+            continue;
+        } else {
+            break;
         }
-        serial::println(b"[USB] Endpoint configured");
-        let proto = unsafe {
-            let usb_buf_ptr = addr_of_mut!(USB_BUF);
-            (*usb_buf_ptr).data.iter().position(|&x| x == USB_DESC_INTERFACE)
-                .map(|i| (*usb_buf_ptr).data.get(i + 7).copied().unwrap_or(0)).unwrap_or(0)
-        };
-        if proto == 1 || ep_info.max_packet <= 8 {
-            KBD_AVAIL.store(true, Ordering::SeqCst);
-            serial::println(b"[USB] Keyboard ready");
-        }
-        if proto == 2 || (proto == 0 && ep_info.max_packet <= 8) {
-            MOUSE_AVAIL.store(true, Ordering::SeqCst);
-            serial::println(b"[USB] Mouse ready");
-        }
-        start_hid_poll();
-        return true;
     }
     false
 }

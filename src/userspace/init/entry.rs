@@ -22,16 +22,7 @@ use super::spawner::{spawn_services, spawn_driver_services, spawn_core_services}
 pub fn run_init() -> ! {
     boot_log::ok("INIT", "Starting");
     spawn_driver_services(DRIVER_SERVICES);
-    crate::sys::serial::println(b"[INIT] Yielding to drivers...");
-    for i in 0..50 {
-        if i == 0 || i == 25 || i == 49 {
-            crate::sys::serial::print(b"[INIT] yield ");
-            crate::sys::serial::print_dec(i as u64);
-            crate::sys::serial::println(b"");
-        }
-        crate::sched::yield_now();
-    }
-    crate::sys::serial::println(b"[INIT] Driver yields complete");
+    for _ in 0..50 { crate::sched::yield_now(); }
     spawn_services(KERNEL_SERVICES);
     for _ in 0..50 { crate::sched::yield_now(); }
     spawn_services(CRYPTO_ENGINE_SERVICES);

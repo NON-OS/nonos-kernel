@@ -20,6 +20,11 @@ use core::ptr::addr_of_mut;
 use core::sync::atomic::{AtomicBool, AtomicU8, Ordering};
 use super::xhci::{XHCI_DB, XHCI_RT, XHCI_RT_ERDP, mw32, mw64, spin, TRB_CYCLE};
 
+// xHCI Link TRB (type 6) — placed at ring slot 255 so the controller wraps back
+// to slot 0 instead of stalling on a zero-filled entry.
+const TRB_TYPE_LINK: u32 = 6;
+const TRB_TC: u32 = 1 << 1; // Toggle Cycle bit
+
 // =============================================================================
 // Ring Structures
 // =============================================================================
@@ -76,12 +81,43 @@ pub fn queue_ep0(t0: u32, t1: u32, t2: u32, t3: u32) {
 pub fn queue_hid(t0: u32, t1: u32, t2: u32, t3: u32) {
     let i = HID_RING_IDX.load(Ordering::Relaxed) as usize;
     let c = HID_RING_CYC.load(Ordering::Relaxed);
+    // SAFETY: Single-threaded access; volatile writes required because the
+    // xHCI controller reads these TRBs via DMA.
     unsafe {
-        HID_EP_RING.trbs[i] = [t0, t1, t2, t3 | if c { TRB_CYCLE } else { 0 }];
+        let trb = &mut HID_EP_RING.trbs[i];
+        core::ptr::write_volatile(&mut trb[0], t0);
+        core::ptr::write_volatile(&mut trb[1], t1);
+        core::ptr::write_volatile(&mut trb[2], t2);
+        core::ptr::write_volatile(&mut trb[3], t3 | if c { TRB_CYCLE } else { 0 });
         core::sync::atomic::fence(Ordering::SeqCst);
     }
     let ni = (i + 1) % 255;
-    if ni == 0 { HID_RING_CYC.store(!c, Ordering::SeqCst); }
+    if ni == 0 {
+        // Ring is wrapping: write (or refresh) the Link TRB at slot 255.
+        //
+        // The Link TRB must carry the CURRENT lap's cycle bit (`c`) so the
+        // xHCI controller recognises it as valid after consuming TRB[254].
+        // TRB_TC=1 causes the controller to toggle its consumer cycle bit
+        // when it processes the Link TRB, so it matches the next lap.
+        //
+        // This write happens inside queue_hid(), which is called from
+        // start_hid_poll() BEFORE ring_db() — so the Link TRB is always
+        // ready before the controller is signalled to advance past TRB[254].
+        //
+        // SAFETY: slot 255 is reserved exclusively for the Link TRB;
+        // volatile writes needed because xHCI DMA reads this memory.
+        unsafe {
+            let ring_p = addr_of_mut!(HID_EP_RING) as u64;
+            let link = &mut HID_EP_RING.trbs[255];
+            core::ptr::write_volatile(&mut link[0], (ring_p & 0xFFFF_FFFF) as u32);
+            core::ptr::write_volatile(&mut link[1], (ring_p >> 32) as u32);
+            core::ptr::write_volatile(&mut link[2], 0);
+            core::ptr::write_volatile(&mut link[3],
+                (TRB_TYPE_LINK << 10) | TRB_TC | if c { TRB_CYCLE } else { 0 });
+            core::sync::atomic::fence(Ordering::SeqCst);
+        }
+        HID_RING_CYC.store(!c, Ordering::SeqCst);
+    }
     HID_RING_IDX.store(ni as u8, Ordering::SeqCst);
 }
 
@@ -94,19 +130,18 @@ pub fn ring_db(slot: u8, ep: u8) {
 
 pub fn wait_event(timeout: u32) -> Option<(u8, u32, u32)> {
     let rt = XHCI_RT.load(Ordering::Relaxed);
-    let ei = EVT_RING_IDX.load(Ordering::Relaxed) as usize;
-    let ec = EVT_RING_CYC.load(Ordering::Relaxed);
 
     for _ in 0..timeout {
+        let ei = EVT_RING_IDX.load(Ordering::Relaxed) as usize;
+        let ec = EVT_RING_CYC.load(Ordering::Relaxed);
         // SAFETY: Hardware-synchronized event ring access, protected by cycle bit
         unsafe {
             let event_ring_ptr = addr_of_mut!(EVENT_RING);
             let t3 = core::ptr::read_volatile(&(*event_ring_ptr).trbs[ei][3]);
             if ((t3 & TRB_CYCLE) != 0) == ec {
-                let t0 = (*event_ring_ptr).trbs[ei][0];
-                let t2 = (*event_ring_ptr).trbs[ei][2];
+                let t2 = core::ptr::read_volatile(&(*event_ring_ptr).trbs[ei][2]);
                 let trb_type = ((t3 >> 10) & 0x3F) as u8;
-                let code = ((t3 >> 24) & 0xFF) as u32 | (t0 & 0xFFFF0000);
+                let cc = (t2 >> 24) & 0xFF;
 
                 let ni = (ei + 1) % 256;
                 if ni == 0 { EVT_RING_CYC.store(!ec, Ordering::SeqCst); }
@@ -115,10 +150,38 @@ pub fn wait_event(timeout: u32) -> Option<(u8, u32, u32)> {
                 let ep = event_ring_ptr as u64;
                 mw64(rt + XHCI_RT_ERDP, ep + (ni as u64 * 16) | 0x08);
 
-                return Some((trb_type, code, t2));
+                return Some((trb_type, cc, t3));
             }
         }
         spin(1);
+    }
+    None
+}
+
+/// Non-blocking event check — returns immediately if no event is ready.
+pub fn check_event() -> Option<(u8, u32, u32)> {
+    let rt = XHCI_RT.load(Ordering::Relaxed);
+    let ei = EVT_RING_IDX.load(Ordering::Relaxed) as usize;
+    let ec = EVT_RING_CYC.load(Ordering::Relaxed);
+
+    // SAFETY: Hardware-synchronized event ring access, protected by cycle bit
+    unsafe {
+        let event_ring_ptr = addr_of_mut!(EVENT_RING);
+        let t3 = core::ptr::read_volatile(&(*event_ring_ptr).trbs[ei][3]);
+        if ((t3 & TRB_CYCLE) != 0) == ec {
+            let t2 = core::ptr::read_volatile(&(*event_ring_ptr).trbs[ei][2]);
+            let trb_type = ((t3 >> 10) & 0x3F) as u8;
+            let cc = (t2 >> 24) & 0xFF;
+
+            let ni = (ei + 1) % 256;
+            if ni == 0 { EVT_RING_CYC.store(!ec, Ordering::SeqCst); }
+            EVT_RING_IDX.store(ni as u8, Ordering::SeqCst);
+
+            let ep = event_ring_ptr as u64;
+            mw64(rt + XHCI_RT_ERDP, ep + (ni as u64 * 16) | 0x08);
+
+            return Some((trb_type, cc, t3));
+        }
     }
     None
 }

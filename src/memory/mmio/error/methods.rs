@@ -28,7 +28,11 @@ impl MmioError {
             Self::InvalidBaseAddress => "Invalid MMIO base address",
             Self::MappingFailed => "Failed to map MMIO page",
             Self::UnmapFailed => "Failed to unmap MMIO page",
+<<<<<<< HEAD
             Self::Overflow => "Integer overflow in MMIO operation",
+=======
+            Self::Overflow => "MMIO address overflow",
+>>>>>>> cfe002e3 (debug(hang): instrument drivers manager server_loop and init yield loop)
         }
     }
 

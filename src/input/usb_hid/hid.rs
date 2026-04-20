@@ -131,26 +131,39 @@ pub fn process_keyboard_report() -> Option<u8> {
 }
 
 pub fn process_mouse_report() {
-    // SAFETY: Single-threaded HID processing, no concurrent access to HID_REPORTS
+    // SAFETY: Single-threaded HID processing, no concurrent access to HID_REPORTS.
+    // Must use volatile reads because the buffer was written by DMA (xHCI controller).
     unsafe {
         let hid_reports_ptr = addr_of_mut!(HID_REPORTS);
-        let report = &(*hid_reports_ptr).mouse;
-        let buttons = report[0];
-        let dx = report[1] as i8 as i32;
-        let dy = report[2] as i8 as i32;
+        let mouse_ptr = (*hid_reports_ptr).mouse.as_ptr();
+        let buttons = core::ptr::read_volatile(mouse_ptr);
+        let b1 = core::ptr::read_volatile(mouse_ptr.add(1));
+        let b2 = core::ptr::read_volatile(mouse_ptr.add(2));
+        let b3 = core::ptr::read_volatile(mouse_ptr.add(3));
+        let b4 = core::ptr::read_volatile(mouse_ptr.add(4));
 
         MOUSE_BTN.store(buttons, Ordering::Relaxed);
 
-        let x = MOUSE_X.load(Ordering::Relaxed);
-        let y = MOUSE_Y.load(Ordering::Relaxed);
         let w = SCR_W.load(Ordering::Relaxed);
         let h = SCR_H.load(Ordering::Relaxed);
 
-        let nx = (x + dx).clamp(0, w - 1);
-        let ny = (y + dy).clamp(0, h - 1);
-
-        MOUSE_X.store(nx, Ordering::Relaxed);
-        MOUSE_Y.store(ny, Ordering::Relaxed);
+        if super::TABLET_MODE.load(Ordering::Relaxed) {
+            // USB tablet: absolute 16-bit coordinates (0-32767)
+            let abs_x = (b1 as u32) | ((b2 as u32) << 8);
+            let abs_y = (b3 as u32) | ((b4 as u32) << 8);
+            let nx = ((abs_x * w as u32) / 32768) as i32;
+            let ny = ((abs_y * h as u32) / 32768) as i32;
+            MOUSE_X.store(nx.clamp(0, w - 1), Ordering::Relaxed);
+            MOUSE_Y.store(ny.clamp(0, h - 1), Ordering::Relaxed);
+        } else {
+            // Boot protocol mouse: relative deltas
+            let dx = b1 as i8 as i32;
+            let dy = b2 as i8 as i32;
+            let x = MOUSE_X.load(Ordering::Relaxed);
+            let y = MOUSE_Y.load(Ordering::Relaxed);
+            MOUSE_X.store((x + dx).clamp(0, w - 1), Ordering::Relaxed);
+            MOUSE_Y.store((y + dy).clamp(0, h - 1), Ordering::Relaxed);
+        }
     }
 }
 
@@ -171,7 +184,11 @@ pub fn start_hid_poll() {
         // SAFETY: Single-threaded HID polling initialization, getting address for DMA
         let buf_p = unsafe {
             let hid_reports_ptr = addr_of_mut!(HID_REPORTS);
-            (*hid_reports_ptr).kbd.as_ptr() as u64
+            if super::MOUSE_AVAIL.load(Ordering::Relaxed) {
+                (*hid_reports_ptr).mouse.as_ptr() as u64
+            } else {
+                (*hid_reports_ptr).kbd.as_ptr() as u64
+            }
         };
         let max_pkt = MAX_PACKET.load(Ordering::Relaxed) as u32;
 

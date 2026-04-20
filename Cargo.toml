@@ -739,14 +739,14 @@ hash      = "sha3-256"
 max_size  = "16MiB"
 
 # RELEASE PROFILE
-# Maximum optimization for production. LTO=fat gives us full cross-crate
-# inlining. Single codegen-unit forces LLVM to see the whole picture.
+# Maximum optimization for production. LTO=thin for faster linking during
+# development. Switch to lto="fat" + codegen-units=1 for final release.
 # panic=abort removes unwinding code. Strip removes DWARF (we keep symbols
 # for backtraces). ~2MB kernel binary.
 [profile.release]
 opt-level       = 3
-lto             = "fat"
-codegen-units   = 1
+lto             = "thin"
+codegen-units   = 4
 panic           = "abort"
 strip           = "debuginfo"
 debug           = false
@@ -754,7 +754,7 @@ overflow-checks = false
 
 [profile.release.package."*"]
 opt-level     = 3
-codegen-units = 1
+codegen-units = 4
 
 # DEV PROFILE
 # Fast compile times for development. opt-level=1 because 0 is painfully
