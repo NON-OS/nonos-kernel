@@ -24,6 +24,8 @@ mod measurement;
 mod mmio;
 mod status;
 
+#[cfg(test)]
+#[cfg(test)]
 pub mod tests;
 
 pub use api::{

@@ -19,6 +19,7 @@ mod builders;
 mod commands;
 
 #[cfg(test)]
+#[cfg(test)]
 mod tests;
 
 pub use base::Trb;

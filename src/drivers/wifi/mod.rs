@@ -31,6 +31,8 @@ pub mod smol_bridge;
 pub mod tx;
 pub mod wpa;
 
+#[cfg(test)]
+#[cfg(test)]
 pub mod tests;
 
 pub use api::{

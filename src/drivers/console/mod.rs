@@ -24,6 +24,7 @@ mod ansi;
 mod writer;
 
 #[cfg(test)]
+#[cfg(test)]
 mod tests;
 
 use core::fmt;

@@ -25,6 +25,8 @@ mod descriptors;
 mod device;
 pub mod error;
 mod interface;
+#[cfg(test)]
+#[cfg(test)]
 pub mod tests;
 
 pub use constants::*;

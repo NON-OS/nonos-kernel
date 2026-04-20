@@ -30,6 +30,8 @@ pub mod manager;
 pub mod msc;
 pub mod rtl8152;
 
+#[cfg(test)]
+#[cfg(test)]
 pub mod tests;
 
 pub use api::{

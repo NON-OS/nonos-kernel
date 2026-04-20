@@ -20,6 +20,8 @@ pub mod device;
 pub mod queue;
 pub mod types;
 
+#[cfg(test)]
+#[cfg(test)]
 pub mod tests;
 
 pub use api::{capacity, discard, flush, get_device_id, init, is_initialized, is_read_only, read, write, write_zeroes};

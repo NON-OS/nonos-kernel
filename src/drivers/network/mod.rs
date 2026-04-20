@@ -24,4 +24,5 @@ pub mod rtl8139;
 pub mod rtl8169;
 
 #[cfg(test)]
+#[cfg(test)]
 mod tests;

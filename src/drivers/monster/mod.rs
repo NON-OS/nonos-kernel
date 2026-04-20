@@ -20,6 +20,7 @@ pub mod init;
 pub mod stats;
 
 #[cfg(test)]
+#[cfg(test)]
 mod tests;
 
 pub use init::{init as monster_init, is_initialized, self_test as monster_self_test};

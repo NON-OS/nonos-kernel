@@ -23,6 +23,7 @@ mod input_context;
 mod slot;
 
 #[cfg(test)]
+#[cfg(test)]
 mod tests;
 
 pub use config::XhciConfig;

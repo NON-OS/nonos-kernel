@@ -23,6 +23,7 @@ pub mod error;
 pub mod io;
 
 #[cfg(test)]
+#[cfg(test)]
 mod tests;
 
 use buffer::Vga;

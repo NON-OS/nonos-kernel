@@ -24,6 +24,8 @@ pub mod stats;
 pub mod trb;
 pub mod types;
 
+#[cfg(test)]
+#[cfg(test)]
 pub mod tests;
 
 pub use api::{control_transfer, enumerate_all_devices, enumerate_first_device, get_enumerated_slots, get_health, get_stats, XhciControllerHandle};

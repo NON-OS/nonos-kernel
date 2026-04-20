@@ -22,6 +22,8 @@ pub mod io;
 pub mod surface;
 pub mod vbe;
 
+#[cfg(test)]
+#[cfg(test)]
 pub mod tests;
 
 pub use api::{
