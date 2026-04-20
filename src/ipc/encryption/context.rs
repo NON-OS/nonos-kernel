@@ -16,8 +16,7 @@
 
 extern crate alloc;
 use alloc::collections::BTreeMap;
-use alloc::string::String;
-use spin::Mutex;
+use alloc::string::{String, ToString};
 
 pub struct CryptoContext {
     master_key: [u8; 32],
