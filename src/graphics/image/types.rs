@@ -67,3 +67,7 @@ impl DecodedImage {
         }
     }
 }
+
+pub fn draw_wallpaper(image: &DecodedImage, screen_width: u32, screen_height: u32) {
+    image.draw_scaled(0, 0, screen_width, screen_height);
+}
