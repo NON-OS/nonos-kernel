@@ -20,6 +20,7 @@ mod stats;
 pub mod types;
 
 #[cfg(test)]
+#[cfg(test)]
 mod tests;
 
 pub use constants::*;
