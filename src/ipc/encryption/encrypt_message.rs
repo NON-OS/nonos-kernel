@@ -16,22 +16,22 @@
 
 extern crate alloc;
 use alloc::vec::Vec;
-use crate::crypto::chacha20poly1305::{ChaCha20Poly1305, Nonce};
-use crate::crypto::rand::secure_random_bytes;
+use crate::crypto::chacha20poly1305::{aead_encrypt, NONCE_SIZE, TAG_SIZE};
+use crate::crypto::fill_random_bytes;
 use super::EncryptionError;
 
 pub fn encrypt_message(data: &[u8], shared_secret: &[u8; 32]) -> Result<Vec<u8>, EncryptionError> {
-    let mut nonce_bytes = [0u8; 24];
-    secure_random_bytes(&mut nonce_bytes)
-        .map_err(|_| EncryptionError::InsufficientEntropy)?;
+    let mut nonce_bytes = [0u8; NONCE_SIZE];
+    fill_random_bytes(&mut nonce_bytes);
 
-    let nonce = Nonce::from_slice(&nonce_bytes);
-    let cipher = ChaCha20Poly1305::new(shared_secret.into());
+    let mut ciphertext = vec![0u8; data.len() + TAG_SIZE];
+    let result = aead_encrypt(shared_secret, &nonce_bytes, &[], data, &mut ciphertext);
 
-    let ciphertext = cipher.encrypt(&nonce, data)
-        .map_err(|_| EncryptionError::EncryptionFailed)?;
+    if result != 0 {
+        return Err(EncryptionError::EncryptionFailed);
+    }
 
-    let mut encrypted = Vec::with_capacity(24 + ciphertext.len());
+    let mut encrypted = Vec::with_capacity(NONCE_SIZE + ciphertext.len());
     encrypted.extend_from_slice(&nonce_bytes);
     encrypted.extend_from_slice(&ciphertext);
 
