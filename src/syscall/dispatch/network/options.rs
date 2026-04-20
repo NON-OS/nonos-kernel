@@ -16,7 +16,7 @@
 
 use crate::capabilities::Capability;
 use crate::syscall::SyscallResult;
-use crate::usercopy::{copy_to_user, read_user_value, write_user_value};
+use crate::usercopy::{read_user_value, write_user_value};
 use super::super::{errno, require_capability};
 use super::constants::{SOCK_STREAM, SOCK_DGRAM};
 use super::types::SocketType;
