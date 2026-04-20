@@ -18,6 +18,10 @@ use super::{init_e1000, init_rtl8139, init_rtl8168, init_wifi, print_wifi_status
 use super::virtio_net::init_virtio_net;
 
 pub fn init_network_drivers() {
+    crate::log_info!("[NET] Initializing network stack...");
+    crate::network::stack::init_network_stack();
+    crate::log_info!("[NET] Network stack initialized successfully");
+
     crate::log_info!("[NET] Probing for hardware network adapters...");
     let mut eth_count = 0u8;
     if init_e1000().is_ok() { crate::log::logger::log_critical("✓ Intel E1000 Ethernet initialized"); eth_count += 1; }
