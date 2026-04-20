@@ -133,6 +133,9 @@ pub(super) fn dispatch_file_fs(syscall: SyscallNumber, a0: u64, a1: u64, a2: u64
         SyscallNumber::IoGetevents => crate::syscall::aio::handle_io_getevents(a0, a1 as i64, a2 as i64, a3, a4),
         SyscallNumber::IoCancel => crate::syscall::aio::handle_io_cancel(a0, a1, a2),
         SyscallNumber::Bpf => crate::syscall::bpf::handle_bpf(a0 as u32, a1, a2 as u32),
+        SyscallNumber::AddKey => crate::syscall::keyring::handle_add_key(a0, a1, a2, a3, a4 as i32),
+        SyscallNumber::RequestKey => crate::syscall::keyring::handle_request_key(a0, a1, a2, a3 as i32),
+        SyscallNumber::Keyctl => crate::syscall::keyring::handle_keyctl(a0 as u32, a1, a2, a3, a4),
         _ => errno(38),
     }
 }
