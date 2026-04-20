@@ -60,7 +60,9 @@ pub fn init(tsc_hz: u64, boot_epoch_ms: u64) {
 }
 
 pub fn init_default() {
-    init(2_500_000_000, 0);
+    let real_unix_timestamp = crate::arch::x86_64::time::rtc::read_unix_timestamp();
+    let real_unix_ms = real_unix_timestamp * 1000;
+    init(2_500_000_000, real_unix_ms);
 }
 
 pub fn tsc_frequency() -> u64 {
