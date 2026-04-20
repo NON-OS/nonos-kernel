@@ -24,9 +24,9 @@ pub fn draw_boot_messages(x: u32, y: u32) {
     let fade_color = 0xFFB4B4B4u32;
 
     let start_index = if unsafe { MESSAGE_COUNT } > 8 {
-        unsafe { MESSAGE_COUNT } - 8
+        unsafe { MESSAGE_COUNT }.saturating_sub(8)
     } else {
-        0usize
+        0
     };
 
     for i in 0..8 {
