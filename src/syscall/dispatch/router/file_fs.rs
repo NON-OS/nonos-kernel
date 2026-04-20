@@ -127,6 +127,12 @@ pub(super) fn dispatch_file_fs(syscall: SyscallNumber, a0: u64, a1: u64, a2: u64
         SyscallNumber::Mknodat => crate::syscall::extended::handle_mknodat(a0 as i32, a1, a2 as u32, a3),
         SyscallNumber::Readahead => crate::syscall::extended::handle_readahead(a0 as i32, a1 as i64, a2),
         SyscallNumber::Fadvise64 => crate::syscall::extended::handle_fadvise64(a0 as i32, a1 as i64, a2 as i64, a3 as i32),
+        SyscallNumber::IoSetup => crate::syscall::aio::handle_io_setup(a0 as u32, a1),
+        SyscallNumber::IoDestroy => crate::syscall::aio::handle_io_destroy(a0),
+        SyscallNumber::IoSubmit => crate::syscall::aio::handle_io_submit(a0, a1 as i64, a2),
+        SyscallNumber::IoGetevents => crate::syscall::aio::handle_io_getevents(a0, a1 as i64, a2 as i64, a3, a4),
+        SyscallNumber::IoCancel => crate::syscall::aio::handle_io_cancel(a0, a1, a2),
+        SyscallNumber::Bpf => crate::syscall::bpf::handle_bpf(a0 as u32, a1, a2 as u32),
         _ => errno(38),
     }
 }
