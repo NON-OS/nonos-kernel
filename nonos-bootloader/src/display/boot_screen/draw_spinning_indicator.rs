@@ -37,9 +37,9 @@ pub fn draw_spinning_indicator(x: u32, y: u32) {
         let primary_g = (primary_color >> 8) & 0xFF;
         let primary_b = primary_color & 0xFF;
 
-        let r = (primary_r * alpha / 255) & 0xFF;
-        let g = (primary_g * alpha / 255) & 0xFF;
-        let b = (primary_b * alpha / 255) & 0xFF;
+        let r = (primary_r * alpha as u32 / 255) & 0xFF;
+        let g = (primary_g * alpha as u32 / 255) & 0xFF;
+        let b = (primary_b * alpha as u32 / 255) & 0xFF;
 
         let color = 0xFF000000 | (r << 16) | (g << 8) | b;
         fill_rect(dot_x, dot_y, 4, 4, color);

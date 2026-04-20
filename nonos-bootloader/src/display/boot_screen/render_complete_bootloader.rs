@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use crate::display::gop::state::get_dimensions;
+use crate::display::gop::get_dimensions;
 use crate::display::font::draw_string;
 use crate::display::constants::COLOR_TEXT_WHITE;
 

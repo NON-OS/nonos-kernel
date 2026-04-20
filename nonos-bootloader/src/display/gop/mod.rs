@@ -16,7 +16,7 @@
 
 mod draw;
 mod init;
-mod state;
+pub mod state;
 
 pub use draw::{clear_screen, draw_rect, fill_rect, hline, put_pixel, vline};
 pub use init::init_gop;

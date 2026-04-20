@@ -24,7 +24,7 @@ pub fn draw_status_items(x: u32, y: u32) {
     let error_color = 0xFFF44336u32;
     let item_spacing = 150;
 
-    let items = [
+    let items: &[(&[u8], bool)] = &[
         (b"SecureBoot", true),
         (b"TPM 2.0", true),
         (b"UEFI Mode", true),

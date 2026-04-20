@@ -26,14 +26,14 @@ pub fn draw_boot_messages(x: u32, y: u32) {
     let start_index = if unsafe { MESSAGE_COUNT } > 8 {
         unsafe { MESSAGE_COUNT } - 8
     } else {
-        0
+        0usize
     };
 
     for i in 0..8 {
         let msg_index = start_index + i;
         if msg_index < unsafe { MESSAGE_COUNT } {
             let message = unsafe { MESSAGES[msg_index % 10] };
-            let alpha = if i < 6 { 255 - (6 - i) * 30 } else { 255 };
+            let alpha = if i < 6 { 255u32 - (6 - i) as u32 * 30 } else { 255u32 };
 
             let color = if i >= 6 {
                 msg_color
