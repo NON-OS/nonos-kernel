@@ -16,24 +16,21 @@
 
 extern crate alloc;
 use alloc::vec::Vec;
-use crate::crypto::signing::ed25519::{Signature, PublicKey, SecretKey, verify};
+use crate::crypto::ed25519::{KeyPair, Signature, verify};
 use super::EncryptionError;
 
 pub struct IpcVerifier {
-    public_key: PublicKey,
+    public_key: [u8; 32],
     expected_identity: [u8; 32],
 }
 
 impl IpcVerifier {
     pub fn new(sender_identity: &str) -> Result<Self, EncryptionError> {
         let identity_hash = super::derive_identity_key::derive_identity_key(sender_identity)?;
-
-        let secret_key = SecretKey::from_bytes(&identity_hash)
-            .map_err(|_| EncryptionError::KeyDerivationFailed)?;
-        let public_key = PublicKey::from(&secret_key);
+        let keypair = KeyPair::from_seed(identity_hash);
 
         Ok(Self {
-            public_key,
+            public_key: keypair.public,
             expected_identity: identity_hash,
         })
     }
@@ -44,9 +41,7 @@ impl IpcVerifier {
         message.extend_from_slice(data);
         message.extend_from_slice(metadata);
 
-        let signature = Signature::from_bytes(signature_bytes)
-            .map_err(|_| EncryptionError::AuthenticationFailed)?;
-
+        let signature = Signature::from_bytes(signature_bytes);
         let valid = verify(&self.public_key, &message, &signature);
         Ok(valid)
     }
