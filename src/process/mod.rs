@@ -40,6 +40,8 @@ pub mod accounting;
 pub mod acct_record;
 pub mod signal;
 
+#[cfg(test)]
+#[cfg(test)]
 pub mod tests;
 
 pub use core::{ProcessControlBlock, ProcessTable, ProcessState, Priority, Pid, ThreadGroup, PROCESS_TABLE, CURRENT_PID};

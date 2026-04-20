@@ -19,6 +19,7 @@ extern crate alloc;
 mod types;
 mod executor;
 #[cfg(test)]
+#[cfg(test)]
 mod tests;
 
 pub use types::*;

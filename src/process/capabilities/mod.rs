@@ -19,6 +19,7 @@ mod checks;
 mod presets;
 
 #[cfg(test)]
+#[cfg(test)]
 mod tests;
 
 pub use types::{Capability, CapabilitySet};
