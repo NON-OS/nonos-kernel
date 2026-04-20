@@ -18,8 +18,13 @@ mod crypto;
 mod init;
 mod progress;
 mod stages;
+mod modern_ui;
+mod enhanced_progress;
+mod premium_logo;
+mod production_ui;
 
 pub use crypto::{animate_hash_reveal, reset_hash_reveal, show_crypto_verification, BootCryptoState};
 pub use init::init_boot_screen;
 pub use progress::{draw_boot_progress, reset_animation, show_error_screen, show_handoff_message, tick_animation};
 pub use stages::{get_current_stage, reset_stage, update_stage};
+pub use production_ui::{draw_production_bootloader, advance_boot_stage, update_stage_progress, add_boot_message};
