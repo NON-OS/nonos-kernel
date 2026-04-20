@@ -16,20 +16,18 @@
 
 extern crate alloc;
 use alloc::vec::Vec;
-use crate::crypto::chacha20poly1305::{aead_encrypt, NONCE_SIZE, TAG_SIZE};
-use crate::crypto::fill_random_bytes;
+use crate::crypto::symmetric::chacha20poly1305::{aead_encrypt, NONCE_SIZE};
+use crate::crypto::random_api::fill_bytes;
 use super::EncryptionError;
 
 pub fn encrypt_message(data: &[u8], shared_secret: &[u8; 32]) -> Result<Vec<u8>, EncryptionError> {
     let mut nonce_bytes = [0u8; NONCE_SIZE];
-    fill_random_bytes(&mut nonce_bytes);
+    fill_bytes(&mut nonce_bytes).map_err(|_| EncryptionError::InsufficientEntropy)?;
 
-    let mut ciphertext = vec![0u8; data.len() + TAG_SIZE];
-    let result = aead_encrypt(shared_secret, &nonce_bytes, &[], data, &mut ciphertext);
-
-    if result != 0 {
-        return Err(EncryptionError::EncryptionFailed);
-    }
+    let ciphertext: Vec<u8> = match aead_encrypt(shared_secret, &nonce_bytes, &[], data) {
+        Ok(ct) => ct,
+        Err(_) => return Err(EncryptionError::EncryptionFailed),
+    };
 
     let mut encrypted = Vec::with_capacity(NONCE_SIZE + ciphertext.len());
     encrypted.extend_from_slice(&nonce_bytes);
