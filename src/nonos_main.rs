@@ -35,13 +35,13 @@ use nonos_kernel::entry::{security, fallback};
 static HANDOFF_PTR: AtomicU64 = AtomicU64::new(0);
 
 #[global_allocator]
-static ALLOCATOR: nonos_kernel::memory::heap::manager::types::SecureHeapAllocator =
-    nonos_kernel::memory::heap::manager::types::SecureHeapAllocator::new();
+static ALLOCATOR: nonos_kernel::memory::heap::types::SecureHeapAllocator =
+    nonos_kernel::memory::heap::types::SecureHeapAllocator::new();
 
 #[panic_handler]
 fn panic(info: &PanicInfo) -> ! {
     nonos_kernel::sys::serial::println(b"[PANIC] Kernel panic occurred");
-    nonos_kernel::boot::panic::halt_loop()
+    nonos_kernel::boot::halt_loop()
 }
 
 #[unsafe(naked)]
