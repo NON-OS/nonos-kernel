@@ -26,6 +26,8 @@ mod intrinsics_interrupt;
 mod intrinsics_fence;
 mod cpuid;
 #[cfg(all(test, not(feature = "std")))]
+#[cfg(test)]
+#[cfg(test)]
 mod tests;
 
 pub use tsc::{rdtsc, rdtscp};

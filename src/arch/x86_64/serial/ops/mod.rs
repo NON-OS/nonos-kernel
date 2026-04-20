@@ -18,6 +18,7 @@ pub mod io;
 pub mod init;
 pub mod read_write;
 #[cfg(test)]
+#[cfg(test)]
 mod tests;
 
 pub use io::{read_reg, write_reg, is_tx_empty, is_data_ready, write_byte_timeout, read_byte_direct};

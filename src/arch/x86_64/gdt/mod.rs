@@ -35,6 +35,7 @@ mod tss_entry;
 mod tss_struct;
 pub mod tss;
 #[cfg(test)]
+#[cfg(test)]
 mod tests;
 
 pub use constants::*;

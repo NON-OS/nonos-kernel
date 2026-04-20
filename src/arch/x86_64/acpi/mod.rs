@@ -28,6 +28,7 @@ pub mod parser;
 pub mod power;
 pub mod tables;
 #[cfg(test)]
+#[cfg(test)]
 mod tests;
 
 pub use api::{

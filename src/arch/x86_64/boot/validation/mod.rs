@@ -23,6 +23,7 @@ mod simd;
 mod simd_level;
 mod simd_types;
 #[cfg(test)]
+#[cfg(test)]
 mod tests;
 
 pub use memory::validate_memory;

@@ -19,6 +19,8 @@ mod parse;
 mod parse_core;
 mod parse_utils;
 mod build;
+#[cfg(test)]
+#[cfg(test)]
 mod tests;
 
 pub use types::{SignatureEntry, SignatureList};

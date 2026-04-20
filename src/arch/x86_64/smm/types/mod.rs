@@ -19,6 +19,7 @@ mod region;
 mod smi;
 mod vendor;
 #[cfg(test)]
+#[cfg(test)]
 mod tests;
 
 pub use handler::SmmHandler;

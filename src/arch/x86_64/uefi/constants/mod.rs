@@ -18,6 +18,7 @@ pub mod signatures;
 pub mod revisions;
 pub mod status;
 #[cfg(test)]
+#[cfg(test)]
 mod tests;
 
 pub use signatures::*;

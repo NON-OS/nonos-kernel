@@ -20,6 +20,8 @@ mod time;
 mod memory;
 mod memory_desc;
 mod memory_type;
+#[cfg(test)]
+#[cfg(test)]
 mod tests;
 
 pub use header::TableHeader;

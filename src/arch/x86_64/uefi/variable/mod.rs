@@ -18,6 +18,8 @@ mod variable;
 mod utils;
 mod firmware;
 mod iterator;
+#[cfg(test)]
+#[cfg(test)]
 mod tests;
 
 pub use variable::UefiVariable;

@@ -25,6 +25,7 @@ mod port_writeonly;
 mod port;
 mod range;
 #[cfg(test)]
+#[cfg(test)]
 mod tests;
 
 pub use value::PortValue;

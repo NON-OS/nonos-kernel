@@ -22,6 +22,7 @@ mod main_early;
 pub mod main_late;
 pub mod main_cpu;
 #[cfg(test)]
+#[cfg(test)]
 mod tests;
 
 pub use panic::boot_panic;
