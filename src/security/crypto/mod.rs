@@ -32,7 +32,7 @@ pub use constant_time::{
     init as constant_time_init, ct_compare, ct_verify, ct_select_u8, ct_select_u32, ct_select_u64,
     ct_select_slice, ct_swap_slices, ct_lt_u32, ct_lt_u64, ct_gt_u32, ct_eq_u32, ct_eq_u64,
     ct_min_u32, ct_max_u32, ct_copy_bounded, ct_zero, ct_zero_u64, ct_hmac_verify,
-    ct_signature_verify, run_self_tests, CtVerifyResult, TimingMode, SelfTestResult,
+    ct_signature_verify, CtVerifyResult, TimingMode, SelfTestResult,
     ed25519_ct, x25519_ct, aes_ct,
 };
 

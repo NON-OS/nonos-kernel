@@ -18,6 +18,8 @@ pub mod types;
 pub mod core;
 pub mod ops;
 pub mod memory;
+#[cfg(test)]
+#[cfg(test)]
 pub mod tests;
 pub mod ed25519;
 pub mod x25519;
@@ -34,6 +36,7 @@ pub use ops::{
     ct_min_u32, ct_max_u32, ct_copy_bounded,
 };
 pub use memory::{ct_zero, ct_zero_u64, ct_hmac_verify, ct_signature_verify};
+#[cfg(test)]
 pub use tests::run_self_tests;
 pub use init::init;
 
