@@ -6,6 +6,7 @@ pub mod array_proto;
 pub mod number_proto;
 
 #[cfg(test)]
+#[cfg(test)]
 mod tests;
 
 pub use chain::{ProtoChain, ProtoObject};

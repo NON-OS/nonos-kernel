@@ -3,6 +3,7 @@ mod then;
 mod combinators;
 
 #[cfg(test)]
+#[cfg(test)]
 mod tests;
 
 pub use state::{JsPromise, PromiseState};

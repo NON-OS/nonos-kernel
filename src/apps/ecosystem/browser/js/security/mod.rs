@@ -8,6 +8,7 @@ mod hsts;
 mod sri;
 
 #[cfg(test)]
+#[cfg(test)]
 mod tests;
 
 pub use origin::Origin;

@@ -3,6 +3,7 @@ mod binding;
 pub mod this_binding;
 
 #[cfg(test)]
+#[cfg(test)]
 mod tests;
 
 pub use scope_chain::{LexicalScope, ScopeChain};

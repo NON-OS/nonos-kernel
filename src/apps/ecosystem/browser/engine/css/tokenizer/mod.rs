@@ -7,6 +7,7 @@ pub mod scan_ident;
 pub mod scan_helpers;
 
 #[cfg(test)]
+#[cfg(test)]
 mod tests;
 
 pub use token_types::CssToken;

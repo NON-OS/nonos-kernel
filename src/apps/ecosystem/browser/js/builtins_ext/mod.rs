@@ -3,6 +3,7 @@ mod map_set;
 mod symbol;
 
 #[cfg(test)]
+#[cfg(test)]
 mod tests;
 
 pub use error_types::{JsError, JsErrorKind};
