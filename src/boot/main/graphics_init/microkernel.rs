@@ -28,15 +28,11 @@ pub fn init_graphics_for_microkernel() -> bool {
     crate::sys::serial::println(b"[DESKTOP] Graphics init OK");
 
     let tsc_hz = timer::tsc_frequency();
-    let current_unix_ms = timer::unix_timestamp_ms();
-    if current_unix_ms == 0 {
-        let current_time_ms = crate::time::current_time_ns() / 1_000_000;
-        clock::init(tsc_hz, current_time_ms);
-        crate::sys::serial::println(b"[DESKTOP] Clock initialized with current timestamp");
-    } else {
-        clock::init(tsc_hz, current_unix_ms);
-        crate::sys::serial::println(b"[DESKTOP] Clock initialized with unix timestamp");
-    }
+    // Get real current time from RTC hardware
+    let real_unix_timestamp = crate::arch::x86_64::time::rtc::read_unix_timestamp();
+    let current_unix_ms = real_unix_timestamp * 1000;
+    clock::init(tsc_hz, current_unix_ms);
+    crate::sys::serial::println(b"[DESKTOP] Clock initialized");
 
     input::set_screen_bounds_unified(width, height);
     let _ = input::i2c_hid::init();
