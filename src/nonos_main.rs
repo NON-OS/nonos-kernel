@@ -22,7 +22,6 @@ extern crate nonos_kernel;
 
 use core::arch::naked_asm;
 use core::sync::atomic::{AtomicU64, Ordering};
-use core::panic::PanicInfo;
 
 mod manifest_embed { include!(concat!(env!("OUT_DIR"), "/manifest_data.rs")); }
 pub use manifest_embed::*;
@@ -34,15 +33,6 @@ use nonos_kernel::entry::{security, fallback};
 
 static HANDOFF_PTR: AtomicU64 = AtomicU64::new(0);
 
-#[global_allocator]
-static ALLOCATOR: nonos_kernel::memory::heap::types::SecureHeapAllocator =
-    nonos_kernel::memory::heap::types::SecureHeapAllocator::new();
-
-#[panic_handler]
-fn panic(info: &PanicInfo) -> ! {
-    nonos_kernel::sys::serial::println(b"[PANIC] Kernel panic occurred");
-    nonos_kernel::boot::halt_loop()
-}
 
 #[unsafe(naked)]
 #[no_mangle]
