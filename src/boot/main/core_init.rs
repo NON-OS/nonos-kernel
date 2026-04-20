@@ -22,6 +22,7 @@ pub fn init_core_systems() {
     serial::init();
     serial::println(b"[NONOS] Kernel entry - SSE enabled");
     crate::arch::x86_64::time::timer::init_boot_time();
+    crate::sys::timer::tsc::init_default();
     unsafe { gdt::setup(); }
     serial::println(b"[NONOS] GDT configured");
     unsafe { idt::setup(); }
