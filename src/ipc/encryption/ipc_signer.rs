@@ -16,26 +16,21 @@
 
 extern crate alloc;
 use alloc::vec::Vec;
-use crate::crypto::signing::ed25519::{Signature, PublicKey, SecretKey, sign};
+use crate::crypto::ed25519::{KeyPair, sign};
 use super::EncryptionError;
 
 pub struct IpcSigner {
-    secret_key: SecretKey,
-    public_key: PublicKey,
+    keypair: KeyPair,
     identity: [u8; 32],
 }
 
 impl IpcSigner {
     pub fn new(identity: &str) -> Result<Self, EncryptionError> {
         let identity_hash = super::derive_identity_key::derive_identity_key(identity)?;
-
-        let secret_key = SecretKey::from_bytes(&identity_hash)
-            .map_err(|_| EncryptionError::KeyDerivationFailed)?;
-        let public_key = PublicKey::from(&secret_key);
+        let keypair = KeyPair::from_seed(identity_hash);
 
         Ok(Self {
-            secret_key,
-            public_key,
+            keypair,
             identity: identity_hash,
         })
     }
@@ -46,12 +41,12 @@ impl IpcSigner {
         message.extend_from_slice(data);
         message.extend_from_slice(metadata);
 
-        let signature = sign(&self.secret_key, &message);
+        let signature = sign(&self.keypair, &message);
         Ok(signature.to_bytes())
     }
 
-    pub fn public_key(&self) -> PublicKey {
-        self.public_key
+    pub fn public_key(&self) -> [u8; 32] {
+        self.keypair.public
     }
 
     pub fn identity(&self) -> &[u8; 32] {
