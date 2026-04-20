@@ -16,20 +16,19 @@
 
 extern crate alloc;
 use alloc::vec::Vec;
-use crate::crypto::chacha20poly1305::{ChaCha20Poly1305, Nonce};
+use crate::crypto::chacha20poly1305::{aead_decrypt, NONCE_SIZE, TAG_SIZE};
 use super::EncryptionError;
 
 pub fn decrypt_message(encrypted_data: &[u8], shared_secret: &[u8; 32]) -> Result<Vec<u8>, EncryptionError> {
-    if encrypted_data.len() < 24 {
+    if encrypted_data.len() < NONCE_SIZE + TAG_SIZE {
         return Err(EncryptionError::InvalidNonceSize);
     }
 
-    let nonce = Nonce::from_slice(&encrypted_data[0..24]);
-    let ciphertext = &encrypted_data[24..];
+    let mut nonce = [0u8; NONCE_SIZE];
+    nonce.copy_from_slice(&encrypted_data[0..NONCE_SIZE]);
+    let ciphertext = &encrypted_data[NONCE_SIZE..];
 
-    let cipher = ChaCha20Poly1305::new(shared_secret.into());
-
-    let plaintext = cipher.decrypt(&nonce, ciphertext)
+    let plaintext = aead_decrypt(shared_secret, &nonce, &[], ciphertext)
         .map_err(|_| EncryptionError::DecryptionFailed)?;
 
     Ok(plaintext)
