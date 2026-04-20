@@ -21,6 +21,7 @@ mod decrypt;
 mod modes;
 
 #[cfg(test)]
+#[cfg(test)]
 mod tests;
 
 pub use self::core::{SBOX, INV_SBOX};

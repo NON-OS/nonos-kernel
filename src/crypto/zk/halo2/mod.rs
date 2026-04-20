@@ -22,6 +22,7 @@ mod api;
 mod deserialize;
 pub mod params;
 #[cfg(test)]
+#[cfg(test)]
 mod tests;
 mod verifier;
 

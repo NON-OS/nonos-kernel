@@ -21,6 +21,7 @@ mod error;
 pub mod global;
 
 #[cfg(test)]
+#[cfg(test)]
 mod tests;
 
 pub use api::{fill_bytes, secure_random_u64};

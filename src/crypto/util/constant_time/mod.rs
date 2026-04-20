@@ -22,6 +22,7 @@ mod math;
 mod select;
 
 #[cfg(test)]
+#[cfg(test)]
 mod tests;
 
 pub use barriers::{

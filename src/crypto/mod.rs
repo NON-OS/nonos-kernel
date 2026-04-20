@@ -35,6 +35,7 @@ pub mod zk;
 pub mod zk_kernel;
 
 #[cfg(test)]
+#[cfg(test)]
 mod tests;
 
 pub use error::{CryptoError, CryptoResult};

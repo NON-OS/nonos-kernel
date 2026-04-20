@@ -19,6 +19,7 @@ mod hardware;
 mod collect;
 
 #[cfg(test)]
+#[cfg(test)]
 mod tests;
 
 pub use hardware::{init, has_hardware_rng};

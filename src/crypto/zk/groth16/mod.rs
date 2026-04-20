@@ -23,6 +23,8 @@ mod verifier;
 
 #[cfg(test)]
 #[cfg(not(feature = "std"))]
+#[cfg(test)]
+#[cfg(test)]
 mod tests;
 
 pub const MAX_VK_BYTES: usize = 16 * 1024 * 1024;

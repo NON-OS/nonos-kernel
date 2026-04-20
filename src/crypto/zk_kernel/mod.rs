@@ -42,6 +42,7 @@ mod verifier;
 mod syscall;
 
 #[cfg(test)]
+#[cfg(test)]
 mod tests;
 
 // Re-export constants

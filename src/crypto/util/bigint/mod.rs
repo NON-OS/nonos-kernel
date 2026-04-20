@@ -26,6 +26,7 @@ mod modular;
 mod primality;
 
 #[cfg(test)]
+#[cfg(test)]
 mod tests;
 
 pub use types::{BigUint, LIMB_BITS, LIMB_MAX};

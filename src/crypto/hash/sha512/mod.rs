@@ -18,6 +18,7 @@ mod constants;
 mod hasher;
 
 #[cfg(test)]
+#[cfg(test)]
 mod tests;
 
 pub use hasher::Sha512;

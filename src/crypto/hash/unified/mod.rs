@@ -26,6 +26,7 @@ mod ripemd160;
 pub mod sha1;
 
 #[cfg(test)]
+#[cfg(test)]
 mod tests;
 
 pub type Hash256 = [u8; 32];

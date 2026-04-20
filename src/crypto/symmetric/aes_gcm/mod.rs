@@ -20,6 +20,7 @@ mod aes128;
 mod aes256;
 
 #[cfg(test)]
+#[cfg(test)]
 mod tests;
 
 pub const TAG_SIZE: usize = 16;
