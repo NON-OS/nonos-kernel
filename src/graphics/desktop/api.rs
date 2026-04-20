@@ -20,12 +20,19 @@ use super::{grid, menubar, sidebar, dock, desktop_icons};
 pub fn draw_all() {
     let (w, h) = dimensions();
 
-    fill_rect(0, 0, w, h, COLOR_BG);
-    grid::draw(w, h);
+    if let Some(wallpaper) = crate::graphics::backgrounds::wallpaper::load_current_wallpaper() {
+        crate::graphics::image::draw_wallpaper(wallpaper, w, h);
+    } else {
+        fill_rect(0, 0, w, h, COLOR_BG);
+        grid::draw(w, h);
+    }
     desktop_icons::draw(w, h);
+    crate::graphics::window::draw_all();
     menubar::draw(w);
     sidebar::draw(h);
     dock::draw(w, h);
+    let (mx, my) = crate::input::mouse_position_unified();
+    crate::graphics::cursor::draw(mx as i32, my as i32);
 }
 
 pub fn handle_menu_bar_click(mx: i32, my: i32) -> bool {
@@ -64,8 +71,12 @@ pub fn update_clock() {
 pub fn redraw_background() {
     let (w, h) = dimensions();
 
-    fill_rect(0, 0, w, h, COLOR_BG);
-    grid::draw(w, h);
+    if let Some(wallpaper) = crate::graphics::backgrounds::wallpaper::load_current_wallpaper() {
+        crate::graphics::image::draw_wallpaper(wallpaper, w, h);
+    } else {
+        fill_rect(0, 0, w, h, COLOR_BG);
+        grid::draw(w, h);
+    }
     desktop_icons::draw(w, h);
     menubar::draw(w);
     sidebar::draw(h);
