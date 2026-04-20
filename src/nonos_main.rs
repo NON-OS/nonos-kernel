@@ -71,13 +71,7 @@ fn boot_microkernel(handoff: &nonos_kernel::boot::handoff::BootHandoffV1) -> ! {
     serial::println(b"[NONOS] Microkernel boot");
     nonos_kernel::kernel_core::microkernel_init(handoff);
 
-    serial::println(b"[NONOS] Running kernel tests...");
-    let tests_ok = nonos_kernel::test::run_all_tests();
-    if tests_ok {
-        serial::println(b"[NONOS] All tests PASSED");
-    } else {
-        serial::println(b"[NONOS] Some tests FAILED");
-    }
+    // Tests disabled for production boot
 
     nonos_kernel::kernel_core::microkernel_main()
 }
