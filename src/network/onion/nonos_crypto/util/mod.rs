@@ -16,10 +16,13 @@
 
 mod mem;
 mod rng;
+#[cfg(test)]
+#[cfg(test)]
 mod tests;
 mod wrappers;
 
 pub use mem::{constant_time_eq, secure_memzero, conditional_select};
 pub use rng::{VaultRng, generate_seed};
+#[cfg(test)]
 pub use tests::run_comprehensive_tests;
 pub use wrappers::{rand32, sha256};

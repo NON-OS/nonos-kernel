@@ -48,5 +48,5 @@ pub use aead::{
     tls_aes128_gcm_seal, tls_aes128_gcm_open, tls_chacha20poly1305_seal, tls_chacha20poly1305_open,
     tls_aes256_gcm_seal, tls_aes256_gcm_open,
 };
-pub use util::{VaultRng, generate_seed, constant_time_eq, secure_memzero, conditional_select, rand32, sha256, run_comprehensive_tests};
+pub use util::{VaultRng, generate_seed, constant_time_eq, secure_memzero, conditional_select, rand32, sha256};
 pub use verify::{rsa_pss_sha256_verify_spki, rsa_pss_sha384_verify_spki, rsa_pkcs1v15_sha256_verify_spki, rsa_pkcs1v15_sha384_verify_spki, ecdsa_p256_sha256_verify_spki, ecdsa_p384_sha384_verify_spki};
