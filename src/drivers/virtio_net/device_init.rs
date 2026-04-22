@@ -25,6 +25,20 @@ use super::constants::*;
 use super::device::VirtioNetDevice;
 use super::modern_regs::VirtioModernRegs;
 
+fn legacy_mmio_base(bar: &PciBar) -> Result<usize, &'static str> {
+    let (address, size) = bar
+        .mmio_region()
+        .ok_or("virtio-net: legacy needs MMIO BAR")?;
+
+    if size == 0 {
+        return Err("virtio-net: legacy BAR size is zero");
+    }
+
+    let mapped = crate::memory::mmio::map_device_memory(address, size)
+        .map_err(|_| "virtio-net: failed to map legacy BAR")?;
+    Ok(mapped.as_u64() as usize)
+}
+
 impl VirtioNetDevice {
     pub(super) fn init_modern(regs: &VirtioModernRegs) -> Result<([u8; 6], u32), &'static str> {
         // SAFETY: regs.common is valid MMIO memory from PCI capability parsing
@@ -68,10 +82,7 @@ impl VirtioNetDevice {
 
     pub(super) fn init_legacy(legacy_bar: &Option<PciBar>) -> Result<([u8; 6], u32), &'static str> {
         let bar = legacy_bar.as_ref().ok_or("virtio-net: missing legacy BAR")?;
-        let base = match bar {
-            PciBar::Memory { address, .. } => address.as_u64() as usize,
-            _ => return Err("virtio-net: legacy needs MMIO BAR"),
-        };
+        let base = legacy_mmio_base(bar)?;
 
         // SAFETY: base points to valid MMIO memory from BAR
         unsafe {
@@ -265,5 +276,22 @@ impl VirtioNetDevice {
             features.push("CTRL_VQ");
         }
         features
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::legacy_mmio_base;
+    use crate::drivers::pci::PciBar;
+
+    #[test_case]
+    fn legacy_mmio_base_rejects_io_bar() {
+        let bar = PciBar::Io { port: 0x1000, size: 0x100 };
+        assert!(legacy_mmio_base(&bar).is_err());
+    }
+
+    #[test_case]
+    fn legacy_mmio_base_rejects_not_present() {
+        assert!(legacy_mmio_base(&PciBar::NotPresent).is_err());
     }
 }
