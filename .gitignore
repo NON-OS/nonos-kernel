@@ -61,3 +61,12 @@ coverage/
 .env
 .env.local
 *.local.toml
+
+# AI assistant instruction files (local overrides, not for version control)
+.claude/
+CLAUDE.md
+.cursorrules
+.cursorignore
+.aider*
+.continue/
+
