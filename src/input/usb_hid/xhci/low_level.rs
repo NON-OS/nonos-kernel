@@ -24,3 +24,21 @@ pub(crate) unsafe fn mw32(a: u64, v: u32) { unsafe { core::ptr::write_volatile(a
 pub(crate) unsafe fn mw64(a: u64, v: u64) { unsafe { core::ptr::write_volatile(a as *mut u64, v); } }
 
 pub(crate) fn spin(n: u32) { for _ in 0..n { core::hint::spin_loop(); } }
+
+#[inline]
+pub(crate) fn coop_tick(i: u32) {
+    spin(1);
+    if i & 0xFF == 0 { crate::sched::yield_now(); }
+}
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn yield_mask_hits_every_256_iters() {
+        let mut hits = 0u32;
+        for i in 0..1024u32 {
+            if i & 0xFF == 0 { hits += 1; }
+        }
+        assert_eq!(hits, 4);
+    }
+}
