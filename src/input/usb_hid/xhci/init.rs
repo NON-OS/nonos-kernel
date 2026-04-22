@@ -20,7 +20,7 @@ use crate::sys::serial;
 use super::consts::*;
 use super::structures::{DCBAA, ERST, SCRATCHPAD_ARRAY, SCRATCHPAD_PAGES};
 use super::state::{XHCI_BAR, XHCI_OP, XHCI_DB, XHCI_RT, MAX_PORTS};
-use super::low_level::{mr32, mw32, mw64, spin};
+use super::low_level::{mr32, mw32, mw64, spin, coop_tick};
 use super::ports::scan_ports;
 use crate::input::usb_hid::ring::{CMD_RING, EVENT_RING};
 
@@ -82,16 +82,16 @@ pub fn init_xhci(bar: u64) -> bool {
 unsafe fn stop_and_reset(op: u64) -> bool {
     if (mr32(op + XHCI_OP_USBCMD) & USBCMD_RS) != 0 {
         mw32(op + XHCI_OP_USBCMD, mr32(op + XHCI_OP_USBCMD) & !USBCMD_RS);
-        for _ in 0..100_000 {
+        for i in 0..100_000u32 {
             if (mr32(op + XHCI_OP_USBSTS) & USBSTS_HCH) != 0 { break; }
-            spin(1);
+            coop_tick(i);
         }
     }
     mw32(op + XHCI_OP_USBCMD, USBCMD_HCRST);
-    for _ in 0..1_000_000 {
+    for i in 0..1_000_000u32 {
         if (mr32(op + XHCI_OP_USBCMD) & USBCMD_HCRST) == 0
            && (mr32(op + XHCI_OP_USBSTS) & USBSTS_CNR) == 0 { break; }
-        spin(1);
+        coop_tick(i);
     }
     if (mr32(op + XHCI_OP_USBSTS) & USBSTS_CNR) != 0 {
         serial::println(b"[USB] Reset fail");

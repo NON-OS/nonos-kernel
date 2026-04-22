@@ -18,7 +18,7 @@
 
 use core::ptr::addr_of_mut;
 use core::sync::atomic::{AtomicBool, AtomicU8, Ordering};
-use super::xhci::{XHCI_DB, XHCI_RT, XHCI_RT_ERDP, mw32, mw64, spin, TRB_CYCLE};
+use super::xhci::{XHCI_DB, XHCI_RT, XHCI_RT_ERDP, mw32, mw64, coop_tick, TRB_CYCLE};
 
 // xHCI Link TRB (type 6) — placed at ring slot 255 so the controller wraps back
 // to slot 0 instead of stalling on a zero-filled entry.
@@ -131,7 +131,7 @@ pub fn ring_db(slot: u8, ep: u8) {
 pub fn wait_event(timeout: u32) -> Option<(u8, u32, u32)> {
     let rt = XHCI_RT.load(Ordering::Relaxed);
 
-    for _ in 0..timeout {
+    for i in 0..timeout {
         let ei = EVT_RING_IDX.load(Ordering::Relaxed) as usize;
         let ec = EVT_RING_CYC.load(Ordering::Relaxed);
         // SAFETY: Hardware-synchronized event ring access, protected by cycle bit
@@ -153,7 +153,7 @@ pub fn wait_event(timeout: u32) -> Option<(u8, u32, u32)> {
                 return Some((trb_type, cc, t3));
             }
         }
-        spin(1);
+        coop_tick(i);
     }
     None
 }
