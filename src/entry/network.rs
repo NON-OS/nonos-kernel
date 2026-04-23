@@ -13,6 +13,8 @@
 
 use crate::sys::serial;
 
+const ENABLE_NET_XHCI: bool = false;
+
 pub fn init_network() {
     serial::println(b"[NET] Initializing network...");
     crate::network::init_network_stack();
@@ -25,6 +27,10 @@ pub fn init_network() {
 }
 
 fn init_usb_networking() {
+    if !ENABLE_NET_XHCI {
+        serial::println(b"[NET] usb_eth=skipped(owner=hid)");
+        return;
+    }
     serial::println(b"[NET] Initializing USB...");
     match crate::drivers::xhci::init_xhci() {
         Ok(_) => {
