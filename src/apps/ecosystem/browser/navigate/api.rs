@@ -116,12 +116,19 @@ fn navigate_core(url: &str) {
     *HTTPS_TLS.lock() = None;
     HTTPS_CONN_ID.store(0, Ordering::Relaxed);
 
+    let net_ready = crate::network::stack::is_network_available()
+        && crate::network::stack::get_current_ipv4()
+            .map(|(ip, _)| ip != [0, 0, 0, 0] && ip[0] != 127)
+            .unwrap_or(false);
+    if !net_ready {
+        *NAV_ERROR.lock() = Some("network not ready");
+        set_state(NavState::Error);
+        return;
+    }
+
     if let Err(e) = dns_start_query(&parts.host) {
         *NAV_ERROR.lock() = Some(e);
         set_state(NavState::Error);
-        window_state::set_error("DNS lookup failed");
-        window_state::LOADING.store(false, Ordering::Relaxed);
-        window_state::mark_content_changed();
         return;
     }
 
@@ -196,6 +203,13 @@ pub fn poll_navigation() {
                     "no dns records" => "Domain not found",
                     "http timeout" => "Request timed out",
                     "no network" => "No network connection",
+                    "network not ready" => "Network not ready (waiting for DHCP)",
+                    "no network stack" => "Network not ready (waiting for DHCP)",
+                    "no ipv4 address" => "Network not ready (waiting for DHCP)",
+                    "no routable ip" => "Network not ready (waiting for DHCP)",
+                    "dns query already in progress" => "DNS busy, retry",
+                    "dns bind failed" => "DNS socket error",
+                    "dns send failed" => "DNS send failed (network down)",
                     "TLS handshake failed" => "TLS/SSL error",
                     "TCP connect failed" => "Connection refused",
                     _ => e,
@@ -303,5 +317,24 @@ fn poll_load_images() {
     if PENDING_IMAGES.lock().is_empty() {
         crate::sys::serial::println(b"[NAV] async image loading done");
         set_state(NavState::Done);
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::graphics::window::ecosystem::state as window_state;
+
+    #[test]
+    fn navigate_without_network_yields_friendly_error() {
+        set_state(NavState::Idle);
+        window_state::clear_error();
+
+        navigate("http://example.com");
+        poll_navigation();
+
+        let err = window_state::get_error();
+        assert_eq!(err.as_deref(), Some("Network not ready (waiting for DHCP)"));
+        assert_eq!(get_state(), NavState::Idle);
     }
 }
