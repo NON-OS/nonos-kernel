@@ -20,19 +20,27 @@ use super::{grid, menubar, sidebar, dock, desktop_icons};
 pub fn draw_all() {
     let (w, h) = dimensions();
 
+    crate::sys::serial::println(b"[DRAW] wallpaper");
     if let Some(wallpaper) = crate::graphics::backgrounds::wallpaper::load_current_wallpaper() {
         crate::graphics::image::draw_wallpaper(wallpaper, w, h);
     } else {
         fill_rect(0, 0, w, h, COLOR_BG);
         grid::draw(w, h);
     }
+    crate::sys::serial::println(b"[DRAW] icons");
     desktop_icons::draw(w, h);
+    crate::sys::serial::println(b"[DRAW] windows");
     crate::graphics::window::draw_all();
+    crate::sys::serial::println(b"[DRAW] menubar");
     menubar::draw(w);
+    crate::sys::serial::println(b"[DRAW] sidebar");
     sidebar::draw(h);
+    crate::sys::serial::println(b"[DRAW] dock");
     dock::draw(w, h);
+    crate::sys::serial::println(b"[DRAW] cursor");
     let (mx, my) = crate::input::mouse_position_unified();
     crate::graphics::cursor::draw(mx as i32, my as i32);
+    crate::sys::serial::println(b"[DRAW] done");
 }
 
 pub fn handle_menu_bar_click(mx: i32, my: i32) -> bool {
