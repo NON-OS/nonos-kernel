@@ -17,7 +17,7 @@
 use crate::network::onion::OnionError;
 use crate::network::onion::nonos_crypto::{X509Certificate, verify_signature_with_spki_der};
 use crate::sys::serial;
-use super::lookup::find_roots_by_subject_dn;
+use super::lookup::{find_roots_by_subject_dn, find_roots_by_ski};
 use super::super::types::TrustedRootCa;
 use alloc::vec::Vec;
 
@@ -58,6 +58,28 @@ pub fn verify_chain_to_root(chain: &[X509Certificate]) -> Result<&'static Truste
         }
         serial::println(b"[CERT] DN candidates found but signature verification failed");
     }
-    serial::println(b"[CERT] chain-to-root: no trusted root found");
+    if let Some(ref aki) = verify_cert.extensions.authority_key_id {
+        serial::print(b"[CERT] no DN match, trying AKI fallback aki_len=");
+        serial::print_dec(aki.len() as u64);
+        serial::println(b"");
+        let aki_candidates = find_roots_by_ski(aki.as_slice());
+        if !aki_candidates.is_empty() {
+            serial::print(b"[CERT] AKI fallback found ");
+            serial::print_dec(aki_candidates.len() as u64);
+            serial::println(b" roots by SKI");
+            for root in &aki_candidates {
+                if verify_signature_with_spki_der(verify_cert, root.spki_der).is_ok() {
+                    serial::print(b"[CERT] chain-to-root verified (AKI): ");
+                    let name_bytes = root.name.as_bytes();
+                    serial::print(&name_bytes[..name_bytes.len().min(40)]);
+                    serial::println(b"");
+                    return Ok(root);
+                }
+            }
+        }
+    }
+    serial::print(b"[CERT] chain-to-root: no trusted root found, issuer_dn_len=");
+    serial::print_dec(verify_cert.issuer_der.len() as u64);
+    serial::println(b"");
     Err(OnionError::CertificateError)
 }
