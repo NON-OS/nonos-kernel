@@ -116,11 +116,18 @@ fn navigate_core(url: &str) {
     *HTTPS_TLS.lock() = None;
     HTTPS_CONN_ID.store(0, Ordering::Relaxed);
 
-    let net_ready = crate::network::stack::is_network_available()
-        && crate::network::stack::get_current_ipv4()
+    let dev_present = crate::network::stack::is_network_available();
+    let ipv4 = crate::network::stack::get_current_ipv4();
+    let net_ready = dev_present
+        && ipv4
             .map(|(ip, _)| ip != [0, 0, 0, 0] && ip[0] != 127)
             .unwrap_or(false);
     if !net_ready {
+        let mut buf = [0u8; 64];
+        let (a, b, c, d) = ipv4.map(|(ip, _)| (ip[0], ip[1], ip[2], ip[3])).unwrap_or((0, 0, 0, 0));
+        let dev_byte = if dev_present { b'1' } else { b'0' };
+        let n = nav_diag_format(&mut buf, dev_byte, a, b, c, d);
+        crate::sys::serial::println(&buf[..n]);
         *NAV_ERROR.lock() = Some("network not ready");
         set_state(NavState::Error);
         return;
@@ -134,6 +141,31 @@ fn navigate_core(url: &str) {
     }
 
     set_state(NavState::ResolvingDns);
+}
+
+fn nav_diag_format(buf: &mut [u8], dev: u8, a: u8, b: u8, c: u8, d: u8) -> usize {
+    let prefix = b"[NAV] gate fail dev=";
+    let mut n = 0;
+    for &x in prefix { buf[n] = x; n += 1; }
+    buf[n] = dev; n += 1;
+    for &x in b" ip=" { buf[n] = x; n += 1; }
+    n += write_u8_dec(&mut buf[n..], a);
+    buf[n] = b'.'; n += 1;
+    n += write_u8_dec(&mut buf[n..], b);
+    buf[n] = b'.'; n += 1;
+    n += write_u8_dec(&mut buf[n..], c);
+    buf[n] = b'.'; n += 1;
+    n += write_u8_dec(&mut buf[n..], d);
+    n
+}
+
+fn write_u8_dec(buf: &mut [u8], mut v: u8) -> usize {
+    if v == 0 { buf[0] = b'0'; return 1; }
+    let mut tmp = [0u8; 3];
+    let mut i = 0;
+    while v > 0 { tmp[i] = b'0' + (v % 10); v /= 10; i += 1; }
+    for j in 0..i { buf[j] = tmp[i - 1 - j]; }
+    i
 }
 
 static POLL_DBG_CTR: core::sync::atomic::AtomicU32 = core::sync::atomic::AtomicU32::new(0);
