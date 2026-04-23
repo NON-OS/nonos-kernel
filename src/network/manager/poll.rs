@@ -46,7 +46,22 @@ pub fn poll_network() {
 }
 
 pub fn network_tick() {
-    NET_POLL_COUNTER.fetch_add(1, Ordering::Relaxed);
+    let count = NET_POLL_COUNTER.fetch_add(1, Ordering::Relaxed);
+    if count % 10 != 0 {
+        return;
+    }
+
+    if let Some(dev) = crate::drivers::virtio_net::get_virtio_net_device() {
+        if let Some(g) = dev.try_lock() { g.reclaim_tx(); }
+    }
+
+    crate::drivers::network::e1000::poll();
+    crate::drivers::rtl8139::poll();
+    crate::drivers::rtl8168::poll();
+
+    if let Some(stack) = get_network_stack() {
+        let _ = stack.try_poll_interface();
+    }
 }
 
 pub fn get_poll_count() -> u64 {
