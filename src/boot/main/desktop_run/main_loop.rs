@@ -25,6 +25,8 @@ static ICONS_REFRESHED: AtomicBool = AtomicBool::new(false);
 static WALLPAPER_LOADED: AtomicBool = AtomicBool::new(false);
 static BOOT_TIME: AtomicU64 = AtomicU64::new(0);
 static INPUT_DIAG_DONE: AtomicBool = AtomicBool::new(false);
+static NET_READY_LOGGED: AtomicBool = AtomicBool::new(false);
+static FRAME_COUNT: AtomicU64 = AtomicU64::new(0);
 
 pub fn run_desktop() -> ! {
     let (mut old_mx, mut old_my) = input::mouse_position_unified();
@@ -55,11 +57,20 @@ pub fn run_desktop() -> ! {
         // network locks (virtio_net, iface, sockets).
         {
             use crate::arch::x86_64::idt::{are_enabled, disable, enable};
-            let was = are_enabled();
-            disable();
-            crate::network::poll_network();
-            crate::apps::ecosystem::browser::poll_navigation();
-            if was { enable(); }
+            let frame = FRAME_COUNT.fetch_add(1, Ordering::Relaxed);
+            if crate::network::stack::is_network_available() {
+                if !NET_READY_LOGGED.swap(true, Ordering::SeqCst) {
+                    use crate::sys::serial;
+                    serial::print(b"[DIAG] net_ready frame=");
+                    serial::print_dec(frame);
+                    serial::println(b"");
+                }
+                let was = are_enabled();
+                disable();
+                crate::network::poll_network();
+                crate::apps::ecosystem::browser::poll_navigation();
+                if was { enable(); }
+            }
         }
         check_redraws();
         deferred_icon_refresh();
