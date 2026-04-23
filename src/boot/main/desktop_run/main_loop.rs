@@ -68,9 +68,9 @@ pub fn run_desktop() -> ! {
                 let was = are_enabled();
                 disable();
                 crate::network::poll_network();
-                crate::apps::ecosystem::browser::poll_navigation();
                 if was { enable(); }
             }
+            crate::apps::ecosystem::browser::poll_navigation();
         }
         check_redraws();
         deferred_icon_refresh();

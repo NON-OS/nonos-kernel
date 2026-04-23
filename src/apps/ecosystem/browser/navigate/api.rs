@@ -140,7 +140,6 @@ static POLL_DBG_CTR: core::sync::atomic::AtomicU32 = core::sync::atomic::AtomicU
 pub fn poll_navigation() {
     let state = get_state();
 
-    // Print state once per ~5000 polls to avoid serial flood
     let ctr = POLL_DBG_CTR.fetch_add(1, core::sync::atomic::Ordering::Relaxed);
     if ctr % 5000 == 0 && state != NavState::Idle && state != NavState::Done {
         crate::sys::serial::print(b"[NAV] state=");
@@ -149,6 +148,8 @@ pub fn poll_navigation() {
         crate::sys::serial::print_dec(crate::time::timestamp_millis());
         crate::sys::serial::println(b"");
     }
+
+    let poll_start = crate::time::timestamp_millis();
 
     match state {
         NavState::Idle | NavState::Done => {}
@@ -220,6 +221,15 @@ pub fn poll_navigation() {
             window_state::mark_content_changed();
             set_state(NavState::Idle);
         }
+    }
+
+    let poll_elapsed = crate::time::timestamp_millis().saturating_sub(poll_start);
+    if poll_elapsed > 250 {
+        crate::sys::serial::print(b"[NAV] WARN slow poll ms=");
+        crate::sys::serial::print_dec(poll_elapsed);
+        crate::sys::serial::print(b" state=");
+        crate::sys::serial::print_dec(state as u8 as u64);
+        crate::sys::serial::println(b"");
     }
 }
 
