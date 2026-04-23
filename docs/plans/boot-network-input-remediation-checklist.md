@@ -24,10 +24,10 @@ Base: `main`
 - [x] Compile-check passes
 
 ### P3 — Single xHCI owner
-- [ ] Introduce `ENABLE_NET_XHCI` flag in `entry::network`
-- [ ] Gate `drivers::xhci::init_xhci()` call behind flag (default off)
-- [ ] Emit `[NET] usb_eth=skipped(owner=hid)` when off
-- [ ] Compile-check passes
+- [x] Introduce `ENABLE_NET_XHCI` flag in `entry::network`
+- [x] Gate `drivers::xhci::init_xhci()` call behind flag (default off)
+- [x] Emit `[NET] usb_eth=skipped(owner=hid)` when off
+- [x] Compile-check passes
 
 ### P4 — Phased cooperative init
 - [ ] Input service: phased init (`i2c_hid` → yield → `usb_hid` → yield → endpoint)
@@ -50,8 +50,8 @@ Base: `main`
 - [x] c03: docs(plan): mark P1 done
 - [x] c04: fix(desktop): readiness-gate network poll [P2]
 - [x] c05: docs(plan): mark P2 done
-- [ ] c06: fix(net): gate duplicate xHCI init behind flag [P3]
-- [ ] c07: docs(plan): mark P3 done
+- [x] c06: fix(net): gate duplicate xHCI init behind flag [P3]
+- [x] c07: docs(plan): mark P3 done
 - [ ] c08: refactor(input): phased init with yields [P4a]
 - [ ] c09: refactor(net): phased init with yields [P4b]
 - [ ] c10: docs(plan): mark P4 done
