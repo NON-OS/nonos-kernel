@@ -39,9 +39,13 @@ impl TLSConnection {
         self.alpn_cache = alpn.map(|a| a.iter().map(|s| s.to_string()).collect());
 
         let c = crypto();
+        crate::sys::serial::println(b"[TLS-START] random");
         c.random(&mut self.client_random)?;
+        crate::sys::serial::println(b"[TLS-START] x25519_keypair");
         let (epk_x25519, esk_x25519) = c.x25519_keypair()?;
+        crate::sys::serial::println(b"[TLS-START] p256_keypair");
         let (esk_p256, epk_p256) = c.p256_keypair()?;
+        crate::sys::serial::println(b"[TLS-START] keypairs done");
         self.ephemeral_x25519 = esk_x25519;
         self.ephemeral_p256 = esk_p256;
         let key_shares: &[(u16, &[u8])] = &[(0x001d, &epk_x25519), (0x0017, &epk_p256)];
@@ -81,11 +85,14 @@ impl TLSConnection {
 
             ch_msg
         } else {
+            crate::sys::serial::println(b"[TLS-START] build_client_hello");
             build_client_hello(&self.client_random, sni, alpn, key_shares)
         };
 
+        crate::sys::serial::println(b"[TLS-START] add_handshake + wrap_record");
         self.transcript.add_handshake(&ch);
         write_all(sock, &wrap_record(ContentType::Handshake as u8, TLS_1_2, &ch), 10_000)?;
+        crate::sys::serial::println(b"[TLS-START] write_all done");
         self.phase = HandshakePhase::SentClientHello;
         Ok(())
     }
