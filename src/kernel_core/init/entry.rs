@@ -38,6 +38,8 @@ pub fn microkernel_init(handoff: &BootHandoffV1) {
     crate::process::init_process_management();
     let _ = crate::crypto::util::rng::init_rng();
     crate::crypto::kernel_keys::init();
+    crate::network::stack::init_network_stack();
+    boot_log::ok("NET", "stack created (early)");
     boot_log::ok("NONOS", "Core ready");
 }
 
