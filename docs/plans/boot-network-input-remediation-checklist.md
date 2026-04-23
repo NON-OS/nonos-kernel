@@ -38,10 +38,10 @@ Base: `main`
 - [x] Compile-check passes
 
 ### P5 — DHCP backoff
-- [ ] Replace `for _ in 0..100_000 { spin_loop() }` with `sleep_us` + `yield_now`
-- [ ] Exponential backoff (50ms / 100ms / 200ms cap 1s)
-- [ ] Per-attempt log with timestamp
-- [ ] Compile-check passes
+- [x] Replace `for _ in 0..100_000 { spin_loop() }` with `sleep_us` + `yield_now`
+- [x] Exponential backoff (50ms / 100ms / 200ms cap 1s)
+- [x] Per-attempt log with timestamp
+- [x] Compile-check passes
 
 ## 3. Commit checklist (micro-commits)
 
@@ -55,16 +55,16 @@ Base: `main`
 - [x] c08: refactor(input): phased init with yields [P4a]
 - [x] c09: refactor(net): phased init with yields [P4b]
 - [x] c10: docs(plan): mark P4 done
-- [ ] c11: fix(net): scheduler-friendly DHCP backoff [P5]
-- [ ] c12: docs(plan): mark P5 + DoD done
+- [x] c11: fix(net): scheduler-friendly DHCP backoff [P5]
+- [x] c12: docs(plan): mark P5 + DoD done
 
 ## 4. Validation checklist
 
-- [ ] `cargo fmt` clean
-- [ ] `cargo check --lib --features std --target x86_64-apple-darwin` passes
-- [ ] Grep: no callers of `drivers::xhci::init_xhci` in `entry::network` reachable when flag off
-- [ ] Grep: no `for _ in 0\.\.100_000 \{ core::hint::spin_loop` left in `network/manager`
-- [ ] Grep: `init_network_stack` called from `kernel_core/init/entry.rs`
+- [x] `cargo fmt` clean
+- [x] `cargo check --lib --features std --target x86_64-apple-darwin` passes
+- [x] Grep: no callers of `drivers::xhci::init_xhci` in `entry::network` reachable when flag off
+- [x] Grep: no `for _ in 0\.\.100_000 \{ core::hint::spin_loop` left in `network/manager`
+- [x] Grep: `init_network_stack` called from `kernel_core/init/entry.rs`
 
 ### Required boot log order
 - [ ] `[NONOS] Microkernel init`
@@ -86,9 +86,9 @@ Base: `main`
 
 ## 6. Final DoD checklist
 
-- [ ] Compile-clean across all commits
-- [ ] No raw spin in DHCP retry path
-- [ ] Single xHCI owner reachable
-- [ ] Desktop tolerant of unready network
-- [ ] Net + input service phases logged and yielding
-- [ ] Tracking doc fully checked
+- [x] Compile-clean across all commits
+- [x] No raw spin in DHCP retry path
+- [x] Single xHCI owner reachable
+- [x] Desktop tolerant of unready network
+- [x] Net + input service phases logged and yielding
+- [x] Tracking doc fully checked
