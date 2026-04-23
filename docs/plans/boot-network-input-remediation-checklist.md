@@ -76,6 +76,13 @@ Base: `main`
 - [ ] `[DIAG] net_ready frame=N`
 - [ ] No `[NET] xHCI USB controller ready`
 
+> QEMU TCG boot on this host stalls inside the bootloader's
+> BLAKE3 verify over the 321 MiB attested kernel image
+> (`[CRYPTO] Computing BLAKE3 hash...`) and does not reach
+> kernel entry within a reasonable window from an agent shell.
+> Boot-log order must be verified with an interactive
+> `make run` (accelerated host) or a slimmed attested image.
+
 ## 5. Rollback checklist
 
 - [ ] P1: revert `init_network_stack()` call in `microkernel_init`
