@@ -14,9 +14,9 @@ Base: `main`
 ## 2. Phase checklist (P1–P5)
 
 ### P1 — Early network stack readiness gate
-- [ ] Add `crate::network::stack::init_network_stack()` call in `microkernel_init`
-- [ ] Add `[NET] stack created (early)` boot log marker
-- [ ] Compile-check passes
+- [x] Add `crate::network::stack::init_network_stack()` call in `microkernel_init`
+- [x] Add `[NET] stack created (early)` boot log marker
+- [x] Compile-check passes
 
 ### P2 — Desktop defensive gating
 - [ ] Gate `poll_network` + `browser::poll_navigation` on `is_network_available()`
@@ -45,9 +45,9 @@ Base: `main`
 
 ## 3. Commit checklist (micro-commits)
 
-- [ ] c01: docs(plan): add remediation checklist
-- [ ] c02: fix(boot): early network stack init [P1]
-- [ ] c03: docs(plan): mark P1 done
+- [x] c01: docs(plan): add remediation checklist
+- [x] c02: fix(boot): early network stack init [P1]
+- [x] c03: docs(plan): mark P1 done
 - [ ] c04: fix(desktop): readiness-gate network poll [P2]
 - [ ] c05: docs(plan): mark P2 done
 - [ ] c06: fix(net): gate duplicate xHCI init behind flag [P3]
