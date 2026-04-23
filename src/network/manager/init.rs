@@ -50,8 +50,15 @@ pub fn init() {
                         }
                         Err(_) => {
                             if attempt < 2 {
-                                crate::log::info!("net: DHCP attempt {} failed, retrying...", attempt + 1);
-                                for _ in 0..100_000 { core::hint::spin_loop(); }
+                                let backoff_us = (50_000_u64 << attempt).min(1_000_000);
+                                crate::log::info!(
+                                    "net: dhcp attempt={} backoff_us={} ts={}",
+                                    attempt + 1,
+                                    backoff_us,
+                                    crate::sys::clock::unix_ms()
+                                );
+                                crate::time::sleep_us(backoff_us);
+                                crate::sched::yield_now();
                             }
                         }
                     }
