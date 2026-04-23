@@ -46,10 +46,7 @@ pub fn poll_network() {
 }
 
 pub fn network_tick() {
-    let count = NET_POLL_COUNTER.fetch_add(1, Ordering::Relaxed);
-    if count % 10 == 0 {
-        poll_network();
-    }
+    NET_POLL_COUNTER.fetch_add(1, Ordering::Relaxed);
 }
 
 pub fn get_poll_count() -> u64 {

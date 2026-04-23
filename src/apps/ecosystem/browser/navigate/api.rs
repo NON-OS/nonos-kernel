@@ -126,6 +126,7 @@ fn navigate_core(url: &str) {
         return;
     }
 
+    crate::sys::serial::println(b"[NAV] navigate_core: dns_start_query");
     if let Err(e) = dns_start_query(&parts.host) {
         *NAV_ERROR.lock() = Some(e);
         set_state(NavState::Error);

@@ -52,11 +52,7 @@ pub fn run_desktop() -> ! {
         handle_dialogs();
         desktop_loop::handle_keyboard_input();
         desktop_loop::handle_mouse_input(&mut old_mx, &mut old_my);
-        // Disable interrupts while polling network to prevent deadlock:
-        // the timer ISR calls network_tick() which acquires the same
-        // network locks (virtio_net, iface, sockets).
         {
-            use crate::arch::x86_64::idt::{are_enabled, disable, enable};
             let frame = FRAME_COUNT.fetch_add(1, Ordering::Relaxed);
             if crate::network::stack::is_network_available() {
                 if !NET_READY_LOGGED.swap(true, Ordering::SeqCst) {
@@ -65,10 +61,7 @@ pub fn run_desktop() -> ! {
                     serial::print_dec(frame);
                     serial::println(b"");
                 }
-                let was = are_enabled();
-                disable();
                 crate::network::poll_network();
-                if was { enable(); }
             }
             crate::apps::ecosystem::browser::poll_navigation();
         }
