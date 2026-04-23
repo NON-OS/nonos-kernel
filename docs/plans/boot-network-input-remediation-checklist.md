@@ -19,9 +19,9 @@ Base: `main`
 - [x] Compile-check passes
 
 ### P2 — Desktop defensive gating
-- [ ] Gate `poll_network` + `browser::poll_navigation` on `is_network_available()`
-- [ ] One-shot `[DIAG] net_ready` diagnostic on first ready frame
-- [ ] Compile-check passes
+- [x] Gate `poll_network` + `browser::poll_navigation` on `is_network_available()`
+- [x] One-shot `[DIAG] net_ready` diagnostic on first ready frame
+- [x] Compile-check passes
 
 ### P3 — Single xHCI owner
 - [ ] Introduce `ENABLE_NET_XHCI` flag in `entry::network`
@@ -48,8 +48,8 @@ Base: `main`
 - [x] c01: docs(plan): add remediation checklist
 - [x] c02: fix(boot): early network stack init [P1]
 - [x] c03: docs(plan): mark P1 done
-- [ ] c04: fix(desktop): readiness-gate network poll [P2]
-- [ ] c05: docs(plan): mark P2 done
+- [x] c04: fix(desktop): readiness-gate network poll [P2]
+- [x] c05: docs(plan): mark P2 done
 - [ ] c06: fix(net): gate duplicate xHCI init behind flag [P3]
 - [ ] c07: docs(plan): mark P3 done
 - [ ] c08: refactor(input): phased init with yields [P4a]
