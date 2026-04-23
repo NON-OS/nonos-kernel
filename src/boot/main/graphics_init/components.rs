@@ -42,8 +42,12 @@ pub(super) fn init_desktop() {
     crate::graphics::backgrounds::init_wallpaper_system();
     crate::sys::serial::println(b"[NONOS] Starting desktop");
     crate::sys::apic::setup_timer(100);
+    crate::sys::serial::println(b"[BOOT] timer set, calling draw_all");
     desktop::draw_all();
+    crate::sys::serial::println(b"[BOOT] draw_all done");
     let (mx, my) = input::mouse_position_unified();
     cursor::draw(mx, my);
+    crate::sys::serial::println(b"[BOOT] cursor drawn, swap_buffers");
     framebuffer::swap_buffers();
+    crate::sys::serial::println(b"[BOOT] init_desktop returning");
 }
