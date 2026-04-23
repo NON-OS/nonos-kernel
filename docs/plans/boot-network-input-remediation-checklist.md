@@ -30,12 +30,12 @@ Base: `main`
 - [x] Compile-check passes
 
 ### P4 — Phased cooperative init
-- [ ] Input service: phased init (`i2c_hid` → yield → `usb_hid` → yield → endpoint)
-- [ ] Input service: per-phase log lines
-- [ ] Net service: phased init (`settings` → yield → `manager` → yield → `drivers` → yield → endpoint)
-- [ ] Net service: per-phase log lines
-- [ ] Endpoint registration moved to after last phase
-- [ ] Compile-check passes
+- [x] Input service: phased init (`i2c_hid` → yield → `usb_hid` → yield → endpoint)
+- [x] Input service: per-phase log lines
+- [x] Net service: phased init (`settings` → yield → `manager` → yield → `drivers` → yield → endpoint)
+- [x] Net service: per-phase log lines
+- [x] Endpoint registration moved to after last phase
+- [x] Compile-check passes
 
 ### P5 — DHCP backoff
 - [ ] Replace `for _ in 0..100_000 { spin_loop() }` with `sleep_us` + `yield_now`
@@ -52,9 +52,9 @@ Base: `main`
 - [x] c05: docs(plan): mark P2 done
 - [x] c06: fix(net): gate duplicate xHCI init behind flag [P3]
 - [x] c07: docs(plan): mark P3 done
-- [ ] c08: refactor(input): phased init with yields [P4a]
-- [ ] c09: refactor(net): phased init with yields [P4b]
-- [ ] c10: docs(plan): mark P4 done
+- [x] c08: refactor(input): phased init with yields [P4a]
+- [x] c09: refactor(net): phased init with yields [P4b]
+- [x] c10: docs(plan): mark P4 done
 - [ ] c11: fix(net): scheduler-friendly DHCP backoff [P5]
 - [ ] c12: docs(plan): mark P5 + DoD done
 
