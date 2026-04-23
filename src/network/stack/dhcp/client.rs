@@ -137,6 +137,7 @@ impl NetworkStack {
             }
 
             self.poll();
+            crate::network::manager::poll_network();
 
             if now_ms().saturating_sub(start) > timeout_ms {
                 return Err("dhcp timeout");
