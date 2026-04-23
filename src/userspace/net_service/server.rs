@@ -18,8 +18,9 @@ use super::dispatch::handle_request;
 
 pub fn run_net_service() -> ! {
     init_network_subsystem();
-    crate::sys::boot_log::ok("NETWORK", "Service ready");
     crate::services::registry::register_endpoint_simple("network", 1003, 5);
+    crate::sys::serial::println(b"[NET] phase=ready");
+    crate::sys::boot_log::ok("NETWORK", "Service ready");
 
     loop {
         handle_net_requests();
@@ -30,9 +31,15 @@ pub fn run_net_service() -> ! {
 fn init_network_subsystem() {
     let _ = crate::sys::settings::network::load_from_disk();
     crate::sys::settings::network::init();
+    crate::sys::serial::println(b"[NET] phase=settings done");
+    crate::sched::yield_now();
     crate::network::stack::init_network_stack();
     crate::network::manager::init();
+    crate::sys::serial::println(b"[NET] phase=manager done");
+    crate::sched::yield_now();
     crate::entry::network::init_network();
+    crate::sys::serial::println(b"[NET] phase=drivers done");
+    crate::sched::yield_now();
 }
 
 fn handle_net_requests() {
