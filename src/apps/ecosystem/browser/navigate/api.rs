@@ -128,6 +128,31 @@ fn navigate_core(url: &str) {
         let dev_byte = if dev_present { b'1' } else { b'0' };
         let n = nav_diag_format(&mut buf, dev_byte, a, b, c, d);
         crate::sys::serial::println(&buf[..n]);
+        let e1000_init = crate::drivers::network::e1000::is_initialized();
+        let e1000_pci = crate::drivers::network::e1000::global::find_e1000_device().is_some();
+        let virtio_present = crate::drivers::virtio_net::get_virtio_net_device().is_some();
+        crate::sys::serial::print(b"[NAV] probe e1000_pci=");
+        crate::sys::serial::print_dec(e1000_pci as u64);
+        crate::sys::serial::print(b" e1000_init=");
+        crate::sys::serial::print_dec(e1000_init as u64);
+        crate::sys::serial::print(b" virtio=");
+        crate::sys::serial::print_dec(virtio_present as u64);
+        crate::sys::serial::println(b"");
+        if !e1000_init && e1000_pci {
+            crate::sys::serial::println(b"[NAV] retry: e1000 PCI present but not initialized, calling init now");
+            match crate::drivers::network::e1000::init() {
+                Ok(()) => {
+                    if let Some(dev) = crate::drivers::network::e1000::get_driver() {
+                        crate::network::register_device(dev);
+                        crate::sys::serial::println(b"[NAV] e1000 registered with stack at navigate-time");
+                    }
+                }
+                Err(e) => {
+                    crate::sys::serial::print(b"[NAV] e1000 init failed: ");
+                    crate::sys::serial::println(e.as_bytes());
+                }
+            }
+        }
         *NAV_ERROR.lock() = Some("network not ready");
         set_state(NavState::Error);
         return;
