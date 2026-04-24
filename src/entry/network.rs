@@ -13,18 +13,30 @@
 
 use crate::sys::serial;
 
+const ENABLE_NET_XHCI: bool = false;
+
 pub fn init_network() {
+    serial::println(b"[NET] init_network ENTER");
     serial::println(b"[NET] Initializing network...");
     crate::network::init_network_stack();
     serial::println(b"[NET] Network stack initialized");
     init_usb_networking();
     let (network_ready, is_qemu) = probe_ethernet_devices();
+    serial::print(b"[NET] probe result network_ready=");
+    serial::print_dec(network_ready as u64);
+    serial::print(b" is_qemu=");
+    serial::print_dec(is_qemu as u64);
+    serial::println(b"");
     if network_ready { configure_network(is_qemu); }
     init_wifi();
     if !network_ready && crate::drivers::wifi::init() == 0 { serial::println(b"[NET] Warning: No network interfaces available"); }
 }
 
 fn init_usb_networking() {
+    if !ENABLE_NET_XHCI {
+        serial::println(b"[NET] usb_eth=skipped(owner=hid)");
+        return;
+    }
     serial::println(b"[NET] Initializing USB...");
     match crate::drivers::xhci::init_xhci() {
         Ok(_) => {
@@ -70,6 +82,7 @@ fn probe_ethernet_devices() -> (bool, bool) {
         serial::println(b"[NET] RTL8139 registered with stack");
         return (true, false);
     }
+    serial::println(b"[NET] *** NO NIC FOUND: virtio-net/e1000/rtl8168/rtl8139 all failed PCI probe ***");
     (false, false)
 }
 

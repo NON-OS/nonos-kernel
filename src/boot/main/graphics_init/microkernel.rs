@@ -49,6 +49,7 @@ pub fn init_graphics_for_microkernel() -> bool {
         setup_menu::apply_config(&config);
         crate::sys::serial::println(b"[NONOS] Config applied, starting desktop");
     }
+    crate::entry::network::init_network();
     init_desktop();
     true
 }

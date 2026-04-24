@@ -135,6 +135,24 @@ impl NetworkStack {
     pub(crate) fn poll(&self) {
         self.poll_interface();
     }
+
+    /// Non-blocking variant for timer-IRQ context. Returns false if either
+    /// the iface or sockets lock is contended (desktop thread is mid-poll),
+    /// in which case the caller must skip this tick to avoid deadlock.
+    #[inline]
+    pub fn try_poll_interface(&self) -> bool {
+        let mut iface = match self.iface.try_lock() {
+            Some(g) => g,
+            None => return false,
+        };
+        let mut sockets = match self.sockets.try_lock() {
+            Some(g) => g,
+            None => return false,
+        };
+        let ts = SmolInstant::from_millis(now_ms() as i64);
+        let _ = iface.poll(ts, &mut SmolDeviceAdapter, &mut *sockets);
+        true
+    }
 }
 
 #[cfg(test)]

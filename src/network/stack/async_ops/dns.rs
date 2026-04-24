@@ -79,7 +79,9 @@ pub fn dns_start_query(hostname: &str) -> Result<(), &'static str> {
 
     // Flush the DNS query immediately — mirrors the sync path which calls
     // self.poll() in a tight loop right after enqueuing the query.
+    crate::sys::serial::println(b"[DNS] flushing query via ns.poll()");
     ns.poll();
+    crate::sys::serial::println(b"[DNS] ns.poll() returned, query active");
 
     Ok(())
 }

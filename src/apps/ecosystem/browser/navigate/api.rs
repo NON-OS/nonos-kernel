@@ -116,16 +116,81 @@ fn navigate_core(url: &str) {
     *HTTPS_TLS.lock() = None;
     HTTPS_CONN_ID.store(0, Ordering::Relaxed);
 
+    let dev_present = crate::network::stack::is_network_available();
+    let ipv4 = crate::network::stack::get_current_ipv4();
+    let net_ready = dev_present
+        && ipv4
+            .map(|(ip, _)| ip != [0, 0, 0, 0] && ip[0] != 127)
+            .unwrap_or(false);
+    if !net_ready {
+        let mut buf = [0u8; 64];
+        let (a, b, c, d) = ipv4.map(|(ip, _)| (ip[0], ip[1], ip[2], ip[3])).unwrap_or((0, 0, 0, 0));
+        let dev_byte = if dev_present { b'1' } else { b'0' };
+        let n = nav_diag_format(&mut buf, dev_byte, a, b, c, d);
+        crate::sys::serial::println(&buf[..n]);
+        let e1000_init = crate::drivers::network::e1000::is_initialized();
+        let e1000_pci = crate::drivers::network::e1000::global::find_e1000_device().is_some();
+        let virtio_present = crate::drivers::virtio_net::get_virtio_net_device().is_some();
+        crate::sys::serial::print(b"[NAV] probe e1000_pci=");
+        crate::sys::serial::print_dec(e1000_pci as u64);
+        crate::sys::serial::print(b" e1000_init=");
+        crate::sys::serial::print_dec(e1000_init as u64);
+        crate::sys::serial::print(b" virtio=");
+        crate::sys::serial::print_dec(virtio_present as u64);
+        crate::sys::serial::println(b"");
+        if !e1000_init && e1000_pci {
+            crate::sys::serial::println(b"[NAV] retry: e1000 PCI present but not initialized, calling init now");
+            match crate::drivers::network::e1000::init() {
+                Ok(()) => {
+                    if let Some(dev) = crate::drivers::network::e1000::get_driver() {
+                        crate::network::register_device(dev);
+                        crate::sys::serial::println(b"[NAV] e1000 registered with stack at navigate-time");
+                    }
+                }
+                Err(e) => {
+                    crate::sys::serial::print(b"[NAV] e1000 init failed: ");
+                    crate::sys::serial::println(e.as_bytes());
+                }
+            }
+        }
+        *NAV_ERROR.lock() = Some("network not ready");
+        set_state(NavState::Error);
+        return;
+    }
+
+    crate::sys::serial::println(b"[NAV] navigate_core: dns_start_query");
     if let Err(e) = dns_start_query(&parts.host) {
         *NAV_ERROR.lock() = Some(e);
         set_state(NavState::Error);
-        window_state::set_error("DNS lookup failed");
-        window_state::LOADING.store(false, Ordering::Relaxed);
-        window_state::mark_content_changed();
         return;
     }
 
     set_state(NavState::ResolvingDns);
+}
+
+fn nav_diag_format(buf: &mut [u8], dev: u8, a: u8, b: u8, c: u8, d: u8) -> usize {
+    let prefix = b"[NAV] gate fail dev=";
+    let mut n = 0;
+    for &x in prefix { buf[n] = x; n += 1; }
+    buf[n] = dev; n += 1;
+    for &x in b" ip=" { buf[n] = x; n += 1; }
+    n += write_u8_dec(&mut buf[n..], a);
+    buf[n] = b'.'; n += 1;
+    n += write_u8_dec(&mut buf[n..], b);
+    buf[n] = b'.'; n += 1;
+    n += write_u8_dec(&mut buf[n..], c);
+    buf[n] = b'.'; n += 1;
+    n += write_u8_dec(&mut buf[n..], d);
+    n
+}
+
+fn write_u8_dec(buf: &mut [u8], mut v: u8) -> usize {
+    if v == 0 { buf[0] = b'0'; return 1; }
+    let mut tmp = [0u8; 3];
+    let mut i = 0;
+    while v > 0 { tmp[i] = b'0' + (v % 10); v /= 10; i += 1; }
+    for j in 0..i { buf[j] = tmp[i - 1 - j]; }
+    i
 }
 
 static POLL_DBG_CTR: core::sync::atomic::AtomicU32 = core::sync::atomic::AtomicU32::new(0);
@@ -133,7 +198,6 @@ static POLL_DBG_CTR: core::sync::atomic::AtomicU32 = core::sync::atomic::AtomicU
 pub fn poll_navigation() {
     let state = get_state();
 
-    // Print state once per ~5000 polls to avoid serial flood
     let ctr = POLL_DBG_CTR.fetch_add(1, core::sync::atomic::Ordering::Relaxed);
     if ctr % 5000 == 0 && state != NavState::Idle && state != NavState::Done {
         crate::sys::serial::print(b"[NAV] state=");
@@ -142,6 +206,8 @@ pub fn poll_navigation() {
         crate::sys::serial::print_dec(crate::time::timestamp_millis());
         crate::sys::serial::println(b"");
     }
+
+    let poll_start = crate::time::timestamp_millis();
 
     match state {
         NavState::Idle | NavState::Done => {}
@@ -196,6 +262,13 @@ pub fn poll_navigation() {
                     "no dns records" => "Domain not found",
                     "http timeout" => "Request timed out",
                     "no network" => "No network connection",
+                    "network not ready" => "Network not ready (waiting for DHCP)",
+                    "no network stack" => "Network not ready (waiting for DHCP)",
+                    "no ipv4 address" => "Network not ready (waiting for DHCP)",
+                    "no routable ip" => "Network not ready (waiting for DHCP)",
+                    "dns query already in progress" => "DNS busy, retry",
+                    "dns bind failed" => "DNS socket error",
+                    "dns send failed" => "DNS send failed (network down)",
                     "TLS handshake failed" => "TLS/SSL error",
                     "TCP connect failed" => "Connection refused",
                     _ => e,
@@ -206,6 +279,15 @@ pub fn poll_navigation() {
             window_state::mark_content_changed();
             set_state(NavState::Idle);
         }
+    }
+
+    let poll_elapsed = crate::time::timestamp_millis().saturating_sub(poll_start);
+    if poll_elapsed > 250 {
+        crate::sys::serial::print(b"[NAV] WARN slow poll ms=");
+        crate::sys::serial::print_dec(poll_elapsed);
+        crate::sys::serial::print(b" state=");
+        crate::sys::serial::print_dec(state as u8 as u64);
+        crate::sys::serial::println(b"");
     }
 }
 
@@ -303,5 +385,24 @@ fn poll_load_images() {
     if PENDING_IMAGES.lock().is_empty() {
         crate::sys::serial::println(b"[NAV] async image loading done");
         set_state(NavState::Done);
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::graphics::window::ecosystem::state as window_state;
+
+    #[test]
+    fn navigate_without_network_yields_friendly_error() {
+        set_state(NavState::Idle);
+        window_state::clear_error();
+
+        navigate("http://example.com");
+        poll_navigation();
+
+        let err = window_state::get_error();
+        assert_eq!(err.as_deref(), Some("Network not ready (waiting for DHCP)"));
+        assert_eq!(get_state(), NavState::Idle);
     }
 }

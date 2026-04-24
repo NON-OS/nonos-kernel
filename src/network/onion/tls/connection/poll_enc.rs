@@ -25,19 +25,29 @@ use super::super::io::try_read;
 impl TLSConnection {
     pub(super) fn poll_encrypted(&mut self, sock: &TcpSocket) -> Result<Option<TlsSessionInfo>, OnionError> {
         let mut buf = vec![0u8; 16384];
+        crate::sys::serial::println(b"[TLS-ENC] try_read");
         match try_read(sock, &mut buf) {
             Ok(n) if n > 0 => self.recv_buffer.extend_from_slice(&buf[..n]),
             Ok(_) => if self.recv_buffer.is_empty() { return Ok(None); },
             Err(e) => return Err(e),
         };
+        crate::sys::serial::print(b"[TLS-ENC] buf_len=");
+        crate::sys::serial::print_dec(self.recv_buffer.len() as u64);
+        crate::sys::serial::println(b"");
         let mut offset = 0usize;
         while self.recv_buffer.len() >= offset + 5 {
             let ct = self.recv_buffer[offset];
             let len = u16::from_be_bytes([self.recv_buffer[offset + 3], self.recv_buffer[offset + 4]]) as usize;
             if self.recv_buffer.len() < offset + 5 + len { break; }
             let body = self.recv_buffer[offset + 5..offset + 5 + len].to_vec();
+            crate::sys::serial::print(b"[TLS-ENC] rec ct=");
+            crate::sys::serial::print_dec(ct as u64);
+            crate::sys::serial::print(b" len=");
+            crate::sys::serial::print_dec(len as u64);
+            crate::sys::serial::println(b"");
             match ct {
                 x if x == ContentType::ApplicationData as u8 => {
+                    crate::sys::serial::println(b"[TLS-ENC] AEAD open");
                     let plaintext = match self.rx_hs.open(self.suite, ContentType::ApplicationData, &body) {
                         Ok(p) => p,
                         Err(e) => {
@@ -45,6 +55,9 @@ impl TLSConnection {
                             return Err(e);
                         }
                     };
+                    crate::sys::serial::print(b"[TLS-ENC] AEAD ok pt_len=");
+                    crate::sys::serial::print_dec(plaintext.len() as u64);
+                    crate::sys::serial::println(b"");
                     let (&inner_type, data) = plaintext.split_last().ok_or(OnionError::CryptoError)?;
                     if inner_type == ContentType::Handshake as u8 { self.process_hs(data)?; }
                 }

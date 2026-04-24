@@ -181,6 +181,7 @@ impl TxToken for TxT {
         } else {
             crate::sys::serial::println(b"[NET] TxToken: NO DEVICE!");
         }
+        crate::sys::serial::println(b"[NET] TxToken done");
         res
     }
 }

@@ -20,6 +20,8 @@ use super::types::{TLSConnection, HandshakePhase};
 use super::super::types::TlsSessionInfo;
 use super::super::verify::CertVerifier;
 
+static POLL_LOG_CTR: core::sync::atomic::AtomicU32 = core::sync::atomic::AtomicU32::new(0);
+
 impl TLSConnection {
     pub fn poll_handshake(
         &mut self,
@@ -36,7 +38,12 @@ impl TLSConnection {
             })),
             HandshakePhase::Failed => Err(OnionError::CryptoError),
             HandshakePhase::SentClientHello => {
-                crate::sys::serial::println(b"[TLS] poll: SentClientHello");
+                let n = POLL_LOG_CTR.fetch_add(1, core::sync::atomic::Ordering::Relaxed);
+                if n % 2000 == 0 {
+                    crate::sys::serial::print(b"[TLS] poll: SentClientHello x");
+                    crate::sys::serial::print_dec((n + 1) as u64);
+                    crate::sys::serial::println(b"");
+                }
                 self.poll_server_hello(sock)
             }
             HandshakePhase::ReceivedServerHello => {

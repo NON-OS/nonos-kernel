@@ -25,6 +25,8 @@ static ICONS_REFRESHED: AtomicBool = AtomicBool::new(false);
 static WALLPAPER_LOADED: AtomicBool = AtomicBool::new(false);
 static BOOT_TIME: AtomicU64 = AtomicU64::new(0);
 static INPUT_DIAG_DONE: AtomicBool = AtomicBool::new(false);
+static NET_READY_LOGGED: AtomicBool = AtomicBool::new(false);
+static FRAME_COUNT: AtomicU64 = AtomicU64::new(0);
 
 pub fn run_desktop() -> ! {
     let (mut old_mx, mut old_my) = input::mouse_position_unified();
@@ -50,16 +52,18 @@ pub fn run_desktop() -> ! {
         handle_dialogs();
         desktop_loop::handle_keyboard_input();
         desktop_loop::handle_mouse_input(&mut old_mx, &mut old_my);
-        // Disable interrupts while polling network to prevent deadlock:
-        // the timer ISR calls network_tick() which acquires the same
-        // network locks (virtio_net, iface, sockets).
         {
-            use crate::arch::x86_64::idt::{are_enabled, disable, enable};
-            let was = are_enabled();
-            disable();
-            crate::network::poll_network();
+            let frame = FRAME_COUNT.fetch_add(1, Ordering::Relaxed);
+            if crate::network::stack::is_network_available() {
+                if !NET_READY_LOGGED.swap(true, Ordering::SeqCst) {
+                    use crate::sys::serial;
+                    serial::print(b"[DIAG] net_ready frame=");
+                    serial::print_dec(frame);
+                    serial::println(b"");
+                }
+                crate::network::poll_network();
+            }
             crate::apps::ecosystem::browser::poll_navigation();
-            if was { enable(); }
         }
         check_redraws();
         deferred_icon_refresh();
@@ -72,7 +76,10 @@ pub fn run_desktop() -> ! {
 
 fn check_redraws() {
     if window::settings::take_background_changed() { desktop_loop::set_needs_redraw(); }
-    if window::ecosystem::state::take_content_changed() { desktop_loop::set_needs_redraw(); }
+    if window::ecosystem::state::take_content_changed() {
+        crate::sys::serial::println(b"[UI] content_changed -> redraw");
+        desktop_loop::set_needs_redraw();
+    }
 }
 
 fn deferred_icon_refresh() {
@@ -100,11 +107,15 @@ fn deferred_wallpaper_load() {
 fn do_redraw(mx: &mut i32, my: &mut i32) {
     unsafe {
         if desktop_loop::NEEDS_REDRAW {
+            crate::sys::serial::println(b"[UI] redraw: enter");
             desktop::redraw_background();
+            crate::sys::serial::println(b"[UI] redraw: bg done");
             window::draw_all();
+            crate::sys::serial::println(b"[UI] redraw: windows done");
             window::context_menu::draw();
             cursor::draw(*mx, *my);
             framebuffer::swap_buffers();
+            crate::sys::serial::println(b"[UI] redraw: swap done");
             desktop_loop::NEEDS_REDRAW = false;
         }
     }
