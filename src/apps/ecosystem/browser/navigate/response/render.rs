@@ -60,8 +60,10 @@ pub(super) fn render_page(content_str: &str, url: &str, body: &[u8]) {
 }
 
 fn finalize_render(render_output: engine::RenderOutput, lines: alloc::vec::Vec<String>) {
+    crate::sys::serial::println(b"[NAV] finalize: enter");
     { let mut page_content = window_state::PAGE_CONTENT.lock(); page_content.clear();
         window_state::PAGE_TOTAL_LINES.store(render_output.lines.len(), Ordering::Relaxed); page_content.extend(lines); }
+    crate::sys::serial::println(b"[NAV] finalize: scan images");
     let mut pending = PENDING_IMAGES.lock();
     pending.clear();
     for (line_idx, render_line) in render_output.lines.iter().enumerate() {
@@ -74,6 +76,7 @@ fn finalize_render(render_output: engine::RenderOutput, lines: alloc::vec::Vec<S
     let img_count = pending.len();
     drop(pending);
     if img_count > 0 { crate::sys::serial::print(b"[NAV] queued async images: "); crate::sys::serial::print_dec(img_count as u64); crate::sys::serial::println(b""); }
+    crate::sys::serial::println(b"[NAV] finalize: store PAGE_RENDER");
     { *window_state::PAGE_RENDER.lock() = Some(render_output); }
     window_state::PAGE_SCROLL.store(0, Ordering::Relaxed);
     window_state::LOADING.store(false, Ordering::Relaxed);
@@ -84,4 +87,5 @@ fn finalize_render(render_output: engine::RenderOutput, lines: alloc::vec::Vec<S
     cleanup_navigation();
     if img_count > 0 { crate::apps::ecosystem::browser::navigate::image_fetch::reset(); set_state(NavState::LoadingImages); }
     else { set_state(NavState::Done); }
+    crate::sys::serial::println(b"[NAV] finalize: done");
 }

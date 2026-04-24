@@ -76,7 +76,10 @@ pub fn run_desktop() -> ! {
 
 fn check_redraws() {
     if window::settings::take_background_changed() { desktop_loop::set_needs_redraw(); }
-    if window::ecosystem::state::take_content_changed() { desktop_loop::set_needs_redraw(); }
+    if window::ecosystem::state::take_content_changed() {
+        crate::sys::serial::println(b"[UI] content_changed -> redraw");
+        desktop_loop::set_needs_redraw();
+    }
 }
 
 fn deferred_icon_refresh() {
@@ -104,11 +107,15 @@ fn deferred_wallpaper_load() {
 fn do_redraw(mx: &mut i32, my: &mut i32) {
     unsafe {
         if desktop_loop::NEEDS_REDRAW {
+            crate::sys::serial::println(b"[UI] redraw: enter");
             desktop::redraw_background();
+            crate::sys::serial::println(b"[UI] redraw: bg done");
             window::draw_all();
+            crate::sys::serial::println(b"[UI] redraw: windows done");
             window::context_menu::draw();
             cursor::draw(*mx, *my);
             framebuffer::swap_buffers();
+            crate::sys::serial::println(b"[UI] redraw: swap done");
             desktop_loop::NEEDS_REDRAW = false;
         }
     }

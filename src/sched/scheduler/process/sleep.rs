@@ -15,7 +15,6 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 use alloc::collections::BTreeMap;
-use alloc::vec::Vec;
 use core::sync::atomic::Ordering;
 use super::run_queue::{add_to_run_queue, remove_from_run_queue};
 use super::super::preemption::SCHEDULER_STATS;
@@ -59,12 +58,21 @@ pub fn get_remaining_sleep(pid: u32) -> Option<u64> {
 }
 
 pub fn check_sleeping_processes() {
-    use crate::process::nonos_core::PROCESS_TABLE;
     let current_time_ms = crate::time::timestamp_millis();
-    let pids_to_wake: Vec<u32> = {
+    let mut pids_to_wake = [0u32; 64];
+    let mut count = 0usize;
+    {
         let sleeping = SLEEPING_PROCESSES.read();
-        sleeping.iter().filter(|(_, &wt)| current_time_ms >= wt).map(|(&p, _)| p).collect()
-    };
-    for pid in pids_to_wake { wake_process(pid); }
-    let _ = PROCESS_TABLE.get_all_processes();
+        for (&pid, &wt) in sleeping.iter() {
+            if current_time_ms >= wt {
+                if count < pids_to_wake.len() {
+                    pids_to_wake[count] = pid;
+                    count += 1;
+                }
+            }
+        }
+    }
+    for &pid in &pids_to_wake[..count] {
+        wake_process(pid);
+}
 }

@@ -19,6 +19,9 @@ use crate::network::{get_network_stack, poll_network, tcp::TcpSocket};
 use crate::network::onion::OnionError;
 
 pub(super) fn write_all(sock: &TcpSocket, data: &[u8], timeout_ms: u64) -> Result<(), OnionError> {
+    crate::sys::serial::print(b"[TLS-IO] write_all len=");
+    crate::sys::serial::print_dec(data.len() as u64);
+    crate::sys::serial::println(b"");
     let start = crate::time::timestamp_millis();
     if let Some(net) = get_network_stack() {
         let mut off = 0usize;
