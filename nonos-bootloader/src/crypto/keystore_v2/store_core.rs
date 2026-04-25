@@ -14,21 +14,20 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use spin::Mutex;
-use super::store_core::KeystoreV2;
-use super::types_key::KeyType;
 use super::types_trusted_key::TrustedKey;
+use super::types_consts::MAX_TRUSTED_KEYS;
 
-pub static KEYSTORE_V2: Mutex<KeystoreV2> = Mutex::new(KeystoreV2::new());
-
-include!(concat!(env!("OUT_DIR"), "/keys_generated.rs"));
-
-pub fn init_production_keystore() -> Result<usize, &'static str> {
-    let mut store = KEYSTORE_V2.lock();
-    let primary_key = TrustedKey::new(NONOS_PUBLIC_KEY, KEY_VERSION, BUILD_TIMESTAMP, 0, KeyType::Primary);
-    if primary_key.key_id != NONOS_KEY_ID { return Err("key ID mismatch"); }
-    store.add_key(primary_key)?;
-    Ok(store.key_count)
+pub struct KeystoreV2 {
+    pub(super) keys: [TrustedKey; MAX_TRUSTED_KEYS],
+    pub(super) key_count: usize,
+    pub(super) minimum_version: u32,
+    pub(super) revocations: [[u8; 32]; 16],
+    pub(super) revocation_count: usize,
+    pub(super) require_cosign: bool,
 }
 
-pub fn get_keystore_fingerprint() -> &'static str { KEY_FINGERPRINT }
+impl KeystoreV2 {
+    pub const fn new() -> Self {
+        Self { keys: [TrustedKey::empty(); MAX_TRUSTED_KEYS], key_count: 0, minimum_version: 1, revocations: [[0u8; 32]; 16], revocation_count: 0, require_cosign: false }
+    }
+}

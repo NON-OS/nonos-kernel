@@ -14,21 +14,23 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use spin::Mutex;
+use crate::crypto::keys::KeyId;
 use super::store_core::KeystoreV2;
-use super::types_key::KeyType;
-use super::types_trusted_key::TrustedKey;
+use super::util::constant_time_eq;
 
-pub static KEYSTORE_V2: Mutex<KeystoreV2> = Mutex::new(KeystoreV2::new());
+impl KeystoreV2 {
+    pub fn revoke_key(&mut self, key_id: &KeyId) -> bool {
+        if self.revocation_count >= 16 { return false; }
+        for i in 0..self.key_count { if constant_time_eq(&self.keys[i].key_id, key_id) { self.keys[i].active = false; } }
+        self.revocations[self.revocation_count] = *key_id;
+        self.revocation_count += 1;
+        true
+    }
 
-include!(concat!(env!("OUT_DIR"), "/keys_generated.rs"));
+    pub fn is_revoked(&self, key_id: &KeyId) -> bool {
+        for i in 0..self.revocation_count { if constant_time_eq(&self.revocations[i], key_id) { return true; } }
+        false
+    }
 
-pub fn init_production_keystore() -> Result<usize, &'static str> {
-    let mut store = KEYSTORE_V2.lock();
-    let primary_key = TrustedKey::new(NONOS_PUBLIC_KEY, KEY_VERSION, BUILD_TIMESTAMP, 0, KeyType::Primary);
-    if primary_key.key_id != NONOS_KEY_ID { return Err("key ID mismatch"); }
-    store.add_key(primary_key)?;
-    Ok(store.key_count)
+    pub fn set_minimum_version(&mut self, version: u32) { if version > self.minimum_version { self.minimum_version = version; } }
 }
-
-pub fn get_keystore_fingerprint() -> &'static str { KEY_FINGERPRINT }

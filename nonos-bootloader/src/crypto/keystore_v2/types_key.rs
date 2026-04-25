@@ -14,21 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-use spin::Mutex;
-use super::store_core::KeystoreV2;
-use super::types_key::KeyType;
-use super::types_trusted_key::TrustedKey;
-
-pub static KEYSTORE_V2: Mutex<KeystoreV2> = Mutex::new(KeystoreV2::new());
-
-include!(concat!(env!("OUT_DIR"), "/keys_generated.rs"));
-
-pub fn init_production_keystore() -> Result<usize, &'static str> {
-    let mut store = KEYSTORE_V2.lock();
-    let primary_key = TrustedKey::new(NONOS_PUBLIC_KEY, KEY_VERSION, BUILD_TIMESTAMP, 0, KeyType::Primary);
-    if primary_key.key_id != NONOS_KEY_ID { return Err("key ID mismatch"); }
-    store.add_key(primary_key)?;
-    Ok(store.key_count)
-}
-
-pub fn get_keystore_fingerprint() -> &'static str { KEY_FINGERPRINT }
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[repr(u8)]
+pub enum KeyType { Primary = 0x01, Secondary = 0x02, Emergency = 0x03, PreAuthorized = 0x04 }
