@@ -51,6 +51,7 @@ impl StorageCache {
 
 impl CacheEntry {
     const fn empty() -> Self { Self { firmware_type: FirmwareType::Unknown, storage_offset: 0, compressed_size: 0, original_size: 0, compression_type: CompressionType::None, checksum: 0, valid: false } }
+    pub fn get_compression_ratio(&self) -> f32 { if self.original_size == 0 { 1.0 } else { self.compressed_size as f32 / self.original_size as f32 } }
 }
 
 fn find_empty_slot(storage: &StorageCache) -> Option<usize> { storage.entries.iter().position(|entry| !entry.valid) }
